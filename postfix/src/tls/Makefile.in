@@ -206,6 +206,7 @@ tls_proxy_clnt.o: ../../include/argv.h
 tls_proxy_clnt.o: ../../include/attr.h
 tls_proxy_clnt.o: ../../include/connect.h
 tls_proxy_clnt.o: ../../include/iostuff.h
+tls_proxy_clnt.o: ../../include/mail_params.h
 tls_proxy_clnt.o: ../../include/mail_proto.h
 tls_proxy_clnt.o: ../../include/msg.h
 tls_proxy_clnt.o: ../../include/mymalloc.h

@@ -921,6 +921,8 @@ while (<>) {
     s;\bpostscreen_command_count_limit\b;<a href="postconf.5.html#postscreen_command_count_limit">$&</a>;g;
     s;\bpostscreen_com[-</bB>]*\n* *[<bB>]*mand_time_limit\b;<a href="postconf.5.html#postscreen_command_time_limit">$&</a>;g;
     s;\bsmtpd_service_name\b;<a href="postconf.5.html#smtpd_service_name">$&</a>;g;
+    s;\bdnsblog_service_name\b;<a href="postconf.5.html#dnsblog_service_name">$&</a>;g;
+    s;\btlsproxy_service_name\b;<a href="postconf.5.html#tlsproxy_service_name">$&</a>;g;
     s;\bpostscreen_bare_newline_enable\b;<a href="postconf.5.html#postscreen_bare_newline_enable">$&</a>;g;
     s;\bpostscreen_bare_newline_action\b;<a href="postconf.5.html#postscreen_bare_newline_action">$&</a>;g;
     s;\bpostscreen_bare_newline_ttl\b;<a href="postconf.5.html#postscreen_bare_newline_ttl">$&</a>;g;

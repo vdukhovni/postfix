@@ -2,22 +2,22 @@
 /* NAME
 /*	dnsblog 8
 /* SUMMARY
-/*	Postfix DNS blocklist logger
+/*	Postfix DNS white/blacklist logger
 /* SYNOPSIS
 /*	\fBdnsblog\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBdnsblog\fR(8) server implements an ad-hoc DNS blocklist
-/*	lookup service that will eventually be replaced by an UDP
-/*	client that is built directly into the \fBpostscreen\fR(8)
-/*	server.
+/*	The \fBdnsblog\fR(8) server implements an ad-hoc DNS
+/*	white/blacklist lookup service that will eventually be
+/*	replaced by an UDP client that is built directly into the
+/*	\fBpostscreen\fR(8) server.
 /*
 /*	With each connection, the \fBdnsblog\fR(8) server receives
-/*	a DNS blocklist domain name and an IP address. If the address
-/*	is listed under the DNS blocklist, the \fBdnsblog\fR(8)
-/*	server logs the match and replies with the query arguments
-/*	plus a non-zero status.  Otherwise it replies with the query
-/*	arguments plus a zero status.  Finally, The \fBdnsblog\fR(8)
-/*	server closes the connection.
+/*	a DNS white/blacklist domain name and an IP address. If the
+/*	address is listed under the DNS white/blacklist, the
+/*	\fBdnsblog\fR(8) server logs the match and replies with the
+/*	query arguments plus a non-zero status.  Otherwise it replies
+/*	with the query arguments plus a zero status.  Finally, The
+/*	\fBdnsblog\fR(8) server closes the connection.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* CONFIGURATION PARAMETERS
@@ -37,7 +37,7 @@
 /*	How much time a Postfix daemon process may take to handle a
 /*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-/*	Optional list of DNS blocklist domains, filters and weight
+/*	Optional list of DNS white/blacklist domains, filters and weight
 /*	factors.
 /* .IP "\fBipc_timeout (3600s)\fR"
 /*	The time limit for sending or receiving information over an internal

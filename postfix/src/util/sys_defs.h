@@ -576,6 +576,7 @@ extern int opterr;
 #define BROKEN_AI_PASSIVE_NULL_HOST
 #define BROKEN_AI_NULL_SERVICE
 #define USE_SYSV_POLL
+#define MYMALLOC_FUZZ	1
 #endif
 
 #ifdef AIX4

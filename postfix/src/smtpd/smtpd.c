@@ -1251,6 +1251,11 @@ char   *var_unv_from_tf_act;
 
 int     smtpd_proxy_opts;
 
+#ifdef USE_TLSPROXY
+char   *var_tlsproxy_service;
+
+#endif
+
  /*
   * Silly little macros.
   */
@@ -4165,9 +4170,9 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 #define PROXY_OPEN_FLAGS \
 	(TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
 
-    state->tlsproxy = tls_proxy_open(PROXY_OPEN_FLAGS, state->client,
-				     state->addr, state->port,
-				     var_smtpd_tmout);
+    state->tlsproxy = tls_proxy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
+				     state->client, state->addr,
+				     state->port, var_smtpd_tmout);
     if (state->tlsproxy == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	/* RFC 4954 Section 6. */
@@ -4374,9 +4379,10 @@ static void smtpd_proto(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
 #ifdef USE_TLSPROXY
 	    /* We garbage-collect the VSTREAM in smtpd_state_reset() */
-	    state->tlsproxy = tls_proxy_open(PROXY_OPEN_FLAGS, state->client,
-					     state->addr, state->port,
-					     var_smtpd_tmout);
+	    state->tlsproxy = tls_proxy_open(var_tlsproxy_service,
+					     PROXY_OPEN_FLAGS,
+					     state->client, state->addr,
+					     state->port, var_smtpd_tmout);
 	    if (state->tlsproxy == 0) {
 		msg_warn("Wrapper-mode request dropped from %s for service %s."
 		       " TLS context initialization failed. For details see"
@@ -5242,6 +5248,9 @@ int     main(int argc, char **argv)
 	VAR_UNV_RCPT_TF_ACT, DEF_UNV_RCPT_TF_ACT, &var_unv_rcpt_tf_act, 1, 0,
 	VAR_UNV_FROM_TF_ACT, DEF_UNV_FROM_TF_ACT, &var_unv_from_tf_act, 1, 0,
 	VAR_SMTPD_CMD_FILTER, DEF_SMTPD_CMD_FILTER, &var_smtpd_cmd_filter, 0, 0,
+#ifdef USE_TLSPROXY
+	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
+#endif
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

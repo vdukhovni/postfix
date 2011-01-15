@@ -32,8 +32,8 @@
 #define MAIL_PROTO_QMQP		"QMQP"
 
  /*
-  * Names of services: these are the names if INET ports, UNIX-domain sockets
-  * or FIFOs that a service listens on.
+  * Names of services: these are the names of the UNIX-domain socket or or
+  * FIFO that a service listens on.
   */
 #define MAIL_SERVICE_BOUNCE	"bounce"
 #define MAIL_SERVICE_CLEANUP	"cleanup"
@@ -58,6 +58,8 @@
 #define MAIL_SERVICE_PROXYMAP	"proxymap"
 #define MAIL_SERVICE_PROXYWRITE	"proxywrite"
 #define MAIL_SERVICE_SCACHE	"scache"
+#define MAIL_SERVICE_DNSBLOG	"dnsblog"
+#define MAIL_SERVICE_TLSPROXY	"tlsproxy"
 
  /*
   * Well-known socket or FIFO directories. The main difference is in file
@@ -238,7 +240,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_DSN_ORCPT	"dsn_orig_rcpt"	/* dsn original recipient */
 
  /*
-  * PROXY support.
+  * TLSPROXY support.
   */
 #define MAIL_ATTR_REMOTE_ENDPT	"remote_endpoint"	/* name[addr]:port */
 #define MAIL_ATTR_ROLE		"role"	/* requested role */
@@ -249,10 +251,10 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ISSUER_CN	"issuer_CN"
 #define MAIL_ATTR_PEER_FPT	"peer_fingerprint"
 #define MAIL_ATTR_PEER_STATUS	"peer_status"
-#define MAIL_ATTR_CIPHER_PROTOCOL	"cipher_protocol"
+#define MAIL_ATTR_CIPHER_PROTOCOL "cipher_protocol"
 #define MAIL_ATTR_CIPHER_NAME	"cipher_name"
-#define MAIL_ATTR_CIPHER_USEBITS	"cipher_usebits"
-#define MAIL_ATTR_CIPHER_ALGBITS	"cipher_algbits"
+#define MAIL_ATTR_CIPHER_USEBITS "cipher_usebits"
+#define MAIL_ATTR_CIPHER_ALGBITS "cipher_algbits"
 
  /*
   * SMTP reply footer support.

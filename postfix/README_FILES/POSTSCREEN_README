@@ -473,6 +473,7 @@ postscreen(8) has been tested on FreeBSD [4-8], Linux 2.[4-6] and Solaris 9
 systems.
 
   * Turning on postscreen(8) without blocking mail
+  * postscreen(8) TLS configuration
   * Blocking mail with postscreen(8)
   * Turning off postscreen(8)
 
@@ -554,6 +555,23 @@ Notes:
   * If you run Postfix 2.6 or earlier you must stop and start the master daemon
     ("postfix stop; postfix start"). This is needed because the Postfix "pass"
     master service type did not work reliably on all systems.
+
+ppoossttssccrreeeenn((88)) TTLLSS ccoonnffiigguurraattiioonn
+
+postscreen(8) TLS support is available for remote SMTP clients that aren't
+whitelisted, including clients that need to renew their temporary whitelist
+status. When a remote SMTP client requests TLS service, postscreen(8) invisibly
+hands off the connection to a tlsproxy(8) process. Then, tlsproxy(8) encrypts
+and decrypts the traffic between postscreen(8) and the remote SMTP client. One
+tlsproxy(8) process can handle multiple SMTP sessions. The number of tlsproxy
+(8) processes slowly increases with server load, but it should always be much
+smaller than the number of postscreen(8) TLS sessions.
+
+TLS support for postscreen(8) and tlsproxy(8) uses the same parameters as with
+smtpd(8). We recommend that you keep the relevant configuration parameters in
+main.cf. If you must specify "-o smtpd_mumble=value" parameter overrides in
+master.cf for a postscreen-protected smtpd(8) service, then you should specify
+those same parameter overrides for the postscreen(8) and tlsproxy(8) services.
 
 BBlloocckkiinngg mmaaiill wwiitthh ppoossttssccrreeeenn((88))
 

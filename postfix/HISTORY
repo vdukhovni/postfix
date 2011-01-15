@@ -16441,3 +16441,19 @@ Apologies for any names omitted.
 	that temporarily switch control to an external program such
 	as tlsproxy, or perhaps a future policy plugin.  Files:
 	postscreen/postscreen_smtpd, postscreen/postscreen_starttls.c.
+
+20110113
+
+	Cleanup: ps_cache and psc_cache are now postscreen_cache.
+	There is no need for obscure name abbrevations. File:
+	src/global/mail_params.h.
+
+20110115
+
+	Workaround: malloc fuzz (safety margin for malloc requests).
+	Files: util/sys_defs.h, util/mymalloc.c.
+
+	Cleanup: dnsblog_service_name and tlsproxy_service_name are
+	now configurable, in case someone needs this. Files:
+	global/mail_params.h, postscreen/postscreen.c, mantools/postlink,
+	proto/postconf.proto.

@@ -120,6 +120,8 @@
 /* BEFORE-GREETING TRIAGE
 /* .ad
 /* .fi
+/* .IP "\fBdnsblog_service_name (dnsblog)\fR"
+/*	The name of the \fBdnsblog\fR(8) service entry in master.cf.
 /* .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
 /*	Permanent white/blacklist for remote SMTP client IP addresses;
 /*	\fBpostscreen\fR(8) searches this list immediately after a remote SMTP
@@ -141,7 +143,7 @@
 /*	password, to the DNSBL domain name that postscreen will reply with
 /*	when it rejects mail.
 /* .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-/*	Optional list of DNS blocklist domains, filters and weight
+/*	Optional list of DNS white/blacklist domains, filters and weight
 /*	factors.
 /* .IP "\fBpostscreen_dnsbl_threshold (1)\fR"
 /*	The inclusive lower bound for blocking an SMTP client, based on
@@ -204,7 +206,7 @@
 /* .fi
 /* .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
 /*	The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
-/* .IP "\fBpostscreen_cache_map (btree:$data_directory/ps_cache)\fR"
+/* .IP "\fBpostscreen_cache_map (btree:$data_directory/postscreen_cache)\fR"
 /*	Persistent storage for the \fBpostscreen\fR(8) server decisions.
 /* .IP "\fBpostscreen_cache_retention_time (7d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will cache an expired
@@ -257,6 +259,8 @@
 /*	The SMTP TLS security level for the \fBpostscreen\fR(8) server; when
 /*	a non-empty value is specified, this overrides the obsolete parameters
 /*	postscreen_use_tls and postscreen_enforce_tls.
+/* .IP "\fBtlsproxy_service_name (tlsproxy)\fR"
+/*	The name of the \fBtlsproxy\fR(8) service entry in master.cf.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -303,7 +307,7 @@
 /* SEE ALSO
 /*	smtpd(8), Postfix SMTP server
 /*	tlsproxy(8), Postfix TLS proxy server
-/*	dnsblog(8), temporary DNS helper
+/*	dnsblog(8), DNS black/whitelist logger
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad
@@ -438,6 +442,9 @@ int     var_psc_barlf_ttl;
 
 int     var_psc_cmd_count;
 char   *var_psc_cmd_time;
+
+char   *var_dnsblog_service;
+char   *var_tlsproxy_service;
 
 char   *var_smtpd_rej_footer;
 char   *var_psc_rej_footer;
@@ -1082,6 +1089,8 @@ int     main(int argc, char **argv)
 	VAR_PSC_DNSBL_REPLY, DEF_PSC_DNSBL_REPLY, &var_psc_dnsbl_reply, 0, 0,
 	VAR_PSC_TLS_LEVEL, DEF_PSC_TLS_LEVEL, &var_psc_tls_level, 0, 0,
 	VAR_PSC_CMD_FILTER, DEF_PSC_CMD_FILTER, &var_psc_cmd_filter, 0, 0,
+	VAR_DNSBLOG_SERVICE, DEF_DNSBLOG_SERVICE, &var_dnsblog_service, 1, 0,
+	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

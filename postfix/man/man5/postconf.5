@@ -1470,6 +1470,11 @@ disable_vrfy_command = no
 A debugging aid to artifically delay DNS responses.
 .PP
 This feature is available in Postfix 2.8.
+.SH dnsblog_service_name (default: dnsblog)
+The name of the \fBdnsblog\fR(8) service entry in master.cf. This
+service performs DNS white/blacklist lookups.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH dont_remove (default: 0)
 Don't remove queue files and save them to the "saved" mail queue.
 This is a debugging aid.  To inspect the envelope information and
@@ -3855,7 +3860,7 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w
 (weeks).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_cache_map (default: btree:$data_directory/ps_cache)
+.SH postscreen_cache_map (default: btree:$data_directory/postscreen_cache)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
 This feature is available in Postfix 2.8.
@@ -3970,11 +3975,11 @@ Example:
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_dnsbl_sites (default: empty)
-Optional list of DNS blocklist domains, filters and weight
+Optional list of DNS white/blacklist domains, filters and weight
 factors. When the list is non-empty, the \fBdnsblog\fR(8) daemon will
-query these domains with the IP addresses of non-whitelisted remote
-SMTP clients, and \fBpostscreen\fR(8) will update an SMTP client's DNSBL
-score with each non-error reply.
+query these domains with the IP addresses of remote SMTP clients,
+and \fBpostscreen\fR(8) will update an SMTP client's DNSBL score with
+each non-error reply.
 .PP
 Caution: when postscreen rejects mail, it replies with the DNSBL
 domain name. Use the postscreen_dnsbl_reply_map feature to hide
@@ -9775,6 +9780,11 @@ This feature is available in Postfix 2.2 and later.
 Mandatory TLS: announce STARTTLS support to SMTP clients, and
 require that clients use TLS encryption. See smtpd_enforce_tls for
 further details.
+.PP
+This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_service_name (default: tlsproxy)
+The name of the \fBtlsproxy\fR(8) service entry in master.cf. This
+service performs plaintext <=> TLS ciphertext conversion.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_CAfile (default: $smtpd_tls_CAfile)

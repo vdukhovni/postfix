@@ -1144,3 +1144,12 @@ texthash
 ul
 whitelisted
 whitelists
+=== proto/POSTSCREEN_README.html ===
+Amavisd
+MUA
+Mailserver
+SpamAssassin
+barracudacentral
+bl
+spamcop
+tlsproxy

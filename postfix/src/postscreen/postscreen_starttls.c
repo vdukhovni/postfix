@@ -49,6 +49,7 @@
 #include <mymalloc.h>
 #include <connect.h>
 #include <stringops.h>			/* concatenate() */
+#include <vstring.h>
 
 /* Global library. */
 
@@ -79,6 +80,8 @@ typedef struct {
 } PSC_STARTTLS;
 
 #define TLSPROXY_INIT_TIMEOUT		10
+
+static char *psc_tlsp_service = 0;
 
 /* psc_starttls_finish - complete negotiation with TLS proxy */
 
@@ -139,7 +142,7 @@ static void psc_starttls_finish(int event, char *context)
 	 */
 	msg_warn("%s sending file handle to %s service",
 		 event == EVENT_TIME ? "timeout" : "problem",
-		 TLSPROXY_SERVICE);
+		 psc_tlsp_service);
 	event_disable_readwrite(vstream_fileno(tlsproxy_stream));
 	vstream_fclose(tlsproxy_stream);
 	PSC_SEND_REPLY(smtp_state,
@@ -184,16 +187,21 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
     const char *myname = "psc_starttls_open";
     PSC_STARTTLS *starttls_state;
     VSTREAM *tlsproxy_stream;
-    char   *remote_endpt;
     int     fd;
+    static VSTRING *remote_endpt = 0;
+
+    if (psc_tlsp_service == 0) {
+	psc_tlsp_service = concatenate(MAIL_CLASS_PRIVATE "/",
+				       var_tlsproxy_service, (char *) 0);
+	remote_endpt = vstring_alloc(20);
+    }
 
     /*
      * Connect to the tlsproxy(8) daemon. We report all errors
      * asynchronously, to avoid having to maintain multiple delivery paths.
      */
-    if ((fd = LOCAL_CONNECT("private/" TLSPROXY_SERVICE,
-			    NON_BLOCKING, 1)) < 0) {
-	msg_warn("connect to %s service: %m", TLSPROXY_SERVICE);
+    if ((fd = LOCAL_CONNECT(psc_tlsp_service, NON_BLOCKING, 1)) < 0) {
+	msg_warn("connect to %s service: %m", psc_tlsp_service);
 	PSC_SEND_REPLY(smtp_state,
 		    "454 4.7.0 TLS not available due to local problem\r\n");
 	event_request_timer(resume_event, (char *) smtp_state, 0);
@@ -215,16 +223,15 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
      * simplify all the format strings throughout the program.
      */
     tlsproxy_stream = vstream_fdopen(fd, O_RDWR);
-    remote_endpt = concatenate("[", smtp_state->smtp_client_addr, "]:",
-			       smtp_state->smtp_client_port, (char *) 0);
+    vstring_sprintf(remote_endpt, "[%s]:%s", smtp_state->smtp_client_addr,
+		    smtp_state->smtp_client_port);
     attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, remote_endpt,
+	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt),
 	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER,
 	       ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, psc_normal_cmd_time_limit,
 	       ATTR_TYPE_END);
-    myfree(remote_endpt);
     if (vstream_fflush(tlsproxy_stream) != 0) {
-	msg_warn("error sending request to %s service: %m", TLSPROXY_SERVICE);
+	msg_warn("error sending request to %s service: %m", psc_tlsp_service);
 	vstream_fclose(tlsproxy_stream);
 	PSC_SEND_REPLY(smtp_state,
 		    "454 4.7.0 TLS not available due to local problem\r\n");

@@ -72,6 +72,7 @@
 #include <valid_hostname.h>
 #include <ip_match.h>
 #include <myaddrinfo.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -82,8 +83,11 @@
 
 #include <postscreen.h>
 
-#define DNSBL_SERVICE			"dnsblog"
+ /*
+  * Talking to the DNSBLOG service.
+  */
 #define DNSBLOG_TIMEOUT			10
+static char *psc_dnsbl_service;
 
  /*
   * Per-DNSBL filters and weights.
@@ -479,8 +483,9 @@ int     psc_dnsbl_request(const char *client_addr,
      * implementation.
      */
     for (ht = dnsbl_site_list; *ht; ht++) {
-	if ((fd = LOCAL_CONNECT("private/" DNSBL_SERVICE, NON_BLOCKING, 1)) < 0) {
-	    msg_warn("%s: connect to " DNSBL_SERVICE " service: %m", myname);
+	if ((fd = LOCAL_CONNECT(psc_dnsbl_service, NON_BLOCKING, 1)) < 0) {
+	    msg_warn("%s: connect to %s service: %m",
+		     myname, psc_dnsbl_service);
 	    continue;
 	}
 	stream = vstream_fdopen(fd, O_RDWR);
@@ -489,7 +494,8 @@ int     psc_dnsbl_request(const char *client_addr,
 		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, client_addr,
 		   ATTR_TYPE_END);
 	if (vstream_fflush(stream) != 0) {
-	    msg_warn("%s: error sending to " DNSBL_SERVICE " service: %m", myname);
+	    msg_warn("%s: error sending to %s service: %m",
+		     myname, psc_dnsbl_service);
 	    vstream_fclose(stream);
 	    continue;
 	}
@@ -513,6 +519,12 @@ void    psc_dnsbl_init(void)
      */
     if (dnsbl_site_cache != 0)
 	msg_panic("%s: called more than once", myname);
+
+    /*
+     * pre-compute the DNSBLOG socket name.
+     */
+    psc_dnsbl_service = concatenate(MAIL_CLASS_PRIVATE, "/",
+				    var_dnsblog_service, (char *) 0);
 
     /*
      * Prepare for quick iteration when sending out queries to all DNSBL

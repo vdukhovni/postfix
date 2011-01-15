@@ -3260,10 +3260,10 @@ extern char *var_multi_cntrl_cmds;
   * postscreen(8)
   */
 #define VAR_PSC_CACHE_MAP	"postscreen_cache_map"
-#define DEF_PSC_CACHE_MAP	"btree:$data_directory/psc_cache"
+#define DEF_PSC_CACHE_MAP	"btree:$data_directory/postscreen_cache"
 extern char *var_psc_cache_map;
 
-#define VAR_SMTPD_SERVICE	"smtpd_service"
+#define VAR_SMTPD_SERVICE	"smtpd_service_name"
 #define DEF_SMTPD_SERVICE	"smtpd"
 extern char *var_smtpd_service;
 
@@ -3445,9 +3445,17 @@ extern char *var_psc_cmd_filter;
 #define DEF_PSC_ACL		PSC_ACL_NAME_WL_MYNETWORKS
 extern char *var_psc_acl;
 
+#define VAR_DNSBLOG_SERVICE	"dnsblog_service_name"
+#define DEF_DNSBLOG_SERVICE	MAIL_SERVICE_DNSBLOG
+extern char *var_dnsblog_service;
+
 #define VAR_DNSBLOG_DELAY	"dnsblog_reply_delay"
 #define DEF_DNSBLOG_DELAY	"0s"
 extern int var_dnsblog_delay;
+
+#define VAR_TLSPROXY_SERVICE	"tlsproxy_service_name"
+#define DEF_TLSPROXY_SERVICE	MAIL_SERVICE_TLSPROXY
+extern char *var_tlsproxy_service;
 
 #define VAR_TLSP_WATCHDOG	"tlsproxy_watchdog_timeout"
 #define DEF_TLSP_WATCHDOG	"10s"

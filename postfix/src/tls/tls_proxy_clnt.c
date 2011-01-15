@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include <tlsproxy_clnt.h>
 /*
-/*	VSTREAM *tls_proxy_open(flags, peer_stream, peer_addr,
+/*	VSTREAM *tls_proxy_open(service, flags, peer_stream, peer_addr,
 /*			          peer_port, timeout)
+/*	const char *service;
 /*	int	flags;
 /*	VSTREAM *peer_stream;
 /*	const char *peer_addr;
@@ -47,6 +48,8 @@
 /*	was received with tls_proxy_context_receive().
 /*
 /*	Arguments:
+/* .IP service
+/*	The (base) name of the tlsproxy service.
 /* .IP flags
 /*	Bit-wise OR of:
 /* .RS
@@ -91,11 +94,13 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <connect.h>
-#include <stringops.h>			/* concatenate() */
+#include <stringops.h>
+#include <vstring.h>
 
 /* Global library. */
 
 #include <mail_proto.h>
+#include <mail_params.h>
 
 /* TLS library-specific. */
 
@@ -104,25 +109,39 @@
 
 #define TLSPROXY_INIT_TIMEOUT		10
 
+/* SLMs. */
+
+#define STR	vstring_str
+
 /* tls_proxy_open - open negotiations with TLS proxy */
 
-VSTREAM *tls_proxy_open(int flags, VSTREAM *peer_stream,
-		               const char *peer_addr,
-		               const char *peer_port,
-		               int timeout)
+VSTREAM *tls_proxy_open(const char *service, int flags,
+			        VSTREAM *peer_stream,
+			        const char *peer_addr,
+			        const char *peer_port,
+			        int timeout)
 {
     VSTREAM *tlsproxy_stream;
-    char   *remote_endpt;
     int     status;
     int     fd;
+    static VSTRING *tlsproxy_service = 0;
+    static VSTRING *remote_endpt = 0;
 
     /*
-     * Connect to the tlsproxy(8) daemon. We report all errors
-     * asynchronously, to avoid having to maintain multiple delivery paths.
+     * Initialize.
      */
-    if ((fd = LOCAL_CONNECT("private/" TLSPROXY_SERVICE, BLOCKING,
+    if (tlsproxy_service == 0) {
+	tlsproxy_service = vstring_alloc(20);
+	remote_endpt = vstring_alloc(20);
+    }
+
+    /*
+     * Connect to the tlsproxy(8) daemon.
+     */
+    vstring_sprintf(tlsproxy_service, "%s/%s", MAIL_CLASS_PRIVATE, service);
+    if ((fd = LOCAL_CONNECT(STR(tlsproxy_service), BLOCKING,
 			    TLSPROXY_INIT_TIMEOUT)) < 0) {
-	msg_warn("connect to %s service: %m", TLSPROXY_SERVICE);
+	msg_warn("connect to %s service: %m", STR(tlsproxy_service));
 	return (0);
     }
 
@@ -134,16 +153,15 @@ VSTREAM *tls_proxy_open(int flags, VSTREAM *peer_stream,
      * simplify all the format strings throughout the program.
      */
     tlsproxy_stream = vstream_fdopen(fd, O_RDWR);
-    remote_endpt = concatenate("[", peer_addr, "]:",
-			       peer_port, (char *) 0);
+    vstring_sprintf(remote_endpt, "[%s]:%s", peer_addr, peer_port);
     attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, remote_endpt,
+	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt),
 	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
 	       ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, timeout,
 	       ATTR_TYPE_END);
-    myfree(remote_endpt);
     if (vstream_fflush(tlsproxy_stream) != 0) {
-	msg_warn("error sending request to %s service: %m", TLSPROXY_SERVICE);
+	msg_warn("error sending request to %s service: %m",
+		 STR(tlsproxy_service));
 	vstream_fclose(tlsproxy_stream);
 	return (0);
     }
@@ -164,7 +182,7 @@ VSTREAM *tls_proxy_open(int flags, VSTREAM *peer_stream,
 	 * configuration error, or other causes).
 	 */
 	msg_warn("%s service role \"%s\" is not available",
-		 TLSPROXY_SERVICE,
+		 STR(tlsproxy_service),
 		 (flags & TLS_PROXY_FLAG_ROLE_SERVER) ? "server" :
 		 (flags & TLS_PROXY_FLAG_ROLE_CLIENT) ? "client" :
 		 "bogus role");
@@ -181,7 +199,8 @@ VSTREAM *tls_proxy_open(int flags, VSTREAM *peer_stream,
 	/*
 	 * Some error: drop the TLS proxy stream.
 	 */
-	msg_warn("sending file handle to %s service: %m", TLSPROXY_SERVICE);
+	msg_warn("sending file handle to %s service: %m",
+		 STR(tlsproxy_service));
 	vstream_fclose(tlsproxy_stream);
 	return (0);
     }
@@ -197,7 +216,7 @@ TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *proxy_stream)
     tls_context = (TLS_SESS_STATE *) mymalloc(sizeof(*tls_context));
 
     if (attr_scan(proxy_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_FUNC, tls_proxy_context_scan, (char *) tls_context,
+	       ATTR_TYPE_FUNC, tls_proxy_context_scan, (char *) tls_context,
 		  ATTR_TYPE_END) != 1) {
 	tls_proxy_context_free(tls_context);
 	return (0);
@@ -208,7 +227,7 @@ TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *proxy_stream)
 
 /* tls_proxy_context_free - destroy object from tls_proxy_context_receive() */
 
-void tls_proxy_context_free(TLS_SESS_STATE *tls_context)
+void    tls_proxy_context_free(TLS_SESS_STATE *tls_context)
 {
     if (tls_context->peer_CN)
 	myfree(tls_context->peer_CN);

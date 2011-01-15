@@ -849,7 +849,7 @@ static void tlsp_get_request_event(int event, char *context)
 	msg_info("CONNECT %s %s",
 		 (req_flags & TLS_PROXY_FLAG_ROLE_SERVER) ? "from" :
 		 (req_flags & TLS_PROXY_FLAG_ROLE_CLIENT) ? "to" :
-		 "(bogus direction)", state->remote_endpt);
+		 "(bogus_direction)", state->remote_endpt);
 	state->req_flags = req_flags;
 	state->timeout = timeout + 10;		/* XXX */
 	event_enable_read(plaintext_fd, tlsp_get_fd_event, (char *) state);

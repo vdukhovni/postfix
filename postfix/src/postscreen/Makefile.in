@@ -156,6 +156,7 @@ postscreen_dnsbl.o: ../../include/myaddrinfo.h
 postscreen_dnsbl.o: ../../include/mymalloc.h
 postscreen_dnsbl.o: ../../include/split_at.h
 postscreen_dnsbl.o: ../../include/string_list.h
+postscreen_dnsbl.o: ../../include/stringops.h
 postscreen_dnsbl.o: ../../include/sys_defs.h
 postscreen_dnsbl.o: ../../include/valid_hostname.h
 postscreen_dnsbl.o: ../../include/vbuf.h

@@ -74,6 +74,7 @@ static void dict_ht_update(DICT *dict, const char *name, const char *value)
 {
     DICT_HT *dict_ht = (DICT_HT *) dict;
     HTABLE_INFO *ht;
+    char   *saved_value = mystrdup(value);
 
     /*
      * Optionally fold the key.
@@ -89,7 +90,7 @@ static void dict_ht_update(DICT *dict, const char *name, const char *value)
     } else {
 	ht = htable_enter(dict_ht->table, name, (char *) 0);
     }
-    ht->value = mystrdup(value);
+    ht->value = saved_value;
 }
 
 /* dict_ht_sequence - first/next iterator */

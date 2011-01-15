@@ -12597,7 +12597,7 @@ inspection for DKIM-signed mail from known friendly domains. </p>
 <p> This feature is available in Postfix 2.7, and as an optional
 patch for Postfix 2.6. </p>
 
-%PARAM postscreen_cache_map btree:$data_directory/ps_cache
+%PARAM postscreen_cache_map btree:$data_directory/postscreen_cache
 
 <p> Persistent storage for the postscreen(8) server decisions. </p>
 
@@ -12690,11 +12690,11 @@ one-letter suffix that specifies the time unit).  </p>
 
 %PARAM postscreen_dnsbl_sites
 
-<p>Optional list of DNS blocklist domains, filters and weight
+<p>Optional list of DNS white/blacklist domains, filters and weight
 factors. When the list is non-empty, the dnsblog(8) daemon will
-query these domains with the IP addresses of non-whitelisted remote
-SMTP clients, and postscreen(8) will update an SMTP client's DNSBL
-score with each non-error reply. </p>
+query these domains with the IP addresses of remote SMTP clients,
+and postscreen(8) will update an SMTP client's DNSBL score with
+each non-error reply. </p>
 
 <p> Caution: when postscreen rejects mail, it replies with the DNSBL
 domain name. Use the postscreen_dnsbl_reply_map feature to hide
@@ -13975,3 +13975,18 @@ response. See smtpd_reject_footer for further details.  </p>
 See smtpd_command_filter for further details. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM dnsblog_service_name dnsblog
+
+<p> The name of the dnsblog(8) service entry in master.cf. This
+service performs DNS white/blacklist lookups. </p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+
+%PARAM tlsproxy_service_name tlsproxy
+
+<p> The name of the tlsproxy(8) service entry in master.cf. This
+service performs plaintext &lt;=&gt; TLS ciphertext conversion. <p>
+
+<p> This feature is available in Postfix 2.8 and later. </p>
+

@@ -140,6 +140,8 @@ response to a remote SMTP client.
 .nf
 .ad
 .fi
+.IP "\fBdnsblog_service_name (dnsblog)\fR"
+The name of the \fBdnsblog\fR(8) service entry in master.cf.
 .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
 Permanent white/blacklist for remote SMTP client IP addresses;
 \fBpostscreen\fR(8) searches this list immediately after a remote SMTP
@@ -161,7 +163,7 @@ A mapping from actual DNSBL domain name which includes a secret
 password, to the DNSBL domain name that postscreen will reply with
 when it rejects mail.
 .IP "\fBpostscreen_dnsbl_sites (empty)\fR"
-Optional list of DNS blocklist domains, filters and weight
+Optional list of DNS white/blacklist domains, filters and weight
 factors.
 .IP "\fBpostscreen_dnsbl_threshold (1)\fR"
 The inclusive lower bound for blocking an SMTP client, based on
@@ -230,7 +232,7 @@ connections to.
 .fi
 .IP "\fBpostscreen_cache_cleanup_interval (12h)\fR"
 The amount of time between \fBpostscreen\fR(8) cache cleanup runs.
-.IP "\fBpostscreen_cache_map (btree:$data_directory/ps_cache)\fR"
+.IP "\fBpostscreen_cache_map (btree:$data_directory/postscreen_cache)\fR"
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .IP "\fBpostscreen_cache_retention_time (7d)\fR"
 The amount of time that \fBpostscreen\fR(8) will cache an expired
@@ -287,6 +289,8 @@ is terminated by a built-in watchdog timer.
 The SMTP TLS security level for the \fBpostscreen\fR(8) server; when
 a non-empty value is specified, this overrides the obsolete parameters
 postscreen_use_tls and postscreen_enforce_tls.
+.IP "\fBtlsproxy_service_name (tlsproxy)\fR"
+The name of the \fBtlsproxy\fR(8) service entry in master.cf.
 .SH "OBSOLETE STARTTLS SUPPORT CONTROLS"
 .na
 .nf
@@ -341,7 +345,7 @@ records, so that "smtpd" becomes, for example, "postfix/smtpd".
 .nf
 smtpd(8), Postfix SMTP server
 tlsproxy(8), Postfix TLS proxy server
-dnsblog(8), temporary DNS helper
+dnsblog(8), DNS black/whitelist logger
 syslogd(8), system logging
 .SH "README FILES"
 .na

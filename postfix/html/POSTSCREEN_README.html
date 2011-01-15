@@ -657,6 +657,8 @@ and Solaris 9 systems. </p>
 <li> <a href="#enable"> Turning on postscreen(8) without blocking
 mail</a>
 
+<li> <a href="#starttls"> postscreen(8) TLS configuration </a>
+
 <li> <a href="#blocking"> Blocking mail with postscreen(8) </a>
 
 <li> <a href="#turnoff"> Turning off postscreen(8) </a>
@@ -776,6 +778,27 @@ is needed because the Postfix "pass" master service type did not
 work reliably on all systems. </p>
 
 </ul>
+
+<h3> <a name="starttls"> postscreen(8) TLS configuration </a> </h3>
+
+<p> <a href="postscreen.8.html">postscreen(8)</a> TLS support is available for remote SMTP clients
+that aren't whitelisted, including clients that need to renew their
+temporary whitelist status.  When a remote SMTP client requests TLS
+service, <a href="postscreen.8.html">postscreen(8)</a> invisibly hands off the connection to a
+<a href="tlsproxy.8.html">tlsproxy(8)</a> process. Then, <a href="tlsproxy.8.html">tlsproxy(8)</a> encrypts and decrypts the
+traffic between <a href="postscreen.8.html">postscreen(8)</a> and the remote SMTP client. One
+<a href="tlsproxy.8.html">tlsproxy(8)</a> process can handle multiple SMTP sessions. The number
+of <a href="tlsproxy.8.html">tlsproxy(8)</a> processes slowly increases with server load, but it
+should always be much smaller than the number of <a href="postscreen.8.html">postscreen(8)</a> TLS
+sessions.  </p>
+
+<p> TLS support for <a href="postscreen.8.html">postscreen(8)</a> and <a href="tlsproxy.8.html">tlsproxy(8)</a> uses the same
+parameters as with <a href="smtpd.8.html">smtpd(8)</a>. We recommend that you keep the relevant
+configuration parameters in <a href="postconf.5.html">main.cf</a>.  If you must specify "-o
+smtpd_mumble=value" parameter overrides in <a href="master.5.html">master.cf</a> for a
+postscreen-protected <a href="smtpd.8.html">smtpd(8)</a> service, then you should specify those
+same parameter overrides for the <a href="postscreen.8.html">postscreen(8)</a> and <a href="tlsproxy.8.html">tlsproxy(8)</a>
+services. </p>
 
 <h3> <a name="blocking"> Blocking mail with postscreen(8) </a> </h3>
 
