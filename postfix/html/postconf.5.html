@@ -6634,7 +6634,7 @@ and enabled instances are processed in reverse order. </p>
 <DT><b><a name="postscreen_access_list">postscreen_access_list</a>
 (default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>)</b></DT><DD>
 
-<p> Permanent white/blacklist for remote SMTP client IP addresses;
+<p> Permanent white/blacklist for remote SMTP client IP addresses.
 <a href="postscreen.8.html">postscreen(8)</a> searches this list immediately after a remote SMTP
 client connects.  Specify a comma- or whitespace-separated list of
 commands (in upper or lower case) or lookup tables. The search stops
@@ -6664,10 +6664,12 @@ server process. </dd>
 the search. Subject the client to the action configured with the
 <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> configuration parameter. </dd>
 
-<dt> <b> dunno </b> </dt> <dd> When used inside a lookup table,
-return from the lookup table and evaluate the next command.  <br>
-When used outside a lookup table, terminate the search, and subject
-the client to the configured before/after 220 greeting tests. </dd>
+<dt> <b> dunno </b> </dt> <dd> All <a href="postscreen.8.html">postscreen(8)</a> access lists
+implicitly have this command at the end. <br> When <b> dunno </b>
+is executed inside a lookup table, return from the lookup table and
+evaluate the next command.  <br> When <b> dunno </b> is executed
+outside a lookup table, terminate the search, and subject the client
+to the configured before/after 220 greeting tests. </dd>
 
 </dl>
 
@@ -6762,8 +6764,8 @@ one-letter suffix that specifies the time unit).  Time units: s
 (default: ignore)</b></DT><DD>
 
 <p> The action that <a href="postscreen.8.html">postscreen(8)</a> takes when an SMTP client is
-permanently blacklisted with the <a href="postconf.5.html#postscreen_blacklist_networks">postscreen_blacklist_networks</a>
-parameter.  Specify one of the following: </p>
+permanently blacklisted with the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> parameter.
+Specify one of the following: </p>
 
 <dl>
 
@@ -6885,9 +6887,8 @@ See <a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a> for 
 <DT><b><a name="postscreen_command_time_limit">postscreen_command_time_limit</a>
 (default: ${stress?10}${stress:300}s)</b></DT><DD>
 
-<p> The command "read" time limit for <a href="postscreen.8.html">postscreen(8)</a>'s built-in SMTP
-protocol engine. This bounds the time to receive an entire command.
-</p>
+<p> The time limit to read an entire command line with <a href="postscreen.8.html">postscreen(8)</a>'s
+built-in SMTP protocol engine. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 

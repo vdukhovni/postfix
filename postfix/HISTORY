@@ -16457,3 +16457,17 @@ Apologies for any names omitted.
 	now configurable, in case someone needs this. Files:
 	global/mail_params.h, postscreen/postscreen.c, mantools/postlink,
 	proto/postconf.proto.
+
+20110116
+
+	Cleanup: soft_bounce support for postscreen(8). Files:
+	postscreen/postscreen_smtpd.c, postscreen/postscreen_send.c.
+
+	Cleanup: for smtpd(8) compatibility, postscreen(8) now
+	strips deprecated route address prefixes from email addresses
+	(@here,@there:user@example becomes user@example). This is
+	primarily to make postscreen(8) logging more similar to
+	that of smtpd(8). File: postscreen/postscreen_smtpd.c.
+
+	Cleanup: documentation, in preparation for the Postfix 2.8
+	stable release.

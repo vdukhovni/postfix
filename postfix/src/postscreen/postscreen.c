@@ -62,9 +62,6 @@
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
-/*	The \fBpostscreen\fR(8) server does not yet implement
-/*	the \fBsoft_bounce\fR feature.
-/*
 /*	The \fBpostscreen\fR(8) built-in SMTP protocol engine
 /*	currently does not announce support for AUTH, XCLIENT or
 /*	XFORWARD.
@@ -117,22 +114,40 @@
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO
 /*	response to a remote SMTP client.
-/* BEFORE-GREETING TRIAGE
+/* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBdnsblog_service_name (dnsblog)\fR"
-/*	The name of the \fBdnsblog\fR(8) service entry in master.cf.
+/* .IP "\fBpostscreen_expansion_filter (see 'postconf -d' output)\fR"
+/*	List of characters that are permitted in postscreen_reject_footer
+/*	attribute expansions.
+/* .IP "\fBpostscreen_reject_footer ($smtpd_reject_footer)\fR"
+/*	Optional information that is appended after a 4XX or 5XX server
+/*	response.
+/* .IP "\fBsoft_bounce (no)\fR"
+/*	Safety net to keep mail queued that would otherwise be returned to
+/*	the sender.
+/* PERMANENT WHITE/BLACKLIST TEST
+/* .ad
+/* .fi
+/*	This test is executed immediately after a remote SMTP client
+/*	connects. If a client is permanently whitelisted, the client
+/*	will be handed off immediately to a Postfix SMTP server
+/*	process.
 /* .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
-/*	Permanent white/blacklist for remote SMTP client IP addresses;
-/*	\fBpostscreen\fR(8) searches this list immediately after a remote SMTP
-/*	client connects.
+/*	Permanent white/blacklist for remote SMTP client IP addresses.
 /* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client is
-/*	permanently blacklisted with the postscreen_blacklist_networks
-/*	parameter.
-/* .IP "\fBpostscreen_blacklist_networks (empty)\fR"
-/*	Network addresses that are permanently blacklisted; see the
-/*	postscreen_blacklist_action parameter for possible actions.
+/*	permanently blacklisted with the postscreen_access_list parameter.
+/* BEFORE-GREETING TESTS
+/* .ad
+/* .fi
+/*	These tests are executed before the remote SMTP client
+/*	receives the "220 servername" greeting. If no tests remain
+/*	after the successful completion of this phase, the client
+/*	will be handed off immediately to a Postfix SMTP server
+/*	process.
+/* .IP "\fBdnsblog_service_name (dnsblog)\fR"
+/*	The name of the \fBdnsblog\fR(8) service entry in master.cf.
 /* .IP "\fBpostscreen_dnsbl_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
 /*	DNSBL score is equal to or greater than a threshold (as defined
@@ -164,9 +179,18 @@
 /*	client to send a command before its turn, and for DNS blocklist
 /*	lookup results to arrive (default: up to 2 seconds under stress,
 /*	up to 6 seconds otherwise).
-/* AFTER-GREETING TRIAGE
+/* .IP "\fBsmtpd_service_name (smtpd)\fR"
+/*	The internal service that \fBpostscreen\fR(8) forwards allowed
+/*	connections to.
+/* AFTER-GREETING TESTS
 /* .ad
 /* .fi
+/*	These tests are executed after the remote SMTP client
+/*	receives the "220 servername" greeting. If a client passes
+/*	all tests during this phase, it will receive a 4XX response
+/*	to RCPT TO commands until the client hangs up. After this,
+/*	the client will be allowed to talk directly to a Postfix
+/*	SMTP server process.
 /* .IP "\fBpostscreen_bare_newline_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
 /*	a bare newline character, that is, a newline not preceded by carriage
@@ -195,12 +219,6 @@
 /* .IP "\fBpostscreen_pipelining_enable (no)\fR"
 /*	Enable "pipelining" SMTP protocol tests in the \fBpostscreen\fR(8)
 /*	server.
-/* AFTER-TRIAGE CONTROLS
-/* .ad
-/* .fi
-/* .IP "\fBsmtpd_service_name (smtpd)\fR"
-/*	The internal service that \fBpostscreen\fR(8) forwards allowed
-/*	connections to.
 /* CACHE CONTROLS
 /* .ad
 /* .fi
@@ -239,8 +257,8 @@
 /*	The limit on the total number of commands per SMTP session for
 /*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine.
 /* .IP "\fBpostscreen_command_time_limit (${stress?10}${stress:300}s)\fR"
-/*	The command "read" time limit for \fBpostscreen\fR(8)'s built-in SMTP
-/*	protocol engine.
+/*	The time limit to read an entire command line with \fBpostscreen\fR(8)'s
+/*	built-in SMTP protocol engine.
 /* .IP "\fBpostscreen_post_queue_limit ($default_process_limit)\fR"
 /*	The number of clients that can be waiting for service from a
 /*	real SMTP server process.
@@ -272,15 +290,6 @@
 /* .IP "\fBpostscreen_enforce_tls ($smtpd_enforce_tls)\fR"
 /*	Mandatory TLS: announce STARTTLS support to SMTP clients, and
 /*	require that clients use TLS encryption.
-/* TROUBLE SHOOTING CONTROLS
-/* .ad
-/* .fi
-/* .IP "\fBpostscreen_expansion_filter (see 'postconf -d' output)\fR"
-/*	List of characters that are permitted in postscreen_reject_footer
-/*	attribute expansions.
-/* .IP "\fBpostscreen_reject_footer ($smtpd_reject_footer)\fR"
-/*	Optional information that is appended after a 4XX or 5XX server
-/*	response.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -324,6 +333,8 @@
 /* HISTORY
 /* .ad
 /* .fi
+/*	This service was introduced with Postfix version 2.8.
+/*
 /*	Many ideas in \fBpostscreen\fR(8) were explored in earlier
 /*	work by Michael Tokarev, in OpenBSD spamd, and in MailChannels
 /*	Traffic Control.

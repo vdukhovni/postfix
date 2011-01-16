@@ -22,6 +22,10 @@
 /*	a warning (except EPIPE) with the client address and port,
 /*	and returns a non-zero result (all errors including EPIPE).
 /*
+/*	psc_send_reply() does a best effort to send the reply, but
+/*	it won't block when the output is throttled by a hostile
+/*	peer.
+/*
 /*	PSC_SEND_REPLY() is a legacy wrapper for psc_send_reply().
 /*	It will eventually be replaced by its expansion.
 /*
@@ -88,26 +92,26 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
      */
     start = VSTRING_LEN(state->send_buf);
     vstring_strcat(state->send_buf, text);
-    if (*var_psc_rej_footer && (*text == '4' || *text == '5'))
-	smtp_reply_footer(state->send_buf, start, var_psc_rej_footer,
-			  STR(psc_expand_filter), psc_expand_lookup,
-			  (char *) state);
 
     /*
-     * XXX For soft_bounce support, it is not sufficient to fix replies here.
-     * We also need to fix the REJECT messages that are logged by the dummy
-     * SMTP engine. Those messages are set with the PSC_DROP_SESSION_STATE
-     * and PSC_ENFORCE_SESSION_STATE macros, and we should not mess up all
-     * the code that invokes those macros.
+     * For soft_bounce support, we also fix the REJECT logging before the
+     * dummy SMTP engine calls the psc_send_reply() output routine. We do
+     * some double work, but it is for debugging only.
      */
-#if 0
     if (var_soft_bounce) {
 	if (text[0] == '5')
 	    STR(state->send_buf)[start + 0] = '4';
 	if (text[4] == '5')
 	    STR(state->send_buf)[start + 4] = '4';
     }
-#endif
+
+    /*
+     * Append the optional reply footer.
+     */
+    if (*var_psc_rej_footer && (*text == '4' || *text == '5'))
+	smtp_reply_footer(state->send_buf, start, var_psc_rej_footer,
+			  STR(psc_expand_filter), psc_expand_lookup,
+			  (char *) state);
 
     /*
      * Do a best effort sending text, but don't block when the output is
