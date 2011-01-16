@@ -28,18 +28,18 @@ mail from end-user clients (MUAs). In a typical deployment,
 postscreen(8) is used on the "port 25" service, while MUA clients
 submit mail via the submission service. </p>
 
-<p> postscreen(8) is the first layer in a multi-layer defense. <p>
+<p> postscreen(8) is part of a multi-layer defense. <p>
 
 <ul>
 
-<li> <p> The postscreen(8) layer blocks connections from zombies
-and other spambots that are responsible for about 90% of all spam.
-It is implemented as a single process to make this defense as cheap
-as possible. </p>
+<li> <p> As the first layer, postscreen(8) blocks connections from
+zombies and other spambots that are responsible for about 90% of
+all spam.  It is implemented as a single process to make this defense
+as cheap as possible. </p>
 
 <li> <p> The second layer implements more complex SMTP-level access
-checks that are available with Postfix SMTP servers, policy daemons,
-and Milter applications. </p>
+checks with Postfix SMTP servers, policy daemons, and Milter
+applications. </p>
 
 <li> <p> The third layer performs light-weight content inspection
 with the Postfix built-in header_checks and body_checks. This can
@@ -672,6 +672,23 @@ without blocking mail: </p>
 
 <ol>
 
+<li> <p> Make sure that local clients and systems with non-standard
+SMTP implementations are excluded from any postscreen(8) tests. The
+default is to exclude all clients in mynetworks. To exclude additional
+clients, for example, third-party performance monitoring tools (these
+tend to have broken SMTP implementations): </p>
+
+<pre>
+/etc/postfix/main.cf:
+    # Exclude broken clients by whitelisting. Clients in mynetworks
+    # should always be whitelisted.
+    postscreen_access_list = permit_mynetworks, 
+        cidr:/etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.cidr:
+    192.168.254.0/24 permit
+</pre>
+
 <li> <p> Comment out the "<tt>smtp  inet ... smtpd</tt>" service
 in master.cf, including any "<tt>-o parameter=value</tt>" entries
 that follow.  </p>
@@ -768,10 +785,6 @@ string. </p>
 greeting</a>" for details about the logging from these postscreen(8)
 tests. </p>
 
-<li> <p> By default, postscreen(8) whitelists all clients in
-mynetworks.  This is a safety feature to avoid you from getting
-into trouble with local users. </p>
-
 <li> <p> If you run Postfix 2.6 or earlier you must stop and start
 the master daemon ("<tt>postfix stop; postfix start</tt>").  This
 is needed because the Postfix "pass" master service type did not
@@ -801,6 +814,27 @@ same parameter overrides for the postscreen(8) and tlsproxy(8)
 services. </p>
 
 <h3> <a name="blocking"> Blocking mail with postscreen(8) </a> </h3>
+
+<p> For compatibility with smtpd(8), postscreen(8) implements the
+soft_bounce safety feature. This causes Postfix to reject mail with
+a "try again" reply code. </p>
+
+<ul> 
+
+<li> <p> To turn this on for all of Postfix, specify "<tt>soft_bounce
+= yes</tt>" in main.cf. </p>
+
+<li> <p> To turn this on for postscreen(8) only, append "<tt>-o
+soft_bounce=yes</tt>" (note: NO SPACES around '=') to the postscreen
+entry in master.cf. <p>
+
+</ul>
+
+<p> Execute "<tt>postfix reload</tt>" to make the change effective. </p>
+
+<p> After testing, do not forget to remove the soft_bounce feature,
+otherwise senders won't receive their non-delivery notification
+until many days later.  </p>
 
 <p> To use the postscreen(8) service to block mail, edit main.cf and
 specify one or more of: </p>

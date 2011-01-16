@@ -24,8 +24,12 @@
 /*
 /*	Unlike the Postfix SMTP server, this engine does not announce
 /*	PIPELINING support. This exposes spambots that pipeline
-/*	their commands anyway. To pass this test, the client has
-/*	to speak SMTP all the way to the RCPT TO command.
+/*	their commands anyway. Like the Postfix SMTP server, this
+/*	engine will accept input with bare newline characters. To
+/*	pass the "pipelining" and "bare newline" test, the client
+/*	has to properly speak SMTP all the way to the RCPT TO
+/*	command. These tests fail if the client violates the protocol
+/*	at any stage.
 /*
 /*	No support is announced for AUTH, XCLIENT or XFORWARD.
 /*	Clients that need this should be whitelisted or should talk
@@ -42,10 +46,13 @@
 /*	a per-session command counter, and terminates the session
 /*	with a 421 reply when the command count exceeds the limit.
 /*
-/*	We limit the command count so that we don't have to worry
-/*	about becoming blocked while sending responses (20 replies
-/*	of about 40 bytes plus greeting banners). Otherwise we would
-/*	have to make the output event-driven, just like the input.
+/*	We limit the command count, as well as the total time to
+/*	receive a command. This limits the time per client more
+/*	effectively than would be possible with read() timeouts.
+/*
+/*	There is no concern about getting blocked on output.  The
+/*	psc_send() routine uses non-blocking output, and discards
+/*	output that the client is not willing to receive.
 /* PROTOCOL INSPECTION VERSUS CONTENT INSPECTION
 /*	The goal of postscreen is to keep spambots away from Postfix.
 /*	To recognize spambots, postscreen measures properties of
@@ -70,11 +77,11 @@
 /*	making long-term decisions after single measurements, and
 /*	that is why postscreen does not inspect message content.
 /* REJECTING RCPT TO VERSUS SENDING LIVE SOCKETS TO SMTPD(8)
-/*	When deep protocol tests are enabled, postscreen rejects
-/*	the RCPT TO command from a good client, and forces it to
-/*	deliver mail in a later session. This is why deep protocol
-/*	tests have a longer expiration time than pre-handshake
-/*	tests.
+/*	When post-handshake protocol tests are enabled, postscreen
+/*	rejects the RCPT TO command from a good client, and forces
+/*	it to deliver mail in a later session. This is why
+/*	post-handshake protocol tests have a longer expiration time
+/*	than pre-handshake tests.
 /*
 /*	Instead, postscreen could send the network socket to smtpd(8)
 /*	and ship the session history (including TLS and other SMTP
@@ -188,7 +195,9 @@ static void psc_smtpd_read_event(int, char *);
   * Encapsulation. The STARTTLS, EHLO and AUTH command handlers temporarily
   * suspend SMTP command events, send an asynchronous proxy request, and
   * resume SMTP command events after receiving the asynchrounous proxy
-  * response.
+  * response (the EHLO handler must asynchronously talk to the auth server
+  * before it can announce the SASL mechanism list; the list can depend on
+  * the client IP address and on the presence on TLS encryption).
   */
 #define PSC_RESUME_SMTP_CMD_EVENTS(state) do { \
 	PSC_READ_EVENT_REQUEST2(vstream_fileno((state)->smtp_client_stream), \
@@ -411,15 +420,17 @@ static int psc_starttls_cmd(PSC_STATE *state, char *args)
 static char *psc_extract_addr(VSTRING *result, const char *string)
 {
     const unsigned char *cp = (const unsigned char *) string;
+    char   *addr;
+    char   *colon;
     int     stop_at;
     int     inquote = 0;
 
     /*
      * smtpd(8) incompatibility: we allow more invalid address forms, and we
-     * don't strip @site1,site2:user@site3 route addresses. We are not going
-     * to deliver them so we won't have to worry about addresses that end up
-     * being nonsense after stripping. This may have to change when we pass
-     * the socket to a real SMTP server and replay message envelope commands.
+     * don't validate recipients. We are not going to deliver them so we
+     * won't have to worry about deliverability. This may have to change when
+     * we pass the socket to a real SMTP server and replay message envelope
+     * commands.
      */
 
     /* Skip SP characters. */
@@ -448,7 +459,15 @@ static char *psc_extract_addr(VSTRING *result, const char *string)
 	}
     }
     VSTRING_TERMINATE(result);
-    return (STR(result));
+
+    /*
+     * smtpd(8) compatibility: truncate deprecated route address form. This
+     * is primarily to simplify logfile analysis.
+     */
+    addr = STR(result);
+    if (*addr == '@' && (colon = strchr(addr, ':')) != 0)
+	addr = colon + 1;
+    return (addr);
 }
 
 /* psc_mail_cmd - record MAIL and respond */
@@ -478,6 +497,22 @@ static int psc_mail_cmd(PSC_STATE *state, char *args)
     return (PSC_SEND_REPLY(state, "250 2.1.0 Ok\r\n"));
 }
 
+/* psc_soften_reply - copy and soft-bounce a reply */
+
+static char *psc_soften_reply(const char *reply)
+{
+    static VSTRING *buf = 0;
+
+    if (buf == 0)
+	buf = vstring_alloc(100);
+    vstring_strcpy(buf, reply);
+    if (reply[0] == '5')
+	STR(buf)[0] = '4';
+    if (reply[4] == '5')
+	STR(buf)[4] = '4';
+    return (STR(buf));
+}
+
 /* psc_rcpt_cmd record RCPT and respond */
 
 static int psc_rcpt_cmd(PSC_STATE *state, char *args)
@@ -501,7 +536,9 @@ static int psc_rcpt_cmd(PSC_STATE *state, char *args)
     msg_info("NOQUEUE: reject: RCPT from [%s]:%s: %.*s; "
 	     "from=<%s>, to=<%s>, proto=%s, helo=<%s>",
 	     PSC_CLIENT_ADDR_PORT(state),
-	     (int) strlen(state->rcpt_reply) - 2, state->rcpt_reply,
+	     (int) strlen(state->rcpt_reply) - 2,
+	     var_soft_bounce == 0 ? state->rcpt_reply :
+	     psc_soften_reply(state->rcpt_reply),
 	     state->sender, addr, state->protocol,
 	     state->helo_name ? state->helo_name : "");
     return (PSC_SEND_REPLY(state, state->rcpt_reply));
@@ -700,7 +737,7 @@ static void psc_smtpd_read_event(int event, char *context)
      */
 
     /*
-     * Note: on entry into this function the VSTREAM buffer is still empty,
+     * Note: on entry into this function the VSTREAM buffer may be non-empty,
      * so we test the "no more input" condition at the bottom of the loops.
      */
     for (;;) {
@@ -825,7 +862,8 @@ static void psc_smtpd_read_event(int event, char *context)
 	/*
 	 * Reset the command buffer write pointer and state machine in
 	 * preparation for the next command. For this to work as expected,
-	 * VSTRING_RESET() must be non-destructive.
+	 * VSTRING_RESET() must be non-destructive. We just can't ask for the
+	 * VSTRING_LEN() and vstring_end() results.
 	 */
 	state->read_state = PSC_SMTPD_CMD_ST_ANY;
 	VSTRING_RESET(state->cmd_buffer);
@@ -837,7 +875,7 @@ static void psc_smtpd_read_event(int event, char *context)
 	 * session state structure. When this happens we must leave the SMTP
 	 * engine to avoid a dangling pointer problem.
 	 */
-	cmd_buffer_ptr = vstring_str(state->cmd_buffer);
+	cmd_buffer_ptr = STR(state->cmd_buffer);
 	if (msg_verbose)
 	    msg_info("< [%s]:%s: %s", state->smtp_client_addr,
 		     state->smtp_client_port, cmd_buffer_ptr);

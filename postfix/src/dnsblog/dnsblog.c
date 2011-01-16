@@ -7,10 +7,12 @@
 /*	\fBdnsblog\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The \fBdnsblog\fR(8) server implements an ad-hoc DNS
-/*	white/blacklist lookup service that will eventually be
+/*	white/blacklist lookup service. This may eventually be
 /*	replaced by an UDP client that is built directly into the
 /*	\fBpostscreen\fR(8) server.
-/*
+/* PROTOCOL
+/* .ad
+/* .fi
 /*	With each connection, the \fBdnsblog\fR(8) server receives
 /*	a DNS white/blacklist domain name and an IP address. If the
 /*	address is listed under the DNS white/blacklist, the
@@ -64,7 +66,7 @@
 /* HISTORY
 /* .ad
 /* .fi
-/*	This service is temporary with Postfix version 2.7.
+/*	This service was introduced with Postfix version 2.8.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research

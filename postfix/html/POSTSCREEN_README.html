@@ -28,18 +28,18 @@ mail from end-user clients (MUAs). In a typical deployment,
 <a href="postscreen.8.html">postscreen(8)</a> is used on the "port 25" service, while MUA clients
 submit mail via the submission service. </p>
 
-<p> <a href="postscreen.8.html">postscreen(8)</a> is the first layer in a multi-layer defense. <p>
+<p> <a href="postscreen.8.html">postscreen(8)</a> is part of a multi-layer defense. <p>
 
 <ul>
 
-<li> <p> The <a href="postscreen.8.html">postscreen(8)</a> layer blocks connections from zombies
-and other spambots that are responsible for about 90% of all spam.
-It is implemented as a single process to make this defense as cheap
-as possible. </p>
+<li> <p> As the first layer, <a href="postscreen.8.html">postscreen(8)</a> blocks connections from
+zombies and other spambots that are responsible for about 90% of
+all spam.  It is implemented as a single process to make this defense
+as cheap as possible. </p>
 
 <li> <p> The second layer implements more complex SMTP-level access
-checks that are available with Postfix SMTP servers, policy daemons,
-and Milter applications. </p>
+checks with Postfix SMTP servers, policy daemons, and Milter
+applications. </p>
 
 <li> <p> The third layer performs light-weight content inspection
 with the Postfix built-in <a href="postconf.5.html#header_checks">header_checks</a> and <a href="postconf.5.html#body_checks">body_checks</a>. This can
@@ -672,6 +672,23 @@ without blocking mail: </p>
 
 <ol>
 
+<li> <p> Make sure that local clients and systems with non-standard
+SMTP implementations are excluded from any <a href="postscreen.8.html">postscreen(8)</a> tests. The
+default is to exclude all clients in <a href="postconf.5.html#mynetworks">mynetworks</a>. To exclude additional
+clients, for example, third-party performance monitoring tools (these
+tend to have broken SMTP implementations): </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Exclude broken clients by whitelisting. Clients in <a href="postconf.5.html#mynetworks">mynetworks</a>
+    # should always be whitelisted.
+    <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, 
+        <a href="cidr_table.5.html">cidr</a>:/etc/postfix/postscreen_access.cidr
+
+/etc/postfix/postscreen_access.<a href="cidr_table.5.html">cidr</a>:
+    192.168.254.0/24 permit
+</pre>
+
 <li> <p> Comment out the "<tt>smtp  inet ... smtpd</tt>" service
 in <a href="master.5.html">master.cf</a>, including any "<tt>-o parameter=value</tt>" entries
 that follow.  </p>
@@ -768,10 +785,6 @@ string. </p>
 greeting</a>" for details about the logging from these postscreen(8)
 tests. </p>
 
-<li> <p> By default, <a href="postscreen.8.html">postscreen(8)</a> whitelists all clients in
-<a href="postconf.5.html#mynetworks">mynetworks</a>.  This is a safety feature to avoid you from getting
-into trouble with local users. </p>
-
 <li> <p> If you run Postfix 2.6 or earlier you must stop and start
 the master daemon ("<tt>postfix stop; postfix start</tt>").  This
 is needed because the Postfix "pass" master service type did not
@@ -801,6 +814,27 @@ same parameter overrides for the <a href="postscreen.8.html">postscreen(8)</a> a
 services. </p>
 
 <h3> <a name="blocking"> Blocking mail with postscreen(8) </a> </h3>
+
+<p> For compatibility with <a href="smtpd.8.html">smtpd(8)</a>, <a href="postscreen.8.html">postscreen(8)</a> implements the
+<a href="postconf.5.html#soft_bounce">soft_bounce</a> safety feature. This causes Postfix to reject mail with
+a "try again" reply code. </p>
+
+<ul> 
+
+<li> <p> To turn this on for all of Postfix, specify "<tt><a href="postconf.5.html#soft_bounce">soft_bounce</a>
+= yes</tt>" in <a href="postconf.5.html">main.cf</a>. </p>
+
+<li> <p> To turn this on for <a href="postscreen.8.html">postscreen(8)</a> only, append "<tt>-o
+<a href="postconf.5.html#soft_bounce">soft_bounce</a>=yes</tt>" (note: NO SPACES around '=') to the postscreen
+entry in <a href="master.5.html">master.cf</a>. <p>
+
+</ul>
+
+<p> Execute "<tt>postfix reload</tt>" to make the change effective. </p>
+
+<p> After testing, do not forget to remove the <a href="postconf.5.html#soft_bounce">soft_bounce</a> feature,
+otherwise senders won't receive their non-delivery notification
+until many days later.  </p>
 
 <p> To use the <a href="postscreen.8.html">postscreen(8)</a> service to block mail, edit <a href="postconf.5.html">main.cf</a> and
 specify one or more of: </p>

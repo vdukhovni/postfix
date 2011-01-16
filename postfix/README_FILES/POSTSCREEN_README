@@ -13,15 +13,14 @@ postscreen(8) should not be used on SMTP ports that receive mail from end-user
 clients (MUAs). In a typical deployment, postscreen(8) is used on the "port 25"
 service, while MUA clients submit mail via the submission service.
 
-postscreen(8) is the first layer in a multi-layer defense.
+postscreen(8) is part of a multi-layer defense.
 
-  * The postscreen(8) layer blocks connections from zombies and other spambots
-    that are responsible for about 90% of all spam. It is implemented as a
-    single process to make this defense as cheap as possible.
+  * As the first layer, postscreen(8) blocks connections from zombies and other
+    spambots that are responsible for about 90% of all spam. It is implemented
+    as a single process to make this defense as cheap as possible.
 
-  * The second layer implements more complex SMTP-level access checks that are
-    available with Postfix SMTP servers, policy daemons, and Milter
-    applications.
+  * The second layer implements more complex SMTP-level access checks with
+    Postfix SMTP servers, policy daemons, and Milter applications.
 
   * The third layer performs light-weight content inspection with the Postfix
     built-in header_checks and body_checks. This can block unacceptable
@@ -482,14 +481,29 @@ TTuurrnniinngg oonn ppoossttssccrreeeenn((88)) wwiitth
 To enable the postscreen(8) service and log client information without blocking
 mail:
 
- 1. Comment out the "smtp inet ... smtpd" service in master.cf, including any
+ 1. Make sure that local clients and systems with non-standard SMTP
+    implementations are excluded from any postscreen(8) tests. The default is
+    to exclude all clients in mynetworks. To exclude additional clients, for
+    example, third-party performance monitoring tools (these tend to have
+    broken SMTP implementations):
+
+    /etc/postfix/main.cf:
+        # Exclude broken clients by whitelisting. Clients in mynetworks
+        # should always be whitelisted.
+        postscreen_access_list = permit_mynetworks,
+            cidr:/etc/postfix/postscreen_access.cidr
+
+    /etc/postfix/postscreen_access.cidr:
+        192.168.254.0/24 permit
+
+ 2. Comment out the "smtp inet ... smtpd" service in master.cf, including any
     "-o parameter=value" entries that follow.
 
     /etc/postfix/master.cf:
         #smtp      inet  n       -       n       -       -       smtpd
         #    -o parameter=value ...
 
- 2. Uncomment the new "smtpd pass ... smtpd" service in master.cf, and
+ 3. Uncomment the new "smtpd pass ... smtpd" service in master.cf, and
     duplicate any "-o parameter=value" entries from the smtpd service that was
     commented out in step 1.
 
@@ -497,24 +511,24 @@ mail:
         smtpd     pass  -       -       n       -       -       smtpd
             -o parameter=value ...
 
- 3. Uncomment the new "smtp inet ... postscreen" service in master.cf.
+ 4. Uncomment the new "smtp inet ... postscreen" service in master.cf.
 
     /etc/postfix/master.cf:
         smtp      inet  n       -       n       -       1       postscreen
 
- 4. Uncomment the new "tlsproxy unix ... tlsproxy" service in master.cf. This
+ 5. Uncomment the new "tlsproxy unix ... tlsproxy" service in master.cf. This
     service implements STARTTLS support for postscreen(8).
 
     /etc/postfix/master.cf:
         tlsproxy  unix  -       -       n       -       0       tlsproxy
 
- 5. Uncomment the new "dnsblog unix ... dnsblog" service in master.cf. This
+ 6. Uncomment the new "dnsblog unix ... dnsblog" service in master.cf. This
     service does DNSBL lookups for postscreen(8) and logs results.
 
     /etc/postfix/master.cf:
         dnsblog   unix  -       -       n       -       0       dnsblog
 
- 6. To enable DNSBL lookups, list some DNS blocklist sites in main.cf,
+ 7. To enable DNSBL lookups, list some DNS blocklist sites in main.cf,
     separated by whitespace. Different sites can have different weights. For
     example:
 
@@ -537,7 +551,7 @@ mail:
     run postmap(1) before the file can be used, and that it does not detect
     changes after the file is read. It is new with Postfix version 2.8.
 
- 7. Read the new configuration with "postfix reload".
+ 8. Read the new configuration with "postfix reload".
 
 Notes:
 
@@ -548,9 +562,6 @@ Notes:
 
   * See "Tests before the 220 SMTP server greeting" for details about the
     logging from these postscreen(8) tests.
-
-  * By default, postscreen(8) whitelists all clients in mynetworks. This is a
-    safety feature to avoid you from getting into trouble with local users.
 
   * If you run Postfix 2.6 or earlier you must stop and start the master daemon
     ("postfix stop; postfix start"). This is needed because the Postfix "pass"
@@ -574,6 +585,20 @@ master.cf for a postscreen-protected smtpd(8) service, then you should specify
 those same parameter overrides for the postscreen(8) and tlsproxy(8) services.
 
 BBlloocckkiinngg mmaaiill wwiitthh ppoossttssccrreeeenn((88))
+
+For compatibility with smtpd(8), postscreen(8) implements the soft_bounce
+safety feature. This causes Postfix to reject mail with a "try again" reply
+code.
+
+  * To turn this on for all of Postfix, specify "soft_bounce = yes" in main.cf.
+
+  * To turn this on for postscreen(8) only, append "-o soft_bounce=yes" (note:
+    NO SPACES around '=') to the postscreen entry in master.cf.
+
+Execute "postfix reload" to make the change effective.
+
+After testing, do not forget to remove the soft_bounce feature, otherwise
+senders won't receive their non-delivery notification until many days later.
 
 To use the postscreen(8) service to block mail, edit main.cf and specify one or
 more of:

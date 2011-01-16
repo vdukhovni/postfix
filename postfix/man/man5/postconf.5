@@ -3729,7 +3729,7 @@ and enabled instances are processed in reverse order.
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH postscreen_access_list (default: permit_mynetworks)
-Permanent white/blacklist for remote SMTP client IP addresses;
+Permanent white/blacklist for remote SMTP client IP addresses.
 \fBpostscreen\fR(8) searches this list immediately after a remote SMTP
 client connects.  Specify a comma- or whitespace-separated list of
 commands (in upper or lower case) or lookup tables. The search stops
@@ -3757,11 +3757,16 @@ Blacklist the client and terminate
 the search. Subject the client to the action configured with the
 postscreen_blacklist_action configuration parameter.
 .IP "\fB dunno \fR"
-When used inside a lookup table,
-return from the lookup table and evaluate the next command.
+All \fBpostscreen\fR(8) access lists
+implicitly have this command at the end.
 .br
-When used outside a lookup table, terminate the search, and subject
-the client to the configured before/after 220 greeting tests.
+When \fB dunno \fR
+is executed inside a lookup table, return from the lookup table and
+evaluate the next command.
+.br
+When \fB dunno \fR is executed
+outside a lookup table, terminate the search, and subject the client
+to the configured before/after 220 greeting tests.
 .PP
 Example:
 .PP
@@ -3827,8 +3832,8 @@ one-letter suffix that specifies the time unit).  Time units: s
 This feature is available in Postfix 2.8.
 .SH postscreen_blacklist_action (default: ignore)
 The action that \fBpostscreen\fR(8) takes when an SMTP client is
-permanently blacklisted with the postscreen_blacklist_networks
-parameter.  Specify one of the following:
+permanently blacklisted with the postscreen_access_list parameter.
+Specify one of the following:
 .IP "\fBignore\fR (default)"
 Ignore  this result. Allow other tests to complete.  Repeat
 this test the next time the client connects.
@@ -3898,8 +3903,8 @@ See smtpd_command_filter for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH postscreen_command_time_limit (default: ${stress?10}${stress:300}s)
-The command "read" time limit for \fBpostscreen\fR(8)'s built-in SMTP
-protocol engine. This bounds the time to receive an entire command.
+The time limit to read an entire command line with \fBpostscreen\fR(8)'s
+built-in SMTP protocol engine.
 .PP
 This feature is available in Postfix 2.8.
 .SH postscreen_disable_vrfy_command (default: $disable_vrfy_command)
