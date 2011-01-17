@@ -1281,11 +1281,7 @@ extern char *var_smtpd_tls_dh512_param_file;
 extern char *var_smtpd_tls_dh1024_param_file;
 
 #define VAR_SMTPD_TLS_EECDH	"smtpd_tls_eecdh_grade"
-#ifdef SNAPSHOT
 #define DEF_SMTPD_TLS_EECDH	"strong"
-#else
-#define DEF_SMTPD_TLS_EECDH	"none"
-#endif
 extern char *var_smtpd_tls_eecdh;
 
 #define VAR_SMTPD_TLS_LOGLEVEL	"smtpd_tls_loglevel"
@@ -3557,11 +3553,7 @@ extern char *var_tlsp_tls_dh512_param_file;
 extern char *var_tlsp_tls_dh1024_param_file;
 
 #define VAR_TLSP_TLS_EECDH	"tlsproxy_tls_eecdh_grade"
-#ifdef SNAPSHOT
 #define DEF_TLSP_TLS_EECDH	"$" VAR_SMTPD_TLS_EECDH
-#else
-#define DEF_TLSP_TLS_EECDH	"$" VAR_SMTPD_TLS_EECDH
-#endif
 extern char *var_tlsp_tls_eecdh;
 
 #define VAR_TLSP_TLS_LOGLEVEL	"tlsproxy_tls_loglevel"

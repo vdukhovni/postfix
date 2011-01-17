@@ -6,6 +6,15 @@ Wish list:
 
 	Things to do after the stable release:
 
+	events.c: cache the side effects of file descriptor event
+	enable/disable operations in user space, and do bulk kernel
+	updates at event_loop() time.  This can eliminate costly
+	system calls with successive event disable/enable operations
+	on the same file descriptor. This can also eliminate the
+	need for tricky code that tries to avoid the expense of
+	successive disable/enable operations. Such code is likely
+	to introduce bugs.
+
 	When does it pay off to send domains in the active queue
 	to a DNS prefetch daemon? Could this generalize to a dynamic
 	transport map that piggy-backs domains with the same MX

@@ -171,7 +171,7 @@ PSC_STATE *psc_new_session_state(VSTREAM *stream,
      * Update the stress level.
      */
     if (psc_stress == 0
-	&& psc_check_queue_length >= psc_check_queue_length_hiwat) {
+	&& psc_check_queue_length >= psc_hiwat_check_queue_length) {
 	psc_stress = 1;
 	msg_info("entering STRESS mode with %d connections",
 		 psc_check_queue_length);
@@ -238,7 +238,7 @@ void    psc_free_session_state(PSC_STATE *state)
      * Update the stress level.
      */
     if (psc_stress != 0
-	&& psc_check_queue_length <= psc_check_queue_length_lowat) {
+	&& psc_check_queue_length <= psc_lowat_check_queue_length) {
 	psc_stress = 0;
 	msg_info("leaving STRESS mode with %d connections",
 		 psc_check_queue_length);

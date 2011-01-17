@@ -16471,3 +16471,25 @@ Apologies for any names omitted.
 
 	Cleanup: documentation, in preparation for the Postfix 2.8
 	stable release.
+
+20110117
+
+	Bugfix (introduced Postfix alpha, or thereabouts): on HP-UX
+	the Postfix event engine was deaf for SIGALRM signals.
+	Symptoms were killed processes when the watchdog timeout
+	was less than max_idle.  The fix is the same as Solaris fix
+	20110109. Since we can't know what other systems need this,
+	the workaround is enabled by default.  Files: util/sys_defs.h.
+
+	Cleanup: "smtpd_tls_eecdh_grade = strong" by default, instead
+	of snapshot-only. File: global/mail_params.h, proto/postconf.proto.
+
+	Cleanup: missing "#include <errno.h>" in util/watchdog.c.
+
+	Bugfix: when compiled without -DUSE_TLS, tlsproxy used the
+	wrong server skeleton (multi_server instead of event_server).
+	File: tlsproxy/tlsproxy.c.
+
+	Workaround: added a panic check for code that is mis-compiled
+	by the HP-UX compiler.  File: postscreen/postscreen.c,
+	postscreen/postscreen.h, postscreen/postscreen_state.c.

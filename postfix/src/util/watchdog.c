@@ -126,6 +126,7 @@ static WATCHDOG *watchdog_curr;
   * watchdog timeout is less than the max_idle time.
   */
 #ifdef USE_WATCHDOG_PIPE
+#include <errno.h>
 #include <iostuff.h>
 #include <events.h>
 
