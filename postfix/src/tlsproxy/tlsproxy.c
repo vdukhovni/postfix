@@ -1147,7 +1147,7 @@ int     main(int argc, char **argv)
      * (including logging) and then invoke the tlsp_service() routine to log
      * the message that says why this program will not run.
      */
-    multi_server_main(argc, argv, tlsp_service,
+    event_server_main(argc, argv, tlsp_service,
 		      0);
 }
 

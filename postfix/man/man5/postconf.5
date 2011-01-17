@@ -8988,14 +8988,13 @@ Diffie-Hellman (EECDH) key exchange.
 The available choices are:
 .IP "\fBnone\fR"
 Don't use EECDH. Ciphers based on EECDH key
-exchange will be disabled. This is the default in official Postfix
-releases (mail_version = major.minor.patchlevel).
+exchange will be disabled. This is the default in Postfix versions
+2.6 and 2.7.
 .IP "\fBstrong\fR"
 Use EECDH with approximately 128
 bits of security at a reasonable computational cost. This is the
 current best-practice trade-off between security and computational
-efficiency. This is the default in Postfix snapshot releases
-(mail_version = major.minor-releasedate).
+efficiency. This is the default in Postfix version 2.8 and later.
 .IP "\fBultra\fR"
 Use EECDH with approximately 192 bits of
 security at computational cost that is approximately twice as high

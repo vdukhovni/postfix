@@ -14,6 +14,31 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.6 or earlier, read RELEASE_NOTES-2.7
 before proceeding.
 
+Major changes - restart Postfix
+-------------------------------
+
+If you upgrade from Postfix 2.6 or earlier, you must execute "postfix
+stop" and "postfix start" before you can use the postscreen(8)
+daemon.  This is needed because the Postfix 2.6 "pass" master service
+type did not work reliably on some systems.
+
+If you upgrade from Postfix 2.7, or from Postfix 2.8 before July
+25, 2010, you must execute "postfix reload" (or "postfix stop"
+followed by "postfix start"). This is needed because the queue
+manager to delivery agent protocol has changed. Failure to do this
+results in repeated logging of warnings with:
+
+    warning: unexpected attribute rewrite_context ...
+
+If the warning does not go away after restarting Postfix, examine
+the output from this command:
+
+    strings -af /usr/libexec/postfix/* | grep mail_version=
+
+(where /usr/libexec/postfix is the value of main.cf:daemon_directory)
+and update the executables that have a version string that differs
+from the other programs.
+
 Major changes - DNSBL/DNSWL support
 -----------------------------------
 
@@ -323,11 +348,6 @@ In addition, the postscreen_cache_retention_time (default: 1d)
 parameter specifies how long to keep an expired entry in the cache.
 This prevents a client from being logged as "NEW" after its record
 expired only a little while ago.
-
-[Incompat 20091008] If you upgrade from Postfix 2.6 or earlier, you
-must stop and start the Postfix master daemon before you can use
-the postscreen(8) daemon.  This is needed because the Postfix 2.6
-"pass" master service type did not work reliably on some systems.
 
 [Feature 20091008] Prototype postscreen(8) server that runs a number
 of time-consuming checks in parallel for all incoming SMTP connections,

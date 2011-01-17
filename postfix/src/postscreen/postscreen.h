@@ -292,8 +292,8 @@ extern int psc_normal_greet_wait;	/* stressed greet wait */
 extern int psc_stress_cmd_time_limit;	/* stressed command limit */
 extern int psc_normal_cmd_time_limit;	/* normal command time limit */
 extern int psc_stress;			/* stress level */
-extern int psc_check_queue_length_lowat;/* stress low-water mark */
-extern int psc_check_queue_length_hiwat;/* stress high-water mark */
+extern int psc_lowat_check_queue_length;/* stress low-water mark */
+extern int psc_hiwat_check_queue_length;/* stress high-water mark */
 extern DICT *psc_dnsbl_reply;		/* DNSBL name mapper */
 extern HTABLE *psc_client_concurrency;	/* per-client concurrency */
 
@@ -469,7 +469,7 @@ extern const char *psc_expand_lookup(const char *, int, char *);
 
 extern void psc_acl_pre_jail_init(void);
 extern ARGV *psc_acl_parse(const char *, const char *);
-extern int psc_acl_eval(PSC_STATE *,ARGV *, const char *);
+extern int psc_acl_eval(PSC_STATE *, ARGV *, const char *);
 
 /* LICENSE
 /* .ad

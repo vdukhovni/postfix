@@ -441,7 +441,6 @@ extern int opterr;
 #define USE_SYSV_POLL
 #ifndef NO_DEVPOLL
 # define EVENTS_STYLE	EVENTS_STYLE_DEVPOLL
-# define USE_WATCHDOG_PIPE
 #endif
 
 /*
@@ -1280,6 +1279,17 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 extern const char *inet_ntop(int, const void *, char *, size_t);
 extern int inet_pton(int, const char *, void *);
 
+#endif
+
+ /*
+  * Workaround: after a watchdog alarm signal, wake up from select/poll/etc.
+  * by writing to a pipe. Solaris needs this, and HP-UX apparently, too. The
+  * run-time cost is negligible so we just turn it on for all systems. As a
+  * side benefit, making this code system-independent will simplify the
+  * detection of bit-rot problems.
+  */
+#ifndef NO_WATCHDOG_PIPE
+#define USE_WATCHDOG_PIPE
 #endif
 
  /*

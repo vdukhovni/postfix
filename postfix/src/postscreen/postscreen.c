@@ -416,7 +416,7 @@ int     var_psc_post_queue_limit;
 int     var_psc_pre_queue_limit;
 int     var_psc_watchdog;
 
-#undef MIGRATION_WARNING
+#define MIGRATION_WARNING
 
 #ifdef MIGRATION_WARNING
 char   *var_psc_wlist_nets;
@@ -487,8 +487,8 @@ int     psc_normal_greet_wait;		/* stressed greet wait */
 int     psc_stress_cmd_time_limit;	/* stressed command limit */
 int     psc_normal_cmd_time_limit;	/* normal command time limit */
 int     psc_stress;			/* stress level */
-int     psc_check_queue_length_lowat;	/* stress low-water mark */
-int     psc_check_queue_length_hiwat;	/* stress high-water mark */
+int     psc_lowat_check_queue_length;	/* stress low-water mark */
+int     psc_hiwat_check_queue_length;	/* stress high-water mark */
 DICT   *psc_dnsbl_reply;		/* DNSBL name mapper */
 HTABLE *psc_client_concurrency;		/* per-client concurrency */
 
@@ -1048,12 +1048,19 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     psc_normal_greet_wait =
 	get_mail_conf_time(VAR_PSC_GREET_WAIT, DEF_PSC_GREET_WAIT, 1, 0);
 
-    psc_check_queue_length_lowat = .7 * var_psc_pre_queue_limit;
-    psc_check_queue_length_hiwat = .9 * var_psc_pre_queue_limit;
+    psc_lowat_check_queue_length = .7 * var_psc_pre_queue_limit;
+    psc_hiwat_check_queue_length = .9 * var_psc_pre_queue_limit;
     if (msg_verbose)
 	msg_info(VAR_PSC_CMD_TIME ": stress=%d normal=%d lowat=%d hiwat=%d",
 		 psc_stress_cmd_time_limit, psc_normal_cmd_time_limit,
-		 psc_check_queue_length_lowat, psc_check_queue_length_hiwat);
+		 psc_lowat_check_queue_length, psc_hiwat_check_queue_length);
+
+    if (psc_lowat_check_queue_length == 0)
+	msg_panic("compiler error: 0.7 * %d = %d", var_psc_pre_queue_limit,
+		  psc_lowat_check_queue_length);
+    if (psc_hiwat_check_queue_length == 0)
+	msg_panic("compiler error: 0.9 * %d = %d", var_psc_pre_queue_limit,
+		  psc_hiwat_check_queue_length);
 
     /*
      * Per-client concurrency.
