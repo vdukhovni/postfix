@@ -169,6 +169,8 @@ int     psc_acl_eval(PSC_STATE *state, ARGV *acl, const char *origin)
 			 "of this access list", name);
 		return (PSC_ACL_ACT_ERROR);
 	    }
+	} else if (STREQ(name, PSC_ACL_NAME_DUNNO)) {
+	    return (PSC_ACL_ACT_DUNNO);
 	} else {
 	    msg_warn("%s: unknown command: %s -- ignoring the remainder "
 		     "of this access list", origin, name);

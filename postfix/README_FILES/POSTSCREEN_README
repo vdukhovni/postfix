@@ -31,9 +31,9 @@ postscreen(8) is part of a multi-layer defense.
     content filters. Typical examples are Amavisd-new, SpamAssassin, and Milter
     applications.
 
-Each layer reduces the spam volume. The general strategy is to eliminate spam
-early with the less expensive defenses and to use the more expensive defenses
-for the spam that remains.
+Each layer reduces the spam volume. The general strategy is to use the less
+expensive defenses first, and to use the more expensive defenses for the spam
+that remains.
 
 Topics in this document:
 
