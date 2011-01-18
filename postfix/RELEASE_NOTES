@@ -237,6 +237,10 @@ Specify "tls_append_default_CA = yes" for backwards compatibility.
 Major changes - postscreen
 --------------------------
 
+See html/POSTSCREEN_README.html for an introduction to postscreen
+(or the text version, README_FILES/POSTSCREEN_README). The text
+below summarizes milestones in reverse chronological order.
+
 [Incompat 20110111] The postscreen_access_list feature replaces the
 postscreen_whitelist_networks and postscreen_blacklist_networks
 features. Reason: CIDR-style access maps are some 100x faster than

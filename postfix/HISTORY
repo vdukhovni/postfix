@@ -16493,3 +16493,24 @@ Apologies for any names omitted.
 	Workaround: added a panic check for code that is mis-compiled
 	by the HP-UX compiler.  File: postscreen/postscreen.c,
 	postscreen/postscreen.h, postscreen/postscreen_state.c.
+
+20110118
+
+	Bugfix: the tls_disable_workarounds word list only included
+	workarounds in SSL_OP_ALL. Problem report by Steve Jenkins,
+	problem fix by Victor Duchovni. File: tls/tls_misc.c.
+	
+	Last-minute incompatible syntax change: Postfix now uses
+	";" instead of "," to separate DNSBL/DNSWL address filter
+	fields inside "[]". The compatibility break is not an issue,
+	because the syntax never worked in main.cf. Problem reported
+	by Mark Martinec. Files: util/ip_match.c, util/ip_match.in,
+	util/ip_match.ref, proto/postconf.proto.
+
+	Cleanup: postscreen now monitors the AVERAGE latency of
+	table access, and complains at most once per minute.  File:
+	postscreen/postscreen_dict.c.
+
+	Bugfix: support for the "dunno" command somehow disappeared
+	from the postscreen_access_list implementation.  File:
+	postscreen/postscreen_access.c.

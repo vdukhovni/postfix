@@ -64,7 +64,7 @@
 /* .fi
 /*	An IPv4 address pattern has four fields separated by ".".
 /*	Each field is either a decimal number, or a sequence inside
-/*	"[]" that contains one or more comma-separated decimal
+/*	"[]" that contains one or more ";"-separated decimal
 /*	numbers or number..number ranges.
 /*
 /*	Examples of patterns are 1.2.3.4 (matches itself, as one
@@ -91,7 +91,7 @@
 /* .br
 /*	v4octet = any decimal number in the range 0 through 255
 /* .br
-/*	v4sequence = v4seq_member | v4sequence "," v4seq_member
+/*	v4sequence = v4seq_member | v4sequence ";" v4seq_member
 /* .br
 /*	v4seq_member = v4octet | v4octet ".." v4octet
 /* .in
@@ -206,7 +206,7 @@ char   *ip_match_dump(VSTRING *printable, const char *byte_codes)
 		}
 		/* Output the wild-card field separator and repeat the loop. */
 		if (*bp != IP_MATCH_CODE_CLOSE)
-		    vstring_sprintf_append(printable, ",");
+		    vstring_sprintf_append(printable, ";");
 	    }
 	    vstring_sprintf_append(printable, "]");
 	}
@@ -507,7 +507,7 @@ char   *ip_match_parse(VSTRING *byte_codes, char *pattern)
 	     */
 	case IP_MATCH_CODE_OPEN:
 	    VSTRING_ADDCH(byte_codes, IP_MATCH_CODE_OPEN);
-	    /* Require comma-separated numbers or numeric ranges. */
+	    /* Require ";"-separated numbers or numeric ranges. */
 	    for (;;) {
 		token_type = ip_match_next_token(&cp, &saved_cp, &oval);
 		if (token_type == IP_MATCH_CODE_OVAL) {
@@ -537,16 +537,16 @@ char   *ip_match_parse(VSTRING *byte_codes, char *pattern)
 			VSTRING_ADDCH(byte_codes, IP_MATCH_CODE_OVAL);
 			VSTRING_ADDCH(byte_codes, saved_oval);
 		    }
-		    /* Require "," or end-of-wildcard. */
+		    /* Require ";" or end-of-wildcard. */
 		    token_type = look_ahead;
-		    if (token_type == ',') {
+		    if (token_type == ';') {
 			continue;
 		    } else if (token_type == IP_MATCH_CODE_CLOSE) {
 			break;
 		    } else {
 			ipmatch_print_parse_error(byte_codes, pattern,
 						  saved_cp, cp,
-						  "need \",\" or \"%c\"",
+						  "need \";\" or \"%c\"",
 						  IP_MATCH_CODE_CLOSE);
 			return (STR(byte_codes));
 		    }
