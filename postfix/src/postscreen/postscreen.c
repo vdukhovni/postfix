@@ -416,7 +416,7 @@ int     var_psc_post_queue_limit;
 int     var_psc_pre_queue_limit;
 int     var_psc_watchdog;
 
-#define MIGRATION_WARNING
+#undef MIGRATION_WARNING
 
 #ifdef MIGRATION_WARNING
 char   *var_psc_wlist_nets;

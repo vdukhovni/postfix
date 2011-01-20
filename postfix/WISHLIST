@@ -6,6 +6,11 @@ Wish list:
 
 	Things to do after the stable release:
 
+	vstream_peek_len() and vstream_peek_data() to count the
+	unread data and to access it, respectively. vstream_peek_data()
+	can access the saved read buffer if a double-buffered stream
+	is in write mode.
+
 	events.c: cache the side effects of file descriptor event
 	enable/disable operations in user space, and do bulk kernel
 	updates at event_loop() time.  This can eliminate costly

@@ -728,6 +728,10 @@ static void psc_smtpd_read_event(int event, char *context)
      * Drain all input in the VSTREAM buffer, otherwise this socket will not
      * receive further read event notification until the client disconnects!
      * 
+     * To suspend this loop temporarily before the buffer is drained, use the
+     * PSC_SUSPEND_SMTP_CMD_EVENTS() and PSC_RESUME_SMTP_CMD_EVENTS() macros,
+     * and set the PSC_SMTPD_CMD_FLAG_SUSPEND flag in the command table.
+     * 
      * Don't try to read input before it has arrived, otherwise we would starve
      * the pseudo threads of other sessions. Get out of here as soon as the
      * VSTREAM read buffer dries up. Do not look for more input in kernel
@@ -737,8 +741,9 @@ static void psc_smtpd_read_event(int event, char *context)
      */
 
     /*
-     * Note: on entry into this function the VSTREAM buffer may be non-empty,
-     * so we test the "no more input" condition at the bottom of the loops.
+     * Note: on entry into this function the VSTREAM buffer may or may not be
+     * empty, so we test the "no more input" condition at the bottom of the
+     * loops.
      */
     for (;;) {
 

@@ -11881,7 +11881,7 @@ This feature is available in Postfix 2.0 and later; with Postfix
 version 2.8 and later, <a href="postconf.5.html#reject_rhsbl_reverse_client">reject_rhsbl_reverse_client</a> will usually
 produce better results.  </dd>
 
-</dd> <dt><b><a name="permit_rhswl_client">permit_rhswl_client <i>rhswl_domain=d.d.d.d</i></a></b></dt>
+<dt><b><a name="permit_rhswl_client">permit_rhswl_client <i>rhswl_domain=d.d.d.d</i></a></b></dt>
 
 <dd>Accept the request when the client hostname is listed with the
 A record "<i>d.d.d.d</i>" under <i>rhswl_domain</i>.  Each "<i>d</i>"
@@ -12106,8 +12106,8 @@ cases: </p>
 to translate these into domain names if necessary.  </p>
 
 <li> <p> Use "<a href="postconf.5.html#strict_rfc821_envelopes">strict_rfc821_envelopes</a> = no" to accept "RCPT TO:&lt;<i>User
-Name &lt;user@example.com&gt;&gt;</i>". Postfix will ignore the "User
-Name" part and deliver to the &lt;user@example.com&gt;</i> address.
+Name &lt;user@example.com&gt;&gt;</i>". Postfix will ignore the "<i>User
+Name</i>" part and deliver to the <i>&lt;user@example.com&gt;</i> address.
 </p>
 
 </ul>
@@ -12187,7 +12187,7 @@ in any SMTP command context, described under <a href="postconf.5.html#smtpd_clie
 multi-recipient mail. Acting on only one recipient would be misleading,
 because any decision will affect all recipients equally. Acting on
 all recipients would require a possibly very large amount of memory,
-and would also be misleading for the reasons mentioned before.  </p>
+and would also be misleading for the reasons mentioned before.
 
 </ul>
 
@@ -13112,7 +13112,7 @@ Postfix logfile records for a failed SMTP session. The text itself
 is not logged to the Postfix SMTP server's maillog file. </p>
 
 <p> Be sure to keep the text as short as possible. Long text may
-be truncated before it is logged in the Postfix SMTP server's maillog
+be truncated before it is logged to the remote SMTP client's maillog
 file, or before it is returned to the sender in a delivery status
 notification.  </p>
 
