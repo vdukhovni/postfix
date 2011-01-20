@@ -7515,8 +7515,8 @@ Postfix already accepts the correct form
 to translate these into domain names if necessary.
 .IP \(bu
 Use "strict_rfc821_envelopes = no" to accept "RCPT TO:<\fIUser
-Name <user@example.com>>\fR". Postfix will ignore the "User
-Name" part and deliver to the <user@example.com>\fR address.
+Name <user@example.com>>\fR". Postfix will ignore the "\fIUser
+Name\fR" part and deliver to the \fI<user@example.com>\fR address.
 .PP
 Examples of problems that can be solved with the smtpd_command_filter
 feature:
@@ -8201,7 +8201,7 @@ Postfix logfile records for a failed SMTP session. The text itself
 is not logged to the Postfix SMTP server's maillog file.
 .PP
 Be sure to keep the text as short as possible. Long text may
-be truncated before it is logged in the Postfix SMTP server's maillog
+be truncated before it is logged to the remote SMTP client's maillog
 file, or before it is returned to the sender in a delivery status
 notification.
 .PP

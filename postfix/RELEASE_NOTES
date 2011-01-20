@@ -42,19 +42,19 @@ from the other programs.
 Major changes - DNSBL/DNSWL support
 -----------------------------------
 
-[Feature 20101126] Support for address patterns in DNSBL and DNSWL
-lookup results.
+[Feature 20101126] Support for address patterns in DNS blacklist
+and whitelist lookup results.
 
-For example, "reject_rbl_client example.com=127.0.0.[2,4,6..8]"
+For example, "reject_rbl_client example.com=127.0.0.[2;4;6..8]"
 will reject clients when the lookup result is 127.0.0.2, 127.0.0.4,
 127.0.0.6, 127.0.0.7, or 127.0.0.8.
 
-The setting "postscreen_dnsbl_sites = example.com=127.0.0.[2,4,6..8]"
+The setting "postscreen_dnsbl_sites = example.com=127.0.0.[2;4;6..8]"
 rejects the same clients.
 
 An IPv4 address pattern has four fields separated by ".".  Each
 field is either a decimal number, or a sequence inside "[]" that
-contains one or more comma-separated decimal numbers or number..number
+contains one or more ";"-separated decimal numbers or number..number
 ranges.
 
 Thus, any pattern field can be a sequence inside "[]", but a "[]"
@@ -71,7 +71,7 @@ The syntax for IPv4 patterns is as follows:
 v4pattern = v4field "." v4field "." v4field "." v4field
 v4field = v4octet | "[" v4sequence "]"
 v4octet = any decimal number in the range 0 through 255
-v4sequence = v4seq_member | v4sequence "," v4seq_member
+v4sequence = v4seq_member | v4sequence ";" v4seq_member
 v4seq_member = v4octet | v4octet ".." v4octet
 
 [Feature 20101105] The Postfix SMTP server now supports DNS-based
@@ -91,7 +91,14 @@ silently ignored when they would override reject_unauth_destination.
 Also for safety reasons, the result is DEFER_IF_REJECT when DNS
 whitelist lookup fails (this result will be made configurable).
 
-Major changes - Milter suppport
+Major changes - sqlite support
+------------------------------
+
+[Feature 20100617] Support for read-only sqlite database access,
+with code by Axel Steiner and documentation by Jesus Garcia Crespo.
+See SQLITE_README and sqlite_table(5) for details.
+
+Major changes - Milter support
 -------------------------------
 
 [Incompat 20101103] Postfix now requests default delivery status

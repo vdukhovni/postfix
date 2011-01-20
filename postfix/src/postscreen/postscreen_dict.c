@@ -68,29 +68,23 @@
 
 #include <postscreen.h>
 
-/* psc_average - moving average */
-
-static double psc_average(double new, double old)
-{
-    return (0.1 * new + 0.9 * old);
-}
-
  /*
   * Monitor time-critical operations.
   * 
   * XXX Averaging support was added during a stable release candidate, so it
   * provides only the absolute minimum necessary. A complete implementation
   * should maintain separate statistics for each table, and it should not
-  * complain when the average time between table access is larger than the
-  * average table access latency.
+  * complain when the access latency is less than the time between accesses.
   */
-#define PSC_GET_TIME_BEFORE_LOOKUP \
+#define PSC_GET_TIME_BEFORE_LOOKUP { \
     struct timeval _before, _after; \
     DELTA_TIME _delta; \
     double _new_delta_ms; \
     GETTIMEOFDAY(&_before);
 
 #define PSC_DELTA_MS(d) ((d).dt_sec * 1000.0 + (d).dt_usec / 1000.0)
+
+#define PSC_AVERAGE(new, old)	(0.1 * (new) + 0.9 * (old))
 
 #ifndef PSC_THRESHOLD_MS
 #define PSC_THRESHOLD_MS	100	/* nag if latency > 100ms */
@@ -100,18 +94,23 @@ static double psc_average(double new, double old)
 #define PSC_WARN_LOCKOUT_S	60	/* don't nag for 60s */
 #endif
 
+ /*
+  * Shared warning lock, so that we don't spam the logfile when the system
+  * becomes slow.
+  */
 static time_t psc_last_warn = 0;
 
 #define PSC_CHECK_TIME_AFTER_LOOKUP(table, action, average) \
     GETTIMEOFDAY(&_after); \
     PSC_CALC_DELTA(_delta, _after, _before); \
     _new_delta_ms = PSC_DELTA_MS(_delta); \
-    if ((average = psc_average(_new_delta_ms, average)) > PSC_THRESHOLD_MS \
-	&& psc_last_warn < event_time() - PSC_WARN_LOCKOUT_S) { \
+    if ((average = PSC_AVERAGE(_new_delta_ms, average)) > PSC_THRESHOLD_MS \
+	&& psc_last_warn < _after.tv_sec - PSC_WARN_LOCKOUT_S) { \
         msg_warn("%s: %s %s average delay is %.0f ms", \
                  myname, (table), (action), average); \
-	psc_last_warn = event_time(); \
-    }
+	psc_last_warn = _after.tv_sec; \
+    } \
+}
 
 /* psc_addr_match_list_match - time-critical address list lookup */
 
