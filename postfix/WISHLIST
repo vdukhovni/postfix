@@ -6,6 +6,9 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Don't forget Apple's code donation for fetching mail from
+	IMAP server.
+
 	vstream_peek_len() and vstream_peek_data() to count the
 	unread data and to access it, respectively. vstream_peek_data()
 	can access the saved read buffer if a double-buffered stream
@@ -35,6 +38,7 @@ Wish list:
 	means that many tlsproxy_ parameters become postscreen_
 	parameters, and that tls_server_init() parameters move to
 	to tls_server_start(). That is a significant API change.
+	It also means tlsproxy can't open all files before chroot().
 
 	anvil rate limit for sasl_username.
 

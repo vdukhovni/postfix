@@ -57,6 +57,7 @@ typedef struct VSTREAM {
     int     timeout;			/* read/write timout */
     VSTREAM_JMP_BUF *jbuf;		/* exception handling */
     struct timeval iotime;		/* time of last fill/flush */
+    struct timeval time_limit;		/* read/write time limit */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -76,6 +77,7 @@ extern VSTREAM vstream_fstd[];		/* pre-defined streams */
 #define VSTREAM_FLAG_SEEK	(1<<10)	/* seek info valid */
 #define VSTREAM_FLAG_NSEEK	(1<<11)	/* can't seek this file */
 #define VSTREAM_FLAG_DOUBLE	(1<<12)	/* double buffer */
+#define VSTREAM_FLAG_DEADLINE	(1<<13)	/* deadline active */
 
 #define VSTREAM_PURGE_READ	(1<<0)	/* flush unread data */
 #define VSTREAM_PURGE_WRITE	(1<<1)	/* flush unwritten data */
@@ -133,6 +135,7 @@ extern void vstream_control(VSTREAM *, int,...);
 #endif
 #define VSTREAM_CTL_BUFSIZE	12
 #define VSTREAM_CTL_SWAP_FD	13
+#define VSTREAM_CTL_TIME_LIMIT	14
 
 extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
 extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);

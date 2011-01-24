@@ -52,7 +52,7 @@
 /*	and write operations described below.
 /*	This routine alters the behavior of streams as follows:
 /* .IP \(bu
-/*	The read/write timeout is set to the specified value.
+/*	The read/write total time limit is set to the specified value.
 /* .IP \f(bu
 /*	The stream is configured to use double buffering.
 /* .IP \f(bu
@@ -151,6 +151,16 @@
 static void smtp_timeout_reset(VSTREAM *stream)
 {
     vstream_clearerr(stream);
+
+    /*
+     * Important: the time limit feature must not introduce any system calls
+     * when the input is already in the buffer, or when the output still fits
+     * in the buffer. Such system calls would really hurt when receiving or
+     * sending body content one line at a time.
+     */
+    vstream_control(stream,
+		    VSTREAM_CTL_TIME_LIMIT, stream->timeout,
+		    VSTREAM_CTL_END);
 }
 
 /* smtp_timeout_detect - test the per-stream timeout flag */

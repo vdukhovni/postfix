@@ -505,7 +505,7 @@ mail:
 
  3. Uncomment the new "smtpd pass ... smtpd" service in master.cf, and
     duplicate any "-o parameter=value" entries from the smtpd service that was
-    commented out in step 1.
+    commented out in the previous step.
 
     /etc/postfix/master.cf:
         smtpd     pass  -       -       n       -       -       smtpd

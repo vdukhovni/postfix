@@ -304,6 +304,12 @@
 /*	int. Use an explicit cast to avoid problems on LP64
 /*	environments and other environments where ssize_t is larger
 /*	than int.
+/* .IP "VSTREAM_CTL_TIME_LIMIT (int)"
+/*	Specify an upper bound on the total time to complete all
+/*	subsequent read or write operations. This is different from
+/*	VSTREAM_CTL_TIMEOUT, which specifies a deadline for each
+/*	read or write operation.  Specify a relative time in seconds,
+/*	or zero to disable this feature.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -522,6 +528,21 @@ VSTREAM vstream_fstd[] = {
 #define VSTREAM_FFLUSH_SOME(stream) \
 	vstream_fflush_some((stream), (stream)->buf.len - (stream)->buf.cnt)
 
+/* Note: this does not change a negative result into a zero result. */
+#define VSTREAM_SUB_TIME(x, y, z) \
+    do { \
+	(x).tv_sec = (y).tv_sec - (z).tv_sec; \
+	(x).tv_usec = (y).tv_usec - (z).tv_usec; \
+	while ((x).tv_usec < 0) { \
+	    (x).tv_usec += 1000000; \
+	    (x).tv_sec -= 1; \
+	} \
+	while ((x).tv_usec >= 1000000) { \
+	    (x).tv_usec -= 1000000; \
+	    (x).tv_sec += 1; \
+	} \
+    } while (0)
+
 /* vstream_buf_init - initialize buffer */
 
 static void vstream_buf_init(VBUF *bp, int flags)
@@ -590,6 +611,9 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
     char   *data;
     ssize_t len;
     ssize_t n;
+    int     timeout;
+    struct timeval before;
+    struct timeval elapsed;
 
     /*
      * Sanity checks. It is illegal to flush a read-only stream. Otherwise,
@@ -630,14 +654,31 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
      * any.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
-	if ((n = stream->write_fn(stream->fd, data, len, stream->timeout, stream->context)) <= 0) {
+	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
+	    timeout = stream->time_limit.tv_sec + (stream->time_limit.tv_usec > 0);
+	    if (timeout <= 0) {
+		bp->flags |= (VSTREAM_FLAG_ERR | VSTREAM_FLAG_TIMEOUT);
+		errno = ETIMEDOUT;
+		return (VSTREAM_EOF);
+	    }
+	    if (len == to_flush)
+		GETTIMEOFDAY(&before);
+	    else
+		before = stream->iotime;
+	} else
+	    timeout = stream->timeout;
+	if ((n = stream->write_fn(stream->fd, data, len, timeout, stream->context)) <= 0) {
 	    bp->flags |= VSTREAM_FLAG_ERR;
 	    if (errno == ETIMEDOUT)
 		bp->flags |= VSTREAM_FLAG_TIMEOUT;
 	    return (VSTREAM_EOF);
 	}
-	if (stream->timeout)
+	if (timeout)
 	    GETTIMEOFDAY(&stream->iotime);
+	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
+	    VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
+	    VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+	}
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
 	    msg_info("%s: %d flushed %ld/%ld", myname, stream->fd,
 		     (long) n, (long) to_flush);
@@ -698,6 +739,9 @@ static int vstream_buf_get_ready(VBUF *bp)
     VSTREAM *stream = VBUF_TO_APPL(bp, VSTREAM, buf);
     const char *myname = "vstream_buf_get_ready";
     ssize_t n;
+    struct timeval before;
+    struct timeval elapsed;
+    int     timeout;
 
     /*
      * Detect a change of I/O direction or position. If so, flush any
@@ -759,7 +803,17 @@ static int vstream_buf_get_ready(VBUF *bp)
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
      */
-    switch (n = stream->read_fn(stream->fd, bp->data, bp->len, stream->timeout, stream->context)) {
+    if (bp->flags & VSTREAM_FLAG_DEADLINE) {
+	timeout = stream->time_limit.tv_sec + (stream->time_limit.tv_usec > 0);
+	if (timeout <= 0) {
+	    bp->flags |= (VSTREAM_FLAG_ERR | VSTREAM_FLAG_TIMEOUT);
+	    errno = ETIMEDOUT;
+	    return (VSTREAM_EOF);
+	}
+	GETTIMEOFDAY(&before);
+    } else
+	timeout = stream->timeout;
+    switch (n = stream->read_fn(stream->fd, bp->data, bp->len, timeout, stream->context)) {
     case -1:
 	bp->flags |= VSTREAM_FLAG_ERR;
 	if (errno == ETIMEDOUT)
@@ -769,8 +823,12 @@ static int vstream_buf_get_ready(VBUF *bp)
 	bp->flags |= VSTREAM_FLAG_EOF;
 	return (VSTREAM_EOF);
     default:
-	if (stream->timeout)
+	if (timeout)
 	    GETTIMEOFDAY(&stream->iotime);
+	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
+	    VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
+	    VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+	}
 	if (msg_verbose > 2)
 	    msg_info("%s: fd %d got %ld", myname, stream->fd, (long) n);
 	bp->cnt = -n;
@@ -1082,6 +1140,7 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     stream->context = 0;
     stream->jbuf = 0;
     stream->iotime.tv_sec = stream->iotime.tv_usec = 0;
+    stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
     stream->req_bufsize = VSTREAM_BUFSIZE;
     return (stream);
 }
@@ -1227,6 +1286,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
     int     old_fd;
     ssize_t req_bufsize = 0;
     VSTREAM *stream2;
+    int     time_limit;
 
 #define SWAP(type,a,b) do { type temp = (a); (a) = (b); (b) = (temp); } while (0)
 
@@ -1333,6 +1393,24 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    if (stream != VSTREAM_ERR
 		&& req_bufsize > stream->req_bufsize)
 		stream->req_bufsize = req_bufsize;
+	    break;
+
+	    /*
+	     * Make no gettimeofday() etc. system call until we really know
+	     * that we need to do I/O. This avoids a performance hit when
+	     * sending or receiving body content one line at a time.
+	     */
+	case VSTREAM_CTL_TIME_LIMIT:
+	    time_limit = va_arg(ap, int);
+	    if (time_limit < 0) {
+		msg_panic("%s: bad time limit: %d", myname, time_limit);
+	    } else if (time_limit == 0) {
+		stream->buf.flags &= ~VSTREAM_FLAG_DEADLINE;
+	    } else {
+		stream->buf.flags |= VSTREAM_FLAG_DEADLINE;
+		stream->time_limit.tv_sec = time_limit;
+		stream->time_limit.tv_usec = 0;
+	    }
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

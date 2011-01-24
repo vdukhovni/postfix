@@ -16514,3 +16514,16 @@ Apologies for any names omitted.
 	Bugfix: support for the "dunno" command somehow disappeared
 	from the postscreen_access_list implementation.  File:
 	postscreen/postscreen_access.c.
+
+20110123
+
+	Feature: read/write deadlines. Deadlines were introduced
+	with postscreen's dummy SMTP engine. In the Postfix SMTP
+	client and server, deadlines limit the total amount of time
+	to read or write one command line, one response line, or
+	one line of message content. This reduces the impact of
+	application exhaustion attacks that trickle data one byte
+	at a time.  Files: util/vstream.[hc], global/smtp_stream.c.
+
+	Cleanup: remove #ifdef MIGRATION_WARNING transitional code
+	from postscreen. File: postscreen/postscreen.c.
