@@ -10,6 +10,9 @@
 /*	VSTREAM *stream;
 /*	int	timeout;
 /*
+/*	void	smtp_timeout_reset(stream)
+/*	VSTREAM *stream;
+/*
 /*	void	smtp_printf(stream, format, ...)
 /*	VSTREAM *stream;
 /*	const char *format;
@@ -58,6 +61,12 @@
 /* .IP \f(bu
 /*	The stream is configured to enable exception handling.
 /* .PP
+/*	smtp_timeout_reset() clears the error flags and restarts
+/*	the deadline timer for the named stream. This leaves the
+/*	stream in a state that is suitable for the final "flush
+/*	before close" operation, without depending on any other
+/*	primitives provided by this module.
+/*
 /*	smtp_printf() formats its arguments and writes the result to
 /*	the named stream, followed by a CR LF pair. The stream is NOT flushed.
 /*	Long lines of text are not broken.
@@ -146,9 +155,9 @@
 
 #include "smtp_stream.h"
 
-/* smtp_timeout_reset - reset per-stream timeout flag */
+/* smtp_timeout_reset - reset per-stream error flags and read/write deadline */
 
-static void smtp_timeout_reset(VSTREAM *stream)
+void smtp_timeout_reset(VSTREAM *stream)
 {
     vstream_clearerr(stream);
 
