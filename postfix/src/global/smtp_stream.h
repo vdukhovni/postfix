@@ -33,7 +33,6 @@
 #define SMTP_ERR_NONE	4		/* non-error case */
 
 extern void smtp_timeout_setup(VSTREAM *, int);
-extern void smtp_timeout_reset(VSTREAM *);
 extern void PRINTFLIKE(2, 3) smtp_printf(VSTREAM *, const char *,...);
 extern void smtp_flush(VSTREAM *);
 extern int smtp_fgetc(VSTREAM *);

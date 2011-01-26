@@ -16528,8 +16528,10 @@ Apologies for any names omitted.
 	Cleanup: remove #ifdef MIGRATION_WARNING transitional code
 	from postscreen. File: postscreen/postscreen.c.
 
-20110124
+20110125
 
-	Cleanup: use the right primitive to flush responses when
-	the Postfix SMTP server is taking an excessive amount of
-	time to process client requests. File: smtpd/smtpd_chat.c.
+	Cleaned up and finalized read/write deadline support. Once
+	this code has been fielded it can go into Postfix 2.8.1,
+	and made available as optional patch for earlier releases.
+	Further refinements have only dimishing returns and can
+	evolve in the 2.9 release cycle.  File: util/vstream.c.

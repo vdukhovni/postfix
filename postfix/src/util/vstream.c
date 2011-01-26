@@ -669,8 +669,10 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 	    timeout = stream->timeout;
 	if ((n = stream->write_fn(stream->fd, data, len, timeout, stream->context)) <= 0) {
 	    bp->flags |= VSTREAM_FLAG_ERR;
-	    if (errno == ETIMEDOUT)
+	    if (errno == ETIMEDOUT) {
 		bp->flags |= VSTREAM_FLAG_TIMEOUT;
+		stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
+	    }
 	    return (VSTREAM_EOF);
 	}
 	if (timeout)
@@ -816,8 +818,10 @@ static int vstream_buf_get_ready(VBUF *bp)
     switch (n = stream->read_fn(stream->fd, bp->data, bp->len, timeout, stream->context)) {
     case -1:
 	bp->flags |= VSTREAM_FLAG_ERR;
-	if (errno == ETIMEDOUT)
+	if (errno == ETIMEDOUT) {
 	    bp->flags |= VSTREAM_FLAG_TIMEOUT;
+	    stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
+	}
 	return (VSTREAM_EOF);
     case 0:
 	bp->flags |= VSTREAM_FLAG_EOF;

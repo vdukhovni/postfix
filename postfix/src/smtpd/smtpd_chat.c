@@ -199,7 +199,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
      * delays (tarpit delays or DNS lookups for UCE restrictions).
      */
     if (delay || time((time_t *) 0) - vstream_ftime(state->client) > 10)
-	smtp_flush(state->client);		/* fix 20110124 */
+	vstream_fflush(state->client);
 
     /*
      * Abort immediately if the connection is broken.

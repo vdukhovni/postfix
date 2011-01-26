@@ -4667,7 +4667,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 	}
 	break;
     }
-    smtp_timeout_reset(state->client);
 
     /*
      * XXX The client connection count/rate control must be consistent in its
