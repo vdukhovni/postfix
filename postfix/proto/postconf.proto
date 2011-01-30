@@ -10716,8 +10716,8 @@ smtp_tls_fingerprint_cert_match =
 %PARAM smtpd_milters
 
 <p> A list of Milter (mail filter) applications for new mail that
-arrives via the Postfix smtpd(8) server.  See the MILTER_README
-document for details.  </p>
+arrives via the Postfix smtpd(8) server. Specify space or comma as
+separator. See the MILTER_README document for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -10727,8 +10727,8 @@ document for details.  </p>
 does not arrive via the Postfix smtpd(8) server. This includes local
 submission via the sendmail(1) command line, new mail that arrives
 via the Postfix qmqpd(8) server, and old mail that is re-injected
-into the queue with "postsuper -r".  See the MILTER_README document
-for details.  </p>
+into the queue with "postsuper -r".  Specify space or comma as
+separator. See the MILTER_README document for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 

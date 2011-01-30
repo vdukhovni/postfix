@@ -90,6 +90,9 @@
 /* .ad
 /*	In case of error, a vstream_longjmp() call is performed to the
 /*	context specified with vstream_setjmp().
+/*	After write error, further writes to the socket are disabled.
+/*	This eliminates the need for clumsy code to avoid unwanted
+/*	I/O while shutting down a TLS engine or closing a VSTREAM.
 /*	Error codes passed along with vstream_longjmp() are:
 /* .IP SMTP_ERR_EOF
 /*	An I/O error happened, or the peer has disconnected unexpectedly.
@@ -163,12 +166,23 @@ static void smtp_timeout_reset(VSTREAM *stream)
 		    VSTREAM_CTL_END);
 }
 
-/* smtp_timeout_detect - test the per-stream timeout flag */
+/* smtp_longjmp - raise an exception */
 
-static void smtp_timeout_detect(VSTREAM *stream)
+static NORETURN smtp_longjmp(VSTREAM *stream, int err, const char *context)
 {
-    if (vstream_ftimeout(stream))
-	vstream_longjmp(stream, SMTP_ERR_TIME);
+
+    /*
+     * If we failed to write, don't bang our head against the wall another
+     * time when closing the stream. In the case of SMTP over TLS, poisoning
+     * the socket with shutdown() is more robust than purging the VSTREAM
+     * buffer or replacing the write function pointer with dummy_write().
+     */
+    if (msg_verbose)
+	msg_info("%s: %s", context, err == SMTP_ERR_TIME ? "timeout" : "EOF");
+    if (vstream_wr_error(stream)
+	&& shutdown(vstream_fileno(stream), SHUT_WR) < 0)
+	msg_warn("shutdown: %m");
+    vstream_longjmp(stream, err);
 }
 
 /* smtp_timeout_setup - configure timeout trap */
@@ -193,16 +207,14 @@ void    smtp_flush(VSTREAM *stream)
      */
     smtp_timeout_reset(stream);
     err = vstream_fflush(stream);
-    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
      */
-    if (err != 0) {
-	if (msg_verbose)
-	    msg_info("smtp_flush: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_flush");
+    if (err != 0)
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_flush");
 }
 
 /* smtp_vprintf - write one line to SMTP peer */
@@ -218,16 +230,14 @@ void    smtp_vprintf(VSTREAM *stream, const char *fmt, va_list ap)
     vstream_vfprintf(stream, fmt, ap);
     vstream_fputs("\r\n", stream);
     err = vstream_ferror(stream);
-    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
      */
-    if (err != 0) {
-	if (msg_verbose)
-	    msg_info("smtp_vprintf: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_vprintf");
+    if (err != 0)
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_vprintf");
 }
 
 /* smtp_printf - write one line to SMTP peer */
@@ -252,16 +262,14 @@ int     smtp_fgetc(VSTREAM *stream)
      */
     smtp_timeout_reset(stream);
     ch = VSTREAM_GETC(stream);
-    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
      */
-    if (vstream_feof(stream) || vstream_ferror(stream)) {
-	if (msg_verbose)
-	    msg_info("smtp_fgetc: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_fgetc");
+    if (vstream_feof(stream) || vstream_ferror(stream))
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fgetc");
     return (ch);
 }
 
@@ -321,17 +329,15 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound)
     default:
 	break;
     }
-    smtp_timeout_detect(stream);
 
     /*
      * EOF is bad, whether or not it happens in the middle of a record. Don't
      * allow data that was truncated because of EOF.
      */
-    if (vstream_feof(stream) || vstream_ferror(stream)) {
-	if (msg_verbose)
-	    msg_info("smtp_get: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_get");
+    if (vstream_feof(stream) || vstream_ferror(stream))
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_get");
     return (last_char);
 }
 
@@ -350,16 +356,14 @@ void    smtp_fputs(const char *cp, ssize_t todo, VSTREAM *stream)
     smtp_timeout_reset(stream);
     err = (vstream_fwrite(stream, cp, todo) != todo
 	   || vstream_fputs("\r\n", stream) == VSTREAM_EOF);
-    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
      */
-    if (err != 0) {
-	if (msg_verbose)
-	    msg_info("smtp_fputs: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_fputs");
+    if (err != 0)
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fputs");
 }
 
 /* smtp_fwrite - write one string to SMTP peer */
@@ -376,16 +380,14 @@ void    smtp_fwrite(const char *cp, ssize_t todo, VSTREAM *stream)
      */
     smtp_timeout_reset(stream);
     err = (vstream_fwrite(stream, cp, todo) != todo);
-    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
      */
-    if (err != 0) {
-	if (msg_verbose)
-	    msg_info("smtp_fwrite: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_fwrite");
+    if (err != 0)
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fwrite");
 }
 
 /* smtp_fputc - write to SMTP peer */
@@ -399,14 +401,12 @@ void    smtp_fputc(int ch, VSTREAM *stream)
      */
     smtp_timeout_reset(stream);
     stat = VSTREAM_PUTC(ch, stream);
-    smtp_timeout_detect(stream);
 
     /*
      * See if there was a problem.
      */
-    if (stat == VSTREAM_EOF) {
-	if (msg_verbose)
-	    msg_info("smtp_fputc: EOF");
-	vstream_longjmp(stream, SMTP_ERR_EOF);
-    }
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_fputc");
+    if (stat == VSTREAM_EOF)
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fputc");
 }

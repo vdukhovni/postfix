@@ -123,6 +123,18 @@
 /*
 /*	struct timeval vstream_ftimeval(stream)
 /*	VSTREAM	*stream;
+/*
+/*	int	vstream_rd_error(stream)
+/*	VSTREAM	*stream;
+/*
+/*	int	vstream_wr_error(stream)
+/*	VSTREAM	*stream;
+/*
+/*	int	vstream_rd_timeout(stream)
+/*	VSTREAM	*stream;
+/*
+/*	int	vstream_wr_timeout(stream)
+/*	VSTREAM	*stream;
 /* DESCRIPTION
 /*	The \fIvstream\fR module implements light-weight buffered I/O
 /*	similar to the standard I/O routines.
@@ -381,6 +393,9 @@
 /*
 /*	vstream_ftimeval() is like vstream_ftime() but returns more
 /*	detail.
+/*
+/*	vstream_rd_mumble() and vstream_wr_mumble() report on
+/*	read and write error conditions, respectively.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -657,7 +672,7 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
 	    timeout = stream->time_limit.tv_sec + (stream->time_limit.tv_usec > 0);
 	    if (timeout <= 0) {
-		bp->flags |= (VSTREAM_FLAG_ERR | VSTREAM_FLAG_TIMEOUT);
+		bp->flags |= (VSTREAM_FLAG_WR_ERR | VSTREAM_FLAG_WR_TIMEOUT);
 		errno = ETIMEDOUT;
 		return (VSTREAM_EOF);
 	    }
@@ -668,18 +683,19 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
 	} else
 	    timeout = stream->timeout;
 	if ((n = stream->write_fn(stream->fd, data, len, timeout, stream->context)) <= 0) {
-	    bp->flags |= VSTREAM_FLAG_ERR;
+	    bp->flags |= VSTREAM_FLAG_WR_ERR;
 	    if (errno == ETIMEDOUT) {
-		bp->flags |= VSTREAM_FLAG_TIMEOUT;
+		bp->flags |= VSTREAM_FLAG_WR_TIMEOUT;
 		stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
 	    }
 	    return (VSTREAM_EOF);
 	}
-	if (timeout)
+	if (timeout) {
 	    GETTIMEOFDAY(&stream->iotime);
-	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
-	    VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
-	    VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+	    if (bp->flags & VSTREAM_FLAG_DEADLINE) {
+		VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
+		VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+	    }
 	}
 	if (msg_verbose > 2 && stream != VSTREAM_ERR && n != to_flush)
 	    msg_info("%s: %d flushed %ld/%ld", myname, stream->fd,
@@ -808,7 +824,7 @@ static int vstream_buf_get_ready(VBUF *bp)
     if (bp->flags & VSTREAM_FLAG_DEADLINE) {
 	timeout = stream->time_limit.tv_sec + (stream->time_limit.tv_usec > 0);
 	if (timeout <= 0) {
-	    bp->flags |= (VSTREAM_FLAG_ERR | VSTREAM_FLAG_TIMEOUT);
+	    bp->flags |= (VSTREAM_FLAG_RD_ERR | VSTREAM_FLAG_RD_TIMEOUT);
 	    errno = ETIMEDOUT;
 	    return (VSTREAM_EOF);
 	}
@@ -817,9 +833,9 @@ static int vstream_buf_get_ready(VBUF *bp)
 	timeout = stream->timeout;
     switch (n = stream->read_fn(stream->fd, bp->data, bp->len, timeout, stream->context)) {
     case -1:
-	bp->flags |= VSTREAM_FLAG_ERR;
+	bp->flags |= VSTREAM_FLAG_RD_ERR;
 	if (errno == ETIMEDOUT) {
-	    bp->flags |= VSTREAM_FLAG_TIMEOUT;
+	    bp->flags |= VSTREAM_FLAG_RD_TIMEOUT;
 	    stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
 	}
 	return (VSTREAM_EOF);
@@ -827,11 +843,12 @@ static int vstream_buf_get_ready(VBUF *bp)
 	bp->flags |= VSTREAM_FLAG_EOF;
 	return (VSTREAM_EOF);
     default:
-	if (timeout)
+	if (timeout) {
 	    GETTIMEOFDAY(&stream->iotime);
-	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
-	    VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
-	    VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+	    if (bp->flags & VSTREAM_FLAG_DEADLINE) {
+		VSTREAM_SUB_TIME(elapsed, stream->iotime, before);
+		VSTREAM_SUB_TIME(stream->time_limit, stream->time_limit, elapsed);
+	    }
 	}
 	if (msg_verbose > 2)
 	    msg_info("%s: fd %d got %ld", myname, stream->fd, (long) n);
@@ -940,7 +957,7 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
 	if ((shortage = (want - bp->cnt)) > 0) {
 	    if ((bp->flags & VSTREAM_FLAG_FIXED)
 		|| shortage > __MAXINT__(ssize_t) -bp->len - stream->req_bufsize) {
-		bp->flags |= VSTREAM_FLAG_ERR;
+		bp->flags |= VSTREAM_FLAG_WR_ERR;
 	    } else {
 		incr = VSTREAM_ROUNDUP(shortage, stream->req_bufsize);
 		vstream_buf_alloc(bp, bp->len + incr);
@@ -1057,7 +1074,8 @@ off_t   vstream_fseek(VSTREAM *stream, off_t offset, int whence)
      * Update the cached file seek position.
      */
     if ((stream->offset = lseek(stream->fd, offset, whence)) < 0) {
-	bp->flags |= VSTREAM_FLAG_NSEEK;
+	if (errno == ESPIPE)
+	    bp->flags |= VSTREAM_FLAG_NSEEK;
     } else {
 	bp->flags |= VSTREAM_FLAG_SEEK;
     }

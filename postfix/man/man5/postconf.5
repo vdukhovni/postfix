@@ -3624,8 +3624,8 @@ A list of Milter (mail filter) applications for new mail that
 does not arrive via the Postfix \fBsmtpd\fR(8) server. This includes local
 submission via the \fBsendmail\fR(1) command line, new mail that arrives
 via the Postfix \fBqmqpd\fR(8) server, and old mail that is re-injected
-into the queue with "postsuper -r".  See the MILTER_README document
-for details.
+into the queue with "postsuper -r".  Specify space or comma as
+separator. See the MILTER_README document for details.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH notify_classes (default: resource, software)
@@ -7893,8 +7893,8 @@ overload to just 1. With Postfix 2.5 and earlier, the SMTP server
 always allows up to 100 junk commands by default.
 .SH smtpd_milters (default: empty)
 A list of Milter (mail filter) applications for new mail that
-arrives via the Postfix \fBsmtpd\fR(8) server.  See the MILTER_README
-document for details.
+arrives via the Postfix \fBsmtpd\fR(8) server. Specify space or comma as
+separator. See the MILTER_README document for details.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_noop_commands (default: empty)

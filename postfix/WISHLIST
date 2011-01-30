@@ -9,6 +9,8 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	propagate alias owner from pcre, regexp, etc. databases.
+
 	vstream_peek_len() and vstream_peek_data() to count the
 	unread data and to access it, respectively. vstream_peek_data()
 	can access the saved read buffer if a double-buffered stream
@@ -102,9 +104,16 @@ Wish list:
 
 	IF/ENDIF support for CIDR tables.
 
-	Make postconf aware of magical suffixes (the ones that
-	combine with transport names) and show them in "postconf
-	-n" output. Making this work with "postconf -d" is trickier.
+	Make postconf aware of local_, smtp_, etc. parameter names
+	that have prefixes derived from mail delivery transport
+	names.  Unfortunately, it is wrong to assume that all "unix"
+	master.cf entries are delivery agents (though it may be OK
+	for postconf to peek in master.cf when given a parameter
+	with an unknown prefix). This requires a new main.cf parameter
+	that lists all known mail delivery transport names. postconf
+	can safely ignore names that don't exist in master.cf, and
+	qmgr_transport_create() can safely warn about a name that
+	isn't listed in that new main.cf parameter.
 
 	Need a regular expression table to translate address
 	verification responses into hard/soft/accept reply codes.

@@ -6435,8 +6435,8 @@ or <a href="postconf.5.html#reject_non_fqdn_recipient">reject_non_fqdn_recipient
 does not arrive via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server. This includes local
 submission via the <a href="sendmail.1.html">sendmail(1)</a> command line, new mail that arrives
 via the Postfix <a href="qmqpd.8.html">qmqpd(8)</a> server, and old mail that is re-injected
-into the queue with "postsuper -r".  See the <a href="MILTER_README.html">MILTER_README</a> document
-for details.  </p>
+into the queue with "postsuper -r".  Specify space or comma as
+separator. See the <a href="MILTER_README.html">MILTER_README</a> document for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -12654,8 +12654,8 @@ always allows up to 100 junk commands by default.  </p>
 (default: empty)</b></DT><DD>
 
 <p> A list of Milter (mail filter) applications for new mail that
-arrives via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server.  See the <a href="MILTER_README.html">MILTER_README</a>
-document for details.  </p>
+arrives via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server. Specify space or comma as
+separator. See the <a href="MILTER_README.html">MILTER_README</a> document for details.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 

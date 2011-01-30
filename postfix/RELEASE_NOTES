@@ -13,3 +13,10 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
+
+Incompatible changes with snapshot 20110130
+===========================================
+
+The VSTREAM error flags are now split into separate read and write
+error flags. As a result of this change, all programs that use
+VSTREAMs MUST be recompiled.

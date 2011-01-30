@@ -66,6 +66,11 @@ extern VSTREAM vstream_fstd[];		/* pre-defined streams */
 #define VSTREAM_OUT		(&vstream_fstd[1])
 #define VSTREAM_ERR		(&vstream_fstd[2])
 
+#define VSTREAM_FLAG_RD_ERR	VBUF_FLAG_RD_ERR	/* read error */
+#define VSTREAM_FLAG_WR_ERR	VBUF_FLAG_WR_ERR	/* write error */
+#define VSTREAM_FLAG_RD_TIMEOUT	VBUF_FLAG_RD_TIMEOUT	/* read timeout */
+#define VSTREAM_FLAG_WR_TIMEOUT	VBUF_FLAG_WR_TIMEOUT	/* write timeout */
+
 #define	VSTREAM_FLAG_ERR	VBUF_FLAG_ERR	/* some I/O error */
 #define VSTREAM_FLAG_EOF	VBUF_FLAG_EOF	/* end of file */
 #define VSTREAM_FLAG_TIMEOUT	VBUF_FLAG_TIMEOUT	/* timeout error */
@@ -109,8 +114,12 @@ extern int vstream_fdclose(VSTREAM *);
 #define vstream_fileno(vp)	((vp)->fd)
 #define vstream_req_bufsize(vp)	((const ssize_t) ((vp)->req_bufsize))
 #define vstream_context(vp)	((vp)->context)
+#define vstream_rd_error(vp)	vbuf_rd_error(&(vp)->buf)
+#define vstream_wr_error(vp)	vbuf_wr_error(&(vp)->buf)
 #define vstream_ferror(vp)	vbuf_error(&(vp)->buf)
 #define vstream_feof(vp)	vbuf_eof(&(vp)->buf)
+#define vstream_rd_timeout(vp)	vbuf_rd_timeout(&(vp)->buf)
+#define vstream_wr_timeout(vp)	vbuf_wr_timeout(&(vp)->buf)
 #define vstream_ftimeout(vp)	vbuf_timeout(&(vp)->buf)
 #define vstream_clearerr(vp)	vbuf_clearerr(&(vp)->buf)
 #define VSTREAM_PATH(vp)	((vp)->path ? (const char *) (vp)->path : "unknown_stream")

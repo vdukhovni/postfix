@@ -16535,3 +16535,13 @@ Apologies for any names omitted.
 	and made available as optional patch for earlier releases.
 	Further refinements have only dimishing returns and can
 	evolve in the 2.9 release cycle.  File: util/vstream.c.
+
+20110128
+
+	Infrastructure: separate VSTREAM flags for read or write
+	errors. Files: util/vbuf.[hc], util/vstream.[hc].
+
+	Cleanup: after write error, the smtp_stream routines now
+	disable further network writes. This eliminates the need
+	for clumsy code to avoid unwanted I/O while shutting down
+	a TLS engine or closing a VSTREAM.  File: util/smtp_stream.c.
