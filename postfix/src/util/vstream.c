@@ -111,6 +111,9 @@
 /*	ssize_t	vstream_peek(stream)
 /*	VSTREAM	*stream;
 /*
+/*	const char *vstream_peek_data(stream)
+/*	VSTREAM	*stream;
+/*
 /*	int	vstream_setjmp(stream)
 /*	VSTREAM	*stream;
 /*
@@ -375,6 +378,9 @@
 /*	vstream_peek() returns the number of characters that can be
 /*	read from the named stream without refilling the read buffer.
 /*	This is an alias for vstream_bufstat(stream, VSTREAM_BST_IN_PEND).
+/*
+/*	vstream_peek_data() returns a pointer to the unread bytes
+/*	that exist according to vstream_peek().
 /*
 /*	vstream_setjmp() saves processing context and makes that context
 /*	available for use with vstream_longjmp().  Normally, vstream_setjmp()
@@ -1498,6 +1504,19 @@ ssize_t vstream_peek(VSTREAM *vp)
 	return (-vp->buf.cnt);
     } else if (vp->buf.flags & VSTREAM_FLAG_DOUBLE) {
 	return (-vp->read_buf.cnt);
+    } else {
+	return (0);
+    }
+}
+
+/* vstream_peek_data - peek at unread data */
+
+const char *vstream_peek_data(VSTREAM *vp)
+{
+    if (vp->buf.flags & VSTREAM_FLAG_READ) {
+	return (vp->buf.ptr);
+    } else if (vp->buf.flags & VSTREAM_FLAG_DOUBLE) {
+	return (vp->read_buf.ptr);
     } else {
 	return (0);
     }

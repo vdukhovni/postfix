@@ -2942,7 +2942,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * because sendmail permits it.
      */
     for (prev_rec_type = 0; /* void */ ; prev_rec_type = curr_rec_type) {
-	if (smtp_get(state->buffer, state->client, var_line_limit) == '\n')
+	if (smtp_get(state->buffer, state->client, var_line_limit,
+		     SMTP_GET_FLAG_NONE) == '\n')
 	    curr_rec_type = REC_TYPE_NORM;
 	else
 	    curr_rec_type = REC_TYPE_CONT;
@@ -4653,8 +4654,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 		&& (state->flags & SMTPD_FLAG_ILL_PIPELINING) == 0
 		&& (vstream_peek(state->client) > 0
 		    || peekfd(vstream_fileno(state->client)) > 0)) {
-		msg_info("improper command pipelining after %s from %s",
-			 cmdp->name, state->namaddr);
+		if (state->expand_buf == 0)
+		    state->expand_buf = vstring_alloc(100);
+		escape(state->expand_buf, vstream_peek_data(state->client),
+		       vstream_peek(state->client) < 100 ?
+		       vstream_peek(state->client) : 100);
+		msg_info("improper command pipelining after %s from %s: %s",
+			 cmdp->name, state->namaddr, STR(state->expand_buf));
 		state->flags |= SMTPD_FLAG_ILL_PIPELINING;
 	    }
 	    if (cmdp->action(state, argc, argv) != 0)

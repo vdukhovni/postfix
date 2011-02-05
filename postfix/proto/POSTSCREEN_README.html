@@ -92,10 +92,10 @@ spending most of its resources not receiving email. </p>
 
 <p> The main challenge for postscreen(8) is to make an is-it-a-zombie
 decision based on a single measurement. This is necessary because
-many zombies avoid spamming the same site repeatedly, in an attempt
-to fly under the radar.  Once postscreen(8) decides that a client
-is not-a-zombie, it whitelists the client temporarily to avoid
-further delays for legitimate mail. </p>
+many zombies try to fly under the radar and avoid spamming the same
+site repeatedly.  Once postscreen(8) decides that a client is
+not-a-zombie, it whitelists the client temporarily to avoid further
+delays for legitimate mail. </p>
 
 <p> Zombies have challenges too: they have only a limited amount
 of time to deliver spam before their IP address becomes blacklisted.
@@ -126,9 +126,9 @@ whitelisted from 24 hours for simple tests, to 1 week for complex
 tests.  Whitelisting minimizes the impact of postscreen(8)'s tests
 on legitimate mail clients. </p>
 
-<p> After logging its findings, postscreen(8) by default hands off
-all connections to a Postfix SMTP server process. This mode is
-useful for non-destructive testing. </p>
+<p> By default, postscreen(8) hands off all connections to a Postfix
+SMTP server process after logging its findings. This mode is useful
+for non-destructive testing. </p>
 
 <p> In a typical production setting, postscreen(8) is configured
 to reject mail from clients that fail one or more tests, after

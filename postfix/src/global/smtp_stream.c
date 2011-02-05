@@ -20,10 +20,11 @@
 /*	int	smtp_fgetc(stream)
 /*	VSTREAM *stream;
 /*
-/*	int	smtp_get(vp, stream, maxlen)
+/*	int	smtp_get(vp, stream, maxlen, flags)
 /*	VSTRING	*vp;
 /*	VSTREAM *stream;
 /*	ssize_t	maxlen;
+/*	int	flags;
 /*
 /*	void	smtp_fputs(str, len, stream)
 /*	const char *str;
@@ -72,6 +73,10 @@
 /*	and protects the program against running out of memory.
 /*	Specify a zero bound to turn off bounds checking.
 /*	The result is the last character read, or VSTREAM_EOF.
+/*	The \fIflags\fR argument is either SMTP_GET_FLAG_NONE (no
+/*	special processing) or SMTP_GET_FLAG_SKIP (skip over input
+/*	in excess of \fImaxlen\fR). Either way, a result value of
+/*	'\n' means that the input did not exceed \fImaxlen\fR.
 /*
 /*	smtp_fputs() writes its string argument to the named stream.
 /*	Long strings are not broken. Each string is followed by a
@@ -275,7 +280,7 @@ int     smtp_fgetc(VSTREAM *stream)
 
 /* smtp_get - read one line from SMTP peer */
 
-int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound)
+int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
 {
     int     last_char;
     int     next_char;
@@ -329,6 +334,15 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound)
     default:
 	break;
     }
+
+    /*
+     * Optionally, skip over excess input, protected by the same time limit.
+     */
+    if (last_char != '\n' && (flags & SMTP_GET_FLAG_SKIP)
+	&& vstream_feof(stream) == 0 && vstream_ferror(stream) == 0)
+	while ((next_char = VSTREAM_GETC(stream)) != VSTREAM_EOF
+	       && next_char != '\n')
+	     /* void */ ;
 
     /*
      * EOF is bad, whether or not it happens in the middle of a record. Don't

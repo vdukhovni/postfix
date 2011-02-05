@@ -16545,3 +16545,29 @@ Apologies for any names omitted.
 	disable further network writes. This eliminates the need
 	for clumsy code to avoid unwanted I/O while shutting down
 	a TLS engine or closing a VSTREAM.  File: util/smtp_stream.c.
+
+20110201
+
+	Cleanup: when verifying that the client_address->client_name
+	lookup result resolves to the client_address, request
+	hostname->address lookup with the same protocol family (IPv4
+	or IPv6) as the client_address.  Files: util/myaddrinfo.[hc],
+	smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20110205
+
+	Infrastructure: vstream_peek_data() primitive to look ahead
+	at buffered input. Use vstream_peek() to find out how much,
+	and escape() for human presentation.  Files: util/vstream.[hc].
+
+	Cleanup: smtpd(8) and postscreen(8) now log the input that
+	triggers an SMTP command pipelining violation. File:
+	postscreen/postscreen_smtpd.c, smtpd/smtpd.c.
+
+	Infrastructure: smtp_get() option to skip over input in
+	excess of the line length limit. Files: smtp/smtp_stream.[hc].
+
+	Cleanup: handle excessively-long client requests and server
+	responses more gracefully, i.e. without losing synchronization.
+	Files: smtpd/smtpd_chat.c, smtpd/smtpd_proxy.c, smtp/smtp_chat.c,
+	smtpstone/smtp-source.c.

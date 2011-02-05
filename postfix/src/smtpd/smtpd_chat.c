@@ -127,7 +127,12 @@ void    smtpd_chat_query(SMTPD_STATE *state)
 {
     int     last_char;
 
-    last_char = smtp_get(state->buffer, state->client, var_line_limit);
+    /*
+     * We can't parse or store input that exceeds var_line_limit, so we skip
+     * over it to avoid loss of synchronization.
+     */
+    last_char = smtp_get(state->buffer, state->client, var_line_limit,
+			 SMTP_GET_FLAG_SKIP);
     smtp_chat_append(state, "In:  ", STR(state->buffer));
     if (last_char != '\n')
 	msg_warn("%s: request longer than %d: %.30s...",

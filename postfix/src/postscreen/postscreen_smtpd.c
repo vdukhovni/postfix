@@ -173,7 +173,12 @@
 
 #define PSC_SMTPD_BUFFER_EMPTY(state) \
 	(!PSC_SMTPD_HAVE_PUSH_BACK(state) \
-	&& vstream_peek(state->smtp_client_stream) <= 0)
+	&& vstream_peek((state)->smtp_client_stream) <= 0)
+
+#define PSC_SMTPD_PEEK_DATA(state) \
+	vstream_peek_data((state)->smtp_client_stream)
+#define PSC_SMTPD_PEEK_LEN(state) \
+	vstream_peek((state)->smtp_client_stream)
 
  /*
   * Dynamic reply strings. To minimize overhead we format these once.
@@ -941,8 +946,11 @@ static void psc_smtpd_read_event(int event, char *context)
 	if ((state->flags & PSC_STATE_MASK_PIPEL_TODO_SKIP)
 	    == PSC_STATE_FLAG_PIPEL_TODO && !PSC_SMTPD_BUFFER_EMPTY(state)) {
 	    printable(command, '?');
-	    msg_info("COMMAND PIPELINING from [%s]:%s after %.100s",
-		     PSC_CLIENT_ADDR_PORT(state), command);
+	    escape(psc_temp, PSC_SMTPD_PEEK_DATA(state),
+		   PSC_SMTPD_PEEK_LEN(state) < 100 ?
+		   PSC_SMTPD_PEEK_LEN(state) : 100);
+	    msg_info("COMMAND PIPELINING from [%s]:%s after %.100s: %s",
+		     PSC_CLIENT_ADDR_PORT(state), command, STR(psc_temp));
 	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_FAIL);
 	    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_PASS);
 	    state->pipel_stamp = PSC_TIME_STAMP_DISABLED;	/* XXX */

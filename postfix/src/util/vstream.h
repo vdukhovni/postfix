@@ -179,6 +179,8 @@ extern ssize_t vstream_bufstat(VSTREAM *, int);
 
 #define vstream_peek(vp) vstream_bufstat((vp), VSTREAM_BST_IN_PEND)
 
+extern const char *vstream_peek_data(VSTREAM *);
+
  /*
   * Exception handling. We use pointer to jmp_buf to avoid a lot of unused
   * baggage for streams that don't need this functionality.

@@ -316,7 +316,7 @@ static RESPONSE *response(VSTREAM *stream, VSTRING *buf)
 #define BUF ((char *) vstring_str(buf))
     VSTRING_RESET(rdata.buf);
     for (;;) {
-	smtp_get(buf, stream, var_line_limit);
+	smtp_get(buf, stream, var_line_limit, SMTP_GET_FLAG_SKIP);
 	for (cp = BUF; *cp != 0; cp++)
 	    if (!ISPRINT(*cp) && !ISSPACE(*cp))
 		*cp = '?';

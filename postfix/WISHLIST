@@ -9,12 +9,14 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
-	propagate alias owner from pcre, regexp, etc. databases.
+	postconf command-line option to show the compile-time
+	settings (CCARGS, AUXLIBS) in case binary packages
+	don't install the makedefs.out file.
 
-	vstream_peek_len() and vstream_peek_data() to count the
-	unread data and to access it, respectively. vstream_peek_data()
-	can access the saved read buffer if a double-buffered stream
-	is in write mode.
+	propagate alias owner from pcre, regexp, cidr, texthash,
+	etc. databases, i.e. set the owner property at open time;
+	it can't be looked up at run-time with fstat(dict->stat_fd)
+	because there is no open file. What about *SQL, LDAP, etc.?
 
 	events.c: cache the side effects of file descriptor event
 	enable/disable operations in user space, and do bulk kernel
@@ -106,14 +108,21 @@ Wish list:
 
 	Make postconf aware of local_, smtp_, etc. parameter names
 	that have prefixes derived from mail delivery transport
-	names.  Unfortunately, it is wrong to assume that all "unix"
-	master.cf entries are delivery agents (though it may be OK
-	for postconf to peek in master.cf when given a parameter
-	with an unknown prefix). This requires a new main.cf parameter
+	names, LDAP/SQL table names, spawn(8) services, and so on.
+	Clearly, it is wrong to assume that all "unix" master.cf
+	entries are delivery agents (though it may be OK for postconf
+	to peek in master.cf when given a parameter with an unknown
+	prefix). This requires a new main.cf parameter (delivery_prefixes?)
 	that lists all known mail delivery transport names. postconf
 	can safely ignore names that don't exist in master.cf, and
 	qmgr_transport_create() can safely warn about a name that
-	isn't listed in that new main.cf parameter.
+	isn't listed in that new main.cf parameter. A similar
+	parameter would be needed for spawn(8) services (spawn_prefixes?)
+	and for legacy-style database "sources" (database_prefixes?).
+	The spawn(8) daemon could warn if the service name is not
+	listed in main.cf, and the LDAP/SQL/etc.  drivers could
+	warn if a legacy-style database source is not listed in
+	main.cf.
 
 	Need a regular expression table to translate address
 	verification responses into hard/soft/accept reply codes.

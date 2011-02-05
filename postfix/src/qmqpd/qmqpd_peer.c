@@ -243,7 +243,8 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	    /*
 	     * Reject the hostname if it does not list the peer address.
 	     */
-	    aierr = hostname_to_sockaddr(state->name, (char *) 0, 0, &res0);
+	    aierr = hostname_to_sockaddr_pf(state->name, state->addr_family,
+					    (char *) 0, 0, &res0);
 	    if (aierr) {
 		msg_warn("%s: hostname %s verification failed: %s",
 			 state->addr, state->name, MAI_STRERROR(aierr));
