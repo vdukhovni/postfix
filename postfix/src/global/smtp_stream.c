@@ -326,6 +326,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
 	while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
 	    vstring_truncate(vp, VSTRING_LEN(vp) - 1);
 	VSTRING_TERMINATE(vp);
+	/* FALLTRHOUGH */
 
 	/*
 	 * Partial line: just read the remainder later. If we ran into EOF,

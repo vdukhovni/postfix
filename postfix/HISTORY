@@ -16571,3 +16571,8 @@ Apologies for any names omitted.
 	responses more gracefully, i.e. without losing synchronization.
 	Files: smtpd/smtpd_chat.c, smtpd/smtpd_proxy.c, smtp/smtp_chat.c,
 	smtpstone/smtp-source.c.
+
+20110207
+
+	Bugfix (introduced Postfix 2.8): segfault with smtpd_tls_loglevel
+	>= 3. Files: tls/tls_server.c, tls.h, smtpd.c, tlsproxy.c.
