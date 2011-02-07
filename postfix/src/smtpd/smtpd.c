@@ -4028,6 +4028,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 	TLS_SERVER_START(&props,
 			 ctx = smtpd_tls_ctx,
 			 stream = state->client,
+			 fd = -1,
 			 log_level = var_smtpd_tls_loglevel,
 			 timeout = var_smtpd_starttls_tmout,
 			 requirecert = requirecert,

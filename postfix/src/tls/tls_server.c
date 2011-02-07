@@ -89,7 +89,8 @@
 /*	SSL_accept(), SSL_read(), SSL_write() and SSL_shutdown().
 /*
 /*	To maintain control over TLS I/O, an event-driven server
-/*	invokes tls_server_start() with a null VSTREAM argument.
+/*	invokes tls_server_start() with a null VSTREAM argument and
+/*	with an fd argument that specifies the I/O file descriptor.
 /*	Then, tls_server_start() performs all the necessary
 /*	preparations before the TLS handshake and returns a partially
 /*	populated TLS context. The event-driven application is then
@@ -658,6 +659,18 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     SSL_set_accept_state(TLScontext->con);
 
     /*
+     * Connect the SSL connection with the network socket.
+     */
+    if (SSL_set_fd(TLScontext->con, props->stream == 0 ? props->fd :
+		   vstream_fileno(props->stream)) != 1) {
+	msg_info("SSL_set_fd error to %s", props->namaddr);
+	tls_print_errors();
+	uncache_session(app_ctx->ssl_ctx, TLScontext);
+	tls_free_context(TLScontext);
+	return (0);
+    }
+
+    /*
      * If the debug level selected is high enough, all of the data is dumped:
      * 3 will dump the SSL negotiation, 4 will dump everything.
      * 
@@ -674,17 +687,6 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
      */
     if (props->stream == 0)
 	return (TLScontext);
-
-    /*
-     * Connect the SSL connection with the network socket.
-     */
-    if (SSL_set_fd(TLScontext->con, vstream_fileno(props->stream)) != 1) {
-	msg_info("SSL_set_fd error to %s", props->namaddr);
-	tls_print_errors();
-	uncache_session(app_ctx->ssl_ctx, TLScontext);
-	tls_free_context(TLScontext);
-	return (0);
-    }
 
     /*
      * Turn on non-blocking I/O so that we can enforce timeouts on network

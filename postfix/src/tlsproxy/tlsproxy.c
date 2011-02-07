@@ -687,6 +687,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 	TLS_SERVER_START(&props,
 			 ctx = tlsp_server_ctx,
 			 stream = (VSTREAM *) 0,/* unused */
+			 fd = state->ciphertext_fd,
 			 log_level = var_tlsp_tls_loglevel,
 			 timeout = 0,		/* unused */
 			 requirecert = (var_tlsp_tls_req_ccert
@@ -698,18 +699,6 @@ static void tlsp_start_tls(TLSP_STATE *state)
 			 fpt_dgst = var_tlsp_tls_fpt_dgst);
 
     if (state->tls_context == 0) {
-	tlsp_state_free(state);
-	return;
-    }
-
-    /*
-     * This program will do the ciphertext I/O, not libtls. In the future,
-     * the above event-driven engine may be factored out as a libtls library
-     * module.
-     */
-    if (SSL_set_fd(state->tls_context->con, state->ciphertext_fd) != 1) {
-	msg_info("SSL_set_fd error to %s", state->remote_endpt);
-	tls_print_errors();
 	tlsp_state_free(state);
 	return;
     }

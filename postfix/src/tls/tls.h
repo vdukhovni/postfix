@@ -268,6 +268,7 @@ typedef struct {
 typedef struct {
     TLS_APPL_STATE *ctx;		/* TLS application context */
     VSTREAM *stream;			/* Client stream */
+    int     fd;				/* Event-driven file descriptor */
     int     log_level;			/* TLS log level */
     int     timeout;			/* TLS handshake timeout */
     int     requirecert;		/* Insist on client cert? */
@@ -293,10 +294,10 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
     ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), (props)))
 
-#define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
+#define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11) \
     tls_server_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
-    ((props)->a8), ((props)->a9), ((props)->a10), (props)))
+    ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), (props)))
 
  /*
   * tls_session.c
