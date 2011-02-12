@@ -9,6 +9,8 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	Update MILTER_README with pointer to OpenDKIM.
+
 	postconf command-line option to show the compile-time
 	settings (CCARGS, AUXLIBS) in case binary packages
 	don't install the makedefs.out file.

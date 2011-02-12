@@ -234,6 +234,13 @@
 /*	Available in Postfix version 2.8 and later:
 /* .IP "\fBsmtp_dns_resolver_options (empty)\fR"
 /*	DNS Resolver options for the Postfix SMTP client.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBsmtp_per_record_deadline (no)\fR"
+/*	Change the behavior of the smtp_*_timeout time limits, from a
+/*	time limit per read or write system call, to a time limit to read
+/*	or write a complete record (an SMTP command line, SMTP response
+/*	line, SMTP message content line, or TLS protocol message).
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -513,6 +520,13 @@
 /* .IP "\fBconnection_cache_protocol_timeout (5s)\fR"
 /*	Time limit for connection cache connect, send or receive
 /*	operations.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBsmtp_per_record_deadline (no)\fR"
+/*	Change the behavior of the smtp_*_timeout time limits, from a
+/*	time limit per read or write system call, to a time limit to read
+/*	or write a complete record (an SMTP command line, SMTP response
+/*	line, SMTP message content line, or TLS protocol message).
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -815,6 +829,7 @@ char   *var_smtp_body_chks;
 char   *var_smtp_resp_filter;
 bool    var_lmtp_assume_final;
 char   *var_smtp_dns_res_opt;
+bool    var_smtp_rec_deadline;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;

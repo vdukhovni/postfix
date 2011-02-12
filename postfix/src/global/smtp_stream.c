@@ -6,9 +6,10 @@
 /* SYNOPSIS
 /*	#include <smtp_stream.h>
 /*
-/*	void	smtp_timeout_setup(stream, timeout)
+/*	void	smtp_stream_setup(stream, timeout, enable_deadline)
 /*	VSTREAM *stream;
 /*	int	timeout;
+/*	int	enable_deadline;
 /*
 /*	void	smtp_printf(stream, format, ...)
 /*	VSTREAM *stream;
@@ -44,16 +45,24 @@
 /*	VSTREAM *stream;
 /*	char	*format;
 /*	va_list	ap;
+/* LEGACY API
+/*	void	smtp_timeout_setup(stream, timeout)
+/*	VSTREAM *stream;
+/*	int	timeout;
+/*	int	enable_deadline;
 /* DESCRIPTION
 /*	This module reads and writes text records delimited by CR LF,
 /*	with error detection: timeouts or unexpected end-of-file.
 /*	A trailing CR LF is added upon writing and removed upon reading.
 /*
-/*	smtp_timeout_setup() arranges for a time limit on the smtp read
+/*	smtp_stream_setup() prepares the specified stream for SMTP read
 /*	and write operations described below.
 /*	This routine alters the behavior of streams as follows:
 /* .IP \(bu
-/*	The read/write total time limit is set to the specified value.
+/*	When enable_deadline is non-zero, the stream is configured
+/*	to enforce a total time limit for each smtp_stream read/write
+/*	operation. Otherwise, the stream is configured to enforce
+/*	a time limit for each individual read/write system call.
 /* .IP \f(bu
 /*	The stream is configured to use double buffering.
 /* .IP \f(bu
@@ -90,6 +99,9 @@
 /*	The stream is not flushed.
 /*
 /*	smtp_vprintf() is the machine underneath smtp_printf().
+/*
+/*	smtp_timeout_setup() is a backwards-compatibility interface
+/*	for programs that don't require per-record deadline support.
 /* DIAGNOSTICS
 /* .fi
 /* .ad
@@ -102,7 +114,7 @@
 /* .IP SMTP_ERR_EOF
 /*	An I/O error happened, or the peer has disconnected unexpectedly.
 /* .IP SMTP_ERR_TIME
-/*	The time limit specified to smtp_timeout_setup() was exceeded.
+/*	The time limit specified to smtp_stream_setup() was exceeded.
 /* .PP
 /*	Additional error codes that may be used by applications:
 /* .IP SMTP_ERR_QUIET
@@ -166,9 +178,8 @@ static void smtp_timeout_reset(VSTREAM *stream)
      * in the buffer. Such system calls would really hurt when receiving or
      * sending body content one line at a time.
      */
-    vstream_control(stream,
-		    VSTREAM_CTL_TIME_LIMIT, stream->timeout,
-		    VSTREAM_CTL_END);
+    if (vstream_fstat(stream, VSTREAM_FLAG_DEADLINE))
+	vstream_control(stream, VSTREAM_CTL_START_DEADLINE, VSTREAM_CTL_END);
 }
 
 /* smtp_longjmp - raise an exception */
@@ -190,13 +201,21 @@ static NORETURN smtp_longjmp(VSTREAM *stream, int err, const char *context)
     vstream_longjmp(stream, err);
 }
 
-/* smtp_timeout_setup - configure timeout trap */
+/* smtp_stream_setup - configure timeout trap */
 
-void    smtp_timeout_setup(VSTREAM *stream, int maxtime)
+void    smtp_stream_setup(VSTREAM *stream, int maxtime, int enable_deadline)
 {
+    const char *myname = "smtp_stream_setup";
+
+    if (msg_verbose)
+	msg_info("%s: maxtime=%d enable_deadline=%d",
+		 myname, maxtime, enable_deadline);
+
     vstream_control(stream,
 		    VSTREAM_CTL_DOUBLE,
 		    VSTREAM_CTL_TIMEOUT, maxtime,
+		    enable_deadline ? VSTREAM_CTL_START_DEADLINE
+		    : VSTREAM_CTL_STOP_DEADLINE,
 		    VSTREAM_CTL_EXCEPT,
 		    VSTREAM_CTL_END);
 }

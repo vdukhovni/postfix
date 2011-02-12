@@ -4036,6 +4036,17 @@ configuration parameter. See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_per_record_deadline">lmtp_per_record_deadline</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_pix_workaround_delay_time">lmtp_pix_workaround_delay_time</a>
 (default: 10s)</b></DT><DD>
 
@@ -9547,6 +9558,29 @@ available.  </p>
 
 </DD>
 
+<DT><b><a name="smtp_per_record_deadline">smtp_per_record_deadline</a>
+(default: no)</b></DT><DD>
+
+<p> Change the behavior of the smtp_*_timeout time limits, from a
+time limit per read or write system call, to a time limit to send
+or receive a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).  This
+limits the impact from hostile peers that trickle data one byte at
+a time.  </p>
+
+<p> Note: when per-record deadlines are enabled, a short timeout
+may cause problems with TLS over very slow network connections.
+The reasons are that a TLS protocol message can be up to 16 kbytes
+long (with TLSv1), and that an entire TLS protocol message must be
+sent or received within the per-record deadline.  </p>
+
+<p> This feature is available in Postfix 2.9 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_pix_workaround_delay_time">smtp_pix_workaround_delay_time</a>
 (default: 10s)</b></DT><DD>
 
@@ -12695,6 +12729,29 @@ lookup is disabled.  Turning off name lookup reduces delays due to
 DNS lookup and increases the maximal inbound delivery rate. </p>
 
 <p> This feature is available in Postfix 2.3 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_per_record_deadline">smtpd_per_record_deadline</a>
+(default: normal: no, overload: yes)</b></DT><DD>
+
+<p> Change the behavior of the <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> time limit, from a
+time limit per read or write system call, to a time limit to send
+or receive a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).  This
+limits the impact from hostile peers that trickle data one byte at
+a time.  </p>
+
+<p> Note: when per-record deadlines are enabled, a short timeout
+may cause problems with TLS over very slow network connections.
+The reasons are that a TLS protocol message can be up to 16 kbytes
+long (with TLSv1), and that an entire TLS protocol message must be
+sent or received within the per-record deadline.  </p>
+
+<p> This feature is available in Postfix 2.9 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". </p>
 
 
 </DD>

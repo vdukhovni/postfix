@@ -138,6 +138,10 @@
 /*
 /*	int	vstream_wr_timeout(stream)
 /*	VSTREAM	*stream;
+/*
+/*	int	vstream_fstat(stream, flags)
+/*	VSTREAM	*stream;
+/*	int	flags;
 /* DESCRIPTION
 /*	The \fIvstream\fR module implements light-weight buffered I/O
 /*	similar to the standard I/O routines.
@@ -298,7 +302,7 @@
 /* .IP "VSTREAM_CTL_TIMEOUT (int)
 /*	The deadline for a descriptor to become readable in case of a read
 /*	request, or writable in case of a write request. Specify a value
-/*	<= 0 to disable deadlines.
+/*	of 0 to disable deadlines.
 /* .IP "VSTREAM_CTL_EXCEPT (no value)"
 /*	Enable exception handling with vstream_setjmp() and vstream_longjmp().
 /*	This involves allocation of additional memory that normally isn't
@@ -319,12 +323,14 @@
 /*	int. Use an explicit cast to avoid problems on LP64
 /*	environments and other environments where ssize_t is larger
 /*	than int.
-/* .IP "VSTREAM_CTL_TIME_LIMIT (int)"
-/*	Specify an upper bound on the total time to complete all
-/*	subsequent read or write operations. This is different from
-/*	VSTREAM_CTL_TIMEOUT, which specifies a deadline for each
-/*	read or write operation.  Specify a relative time in seconds,
-/*	or zero to disable this feature.
+/* .IP VSTREAM_CTL_START_DEADLINE
+/*	Change the VSTREAM_CTL_TIMEOUT behavior, to limit the total
+/*	time for all subsequent file descriptor read or write
+/*	operations, and recharge the deadline timer.
+/* .IP VSTREAM_CTL_STOP_DEADLINE
+/*	Revert VSTREAM_CTL_TIMEOUT behavior to the default, i.e.
+/*	a time limit for individual file descriptor read or write
+/*	operations.
 /* .PP
 /*	vstream_fileno() gives access to the file handle associated with
 /*	a buffered stream. With streams that have separate read/write
@@ -402,6 +408,15 @@
 /*
 /*	vstream_rd_mumble() and vstream_wr_mumble() report on
 /*	read and write error conditions, respectively.
+/*
+/*	vstream_fstat() queries stream status information about
+/*	user-requested features. The \fIflags\fR argument is the
+/*	bitwise OR of one or more of the following, and the result
+/*	value is the bitwise OR of the features that are activated.
+/* .IP VSTREAM_FLAG_DEADLINE
+/*	The deadline feature is activated.
+/* .IP VSTREAM_FLAG_DOUBLE
+/*	The double-buffering feature is activated.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -1314,7 +1329,6 @@ void    vstream_control(VSTREAM *stream, int name,...)
     int     old_fd;
     ssize_t req_bufsize = 0;
     VSTREAM *stream2;
-    int     time_limit;
 
 #define SWAP(type,a,b) do { type temp = (a); (a) = (b); (b) = (temp); } while (0)
 
@@ -1377,6 +1391,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    if (stream->timeout == 0)
 		GETTIMEOFDAY(&stream->iotime);
 	    stream->timeout = va_arg(ap, int);
+	    if (stream->timeout < 0)
+		msg_panic("%s: bad timeout %d", myname, stream->timeout);
 	    break;
 	case VSTREAM_CTL_EXCEPT:
 	    if (stream->jbuf == 0)
@@ -1428,17 +1444,15 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	     * that we need to do I/O. This avoids a performance hit when
 	     * sending or receiving body content one line at a time.
 	     */
-	case VSTREAM_CTL_TIME_LIMIT:
-	    time_limit = va_arg(ap, int);
-	    if (time_limit < 0) {
-		msg_panic("%s: bad time limit: %d", myname, time_limit);
-	    } else if (time_limit == 0) {
-		stream->buf.flags &= ~VSTREAM_FLAG_DEADLINE;
-	    } else {
-		stream->buf.flags |= VSTREAM_FLAG_DEADLINE;
-		stream->time_limit.tv_sec = time_limit;
-		stream->time_limit.tv_usec = 0;
-	    }
+	case VSTREAM_CTL_STOP_DEADLINE:
+	    stream->buf.flags &= ~VSTREAM_FLAG_DEADLINE;
+	    break;
+	case VSTREAM_CTL_START_DEADLINE:
+	    if (stream->timeout <= 0)
+		msg_panic("%s: bad timeout %d", myname, stream->timeout);
+	    stream->buf.flags |= VSTREAM_FLAG_DEADLINE;
+	    stream->time_limit.tv_sec = stream->timeout;
+	    stream->time_limit.tv_usec = 0;
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

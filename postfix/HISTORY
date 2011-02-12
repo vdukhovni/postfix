@@ -16576,3 +16576,18 @@ Apologies for any names omitted.
 
 	Bugfix (introduced Postfix 2.8): segfault with smtpd_tls_loglevel
 	>= 3. Files: tls/tls_server.c, tls.h, smtpd.c, tlsproxy.c.
+
+	Cleanup: read/write deadline support for single_server TLS
+	applications (i.e. smtpd(8), smtp(8)).  File: tls/tls_bio_ops.c.
+
+20110212
+
+	Infrastructure: run-time switch for read/write deadline
+	support. Files: util/vstream.[hc], global/smtp_stream.[hc],
+	tls/tls_bio_ops.c.
+
+	Cleanup: configurable read/write deadline support with
+	smtpd_per_record_deadline (normal: "no", overload: "yes")
+	and smtp_per_record_deadline (default: "no").  Files:
+	global/mail_params.h, smtpd/smtpd.c, smtp/smtp.c,
+	smtp/smtp_proto.c, proto/postconf.proto, mantools/postlink.

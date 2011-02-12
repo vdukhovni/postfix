@@ -103,6 +103,19 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/time.h>
+
+#ifndef timersub
+/* res = a - b */
+#define timersub(a, b, res) do { \
+	(res)->tv_sec = (a)->tv_sec - (b)->tv_sec; \
+	(res)->tv_usec = (a)->tv_usec - (b)->tv_usec; \
+	if ((res)->tv_usec < 0) { \
+		(res)->tv_sec--; \
+		(res)->tv_usec += 1000000; \
+	} \
+    } while (0)
+#endif
 
 #ifdef USE_TLS
 
@@ -129,6 +142,24 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
     int     err;
     int     retval = 0;
     int     done;
+    int     enable_deadline;
+    struct timeval time_limit;		/* initial time limit */
+    struct timeval time_left;		/* amount of time left */
+    struct timeval time_entry;		/* time of tls_bio() entry */
+    struct timeval time_now;		/* time after SSL_mumble() call */
+    struct timeval time_elapsed;	/* total elapsed time */
+
+    /*
+     * Deadline management is simpler than with VSTREAMs, because we don't
+     * need to decrement a per-stream time limit. We just work within the
+     * budget that is available for this tls_bio() call.
+     */
+    enable_deadline = vstream_fstat(TLScontext->stream, VSTREAM_FLAG_DEADLINE);
+    if (enable_deadline) {
+	time_limit.tv_sec = timeout;
+	time_limit.tv_usec = 0;
+	GETTIMEOFDAY(&time_entry);
+    }
 
     /*
      * If necessary, retry the SSL handshake or read/write operation after
@@ -194,12 +225,24 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	    done = 1;
 	    break;
 	case SSL_ERROR_WANT_WRITE:
-	    if (write_wait(fd, timeout) < 0)
-		return (-1);			/* timeout error */
-	    break;
 	case SSL_ERROR_WANT_READ:
-	    if (read_wait(fd, timeout) < 0)
-		return (-1);			/* timeout error */
+	    if (enable_deadline) {
+		GETTIMEOFDAY(&time_now);
+		timersub(&time_now, &time_entry, &time_elapsed);
+		timersub(&time_limit, &time_elapsed, &time_left);
+		timeout = time_left.tv_sec + (time_left.tv_usec > 0);
+		if (timeout <= 0) {
+		    errno = ETIMEDOUT;
+		    return (-1);
+		}
+	    }
+	    if (err == SSL_ERROR_WANT_WRITE) {
+		if (write_wait(fd, timeout) < 0)
+		    return (-1);		/* timeout error */
+	    } else {
+		if (read_wait(fd, timeout) < 0)
+		    return (-1);		/* timeout error */
+	    }
 	    break;
 
 	    /*

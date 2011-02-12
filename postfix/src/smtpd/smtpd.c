@@ -127,6 +127,13 @@
 /*	Available in Postfix version 2.7 and later:
 /* .IP "\fBsmtpd_command_filter (empty)\fR"
 /*	A mechanism to transform commands from remote SMTP clients.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
+/*	Change the behavior of the smtpd_timeout time limit, from a
+/*	time limit per read or write system call, to a time limit to read
+/*	or write a complete record (an SMTP command line, SMTP response
+/*	line, SMTP message content line, or TLS protocol message).
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -631,6 +638,13 @@
 /*	The maximal number of new (i.e., uncached) TLS sessions that a
 /*	remote SMTP client is allowed to negotiate with this service per
 /*	time unit.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
+/*	Change the behavior of the smtpd_timeout time limit, from a
+/*	time limit per read or write system call, to a time limit to read
+/*	or write a complete record (an SMTP command line, SMTP response
+/*	line, SMTP message content line, or TLS protocol message).
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1248,6 +1262,7 @@ char   *var_unk_name_tf_act;
 char   *var_unk_addr_tf_act;
 char   *var_unv_rcpt_tf_act;
 char   *var_unv_from_tf_act;
+bool    var_smtpd_rec_deadline;
 
 int     smtpd_proxy_opts;
 
@@ -4338,7 +4353,7 @@ static void smtpd_proto(SMTPD_STATE *state)
      * cleans up, but no attempt is made to inform the client of the nature
      * of the problem.
      */
-    smtp_timeout_setup(state->client, var_smtpd_tmout);
+    smtp_stream_setup(state->client, var_smtpd_tmout, var_smtpd_rec_deadline);
 
     while ((status = vstream_setjmp(state->client)) == SMTP_ERR_NONE)
 	 /* void */ ;
@@ -5165,6 +5180,10 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
 	0,
     };
+    static const CONFIG_NBOOL_TABLE nbool_table[] = {
+	VAR_SMTPD_REC_DEADLINE, DEF_SMTPD_REC_DEADLINE, &var_smtpd_rec_deadline,
+	0,
+    };
     static const CONFIG_STR_TABLE str_table[] = {
 	VAR_SMTPD_BANNER, DEF_SMTPD_BANNER, &var_smtpd_banner, 1, 0,
 	VAR_NOTIFY_CLASSES, DEF_NOTIFY_CLASSES, &var_notify_classes, 0, 0,
@@ -5281,6 +5300,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,
+		       MAIL_SERVER_NBOOL_TABLE, nbool_table,
 		       MAIL_SERVER_TIME_TABLE, time_table,
 		       MAIL_SERVER_PRE_INIT, pre_jail_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,

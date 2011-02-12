@@ -14,6 +14,30 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Major changes with snapshot 20110130
+====================================
+
+Support for per-record deadlines.  These change the behavior of
+Postfix timeout parameters, from a time limit per read or write
+system call, to a time limit to send or receive a complete record
+(an SMTP command line, SMTP response line, SMTP message content
+line, or TLS protocol message).  This limits the impact from hostile
+peers that trickle data one byte at a time.
+
+The new configuration parameters and their default settings are:
+smtpd_per_record_deadline (normal: no, overload: yes),
+smtp_per_record_deadline (no), and lmtp_per_record_deadline (no).
+
+Note: when per-record deadlines are enabled, a short timeout may
+cause problems with TLS over very slow network connections.  The
+reasons are that a TLS protocol message can be up to 16 kbytes long
+(with TLSv1), and that an entire TLS protocol message must be sent
+or received within the per-record deadline.
+
+Per-record deadlines were introduced with postscreen(8). This program
+does not receive mail, and therefore has no problems with TLS over
+slow connections.
+
 Incompatible changes with snapshot 20110130
 ===========================================
 

@@ -295,7 +295,8 @@ int     smtp_helo(SMTP_STATE *state)
     /*
      * Prepare for disaster.
      */
-    smtp_timeout_setup(state->session->stream, var_smtp_helo_tmout);
+    smtp_stream_setup(state->session->stream, var_smtp_helo_tmout,
+		      var_smtp_rec_deadline);
     if ((except = vstream_setjmp(state->session->stream)) != 0)
 	return (smtp_stream_except(state, except, where));
 
@@ -642,7 +643,8 @@ int     smtp_helo(SMTP_STATE *state)
 	    /*
 	     * Prepare for disaster.
 	     */
-	    smtp_timeout_setup(state->session->stream, var_smtp_starttls_tmout);
+	    smtp_stream_setup(state->session->stream, var_smtp_starttls_tmout,
+			      var_smtp_rec_deadline);
 	    if ((except = vstream_setjmp(state->session->stream)) != 0)
 		return (smtp_stream_except(state, except,
 					"receiving the STARTTLS response"));
@@ -1216,8 +1218,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	|| send_state > SMTP_STATE_QUIT)
 	msg_panic("%s: bad sender state %d (receiver state %d)",
 		  myname, send_state, recv_state);
-    smtp_timeout_setup(session->stream,
-		       *xfer_timeouts[send_state]);
+    smtp_stream_setup(session->stream, *xfer_timeouts[send_state],
+		      var_smtp_rec_deadline);
     if ((except = vstream_setjmp(session->stream)) != 0) {
 	msg_warn("smtp_proto: spurious flush before read in send state %d",
 		 send_state);
@@ -1570,8 +1572,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		 */
 #define LOST_CONNECTION_INSIDE_DATA (except == SMTP_ERR_EOF)
 
-		smtp_timeout_setup(session->stream,
-				   *xfer_timeouts[recv_state]);
+		smtp_stream_setup(session->stream, *xfer_timeouts[recv_state],
+				  var_smtp_rec_deadline);
 		if (LOST_CONNECTION_INSIDE_DATA) {
 		    if (vstream_setjmp(session->stream) != 0)
 			RETURN(smtp_stream_except(state, SMTP_ERR_EOF,
@@ -1879,8 +1881,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	 */
 	if (send_state == SMTP_STATE_DOT && nrcpt > 0) {
 
-	    smtp_timeout_setup(session->stream,
-			       var_smtp_data1_tmout);
+	    smtp_stream_setup(session->stream, var_smtp_data1_tmout,
+			      var_smtp_rec_deadline);
 
 	    if ((except = vstream_setjmp(session->stream)) == 0) {
 

@@ -175,8 +175,8 @@ void    psc_parse_tests(PSC_STATE *state,
 
     /*
      * Parse the cache entry, and allow for older postscreen versions that
-     * implemented fewer tests. We pretend that these tests were disabled
-     * when the cache entry was written.
+     * implemented fewer tests. We pretend that the newer tests were disabled
+     * at the time that the cache entry was written.
      * 
      * Flag the cache entry as "new" when the cache entry has fields for all
      * enabled tests, but the remote SMTP client has not yet passed all those

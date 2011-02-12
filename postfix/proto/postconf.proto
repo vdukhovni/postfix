@@ -14011,3 +14011,47 @@ service performs plaintext &lt;=&gt; TLS ciphertext conversion. <p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
+%PARAM smtpd_per_record_deadline normal: no, overload: yes
+
+<p> Change the behavior of the smtpd_timeout time limit, from a
+time limit per read or write system call, to a time limit to send
+or receive a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).  This
+limits the impact from hostile peers that trickle data one byte at
+a time.  </p>
+
+<p> Note: when per-record deadlines are enabled, a short timeout
+may cause problems with TLS over very slow network connections.
+The reasons are that a TLS protocol message can be up to 16 kbytes
+long (with TLSv1), and that an entire TLS protocol message must be
+sent or received within the per-record deadline.  </p>
+
+<p> This feature is available in Postfix 2.9 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". </p>
+
+%PARAM smtp_per_record_deadline no
+
+<p> Change the behavior of the smtp_*_timeout time limits, from a
+time limit per read or write system call, to a time limit to send
+or receive a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).  This
+limits the impact from hostile peers that trickle data one byte at
+a time.  </p>
+
+<p> Note: when per-record deadlines are enabled, a short timeout
+may cause problems with TLS over very slow network connections.
+The reasons are that a TLS protocol message can be up to 16 kbytes
+long (with TLSv1), and that an entire TLS protocol message must be
+sent or received within the per-record deadline.  </p>
+
+<p> This feature is available in Postfix 2.9 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no". </p>
+
+%PARAM lmtp_per_record_deadline no
+
+<p> The LMTP-specific version of the smtp_per_record_deadline
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.8 and later.  </p>

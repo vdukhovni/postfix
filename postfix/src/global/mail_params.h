@@ -3583,6 +3583,19 @@ extern bool var_tlsp_tls_set_sessid;
 #define DEF_SMTPD_REJ_FOOTER	""
 extern char *var_smtpd_rej_footer;
 
+ /*
+  * Per-record time limit support.
+  */
+#define VAR_SMTPD_REC_DEADLINE	"smtpd_per_record_deadline"
+#define DEF_SMTPD_REC_DEADLINE	"${stress?yes}${stress:no}"
+extern bool var_smtpd_rec_deadline;
+
+#define VAR_SMTP_REC_DEADLINE	"smtp_per_record_deadline"
+#define DEF_SMTP_REC_DEADLINE	0
+#define VAR_LMTP_REC_DEADLINE	"lmtp_per_record_deadline"
+#define DEF_LMTP_REC_DEADLINE	0
+extern bool var_smtp_rec_deadline;
+
 /* LICENSE
 /* .ad
 /* .fi

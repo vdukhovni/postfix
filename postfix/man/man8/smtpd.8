@@ -143,6 +143,13 @@ An optional workaround for routers that break TCP window scaling.
 Available in Postfix version 2.7 and later:
 .IP "\fBsmtpd_command_filter (empty)\fR"
 A mechanism to transform commands from remote SMTP clients.
+.PP
+Available in Postfix version 2.9 and later:
+.IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
+Change the behavior of the smtpd_timeout time limit, from a
+time limit per read or write system call, to a time limit to read
+or write a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf
@@ -673,6 +680,13 @@ Available in Postfix version 2.3 and later:
 The maximal number of new (i.e., uncached) TLS sessions that a
 remote SMTP client is allowed to negotiate with this service per
 time unit.
+.PP
+Available in Postfix version 2.9 and later:
+.IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
+Change the behavior of the smtpd_timeout time limit, from a
+time limit per read or write system call, to a time limit to read
+or write a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).
 .SH "TARPIT CONTROLS"
 .na
 .nf

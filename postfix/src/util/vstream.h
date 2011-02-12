@@ -126,6 +126,8 @@ extern int vstream_fdclose(VSTREAM *);
 #define vstream_ftime(vp)	((time_t) ((vp)->iotime.tv_sec))
 #define vstream_ftimeval(vp)	((vp)->iotime)
 
+#define vstream_fstat(vp, fl)	((vp)->buf.flags & (fl))
+
 extern void vstream_control(VSTREAM *, int,...);
 
 #define VSTREAM_CTL_END		0
@@ -144,7 +146,8 @@ extern void vstream_control(VSTREAM *, int,...);
 #endif
 #define VSTREAM_CTL_BUFSIZE	12
 #define VSTREAM_CTL_SWAP_FD	13
-#define VSTREAM_CTL_TIME_LIMIT	14
+#define VSTREAM_CTL_START_DEADLINE	14
+#define VSTREAM_CTL_STOP_DEADLINE	15
 
 extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
 extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);

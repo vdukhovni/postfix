@@ -2236,6 +2236,11 @@ The LMTP-specific version of the smtp_nested_header_checks
 configuration parameter. See there for details.
 .PP
 This feature is available in Postfix 2.5 and later.
+.SH lmtp_per_record_deadline (default: no)
+The LMTP-specific version of the smtp_per_record_deadline
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH lmtp_pix_workaround_delay_time (default: 10s)
 The LMTP-specific version of the smtp_pix_workaround_delay_time
 configuration parameter.  See there for details.
@@ -5499,6 +5504,23 @@ This feature is available in Postfix 2.5 and later.
 .SH smtp_never_send_ehlo (default: no)
 Never send EHLO at the start of an SMTP session. See also the
 smtp_always_send_ehlo parameter.
+.SH smtp_per_record_deadline (default: no)
+Change the behavior of the smtp_*_timeout time limits, from a
+time limit per read or write system call, to a time limit to send
+or receive a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).  This
+limits the impact from hostile peers that trickle data one byte at
+a time.
+.PP
+Note: when per-record deadlines are enabled, a short timeout
+may cause problems with TLS over very slow network connections.
+The reasons are that a TLS protocol message can be up to 16 kbytes
+long (with TLSv1), and that an entire TLS protocol message must be
+sent or received within the per-record deadline.
+.PP
+This feature is available in Postfix 2.9 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no".
 .SH smtp_pix_workaround_delay_time (default: 10s)
 How long the Postfix SMTP client pauses before sending
 ".<CR><LF>" in order to work around the PIX firewall
@@ -7912,6 +7934,23 @@ lookup is disabled.  Turning off name lookup reduces delays due to
 DNS lookup and increases the maximal inbound delivery rate.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtpd_per_record_deadline (default: normal: no, overload: yes)
+Change the behavior of the smtpd_timeout time limit, from a
+time limit per read or write system call, to a time limit to send
+or receive a complete record (an SMTP command line, SMTP response
+line, SMTP message content line, or TLS protocol message).  This
+limits the impact from hostile peers that trickle data one byte at
+a time.
+.PP
+Note: when per-record deadlines are enabled, a short timeout
+may cause problems with TLS over very slow network connections.
+The reasons are that a TLS protocol message can be up to 16 kbytes
+long (with TLSv1), and that an entire TLS protocol message must be
+sent or received within the per-record deadline.
+.PP
+This feature is available in Postfix 2.9 and later. With older
+Postfix releases, the behavior is as if this parameter is set to
+"no".
 .SH smtpd_policy_service_max_idle (default: 300s)
 The time after which an idle SMTPD policy service connection is
 closed.
