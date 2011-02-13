@@ -16591,3 +16591,13 @@ Apologies for any names omitted.
 	and smtp_per_record_deadline (default: "no").  Files:
 	global/mail_params.h, smtpd/smtpd.c, smtp/smtp.c,
 	smtp/smtp_proto.c, proto/postconf.proto, mantools/postlink.
+
+20110213
+
+	Workaround (problem introduced with Postfix TLS patch): the
+	TLS library passes the same information via different
+	function arguments, and this same information is maintained
+	by different functions, so things get out of step when code
+	is updated. As of 20110212, tls_client_start() needs to set
+	the VSTREAM property of the TLS session object. File:
+	tls/tls_client.c.

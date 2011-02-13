@@ -795,6 +795,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     TLScontext->cache_type = app_ctx->cache_type;
 
     TLScontext->serverid = vstring_export(myserverid);
+    TLScontext->stream = props->stream;
 
     if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
 	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
