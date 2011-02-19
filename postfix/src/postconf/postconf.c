@@ -330,6 +330,7 @@ DICT   *text_table;
 #include "raw_vars.h"
 #include "nint_vars.h"
 #include "nbool_vars.h"
+#include "long_vars.h"
 
  /*
   * Manually extracted.
@@ -374,6 +375,11 @@ static const CONFIG_NINT_TABLE nint_table[] = {
 
 static const CONFIG_NBOOL_TABLE nbool_table[] = {
 #include "nbool_table.h"
+    0,
+};
+
+static const CONFIG_LONG_TABLE long_table[] = {
+#include "long_table.h"
     0,
 };
 
@@ -698,6 +704,7 @@ static void hash_parameters(void)
     const CONFIG_RAW_TABLE *rst;
     const CONFIG_NINT_TABLE *nst;
     const CONFIG_NBOOL_TABLE *bst;
+    const CONFIG_LONG_TABLE *lst;
 
     param_table = htable_create(100);
 
@@ -719,6 +726,8 @@ static void hash_parameters(void)
 	htable_enter(param_table, nst->name, (char *) nst);
     for (bst = nbool_table; bst->name; bst++)
 	htable_enter(param_table, bst->name, (char *) bst);
+    for (lst = long_table; lst->name; lst++)
+	htable_enter(param_table, lst->name, (char *) lst);
 }
 
 /* show_strval - show string-valued parameter */
@@ -743,6 +752,17 @@ static void show_intval(int mode, const char *name, int value)
 	vstream_printf("%s = %d\n", name, value);
     } else {
 	vstream_printf("%d\n", value);
+    }
+}
+
+/* show_longval - show long-valued parameter */
+
+static void show_longval(int mode, const char *name, long value)
+{
+    if (mode & SHOW_NAME) {
+	vstream_printf("%s = %ld\n", name, value);
+    } else {
+	vstream_printf("%ld\n", value);
     }
 }
 
@@ -965,6 +985,29 @@ static void print_nbool(int mode, CONFIG_NBOOL_TABLE * bst)
     }
 }
 
+/* print_long - print long parameter */
+
+static void print_long(int mode, CONFIG_LONG_TABLE *clt)
+{
+    const char *value;
+
+    if (mode & SHOW_DEFS) {
+	show_longval(mode, clt->name, clt->defval);
+    } else {
+	value = dict_lookup(CONFIG_DICT, clt->name);
+	if ((mode & SHOW_NONDEF) == 0) {
+	    if (value == 0) {
+		show_longval(mode, clt->name, clt->defval);
+	    } else {
+		show_strval(mode, clt->name, value);
+	    }
+	} else {
+	    if (value != 0)
+		show_strval(mode, clt->name, value);
+	}
+    }
+}
+
 /* print_parameter - show specific parameter */
 
 static void print_parameter(int mode, char *ptr)
@@ -993,6 +1036,8 @@ static void print_parameter(int mode, char *ptr)
 	print_nint(mode, (CONFIG_NINT_TABLE *) ptr);
     if (INSIDE(ptr, nbool_table))
 	print_nbool(mode, (CONFIG_NBOOL_TABLE *) ptr);
+    if (INSIDE(ptr, long_table))
+	print_long(mode, (CONFIG_LONG_TABLE *) ptr);
     if (msg_verbose)
 	vstream_fflush(VSTREAM_OUT);
 }

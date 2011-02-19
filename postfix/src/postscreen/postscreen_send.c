@@ -121,7 +121,7 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
 		STR(state->send_buf), LEN(state->send_buf));
     if (ret > 0)
 	vstring_truncate(state->send_buf, ret - LEN(state->send_buf));
-    if (ret < 0 && errno != EAGAIN && errno != EPIPE)
+    if (ret < 0 && errno != EAGAIN && errno != EPIPE && errno != ECONNRESET)
 	msg_warn("write [%s]:%s: %m", state->smtp_client_addr,
 		 state->smtp_client_port);
     return (ret < 0 && errno != EAGAIN);

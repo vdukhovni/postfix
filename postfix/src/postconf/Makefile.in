@@ -8,7 +8,8 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h \
-	nint_table.h nint_vars.h nbool_table.h nbool_vars.h
+	nint_table.h nint_vars.h nbool_table.h nbool_vars.h long_table.h \
+	long_vars.h
 AUTOS	= auto_table.h auto_vars.h
 DUMMIES	= makes_dummy autos_dummy # for "make -j"
 PROG	= postconf
@@ -121,6 +122,8 @@ postconf.o: install_table.h
 postconf.o: install_vars.h
 postconf.o: int_table.h
 postconf.o: int_vars.h
+postconf.o: long_table.h
+postconf.o: long_vars.h
 postconf.o: nbool_table.h
 postconf.o: nbool_vars.h
 postconf.o: nint_table.h

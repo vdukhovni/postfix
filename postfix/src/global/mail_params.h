@@ -577,7 +577,7 @@ extern char *var_mailbox_lock;
   */
 #define VAR_MAILBOX_LIMIT	"mailbox_size_limit"
 #define DEF_MAILBOX_LIMIT	(DEF_MESSAGE_LIMIT * 5)
-extern int var_mailbox_limit;
+extern long var_mailbox_limit;
 
  /*
   * Miscellaneous.
@@ -1787,7 +1787,7 @@ extern int var_virt_expan_limit;
   */
 #define VAR_MESSAGE_LIMIT	"message_size_limit"
 #define DEF_MESSAGE_LIMIT	10240000
-extern int var_message_limit;
+extern long var_message_limit;
 
 #define VAR_QUEUE_MINFREE	"queue_minfree"
 #define DEF_QUEUE_MINFREE	0
@@ -2343,7 +2343,7 @@ extern char *var_virt_mailbox_base;
 
 #define VAR_VIRT_MAILBOX_LIMIT		"virtual_mailbox_limit"
 #define DEF_VIRT_MAILBOX_LIMIT		(5 * DEF_MESSAGE_LIMIT)
-extern int var_virt_mailbox_limit;
+extern long var_virt_mailbox_limit;
 
 #define VAR_VIRT_MAILBOX_LOCK		"virtual_mailbox_lock"
 #define DEF_VIRT_MAILBOX_LOCK		"fcntl, dotlock"
@@ -3008,10 +3008,10 @@ extern bool var_tls_preempt_clist;
 #define TLS_BUG_TWEAK_B	" "
 #endif
 
-#else /* USE_TLS */
+#else					/* USE_TLS */
 #define TLS_BUG_TWEAK_A	""
 #define TLS_BUG_TWEAK_B	" "
-#endif /* USE_TLS */
+#endif					/* USE_TLS */
 
 #define VAR_TLS_BUG_TWEAKS	"tls_disable_workarounds"
 #define DEF_TLS_BUG_TWEAKS	((TLS_BUG_TWEAK_A TLS_BUG_TWEAK_B)+1)

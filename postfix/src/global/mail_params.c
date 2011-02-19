@@ -45,7 +45,7 @@
 /*	char	*var_double_bounce_sender;
 /*	int	var_line_limit;
 /*	char	*var_alias_db_map;
-/*	int	var_message_limit;
+/*	long	var_message_limit;
 /*	char	*var_mail_release;
 /*	char	*var_mail_version;
 /*	int	var_ipc_idle_limit;
@@ -230,7 +230,7 @@ char   *var_mynetworks;
 char   *var_double_bounce_sender;
 int     var_line_limit;
 char   *var_alias_db_map;
-int     var_message_limit;
+long    var_message_limit;
 char   *var_mail_release;
 char   *var_mail_version;
 int     var_ipc_idle_limit;
@@ -579,7 +579,6 @@ void    mail_params_init()
 	VAR_MAX_USE, DEF_MAX_USE, &var_use_limit, 1, 0,
 	VAR_DONT_REMOVE, DEF_DONT_REMOVE, &var_dont_remove, 0, 0,
 	VAR_LINE_LIMIT, DEF_LINE_LIMIT, &var_line_limit, 512, 0,
-	VAR_MESSAGE_LIMIT, DEF_MESSAGE_LIMIT, &var_message_limit, 0, 0,
 	VAR_HASH_QUEUE_DEPTH, DEF_HASH_QUEUE_DEPTH, &var_hash_queue_depth, 1, 0,
 	VAR_FORK_TRIES, DEF_FORK_TRIES, &var_fork_tries, 1, 0,
 	VAR_FLOCK_TRIES, DEF_FLOCK_TRIES, &var_flock_tries, 1, 0,
@@ -593,6 +592,10 @@ void    mail_params_init()
 	VAR_MIME_BOUND_LEN, DEF_MIME_BOUND_LEN, &var_mime_bound_len, 1, 0,
 	VAR_DELAY_MAX_RES, DEF_DELAY_MAX_RES, &var_delay_max_res, MIN_DELAY_MAX_RES, MAX_DELAY_MAX_RES,
 	VAR_INET_WINDOW, DEF_INET_WINDOW, &var_inet_windowsize, 0, 0,
+	0,
+    };
+    static const CONFIG_LONG_TABLE long_defaults[] = {
+	VAR_MESSAGE_LIMIT, DEF_MESSAGE_LIMIT, &var_message_limit, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_defaults[] = {
@@ -681,6 +684,7 @@ void    mail_params_init()
     }
 #endif
     get_mail_conf_int_table(other_int_defaults);
+    get_mail_conf_long_table(long_defaults);
     get_mail_conf_bool_table(bool_defaults);
     get_mail_conf_time_table(time_defaults);
     check_default_privs();

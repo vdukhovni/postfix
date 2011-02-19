@@ -16004,7 +16004,7 @@ Apologies for any names omitted.
 
 	Workaround: better handling of pregreeting spambots. The
 	postscreen built-in SMTP engine no longer sends a 220 banner
-	to a client that falls into the pregeet trap.  This eliminates
+	to a client that falls into the pregreet trap.  This eliminates
 	many "NON-SMTP COMMAND" records in postscreen logging, as
 	the SMTP client and server no longer get out of sync.  It
 	also results in better logging of sender/recipient information.
@@ -16594,10 +16594,34 @@ Apologies for any names omitted.
 
 20110213
 
-	Workaround (problem introduced with Postfix TLS patch): the
-	TLS library passes the same information via different
-	function arguments, and this same information is maintained
-	by different functions, so things get out of step when code
-	is updated. As of 20110212, tls_client_start() needs to set
-	the VSTREAM property of the TLS session object. File:
-	tls/tls_client.c.
+	Workaround: the TLS library passes the same information via
+	different function arguments, and this same information is
+	maintained by different functions, so things get out of
+	step when code is updated. As of 20110212, tls_client_start()
+	needs to set the VSTREAM property of the TLS session object.
+	File: tls/tls_client.c.
+
+20110215
+
+	Human factors: the FCRDNS (forward-confirmed reverse DNS)
+	checking code now logs "hostname X does not resolve to
+	address Y", when a "reverse hostname" lookup result does
+	not resolve to the client IP address.  Files: smtpd/smtpd_peer.c,
+	qmqpr/qmqpd_peer.c.
+
+20110216
+
+	Cleanup: don't log a "connection reset by peer" error when
+	postscreen(8) tries to send a server response.  File:
+	postscreen/postscreen_send.c.
+
+20110218
+
+	Cleanup: Postfix now uses long integers for message_size_limit,
+	mailbox_size_limit and virtual_mailbox_limit. On LP64 (64-bit
+	long and pointer, but 32-bit integer) systems, these message
+	and mailbox limits can now exceed 2GB. Files: global/mail_params.c
+	global/mail_params.h local/local.c master/event_server.c
+	master/mail_server.h master/multi_server.c master/single_server.c
+	master/trigger_server.c virtual/virtual.c postconf/extract.awk
+	postconf/postconf.c.

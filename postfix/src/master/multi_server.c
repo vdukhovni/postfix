@@ -47,6 +47,11 @@
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
+/* .IP "MAIL_SERVER_LONG_TABLE (CONFIG_LONG_TABLE *)"
+/*	A table with configurable parameters, to be loaded from the
+/*	global Postfix configuration file. Tables are loaded in the
+/*	order as specified, and multiple instances of the same type
+/*	are allowed.
 /* .IP "MAIL_SERVER_STR_TABLE (CONFIG_STR_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
@@ -668,6 +673,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	switch (key) {
 	case MAIL_SERVER_INT_TABLE:
 	    get_mail_conf_int_table(va_arg(ap, CONFIG_INT_TABLE *));
+	    break;
+	case MAIL_SERVER_LONG_TABLE:
+	    get_mail_conf_long_table(va_arg(ap, CONFIG_LONG_TABLE *));
 	    break;
 	case MAIL_SERVER_STR_TABLE:
 	    get_mail_conf_str_table(va_arg(ap, CONFIG_STR_TABLE *));

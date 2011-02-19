@@ -340,15 +340,15 @@ void    smtpd_peer_init(SMTPD_STATE *state)
 	    aierr = hostname_to_sockaddr_pf(state->name, state->addr_family,
 					    (char *) 0, 0, &res0);
 	    if (aierr) {
-		msg_warn("%s: hostname %s verification failed: %s",
-			 state->addr, state->name, MAI_STRERROR(aierr));
+		msg_warn("hostname %s does not resolve to address %s: %s",
+			 state->name, state->addr, MAI_STRERROR(aierr));
 		REJECT_PEER_NAME(state, (TEMP_AI_ERROR(aierr) ?
 			    SMTPD_PEER_CODE_TEMP : SMTPD_PEER_CODE_FORGED));
 	    } else {
 		for (res = res0; /* void */ ; res = res->ai_next) {
 		    if (res == 0) {
-			msg_warn("%s: address not listed for hostname %s",
-				 state->addr, state->name);
+			msg_warn("hostname %s does not resolve to address %s",
+				 state->name, state->addr);
 			REJECT_PEER_NAME(state, SMTPD_PEER_CODE_FORGED);
 			break;
 		    }

@@ -6,10 +6,10 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Make the rules for how to use close-on-exec more explicit.
+
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
-
-	Update MILTER_README with pointer to OpenDKIM.
 
 	postconf command-line option to show the compile-time
 	settings (CCARGS, AUXLIBS) in case binary packages
@@ -19,6 +19,8 @@ Wish list:
 	etc. databases, i.e. set the owner property at open time;
 	it can't be looked up at run-time with fstat(dict->stat_fd)
 	because there is no open file. What about *SQL, LDAP, etc.?
+	Maybe use the source of the configuration file? We can reuse
+	that to enforce root ownership of main/master.cf files.
 
 	events.c: cache the side effects of file descriptor event
 	enable/disable operations in user space, and do bulk kernel

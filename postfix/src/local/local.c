@@ -650,7 +650,7 @@ char   *var_deliver_hdr;
 int     var_stat_home_dir;
 int     var_mailtool_compat;
 char   *var_mailbox_lock;
-int     var_mailbox_limit;
+long    var_mailbox_limit;
 bool    var_frozen_delivered;
 bool    var_reset_owner_attr;
 bool    var_strict_mbox_owner;
@@ -872,6 +872,9 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
+	0,
+    };
+    static const CONFIG_LONG_TABLE long_table[] = {
 	VAR_MAILBOX_LIMIT, DEF_MAILBOX_LIMIT, &var_mailbox_limit, 0, 0,
 	0,
     };
@@ -922,6 +925,7 @@ int     main(int argc, char **argv)
 
     single_server_main(argc, argv, local_service,
 		       MAIL_SERVER_INT_TABLE, int_table,
+		       MAIL_SERVER_LONG_TABLE, long_table,
 		       MAIL_SERVER_STR_TABLE, str_table,
 		       MAIL_SERVER_RAW_TABLE, raw_table,
 		       MAIL_SERVER_BOOL_TABLE, bool_table,

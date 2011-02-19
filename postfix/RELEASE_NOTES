@@ -14,7 +14,23 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
-Major changes with snapshot 20110130
+Incompatible changes with snapshot 20110219
+===========================================
+
+The Postfix SMTP and QMQP servers now log "hostname X does not
+resolve to address Y", when a "reverse hostname" lookup result does
+not resolve to the client IP address. Until now these servers logged
+"Y: hostname X verification failed" or "Y: address not listed for
+hostname X" depending on the details of the error.
+
+Major changes with snapshot 20110219
+====================================
+
+Postfix now uses long integers for message_size_limit, mailbox_size_limit
+and virtual_mailbox_limit. On LP64 systems (64-bit long and pointer,
+but 32-bit integer), these limits can now exceed 2GB.
+
+Major changes with snapshot 20110212
 ====================================
 
 Support for per-record deadlines.  These change the behavior of
