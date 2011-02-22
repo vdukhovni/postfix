@@ -432,13 +432,14 @@ logging more informative. </p>
 as: </p>
 
 <pre>
-    <b>COMMAND PIPELINING after</b> <i>time</i> <b>from</b> <i>[address]:port</i>
+    <b>COMMAND PIPELINING from</b> <i>[address]:port</i> <b>after</b> <i>command</i>
 </pre>
 
-<p> Translation: the SMTP client at <i>[address]:port</i> sent multiple
-SMTP commands, instead of sending one command and then waiting for
-the server to reply. This happened <i>time</i> seconds after the
-"220 " server greeting was sent. </p>
+<p> Translation: the SMTP client at <i>[address]:port</i> sent
+multiple SMTP commands, instead of sending one command and then
+waiting for the server to reply. This happened after the client
+sent <i>command</i>. Postfix 2.8 does not log the input that was
+sent too early. </p>
 
 <p> The <a href="postconf.5.html#postscreen_pipelining_action">postscreen_pipelining_action</a> parameter specifies the action
 that is taken next.  See "<a href="#fail_after_220">When tests fail

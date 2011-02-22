@@ -68,7 +68,8 @@
 /*	Support for AUTH may be added in the future.
 /*	In the mean time, if you need to make these services available
 /*	on port 25, then do not enable the optional "after 220
-/*	server greeting" tests.
+/*	server greeting" tests, and do not use DNSBLs that reject
+/*	traffic from dial-up and residential networks.
 /*
 /*	The optional "after 220 server greeting" tests involve
 /*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine. When
@@ -416,13 +417,6 @@ int     var_psc_post_queue_limit;
 int     var_psc_pre_queue_limit;
 int     var_psc_watchdog;
 
-#undef MIGRATION_WARNING
-
-#ifdef MIGRATION_WARNING
-char   *var_psc_wlist_nets;
-char   *var_psc_blist_nets;
-
-#endif
 char   *var_psc_acl;
 char   *var_psc_blist_action;
 
@@ -495,11 +489,6 @@ HTABLE *psc_client_concurrency;		/* per-client concurrency */
  /*
   * Local variables.
   */
-#ifdef MIGRATION_WARNING
-static ADDR_MATCH_LIST *psc_wlist_nets;	/* permanently whitelisted networks */
-static ADDR_MATCH_LIST *psc_blist_nets;	/* permanently blacklisted networks */
-
-#endif
 static ARGV *psc_acl;			/* permanent white/backlist */
 static int psc_blist_action;		/* PSC_ACT_DROP/ENFORCE/etc */
 
@@ -715,47 +704,6 @@ static void psc_service(VSTREAM *smtp_client_stream,
 	    break;
 	}
     }
-#ifdef MIGRATION_WARNING
-
-    /*
-     * The permanent whitelist has highest precedence (never block mail from
-     * whitelisted sites, and never run tests against those sites).
-     */
-    if (psc_wlist_nets != 0
-    && psc_addr_match_list_match(psc_wlist_nets, state->smtp_client_addr)) {
-	msg_info("WHITELISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
-	psc_conclude(state);
-	return;
-    }
-
-    /*
-     * The permanent blacklist has second precedence. If the client is
-     * permanently blacklisted, send some generic reply and hang up
-     * immediately, or run more tests for logging purposes.
-     */
-    if (psc_blist_nets != 0
-    && psc_addr_match_list_match(psc_blist_nets, state->smtp_client_addr)) {
-	msg_info("BLACKLISTED [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
-	PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_BLIST_FAIL);
-	switch (psc_blist_action) {
-	case PSC_ACT_DROP:
-	    PSC_DROP_SESSION_STATE(state,
-			     "521 5.3.2 Service currently unavailable\r\n");
-	    return;
-	case PSC_ACT_ENFORCE:
-	    PSC_ENFORCE_SESSION_STATE(state,
-			     "550 5.3.2 Service currently unavailable\r\n");
-	    break;
-	case PSC_ACT_IGNORE:
-	    PSC_UNFAIL_SESSION_STATE(state, PSC_STATE_FLAG_BLIST_FAIL);
-	    /* Not: PSC_PASS_SESSION_STATE. Repeat this test the next time. */
-	    break;
-	default:
-	    msg_panic("%s: unknown blacklist action value %d",
-		      myname, psc_blist_action);
-	}
-    }
-#endif
 
     /*
      * The temporary whitelist (i.e. the postscreen cache) has the lowest
@@ -841,21 +789,6 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Open read-only maps before dropping privilege, for consistency with
      * other Postfix daemons.
      */
-#ifdef MIGRATION_WARNING
-    if (*var_psc_wlist_nets)
-	psc_wlist_nets =
-	    addr_match_list_init(MATCH_FLAG_NONE, var_psc_wlist_nets);
-
-    if (*var_psc_blist_nets)
-	psc_blist_nets = addr_match_list_init(MATCH_FLAG_NONE,
-					      var_psc_blist_nets);
-    if (psc_blist_nets || psc_wlist_nets) {
-	msg_warn("The %s and %s features will be removed soon. Use %s instead",
-		 VAR_PSC_WLIST_NETS, VAR_PSC_BLIST_NETS, VAR_PSC_ACL);
-	msg_warn("To stop this warning, specify empty values for %s and %s",
-		 VAR_PSC_WLIST_NETS, VAR_PSC_BLIST_NETS);
-    }
-#endif
     psc_acl_pre_jail_init();
     if (*var_psc_acl)
 	psc_acl = psc_acl_parse(var_psc_acl, VAR_PSC_ACL);
@@ -1095,10 +1028,6 @@ int     main(int argc, char **argv)
 	VAR_PSC_PIPEL_ACTION, DEF_PSC_PIPEL_ACTION, &var_psc_pipel_action, 1, 0,
 	VAR_PSC_NSMTP_ACTION, DEF_PSC_NSMTP_ACTION, &var_psc_nsmtp_action, 1, 0,
 	VAR_PSC_BARLF_ACTION, DEF_PSC_BARLF_ACTION, &var_psc_barlf_action, 1, 0,
-#ifdef MIGRATION_WARNING
-	VAR_PSC_WLIST_NETS, DEF_PSC_WLIST_NETS, &var_psc_wlist_nets, 0, 0,
-	VAR_PSC_BLIST_NETS, DEF_PSC_BLIST_NETS, &var_psc_blist_nets, 0, 0,
-#endif
 	VAR_PSC_ACL, DEF_PSC_ACL, &var_psc_acl, 0, 0,
 	VAR_PSC_BLIST_ACTION, DEF_PSC_BLIST_ACTION, &var_psc_blist_action, 1, 0,
 	VAR_PSC_FORBID_CMDS, DEF_PSC_FORBID_CMDS, &var_psc_forbid_cmds, 0, 0,

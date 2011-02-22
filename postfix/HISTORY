@@ -16515,7 +16515,26 @@ Apologies for any names omitted.
 	from the postscreen_access_list implementation.  File:
 	postscreen/postscreen_access.c.
 
+20110123
+
+	Cleanup: remove #ifdef MIGRATION_WARNING transitional code
+	from postscreen. File: postscreen/postscreen.c.
+
+20110201
+
+	Cleanup: when verifying that the client_address->client_name
+	lookup result resolves to the client_address, request
+	hostname->address lookup with the same protocol family (IPv4
+	or IPv6) as the client_address.  Files: util/myaddrinfo.[hc],
+	smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
 20110207
 
 	Bugfix (introduced Postfix 2.8): segfault with smtpd_tls_loglevel
 	>= 3. Files: tls/tls_server.c, tls.h, smtpd.c, tlsproxy.c.
+
+20110216
+
+	Cleanup: don't log a "connection reset by peer" warning
+	when postscreen(8) tries to send a server response.  File:
+	postscreen/postscreen_send.c.

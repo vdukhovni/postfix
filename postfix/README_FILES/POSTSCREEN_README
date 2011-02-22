@@ -318,11 +318,12 @@ in SMTP engine anyway. This is to make postscreen(8) logging more informative.
 
 When a client sends multiple commands, postscreen(8) logs this as:
 
-    CCOOMMMMAANNDD PPIIPPEELLIINNIINNGG aafftteerr time ffrroomm [address]:port
+    CCOOMMMMAANNDD PPIIPPEELLIINNIINNGG ffrroomm [address]:port aafftteerr command
 
 Translation: the SMTP client at [address]:port sent multiple SMTP commands,
 instead of sending one command and then waiting for the server to reply. This
-happened time seconds after the "220 " server greeting was sent.
+happened after the client sent command. Postfix 2.8 does not log the input that
+was sent too early.
 
 The postscreen_pipelining_action parameter specifies the action that is taken
 next. See "When tests fail after the 220 SMTP server greeting" below.

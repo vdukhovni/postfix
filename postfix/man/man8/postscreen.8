@@ -82,7 +82,8 @@ XFORWARD.
 Support for AUTH may be added in the future.
 In the mean time, if you need to make these services available
 on port 25, then do not enable the optional "after 220
-server greeting" tests.
+server greeting" tests, and do not use DNSBLs that reject
+traffic from dial-up and residential networks.
 
 The optional "after 220 server greeting" tests involve
 \fBpostscreen\fR(8)'s built-in SMTP protocol engine. When
