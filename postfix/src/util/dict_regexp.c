@@ -39,6 +39,7 @@
 
 #ifdef HAS_POSIX_REGEXP
 
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -737,6 +738,7 @@ DICT   *dict_regexp_open(const char *mapname, int unused_flags, int dict_flags)
 {
     DICT_REGEXP *dict_regexp;
     VSTREAM *map_fp;
+    struct stat st;
     VSTRING *line_buffer;
     DICT_REGEXP_RULE *rule;
     DICT_REGEXP_RULE *last_rule = 0;
@@ -763,6 +765,10 @@ DICT   *dict_regexp_open(const char *mapname, int unused_flags, int dict_flags)
      */
     if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
 	msg_fatal("open %s: %m", mapname);
+    if (fstat(vstream_fileno(map_fp), &st) < 0)
+	msg_fatal("fstat %s: %m", mapname);
+    dict_regexp->dict.owner.uid = st.st_uid;
+    dict_regexp->dict.owner.status = (st.st_uid != 0);
 
     while (readlline(line_buffer, map_fp, &lineno)) {
 	p = vstring_str(line_buffer);

@@ -764,7 +764,8 @@ DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
     dict_pgsql->pldb = plpgsql_init(dict_pgsql->hosts);
     if (dict_pgsql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
-    return &dict_pgsql->dict;
+    dict_pgsql->dict.owner = cfg_get_owner(dict_pgsql->parser);
+    return (DICT_DEBUG(&dict_pgsql->dict));
 }
 
 /* plpgsql_init - initalize a PGSQL database */

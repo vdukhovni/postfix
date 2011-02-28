@@ -238,6 +238,7 @@ DICT   *dict_nis_open(const char *map, int open_flags, int dict_flags)
 	dict_nis->dict.fold_buf = vstring_alloc(10);
     if (dict_nis_domain == 0)
 	dict_nis_init();
+    dict_nis->dict.owner.status = DICT_OWNER_TRUSTED;
     return (DICT_DEBUG (&dict_nis->dict));
 }
 

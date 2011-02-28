@@ -12,15 +12,20 @@
  .nf
 
  /*
+  * Utility library.
+  */
+#include <dict.h>
+
+ /*
   * External interface.
   */
-
 typedef struct CFG_PARSER {
     char   *name;
     char   *(*get_str) (const struct CFG_PARSER *, const char *, const char *,
 			        int, int);
     int     (*get_int) (const struct CFG_PARSER *, const char *, int, int, int);
     int     (*get_bool) (const struct CFG_PARSER *, const char *, int);
+    DICT_OWNER owner;
 } CFG_PARSER;
 
 extern CFG_PARSER *cfg_parser_alloc(const char *);
@@ -29,6 +34,8 @@ extern char *cfg_get_str(const CFG_PARSER *, const char *, const char *,
 extern int cfg_get_int(const CFG_PARSER *, const char *, int, int, int);
 extern int cfg_get_bool(const CFG_PARSER *, const char *, int);
 extern CFG_PARSER *cfg_parser_free(CFG_PARSER *);
+
+#define cfg_get_owner(cfg) ((cfg)->owner)
 
 /* LICENSE
 /* .ad

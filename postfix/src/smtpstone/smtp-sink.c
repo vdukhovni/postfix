@@ -386,7 +386,7 @@ static void do_stats(void)
 
 static void hard_err_resp(SINK_STATE *state)
 {
-    smtp_printf(state->stream, hard_error_resp);
+    smtp_printf(state->stream, "%s", hard_error_resp);
     smtp_flush(state->stream);
 }
 
@@ -394,7 +394,7 @@ static void hard_err_resp(SINK_STATE *state)
 
 static void soft_err_resp(SINK_STATE *state)
 {
-    smtp_printf(state->stream, soft_error_resp);
+    smtp_printf(state->stream, "%s", soft_error_resp);
     smtp_flush(state->stream);
 }
 
@@ -745,9 +745,9 @@ static void dot_resp_hard(SINK_STATE *state)
 {
     if (enable_lmtp) {
 	while (state->rcpts-- > 0)	/* XXX this could block */
-	    smtp_printf(state->stream, hard_error_resp);
+	    smtp_printf(state->stream, "%s", hard_error_resp);
     } else {
-	smtp_printf(state->stream, hard_error_resp);
+	smtp_printf(state->stream, "%s", hard_error_resp);
     }
     smtp_flush(state->stream);
 }
@@ -758,9 +758,9 @@ static void dot_resp_soft(SINK_STATE *state)
 {
     if (enable_lmtp) {
 	while (state->rcpts-- > 0)	/* XXX this could block */
-	    smtp_printf(state->stream, soft_error_resp);
+	    smtp_printf(state->stream, "%s", soft_error_resp);
     } else {
-	smtp_printf(state->stream, soft_error_resp);
+	smtp_printf(state->stream, "%s", soft_error_resp);
     }
     smtp_flush(state->stream);
 }

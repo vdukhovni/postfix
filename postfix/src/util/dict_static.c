@@ -68,5 +68,6 @@ DICT   *dict_static_open(const char *name, int unused_flags, int dict_flags)
     dict->lookup = dict_static_lookup;
     dict->close = dict_static_close;
     dict->flags = dict_flags | DICT_FLAG_FIXED;
+    dict->owner.status = DICT_OWNER_TRUSTED;
     return (DICT_DEBUG (dict));
 }

@@ -16625,3 +16625,63 @@ Apologies for any names omitted.
 	master/mail_server.h master/multi_server.c master/single_server.c
 	master/trigger_server.c virtual/virtual.c postconf/extract.awk
 	postconf/postconf.c.
+
+20110220
+
+	Cleanup: compiler gripe.  File: util/vstream.c.
+
+20110223
+
+	Cleanup: Debian build tool gripe. File: smtpstone/smtp-sink.c.
+
+20110224
+
+	postscreen(8) support to enforce proper client MX lookup
+	policy. Some spambots connect first to a backup MX address
+	in the hope that the server has a weaker anti-spam policy.
+	By listening on both primary and backup MX addresses,
+	postscreen(8) can deny the temporary whitelist status to
+	clients that connect only to backup MX hosts, and prevent
+	them from talking to a Postfix SMTP server process.
+
+	For example, when 1.2.3.4 is a local backup IP address,
+	specify "postscreen_whitelist_interfaces = !1.2.3.4 static:all"
+	to disable dynamic whitelisting for clients that connect
+	(only) to the backup MX address. Files: mantools/postlink,
+	proto/postconf.proto, proto/POSTSCREEN_README.html,
+	global/mail_params.h, postscreen/postscreen.c,
+	postscreen/postscreen.h, postscreen/postscreen_state.c.
+
+20110225
+
+	Workaround (problem introduced with IPv6 support in Postfix
+	2.2): the SMTP client did not support mail to [ipv6:ipv6addr].
+	Fix based on a patch by Gurusamy Sarathy (Sophos).  File:
+	util/host_port.c and regression test files.
+
+20110227
+
+	Portability: FreeBSD closefrom() support time window.  Sahil
+	Tandon. File: util/sys_defs.h.
+
+	Cleanup: each lookup table now has an owner status and UID
+	attributes for provenance purposes, even memory-resident
+	tables such as pcre, regexp and cidr.  This fixes a problem
+	where local(8) ignored the non-root ownership of a regular
+	expression-based aliases(5) file.  The table owner status
+	is TRUSTED (data straight from root-owned configuration
+	file), UNKNOWN (unauthenticated data from proxy or tcp) or
+	KNOWN (we actually have an owner UID). With most tables,
+	the owner UID is the file owner UID. With LDAP and *SQL,
+	the owner UID is the Postfix configuration file owner.
+	Files: src/util/dict_unix.c src/util/dict_thash.c
+	src/util/dict_static.c src/util/dict_sdbm.c src/util/dict_regexp.c
+	src/util/dict_pcre.c src/util/dict_nisplus.c src/util/dict_nis.c
+	src/util/dict_ni.c src/util/dict_ht.c src/util/dict_env.c
+	src/util/dict_dbm.c src/util/dict_db.c src/util/dict_cidr.c
+	src/util/dict_cdb.c src/util/dict_alloc.c src/util/dict.h
+	src/util/dict.c src/local/alias.c src/global/dict_sqlite.c
+	src/global/dict_pgsql.c src/global/dict_mysql.c
+	src/global/dict_ldap.c src/global/cfg_parser.h
+	src/global/cfg_parser.c.
+

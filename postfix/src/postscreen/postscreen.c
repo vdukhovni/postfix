@@ -139,6 +139,21 @@
 /* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when an SMTP client is
 /*	permanently blacklisted with the postscreen_access_list parameter.
+/* MAIL EXCHANGER POLICY TESTS
+/* .ad
+/* .fi
+/*	When a remote SMTP client is not on the permanent access
+/*	list, \fBpostscreen\fR(8) can implement a number of whitelist
+/*	tests before it grants the client a temporary whitelist
+/*	status to talk to a Postfix SMTP server process.
+/*
+/*	By listening on both primary and backup MX addresses,
+/*	\fBpostscreen\fR(8) can deny the temporary whitelist status
+/*	to clients that connect only to backup MX hosts.
+/* .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
+/*	A list of local \fBpostscreen\fR(8) server IP addresses where a
+/*	non-whitelisted SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+/*	whitelist status to talk to a Postfix SMTP server process.
 /* BEFORE-GREETING TESTS
 /* .ad
 /* .fi
@@ -460,6 +475,8 @@ int     var_psc_cconn_limit;
 char   *var_smtpd_exp_filter;
 char   *var_psc_exp_filter;
 
+char   *var_psc_wlist_if;
+
  /*
   * Global variables.
   */
@@ -491,6 +508,7 @@ HTABLE *psc_client_concurrency;		/* per-client concurrency */
   */
 static ARGV *psc_acl;			/* permanent white/backlist */
 static int psc_blist_action;		/* PSC_ACT_DROP/ENFORCE/etc */
+static ADDR_MATCH_LIST *psc_wlist_if;	/* whitelist interfaces */
 
 /* psc_dump - dump some statistics before exit */
 
@@ -561,6 +579,8 @@ static void psc_service(VSTREAM *smtp_client_stream,
     SOCKADDR_SIZE addr_storage_len = sizeof(addr_storage);
     MAI_HOSTADDR_STR smtp_client_addr;
     MAI_SERVPORT_STR smtp_client_port;
+    MAI_HOSTADDR_STR smtp_server_addr;
+    MAI_SERVPORT_STR smtp_server_port;
     int     aierr;
     const char *stamp_str;
     int     saved_flags;
@@ -579,7 +599,12 @@ static void psc_service(VSTREAM *smtp_client_stream,
      * connections so we have to invoke getpeername() to find out the remote
      * address and port.
      */
+
+    /* Best effort - if this non-blocking write(2) fails, so be it. */
 #define PSC_SERVICE_DISCONNECT_AND_RETURN(stream) do { \
+	(void) write(vstream_fileno(stream), \
+		     "421 4.3.2 No system resources\r\n", \
+		     sizeof("421 4.3.2 No system resources\r\n") - 1); \
 	event_server_disconnect(stream); \
 	return; \
     } while (0);
@@ -590,10 +615,6 @@ static void psc_service(VSTREAM *smtp_client_stream,
     if (getpeername(vstream_fileno(smtp_client_stream), (struct sockaddr *)
 		    & addr_storage, &addr_storage_len) < 0) {
 	msg_warn("getpeername: %m -- dropping this connection");
-	/* Best effort - if this non-blocking write(2) fails, so be it. */
-	(void) write(vstream_fileno(smtp_client_stream),
-		     "421 4.3.2 No system resources\r\n",
-		     sizeof("421 4.3.2 No system resources\r\n") - 1);
 	PSC_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
     }
 
@@ -607,10 +628,6 @@ static void psc_service(VSTREAM *smtp_client_stream,
 	msg_warn("cannot convert client address/port to string: %s"
 		 " -- dropping this connection",
 		 MAI_STRERROR(aierr));
-	/* Best effort - if this non-blocking write(2) fails, so be it. */
-	(void) write(vstream_fileno(smtp_client_stream),
-		     "421 4.3.2 No system resources\r\n",
-		     sizeof("421 4.3.2 No system resources\r\n") - 1);
 	PSC_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
     }
     if (strncasecmp("::ffff:", smtp_client_addr.buf, 7) == 0)
@@ -621,7 +638,34 @@ static void psc_service(VSTREAM *smtp_client_stream,
 		 myname, psc_post_queue_length, psc_check_queue_length,
 		 smtp_client_addr.buf, smtp_client_port.buf);
 
-    msg_info("CONNECT from [%s]:%s", smtp_client_addr.buf, smtp_client_port.buf);
+    /*
+     * Look up the local SMTP server address and port.
+     */
+    if (getsockname(vstream_fileno(smtp_client_stream), (struct sockaddr *)
+		    & addr_storage, &addr_storage_len) < 0) {
+	msg_warn("getsockname: %m -- dropping this connection");
+	PSC_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
+    }
+
+    /*
+     * Convert the local SMTP server address and port to printable form for
+     * logging and access control.
+     */
+    if ((aierr = sockaddr_to_hostaddr((struct sockaddr *) & addr_storage,
+				      addr_storage_len, &smtp_server_addr,
+				      &smtp_server_port, 0)) != 0) {
+	msg_warn("cannot convert server address/port to string: %s"
+		 " -- dropping this connection",
+		 MAI_STRERROR(aierr));
+	PSC_SERVICE_DISCONNECT_AND_RETURN(smtp_client_stream);
+    }
+    if (strncasecmp("::ffff:", smtp_server_addr.buf, 7) == 0)
+	memmove(smtp_server_addr.buf, smtp_server_addr.buf + 7,
+		sizeof(smtp_server_addr.buf) - 7);
+
+    msg_info("CONNECT from [%s]:%s to [%s]:%s",
+	     smtp_client_addr.buf, smtp_client_port.buf,
+	     smtp_server_addr.buf, smtp_server_port.buf);
 
     /*
      * Bundle up all the loose session pieces. This zeroes all flags and time
@@ -732,6 +776,14 @@ static void psc_service(VSTREAM *smtp_client_stream,
 	if (msg_verbose)
 	    msg_info("%s: new + recent flags: %s",
 		     myname, psc_print_state_flags(state->flags, myname));
+    }
+
+    /*
+     * Don't whitelist clients that connect to backup MX addresses.
+     */
+    if (addr_match_list_match(psc_wlist_if, smtp_server_addr.buf) == 0) {
+	state->flags |= (PSC_STATE_FLAG_WLIST_FAIL | PSC_STATE_FLAG_NOFORWARD);
+	msg_info("WHITELIST VETO [%s]:%s", PSC_CLIENT_ADDR_PORT(state));
     }
 
     /*
@@ -938,6 +990,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 				      var_psc_barlf_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PSC_BARLF_ACTION,
 		  var_psc_barlf_action);
+    psc_wlist_if = addr_match_list_init(MATCH_FLAG_NONE, var_psc_wlist_if);
 
     /*
      * Start the cache maintenance pseudo thread last. Early cleanup makes
@@ -1039,6 +1092,7 @@ int     main(int argc, char **argv)
 	VAR_PSC_CMD_FILTER, DEF_PSC_CMD_FILTER, &var_psc_cmd_filter, 0, 0,
 	VAR_DNSBLOG_SERVICE, DEF_DNSBLOG_SERVICE, &var_dnsblog_service, 1, 0,
 	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
+	VAR_PSC_WLIST_IF, DEF_PSC_WLIST_IF, &var_psc_wlist_if, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

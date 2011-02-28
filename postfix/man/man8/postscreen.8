@@ -161,6 +161,23 @@ Permanent white/blacklist for remote SMTP client IP addresses.
 .IP "\fBpostscreen_blacklist_action (ignore)\fR"
 The action that \fBpostscreen\fR(8) takes when an SMTP client is
 permanently blacklisted with the postscreen_access_list parameter.
+.SH "MAIL EXCHANGER POLICY TESTS"
+.na
+.nf
+.ad
+.fi
+When a remote SMTP client is not on the permanent access
+list, \fBpostscreen\fR(8) can implement a number of whitelist
+tests before it grants the client a temporary whitelist
+status to talk to a Postfix SMTP server process.
+
+By listening on both primary and backup MX addresses,
+\fBpostscreen\fR(8) can deny the temporary whitelist status
+to clients that connect only to backup MX hosts.
+.IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
+A list of local \fBpostscreen\fR(8) server IP addresses where a
+non-whitelisted SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+whitelist status to talk to a Postfix SMTP server process.
 .SH "BEFORE-GREETING TESTS"
 .na
 .nf

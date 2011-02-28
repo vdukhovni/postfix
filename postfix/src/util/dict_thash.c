@@ -259,6 +259,8 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	doze(300000);
     }
     vstring_free(line_buffer);
+    dict_thash->dict.owner.uid = st.st_uid;
+    dict_thash->dict.owner.status = (st.st_uid != 0);
 
     return (DICT_DEBUG (&dict_thash->dict));
 }

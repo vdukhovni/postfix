@@ -200,6 +200,8 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
     if (fstat(fd, &st) < 0)
 	msg_fatal("dict_dbq_open: fstat: %m");
     dict_cdbq->dict.mtime = st.st_mtime;
+    dict_cdbq->dict.owner.uid = st.st_uid;
+    dict_cdbq->dict.owner.status = (st.st_uid != 0);
     close_on_exec(fd, CLOSE_ON_EXEC);
 
     /*
@@ -373,6 +375,8 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
     dict_cdbm->dict.update = dict_cdbm_update;
     dict_cdbm->cdb_path = cdb_path;
     dict_cdbm->tmp_path = tmp_path;
+    dict_cdbm->dict.owner.uid = st1.st_uid;
+    dict_cdbm->dict.owner.status = (st1.st_uid != 0);
     close_on_exec(fd, CLOSE_ON_EXEC);
 
     /*

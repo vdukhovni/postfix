@@ -100,27 +100,6 @@
 #define NO	0
 #define YES	1
 
-/* dict_owner - find out alias database owner */
-
-static uid_t dict_owner(char *table)
-{
-    const char *myname = "dict_owner";
-    DICT   *dict;
-    struct stat st;
-
-    /*
-     * This code sits here for now, but we may want to move it to the library
-     * some time.
-     */
-    if ((dict = dict_handle(table)) == 0)
-	msg_panic("%s: can't find dictionary: %s", myname, table);
-    if (dict->stat_fd < 0)
-	return (0);
-    if (fstat(dict->stat_fd, &st) < 0)
-	msg_fatal("%s: fstat dictionary %s: %m", myname, table);
-    return (st.st_uid);
-}
-
 /* deliver_alias - expand alias file entry */
 
 int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
@@ -131,7 +110,6 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
     char   *saved_alias_result;
     char   *owner;
     char  **cpp;
-    uid_t   alias_uid;
     struct mypasswd *alias_pwd;
     VSTRING *canon_owner;
     DICT   *dict;
@@ -227,11 +205,20 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	     * database is owned by root, otherwise it will use the rights of
 	     * the alias database owner.
 	     */
-	    if ((alias_uid = dict_owner(*cpp)) == 0) {
+	    if (dict->owner.status == DICT_OWNER_TRUSTED) {
 		alias_pwd = 0;
 		RESET_USER_ATTR(usr_attr, state.level);
 	    } else {
-		if ((alias_pwd = mypwuid(alias_uid)) == 0) {
+		if (dict->owner.status == DICT_OWNER_UNKNOWN) {
+		    msg_warn("%s: no owner UID for alias database %s",
+			     myname, *cpp);
+		    dsb_simple(state.msg_attr.why, "4.3.0",
+			       "mail system configuration error");
+		    *statusp = defer_append(BOUNCE_FLAGS(state.request),
+					    BOUNCE_ATTR(state.msg_attr));
+		    return (YES);
+		}
+		if ((alias_pwd = mypwuid(dict->owner.uid)) == 0) {
 		    msg_warn("cannot find alias database owner for %s", *cpp);
 		    dsb_simple(state.msg_attr.why, "4.3.0",
 			       "cannot find alias database owner");

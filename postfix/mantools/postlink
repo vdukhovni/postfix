@@ -962,6 +962,7 @@ while (<>) {
     s;\bpostscreen_expansion_filter\b;<a href="postconf.5.html#postscreen_expansion_filter">$&</a>;g;
     s;\bpostscreen_reject_footer\b;<a href="postconf.5.html#postscreen_reject_footer">$&</a>;g;
     s;\bpostscreen_command_filter\b;<a href="postconf.5.html#postscreen_command_filter">$&</a>;g;
+    s;\bpostscreen_whitelist_interfaces\b;<a href="postconf.5.html#postscreen_whitelist_interfaces">$&</a>;g;
 
     s;\btlsproxy_watchdog_timeout\b;<a href="postconf.5.html#tlsproxy_watchdog_timeout">$&</a>;g;
     s;\btlsproxy_enforce_tls\b;<a href="postconf.5.html#tlsproxy_enforce_tls">$&</a>;g;
@@ -1051,7 +1052,9 @@ while (<>) {
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
     s/\b(sqlite):/<a href="sqlite_table.5.html">$1<\/a>:/g;
+    s/\b(static):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
+    s/\b(texthash):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
 
     # Do nice links for smtp:host:port etc.
 

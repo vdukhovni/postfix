@@ -30,6 +30,9 @@
 /*	const CFG_PARSER *parser;
 /*	const char *name;
 /*	int defval;
+/*
+/*	DICT_OWNER cfg_get_owner(parser)
+/*	const CFG_PARSER *parser;
 /* DESCRIPTION
 /*	This module implements utilities for parsing parameters defined
 /*	either as "\fIname\fR = \fBvalue\fR" in a file pointed to by
@@ -55,6 +58,8 @@
 /*	Conveniently, \fIcfg_get_str\fR returns \fBNULL\fR if
 /*	\fIdefval\fR is \fBNULL\fR and no value was found.  The returned
 /*	string has to be freed by the caller if not \fBNULL\fR.
+/*
+/*	cfg_get_owner() looks up the configuration file owner.
 /* DIAGNOSTICS
 /*	Fatal errors: bad string length, malformed numerical value, malformed
 /*	boolean value.
@@ -222,6 +227,7 @@ CFG_PARSER *cfg_parser_alloc(const char *pname)
 {
     const char *myname = "cfg_parser_alloc";
     CFG_PARSER *parser;
+    DICT   *dict;
 
     if (pname == 0 || *pname == 0)
 	msg_fatal("%s: null parser name", myname);
@@ -232,11 +238,16 @@ CFG_PARSER *cfg_parser_alloc(const char *pname)
 	parser->get_str = get_dict_str;
 	parser->get_int = get_dict_int;
 	parser->get_bool = get_dict_bool;
+	dict = dict_handle(parser->name);
     } else {
 	parser->get_str = get_main_str;
 	parser->get_int = get_main_int;
 	parser->get_bool = get_main_bool;
+	dict = dict_handle(CONFIG_DICT);	/* XXX Use proper API */
     }
+    if (dict == 0)
+	msg_panic("%s: dict_handle failed", myname);
+    parser->owner = dict->owner;
     return (parser);
 }
 

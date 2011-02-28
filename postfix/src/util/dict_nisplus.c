@@ -270,6 +270,7 @@ DICT   *dict_nisplus_open(const char *map, int open_flags, int dict_flags)
     dict_nisplus->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_nisplus->dict.fold_buf = vstring_alloc(10);
+    dict_nisplus->dict.owner.status = DICT_OWNER_TRUSTED;
 
     /*
      * Convert the query template into an indexed name and column number. The

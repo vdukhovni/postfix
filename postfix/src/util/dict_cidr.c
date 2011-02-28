@@ -32,6 +32,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
@@ -164,6 +165,7 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
 {
     DICT_CIDR *dict_cidr;
     VSTREAM *map_fp;
+    struct stat st;
     VSTRING *line_buffer = vstring_alloc(100);
     VSTRING *why = vstring_alloc(100);
     DICT_CIDR_ENTRY *rule;
@@ -190,6 +192,10 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
 
     if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
 	msg_fatal("open %s: %m", mapname);
+    if (fstat(vstream_fileno(map_fp), &st) < 0)
+	msg_fatal("fstat %s: %m", mapname);
+    dict_cidr->dict.owner.uid = st.st_uid;
+    dict_cidr->dict.owner.status = (st.st_uid != 0);
 
     while (readlline(line_buffer, map_fp, &lineno)) {
 	rule = dict_cidr_parse_rule(vstring_str(line_buffer), why);

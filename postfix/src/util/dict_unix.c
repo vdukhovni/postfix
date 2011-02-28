@@ -188,6 +188,7 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
     dict_unix->dict.flags = dict_flags | DICT_FLAG_FIXED;
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_unix->dict.fold_buf = vstring_alloc(10);
+    dict_unix->dict.owner.status = DICT_OWNER_TRUSTED;
 
     return (DICT_DEBUG (&dict_unix->dict));
 }

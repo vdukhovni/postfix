@@ -667,6 +667,7 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
     dict_mysql->pldb = plmysql_init(dict_mysql->hosts);
     if (dict_mysql->pldb == NULL)
 	msg_fatal("couldn't intialize pldb!\n");
+    dict_mysql->dict.owner = cfg_get_owner(dict_mysql->parser);
     return (DICT_DEBUG (&dict_mysql->dict));
 }
 

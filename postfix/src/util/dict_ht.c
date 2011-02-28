@@ -143,5 +143,6 @@ DICT   *dict_ht_open(const char *name, int unused_open_flags, int dict_flags)
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_ht->dict.fold_buf = vstring_alloc(10);
     dict_ht->table = htable_create(0);
+    dict_ht->dict.owner.status = DICT_OWNER_TRUSTED;
     return (&dict_ht->dict);
 }

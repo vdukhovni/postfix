@@ -35,6 +35,7 @@
 
 /* System library. */
 
+#include <sys/stat.h>
 #include <stdio.h>			/* sprintf() prototype */
 #include <stdlib.h>
 #include <unistd.h>
@@ -797,6 +798,7 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
 {
     DICT_PCRE *dict_pcre;
     VSTREAM *map_fp;
+    struct stat st;
     VSTRING *line_buffer;
     DICT_PCRE_RULE *last_rule = 0;
     DICT_PCRE_RULE *rule;
@@ -827,6 +829,10 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
      */
     if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
 	msg_fatal("open %s: %m", mapname);
+    if (fstat(vstream_fileno(map_fp), &st) < 0)
+	msg_fatal("fstat %s: %m", mapname);
+    dict_pcre->dict.owner.uid = st.st_uid;
+    dict_pcre->dict.owner.status = (st.st_uid != 0);
 
     while (readlline(line_buffer, map_fp, &lineno)) {
 	p = vstring_str(line_buffer);

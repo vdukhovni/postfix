@@ -82,6 +82,7 @@ typedef struct {
 #define PSC_STATE_FLAG_BLIST_FAIL	(1<<4)	/* blacklisted */
 #define PSC_STATE_FLAG_HANGUP		(1<<5)	/* NOT a test failure */
 #define PSC_STATE_FLAG_CACHE_EXPIRED	(1<<6)	/* cache retention expired */
+#define PSC_STATE_FLAG_WLIST_FAIL	(1<<7)	/* do not whitelist */
 
  /*
   * Important: every MUMBLE_TODO flag must have a MUMBLE_PASS flag, such that
@@ -190,7 +191,8 @@ typedef struct {
   */
 #define PSC_STATE_MASK_ANY_FAIL \
 	(PSC_STATE_FLAG_BLIST_FAIL | PSC_STATE_FLAG_PENAL_FAIL | \
-	PSC_STATE_MASK_EARLY_FAIL | PSC_STATE_MASK_SMTPD_FAIL)
+	PSC_STATE_MASK_EARLY_FAIL | PSC_STATE_MASK_SMTPD_FAIL | \
+	PSC_STATE_FLAG_WLIST_FAIL)
 
 #define PSC_STATE_MASK_ANY_PASS \
 	(PSC_STATE_MASK_EARLY_PASS | PSC_STATE_MASK_SMTPD_PASS)

@@ -169,7 +169,6 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
 	vstring_strcpy(dict->fold_buf, name);
 	name = lowercase(vstring_str(dict->fold_buf));
     }
-
     dbm_key.dptr = (void *) name;
     dbm_value.dptr = (void *) value;
     dbm_key.dsize = strlen(name);
@@ -449,6 +448,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     if (fstat(dict_dbm->dict.stat_fd, &st) < 0)
 	msg_fatal("dict_dbm_open: fstat: %m");
     dict_dbm->dict.mtime = st.st_mtime;
+    dict_dbm->dict.owner.uid = st.st_uid;
+    dict_dbm->dict.owner.status = (st.st_uid != 0);
 
     /*
      * Warn if the source file is newer than the indexed file, except when

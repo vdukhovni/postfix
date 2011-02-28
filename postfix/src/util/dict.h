@@ -24,6 +24,18 @@
 #include <vstring.h>
 
  /*
+  * Provenance information.
+  */
+typedef struct DICT_OWNER {
+    int     status;			/* see below */
+    uid_t   uid;			/* use only if status == UNTRUSTED */
+} DICT_OWNER;
+
+#define DICT_OWNER_UNKNOWN	(-1)	/* ex: unauthenticated tcp, proxy */
+#define DICT_OWNER_TRUSTED	(!1)	/* ex: root-owned config file */
+#define DICT_OWNER_UNTRUSTED	(!0)	/* ex: non-root config file */
+
+ /*
   * Generic dictionary interface - in reality, a dictionary extends this
   * structure with private members to maintain internal state.
   */
@@ -40,6 +52,7 @@ typedef struct DICT {
     int     stat_fd;			/* change detection */
     time_t  mtime;			/* mod time at open */
     VSTRING *fold_buf;			/* key folding buffer */
+    DICT_OWNER owner;			/* provenance */
 } DICT;
 
 extern DICT *dict_alloc(const char *, const char *, ssize_t);

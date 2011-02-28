@@ -1528,9 +1528,9 @@ ssize_t vstream_peek(VSTREAM *vp)
 const char *vstream_peek_data(VSTREAM *vp)
 {
     if (vp->buf.flags & VSTREAM_FLAG_READ) {
-	return (vp->buf.ptr);
+	return ((const char *) vp->buf.ptr);
     } else if (vp->buf.flags & VSTREAM_FLAG_DOUBLE) {
-	return (vp->read_buf.ptr);
+	return ((const char *) vp->read_buf.ptr);
     } else {
 	return (0);
     }

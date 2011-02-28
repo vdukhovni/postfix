@@ -104,5 +104,6 @@ DICT   *dict_env_open(const char *name, int unused_flags, int dict_flags)
     dict->flags = dict_flags | DICT_FLAG_FIXED;
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict->fold_buf = vstring_alloc(10);
+    dict->owner.status = DICT_OWNER_TRUSTED;
     return (DICT_DEBUG (dict));
 }

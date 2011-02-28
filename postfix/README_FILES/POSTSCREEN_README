@@ -107,6 +107,7 @@ black and whitelists. These tests speed up the handling of known clients.
 
   * Permanent white/blacklist test
   * Temporary whitelist test
+  * MX Policy test
 
 PPeerrmmaanneenntt wwhhiittee//bbllaacckklliisstt tteesstt
 
@@ -151,7 +152,7 @@ The postscreen(8) daemon maintains a temporary whitelist for SMTP client IP
 addresses that have passed all the tests described below. The
 postscreen_cache_map parameter specifies the location of the temporary
 whitelist. The temporary whitelist is not used for SMTP client addresses that
-appear on the permanent blacklist or whitelist.
+appear on the permanent access list.
 
 When the SMTP client address appears on the temporary whitelist, postscreen(8)
 logs this with the client address and port number as:
@@ -162,6 +163,51 @@ The action is not configurable: immediately hand off the connection to a
 Postfix SMTP server process. The client is excluded from further tests until
 its temporary whitelist entry expires, as controlled with the postscreen_*_ttl
 parameters. Expired entries are silently renewed if possible.
+
+MMXX PPoolliiccyy tteesstt
+
+When the remote SMTP client is not on the static access list or temporary
+whitelist, postscreen(8) can implement a number of whitelist tests before it
+grants the client a temporary whitelist status to talk to a Postfix SMTP server
+process.
+
+By listening on both primary and backup MX addresses, postscreen(8) can deny
+the temporary whitelist status to clients that connect only to backup MX hosts
+(an old trick to take advantage of backup MX hosts with weaker anti-spam
+policies).
+
+Note 1: The status of this feature is still experimental, and implementation
+details are likely to change.
+
+Note 2: MX policy enforcement is currently supported only for domains with one
+Postfix MTA. Support for domains with multiple Postfix MTAs will have to wait
+until Postfix has a database client that can update a shared postscreen(8)
+database.
+
+  * First, configure the host to listen on both primary and backup MX
+    addresses. Use the appropriate ifconfig command for the local operating
+    system, or update the appropriate configuration files and "refresh" the
+    network protocol stack.
+
+  * Then, configure postscreen(8) to deny the temporary whitelist status on the
+    backup MX address(es). An example for Wietse's server is:
+
+    /etc/postfix/main.cf:
+        postscreen_whitelist_interfaces = !168.100.189.8 static:all
+
+    Translation: allow clients to obtain the temporary whitelist status on all
+    server IP addresses except 168.100.189.8, which is a backup MX address.
+
+When a non-whitelisted client connects the backup MX address, postscreen(8)
+logs this with the client address and port number as:
+
+    CCOONNNNEECCTT ffrroomm [address]:port ttoo [[116688..110000..118899..88]]::2255
+    WWHHIITTEELLIISSTT VVEETTOO [address]:port
+
+Translation: the client at [address]:port connected to the backup MX address
+168.100.189.8 while it was not whitelisted. The client will not be granted the
+temporary whitelist status, even if passes all the whitelist tests described
+below.
 
 TTeessttss bbeeffoorree tthhee 222200 SSMMTTPP sseerrvveerr ggrreeeettiinngg
 

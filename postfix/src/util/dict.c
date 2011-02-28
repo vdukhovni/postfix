@@ -406,10 +406,13 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     char   *val;
     int     lineno;
     const char *err;
+    struct stat st;
 
     buf = vstring_alloc(100);
     lineno = 0;
 
+    if (fstat(vstream_fileno(fp), &st) < 0)
+	msg_fatal("fstat %s: %m", VSTREAM_PATH(fp));
     while (readlline(buf, fp, &lineno)) {
 	if ((err = split_nameval(STR(buf), &member, &val)) != 0)
 	    msg_fatal("%s, line %d: %s: \"%s\"",
@@ -417,6 +420,8 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 	dict_update(dict_name, member, val);
     }
     vstring_free(buf);
+    dict_handle(dict_name)->owner.uid = st.st_uid;
+    dict_handle(dict_name)->owner.status = (st.st_uid != 0);
 }
 
 /* dict_eval_lookup - macro parser call-back routine */

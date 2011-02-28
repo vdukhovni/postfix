@@ -317,6 +317,8 @@ DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
 	msg_fatal("%s:%s: Can't open database: %s\n",
 		  DICT_TYPE_SQLITE, name, sqlite3_errmsg(dict_sqlite->db));
 
+    dict_sqlite->dict.owner = cfg_get_owner(dict_sqlite->parser);
+
     return (DICT_DEBUG (&dict_sqlite->dict));
 }
 

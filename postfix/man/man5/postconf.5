@@ -2240,7 +2240,7 @@ This feature is available in Postfix 2.5 and later.
 The LMTP-specific version of the smtp_per_record_deadline
 configuration parameter.  See there for details.
 .PP
-This feature is available in Postfix 2.8 and later.
+This feature is available in Postfix 2.9 and later.
 .SH lmtp_pix_workaround_delay_time (default: 10s)
 The LMTP-specific version of the smtp_pix_workaround_delay_time
 configuration parameter.  See there for details.
@@ -4259,6 +4259,33 @@ one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_whitelist_interfaces (default: static:all)
+A list of local \fBpostscreen\fR(8) server IP addresses where a
+non-whitelisted SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+whitelist status to talk to a Postfix SMTP server process.  By
+default, a client can pass \fBpostscreen\fR(8)'s whitelist tests on any
+local \fBpostscreen\fR(8) server IP address.
+.PP
+When \fBpostscreen\fR(8) listens on both primary and backup MX
+addresses, the postscreen_whitelist_interfaces parameter can be
+used to disable whitelisting on backup MX addresses.  With this
+configuration, \fBpostscreen\fR(8) denies whitelisting status to clients
+that connect only to backup MX addresses, and prevents them from
+talking to a Postfix SMTP server process.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # Don't whitelist connections to the backup IP address.
+    postscreen_whitelist_interfaces = !168.100.189.8, static:all
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.9 and later.
 .SH prepend_delivered_header (default: command, file, forward)
 The message delivery contexts where the Postfix \fBlocal\fR(8) delivery
 agent prepends a Delivered-To:  message header with the address

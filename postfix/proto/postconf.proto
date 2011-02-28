@@ -14054,4 +14054,29 @@ Postfix releases, the behavior is as if this parameter is set to
 <p> The LMTP-specific version of the smtp_per_record_deadline
 configuration parameter.  See there for details. </p>
 
-<p> This feature is available in Postfix 2.8 and later.  </p>
+<p> This feature is available in Postfix 2.9 and later.  </p>
+
+%PARAM postscreen_whitelist_interfaces static:all
+
+<p> A list of local postscreen(8) server IP addresses where a
+non-whitelisted SMTP client can obtain postscreen(8)'s temporary
+whitelist status to talk to a Postfix SMTP server process.  By
+default, a client can pass postscreen(8)'s whitelist tests on any
+local postscreen(8) server IP address. </p>
+
+<p> When postscreen(8) listens on both primary and backup MX
+addresses, the postscreen_whitelist_interfaces parameter can be
+used to disable whitelisting on backup MX addresses.  With this
+configuration, postscreen(8) denies whitelisting status to clients
+that connect only to backup MX addresses, and prevents them from
+talking to a Postfix SMTP server process.  </p>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    # Don't whitelist connections to the backup IP address.
+    postscreen_whitelist_interfaces = !168.100.189.8, static:all
+</pre>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>

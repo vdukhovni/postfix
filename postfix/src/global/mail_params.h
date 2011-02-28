@@ -3441,6 +3441,10 @@ extern char *var_psc_cmd_filter;
 #define DEF_PSC_ACL		PSC_ACL_NAME_WL_MYNETWORKS
 extern char *var_psc_acl;
 
+#define VAR_PSC_WLIST_IF	"postscreen_whitelist_interfaces"
+#define DEF_PSC_WLIST_IF	"static:all"
+extern char *var_psc_wlist_if;
+
 #define VAR_DNSBLOG_SERVICE	"dnsblog_service_name"
 #define DEF_DNSBLOG_SERVICE	MAIL_SERVICE_DNSBLOG
 extern char *var_dnsblog_service;
