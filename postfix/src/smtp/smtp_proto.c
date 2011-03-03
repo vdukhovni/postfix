@@ -800,6 +800,9 @@ static int smtp_start_tls(SMTP_STATE *state)
 			       "Cannot start TLS: handshake failure"));
     }
 
+    /* At this point there must not be any pending plaintext. */
+    vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
+
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the
      * feature-list.
