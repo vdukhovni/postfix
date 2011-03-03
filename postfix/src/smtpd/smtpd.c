@@ -4072,6 +4072,8 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     smtpd_chat_reply(state, "220 2.0.0 Ready to start TLS");
     /* Flush before we switch the stream's read/write routines. */
     smtp_flush(state->client);
+    /* At this point there must not be any pending plaintext. */
+    vstream_fpurge(state->client, VSTREAM_PURGE_BOTH);
 
     /*
      * Reset all inputs to the initial state.
