@@ -518,7 +518,7 @@ extern int opterr;
   * AIX: a SYSV-flavored hybrid. NB: fcntl() and flock() access the same
   * underlying locking primitives.
   */
-#ifdef AIX5
+#if defined(AIX5) || defined(AIX6)
 #define SUPPORTED
 #include <sys/types.h>
 #define UINT32_TYPE	unsigned int

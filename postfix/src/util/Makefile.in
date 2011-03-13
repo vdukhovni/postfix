@@ -33,7 +33,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	allascii.c load_file.c killme_after.c vstream_tweak.c \
 	unix_pass_listen.c unix_pass_trigger.c edit_file.c inet_windowsize.c \
 	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
-	ip_match.c nbbio.c stream_pass_connect.c
+	ip_match.c nbbio.c stream_pass_connect.c base32_code.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -68,7 +68,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	allascii.o load_file.o killme_after.o vstream_tweak.o \
 	unix_pass_listen.o unix_pass_trigger.o edit_file.o inet_windowsize.o \
 	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
-	ip_match.o nbbio.o stream_pass_connect.o
+	ip_match.o nbbio.o stream_pass_connect.o base32_code.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -89,7 +89,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
 	edit_file.h dict_cache.h dict_thash.h \
-	ip_match.h nbbio.h
+	ip_match.h nbbio.h base32_code.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -107,7 +107,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
-	valid_utf_8 ip_match
+	valid_utf_8 ip_match base32_code
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -427,11 +427,17 @@ ip_match: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+base32_code: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
-	myaddrinfo_test format_tv_test ip_match_test name_mask_tests
+	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
+	base32_code_test
 
 root_tests:
 
@@ -611,6 +617,9 @@ name_mask_test9: name_mask name_mask.in name_mask.ref9
 	./name_mask NUMBER,WARN NUMBER,PIPE < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref9 name_mask.tmp
 	rm -f name_mask.tmp
+
+base32_code_test: base32_code
+	./base32_code
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

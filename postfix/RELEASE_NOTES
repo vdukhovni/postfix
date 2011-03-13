@@ -14,6 +14,25 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Incompatible changes with snapshot 20110313
+===========================================
+
+Use "postfix reload" after "make upgrade" on a running Postfix
+system. This is needed because the protocol between postscreen(8)
+and dnsblog(8) has changed.
+
+Major changes with snapshot 20110228
+====================================
+
+postscreen(8) support to force remote SMTP clients to implement
+proper MX lookup policy.  By listening on both primary and backup
+MX addresses, postscreen(8) can deny the temporary whitelist status
+to clients that connect only to backup MX hosts, and prevent them
+from talking to a Postfix SMTP server process.
+
+Example: when 1.2.3.4 is a local backup IP address, specify
+"postscreen_whitelist_interfaces = !1.2.3.4 static:all".
+
 Incompatible changes with snapshot 20110219
 ===========================================
 

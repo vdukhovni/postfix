@@ -143,6 +143,7 @@ typedef struct {
     int     total;			/* combined blocklist score */
     int     refcount;			/* score reference count */
     int     pending_lookups;		/* nr of DNS requests in flight */
+    int     request_id;			/* duplicate suppression */
     /* Call-back table support. */
     int     index;			/* next table index */
     int     limit;			/* last valid index */
@@ -344,6 +345,7 @@ static void psc_dnsbl_receive(int event, char *context)
     PSC_DNSBL_HEAD *head;
     PSC_DNSBL_SITE *site;
     ARGV   *reply_argv;
+    int     request_id;
 
     PSC_CLEAR_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive, context);
 
@@ -367,10 +369,12 @@ static void psc_dnsbl_receive(int event, char *context)
 		     ATTR_FLAG_STRICT,
 		     ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, reply_dnsbl,
 		     ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, reply_client,
+		     ATTR_TYPE_INT, MAIL_ATTR_LABEL, &request_id,
 		     ATTR_TYPE_STR, MAIL_ATTR_RBL_ADDR, reply_addr,
-		     ATTR_TYPE_END) == 3
+		     ATTR_TYPE_END) == 4
 	&& (score = (PSC_DNSBL_SCORE *)
-	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0) {
+	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0
+	&& score->request_id == request_id) {
 
 	/*
 	 * Run this response past all applicable DNSBL filters and update the
@@ -429,6 +433,7 @@ int     psc_dnsbl_request(const char *client_addr,
     HTABLE_INFO **ht;
     PSC_DNSBL_SCORE *score;
     HTABLE_INFO *hash_node;
+    static int request_count;
 
     /*
      * Some spambots make several connections at nearly the same time,
@@ -468,6 +473,7 @@ int     psc_dnsbl_request(const char *client_addr,
     if (msg_verbose > 1)
 	msg_info("%s: create blocklist score for %s", myname, client_addr);
     score = (PSC_DNSBL_SCORE *) mymalloc(sizeof(*score));
+    score->request_id = request_count++;
     score->dnsbl = 0;
     score->total = 0;
     score->refcount = 1;
@@ -492,6 +498,7 @@ int     psc_dnsbl_request(const char *client_addr,
 	attr_print(stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, ht[0]->key,
 		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, client_addr,
+		   ATTR_TYPE_INT, MAIL_ATTR_LABEL, score->request_id,
 		   ATTR_TYPE_END);
 	if (vstream_fflush(stream) != 0) {
 	    msg_warn("%s: error sending to %s service: %m",

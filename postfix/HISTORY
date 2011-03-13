@@ -16685,3 +16685,19 @@ Apologies for any names omitted.
 	src/global/dict_ldap.c src/global/cfg_parser.h
 	src/global/cfg_parser.c.
 
+20110311
+
+	Feature: Base 32 encoder/decoder per RFC 4648. This code
+	was going to be used for long queue IDs, but plans were
+	changed. Files: src/util/base32_code.[hc].
+
+20110313
+
+	Bugfix (introduced Postfix 2.8): number the postscreen DNSBL
+	requests, so that delayed results for an old session are
+	not added to the score when the same remote SMTP client has
+	reconnected in the mean time. Files: postscreen/postscreen_dnsbl.c,
+	dnsblog/dnsblog.c.
+
+	Cleanup: protocol description in dnsblog(8) manpage. File:
+	dnsblog/dnsblog.c.
