@@ -111,7 +111,8 @@
 #define HAS_DUPLEX_PIPE			/* 4.1 breaks with kqueue(2) */
 #endif
 
-#if __FreeBSD_version >= 800107		/* safe; don't believe the experts */
+#if (__FreeBSD_version >= 702104 && __FreeBSD_version <= 800000) \
+    || __FreeBSD_version >= 800100
 #define HAS_CLOSEFROM
 #endif
 
@@ -517,7 +518,7 @@ extern int opterr;
   * AIX: a SYSV-flavored hybrid. NB: fcntl() and flock() access the same
   * underlying locking primitives.
   */
-#ifdef AIX5
+#if defined(AIX5) || defined(AIX6)
 #define SUPPORTED
 #include <sys/types.h>
 #define UINT32_TYPE	unsigned int
