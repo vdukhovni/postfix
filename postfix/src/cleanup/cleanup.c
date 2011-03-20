@@ -68,7 +68,7 @@
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBundisclosed_recipients_header (To: undisclosed-recipients:;)\fR"
+/* .IP "\fBundisclosed_recipients_header (see 'postconf -d' output)\fR"
 /*	Message header that the Postfix \fBcleanup\fR(8) server inserts when a
 /*	message contains no To: or Cc: message header.
 /* .PP
@@ -84,6 +84,10 @@
 /* .IP "\fBalways_add_missing_headers (no)\fR"
 /*	Always add (Resent-) From:, To:, Date: or Message-ID: headers
 /*	when not present.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBenable_long_queue_ids (no)\fR"
+/*	Enable long, non-repeating, queue IDs (queue file names).
 /* BUILT-IN CONTENT FILTERING CONTROLS
 /* .ad
 /* .fi

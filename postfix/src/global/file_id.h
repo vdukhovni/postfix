@@ -11,10 +11,18 @@
 /* DESCRIPTION
 /* .nf
 
+ /*
+System library.
+*/
+#include <sys/stat.h>
+
  /* External interface. */
 
+extern const char *get_file_id_fd(int, int);
+extern const char *get_file_id_st(struct stat *, int);
+
+ /* Legacy interface. */
 extern const char *get_file_id(int);
-extern int check_file_id(int, const char *);
 
 /* LICENSE
 /* .ad

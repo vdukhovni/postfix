@@ -636,14 +636,21 @@ static void cleanup_header_done_callback(void *context)
     if ((state->hdr_rewrite_context || var_always_add_hdrs)
 	&& (state->headers_seen & (1 << (state->resent[0] ?
 			   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID))) == 0) {
-	tv = state->handle->ctime.tv_sec;
-	tp = gmtime(&tv);
-	strftime(time_stamp, sizeof(time_stamp), "%Y%m%d%H%M%S", tp);
-	cleanup_out_format(state, REC_TYPE_NORM, "%sMessage-Id: <%s.%s@%s>",
-		state->resent, time_stamp, state->queue_id, var_myhostname);
-	msg_info("%s: %smessage-id=<%s.%s@%s>",
+	if (var_long_queue_ids) {
+	    vstring_sprintf(state->temp1, "%s@%s",
+			    state->queue_id, var_myhostname);
+	} else {
+	    tv = state->handle->ctime.tv_sec;
+	    tp = gmtime(&tv);
+	    strftime(time_stamp, sizeof(time_stamp), "%Y%m%d%H%M%S", tp);
+	    vstring_sprintf(state->temp1, "%s.%s@%s",
+			    time_stamp, state->queue_id, var_myhostname);
+	}
+	cleanup_out_format(state, REC_TYPE_NORM, "%sMessage-Id: <%s>",
+			   state->resent, vstring_str(state->temp1));
+	msg_info("%s: %smessage-id=<%s>",
 		 state->queue_id, *state->resent ? "resent-" : "",
-		 time_stamp, state->queue_id, var_myhostname);
+		 vstring_str(state->temp1));
 	state->headers_seen |= (1 << (state->resent[0] ?
 				   HDR_RESENT_MESSAGE_ID : HDR_MESSAGE_ID));
     }

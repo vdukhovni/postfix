@@ -837,7 +837,9 @@ Postfix version 2.8. </p>
 
 <li> <p> Some postscreen(8) configuration parameters implement
 stress-dependent behavior. This is supported only when the default
-value is stress-dependent (that is, it looks like ${stress?X}${stress:Y}).
+value is stress-dependent (that is, "postconf -d <i>parametername</i>"
+output shows "<i>parametername</i> =
+${stress?<i>something</i>}${stress:<i>something</i>}").
 Other parameters always evaluate as if the stress value is the empty
 string. </p>
 

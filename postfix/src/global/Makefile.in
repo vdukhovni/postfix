@@ -30,7 +30,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	verp_sender.c wildcard_inet_addr.c xtext.c delivered_hdr.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
-	smtp_reply_footer.c
+	smtp_reply_footer.c safe_ultostr.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -62,7 +62,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	verp_sender.o wildcard_inet_addr.o xtext.o delivered_hdr.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
-	smtp_reply_footer.o
+	smtp_reply_footer.o safe_ultostr.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -87,7 +87,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	trace.h user_acl.h valid_mailhost_addr.h verify.h verify_clnt.h \
 	verp_sender.h wildcard_inet_addr.h xtext.h delivered_hdr.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
-	addr_match_list.h smtp_reply_footer.h
+	addr_match_list.h smtp_reply_footer.h safe_ultostr.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -100,7 +100,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	quote_821_local mail_conf_time mime_state strip_addr \
 	verify_clnt xtext anvil_clnt scache ehlo_mask \
 	valid_mailhost_addr own_inet_addr header_body_checks \
-	data_redirect
+	data_redirect addr_match_list safe_ultostr
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -284,6 +284,9 @@ data_redirect: data_redirect.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 addr_match_list: addr_match_list.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
+safe_ultostr: safe_ultostr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
@@ -978,9 +981,12 @@ ext_prop.o: mail_params.h
 file_id.o: ../../include/msg.h
 file_id.o: ../../include/sys_defs.h
 file_id.o: ../../include/vbuf.h
+file_id.o: ../../include/vstream.h
 file_id.o: ../../include/vstring.h
 file_id.o: file_id.c
 file_id.o: file_id.h
+file_id.o: mail_queue.h
+file_id.o: safe_ultostr.h
 flush_clnt.o: ../../include/attr.h
 flush_clnt.o: ../../include/iostuff.h
 flush_clnt.o: ../../include/match_list.h
@@ -1352,6 +1358,7 @@ mail_queue.o: file_id.h
 mail_queue.o: mail_params.h
 mail_queue.o: mail_queue.c
 mail_queue.o: mail_queue.h
+mail_queue.o: safe_ultostr.h
 mail_run.o: ../../include/msg.h
 mail_run.o: ../../include/mymalloc.h
 mail_run.o: ../../include/stringops.h
@@ -1799,6 +1806,13 @@ rewrite_clnt.o: quote_822_local.h
 rewrite_clnt.o: quote_flags.h
 rewrite_clnt.o: rewrite_clnt.c
 rewrite_clnt.o: rewrite_clnt.h
+safe_ultostr.o: ../../include/msg.h
+safe_ultostr.o: ../../include/mymalloc.h
+safe_ultostr.o: ../../include/sys_defs.h
+safe_ultostr.o: ../../include/vbuf.h
+safe_ultostr.o: ../../include/vstring.h
+safe_ultostr.o: safe_ultostr.c
+safe_ultostr.o: safe_ultostr.h
 scache.o: ../../include/argv.h
 scache.o: ../../include/events.h
 scache.o: ../../include/msg.h

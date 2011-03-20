@@ -14080,3 +14080,73 @@ talking to a Postfix SMTP server process.  </p>
 </pre>
 
 <p> This feature is available in Postfix 2.9 and later.  </p>
+
+%PARAM enable_long_queue_ids no
+
+<p> Enable long, non-repeating, queue IDs (queue file names).  The
+benefit of non-repeating names is simpler logfile analysis and
+easier queue migration (there is no need to run "postsuper" to
+change queue file names that don't match their message file inode
+number).  </p>
+
+<p> Note: see below for how to prepare long queue file names
+for migration to Postfix &le; 2.8. </p>
+
+<p> Changing the parameter value to "yes" has the following effects:
+</p>
+
+<ul>
+
+<li> <p> Existing queue file names are not affected. </p>
+
+<li> <p> New queue files are created with names such as 3Pt2mN2VXxznjll.
+These are encoded in a 52-character alphabet that contains digits
+(0-9), upper-case letters (B-Z) and lower-case letters (b-z). For
+safety reasons the vowels (AEIOUaeiou) are excluded from the alphabet.
+The name format is: 6 or more characters for the time in seconds,
+4 characters for the time in microseconds, the 'z'; the remainder
+is the file inode number encoded in the first 51 characters of the
+52-character alphabet.  </p>
+
+<li> <p> New messages have a Message-ID header with
+<i>queueID</i>@<i>myhostname</i>.  </p>
+
+<li> <p> The mailq (postqueue -p) output has a wider Queue ID column.
+The number of whitespace-separated fields is not changed. <p>
+
+</ul>
+
+<p> Changing the parameter value to "no" has the following effects:
+</p>
+
+<ul>
+
+<li> <p> Existing long queue file names are renamed to the short
+form (while running "postfix reload" or "postsuper").  </p>
+
+<li> New queue files are created with names such as C3CD21F3E90
+from a hexadecimal alphabet that contains digits (0-9) and upper-case
+letters (A-F). The name format is: 5 characters for the time in
+microseconds; the remainder is the file inode number. </p>
+
+<li> <p> New messages have a Message-ID header with
+<i>YYYYMMDDHHMMSS.queueid</i>@<i>myhostname</i>, where
+<i>YYYYMMDDHHMMSS</i> are the year, month, day, hour, minute and
+second.
+
+<li> <p> The mailq (postqueue -p) output has the same format as
+with Postfix &le; 2.8. <p>
+
+</ul>
+
+<p> Before migration to Postfix &le; 2.8, the following commands
+are required to convert long queue file names into short names: </p>
+
+<pre>
+# postfix stop
+# postconf enable_long_queue_ids=no
+# postsuper
+</pre>
+
+<p> Repeat the postsuper command until it reports no more queue file
+name changes. </p>

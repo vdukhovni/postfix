@@ -14,6 +14,47 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Incompatible changes with snapshot 20110320
+===========================================
+
+If you enable support for long queue file names, you need to be
+aware that these file names are not compatible with Postfix <= 2.8.
+If you must migrate to Postfix <= 2.8, you must first convert all
+long queue file names into short names, otherwise the old Postfix
+version will complain.
+
+The conversion procedure before migration to Postfix <= 2.8 is:
+
+    # postfix stop
+    # postconf enable_long_queue_ids=no
+    # postsuper
+
+Run the postsuper command repeatedly until it no longer reports
+queue file name changes.
+
+Major changes with snapshot 20110320
+====================================
+
+Support for long, non-repeating, queue IDs (queue file names).  The
+benefit of non-repeating names is simpler logfile analysis, and
+easier queue migration (there is no need to run "postsuper" to
+change queue file names that don't match their message file inode
+number).
+
+Specify "enable_long_queue_ids = yes" to enable the feature. This
+does not change the names of existing queue files. See postconf(5)
+or postconf.5.html#enable_long_queue_ids for a detailed description
+of the differences with the old short queue IDs.
+
+This changes new Postfix queue IDs from the short form 0FCEE9247A9
+into the longer form 3Ps0FS1Zhtz1PFjb, and changes new Message-ID
+header values from YYMMDDHHMMSS.queueid@myhostname into the shorter
+form queueid@myhostname.
+
+See the note on "Incompatible changes" for a backwards migration
+procedure to convert long queue file names into a form that is
+compatible with Postfix <= 2.8.
+
 Incompatible changes with snapshot 20110313
 ===========================================
 

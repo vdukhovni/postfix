@@ -10,7 +10,7 @@ POSTSUPER(1)                                                      POSTSUPER(1)
        postsuper - Postfix superintendent
 
 <b>SYNOPSIS</b>
-       <b>postsuper</b> [<b>-psv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-d</b> <i>queue</i><b>_</b><i>id</i>]
+       <b>postsuper</b> [<b>-psSv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-d</b> <i>queue</i><b>_</b><i>id</i>]
                [<b>-h</b> <i>queue</i><b>_</b><i>id</i>] [<b>-H</b> <i>queue</i><b>_</b><i>id</i>]
                [<b>-r</b> <i>queue</i><b>_</b><i>id</i>] [<i>directory ...</i>]
 
@@ -180,7 +180,9 @@ POSTSUPER(1)                                                      POSTSUPER(1)
               <b>o</b>      Rename  files  whose name does not match the
                      message file inode number. This operation is
                      necessary  after restoring a mail queue from
-                     a different machine, or from backup media.
+                     a different machine  or  from  backup,  when
+                     queue files were created with Postfix &lt;= 2.8
+                     or with "<a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a> = no".
 
               <b>o</b>      Move queue files that are in the wrong place
                      in the file system hierarchy and remove sub-
@@ -188,6 +190,22 @@ POSTSUPER(1)                                                      POSTSUPER(1)
                      position  rearrangements are necessary after
                      a  change  in  the  <b><a href="postconf.5.html#hash_queue_names">hash_queue_names</a></b>  and/or
                      <b><a href="postconf.5.html#hash_queue_depth">hash_queue_depth</a></b> configuration parameters.
+
+              <b>o</b>      Rename     queue    files    created    with
+                     "<a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a>  =  yes"   to   short
+                     names, for migration to Postfix &lt;= 2.8.  The
+                     procedure is as follows:
+
+                     # postfix stop
+                     # postconf <a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a>=no
+                     # postsuper
+
+                     Run <a href="postsuper.1.html"><b>postsuper</b>(1)</a> repeatedly until  it  stops
+                     reporting file name changes.
+
+       <b>-S</b>     A  redundant  version of <b>-s</b> that requires that long
+              file names also match the message file  inode  num-
+              ber. This option exists for testing purposes.
 
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
               tiple <b>-v</b> options  make  the  software  increasingly
@@ -241,12 +259,18 @@ POSTSUPER(1)                                                      POSTSUPER(1)
               process name in syslog  records,  so  that  "smtpd"
               becomes, for example, "postfix/smtpd".
 
+       Available in Postfix version 2.9 and later:
+
+       <b><a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a> (no)</b>
+              Enable  long,  non-repeating, queue IDs (queue file
+              names).
+
 <b>SEE ALSO</b>
        <a href="sendmail.1.html">sendmail(1)</a>, Sendmail-compatible user interface
        <a href="postqueue.1.html">postqueue(1)</a>, unprivileged queue operations
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

@@ -11,9 +11,6 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
-	Use queue ID (file name) based on inode number and enough
-	(time or random) bits to avoid repetition in 10+ years.
-
 	Simplify postscreen logic: set the noforward flag if the
 	client made an unforgivable error. Individual "fail" flags
 	are needed only to avoid logging the same offense multiple

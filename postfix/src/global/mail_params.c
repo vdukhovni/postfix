@@ -117,6 +117,7 @@
 /*	char	*var_multi_group;
 /*	char	*var_multi_name;
 /*	bool	var_multi_enable;
+/*	bool	var_long_queue_ids;
 /*
 /*	void	mail_params_init()
 /*
@@ -302,6 +303,7 @@ char   *var_multi_wrapper;
 char   *var_multi_group;
 char   *var_multi_name;
 bool    var_multi_enable;
+bool    var_long_queue_ids;
 
 const char null_format_string[1] = "";
 
@@ -627,6 +629,7 @@ void    mail_params_init()
 	VAR_HELPFUL_WARNINGS, DEF_HELPFUL_WARNINGS, &var_helpful_warnings,
 	VAR_CYRUS_SASL_AUTHZID, DEF_CYRUS_SASL_AUTHZID, &var_cyrus_sasl_authzid,
 	VAR_MULTI_ENABLE, DEF_MULTI_ENABLE, &var_multi_enable,
+	VAR_LONG_QUEUE_IDS, DEF_LONG_QUEUE_IDS, &var_long_queue_ids,
 	0,
     };
     const char *cp;

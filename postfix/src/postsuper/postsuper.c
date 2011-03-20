@@ -5,7 +5,7 @@
 /*	Postfix superintendent
 /* SYNOPSIS
 /* .fi
-/*	\fBpostsuper\fR [\fB-psv\fR]
+/*	\fBpostsuper\fR [\fB-psSv\fR]
 /*	[\fB-c \fIconfig_dir\fR] [\fB-d \fIqueue_id\fR]
 /*		[\fB-h \fIqueue_id\fR] [\fB-H \fIqueue_id\fR]
 /*		[\fB-r \fIqueue_id\fR] [\fIdirectory ...\fR]
@@ -160,15 +160,36 @@
 /* .RS
 /* .IP \(bu
 /*	Rename files whose name does not match the message file inode
-/*	number. This operation is necessary after restoring a mail queue
-/*	from a different machine, or from backup media.
+/*	number. This operation is necessary after restoring a mail
+/*	queue from a different machine or from backup, when queue
+/*	files were created with Postfix <= 2.8 or with
+/*	"enable_long_queue_ids = no".
 /* .IP \(bu
 /*	Move queue files that are in the wrong place in the file system
 /*	hierarchy and remove subdirectories that are no longer needed.
 /*	File position rearrangements are necessary after a change in the
 /*	\fBhash_queue_names\fR and/or \fBhash_queue_depth\fR
 /*	configuration parameters.
+/* .IP \(bu
+/*	Rename queue files created with "enable_long_queue_ids =
+/*	yes" to short names, for migration to Postfix <= 2.8.  The
+/*	procedure is as follows:
+/* .sp
+/* .nf
+/* .na
+/*	# postfix stop
+/*	# postconf enable_long_queue_ids=no
+/*	# postsuper
+/* .ad
+/* .fi
+/* .sp
+/*	Run \fBpostsuper\fR(1) repeatedly until it stops reporting
+/*	file name changes.
 /* .RE
+/* .IP \fB-S\fR
+/*	A redundant version of \fB-s\fR that requires that long
+/*	file names also match the message file inode number. This
+/*	option exists for testing purposes.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -211,6 +232,10 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBenable_long_queue_ids (no)\fR"
+/*	Enable long, non-repeating, queue IDs (queue file names).
 /* SEE ALSO
 /*	sendmail(1), Sendmail-compatible user interface
 /*	postqueue(1), unprivileged queue operations
@@ -251,6 +276,7 @@
 #include <argv.h>
 #include <vstring_vstream.h>
 #include <sane_fsops.h>
+#include <myrand.h>
 
 /* Global library. */
 
@@ -258,8 +284,10 @@
 #include <mail_conf.h>
 #include <mail_params.h>
 #include <mail_version.h>
+#define MAIL_QUEUE_INTERNAL
 #include <mail_queue.h>
 #include <mail_open_ok.h>
+#include <file_id.h>
 
 /* Application-specific. */
 
@@ -276,6 +304,7 @@
 #define ACTION_HOLD_ALL	(1<<7)		/* put all messages on hold */
 #define ACTION_RELEASE_ONE (1<<8)	/* release named queue file(s) */
 #define ACTION_RELEASE_ALL (1<<9)	/* release all "on hold" mail */
+#define ACTION_STRUCT_RED (1<<10)	/* fix long queue ID inode fields */
 
 #define ACTION_DEFAULT	(ACTION_STRUCT | ACTION_PURGE)
 
@@ -629,12 +658,13 @@ static int operate_stream(VSTREAM *fp,
 /* fix_queue_id - make message queue ID match inode number */
 
 static int fix_queue_id(const char *actual_path, const char *actual_queue,
-			        const char *actual_id, ino_t inum)
+			        const char *actual_id, struct stat * st)
 {
     VSTRING *old_path = vstring_alloc(10);
     VSTRING *new_path = vstring_alloc(10);
     VSTRING *new_id = vstring_alloc(10);
     const char **log_qpp;
+    char   *cp;
     int     ret;
 
     /*
@@ -643,7 +673,15 @@ static int fix_queue_id(const char *actual_path, const char *actual_queue,
      * be deterministic so that we can recover even when the renaming
      * operation is interrupted in the middle.
      */
-    vstring_sprintf(new_id, "%.5s%lX", actual_id, (unsigned long) inum);
+    if (MQID_FIND_LG_INUM_SEPARATOR(cp, actual_id) && var_long_queue_ids) {
+	vstring_sprintf(new_id, "%.*s%c%s",
+			(int) (cp - actual_id), actual_id, MQID_LG_INUM_SEP,
+			get_file_id_st(st, 1));
+    } else {
+	vstring_sprintf(new_id, "%0*X%s",
+			MQID_SH_USEC_PAD, myrand() % 1000000, 
+			get_file_id_st(st, 0));
+    }
 
     /*
      * Rename logfiles before renaming the message file, so that we can
@@ -690,6 +728,8 @@ static void super(const char **queues, int action)
     char  **cpp;
     struct queue_info *qp;
     unsigned long inum;
+    int     long_name;
+    int     error;
 
     /*
      * Make sure every file is in the right place, clean out stale files, and
@@ -827,7 +867,8 @@ static void super(const char **queues, int action)
 		    continue;
 		}
 		if (MESSAGE_QUEUE(qp)) {
-		    if (sscanf(path + 5, "%lx", &inum) != 1) {
+		    MQID_GET_INUM(path, inum, long_name, error);
+		    if (error) {
 			msg_warn("bogus file name: %s", STR(actual_path));
 			continue;
 		    }
@@ -869,16 +910,24 @@ static void super(const char **queues, int action)
 	     * have to be handled properly. XXX This option cannot use
 	     * mail_queue_rename(), because the queue file name violates
 	     * normal queue file syntax.
+	     * 
+	     * By design there is no need to "fix" non-repeating names. What
+	     * follows is applicable only when reverting from long names to
+	     * short names, or when migrating short names from one queue to
+	     * another.
 	     */
 	    if ((action & ACTION_STRUCT) != 0 && MESSAGE_QUEUE(qp)) {
-		if (sscanf(path + 5, "%lx", &inum) != 1) {
+		MQID_GET_INUM(path, inum, long_name, error);
+		if (error) {
 		    msg_warn("bogus file name: %s", STR(actual_path));
 		    continue;
 		}
-		if (inum != (unsigned long) st.st_ino) {
+		if ((long_name != 0 && var_long_queue_ids == 0)
+		    || (inum != (unsigned long) st.st_ino
+		     && (long_name == 0 || (action & ACTION_STRUCT_RED)))) {
 		    inode_mismatch++;		/* before we fix */
 		    action &= ~ACTIONS_AFTER_INUM_FIX;
-		    fix_queue_id(STR(actual_path), queue_name, path, st.st_ino);
+		    fix_queue_id(STR(actual_path), queue_name, path, &st);
 		    /* At this point, path and actual_path are invalidated. */
 		    continue;
 		}
@@ -1094,7 +1143,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((c = GETOPT(argc, argv, "c:d:h:H:pr:sv")) > 0) {
+    while ((c = GETOPT(argc, argv, "c:d:h:H:pr:sSv")) > 0) {
 	switch (c) {
 	default:
 	    msg_fatal("usage: %s "
@@ -1102,8 +1151,8 @@ int     main(int argc, char **argv)
 		      "[-d queue_id (delete)] "
 		      "[-h queue_id (hold)] [-H queue_id (un-hold)] "
 		      "[-p (purge temporary files)] [-r queue_id (requeue)] "
-		      "[-s (structure fix)] [-v (verbose)] "
-		      "[queue...]", argv[0]);
+		      "[-s (structure fix)] [-S (redundant structure fix)]"
+		      "[-v (verbose)] [queue...]", argv[0]);
 	case 'c':
 	    if (*optarg != '/')
 		msg_fatal("-c requires absolute pathname");
@@ -1141,6 +1190,9 @@ int     main(int argc, char **argv)
 	    action |= (strcmp(optarg, "ALL") == 0 ?
 		       ACTION_REQUEUE_ALL : ACTION_REQUEUE_ONE);
 	    break;
+	case 'S':
+	    action |= ACTION_STRUCT_RED;
+	    /* FALLTHROUGH */
 	case 's':
 	    action |= ACTION_STRUCT;
 	    break;

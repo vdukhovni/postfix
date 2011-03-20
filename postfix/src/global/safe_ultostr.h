@@ -1,0 +1,36 @@
+#ifndef _SAFE_ULTOSTR_H_INCLUDED_
+#define _SAFE_ULTOSTR_H_INCLUDED_
+
+/*++
+/* NAME
+/*	safe_ultostr 3h
+/* SUMMARY
+/*	convert unsigned long to safe string
+/* SYNOPSIS
+/*	#include <safe_ultostr.h>
+/* DESCRIPTION
+/* .nf
+
+ /*
+  * Utility library.
+  */
+#include <vstring.h>
+
+ /*
+  * External interface.
+  */
+extern char *safe_ultostr(VSTRING *, unsigned long, int, int, int);
+extern unsigned long safe_strtoul(char *, char **, int);
+
+/* LICENSE
+/* .ad
+/* .fi
+/*	The Secure Mailer license must be distributed with this software.
+/* AUTHOR(S)
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*--*/
+
+#endif
