@@ -149,6 +149,8 @@ const char *mail_queue_dir(VSTRING *buf, const char *queue_name,
     static VSTRING *private_buf = 0;
     static VSTRING *hash_buf = 0;
     static ARGV *hash_queue_names = 0;
+    static VSTRING *usec_buf = 0;
+    const char *delim;
     char  **cpp;
 
     /*
@@ -183,8 +185,14 @@ const char *mail_queue_dir(VSTRING *buf, const char *queue_name,
      */
     for (cpp = hash_queue_names->argv; *cpp; cpp++) {
 	if (strcasecmp(*cpp, queue_name) == 0) {
+	    if (MQID_FIND_LG_INUM_SEPARATOR(delim, queue_id)) {
+		if (usec_buf == 0)
+		    usec_buf = vstring_alloc(20);
+		MQID_LG_GET_HEX_USEC(usec_buf, delim);
+		queue_id = STR(usec_buf);
+	    }
 	    vstring_strcat(buf,
-		      dir_forest(hash_buf, queue_id, var_hash_queue_depth));
+		       dir_forest(hash_buf, queue_id, var_hash_queue_depth));
 	    break;
 	}
     }

@@ -122,6 +122,9 @@ extern int mail_queue_id_ok(const char *);
 #define MQID_LG_ENCODE_INUM(buf, val) \
 	MQID_LG_ENCODE((buf), (val), MQID_LG_INUM_BASE, MQID_LG_INUM_PAD)
 
+#define MQID_LG_DECODE_USEC(str, ulval, error) \
+	MQID_LG_DECODE((str), (ulval), MQID_LG_USEC_BASE, (error))
+
 #define MQID_LG_DECODE_INUM(str, ulval, error) \
 	MQID_LG_DECODE((str), (ulval), MQID_LG_INUM_BASE, (error))
 
@@ -133,6 +136,14 @@ extern int mail_queue_id_ok(const char *);
 	errno = 0; \
 	(ulval) = safe_strtoul((str), &_end, (base)); \
 	(error) = (*_end != 0 || ((ulval) == ULONG_MAX && errno == ERANGE)); \
+    } while (0)
+
+#define MQID_LG_GET_HEX_USEC(bp, zp) do { \
+	int _error; \
+	unsigned long _us_val; \
+	vstring_strncpy((bp), (zp) - MQID_LG_USEC_PAD, MQID_LG_USEC_PAD); \
+	MQID_LG_DECODE_USEC(STR(bp), _us_val, _error); \
+	(void) MQID_SH_ENCODE_USEC((bp), _us_val); \
     } while (0)
 
  /*

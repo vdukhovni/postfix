@@ -2724,6 +2724,12 @@ is the file inode number encoded in the first 51 characters of the
 <li> <p> The mailq (postqueue -p) output has a wider Queue ID column.
 The number of whitespace-separated fields is not changed. <p>
 
+<li> <p> The <a href="postconf.5.html#hash_queue_depth">hash_queue_depth</a> algorithm uses the first characters
+of the queue file creation time in microseconds, after conversion
+into hexadecimal representation. This produces the same queue hashing
+behavior as if the queue file name was created with "<a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a>
+= no". </p>
+
 </ul>
 
 <p> Changing the parameter value to "no" has the following effects:
@@ -2747,6 +2753,10 @@ second.
 <li> <p> The mailq (postqueue -p) output has the same format as
 with Postfix &le; 2.8. <p>
 
+<li> <p> The <a href="postconf.5.html#hash_queue_depth">hash_queue_depth</a> algorithm uses the first characters
+of the queue file name, with the hexadecimal representation of the
+file creation time in microseconds.  </p>
+
 </ul>
 
 <p> Before migration to Postfix &le; 2.8, the following commands
@@ -2760,6 +2770,8 @@ are required to convert long queue file names into short names: </p>
 
 <p> Repeat the postsuper command until it reports no more queue file
 name changes. </p>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>
 
 
 </DD>
@@ -3180,8 +3192,18 @@ process instance while mail is being forwarded.  </p>
 
 <p>
 The number of subdirectory levels for queue directories listed with
-the <a href="postconf.5.html#hash_queue_names">hash_queue_names</a> parameter.
-</p>
+the <a href="postconf.5.html#hash_queue_names">hash_queue_names</a> parameter. Queue hashing is implemented by
+creating one or more levels of directories with one-character names.
+Originally, these directory names were equal to the first characters
+of the queue file name, with the hexadecimal representation of the
+file creation time in microseconds. </p>
+
+<p> With long queue file names, queue hashing produces the same
+results as with short names. The file creation time in microseconds
+is converted into hexadecimal form before the result is used for
+queue hashing.  The base 16 encoding gives finer control over the
+number of subdirectories than is possible with the base 52 encoding
+of long queue file names.  </p>
 
 <p>
 After changing the <a href="postconf.5.html#hash_queue_names">hash_queue_names</a> or <a href="postconf.5.html#hash_queue_depth">hash_queue_depth</a> parameter,

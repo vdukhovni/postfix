@@ -1537,6 +1537,12 @@ New messages have a Message-ID header with
 .IP \(bu
 The mailq (postqueue -p) output has a wider Queue ID column.
 The number of whitespace-separated fields is not changed.
+.IP \(bu
+The hash_queue_depth algorithm uses the first characters
+of the queue file creation time in microseconds, after conversion
+into hexadecimal representation. This produces the same queue hashing
+behavior as if the queue file name was created with "enable_long_queue_ids
+= no".
 .PP
 Changing the parameter value to "no" has the following effects:
 .IP \(bu
@@ -1555,6 +1561,10 @@ second.
 .IP \(bu
 The mailq (postqueue -p) output has the same format as
 with Postfix <= 2.8.
+.IP \(bu
+The hash_queue_depth algorithm uses the first characters
+of the queue file name, with the hexadecimal representation of the
+file creation time in microseconds.
 .PP
 Before migration to Postfix <= 2.8, the following commands
 are required to convert long queue file names into short names:
@@ -1571,6 +1581,8 @@ are required to convert long queue file names into short names:
 .PP
 Repeat the postsuper command until it reports no more queue file
 name changes.
+.PP
+This feature is available in Postfix 2.9 and later.
 .SH enable_original_recipient (default: yes)
 Enable support for the X-Original-To message header. This header
 is needed for multi-recipient mailboxes.
@@ -1796,7 +1808,18 @@ Delivered-To: address, it ties up one queue file and one cleanup
 process instance while mail is being forwarded.
 .SH hash_queue_depth (default: 1)
 The number of subdirectory levels for queue directories listed with
-the hash_queue_names parameter.
+the hash_queue_names parameter. Queue hashing is implemented by
+creating one or more levels of directories with one-character names.
+Originally, these directory names were equal to the first characters
+of the queue file name, with the hexadecimal representation of the
+file creation time in microseconds.
+.PP
+With long queue file names, queue hashing produces the same
+results as with short names. The file creation time in microseconds
+is converted into hexadecimal form before the result is used for
+queue hashing.  The base 16 encoding gives finer control over the
+number of subdirectories than is possible with the base 52 encoding
+of long queue file names.
 .PP
 After changing the hash_queue_names or hash_queue_depth parameter,
 execute the command "\fBpostfix reload\fR".

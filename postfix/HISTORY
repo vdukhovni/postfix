@@ -16685,22 +16685,6 @@ Apologies for any names omitted.
 	src/global/dict_ldap.c src/global/cfg_parser.h
 	src/global/cfg_parser.c.
 
-20110320
-
-	Feature: specify "enable_long_queue_ids = yes" to enable
-	support for non-repeating queue IDs (also used as queue
-	file names). These queue IDs encode the time and inode
-	number with a safe alphabet of the 52 characters 0-9B-Zb-z.
-	The alphabet excludes vowels (AEIOUaeiou) to avoid creating
-	real words.  The queue ID format is: time in seconds, time
-	in microseconds, 'z', inode number (the inode number is
-	encoded without using the 'z' character of the safe alphabet).
-	Turning on long queue IDs changes the width of the first
-	output column of the mailq (postqueue -p) command, and
-	changes the appearance of Postfix Message-ID headers to
-	queueID@myhostname.  Files: global/file_id.[hc],
-	global/safe_ultostr.[hc], global/mail_queue.[hc],
-	postsuper/postsuper.c, showq/showq.c
 20110311
 
 	Feature: Base 32 encoder/decoder per RFC 4648. This code
@@ -16725,3 +16709,32 @@ Apologies for any names omitted.
 	expression of the form ``("text1" "text2") + constant'' so
 	we don't try to be so clever. Fix by Victor Duchovni.  File:
 	global/mail_params.h.
+
+20110320
+
+	Feature: specify "enable_long_queue_ids = yes" to enable
+	support for non-repeating queue IDs (also used as queue
+	file names). These queue IDs encode the time and inode
+	number with a safe alphabet of the 52 characters 0-9B-Zb-z.
+	The alphabet excludes vowels (AEIOUaeiou) to avoid creating
+	real words.  The queue ID format is: time in seconds, time
+	in microseconds, 'z', inode number (the inode number is
+	encoded without using the 'z' character of the safe alphabet).
+	Turning on long queue IDs changes the width of the first
+	output column of the mailq (postqueue -p) command, and
+	changes the appearance of Postfix Message-ID headers to
+	queueID@myhostname.  Files: global/file_id.[hc],
+	global/safe_ultostr.[hc], global/mail_queue.[hc],
+	postsuper/postsuper.c, showq/showq.c
+
+20110321
+
+	Performance: with long queue file names, queue hashing now
+	produces the same result as with short names. Postfix uses
+	the hexadecimal representation of the file creation time
+	in microseconds, instead of the beginning of the file name
+	which changes once every year or so, a problem that was
+	reported by Victor Duchovni. The base 16 encoding gives
+	finer control over the number of directories than possible
+	with base 52 encoding.  Files: global/mail_queue.c.  This
+	change requires "postfix reload".
