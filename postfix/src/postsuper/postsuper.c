@@ -673,14 +673,20 @@ static int fix_queue_id(const char *actual_path, const char *actual_queue,
      * be deterministic so that we can recover even when the renaming
      * operation is interrupted in the middle.
      */
-    if (MQID_FIND_LG_INUM_SEPARATOR(cp, actual_id) && var_long_queue_ids) {
+    if (MQID_FIND_LG_INUM_SEPARATOR(cp, actual_id) == 0) {
+	/* Short->short queue ID. Replace the inode portion. */
+	vstring_sprintf(new_id, "%.*s%s",
+			MQID_SH_USEC_PAD, actual_id,
+			get_file_id_st(st, 0));
+    } else if (var_long_queue_ids) {
+	/* Long->long queue ID. Replace the inode portion. */
 	vstring_sprintf(new_id, "%.*s%c%s",
 			(int) (cp - actual_id), actual_id, MQID_LG_INUM_SEP,
 			get_file_id_st(st, 1));
     } else {
-	vstring_sprintf(new_id, "%0*X%s",
-			MQID_SH_USEC_PAD, myrand() % 1000000, 
-			get_file_id_st(st, 0));
+	/* Long->short queue ID. Reformat time and replace inode portion. */
+	MQID_LG_GET_HEX_USEC(new_id, cp);
+	vstring_strcat(new_id, get_file_id_st(st, 0));
     }
 
     /*

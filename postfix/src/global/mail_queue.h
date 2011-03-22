@@ -101,8 +101,8 @@ extern int mail_queue_id_ok(const char *);
 #define MQID_LG_INUM_PAD	0	/* no padding needed */
 
 #define MQID_FIND_LG_INUM_SEPARATOR(cp, path) \
-	((cp) = strrchr((path), MQID_LG_INUM_SEP)) != 0 \
-	    && ((cp) - (path) >= MQID_LG_TIME_PAD)
+	(((cp) = strrchr((path), MQID_LG_INUM_SEP)) != 0 \
+	    && ((cp) - (path) >= MQID_LG_TIME_PAD))
 
 #define MQID_GET_INUM(path, inum, long_form, error) do { \
 	char *_cp; \

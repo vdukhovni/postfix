@@ -12615,7 +12615,7 @@ patch for Postfix 2.6. </p>
 
 %PARAM smtpd_service_name smtpd
 
-<p> The internal service that postscreen(8) forwards allowed
+<p> The internal service that postscreen(8) hands off allowed
 connections to. In a future version there may be different
 classes of SMTP service. </p>
 

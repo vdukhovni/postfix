@@ -16736,5 +16736,12 @@ Apologies for any names omitted.
 	which changes once every year or so, a problem that was
 	reported by Victor Duchovni. The base 16 encoding gives
 	finer control over the number of directories than possible
-	with base 52 encoding.  Files: global/mail_queue.c.  This
+	with base 52 encoding.  Files: global/mail_queue.[hc]. This
 	change requires "postfix reload".
+
+20110322
+
+	Cleanup: preserve the microseconds value when renaming
+	long->short or short->short queue file names.  As a side
+	benefit, renaming long->short queue IDs will not change the
+	result from queue hashing.  File: postsuper/postsuper.c.

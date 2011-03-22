@@ -196,7 +196,7 @@
 /*	lookup results to arrive (default: up to 2 seconds under stress,
 /*	up to 6 seconds otherwise).
 /* .IP "\fBsmtpd_service_name (smtpd)\fR"
-/*	The internal service that \fBpostscreen\fR(8) forwards allowed
+/*	The internal service that \fBpostscreen\fR(8) hands off allowed
 /*	connections to.
 /* AFTER-GREETING TESTS
 /* .ad
