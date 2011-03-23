@@ -17,6 +17,12 @@ Wish list:
 	times. Individual "pass" flags are still needed as proof
 	that the client didn't skip tests by hanging up early.
 
+	In the SMTP server, check if the connection is closed before
+	replying to ".", and discard the message if the reply can't
+	be sent. This reduces the time window for RFC 1047 message
+	duplication, and may even prevent the delivery of some spam.
+	http://www.exim.org/lurker/message/20070416.103159.9d5ff0ce.en.html
+
 	postconf command-line option to show the compile-time
 	settings (CCARGS, AUXLIBS) in case binary packages
 	don't install the makedefs.out file.

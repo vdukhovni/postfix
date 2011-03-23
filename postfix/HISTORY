@@ -16745,3 +16745,11 @@ Apologies for any names omitted.
 	long->short or short->short queue file names.  As a side
 	benefit, renaming long->short queue IDs will not change the
 	result from queue hashing.  File: postsuper/postsuper.c.
+
+20110323
+
+	Bitrot: qshape regexp pattern for long queue file names.
+	Ralf Hildebrandt. File: auxiliary/qshape/qshape.pl.
+
+	Bitrot: text about queue ID reuse in the postsuper manpage.
+	File: postsuper/postsuper.c.

@@ -212,7 +212,7 @@ sub rec_get {
 
 sub qenv {
     my ($qfile) = @_;
-    return unless $qfile =~ m{(^|/)[A-F0-9]{6,}$};
+    return unless $qfile =~ m{(^|/)[A-Za-z0-9]{6,}$};
     my @st = lstat($qfile);
     return unless (@st > 0 && -f _ && (($st[2] & 0733) == 0700));
 

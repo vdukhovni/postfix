@@ -49,7 +49,8 @@
 /*	As a safety measure, the word \fBALL\fR must be specified in upper
 /*	case.
 /* .sp
-/*	Warning: Postfix queue IDs are reused.
+/*	Warning: Postfix queue IDs are reused (always with Postfix
+/*	<= 2.8; and with Postfix >= 2.9 when enable_long_queue_ids=no).
 /*	There is a very small possibility that postsuper deletes the
 /*	wrong message file when it is executed while the Postfix mail
 /*	system is delivering mail.
@@ -148,7 +149,8 @@
 /*	useful when content_filter settings have changed.
 /* .RE
 /* .IP
-/*	Warning: Postfix queue IDs are reused.
+/*	Warning: Postfix queue IDs are reused (always with Postfix
+/*	<= 2.8; and with Postfix >= 2.9 when enable_long_queue_ids=no).
 /*	There is a very small possibility that \fBpostsuper\fR(1) requeues
 /*	the wrong message file when it is executed while the Postfix mail
 /*	system is running, but no harm should be done.
@@ -189,7 +191,8 @@
 /* .IP \fB-S\fR
 /*	A redundant version of \fB-s\fR that requires that long
 /*	file names also match the message file inode number. This
-/*	option exists for testing purposes.
+/*	option exists for testing purposes, and is available with
+/*	Postfix 2.9 and later.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
