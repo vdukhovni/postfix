@@ -214,6 +214,8 @@
 
 /*#define msg_verbose	2*/
 
+static void cleanup_milter_set_error(CLEANUP_STATE *, int);
+
 #define STR(x)		vstring_str(x)
 #define LEN(x)		VSTRING_LEN(x)
 
@@ -431,8 +433,7 @@ static void cleanup_milter_hbc_add_meta_records(CLEANUP_STATE *state)
      * later.
      */
     if ((new_meta_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
-	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
-	state->errs |= CLEANUP_STAT_WRITE;
+	cleanup_milter_set_error(state, errno);
 	return;
     }
     if (state->filter != 0)
@@ -452,8 +453,7 @@ static void cleanup_milter_hbc_add_meta_records(CLEANUP_STATE *state)
      * value with the location of the new meta record.
      */
     if (vstream_fseek(state->dst, state->append_meta_pt_offset, SEEK_SET) < 0) {
-	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
-	state->errs |= CLEANUP_STAT_WRITE;
+	cleanup_milter_set_error(state, errno);
 	return;
     }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,

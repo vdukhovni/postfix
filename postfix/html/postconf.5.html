@@ -5785,6 +5785,13 @@ content.  The usual C-like escape sequences are recognized: <tt>\a
 \b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
 <tt>\\</tt>. </p>
 
+<p> Note 1: this feature does not recognize text that requires MIME
+decoding. It inspects raw message content, just like <a href="postconf.5.html#header_checks">header_checks</a>
+and <a href="postconf.5.html#body_checks">body_checks</a>.  </p>
+
+<p> Note 2: this feature is disabled with "<a href="postconf.5.html#receive_override_options">receive_override_options</a>
+= <a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>".  </p>
+
 <p> Example: </p>
 
 <pre>
@@ -5818,6 +5825,13 @@ message size exceeds the local or remote MTA's message size limit.
 content.  The usual C-like escape sequences are recognized: <tt>\a
 \b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
 <tt>\\</tt>. </p>
+
+<p> Note 1: this feature does not recognize text that requires MIME
+decoding. It inspects raw message content, just like <a href="postconf.5.html#header_checks">header_checks</a>
+and <a href="postconf.5.html#body_checks">body_checks</a>.  </p>
+
+<p> Note 2: this feature is disabled with "<a href="postconf.5.html#receive_override_options">receive_override_options</a>
+= <a href="postconf.5.html#no_header_body_checks">no_header_body_checks</a>".  </p>
 
 <p> Example: </p>
 

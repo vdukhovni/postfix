@@ -9606,6 +9606,13 @@ content.  The usual C-like escape sequences are recognized: <tt>\a
 \b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
 <tt>\\</tt>. </p>
 
+<p> Note 1: this feature does not recognize text that requires MIME
+decoding. It inspects raw message content, just like header_checks
+and body_checks.  </p>
+
+<p> Note 2: this feature is disabled with "receive_override_options
+= no_header_body_checks".  </p>
+
 <p> Example: </p>
 
 <pre>
@@ -9620,6 +9627,13 @@ message_reject_characters = \0
 content.  The usual C-like escape sequences are recognized: <tt>\a
 \b \f \n \r \t \v \<i>ddd</i></tt> (up to three octal digits) and
 <tt>\\</tt>. </p>
+
+<p> Note 1: this feature does not recognize text that requires MIME
+decoding. It inspects raw message content, just like header_checks
+and body_checks.  </p>
+
+<p> Note 2: this feature is disabled with "receive_override_options
+= no_header_body_checks".  </p>
 
 <p> Example: </p>
 

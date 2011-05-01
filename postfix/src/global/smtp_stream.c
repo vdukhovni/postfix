@@ -195,9 +195,9 @@ static NORETURN smtp_longjmp(VSTREAM *stream, int err, const char *context)
      */
     if (msg_verbose)
 	msg_info("%s: %s", context, err == SMTP_ERR_TIME ? "timeout" : "EOF");
-    if (vstream_wr_error(stream)
-	&& shutdown(vstream_fileno(stream), SHUT_WR) < 0)
-	msg_warn("shutdown: %m");
+    if (vstream_wr_error(stream))
+	/* Don't report ECONNRESET (hangup), EINVAL (already shut down), etc. */
+	(void) shutdown(vstream_fileno(stream), SHUT_WR);
     vstream_longjmp(stream, err);
 }
 

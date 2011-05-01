@@ -9,6 +9,10 @@ connections at the same time. While a single postscreen(8) process keeps
 zombies away from Postfix SMTP server processes, more Postfix SMTP server
 processes remain available for legitimate clients.
 
+postscreen(8) maintains a temporary whitelist for clients that pass its tests;
+by allowing whitelisted clients to skip tests, postscreen(8) minimizes its
+impact on legitimate email traffic.
+
 postscreen(8) should not be used on SMTP ports that receive mail from end-user
 clients (MUAs). In a typical deployment, postscreen(8) is used on the "port 25"
 service, while MUA clients submit mail via the submission service.
@@ -83,10 +87,10 @@ focused on.
 GGeenneerraall ooppeerraattiioonn
 
 The postscreen(8) triage process involves a number of tests, in the order as
-described below. Some tests introduce a delay of a few seconds. Once a client
-passes a test, its IP address is whitelisted from 24 hours for simple tests, to
-1 week for complex tests. Whitelisting minimizes the impact of postscreen(8)'s
-tests on legitimate mail clients.
+described below. Some tests introduce a delay of a few seconds. postscreen(8)
+maintains a temporary whitelist for clients that pass its tests; by allowing
+whitelisted clients to skip tests, postscreen(8) minimizes its impact on
+legitimate email traffic.
 
 By default, postscreen(8) hands off all connections to a Postfix SMTP server
 process after logging its findings. This mode is useful for non-destructive
@@ -448,13 +452,15 @@ ddrroopp (default for non-SMTP commands)
 
 OOtthheerr eerrrroorrss
 
-When an SMTP client hangs up unexpectedly during any tests, postscreen(8) logs
-this as:
+When an SMTP client hangs up unexpectedly, postscreen(8) logs this as:
 
     HHAANNGGUUPP aafftteerr time ffrroomm [address]:port iinn test name
 
 Translation: the SMTP client at [address]:port disconnected unexpectedly, time
 seconds after the start of the test named test name.
+
+There is no punishment for hanging up. A client that hangs up without sending
+the QUIT command can still pass all postscreen(8) tests.
 
 The following errors are reported by the built-in SMTP engine. This engine
 never accepts mail, therefore it has per-session limits on the number of

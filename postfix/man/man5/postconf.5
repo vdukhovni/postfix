@@ -3239,6 +3239,13 @@ content.  The usual C-like escape sequences are recognized: \ea
 \eb \ef \en \er \et \ev \e\fIddd\fR (up to three octal digits) and
 \e\e.
 .PP
+Note 1: this feature does not recognize text that requires MIME
+decoding. It inspects raw message content, just like header_checks
+and body_checks.
+.PP
+Note 2: this feature is disabled with "receive_override_options
+= no_header_body_checks".
+.PP
 Example:
 .PP
 .nf
@@ -3261,6 +3268,13 @@ The set of characters that Postfix will remove from message
 content.  The usual C-like escape sequences are recognized: \ea
 \eb \ef \en \er \et \ev \e\fIddd\fR (up to three octal digits) and
 \e\e.
+.PP
+Note 1: this feature does not recognize text that requires MIME
+decoding. It inspects raw message content, just like header_checks
+and body_checks.
+.PP
+Note 2: this feature is disabled with "receive_override_options
+= no_header_body_checks".
 .PP
 Example:
 .PP

@@ -77,7 +77,7 @@
 /*	With Postfix version 2.8 and later, the \fB-e\fR is no
 /*	longer needed.
 /* .IP \fB-h\fR
-/*	Show parameter values only, not the "\fIname = " label
+/*	Show parameter values only, not the "\fIname = \fR" label
 /*	that normally precedes the value.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.

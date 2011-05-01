@@ -15616,7 +15616,7 @@ Apologies for any names omitted.
 	for the "virtual:" transport to "/etc/postfix/virtual:".
 	Symptom reported by Christoph Anton Mitterer.
 
-20200102
+20100102
 
 	Workaround: don't report bogus Berkeley DB close errors as
 	fatal errors. All operations before close are already error
@@ -16753,3 +16753,54 @@ Apologies for any names omitted.
 
 	Bitrot: text about queue ID reuse in the postsuper manpage.
 	File: postsuper/postsuper.c.
+
+20110328
+
+	Cleanup: don't log warnings about socket shutdown() errors
+	after a connection breaks. Postfix calls shutdown() to avoid
+	unnecessary socket write timeouts. This is only an optimization,
+	and failure is not critical.  File: global/smtp_stream.c.
+
+20110411
+
+	Cleanup: postscreen(8) and verify(8) daemons now lock their
+	respective cache file exclusively upon open, to avoid massive
+	cache corruption by unsupported sharing. Files: util/dict.h,
+	util/dict_open.c, verify/verify.c, postscreen/postscreen.c.
+
+20110414
+
+	Bugfix (introduced with Postfix SASL patch 20000314): don't
+	reuse a server Cyrus SASL handle after authentication
+	failure. File: smtpd/smtpd_proto.c.
+
+20110418
+
+	Bugfix (introduced Postfix 2.3 and Postfix 2.7): the Milter
+	client reported some "file too large" errors as temporary
+	errors. Problem reported by Michael Tokarev. Files:
+	milter/milter8.c, cleanup/cleanup_milter.c.
+
+20110420
+
+	Performance: a high load of DSN success notification requests
+	could stall the queue manager. Solution: make the trace
+	client asynchronous, just like the bounce and defer clients.
+	Problem reported by Eduardo M. Stelmaszczyk of terra.com.br.
+	Files: global/abounce.[hc], *qmgr/qmgr_active.c (the
+	qmgr_active.c files are identical).
+
+20110421
+
+	Cleanup: updated abounce warning message, and added a safety
+	timeout to abounce() etc. requests. File: global/abounce.c.
+
+20110426
+
+	Bugfix (introduced in Postfix 1.1, duplicated in Postfix
+	2.3, unrelated mistake in Postfix 2.7): the local(8) delivery
+	agent ignored table lookup errors in mailbox_command_maps,
+	mailbox_transport_maps, fallback_transport_maps and (while
+	bouncing mail to alias) alias owner lookup. Problem reported
+	by William Ono. Files: local/command.c, local/mailbox.c,
+	local/unknown.c, local/bounce_workaround.c.
