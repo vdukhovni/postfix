@@ -664,7 +664,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * 
      * Start the cache cleanup thread after permanently dropping privileges.
      */
-#define VERIFY_DICT_OPEN_FLAGS (DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
+#define VERIFY_DICT_OPEN_FLAGS (DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE \
+	    | DICT_FLAG_OPEN_LOCK)
 
     saved_mask = umask(022);
     verify_map =
