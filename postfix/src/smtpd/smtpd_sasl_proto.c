@@ -184,6 +184,27 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
 
+    /* Don't reuse the SASL handle after authentication failure. */
+#ifndef SMTPD_FLAG_AUTH_USED
+#define SMTPD_FLAG_AUTH_USED	(1<<15)
+#endif
+#ifndef XSASL_TYPE_CYRUS
+#define XSASL_TYPE_CYRUS	"cyrus"
+#endif
+    if (state->flags & SMTPD_FLAG_AUTH_USED) {
+	smtpd_sasl_disconnect(state);
+#ifdef USE_TLS
+	if (state->tls_context != 0)
+	    smtpd_sasl_connect(state, VAR_SMTPD_SASL_TLS_OPTS,
+			       var_smtpd_sasl_tls_opts);
+	else
+#endif
+	    smtpd_sasl_connect(state, VAR_SMTPD_SASL_OPTS,
+			       var_smtpd_sasl_opts);
+    } else if (strcmp(var_smtpd_sasl_type, XSASL_TYPE_CYRUS) == 0) {
+	state->flags |= SMTPD_FLAG_AUTH_USED;
+    }
+
     /*
      * All authentication failures shall be logged. The 5xx reply code from
      * the SASL authentication routine triggers tar-pit delays, which help to
