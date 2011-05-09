@@ -15475,3 +15475,10 @@ Apologies for any names omitted.
 
 	Portability: FreeBSD closefrom() support time window.  Sahil
 	Tandon. File: util/sys_defs.h.
+
+20110414
+
+	Bugfix (introduced with Postfix SASL patch 20000314): don't
+	reuse a server SASL handle after authentication failure.
+	Problem reported by Thomas Jarosch of Intra2net AG. File:
+	smtpd/smtpd_proto.c.
