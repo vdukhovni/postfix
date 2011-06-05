@@ -16804,3 +16804,27 @@ Apologies for any names omitted.
 	bouncing mail to alias) alias owner lookup. Problem reported
 	by William Ono. Files: local/command.c, local/mailbox.c,
 	local/unknown.c, local/bounce_workaround.c.
+
+20110516
+
+	Update the warning when permit_naked_ip_address is used,
+	and add permit_sasl_authenticated to the list of suggested
+	alternatives.  File: smtpd/smtpd_check.c.
+
+20110601
+
+	Bugfix (introduced Postfix 2.6 with master_service_disable)
+	loop control error when parsing a malformed master.cf file.
+	Found by Coverity. File: master/master_ent.c.
+
+20110602
+
+	Bugfix (introduced: Postfix 2.7): "sendmail -t" reported
+	"protocol error" after queue file write error.  File:
+	postdrop/postdrop.c.
+
+20110605
+
+	Cleanup: removed the PSC_STATE_FLAG_CACHE_EXPIRED flag.
+	Nothing uses this anymore. Files: postscreen/postscreen.h,
+	postscreen/postscreen_state.c, postscreen/postscreen_tests.c.

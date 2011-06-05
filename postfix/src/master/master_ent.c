@@ -272,7 +272,7 @@ MASTER_SERV *get_master_ent()
     /*
      * Skip blank lines and comment lines.
      */
-    do {
+    for (;;) {
 	if (readlline(buf, master_fp, &master_line) == 0) {
 	    vstring_free(buf);
 	    vstring_free(junk);
@@ -284,7 +284,9 @@ MASTER_SERV *get_master_ent()
 	name = cp;
 	transport = get_str_ent(&bufp, "transport type", (char *) 0);
 	vstring_sprintf(junk, "%s.%s", name, transport);
-    } while (match_service_match(master_disable, vstring_str(junk)) != 0);
+	if (match_service_match(master_disable, vstring_str(junk)) == 0)
+	    break;
+    }
 
     /*
      * Parse one logical line from the configuration file. Initialize service

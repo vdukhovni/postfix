@@ -3796,8 +3796,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					 state->helo_name, SMTPD_NAME_HELO);
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
-	    msg_warn("restriction %s is deprecated. Use %s instead",
-		     PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS);
+	    msg_warn("restriction %s is deprecated. Use %s or %s instead",
+		     PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
 	    if (state->helo_name) {
 		if (state->helo_name[strspn(state->helo_name, "0123456789.:")] == 0
 		&& (status = reject_invalid_hostaddr(state, state->helo_name,

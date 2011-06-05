@@ -8,6 +8,33 @@ Wish list:
 
 	Make the rules for how to use close-on-exec more explicit.
 
+	Trick from amavisd: save listen socket/fifo/etc state, clear
+	their close-on-exec flags, exec the same program file to
+	re-initialize (with saved socket state on command line or
+	in environment), then restore the listen socket/fifo/etc
+	close-on-exec flags.  This could be a way to mitigate the
+	impact of memory/file leaks, and to implement "postfix
+	reload" support for master(8) features that currently don't
+	support this.
+
+	postscreen: wait for DNS completion after early HANGUP
+	and log DNSBL.
+
+	Some Sendmail configurations trigger sub-optimal behavior
+	when the postscreen_whitelist_interfaces parameter lists
+	primary MX addresses only.  When postscreen's "deep protocol
+	tests" are successful on the primary MX address (i.e. they
+	result in 4XX responses to RCPT TO), some Sendmail
+	configurations keep the primary MX connection open until
+	AFTER they finish talking to the backup MX address.  The
+	problem is that the backup connection runs into a WHITELIST
+	VETO condition because the whitelisting database has not
+	yet been updated with the PASS NEW result for the primary
+	MX connection.  Unfortunately postscreen can't update the
+	whitelisting database before the primary MX connection is
+	closed, because a client may still make a mistake.
+
+
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 

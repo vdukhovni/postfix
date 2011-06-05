@@ -81,7 +81,7 @@ typedef struct {
 #define PSC_STATE_FLAG_NEW		(1<<3)	/* some test was never passed */
 #define PSC_STATE_FLAG_BLIST_FAIL	(1<<4)	/* blacklisted */
 #define PSC_STATE_FLAG_HANGUP		(1<<5)	/* NOT a test failure */
-#define PSC_STATE_FLAG_CACHE_EXPIRED	(1<<6)	/* cache retention expired */
+/* unused */
 #define PSC_STATE_FLAG_WLIST_FAIL	(1<<7)	/* do not whitelist */
 
  /*

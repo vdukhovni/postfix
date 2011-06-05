@@ -7568,16 +7568,19 @@ one-letter suffix that specifies the time unit).  Time units: s
 
 <p> A list of local <a href="postscreen.8.html">postscreen(8)</a> server IP addresses where a
 non-whitelisted SMTP client can obtain <a href="postscreen.8.html">postscreen(8)</a>'s temporary
-whitelist status to talk to a Postfix SMTP server process.  By
-default, a client can pass <a href="postscreen.8.html">postscreen(8)</a>'s whitelist tests on any
-local <a href="postscreen.8.html">postscreen(8)</a> server IP address. </p>
+whitelist status. This status is required before the client can
+talk to a Postfix SMTP server process.  By default, a client can
+obtain <a href="postscreen.8.html">postscreen(8)</a>'s whitelist status on any local <a href="postscreen.8.html">postscreen(8)</a>
+server IP address. </p>
 
 <p> When <a href="postscreen.8.html">postscreen(8)</a> listens on both primary and backup MX
 addresses, the <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> parameter can be
-used to disable whitelisting on backup MX addresses.  With this
-configuration, <a href="postscreen.8.html">postscreen(8)</a> denies whitelisting status to clients
-that connect only to backup MX addresses, and prevents them from
-talking to a Postfix SMTP server process.  </p>
+configured to give the temporary whitelist status only when a client
+connects to a primary MX address. Once a client is whitelisted it
+can talk to a Postfix SMTP server on any address. Thus, clients
+that connect only to backup MX addresses will never become whitelisted,
+and will never be allowed to talk to a Postfix SMTP server process.
+</p>
 
 <p> Example: </p>
 

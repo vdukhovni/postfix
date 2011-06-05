@@ -14084,16 +14084,19 @@ configuration parameter.  See there for details. </p>
 
 <p> A list of local postscreen(8) server IP addresses where a
 non-whitelisted SMTP client can obtain postscreen(8)'s temporary
-whitelist status to talk to a Postfix SMTP server process.  By
-default, a client can pass postscreen(8)'s whitelist tests on any
-local postscreen(8) server IP address. </p>
+whitelist status. This status is required before the client can
+talk to a Postfix SMTP server process.  By default, a client can
+obtain postscreen(8)'s whitelist status on any local postscreen(8)
+server IP address. </p>
 
 <p> When postscreen(8) listens on both primary and backup MX
 addresses, the postscreen_whitelist_interfaces parameter can be
-used to disable whitelisting on backup MX addresses.  With this
-configuration, postscreen(8) denies whitelisting status to clients
-that connect only to backup MX addresses, and prevents them from
-talking to a Postfix SMTP server process.  </p>
+configured to give the temporary whitelist status only when a client
+connects to a primary MX address. Once a client is whitelisted it
+can talk to a Postfix SMTP server on any address. Thus, clients
+that connect only to backup MX addresses will never become whitelisted,
+and will never be allowed to talk to a Postfix SMTP server process.
+</p>
 
 <p> Example: </p>
 

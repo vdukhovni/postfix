@@ -15,7 +15,8 @@ impact on legitimate email traffic.
 
 postscreen(8) should not be used on SMTP ports that receive mail from end-user
 clients (MUAs). In a typical deployment, postscreen(8) is used on the "port 25"
-service, while MUA clients submit mail via the submission service.
+service, while MUA clients submit mail via the submission service (port 587)
+which normally requires client authentication.
 
 postscreen(8) is part of a multi-layer defense.
 
@@ -36,8 +37,8 @@ postscreen(8) is part of a multi-layer defense.
     applications.
 
 Each layer reduces the spam volume. The general strategy is to use the less
-expensive defenses first, and to use the more expensive defenses for the spam
-that remains.
+expensive defenses first, and to use the more expensive defenses only for the
+spam that remains.
 
 Topics in this document:
 
@@ -171,22 +172,14 @@ parameters. Expired entries are silently renewed if possible.
 MMXX PPoolliiccyy tteesstt
 
 When the remote SMTP client is not on the static access list or temporary
-whitelist, postscreen(8) can implement a number of whitelist tests before it
-grants the client a temporary whitelist status to talk to a Postfix SMTP server
-process.
+whitelist, postscreen(8) can implement a number of whitelist tests, before it
+grants the client a temporary whitelist status that allows it to talk to a
+Postfix SMTP server process.
 
 By listening on both primary and backup MX addresses, postscreen(8) can deny
 the temporary whitelist status to clients that connect only to backup MX hosts
-(an old trick to take advantage of backup MX hosts with weaker anti-spam
-policies).
-
-Note 1: The status of this feature is still experimental, and implementation
-details are likely to change.
-
-Note 2: MX policy enforcement is currently supported only for domains with one
-Postfix MTA. Support for domains with multiple Postfix MTAs will have to wait
-until Postfix has a database client that can update a shared postscreen(8)
-database.
+(an old spammer trick to take advantage of backup MX hosts with weaker anti-
+spam policies than primary MX hosts).
 
   * First, configure the host to listen on both primary and backup MX
     addresses. Use the appropriate ifconfig command for the local operating

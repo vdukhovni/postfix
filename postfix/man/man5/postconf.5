@@ -4361,16 +4361,18 @@ This feature is available in Postfix 2.8.
 .SH postscreen_whitelist_interfaces (default: static:all)
 A list of local \fBpostscreen\fR(8) server IP addresses where a
 non-whitelisted SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-whitelist status to talk to a Postfix SMTP server process.  By
-default, a client can pass \fBpostscreen\fR(8)'s whitelist tests on any
-local \fBpostscreen\fR(8) server IP address.
+whitelist status. This status is required before the client can
+talk to a Postfix SMTP server process.  By default, a client can
+obtain \fBpostscreen\fR(8)'s whitelist status on any local \fBpostscreen\fR(8)
+server IP address.
 .PP
 When \fBpostscreen\fR(8) listens on both primary and backup MX
 addresses, the postscreen_whitelist_interfaces parameter can be
-used to disable whitelisting on backup MX addresses.  With this
-configuration, \fBpostscreen\fR(8) denies whitelisting status to clients
-that connect only to backup MX addresses, and prevents them from
-talking to a Postfix SMTP server process.
+configured to give the temporary whitelist status only when a client
+connects to a primary MX address. Once a client is whitelisted it
+can talk to a Postfix SMTP server on any address. Thus, clients
+that connect only to backup MX addresses will never become whitelisted,
+and will never be allowed to talk to a Postfix SMTP server process.
 .PP
 Example:
 .PP
