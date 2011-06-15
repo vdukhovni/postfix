@@ -15,7 +15,30 @@ Wish list:
 	close-on-exec flags.  This could be a way to mitigate the
 	impact of memory/file leaks, and to implement "postfix
 	reload" support for master(8) features that currently don't
-	support this.
+	support this. 
+
+	Sub-second time resolution. The first benefit is to make
+	per-destination rate delays more usable. Other applications
+	will come up once the support exists. The straightforward
+	approach is to represent all time intervals in milliseconds,
+	and to update all code that makes system calls with a time
+	argument (as well as the compiled-in upper and lower time
+	parameter bounds, which are currently in seconds).
+	Unfortunately, that limits he maximum time interval to less
+	than 25 days on 32-bit systems, and is likely to break
+	compatibility (for starters, it cannot even deal with the
+	compiled-in 100d upper bound on the queue file lifetime).
+	A second option is to have a "compatibility" time base
+	switch between milliseconds and seconds; this means extra
+	changes to all code that makes system calls with a time
+	argument, and the way that the compiled-in upper and lower
+	bounds are specified.  Some of this can be encapsulated in
+	macros like time_to_sec(t), time_to_msec(t) and sec_to_time(t).
+	Finally, it is relatively easy to replace the events(3)
+	interface to use "double" for the time delay arguments, but
+	it is a major pain to convert all main.cf time parameters
+	into doubles (converting only some leads to a documentation
+	nightmare).
 
 	postscreen: wait for DNS completion after early HANGUP
 	and log DNSBL.
@@ -33,7 +56,6 @@ Wish list:
 	MX connection.  Unfortunately postscreen can't update the
 	whitelisting database before the primary MX connection is
 	closed, because a client may still make a mistake.
-
 
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.

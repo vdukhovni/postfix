@@ -16828,3 +16828,16 @@ Apologies for any names omitted.
 	Cleanup: removed the PSC_STATE_FLAG_CACHE_EXPIRED flag.
 	Nothing uses this anymore. Files: postscreen/postscreen.h,
 	postscreen/postscreen_state.c, postscreen/postscreen_tests.c.
+
+20110614
+
+	Linux kernel version 3 support. Linus Torvalds has reset
+	the counters for reasons not related to changes in code.
+	Files: makedefs, util/sys_defs.h.
+
+20110615
+
+	Workaround: some Spamhaus RHSBL rejects lookups with "No
+	IP queries" even if the name has an alphanumerical prefix.
+	We play safe, and skip both RHSBL and RHSWL queries for
+	names ending in a numerical suffix.  File: smtpd/smtpd_check.c.
