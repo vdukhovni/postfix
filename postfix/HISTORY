@@ -16841,3 +16841,12 @@ Apologies for any names omitted.
 	IP queries" even if the name has an alphanumerical prefix.
 	We play safe, and skip both RHSBL and RHSWL queries for
 	names ending in a numerical suffix.  File: smtpd/smtpd_check.c.
+
+20110624
+
+	Cleanup: added error checks for smtpd access primitives
+	that don't automatically terminate the program after table
+	lookup error: these primitives are permit_tls_clientcerts,
+	permit_tls_all_clientcerts, and check_address_map (the last
+	one is used in local_header_rewrite_clients only).  File:
+	smtpd/smtpd_check.c.

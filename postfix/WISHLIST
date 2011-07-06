@@ -40,8 +40,17 @@ Wish list:
 	into doubles (converting only some leads to a documentation
 	nightmare).
 
-	postscreen: wait for DNS completion after early HANGUP
-	and log DNSBL.
+	postscreen: wait for DNS completion after early HANGUP and
+	log DNSBL results. If the client was still waiting for the
+	PREGREET timer, just flag the PREGREET test as (done, not
+	passed).  If the client was not waiting for the PREGREET
+	timer, just wait until DNSBL lookup (if any) completes.
+
+	Address verify cache: allow a negative cache "refresh"
+	result to purge a "positive" cache entry in some safe manner.
+	Currently, the negative cache "refresh" result is discarded,
+	address verify cache lookup returns OK, and each lookup
+	forces a "refresh" probe until the entry expires.
 
 	Some Sendmail configurations trigger sub-optimal behavior
 	when the postscreen_whitelist_interfaces parameter lists
@@ -73,6 +82,13 @@ Wish list:
 	be sent. This reduces the time window for RFC 1047 message
 	duplication, and may even prevent the delivery of some spam.
 	http://www.exim.org/lurker/message/20070416.103159.9d5ff0ce.en.html
+	This requires splitting the SMTP server's commit operation
+	into two operations: first, a tentative commit operation
+	that performs most of the I/O and processing in milters and
+	in the cleanup server; second, a final commit operation
+	that is executed only if the remote SMTP client hasn't hung
+	up in the mean time. Unfortunately, SMTP-based before-queue
+	content filters don't support a tentative commit operation.
 
 	Find out how to reproduce Berkeley DB bogus ENOENT errors.
 	postscreen does not log this with Berkeley DB 1 (FreeBSD

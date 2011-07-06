@@ -1490,6 +1490,43 @@ to recover from the base64-encoded form. </p>
 <p> You can use one of the following commands to generate base64
 encoded authentication information: </p>
 
+<ul>
+
+<li> <p> Using a recent version of the <b>bash</b> shell: </p>
+
+<blockquote>
+<pre>
+% <strong>echo -ne '\000username\000password' | openssl base64</strong>
+</pre>
+</blockquote>
+
+<p> Some other shells support similar syntax. </p>
+
+<li> <p> Using the <b>printf</b> command: </p>
+
+<blockquote>
+<pre>
+% <strong>printf '\0%s\0%s' '<em>username</em>' '<em>password</em>' | openssl base64</strong>
+% <strong>printf '\0%s\0%s' '<em>username</em>' '<em>password</em>' | mmencode</strong>
+</pre>
+</blockquote>
+
+<p> The <strong>mmencode</strong> command is part of the metamail
+software. </p>
+
+<li> <p> Using Perl <b>MIME::Base64</b>: </p>
+
+<blockquote>
+<pre>
+% <strong>perl -MMIME::Base64 -e \
+    'print encode_base64("\0<em>username</em>\0<em>password</em>");'</strong>
+</pre>
+</blockquote>
+
+<p> MIME::Base64 is available from http://www.cpan.org/. </p>
+
+<li> <p> Using the <b>gen-auth</b> script: </p>
+
 <blockquote>
 <pre>
 % <strong>gen-auth plain</strong>
@@ -1501,23 +1538,7 @@ password:
 <p> The <strong>gen-auth</strong> Perl script was written by John
 Jetmore and can be found at http://jetmore.org/john/code/gen-auth. </p>
 
-<blockquote>
-<pre>
-% <strong>printf '\0<em>username</em>\0<em>password</em>' | mmencode</strong>
-</pre>
-</blockquote>
-
-<p> The <strong>mmencode</strong> command is part of the metamail
-software. </p>
-
-<blockquote>
-<pre>
-% <strong>perl -MMIME::Base64 -e \
-    'print encode_base64("\0<em>username</em>\0<em>password</em>");'</strong>
-</pre>
-</blockquote>
-
-<p> MIME::Base64 is available from http://www.cpan.org/. </p>
+</ul>
 
 <h2><a name="client_sasl">Configuring SASL authentication in the Postfix SMTP/LMTP client</a></h2>
 

@@ -15,8 +15,8 @@
 /*	const char *(*lookup) (const char *name, char *context);
 /*	char	*context;
 /* DESCRIPTION
-/*	smtp_reply_footer() expands a reply template to an existing
-/*	reply text.
+/*	smtp_reply_footer() expands a reply template, and appends
+/*	the result to an existing reply text.
 /*
 /*	Arguments:
 /* .IP buffer

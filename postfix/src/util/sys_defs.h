@@ -1547,6 +1547,9 @@ typedef int pid_t;
   * Bit banging!! There is no official constant that defines the INT_MAX
   * equivalent of the off_t type. Wietse came up with the following macro
   * that works as long as off_t is some two's complement number.
+  * 
+  * Note, however, that C99 permits signed integer representations other than
+  * two's complement.
   */
 #include <limits.h>
 #define __MAXINT__(T) ((T) (((((T) 1) << ((sizeof(T) * CHAR_BIT) - 1)) ^ ((T) -1))))

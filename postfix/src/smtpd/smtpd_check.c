@@ -1220,12 +1220,14 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 
 static int permit_auth_destination(SMTPD_STATE *state, char *recipient);
 
-/* permit_tls_clientcerts - OK/DUNNO for message relaying */
+/* permit_tls_clientcerts - OK/DUNNO for message relaying, or set dict_errno */
 
 static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 {
 #ifdef USE_TLS
     const char *found;
+
+    dict_errno = 0;
 
     if (!state->tls_context)
 	return SMTPD_CHECK_DUNNO;
@@ -1251,6 +1253,8 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	    msg_info("relay_clientcerts: No match for fingerprint '%s'",
 		     state->tls_context->peer_fingerprint);
     }
+#else
+    dict_errno = 0;
 #endif
     return (SMTPD_CHECK_DUNNO);
 }
@@ -3958,8 +3962,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);
+	    if (dict_errno != 0) 
+		reject_dict_retry(state, reply_name);
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 0);
+	    if (dict_errno != 0) 
+		reject_dict_retry(state, reply_name);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)
 		status = reject_unknown_address(state, state->recipient,
@@ -4106,13 +4114,19 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	}
 	if (strcasecmp(name, PERMIT_INET_INTERFACES) == 0) {
 	    status = permit_inet_interfaces(state);
+	    /* dict errors are fatal */
 	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
+	    /* dict errors are fatal */
 	} else if (is_map_command(state, name, CHECK_ADDR_MAP, &cpp)) {
 	    if ((dict = dict_handle(*cpp)) == 0)
 		msg_panic("%s: dictionary not found: %s", myname, *cpp);
+	    dict_errno = 0;
+	    /* for now, dict errors are fatal */
 	    if (dict_get(dict, state->addr) != 0)
 		status = SMTPD_CHECK_OK;
+	    else if (dict_errno != 0)
+		msg_fatal("%s: table lookup error", *cpp);
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
 	    if (smtpd_sasl_is_active(state))
@@ -4121,8 +4135,18 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);
+	    /* for now, dict errors are fatal */
+#ifdef USE_TLS
+	    if (dict_errno != 0)
+		msg_fatal("%s: table lookup error", var_smtpd_relay_ccerts);
+#endif
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 0);
+	    /* for now, dict errors are fatal */
+#ifdef USE_TLS
+	    if (dict_errno != 0)
+		msg_fatal("%s: table lookup error", var_smtpd_relay_ccerts);
+#endif
 	} else {
 	    msg_warn("parameter %s: invalid request: %s",
 		     VAR_LOC_RWR_CLIENTS, name);

@@ -922,21 +922,34 @@ named `test' with password `testpass'.
 You can use one of the following commands to generate base64 encoded
 authentication information:
 
-    % ggeenn--aauutthh ppllaaiinn
-    username: uusseerrnnaammee
-    password:
+  * Using a recent version of the bbaasshh shell:
 
-The ggeenn--aauutthh Perl script was written by John Jetmore and can be found at http:/
-/jetmore.org/john/code/gen-auth.
+        % eecchhoo --nnee ''\\000000uusseerrnnaammee\\000000ppaasssswwoorrdd'' || ooppeennssssll bbaassee6644
 
-    % pprriinnttff ''\\00uusseerrnnaammee\\00ppaasssswwoorrdd'' || mmmmeennccooddee
+    Some other shells support similar syntax.
 
-The mmmmeennccooddee command is part of the metamail software.
+  * Using the pprriinnttff command:
 
-    % ppeerrll --MMMMIIMMEE::::BBaassee6644 --ee \\
-        ''pprriinntt eennccooddee__bbaassee6644((""\\00uusseerrnnaammee\\00ppaasssswwoorrdd""));;''
+        % pprriinnttff ''\\00%%ss\\00%%ss'' ''uusseerrnnaammee'' ''ppaasssswwoorrdd'' || ooppeennssssll bbaassee6644
+        % pprriinnttff ''\\00%%ss\\00%%ss'' ''uusseerrnnaammee'' ''ppaasssswwoorrdd'' || mmmmeennccooddee
 
-MIME::Base64 is available from http://www.cpan.org/.
+    The mmmmeennccooddee command is part of the metamail software.
+
+  * Using Perl MMIIMMEE::::BBaassee6644:
+
+        % ppeerrll --MMMMIIMMEE::::BBaassee6644 --ee \\
+            ''pprriinntt eennccooddee__bbaassee6644((""\\00uusseerrnnaammee\\00ppaasssswwoorrdd""));;''
+
+    MIME::Base64 is available from http://www.cpan.org/.
+
+  * Using the ggeenn--aauutthh script:
+
+        % ggeenn--aauutthh ppllaaiinn
+        username: uusseerrnnaammee
+        password:
+
+    The ggeenn--aauutthh Perl script was written by John Jetmore and can be found at
+    http://jetmore.org/john/code/gen-auth.
 
 CCoonnffiigguurriinngg SSAASSLL aauutthheennttiiccaattiioonn iinn tthhee PPoossttffiixx SSMMTTPP//LLMMTTPP cclliieenntt
 
