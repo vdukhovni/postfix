@@ -696,7 +696,7 @@ extern int initgroups(const char *, int);
  /*
   * LINUX.
   */
-#ifdef LINUX2
+#if defined(LINUX2) || defined(LINUX3)
 #define SUPPORTED
 #include <sys/types.h>
 #define UINT32_TYPE	unsigned int

@@ -24,6 +24,7 @@ typedef void (*ABOUNCE_FN) (int, char *);
 extern void abounce_flush(int, const char *, const char *, const char *, const char *, const char *, int, ABOUNCE_FN, char *);
 extern void adefer_flush(int, const char *, const char *, const char *, const char *, const char *, int, ABOUNCE_FN, char *);
 extern void adefer_warn(int, const char *, const char *, const char *, const char *, const char *, int, ABOUNCE_FN, char *);
+extern void atrace_flush(int, const char *, const char *, const char *, const char *, const char *, int, ABOUNCE_FN, char *);
 
 extern void abounce_flush_verp(int, const char *, const char *, const char *, const char *, const char *, int, const char *, ABOUNCE_FN, char *);
 extern void adefer_flush_verp(int, const char *, const char *, const char *, const char *, const char *, int, const char *, ABOUNCE_FN, char *);
