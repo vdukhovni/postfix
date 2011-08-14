@@ -2001,12 +2001,12 @@ trace.o: rcpt_print.h
 trace.o: recipient_list.h
 trace.o: trace.c
 trace.o: trace.h
+user_acl.o: ../../include/dict_static.h
 user_acl.o: ../../include/match_list.h
 user_acl.o: ../../include/match_ops.h
 user_acl.o: ../../include/sys_defs.h
 user_acl.o: ../../include/vbuf.h
 user_acl.o: ../../include/vstring.h
-user_acl.o: mail_params.h
 user_acl.o: mypwd.h
 user_acl.o: string_list.h
 user_acl.o: user_acl.c

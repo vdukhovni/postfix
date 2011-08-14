@@ -302,8 +302,16 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Skip delivery when this recipient does not exist.
      */
-    if ((mbox_pwd = mypwnam(state.msg_attr.user)) == 0)
-	return (NO);
+    if ((errno = mypwnam_err(state.msg_attr.user, &mbox_pwd)) != 0) {
+        msg_warn("error looking up passwd info for %s: %m",
+                 state.msg_attr.user);
+        dsb_simple(state.msg_attr.why, "4.0.0", "user lookup error");
+        *statusp = defer_append(BOUNCE_FLAGS(state.request),
+                                BOUNCE_ATTR(state.msg_attr));
+        return (YES);
+    }
+    if (mbox_pwd == 0)
+        return (NO);
 
     /*
      * No early returns or we have a memory leak.

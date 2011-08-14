@@ -63,6 +63,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -218,8 +219,11 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 					    BOUNCE_ATTR(state.msg_attr));
 		    return (YES);
 		}
-		if ((alias_pwd = mypwuid(dict->owner.uid)) == 0) {
-		    msg_warn("cannot find alias database owner for %s", *cpp);
+		if ((errno = mypwuid_err(dict->owner.uid, &alias_pwd)) != 0
+		    || alias_pwd == 0) {
+		    msg_warn(errno ?
+			     "cannot find alias database owner for %s: %m" :
+			   "cannot find alias database owner for %s", *cpp);
 		    dsb_simple(state.msg_attr.why, "4.3.0",
 			       "cannot find alias database owner");
 		    *statusp = defer_append(BOUNCE_FLAGS(state.request),

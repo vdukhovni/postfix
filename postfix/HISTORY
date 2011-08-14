@@ -16850,3 +16850,34 @@ Apologies for any names omitted.
 	permit_tls_all_clientcerts, and check_address_map (the last
 	one is used in local_header_rewrite_clients only).  File:
 	smtpd/smtpd_check.c.
+
+20110729
+
+	Workaround: some getpwnam() and getpwuid() implementations
+	cause mail to bounce ("user unknown") after LDAP etc. lookup
+	error. Postfix now uses POSIX getpwnam_r() and getpwuid_r()
+	where available. Initially, this workaround supports FreeBSD,
+	Solaris and Linux. Files: makedefs, util/sys_defs.h,
+	global/mypwd.[hc], local/alias.c, local/dotforward.c,
+	local/include.c, local/mailbox.c, local/recipient.c.
+
+20110731
+
+	MacOS X 10.5 supports POSIX getpwnam_r() and getpwuid_r()
+	(source: MacOS manpages at www.freebsd.org). If MacOS turns
+	out to make a false promise, then we will undo this change.
+	Files: makedefs, util/sys_defs.h.
+
+20110810
+
+	Cleanup: optimize an optimization to avoid uid->name lookup
+	when all users are authorized with authorized_submit_users,
+	authorized_mailq_users, authorized_flush_users.  File:
+	global/user_acl.c.
+
+20110811
+
+	Workaround: report a {client_connections} Milter macro value
+	of zero instead of garbage, when the remote SMTP client is
+	excluded from connection count limits. Problem reported by
+	Christian Roessner. File: smtpd/smtpd_state,c,

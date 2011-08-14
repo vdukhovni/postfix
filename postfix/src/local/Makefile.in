@@ -191,6 +191,7 @@ dotforward.o: ../../include/argv.h
 dotforward.o: ../../include/attr.h
 dotforward.o: ../../include/been_here.h
 dotforward.o: ../../include/bounce.h
+dotforward.o: ../../include/defer.h
 dotforward.o: ../../include/deliver_request.h
 dotforward.o: ../../include/delivered_hdr.h
 dotforward.o: ../../include/dict.h

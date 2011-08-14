@@ -21,9 +21,9 @@ POSTCONF(1)                                                        POSTCONF(1)
        <b>postconf</b> [<b>-btv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>template</i><b>_</b><i>file</i>]
 
 <b>DESCRIPTION</b>
-       The <a href="postconf.1.html"><b>postconf</b>(1)</a> command displays the actual values of con-
-       figuration  parameters,  changes  configuration  parameter
-       values,  or displays other configuration information about
+       The  <a href="postconf.1.html"><b>postconf</b>(1)</a> command displays the values of configura-
+       tion parameters by default. It can also  change  parameter
+       values,  or  display other configuration information about
        the Postfix mail system.
 
        Options:
@@ -88,8 +88,8 @@ POSTCONF(1)                                                        POSTCONF(1)
               With  Postfix  version  2.8 and later, the <b>-e</b> is no
               longer needed.
 
-       <b>-h</b>     Show parameter values only, not the "<i>name =</i> " label
-              that normally precedes the value.
+       <b>-h</b>     Show parameter values  only;  do  not  prepend  the
+              "<i>name =</i> " label that normally precedes the value.
 
        <b>-l</b>     List  the  names  of  all supported mailbox locking
               methods.  Postfix supports the following methods:

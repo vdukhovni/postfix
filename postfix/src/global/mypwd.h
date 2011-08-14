@@ -5,7 +5,7 @@
 /* NAME
 /*	mypwnam 3h
 /* SUMMARY
-/*	caching getpwnam()/getpwuid()
+/*	caching getpwnam_r()/getpwuid_r()
 /* SYNOPSIS
 /*	#include <mypwd.h>
 /* DESCRIPTION
@@ -25,6 +25,8 @@ struct mypasswd {
     char   *pw_shell;
 };
 
+extern int mypwnam_err(const char *, struct mypasswd **);
+extern int mypwuid_err(uid_t, struct mypasswd **);
 extern struct mypasswd *mypwnam(const char *);
 extern struct mypasswd *mypwuid(uid_t);
 extern void mypwfree(struct mypasswd *);

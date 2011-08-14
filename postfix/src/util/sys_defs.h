@@ -28,6 +28,7 @@
     || defined(FREEBSD8) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
+    || defined(OPENBSD5) \
     || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
     || defined(NETBSD4) \
     || defined(EKKOBSD1)
@@ -187,6 +188,14 @@
 # endif
 #endif
 
+#ifndef NO_POSIX_GETPW_R
+# if (defined(__FreeBSD_version) && __FreeBSD_version >= 510000) \
+    || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 300000000) \
+    || (defined(OpenBSD) && OpenBSD >= 200811)	/* OpenBSD 4.4 */
+#  define HAVE_POSIX_GETPW_R
+# endif
+#endif
+
 #endif
 
  /*
@@ -234,6 +243,9 @@
 #ifndef NO_KQUEUE
 # define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
 # define USE_SYSV_POLL
+#endif
+#ifndef NO_POSIX_GETPW_R
+# define HAVE_POSIX_GETPW_R
 #endif
 
 #endif
@@ -442,6 +454,10 @@ extern int opterr;
 #define USE_SYSV_POLL
 #ifndef NO_DEVPOLL
 # define EVENTS_STYLE	EVENTS_STYLE_DEVPOLL
+#endif
+#ifndef NO_POSIX_GETPW_R
+# define HAVE_POSIX_GETPW_R
+# define GETPW_R_NEEDS_POSIX_PTHREAD_SEMANTICS
 #endif
 
 /*
@@ -772,6 +788,16 @@ extern int initgroups(const char *, int);
 # define EVENTS_STYLE	EVENTS_STYLE_EPOLL	/* introduced in 2.5 */
 #endif
 #define USE_SYSV_POLL
+#ifndef NO_POSIX_GETPW_R
+# if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) \
+	|| (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 1) \
+	|| (defined(_BSD_SOURCE) && _BSD_SOURCE >= 1) \
+	|| (defined(_SVID_SOURCE) && _SVID_SOURCE >= 1) \
+	|| (defined(_POSIX_SOURCE) && _POSIX_SOURCE >= 1)
+#  define HAVE_POSIX_GETPW_R
+# endif
+#endif
+
 #endif
 
 #ifdef LINUX1
@@ -1356,6 +1382,10 @@ extern int inet_pton(int, const char *, void *);
 typedef int WAIT_STATUS_T;
 
 #define NORMAL_EXIT_STATUS(status)	((status) == 0)
+#endif
+
+#ifdef NO_POSIX_GETPW_R
+#undef HAVE_POSIX_GETPW_R
 #endif
 
 #ifndef OCTAL_TO_UNSIGNED

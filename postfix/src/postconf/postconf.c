@@ -18,10 +18,10 @@
 /*
 /*	\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 /* DESCRIPTION
-/*	The \fBpostconf\fR(1) command displays the actual values
-/*	of configuration parameters, changes configuration parameter
-/*	values, or displays other configuration information about
-/*	the Postfix mail system.
+/*	The \fBpostconf\fR(1) command displays the values of
+/*	configuration parameters by default. It can also change
+/*	parameter values, or display other configuration information
+/*	about the Postfix mail system.
 /*
 /*	Options:
 /* .IP \fB-a\fR
@@ -77,8 +77,8 @@
 /*	With Postfix version 2.8 and later, the \fB-e\fR is no
 /*	longer needed.
 /* .IP \fB-h\fR
-/*	Show parameter values only, not the "\fIname = \fR" label
-/*	that normally precedes the value.
+/*	Show parameter values only; do not prepend the "\fIname =
+/*	\fR" label that normally precedes the value.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
 /*	Postfix supports the following methods:
