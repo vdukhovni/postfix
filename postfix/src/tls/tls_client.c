@@ -900,8 +900,15 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     sts = tls_bio_connect(vstream_fileno(props->stream), props->timeout,
 			  TLScontext);
     if (sts <= 0) {
-	msg_info("SSL_connect error to %s: %d", props->namaddr, sts);
-	tls_print_errors();
+	if (ERR_peek_error() != 0) {
+	    msg_info("SSL_connect error to %s: %d", props->namaddr, sts);
+	    tls_print_errors();
+	} else if (errno != 0) {
+	    msg_info("SSL_connect error to %s: %m", props->namaddr);
+	} else {
+	    msg_info("SSL_connect error to %s: lost connection",
+		     props->namaddr);
+	}
 	uncache_session(app_ctx->ssl_ctx, TLScontext);
 	tls_free_context(TLScontext);
 	return (0);

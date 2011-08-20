@@ -16879,5 +16879,35 @@ Apologies for any names omitted.
 
 	Workaround: report a {client_connections} Milter macro value
 	of zero instead of garbage, when the remote SMTP client is
-	excluded from connection count limits. Problem reported by
-	Christian Roessner. File: smtpd/smtpd_state,c,
+	not subject to any smtpd_client_* limits. Problem reported
+	by Christian Roessner. Files: smtpd/smtpd_state.c,
+	proto/MILTER_README.html.
+
+20110817
+
+	Cleanup: avoid misleading error messages after future code
+	change. The tls_bio_ops(3) module now returns non-zero errno
+	values only when requests fail due to a system-call error.
+	File: tls/tls_bio_ops.c.
+
+	Cleanup: TLS handshake error messages. The SMTP client and
+	server now report STARTTLS network errors as "connection
+	timed out", "connection reset by peer", etc., instead of
+	reporting TLS error number 0.  Files: tls/tls_bio_ops.c,
+	tls/tls_server.c, tls/tls_client.c.
+
+20110818
+
+	Cleanup: VSTREAM-over-TLS error return values, for robustness
+	against future change.  For consistency with VSTREAM internal
+	interfaces, the tls_stream(3) read/write routines now return
+	-1 instead of unspecified negative OpenSSL results.  File:
+	tls/tls_stream.c.
+
+20110819
+
+	Cleanup: further TLS code cleanups, for robustness against
+	future change.  Unexpected TLS errors are no longer silently
+	treated as ordinary errors, and one corner-case error in TLS
+	timeout handling was fixed before it could cause trouble.
+	File: tls/tls_bio_ops.c.

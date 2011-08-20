@@ -47,16 +47,17 @@ SMTPD(8)                                                              SMTPD(8)
        <a href="http://tools.ietf.org/html/rfc1123">RFC 1123</a> (Host requirements)
        <a href="http://tools.ietf.org/html/rfc1652">RFC 1652</a> (8bit-MIME transport)
        <a href="http://tools.ietf.org/html/rfc1869">RFC 1869</a> (SMTP service extensions)
-       <a href="http://tools.ietf.org/html/rfc1870">RFC 1870</a> (Message Size Declaration)
+       <a href="http://tools.ietf.org/html/rfc1870">RFC 1870</a> (Message size declaration)
        <a href="http://tools.ietf.org/html/rfc1985">RFC 1985</a> (ETRN command)
-       <a href="http://tools.ietf.org/html/rfc2034">RFC 2034</a> (SMTP Enhanced Status Codes)
+       <a href="http://tools.ietf.org/html/rfc2034">RFC 2034</a> (SMTP enhanced status codes)
        <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a> (AUTH command)
        <a href="http://tools.ietf.org/html/rfc2821">RFC 2821</a> (SMTP protocol)
-       <a href="http://tools.ietf.org/html/rfc2920">RFC 2920</a> (SMTP Pipelining)
+       <a href="http://tools.ietf.org/html/rfc2920">RFC 2920</a> (SMTP pipelining)
        <a href="http://tools.ietf.org/html/rfc3207">RFC 3207</a> (STARTTLS command)
-       <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a> (SMTP DSN Extension)
-       <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced Status Codes)
-       <a href="http://tools.ietf.org/html/rfc3848">RFC 3848</a> (ESMTP Transmission Types)
+       <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a> (SMTP DSN extension)
+       <a href="http://tools.ietf.org/html/rfc3463">RFC 3463</a> (Enhanced status codes)
+       <a href="http://tools.ietf.org/html/rfc3848">RFC 3848</a> (ESMTP transmission types)
+       <a href="http://tools.ietf.org/html/rfc4409">RFC 4409</a> (Message submission)
        <a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a> (AUTH command)
 
 <b>DIAGNOSTICS</b>
@@ -158,7 +159,7 @@ SMTPD(8)                                                              SMTPD(8)
        <b><a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a> (normal: no, overload: yes)</b>
               Change  the  behavior  of  the  <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a>  time
               limit, from a time limit per read or  write  system
-              call,  to  a time limit to read or write a complete
+              call, to a time limit to send or receive a complete
               record (an SMTP command line, SMTP  response  line,
               SMTP  message  content  line,  or TLS protocol mes-
               sage).
@@ -857,7 +858,7 @@ SMTPD(8)                                                              SMTPD(8)
        <b><a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a> (normal: no, overload: yes)</b>
               Change  the  behavior  of  the  <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a>  time
               limit,  from  a time limit per read or write system
-              call, to a time limit to read or write  a  complete
+              call, to a time limit to send or receive a complete
               record  (an  SMTP command line, SMTP response line,
               SMTP message content line,  or  TLS  protocol  mes-
               sage).

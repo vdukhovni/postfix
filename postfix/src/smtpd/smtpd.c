@@ -40,16 +40,17 @@
 /*	RFC 1123 (Host requirements)
 /*	RFC 1652 (8bit-MIME transport)
 /*	RFC 1869 (SMTP service extensions)
-/*	RFC 1870 (Message Size Declaration)
+/*	RFC 1870 (Message size declaration)
 /*	RFC 1985 (ETRN command)
-/*	RFC 2034 (SMTP Enhanced Status Codes)
+/*	RFC 2034 (SMTP enhanced status codes)
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
-/*	RFC 2920 (SMTP Pipelining)
+/*	RFC 2920 (SMTP pipelining)
 /*	RFC 3207 (STARTTLS command)
-/*	RFC 3461 (SMTP DSN Extension)
-/*	RFC 3463 (Enhanced Status Codes)
-/*	RFC 3848 (ESMTP Transmission Types)
+/*	RFC 3461 (SMTP DSN extension)
+/*	RFC 3463 (Enhanced status codes)
+/*	RFC 3848 (ESMTP transmission types)
+/*	RFC 4409 (Message submission)
 /*	RFC 4954 (AUTH command)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
@@ -131,8 +132,8 @@
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
 /*	Change the behavior of the smtpd_timeout time limit, from a
-/*	time limit per read or write system call, to a time limit to read
-/*	or write a complete record (an SMTP command line, SMTP response
+/*	time limit per read or write system call, to a time limit to send
+/*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
 /* ADDRESS REWRITING CONTROLS
 /* .ad
@@ -642,8 +643,8 @@
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
 /*	Change the behavior of the smtpd_timeout time limit, from a
-/*	time limit per read or write system call, to a time limit to read
-/*	or write a complete record (an SMTP command line, SMTP response
+/*	time limit per read or write system call, to a time limit to send
+/*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
 /* TARPIT CONTROLS
 /* .ad

@@ -704,8 +704,15 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     sts = tls_bio_accept(vstream_fileno(props->stream), props->timeout,
 			 TLScontext);
     if (sts <= 0) {
-	msg_info("SSL_accept error from %s: %d", props->namaddr, sts);
-	tls_print_errors();
+	if (ERR_peek_error() != 0) {
+	    msg_info("SSL_accept error from %s: %d", props->namaddr, sts);
+	    tls_print_errors();
+	} else if (errno != 0) {
+	    msg_info("SSL_accept error from %s: %m", props->namaddr);
+	} else {
+	    msg_info("SSL_accept error from %s: lost connection",
+		     props->namaddr);
+	}
 	tls_free_context(TLScontext);
 	return (0);
     }

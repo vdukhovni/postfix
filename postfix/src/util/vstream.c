@@ -266,9 +266,20 @@
 /* .IP "VSTREAM_CTL_READ_FN (ssize_t (*)(int, void *, size_t, int, void *))"
 /*	The argument specifies an alternative for the timed_read(3) function,
 /*	for example, a read function that performs decryption.
+/*	This function receives as arguments a file descriptor, buffer pointer,
+/*	buffer length, timeout value, and the VSTREAM's context value.
+/*	A timeout value <= 0 disables the time limit.
+/*	This function should return the positive number of bytes transferred,
+/*	0 upon EOF, and -1 upon error with errno set appropriately.
 /* .IP "VSTREAM_CTL_WRITE_FN (ssize_t (*)(int, void *, size_t, int, void *))"
 /*	The argument specifies an alternative for the timed_write(3) function,
 /*	for example, a write function that performs encryption.
+/*	This function receives as arguments a file descriptor, buffer pointer,
+/*	buffer length, timeout value, and the VSTREAM's context value.
+/*	A timeout value <= 0 disables the time limit.
+/*	This function should return the positive number of bytes transferred,
+/*	and -1 upon error with errno set appropriately. Instead of -1 it may
+/*	also return 0, e.g., upon remote party-initiated protocol shutdown.
 /* .IP "VSTREAM_CTL_CONTEXT (char *)"
 /*	The argument specifies application context that is passed on to
 /*	the application-specified read/write routines. No copy is made.
