@@ -556,7 +556,8 @@ login method </td> </tr>
 address </td> </tr>
 
 <tr> <td> {client_connections} </td> <td> CONNECT </td> <td>
-Connection concurrency for this client </td> </tr>
+Connection concurrency for this client (zero if the client is
+excluded from all smtpd_client_* limits). </td> </tr>
 
 <tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname
 <br> When address &rarr; name lookup or name &rarr; address
@@ -718,7 +719,7 @@ version 1.0.0 no longer includes the queue ID in the message header.
 </p>
 
 <p> To fix the ugly message header, you will need to add code that
-looks up the Postfix queue ID at some later point im time. The
+looks up the Postfix queue ID at some later point in time. The
 example below adds the lookup after the end-of-message.  </p>
 
 <ul>
