@@ -699,6 +699,13 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
      * When flushing a buffer, allow for partial writes. These can happen
      * while talking to a network. Update the cached file seek position, if
      * any.
+     * 
+     * When deadlines are enabled, we count the elapsed time for each write
+     * operation instead of simply comparing the time-of-day clock with a
+     * per-stream deadline. The latter could result in anomalies when an
+     * application does lengthy processing between write operations. Keep in
+     * mind that a receiver may not be able to keep up when a sender suddenly
+     * floods it with a lot of data as it tries to catch up with a deadline.
      */
     for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
 	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
@@ -852,6 +859,14 @@ static int vstream_buf_get_ready(VBUF *bp)
      * Fill the buffer with as much data as we can handle, or with as much
      * data as is available right now, whichever is less. Update the cached
      * file seek position, if any.
+     * 
+     * When deadlines are enabled, we count the elapsed time for each read
+     * operation instead of simply comparing the time-of-day clock with a
+     * per-stream deadline. The latter could result in anomalies when an
+     * application does lengthy processing between read operations. Keep in
+     * mind that a sender may get blocked, and may not be able to keep up
+     * when a receiver suddenly wants to read a lot of data as it tries to
+     * catch up with a deadline.
      */
     if (bp->flags & VSTREAM_FLAG_DEADLINE) {
 	timeout = stream->time_limit.tv_sec + (stream->time_limit.tv_usec > 0);

@@ -13046,7 +13046,9 @@ uses a generic enhanced status code (X.0.0) instead. </p>
 
 <p> Specify the name of a "type:table" lookup table. The search
 string is a single SMTP reply line as received from the remote SMTP
-server, except that the trailing &lt;CR&gt;&lt;LF&gt; are removed.  </p>
+server, except that the trailing &lt;CR&gt;&lt;LF&gt; are removed.
+When the lookup succeeds, the result replaces the single SMTP reply
+line. </p>
 
 <p> Examples: </p>
 

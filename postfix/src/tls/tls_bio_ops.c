@@ -159,16 +159,14 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
     int     status;
     int     err;
     int     enable_deadline;
-    struct timeval time_limit;		/* initial time limit */
     struct timeval time_left;		/* amount of time left */
-    struct timeval time_entry;		/* time of tls_bio() entry */
+    struct timeval time_deadline;	/* time of deadline */
     struct timeval time_now;		/* time after SSL_mumble() call */
-    struct timeval time_elapsed;	/* total elapsed time */
 
     /*
      * Compensation for interface mis-match: With VSTREAMs, timeout <= 0
-     * means wait forever; with the read/write_wait() calls below, we need
-     * to specify timeout < 0 instead.
+     * means wait forever; with the read/write_wait() calls below, we need to
+     * specify timeout < 0 instead.
      * 
      * Safety: no time limit means no deadline.
      */
@@ -186,9 +184,8 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	enable_deadline =
 	    vstream_fstat(TLScontext->stream, VSTREAM_FLAG_DEADLINE);
 	if (enable_deadline) {
-	    time_limit.tv_sec = timeout;
-	    time_limit.tv_usec = 0;
-	    GETTIMEOFDAY(&time_entry);
+	    GETTIMEOFDAY(&time_deadline);
+	    time_deadline.tv_sec += timeout;
 	}
     }
 
@@ -276,8 +273,7 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	case SSL_ERROR_WANT_READ:
 	    if (enable_deadline) {
 		GETTIMEOFDAY(&time_now);
-		timersub(&time_now, &time_entry, &time_elapsed);
-		timersub(&time_limit, &time_elapsed, &time_left);
+		timersub(&time_deadline, &time_now, &time_left);
 		timeout = time_left.tv_sec + (time_left.tv_usec > 0);
 		if (timeout <= 0) {
 		    errno = ETIMEDOUT;

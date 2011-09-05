@@ -40,6 +40,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -100,7 +101,8 @@ int     vstream_tweak_tcp(VSTREAM *fp)
      * whatever value was stored last with setsockopt()).
      */
     if ((err = getsockopt(vstream_fileno(fp), IPPROTO_TCP, TCP_MAXSEG,
-			  (char *) &mss, &mss_len)) < 0) {
+			  (char *) &mss, &mss_len)) < 0
+	&& errno != ECONNRESET) {
 	msg_warn("%s: getsockopt TCP_MAXSEG: %m", myname);
 	return (err);
     }
@@ -131,7 +133,8 @@ int     vstream_tweak_tcp(VSTREAM *fp)
 	int     nodelay = 1;
 
 	if ((err = setsockopt(vstream_fileno(fp), IPPROTO_TCP, TCP_NODELAY,
-			      (char *) &nodelay, sizeof(nodelay))) < 0)
+			      (char *) &nodelay, sizeof(nodelay))) < 0
+	    && errno != ECONNRESET)
 	    msg_warn("%s: setsockopt TCP_NODELAY: %m", myname);
     }
 #endif

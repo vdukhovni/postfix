@@ -16911,3 +16911,30 @@ Apologies for any names omitted.
 	treated as ordinary errors, and one corner-case error in TLS
 	timeout handling was fixed before it could cause trouble.
 	File: tls/tls_bio_ops.c.
+
+20110821-24
+
+	Cleanup: simplified the TLS read/write deadline implementation,
+	and documented why this same simplification is not possible
+	higher-up, at the VSTREAM level. Files: tls/tls_bio_ops.c,
+	util/vstream.c.
+
+20110831
+
+	Bugfix: allow for Milters that send an SMTP server reply
+	without RFC 3463 enhanced status code. Reported by Vladimir
+	Vassiliev.  File: milter/milter8.c.
+
+20110902
+
+	Cleanup: don't log vstream_tweak "connection reset by peer"
+	errors. File: util/vstream_tweak.c.
+
+20110903
+
+	Bugfix: master daemon panic with an "at process limit X"
+	error, when "postfix reload" reduced the process limit for
+	some Postfix service from (a value larger than the current
+	process count for that service) to (a value <= the current
+	process count), and then a new connection was made to that
+	service.  File: master/master_avail.c.

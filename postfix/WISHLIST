@@ -6,6 +6,9 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Investigate viability of Sendmail socket maps (the moral
+	equivalent of tcp_table(5)), and dns maps.
+
 	Make the rules for how to use close-on-exec more explicit.
 
 	Add SASL / TLS note to BASIC_CONFIGURATION_README.html#relay_from.
@@ -291,9 +294,6 @@ Wish list:
 
 	Find a place to document all the mail routing mechanisms
 	in one place so people can figure out how Postfix works.
-
-	Investigate viability of Sendmail socket maps (the moral
-	equivalent of tcp_table(5)), and dns maps.
 
 	The access map BCC action is marked "not stable", perhaps
 	because people would also expect BCC actions in header/body_checks.
