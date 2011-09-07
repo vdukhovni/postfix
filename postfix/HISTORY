@@ -16930,11 +16930,16 @@ Apologies for any names omitted.
 	Cleanup: don't log vstream_tweak "connection reset by peer"
 	errors. File: util/vstream_tweak.c.
 
-20110903
+20110904-7
 
-	Bugfix: master daemon panic with an "at process limit X"
-	error, when "postfix reload" reduced the process limit for
-	some Postfix service from (a value larger than the current
-	process count for that service) to (a value <= the current
-	process count), and then a new connection was made to that
-	service.  File: master/master_avail.c.
+	Bugfix: master daemon panic with "master_spawn: at process
+	limit", when "postfix reload" reduces the process limit
+	from (a value larger than the current process count for
+	some service) to (a value <= the current process count),
+	and then a new connection is made to that service. This
+	structural solution centralizes the decision to monitor a
+	service port (or not). To improve robustness against future
+	code changes, it clarifies some of the internal dependencies
+	that exist inside the master daemon.  Files: master/master.h,
+	master/master_avail.c, master/master_conf.c,
+	master/master_service.c, master/master_spawn.c.

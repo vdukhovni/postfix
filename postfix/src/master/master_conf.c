@@ -135,7 +135,7 @@ void    master_config(void)
 	    SWAP(char *, serv->path, entry->path);
 	    SWAP(ARGV *, serv->args, entry->args);
 	    SWAP(char *, serv->stress_param_val, entry->stress_param_val);
-	    master_restart_service(serv);
+	    master_restart_service(serv, DO_CONF_RELOAD);
 	    free_master_ent(entry);
 	}
     }
