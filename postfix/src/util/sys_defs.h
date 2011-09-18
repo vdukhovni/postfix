@@ -1337,10 +1337,15 @@ extern int inet_pton(int, const char *, void *);
 #endif
 
  /*
-  * Defaults for all systems.
+  * The Postfix 2.9 post-install workaround assumes that the inet_protocols
+  * default value is "ipv4" when Postfix is compiled without IPv6 support.
   */
 #ifndef DEF_INET_PROTOCOLS
-#define DEF_INET_PROTOCOLS	"ipv4"
+#ifdef HAS_IPV6
+#define DEF_INET_PROTOCOLS	INET_PROTO_NAME_ALL
+#else
+#define DEF_INET_PROTOCOLS	INET_PROTO_NAME_IPV4
+#endif
 #endif
 
  /*

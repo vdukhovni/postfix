@@ -158,7 +158,8 @@ char   *mymalloc(ssize_t len)
     len += MYMALLOC_FUZZ;
 #endif
     if ((real_ptr = (MBLOCK *) malloc(SPACE_FOR(len))) == 0)
-	msg_fatal("mymalloc: insufficient memory: %m");
+	msg_fatal("mymalloc: insufficient memory for %ld bytes: %m",
+		  (long) len);
     CHECK_OUT_PTR(ptr, real_ptr, len);
     memset(ptr, FILLER, len);
     return (ptr);
@@ -188,7 +189,8 @@ char   *myrealloc(char *ptr, ssize_t len)
 #endif
     CHECK_IN_PTR(ptr, real_ptr, old_len, "myrealloc");
     if ((real_ptr = (MBLOCK *) realloc((char *) real_ptr, SPACE_FOR(len))) == 0)
-	msg_fatal("myrealloc: insufficient memory: %m");
+	msg_fatal("myrealloc: insufficient memory for %ld bytes: %m",
+		  (long) len);
     CHECK_OUT_PTR(ptr, real_ptr, len);
     if (len > old_len)
 	memset(ptr + old_len, FILLER, len - old_len);

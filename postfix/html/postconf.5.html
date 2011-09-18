@@ -3473,13 +3473,20 @@ Examples:
 </DD>
 
 <DT><b><a name="inet_protocols">inet_protocols</a>
-(default: ipv4)</b></DT><DD>
+(default: all)</b></DT><DD>
 
 <p> The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
 or "ipv6", separated by whitespace or commas. The form
 "all" is equivalent to "ipv4, ipv6" or "ipv4", depending
 on whether the operating system implements IPv6. </p>
+
+<p> With Postfix 2.8 and earlier the default is "ipv4". For backwards
+compatibility with these releases, the Postfix 2.9 and later upgrade
+procedure appends an explicit "<a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv4" setting to
+<a href="postconf.5.html">main.cf</a> when no explicit setting is present. This compatibility
+workaround will be phased out as IPv6 deployment becomes more common.
+</p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
@@ -3494,7 +3501,7 @@ IPv6 and IPv4, and each will accept only connections for the
 corresponding protocol.  </p>
 
 <p> When IPv4 support is enabled via the <a href="postconf.5.html#inet_protocols">inet_protocols</a> parameter,
-Postfix will to DNS type A record lookups, and will convert
+Postfix will do DNS type A record lookups, and will convert
 IPv4-in-IPv6 client IP addresses (::ffff:1.2.3.4) to their original
 IPv4 form (1.2.3.4).  The latter is needed on hosts that pre-date
 IPV6_V6ONLY support (<a href="http://tools.ietf.org/html/rfc3493">RFC 3493</a>). </p>
@@ -3511,8 +3518,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv4 (DEFAULT)
-<a href="postconf.5.html#inet_protocols">inet_protocols</a> = all
+<a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv4
+<a href="postconf.5.html#inet_protocols">inet_protocols</a> = all (DEFAULT)
 <a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv6
 <a href="postconf.5.html#inet_protocols">inet_protocols</a> = ipv4, ipv6
 </pre>
@@ -8979,12 +8986,13 @@ This feature is available in Postfix 2.0 and later.
 </DD>
 
 <DT><b><a name="smtp_address_preference">smtp_address_preference</a>
-(default: ipv6)</b></DT><DD>
+(default: any)</b></DT><DD>
 
 <p> The address type ("ipv6", "ipv4" or "any") that the Postfix
 SMTP client will try first, when a destination has IPv6 and IPv4
 addresses with equal MX preference. This feature has no effect
-unless the <a href="postconf.5.html#inet_protocols">inet_protocols</a> setting enables both IPv4 and IPv6.  </p>
+unless the <a href="postconf.5.html#inet_protocols">inet_protocols</a> setting enables both IPv4 and IPv6.
+With Postfix 2.8 the default is "ipv6".  </p>
 
 <p> This feature is available in Postfix 2.8 and later.  </p>
 

@@ -821,6 +821,8 @@ static void cleanup_message_headerbody(CLEANUP_STATE *state, int type,
     /*
      * Strip unwanted characters. Don't overwrite the input.
      * 
+     * XXX Possible space+time optimization: use a bitset.
+     * 
      * XXX Possible optimization: simplify the loop when the "strip" set
      * contains only one character.
      * 

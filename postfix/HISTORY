@@ -16943,3 +16943,33 @@ Apologies for any names omitted.
 	that exist inside the master daemon.  Files: master/master.h,
 	master/master_avail.c, master/master_conf.c,
 	master/master_service.c, master/master_spawn.c.
+
+20110911
+
+	Debugging: report the request size when memory allocation
+	fails.  File util/mymalloc.c.
+
+20110914
+
+	Incompatibility: the default inet_protocols value is now
+	"all" instead of "ipv4", meaning use both IPv4 and IPv6.
+	As a compatibility workaround for sites without global IPv6
+	connectivity, the commands "make upgrade" and "postfix
+	upgrade-configuration" append "inet_protocols = ipv4" to
+	main.cf when no explicit setting is present.  This compatibility
+	workaround will be phased out in a future release.  Files:
+	global/mail_params.h, conf/post-install, proto/postconf.proto.
+
+	Incompatibility: the default smtp_address_preference value
+	is now "any" instead of "ipv6", meaning choose randomly
+	between IPv6 and IPv4.  With this the Postfix SMTP client
+	will have more success delivering mail to sites that have
+	problematic IPv6 configurations.  Files: global/mail_params.h,
+	proto/postconf.proto.
+
+20110918
+
+	Workaround for multiple ancient FreeBSD getsockopt() bugs
+	after non-blocking connect fails with 'host unreachable'
+	that resulted in a unreasonable memory allocation request.
+	File: util/vstream_tweak.c.

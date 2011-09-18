@@ -3148,7 +3148,7 @@ extern char *var_smtp_body_chks;
 
 #define VAR_SMTP_ADDR_PREF	"smtp_address_preference"
 #ifdef HAS_IPV6
-#define DEF_SMTP_ADDR_PREF	INET_PROTO_NAME_IPV6
+#define DEF_SMTP_ADDR_PREF	INET_PROTO_NAME_ANY
 #else
 #define DEF_SMTP_ADDR_PREF	INET_PROTO_NAME_IPV4
 #endif

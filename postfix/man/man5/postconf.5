@@ -1964,12 +1964,18 @@ inet_interfaces = 192.168.1.2, 127.0.0.1
 .fi
 .ad
 .ft R
-.SH inet_protocols (default: ipv4)
+.SH inet_protocols (default: all)
 The Internet protocols Postfix will attempt to use when making
 or accepting connections. Specify one or more of "ipv4"
 or "ipv6", separated by whitespace or commas. The form
 "all" is equivalent to "ipv4, ipv6" or "ipv4", depending
 on whether the operating system implements IPv6.
+.PP
+With Postfix 2.8 and earlier the default is "ipv4". For backwards
+compatibility with these releases, the Postfix 2.9 and later upgrade
+procedure appends an explicit "inet_protocols = ipv4" setting to
+main.cf when no explicit setting is present. This compatibility
+workaround will be phased out as IPv6 deployment becomes more common.
 .PP
 This feature is available in Postfix 2.2 and later.
 .PP
@@ -1984,7 +1990,7 @@ IPv6 and IPv4, and each will accept only connections for the
 corresponding protocol.
 .PP
 When IPv4 support is enabled via the inet_protocols parameter,
-Postfix will to DNS type A record lookups, and will convert
+Postfix will do DNS type A record lookups, and will convert
 IPv4-in-IPv6 client IP addresses (::ffff:1.2.3.4) to their original
 IPv4 form (1.2.3.4).  The latter is needed on hosts that pre-date
 IPV6_V6ONLY support (RFC 3493).
@@ -2001,8 +2007,8 @@ Examples:
 .nf
 .na
 .ft C
-inet_protocols = ipv4 (DEFAULT)
-inet_protocols = all
+inet_protocols = ipv4
+inet_protocols = all (DEFAULT)
 inet_protocols = ipv6
 inet_protocols = ipv4, ipv6
 .fi
@@ -5213,11 +5219,12 @@ The name of the \fBshowq\fR(8) service. This service produces mail queue
 status reports.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH smtp_address_preference (default: ipv6)
+.SH smtp_address_preference (default: any)
 The address type ("ipv6", "ipv4" or "any") that the Postfix
 SMTP client will try first, when a destination has IPv6 and IPv4
 addresses with equal MX preference. This feature has no effect
 unless the inet_protocols setting enables both IPv4 and IPv6.
+With Postfix 2.8 the default is "ipv6".
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH smtp_always_send_ehlo (default: yes)

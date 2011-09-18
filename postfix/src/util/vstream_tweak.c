@@ -86,7 +86,7 @@ int     vstream_tweak_sock(VSTREAM *fp)
 int     vstream_tweak_tcp(VSTREAM *fp)
 {
     const char *myname = "vstream_tweak_tcp";
-    int     mss;
+    int     mss = 0;
     SOCKOPT_SIZE mss_len = sizeof(mss);
     int     err;
 
@@ -99,6 +99,11 @@ int     vstream_tweak_tcp(VSTREAM *fp)
      * Instead we ask the kernel what the current MSS is, and take appropriate
      * action. Linux <= 2.2 getsockopt(TCP_MAXSEG) always returns zero (or
      * whatever value was stored last with setsockopt()).
+     * 
+     * Some ancient FreeBSD kernels don't report 'host unreachable' errors with
+     * getsockopt(SO_ERROR), and then treat getsockopt(TCP_MAXSEG) as a NOOP,
+     * leaving the mss parameter value unchanged. To work around these two
+     * getsockopt() bugs we set mss = 0, which is a harmless value.
      */
     if ((err = getsockopt(vstream_fileno(fp), IPPROTO_TCP, TCP_MAXSEG,
 			  (char *) &mss, &mss_len)) < 0
