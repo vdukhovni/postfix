@@ -1990,7 +1990,7 @@ IPv6 and IPv4, and each will accept only connections for the
 corresponding protocol.
 .PP
 When IPv4 support is enabled via the inet_protocols parameter,
-Postfix will do DNS type A record lookups, and will convert
+Postfix will look up DNS type A records, and will convert
 IPv4-in-IPv6 client IP addresses (::ffff:1.2.3.4) to their original
 IPv4 form (1.2.3.4).  The latter is needed on hosts that pre-date
 IPV6_V6ONLY support (RFC 3493).
@@ -3886,6 +3886,7 @@ Example:
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks,
 		cidr:/etc/postfix/postscreen_access.cidr
+    postscreen_blacklist_action = enforce
 .fi
 .ad
 .ft R

@@ -114,7 +114,7 @@
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The network interface addresses that this mail system receives
 /*	mail on.
-/* .IP "\fBinet_protocols (ipv4)\fR"
+/* .IP "\fBinet_protocols (all)\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"

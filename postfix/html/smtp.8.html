@@ -300,7 +300,7 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a> (no)</b>
               Change the behavior of the smtp_*_timeout time lim-
               its, from a time limit per  read  or  write  system
-              call,  to  a time limit to read or write a complete
+              call, to a time limit to send or receive a complete
               record (an SMTP command line, SMTP  response  line,
               SMTP  message  content  line,  or TLS protocol mes-
               sage).
@@ -707,7 +707,7 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a> (no)</b>
               Change the behavior of the smtp_*_timeout time lim-
               its,  from  a  time  limit per read or write system
-              call, to a time limit to read or write  a  complete
+              call, to a time limit to send or receive a complete
               record  (an  SMTP command line, SMTP response line,
               SMTP message content line,  or  TLS  protocol  mes-
               sage).
@@ -765,7 +765,7 @@ SMTP(8)                                                                SMTP(8)
               The network interface addresses that this mail sys-
               tem receives mail on.
 
-       <b><a href="postconf.5.html#inet_protocols">inet_protocols</a> (ipv4)</b>
+       <b><a href="postconf.5.html#inet_protocols">inet_protocols</a> (all)</b>
               The  Internet protocols Postfix will attempt to use
               when making or accepting connections.
 
@@ -806,7 +806,7 @@ SMTP(8)                                                                SMTP(8)
               tem receives mail on by way of a proxy  or  network
               address translation unit.
 
-       <b><a href="postconf.5.html#smtp_address_preference">smtp_address_preference</a> (ipv6)</b>
+       <b><a href="postconf.5.html#smtp_address_preference">smtp_address_preference</a> (any)</b>
               The address type ("ipv6", "ipv4" or "any") that the
               Postfix SMTP client will try first, when a destina-
               tion  has  IPv6  and  IPv4  addresses with equal MX

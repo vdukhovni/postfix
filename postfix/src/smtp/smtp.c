@@ -238,8 +238,8 @@
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtp_per_record_deadline (no)\fR"
 /*	Change the behavior of the smtp_*_timeout time limits, from a
-/*	time limit per read or write system call, to a time limit to read
-/*	or write a complete record (an SMTP command line, SMTP response
+/*	time limit per read or write system call, to a time limit to send
+/*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
 /* MIME PROCESSING CONTROLS
 /* .ad
@@ -524,8 +524,8 @@
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtp_per_record_deadline (no)\fR"
 /*	Change the behavior of the smtp_*_timeout time limits, from a
-/*	time limit per read or write system call, to a time limit to read
-/*	or write a complete record (an SMTP command line, SMTP response
+/*	time limit per read or write system call, to a time limit to send
+/*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
@@ -567,7 +567,7 @@
 /* .IP "\fBinet_interfaces (all)\fR"
 /*	The network interface addresses that this mail system receives
 /*	mail on.
-/* .IP "\fBinet_protocols (ipv4)\fR"
+/* .IP "\fBinet_protocols (all)\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBipc_timeout (3600s)\fR"
@@ -592,7 +592,7 @@
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
-/* .IP "\fBsmtp_address_preference (ipv6)\fR"
+/* .IP "\fBsmtp_address_preference (any)\fR"
 /*	The address type ("ipv6", "ipv4" or "any") that the Postfix
 /*	SMTP client will try first, when a destination has IPv6 and IPv4
 /*	addresses with equal MX preference.

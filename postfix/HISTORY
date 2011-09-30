@@ -16973,3 +16973,18 @@ Apologies for any names omitted.
 	after non-blocking connect fails with 'host unreachable'
 	that resulted in a unreasonable memory allocation request.
 	File: util/vstream_tweak.c.
+
+20110921
+
+	Bugfix (introduced: Postfix 1.1): smtpd(8) did not sanitize
+	newline characters in cleanup(8) REJECT messages, causing
+	them to be sent out via SMTP as bare newline characters.
+	This happened when a REJECT pattern matched multi-line
+	header text.  Discovered by Kevin Locke.  File: smtpd/smtpd.c.
+
+20110922
+
+	Bugfix (introduced: Postfix 2.1): smtpd(8) sent multi-line
+	responses from a before-queue content filter as text with
+	bare <LF> instead of <CR><LF>.  Found during code maintenance.
+	File: smtpd/smtpd_proxy.c.

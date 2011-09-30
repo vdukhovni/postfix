@@ -11,7 +11,9 @@ Wish list:
 
 	Make the rules for how to use close-on-exec more explicit.
 
-	Add SASL / TLS note to BASIC_CONFIGURATION_README.html#relay_from.
+	Provide separate timeout control for dict_proxy client,
+	rewrite client, resolve client, cleanup client, and so on.
+	Perhaps a timeout argument to the mail_connect() routines.
 
 	Trick from amavisd: save listen socket/fifo/etc state, clear
 	their close-on-exec flags, exec the same program file to

@@ -535,7 +535,7 @@
 /* .IP "\fBproxy_interfaces (empty)\fR"
 /*	The network interface addresses that this mail system receives mail
 /*	on by way of a proxy or network address translation unit.
-/* .IP "\fBinet_protocols (ipv4)\fR"
+/* .IP "\fBinet_protocols (all)\fR"
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBlocal_recipient_maps (proxy:unix:passwd.byname $alias_maps)\fR"
@@ -3057,6 +3057,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (state->err == 0) {
 	    why = vstring_alloc(10);
 	    state->err = mail_stream_finish(state->dest, why);
+	    printable(STR(why), ' ');
 	} else
 	    mail_stream_cleanup(state->dest);
 	state->dest = 0;
