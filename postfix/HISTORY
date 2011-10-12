@@ -16958,7 +16958,7 @@ Apologies for any names omitted.
 	upgrade-configuration" append "inet_protocols = ipv4" to
 	main.cf when no explicit setting is present.  This compatibility
 	workaround will be phased out in a future release.  Files:
-	global/mail_params.h, conf/post-install, proto/postconf.proto.
+	util/sys_defs.h, conf/post-install, proto/postconf.proto.
 
 	Incompatibility: the default smtp_address_preference value
 	is now "any" instead of "ipv6", meaning choose randomly
@@ -16988,3 +16988,19 @@ Apologies for any names omitted.
 	responses from a before-queue content filter as text with
 	bare <LF> instead of <CR><LF>.  Found during code maintenance.
 	File: smtpd/smtpd_proxy.c.
+
+20111011
+
+	Cleanup: for consistency with the SMTP standard, the
+	smtp_line_length_limit default value was increased from 990
+	characters to 998 (i.e. 1000 characters including <CR><LF>).
+	File: global/mail_params.h, proto/postconf.proto.
+
+	Cleanup: the Postfix sendmail command now always transforms
+	all input lines ending in <CR><LF> into UNIX format (lines
+	ending in <LF>).  This simplifies integration with third-party
+	mail generating applications. Specify "sendmail_fix_line_endings
+	= strict" to restore historical Postfix behavior (i.e. convert
+	all input lines ending in <CR><LF> only if the first input
+	line ends in <CR><LF>).  Files: sendmail/sendmail.c,
+	global/mail_params.h, proto/postconf.proto.

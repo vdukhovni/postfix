@@ -6,8 +6,25 @@ Wish list:
 
 	Things to do after the stable release:
 
+	TLS_README has the priorities reversed. The section about
+	SMTP client settings begins with an exposition about client
+	certificates, which almost no-one needs. Instead, the text
+	should first explain how to turn on opportunistic TLS. After
+	that, it can discuss the gory details of higher security
+	levels for the few people who need it.
+
+	Investigate viability of memcached for applications
+	that require performance for low-security operations
+	such as sharing the postscreen cache.
+
 	Investigate viability of Sendmail socket maps (the moral
 	equivalent of tcp_table(5)), and dns maps.
+
+	Check if FILTER_README has the "postsuper -r" workaround
+
+	Bounces without <> in the plaintext section. Apparently,
+	some software renders the text as HTML (and therefore 
+	does not render addresses and other text inside <> ).
 
 	Make the rules for how to use close-on-exec more explicit.
 

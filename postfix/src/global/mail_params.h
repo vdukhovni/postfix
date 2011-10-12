@@ -1080,9 +1080,9 @@ extern char *var_smtp_helo_name;
 extern bool var_smtp_rand_addr;
 
 #define VAR_SMTP_LINE_LIMIT	"smtp_line_length_limit"
-#define DEF_SMTP_LINE_LIMIT	990
+#define DEF_SMTP_LINE_LIMIT	998
 #define VAR_LMTP_LINE_LIMIT	"lmtp_line_length_limit"
-#define DEF_LMTP_LINE_LIMIT	990
+#define DEF_LMTP_LINE_LIMIT	998
 extern int var_smtp_line_limit;
 
 #define VAR_SMTP_PIX_THRESH	"smtp_pix_workaround_threshold_time"
@@ -3594,6 +3594,17 @@ extern bool var_smtpd_rec_deadline;
 #define VAR_LMTP_REC_DEADLINE	"lmtp_per_record_deadline"
 #define DEF_LMTP_REC_DEADLINE	0
 extern bool var_smtp_rec_deadline;
+
+ /*
+  * Postfix sendmail command compatibility features.
+  */
+#define SM_FIX_EOL_STRICT	"strict"
+#define SM_FIX_EOL_NEVER	"never"
+#define SM_FIX_EOL_ALWAYS	"always"
+
+#define VAR_SM_FIX_EOL		"sendmail_fix_line_endings"
+#define DEF_SM_FIX_EOL		SM_FIX_EOL_ALWAYS
+extern char *var_sm_fix_eol;
 
 /* LICENSE
 /* .ad

@@ -4130,18 +4130,21 @@ mechanism).  </dd>
 This feature is available in Postfix 2.1 and later.
 </p>
 
-%PARAM smtp_line_length_limit 990
+%PARAM smtp_line_length_limit 998
 
 <p>
 The maximal length of message header and body lines that Postfix
-will send via SMTP.  Longer lines are broken by inserting
-"&lt;CR&gt;&lt;LF&gt;&lt;SPACE&gt;". This minimizes the damage to
-MIME formatted mail.
+will send via SMTP. This limit does not include the &lt;CR&gt;&lt;LF&gt;
+at the end of each line.  Longer lines are broken by inserting
+"&lt;CR&gt;&lt;LF&gt;&lt;SPACE&gt;", to minimize the damage to MIME
+formatted mail.
 </p>
 
 <p>
-By default, the line length is limited to 990 characters, because
-some server implementations cannot receive mail with long lines.
+The Postfix limit of 998 characters not including &lt;CR&gt;&lt;LF&gt;
+is consistent with the SMTP limit of 1000 characters including
+&lt;CR&gt;&lt;LF&gt;.  The Postfix limit was 990 with Postfix 2.8
+and earlier.
 </p>
 
 %PARAM smtp_mail_timeout 300s
@@ -14204,3 +14207,28 @@ are required to convert long queue file names into short names: </p>
 name changes. </p>
 
 <p> This feature is available in Postfix 2.9 and later.  </p>
+
+%PARAM sendmail_fix_line_endings always
+
+<p> Controls how the Postfix sendmail command converts email message
+line endings from &lt;CR&gt;&lt;LF&gt; into UNIX format (&lt;LF&gt;).
+</p>
+
+<dl>
+
+<dt> <b>always</b> </dt> <dd> Always convert message lines ending
+in &lt;CR&gt;&lt;LF&gt;. This setting is the default with Postfix
+2.9 and later. </dd>
+
+<dt> <b>strict</b> </dt> <dd> Convert message lines ending in
+&lt;CR&gt;&lt;LF&gt; only if the first input line ends in
+&lt;CR&gt;&lt;LF&gt;. This setting is backwards-compatible with
+Postfix 2.8 and earlier. </dd>
+
+<dt> <b>never</b> </dt> <dd> Never convert message lines ending in
+&lt;CR&gt;&lt;LF&gt;. This setting exists for completeness only.
+</dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.9 and later. </p>

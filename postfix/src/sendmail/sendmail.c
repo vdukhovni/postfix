@@ -260,6 +260,12 @@
 /*	this program.
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.
+/* COMPATIBILITY CONTROLS
+/* .ad
+/* .fi
+/* .IP "\fBsendmail_fix_line_endings (always)\fR"
+/*	Controls how the Postfix sendmail command converts email message
+/*	line endings from <CR><LF> into UNIX format (<LF>).
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -429,6 +435,7 @@
 #include <set_ugid.h>
 #include <connect.h>
 #include <split_at.h>
+#include <name_code.h>
 
 /* Global library. */
 
@@ -494,12 +501,14 @@ typedef struct SM_STATE {
 } SM_STATE;
 
  /*
-  * Mail submission ACL
+  * Mail submission ACL, line-end fixing.
   */
 char   *var_submit_acl;
+char   *var_sm_fix_eol;
 
 static const CONFIG_STR_TABLE str_table[] = {
     VAR_SUBMIT_ACL, DEF_SUBMIT_ACL, &var_submit_acl, 0, 0,
+    VAR_SM_FIX_EOL, DEF_SM_FIX_EOL, &var_sm_fix_eol, 1, 0,
     0,
 };
 
@@ -603,7 +612,7 @@ static void enqueue(const int flags, const char *encoding,
     TOK822 *tp;
     int     rcpt_count = 0;
     enum {
-	STRIP_CR_DUNNO, STRIP_CR_DO, STRIP_CR_DONT
+	STRIP_CR_DUNNO, STRIP_CR_DO, STRIP_CR_DONT, STRIP_CR_ERROR
     }       strip_cr;
     MAIL_STREAM *handle;
     VSTRING *postdrop_command;
@@ -617,6 +626,12 @@ static void enqueue(const int flags, const char *encoding,
     const char *errstr;
     int     addr_count;
     int     level;
+    static NAME_CODE sm_fix_eol_table[] = {
+	SM_FIX_EOL_ALWAYS, STRIP_CR_DO,
+	SM_FIX_EOL_STRICT, STRIP_CR_DUNNO,
+	SM_FIX_EOL_NEVER, STRIP_CR_DONT,
+	0, STRIP_CR_ERROR,
+    };
 
     /*
      * Access control is enforced in the postdrop command. The code here
@@ -791,7 +806,11 @@ static void enqueue(const int flags, const char *encoding,
 	 * Process header/body lines.
 	 */
 	skip_from_ = 1;
-	strip_cr = STRIP_CR_DUNNO;
+	strip_cr = name_code(sm_fix_eol_table, NAME_CODE_FLAG_STRICT_CASE,
+			     var_sm_fix_eol);
+	if (strip_cr == STRIP_CR_ERROR)
+	    msg_fatal_status(EX_USAGE,
+		    "invalid %s value: %s", VAR_SM_FIX_EOL, var_sm_fix_eol);
 	for (prev_type = 0; (type = rec_streamlf_get(VSTREAM_IN, buf, var_line_limit))
 	     != REC_TYPE_EOF; prev_type = type) {
 	    if (strip_cr == STRIP_CR_DUNNO && type == REC_TYPE_NORM) {
@@ -809,7 +828,7 @@ static void enqueue(const int flags, const char *encoding,
 		skip_from_ = 0;
 	    }
 	    if (strip_cr == STRIP_CR_DO && type == REC_TYPE_NORM)
-		if (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
+		while (VSTRING_LEN(buf) > 0 && vstring_end(buf)[-1] == '\r')
 		    vstring_truncate(buf, VSTRING_LEN(buf) - 1);
 	    if ((flags & SM_FLAG_AEOF) && prev_type != REC_TYPE_CONT
 		&& VSTRING_LEN(buf) == 1 && *STR(buf) == '.')

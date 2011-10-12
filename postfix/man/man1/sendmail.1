@@ -274,6 +274,14 @@ The following \fBmain.cf\fR parameters are especially relevant to
 this program.
 The text below provides only a parameter summary. See
 \fBpostconf\fR(5) for more details including examples.
+.SH "COMPATIBILITY CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBsendmail_fix_line_endings (always)\fR"
+Controls how the Postfix sendmail command converts email message
+line endings from <CR><LF> into UNIX format (<LF>).
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf

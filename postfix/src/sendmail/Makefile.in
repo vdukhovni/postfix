@@ -83,6 +83,7 @@ sendmail.o: ../../include/msg_stats.h
 sendmail.o: ../../include/msg_syslog.h
 sendmail.o: ../../include/msg_vstream.h
 sendmail.o: ../../include/mymalloc.h
+sendmail.o: ../../include/name_code.h
 sendmail.o: ../../include/rec_streamlf.h
 sendmail.o: ../../include/rec_type.h
 sendmail.o: ../../include/recipient_list.h

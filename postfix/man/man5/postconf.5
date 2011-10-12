@@ -5194,6 +5194,23 @@ For safety reasons, this feature does not allow $number
 substitutions in regular expression maps.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH sendmail_fix_line_endings (default: always)
+Controls how the Postfix sendmail command converts email message
+line endings from <CR><LF> into UNIX format (<LF>).
+.IP "\fBalways\fR"
+Always convert message lines ending
+in <CR><LF>. This setting is the default with Postfix
+2.9 and later.
+.IP "\fBstrict\fR"
+Convert message lines ending in
+<CR><LF> only if the first input line ends in
+<CR><LF>. This setting is backwards-compatible with
+Postfix 2.8 and earlier.
+.IP "\fBnever\fR"
+Never convert message lines ending in
+<CR><LF>. This setting exists for completeness only.
+.PP
+This feature is available in Postfix 2.9 and later.
 .SH sendmail_path (default: see "postconf -d" output)
 A Sendmail compatibility feature that specifies the location of
 the Postfix \fBsendmail\fR(1) command. This command can be used to
@@ -5599,14 +5616,17 @@ mechanism).
 Use the native service for hosts not found in the DNS.
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH smtp_line_length_limit (default: 990)
+.SH smtp_line_length_limit (default: 998)
 The maximal length of message header and body lines that Postfix
-will send via SMTP.  Longer lines are broken by inserting
-"<CR><LF><SPACE>". This minimizes the damage to
-MIME formatted mail.
+will send via SMTP. This limit does not include the <CR><LF>
+at the end of each line.  Longer lines are broken by inserting
+"<CR><LF><SPACE>", to minimize the damage to MIME
+formatted mail.
 .PP
-By default, the line length is limited to 990 characters, because
-some server implementations cannot receive mail with long lines.
+The Postfix limit of 998 characters not including <CR><LF>
+is consistent with the SMTP limit of 1000 characters including
+<CR><LF>.  The Postfix limit was 990 with Postfix 2.8
+and earlier.
 .SH smtp_mail_timeout (default: 300s)
 The SMTP client time limit for sending the MAIL FROM command, and
 for receiving the server response.

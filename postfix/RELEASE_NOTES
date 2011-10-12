@@ -14,6 +14,21 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Incompatible changes with snapshot 201110XX
+===========================================
+
+For consistency with the SMTP standard, the smtp_line_length_limit
+default value was increased from 990 characters to 998 (i.e. 1000
+characters including <CR><LF>). Specify "smtp_line_length_limit =
+990" to restore historical Postfix behavior.
+
+To simplify integration with third-party applications, the Postfix
+sendmail command now always transforms all input lines ending in
+<CR><LF> into UNIX format (lines ending in <LF>). Specify
+"sendmail_fix_line_endings = strict" to restore historical Postfix
+behavior (i.e. convert all input lines ending in <CR><LF> only if
+the first line ends in <CR><LF>).
+
 Incompatible changes with snapshot 20110918
 ===========================================
 
