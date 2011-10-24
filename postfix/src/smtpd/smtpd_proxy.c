@@ -542,7 +542,7 @@ int     smtpd_proxy_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 	 */
 	if (LEN(state->proxy_buffer) < var_line_limit) {
 	    if (VSTRING_LEN(state->proxy_buffer))
-		VSTRING_ADDCH(state->proxy_buffer, '\n');
+		vstring_strcat(state->proxy_buffer, "\r\n");
 	    vstring_strcat(state->proxy_buffer, STR(buffer));
 	}
 
