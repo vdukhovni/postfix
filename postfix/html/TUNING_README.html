@@ -509,6 +509,13 @@ this parameter limits the size of the short-term, in-memory list
 of "dead" destinations. Destinations that don't fit the list are
 not added. </dd>
 
+<dt> <a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit"><i>transport</i>_destination_concurrency_failed_cohort_limit</a>
+</dt> <dd> Controls when a destination is considered "dead". This
+parameter is critical with a non-zero
+<a href="postconf.5.html#transport_destination_rate_delay"><i>transport</i>_destination_rate_delay</a>, with a reduced
+<a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a>, or with
+a reduced <a href="postconf.5.html#initial_destination_concurrency">initial_destination_concurrency</a>.  </dd>
+
 </dl>
 
 </blockquote>

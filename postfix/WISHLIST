@@ -17,6 +17,41 @@ Wish list:
 	that require performance for low-security operations
 	such as sharing the postscreen cache.
 
+	What is the feasibility of adding an mta_name (personality)
+	attribute that is propagated via queue files and delivery
+	agent requests? It would default to myhostname.
+
+	Major performance improvement opportunity (that is until
+	everyone runs Postfix queues on SSDs).  Investigate the
+	viability of a daemon that produces incoming and postdrop
+	queue files on request (in reality it would maintain a
+	limited queue of "spare" files). Central queue file allocation
+	reduces the I/O performance disadvantage that qmgr has when
+	100 smtpd processes are receiving mail, or when lots of
+	mail is submitted with the sendmail command line.  When an
+	smtpd process accepts MAIL FROM, a cleanup daemon requests
+	a queue file and receives a queue ID + file handle from the
+	queue file daemon.  If the queue file daemon is down, the
+	cleanup daemon creates the file itself like it does now;
+	this can be hidden in the mail_stream library module.  If
+	the mail transaction is aborted, then the cleanup daemon
+	gives the queue file back to the queue file daemon's "spare"
+	file pool, saving most of the overhead of creating and
+	deleting a queue file (the file would still need to be
+	renamed at the start of the next mail transaction).  If the
+	cleanup daemon is unable to give a file back, then it can
+	delete the file like it does now; this can be hidden in the
+	mail_stream library module.  The whole thing can be
+	transparently added to Postfix by adding calls to a
+	queue-file-service client to the mail_queue_enter() and
+	mail_queue_remove() library routines.  Other advantages:
+	1) negligible performance hit when queue file allocation
+	happens earlier, so that logging and milters have a queue
+	ID for the whole transaction not just the first valid
+	recipient; 2) by not removing every queue files we get most
+	of the performance gain of a queue based on append/truncate
+	instead of the much more expensive create/delete.
+
 	Investigate viability of Sendmail socket maps (the moral
 	equivalent of tcp_table(5)), and dns maps.
 

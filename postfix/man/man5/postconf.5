@@ -7854,8 +7854,7 @@ See smtpd_data_restrictions for details and limitations.
 Mandatory TLS: announce STARTTLS support to SMTP clients,
 and require that clients use TLS encryption.  According to RFC 2487
 this MUST NOT be applied in case of a publicly-referenced SMTP
-server.  This option is off by default and should be used only on
-dedicated servers.
+server.  This option is therefore off by default.
 .PP
 Note 1: "smtpd_enforce_tls = yes" implies "smtpd_tls_auth_only = yes".
 .PP

@@ -17004,3 +17004,19 @@ Apologies for any names omitted.
 	all input lines ending in <CR><LF> only if the first input
 	line ends in <CR><LF>).  Files: sendmail/sendmail.c,
 	global/mail_params.h, proto/postconf.proto.
+
+20111017
+
+	Cleanup: refined the heuristic that automagically transforms
+	legacy "sendmail -V" VERP requests into contemporary "sendmail
+	-XV" syntax.  File: sendmail/sendmail.c.
+
+	Cleanup: when the cleanup daemon goes into discard mode,
+	don't get stuck when it runs onto milter file descriptor
+	information. File: cleanup/cleanup.c.
+
+20111020
+
+	EAI Future-proofing: don't apply strict_mime_encoding_domain
+	checks to unknown message subtypes such as message/global*.
+	File: global/mime_state.c.

@@ -360,6 +360,11 @@ This process is governed by a bunch of little parameters.
         this parameter limits the size of the short-term, in-memory list of
         "dead" destinations. Destinations that don't fit the list are not
         added.
+    transport_destination_concurrency_failed_cohort_limit
+        Controls when a destination is considered "dead". This parameter is
+        critical with a non-zero transport_destination_rate_delay, with a
+        reduced transport_destination_concurrency_limit, or with a reduced
+        initial_destination_concurrency.
 
 IMPORTANT: If you increase the frequency of deferred mail delivery attempts, or
 if you flush the deferred mail queue frequently, then you may find that Postfix

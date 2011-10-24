@@ -12531,8 +12531,7 @@ restriction lists" for a discussion of evaluation context and time.
 <p> Mandatory TLS: announce STARTTLS support to SMTP clients,
 and require that clients use TLS encryption.  According to <a href="http://tools.ietf.org/html/rfc2487">RFC 2487</a>
 this MUST NOT be applied in case of a publicly-referenced SMTP
-server.  This option is off by default and should be used only on
-dedicated servers. </p>
+server.  This option is therefore off by default. </p>
 
 <p> Note 1: "<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a> = yes" implies "<a href="postconf.5.html#smtpd_tls_auth_only">smtpd_tls_auth_only</a> = yes". </p>
 

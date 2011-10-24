@@ -634,6 +634,9 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
 		count++;
     (void) rec_fprintf(stream, REC_TYPE_MILT_COUNT, "%d", count);
 
+    if (msg_verbose)
+	msg_info("send %d milters");
+
     /*
      * XXX Optimization: don't send or receive further information when there
      * aren't any active filters.
@@ -678,6 +681,9 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     MILTER *head = 0;
     MILTER *tail = 0;
     MILTER *milter = 0;
+
+    if (msg_verbose)
+	msg_info("receive %d milters", count);
 
     /*
      * XXX We must instantiate a MILTERS structure even when the sender has

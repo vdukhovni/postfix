@@ -183,6 +183,7 @@ typedef struct {
 #define SMTPD_FLAG_ILL_PIPELINING  (1<<1)	/* inappropriate pipelining */
 #define SMTPD_FLAG_AUTH_USED	   (1<<2)	/* don't reuse SASL state */
 
+ /* Security: don't reset SMTPD_FLAG_AUTH_USED. */
 #define SMTPD_MASK_MAIL_KEEP		~0	/* keep all after MAIL reset */
 
 #define SMTPD_STATE_XFORWARD_INIT  (1<<0)	/* xforward preset done */

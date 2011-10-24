@@ -263,6 +263,7 @@
 /* COMPATIBILITY CONTROLS
 /* .ad
 /* .fi
+/*	Available with Postfix 2.9 and later:
 /* .IP "\fBsendmail_fix_line_endings (always)\fR"
 /*	Controls how the Postfix sendmail command converts email message
 /*	line endings from <CR><LF> into UNIX format (<LF>).
@@ -1102,7 +1103,8 @@ int     main(int argc, char **argv)
 	    optind++;
 	    continue;
 	}
-	if (strcmp(argv[OPTIND], "-V") == 0) {
+	if (strcmp(argv[OPTIND], "-V") == 0
+	    && argv[OPTIND + 1] != 0 && strlen(argv[OPTIND + 1]) == 2) {
 	    msg_warn("option -V is deprecated with Postfix 2.3; "
 		     "specify -XV instead");
 	    argv[OPTIND] = "-XV";
