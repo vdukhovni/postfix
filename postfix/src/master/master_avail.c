@@ -85,7 +85,9 @@ static void master_avail_event(int event, char *context)
 
     if (event == 0)				/* XXX Can this happen? */
 	return;
-    if (MASTER_THROTTLED(serv)) {		/* XXX interface botch */
+    /* XXX Should check these when the process or service status is changed. */
+    if (!MASTER_LIMIT_OK(serv->max_proc, serv->total_proc)
+	|| MASTER_THROTTLED(serv)) {		/* XXX interface botch */
 	for (n = 0; n < serv->listen_fd_count; n++)
 	    event_disable_readwrite(serv->listen_fd[n]);
     } else {
