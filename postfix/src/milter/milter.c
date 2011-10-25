@@ -635,7 +635,7 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
     (void) rec_fprintf(stream, REC_TYPE_MILT_COUNT, "%d", count);
 
     if (msg_verbose)
-	msg_info("send %d milters");
+	msg_info("send %d milters", count);
 
     /*
      * XXX Optimization: don't send or receive further information when there

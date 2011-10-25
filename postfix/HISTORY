@@ -17020,3 +17020,15 @@ Apologies for any names omitted.
 	EAI Future-proofing: don't apply strict_mime_encoding_domain
 	checks to unknown message subtypes such as message/global*.
 	File: global/mime_state.c.
+
+20111025
+
+	Bugfix (introduced: Postfix 2.8): postscreen sent non-compliant
+	SMTP responses (220- followed by 421) when it could not
+	hand off a connection to a real smtpd process, causing
+	undefined behavior in the remote SMTP client. The fix
+	redirects the client to the dummy SMTP engine which sends
+	the 421 reply at the first legitimate opportunity.  Problem
+	reported by Ralf Hildebrandt. Files: postscreen/postscreen_send.c,
+	postscreen/postscreen_smtpd.c, postscreen/postscreen.h.
+

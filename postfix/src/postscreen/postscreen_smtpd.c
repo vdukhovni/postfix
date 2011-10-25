@@ -12,6 +12,10 @@
 /*
 /*	void	psc_smtpd_tests(state)
 /*	PSC_STATE *state;
+/*
+/*	void	PSC_SMTPD_421(state, final_reply)
+/*	PSC_STATE *state;
+/*	const char *final_reply;
 /* DESCRIPTION
 /*	psc_smtpd_pre_jail_init() performs one-time per-process
 /*	initialization during the "before chroot" execution phase.
@@ -21,6 +25,12 @@
 /*	psc_smtpd_tests() starts up an SMTP server engine for deep
 /*	protocol tests and for collecting helo/sender/recipient
 /*	information.
+/*
+/*	PSC_SMTPD_421() redirects the SMTP client to the dummy SMTP
+/*	protocol engine, completes the SMTP protocol handshake,
+/*	sends the specified final reply after the first non-QUIT
+/*	client command, and hangs up without doing any protocol
+/*	tests.  The final reply must end in <CR><LF>.
 /*
 /*	Unlike the Postfix SMTP server, this engine does not announce
 /*	PIPELINING support. This exposes spambots that pipeline
@@ -904,6 +914,12 @@ static void psc_smtpd_read_event(int event, char *context)
 	    if (strcasecmp(command, cmdp->name) == 0)
 		break;
 
+	if ((state->flags & PSC_STATE_FLAG_SMTPD_421)
+	    && cmdp->action != psc_quit_cmd) {
+	    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
+					       state->final_reply);
+	    return;
+	}
 	/* Non-SMTP command test. */
 	if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_SKIP)
 	    == PSC_STATE_FLAG_NSMTP_TODO && cmdp->name == 0
@@ -1088,8 +1104,10 @@ void    psc_smtpd_tests(PSC_STATE *state)
      * 
      * XXX Make "opportunistically" configurable for each test.
      */
-    state->flags |= (PSC_STATE_FLAG_PIPEL_TODO | PSC_STATE_FLAG_NSMTP_TODO | \
-		     PSC_STATE_FLAG_BARLF_TODO);
+    if ((state->flags & PSC_STATE_FLAG_SMTPD_421) == 0)
+	state->flags |= (PSC_STATE_FLAG_PIPEL_TODO | \
+			 PSC_STATE_FLAG_NSMTP_TODO | \
+			 PSC_STATE_FLAG_BARLF_TODO);
 
     /*
      * Send no SMTP banner to pregreeting clients. This eliminates a lot of

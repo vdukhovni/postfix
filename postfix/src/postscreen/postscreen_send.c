@@ -35,7 +35,10 @@
 /*	work is finished including postscreen cache updates.
 /*
 /*	In case of an immediate error, psc_send_socket() sends a 421
-/*	reply to the remote SMTP client and closes the connection.
+/*	reply to the remote SMTP client and closes the connection
+/*	if no partial SMTP greeting was sent. Otherwise, it redirects
+/*	the SMTP client to the dummy protocol engine which sends
+/*	421 at the first legitimate opportunity and hangs up.
 /* LICENSE
 /* .ad
 /* .fi
@@ -182,22 +185,35 @@ void    psc_send_socket(PSC_STATE *state)
      * suspicious. Alternatively, we could send attributes along with the
      * socket with client reputation information, making everything even more
      * Postfix-specific.
+     * 
+     * If the operation fails after the partial SMTP handshake was sent,
+     * redirect the client to the dummy SMTP engine, which finishes the
+     * partial SMTP handshake sends the bad news after the first client
+     * command.
      */
     if ((server_fd =
 	 PASS_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
 		      PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
 	msg_warn("cannot connect to service %s: %m", psc_smtpd_service_name);
-	PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
-	psc_free_session_state(state);
+	if (state->flags & PSC_STATE_FLAG_PREGR_TODO) {
+	    PSC_SMTPD_421(state, "421 4.3.2 No system resources\r\n");
+	} else {
+	    PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
+	    psc_free_session_state(state);
+	}
 	return;
     }
-    PSC_ADD_SERVER_STATE(state, server_fd);
-    if (LOCAL_SEND_FD(state->smtp_server_fd,
+    if (LOCAL_SEND_FD(server_fd,
 		      vstream_fileno(state->smtp_client_stream)) < 0) {
 	msg_warn("cannot pass connection to service %s: %m",
 		 psc_smtpd_service_name);
-	PSC_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
-	psc_free_session_state(state);
+	(void) close(server_fd);
+	if (state->flags & PSC_STATE_FLAG_PREGR_TODO) {
+	    PSC_SMTPD_421(state, "421 4.3.2 No system resources\r\n");
+	} else {
+	    PSC_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
+	    psc_free_session_state(state);
+	}
 	return;
     } else {
 
@@ -209,6 +225,7 @@ void    psc_send_socket(PSC_STATE *state)
 #if 0
 	PSC_DEL_CLIENT_STATE(state);
 #endif
+	PSC_ADD_SERVER_STATE(state, server_fd);
 	PSC_READ_EVENT_REQUEST(state->smtp_server_fd, psc_send_socket_close_event,
 			       (char *) state, PSC_SEND_SOCK_NOTIFY_TIMEOUT);
 	return;

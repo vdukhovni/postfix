@@ -81,7 +81,7 @@ typedef struct {
 #define PSC_STATE_FLAG_NEW		(1<<3)	/* some test was never passed */
 #define PSC_STATE_FLAG_BLIST_FAIL	(1<<4)	/* blacklisted */
 #define PSC_STATE_FLAG_HANGUP		(1<<5)	/* NOT a test failure */
-/* unused */
+#define PSC_STATE_FLAG_SMTPD_421	(1<<6)	/* hang up after command */
 #define PSC_STATE_FLAG_WLIST_FAIL	(1<<7)	/* do not whitelist */
 
  /*
@@ -434,6 +434,12 @@ extern void psc_early_init(void);
 extern void psc_smtpd_tests(PSC_STATE *);
 extern void psc_smtpd_init(void);
 extern void psc_smtpd_pre_jail_init(void);
+
+#define PSC_SMTPD_421(state, reply) do { \
+	(state)->flags |= PSC_STATE_FLAG_SMTPD_421; \
+	(state)->final_reply = (reply); \
+	psc_smtpd_tests(state); \
+    } while (0)
 
  /*
   * postscreen_misc.c
