@@ -187,7 +187,9 @@ void    psc_send_socket(PSC_STATE *state)
 	 PASS_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
 		      PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
 	msg_warn("cannot connect to service %s: %m", psc_smtpd_service_name);
-	PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
+	/* Best effort: after sending 220-, hang up without sending 421. */
+	if ((state->flags & PSC_STATE_FLAG_PREGR_TODO) == 0)
+	    PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
 	psc_free_session_state(state);
 	return;
     }
@@ -196,7 +198,9 @@ void    psc_send_socket(PSC_STATE *state)
 		      vstream_fileno(state->smtp_client_stream)) < 0) {
 	msg_warn("cannot pass connection to service %s: %m",
 		 psc_smtpd_service_name);
-	PSC_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
+	/* Best effort: after sending 220-, hang up without sending 421. */
+	if ((state->flags & PSC_STATE_FLAG_PREGR_TODO) == 0)
+	    PSC_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
 	psc_free_session_state(state);
 	return;
     } else {
