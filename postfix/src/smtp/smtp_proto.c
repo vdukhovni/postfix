@@ -1356,6 +1356,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     */
 #ifdef USE_SASL_AUTH
 	    if (var_smtp_sasl_enable
+		&& var_smtp_dummy_mail_auth
 		&& (session->features & SMTP_FEATURE_AUTH))
 		vstring_strcat(next_command, " AUTH=<>");
 #endif

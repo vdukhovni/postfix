@@ -5754,8 +5754,8 @@ code for rejected requests (default: 554). </dd>
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the recipient domain, and the RCPT TO domain has no DNS A or MX
-record, or when it has a malformed MX record such as a record with
+the recipient domain, and the RCPT TO domain has 1) no DNS A or MX
+record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the numerical
 response code for rejected requests (default: 450).  The response
@@ -6128,8 +6128,8 @@ Postfix version 2.1 and later. </dd>
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the sender address, and the MAIL FROM address has no DNS A or MX
-record, or when it has a malformed MX record such as a record with
+the sender address, and the MAIL FROM domain has 1) no DNS A or MX
+record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the numerical
 response code for rejected requests (default: 450).  The response
@@ -14231,3 +14231,20 @@ Postfix 2.8 and earlier. </dd>
 </dl>
 
 <p> This feature is available in Postfix 2.9 and later. </p>
+
+%PARAM smtp_send_dummy_mail_auth no
+
+<p> Whether or not to append the "AUTH=&lt;&gt;" option to the MAIL
+FROM command in SASL-authenticated SMTP sessions. The default is
+not to send this, to avoid problems with broken remote SMTP servers.
+Before Postfix 2.9 the behavior is as if "smtp_send_dummy_mail_auth
+= yes".
+
+<p> This feature is available in Postfix 2.9 and later. </p>
+
+%PARAM lmtp_send_dummy_mail_auth no
+
+<p> The LMTP-specific version of the smtp_send_dummy_mail_auth
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>

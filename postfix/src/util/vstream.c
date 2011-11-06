@@ -100,7 +100,12 @@
 /*	const char *VSTREAM_PATH(stream)
 /*	VSTREAM	*stream;
 /*
-/*	char	*vstream_vfprintf(vp, format, ap)
+/*	char	*vstream_vprintf(format, ap)
+/*	const char *format;
+/*	va_list	*ap;
+/*
+/*	char	*vstream_vfprintf(stream, format, ap)
+/*	VSTREAM	*stream;
 /*	const char *format;
 /*	va_list	*ap;
 /*
@@ -382,6 +387,8 @@
 /*
 /*	vstream_vfprintf() provides an alternate interface
 /*	for formatting an argument list according to a format string.
+/*
+/*	vstream_vprintf() provides a similar alternative interface.
 /*
 /*	vstream_bufstat() provides input and output buffer status
 /*	information.  The command is one of the following:
@@ -1485,6 +1492,16 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	}
     }
     va_end(ap);
+}
+
+/* vstream_vprintf - formatted print to stdout */
+
+VSTREAM *vstream_vprintf(const char *format, va_list ap)
+{
+    VSTREAM *vp = VSTREAM_OUT;
+
+    vbuf_print(&vp->buf, format, ap);
+    return (vp);
 }
 
 /* vstream_vfprintf - formatted print engine */

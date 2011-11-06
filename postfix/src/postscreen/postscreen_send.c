@@ -35,10 +35,10 @@
 /*	work is finished including postscreen cache updates.
 /*
 /*	In case of an immediate error, psc_send_socket() sends a 421
-/*	reply to the remote SMTP client and closes the connection
-/*	if no partial SMTP greeting was sent. Otherwise, it redirects
-/*	the SMTP client to the dummy protocol engine which sends
-/*	421 at the first legitimate opportunity and hangs up.
+/*	reply to the remote SMTP client and closes the connection.
+/*	If the 220- greeting was sent, sending 421 would be invalid;
+/*	instead, the client is redirected to the dummy SMTP engine
+/*	which sends the 421 reply at the first legitimate opportunity.
 /* LICENSE
 /* .ad
 /* .fi
@@ -185,18 +185,13 @@ void    psc_send_socket(PSC_STATE *state)
      * suspicious. Alternatively, we could send attributes along with the
      * socket with client reputation information, making everything even more
      * Postfix-specific.
-     * 
-     * If the operation fails after the partial SMTP handshake was sent,
-     * redirect the client to the dummy SMTP engine, which finishes the
-     * partial SMTP handshake sends the bad news after the first client
-     * command.
      */
     if ((server_fd =
 	 PASS_CONNECT(psc_smtpd_service_name, NON_BLOCKING,
 		      PSC_SEND_SOCK_CONNECT_TIMEOUT)) < 0) {
 	msg_warn("cannot connect to service %s: %m", psc_smtpd_service_name);
 	if (state->flags & PSC_STATE_FLAG_PREGR_TODO) {
-	    PSC_SMTPD_421(state, "421 4.3.2 No system resources\r\n");
+	    PSC_SMTPD_X21(state, "421 4.3.2 No system resources\r\n");
 	} else {
 	    PSC_SEND_REPLY(state, "421 4.3.2 All server ports are busy\r\n");
 	    psc_free_session_state(state);
@@ -209,7 +204,7 @@ void    psc_send_socket(PSC_STATE *state)
 		 psc_smtpd_service_name);
 	(void) close(server_fd);
 	if (state->flags & PSC_STATE_FLAG_PREGR_TODO) {
-	    PSC_SMTPD_421(state, "421 4.3.2 No system resources\r\n");
+	    PSC_SMTPD_X21(state, "421 4.3.2 No system resources\r\n");
 	} else {
 	    PSC_SEND_REPLY(state, "421 4.3.2 No system resources\r\n");
 	    psc_free_session_state(state);

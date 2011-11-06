@@ -2465,6 +2465,11 @@ for authentication.  The available types are listed with the
 "\fBpostconf -A\fR" command.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_send_dummy_mail_auth (default: no)
+The LMTP-specific version of the smtp_send_dummy_mail_auth
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.9 and later.
 .SH lmtp_send_xforward_command (default: no)
 Send an XFORWARD command to the LMTP server when the LMTP LHLO
 server response announces XFORWARD support.  This allows an \fBlmtp\fR(8)
@@ -6005,6 +6010,14 @@ for authentication.  The available types are listed with the
 "\fBpostconf -A\fR" command.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtp_send_dummy_mail_auth (default: no)
+Whether or not to append the "AUTH=<>" option to the MAIL
+FROM command in SASL-authenticated SMTP sessions. The default is
+not to send this, to avoid problems with broken remote SMTP servers.
+Before Postfix 2.9 the behavior is as if "smtp_send_dummy_mail_auth
+= yes".
+.PP
+This feature is available in Postfix 2.9 and later.
 .SH smtp_send_xforward_command (default: no)
 Send the non-standard XFORWARD command when the Postfix SMTP server
 EHLO response announces XFORWARD support.
@@ -8307,8 +8320,8 @@ no sender-specified routing (user@elsewhere@domain).
 code for rejected requests (default: 554).
 .IP "\fBreject_unknown_recipient_domain\fR"
 Reject the request when Postfix is not final destination for
-the recipient domain, and the RCPT TO domain has no DNS A or MX
-record, or when it has a malformed MX record such as a record with
+the recipient domain, and the RCPT TO domain has 1) no DNS A or MX
+record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later).
 .br
 The
@@ -8749,8 +8762,8 @@ unauthenticated clients only. This feature is available in
 Postfix version 2.1 and later.
 .IP "\fBreject_unknown_sender_domain\fR"
 Reject the request when Postfix is not final destination for
-the sender address, and the MAIL FROM address has no DNS A or MX
-record, or when it has a malformed MX record such as a record with
+the sender address, and the MAIL FROM domain has 1) no DNS A or MX
+record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later).
 .br
 The

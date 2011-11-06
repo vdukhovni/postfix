@@ -167,6 +167,7 @@ extern int vstream_pclose(VSTREAM *);
 #define VSTREAM_POPEN_WAITPID_FN 7	/* child catcher, waitpid() compat. */
 #define VSTREAM_POPEN_EXPORT	8	/* exportable environment */
 
+extern VSTREAM *vstream_vprintf(const char *, va_list);
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
 
 extern ssize_t vstream_peek(VSTREAM *);

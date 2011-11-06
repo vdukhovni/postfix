@@ -4433,6 +4433,17 @@ for authentication.  The available types are listed with the
 
 </DD>
 
+<DT><b><a name="lmtp_send_dummy_mail_auth">lmtp_send_dummy_mail_auth</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_send_xforward_command">lmtp_send_xforward_command</a>
 (default: no)</b></DT><DD>
 
@@ -10253,6 +10264,20 @@ for authentication.  The available types are listed with the
 
 </DD>
 
+<DT><b><a name="smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a>
+(default: no)</b></DT><DD>
+
+<p> Whether or not to append the "AUTH=&lt;&gt;" option to the MAIL
+FROM command in SASL-authenticated SMTP sessions. The default is
+not to send this, to avoid problems with broken remote SMTP servers.
+Before Postfix 2.9 the behavior is as if "<a href="postconf.5.html#smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a>
+= yes".
+
+<p> This feature is available in Postfix 2.9 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_send_xforward_command">smtp_send_xforward_command</a>
 (default: no)</b></DT><DD>
 
@@ -13266,8 +13291,8 @@ code for rejected requests (default: 554). </dd>
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the recipient domain, and the RCPT TO domain has no DNS A or MX
-record, or when it has a malformed MX record such as a record with
+the recipient domain, and the RCPT TO domain has 1) no DNS A or MX
+record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
 response code for rejected requests (default: 450).  The response
@@ -13888,8 +13913,8 @@ Postfix version 2.1 and later. </dd>
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the sender address, and the MAIL FROM address has no DNS A or MX
-record, or when it has a malformed MX record such as a record with
+the sender address, and the MAIL FROM domain has 1) no DNS A or MX
+record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
 response code for rejected requests (default: 450).  The response

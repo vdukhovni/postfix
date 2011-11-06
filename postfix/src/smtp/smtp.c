@@ -142,7 +142,7 @@
 /*	Never send EHLO at the start of an SMTP session.
 /* .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 /*	Defer mail delivery when no MX record resolves to an IP address.
-/* .IP "\fBsmtp_line_length_limit (990)\fR"
+/* .IP "\fBsmtp_line_length_limit (998)\fR"
 /*	The maximal length of message header and body lines that Postfix
 /*	will send via SMTP.
 /* .IP "\fBsmtp_pix_workaround_delay_time (10s)\fR"
@@ -241,6 +241,9 @@
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
+/* .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
+/*	Whether or not to append the "AUTH=<>" option to the MAIL
+/*	FROM command in SASL-authenticated SMTP sessions.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -305,6 +308,11 @@
 /*	When a remote SMTP server rejects a SASL authentication request
 /*	with a 535 reply code, defer mail delivery instead of returning
 /*	mail as undeliverable.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
+/*	Whether or not to append the "AUTH=<>" option to the MAIL
+/*	FROM command in SASL-authenticated SMTP sessions.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -830,6 +838,7 @@ char   *var_smtp_resp_filter;
 bool    var_lmtp_assume_final;
 char   *var_smtp_dns_res_opt;
 bool    var_smtp_rec_deadline;
+bool    var_smtp_dummy_mail_auth;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;

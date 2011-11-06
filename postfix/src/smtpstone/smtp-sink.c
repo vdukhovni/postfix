@@ -616,6 +616,7 @@ static void ehlo_response(SINK_STATE *state, const char *args)
 	smtp_printf(state->stream, "250-XFORWARD NAME ADDR PROTO HELO");
     if (!disable_enh_status)
 	smtp_printf(state->stream, "250-ENHANCEDSTATUSCODES");
+    /* RFC 821/2821/5321: Format is replycode<SPACE>optional-text<CRLF> */
     smtp_printf(state->stream, "250 ");
     smtp_flush(state->stream);
     if (single_template) {

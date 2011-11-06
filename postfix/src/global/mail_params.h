@@ -1603,6 +1603,10 @@ extern char *var_smtp_sasl_tls_opts;
 #define DEF_LMTP_SASL_TLSV_OPTS	"$" VAR_LMTP_SASL_TLS_OPTS
 extern char *var_smtp_sasl_tlsv_opts;
 
+#define VAR_SMTP_DUMMY_MAIL_AUTH	"smtp_send_dummy_mail_auth"
+#define DEF_SMTP_DUMMY_MAIL_AUTH	0
+extern bool var_smtp_dummy_mail_auth;
+
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
   * client may make before we start to slow down; the hard error limit
@@ -1669,6 +1673,10 @@ extern char *var_lmtp_sasl_opts;
 #define VAR_LMTP_SASL_PATH	"lmtp_sasl_path"
 #define DEF_LMTP_SASL_PATH	""
 extern char *var_lmtp_sasl_path;
+
+#define VAR_LMTP_DUMMY_MAIL_AUTH	"lmtp_send_dummy_mail_auth"
+#define DEF_LMTP_DUMMY_MAIL_AUTH	0
+extern bool var_lmtp_dummy_mail_auth;
 
  /*
   * SASL-based relay etc. control.

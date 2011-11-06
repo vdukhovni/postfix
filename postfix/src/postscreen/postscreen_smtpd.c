@@ -13,7 +13,7 @@
 /*	void	psc_smtpd_tests(state)
 /*	PSC_STATE *state;
 /*
-/*	void	PSC_SMTPD_421(state, final_reply)
+/*	void	PSC_SMTPD_X21(state, final_reply)
 /*	PSC_STATE *state;
 /*	const char *final_reply;
 /* DESCRIPTION
@@ -26,11 +26,9 @@
 /*	protocol tests and for collecting helo/sender/recipient
 /*	information.
 /*
-/*	PSC_SMTPD_421() redirects the SMTP client to the dummy SMTP
-/*	protocol engine, completes the SMTP protocol handshake,
-/*	sends the specified final reply after the first non-QUIT
-/*	client command, and hangs up without doing any protocol
-/*	tests.  The final reply must end in <CR><LF>.
+/*	PSC_SMTPD_X21() redirects the SMTP client to an SMTP server
+/*	engine, which sends the specified final reply at the first
+/*	legitimate opportunity without doing any protocol tests.
 /*
 /*	Unlike the Postfix SMTP server, this engine does not announce
 /*	PIPELINING support. This exposes spambots that pipeline
@@ -914,7 +912,7 @@ static void psc_smtpd_read_event(int event, char *context)
 	    if (strcasecmp(command, cmdp->name) == 0)
 		break;
 
-	if ((state->flags & PSC_STATE_FLAG_SMTPD_421)
+	if ((state->flags & PSC_STATE_FLAG_SMTPD_X21)
 	    && cmdp->action != psc_quit_cmd) {
 	    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, psc_smtpd_time_event,
 					       state->final_reply);
@@ -1104,10 +1102,11 @@ void    psc_smtpd_tests(PSC_STATE *state)
      * 
      * XXX Make "opportunistically" configurable for each test.
      */
-    if ((state->flags & PSC_STATE_FLAG_SMTPD_421) == 0)
-	state->flags |= (PSC_STATE_FLAG_PIPEL_TODO | \
-			 PSC_STATE_FLAG_NSMTP_TODO | \
-			 PSC_STATE_FLAG_BARLF_TODO);
+    if ((state->flags & PSC_STATE_FLAG_SMTPD_X21) == 0) {
+	state->flags |= PSC_STATE_MASK_SMTPD_TODO;
+    } else {
+	state->flags &= ~PSC_STATE_MASK_SMTPD_TODO;
+    }
 
     /*
      * Send no SMTP banner to pregreeting clients. This eliminates a lot of

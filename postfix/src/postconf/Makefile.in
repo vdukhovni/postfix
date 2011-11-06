@@ -105,6 +105,7 @@ postconf.o: ../../include/msg_vstream.h
 postconf.o: ../../include/myflock.h
 postconf.o: ../../include/mymalloc.h
 postconf.o: ../../include/mynetworks.h
+postconf.o: ../../include/readlline.h
 postconf.o: ../../include/safe.h
 postconf.o: ../../include/split_at.h
 postconf.o: ../../include/stringops.h

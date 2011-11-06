@@ -17025,10 +17025,30 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 2.8): postscreen sent non-compliant
 	SMTP responses (220- followed by 421) when it could not
-	hand off a connection to a real smtpd process, causing
-	undefined behavior in the remote SMTP client. The fix
-	redirects the client to the dummy SMTP engine which sends
-	the 421 reply at the first legitimate opportunity.  Problem
-	reported by Ralf Hildebrandt. Files: postscreen/postscreen_send.c,
+	hand off a connection to a real smtpd process, causing some
+	remote SMTP clients to bounce mail. The fix redirects the
+	client to the dummy SMTP engine which sends the 421 reply
+	at the first legitimate opportunity.  Problem reported by
+	Ralf Hildebrandt. Files: postscreen/postscreen_send.c,
 	postscreen/postscreen_smtpd.c, postscreen/postscreen.h.
 
+20111102
+
+	Workaround: to improve inter-operability with broken remote
+	SMTP servers, the Postfix SMTP client by default no longer
+	appends the "AUTH=<>" option to the MAIL FROM command.
+	Specify "smtp_send_dummy_mail_auth = yes" to restore the
+	old behavior.
+
+20111106
+
+	Feature: "postconf -M" support to show Postfix's idea of
+	what is in the master.cf file. File: postconf/postconf.c.
+
+	Work in progress: extract mail delivery transport names
+	from master.cf, and provide better postconf(1) support to
+	manipulate main.cf parameters with transport-dependent
+	names.
+
+	Feature: postconf "-f" option to "nicely" format long lines
+	from main.cf or master.cf. File: postconf/postconf.c.

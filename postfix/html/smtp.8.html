@@ -168,7 +168,7 @@ SMTP(8)                                                                SMTP(8)
               Defer  mail  delivery when no MX record resolves to
               an IP address.
 
-       <b><a href="postconf.5.html#smtp_line_length_limit">smtp_line_length_limit</a> (990)</b>
+       <b><a href="postconf.5.html#smtp_line_length_limit">smtp_line_length_limit</a> (998)</b>
               The maximal length of message header and body lines
               that Postfix will send via SMTP.
 
@@ -305,6 +305,11 @@ SMTP(8)                                                                SMTP(8)
               SMTP  message  content  line,  or TLS protocol mes-
               sage).
 
+       <b><a href="postconf.5.html#smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a> (no)</b>
+              Whether or not to append the  "AUTH=&lt;&gt;"  option  to
+              the  MAIL  FROM  command in SASL-authenticated SMTP
+              sessions.
+
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
 
@@ -387,6 +392,13 @@ SMTP(8)                                                                SMTP(8)
               cation request with a 535 reply  code,  defer  mail
               delivery  instead  of  returning mail as undeliver-
               able.
+
+       Available in Postfix version 2.9 and later:
+
+       <b><a href="postconf.5.html#smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a> (no)</b>
+              Whether or not to append the  "AUTH=&lt;&gt;"  option  to
+              the  MAIL  FROM  command in SASL-authenticated SMTP
+              sessions.
 
 <b>STARTTLS SUPPORT CONTROLS</b>
        Detailed information about STARTTLS configuration  may  be
