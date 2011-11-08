@@ -17052,3 +17052,13 @@ Apologies for any names omitted.
 
 	Feature: postconf "-f" option to "nicely" format long lines
 	from main.cf or master.cf. File: postconf/postconf.c.
+
+201108
+
+	Cleanup: postconf finally supports dynamic configuration
+	parameter names: parameters whose name depend on a mail
+	delivery transport name in master.cf, and parameters whose
+	names are specified with smtpd_restriction_classes in
+	main.cf. This adds 70 parameters to the "postconf" output,
+	more if additional mail delivery transports are defined in
+	master.cf.  File: postconf/postconf.c.
