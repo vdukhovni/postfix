@@ -6,6 +6,13 @@ Wish list:
 
 	Things to do after the stable release:
 
+	postconf: legitimize spontaneous_name=value if it is
+	referenced as legitimate_name=$spontaneous_name in main.cf
+	or master.cf, and warn about spontaneous_name=value that
+	have no legitimizing reference. Use mac_expand callback
+	to identidy references, and add mac_expand option to always
+	expand a conditional macro's right-hand side.
+
 	TLS_README has the priorities reversed. The section about
 	SMTP client settings begins with an exposition about client
 	certificates, which almost no-one needs. Instead, the text

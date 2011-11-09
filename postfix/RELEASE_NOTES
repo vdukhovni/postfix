@@ -14,6 +14,20 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Major changes with snapshot 20111108
+====================================
+
+postconf support for parameter names that are generated automatically
+from master.cf entries (delivery agents, spawn services), and for
+parameter names that are defined with main.cf smtpd_restriction_classes.
+This increases the postconf output size with 70 lines or more.
+
+Major changes with snapshot 20111106
+====================================
+
+"postconf -M" support to print master.cf entries, and "postconf -f"
+support to fold long main.cf or master.cf lines for human readability.
+
 Incompatible changes with snapshot 20111106
 ===========================================
 

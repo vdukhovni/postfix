@@ -17045,20 +17045,20 @@ Apologies for any names omitted.
 	Feature: "postconf -M" support to show Postfix's idea of
 	what is in the master.cf file. File: postconf/postconf.c.
 
-	Work in progress: extract mail delivery transport names
-	from master.cf, and provide better postconf(1) support to
-	manipulate main.cf parameters with transport-dependent
-	names.
-
 	Feature: postconf "-f" option to "nicely" format long lines
 	from main.cf or master.cf. File: postconf/postconf.c.
 
-201108
+20111108
 
 	Cleanup: postconf finally supports dynamic configuration
 	parameter names: parameters whose name depend on a mail
-	delivery transport name in master.cf, and parameters whose
-	names are specified with smtpd_restriction_classes in
-	main.cf. This adds 70 parameters to the "postconf" output,
+	delivery transport or spawn service in master.cf, and
+	parameters whose names are specified with smtpd_restriction_classes
+	in main.cf. This adds 70 parameters to the "postconf" output,
 	more if additional mail delivery transports are defined in
 	master.cf.  File: postconf/postconf.c.
+
+20111109
+
+	Cleanup: account for "," in smtpd_restriction_classes
+	value (Victor Duchovni). File: postconf/postconf.c.

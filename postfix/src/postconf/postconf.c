@@ -754,6 +754,58 @@ static void set_parameters(void)
      */
 }
 
+/* read_master - read and digest the master.cf file */
+
+static void read_master(void)
+{
+    char   *path;
+    VSTRING *buf = vstring_alloc(100);
+    ARGV   *argv;
+    VSTREAM *fp;
+    int     entry_count = 0;
+    int     line_count = 0;
+
+    /*
+     * Get the location of master.cf.
+     */
+    if (var_config_dir == 0)
+	set_config_dir();
+    path = concatenate(var_config_dir, "/", MASTER_CONF_FILE, (char *) 0);
+
+    /*
+     * We can't use the master_ent routines in their current form. They
+     * convert everything to internal form, and they skip disabled services.
+     * We need to be able to show default fields as "-", and we need to know
+     * about all service names so that we can generate dynamic parameter
+     * names (transport-dependent etc.).
+     */
+#define MASTER_BLANKS	" \t\r\n"		/* XXX */
+#define MASTER_FIELD_COUNT 8			/* XXX */
+
+    /*
+     * Initialize the in-memory master table.
+     */
+    master_table = (ARGV **) mymalloc(sizeof(*master_table));
+
+    /*
+     * Skip blank lines and comment lines.
+     */
+    if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0)
+	msg_fatal("open %s: %m", path);
+    while (readlline(buf, fp, &line_count) != 0) {
+	master_table = (ARGV **) myrealloc((char *) master_table,
+				 (entry_count + 2) * sizeof(*master_table));
+	argv = argv_split(STR(buf), MASTER_BLANKS);
+	if (argv->argc < MASTER_FIELD_COUNT)
+	    msg_fatal("file %s: line %d: bad field count", path, line_count);
+	master_table[entry_count++] = argv;
+    }
+    master_table[entry_count] = 0;
+    vstream_fclose(fp);
+    myfree(path);
+    vstring_free(buf);
+}
+
  /*
   * Basename of programs in $daemon_directory. XXX These belong in a header
   * file, or they should be made configurable.
@@ -888,10 +940,22 @@ static void add_dynamic_parameters(int mode)
     if ((mode & SHOW_DEFS) == 0
 	&& (class_list = mail_conf_lookup_eval(VAR_REST_CLASSES)) != 0) {
 	cp = saved_class_list = mystrdup(class_list);
-	while ((class_name = mystrtok(&cp, " \t\r\n")) != 0)
+	while ((class_name = mystrtok(&cp, ", \t\r\n")) != 0)
 	    add_restriction_class(class_name);
 	myfree(saved_class_list);
     }
+
+    /*
+     * TODO: Parse all legitimate parameter values (in main.cf and in
+     * master.cf) for references to spontaneous parameters that are defined
+     * in main.cf, and flag those spontaneous parameters as legitimate. Then,
+     * flag all remaining spontaneous parameter definitions in main.cf as
+     * mistakes.
+     * 
+     * It is OK if a spontaneous name exists only in a reference; this is how
+     * Postfix implements backwards compatibility after a feature name
+     * change.
+     */
 }
 
 /* hash_parameters - hash all parameter names so we can find and sort them */
@@ -941,58 +1005,6 @@ static void hash_parameters(void)
     for (rct = rest_class_table; rct < rest_class_table + rest_class_tablen; rct++)
 	if (htable_locate(param_table, *rct) == 0)
 	    htable_enter(param_table, *rct, (char *) rct);
-}
-
-/* read_master - read and digest the master.cf file */
-
-static void read_master(void)
-{
-    char   *path;
-    VSTRING *buf = vstring_alloc(100);
-    ARGV   *argv;
-    VSTREAM *fp;
-    int     entry_count = 0;
-    int     line_count = 0;
-
-    /*
-     * Get the location of master.cf.
-     */
-    if (var_config_dir == 0)
-	set_config_dir();
-    path = concatenate(var_config_dir, "/", MASTER_CONF_FILE, (char *) 0);
-
-    /*
-     * We can't use the master_ent routines in their current form. They
-     * convert everything to internal form, and they skip disabled services.
-     * We need to be able to show default fields as "-", and we need to know
-     * about all service names so that we can generate dynamic parameter
-     * names (transport-dependent etc.).
-     */
-#define MASTER_BLANKS	" \t\r\n"		/* XXX */
-#define MASTER_FIELD_COUNT 8			/* XXX */
-
-    /*
-     * Initialize the in-memory master table.
-     */
-    master_table = (ARGV **) mymalloc(sizeof(*master_table));
-
-    /*
-     * Skip blank lines and comment lines.
-     */
-    if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0)
-	msg_fatal("open %s: %m", path);
-    while (readlline(buf, fp, &line_count) != 0) {
-	master_table = (ARGV **) myrealloc((char *) master_table,
-				 (entry_count + 2) * sizeof(*master_table));
-	argv = argv_split(STR(buf), MASTER_BLANKS);
-	if (argv->argc < MASTER_FIELD_COUNT)
-	    msg_fatal("file %s: line %d: bad field count", path, line_count);
-	master_table[entry_count++] = argv;
-    }
-    master_table[entry_count] = 0;
-    vstream_fclose(fp);
-    myfree(path);
-    vstring_free(buf);
 }
 
 /* print_line - show line possibly folded, and with normalized whitespace */
@@ -1369,7 +1381,7 @@ static void print_del_transp_param(int mode, const char *name,
     }
 }
 
-/* print_rest_class_param - show dynamic parameter */
+/* print_rest_class_param - show dynamic restriction class parameter */
 
 static void print_rest_class_param(int mode, const char *name)
 {
