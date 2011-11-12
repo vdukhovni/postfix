@@ -18,8 +18,10 @@
 /*
 /*	\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 /* DESCRIPTION
-/*	The \fBpostconf\fR(1) command displays the values of \fBmain.cf\fR
-/*	configuration parameters by default. It can also change
+/*	By default, the \fBpostconf\fR(1) command displays the
+/*	values of \fBmain.cf\fR configuration parameters, and warns
+/*	about possible mis-typed parameter names (Postfix 2.9 and later).
+/*	It can also change \fBmain.cf\fR configuration
 /*	parameter values, or display other configuration information
 /*	about the Postfix mail system.
 /*
@@ -292,6 +294,7 @@
 #include <argv.h>
 #include <edit_file.h>
 #include <readlline.h>
+#include <mac_expand.h>
 
 /* Global library. */
 
@@ -333,11 +336,6 @@
   * Lookup table for in-core parameter info.
   */
 HTABLE *param_table;
-
- /*
-  * Lookup table for external parameter info.
-  */
-DICT   *text_table;
 
  /*
   * Lookup table for master.cf info.
@@ -414,20 +412,22 @@ typedef struct {
 } STRING_NV;
 
  /*
-  * Support for parameters whose names are derived from master.cf message
-  * delivery transport names. These parameters have default values that are
-  * defined by other parameters.
+  * Support for parameters whose postfix-defined names are derived from
+  * master.cf service names. These parameters have default values that are
+  * defined by built-in parameters.
   */
-static STRING_NV *del_transp_table;
-static ssize_t del_transp_tablen;
+static STRING_NV *serv_param_table;
+static ssize_t serv_param_tablen;
 
  /*
-  * Support for parameters whose names are specified in main.cf with
-  * smtpd_restriction_classes. These parameters have the empty string as
-  * their default value.
+  * Support for parameters whose user-defined names are specified in main.cf
+  * with smtpd_restriction_classes, and for user-defined parameters whose
+  * "name=value" appears in main.cf and whose $name appears in the value of
+  * in master.cf "-o name=value" entries, or in main.cf "name=value" entries
+  * for known parameters.
   */
-static char **rest_class_table;
-static ssize_t rest_class_tablen;
+static char **user_param_table;
+static ssize_t user_param_tablen;
 
  /*
   * Parameters with default values obtained via function calls.
@@ -820,34 +820,32 @@ static void read_master(void)
 #define MAIL_PROGRAM_SPAWN	"spawn"
 #endif
 
-/* add_restriction_class - add one smtpd_restriction_classes name */
+/* add_service_parameter - add one service parameter name and default */
 
-static void add_restriction_class(const char *name)
-{
-    rest_class_table = (char **)
-    myrealloc((char *) rest_class_table,
-	      (rest_class_tablen + 1) * sizeof(*rest_class_table));
-    rest_class_table[rest_class_tablen] = mystrdup(name);
-    rest_class_tablen += 1;
-}
-
-/* add_dynamic_parameter - add one dynamic parameter name and default */
-
-static void add_dynamic_parameter(const char *service, const char *suffix,
+static void add_service_parameter(const char *service, const char *suffix,
 				          const char *defparam)
 {
-    del_transp_table = (STRING_NV *)
-    myrealloc((char *) del_transp_table,
-	      (del_transp_tablen + 1) * sizeof(*del_transp_table));
-    del_transp_table[del_transp_tablen].name =
-	concatenate(service, suffix, (char *) 0);
-    del_transp_table[del_transp_tablen].value = defparam;
-    del_transp_tablen += 1;
+    STRING_NV *sp;
+
+    /*
+     * Skip service parameter names that have explicit built-in definitions.
+     * This happens with message delivery transports that have a non-default
+     * per-destination concurrency or recipient limit, such as local(8).
+     * 
+     * XXX Skip parameters that are already in the param_table hash.
+     */
+    serv_param_table = (STRING_NV *)
+	myrealloc((char *) serv_param_table,
+		  (serv_param_tablen + 1) * sizeof(*serv_param_table));
+    sp = serv_param_table + serv_param_tablen;
+    sp->name = concatenate(service, suffix, (char *) 0);
+    sp->value = defparam;
+    serv_param_tablen += 1;
 }
 
-/* add_dynamic_parameters - add all dynamic parameters with defaults */
+/* add_service_parameters - add all service parameters with defaults */
 
-static void add_dynamic_parameters(int mode)
+static void add_service_parameters(void)
 {
     /* XXX Should this list be configurable? */
     static const char *delivery_agents[] = {
@@ -856,7 +854,7 @@ static void add_dynamic_parameters(int mode)
 	MAIL_PROGRAM_LMTP, MAIL_PROGRAM_PIPE,
 	0,
     };
-    static const STRING_NV del_transp_params[] = {
+    static const STRING_NV service_params[] = {
 	/* suffix, default parameter name */
 	_XPORT_RCPT_LIMIT, VAR_XPORT_RCPT_LIMIT,
 	_STACK_RCPT_LIMIT, VAR_STACK_RCPT_LIMIT,
@@ -882,26 +880,20 @@ static void add_dynamic_parameters(int mode)
     };
     const STRING_NV *sp;
     const char *progname;
+    const char *service;
     ARGV  **argvp;
     ARGV   *argv;
     const char **cpp;
-    const char *class_list;
-    char   *cp;
-    char   *saved_class_list;
-    char   *class_name;
 
     /*
-     * Initialize the tables with dynamic parameter names and defaults.
+     * Initialize the table with service parameter names and defaults.
      */
-    del_transp_table = (STRING_NV *) mymalloc(1);
-    del_transp_tablen = 0;
-
-    rest_class_table = (char **) mymalloc(1);
-    rest_class_tablen = 0;
+    serv_param_table = (STRING_NV *) mymalloc(1);
+    serv_param_tablen = 0;
 
     /*
-     * Extract message delivery transport names from master.cf and generate
-     * dynamic parameter information.
+     * Extract service names from master.cf and generate service parameter
+     * information.
      */
     for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
 
@@ -912,50 +904,169 @@ static void add_dynamic_parameters(int mode)
 	    continue;
 
 	/*
-	 * Add dynamic parameters for message delivery transports.
+	 * Add service parameters for message delivery transports.
 	 */
 	progname = argv->argv[7];
 	for (cpp = delivery_agents; *cpp; cpp++)
 	    if (strcmp(*cpp, progname) == 0)
 		break;
 	if (*cpp != 0) {
-	    for (sp = del_transp_params; sp->name; sp++)
-		add_dynamic_parameter(argv->argv[0], sp->name, sp->value);
+	    service = argv->argv[0];
+	    for (sp = service_params; sp->name; sp++)
+		add_service_parameter(service, sp->name, sp->value);
 	    continue;
 	}
 
 	/*
-	 * Add dynamic parameters for spawn(8)-based services.
+	 * Add service parameters for spawn(8)-based services.
 	 */
 	if (strcmp(MAIL_PROGRAM_SPAWN, progname) == 0) {
+	    service = argv->argv[0];
 	    for (sp = spawn_params; sp->name; sp++)
-		add_dynamic_parameter(argv->argv[0], sp->name, sp->value);
+		add_service_parameter(service, sp->name, sp->value);
 	    continue;
 	}
     }
 
     /*
-     * Add parameters specified with smtpd_restriction_classes.
+     * Now that the service parameter table size is frozen, enter the
+     * parameters into the hash so that we can find and print them.
      */
-    if ((mode & SHOW_DEFS) == 0
-	&& (class_list = mail_conf_lookup_eval(VAR_REST_CLASSES)) != 0) {
+    for (sp = serv_param_table; sp < serv_param_table + serv_param_tablen; sp++)
+	if (htable_locate(param_table, sp->name) == 0)
+	    htable_enter(param_table, sp->name, (char *) sp);
+}
+
+/* add_user_parameter - add one user-defined parameter name */
+
+static void add_user_parameter(const char *name)
+{
+    /* XXX Merge this with check_parameter_value() */
+    user_param_table = (char **)
+	myrealloc((char *) user_param_table,
+		  (user_param_tablen + 1) * sizeof(*user_param_table));
+    user_param_table[user_param_tablen] = mystrdup(name);
+    user_param_tablen += 1;
+}
+
+#ifdef MAC_EXP_FLAG_SCAN
+#define NO_SCAN_RESULT	((VSTRING *) 0)
+#define NO_SCAN_FILTER	((char *) 0)
+#define NO_SCAN_MODE	(0)
+#define NO_SCAN_CONTEXT	((char *) 0)
+
+#define scan_user_parameter_value(value) do { \
+    (void) mac_expand(NO_SCAN_RESULT, (value), MAC_EXP_FLAG_SCAN, \
+		    NO_SCAN_FILTER, check_user_parameter, NO_SCAN_CONTEXT); \
+} while (0)
+#else
+#define scan_user_parameter_value(value) do { /* void */; } while (0)
+#endif
+
+/* check_user_parameter - try to promote user-defined parameter */
+
+static const char *check_user_parameter(const char *mac_name,
+					        int unused_mode,
+					        char *unused_context)
+{
+    const char *mac_value;
+
+    /*
+     * Promote only user-defined parameters with an explicit "name=value"
+     * main.cf definition. Do not promote parameters whose name appears only
+     * as a macro expansion; this is how Postfix implements backwards
+     * compatibility after a feature name change.
+     * 
+     * XXX Skip parameters that are already in the param_table hash.
+     */
+    mac_value = mail_conf_lookup(mac_name);
+    if (mac_value != 0) {
+	add_user_parameter(mac_name);
+	/* Promote parameter names recursively. */
+	scan_user_parameter_value(mac_value);
+    }
+    return (0);
+}
+
+/* add_user_parameters - add parameters with user-defined names */
+
+static void add_user_parameters(void)
+{
+    const char *class_list;
+    char   *saved_class_list;
+    char   *cp;
+    const char *cparam_value;
+    HTABLE_INFO **ht_info;
+    HTABLE_INFO **ht;
+    ARGV  **argvp;
+    ARGV   *argv;
+    char   *arg;
+    int     field;
+    char   *saved_arg;
+    char   *param_name;
+    char   *param_value;
+    char  **up;
+
+    /*
+     * Initialize the table with user-defined parameter names and values.
+     */
+    user_param_table = (char **) mymalloc(1);
+    user_param_tablen = 0;
+
+    /*
+     * Add parameters whose names are defined with smtpd_restriction_classes,
+     * but only if they have a "name=value" entry in main.cf.
+     */
+    if ((class_list = mail_conf_lookup_eval(VAR_REST_CLASSES)) != 0) {
 	cp = saved_class_list = mystrdup(class_list);
-	while ((class_name = mystrtok(&cp, ", \t\r\n")) != 0)
-	    add_restriction_class(class_name);
+	while ((param_name = mystrtok(&cp, ", \t\r\n")) != 0)
+	    check_user_parameter(param_name, NO_SCAN_MODE, NO_SCAN_CONTEXT);
 	myfree(saved_class_list);
     }
 
     /*
-     * TODO: Parse all legitimate parameter values (in main.cf and in
-     * master.cf) for references to spontaneous parameters that are defined
-     * in main.cf, and flag those spontaneous parameters as legitimate. Then,
-     * flag all remaining spontaneous parameter definitions in main.cf as
-     * mistakes.
-     * 
-     * It is OK if a spontaneous name exists only in a reference; this is how
-     * Postfix implements backwards compatibility after a feature name
-     * change.
+     * Parse the "name=value" instances in main.cf of built-in and service
+     * parameters only, look for macro expansions of unknown parameter names,
+     * and flag those unknown parameter names as "known" if they have a
+     * "name=value" entry in main.cf.
      */
+    for (ht_info = ht = htable_list(param_table); *ht; ht++)
+	if ((cparam_value = mail_conf_lookup(ht[0]->key)) != 0)
+	    scan_user_parameter_value(cparam_value);
+    myfree((char *) ht_info);
+
+    /*
+     * Parse all "-o parameter=value" instances in master.cf, look for for
+     * macro expansions of unknown parameter names, and flag those unknown
+     * parameter names as "known" if they have a "name=value" entry in
+     * main.cf.
+     * 
+     * XXX It is possible that a user-defined parameter is defined in master.cf
+     * with "-o name1=value1" and then used in a "-o name2=$name1" macro
+     * expansion in that same master.cf entry.
+     */
+    for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
+	for (field = MASTER_FIELD_COUNT; argv->argv[field] != 0; field++) {
+	    arg = argv->argv[field];
+	    if (arg[0] != '-')
+		break;
+	    if (strcmp(arg, "-o") == 0 && (arg = argv->argv[field + 1]) != 0) {
+		saved_arg = mystrdup(arg);
+		if (split_nameval(saved_arg, &param_name, &param_value) == 0)
+		    scan_user_parameter_value(param_value);
+		myfree(saved_arg);
+		field += 1;
+	    }
+	}
+    }
+
+    /*
+     * Now that the user-defined parameter table size is frozen, enter the
+     * parameters into the hash so that we can find and print them.
+     */
+    for (up = user_param_table; up < user_param_table + user_param_tablen; up++)
+	if (htable_locate(param_table, *up) == 0)
+	    htable_enter(param_table, *up, (char *) up);
 }
 
 /* hash_parameters - hash all parameter names so we can find and sort them */
@@ -971,14 +1082,9 @@ static void hash_parameters(void)
     const CONFIG_NINT_TABLE *nst;
     const CONFIG_NBOOL_TABLE *bst;
     const CONFIG_LONG_TABLE *lst;
-    const STRING_NV *dst;
-    char  **rct;
 
     param_table = htable_create(100);
 
-    /*
-     * Don't allow dynamic parameter names to override built-in names.
-     */
     for (ctt = time_table; ctt->name; ctt++)
 	htable_enter(param_table, ctt->name, (char *) ctt);
     for (cbt = bool_table; cbt->name; cbt++)
@@ -999,12 +1105,6 @@ static void hash_parameters(void)
 	htable_enter(param_table, bst->name, (char *) bst);
     for (lst = long_table; lst->name; lst++)
 	htable_enter(param_table, lst->name, (char *) lst);
-    for (dst = del_transp_table; dst < del_transp_table + del_transp_tablen; dst++)
-	if (htable_locate(param_table, dst->name) == 0)
-	    htable_enter(param_table, dst->name, (char *) dst);
-    for (rct = rest_class_table; rct < rest_class_table + rest_class_tablen; rct++)
-	if (htable_locate(param_table, *rct) == 0)
-	    htable_enter(param_table, *rct, (char *) rct);
 }
 
 /* print_line - show line possibly folded, and with normalized whitespace */
@@ -1340,16 +1440,16 @@ static void print_long(int mode, const char *name, CONFIG_LONG_TABLE *clt)
 
 static void print_parameter(int, const char *, char *);
 
-/* print_del_transp_param_default show delivery agent parameter default value */
+/* print_service_param_default show service parameter default value */
 
-static void print_del_transp_param_default(int mode, const char *name,
-					           const char *defparam)
+static void print_service_param_default(int mode, const char *name,
+					        const char *defparam)
 {
-    const char *myname = "print_del_transp_param_default";
+    const char *myname = "print_service_param_default";
     char   *ptr;
 
     if ((ptr = htable_find(param_table, defparam)) == 0)
-	msg_panic("%s: dynamic parameter %s has unknown default value $%s",
+	msg_panic("%s: service parameter %s has unknown default value $%s",
 		  myname, name, defparam);
     if (mode & SHOW_EVAL)
 	print_parameter(mode, name, ptr);
@@ -1357,20 +1457,20 @@ static void print_del_transp_param_default(int mode, const char *name,
 	print_line(mode, "%s = $%s\n", name, defparam);
 }
 
-/* print_del_transp_param - show dynamic delivery agent parameter */
+/* print_service_param - show service parameter */
 
-static void print_del_transp_param(int mode, const char *name,
-				           const STRING_NV *dst)
+static void print_service_param(int mode, const char *name,
+				        const STRING_NV *dst)
 {
     const char *value;
 
     if (mode & SHOW_DEFS) {
-	print_del_transp_param_default(mode, name, dst->value);
+	print_service_param_default(mode, name, dst->value);
     } else {
 	value = dict_lookup(CONFIG_DICT, name);
 	if ((mode & SHOW_NONDEF) == 0) {
 	    if (value == 0) {
-		print_del_transp_param_default(mode, name, dst->value);
+		print_service_param_default(mode, name, dst->value);
 	    } else {
 		show_strval(mode, name, value);
 	    }
@@ -1381,9 +1481,9 @@ static void print_del_transp_param(int mode, const char *name,
     }
 }
 
-/* print_rest_class_param - show dynamic restriction class parameter */
+/* print_user_param - show user-defined parameter */
 
-static void print_rest_class_param(int mode, const char *name)
+static void print_user_param(int mode, const char *name)
 {
     const char *value;
 
@@ -1392,7 +1492,7 @@ static void print_rest_class_param(int mode, const char *name)
     } else {
 	value = dict_lookup(CONFIG_DICT, name);
 	if ((mode & SHOW_NONDEF) == 0) {
-	    if (value == 0) {
+	    if (value == 0) {			/* can't happen */
 		show_strval(mode, name, "");
 	    } else {
 		show_strval(mode, name, value);
@@ -1435,10 +1535,10 @@ static void print_parameter(int mode, const char *name, char *ptr)
 	print_nbool(mode, name, (CONFIG_NBOOL_TABLE *) ptr);
     if (INSIDE(ptr, long_table))
 	print_long(mode, name, (CONFIG_LONG_TABLE *) ptr);
-    if (INSIDE3(ptr, del_transp_table, del_transp_tablen))
-	print_del_transp_param(mode, name, (STRING_NV *) ptr);
-    if (INSIDE3(ptr, rest_class_table, rest_class_tablen))
-	print_rest_class_param(mode, name);
+    if (INSIDE3(ptr, serv_param_table, serv_param_tablen))
+	print_service_param(mode, name, (STRING_NV *) ptr);
+    if (INSIDE3(ptr, user_param_table, user_param_tablen))
+	print_user_param(mode, name);
     if (msg_verbose)
 	vstream_fflush(VSTREAM_OUT);
 }
@@ -1451,6 +1551,39 @@ static int comp_names(const void *a, const void *b)
     HTABLE_INFO **bp = (HTABLE_INFO **) b;
 
     return (strcmp(ap[0]->key, bp[0]->key));
+}
+
+/* show_parameters - show parameter info */
+
+static void show_parameters(int mode, char **names)
+{
+    HTABLE_INFO **list;
+    HTABLE_INFO **ht;
+    char  **namep;
+    char   *value;
+
+    /*
+     * Show all parameters.
+     */
+    if (*names == 0) {
+	list = htable_list(param_table);
+	qsort((char *) list, param_table->used, sizeof(*list), comp_names);
+	for (ht = list; *ht; ht++)
+	    print_parameter(mode, ht[0]->key, ht[0]->value);
+	myfree((char *) list);
+	return;
+    }
+
+    /*
+     * Show named parameters.
+     */
+    for (namep = names; *namep; namep++) {
+	if ((value = htable_find(param_table, *namep)) == 0) {
+	    msg_warn("%s: unknown parameter", *namep);
+	} else {
+	    print_parameter(mode, *namep, value);
+	}
+    }
 }
 
 /* show_maps - show available maps */
@@ -1594,35 +1727,74 @@ static void show_sasl(int what)
     argv_free(sasl_argv);
 }
 
-/* show_parameters - show parameter info */
+/* flag_unused_main_parameters - warn about unused parameters */
 
-static void show_parameters(int mode, char **names)
+static void flag_unused_main_parameters(void)
 {
-    HTABLE_INFO **list;
-    HTABLE_INFO **ht;
-    char  **namep;
-    char   *value;
+    const char *myname = "flag_unused_main_parameters";
+    DICT   *dict;
+    const char *param_name;
+    const char *param_value;
+    int     how;
 
     /*
-     * Show all parameters.
+     * Iterate over all main.cf entries, and flag parameter names that aren't
+     * used anywhere. Show the warning message at the end of the output.
      */
-    if (*names == 0) {
-	list = htable_list(param_table);
-	qsort((char *) list, param_table->used, sizeof(*list), comp_names);
-	for (ht = list; *ht; ht++)
-	    print_parameter(mode, ht[0]->key, ht[0]->value);
-	myfree((char *) list);
-	return;
+    if ((dict = dict_handle(CONFIG_DICT)) == 0)
+	msg_panic("%s: parameter dictionary %s not found",
+		  myname, CONFIG_DICT);
+    if (dict->sequence == 0)
+	msg_panic("%s: parameter dictionary %s has no iterator",
+		  myname, CONFIG_DICT);
+    for (how = DICT_SEQ_FUN_FIRST;
+	 dict->sequence(dict, how, &param_name, &param_value) == 0;
+	 how = DICT_SEQ_FUN_NEXT) {
+	if (htable_locate(param_table, param_name) == 0) {
+	    vstream_fflush(VSTREAM_OUT);
+	    msg_warn("%s/" MAIN_CONF_FILE ": unused parameter: %s=%s",
+		     var_config_dir, param_name, param_value);
+	}
     }
+}
+
+/* flag_unused_master_parameters - warn about unused parameters */
+
+static void flag_unused_master_parameters(void)
+{
+    ARGV  **argvp;
+    ARGV   *argv;
+    int     field;
+    char   *arg;
+    char   *saved_arg;
+    char   *param_name;
+    char   *param_value;
 
     /*
-     * Show named parameters.
+     * Iterate over all master.cf entries, and flag parameter names that
+     * aren't used anywhere. Show the warning message at the end of the
+     * output.
+     * 
+     * XXX It is possible that a user-defined parameter is defined in master.cf
+     * with "-o name1=value1" and then used in a "-o name2=$name1" macro
+     * expansion in that same master.cf entry.
      */
-    for (namep = names; *namep; namep++) {
-	if ((value = htable_find(param_table, *namep)) == 0) {
-	    msg_warn("%s: unknown parameter", *namep);
-	} else {
-	    print_parameter(mode, *namep, value);
+    for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
+	for (field = MASTER_FIELD_COUNT; argv->argv[field] != 0; field++) {
+	    arg = argv->argv[field];
+	    if (arg[0] != '-')
+		break;
+	    if (strcmp(arg, "-o") == 0 && (arg = argv->argv[field + 1]) != 0) {
+		saved_arg = mystrdup(arg);
+		if (split_nameval(saved_arg, &param_name, &param_value) == 0
+		    && htable_locate(param_table, param_name) == 0) {
+		    vstream_fflush(VSTREAM_OUT);
+		    msg_warn("%s/" MASTER_CONF_FILE ": unused parameter: %s=%s",
+			     var_config_dir, param_name, param_value);
+		}
+		myfree(saved_arg);
+		field += 1;
+	    }
 	}
     }
 }
@@ -1821,14 +1993,34 @@ int     main(int argc, char **argv)
 	    read_parameters();
 	    set_parameters();
 	}
-	read_master();
-	add_dynamic_parameters(cmd_mode);
+	hash_parameters();
 
 	/*
-	 * Throw together all parameters and show the asked values.
+	 * Add service-dependent parameters (service names from master.cf)
+	 * and user-defined parameters ($name macros in parameter values in
+	 * main.cf and master.cf).
 	 */
-	hash_parameters();
+	read_master();
+	add_service_parameters();
+	if ((cmd_mode & SHOW_DEFS) == 0)
+	    add_user_parameters();
+
+	/*
+	 * Show the requested values.
+	 */
 	show_parameters(cmd_mode, argv + optind);
+
+	/*
+	 * Flag unused parameters. This makes no sense with "postconf -d",
+	 * because that ignores all the user-specified parameter values that
+	 * may contain macro expansions with user-defined parameter names.
+	 */
+#ifdef MAC_EXP_FLAG_SCAN
+	if ((cmd_mode & SHOW_DEFS) == 0) {
+	    flag_unused_main_parameters();
+	    flag_unused_master_parameters();
+	}
+#endif
     }
     vstream_fflush(VSTREAM_OUT);
     exit(0);

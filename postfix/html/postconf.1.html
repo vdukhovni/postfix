@@ -21,10 +21,12 @@ POSTCONF(1)                                                        POSTCONF(1)
        <b>postconf</b> [<b>-btv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>template</i><b>_</b><i>file</i>]
 
 <b>DESCRIPTION</b>
-       The  <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  displays  the values of <a href="postconf.5.html"><b>main.cf</b></a>
-       configuration parameters by default. It  can  also  change
-       parameter  values, or display other configuration informa-
-       tion about the Postfix mail system.
+       By default, the <a href="postconf.1.html"><b>postconf</b>(1)</a> command displays the values of
+       <a href="postconf.5.html"><b>main.cf</b></a> configuration parameters, and warns about possible
+       mis-typed parameter names (Postfix 2.9 and later).  It can
+       also change <a href="postconf.5.html"><b>main.cf</b></a>  configuration  parameter  values,  or
+       display  other configuration information about the Postfix
+       mail system.
 
        Options:
 

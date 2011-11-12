@@ -17062,3 +17062,10 @@ Apologies for any names omitted.
 
 	Cleanup: account for "," in smtpd_restriction_classes
 	value (Victor Duchovni). File: postconf/postconf.c.
+
+20111112
+
+	Cleanup: postconf finally warns about possible mis-typed
+	main.cf and master.cf parameter names (i.e. parameters that
+	aren't used anywhere), and it finally displays user-defined
+	main.cf parameters that *are* used.  File: postconf/postconf.c.
