@@ -269,23 +269,29 @@ POSTCONF(1)                                                        POSTCONF(1)
 <b>DIAGNOSTICS</b>
        Problems are reported to the standard error stream.
 
+<b>BUGS</b>
+       There  currently  is  no support for per-service parameter
+       name spaces in  <a href="master.5.html">master.cf</a>.   This  means  that  "-o  user-
+       defined-name=value"  always  results in an "unused parame-
+       ter" warning.
+
 <b>ENVIRONMENT</b>
        <b>MAIL_CONFIG</b>
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant
+       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are  especially  relevant
        to this program.
 
-       The text below provides  only  a  parameter  summary.  See
+       The  text  below  provides  only  a parameter summary. See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
+              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname of a configuration file with  bounce  mes-
+              Pathname  of  a configuration file with bounce mes-
               sage templates.
 
 <b>FILES</b>
@@ -299,7 +305,7 @@ POSTCONF(1)                                                        POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

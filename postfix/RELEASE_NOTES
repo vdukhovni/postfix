@@ -14,6 +14,30 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Incompatible changes with snapshot 20111113
+===========================================
+
+The postconf command now logs warnings about unused "name=value"
+entries in main.cf, and about unused "-o name=value" entries in
+master.cf. Such entries are the result of feature creep in Postfix,
+and of mis-typed names. Once the configurations are cleaned up,
+Postfix configuration changes will be more robust.
+
+Major changes with snapshot 20111113
+====================================
+
+postconf support to warn about unused "name=value" entries in
+main.cf, and about unused "-o name=value" entries in master.cf.
+This should help to eliminate common errors with mis-typed names.
+
+The only known limitation is lack of support for per-service parameter
+name spaces in master.cf, meaning that "-o user-defined-name=value"
+always results in an "unused parameter" warning.
+
+This completes an effort that expanded postconf.c by 553 lines of
+code that were designed, written, tested and documented (in 250
+lines) at the cost of 31 person-hours, spread out over 7 days.
+
 Major changes with snapshot 20111108
 ====================================
 

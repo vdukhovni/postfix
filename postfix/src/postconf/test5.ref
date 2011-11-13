@@ -1,0 +1,2 @@
+config_directory = .
+./postconf: warning: ./master.cf: unused parameter: bar=yes

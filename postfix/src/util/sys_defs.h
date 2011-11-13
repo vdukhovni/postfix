@@ -287,7 +287,9 @@ extern int opterr;
 extern int h_errno;
 
 #define MISSING_STRFTIME_E
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/etc:/usr/etc:/usr/ucb"
 #define USE_STATFS
@@ -327,7 +329,9 @@ extern int optind;			/* XXX use <getopt.h> */
 extern char *optarg;			/* XXX use <getopt.h> */
 extern int opterr;			/* XXX use <getopt.h> */
 
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
 #define USE_STATFS
@@ -372,7 +376,9 @@ extern int optind;
 extern char *optarg;
 extern int opterr;
 
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/etc:/usr/etc:/usr/ucb"
 #define USE_STATFS
@@ -412,8 +418,10 @@ extern int opterr;
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
 #define HAS_NISPLUS
+#endif
 #define USE_SYS_SOCKIO_H		/* Solaris 2.5, changed sys/ioctl.h */
 #define GETTIMEOFDAY(t)	gettimeofday(t)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
@@ -490,7 +498,9 @@ extern int opterr;
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define USE_SYS_SOCKIO_H
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
@@ -519,8 +529,9 @@ extern int opterr;
 #define HAS_DBM
 #define DEF_DB_TYPE     "dbm"
 #define ALIAS_DB_MAP    "dbm:/etc/mail/aliases"
-/* Uncomment the following line if you have NIS package installed
+#ifndef NO_NIS
 #define HAS_NIS */
+#endif
 #define USE_SYS_SOCKIO_H
 #define GETTIMEOFDAY(t) gettimeofday(t,NULL)
 #define ROOT_PATH       "/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
@@ -561,7 +572,9 @@ extern int opterr;
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define HAS_SA_LEN
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
@@ -613,7 +626,9 @@ extern int opterr;
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define HAS_SA_LEN
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define RESOLVE_H_NEEDS_STDIO_H
@@ -657,7 +672,9 @@ extern int initgroups(const char *, int);
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define HAS_SA_LEN
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define RESOLVE_H_NEEDS_STDIO_H
@@ -697,7 +714,9 @@ extern int initgroups(const char *, int);
 #define HAS_DBM
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define USE_SYS_SOCKIO_H		/* XXX check */
 #define GETTIMEOFDAY(t)	gettimeofday(t)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/bsd"
@@ -739,7 +758,9 @@ extern int initgroups(const char *, int);
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define FIONREAD_IN_TERMIOS_H
@@ -814,7 +835,9 @@ extern int initgroups(const char *, int);
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define FIONREAD_IN_TERMIOS_H		/* maybe unnecessary */
@@ -846,7 +869,9 @@ extern int initgroups(const char *, int);
 #define HAS_DB
 #define DEF_DB_TYPE	"hash"
 #define ALIAS_DB_MAP	"hash:/etc/aliases"
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define FIONREAD_IN_TERMIOS_H
@@ -912,7 +937,9 @@ extern int initgroups(const char *, int);
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
 #define ROOT_PATH	"/usr/bin:/sbin:/usr/sbin"
 #define MISSING_SETENV
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_MAILDIR	"/var/mail"
@@ -949,7 +976,9 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
 #define ROOT_PATH	"/usr/bin:/sbin:/usr/sbin"
 #define MISSING_SETENV
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_MAILDIR	"/var/mail"
@@ -982,7 +1011,9 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define MISSING_SETENV
 #define MISSING_RLIMIT_FSIZE
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
@@ -1025,7 +1056,9 @@ extern int h_errno;
 #define HAVE_SYS_DIR_H
 #define STATFS_IN_SYS_VFS_H
 #define HAS_FSYNC
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define HAS_NETINFO
 #define MISSING_SETENV_PUTENV
 #define MISSING_MKFIFO
@@ -1078,7 +1111,9 @@ typedef unsigned short mode_t;
 #define HAVE_SYS_DIR_H
 #define STATFS_IN_SYS_VFS_H
 #define HAS_FSYNC
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define HAS_NETINFO
 #define MISSING_SETENV_PUTENV
 #define MISSING_MKFIFO
@@ -1140,7 +1175,9 @@ extern int optind;			/* XXX use <getopt.h> */
 extern char *optarg;			/* XXX use <getopt.h> */
 extern int opterr;			/* XXX use <getopt.h> */
 
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t) gettimeofday(t)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin:/usr/ucb"
 #define USE_STATVFS
@@ -1198,7 +1235,9 @@ extern int h_errno;
 #define DEF_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
 #define DBM_NO_TRAILING_NULL
+#ifndef NO_NIS
 #define HAS_NIS
+#endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/etc:/usr/bin:/tcb/bin"
 #define USE_STATVFS

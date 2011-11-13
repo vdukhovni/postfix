@@ -17069,3 +17069,9 @@ Apologies for any names omitted.
 	main.cf and master.cf parameter names (i.e. parameters that
 	aren't used anywhere), and it finally displays user-defined
 	main.cf parameters that *are* used.  File: postconf/postconf.c.
+
+20111113
+
+	Cleanup: documented the postconf algorithms and their
+	limitations, and added regression tests to speed up future
+	development. File: postconf/postconf.c

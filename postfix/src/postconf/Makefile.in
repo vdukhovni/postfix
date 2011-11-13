@@ -10,6 +10,7 @@ MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h \
 	nint_table.h nint_vars.h nbool_table.h nbool_vars.h long_table.h \
 	long_vars.h
+TEST_TMP= main.cf master.cf
 DUMMIES	= makes_dummy # for "make -j"
 PROG	= postconf
 SAMPLES	= ../../conf/main.cf.default
@@ -35,7 +36,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:
+tests: test1 test2 test3 test4 test5
 
 root_tests:
 
@@ -50,6 +51,71 @@ makes_dummy: $(INC_DIR)/mail_params.h ../global/mail_params.c
 	$(AWK) -f extract.awk ../*/*.c | $(SHELL)
 	touch makes_dummy
 
+
+# Define two parameters with smtpd_restriction_classes. One will be ignored.
+
+test1:	$(PROG) test1.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo smtpd_restriction_classes = foo bar >> main.cf
+	echo foo = yes >> main.cf
+	./$(PROG) -nc . >test1.tmp 2>&1
+	diff test1.ref test1.tmp
+	rm -f main.cf master.cf test1.tmp
+
+# Define two unused parameters. Expect two warnings.
+
+test2:	$(PROG) test2.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo restriction_classes = foo bar >> main.cf
+	echo foo = yes >> main.cf
+	./$(PROG) -nc . >test2.tmp 2>&1
+	diff test2.ref test2.tmp
+	rm -f main.cf master.cf test2.tmp
+
+# Define one parameter in main,cf, validate it with main.cf.
+
+test3:	$(PROG) test3.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./$(PROG) -nc . >test_base.tmp 2>&1
+	echo foo = yes >> main.cf
+	echo 'bar = $$foo' >> main.cf
+	echo 'always_bcc = $$bar' >> main.cf
+	./$(PROG) -nc . >test3.tmp 2>&1
+	diff test3.ref test3.tmp
+	rm -f main.cf master.cf test3.tmp
+
+# Define one parameter in main.cf, validate it with master.cf.
+
+test4:	$(PROG) test4.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./$(PROG) -nc . >test_base.tmp 2>&1
+	echo foo = yes >> main.cf
+	echo 'bar = $$foo' >> main.cf
+	echo smtpd 1 2 3 4 5 6 7 >> master.cf
+	echo ' -o always_bcc=$$bar' >> master.cf
+	./$(PROG) -nc . >test4.tmp 2>&1
+	diff test4.ref test4.tmp
+	rm -f main.cf master.cf test4.tmp
+
+# Define one user-defined parameter with name=value in master.cf,
+# validate it with known_parameter=$name in master.cf.  Currently,
+# user-defined parameter definitions in master.cf are not recognized
+# as definitions, and result in an "unused parameter" warning.
+
+test5:	$(PROG) test5.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	./$(PROG) -nc . >test_base.tmp 2>&1
+	echo smtpd 1 2 3 4 5 6 7 >> master.cf
+	echo ' -o bar=yes -o always_bcc=$$bar -o' >> master.cf
+	./$(PROG) -nc . >test5.tmp 2>&1
+	diff test5.ref test5.tmp
+	rm -f main.cf master.cf test5.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -62,7 +128,8 @@ lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
 clean:
-	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES)
+	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
+	$(TEST_TMP) *.tmp
 	rm -rf printfck
 
 tidy:	clean

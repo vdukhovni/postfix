@@ -226,6 +226,13 @@ This feature is available with Postfix 2.6 and later.
 .ad
 .fi
 Problems are reported to the standard error stream.
+.SH BUGS
+.ad
+.fi
+There currently is no support for per-service parameter
+name spaces in master.cf.  This means that "-o
+user-defined-name=value" always results in an "unused
+parameter" warning.
 .SH "ENVIRONMENT"
 .na
 .nf
