@@ -229,10 +229,10 @@ Problems are reported to the standard error stream.
 .SH BUGS
 .ad
 .fi
-There currently is no support for per-service parameter
-name spaces in master.cf.  This means that "-o
-user-defined-name=value" always results in an "unused
-parameter" warning.
+\fBpostconf\fR(1) may log "unused parameter" warnings for
+\fBmaster.cf\fR entries with "-o user-defined-name=value".
+Addressing this limitation requires support for per-service
+parameter name spaces.
 .SH "ENVIRONMENT"
 .na
 .nf
@@ -263,7 +263,8 @@ Pathname of a configuration file with bounce message templates.
 .na
 .nf
 bounce(5), bounce template file format
-postconf(5), configuration parameters
+master(5), master.cf configuration file syntax
+postconf(5), main.cf configuration file syntax
 .SH "README FILES"
 .na
 .nf

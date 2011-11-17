@@ -17075,3 +17075,20 @@ Apologies for any names omitted.
 	Cleanup: documented the postconf algorithms and their
 	limitations, and added regression tests to speed up future
 	development. File: postconf/postconf.c
+
+20111117
+
+	Cleanup: postconf didn't "bless" type "inet" service names.
+
+	Cleanup: with pipelined sessions, smtp-sink flushed the
+	output too often. Reported by Mark Martinec. File:
+	smtpstone/smtp-sink.c.
+
+	Workaround: don't use IPv6 at build time. File: conf/main.cf.
+
+	Workaround: don't abort when IPv6 is present but busted.
+	File: util/inet_proto.c.
+
+	Portability: Dovecot now officially supports more socket
+	types for its authentication server. File:
+	xsasl/xsasl_dovecot_server.c.

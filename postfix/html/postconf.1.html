@@ -270,10 +270,10 @@ POSTCONF(1)                                                        POSTCONF(1)
        Problems are reported to the standard error stream.
 
 <b>BUGS</b>
-       There  currently  is  no support for per-service parameter
-       name spaces in  <a href="master.5.html">master.cf</a>.   This  means  that  "-o  user-
-       defined-name=value"  always  results in an "unused parame-
-       ter" warning.
+       <a href="postconf.1.html"><b>postconf</b>(1)</a>  may  log "unused parameter" warnings for <b>mas-</b>
+       <b>ter.cf</b>   entries   with   "-o    user-defined-name=value".
+       Addressing  this  limitation requires support for per-ser-
+       vice parameter name spaces.
 
 <b>ENVIRONMENT</b>
        <b>MAIL_CONFIG</b>
@@ -299,7 +299,8 @@ POSTCONF(1)                                                        POSTCONF(1)
 
 <b>SEE ALSO</b>
        <a href="bounce.5.html">bounce(5)</a>, bounce template file format
-       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="master.5.html">master(5)</a>, <a href="master.5.html">master.cf</a> configuration file syntax
+       <a href="postconf.5.html">postconf(5)</a>, <a href="postconf.5.html">main.cf</a> configuration file syntax
 
 <b>README FILES</b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview

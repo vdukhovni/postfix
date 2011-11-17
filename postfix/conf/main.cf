@@ -654,3 +654,4 @@ sample_directory =
 # readme_directory: The location of the Postfix README files.
 #
 readme_directory =
+inet_protocols = ipv4

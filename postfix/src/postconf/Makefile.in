@@ -36,7 +36,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests: test1 test2 test3 test4 test5
+tests: test1 test2 test3 test4 test5 test6 test7 test8
 
 root_tests:
 
@@ -79,7 +79,6 @@ test2:	$(PROG) test2.ref
 test3:	$(PROG) test3.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./$(PROG) -nc . >test_base.tmp 2>&1
 	echo foo = yes >> main.cf
 	echo 'bar = $$foo' >> main.cf
 	echo 'always_bcc = $$bar' >> main.cf
@@ -92,10 +91,9 @@ test3:	$(PROG) test3.ref
 test4:	$(PROG) test4.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./$(PROG) -nc . >test_base.tmp 2>&1
 	echo foo = yes >> main.cf
 	echo 'bar = $$foo' >> main.cf
-	echo smtpd 1 2 3 4 5 6 7 >> master.cf
+	echo smtpd unix - n n - 0 smtpd >> master.cf
 	echo ' -o always_bcc=$$bar' >> master.cf
 	./$(PROG) -nc . >test4.tmp 2>&1
 	diff test4.ref test4.tmp
@@ -109,12 +107,40 @@ test4:	$(PROG) test4.ref
 test5:	$(PROG) test5.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	./$(PROG) -nc . >test_base.tmp 2>&1
-	echo smtpd 1 2 3 4 5 6 7 >> master.cf
+	echo smtpd unix - n n - 0 smtpd >> master.cf
 	echo ' -o bar=yes -o always_bcc=$$bar -o' >> master.cf
 	./$(PROG) -nc . >test5.tmp 2>&1
 	diff test5.ref test5.tmp
 	rm -f main.cf master.cf test5.tmp
+
+# Basic functionality test: service parameters for delivery agents.
+
+test6:	$(PROG) test6.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo whatevershebrings unix - n n - 0 pipe >> master.cf
+	./$(PROG) -c . 2>&1 | grep whatevershebrings >test6.tmp
+	diff test6.ref test6.tmp
+	rm -f main.cf master.cf test6.tmp
+
+# Basic functionality test: service parameters for spawn programs.
+
+test7:	$(PROG) test7.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo whatevershebrings unix - n n - 0 spawn >> master.cf
+	./$(PROG) -c . 2>&1 | grep whatevershebrings >test7.tmp
+	diff test7.ref test7.tmp
+	rm -f main.cf master.cf test7.tmp
+
+test8:	$(PROG) test8.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo whatevershebrings inet - n n - 0 spawn >> master.cf
+	echo whatevershebrings_time_limit=1 >> main.cf
+	./$(PROG) -c . 2>&1 | grep whatevershebrings >test8.tmp
+	diff test8.ref test8.tmp
+	rm -f main.cf master.cf test8.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
@@ -152,6 +178,8 @@ postconf.o: ../../include/get_hostname.h
 postconf.o: ../../include/htable.h
 postconf.o: ../../include/inet_proto.h
 postconf.o: ../../include/iostuff.h
+postconf.o: ../../include/mac_expand.h
+postconf.o: ../../include/mac_parse.h
 postconf.o: ../../include/mail_addr.h
 postconf.o: ../../include/mail_conf.h
 postconf.o: ../../include/mail_dict.h

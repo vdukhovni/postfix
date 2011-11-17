@@ -219,7 +219,7 @@ INET_PROTO_INFO *inet_proto_init(const char *context, const char *protocols)
 	    pf->dns_atype_list = make_unsigned_vector(3, T_A, T_AAAA, 0);
 	    pf->sa_family_list = make_uchar_vector(3, AF_INET, AF_INET6, 0);
 	    break;
-	} else if (errno == EAFNOSUPPORT) {
+	} else if (errno == EAFNOSUPPORT || errno == EPROTONOSUPPORT) {
 	    msg_warn("%s: IPv6 support is disabled: %m", context);
 	    msg_warn("%s: configuring for IPv4 support only", context);
 	    /* FALLTHROUGH */

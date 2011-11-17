@@ -371,11 +371,6 @@ XSASL_SERVER_IMPL *xsasl_dovecot_server_init(const char *server_type,
 {
     XSASL_DOVECOT_SERVER_IMPL *xp;
 
-    if (strchr(path_info, '/') == 0)
-	msg_warn("when SASL type is \"%s\", SASL path \"%s\" "
-		 "should be a socket pathname",
-		 server_type, path_info);
-
     xp = (XSASL_DOVECOT_SERVER_IMPL *) mymalloc(sizeof(*xp));
     xp->xsasl.create = xsasl_dovecot_server_create;
     xp->xsasl.done = xsasl_dovecot_server_done;

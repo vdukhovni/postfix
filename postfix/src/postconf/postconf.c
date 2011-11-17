@@ -219,10 +219,10 @@
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* BUGS
-/*	There currently is no support for per-service parameter
-/*	name spaces in master.cf.  This means that "-o
-/*	user-defined-name=value" always results in an "unused
-/*	parameter" warning.
+/*	\fBpostconf\fR(1) may log "unused parameter" warnings for
+/*	\fBmaster.cf\fR entries with "-o user-defined-name=value".
+/*	Addressing this limitation requires support for per-service
+/*	parameter name spaces.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -245,7 +245,8 @@
 /*	/etc/postfix/main.cf, Postfix configuration parameters
 /* SEE ALSO
 /*	bounce(5), bounce template file format
-/*	postconf(5), configuration parameters
+/*	master(5), master.cf configuration file syntax
+/*	postconf(5), main.cf configuration file syntax
 /* README FILES
 /* .ad
 /* .fi
@@ -349,7 +350,7 @@ HTABLE *param_table;
   * Lookup table for master.cf info.
   * 
   * XXX Replace by data structures with per-entry hashes for "-o name=value", so
-  * that we can properly handle of definitions and uses in per-service name
+  * that we can properly handle name=value definitions in per-service name
   * spaces.
   */
 static ARGV **master_table;
@@ -423,14 +424,14 @@ static const CONFIG_LONG_TABLE long_table[] = {
 typedef struct {
     const char *name;
     const char *value;
-} STRING_NV;
+} PC_STRING_NV;
 
  /*
   * Service-defined parameter names are created by appending postfix-defined
   * suffixes to master.cf service names. These parameters have default values
   * that are defined by built-in parameters.
   */
-static STRING_NV *serv_param_table;
+static PC_STRING_NV *serv_param_table;
 static ssize_t serv_param_tablen;
 
  /*
@@ -767,8 +768,13 @@ static void set_parameters(void)
 {
 
     /*
-     * Populate the configuration parameter dictionary with default settings
-     * or with actual settings.
+     * The proposal below describes some of the steps needed to expand
+     * parameter values. It has a problem: it updates the configuration
+     * parameter dictionary, and in doing so breaks the "postconf -d"
+     * implementation.
+     * 
+     * Populate the configuration parameter dictionary with default settings or
+     * with actual settings.
      * 
      * Iterate over each entry in str_fn_table, str_fn_table_2, time_table,
      * bool_table, int_table, str_table, and raw_table. Look up each
@@ -856,7 +862,7 @@ static void read_master(void)
 static void add_service_parameter(const char *service, const char *suffix,
 				          const char *defparam)
 {
-    STRING_NV *sp;
+    PC_STRING_NV *sp;
     char   *name = concatenate(service, suffix, (char *) 0);
 
     /*
@@ -867,11 +873,11 @@ static void add_service_parameter(const char *service, const char *suffix,
     if (htable_locate(param_table, name) != 0) {
 	myfree(name);
     } else {
-	serv_param_table = (STRING_NV *)
+	serv_param_table = (PC_STRING_NV *)
 	    myrealloc((char *) serv_param_table,
 		      (serv_param_tablen + 1) * sizeof(*serv_param_table));
 	sp = serv_param_table + serv_param_tablen;
-	sp->name = concatenate(service, suffix, (char *) 0);
+	sp->name = name;
 	sp->value = defparam;
 	serv_param_tablen += 1;
     }
@@ -881,14 +887,7 @@ static void add_service_parameter(const char *service, const char *suffix,
 
 static void add_service_parameters(void)
 {
-    /* XXX Should this list be configurable? */
-    static const char *delivery_agents[] = {
-	MAIL_PROGRAM_LOCAL, MAIL_PROGRAM_ERROR,
-	MAIL_PROGRAM_VIRTUAL, MAIL_PROGRAM_SMTP,
-	MAIL_PROGRAM_LMTP, MAIL_PROGRAM_PIPE,
-	0,
-    };
-    static const STRING_NV service_params[] = {
+    static const PC_STRING_NV service_params[] = {
 	/* suffix, default parameter name */
 	_XPORT_RCPT_LIMIT, VAR_XPORT_RCPT_LIMIT,
 	_STACK_RCPT_LIMIT, VAR_STACK_RCPT_LIMIT,
@@ -907,22 +906,36 @@ static void add_service_parameters(void)
 	_DEST_RATE_DELAY, VAR_DEST_RATE_DELAY,
 	0,
     };
-    static const STRING_NV spawn_params[] = {
+    static const PC_STRING_NV spawn_params[] = {
 	/* suffix, default parameter name */
 	_MAXTIME, VAR_COMMAND_MAXTIME,
 	0,
     };
-    const STRING_NV *sp;
+    typedef struct {
+	const char *progname;
+	const PC_STRING_NV *params;
+    } PC_SERVICE_DEF;
+    static const PC_SERVICE_DEF service_defs[] = {
+	MAIL_PROGRAM_LOCAL, service_params,
+	MAIL_PROGRAM_ERROR, service_params,
+	MAIL_PROGRAM_VIRTUAL, service_params,
+	MAIL_PROGRAM_SMTP, service_params,
+	MAIL_PROGRAM_LMTP, service_params,
+	MAIL_PROGRAM_PIPE, service_params,
+	MAIL_PROGRAM_SPAWN, spawn_params,
+	0,
+    };
+    const PC_STRING_NV *sp;
     const char *progname;
     const char *service;
     ARGV  **argvp;
     ARGV   *argv;
-    const char **cpp;
+    const PC_SERVICE_DEF *sd;
 
     /*
      * Initialize the table with service parameter names and defaults.
      */
-    serv_param_table = (STRING_NV *) mymalloc(1);
+    serv_param_table = (PC_STRING_NV *) mymalloc(1);
     serv_param_tablen = 0;
 
     /*
@@ -932,33 +945,17 @@ static void add_service_parameters(void)
     for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
 
 	/*
-	 * Skip all endpoints except UNIX-domain sockets.
-	 */
-	if (strcmp(argv->argv[1], MASTER_XPORT_NAME_UNIX) != 0)
-	    continue;
-
-	/*
-	 * Add service parameters for message delivery transports.
+	 * Add service parameters for message delivery transports or spawn
+	 * programs.
 	 */
 	progname = argv->argv[7];
-	for (cpp = delivery_agents; *cpp; cpp++)
-	    if (strcmp(*cpp, progname) == 0)
+	for (sd = service_defs; sd->progname; sd++) {
+	    if (strcmp(sd->progname, progname) == 0) {
+		service = argv->argv[0];
+		for (sp = sd->params; sp->name; sp++)
+		    add_service_parameter(service, sp->name, sp->value);
 		break;
-	if (*cpp != 0) {
-	    service = argv->argv[0];
-	    for (sp = service_params; sp->name; sp++)
-		add_service_parameter(service, sp->name, sp->value);
-	    continue;
-	}
-
-	/*
-	 * Add service parameters for spawn(8)-based services.
-	 */
-	if (strcmp(MAIL_PROGRAM_SPAWN, progname) == 0) {
-	    service = argv->argv[0];
-	    for (sp = spawn_params; sp->name; sp++)
-		add_service_parameter(service, sp->name, sp->value);
-	    continue;
+	    }
 	}
     }
 
@@ -1056,9 +1053,9 @@ static void add_user_parameters(void)
      * but only if they have a "name=value" entry in main.cf.
      * 
      * XXX It is possible that a user-defined parameter is defined in master.cf
-     * with "-o smtpd_restriction_classes=name -o name=value". To handle this
-     * we need to give each master.cf entry its own name space. Until then,
-     * we may log false warnings for unused "-o name=value" entries.
+     * with "-o smtpd_restriction_classes=name -o name=value". This requires
+     * name space support for master.cf entries. Without this, we always log
+     * "unused parameter" warnings for "-o user-defined-name=value" entries.
      */
     if ((class_list = mail_conf_lookup_eval(VAR_REST_CLASSES)) != 0) {
 	cp = saved_class_list = mystrdup(class_list);
@@ -1070,8 +1067,9 @@ static void add_user_parameters(void)
     /*
      * Parse the "name=value" instances in main.cf of built-in and service
      * parameters only, look for macro expansions of unknown parameter names,
-     * and flag those unknown parameter names as "known" if they have a
-     * "name=value" entry in main.cf.
+     * and flag those parameter names as "known" if they have a "name=value"
+     * entry in main.cf. Recursively apply the procedure to the values of
+     * newly-flagged parameters.
      */
     for (ht_info = ht = htable_list(param_table); *ht; ht++)
 	if ((cparam_value = mail_conf_lookup(ht[0]->key)) != 0)
@@ -1079,16 +1077,11 @@ static void add_user_parameters(void)
     myfree((char *) ht_info);
 
     /*
-     * Parse all "-o parameter=value" instances in master.cf, look for for
-     * macro expansions of unknown parameter names, and flag those unknown
-     * parameter names as "known" if they have a "name=value" entry in
-     * main.cf.
-     * 
-     * XXX It is possible that a user-defined parameter is defined in master.cf
-     * with "-o name1=value1" and then used in a "-o name2=$name1" macro
-     * expansion in that same master.cf entry. To handle this we need to give
-     * each master.cf entry its own name space. Until then, we may log false
-     * warnings for unused "-o name=value" entries.
+     * Parse all "-o parameter=value" instances in master.cf, look for macro
+     * expansions of unknown parameter names, and flag those parameter names
+     * as "known" if they have a "name=value" entry in main.cf (XXX todo: in
+     * master.cf; without master.cf name space support we always log "unused
+     * parameter" warnings for "-o user-defined-name=value" entries).
      */
     for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
 	for (field = MASTER_FIELD_COUNT; argv->argv[field] != 0; field++) {
@@ -1505,7 +1498,7 @@ static void print_service_param_default(int mode, const char *name,
 /* print_service_param - show service parameter */
 
 static void print_service_param(int mode, const char *name,
-				        const STRING_NV *dst)
+				        const PC_STRING_NV *dst)
 {
     const char *value;
 
@@ -1581,7 +1574,7 @@ static void print_parameter(int mode, const char *name, char *ptr)
     if (INSIDE(ptr, long_table))
 	print_long(mode, name, (CONFIG_LONG_TABLE *) ptr);
     if (INSIDE3(ptr, serv_param_table, serv_param_tablen))
-	print_service_param(mode, name, (STRING_NV *) ptr);
+	print_service_param(mode, name, (PC_STRING_NV *) ptr);
     if (INSIDE3(ptr, user_param_table, user_param_tablen))
 	print_user_param(mode, name);
     if (msg_verbose)
@@ -1824,8 +1817,8 @@ static void flag_unused_master_parameters(void)
      * with "-o smtpd_restriction_classes=name", or with "-o name1=value1"
      * and then used in a "-o name2=$name1" macro expansion in that same
      * master.cf entry. To handle this we need to give each master.cf entry
-     * its own name space. Until then, we may log false warnings for unused
-     * "-o name=value" entries.
+     * its own name space. Until then, we always log "unused parameter"
+     * warnings for "-o user-defined-name=value" entries.
      */
     for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
 	for (field = MASTER_FIELD_COUNT; argv->argv[field] != 0; field++) {

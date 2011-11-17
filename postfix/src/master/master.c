@@ -150,7 +150,7 @@
 /*	qmgr(8), queue manager
 /*	verify(8), address verification
 /*	master(5), master.cf configuration file syntax
-/*	postconf(5), main.cf configuration parameter syntax
+/*	postconf(5), main.cf configuration file syntax
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad
