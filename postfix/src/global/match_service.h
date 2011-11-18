@@ -14,6 +14,7 @@
  /* External interface. */
 
 extern ARGV *match_service_init(const char *);
+extern ARGV *match_service_init_argv(char **);
 extern int match_service_match(ARGV *, const char *);
 extern void match_service_free(ARGV *);
 

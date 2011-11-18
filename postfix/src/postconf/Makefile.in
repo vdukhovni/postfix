@@ -36,7 +36,7 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests: test1 test2 test3 test4 test5 test6 test7 test8
+tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11
 
 root_tests:
 
@@ -142,6 +142,33 @@ test8:	$(PROG) test8.ref
 	diff test8.ref test8.tmp
 	rm -f main.cf master.cf test8.tmp
 
+test9:	$(PROG) test9.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo bar unix - n n - 0 spawn >> master.cf
+	./$(PROG) -c . -M inet >test9.tmp 2>&1
+	diff test9.ref test9.tmp
+	rm -f main.cf master.cf test9.tmp
+
+test10:	$(PROG) test10.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo bar unix - n n - 0 spawn >> master.cf
+	./$(PROG) -c . -M bar.inet foo.unix >test10.tmp 2>&1
+	diff test10.ref test10.tmp
+	rm -f main.cf master.cf test10.tmp
+
+test11:	$(PROG) test11.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo bar unix - n n - 0 spawn >> master.cf
+	./$(PROG) -c . -M >test11.tmp 2>&1
+	diff test11.ref test11.tmp
+	rm -f main.cf master.cf test11.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -188,6 +215,7 @@ postconf.o: ../../include/mail_proto.h
 postconf.o: ../../include/mail_run.h
 postconf.o: ../../include/mail_version.h
 postconf.o: ../../include/master_proto.h
+postconf.o: ../../include/match_service.h
 postconf.o: ../../include/mbox_conf.h
 postconf.o: ../../include/msg.h
 postconf.o: ../../include/msg_vstream.h

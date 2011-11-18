@@ -9,6 +9,9 @@
 /*	ARGV	*match_service_init(pattern_list)
 /*	const char *pattern_list;
 /*
+/*	ARGV	*match_service_init_argv(pattern_list)
+/*	char	**pattern_list;
+/*
 /*	int	match_service_match(list, name_type)
 /*	ARGV	*list;
 /*	const char *name_type;
@@ -33,6 +36,9 @@
 /*
 /*	match_service_init() parses the pattern list. The result
 /*	must be passed to match_service_match() or match_service_free().
+/*
+/*	match_service_init_argv() provides an alternate interface
+/*	for pre-parsed strings.
 /*
 /*	match_service_match() matches one service name.type string
 /*	against the specified pattern list.
@@ -83,9 +89,22 @@ ARGV   *match_service_init(const char *patterns)
     const char *item;
 
     while ((item = mystrtok(&bp, delim)) != 0)
-        argv_add(list, item, (char *) 0);
+	argv_add(list, item, (char *) 0);
     argv_terminate(list);
     myfree(saved_patterns);
+    return (list);
+}
+
+/* match_service_init_argv - impedance adapter */
+
+ARGV   *match_service_init_argv(char **patterns)
+{
+    ARGV   *list = argv_alloc(1);
+    char  **cpp;
+
+    for (cpp = patterns; *cpp; cpp++)
+	argv_add(list, *cpp, (char *) 0);
+    argv_terminate(list);
     return (list);
 }
 

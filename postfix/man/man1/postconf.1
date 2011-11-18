@@ -9,16 +9,25 @@ Postfix configuration utility
 .na
 .nf
 .fi
+\fBManaging main.cf:\fR
+
 \fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter ...\fR]
-
-\fBpostconf\fR [\fB-aAflmMv\fR] [\fB-c \fIconfig_dir\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter=value ...\fR]
 
 \fBpostconf\fR [\fB-#v\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter ...\fR]
+
+\fBManaging master.cf:\fR
+
+\fBpostconf\fR [\fB-fMv\fR] [\fB-c \fIconfig_dir\fR]
+[\fIservice ...\fR]
+
+\fBManaging other configuration:\fR
+
+\fBpostconf\fR [\fB-aAlmv\fR] [\fB-c \fIconfig_dir\fR]
 
 \fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 .SH DESCRIPTION
@@ -32,6 +41,11 @@ parameter values, or display other configuration information
 about the Postfix mail system.
 
 Options:
+.IP \fB-A\fR
+List the available SASL client plug-in types.  The SASL
+plug-in type is selected with the \fBsmtp_sasl_type\fR or
+\fBlmtp_sasl_type\fR configuration parameters by specifying
+one of the names listed below.
 .IP \fB-a\fR
 List the available SASL server plug-in types.  The SASL
 plug-in type is selected with the \fBsmtpd_sasl_type\fR
@@ -48,11 +62,6 @@ support.
 .RE
 .IP
 This feature is available with Postfix 2.3 and later.
-.IP \fB-A\fR
-List the available SASL client plug-in types.  The SASL
-plug-in type is selected with the \fBsmtp_sasl_type\fR or
-\fBlmtp_sasl_type\fR configuration parameters by specifying
-one of the names listed below.
 .RS
 .IP \fBcyrus\fR
 This client plug-in is available when Postfix is built with
@@ -109,6 +118,21 @@ named \fIfilename\fR by creating a file named \fIfilename\fB.lock\fR.
 The application is expected to remove its own lock file, as well as
 stale lock files that were left behind after abnormal termination.
 .RE
+.IP \fB-M\fR
+Show \fBmaster.cf\fR file contents instead of \fBmain.cf\fR
+file contents.  Use \fB-Mf\fR to fold long lines for human
+readability.
+
+If \fIservice ...\fR is specified, only the matching services
+will be output. For example, a service of \fBinet\fR will
+match all services that listen on the network.
+
+Specify zero or more argument, each with a \fIservice-type\fR
+name (\fBinet\fR, \fBunix\fR, \fBfifo\fR, or \fBpass\fR)
+or with a \fIservice-name.service-type\fR pair, where
+\fIservice-name\fR is the first field of a master.cf entry.
+
+This feature is available with Postfix 2.9 and later.
 .IP \fB-m\fR
 List the names of all supported lookup table types. In Postfix
 configuration files,
@@ -191,12 +215,6 @@ The result is a group file entry in \fBgroup\fR(5) format.
 .RE
 .IP
 Other table types may exist depending on how Postfix was built.
-.IP \fB-M\fR
-Show \fBmaster.cf\fR file contents instead of \fBmain.cf\fR
-file contents.  Combine with \fB-f\fR to fold long lines
-for human readability.
-
-This feature is available with Postfix 2.9 and later.
 .IP \fB-n\fR
 Print \fBmain.cf\fR parameter settings that are explicitly
 specified in \fBmain.cf\fR.

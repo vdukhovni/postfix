@@ -17089,6 +17089,17 @@ Apologies for any names omitted.
 	Workaround: don't abort when IPv6 is present but busted.
 	File: util/inet_proto.c.
 
-	Portability: Dovecot now officially supports more socket
-	types for its authentication server. File:
+	Portability: the Dovecot 2.0 authentication server supports
+	more socket types for its authentication server. File:
 	xsasl/xsasl_dovecot_server.c.
+
+	Documentation: the Dovecot 2.0 authentication server supports
+	communication over TCP sockets. Patrick Ben Koetter.  File:
+	proto/SASL_README.html.
+
+20111118
+
+	Cleanup: "postconf -M" now supports filtering. For example,
+	"postconf -M inet" shows only services that listen on the
+	network, and "postconf -M smtp.unix" shows the SMTP delivery
+	agent. File: postconf.c.

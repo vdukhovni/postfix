@@ -6,10 +6,6 @@ Wish list:
 
 	Things to do after the stable release:
 
-	postconf: add test cases for unused name=value entries in
-	main.cf and master.cf; add support for per-service parameter
-	name spaces in master.cf.
-
 	TLS_README has the priorities reversed. The section about
 	SMTP client settings begins with an exposition about client
 	certificates, which almost no-one needs. Instead, the text

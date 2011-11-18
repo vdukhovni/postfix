@@ -5,16 +5,25 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
+/*	\fBManaging main.cf:\fR
+/*
 /*	\fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter ...\fR]
-/*
-/*	\fBpostconf\fR [\fB-aAflmMv\fR] [\fB-c \fIconfig_dir\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-#v\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter ...\fR]
+/*
+/*	\fBManaging master.cf:\fR
+/*
+/*	\fBpostconf\fR [\fB-fMv\fR] [\fB-c \fIconfig_dir\fR]
+/*	[\fIservice ...\fR]
+/*
+/*	\fBManaging other configuration:\fR
+/*
+/*	\fBpostconf\fR [\fB-aAlmv\fR] [\fB-c \fIconfig_dir\fR]
 /*
 /*	\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 /* DESCRIPTION
@@ -26,6 +35,11 @@
 /*	about the Postfix mail system.
 /*
 /*	Options:
+/* .IP \fB-A\fR
+/*	List the available SASL client plug-in types.  The SASL
+/*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
+/*	\fBlmtp_sasl_type\fR configuration parameters by specifying
+/*	one of the names listed below.
 /* .IP \fB-a\fR
 /*	List the available SASL server plug-in types.  The SASL
 /*	plug-in type is selected with the \fBsmtpd_sasl_type\fR
@@ -42,11 +56,6 @@
 /* .RE
 /* .IP
 /*	This feature is available with Postfix 2.3 and later.
-/* .IP \fB-A\fR
-/*	List the available SASL client plug-in types.  The SASL
-/*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
-/*	\fBlmtp_sasl_type\fR configuration parameters by specifying
-/*	one of the names listed below.
 /* .RS
 /* .IP \fBcyrus\fR
 /*	This client plug-in is available when Postfix is built with
@@ -103,6 +112,21 @@
 /*	The application is expected to remove its own lock file, as well as
 /*	stale lock files that were left behind after abnormal termination.
 /* .RE
+/* .IP \fB-M\fR
+/*	Show \fBmaster.cf\fR file contents instead of \fBmain.cf\fR
+/*	file contents.  Use \fB-Mf\fR to fold long lines for human
+/*	readability.
+/*
+/*	If \fIservice ...\fR is specified, only the matching services
+/*	will be output. For example, a service of \fBinet\fR will
+/*	match all services that listen on the network.
+/*
+/*	Specify zero or more argument, each with a \fIservice-type\fR
+/*	name (\fBinet\fR, \fBunix\fR, \fBfifo\fR, or \fBpass\fR)
+/*	or with a \fIservice-name.service-type\fR pair, where
+/*	\fIservice-name\fR is the first field of a master.cf entry.
+/*
+/*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-m\fR
 /*	List the names of all supported lookup table types. In Postfix
 /*	configuration files,
@@ -185,12 +209,6 @@
 /* .RE
 /* .IP
 /*	Other table types may exist depending on how Postfix was built.
-/* .IP \fB-M\fR
-/*	Show \fBmaster.cf\fR file contents instead of \fBmain.cf\fR
-/*	file contents.  Combine with \fB-f\fR to fold long lines
-/*	for human readability.
-/*
-/*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-n\fR
 /*	Print \fBmain.cf\fR parameter settings that are explicitly
 /*	specified in \fBmain.cf\fR.
@@ -313,6 +331,7 @@
 #include <mail_addr.h>
 #include <mbox_conf.h>
 #include <mail_run.h>
+#include <match_service.h>
 
 /* XSASL library. */
 
@@ -496,6 +515,19 @@ static const CONFIG_STR_FN_TABLE str_fn_table_2[] = {
 #define DEF_MODE	SHOW_NAME
 static int cmd_mode = DEF_MODE;
 
+/* set_config_dir - forcibly override var_config_dir */
+
+static void set_config_dir(void)
+{
+    char   *config_dir;
+
+    if (var_config_dir)
+	myfree(var_config_dir);
+    var_config_dir = mystrdup((config_dir = safe_getenv(CONF_ENV_PATH)) != 0 ?
+			      config_dir : DEF_CONFIG_DIR);	/* XXX */
+    set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
+}
+
 /* check_myhostname - lookup hostname and validate */
 
 static const char *check_myhostname(void)
@@ -584,7 +616,6 @@ static const char *check_mynetworks(void)
 
 static void edit_parameters(int cmd_mode, int argc, char **argv)
 {
-    char   *config_dir;
     char   *path;
     EDIT_FILE *ep;
     VSTREAM *src;
@@ -637,19 +668,11 @@ static void edit_parameters(int cmd_mode, int argc, char **argv)
     }
 
     /*
-     * XXX Avoid code duplication by better code decomposition.
-     */
-    if (var_config_dir)
-	myfree(var_config_dir);
-    var_config_dir = mystrdup((config_dir = safe_getenv(CONF_ENV_PATH)) != 0 ?
-			      config_dir : DEF_CONFIG_DIR);	/* XXX */
-    set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
-
-    /*
      * Open a temp file for the result. This uses a deterministic name so we
      * don't leave behind thrash with random names.
      */
-    path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
+    set_config_dir();
+    path = concatenate(var_config_dir, "/", MAIN_CONF_FILE, (char *) 0);
     if ((ep = edit_file_open(path, O_CREAT | O_WRONLY, 0644)) == 0)
 	msg_fatal("open %s%s: %m", path, EDIT_FILE_SUFFIX);
     dst = ep->tmp_fp;
@@ -732,19 +755,6 @@ static void edit_parameters(int cmd_mode, int argc, char **argv)
     htable_free(table, myfree);
 }
 
-/* set_config_dir - forcibly override var_config_dir */
-
-static void set_config_dir(void)
-{
-    char   *config_dir;
-
-    if (var_config_dir)
-	myfree(var_config_dir);
-    var_config_dir = mystrdup((config_dir = safe_getenv(CONF_ENV_PATH)) != 0 ?
-			      config_dir : DEF_CONFIG_DIR);	/* XXX */
-    set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
-}
-
 /* read_parameters - read parameter info from file */
 
 static void read_parameters(void)
@@ -757,7 +767,7 @@ static void read_parameters(void)
      */
     dict_unknown_allowed = 1;
     set_config_dir();
-    path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
+    path = concatenate(var_config_dir, "/", MAIN_CONF_FILE, (char *) 0);
     dict_load_file(CONFIG_DICT, path);
     myfree(path);
 }
@@ -982,7 +992,6 @@ static void add_user_parameter(const char *name)
 
 /* scan_user_parameter_value - extract macro names from parameter value */
 
-#ifdef MAC_EXP_FLAG_SCAN
 #define NO_SCAN_RESULT	((VSTRING *) 0)
 #define NO_SCAN_FILTER	((char *) 0)
 #define NO_SCAN_MODE	(0)
@@ -992,9 +1001,6 @@ static void add_user_parameter(const char *name)
     (void) mac_expand(NO_SCAN_RESULT, (value), MAC_EXP_FLAG_SCAN, \
 		    NO_SCAN_FILTER, check_user_parameter, NO_SCAN_CONTEXT); \
 } while (0)
-#else
-#define scan_user_parameter_value(value) do { /* void */; } while (0)
-#endif
 
 /* check_user_parameter - try to promote user-defined parameter */
 
@@ -1650,12 +1656,10 @@ static void show_locks(void)
     argv_free(locks_argv);
 }
 
-/* show_master - show master.cf entries */
+/* print_master_line - print one master line */
 
-static void show_master(int mode)
+static void print_master_line(int mode, ARGV *argv)
 {
-    ARGV  **argvp;
-    ARGV   *argv;
     char   *arg;
     char   *aval;
     int     line_len;
@@ -1677,77 +1681,109 @@ static void show_master(int mode)
     while (0)
 #define ADD_SPACE ADD_TEXT(" ", 1)
 
-    for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
-
-	/*
-	 * Show the standard fields at their preferred column position. Use
-	 * single-space separation when some field does not fit.
-	 */
-	for (line_len = 0, field = 0; field < MASTER_FIELD_COUNT; field++) {
-	    arg = argv->argv[field];
-	    if (line_len > 0) {
-		while (line_len < column_goal[field] - 1)
-		    ADD_SPACE;
+    /*
+     * Show the standard fields at their preferred column position. Use
+     * single-space separation when some field does not fit.
+     */
+    for (line_len = 0, field = 0; field < MASTER_FIELD_COUNT; field++) {
+	arg = argv->argv[field];
+	if (line_len > 0) {
+	    while (line_len < column_goal[field] - 1)
 		ADD_SPACE;
-	    }
-	    ADD_TEXT(arg, strlen(arg));
+	    ADD_SPACE;
 	}
+	ADD_TEXT(arg, strlen(arg));
+    }
 
-	/*
-	 * Format the daemon command-line options and non-option arguments.
-	 * Here, we have no data-dependent preference for column positions,
-	 * but we do have argument grouping preferences.
-	 */
-	in_daemon_options = 1;
-	for ( /* void */ ; argv->argv[field] != 0; field++) {
-	    arg = argv->argv[field];
-	    if (in_daemon_options) {
+    /*
+     * Format the daemon command-line options and non-option arguments. Here,
+     * we have no data-dependent preference for column positions, but we do
+     * have argument grouping preferences.
+     */
+    in_daemon_options = 1;
+    for ( /* void */ ; argv->argv[field] != 0; field++) {
+	arg = argv->argv[field];
+	if (in_daemon_options) {
 
-		/*
-		 * Try to show the generic options (-v -D) on the first line,
-		 * and non-options on a later line.
-		 */
-		if (arg[0] != '-') {
-		    in_daemon_options = 0;
-		    if ((mode & FOLD_LINE)
-			&& line_len > column_goal[MASTER_FIELD_COUNT - 1]) {
-			vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
-			line_len = INDENT_LEN;
-		    }
-		}
-
-		/*
-		 * Try to avoid breaking "-o name=value" over multiple lines
-		 * if it would fit on one line.
-		 */
-		else if ((mode & FOLD_LINE)
-			 && line_len > INDENT_LEN && strcmp(arg, "-o") == 0
-			 && (aval = argv->argv[field + 1]) != 0
-			 && INDENT_LEN + 3 + strlen(aval) < LINE_LIMIT) {
+	    /*
+	     * Try to show the generic options (-v -D) on the first line, and
+	     * non-options on a later line.
+	     */
+	    if (arg[0] != '-') {
+		in_daemon_options = 0;
+		if ((mode & FOLD_LINE)
+		    && line_len > column_goal[MASTER_FIELD_COUNT - 1]) {
 		    vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
 		    line_len = INDENT_LEN;
-		    ADD_TEXT(arg, strlen(arg));
-		    arg = aval;
-		    field += 1;
 		}
 	    }
 
 	    /*
-	     * Insert a line break when the next argument won't fit (unless,
-	     * of course, we just inserted a line break).
+	     * Try to avoid breaking "-o name=value" over multiple lines if
+	     * it would fit on one line.
 	     */
-	    if (line_len > INDENT_LEN) {
-		if ((mode & FOLD_LINE) == 0
-		    || line_len + 1 + strlen(arg) < LINE_LIMIT) {
-		    ADD_SPACE;
-		} else {
-		    vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
-		    line_len = INDENT_LEN;
-		}
+	    else if ((mode & FOLD_LINE)
+		     && line_len > INDENT_LEN && strcmp(arg, "-o") == 0
+		     && (aval = argv->argv[field + 1]) != 0
+		     && INDENT_LEN + 3 + strlen(aval) < LINE_LIMIT) {
+		vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
+		line_len = INDENT_LEN;
+		ADD_TEXT(arg, strlen(arg));
+		arg = aval;
+		field += 1;
 	    }
-	    ADD_TEXT(arg, strlen(arg));
 	}
-	vstream_fputs("\n", VSTREAM_OUT);
+
+	/*
+	 * Insert a line break when the next argument won't fit (unless, of
+	 * course, we just inserted a line break).
+	 */
+	if (line_len > INDENT_LEN) {
+	    if ((mode & FOLD_LINE) == 0
+		|| line_len + 1 + strlen(arg) < LINE_LIMIT) {
+		ADD_SPACE;
+	    } else {
+		vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
+		line_len = INDENT_LEN;
+	    }
+	}
+	ADD_TEXT(arg, strlen(arg));
+    }
+    vstream_fputs("\n", VSTREAM_OUT);
+}
+
+/* show_master - show master.cf entries */
+
+static void show_master(int mode, char **filters)
+{
+    ARGV  **argvp;
+    ARGV   *argv;
+    VSTRING *service_name = 0;
+    ARGV   *service_filter = 0;
+
+    /*
+     * Initialize the service filter.
+     */
+    if (filters[0]) {
+	service_name = vstring_alloc(10);
+	service_filter = match_service_init_argv(filters);
+    }
+
+    /*
+     * Iterate over the master table.
+     */
+    for (argvp = master_table; (argv = *argvp) != 0; argvp++) {
+	if (service_filter) {
+	    vstring_sprintf(service_name, "%s.%s",
+			    argv->argv[0], argv->argv[1]);
+	    if (match_service_match(service_filter, STR(service_name)) == 0)
+		continue;
+	}
+	print_master_line(mode, argv);
+    }
+    if (service_filter) {
+	argv_free(service_filter);
+	vstring_free(service_name);
     }
 }
 
@@ -2004,7 +2040,7 @@ int     main(int argc, char **argv)
      */
     else if (cmd_mode & SHOW_MASTER) {
 	read_master();
-	show_master(cmd_mode);
+	show_master(cmd_mode, argv + optind);
     }
 
     /*
@@ -2056,12 +2092,10 @@ int     main(int argc, char **argv)
 	 * because that ignores all the user-specified parameters and
 	 * user-specified macro expansions in main.cf.
 	 */
-#ifdef MAC_EXP_FLAG_SCAN
 	if ((cmd_mode & SHOW_DEFS) == 0) {
 	    flag_unused_main_parameters();
 	    flag_unused_master_parameters();
 	}
-#endif
     }
     vstream_fflush(VSTREAM_OUT);
     exit(0);
