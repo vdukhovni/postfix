@@ -17103,3 +17103,9 @@ Apologies for any names omitted.
 	"postconf -M inet" shows only services that listen on the
 	network, and "postconf -M smtp.unix" shows the SMTP delivery
 	agent. File: postconf.c.
+
+20111119
+
+	Cleanup: "postconf" commands in postfix-install needed to
+	be updated before master.cf was installed.  Reported by
+	Sahil Tandon. File: postfix-install.

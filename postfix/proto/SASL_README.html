@@ -184,10 +184,9 @@ to configure and operate the Dovecot authentication server.  </p>
 
 <h4><a name="server_dovecot_comm">Postfix to Dovecot SASL communication</a></h4>
 
-<p> Communication between the Postfix SMTP server
-and Dovecot SASL happens via a UNIX-domain socket.  Additionally,
-when using Dovecot version 2.0 and later, communication can take
-place over a TCP socket.
+<p> Communication between the Postfix SMTP server and Dovecot SASL
+happens over a UNIX-domain socket or over a TCP socket.  Dovecot 1
+supports UNIX-domain socket communication only. </p>
 
 <h5>UNIX-domain socket communication</h5>
 
@@ -1166,13 +1165,18 @@ directory, so that it will work whether or not the Postfix SMTP
 server runs chrooted. </p>
 
 <li> <p> If you configured Dovecot for TCP socket communication,
-configure Postfix as follows (if Dovecot runs on a different
-machine, replace 127.0.0.1 by that machine's IP address): </p>
+configure Postfix as follows. If Dovecot runs on a different machine,
+replace 127.0.0.1 by that machine's IP address. </p>
 
 <pre>
 /etc/postfix/main.cf:
     smtpd_sasl_path = inet:127.0.0.1:12345
 </pre>
+
+<strong>Note</strong>
+
+<p> If you specify a remote IP address, information
+will be sent as plaintext over the network. </p>
 
 </ul>
 
