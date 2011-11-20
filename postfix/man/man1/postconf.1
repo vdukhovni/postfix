@@ -25,11 +25,13 @@ Postfix configuration utility
 \fBpostconf\fR [\fB-fMv\fR] [\fB-c \fIconfig_dir\fR]
 [\fIservice ...\fR]
 
+\fBManaging bounce message templates:\fR
+
+\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
+
 \fBManaging other configuration:\fR
 
 \fBpostconf\fR [\fB-aAlmv\fR] [\fB-c \fIconfig_dir\fR]
-
-\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -124,7 +126,7 @@ file contents.  Use \fB-Mf\fR to fold long lines for human
 readability.
 
 If \fIservice ...\fR is specified, only the matching services
-will be output. For example, a \fIservice\fB of \fBinet\fR
+will be output. For example, a \fIservice\fR of \fBinet\fR
 will match all services that listen on the network.
 
 Specify zero or more arguments, each with a \fIservice-type\fR
@@ -244,13 +246,6 @@ This feature is available with Postfix 2.6 and later.
 .ad
 .fi
 Problems are reported to the standard error stream.
-.SH BUGS
-.ad
-.fi
-\fBpostconf\fR(1) may log "unused parameter" warnings for
-\fBmaster.cf\fR entries with "-o user-defined-name=value".
-Addressing this limitation requires support for per-service
-parameter name spaces.
 .SH "ENVIRONMENT"
 .na
 .nf

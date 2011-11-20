@@ -17109,3 +17109,13 @@ Apologies for any names omitted.
 	Cleanup: "postconf" commands in postfix-install needed to
 	be updated before master.cf was installed.  Reported by
 	Sahil Tandon. File: postfix-install.
+
+20111120
+
+	Cleanup: support for parameter name spaces for master.cf
+	entries. With this, postconf should no longer log false
+	warnings for "-o user-defined-name=value" in master.cf.  As
+	a benefit, it will warn for user-defined parameters with
+	"name=value" entries that are unused because they are hidden
+	by master.cf "-o name=value" entries with the same parameter
+	name.  File: postconf/postconf.c.

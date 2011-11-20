@@ -36,7 +36,8 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11
+tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
+	test12 test13 test14 test15
 
 root_tests:
 
@@ -100,9 +101,7 @@ test4:	$(PROG) test4.ref
 	rm -f main.cf master.cf test4.tmp
 
 # Define one user-defined parameter with name=value in master.cf,
-# validate it with known_parameter=$name in master.cf.  Currently,
-# user-defined parameter definitions in master.cf are not recognized
-# as definitions, and result in an "unused parameter" warning.
+# validate it with known_parameter=$name in master.cf.
 
 test5:	$(PROG) test5.ref
 	rm -f main.cf master.cf
@@ -168,6 +167,58 @@ test11:	$(PROG) test11.ref
 	./$(PROG) -c . -M >test11.tmp 2>&1
 	diff test11.ref test11.tmp
 	rm -f main.cf master.cf test11.tmp
+
+# Duplicate service entry. 
+
+test12:	$(PROG) test12.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo bar=yes >> main.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo ' -o always_bcc=$$bar -o' >> master.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo ' -o always_bcc=$$bar -o' >> master.cf
+	./$(PROG) -c . -M >test12.tmp 2>&1
+	diff test12.ref test12.tmp
+	rm -f main.cf master.cf test12.tmp
+
+# Define parameter with restriction_classes in master.cf, validate in main.cf.
+
+test13:	$(PROG) test13.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo bar=yes >> main.cf
+	echo baz=xx >> main.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo ' -o smtpd_restriction_classes=bar' >> master.cf
+	./$(PROG) -nc . >test13.tmp 2>&1
+	diff test13.ref test13.tmp
+	rm -f main.cf master.cf test13.tmp
+
+# Define parameter with restriction_classes in main.cf, validate in master.cf.
+
+test14:	$(PROG) test14.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo smtpd_restriction_classes=bar >> main.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo ' -o bar=yes -o baz=xx' >> master.cf
+	./$(PROG) -nc . >test14.tmp 2>&1
+	diff test14.ref test14.tmp
+	rm -f main.cf master.cf test14.tmp
+
+# Define two parameters, one is hidden by master.cf.
+
+test15:	$(PROG) test15.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo bar=xx >> main.cf
+	echo baz=yy >> main.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo ' -o bar=yes -o always_bcc=$$bar$$baz' >> master.cf
+	./$(PROG) -nc . >test15.tmp 2>&1
+	diff test15.ref test15.tmp
+	rm -f main.cf master.cf test15.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
