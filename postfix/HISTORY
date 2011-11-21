@@ -17119,3 +17119,7 @@ Apologies for any names omitted.
 	"name=value" entries that are unused because they are hidden
 	by master.cf "-o name=value" entries with the same parameter
 	name.  File: postconf/postconf.c.
+
+20111121
+
+	Cleanup: documentation fixes. File: postconf/postconf.c.

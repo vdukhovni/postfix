@@ -37,11 +37,6 @@
 /*	about the Postfix mail system.
 /*
 /*	Options:
-/* .IP \fB-A\fR
-/*	List the available SASL client plug-in types.  The SASL
-/*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
-/*	\fBlmtp_sasl_type\fR configuration parameters by specifying
-/*	one of the names listed below.
 /* .IP \fB-a\fR
 /*	List the available SASL server plug-in types.  The SASL
 /*	plug-in type is selected with the \fBsmtpd_sasl_type\fR
@@ -58,6 +53,11 @@
 /* .RE
 /* .IP
 /*	This feature is available with Postfix 2.3 and later.
+/* .IP \fB-A\fR
+/*	List the available SASL client plug-in types.  The SASL
+/*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
+/*	\fBlmtp_sasl_type\fR configuration parameters by specifying
+/*	one of the names listed below.
 /* .RS
 /* .IP \fBcyrus\fR
 /*	This client plug-in is available when Postfix is built with
@@ -68,12 +68,17 @@
 /* .IP "\fB-b\fR [\fItemplate_file\fR]"
 /*	Display the message text that appears at the beginning of
 /*	delivery status notification (DSN) messages, with $\fBname\fR
-/*	expressions replaced by actual values.  To override the
-/*	built-in message text, specify a template file at the end
-/*	of the command line, or specify a template file in \fBmain.cf\fR
-/*	with the \fBbounce_template_file\fR parameter.
-/*	To force selection of the built-in message text templates,
-/*	specify an empty template file name (in shell language: "").
+/*	expressions replaced by actual values as described in
+/*	\fBbounce\fR(5).  
+/*
+/*	To override the built-in templates, specify a template file
+/*	name at the end of the \fBpostconf\fR(1) command line, or
+/*	specify a file name in \fBmain.cf\fR with the
+/*	\fBbounce_template_file\fR parameter.
+/*
+/*	To force selection of the built-in templates, specify an
+/*	empty template file name on the \fBpostconf\fR(1) command
+/*	line (in shell language: "").
 /*
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-c \fIconfig_dir\fR"
@@ -82,22 +87,25 @@
 /* .IP \fB-d\fR
 /*	Print \fBmain.cf\fR default parameter settings instead of
 /*	actual settings.
+/*	Specify \fB-df\fR to fold long lines for human readability
+/*	(Postfix 2.9 and later).
 /* .IP \fB-e\fR
-/*	Edit the \fBmain.cf\fR configuration file. The file is copied
-/*	to a temporary file then renamed into place. Parameters and
-/*	values are specified on the command line. Use quotes in order
-/*	to protect shell metacharacters and whitespace.
+/*	Edit the \fBmain.cf\fR configuration file, and update
+/*	parameter settings with the "\fIname\fR=\fIvalue\fR" pairs
+/*	on the \fBpostconf\fR(1) command line. The file is copied
+/*	to a temporary file then renamed into place.
+/*	Specify quotes to protect shell metacharacters and whitespace.
 /*
-/*	With Postfix version 2.8 and later, the \fB-e\fR is no
-/*	longer needed.
+/*	The \fB-e\fR is no longer needed with Postfix version 2.8
+/*	and later.
 /* .IP \fB-f\fR
-/*	When printing \fBmain.cf\fR or \fBmaster.cf\fR configuration file
-/*	entries, fold long lines for human readability.
+/*	Fold long lines when printing \fBmain.cf\fR or \fBmaster.cf\fR
+/*	configuration file entries, for human readability.
 /*
 /*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-h\fR
-/*	Show \fBmain.cf\fR parameter values only; do not prepend
-/*	the "\fIname = \fR" label that normally precedes the value.
+/*	Show \fBmain.cf\fR parameter values without the "\fIname\fR
+/*	= " label that normally precedes the value.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
 /*	Postfix supports the following methods:
@@ -114,21 +122,6 @@
 /*	The application is expected to remove its own lock file, as well as
 /*	stale lock files that were left behind after abnormal termination.
 /* .RE
-/* .IP \fB-M\fR
-/*	Show \fBmaster.cf\fR file contents instead of \fBmain.cf\fR
-/*	file contents.  Use \fB-Mf\fR to fold long lines for human
-/*	readability.
-/*
-/*	If \fIservice ...\fR is specified, only the matching services
-/*	will be output. For example, a \fIservice\fR of \fBinet\fR
-/*	will match all services that listen on the network.
-/*
-/*	Specify zero or more arguments, each with a \fIservice-type\fR
-/*	name (\fBinet\fR, \fBunix\fR, \fBfifo\fR, or \fBpass\fR)
-/*	or with a \fIservice-name.service-type\fR pair, where
-/*	\fIservice-name\fR is the first field of a master.cf entry.
-/*
-/*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-m\fR
 /*	List the names of all supported lookup table types. In Postfix
 /*	configuration files,
@@ -195,7 +188,7 @@
 /*	described in \fBtcp_table\fR(5).
 /* .IP "\fBtexthash\fR (read-only)"
 /*	Produces similar results as hash: files, except that you don't
-/*	need to run the postmap(1) command before you can use the file,
+/*	need to run the \fBpostmap\fR(1) command before you can use the file,
 /*	and that it does not detect changes after the file is read.
 /* .IP "\fBunix\fR (read-only)"
 /*	A limited way to query the UNIX authentication database. The
@@ -211,29 +204,52 @@
 /* .RE
 /* .IP
 /*	Other table types may exist depending on how Postfix was built.
+/* .IP \fB-M\fR
+/*	Show \fBmaster.cf\fR file contents instead of \fBmain.cf\fR
+/*	file contents.
+/*	Specify \fB-Mf\fR to fold long lines for human readability.
+/*
+/*	If \fIservice ...\fR is specified, only the matching services
+/*	will be output. For example, "\fBpostconf -Mf inet\fR"
+/*	will match all services that listen on the network.
+/*
+/*	Specify zero or more arguments, each with a \fIservice-type\fR
+/*	name (\fBinet\fR, \fBunix\fR, \fBfifo\fR, or \fBpass\fR)
+/*	or with a \fIservice-name.service-type\fR pair, where
+/*	\fIservice-name\fR is the first field of a master.cf entry.
+/*
+/*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-n\fR
 /*	Print \fBmain.cf\fR parameter settings that are explicitly
 /*	specified in \fBmain.cf\fR.
+/*	Specify \fB-nf\fR to fold long lines for human readability
+/*	(Postfix 2.9 and later).
 /* .IP "\fB-t\fR [\fItemplate_file\fR]"
-/*	Display the templates for delivery status notification (DSN)
-/*	messages. To override the built-in templates, specify a
-/*	template file at the end of the command line, or specify a
-/*	template file in \fBmain.cf\fR with the \fBbounce_template_file\fR
-/*	parameter.  To force selection of the built-in templates,
-/*	specify an empty template file name (in shell language:
-/*	"").
+/*	Display the templates for text that appears at the beginning
+/*	of delivery status notification (DSN) messages, without
+/*	expanding $\fBname\fR expressions.
+/*
+/*	To override the built-in templates, specify a template file
+/*	name at the end of the \fBpostconf\fR(1) command line, or
+/*	specify a file name in \fBmain.cf\fR with the
+/*	\fBbounce_template_file\fR parameter.
+/*
+/*	To force selection of the built-in templates, specify an
+/*	empty template file name on the \fBpostconf\fR(1) command
+/*	line (in shell language: "").
 /*
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* .IP \fB-#\fR
-/*	Edit the \fBmain.cf\fR configuration file. The file is copied
-/*	to a temporary file then renamed into place. The parameters
-/*	specified on the command line are commented-out, so that they
-/*	revert to their default values. Specify a list of parameter
-/*	names, not name=value pairs.  There is no \fBpostconf\fR command
-/*	to perform the reverse operation.
+/*	Edit the \fBmain.cf\fR configuration file, and comment out
+/*	the specified parameters so that they revert to their default
+/*	values.  The file is copied to a temporary file then renamed
+/*	into place.
+/*	Specify a list of parameter names, not \fIname\fR=\fIvalue\fR
+/*	pairs.  There is no \fBpostconf\fR(1) command to perform
+/*	the reverse operation.
 /*
 /*	This feature is available with Postfix 2.6 and later.
 /* DIAGNOSTICS
@@ -258,6 +274,7 @@
 /*	Pathname of a configuration file with bounce message templates.
 /* FILES
 /*	/etc/postfix/main.cf, Postfix configuration parameters
+/*	/etc/postfix/master.cf, Postfix master daemon configuraton
 /* SEE ALSO
 /*	bounce(5), bounce template file format
 /*	master(5), master.cf configuration file syntax
@@ -355,28 +372,33 @@
 #define FOLD_LINE	(1<<11)		/* fold long *.cf entries */
 
  /*
-  * Lookup table for global parameter info.
+  * Lookup table for global "valid" parameter information.
   * 
-  * XXX Change the value pointers from table indices into pointers to parameter
-  * objects with print methods.
+  * XXX Change the hash-table values from table indices to parameter object
+  * pointers, where each object supplies its own print etc. method.
   */
 HTABLE *param_table;
 
  /*
-  * Global restriction_classes hash.
+  * Global hash with all names in the global smtpd_restriction_classes value.
+  * This is used when validating "-o user-defined-name=value" in master.cf.
   */
 HTABLE *rest_class_table;
 
  /*
-  * Lookup table for master.cf info. The table is null-terminated.
+  * In-core information for one master.cf entry.
   */
 typedef struct {
     char   *name_space;			/* service.type, parameter name space */
-    ARGV   *argv;			/* terminator, or master.cf fields */
-    DICT   *all_params;			/* all name=value entries */
-    HTABLE *valid_names;		/* "blessed" parameters */
+    ARGV   *argv;			/* null, or master.cf fields */
+    DICT   *all_params;			/* null, or all name=value entries */
+    HTABLE *valid_names;		/* null, or "valid" parameter names */
 } PC_MASTER_ENT;
 
+ /*
+  * Lookup table for master.cf entries. The table is terminated with an entry
+  * that has a null argv member.
+  */
 static PC_MASTER_ENT *master_table;
 
  /*
@@ -452,8 +474,10 @@ typedef struct {
 
  /*
   * Service-defined parameter names are created by appending postfix-defined
-  * suffixes to master.cf service names. These parameters have default values
-  * that are defined by built-in parameters.
+  * suffixes to master.cf service names. All service-defined parameters have
+  * default values that are defined by built-in parameters. We represent
+  * service-defined parameters as (service-defined name, built-in default
+  * parameter name) tuples.
   */
 static PC_STRING_NV *serv_param_table;
 static ssize_t serv_param_tablen;
@@ -461,20 +485,23 @@ static ssize_t serv_param_tablen;
  /*
   * Support for user-defined parameters.
   * 
+  * There are multiple parameter name spaces: the global main.cf parameter name
+  * space, and the local parameter name space of each master.cf entry. Local
+  * name spaces take precedence over the global one.
+  * 
   * There are three categories of known parameters: built-in, service-defined
-  * (see previous comment), and valid user-defined. In addition there are
-  * multiple name spaces: the global main.cf name space, and the local name
-  * space of each master.cf entry.
+  * (see previous comment), and valid user-defined.
   * 
   * There are two categories of valid user-defined parameters:
   * 
   * - Parameters whose user-defined-name appears in the value of
-  * smtpd_restriction_classes in main.cf or master.cf, and that have a
-  * "user-defined-name=value" entry in main.cf or master.cf.
+  * smtpd_restriction_classes in main.cf or master.cf.
   * 
-  * - Parameters whose $user-defined-name appears in the value of a "name=value"
-  * entry in main.cf or master.cf, and whose user-defined-name has a
-  * "name=value" entry in main.cf or master.cf.
+  * - Parameters whose $user-defined-name appear in the value of "name=value"
+  * entries in main.cf or master.cf.
+  * 
+  * - In both cases the parameters must have a "user-defined-name=value" entry
+  * in main.cf or master.cf.
   * 
   * Other user-defined parameters are flagged as "unused".
   */
@@ -995,41 +1022,44 @@ static void add_service_parameters(void)
 	    htable_enter(param_table, sp->name, (char *) sp);
 }
 
-/* scan_user_parameter_value - examine macro names in parameter value */
-
 #define NO_SCAN_RESULT	((VSTRING *) 0)
 #define NO_SCAN_FILTER	((char *) 0)
 #define NO_SCAN_MODE	(0)
 
-#define scan_user_parameter_value(value, context) do { \
+/* SCAN_USER_PARAMETER_VALUE - examine macro names in parameter value */
+
+#define SCAN_USER_PARAMETER_VALUE(value, scope) do { \
     (void) mac_expand(NO_SCAN_RESULT, (value), MAC_EXP_FLAG_SCAN, \
-		    NO_SCAN_FILTER, check_user_parameter, (context)); \
+		NO_SCAN_FILTER, flag_user_parameter, ((char *) (scope))); \
 } while (0)
 
-/* check_user_parameter - promote user-defined name if it has name=value */
+/* FLAG_USER_PARAMETER - flag user-defined name "valid" if it has name=value */
 
-static const char *check_user_parameter(const char *mac_name,
+#define FLAG_USER_PARAMETER(name, scope) do { \
+    flag_user_parameter((name), NO_SCAN_MODE, ((char *) (scope))); \
+} while (0)
+
+/* flag_user_parameter - flag user-defined name "valid" if it has name=value */
+
+static const char *flag_user_parameter(const char *mac_name,
 					        int unused_mode,
 					        char *context)
 {
     PC_MASTER_ENT *local_scope = (PC_MASTER_ENT *) context;
 
     /*
-     * Promote only user-defined parameters with an explicit "name=value"
-     * definition. If the name=value exists in the local scope, update the
-     * local "valid" parameter name table, otherwise update the global one.
+     * If the name=value exists in the local (or global) name space, update
+     * the local (or global) "valid" parameter name table.
      * 
-     * Do not promote user-defined parameters whose name appears only as macro
-     * expansion; this is how Postfix implements backwards compatibility
-     * after a feature name change.
-     * 
-     * Skip global names that are already in the param_table hash.
+     * Do not "validate" user-defined parameters whose name appears only as
+     * macro expansion; this is how Postfix historically implements backwards
+     * compatibility after a feature name change.
      */
     if (local_scope && dict_get(local_scope->all_params, mac_name)) {
 	if (htable_locate(local_scope->valid_names, mac_name) == 0)
 	    htable_enter(local_scope->valid_names, mac_name, "");
-    } else if (htable_locate(param_table, mac_name) == 0) {
-	if (mail_conf_lookup(mac_name) != 0) {
+    } else if (mail_conf_lookup(mac_name) != 0) {
+	if (htable_locate(param_table, mac_name) == 0) {
 	    user_param_table = (char **)
 		myrealloc((char *) user_param_table,
 		       (user_param_tablen + 1) * sizeof(*user_param_table));
@@ -1069,10 +1099,10 @@ static void scan_user_parameter_namespace(const char *dict_name,
     const char *cparam_value;
 
     /*
-     * Add parameters whose names are defined with smtpd_restriction_classes,
-     * but only if they have a "name=value" entry. If we are in the global
-     * scope, update the global restriction class name table, so that we can
-     * query the table from within a local master.cf name space.
+     * Flag parameter names in smtpd_restriction_classes as "valid", but only
+     * if they have a "name=value" entry. If we are in not in a local name
+     * space, update the global restriction class name table, so that we can
+     * query the global table from within a local master.cf name space.
      */
     if ((class_list = pc_lookup_eval(dict_name, VAR_REST_CLASSES)) != 0) {
 	cp = saved_class_list = mystrdup(class_list);
@@ -1080,18 +1110,17 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	    if (local_scope == 0
 		&& htable_locate(rest_class_table, param_name) == 0)
 		htable_enter(rest_class_table, param_name, "");
-	    check_user_parameter(param_name, NO_SCAN_MODE,
-				 (char *) local_scope);
+	    FLAG_USER_PARAMETER(param_name, local_scope);
 	}
 	myfree(saved_class_list);
     }
 
     /*
-     * For all "name=value" instances: a) if the scope is local and the name
-     * appears in the global restriction class table, flag the name as
-     * "valid" in the local scope; b) scan the value for macro expansions of
-     * unknown parameter names, and flag those parameter names as "valid" if
-     * they have a "name=value" entry.
+     * For all "name=value" instances: a) if the name space is local and the
+     * name appears in the global restriction class table, flag the name as
+     * "valid" in the local name space; b) scan the value for macro
+     * expansions of unknown parameter names, and flag those parameter names
+     * as "valid" if they have a "name=value" entry.
      */
     if ((dict = dict_handle(dict_name)) == 0)
 	msg_panic("%s: parameter dictionary %s not found",
@@ -1106,7 +1135,7 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	    && htable_locate(local_scope->valid_names, cparam_name) == 0
 	    && htable_locate(rest_class_table, cparam_name) != 0)
 	    htable_enter(local_scope->valid_names, cparam_name, "");
-	scan_user_parameter_value(cparam_value, (char *) local_scope);
+	SCAN_USER_PARAMETER_VALUE(cparam_value, local_scope);
     }
 }
 

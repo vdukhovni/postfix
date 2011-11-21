@@ -20,7 +20,9 @@ Major changes with snapshot 20111120
 Eliminated the postconf limitation documented on 20111113 as "lack
 of support for per-service parameter name spaces in master.cf,
 meaning that "-o user-defined-name=value" always results in an
-"unused parameter" warning".
+"unused parameter" warning". This brings the total cost of the
+postconf upgrade to some 55 person-hours, 600 lines of code, and
+300 lines of comments or documentation.
 
 Major changes with snapshot 20111118
 ====================================
@@ -51,7 +53,7 @@ always results in an "unused parameter" warning.
 
 This completes an effort that expanded postconf.c by 553 lines of
 code that were designed, written, tested and documented (in 250
-lines) at the cost of 31 person-hours, spread out over 7 days.
+lines) at the cost of 35 person-hours, spread out over 7 days.
 
 Major changes with snapshot 20111108
 ====================================
