@@ -99,8 +99,8 @@ POSTCONF(1)                                                        POSTCONF(1)
               parameter settings with the "<i>name</i>=<i>value</i>"  pairs  on
               the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line. The file is copied to
               a temporary file then renamed into place.   Specify
-              quotes  to  protect shell metacharacters and white-
-              space.
+              quotes to protect special characters and whitespace
+              on the f<a href="postconf.1.html">Bpostconf(1)</a> command line.
 
               The <b>-e</b> is no longer needed with Postfix version 2.8
               and later.
@@ -286,14 +286,15 @@ POSTCONF(1)                                                        POSTCONF(1)
               verbose.
 
        <b>-#</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a>  configuration file, and comment
-              out the specified parameters so that they revert to
-              their default values.  The file is copied to a tem-
-              porary file then renamed  into  place.   Specify  a
-              list  of  parameter  names,  not  <i>name</i>=<i>value</i> pairs.
-              There is no  <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  to  perform  the
-              reverse operation.
+              out the parameters given on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command
+              line,  so  that  those  parameters  revert to their
+              default values.  The file is copied to a  temporary
+              file  then  renamed  into place.  Specify a list of
+              parameter names, not <i>name</i>=<i>value</i> pairs.  There is no
+              <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  to perform the reverse opera-
+              tion.
 
-              This  feature  is  available  with  Postfix 2.6 and
+              This feature is  available  with  Postfix  2.6  and
               later.
 
 <b>DIAGNOSTICS</b>
@@ -304,18 +305,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are  especially  relevant
+       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant
        to this program.
 
-       The  text  below  provides  only  a parameter summary. See
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
+              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname  of  a configuration file with bounce mes-
+              Pathname of a configuration file with  bounce  mes-
               sage templates.
 
 <b>FILES</b>
@@ -331,7 +332,7 @@ POSTCONF(1)                                                        POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

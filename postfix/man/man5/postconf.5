@@ -7759,6 +7759,16 @@ feature:
 .nf
 .na
 .ft C
+    # Append XVERP to MAIL FROM commands to request VERP-style delivery.
+    # See VERP_README for more information on how to use Postfix VERP.
+    /^(MAIL FROM:<listname@example\e.com>.*)/   $1 XVERP
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
     # Bounce-never mail sink. Use notify_classes=bounce,resource,software
     # to send bounced mail to the postmaster (with message body removed).
     /^(RCPT\es+TO:.*?)\ebNOTIFY=\eS+\eb(.*)/ $1 NOTIFY=NEVER $2

@@ -17072,6 +17072,10 @@ Apologies for any names omitted.
 
 20111113
 
+	Portability: specify ``make makefiles "CCARGS=-DNO_NIS
+	..."'' to build on systems without NIS support. Files:
+	makedefs, util/sys_defs.h.
+
 	Cleanup: documented the postconf algorithms and their
 	limitations, and added regression tests to speed up future
 	development. File: postconf/postconf.c
@@ -17123,3 +17127,12 @@ Apologies for any names omitted.
 20111121
 
 	Cleanup: documentation fixes. File: postconf/postconf.c.
+
+	Cleanup: in postconf "main.cf management" mode, errors
+	opening master.cf are non-fatal. File: postconf/postconf.c.
+
+20111122
+
+	Cleanup: documentation examples to request VERP-style
+	delivery at SMTP time with the smtpd_command_filter feature.
+	Files: proto/VERP_README.html, proto/postconf.proto.

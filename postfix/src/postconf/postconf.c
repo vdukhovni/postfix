@@ -69,7 +69,7 @@
 /*	Display the message text that appears at the beginning of
 /*	delivery status notification (DSN) messages, with $\fBname\fR
 /*	expressions replaced by actual values as described in
-/*	\fBbounce\fR(5).  
+/*	\fBbounce\fR(5).
 /*
 /*	To override the built-in templates, specify a template file
 /*	name at the end of the \fBpostconf\fR(1) command line, or
@@ -93,8 +93,9 @@
 /*	Edit the \fBmain.cf\fR configuration file, and update
 /*	parameter settings with the "\fIname\fR=\fIvalue\fR" pairs
 /*	on the \fBpostconf\fR(1) command line. The file is copied
-/*	to a temporary file then renamed into place.
-/*	Specify quotes to protect shell metacharacters and whitespace.
+/*	to a temporary file then renamed into place. 
+/*	Specify quotes to protect special characters and whitespace
+/*	on the fBpostconf\fR(1) command line.
 /*
 /*	The \fB-e\fR is no longer needed with Postfix version 2.8
 /*	and later.
@@ -244,9 +245,10 @@
 /*	options make the software increasingly verbose.
 /* .IP \fB-#\fR
 /*	Edit the \fBmain.cf\fR configuration file, and comment out
-/*	the specified parameters so that they revert to their default
-/*	values.  The file is copied to a temporary file then renamed
-/*	into place.
+/*	the parameters given on the \fBpostconf\fR(1) command line,
+/*	so that those parameters revert to their default values.
+/*	The file is copied to a temporary file then renamed into
+/*	place.
 /*	Specify a list of parameter names, not \fIname\fR=\fIvalue\fR
 /*	pairs.  There is no \fBpostconf\fR(1) command to perform
 /*	the reverse operation.
@@ -814,7 +816,7 @@ static void set_parameters(void)
      * The proposal below describes some of the steps needed to expand
      * parameter values. It has a problem: it updates the configuration
      * parameter dictionary, and in doing so breaks the "postconf -d"
-     * implementation.
+     * implementation. This makes "-d" and "-e" mutually exclusive.
      * 
      * Populate the configuration parameter dictionary with default settings or
      * with actual settings.
@@ -836,10 +838,10 @@ static void set_parameters(void)
 
 /* read_master - read and digest the master.cf file */
 
-static void read_master(void)
+static void read_master(int fail_on_open_error)
 {
     char   *path;
-    VSTRING *buf = vstring_alloc(100);
+    VSTRING *buf;
     ARGV   *argv;
     VSTREAM *fp;
     int     entry_count = 0;
@@ -870,31 +872,41 @@ static void read_master(void)
     master_table = (PC_MASTER_ENT *) mymalloc(sizeof(*master_table));
 
     /*
-     * Skip blank lines and comment lines.
+     * Skip blank lines and comment lines. Degrade gracefully if master.cf is
+     * not available, and master.cf is not the primary target.
      */
-    if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0)
-	msg_fatal("open %s: %m", path);
-    while (readlline(buf, fp, &line_count) != 0) {
-	master_table = (PC_MASTER_ENT *) myrealloc((char *) master_table,
+#define WARN_ON_OPEN_ERROR	0
+#define FAIL_ON_OPEN_ERROR	1
+
+    if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0) {
+	if (fail_on_open_error)
+	    msg_fatal("open %s: %m", path);
+	msg_warn("open %s: %m", path);
+    } else {
+	buf = vstring_alloc(100);
+	while (readlline(buf, fp, &line_count) != 0) {
+	    master_table = (PC_MASTER_ENT *) myrealloc((char *) master_table,
 				 (entry_count + 2) * sizeof(*master_table));
-	argv = argv_split(STR(buf), MASTER_BLANKS);
-	if (argv->argc < MASTER_FIELD_COUNT)
-	    msg_fatal("file %s: line %d: bad field count", path, line_count);
-	master_table[entry_count].name_space =
-	    concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);
-	master_table[entry_count].argv = argv;
-	master_table[entry_count].valid_names = 0;
-	master_table[entry_count].all_params = 0;
-	entry_count += 1;
+	    argv = argv_split(STR(buf), MASTER_BLANKS);
+	    if (argv->argc < MASTER_FIELD_COUNT)
+		msg_fatal("file %s: line %d: bad field count",
+			  path, line_count);
+	    master_table[entry_count].name_space =
+		concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);
+	    master_table[entry_count].argv = argv;
+	    master_table[entry_count].valid_names = 0;
+	    master_table[entry_count].all_params = 0;
+	    entry_count += 1;
+	}
+	vstream_fclose(fp);
+	vstring_free(buf);
     }
 
     /*
      * Null-terminate the master table and clean up.
      */
     master_table[entry_count].argv = 0;
-    vstream_fclose(fp);
     myfree(path);
-    vstring_free(buf);
 }
 
  /*
@@ -1042,8 +1054,8 @@ static void add_service_parameters(void)
 /* flag_user_parameter - flag user-defined name "valid" if it has name=value */
 
 static const char *flag_user_parameter(const char *mac_name,
-					        int unused_mode,
-					        char *context)
+				               int unused_mode,
+				               char *context)
 {
     PC_MASTER_ENT *local_scope = (PC_MASTER_ENT *) context;
 
@@ -2102,7 +2114,7 @@ int     main(int argc, char **argv)
      * If showing master.cf entries, show them and exit
      */
     else if (cmd_mode & SHOW_MASTER) {
-	read_master();
+	read_master(FAIL_ON_OPEN_ERROR);
 	show_master(cmd_mode, argv + optind);
     }
 
@@ -2140,7 +2152,7 @@ int     main(int argc, char **argv)
 	 * and user-defined parameters ($name macros in parameter values in
 	 * main.cf and master.cf).
 	 */
-	read_master();
+	read_master(WARN_ON_OPEN_ERROR);
 	add_service_parameters();
 	if ((cmd_mode & SHOW_DEFS) == 0)
 	    add_user_parameters();

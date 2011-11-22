@@ -13022,6 +13022,12 @@ feature: </p>
 </pre>
 
 <pre>
+    # Append XVERP to MAIL FROM commands to request VERP-style delivery.
+    # See VERP_README for more information on how to use Postfix VERP.
+    /^(MAIL FROM:&lt;listname@example\.com&gt;.*)/   $1 XVERP
+</pre>
+
+<pre>
     # Bounce-never mail sink. Use notify_classes=bounce,resource,software 
     # to send bounced mail to the postmaster (with message body removed).
     /^(RCPT\s+TO:.*?)\bNOTIFY=\S+\b(.*)/ $1 NOTIFY=NEVER $2

@@ -37,7 +37,7 @@ Makefile: Makefile.in
 test:	$(TESTPROG)
 
 tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
-	test12 test13 test14 test15
+	test12 test13 test14 test15 test16 test17
 
 root_tests:
 
@@ -219,6 +219,22 @@ test15:	$(PROG) test15.ref
 	./$(PROG) -nc . >test15.tmp 2>&1
 	diff test15.ref test15.tmp
 	rm -f main.cf master.cf test15.tmp
+
+# Test graceful degradation if master.cf is unavailable.
+
+test16:	$(PROG) test16.ref
+	rm -f main.cf master.cf
+	touch main.cf
+	./$(PROG) -nc . >test16.tmp 2>&1
+	diff test16.ref test16.tmp
+	rm -f main.cf master.cf test16.tmp
+
+test17:	$(PROG) test17.ref
+	rm -f main.cf master.cf
+	touch main.cf
+	-./$(PROG) -Mc . >test17.tmp 2>&1; exit 0
+	diff test17.ref test17.tmp
+	rm -f main.cf master.cf test17.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
