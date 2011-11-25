@@ -925,8 +925,8 @@ static void psc_smtpd_read_event(int event, char *context)
 		|| (*var_psc_forbid_cmds
 		    && string_list_match(psc_forbid_cmds, command)))) {
 	    printable(command, '?');
-	    msg_info("NON-SMTP COMMAND from [%s]:%s %.100s",
-		     PSC_CLIENT_ADDR_PORT(state), command);
+	    msg_info("NON-SMTP COMMAND from [%s]:%s %.100s %.100s",
+		     PSC_CLIENT_ADDR_PORT(state), command, cmd_buffer_ptr);
 	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_FAIL);
 	    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_PASS);
 	    state->nsmtp_stamp = PSC_TIME_STAMP_DISABLED;	/* XXX */

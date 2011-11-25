@@ -45,7 +45,8 @@
 #	By default, KQUEUE support is compiled in on platforms that
 #	are known to support it.
 # .IP \fB-DNO_NIS\fR
-#	Do not build with NIS or NISPLUS support.
+#	Do not build with NIS or NISPLUS support. Support for NIS
+#	is unavailable on some recent Linux and Solaris distributions.
 # .IP \fB-DNO_PCRE\fR
 #	Do not build with PCRE support.
 #	By default, PCRE support is compiled in when the \fBpcre-config\fR

@@ -17133,6 +17133,27 @@ Apologies for any names omitted.
 
 20111122
 
-	Cleanup: documentation examples to request VERP-style
-	delivery at SMTP time with the smtpd_command_filter feature.
-	Files: proto/VERP_README.html, proto/postconf.proto.
+	Documentation: examples to request VERP-style delivery at
+	SMTP time with the smtpd_command_filter feature.  Files:
+	proto/VERP_README.html, proto/postconf.proto.
+
+	Documentation: complete list of "make makefiles" overrides.
+	File: proto/INSTALL.html.
+
+	Cleanup: postscreen now logs more than the first word of
+	non-SMTP commands. File: postscreen/postscreen_smtpd.c.
+
+20111124
+
+	Cleanup: eliminated false postconf "unused parameter"
+	warnings with legacy parameters such as $virtual_maps, and
+	with non-default parameter values for smtpd_expansion_filter
+	that can contain legitimate "$" without a macro name.
+
+	Cleanup: split postconf source into separate modules.
+	Files: postconf/postconf.c, postconf/postconf_builtin.c,
+	postconf/postconf_edit.c, postconf/postconf_main.c,
+	postconf/postconf_master.c, postconf/postconf_misc.c,
+	postconf/postconf_node.c, postconf/postconf_other.c,
+	postconf/postconf_service.c postconf/postconf_unused.c,
+	postconf/postconf_user.c, postconf/postconf.h.

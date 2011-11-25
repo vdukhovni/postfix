@@ -73,8 +73,8 @@ Cyrus SASL support.
 This feature is available with Postfix 2.3 and later.
 .IP "\fB-b\fR [\fItemplate_file\fR]"
 Display the message text that appears at the beginning of
-delivery status notification (DSN) messages, with $\fBname\fR
-expressions replaced by actual values as described in
+delivery status notification (DSN) messages, replacing
+$\fBname\fR expressions with actual values as described in
 \fBbounce\fR(5).
 
 To override the built-in templates, specify a template file
@@ -101,7 +101,7 @@ parameter settings with the "\fIname\fR=\fIvalue\fR" pairs
 on the \fBpostconf\fR(1) command line. The file is copied
 to a temporary file then renamed into place.
 Specify quotes to protect special characters and whitespace
-on the fBpostconf\fR(1) command line.
+on the \fBpostconf\fR(1) command line.
 
 The \fB-e\fR is no longer needed with Postfix version 2.8
 and later.
