@@ -106,7 +106,7 @@ PC_MASTER_ENT *master_table;
 #define LINE_LIMIT	80		/* try to fold longer lines */
 #define SEPARATORS	" \t\r\n"
 #define INDENT_LEN	4		/* indent long text by 4 */
-#define INDENT_TEXT	"	"
+#define INDENT_TEXT	"    "
 
  /*
   * XXX Global so that postconf_builtin.c call-backs can see it.

@@ -17157,3 +17157,12 @@ Apologies for any names omitted.
 	postconf/postconf_node.c, postconf/postconf_other.c,
 	postconf/postconf_service.c postconf/postconf_unused.c,
 	postconf/postconf_user.c, postconf/postconf.h.
+
+20111126
+
+	Bitrot: changes in error reporting to the under-documented
+	OpenLDAP API. Problem reported by Quanah Gibson-Mount. Fix
+	by Viktor Dukhovni. File: global/dict_ldap.c.
+
+	Cleanup: four-space indentation had become a tab character.
+	File: postconf/postconf.h.
