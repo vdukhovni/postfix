@@ -2740,7 +2740,7 @@ behavior as if the queue file name was created with "<a href="postconf.5.html#en
 <li> <p> Existing long queue file names are renamed to the short
 form (while running "postfix reload" or "postsuper").  </p>
 
-<li> New queue files are created with names such as C3CD21F3E90
+<li> <p> New queue files are created with names such as C3CD21F3E90
 from a hexadecimal alphabet that contains digits (0-9) and upper-case
 letters (A-F). The name format is: 5 characters for the time in
 microseconds; the remainder is the file inode number. </p>
@@ -14520,7 +14520,7 @@ fingerprints for <b><a href="postconf.5.html#check_ccert_access">check_ccert_acc
 for backwards compatibility with Postfix releases prior to 2.5.
 </p>
 
-<p> The best practice algorithm is now <b>sha1</b>. Recent advances in hash
+<p> Advances in hash
 function cryptanalysis have led to md5 being deprecated in favor of sha1.
 However, as long as there are no known "second pre-image" attacks
 against md5, its use in this context can still be considered safe.
@@ -14528,7 +14528,7 @@ against md5, its use in this context can still be considered safe.
 
 <p> While additional digest algorithms are often available with OpenSSL's
 libcrypto, only those used by libssl in SSL cipher suites are available to
-Postfix. For now this means just md5 or sha1. </p>
+Postfix. </p>
 
 <p> To find the fingerprint of a specific certificate file, with a
 specific digest algorithm, run: </p>
@@ -15959,6 +15959,12 @@ This feature is available in Postfix 2.1 and later.
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
 
+<p> Note: <a href="postconf.5.html#transport_delivery_slot_cost"><i>transport</i>_delivery_slot_cost</a> parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in this case:
+"_delivery_slot_cost"). </p>
+
 
 </DD>
 
@@ -15968,6 +15974,12 @@ the message delivery transport. </p>
 <p> A transport-specific override for the <a href="postconf.5.html#default_delivery_slot_discount">default_delivery_slot_discount</a>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
+
+<p> Note: <a href="postconf.5.html#transport_delivery_slot_discount"><i>transport</i>_delivery_slot_discount</a> parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_delivery_slot_discount"). </p>
 
 
 </DD>
@@ -15979,6 +15991,12 @@ the message delivery transport. </p>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
 
+<p> Note: <a href="postconf.5.html#transport_delivery_slot_loan"><i>transport</i>_delivery_slot_loan</a> parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in this case:
+"_delivery_slot_loan"). </p>
+
 
 </DD>
 
@@ -15989,6 +16007,13 @@ the message delivery transport. </p>
 <a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">default_destination_concurrency_failed_cohort_limit</a> parameter value,
 where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
 transport. </p>
+
+<p> Note: some <a href="postconf.5.html#transport_destination_concurrency_failed_cohort_limit"><i>transport</i>_destination_concurrency_failed_cohort_limit</a>
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a <a href="master.5.html">master.cf</a> service name and a
+built-in suffix (in this case:
+"_destination_concurrency_failed_cohort_limit"). </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -16003,6 +16028,13 @@ transport. </p>
 <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
 transport. </p>
 
+<p> Note: some <a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a>
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a <a href="master.5.html">master.cf</a> service name and a
+built-in suffix (in this case: "_destination_concurrency_limit").
+</p>
+
 
 </DD>
 
@@ -16013,6 +16045,13 @@ transport. </p>
 <a href="postconf.5.html#default_destination_concurrency_negative_feedback">default_destination_concurrency_negative_feedback</a> parameter value,
 where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
 transport. </p>
+
+<p> Note: some <a href="postconf.5.html#transport_destination_concurrency_negative_feedback"><i>transport</i>_destination_concurrency_negative_feedback</a>
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a <a href="master.5.html">master.cf</a> service name and a
+built-in suffix (in this case:
+"_destination_concurrency_negative_feedback"). </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -16027,6 +16066,13 @@ transport. </p>
 where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
 transport. </p>
 
+<p> Note: some <a href="postconf.5.html#transport_destination_concurrency_positive_feedback"><i>transport</i>_destination_concurrency_positive_feedback</a>
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a <a href="master.5.html">master.cf</a> service name and a
+built-in suffix (in this case:
+"_destination_concurrency_positive_feedback"). </p>
+
 <p> This feature is available in Postfix 2.5 and later. </p>
 
 
@@ -16038,6 +16084,12 @@ transport. </p>
 <p> A transport-specific override for the <a href="postconf.5.html#default_destination_rate_delay">default_destination_rate_delay</a>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
+
+<p> Note: some <a href="postconf.5.html#transport_destination_rate_delay"><i>transport</i>_destination_rate_delay</a> parameters
+will not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_destination_rate_delay"). </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -16052,6 +16104,12 @@ the message delivery transport. </p>
 <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message delivery
 transport. </p>
 
+<p> Note: some <a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> parameters
+will not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_destination_recipient_limit"). </p>
+
 
 </DD>
 
@@ -16062,6 +16120,12 @@ transport. </p>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
 
+<p> Note: <a href="postconf.5.html#transport_extra_recipient_limit"><i>transport</i>_extra_recipient_limit</a> parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_extra_recipient_limit").  </p>
+
 
 </DD>
 
@@ -16071,6 +16135,13 @@ the message delivery transport. </p>
 <p> A transport-specific override for the <a href="postconf.5.html#initial_destination_concurrency">initial_destination_concurrency</a>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
+
+<p> Note: some <a href="postconf.5.html#transport_initial_destination_concurrency"><i>transport</i>_initial_destination_concurrency</a>
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a <a href="master.5.html">master.cf</a> service name and a
+built-in suffix (in this case: "_initial_destination_concurrency").
+</p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -16113,6 +16184,12 @@ Examples:
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
 
+<p> Note: <a href="postconf.5.html#transport_minimum_delivery_slots"><i>transport</i>_minimum_delivery_slots</a> parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_minimum_delivery_slots"). </p>
+
 
 </DD>
 
@@ -16123,6 +16200,12 @@ the message delivery transport. </p>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
 
+<p> Note: some <a href="postconf.5.html#transport_recipient_limit"><i>transport</i>_recipient_limit</a> parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in this case:
+"_recipient_limit"). </p>
+
 
 </DD>
 
@@ -16132,6 +16215,12 @@ the message delivery transport. </p>
 <p> A transport-specific override for the <a href="postconf.5.html#default_recipient_refill_delay">default_recipient_refill_delay</a>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
+
+<p> Note: <a href="postconf.5.html#transport_recipient_refill_delay"><i>transport</i>_recipient_refill_delay</a> parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_recipient_refill_delay").  </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
 
@@ -16144,6 +16233,12 @@ the message delivery transport. </p>
 <p> A transport-specific override for the <a href="postconf.5.html#default_recipient_refill_limit">default_recipient_refill_limit</a>
 parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of
 the message delivery transport. </p>
+
+<p> Note: <a href="postconf.5.html#transport_recipient_refill_limit"><i>transport</i>_recipient_refill_limit</a> parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in
+this case: "_recipient_refill_limit").  </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
 
@@ -16172,6 +16267,12 @@ The default time unit is s (seconds).
 <p> A transport-specific override for the <a href="postconf.5.html#command_time_limit">command_time_limit</a> parameter
 value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message
 delivery transport. </p>
+
+<p> Note: <a href="postconf.5.html#transport_time_limit"><i>transport</i>_time_limit</a> parameters will not show up
+in "postconf" command output before Postfix version 2.9.  This
+limitation applies to many parameters whose name is a combination
+of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in this case:
+"_time_limit"). </p>
 
 
 </DD>

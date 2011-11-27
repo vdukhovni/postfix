@@ -9266,14 +9266,14 @@ fingerprints for \fBcheck_ccert_access\fR and
 \fBpermit_tls_clientcerts\fR. The default algorithm is \fBmd5\fR,
 for backwards compatibility with Postfix releases prior to 2.5.
 .PP
-The best practice algorithm is now \fBsha1\fR. Recent advances in hash
+Advances in hash
 function cryptanalysis have led to md5 being deprecated in favor of sha1.
 However, as long as there are no known "second pre-image" attacks
 against md5, its use in this context can still be considered safe.
 .PP
 While additional digest algorithms are often available with OpenSSL's
 libcrypto, only those used by libssl in SSL cipher suites are available to
-Postfix. For now this means just md5 or sha1.
+Postfix.
 .PP
 To find the fingerprint of a specific certificate file, with a
 specific digest algorithm, run:
@@ -10220,19 +10220,44 @@ This feature is available in Postfix 2.1 and later.
 A transport-specific override for the default_delivery_slot_cost
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_delivery_slot_cost parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_delivery_slot_cost").
 .SH transport_delivery_slot_discount (default: $default_delivery_slot_discount)
 A transport-specific override for the default_delivery_slot_discount
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_delivery_slot_discount parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_delivery_slot_discount").
 .SH transport_delivery_slot_loan (default: $default_delivery_slot_loan)
 A transport-specific override for the default_delivery_slot_loan
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_delivery_slot_loan parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_delivery_slot_loan").
 .SH transport_destination_concurrency_failed_cohort_limit (default: $default_destination_concurrency_failed_cohort_limit)
 A transport-specific override for the
 default_destination_concurrency_failed_cohort_limit parameter value,
 where \fItransport\fR is the master.cf name of the message delivery
 transport.
+.PP
+Note: some \fItransport\fR_destination_concurrency_failed_cohort_limit
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case:
+"_destination_concurrency_failed_cohort_limit").
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH transport_destination_concurrency_limit (default: $default_destination_concurrency_limit)
@@ -10240,11 +10265,24 @@ A transport-specific override for the
 default_destination_concurrency_limit parameter value, where
 \fItransport\fR is the master.cf name of the message delivery
 transport.
+.PP
+Note: some \fItransport\fR_destination_concurrency_limit
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case: "_destination_concurrency_limit").
 .SH transport_destination_concurrency_negative_feedback (default: $default_destination_concurrency_negative_feedback)
 A transport-specific override for the
 default_destination_concurrency_negative_feedback parameter value,
 where \fItransport\fR is the master.cf name of the message delivery
 transport.
+.PP
+Note: some \fItransport\fR_destination_concurrency_negative_feedback
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case:
+"_destination_concurrency_negative_feedback").
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH transport_destination_concurrency_positive_feedback (default: $default_destination_concurrency_positive_feedback)
@@ -10253,11 +10291,24 @@ default_destination_concurrency_positive_feedback parameter value,
 where \fItransport\fR is the master.cf name of the message delivery
 transport.
 .PP
+Note: some \fItransport\fR_destination_concurrency_positive_feedback
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case:
+"_destination_concurrency_positive_feedback").
+.PP
 This feature is available in Postfix 2.5 and later.
 .SH transport_destination_rate_delay (default: $default_destination_rate_delay)
 A transport-specific override for the default_destination_rate_delay
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: some \fItransport\fR_destination_rate_delay parameters
+will not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_destination_rate_delay").
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH transport_destination_recipient_limit (default: $default_destination_recipient_limit)
@@ -10265,14 +10316,32 @@ A transport-specific override for the
 default_destination_recipient_limit parameter value, where
 \fItransport\fR is the master.cf name of the message delivery
 transport.
+.PP
+Note: some \fItransport\fR_destination_recipient_limit parameters
+will not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_destination_recipient_limit").
 .SH transport_extra_recipient_limit (default: $default_extra_recipient_limit)
 A transport-specific override for the default_extra_recipient_limit
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_extra_recipient_limit parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_extra_recipient_limit").
 .SH transport_initial_destination_concurrency (default: $initial_destination_concurrency)
 A transport-specific override for the initial_destination_concurrency
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: some \fItransport\fR_initial_destination_concurrency
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case: "_initial_destination_concurrency").
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH transport_maps (default: empty)
@@ -10301,20 +10370,44 @@ transport_maps = hash:/etc/postfix/transport
 A transport-specific override for the default_minimum_delivery_slots
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_minimum_delivery_slots parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_minimum_delivery_slots").
 .SH transport_recipient_limit (default: $default_recipient_limit)
 A transport-specific override for the default_recipient_limit
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: some \fItransport\fR_recipient_limit parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_recipient_limit").
 .SH transport_recipient_refill_delay (default: $default_recipient_refill_delay)
 A transport-specific override for the default_recipient_refill_delay
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_recipient_refill_delay parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_recipient_refill_delay").
 .PP
 This feature is available in Postfix 2.4 and later.
 .SH transport_recipient_refill_limit (default: $default_recipient_refill_limit)
 A transport-specific override for the default_recipient_refill_limit
 parameter value, where \fItransport\fR is the master.cf name of
 the message delivery transport.
+.PP
+Note: \fItransport\fR_recipient_refill_limit parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_recipient_refill_limit").
 .PP
 This feature is available in Postfix 2.4 and later.
 .SH transport_retry_time (default: 60s)
@@ -10327,6 +10420,12 @@ The default time unit is s (seconds).
 A transport-specific override for the command_time_limit parameter
 value, where \fItransport\fR is the master.cf name of the message
 delivery transport.
+.PP
+Note: \fItransport\fR_time_limit parameters will not show up
+in "postconf" command output before Postfix version 2.9.  This
+limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_time_limit").
 .SH trigger_timeout (default: 10s)
 The time limit for sending a trigger to a Postfix daemon (for
 example, the \fBpickup\fR(8) or \fBqmgr\fR(8) daemon). This time limit prevents

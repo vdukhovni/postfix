@@ -108,8 +108,10 @@ static void register_service_parameter(const char *service, const char *suffix,
 void    register_service_parameters(void)
 {
     const char *myname = "register_service_parameters";
-    static const PC_STRING_NV service_params[] = {
+    static const PC_STRING_NV pipe_params[] = {
 	/* suffix, default parameter name */
+	_MAXTIME, VAR_COMMAND_MAXTIME,
+#define service_params (pipe_params + 1)
 	_XPORT_RCPT_LIMIT, VAR_XPORT_RCPT_LIMIT,
 	_STACK_RCPT_LIMIT, VAR_STACK_RCPT_LIMIT,
 	_XPORT_REFILL_LIMIT, VAR_XPORT_REFILL_LIMIT,
@@ -142,7 +144,7 @@ void    register_service_parameters(void)
 	MAIL_PROGRAM_VIRTUAL, service_params,
 	MAIL_PROGRAM_SMTP, service_params,
 	MAIL_PROGRAM_LMTP, service_params,
-	MAIL_PROGRAM_PIPE, service_params,
+	MAIL_PROGRAM_PIPE, pipe_params,
 	MAIL_PROGRAM_SPAWN, spawn_params,
 	0,
     };

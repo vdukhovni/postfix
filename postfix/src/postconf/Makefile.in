@@ -14,7 +14,7 @@ MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h \
 	nint_table.h nint_vars.h nbool_table.h nbool_vars.h long_table.h \
 	long_vars.h
-TEST_TMP= main.cf master.cf
+TEST_TMP= main.cf master.cf test*.tmp
 DUMMIES	= makes_dummy # for "make -j"
 PROG	= postconf
 SAMPLES	= ../../conf/main.cf.default
@@ -41,7 +41,7 @@ Makefile: Makefile.in
 test:	$(TESTPROG)
 
 tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
-	test12 test13 test14 test15 test16 test17 test18 test19
+	test12 test13 test14 test15 test16 test17 test18 test19 test20 test21
 
 root_tests:
 
@@ -262,6 +262,28 @@ test19:	$(PROG) test19.ref
 	diff test19.ref test19.tmp
 	rm -f main.cf master.cf test19.tmp
 
+# Test master.cf line folding.
+
+test20:	$(PROG) test20.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo inet - n n - 0 spawn >> master.cf
+	echo ' -o always_bcc=$$bar$$baz' >> master.cf
+	./$(PROG) -Mfc . >test20.tmp 2>&1
+	diff test20.ref test20.tmp
+	rm -f main.cf master.cf test20.tmp
+
+# Test main.cf line folding.
+
+test21:	$(PROG) test21.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo forward_path = xxxxxxxxxxxxx xxxxxxxxxxxxxx xxxxxxxxxxxx \
+	    xxxxxxxxxxxxx xxxxxxxxxxxxxx >> main.cf
+	./$(PROG) -nfc . >test21.tmp 2>&1
+	diff test21.ref test21.tmp
+	rm -f main.cf master.cf test21.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -275,7 +297,7 @@ lint:
 
 clean:
 	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
-	$(TEST_TMP) *.tmp
+	$(TEST_TMP)
 	rm -rf printfck
 
 tidy:	clean

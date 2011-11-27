@@ -11503,7 +11503,7 @@ fingerprints for <b>check_ccert_access</b> and
 for backwards compatibility with Postfix releases prior to 2.5.
 </p>
 
-<p> The best practice algorithm is now <b>sha1</b>. Recent advances in hash
+<p> Advances in hash
 function cryptanalysis have led to md5 being deprecated in favor of sha1.
 However, as long as there are no known "second pre-image" attacks
 against md5, its use in this context can still be considered safe.
@@ -11511,7 +11511,7 @@ against md5, its use in this context can still be considered safe.
 
 <p> While additional digest algorithms are often available with OpenSSL's
 libcrypto, only those used by libssl in SSL cipher suites are available to
-Postfix. For now this means just md5 or sha1. </p>
+Postfix. </p>
 
 <p> To find the fingerprint of a specific certificate file, with a
 specific digest algorithm, run: </p>
@@ -12053,6 +12053,13 @@ default_destination_concurrency_failed_cohort_limit parameter value,
 where <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
+<p> Note: some <i>transport</i>_destination_concurrency_failed_cohort_limit
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case:
+"_destination_concurrency_failed_cohort_limit"). </p>
+
 <p> This feature is available in Postfix 2.5 and later. </p>
 
 %PARAM transport_destination_concurrency_positive_feedback $default_destination_concurrency_positive_feedback
@@ -12061,6 +12068,13 @@ transport. </p>
 default_destination_concurrency_positive_feedback parameter value,
 where <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
+
+<p> Note: some <i>transport</i>_destination_concurrency_positive_feedback
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case:
+"_destination_concurrency_positive_feedback"). </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -12071,6 +12085,13 @@ default_destination_concurrency_negative_feedback parameter value,
 where <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
+<p> Note: some <i>transport</i>_destination_concurrency_negative_feedback
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case:
+"_destination_concurrency_negative_feedback"). </p>
+
 <p> This feature is available in Postfix 2.5 and later. </p>
 
 %PARAM transport_initial_destination_concurrency $initial_destination_concurrency
@@ -12078,6 +12099,13 @@ transport. </p>
 <p> A transport-specific override for the initial_destination_concurrency
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
+
+<p> Note: some <i>transport</i>_initial_destination_concurrency
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case: "_initial_destination_concurrency").
+</p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -12088,6 +12116,13 @@ default_destination_concurrency_limit parameter value, where
 <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
+<p> Note: some <i>transport</i>_destination_concurrency_limit
+parameters will not show up in "postconf" command output before
+Postfix version 2.9.  This limitation applies to many parameters
+whose name is a combination of a master.cf service name and a
+built-in suffix (in this case: "_destination_concurrency_limit").
+</p>
+
 %PARAM transport_destination_recipient_limit $default_destination_recipient_limit
 
 <p> A transport-specific override for the
@@ -12095,11 +12130,23 @@ default_destination_recipient_limit parameter value, where
 <i>transport</i> is the master.cf name of the message delivery
 transport. </p>
 
+<p> Note: some <i>transport</i>_destination_recipient_limit parameters
+will not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_destination_recipient_limit"). </p>
+
 %PARAM transport_time_limit $command_time_limit
 
 <p> A transport-specific override for the command_time_limit parameter
 value, where <i>transport</i> is the master.cf name of the message
 delivery transport. </p>
+
+<p> Note: <i>transport</i>_time_limit parameters will not show up
+in "postconf" command output before Postfix version 2.9.  This
+limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_time_limit"). </p>
 
 %PARAM transport_delivery_slot_cost $default_delivery_slot_cost
 
@@ -12107,11 +12154,23 @@ delivery transport. </p>
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
 
+<p> Note: <i>transport</i>_delivery_slot_cost parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_delivery_slot_cost"). </p>
+
 %PARAM transport_delivery_slot_loan $default_delivery_slot_loan
 
 <p> A transport-specific override for the default_delivery_slot_loan
 parameter value, where <i>transport</i> is the master.cf name of  
 the message delivery transport. </p>
+
+<p> Note: <i>transport</i>_delivery_slot_loan parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_delivery_slot_loan"). </p>
 
 %PARAM transport_delivery_slot_discount $default_delivery_slot_discount
 
@@ -12119,11 +12178,23 @@ the message delivery transport. </p>
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
 
+<p> Note: <i>transport</i>_delivery_slot_discount parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_delivery_slot_discount"). </p>
+
 %PARAM transport_minimum_delivery_slots $default_minimum_delivery_slots
 
 <p> A transport-specific override for the default_minimum_delivery_slots
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
+
+<p> Note: <i>transport</i>_minimum_delivery_slots parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_minimum_delivery_slots"). </p>
 
 %PARAM transport_recipient_limit $default_recipient_limit
 
@@ -12131,17 +12202,35 @@ the message delivery transport. </p>
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
 
+<p> Note: some <i>transport</i>_recipient_limit parameters will not
+show up in "postconf" command output before Postfix version 2.9.
+This limitation applies to many parameters whose name is a combination
+of a master.cf service name and a built-in suffix (in this case:
+"_recipient_limit"). </p>
+
 %PARAM transport_extra_recipient_limit $default_extra_recipient_limit
 
 <p> A transport-specific override for the default_extra_recipient_limit
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
 
+<p> Note: <i>transport</i>_extra_recipient_limit parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_extra_recipient_limit").  </p>
+
 %PARAM transport_recipient_refill_limit $default_recipient_refill_limit
 
 <p> A transport-specific override for the default_recipient_refill_limit
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
+
+<p> Note: <i>transport</i>_recipient_refill_limit parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_recipient_refill_limit").  </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
 
@@ -12150,6 +12239,12 @@ the message delivery transport. </p>
 <p> A transport-specific override for the default_recipient_refill_delay
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
+
+<p> Note: <i>transport</i>_recipient_refill_delay parameters will
+not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_recipient_refill_delay").  </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
 
@@ -12189,6 +12284,12 @@ destination after only one connection or handshake error. </p>
 <p> A transport-specific override for the default_destination_rate_delay
 parameter value, where <i>transport</i> is the master.cf name of
 the message delivery transport. </p>
+
+<p> Note: some <i>transport</i>_destination_rate_delay parameters
+will not show up in "postconf" command output before Postfix version
+2.9.  This limitation applies to many parameters whose name is a
+combination of a master.cf service name and a built-in suffix (in
+this case: "_destination_rate_delay"). </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
@@ -14180,7 +14281,7 @@ behavior as if the queue file name was created with "enable_long_queue_ids
 <li> <p> Existing long queue file names are renamed to the short
 form (while running "postfix reload" or "postsuper").  </p>
 
-<li> New queue files are created with names such as C3CD21F3E90
+<li> <p> New queue files are created with names such as C3CD21F3E90
 from a hexadecimal alphabet that contains digits (0-9) and upper-case
 letters (A-F). The name format is: 5 characters for the time in
 microseconds; the remainder is the file inode number. </p>

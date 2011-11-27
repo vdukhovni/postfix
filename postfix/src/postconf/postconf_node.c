@@ -65,7 +65,7 @@
 /*	convert_param_node() produces a string representation for
 /*	a global parameter default value.
 /*
-/*	PC_RAW_PARAMETER() returns non-zero is the specified parameter
+/*	PC_RAW_PARAMETER() returns non-zero if the specified parameter
 /*	node represents a "raw parameter". The value of such
 /*	parameters must not be scanned for macro names.  Some "raw
 /*	parameter" values contain "$" without macros, such as the
