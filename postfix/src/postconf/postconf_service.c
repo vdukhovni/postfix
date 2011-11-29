@@ -2,7 +2,7 @@
 /* NAME
 /*	postconf_service 3
 /* SUMMARY
-/*	service-defined parameter support
+/*	service-defined parameter name support
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
@@ -89,16 +89,22 @@ static void register_service_parameter(const char *service, const char *suffix,
 				               const char *defparam)
 {
     char   *name = concatenate(service, suffix, (char *) 0);
+    PC_PARAM_NODE *node;
 
     /*
      * Skip service parameter names that have built-in definitions. This
      * happens with message delivery transports that have a non-default
      * per-destination concurrency or recipient limit, such as local(8).
+     * 
+     * Some parameters were tentatively flagged as built-in, but they are
+     * service parameters with their own default value. We don't change the
+     * default but we correct the parameter class.
      */
-    if (PC_PARAM_TABLE_LOCATE(param_table, name) != 0) {
+    if ((node = PC_PARAM_TABLE_FIND(param_table, name)) != 0) {
+	PC_PARAM_CLASS_OVERRIDE(node, PC_PARAM_FLAG_SERVICE);
 	myfree(name);
     } else {
-	PC_PARAM_TABLE_ENTER(param_table, name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, name, PC_PARAM_FLAG_SERVICE,
 			     (char *) defparam, convert_service_parameter);
     }
 }

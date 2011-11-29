@@ -10,8 +10,9 @@
 /*
 /*	void	set_parameters()
 /*
-/*	void	show_parameters(mode, names)
+/*	void	show_parameters(mode, param_class, names)
 /*	int	mode;
+/*	int	param_class;
 /*	char	**names;
 /* DESCRIPTION
 /*	read_parameters() reads parameters from main.cf.
@@ -38,6 +39,16 @@
 /*	Output the parameter as "name = value".
 /* .IP SHOW_EVAL
 /*	Expand parameter values (not implemented).
+/* .RE
+/* .IP param_class
+/*	Bit-wise OR of one or more of the following:
+/* .RS
+/* .IP PC_PARAM_FLAG_BUILTIN
+/*	Show built-in parameters.
+/* .IP PC_PARAM_FLAG_SERVICE
+/*	Show service-defined parameters.
+/* .IP PC_PARAM_FLAG_USER
+/*	Show user-defined parameters.
 /* .RE
 /* .IP names
 /*	List of zero or more parameter names. If the list is empty,
@@ -225,7 +236,7 @@ static int comp_names(const void *a, const void *b)
 
 /* show_parameters - show parameter info */
 
-void    show_parameters(int mode, char **names)
+void    show_parameters(int mode, int param_class, char **names)
 {
     PC_PARAM_INFO **list;
     PC_PARAM_INFO **ht;
@@ -239,8 +250,9 @@ void    show_parameters(int mode, char **names)
 	list = PC_PARAM_TABLE_LIST(param_table);
 	qsort((char *) list, param_table->used, sizeof(*list), comp_names);
 	for (ht = list; *ht; ht++)
-	    print_parameter(mode, PC_PARAM_INFO_NAME(*ht),
-			    PC_PARAM_INFO_NODE(*ht));
+	    if (param_class & PC_PARAM_INFO_NODE(*ht)->flags)
+		print_parameter(mode, PC_PARAM_INFO_NAME(*ht),
+				PC_PARAM_INFO_NODE(*ht));
 	myfree((char *) list);
 	return;
     }

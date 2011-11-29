@@ -207,11 +207,11 @@ NOTES:
   * Lines 8, 9: always specify "check_policy_service" AFTER
     "reject_unauth_destination" or else your system could become an open relay.
 
-  * Line 11: this increases the time that a policy server process is allowed to
-    run from the default 1000 seconds to 3600 seconds. The default time limit
-    is too short for a policy daemon that needs to run long as the SMTP server
-    process that talks to it. See the spawn(8) manpage for more information
-    about the transport_time_limit parameter.
+  * Line 11: this increases the time that a policy server process may run to
+    3600 seconds. The default time limit of 1000 seconds is too short; the
+    policy daemon needs to run long as the SMTP server process that talks to
+    it. See the spawn(8) manpage for more information about the
+    transport_time_limit parameter.
 
         Note: the "policy_time_limit" parameter will not show up in "postconf"
         command output before Postfix version 2.9. This limitation applies to
@@ -315,11 +315,11 @@ Notes:
   * Line 3: Specify "greylist.pl -v" for verbose logging of each request and
     reply.
 
-  * Line 6: this increases the time that a greylist server process is allowed
-    to run from the default 1000 seconds to 3600 seconds. The default time
-    limit is too short for a greylist daemon that needs to run long as the SMTP
-    server process that talks to it. See the spawn(8) manpage for more
-    information about the transport_time_limit parameter.
+  * Line 6: this increases the time that a greylist server process may run to
+    3600 seconds. The default time limit of 1000 seconds is too short; the
+    greylist daemon needs to run long as the SMTP server process that talks to
+    it. See the spawn(8) manpage for more information about the
+    transport_time_limit parameter.
 
         Note: the "greylist_time_limit" parameter will not show up in
         "postconf" command output before Postfix version 2.9. This limitation

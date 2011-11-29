@@ -261,7 +261,7 @@ daemon, you would use something like this: </p>
  8         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
  9         <a href="postconf.5.html#check_policy_service">check_policy_service</a> unix:private/policy 
 10         ...
-11     policy_time_limit = 3600
+11     <a href="postconf.5.html#transport_time_limit">policy_time_limit</a> = 3600
 </pre>
 </blockquote>
 
@@ -284,13 +284,13 @@ increase the smtpd process limit. </p>
 open relay. </p>
 
 <li> <p> Line 11: this increases the time that a policy server
-process is allowed to run from the default 1000 seconds to 3600
-seconds.  The default time limit is too short for a policy daemon
-that needs to run long as the SMTP server process that talks to it.
+process may run to 3600 seconds.  The default time limit of 1000
+seconds is too short; the policy daemon needs to run long as the
+SMTP server process that talks to it.
 See the <a href="spawn.8.html">spawn(8)</a> manpage for more information about the
 <a href="postconf.5.html#transport_time_limit"><i>transport</i>_time_limit</a> parameter.  </p>
 
-<blockquote> <p> Note: the "policy_time_limit" parameter will not
+<blockquote> <p> Note: the "<a href="postconf.5.html#transport_time_limit">policy_time_limit</a>" parameter will not
 show up in "postconf" command output before Postfix version 2.9.
 This limitation applies to many parameters whose name is a combination
 of a <a href="master.5.html">master.cf</a> service name (in the above example, "policy") and a
@@ -401,7 +401,7 @@ processes only: </p>
  3       user=nobody argv=/usr/bin/perl /usr/libexec/postfix/greylist.pl
  4 
  5 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
- 6     greylist_time_limit = 3600
+ 6     <a href="postconf.5.html#transport_time_limit">greylist_time_limit</a> = 3600
  7     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  8         ... 
  9         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
@@ -428,13 +428,13 @@ increase the smtpd process limit. </p>
 each request and reply. </p>
 
 <li> <p> Line 6: this increases the time that a greylist server
-process is allowed to run from the default 1000 seconds to 3600
-seconds.  The default time limit is too short for a greylist daemon
-that needs to run long as the SMTP server process that talks to it.
+process may run to 3600 seconds.  The default time limit of 1000
+seconds is too short; the greylist daemon needs to run long as the
+SMTP server process that talks to it.
 See the <a href="spawn.8.html">spawn(8)</a> manpage for more information about the
 <a href="postconf.5.html#transport_time_limit"><i>transport</i>_time_limit</a> parameter.  </p>
 
-<blockquote> <p> Note: the "greylist_time_limit" parameter will not
+<blockquote> <p> Note: the "<a href="postconf.5.html#transport_time_limit">greylist_time_limit</a>" parameter will not
 show up in "postconf" command output before Postfix version 2.9.
 This limitation applies to many parameters whose name is a combination
 of a <a href="master.5.html">master.cf</a> service name (in the above example, "greylist") and

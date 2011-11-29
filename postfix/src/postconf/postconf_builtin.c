@@ -333,36 +333,39 @@ void    register_builtin_parameters(void)
     param_table = PC_PARAM_TABLE_CREATE(100);
 
     /*
-     * Add the built-in parameters to the global name space.
+     * Add the built-in parameters to the global name space. The class
+     * (built-i) is tentative; some parameters are actually service-defined,
+     * but they have their own default value.
      */
     for (ctt = time_table; ctt->name; ctt++)
-	PC_PARAM_TABLE_ENTER(param_table, ctt->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, ctt->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) ctt, convert_time_parameter);
     for (cbt = bool_table; cbt->name; cbt++)
-	PC_PARAM_TABLE_ENTER(param_table, cbt->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, cbt->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) cbt, convert_bool_parameter);
     for (cit = int_table; cit->name; cit++)
-	PC_PARAM_TABLE_ENTER(param_table, cit->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, cit->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) cit, convert_int_parameter);
     for (cst = str_table; cst->name; cst++)
-	PC_PARAM_TABLE_ENTER(param_table, cst->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, cst->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) cst, convert_str_parameter);
     for (cft = str_fn_table; cft->name; cft++)
-	PC_PARAM_TABLE_ENTER(param_table, cft->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, cft->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) cft, convert_str_fn_parameter);
     for (cft = str_fn_table_2; cft->name; cft++)
-	PC_PARAM_TABLE_ENTER(param_table, cft->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, cft->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) cft, convert_str_fn_parameter);
     for (rst = raw_table; rst->name; rst++)
-	PC_PARAM_TABLE_ENTER(param_table, rst->name, PC_PARAM_FLAG_RAW,
+	PC_PARAM_TABLE_ENTER(param_table, rst->name,
+			     PC_PARAM_FLAG_BUILTIN | PC_PARAM_FLAG_RAW,
 			     (char *) rst, convert_raw_parameter);
     for (nst = nint_table; nst->name; nst++)
-	PC_PARAM_TABLE_ENTER(param_table, nst->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, nst->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) nst, convert_nint_parameter);
     for (bst = nbool_table; bst->name; bst++)
-	PC_PARAM_TABLE_ENTER(param_table, bst->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, bst->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) bst, convert_nbool_parameter);
     for (lst = long_table; lst->name; lst++)
-	PC_PARAM_TABLE_ENTER(param_table, lst->name, PC_PARAM_FLAG_NONE,
+	PC_PARAM_TABLE_ENTER(param_table, lst->name, PC_PARAM_FLAG_BUILTIN,
 			     (char *) lst, convert_long_parameter);
 }

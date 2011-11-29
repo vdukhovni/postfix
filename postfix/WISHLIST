@@ -2,6 +2,8 @@ Wish list:
 
 	Things to do before the stable release:
 
+	Add regression tests for postconf -C.
+
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
@@ -12,6 +14,9 @@ Wish list:
 	should first explain how to turn on opportunistic TLS. After
 	that, it can discuss the gory details of higher security
 	levels for the few people who need it.
+
+	make address_verify_sender dynamic so it won't work
+	with address harvesters.
 
 	Investigate viability of memcached for applications
 	that require performance for low-security operations

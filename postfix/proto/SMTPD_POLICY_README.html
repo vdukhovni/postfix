@@ -284,9 +284,9 @@ increase the smtpd process limit. </p>
 open relay. </p>
 
 <li> <p> Line 11: this increases the time that a policy server
-process is allowed to run from the default 1000 seconds to 3600
-seconds.  The default time limit is too short for a policy daemon
-that needs to run long as the SMTP server process that talks to it.
+process may run to 3600 seconds.  The default time limit of 1000
+seconds is too short; the policy daemon needs to run long as the
+SMTP server process that talks to it.
 See the spawn(8) manpage for more information about the
 <i>transport</i>_time_limit parameter.  </p>
 
@@ -428,9 +428,9 @@ increase the smtpd process limit. </p>
 each request and reply. </p>
 
 <li> <p> Line 6: this increases the time that a greylist server
-process is allowed to run from the default 1000 seconds to 3600
-seconds.  The default time limit is too short for a greylist daemon
-that needs to run long as the SMTP server process that talks to it.
+process may run to 3600 seconds.  The default time limit of 1000
+seconds is too short; the greylist daemon needs to run long as the
+SMTP server process that talks to it.
 See the spawn(8) manpage for more information about the
 <i>transport</i>_time_limit parameter.  </p>
 

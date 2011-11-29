@@ -17177,4 +17177,14 @@ Apologies for any names omitted.
 
 	Cleanup: added the pipe(8) delivery agent to the list of
 	programs that implement transport_time_limit parameters.
-	File: postconf/postconf_service.c, postconf/test6.ref.
+	File: postconf/postconf_service.c, postconf/test6.ref,
+	postconf/test22.ref.
+
+20111128
+
+	Feature: "postconf -C class,..." support to print parameters
+	in one or more classes (builtin= built-in parameter names,
+	service=service-defined parameter names, user=user-defined
+	parameter names). Files: postconf/postconf.c, postconf/postconf.h,
+	postconf_service.c, postconf/postconf_user.c.
+

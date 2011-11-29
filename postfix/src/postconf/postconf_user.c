@@ -2,7 +2,7 @@
 /* NAME
 /*	postconf_user 3
 /* SUMMARY
-/*	support for user-defined parameters
+/*	support for user-defined parameter names
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
@@ -13,11 +13,12 @@
 /*	space of each master.cf entry. Parameters in local name
 /*	spaces take precedence over global parameters.
 /*
-/*	There are three categories of known parameters: built-in,
+/*	There are three categories of known parameter names: built-in,
 /*	service-defined (see postconf_service.c), and valid
 /*	user-defined.
 /*
-/*	There are two categories of valid user-defined parameters:
+/*	There are two categories of valid user-defined parameter
+/*	names:
 /*
 /*	- Parameters whose user-defined-name appears in the value
 /*	of smtpd_restriction_classes in main.cf or master.cf.
@@ -28,7 +29,7 @@
 /*	- In both cases the parameters must have a
 /*	"user-defined-name=value" entry in main.cf or master.cf.
 /*
-/*	Other user-defined parameters are flagged as "unused".
+/*	Other user-defined parameter names are flagged as "unused".
 /*
 /*	register_user_parameters() scans the global and per-service
 /*	name spaces for user-defined parameters and flags
@@ -122,11 +123,11 @@ static const char *flag_user_parameter(const char *mac_name,
     if (local_scope && dict_get(local_scope->all_params, mac_name)) {
 	if (PC_PARAM_TABLE_LOCATE(local_scope->valid_names, mac_name) == 0)
 	    PC_PARAM_TABLE_ENTER(local_scope->valid_names, mac_name,
-				 PC_PARAM_FLAG_NONE, PC_PARAM_NO_DATA,
+				 PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
 				 convert_user_parameter);
     } else if (mail_conf_lookup(mac_name) != 0) {
 	if (PC_PARAM_TABLE_LOCATE(param_table, mac_name) == 0)
-	    PC_PARAM_TABLE_ENTER(param_table, mac_name, PC_PARAM_FLAG_NONE,
+	    PC_PARAM_TABLE_ENTER(param_table, mac_name, PC_PARAM_FLAG_USER,
 				 PC_PARAM_NO_DATA, convert_user_parameter);
     }
     return (0);
@@ -198,7 +199,7 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	 && PC_PARAM_TABLE_LOCATE(local_scope->valid_names, cparam_name) == 0
 	    && htable_locate(rest_class_table, cparam_name) != 0)
 	    PC_PARAM_TABLE_ENTER(local_scope->valid_names, cparam_name,
-			      PC_PARAM_FLAG_NONE, PC_PARAM_NO_DATA,
+			      PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
 			      convert_user_parameter);
 	/* Skip "do not expand" parameters. */
 	if ((node = PC_PARAM_TABLE_FIND(param_table, cparam_name)) != 0

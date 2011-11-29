@@ -8,7 +8,7 @@
 /*	\fBManaging main.cf:\fR
 /*
 /*	\fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
-/*	[\fIparameter ...\fR]
+/*	[\fB-C \fIclass\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
@@ -84,6 +84,19 @@
 /* .IP "\fB-c \fIconfig_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory.
+/* .IP "\fB-C \fIclass,...\fR"
+/*	When displaying \fBmain.cf\fR parameters, select only
+/*	parameters from the specified class(es), specified as a
+/*	comma-separated list:
+/* .RS
+/* .IP \fBbuiltin\fR
+/*	Parameters with built-in names.
+/* .IP \fBservice\fR
+/*	Parameters with service-defined names (the first field of
+/*	a \fBmaster.cf\fR entry plus a Postfix-defined suffix).
+/* .IP \fBuser\fR
+/*	Parameters with user-defined names.
+/* .RE
 /* .IP \fB-d\fR
 /*	Print \fBmain.cf\fR default parameter settings instead of
 /*	actual settings.
@@ -315,6 +328,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <stringops.h>
+#include <name_mask.h>
 
 /* Global library. */
 
@@ -349,6 +363,13 @@ int     main(int argc, char **argv)
     struct stat st;
     int     junk;
     ARGV   *ext_argv = 0;
+    int     param_class = PC_PARAM_MASK_CLASS;
+    static const NAME_MASK param_class_table[] = {
+	"builtin", PC_PARAM_FLAG_BUILTIN,
+	"service", PC_PARAM_FLAG_SERVICE,
+	"user", PC_PARAM_FLAG_USER,
+	0,
+    };
 
     /*
      * Fingerprint executables and core dumps.
@@ -378,7 +399,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:deEf#hlmMntv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMntv")) > 0) {
 	switch (ch) {
 	case 'a':
 	    cmd_mode |= SHOW_SASL_SERV;
@@ -395,6 +416,10 @@ int     main(int argc, char **argv)
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
 		msg_fatal("out of memory");
+	    break;
+	case 'C':
+	    param_class = name_mask_opt("-C option", param_class_table,
+				    optarg, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
 	    break;
 	case 'd':
 	    cmd_mode |= SHOW_DEFS;
@@ -446,7 +471,7 @@ int     main(int argc, char **argv)
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-d (defaults)] [-e (edit)] [-f (fold lines)] [-# (comment-out)] [-h (no names)] [-l (lock types)] [-m (map types)] [-M (master.cf)] [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-C param_class] [-d (defaults)] [-e (edit)] [-f (fold lines)] [-# (comment-out)] [-h (no names)] [-l (lock types)] [-m (map types)] [-M (master.cf)] [-n (non-defaults)] [-v] [name...]", argv[0]);
 	}
     }
 
@@ -548,7 +573,7 @@ int     main(int argc, char **argv)
 	/*
 	 * Show the requested values.
 	 */
-	show_parameters(cmd_mode, argv + optind);
+	show_parameters(cmd_mode, param_class, argv + optind);
 
 	/*
 	 * Flag unused parameters. This makes no sense with "postconf -d",

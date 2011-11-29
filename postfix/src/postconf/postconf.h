@@ -45,8 +45,15 @@ typedef struct {
 } PC_PARAM_NODE;
 
  /* Values for flags. See the postconf_node module for narrative text. */
-#define PC_PARAM_FLAG_NONE	(0)
-#define PC_PARAM_FLAG_RAW	(1<<0)
+#define PC_PARAM_FLAG_RAW	(1<<0)	/* raw parameter value */
+#define PC_PARAM_FLAG_BUILTIN	(1<<1)	/* built-in parameter name */
+#define PC_PARAM_FLAG_SERVICE	(1<<2)	/* service-defined parameter name */
+#define PC_PARAM_FLAG_USER	(1<<3)	/* user-defined parameter name */
+
+#define PC_PARAM_MASK_CLASS \
+	(PC_PARAM_FLAG_BUILTIN | PC_PARAM_FLAG_SERVICE | PC_PARAM_FLAG_USER)
+#define PC_PARAM_CLASS_OVERRIDE(node, class) \
+	((node)->flags = (((node)->flags & ~PC_PARAM_MASK_CLASS) | (class)))
 
 #define PC_RAW_PARAMETER(node) ((node)->flags & PC_PARAM_FLAG_RAW)
 
@@ -123,7 +130,7 @@ extern void set_config_dir(void);
   */
 extern void read_parameters(void);
 extern void set_parameters(void);
-extern void show_parameters(int, char **);
+extern void show_parameters(int, int, char **);
 
  /*
   * postconf_edit.c

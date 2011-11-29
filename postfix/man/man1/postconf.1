@@ -12,7 +12,7 @@ Postfix configuration utility
 \fBManaging main.cf:\fR
 
 \fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
-[\fIparameter ...\fR]
+[\fB-C \fIclass\fR] [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter=value ...\fR]
@@ -90,6 +90,19 @@ This feature is available with Postfix 2.3 and later.
 .IP "\fB-c \fIconfig_dir\fR"
 The \fBmain.cf\fR configuration file is in the named directory
 instead of the default configuration directory.
+.IP "\fB-C \fIclass,...\fR"
+When displaying \fBmain.cf\fR parameters, select only
+parameters from the specified class(es), specified as a
+comma-separated list:
+.RS
+.IP \fBbuiltin\fR
+Parameters with built-in names.
+.IP \fBservice\fR
+Parameters with service-defined names (the first field of
+a \fBmaster.cf\fR entry plus a Postfix-defined suffix).
+.IP \fBuser\fR
+Parameters with user-defined names.
+.RE
 .IP \fB-d\fR
 Print \fBmain.cf\fR default parameter settings instead of
 actual settings.
