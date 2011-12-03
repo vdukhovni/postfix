@@ -20,7 +20,7 @@
   * External interface.
   */
 extern char *safe_ultostr(VSTRING *, unsigned long, int, int, int);
-extern unsigned long safe_strtoul(char *, char **, int);
+extern unsigned long safe_strtoul(const char *, char **, int);
 
 /* LICENSE
 /* .ad

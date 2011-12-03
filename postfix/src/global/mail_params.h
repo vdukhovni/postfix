@@ -2625,6 +2625,10 @@ extern int var_verify_scan_cache;
 #define DEF_VERIFY_SENDER		"$" VAR_DOUBLE_BOUNCE
 extern char *var_verify_sender;
 
+#define VAR_VERIFY_SENDER_TTL		"address_verify_sender_ttl"
+#define DEF_VERIFY_SENDER_TTL		"0s"
+extern int var_verify_sender_ttl;
+
 #define VAR_VERIFY_POLL_COUNT		"address_verify_poll_count"
 #define DEF_VERIFY_POLL_COUNT		"${stress?1}${stress:3}"
 extern int var_verify_poll_count;

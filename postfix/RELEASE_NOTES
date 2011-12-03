@@ -14,6 +14,16 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Major changes with snapshot 20111203
+====================================
+
+Support for time-dependent sender addresses of address verification
+probes. The default address, double-bounce, may end up on spammer
+blacklists. Although Postfix discards mail for this address, such
+mail still uses up network bandwidth and server resources. Specify
+an address_verify_sender_ttl value of several hours or more to
+frustrate address harvesting.
+
 Major changes with snapshot 20111120
 ====================================
 

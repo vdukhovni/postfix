@@ -102,11 +102,11 @@ static void register_service_parameter(const char *service, const char *suffix,
      */
     if ((node = PC_PARAM_TABLE_FIND(param_table, name)) != 0) {
 	PC_PARAM_CLASS_OVERRIDE(node, PC_PARAM_FLAG_SERVICE);
-	myfree(name);
     } else {
 	PC_PARAM_TABLE_ENTER(param_table, name, PC_PARAM_FLAG_SERVICE,
 			     (char *) defparam, convert_service_parameter);
     }
+    myfree(name);
 }
 
 /* register_service_parameters - add all service parameters with defaults */

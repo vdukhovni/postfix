@@ -123,6 +123,13 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
     fail with mis-configured sites that reject MAIL FROM: <>, while probes from
     "double-bounce@$myorigin" would succeed.
 
+  * The downside of using a non-empty sender address is that the address may
+    end op on spammer mailing lists. Although Postfix always discards mail to
+    the double-bounce address, this still results in wasted network bandwidth
+    and server capacity. To defeat address harvesting, Postfix 2.9 and later
+    support time-dependent sender addresses when you specify a non-zero
+    address_verify_sender_ttl value.
+
 RReecciippiieenntt aaddddrreessss vveerriiffiiccaattiioonn
 
 As mentioned earlier, recipient address verification is useful to block mail

@@ -86,9 +86,9 @@ implementations.
 
     NNoottee
 
-    Before Postfix version 2.3, Postfix had support only for Cyrus SASL.
     Current Postfix versions have a plug-in architecture that can support
-    multiple SASL implementations.
+    multiple SASL implementations. Before Postfix version 2.3, Postfix had
+    support only for Cyrus SASL.
 
 To find out what SASL implementations are compiled into Postfix, use the
 following commands:

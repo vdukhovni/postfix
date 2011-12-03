@@ -804,6 +804,11 @@
 /* .IP "\fBunverified_recipient_tempfail_action ($reject_tempfail_action)\fR"
 /*	The Postfix SMTP server's action when reject_unverified_recipient
 /*	fails due to a temporary error condition.
+/* .PP
+/*	Available with Postfix 2.9 and later:
+/* .IP "\fBaddress_verify_sender_ttl (0s)\fR"
+/*	The time between changes in the time-dependent portion of address
+/*	verification probe sender addresses.
 /* ACCESS CONTROL RESPONSES
 /* .ad
 /* .fi
@@ -1067,6 +1072,7 @@
 #include <dsn_mask.h>
 #include <xtext.h>
 #include <tls_proxy.h>
+#include <verify_sender_addr.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1164,7 +1170,6 @@ char   *var_unv_from_why;
 char   *var_unv_rcpt_why;
 int     var_mul_rcpt_code;
 char   *var_relay_rcpt_maps;
-char   *var_verify_sender;
 int     var_local_rcpt_code;
 int     var_virt_alias_code;
 int     var_virt_mailbox_code;
@@ -2517,7 +2522,23 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
-	err = smtpd_check_rcpt(state, STR(state->addr_buf));
+	const char *verify_sender;
+
+	/*
+	 * XXX Don't reject the address when we're probed with our own
+	 * address verification sender address. Otherwise, some timeout or
+	 * some UCE block may result in mutual negative caching, making it
+	 * painful to get the mail through. Unfortunately we still have to
+	 * send the address to the Milters otherwise they may bail out with a
+	 * "missing recipient" protocol error.
+	 */
+	verify_sender = valid_verify_sender_addr(STR(state->addr_buf));
+	if (verify_sender != 0) {
+	    vstring_strcpy(state->addr_buf, verify_sender);
+	    err = 0;
+	} else {
+	    err = smtpd_check_rcpt(state, STR(state->addr_buf));
+	}
 	if (smtpd_milters != 0
 	    && (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
 	    PUSH_STRING(saved_rcpt, state->recipient, STR(state->addr_buf));
@@ -5153,6 +5174,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_CONN_TIME, DEF_MILT_CONN_TIME, &var_milt_conn_time, 1, 0,
 	VAR_MILT_CMD_TIME, DEF_MILT_CMD_TIME, &var_milt_cmd_time, 1, 0,
 	VAR_MILT_MSG_TIME, DEF_MILT_MSG_TIME, &var_milt_msg_time, 1, 0,
+	VAR_VERIFY_SENDER_TTL, DEF_VERIFY_SENDER_TTL, &var_verify_sender_ttl, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {

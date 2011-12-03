@@ -197,6 +197,7 @@ smtpd.o: ../../include/tok822.h
 smtpd.o: ../../include/valid_hostname.h
 smtpd.o: ../../include/valid_mailhost_addr.h
 smtpd.o: ../../include/vbuf.h
+smtpd.o: ../../include/verify_sender_addr.h
 smtpd.o: ../../include/verp_sender.h
 smtpd.o: ../../include/vstream.h
 smtpd.o: ../../include/vstring.h

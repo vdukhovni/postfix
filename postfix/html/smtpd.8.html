@@ -1084,6 +1084,13 @@ SMTPD(8)                                                              SMTPD(8)
               <a href="postconf.5.html#reject_unverified_recipient">ified_recipient</a> fails due to a temporary error con-
               dition.
 
+       Available with Postfix 2.9 and later:
+
+       <b><a href="postconf.5.html#address_verify_sender_ttl">address_verify_sender_ttl</a> (0s)</b>
+              The time between changes in the time-dependent por-
+              tion   of   address   verification   probe   sender
+              addresses.
+
 <b>ACCESS CONTROL RESPONSES</b>
        The following  parameters  control  numerical  SMTP  reply
        codes and/or text responses.

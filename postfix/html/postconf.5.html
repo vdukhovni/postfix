@@ -459,6 +459,33 @@ This feature is available in Postfix 2.3 and later.
 
 </DD>
 
+<DT><b><a name="address_verify_sender_ttl">address_verify_sender_ttl</a>
+(default: 0s)</b></DT><DD>
+
+<p> The time between changes in the time-dependent portion of address
+verification probe sender addresses. The time-dependent portion is
+appended to the localpart of the address specified with the
+<a href="postconf.5.html#address_verify_sender">address_verify_sender</a> parameter. This feature is ignored when the
+probe sender addresses is the null sender, i.e. the <a href="postconf.5.html#address_verify_sender">address_verify_sender</a>
+value is empty or &lt;&gt;. </p>
+
+<p> Historically, the probe sender address was fixed. This has
+caused such addresses to end up on spammer mailing lists, and has
+resulted in wasted network and processing resources.  </p>
+
+<p> To enable time-dependent probe sender addresses, specify a
+non-zero time value (an integral value plus an optional one-letter
+suffix that specifies the time unit).  Specify a value of at least
+several hours, to avoid problems with senders that use greylisting.
+Avoid nice TTL values, to make the result less predictable.  Time
+units are: s (seconds), m (minutes), h (hours), d (days), w (weeks).
+</p>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="address_verify_service_name">address_verify_service_name</a>
 (default: verify)</b></DT><DD>
 

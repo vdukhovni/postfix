@@ -2,8 +2,6 @@ Wish list:
 
 	Things to do before the stable release:
 
-	Add regression tests for postconf -C.
-
 	Remove this file from the stable release.
 
 	Things to do after the stable release:

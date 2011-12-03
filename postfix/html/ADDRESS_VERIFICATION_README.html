@@ -245,6 +245,14 @@ server does not reject mail for this address. </p>
 mis-configured sites that reject MAIL FROM:  &lt;&gt;, while
 probes from "double-bounce@$<a href="postconf.5.html#myorigin">myorigin</a>" would succeed. </p>
 
+<li> <p> The downside of using a non-empty sender address is that
+the address may end op on spammer mailing lists. Although Postfix
+always discards mail to the double-bounce address, this still results
+in wasted network bandwidth and server capacity.  To defeat
+address harvesting, Postfix 2.9 and later support time-dependent
+sender addresses when you specify a non-zero <a href="postconf.5.html#address_verify_sender_ttl">address_verify_sender_ttl</a>
+value.  </p>
+
 </ul>
 
 <h2><a name="recipient">Recipient address verification</a></h2>

@@ -17188,3 +17188,12 @@ Apologies for any names omitted.
 	parameter names). Files: postconf/postconf.c, postconf/postconf.h,
 	postconf_service.c, postconf/postconf_user.c.
 
+20111203
+
+	Cleanup: time-dependent sender addresses of address
+	verification probes.  Specify an address_verify_sender_ttl
+	value of several hours or more to frustrate address harvesting.
+	Files: global/verify_sender_addr.[hc], smtpd/smtpd.c,
+	smtpd/smtpd_check.c, verify/verify.c, proto/postconf.proto,
+	proto/ADDRESS_VERIFICATION_README.html.
+

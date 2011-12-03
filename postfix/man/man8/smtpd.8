@@ -854,6 +854,11 @@ fails due to a temporary error condition.
 .IP "\fBunverified_recipient_tempfail_action ($reject_tempfail_action)\fR"
 The Postfix SMTP server's action when reject_unverified_recipient
 fails due to a temporary error condition.
+.PP
+Available with Postfix 2.9 and later:
+.IP "\fBaddress_verify_sender_ttl (0s)\fR"
+The time between changes in the time-dependent portion of address
+verification probe sender addresses.
 .SH "ACCESS CONTROL RESPONSES"
 .na
 .nf

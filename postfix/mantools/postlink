@@ -85,6 +85,7 @@ while (<>) {
     s;\baddress_verify_relay[-</bB>]*\n*[ <bB>]*host\b;<a href="postconf.5.html#address_verify_relayhost">$&</a>;g;
     s;\baddress_verify_sender_dependent_relay[-</bB>]*\n*[ <bB>]*host_maps\b;<a href="postconf.5.html#address_verify_sender_dependent_relayhost_maps">$&</a>;g;
     s;\baddress_verify_sender\b;<a href="postconf.5.html#address_verify_sender">$&</a>;g;
+    s;\baddress_verify_sender_ttl\b;<a href="postconf.5.html#address_verify_sender_ttl">$&</a>;g;
     s;\baddress_verify_service_name\b;<a href="postconf.5.html#address_verify_service_name">$&</a>;g;
     s;\baddress_verify_transport_maps\b;<a href="postconf.5.html#address_verify_transport_maps">$&</a>;g;
     s;\baddress_verify_virtual_transport\b;<a href="postconf.5.html#address_verify_virtual_transport">$&</a>;g;

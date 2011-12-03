@@ -30,7 +30,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	verp_sender.c wildcard_inet_addr.c xtext.c delivered_hdr.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
-	smtp_reply_footer.c safe_ultostr.c
+	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -62,7 +62,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	verp_sender.o wildcard_inet_addr.o xtext.o delivered_hdr.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
-	smtp_reply_footer.o safe_ultostr.o
+	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -87,7 +87,8 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	trace.h user_acl.h valid_mailhost_addr.h verify.h verify_clnt.h \
 	verp_sender.h wildcard_inet_addr.h xtext.h delivered_hdr.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
-	addr_match_list.h smtp_reply_footer.h safe_ultostr.h
+	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
+	verify_sender_addr.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -100,7 +101,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	quote_821_local mail_conf_time mime_state strip_addr \
 	verify_clnt xtext anvil_clnt scache ehlo_mask \
 	valid_mailhost_addr own_inet_addr header_body_checks \
-	data_redirect addr_match_list safe_ultostr
+	data_redirect addr_match_list safe_ultostr verify_sender_addr
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -289,6 +290,9 @@ addr_match_list: addr_match_list.c $(LIB) $(LIBS)
 safe_ultostr: safe_ultostr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+verify_sender_addr: verify_sender_addr.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests
@@ -300,7 +304,7 @@ header_body_checks_tests: header_body_checks_null_test \
 	header_body_checks_warn_test header_body_checks_prepend_test \
 	header_body_checks_ignore_test header_body_checks_replace_test
 
-root_tests: rewrite_clnt_test resolve_clnt_test
+root_tests: rewrite_clnt_test resolve_clnt_test verify_sender_addr_test
 
 tok822_test: tok822_parse tok822_parse.in tok822_parse.ref
 	./tok822_parse <tok822_parse.in >tok822_parse.tmp 2>&1
@@ -417,6 +421,30 @@ resolve_clnt_test: resolve_clnt resolve_clnt.in resolve_clnt.ref
 	    -e "s/RELAYHOST/`postconf -h mydomain`/g" \
 	    resolve_clnt.ref | diff - resolve_clnt.tmp
 	rm -f resolve_clnt.tmp
+
+# Requires: Postfix, root, append_dot_mydomain=yes 
+
+verify_sender_addr_test: verify_sender_addr verify_sender_addr.ref
+	@set -- `id`; case "$$1" in \
+	    *"(root)") ;; \
+	    *) echo 'This test requires root privilege'; exit 1;; \
+	esac
+	@test "X`postconf -h append_dot_mydomain`" = Xyes || { \
+	    echo 'This test requires append_dot_mydomain=yes'; exit 1; }
+	(./verify_sender_addr aa@bb 0; \
+	./verify_sender_addr aa@bb 1; \
+	./verify_sender_addr aa 0; \
+	./verify_sender_addr aa 1; \
+	./verify_sender_addr '' 0; \
+	./verify_sender_addr '' 1) | \
+	    sed 's/[A-Z0-9][A-Z0-9]*@/STAMP@/' > verify_sender_addr.tmp
+	sed -e "s/MYDOMAIN/`postconf -h mydomain`/g" \
+	    -e "s/MYORIGIN/`postconf -h myorigin`/g" \
+	    -e "s/@.myhostname/@`postconf -h myhostname`/g" \
+	    -e "s/@.mydomain/@`postconf -h mydomain`/g" \
+	    -e "s;CONFIGDIR;`postconf -h config_directory`;" \
+		verify_sender_addr.ref | diff - verify_sender_addr.tmp
+	rm -f verify_sender_addr.tmp
 
 scache_multi_test: scache scache_multi.in scache_multi.ref
 	./scache <scache_multi.in >scache_multi.tmp
@@ -2001,11 +2029,14 @@ trace.o: rcpt_print.h
 trace.o: recipient_list.h
 trace.o: trace.c
 trace.o: trace.h
+user_acl.o: ../../include/argv.h
+user_acl.o: ../../include/dict.h
 user_acl.o: ../../include/dict_static.h
 user_acl.o: ../../include/match_list.h
 user_acl.o: ../../include/match_ops.h
 user_acl.o: ../../include/sys_defs.h
 user_acl.o: ../../include/vbuf.h
+user_acl.o: ../../include/vstream.h
 user_acl.o: ../../include/vstring.h
 user_acl.o: mypwd.h
 user_acl.o: string_list.h
@@ -2050,6 +2081,20 @@ verify_clnt.o: msg_stats.h
 verify_clnt.o: recipient_list.h
 verify_clnt.o: verify_clnt.c
 verify_clnt.o: verify_clnt.h
+verify_sender_addr.o: ../../include/attr.h
+verify_sender_addr.o: ../../include/events.h
+verify_sender_addr.o: ../../include/iostuff.h
+verify_sender_addr.o: ../../include/msg.h
+verify_sender_addr.o: ../../include/sys_defs.h
+verify_sender_addr.o: ../../include/vbuf.h
+verify_sender_addr.o: ../../include/vstream.h
+verify_sender_addr.o: ../../include/vstring.h
+verify_sender_addr.o: mail_params.h
+verify_sender_addr.o: mail_proto.h
+verify_sender_addr.o: rewrite_clnt.h
+verify_sender_addr.o: safe_ultostr.h
+verify_sender_addr.o: verify_sender_addr.c
+verify_sender_addr.o: verify_sender_addr.h
 verp_sender.o: ../../include/sys_defs.h
 verp_sender.o: ../../include/vbuf.h
 verp_sender.o: ../../include/vstring.h

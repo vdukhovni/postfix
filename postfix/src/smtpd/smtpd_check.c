@@ -215,7 +215,6 @@
 #include <namadr_list.h>
 #include <domain_list.h>
 #include <mail_params.h>
-#include <rewrite_clnt.h>
 #include <resolve_clnt.h>
 #include <mail_error.h>
 #include <resolve_local.h>
@@ -233,7 +232,6 @@
 #include <verify_clnt.h>
 #include <input_transp.h>
 #include <is_header.h>
-#include <rewrite_clnt.h>
 #include <valid_mailhost_addr.h>
 #include <dsn_util.h>
 #include <conv_time.h>
@@ -4312,7 +4310,6 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     int     status;
     char   *saved_recipient;
     char   *err;
-    static VSTRING *canon_verify_sender;
 
     /*
      * Initialize.
@@ -4326,24 +4323,6 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      */
     if (strcasecmp(recipient, "postmaster") == 0)
 	return (0);
-
-    /*
-     * XXX Always say OK when we're probed with our own address verification
-     * sender address. Otherwise, some timeout or some UCE block may result
-     * in mutual negative caching, making it painful to get the mail through.
-     */
-#ifndef TEST
-    if (*recipient) {
-	if (canon_verify_sender == 0) {
-	    canon_verify_sender = vstring_alloc(10);
-	    rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL,
-				  var_verify_sender,
-				  canon_verify_sender);
-	}
-	if (strcasecmp(STR(canon_verify_sender), recipient) == 0)
-	    return (0);
-    }
-#endif
 
     /*
      * Minor kluge so that we can delegate work to the generic routine and so
@@ -4836,6 +4815,7 @@ char   *smtpd_check_eod(SMTPD_STATE *state)
 #include <vstring_vstream.h>
 
 #include <mail_conf.h>
+#include <rewrite_clnt.h>
 
 #include <smtpd_chat.h>
 

@@ -8,7 +8,7 @@
 /*	\fBManaging main.cf:\fR
 /*
 /*	\fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
-/*	[\fB-C \fIclass\fR] [\fIparameter ...\fR]
+/*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
@@ -86,8 +86,7 @@
 /*	instead of the default configuration directory.
 /* .IP "\fB-C \fIclass,...\fR"
 /*	When displaying \fBmain.cf\fR parameters, select only
-/*	parameters from the specified class(es), specified as a
-/*	comma-separated list:
+/*	parameters from the specified class(es):
 /* .RS
 /* .IP \fBbuiltin\fR
 /*	Parameters with built-in names.
@@ -97,6 +96,9 @@
 /* .IP \fBuser\fR
 /*	Parameters with user-defined names.
 /* .RE
+/* .IP
+/*	The default is as if "\fB-C builtin,service,user\fR" is
+/*	specified.
 /* .IP \fB-d\fR
 /*	Print \fBmain.cf\fR default parameter settings instead of
 /*	actual settings.
@@ -225,7 +227,7 @@
 /*
 /*	If \fIservice ...\fR is specified, only the matching services
 /*	will be output. For example, "\fBpostconf -Mf inet\fR"
-/*	will match all services that listen on the network.
+/*	will output all services that listen on the network.
 /*
 /*	Specify zero or more arguments, each with a \fIservice-type\fR
 /*	name (\fBinet\fR, \fBunix\fR, \fBfifo\fR, or \fBpass\fR)

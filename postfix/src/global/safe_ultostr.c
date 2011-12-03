@@ -43,8 +43,16 @@
 /* .IP padchar
 /*	Left-pad a short result with padchar characters to the
 /*	specified length.  Specify padlen=0 to disable padding.
+/* .IP start
+/*	Pointer to the first character of the string to be converted.
+/* .IP end
+/*	On return, pointer to the first character not in the input
+/*	alphabet, or to the string terminator.
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
+/*
+/*	safe_strtoul() returns (0, EINVAL) when no conversion could
+/*	be performed, and (ULONG_MAX, ERANGE) in case of overflow.
 /* LICENSE
 /* .ad
 /* .fi
@@ -126,7 +134,7 @@ char   *safe_ultostr(VSTRING *buf, unsigned long ulval, int base,
 
 /* safe_strtoul - convert safe alphanumerical string to unsigned long */
 
-unsigned long safe_strtoul(char *start, char **end, int base)
+unsigned long safe_strtoul(const char *start, char **end, int base)
 {
     const char *myname = "safe_strtoul";
     static unsigned char *char_map = 0;
@@ -169,6 +177,7 @@ unsigned long safe_strtoul(char *start, char **end, int base)
     /*
      * Start the conversion.
      */
+    errno = 0;
     for (cp = (unsigned char *) start; *cp; cp++) {
 	/* Return (0, EINVAL) if no conversion was made. */
 	if ((char_val = char_map[*cp]) >= base) {
@@ -223,7 +232,6 @@ int     main(int unused_argc, char **unused_argv)
 	} else {
 	    (void) safe_ultostr(buf, ulval, base, 5, '0');
 	    vstream_printf("%lu = %s\n", ulval, STR(buf));
-	    errno = 0;
 	    ulval2 = safe_strtoul(STR(buf), &junk, base);
 	    if (*junk || (ulval2 == ULONG_MAX && errno == ERANGE))
 		msg_warn("%s: %m", STR(buf));
