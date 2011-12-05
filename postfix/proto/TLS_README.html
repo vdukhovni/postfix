@@ -51,13 +51,13 @@ between Postfix and the third-party patch on which Postfix version
 
 <li><a href="#how">How Postfix TLS support works</a>
 
-<li><a href="#build_tls">Building Postfix with TLS support</a>
-
 <li><a href="#server_tls">SMTP Server specific settings</a>
 
 <li> <a href="#client_tls">SMTP Client specific settings</a>
 
 <li><a href="#tlsmgr_controls"> TLS manager specific settings </a>
+
+<li><a href="#build_tls">Building Postfix with TLS support</a>
 
 <li><a href="#problems"> Reporting problems </a>
 
@@ -124,82 +124,6 @@ align="center" bgcolor="#f0f0ff"> smtp<br> session<br> key cache
 <td colspan="2"> </td> </tr>
 
 </table>
-
-<h2><a name="build_tls">Building Postfix with TLS support</a></h2>
-
-<p> These instructions assume that you build Postfix from source
-code as described in the INSTALL document. Some modification may   
-be required if you build Postfix from a vendor-specific source
-package.  </p>
-
-<p> To build Postfix with TLS support, first we need to generate
-the <tt>make(1)</tt> files with the necessary definitions. This is
-done by invoking the command "<tt>make makefiles</tt>" in the Postfix
-top-level directory and with arguments as shown next. </p>
-
-<p> <b> NOTE: Do not use Gnu TLS.  It will spontaneously terminate
-a Postfix daemon process with exit status code 2, instead of allowing
-Postfix to 1) report the error to the maillog file, and to 2) provide
-plaintext service where this is appropriate.  </b> </p>
-
-<ul>
-
-<li> <p> If the OpenSSL include files (such as <tt>ssl.h</tt>) are
-in directory <tt>/usr/include/openssl</tt>, and the OpenSSL libraries
-(such as <tt>libssl.so</tt> and <tt>libcrypto.so</tt>) are in
-directory <tt>/usr/lib</tt>:  </p>
-
-<blockquote>
-<pre>
-% <b>make tidy</b> # if you have left-over files from a previous build
-% <b>make makefiles CCARGS="-DUSE_TLS" AUXLIBS="-lssl -lcrypto"</b>
-</pre>
-</blockquote>
-
-<li> <p> If the OpenSSL include files (such as <tt>ssl.h</tt>) are
-in directory <tt>/usr/local/include/openssl</tt>, and the OpenSSL
-libraries (such as <tt>libssl.so</tt> and <tt>libcrypto.so</tt>)
-are in directory <tt>/usr/local/lib</tt>:  </p>
-
-<blockquote>
-<pre>
-% <b>make tidy</b> # if you have left-over files from a previous build
-% <b>make makefiles CCARGS="-DUSE_TLS -I/usr/local/include" \
-    AUXLIBS="-L/usr/local/lib -lssl -lcrypto" </b>
-</pre>
-</blockquote>
-
-<p> On Solaris, specify the <tt>-R</tt> option as shown below:
-
-<blockquote>
-<pre>
-% <b>make tidy</b> # if you have left-over files from a previous build
-% <b>make makefiles CCARGS="-DUSE_TLS -I/usr/local/include" \
-    AUXLIBS="-R/usr/local/lib -L/usr/local/lib -lssl -lcrypto" </b>
-</pre>
-</blockquote>
-
-</ul>
-
-<p> If you need to apply other customizations (such as Berkeley DB
-databases, MySQL, PostgreSQL, LDAP or SASL), see the respective
-Postfix README documents, and combine their "<tt>make makefiles</tt>"
-instructions with the instructions above:  </p>
-
-<blockquote>
-<pre>
-% <b>make tidy</b> # if you have left-over files from a previous build
-% <b>make makefiles CCARGS="-DUSE_TLS \
-    <i>(other -D or -I options)</i>" \
-    AUXLIBS="-lssl -lcrypto \
-    <i>(other -l options for libraries in /usr/lib)</i> \
-    <i>(-L/path/name + -l options for other libraries)</i>"</b>
-</pre>
-</blockquote>
-
-<p> To complete the build process, see the Postfix INSTALL
-instructions. Postfix has TLS support turned off by default, so
-you can start using Postfix as soon as it is installed.  </p>
 
 <h2><a name="server_tls">SMTP Server specific settings</a></h2>
 
@@ -402,21 +326,32 @@ logging level. </p>
 
 <blockquote>
 
-<table>
+<table border="1">
 
-<tr> <td> 0 </td> <td> Disable logging of TLS activity.</td> </tr>
+<tr> <th> Level </th> <th> Postfix 2.9 and later</th> <th> Earlier
+releases. </th> </tr>
 
-<tr> <td> 1 </td> <td> Log TLS handshake and certificate information.
+<tr> <td valign="top"> 0 </td> <td valign="top"> Log only a summary
+message on TLS handshake completion &mdash; no logging of client
+certificate trust-chain verification errors if client certificate
+verification is not required. </td> <td valign="top"> Disable logging
+of TLS activity.</td> </tr>
+
+<tr> <td valign="top"> 1 </td> <td valign="top"> Also log trust-chain
+verification errors and peer certificate summary information. </td>
+<td valign="top"> Also log TLS handshake and certificate information.
 </td> </tr>
 
-<tr> <td> 2 </td> <td> Log levels during TLS negotiation.  </td>
+<tr> <td valign="top"> 2 </td> <td valign="top" colspan="2"> Also
+log levels during TLS negotiation.  </td> </tr>
+
+<tr> <td valign="top"> 3 </td> <td valign="top" colspan="2"> Also
+log hexadecimal and ASCII dump of TLS negotiation process.  </td>
 </tr>
 
-<tr> <td> 3 </td> <td> Log hexadecimal and ASCII dump of TLS
-negotiation process </td> </tr>
-
-<tr> <td> 4 </td> <td> Log hexadecimal and ASCII dump of complete
-transmission after STARTTLS </td> </tr>
+<tr> <td valign="top"> 4 </td> <td valign="top" colspan="2"> Also
+log hexadecimal and ASCII dump of complete transmission after
+STARTTLS. </td></tr>
 
 </table>
 
@@ -693,26 +628,27 @@ Postfix SMTP server access control:  </p>
 
 <dl>
 
-<dt> permit_tls_clientcerts </dt> <dd> <p> Allow the remote SMTP client
-request if the client certificate fingerprint is listed in the
-client certificate table (see relay_clientcerts discussion below). </p>
-</dd>
+<dt> permit_tls_clientcerts </dt> <dd> <p> Allow the remote SMTP
+client request if the client certificate fingerprint or certificate
+public key fingerprint (Postfix 2.9 and later) is listed in the
+client certificate table (see relay_clientcerts discussion below).
+</p> </dd>
 
 <dt> permit_tls_all_clientcerts </dt> <dd> <p> Allow the remote SMTP
 client request if the client certificate passes trust chain verification.
 Useful with private-label CAs that only issue certificates to trusted
 clients (and not otherwise). </p> </dd>
 
-<dt> check_ccert_access type:table</dt> <dd> <p> Use the remote SMTP
-client
-certificate fingerprint as the lookup key for the specified access(5)
+<dt> check_ccert_access type:table</dt> <dd> <p> Use the remote
+SMTP client certificate fingerprint or public key fingerprint
+(Postfix 2.9 and later) as the lookup key for the specified access(5)
 table. </p> </dd>
 
 </dl>
 
 </blockquote>
 
-<p> The digest algorithm used to construct the client certificate
+<p> The digest algorithm used to compute the client certificate
 fingerprints is specified with the main.cf smtpd_tls_fingerprint_digest
 parameter.  The default is "md5", for compatibility with Postfix
 versions &lt; 2.5. </p>
@@ -921,19 +857,16 @@ protocol. </p>
 
 <ul>
 
-<li><a href="#client_lmtp_tls"> TLS support in the LMTP delivery agent </a>
+<li><a href="#client_tls_levels"> Configuring TLS in the SMTP/LMTP client </a>
+
+<li><a href="#client_logging"> Client-side TLS activity logging </a>
 
 <li><a href="#client_cert_key">Client-side certificate and private
 key configuration </a>
 
-<li><a href="#client_logging"> Client-side TLS activity logging
-</a>
-
 <li><a href="#client_tls_cache">Client-side TLS session cache</a>
 
 <li><a href="#client_tls_limits"> Client TLS limitations </a>
-
-<li><a href="#client_tls_levels"> Configuring TLS in the SMTP/LMTP client </a>
 
 <li><a href="#client_tls_policy"> Per-destination TLS policy </a>
 
@@ -952,348 +885,6 @@ key configuration </a>
 <li> <a href="#client_misc"> Miscellaneous client controls </a>
 
 </ul>
-
-<h3><a name="client_lmtp_tls"> TLS support in the LMTP delivery agent </a>
-</h3>
-
-<p> The smtp(8) and lmtp(8) delivery agents are implemented by a
-single dual-purpose program.  Specifically, all the TLS features
-described below apply
-equally to SMTP and LMTP, after replacing the "smtp_" prefix of the each
-parameter name with "lmtp_".
-
-<p> The Postfix LMTP delivery agent can communicate with LMTP servers
-listening
-on UNIX-domain sockets. When server certificate verification is enabled
-and the server is listening on a UNIX-domain socket, the $myhostname
-parameter is used to set the TLS verification <i>nexthop</i> and
-<i>hostname</i>. Note, opportunistic encryption of LMTP traffic over
-UNIX-domain sockets is futile. TLS is only useful in this context when
-it is mandatory, typically to allow at least one of the server or the
-client to authenticate the other. The "null" cipher grade may be
-appropriate in this context, when available on both client and server.
-The "null" ciphers provide authentication without encryption. </p>
-
-<h3><a name="client_cert_key">Client-side certificate and private
-key configuration </a> </h3>
-
-<p> Do not configure Postfix SMTP client certificates unless you <b>must</b>
-present
-client TLS certificates to one or more servers. Client certificates are
-not usually needed, and can cause problems in configurations that work
-well without them. The recommended setting is to let the defaults stand: </p>
-
-<blockquote>
-<pre>
-    smtp_tls_cert_file =
-    smtp_tls_dcert_file =
-    smtp_tls_key_file =
-    smtp_tls_dkey_file =
-    # Postfix &ge; 2.6
-    smtp_tls_eccert_file =
-    smtp_tls_eckey_file =
-</pre>
-</blockquote>
-
-<p> The best way to use the default settings is to comment out the above
-parameters in main.cf if present. </p>
-
-<p> During TLS startup negotiation the Postfix SMTP client may present
-a certificate to the remote SMTP server.  The Netscape client is
-rather clever here and lets the user select between only those
-certificates that match CA certificates offered by the remote SMTP
-server. As the Postfix SMTP client uses the "SSL_connect()" function
-from the OpenSSL package, this is not possible and we have to choose
-just one certificate.  So for now the default is to use _no_
-certificate and key unless one is explicitly specified here. </p>
-
-<p> RSA, DSA and ECDSA (Postfix &ge; 2.6) certificates are supported.
-You can configure all three at the same time, in which case the
-cipher used determines which certificate is presented.  </p>
-
-<p> It is possible for the Postfix SMTP client to use the same
-key/certificate pair as the Postfix SMTP server.  If a certificate
-is to be presented, it must be in "PEM" format. The private key
-must not be encrypted, meaning: it must be accessible without
-password. Both parts (certificate and private key) may be in the
-same file. </p>
-
-<p> To enable remote SMTP servers to verify the Postfix SMTP client
-certificate, the issuing CA certificates must be made available to the
-server. You should include the required certificates in the client
-certificate file, the client certificate first, then the issuing
-CA(s) (bottom-up order). </p>
-
-<p> Example: the certificate for "client.example.com" was issued by
-"intermediate CA" which itself has a certificate issued by "root CA".
-Create the client.pem file with: </p>
-
-<blockquote>
-<pre>
-% <b>cat client_cert.pem intermediate_CA.pem &gt; client.pem </b>
-</pre>
-</blockquote>
-
-<p> A Postfix SMTP client certificate supplied here must be usable
-as SSL client certificate and hence pass the "openssl verify -purpose
-sslclient ..." test. </p>
-
-<p> A server that trusts the root CA has a local copy of the root
-CA certificate, so it is not necessary to include the root CA
-certificate here. Leaving it out of the "client.pem" file reduces
-the overhead of the TLS exchange. </p>
-
-<p> If you want the Postfix SMTP client to accept remote SMTP server
-certificates issued by these CAs, append the root certificate to
-$smtp_tls_CAfile or install it in the $smtp_tls_CApath directory. </p>
-
-<p> RSA key and certificate examples: </p>
- 
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_cert_file = /etc/postfix/client.pem
-    smtp_tls_key_file = $smtp_tls_cert_file
-</pre>
-</blockquote>
-
-<p> Their DSA counterparts: </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
-    smtp_tls_dkey_file = $smtp_tls_dcert_file
-</pre>  
-</blockquote>
-
-<p> Their ECDSA counterparts (Postfix &ge; 2.6 + OpenSSL &ge; 0.9.9): </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_eccert_file = /etc/postfix/client-ecdsa.pem
-    smtp_tls_eckey_file = $smtp_tls_eccert_file
-</pre>  
-</blockquote>
-
-<p> To verify a remote SMTP server certificate, the Postfix SMTP
-client needs to trust the certificates of the issuing certification
-authorities. These certificates in "pem" format can be stored in a
-single $smtp_tls_CAfile or in multiple files, one CA per file in
-the $smtp_tls_CApath directory. If you use a directory, don't forget
-to create the necessary "hash" links with: </p>
-
-<blockquote>
-<pre>
-# <b>$OPENSSL_HOME/bin/c_rehash <i>/path/to/directory</i> </b>
-</pre>
-</blockquote>
-
-<p> The $smtp_tls_CAfile contains the CA certificates of one or more
-trusted CAs. The file is opened (with root privileges) before Postfix
-enters the optional chroot jail and so need not be accessible from inside the
-chroot jail. </p>
-
-<p> Additional trusted CAs can be specified via the $smtp_tls_CApath
-directory, in which case the certificates are read (with $mail_owner
-privileges) from the files in the directory when the information
-is needed. Thus, the $smtp_tls_CApath directory needs to be accessible
-inside the optional chroot jail.  </p>
-
-<p> The choice between $smtp_tls_CAfile and $smtp_tls_CApath is
-a space/time tradeoff. If there are many trusted CAs, the cost of
-preloading them all into memory may not pay off in reduced access time
-when the certificate is needed.  </p>
-
-<p> Example: </p>
- 
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_CAfile = /etc/postfix/CAcert.pem
-    smtp_tls_CApath = /etc/postfix/certs
-</pre>
-</blockquote>
-
-<h3><a name="client_logging"> Client-side TLS activity logging </a> </h3>
-
-<p> To get additional information about Postfix SMTP client TLS
-activity you can increase the loglevel from 0..4. Each logging
-level also includes the information that is logged at a lower
-logging level. </p>
-
-<blockquote>
-
-<table>
-
-<tr> <td> 0 </td> <td> Disable logging of TLS activity.</td> </tr>
-
-<tr> <td> 1 </td> <td> Log TLS handshake and certificate information.
-</td> </tr>
-
-<tr> <td> 2 </td> <td> Log levels during TLS negotiation.  </td>
-</tr>
-
-<tr> <td> 3 </td> <td> Log hexadecimal and ASCII dump of TLS
-negotiation process </td> </tr>
-
-<tr> <td> 4 </td> <td> Log hexadecimal and ASCII dump of complete
-transmission after STARTTLS </td> </tr>
-
-</table>
-
-</blockquote>
-
-<p> Example: </p>
- 
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_loglevel = 0
-</pre>
-</blockquote>
-
-<h3><a name="client_tls_cache">Client-side TLS session cache</a> </h3>
-
-<p> The remote SMTP server and the Postfix SMTP client negotiate a
-session, which takes some computer time and network bandwidth.  By
-default, this session information is cached only in the smtp(8)
-process actually using this session and is lost when the process
-terminates.  To share the session information between multiple
-smtp(8) processes, a persistent session cache can be used. You
-can specify any database type that can store objects of several
-kbytes and that supports the sequence operator. DBM databases are
-not suitable because they can only store small objects. The cache
-is maintained by the tlsmgr(8) process, so there is no problem with
-concurrent access. Session caching is highly recommended, because
-the cost of repeatedly negotiating TLS session keys is high.  Future
-Postfix SMTP servers may limit the number of sessions that a client
-is allowed to negotiate per unit time.</p>
-
-
-<p> Example: </p>
- 
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_scache
-</pre>
-</blockquote>
-
-<p> Note: as of version 2.5, Postfix no longer uses root privileges     
-when opening this file. The file should now be stored under the
-Postfix-owned data_directory. As a migration aid, an attempt to
-open the file under a non-Postfix directory is redirected to the
-Postfix-owned data_directory, and a warning is logged. </p>
-
-<p> Cached Postfix SMTP client session information expires after
-a certain amount of time.  Postfix/TLS does not use the OpenSSL
-default of 300s, but a longer time of 3600s (=1 hour). RFC 2246
-recommends a maximum of 24 hours.  </p>
-
-<p> Example: </p>
- 
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    smtp_tls_session_cache_timeout = 3600s
-</pre>
-</blockquote>
-
-<h3><a name="client_tls_limits"> Client TLS limitations </a>
-</h3>
-
-<p> The security properties of TLS communication channels are
-application specific. While the TLS protocol can provide a confidential,
-tamper-resistant, mutually authenticated channel between client
-and server, not all of these security features are applicable to every
-communication. </p>
-
-<p> For example, while mutual TLS authentication between browsers and web
-servers is possible, it is not practical, or even useful, for web-servers
-that serve the public to verify the identity of every potential user. In
-practice, most HTTPS transactions are asymmetric: the browser verifies
-the HTTPS server's identity, but the user remains anonymous. Much of
-the security policy is up to the client. If the client chooses to not
-verify the server's name, the server is not aware of this. There are many
-interesting browser security topics, but we shall not dwell
-on them here. Rather, our goal is to understand the security features
-of TLS in conjunction with SMTP. </p>
-
-<p> An important SMTP-specific observation is that a public MX host is
-even more at the mercy of the SMTP client than is an HTTPS server. Not only
-can it not enforce due care in the client's use of TLS, but it cannot even
-enforce the use of TLS, because TLS support in SMTP clients is still the
-exception rather than the rule. One cannot, in practice, limit access to
-one's MX hosts to just TLS-enabled clients. Such a policy would result
-in a vast reduction in one's ability to communicate by email with the
-world at large. </p>
-
-<p> One may be tempted to try enforcing TLS for mail from specific
-sending organizations, but this, too, runs into obstacles. One such
-obstacle is that we don't know who is (allegedly) sending mail until
-we see the "MAIL FROM:" SMTP command, and at that point, if TLS
-is not already in use, a potentially sensitive sender address (and
-with SMTP PIPELINING one or more of the recipients) has (have) already been
-leaked in the clear. Another obstacle is that mail from the sender to
-the recipient may be forwarded, and the forwarding organization may not
-have any security arrangements with the final destination. Bounces also
-need to be protected. These can only be identified by the IP address and
-HELO name of the connecting client, and it is difficult to keep track
-of all the potential IP addresses or HELO names of the outbound email
-servers of the sending organization. </p>
-
-<p> Consequently, TLS security for mail delivery to public MX hosts is
-almost entirely the client's responsibility. The server is largely a
-passive enabler of TLS security, the rest is up to the client. While the
-server has a greater opportunity to mandate client security policy when
-it is a dedicated MSA that only handles outbound mail from trusted clients,
-below we focus on the client security policy. </p>
-
-<p> On the SMTP client, there are further complications. When delivering
-mail to a given domain, in contrast to HTTPS, one rarely uses the domain
-name directly as the target host of the SMTP session. More typically,
-one uses MX lookups - these are usually unauthenticated - to obtain the domain's SMTP server
-hostname(s). When, as is current practice, the client verifies the
-insecurely obtained MX hostname, it is subject to a DNS man-in-the-middle
-attack. </p>
-
-<p> If clients instead attempted to verify the recipient domain name,
-an SMTP server for multiple domains would need to
-list all its email domain names in its certificate, and generate a
-new certificate each time a new domain were added. At least some CAs set
-fairly low limits (20 for one prominent CA) on the number of names that
-server certificates can contain. This approach is not consistent with
-current practice and does not scale. </p>
-
-<p> It is regrettably the case that TLS <i>secure-channels</i>
-(fully authenticated and immune to man-in-the-middle attacks) impose
-constraints on the sending and receiving sites that preclude ubiquitous
-deployment. One needs to manually configure this type of security for
-each destination domain, and in many cases implement non-default TLS
-<a href="#client_tls_policy">policy table</a> entries for additional
-domains hosted at a common secured destination. With Postfix 2.3, we
-make secure-channel configurations substantially easier to configure,
-but they will never be the norm. For the generic domain with which you
-have made no specific security arrangements, this security level is not
-a good fit. </p>
-
-<p> Given that strong authentication is not generally possible, and that
-verifiable certificates cost time and money, many servers that implement
-TLS use self-signed certificates or private CAs. This further limits
-the applicability of verified TLS on the public Internet. </p>
-
-<p> Historical note: while the documentation of these issues and many of the
-related features are new with Postfix 2.3, the issue was well
-understood before Postfix 1.0, when Lutz J&auml;nicke was designing
-the first unofficial Postfix TLS patch. See his original post <a
-href="http://www.imc.org/ietf-apps-tls/mail-archive/msg00304.html">http://www.imc.org/ietf-apps-tls/mail-archive/msg00304.html</a>
-and the first response <a
-href="http://www.imc.org/ietf-apps-tls/mail-archive/msg00305.html">http://www.imc.org/ietf-apps-tls/mail-archive/msg00305.html</a>.
-The problem is not even unique to SMTP or even TLS, similar issues exist
-for secure connections via aliases for HTTPS and Kerberos. SMTP merely
-uses indirect naming (via MX records) more frequently. </p>
 
 <h3><a name="client_tls_levels"> Configuring TLS in the SMTP/LMTP client </a>
 </h3>
@@ -1317,8 +908,30 @@ in more detail in the sections that follow.</p>
 <dd><a href="#client_tls_secure">Secure-channel TLS.</a>
 </dl>
 
-<h3><a name="client_tls_none"> No TLS encryption </a>
-</h3>
+<h4><a name="client_lmtp_tls"> TLS support in the LMTP delivery agent </a> </h4>
+
+<p> The smtp(8) and lmtp(8) delivery agents are implemented by a
+single dual-purpose program.  Specifically, all the TLS features
+described below apply
+equally to SMTP and LMTP, after replacing the "smtp_" prefix of the each
+parameter name with "lmtp_".
+
+<p> The Postfix LMTP delivery agent can communicate with LMTP servers
+listening
+on UNIX-domain sockets. When server certificate verification is enabled
+and the server is listening on a UNIX-domain socket, the $myhostname
+parameter is used to set the TLS verification <i>nexthop</i> and
+<i>hostname</i>. </p>
+
+<p> NOTE: Opportunistic encryption of LMTP traffic over UNIX-domain
+sockets or loopback TCP connections is futile. TLS is only useful
+in this context when
+it is mandatory, typically to allow at least one of the server or the
+client to authenticate the other. The "null" cipher grade may be
+appropriate in this context, when available on both client and server.
+The "null" ciphers provide authentication without encryption. </p>
+
+<h4><a name="client_tls_none"> No TLS encryption </a> </h4>
 
 <p> At the "none" TLS security level, TLS encryption is
 disabled. This is the default security level. With Postfix 2.3 and later,
@@ -1340,8 +953,7 @@ href="#client_tls_policy">policy table</a>, specify the "none"
 security level. With the obsolete <a href="#client_tls_obs">per-site</a>
 table, specify the "NONE" keyword. </p>
 
-<h3><a name="client_tls_may"> Opportunistic TLS </a>
-</h3>
+<h4><a name="client_tls_may"> Opportunistic TLS </a> </h4>
 
 <p> At the "may" TLS security level, TLS encryption is <i>opportunistic</i>.
 The SMTP transaction is encrypted if the STARTTLS ESMTP feature
@@ -1410,8 +1022,7 @@ on TLS <a href="#client_tls_limits">limitations</a> above. </p>
 </pre>
 </blockquote>
 
-<h3><a name="client_tls_encrypt"> Mandatory TLS encryption </a>
-</h3>
+<h4><a name="client_tls_encrypt"> Mandatory TLS encryption </a> </h4>
 
 <p> At the "encrypt" TLS security level, messages are sent only
 over TLS encrypted sessions. The SMTP transaction is aborted unless
@@ -1539,28 +1150,32 @@ use the new <a href="#client_tls_policy">policy table</a> instead. </p>
 </pre>
 </blockquote>
 
-<h3><a name="client_tls_fprint"> Certificate fingerprint verification </a>
-</h3>
+<h4><a name="client_tls_fprint"> Certificate fingerprint verification </a> </h4>
 
-<p> Certificate fingerprint verification is available with Postfix 2.5 and
-later. At this security level ("smtp_tls_security_level = fingerprint"),
-no trusted certificate authorities are used or required.  The certificate
-trust chain, expiration date, ... are not checked. Instead, the
-smtp_tls_fingerprint_cert_match parameter or the "match" attribute
-in the <a href="#client_tls_policy">policy</a> table lists the valid
-"fingerprints" of the remote SMTP server certificate. </p>
+<p> Certificate fingerprint verification is available with Postfix
+2.5 and later. At this security level ("smtp_tls_security_level =
+fingerprint"), no trusted certificate authorities are used or
+required.  The certificate trust chain, expiration date, ... are
+not checked. Instead, the smtp_tls_fingerprint_cert_match parameter
+or the "match" attribute in the <a href="#client_tls_policy">policy</a>
+table lists the remote SMTP server certificate fingerprint or
+public key fingerprint (Postfix 2.9 and later).
 
 <p> If certificate fingerprints are exchanged securely, this is the
-strongest, and least scalable security level. The administrator needs to
-securely collect the fingerprints of the X.509 certificates of each peer
-server, store them into a local file, and update this local file
-whenever the peer server's public certificate
-changes. This may be feasible for an SMTP "VPN" connecting a small
-number of branch offices over the Internet, or for secure connections
-to a central mail hub. It works poorly if the remote SMTP server is
-managed by a
-third party, and its public certificate changes periodically without
-prior coordination with the verifying site. </p>
+strongest, and least scalable security level. The administrator needs
+to securely collect the fingerprints of the X.509 certificates of each
+peer server, store them into a local file, and update this local file
+whenever the peer server's public certificate changes. If public key
+fingerprints are used in place of fingerprints of the entire certificate,
+the fingerprints remain valid even after the certificate is renewed,
+<b>provided</b> that the same public/private keys are used to obtain
+the new certificate. </p>
+
+<p> Fingerprint verification may be feasible for an SMTP "VPN" connecting
+a small number of branch offices over the Internet, or for secure
+connections to a central mail hub. It works poorly if the remote SMTP
+server is managed by a third party, and its public certificate changes
+periodically without prior coordination with the verifying site. </p>
 
 <p> The digest algorithm used to calculate the fingerprint is
 selected by the <b>smtp_tls_fingerprint_digest</b> parameter. In the <a
@@ -1606,8 +1221,7 @@ As in the example above, we show two matching fingerprints: </p>
 </pre>
 </blockquote>
 
-<h3><a name="client_tls_verify"> Mandatory server certificate verification </a>
-</h3>
+<h4><a name="client_tls_verify"> Mandatory server certificate verification </a> </h4>
 
 <p> At the "verify" TLS security level, messages are sent only over
 TLS encrypted sessions if the remote SMTP server certificate is
@@ -1694,8 +1308,7 @@ to <i>example.com</i> recipients uses "high" grade ciphers. </p>
 </pre>
 </blockquote>
 
-<h3><a name="client_tls_secure"> Secure server certificate verification </a>
-</h3>
+<h4><a name="client_tls_secure"> Secure server certificate verification </a> </h4>
 
 <p> At the <i>secure</i> TLS security level, messages are sent only over
 <i>secure-channel</i> TLS sessions where DNS forgery resistant server
@@ -1855,6 +1468,338 @@ use the new <a href="#client_tls_policy">policy table</a> instead. </p>
 </pre>
 </blockquote>
 
+<h3><a name="client_logging"> Client-side TLS activity logging </a> </h3>
+
+<p> To get additional information about Postfix SMTP client TLS
+activity you can increase the loglevel from 0..4. Each logging
+level also includes the information that is logged at a lower
+logging level. </p>
+
+<blockquote>
+
+<table border="1">
+ 
+<tr> <th> Level </th> <th> Postfix 2.9 and later</th> <th> Earlier
+releases. </th> </tr>
+
+<tr> <td valign="top"> 0 </td> <td valign="top"> Log only a summary
+message on TLS handshake completion &mdash; no logging of remote
+SMTP server certificate trust-chain verification errors if server
+certificate verification is not required. </td> <td valign="top">
+Disable logging of TLS activity.</td> </tr>
+
+<tr> <td valign="top"> 1 </td> <td valign="top"> Also log remote
+SMTP server trust-chain verification errors and peer certificate
+summary information. </td> <td valign="top"> Also log TLS handshake
+and certificate information.  </td> </tr>
+
+<tr> <td valign="top"> 2 </td> <td valign="top" colspan="2"> Also
+log levels during TLS negotiation. </td> </tr>
+
+<tr> <td valign="top"> 3 </td> <td valign="top" colspan="2"> Also
+log hexadecimal and ASCII dump of TLS negotiation process.  </td>
+</tr>
+
+<tr> <td valign="top"> 4 </td> <td valign="top" colspan="2"> Also
+log hexadecimal and ASCII dump of complete transmission after
+STARTTLS. </td> </tr>
+
+</table>
+
+</blockquote>
+
+<p> Example: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_loglevel = 0
+</pre>
+</blockquote>
+
+<h3><a name="client_cert_key">Client-side certificate and private
+key configuration </a> </h3>
+
+<p> Do not configure Postfix SMTP client certificates unless you <b>must</b>
+present
+client TLS certificates to one or more servers. Client certificates are
+not usually needed, and can cause problems in configurations that work
+well without them. The recommended setting is to let the defaults stand: </p>
+
+<blockquote>
+<pre>
+    smtp_tls_cert_file =
+    smtp_tls_dcert_file =
+    smtp_tls_key_file =
+    smtp_tls_dkey_file =
+    # Postfix &ge; 2.6
+    smtp_tls_eccert_file =
+    smtp_tls_eckey_file =
+</pre>
+</blockquote>
+
+<p> The best way to use the default settings is to comment out the above
+parameters in main.cf if present. </p>
+
+<p> During TLS startup negotiation the Postfix SMTP client may present
+a certificate to the remote SMTP server.  The Netscape client is
+rather clever here and lets the user select between only those
+certificates that match CA certificates offered by the remote SMTP
+server. As the Postfix SMTP client uses the "SSL_connect()" function
+from the OpenSSL package, this is not possible and we have to choose
+just one certificate.  So for now the default is to use _no_
+certificate and key unless one is explicitly specified here. </p>
+
+<p> RSA, DSA and ECDSA (Postfix &ge; 2.6) certificates are supported.
+You can configure all three at the same time, in which case the
+cipher used determines which certificate is presented.  </p>
+
+<p> It is possible for the Postfix SMTP client to use the same
+key/certificate pair as the Postfix SMTP server.  If a certificate
+is to be presented, it must be in "PEM" format. The private key
+must not be encrypted, meaning: it must be accessible without
+password. Both parts (certificate and private key) may be in the
+same file. </p>
+
+<p> To enable remote SMTP servers to verify the Postfix SMTP client
+certificate, the issuing CA certificates must be made available to the
+server. You should include the required certificates in the client
+certificate file, the client certificate first, then the issuing
+CA(s) (bottom-up order). </p>
+
+<p> Example: the certificate for "client.example.com" was issued by
+"intermediate CA" which itself has a certificate issued by "root CA".
+Create the client.pem file with: </p>
+
+<blockquote>
+<pre>
+% <b>cat client_cert.pem intermediate_CA.pem &gt; client.pem </b>
+</pre>
+</blockquote>
+
+<p> A Postfix SMTP client certificate supplied here must be usable
+as SSL client certificate and hence pass the "openssl verify -purpose
+sslclient ..." test. </p>
+
+<p> A server that trusts the root CA has a local copy of the root
+CA certificate, so it is not necessary to include the root CA
+certificate here. Leaving it out of the "client.pem" file reduces
+the overhead of the TLS exchange. </p>
+
+<p> If you want the Postfix SMTP client to accept remote SMTP server
+certificates issued by these CAs, append the root certificate to
+$smtp_tls_CAfile or install it in the $smtp_tls_CApath directory. </p>
+
+<p> RSA key and certificate examples: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_cert_file = /etc/postfix/client.pem
+    smtp_tls_key_file = $smtp_tls_cert_file
+</pre>
+</blockquote>
+
+<p> Their DSA counterparts: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
+    smtp_tls_dkey_file = $smtp_tls_dcert_file
+</pre>  
+</blockquote>
+
+<p> Their ECDSA counterparts (Postfix &ge; 2.6 + OpenSSL &ge; 0.9.9): </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_eccert_file = /etc/postfix/client-ecdsa.pem
+    smtp_tls_eckey_file = $smtp_tls_eccert_file
+</pre>  
+</blockquote>
+
+<p> To verify a remote SMTP server certificate, the Postfix SMTP
+client needs to trust the certificates of the issuing certification
+authorities. These certificates in "pem" format can be stored in a
+single $smtp_tls_CAfile or in multiple files, one CA per file in
+the $smtp_tls_CApath directory. If you use a directory, don't forget
+to create the necessary "hash" links with: </p>
+
+<blockquote>
+<pre>
+# <b>$OPENSSL_HOME/bin/c_rehash <i>/path/to/directory</i> </b>
+</pre>
+</blockquote>
+
+<p> The $smtp_tls_CAfile contains the CA certificates of one or more
+trusted CAs. The file is opened (with root privileges) before Postfix
+enters the optional chroot jail and so need not be accessible from inside the
+chroot jail. </p>
+
+<p> Additional trusted CAs can be specified via the $smtp_tls_CApath
+directory, in which case the certificates are read (with $mail_owner
+privileges) from the files in the directory when the information
+is needed. Thus, the $smtp_tls_CApath directory needs to be accessible
+inside the optional chroot jail.  </p>
+
+<p> The choice between $smtp_tls_CAfile and $smtp_tls_CApath is
+a space/time tradeoff. If there are many trusted CAs, the cost of
+preloading them all into memory may not pay off in reduced access time
+when the certificate is needed.  </p>
+
+<p> Example: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_CAfile = /etc/postfix/CAcert.pem
+    smtp_tls_CApath = /etc/postfix/certs
+</pre>
+</blockquote>
+
+<h3><a name="client_tls_cache">Client-side TLS session cache</a> </h3>
+
+<p> The remote SMTP server and the Postfix SMTP client negotiate a
+session, which takes some computer time and network bandwidth.  By
+default, this session information is cached only in the smtp(8)
+process actually using this session and is lost when the process
+terminates.  To share the session information between multiple
+smtp(8) processes, a persistent session cache can be used. You
+can specify any database type that can store objects of several
+kbytes and that supports the sequence operator. DBM databases are
+not suitable because they can only store small objects. The cache
+is maintained by the tlsmgr(8) process, so there is no problem with
+concurrent access. Session caching is highly recommended, because
+the cost of repeatedly negotiating TLS session keys is high.  Future
+Postfix SMTP servers may limit the number of sessions that a client
+is allowed to negotiate per unit time.</p>
+
+
+<p> Example: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_session_cache_database = btree:/var/lib/postfix/smtp_scache
+</pre>
+</blockquote>
+
+<p> Note: as of version 2.5, Postfix no longer uses root privileges     
+when opening this file. The file should now be stored under the
+Postfix-owned data_directory. As a migration aid, an attempt to
+open the file under a non-Postfix directory is redirected to the
+Postfix-owned data_directory, and a warning is logged. </p>
+
+<p> Cached Postfix SMTP client session information expires after
+a certain amount of time.  Postfix/TLS does not use the OpenSSL
+default of 300s, but a longer time of 3600s (=1 hour). RFC 2246
+recommends a maximum of 24 hours.  </p>
+
+<p> Example: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_session_cache_timeout = 3600s
+</pre>
+</blockquote>
+
+<h3><a name="client_tls_limits"> Client TLS limitations </a>
+</h3>
+
+<p> The security properties of TLS communication channels are
+application specific. While the TLS protocol can provide a confidential,
+tamper-resistant, mutually authenticated channel between client
+and server, not all of these security features are applicable to every
+communication. </p>
+
+<p> For example, while mutual TLS authentication between browsers and web
+servers is possible, it is not practical, or even useful, for web-servers
+that serve the public to verify the identity of every potential user. In
+practice, most HTTPS transactions are asymmetric: the browser verifies
+the HTTPS server's identity, but the user remains anonymous. Much of
+the security policy is up to the client. If the client chooses to not
+verify the server's name, the server is not aware of this. There are many
+interesting browser security topics, but we shall not dwell
+on them here. Rather, our goal is to understand the security features
+of TLS in conjunction with SMTP. </p>
+
+<p> An important SMTP-specific observation is that a public MX host is
+even more at the mercy of the SMTP client than is an HTTPS server. Not only
+can it not enforce due care in the client's use of TLS, but it cannot even
+enforce the use of TLS, because TLS support in SMTP clients is still the
+exception rather than the rule. One cannot, in practice, limit access to
+one's MX hosts to just TLS-enabled clients. Such a policy would result
+in a vast reduction in one's ability to communicate by email with the
+world at large. </p>
+
+<p> One may be tempted to try enforcing TLS for mail from specific
+sending organizations, but this, too, runs into obstacles. One such
+obstacle is that we don't know who is (allegedly) sending mail until
+we see the "MAIL FROM:" SMTP command, and at that point, if TLS
+is not already in use, a potentially sensitive sender address (and
+with SMTP PIPELINING one or more of the recipients) has (have) already been
+leaked in the clear. Another obstacle is that mail from the sender to
+the recipient may be forwarded, and the forwarding organization may not
+have any security arrangements with the final destination. Bounces also
+need to be protected. These can only be identified by the IP address and
+HELO name of the connecting client, and it is difficult to keep track
+of all the potential IP addresses or HELO names of the outbound email
+servers of the sending organization. </p>
+
+<p> Consequently, TLS security for mail delivery to public MX hosts is
+almost entirely the client's responsibility. The server is largely a
+passive enabler of TLS security, the rest is up to the client. While the
+server has a greater opportunity to mandate client security policy when
+it is a dedicated MSA that only handles outbound mail from trusted clients,
+below we focus on the client security policy. </p>
+
+<p> On the SMTP client, there are further complications. When delivering
+mail to a given domain, in contrast to HTTPS, one rarely uses the domain
+name directly as the target host of the SMTP session. More typically,
+one uses MX lookups - these are usually unauthenticated - to obtain the domain's SMTP server
+hostname(s). When, as is current practice, the client verifies the
+insecurely obtained MX hostname, it is subject to a DNS man-in-the-middle
+attack. </p>
+
+<p> If clients instead attempted to verify the recipient domain name,
+an SMTP server for multiple domains would need to
+list all its email domain names in its certificate, and generate a
+new certificate each time a new domain were added. At least some CAs set
+fairly low limits (20 for one prominent CA) on the number of names that
+server certificates can contain. This approach is not consistent with
+current practice and does not scale. </p>
+
+<p> It is regrettably the case that TLS <i>secure-channels</i>
+(fully authenticated and immune to man-in-the-middle attacks) impose
+constraints on the sending and receiving sites that preclude ubiquitous
+deployment. One needs to manually configure this type of security for
+each destination domain, and in many cases implement non-default TLS
+<a href="#client_tls_policy">policy table</a> entries for additional
+domains hosted at a common secured destination. With Postfix 2.3, we
+make secure-channel configurations substantially easier to configure,
+but they will never be the norm. For the generic domain with which you
+have made no specific security arrangements, this security level is not
+a good fit. </p>
+
+<p> Given that strong authentication is not generally possible, and that
+verifiable certificates cost time and money, many servers that implement
+TLS use self-signed certificates or private CAs. This further limits
+the applicability of verified TLS on the public Internet. </p>
+
+<p> Historical note: while the documentation of these issues and many of the
+related features are new with Postfix 2.3, the issue was well
+understood before Postfix 1.0, when Lutz J&auml;nicke was designing
+the first unofficial Postfix TLS patch. See his original post <a
+href="http://www.imc.org/ietf-apps-tls/mail-archive/msg00304.html">http://www.imc.org/ietf-apps-tls/mail-archive/msg00304.html</a>
+and the first response <a
+href="http://www.imc.org/ietf-apps-tls/mail-archive/msg00305.html">http://www.imc.org/ietf-apps-tls/mail-archive/msg00305.html</a>.
+The problem is not even unique to SMTP or even TLS, similar issues exist
+for secure connections via aliases for HTTPS and Kerberos. SMTP merely
+uses indirect naming (via MX records) more frequently. </p>
+
 <h3> <a name="client_tls_policy"> TLS policy table </a>
 </h3>
 
@@ -1927,8 +1872,9 @@ fingerprint verification.</a> Available with Postfix 2.5 and
 later. At this security level, there are no trusted certificate
 authorities. The certificate trust chain, expiration date, ... are
 not checked. Instead, the optional <b>match</b> attribute, or else
-the main.cf <b>smtp_tls_fingerprint_cert_match</b> parameter,
-lists the valid fingerprints of the server certificate. The
+the main.cf <b>smtp_tls_fingerprint_cert_match</b> parameter, lists
+the server certificate fingerprints or public key fingerprints
+(Postfix 2.9 and later).  The
 digest algorithm used to calculate fingerprints is selected by the
 <b>smtp_tls_fingerprint_digest</b> parameter. Multiple fingerprints can
 be combined with a "|" delimiter in a single match attribute, or multiple
@@ -2664,6 +2610,82 @@ but don't require them from all clients. </p>
 
 </ul>
 
+
+<h2><a name="build_tls">Building Postfix with TLS support</a></h2>
+
+<p> These instructions assume that you build Postfix from source
+code as described in the INSTALL document. Some modification may   
+be required if you build Postfix from a vendor-specific source
+package.  </p>
+
+<p> To build Postfix with TLS support, first we need to generate
+the <tt>make(1)</tt> files with the necessary definitions. This is
+done by invoking the command "<tt>make makefiles</tt>" in the Postfix
+top-level directory and with arguments as shown next. </p>
+
+<p> <b> NOTE: Do not use Gnu TLS.  It will spontaneously terminate
+a Postfix daemon process with exit status code 2, instead of allowing
+Postfix to 1) report the error to the maillog file, and to 2) provide
+plaintext service where this is appropriate.  </b> </p>
+
+<ul>
+
+<li> <p> If the OpenSSL include files (such as <tt>ssl.h</tt>) are
+in directory <tt>/usr/include/openssl</tt>, and the OpenSSL libraries
+(such as <tt>libssl.so</tt> and <tt>libcrypto.so</tt>) are in
+directory <tt>/usr/lib</tt>:  </p>
+
+<blockquote>
+<pre>
+% <b>make tidy</b> # if you have left-over files from a previous build
+% <b>make makefiles CCARGS="-DUSE_TLS" AUXLIBS="-lssl -lcrypto"</b>
+</pre>
+</blockquote>
+
+<li> <p> If the OpenSSL include files (such as <tt>ssl.h</tt>) are
+in directory <tt>/usr/local/include/openssl</tt>, and the OpenSSL
+libraries (such as <tt>libssl.so</tt> and <tt>libcrypto.so</tt>)
+are in directory <tt>/usr/local/lib</tt>:  </p>
+
+<blockquote>
+<pre>
+% <b>make tidy</b> # if you have left-over files from a previous build
+% <b>make makefiles CCARGS="-DUSE_TLS -I/usr/local/include" \
+    AUXLIBS="-L/usr/local/lib -lssl -lcrypto" </b>
+</pre>
+</blockquote>
+
+<p> On Solaris, specify the <tt>-R</tt> option as shown below:
+
+<blockquote>
+<pre>
+% <b>make tidy</b> # if you have left-over files from a previous build
+% <b>make makefiles CCARGS="-DUSE_TLS -I/usr/local/include" \
+    AUXLIBS="-R/usr/local/lib -L/usr/local/lib -lssl -lcrypto" </b>
+</pre>
+</blockquote>
+
+</ul>
+
+<p> If you need to apply other customizations (such as Berkeley DB
+databases, MySQL, PostgreSQL, LDAP or SASL), see the respective
+Postfix README documents, and combine their "<tt>make makefiles</tt>"
+instructions with the instructions above:  </p>
+
+<blockquote>
+<pre>
+% <b>make tidy</b> # if you have left-over files from a previous build
+% <b>make makefiles CCARGS="-DUSE_TLS \
+    <i>(other -D or -I options)</i>" \
+    AUXLIBS="-lssl -lcrypto \
+    <i>(other -l options for libraries in /usr/lib)</i> \
+    <i>(-L/path/name + -l options for other libraries)</i>"</b>
+</pre>
+</blockquote>
+
+<p> To complete the build process, see the Postfix INSTALL
+instructions. Postfix has TLS support turned off by default, so
+you can start using Postfix as soon as it is installed.  </p>
 
 <h2> <a name="problems"> Reporting problems </a> </h2>
 

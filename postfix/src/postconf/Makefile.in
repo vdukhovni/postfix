@@ -42,7 +42,7 @@ test:	$(TESTPROG)
 
 tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 \
-	test22 test23 test24 test25
+	test22 test23 test24 test25 test26 test27
 
 root_tests:
 
@@ -295,7 +295,7 @@ test22:	$(PROG) test22.ref
 	diff test22.ref test22.tmp
 	rm -f main.cf master.cf test22.tmp
 
-# Test the -C flag.
+# Test the -C flag for each category.
 
 test23:	$(PROG) test23.ref
 	rm -f main.cf master.cf
@@ -329,6 +329,30 @@ test25:	$(PROG) test25.ref
 	./$(PROG) -c . -C service 2>&1 | grep whatevershebrings >test25.tmp
 	diff test25.ref test25.tmp
 	rm -f main.cf master.cf test25.tmp
+
+# Test completeness of "-C all".
+
+test26:	$(PROG) test26.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo always_bcc = yes >> main.cf
+	echo name = value >> main.cf
+	echo whatevershebrings unix - n n - 0 smtp >> master.cf
+	echo ' -o always_bcc=$$name' >> master.cf
+	./$(PROG) -nc . -C all >test26.tmp 2>&1
+	diff test26.ref test26.tmp
+	rm -f main.cf master.cf test26.tmp
+
+test27:	$(PROG) test27.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo always_bcc = yes >> main.cf
+	echo name = value >> main.cf
+	echo whatevershebrings unix - n n - 0 smtp >> master.cf
+	echo ' -o always_bcc=$$name' >> master.cf
+	./$(PROG) -c . -C all 2>&1 | grep whatevershebrings >test27.tmp
+	diff test27.ref test27.tmp
+	rm -f main.cf master.cf test27.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

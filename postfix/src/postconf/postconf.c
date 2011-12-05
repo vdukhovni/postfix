@@ -95,9 +95,11 @@
 /*	a \fBmaster.cf\fR entry plus a Postfix-defined suffix).
 /* .IP \fBuser\fR
 /*	Parameters with user-defined names.
+/* .IP \fBall\fR
+/*	All the above classes.
 /* .RE
 /* .IP
-/*	The default is as if "\fB-C builtin,service,user\fR" is
+/*	The default is as if "\fB-C all\fR" is
 /*	specified.
 /* .IP \fB-d\fR
 /*	Print \fBmain.cf\fR default parameter settings instead of
@@ -370,6 +372,7 @@ int     main(int argc, char **argv)
 	"builtin", PC_PARAM_FLAG_BUILTIN,
 	"service", PC_PARAM_FLAG_SERVICE,
 	"user", PC_PARAM_FLAG_USER,
+	"all", PC_PARAM_MASK_CLASS,
 	0,
     };
 

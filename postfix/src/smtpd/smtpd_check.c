@@ -427,7 +427,7 @@ static void rbl_byte_pageout(void *, void *);
   */
 typedef struct {
     SMTPD_STATE *state;			/* general state */
-    char *domain;			/* query domain */
+    char   *domain;			/* query domain */
     const char *what;			/* rejected value */
     const char *class;			/* name of rejected value */
     const char *txt;			/* randomly selected trimmed TXT rr */
@@ -1223,7 +1223,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient);
 static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 {
 #ifdef USE_TLS
-    const char *found;
+    const char *found = 0;
 
     dict_errno = 0;
 
@@ -1241,15 +1241,22 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
      * not trusted.
      */
     if (TLS_CERT_IS_PRESENT(state->tls_context)) {
-	found = maps_find(relay_ccerts, state->tls_context->peer_fingerprint,
-			  DICT_FLAG_NONE);
+	int     i;
+	char   *prints[2];
+
+	prints[0] = state->tls_context->peer_fingerprint;
+	prints[1] = state->tls_context->peer_pkey_fprint;
+
+	/* After lookup error, leave dict_errno at its non-zero value. */
+	for (i = 0; i < 2 && found == 0 && dict_errno == 0; ++i)
+	    found = maps_find(relay_ccerts, prints[i], DICT_FLAG_NONE);
 	if (found) {
 	    if (msg_verbose)
 		msg_info("Relaying allowed for certified client: %s", found);
 	    return (SMTPD_CHECK_OK);
 	} else if (msg_verbose)
-	    msg_info("relay_clientcerts: No match for fingerprint '%s'",
-		     state->tls_context->peer_fingerprint);
+	    msg_info("relay_clientcerts: No match for fingerprint '%s', "
+		     "pkey fingerprint %s", prints[0], prints[1]);
     }
 #else
     dict_errno = 0;
@@ -2660,6 +2667,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 static int check_ccert_access(SMTPD_STATE *state, const char *table,
 			              const char *def_acl)
 {
+    int     result = SMTPD_CHECK_DUNNO;
 #ifdef USE_TLS
     const char *myname = "check_ccert_access";
     int     found;
@@ -2669,27 +2677,36 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
      * not trusted.
      */
     if (TLS_CERT_IS_PRESENT(state->tls_context)) {
-	if (msg_verbose)
-	    msg_info("%s: %s", myname, state->tls_context->peer_fingerprint);
+	int     i;
+	char   *prints[2];
 
-	/*
-	 * Regexp tables don't make sense for certificate fingerprints. That
-	 * may be so, but we can't ignore the entire check_ccert_access
-	 * request without logging a warning.
-	 * 
-	 * Log the peer CommonName when access is denied. Non-printable
-	 * characters will be neutered by smtpd_check_reject(). The SMTP
-	 * client name and address are always syslogged as part of a "reject"
-	 * event.
-	 */
-	return (check_access(state, table,
-			     state->tls_context->peer_fingerprint,
-			     DICT_FLAG_NONE, &found,
-			     state->tls_context->peer_CN,
-			     SMTPD_NAME_CCERT, def_acl));
+	prints[0] = state->tls_context->peer_fingerprint;
+	prints[1] = state->tls_context->peer_pkey_fprint;
+
+	for (i = 0; i < 2; ++i) {
+	    if (msg_verbose)
+		msg_info("%s: %s", myname, prints[i]);
+
+	    /*
+	     * Regexp tables don't make sense for certificate fingerprints.
+	     * That may be so, but we can't ignore the entire
+	     * check_ccert_access request without logging a warning.
+	     * 
+	     * Log the peer CommonName when access is denied. Non-printable
+	     * characters will be neutered by smtpd_check_reject(). The SMTP
+	     * client name and address are always syslogged as part of a
+	     * "reject" event.
+	     */
+	    result = check_access(state, table, prints[i],
+				  DICT_FLAG_NONE, &found,
+				  state->tls_context->peer_CN,
+				  SMTPD_NAME_CCERT, def_acl);
+	    if (result != SMTPD_CHECK_DUNNO)
+		break;
+	}
     }
 #endif
-    return (SMTPD_CHECK_DUNNO);
+    return (result);
 }
 
 /* check_mail_access - OK/FAIL based on mail address lookup */
@@ -3492,6 +3509,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
      */
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
 		     IF_ENCRYPTED(state->tls_context->peer_fingerprint, ""),
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_PKEY_FPRINT,
+		     IF_ENCRYPTED(state->tls_context->peer_pkey_fprint, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
 			  IF_ENCRYPTED(state->tls_context->protocol, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CIPHER,
@@ -3809,7 +3828,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (strcasecmp(name, PERMIT_NAKED_IP_ADDR) == 0) {
 	    msg_warn("restriction %s is deprecated. Use %s or %s instead",
-		     PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
+		 PERMIT_NAKED_IP_ADDR, PERMIT_MYNETWORKS, PERMIT_SASL_AUTH);
 	    if (state->helo_name) {
 		if (state->helo_name[strspn(state->helo_name, "0123456789.:")] == 0
 		&& (status = reject_invalid_hostaddr(state, state->helo_name,
@@ -3960,11 +3979,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);
-	    if (dict_errno != 0) 
+	    if (dict_errno != 0)
 		reject_dict_retry(state, reply_name);
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 0);
-	    if (dict_errno != 0) 
+	    if (dict_errno != 0)
 		reject_dict_retry(state, reply_name);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)

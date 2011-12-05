@@ -1293,8 +1293,8 @@ extern char *var_smtpd_tls_dh1024_param_file;
 extern char *var_smtpd_tls_eecdh;
 
 #define VAR_SMTPD_TLS_LOGLEVEL	"smtpd_tls_loglevel"
-#define DEF_SMTPD_TLS_LOGLEVEL	0
-extern int var_smtpd_tls_loglevel;
+#define DEF_SMTPD_TLS_LOGLEVEL	"0"
+extern char *var_smtpd_tls_loglevel;
 
 #define VAR_SMTPD_TLS_RECHEAD	"smtpd_tls_received_header"
 #define DEF_SMTPD_TLS_RECHEAD	0
@@ -1431,11 +1431,11 @@ extern char *var_smtp_tls_mand_excl;
 extern char *var_smtp_tls_fpt_dgst;
 
 #define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
-#define DEF_SMTP_TLS_LOGLEVEL	0
+#define DEF_SMTP_TLS_LOGLEVEL	"0"
 #define VAR_LMTP_TLS_LOGLEVEL	"lmtp_tls_loglevel"
-#define DEF_LMTP_TLS_LOGLEVEL	0
-extern int var_smtp_tls_loglevel;	/* In smtp(8) and tlsmgr(8) */
-extern int var_lmtp_tls_loglevel;	/* In tlsmgr(8) */
+#define DEF_LMTP_TLS_LOGLEVEL	"0"
+extern char *var_smtp_tls_loglevel;	/* In smtp(8) and tlsmgr(8) */
+extern char *var_lmtp_tls_loglevel;	/* In tlsmgr(8) */
 
 #define VAR_SMTP_TLS_NOTEOFFER	"smtp_tls_note_starttls_offer"
 #define DEF_SMTP_TLS_NOTEOFFER	0
@@ -3569,7 +3569,7 @@ extern char *var_tlsp_tls_eecdh;
 
 #define VAR_TLSP_TLS_LOGLEVEL	"tlsproxy_tls_loglevel"
 #define DEF_TLSP_TLS_LOGLEVEL	"$" VAR_SMTPD_TLS_LOGLEVEL
-extern int var_tlsp_tls_loglevel;
+extern char *var_tlsp_tls_loglevel;
 
 #define VAR_TLSP_TLS_RECHEAD	"tlsproxy_tls_received_header"
 #define DEF_TLSP_TLS_RECHEAD	"$" VAR_SMTPD_TLS_RECHEAD

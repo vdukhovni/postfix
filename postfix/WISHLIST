@@ -6,16 +6,6 @@ Wish list:
 
 	Things to do after the stable release:
 
-	TLS_README has the priorities reversed. The section about
-	SMTP client settings begins with an exposition about client
-	certificates, which almost no-one needs. Instead, the text
-	should first explain how to turn on opportunistic TLS. After
-	that, it can discuss the gory details of higher security
-	levels for the few people who need it.
-
-	make address_verify_sender dynamic so it won't work
-	with address harvesters.
-
 	Investigate viability of memcached for applications
 	that require performance for low-security operations
 	such as sharing the postscreen cache.

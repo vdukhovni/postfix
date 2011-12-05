@@ -76,7 +76,7 @@
 /* .ad
 /* .fi
 /* .IP "\fBbroken_sasl_auth_clients (no)\fR"
-/*	Enable inter-operability with SMTP clients that implement an obsolete
+/*	Enable inter-operability with remote SMTP clients that implement an obsolete
 /*	version of the AUTH command (RFC 4954).
 /* .IP "\fBdisable_vrfy_command (no)\fR"
 /*	Disable the SMTP VRFY command.
@@ -105,11 +105,13 @@
 /* .IP "\fBsmtpd_discard_ehlo_keyword_address_maps (empty)\fR"
 /*	Lookup tables, indexed by the remote SMTP client address, with
 /*	case insensitive lists of EHLO keywords (pipelining, starttls, auth,
-/*	etc.) that the SMTP server will not send in the EHLO response to a
+/*	etc.) that the Postfix SMTP server will not send in the EHLO response
+/*	to a
 /*	remote SMTP client.
 /* .IP "\fBsmtpd_discard_ehlo_keywords (empty)\fR"
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
-/*	auth, etc.) that the SMTP server will not send in the EHLO response
+/*	auth, etc.) that the Postfix SMTP server will not send in the EHLO
+/*	response
 /*	to a remote SMTP client.
 /* .IP "\fBsmtpd_delay_open_until_valid_rcpt (yes)\fR"
 /*	Postpone the start of an SMTP mail transaction until a valid
@@ -253,7 +255,7 @@
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_authorized_xforward_hosts (empty)\fR"
-/*	What SMTP clients are allowed to use the XFORWARD feature.
+/*	What remote SMTP clients are allowed to use the XFORWARD feature.
 /* SASL AUTHENTICATION CONTROLS
 /* .ad
 /* .fi
@@ -262,7 +264,7 @@
 /*	Postfix SMTP client to a remote SMTP server.
 /*	See the SASL_README document for details.
 /* .IP "\fBbroken_sasl_auth_clients (no)\fR"
-/*	Enable inter-operability with SMTP clients that implement an obsolete
+/*	Enable inter-operability with remote SMTP clients that implement an obsolete
 /*	version of the AUTH command (RFC 4954).
 /* .IP "\fBsmtpd_sasl_auth_enable (no)\fR"
 /*	Enable SASL authentication in the Postfix SMTP server.
@@ -364,14 +366,14 @@
 /*	use with mandatory TLS encryption.
 /* .IP "\fBsmtpd_tls_mandatory_exclude_ciphers (empty)\fR"
 /*	Additional list of ciphers or cipher types to exclude from the
-/*	SMTP server cipher list at mandatory TLS security levels.
+/*	Postfix SMTP server cipher list at mandatory TLS security levels.
 /* .IP "\fBsmtpd_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
 /*	The SSL/TLS protocols accepted by the Postfix SMTP server with
 /*	mandatory TLS encryption.
 /* .IP "\fBsmtpd_tls_received_header (no)\fR"
 /*	Request that the Postfix SMTP server produces Received:  message
 /*	headers that include information about the protocol and cipher used,
-/*	as well as the client CommonName and client certificate issuer
+/*	as well as the remote SMTP client CommonName and client certificate issuer
 /*	CommonName.
 /* .IP "\fBsmtpd_tls_req_ccert (no)\fR"
 /*	With mandatory TLS encryption, require a trusted remote SMTP client
@@ -403,9 +405,10 @@
 /* .PP
 /*	Available in Postfix version 2.5 and later:
 /* .IP "\fBsmtpd_tls_fingerprint_digest (md5)\fR"
-/*	The message digest algorithm used to construct client-certificate
-/*	fingerprints for \fBcheck_ccert_access\fR and
-/*	\fBpermit_tls_clientcerts\fR.
+/*	The message digest algorithm to construct remote SMTP
+/*	client-certificate
+/*	fingerprints or public key fingerprints (Postfix 2.9 and later)
+/*	for \fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR.
 /* .PP
 /*	Available in Postfix version 2.6 and later:
 /* .IP "\fBsmtpd_tls_protocols (empty)\fR"
@@ -422,16 +425,19 @@
 /*	The Postfix SMTP server security grade for ephemeral elliptic-curve
 /*	Diffie-Hellman (EECDH) key exchange.
 /* .IP "\fBtls_eecdh_strong_curve (prime256v1)\fR"
-/*	The elliptic curve used by the SMTP server for sensibly strong
+/*	The elliptic curve used by the Postfix SMTP server for sensibly
+/*	strong
 /*	ephemeral ECDH key exchange.
 /* .IP "\fBtls_eecdh_ultra_curve (secp384r1)\fR"
-/*	The elliptic curve used by the SMTP server for maximally strong
+/*	The elliptic curve used by the Postfix SMTP server for maximally
+/*	strong
 /*	ephemeral ECDH key exchange.
 /* .PP
 /*	Available in Postfix version 2.8 and later:
 /* .IP "\fBtls_preempt_cipherlist (no)\fR"
-/*	With SSLv3 and later, use the server's cipher preference order
-/*	instead of the client's cipher preference order.
+/*	With SSLv3 and later, use the Postfix SMTP server's cipher
+/*	preference order instead of the remote client's cipher preference
+/*	order.
 /* .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
 /*	List or bit-mask of OpenSSL bug work-arounds to disable.
 /* OBSOLETE STARTTLS CONTROLS
@@ -441,10 +447,10 @@
 /*	with Postfix versions before 2.3. Support for these will
 /*	be removed in a future release.
 /* .IP "\fBsmtpd_use_tls (no)\fR"
-/*	Opportunistic TLS: announce STARTTLS support to SMTP clients,
+/*	Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 /*	but do not require that clients use TLS encryption.
 /* .IP "\fBsmtpd_enforce_tls (no)\fR"
-/*	Mandatory TLS: announce STARTTLS support to SMTP clients,
+/*	Mandatory TLS: announce STARTTLS support to remote SMTP clients,
 /*	and require that clients use TLS encryption.
 /* .IP "\fBsmtpd_tls_cipherlist (empty)\fR"
 /*	Obsolete Postfix < 2.3 control for the Postfix SMTP server TLS
@@ -468,11 +474,11 @@
 /* .PP
 /*	Available in Postfix version 1.1 and 2.0:
 /* .IP "\fBauthorized_verp_clients ($mynetworks)\fR"
-/*	What SMTP clients are allowed to specify the XVERP command.
+/*	What remote SMTP clients are allowed to specify the XVERP command.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_authorized_verp_clients ($authorized_verp_clients)\fR"
-/*	What SMTP clients are allowed to specify the XVERP command.
+/*	What remote SMTP clients are allowed to specify the XVERP command.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -498,7 +504,8 @@
 /* .IP "\fBnotify_classes (resource, software)\fR"
 /*	The list of error classes that are reported to the postmaster.
 /* .IP "\fBsmtpd_reject_footer (empty)\fR"
-/*	Optional information that is appended after each SMTP server
+/*	Optional information that is appended after each Postfix SMTP
+/*	server
 /*	4XX or 5XX response.
 /* .IP "\fBsoft_bounce (no)\fR"
 /*	Safety net to keep mail queued that would otherwise be returned to
@@ -506,7 +513,7 @@
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_authorized_xclient_hosts (empty)\fR"
-/*	What SMTP clients are allowed to use the XCLIENT feature.
+/*	What remote SMTP clients are allowed to use the XCLIENT feature.
 /* KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS
 /* .ad
 /* .fi
@@ -569,7 +576,7 @@
 /*	Optional lookup tables that alias specific mail addresses or domains
 /*	to other local or remote address.
 /* .IP "\fBunknown_virtual_alias_reject_code (550)\fR"
-/*	The SMTP server reply code when a recipient address matches
+/*	The Postfix SMTP server reply code when a recipient address matches
 /*	$virtual_alias_domains, and $virtual_alias_maps specifies a list
 /*	of lookup tables that does not match the recipient address.
 /* .PP
@@ -582,7 +589,7 @@
 /*	Optional lookup tables with all valid addresses in the domains that
 /*	match $virtual_mailbox_domains.
 /* .IP "\fBunknown_virtual_mailbox_reject_code (550)\fR"
-/*	The SMTP server reply code when a recipient address matches
+/*	The Postfix SMTP server reply code when a recipient address matches
 /*	$virtual_mailbox_domains, and $virtual_mailbox_maps specifies a list
 /*	of lookup tables that does not match the recipient address.
 /* RESOURCE AND RATE CONTROLS
@@ -705,8 +712,8 @@
 /*	What Postfix features match subdomains of "domain.tld" automatically,
 /*	instead of requiring an explicit ".domain.tld" pattern.
 /* .IP "\fBsmtpd_client_restrictions (empty)\fR"
-/*	Optional SMTP server access restrictions in the context of a client
-/*	SMTP connection request.
+/*	Optional Postfix SMTP server access restrictions in the context of
+/*	a remote SMTP client connection request.
 /* .IP "\fBsmtpd_helo_required (no)\fR"
 /*	Require that a remote SMTP client introduces itself with the HELO
 /*	or EHLO command before sending the MAIL command or other commands
@@ -858,7 +865,7 @@
 /* .PP
 /*	Available in Postfix version 2.0 and later:
 /* .IP "\fBdefault_rbl_reply (see 'postconf -d' output)\fR"
-/*	The default SMTP server response template for a request that is
+/*	The default Postfix SMTP server response template for a request that is
 /*	rejected by an RBL-based restriction.
 /* .IP "\fBmulti_recipient_bounce_reject_code (550)\fR"
 /*	The numerical Postfix SMTP server response code when a remote SMTP
@@ -914,7 +921,7 @@
 /* .IP "\fBmyhostname (see 'postconf -d' output)\fR"
 /*	The internet hostname of this mail system.
 /* .IP "\fBmynetworks (see 'postconf -d' output)\fR"
-/*	The list of "trusted" SMTP clients that have more privileges than
+/*	The list of "trusted" remote SMTP clients that have more privileges than
 /*	"strangers".
 /* .IP "\fBmyorigin ($myhostname)\fR"
 /*	The domain name that locally-posted mail appears to come
@@ -1226,7 +1233,7 @@ char   *var_smtpd_tls_dh1024_param_file;
 char   *var_smtpd_tls_dh512_param_file;
 char   *var_smtpd_tls_dkey_file;
 char   *var_smtpd_tls_key_file;
-int     var_smtpd_tls_loglevel;
+char   *var_smtpd_tls_loglevel;
 char   *var_smtpd_tls_mand_proto;
 bool    var_smtpd_tls_received_header;
 bool    var_smtpd_tls_req_ccert;
@@ -4068,7 +4075,6 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 			 ctx = smtpd_tls_ctx,
 			 stream = state->client,
 			 fd = -1,
-			 log_level = var_smtpd_tls_loglevel,
 			 timeout = var_smtpd_starttls_tmout,
 			 requirecert = requirecert,
 			 serverid = state->service,
@@ -4991,6 +4997,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 		 */
 		smtpd_tls_ctx =
 		    TLS_SERVER_INIT(&props,
+				    log_param = VAR_SMTPD_TLS_LOGLEVEL,
 				    log_level = var_smtpd_tls_loglevel,
 				    verifydepth = var_smtpd_tls_ccert_vd,
 				    cache_type = TLS_MGR_SCACHE_SMTPD,
@@ -5155,7 +5162,6 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CNTLS_LIMIT, DEF_SMTPD_CNTLS_LIMIT, &var_smtpd_cntls_limit, 0, 0,
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
-	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
 #endif
 	0,
     };
@@ -5273,6 +5279,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_1024_FILE, DEF_SMTPD_TLS_1024_FILE, &var_smtpd_tls_dh1024_param_file, 0, 0,
 	VAR_SMTPD_TLS_EECDH, DEF_SMTPD_TLS_EECDH, &var_smtpd_tls_eecdh, 1, 0,
 	VAR_SMTPD_TLS_FPT_DGST, DEF_SMTPD_TLS_FPT_DGST, &var_smtpd_tls_fpt_dgst, 1, 0,
+	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
 #endif
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
 	VAR_SMTPD_SASL_TYPE, DEF_SMTPD_SASL_TYPE, &var_smtpd_sasl_type, 1, 0,

@@ -14,6 +14,26 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Incompatible changes with snapshot 20111205
+===========================================
+
+Postfix now logs the result of succesful TLS negotiation with TLS
+logging levels of 0. See the smtp_tls_loglevel and smtpd_tls_loglevel
+descriptions in the postconf(5) manpage for other minor differences.
+
+Major changes with snapshot 20111205
+====================================
+
+Support for TLS public key fingerprint matching in the Postfix SMTP
+client (in smtp_tls_policy_maps) and server (in check_ccert access
+maps).  Public key fingerprints are inherently more specific than
+fingerprints over the entire certificate.
+
+Revision of Postfix TLS logging. The main difference is that Postfix
+now logs the result of succesful TLS negotiation with TLS logging
+levels of 0.  See the smtp_tls_loglevel and smtpd_tls_loglevel
+descriptions in the postconf(5) manpage for other minor differences.
+
 Major changes with snapshot 20111203
 ====================================
 

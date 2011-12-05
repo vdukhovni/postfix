@@ -26,6 +26,7 @@
 	VAR_LMTP_TLS_CIPH, DEF_LMTP_TLS_CIPH, &var_smtp_tls_ciph, 1, 0,
 	VAR_LMTP_TLS_ECCERT_FILE, DEF_LMTP_TLS_ECCERT_FILE, &var_smtp_tls_eccert_file, 0, 0,
 	VAR_LMTP_TLS_ECKEY_FILE, DEF_LMTP_TLS_ECKEY_FILE, &var_smtp_tls_eckey_file, 0, 0,
+	VAR_LMTP_TLS_LOGLEVEL, DEF_LMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
 #endif
 	VAR_LMTP_SASL_MECHS, DEF_LMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_LMTP_SASL_TYPE, DEF_LMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,
@@ -84,7 +85,6 @@
 	VAR_LMTP_MXSESS_LIMIT, DEF_LMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
 #ifdef USE_TLS
 	VAR_LMTP_TLS_SCERT_VD, DEF_LMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
-	VAR_LMTP_TLS_LOGLEVEL, DEF_LMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
 #endif
 	0,
     };

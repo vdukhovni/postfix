@@ -103,7 +103,7 @@ static ssize_t tls_timed_read(int fd, void *buf, size_t len, int timeout,
 	msg_panic("%s: no context", myname);
 
     ret = tls_bio_read(fd, buf, len, timeout, TLScontext);
-    if (ret > 0 && TLScontext->log_level >= 4)
+    if (ret > 0 && (TLScontext->log_mask & TLS_LOG_ALLPKTS))
 	msg_info("Read %ld chars: %.*s",
 		 (long) ret, (int) (ret > 40 ? 40 : ret), (char *) buf);
     return (NORMALIZED_VSTREAM_RETURN(ret));
@@ -122,7 +122,7 @@ static ssize_t tls_timed_write(int fd, void *buf, size_t len, int timeout,
     if (!TLScontext)
 	msg_panic("%s: no context", myname);
 
-    if (TLScontext->log_level >= 4)
+    if (TLScontext->log_mask & TLS_LOG_ALLPKTS)
 	msg_info("Write %ld chars: %.*s",
 		 (long) len, (int) (len > 40 ? 40 : len), (char *) buf);
     ret = tls_bio_write(fd, buf, len, timeout, TLScontext);

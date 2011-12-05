@@ -17137,6 +17137,14 @@ Apologies for any names omitted.
 	SMTP time with the smtpd_command_filter feature.  Files:
 	proto/VERP_README.html, proto/postconf.proto.
 
+	Feature: TLS certificate public-key fingerprint matching
+	(SMTP server and client), and TLS logging cleanup. Victor
+	Duchovni. Files: proto/SMTPD_POLICY_README.html,
+	proto/TLS_README.html, proto/postconf.proto, global/mail_proto.h,
+	smtpd/smtpd_check.c, tls/tls.h, tls/tls_client.c, tls/tls_misc.c,
+	tls/tls_proxy_print.c, tls/tls_proxy_scan.c, tls/tls_server.c,
+	tls/tls_stream.c, tls/tls_verify.c.
+
 	Documentation: complete list of "make makefiles" overrides.
 	File: proto/INSTALL.html.
 
@@ -17188,6 +17196,13 @@ Apologies for any names omitted.
 	parameter names). Files: postconf/postconf.c, postconf/postconf.h,
 	postconf_service.c, postconf/postconf_user.c.
 
+20111129
+
+	Cleanup: TLS logging level configuration. Files:
+	global/mail_params.h, smtp/lmtp_params.c, smtp/smtp.c,
+	smtp/smtp_params.c, smtp/smtp_proto.c, smtpd/smtpd.c,
+	tls/tls.h, tls/tls_client.c, tls/tls_misc.c, tls/tls_server.c,
+	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c.
 20111203
 
 	Cleanup: time-dependent sender addresses of address
@@ -17197,3 +17212,22 @@ Apologies for any names omitted.
 	smtpd/smtpd_check.c, verify/verify.c, proto/postconf.proto,
 	proto/ADDRESS_VERIFICATION_README.html.
 
+20111204
+
+	Cleanup: removed the log_level arguments from tls_client_start()
+	and tls_server_start() calls. This information is already
+	given to tls_client_init() and tls_server_init(). Files:
+	smtpd/smtpd.c, tlsproxy/tlsproxy.c, smtp/smtp_proto.c,
+	tls/tls.h, tls/tls_client.c, tls/tls_server.c, tls/tls_misc.c.
+
+20111205
+
+	Documentation: made the postconf(5) manpage more precise
+	in its use of "client" and "server"; reorganized the
+	TLS_README presentation of client configuration so that
+	most relevant information is presented earlier. Files:
+	proto/postconf.proto, proto/TLS_README.html.
+
+	Bugfix: tlsproxy(8) stored TLS sessions with a serverID of
+	"tlsproxy" instead of "smtpd", wasting an opportunity for
+	session reuse.  File: tlsproxy/tlsproxy.c.

@@ -161,13 +161,15 @@
 /*	Lookup tables, indexed by the remote SMTP server address, with
 /*	per-destination workarounds for CISCO PIX firewall bugs.
 /* .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
-/*	Quote addresses in SMTP MAIL FROM and RCPT TO commands as required
+/*	Quote addresses in Postfix SMTP client MAIL FROM and RCPT TO commands
+/*	as required
 /*	by RFC 2821.
 /* .IP "\fBsmtp_reply_filter (empty)\fR"
 /*	A mechanism to transform replies from remote SMTP servers one
 /*	line at a time.
 /* .IP "\fBsmtp_skip_5xx_greeting (yes)\fR"
-/*	Skip SMTP servers that greet with a 5XX status code (go away, do
+/*	Skip remote SMTP servers that greet with a 5XX status code (go away,
+/*	do
 /*	not try again later).
 /* .IP "\fBsmtp_skip_quit_response (yes)\fR"
 /*	Do not wait for the response to the SMTP QUIT command.
@@ -189,7 +191,7 @@
 /*	response from a remote SMTP server.
 /* .IP "\fBsmtp_generic_maps (empty)\fR"
 /*	Optional lookup tables that perform address rewriting in the
-/*	SMTP client, typically to transform a locally valid address into
+/*	Postfix SMTP client, typically to transform a locally valid address into
 /*	a globally valid address when sending mail across the Internet.
 /* .PP
 /*	Available in Postfix version 2.2.9 and later:
@@ -202,11 +204,13 @@
 /* .IP "\fBlmtp_discard_lhlo_keyword_address_maps (empty)\fR"
 /*	Lookup tables, indexed by the remote LMTP server address, with
 /*	case insensitive lists of LHLO keywords (pipelining, starttls,
-/*	auth, etc.) that the LMTP client will ignore in the LHLO response
+/*	auth, etc.) that the Postfix LMTP client will ignore in the LHLO
+/*	response
 /*	from a remote LMTP server.
 /* .IP "\fBlmtp_discard_lhlo_keywords (empty)\fR"
 /*	A case insensitive list of LHLO keywords (pipelining, starttls,
-/*	auth, etc.) that the LMTP client will ignore in the LHLO response
+/*	auth, etc.) that the Postfix LMTP client will ignore in the LHLO
+/*	response
 /*	from a remote LMTP server.
 /* .PP
 /*	Available in Postfix version 2.4.4 and later:
@@ -267,7 +271,8 @@
 /* .IP "\fBsmtp_sasl_auth_enable (no)\fR"
 /*	Enable SASL authentication in the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_password_maps (empty)\fR"
-/*	Optional SMTP client lookup tables with one username:password entry
+/*	Optional Postfix SMTP client lookup tables with one username:password
+/*	entry
 /*	per remote hostname or domain, or sender address when sender-dependent
 /*	authentication is enabled.
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
@@ -347,7 +352,7 @@
 /*	list at all TLS security levels.
 /* .IP "\fBsmtp_tls_mandatory_exclude_ciphers (empty)\fR"
 /*	Additional list of ciphers or cipher types to exclude from the
-/*	SMTP client cipher list at mandatory TLS security levels.
+/*	Postfix SMTP client cipher list at mandatory TLS security levels.
 /* .IP "\fBsmtp_tls_dcert_file (empty)\fR"
 /*	File with the Postfix SMTP client DSA certificate in PEM format.
 /* .IP "\fBsmtp_tls_dkey_file ($smtp_tls_dcert_file)\fR"
@@ -369,7 +374,8 @@
 /* .IP "\fBsmtp_tls_scert_verifydepth (9)\fR"
 /*	The verification depth for remote SMTP server certificates.
 /* .IP "\fBsmtp_tls_secure_cert_match (nexthop, dot-nexthop)\fR"
-/*	The server certificate peername verification method for the
+/*	How the Postfix SMTP client verifies the server certificate
+/*	peername for the
 /*	"secure" TLS security level.
 /* .IP "\fBsmtp_tls_session_cache_database (empty)\fR"
 /*	Name of the file containing the optional Postfix SMTP client
@@ -378,7 +384,8 @@
 /*	The expiration time of Postfix SMTP client TLS session cache
 /*	information.
 /* .IP "\fBsmtp_tls_verify_cert_match (hostname)\fR"
-/*	The server certificate peername verification method for the
+/*	How the Postfix SMTP client verifies the server certificate
+/*	peername for the
 /*	"verify" TLS security level.
 /* .IP "\fBtls_daemon_random_bytes (32)\fR"
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
@@ -404,8 +411,8 @@
 /* .PP
 /*	Available in Postfix version 2.5 and later:
 /* .IP "\fBsmtp_tls_fingerprint_cert_match (empty)\fR"
-/*	List of acceptable remote SMTP server certificate fingerprints
-/*	for the "fingerprint" TLS security level (\fBsmtp_tls_security_level\fR =
+/*	List of acceptable remote SMTP server certificate fingerprints for
+/*	the "fingerprint" TLS security level (\fBsmtp_tls_security_level\fR =
 /*	fingerprint).
 /* .IP "\fBsmtp_tls_fingerprint_digest (md5)\fR"
 /*	The message digest algorithm used to construct remote SMTP server
@@ -464,46 +471,48 @@
 /*	The maximal number of recipients per message for the smtp
 /*	message delivery transport.
 /* .IP "\fBsmtp_connect_timeout (30s)\fR"
-/*	The SMTP client time limit for completing a TCP connection, or
+/*	The Postfix SMTP client time limit for completing a TCP connection, or
 /*	zero (use the operating system built-in time limit).
 /* .IP "\fBsmtp_helo_timeout (300s)\fR"
-/*	The SMTP client time limit for sending the HELO or EHLO command,
-/*	and for receiving the initial server response.
+/*	The Postfix SMTP client time limit for sending the HELO or EHLO command,
+/*	and for receiving the initial remote SMTP server response.
 /* .IP "\fBlmtp_lhlo_timeout (300s)\fR"
-/*	The LMTP client time limit for sending the LHLO command, and
-/*	for receiving the initial server response.
+/*	The Postfix LMTP client time limit for sending the LHLO command,
+/*	and for receiving the initial remote LMTP server response.
 /* .IP "\fBsmtp_xforward_timeout (300s)\fR"
-/*	The SMTP client time limit for sending the XFORWARD command, and
-/*	for receiving the server response.
+/*	The Postfix SMTP client time limit for sending the XFORWARD command,
+/*	and for receiving the remote SMTP server response.
 /* .IP "\fBsmtp_mail_timeout (300s)\fR"
-/*	The SMTP client time limit for sending the MAIL FROM command, and
-/*	for receiving the server response.
+/*	The Postfix SMTP client time limit for sending the MAIL FROM command,
+/*	and for receiving the remote SMTP server response.
 /* .IP "\fBsmtp_rcpt_timeout (300s)\fR"
-/*	The SMTP client time limit for sending the SMTP RCPT TO command, and
-/*	for receiving the server response.
+/*	The Postfix SMTP client time limit for sending the SMTP RCPT TO
+/*	command, and for receiving the remote SMTP server response.
 /* .IP "\fBsmtp_data_init_timeout (120s)\fR"
-/*	The SMTP client time limit for sending the SMTP DATA command, and for
-/*	receiving the server response.
+/*	The Postfix SMTP client time limit for sending the SMTP DATA command,
+/*	and for receiving the remote SMTP server response.
 /* .IP "\fBsmtp_data_xfer_timeout (180s)\fR"
-/*	The SMTP client time limit for sending the SMTP message content.
+/*	The Postfix SMTP client time limit for sending the SMTP message content.
 /* .IP "\fBsmtp_data_done_timeout (600s)\fR"
-/*	The SMTP client time limit for sending the SMTP ".", and for receiving
-/*	the server response.
+/*	The Postfix SMTP client time limit for sending the SMTP ".", and
+/*	for receiving the remote SMTP server response.
 /* .IP "\fBsmtp_quit_timeout (300s)\fR"
-/*	The SMTP client time limit for sending the QUIT command, and for
-/*	receiving the server response.
+/*	The Postfix SMTP client time limit for sending the QUIT command,
+/*	and for receiving the remote SMTP server response.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtp_mx_address_limit (5)\fR"
 /*	The maximal number of MX (mail exchanger) IP addresses that can
-/*	result from mail exchanger lookups, or zero (no limit).
+/*	result from Postfix SMTP client mail exchanger lookups, or zero (no
+/*	limit).
 /* .IP "\fBsmtp_mx_session_limit (2)\fR"
 /*	The maximal number of SMTP sessions per delivery request before
-/*	giving up or delivering to a fall-back relay host, or zero (no
+/*	the Postfix SMTP client
+/*	gives up or delivers to a fall-back relay host, or zero (no
 /*	limit).
 /* .IP "\fBsmtp_rset_timeout (20s)\fR"
-/*	The SMTP client time limit for sending the RSET command, and
-/*	for receiving the server response.
+/*	The Postfix SMTP client time limit for sending the RSET command,
+/*	and for receiving the remote SMTP server response.
 /* .PP
 /*	Available in Postfix version 2.2 and earlier:
 /* .IP "\fBlmtp_cache_connection (yes)\fR"
@@ -582,7 +591,8 @@
 /*	The time limit for sending or receiving information over an internal
 /*	communication channel.
 /* .IP "\fBlmtp_assume_final (no)\fR"
-/*	When an LMTP server announces no DSN support, assume that the
+/*	When a remote LMTP server announces no DSN support, assume that
+/*	the
 /*	server performs final delivery, and send "delivered" delivery status
 /*	notifications instead of "relayed".
 /* .IP "\fBlmtp_tcp_port (24)\fR"
@@ -805,7 +815,7 @@ char   *var_smtp_tls_dcert_file;
 char   *var_smtp_tls_dkey_file;
 bool    var_smtp_tls_enforce_peername;
 char   *var_smtp_tls_key_file;
-int     var_smtp_tls_loglevel;
+char   *var_smtp_tls_loglevel;
 bool    var_smtp_tls_note_starttls_offer;
 char   *var_smtp_tls_mand_proto;
 char   *var_smtp_tls_sec_cmatch;
@@ -1052,6 +1062,7 @@ static void pre_init(char *unused_name, char **unused_argv)
     if (use_tls || var_smtp_tls_per_site[0] || var_smtp_tls_policy[0]) {
 #ifdef USE_TLS
 	TLS_CLIENT_INIT_PROPS props;
+	int     using_smtp = (strcmp(var_procname, "smtp") == 0);
 
 	/*
 	 * We get stronger type safety and a cleaner interface by combining
@@ -1062,9 +1073,11 @@ static void pre_init(char *unused_name, char **unused_argv)
 	 */
 	smtp_tls_ctx =
 	    TLS_CLIENT_INIT(&props,
+			    log_param = using_smtp ?
+			    VAR_SMTP_TLS_LOGLEVEL : VAR_LMTP_TLS_LOGLEVEL,
 			    log_level = var_smtp_tls_loglevel,
 			    verifydepth = var_smtp_tls_scert_vd,
-			    cache_type = strcmp(var_procname, "smtp") == 0 ?
+			    cache_type = using_smtp ?
 			    TLS_MGR_SCACHE_SMTP : TLS_MGR_SCACHE_LMTP,
 			    cert_file = var_smtp_tls_cert_file,
 			    key_file = var_smtp_tls_key_file,

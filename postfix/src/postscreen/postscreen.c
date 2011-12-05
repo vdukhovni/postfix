@@ -122,7 +122,8 @@
 /*	List of characters that are permitted in postscreen_reject_footer
 /*	attribute expansions.
 /* .IP "\fBpostscreen_reject_footer ($smtpd_reject_footer)\fR"
-/*	Optional information that is appended after a 4XX or 5XX server
+/*	Optional information that is appended after a 4XX or 5XX
+/*	\fBpostscreen\fR(8) server
 /*	response.
 /* .IP "\fBsoft_bounce (no)\fR"
 /*	Safety net to keep mail queued that would otherwise be returned to
@@ -137,7 +138,7 @@
 /* .IP "\fBpostscreen_access_list (permit_mynetworks)\fR"
 /*	Permanent white/blacklist for remote SMTP client IP addresses.
 /* .IP "\fBpostscreen_blacklist_action (ignore)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client is
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client is
 /*	permanently blacklisted with the postscreen_access_list parameter.
 /* MAIL EXCHANGER POLICY TESTS
 /* .ad
@@ -152,8 +153,8 @@
 /*	to clients that connect only to backup MX hosts.
 /* .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
 /*	A list of local \fBpostscreen\fR(8) server IP addresses where a
-/*	non-whitelisted SMTP client can obtain \fBpostscreen\fR(8)'s temporary
-/*	whitelist status to talk to a Postfix SMTP server process.
+/*	non-whitelisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
+/*	whitelist status.
 /* BEFORE-GREETING TESTS
 /* .ad
 /* .fi
@@ -165,7 +166,7 @@
 /* .IP "\fBdnsblog_service_name (dnsblog)\fR"
 /*	The name of the \fBdnsblog\fR(8) service entry in master.cf.
 /* .IP "\fBpostscreen_dnsbl_action (ignore)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client's combined
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client's combined
 /*	DNSBL score is equal to or greater than a threshold (as defined
 /*	with the postscreen_dnsbl_sites and postscreen_dnsbl_threshold
 /*	parameters).
@@ -177,11 +178,11 @@
 /*	Optional list of DNS white/blacklist domains, filters and weight
 /*	factors.
 /* .IP "\fBpostscreen_dnsbl_threshold (1)\fR"
-/*	The inclusive lower bound for blocking an SMTP client, based on
+/*	The inclusive lower bound for blocking a remote SMTP client, based on
 /*	its combined DNSBL score as defined with the postscreen_dnsbl_sites
 /*	parameter.
 /* .IP "\fBpostscreen_greet_action (ignore)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client speaks
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client speaks
 /*	before its turn within the time specified with the postscreen_greet_wait
 /*	parameter.
 /* .IP "\fBpostscreen_greet_banner ($smtpd_banner)\fR"
@@ -208,7 +209,7 @@
 /*	the client will be allowed to talk directly to a Postfix
 /*	SMTP server process.
 /* .IP "\fBpostscreen_bare_newline_action (ignore)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client sends
 /*	a bare newline character, that is, a newline not preceded by carriage
 /*	return.
 /* .IP "\fBpostscreen_bare_newline_enable (no)\fR"
@@ -223,13 +224,14 @@
 /*	Require that a remote SMTP client sends HELO or EHLO before
 /*	commencing a MAIL transaction.
 /* .IP "\fBpostscreen_non_smtp_command_action (drop)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client sends
 /*	non-SMTP commands as specified with the postscreen_forbidden_commands
 /*	parameter.
 /* .IP "\fBpostscreen_non_smtp_command_enable (no)\fR"
 /*	Enable "non-SMTP command" tests in the \fBpostscreen\fR(8) server.
 /* .IP "\fBpostscreen_pipelining_action (enforce)\fR"
-/*	The action that \fBpostscreen\fR(8) takes when an SMTP client sends
+/*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client
+/*	sends
 /*	multiple commands instead of sending one command and waiting for
 /*	the server to respond.
 /* .IP "\fBpostscreen_pipelining_enable (no)\fR"
@@ -267,7 +269,8 @@
 /*	Upon input, long lines are chopped up into pieces of at most
 /*	this length; upon delivery, long lines are reconstructed.
 /* .IP "\fBpostscreen_client_connection_count_limit ($smtpd_client_connection_count_limit)\fR"
-/*	How many simultaneous connections any client is allowed to have
+/*	How many simultaneous connections any remote SMTP client is
+/*	allowed to have
 /*	with the \fBpostscreen\fR(8) daemon.
 /* .IP "\fBpostscreen_command_count_limit (20)\fR"
 /*	The limit on the total number of commands per SMTP session for
@@ -277,14 +280,15 @@
 /*	built-in SMTP protocol engine.
 /* .IP "\fBpostscreen_post_queue_limit ($default_process_limit)\fR"
 /*	The number of clients that can be waiting for service from a
-/*	real SMTP server process.
+/*	real Postfix SMTP server process.
 /* .IP "\fBpostscreen_pre_queue_limit ($default_process_limit)\fR"
 /*	The number of non-whitelisted clients that can be waiting for
-/*	a decision whether they will receive service from a real SMTP server
+/*	a decision whether they will receive service from a real Postfix
+/*	SMTP server
 /*	process.
 /* .IP "\fBpostscreen_watchdog_timeout (10s)\fR"
 /*	How much time a \fBpostscreen\fR(8) process may take to respond to
-/*	an SMTP client command or to perform a cache operation before it
+/*	a remote SMTP client command or to perform a cache operation before it
 /*	is terminated by a built-in watchdog timer.
 /* STARTTLS CONTROLS
 /* .ad
@@ -301,10 +305,10 @@
 /*	These parameters are supported for compatibility with
 /*	\fBsmtpd\fR(8) legacy parameters.
 /* .IP "\fBpostscreen_use_tls ($smtpd_use_tls)\fR"
-/*	Opportunistic TLS: announce STARTTLS support to SMTP clients,
+/*	Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 /*	but do not require that clients use TLS encryption.
 /* .IP "\fBpostscreen_enforce_tls ($smtpd_enforce_tls)\fR"
-/*	Mandatory TLS: announce STARTTLS support to SMTP clients, and
+/*	Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 /*	require that clients use TLS encryption.
 /* MISCELLANEOUS CONTROLS
 /* .ad

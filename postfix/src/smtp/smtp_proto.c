@@ -785,7 +785,6 @@ static int smtp_start_tls(SMTP_STATE *state)
 	TLS_CLIENT_START(&tls_props,
 			 ctx = smtp_tls_ctx,
 			 stream = session->stream,
-			 log_level = var_smtp_tls_loglevel,
 			 timeout = var_smtp_starttls_tmout,
 			 tls_level = session->tls_level,
 			 nexthop = session->tls_nexthop,

@@ -2,7 +2,7 @@
 /* NAME
 /*	verify_sender_addr 3
 /* SUMMARY
-/*	address verification support
+/*	time-dependent probe sender addresses
 /* SYNOPSIS
 /*	#include <verify_sender_addr.h>
 /*
@@ -19,25 +19,27 @@
 /*	time-dependent portion is appended to the address localpart
 /*	specified with the address_verify_sender parameter.
 /*
+/*	When the address_verify_sender parameter is empty or <>,
+/*	the sender address always the empty address (i.e. always
+/*	time-independent).
+/*
 /*	The caller must initialize the address_verify_sender and
 /*	address_verify_sender_ttl parameter values.
 /*
 /*	make_verify_sender_addr() generates an envelope sender
-/*	address for an address verification probe. When the
-/*	address_verify_sender parameter is empty or <>, the result
-/*	is always the null address.
+/*	address for an address verification probe.
 /*
 /*	valid_verify_sender_addr() verifies that the given address
 /*	is a valid sender address for address verification probes.
-/*	When the address_verify_sender parameter is empty or <>,
-/*	the match succeeds only if the given address is empty.  When
-/*	the address is time-dependent, it is allowed to differ by
-/*	+/-1 TTL unit from the expected address.  The result is a
-/*	null pointer when no match is found. Otherwise, the result
-/*	is the sender address without the time-dependent portion;
-/*	this is the address that should be used for further delivery.
+/*	When probe sender addresses are configured to be time-dependent,
+/*	the given address is allowed to differ by +/-1 TTL unit
+/*	from the expected address.  The result is a null pointer
+/*	when no match is found. Otherwise, the result is the sender
+/*	address without the time-dependent portion; this is the
+/*	address that should be used for further delivery.
 /* DIAGNOSTICS
-/*	Fatal errors: malformed address_verify_sender value.
+/*	Fatal errors: malformed address_verify_sender value; out
+/*	of memory.
 /* LICENSE
 /* .ad
 /* .fi
@@ -78,17 +80,21 @@
  /*
   * We convert the time-dependent portion to a safe string (no vowels) in a
   * reversible manner, so that we can check an incoming address against the
-  * previous, current, and next time slot. This allows for some time slippage
-  * between multiple MTAs that handle mail for the same site.
+  * current and +/-1 TTL time slot. This allows for some time slippage
+  * between multiple MTAs that handle mail for the same site. We use base 31
+  * so that the time stamp contains B-Z0-9. This simplifies regression tests.
   */
 #define VERIFY_BASE		31
 
  /*
-  * The time-dependent address verification probe sender address has the form
-  * ``fixedvariable@fixed''. The fixed text is taken from var_verify_sender
-  * with perhaps domain information appended during address canonicalization.
-  * The variable part of the address changes every var_verify_sender_ttl
-  * seconds.
+  * We append the time-dependent portion to the localpart of the the address
+  * verification probe sender address, so that the result has the form
+  * ``fixed1variable@fixed2''. There is no delimiter between ``fixed1'' and
+  * ``variable'', because that could make "old" time stamps valid depending
+  * on how the recipient_delimiter feature is configured. The fixed text is
+  * taken from var_verify_sender with perhaps domain information appended
+  * during address canonicalization. The variable part of the address changes
+  * every var_verify_sender_ttl seconds.
   */
 char   *var_verify_sender;		/* "bare" probe sender address */
 int     var_verify_sender_ttl;		/* time between address changes */
@@ -117,7 +123,7 @@ const char *make_verify_sender_addr(void)
 {
     static VSTRING *verify_sender_buf;	/* the complete sender address */
     static VSTRING *my_epoch_buf;	/* scratch space */
-    char   *at_domain;
+    char   *my_at_domain;
 
     /*
      * The null sender is always time-independent.
@@ -131,7 +137,7 @@ const char *make_verify_sender_addr(void)
     if (*var_verify_sender == '@')
 	msg_fatal("parameter %s: value \"%s\" must not start with '@'",
 		  VAR_VERIFY_SENDER, var_verify_sender);
-    if ((at_domain = strchr(var_verify_sender, '@')) != 0 && at_domain[1] == 0)
+    if ((my_at_domain = strchr(var_verify_sender, '@')) != 0 && my_at_domain[1] == 0)
 	msg_fatal("parameter %s: value \"%s\" must not end with '@'",
 		  VAR_VERIFY_SENDER, var_verify_sender);
 
@@ -156,17 +162,17 @@ const char *make_verify_sender_addr(void)
      */
     if (var_verify_sender_ttl > 0) {
 	/* Strip the @domain portion, if applicable. */
-	if (at_domain != 0)
+	if (my_at_domain != 0)
 	    vstring_truncate(verify_sender_buf,
-			     (ssize_t) (at_domain - var_verify_sender));
+			     (ssize_t) (my_at_domain - var_verify_sender));
 	/* Append the time stamp to the address localpart. */
 	vstring_sprintf_append(verify_sender_buf, "%s",
 			       safe_ultostr(my_epoch_buf,
 					    VERIFY_SENDER_ADDR_EPOCH(),
 					    VERIFY_BASE, 0, 0));
 	/* Add back the @domain, if applicable. */
-	if (at_domain != 0)
-	    vstring_sprintf_append(verify_sender_buf, "%s", at_domain);
+	if (my_at_domain != 0)
+	    vstring_sprintf_append(verify_sender_buf, "%s", my_at_domain);
     }
 
     /*
@@ -180,9 +186,9 @@ const char *make_verify_sender_addr(void)
 
 /* valid_verify_sender_addr - decide if address matches time window +/-1 */
 
-const char *valid_verify_sender_addr(const char *addr)
+const char *valid_verify_sender_addr(const char *their_addr)
 {
-    static VSTRING *fixed_sender_buf;	/* sender without time stamp */
+    static VSTRING *time_indep_sender_buf;	/* sender without time stamp */
     ssize_t base_len;
     unsigned long my_epoch;
     unsigned long their_epoch;
@@ -194,44 +200,44 @@ const char *valid_verify_sender_addr(const char *addr)
      * The null address is always time-independent.
      */
     if (*var_verify_sender == 0 || strcmp(var_verify_sender, "<>") == 0)
-	return (*addr ? 0 : "");
+	return (*their_addr ? 0 : "");
 
     /*
      * One-time initialization. Generate the time-independent address that we
      * will return if the match is successful. This address is also used as a
      * matching template.
      */
-    if (fixed_sender_buf == 0) {
-	fixed_sender_buf = vstring_alloc(10);
-	vstring_strcpy(fixed_sender_buf, var_verify_sender);
-	rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL, STR(fixed_sender_buf),
-			      fixed_sender_buf);
+    if (time_indep_sender_buf == 0) {
+	time_indep_sender_buf = vstring_alloc(10);
+	vstring_strcpy(time_indep_sender_buf, var_verify_sender);
+	rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL, STR(time_indep_sender_buf),
+			      time_indep_sender_buf);
     }
 
     /*
      * Check the time-independent sender localpart.
      */
-    if ((my_at_domain = strchr(STR(fixed_sender_buf), '@')) != 0)
-	base_len = my_at_domain - STR(fixed_sender_buf);
+    if ((my_at_domain = strchr(STR(time_indep_sender_buf), '@')) != 0)
+	base_len = my_at_domain - STR(time_indep_sender_buf);
     else
-	base_len = LEN(fixed_sender_buf);
-    if (strncasecmp(STR(fixed_sender_buf), addr, base_len) != 0)
+	base_len = LEN(time_indep_sender_buf);
+    if (strncasecmp(STR(time_indep_sender_buf), their_addr, base_len) != 0)
 	return (0);				/* sender localpart mis-match */
 
     /*
      * Check the time-independent domain.
      */
-    if ((their_at_domain = strchr(addr, '@')) == 0 && my_at_domain != 0)
-	return ("domain mis-match");		/* sender domain mis-match */
-    if (their_at_domain != 0 && (my_at_domain == 0
-			 || strcasecmp(their_at_domain, my_at_domain) != 0))
+    if ((their_at_domain = strchr(their_addr, '@')) == 0 && my_at_domain != 0)
+	return (0);				/* sender domain mis-match */
+    if (their_at_domain != 0
+    && (my_at_domain == 0 || strcasecmp(their_at_domain, my_at_domain) != 0))
 	return (0);				/* sender domain mis-match */
 
     /*
      * Check the time-dependent portion.
      */
     if (var_verify_sender_ttl > 0) {
-	their_epoch = safe_strtoul(addr + base_len, &cp, VERIFY_BASE);
+	their_epoch = safe_strtoul(their_addr + base_len, &cp, VERIFY_BASE);
 	if ((*cp != '@' && *cp != 0)
 	    || (their_epoch == ULONG_MAX && errno == ERANGE))
 	    return (0);				/* malformed time stamp */
@@ -244,10 +250,10 @@ const char *valid_verify_sender_addr(const char *addr)
      * No time-dependent portion.
      */
     else {
-	if (addr[base_len] != '@' && addr[base_len] != 0)
+	if (their_addr[base_len] != '@' && their_addr[base_len] != 0)
 	    return (0);				/* garbage after sender base */
     }
-    return (STR(fixed_sender_buf));
+    return (STR(time_indep_sender_buf));
 }
 
  /*
