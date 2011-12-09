@@ -390,12 +390,12 @@ TTuunniinngg tthhee nnuummbbeerr ooff PPoossttffiixx pp
 
 The default_process_limit configuration parameter gives direct control over how
 many daemon processes Postfix will run. As of Postfix 2.0 the default limit is
-100 smtp client processes, 100 smtp server processes, and so on. This may
+100 SMTP client processes, 100 SMTP server processes, and so on. This may
 overwhelm systems with little memory, as well as networks with low bandwidth.
 
 You can change the global process limit by specifying a non-default
-default_process_limit in the main.cf file. For example, to run up to 10 smtp
-client processes, 10 smtp server processes, and so on:
+default_process_limit in the main.cf file. For example, to run up to 10 SMTP
+client processes, 10 SMTP server processes, and so on:
 
     /etc/postfix/main.cf:
         default_process_limit = 10

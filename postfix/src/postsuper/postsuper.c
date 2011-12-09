@@ -1138,6 +1138,11 @@ int     main(int argc, char **argv)
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Disallow unsafe practices, and refuse to run set-uid (or as the child
      * of a set-uid process). Whenever a privileged wrapper program is
      * needed, it must properly sanitize the real/effective/saved UID/GID,

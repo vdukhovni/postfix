@@ -670,6 +670,11 @@ int     main(int argc, char **argv)
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Parse JCL.
      */
     while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rsvw")) > 0) {

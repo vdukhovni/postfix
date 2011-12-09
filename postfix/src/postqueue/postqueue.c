@@ -478,6 +478,11 @@ int     main(int argc, char **argv)
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Parse JCL. This program is set-gid and must sanitize all command-line
      * parameters. The configuration directory argument is validated by the
      * mail configuration read routine. Don't do complex things until we have

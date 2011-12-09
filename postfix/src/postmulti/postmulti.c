@@ -1658,6 +1658,11 @@ int     main(int argc, char **argv)
 	msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_syslog_init(argv[0], LOG_PID, LOG_FACILITY);
 
+    /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
     if ((config_dir = getenv(CONF_ENV_PATH)) != 0
 	&& strcmp(config_dir, DEF_CONFIG_DIR) != 0)
 	msg_fatal("Non-default configuration directory: %s=%s",

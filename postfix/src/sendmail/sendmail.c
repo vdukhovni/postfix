@@ -1017,6 +1017,11 @@ int     main(int argc, char **argv)
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Some sites mistakenly install Postfix sendmail as set-uid root. Drop
      * set-uid privileges only when root, otherwise some systems will not
      * reset the saved set-userid, which would be a security vulnerability.

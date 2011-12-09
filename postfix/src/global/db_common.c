@@ -49,6 +49,9 @@
 /*	value indicates that data-depedent '%' expansions were found in the input
 /*	template.
 /*
+/*	db_common_alloc() provides a way to use db_common_parse_domain()
+/*	etc. without prior db_common_parse() call.
+/*
 /*	\fIdb_common_expand\fR expands the specifiers in \fIformat\fR.
 /*	When the input data lacks all fields needed for the expansion, zero
 /*	is returned and the query or result should be skipped. Otherwise
@@ -163,6 +166,20 @@ typedef struct {
     int     nparts;
 } DB_COMMON_CTX;
 
+/* db_common_alloc - allocate db_common context */
+
+void   *db_common_alloc(DICT *dict)
+{
+    DB_COMMON_CTX *ctx;
+
+    ctx = (DB_COMMON_CTX *) mymalloc(sizeof *ctx);
+    ctx->dict = dict;
+    ctx->domain = 0;
+    ctx->flags = 0;
+    ctx->nparts = 0;
+    return ((void *) ctx);
+}
+
 /* db_common_parse - validate query or result template */
 
 int     db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query)
@@ -171,13 +188,9 @@ int     db_common_parse(DICT *dict, void **ctxPtr, const char *format, int query
     const char *cp;
     int     dynamic = 0;
 
-    if (ctx == 0) {
-	ctx = (DB_COMMON_CTX *) (*ctxPtr = mymalloc(sizeof *ctx));
-	ctx->dict = dict;
-	ctx->domain = 0;
-	ctx->flags = 0;
-	ctx->nparts = 0;
-    }
+    if (ctx == 0)
+	ctx = (DB_COMMON_CTX *) (*ctxPtr = db_common_alloc(dict));
+
     for (cp = format; *cp; ++cp)
 	if (*cp == '%')
 	    switch (*++cp) {

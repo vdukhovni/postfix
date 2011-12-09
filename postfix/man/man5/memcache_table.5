@@ -1,0 +1,188 @@
+.TH MEMCACHE_TABLE 5 
+.ad
+.fi
+.SH NAME
+memcache_table
+\-
+Postfix memcache client configuration
+.SH "SYNOPSIS"
+.na
+.nf
+\fBpostmap -q "\fIstring\fB" memcache:/etc/postfix/filename\fR
+
+\fBpostmap -q - memcache:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+.SH DESCRIPTION
+.ad
+.fi
+The Postfix mail system uses optional tables for address
+rewriting or mail routing. These tables are usually in
+\fBdbm\fR or \fBdb\fR format.
+
+Alternatively, lookup tables can be specified as memcache
+instances.  In order to use memcache lookups, define a
+memcache source as a lookup table in main.cf, for example:
+
+.nf
+    virtual_alias_maps = memcache:/etc/postfix/memcache-aliases.cf
+.fi
+
+The file /etc/postfix/memcache-aliases.cf has the same
+format as the Postfix main.cf file, and specifies the
+parameters described below.
+
+The Postfix memcache client supports the lookup and update
+operations.
+.SH "MEMCACHE PARAMETERS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBhosts (default: localhost:11211)\fR"
+The memcache servers that Postfix will try to connect to.
+Specify a hostname or address, optionally followed by ":"
+and a port name or number. The default port is 11211.
+Examples:
+
+.nf
+    hosts = memcache01.example.com
+        memcache02.example.com
+.fi
+.IP "\fBkey_format (default: %s)\fB"
+Format of the lookup and update keys in memcache queries.
+By default, these are the same as the lookup and update
+keys that are given to the Postfix memcache client.
+
+When the same memcache database is used to cache information
+from multiple tables, you can use the \fBkey_format\fR
+feature to avoid name collisions by prepending a fixed
+string.  Examples:
+
+.nf
+    key_format = aliases:%s
+    key_format = access:%s
+.fi
+
+The \fBkey_format\fR parameter supports the following '%'
+expansions:
+.RS
+.IP "\fB\fB%%\fR\fR"
+This is replaced by a literal '%' character.
+.IP "\fB\fB%s\fR\fR"
+This is replaced by the memcache client input key.
+.IP "\fB\fB%u\fR\fR"
+When the input key is an address of the form user@domain,
+\fB%u\fR is replaced by the SQL quoted local part of the
+address.  Otherwise, \fB%u\fR is replaced by the entire
+search string.  If the localpart is empty, a lookup is
+silently suppressed and returns no results (an update is
+skipped with a warning).
+.IP "\fB\fB%d\fR\fR"
+When the input key is an address of the form user@domain,
+\fB%d\fR is replaced by the domain part of the address.
+Otherwise, a lookup is silently suppressed and returns no
+results (an update is skipped with a warning).
+.IP "\fB\fB%[SUD]\fR\fR"
+The upper-case equivalents of the above expansions behave
+in the \fBkey_format\fR parameter identically to their
+lower-case counter-parts.
+.IP "\fB\fB%[1-9]\fR\fR"
+The patterns %1, %2, ... %9 are replaced by the corresponding
+most significant component of the input key's domain. If
+the input key is \fIuser@mail.example.com\fR, then %1 is
+\fBcom\fR, %2 is \fBexample\fR and %3 is \fBmail\fR. If the
+input key is unqualified or does not have enough domain
+components to satisfy all the specified patterns, a lookup
+is silently suppressed and returns no results (an update
+is skipped with a warning).
+.RE
+.IP "\fBdomain (default: no domain list)\fR"
+This feature can significantly reduce database server load.
+Specify a list of domain names, paths to files, or dictionaries.
+When specified, only fully qualified search keys with a
+*non-empty* localpart and a matching domain are eligible
+for lookup or update: bare 'user' lookups, bare domain
+lookups and "@domain" lookups are silently skipped (updates
+are skipped with a warning).  Example:
+
+.nf
+    domain = example.com, hash:/etc/postfix/searchdomains
+.fi
+.IP "\fBflags (default: 0)\fR"
+Optional flags that should be stored along with a memcache
+update.
+.IP "\fBttl (default: 604800)\fR"
+The expiration time in seconds of memcache updates.
+The default is one week.
+
+When using memcache tables with \fBpostscreen\fR(8) or
+\fBverify\fR(8), specify a zero *_cache_cleanup_interval
+value, and specify the largest \fBpostscreen\fR(8) *_ttl
+value or \fBverify\fR(8) *_expire_time value as the memcache
+map's \fBttl\fR value.
+
+Note: according to memcache protocol documentation, a value
+greater than 30 days (2592000 seconds) specifies absolute UNIX
+time. Smaller values are relative to the time of the update.
+.SH BUGS
+.ad
+.fi
+The Postfix memcache client is based on libmemcache, which
+will terminate its process after a memcache server goes
+down. To avoid this, set up redundant memcache servers that
+have no common source of failure.
+
+The Postfix memcache client cannot be used for security-sensitive
+tables such as \fBalias_maps\fR (these may contain
+"\fI|command\fR and "\fI/file/name\fR" destinations), or
+\fBvirtual_uid_maps\fR and \fBvirtual_gid_maps\fR (these
+specify UNIX process privileges).  In a typical deployment
+a memcache database is shared via a TCP socket, and is
+therefore writable not only by Postfix, but by any process
+that can talk to the memcache server.
+
+The Postfix memcache client requires additional configuration
+when used with the \fBpostscreen\fR(8) and \fBverify\fR(8)
+daemons.  For details see the \fBttl\fR parameter discussion
+at the end of the MEMCACHE PARAMETERS section in this
+document.
+
+The Postfix memcache client is supported only with libmemcache
+version 1.4.0.  Some libmemcache features are documented
+by reading libmemcache source code, instead a proper API.
+.SH "SEE ALSO"
+.na
+.nf
+postmap(1), Postfix lookup table manager
+postconf(5), configuration parameters
+.SH "README FILES"
+.na
+.nf
+.ad
+.fi
+Use "\fBpostconf readme_directory\fR" or
+"\fBpostconf html_directory\fR" to locate this information.
+.na
+.nf
+DATABASE_README, Postfix lookup table overview
+MEMCACHE_README, Postfix memcache client guide
+.SH "LICENSE"
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+.ad
+.fi
+The first memcache client for Postfix was written by Omar
+Kilani.  Besides being implemented on libmemcache, this
+implementation bears no resemblance to his work.
+.SH "AUTHOR(S)"
+.na
+.nf
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

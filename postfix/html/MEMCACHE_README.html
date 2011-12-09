@@ -1,0 +1,113 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix memcache client Howto</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix memcache client Howto</h1>
+
+<hr>
+
+<h2>Introduction</h2>
+
+<p>The Postfix memcache client type allows you to hook up Postfix to
+a memcache server. This implementation supports multiple memcache
+servers for redundancy, and multiple memcache clients that you can
+use for different table lookups. The Postfix memcache client
+supports both lookup and update operations. </p>
+
+<p> Typically, a memcache map is used to reduce query load on a
+database server, or to share a low-latency database among different
+Postfix instances. </p>
+
+<h2>Limitations</h2>
+
+<ul>
+
+<li> <p> The Postfix memcache client is based on libmemcache, which
+will terminate its process after a memcache server goes down. To
+avoid this, set up redundant memcache servers that have no common
+source of failure. </p>
+
+<li> <p> The Postfix memcache client cannot be used for security-sensitive
+tables such as <tt><a href="postconf.5.html#alias_maps">alias_maps</a></tt> (these may contain "<tt>|command</tt>"
+and "<tt>/file/name</tt>" destinations), or <tt><a href="postconf.5.html#virtual_uid_maps">virtual_uid_maps</a></tt>
+and <tt><a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a></tt> (these specify UNIX process privileges).
+Typically, a memcache database is shared via a TCP socket, and is
+writable not only by Postfix, but by any process that can talk to
+the memcache server. </p>
+
+<li> <p> The Postfix memcache client requires additional configuration
+when used with the <a href="postscreen.8.html">postscreen(8)</a> and <a href="verify.8.html">verify(8)</a> daemons. For details
+see the <tt>ttl</tt> parameter discussion in the <a href="memcache_table.5.html">memcache_table(5)</a>
+manual page. </p>
+
+<li> <p> The Postfix memcache client is supported only with libmemcache
+version 1.4.0.  Some libmemcache features are documented by reading
+libmemcache source code, instead of a proper API.  </p>
+
+</ul>
+
+<h2>Building Postfix with memcache support</h2>
+
+<p>To build Postfix with memcache client support, specify
+<tt>-DHAS_MEMCACHE</tt>, the location of the libmemcache include
+files, and the location of the libmemcache object library. </p>
+
+<p> For example: </p>
+
+<blockquote>
+<pre>
+% make -f Makefile.init makefiles \
+        'CCARGS=-DHAS_MEMCACHE -I/usr/local/include' \
+	'AUXLIBS=-L/usr/local/lib -lmemcache'
+</pre>
+</blockquote>
+
+<p> Then run 'make'.  </p>
+
+<p> If the build fails with "<tt>undefined reference to `mcm_buf_len'</tt>"
+(and with a similar error message for <tt>mcm_buf_remain_off</tt>),
+then you need to edit libmemcache source code. </p>
+
+<p> The following instructions apply to libmemcache 1.4.0.rc2. </p>
+
+<ul>
+
+<li> <p> Open the libmemcache source file
+<tt>include/memcache/buffer.h</tt>. </p>
+
+<li> <p> Delete the "<tt>inline</tt>" words before the functions
+that were reported in the "<tt>undefined reference</tt>" error
+messages.  </p>
+
+<li> <p> Recompile and reinstall libmemcache. </p>
+
+</ul>
+
+<p> Then, continue building Postfix by running 'make'. </p>
+
+<h2>Configuring memcache lookup tables</h2>
+
+<p> Configuration is described in the <a href="memcache_table.5.html">memcache_table(5)</a> manpage. </p>
+
+<h2>Credits</h2>
+
+<p> The first memcache client for Postfix was written by Omar Kilani. </p>
+
+<p> Wietse wrote a new memcache client from the ground up.  Besides
+also using libmemcache, the current implementation bears no resemblance
+to Omar's work.  </p>
+
+</body>
+
+</html>

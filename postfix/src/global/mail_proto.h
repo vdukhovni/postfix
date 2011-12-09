@@ -257,6 +257,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_CIPHER_NAME	"cipher_name"
 #define MAIL_ATTR_CIPHER_USEBITS "cipher_usebits"
 #define MAIL_ATTR_CIPHER_ALGBITS "cipher_algbits"
+#define MAIL_ATTR_SERVER_ID	"server_id"
 
  /*
   * SMTP reply footer support.

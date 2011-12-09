@@ -785,6 +785,11 @@ int     main(int argc, char **argv)
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Parse JCL.
      */
     while ((ch = GETOPT(argc, argv, "Nbc:d:fhimnopq:rsvw")) > 0) {
@@ -857,7 +862,7 @@ int     main(int argc, char **argv)
     if (strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0)
 	msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
     mail_dict_init();
-    if ((query == 0 || strcmp(query, "-") != 0) 
+    if ((query == 0 || strcmp(query, "-") != 0)
 	&& (postmap_flags & POSTMAP_FLAG_ANY_KEY))
 	msg_fatal("specify -b -h or -m only with \"-q -\"");
 

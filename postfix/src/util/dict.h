@@ -164,6 +164,11 @@ extern int dict_changed(void);
 extern const char *dict_changed_name(void);
 extern const char *dict_flags_str(int);
 
+ /*
+  * Driver for interactive or scripted tests.
+  */
+void    dict_test(int, char **);
+
 /* LICENSE
 /* .ad
 /* .fi

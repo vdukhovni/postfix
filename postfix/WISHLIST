@@ -2,13 +2,17 @@ Wish list:
 
 	Things to do before the stable release:
 
+	Either make all void dict_* operations return an error code,
+	or require that they reset dict_errno on entry, either exit
+	with a fatal error or set dict_errno on error.
+
+	Is it possible to replace msg_fatal calls in match_ops.c
+	by msg_warn and longjmp? The callers will have to specify
+	if they want the code to return instead of terminate.
+
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
-
-	Investigate viability of memcached for applications
-	that require performance for low-security operations
-	such as sharing the postscreen cache.
 
 	What is the feasibility of adding an mta_name (personality)
 	attribute that is propagated via queue files and delivery

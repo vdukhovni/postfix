@@ -191,6 +191,7 @@
 #include <timed_ipc.h>
 #include <resolve_local.h>
 #include <mail_flow.h>
+#include <mail_version.h>
 
 /* Process manager. */
 
@@ -455,6 +456,11 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
     if (msg_verbose)
 	msg_info("daemon started");
+
+    /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
 
     /*
      * Initialize from the configuration file. Allow command-line options to

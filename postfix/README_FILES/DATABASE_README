@@ -210,6 +210,9 @@ To find out what database types your Postfix system supports, use the "ppooss
     llddaapp (read-only)
         Perform lookups using the LDAP protocol. Configuration details are
         given in the ldap_table(5).
+    mmeemmccaacchhee (read-write)
+        Perform memcache database lookups or updates. Configuration details are
+        given in memcache_table(5).
     mmyyssqqll (read-only)
         Perform MySQL database lookups. Configuration details are given in
         mysql_table(5).

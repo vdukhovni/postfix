@@ -21,6 +21,7 @@
 typedef void (*db_quote_callback_t)(DICT *, const char *, VSTRING *);
 
 extern int db_common_parse(DICT *, void **, const char *, int);
+extern void *db_common_alloc(DICT *);
 extern void db_common_parse_domain(CFG_PARSER *, void *);
 extern int db_common_dict_partial(void *);
 extern int db_common_expand(void *, const char *, const char *,

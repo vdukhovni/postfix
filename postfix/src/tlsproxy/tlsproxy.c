@@ -692,7 +692,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 			 timeout = 0,		/* unused */
 			 requirecert = (var_tlsp_tls_req_ccert
 					&& var_tlsp_enforce_tls),
-			 serverid = MAIL_SERVICE_SMTPD,	/* XXX */
+			 serverid = state->server_id,
 			 namaddr = state->remote_endpt,
 			 cipher_grade = cipher_grade,
 			 cipher_exclusions = STR(cipher_exclusions),
@@ -775,6 +775,7 @@ static void tlsp_get_request_event(int event, char *context)
     VSTREAM *plaintext_stream = state->plaintext_stream;
     int     plaintext_fd = vstream_fileno(plaintext_stream);
     static VSTRING *remote_endpt;
+    static VSTRING *server_id;
     int     req_flags;
     int     timeout;
     int     ready;
@@ -782,8 +783,10 @@ static void tlsp_get_request_event(int event, char *context)
     /*
      * One-time initialization.
      */
-    if (remote_endpt == 0)
+    if (remote_endpt == 0) {
 	remote_endpt = vstring_alloc(10);
+	server_id = vstring_alloc(10);
+    }
 
     /*
      * At this point we still manually manage plaintext read/write/timeout
@@ -803,7 +806,8 @@ static void tlsp_get_request_event(int event, char *context)
 		     ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, remote_endpt,
 		     ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &req_flags,
 		     ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, &timeout,
-		     ATTR_TYPE_END) != 3) {
+		     ATTR_TYPE_STR, MAIL_ATTR_SERVER_ID, server_id,
+		     ATTR_TYPE_END) != 4) {
 	msg_warn("%s: receive request attributes: %m", myname);
 	event_disable_readwrite(plaintext_fd);
 	tlsp_state_free(state);
@@ -835,6 +839,7 @@ static void tlsp_get_request_event(int event, char *context)
      */
     else {
 	state->remote_endpt = mystrdup(STR(remote_endpt));
+	state->server_id = mystrdup(STR(server_id));
 	msg_info("CONNECT %s %s",
 		 (req_flags & TLS_PROXY_FLAG_ROLE_SERVER) ? "from" :
 		 (req_flags & TLS_PROXY_FLAG_ROLE_CLIENT) ? "to" :

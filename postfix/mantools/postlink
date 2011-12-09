@@ -776,6 +776,7 @@ while (<>) {
     s/[<bB>]*gener[-<\/bB>]*\n* *[<bB>]*ic[<\/bB>]*\(5\)/<a href="generic.5.html">$&<\/a>/g;
     s/[<bB>]*ldap[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="ldap_table.5.html">$&<\/a>/g;
     s/[<bB>]*mas[-<\/bB>]*\n* *[<bB>]*ter[<\/bB>]*\(5\)/<a href="master.5.html">$&<\/a>/g;
+    s/[<bB>]*memcache[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="memcache_table.5.html">$&<\/a>/g;
     s/[<bB>]*mysql[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="mysql_table.5.html">$&<\/a>/g;
     s/[<bB>]*nisplus[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="nisplus_table.5.html">$&<\/a>/g;
     s/[<bB>]*pcre[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="pcre_table.5.html">$&<\/a>/g;
@@ -788,7 +789,7 @@ while (<>) {
     s/[<bB>]*scache[<\/bB>]*\(8\)/<a href="scache.8.html">$&<\/a>/g;
     s/[<bB>]*sqlite[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="sqlite_table.5.html">$&<\/a>/g;
     s/[<bB>]*trans[-<\/bB>]*\n*[ <bB>]*port[<\/bB>]*\(5\)/<a href="transport.5.html">$&<\/a>/g;
-    s/[<bB>]*verify[<\/bB>]*\(8\)/<a href="verify.8.html">$&<\/a>/g;
+    s/[<bB>]*ver[-<\/bB>]*\n*[ <bB>]*ify[<\/bB>]*\(8\)/<a href="verify.8.html">$&<\/a>/g;
     s/[<bB>]*vir[-<\/bB>]*\n*[ <bB>]*tual[<\/bB>]*\(5\)/<a href="virtual.5.html">$&<\/a>/g;
     s/[<bB>]*vir[-<\/bB>]*\n*[ <bB>]*tual[<\/bB>]*\(8\)/<a href="virtual.8.html">$&<\/a>/g;
     s/[<bB>]*cidr_ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="cidr_table.5.html">$&<\/a>/g;
@@ -1064,6 +1065,7 @@ while (<>) {
     s/\b(static):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
     s/\b(texthash):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
+    s/\b(memcache):/<a href="memcache_table.5.html">$1<\/a>:/g;
 
     # Do nice links for smtp:host:port etc.
 

@@ -92,6 +92,7 @@ event_server.o: ../../include/mail_conf.h
 event_server.o: ../../include/mail_dict.h
 event_server.o: ../../include/mail_params.h
 event_server.o: ../../include/mail_task.h
+event_server.o: ../../include/mail_version.h
 event_server.o: ../../include/msg.h
 event_server.o: ../../include/msg_syslog.h
 event_server.o: ../../include/msg_vstream.h
@@ -278,6 +279,7 @@ multi_server.o: ../../include/mail_conf.h
 multi_server.o: ../../include/mail_dict.h
 multi_server.o: ../../include/mail_params.h
 multi_server.o: ../../include/mail_task.h
+multi_server.o: ../../include/mail_version.h
 multi_server.o: ../../include/msg.h
 multi_server.o: ../../include/msg_syslog.h
 multi_server.o: ../../include/msg_vstream.h
@@ -307,6 +309,7 @@ single_server.o: ../../include/mail_conf.h
 single_server.o: ../../include/mail_dict.h
 single_server.o: ../../include/mail_params.h
 single_server.o: ../../include/mail_task.h
+single_server.o: ../../include/mail_version.h
 single_server.o: ../../include/msg.h
 single_server.o: ../../include/msg_syslog.h
 single_server.o: ../../include/msg_vstream.h
@@ -336,6 +339,7 @@ trigger_server.o: ../../include/mail_conf.h
 trigger_server.o: ../../include/mail_dict.h
 trigger_server.o: ../../include/mail_params.h
 trigger_server.o: ../../include/mail_task.h
+trigger_server.o: ../../include/mail_version.h
 trigger_server.o: ../../include/msg.h
 trigger_server.o: ../../include/msg_syslog.h
 trigger_server.o: ../../include/msg_vstream.h

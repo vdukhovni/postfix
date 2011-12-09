@@ -17231,3 +17231,55 @@ Apologies for any names omitted.
 	Bugfix: tlsproxy(8) stored TLS sessions with a serverID of
 	"tlsproxy" instead of "smtpd", wasting an opportunity for
 	session reuse.  File: tlsproxy/tlsproxy.c.
+
+20111206
+
+	Documentation: removed descriptions of Postfix < 2.3 user
+	interface from TLS_README. Users of earlier releases are
+	referred to TLS_LEGACY_README. File: proto/TLS_README.html.
+
+20111207
+
+	Cleanup: tlsproxy(8) now receives the session cache serverID
+	from its client (postscreen(8)). Files: global/mail_proto.h,
+	postscreen/postscreen_starttls.c, tlsproxy/tlsproxy.[hc],
+	tlsproxy_state.c.
+
+	Cleanup: the postscreen(8) daemon did not support a zero
+	cache cleanup interval. This is needed for memcache support.
+	File: postscreen/postscreen.c.
+
+	Bugfix (introduced: 20110227): null pointer bug while
+	updating dictionary owner attributes, after reading an empty
+	(database) configuration file. File: util/dict.c.
+
+20111208
+
+	Cleanup: db_common_parse_domain() could not be called without
+	preceding db_common_parse() call. Files: global/db_common.[hc].
+
+20111209
+
+	Feature: memcache client support. This implementation is
+	based on the under-documented libmemcache library, and
+	therefore supports only libmemcache version 1.4.0.  Files:
+	conf/postfix-files, global/dict_memcache.[hc], global/mail_dict.c,
+	html/index.html, mantools/postlink, postconf/postconf.c,
+	postfix/postfix.c, proto/DATABASE_README.html,
+	proto/MEMCACHE_README.html, proto/memcache_table.
+
+20111209
+
+	Cleanup: support for scripted and manual database tests with
+	LDAP, *SQL, and memcache. Files: util/dict_test.c, util/dict.c,
+	global/mail_dict.c.
+
+	Workaround: apparently, some distributions don't use proper
+	so-number versioning, causing programs to fail erratically
+	after an update replaces the Postfix library but not the
+	program.  Files: global/mail_version.[hc], master/*server.c,
+	master/master.c, src/postalias/postalias.c,
+	src/postdrop/postdrop.c, src/postfix/postfix.c,
+	src/postlog/postlog.c, src/postmap/postmap.c,
+	src/postmulti/postmulti.c, src/postqueue/postqueue.c,
+	src/postsuper/postsuper.c, src/sendmail/sendmail.c.

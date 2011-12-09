@@ -310,6 +310,11 @@ a process terminates. </dd>
 <dd> Perform lookups using the LDAP protocol. Configuration details
 are given in the <a href="ldap_table.5.html">ldap_table(5)</a>. </dd>
 
+<dt> <b>memcache</b> (read-write) </dt>
+
+<dd> Perform memcache database lookups or updates. Configuration
+details are given in <a href="memcache_table.5.html">memcache_table(5)</a>. </dd>
+
 <dt> <b>mysql</b> (read-only) </dt>
 
 <dd> Perform MySQL database lookups. Configuration details are given
@@ -367,7 +372,7 @@ in <a href="sqlite_table.5.html">sqlite_table(5)</a>. </dd>
 <dt> <b>static</b> (read-only) </dt>
 
 <dd> Always returns its lookup table name as lookup result.  For
-example, the lookup table "static:foobar" always returns the string
+example, the lookup table "<a href="DATABASE_README.html#types">static</a>:foobar" always returns the string
 "foobar" as lookup result. </dd>
 
 <dt> <b>tcp</b> </dt>
@@ -383,8 +388,8 @@ number.
 
 <dd> This produces similar results as hash: files, except that you
 don't have to run the <a href="postmap.1.html">postmap(1)</a> command before you can use the
-file, and that texthash: does not detect changes after the file is
-read.  The lookup table name is "texthash:filename", where the file
+file, and that <a href="DATABASE_README.html#types">texthash</a>: does not detect changes after the file is
+read.  The lookup table name is "<a href="DATABASE_README.html#types">texthash</a>:filename", where the file
 name is taken literally; no suffix is appended. </dd>
 
 <dt> <b>unix</b> (read-only) </dt>

@@ -294,6 +294,11 @@ int     main(int argc, char **argv)
     msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * The mail system must be run by the superuser so it can revoke
      * privileges for selected operations. That's right - it takes privileges
      * to toss privileges.

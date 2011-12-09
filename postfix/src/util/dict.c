@@ -401,12 +401,26 @@ void    dict_load_file(const char *dict_name, const char *path)
 
 void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 {
+    const char *myname = "dict_load_fp";
     VSTRING *buf;
     char   *member;
     char   *val;
     int     lineno;
     const char *err;
     struct stat st;
+    DICT_NODE *node;
+    DICT   *dict;
+
+    /*
+     * Instantiate the dictionary even if the file is empty.
+     */
+    if ((node = dict_node(dict_name)) == 0) {
+	if (dict_unknown_allowed == 0)
+	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
+	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
+	dict_register(dict_name, dict);
+    } else
+	dict = node->dict;
 
     buf = vstring_alloc(100);
     lineno = 0;
@@ -417,11 +431,13 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 	if ((err = split_nameval(STR(buf), &member, &val)) != 0)
 	    msg_fatal("%s, line %d: %s: \"%s\"",
 		      VSTREAM_PATH(fp), lineno, err, STR(buf));
-	dict_update(dict_name, member, val);
+	if (msg_verbose > 1)
+	    msg_info("%s: %s = %s", myname, member, val);
+	dict->update(dict, member, val);
     }
     vstring_free(buf);
-    dict_handle(dict_name)->owner.uid = st.st_uid;
-    dict_handle(dict_name)->owner.status = (st.st_uid != 0);
+    dict->owner.uid = st.st_uid;
+    dict->owner.status = (st.st_uid != 0);
 }
 
 /* dict_eval_lookup - macro parser call-back routine */

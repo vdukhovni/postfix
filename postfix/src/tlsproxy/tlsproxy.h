@@ -32,6 +32,7 @@ typedef struct {
     EVENT_NOTIFY_FN ciphertext_timer;	/* kludge */
     int     timeout;			/* read/write time limit */
     char   *remote_endpt;		/* printable remote endpoint */
+    char   *server_id;			/* cache management */
     TLS_SESS_STATE *tls_context;	/* llibtls state */
     int     ssl_last_err;		/* TLS I/O state */
 } TLSP_STATE;

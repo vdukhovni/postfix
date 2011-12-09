@@ -175,6 +175,9 @@
 /* .IP "\fBldap\fR (read-only)"
 /*	Perform lookups using the LDAP protocol. This is described
 /*	in \fBldap_table\fR(5).
+/* .IP "\fBmemcache\fR (read-write)"
+/*	Perform lookups using the memcache protocol. This is described
+/*	in \fBmemcache_table\fR(5).
 /* .IP "\fBmysql\fR (read-only)"
 /*	Perform lookups using the MYSQL protocol. This is described
 /*	in \fBmysql_table\fR(5).

@@ -37,6 +37,7 @@
 #include <dict_mysql.h>
 #include <dict_pgsql.h>
 #include <dict_sqlite.h>
+#include <dict_memcache.h>
 #include <mail_dict.h>
 
 typedef struct {
@@ -58,6 +59,9 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_SQLITE
     DICT_TYPE_SQLITE, dict_sqlite_open,
 #endif
+#ifdef HAS_MEMCACHE
+    DICT_TYPE_MEMCACHE, dict_memcache_open,
+#endif
     0,
 };
 
@@ -70,3 +74,17 @@ void    mail_dict_init(void)
     for (dp = dict_open_info; dp->type; dp++)
 	dict_open_register(dp->type, dp->open);
 }
+
+#ifdef TEST
+
+ /*
+  * Proof-of-concept test program.
+  */
+int     main(int argc, char **argv)
+{
+    mail_dict_init();
+    dict_test(argc, argv);
+    return (0);
+}
+
+#endif
