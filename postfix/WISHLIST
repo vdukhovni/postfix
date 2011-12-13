@@ -6,6 +6,9 @@ Wish list:
 	or require that they reset dict_errno on entry, either exit
 	with a fatal error or set dict_errno on error.
 
+	dict_memcache: treat "bad" key as cache miss, i.e.  read/write
+	the database as if the cache did not exist.
+
 	Is it possible to replace msg_fatal calls in match_ops.c
 	by msg_warn and longjmp? The callers will have to specify
 	if they want the code to return instead of terminate.

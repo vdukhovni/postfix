@@ -141,6 +141,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_TTL		"ttl"
 #define MAIL_ATTR_LABEL		"label"
 #define MAIL_ATTR_PROP		"property"
+#define MAIL_ATTR_FUNC		"function"
 #define MAIL_ATTR_CCERT_SUBJECT	"ccert_subject"
 #define MAIL_ATTR_CCERT_ISSUER	"ccert_issuer"
 #define MAIL_ATTR_CCERT_FINGERPRINT "ccert_fingerprint"

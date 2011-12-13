@@ -107,7 +107,9 @@
 /*	modified, or if the result is to survive multiple dict_lookup() calls.
 /*
 /*	dict_delete() removes the named member from the named dictionary.
-/*	The result value is zero when the member was found.
+/*	The result value is zero when the member was found, > 0 if
+/*	it was not found, and < 0 in case of error (a database may
+/*	not return after error).
 /*
 /*	dict_sequence() steps through the named dictionary and returns
 /*	keys and values in some implementation-defined order. The func

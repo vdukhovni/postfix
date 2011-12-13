@@ -17283,3 +17283,22 @@ Apologies for any names omitted.
 	src/postlog/postlog.c, src/postmap/postmap.c,
 	src/postmulti/postmulti.c, src/postqueue/postqueue.c,
 	src/postsuper/postsuper.c, src/sendmail/sendmail.c.
+
+20111211
+
+	Feature: first/next (sequence) support in the proxymap
+	protocol. This is needed for cache cleanup of a proxied
+	postscreen or verify persistent cache. Files:
+	global/dict_proxy.[hc], proxymap/proxymap.c.
+
+	Feature: memcache client support without libmemcache
+	dependencies. Files: global/memcache_proto.[hc],
+	global/dict_memcache.c.
+
+	Feature: support for persistent backup database in the
+	memcache client. The database can be shared with the proxymap
+	service, but it needs to be listed as "proxy:maptype:mapname"
+	in the proxy_read_maps or proxy_write_maps parameter value
+	(depending on whether the access is read-only or read-write).
+	Support for proxymap-over-tcp (proxy:maptype:mapname@host:port)
+	is under development.  File: global/dict_memcache.c.

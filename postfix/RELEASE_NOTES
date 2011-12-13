@@ -14,6 +14,33 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Major changes with snapshot 20111213
+====================================
+
+Support for a persistent backup database in the memcache client.
+The memcache client updates the memcache whenever it looks up or
+modifies information in the persistent database.
+
+The persistent database can be shared with the proxymap service,
+but it needs to be listed as "proxy:maptype:mapname" in the
+proxy_read_maps or proxy_write_maps parameter value (depending on
+whether the access is read-only or read-write).
+
+Support for proxymap-over-tcp (proxy:maptype:mapname@host:port) is
+under development.
+
+Elimination of dependencies on the libmemcache library. Postfix
+memcache support is now compiled in by default.
+
+Major changes with snapshot 20111209
+====================================
+
+memcache lookup and update support. This provides a way to share
+postscreen(8) or verify(8) caches between Postfix instances.  The
+Postfix memcache client can't be used for security-sensitive
+information, and it supports only libmemcache version 1.4.0.  See
+MEMCACHE_README and memcache_table(5) for details and limitations.
+
 Incompatible changes with snapshot 20111205
 ===========================================
 

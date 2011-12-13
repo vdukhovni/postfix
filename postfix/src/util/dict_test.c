@@ -87,7 +87,7 @@ void    dict_test(int argc, char **argv)
 	if (*bufp == '#')
 	    continue;
 	if ((cmd = mystrtok(&bufp, " ")) == 0) {
-	    vstream_printf("usage: del key|get key|put key=value|first|next\n");
+	    vstream_printf("usage: verbose|del key|get key|put key=value|first|next\n");
 	    vstream_fflush(VSTREAM_OUT);
 	    continue;
 	}
@@ -95,7 +95,9 @@ void    dict_test(int argc, char **argv)
 	    msg_warn("dictionary has changed");
 	key = *bufp ? vstring_str(unescape(keybuf, mystrtok(&bufp, " ="))) : 0;
 	value = mystrtok(&bufp, " =");
-	if (strcmp(cmd, "del") == 0 && key && !value) {
+	if (strcmp(cmd, "verbose") == 0 && !key) {
+	    msg_verbose++;
+	} else if (strcmp(cmd, "del") == 0 && key && !value) {
 	    if (dict_del(dict, key))
 		vstream_printf("%s: not found\n", key);
 	    else

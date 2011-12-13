@@ -2,7 +2,7 @@
 /* NAME
 /*	dict_memcache 3
 /* SUMMARY
-/*	dictionary interface to memcache databases
+/*	dictionary interface to memcaches
 /* SYNOPSIS
 /*	#include <dict_memcache.h>
 /*
@@ -11,7 +11,7 @@
 /*	int	open_flags;
 /*	int	dict_flags;
 /* DESCRIPTION
-/*	dict_memcache_open() opens a memcache database, providing
+/*	dict_memcache_open() opens a memcache, providing
 /*	a dictionary interface for Postfix key->value mappings.
 /*	The result is a pointer to the installed dictionary.
 /*
@@ -19,9 +19,7 @@
 /*
 /*	Arguments:
 /* .IP name
-/*	Either the path to the Postfix memcache configuration file
-/*	(if it starts with '/' or '.'), or the parameter name prefix
-/*	which will be used to obtain main.cf configuration parameters.
+/*	The path to the Postfix memcache configuration file.
 /* .IP open_flags
 /*	O_RDONLY or O_RDWR. This function ignores flags that don't
 /*	specify a read, write or append mode.
@@ -29,14 +27,13 @@
 /*	See dict_open(3).
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
-/* BUGS
-/*	This code requires libmemcache 1.4.0, because some parts
-/*	of their API are documented by looking at the implementation.
 /* HISTORY
-/*	The first memcache client for Postfix was written by:
-/*	Omar Kilani
-/*	omar@tinysofa.com
-/*	This implementation bears no resemblance to his work.
+/* .ad
+/* .fi
+/*	The first memcache client for Postfix was written by Omar
+/*	Kilani, and was based on libmemcache.  The current
+/*	implementation implements the memcache protocol directly,
+/*	and bears no resemblance to earlier work.
 /* AUTHOR(S)
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
@@ -46,15 +43,10 @@
 
 /* System library. */
 
-#include "sys_defs.h"
-
-#ifdef HAS_MEMCACHE
+#include <sys_defs.h>
 #include <string.h>
-#include <memcache.h>
-
-#if !defined(MEMCACHE_VERNUM) || MEMCACHE_VERNUM != 10400
-#error "Postfix memcache supports only libmemcache version 1.4.0"
-#endif
+#include <ctype.h>
+#include <stdio.h>			/* XXX sscanf() */
 
 /* Utility library. */
 
@@ -63,50 +55,39 @@
 #include <dict.h>
 #include <vstring.h>
 #include <stringops.h>
-#include <binhash.h>
+#include <auto_clnt.h>
+#include <vstream.h>
 
 /* Global library. */
 
 #include <cfg_parser.h>
 #include <db_common.h>
+#include <memcache_proto.h>
 
 /* Application-specific. */
 
 #include <dict_memcache.h>
 
  /*
-  * Robustness tests (with a single memcache server) proved disappointing.
-  * 
-  * After failure to connect to the memcache server, libmemcache reports the
-  * error once. From then on it silently discards all updates and always
-  * reports "not found" for all lookups, without ever reporting an error. To
-  * avoid this, we destroy the memcache client and create a new one after
-  * libmemcache reports an error.
-  * 
-  * Even more problematic is that libmemcache will terminate the process when
-  * the memcache server connection is lost (the libmemcache error message is:
-  * "read(2) failed: Socket is already connected"). Unfortunately, telling
-  * libmemcache not to terminate the process will result in an assertion
-  * failure followed by core dump.
-  * 
-  * Conclusion: if we want robust code, then we should use our own memcache
-  * protocol implementation instead of libmemcache.
-  */
-
- /*
   * Structure of one memcache dictionary handle.
   */
 typedef struct {
     DICT    dict;			/* parent class */
-    struct memcache_ctxt *mc_ctxt;	/* libmemcache context */
-    struct memcache *mc;		/* libmemcache object */
     CFG_PARSER *parser;			/* common parameter parser */
     void   *dbc_ctxt;			/* db_common context */
     char   *key_format;			/* query key translation */
+    int     timeout;			/* client timeout */
     int     mc_ttl;			/* memcache expiration */
     int     mc_flags;			/* memcache flags */
+    int     mc_pause;			/* sleep between errors */
+    int     mc_maxtry;			/* number of tries */
+    char   *memcache;			/* memcache server spec */
+    AUTO_CLNT *clnt;			/* memcache client stream */
+    VSTRING *clnt_buf;			/* memcache client buffer */
     VSTRING *key_buf;			/* lookup key */
     VSTRING *res_buf;			/* lookup result */
+    int     mc_errno;			/* memcache dict_errno */
+    DICT   *backup;			/* persistent backup */
 } DICT_MC;
 
  /*
@@ -114,23 +95,13 @@ typedef struct {
   */
 #define DICT_MC_DEF_HOST	"localhost"
 #define DICT_MC_DEF_PORT	"11211"
-#define DICT_MC_DEF_HOST_PORT	DICT_MC_DEF_HOST ":" DICT_MC_DEF_PORT
+#define DICT_MC_DEF_MEMCACHE	"inet:" DICT_MC_DEF_HOST ":" DICT_MC_DEF_PORT
 #define DICT_MC_DEF_KEY_FMT	"%s"
-#define DICT_MC_DEF_TTL		(7 * 86400)
-#define DICT_MC_DEF_FLAGS	0
-
- /*
-  * libmemcache can report errors through an application call-back function,
-  * but there is no support for passing application context to the call-back.
-  * The call-back API has two documented arguments: pointer to memcache_ctxt,
-  * and pointer to memcache_ectxt. The memcache_ctxt data structure has no
-  * space for application context, and the mcm_err() function zero-fills the
-  * memcache_ectxt data structure, making it useless for application context.
-  * 
-  * We use our own hash table to find our dictionary handle, so that we can
-  * report errors in the proper context.
-  */
-static BINHASH *dict_mc_hash;
+#define DICT_MC_DEF_MC_TTL	3600
+#define DICT_MC_DEF_MC_TIMEOUT	2
+#define DICT_MC_DEF_MC_FLAGS	0
+#define DICT_MC_DEF_MC_MAXTRY	2
+#define DICT_MC_DEF_MC_PAUSE	1
 
  /*
   * SLMs.
@@ -138,77 +109,94 @@ static BINHASH *dict_mc_hash;
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
 
-/*#define msg_verbose 1*/
+#define msg_verbose 1
 
-/* dict_memcache_error_cb - error call-back */
+/* dict_memcache_set - set memcache key/value */
 
-static int dict_memcache_error_cb(MCM_ERR_FUNC_ARGS)
+static void dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 {
-    const char *myname = "dict_memcache_error_cb";
-    const struct memcache_ctxt *ctxt;
-    struct memcache_err_ctxt *ectxt;
-    DICT_MC *dict_mc;
-    void    (*log_fn) (const char *,...);
+    VSTREAM *fp;
+    int     count;
 
-    /*
-     * Play by the rules of the libmemcache API.
-     */
-    MCM_ERR_INIT_CTXT(ctxt, ectxt);
+#define MC_LINE_LIMIT 1024
 
-    /*
-     * Locate our own dictionary handle for error reporting context.
-     * Unfortunately, the ctxt structure does not store application context,
-     * and mcm_err() zero-fills the ectxt structure, making it useless for
-     * storing application context. We use our own hash table instead.
-     */
-    if ((dict_mc = (DICT_MC *) binhash_find(dict_mc_hash, (char *) &ctxt,
-					    sizeof(ctxt))) == 0)
-	msg_panic("%s: can't locate DICT_MC database handle", myname);
-
-    /*
-     * Report the error in our context, and set dict_errno for possible
-     * errors. We override dict_errno when an error was recoverable.
-     */
-    switch (ectxt->severity) {
-    default:
-#ifdef DICT_MC_RECOVER_FROM_DISCONNECT
-	/* Code below causes an assert failure and core dump. */
-	if (ectxt->errcode == MCM_ERR_SYS_READ)
-	    /* Also: MCM_ERR_SYS_WRITEV, MCM_ERR_SYS_SETSOCKOPT */
-	    ectxt->cont = 'y';
-#endif
-	/* FALLTHROUGH */
-    case MCM_ERR_LVL_NOTICE:
-	log_fn = msg_warn;
-	dict_errno = 1;
-	break;
-    case MCM_ERR_LVL_INFO:
-	log_fn = msg_info;
-	break;
+    dict_mc->mc_errno = DICT_ERR_RETRY;
+    for (count = 0; count < dict_mc->mc_maxtry; count++) {
+	if (count > 0)
+	    sleep(1);
+	if ((fp = auto_clnt_access(dict_mc->clnt)) != 0) {
+	    if (memcache_printf(fp, "set %s %d %d %ld",
+				STR(dict_mc->key_buf), dict_mc->mc_flags,
+				ttl, strlen(value)) < 0
+		|| memcache_fwrite(fp, value, strlen(value)) < 0
+		|| memcache_get(fp, dict_mc->clnt_buf, MC_LINE_LIMIT) < 0) {
+		if (count > 0)
+		    msg_warn("database %s:%s: I/O error: %m",
+			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+		auto_clnt_recover(dict_mc->clnt);
+	    } else if (strcmp(STR(dict_mc->clnt_buf), "STORED") != 0) {
+		if (count > 0)
+		    msg_warn("database %s:%s: update failed: %.30s",
+			     DICT_TYPE_MEMCACHE, dict_mc->dict.name,
+			     STR(dict_mc->clnt_buf));
+		auto_clnt_recover(dict_mc->clnt);
+	    } else {
+		/* Victory! */
+		dict_mc->mc_errno = 0;
+		break;
+	    }
+	}
     }
-    log_fn((ectxt)->errnum ? "database %s:%s: libmemcache error: %s: %m" :
-	   "database %s:%s: libmemcache error: %s",
-	   DICT_TYPE_MEMCACHE, dict_mc->dict.name, (ectxt)->errstr);
-    return (0);
 }
 
-static void dict_memcache_mc_free(DICT_MC *);
-static void dict_memcache_mc_init(DICT_MC *);
+/* dict_memcache_get - get memcache key/value */
 
-/* dict_memcache_recover - recover after libmemcache error */
-
-static void dict_memcache_recover(DICT_MC *dict_mc)
+static const char *dict_memcache_get(DICT_MC *dict_mc)
 {
-    int     saved_dict_errno;
+    VSTREAM *fp;
+    long    todo;
+    const char *retval;
+    int     count;
 
-    /*
-     * XXX If we don't try to recover from the first error, libmemcache will
-     * silently skip all subsequent database operations.
-     */
-    saved_dict_errno = dict_errno;
-    dict_memcache_mc_free(dict_mc);
-    dict_memcache_mc_init(dict_mc);
-    dict_errno = saved_dict_errno;
+    dict_mc->mc_errno = DICT_ERR_RETRY;
+    retval = 0;
+    for (count = 0; count < dict_mc->mc_maxtry; count++) {
+	if (count > 0)
+	    sleep(1);
+	if ((fp = auto_clnt_access(dict_mc->clnt)) != 0) {
+	    if (memcache_printf(fp, "get %s", STR(dict_mc->key_buf)) < 0
+		|| memcache_get(fp, dict_mc->clnt_buf, MC_LINE_LIMIT) < 0) {
+		if (count > 0)
+		    msg_warn("database %s:%s: I/O error: %m",
+			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+		auto_clnt_recover(dict_mc->clnt);
+	    } else if (strcmp(STR(dict_mc->clnt_buf), "END") == 0) {
+		/* Not found. */
+		dict_mc->mc_errno = 0;
+		break;
+	    } else if (sscanf(STR(dict_mc->clnt_buf),
+			      "VALUE %*s %*s %ld", &todo) != 1 || todo < 0) {
+		if (count > 0)
+		    msg_warn("%s: unexpected memcache server reply: %.30s",
+			     dict_mc->dict.name, STR(dict_mc->clnt_buf));
+		auto_clnt_recover(dict_mc->clnt);
+	    } else if (memcache_fread(fp, dict_mc->res_buf, todo) < 0) {
+		if (count > 0)
+		    msg_warn("%s: EOF receiving memcache server reply",
+			     dict_mc->dict.name);
+		auto_clnt_recover(dict_mc->clnt);
+	    } else {
+		/* Victory! */
+		retval = STR(dict_mc->res_buf);
+		dict_mc->mc_errno = 0;
+		if (memcache_get(fp, dict_mc->clnt_buf, MC_LINE_LIMIT) < 0
+		    || strcmp(STR(dict_mc->clnt_buf), "END") != 0)
+		    auto_clnt_recover(dict_mc->clnt);
+		break;
+	    }
+	}
+    }
+    return (retval);
 }
 
 /* dict_memcache_prepare_key - prepare lookup key */
@@ -249,189 +237,204 @@ static int dict_memcache_prepare_key(DICT_MC *dict_mc, const char *name)
     return (LEN(dict_mc->key_buf));
 }
 
-/* dict_memcache_update - update memcache database */
+/* dict_memcache_valid_key - validate key */
+
+static int dict_memcache_valid_key(DICT_MC *dict_mc,
+				           const char *name,
+				           const char *operation,
+				        void (*log_func) (const char *,...))
+{
+    unsigned char *cp;
+
+#define DICT_MC_SKIP(why) do { \
+	if (msg_verbose || log_func != msg_info) \
+	    log_func("%s: skipping %s for name \"%s\": %s", \
+		     dict_mc->dict.name, operation, name, (why)); \
+	return(0); \
+    } while (0)
+
+    if (*name == 0)
+	DICT_MC_SKIP("empty lookup key");
+    if (db_common_check_domain(dict_mc->dbc_ctxt, name) == 0)
+	DICT_MC_SKIP("domain mismatch");
+    if (dict_memcache_prepare_key(dict_mc, name) == 0)
+	DICT_MC_SKIP("empty lookup key expansion");
+    for (cp = (unsigned char *) STR(dict_mc->key_buf); *cp; cp++)
+	if (isascii(*cp) && isspace(*cp))
+	    DICT_MC_SKIP("name contains space");
+
+    return (1);
+}
+
+/* dict_memcache_update - update memcache */
 
 static void dict_memcache_update(DICT *dict, const char *name,
 				         const char *value)
 {
     const char *myname = "dict_memcache_update";
     DICT_MC *dict_mc = (DICT_MC *) dict;
+    int     backup_errno = 0;
 
     /*
-     * Skip updates with a null key, noisily. This would result in loss of
-     * information.
+     * Skip updates with an inapplicable key, noisily. This results in loss
+     * of information.
      */
-    if (dict_memcache_prepare_key(dict_mc, name) == 0) {
-	dict_errno = 1;
-	msg_warn("database %s:%s: name \"%s\" expands to empty lookup key "
-		 "-- skipping update", DICT_TYPE_MEMCACHE,
-		 dict_mc->dict.name, name);
+    dict_errno = DICT_ERR_RETRY;
+    if (dict_memcache_valid_key(dict_mc, name, "update", msg_warn) == 0)
 	return;
+
+    /*
+     * Update the backup database first.
+     */
+    if (dict_mc->backup) {
+	dict_errno = 0;
+	dict_mc->backup->update(dict_mc->backup, name, value);
+	backup_errno = dict_errno;
     }
 
     /*
-     * Our error call-back routine will report errors and set dict_errno.
+     * Update the memcache last.
      */
-    dict_errno = (mcm_set(dict_mc->mc_ctxt, dict_mc->mc, STR(dict_mc->key_buf),
-			  LEN(dict_mc->key_buf), value, strlen(value),
-			  dict_mc->mc_ttl, dict_mc->mc_flags) != 0);
+    dict_memcache_set(dict_mc, value, dict_mc->mc_ttl);
+
     if (msg_verbose)
 	msg_info("%s: %s: update key \"%s\" => \"%s\" %s",
 		 myname, dict_mc->dict.name, STR(dict_mc->key_buf), value,
-		 dict_errno ? "(error)" : "(no error)");
+		 dict_mc->mc_errno ? "(memcache error)" :
+		 backup_errno ? "(backup error)" : "(no error)");
 
-    /*
-     * Recover after server failure.
-     */
-    if (dict_errno)
-	dict_memcache_recover(dict_mc);
+    dict_errno = (backup_errno ? backup_errno : dict_mc->mc_errno);
 }
 
-/* dict_memcache_lookup - lookup memcache database */
+/* dict_memcache_lookup - lookup memcache */
 
 static const char *dict_memcache_lookup(DICT *dict, const char *name)
 {
     const char *myname = "dict_memcache_lookup";
     DICT_MC *dict_mc = (DICT_MC *) dict;
-    struct memcache_req *req;
-    struct memcache_res *res;
     const char *retval;
+    int     backup_errno = 0;
 
     /*
-     * Skip lookups with a null key, silently. This is just asking for
-     * information that cannot exist.
+     * Skip lookups with an inapplicable key, silently. This is just asking
+     * for information that cannot exist.
      */
-#define DICT_MC_SKIP(why, map_name, key) do { \
-	if (msg_verbose) \
-	    msg_info("%s: %s: skipping lookup of key \"%s\": %s", \
-		     myname, (map_name), (key), (why)); \
-	return (0); \
-    } while (0)
-
-    if (*name == 0)
-	DICT_MC_SKIP("empty lookup key", dict_mc->dict.name, name);
-    if (db_common_check_domain(dict_mc->dbc_ctxt, name) == 0)
-	DICT_MC_SKIP("domain mismatch", dict_mc->dict.name, name);
-    if (dict_memcache_prepare_key(dict_mc, name) == 0)
-	DICT_MC_SKIP("empty lookup key expansion", dict_mc->dict.name, name);
-
-    /*
-     * Our error call-back routine will report errors and set dict_errno. We
-     * reset dict_errno after an error turns out to be recoverable.
-     */
-    if ((req = mcm_req_new(dict_mc->mc_ctxt)) == 0)
-	msg_fatal("%s: can't create new request: %m", myname);	/* XXX */
-    /* Not: mcm_req_add(), because that makes unnecessary copy of the key. */
-    if ((res = mcm_req_add_ref(dict_mc->mc_ctxt, req, STR(dict_mc->key_buf),
-			       LEN(dict_mc->key_buf))) == 0)
-	msg_fatal("%s: can't create new result: %m", myname);	/* XXX */
-
     dict_errno = 0;
-    mcm_get(dict_mc->mc_ctxt, dict_mc->mc, req);
-    if (mcm_res_found(dict_mc->mc_ctxt, res) && res->bytes) {
-	vstring_strncpy(dict_mc->res_buf, res->val, res->bytes);
-	retval = STR(dict_mc->res_buf);
-	dict_errno = 0;
-    } else {
-	retval = 0;
-    }
-    mcm_res_free(dict_mc->mc_ctxt, req, res);
-    mcm_req_free(dict_mc->mc_ctxt, req);
+    if (dict_memcache_valid_key(dict_mc, name, "lookup", msg_info) == 0)
+	return (0);
 
+    /*
+     * Search the memcache first.
+     */
+    retval = dict_memcache_get(dict_mc);
+
+    /*
+     * Search the backup database last. Update the memcache if the data is
+     * found.
+     */
+    if (retval == 0 && dict_mc->backup) {
+	retval = dict_mc->backup->lookup(dict_mc->backup, name);
+	backup_errno = dict_errno;
+	/* Update the cache. */
+	if (retval != 0)
+	    dict_memcache_set(dict_mc, retval, dict_mc->mc_ttl);
+    }
     if (msg_verbose)
 	msg_info("%s: %s: key %s => %s",
 		 myname, dict_mc->dict.name, STR(dict_mc->key_buf),
-		 retval ? STR(dict_mc->res_buf) :
-		 dict_errno ? "(error)" : "(not found)");
-
-    /*
-     * Recover after server failure.
-     */
-    if (dict_errno)
-	dict_memcache_recover(dict_mc);
+		 retval ? retval :
+		 dict_mc->mc_errno ? "(memcache error)" :
+		 backup_errno ? "(backup error)" : "(not found)");
 
     return (retval);
 }
 
-/* dict_memcache_mc_free - destroy libmemcache objects */
+/* dict_memcache_delete - delete memcache entry */
 
-static void dict_memcache_mc_free(DICT_MC *dict_mc)
+static int dict_memcache_delete(DICT *dict, const char *name)
 {
-    binhash_delete(dict_mc_hash, (char *) &dict_mc->mc_ctxt,
-		   sizeof(dict_mc->mc_ctxt), (void (*) (char *)) 0);
-    mcm_free(dict_mc->mc_ctxt, dict_mc->mc);
-    mcMemFreeCtxt(dict_mc->mc_ctxt);
-}
-
-/* dict_memcache_mc_init - create libmemcache objects */
-
-static void dict_memcache_mc_init(DICT_MC *dict_mc)
-{
-    const char *myname = "dict_memcache_mc_init";
-    char   *servers;
-    char   *server;
-    char   *cp;
+    const char *myname = "dict_memcache_delete";
+    DICT_MC *dict_mc = (DICT_MC *) dict;
+    const char *retval;
+    int     backup_errno = 0;
+    int     del_res = 0;
 
     /*
-     * Create the libmemcache objects.
+     * Skip lookups with an inapplicable key, silently. This is just deleting
+     * information that cannot exist.
      */
-    dict_mc->mc_ctxt =
-	mcMemNewCtxt((mcFreeFunc) myfree, (mcMallocFunc) mymalloc,
-		     (mcMallocFunc) mymalloc, (mcReallocFunc) myrealloc);
-    if (dict_mc->mc_ctxt == 0)
-	msg_fatal("error creating memcache context: %m");	/* XXX */
-    dict_mc->mc = mcm_new(dict_mc->mc_ctxt);
-    if (dict_mc->mc == 0)
-	msg_fatal("error creating memcache object: %m");	/* XXX */
+    dict_errno = 0;
+    if (dict_memcache_valid_key(dict_mc, name, "delete", msg_info) == 0)
+	return (1);
 
     /*
-     * Set up call-back info for error reporting.
+     * Update the persistent database first.
      */
-    if (dict_mc_hash == 0)
-	dict_mc_hash = binhash_create(1);
-    binhash_enter(dict_mc_hash, (char *) &dict_mc->mc_ctxt,
-		  sizeof(dict_mc->mc_ctxt), (char *) dict_mc);
-    mcErrSetupCtxt(dict_mc->mc_ctxt, dict_memcache_error_cb);
-
-    /*
-     * Add the server list.
-     */
-    cp = servers = cfg_get_str(dict_mc->parser, "hosts",
-			       DICT_MC_DEF_HOST_PORT, 0, 0);
-    while ((server = mystrtok(&cp, " ,\t\r\n")) != 0) {
-	if (msg_verbose)
-	    msg_info("%s: database %s:%s: adding server %s",
-		     myname, DICT_TYPE_MEMCACHE, dict_mc->dict.name, server);
-	if (mcm_server_add4(dict_mc->mc_ctxt, dict_mc->mc, server) < 0)
-	    msg_warn("database %s:%s: error adding server %s",
-		     DICT_TYPE_MEMCACHE, dict_mc->dict.name, server);
+    if (dict_mc->backup) {
+	dict_errno = 0;
+	del_res = dict_mc->backup->delete(dict_mc->backup, name);
+	backup_errno = dict_errno;
     }
-    myfree(servers);
+
+    /*
+     * Update the memcache last. There is no memcache delete operation.
+     * Instead, we set a short expiration time if the data exists.
+     */
+    if ((retval = dict_memcache_get(dict_mc)) != 0)
+	dict_memcache_set(dict_mc, retval, 1);
+
+    if (msg_verbose)
+	msg_info("%s: %s: delete key %s => %s",
+		 myname, dict_mc->dict.name, STR(dict_mc->key_buf),
+		 dict_mc->mc_errno ? "(memcache error)" :
+		 backup_errno ? "(backup error)" : "(no error)");
+
+    dict_errno = (backup_errno ? backup_errno : dict_mc->mc_errno);
+
+    return (del_res);
 }
 
-/* dict_memcache_close - close memcache database */
+/* dict_memcache_sequence - first/next lookup */
+
+static int dict_memcache_sequence(DICT *dict, int function, const char **key,
+				          const char **value)
+{
+    DICT_MC *dict_mc = (DICT_MC *) dict;
+
+    if (dict_mc->backup == 0)
+	msg_fatal("database %s:%s: first/next support requires backup database",
+		  DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+    return (dict_mc->backup->sequence(dict_mc->backup, function, key, value));
+}
+
+/* dict_memcache_close - close memcache */
 
 static void dict_memcache_close(DICT *dict)
 {
     DICT_MC *dict_mc = (DICT_MC *) dict;
 
-    dict_memcache_mc_free(dict_mc);
     cfg_parser_free(dict_mc->parser);
     db_common_free_ctx(dict_mc->dbc_ctxt);
-    vstring_free(dict_mc->key_buf);
-    vstring_free(dict_mc->res_buf);
     if (dict_mc->key_format)
 	myfree(dict_mc->key_format);
+    myfree(dict_mc->memcache);
+    auto_clnt_free(dict_mc->clnt);
+    vstring_free(dict_mc->clnt_buf);
+    vstring_free(dict_mc->key_buf);
+    vstring_free(dict_mc->res_buf);
     if (dict->fold_buf)
 	vstring_free(dict->fold_buf);
+    if (dict_mc->backup)
+	dict_close(dict_mc->backup);
     dict_free(dict);
 }
 
-/* dict_memcache_open - open memcache database */
+/* dict_memcache_open - open memcache */
 
 DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_MC *dict_mc;
+    char   *backup;
 
     /*
      * Sanity checks.
@@ -450,8 +453,11 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
     dict_mc = (DICT_MC *) dict_alloc(DICT_TYPE_MEMCACHE, name,
 				     sizeof(*dict_mc));
     dict_mc->dict.lookup = dict_memcache_lookup;
-    if (open_flags == O_RDWR)
+    if (open_flags == O_RDWR) {
 	dict_mc->dict.update = dict_memcache_update;
+	dict_mc->dict.delete = dict_memcache_delete;
+    }
+    dict_mc->dict.sequence = dict_memcache_sequence;
     dict_mc->dict.close = dict_memcache_close;
     dict_mc->dict.flags = dict_flags;
     dict_mc->key_buf = vstring_alloc(10);
@@ -463,15 +469,34 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
     dict_mc->parser = cfg_parser_alloc(name);
     dict_mc->key_format = cfg_get_str(dict_mc->parser, "key_format",
 				      DICT_MC_DEF_KEY_FMT, 0, 0);
+    dict_mc->timeout = cfg_get_int(dict_mc->parser, "timeout",
+				   DICT_MC_DEF_MC_TIMEOUT, 0, 0);
     dict_mc->mc_ttl = cfg_get_int(dict_mc->parser, "ttl",
-				  DICT_MC_DEF_TTL, 0, 0);
+				  DICT_MC_DEF_MC_TTL, 0, 0);
     dict_mc->mc_flags = cfg_get_int(dict_mc->parser, "flags",
-				    DICT_MC_DEF_FLAGS, 0, 0);
+				    DICT_MC_DEF_MC_FLAGS, 0, 0);
+    dict_mc->mc_pause = cfg_get_int(dict_mc->parser, "error_pause",
+				    DICT_MC_DEF_MC_PAUSE, 1, 0);
+    dict_mc->mc_maxtry = cfg_get_int(dict_mc->parser, "maxtry",
+				     DICT_MC_DEF_MC_MAXTRY, 1, 0);
+    dict_mc->memcache = cfg_get_str(dict_mc->parser, "memcache",
+				    DICT_MC_DEF_MEMCACHE, 0, 0);
 
     /*
-     * Initialize the memcache objects.
+     * Initialize the memcache client.
      */
-    dict_memcache_mc_init(dict_mc);
+    dict_mc->clnt = auto_clnt_create(dict_mc->memcache, dict_mc->timeout, 0, 0);
+    dict_mc->clnt_buf = vstring_alloc(100);
+
+    /*
+     * Open the optional backup database.
+     */
+    backup = cfg_get_str(dict_mc->parser, "backup", (char *) 0, 0, 0);
+    if (backup) {
+	dict_mc->backup = dict_open(backup, open_flags, dict_flags);
+	myfree(backup);
+    } else
+	dict_mc->backup = 0;
 
     /*
      * Parse templates and common database parameters. Maps that use
@@ -489,5 +514,3 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 
     return (&dict_mc->dict);
 }
-
-#endif

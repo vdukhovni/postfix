@@ -59,9 +59,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_SQLITE
     DICT_TYPE_SQLITE, dict_sqlite_open,
 #endif
-#ifdef HAS_MEMCACHE
     DICT_TYPE_MEMCACHE, dict_memcache_open,
-#endif
     0,
 };
 
@@ -76,12 +74,19 @@ void    mail_dict_init(void)
 }
 
 #ifdef TEST
-
  /*
   * Proof-of-concept test program.
   */
+
+#include <mail_proto.h>
+#include <mail_params.h>
+
 int     main(int argc, char **argv)
 {
+    var_queue_dir = DEF_QUEUE_DIR;
+    var_proxymap_service = DEF_PROXYMAP_SERVICE;
+    var_proxywrite_service = DEF_PROXYWRITE_SERVICE;
+    var_ipc_timeout = 3600;
     mail_dict_init();
     dict_test(argc, argv);
     return (0);

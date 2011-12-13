@@ -13,8 +13,8 @@
 #	\fBdbm\fR or \fBdb\fR format.
 #
 #	Alternatively, lookup tables can be specified as memcache
-#	instances.  In order to use memcache lookups, define a
-#	memcache source as a lookup table in main.cf, for example:
+#	instances.  To use memcache lookups, define a memcache
+#	source as a lookup table in main.cf, for example:
 #
 # .nf
 #	    virtual_alias_maps = memcache:/etc/postfix/memcache-aliases.cf
@@ -24,21 +24,51 @@
 #	format as the Postfix main.cf file, and specifies the
 #	parameters described below.
 #
-#	The Postfix memcache client supports the lookup and update
-#	operations.
+#	The Postfix memcache client supports the lookup, update,
+#	delete and sequence (first/next) operations. The sequence
+#	operation requires a backup database that supports the
+#	operation.
 # MEMCACHE PARAMETERS
 # .ad
 # .fi
-# .IP "\fBhosts (default: localhost:11211)\fR"
-#	The memcache servers that Postfix will try to connect to.
-#	Specify a hostname or address, optionally followed by ":"
-#	and a port name or number. The default port is 11211.
-#	Examples:
+# .IP \fBbackup\fR
+#	An optional Postfix database that provides persistent backup
+#	for the memcache database. The Postfix memcache client will
+#	update the memcache database whenever it looks up or changes
+#	information in the persistent database. Specify a Postfix
+#	"type:table" database. Example:
 #
 # .nf
-#	    hosts = memcache01.example.com
-#		memcache02.example.com
+#	    backup = btree:/var/lib/postfix/postscreen_cache_map
 # .fi
+#
+#	Access to remote proxymap servers is under development.
+#
+#	NOTE 1: When using memcache with persistent backup as
+#	\fBpostscreen\fR(8) or \fBverify\fR(8) cache, disable
+#	automatic cache cleanup (*_cache_cleanup_interval = 0) in
+#	all Postfix instances except for one instance that will be
+#	responsible for cache cleanup.
+#
+#	NOTE 2: In the case of a proxied database, the full database
+#	name (including the "proxy:" prefix) must be specified in
+#	the proxymap server's proxy_read_maps or proxy_write_maps
+#	setting (depending on whether the access is read-only or
+#	read-write).
+# .IP "\fBmemcache (default: inet:localhost:11211)\fR"
+#	The memcache server (note: singular) that Postfix will try
+#	to connect to.  For a TCP server specify "inet:" followed by
+#	a hostname or address, ":", and a port name or number. 
+#	For a UNIX-domain server specify "unix:" followed by the
+#	socket pathname. Examples:
+#
+# .nf
+#	    memcache = inet:memcache.example.com
+#	    memcache = unix:/path/to/socket
+# .fi
+#
+#	NOTE: In the case of a UNIX-domain socket, it must be accessible
+#	by the unprivileged postfix user and by the memcached process.
 # .IP "\fBkey_format (default: %s)\fB"
 #	Format of the lookup and update keys in memcache queries.
 #	By default, these are the same as the lookup and update
@@ -102,43 +132,36 @@
 # .IP "\fBflags (default: 0)\fR"
 #	Optional flags that should be stored along with a memcache
 #	update.
-# .IP "\fBttl (default: 604800)\fR"
+# .IP "\fBttl (default: 3600)\fR"
 #	The expiration time in seconds of memcache updates.
-#	The default is one week.
 #
-#	When using memcache tables with \fBpostscreen\fR(8) or
-#	\fBverify\fR(8), specify a zero *_cache_cleanup_interval
-#	value, and specify the largest \fBpostscreen\fR(8) *_ttl
-#	value or \fBverify\fR(8) *_expire_time value as the memcache
-#	map's \fBttl\fR value.
+#	NOTE 1: When using a memcache table as \fBpostscreen\fR(8)
+#	or \fBverify\fR(8) cache without persistent backup, specify
+#	a zero *_cache_cleanup_interval value with all Postfix
+#	instances that use the memcache, and specify the largest
+#	\fBpostscreen\fR(8) *_ttl value or \fBverify\fR(8) *_expire_time
+#	value as the memcache table's \fBttl\fR value.
 #
-#	Note: according to memcache protocol documentation, a value
-#	greater than 30 days (2592000 seconds) specifies absolute UNIX
+#	NOTE 2: According to memcache protocol documentation, a
+#	value greater than 30 days (2592000 seconds) specifies
+#	absolute UNIX
 #	time. Smaller values are relative to the time of the update.
 # BUGS
-#	The Postfix memcache client is based on libmemcache, which
-#	will terminate its process after a memcache server goes
-#	down. To avoid this, set up redundant memcache servers that
-#	have no common source of failure.
-#
 #	The Postfix memcache client cannot be used for security-sensitive
 #	tables such as \fBalias_maps\fR (these may contain
 #	"\fI|command\fR and "\fI/file/name\fR" destinations), or
-#	\fBvirtual_uid_maps\fR and \fBvirtual_gid_maps\fR (these
-#	specify UNIX process privileges).  In a typical deployment
-#	a memcache database is shared via a TCP socket, and is
-#	therefore writable not only by Postfix, but by any process
-#	that can talk to the memcache server.
+#	\fBvirtual_uid_maps\fR, \fBvirtual_gid_maps\fR and
+#	\fBvirtual_mailbox_maps\fR (these specify UNIX process
+#	privileges or "\fI/file/name\fR" destinations).  In a typical
+#	deployment a memcache database is writable by any process
+#	that can talk to the memcache server; in contrast,
+#	security-sensitive tables must not be writable by the
+#	unprivileged Postfix user.
 #
 #	The Postfix memcache client requires additional configuration
-#	when used with the \fBpostscreen\fR(8) and \fBverify\fR(8)
-#	daemons.  For details see the \fBttl\fR parameter discussion
-#	at the end of the MEMCACHE PARAMETERS section in this
-#	document.
-#
-#	The Postfix memcache client is supported only with libmemcache
-#	version 1.4.0.  Some libmemcache features are documented
-#	by reading libmemcache source code, instead a proper API.
+#	when used as \fBpostscreen\fR(8) or \fBverify\fR(8) cache.
+#	For details see the \fBbackup\fR and \fBttl\fR parameter
+#	discussions in the MEMCACHE PARAMETERS section above.
 # SEE ALSO
 #	postmap(1), Postfix lookup table manager
 #	postconf(5), configuration parameters
@@ -159,8 +182,9 @@
 # .ad
 # .fi
 #	The first memcache client for Postfix was written by Omar
-#	Kilani.  Besides being implemented on libmemcache, this
-#	implementation bears no resemblance to his work.
+#	Kilani, and was based on libmemcache.  
+#	The Postfix implementation does not use libmemcache, and
+#	bears no resemblance to earlier work.
 # AUTHOR(S)
 #	Wietse Venema
 #	IBM T.J. Watson Research
