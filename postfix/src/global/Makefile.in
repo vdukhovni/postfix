@@ -31,7 +31,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
-	dict_memcache.c mail_version.c memcache_proto.c
+	dict_memcache.c mail_version.c memcache_proto.c server_acl.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -64,7 +64,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
-	dict_memcache.o mail_version.o memcache_proto.o
+	dict_memcache.o mail_version.o memcache_proto.o server_acl.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -90,7 +90,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	verp_sender.h wildcard_inet_addr.h xtext.h delivered_hdr.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
-	verify_sender_addr.h dict_memcache.h memcache_proto.h
+	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -104,7 +104,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	verify_clnt xtext anvil_clnt scache ehlo_mask \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
-	mail_version mail_dict
+	mail_version mail_dict server_acl
 
 LIBS	= ../../lib/libutil.a
 LIB_DIR	= ../../lib
@@ -300,6 +300,9 @@ mail_version: mail_version.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 mail_dict: mail_dict.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
+server_acl: server_acl.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
@@ -1570,7 +1573,15 @@ mime_state.o: mail_params.h
 mime_state.o: mime_state.c
 mime_state.o: mime_state.h
 mime_state.o: rec_type.h
+mkmap_cdb.o: ../../include/argv.h
+mkmap_cdb.o: ../../include/dict.h
+mkmap_cdb.o: ../../include/dict_cdb.h
+mkmap_cdb.o: ../../include/mymalloc.h
 mkmap_cdb.o: ../../include/sys_defs.h
+mkmap_cdb.o: ../../include/vbuf.h
+mkmap_cdb.o: ../../include/vstream.h
+mkmap_cdb.o: ../../include/vstring.h
+mkmap_cdb.o: mkmap.h
 mkmap_cdb.o: mkmap_cdb.c
 mkmap_db.o: ../../include/argv.h
 mkmap_db.o: ../../include/dict.h
@@ -1954,6 +1965,18 @@ sent.o: sent.c
 sent.o: sent.h
 sent.o: trace.h
 sent.o: verify.h
+server_acl.o: ../../include/match_list.h
+server_acl.o: ../../include/match_ops.h
+server_acl.o: ../../include/msg.h
+server_acl.o: ../../include/mymalloc.h
+server_acl.o: ../../include/stringops.h
+server_acl.o: ../../include/sys_defs.h
+server_acl.o: ../../include/vbuf.h
+server_acl.o: ../../include/vstring.h
+server_acl.o: addr_match_list.h
+server_acl.o: mail_params.h
+server_acl.o: match_parent_style.h
+server_acl.o: server_acl.c
 smtp_reply_footer.o: ../../include/mac_expand.h
 smtp_reply_footer.o: ../../include/mac_parse.h
 smtp_reply_footer.o: ../../include/msg.h

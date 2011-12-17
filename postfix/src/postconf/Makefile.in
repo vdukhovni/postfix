@@ -415,6 +415,7 @@ postconf_builtin.o: ../../include/mail_version.h
 postconf_builtin.o: ../../include/msg.h
 postconf_builtin.o: ../../include/mymalloc.h
 postconf_builtin.o: ../../include/mynetworks.h
+postconf_builtin.o: ../../include/server_acl.h
 postconf_builtin.o: ../../include/stringops.h
 postconf_builtin.o: ../../include/sys_defs.h
 postconf_builtin.o: ../../include/vbuf.h

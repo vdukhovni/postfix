@@ -27,6 +27,7 @@
 #include <addr_match_list.h>
 #include <string_list.h>
 #include <maps.h>
+#include <server_acl.h>
 
  /*
   * Preliminary stuff, to be fixed.
@@ -468,16 +469,16 @@ extern void psc_expand_init(void);
 extern const char *psc_expand_lookup(const char *, int, char *);
 
  /*
-  * postscreen_access.c
+  * postscreen_access emulation.
   */
-#define PSC_ACL_ACT_WHITELIST	1
-#define PSC_ACL_ACT_DUNNO	0
-#define PSC_ACL_ACT_BLACKLIST	(-1)
-#define PSC_ACL_ACT_ERROR	(-2)
+#define PSC_ACL_ACT_WHITELIST	SERVER_ACL_ACT_PERMIT
+#define PSC_ACL_ACT_DUNNO	SERVER_ACL_ACT_DUNNO
+#define PSC_ACL_ACT_BLACKLIST	SERVER_ACL_ACT_REJECT
+#define PSC_ACL_ACT_ERROR	SERVER_ACL_ACT_ERROR
 
-extern void psc_acl_pre_jail_init(void);
-extern ARGV *psc_acl_parse(const char *, const char *);
-extern int psc_acl_eval(PSC_STATE *, ARGV *, const char *);
+#define psc_acl_pre_jail_init	server_acl_pre_jail_init
+#define psc_acl_parse		server_acl_parse
+#define psc_acl_eval(s,a,p)	server_acl_eval((s)->smtp_client_addr, (a), (p))
 
 /* LICENSE
 /* .ad

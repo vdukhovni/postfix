@@ -544,21 +544,23 @@ int     dict_changed(void)
   * Mapping between flag names and flag values.
   */
 static const NAME_MASK dict_mask[] = {
-    "warn_dup", (1 << 0),		/* if file, warn about dups */
-    "ignore_dup", (1 << 1),		/* if file, ignore dups */
-    "try0null", (1 << 2),		/* do not append 0 to key/value */
-    "try1null", (1 << 3),		/* append 0 to key/value */
-    "fixed", (1 << 4),			/* fixed key map */
-    "pattern", (1 << 5),		/* keys are patterns */
-    "lock", (1 << 6),			/* lock before access */
-    "replace", (1 << 7),		/* if file, replace dups */
-    "sync_update", (1 << 8),		/* if file, sync updates */
-    "debug", (1 << 9),			/* log access */
-    "no_regsub", (1 << 11),		/* disallow regexp substitution */
-    "no_proxy", (1 << 12),		/* disallow proxy mapping */
-    "no_unauth", (1 << 13),		/* disallow unauthenticated data */
-    "fold_fix", (1 << 14),		/* case-fold with fixed-case key map */
-    "fold_mul", (1 << 15),		/* case-fold with multi-case key map */
+    "warn_dup", DICT_FLAG_DUP_WARN,	/* if file, warn about dups */
+    "ignore_dup", DICT_FLAG_DUP_IGNORE,	/* if file, ignore dups */
+    "try0null", DICT_FLAG_TRY0NULL,	/* do not append 0 to key/value */
+    "try1null", DICT_FLAG_TRY1NULL,	/* append 0 to key/value */
+    "fixed", DICT_FLAG_FIXED,		/* fixed key map */
+    "pattern", DICT_FLAG_PATTERN,	/* keys are patterns */
+    "lock", DICT_FLAG_LOCK,		/* lock before access */
+    "replace", DICT_FLAG_DUP_REPLACE,	/* if file, replace dups */
+    "sync_update", DICT_FLAG_SYNC_UPDATE,	/* if file, sync updates */
+    "debug", DICT_FLAG_DEBUG,		/* log access */
+    "no_regsub", DICT_FLAG_NO_REGSUB,	/* disallow regexp substitution */
+    "no_proxy", DICT_FLAG_NO_PROXY,	/* disallow proxy mapping */
+    "no_unauth", DICT_FLAG_NO_UNAUTH,	/* disallow unauthenticated data */
+    "fold_fix", DICT_FLAG_FOLD_FIX,	/* case-fold with fixed-case key map */
+    "fold_mul", DICT_FLAG_FOLD_MUL,	/* case-fold with multi-case key map */
+    "open_lock", DICT_FLAG_OPEN_LOCK,	/* permanent lock upon open */
+    0,
 };
 
 /* dict_flags_str - convert mask to string for debugging purposes */
@@ -571,5 +573,5 @@ const char *dict_flags_str(int dict_flags)
 	buf = vstring_alloc(1);
 
     return (str_name_mask_opt(buf, "dictionary flags", dict_mask, dict_flags,
-			      NAME_MASK_RETURN | NAME_MASK_PIPE));
+			      NAME_MASK_NUMBER | NAME_MASK_PIPE));
 }

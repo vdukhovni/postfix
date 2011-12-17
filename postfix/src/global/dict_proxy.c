@@ -72,7 +72,7 @@ typedef struct {
     DICT    dict;			/* generic members */
     CLNT_STREAM *clnt;			/* client handle (shared) */
     const char *service;		/* service name */
-    int     in_flags;			/* caller-specified flags */
+    int     inst_flags;			/* saved dict flags */
     VSTRING *reskey;			/* result key storage */
     VSTRING *result;			/* storage */
 } DICT_PROXY;
@@ -112,7 +112,7 @@ static int dict_proxy_sequence(DICT *dict, int function,
     VSTRING_TERMINATE(dict_proxy->reskey);
     VSTRING_RESET(dict_proxy->result);
     VSTRING_TERMINATE(dict_proxy->result);
-    request_flags = (dict_proxy->in_flags & DICT_FLAG_RQST_MASK)
+    request_flags = dict_proxy->inst_flags
 	| (dict->flags & DICT_FLAG_RQST_MASK);
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
@@ -189,7 +189,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
      */
     VSTRING_RESET(dict_proxy->result);
     VSTRING_TERMINATE(dict_proxy->result);
-    request_flags = (dict_proxy->in_flags & DICT_FLAG_RQST_MASK)
+    request_flags = dict_proxy->inst_flags
 	| (dict->flags & DICT_FLAG_RQST_MASK);
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
@@ -259,7 +259,7 @@ static void dict_proxy_update(DICT *dict, const char *key, const char *value)
      * associated with a specific connection. Each lookup needs to specify
      * the table and the flags that were specified to dict_proxy_open().
      */
-    request_flags = (dict_proxy->in_flags & DICT_FLAG_RQST_MASK)
+    request_flags = dict_proxy->inst_flags
 	| (dict->flags & DICT_FLAG_RQST_MASK);
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
@@ -325,7 +325,7 @@ static int dict_proxy_delete(DICT *dict, const char *key)
      * associated with a specific connection. Each lookup needs to specify
      * the table and the flags that were specified to dict_proxy_open().
      */
-    request_flags = (dict_proxy->in_flags & DICT_FLAG_RQST_MASK)
+    request_flags = dict_proxy->inst_flags
 	| (dict->flags & DICT_FLAG_RQST_MASK);
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
@@ -455,7 +455,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     dict_proxy->dict.delete = dict_proxy_delete;
     dict_proxy->dict.sequence = dict_proxy_sequence;
     dict_proxy->dict.close = dict_proxy_close;
-    dict_proxy->in_flags = dict_flags;
+    dict_proxy->inst_flags = (dict_flags & DICT_FLAG_INST_MASK);
     dict_proxy->reskey = vstring_alloc(10);
     dict_proxy->result = vstring_alloc(10);
     dict_proxy->clnt = *pstream;
@@ -472,7 +472,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 	if (attr_print(stream, ATTR_FLAG_NONE,
 		       ATTR_TYPE_STR, MAIL_ATTR_REQ, PROXY_REQ_OPEN,
 		       ATTR_TYPE_STR, MAIL_ATTR_TABLE, dict_proxy->dict.name,
-		       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, dict_proxy->in_flags,
+		     ATTR_TYPE_INT, MAIL_ATTR_FLAGS, dict_proxy->inst_flags,
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
@@ -494,7 +494,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 		msg_fatal("%s service is not configured for table \"%s\"",
 			  dict_proxy->service, dict_proxy->dict.name);
 	    case PROXY_STAT_OK:
-		dict_proxy->dict.flags = dict_proxy->in_flags
+		dict_proxy->dict.flags = (dict_flags & ~DICT_FLAG_IMPL_MASK)
 		    | (server_flags & DICT_FLAG_IMPL_MASK);
 		return (DICT_DEBUG (&dict_proxy->dict));
 	    default:

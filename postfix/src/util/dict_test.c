@@ -87,7 +87,7 @@ void    dict_test(int argc, char **argv)
 	if (*bufp == '#')
 	    continue;
 	if ((cmd = mystrtok(&bufp, " ")) == 0) {
-	    vstream_printf("usage: verbose|del key|get key|put key=value|first|next\n");
+	    vstream_printf("usage: verbose|del key|get key|put key=value|first|next|masks|flags\n");
 	    vstream_fflush(VSTREAM_OUT);
 	    continue;
 	}
@@ -132,8 +132,20 @@ void    dict_test(int argc, char **argv)
 		vstream_printf("%s\n",
 			       dict_errno == DICT_ERR_RETRY ?
 			       "soft error" : "not found");
+	} else if (strcmp(cmd, "flags") == 0 && !key && !value) {
+	    vstream_printf("dict flags %s\n",
+			   dict_flags_str(dict->flags));
+	} else if (strcmp(cmd, "masks") == 0 && !key && !value) {
+	    vstream_printf("DICT_FLAG_IMPL_MASK %s\n",
+			   dict_flags_str(DICT_FLAG_IMPL_MASK));
+	    vstream_printf("DICT_FLAG_PARANOID %s\n",
+			   dict_flags_str(DICT_FLAG_PARANOID));
+	    vstream_printf("DICT_FLAG_RQST_MASK %s\n",
+			   dict_flags_str(DICT_FLAG_RQST_MASK));
+	    vstream_printf("DICT_FLAG_INST_MASK %s\n",
+			   dict_flags_str(DICT_FLAG_INST_MASK));
 	} else {
-	    vstream_printf("usage: del key|get key|put key=value|first|next\n");
+	    vstream_printf("usage: del key|get key|put key=value|first|next|masks|flags\n");
 	}
 	vstream_fflush(VSTREAM_OUT);
     }

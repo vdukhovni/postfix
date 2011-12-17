@@ -32,7 +32,9 @@ postscreen(8) minimizes its impact on legitimate email traffic.
 mail from end-user clients (MUAs). In a typical deployment,
 postscreen(8) is used on the "port 25" service, while MUA clients
 submit mail via the submission service (port 587) which normally
-requires client authentication. </p>
+requires client authentication, or via a "port 25" server that
+provides no MX service (i.e. a dedicated server that provides
+submission service on port 25). </p>
 
 <p> postscreen(8) is part of a multi-layer defense. <p>
 
@@ -215,6 +217,13 @@ the tests described below. The postscreen_cache_map parameter
 specifies the location of the temporary whitelist.  The
 temporary whitelist is not used for SMTP client addresses
 that appear on the <i>permanent</i> access list. </p>
+
+<blockquote> <p> NOTE: To share a postscreen(8) cache between
+multiple postscreen(8) instances, use "<tt>postscreen_cache_map =
+proxy:btree:/path/to/file</tt>".  This requires Postfix 2.9 or
+later; earlier proxymap(8) implementations don't support cache
+cleanup.  For an alternative approach see the memcache_table(5)
+manpage.  </p> </blockquote>
 
 <p> When the SMTP client address appears on the temporary
 whitelist, postscreen(8) logs this with the client address and port

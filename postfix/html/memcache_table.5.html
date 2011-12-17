@@ -40,9 +40,13 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               memcache client will update the  memcache  database
               whenever  it looks up or changes information in the
               persistent database. Specify a Postfix "<a href="DATABASE_README.html">type:table</a>"
-              database. Example:
+              database. Examples:
 
+                  # Non-shared postscreen cache.
                   backup = btree:/var/lib/postfix/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>
+
+                  # Shared postscreen cache for processes on the same host.
+                  backup = <a href="proxymap.8.html">proxy</a>:btree:/var/lib/postfix/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>
 
               Access to remote proxymap servers is under develop-
               ment.

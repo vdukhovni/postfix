@@ -17274,10 +17274,12 @@ Apologies for any names omitted.
 	LDAP, *SQL, and memcache. Files: util/dict_test.c, util/dict.c,
 	global/mail_dict.c.
 
-	Workaround: apparently, some distributions don't use proper
-	so-number versioning, causing programs to fail erratically
-	after an update replaces the Postfix library but not the
-	program.  Files: global/mail_version.[hc], master/*server.c,
+	Workaround: apparently, some distributions use Postfix
+	shared libraries without proper so-number versioning. This
+	causes programs to fail mysteriously, after an update
+	replaces the Postfix library but not the program (someone
+	experienced this with an extra copy of the Postfix SMTP
+	server).  Files: global/mail_version.[hc], master/*server.c,
 	master/master.c, src/postalias/postalias.c,
 	src/postdrop/postdrop.c, src/postfix/postfix.c,
 	src/postlog/postlog.c, src/postmap/postmap.c,
@@ -17295,6 +17297,13 @@ Apologies for any names omitted.
 	dependencies. Files: global/memcache_proto.[hc],
 	global/dict_memcache.c.
 
+	Bugfix: missing lookup table entry and terminator, causing
+	proxymap(8) server segfault when postscreen(8) or verify(8)
+	attempted to access their cache via the proxymap(8) server.
+	This could never have worked anyway, because the Postfix
+	proxymap protocol did not support cache cleanup.  File
+	util/dict.c.
+
 	Feature: support for persistent backup database in the
 	memcache client. The database can be shared with the proxymap
 	service, but it needs to be listed as "proxy:maptype:mapname"
@@ -17302,3 +17311,45 @@ Apologies for any names omitted.
 	(depending on whether the access is read-only or read-write).
 	Support for proxymap-over-tcp (proxy:maptype:mapname@host:port)
 	is under development.  File: global/dict_memcache.c.
+
+20111214
+
+	Documentation: updated the submission and smtps examples
+	in the sample master.cf file, so that their logging is
+	easier to recognize.  File: conf/master.cf.
+
+20111215
+
+	Documentation: use different hosts to separate MUA "port
+	25" traffic from the "port 25" MX service. Files:
+	postscreen/postscreen.c, proto/POSTSCREEN_README.html.
+
+20111216
+
+	Cleanup: the proxymap client did not correctly propagate
+	the "open_lock" flag, causing the proxymap service to open
+	postscreen(8) and verify(8) caches twice, instead of once.
+	File: global/dict_proxy.c.
+
+	Cleanup: the verify and postscreen caches were not listed
+	as "authorized" for access via the proxywrite service. File:
+	global/mail_params.h.
+
+	Refactoring: the postscreen permanent access list code is
+	now a library module, so that it can be also used for remote
+	access to the proxymap server.  Files: global/server_acl.[hc].
+
+	Hardening: read/write deadlines, to make the proxymap server
+	suitable for remote access. File: proxymap/proxymap.c.
+
+20111217
+
+	Cleanup: more orthogonal definition of when the proxymap
+	server can/cannot share a single map instance among multiple
+	requestors, and corresponding code cleanup in the proxymap
+	client and server. Files: util/dict.h, util/dict_test.c,
+	global/dict_proxy.c, proxymap/proxymap.c.
+
+	Human factors: the postscreen/verify cache manager now logs
+	the full database name including the proxy: prefix, to avoid
+	WTF surprises. File: util/dict_cache.c.

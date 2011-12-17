@@ -255,6 +255,8 @@ char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;
 char   *var_relocated_maps;
 char   *var_transport_maps;
+char   *var_verify_map;
+char   *var_psc_cache_map;
 char   *var_proxy_read_maps;
 char   *var_proxy_write_maps;
 
@@ -326,7 +328,9 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
      * of open() flags should be received directly from the client.
      */
     vstring_sprintf(map_type_name_flags, "%s:%s", map_type_name,
-		    dict_flags_str(request_flags & DICT_FLAG_NP_INST_MASK));
+		    dict_flags_str(request_flags & DICT_FLAG_INST_MASK));
+    if (msg_verbose)
+	msg_info("proxy_map_find: %s", STR(map_type_name_flags));
     if ((dict = dict_handle(STR(map_type_name_flags))) == 0)
 	dict = dict_open(map_type_name, proxy_writer ?
 			 WRITE_OPEN_FLAGS : READ_OPEN_FLAGS,
@@ -571,10 +575,21 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
+     * Deadline enforcement.
+     */
+    if (vstream_fstat(client_stream, VSTREAM_FLAG_DEADLINE) == 0)
+	vstream_control(client_stream,
+			VSTREAM_CTL_TIMEOUT, 1,
+			VSTREAM_CTL_END);
+
+    /*
      * This routine runs whenever a client connects to the socket dedicated
      * to the proxymap service. All connection-management stuff is handled by
      * the common code in multi_server.c.
      */
+    vstream_control(client_stream,
+		    VSTREAM_CTL_START_DEADLINE,
+		    VSTREAM_CTL_END);
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		  ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
@@ -596,6 +611,9 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 		       ATTR_TYPE_END);
 	}
     }
+    vstream_control(client_stream,
+		    VSTREAM_CTL_START_DEADLINE,
+		    VSTREAM_CTL_END);
     vstream_fflush(client_stream);
 }
 
@@ -698,6 +716,8 @@ int     main(int argc, char **argv)
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
 	VAR_PROXY_READ_MAPS, DEF_PROXY_READ_MAPS, &var_proxy_read_maps, 0, 0,
 	VAR_PROXY_WRITE_MAPS, DEF_PROXY_WRITE_MAPS, &var_proxy_write_maps, 0, 0,
+	VAR_VERIFY_MAP, DEF_VERIFY_MAP, &var_verify_map, 0, 0,
+	VAR_PSC_CACHE_MAP, DEF_PSC_CACHE_MAP, &var_psc_cache_map, 0, 0,
 	0,
     };
 

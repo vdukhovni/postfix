@@ -50,6 +50,7 @@
 #include <mail_proto.h>
 #include <mail_addr.h>
 #include <inet_proto.h>
+#include <server_acl.h>
 
 /* Application-specific. */
 

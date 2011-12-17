@@ -15,7 +15,10 @@
 /*	This program should not be used on SMTP ports that receive
 /*	mail from end-user clients (MUAs). In a typical deployment,
 /*	\fBpostscreen\fR(8) is used on the "port 25" service, while
-/*	MUA clients submit mail via the \fBsubmission\fR service.
+/*	MUA clients submit mail via the \fBsubmission\fR service,
+/*	or via a "port 25" server that provides no MX service (i.e.
+/*	a dedicated server that provides \fBsubmission\fR service
+/*	on port 25).
 /*
 /*	\fBpostscreen\fR(8) maintains a temporary whitelist for
 /*	clients that have passed a number of tests.  When an SMTP
@@ -846,7 +849,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Open read-only maps before dropping privilege, for consistency with
      * other Postfix daemons.
      */
-    psc_acl_pre_jail_init();
+    psc_acl_pre_jail_init(var_mynetworks, VAR_PSC_ACL);
     if (*var_psc_acl)
 	psc_acl = psc_acl_parse(var_psc_acl, VAR_PSC_ACL);
     if (*var_psc_forbid_cmds)

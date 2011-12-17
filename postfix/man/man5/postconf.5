@@ -4015,6 +4015,12 @@ This feature is available in Postfix 2.8.
 .SH postscreen_cache_map (default: btree:$data_directory/postscreen_cache)
 Persistent storage for the \fBpostscreen\fR(8) server decisions.
 .PP
+To share a \fBpostscreen\fR(8) cache between multiple \fBpostscreen\fR(8)
+instances, use "postscreen_cache_map = proxy:btree:/path/to/file".
+This requires Postfix version 2.9 or later; earlier \fBproxymap\fR(8)
+implementations don't support cache cleanup. For an alternative
+approach see the \fBmemcache_table\fR(5) manpage.
+.PP
 This feature is available in Postfix 2.8.
 .SH postscreen_cache_retention_time (default: 7d)
 The amount of time that \fBpostscreen\fR(8) will cache an expired

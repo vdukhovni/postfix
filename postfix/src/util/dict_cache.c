@@ -197,6 +197,7 @@
   * underlying database.
   */
 struct DICT_CACHE {
+    char   *name;			/* full name including proxy: */
     int     cache_flags;		/* see below */
     int     user_flags;			/* logging */
     DICT   *db;				/* database handle */
@@ -366,7 +367,7 @@ int     dict_cache_sequence(DICT_CACHE *cp, int first_next,
 		     myname, previous_curr_key, previous_curr_val);
 	if (dict_del(cp->db, previous_curr_key) != 0)
 	    msg_warn("database %s: could not delete entry for %s",
-		     cp->db->name, previous_curr_key);
+		     cp->name, previous_curr_key);
     }
 
     /*
@@ -403,7 +404,7 @@ static void dict_cache_clean_stat_log_reset(DICT_CACHE *cp,
 {
     if (cp->user_flags & DICT_CACHE_FLAG_STATISTICS)
 	msg_info("cache %s %s cleanup: retained=%d dropped=%d entries",
-		 cp->db->name, full_partial, cp->retained, cp->dropped);
+		 cp->name, full_partial, cp->retained, cp->dropped);
     cp->retained = cp->dropped = 0;
 }
 
@@ -432,7 +433,7 @@ static void dict_cache_clean_event(int unused_event, char *cache_context)
 	cp->retained = cp->dropped = 0;
 	first_next = DICT_SEQ_FUN_FIRST;
 	if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
-	    msg_info("%s: start %s cache cleanup", myname, cp->db->name);
+	    msg_info("%s: start %s cache cleanup", myname, cp->name);
     }
 
     /*
@@ -451,12 +452,12 @@ static void dict_cache_clean_event(int unused_event, char *cache_context)
 	    cp->dropped++;
 	    if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
 		msg_info("%s: drop %s cache entry for %s",
-			 myname, cp->db->name, cache_key);
+			 myname, cp->name, cache_key);
 	} else {
 	    cp->retained++;
 	    if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
 		msg_info("%s: keep %s cache entry for %s",
-			 myname, cp->db->name, cache_key);
+			 myname, cp->name, cache_key);
 	}
 	next_interval = 0;
     }
@@ -466,7 +467,7 @@ static void dict_cache_clean_event(int unused_event, char *cache_context)
      */
     else {
 	if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
-	    msg_info("%s: done %s cache cleanup scan", myname, cp->db->name);
+	    msg_info("%s: done %s cache cleanup scan", myname, cp->name);
 	dict_cache_clean_stat_log_reset(cp, "full");
 	stamp_buf = vstring_alloc(100);
 	vstring_sprintf(stamp_buf, "%ld", (long) event_time());
@@ -504,7 +505,7 @@ void    dict_cache_control(DICT_CACHE *cp,...)
 	    cp->exp_interval = va_arg(ap, int);
 	    if (cp->exp_interval < 0)
 		msg_panic("%s: bad %s cache cleanup interval %d",
-			  myname, cp->db->name, cp->exp_interval);
+			  myname, cp->name, cp->exp_interval);
 	    break;
 	case DICT_CACHE_CTL_VALIDATOR:
 	    cp->exp_validator = va_arg(ap, DICT_CACHE_VALIDATOR_FN);
@@ -528,7 +529,7 @@ void    dict_cache_control(DICT_CACHE *cp,...)
 	 */
 	if (cache_cleanup_is_active)
 	    msg_panic("%s: %s cache cleanup is already scheduled",
-		      myname, cp->db->name);
+		      myname, cp->name);
 
 	/*
 	 * The next start time depends on the last completion time.
@@ -543,7 +544,7 @@ void    dict_cache_control(DICT_CACHE *cp,...)
 	    next_interval = cp->exp_interval;
 	if ((cp->user_flags & DICT_CACHE_FLAG_VERBOSE) && next_interval > 0)
 	    msg_info("%s cache cleanup will start after %ds",
-		     cp->db->name, (int) next_interval);
+		     cp->name, (int) next_interval);
 	event_request_timer(dict_cache_clean_event, (char *) cp,
 			    (int) next_interval);
     }
@@ -576,6 +577,7 @@ DICT_CACHE *dict_cache_open(const char *dbname, int open_flags, int dict_flags)
      * Create the DICT_CACHE object.
      */
     cp = (DICT_CACHE *) mymalloc(sizeof(*cp));
+    cp->name = mystrdup(dbname);
     cp->cache_flags = 0;
     cp->user_flags = 0;
     cp->db = dict;
@@ -598,6 +600,7 @@ void    dict_cache_close(DICT_CACHE *cp)
     /*
      * Destroy the DICT_CACHE object.
      */
+    myfree(cp->name);
     dict_cache_control(cp, DICT_CACHE_CTL_INTERVAL, 0, DICT_CACHE_CTL_END);
     dict_close(cp->db);
     if (cp->saved_curr_key)
@@ -618,5 +621,5 @@ const char *dict_cache_name(DICT_CACHE *cp)
      * execute still presents overhead for the processor pipeline, processor
      * cache, etc).
      */
-    return (cp->db->name);
+    return (cp->name);
 }

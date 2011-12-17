@@ -22,7 +22,10 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        This program should not be used on SMTP ports that receive
        mail from end-user clients (MUAs). In  a  typical  deploy-
        ment,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  is  used  on  the "port 25" service,
-       while MUA clients submit mail via the <b>submission</b>  service.
+       while MUA clients submit mail via the <b>submission</b>  service,
+       or  via  a  "port  25"  server that provides no MX service
+       (i.e.  a dedicated server that provides <b>submission</b> service
+       on port 25).
 
        <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  maintains a temporary whitelist for clients
        that have passed a number of tests.  When an  SMTP  client

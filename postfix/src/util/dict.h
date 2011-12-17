@@ -88,32 +88,30 @@ extern DICT *dict_debug(DICT *);
   * The subsets of flags that control how a map is used. These are relevant
   * mainly for proxymap support. Note: some categories overlap.
   * 
-  * DICT_FLAG_PARANOID - flags that forbid the use of insecure map types for
-  * security-sensitive operations. These flags are specified by the caller,
-  * and are checked by the map implementation itself upon open, lookup etc.
-  * requests.
+  * DICT_FLAG_IMPL_MASK - flags that are set by the map implementation itself.
   * 
-  * DICT_FLAG_IMPL_MASK - flags that specify properties of the lookup table
-  * implementation. These flags are set by the map implementation itself.
+  * DICT_FLAG_PARANOID - requestor flags that forbid the use of insecure map
+  * types for security-sensitive operations. These flags are checked by the
+  * map implementation itself upon open, lookup etc. requests.
   * 
-  * DICT_FLAG_INST_MASK - flags that control how a specific table instance is
-  * opened or used. The caller specifies these flags, and the caller may not
-  * change them between open, lookup, etc. requests (although the map itself
-  * may make changes to some of these flags).
+  * DICT_FLAG_RQST_MASK - all requestor flags, including paranoid flags, that
+  * the requestor may change between open, lookup etc. requests.
   * 
-  * DICT_FLAG_NP_INST_MASK - ditto, but without the paranoia flags.
-  * 
-  * DICT_FLAG_RQST_MASK - flags that the caller specifies, and that the caller
-  * may change between open, lookup etc. requests.
+  * DICT_FLAG_INST_MASK - none of the above flags. The requestor may not change
+  * these flags between open, lookup, etc. requests (although a map may make
+  * changes to its copy of some of these flags). The proxymap server opens
+  * only one map instance for all client requests with the same values of
+  * these flags, and the proxymap client uses its own saved copy of these
+  * flags.
   */
 #define DICT_FLAG_PARANOID \
 	(DICT_FLAG_NO_REGSUB | DICT_FLAG_NO_PROXY | DICT_FLAG_NO_UNAUTH)
 #define DICT_FLAG_IMPL_MASK	(DICT_FLAG_FIXED | DICT_FLAG_PATTERN)
 #define DICT_FLAG_RQST_MASK	(DICT_FLAG_FOLD_ANY | DICT_FLAG_LOCK | \
 				DICT_FLAG_DUP_REPLACE | DICT_FLAG_DUP_WARN | \
-				DICT_FLAG_SYNC_UPDATE)
-#define DICT_FLAG_NP_INST_MASK	~(DICT_FLAG_IMPL_MASK | DICT_FLAG_RQST_MASK)
-#define DICT_FLAG_INST_MASK	(DICT_FLAG_NP_INST_MASK | DICT_FLAG_PARANOID)
+				DICT_FLAG_DUP_IGNORE | DICT_FLAG_SYNC_UPDATE | \
+				DICT_FLAG_PARANOID)
+#define DICT_FLAG_INST_MASK	~(DICT_FLAG_IMPL_MASK | DICT_FLAG_RQST_MASK)
 
 extern int dict_unknown_allowed;
 extern int dict_errno;

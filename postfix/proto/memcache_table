@@ -36,10 +36,14 @@
 #	for the memcache database. The Postfix memcache client will
 #	update the memcache database whenever it looks up or changes
 #	information in the persistent database. Specify a Postfix
-#	"type:table" database. Example:
+#	"type:table" database. Examples:
 #
 # .nf
+#	    # Non-shared postscreen cache.
 #	    backup = btree:/var/lib/postfix/postscreen_cache_map
+#
+#	    # Shared postscreen cache for processes on the same host.
+#	    backup = proxy:btree:/var/lib/postfix/postscreen_cache_map
 # .fi
 #
 #	Access to remote proxymap servers is under development.

@@ -21,7 +21,10 @@ processes remain available for legitimate clients.
 This program should not be used on SMTP ports that receive
 mail from end-user clients (MUAs). In a typical deployment,
 \fBpostscreen\fR(8) is used on the "port 25" service, while
-MUA clients submit mail via the \fBsubmission\fR service.
+MUA clients submit mail via the \fBsubmission\fR service,
+or via a "port 25" server that provides no MX service (i.e.
+a dedicated server that provides \fBsubmission\fR service
+on port 25).
 
 \fBpostscreen\fR(8) maintains a temporary whitelist for
 clients that have passed a number of tests.  When an SMTP

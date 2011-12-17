@@ -2235,13 +2235,24 @@ extern int var_local_rcpt_code;
 				" $" VAR_SEND_BCC_MAPS \
 				" $" VAR_RCPT_BCC_MAPS \
 				" $" VAR_SMTP_GENERIC_MAPS \
-				" $" VAR_LMTP_GENERIC_MAPS
+				" $" VAR_LMTP_GENERIC_MAPS \
+				" $" VAR_ALIAS_MAPS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
 #define DEF_PROXY_WRITE_MAPS	"$" VAR_SMTP_SASL_AUTH_CACHE_NAME \
-				" $" VAR_LMTP_SASL_AUTH_CACHE_NAME
+				" $" VAR_LMTP_SASL_AUTH_CACHE_NAME \
+				" $" VAR_VERIFY_MAP \
+				" $" VAR_PSC_CACHE_MAP
 extern char *var_proxy_write_maps;
+
+#define VAR_PROXY_READ_ACL	"proxy_read_access_list"
+#define DEF_PROXY_READ_ACL	"reject"
+extern char *var_proxy_read_acl;
+
+#define VAR_PROXY_WRITE_ACL	"proxy_write_access_list"
+#define DEF_PROXY_WRITE_ACL	"reject"
+extern char *var_proxy_write_acl;
 
  /*
   * Other.
@@ -3438,14 +3449,8 @@ extern char *var_psc_exp_filter;
 #define DEF_PSC_CMD_FILTER	""
 extern char *var_psc_cmd_filter;
 
-#define PSC_ACL_NAME_WL_MYNETWORKS "permit_mynetworks"
-#define PSC_ACL_NAME_WHITELIST	"permit"
-#define PSC_ACL_NAME_BLACKLIST	"reject"
-#define PSC_ACL_NAME_DUNNO	"dunno"
-#define PSC_ACL_NAME_ERROR	"error"
-
 #define VAR_PSC_ACL		"postscreen_access_list"
-#define DEF_PSC_ACL		PSC_ACL_NAME_WL_MYNETWORKS
+#define DEF_PSC_ACL		SERVER_ACL_NAME_WL_MYNETWORKS
 extern char *var_psc_acl;
 
 #define VAR_PSC_WLIST_IF	"postscreen_whitelist_interfaces"

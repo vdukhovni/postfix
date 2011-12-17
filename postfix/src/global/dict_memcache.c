@@ -109,7 +109,7 @@ typedef struct {
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
 
-#define msg_verbose 1
+/*#define msg_verbose 1*/
 
 /* dict_memcache_set - set memcache key/value */
 

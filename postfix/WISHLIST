@@ -6,8 +6,20 @@ Wish list:
 	or require that they reset dict_errno on entry, either exit
 	with a fatal error or set dict_errno on error.
 
+	multi_connect() function that takes a list of inet:host:port
+	and/or unix:pathname specs, with an explicit "inet" prefix
+	argument to handle applications that use host:port only.
+	This will simplify multi-host implementation for memcache
+	client, dovecot client, and other.
+
 	dict_memcache: treat "bad" key as cache miss, i.e.  read/write
-	the database as if the cache did not exist.
+	the database as if the cache did not exist. This does not
+	work because most Postfix maps (virtual, canonical, access,
+	transport, ...) also don't support spaces in keys.
+
+	postscreen: keep the cache open after "postfix reload" when
+	it is remote (type memcache: or proxy:). This does not work
+	because memcache can use a non-proxied file as backup).
 
 	Is it possible to replace msg_fatal calls in match_ops.c
 	by msg_warn and longjmp? The callers will have to specify

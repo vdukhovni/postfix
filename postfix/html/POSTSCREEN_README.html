@@ -32,7 +32,9 @@ pass its tests; by allowing whitelisted clients to skip tests,
 mail from end-user clients (MUAs). In a typical deployment,
 <a href="postscreen.8.html">postscreen(8)</a> is used on the "port 25" service, while MUA clients
 submit mail via the submission service (port 587) which normally
-requires client authentication. </p>
+requires client authentication, or via a "port 25" server that
+provides no MX service (i.e. a dedicated server that provides
+submission service on port 25). </p>
 
 <p> <a href="postscreen.8.html">postscreen(8)</a> is part of a multi-layer defense. <p>
 
@@ -215,6 +217,13 @@ the tests described below. The <a href="postconf.5.html#postscreen_cache_map">po
 specifies the location of the temporary whitelist.  The
 temporary whitelist is not used for SMTP client addresses
 that appear on the <i>permanent</i> access list. </p>
+
+<blockquote> <p> NOTE: To share a <a href="postscreen.8.html">postscreen(8)</a> cache between
+multiple <a href="postscreen.8.html">postscreen(8)</a> instances, use "<tt><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> =
+<a href="proxymap.8.html">proxy</a>:btree:/path/to/file</tt>".  This requires Postfix 2.9 or
+later; earlier <a href="proxymap.8.html">proxymap(8)</a> implementations don't support cache
+cleanup.  For an alternative approach see the <a href="memcache_table.5.html">memcache_table(5)</a>
+manpage.  </p> </blockquote>
 
 <p> When the SMTP client address appears on the temporary
 whitelist, <a href="postscreen.8.html">postscreen(8)</a> logs this with the client address and port
