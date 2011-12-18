@@ -2,6 +2,11 @@ Wish list:
 
 	Things to do before the stable release:
 
+	Remove this file from the stable release.
+
+	limits on attribute string length in IPC protocols. 10-20KB
+	seems OK. We could start with limits enabled only in proxymap.
+
 	Either make all void dict_* operations return an error code,
 	or require that they reset dict_errno on entry, either exit
 	with a fatal error or set dict_errno on error.
@@ -24,8 +29,6 @@ Wish list:
 	Is it possible to replace msg_fatal calls in match_ops.c
 	by msg_warn and longjmp? The callers will have to specify
 	if they want the code to return instead of terminate.
-
-	Remove this file from the stable release.
 
 	Things to do after the stable release:
 

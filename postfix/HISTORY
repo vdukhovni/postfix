@@ -17353,3 +17353,22 @@ Apologies for any names omitted.
 	Human factors: the postscreen/verify cache manager now logs
 	the full database name including the proxy: prefix, to avoid
 	WTF surprises. File: util/dict_cache.c.
+
+20111218
+
+	Cleanup: more configurable memcache client error handling.
+	Files: global/dict_memcache.c, proto/memcache_table.
+
+	Feature: the Postfix SMTP server XCLIENT command now supports
+	the LOGIN attribute (e.g., login information from nginx).
+	Based on the nginx:xclient-login-patch from citrin.ru (Anton
+	Yuzhis). The patch was further enhanced to support SASL
+	login information everywhere in the Postfix SMTP server
+	without having to specify "smtpd_sasl_auth_enable = yes"
+	in main.cf.  Files: smtpd.[hc], smtpd_sasl_glue.[hc],
+	smtpd_check.c, smtpd_sasl_proto.[hc], smtpd_state.c,
+	proto/XCLIENT_README.html.
+
+	Incompatibility: the Postfix SMTP server now always checks
+	the smtpd_sender_login_maps table, even without having
+	"smtpd_sasl_auth_enable = yes" in main.cf.

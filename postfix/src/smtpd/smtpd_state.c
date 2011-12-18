@@ -145,10 +145,16 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     state->tls_context = 0;
 #endif
 
+
+    /*
+     * Minimal initialization to support external authentication (e.g.,
+     * XCLIENT) without having to enable SASL in main.cf.
+     */
 #ifdef USE_SASL_AUTH
     if (SMTPD_STAND_ALONE(state))
 	var_smtpd_sasl_enable = 0;
     smtpd_sasl_set_inactive(state);
+    smtpd_sasl_state_init(state);
 #endif
 
     state->milter_argv = 0;

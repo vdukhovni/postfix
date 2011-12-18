@@ -267,6 +267,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define CLIENT_PROTO_UNKNOWN	CLIENT_ATTR_UNKNOWN
 #define CLIENT_IDENT_UNKNOWN	0
 #define CLIENT_DOMAIN_UNKNOWN	0
+#define CLIENT_LOGIN_UNKNOWN	0
 
 #define IS_AVAIL_CLIENT_ATTR(v)	((v) && strcmp((v), CLIENT_ATTR_UNKNOWN))
 

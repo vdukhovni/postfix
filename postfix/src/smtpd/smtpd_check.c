@@ -2668,6 +2668,7 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
 			              const char *def_acl)
 {
     int     result = SMTPD_CHECK_DUNNO;
+
 #ifdef USE_TLS
     const char *myname = "check_ccert_access";
     int     found;
@@ -3355,15 +3356,9 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
     int     found = 0;
 
     /*
-     * Replace obscure code by self-evident code.
-     */
-#define SMTPD_SASL_AUTHENTICATED(state) \
-	(smtpd_sasl_is_active(state) && state->sasl_username != 0)
-
-    /*
      * Reject if the client is logged in and does not own the sender address.
      */
-    if (var_smtpd_sasl_enable && SMTPD_SASL_AUTHENTICATED(state)) {
+    if (smtpd_sender_login_maps && state->sasl_username) {
 	reply = smtpd_resolve_addr(sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
@@ -3396,7 +3391,7 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
      * Reject if the client is not logged in and the sender address has an
      * owner.
      */
-    if (var_smtpd_sasl_enable && !SMTPD_SASL_AUTHENTICATED(state)) {
+    if (smtpd_sender_login_maps && !state->sasl_username) {
 	reply = smtpd_resolve_addr(sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
@@ -3489,14 +3484,11 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_STR, MAIL_ATTR_STRESS, var_stress,
 #ifdef USE_SASL_AUTH
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
-			  smtpd_sasl_is_active(state) && state->sasl_method ?
-			  state->sasl_method : "",
+			  state->sasl_method ? state->sasl_method : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME,
-		       smtpd_sasl_is_active(state) && state->sasl_username ?
-			  state->sasl_username : "",
+			  state->sasl_username ? state->sasl_username : "",
 			  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER,
-			  smtpd_sasl_is_active(state) && state->sasl_sender ?
-			  state->sasl_sender : "",
+			  state->sasl_sender ? state->sasl_sender : "",
 #endif
 #ifdef USE_TLS
 #define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))

@@ -34,11 +34,29 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
        operation  requires  a  backup  database that supports the
        operation.
 
-<b>MEMCACHE PARAMETERS</b>
-       <b>backup</b> An optional Postfix database that provides  persis-
-              tent  backup for the memcache database. The Postfix
-              memcache client will update the  memcache  database
-              whenever  it looks up or changes information in the
+<b>MEMCACHE MAIN PARAMETERS</b>
+       <b>memcache (default: inet:localhost:11211)</b>
+              The memcache server (note: singular)  that  Postfix
+              will  try  to connect to.  For a TCP server specify
+              "inet:" followed by a hostname or address, ":", and
+              a  port  name  or  number.  Specify an IPv6 address
+              inside "[]".   For  a  UNIX-domain  server  specify
+              "unix:" followed by the socket pathname. Examples:
+
+                  memcache = inet:memcache.example.com:11211
+                  memcache = inet:127.0.0.1:11211
+                  memcache = inet:[fc00:8d00:189::3]:11211
+                  memcache = unix:/path/to/socket
+
+              NOTE: to access a UNIX-domain socket with the <a href="proxymap.8.html">prox-</a>
+              <a href="proxymap.8.html">ymap(8)</a> server, the socket must  be  accessible  by
+              the unprivileged postfix user.
+
+       <b>backup (default: undefined)</b>
+              An  optional Postfix database that provides persis-
+              tent backup for the memcache database. The  Postfix
+              memcache  client  will update the memcache database
+              whenever it looks up or changes information in  the
               persistent database. Specify a Postfix "<a href="DATABASE_README.html">type:table</a>"
               database. Examples:
 
@@ -51,39 +69,48 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               Access to remote proxymap servers is under develop-
               ment.
 
-              NOTE 1: When using memcache with persistent  backup
-              as  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache, disable auto-
-              matic cache cleanup (*_cache_cleanup_interval =  0)
-              in  all  Postfix  instances except for one instance
+              NOTE  1: When using memcache with persistent backup
+              as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache, disable  auto-
+              matic  cache cleanup (*_cache_cleanup_interval = 0)
+              in all Postfix instances except  for  one  instance
               that will be responsible for cache cleanup.
 
               NOTE 2: In the case of a proxied database, the full
-              database  name (including the "<a href="proxymap.8.html">proxy</a>:" prefix) must
-              be   specified    in    the    proxymap    server's
-              <a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a>    or    <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a>   setting
-              (depending on whether the access  is  read-only  or
+              database name (including the "<a href="proxymap.8.html">proxy</a>:" prefix)  must
+              be    specified    in    the    proxymap   server's
+              <a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a>   or    <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a>    setting
+              (depending  on  whether  the access is read-only or
               read-write).
 
-       <b>memcache (default: inet:localhost:11211)</b>
-              The  memcache  server (note: singular) that Postfix
-              will try to connect to.  For a TCP  server  specify
-              "inet:" followed by a hostname or address, ":", and
-              a port name or number.  For  a  UNIX-domain  server
-              specify  "unix:"  followed  by the socket pathname.
-              Examples:
+       <b>flags (default: 0)</b>
+              Optional flags that should be stored along  with  a
+              memcache update.
 
-                  memcache = inet:memcache.example.com
-                  memcache = unix:/path/to/socket
+       <b>ttl (default: 3600)</b>
+              The expiration time in seconds of memcache updates.
 
-              NOTE: In the case of a UNIX-domain socket, it  must
-              be  accessible by the unprivileged postfix user and
-              by the memcached process.
+              NOTE  1:   When   using   a   memcache   table   as
+              <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache without persistent
+              backup,  specify  a  zero  *_cache_cleanup_interval
+              value  with all Postfix instances that use the mem-
+              cache, and specify the largest <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  *_ttl
+              value  or <a href="verify.8.html"><b>verify</b>(8)</a> *_expire_time value as the mem-
+              cache table's <b>ttl</b> value.
 
+              NOTE 2: According to memcache  protocol  documenta-
+              tion,  a  value  greater than 30 days (2592000 sec-
+              onds) specifies absolute UNIX time. Smaller  values
+              are relative to the time of the update.
+
+<b>MEMCACHE KEY PARAMETERS</b>
        <b>key_format (default: %s)</b>
-              Format of the lookup and update  keys  in  memcache
-              queries.   By  default,  these  are the same as the
-              lookup and update keys that are given to the  Post-
+              Format  of  the  lookup and update keys in memcache
+              requests.  By default, these are the  same  as  the
+              lookup  and update keys that are given to the Post-
               fix memcache client.
+
+              NOTE: The <b>key_format</b> feature is not used for <b>backup</b>
+              database requests.
 
               When  the  same  memcache database is used to cache
               information from multiple tables, you can  use  the
@@ -144,25 +171,24 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
 
                   domain = example.com, hash:/etc/postfix/searchdomains
 
-       <b>flags (default: 0)</b>
-              Optional  flags  that should be stored along with a
-              memcache update.
+<b>MEMCACHE ERROR CONTROLS</b>
+       <b>data_size_limit (default: 10240)</b>
+              The maximal memcache reply data length in bytes.
 
-       <b>ttl (default: 3600)</b>
-              The expiration time in seconds of memcache updates.
+       <b>line_size_limit (default: 1024)</b>
+              The maximal memcache reply line length in bytes.
 
-              NOTE   1:   When   using   a   memcache   table  as
-              <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache without persistent
-              backup,  specify  a  zero  *_cache_cleanup_interval
-              value with all Postfix instances that use the  mem-
-              cache,  and specify the largest <a href="postscreen.8.html"><b>postscreen</b>(8)</a> *_ttl
-              value or <a href="verify.8.html"><b>verify</b>(8)</a> *_expire_time value as the  mem-
-              cache table's <b>ttl</b> value.
+       <b>max_try (default: 2)</b>
+              The  number  of  times  to  try  a memcache command
+              before giving up.
 
-              NOTE  2:  According to memcache protocol documenta-
-              tion, a value greater than 30  days  (2592000  sec-
-              onds)  specifies absolute UNIX time. Smaller values
-              are relative to the time of the update.
+       <b>retry_pause (default: 1)</b>
+              The time in seconds to wait after a  memcache  com-
+              mand fails.
+
+       <b>timeout (default: 2)</b>
+              The  time  limit for sending a memcache command and
+              for receiving a memcache reply.
 
 <b>BUGS</b>
        The Postfix memcache client cannot be used  for  security-
@@ -178,7 +204,7 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
        The Postfix memcache client requires additional configura-
        tion  when  used as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache.  For
        details see the <b>backup</b> and <b>ttl</b>  parameter  discussions  in
-       the MEMCACHE PARAMETERS section above.
+       the MEMCACHE MAIN PARAMETERS section above.
 
 <b>SEE ALSO</b>
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager

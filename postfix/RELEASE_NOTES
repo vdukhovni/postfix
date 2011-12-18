@@ -14,6 +14,21 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Incompatible changes with snapshot 201112XX
+===========================================
+
+To support external SASL authentication, the Postfix SMTP server
+now always checks the smtpd_sender_login_maps table, even without
+having "smtpd_sasl_auth_enable = yes" in main.cf.
+
+Major changes with snapshot 201112XX
+====================================
+
+Support for external SASL authentication via the XCLIENT command.
+This is used to accept SASL authentication from an SMTP proxy such
+as nginx. This support works even without having to specify
+"smtpd_sasl_auth_enable = yes" in main.cf.
+
 Major changes with snapshot 20111213
 ====================================
 

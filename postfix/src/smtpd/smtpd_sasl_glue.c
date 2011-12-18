@@ -6,6 +6,9 @@
 /* SYNOPSIS
 /*	#include "smtpd_sasl_glue.h"
 /*
+/*	void	smtpd_sasl_state_init(state)
+/*	SMTPD_STATE *state;
+/*
 /*	void    smtpd_sasl_initialize()
 /*
 /*	void	smtpd_sasl_activate(state, sasl_opts_name, sasl_opts_val)
@@ -21,6 +24,11 @@
 /*	void	smtpd_sasl_logout(state)
 /*	SMTPD_STATE *state;
 /*
+/*	void	smtpd_sasl_login(state, sasl_username, sasl_method)
+/*	SMTPD_STATE *state;
+/*	const char *sasl_username;
+/*	const char *sasl_method;
+/*
 /*	void	smtpd_sasl_deactivate(state)
 /*	SMTPD_STATE *state;
 /*
@@ -32,6 +40,11 @@
 /* DESCRIPTION
 /*	This module encapsulates most of the detail specific to SASL
 /*	authentication.
+/*
+/*	smtpd_sasl_state_init() performs minimal server state
+/*	initialization to support external authentication (e.g.,
+/*	XCLIENT) without having to enable SASL in main.cf. This
+/*	should always be called at process startup.
 /*
 /*	smtpd_sasl_initialize() initializes the SASL library. This
 /*	routine should be called once at process start-up. It may
@@ -57,6 +70,10 @@
 /*	This member is a null pointer in the absence of successful
 /*	authentication.
 /* .PP
+/*	smtpd_sasl_login() records the result of successful external
+/*	authentication, i.e. without invoking smtpd_sasl_authenticate(),
+/*	but produces an otherwise equivalent result.
+/*
 /*	smtpd_sasl_logout() cleans up after smtpd_sasl_authenticate().
 /*	This routine exists for the sake of symmetry.
 /*
@@ -181,9 +198,6 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
      */
     state->sasl_reply = vstring_alloc(20);
     state->sasl_mechanism_list = 0;
-    state->sasl_username = 0;
-    state->sasl_method = 0;
-    state->sasl_sender = 0;
 
     /*
      * Set up a new server context for this connection.
@@ -204,7 +218,7 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
 			     client_addr = ADDR_OR_EMPTY(state->addr,
 						       CLIENT_ADDR_UNKNOWN),
 			     service = SMTPD_SASL_SERVICE,
-			     user_realm = REALM_OR_NULL(var_smtpd_sasl_realm),
+			   user_realm = REALM_OR_NULL(var_smtpd_sasl_realm),
 			     security_options = sasl_opts_val,
 			     tls_flag = tls_flag)) == 0)
 	msg_fatal("SASL per-connection initialization failed");
@@ -216,6 +230,16 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
 	 xsasl_server_get_mechanism_list(state->sasl_server)) == 0)
 	msg_fatal("no SASL authentication mechanisms");
     state->sasl_mechanism_list = mystrdup(mechanism_list);
+}
+
+/* smtpd_sasl_state_init - initialize state to allow extern authentication. */
+
+void    smtpd_sasl_state_init(SMTPD_STATE *state)
+{
+    /* Initialization to support external authentication (e.g., XCLIENT). */
+    state->sasl_username = 0;
+    state->sasl_method = 0;
+    state->sasl_sender = 0;
 }
 
 /* smtpd_sasl_deactivate - per-connection cleanup */
@@ -320,6 +344,19 @@ void    smtpd_sasl_logout(SMTPD_STATE *state)
 	myfree(state->sasl_method);
 	state->sasl_method = 0;
     }
+}
+
+/* smtpd_sasl_login - set login information */
+
+void    smtpd_sasl_login(SMTPD_STATE *state, const char *sasl_username,
+			         const char *sasl_method)
+{
+    if (state->sasl_username)
+	myfree(state->sasl_username);
+    state->sasl_username = mystrdup(sasl_username);
+    if (state->sasl_method)
+	myfree(state->sasl_method);
+    state->sasl_method = mystrdup(sasl_method);
 }
 
 #endif

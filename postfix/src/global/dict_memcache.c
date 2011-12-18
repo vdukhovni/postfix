@@ -44,6 +44,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>			/* XXX sscanf() */
@@ -77,10 +78,12 @@ typedef struct {
     void   *dbc_ctxt;			/* db_common context */
     char   *key_format;			/* query key translation */
     int     timeout;			/* client timeout */
-    int     mc_ttl;			/* memcache expiration */
-    int     mc_flags;			/* memcache flags */
-    int     mc_pause;			/* sleep between errors */
-    int     mc_maxtry;			/* number of tries */
+    int     mc_ttl;			/* memcache update expiration */
+    int     mc_flags;			/* memcache update flags */
+    int     err_pause;			/* delay between errors */
+    int     max_tries;			/* number of tries */
+    int     max_line;			/* reply line limit */
+    int     max_data;			/* reply data limit */
     char   *memcache;			/* memcache server spec */
     AUTO_CLNT *clnt;			/* memcache client stream */
     VSTRING *clnt_buf;			/* memcache client buffer */
@@ -91,7 +94,7 @@ typedef struct {
 } DICT_MC;
 
  /*
-  * Default memcache options.
+  * Memcache option defaults and names.
   */
 #define DICT_MC_DEF_HOST	"localhost"
 #define DICT_MC_DEF_PORT	"11211"
@@ -100,8 +103,21 @@ typedef struct {
 #define DICT_MC_DEF_MC_TTL	3600
 #define DICT_MC_DEF_MC_TIMEOUT	2
 #define DICT_MC_DEF_MC_FLAGS	0
-#define DICT_MC_DEF_MC_MAXTRY	2
-#define DICT_MC_DEF_MC_PAUSE	1
+#define DICT_MC_DEF_MAX_TRY	2
+#define DICT_MC_DEF_MAX_LINE	1024
+#define DICT_MC_DEF_MAX_DATA	10240
+#define DICT_MC_DEF_ERR_PAUSE	1
+
+#define DICT_MC_NAME_MEMCACHE	"memcache"
+#define DICT_MC_NAME_BACKUP	"backup"
+#define DICT_MC_NAME_KEY_FMT	"key_format"
+#define DICT_MC_NAME_MC_TTL	"ttl"
+#define DICT_MC_NAME_MC_TIMEOUT	"timeout"
+#define DICT_MC_NAME_MC_FLAGS	"flags"
+#define DICT_MC_NAME_MAX_TRY	"max_try"
+#define DICT_MC_NAME_MAX_LINE	"line_size_limit"
+#define DICT_MC_NAME_MAX_DATA	"data_size_limit"
+#define DICT_MC_NAME_ERR_PAUSE	"retry_pause"
 
  /*
   * SLMs.
@@ -117,35 +133,48 @@ static void dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 {
     VSTREAM *fp;
     int     count;
+    int     data_len = strlen(value);
 
-#define MC_LINE_LIMIT 1024
-
-    dict_mc->mc_errno = DICT_ERR_RETRY;
-    for (count = 0; count < dict_mc->mc_maxtry; count++) {
+    /*
+     * If we can't retrieve it, then we must not store it.
+     */
+    dict_mc->mc_errno = DICT_ERR_RETRY;		/* XXX */
+    if (data_len > dict_mc->max_data) {
+	msg_warn("database %s:%s: data for key %s is too long (%s=%d) "
+		 "-- not stored", DICT_TYPE_MEMCACHE, dict_mc->dict.name,
+		 STR(dict_mc->key_buf), DICT_MC_NAME_MAX_DATA,
+		 dict_mc->max_data);
+	return;
+    }
+    for (count = 0; count < dict_mc->max_tries; count++) {
 	if (count > 0)
-	    sleep(1);
-	if ((fp = auto_clnt_access(dict_mc->clnt)) != 0) {
+	    sleep(dict_mc->err_pause);
+	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
+	    if (errno == ECONNREFUSED)
+		break;
+	} else {
 	    if (memcache_printf(fp, "set %s %d %d %ld",
 				STR(dict_mc->key_buf), dict_mc->mc_flags,
-				ttl, strlen(value)) < 0
+				ttl, data_len) < 0
 		|| memcache_fwrite(fp, value, strlen(value)) < 0
-		|| memcache_get(fp, dict_mc->clnt_buf, MC_LINE_LIMIT) < 0) {
+		|| memcache_get(fp, dict_mc->clnt_buf,
+				dict_mc->max_line) < 0) {
 		if (count > 0)
-		    msg_warn("database %s:%s: I/O error: %m",
+		    msg_warn(errno ? "database %s:%s: I/O error: %m" :
+			     "database %s:%s: I/O error",
 			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-		auto_clnt_recover(dict_mc->clnt);
 	    } else if (strcmp(STR(dict_mc->clnt_buf), "STORED") != 0) {
 		if (count > 0)
 		    msg_warn("database %s:%s: update failed: %.30s",
 			     DICT_TYPE_MEMCACHE, dict_mc->dict.name,
 			     STR(dict_mc->clnt_buf));
-		auto_clnt_recover(dict_mc->clnt);
 	    } else {
 		/* Victory! */
 		dict_mc->mc_errno = 0;
 		break;
 	    }
 	}
+	auto_clnt_recover(dict_mc->clnt);
     }
 }
 
@@ -160,41 +189,89 @@ static const char *dict_memcache_get(DICT_MC *dict_mc)
 
     dict_mc->mc_errno = DICT_ERR_RETRY;
     retval = 0;
-    for (count = 0; count < dict_mc->mc_maxtry; count++) {
+    for (count = 0; count < dict_mc->max_tries; count++) {
 	if (count > 0)
-	    sleep(1);
-	if ((fp = auto_clnt_access(dict_mc->clnt)) != 0) {
+	    sleep(dict_mc->err_pause);
+	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
+	    if (errno == ECONNREFUSED)
+		break;
+	} else {
 	    if (memcache_printf(fp, "get %s", STR(dict_mc->key_buf)) < 0
-		|| memcache_get(fp, dict_mc->clnt_buf, MC_LINE_LIMIT) < 0) {
+	    || memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0) {
 		if (count > 0)
-		    msg_warn("database %s:%s: I/O error: %m",
+		    msg_warn(errno ? "database %s:%s: I/O error: %m" :
+			     "database %s:%s: I/O error",
 			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-		auto_clnt_recover(dict_mc->clnt);
 	    } else if (strcmp(STR(dict_mc->clnt_buf), "END") == 0) {
 		/* Not found. */
 		dict_mc->mc_errno = 0;
 		break;
 	    } else if (sscanf(STR(dict_mc->clnt_buf),
-			      "VALUE %*s %*s %ld", &todo) != 1 || todo < 0) {
+			      "VALUE %*s %*s %ld", &todo) != 1
+		       || todo < 0 || todo > dict_mc->max_data) {
 		if (count > 0)
 		    msg_warn("%s: unexpected memcache server reply: %.30s",
 			     dict_mc->dict.name, STR(dict_mc->clnt_buf));
-		auto_clnt_recover(dict_mc->clnt);
 	    } else if (memcache_fread(fp, dict_mc->res_buf, todo) < 0) {
 		if (count > 0)
 		    msg_warn("%s: EOF receiving memcache server reply",
 			     dict_mc->dict.name);
-		auto_clnt_recover(dict_mc->clnt);
 	    } else {
 		/* Victory! */
 		retval = STR(dict_mc->res_buf);
 		dict_mc->mc_errno = 0;
-		if (memcache_get(fp, dict_mc->clnt_buf, MC_LINE_LIMIT) < 0
+		if (memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0
 		    || strcmp(STR(dict_mc->clnt_buf), "END") != 0)
 		    auto_clnt_recover(dict_mc->clnt);
 		break;
 	    }
 	}
+	auto_clnt_recover(dict_mc->clnt);
+    }
+    return (retval);
+}
+
+/* dict_memcache_del - delete memcache key/value */
+
+static int dict_memcache_del(DICT_MC *dict_mc)
+{
+    VSTREAM *fp;
+    int     count;
+    int     retval = -1;
+
+    dict_mc->mc_errno = DICT_ERR_RETRY;
+    for (count = 0; count < dict_mc->max_tries; count++) {
+	if (count > 0)
+	    sleep(dict_mc->err_pause);
+	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
+	    if (errno == ECONNREFUSED)
+		break;
+	} else {
+	    if (memcache_printf(fp, "delete %s", STR(dict_mc->key_buf)) < 0
+		|| memcache_get(fp, dict_mc->clnt_buf,
+				dict_mc->max_line) < 0) {
+		if (count > 0)
+		    msg_warn(errno ? "database %s:%s: I/O error: %m" :
+			     "database %s:%s: I/O error",
+			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+	    } else if (strcmp(STR(dict_mc->clnt_buf), "DELETED") == 0) {
+		/* Victory! */
+		dict_mc->mc_errno = 0;
+		retval = 0;
+		break;
+	    } else if (strcmp(STR(dict_mc->clnt_buf), "NOT_FOUND") == 0) {
+		/* Not found! */
+		dict_mc->mc_errno = 0;
+		retval = 1;
+		break;
+	    } else {
+		if (count > 0)
+		    msg_warn("database %s:%s: delete failed: %.30s",
+			     DICT_TYPE_MEMCACHE, dict_mc->dict.name,
+			     STR(dict_mc->clnt_buf));
+	    }
+	}
+	auto_clnt_recover(dict_mc->clnt);
     }
     return (retval);
 }
@@ -298,12 +375,12 @@ static void dict_memcache_update(DICT *dict, const char *name,
     dict_memcache_set(dict_mc, value, dict_mc->mc_ttl);
 
     if (msg_verbose)
-	msg_info("%s: %s: update key \"%s\" => \"%s\" %s",
-		 myname, dict_mc->dict.name, STR(dict_mc->key_buf), value,
-		 dict_mc->mc_errno ? "(memcache error)" :
+	msg_info("%s: %s: update key \"%s\"(%s) => \"%s\" %s",
+		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
+		 value, dict_mc->mc_errno ? "(memcache error)" :
 		 backup_errno ? "(backup error)" : "(no error)");
 
-    dict_errno = (backup_errno ? backup_errno : dict_mc->mc_errno);
+    dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
 }
 
 /* dict_memcache_lookup - lookup memcache */
@@ -340,11 +417,12 @@ static const char *dict_memcache_lookup(DICT *dict, const char *name)
 	    dict_memcache_set(dict_mc, retval, dict_mc->mc_ttl);
     }
     if (msg_verbose)
-	msg_info("%s: %s: key %s => %s",
-		 myname, dict_mc->dict.name, STR(dict_mc->key_buf),
-		 retval ? retval :
-		 dict_mc->mc_errno ? "(memcache error)" :
+	msg_info("%s: %s: key \"%s\"(%s) => %s",
+		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
+		 retval ? retval : dict_mc->mc_errno ? "(memcache error)" :
 		 backup_errno ? "(backup error)" : "(not found)");
+
+    dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
 
     return (retval);
 }
@@ -355,9 +433,9 @@ static int dict_memcache_delete(DICT *dict, const char *name)
 {
     const char *myname = "dict_memcache_delete";
     DICT_MC *dict_mc = (DICT_MC *) dict;
-    const char *retval;
     int     backup_errno = 0;
     int     del_res = 0;
+    int     mem_res;
 
     /*
      * Skip lookups with an inapplicable key, silently. This is just deleting
@@ -377,21 +455,19 @@ static int dict_memcache_delete(DICT *dict, const char *name)
     }
 
     /*
-     * Update the memcache last. There is no memcache delete operation.
-     * Instead, we set a short expiration time if the data exists.
+     * Update the memcache last.
      */
-    if ((retval = dict_memcache_get(dict_mc)) != 0)
-	dict_memcache_set(dict_mc, retval, 1);
+    mem_res = dict_memcache_del(dict_mc);
 
     if (msg_verbose)
-	msg_info("%s: %s: delete key %s => %s",
-		 myname, dict_mc->dict.name, STR(dict_mc->key_buf),
+	msg_info("%s: %s: delete key \"%s\"(%s) => %s",
+		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
 		 dict_mc->mc_errno ? "(memcache error)" :
 		 backup_errno ? "(backup error)" : "(no error)");
 
-    dict_errno = (backup_errno ? backup_errno : dict_mc->mc_errno);
+    dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
 
-    return (del_res);
+    return (dict_mc->backup ? del_res : mem_res);
 }
 
 /* dict_memcache_sequence - first/next lookup */
@@ -467,19 +543,23 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
      * Parse the configuration file.
      */
     dict_mc->parser = cfg_parser_alloc(name);
-    dict_mc->key_format = cfg_get_str(dict_mc->parser, "key_format",
+    dict_mc->key_format = cfg_get_str(dict_mc->parser, DICT_MC_NAME_KEY_FMT,
 				      DICT_MC_DEF_KEY_FMT, 0, 0);
-    dict_mc->timeout = cfg_get_int(dict_mc->parser, "timeout",
+    dict_mc->timeout = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MC_TIMEOUT,
 				   DICT_MC_DEF_MC_TIMEOUT, 0, 0);
-    dict_mc->mc_ttl = cfg_get_int(dict_mc->parser, "ttl",
+    dict_mc->mc_ttl = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MC_TTL,
 				  DICT_MC_DEF_MC_TTL, 0, 0);
-    dict_mc->mc_flags = cfg_get_int(dict_mc->parser, "flags",
+    dict_mc->mc_flags = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MC_FLAGS,
 				    DICT_MC_DEF_MC_FLAGS, 0, 0);
-    dict_mc->mc_pause = cfg_get_int(dict_mc->parser, "error_pause",
-				    DICT_MC_DEF_MC_PAUSE, 1, 0);
-    dict_mc->mc_maxtry = cfg_get_int(dict_mc->parser, "maxtry",
-				     DICT_MC_DEF_MC_MAXTRY, 1, 0);
-    dict_mc->memcache = cfg_get_str(dict_mc->parser, "memcache",
+    dict_mc->err_pause = cfg_get_int(dict_mc->parser, DICT_MC_NAME_ERR_PAUSE,
+				     DICT_MC_DEF_ERR_PAUSE, 1, 0);
+    dict_mc->max_tries = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MAX_TRY,
+				     DICT_MC_DEF_MAX_TRY, 1, 0);
+    dict_mc->max_line = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MAX_LINE,
+				    DICT_MC_DEF_MAX_LINE, 1, 0);
+    dict_mc->max_data = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MAX_DATA,
+				    DICT_MC_DEF_MAX_DATA, 1, 0);
+    dict_mc->memcache = cfg_get_str(dict_mc->parser, DICT_MC_NAME_MEMCACHE,
 				    DICT_MC_DEF_MEMCACHE, 0, 0);
 
     /*
@@ -491,7 +571,8 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
     /*
      * Open the optional backup database.
      */
-    backup = cfg_get_str(dict_mc->parser, "backup", (char *) 0, 0, 0);
+    backup = cfg_get_str(dict_mc->parser, DICT_MC_NAME_BACKUP,
+			 (char *) 0, 0, 0);
     if (backup) {
 	dict_mc->backup = dict_open(backup, open_flags, dict_flags);
 	myfree(backup);

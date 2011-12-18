@@ -12,6 +12,11 @@
 /*	int	argc;
 /*	SMTPD_TOKEN *argv;
 /*
+/*	void	smtpd_sasl_auth_extern(state, username, method)
+/*	SMTPD_STATE *state;
+/*	const char *username;
+/*	const char *method;
+/*
 /*	void	smtpd_sasl_auth_reset(state)
 /*	SMTPD_STATE *state;
 /*
@@ -47,6 +52,13 @@
 /* .PP
 /*	smtpd_sasl_auth_reset() cleans up after the AUTH command.
 /*	This is required before smtpd_sasl_auth_cmd() can be used again.
+/*	This may be called even if SASL authentication is turned off
+/*	in main.cf.
+/*
+/*	smtpd_sasl_auth_extern() records authentication information
+/*	that is received from an external source.
+/*	This may be called even if SASL authentication is turned off
+/*	in main.cf.
 /*
 /*	smtpd_sasl_mail_opt() implements the SASL-specific AUTH=sender
 /*	option to the MAIL FROM command. The result is an error response
@@ -183,7 +195,6 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 5.5.4 Syntax: AUTH mechanism");
 	return (-1);
     }
-
     /* Don't reuse the SASL handle after authentication failure. */
 #ifndef XSASL_TYPE_CYRUS
 #define XSASL_TYPE_CYRUS	"cyrus"
@@ -212,13 +223,6 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     return (smtpd_sasl_authenticate(state, auth_mechanism, initial_response));
 }
 
-/* smtpd_sasl_auth_reset - clean up after AUTH command */
-
-void    smtpd_sasl_auth_reset(SMTPD_STATE *state)
-{
-    smtpd_sasl_logout(state);
-}
-
 /* smtpd_sasl_mail_opt - SASL-specific MAIL FROM option */
 
 char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
@@ -227,10 +231,6 @@ char   *smtpd_sasl_mail_opt(SMTPD_STATE *state, const char *addr)
     /*
      * Do not store raw RFC2554 protocol data.
      */
-    if (!smtpd_sasl_is_active(state)) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	return ("503 5.5.4 Error: authentication disabled");
-    }
 #if 0
     if (state->sasl_username == 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;

@@ -210,6 +210,7 @@ extern char *mail_pathname(const char *, const char *);
 #define XCLIENT_PORT		"PORT"	/* client port */
 #define XCLIENT_PROTO		"PROTO"	/* client protocol */
 #define XCLIENT_HELO		"HELO"	/* client helo */
+#define XCLIENT_LOGIN		"LOGIN"	/* SASL login name */
 
 #define XCLIENT_UNAVAILABLE	"[UNAVAILABLE]"	/* permanently unavailable */
 #define XCLIENT_TEMPORARY	"[TEMPUNAVAIL]"	/* temporarily unavailable */

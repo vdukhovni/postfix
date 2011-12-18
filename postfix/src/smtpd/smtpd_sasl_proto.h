@@ -17,6 +17,9 @@ extern char *smtpd_sasl_mail_opt(SMTPD_STATE *, const char *);
 extern void smtpd_sasl_mail_log(SMTPD_STATE *);
 extern void smtpd_sasl_mail_reset(SMTPD_STATE *);
 
+#define smtpd_sasl_auth_extern	smtpd_sasl_login
+#define smtpd_sasl_auth_reset	smtpd_sasl_logout
+
 /* LICENSE
 /* .ad
 /* .fi

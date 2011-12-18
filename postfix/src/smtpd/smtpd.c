@@ -1690,6 +1690,9 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 				  state->sasl_mechanism_list);
 	}
     }
+#define XCLIENT_LOGIN_KLUDGE	" " XCLIENT_LOGIN
+#else
+#define XCLIENT_LOGIN_KLUDGE	""
 #endif
     if ((discard_mask & EHLO_MASK_VERP) == 0)
 	if (namadr_list_match(verp_clients, state->name, state->addr))
@@ -1700,7 +1703,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XCLIENT_CMD
 			      " " XCLIENT_NAME " " XCLIENT_ADDR
 			      " " XCLIENT_PROTO " " XCLIENT_HELO
-			      " " XCLIENT_REVERSE_NAME " " XCLIENT_PORT);
+			      " " XCLIENT_REVERSE_NAME " " XCLIENT_PORT
+			      XCLIENT_LOGIN_KLUDGE);
     if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
 	if (xforward_allowed)
 	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
@@ -1837,17 +1841,16 @@ static int mail_open_stream(SMTPD_STATE *state)
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_RWR_CONTEXT, FORWARD_DOMAIN(state));
 #ifdef USE_SASL_AUTH
-	    if (smtpd_sasl_is_active(state)) {
-		if (state->sasl_method)
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-				MAIL_ATTR_SASL_METHOD, state->sasl_method);
-		if (state->sasl_username)
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-			     MAIL_ATTR_SASL_USERNAME, state->sasl_username);
-		if (state->sasl_sender)
-		    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
-				MAIL_ATTR_SASL_SENDER, state->sasl_sender);
-	    }
+	    /* Make external authentication painless (e.g., XCLIENT). */
+	    if (state->sasl_method)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_SASL_METHOD, state->sasl_method);
+	    if (state->sasl_username)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_SASL_USERNAME, state->sasl_username);
+	    if (state->sasl_sender)
+		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			    MAIL_ATTR_SASL_SENDER, state->sasl_sender);
 #endif
 
 	    /*
@@ -1947,7 +1950,7 @@ static int mail_open_stream(SMTPD_STATE *state)
      * Log the queue ID with the message origin.
      */
 #ifdef USE_SASL_AUTH
-    if (smtpd_sasl_is_active(state))
+    if (state->sasl_username)
 	smtpd_sasl_mail_log(state);
     else
 #endif
@@ -2203,8 +2206,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		return (-1);
 	    }
 #ifdef USE_SASL_AUTH
-	} else if (smtpd_sasl_is_active(state)
-		   && strncasecmp(arg, "AUTH=", 5) == 0) {
+	} else if (strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
 		smtpd_chat_reply(state, "%s", err);
 		return (-1);
@@ -2390,7 +2392,7 @@ static void mail_reset(SMTPD_STATE *state)
     state->saved_delay = 0;
 #endif
 #ifdef USE_SASL_AUTH
-    if (smtpd_sasl_is_active(state))
+    if (state->sasl_sender)
 	smtpd_sasl_mail_reset(state);
 #endif
     state->discard = 0;
@@ -2928,8 +2930,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 #endif
 	    rfc3848_sess = "";
 #ifdef USE_SASL_AUTH
-	if (smtpd_sasl_is_active(state) && var_smtpd_sasl_auth_hdr
-	    && state->sasl_username) {
+	if (var_smtpd_sasl_auth_hdr && state->sasl_username) {
 	    username = VSTRING_STRDUP(state->sasl_username);
 	    comment_sanitize(username);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
@@ -2937,7 +2938,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    vstring_free(username);
 	}
 	/* RFC 3848 is defined for ESMTP only. */
-	if (smtpd_sasl_is_active(state) && state->sasl_username
+	if (state->sasl_username
 	    && strcmp(state->protocol, MAIL_PROTO_ESMTP) == 0)
 	    rfc3848_auth = "A";
 	else
@@ -3460,6 +3461,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     };
     int     got_helo = 0;
     int     got_proto = 0;
+    int     got_login = 0;
 
     /*
      * Sanity checks.
@@ -3653,6 +3655,20 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
 
 	/*
+	 * LOGIN=sasl_username. Sets the authentication method as XCLIENT.
+	 * This can be used even if SASL authentication is turned off in
+	 * main.cf. We can't make it easier than that.
+	 */
+#ifdef USE_SASL_AUTH
+	else if (STREQ(attr_name, XCLIENT_LOGIN)) {
+	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE) == 0) {
+		smtpd_sasl_auth_extern(state, attr_value, XCLIENT_CMD);
+		got_login = 1;
+	    }
+	}
+#endif
+
+	/*
 	 * Unknown attribute name. Complain.
 	 */
 	else {
@@ -3700,7 +3716,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->protocol = mystrdup(MAIL_PROTO_SMTP);
     }
 #ifdef USE_SASL_AUTH
-    if (smtpd_sasl_is_active(state))
+    if (got_login == 0)
 	smtpd_sasl_auth_reset(state);
 #endif
     chat_reset(state, 0);
@@ -4767,8 +4783,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 #endif
     helo_reset(state);
 #ifdef USE_SASL_AUTH
+    smtpd_sasl_auth_reset(state);
     if (smtpd_sasl_is_active(state)) {
-	smtpd_sasl_auth_reset(state);
 	smtpd_sasl_deactivate(state);
     }
 #endif
@@ -4815,13 +4831,13 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
     /*
      * XCLIENT must not override its own access control.
      */
-    xclient_allowed =
+    xclient_allowed = SMTPD_STAND_ALONE((&state)) == 0 &&
 	namadr_list_match(xclient_hosts, state.name, state.addr);
 
     /*
      * Overriding XFORWARD access control makes no sense, either.
      */
-    xforward_allowed =
+    xforward_allowed = SMTPD_STAND_ALONE((&state)) == 0 &&
 	namadr_list_match(xforward_hosts, state.name, state.addr);
 
     /*

@@ -34,12 +34,30 @@ The Postfix memcache client supports the lookup, update,
 delete and sequence (first/next) operations. The sequence
 operation requires a backup database that supports the
 operation.
-.SH "MEMCACHE PARAMETERS"
+.SH "MEMCACHE MAIN PARAMETERS"
 .na
 .nf
 .ad
 .fi
-.IP \fBbackup\fR
+.IP "\fBmemcache (default: inet:localhost:11211)\fR"
+The memcache server (note: singular) that Postfix will try
+to connect to.  For a TCP server specify "inet:" followed by
+a hostname or address, ":", and a port name or number.
+Specify an IPv6 address inside "[]".
+For a UNIX-domain server specify "unix:" followed by the
+socket pathname. Examples:
+
+.nf
+    memcache = inet:memcache.example.com:11211
+    memcache = inet:127.0.0.1:11211
+    memcache = inet:[fc00:8d00:189::3]:11211
+    memcache = unix:/path/to/socket
+.fi
+
+NOTE: to access a UNIX-domain socket with the proxymap(8)
+server, the socket must be accessible by the unprivileged
+postfix user.
+.IP "\fBbackup (default: undefined)\fR"
 An optional Postfix database that provides persistent backup
 for the memcache database. The Postfix memcache client will
 update the memcache database whenever it looks up or changes
@@ -67,24 +85,35 @@ name (including the "proxy:" prefix) must be specified in
 the proxymap server's proxy_read_maps or proxy_write_maps
 setting (depending on whether the access is read-only or
 read-write).
-.IP "\fBmemcache (default: inet:localhost:11211)\fR"
-The memcache server (note: singular) that Postfix will try
-to connect to.  For a TCP server specify "inet:" followed by
-a hostname or address, ":", and a port name or number.
-For a UNIX-domain server specify "unix:" followed by the
-socket pathname. Examples:
+.IP "\fBflags (default: 0)\fR"
+Optional flags that should be stored along with a memcache
+update.
+.IP "\fBttl (default: 3600)\fR"
+The expiration time in seconds of memcache updates.
 
+NOTE 1: When using a memcache table as \fBpostscreen\fR(8)
+or \fBverify\fR(8) cache without persistent backup, specify
+a zero *_cache_cleanup_interval value with all Postfix
+instances that use the memcache, and specify the largest
+\fBpostscreen\fR(8) *_ttl value or \fBverify\fR(8) *_expire_time
+value as the memcache table's \fBttl\fR value.
+
+NOTE 2: According to memcache protocol documentation, a
+value greater than 30 days (2592000 seconds) specifies
+absolute UNIX
+time. Smaller values are relative to the time of the update.
+.SH "MEMCACHE KEY PARAMETERS"
+.na
 .nf
-    memcache = inet:memcache.example.com
-    memcache = unix:/path/to/socket
+.ad
 .fi
-
-NOTE: In the case of a UNIX-domain socket, it must be accessible
-by the unprivileged postfix user and by the memcached process.
 .IP "\fBkey_format (default: %s)\fB"
-Format of the lookup and update keys in memcache queries.
+Format of the lookup and update keys in memcache requests.
 By default, these are the same as the lookup and update
 keys that are given to the Postfix memcache client.
+
+NOTE: The \fBkey_format\fR feature is not used for \fBbackup\fR
+database requests.
 
 When the same memcache database is used to cache information
 from multiple tables, you can use the \fBkey_format\fR
@@ -141,23 +170,22 @@ are skipped with a warning).  Example:
 .nf
     domain = example.com, hash:/etc/postfix/searchdomains
 .fi
-.IP "\fBflags (default: 0)\fR"
-Optional flags that should be stored along with a memcache
-update.
-.IP "\fBttl (default: 3600)\fR"
-The expiration time in seconds of memcache updates.
-
-NOTE 1: When using a memcache table as \fBpostscreen\fR(8)
-or \fBverify\fR(8) cache without persistent backup, specify
-a zero *_cache_cleanup_interval value with all Postfix
-instances that use the memcache, and specify the largest
-\fBpostscreen\fR(8) *_ttl value or \fBverify\fR(8) *_expire_time
-value as the memcache table's \fBttl\fR value.
-
-NOTE 2: According to memcache protocol documentation, a
-value greater than 30 days (2592000 seconds) specifies
-absolute UNIX
-time. Smaller values are relative to the time of the update.
+.SH "MEMCACHE ERROR CONTROLS"
+.na
+.nf
+.ad
+.fi
+.IP "\fBdata_size_limit (default: 10240)\fR"
+The maximal memcache reply data length in bytes.
+.IP "\fBline_size_limit (default: 1024)\fR"
+The maximal memcache reply line length in bytes.
+.IP "\fBmax_try (default: 2)\fR"
+The number of times to try a memcache command before giving up.
+.IP "\fBretry_pause (default: 1)\fR"
+The time in seconds to wait after a memcache command fails.
+.IP "\fBtimeout (default: 2)\fR"
+The time limit for sending a memcache command and for
+receiving a memcache reply.
 .SH BUGS
 .ad
 .fi
@@ -175,7 +203,7 @@ unprivileged Postfix user.
 The Postfix memcache client requires additional configuration
 when used as \fBpostscreen\fR(8) or \fBverify\fR(8) cache.
 For details see the \fBbackup\fR and \fBttl\fR parameter
-discussions in the MEMCACHE PARAMETERS section above.
+discussions in the MEMCACHE MAIN PARAMETERS section above.
 .SH "SEE ALSO"
 .na
 .nf
