@@ -7,6 +7,9 @@ Wish list:
 	limits on attribute string length in IPC protocols. 10-20KB
 	seems OK. We could start with limits enabled only in proxymap.
 
+	move flush_init() etc. from defer service clients to the
+	bounce daemon?
+
 	Either make all void dict_* operations return an error code,
 	or require that they reset dict_errno on entry, either exit
 	with a fatal error or set dict_errno on error.

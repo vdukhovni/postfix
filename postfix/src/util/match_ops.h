@@ -15,7 +15,11 @@
 
 #define MATCH_FLAG_NONE		0
 #define MATCH_FLAG_PARENT	(1<<0)
-#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT)
+#define MATCH_FLAG_RETURN	(1<<1)
+#define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN)
+
+#define MATCH_ERR_TEMP		(-1)	/* temporary error, e.g., database */
+#define MATCH_ERR_PERM		(-2)	/* permanent error, e.g., syntax */
 
 extern int match_string(int, const char *, const char *);
 extern int match_hostname(int, const char *, const char *);

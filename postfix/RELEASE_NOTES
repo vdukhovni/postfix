@@ -14,14 +14,14 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
-Incompatible changes with snapshot 201112XX
+Incompatible changes with snapshot 20111218
 ===========================================
 
 To support external SASL authentication, the Postfix SMTP server
 now always checks the smtpd_sender_login_maps table, even without
 having "smtpd_sasl_auth_enable = yes" in main.cf.
 
-Major changes with snapshot 201112XX
+Major changes with snapshot 20111218
 ====================================
 
 Support for external SASL authentication via the XCLIENT command.

@@ -1,4 +1,6 @@
 ./namadr_list 168.100.189.0/28 dummy 168.100.189.2
+./namadr_list '!168.100.189.2 168.100.189.0/28' dummy 168.100.189.2
+./namadr_list '!168.100.189.2 168.100.189.0/28' dummy 168.100.189.3
 ./namadr_list 168.100.189.0/28 dummy 168.100.189.16
 ./namadr_list 168.100.189.0/98 dummy 168.100.189.16
 ./namadr_list 168.100.589.0/28 dummy 168.100.189.16
@@ -35,3 +37,5 @@ env foo=x ./namadr_list !environ:junk foo 168.100.189.3
 env foo=x ./namadr_list !environ:junk bar 168.100.189.3
 env foo=x ./namadr_list !!environ:junk foo 168.100.189.3
 env foo=x ./namadr_list !!environ:junk bar 168.100.189.3
+./namadr_list fail:1 bar 168.100.189.3
+./namadr_list !fail:1 bar 168.100.189.3

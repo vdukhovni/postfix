@@ -37,6 +37,9 @@
 /*	The hostname pattern foo.com matches itself and any name below
 /*	the domain foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
+/* .IP MATCH_FLAG_RETURN
+/*	Return MATCH_ERR_TEMP or MATCH_ERR_PERM, instead of raising
+/*	a fatal run-time error.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*
@@ -81,9 +84,37 @@
 #define MATCH_DICTIONARY(pattern) \
     ((pattern)[0] != '[' && strchr((pattern), ':') != 0)
 
+/* match_error - return or raise fatal error */
+
+static int match_error(int flags, int err_val, const char *fmt,...)
+{
+    VSTRING *buf = vstring_alloc(100);
+    va_list ap;
+
+    /*
+     * In case arguments get swapped after some code change.
+     */
+    if (err_val >= 0)
+	msg_panic("match_error: bad error value: %d", err_val);
+
+    /*
+     * Report, and maybe return.
+     */
+    va_start(ap, fmt);
+    vstring_vsprintf(buf, fmt, ap);
+    va_end(ap);
+    if (flags & MATCH_FLAG_RETURN) {
+	msg_warn("%s", vstring_str(buf));
+    } else {
+	msg_fatal("%s", vstring_str(buf));
+    }
+    vstring_free(buf);
+    return (err_val);
+}
+
 /* match_string - match a string literal */
 
-int     match_string(int unused_flags, const char *string, const char *pattern)
+int     match_string(int flags, const char *string, const char *pattern)
 {
     const char *myname = "match_string";
     int     match;
@@ -99,7 +130,8 @@ int     match_string(int unused_flags, const char *string, const char *pattern)
 	if (match != 0)
 	    return (1);
 	if (dict_errno != 0)
-	    msg_fatal("%s: table lookup problem", pattern);
+	    return (match_error(flags, MATCH_ERR_TEMP,
+				"%s: table lookup problem", pattern));
 	return (0);
     }
 
@@ -149,7 +181,8 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 		if (match != 0)
 		    break;
 		if (dict_errno != 0)
-		    msg_fatal("%s: table lookup problem", pattern);
+		    return (match_error(flags, MATCH_ERR_TEMP,
+				      "%s: table lookup problem", pattern));
 	    }
 	    if ((next = strchr(entry + 1, '.')) == 0)
 		break;
@@ -185,7 +218,7 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 
 /* match_hostaddr - match host by address */
 
-int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
+int     match_hostaddr(int flags, const char *addr, const char *pattern)
 {
     const char *myname = "match_hostaddr";
     char   *saved_patt;
@@ -208,7 +241,8 @@ int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
 	if (dict_lookup(pattern, addr) != 0)
 	    return (1);
 	if (dict_errno != 0)
-	    msg_fatal("%s: table lookup problem", pattern);
+	    return (match_error(flags, MATCH_ERR_TEMP,
+				"%s: table lookup problem", pattern));
 	return (0);
     }
 
@@ -260,8 +294,9 @@ int     match_hostaddr(int unused_flags, const char *addr, const char *pattern)
      * everything into to binary form, and to do the comparison there.
      */
     saved_patt = mystrdup(pattern);
-    if ((err = cidr_match_parse(&match_info, saved_patt, (VSTRING *) 0)) != 0)
-	msg_fatal("%s", vstring_str(err));
+    err = cidr_match_parse(&match_info, saved_patt, (VSTRING *) 0);
     myfree(saved_patt);
+    if (err != 0)
+	return (match_error(flags, MATCH_ERR_PERM, "%s", vstring_str(err)));
     return (cidr_match_execute(&match_info, addr) != 0);
 }

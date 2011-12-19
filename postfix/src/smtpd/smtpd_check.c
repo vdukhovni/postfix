@@ -256,6 +256,7 @@ static jmp_buf smtpd_check_buf;
  /*
   * Results of restrictions.
   */
+#define SMTPD_CHECK_ERROR	(-1)	/* server error */
 #define SMTPD_CHECK_DUNNO	0	/* indifferent */
 #define SMTPD_CHECK_OK		1	/* explicitly permit */
 #define SMTPD_CHECK_REJECT	2	/* explicitly reject */
@@ -4101,7 +4102,7 @@ int     smtpd_check_addr(const char *addr)
 
 /* smtpd_check_rewrite - choose address qualification context */
 
-void    smtpd_check_rewrite(SMTPD_STATE *state)
+char   *smtpd_check_rewrite(SMTPD_STATE *state)
 {
     const char *myname = "smtpd_check_rewrite";
     int     status;
@@ -4131,11 +4132,12 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 	    if ((dict = dict_handle(*cpp)) == 0)
 		msg_panic("%s: dictionary not found: %s", myname, *cpp);
 	    dict_errno = 0;
-	    /* for now, dict errors are fatal */
 	    if (dict_get(dict, state->addr) != 0)
 		status = SMTPD_CHECK_OK;
-	    else if (dict_errno != 0)
-		msg_fatal("%s: table lookup error", *cpp);
+	    else if (dict_errno != 0) {
+		msg_warn("%s: %s: lookup error", VAR_LOC_RWR_CLIENTS, *cpp);
+		status = SMTPD_CHECK_ERROR;
+	    }
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
 	    if (smtpd_sasl_is_active(state))
@@ -4144,29 +4146,32 @@ void    smtpd_check_rewrite(SMTPD_STATE *state)
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);
-	    /* for now, dict errors are fatal */
 #ifdef USE_TLS
 	    if (dict_errno != 0)
-		msg_fatal("%s: table lookup error", var_smtpd_relay_ccerts);
+		status = SMTPD_CHECK_ERROR;
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 0);
-	    /* for now, dict errors are fatal */
 #ifdef USE_TLS
 	    if (dict_errno != 0)
-		msg_fatal("%s: table lookup error", var_smtpd_relay_ccerts);
+		status = SMTPD_CHECK_ERROR;
 #endif
 	} else {
 	    msg_warn("parameter %s: invalid request: %s",
 		     VAR_LOC_RWR_CLIENTS, name);
 	    continue;
 	}
+	if (status < 0) {
+	    state->error_mask |= MAIL_ERROR_RESOURCE;
+	    return ("451 4.3.5 Server configuration error");
+	}
 	if (status == SMTPD_CHECK_OK) {
 	    state->rewrite_context = MAIL_ATTR_RWR_LOCAL;
-	    return;
+	    return (0);
 	}
     }
     state->rewrite_context = MAIL_ATTR_RWR_REMOTE;
+    return (0);
 }
 
 /* smtpd_check_client - validate client name or address */
@@ -5168,6 +5173,15 @@ void    smtpd_sasl_deactivate(SMTPD_STATE *state)
 int     permit_sasl_auth(SMTPD_STATE *state, int ifyes, int ifnot)
 {
     return (ifnot);
+}
+
+/* smtpd_sasl_state_init - the real deal */
+
+void    smtpd_sasl_state_init(SMTPD_STATE *state)
+{
+    state->sasl_username = 0;
+    state->sasl_method = 0;
+    state->sasl_sender = 0;
 }
 
 #endif

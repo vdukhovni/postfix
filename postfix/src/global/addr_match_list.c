@@ -35,7 +35,13 @@
 /*	The matching process is case insensitive.
 /*
 /*	addr_match_list_init() performs initializations. The first
-/*	argument is MATCH_FLAG_NONE for future extension.
+/*	argument is the bit-wise OR of zero or more of the following:
+/* .IP MATCH_FLAG_RETURN
+/*      Request that addr_match_list_match() returns a negative result
+/*      (MATCH_ERR_TEMP or MATCH_ERR_PERM), instead of raising a fatal
+/*      error.
+/* .PP
+/*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The second argument is a list of patterns, or the absolute
 /*	pathname of a file with patterns.
 /*
@@ -93,6 +99,7 @@ int     main(int argc, char **argv)
     ADDR_MATCH_LIST *list;
     char   *addr;
     int     ch;
+    int     rc;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
@@ -107,20 +114,21 @@ int     main(int argc, char **argv)
     }
     if (argc != optind + 2)
 	usage(argv[0]);
-    list = addr_match_list_init(MATCH_FLAG_PARENT, argv[optind]);
+    list = addr_match_list_init(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN, argv[optind]);
     addr = argv[optind + 1];
     if (strcmp(addr, "-") == 0) {
 	VSTRING *buf = vstring_alloc(100);
 
-	while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF)
+	while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF) {
+	    rc = addr_match_list_match(list, vstring_str(buf));
 	    vstream_printf("%s: %s\n", vstring_str(buf),
-			   addr_match_list_match(list, vstring_str(buf)) ?
-			   "YES" : "NO");
+			   rc > 0 ? "YES" : rc == 0 ? "NO" : "ERROR");
+	}
 	vstring_free(buf);
     } else {
+	rc = addr_match_list_match(list, addr);
 	vstream_printf("%s: %s\n", addr,
-		       addr_match_list_match(list, addr) ?
-		       "YES" : "NO");
+		       rc > 0 ? "YES" : rc == 0 ? "NO" : "ERROR");
     }
     vstream_fflush(VSTREAM_OUT);
     addr_match_list_free(list);

@@ -211,6 +211,7 @@
 #include <dict_cidr.h>
 #include <dict_ht.h>
 #include <dict_thash.h>
+#include <dict_fail.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -260,6 +261,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_STATIC, dict_static_open,
     DICT_TYPE_CIDR, dict_cidr_open,
     DICT_TYPE_THASH, dict_thash_open,
+    DICT_TYPE_FAIL, dict_fail_open,
     0,
 };
 

@@ -80,8 +80,8 @@
 /* .ad
 /* .fi
 /* .IP "\fBqmqpd_error_delay (1s)\fR"
-/*	How long the QMQP server will pause before sending a negative reply
-/*	to the client.
+/*	How long the Postfix QMQP server will pause before sending a negative
+/*	reply to the remote QMQP client.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -105,7 +105,8 @@
 /* .IP "\fBprocess_name (read-only)\fR"
 /*	The process name of a Postfix command or daemon process.
 /* .IP "\fBqmqpd_authorized_clients (empty)\fR"
-/*	What clients are allowed to connect to the QMQP server port.
+/*	What remote QMQP clients are allowed to connect to the Postfix QMQP
+/*	server port.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBsyslog_facility (mail)\fR"
@@ -648,6 +649,7 @@ static void qmqpd_receive(QMQPD_STATE *state)
 static void qmqpd_proto(QMQPD_STATE *state)
 {
     int     status;
+    int     rc;
 
     netstring_setup(state->client, var_qmqpd_timeout);
 
@@ -685,12 +687,17 @@ static void qmqpd_proto(QMQPD_STATE *state)
 	/*
 	 * See if we want to talk to this client at all.
 	 */
-	if (namadr_list_match(qmqpd_clients, state->name, state->addr) == 0) {
+	rc = namadr_list_match(qmqpd_clients, state->name, state->addr);
+	if (rc > 0) {
+	    qmqpd_receive(state);
+	} else if (rc == 0) {
 	    qmqpd_reply(state, DONT_LOG, QMQPD_STAT_HARD,
 			"Error: %s is not authorized to use this service",
 			state->namaddr);
-	} else
-	    qmqpd_receive(state);
+	} else {
+	    qmqpd_reply(state, DONT_LOG, QMQPD_STAT_RETRY,
+			"Error: server configuration error");
+	}
 	break;
     }
 
@@ -760,7 +767,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
     qmqpd_clients =
-	namadr_list_init(match_parent_style(VAR_QMQPD_CLIENTS),
+	namadr_list_init(MATCH_FLAG_RETURN
+			 | match_parent_style(VAR_QMQPD_CLIENTS),
 			 var_qmqpd_clients);
 }
 

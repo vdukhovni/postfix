@@ -43,6 +43,7 @@ void    dict_test(int argc, char **argv)
     int     ch;
     int     dict_flags = DICT_FLAG_LOCK | DICT_FLAG_DUP_REPLACE;
     int     n;
+    int     rc;
 
     signal(SIGPIPE, SIG_IGN);
 
@@ -98,15 +99,16 @@ void    dict_test(int argc, char **argv)
 	if (strcmp(cmd, "verbose") == 0 && !key) {
 	    msg_verbose++;
 	} else if (strcmp(cmd, "del") == 0 && key && !value) {
-	    if (dict_del(dict, key))
+	    if ((rc = dict_del(dict, key)) > 0)
 		vstream_printf("%s: not found\n", key);
+	    else if (rc < 0)
+		vstream_printf("%s: error\n", key);
 	    else
 		vstream_printf("%s: deleted\n", key);
 	} else if (strcmp(cmd, "get") == 0 && key && !value) {
 	    if ((value = dict_get(dict, key)) == 0) {
-		vstream_printf("%s: %s\n", key,
-			       dict_errno == DICT_ERR_RETRY ?
-			       "soft error" : "not found");
+		vstream_printf("%s: %s\n", key, dict_errno ?
+			       "error" : "not found");
 	    } else {
 		vstream_printf("%s=%s\n", key, value);
 	    }
@@ -115,23 +117,21 @@ void    dict_test(int argc, char **argv)
 	    dict_errno = 0;
 	    dict_put(dict, key, value);
 	    if (dict_errno)
-		vstream_printf("%s: soft error\n", key);
+		vstream_printf("%s: error\n", key);
 	    else
 		vstream_printf("%s=%s\n", key, value);
 	} else if (strcmp(cmd, "first") == 0 && !key && !value) {
 	    if (dict_seq(dict, DICT_SEQ_FUN_FIRST, &key, &value) == 0)
 		vstream_printf("%s=%s\n", key, value);
 	    else
-		vstream_printf("%s\n",
-			       dict_errno == DICT_ERR_RETRY ?
-			       "soft error" : "not found");
+		vstream_printf("%s\n", dict_errno ?
+			       "error" : "not found");
 	} else if (strcmp(cmd, "next") == 0 && !key && !value) {
 	    if (dict_seq(dict, DICT_SEQ_FUN_NEXT, &key, &value) == 0)
 		vstream_printf("%s=%s\n", key, value);
 	    else
-		vstream_printf("%s\n",
-			       dict_errno == DICT_ERR_RETRY ?
-			       "soft error" : "not found");
+		vstream_printf("%s\n", dict_errno ?
+			       "error" : "not found");
 	} else if (strcmp(cmd, "flags") == 0 && !key && !value) {
 	    vstream_printf("dict flags %s\n",
 			   dict_flags_str(dict->flags));

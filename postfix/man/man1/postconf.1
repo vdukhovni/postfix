@@ -171,6 +171,10 @@ This is available on systems with support for DBM databases.
 The UNIX process environment array. The lookup key is the variable
 name. Originally implemented for testing, someone may find this
 useful someday.
+.IP \fBfail\fR
+A table that reliably fails all requests. The lookup table
+name provides the internal error result code. This table
+exists to simplify Postfix error tests.
 .IP \fBhash\fR
 An indexed file type based on hashing.
 This is available on systems with support for Berkeley DB

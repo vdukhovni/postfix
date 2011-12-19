@@ -99,7 +99,8 @@ void    debug_peer_init(void)
      */
     if (*var_debug_peer_list)
 	debug_peer_list =
-	    namadr_list_init(match_parent_style(VAR_DEBUG_PEER_LIST),
+	    namadr_list_init(MATCH_FLAG_RETURN
+			     | match_parent_style(VAR_DEBUG_PEER_LIST),
 			     var_debug_peer_list);
 }
 
@@ -113,7 +114,7 @@ int     debug_peer_check(const char *name, const char *addr)
      */
     if (debug_peer_list != 0
 	&& saved_level == UNUSED_SAVED_LEVEL
-	&& namadr_list_match(debug_peer_list, name, addr) != 0) {
+	&& namadr_list_match(debug_peer_list, name, addr) > 0) {
 	saved_level = msg_verbose;
 	msg_verbose += var_debug_peer_level;
 	return (1);

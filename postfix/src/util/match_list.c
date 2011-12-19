@@ -35,6 +35,9 @@
 /*	The hostname pattern foo.com matches any name within the domain
 /*	foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
+/* .IP MATCH_FLAG_RETURN
+/*	Return a negative result (MATCH_ERR_TEMP or MATCH_ERR_FAIL)
+/*	instead of raising a fatal run-time error.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The pattern_list argument specifies a list of patterns.  The third
@@ -118,7 +121,7 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
     while ((start = mystrtok(&bp, delim)) != 0) {
 	if (*start == '#') {
 	    msg_warn("%s: comment at end of line is not supported: %s %s",
-		      myname, start, bp);
+		     myname, start, bp);
 	    break;
 	}
 	for (match = init_match, item = start; *item == '!'; item++)
@@ -188,7 +191,7 @@ MATCH_LIST *match_list_init(int flags, const char *patterns, int match_count,...
 
 /* match_list_match - match strings against pattern list */
 
-int     match_list_match(MATCH_LIST * list,...)
+int     match_list_match(MATCH_LIST *list,...)
 {
     const char *myname = "match_list_match";
     char  **cpp;
@@ -196,6 +199,7 @@ int     match_list_match(MATCH_LIST * list,...)
     int     match;
     int     i;
     va_list ap;
+    int     rc;
 
     /*
      * Iterate over all patterns in the list, stop at the first match.
@@ -209,8 +213,11 @@ int     match_list_match(MATCH_LIST * list,...)
 	for (match = 1; *pat == '!'; pat++)
 	    match = !match;
 	for (i = 0; i < list->match_count; i++)
-	    if (list->match_func[i] (list->flags, list->match_args[i], pat))
+	    if ((rc = list->match_func[i] (list->flags,
+					    list->match_args[i], pat)) > 0)
 		return (match);
+	    else if (rc < 0)
+		return (rc);
     }
     if (msg_verbose)
 	for (i = 0; i < list->match_count; i++)
@@ -220,7 +227,7 @@ int     match_list_match(MATCH_LIST * list,...)
 
 /* match_list_free - release storage */
 
-void    match_list_free(MATCH_LIST * list)
+void    match_list_free(MATCH_LIST *list)
 {
     argv_free(list->patterns);
     myfree((char *) list->match_func);

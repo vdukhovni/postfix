@@ -152,27 +152,24 @@ static void dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
 	    if (errno == ECONNREFUSED)
 		break;
+	} else if (memcache_printf(fp, "set %s %d %d %ld",
+		STR(dict_mc->key_buf), dict_mc->mc_flags, ttl, data_len) < 0
+		   || memcache_fwrite(fp, value, strlen(value)) < 0
+		   || memcache_get(fp, dict_mc->clnt_buf,
+				   dict_mc->max_line) < 0) {
+	    if (count > 0)
+		msg_warn(errno ? "database %s:%s: I/O error: %m" :
+			 "database %s:%s: I/O error",
+			 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+	} else if (strcmp(STR(dict_mc->clnt_buf), "STORED") != 0) {
+	    if (count > 0)
+		msg_warn("database %s:%s: update failed: %.30s",
+			 DICT_TYPE_MEMCACHE, dict_mc->dict.name,
+			 STR(dict_mc->clnt_buf));
 	} else {
-	    if (memcache_printf(fp, "set %s %d %d %ld",
-				STR(dict_mc->key_buf), dict_mc->mc_flags,
-				ttl, data_len) < 0
-		|| memcache_fwrite(fp, value, strlen(value)) < 0
-		|| memcache_get(fp, dict_mc->clnt_buf,
-				dict_mc->max_line) < 0) {
-		if (count > 0)
-		    msg_warn(errno ? "database %s:%s: I/O error: %m" :
-			     "database %s:%s: I/O error",
-			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-	    } else if (strcmp(STR(dict_mc->clnt_buf), "STORED") != 0) {
-		if (count > 0)
-		    msg_warn("database %s:%s: update failed: %.30s",
-			     DICT_TYPE_MEMCACHE, dict_mc->dict.name,
-			     STR(dict_mc->clnt_buf));
-	    } else {
-		/* Victory! */
-		dict_mc->mc_errno = 0;
-		break;
-	    }
+	    /* Victory! */
+	    dict_mc->mc_errno = 0;
+	    break;
 	}
 	auto_clnt_recover(dict_mc->clnt);
     }
@@ -195,36 +192,34 @@ static const char *dict_memcache_get(DICT_MC *dict_mc)
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
 	    if (errno == ECONNREFUSED)
 		break;
-	} else {
-	    if (memcache_printf(fp, "get %s", STR(dict_mc->key_buf)) < 0
+	} else if (memcache_printf(fp, "get %s", STR(dict_mc->key_buf)) < 0
 	    || memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0) {
-		if (count > 0)
-		    msg_warn(errno ? "database %s:%s: I/O error: %m" :
-			     "database %s:%s: I/O error",
-			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-	    } else if (strcmp(STR(dict_mc->clnt_buf), "END") == 0) {
-		/* Not found. */
-		dict_mc->mc_errno = 0;
-		break;
-	    } else if (sscanf(STR(dict_mc->clnt_buf),
-			      "VALUE %*s %*s %ld", &todo) != 1
-		       || todo < 0 || todo > dict_mc->max_data) {
-		if (count > 0)
-		    msg_warn("%s: unexpected memcache server reply: %.30s",
-			     dict_mc->dict.name, STR(dict_mc->clnt_buf));
-	    } else if (memcache_fread(fp, dict_mc->res_buf, todo) < 0) {
-		if (count > 0)
-		    msg_warn("%s: EOF receiving memcache server reply",
-			     dict_mc->dict.name);
-	    } else {
-		/* Victory! */
-		retval = STR(dict_mc->res_buf);
-		dict_mc->mc_errno = 0;
-		if (memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0
-		    || strcmp(STR(dict_mc->clnt_buf), "END") != 0)
-		    auto_clnt_recover(dict_mc->clnt);
-		break;
-	    }
+	    if (count > 0)
+		msg_warn(errno ? "database %s:%s: I/O error: %m" :
+			 "database %s:%s: I/O error",
+			 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+	} else if (strcmp(STR(dict_mc->clnt_buf), "END") == 0) {
+	    /* Not found. */
+	    dict_mc->mc_errno = 0;
+	    break;
+	} else if (sscanf(STR(dict_mc->clnt_buf),
+			  "VALUE %*s %*s %ld", &todo) != 1
+		   || todo < 0 || todo > dict_mc->max_data) {
+	    if (count > 0)
+		msg_warn("%s: unexpected memcache server reply: %.30s",
+			 dict_mc->dict.name, STR(dict_mc->clnt_buf));
+	} else if (memcache_fread(fp, dict_mc->res_buf, todo) < 0) {
+	    if (count > 0)
+		msg_warn("%s: EOF receiving memcache server reply",
+			 dict_mc->dict.name);
+	} else {
+	    /* Victory! */
+	    retval = STR(dict_mc->res_buf);
+	    dict_mc->mc_errno = 0;
+	    if (memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0
+		|| strcmp(STR(dict_mc->clnt_buf), "END") != 0)
+		auto_clnt_recover(dict_mc->clnt);
+	    break;
 	}
 	auto_clnt_recover(dict_mc->clnt);
     }
@@ -246,30 +241,27 @@ static int dict_memcache_del(DICT_MC *dict_mc)
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
 	    if (errno == ECONNREFUSED)
 		break;
+	} else if (memcache_printf(fp, "delete %s", STR(dict_mc->key_buf)) < 0
+	    || memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0) {
+	    if (count > 0)
+		msg_warn(errno ? "database %s:%s: I/O error: %m" :
+			 "database %s:%s: I/O error",
+			 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+	} else if (strcmp(STR(dict_mc->clnt_buf), "DELETED") == 0) {
+	    /* Victory! */
+	    dict_mc->mc_errno = 0;
+	    retval = 0;
+	    break;
+	} else if (strcmp(STR(dict_mc->clnt_buf), "NOT_FOUND") == 0) {
+	    /* Not found! */
+	    dict_mc->mc_errno = 0;
+	    retval = 1;
+	    break;
 	} else {
-	    if (memcache_printf(fp, "delete %s", STR(dict_mc->key_buf)) < 0
-		|| memcache_get(fp, dict_mc->clnt_buf,
-				dict_mc->max_line) < 0) {
-		if (count > 0)
-		    msg_warn(errno ? "database %s:%s: I/O error: %m" :
-			     "database %s:%s: I/O error",
-			     DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-	    } else if (strcmp(STR(dict_mc->clnt_buf), "DELETED") == 0) {
-		/* Victory! */
-		dict_mc->mc_errno = 0;
-		retval = 0;
-		break;
-	    } else if (strcmp(STR(dict_mc->clnt_buf), "NOT_FOUND") == 0) {
-		/* Not found! */
-		dict_mc->mc_errno = 0;
-		retval = 1;
-		break;
-	    } else {
-		if (count > 0)
-		    msg_warn("database %s:%s: delete failed: %.30s",
-			     DICT_TYPE_MEMCACHE, dict_mc->dict.name,
-			     STR(dict_mc->clnt_buf));
-	    }
+	    if (count > 0)
+		msg_warn("database %s:%s: delete failed: %.30s",
+			 DICT_TYPE_MEMCACHE, dict_mc->dict.name,
+			 STR(dict_mc->clnt_buf));
 	}
 	auto_clnt_recover(dict_mc->clnt);
     }

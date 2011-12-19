@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <match_ops.h>
+
+ /*
   * External interface.
   */
 typedef struct MATCH_LIST MATCH_LIST;

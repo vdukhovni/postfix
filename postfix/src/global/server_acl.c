@@ -98,7 +98,8 @@ void    server_acl_pre_jail_init(const char *mynetworks, const char *origin)
 {
     if (server_acl_mynetworks)
 	addr_match_list_free(server_acl_mynetworks);
-    server_acl_mynetworks = addr_match_list_init(match_parent_style(origin),
+    server_acl_mynetworks = 
+	addr_match_list_init(MATCH_FLAG_RETURN | match_parent_style(origin),
 						 mynetworks);
 }
 
@@ -158,6 +159,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
     int     ret;
     ARGV    fake_argv;
     const char *fake_args[2];
+    int     rc;
 
     for (cpp = intern_acl->argv; (acl = *cpp) != 0; cpp++) {
 	if (msg_verbose)
@@ -168,8 +170,14 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 	} else if (STREQ(acl, SERVER_ACL_NAME_PERMIT)) {
 	    return (SERVER_ACL_ACT_PERMIT);
 	} else if (STREQ(acl, SERVER_ACL_NAME_WL_MYNETWORKS)) {
-	    if (addr_match_list_match(server_acl_mynetworks, client_addr))
+	    rc = addr_match_list_match(server_acl_mynetworks, client_addr);
+	    if (rc > 0)
 		return (SERVER_ACL_ACT_PERMIT);
+	    if (rc < 0) {
+		msg_warn("%s: %s: mynetworks lookup error -- ignoring the "
+			 "remainder of this access list", origin, acl);
+		return (SERVER_ACL_ACT_ERROR);
+	    }
 	} else if (strchr(acl, ':') != 0) {
 	    if ((dict = dict_handle(acl)) == 0)
 		msg_panic("%s: unexpected dictionary: %s", myname, acl);
@@ -189,8 +197,8 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 		if (ret != SERVER_ACL_ACT_DUNNO)
 		    return (ret);
 	    } else if (dict_errno != 0) {
-		msg_warn("%s: table lookup error -- ignoring the remainder "
-			 "of this access list", acl);
+		msg_warn("%s: %s: table lookup error -- ignoring the remainder "
+			 "of this access list", origin, acl);
 		return (SERVER_ACL_ACT_ERROR);
 	    }
 	} else if (STREQ(acl, SERVER_ACL_NAME_DUNNO)) {

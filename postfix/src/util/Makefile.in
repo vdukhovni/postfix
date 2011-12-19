@@ -33,7 +33,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	allascii.c load_file.c killme_after.c vstream_tweak.c \
 	unix_pass_listen.c unix_pass_trigger.c edit_file.c inet_windowsize.c \
 	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
-	ip_match.c nbbio.c stream_pass_connect.c base32_code.c dict_test.c
+	ip_match.c nbbio.c stream_pass_connect.c base32_code.c dict_test.c \
+	dict_fail.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -68,7 +69,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	allascii.o load_file.o killme_after.o vstream_tweak.o \
 	unix_pass_listen.o unix_pass_trigger.o edit_file.o inet_windowsize.o \
 	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
-	ip_match.o nbbio.o stream_pass_connect.o base32_code.o dict_test.o
+	ip_match.o nbbio.o stream_pass_connect.o base32_code.o dict_test.o \
+	dict_fail.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -88,8 +90,8 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
-	edit_file.h dict_cache.h dict_thash.h \
-	ip_match.h nbbio.h base32_code.h
+	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
+	dict_fail.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -908,6 +910,16 @@ dict_env.o: sys_defs.h
 dict_env.o: vbuf.h
 dict_env.o: vstream.h
 dict_env.o: vstring.h
+dict_fail.o: argv.h
+dict_fail.o: dict.h
+dict_fail.o: dict_fail.c
+dict_fail.o: dict_fail.h
+dict_fail.o: msg.h
+dict_fail.o: mymalloc.h
+dict_fail.o: sys_defs.h
+dict_fail.o: vbuf.h
+dict_fail.o: vstream.h
+dict_fail.o: vstring.h
 dict_ht.o: argv.h
 dict_ht.o: dict.h
 dict_ht.o: dict_ht.c
@@ -950,6 +962,7 @@ dict_open.o: dict_cidr.h
 dict_open.o: dict_db.h
 dict_open.o: dict_dbm.h
 dict_open.o: dict_env.h
+dict_open.o: dict_fail.h
 dict_open.o: dict_ht.h
 dict_open.o: dict_ni.h
 dict_open.o: dict_nis.h

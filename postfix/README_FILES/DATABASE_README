@@ -198,6 +198,10 @@ To find out what database types your Postfix system supports, use the "ppooss
     eennvviirroonn
         The UNIX process environment array. The lookup key is the variable
         name. The lookup table name in "environ:table" is ignored.
+    ffaaiill (read-write)
+        A table that reliably fails all requests. The lookup table name
+        provides the internal error result code. This table exists to simplify
+        Postfix error tests.
     hhaasshh
         An indexed file type based on hashing. This is available only on
         systems with support for Berkeley DB databases. Database files are

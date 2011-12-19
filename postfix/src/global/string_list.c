@@ -31,8 +31,15 @@
 /*	In order to reverse the result, precede a pattern with an
 /*	exclamation point (!).
 /*
-/*	string_list_init() performs initializations. The flags argument
-/*	is ignored; pattern_list specifies a list of string patterns.
+/*	string_list_init() performs initializations. The first argument
+/*	is a bit-wise OR of zero or more of following:
+/* .IP MATCH_FLAG_RETURN
+/*      Request that string_list_match() returns a negative result
+/*      (MATCH_ERR_TEMP or MATCH_ERR_PERM), instead of raising a fatal
+/*      error.
+/* .PP
+/*	Specify MATCH_FLAG_NONE to request none of the above.
+/*	The second argument specifies a list of string patterns.
 /*
 /*	string_list_match() matches the specified string against the
 /*	compiled pattern list.
@@ -85,6 +92,7 @@ int     main(int argc, char **argv)
     STRING_LIST *list;
     char   *string;
     int     ch;
+    int     rc;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
@@ -99,10 +107,11 @@ int     main(int argc, char **argv)
     }
     if (argc != optind + 2)
 	usage(argv[0]);
-    list = string_list_init(MATCH_FLAG_NONE, argv[optind]);
+    list = string_list_init(MATCH_FLAG_NONE | MATCH_FLAG_RETURN, argv[optind]);
     string = argv[optind + 1];
-    vstream_printf("%s: %s\n", string, string_list_match(list, string) ?
-		   "YES" : "NO");
+    rc = string_list_match(list, string);
+    vstream_printf("%s: %s\n", string,
+		   rc > 0 ? "YES" : rc == 0 ? "NO" : "ERROR");
     vstream_fflush(VSTREAM_OUT);
     string_list_free(list);
     return (0);

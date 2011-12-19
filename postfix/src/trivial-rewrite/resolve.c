@@ -155,6 +155,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     const char *relay;
     const char *xport;
     const char *sender_key;
+    int     rc;
 
     *flags = 0;
     vstring_strcpy(channel, "CHANNEL NOT UPDATED");
@@ -431,15 +432,15 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	 * Virtual alias domain.
 	 */
 	if (virt_alias_doms
-	    && string_list_match(virt_alias_doms, rcpt_domain)) {
+	    && (rc = string_list_match(virt_alias_doms, rcpt_domain)) > 0) {
 	    if (var_helpful_warnings) {
 		if (virt_mailbox_doms
-		    && string_list_match(virt_mailbox_doms, rcpt_domain))
+		    && string_list_match(virt_mailbox_doms, rcpt_domain) > 0)
 		    msg_warn("do not list domain %s in BOTH %s and %s",
 			     rcpt_domain, VAR_VIRT_ALIAS_DOMS,
 			     VAR_VIRT_MAILBOX_DOMS);
 		if (relay_domains
-		    && domain_list_match(relay_domains, rcpt_domain))
+		    && domain_list_match(relay_domains, rcpt_domain) > 0)
 		    msg_warn("do not list domain %s in BOTH %s and %s",
 			     rcpt_domain, VAR_VIRT_ALIAS_DOMS,
 			     VAR_RELAY_DOMAINS);
@@ -454,7 +455,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 			    var_show_unk_rcpt_table ?
 			    " in virtual alias table" : "");
 	    *flags |= RESOLVE_CLASS_ALIAS;
-	} else if (dict_errno != 0) {
+	} else if (dict_errno != 0 || rc < 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_ALIAS_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	    FREE_MEMORY_AND_RETURN;
@@ -464,10 +465,10 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	 * Virtual mailbox domain.
 	 */
 	else if (virt_mailbox_doms
-		 && string_list_match(virt_mailbox_doms, rcpt_domain)) {
+	 && (rc = string_list_match(virt_mailbox_doms, rcpt_domain)) > 0) {
 	    if (var_helpful_warnings) {
 		if (relay_domains
-		    && domain_list_match(relay_domains, rcpt_domain))
+		    && domain_list_match(relay_domains, rcpt_domain) > 0)
 		    msg_warn("do not list domain %s in BOTH %s and %s",
 			     rcpt_domain, VAR_VIRT_MAILBOX_DOMS,
 			     VAR_RELAY_DOMAINS);
@@ -476,7 +477,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	    vstring_strcpy(nexthop, rcpt_domain);
 	    blame = rp->virt_transport_name;
 	    *flags |= RESOLVE_CLASS_VIRTUAL;
-	} else if (dict_errno != 0) {
+	} else if (dict_errno != 0 || rc < 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_MAILBOX_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	    FREE_MEMORY_AND_RETURN;
@@ -486,11 +487,11 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	     * Off-host relay destination.
 	     */
 	    if (relay_domains
-		&& domain_list_match(relay_domains, rcpt_domain)) {
+	     && (rc = domain_list_match(relay_domains, rcpt_domain)) > 0) {
 		vstring_strcpy(channel, RES_PARAM_VALUE(rp->relay_transport));
 		blame = rp->relay_transport_name;
 		*flags |= RESOLVE_CLASS_RELAY;
-	    } else if (dict_errno != 0) {
+	    } else if (dict_errno != 0 || rc < 0) {
 		msg_warn("%s lookup failure", VAR_RELAY_DOMAINS);
 		*flags |= RESOLVE_FLAG_FAIL;
 		FREE_MEMORY_AND_RETURN;
@@ -560,11 +561,11 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     else {
 	if (var_helpful_warnings) {
 	    if (virt_alias_doms
-		&& string_list_match(virt_alias_doms, rcpt_domain))
+		&& string_list_match(virt_alias_doms, rcpt_domain) > 0)
 		msg_warn("do not list domain %s in BOTH %s and %s",
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_ALIAS_DOMS);
 	    if (virt_mailbox_doms
-		&& string_list_match(virt_mailbox_doms, rcpt_domain))
+		&& string_list_match(virt_mailbox_doms, rcpt_domain) > 0)
 		msg_warn("do not list domain %s in BOTH %s and %s",
 			 rcpt_domain, VAR_MYDEST, VAR_VIRT_MAILBOX_DOMS);
 	}
@@ -739,15 +740,16 @@ void    resolve_init(void)
 
     if (*var_virt_alias_doms)
 	virt_alias_doms =
-	    string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
+	    string_list_init(MATCH_FLAG_RETURN, var_virt_alias_doms);
 
     if (*var_virt_mailbox_doms)
 	virt_mailbox_doms =
-	    string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
+	    string_list_init(MATCH_FLAG_RETURN, var_virt_mailbox_doms);
 
     if (*var_relay_domains)
 	relay_domains =
-	    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+	    domain_list_init(MATCH_FLAG_RETURN 
+			     | match_parent_style(VAR_RELAY_DOMAINS),
 			     var_relay_domains);
 
     if (*var_relocated_maps)

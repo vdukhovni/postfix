@@ -1757,7 +1757,6 @@ static int mail_open_stream(SMTPD_STATE *state)
      * feature.
      */
     if (state->proxy_mail) {
-	smtpd_check_rewrite(state);
 	if (smtpd_proxy_create(state, smtpd_proxy_opts, var_smtpd_proxy_filt,
 			       var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
 			       state->proxy_mail) != 0) {
@@ -1780,7 +1779,6 @@ static int mail_open_stream(SMTPD_STATE *state)
     else if (SMTPD_STAND_ALONE(state) == 0) {
 	int     cleanup_flags;
 
-	smtpd_check_rewrite(state);
 	cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
 					     smtpd_input_transp_mask)
 	    | CLEANUP_FLAG_SMTP_REPLY;
@@ -2296,6 +2294,13 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    smtpd_chat_reply(state, "%s", err);
 	    return (-1);
 	}
+    }
+    err = smtpd_check_rewrite(state);
+    if (err != 0) {
+	/* XXX Reset access map side effects. */
+	mail_reset(state);
+	smtpd_chat_reply(state, "%s", err);
+	return (-1);
     }
 
     /*

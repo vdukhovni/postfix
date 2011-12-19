@@ -35,12 +35,15 @@
 /*
 /*	domain_list_init() performs initializations. The first argument
 /*	is the bit-wise OR of zero or more of the following:
-/* .RS
 /* .IP MATCH_FLAG_PARENT
 /*      The hostname pattern foo.com matches itself and any name below
 /*      the domain foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
-/* .RE
+/* .IP MATCH_FLAG_RETURN
+/*	Request that domain_list_match() returns a negative result
+/*	(MATCH_ERR_TEMP or MATCH_ERR_PERM), instead of raising a
+/*	fatal error.
+/* .PP
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The second argument is a list of domain patterns, or the name of
 /*	a file containing domain patterns.
@@ -96,6 +99,7 @@ int     main(int argc, char **argv)
     DOMAIN_LIST *list;
     char   *host;
     int     ch;
+    int     rc;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
@@ -110,10 +114,11 @@ int     main(int argc, char **argv)
     }
     if (argc != optind + 2)
 	usage(argv[0]);
-    list = domain_list_init(MATCH_FLAG_PARENT, argv[optind]);
+    list = domain_list_init(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN, argv[optind]);
     host = argv[optind + 1];
-    vstream_printf("%s: %s\n", host, domain_list_match(list, host) ?
-		   "YES" : "NO");
+    rc = domain_list_match(list, host);
+    vstream_printf("%s: %s\n", host,
+		   rc > 0 ? "YES" : rc == 0 ? "NO" : "ERROR");
     vstream_fflush(VSTREAM_OUT);
     domain_list_free(list);
     return (0);

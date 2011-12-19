@@ -17372,3 +17372,33 @@ Apologies for any names omitted.
 	Incompatibility: the Postfix SMTP server now always checks
 	the smtpd_sender_login_maps table, even without having
 	"smtpd_sasl_auth_enable = yes" in main.cf.
+
+20111219
+
+	Cleanup: the match_list-based primitives now provide an
+	option to return an error result instead of terminating the
+	process with a fatal error.  Files: util/match_ops.[hc],
+	util/match_list.c, global/addr_list_match.c, domain_list.c,
+	string_list.c, namadr_list.c.
+
+	Cleanup: a "fail:" database type that reliably fails all
+	requests. The lookup table name specifies the internal error
+	result code. having this table facilitates a systematic
+	review of all Postfix table lookup error handling.
+
+	Cleanup: trivial-rewrite now "catches" errors with implicit
+	database lookups in virtual_alias_domains, relay_domains,
+	virtual_mailbox_domains, just like it already caught explicit
+	database lookup errors. This means there are fewer occasions
+	where trivial-rewrite clients will appear to hang. File:
+	trivial-rewrite/resolve.c.
+
+	Cleanup: a broken relay_domains table would cause many
+	Postfix processes to terminate with fatal error. Postfix
+	now logs a warning instead. File: global/flush_clnt.c.
+
+	Cleanup: the Postfix SMTP server now "catches" some of the
+	errors with implicit database lookups in mynetworks and TLS
+	client certificate tables, and reports "server configuration
+	error" instead of terminating with a fatal error. This is
+	work in progress. Files: smtpd/smtpd.c, smtpd/smtpd_check.c.

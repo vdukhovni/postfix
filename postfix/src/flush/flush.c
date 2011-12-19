@@ -280,7 +280,7 @@ static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
 
 static int flush_policy_ok(const char *site)
 {
-    return (domain_list_match(flush_domains, site));
+    return (domain_list_match(flush_domains, site) > 0);
 }
 
 /* flush_add_service - append queue ID to per-site fast flush logfile */
@@ -810,7 +810,8 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 
 static void pre_jail_init(char *unused_name, char **unused_argv)
 {
-    flush_domains = domain_list_init(match_parent_style(VAR_FFLUSH_DOMAINS),
+    flush_domains = domain_list_init(MATCH_FLAG_RETURN
+				   | match_parent_style(VAR_FFLUSH_DOMAINS),
 				     var_fflush_domains);
 }
 

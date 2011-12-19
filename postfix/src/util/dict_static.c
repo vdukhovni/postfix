@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <dict_static.h>
 /*
-/*	DICT	*dict_static_open(name, dummy, dict_flags)
+/*	DICT	*dict_static_open(name, name, dict_flags)
 /*	const char *name;
 /*	int	dummy;
 /*	int	dict_flags;
@@ -14,8 +14,6 @@
 /*	dict_static_open() implements a dummy dictionary that returns
 /*	as lookup result the dictionary name, regardless of the lookup
 /*	key value.
-/*
-/*	The \fIdummy\fR argument is ignored.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* LICENSE
