@@ -157,8 +157,6 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
     const char *acl;
     const char *dict_val;
     int     ret;
-    ARGV    fake_argv;
-    const char *fake_args[2];
     int     rc;
 
     for (cpp = intern_acl->argv; (acl = *cpp) != 0; cpp++) {
@@ -184,11 +182,9 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 	    if ((dict_val = dict_get(dict, client_addr)) != 0) {
 		/* Fake up an ARGV to avoid lots of mallocs and frees. */
 		if (dict_val[strcspn(dict_val, ":" SERVER_ACL_SEPARATORS)] == 0) {
-		    fake_args[0] = dict_val;
-		    fake_args[1] = 0;
-		    fake_argv.argv = (char **) fake_args;
-		    fake_argv.argc = fake_argv.len = 1;
+		    ARGV_FAKE_BEGIN(fake_argv, dict_val);
 		    ret = server_acl_eval(client_addr, &fake_argv, acl);
+		    ARGV_FAKE_END;
 		} else {
 		    argv = server_acl_parse(dict_val, acl);
 		    ret = server_acl_eval(client_addr, argv, acl);

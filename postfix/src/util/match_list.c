@@ -209,12 +209,13 @@ int     match_list_match(MATCH_LIST *list,...)
 	list->match_args[i] = va_arg(ap, const char *);
     va_end(ap);
 
+    dict_errno = 0;
     for (cpp = list->patterns->argv; (pat = *cpp) != 0; cpp++) {
 	for (match = 1; *pat == '!'; pat++)
 	    match = !match;
 	for (i = 0; i < list->match_count; i++)
 	    if ((rc = list->match_func[i] (list->flags,
-					    list->match_args[i], pat)) > 0)
+					   list->match_args[i], pat)) > 0)
 		return (match);
 	    else if (rc < 0)
 		return (rc);

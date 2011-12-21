@@ -109,6 +109,8 @@ DICT   *dict_fail_open(const char *name, int open_flags, int dict_flags)
     dp->dict.close = dict_fail_close;
     dp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dp->dict_errno = atoi(name);
+    if (dp->dict_errno == 0)
+	dp->dict_errno = 1;
     dp->dict.owner.status = DICT_OWNER_TRUSTED;
     return (DICT_DEBUG (&dp->dict));
 }

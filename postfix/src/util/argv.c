@@ -27,6 +27,11 @@
 /*	void	argv_truncate(argvp, len);
 /*	ARGV	*argvp;
 /*	ssize_t	len;
+/*
+/*	void	ARGV_FAKE_BEGIN(argv, arg)
+/*	const char *arg;
+/*
+/*	void	ARGV_FAKE_END
 /* DESCRIPTION
 /*	The functions in this module manipulate arrays of string
 /*	pointers. An ARGV structure contains the following members:
@@ -57,6 +62,15 @@
 /*	argv_truncate() trucates its argument to the specified
 /*	number of entries, but does not reallocate memory. The
 /*	result is null-terminated.
+/*
+/*	ARGV_FAKE_BEGIN/END are an optimization for the case where
+/*	a single string needs to be passed into an ARGV-based
+/*	interface.  ARGV_FAKE_BEGIN() opens a statement block and
+/*	allocates a stack-based ARGV structure named after the first
+/*	argument, that encapsulates the second argument.  This
+/*	implementation allocates no heap memory and creates no copy
+/*	of the second argument.  ARGV_FAKE_END closes the statement
+/*	block and thereby releases storage.
 /* SEE ALSO
 /*	msg(3) diagnostics interface
 /* DIAGNOSTICS

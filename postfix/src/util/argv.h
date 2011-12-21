@@ -31,6 +31,16 @@ extern ARGV *argv_split(const char *, const char *);
 extern ARGV *argv_split_count(const char *, const char *, ssize_t);
 extern ARGV *argv_split_append(ARGV *, const char *, const char *);
 
+#define ARGV_FAKE_BEGIN(fake_argv, arg) { \
+	ARGV fake_argv; \
+	char *__fake_argv_args__[2]; \
+	__fake_argv_args__[0] = (char *) (arg); \
+	__fake_argv_args__[1] = 0; \
+	fake_argv.argv = __fake_argv_args__; \
+	fake_argv.argc = fake_argv.len = 1;
+
+#define ARGV_FAKE_END	}
+
 #define ARGV_END	((char *) 0)
 
 /* LICENSE

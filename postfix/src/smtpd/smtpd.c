@@ -4890,7 +4890,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
     xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
     xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
-    hogger_list = namadr_list_init(MATCH_FLAG_NONE, var_smtpd_hoggers);
+    hogger_list = namadr_list_init(MATCH_FLAG_RETURN, var_smtpd_hoggers);
 
     /*
      * Open maps before dropping privileges so we can read passwords etc.

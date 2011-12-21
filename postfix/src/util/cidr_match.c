@@ -140,6 +140,10 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
     MAI_HOSTADDR_STR hostaddr;
     unsigned char *np;
     unsigned char *mp;
+    static VSTRING *buf;
+
+#define WHY_OR_BUF (why ? why : buf ? (why = buf) : \
+		    (why = buf = vstring_alloc(20)))
 
     /*
      * Strip [] from [addr/len] or [addr]/len, destroying the pattern. CIDR
@@ -150,13 +154,12 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
     if (*pattern == '[') {
 	pattern++;
 	if ((mask_search = split_at(pattern, ']')) == 0) {
-	    vstring_sprintf(why ? why : (why = vstring_alloc(20)),
+	    vstring_sprintf(WHY_OR_BUF,
 			    "missing ']' character after \"[%s\"", pattern);
 	    return (why);
 	} else if (*mask_search != '/') {
 	    if (*mask_search != 0) {
-		vstring_sprintf(why ? why : (why = vstring_alloc(20)),
-				"garbage after \"[%s]\"", pattern);
+		vstring_sprintf(WHY_OR_BUF, "garbage after \"[%s]\"", pattern);
 		return (why);
 	    }
 	    mask_search = pattern;
@@ -174,7 +177,7 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
 	if (!alldig(mask)
 	    || (ip->mask_shift = atoi(mask)) > ip->addr_bit_count
 	    || inet_pton(ip->addr_family, pattern, ip->net_bytes) != 1) {
-	    vstring_sprintf(why ? why : (why = vstring_alloc(20)),
+	    vstring_sprintf(WHY_OR_BUF,
 			  "bad net/mask pattern: \"%s/%s\"", pattern, mask);
 	    return (why);
 	}
@@ -195,7 +198,7 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
 		if (inet_ntop(ip->addr_family, ip->net_bytes, hostaddr.buf,
 			      sizeof(hostaddr.buf)) == 0)
 		    msg_fatal("inet_ntop: %m");
-		vstring_sprintf(why ? why : (why = vstring_alloc(20)),
+		vstring_sprintf(WHY_OR_BUF,
 				"non-null host address bits in \"%s/%s\", "
 				"perhaps you should use \"%s/%d\" instead",
 				pattern, mask, hostaddr.buf, ip->mask_shift);
@@ -212,8 +215,7 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
 	ip->addr_bit_count = CIDR_MATCH_ADDR_BIT_COUNT(ip->addr_family);
 	ip->addr_byte_count = CIDR_MATCH_ADDR_BYTE_COUNT(ip->addr_family);
 	if (inet_pton(ip->addr_family, pattern, ip->net_bytes) != 1) {
-	    vstring_sprintf(why ? why : (why = vstring_alloc(20)),
-			    "bad address pattern: \"%s\"", pattern);
+	    vstring_sprintf(WHY_OR_BUF, "bad address pattern: \"%s\"", pattern);
 	    return (why);
 	}
 	ip->mask_shift = ip->addr_bit_count;

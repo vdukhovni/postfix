@@ -240,7 +240,8 @@ int     name_mask_delim_opt(const char *context, const NAME_MASK *table,
 		} else if (flags & NAME_MASK_RETURN) {
 		    msg_warn("unknown %s value \"%s\" in \"%s\"",
 			     context, name, names);
-		    return (0);
+		    result = 0;
+		    break;
 		} else if (flags & NAME_MASK_WARN) {
 		    msg_warn("unknown %s value \"%s\" in \"%s\"",
 			     context, name, names);

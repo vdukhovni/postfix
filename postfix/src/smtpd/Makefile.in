@@ -68,7 +68,7 @@ tidy:	clean
 
 tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
 	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test \
-	smtpd_check_backup_test smtpd_dnswl_test
+	smtpd_check_backup_test smtpd_dnswl_test smtpd_error_test
 
 root_tests:
 
@@ -132,6 +132,11 @@ smtpd_dnswl_test: smtpd_check smtpd_dnswl.in smtpd_dnswl.ref
 	./smtpd_check <smtpd_dnswl.in >smtpd_dnswl.tmp 2>&1
 	diff smtpd_dnswl.ref smtpd_dnswl.tmp
 	rm -f smtpd_dnswl.tmp
+
+smtpd_error_test: smtpd_check smtpd_error.in smtpd_error.ref
+	./smtpd_check <smtpd_error.in >smtpd_check.tmp 2>&1
+	diff smtpd_error.ref smtpd_check.tmp
+	rm -f smtpd_check.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

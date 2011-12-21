@@ -17394,11 +17394,27 @@ Apologies for any names omitted.
 	trivial-rewrite/resolve.c.
 
 	Cleanup: a broken relay_domains table would cause many
-	Postfix processes to terminate with fatal error. Postfix
-	now logs a warning instead. File: global/flush_clnt.c.
+	Postfix processes to terminate with fatal error as they
+	initialized the flush() client (used by defer_append()
+	etc.). Postfix now logs a warning instead.  File:
+	global/flush_clnt.c.
 
-	Cleanup: the Postfix SMTP server now "catches" some of the
-	errors with implicit database lookups in mynetworks and TLS
-	client certificate tables, and reports "server configuration
-	error" instead of terminating with a fatal error. This is
-	work in progress. Files: smtpd/smtpd.c, smtpd/smtpd_check.c.
+	Cleanup: the Postfix SMTP server now "catches" errors with
+	implicit database lookups in mynetworks, TLS client certificate
+	tables, and local_header_rewrite_clients, and reports "server
+	configuration error" or "table lookup error" instead of
+	terminating with a fatal error. This is work in progress;
+	errors with opening a database may be covered later. Files:
+	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20111220
+
+	Cleanup: the Postfix SMTP server now "catches" errors with
+	implicit database lookups in mynetworks, debug_peer_list,
+	smtpd_client_event_limit_exceptions, permit_mx_backup_networks.
+	This continues work started 20111219, and does not cover
+	errors with opening a database.  Files: smtpd/smtpd.c,
+	smtpd/smtpd_checks.c, smtpd/smtpd_error.in, smtpd/smtpd_error.ref.
+
+	Cleanup: memory leak testing of error handling. Files:
+	util/name_mask.c, util/cidr_mask.c.
