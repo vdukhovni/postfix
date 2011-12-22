@@ -14,7 +14,7 @@ HHooww PPoossttffiixx uusseess SSAASSLL aauutthheenntti
 
 SMTP servers need to decide whether an SMTP client is authorized to send mail
 to remote destinations, or only to destinations that the server itself is
-responsible for. Usually, SMTP servers allow mail to remote destinations when
+responsible for. Usually, SMTP servers accept mail to remote destinations when
 the client's IP address is in the "same network" as the server's IP address.
 
 SMTP clients outside the SMTP server's network need a different way to get

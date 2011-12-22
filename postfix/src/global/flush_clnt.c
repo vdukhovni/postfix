@@ -166,7 +166,6 @@ int     flush_send_site(const char *site)
 {
     const char *myname = "flush_send_site";
     int     status;
-    int     rc;
 
     if (msg_verbose)
 	msg_info("%s: site %s", myname, site);
@@ -177,13 +176,13 @@ int     flush_send_site(const char *site)
      */
     if (flush_domains == 0)
 	msg_panic("missing flush client initialization");
-    if ((rc = domain_list_match(flush_domains, site)) == 0)
-	status = FLUSH_STAT_DENY;
-    else if (rc > 0)
+    if (domain_list_match(flush_domains, site) != 0)
 	status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
 			  ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_SEND_SITE,
 				     ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
 				     ATTR_TYPE_END);
+    else if (dict_errno == 0)
+	status = FLUSH_STAT_DENY;
     else
 	status = FLUSH_STAT_FAIL;
 
@@ -223,7 +222,6 @@ int     flush_add(const char *site, const char *queue_id)
 {
     const char *myname = "flush_add";
     int     status;
-    int     rc;
 
     if (msg_verbose)
 	msg_info("%s: site %s id %s", myname, site, queue_id);
@@ -234,14 +232,14 @@ int     flush_add(const char *site, const char *queue_id)
      */
     if (flush_domains == 0)
 	msg_panic("missing flush client initialization");
-    if ((rc = domain_list_match(flush_domains, site)) == 0)
-	status = FLUSH_STAT_DENY;
-    else if (rc > 0)
+    if (domain_list_match(flush_domains, site) != 0)
 	status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
 				ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_ADD,
 				     ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
 				 ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 				     ATTR_TYPE_END);
+    else if (dict_errno == 0)
+	status = FLUSH_STAT_DENY;
     else
 	status = FLUSH_STAT_FAIL;
 

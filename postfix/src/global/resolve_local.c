@@ -16,6 +16,9 @@
 /*	against the domains, files or tables listed in $mydestination,
 /*	or by a match of an [address-literal] against of the network
 /*	addresses listed in $inet_interfaces or in $proxy_interfaces.
+/*	The result is non-zero if the domain matches the list of local
+/*	domains and IP addresses, 0 when it does not match or in case
+/*	of error (in the latter case dict_errno is non-zero).
 /*
 /*	resolve_local_init() performs initialization. If this routine is
 /*	not called explicitly ahead of time, it will be called on the fly.
@@ -63,9 +66,10 @@ static STRING_LIST *resolve_local_list;
 
 void    resolve_local_init(void)
 {
+    /* Allow on-the-fly update to make testing easier. */
     if (resolve_local_list)
-	msg_panic("resolve_local_init: duplicate initialization");
-    resolve_local_list = string_list_init(MATCH_FLAG_NONE, var_mydest);
+	string_list_free(resolve_local_list);
+    resolve_local_list = string_list_init(MATCH_FLAG_RETURN, var_mydest);
 }
 
 /* resolve_local - match domain against list of local destinations */
@@ -93,6 +97,12 @@ int     resolve_local(const char *addr)
 	resolve_local_init();
 
     /*
+     * In case of return without table lookup (empty address, malformed
+     * address, empty destination list)
+     */
+    dict_errno = 0;
+
+    /*
      * Strip one trailing dot but not dot-dot.
      * 
      * XXX This should not be distributed all over the code. Problem is,
@@ -113,6 +123,8 @@ int     resolve_local(const char *addr)
      */
     if (string_list_match(resolve_local_list, saved_addr))
 	RETURN(1);
+    if (dict_errno != 0)
+	RETURN(0);
 
     /*
      * Compare the destination against the list of interface addresses that
@@ -168,10 +180,15 @@ int     resolve_local(const char *addr)
 
 int     main(int argc, char **argv)
 {
-    if (argc != 2)
-	msg_fatal("usage: %s domain", argv[0]);
+    if (argc != 3)
+	msg_fatal("usage: %s mydestination domain", argv[0]);
     mail_conf_read();
-    vstream_printf("%s\n", resolve_local(argv[1]) ? "yes" : "no");
+    myfree(var_mydest);
+    var_mydest = mystrdup(argv[1]);
+    dict_errno = 99;
+    vstream_printf("mydestination=%s destination=%s %s\n",
+		   argv[1], argv[2], resolve_local(argv[2]) ? "YES" :
+		   dict_errno == 0 ? "NO" : "ERROR");
     vstream_fflush(VSTREAM_OUT);
     return (0);
 }

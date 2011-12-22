@@ -12,6 +12,11 @@
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <dict.h>
+
+ /*
   * External interface.
   */
 extern int resolve_local(const char *);

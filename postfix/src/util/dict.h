@@ -118,6 +118,7 @@ extern int dict_errno;
 
 #define DICT_ERR_NONE	0		/* no error */
 #define DICT_ERR_RETRY	1		/* soft error */
+#define DICT_ERR_CONFIG	2		/* configuration error */
 
  /*
   * Sequence function types.

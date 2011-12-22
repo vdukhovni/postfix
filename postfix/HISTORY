@@ -17416,5 +17416,18 @@ Apologies for any names omitted.
 	errors with opening a database.  Files: smtpd/smtpd.c,
 	smtpd/smtpd_checks.c, smtpd/smtpd_error.in, smtpd/smtpd_error.ref.
 
-	Cleanup: memory leak testing of error handling. Files:
-	util/name_mask.c, util/cidr_mask.c.
+	Cleanup: memory leak testing of error handling. File:
+	util/name_mask.c.
+
+20111222
+
+	Cleanup: memory leak testing of error handling. File:
+        util/name_mask.c.
+
+	Cleanup: simplified the match_list error reporting, thereby
+	reducing the footprint of the changes to "catch" errors
+	with implicit database lookups in mynetworks, and other
+	lists.  Files: util/match_ops.[hc], util/match_list.c,
+	global/addr_list_match.c, domain_list.c, string_list.c,
+	namadr_list.c, trivial-rewrite/resolve.c, smtpd/smtpd.c,
+	smtpd/smtpd_check.c, global/flush_clnt.c, flush/flush.c.

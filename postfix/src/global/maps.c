@@ -164,6 +164,11 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
     DICT   *dict;
 
     /*
+     * In case of return without map lookup (empty name or no maps).
+     */
+    dict_errno = 0;
+
+    /*
      * Temp. workaround, for buggy callers that pass zero-length keys when
      * given partial addresses.
      */
@@ -233,10 +238,12 @@ int     main(int argc, char **argv)
     maps = maps_create("whatever", argv[1], DICT_FLAG_LOCK);
 
     while (vstring_fgets_nonl(buf, VSTREAM_IN)) {
+	dict_errno = 99;
+	vstream_printf("\"%s\": ", vstring_str(buf));
 	if ((result = maps_find(maps, vstring_str(buf), 0)) != 0) {
 	    vstream_printf("%s\n", result);
 	} else if (dict_errno != 0) {
-	    msg_fatal("lookup error: %m");
+	    vstream_printf("lookup error\n");
 	} else {
 	    vstream_printf("not found\n");
 	}

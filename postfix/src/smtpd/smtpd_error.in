@@ -65,3 +65,17 @@ local_header_rewrite_clients fail:1_rewrite
 # Expect: REJECT (temporary lookup failure)
 #
 rewrite
+#
+# Test resolve_local()
+#
+mydestination example.com
+recipient_restrictions reject_unauth_destination
+rcpt user@example.com
+mydestination fail:1_mydestination
+rcpt user@example.com
+#
+# Test virtual alias lookup.
+#
+mydestination example.com
+virtual_alias_maps fail:1_virtual
+rcpt user@example.com

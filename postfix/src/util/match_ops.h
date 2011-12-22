@@ -12,27 +12,17 @@
 /* .nf
 
  /*
-  * External interface.
+  * Utility library.
   */
+#include <dict.h>
 
  /*
-  * This is what the caller specifies.
+  * External interface.
   */
 #define MATCH_FLAG_NONE		0
 #define MATCH_FLAG_PARENT	(1<<0)
 #define MATCH_FLAG_RETURN	(1<<1)
-
- /*
-  * This is for internal use.
-  */
 #define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN)
-
- /*
-  * Some errors cannot be signaled as (result == 0, dict_errno > 0).
-  * Therefore we signal all errors as (result < 0).
-  */
-#define MATCH_ERR_TEMP		(-1)	/* e.g., database is down */
-#define MATCH_ERR_PERM		(-2)	/* e.g., net/mask syntax */
 
 extern int match_string(int, const char *, const char *);
 extern int match_hostname(int, const char *, const char *);

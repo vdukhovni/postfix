@@ -114,7 +114,7 @@ int     debug_peer_check(const char *name, const char *addr)
      */
     if (debug_peer_list != 0
 	&& saved_level == UNUSED_SAVED_LEVEL
-	&& namadr_list_match(debug_peer_list, name, addr) > 0) {
+	&& namadr_list_match(debug_peer_list, name, addr) != 0) {
 	saved_level = msg_verbose;
 	msg_verbose += var_debug_peer_level;
 	return (1);

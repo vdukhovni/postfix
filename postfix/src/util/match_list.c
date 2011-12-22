@@ -36,8 +36,8 @@
 /*	foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
 /* .IP MATCH_FLAG_RETURN
-/*	Return a negative result (MATCH_ERR_TEMP or MATCH_ERR_FAIL)
-/*	instead of raising a fatal run-time error.
+/*	Request that match_list_match() returns zero (with dict_errno
+/*	set) instead of raising a fatal run-time error.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The pattern_list argument specifies a list of patterns.  The third
@@ -199,7 +199,6 @@ int     match_list_match(MATCH_LIST *list,...)
     int     match;
     int     i;
     va_list ap;
-    int     rc;
 
     /*
      * Iterate over all patterns in the list, stop at the first match.
@@ -214,11 +213,10 @@ int     match_list_match(MATCH_LIST *list,...)
 	for (match = 1; *pat == '!'; pat++)
 	    match = !match;
 	for (i = 0; i < list->match_count; i++)
-	    if ((rc = list->match_func[i] (list->flags,
-					   list->match_args[i], pat)) > 0)
+	    if (list->match_func[i] (list->flags, list->match_args[i], pat))
 		return (match);
-	    else if (rc < 0)
-		return (rc);
+	    else if (dict_errno != 0)
+		return (0);
     }
     if (msg_verbose)
 	for (i = 0; i < list->match_count; i++)

@@ -280,7 +280,7 @@ static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
 
 static int flush_policy_ok(const char *site)
 {
-    return (domain_list_match(flush_domains, site) > 0);
+    return (domain_list_match(flush_domains, site));
 }
 
 /* flush_add_service - append queue ID to per-site fast flush logfile */

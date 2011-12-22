@@ -308,7 +308,7 @@ server_acl: server_acl.c $(LIB) $(LIBS)
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
-	mail_version_test server_acl_test
+	mail_version_test server_acl_test resolve_local_test maps_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -409,6 +409,16 @@ server_acl_test: server_acl server_acl.in server_acl.ref
 	./server_acl <server_acl.in >server_acl.tmp 2>&1
 	diff  server_acl.ref server_acl.tmp
 	rm -f server_acl.tmp
+
+resolve_local_test: resolve_local resolve_local.in resolve_local.ref
+	sh resolve_local.in >resolve_local.tmp 2>&1
+	diff  resolve_local.ref resolve_local.tmp
+	rm -f resolve_local.tmp
+
+maps_test: maps maps.in maps.ref
+	sh maps.in >maps.tmp 2>&1
+	diff  maps.ref maps.tmp
+	rm -f maps.tmp
 
 # Requires: Postfix running, root privileges
 
@@ -585,9 +595,14 @@ abounce.o: mail_params.h
 abounce.o: mail_proto.h
 abounce.o: msg_stats.h
 abounce.o: recipient_list.h
+addr_match_list.o: ../../include/argv.h
+addr_match_list.o: ../../include/dict.h
 addr_match_list.o: ../../include/match_list.h
 addr_match_list.o: ../../include/match_ops.h
 addr_match_list.o: ../../include/sys_defs.h
+addr_match_list.o: ../../include/vbuf.h
+addr_match_list.o: ../../include/vstream.h
+addr_match_list.o: ../../include/vstring.h
 addr_match_list.o: addr_match_list.c
 addr_match_list.o: addr_match_list.h
 anvil_clnt.o: ../../include/attr.h
@@ -738,10 +753,15 @@ db_common.o: cfg_parser.h
 db_common.o: db_common.c
 db_common.o: db_common.h
 db_common.o: string_list.h
+debug_peer.o: ../../include/argv.h
+debug_peer.o: ../../include/dict.h
 debug_peer.o: ../../include/match_list.h
 debug_peer.o: ../../include/match_ops.h
 debug_peer.o: ../../include/msg.h
 debug_peer.o: ../../include/sys_defs.h
+debug_peer.o: ../../include/vbuf.h
+debug_peer.o: ../../include/vstream.h
+debug_peer.o: ../../include/vstring.h
 debug_peer.o: debug_peer.c
 debug_peer.o: debug_peer.h
 debug_peer.o: mail_params.h
@@ -963,9 +983,15 @@ dict_sqlite.o: db_common.h
 dict_sqlite.o: dict_sqlite.c
 dict_sqlite.o: dict_sqlite.h
 dict_sqlite.o: string_list.h
+domain_list.cdebug_peer.o: domain_list.cdebug_peer.c
+domain_list.o: ../../include/argv.h
+domain_list.o: ../../include/dict.h
 domain_list.o: ../../include/match_list.h
 domain_list.o: ../../include/match_ops.h
 domain_list.o: ../../include/sys_defs.h
+domain_list.o: ../../include/vbuf.h
+domain_list.o: ../../include/vstream.h
+domain_list.o: ../../include/vstring.h
 domain_list.o: domain_list.c
 domain_list.o: domain_list.h
 dot_lockfile.o: ../../include/iostuff.h
@@ -1056,7 +1082,9 @@ file_id.o: file_id.c
 file_id.o: file_id.h
 file_id.o: mail_queue.h
 file_id.o: safe_ultostr.h
+flush_clnt.o: ../../include/argv.h
 flush_clnt.o: ../../include/attr.h
+flush_clnt.o: ../../include/dict.h
 flush_clnt.o: ../../include/iostuff.h
 flush_clnt.o: ../../include/match_list.h
 flush_clnt.o: ../../include/match_ops.h
@@ -1064,6 +1092,7 @@ flush_clnt.o: ../../include/msg.h
 flush_clnt.o: ../../include/sys_defs.h
 flush_clnt.o: ../../include/vbuf.h
 flush_clnt.o: ../../include/vstream.h
+flush_clnt.o: ../../include/vstring.h
 flush_clnt.o: domain_list.h
 flush_clnt.o: flush_clnt.c
 flush_clnt.o: flush_clnt.h
@@ -1516,9 +1545,14 @@ mark_corrupt.o: mark_corrupt.c
 mark_corrupt.o: mark_corrupt.h
 mark_corrupt.o: msg_stats.h
 mark_corrupt.o: recipient_list.h
+match_parent_style.o: ../../include/argv.h
+match_parent_style.o: ../../include/dict.h
 match_parent_style.o: ../../include/match_list.h
 match_parent_style.o: ../../include/match_ops.h
 match_parent_style.o: ../../include/sys_defs.h
+match_parent_style.o: ../../include/vbuf.h
+match_parent_style.o: ../../include/vstream.h
+match_parent_style.o: ../../include/vstring.h
 match_parent_style.o: mail_params.h
 match_parent_style.o: match_parent_style.c
 match_parent_style.o: match_parent_style.h
@@ -1578,15 +1612,7 @@ mime_state.o: mail_params.h
 mime_state.o: mime_state.c
 mime_state.o: mime_state.h
 mime_state.o: rec_type.h
-mkmap_cdb.o: ../../include/argv.h
-mkmap_cdb.o: ../../include/dict.h
-mkmap_cdb.o: ../../include/dict_cdb.h
-mkmap_cdb.o: ../../include/mymalloc.h
 mkmap_cdb.o: ../../include/sys_defs.h
-mkmap_cdb.o: ../../include/vbuf.h
-mkmap_cdb.o: ../../include/vstream.h
-mkmap_cdb.o: ../../include/vstring.h
-mkmap_cdb.o: mkmap.h
 mkmap_cdb.o: mkmap_cdb.c
 mkmap_db.o: ../../include/argv.h
 mkmap_db.o: ../../include/dict.h
@@ -1694,9 +1720,14 @@ mypwd.o: ../../include/mymalloc.h
 mypwd.o: ../../include/sys_defs.h
 mypwd.o: mypwd.c
 mypwd.o: mypwd.h
+namadr_list.o: ../../include/argv.h
+namadr_list.o: ../../include/dict.h
 namadr_list.o: ../../include/match_list.h
 namadr_list.o: ../../include/match_ops.h
 namadr_list.o: ../../include/sys_defs.h
+namadr_list.o: ../../include/vbuf.h
+namadr_list.o: ../../include/vstream.h
+namadr_list.o: ../../include/vstring.h
 namadr_list.o: namadr_list.c
 namadr_list.o: namadr_list.h
 off_cvt.o: ../../include/msg.h
@@ -1870,6 +1901,8 @@ resolve_clnt.o: mail_params.h
 resolve_clnt.o: mail_proto.h
 resolve_clnt.o: resolve_clnt.c
 resolve_clnt.o: resolve_clnt.h
+resolve_local.o: ../../include/argv.h
+resolve_local.o: ../../include/dict.h
 resolve_local.o: ../../include/inet_addr_list.h
 resolve_local.o: ../../include/match_list.h
 resolve_local.o: ../../include/match_ops.h
@@ -1878,6 +1911,9 @@ resolve_local.o: ../../include/myaddrinfo.h
 resolve_local.o: ../../include/mymalloc.h
 resolve_local.o: ../../include/sys_defs.h
 resolve_local.o: ../../include/valid_hostname.h
+resolve_local.o: ../../include/vbuf.h
+resolve_local.o: ../../include/vstream.h
+resolve_local.o: ../../include/vstring.h
 resolve_local.o: mail_params.h
 resolve_local.o: own_inet_addr.h
 resolve_local.o: resolve_local.c
@@ -1970,6 +2006,8 @@ sent.o: sent.c
 sent.o: sent.h
 sent.o: trace.h
 sent.o: verify.h
+server_acl.o: ../../include/argv.h
+server_acl.o: ../../include/dict.h
 server_acl.o: ../../include/match_list.h
 server_acl.o: ../../include/match_ops.h
 server_acl.o: ../../include/msg.h
@@ -1977,11 +2015,13 @@ server_acl.o: ../../include/mymalloc.h
 server_acl.o: ../../include/stringops.h
 server_acl.o: ../../include/sys_defs.h
 server_acl.o: ../../include/vbuf.h
+server_acl.o: ../../include/vstream.h
 server_acl.o: ../../include/vstring.h
 server_acl.o: addr_match_list.h
 server_acl.o: mail_params.h
 server_acl.o: match_parent_style.h
 server_acl.o: server_acl.c
+server_acl.o: server_acl.h
 smtp_reply_footer.o: ../../include/mac_expand.h
 smtp_reply_footer.o: ../../include/mac_parse.h
 smtp_reply_footer.o: ../../include/msg.h
@@ -2014,9 +2054,14 @@ stream2rec.o: rec_streamlf.h
 stream2rec.o: rec_type.h
 stream2rec.o: record.h
 stream2rec.o: stream2rec.c
+string_list.o: ../../include/argv.h
+string_list.o: ../../include/dict.h
 string_list.o: ../../include/match_list.h
 string_list.o: ../../include/match_ops.h
 string_list.o: ../../include/sys_defs.h
+string_list.o: ../../include/vbuf.h
+string_list.o: ../../include/vstream.h
+string_list.o: ../../include/vstring.h
 string_list.o: string_list.c
 string_list.o: string_list.h
 strip_addr.o: ../../include/mymalloc.h

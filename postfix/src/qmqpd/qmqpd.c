@@ -649,7 +649,6 @@ static void qmqpd_receive(QMQPD_STATE *state)
 static void qmqpd_proto(QMQPD_STATE *state)
 {
     int     status;
-    int     rc;
 
     netstring_setup(state->client, var_qmqpd_timeout);
 
@@ -687,10 +686,9 @@ static void qmqpd_proto(QMQPD_STATE *state)
 	/*
 	 * See if we want to talk to this client at all.
 	 */
-	rc = namadr_list_match(qmqpd_clients, state->name, state->addr);
-	if (rc > 0) {
+	if (namadr_list_match(qmqpd_clients, state->name, state->addr) != 0) {
 	    qmqpd_receive(state);
-	} else if (rc == 0) {
+	} else if (dict_errno == 0) {
 	    qmqpd_reply(state, DONT_LOG, QMQPD_STAT_HARD,
 			"Error: %s is not authorized to use this service",
 			state->namaddr);

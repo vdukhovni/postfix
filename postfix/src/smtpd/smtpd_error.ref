@@ -106,3 +106,28 @@ OK
 ./smtpd_check: warning: local_header_rewrite_clients: fail:1_rewrite: lookup error
 ./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.0 Temporary lookup error; from=<> proto=SMTP helo=<foobar>
 451 4.3.0 Temporary lookup error
+>>> #
+>>> # Test resolve_local()
+>>> #
+>>> mydestination example.com
+OK
+>>> recipient_restrictions reject_unauth_destination
+OK
+>>> rcpt user@example.com
+OK
+>>> mydestination fail:1_mydestination
+OK
+>>> rcpt user@example.com
+./smtpd_check: warning: fail:1_mydestination(0,lock|fold_fix): table lookup problem
+./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.0 <user@example.com>: Temporary lookup failure; from=<> to=<user@example.com> proto=SMTP helo=<foobar>
+451 4.3.0 <user@example.com>: Temporary lookup failure
+>>> #
+>>> # Test virtual alias lookup.
+>>> #
+>>> mydestination example.com
+OK
+>>> virtual_alias_maps fail:1_virtual
+OK
+>>> rcpt user@example.com
+./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.0 <user@example.com>: Temporary lookup failure; from=<> to=<user@example.com> proto=SMTP helo=<foobar>
+451 4.3.0 <user@example.com>: Temporary lookup failure

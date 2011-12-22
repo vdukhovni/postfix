@@ -240,8 +240,8 @@ int     name_mask_delim_opt(const char *context, const NAME_MASK *table,
 		} else if (flags & NAME_MASK_RETURN) {
 		    msg_warn("unknown %s value \"%s\" in \"%s\"",
 			     context, name, names);
-		    result = 0;
-		    break;
+		    myfree(saved_names);
+		    return (0);
 		} else if (flags & NAME_MASK_WARN) {
 		    msg_warn("unknown %s value \"%s\" in \"%s\"",
 			     context, name, names);
@@ -354,6 +354,7 @@ long    long_name_mask_delim_opt(const char *context,
 		} else if (flags & NAME_MASK_RETURN) {
 		    msg_warn("unknown %s value \"%s\" in \"%s\"",
 			     context, name, names);
+		    myfree(saved_names);
 		    return (0);
 		} else if (flags & NAME_MASK_WARN) {
 		    msg_warn("unknown %s value \"%s\" in \"%s\"",

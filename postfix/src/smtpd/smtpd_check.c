@@ -1004,14 +1004,13 @@ static int permit_inet_interfaces(SMTPD_STATE *state)
 static int permit_mynetworks(SMTPD_STATE *state)
 {
     const char *myname = "permit_mynetworks";
-    int     rc;
 
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
-    if ((rc = namadr_list_match(mynetworks, state->name, state->addr)) > 0)
+    if (namadr_list_match(mynetworks, state->name, state->addr))
 	return (SMTPD_CHECK_OK);
-    else if (rc == 0)
+    else if (dict_errno == 0)
 	return (SMTPD_CHECK_DUNNO);
     else
 	return (SMTPD_CHECK_ERROR);
@@ -1431,7 +1430,6 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
     DNS_RR *rr;
     DNS_RR *addr_list;
     int     dns_status;
-    int     rc;
 
     if (msg_verbose)
 	msg_info("%s: host %s", myname, host);
@@ -1463,25 +1461,25 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 	if (msg_verbose)
 	    msg_info("%s: checking: %s", myname, hostaddr.buf);
 
-	rc = namadr_list_match(perm_mx_networks, host, hostaddr.buf);
-	if (rc == 0) {
+	if (!namadr_list_match(perm_mx_networks, host, hostaddr.buf)) {
+	    if (dict_errno == 0) {
 
-	    /*
-	     * Reject: at least one IP address is not listed in
-	     * permit_mx_backup_networks.
-	     */
-	    if (msg_verbose)
-		msg_info("%s: address %s for %s does not match %s",
-			 myname, hostaddr.buf, host, VAR_PERM_MX_NETWORKS);
+		/*
+		 * Reject: at least one IP address is not listed in
+		 * permit_mx_backup_networks.
+		 */
+		if (msg_verbose)
+		    msg_info("%s: address %s for %s does not match %s",
+			  myname, hostaddr.buf, host, VAR_PERM_MX_NETWORKS);
+	    } else {
+		msg_warn("%s: %s lookup error for address %s for %s",
+			 myname, VAR_PERM_MX_NETWORKS, hostaddr.buf, host);
+		DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+				 450, "4.4.4",
+				 "<%s>: %s rejected: Unable to verify host %s as mail exchanger",
+				 reply_name, reply_class, host);
+	    }
 	    dns_rr_free(addr_list);
-	    return (NOPE);
-	} else if (rc < 0) {
-	    msg_warn("%s: %s lookup error for address %s for %s",
-		     myname, VAR_PERM_MX_NETWORKS, hostaddr.buf, host);
-	    DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
-			     450, "4.4.4",
-	    "<%s>: %s rejected: Unable to verify host %s as mail exchanger",
-			     reply_name, reply_class, host);
 	    return (NOPE);
 	}
     }
@@ -1560,6 +1558,7 @@ static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list,
 	    msg_info("%s: resolve hostname: %s", myname, (char *) mx->data);
 	if (resolve_local((char *) mx->data))
 	    return (YUP);
+	/* if no match or error, match interface addresses instead. */
     }
 
     /*
@@ -5239,18 +5238,26 @@ void    resolve_clnt(const char *class, const char *unused_sender, const char *a
 	reply->flags = RESOLVE_CLASS_LOCAL;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_LOCAL);
 	vstring_strcpy(reply->nexthop, domain);
+    } else if (dict_errno) {
+	reply->flags = RESOLVE_FLAG_FAIL;
     } else if (string_list_match(virt_alias_doms, domain)) {
 	reply->flags = RESOLVE_CLASS_ALIAS;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_ERROR);
 	vstring_strcpy(reply->nexthop, "user unknown");
+    } else if (dict_errno) {
+	reply->flags = RESOLVE_FLAG_FAIL;
     } else if (string_list_match(virt_mailbox_doms, domain)) {
 	reply->flags = RESOLVE_CLASS_VIRTUAL;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_VIRTUAL);
 	vstring_strcpy(reply->nexthop, domain);
+    } else if (dict_errno) {
+	reply->flags = RESOLVE_FLAG_FAIL;
     } else if (domain_list_match(relay_domains, domain)) {
 	reply->flags = RESOLVE_CLASS_RELAY;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_RELAY);
 	vstring_strcpy(reply->nexthop, domain);
+    } else if (dict_errno) {
+	reply->flags = RESOLVE_FLAG_FAIL;
     } else {
 	reply->flags = RESOLVE_CLASS_DEFAULT;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_SMTP);
@@ -5381,6 +5388,12 @@ int     main(int argc, char **argv)
 	  ptr = string_list_init(MATCH_FLAG_NONE, val); }
 
 	case 2:
+	    if (strcasecmp(args->argv[0], VAR_MYDEST) == 0) {
+		UPDATE_STRING(var_mydest, args->argv[1]);
+		resolve_local_init();
+		resp = 0;
+		break;
+	    }
 	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_MAPS) == 0) {
 		UPDATE_STRING(var_virt_alias_maps, args->argv[1]);
 		UPDATE_MAPS(virt_alias_maps, VAR_VIRT_ALIAS_MAPS,

@@ -98,9 +98,9 @@ void    server_acl_pre_jail_init(const char *mynetworks, const char *origin)
 {
     if (server_acl_mynetworks)
 	addr_match_list_free(server_acl_mynetworks);
-    server_acl_mynetworks = 
+    server_acl_mynetworks =
 	addr_match_list_init(MATCH_FLAG_RETURN | match_parent_style(origin),
-						 mynetworks);
+			     mynetworks);
 }
 
 /* server_acl_parse - parse access list */
@@ -131,7 +131,7 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
 	    } else {
 		if (dict_handle(acl) == 0)
 		    dict_register(acl, dict_open(acl, O_RDONLY, DICT_FLAG_LOCK
-						  | DICT_FLAG_FOLD_FIX));
+						 | DICT_FLAG_FOLD_FIX));
 	    }
 	}
 	argv_add(intern_acl, acl, (char *) 0);
@@ -157,7 +157,6 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
     const char *acl;
     const char *dict_val;
     int     ret;
-    int     rc;
 
     for (cpp = intern_acl->argv; (acl = *cpp) != 0; cpp++) {
 	if (msg_verbose)
@@ -168,10 +167,9 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 	} else if (STREQ(acl, SERVER_ACL_NAME_PERMIT)) {
 	    return (SERVER_ACL_ACT_PERMIT);
 	} else if (STREQ(acl, SERVER_ACL_NAME_WL_MYNETWORKS)) {
-	    rc = addr_match_list_match(server_acl_mynetworks, client_addr);
-	    if (rc > 0)
+	    if (addr_match_list_match(server_acl_mynetworks, client_addr))
 		return (SERVER_ACL_ACT_PERMIT);
-	    if (rc < 0) {
+	    if (dict_errno != 0) {
 		msg_warn("%s: %s: mynetworks lookup error -- ignoring the "
 			 "remainder of this access list", origin, acl);
 		return (SERVER_ACL_ACT_ERROR);
