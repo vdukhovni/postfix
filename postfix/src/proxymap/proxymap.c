@@ -331,13 +331,15 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 		    dict_flags_str(request_flags & DICT_FLAG_INST_MASK));
     if (msg_verbose)
 	msg_info("proxy_map_find: %s", STR(map_type_name_flags));
-    if ((dict = dict_handle(STR(map_type_name_flags))) == 0)
+    if ((dict = dict_handle(STR(map_type_name_flags))) == 0) {
 	dict = dict_open(map_type_name, proxy_writer ?
 			 WRITE_OPEN_FLAGS : READ_OPEN_FLAGS,
 			 request_flags);
-    if (dict == 0)
-	msg_panic("proxy_map_find: dict_open null result");
-    dict_register(STR(map_type_name_flags), dict);
+	if (dict == 0)
+	    msg_panic("proxy_map_find: dict_open null result");
+	dict_register(STR(map_type_name_flags), dict);
+    }
+    dict_errno = 0;
     return (dict);
 }
 
@@ -467,7 +469,6 @@ static void proxymap_update_service(VSTREAM *client_stream)
 	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
 		       | (request_flags & DICT_FLAG_RQST_MASK)
 		       | DICT_FLAG_SYNC_UPDATE | DICT_FLAG_DUP_REPLACE);
-	dict_errno = 0;
 	dict_put(dict, STR(request_key), STR(request_value));
 	reply_status = (dict_errno ? PROXY_STAT_RETRY : PROXY_STAT_OK);
     }
@@ -512,7 +513,6 @@ static void proxymap_delete_service(VSTREAM *client_stream)
 	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
 		       | (request_flags & DICT_FLAG_RQST_MASK)
 		       | DICT_FLAG_SYNC_UPDATE);
-	dict_errno = 0;
 	dict_status = dict_del(dict, STR(request_key));
 	reply_status = (dict_status == 0 ? PROXY_STAT_OK :
 			dict_status > 0 ? PROXY_STAT_NOKEY :

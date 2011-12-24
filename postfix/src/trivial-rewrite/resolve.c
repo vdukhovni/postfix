@@ -225,6 +225,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	if (loop_count > loop_max) {
 	    msg_warn("resolve_addr: <%s>: giving up after %ld iterations",
 		     addr, (long) loop_count);
+	    *flags |= RESOLVE_FLAG_FAIL;
+	    FREE_MEMORY_AND_RETURN;
 	    break;
 	}
 

@@ -30,7 +30,7 @@ typedef struct TRANSPORT_INFO {
     MAPS   *transport_path;
     VSTRING *wildcard_channel;
     VSTRING *wildcard_nexthop;
-    int     transport_errno;
+    int     wildcard_errno;
     time_t  expire;
 } TRANSPORT_INFO;
 

@@ -101,7 +101,7 @@ TRANSPORT_INFO *transport_pre_init(const char *transport_maps_name,
 				     DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
 				     | DICT_FLAG_NO_REGSUB);
     tp->wildcard_channel = tp->wildcard_nexthop = 0;
-    tp->transport_errno = 0;
+    tp->wildcard_errno = 0;
     tp->expire = 0;
     return (tp);
 }
@@ -234,14 +234,14 @@ static void transport_wildcard_init(TRANSPORT_INFO *tp)
 #define PARTIAL		DICT_FLAG_FIXED
 
     if (find_transport_entry(tp, WILDCARD, "", FULL, channel, nexthop)) {
-	tp->transport_errno = 0;
+	tp->wildcard_errno = 0;
 	tp->wildcard_channel = channel;
 	tp->wildcard_nexthop = nexthop;
 	if (msg_verbose)
 	    msg_info("wildcard_{chan:hop}={%s:%s}",
 		     vstring_str(channel), vstring_str(nexthop));
     } else {
-	tp->transport_errno = dict_errno;
+	tp->wildcard_errno = dict_errno;
 	vstring_free(channel);
 	vstring_free(nexthop);
 	tp->wildcard_channel = 0;
@@ -332,10 +332,10 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
     /*
      * Fall back to the wild-card entry.
      */
-    if (tp->transport_errno || event_time() > tp->expire)
+    if (tp->wildcard_errno || event_time() > tp->expire)
 	transport_wildcard_init(tp);
-    if (tp->transport_errno) {
-	dict_errno = tp->transport_errno;
+    if (tp->wildcard_errno) {
+	dict_errno = tp->wildcard_errno;
 	return (NOTFOUND);
     } else if (tp->wildcard_channel) {
 	update_entry(STR(tp->wildcard_channel), STR(tp->wildcard_nexthop),

@@ -353,18 +353,18 @@ static void dict_memcache_update(DICT *dict, const char *name,
 	return;
 
     /*
-     * Update the backup database first.
+     * Update the memcache first.
+     */
+    dict_memcache_set(dict_mc, value, dict_mc->mc_ttl);
+
+    /*
+     * Update the backup database last.
      */
     if (dict_mc->backup) {
 	dict_errno = 0;
 	dict_mc->backup->update(dict_mc->backup, name, value);
 	backup_errno = dict_errno;
     }
-
-    /*
-     * Update the memcache last.
-     */
-    dict_memcache_set(dict_mc, value, dict_mc->mc_ttl);
 
     if (msg_verbose)
 	msg_info("%s: %s: update key \"%s\"(%s) => \"%s\" %s",
@@ -426,8 +426,7 @@ static int dict_memcache_delete(DICT *dict, const char *name)
     const char *myname = "dict_memcache_delete";
     DICT_MC *dict_mc = (DICT_MC *) dict;
     int     backup_errno = 0;
-    int     del_res = 0;
-    int     mem_res;
+    int     del_res;
 
     /*
      * Skip lookups with an inapplicable key, silently. This is just deleting
@@ -438,18 +437,18 @@ static int dict_memcache_delete(DICT *dict, const char *name)
 	return (1);
 
     /*
-     * Update the persistent database first.
+     * Update the memcache first.
+     */
+    del_res = dict_memcache_del(dict_mc);
+
+    /*
+     * Update the persistent database last.
      */
     if (dict_mc->backup) {
 	dict_errno = 0;
 	del_res = dict_mc->backup->delete(dict_mc->backup, name);
 	backup_errno = dict_errno;
     }
-
-    /*
-     * Update the memcache last.
-     */
-    mem_res = dict_memcache_del(dict_mc);
 
     if (msg_verbose)
 	msg_info("%s: %s: delete key \"%s\"(%s) => %s",
@@ -459,7 +458,7 @@ static int dict_memcache_delete(DICT *dict, const char *name)
 
     dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
 
-    return (dict_mc->backup ? del_res : mem_res);
+    return (del_res);
 }
 
 /* dict_memcache_sequence - first/next lookup */
