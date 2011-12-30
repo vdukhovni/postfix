@@ -379,8 +379,10 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	    rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
 	    if (resolve_local(rcpt_domain))	/* XXX */
 		domain = 0;
-	    else if (dict_errno != 0)
+	    else if (dict_errno != 0) {
 		*flags |= RESOLVE_FLAG_FAIL;
+		FREE_MEMORY_AND_RETURN;
+	    }
 	} else {
 	    *flags |= RESOLVE_FLAG_ERROR;
 	}

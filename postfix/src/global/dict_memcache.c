@@ -150,8 +150,7 @@ static void dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 	if (count > 0)
 	    sleep(dict_mc->err_pause);
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
-	    if (errno == ECONNREFUSED)
-		break;
+	    break;
 	} else if (memcache_printf(fp, "set %s %d %d %ld",
 		STR(dict_mc->key_buf), dict_mc->mc_flags, ttl, data_len) < 0
 		   || memcache_fwrite(fp, value, strlen(value)) < 0
@@ -190,8 +189,7 @@ static const char *dict_memcache_get(DICT_MC *dict_mc)
 	if (count > 0)
 	    sleep(dict_mc->err_pause);
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
-	    if (errno == ECONNREFUSED)
-		break;
+	    break;
 	} else if (memcache_printf(fp, "get %s", STR(dict_mc->key_buf)) < 0
 	    || memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0) {
 	    if (count > 0)
@@ -239,8 +237,7 @@ static int dict_memcache_del(DICT_MC *dict_mc)
 	if (count > 0)
 	    sleep(dict_mc->err_pause);
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
-	    if (errno == ECONNREFUSED)
-		break;
+	    break;
 	} else if (memcache_printf(fp, "delete %s", STR(dict_mc->key_buf)) < 0
 	    || memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0) {
 	    if (count > 0)
@@ -342,6 +339,7 @@ static void dict_memcache_update(DICT *dict, const char *name,
 {
     const char *myname = "dict_memcache_update";
     DICT_MC *dict_mc = (DICT_MC *) dict;
+    DICT   *backup = dict_mc->backup;
     int     backup_errno = 0;
 
     /*
@@ -360,19 +358,18 @@ static void dict_memcache_update(DICT *dict, const char *name,
     /*
      * Update the backup database last.
      */
-    if (dict_mc->backup) {
+    if (backup) {
 	dict_errno = 0;
-	dict_mc->backup->update(dict_mc->backup, name, value);
+	backup->update(backup, name, value);
 	backup_errno = dict_errno;
     }
-
     if (msg_verbose)
 	msg_info("%s: %s: update key \"%s\"(%s) => \"%s\" %s",
 		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
 		 value, dict_mc->mc_errno ? "(memcache error)" :
 		 backup_errno ? "(backup error)" : "(no error)");
 
-    dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
+    dict_errno = (backup ? backup_errno : dict_mc->mc_errno);
 }
 
 /* dict_memcache_lookup - lookup memcache */
@@ -381,6 +378,7 @@ static const char *dict_memcache_lookup(DICT *dict, const char *name)
 {
     const char *myname = "dict_memcache_lookup";
     DICT_MC *dict_mc = (DICT_MC *) dict;
+    DICT   *backup = dict_mc->backup;
     const char *retval;
     int     backup_errno = 0;
 
@@ -401,8 +399,8 @@ static const char *dict_memcache_lookup(DICT *dict, const char *name)
      * Search the backup database last. Update the memcache if the data is
      * found.
      */
-    if (retval == 0 && dict_mc->backup) {
-	retval = dict_mc->backup->lookup(dict_mc->backup, name);
+    if (retval == 0 && backup) {
+	retval = backup->lookup(backup, name);
 	backup_errno = dict_errno;
 	/* Update the cache. */
 	if (retval != 0)
@@ -414,7 +412,7 @@ static const char *dict_memcache_lookup(DICT *dict, const char *name)
 		 retval ? retval : dict_mc->mc_errno ? "(memcache error)" :
 		 backup_errno ? "(backup error)" : "(not found)");
 
-    dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
+    dict_errno = (backup ? backup_errno : dict_mc->mc_errno);
 
     return (retval);
 }
@@ -425,6 +423,7 @@ static int dict_memcache_delete(DICT *dict, const char *name)
 {
     const char *myname = "dict_memcache_delete";
     DICT_MC *dict_mc = (DICT_MC *) dict;
+    DICT   *backup = dict_mc->backup;
     int     backup_errno = 0;
     int     del_res;
 
@@ -444,19 +443,18 @@ static int dict_memcache_delete(DICT *dict, const char *name)
     /*
      * Update the persistent database last.
      */
-    if (dict_mc->backup) {
+    if (backup) {
 	dict_errno = 0;
-	del_res = dict_mc->backup->delete(dict_mc->backup, name);
+	del_res = backup->delete(backup, name);
 	backup_errno = dict_errno;
     }
-
     if (msg_verbose)
 	msg_info("%s: %s: delete key \"%s\"(%s) => %s",
 		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
 		 dict_mc->mc_errno ? "(memcache error)" :
 		 backup_errno ? "(backup error)" : "(no error)");
 
-    dict_errno = (dict_mc->backup ? backup_errno : dict_mc->mc_errno);
+    dict_errno = (backup ? backup_errno : dict_mc->mc_errno);
 
     return (del_res);
 }
@@ -467,11 +465,15 @@ static int dict_memcache_sequence(DICT *dict, int function, const char **key,
 				          const char **value)
 {
     DICT_MC *dict_mc = (DICT_MC *) dict;
+    DICT   *backup = dict_mc->backup;
 
-    if (dict_mc->backup == 0)
-	msg_fatal("database %s:%s: first/next support requires backup database",
-		  DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-    return (dict_mc->backup->sequence(dict_mc->backup, function, key, value));
+    if (backup == 0) {
+	msg_warn("database %s:%s: first/next support requires backup database",
+		 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
+	return (1);
+    } else {
+	return (backup->sequence(backup, function, key, value));
+    }
 }
 
 /* dict_memcache_close - close memcache */

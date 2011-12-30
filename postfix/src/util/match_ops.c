@@ -111,7 +111,7 @@ static int match_error(int flags, const char *fmt,...)
 int     match_string(int flags, const char *string, const char *pattern)
 {
     const char *myname = "match_string";
-    int     match;
+    DICT   *dict;
 
     if (msg_verbose)
 	msg_info("%s: %s ~? %s", myname, string, pattern);
@@ -120,11 +120,13 @@ int     match_string(int flags, const char *string, const char *pattern)
      * Try dictionary lookup: exact match.
      */
     if (MATCH_DICTIONARY(pattern)) {
-	match = (dict_lookup(pattern, string) != 0);
-	if (match != 0)
+	if ((dict = dict_handle(pattern)) == 0)
+	    msg_panic("%s: unknown dictionary: %s", myname, pattern);
+	if (dict_get(dict, string) != 0)
 	    return (1);
 	if (dict_errno != 0)
-	    return (match_error(flags, "%s: table lookup problem", pattern));
+	    return (match_error(flags, "%s:%s: table lookup problem",
+				dict->type, dict->name));
 	return (0);
     }
 
@@ -174,8 +176,8 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 		if (match != 0)
 		    break;
 		if (dict_errno != 0)
-		    return (match_error(flags, "%s: table lookup problem", 
-pattern));
+		    return (match_error(flags, "%s:%s: table lookup problem",
+					dict->type, dict->name));
 	    }
 	    if ((next = strchr(entry + 1, '.')) == 0)
 		break;
@@ -216,6 +218,7 @@ int     match_hostaddr(int flags, const char *addr, const char *pattern)
     const char *myname = "match_hostaddr";
     char   *saved_patt;
     CIDR_MATCH match_info;
+    DICT   *dict;
     VSTRING *err;
     int     rc;
 
@@ -232,10 +235,13 @@ int     match_hostaddr(int flags, const char *addr, const char *pattern)
      * Try dictionary lookup. This can be case insensitive.
      */
     if (MATCH_DICTIONARY(pattern)) {
-	if (dict_lookup(pattern, addr) != 0)
+	if ((dict = dict_handle(pattern)) == 0)
+	    msg_panic("%s: unknown dictionary: %s", myname, pattern);
+	if (dict_get(dict, addr) != 0)
 	    return (1);
 	if (dict_errno != 0)
-	    return (match_error(flags, "%s: table lookup problem", pattern));
+	    return (match_error(flags, "%s:%s: table lookup problem",
+				dict->type, dict->name));
 	return (0);
     }
 
@@ -290,9 +296,9 @@ int     match_hostaddr(int flags, const char *addr, const char *pattern)
     err = cidr_match_parse(&match_info, saved_patt, (VSTRING *) 0);
     myfree(saved_patt);
     if (err != 0) {
+	dict_errno = DICT_ERR_CONFIG;
 	rc = match_error(flags, "%s", vstring_str(err));
 	vstring_free(err);
-	dict_errno = DICT_ERR_CONFIG;
 	return (rc);
     }
     return (cidr_match_execute(&match_info, addr) != 0);

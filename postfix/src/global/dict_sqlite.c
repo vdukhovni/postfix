@@ -151,6 +151,11 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     int     status;
 
     /*
+     * In case of return without lookup (skipped key, etc.).
+     */
+    dict_errno = 0;
+
+    /*
      * Don't frustrate future attempts to make Postfix UTF-8 transparent.
      */
     if (!valid_utf_8(name, strlen(name))) {

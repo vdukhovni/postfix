@@ -289,7 +289,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     } else if (dict_errno != 0) {
 	/* Details in the logfile. */
 	dsb_simple(state.msg_attr.why, "4.3.0", "table lookup failure");
-	*statusp = DEL_STAT_DEFER;
+	*statusp = defer_append(BOUNCE_FLAGS(state.request),
+				BOUNCE_ATTR(state.msg_attr));
 	return (YES);
     }
     if (*var_mailbox_transport) {
@@ -303,15 +304,15 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      * Skip delivery when this recipient does not exist.
      */
     if ((errno = mypwnam_err(state.msg_attr.user, &mbox_pwd)) != 0) {
-        msg_warn("error looking up passwd info for %s: %m",
-                 state.msg_attr.user);
-        dsb_simple(state.msg_attr.why, "4.0.0", "user lookup error");
-        *statusp = defer_append(BOUNCE_FLAGS(state.request),
-                                BOUNCE_ATTR(state.msg_attr));
-        return (YES);
+	msg_warn("error looking up passwd info for %s: %m",
+		 state.msg_attr.user);
+	dsb_simple(state.msg_attr.why, "4.0.0", "user lookup error");
+	*statusp = defer_append(BOUNCE_FLAGS(state.request),
+				BOUNCE_ATTR(state.msg_attr));
+	return (YES);
     }
     if (mbox_pwd == 0)
-        return (NO);
+	return (NO);
 
     /*
      * No early returns or we have a memory leak.
@@ -341,7 +342,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     } else if (dict_errno != 0) {
 	/* Details in the logfile. */
 	dsb_simple(state.msg_attr.why, "4.3.0", "table lookup failure");
-	status = DEL_STAT_DEFER;
+	status = defer_append(BOUNCE_FLAGS(state.request),
+			      BOUNCE_ATTR(state.msg_attr));
     } else if (*var_mailbox_command) {
 	status = deliver_command(state, usr_attr, var_mailbox_command);
     } else if (*var_home_mailbox && LAST_CHAR(var_home_mailbox) == '/') {

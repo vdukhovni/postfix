@@ -714,10 +714,11 @@ int     main(int argc, char **argv)
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
 	VAR_RELOCATED_MAPS, DEF_RELOCATED_MAPS, &var_relocated_maps, 0, 0,
 	VAR_TRANSPORT_MAPS, DEF_TRANSPORT_MAPS, &var_transport_maps, 0, 0,
-	VAR_PROXY_READ_MAPS, DEF_PROXY_READ_MAPS, &var_proxy_read_maps, 0, 0,
-	VAR_PROXY_WRITE_MAPS, DEF_PROXY_WRITE_MAPS, &var_proxy_write_maps, 0, 0,
 	VAR_VERIFY_MAP, DEF_VERIFY_MAP, &var_verify_map, 0, 0,
 	VAR_PSC_CACHE_MAP, DEF_PSC_CACHE_MAP, &var_psc_cache_map, 0, 0,
+	/* The following two must be last for $mapname to work as expected. */
+	VAR_PROXY_READ_MAPS, DEF_PROXY_READ_MAPS, &var_proxy_read_maps, 0, 0,
+	VAR_PROXY_WRITE_MAPS, DEF_PROXY_WRITE_MAPS, &var_proxy_write_maps, 0, 0,
 	0,
     };
 

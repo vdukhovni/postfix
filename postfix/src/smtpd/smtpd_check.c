@@ -1264,22 +1264,22 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	prints[0] = state->tls_context->peer_fingerprint;
 	prints[1] = state->tls_context->peer_pkey_fprint;
 
-	/* After lookup error, leave dict_errno at its non-zero value. */
-	for (i = 0; i < 2 && found == 0 && dict_errno == 0; ++i)
+	/* After lookup error, leave dict_errno at non-zero value. */
+	for (i = 0; i < 2; ++i) {
 	    found = maps_find(relay_ccerts, prints[i], DICT_FLAG_NONE);
-	if (found) {
-	    if (msg_verbose)
-		msg_info("Relaying allowed for certified client: %s", found);
-	    return (SMTPD_CHECK_OK);
-	} else if (dict_errno != 0) {
-	    msg_warn("relay_clientcerts: lookup error for fingerprint '%s', "
-		     "pkey fingerprint %s", prints[0], prints[1]);
-	    return (SMTPD_CHECK_ERROR);
-	} else {
-	    if (msg_verbose)
-		msg_info("relay_clientcerts: No match for fingerprint '%s', "
+	    if (found != 0) {
+		if (msg_verbose)
+		    msg_info("Relaying allowed for certified client: %s", found);
+		return (SMTPD_CHECK_OK);
+	    } else if (dict_errno != 0) {
+		msg_warn("relay_clientcerts: lookup error for fingerprint '%s', "
 			 "pkey fingerprint %s", prints[0], prints[1]);
+		return (SMTPD_CHECK_ERROR);
+	    }
 	}
+	if (msg_verbose)
+	    msg_info("relay_clientcerts: No match for fingerprint '%s', "
+		     "pkey fingerprint %s", prints[0], prints[1]);
     }
 #else
     dict_errno = 0;

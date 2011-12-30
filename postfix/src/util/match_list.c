@@ -143,6 +143,7 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
 	    vstring_sprintf(buf, "%s%s(%o,%s)", match ? "" : "!",
 			    item, OPEN_FLAGS, dict_flags_str(DICT_FLAGS));
 	    map_type_name_flags = STR(buf) + (match == 0);
+	    /* XXX Should increment existing map refcount. */
 	    if (dict_handle(map_type_name_flags) == 0)
 		dict_register(map_type_name_flags,
 			      dict_open(item, OPEN_FLAGS, DICT_FLAGS));
@@ -228,6 +229,7 @@ int     match_list_match(MATCH_LIST *list,...)
 
 void    match_list_free(MATCH_LIST *list)
 {
+    /* XXX Should decrement map refcounts. */
     argv_free(list->patterns);
     myfree((char *) list->match_func);
     myfree((char *) list->match_args);

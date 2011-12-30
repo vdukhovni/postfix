@@ -194,6 +194,7 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
 			 *map_name, name, expansion);
 	    return (expansion);
 	} else if (dict_errno != 0) {
+	    msg_warn("%s:%s lookup of %s failed", dict->type, dict->name, name);
 	    break;
 	}
     }

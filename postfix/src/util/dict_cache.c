@@ -253,12 +253,19 @@ const char *dict_cache_lookup(DICT_CACHE *cp, const char *cache_key)
 	if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
 	    msg_info("%s: key=%s (pretend not found  - scheduled for deletion)",
 		     myname, cache_key);
+	dict_errno = 0;
 	return (0);
     } else {
 	cache_val = dict_get(cp->db, cache_key);
+#if 0
+	if (cache_val == 0 && dict_errno != 0)
+	    msg_warn("%s: cache lookup for '%s' failed due to error",
+		     cp->name, cache_key);
+#endif
 	if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
 	    msg_info("%s: key=%s value=%s", myname, cache_key,
-		     cache_val ? cache_val : "(not found)");
+		     cache_val ? cache_val : dict_errno ?
+		     "error" : "(not found)");
 	return (cache_val);
     }
 }
@@ -304,6 +311,10 @@ int     dict_cache_delete(DICT_CACHE *cp, const char *cache_key)
 	zero_means_found = 0;
     } else {
 	zero_means_found = dict_del(cp->db, cache_key);
+#if 0
+	if (zero_means_found != 0)
+	    msg_warn("%s: could not delete entry for %s", cp->name, cache_key);
+#endif
 	if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
 	    msg_info("%s: key=%s (%s)", myname, cache_key,
 		     zero_means_found == 0 ? "found" : "not found");
@@ -366,7 +377,7 @@ int     dict_cache_sequence(DICT_CACHE *cp, int first_next,
 	    msg_info("%s: delete-behind key=%s value=%s",
 		     myname, previous_curr_key, previous_curr_val);
 	if (dict_del(cp->db, previous_curr_key) != 0)
-	    msg_warn("database %s: could not delete entry for %s",
+	    msg_warn("%s: could not delete entry for %s",
 		     cp->name, previous_curr_key);
     }
 
@@ -465,6 +476,13 @@ static void dict_cache_clean_event(int unused_event, char *cache_context)
     /*
      * Cache cleanup completed. Report vital statistics.
      */
+#if 0
+    else if (dict_errno != 0) {
+	msg_warn("%s: cache cleanup scan failed due to error", cp->name);
+	dict_cache_clean_stat_log_reset(cp, "partial");
+	next_interval = cp->exp_interval;
+    }
+#endif
     else {
 	if (cp->user_flags & DICT_CACHE_FLAG_VERBOSE)
 	    msg_info("%s: done %s cache cleanup scan", myname, cp->name);

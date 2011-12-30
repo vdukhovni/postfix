@@ -17431,3 +17431,15 @@ Apologies for any names omitted.
 	global/addr_list_match.c, domain_list.c, string_list.c,
 	namadr_list.c, trivial-rewrite/resolve.c, smtpd/smtpd.c,
 	smtpd/smtpd_check.c, global/flush_clnt.c, flush/flush.c.
+
+20111226
+
+	Cleanup: reset the global dict_errno flag before table
+	lookup, to avoid false alarms about table lookup errors.
+	Files: util/dict_thash.c, global/dict_sqlite.c, global.maps.c.
+
+	Bugfix (introduced 20110426): after lookup error with
+	mailbox_transport_maps, mailbox_command_maps or
+	fallback_transport_maps, the local delivery agent did not
+	log the problem before deferring mail, and produced no defer
+	logfile record. Files: local/mailbox.c, local/unknown.c.

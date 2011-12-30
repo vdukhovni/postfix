@@ -292,6 +292,7 @@ static void dict_proxy_update(DICT *dict, const char *key, const char *value)
 		msg_fatal("%s update access is not configured for table \"%s\"",
 			  dict_proxy->service, dict->name);
 	    case PROXY_STAT_OK:
+		dict_errno = 0;
 		return;
 	    case PROXY_STAT_RETRY:
 		dict_errno = DICT_ERR_RETRY;

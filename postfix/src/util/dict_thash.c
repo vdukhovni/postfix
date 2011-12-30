@@ -96,6 +96,8 @@ static int dict_thash_sequence(DICT *dict, int function,
     const char *myname = "dict_thash_sequence";
     DICT_THASH *dict_thash = (DICT_THASH *) dict;
 
+    dict_errno = 0;
+
     /*
      * Determine and execute the seek function.
      */
