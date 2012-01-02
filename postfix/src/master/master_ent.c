@@ -87,6 +87,7 @@
 #include <host_port.h>
 #include <inet_addr_host.h>
 #include <sock_addr.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -126,6 +127,7 @@ void    fset_master_ent(char *path)
 void    set_master_ent()
 {
     const char *myname = "set_master_ent";
+    char   *disable;
 
     if (master_fp != 0)
 	msg_panic("%s: configuration file still open", myname);
@@ -136,7 +138,16 @@ void    set_master_ent()
     master_line = 0;
     if (master_disable != 0)
 	msg_panic("%s: service disable list still exists", myname);
-    master_disable = match_service_init(var_master_disable);
+    if (inet_proto_info()->ai_family_list[0] == 0) {
+	msg_warn("all network protocols are disabled (%s = %s)",
+		 VAR_INET_PROTOCOLS, var_inet_protocols);
+	msg_warn("disabling all type \"inet\" services in master.cf");
+	disable = concatenate(MASTER_XPORT_NAME_INET, ",",
+			      var_master_disable, (char *) 0);
+	master_disable = match_service_init(disable);
+	myfree(disable);
+    } else
+	master_disable = match_service_init(var_master_disable);
 }
 
 /* end_master_ent - close configuration file */

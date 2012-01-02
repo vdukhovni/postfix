@@ -384,6 +384,7 @@
 #include <set_eugid.h>
 #include <vstream.h>
 #include <name_code.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -591,6 +592,15 @@ static void psc_service(VSTREAM *smtp_client_stream,
     int     aierr;
     const char *stamp_str;
     int     saved_flags;
+
+    /*
+     * For sanity, require that at least one of INET or INET6 is enabled.
+     * Otherwise, we can't look up interface information, and we can't
+     * convert names or addresses.
+     */
+    if (inet_proto_info()->ai_family_list[0] == 0)
+	msg_fatal("all network protocols are disabled (%s = %s)",
+		  VAR_INET_PROTOCOLS, var_inet_protocols);
 
     /*
      * This program handles all incoming connections, so it must not block.

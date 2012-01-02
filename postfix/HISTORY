@@ -17443,3 +17443,12 @@ Apologies for any names omitted.
 	fallback_transport_maps, the local delivery agent did not
 	log the problem before deferring mail, and produced no defer
 	logfile record. Files: local/mailbox.c, local/unknown.c.
+
+20120102
+
+	Workaround: degrade gracefully when the network protocols
+	specified with inet_protocols are unavailable.  Files:
+	global/mail_params.c, global/mynetworks.c, global/own_inet_addr.c
+	master/master_ent.c, master/master_vars.c, postscreen/postscreen.c,
+	qmqpd/qmqpd.c, smtp/smtp_connect.c, smtpd/smtpd.c,
+	util/inet_proto.c.

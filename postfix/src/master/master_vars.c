@@ -57,7 +57,6 @@ void    master_vars_init(void)
 {
     char   *path;
     static const CONFIG_STR_TABLE str_table[] = {
-	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 1, 0,
 	VAR_MASTER_DISABLE, DEF_MASTER_DISABLE, &var_master_disable, 0, 0,
 	0,
     };

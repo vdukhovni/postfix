@@ -159,6 +159,7 @@ smtpd.o: ../../include/dsn_mask.h
 smtpd.o: ../../include/ehlo_mask.h
 smtpd.o: ../../include/events.h
 smtpd.o: ../../include/flush_clnt.h
+smtpd.o: ../../include/inet_proto.h
 smtpd.o: ../../include/input_transp.h
 smtpd.o: ../../include/iostuff.h
 smtpd.o: ../../include/is_header.h

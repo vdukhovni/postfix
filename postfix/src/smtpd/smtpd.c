@@ -1046,6 +1046,7 @@
 #include <iostuff.h>
 #include <split_at.h>
 #include <name_code.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -4811,6 +4812,16 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      */
     if (argv[0])
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
+     * For sanity, require that at least one of INET or INET6 is enabled.
+     * Otherwise, we can't look up interface information, and we can't
+     * convert names or addresses.
+     */
+    if (SMTPD_STAND_ALONE_STREAM(stream) == 0
+	&& inet_proto_info()->ai_family_list[0] == 0)
+	msg_fatal("all network protocols are disabled (%s = %s)",
+		  VAR_INET_PROTOCOLS, var_inet_protocols);
 
     /*
      * This routine runs when a client has connected to our network port, or

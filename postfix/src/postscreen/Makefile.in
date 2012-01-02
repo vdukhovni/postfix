@@ -72,6 +72,7 @@ postscreen.o: ../../include/dict.h
 postscreen.o: ../../include/dict_cache.h
 postscreen.o: ../../include/events.h
 postscreen.o: ../../include/htable.h
+postscreen.o: ../../include/inet_proto.h
 postscreen.o: ../../include/iostuff.h
 postscreen.o: ../../include/mail_conf.h
 postscreen.o: ../../include/mail_params.h

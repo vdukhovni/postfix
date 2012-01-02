@@ -63,6 +63,7 @@ qmqpd.o: ../../include/attr.h
 qmqpd.o: ../../include/cleanup_user.h
 qmqpd.o: ../../include/debug_peer.h
 qmqpd.o: ../../include/dict.h
+qmqpd.o: ../../include/inet_proto.h
 qmqpd.o: ../../include/input_transp.h
 qmqpd.o: ../../include/iostuff.h
 qmqpd.o: ../../include/lex_822.h

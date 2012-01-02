@@ -284,6 +284,9 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   * If running in stand-alone mode, do not try to talk to Postfix daemons but
   * write to queue file instead.
   */
+#define SMTPD_STAND_ALONE_STREAM(stream) \
+	(stream == VSTREAM_IN && getuid() != var_owner_uid)
+
 #define SMTPD_STAND_ALONE(state) \
 	(state->client == VSTREAM_IN && getuid() != var_owner_uid)
 

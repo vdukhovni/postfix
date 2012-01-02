@@ -372,8 +372,13 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     else {
 	state->name = mystrdup("localhost");
 	state->reverse_name = mystrdup("localhost");
-	state->addr = mystrdup("127.0.0.1");	/* XXX bogus. */
-	state->rfc_addr = mystrdup("127.0.0.1");/* XXX bogus. */
+	if (proto_info->sa_family_list[0] == PF_INET6) {
+	    state->addr = mystrdup("::1");	/* XXX bogus. */
+	    state->rfc_addr = mystrdup(IPV6_COL "::1");	/* XXX bogus. */
+	} else {
+	    state->addr = mystrdup("127.0.0.1");/* XXX bogus. */
+	    state->rfc_addr = mystrdup("127.0.0.1");	/* XXX bogus. */
+	}
 	state->addr_family = AF_UNSPEC;
 	state->name_status = SMTPD_PEER_CODE_OK;
 	state->reverse_name_status = SMTPD_PEER_CODE_OK;

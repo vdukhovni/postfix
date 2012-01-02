@@ -58,6 +58,7 @@
 #include <myaddrinfo.h>
 #include <mask_addr.h>
 #include <argv.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -101,6 +102,19 @@ const char *mynetworks(void)
 	BH_TABLE *dup_filter;
 	char  **cpp;
 
+	/*
+	 * Avoid run-time errors when all network protocols are disabled. We
+	 * can't look up interface information, and we can't convert explicit
+	 * names or addresses.
+	 */
+	if (inet_proto_info()->ai_family_list[0] == 0) {
+	    if (msg_verbose)
+		msg_info("skipping %s setting - "
+			 "all network protocols are disabled",
+			 VAR_MYNETWORKS);
+	    result = vstring_alloc(1);
+	    return (vstring_str(result));
+	}
 	mask_style = name_mask("mynetworks mask style", mask_styles,
 			       var_mynetworks_style);
 

@@ -167,6 +167,7 @@
 #include <vstream.h>
 #include <netstring.h>
 #include <dict.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -719,6 +720,15 @@ static void qmqpd_service(VSTREAM *stream, char *unused_service, char **argv)
      */
     if (argv[0])
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
+
+    /*
+     * For sanity, require that at least one of INET or INET6 is enabled.
+     * Otherwise, we can't look up interface information, and we can't
+     * convert names or addresses.
+     */
+    if (inet_proto_info()->ai_family_list[0] == 0)
+	msg_fatal("all network protocols are disabled (%s = %s)",
+		  VAR_INET_PROTOCOLS, var_inet_protocols);
 
     /*
      * This routine runs when a client has connected to our network port.

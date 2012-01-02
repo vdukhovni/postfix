@@ -983,7 +983,6 @@ dict_sqlite.o: db_common.h
 dict_sqlite.o: dict_sqlite.c
 dict_sqlite.o: dict_sqlite.h
 dict_sqlite.o: string_list.h
-domain_list.cdebug_peer.o: domain_list.cdebug_peer.c
 domain_list.o: ../../include/argv.h
 domain_list.o: ../../include/dict.h
 domain_list.o: ../../include/match_list.h
@@ -1700,6 +1699,7 @@ msg_stats_scan.o: msg_stats.h
 msg_stats_scan.o: msg_stats_scan.c
 mynetworks.o: ../../include/argv.h
 mynetworks.o: ../../include/inet_addr_list.h
+mynetworks.o: ../../include/inet_proto.h
 mynetworks.o: ../../include/mask_addr.h
 mynetworks.o: ../../include/msg.h
 mynetworks.o: ../../include/myaddrinfo.h
