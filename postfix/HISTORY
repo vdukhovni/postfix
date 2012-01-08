@@ -17432,11 +17432,36 @@ Apologies for any names omitted.
 	namadr_list.c, trivial-rewrite/resolve.c, smtpd/smtpd.c,
 	smtpd/smtpd_check.c, global/flush_clnt.c, flush/flush.c.
 
-20111226
+20111224
 
-	Cleanup: reset the global dict_errno flag before table
-	lookup, to avoid false alarms about table lookup errors.
-	Files: util/dict_thash.c, global/dict_sqlite.c, global.maps.c.
+	Cleanup: eliminated the global dict_errno variable that
+	made error reporting convenient but not necessarily precise.
+	This was a straightforward change except in the few modules
+	that propagate errors from one dictionary API to another:
+	dict_cache.c, dict_debug.c, maps.c, dict_memcache.c.  Files:
+	src/cleanup/cleanup_map11.c, src/cleanup/cleanup_map1n.c,
+	src/global/addr_match_list.c, src/global/dict_ldap.c,
+	src/global/dict_memcache.c, src/global/dict_mysql.c,
+	src/global/dict_pgsql.c, src/global/dict_proxy.c,
+	src/global/dict_sqlite.c, src/global/domain_list.c,
+	src/global/flush_clnt.c, src/global/mail_addr_find.c,
+	src/global/mail_addr_map.c, src/global/maps.c, src/global/maps.h,
+	src/global/match_parent_style.h, src/global/namadr_list.c,
+	src/global/resolve_local.c, src/global/resolve_local.h,
+	src/global/server_acl.c, src/global/string_list.c,
+	src/local/alias.c, src/local/bounce_workaround.c,
+	src/local/mailbox.c, src/local/unknown.c, src/proxymap/proxymap.c,
+	src/qmqpd/qmqpd.c, src/smtp/smtp_map11.c, src/smtpd/smtpd_check.c,
+	src/trivial-rewrite/resolve.c, src/trivial-rewrite/transport.c,
+	src/util/dict.h, src/util/dict_alloc.c, src/util/dict_cache.c,
+	src/util/dict_cidr.c, src/util/dict_db.c, src/util/dict_debug.c,
+	src/util/dict_env.c, src/util/dict_fail.c, src/util/dict_ht.c,
+	src/util/dict_pcre.c, src/util/dict_regexp.c,
+	src/util/dict_static.c, src/util/dict_tcp.c, src/util/dict_test.c,
+	src/util/dict_thash.c, src/util/dict_unix.c, src/util/match_list.c,
+	src/util/match_list.h, src/util/match_ops.c, src/virtual/mailbox.c.
+
+20111226
 
 	Bugfix (introduced 20110426): after lookup error with
 	mailbox_transport_maps, mailbox_command_maps or
@@ -17452,3 +17477,25 @@ Apologies for any names omitted.
 	master/master_ent.c, master/master_vars.c, postscreen/postscreen.c,
 	qmqpd/qmqpd.c, smtp/smtp_connect.c, smtpd/smtpd.c,
 	util/inet_proto.c.
+
+20120107
+
+	Workaround: degrade gracefully when the "domain" feature
+	of LDAP, *SQL and memcache databases has a table lookup
+	problem.  Files: global/db_common.c, global/dict_ldap.c,
+	global/dict*sql*.c, global/dict_memcache.c.
+
+	Cleanup: fixed memcache client error handling for things
+	that never happen.  global/dict_memcache.c.
+
+	Future proofing: prepare postmap/postalias error logging
+	for future changes to database code. Files: postalias/postalias.c,
+	postmap/postmap.c.
+
+20120108
+
+	Cleanup: the postscreen(8) and verify(8) cache managers log
+	warnings at a reduced rate of one per second per cache
+	operation, to avoid logging large numbers of warnings about
+	a problem with low-value information. File: util/msg_rate_delay.c,
+	util/dict_cache.c.

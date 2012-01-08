@@ -82,13 +82,13 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
     datum   dbm_value;
     const char *result = 0;
 
+    dict->error = 0;
+
     /*
      * Sanity check.
      */
     if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	msg_panic("dict_dbm_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
-
-    dict_errno = 0;
 
     /*
      * Optionally fold the key.
@@ -147,12 +147,14 @@ static const char *dict_dbm_lookup(DICT *dict, const char *name)
 
 /* dict_dbm_update - add or update database entry */
 
-static void dict_dbm_update(DICT *dict, const char *name, const char *value)
+static int dict_dbm_update(DICT *dict, const char *name, const char *value)
 {
     DICT_DBM *dict_dbm = (DICT_DBM *) dict;
     datum   dbm_key;
     datum   dbm_value;
     int     status;
+
+    dict->error = 0;
 
     /*
      * Sanity check.
@@ -223,6 +225,8 @@ static void dict_dbm_update(DICT *dict, const char *name, const char *value)
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_dbm->dict.name);
+
+    return (status);
 }
 
 /* dict_dbm_delete - delete one entry from the dictionary */
@@ -232,6 +236,8 @@ static int dict_dbm_delete(DICT *dict, const char *name)
     DICT_DBM *dict_dbm = (DICT_DBM *) dict;
     datum   dbm_key;
     int     status = 1;
+
+    dict->error = 0;
 
     /*
      * Sanity check.
@@ -310,6 +316,8 @@ static int dict_dbm_sequence(DICT *dict, int function,
     datum   dbm_key;
     datum   dbm_value;
     int     status;
+
+    dict->error = 0;
 
     /*
      * Acquire a shared lock.

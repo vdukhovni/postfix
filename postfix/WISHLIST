@@ -4,18 +4,15 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	limits on attribute string length in IPC protocols. 10-20KB
-	seems OK. We could start with limits enabled only in proxymap.
+	Things to do after the stable release:
+
+	Before proxymap can be exposed to the network to share,
+	e.g., postscreen or verify caches, need to enforce limits
+	on attribute string length in IPC protocols.  10-20KB seems
+	OK. The VSTREAM library already supports read/write deadlines.
 
 	move flush_init() etc. from defer service clients to the
 	bounce daemon?
-
-	Is it practical to move errors from global dict_errno
-	to lookuphandle->dict_errno?
-
-	Either make all void dict_* operations return an error code,
-	or require that they reset dict_errno on entry, either exit
-	with a fatal error or set dict_errno on error.
 
 	multi_connect() function that takes a list of inet:host:port
 	and/or unix:pathname specs, with an explicit "inet" prefix
@@ -24,15 +21,13 @@ Wish list:
 	client, dovecot client, and other.
 
 	dict_memcache: treat "bad" key as cache miss, i.e.  read/write
-	the database as if the cache did not exist. This does not
-	work because most Postfix maps (virtual, canonical, access,
-	transport, ...) also don't support spaces in keys.
+	the backup database as if the cache did not exist. This
+	does not help because most Postfix maps (virtual, canonical,
+	access, transport, ...) also don't support spaces in keys.
 
 	postscreen: keep the cache open after "postfix reload" when
 	it is remote (type memcache: or proxy:). This does not work
 	because memcache can use a non-proxied file as backup).
-
-	Things to do after the stable release:
 
 	What is the feasibility of adding an mta_name (personality)
 	attribute that is propagated via queue files and delivery
@@ -115,12 +110,6 @@ Wish list:
 	it is a major pain to convert all main.cf time parameters
 	into doubles (converting only some leads to a documentation
 	nightmare).
-
-	postscreen: wait for DNS completion after early HANGUP and
-	log DNSBL results. If the client was still waiting for the
-	PREGREET timer, just flag the PREGREET test as (done, not
-	passed).  If the client was not waiting for the PREGREET
-	timer, just wait until DNSBL lookup (if any) completes.
 
 	Address verify cache: allow a negative cache "refresh"
 	result to purge a "positive" cache entry in some safe manner.

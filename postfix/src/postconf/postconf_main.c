@@ -105,7 +105,6 @@ void    read_parameters(void)
      * A direct rip-off of mail_conf_read(). XXX Avoid code duplication by
      * better code decomposition.
      */
-    dict_unknown_allowed = 1;
     set_config_dir();
     path = concatenate(var_config_dir, "/", MAIN_CONF_FILE, (char *) 0);
     dict_load_file(CONFIG_DICT, path);

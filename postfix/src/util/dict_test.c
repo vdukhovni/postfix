@@ -107,30 +107,28 @@ void    dict_test(int argc, char **argv)
 		vstream_printf("%s: deleted\n", key);
 	} else if (strcmp(cmd, "get") == 0 && key && !value) {
 	    if ((value = dict_get(dict, key)) == 0) {
-		vstream_printf("%s: %s\n", key, dict_errno ?
+		vstream_printf("%s: %s\n", key, dict->error ?
 			       "error" : "not found");
 	    } else {
 		vstream_printf("%s=%s\n", key, value);
 	    }
 	} else if (strcmp(cmd, "put") == 0 && key && value) {
-	    /* XXX dict_put returns void, so dict_memcache sets dict_errno. */
-	    dict_errno = 0;
-	    dict_put(dict, key, value);
-	    if (dict_errno)
-		vstream_printf("%s: error\n", key);
+	    if (dict_put(dict, key, value) != 0)
+		vstream_printf("%s: %s\n", key, dict->error ?
+			       "error" : "not updated");
 	    else
 		vstream_printf("%s=%s\n", key, value);
 	} else if (strcmp(cmd, "first") == 0 && !key && !value) {
 	    if (dict_seq(dict, DICT_SEQ_FUN_FIRST, &key, &value) == 0)
 		vstream_printf("%s=%s\n", key, value);
 	    else
-		vstream_printf("%s\n", dict_errno ?
+		vstream_printf("%s\n", dict->error ?
 			       "error" : "not found");
 	} else if (strcmp(cmd, "next") == 0 && !key && !value) {
 	    if (dict_seq(dict, DICT_SEQ_FUN_NEXT, &key, &value) == 0)
 		vstream_printf("%s=%s\n", key, value);
 	    else
-		vstream_printf("%s\n", dict_errno ?
+		vstream_printf("%s\n", dict->error ?
 			       "error" : "not found");
 	} else if (strcmp(cmd, "flags") == 0 && !key && !value) {
 	    vstream_printf("dict flags %s\n",

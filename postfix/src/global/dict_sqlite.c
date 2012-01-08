@@ -47,7 +47,7 @@
 /*	returning the lookup result unchanged.
 /* .IP expansion_limit
 /*	Limit (if any) on the total number of lookup result values.
-/*	Lookups which exceed the limit fail with dict_errno=DICT_ERR_RETRY.
+/*	Lookups which exceed the limit fail with dict->error=DICT_ERR_RETRY.
 /*	Note that each non-empty (and non-NULL) column of a
 /*	multi-column result row counts as one result.
 /* .IP "select_field, where_field, additional_conditions"
@@ -149,11 +149,12 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     const char *retval;
     int     expansion = 0;
     int     status;
+    int     domain_rc;
 
     /*
      * In case of return without lookup (skipped key, etc.).
      */
-    dict_errno = 0;
+    dict->error = 0;
 
     /*
      * Don't frustrate future attempts to make Postfix UTF-8 transparent.
@@ -178,12 +179,14 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     /*
      * Apply the optional domain filter for email address lookups.
      */
-    if (db_common_check_domain(dict_sqlite->ctx, name) == 0) {
+    if ((domain_rc = db_common_check_domain(dict_sqlite->ctx, name)) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: %s: Skipping lookup of '%s'",
 		     myname, dict_sqlite->parser->name, name);
 	return (0);
     }
+    if (domain_rc < 0)
+	DICT_ERR_VAL_RETURN(dict, domain_rc, (char *) 0);
 
     /*
      * Expand the query and query the database.
@@ -228,7 +231,7 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 		&& ++expansion > dict_sqlite->expansion_limit) {
 		msg_warn("%s: %s: Expansion limit exceeded for key '%s'",
 			 myname, dict_sqlite->parser->name, name);
-		dict_errno = DICT_ERR_RETRY;
+		dict->error = DICT_ERR_RETRY;
 		break;
 	    }
 	}
@@ -237,7 +240,7 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 	    msg_warn("%s: %s: SQL step failed for query '%s': %s\n",
 		     myname, dict_sqlite->parser->name,
 		     vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
-	    dict_errno = DICT_ERR_RETRY;
+	    dict->error = DICT_ERR_RETRY;
 	    break;
 	}
     }
@@ -250,7 +253,7 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
 		  myname, dict_sqlite->parser->name,
 		  vstring_str(query), sqlite3_errmsg(dict_sqlite->db));
 
-    return ((dict_errno == 0 && *(retval = vstring_str(result)) != 0) ?
+    return ((dict->error == 0 && *(retval = vstring_str(result)) != 0) ?
 	    retval : 0);
 }
 

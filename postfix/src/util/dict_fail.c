@@ -12,7 +12,7 @@
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_fail_open() implements a dummy dictionary that fails
-/*	all operations. The name specifies the dict_errno value.
+/*	all operations. The name can be used for logging.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* LICENSE
@@ -29,7 +29,6 @@
 /* System library. */
 
 #include <sys_defs.h>
-#include <stdlib.h>
 
 /* Utility library. */
 
@@ -48,22 +47,21 @@ typedef struct {
 /* dict_fail_sequence - fail lookup */
 
 static int dict_fail_sequence(DICT *dict, int unused_func,
-			               const char **key, const char **value)
+			              const char **key, const char **value)
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
-    dict_errno = dp->dict_errno;
-    return (1);
+    DICT_ERR_VAL_RETURN(dict, dp->dict_errno, DICT_STAT_ERROR);
 }
 
 /* dict_fail_update - fail lookup */
 
-static void dict_fail_update(DICT *dict, const char *unused_name,
-			             const char *unused_value)
+static int dict_fail_update(DICT *dict, const char *unused_name,
+			            const char *unused_value)
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
-    dict_errno = dp->dict_errno;
+    DICT_ERR_VAL_RETURN(dict, dp->dict_errno, DICT_STAT_ERROR);
 }
 
 /* dict_fail_lookup - fail lookup */
@@ -72,8 +70,7 @@ static const char *dict_fail_lookup(DICT *dict, const char *unused_name)
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
-    dict_errno = dp->dict_errno;
-    return (0);
+    DICT_ERR_VAL_RETURN(dict, dp->dict_errno, (char *) 0);
 }
 
 /* dict_fail_delete - fail delete */
@@ -82,8 +79,7 @@ static int dict_fail_delete(DICT *dict, const char *unused_name)
 {
     DICT_FAIL *dp = (DICT_FAIL *) dict;
 
-    dict_errno = dp->dict_errno;
-    return (-1);
+    DICT_ERR_VAL_RETURN(dict, dp->dict_errno, DICT_STAT_ERROR);
 }
 
 /* dict_fail_close - close fail dictionary */
@@ -108,9 +104,7 @@ DICT   *dict_fail_open(const char *name, int open_flags, int dict_flags)
     dp->dict.sequence = dict_fail_sequence;
     dp->dict.close = dict_fail_close;
     dp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
-    dp->dict_errno = atoi(name);
-    if (dp->dict_errno == 0)
-	dp->dict_errno = 1;
+    dp->dict_errno = DICT_ERR_RETRY;
     dp->dict.owner.status = DICT_OWNER_TRUSTED;
     return (DICT_DEBUG (&dp->dict));
 }

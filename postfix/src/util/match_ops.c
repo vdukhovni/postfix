@@ -4,20 +4,20 @@
 /* SUMMARY
 /*	simple string or host pattern matching
 /* SYNOPSIS
-/*	#include <match_ops.h>
+/*	#include <match_list.h>
 /*
-/*	int	match_string(flags, string, pattern)
-/*	int	flags;
+/*	int	match_string(list, string, pattern)
+/*	MATCH_LIST *list;
 /*	const char *string;
 /*	const char *pattern;
 /*
-/*	int	match_hostname(flags, name, pattern)
-/*	int	flags;
+/*	int	match_hostname(list, name, pattern)
+/*	MATCH_LIST *list;
 /*	const char *name;
 /*	const char *pattern;
 /*
-/*	int	match_hostaddr(flags, addr, pattern)
-/*	int	flags;
+/*	int	match_hostaddr(list, addr, pattern)
+/*	MATCH_LIST *list;
 /*	const char *addr;
 /*	const char *pattern;
 /* DESCRIPTION
@@ -38,8 +38,9 @@
 /*	the domain foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
 /* .IP MATCH_FLAG_RETURN
-/*	Return "not found" and set dict_errno, instead of raising
-/*	a fatal run-time error.
+/*	Log a warning, return "not found", and set list->error to
+/*	a non-zero dictionary error code, instead of raising a fatal
+/*	run-time error.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*
@@ -77,7 +78,7 @@
 #include <mymalloc.h>
 #include <split_at.h>
 #include <dict.h>
-#include <match_ops.h>
+#include <match_list.h>
 #include <stringops.h>
 #include <cidr_match.h>
 
@@ -86,7 +87,7 @@
 
 /* match_error - return or raise fatal error */
 
-static int match_error(int flags, const char *fmt,...)
+static int match_error(MATCH_LIST *list, const char *fmt,...)
 {
     VSTRING *buf = vstring_alloc(100);
     va_list ap;
@@ -97,7 +98,7 @@ static int match_error(int flags, const char *fmt,...)
     va_start(ap, fmt);
     vstring_vsprintf(buf, fmt, ap);
     va_end(ap);
-    if (flags & MATCH_FLAG_RETURN) {
+    if (list->flags & MATCH_FLAG_RETURN) {
 	msg_warn("%s", vstring_str(buf));
     } else {
 	msg_fatal("%s", vstring_str(buf));
@@ -108,7 +109,7 @@ static int match_error(int flags, const char *fmt,...)
 
 /* match_string - match a string literal */
 
-int     match_string(int flags, const char *string, const char *pattern)
+int     match_string(MATCH_LIST *list, const char *string, const char *pattern)
 {
     const char *myname = "match_string";
     DICT   *dict;
@@ -124,8 +125,8 @@ int     match_string(int flags, const char *string, const char *pattern)
 	    msg_panic("%s: unknown dictionary: %s", myname, pattern);
 	if (dict_get(dict, string) != 0)
 	    return (1);
-	if (dict_errno != 0)
-	    return (match_error(flags, "%s:%s: table lookup problem",
+	if ((list->error = dict->error) != 0)
+	    return (match_error(list, "%s:%s: table lookup problem",
 				dict->type, dict->name));
 	return (0);
     }
@@ -145,7 +146,7 @@ int     match_string(int flags, const char *string, const char *pattern)
 
 /* match_hostname - match a host by name */
 
-int     match_hostname(int flags, const char *name, const char *pattern)
+int     match_hostname(MATCH_LIST *list, const char *name, const char *pattern)
 {
     const char *myname = "match_hostname";
     const char *pd;
@@ -175,13 +176,13 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 			     match ? "found" : "notfound");
 		if (match != 0)
 		    break;
-		if (dict_errno != 0)
-		    return (match_error(flags, "%s:%s: table lookup problem",
+		if ((list->error = dict->error) != 0)
+		    return (match_error(list, "%s:%s: table lookup problem",
 					dict->type, dict->name));
 	    }
 	    if ((next = strchr(entry + 1, '.')) == 0)
 		break;
-	    if (flags & MATCH_FLAG_PARENT)
+	    if (list->flags & MATCH_FLAG_PARENT)
 		next += 1;
 	}
 	return (match);
@@ -198,7 +199,7 @@ int     match_hostname(int flags, const char *name, const char *pattern)
      * See if the pattern is a parent domain of the hostname.
      */
     else {
-	if (flags & MATCH_FLAG_PARENT) {
+	if (list->flags & MATCH_FLAG_PARENT) {
 	    pd = name + strlen(name) - strlen(pattern);
 	    if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
 		return (1);
@@ -213,7 +214,7 @@ int     match_hostname(int flags, const char *name, const char *pattern)
 
 /* match_hostaddr - match host by address */
 
-int     match_hostaddr(int flags, const char *addr, const char *pattern)
+int     match_hostaddr(MATCH_LIST *list, const char *addr, const char *pattern)
 {
     const char *myname = "match_hostaddr";
     char   *saved_patt;
@@ -239,8 +240,8 @@ int     match_hostaddr(int flags, const char *addr, const char *pattern)
 	    msg_panic("%s: unknown dictionary: %s", myname, pattern);
 	if (dict_get(dict, addr) != 0)
 	    return (1);
-	if (dict_errno != 0)
-	    return (match_error(flags, "%s:%s: table lookup problem",
+	if ((list->error = dict->error) != 0)
+	    return (match_error(list, "%s:%s: table lookup problem",
 				dict->type, dict->name));
 	return (0);
     }
@@ -296,8 +297,8 @@ int     match_hostaddr(int flags, const char *addr, const char *pattern)
     err = cidr_match_parse(&match_info, saved_patt, (VSTRING *) 0);
     myfree(saved_patt);
     if (err != 0) {
-	dict_errno = DICT_ERR_CONFIG;
-	rc = match_error(flags, "%s", vstring_str(err));
+	list->error = DICT_ERR_CONFIG;
+	rc = match_error(list, "%s", vstring_str(err));
 	vstring_free(err);
 	return (rc);
     }

@@ -121,6 +121,10 @@
 /* .IP \fBhash\fR
 /*	The output is a hashed file, named \fIfile_name\fB.db\fR.
 /*	This is available on systems with support for \fBdb\fR databases.
+/* .IP \fBfail\fR
+/*	A table that reliably fails all requests. The lookup table
+/*	name is used for logging only. This table exists to simplify
+/*	Postfix error tests.
 /* .IP \fBsdbm\fR
 /*	The output consists of two files, named \fIfile_name\fB.pag\fR and
 /*	\fIfile_name\fB.dir\fR.
@@ -376,6 +380,9 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	 * Store the value under a case-insensitive key.
 	 */
 	mkmap_append(mkmap, STR(key_buffer), STR(value_buffer));
+	if (mkmap->dict->error)
+	    msg_fatal("%s:%s: write error: %m",
+		      mkmap->dict->type, mkmap->dict->name);
     }
 
     /*
@@ -390,6 +397,9 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
      * sendmail.
      */
     mkmap_append(mkmap, "@", "@");
+    if (mkmap->dict->error)
+	msg_fatal("%s:%s: write error: %m",
+		  mkmap->dict->type, mkmap->dict->name);
 
     /*
      * NIS compatibility: add time and master info. Unlike other information,
@@ -466,6 +476,9 @@ static int postalias_queries(VSTREAM *in, char **maps, const int map_count,
 		found = 1;
 		break;
 	    }
+	    if (dicts[n]->error)
+		msg_fatal("%s:%s: query error: %m",
+			  dicts[n]->type, dicts[n]->name);
 	}
     }
     if (found)
@@ -501,6 +514,8 @@ static int postalias_query(const char *map_type, const char *map_name,
 	}
 	vstream_printf("%s\n", value);
     }
+    if (dict->error)
+        msg_fatal("%s:%s: query error: %m", dict->type, dict->name);
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
     return (value != 0);
@@ -542,9 +557,14 @@ static int postalias_deletes(VSTREAM *in, char **maps, const int map_count,
     /*
      * Perform all requests.
      */
-    while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF)
-	for (n = 0; n < map_count; n++)
+    while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
+	for (n = 0; n < map_count; n++) {
 	    found |= (dict_del(dicts[n], STR(keybuf)) == 0);
+            if (dicts[n]->error)
+                msg_fatal("%s:%s: delete error: %m",
+                          dicts[n]->type, dicts[n]->name);
+        }
+    }
 
     /*
      * Cleanup.
@@ -573,6 +593,8 @@ static int postalias_delete(const char *map_type, const char *map_name,
 	open_flags = O_RDWR;
     dict = dict_open3(map_type, map_name, open_flags, dict_flags);
     status = dict_del(dict, key);
+    if (dict->error)
+        msg_fatal("%s:%s: delete error: %m", dict->type, dict->name);
     dict_close(dict);
     return (status == 0);
 }
@@ -604,6 +626,8 @@ static void postalias_seq(const char *map_type, const char *map_name,
 	}
 	vstream_printf("%s:	%s\n", key, value);
     }
+    if (dict->error)
+        msg_fatal("%s:%s: sequence error: %m", dict->type, dict->name);
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
 }

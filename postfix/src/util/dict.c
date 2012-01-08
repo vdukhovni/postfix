@@ -6,9 +6,6 @@
 /* SYNOPSIS
 /*	#include <dict.h>
 /*
-/*	extern int dict_unknown_allowed;
-/*	extern int dict_errno;
-/*
 /*	void	dict_register(dict_name, dict_info)
 /*	const char *dict_name;
 /*	DICT	*dict_info;
@@ -19,7 +16,7 @@
 /*	void	dict_unregister(dict_name)
 /*	const char *dict_name;
 /*
-/*	void	dict_update(dict_name, member, value)
+/*	int	dict_update(dict_name, member, value)
 /*	const char *dict_name;
 /*	const char *member;
 /*	const char *value;
@@ -46,6 +43,9 @@
 /*	int	dict_walk(action, context)
 /*	void	(*action)(dict_name, dict_handle, context)
 /*	char	*context;
+/*
+/*	int	dict_error(dict_name)
+/*	const char *dict_name;
 /*
 /*	const char *dict_changed_name()
 /* AUXILIARY FUNCTIONS
@@ -76,10 +76,11 @@
 /*	value of \fIname\fR. The forms $(\fIname\fR) and ${\fIname\fR} are
 /*	also supported.
 /* .IP "unknown names"
-/*	References to unknown dictionary or dictionary member names either
-/*	default to an empty dictionary or null pointer value, or cause a
-/*	run-time error. The behavior is controlled by the global
-/*	\fIdict_unknown_allowed\fR boolean variable.
+/*	An update request for an unknown dictionary name will trigger
+/*	the instantiation of an in-memory dictionary with that name.
+/*	A lookup request (including delete and sequence) for an
+/*	unknown dictionary will result in a "not found" and "no
+/*	error" result.
 /* .PP
 /*	dict_register() adds a new dictionary, including access methods,
 /*	to the list of known dictionaries, or increments the reference
@@ -97,7 +98,8 @@
 /*
 /*	dict_update() updates the value of the named dictionary member.
 /*	The dictionary member and the named dictionary are instantiated
-/*	on the fly.
+/*	on the fly.  The result value is zero (DICT_STAT_SUCCESS)
+/*	when the update was made.
 /*
 /*	dict_lookup() returns the value of the named member (i.e. without
 /*	expanding macros in the member value).  The \fIdict_name\fR argument
@@ -107,9 +109,8 @@
 /*	modified, or if the result is to survive multiple dict_lookup() calls.
 /*
 /*	dict_delete() removes the named member from the named dictionary.
-/*	The result value is zero when the member was found, > 0 if
-/*	it was not found, and < 0 in case of error (a database may
-/*	not return after error).
+/*	The result value is zero (DICT_STAT_SUCCESS) when the member
+/*	was found.
 /*
 /*	dict_sequence() steps through the named dictionary and returns
 /*	keys and values in some implementation-defined order. The func
@@ -117,8 +118,8 @@
 /*	entry or DICT_SEQ_FUN_NEXT to select the next entry. The result
 /*	is owned by the underlying dictionary method. Make a copy if the
 /*	result is to be modified, or if the result is to survive multiple
-/*	dict_sequence() calls. The result value is zero when a member
-/*	was found.
+/*	dict_sequence() calls. The result value is zero (DICT_STAT_SUCCESS)
+/*	when a member was found.
 /*
 /*	dict_eval() expands macro references in the specified string.
 /*	The result is owned by the dictionary manager. Make a copy if the
@@ -155,16 +156,30 @@
 /*	htable(3)
 /* BUGS
 /* DIAGNOSTICS
-/*	Fatal errors: out of memory, reference to unknown name,
-/*	malformed macro name.
+/*	Fatal errors: out of memory, malformed macro name.
 /*
-/*	The lookup routines may set the \fIdict_errno\fR variable when
-/*	they were unable to find the requested result. The lookup
-/*	routines must reset \fIdict_errno\fR before each lookup operation.
-/*	\fIdict_errno\fR can have the following values:
-/* .IP DICT_ERR_RETRY
+/*	The lookup routine returns non-null when the request is
+/*	satisfied. The update, delete and sequence routines return
+/*	zero (DICT_STAT_SUCCESS) when the request is satisfied.
+/*	The dict_error() function returns non-zero only when the
+/*	last operation was not satisfied due to a dictionary access
+/*	error. The result can have the following values:
+/* .IP DICT_ERR_NONE(zero)
+/*	There was no dictionary access error. For example, the
+/*	request was satisfied, the requested information did not
+/*	exist in the dictionary, or the information already existed
+/*	when it should not exist (collision).
+/* .IP DICT_ERR_RETRY(<0)
 /*	The dictionary was temporarily unavailable. This can happen
 /*	with network-based services.
+/* .IP DICT_ERR_CONFIG(<0)
+/*	The dictionary was unavailable due to a configuration error.
+/* .PP
+/*	Generally, a program is expected to test the function result
+/*	value for "success" first. If the operation was not successful,
+/*	a program is expected to test for a non-zero dict->error
+/*	status to distinguish between a data notfound/collision
+/*	condition or a dictionary access error.
 /* LICENSE
 /* .ad
 /* .fi
@@ -200,12 +215,6 @@
 #include "dict.h"
 #include "dict_ht.h"
 
- /*
-  * By default, use a sane default for an unknown name.
-  */
-int     dict_unknown_allowed = 1;
-int     dict_errno = 0;
-
 static HTABLE *dict_table;
 
  /*
@@ -221,6 +230,27 @@ typedef struct {
 
 #define dict_node(dict) \
 	(dict_table ? (DICT_NODE *) htable_find(dict_table, dict) : 0)
+
+/* Find a dictionary handle by name for lookup purposes. */
+
+#define DICT_FIND_FOR_LOOKUP(dict, dict_name) do { \
+    DICT_NODE *node; \
+    if ((node = dict_node(dict_name)) != 0) \
+	dict = node->dict; \
+    else \
+	dict = 0; \
+} while (0)
+
+/* Find a dictionary handle by name for update purposes. */
+
+#define DICT_FIND_FOR_UPDATE(dict, dict_name) do { \
+    DICT_NODE *node; \
+    if ((node = dict_node(dict_name)) == 0) { \
+	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0); \
+	dict_register(dict_name, dict); \
+    } else \
+	dict = node->dict; \
+} while (0)
 
 #define STR(x)	vstring_str(x)
 
@@ -283,22 +313,15 @@ void    dict_unregister(const char *dict_name)
 
 /* dict_update - replace or add dictionary entry */
 
-void    dict_update(const char *dict_name, const char *member, const char *value)
+int     dict_update(const char *dict_name, const char *member, const char *value)
 {
     const char *myname = "dict_update";
-    DICT_NODE *node;
     DICT   *dict;
 
-    if ((node = dict_node(dict_name)) == 0) {
-	if (dict_unknown_allowed == 0)
-	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
-	dict_register(dict_name, dict);
-    } else
-	dict = node->dict;
+    DICT_FIND_FOR_UPDATE(dict, dict_name);
     if (msg_verbose > 1)
 	msg_info("%s: %s = %s", myname, member, value);
-    dict->update(dict, member, value);
+    return (dict->update(dict, member, value));
 }
 
 /* dict_lookup - look up dictionary entry */
@@ -306,22 +329,21 @@ void    dict_update(const char *dict_name, const char *member, const char *value
 const char *dict_lookup(const char *dict_name, const char *member)
 {
     const char *myname = "dict_lookup";
-    DICT_NODE *node;
     DICT   *dict;
-    const char *ret = 0;
+    const char *ret;
 
-    if ((node = dict_node(dict_name)) == 0) {
-	if (dict_unknown_allowed == 0)
-	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-    } else {
-	dict = node->dict;
+    DICT_FIND_FOR_LOOKUP(dict, dict_name);
+    if (dict != 0) {
 	ret = dict->lookup(dict, member);
-	if (ret == 0 && dict_unknown_allowed == 0)
-	    msg_fatal("dictionary %s: unknown member: %s", dict_name, member);
+	if (msg_verbose > 1)
+	    msg_info("%s: %s = %s", myname, member, ret ? ret :
+		     dict->error ? "(error)" : "(notfound)");
+	return (ret);
+    } else {
+	if (msg_verbose > 1)
+	    msg_info("%s: %s = %s", myname, member, "(notfound)");
+	return (0);
     }
-    if (msg_verbose > 1)
-	msg_info("%s: %s = %s", myname, member, ret ? ret : "(notfound)");
-    return (ret);
 }
 
 /* dict_delete - delete dictionary entry */
@@ -329,23 +351,12 @@ const char *dict_lookup(const char *dict_name, const char *member)
 int     dict_delete(const char *dict_name, const char *member)
 {
     const char *myname = "dict_delete";
-    DICT_NODE *node;
     DICT   *dict;
-    int     result;
 
-    if ((node = dict_node(dict_name)) == 0) {
-	if (dict_unknown_allowed == 0)
-	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
-	dict_register(dict_name, dict);
-    } else
-	dict = node->dict;
+    DICT_FIND_FOR_LOOKUP(dict, dict_name);
     if (msg_verbose > 1)
 	msg_info("%s: delete %s", myname, member);
-    if ((result = dict->delete(dict, member)) != 0 && dict_unknown_allowed == 0)
-	msg_fatal("%s: dictionary %s: unknown member: %s",
-		  myname, dict_name, member);
-    return (result);
+    return (dict ? dict->delete(dict, member) : DICT_STAT_FAIL);
 }
 
 /* dict_sequence - traverse dictionary */
@@ -354,19 +365,22 @@ int     dict_sequence(const char *dict_name, const int func,
 		              const char **member, const char **value)
 {
     const char *myname = "dict_sequence";
-    DICT_NODE *node;
     DICT   *dict;
 
-    if ((node = dict_node(dict_name)) == 0) {
-	if (dict_unknown_allowed == 0)
-	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
-	dict_register(dict_name, dict);
-    } else
-	dict = node->dict;
+    DICT_FIND_FOR_LOOKUP(dict, dict_name);
     if (msg_verbose > 1)
 	msg_info("%s: sequence func %d", myname, func);
-    return (dict->sequence(dict, func, member, value));
+    return (dict ? dict->sequence(dict, func, member, value) : DICT_STAT_FAIL);
+}
+
+/* dict_error - return last error */
+
+int     dict_error(const char *dict_name)
+{
+    DICT   *dict;
+
+    DICT_FIND_FOR_LOOKUP(dict, dict_name);
+    return (dict ? dict->error : DICT_ERR_NONE);
 }
 
 /* dict_load_file - read entries from text file */
@@ -410,20 +424,12 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     int     lineno;
     const char *err;
     struct stat st;
-    DICT_NODE *node;
     DICT   *dict;
 
     /*
      * Instantiate the dictionary even if the file is empty.
      */
-    if ((node = dict_node(dict_name)) == 0) {
-	if (dict_unknown_allowed == 0)
-	    msg_fatal("%s: unknown dictionary: %s", myname, dict_name);
-	dict = dict_ht_open(dict_name, O_CREAT | O_RDWR, 0);
-	dict_register(dict_name, dict);
-    } else
-	dict = node->dict;
-
+    DICT_FIND_FOR_UPDATE(dict, dict_name);
     buf = vstring_alloc(100);
     lineno = 0;
 
@@ -435,7 +441,9 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 		      VSTREAM_PATH(fp), lineno, err, STR(buf));
 	if (msg_verbose > 1)
 	    msg_info("%s: %s = %s", myname, member, val);
-	dict->update(dict, member, val);
+	if (dict->update(dict, member, val) != 0)
+	    msg_fatal("%s, line %d: unable to update %s:%s",
+		      VSTREAM_PATH(fp), lineno, dict->type, dict->name);
     }
     vstring_free(buf);
     dict->owner.uid = st.st_uid;
@@ -447,14 +455,16 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 static const char *dict_eval_lookup(const char *key, int unused_type,
 				            char *dict_name)
 {
-    const char *pp;
+    const char *pp = 0;
+    DICT   *dict;
 
     /*
      * XXX how would one recover?
      */
-    if ((pp = dict_lookup(dict_name, key)) == 0 && dict_errno != 0)
-	msg_fatal("dictionary %s: lookup %s: temporary error", dict_name, key);
-
+    DICT_FIND_FOR_LOOKUP(dict, dict_name);
+    if (dict != 0
+	&& (pp = dict->lookup(dict, key)) == 0 && dict->error != 0)
+	msg_fatal("dictionary %s: lookup %s: operation failed", dict_name, key);
     return (pp);
 }
 

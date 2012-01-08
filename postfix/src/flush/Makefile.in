@@ -75,7 +75,6 @@ flush.o: ../../include/mail_server.h
 flush.o: ../../include/mail_version.h
 flush.o: ../../include/maps.h
 flush.o: ../../include/match_list.h
-flush.o: ../../include/match_ops.h
 flush.o: ../../include/match_parent_style.h
 flush.o: ../../include/msg.h
 flush.o: ../../include/myflock.h

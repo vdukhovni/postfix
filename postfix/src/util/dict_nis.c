@@ -144,13 +144,14 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
     int     err;
     static VSTRING *buf;
 
+    dict->error = 0;
+
     /*
      * Sanity check.
      */
     if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	msg_panic("dict_nis_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
-    dict_errno = 0;
     if (dict_nis_domain == dict_nis_disabled)
 	return (0);
 
@@ -204,7 +205,7 @@ static const char *dict_nis_lookup(DICT *dict, const char *key)
 	msg_warn("lookup %s, NIS domain %s, map %s: %s",
 		 key, dict_nis_domain, dict_nis->dict.name,
 		 dict_nis_strerror(err));
-	dict_errno = DICT_ERR_RETRY;
+	dict->error = DICT_ERR_RETRY;
     }
     return (0);
 }

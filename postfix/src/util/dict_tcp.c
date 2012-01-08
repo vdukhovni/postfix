@@ -159,7 +159,7 @@ static const char *dict_tcp_lookup(DICT *dict, const char *key)
     char   *start;
     int     last_ch;
 
-#define RETURN(errval, result) { dict_errno = errval; return (result); }
+#define RETURN(errval, result) { dict->error = errval; return (result); }
 
     if (msg_verbose)
 	msg_info("%s: key %s", myname, key);
@@ -285,8 +285,6 @@ static void dict_tcp_close(DICT *dict)
 DICT   *dict_tcp_open(const char *map, int open_flags, int dict_flags)
 {
     DICT_TCP *dict_tcp;
-
-    dict_errno = 0;
 
     /*
      * Sanity checks.

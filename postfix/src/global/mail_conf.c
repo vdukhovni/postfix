@@ -171,7 +171,6 @@ void    mail_conf_suck(void)
      * other kinds of trouble. Enter the configuration directory into the
      * default dictionary.
      */
-    dict_unknown_allowed = 1;
     if (var_config_dir)
 	myfree(var_config_dir);
     if ((config_dir = getenv(CONF_ENV_PATH)) == 0)

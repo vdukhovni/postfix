@@ -89,7 +89,7 @@ typedef struct {
     VSTRING *clnt_buf;			/* memcache client buffer */
     VSTRING *key_buf;			/* lookup key */
     VSTRING *res_buf;			/* lookup result */
-    int     mc_errno;			/* memcache dict_errno */
+    int     error;			/* memcache dict_errno */
     DICT   *backup;			/* persistent backup */
 } DICT_MC;
 
@@ -129,22 +129,23 @@ typedef struct {
 
 /* dict_memcache_set - set memcache key/value */
 
-static void dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
+static int dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 {
     VSTREAM *fp;
     int     count;
     int     data_len = strlen(value);
 
     /*
-     * If we can't retrieve it, then we must not store it.
+     * Return a permanent error if we can't store this data. This results in
+     * loss of information.
      */
-    dict_mc->mc_errno = DICT_ERR_RETRY;		/* XXX */
     if (data_len > dict_mc->max_data) {
 	msg_warn("database %s:%s: data for key %s is too long (%s=%d) "
 		 "-- not stored", DICT_TYPE_MEMCACHE, dict_mc->dict.name,
 		 STR(dict_mc->key_buf), DICT_MC_NAME_MAX_DATA,
 		 dict_mc->max_data);
-	return;
+	/* Not stored! */
+	DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, DICT_STAT_FAIL);
     }
     for (count = 0; count < dict_mc->max_tries; count++) {
 	if (count > 0)
@@ -167,11 +168,11 @@ static void dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 			 STR(dict_mc->clnt_buf));
 	} else {
 	    /* Victory! */
-	    dict_mc->mc_errno = 0;
-	    break;
+	    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, DICT_STAT_SUCCESS);
 	}
 	auto_clnt_recover(dict_mc->clnt);
     }
+    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_RETRY, DICT_STAT_ERROR);
 }
 
 /* dict_memcache_get - get memcache key/value */
@@ -180,11 +181,8 @@ static const char *dict_memcache_get(DICT_MC *dict_mc)
 {
     VSTREAM *fp;
     long    todo;
-    const char *retval;
     int     count;
 
-    dict_mc->mc_errno = DICT_ERR_RETRY;
-    retval = 0;
     for (count = 0; count < dict_mc->max_tries; count++) {
 	if (count > 0)
 	    sleep(dict_mc->err_pause);
@@ -198,8 +196,7 @@ static const char *dict_memcache_get(DICT_MC *dict_mc)
 			 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
 	} else if (strcmp(STR(dict_mc->clnt_buf), "END") == 0) {
 	    /* Not found. */
-	    dict_mc->mc_errno = 0;
-	    break;
+	    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, (char *) 0);
 	} else if (sscanf(STR(dict_mc->clnt_buf),
 			  "VALUE %*s %*s %ld", &todo) != 1
 		   || todo < 0 || todo > dict_mc->max_data) {
@@ -212,16 +209,14 @@ static const char *dict_memcache_get(DICT_MC *dict_mc)
 			 dict_mc->dict.name);
 	} else {
 	    /* Victory! */
-	    retval = STR(dict_mc->res_buf);
-	    dict_mc->mc_errno = 0;
 	    if (memcache_get(fp, dict_mc->clnt_buf, dict_mc->max_line) < 0
 		|| strcmp(STR(dict_mc->clnt_buf), "END") != 0)
 		auto_clnt_recover(dict_mc->clnt);
-	    break;
+	    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, STR(dict_mc->res_buf));
 	}
 	auto_clnt_recover(dict_mc->clnt);
     }
-    return (retval);
+    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_RETRY, (char *) 0);
 }
 
 /* dict_memcache_del - delete memcache key/value */
@@ -230,9 +225,7 @@ static int dict_memcache_del(DICT_MC *dict_mc)
 {
     VSTREAM *fp;
     int     count;
-    int     retval = -1;
 
-    dict_mc->mc_errno = DICT_ERR_RETRY;
     for (count = 0; count < dict_mc->max_tries; count++) {
 	if (count > 0)
 	    sleep(dict_mc->err_pause);
@@ -246,14 +239,10 @@ static int dict_memcache_del(DICT_MC *dict_mc)
 			 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
 	} else if (strcmp(STR(dict_mc->clnt_buf), "DELETED") == 0) {
 	    /* Victory! */
-	    dict_mc->mc_errno = 0;
-	    retval = 0;
-	    break;
+	    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, DICT_STAT_SUCCESS);
 	} else if (strcmp(STR(dict_mc->clnt_buf), "NOT_FOUND") == 0) {
 	    /* Not found! */
-	    dict_mc->mc_errno = 0;
-	    retval = 1;
-	    break;
+	    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, DICT_STAT_FAIL);
 	} else {
 	    if (count > 0)
 		msg_warn("database %s:%s: delete failed: %.30s",
@@ -262,7 +251,7 @@ static int dict_memcache_del(DICT_MC *dict_mc)
 	}
 	auto_clnt_recover(dict_mc->clnt);
     }
-    return (retval);
+    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_RETRY, DICT_STAT_ERROR);
 }
 
 /* dict_memcache_prepare_key - prepare lookup key */
@@ -311,65 +300,67 @@ static int dict_memcache_valid_key(DICT_MC *dict_mc,
 				        void (*log_func) (const char *,...))
 {
     unsigned char *cp;
+    int     rc;
 
 #define DICT_MC_SKIP(why) do { \
 	if (msg_verbose || log_func != msg_info) \
 	    log_func("%s: skipping %s for name \"%s\": %s", \
 		     dict_mc->dict.name, operation, name, (why)); \
-	return(0); \
+	DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, 0); \
     } while (0)
 
     if (*name == 0)
 	DICT_MC_SKIP("empty lookup key");
-    if (db_common_check_domain(dict_mc->dbc_ctxt, name) == 0)
+    if ((rc = db_common_check_domain(dict_mc->dbc_ctxt, name)) == 0)
 	DICT_MC_SKIP("domain mismatch");
+    if (rc < 0)
+	DICT_ERR_VAL_RETURN(dict_mc, rc, 0);
     if (dict_memcache_prepare_key(dict_mc, name) == 0)
 	DICT_MC_SKIP("empty lookup key expansion");
     for (cp = (unsigned char *) STR(dict_mc->key_buf); *cp; cp++)
 	if (isascii(*cp) && isspace(*cp))
 	    DICT_MC_SKIP("name contains space");
 
-    return (1);
+    DICT_ERR_VAL_RETURN(dict_mc, DICT_ERR_NONE, 1);
 }
 
 /* dict_memcache_update - update memcache */
 
-static void dict_memcache_update(DICT *dict, const char *name,
-				         const char *value)
+static int dict_memcache_update(DICT *dict, const char *name,
+				        const char *value)
 {
     const char *myname = "dict_memcache_update";
     DICT_MC *dict_mc = (DICT_MC *) dict;
     DICT   *backup = dict_mc->backup;
-    int     backup_errno = 0;
+    int     upd_res;
 
     /*
      * Skip updates with an inapplicable key, noisily. This results in loss
      * of information.
      */
-    dict_errno = DICT_ERR_RETRY;
     if (dict_memcache_valid_key(dict_mc, name, "update", msg_warn) == 0)
-	return;
+	DICT_ERR_VAL_RETURN(dict, dict_mc->error, DICT_STAT_FAIL);
 
     /*
      * Update the memcache first.
      */
-    dict_memcache_set(dict_mc, value, dict_mc->mc_ttl);
+    upd_res = dict_memcache_set(dict_mc, value, dict_mc->mc_ttl);
+    dict->error = dict_mc->error;
 
     /*
      * Update the backup database last.
      */
     if (backup) {
-	dict_errno = 0;
-	backup->update(backup, name, value);
-	backup_errno = dict_errno;
+	upd_res = backup->update(backup, name, value);
+	dict->error = backup->error;
     }
     if (msg_verbose)
 	msg_info("%s: %s: update key \"%s\"(%s) => \"%s\" %s",
 		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
-		 value, dict_mc->mc_errno ? "(memcache error)" :
-		 backup_errno ? "(backup error)" : "(no error)");
+		 value, dict_mc->error ? "(memcache error)" : (backup
+		       && backup->error) ? "(backup error)" : "(no error)");
 
-    dict_errno = (backup ? backup_errno : dict_mc->mc_errno);
+    return (upd_res);
 }
 
 /* dict_memcache_lookup - lookup memcache */
@@ -380,39 +371,39 @@ static const char *dict_memcache_lookup(DICT *dict, const char *name)
     DICT_MC *dict_mc = (DICT_MC *) dict;
     DICT   *backup = dict_mc->backup;
     const char *retval;
-    int     backup_errno = 0;
 
     /*
      * Skip lookups with an inapplicable key, silently. This is just asking
      * for information that cannot exist.
      */
-    dict_errno = 0;
     if (dict_memcache_valid_key(dict_mc, name, "lookup", msg_info) == 0)
-	return (0);
+	DICT_ERR_VAL_RETURN(dict, dict_mc->error, (char *) 0);
 
     /*
      * Search the memcache first.
      */
     retval = dict_memcache_get(dict_mc);
+    dict->error = dict_mc->error;
 
     /*
      * Search the backup database last. Update the memcache if the data is
      * found.
      */
-    if (retval == 0 && backup) {
-	retval = backup->lookup(backup, name);
-	backup_errno = dict_errno;
-	/* Update the cache. */
-	if (retval != 0)
-	    dict_memcache_set(dict_mc, retval, dict_mc->mc_ttl);
+    if (backup) {
+	backup->error = 0;
+	if (retval == 0) {
+	    retval = backup->lookup(backup, name);
+	    dict->error = backup->error;
+	    /* Update the cache. */
+	    if (retval != 0)
+		dict_memcache_set(dict_mc, retval, dict_mc->mc_ttl);
+	}
     }
     if (msg_verbose)
 	msg_info("%s: %s: key \"%s\"(%s) => %s",
 		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
-		 retval ? retval : dict_mc->mc_errno ? "(memcache error)" :
-		 backup_errno ? "(backup error)" : "(not found)");
-
-    dict_errno = (backup ? backup_errno : dict_mc->mc_errno);
+		 retval ? retval : dict_mc->error ? "(memcache error)" :
+	      (backup && backup->error) ? "(backup error)" : "(not found)");
 
     return (retval);
 }
@@ -424,37 +415,34 @@ static int dict_memcache_delete(DICT *dict, const char *name)
     const char *myname = "dict_memcache_delete";
     DICT_MC *dict_mc = (DICT_MC *) dict;
     DICT   *backup = dict_mc->backup;
-    int     backup_errno = 0;
     int     del_res;
 
     /*
-     * Skip lookups with an inapplicable key, silently. This is just deleting
+     * Skip lookups with an inapplicable key, noisily. This is just deleting
      * information that cannot exist.
      */
-    dict_errno = 0;
     if (dict_memcache_valid_key(dict_mc, name, "delete", msg_info) == 0)
-	return (1);
+	DICT_ERR_VAL_RETURN(dict, dict_mc->error, dict_mc->error ?
+			    DICT_STAT_ERROR : DICT_STAT_FAIL);
 
     /*
      * Update the memcache first.
      */
     del_res = dict_memcache_del(dict_mc);
+    dict->error = dict_mc->error;
 
     /*
      * Update the persistent database last.
      */
     if (backup) {
-	dict_errno = 0;
 	del_res = backup->delete(backup, name);
-	backup_errno = dict_errno;
+	dict->error = backup->error;
     }
     if (msg_verbose)
 	msg_info("%s: %s: delete key \"%s\"(%s) => %s",
 		 myname, dict_mc->dict.name, name, STR(dict_mc->key_buf),
-		 dict_mc->mc_errno ? "(memcache error)" :
-		 backup_errno ? "(backup error)" : "(no error)");
-
-    dict_errno = (backup ? backup_errno : dict_mc->mc_errno);
+		 dict_mc->error ? "(memcache error)" : (backup
+		       && backup->error) ? "(backup error)" : "(no error)");
 
     return (del_res);
 }
@@ -464,15 +452,22 @@ static int dict_memcache_delete(DICT *dict, const char *name)
 static int dict_memcache_sequence(DICT *dict, int function, const char **key,
 				          const char **value)
 {
+    const char *myname = "dict_memcache_sequence";
     DICT_MC *dict_mc = (DICT_MC *) dict;
     DICT   *backup = dict_mc->backup;
+    int     seq_res;
 
     if (backup == 0) {
 	msg_warn("database %s:%s: first/next support requires backup database",
 		 DICT_TYPE_MEMCACHE, dict_mc->dict.name);
-	return (1);
+	DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
     } else {
-	return (backup->sequence(backup, function, key, value));
+	seq_res = backup->sequence(backup, function, key, value);
+	msg_info("%s: %s: key \"%s\" => %s",
+		 myname, dict_mc->dict.name, *key ? *key : "(not found)",
+		 *value ? *value : backup->error ? "(backup error)" :
+		 "(not found)");
+	DICT_ERR_VAL_RETURN(dict, backup->error, seq_res);
     }
 }
 

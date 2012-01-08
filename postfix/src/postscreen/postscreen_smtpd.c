@@ -874,6 +874,8 @@ static void psc_smtpd_read_event(int event, char *context)
 			 state->smtp_client_addr, state->smtp_client_port,
 			 STR(state->cmd_buffer), cp);
 		vstring_strcpy(state->cmd_buffer, cp);
+	    } else if (psc_cmd_filter->error != 0) {
+		/* XXX log something, even if regexps don't soft-fail. */
 	    }
 	}
 

@@ -189,6 +189,10 @@ This is available on systems with support for \fBdbm\fR databases.
 .IP \fBhash\fR
 The output file is a hashed file, named \fIfile_name\fB.db\fR.
 This is available on systems with support for \fBdb\fR databases.
+.IP \fBfail\fR
+A table that reliably fails all requests. The lookup table
+name is used for logging only. This table exists to simplify
+Postfix error tests.
 .IP \fBsdbm\fR
 The output consists of two files, named \fIfile_name\fB.pag\fR and
 \fIfile_name\fB.dir\fR.

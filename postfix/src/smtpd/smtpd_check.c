@@ -254,9 +254,8 @@
 static jmp_buf smtpd_check_buf;
 
  /*
-  * Results of restrictions.
+  * Results of restrictions. Errors are negative; see dict.h.
   */
-#define SMTPD_CHECK_ERROR	(-1)	/* server error */
 #define SMTPD_CHECK_DUNNO	0	/* indifferent */
 #define SMTPD_CHECK_OK		1	/* explicitly permit */
 #define SMTPD_CHECK_REJECT	2	/* explicitly reject */
@@ -922,10 +921,9 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 {
     const char *result;
 
-    dict_errno = 0;
-    if ((result = mail_addr_find(maps, key, ext)) != 0 || dict_errno == 0)
+    if ((result = mail_addr_find(maps, key, ext)) != 0 || maps->error == 0)
 	return (result);
-    if (dict_errno == DICT_ERR_RETRY)
+    if (maps->error == DICT_ERR_RETRY)
 	reject_dict_retry(state, reply_name);
     else
 	reject_server_error(state);
@@ -1010,10 +1008,10 @@ static int permit_mynetworks(SMTPD_STATE *state)
 
     if (namadr_list_match(mynetworks, state->name, state->addr))
 	return (SMTPD_CHECK_OK);
-    else if (dict_errno == 0)
+    else if (mynetworks->error == 0)
 	return (SMTPD_CHECK_DUNNO);
     else
-	return (SMTPD_CHECK_ERROR);
+	return (mynetworks->error);
 }
 
 /* dup_if_truncate - save hostname and truncate if it ends in dot */
@@ -1242,8 +1240,6 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 #ifdef USE_TLS
     const char *found = 0;
 
-    dict_errno = 0;
-
     if (!state->tls_context)
 	return SMTPD_CHECK_DUNNO;
 
@@ -1264,25 +1260,23 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	prints[0] = state->tls_context->peer_fingerprint;
 	prints[1] = state->tls_context->peer_pkey_fprint;
 
-	/* After lookup error, leave dict_errno at non-zero value. */
+	/* After lookup error, leave relay_ccerts->error at non-zero value. */
 	for (i = 0; i < 2; ++i) {
 	    found = maps_find(relay_ccerts, prints[i], DICT_FLAG_NONE);
 	    if (found != 0) {
 		if (msg_verbose)
 		    msg_info("Relaying allowed for certified client: %s", found);
 		return (SMTPD_CHECK_OK);
-	    } else if (dict_errno != 0) {
+	    } else if (relay_ccerts->error != 0) {
 		msg_warn("relay_clientcerts: lookup error for fingerprint '%s', "
 			 "pkey fingerprint %s", prints[0], prints[1]);
-		return (SMTPD_CHECK_ERROR);
+		return (relay_ccerts->error);
 	    }
 	}
 	if (msg_verbose)
 	    msg_info("relay_clientcerts: No match for fingerprint '%s', "
 		     "pkey fingerprint %s", prints[0], prints[1]);
     }
-#else
-    dict_errno = 0;
 #endif
     return (SMTPD_CHECK_DUNNO);
 }
@@ -1462,7 +1456,7 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 	    msg_info("%s: checking: %s", myname, hostaddr.buf);
 
 	if (!namadr_list_match(perm_mx_networks, host, hostaddr.buf)) {
-	    if (dict_errno == 0) {
+	    if (perm_mx_networks->error == 0) {
 
 		/*
 		 * Reject: at least one IP address is not listed in
@@ -1556,7 +1550,7 @@ static int i_am_mx(SMTPD_STATE *state, DNS_RR *mx_list,
     for (mx = mx_list; mx != 0; mx = mx->next) {
 	if (msg_verbose)
 	    msg_info("%s: resolve hostname: %s", myname, (char *) mx->data);
-	if (resolve_local((char *) mx->data))
+	if (resolve_local((char *) mx->data) > 0)
 	    return (YUP);
 	/* if no match or error, match interface addresses instead. */
     }
@@ -2367,7 +2361,7 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
-	if (dict_errno != 0) {
+	if (dict->error != 0) {
 	    msg_warn("%s: table lookup problem", table);
 	    value = "451 4.3.5 Server configuration error";
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
@@ -2418,7 +2412,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
 						     def_acl), FOUND);
-	    if (dict_errno != 0) {
+	    if (dict->error != 0) {
 		msg_warn("%s: table lookup problem", table);
 		value = "451 4.3.5 Server configuration error";
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
@@ -2482,7 +2476,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
 						   reply_name, reply_class,
 						   def_acl), FOUND);
-	    if (dict_errno != 0) {
+	    if (dict->error != 0) {
 		msg_warn("%s: table lookup problem", table);
 		value = "451 4.3.5 Server configuration error";
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
@@ -4068,8 +4062,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	if (msg_verbose)
 	    msg_info("%s: name=%s status=%d", myname, name, status);
 
-	if (status == SMTPD_CHECK_ERROR) {
-	    if (dict_errno == DICT_ERR_RETRY)
+	if (status < 0) {
+	    if (status == DICT_ERR_RETRY)
 		reject_dict_retry(state, reply_name);
 	    else
 		reject_server_error(state);
@@ -4143,12 +4137,11 @@ char   *smtpd_check_rewrite(SMTPD_STATE *state)
 	} else if (is_map_command(state, name, CHECK_ADDR_MAP, &cpp)) {
 	    if ((dict = dict_handle(*cpp)) == 0)
 		msg_panic("%s: dictionary not found: %s", myname, *cpp);
-	    dict_errno = 0;
 	    if (dict_get(dict, state->addr) != 0)
 		status = SMTPD_CHECK_OK;
-	    else if (dict_errno != 0) {
+	    else if (dict->error != 0) {
 		msg_warn("%s: %s: lookup error", VAR_LOC_RWR_CLIENTS, *cpp);
-		status = SMTPD_CHECK_ERROR;
+		status = dict->error;
 	    }
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
@@ -4165,8 +4158,8 @@ char   *smtpd_check_rewrite(SMTPD_STATE *state)
 		     VAR_LOC_RWR_CLIENTS, name);
 	    continue;
 	}
-	if (status == SMTPD_CHECK_ERROR) {
-	    if (dict_errno == DICT_ERR_RETRY) {
+	if (status < 0) {
+	    if (status == DICT_ERR_RETRY) {
 		state->error_mask |= MAIL_ERROR_RESOURCE;
 		log_whatsup(state, "reject",
 			    "451 4.3.0 Temporary lookup error");
@@ -5226,6 +5219,7 @@ void    resolve_clnt(const char *class, const char *unused_sender, const char *a
 		             RESOLVE_REPLY *reply)
 {
     const char *domain;
+    int     rc;
 
     if (addr == CONST_STR(reply->recipient))
 	msg_panic("resolve_clnt_query: result clobbers input");
@@ -5234,29 +5228,29 @@ void    resolve_clnt(const char *class, const char *unused_sender, const char *a
     if ((domain = strrchr(addr, '@')) == 0)
 	msg_fatal("%s: unqualified address", addr);
     domain += 1;
-    if (resolve_local(domain)) {
+    if ((rc = resolve_local(domain)) > 0) {
 	reply->flags = RESOLVE_CLASS_LOCAL;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_LOCAL);
 	vstring_strcpy(reply->nexthop, domain);
-    } else if (dict_errno) {
+    } else if (rc < 0) {
 	reply->flags = RESOLVE_FLAG_FAIL;
     } else if (string_list_match(virt_alias_doms, domain)) {
 	reply->flags = RESOLVE_CLASS_ALIAS;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_ERROR);
 	vstring_strcpy(reply->nexthop, "user unknown");
-    } else if (dict_errno) {
+    } else if (virt_alias_doms->error) {
 	reply->flags = RESOLVE_FLAG_FAIL;
     } else if (string_list_match(virt_mailbox_doms, domain)) {
 	reply->flags = RESOLVE_CLASS_VIRTUAL;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_VIRTUAL);
 	vstring_strcpy(reply->nexthop, domain);
-    } else if (dict_errno) {
+    } else if (virt_mailbox_doms->error) {
 	reply->flags = RESOLVE_FLAG_FAIL;
     } else if (domain_list_match(relay_domains, domain)) {
 	reply->flags = RESOLVE_CLASS_RELAY;
 	vstring_strcpy(reply->transport, MAIL_SERVICE_RELAY);
 	vstring_strcpy(reply->nexthop, domain);
-    } else if (dict_errno) {
+    } else if (relay_domains->error) {
 	reply->flags = RESOLVE_FLAG_FAIL;
     } else {
 	reply->flags = RESOLVE_CLASS_DEFAULT;

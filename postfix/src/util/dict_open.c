@@ -17,7 +17,7 @@
 /*	int	open_flags;
 /*	int	dict_flags;
 /*
-/*	void	dict_put(dict, key, value)
+/*	int	dict_put(dict, key, value)
 /*	DICT	*dict;
 /*	const char *key;
 /*	const char *value;
@@ -30,7 +30,7 @@
 /*	DICT	*dict;
 /*	const char *key;
 /*
-/*	void	dict_seq(dict, func, key, value)
+/*	int	dict_seq(dict, func, key, value)
 /*	DICT	*dict;
 /*	int	func;
 /*	const char **key;
@@ -99,7 +99,7 @@
 /*	With file-based maps, flush I/O buffers to file after each update.
 /*	Thus feature is not supported with some file-based dictionaries.
 /* .IP DICT_FLAG_NO_REGSUB
-/*      Disallow regular expression substitution from left-hand side data
+/*	Disallow regular expression substitution from left-hand side data
 /*	into the right-hand side.
 /* .IP DICT_FLAG_NO_PROXY
 /*	Disallow access through the \fBproxymap\fR service.
@@ -148,15 +148,16 @@
 /*	or if the result is to survive multiple table lookups.
 /*
 /*	dict_put() stores the specified key and value into the named
-/*	dictionary.
+/*	dictionary. A zero (DICT_STAT_SUCCESS) result means the
+/*	update was made.
 /*
-/*	dict_del() removes a dictionary entry, and returns zero
-/*	in case of success.
+/*	dict_del() removes a dictionary entry, and returns
+/*	DICT_STAT_SUCCESS in case of success.
 /*
 /*	dict_seq() iterates over all members in the named dictionary.
 /*	func is define DICT_SEQ_FUN_FIRST (select first member) or
-/*	DICT_SEQ_FUN_NEXT (select next member). A zero result means
-/*	that an entry was found.
+/*	DICT_SEQ_FUN_NEXT (select next member). A zero (DICT_STAT_SUCCESS)
+/*	result means that an entry was found.
 /*
 /*	dict_close() closes the specified dictionary and cleans up the
 /*	associated data structures.
@@ -168,6 +169,29 @@
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
 /*	update non-writable dictionary.
+/*
+/*	The lookup routine returns non-null when the request is
+/*	satisfied. The update, delete and sequence routines return
+/*	zero (DICT_STAT_SUCCESS) when the request is satisfied.
+/*	The dict->errno value is non-zero only when the last operation
+/*	was not satisfied due to a dictionary access error. This
+/*	can have the following values:
+/* .IP DICT_ERR_NONE(zero)
+/*	There was no dictionary access error. For example, the
+/*	request was satisfied, the requested information did not
+/*	exist in the dictionary, or the information already existed
+/*	when it should not exist (collision).
+/* .IP DICT_ERR_RETRY(<0)
+/*	The dictionary was temporarily unavailable. This can happen
+/*	with network-based services.
+/* .IP DICT_ERR_CONFIG(<0)
+/*	The dictionary was unavailable due to a configuration error.
+/* .PP
+/*	Generally, a program is expected to test the function result
+/*	value for "success" first. If the operation was not successful,
+/*	a program is expected to test for a non-zero dict->error
+/*	status to distinguish between a data notfound/collision
+/*	condition or a dictionary access error.
 /* LICENSE
 /* .ad
 /* .fi

@@ -63,8 +63,9 @@
 /*	to open database. Warnings: null string lookup result.
 /*
 /*	maps_find() returns a null pointer when the requested
-/*	information was not found. The global \fIdict_errno\fR
-/*	variable indicates if the last lookup failed due to a problem.
+/*	information was not found, and logs a warning when the
+/*	lookup failed due to error. The maps->error value indicates
+/*	if the last lookup failed due to error.
 /* BUGS
 /*	The dictionary name space is flat, so dictionary names allocated
 /*	by maps_create() may collide with dictionary names allocated by
@@ -166,7 +167,7 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
     /*
      * In case of return without map lookup (empty name or no maps).
      */
-    dict_errno = 0;
+    maps->error = 0;
 
     /*
      * Temp. workaround, for buggy callers that pass zero-length keys when
@@ -186,20 +187,20 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
 			 maps->title, name);
 		msg_warn("%s should return NO RESULT in case of NOT FOUND",
 			 maps->title);
-		dict_errno = DICT_ERR_RETRY;
+		maps->error = DICT_ERR_RETRY;
 		return (0);
 	    }
 	    if (msg_verbose)
 		msg_info("%s: %s: %s: %s = %s", myname, maps->title,
 			 *map_name, name, expansion);
 	    return (expansion);
-	} else if (dict_errno != 0) {
+	} else if ((maps->error = dict->error) != 0) {
 	    msg_warn("%s:%s lookup of %s failed", dict->type, dict->name, name);
 	    break;
 	}
     }
     if (msg_verbose)
-	msg_info("%s: %s: %s: %s", myname, maps->title, name, dict_errno ?
+	msg_info("%s: %s: %s: %s", myname, maps->title, name, maps->error ?
 		 "search aborted" : "not found");
     return (0);
 }
@@ -239,11 +240,11 @@ int     main(int argc, char **argv)
     maps = maps_create("whatever", argv[1], DICT_FLAG_LOCK);
 
     while (vstring_fgets_nonl(buf, VSTREAM_IN)) {
-	dict_errno = 99;
+	maps->error = 99;
 	vstream_printf("\"%s\": ", vstring_str(buf));
 	if ((result = maps_find(maps, vstring_str(buf), 0)) != 0) {
 	    vstream_printf("%s\n", result);
-	} else if (dict_errno != 0) {
+	} else if (maps->error != 0) {
 	    vstream_printf("lookup error\n");
 	} else {
 	    vstream_printf("not found\n");

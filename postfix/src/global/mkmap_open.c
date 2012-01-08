@@ -67,6 +67,7 @@
 #include <dict_dbm.h>
 #include <dict_sdbm.h>
 #include <dict_proxy.h>
+#include <dict_fail.h>
 #include <sigdelay.h>
 #include <mymalloc.h>
 
@@ -100,6 +101,7 @@ static const MKMAP_OPEN_INFO mkmap_types[] = {
     DICT_TYPE_HASH, mkmap_hash_open,
     DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
+    DICT_TYPE_FAIL, mkmap_fail_open,
     0,
 };
 
@@ -109,7 +111,10 @@ static const MKMAP_OPEN_INFO mkmap_types[] = {
 
 void    mkmap_append(MKMAP *mkmap, const char *key, const char *value)
 {
-    dict_put(mkmap->dict, key, value);
+    DICT   *dict = mkmap->dict;
+
+    if (dict_put(dict, key, value) != 0 && dict->error != 0)
+	msg_fatal("%s:%s: update failed", dict->type, dict->name);
 }
 
 /* mkmap_close - close database */

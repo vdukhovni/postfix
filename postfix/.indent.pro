@@ -102,6 +102,7 @@
 -TDICT_STACK
 -TDICT_TCP
 -TDICT_TEXT
+-TDICT_THASH
 -TDICT_UNIX
 -TDNS_FIXED
 -TDNS_REPLY
@@ -329,3 +330,4 @@
 -Tsfsistat
 -Tsize_t
 -Tssize_t
+-Ttime_t

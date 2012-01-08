@@ -44,7 +44,7 @@ typedef struct DICT {
     char   *name;			/* for diagnostics */
     int     flags;			/* see below */
     const char *(*lookup) (struct DICT *, const char *);
-    void    (*update) (struct DICT *, const char *, const char *);
+    int     (*update) (struct DICT *, const char *, const char *);
     int     (*delete) (struct DICT *, const char *);
     int     (*sequence) (struct DICT *, int, const char **, const char **);
     void    (*close) (struct DICT *);
@@ -53,6 +53,7 @@ typedef struct DICT {
     time_t  mtime;			/* mod time at open */
     VSTRING *fold_buf;			/* key folding buffer */
     DICT_OWNER owner;			/* provenance */
+    int     error;			/* last operation only */
 } DICT;
 
 extern DICT *dict_alloc(const char *, const char *, ssize_t);
@@ -113,12 +114,24 @@ extern DICT *dict_debug(DICT *);
 				DICT_FLAG_PARANOID)
 #define DICT_FLAG_INST_MASK	~(DICT_FLAG_IMPL_MASK | DICT_FLAG_RQST_MASK)
 
-extern int dict_unknown_allowed;
-extern int dict_errno;
-
+ /*
+  * dict->error values. Errors must be negative; smtpd_check depends on this.
+  */
 #define DICT_ERR_NONE	0		/* no error */
-#define DICT_ERR_RETRY	1		/* soft error */
-#define DICT_ERR_CONFIG	2		/* configuration error */
+#define DICT_ERR_RETRY	(-1)		/* soft error */
+#define DICT_ERR_CONFIG	(-2)		/* configuration error */
+
+ /*
+  * FAIL/ERROR are suggested result values, not meant for use in comparisons.
+  */
+#define DICT_STAT_FAIL		1	/* any value > 0: notfound, conflict */
+#define DICT_STAT_SUCCESS	0	/* request satisfied */
+#define DICT_STAT_ERROR		(-1)	/* any value < 0: database error */
+
+#define DICT_ERR_VAL_RETURN(dict, err, val) do { \
+	(dict)->error = (err); \
+	return (val); \
+    } while (0)
 
  /*
   * Sequence function types.
@@ -137,13 +150,14 @@ extern ARGV *dict_mapnames(void);
 extern void dict_register(const char *, DICT *);
 extern DICT *dict_handle(const char *);
 extern void dict_unregister(const char *);
-extern void dict_update(const char *, const char *, const char *);
+extern int dict_update(const char *, const char *, const char *);
 extern const char *dict_lookup(const char *, const char *);
 extern int dict_delete(const char *, const char *);
 extern int dict_sequence(const char *, const int, const char **, const char **);
 extern void dict_load_file(const char *, const char *);
 extern void dict_load_fp(const char *, VSTREAM *);
 extern const char *dict_eval(const char *, const char *, int);
+extern int dict_error(const char *);
 
  /*
   * Low-level interface, with physical dictionary handles.

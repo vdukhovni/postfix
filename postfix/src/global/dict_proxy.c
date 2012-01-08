@@ -149,15 +149,13 @@ static int dict_proxy_sequence(DICT *dict, int function,
 	    case PROXY_STAT_OK:
 		*key = STR(dict_proxy->reskey);
 		*value = STR(dict_proxy->result);
-		return (0);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_SUCCESS);
 	    case PROXY_STAT_NOKEY:
-		dict_errno = 0;
 		*key = *value = 0;
-		return (1);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
 	    case PROXY_STAT_RETRY:
-		dict_errno = DICT_ERR_RETRY;
 		*key = *value = 0;
-		return (1);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, DICT_STAT_ERROR);
 	    default:
 		msg_warn("%s sequence failed for table \"%s\" function %d: "
 			 "unexpected reply status %d",
@@ -223,13 +221,11 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 		msg_fatal("%s service is not configured for table \"%s\"",
 			  dict_proxy->service, dict->name);
 	    case PROXY_STAT_OK:
-		return (STR(dict_proxy->result));
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, STR(dict_proxy->result));
 	    case PROXY_STAT_NOKEY:
-		dict_errno = 0;
-		return (0);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, (char *) 0);
 	    case PROXY_STAT_RETRY:
-		dict_errno = DICT_ERR_RETRY;
-		return (0);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, (char *) 0);
 	    default:
 		msg_warn("%s lookup failed for table \"%s\" key \"%s\": "
 			 "unexpected reply status %d",
@@ -243,7 +239,7 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 
 /* dict_proxy_update - update table entry */
 
-static void dict_proxy_update(DICT *dict, const char *key, const char *value)
+static int dict_proxy_update(DICT *dict, const char *key, const char *value)
 {
     const char *myname = "dict_proxy_update";
     DICT_PROXY *dict_proxy = (DICT_PROXY *) dict;
@@ -292,11 +288,11 @@ static void dict_proxy_update(DICT *dict, const char *key, const char *value)
 		msg_fatal("%s update access is not configured for table \"%s\"",
 			  dict_proxy->service, dict->name);
 	    case PROXY_STAT_OK:
-		dict_errno = 0;
-		return;
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_SUCCESS);
+	    case PROXY_STAT_NOKEY:
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
 	    case PROXY_STAT_RETRY:
-		dict_errno = DICT_ERR_RETRY;
-		return;
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, DICT_STAT_ERROR);
 	    default:
 		msg_warn("%s update failed for table \"%s\" key \"%s\": "
 			 "unexpected reply status %d",
@@ -359,13 +355,11 @@ static int dict_proxy_delete(DICT *dict, const char *key)
 		msg_fatal("%s update access is not configured for table \"%s\"",
 			  dict_proxy->service, dict->name);
 	    case PROXY_STAT_OK:
-		return 0;
-	    case PROXY_STAT_RETRY:
-		dict_errno = DICT_ERR_RETRY;
-		return (-1);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_SUCCESS);
 	    case PROXY_STAT_NOKEY:
-		dict_errno = 0;
-		return (1);
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
+	    case PROXY_STAT_RETRY:
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, DICT_STAT_ERROR);
 	    default:
 		msg_warn("%s delete failed for table \"%s\" key \"%s\": "
 			 "unexpected reply status %d",

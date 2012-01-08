@@ -273,7 +273,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	     * Deliver.
 	     */
 	    alias_count = 0;
-	    if (dict_errno != 0) {
+	    if (owner != 0 && alias_maps->error != 0) {
 		dsb_simple(state.msg_attr.why, "4.3.0",
 			   "alias database unavailable");
 		*statusp = defer_append(BOUNCE_FLAGS(state.request),
@@ -369,7 +369,9 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
 	 * If the alias database was inaccessible for some reason, defer
 	 * further delivery for the current top-level recipient.
 	 */
-	if (dict_errno != 0) {
+	if (alias_result == 0 && dict->error != 0) {
+	    msg_warn("%s:%s: lookup of '%s' failed",
+		     dict->type, dict->name, name);
 	    dsb_simple(state.msg_attr.why, "4.3.0",
 		       "alias database unavailable");
 	    *statusp = defer_append(BOUNCE_FLAGS(state.request),

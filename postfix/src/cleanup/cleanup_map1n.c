@@ -155,7 +155,7 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, const char *addr,
 		}
 		myfree(saved_lhs);
 		argv_free(lookup);
-	    } else if (dict_errno != 0) {
+	    } else if (maps->error != 0) {
 		msg_warn("%s: %s map lookup problem for %s -- "
 			 "deferring delivery",
 			 state->queue_id, maps->title, addr);

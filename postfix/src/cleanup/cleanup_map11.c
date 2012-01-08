@@ -119,7 +119,7 @@ int     cleanup_map11_external(CLEANUP_STATE *state, VSTRING *addr,
 	    argv_free(new_addr);
 	    if (expand_to_self)
 		return (did_rewrite);
-	} else if (dict_errno != 0) {
+	} else if (maps->error != 0) {
 	    msg_warn("%s: %s map lookup problem for %s",
 		     state->queue_id, maps->title, STR(addr));
 	    state->errs |= CLEANUP_STAT_WRITE;

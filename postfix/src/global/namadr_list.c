@@ -46,8 +46,9 @@
 /*	the domain foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
 /* .IP MATCH_FLAG_RETURN
-/*	Request that namadr_list_match() returns zero with
-/*	dict_errno != 0, instead of raising a fatal error.
+/*	Request that namadr_list_match() logs a warning and returns
+/*	zero with list->error set to a non-zero dictionary error
+/*	code, instead of raising a fatal error.
 /* .PP
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The second argument is a list of patterns, or the absolute
@@ -124,7 +125,7 @@ int     main(int argc, char **argv)
     addr = argv[optind + 2];
     vstream_printf("%s/%s: %s\n", host, addr,
 		   namadr_list_match(list, host, addr) ?
-		   "YES" : dict_errno == 0 ? "NO" : "ERROR");
+		   "YES" : list->error == 0 ? "NO" : "ERROR");
     vstream_fflush(VSTREAM_OUT);
     namadr_list_free(list);
     return (0);

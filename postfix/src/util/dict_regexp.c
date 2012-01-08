@@ -217,7 +217,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
     int     error;
     int     nesting = 0;
 
-    dict_errno = 0;
+    dict->error = 0;
 
     if (msg_verbose)
 	msg_info("dict_regexp_lookup: %s: %s", dict->name, lookup_string);

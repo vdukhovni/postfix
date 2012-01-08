@@ -37,8 +37,9 @@
 /*	addr_match_list_init() performs initializations. The first
 /*	argument is the bit-wise OR of zero or more of the following:
 /* .IP MATCH_FLAG_RETURN
-/*	Request that addr_match_list_match() returns zero with
-/*	dict_errno != 0, instead of raising a fatal error.
+/*	Request that addr_match_list_match() logs a warning and
+/*	returns zero with list->error set to a non-zero dictionary
+/*	error code, instead of raising a fatal error.
 /* .PP
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The second argument is a list of patterns, or the absolute
@@ -120,12 +121,12 @@ int     main(int argc, char **argv)
 	while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF)
 	    vstream_printf("%s: %s\n", vstring_str(buf),
 			   addr_match_list_match(list, vstring_str(buf)) ?
-			   "YES" : dict_errno == 0 ? "NO" : "ERROR");
+			   "YES" : list->error == 0 ? "NO" : "ERROR");
 	vstring_free(buf);
     } else {
 	vstream_printf("%s: %s\n", addr,
 		       addr_match_list_match(list, addr) > 0 ?
-		       "YES" : dict_errno == 0 ? "NO" : "ERROR");
+		       "YES" : list->error == 0 ? "NO" : "ERROR");
     }
     vstream_fflush(VSTREAM_OUT);
     addr_match_list_free(list);

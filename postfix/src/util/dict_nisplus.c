@@ -126,10 +126,11 @@ static const char *dict_nisplus_lookup(DICT *dict, const char *key)
     int     last_col;
     int     ch;
 
+    dict->error = 0;
+
     /*
      * Initialize.
      */
-    dict_errno = 0;
     if (quoted_key == 0) {
 	query = vstring_alloc(100);
 	retval = vstring_alloc(100);
@@ -222,7 +223,7 @@ static const char *dict_nisplus_lookup(DICT *dict, const char *key)
 	    msg_warn("lookup %s, NIS+ map %s: %s",
 		     key, dict_nisplus->dict.name,
 		     nis_sperrno(reply->status));
-	    dict_errno = DICT_ERR_RETRY;
+	    dict->error = DICT_ERR_RETRY;
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: not found: query %s", myname, STR(query));

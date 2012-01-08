@@ -31,7 +31,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	fold_addr.c header_body_checks.c mkmap_proxy.c data_redirect.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
-	dict_memcache.c mail_version.c memcache_proto.c server_acl.c
+	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
+	mkmap_fail.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -64,7 +65,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	fold_addr.o header_body_checks.o mkmap_proxy.o data_redirect.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
-	dict_memcache.o mail_version.o memcache_proto.o server_acl.o
+	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
+	mkmap_fail.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -596,13 +598,8 @@ abounce.o: mail_proto.h
 abounce.o: msg_stats.h
 abounce.o: recipient_list.h
 addr_match_list.o: ../../include/argv.h
-addr_match_list.o: ../../include/dict.h
 addr_match_list.o: ../../include/match_list.h
-addr_match_list.o: ../../include/match_ops.h
 addr_match_list.o: ../../include/sys_defs.h
-addr_match_list.o: ../../include/vbuf.h
-addr_match_list.o: ../../include/vstream.h
-addr_match_list.o: ../../include/vstring.h
 addr_match_list.o: addr_match_list.c
 addr_match_list.o: addr_match_list.h
 anvil_clnt.o: ../../include/attr.h
@@ -742,7 +739,6 @@ data_redirect.o: mail_params.h
 db_common.o: ../../include/argv.h
 db_common.o: ../../include/dict.h
 db_common.o: ../../include/match_list.h
-db_common.o: ../../include/match_ops.h
 db_common.o: ../../include/msg.h
 db_common.o: ../../include/mymalloc.h
 db_common.o: ../../include/sys_defs.h
@@ -754,14 +750,9 @@ db_common.o: db_common.c
 db_common.o: db_common.h
 db_common.o: string_list.h
 debug_peer.o: ../../include/argv.h
-debug_peer.o: ../../include/dict.h
 debug_peer.o: ../../include/match_list.h
-debug_peer.o: ../../include/match_ops.h
 debug_peer.o: ../../include/msg.h
 debug_peer.o: ../../include/sys_defs.h
-debug_peer.o: ../../include/vbuf.h
-debug_peer.o: ../../include/vstream.h
-debug_peer.o: ../../include/vstring.h
 debug_peer.o: debug_peer.c
 debug_peer.o: debug_peer.h
 debug_peer.o: mail_params.h
@@ -878,7 +869,6 @@ dict_ldap.o: ../../include/argv.h
 dict_ldap.o: ../../include/binhash.h
 dict_ldap.o: ../../include/dict.h
 dict_ldap.o: ../../include/match_list.h
-dict_ldap.o: ../../include/match_ops.h
 dict_ldap.o: ../../include/msg.h
 dict_ldap.o: ../../include/mymalloc.h
 dict_ldap.o: ../../include/name_code.h
@@ -897,7 +887,6 @@ dict_memcache.o: ../../include/argv.h
 dict_memcache.o: ../../include/auto_clnt.h
 dict_memcache.o: ../../include/dict.h
 dict_memcache.o: ../../include/match_list.h
-dict_memcache.o: ../../include/match_ops.h
 dict_memcache.o: ../../include/msg.h
 dict_memcache.o: ../../include/mymalloc.h
 dict_memcache.o: ../../include/stringops.h
@@ -911,46 +900,10 @@ dict_memcache.o: dict_memcache.c
 dict_memcache.o: dict_memcache.h
 dict_memcache.o: memcache_proto.h
 dict_memcache.o: string_list.h
-dict_mysql.o: ../../include/argv.h
-dict_mysql.o: ../../include/dict.h
-dict_mysql.o: ../../include/events.h
-dict_mysql.o: ../../include/find_inet.h
-dict_mysql.o: ../../include/match_list.h
-dict_mysql.o: ../../include/match_ops.h
-dict_mysql.o: ../../include/msg.h
-dict_mysql.o: ../../include/mymalloc.h
-dict_mysql.o: ../../include/myrand.h
-dict_mysql.o: ../../include/split_at.h
-dict_mysql.o: ../../include/stringops.h
 dict_mysql.o: ../../include/sys_defs.h
-dict_mysql.o: ../../include/vbuf.h
-dict_mysql.o: ../../include/vstream.h
-dict_mysql.o: ../../include/vstring.h
-dict_mysql.o: cfg_parser.h
-dict_mysql.o: db_common.h
 dict_mysql.o: dict_mysql.c
-dict_mysql.o: dict_mysql.h
-dict_mysql.o: string_list.h
-dict_pgsql.o: ../../include/argv.h
-dict_pgsql.o: ../../include/dict.h
-dict_pgsql.o: ../../include/events.h
-dict_pgsql.o: ../../include/find_inet.h
-dict_pgsql.o: ../../include/match_list.h
-dict_pgsql.o: ../../include/match_ops.h
-dict_pgsql.o: ../../include/msg.h
-dict_pgsql.o: ../../include/mymalloc.h
-dict_pgsql.o: ../../include/myrand.h
-dict_pgsql.o: ../../include/split_at.h
-dict_pgsql.o: ../../include/stringops.h
 dict_pgsql.o: ../../include/sys_defs.h
-dict_pgsql.o: ../../include/vbuf.h
-dict_pgsql.o: ../../include/vstream.h
-dict_pgsql.o: ../../include/vstring.h
-dict_pgsql.o: cfg_parser.h
-dict_pgsql.o: db_common.h
 dict_pgsql.o: dict_pgsql.c
-dict_pgsql.o: dict_pgsql.h
-dict_pgsql.o: string_list.h
 dict_proxy.o: ../../include/argv.h
 dict_proxy.o: ../../include/attr.h
 dict_proxy.o: ../../include/dict.h
@@ -970,7 +923,6 @@ dict_proxy.o: mail_proto.h
 dict_sqlite.o: ../../include/argv.h
 dict_sqlite.o: ../../include/dict.h
 dict_sqlite.o: ../../include/match_list.h
-dict_sqlite.o: ../../include/match_ops.h
 dict_sqlite.o: ../../include/msg.h
 dict_sqlite.o: ../../include/mymalloc.h
 dict_sqlite.o: ../../include/stringops.h
@@ -984,13 +936,8 @@ dict_sqlite.o: dict_sqlite.c
 dict_sqlite.o: dict_sqlite.h
 dict_sqlite.o: string_list.h
 domain_list.o: ../../include/argv.h
-domain_list.o: ../../include/dict.h
 domain_list.o: ../../include/match_list.h
-domain_list.o: ../../include/match_ops.h
 domain_list.o: ../../include/sys_defs.h
-domain_list.o: ../../include/vbuf.h
-domain_list.o: ../../include/vstream.h
-domain_list.o: ../../include/vstring.h
 domain_list.o: domain_list.c
 domain_list.o: domain_list.h
 dot_lockfile.o: ../../include/iostuff.h
@@ -1083,15 +1030,12 @@ file_id.o: mail_queue.h
 file_id.o: safe_ultostr.h
 flush_clnt.o: ../../include/argv.h
 flush_clnt.o: ../../include/attr.h
-flush_clnt.o: ../../include/dict.h
 flush_clnt.o: ../../include/iostuff.h
 flush_clnt.o: ../../include/match_list.h
-flush_clnt.o: ../../include/match_ops.h
 flush_clnt.o: ../../include/msg.h
 flush_clnt.o: ../../include/sys_defs.h
 flush_clnt.o: ../../include/vbuf.h
 flush_clnt.o: ../../include/vstream.h
-flush_clnt.o: ../../include/vstring.h
 flush_clnt.o: domain_list.h
 flush_clnt.o: flush_clnt.c
 flush_clnt.o: flush_clnt.h
@@ -1545,13 +1489,8 @@ mark_corrupt.o: mark_corrupt.h
 mark_corrupt.o: msg_stats.h
 mark_corrupt.o: recipient_list.h
 match_parent_style.o: ../../include/argv.h
-match_parent_style.o: ../../include/dict.h
 match_parent_style.o: ../../include/match_list.h
-match_parent_style.o: ../../include/match_ops.h
 match_parent_style.o: ../../include/sys_defs.h
-match_parent_style.o: ../../include/vbuf.h
-match_parent_style.o: ../../include/vstream.h
-match_parent_style.o: ../../include/vstring.h
 match_parent_style.o: mail_params.h
 match_parent_style.o: match_parent_style.c
 match_parent_style.o: match_parent_style.h
@@ -1611,7 +1550,15 @@ mime_state.o: mail_params.h
 mime_state.o: mime_state.c
 mime_state.o: mime_state.h
 mime_state.o: rec_type.h
+mkmap_cdb.o: ../../include/argv.h
+mkmap_cdb.o: ../../include/dict.h
+mkmap_cdb.o: ../../include/dict_cdb.h
+mkmap_cdb.o: ../../include/mymalloc.h
 mkmap_cdb.o: ../../include/sys_defs.h
+mkmap_cdb.o: ../../include/vbuf.h
+mkmap_cdb.o: ../../include/vstream.h
+mkmap_cdb.o: ../../include/vstring.h
+mkmap_cdb.o: mkmap.h
 mkmap_cdb.o: mkmap_cdb.c
 mkmap_db.o: ../../include/argv.h
 mkmap_db.o: ../../include/dict.h
@@ -1640,11 +1587,22 @@ mkmap_dbm.o: ../../include/vstream.h
 mkmap_dbm.o: ../../include/vstring.h
 mkmap_dbm.o: mkmap.h
 mkmap_dbm.o: mkmap_dbm.c
+mkmap_fail.o: ../../include/argv.h
+mkmap_fail.o: ../../include/dict.h
+mkmap_fail.o: ../../include/dict_fail.h
+mkmap_fail.o: ../../include/mymalloc.h
+mkmap_fail.o: ../../include/sys_defs.h
+mkmap_fail.o: ../../include/vbuf.h
+mkmap_fail.o: ../../include/vstream.h
+mkmap_fail.o: ../../include/vstring.h
+mkmap_fail.o: mkmap.h
+mkmap_fail.o: mkmap_fail.c
 mkmap_open.o: ../../include/argv.h
 mkmap_open.o: ../../include/dict.h
 mkmap_open.o: ../../include/dict_cdb.h
 mkmap_open.o: ../../include/dict_db.h
 mkmap_open.o: ../../include/dict_dbm.h
+mkmap_open.o: ../../include/dict_fail.h
 mkmap_open.o: ../../include/dict_sdbm.h
 mkmap_open.o: ../../include/msg.h
 mkmap_open.o: ../../include/mymalloc.h
@@ -1721,13 +1679,8 @@ mypwd.o: ../../include/sys_defs.h
 mypwd.o: mypwd.c
 mypwd.o: mypwd.h
 namadr_list.o: ../../include/argv.h
-namadr_list.o: ../../include/dict.h
 namadr_list.o: ../../include/match_list.h
-namadr_list.o: ../../include/match_ops.h
 namadr_list.o: ../../include/sys_defs.h
-namadr_list.o: ../../include/vbuf.h
-namadr_list.o: ../../include/vstream.h
-namadr_list.o: ../../include/vstring.h
 namadr_list.o: namadr_list.c
 namadr_list.o: namadr_list.h
 off_cvt.o: ../../include/msg.h
@@ -1905,7 +1858,6 @@ resolve_local.o: ../../include/argv.h
 resolve_local.o: ../../include/dict.h
 resolve_local.o: ../../include/inet_addr_list.h
 resolve_local.o: ../../include/match_list.h
-resolve_local.o: ../../include/match_ops.h
 resolve_local.o: ../../include/msg.h
 resolve_local.o: ../../include/myaddrinfo.h
 resolve_local.o: ../../include/mymalloc.h
@@ -2009,7 +1961,6 @@ sent.o: verify.h
 server_acl.o: ../../include/argv.h
 server_acl.o: ../../include/dict.h
 server_acl.o: ../../include/match_list.h
-server_acl.o: ../../include/match_ops.h
 server_acl.o: ../../include/msg.h
 server_acl.o: ../../include/mymalloc.h
 server_acl.o: ../../include/stringops.h
@@ -2055,13 +2006,8 @@ stream2rec.o: rec_type.h
 stream2rec.o: record.h
 stream2rec.o: stream2rec.c
 string_list.o: ../../include/argv.h
-string_list.o: ../../include/dict.h
 string_list.o: ../../include/match_list.h
-string_list.o: ../../include/match_ops.h
 string_list.o: ../../include/sys_defs.h
-string_list.o: ../../include/vbuf.h
-string_list.o: ../../include/vstream.h
-string_list.o: ../../include/vstring.h
 string_list.o: string_list.c
 string_list.o: string_list.h
 strip_addr.o: ../../include/mymalloc.h
@@ -2156,7 +2102,6 @@ user_acl.o: ../../include/argv.h
 user_acl.o: ../../include/dict.h
 user_acl.o: ../../include/dict_static.h
 user_acl.o: ../../include/match_list.h
-user_acl.o: ../../include/match_ops.h
 user_acl.o: ../../include/sys_defs.h
 user_acl.o: ../../include/vbuf.h
 user_acl.o: ../../include/vstream.h

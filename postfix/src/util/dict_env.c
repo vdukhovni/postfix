@@ -48,8 +48,9 @@
 
 /* dict_env_update - update environment array */
 
-static void dict_env_update(DICT *dict, const char *name, const char *value)
+static int dict_env_update(DICT *dict, const char *name, const char *value)
 {
+    dict->error = 0;
 
     /*
      * Optionally fold the key.
@@ -62,13 +63,15 @@ static void dict_env_update(DICT *dict, const char *name, const char *value)
     }
     if (setenv(name, value, 1))
 	msg_fatal("setenv: %m");
+
+    return (DICT_STAT_SUCCESS);
 }
 
 /* dict_env_lookup - access environment array */
 
 static const char *dict_env_lookup(DICT *dict, const char *name)
 {
-    dict_errno = 0;
+    dict->error = 0;
 
     /*
      * Optionally fold the key.

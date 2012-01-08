@@ -257,7 +257,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
     DICT_PCRE_EXPAND_CONTEXT ctxt;
     int     nesting = 0;
 
-    dict_errno = 0;
+    dict->error = 0;
 
     if (msg_verbose)
 	msg_info("dict_pcre_lookup: %s: %s", dict->name, lookup_string);

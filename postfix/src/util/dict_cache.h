@@ -25,7 +25,7 @@ typedef int (*DICT_CACHE_VALIDATOR_FN) (const char *, const char *, char *);
 extern DICT_CACHE *dict_cache_open(const char *, int, int);
 extern void dict_cache_close(DICT_CACHE *);
 extern const char *dict_cache_lookup(DICT_CACHE *, const char *);
-extern void dict_cache_update(DICT_CACHE *, const char *, const char *);
+extern int dict_cache_update(DICT_CACHE *, const char *, const char *);
 extern int dict_cache_delete(DICT_CACHE *, const char *);
 extern int dict_cache_sequence(DICT_CACHE *, int, const char **, const char **);
 extern void dict_cache_control(DICT_CACHE *,...);

@@ -103,7 +103,7 @@ static const char *dict_cdbq_lookup(DICT *dict, const char *name)
     static unsigned len;
     const char *result = 0;
 
-    dict_errno = 0;
+    dict->error = 0;
 
     /* CDB is constant, so do not try to acquire a lock. */
 
@@ -229,11 +229,13 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
 
 /* dict_cdbm_update - add database entry, create mode */
 
-static void dict_cdbm_update(DICT *dict, const char *name, const char *value)
+static int dict_cdbm_update(DICT *dict, const char *name, const char *value)
 {
     DICT_CDBM *dict_cdbm = (DICT_CDBM *) dict;
     unsigned ksize, vsize;
     int     r;
+
+    dict->error = 0;
 
     /*
      * Optionally fold the key.
@@ -281,9 +283,11 @@ static void dict_cdbm_update(DICT *dict, const char *name, const char *value)
 	    msg_fatal("%s: duplicate entry: \"%s\"",
 		      dict_cdbm->dict.name, name);
     }
+    return (r);
 #else
     if (cdb_make_add(&dict_cdbm->cdbm, name, ksize, value, vsize) < 0)
 	msg_fatal("error writing %s: %m", dict_cdbm->tmp_path);
+    return (0);
 #endif
 }
 

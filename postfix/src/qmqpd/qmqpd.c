@@ -689,7 +689,7 @@ static void qmqpd_proto(QMQPD_STATE *state)
 	 */
 	if (namadr_list_match(qmqpd_clients, state->name, state->addr) != 0) {
 	    qmqpd_receive(state);
-	} else if (dict_errno == 0) {
+	} else if (qmqpd_clients->error == 0) {
 	    qmqpd_reply(state, DONT_LOG, QMQPD_STAT_HARD,
 			"Error: %s is not authorized to use this service",
 			state->namaddr);

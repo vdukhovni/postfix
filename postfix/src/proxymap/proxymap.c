@@ -339,7 +339,7 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 	    msg_panic("proxy_map_find: dict_open null result");
 	dict_register(STR(map_type_name_flags), dict);
     }
-    dict_errno = 0;
+    dict->error = 0;
     return (dict);
 }
 
@@ -352,6 +352,7 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
     int     request_func;
     const char *reply_key;
     const char *reply_value;
+    int     dict_status;
     int     reply_status;
 
     /*
@@ -369,16 +370,19 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
     } else if ((dict = proxy_map_find(STR(request_map), request_flags,
 				      &reply_status)) == 0) {
 	reply_key = reply_value = "";
-    } else if (dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
-			      | (request_flags & DICT_FLAG_RQST_MASK)),
-	       dict_seq(dict, request_func, &reply_key, &reply_value) == 0) {
-	reply_status = PROXY_STAT_OK;
-    } else if (dict_errno == 0) {
-	reply_status = PROXY_STAT_NOKEY;
-	reply_key = reply_value = "";
     } else {
-	reply_status = PROXY_STAT_RETRY;
-	reply_key = reply_value = "";
+	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
+		       | (request_flags & DICT_FLAG_RQST_MASK));
+	dict_status = dict_seq(dict, request_func, &reply_key, &reply_value);
+	if (dict_status == 0) {
+	    reply_status = PROXY_STAT_OK;
+	} else if (dict->error == 0) {
+	    reply_status = PROXY_STAT_NOKEY;
+	    reply_key = reply_value = "";
+	} else {
+	    reply_status = PROXY_STAT_RETRY;
+	    reply_key = reply_value = "";
+	}
     }
 
     /*
@@ -417,7 +421,7 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
 			      | (request_flags & DICT_FLAG_RQST_MASK)),
 	       (reply_value = dict_get(dict, STR(request_key))) != 0) {
 	reply_status = PROXY_STAT_OK;
-    } else if (dict_errno == 0) {
+    } else if (dict->error == 0) {
 	reply_status = PROXY_STAT_NOKEY;
 	reply_value = "";
     } else {
@@ -440,6 +444,7 @@ static void proxymap_update_service(VSTREAM *client_stream)
 {
     int     request_flags;
     DICT   *dict;
+    int     dict_status;
     int     reply_status;
 
     /*
@@ -469,8 +474,14 @@ static void proxymap_update_service(VSTREAM *client_stream)
 	dict->flags = ((dict->flags & ~DICT_FLAG_RQST_MASK)
 		       | (request_flags & DICT_FLAG_RQST_MASK)
 		       | DICT_FLAG_SYNC_UPDATE | DICT_FLAG_DUP_REPLACE);
-	dict_put(dict, STR(request_key), STR(request_value));
-	reply_status = (dict_errno ? PROXY_STAT_RETRY : PROXY_STAT_OK);
+	dict_status = dict_put(dict, STR(request_key), STR(request_value));
+	if (dict_status == 0) {
+	    reply_status = PROXY_STAT_OK;
+	} else if (dict->error == 0) {
+	    reply_status = PROXY_STAT_NOKEY;
+	} else {
+	    reply_status = PROXY_STAT_RETRY;
+	}
     }
 
     /*
@@ -514,9 +525,13 @@ static void proxymap_delete_service(VSTREAM *client_stream)
 		       | (request_flags & DICT_FLAG_RQST_MASK)
 		       | DICT_FLAG_SYNC_UPDATE);
 	dict_status = dict_del(dict, STR(request_key));
-	reply_status = (dict_status == 0 ? PROXY_STAT_OK :
-			dict_status > 0 ? PROXY_STAT_NOKEY :
-			PROXY_STAT_RETRY);
+	if (dict_status == 0) {
+	    reply_status = PROXY_STAT_OK;
+	} else if (dict->error == 0) {
+	    reply_status = PROXY_STAT_NOKEY;
+	} else {
+	    reply_status = PROXY_STAT_RETRY;
+	}
     }
 
     /*

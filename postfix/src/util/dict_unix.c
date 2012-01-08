@@ -69,7 +69,7 @@ static const char *dict_unix_getpwnam(DICT *dict, const char *key)
     static VSTRING *buf;
     static int sanity_checked;
 
-    dict_errno = 0;
+    dict->error = 0;
 
     /*
      * Optionally fold the key.
@@ -86,7 +86,7 @@ static const char *dict_unix_getpwnam(DICT *dict, const char *key)
 	    errno = 0;
 	    if (getpwuid(0) == 0) {
 		msg_warn("cannot access UNIX password database: %m");
-		dict_errno = DICT_ERR_RETRY;
+		dict->error = DICT_ERR_RETRY;
 	    }
 	}
 	return (0);
@@ -111,7 +111,7 @@ static const char *dict_unix_getgrnam(DICT *dict, const char *key)
     char  **cpp;
     static int sanity_checked;
 
-    dict_errno = 0;
+    dict->error = 0;
 
     /*
      * Optionally fold the key.
@@ -128,7 +128,7 @@ static const char *dict_unix_getgrnam(DICT *dict, const char *key)
 	    errno = 0;
 	    if (getgrgid(0) == 0) {
 		msg_warn("cannot access UNIX group database: %m");
-		dict_errno = DICT_ERR_RETRY;
+		dict->error = DICT_ERR_RETRY;
 	    }
 	}
 	return (0);
@@ -172,8 +172,6 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
 	0,
     };
     struct dict_unix_lookup *lp;
-
-    dict_errno = 0;
 
     dict_unix = (DICT_UNIX *) dict_alloc(DICT_TYPE_UNIX, map,
 					 sizeof(*dict_unix));

@@ -4649,6 +4649,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 		    msg_info("%s: replacing command \"%.100s\" with \"%.100s\"",
 			     state->namaddr, STR(state->buffer), cp);
 		    vstring_strcpy(state->buffer, cp);
+		} else if (smtpd_cmd_filter->error != 0) {
+		    /* XXX log something, even if regexps don't soft-fail. */
 		}
 	    }
 	    if ((argc = smtpd_token(vstring_str(state->buffer), &argv)) == 0) {

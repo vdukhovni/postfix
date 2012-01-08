@@ -195,7 +195,7 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     mailbox_res = mail_addr_find(virtual_mailbox_maps, state.msg_attr.user,
 				 IGNORE_EXTENSION);
     if (mailbox_res == 0) {
-	if (dict_errno == 0)
+	if (virtual_mailbox_maps->error == 0)
 	    return (NO);
 	msg_warn("table %s: lookup %s: %m", virtual_mailbox_maps->title,
 		 state.msg_attr.user);

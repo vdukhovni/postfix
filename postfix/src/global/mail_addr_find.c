@@ -46,7 +46,7 @@
 /*	The copy includes the recipient address delimiter.
 /*	The caller is expected to pass the copy to myfree().
 /* DIAGNOSTICS
-/*	The global \fIdict_errno\fR is non-zero when the lookup
+/*	The maps->error value is non-zero when the lookup
 /*	should be tried again.
 /* SEE ALSO
 /*	maps(3), multi-dictionary search
@@ -100,6 +100,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
     char   *full_key;
     char   *bare_key;
     char   *saved_ext;
+    int     rc = 0;
 
     /*
      * Initialize.
@@ -120,7 +121,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
 #define FULL	0
 #define PARTIAL	DICT_FLAG_FIXED
 
-    if ((result = maps_find(path, full_key, FULL)) == 0 && dict_errno == 0
+    if ((result = maps_find(path, full_key, FULL)) == 0 && path->error == 0
       && bare_key != 0 && (result = maps_find(path, bare_key, PARTIAL)) != 0
 	&& extp != 0) {
 	*extp = saved_ext;
@@ -131,13 +132,13 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
      * Try user+foo@$myorigin, user+foo@$mydestination or
      * user+foo@[${proxy,inet}_interfaces]. Then try with +foo stripped off.
      */
-    if (result == 0 && dict_errno == 0
+    if (result == 0 && path->error == 0
 	&& (ratsign = strrchr(full_key, '@')) != 0
 	&& (strcasecmp(ratsign + 1, var_myorigin) == 0
-	    || resolve_local(ratsign + 1))) {
+	    || (rc = resolve_local(ratsign + 1)) > 0)) {
 	*ratsign = 0;
 	result = maps_find(path, full_key, PARTIAL);
-	if (result == 0 && dict_errno == 0 && bare_key != 0) {
+	if (result == 0 && path->error == 0 && bare_key != 0) {
 	    if ((ratsign = strrchr(bare_key, '@')) == 0)
 		msg_panic("%s: bare key botch", myname);
 	    *ratsign = 0;
@@ -147,12 +148,13 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
 	    }
 	}
 	*ratsign = '@';
-    }
+    } else if (rc < 0)
+	path->error = rc;
 
     /*
      * Try @domain.
      */
-    if (result == 0 && dict_errno == 0 && ratsign)
+    if (result == 0 && path->error == 0 && ratsign)
 	result = maps_find(path, ratsign, PARTIAL);
 
     /*
@@ -161,7 +163,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
     if (msg_verbose)
 	msg_info("%s: %s -> %s", myname, address,
 		 result ? result :
-		 dict_errno ? "(try again)" :
+		 path->error ? "(try again)" :
 		 "(not found)");
     myfree(full_key);
     if (bare_key)
@@ -205,7 +207,7 @@ int     main(int argc, char **argv)
 	extent = 0;
 	result = mail_addr_find(path, STR(buffer), &extent);
 	vstream_printf("%s -> %s (%s)\n", STR(buffer), result ? result :
-		       dict_errno ? "(try again)" :
+		       path->error ? "(try again)" :
 		       "(not found)", extent ? extent : "null extension");
 	vstream_fflush(VSTREAM_OUT);
 	if (extent)

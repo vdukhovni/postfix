@@ -169,7 +169,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 	} else if (STREQ(acl, SERVER_ACL_NAME_WL_MYNETWORKS)) {
 	    if (addr_match_list_match(server_acl_mynetworks, client_addr))
 		return (SERVER_ACL_ACT_PERMIT);
-	    if (dict_errno != 0) {
+	    if (server_acl_mynetworks->error != 0) {
 		msg_warn("%s: %s: mynetworks lookup error -- ignoring the "
 			 "remainder of this access list", origin, acl);
 		return (SERVER_ACL_ACT_ERROR);
@@ -190,7 +190,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 		}
 		if (ret != SERVER_ACL_ACT_DUNNO)
 		    return (ret);
-	    } else if (dict_errno != 0) {
+	    } else if (dict->error != 0) {
 		msg_warn("%s: %s: table lookup error -- ignoring the remainder "
 			 "of this access list", origin, acl);
 		return (SERVER_ACL_ACT_ERROR);

@@ -87,10 +87,10 @@
 /*	If \fIkey\fR is a fully qualified address, the domain part of the
 /*	address.  Otherwise the query against the database is suppressed and
 /*	the lookup returns no results.
-/*
 /* .PP
-/*	\fIdb_common_check_domain\fR checks domain list so that query optimization
-/*	can be performed
+/*	\fIdb_common_check_domain\fR() checks the domain list so
+/*	that query optimization can be performed. The result is >0
+/*	(match found), 0 (no match), or <0 (dictionary error code).
 /*
 /* .PP
 /*	\fIdb_common_sql_build_query\fR builds the "default"(backwards compatible)
@@ -256,7 +256,7 @@ void    db_common_parse_domain(CFG_PARSER *parser, void *ctxPtr)
 
     domainlist = cfg_get_str(parser, "domain", "", 0, 0);
     if (*domainlist) {
-	ctx->domain = string_list_init(MATCH_FLAG_NONE, domainlist);
+	ctx->domain = string_list_init(MATCH_FLAG_RETURN, domainlist);
 	if (ctx->domain == 0)
 
 	    /*
@@ -528,7 +528,7 @@ int     db_common_check_domain(void *ctxPtr, const char *addr)
 	if (domain == NULL || domain == addr + 1)
 	    return (0);
 	if (match_list_match(ctx->domain, domain) == 0)
-	    return (0);
+	    return (ctx->domain->error);
     }
     return (1);
 }

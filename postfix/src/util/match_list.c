@@ -36,8 +36,9 @@
 /*	foo.com. If this flag is cleared, foo.com matches itself
 /*	only, and .foo.com matches any name below the domain foo.com.
 /* .IP MATCH_FLAG_RETURN
-/*	Request that match_list_match() returns zero (with dict_errno
-/*	set) instead of raising a fatal run-time error.
+/*	Request that match_list_match() logs a warning and returns
+/*	zero (with list->error set to a non-zero dictionary error
+/*	code) instead of raising a fatal run-time error.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The pattern_list argument specifies a list of patterns.  The third
@@ -51,7 +52,7 @@
 /*	match_list_free() releases storage allocated by match_list_init().
 /* DIAGNOSTICS
 /*	Fatal error: unable to open or read a match_list file; invalid
-/*	match_list pattern.
+/*	match_list pattern. 
 /* SEE ALSO
 /*	host_match(3) match hosts by name or by address
 /* LICENSE
@@ -84,18 +85,9 @@
 #include <stringops.h>
 #include <argv.h>
 #include <dict.h>
-#include <match_ops.h>
 #include <match_list.h>
 
 /* Application-specific */
-
-struct MATCH_LIST {
-    int     flags;			/* processing options */
-    ARGV   *patterns;			/* one pattern each */
-    int     match_count;		/* match function/argument count */
-    MATCH_LIST_FN *match_func;		/* match functions */
-    const char **match_args;		/* match arguments */
-};
 
 #define MATCH_DICTIONARY(pattern) \
     ((pattern)[0] != '[' && strchr((pattern), ':') != 0)
@@ -209,14 +201,14 @@ int     match_list_match(MATCH_LIST *list,...)
 	list->match_args[i] = va_arg(ap, const char *);
     va_end(ap);
 
-    dict_errno = 0;
+    list->error = 0;
     for (cpp = list->patterns->argv; (pat = *cpp) != 0; cpp++) {
 	for (match = 1; *pat == '!'; pat++)
 	    match = !match;
 	for (i = 0; i < list->match_count; i++)
-	    if (list->match_func[i] (list->flags, list->match_args[i], pat))
+	    if (list->match_func[i] (list, list->match_args[i], pat))
 		return (match);
-	    else if (dict_errno != 0)
+	    else if (list->error != 0)
 		return (0);
     }
     if (msg_verbose)

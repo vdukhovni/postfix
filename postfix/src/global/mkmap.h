@@ -41,6 +41,7 @@ extern MKMAP *mkmap_hash_open(const char *);
 extern MKMAP *mkmap_btree_open(const char *);
 extern MKMAP *mkmap_sdbm_open(const char *);
 extern MKMAP *mkmap_proxy_open(const char *);
+extern MKMAP *mkmap_fail_open(const char *);
 
 /* LICENSE
 /* .ad

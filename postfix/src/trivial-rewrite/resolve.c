@@ -155,6 +155,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     const char *relay;
     const char *xport;
     const char *sender_key;
+    int     rc;
 
     *flags = 0;
     vstring_strcpy(channel, "CHANNEL NOT UPDATED");
@@ -259,8 +260,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	 * requestor.
 	 */
 	if ((domain = tok822_rfind_type(tree->tail, '@')) != 0) {
-	    if (domain->next && RESOLVE_LOCAL(domain->next) == 0) {
-		if (dict_errno != 0) {
+	    if (domain->next && (rc = RESOLVE_LOCAL(domain->next)) <= 0) {
+		if (rc < 0) {
 		    *flags |= RESOLVE_FLAG_FAIL;
 		    FREE_MEMORY_AND_RETURN;
 		}
@@ -377,9 +378,9 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	    vstring_insert(nextrcpt, rcpt_domain - STR(nextrcpt), "[", 1);
 	    vstring_strcat(nextrcpt, "]");
 	    rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
-	    if (resolve_local(rcpt_domain))	/* XXX */
+	    if ((rc = resolve_local(rcpt_domain)) > 0)	/* XXX */
 		domain = 0;
-	    else if (dict_errno != 0) {
+	    else if (rc < 0) {
 		*flags |= RESOLVE_FLAG_FAIL;
 		FREE_MEMORY_AND_RETURN;
 	    }
@@ -427,7 +428,6 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
      */
 #define STREQ(x,y) (strcmp((x), (y)) == 0)
 
-    dict_errno = 0;
     if (domain != 0) {
 
 	/*
@@ -457,7 +457,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 			    var_show_unk_rcpt_table ?
 			    " in virtual alias table" : "");
 	    *flags |= RESOLVE_CLASS_ALIAS;
-	} else if (dict_errno != 0) {
+	} else if (virt_alias_doms && virt_alias_doms->error != 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_ALIAS_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	    FREE_MEMORY_AND_RETURN;
@@ -479,7 +479,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	    vstring_strcpy(nexthop, rcpt_domain);
 	    blame = rp->virt_transport_name;
 	    *flags |= RESOLVE_CLASS_VIRTUAL;
-	} else if (dict_errno != 0) {
+	} else if (virt_mailbox_doms && virt_mailbox_doms->error != 0) {
 	    msg_warn("%s lookup failure", VAR_VIRT_MAILBOX_DOMS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	    FREE_MEMORY_AND_RETURN;
@@ -493,7 +493,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 		vstring_strcpy(channel, RES_PARAM_VALUE(rp->relay_transport));
 		blame = rp->relay_transport_name;
 		*flags |= RESOLVE_CLASS_RELAY;
-	    } else if (dict_errno != 0) {
+	    } else if (relay_domains && relay_domains->error != 0) {
 		msg_warn("%s lookup failure", VAR_RELAY_DOMAINS);
 		*flags |= RESOLVE_FLAG_FAIL;
 		FREE_MEMORY_AND_RETURN;
@@ -516,7 +516,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 		    vstring_strcpy(channel, strcasecmp(xport, "DUNNO") == 0 ?
 				RES_PARAM_VALUE(rp->def_transport) : xport);
 		    blame = rp->snd_def_xp_maps_name;
-		} else if (dict_errno != 0) {
+		} else if (rp->snd_def_xp_info
+			   && rp->snd_def_xp_info->error != 0) {
 		    msg_warn("%s lookup failure", rp->snd_def_xp_maps_name);
 		    *flags |= RESOLVE_FLAG_FAIL;
 		    FREE_MEMORY_AND_RETURN;
@@ -543,7 +544,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 		}
 		vstring_strcpy(nexthop, strcasecmp(relay, "DUNNO") == 0 ?
 			       rcpt_domain : relay);
-	    } else if (dict_errno != 0) {
+	    } else if (rp->snd_relay_info
+		       && rp->snd_relay_info->error != 0) {
 		msg_warn("%s lookup failure", rp->snd_relay_maps_name);
 		*flags |= RESOLVE_FLAG_FAIL;
 		FREE_MEMORY_AND_RETURN;
@@ -632,7 +634,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     if (rp->transport_info && !(*flags & RESOLVE_CLASS_ALIAS)) {
 	if (transport_lookup(rp->transport_info, STR(nextrcpt),
 			     rcpt_domain, channel, nexthop) == 0
-	    && dict_errno != 0) {
+	    && rp->transport_info->transport_path->error != 0) {
 	    msg_warn("%s lookup failure", rp->transport_maps_name);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	    FREE_MEMORY_AND_RETURN;
@@ -658,7 +660,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
 	    /* 5.1.6 is the closest match, but not perfect. */
 	    vstring_sprintf(nexthop, "5.1.6 User has moved to %s", newloc);
-	} else if (dict_errno != 0) {
+	} else if (relocated_maps->error != 0) {
 	    msg_warn("%s lookup failure", VAR_RELOCATED_MAPS);
 	    *flags |= RESOLVE_FLAG_FAIL;
 	    FREE_MEMORY_AND_RETURN;

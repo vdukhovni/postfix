@@ -181,13 +181,14 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
     int     status;
     const char *result = 0;
 
+    dict->error = 0;
+
     /*
      * Sanity check.
      */
     if ((dict->flags & (DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL)) == 0)
 	msg_panic("dict_db_lookup: no DICT_FLAG_TRY1NULL | DICT_FLAG_TRY0NULL flag");
 
-    dict_errno = 0;
     memset(&db_key, 0, sizeof(db_key));
     memset(&db_value, 0, sizeof(db_value));
 
@@ -250,13 +251,15 @@ static const char *dict_db_lookup(DICT *dict, const char *name)
 
 /* dict_db_update - add or update database entry */
 
-static void dict_db_update(DICT *dict, const char *name, const char *value)
+static int dict_db_update(DICT *dict, const char *name, const char *value)
 {
     DICT_DB *dict_db = (DICT_DB *) dict;
     DB     *db = dict_db->db;
     DBT     db_key;
     DBT     db_value;
     int     status;
+
+    dict->error = 0;
 
     /*
      * Sanity check.
@@ -332,6 +335,8 @@ static void dict_db_update(DICT *dict, const char *name, const char *value)
     if ((dict->flags & DICT_FLAG_LOCK)
 	&& myflock(dict->lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)
 	msg_fatal("%s: unlock dictionary: %m", dict_db->dict.name);
+
+    return (status);
 }
 
 /* delete one entry from the dictionary */
@@ -343,6 +348,8 @@ static int dict_db_delete(DICT *dict, const char *name)
     DBT     db_key;
     int     status = 1;
     int     flags = 0;
+
+    dict->error = 0;
 
     /*
      * Sanity check.
@@ -420,12 +427,13 @@ static int dict_db_sequence(DICT *dict, int function,
     int     status = 0;
     int     db_function;
 
+    dict->error = 0;
+
 #if DB_VERSION_MAJOR > 1
 
     /*
      * Initialize.
      */
-    dict_errno = 0;
     memset(&db_key, 0, sizeof(db_key));
     memset(&db_value, 0, sizeof(db_value));
 

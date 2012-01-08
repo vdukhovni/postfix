@@ -57,7 +57,7 @@ typedef struct {
     HTABLE *table;			/* in-memory hash */
     HTABLE_INFO **info;			/* for iterator */
     HTABLE_INFO **cursor;		/* ditto */
-}       DICT_THASH;
+} DICT_THASH;
 
 #define STR	vstring_str
 
@@ -67,8 +67,6 @@ static const char *dict_thash_lookup(DICT *dict, const char *name)
 {
     DICT_THASH *dict_thash = (DICT_THASH *) dict;
     const char *result = 0;
-
-    dict_errno = 0;
 
     /*
      * Optionally fold the key.
@@ -85,7 +83,7 @@ static const char *dict_thash_lookup(DICT *dict, const char *name)
      */
     result = htable_find(dict_thash->table, name);
 
-    return (result);
+    DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, result);
 }
 
 /* dict_thash_sequence - traverse the dictionary */
@@ -95,8 +93,6 @@ static int dict_thash_sequence(DICT *dict, int function,
 {
     const char *myname = "dict_thash_sequence";
     DICT_THASH *dict_thash = (DICT_THASH *) dict;
-
-    dict_errno = 0;
 
     /*
      * Determine and execute the seek function.
@@ -121,9 +117,11 @@ static int dict_thash_sequence(DICT *dict, int function,
     if (dict_thash->cursor[0]) {
 	*key = dict_thash->cursor[0]->key;
 	*value = dict_thash->cursor[0]->value;
-	return (0);
+	DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_SUCCESS);
     } else {
-	return (1);
+	*key = 0;
+	*value = 0;
+	DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
     }
 }
 

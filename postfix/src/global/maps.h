@@ -22,6 +22,7 @@
 typedef struct MAPS {
     char   *title;
     struct ARGV *argv;
+    int     error;			/* last request only */
 } MAPS;
 
 extern MAPS *maps_create(const char *, const char *, int);

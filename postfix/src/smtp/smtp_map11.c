@@ -91,7 +91,7 @@ int     smtp_map11_external(VSTRING *addr, MAPS *maps, int propagate)
 	argv_free(new_addr);
 	return (1);
     } else {
-	if (dict_errno != 0)
+	if (maps->error != 0)
 	    msg_fatal("%s map lookup problem for %s", maps->title, STR(addr));
 	if (msg_verbose)
 	    msg_info("%s: %s not found", myname, STR(addr));

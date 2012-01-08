@@ -300,6 +300,8 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 		    smtp_chat_append(session, "Replaced-by: ", "");
 		    smtp_chat_append(session, "     ", new_reply);
 		}
+	    } else if (smtp_chat_resp_filter->error != 0) {
+		/* XXX log something, even if regexps don't soft-fail. */
 	    }
 	}
 	if (chat_append_flag) {

@@ -181,7 +181,7 @@ int     flush_send_site(const char *site)
 			  ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_SEND_SITE,
 				     ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
 				     ATTR_TYPE_END);
-    else if (dict_errno == 0)
+    else if (flush_domains->error == 0)
 	status = FLUSH_STAT_DENY;
     else
 	status = FLUSH_STAT_FAIL;
@@ -238,7 +238,7 @@ int     flush_add(const char *site, const char *queue_id)
 				     ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
 				 ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 				     ATTR_TYPE_END);
-    else if (dict_errno == 0)
+    else if (flush_domains->error == 0)
 	status = FLUSH_STAT_DENY;
     else
 	status = FLUSH_STAT_FAIL;

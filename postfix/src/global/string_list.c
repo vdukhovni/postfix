@@ -34,8 +34,9 @@
 /*	string_list_init() performs initializations. The first argument
 /*	is a bit-wise OR of zero or more of following:
 /* .IP MATCH_FLAG_RETURN
-/*	Request that string_list_match() returns zero with
-/*	dict_errno != 0, instead of raising a fatal error.
+/*	Request that string_list_match() logs a warning and returns
+/*	zero with list->error set to a non-zero dictionary error
+/*	code, instead of raising a fatal error.
 /* .PP
 /*	Specify MATCH_FLAG_NONE to request none of the above.
 /*	The second argument specifies a list of string patterns.
@@ -105,10 +106,10 @@ int     main(int argc, char **argv)
     }
     if (argc != optind + 2)
 	usage(argv[0]);
-    list = string_list_init(MATCH_FLAG_NONE | MATCH_FLAG_RETURN, argv[optind]);
+    list = string_list_init(MATCH_FLAG_RETURN, argv[optind]);
     string = argv[optind + 1];
     vstream_printf("%s: %s\n", string, string_list_match(list, string) ?
-		   "YES" : dict_errno == 0 ? "NO" : "ERROR");
+		   "YES" : list->error == 0 ? "NO" : "ERROR");
     vstream_fflush(VSTREAM_OUT);
     string_list_free(list);
     return (0);

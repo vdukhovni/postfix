@@ -81,7 +81,6 @@ postscreen.o: ../../include/mail_server.h
 postscreen.o: ../../include/mail_version.h
 postscreen.o: ../../include/maps.h
 postscreen.o: ../../include/match_list.h
-postscreen.o: ../../include/match_ops.h
 postscreen.o: ../../include/msg.h
 postscreen.o: ../../include/myaddrinfo.h
 postscreen.o: ../../include/mymalloc.h
@@ -103,7 +102,6 @@ postscreen_dict.o: ../../include/events.h
 postscreen_dict.o: ../../include/htable.h
 postscreen_dict.o: ../../include/maps.h
 postscreen_dict.o: ../../include/match_list.h
-postscreen_dict.o: ../../include/match_ops.h
 postscreen_dict.o: ../../include/msg.h
 postscreen_dict.o: ../../include/server_acl.h
 postscreen_dict.o: ../../include/string_list.h
@@ -127,7 +125,6 @@ postscreen_dnsbl.o: ../../include/mail_params.h
 postscreen_dnsbl.o: ../../include/mail_proto.h
 postscreen_dnsbl.o: ../../include/maps.h
 postscreen_dnsbl.o: ../../include/match_list.h
-postscreen_dnsbl.o: ../../include/match_ops.h
 postscreen_dnsbl.o: ../../include/msg.h
 postscreen_dnsbl.o: ../../include/myaddrinfo.h
 postscreen_dnsbl.o: ../../include/mymalloc.h
@@ -151,7 +148,6 @@ postscreen_early.o: ../../include/htable.h
 postscreen_early.o: ../../include/mail_params.h
 postscreen_early.o: ../../include/maps.h
 postscreen_early.o: ../../include/match_list.h
-postscreen_early.o: ../../include/match_ops.h
 postscreen_early.o: ../../include/msg.h
 postscreen_early.o: ../../include/mymalloc.h
 postscreen_early.o: ../../include/server_acl.h
@@ -175,7 +171,6 @@ postscreen_expand.o: ../../include/mail_params.h
 postscreen_expand.o: ../../include/mail_proto.h
 postscreen_expand.o: ../../include/maps.h
 postscreen_expand.o: ../../include/match_list.h
-postscreen_expand.o: ../../include/match_ops.h
 postscreen_expand.o: ../../include/msg.h
 postscreen_expand.o: ../../include/server_acl.h
 postscreen_expand.o: ../../include/string_list.h
@@ -197,7 +192,6 @@ postscreen_misc.o: ../../include/iostuff.h
 postscreen_misc.o: ../../include/mail_params.h
 postscreen_misc.o: ../../include/maps.h
 postscreen_misc.o: ../../include/match_list.h
-postscreen_misc.o: ../../include/match_ops.h
 postscreen_misc.o: ../../include/msg.h
 postscreen_misc.o: ../../include/server_acl.h
 postscreen_misc.o: ../../include/string_list.h
@@ -220,7 +214,6 @@ postscreen_send.o: ../../include/mac_parse.h
 postscreen_send.o: ../../include/mail_params.h
 postscreen_send.o: ../../include/maps.h
 postscreen_send.o: ../../include/match_list.h
-postscreen_send.o: ../../include/match_ops.h
 postscreen_send.o: ../../include/msg.h
 postscreen_send.o: ../../include/server_acl.h
 postscreen_send.o: ../../include/smtp_reply_footer.h
@@ -246,7 +239,6 @@ postscreen_smtpd.o: ../../include/mail_params.h
 postscreen_smtpd.o: ../../include/mail_proto.h
 postscreen_smtpd.o: ../../include/maps.h
 postscreen_smtpd.o: ../../include/match_list.h
-postscreen_smtpd.o: ../../include/match_ops.h
 postscreen_smtpd.o: ../../include/msg.h
 postscreen_smtpd.o: ../../include/mymalloc.h
 postscreen_smtpd.o: ../../include/name_code.h
@@ -274,7 +266,6 @@ postscreen_starttls.o: ../../include/mail_params.h
 postscreen_starttls.o: ../../include/mail_proto.h
 postscreen_starttls.o: ../../include/maps.h
 postscreen_starttls.o: ../../include/match_list.h
-postscreen_starttls.o: ../../include/match_ops.h
 postscreen_starttls.o: ../../include/msg.h
 postscreen_starttls.o: ../../include/mymalloc.h
 postscreen_starttls.o: ../../include/name_code.h
@@ -302,7 +293,6 @@ postscreen_state.o: ../../include/mail_proto.h
 postscreen_state.o: ../../include/mail_server.h
 postscreen_state.o: ../../include/maps.h
 postscreen_state.o: ../../include/match_list.h
-postscreen_state.o: ../../include/match_ops.h
 postscreen_state.o: ../../include/msg.h
 postscreen_state.o: ../../include/mymalloc.h
 postscreen_state.o: ../../include/name_mask.h
@@ -323,7 +313,6 @@ postscreen_tests.o: ../../include/htable.h
 postscreen_tests.o: ../../include/mail_params.h
 postscreen_tests.o: ../../include/maps.h
 postscreen_tests.o: ../../include/match_list.h
-postscreen_tests.o: ../../include/match_ops.h
 postscreen_tests.o: ../../include/msg.h
 postscreen_tests.o: ../../include/server_acl.h
 postscreen_tests.o: ../../include/string_list.h

@@ -167,8 +167,8 @@
 /*	useful someday.
 /* .IP \fBfail\fR
 /*	A table that reliably fails all requests. The lookup table
-/*	name provides the internal error result code. This table
-/*	exists to simplify Postfix error tests.
+/*	name is used for logging. This table exists to simplify
+/*	Postfix error tests.
 /* .IP \fBhash\fR
 /*	An indexed file type based on hashing.
 /*	This is available on systems with support for Berkeley DB

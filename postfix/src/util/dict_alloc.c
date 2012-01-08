@@ -71,8 +71,8 @@ static const char *dict_default_lookup(DICT *dict, const char *unused_key)
 
 /* dict_default_update - trap unimplemented operation */
 
-static void dict_default_update(DICT *dict, const char *unused_key,
-				        const char *unused_value)
+static int dict_default_update(DICT *dict, const char *unused_key,
+			               const char *unused_value)
 {
     msg_fatal("%s table %s: update operation is not supported",
 	      dict->type, dict->name);
@@ -123,6 +123,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->fold_buf = 0;
     dict->owner.status = DICT_OWNER_UNKNOWN;
     dict->owner.uid = ~0;
+    dict->error = DICT_ERR_NONE;
     return dict;
 }
 

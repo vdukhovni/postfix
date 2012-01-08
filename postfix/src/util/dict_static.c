@@ -44,9 +44,7 @@
 
 static const char *dict_static_lookup(DICT *dict, const char *unused_name)
 {
-    dict_errno = 0;
-
-    return (dict->name);
+    DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, dict->name);
 }
 
 /* dict_static_close - close static dictionary */
