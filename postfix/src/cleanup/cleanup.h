@@ -270,9 +270,9 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *, const char *, MAPS *, int);
  /*
   * cleanup_masquerade.c
   */
-extern int cleanup_masquerade_external(VSTRING *, ARGV *);
-extern int cleanup_masquerade_internal(VSTRING *, ARGV *);
-extern int cleanup_masquerade_tree(TOK822 *, ARGV *);
+extern int cleanup_masquerade_external(CLEANUP_STATE *, VSTRING *, ARGV *);
+extern int cleanup_masquerade_internal(CLEANUP_STATE *, VSTRING *, ARGV *);
+extern int cleanup_masquerade_tree(CLEANUP_STATE *, TOK822 *, ARGV *);
 
  /*
   * cleanup_recipient.c

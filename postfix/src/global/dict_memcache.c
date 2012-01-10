@@ -463,10 +463,11 @@ static int dict_memcache_sequence(DICT *dict, int function, const char **key,
 	DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
     } else {
 	seq_res = backup->sequence(backup, function, key, value);
-	msg_info("%s: %s: key \"%s\" => %s",
-		 myname, dict_mc->dict.name, *key ? *key : "(not found)",
-		 *value ? *value : backup->error ? "(backup error)" :
-		 "(not found)");
+	if (msg_verbose)
+	    msg_info("%s: %s: key \"%s\" => %s",
+		     myname, dict_mc->dict.name, *key ? *key : "(not found)",
+		     *value ? *value : backup->error ? "(backup error)" :
+		     "(not found)");
 	DICT_ERR_VAL_RETURN(dict, backup->error, seq_res);
     }
 }

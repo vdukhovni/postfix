@@ -416,7 +416,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 	 */
 	mkmap_append(mkmap, key, value);
 	if (mkmap->dict->error)
-	    msg_fatal("%s:%s: write error: %m",
+	    msg_fatal("table %s:%s: write error: %m",
 		      mkmap->dict->type, mkmap->dict->name);
     }
 
@@ -466,7 +466,7 @@ static void postmap_body(void *ptr, int unused_rec_type,
 	    break;
 	}
 	if (dicts[n]->error)
-	    msg_fatal("%s:%s: query error: %m",
+	    msg_fatal("table %s:%s: query error: %m",
 		      dicts[n]->type, dicts[n]->name);
     }
 }
@@ -546,7 +546,7 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 		    break;
 		}
 		if (dicts[n]->error)
-		    msg_fatal("%s:%s: query error: %m",
+		    msg_fatal("table %s:%s: query error: %m",
 			      dicts[n]->type, dicts[n]->name);
 	    }
 	}
@@ -630,7 +630,7 @@ static int postmap_query(const char *map_type, const char *map_name,
 	vstream_printf("%s\n", value);
     }
     if (dict->error)
-	msg_fatal("%s:%s: query error: %m", dict->type, dict->name);
+	msg_fatal("table %s:%s: query error: %m", dict->type, dict->name);
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
     return (value != 0);
@@ -676,7 +676,7 @@ static int postmap_deletes(VSTREAM *in, char **maps, const int map_count,
 	for (n = 0; n < map_count; n++) {
 	    found |= (dict_del(dicts[n], STR(keybuf)) == 0);
 	    if (dicts[n]->error)
-		msg_fatal("%s:%s: delete error: %m",
+		msg_fatal("table %s:%s: delete error: %m",
 			  dicts[n]->type, dicts[n]->name);
 	}
     }
@@ -709,7 +709,7 @@ static int postmap_delete(const char *map_type, const char *map_name,
     dict = dict_open3(map_type, map_name, open_flags, dict_flags);
     status = dict_del(dict, key);
     if (dict->error)
-	msg_fatal("%s:%s: delete error: %m", dict->type, dict->name);
+	msg_fatal("table %s:%s: delete error: %m", dict->type, dict->name);
     dict_close(dict);
     return (status == 0);
 }
@@ -742,7 +742,7 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	vstream_printf("%s	%s\n", key, value);
     }
     if (dict->error)
-	msg_fatal("%s:%s: sequence error: %m", dict->type, dict->name);
+	msg_fatal("table %s:%s: sequence error: %m", dict->type, dict->name);
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
 }

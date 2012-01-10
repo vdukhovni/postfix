@@ -4,6 +4,9 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	In daemons, open surrogate map when real map is unavailable,
+	effectively redirecting to fail:.
+
 	Things to do after the stable release:
 
 	Before proxymap can be exposed to the network to share,

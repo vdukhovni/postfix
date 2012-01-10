@@ -391,6 +391,11 @@ static int cleanup_milter_header_checks(CLEANUP_STATE *state, VSTRING *buf)
 			    buf, (off_t) 0);
     if (ret == 0) {
 	return (0);
+    } else if (ret == HBC_CHECKS_STAT_ERROR) {
+	msg_warn("%s: %s lookup error -- deferring delivery",
+		 state->queue_id, VAR_MILT_HEAD_CHECKS);
+	state->errs |= CLEANUP_STAT_WRITE;
+	return (0);
     } else {
 	if (ret != STR(buf)) {
 	    vstring_strcpy(buf, ret);

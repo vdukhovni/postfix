@@ -17499,3 +17499,15 @@ Apologies for any names omitted.
 	operation, to avoid logging large numbers of warnings about
 	a problem with low-value information. File: util/msg_rate_delay.c,
 	util/dict_cache.c.
+
+20120110
+
+	Cleanup: added logging for failed table lookups and replaced
+	some "fatal" errors by warnings. Files: cleanup/cleanup_addr.c,
+	cleanup/cleanup_message.c, cleanup/cleanup_milter.c,
+	cleanup/cleanup_masquerade.c, global/header_body_checks.c,
+	global/smtp_stream.c, postscreen/postscreen_dnsbl.c,
+	postscreen/postscreen_smtpd.c, smtp/smtp_chat.c,
+	smtp/smtp_proto.c, smtp/smtp_sasl_auth_cache.c,
+	smtp/smtp_sasl_glue.c, smtp/smtp_session.c, smtp/smtp_trouble.c,
+	smtpd/smtpd.c, smtpd/smtpd_check.c.

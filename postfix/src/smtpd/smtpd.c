@@ -4429,6 +4429,16 @@ static void smtpd_proto(SMTPD_STATE *state)
     case SMTP_ERR_QUIET:
 	break;
 
+    case SMTP_ERR_APPL:
+	msg_info("%s: reject: %s from %s: "
+		 "421 4.3.0 %s Server configuration error",
+		 (state->queue_id ? state->queue_id : "NOQUEUE"),
+		 state->where, state->namaddr, var_myhostname);
+	if (vstream_setjmp(state->client) == 0)
+	    smtpd_chat_reply(state, "421 4.3.0 %s Server configuration error",
+			     var_myhostname);
+	break;
+
     case 0:
 
 	/*
@@ -4519,6 +4529,19 @@ static void smtpd_proto(SMTPD_STATE *state)
 		break;
 	    }
 	}
+
+	/*
+	 * Determine what server ESMTP features to suppress, typically to
+	 * avoid inter-operability problems. Moved up so we don't send 421
+	 * immediately after sending the initial server response.
+	 */
+	if (ehlo_discard_maps == 0
+	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
+	    ehlo_words = var_smtpd_ehlo_dis_words;
+	if (ehlo_discard_maps && ehlo_discard_maps->error)
+	    vstream_longjmp(state->client, SMTP_ERR_APPL);
+	state->ehlo_discard_mask = ehlo_mask(ehlo_words);
+
 	/* XXX We use the real client for connect access control. */
 	if (SMTPD_STAND_ALONE(state) == 0
 	    && var_smtpd_delay_reject == 0
@@ -4565,48 +4588,10 @@ static void smtpd_proto(SMTPD_STATE *state)
 		smtpd_chat_reply(state, "421 %s Service unavailable - try again later",
 				 var_myhostname);
 		/* Not: state->error_count++; */
-#ifdef notdef
-	    } else if (strcmp(state->name, "unknown") == 0) {
-		static char *greet_chunks[] = {
-		    "220 ", 0, " ESMTP ", 0, 0,
-		};
-		char  **cpp;
-		char   *cp;
-
-		greet_chunks[1] = var_myhostname;
-		greet_chunks[3] = var_mail_name;
-		for (cpp = greet_chunks; *cpp; cpp++) {
-		    for (cp = *cpp; *cp; cp++)
-			smtp_fputc(*(unsigned char *) cp, state->client);
-		    smtp_flush(state->client);
-		    if (read_wait(vstream_fileno(state->client), 2) == 0) {
-			smtpd_chat_query(state);
-			msg_info("PREGREET from %s: %s",
-				 state->namaddr, vstring_str(state->buffer));
-			state->error_mask |= MAIL_ERROR_POLICY;
-			smtpd_chat_reply(state,
-				   "521 %s ESMTP not accepting connections",
-					 var_myhostname);
-			/* Not: state->error_count++; */
-			break;
-		    }
-		}
-		smtp_fputs("", 0, state->client);
-		smtp_flush(state->client);
-#endif
 	    } else {
 		smtpd_chat_reply(state, "220 %s", var_smtpd_banner);
 	    }
 	}
-
-	/*
-	 * Determine what server ESMTP features to suppress, typically to
-	 * avoid inter-operability problems.
-	 */
-	if (ehlo_discard_maps == 0
-	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
-	    ehlo_words = var_smtpd_ehlo_dis_words;
-	state->ehlo_discard_mask = ehlo_mask(ehlo_words);
 
 	/*
 	 * SASL initialization for plaintext mode.
@@ -4650,7 +4635,10 @@ static void smtpd_proto(SMTPD_STATE *state)
 			     state->namaddr, STR(state->buffer), cp);
 		    vstring_strcpy(state->buffer, cp);
 		} else if (smtpd_cmd_filter->error != 0) {
-		    /* XXX log something, even if regexps don't soft-fail. */
+		    msg_warn("%s:%s lookup error for \"%.100s\"",
+			     smtpd_cmd_filter->type, smtpd_cmd_filter->name,
+			     printable(STR(state->buffer), '?'));
+		    vstream_longjmp(state->client, SMTP_ERR_APPL);
 		}
 	    }
 	    if ((argc = smtpd_token(vstring_str(state->buffer), &argv)) == 0) {

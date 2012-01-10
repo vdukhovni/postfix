@@ -96,6 +96,7 @@ cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
 	./cleanup_masquerade '' !a.b.c,b.c xxx@a.b.c      >>cleanup_masq.tmp
 	./cleanup_masquerade '' a.b.c,b.c xxx@aaa.b.c     >>cleanup_masq.tmp
 	./cleanup_masquerade '' a.b.c,b.c xxx@b.c         >>cleanup_masq.tmp
+	./cleanup_masquerade 'fail:whatever' xy xxx@b.c   >>cleanup_masq.tmp
 	diff cleanup_masq.ref cleanup_masq.tmp
 	rm -f cleanup_masq.tmp
 

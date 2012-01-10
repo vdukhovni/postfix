@@ -77,13 +77,14 @@
 /*	not be called.
 /*
 /*	hbc_header_checks() inspects the specified logical header.
-/*	The result is either the original header, HBC_CHECK_STAT_IGNORE
-/*	(meaning: discard the header) or a new header (meaning:
-/*	replace the header and destroy the new header with myfree()).
+/*	The result is either the original header, HBC_CHECKS_STAT_IGNORE
+/*	(meaning: discard the header), HBC_CHECKS_STAT_ERROR, or a
+/*	new header (meaning: replace the header and destroy the new
+/*	header with myfree()).
 /*
 /*	hbc_header_checks_free() returns memory to the pool.
 /*
-/*	hbc_body_checks_create(), dbhc_body_checks(), dbhc_body_free()
+/*	hbc_body_checks_create(), hbc_body_checks(), hbc_body_free()
 /*	perform similar functions for body lines.
 /*
 /*	Arguments:
@@ -184,6 +185,7 @@
   * Something that is guaranteed to be different from a real string result
   * from header/body_checks.
   */
+char hbc_checks_error;
 const char hbc_checks_unknown;
 
  /*
@@ -318,6 +320,8 @@ char   *hbc_header_checks(void *context, HBC_CHECKS *hbc, int header_class,
 	return (hbc_action(context, hbc->call_backs,
 			   mp->map_class, HBC_CTXT_HEADER, action,
 			   STR(header), LEN(header), offset));
+    } else if (mp->maps && mp->maps->error) {
+	return (HBC_CHECKS_STAT_ERROR);
     } else {
 	return (STR(header));
     }
@@ -341,6 +345,8 @@ char   *hbc_body_checks(void *context, HBC_CHECKS *hbc, const char *line,
 	return (hbc_action(context, hbc->call_backs,
 			   mp->map_class, HBC_CTXT_BODY, action,
 			   line, len, offset));
+    } else if (mp->maps->error) {
+	return (HBC_CHECKS_STAT_ERROR);
     } else {
 	return ((char *) line);
     }

@@ -126,6 +126,7 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
     maps = (MAPS *) mymalloc(sizeof(*maps));
     maps->title = mystrdup(title);
     maps->argv = argv_alloc(2);
+    maps->error = 0;
 
     /*
      * For each specified type:name pair, either register a new dictionary,
@@ -195,7 +196,8 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
 			 *map_name, name, expansion);
 	    return (expansion);
 	} else if ((maps->error = dict->error) != 0) {
-	    msg_warn("%s:%s lookup of %s failed", dict->type, dict->name, name);
+	    msg_warn("%s:%s lookup error for \"%.100s\"",
+		     dict->type, dict->name, name);
 	    break;
 	}
     }

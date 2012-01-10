@@ -172,6 +172,7 @@ MATCH_LIST *match_list_init(int flags, const char *patterns, int match_count,...
     for (i = 0; i < match_count; i++)
 	list->match_func[i] = va_arg(ap, MATCH_LIST_FN);
     va_end(ap);
+    list->error = 0;
 
 #define DO_MATCH	1
 

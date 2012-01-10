@@ -3026,6 +3026,8 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
      */
     if (*var_rbl_reply_maps) {
 	template = maps_find(rbl_reply_maps, rbl_domain, DICT_FLAG_NONE);
+	if (rbl_reply_maps->error)
+	    reject_server_error(state);
     }
     why = vstring_alloc(100);
     rbl_exp.state = state;

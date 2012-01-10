@@ -72,6 +72,7 @@
 #include <mail_addr.h>
 #include <sent.h>
 #include <deliver_pass.h>
+#include <defer.h>
 
 /* Application-specific. */
 

@@ -165,7 +165,7 @@ void    smtp_chat_reset(SMTP_SESSION *session)
 /* smtp_chat_append - append record to SMTP transaction log */
 
 static void smtp_chat_append(SMTP_SESSION *session, const char *direction,
-			     const char *data)
+			             const char *data)
 {
     char   *line;
 
@@ -301,7 +301,12 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 		    smtp_chat_append(session, "     ", new_reply);
 		}
 	    } else if (smtp_chat_resp_filter->error != 0) {
-		/* XXX log something, even if regexps don't soft-fail. */
+		msg_warn("%s: table %s:%s lookup error for %s",
+			 session->state->request->queue_id,
+			 smtp_chat_resp_filter->type,
+			 smtp_chat_resp_filter->name,
+			 printable(STR(session->buffer), '?'));
+		vstream_longjmp(session->stream, SMTP_ERR_APPL);
 	    }
 	}
 	if (chat_append_flag) {

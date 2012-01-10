@@ -14,6 +14,43 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
+Major changes with snapshot 20111208
+====================================
+
+The LDAP, *SQL and memcache clients now "catch" table lookup errors
+in the "domain" feature, instead of terminating with a fatal error.
+
+Major changes with snapshot 20111202
+====================================
+
+Degrade gracefully when some or all network protocols specified
+with inet_protocols are unavailable, instead of terminating with a
+fatal error. This eliminates build errors on non-standard systems
+where opening an IPv4 socket results in an error, and on non-standard
+systems where opening an IPv6 socket results in an error. In the
+worst case, the master daemon will log a message that it disables
+all type "inet" services. This will still allow local submission
+and local delivery.
+
+Major changes with snapshot 20111222
+====================================
+
+The Postfix SMTP server now "catches" errors with database lookups
+in mynetworks, TLS client certificate tables, debug_peer_list,
+smtpd_client_event_limit_exceptions, permit_mx_backup_networks and
+local_header_rewrite_clients, and reports "server configuration
+error" or "table lookup error" instead of terminating with a fatal
+error.
+
+Major changes with snapshot 20111229
+====================================
+
+The trivial-rewrite server now "catches" errors with database lookups
+in virtual_alias_domains, relay_domains, virtual_mailbox_domains,
+instead of terminating with a fatal error.  This means fewer occasions
+where trivial-rewrite clients (such as the SMTP server) will appear
+to hang.
+
 Incompatible changes with snapshot 20111218
 ===========================================
 
@@ -26,7 +63,7 @@ Major changes with snapshot 20111218
 
 Support for external SASL authentication via the XCLIENT command.
 This is used to accept SASL authentication from an SMTP proxy such
-as nginx. This support works even without having to specify
+as NGINX. This support works even without having to specify
 "smtpd_sasl_auth_enable = yes" in main.cf.
 
 Major changes with snapshot 20111213

@@ -261,6 +261,9 @@ static void psc_dnsbl_add_site(const char *site)
 	if (psc_dnsbl_reply == 0
 	 || (head->safe_dnsbl = dict_get(psc_dnsbl_reply, saved_site)) == 0)
 	    head->safe_dnsbl = ht->key;
+	if (psc_dnsbl_reply && psc_dnsbl_reply->error)
+	    msg_fatal("%s:%s lookup error", psc_dnsbl_reply->type,
+		      psc_dnsbl_reply->name);
 	head->first = 0;
     }
 

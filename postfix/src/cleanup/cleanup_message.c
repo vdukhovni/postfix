@@ -169,7 +169,7 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state,
 	    if (cleanup_masq_domains
 		&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_FROM))
 		did_rewrite |=
-		    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
+		    cleanup_masquerade_tree(state, *tpp, cleanup_masq_domains);
 	}
     }
     if (did_rewrite) {
@@ -226,7 +226,7 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state,
 	    if (cleanup_masq_domains
 		&& (cleanup_masq_flags & CLEANUP_MASQ_FLAG_HDR_RCPT))
 		did_rewrite |=
-		    cleanup_masquerade_tree(*tpp, cleanup_masq_domains);
+		    cleanup_masquerade_tree(state, *tpp, cleanup_masq_domains);
 	}
     }
     if (did_rewrite) {
@@ -498,6 +498,10 @@ static void cleanup_header_callback(void *context, int header_class,
 		hdr_opts = header_opts_find(result);
 		myfree((char *) result);
 	    }
+	} else if (checks->error) {
+	    msg_warn("%s: %s map lookup problem -- deferring delivery",
+		     state->queue_id, checks->title);
+	    state->errs |= CLEANUP_STAT_WRITE;
 	}
     }
 
@@ -784,6 +788,10 @@ static void cleanup_body_callback(void *context, int type,
 		myfree((char *) result);
 		return;
 	    }
+	} else if (cleanup_body_checks->error) {
+	    msg_warn("%s: %s map lookup problem -- deferring delivery",
+		     state->queue_id, cleanup_body_checks->title);
+	    state->errs |= CLEANUP_STAT_WRITE;
 	}
     }
     cleanup_out(state, type, buf, len);

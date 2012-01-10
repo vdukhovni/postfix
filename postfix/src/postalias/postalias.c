@@ -381,7 +381,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	 */
 	mkmap_append(mkmap, STR(key_buffer), STR(value_buffer));
 	if (mkmap->dict->error)
-	    msg_fatal("%s:%s: write error: %m",
+	    msg_fatal("table %s:%s: write error: %m",
 		      mkmap->dict->type, mkmap->dict->name);
     }
 
@@ -398,7 +398,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
      */
     mkmap_append(mkmap, "@", "@");
     if (mkmap->dict->error)
-	msg_fatal("%s:%s: write error: %m",
+	msg_fatal("table %s:%s: write error: %m",
 		  mkmap->dict->type, mkmap->dict->name);
 
     /*
@@ -477,7 +477,7 @@ static int postalias_queries(VSTREAM *in, char **maps, const int map_count,
 		break;
 	    }
 	    if (dicts[n]->error)
-		msg_fatal("%s:%s: query error: %m",
+		msg_fatal("table %s:%s: query error: %m",
 			  dicts[n]->type, dicts[n]->name);
 	}
     }
@@ -515,7 +515,7 @@ static int postalias_query(const char *map_type, const char *map_name,
 	vstream_printf("%s\n", value);
     }
     if (dict->error)
-        msg_fatal("%s:%s: query error: %m", dict->type, dict->name);
+	msg_fatal("table %s:%s: query error: %m", dict->type, dict->name);
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
     return (value != 0);
@@ -560,10 +560,10 @@ static int postalias_deletes(VSTREAM *in, char **maps, const int map_count,
     while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
 	for (n = 0; n < map_count; n++) {
 	    found |= (dict_del(dicts[n], STR(keybuf)) == 0);
-            if (dicts[n]->error)
-                msg_fatal("%s:%s: delete error: %m",
-                          dicts[n]->type, dicts[n]->name);
-        }
+	    if (dicts[n]->error)
+		msg_fatal("table %s:%s: delete error: %m",
+			  dicts[n]->type, dicts[n]->name);
+	}
     }
 
     /*
@@ -594,7 +594,7 @@ static int postalias_delete(const char *map_type, const char *map_name,
     dict = dict_open3(map_type, map_name, open_flags, dict_flags);
     status = dict_del(dict, key);
     if (dict->error)
-        msg_fatal("%s:%s: delete error: %m", dict->type, dict->name);
+	msg_fatal("table %s:%s: delete error: %m", dict->type, dict->name);
     dict_close(dict);
     return (status == 0);
 }
@@ -627,7 +627,7 @@ static void postalias_seq(const char *map_type, const char *map_name,
 	vstream_printf("%s:	%s\n", key, value);
     }
     if (dict->error)
-        msg_fatal("%s:%s: sequence error: %m", dict->type, dict->name);
+	msg_fatal("table %s:%s: sequence error: %m", dict->type, dict->name);
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
 }

@@ -45,6 +45,7 @@ typedef struct {
 } HBC_CHECKS;
 
 #define HBC_CHECKS_STAT_IGNORE	((char *) 0)
+#define HBC_CHECKS_STAT_ERROR	(&hbc_checks_error)
 #define HBC_CHECKS_STAT_UNKNOWN	(&hbc_checks_unknown)
 
 extern HBC_CHECKS *hbc_header_checks_create(const char *, const char *,
@@ -65,6 +66,7 @@ extern char *hbc_body_checks(void *, HBC_CHECKS *, const char *, ssize_t, off_t)
   */
 #define HBC_HEADER_SIZE	(MIME_HDR_LAST - MIME_HDR_FIRST + 1)
 extern void _hbc_checks_free(HBC_CHECKS *, ssize_t);
+extern char hbc_checks_error;
 extern const char hbc_checks_unknown;
 
 /* LICENSE

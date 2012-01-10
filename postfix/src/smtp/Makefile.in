@@ -465,6 +465,7 @@ smtp_sasl_glue.o: ../../include/name_mask.h
 smtp_sasl_glue.o: ../../include/recipient_list.h
 smtp_sasl_glue.o: ../../include/resolve_clnt.h
 smtp_sasl_glue.o: ../../include/scache.h
+smtp_sasl_glue.o: ../../include/smtp_stream.h
 smtp_sasl_glue.o: ../../include/split_at.h
 smtp_sasl_glue.o: ../../include/string_list.h
 smtp_sasl_glue.o: ../../include/stringops.h
@@ -533,6 +534,7 @@ smtp_session.o: ../../include/name_mask.h
 smtp_session.o: ../../include/recipient_list.h
 smtp_session.o: ../../include/resolve_clnt.h
 smtp_session.o: ../../include/scache.h
+smtp_session.o: ../../include/smtp_stream.h
 smtp_session.o: ../../include/string_list.h
 smtp_session.o: ../../include/stringops.h
 smtp_session.o: ../../include/sys_defs.h

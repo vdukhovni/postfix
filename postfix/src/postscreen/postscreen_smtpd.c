@@ -365,6 +365,9 @@ static int psc_ehlo_cmd(PSC_STATE *state, char *args)
 	psc_smtpd_format_ehlo_reply(psc_temp, discard_mask);
 	reply = STR(psc_temp);
 	state->ehlo_discard_mask = discard_mask;
+    } else if (psc_ehlo_discard_maps && psc_ehlo_discard_maps->error) {
+	msg_fatal("%s lookup error for %s",
+		  psc_ehlo_discard_maps->title, state->smtp_client_addr);
     } else if (state->flags & PSC_STATE_FLAG_USING_TLS) {
 	reply = psc_smtpd_ehlo_reply_tls;
 	state->ehlo_discard_mask = psc_ehlo_discard_mask | EHLO_MASK_STARTTLS;
@@ -875,7 +878,8 @@ static void psc_smtpd_read_event(int event, char *context)
 			 STR(state->cmd_buffer), cp);
 		vstring_strcpy(state->cmd_buffer, cp);
 	    } else if (psc_cmd_filter->error != 0) {
-		/* XXX log something, even if regexps don't soft-fail. */
+		msg_fatal("%s:%s lookup error for \"%.100s\"",
+			  psc_cmd_filter->type, psc_cmd_filter->name, cp);
 	    }
 	}
 

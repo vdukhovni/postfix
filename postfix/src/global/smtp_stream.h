@@ -31,6 +31,7 @@
 #define SMTP_ERR_TIME	2		/* time out */
 #define SMTP_ERR_QUIET	3		/* silent cleanup (application) */
 #define SMTP_ERR_NONE	4		/* non-error case */
+#define SMTP_ERR_APPL	5		/* application error - can't proceed */
 
 extern void smtp_stream_setup(VSTREAM *, int, int);
 extern void PRINTFLIKE(2, 3) smtp_printf(VSTREAM *, const char *,...);

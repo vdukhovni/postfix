@@ -196,8 +196,8 @@ static char *smtp_sasl_auth_cache_make_value(const char *password,
 /* smtp_sasl_auth_cache_valid_value - validate auth failure cache value */
 
 static int smtp_sasl_auth_cache_valid_value(SMTP_SASL_AUTH_CACHE *auth_cache,
-				              const char *entry,
-				              const char *password)
+					            const char *entry,
+					            const char *password)
 {
     ssize_t len = strlen(entry);
     char   *cache_hash = mymalloc(len);
@@ -242,6 +242,9 @@ int     smtp_sasl_auth_cache_find(SMTP_SASL_AUTH_CACHE *auth_cache,
 	    if (dict_del(auth_cache->dict, key) != 0)
 		msg_warn("SASL auth failure map %s: entry not deleted: %s",
 			 auth_cache->dict->name, key);
+    if (auth_cache->dict->error)
+	msg_warn("SASL auth failure map %s: lookup failed for %s",
+		 auth_cache->dict->name, key);
     myfree(key);
     return (valid);
 }
