@@ -187,7 +187,8 @@ void    mail_conf_suck(void)
 	&& geteuid() != 0)			/* untrusted */
 	mail_conf_checkdir(var_config_dir);
     path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
-    dict_load_file(CONFIG_DICT, path);
+    if (dict_load_file_xt(CONFIG_DICT, path) == 0)
+	msg_fatal("open %s: %m", path);
     myfree(path);
 }
 

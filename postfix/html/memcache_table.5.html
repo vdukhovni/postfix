@@ -162,12 +162,13 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
        <b>domain (default: no domain list)</b>
               This  feature  can  significantly  reduce  database
               server load.  Specify a list of domain names, paths
-              to files, or dictionaries.   When  specified,  only
-              fully  qualified  search  keys  with  a *non-empty*
-              localpart and a matching domain  are  eligible  for
-              lookup  or update: bare 'user' lookups, bare domain
-              lookups and "@domain" lookups are silently  skipped
-              (updates are skipped with a warning).  Example:
+              to files, or "<a href="DATABASE_README.html">type:table</a>" databases.   When  speci-
+              fied, only fully qualified search keys with a *non-
+              empty* localpart and a matching domain are eligible
+              for  lookup  or  update:  bare 'user' lookups, bare
+              domain lookups and "@domain" lookups  are  silently
+              skipped  (updates  are  skipped  with  a  warning).
+              Example:
 
                   domain = example.com, hash:/etc/postfix/searchdomains
 
@@ -179,31 +180,31 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               The maximal memcache reply line length in bytes.
 
        <b>max_try (default: 2)</b>
-              The  number  of  times  to  try  a memcache command
+              The number of  times  to  try  a  memcache  command
               before giving up.
 
        <b>retry_pause (default: 1)</b>
-              The time in seconds to wait after a  memcache  com-
+              The  time  in seconds to wait after a memcache com-
               mand fails.
 
        <b>timeout (default: 2)</b>
-              The  time  limit for sending a memcache command and
+              The time limit for sending a memcache  command  and
               for receiving a memcache reply.
 
 <b>BUGS</b>
-       The Postfix memcache client cannot be used  for  security-
-       sensitive  tables  such  as  <b><a href="postconf.5.html#alias_maps">alias_maps</a></b> (these may contain
-       "<i>|command</i>  and   "<i>/file/name</i>"   destinations),   or   <b><a href="postconf.5.html#virtual_uid_maps">vir</a>-</b>
-       <b><a href="postconf.5.html#virtual_uid_maps">tual_uid_maps</a></b>,  <b><a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a></b>  and <b><a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a></b>
-       (these specify UNIX  process  privileges  or  "<i>/file/name</i>"
-       destinations).   In  a typical deployment a memcache data-
-       base is writable by any process that can talk to the  mem-
-       cache  server; in contrast, security-sensitive tables must
+       The  Postfix  memcache client cannot be used for security-
+       sensitive tables such as  <b><a href="postconf.5.html#alias_maps">alias_maps</a></b>  (these  may  contain
+       "<i>|command</i>   and   "<i>/file/name</i>"   destinations),   or  <b><a href="postconf.5.html#virtual_uid_maps">vir</a>-</b>
+       <b><a href="postconf.5.html#virtual_uid_maps">tual_uid_maps</a></b>, <b><a href="postconf.5.html#virtual_gid_maps">virtual_gid_maps</a></b>  and  <b><a href="postconf.5.html#virtual_mailbox_maps">virtual_mailbox_maps</a></b>
+       (these  specify  UNIX  process  privileges or "<i>/file/name</i>"
+       destinations).  In a typical deployment a  memcache  data-
+       base  is writable by any process that can talk to the mem-
+       cache server; in contrast, security-sensitive tables  must
        not be writable by the unprivileged Postfix user.
 
        The Postfix memcache client requires additional configura-
-       tion  when  used as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache.  For
-       details see the <b>backup</b> and <b>ttl</b>  parameter  discussions  in
+       tion when used as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a>  cache.   For
+       details  see  the  <b>backup</b> and <b>ttl</b> parameter discussions in
        the MEMCACHE MAIN PARAMETERS section above.
 
 <b>SEE ALSO</b>
@@ -215,13 +216,13 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
        <a href="MEMCACHE_README.html">MEMCACHE_README</a>, Postfix memcache client guide
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>HISTORY</b>
-       The  first memcache client for Postfix was written by Omar
-       Kilani, and was based on libmemcache.  The Postfix  imple-
-       mentation  does  not  use libmemcache, and bears no resem-
+       The first memcache client for Postfix was written by  Omar
+       Kilani,  and was based on libmemcache.  The Postfix imple-
+       mentation does not use libmemcache, and  bears  no  resem-
        blance to earlier work.
 
 <b>AUTHOR(S)</b>

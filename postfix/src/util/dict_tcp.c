@@ -290,11 +290,13 @@ DICT   *dict_tcp_open(const char *map, int open_flags, int dict_flags)
      * Sanity checks.
      */
     if (dict_flags & DICT_FLAG_NO_UNAUTH)
-	msg_fatal("%s:%s map is not allowed for security sensitive data",
-		  DICT_TYPE_TCP, map);
+	return (dict_surrogate(DICT_TYPE_TCP, map, open_flags, dict_flags,
+		     "%s:%s map is not allowed for security sensitive data",
+			       DICT_TYPE_TCP, map));
     if (open_flags != O_RDONLY)
-	msg_fatal("%s:%s map requires O_RDONLY access mode",
-		  DICT_TYPE_TCP, map);
+	return (dict_surrogate(DICT_TYPE_TCP, map, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_TCP, map));
 
     /*
      * Create the dictionary handle. Do not open the connection until the

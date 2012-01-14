@@ -1103,7 +1103,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * Session cache domain list.
      */
     if (*var_smtp_cache_dest)
-	smtp_cache_dest = string_list_init(MATCH_FLAG_NONE, var_smtp_cache_dest);
+	smtp_cache_dest = string_list_init(MATCH_FLAG_RETURN, var_smtp_cache_dest);
 
     /*
      * EHLO keyword filter.

@@ -595,6 +595,12 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     mail_dict_init();
 
     /*
+     * After database open error, continue execution with reduced
+     * functionality.
+     */
+    dict_allow_surrogate = 1;
+
+    /*
      * Pick up policy settings from master process. Shut up error messages to
      * stderr, because no-one is going to see them.
      */

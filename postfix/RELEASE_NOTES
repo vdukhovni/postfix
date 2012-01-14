@@ -14,16 +14,57 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.7 or earlier, read RELEASE_NOTES-2.8
 before proceeding.
 
-Major changes with snapshot 20111208
+Incompatible changes with snapshot 20120114
+===========================================
+
+Instead of terminating immediately with a "fatal" message when a
+database file can't be opened, a Postfix daemon program now logs
+an "error" message, and continues execution with reduced functionality.
+
+Specify "daemon_table_open_error_is_fatal = yes" to get the
+historical behavior (immediate termination with "fatal" message).
+
+Logfile-based alerting systems may need to be updated to look for
+"error" messages in addition to "fatal" messages.  
+
+By default the Postfix SMTP server no longer reports transcripts
+of sessions where a client command is rejected because a table is
+unavailable.  To receive such reports, add the new "data" class to
+the notify_classes parameter value. The reports will be sent to the
+error_notice_recipient address as before. This class is also used
+by the Postfix SMTP client to report about sessions that fail because
+a table is unavailable
+
+Major changes with snapshot 20120114
+====================================
+
+Gradual degradation after database file open error.  Instead of
+terminating immediately with a "fatal" message, a Postfix daemon
+program logs an "error" message, and continues execution with reduced
+functionality.
+
+Features that don't depend on the unavailable table will keep
+working; features that depend on the table will fail, and will be
+logged with a "warning" message. For the sake of sanity, the number
+of "error"s over the life of a process is limited to 13.
+
+Specify "daemon_table_open_error_is_fatal = yes" to get the
+historical behavior (immediate termination with "fatal" message).
+
+When the notify_classes parameter contains the new "data" class,
+the Postfix SMTP client and server will report transcripts of
+sessions with errors because a table is unavailable.
+
+Major changes with snapshot 20120108
 ====================================
 
 The LDAP, *SQL and memcache clients now "catch" table lookup errors
 in the "domain" feature, instead of terminating with a fatal error.
 
-Major changes with snapshot 20111202
+Major changes with snapshot 20120102
 ====================================
 
-Degrade gracefully when some or all network protocols specified
+Degrade gradually when some or all network protocols specified
 with inet_protocols are unavailable, instead of terminating with a
 fatal error. This eliminates build errors on non-standard systems
 where opening an IPv4 socket results in an error, and on non-standard

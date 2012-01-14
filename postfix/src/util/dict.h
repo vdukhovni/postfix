@@ -96,7 +96,8 @@ extern DICT *dict_debug(DICT *);
   * map implementation itself upon open, lookup etc. requests.
   * 
   * DICT_FLAG_RQST_MASK - all requestor flags, including paranoid flags, that
-  * the requestor may change between open, lookup etc. requests.
+  * the requestor may change between open, lookup etc. requests. These
+  * specify requestor properties, not map properties.
   * 
   * DICT_FLAG_INST_MASK - none of the above flags. The requestor may not change
   * these flags between open, lookup, etc. requests (although a map may make
@@ -154,7 +155,7 @@ extern int dict_update(const char *, const char *, const char *);
 extern const char *dict_lookup(const char *, const char *);
 extern int dict_delete(const char *, const char *);
 extern int dict_sequence(const char *, const int, const char **, const char **);
-extern void dict_load_file(const char *, const char *);
+extern int dict_load_file_xt(const char *, const char *);
 extern void dict_load_fp(const char *, VSTREAM *);
 extern const char *dict_eval(const char *, const char *, int);
 extern int dict_error(const char *);
@@ -181,6 +182,18 @@ extern const char *dict_flags_str(int);
   * Driver for interactive or scripted tests.
   */
 void    dict_test(int, char **);
+
+ /*
+  * Behind-the-scenes support to continue execution with reduced
+  * functionality.
+  */
+extern int dict_allow_surrogate;
+extern DICT *dict_surrogate(const char *, const char *, int, int, const char *,...);
+
+ /*
+  * This name is reserved for matchlist error handling.
+  */
+#define DICT_TYPE_NOFILE	"non-existent"
 
 /* LICENSE
 /* .ad

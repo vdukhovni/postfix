@@ -1606,7 +1606,7 @@ static void dict_ldap_close(DICT *dict)
 
 /* dict_ldap_open - create association with data base */
 
-DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
+DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
 {
     const char *myname = "dict_ldap_open";
     DICT_LDAP *dict_ldap;
@@ -1619,9 +1619,25 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     char   *bindopt;
     int     tmp;
     int     vendor_version = dict_ldap_vendor_version();
+    CFG_PARSER *parser;
 
     if (msg_verbose)
 	msg_info("%s: Using LDAP source %s", myname, ldapsource);
+
+    /*
+     * Sanity check.
+     */
+    if (open_flags != O_RDONLY)
+	return (dict_surrogate(DICT_TYPE_LDAP, ldapsource, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_LDAP, ldapsource));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((parser = cfg_parser_alloc(ldapsource)) == 0)
+	return (dict_surrogate(DICT_TYPE_LDAP, ldapsource, open_flags, dict_flags,
+			       "open %s: %m", ldapsource));
 
     dict_ldap = (DICT_LDAP *) dict_alloc(DICT_TYPE_LDAP, ldapsource,
 					 sizeof(*dict_ldap));
@@ -1630,7 +1646,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int dummy, int dict_flags)
     dict_ldap->dict.flags = dict_flags;
 
     dict_ldap->ld = NULL;
-    dict_ldap->parser = cfg_parser_alloc(ldapsource);
+    dict_ldap->parser = parser;
 
     server_host = cfg_get_str(dict_ldap->parser, "server_host",
 			      "localhost", 1, 0);

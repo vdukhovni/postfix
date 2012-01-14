@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <dict_fail.h>
 /*
-/*	DICT	*dict_fail_open(name, name, dict_flags)
+/*	DICT	*dict_fail_open(name, open_flags, dict_flags)
 /*	const char *name;
-/*	int	dummy;
+/*	int	open_flags;
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_fail_open() implements a dummy dictionary that fails

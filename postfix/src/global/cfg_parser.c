@@ -40,7 +40,8 @@
 /*	\fBvalue\fR" in main.cf (the old LDAP style).  It unifies the
 /*	two styles and provides support for range checking.
 /*
-/*	\fIcfg_parser_alloc\fR initializes the parser.
+/*	\fIcfg_parser_alloc\fR initializes the parser. The result
+/*	is NULL if a configuration file could not be opened.
 /*
 /*	\fIcfg_parser_free\fR releases the parser.
 /*
@@ -234,7 +235,11 @@ CFG_PARSER *cfg_parser_alloc(const char *pname)
     parser = (CFG_PARSER *) mymalloc(sizeof(*parser));
     parser->name = mystrdup(pname);
     if (*parser->name == '/' || *parser->name == '.') {
-	dict_load_file(parser->name, parser->name);
+	if (dict_load_file_xt(parser->name, parser->name) == 0) {
+	    myfree(parser->name);
+	    myfree((char *) parser);
+	    return (0);
+	}
 	parser->get_str = get_dict_str;
 	parser->get_int = get_dict_int;
 	parser->get_bool = get_dict_bool;

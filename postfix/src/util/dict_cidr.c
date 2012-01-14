@@ -176,8 +176,18 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
      * Sanity checks.
      */
     if (open_flags != O_RDONLY)
-	msg_fatal("%s:%s map requires O_RDONLY access mode",
-		  DICT_TYPE_CIDR, mapname);
+	return (dict_surrogate(DICT_TYPE_CIDR, mapname, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_CIDR, mapname));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
+	return (dict_surrogate(DICT_TYPE_CIDR, mapname, open_flags, dict_flags,
+			       "open %s: %m", mapname));
+    if (fstat(vstream_fileno(map_fp), &st) < 0)
+	msg_fatal("fstat %s: %m", mapname);
 
     /*
      * XXX Eliminate unnecessary queries by setting a flag that says "this
@@ -190,10 +200,6 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
     dict_cidr->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dict_cidr->head = 0;
 
-    if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
-	msg_fatal("open %s: %m", mapname);
-    if (fstat(vstream_fileno(map_fp), &st) < 0)
-	msg_fatal("fstat %s: %m", mapname);
     dict_cidr->dict.owner.uid = st.st_uid;
     dict_cidr->dict.owner.status = (st.st_uid != 0);
 

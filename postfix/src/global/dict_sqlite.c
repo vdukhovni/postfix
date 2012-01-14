@@ -268,7 +268,6 @@ static void sqlite_parse_config(DICT_SQLITE *dict_sqlite, const char *sqlitecf)
      * query interface if necessary. This simplifies migration from one SQL
      * database type to another.
      */
-    dict_sqlite->parser = cfg_parser_alloc(sqlitecf);
     dict_sqlite->dbpath = cfg_get_str(dict_sqlite->parser, "dbpath", "", 1, 0);
     dict_sqlite->query = cfg_get_str(dict_sqlite->parser, "query", NULL, 0, 0);
     if (dict_sqlite->query == 0) {
@@ -305,13 +304,22 @@ static void sqlite_parse_config(DICT_SQLITE *dict_sqlite, const char *sqlitecf)
 DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_SQLITE *dict_sqlite;
+    CFG_PARSER *parser;
 
     /*
      * Sanity checks.
      */
     if (open_flags != O_RDONLY)
-	msg_fatal("%s:%s map requires O_RDONLY access mode",
-		  DICT_TYPE_SQLITE, name);
+	return (dict_surrogate(DICT_TYPE_SQLITE, name, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_SQLITE, name));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((parser = cfg_parser_alloc(name)) == 0)
+	return (dict_surrogate(DICT_TYPE_SQLITE, name, open_flags, dict_flags,
+			       "open %s: %m", name));
 
     dict_sqlite = (DICT_SQLITE *) dict_alloc(DICT_TYPE_SQLITE, name,
 					     sizeof(DICT_SQLITE));
@@ -319,6 +327,7 @@ DICT   *dict_sqlite_open(const char *name, int open_flags, int dict_flags)
     dict_sqlite->dict.close = dict_sqlite_close;
     dict_sqlite->dict.flags = dict_flags;
 
+    dict_sqlite->parser = parser;
     sqlite_parse_config(dict_sqlite, name);
 
     if (sqlite3_open(dict_sqlite->dbpath, &dict_sqlite->db))

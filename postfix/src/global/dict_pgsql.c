@@ -680,12 +680,11 @@ static void plpgsql_down_host(HOST *host)
 static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 {
     const char *myname = "pgsql_parse_config";
-    CFG_PARSER *p;
+    CFG_PARSER *p = dict_pgsql->parser;
     char   *hosts;
     VSTRING *query;
     char   *select_function;
 
-    p = dict_pgsql->parser = cfg_parser_alloc(pgsqlcf);
     dict_pgsql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_pgsql->password = cfg_get_str(p, "password", "", 0, 0);
     dict_pgsql->dbname = cfg_get_str(p, "dbname", "", 1, 0);
@@ -752,16 +751,29 @@ static void pgsql_parse_config(DICT_PGSQL *dict_pgsql, const char *pgsqlcf)
 DICT   *dict_pgsql_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_PGSQL *dict_pgsql;
+    CFG_PARSER *parser;
 
+    /*
+     * Sanity check.
+     */
     if (open_flags != O_RDONLY)
-	msg_fatal("%s:%s map requires O_RDONLY access mode",
-		  DICT_TYPE_PGSQL, name);
+	return (dict_surrogate(DICT_TYPE_PGSQL, name, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_PGSQL, name));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((parser = cfg_parser_alloc(name)) == 0)
+	return (dict_surrogate(DICT_TYPE_PGSQL, name, open_flags, dict_flags,
+			       "open %s: %m", name));
 
     dict_pgsql = (DICT_PGSQL *) dict_alloc(DICT_TYPE_PGSQL, name,
 					   sizeof(DICT_PGSQL));
     dict_pgsql->dict.lookup = dict_pgsql_lookup;
     dict_pgsql->dict.close = dict_pgsql_close;
     dict_pgsql->dict.flags = dict_flags;
+    dict_pgsql->parser = parser;
     pgsql_parse_config(dict_pgsql, name);
     dict_pgsql->active_host = 0;
     dict_pgsql->pldb = plpgsql_init(dict_pgsql->hosts);

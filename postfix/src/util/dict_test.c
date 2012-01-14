@@ -77,6 +77,7 @@ void    dict_test(int argc, char **argv)
 	    usage(argv[0]);
     }
     dict_name = argv[optind];
+    dict_allow_surrogate = 1;
     dict = dict_open(dict_name, open_flags, dict_flags);
     dict_register(dict_name, dict);
     while (vstring_fgets_nonl(inbuf, VSTREAM_IN)) {

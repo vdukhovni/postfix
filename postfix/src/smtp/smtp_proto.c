@@ -456,7 +456,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    msg_warn("%s: %s map lookup error for %s",
 		     session->state->request->queue_id,
 		     smtp_ehlo_dis_maps->title, state->session->addr);
-	    vstream_longjmp(session->stream, SMTP_ERR_APPL);
+	    vstream_longjmp(session->stream, SMTP_ERR_DATA);
 	}
 	discard_mask = ehlo_mask(ehlo_words);
 	if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
@@ -996,7 +996,7 @@ static void smtp_header_rewrite(void *context, int header_class,
 	if (result == HBC_CHECKS_STAT_ERROR) {
 	    msg_warn("%s: smtp header checks lookup error",
 		     state->request->queue_id);
-	    vstream_longjmp(state->session->stream, SMTP_ERR_APPL);
+	    vstream_longjmp(state->session->stream, SMTP_ERR_DATA);
 	}
 	if (result != STR(buf)) {
 	    vstring_strcpy(buf, result);
@@ -1098,7 +1098,7 @@ static void smtp_body_rewrite(void *context, int type,
 	} else if (result == HBC_CHECKS_STAT_ERROR) {
 	    msg_warn("%s: smtp body checks lookup error",
 		     state->request->queue_id);
-	    vstream_longjmp(state->session->stream, SMTP_ERR_APPL);
+	    vstream_longjmp(state->session->stream, SMTP_ERR_DATA);
 	} else if (result != 0) {
 	    smtp_text_out(state, type, result, strlen(result), offset);
 	    myfree(result);

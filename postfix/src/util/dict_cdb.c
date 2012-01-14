@@ -184,7 +184,8 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
     cdb_path = concatenate(path, CDB_SUFFIX, (char *) 0);
 
     if ((fd = open(cdb_path, O_RDONLY)) < 0)
-	msg_fatal("open database %s: %m", cdb_path);
+	return (dict_surrogate(DICT_TYPE_CDB, path, O_RDONLY, dict_flags,
+			       "open database %s: %m", cdb_path));
 
     dict_cdbq = (DICT_CDBQ *) dict_alloc(DICT_TYPE_CDB,
 					 cdb_path, sizeof(*dict_cdbq));
@@ -339,9 +340,11 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
      * isn't creating it at the same time.
      */
     for (;;) {
-	if ((fd = open(tmp_path, O_RDWR | O_CREAT, 0644)) < 0
-	    || fstat(fd, &st0) < 0)
-	    msg_fatal("open database %s: %m", tmp_path);
+	if ((fd = open(tmp_path, O_RDWR | O_CREAT, 0644)) < 0)
+	    return (dict_surrogate(DICT_TYPE_CDB, path, O_RDWR, dict_flags,
+				   "open database %s: %m", tmp_path));
+	if (fstat(fd, &st0) < 0)
+	    msg_fatal("fstat(%s): %m", tmp_path);
 
 	/*
 	 * Get an exclusive lock - we're going to change the database so we

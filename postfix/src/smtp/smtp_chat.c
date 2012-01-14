@@ -306,7 +306,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 			 smtp_chat_resp_filter->type,
 			 smtp_chat_resp_filter->name,
 			 printable(STR(session->buffer), '?'));
-		vstream_longjmp(session->stream, SMTP_ERR_APPL);
+		vstream_longjmp(session->stream, SMTP_ERR_DATA);
 	    }
 	}
 	if (chat_append_flag) {

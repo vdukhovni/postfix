@@ -426,7 +426,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     if (dict_flags & DICT_FLAG_LOCK) {
 	dbm_path = concatenate(path, ".dir", (char *) 0);
 	if ((lock_fd = open(dbm_path, open_flags, 0644)) < 0)
-	    msg_fatal("open database %s: %m", dbm_path);
+	    return (dict_surrogate(DICT_TYPE_DBM, path, open_flags, dict_flags,
+				   "open database %s: %m", dbm_path));
 	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 	    msg_fatal("shared-lock database %s for open: %m", dbm_path);
     }
@@ -435,7 +436,8 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
      * XXX SunOS 5.x has no const in dbm_open() prototype.
      */
     if ((dbm = dbm_open((char *) path, open_flags, 0644)) == 0)
-	msg_fatal("open database %s.{dir,pag}: %m", path);
+	return (dict_surrogate(DICT_TYPE_DBM, path, open_flags, dict_flags,
+			       "open database %s.{dir,pag}: %m", path));
 
     if (dict_flags & DICT_FLAG_LOCK) {
 	if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_NONE) < 0)

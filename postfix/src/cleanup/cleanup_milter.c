@@ -2155,7 +2155,7 @@ char   *var_milt_head_checks = "";
 
 /* Dummies to satisfy unused external references. */
 
-int     cleanup_masquerade_internal(VSTRING *addr, ARGV *masq_domains)
+int     cleanup_masquerade_internal(CLEANUP_STATE *state, VSTRING *addr, ARGV *masq_domains)
 {
     msg_panic("cleanup_masquerade_internal dummy");
 }

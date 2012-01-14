@@ -49,7 +49,7 @@
 /*
 /*	const char *dict_changed_name()
 /* AUXILIARY FUNCTIONS
-/*	void	dict_load_file(dict_name, path)
+/*	int	dict_load_file_xt(dict_name, path)
 /*	const char *dict_name;
 /*	const char *path;
 /*
@@ -141,13 +141,14 @@
 /*	be re-opened because it has changed or because it was unlinked.
 /*	A non-zero result is the name of a changed dictionary.
 /*
-/*	dict_load_file() reads name-value entries from the named file.
+/*	dict_load_file_xt() reads name-value entries from the named file.
 /*	Lines that begin with whitespace are concatenated to the preceding
 /*	line (the newline is deleted).
 /*	Each entry is stored in the dictionary named by \fIdict_name\fR.
+/*	The result is zero if the file could not be opened.
 /*
 /*	dict_load_fp() reads name-value entries from an open stream.
-/*	It has the same semantics as the dict_load_file() function.
+/*	It has the same semantics as the dict_load_file_xt() function.
 /*
 /*	dict_flags_str() returns a printable representation of the
 /*	specified dictionary flags. The result is overwritten upon
@@ -383,9 +384,9 @@ int     dict_error(const char *dict_name)
     return (dict ? dict->error : DICT_ERR_NONE);
 }
 
-/* dict_load_file - read entries from text file */
+/* dict_load_file_xt - read entries from text file */
 
-void    dict_load_file(const char *dict_name, const char *path)
+int     dict_load_file_xt(const char *dict_name, const char *path)
 {
     VSTREAM *fp;
     struct stat st;
@@ -398,7 +399,7 @@ void    dict_load_file(const char *dict_name, const char *path)
      */
     for (before = time((time_t *) 0); /* see below */ ; before = after) {
 	if ((fp = vstream_fopen(path, O_RDONLY, 0)) == 0)
-	    msg_fatal("open %s: %m", path);
+	    return (0);
 	dict_load_fp(dict_name, fp);
 	if (fstat(vstream_fileno(fp), &st) < 0)
 	    msg_fatal("fstat %s: %m", path);
@@ -411,6 +412,7 @@ void    dict_load_file(const char *dict_name, const char *path)
 	    msg_info("pausing to let %s cool down", path);
 	doze(300000);
     }
+    return (1);
 }
 
 /* dict_load_fp - read entries from open stream */

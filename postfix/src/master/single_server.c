@@ -472,6 +472,12 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * Register dictionaries that use higher-level interfaces and protocols.
      */
     mail_dict_init();
+ 
+    /*
+     * After database open error, continue execution with reduced
+     * functionality.
+     */
+    dict_allow_surrogate = 1;
 
     /*
      * Pick up policy settings from master process. Shut up error messages to

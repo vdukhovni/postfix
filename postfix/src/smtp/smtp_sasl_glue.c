@@ -206,7 +206,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
     } else if (smtp_sasl_passwd_map->error) {
 	msg_warn("%s: %s lookup error",
 		  state->request->queue_id, smtp_sasl_passwd_map->title);
-	vstream_longjmp(session->stream, SMTP_ERR_APPL);
+	vstream_longjmp(session->stream, SMTP_ERR_DATA);
     } else {
 	if (msg_verbose)
 	    msg_info("%s: no auth info found (sender=`%s', host=`%s')",

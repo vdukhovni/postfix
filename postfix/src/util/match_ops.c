@@ -297,7 +297,7 @@ int     match_hostaddr(MATCH_LIST *list, const char *addr, const char *pattern)
     err = cidr_match_parse(&match_info, saved_patt, (VSTRING *) 0);
     myfree(saved_patt);
     if (err != 0) {
-	list->error = DICT_ERR_CONFIG;
+	list->error = DICT_ERR_RETRY;
 	rc = match_error(list, "%s", vstring_str(err));
 	vstring_free(err);
 	return (rc);

@@ -21,6 +21,9 @@
 /*	does not exist, and so on.
 /* .IP "2bounce (MAIL_ERROR_2BOUNCE)"
 /*	A bounce message could not be delivered.
+/* .IP "dat (MAIL_ERROR_DATA)"
+/*	A message could not be delivered because a critical data
+/*	file was unavailable.
 /* .IP "policy (MAIL_ERROR_POLICY)"
 /*	Policy violation. This depends on what restrictions have
 /*	been configured locally.
@@ -67,6 +70,7 @@
 const NAME_MASK mail_error_masks[] = {
     "bounce", MAIL_ERROR_BOUNCE,
     "2bounce", MAIL_ERROR_2BOUNCE,
+    "data", MAIL_ERROR_DATA,
     "delay", MAIL_ERROR_DELAY,
     "policy", MAIL_ERROR_POLICY,
     "protocol", MAIL_ERROR_PROTOCOL,

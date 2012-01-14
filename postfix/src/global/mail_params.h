@@ -3623,6 +3623,13 @@ extern bool var_smtp_rec_deadline;
 #define DEF_SM_FIX_EOL		SM_FIX_EOL_ALWAYS
 extern char *var_sm_fix_eol;
 
+ /*
+  * Gradual degradation, or fatal exit after table open error?
+  */
+#define VAR_DAEMON_OPEN_FATAL	"daemon_table_open_error_is_fatal"
+#define DEF_DAEMON_OPEN_FATAL	0
+extern bool var_daemon_open_fatal;
+
 /* LICENSE
 /* .ad
 /* .fi

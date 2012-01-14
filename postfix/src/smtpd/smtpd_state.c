@@ -174,6 +174,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
      * Initialize the conversation history.
      */
     smtpd_chat_reset(state);
+
+    state->ehlo_argv = 0;
+    state->ehlo_buf = 0;
 }
 
 /* smtpd_state_reset - cleanup after disconnect */

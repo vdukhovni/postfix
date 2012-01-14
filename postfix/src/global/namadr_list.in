@@ -39,3 +39,4 @@ env foo=x ./namadr_list !!environ:junk foo 168.100.189.3
 env foo=x ./namadr_list !!environ:junk bar 168.100.189.3
 ./namadr_list fail:1 bar 168.100.189.3
 ./namadr_list !fail:1 bar 168.100.189.3
+./namadr_list `pwd`/nosuchfile bar 168.100.189.3

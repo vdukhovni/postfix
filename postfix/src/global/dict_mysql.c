@@ -583,11 +583,10 @@ static void plmysql_down_host(HOST *host)
 static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 {
     const char *myname = "mysqlname_parse";
-    CFG_PARSER *p;
+    CFG_PARSER *p = dict_mysql->parser;
     VSTRING *buf;
     char   *hosts;
 
-    p = dict_mysql->parser = cfg_parser_alloc(mysqlcf);
     dict_mysql->username = cfg_get_str(p, "user", "", 0, 0);
     dict_mysql->password = cfg_get_str(p, "password", "", 0, 0);
     dict_mysql->dbname = cfg_get_str(p, "dbname", "", 1, 0);
@@ -649,19 +648,29 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_MYSQL *dict_mysql;
+    CFG_PARSER *parser;
 
     /*
      * Sanity checks.
      */
     if (open_flags != O_RDONLY)
-	msg_fatal("%s:%s map requires O_RDONLY access mode",
-		  DICT_TYPE_MYSQL, name);
+	return (dict_surrogate(DICT_TYPE_MYSQL, name, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_MYSQL, name));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((parser = cfg_parser_alloc(name)) == 0)
+	return (dict_surrogate(DICT_TYPE_MYSQL, name, open_flags, dict_flags,
+			       "open %s: %m", name));
 
     dict_mysql = (DICT_MYSQL *) dict_alloc(DICT_TYPE_MYSQL, name,
 					   sizeof(DICT_MYSQL));
     dict_mysql->dict.lookup = dict_mysql_lookup;
     dict_mysql->dict.close = dict_mysql_close;
     dict_mysql->dict.flags = dict_flags;
+    dict_mysql->parser = parser;
     mysql_parse_config(dict_mysql, name);
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     dict_mysql->active_host = 0;

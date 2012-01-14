@@ -794,7 +794,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 
 /* dict_pcre_open - load and compile a file containing regular expressions */
 
-DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
+DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
 {
     DICT_PCRE *dict_pcre;
     VSTREAM *map_fp;
@@ -805,6 +805,23 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
     int     lineno = 0;
     int     nesting = 0;
     char   *p;
+
+    /*
+     * Sanity checks.
+     */
+    if (open_flags != O_RDONLY)
+	return (dict_surrogate(DICT_TYPE_PCRE, mapname, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_PCRE, mapname));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
+	return (dict_surrogate(DICT_TYPE_PCRE, mapname, open_flags, dict_flags,
+			       "open %s: %m", mapname));
+    if (fstat(vstream_fileno(map_fp), &st) < 0)
+	msg_fatal("fstat %s: %m", mapname);
 
     line_buffer = vstring_alloc(100);
 
@@ -823,17 +840,12 @@ DICT   *dict_pcre_open(const char *mapname, int unused_flags, int dict_flags)
 	pcre_free = (void (*) (void *)) myfree;
 	dict_pcre_init = 1;
     }
+    dict_pcre->dict.owner.uid = st.st_uid;
+    dict_pcre->dict.owner.status = (st.st_uid != 0);
 
     /*
      * Parse the pcre table.
      */
-    if ((map_fp = vstream_fopen(mapname, O_RDONLY, 0)) == 0)
-	msg_fatal("open %s: %m", mapname);
-    if (fstat(vstream_fileno(map_fp), &st) < 0)
-	msg_fatal("fstat %s: %m", mapname);
-    dict_pcre->dict.owner.uid = st.st_uid;
-    dict_pcre->dict.owner.status = (st.st_uid != 0);
-
     while (readlline(line_buffer, map_fp, &lineno)) {
 	p = vstring_str(line_buffer);
 	trimblanks(p, 0)[0] = 0;		/* Trim space at end */

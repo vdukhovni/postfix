@@ -160,7 +160,8 @@ is skipped with a warning).
 .RE
 .IP "\fBdomain (default: no domain list)\fR"
 This feature can significantly reduce database server load.
-Specify a list of domain names, paths to files, or dictionaries.
+Specify a list of domain names, paths to files, or "type:table"
+databases.
 When specified, only fully qualified search keys with a
 *non-empty* localpart and a matching domain are eligible
 for lookup or update: bare 'user' lookups, bare domain

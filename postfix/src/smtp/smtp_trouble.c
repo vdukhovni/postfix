@@ -431,7 +431,8 @@ int     smtp_stream_except(SMTP_STATE *state, int code, const char *description)
 	dsb_simple(why, "4.4.2", "conversation with %s timed out while %s",
 		   session->namaddr, description);
 	break;
-    case SMTP_ERR_APPL:
+    case SMTP_ERR_DATA:
+	session->error_mask |= MAIL_ERROR_DATA;
 	dsb_simple(why, "4.3.0", "local data error while talking to %s",
 		   session->namaddr);
     }

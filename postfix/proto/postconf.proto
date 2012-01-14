@@ -3045,6 +3045,14 @@ bounce_notice_recipient configuration parameter (default: postmaster).
 is sent to the address specified with the 2bounce_notice_recipient
 configuration parameter (default: postmaster). </dd>
 
+<dt><b>data</b></dt>
+
+<dd>Send the postmaster a transcript of the SMTP session with an
+error because a critical data file was unavailable. The notification
+is sent to the address specified with the error_notice_recipient
+configuration parameter (default: postmaster). <br> This feature
+is available in Postfix 2.9 and later.  </dd>
+
 <dt><b>delay</b></dt>
 
 <dd>Send the postmaster copies of the headers of delayed mail. The
@@ -14453,5 +14461,34 @@ several hours, to avoid problems with senders that use greylisting.
 Avoid nice TTL values, to make the result less predictable.  Time
 units are: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 </p>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>
+
+%PARAM daemon_table_open_error_is_fatal no
+
+<p> How a Postfix daemon process handles errors while opening lookup
+tables: gradual degradation or immediate termination. </p>
+
+<dl>
+
+<dt> <b> no </b> (default) </dt> <dd> <p> Gradual degradation: a
+daemon process logs a message of type "error" and continues execution
+with reduced functionality. Features that do not depend on the
+unavailable table will work normally, while features that depend
+on the table will result in a type "warning" message.  <br> When
+the notify_classes parameter value contains the "data" class, the
+Postfix SMTP server and client will report transcripts of sessions
+with an error because a table is unavailable.  </p> </dd>
+
+<dt> <b> yes </b> (historical behavior) </dt> <dd> <p> Immediate
+termination: a daemon process logs a type "fatal" message and
+terminates immediately.  This option reduces the number of possible
+code paths through Postfix, and may therefore be slightly more
+secure than the default.  </p> </dd>
+
+</dl>
+
+<p> For the sake of sanity, the number of type "error" messages is
+limited to 13 over the lifetime of a daemon process. </p>
 
 <p> This feature is available in Postfix 2.9 and later.  </p>

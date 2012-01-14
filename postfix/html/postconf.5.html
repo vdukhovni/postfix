@@ -1620,6 +1620,39 @@ be owned by root.
 
 </DD>
 
+<DT><b><a name="daemon_table_open_error_is_fatal">daemon_table_open_error_is_fatal</a>
+(default: no)</b></DT><DD>
+
+<p> How a Postfix daemon process handles errors while opening lookup
+tables: gradual degradation or immediate termination. </p>
+
+<dl>
+
+<dt> <b> no </b> (default) </dt> <dd> <p> Gradual degradation: a
+daemon process logs a message of type "error" and continues execution
+with reduced functionality. Features that do not depend on the
+unavailable table will work normally, while features that depend
+on the table will result in a type "warning" message.  <br> When
+the <a href="postconf.5.html#notify_classes">notify_classes</a> parameter value contains the "data" class, the
+Postfix SMTP server and client will report transcripts of sessions
+with an error because a table is unavailable.  </p> </dd>
+
+<dt> <b> yes </b> (historical behavior) </dt> <dd> <p> Immediate
+termination: a daemon process logs a type "fatal" message and
+terminates immediately.  This option reduces the number of possible
+code paths through Postfix, and may therefore be slightly more
+secure than the default.  </p> </dd>
+
+</dl>
+
+<p> For the sake of sanity, the number of type "error" messages is
+limited to 13 over the lifetime of a daemon process. </p>
+
+<p> This feature is available in Postfix 2.9 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="daemon_timeout">daemon_timeout</a>
 (default: 18000s)</b></DT><DD>
 
@@ -6652,6 +6685,14 @@ notification is sent to the address specified with the
 <dd>Send undeliverable bounced mail to the postmaster. The notification
 is sent to the address specified with the <a href="postconf.5.html#2bounce_notice_recipient">2bounce_notice_recipient</a>
 configuration parameter (default: postmaster). </dd>
+
+<dt><b>data</b></dt>
+
+<dd>Send the postmaster a transcript of the SMTP session with an
+error because a critical data file was unavailable. The notification
+is sent to the address specified with the <a href="postconf.5.html#error_notice_recipient">error_notice_recipient</a>
+configuration parameter (default: postmaster). <br> This feature
+is available in Postfix 2.9 and later.  </dd>
 
 <dt><b>delay</b></dt>
 

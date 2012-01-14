@@ -118,6 +118,7 @@
 /*	char	*var_multi_name;
 /*	bool	var_multi_enable;
 /*	bool	var_long_queue_ids;
+/*	bool	var_daemon_open_fatal;
 /*
 /*	void	mail_params_init()
 /*
@@ -304,6 +305,7 @@ char   *var_multi_group;
 char   *var_multi_name;
 bool    var_multi_enable;
 bool    var_long_queue_ids;
+bool    var_daemon_open_fatal;
 
 const char null_format_string[1] = "";
 
@@ -517,6 +519,11 @@ void    mail_params_init()
 	VAR_MULTI_NAME, DEF_MULTI_NAME, &var_multi_name, 0, 0,
 	0,
     };
+    static const CONFIG_BOOL_TABLE first_bool_defaults[] = {
+	/* read and process the following before opening tables. */
+	VAR_DAEMON_OPEN_FATAL, DEF_DAEMON_OPEN_FATAL, &var_daemon_open_fatal,
+	0,
+    };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {
 	VAR_MYHOSTNAME, check_myhostname, &var_myhostname, 1, 0,
 	VAR_MYDOMAIN, check_mydomainname, &var_mydomain, 1, 0,
@@ -645,6 +652,14 @@ void    mail_params_init()
 	msg_fatal("file %s/%s: parameter %s: unrecognized value: %s",
 		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_SYSLOG_FACILITY, var_syslog_facility);
+
+    /*
+     * Should daemons terminate after table open error, or should they
+     * continue execution with reduced functionality?
+     */
+    get_mail_conf_bool_table(first_bool_defaults);
+    if (var_daemon_open_fatal)
+	dict_allow_surrogate = 0;
 
     /*
      * What protocols should we attempt to support? The result is stored in

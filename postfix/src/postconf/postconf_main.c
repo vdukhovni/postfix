@@ -107,7 +107,8 @@ void    read_parameters(void)
      */
     set_config_dir();
     path = concatenate(var_config_dir, "/", MAIN_CONF_FILE, (char *) 0);
-    dict_load_file(CONFIG_DICT, path);
+    if (dict_load_file_xt(CONFIG_DICT, path) == 0)
+	msg_fatal("open %s: %m", path);
     myfree(path);
 }
 

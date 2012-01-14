@@ -500,17 +500,27 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_MC *dict_mc;
     char   *backup;
+    CFG_PARSER *parser;
 
     /*
      * Sanity checks.
      */
     if (dict_flags & DICT_FLAG_NO_UNAUTH)
-	msg_fatal("%s:%s map is not allowed for security-sensitive data",
-		  DICT_TYPE_MEMCACHE, name);
+	return (dict_surrogate(DICT_TYPE_MEMCACHE, name, open_flags, dict_flags,
+		     "%s:%s map is not allowed for security-sensitive data",
+			       DICT_TYPE_MEMCACHE, name));
     open_flags &= (O_RDONLY | O_RDWR | O_WRONLY | O_APPEND);
     if (open_flags != O_RDONLY && open_flags != O_RDWR)
-	msg_fatal("%s:%s map requires O_RDONLY or O_RDWR access mode",
-		  DICT_TYPE_MEMCACHE, name);
+	return (dict_surrogate(DICT_TYPE_MEMCACHE, name, open_flags, dict_flags,
+			"%s:%s map requires O_RDONLY or O_RDWR access mode",
+			       DICT_TYPE_MEMCACHE, name));
+
+    /*
+     * Open the configuration file.
+     */
+    if ((parser = cfg_parser_alloc(name)) == 0)
+	return (dict_surrogate(DICT_TYPE_MEMCACHE, name, open_flags, dict_flags,
+			       "open %s: %m", name));
 
     /*
      * Create the dictionary object.
@@ -531,7 +541,7 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
     /*
      * Parse the configuration file.
      */
-    dict_mc->parser = cfg_parser_alloc(name);
+    dict_mc->parser = parser;
     dict_mc->key_format = cfg_get_str(dict_mc->parser, DICT_MC_NAME_KEY_FMT,
 				      DICT_MC_DEF_KEY_FMT, 0, 0);
     dict_mc->timeout = cfg_get_int(dict_mc->parser, DICT_MC_NAME_MC_TIMEOUT,

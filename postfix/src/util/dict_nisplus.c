@@ -257,8 +257,9 @@ DICT   *dict_nisplus_open(const char *map, int open_flags, int dict_flags)
      * Sanity check.
      */
     if (open_flags != O_RDONLY)
-	msg_fatal("%s:%s map requires O_RDONLY access mode",
-		  DICT_TYPE_NISPLUS, map);
+	return (dict_surrogate(DICT_TYPE_NISPLUS, map, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_NISPLUS, map));
 
     /*
      * Initialize. This is a read-only map with fixed strings, not with

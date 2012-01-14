@@ -34,7 +34,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	unix_pass_listen.c unix_pass_trigger.c edit_file.c inet_windowsize.c \
 	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
 	ip_match.c nbbio.c stream_pass_connect.c base32_code.c dict_test.c \
-	dict_fail.c msg_rate_delay.c
+	dict_fail.c msg_rate_delay.c dict_surrogate.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -70,7 +70,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	unix_pass_listen.o unix_pass_trigger.o edit_file.o inet_windowsize.o \
 	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
 	ip_match.o nbbio.o stream_pass_connect.o base32_code.o dict_test.o \
-	dict_fail.o msg_rate_delay.o
+	dict_fail.o msg_rate_delay.o dict_surrogate.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -444,7 +444,7 @@ tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
-	base32_code_test
+	base32_code_test dict_thash_test
 
 root_tests:
 
@@ -627,6 +627,11 @@ name_mask_test9: name_mask name_mask.in name_mask.ref9
 
 base32_code_test: base32_code
 	./base32_code
+
+dict_thash_test: ../postmap/postmap dict_thash.map
+	../postmap/postmap -s texthash:dict_thash.map >dict_thash.tmp 2>&1
+	sort dict_thash.tmp | diff -b dict_thash.map -
+	rm -f dict_thash.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -1042,6 +1047,15 @@ dict_static.o: sys_defs.h
 dict_static.o: vbuf.h
 dict_static.o: vstream.h
 dict_static.o: vstring.h
+dict_surrogate.o: argv.h
+dict_surrogate.o: dict.h
+dict_surrogate.o: dict_surrogate.c
+dict_surrogate.o: msg.h
+dict_surrogate.o: mymalloc.h
+dict_surrogate.o: sys_defs.h
+dict_surrogate.o: vbuf.h
+dict_surrogate.o: vstream.h
+dict_surrogate.o: vstring.h
 dict_tcp.o: argv.h
 dict_tcp.o: connect.h
 dict_tcp.o: dict.h

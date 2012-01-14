@@ -1390,8 +1390,9 @@ static int sasl_client_exception(SMTPD_STATE *state)
     if (sasl_exceptions_networks == 0)
 	return (0);
 
-    match = namadr_list_match(sasl_exceptions_networks,
-			      state->name, state->addr);
+    if ((match = namadr_list_match(sasl_exceptions_networks,
+				   state->name, state->addr)) == 0)
+	match = sasl_exceptions_networks->error;
 
     if (msg_verbose)
 	msg_info("sasl_exceptions: %s, match=%d",
@@ -1554,13 +1555,31 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     return (0);
 }
 
+/* cant_announce_feature - explain and terminate this session */
+
+static NORETURN cant_announce_feature(SMTPD_STATE *state, const char *feature)
+{
+    msg_warn("don't know if feature %s should be announced to %s",
+	     feature, state->namaddr);
+    vstream_longjmp(state->client, SMTP_ERR_DATA);
+}
+
+/* cant_permit_command - explain and terminate this session */
+
+static NORETURN cant_permit_command(SMTPD_STATE *state, const char *command)
+{
+    msg_warn("don't know if command %s should be allowed from %s",
+	     command, state->namaddr);
+    vstream_longjmp(state->client, SMTP_ERR_DATA);
+}
+
 /* ehlo_cmd - process EHLO command */
 
 static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     const char *err;
     int     discard_mask;
-    VSTRING *reply_buf;
+    char  **cpp;
 
     /*
      * XXX 2821 new feature: Section 4.1.4 specifies that a server must clear
@@ -1627,23 +1646,21 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 
     /*
-     * Build the EHLO response, suppressing features as requested. We store
-     * each output line in a one-element output queue, where it sits until we
-     * know if we need to prepend "250-" or "250 " to it. Each time we
-     * enqueue a reply line we flush the one that sits in the queue. We use a
-     * couple ugly macros to avoid making mistakes in code that repeats a
-     * lot.
+     * Build the EHLO response, producing no output until we know what to
+     * send - this simplifies exception handling. The CRLF record boundaries
+     * don't exist at this level in the code, so we represent multi-line
+     * output as an array of single-line responses.
      */
-#define ENQUEUE_FIX_REPLY(state, reply_buf, cmd) \
+#define EHLO_APPEND(state, cmd) \
     do { \
-	smtpd_chat_reply((state), "250-%s", STR(reply_buf)); \
-	vstring_strcpy((reply_buf), (cmd)); \
+	vstring_sprintf((state)->ehlo_buf, (cmd)); \
+	argv_add((state)->ehlo_argv, STR((state)->ehlo_buf), (char *) 0); \
     } while (0)
 
-#define ENQUEUE_FMT_REPLY(state, reply_buf, fmt, arg) \
+#define EHLO_APPEND1(state, cmd, arg) \
     do { \
-	smtpd_chat_reply((state), "250-%s", STR(reply_buf)); \
-	vstring_sprintf((reply_buf), (fmt), (arg)); \
+	vstring_sprintf((state)->ehlo_buf, (cmd), (arg)); \
+	argv_add((state)->ehlo_argv, STR((state)->ehlo_buf), (char *) 0); \
     } while (0)
 
     /*
@@ -1659,72 +1676,103 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if ((discard_mask & EHLO_MASK_ENHANCEDSTATUSCODES) == 0)
 	if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
 	    msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
+    if (ehlo_discard_maps && ehlo_discard_maps->error) {
+	msg_warn("don't know what features to announce in EHLO");
+	vstream_longjmp(state->client, SMTP_ERR_DATA);
+    }
 
-    reply_buf = vstring_alloc(10);
-    vstring_strcpy(reply_buf, var_myhostname);
+    /*
+     * These may still exist after a prior exception.
+     */
+    if (state->ehlo_argv == 0) {
+	state->ehlo_argv = argv_alloc(10);
+	state->ehlo_buf = vstring_alloc(10);
+    } else
+	argv_truncate(state->ehlo_argv, 0);
+
+    EHLO_APPEND1(state, "%s", var_myhostname);
     if ((discard_mask & EHLO_MASK_PIPELINING) == 0)
-	ENQUEUE_FIX_REPLY(state, reply_buf, "PIPELINING");
+	EHLO_APPEND(state, "PIPELINING");
     if ((discard_mask & EHLO_MASK_SIZE) == 0) {
 	if (var_message_limit)
-	    ENQUEUE_FMT_REPLY(state, reply_buf, "SIZE %lu",
-			      (unsigned long) var_message_limit);	/* XXX */
+	    EHLO_APPEND1(state, "SIZE %lu",
+			 (unsigned long) var_message_limit);	/* XXX */
 	else
-	    ENQUEUE_FIX_REPLY(state, reply_buf, "SIZE");
+	    EHLO_APPEND(state, "SIZE");
     }
     if ((discard_mask & EHLO_MASK_VRFY) == 0)
 	if (var_disable_vrfy_cmd == 0)
-	    ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_VRFY);
+	    EHLO_APPEND(state, SMTPD_CMD_VRFY);
     if ((discard_mask & EHLO_MASK_ETRN) == 0)
-	ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_ETRN);
+	EHLO_APPEND(state, SMTPD_CMD_ETRN);
 #ifdef USE_TLS
     if ((discard_mask & EHLO_MASK_STARTTLS) == 0)
 	if (var_smtpd_use_tls && (!state->tls_context))
-	    ENQUEUE_FIX_REPLY(state, reply_buf, SMTPD_CMD_STARTTLS);
+	    EHLO_APPEND(state, SMTPD_CMD_STARTTLS);
 #endif
 #ifdef USE_SASL_AUTH
+#ifndef AUTH_CMD
+#define AUTH_CMD	"AUTH"
+#endif
     if ((discard_mask & EHLO_MASK_AUTH) == 0) {
 	if (smtpd_sasl_is_active(state) && !sasl_client_exception(state)) {
-	    ENQUEUE_FMT_REPLY(state, reply_buf, "AUTH %s",
-			      state->sasl_mechanism_list);
+	    EHLO_APPEND1(state, "AUTH %s", state->sasl_mechanism_list);
 	    if (var_broken_auth_clients)
-		ENQUEUE_FMT_REPLY(state, reply_buf, "AUTH=%s",
-				  state->sasl_mechanism_list);
-	}
+		EHLO_APPEND1(state, "AUTH=%s", state->sasl_mechanism_list);
+	} else if (sasl_exceptions_networks && sasl_exceptions_networks->error)
+	    cant_announce_feature(state, AUTH_CMD);
     }
 #define XCLIENT_LOGIN_KLUDGE	" " XCLIENT_LOGIN
 #else
 #define XCLIENT_LOGIN_KLUDGE	""
 #endif
-    if ((discard_mask & EHLO_MASK_VERP) == 0)
+    if ((discard_mask & EHLO_MASK_VERP) == 0) {
 	if (namadr_list_match(verp_clients, state->name, state->addr))
-	    ENQUEUE_FIX_REPLY(state, reply_buf, VERP_CMD);
+	    EHLO_APPEND(state, VERP_CMD);
+	else if (verp_clients && verp_clients->error)
+	    cant_announce_feature(state, VERP_CMD);
+    }
     /* XCLIENT must not override its own access control. */
-    if ((discard_mask & EHLO_MASK_XCLIENT) == 0)
+    if ((discard_mask & EHLO_MASK_XCLIENT) == 0) {
 	if (xclient_allowed)
-	    ENQUEUE_FIX_REPLY(state, reply_buf, XCLIENT_CMD
-			      " " XCLIENT_NAME " " XCLIENT_ADDR
-			      " " XCLIENT_PROTO " " XCLIENT_HELO
-			      " " XCLIENT_REVERSE_NAME " " XCLIENT_PORT
-			      XCLIENT_LOGIN_KLUDGE);
-    if ((discard_mask & EHLO_MASK_XFORWARD) == 0)
+	    EHLO_APPEND(state, XCLIENT_CMD
+			" " XCLIENT_NAME " " XCLIENT_ADDR
+			" " XCLIENT_PROTO " " XCLIENT_HELO
+			" " XCLIENT_REVERSE_NAME " " XCLIENT_PORT
+			XCLIENT_LOGIN_KLUDGE);
+	else if (xclient_hosts && xclient_hosts->error)
+	    cant_announce_feature(state, XCLIENT_CMD);
+    }
+    if ((discard_mask & EHLO_MASK_XFORWARD) == 0) {
 	if (xforward_allowed)
-	    ENQUEUE_FIX_REPLY(state, reply_buf, XFORWARD_CMD
-			      " " XFORWARD_NAME " " XFORWARD_ADDR
-			      " " XFORWARD_PROTO " " XFORWARD_HELO
-			      " " XFORWARD_DOMAIN " " XFORWARD_PORT
-			      " " XFORWARD_IDENT);
+	    EHLO_APPEND(state, XFORWARD_CMD
+			" " XFORWARD_NAME " " XFORWARD_ADDR
+			" " XFORWARD_PROTO " " XFORWARD_HELO
+			" " XFORWARD_DOMAIN " " XFORWARD_PORT
+			" " XFORWARD_IDENT);
+	else if (xforward_hosts && xforward_hosts->error)
+	    cant_announce_feature(state, XFORWARD_CMD);
+    }
     if ((discard_mask & EHLO_MASK_ENHANCEDSTATUSCODES) == 0)
-	ENQUEUE_FIX_REPLY(state, reply_buf, "ENHANCEDSTATUSCODES");
+	EHLO_APPEND(state, "ENHANCEDSTATUSCODES");
     if ((discard_mask & EHLO_MASK_8BITMIME) == 0)
-	ENQUEUE_FIX_REPLY(state, reply_buf, "8BITMIME");
+	EHLO_APPEND(state, "8BITMIME");
     if ((discard_mask & EHLO_MASK_DSN) == 0)
-	ENQUEUE_FIX_REPLY(state, reply_buf, "DSN");
-    smtpd_chat_reply(state, "250 %s", STR(reply_buf));
+	EHLO_APPEND(state, "DSN");
+
+    /*
+     * Send the reply.
+     */
+    for (cpp = state->ehlo_argv->argv; *cpp; cpp++)
+	smtpd_chat_reply(state, "250%c%s", cpp[1] ? '-' : ' ', *cpp);
 
     /*
      * Clean up.
      */
-    vstring_free(reply_buf);
+    argv_free(state->ehlo_argv);
+    state->ehlo_argv = 0;
+    vstring_free(state->ehlo_buf);
+    state->ehlo_buf = 0;
 
     return (0);
 }
@@ -1738,6 +1786,14 @@ static void helo_reset(SMTPD_STATE *state)
 	state->helo_name = 0;
 	if (SMTPD_STAND_ALONE(state) == 0 && smtpd_milters != 0)
 	    milter_abort(smtpd_milters);
+    }
+    if (state->ehlo_argv) {
+	argv_free(state->ehlo_argv);
+	state->ehlo_argv = 0;
+    }
+    if (state->ehlo_buf) {
+	vstring_free(state->ehlo_buf);
+	state->ehlo_buf = 0;
     }
 }
 
@@ -3486,6 +3542,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 XCLIENT_CMD);
 	return (-1);
     }
+    if (xclient_hosts && xclient_hosts->error)
+	cant_permit_command(state, XCLIENT_CMD);
     if (!xclient_allowed) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "550 5.7.0 Error: insufficient authorization");
@@ -3780,6 +3838,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 XFORWARD_CMD);
 	return (-1);
     }
+    if (xforward_hosts && xforward_hosts->error)
+	cant_permit_command(state, XFORWARD_CMD);
     if (!xforward_allowed) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "550 5.7.0 Error: insufficient authorization");
@@ -4429,11 +4489,12 @@ static void smtpd_proto(SMTPD_STATE *state)
     case SMTP_ERR_QUIET:
 	break;
 
-    case SMTP_ERR_APPL:
+    case SMTP_ERR_DATA:
 	msg_info("%s: reject: %s from %s: "
 		 "421 4.3.0 %s Server configuration error",
 		 (state->queue_id ? state->queue_id : "NOQUEUE"),
 		 state->where, state->namaddr, var_myhostname);
+	state->error_mask |= MAIL_ERROR_DATA;
 	if (vstream_setjmp(state->client) == 0)
 	    smtpd_chat_reply(state, "421 4.3.0 %s Server configuration error",
 			     var_myhostname);
@@ -4538,8 +4599,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 	if (ehlo_discard_maps == 0
 	|| (ehlo_words = maps_find(ehlo_discard_maps, state->addr, 0)) == 0)
 	    ehlo_words = var_smtpd_ehlo_dis_words;
-	if (ehlo_discard_maps && ehlo_discard_maps->error)
-	    vstream_longjmp(state->client, SMTP_ERR_APPL);
 	state->ehlo_discard_mask = ehlo_mask(ehlo_words);
 
 	/* XXX We use the real client for connect access control. */
@@ -4638,7 +4697,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		    msg_warn("%s:%s lookup error for \"%.100s\"",
 			     smtpd_cmd_filter->type, smtpd_cmd_filter->name,
 			     printable(STR(state->buffer), '?'));
-		    vstream_longjmp(state->client, SMTP_ERR_APPL);
+		    vstream_longjmp(state->client, SMTP_ERR_DATA);
 		}
 	    }
 	    if ((argc = smtpd_token(vstring_str(state->buffer), &argv)) == 0) {
@@ -4647,6 +4706,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 		state->error_count++;
 		continue;
 	    }
+	    /* Ignore smtpd_noop_cmds lookup errors. Non-critical feature. */
 	    if (*var_smtpd_noop_cmds
 		&& string_list_match(smtpd_noop_cmds, argv[0].strval)) {
 		smtpd_chat_reply(state, "250 2.0.0 Ok");
@@ -4657,6 +4717,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    for (cmdp = smtpd_cmd_table; cmdp->name != 0; cmdp++)
 		if (strcasecmp(argv[0].strval, cmdp->name) == 0)
 		    break;
+	    /* Ignore smtpd_forbid_cmds lookup errors. Non-critical feature. */
 	    if (cmdp->name == 0) {
 		state->where = SMTPD_CMD_UNKNOWN;
 		if (is_header(argv[0].strval)
@@ -4886,11 +4947,11 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Initialize blacklist/etc. patterns before entering the chroot jail, in
      * case they specify a filename pattern.
      */
-    smtpd_noop_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_noop_cmds);
-    smtpd_forbid_cmds = string_list_init(MATCH_FLAG_NONE, var_smtpd_forbid_cmds);
-    verp_clients = namadr_list_init(MATCH_FLAG_NONE, var_verp_clients);
-    xclient_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xclient_hosts);
-    xforward_hosts = namadr_list_init(MATCH_FLAG_NONE, var_xforward_hosts);
+    smtpd_noop_cmds = string_list_init(MATCH_FLAG_RETURN, var_smtpd_noop_cmds);
+    smtpd_forbid_cmds = string_list_init(MATCH_FLAG_RETURN, var_smtpd_forbid_cmds);
+    verp_clients = namadr_list_init(MATCH_FLAG_RETURN, var_verp_clients);
+    xclient_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xclient_hosts);
+    xforward_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xforward_hosts);
     hogger_list = namadr_list_init(MATCH_FLAG_RETURN, var_smtpd_hoggers);
 
     /*
@@ -4914,7 +4975,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
     if (*var_smtpd_sasl_exceptions_networks)
 	sasl_exceptions_networks =
-	    namadr_list_init(MATCH_FLAG_NONE,
+	    namadr_list_init(MATCH_FLAG_RETURN,
 			     var_smtpd_sasl_exceptions_networks);
 #else
 	msg_warn("%s is true, but SASL support is not compiled in",

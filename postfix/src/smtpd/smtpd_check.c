@@ -897,7 +897,7 @@ static int defer_if(SMTPD_DEFER *defer, int error_class,
 
 static NORETURN reject_dict_retry(SMTPD_STATE *state, const char *reply_name)
 {
-    longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_RESOURCE,
+    longjmp(smtpd_check_buf, smtpd_check_reject(state, MAIL_ERROR_DATA,
 						451, "4.3.0",
 					   "<%s>: Temporary lookup failure",
 						reply_name));

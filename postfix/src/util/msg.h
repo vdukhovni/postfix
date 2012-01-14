@@ -14,6 +14,7 @@
 /*
  * System library.
  */
+#include <stdarg.h>
 #include <time.h>
 
 /*
@@ -29,6 +30,13 @@ extern void PRINTFLIKE(1, 2) msg_error(const char *,...);
 extern NORETURN PRINTFLIKE(1, 2) msg_fatal(const char *,...);
 extern NORETURN PRINTFLIKE(2, 3) msg_fatal_status(int, const char *,...);
 extern NORETURN PRINTFLIKE(1, 2) msg_panic(const char *,...);
+
+extern void vmsg_info(const char *, va_list);
+extern void vmsg_warn(const char *, va_list);
+extern void vmsg_error(const char *, va_list);
+extern NORETURN vmsg_fatal(const char *, va_list);
+extern NORETURN vmsg_fatal_status(int, const char *, va_list);
+extern NORETURN vmsg_panic(const char *, va_list);
 
 extern int msg_error_limit(int);
 extern void msg_error_clear(void);

@@ -106,6 +106,10 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
     char   *map_type_name_flags;
     int     match;
 
+#define OPEN_FLAGS	O_RDONLY
+#define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX)
+#define STR(x)		vstring_str(x)
+
     /*
      * /filename contents are expanded in-line. To support !/filename we
      * prepend the negation operator to each item from the file.
@@ -121,17 +125,23 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
 	if (*item == 0)
 	    msg_fatal("%s: no pattern after '!'", myname);
 	if (*item == '/') {			/* /file/name */
-	    if ((fp = vstream_fopen(item, O_RDONLY, 0)) == 0)
-		msg_fatal("%s: open file %s: %m", myname, item);
-	    while (vstring_fgets(buf, fp))
-		if (vstring_str(buf)[0] != '#')
-		    list = match_list_parse(list, vstring_str(buf), match);
-	    if (vstream_fclose(fp))
-		msg_fatal("%s: read file %s: %m", myname, item);
+	    if ((fp = vstream_fopen(item, O_RDONLY, 0)) == 0) {
+		vstring_sprintf(buf, "%s:%s", DICT_TYPE_NOFILE, item);
+		/* XXX Should increment existing map refcount. */
+		if (dict_handle(STR(buf)) == 0)
+		    dict_register(STR(buf),
+				  dict_surrogate(DICT_TYPE_NOFILE, item,
+						 OPEN_FLAGS, DICT_FLAGS,
+						 "open file %s: %m", item));
+		argv_add(list, STR(buf), (char *) 0);
+	    } else {
+		while (vstring_fgets(buf, fp))
+		    if (vstring_str(buf)[0] != '#')
+			list = match_list_parse(list, vstring_str(buf), match);
+		if (vstream_fclose(fp))
+		    msg_fatal("%s: read file %s: %m", myname, item);
+	    }
 	} else if (MATCH_DICTIONARY(item)) {	/* type:table */
-#define OPEN_FLAGS	O_RDONLY
-#define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX)
-#define STR(x)		vstring_str(x)
 	    vstring_sprintf(buf, "%s%s(%o,%s)", match ? "" : "!",
 			    item, OPEN_FLAGS, dict_flags_str(DICT_FLAGS));
 	    map_type_name_flags = STR(buf) + (match == 0);

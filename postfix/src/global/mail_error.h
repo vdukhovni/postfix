@@ -26,6 +26,7 @@
 #define MAIL_ERROR_RESOURCE	(1<<4)
 #define MAIL_ERROR_2BOUNCE	(1<<5)
 #define MAIL_ERROR_DELAY	(1<<6)
+#define MAIL_ERROR_DATA		(1<<7)
 
 extern const NAME_MASK mail_error_masks[];
 

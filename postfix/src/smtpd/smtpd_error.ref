@@ -70,8 +70,8 @@ OK
 >>> #
 >>> rcpt reject@dunno.domain
 ./smtpd_check: warning: non-null host address bits in "168.100.189.1/27", perhaps you should use "168.100.189.0/27" instead
-./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.5 Server configuration error; from=<reject@dunno.domain> to=<reject@dunno.domain> proto=SMTP helo=<foobar>
-451 4.3.5 Server configuration error
+./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.0 <reject@dunno.domain>: Temporary lookup failure; from=<reject@dunno.domain> to=<reject@dunno.domain> proto=SMTP helo=<foobar>
+451 4.3.0 <reject@dunno.domain>: Temporary lookup failure
 >>> #
 >>> # check_sender_access specific
 >>> #
@@ -91,7 +91,7 @@ OK
 >>> recipient_restrictions permit_tls_clientcerts
 OK
 >>> rcpt reject@dunno.domain
-./smtpd_check: warning: fail:1_certs lookup of abcdef failed
+./smtpd_check: warning: fail:1_certs lookup error for "abcdef"
 ./smtpd_check: warning: relay_clientcerts: lookup error for fingerprint 'abcdef', pkey fingerprint abcdef
 ./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.0 <reject@dunno.domain>: Temporary lookup failure; from=<> to=<reject@dunno.domain> proto=SMTP helo=<foobar>
 451 4.3.0 <reject@dunno.domain>: Temporary lookup failure
@@ -130,6 +130,6 @@ OK
 >>> virtual_alias_maps fail:1_virtual
 OK
 >>> rcpt user@example.com
-./smtpd_check: warning: fail:1_virtual lookup of user@example.com failed
+./smtpd_check: warning: fail:1_virtual lookup error for "user@example.com"
 ./smtpd_check: <queue id>: reject: RCPT from foo.dunno.com[131.155.210.17]: 451 4.3.0 <user@example.com>: Temporary lookup failure; from=<> to=<user@example.com> proto=SMTP helo=<foobar>
 451 4.3.0 <user@example.com>: Temporary lookup failure

@@ -65,7 +65,7 @@
 
 static const char *dict_default_lookup(DICT *dict, const char *unused_key)
 {
-    msg_fatal("%s table %s: lookup operation is not supported",
+    msg_fatal("table %s:%s: lookup operation is not supported",
 	      dict->type, dict->name);
 }
 
@@ -74,7 +74,7 @@ static const char *dict_default_lookup(DICT *dict, const char *unused_key)
 static int dict_default_update(DICT *dict, const char *unused_key,
 			               const char *unused_value)
 {
-    msg_fatal("%s table %s: update operation is not supported",
+    msg_fatal("table %s:%s: update operation is not supported",
 	      dict->type, dict->name);
 }
 
@@ -82,7 +82,7 @@ static int dict_default_update(DICT *dict, const char *unused_key,
 
 static int dict_default_delete(DICT *dict, const char *unused_key)
 {
-    msg_fatal("%s table %s: delete operation is not supported",
+    msg_fatal("table %s:%s: delete operation is not supported",
 	      dict->type, dict->name);
 }
 
@@ -91,7 +91,7 @@ static int dict_default_delete(DICT *dict, const char *unused_key)
 static int dict_default_sequence(DICT *dict, int unused_function,
 		         const char **unused_key, const char **unused_value)
 {
-    msg_fatal("%s table %s: sequence operation is not supported",
+    msg_fatal("table %s:%s: sequence operation is not supported",
 	      dict->type, dict->name);
 }
 
@@ -99,7 +99,7 @@ static int dict_default_sequence(DICT *dict, int unused_function,
 
 static void dict_default_close(DICT *dict)
 {
-    msg_fatal("%s table %s: close operation is not supported",
+    msg_fatal("table %s:%s: close operation is not supported",
 	      dict->type, dict->name);
 }
 

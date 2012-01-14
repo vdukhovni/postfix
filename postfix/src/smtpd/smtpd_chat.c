@@ -182,7 +182,10 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 	/* This is why we use strlen() above instead of VSTRING_LEN(). */
 	if ((next = strstr(cp, "\r\n")) != 0) {
 	    *next = 0;
-	    cp[3] = '-';			/* contact footer kludge */
+	    if (next[2] != 0)
+		cp[3] = '-';			/* contact footer kludge */
+	    else
+		next = end;			/* strip trailing \r\n */
 	} else {
 	    next = end;
 	}

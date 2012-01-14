@@ -159,7 +159,7 @@ static void dict_unix_close(DICT *dict)
 
 /* dict_unix_open - open UNIX map */
 
-DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
+DICT   *dict_unix_open(const char *map, int open_flags, int dict_flags)
 {
     DICT_UNIX *dict_unix;
     struct dict_unix_lookup {
@@ -173,14 +173,26 @@ DICT   *dict_unix_open(const char *map, int unused_flags, int dict_flags)
     };
     struct dict_unix_lookup *lp;
 
-    dict_unix = (DICT_UNIX *) dict_alloc(DICT_TYPE_UNIX, map,
-					 sizeof(*dict_unix));
+    /*
+     * Sanity checks.
+     */
+    if (open_flags != O_RDONLY)
+	return (dict_surrogate(DICT_TYPE_UNIX, map, open_flags, dict_flags,
+			       "%s:%s map requires O_RDONLY access mode",
+			       DICT_TYPE_UNIX, map));
+
+    /*
+     * "Open" the database.
+     */
     for (lp = dict_unix_lookup; /* void */ ; lp++) {
 	if (lp->name == 0)
-	    msg_fatal("dict_unix_open: unknown map name: %s", map);
+	    return (dict_surrogate(DICT_TYPE_UNIX, map, open_flags, dict_flags,
+			      "unknown table: %s:%s", DICT_TYPE_UNIX, map));
 	if (strcmp(map, lp->name) == 0)
 	    break;
     }
+    dict_unix = (DICT_UNIX *) dict_alloc(DICT_TYPE_UNIX, map,
+					 sizeof(*dict_unix));
     dict_unix->dict.lookup = lp->lookup;
     dict_unix->dict.close = dict_unix_close;
     dict_unix->dict.flags = dict_flags | DICT_FLAG_FIXED;

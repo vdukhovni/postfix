@@ -594,10 +594,11 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 
     (void) db_version(&major_version, &minor_version, &patch_version);
     if (major_version != DB_VERSION_MAJOR || minor_version != DB_VERSION_MINOR)
-	msg_fatal("incorrect version of Berkeley DB: "
+	return (dict_surrogate(class, path, open_flags, dict_flags,
+			       "incorrect version of Berkeley DB: "
 	      "compiled against %d.%d.%d, run-time linked against %d.%d.%d",
-		  DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH,
-		  major_version, minor_version, patch_version);
+		       DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH,
+			       major_version, minor_version, patch_version));
     if (msg_verbose) {
 	msg_info("Compiled against Berkeley DB: %d.%d.%d\n",
 		 DB_VERSION_MAJOR, DB_VERSION_MINOR, DB_VERSION_PATCH);
@@ -627,7 +628,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     if (dict_flags & DICT_FLAG_LOCK) {
 	if ((lock_fd = open(db_path, LOCK_OPEN_FLAGS(open_flags), 0644)) < 0) {
 	    if (errno != ENOENT)
-		msg_fatal("open database %s: %m", db_path);
+		return (dict_surrogate(class, path, open_flags, dict_flags,
+				       "open database %s: %m", db_path));
 	} else {
 	    if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 		msg_fatal("shared-lock database %s for open: %m", db_path);
@@ -642,7 +644,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
      */
 #if DB_VERSION_MAJOR < 2
     if ((db = dbopen(db_path, open_flags, 0644, type, tweak)) == 0)
-	msg_fatal("open database %s: %m", db_path);
+	return (dict_surrogate(class, path, open_flags, dict_flags,
+			       "open database %s: %m", db_path));
     dbfd = db->fd(db);
 #endif
 
@@ -658,7 +661,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     if (open_flags & O_TRUNC)
 	db_flags |= DB_TRUNCATE;
     if ((errno = db_open(db_path, type, db_flags, 0644, 0, tweak, &db)) != 0)
-	msg_fatal("open database %s: %m", db_path);
+	return (dict_surrogate(class, path, open_flags, dict_flags,
+			       "open database %s: %m", db_path));
     if (db == 0)
 	msg_panic("db_open null result");
     if ((errno = db->fd(db, &dbfd)) != 0)
@@ -686,10 +690,12 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
 #if DB_VERSION_MAJOR == 5 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0)
     if ((errno = db->open(db, 0, db_path, 0, type, db_flags, 0644)) != 0)
-	msg_fatal("open database %s: %m", db_path);
+	return (dict_surrogate(class, path, open_flags, dict_flags,
+			       "open database %s: %m", db_path));
 #elif (DB_VERSION_MAJOR == 3 || DB_VERSION_MAJOR == 4)
     if ((errno = db->open(db, db_path, 0, type, db_flags, 0644)) != 0)
-	msg_fatal("open database %s: %m", db_path);
+	return (dict_surrogate(class, path, open_flags, dict_flags,
+			       "open database %s: %m", db_path));
 #else
 #error "Unsupported Berkeley DB version"
 #endif

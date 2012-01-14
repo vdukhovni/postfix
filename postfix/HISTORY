@@ -17502,7 +17502,7 @@ Apologies for any names omitted.
 
 20120110
 
-	Cleanup: added logging for failed table lookups and replaced
+	Cleanup: added logging for failed table lookups, and replaced
 	some "fatal" errors by warnings. Files: cleanup/cleanup_addr.c,
 	cleanup/cleanup_message.c, cleanup/cleanup_milter.c,
 	cleanup/cleanup_masquerade.c, global/header_body_checks.c,
@@ -17511,3 +17511,36 @@ Apologies for any names omitted.
 	smtp/smtp_proto.c, smtp/smtp_sasl_auth_cache.c,
 	smtp/smtp_sasl_glue.c, smtp/smtp_session.c, smtp/smtp_trouble.c,
 	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20120114
+
+	Cleanup: gradual degradation after database file open errors.
+	Instead of terminating immediately with a "fatal" error, a
+	Postfix daemon logs an error and continues execution with
+	reduced functionality. In other words, features that don't
+	depend on the unavailable table will keep working.  However,
+	for the sake of sanity, the number of such errors over the
+	life of a process is limited to 13.  Files:
+	src/global/cfg_parser.c, src/util/dict_thash.c,
+	src/util/dict_cidr.c, src/util/dict_nis.c, src/util/dict_nisplus.c,
+	src/global/dict_ldap.c, src/global/dict_mysql.c,
+	src/global/dict_pgsql.c, src/global/dict_sqlite.c,
+	src/postconf/postconf_main.c, src/global/mail_conf.c,
+	src/util/dict.h, src/util/dict.c, src/global/dict_memcache.c,
+	src/util/dict_tcp.c, src/util/dict_unix.c, src/util/dict_pcre.c,
+	src/util/dict_regexp.c, src/master/trigger_server.c,
+	src/master/single_server.c, src/master/multi_server.c,
+	src/master/event_server.c, src/util/dict_test.c,
+	src/util/dict_surrogate.c, src/util/dict_alloc.c, src/util/msg.c,
+	src/util/dict_cdb.c, src/util/dict_dbm.c, src/util/msg.h,
+	src/util/dict_db.c.
+
+	Incompatibility: the Postfix SMTP server no longer reports
+	transcripts of sessions where a client command is rejected
+	because a table is unavailable.  To receive such reports,
+	add the new "data" class to the notify_classes parameter
+	value. The reports will be sent to the error_notice_recipient
+	address as before. This class is also used by the Postfix
+	SMTP client to report about sessions that fail because a
+	table is unavailable. Files: global/mail_error.[hc],
+	smtpd/smtpd_check.c, smtp/smtp_trouble.c.

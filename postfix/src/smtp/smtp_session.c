@@ -227,7 +227,7 @@ static int tls_policy_lookup_one(SMTP_SESSION *session, int *site_level,
 	msg_warn("%s: %s lookup error for %s",
 		 session->state->request->queue_id,
 		 tls_policy->title, site_name);
-	vstream_longjmp(session->stream, SMTP_ERR_APPL);
+	vstream_longjmp(session->stream, SMTP_ERR_DATA);
     }
     if (cbuf == 0)
 	cbuf = vstring_alloc(10);
