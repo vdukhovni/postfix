@@ -24,7 +24,7 @@ LLiimmiittaattiioonnss
     virtual_mailbox_maps (these specify UNIX process privileges or "/file/name"
     destinations). Typically, a memcache database is writable by any process
     that can talk to the memcache server; in contrast, security-sensitive
-    tables must not be writable by the unprivileged Postfix user.
+    tables must never be writable by the unprivileged Postfix user.
 
   * The Postfix memcache client requires additional configuration when used as
     postscreen(8) or verify(8) cache. For details see the backup and ttl

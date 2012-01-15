@@ -339,9 +339,11 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
     if (dict_open_hash == 0)
 	dict_open_init();
     if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0)
-	msg_fatal("unsupported dictionary type: %s", dict_type);
+	return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
+			     "unsupported dictionary type: %s", dict_type));
     if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
-	msg_fatal("opening %s:%s %m", dict_type, dict_name);
+	return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
+			    "cannot open %s:%s: %m", dict_type, dict_name));
     if (msg_verbose)
 	msg_info("%s: %s:%s", myname, dict_type, dict_name);
     /* XXX the choice between wait-for-lock or no-wait is hard-coded. */

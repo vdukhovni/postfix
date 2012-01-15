@@ -422,6 +422,20 @@ maps_test: maps maps.in maps.ref
 	diff  maps.ref maps.tmp
 	rm -f maps.tmp
 
+surrogate_test: mail_dict surrogate.ref
+	cp /dev/null surrogate.tmp
+	echo get foo|./mail_dict ldap:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict ldap:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict mysql:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict mysql:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict pgsql:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict pgsql:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict sqlite:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict sqlite:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./mail_dict memcache:/xx read >>surrogate.tmp 2>&1
+	diff surrogate.ref surrogate.tmp
+	rm -f surrogate.tmp
+
 # Requires: Postfix running, root privileges
 
 rewrite_clnt_test: rewrite_clnt rewrite_clnt.in rewrite_clnt.ref

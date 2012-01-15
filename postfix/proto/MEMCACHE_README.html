@@ -44,7 +44,7 @@ and "<tt>/file/name</tt>" destinations), or <tt>virtual_uid_maps</tt>,
 specify UNIX process privileges or "<tt>/file/name</tt>" destinations).
 Typically, a memcache database is writable by any process that can
 talk to the memcache server; in contrast, security-sensitive tables
-must not be writable by the unprivileged Postfix user.  </p>
+must never be writable by the unprivileged Postfix user.  </p>
 
 <li> <p> The Postfix memcache client requires additional configuration
 when used as postscreen(8) or verify(8) cache.  For details see the

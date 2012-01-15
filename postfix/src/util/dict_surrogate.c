@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <dict_surrogate.h>
 /*
-/*	DICT	*dict_surrogate(dict_type, dict_name, 
+/*	DICT	*dict_surrogate(dict_type, dict_name,
 /*				open_flags, dict_flags,
 /*				format, ...)
 /*	const char *dict_type;
@@ -24,7 +24,8 @@
 /*
 /*	The global dict_allow_surrogate variable controls the choice
 /*	between fatal error or reduced functionality. The default
-/*	value is zero (fatal error).
+/*	value is zero (fatal error). This is appropriate for user
+/*	commands; the non-default is more appropriate for daemons.
 /*
 /*	Arguments:
 /* .IP dict_type
@@ -34,7 +35,8 @@
 /*	The parameters to the failed dictionary open() request.
 /* .IP format, ...
 /*	The reason why the table could not be opened. This text is
-/*	logged immediately, and upon every attempt to access the
+/*	logged immediately as an "error" class message, and is logged
+/*	as a "warning" class message upon every attempt to access the
 /*	surrogate dictionary, before returning a "failed" completion
 /*	status.
 /* SEE ALSO
@@ -53,6 +55,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -123,7 +126,7 @@ static void dict_surrogate_close(DICT *dict)
     dict_free(dict);
 }
 
-int dict_allow_surrogate = 0;
+int     dict_allow_surrogate = 0;
 
 /* dict_surrogate - terminate or provide surrogate dictionary */
 
@@ -135,6 +138,7 @@ DICT   *dict_surrogate(const char *dict_type, const char *dict_name,
     DICT_SURROGATE *dp;
     VSTRING *buf;
     void    (*log_fn) (const char *, va_list);
+    int     saved_errno = errno;
 
     /*
      * Log the problem immediately when it is detected. The table may not be
@@ -161,6 +165,7 @@ DICT   *dict_surrogate(const char *dict_type, const char *dict_name,
     dp->dict.flags = dict_flags | DICT_FLAG_PATTERN;
     dp->dict.owner.status = DICT_OWNER_TRUSTED;
     buf = vstring_alloc(10);
+    errno = saved_errno;
     va_start(ap, fmt);
     vstring_vsprintf(buf, fmt, ap);
     va_end(ap);

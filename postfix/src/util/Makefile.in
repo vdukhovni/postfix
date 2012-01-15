@@ -444,7 +444,7 @@ tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
-	base32_code_test dict_thash_test
+	base32_code_test dict_thash_test surrogate_test
 
 root_tests:
 
@@ -632,6 +632,22 @@ dict_thash_test: ../postmap/postmap dict_thash.map
 	../postmap/postmap -s texthash:dict_thash.map >dict_thash.tmp 2>&1
 	sort dict_thash.tmp | diff -b dict_thash.map -
 	rm -f dict_thash.tmp
+
+surrogate_test: dict_open surrogate.ref
+	cp /dev/null surrogate.tmp
+	echo get foo|./dict_open cidr:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./dict_open cidr:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./dict_open pcre:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./dict_open pcre:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./dict_open regexp:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./dict_open regexp:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./dict_open unix:xx write >>surrogate.tmp 2>&1
+	echo get foo|./dict_open unix:xx read >>surrogate.tmp 2>&1
+	echo get foo|./dict_open texthash:/xx write >>surrogate.tmp 2>&1
+	echo get foo|./dict_open texthash:/xx read >>surrogate.tmp 2>&1
+	echo get foo|./dict_open hash:/xx read >>surrogate.tmp 2>&1
+	diff surrogate.ref surrogate.tmp
+	rm -f surrogate.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

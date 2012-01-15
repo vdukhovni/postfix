@@ -148,7 +148,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
     struct stat st;
     time_t  before;
     time_t  after;
-    VSTRING *line_buffer = vstring_alloc(100);
+    VSTRING *line_buffer = 0;
     int     lineno;
     char   *key;
     char   *value;
@@ -172,6 +172,8 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	    return (dict_surrogate(DICT_TYPE_THASH, path, open_flags, dict_flags,
 				   "open database %s: %m", path));
 	}
+	if (line_buffer == 0)
+	    line_buffer = vstring_alloc(100);
 	lineno = 0;
 	table = htable_create(13);
 	while (readlline(line_buffer, fp, &lineno)) {

@@ -573,8 +573,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 {
     DICT_DB *dict_db;
     struct stat st;
-    DB     *db;
-    char   *db_path;
+    DB     *db = 0;
+    char   *db_path = 0;
     int     lock_fd = -1;
     int     dbfd;
 
@@ -624,12 +624,16 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
      * db_open() create a non-existent file for us.
      */
 #define LOCK_OPEN_FLAGS(f) ((f) & ~(O_CREAT|O_TRUNC))
+#define FREE_RETURN(e) do { \
+	DICT *_dict = (e); if (db) DICT_DB_CLOSE(db); \
+	if (db_path) myfree(db_path); return (_dict); \
+    } while (0)
 
     if (dict_flags & DICT_FLAG_LOCK) {
 	if ((lock_fd = open(db_path, LOCK_OPEN_FLAGS(open_flags), 0644)) < 0) {
 	    if (errno != ENOENT)
-		return (dict_surrogate(class, path, open_flags, dict_flags,
-				       "open database %s: %m", db_path));
+		FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
+					   "open database %s: %m", db_path));
 	} else {
 	    if (myflock(lock_fd, INTERNAL_LOCK, MYFLOCK_OP_SHARED) < 0)
 		msg_fatal("shared-lock database %s for open: %m", db_path);
@@ -644,8 +648,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
      */
 #if DB_VERSION_MAJOR < 2
     if ((db = dbopen(db_path, open_flags, 0644, type, tweak)) == 0)
-	return (dict_surrogate(class, path, open_flags, dict_flags,
-			       "open database %s: %m", db_path));
+	FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
+				   "open database %s: %m", db_path));
     dbfd = db->fd(db);
 #endif
 
@@ -661,8 +665,8 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     if (open_flags & O_TRUNC)
 	db_flags |= DB_TRUNCATE;
     if ((errno = db_open(db_path, type, db_flags, 0644, 0, tweak, &db)) != 0)
-	return (dict_surrogate(class, path, open_flags, dict_flags,
-			       "open database %s: %m", db_path));
+	FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
+				   "open database %s: %m", db_path));
     if (db == 0)
 	msg_panic("db_open null result");
     if ((errno = db->fd(db, &dbfd)) != 0)
@@ -690,12 +694,12 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
 #if DB_VERSION_MAJOR == 5 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0)
     if ((errno = db->open(db, 0, db_path, 0, type, db_flags, 0644)) != 0)
-	return (dict_surrogate(class, path, open_flags, dict_flags,
-			       "open database %s: %m", db_path));
+	FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
+				   "open database %s: %m", db_path));
 #elif (DB_VERSION_MAJOR == 3 || DB_VERSION_MAJOR == 4)
     if ((errno = db->open(db, db_path, 0, type, db_flags, 0644)) != 0)
-	return (dict_surrogate(class, path, open_flags, dict_flags,
-			       "open database %s: %m", db_path));
+	FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
+				   "open database %s: %m", db_path));
 #else
 #error "Unsupported Berkeley DB version"
 #endif

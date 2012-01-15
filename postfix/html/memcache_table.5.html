@@ -75,12 +75,12 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               in all Postfix instances except  for  one  instance
               that will be responsible for cache cleanup.
 
-              NOTE 2: In the case of a proxied database, the full
-              database name (including the "<a href="proxymap.8.html">proxy</a>:" prefix)  must
-              be    specified    in    the    proxymap   server's
-              <a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a>   or    <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a>    setting
-              (depending  on  whether  the access is read-only or
-              read-write).
+              NOTE  2:  In the case of a proxied backup database,
+              the  full  backup  database  name  (including   the
+              "<a href="proxymap.8.html">proxy</a>:"  prefix) must be specified in the proxymap
+              server's <a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a> or  <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a>  set-
+              ting  (depending on whether the access is read-only
+              or read-write).
 
        <b>flags (default: 0)</b>
               Optional flags that should be stored along  with  a
@@ -200,7 +200,7 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
        destinations).  In a typical deployment a  memcache  data-
        base  is writable by any process that can talk to the mem-
        cache server; in contrast, security-sensitive tables  must
-       not be writable by the unprivileged Postfix user.
+       never be writable by the unprivileged Postfix user.
 
        The Postfix memcache client requires additional configura-
        tion when used as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a>  cache.   For

@@ -17544,3 +17544,16 @@ Apologies for any names omitted.
 	SMTP client to report about sessions that fail because a
 	table is unavailable. Files: global/mail_error.[hc],
 	smtpd/smtpd_check.c, smtp/smtp_trouble.c.
+
+20111215
+
+	Fine tuning: SMTP server error messages. File: smtpd/smtpd.c.
+
+	Fine tuning: documentation. Files: proto/MEMCACHE_README.html.
+	proto/memcache_table.html.
+
+	Apply "gradual degradation" also when an unsupported database
+	*type* is specified. File: util/dict_open.c.
+
+	Cleanup: tiny memory leaks after surrogate database opens.
+	Files: util/dict_cidr.c, util/dict_db.c.

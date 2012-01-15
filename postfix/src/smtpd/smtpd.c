@@ -1559,7 +1559,7 @@ static int helo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 
 static NORETURN cant_announce_feature(SMTPD_STATE *state, const char *feature)
 {
-    msg_warn("don't know if feature %s should be announced to %s",
+    msg_warn("don't know if EHLO feature %s should be announced to %s",
 	     feature, state->namaddr);
     vstream_longjmp(state->client, SMTP_ERR_DATA);
 }
@@ -1677,7 +1677,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (discard_mask && !(discard_mask & EHLO_MASK_SILENT))
 	    msg_info("discarding EHLO keywords: %s", str_ehlo_mask(discard_mask));
     if (ehlo_discard_maps && ehlo_discard_maps->error) {
-	msg_warn("don't know what features to announce in EHLO");
+	msg_warn("don't know what EHLO features to announce to %s",
+		 state->namaddr);
 	vstream_longjmp(state->client, SMTP_ERR_DATA);
     }
 
@@ -4491,12 +4492,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 
     case SMTP_ERR_DATA:
 	msg_info("%s: reject: %s from %s: "
-		 "421 4.3.0 %s Server configuration error",
+		 "421 4.3.0 %s Server local data error",
 		 (state->queue_id ? state->queue_id : "NOQUEUE"),
 		 state->where, state->namaddr, var_myhostname);
 	state->error_mask |= MAIL_ERROR_DATA;
 	if (vstream_setjmp(state->client) == 0)
-	    smtpd_chat_reply(state, "421 4.3.0 %s Server configuration error",
+	    smtpd_chat_reply(state, "421 4.3.0 %s Server local data error",
 			     var_myhostname);
 	break;
 

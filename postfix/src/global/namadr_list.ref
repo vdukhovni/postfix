@@ -7,7 +7,10 @@ dummy/168.100.189.16: ERROR
 ./namadr_list: warning: bad net/mask pattern: "168.100.589.0/28"
 dummy/168.100.189.16: ERROR
 dummy/168.100.989.16: NO
-./namadr_list: fatal: unsupported dictionary type: 2001
+./namadr_list: error: unsupported dictionary type: 2001
+./namadr_list: warning: 2001:240:5c7:0:2d0:b7ff:fe88:2ca7 is unavailable. unsupported dictionary type: 2001
+./namadr_list: warning: 2001:240:5c7:0:2d0:b7ff:fe88:2ca7: table lookup problem
+dummy/2001:240:5c7:0:2d0:b7ff:fe88:2ca7: ERROR
 dummy/2001:240:5c7:0:2d0:b7ff:fe88:2ca7: YES
 dummy/2001:240:5c7:0:2d0:b7ff:fe88:2ca8: NO
 ./namadr_list: warning: non-null host address bits in "2001:240:5c7:0:2d0:b7ff:fe88:2ca7/64", perhaps you should use "2001:240:5c7::/64" instead

@@ -80,7 +80,8 @@ automatic cache cleanup (*_cache_cleanup_interval = 0) in
 all Postfix instances except for one instance that will be
 responsible for cache cleanup.
 
-NOTE 2: In the case of a proxied database, the full database
+NOTE 2: In the case of a proxied backup database, the full
+backup database
 name (including the "proxy:" prefix) must be specified in
 the proxymap server's proxy_read_maps or proxy_write_maps
 setting (depending on whether the access is read-only or
@@ -198,7 +199,7 @@ tables such as \fBalias_maps\fR (these may contain
 privileges or "\fI/file/name\fR" destinations).  In a typical
 deployment a memcache database is writable by any process
 that can talk to the memcache server; in contrast,
-security-sensitive tables must not be writable by the
+security-sensitive tables must never be writable by the
 unprivileged Postfix user.
 
 The Postfix memcache client requires additional configuration
