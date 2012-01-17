@@ -25,6 +25,8 @@
 #	\fIinclude\fR directory.
 #	The following directives are special:
 # .RS
+# .IP \fB-DNO_DB\fR
+#	Do not build with Berkeley DB support.
 # .IP \fB-DNO_DEVPOLL\fR
 #	Do not build with Solaris /dev/poll support.
 #	By default, /dev/poll support is compiled in on platforms that

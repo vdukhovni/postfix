@@ -335,7 +335,7 @@ void    register_builtin_parameters(void)
 
     /*
      * Add the built-in parameters to the global name space. The class
-     * (built-i) is tentative; some parameters are actually service-defined,
+     * (built-in) is tentative; some parameters are actually service-defined,
      * but they have their own default value.
      */
     for (ctt = time_table; ctt->name; ctt++)

@@ -372,6 +372,10 @@ Specifies non-default compiler arguments, for example, a non-default
 <tt>include</tt> directory.  The following directives turn
 off Postfix features at compile time:</td> </tr>
 
+<tr> <td> </td> <td> -DNO_DB </td> <td> Do not build with Berkeley
+DB support. By default, Berkeley DB support is compiled in on
+platforms that are known to support this feature.  </td> </tr>
+
 <tr> <td> </td> <td> -DNO_DEVPOLL </td> <td> Do not build with
 Solaris <tt>/dev/poll</tt> support. By default, <tt>/dev/poll</tt>
 support is compiled in on Solaris versions that are known to support

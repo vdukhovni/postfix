@@ -173,6 +173,7 @@
 #include <safe.h>
 #include <safe_open.h>
 #include <mymalloc.h>
+#include <dict.h>
 #ifdef HAS_DB
 #include <dict_db.h>
 #endif

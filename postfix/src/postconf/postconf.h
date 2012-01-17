@@ -162,6 +162,13 @@ extern void register_service_parameters(void);
 extern void register_user_parameters(void);
 
  /*
+  * postconf_dbms.c
+  */
+extern void register_dbms_parameters(const char *,
+			         const char *(*) (const char *, int, char *),
+				             PC_MASTER_ENT *);
+
+ /*
   * postconf_unused.c.
   */
 extern void flag_unused_main_parameters(void);

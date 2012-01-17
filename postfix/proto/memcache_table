@@ -170,9 +170,11 @@
 # .IP "\fBline_size_limit (default: 1024)\fR"
 #	The maximal memcache reply line length in bytes.
 # .IP "\fBmax_try (default: 2)\fR"
-#	The number of times to try a memcache command before giving up.
+#	The number of times to try a memcache command before giving
+#	up.  The memcache client does not retry a command when the
+#	memcache server accepts no connection.
 # .IP "\fBretry_pause (default: 1)\fR"
-#	The time in seconds to wait after a memcache command fails.
+#	The time in seconds before retrying a failed memcache command.
 # .IP "\fBtimeout (default: 2)\fR"
 #	The time limit for sending a memcache command and for
 #	receiving a memcache reply.

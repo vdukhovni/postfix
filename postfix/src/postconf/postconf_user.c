@@ -78,6 +78,11 @@
 static HTABLE *rest_class_table;
 
  /*
+  * SLMs.
+  */
+#define STR(x)	vstring_str(x)
+
+ /*
   * Macros to make code with obscure constants more readable.
   */
 #define NO_SCAN_RESULT	((VSTRING *) 0)
@@ -196,16 +201,20 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	 dict->sequence(dict, how, &cparam_name, &cparam_value) == 0;
 	 how = DICT_SEQ_FUN_NEXT) {
 	if (local_scope != 0
-	 && PC_PARAM_TABLE_LOCATE(local_scope->valid_names, cparam_name) == 0
+	&& PC_PARAM_TABLE_LOCATE(local_scope->valid_names, cparam_name) == 0
 	    && htable_locate(rest_class_table, cparam_name) != 0)
 	    PC_PARAM_TABLE_ENTER(local_scope->valid_names, cparam_name,
-			      PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
-			      convert_user_parameter);
+				 PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
+				 convert_user_parameter);
 	/* Skip "do not expand" parameters. */
 	if ((node = PC_PARAM_TABLE_FIND(param_table, cparam_name)) != 0
 	    && PC_RAW_PARAMETER(node))
 	    continue;
 	SCAN_USER_PARAMETER_VALUE(cparam_value, local_scope);
+#ifdef LEGACY_DBMS_SUPPORT
+	register_dbms_parameters(cparam_value, flag_user_parameter,
+				 local_scope);
+#endif
     }
 }
 
@@ -229,10 +238,11 @@ static void scan_default_parameter_values(HTABLE *valid_params,
 	if (dict_lookup(dict_name, PC_PARAM_INFO_NAME(*ht)))
 	    continue;
 	if ((param_value = convert_param_node(SHOW_DEFS, PC_PARAM_INFO_NAME(*ht),
-					    PC_PARAM_INFO_NODE(*ht))) == 0)
+					      PC_PARAM_INFO_NODE(*ht))) == 0)
 	    msg_panic("%s: parameter %s has no default value",
 		      myname, PC_PARAM_INFO_NAME(*ht));
 	SCAN_USER_PARAMETER_VALUE(param_value, local_scope);
+	/* No need to scan default values for legacy DBMS configuration. */
     }
     myfree((char *) list);
 }

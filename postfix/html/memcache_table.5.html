@@ -181,11 +181,13 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
 
        <b>max_try (default: 2)</b>
               The number of  times  to  try  a  memcache  command
-              before giving up.
+              before  giving  up.   The  memcache client does not
+              retry a command when the memcache server accepts no
+              connection.
 
        <b>retry_pause (default: 1)</b>
-              The  time  in seconds to wait after a memcache com-
-              mand fails.
+              The  time  in seconds before retrying a failed mem-
+              cache command.
 
        <b>timeout (default: 2)</b>
               The time limit for sending a memcache  command  and

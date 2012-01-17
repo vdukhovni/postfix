@@ -1,14 +1,14 @@
 SHELL	= /bin/sh
 SRCS	= postconf.c postconf_builtin.c postconf_edit.c postconf_main.c \
 	postconf_master.c postconf_misc.c postconf_node.c postconf_other.c \
-	postconf_service.c postconf_unused.c postconf_user.c
+	postconf_service.c postconf_unused.c postconf_user.c postconf_dbms.c
 OBJS	= postconf.o postconf_builtin.o postconf_edit.o postconf_main.o \
 	postconf_master.o postconf_misc.o postconf_node.o postconf_other.o \
-	postconf_service.o postconf_unused.o postconf_user.o
+	postconf_service.o postconf_unused.o postconf_user.o postconf_dbms.o
 HDRS	= postconf.h
 TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
-CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
+CFLAGS	= $(DEBUG) $(OPT) $(DEFS) -DLEGACY_DBMS_SUPPORT
 TESTPROG=
 MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h \
@@ -42,7 +42,7 @@ test:	$(TESTPROG)
 
 tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 \
-	test22 test23 test24 test25 test26 test27
+	test22 test23 test24 test25 test26 test27 test28 test29
 
 root_tests:
 
@@ -354,6 +354,50 @@ test27:	$(PROG) test27.ref
 	diff test27.ref test27.tmp
 	rm -f main.cf master.cf test27.tmp
 
+# Test macro expansion, type:table parsing and scoping.
+
+test28:	$(PROG) test28.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'xx = proxy:ldap:foo' >> main.cf
+	echo 'foo_domain = bar' >> main.cf
+	echo 'header_checks = ldap:hh' >> main.cf
+	echo 'hh_domain = whatever' >> main.cf
+	echo 'zz = $$yy' >> main.cf
+	echo 'yy = aap' >> main.cf
+	echo 'db = memcache' >> main.cf
+	echo whatevershebrings unix - n n - 0 other >> master.cf
+	echo ' -o body_checks=$$db:zz' >> master.cf
+	echo 'zz_domain = whatever' >> main.cf
+	echo 'aa_domain = whatever' >> main.cf
+	./$(PROG) -nc . >test28.tmp 2>&1
+	diff test28.ref test28.tmp
+	rm -f main.cf master.cf test28.tmp
+
+# Test the handling of known and unknown database-defined suffixes.
+
+test29:	$(PROG) test29.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'ldapxx = proxy:ldap:ldapfoo' >> main.cf
+	echo 'ldapfoo_domain = bar' >> main.cf
+	echo 'ldapfoo_domainx = bar' >> main.cf
+	echo 'mysqlxx = proxy:mysql:mysqlfoo' >> main.cf
+	echo 'mysqlfoo_domain = bar' >> main.cf
+	echo 'mysqlfoo_domainx = bar' >> main.cf
+	echo 'pgsqlxx = proxy:pgsql:pgsqlfoo' >> main.cf
+	echo 'pgsqlfoo_domain = bar' >> main.cf
+	echo 'pgsqlfoo_domainx = bar' >> main.cf
+	echo 'sqlitexx = proxy:sqlite:sqlitefoo' >> main.cf
+	echo 'sqlitefoo_domain = bar' >> main.cf
+	echo 'sqlitefoo_domainx = bar' >> main.cf
+	echo 'memcachexx = proxy:memcache:memcachefoo' >> main.cf
+	echo 'memcachefoo_domain = bar' >> main.cf
+	echo 'memcachefoo_domainx = bar' >> main.cf
+	./$(PROG) -nc . >test29.tmp 2>&1
+	diff test29.ref test29.tmp
+	rm -f main.cf master.cf test29.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -441,6 +485,26 @@ postconf_builtin.o: str_table.h
 postconf_builtin.o: str_vars.h
 postconf_builtin.o: time_table.h
 postconf_builtin.o: time_vars.h
+postconf_dbms.o: ../../include/argv.h
+postconf_dbms.o: ../../include/dict.h
+postconf_dbms.o: ../../include/dict_ldap.h
+postconf_dbms.o: ../../include/dict_memcache.h
+postconf_dbms.o: ../../include/dict_mysql.h
+postconf_dbms.o: ../../include/dict_pgsql.h
+postconf_dbms.o: ../../include/dict_proxy.h
+postconf_dbms.o: ../../include/dict_sqlite.h
+postconf_dbms.o: ../../include/htable.h
+postconf_dbms.o: ../../include/mac_expand.h
+postconf_dbms.o: ../../include/mac_parse.h
+postconf_dbms.o: ../../include/mail_conf.h
+postconf_dbms.o: ../../include/split_at.h
+postconf_dbms.o: ../../include/stringops.h
+postconf_dbms.o: ../../include/sys_defs.h
+postconf_dbms.o: ../../include/vbuf.h
+postconf_dbms.o: ../../include/vstream.h
+postconf_dbms.o: ../../include/vstring.h
+postconf_dbms.o: postconf.h
+postconf_dbms.o: postconf_dbms.c
 postconf_edit.o: ../../include/argv.h
 postconf_edit.o: ../../include/dict.h
 postconf_edit.o: ../../include/edit_file.h

@@ -48,7 +48,7 @@
 /*	Expand macros in lookup results. This should never be done with
 /*	data whose origin is untrusted.
 /* .IP MAC_EXP_FLAG_APPEND
-/*	Append text to the result buffer.
+/*	Append text to the result buffer without truncating it.
 /* .IP MAC_EXP_FLAG_SCAN
 /*	Invoke the call-back function each macro name in the input
 /*	string, including macro names in the values of conditional

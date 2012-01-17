@@ -1432,6 +1432,10 @@ typedef int WAIT_STATUS_T;
 #undef HAVE_POSIX_GETPW_R
 #endif
 
+#ifdef NO_DB
+#undef HAS_DB
+#endif
+
 #ifndef OCTAL_TO_UNSIGNED
 #define OCTAL_TO_UNSIGNED(res, str)	((res) = strtoul((str), (char **) 0, 8))
 #endif

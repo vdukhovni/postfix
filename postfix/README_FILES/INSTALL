@@ -246,6 +246,11 @@ The following is an extensive list of names and values.
 |                              |following directives turn off Postfix features|
 |                              |at compile time:                              |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+||                             |Do not build with Berkeley DB support. By     |
+||-DNO_DB                      |default, Berkeley DB support is compiled in on|
+||                             |platforms that are known to support this      |
+||                             |feature.                                      |
+|_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                             |Do not build with Solaris /dev/poll support.  |
 ||-DNO_DEVPOLL                 |By default, /dev/poll support is compiled in  |
 ||                             |on Solaris versions that are known to support |
