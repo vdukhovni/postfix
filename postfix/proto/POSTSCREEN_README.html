@@ -220,10 +220,13 @@ that appear on the <i>permanent</i> access list. </p>
 
 <blockquote> <p> NOTE: To share a postscreen(8) cache between
 multiple postscreen(8) instances, use "<tt>postscreen_cache_map =
-proxy:btree:/path/to/file</tt>".  This requires Postfix 2.9 or
-later; earlier proxymap(8) implementations don't support cache
-cleanup.  For an alternative approach see the memcache_table(5)
-manpage.  </p> </blockquote>
+proxy:btree:$data_directory/postscreen_cache</tt>", and disable
+cache cleanup (postscreen_cache_cleanup_interval = 0) in all
+postscreen(8) instances except one that is responsible for cache
+cleanup. </p> <p> postscreen(8) cache sharing requires Postfix 2.9
+or later; earlier proxymap(8) implementations don't support cache
+cleanup. </p> <p>  For an alternative postscreen(8) cache sharing
+approach see the memcache_table(5) manpage.  </p> </blockquote>
 
 <p> When the SMTP client address appears on the temporary
 whitelist, postscreen(8) logs this with the client address and port

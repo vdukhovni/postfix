@@ -233,7 +233,7 @@ To find out what database types your Postfix system supports, use the "ppooss
     ppggssqqll (read-only)
         Perform PostgreSQL database lookups. Configuration details are given in
         pgsql_table(5).
-    pprrooxxyy (read-only)
+    pprrooxxyy (read-write)
         Access information via the Postfix proxymap(8) service. The lookup
         table name syntax is "proxy:type:table".
     rreeggeexxpp (read-only)

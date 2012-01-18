@@ -191,7 +191,7 @@
 /* .IP "\fBpgsql\fR (read-only)"
 /*	Perform lookups using the PostgreSQL protocol. This is described
 /*	in \fBpgsql_table\fR(5).
-/* .IP "\fBproxy\fR (read-only)"
+/* .IP "\fBproxy\fR (read-write)"
 /*	A lookup table that is implemented via the Postfix
 /*	\fBproxymap\fR(8) service. The table name syntax is
 /*	\fItype\fB:\fIname\fR.
