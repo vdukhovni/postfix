@@ -453,6 +453,7 @@ mailbox.o: ../../include/tok822.h
 mailbox.o: ../../include/vbuf.h
 mailbox.o: ../../include/vstream.h
 mailbox.o: ../../include/vstring.h
+mailbox.o: ../../include/warn_stat.h
 mailbox.o: biff_notify.h
 mailbox.o: local.h
 mailbox.o: mailbox.c
@@ -491,6 +492,7 @@ maildir.o: ../../include/tok822.h
 maildir.o: ../../include/vbuf.h
 maildir.o: ../../include/vstream.h
 maildir.o: ../../include/vstring.h
+maildir.o: ../../include/warn_stat.h
 maildir.o: local.h
 maildir.o: maildir.c
 recipient.o: ../../include/argv.h

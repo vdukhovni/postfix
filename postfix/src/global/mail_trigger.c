@@ -58,6 +58,7 @@
 #include <mymalloc.h>
 #include <iostuff.h>
 #include <trigger.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

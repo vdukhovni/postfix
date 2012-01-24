@@ -1098,6 +1098,7 @@ cleanup_region.o: ../../include/tok822.h
 cleanup_region.o: ../../include/vbuf.h
 cleanup_region.o: ../../include/vstream.h
 cleanup_region.o: ../../include/vstring.h
+cleanup_region.o: ../../include/warn_stat.h
 cleanup_region.o: cleanup.h
 cleanup_region.o: cleanup_region.c
 cleanup_rewrite.o: ../../include/argv.h

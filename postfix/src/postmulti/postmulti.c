@@ -415,6 +415,7 @@
 #include <htable.h>
 #include <name_code.h>
 #include <ring.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

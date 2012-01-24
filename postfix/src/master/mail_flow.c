@@ -53,6 +53,7 @@
 
 #include <msg.h>
 #include <iostuff.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

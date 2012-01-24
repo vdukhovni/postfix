@@ -108,6 +108,7 @@
 #include <vstream.h>
 #include <msg_vstream.h>
 #include <iostuff.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

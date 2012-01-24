@@ -86,4 +86,5 @@ flush.o: ../../include/vbuf.h
 flush.o: ../../include/vstream.h
 flush.o: ../../include/vstring.h
 flush.o: ../../include/vstring_vstream.h
+flush.o: ../../include/warn_stat.h
 flush.o: flush.c

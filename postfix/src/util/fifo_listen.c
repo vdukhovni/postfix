@@ -43,6 +43,7 @@
 #include "msg.h"
 #include "iostuff.h"
 #include "listen.h"
+#include "warn_stat.h"
 
 #define BUF_LEN	100
 

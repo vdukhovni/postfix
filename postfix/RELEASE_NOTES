@@ -329,6 +329,17 @@ unavailable.
 Major changes - logging
 ----------------------------------------
 
+[Incompat 20120114] Logfile-based alerting systems may need to be
+updated to look for "error" messages in addition to "fatal" messages.
+Specify "daemon_table_open_error_is_fatal = yes" to get the historical
+behavior (immediate termination with "fatal" message).
+
+[Incompat 20111214] Logfile-based analysis tools may need to be
+updated. The submission and smtps examples in the sample master.cf
+file were updated to make their logging easier to distinguish.
+
+See the source file pflogsumm_quickfix.txt for a "quick fix".
+
 [Incompat 20111205] Postfix now logs the result of successful TLS
 negotiation with TLS logging levels of 0. See the smtp_tls_loglevel
 and smtpd_tls_loglevel descriptions in the postconf(5) manpage for

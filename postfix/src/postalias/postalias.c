@@ -233,6 +233,7 @@
 #include <split_at.h>
 #include <vstring_vstream.h>
 #include <set_eugid.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

@@ -186,6 +186,7 @@
 #include <safe.h>
 #include <connect.h>
 #include <valid_hostname.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

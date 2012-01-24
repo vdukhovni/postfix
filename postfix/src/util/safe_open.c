@@ -85,6 +85,7 @@
 #include <vstring.h>
 #include <stringops.h>
 #include <safe_open.h>
+#include <warn_stat.h>
 
 /* safe_open_exist - open existing file */
 

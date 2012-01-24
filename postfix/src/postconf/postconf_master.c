@@ -68,6 +68,35 @@
 
 #define STR(x) vstring_str(x)
 
+/* normalize_options - bring options into canonical form */
+
+static void normalize_options(ARGV *argv)
+{
+    int     field;
+    char   *arg;
+
+    /*
+     * Normalize options to simplify later processing.
+     */
+    for (field = PC_MASTER_MIN_FIELDS; argv->argv[field] != 0; field++) {
+	arg = argv->argv[field];
+	if (arg[0] != '-' || strcmp(arg, "--") == 0)
+	    break;
+	if (strncmp(arg, "-o", 2) == 0) {
+	    if (arg[2] != 0) {
+		/* Split "-oname=value" into "-o" "name=value". */
+		argv_insert_one(argv, field + 1, arg + 2);
+		argv_replace_one(argv, field, "-o");
+		/* arg is now a dangling pointer. */
+		field += 1;
+	    } else if (argv->argv[field + 1] != 0) {
+		/* Already in "-o" "name=value" form. */
+		field += 1;
+	    }
+	}
+    }
+}
+
 /* read_master - read and digest the master.cf file */
 
 void    read_master(int fail_on_open_error)
@@ -126,6 +155,7 @@ void    read_master(int fail_on_open_error)
 	    if (argv->argc < PC_MASTER_MIN_FIELDS)
 		msg_fatal("file %s: line %d: bad field count",
 			  path, line_count);
+	    normalize_options(argv);
 	    master_table[entry_count].name_space =
 		concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);
 	    master_table[entry_count].argv = argv;
@@ -197,7 +227,7 @@ static void print_master_line(int mode, ARGV *argv)
 	     * Try to show the generic options (-v -D) on the first line, and
 	     * non-options on a later line.
 	     */
-	    if (arg[0] != '-') {
+	    if (arg[0] != '-' || strcmp(arg, "--") == 0) {
 		in_daemon_options = 0;
 		if ((mode & FOLD_LINE)
 		    && line_len > column_goal[PC_MASTER_MIN_FIELDS - 1]) {

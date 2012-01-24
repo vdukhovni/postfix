@@ -42,7 +42,7 @@ test:	$(TESTPROG)
 
 tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 \
-	test22 test23 test24 test25 test26 test27 test28 test29
+	test22 test23 test24 test25 test26 test27 test28 test29 test30
 
 root_tests:
 
@@ -398,6 +398,22 @@ test29:	$(PROG) test29.ref
 	diff test29.ref test29.tmp
 	rm -f main.cf master.cf test29.tmp
 
+test30:	$(PROG) test30.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo p1=xx >> main.cf
+	echo p2=xx >> main.cf
+	echo p3=xx >> main.cf
+	echo p4=xx >> main.cf
+	echo whatevershebrings unix - n n - 0 other >> master.cf
+	echo ' -o body_checks=$$p1' >> master.cf
+	echo ' -o bodyx_checks=$$p2' >> master.cf
+	echo ' -oheader_checks=$$p3' >> master.cf
+	echo ' -oheaderx_checks=$$p4' >> master.cf
+	./$(PROG) -nc . >test30.tmp 2>&1
+	diff test30.ref test30.tmp
+	rm -f main.cf master.cf test30.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -442,6 +458,7 @@ postconf.o: ../../include/sys_defs.h
 postconf.o: ../../include/vbuf.h
 postconf.o: ../../include/vstream.h
 postconf.o: ../../include/vstring.h
+postconf.o: ../../include/warn_stat.h
 postconf.o: postconf.c
 postconf.o: postconf.h
 postconf_builtin.o: ../../include/argv.h
