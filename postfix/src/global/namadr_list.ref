@@ -47,7 +47,7 @@ bar/168.100.189.3: NO
 bar/168.100.189.3: ERROR
 ./namadr_list: warning: fail:1: table lookup problem
 bar/168.100.189.3: ERROR
-./namadr_list: error: open file /home/wietse/postfix-2.9-20120114/src/global/nosuchfile: No such file or directory
-./namadr_list: warning: non-existent:/home/wietse/postfix-2.9-20120114/src/global/nosuchfile is unavailable. open file /home/wietse/postfix-2.9-20120114/src/global/nosuchfile: No such file or directory
-./namadr_list: warning: non-existent:/home/wietse/postfix-2.9-20120114/src/global/nosuchfile: table lookup problem
+./namadr_list: error: open file /tmp/nosuchfile: No such file or directory
+./namadr_list: warning: non-existent:/tmp/nosuchfile is unavailable. open file /tmp/nosuchfile: No such file or directory
+./namadr_list: warning: non-existent:/tmp/nosuchfile: table lookup problem
 bar/168.100.189.3: ERROR

@@ -928,6 +928,7 @@ static void psc_smtpd_read_event(int event, char *context)
 	if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_SKIP)
 	    == PSC_STATE_FLAG_NSMTP_TODO && cmdp->name == 0
 	    && (is_header(command)
+	/* Ignore forbid_cmds lookup errors. Non-critical feature. */
 		|| (*var_psc_forbid_cmds
 		    && string_list_match(psc_forbid_cmds, command)))) {
 	    printable(command, '?');

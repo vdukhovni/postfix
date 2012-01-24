@@ -170,6 +170,7 @@
 #include <scan_dir.h>
 #include <stringops.h>
 #include <safe_open.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

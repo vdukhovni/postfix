@@ -94,6 +94,7 @@
 #include <msg_output.h>
 #include <msg_vstream.h>
 #include <msg_syslog.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

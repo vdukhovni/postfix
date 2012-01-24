@@ -215,6 +215,7 @@
 #include "name_mask.h"
 #include "dict.h"
 #include "dict_ht.h"
+#include "warn_stat.h"
 
 static HTABLE *dict_table;
 

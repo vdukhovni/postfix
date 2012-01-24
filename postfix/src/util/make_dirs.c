@@ -45,6 +45,7 @@
 #include "mymalloc.h"
 #include "stringops.h"
 #include "make_dirs.h"
+#include "warn_stat.h"
 
 /* make_dirs - create directory hierarchy */
 

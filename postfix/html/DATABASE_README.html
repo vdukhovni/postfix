@@ -292,7 +292,7 @@ the ".dir" or ".pag" suffix.  </dd>
 variable name. The lookup table name in "environ:table" is ignored.
 </dd>
 
-<dt> <b>fail</b> (read-write) </dt>
+<dt> <b>fail</b> </dt>
 
 <dd> A table that reliably fails all requests. The lookup table
 name is used for logging only. This table exists to simplify Postfix
@@ -316,7 +316,7 @@ a process terminates. </dd>
 <dd> Perform lookups using the LDAP protocol. Configuration details
 are given in the <a href="ldap_table.5.html">ldap_table(5)</a>. </dd>
 
-<dt> <b>memcache</b> (read-write) </dt>
+<dt> <b>memcache</b> </dt>
 
 <dd> Perform memcache database lookups or updates. Configuration
 details are given in <a href="memcache_table.5.html">memcache_table(5)</a>. </dd>
@@ -351,7 +351,7 @@ file.  </dd>
 <dd> Perform PostgreSQL database lookups.  Configuration details
 are given in <a href="pgsql_table.5.html">pgsql_table(5)</a>. </dd>
 
-<dt> <b>proxy</b> (read-write) </dt>
+<dt> <b>proxy</b> </dt>
 
 <dd> Access information via the Postfix <a href="proxymap.8.html">proxymap(8)</a> service. The
 lookup table name syntax is "<a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html">type:table</a>". </dd>

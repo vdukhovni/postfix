@@ -61,6 +61,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <set_eugid.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

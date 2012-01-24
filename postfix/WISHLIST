@@ -198,8 +198,6 @@ Wish list:
 
 	Register automagic destructor for object attached to VSTREAM.
 
-	smtpd xclient option for sasl_username.
-
 	Use different ipc time limits for email message transactions
 	(smtpd, pickup)->cleanup and for quick query/reply transactions
 	such as address rewriting/resolution. Beware of large time

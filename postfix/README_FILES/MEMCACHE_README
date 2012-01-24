@@ -44,7 +44,7 @@ CCrreeddiittss
 The first memcache client for Postfix was written by Omar Kilani, and was based
 on the libmemcache library.
 
-Wietse wrote the current memcache client from the ground up. This
-implementation does not use libmemcache, and bears no resemblance to earlier
-work.
+Wietse wrote the current memcache client from the ground up for Postfix version
+2.9. This implementation does not use libmemcache, and bears no resemblance to
+earlier work.
 

@@ -46,6 +46,7 @@
 #include <vstream.h>
 #include <iostuff.h>
 #include <load_file.h>
+#include <warn_stat.h>
 
 /* load_file - load file with some prejudice */
 

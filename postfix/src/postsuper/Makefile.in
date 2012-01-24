@@ -80,4 +80,5 @@ postsuper.o: ../../include/vbuf.h
 postsuper.o: ../../include/vstream.h
 postsuper.o: ../../include/vstring.h
 postsuper.o: ../../include/vstring_vstream.h
+postsuper.o: ../../include/warn_stat.h
 postsuper.o: postsuper.c

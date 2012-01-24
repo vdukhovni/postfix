@@ -53,6 +53,7 @@
 #include <myaddrinfo.h>
 #include <cidr_match.h>
 #include <dict_cidr.h>
+#include <warn_stat.h>
 
 /* Application-specific. */
 

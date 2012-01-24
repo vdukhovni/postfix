@@ -52,6 +52,7 @@
 #include <stringops.h>
 #include <dict.h>
 #include <dict_sdbm.h>
+#include <warn_stat.h>
 
 #ifdef HAS_SDBM
 

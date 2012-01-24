@@ -107,6 +107,7 @@
 #include <vstring_vstream.h>
 #include <stringops.h>
 #include <iostuff.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

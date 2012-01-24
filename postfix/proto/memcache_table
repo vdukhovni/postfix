@@ -213,10 +213,7 @@
 # HISTORY
 # .ad
 # .fi
-#	The first memcache client for Postfix was written by Omar
-#	Kilani, and was based on libmemcache.  
-#	The Postfix implementation does not use libmemcache, and
-#	bears no resemblance to earlier work.
+#	Memcache support was introduced with Postfix version 2.9.
 # AUTHOR(S)
 #	Wietse Venema
 #	IBM T.J. Watson Research
