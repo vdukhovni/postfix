@@ -17589,3 +17589,21 @@ Apologies for any names omitted.
 	This is a real stinker that causes Postfix to fail without
 	any prior warning.  File: util/warn_stat.[hc], and everything
 	that directly calls stat(), fstat() or lstat().
+
+20120127
+
+	Bugfix (introduced: Postfix 2.8): the Postfix client sqlite
+	quoting routine returned the unquoted result instead of the
+	quoted text.  The opportunities for misuse are limited,
+	because Postfix sqlite files are usually owned by root, and
+	because Postfix daemons usually run with non-root privileges.
+	File: global/dict_sqlite.c.
+
+20120130
+
+	Bugfix (introduced: Postfix 2.3): the trace service did not
+	distinguish between notifications for a non-bounce or a
+	single-bounce message. This code pre-dates DSN support and
+	should have been updated when it was re-purposed to handle
+	DSN SUCCESS notifications. Problem reported by Sabahattin
+	Gucukoglu.  File: bounce/bounce_trace_service.c.
