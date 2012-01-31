@@ -65,6 +65,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

@@ -83,6 +83,7 @@
 
 #include <msg.h>
 #include <mymalloc.h>
+#include <warn_stat.h>
 
 /* Application-specific. */
 

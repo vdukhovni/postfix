@@ -461,7 +461,7 @@ typedef struct bind_props {
     char   *passwd;
     char   *realm;
     char   *authzid;
-}       bind_props;
+} bind_props;
 
 static int ldap_b2_interact(LDAP *ld, unsigned flags, void *props, void *inter)
 {

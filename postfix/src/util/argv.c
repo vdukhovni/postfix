@@ -28,6 +28,16 @@
 /*	ARGV	*argvp;
 /*	ssize_t	len;
 /*
+/*	void	argv_insert_one(argvp, pos, arg)
+/*	ARGV	*argvp;
+/*	ssize_t	pos;
+/*	const char *arg;
+/*
+/*	void	argv_replace_one(argvp, pos, arg)
+/*	ARGV	*argvp;
+/*	ssize_t	pos;
+/*	const char *arg;
+/*
 /*	void	ARGV_FAKE_BEGIN(argv, arg)
 /*	const char *arg;
 /*
@@ -62,6 +72,12 @@
 /*	argv_truncate() trucates its argument to the specified
 /*	number of entries, but does not reallocate memory. The
 /*	result is null-terminated.
+/*
+/*	argv_insert_one() inserts one string at the specified array
+/*	position.
+/*
+/*	argv_replace_one() replaces one string at the specified
+/*	position.
 /*
 /*	ARGV_FAKE_BEGIN/END are an optimization for the case where
 /*	a single string needs to be passed into an ARGV-based
@@ -218,4 +234,39 @@ void    argv_truncate(ARGV *argvp, ssize_t len)
 	argvp->argc = len;
 	argvp->argv[argvp->argc] = 0;
     }
+}
+
+/* argv_insert_one - insert one string into array */
+
+void    argv_insert_one(ARGV *argvp, ssize_t where, const char *arg)
+{
+    ssize_t pos;
+
+    /*
+     * Sanity check.
+     */
+    if (where < 0 || where > argvp->argc)
+	msg_panic("argv_insert_one bad position: %ld", (long) where);
+
+    if (ARGV_SPACE_LEFT(argvp) <= 0)
+	argv_extend(argvp);
+    for (pos = argvp->argc; pos >= where; pos--)
+	argvp->argv[pos + 1] = argvp->argv[pos];
+    argvp->argv[where] = mystrdup(arg);
+    argvp->argc += 1;
+}
+
+/* argv_replace_one - insert one string into array */
+
+void    argv_replace_one(ARGV *argvp, ssize_t where, const char *arg)
+{
+
+    /*
+     * Sanity check.
+     */
+    if (where < 0 || where >= argvp->argc)
+	msg_panic("argv_replace_one bad position: %ld", (long) where);
+
+    myfree(argvp->argv[where]);
+    argvp->argv[where] = mystrdup(arg);
 }

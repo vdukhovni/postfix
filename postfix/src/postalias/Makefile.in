@@ -110,4 +110,5 @@ postalias.o: ../../include/vbuf.h
 postalias.o: ../../include/vstream.h
 postalias.o: ../../include/vstring.h
 postalias.o: ../../include/vstring_vstream.h
+postalias.o: ../../include/warn_stat.h
 postalias.o: postalias.c

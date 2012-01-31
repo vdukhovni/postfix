@@ -49,6 +49,7 @@
 #include <readlline.h>
 #include <dict.h>
 #include <dict_thash.h>
+#include <warn_stat.h>
 
 /* Application-specific. */
 

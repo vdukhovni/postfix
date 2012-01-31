@@ -34,6 +34,7 @@
 
 #include "msg.h"
 #include "sane_fsops.h"
+#include "warn_stat.h"
 
 /* sane_rename - sanitize rename() error returns */
 

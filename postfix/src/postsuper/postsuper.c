@@ -280,6 +280,7 @@
 #include <vstring_vstream.h>
 #include <sane_fsops.h>
 #include <myrand.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

@@ -296,7 +296,7 @@ void    register_user_parameters(void)
     for (masterp = master_table; (argv = masterp->argv) != 0; masterp++) {
 	for (field = PC_MASTER_MIN_FIELDS; argv->argv[field] != 0; field++) {
 	    arg = argv->argv[field];
-	    if (arg[0] != '-')
+	    if (arg[0] != '-' || strcmp(arg, "--") == 0)
 		break;
 	    if (strcmp(arg, "-o") == 0 && (arg = argv->argv[field + 1]) != 0) {
 		saved_arg = mystrdup(arg);

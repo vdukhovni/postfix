@@ -796,7 +796,8 @@ static void psc_service(VSTREAM *smtp_client_stream,
     }
 
     /*
-     * Don't whitelist clients that connect to backup MX addresses.
+     * Don't whitelist clients that connect to backup MX addresses. Fail
+     * "closed" on error.
      */
     if (addr_match_list_match(psc_wlist_if, smtp_server_addr.buf) == 0) {
 	state->flags |= (PSC_STATE_FLAG_WLIST_FAIL | PSC_STATE_FLAG_NOFORWARD);
@@ -862,8 +863,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     psc_acl_pre_jail_init(var_mynetworks, VAR_PSC_ACL);
     if (*var_psc_acl)
 	psc_acl = psc_acl_parse(var_psc_acl, VAR_PSC_ACL);
+    /* Ignore smtpd_forbid_cmds lookup errors. Non-critical feature. */
     if (*var_psc_forbid_cmds)
-	psc_forbid_cmds = string_list_init(MATCH_FLAG_NONE,
+	psc_forbid_cmds = string_list_init(MATCH_FLAG_RETURN,
 					   var_psc_forbid_cmds);
     if (*var_psc_dnsbl_reply)
 	psc_dnsbl_reply = dict_open(var_psc_dnsbl_reply, O_RDONLY,
@@ -1008,7 +1010,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 				      var_psc_barlf_action)) < 0)
 	msg_fatal("bad %s value: %s", VAR_PSC_BARLF_ACTION,
 		  var_psc_barlf_action);
-    psc_wlist_if = addr_match_list_init(MATCH_FLAG_NONE, var_psc_wlist_if);
+    /* Fail "closed" on error. */
+    psc_wlist_if = addr_match_list_init(MATCH_FLAG_RETURN, var_psc_wlist_if);
 
     /*
      * Start the cache maintenance pseudo thread last. Early cleanup makes

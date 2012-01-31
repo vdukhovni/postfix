@@ -59,6 +59,7 @@
 #include "dict_pcre.h"
 #include "mac_parse.h"
 #include "pcre.h"
+#include "warn_stat.h"
 
  /*
   * Support for IF/ENDIF based on an idea by Bert Driehuis.

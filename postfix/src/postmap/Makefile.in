@@ -111,4 +111,5 @@ postmap.o: ../../include/vbuf.h
 postmap.o: ../../include/vstream.h
 postmap.o: ../../include/vstring.h
 postmap.o: ../../include/vstring_vstream.h
+postmap.o: ../../include/warn_stat.h
 postmap.o: postmap.c

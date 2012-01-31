@@ -60,6 +60,7 @@
 
 #include <msg.h>
 #include <vstring.h>
+#include <warn_stat.h>
 
 /* Global library. */
 

@@ -102,4 +102,5 @@ sendmail.o: ../../include/verp_sender.h
 sendmail.o: ../../include/vstream.h
 sendmail.o: ../../include/vstring.h
 sendmail.o: ../../include/vstring_vstream.h
+sendmail.o: ../../include/warn_stat.h
 sendmail.o: sendmail.c
