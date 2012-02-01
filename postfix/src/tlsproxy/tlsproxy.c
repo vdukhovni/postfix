@@ -692,7 +692,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 			 timeout = 0,		/* unused */
 			 requirecert = (var_tlsp_tls_req_ccert
 					&& var_tlsp_enforce_tls),
-			 serverid = state->service,
+			 serverid = MAIL_SERVICE_SMTPD,	/* XXX */
 			 namaddr = state->remote_endpt,
 			 cipher_grade = cipher_grade,
 			 cipher_exclusions = STR(cipher_exclusions),

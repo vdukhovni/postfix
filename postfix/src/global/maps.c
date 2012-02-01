@@ -164,6 +164,11 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
     DICT   *dict;
 
     /*
+     * In case of return without map lookup (empty name or no maps).
+     */
+    dict_errno = 0;
+
+    /*
      * Temp. workaround, for buggy callers that pass zero-length keys when
      * given partial addresses.
      */
@@ -189,6 +194,7 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
 			 *map_name, name, expansion);
 	    return (expansion);
 	} else if (dict_errno != 0) {
+	    msg_warn("%s:%s lookup of %s failed", dict->type, dict->name, name);
 	    break;
 	}
     }

@@ -57,6 +57,12 @@
 /* AUTHOR(S)
 /*	Axel Steiner
 /*	ast@treibsand.com
+/*
+/*	Adopted and updated by:
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
 /*--*/
 
 /* System library. */
@@ -109,7 +115,7 @@ static void dict_sqlite_quote(DICT *dict, const char *raw_text, VSTRING *result)
     /* Fix 20100616 */
     if (quoted_text == 0)
 	msg_fatal("dict_sqlite_quote: out of memory");
-    vstring_strcat(result, raw_text);
+    vstring_strcat(result, quoted_text);
     sqlite3_free(quoted_text);
 }
 
@@ -149,6 +155,11 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     const char *retval;
     int     expansion = 0;
     int     status;
+
+    /*
+     * In case of return without lookup (skipped key, etc.).
+     */
+    dict_errno = 0;
 
     /*
      * Don't frustrate future attempts to make Postfix UTF-8 transparent.

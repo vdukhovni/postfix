@@ -536,6 +536,8 @@ static const NAME_MASK dict_mask[] = {
     "no_unauth", (1 << 13),		/* disallow unauthenticated data */
     "fold_fix", (1 << 14),		/* case-fold with fixed-case key map */
     "fold_mul", (1 << 15),		/* case-fold with multi-case key map */
+    "open_lock", (1 << 16),		/* permanent lock upon open */
+    0,
 };
 
 /* dict_flags_str - convert mask to string for debugging purposes */
