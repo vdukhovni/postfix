@@ -100,7 +100,7 @@ cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
 	diff cleanup_masq.ref cleanup_masq.tmp
 	rm -f cleanup_masq.tmp
 
-bug_tests: bug1_test bug2_test
+bug_tests: bug1_test bug2_test bug3_test
 
 ../postcat/postcat:
 	cd ../postcat; make
@@ -126,6 +126,17 @@ bug2_test: cleanup_milter bug2.file bug2.in bug2.ref bug2.text.ref \
 	../postcat/postcat bug2.file.tmp 2>/dev/null >bug2.tmp
 	diff bug2.text.ref bug2.tmp
 	rm -f bug2.file.tmp bug2.tmp
+
+bug3_test: cleanup_milter bug3.file bug3.in bug3.ref bug3.text.ref \
+	../postcat/postcat
+	cp bug3.file bug3.file.tmp
+	chmod u+w bug3.file.tmp
+	./cleanup_milter <bug3.in
+	../postcat/postcat -ov bug3.file.tmp 2>/dev/null >bug3.tmp
+	diff bug3.ref bug3.tmp
+	../postcat/postcat bug3.file.tmp 2>/dev/null >bug3.tmp
+	diff bug3.text.ref bug3.tmp
+	rm -f bug3.file.tmp bug3.tmp
 
 # Test queue file editing routines.
 

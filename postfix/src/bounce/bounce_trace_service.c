@@ -98,16 +98,16 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 
     if (strcasecmp(recipient, mail_addr_double_bounce()) == 0) {
-	msg_info("%s: not sending notification for double-bounce message",
-		 queue_id);
+	msg_info("%s: not sending trace/success notification for "
+		 "double-bounce message", queue_id);
 	return (0);
     } else if (*recipient == 0) {
 	if ((notify_mask & MAIL_ERROR_2BOUNCE) != 0) {
 	    recipient = var_2bounce_rcpt;
 	    sender = mail_addr_double_bounce();
 	} else {
-	    msg_info("%s: not sending notification for single-bounce message",
-		     queue_id);
+	    msg_info("%s: not sending trace/success notification "
+		     "for single-bounce message", queue_id);
 	    if (mail_queue_remove(service, queue_id) && errno != ENOENT)
 		msg_fatal("remove %s %s: %m", service, queue_id);
 	    return (0);

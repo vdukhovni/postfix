@@ -17596,14 +17596,23 @@ Apologies for any names omitted.
 	quoting routine returned the unquoted result instead of the
 	quoted text.  The opportunities for misuse are limited,
 	because Postfix sqlite files are usually owned by root, and
-	because Postfix daemons usually run with non-root privileges.
-	File: global/dict_sqlite.c.
+	Postfix daemons usually run with non-root privileges so
+	they can't corrupt the database. Problem reported by Rob
+	McGee (rob0).  File: global/dict_sqlite.c.
 
 20120130
 
 	Bugfix (introduced: Postfix 2.3): the trace service did not
 	distinguish between notifications for a non-bounce or a
-	single-bounce message. This code pre-dates DSN support and
-	should have been updated when it was re-purposed to handle
-	DSN SUCCESS notifications. Problem reported by Sabahattin
+	bounce message. This code pre-dates DSN support and should
+	have been updated when it was re-purposed to handle DSN
+	SUCCESS notifications. Problem reported by Sabahattin
 	Gucukoglu.  File: bounce/bounce_trace_service.c.
+
+20120202
+
+	Bugfix (introduced: Postfix 2.3): the "change header" milter
+	request could replace the wrong header. A long header name
+	could match a shorter one, because a length check was done
+	on the wrong string.  Reported by Vladimir Vassiliev.  File:
+	cleanup/cleanup_milter.c.

@@ -6,6 +6,10 @@ Wish list:
 
 	Things to do after the stable release:
 
+	The discussion of postscreen cache configuration is in the
+	wrong place (how whitelisting works). Move it to the section
+	about configuring postscreen.
+
 	Before proxymap can be exposed to the network to share,
 	e.g., postscreen or verify caches, need to enforce limits
 	on attribute string length in IPC protocols.  10-20KB seems
