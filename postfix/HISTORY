@@ -15989,3 +15989,34 @@ Apologies for any names omitted.
 	checks to unknown message subtypes such as message/global*.
 	File: global/mime_state.c.
 
+20111117
+
+	Portability: Dovecot now officially supports more socket
+	types for its authentication server. File:
+	xsasl/xsasl_dovecot_server.c.
+
+20111226
+
+	Bugfix (introduced 20110426): after lookup error with
+	mailbox_transport_maps, mailbox_command_maps or
+	fallback_transport_maps, the local delivery agent did not
+	log the problem before deferring mail, and produced no defer
+	logfile record. Files: local/mailbox.c, local/unknown.c.
+
+20120130
+
+	Bugfix (introduced: Postfix 2.3): the trace service did not
+	distinguish between DSN SUCCESS notifications for a non-bounce
+	or a bounce message, and replied to mail from <>. This code
+	pre-dates DSN support and should have been updated when it
+	was re-purposed to handle DSN SUCCESS notifications.  Problem
+	reported by Sabahattin Gucukoglu.  File:
+	bounce/bounce_trace_service.c.
+
+20120202
+
+	Bugfix (introduced: Postfix 2.3): the "change header" milter
+	request could replace the wrong header. A long header name
+	could match a shorter one, because a length check was done
+	on the wrong string.  Reported by Vladimir Vassiliev.  File:
+	cleanup/cleanup_milter.c.
