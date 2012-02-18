@@ -17608,3 +17608,24 @@ Apologies for any names omitted.
 	have been updated when it was re-purposed to handle DSN
 	SUCCESS notifications. Problem reported by Sabahattin
 	Gucukoglu.  File: bounce/bounce_trace_service.c.
+
+20120202
+
+	Bugfix (introduced: Postfix 2.3): the "change header" milter
+	request could replace the wrong header. A long header name
+	could match a shorter one, because a length check was done
+	on the wrong string.  Reported by Vladimir Vassiliev.  File:
+	cleanup/cleanup_milter.c.
+
+20120214
+
+	Bugfix (introduced: Postfix 2.4): extraneous null assignment
+	caused core dump when postlog emitted the "usage" message.
+	Reported by Kant (fnord.hammer). File: postlog/postlog.c.
+
+20120217
+
+	Bugfix (introduced 20111219): sendmail -bs segfault, due
+	to a missing guard statement after an smtpd_check_rewrite()
+	call was moved closer to the command processor loop. Fix
+	by Bartek Szady. File: smtpd/smtpd.c.
