@@ -20,7 +20,7 @@
 /*	specified with the address_verify_sender parameter.
 /*
 /*	When the address_verify_sender parameter is empty or <>,
-/*	the sender address always the empty address (i.e. always
+/*	the sender address is always the empty address (i.e. always
 /*	time-independent).
 /*
 /*	The caller must initialize the address_verify_sender and

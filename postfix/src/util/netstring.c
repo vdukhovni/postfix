@@ -116,7 +116,7 @@
 /* .fi
 /* .ad
 /*	In case of error, a vstream_longjmp() call is performed to the
-/*	context specified with vstream_setjmp().
+/*	caller-provided context specified with vstream_setjmp().
 /*	Error codes passed along with vstream_longjmp() are:
 /* .IP NETSTRING_ERR_EOF
 /*	An I/O error happened, or the peer has disconnected unexpectedly.
