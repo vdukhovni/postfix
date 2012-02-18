@@ -2353,12 +2353,14 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     }
-    err = smtpd_check_rewrite(state);
-    if (err != 0) {
-	/* XXX Reset access map side effects. */
-	mail_reset(state);
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
+    if (SMTPD_STAND_ALONE(state) == 0) {
+	err = smtpd_check_rewrite(state);
+	if (err != 0) {
+	    /* XXX Reset access map side effects. */
+	    mail_reset(state);
+	    smtpd_chat_reply(state, "%s", err);
+	    return (-1);
+	}
     }
 
     /*
