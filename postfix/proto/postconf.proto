@@ -4362,10 +4362,10 @@ smtp_sasl_security_options = noplaintext
 <p>
 If non-empty, a Postfix SMTP client filter for the remote SMTP
 server's list of offered SASL mechanisms.  Different client and
-server implementations may support different mechanism lists. By
+server implementations may support different mechanism lists; by
 default, the Postfix SMTP client will use the intersection of the
-two. smtp_sasl_mechanism_filter further restricts what server
-mechanisms the client will take into consideration.  </p>
+two. smtp_sasl_mechanism_filter specifies an optional third mechanism
+list to intersect with. </p>
 
 <p> Specify mechanism names, "/file/name" patterns or "type:table"
 lookup tables. The right-hand side result from "type:table" lookups
@@ -8811,6 +8811,10 @@ file may also be used to augment the server certificate trust chain,
 but it is best to include all the required certificates directly in the
 server certificate file. </p>
 
+<p> Specify "smtpd_tls_CAfile = /path/to/system_CA_file" to use ONLY
+the system-supplied default certificate authority certificates.
+</p>
+
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
 appending the system-supplied default CAs and trusting third-party
 certificates. </p>
@@ -8841,6 +8845,10 @@ certificates. Do not forget to create the necessary "hash" links with,
 for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs". To use
 smtpd_tls_CApath in chroot mode, this directory (or a copy) must be
 inside the chroot jail. </p>
+
+<p> Specify "smtpd_tls_CApath = /path/to/system_CA_directory" to
+use ONLY the system-supplied default certificate authority certificates.
+</p>
 
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
 appending the system-supplied default CAs and trusting third-party
@@ -9221,6 +9229,10 @@ file may also be used to augment the client certificate trust chain,
 but it is best to include all the required certificates directly in
 $smtp_tls_cert_file. </p>
 
+<p> Specify "smtp_tls_CAfile = /path/to/system_CA_file" to use 
+ONLY the system-supplied default certificate authority certificates.
+</p>
+
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
 appending the system-supplied default CAs and trusting third-party
 certificates. </p>
@@ -9243,6 +9255,10 @@ with, for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs".
 
 <p> To use this option in chroot mode, this directory (or a copy) 
 must be inside the chroot jail. </p>
+
+<p> Specify "smtp_tls_CApath = /path/to/system_CA_directory" to
+use ONLY the system-supplied default certificate authority certificates.
+</p>
 
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
 appending the system-supplied default CAs and trusting third-party

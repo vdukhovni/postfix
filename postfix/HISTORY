@@ -17629,3 +17629,35 @@ Apologies for any names omitted.
 	to a missing guard statement after an smtpd_check_rewrite()
 	call was moved closer to the command processor loop. Fix
 	by Bartek Szady. File: smtpd/smtpd.c.
+
+20120220
+
+	Cleanup: documentation of how to use only system-supplied
+	certificates with *CAfile and *CApath. File: proto/postconf.proto.
+
+	Cleanup: documentation of smtp_sasl_mechanism_filter.  File:
+	proto/postconf.proto.
+
+20120222
+
+	Cleanup: when multiple DNSBLs block an SMTP client, the
+	postscreen "reject" message now gives credit to the DNSBL
+	with the largest weight, instead of the DNSBL that replies
+	first. File: postscreen/postscreeb_dnsbl.c.
+
+	Cleanup: memcache_table(5) manpage. File proto/memcache_table.
+
+20120225
+
+	Cleanup: eliminated the build-time Perl dependency.  File:
+	bounce/annotate.sh.
+
+	Cleanup: when -DNO_DB support was added, the makedefs script
+	was not updated to skip the Linux Berkeley DB tests.
+
+	FreeBSD9 is now a supported platform. Files: makedefs,
+	util/sys_defs.h.
+
+20120226
+
+	Cleanup: documentation in postfix-install.
