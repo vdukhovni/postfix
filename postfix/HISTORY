@@ -16747,3 +16747,22 @@ Apologies for any names omitted.
 	have been updated when it was re-purposed to handle DSN
 	SUCCESS notifications. Problem reported by Sabahattin
 	Gucukoglu.  File: bounce/bounce_trace_service.c.
+
+20120202
+
+	Bugfix (introduced: Postfix 2.3): the "change header" milter
+	request could replace the wrong header. A long header name
+	could match a shorter one, because a length check was done
+	on the wrong string.  Reported by Vladimir Vassiliev.  File:
+	cleanup/cleanup_milter.c.
+
+20120214
+
+	Bugfix (introduced: Postfix 2.4): extraneous null assignment
+	caused core dump when postlog emitted the "usage" message.
+	Reported by Kant (fnord.hammer). File: postlog/postlog.c.
+
+20120217
+
+	Cleanup: missing #include statement for bugfix code added
+	20111226. File: local/unknown.c.
