@@ -355,11 +355,23 @@ rejecting a command, Postfix logs what it would reject. Specify
 restriction that you want to test without actually rejecting mail.
 </p> </dd>
 
-<dt> XCLIENT </dt> <dd> <p> With this Postfix 2.1 feature, authorized
-SMTP clients can impersonate other systems, so that you can do
-realistic SMTP access rule tests.  Examples of how to impersonate
-other systems for access rule testing are given at the end of the
-<a href="XCLIENT_README.html">XCLIENT_README</a> document.  </p> </dd>
+<!--
+
+<dt> <a href="postconf.5.html#warn_if_permit">warn_if_permit</a> </dt> <dd> <p> This safety net changes SMTP
+server PERMIT actions into warnings. Instead of permitting a command,
+Postfix logs what it would permit. Specify "<a href="postconf.5.html#warn_if_permit">warn_if_permit</a>" in an
+SMTP access restriction list, before the restriction that you want
+to test. <br> This feature is available in Postfix 2.10.  </p>
+</dd>
+
+-->
+
+<dt> XCLIENT </dt> <dd> <p> With this feature, an authorized SMTP
+client can impersonate other systems and perform realistic SMTP
+access rule tests.  Examples of how to impersonate other systems
+for access rule testing are given at the end of the <a href="XCLIENT_README.html">XCLIENT_README</a>
+document. <br> This feature is available in Postfix 2.1.  </p>
+</dd>
 
 </dl>
 

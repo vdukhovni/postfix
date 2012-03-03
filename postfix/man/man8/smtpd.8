@@ -552,6 +552,11 @@ the sender.
 Available in Postfix version 2.1 and later:
 .IP "\fBsmtpd_authorized_xclient_hosts (empty)\fR"
 What remote SMTP clients are allowed to use the XCLIENT feature.
+.PP
+Available in Postfix version 2.10 and later:
+.IP "\fBsmtpd_log_access_permit_actions (empty)\fR"
+Enable logging of the named "permit" actions in SMTP server
+access lists.
 .SH "KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS"
 .na
 .nf

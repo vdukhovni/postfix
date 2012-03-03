@@ -8213,6 +8213,43 @@ smtpd_error_sleep_time and smtpd_soft_error_limit configuration
 parameters.  Normally the default limit is 100, but it changes under
 overload to just 1. With Postfix 2.5 and earlier, the SMTP server
 always allows up to 100 junk commands by default.
+.SH smtpd_log_access_permit_actions (default: empty)
+Enable logging of the named "permit" actions in SMTP server
+access lists.  This does not affect conditional actions such as
+"defer_if_permit".
+.PP
+Specify a list of "permit" action names, "/file/name" or
+"type:table" patterns, separated by commas and/or whitespace. The
+list is matched left to right, and the search stops on the first
+match. A "/file/name" pattern is replaced by its contents; a
+"type:table" lookup table is matched when a name matches a lookup
+key (the lookup result is ignored).  Continue long lines by starting
+the next line with whitespace. Specify "!pattern" to exclude a name
+from the list.
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # Log all "permit" actions.
+    smtpd_log_access_permit_actions = static:all
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # Log "permit_dnswl_client" only.
+    smtpd_log_access_permit_actions = permit_dnswl_client
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.10 and later.
 .SH smtpd_milters (default: empty)
 A list of Milter (mail filter) applications for new mail that
 arrives via the Postfix \fBsmtpd\fR(8) server. Specify space or comma as

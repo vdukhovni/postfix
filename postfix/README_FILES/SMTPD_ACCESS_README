@@ -262,8 +262,9 @@ warn_if_reject
     the restriction that you want to test without actually rejecting mail.
 
 XCLIENT
-    With this Postfix 2.1 feature, authorized SMTP clients can impersonate
-    other systems, so that you can do realistic SMTP access rule tests.
-    Examples of how to impersonate other systems for access rule testing are
-    given at the end of the XCLIENT_README document.
+    With this feature, an authorized SMTP client can impersonate other systems
+    and perform realistic SMTP access rule tests. Examples of how to
+    impersonate other systems for access rule testing are given at the end of
+    the XCLIENT_README document.
+    This feature is available in Postfix 2.1.
 

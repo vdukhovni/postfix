@@ -17661,3 +17661,10 @@ Apologies for any names omitted.
 20120226
 
 	Cleanup: documentation in postfix-install.
+
+20120229
+
+	Feature: smtpd_log_access_permit_actions to enable logging
+	of specific permit-like actions in Postfix SMTP server
+	access lists.  Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c.

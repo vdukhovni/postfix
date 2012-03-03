@@ -6,6 +6,16 @@ Wish list:
 
 	Things to do after the stable release:
 
+	smtpd: find out what the interactions would be between
+	warn_if_permit, and explicit or implicit defer_if_reject
+	and defer_if_permit actions. If this can't be stated in
+	simple terms, then it won't be implemented.
+ 
+	postscreen: in the dummy SMTP engine, log the protocol state
+	at time of violation (like smtpd, set state->where initially
+	to CONNECT, then update it with the name of the last "known"
+	command, or set it to "unimplemented").
+
 	The discussion of postscreen cache configuration is in the
 	wrong place (how whitelisting works). Move it to the section
 	about configuring postscreen.

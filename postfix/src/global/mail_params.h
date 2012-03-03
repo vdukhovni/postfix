@@ -2154,6 +2154,7 @@ extern int var_map_defer_code;
 #define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
 
 #define WARN_IF_REJECT		"warn_if_reject"
+#define WARN_IF_PERMIT		"warn_if_permit"
 
 #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
 #define REJECT_RBL_CLIENT	"reject_rbl_client"
@@ -3611,6 +3612,13 @@ extern bool var_smtpd_rec_deadline;
 #define VAR_LMTP_REC_DEADLINE	"lmtp_per_record_deadline"
 #define DEF_LMTP_REC_DEADLINE	0
 extern bool var_smtp_rec_deadline;
+
+ /*
+  * Permit logging.
+  */
+#define VAR_SMTPD_ACL_PERM_LOG	"smtpd_log_access_permit_actions"
+#define DEF_SMTPD_ACL_PERM_LOG	""
+extern char *var_smtpd_acl_perm_log;
 
  /*
   * Postfix sendmail command compatibility features.

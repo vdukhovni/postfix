@@ -514,6 +514,11 @@
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBsmtpd_authorized_xclient_hosts (empty)\fR"
 /*	What remote SMTP clients are allowed to use the XCLIENT feature.
+/* .PP
+/*	Available in Postfix version 2.10 and later:
+/* .IP "\fBsmtpd_log_access_permit_actions (empty)\fR"
+/*	Enable logging of the named "permit" actions in SMTP server
+/*	access lists.
 /* KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS
 /* .ad
 /* .fi
@@ -1216,6 +1221,7 @@ bool    var_smtpd_tls_wrappermode;
 bool    var_smtpd_tls_auth_only;
 char   *var_smtpd_cmd_filter;
 char   *var_smtpd_rej_footer;
+char   *var_smtpd_acl_perm_log;
 
 #ifdef USE_TLS
 char   *var_smtpd_relay_ccerts;
@@ -5394,6 +5400,7 @@ int     main(int argc, char **argv)
 #ifdef USE_TLSPROXY
 	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
 #endif
+	VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

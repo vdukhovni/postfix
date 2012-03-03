@@ -351,6 +351,11 @@ static int unv_rcpt_tf_act;
 static int unv_from_tf_act;
 
  /*
+  * Optional permit logging.
+  */
+static STRING_LIST *smtpd_acl_perm_log;
+
+ /*
   * YASLM.
   */
 #define STR	vstring_str
@@ -380,6 +385,13 @@ static int unv_from_tf_act;
   * XXX With warn_if_reject, do raise the defer_if_reject flag when a
   * permit-style restriction fails. Otherwise, we could reject legitimate
   * mail.
+  * 
+  * XXX Figure out the interactions between warn_if_permit and implicit or
+  * explicit defer_if_permit/reject actions, including the ones that may
+  * trigger when recursing into a lookup table.
+  * 
+  * XXX Some DEFER_IF_PERMIT[0-9] macros expect a flag as first argument but are
+  * given a string argument instead. That is not right.
   */
 static int PRINTFLIKE(5, 6) defer_if(SMTPD_DEFER *, int, int, const char *, const char *,...);
 static int PRINTFLIKE(5, 6) smtpd_check_reject(SMTPD_STATE *, int, int, const char *, const char *,...);
@@ -733,6 +745,12 @@ void    smtpd_check_init(void)
 	msg_info("%s = %s", VAR_UNV_RCPT_TF_ACT, tempfail_actions[unv_rcpt_tf_act].name);
 	msg_info("%s = %s", VAR_UNV_FROM_TF_ACT, tempfail_actions[unv_from_tf_act].name);
     }
+
+    /*
+     * Optional permit logging.
+     */
+    smtpd_acl_perm_log = string_list_init(MATCH_FLAG_RETURN,
+					  var_smtpd_acl_perm_log);
 }
 
 /* log_whatsup - log as much context as we have */
@@ -755,6 +773,40 @@ static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
 	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
     msg_info("%s", STR(buf));
     vstring_free(buf);
+}
+
+/* smtpd_acl_permit - permit request with optional logging */
+
+static int smtpd_acl_permit(SMTPD_STATE *state, const char *action,
+		            const char *reply_class, const char *reply_name,
+			            const char *format,...)
+{
+    va_list ap;
+    const char *whatsup;
+    int     retval;
+
+    if (state->warn_if_permit) {
+	whatsup = "permit_warning";
+	retval = SMTPD_CHECK_DUNNO;
+    } else if (string_list_match(smtpd_acl_perm_log, action) != 0) {
+	whatsup = "permit";
+	retval = SMTPD_CHECK_OK;
+    } else {
+	whatsup = 0;
+	retval = SMTPD_CHECK_OK;
+    }
+    if (whatsup != 0) {
+	vstring_sprintf(error_text, "action=%s for %s=%s",
+			action, reply_class, reply_name);
+	if (format) {
+	    vstring_strcat(error_text, " ");
+	    va_start(ap, format);
+	    vstring_vsprintf_append(error_text, format, ap);
+	    va_end(ap);
+	}
+	log_whatsup(state, whatsup, STR(error_text));
+    }
+    return (retval);
 }
 
 /* smtpd_check_reject - do the boring things that must be done */
@@ -993,6 +1045,7 @@ static int permit_inet_interfaces(SMTPD_STATE *state)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
     if (own_inet_addr((struct sockaddr *) & (state->sockaddr)))
+	/* Permit logging in generic_checks() only. */
 	return (SMTPD_CHECK_OK);
     return (SMTPD_CHECK_DUNNO);
 }
@@ -1007,6 +1060,7 @@ static int permit_mynetworks(SMTPD_STATE *state)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
     if (namadr_list_match(mynetworks, state->name, state->addr))
+	/* Permit logging in generic_checks() only. */
 	return (SMTPD_CHECK_OK);
     else if (mynetworks->error == 0)
 	return (SMTPD_CHECK_DUNNO);
@@ -1246,6 +1300,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
     if (TLS_CERT_IS_TRUSTED(state->tls_context) && permit_all_certs) {
 	if (msg_verbose)
 	    msg_info("Relaying allowed for all verified client certificates");
+	/* Permit logging in generic_checks() only. */
 	return (SMTPD_CHECK_OK);
     }
 
@@ -1266,6 +1321,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	    if (found != 0) {
 		if (msg_verbose)
 		    msg_info("Relaying allowed for certified client: %s", found);
+		/* Permit logging in generic_checks() only. */
 		return (SMTPD_CHECK_OK);
 	    } else if (relay_ccerts->error != 0) {
 		msg_warn("relay_clientcerts: lookup error for fingerprint '%s', "
@@ -1969,17 +2025,22 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     int     cmd_len;
     static char def_dsn[] = "5.7.1";
     DSN_SPLIT dp;
+    static VSTRING *buf;
 
 #ifdef DELAY_ACTION
     int     defer_delay;
 
 #endif
 
+    if (buf == 0)
+	buf = vstring_alloc(10);
+
     /*
      * Parse into command and text. Do not change the input.
      */
     cmd_text = value + strcspn(value, " \t");
     cmd_len = cmd_text - value;
+    vstring_strncpy(buf, value, cmd_len);
     while (*cmd_text && ISSPACE(*cmd_text))
 	cmd_text++;
 
@@ -2129,7 +2190,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	state->saved_flags |= CLEANUP_FLAG_DISCARD;
 	state->discard = 1;
 #endif
-	return (SMTPD_CHECK_OK);
+	return (smtpd_acl_permit(state, STR(buf), reply_class, reply_name,
+				 "from %s", table));
     }
 
     /*
@@ -2242,7 +2304,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * mechanism uses this as time stamp.
      */
     if (alldig(value))
-	return (SMTPD_CHECK_OK);
+	return (smtpd_acl_permit(state, STR(buf), reply_class, reply_name,
+				 "from %s", table));
 
     /*
      * 4xx or 5xx means NO as well. smtpd_check_reject() will validate the
@@ -2270,7 +2333,8 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      * OK or RELAY means YES. Ignore trailing text.
      */
     if (STREQUAL(value, "OK", cmd_len) || STREQUAL(value, "RELAY", cmd_len))
-	return (SMTPD_CHECK_OK);
+	return (smtpd_acl_permit(state, STR(buf), reply_class, reply_name,
+				 "from %s", table));
 
     /*
      * Unfortunately, maps must be declared ahead of time so they can be
@@ -3632,6 +3696,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		state->warn_if_reject = state->recursion;
 	    continue;
 	}
+	if (strcasecmp(name, WARN_IF_PERMIT) == 0) {
+	    if (state->warn_if_permit == 0)
+		state->warn_if_permit = state->recursion;
+	    continue;
+	}
 
 	/*
 	 * Spoof the is_map_command() routine, so that we do not have to make
@@ -3654,8 +3723,10 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	 * Generic restrictions.
 	 */
 	if (strcasecmp(name, PERMIT_ALL) == 0) {
-	    status = SMTPD_CHECK_OK;
-	    if (cpp[1] != 0 && state->warn_if_reject == 0)
+	    status = smtpd_acl_permit(state, name, reply_class,
+				      reply_name, (char *) 0);
+	    if (status == SMTPD_CHECK_OK
+		&& cpp[1] != 0 && state->warn_if_reject == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], PERMIT_ALL);
 	} else if (strcasecmp(name, DEFER_ALL) == 0) {
@@ -3714,8 +3785,14 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    status = reject_unknown_reverse_name(state);
 	} else if (strcasecmp(name, PERMIT_INET_INTERFACES) == 0) {
 	    status = permit_inet_interfaces(state);
+	    if (status == SMTPD_CHECK_OK)
+		status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					  state->namaddr, (char *) 0);
 	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
+	    if (status == SMTPD_CHECK_OK)
+		status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					  state->namaddr, (char *) 0);
 	} else if (is_map_command(state, name, CHECK_CLIENT_ACL, &cpp)) {
 	    status = check_namadr_access(state, *cpp, state->name, state->addr,
 					 FULL, &found, state->namaddr,
@@ -3737,9 +3814,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (strcasecmp(name, PERMIT_DNSWL_CLIENT) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
-	    else
+	    else {
 		status = permit_dnswl_addr(state, *(cpp += 1), state->addr,
 					   SMTPD_NAME_CLIENT);
+		if (status == SMTPD_CHECK_OK)
+		    status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					      state->namaddr, (char *) 0);
+	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_CLIENT) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument",
@@ -3756,9 +3837,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 			 name);
 	    else {
 		cpp += 1;
-		if (strcasecmp(state->name, "unknown") != 0)
+		if (strcasecmp(state->name, "unknown") != 0) {
 		    status = permit_dnswl_domain(state, *cpp, state->name,
 						 SMTPD_NAME_CLIENT);
+		    if (status == SMTPD_CHECK_OK)
+			status = smtpd_acl_permit(state, name,
+			     SMTPD_NAME_CLIENT, state->namaddr, (char *) 0);
+		}
 	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_REVERSE_CLIENT) == 0) {
 	    if (cpp[1] == 0)
@@ -3837,7 +3922,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		if (state->helo_name[strspn(state->helo_name, "0123456789.:")] == 0
 		&& (status = reject_invalid_hostaddr(state, state->helo_name,
 				   state->helo_name, SMTPD_NAME_HELO)) == 0)
-		    status = SMTPD_CHECK_OK;
+		    status = smtpd_acl_permit(state, name, SMTPD_NAME_HELO,
+					      state->helo_name, (char *) 0);
 	    }
 	} else if (is_map_command(state, name, CHECK_HELO_NS_ACL, &cpp)) {
 	    if (state->helo_name) {
@@ -3959,12 +4045,20 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					   &found, state->recipient,
 					   SMTPD_NAME_RECIPIENT, def_acl);
 	} else if (strcasecmp(name, PERMIT_MX_BACKUP) == 0) {
-	    if (state->recipient)
+	    if (state->recipient) {
 		status = permit_mx_backup(state, state->recipient,
 				    state->recipient, SMTPD_NAME_RECIPIENT);
+		if (status == SMTPD_CHECK_OK)
+		    status = smtpd_acl_permit(state, name, SMTPD_NAME_RECIPIENT,
+					      state->recipient, (char *) 0);
+	    }
 	} else if (strcasecmp(name, PERMIT_AUTH_DEST) == 0) {
-	    if (state->recipient)
+	    if (state->recipient) {
 		status = permit_auth_destination(state, state->recipient);
+		if (status == SMTPD_CHECK_OK)
+		    status = smtpd_acl_permit(state, name, SMTPD_NAME_RECIPIENT,
+					      state->recipient, (char *) 0);
+	    }
 	} else if (strcasecmp(name, REJECT_UNAUTH_DEST) == 0) {
 	    if (state->recipient)
 		status = reject_unauth_destination(state, state->recipient);
@@ -3972,19 +4066,33 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->recipient)
 		status = check_relay_domains(state, state->recipient,
 				    state->recipient, SMTPD_NAME_RECIPIENT);
-	    if (cpp[1] != 0 && state->warn_if_reject == 0)
+	    if (status == SMTPD_CHECK_OK)
+		status = smtpd_acl_permit(state, name, SMTPD_NAME_RECIPIENT,
+					  state->recipient, (char *) 0);
+	    if (cpp[1] != 0 && state->warn_if_reject == 0
+		&& state->warn_if_permit == 0)
 		msg_warn("restriction `%s' after `%s' is ignored",
 			 cpp[1], CHECK_RELAY_DOMAINS);
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
-	    if (smtpd_sasl_is_active(state))
+	    if (smtpd_sasl_is_active(state)) {
 		status = permit_sasl_auth(state,
 					  SMTPD_CHECK_OK, SMTPD_CHECK_DUNNO);
+		if (status == SMTPD_CHECK_OK)
+		    status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					      state->namaddr, (char *) 0);
+	    }
 #endif
 	} else if (strcasecmp(name, PERMIT_TLS_ALL_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 1);
+	    if (status == SMTPD_CHECK_OK)
+		status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					  state->namaddr, (char *) 0);
 	} else if (strcasecmp(name, PERMIT_TLS_CLIENTCERTS) == 0) {
 	    status = permit_tls_clientcerts(state, 0);
+	    if (status == SMTPD_CHECK_OK)
+		status = smtpd_acl_permit(state, name, SMTPD_NAME_CLIENT,
+					  state->namaddr, (char *) 0);
 	} else if (strcasecmp(name, REJECT_UNKNOWN_RCPTDOM) == 0) {
 	    if (state->recipient)
 		status = reject_unknown_address(state, state->recipient,
@@ -4072,6 +4180,8 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	}
 	if (state->warn_if_reject >= state->recursion)
 	    state->warn_if_reject = 0;
+	if (state->warn_if_permit >= state->recursion)
+	    state->warn_if_permit = 0;
 
 	if (status != 0)
 	    break;
@@ -4197,6 +4307,7 @@ char   *smtpd_check_client(SMTPD_STATE *state)
 #define SMTPD_CHECK_RESET() { \
 	state->recursion = 0; \
 	state->warn_if_reject = 0; \
+	state->warn_if_permit = 0; \
 	state->defer_if_reject.active = 0; \
     }
 
@@ -4902,6 +5013,7 @@ char   *var_unk_name_tf_act;
 char   *var_unk_addr_tf_act;
 char   *var_unv_rcpt_tf_act;
 char   *var_unv_from_tf_act;
+char   *var_smtpd_acl_perm_log;
 
 typedef struct {
     char   *name;
@@ -4953,6 +5065,8 @@ static const STRING_TABLE string_table[] = {
     VAR_UNK_ADDR_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unk_addr_tf_act,
     VAR_UNV_RCPT_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unv_rcpt_tf_act,
     VAR_UNV_FROM_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unv_from_tf_act,
+    /* XXX Can't use ``$name'' type default values above. */
+    VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log,
     0,
 };
 

@@ -483,6 +483,7 @@ while (<>) {
     s;\bsmtp_skip_5xx_greeting\b;<a href="postconf.5.html#smtp_skip_5xx_greeting">$&</a>;g;
     s;\bsmtp_skip_quit_response\b;<a href="postconf.5.html#smtp_skip_quit_response">$&</a>;g;
     s;\bsmtp_xforward_timeout\b;<a href="postconf.5.html#smtp_xforward_timeout">$&</a>;g;
+    s;\bsmtpd_log_access_permit_actions\b;<a href="postconf.5.html#smtpd_log_access_permit_actions">$&</a>;g;
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_verp_clients\b;<a href="postconf.5.html#smtpd_authorized_verp_clients">$&</a>;g;
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_xclient_hosts\b;<a href="postconf.5.html#smtpd_authorized_xclient_hosts">$&</a>;g;
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_xforward_hosts\b;<a href="postconf.5.html#smtpd_authorized_xforward_hosts">$&</a>;g;
@@ -824,6 +825,7 @@ while (<>) {
     s;\breject_plaintext_session\b;<a href="postconf.5.html#reject_plaintext_session">$&</a>;g;
     s;\breject_unauth_pipelining\b;<a href="postconf.5.html#reject_unauth_pipelining">$&</a>;g;
     s;\bwarn_if_reject\b;<a href="postconf.5.html#warn_if_reject">$&</a>;g;
+    s;\bwarn_if_permit\b;<a href="postconf.5.html#warn_if_permit">$&</a>;g;
 
     # Access restrictions - client
 
