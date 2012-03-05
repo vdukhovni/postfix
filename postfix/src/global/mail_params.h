@@ -2154,7 +2154,6 @@ extern int var_map_defer_code;
 #define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
 
 #define WARN_IF_REJECT		"warn_if_reject"
-#define WARN_IF_PERMIT		"warn_if_permit"
 
 #define REJECT_RBL		"reject_rbl"	/* LaMont compatibility */
 #define REJECT_RBL_CLIENT	"reject_rbl_client"

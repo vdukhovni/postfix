@@ -348,23 +348,14 @@ sender. Specify "soft_bounce = yes" in the main.cf file to prevent
 the Postfix SMTP server from rejecting mail permanently, by changing
 all 5xx SMTP reply codes into 4xx. </p> </dd>
 
-<dt> warn_if_reject </dt> <dd> <p> This is a different safety net
-that changes SMTP server REJECT actions into warnings. Instead of
-rejecting a command, Postfix logs what it would reject. Specify
-"warn_if_reject" in an SMTP access restriction list, before the
-restriction that you want to test without actually rejecting mail.
-</p> </dd>
-
-<!--
-
-<dt> warn_if_permit </dt> <dd> <p> This safety net changes SMTP
-server PERMIT actions into warnings. Instead of permitting a command,
-Postfix logs what it would permit. Specify "warn_if_permit" in an
-SMTP access restriction list, before the restriction that you want
-to test. <br> This feature is available in Postfix 2.10.  </p>
-</dd>
-
--->
+<dt> warn_if_reject </dt> <dd> <p> When placed before a reject-type
+restriction, access table query, or check_policy_service query,
+this logs a "reject_warning" message instead of rejecting a request
+(when a reject-type restriction fails due to a temporary error,
+this logs a "reject_warning" message for any implicit "defer_if_permit"
+actions that would normally prevent mail from being accepted by
+some later access restriction).  This feature has no effect on
+defer_if_reject restrictions.  </p> </dd>
 
 <dt> XCLIENT </dt> <dd> <p> With this feature, an authorized SMTP
 client can impersonate other systems and perform realistic SMTP

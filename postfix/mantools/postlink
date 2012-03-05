@@ -825,7 +825,6 @@ while (<>) {
     s;\breject_plaintext_session\b;<a href="postconf.5.html#reject_plaintext_session">$&</a>;g;
     s;\breject_unauth_pipelining\b;<a href="postconf.5.html#reject_unauth_pipelining">$&</a>;g;
     s;\bwarn_if_reject\b;<a href="postconf.5.html#warn_if_reject">$&</a>;g;
-    s;\bwarn_if_permit\b;<a href="postconf.5.html#warn_if_permit">$&</a>;g;
 
     # Access restrictions - client
 

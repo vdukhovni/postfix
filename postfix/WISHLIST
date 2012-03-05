@@ -5,11 +5,6 @@ Wish list:
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
-
-	smtpd: find out what the interactions would be between
-	warn_if_permit, and explicit or implicit defer_if_reject
-	and defer_if_permit actions. If this can't be stated in
-	simple terms, then it won't be implemented.
  
 	postscreen: in the dummy SMTP engine, log the protocol state
 	at time of violation (like smtpd, set state->where initially

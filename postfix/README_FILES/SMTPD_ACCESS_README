@@ -256,10 +256,13 @@ soft_bounce
     changing all 5xx SMTP reply codes into 4xx.
 
 warn_if_reject
-    This is a different safety net that changes SMTP server REJECT actions into
-    warnings. Instead of rejecting a command, Postfix logs what it would
-    reject. Specify "warn_if_reject" in an SMTP access restriction list, before
-    the restriction that you want to test without actually rejecting mail.
+    When placed before a reject-type restriction, access table query, or
+    check_policy_service query, this logs a "reject_warning" message instead of
+    rejecting a request (when a reject-type restriction fails due to a
+    temporary error, this logs a "reject_warning" message for any implicit
+    "defer_if_permit" actions that would normally prevent mail from being
+    accepted by some later access restriction). This feature has no effect on
+    defer_if_reject restrictions.
 
 XCLIENT
     With this feature, an authorized SMTP client can impersonate other systems

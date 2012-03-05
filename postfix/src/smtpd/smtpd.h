@@ -127,7 +127,6 @@ typedef struct {
     int     sender_rcptmap_checked;	/* sender validated against maps */
     int     recipient_rcptmap_checked;	/* recipient validated against maps */
     int     warn_if_reject;		/* force reject into warning */
-    int     warn_if_permit;		/* force permit into warning */
     SMTPD_DEFER defer_if_reject;	/* force reject into deferral */
     SMTPD_DEFER defer_if_permit;	/* force permit into deferral */
     int     defer_if_permit_client;	/* force permit into warning */

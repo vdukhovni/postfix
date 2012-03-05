@@ -13,3 +13,11 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
+
+Major changes with snapshot 20120303
+====================================
+
+New control for "permit" logging in smtpd_mumble_restrictions.
+Specify "smtpd_log_access_permit_actions = static:all" to log all
+"permit"-style actions, or specify a list of explicit names.  More
+details are in the postconf(5) manpage.

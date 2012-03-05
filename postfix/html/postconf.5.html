@@ -12421,11 +12421,14 @@ This feature is available in Postfix 2.3. </dd>
 
 <dt><b><a name="warn_if_reject">warn_if_reject</a></b></dt>
 
-<dd>Change the meaning of the next restriction, so that it logs
-a warning instead of rejecting a request (look for logfile records
-that contain "reject_warning"). This is useful for testing new
-restrictions in a "live" environment without risking unnecessary
-loss of mail. </dd>
+<dd> A safety net for testing. When "<a href="postconf.5.html#warn_if_reject">warn_if_reject</a>" is placed
+before a reject-type restriction, access table query, or
+<a href="postconf.5.html#check_policy_service">check_policy_service</a> query, this logs a "reject_warning" message
+instead of rejecting a request (when a reject-type restriction fails
+due to a temporary error, this logs a "reject_warning" message for
+any implicit "<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>" actions that would normally prevent
+mail from being accepted by some later access restriction). This
+feature has no effect on <a href="postconf.5.html#defer_if_reject">defer_if_reject</a> restrictions.  </dd>
 
 </dl>
 
