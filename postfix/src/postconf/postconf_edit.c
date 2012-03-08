@@ -88,19 +88,19 @@ void    edit_parameters(int mode, int argc, char **argv)
     table = htable_create(argc);
     while ((cp = *argv++) != 0) {
 	if (strchr(cp, '\n') != 0)
-	    msg_fatal("-e or -# accepts no multi-line input");
+	    msg_fatal("-e, -X, or -# accepts no multi-line input");
 	while (ISSPACE(*cp))
 	    cp++;
 	if (*cp == '#')
-	    msg_fatal("-e or -# accepts no comment input");
+	    msg_fatal("-e, -X, or -# accepts no comment input");
 	if (mode & EDIT_MAIN) {
 	    if ((err = split_nameval(cp, &edit_key, &edit_val)) != 0)
 		msg_fatal("%s: \"%s\"", err, cp);
-	} else if (mode & COMMENT_OUT) {
+	} else if (mode & (COMMENT_OUT | EDIT_EXCL)) {
 	    if (*cp == 0)
-		msg_fatal("-# requires non-blank parameter names");
+		msg_fatal("-X or -# requires non-blank parameter names");
 	    if (strchr(cp, '=') != 0)
-		msg_fatal("-# requires parameter names only");
+		msg_fatal("-X or -# requires parameter names only");
 	    edit_key = mystrdup(cp);
 	    trimblanks(edit_key, 0);
 	    edit_val = 0;
@@ -164,8 +164,6 @@ void    edit_parameters(int mode, int argc, char **argv)
 		    vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
 		else if (mode & COMMENT_OUT)
 		    vstream_fprintf(dst, "#%s", cp);
-		else
-		    msg_panic("edit_parameters: unknown mode %d", mode);
 	    } else {
 		vstream_fputs(STR(buf), dst);
 	    }

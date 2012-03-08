@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	Postfix master process
 /* SYNOPSIS
-/*	\fBmaster\fR [\fB-Ddtv\fR] [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
+/*	\fBmaster\fR [\fB-Ddtvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
 /* DESCRIPTION
 /*	The \fBmaster\fR(8) daemon is the resident process that runs Postfix
 /*	daemons on demand: daemons to send or receive messages via the
@@ -45,6 +45,14 @@
 /*	Enable verbose logging for debugging purposes. This option
 /*	is passed on to child processes. Multiple \fB-v\fR options
 /*	make the software increasingly verbose.
+/* .IP \fB-w\fR
+/*	Wait in a dummy foreground process, while the real master
+/*	daemon initializes in a background process.  The dummy
+/*	foreground process returns a zero exit status only if the
+/*	master daemon initialization is successful, and if it
+/*	completes in a reasonable amount of time.
+/* .sp
+/*	This feature is available in Postfix 2.10 and later.
 /* .PP
 /*	Signals:
 /* .IP \fBSIGHUP\fR
@@ -63,7 +71,9 @@
 /*	terminate only the master ("\fBpostfix stop\fR") and allow running
 /*	processes to finish what they are doing.
 /* DIAGNOSTICS
-/*	Problems are reported to \fBsyslogd\fR(8).
+/*	Problems are reported to \fBsyslogd\fR(8). The exit status
+/*	is non-zero in case of problems, including problems while
+/*	initializing as a master daemon process in the background.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -221,7 +231,7 @@ static void master_exit_event(int unused_event, char *unused_context)
 
 static NORETURN usage(const char *me)
 {
-    msg_fatal("usage: %s [-c config_dir] [-D (debug)] [-d (don't detach from terminal)] [-e exit_time] [-t (test)] [-v]", me);
+    msg_fatal("usage: %s [-c config_dir] [-D (debug)] [-d (don't detach from terminal)] [-e exit_time] [-t (test)] [-v] [-w (wait for initialization)]", me);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -243,6 +253,8 @@ int     main(int argc, char **argv)
     VSTRING *why;
     WATCHDOG *watchdog;
     ARGV   *import_env;
+    int     wait_flag = 0;
+    int     monitor_fd = -1;
 
     /*
      * Fingerprint executables and core dumps.
@@ -311,7 +323,7 @@ int     main(int argc, char **argv)
     /*
      * Process JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:Dde:tv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:Dde:tvw")) > 0) {
 	switch (ch) {
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -332,6 +344,9 @@ int     main(int argc, char **argv)
 	case 'v':
 	    msg_verbose++;
 	    break;
+	case 'w':
+	    wait_flag = 1;
+	    break;
 	default:
 	    usage(argv[0]);
 	    /* NOTREACHED */
@@ -343,6 +358,17 @@ int     main(int argc, char **argv)
      */
     if (argc > optind)
 	usage(argv[0]);
+
+    /*
+     * Run a foreground monitor process that returns an exit status of 0 when
+     * the child background process reports successful initialization as a
+     * daemon process. We use a generous limit in case main/master.cf specify
+     * symbolic hosts/ports and the naming service is slow.
+     */
+#define MASTER_INIT_TIMEOUT	100		/* keep this limit generous */
+
+    if (wait_flag)
+	monitor_fd = master_monitor(MASTER_INIT_TIMEOUT);
 
     /*
      * If started from a terminal, get rid of any tty association. This also
@@ -469,6 +495,14 @@ int     main(int argc, char **argv)
     master_flow_init();
     msg_info("daemon started -- version %s, configuration %s",
 	     var_mail_version, var_config_dir);
+
+    /*
+     * Report successful initialization to the foreground monitor process.
+     */
+    if (monitor_fd >= 0) {
+	write(monitor_fd, "", 1);
+	(void) close(monitor_fd);
+    }
 
     /*
      * Process events. The event handler will execute the read/write/timer

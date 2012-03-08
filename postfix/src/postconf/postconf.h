@@ -30,6 +30,7 @@
 #define COMMENT_OUT	(1<<9)		/* #-out selected main.cf entries */
 #define SHOW_MASTER	(1<<10)		/* show master.cf entries */
 #define FOLD_LINE	(1<<11)		/* fold long *.cf entries */
+#define EDIT_EXCL	(1<<12)		/* exclude main.cf entries */
 
 #define DEF_MODE	SHOW_NAME	/* default mode */
 
@@ -165,7 +166,7 @@ extern void register_user_parameters(void);
   * postconf_dbms.c
   */
 extern void register_dbms_parameters(const char *,
-			         const char *(*) (const char *, int, char *),
+			        const char *(*) (const char *, int, char *),
 				             PC_MASTER_ENT *);
 
  /*

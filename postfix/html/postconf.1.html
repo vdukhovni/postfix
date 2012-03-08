@@ -17,7 +17,7 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>postconf</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>parameter=value ...</i>]
 
-       <b>postconf</b> [<b>-#v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>parameter ...</i>]
+       <b>postconf</b> [<b>-#vX</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>parameter ...</i>]
 
        <b>Managing <a href="master.5.html">master.cf</a>:</b>
 
@@ -311,6 +311,16 @@ POSTCONF(1)                                                        POSTCONF(1)
        <b>-v</b>     Enable verbose logging for debugging purposes. Mul-
               tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
+
+       <b>-X</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove the
+              parameters given on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line.
+              The file is copied to a temporary file then renamed
+              into place.  Specify a list of parameter names, not
+              <i>name</i>=<i>value</i>  pairs.  There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> command
+              to perform the reverse operation.
+
+              This feature is available  with  Postfix  2.10  and
+              later.
 
        <b>-#</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a>  configuration file, and comment
               out the parameters given on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command

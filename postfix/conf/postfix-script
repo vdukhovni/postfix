@@ -124,7 +124,11 @@ start)
 		$daemon_directory/postfix-script check-warn
 	fi
 	$INFO starting the Postfix mail system
-	$daemon_directory/master &
+	# NOTE: wait in foreground process to get the initialization status.
+	$daemon_directory/master -w || {
+	    $FATAL "mail system startup failed"
+	    exit 1
+	}
 	;;
 
 drain)

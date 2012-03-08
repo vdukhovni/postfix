@@ -14,6 +14,16 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
+Major changes with snapshot 20120306
+====================================
+
+New master "-w" option, to wait for daemon process initialization
+to complete. This feature returns an error exit status if master
+daemon initialization fails, or if it does not complete in a
+reasonable amount of time. The exit status is used by "postfix
+start" to provide more accurate information to system start-up
+scripts.
+
 Major changes with snapshot 20120303
 ====================================
 

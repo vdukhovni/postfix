@@ -13,7 +13,7 @@
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter=value ...\fR]
 /*
-/*	\fBpostconf\fR [\fB-#v\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-#vX\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIparameter ...\fR]
 /*
 /*	\fBManaging master.cf:\fR
@@ -267,6 +267,16 @@
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
+/* .IP \fB-X\fR
+/*	Edit the \fBmain.cf\fR configuration file, and remove
+/*	the parameters given on the \fBpostconf\fR(1) command line.
+/*	The file is copied to a temporary file then renamed into
+/*	place.
+/*	Specify a list of parameter names, not \fIname\fR=\fIvalue\fR
+/*	pairs.  There is no \fBpostconf\fR(1) command to perform
+/*	the reverse operation.
+/*
+/*	This feature is available with Postfix 2.10 and later.
 /* .IP \fB-#\fR
 /*	Edit the \fBmain.cf\fR configuration file, and comment out
 /*	the parameters given on the \fBpostconf\fR(1) command line,
@@ -412,7 +422,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMntv")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMntvX")) > 0) {
 	switch (ch) {
 	case 'a':
 	    cmd_mode |= SHOW_SASL_SERV;
@@ -432,7 +442,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'C':
 	    param_class = name_mask_opt("-C option", param_class_table,
-				    optarg, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
+			      optarg, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
 	    break;
 	case 'd':
 	    cmd_mode |= SHOW_DEFS;
@@ -480,24 +490,29 @@ int     main(int argc, char **argv)
 	    ext_argv = argv_alloc(2);
 	    argv_add(ext_argv, "bounce", "-SVndump_templates", (char *) 0);
 	    break;
+	case 'X':
+	    /* This is irreversible, therefore require two-finger action. */
+	    cmd_mode = EDIT_EXCL;
+	    break;
 	case 'v':
 	    msg_verbose++;
 	    break;
 	default:
-	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-C param_class] [-d (defaults)] [-e (edit)] [-f (fold lines)] [-# (comment-out)] [-h (no names)] [-l (lock types)] [-m (map types)] [-M (master.cf)] [-n (non-defaults)] [-v] [name...]", argv[0]);
+	    msg_fatal("usage: %s [-a (server SASL types)] [-A (client SASL types)] [-b (bounce templates)] [-c config_dir] [-C param_class] [-d (defaults)] [-e (edit)] [-f (fold lines)] [-# (comment-out)] [-h (no names)] [-l (lock types)] [-m (map types)] [-M (master.cf)] [-n (non-defaults)] [-v] [-X (exclude)] [name...]", argv[0]);
 	}
     }
 
     /*
      * Sanity check.
      */
-    junk = (cmd_mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT | COMMENT_OUT | SHOW_MASTER));
+    junk = (cmd_mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT | COMMENT_OUT | SHOW_MASTER | EDIT_EXCL));
     if (junk != 0 && ((junk != SHOW_DEFS && junk != SHOW_NONDEF
 	     && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN
 		       && junk != SHOW_SASL_SERV && junk != SHOW_SASL_CLNT
-		       && junk != COMMENT_OUT && junk != SHOW_MASTER)
+		       && junk != COMMENT_OUT && junk != SHOW_MASTER
+		       && junk != EDIT_EXCL)
 		      || ext_argv != 0))
-	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -l, -m, -M and -n");
+	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -l, -m, -M, -n, and -X");
 
     /*
      * Display bounce template information and exit.
@@ -555,7 +570,7 @@ int     main(int argc, char **argv)
     /*
      * Edit main.cf.
      */
-    else if (cmd_mode & (EDIT_MAIN | COMMENT_OUT)) {
+    else if (cmd_mode & (EDIT_MAIN | COMMENT_OUT | EDIT_EXCL)) {
 	edit_parameters(cmd_mode, argc - optind, argv + optind);
     } else if (cmd_mode == DEF_MODE
 	       && argv[optind] && strchr(argv[optind], '=')) {

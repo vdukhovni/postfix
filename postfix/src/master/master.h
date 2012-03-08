@@ -219,6 +219,11 @@ typedef struct {
 extern void master_str_watch(const MASTER_STR_WATCH *);
 extern void master_int_watch(MASTER_INT_WATCH *);
 
+ /*
+  * master_monitor.c
+  */
+extern int master_monitor(int);
+
 /* DIAGNOSTICS
 /* BUGS
 /* SEE ALSO

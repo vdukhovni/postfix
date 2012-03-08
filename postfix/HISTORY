@@ -17668,3 +17668,19 @@ Apologies for any names omitted.
 	of specific permit-like actions in Postfix SMTP server
 	access lists.  Files: mantools/postlink, proto/postconf.proto,
 	global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20120306
+
+	To improve the interaction with start-up scripts, "postfix
+	start" now waits for master daemon process initialization
+	to complete, and returns a non-zero exit status if daemon
+	initialization failed or if it did not complete in a
+	reasonable amount of time. This involves a new "-w" master
+	option.  Files: conf/postfix-script, master/master.c,
+	master/master.h.  master/master_monitor.c.
+
+20120307
+
+	postconf -X option to exclude parameters from main.cf
+	(require two-finger action, because this is irreversible).
+	Files: postconf/postconf.[hc], postconf/postconf_edit.c.

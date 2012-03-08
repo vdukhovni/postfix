@@ -17,7 +17,7 @@ Postfix configuration utility
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter=value ...\fR]
 
-\fBpostconf\fR [\fB-#v\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-#vX\fR] [\fB-c \fIconfig_dir\fR]
 [\fIparameter ...\fR]
 
 \fBManaging master.cf:\fR
@@ -273,6 +273,16 @@ This feature is available with Postfix 2.3 and later.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.
+.IP \fB-X\fR
+Edit the \fBmain.cf\fR configuration file, and remove
+the parameters given on the \fBpostconf\fR(1) command line.
+The file is copied to a temporary file then renamed into
+place.
+Specify a list of parameter names, not \fIname\fR=\fIvalue\fR
+pairs.  There is no \fBpostconf\fR(1) command to perform
+the reverse operation.
+
+This feature is available with Postfix 2.10 and later.
 .IP \fB-#\fR
 Edit the \fBmain.cf\fR configuration file, and comment out
 the parameters given on the \fBpostconf\fR(1) command line,
