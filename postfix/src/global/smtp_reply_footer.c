@@ -36,6 +36,9 @@
 /*	expanded. The two-character sequence "\n" is replaced by a
 /*	line break followed by a copy of the original SMTP reply
 /*	code and optional enhanced status code.
+/*	The two-character sequence "\c" at the start of the template
+/*	suppresses the line break between the reply text and the 
+/*	template text.
 /* .IP filter
 /*	The set of characters that are allowed in attribute expansion.
 /* .IP lookup
@@ -141,16 +144,21 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
 	} else {
 	    next = end;
 	}
-	/* Append a clone of the SMTP reply code. */
-	vstring_strcat(buffer, "\r\n");
-	VSTRING_SPACE(buffer, 3);
-	vstring_strncat(buffer, STR(buffer) + start, 3);
-	vstring_strcat(buffer, next != end ? "-" : " ");
-	/* Append a clone of the optional enhanced status code. */
-	if (dsn_len > 0) {
-	    VSTRING_SPACE(buffer, dsn_len);
-	    vstring_strncat(buffer, STR(buffer) + start + 4, (int) dsn_len);
-	    vstring_strcat(buffer, " ");
+	if (cp == template && strncmp(cp, "\\c", 2) == 0) {
+	    /* Handle \c at start of template. */
+	    cp += 2;
+	} else {
+	    /* Append a clone of the SMTP reply code. */
+	    vstring_strcat(buffer, "\r\n");
+	    VSTRING_SPACE(buffer, 3);
+	    vstring_strncat(buffer, STR(buffer) + start, 3);
+	    vstring_strcat(buffer, next != end ? "-" : " ");
+	    /* Append a clone of the optional enhanced status code. */
+	    if (dsn_len > 0) {
+		VSTRING_SPACE(buffer, dsn_len);
+		vstring_strncat(buffer, STR(buffer) + start + 4, (int) dsn_len);
+		vstring_strcat(buffer, " ");
+	    }
 	}
 	/* Append one line of footer text. */
 	mac_expand(buffer, cp, MAC_EXP_FLAG_APPEND, filter, lookup, context);

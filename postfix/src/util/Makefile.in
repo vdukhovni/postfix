@@ -34,7 +34,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	unix_pass_listen.c unix_pass_trigger.c edit_file.c inet_windowsize.c \
 	unix_pass_fd_fix.c dict_cache.c valid_utf_8.c dict_thash.c \
 	ip_match.c nbbio.c stream_pass_connect.c base32_code.c dict_test.c \
-	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c
+	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
+	dict_sockmap.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -70,7 +71,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	unix_pass_listen.o unix_pass_trigger.o edit_file.o inet_windowsize.o \
 	unix_pass_fd_fix.o dict_cache.o valid_utf_8.o dict_thash.o \
 	ip_match.o nbbio.o stream_pass_connect.o base32_code.o dict_test.o \
-	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o
+	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
+	dict_sockmap.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -91,7 +93,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
-	dict_fail.h warn_stat.h
+	dict_fail.h warn_stat.h dict_sockmap.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -109,7 +111,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	attr_scan0 host_port attr_scan_plain attr_print_plain htable \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
-	valid_utf_8 ip_match base32_code msg_rate_delay
+	valid_utf_8 ip_match base32_code msg_rate_delay netstring
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -435,6 +437,11 @@ base32_code: $(LIB)
 	mv junk $@.o
 
 msg_rate_delay: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+netstring: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -1001,6 +1008,7 @@ dict_open.o: dict_open.c
 dict_open.o: dict_pcre.h
 dict_open.o: dict_regexp.h
 dict_open.o: dict_sdbm.h
+dict_open.o: dict_sockmap.h
 dict_open.o: dict_static.h
 dict_open.o: dict_tcp.h
 dict_open.o: dict_thash.h
@@ -1060,6 +1068,20 @@ dict_sdbm.o: vbuf.h
 dict_sdbm.o: vstream.h
 dict_sdbm.o: vstring.h
 dict_sdbm.o: warn_stat.h
+dict_sockmap.o: argv.h
+dict_sockmap.o: auto_clnt.h
+dict_sockmap.o: dict.h
+dict_sockmap.o: dict_sockmap.c
+dict_sockmap.o: dict_sockmap.h
+dict_sockmap.o: msg.h
+dict_sockmap.o: mymalloc.h
+dict_sockmap.o: netstring.h
+dict_sockmap.o: split_at.h
+dict_sockmap.o: stringops.h
+dict_sockmap.o: sys_defs.h
+dict_sockmap.o: vbuf.h
+dict_sockmap.o: vstream.h
+dict_sockmap.o: vstring.h
 dict_static.o: argv.h
 dict_static.o: dict.h
 dict_static.o: dict_static.c

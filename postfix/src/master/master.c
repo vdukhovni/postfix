@@ -360,6 +360,12 @@ int     main(int argc, char **argv)
 	usage(argv[0]);
 
     /*
+     * Sanity check.
+     */
+    if (test_lock && wait_flag)
+	msg_fatal("the -t and -w options cannot be used together");
+
+    /*
      * Run a foreground monitor process that returns an exit status of 0 when
      * the child background process reports successful initialization as a
      * daemon process. We use a generous limit in case main/master.cf specify

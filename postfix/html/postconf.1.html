@@ -228,6 +228,15 @@ POSTCONF(1)                                                        POSTCONF(1)
                      is  available  on  systems  with support for
                      SDBM databases.
 
+              <b>socketmap</b> (read-only)
+                     Query a Sendmail-style socketmap server. The
+                     name      of     the     table     specifies
+                     <b>inet</b>:<i>host</i>:<i>port</i>:<i>socketmap-name</i>  for  a   TCP-
+                     based  server,  or  <b>unix</b>:<i>pathname</i>:<i>socketmap-</i>
+                     <i>name</i>  for  a  UNIX-domain  server.  In  both
+                     cases,  <i>socketmap-name</i>  is  the  name of the
+                     socketmap.
+
               <b>sqlite</b> (read-only)
                      Perform lookups from SQLite database  files.
                      This is described in <a href="sqlite_table.5.html"><b>sqlite_table</b>(5)</a>.
@@ -313,23 +322,23 @@ POSTCONF(1)                                                        POSTCONF(1)
               verbose.
 
        <b>-X</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove the
-              parameters given on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line.
+              parameters named on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line.
               The file is copied to a temporary file then renamed
               into place.  Specify a list of parameter names, not
-              <i>name</i>=<i>value</i>  pairs.  There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> command
-              to perform the reverse operation.
+              "<i>name</i>=<i>value</i>"  pairs.   There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> com-
+              mand to perform the reverse operation.
 
               This feature is available  with  Postfix  2.10  and
               later.
 
        <b>-#</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a>  configuration file, and comment
-              out the parameters given on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command
+              out the parameters named on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command
               line,  so  that  those  parameters  revert to their
               default values.  The file is copied to a  temporary
               file  then  renamed  into place.  Specify a list of
-              parameter names, not <i>name</i>=<i>value</i> pairs.  There is no
-              <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  to perform the reverse opera-
-              tion.
+              parameter names, not "<i>name</i>=<i>value</i>" pairs.  There  is
+              no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse oper-
+              ation.
 
               This feature is  available  with  Postfix  2.6  and
               later.

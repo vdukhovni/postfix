@@ -201,6 +201,14 @@
 /* .IP \fBsdbm\fR
 /*	An indexed file type based on hashing.
 /*	This is available on systems with support for SDBM databases.
+/* .IP "\fBsocketmap\fR (read-only)"
+/*	Query a Sendmail-style socketmap server. The name of the
+/*	table specifies
+/*	\fBinet\fR:\fIhost\fR:\fIport\fR:\fIsocketmap-name\fR for
+/*	a TCP-based server, or
+/*	\fBunix\fR:\fIpathname\fR:\fIsocketmap-name\fR for a
+/*	UNIX-domain server. In both cases, \fIsocketmap-name\fR is
+/*	the name of the socketmap.
 /* .IP "\fBsqlite\fR (read-only)"
 /*	Perform lookups from SQLite database files. This is described
 /*	in \fBsqlite_table\fR(5).
@@ -269,21 +277,21 @@
 /*	options make the software increasingly verbose.
 /* .IP \fB-X\fR
 /*	Edit the \fBmain.cf\fR configuration file, and remove
-/*	the parameters given on the \fBpostconf\fR(1) command line.
+/*	the parameters named on the \fBpostconf\fR(1) command line.
 /*	The file is copied to a temporary file then renamed into
 /*	place.
-/*	Specify a list of parameter names, not \fIname\fR=\fIvalue\fR
+/*	Specify a list of parameter names, not "\fIname\fR=\fIvalue\fR"
 /*	pairs.  There is no \fBpostconf\fR(1) command to perform
 /*	the reverse operation.
 /*
 /*	This feature is available with Postfix 2.10 and later.
 /* .IP \fB-#\fR
 /*	Edit the \fBmain.cf\fR configuration file, and comment out
-/*	the parameters given on the \fBpostconf\fR(1) command line,
+/*	the parameters named on the \fBpostconf\fR(1) command line,
 /*	so that those parameters revert to their default values.
 /*	The file is copied to a temporary file then renamed into
 /*	place.
-/*	Specify a list of parameter names, not \fIname\fR=\fIvalue\fR
+/*	Specify a list of parameter names, not "\fIname\fR=\fIvalue\fR"
 /*	pairs.  There is no \fBpostconf\fR(1) command to perform
 /*	the reverse operation.
 /*

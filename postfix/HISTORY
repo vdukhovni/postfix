@@ -17684,3 +17684,16 @@ Apologies for any names omitted.
 	postconf -X option to exclude parameters from main.cf
 	(require two-finger action, because this is irreversible).
 	Files: postconf/postconf.[hc], postconf/postconf_edit.c.
+
+20120317
+
+	Feature: Sendmail-style socketmap.  Files: util/dict_sockmap.[hc],
+	util/netstring.[hc], proto/DATABASE_README.html,
+	postconf/postconf.c.
+
+20120330
+
+	Workaround: specify "\c" at the start of an smtp_reject_footer
+	template to suppress the line break between the reply text
+	and the footer text. Files: global/smtp_reply_footer.c,
+	proto/postconf.proto.

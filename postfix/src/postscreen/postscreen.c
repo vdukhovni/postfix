@@ -146,14 +146,13 @@
 /* MAIL EXCHANGER POLICY TESTS
 /* .ad
 /* .fi
-/*	When a remote SMTP client is not on the permanent access
-/*	list, \fBpostscreen\fR(8) can implement a number of whitelist
-/*	tests before it grants the client a temporary whitelist
-/*	status to talk to a Postfix SMTP server process.
-/*
-/*	By listening on both primary and backup MX addresses,
-/*	\fBpostscreen\fR(8) can deny the temporary whitelist status
-/*	to clients that connect only to backup MX hosts.
+/*	When \fBpostscreen\fR(8) is configured to monitor all primary
+/*	and backup MX addresses, it can refuse to whitelist clients
+/*	that connect to a backup MX address only. For small sites,
+/*	this requires configuring primary and backup MX addresses
+/*	on the same MTA. Larger sites would have to share the
+/*	\fBpostscreen\fR(8) cache between primary and backup MTAs,
+/*	which would introduce a common point of failure.
 /* .IP "\fBpostscreen_whitelist_interfaces (static:all)\fR"
 /*	A list of local \fBpostscreen\fR(8) server IP addresses where a
 /*	non-whitelisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary

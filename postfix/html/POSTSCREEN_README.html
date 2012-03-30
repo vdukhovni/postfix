@@ -249,11 +249,16 @@ or temporary whitelist, <a href="postscreen.8.html">postscreen(8)</a> can implem
 whitelist tests, before it grants the client a temporary whitelist
 status that allows it to talk to a Postfix SMTP server process. </p>
 
-<p> By listening on both primary and backup MX addresses, <a href="postscreen.8.html">postscreen(8)</a>
-can deny the temporary whitelist status to clients that connect
-only to backup MX hosts (an old spammer trick to take advantage of
-backup MX hosts with weaker anti-spam policies than primary MX
+<p> When <a href="postscreen.8.html">postscreen(8)</a> is configured to monitor all primary and
+backup MX addresses, it can refuse to whitelist clients that connect
+to a backup MX address only (an old spammer trick to take advantage
+of backup MX hosts with weaker anti-spam policies than primary MX
 hosts). </p>
+
+<blockquote> <p> NOTE: The following solution is for small sites.
+Larger sites would have to share the <a href="postscreen.8.html">postscreen(8)</a> cache between
+primary and backup MTAs, which would introduce a common point of
+failure.  </p> </blockquote>
 
 <ul>
 
@@ -261,6 +266,10 @@ hosts). </p>
 backup MX addresses. Use the appropriate <tt>ifconfig</tt> command
 for the local operating system, or update the appropriate configuration
 files and "refresh" the network protocol stack. </p>
+
+<p> <p> Second, configure Postfix to listen on the new IP address
+(this step is needed when you have specified <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> in
+<a href="postconf.5.html">main.cf</a>). </p>
 
 <li> <p> Then, configure <a href="postscreen.8.html">postscreen(8)</a> to deny the temporary whitelist
 status on the backup MX address(es).  An example for Wietse's

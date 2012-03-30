@@ -8549,13 +8549,15 @@ Optional information that is appended after each Postfix SMTP
 server
 4XX or 5XX response.
 .PP
-Example:
+The following example uses "\ec" at the start of the template
+(supported in Postfix 2.10 and later) to suppress the line break
+between the reply text and the footer text.
 .PP
 .nf
 .na
 .ft C
 /etc/postfix/main.cf:
-    smtpd_reject_footer = For assistance, call 800-555-0101.
+    smtpd_reject_footer = \ec. For assistance, call 800-555-0101.
      Please provide the following information in your problem report:
      time ($localtime), client ($client_address) and server
      ($server_name).
@@ -8568,8 +8570,8 @@ Server response:
 .nf
 .na
 .ft C
-    550-5.5.1 <user@example> Recipient address rejected: User unknown
-    550 5.5.1 For assistance, call 800-555-0101. Please provide the
+    550-5.5.1 <user@example> Recipient address rejected: User
+    unknown. For assistance, call 800-555-0101. Please provide the
     following information in your problem report: time (Jan 4 15:42:00),
     client (192.168.1.248) and server (mail1.example.com).
 .fi
@@ -8615,6 +8617,11 @@ This feature supports the two-character sequence \en as a request
 for a line break in the footer text. Postfix automatically inserts
 after each line break the three-digit SMTP reply code (and optional
 enhanced status code) from the original Postfix reject message.
+.PP
+To work around mail software that mis-handles multi-line replies,
+specify the two-character sequence \ec at the start of the template.
+This suppresses the line break between the reply text and the footer
+text (Postfix 2.10 and later).
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH smtpd_reject_unlisted_recipient (default: yes)

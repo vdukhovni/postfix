@@ -36,6 +36,7 @@ extern void netstring_put_multi(VSTREAM *,...);
 extern void netstring_fflush(VSTREAM *);
 extern VSTRING *netstring_memcpy(VSTRING *, const char *, ssize_t);
 extern VSTRING *netstring_memcat(VSTRING *, const char *, ssize_t);
+extern const char *netstring_strerror(int);
 
 #define NETSTRING_PUT_BUF(str, buf) \
 	netstring_put((str), vstring_str(buf), VSTRING_LEN(buf))

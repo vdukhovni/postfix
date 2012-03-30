@@ -150,7 +150,8 @@
 /*	\fItype\fR:\fIpathname\fR. See \fBpostalias\fR(1) for
 /*	details.
 /* .IP "\fB-O \fIoption=value\fR (ignored)"
-/*	Backwards compatibility.
+/*	Set the named \fIoption\fR to \fIvalue\fR. Use the equivalent
+/*	configuration parameter in \fBmain.cf\fR instead.
 /* .IP "\fB-o7\fR (ignored)"
 /* .IP "\fB-o8\fR (ignored)"
 /*	To send 8-bit or binary content, use an appropriate MIME encapsulation

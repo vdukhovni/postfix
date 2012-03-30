@@ -190,15 +190,22 @@ whitelist, postscreen(8) can implement a number of whitelist tests, before it
 grants the client a temporary whitelist status that allows it to talk to a
 Postfix SMTP server process.
 
-By listening on both primary and backup MX addresses, postscreen(8) can deny
-the temporary whitelist status to clients that connect only to backup MX hosts
-(an old spammer trick to take advantage of backup MX hosts with weaker anti-
-spam policies than primary MX hosts).
+When postscreen(8) is configured to monitor all primary and backup MX
+addresses, it can refuse to whitelist clients that connect to a backup MX
+address only (an old spammer trick to take advantage of backup MX hosts with
+weaker anti-spam policies than primary MX hosts).
+
+    NOTE: The following solution is for small sites. Larger sites would have to
+    share the postscreen(8) cache between primary and backup MTAs, which would
+    introduce a common point of failure.
 
   * First, configure the host to listen on both primary and backup MX
     addresses. Use the appropriate ifconfig command for the local operating
     system, or update the appropriate configuration files and "refresh" the
     network protocol stack.
+
+    Second, configure Postfix to listen on the new IP address (this step is
+    needed when you have specified inet_interfaces in main.cf).
 
   * Then, configure postscreen(8) to deny the temporary whitelist status on the
     backup MX address(es). An example for Wietse's server is:

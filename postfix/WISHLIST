@@ -5,7 +5,15 @@ Wish list:
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
+
+	Connection cache protocol: avoid mixing mail streams
+	with different source IP address reputations. For example,
+	allow additional tags upon store operations that can be
+	specified in requests.
  
+	smtpd: make implicit sender/recipient checks play along
+	with defer_if_reject.
+
 	postscreen: in the dummy SMTP engine, log the protocol state
 	at time of violation (like smtpd, set state->where initially
 	to CONNECT, then update it with the name of the last "known"
