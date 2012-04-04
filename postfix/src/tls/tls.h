@@ -63,8 +63,6 @@ extern const NAME_CODE tls_level_table[];
 #include <name_mask.h>
 #include <name_code.h>
 
-#define TLS_BIO_BUFSIZE	8192
-
  /*
   * Names of valid tlsmgr(8) session caches.
   */

@@ -17697,3 +17697,23 @@ Apologies for any names omitted.
 	template to suppress the line break between the reply text
 	and the footer text. Files: global/smtp_reply_footer.c,
 	proto/postconf.proto.
+
+20120401
+
+	Bugfix (introduced Postfix 2.6): irrelevant memory leak
+	that was introduced with postconf -#. File:
+	postconf/postconf_edit.c.
+
+	Bitrot: shut up useless warnings about Cyrus SASL call-back
+	function pointer type mis-matches. Files: xsasl/xsasl_cyrus.h,
+	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_client.c.
+
+20120404
+
+	Cleanup: added smtpd_sender_login_maps to the default
+	proxy_read_maps value. Files: global/mail_params.h,
+	proxymap/proxymap.c.
+
+	Cleanup: weed out stale TODO's from the WISHLIST, and moved
+	some CYA text from WISHLIST into the code. Files: WISHLIST,
+	smtpd/smtpd_proxy.c.

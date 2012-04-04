@@ -101,7 +101,7 @@ void    edit_parameters(int mode, int argc, char **argv)
 		msg_fatal("-X or -# requires non-blank parameter names");
 	    if (strchr(cp, '=') != 0)
 		msg_fatal("-X or -# requires parameter names only");
-	    edit_key = mystrdup(cp);
+	    edit_key = cp;
 	    trimblanks(edit_key, 0);
 	    edit_val = 0;
 	} else {

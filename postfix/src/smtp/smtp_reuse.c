@@ -24,6 +24,10 @@
 /*	This module implements the SMTP client specific interface to
 /*	the generic session cache infrastructure.
 /*
+/*	Each cached connection identifier includes the name of the
+/*	mail delivery service. Thus, cached connections are not
+/*	shared between different services.
+/*
 /*	smtp_save_session() stores the current session under the
 /*	next-hop logical destination (if available) and under the
 /*	remote server address.  The SMTP_SESSION object is destroyed.

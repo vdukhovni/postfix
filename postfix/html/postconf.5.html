@@ -13538,7 +13538,9 @@ server
 
 <p> The following example uses "\c" at the start of the template
 (supported in Postfix 2.10 and later) to suppress the line break
-between the reply text and the footer text. </p>
+between the reply text and the footer text. With earlier Postfix
+versions, the footer text always begins on a new line, and the "\c"
+is output literally. </p>
 
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:

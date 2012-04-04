@@ -8551,7 +8551,9 @@ server
 .PP
 The following example uses "\ec" at the start of the template
 (supported in Postfix 2.10 and later) to suppress the line break
-between the reply text and the footer text.
+between the reply text and the footer text. With earlier Postfix
+versions, the footer text always begins on a new line, and the "\ec"
+is output literally.
 .PP
 .nf
 .na

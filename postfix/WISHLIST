@@ -6,13 +6,8 @@ Wish list:
 
 	Things to do after the stable release:
 
-	Connection cache protocol: avoid mixing mail streams
-	with different source IP address reputations. For example,
-	allow additional tags upon store operations that can be
-	specified in requests.
- 
-	smtpd: make implicit sender/recipient checks play along
-	with defer_if_reject.
+	Don't forget Apple's code donation for fetching mail from
+	IMAP server.
 
 	postscreen: in the dummy SMTP engine, log the protocol state
 	at time of violation (like smtpd, set state->where initially
@@ -23,10 +18,14 @@ Wish list:
 	wrong place (how whitelisting works). Move it to the section
 	about configuring postscreen.
 
-	Before proxymap can be exposed to the network to share,
-	e.g., postscreen or verify caches, need to enforce limits
-	on attribute string length in IPC protocols.  10-20KB seems
-	OK. The VSTREAM library already supports read/write deadlines.
+	Before proxymap can be exposed to the network (primarily
+	to share postscreen or verify caches), need to enforce
+	limits on attribute string name and value length in IPC
+	protocols.  10-20KB seems OK. We need to enforce content
+	sanity checks (for example, no control characters; Postfix
+	does not pass around multi-line data in table lookups). The
+	VSTREAM library already supports read/write deadlines.  We
+	need to use attack-resistant code for numeric conversion.
 
 	move flush_init() etc. from defer service clients to the
 	bounce daemon?
@@ -81,8 +80,7 @@ Wish list:
 	of the performance gain of a queue based on append/truncate
 	instead of the much more expensive create/delete.
 
-	Investigate viability of Sendmail socket maps (the moral
-	equivalent of tcp_table(5)), and dns maps.
+	Investigate viability of Sendmail dns maps.
 
 	Check if FILTER_README has the "postsuper -r" workaround
 
@@ -147,9 +145,6 @@ Wish list:
 	MX connection.  Unfortunately postscreen can't update the
 	whitelisting database before the primary MX connection is
 	closed, because a client may still make a mistake.
-
-	Don't forget Apple's code donation for fetching mail from
-	IMAP server.
 
 	Simplify postscreen logic. Individual "fail" flags help to
 	avoid repeated testing/logging the same mistake.  Individual
@@ -262,24 +257,6 @@ Wish list:
 
 	IF/ENDIF support for CIDR tables.
 
-	Make postconf aware of local_, smtp_, etc. parameter names
-	that have prefixes derived from mail delivery transport
-	names, LDAP/SQL table names, spawn(8) services, and so on.
-	Clearly, it is wrong to assume that all "unix" master.cf
-	entries are delivery agents (though it may be OK for postconf
-	to peek in master.cf when given a parameter with an unknown
-	prefix). This requires a new main.cf parameter (delivery_prefixes?)
-	that lists all known mail delivery transport names. postconf
-	can safely ignore names that don't exist in master.cf, and
-	qmgr_transport_create() can safely warn about a name that
-	isn't listed in that new main.cf parameter. A similar
-	parameter would be needed for spawn(8) services (spawn_prefixes?)
-	and for legacy-style database "sources" (database_prefixes?).
-	The spawn(8) daemon could warn if the service name is not
-	listed in main.cf, and the LDAP/SQL/etc.  drivers could
-	warn if a legacy-style database source is not listed in
-	main.cf.
-
 	Need a regular expression table to translate address
 	verification responses into hard/soft/accept reply codes.
 
@@ -314,12 +291,6 @@ Wish list:
 	(transport, nexthop, address) resolution, it is redirected
 	to the error or retry mailer; and bounce-after-delivery is
 	asynchrounous so it can't block the queue manager, either.
-
-	Add smtpd_sender_login_maps to proxy_read_maps, and make
-	sure that defaults are set before proxy_read_maps is
-	evaluated. What other parameters are worthy of being
-	whitelisted for proxy access?  Is there a way to automate
-	this decision?
 
 	How to ensure that proxy_read_maps is processed after all
 	its dependencies are initialized, or just bite the bullet
@@ -381,21 +352,9 @@ Wish list:
 	SMTP connection caching without storing connections, to
 	improve TLS mail delivery performance.
 
-	postscreen has separate socket budgets for whitelisted
-	clients and for other clients. If we add a dummy SMTP engine
-	then we extend the session length for non-whitelisted clients
-	and need to increase the socket budget (or create a new
-	budget class, which complicates the user interface).
-
 	Should not milter8_mail_event() unset the "hold" default
 	reply? Better, the default reply should not be used for
 	this purpose.
-
-	Unescape the pregreeter's HELO command argument so that
-	<CR><LF> don't show up as ??.
-
-	Make postscreen logging easier. Always log connect, then log
-	why the connection is or is not forwarded.
 
 	Don't send MASTER_STAT_TAKEN/MASTER_STAT_AVAIL when a server
 	runs with process limit of 1. But this means the master
@@ -406,21 +365,6 @@ Wish list:
 	server runs with process limit of 1. The purpose of the
 	lockfile is to avoid thundering herd problems when the kernel
 	wakes up multiple processes for each new client connection.
-
-	Concurrency/speed-matching: invoke a before-queue (smtpd_proxy)
-	filter after the entire message is received, so that fewer
-	filter processes will be running simultaneously.  In some
-	parts of the world, after-queue filtering is problematic.
-
-	This is different than the MailChannels patented solution
-	to multiplex many slow SMTP connections over a few fast
-	SMTP connections. We simply postpone opening the connection
-	to the filter, and rely on the before-filter SMTP server
-	to reject invalid recipients. MailChannels uses one
-	connection-to-MTA to discover invalid recipients, receives
-	the email message with a potentially reduced bitrate, and
-	then uses another connection-to-MTA to deliver the message
-	quickly.
 
 	Implement PREPEND action for milter_header_checks. Save the
 	to-be-prepended text to buffer, then emit it along with the
@@ -440,10 +384,6 @@ Wish list:
 
 	Either document or remove the internal_mail_filter_classes
 	feature (it's disabled by default).
-
-	"postconf -N" option to print user-defined parameter names
-	(these have no defaults, since they exist only when 
-	specified in main.cf or with "-o name=value").
 
 	Make the "unknown recipient" test configurable as
 	first|last|never, with "yes"=="last" for backwards
@@ -534,9 +474,6 @@ Wish list:
 	pieces of code when a client attribute is added. Ditto for
 	SASL and TLS context.
 
-	Make TLS_BIO_BUFSIZE run-time adjustable, to future-proof
-	Postfix for remote connections with MSS > 8 kbytes.
-
 	Don't log "warning: XXXXX: undeliverable postmaster
 	notification discarded" for spam from outside.
 
@@ -575,15 +512,8 @@ Wish list:
 
 	Need scache size limit.
 
-	Make postcat header/body aware so people can grep headers.
-	What headers? primary, mime, nested? What body? Does it
-	include the mime and attached headers?
-
 	REDIRECT should override original recipient info, and
 	probably override DSN as well.
-
-	Find out if with Sendmail, a Milter "add recipient" request
-	results in NOTIFY=NONE as Postfix does now.
 
 	Update FILTER_README with mailing list suggestions to tag
 	with a badness indicator and then filter down-stream.
@@ -791,8 +721,6 @@ Wish list:
 	in Postfix. Problem reported by Michael Smith, texas.net.
 	This should be documented, or better, the code should warn
 	about attempts to set read-only parameters.
-
-	Low: postconf -e edits parameters that postconf won't list.
 
 	Low: while converting 8bit text to quoted-printable, perhaps
 	use =46rom to avoid having to produce >From when delivering
