@@ -17717,3 +17717,9 @@ Apologies for any names omitted.
 	Cleanup: weed out stale TODO's from the WISHLIST, and moved
 	some CYA text from WISHLIST into the code. Files: WISHLIST,
 	smtpd/smtpd_proxy.c.
+
+20120407
+
+	Bugfix (introduced: 20120330): don't replace <reply-code>
+	<space> by <reply-code> <hyphen> when a reply footer starts
+	with \c and contains no \n. File: global/smtp_reply_footer.c.

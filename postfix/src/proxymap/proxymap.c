@@ -306,6 +306,7 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 
     while (strncmp(map_type_name, PROXY_COLON, PROXY_COLON_LEN) == 0)
 	map_type_name += PROXY_COLON_LEN;
+    /* XXX The following breaks with maps that have ':' in their name. */
     if (strchr(map_type_name, ':') == 0)
 	PROXY_MAP_FIND_ERROR_RETURN(PROXY_STAT_BAD);
     if (htable_locate(proxy_auth_maps, map_type_name) == 0) {

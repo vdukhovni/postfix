@@ -97,6 +97,7 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
     char   *end;
     ssize_t dsn_len;
     int     crlf_at_end = 0;
+    int     reply_patch_undo_offs = -1;
 
     /*
      * Sanity check.
@@ -115,6 +116,7 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
 	    || (cp[3] != ' ' && cp[3] != '-'))
 	    return (-1);
 	cp[3] = '-';
+	reply_patch_undo_offs = cp + 3 - STR(buffer);
 	if ((next = strstr(cp, "\r\n")) == 0) {
 	    next = end;
 	    break;
@@ -159,6 +161,7 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
 		vstring_strncat(buffer, STR(buffer) + start + 4, (int) dsn_len);
 		vstring_strcat(buffer, " ");
 	    }
+	    reply_patch_undo_offs = -1;
 	}
 	/* Append one line of footer text. */
 	mac_expand(buffer, cp, MAC_EXP_FLAG_APPEND, filter, lookup, context);
@@ -168,6 +171,8 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
 	} else
 	    break;
     }
+    if (reply_patch_undo_offs > 0)
+	STR(buffer)[reply_patch_undo_offs] = ' ';
     if (crlf_at_end)
 	vstring_strcat(buffer, "\r\n");
     return (0);
