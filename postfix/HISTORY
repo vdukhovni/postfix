@@ -17723,3 +17723,12 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20120330): don't replace <reply-code>
 	<space> by <reply-code> <hyphen> when a reply footer starts
 	with \c and contains no \n. File: global/smtp_reply_footer.c.
+
+20120422
+
+	Bit-rot: OpenSSL 1.0.1 introduces new protocols. Update the
+	known TLS protocol list so that protocols can be turned off
+	selectively to work around implementation bugs.  Based on
+	a patch by Victor Duchovni.  Files: proto/TLS_README.html,
+	proto/postconf.proto, tls/tls.h, tls/tls_misc.c, tls/tls_client.c,
+	tls/tls_server.c.

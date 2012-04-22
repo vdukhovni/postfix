@@ -9,6 +9,12 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	When faking up the DSN ORCPT, don't send bare usernames
+	from local command-line submission.
+
+	lmtp_assume_final is broken. A 2XX response does not imply
+	final delivery. The Sieve language implements accept-then-bounce.
+
 	postscreen: in the dummy SMTP engine, log the protocol state
 	at time of violation (like smtpd, set state->where initially
 	to CONNECT, then update it with the name of the last "known"
