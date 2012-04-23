@@ -733,9 +733,10 @@ ciphers: </p>
     <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> = high
     <a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL, MD5
     <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = encrypt
-    <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = TLSv1
-    # Preferred interface with Postfix &ge; 2.5:
+    # Preferred form with Postfix &ge; 2.5:
     <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2, !SSLv3
+    # Alternative form.
+    <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = TLSv1
 </pre>
 </blockquote>
 
@@ -1903,9 +1904,10 @@ the SSL/TLS protocols used with opportunistic TLS. </p>
     <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> = medium
     <a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> = RC4, MD5
     <a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> = aNULL
-    <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = SSLv3, TLSv1
-    # Also available with Postfix &ge; 2.5:
+    # Preferred form with Postfix &ge; 2.5:
     <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2
+    # Alternative form.
+    <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = SSLv3, TLSv1
     # Also available with Postfix &ge; 2.6:
     <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> = export
     <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2

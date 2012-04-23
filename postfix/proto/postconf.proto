@@ -10510,9 +10510,10 @@ TLS_README for more information about security levels. </p>
 <p> Example: </p>
 
 <pre>
-smtp_tls_mandatory_protocols = TLSv1
-# Alternative form with Postfix &ge; 2.5:
+# Preferred form with Postfix &ge; 2.5:
 smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+# Alternative form.
+smtp_tls_mandatory_protocols = TLSv1
 </pre>
 
 <p> This feature is available in Postfix 2.3 and later. </p>

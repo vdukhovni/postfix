@@ -733,9 +733,10 @@ ciphers: </p>
     smtpd_tls_mandatory_ciphers = high
     smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5
     smtpd_tls_security_level = encrypt
-    smtpd_tls_mandatory_protocols = TLSv1
-    # Preferred interface with Postfix &ge; 2.5:
+    # Preferred form with Postfix &ge; 2.5:
     smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+    # Alternative form.
+    smtpd_tls_mandatory_protocols = TLSv1
 </pre>
 </blockquote>
 
@@ -1903,9 +1904,10 @@ the SSL/TLS protocols used with opportunistic TLS. </p>
     smtp_tls_mandatory_ciphers = medium
     smtp_tls_mandatory_exclude_ciphers = RC4, MD5
     smtp_tls_exclude_ciphers = aNULL
-    smtp_tls_mandatory_protocols = SSLv3, TLSv1
-    # Also available with Postfix &ge; 2.5:
+    # Preferred form with Postfix &ge; 2.5:
     smtp_tls_mandatory_protocols = !SSLv2
+    # Alternative form.
+    smtp_tls_mandatory_protocols = SSLv3, TLSv1
     # Also available with Postfix &ge; 2.6:
     smtp_tls_ciphers = export
     smtp_tls_protocols = !SSLv2

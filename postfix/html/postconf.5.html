@@ -11094,9 +11094,10 @@ and higher. </p>
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = TLSv1
-# Alternative form with Postfix &ge; 2.5:
+# Preferred form with Postfix &ge; 2.5:
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !SSLv3
+# Alternative form.
+<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = TLSv1
 </pre>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
