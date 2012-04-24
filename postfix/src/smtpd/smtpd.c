@@ -357,7 +357,7 @@
 /* .IP "\fBsmtpd_tls_mandatory_exclude_ciphers (empty)\fR"
 /*	Additional list of ciphers or cipher types to exclude from the
 /*	SMTP server cipher list at mandatory TLS security levels.
-/* .IP "\fBsmtpd_tls_mandatory_protocols (SSLv3, TLSv1)\fR"
+/* .IP "\fBsmtpd_tls_mandatory_protocols (!SSLv2)\fR"
 /*	The SSL/TLS protocols accepted by the Postfix SMTP server with
 /*	mandatory TLS encryption.
 /* .IP "\fBsmtpd_tls_received_header (no)\fR"
