@@ -1239,7 +1239,7 @@ extern char *var_smtpd_tls_CApath;
 extern char *var_smtpd_tls_proto;
 
 #define VAR_SMTPD_TLS_MAND_PROTO	"smtpd_tls_mandatory_protocols"
-#define DEF_SMTPD_TLS_MAND_PROTO	"SSLv3, TLSv1"
+#define DEF_SMTPD_TLS_MAND_PROTO	"!SSLv2"
 extern char *var_smtpd_tls_mand_proto;
 
 #define VAR_SMTPD_TLS_CIPH	"smtpd_tls_ciphers"
@@ -1456,9 +1456,9 @@ extern char *var_smtp_tls_policy;
 extern char *var_smtp_tls_proto;
 
 #define VAR_SMTP_TLS_MAND_PROTO	"smtp_tls_mandatory_protocols"
-#define DEF_SMTP_TLS_MAND_PROTO	"SSLv3, TLSv1"
+#define DEF_SMTP_TLS_MAND_PROTO	"!SSLv2"
 #define VAR_LMTP_TLS_MAND_PROTO	"lmtp_tls_mandatory_protocols"
-#define DEF_LMTP_TLS_MAND_PROTO	"SSLv3, TLSv1"
+#define DEF_LMTP_TLS_MAND_PROTO	"!SSLv2"
 extern char *var_smtp_tls_mand_proto;
 
 #define VAR_SMTP_TLS_VFY_CMATCH	"smtp_tls_verify_cert_match"

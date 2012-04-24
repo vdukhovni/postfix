@@ -16020,3 +16020,24 @@ Apologies for any names omitted.
 	could match a shorter one, because a length check was done
 	on the wrong string.  Reported by Vladimir Vassiliev.  File:
 	cleanup/cleanup_milter.c.
+
+20120214
+
+	Bugfix (introduced: Postfix 2.4): extraneous null assignment
+	caused core dump when postlog emitted the "usage" message.
+	Reported by Kant (fnord.hammer). File: postlog/postlog.c.
+
+20120401
+
+	Bitrot: shut up useless warnings about Cyrus SASL call-back
+	function pointer type mis-matches. Files: xsasl/xsasl_cyrus.h,
+	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_client.c.
+
+20120422
+
+	Bit-rot: OpenSSL 1.0.1 introduces new protocols. Update the
+	known TLS protocol list so that protocols can be turned off
+	selectively to work around implementation bugs.  Based on
+	a patch by Victor Duchovni.  Files: proto/TLS_README.html,
+	proto/postconf.proto, tls/tls.h, tls/tls_misc.c, tls/tls_client.c,
+	tls/tls_server.c.
