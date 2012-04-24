@@ -17629,3 +17629,18 @@ Apologies for any names omitted.
 	to a missing guard statement after an smtpd_check_rewrite()
 	call was moved closer to the command processor loop. Fix
 	by Bartek Szady. File: smtpd/smtpd.c.
+
+20120401
+
+	Bitrot: shut up useless warnings about Cyrus SASL call-back
+	function pointer type mis-matches. Files: xsasl/xsasl_cyrus.h,
+	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_client.c.
+
+20120422
+
+	Bit-rot: OpenSSL 1.0.1 introduces new protocols. Update the
+	known TLS protocol list so that protocols can be turned off
+	selectively to work around implementation bugs.  Based on
+	a patch by Victor Duchovni.  Files: proto/TLS_README.html,
+	proto/postconf.proto, tls/tls.h, tls/tls_misc.c, tls/tls_client.c,
+	tls/tls_server.c.
