@@ -26,6 +26,11 @@
 extern XSASL_SERVER_IMPL *xsasl_cyrus_server_init(const char *, const char *);
 extern XSASL_CLIENT_IMPL *xsasl_cyrus_client_init(const char *, const char *);
 
+ /*
+  * Internal definitions for client and server module.
+  */
+typedef int (*XSASL_CYRUS_CB) (void);
+
 #endif
 
 /* LICENSE
