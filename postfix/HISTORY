@@ -17732,3 +17732,9 @@ Apologies for any names omitted.
 	a patch by Victor Duchovni.  Files: proto/TLS_README.html,
 	proto/postconf.proto, tls/tls.h, tls/tls_misc.c, tls/tls_client.c,
 	tls/tls_server.c.
+
+20120425
+
+	Workaround: bugs in 10-year old gcc versions break compilation
+	with #ifdef inside a macro invocation (NOT: definition).
+	Files: tls/tls.h, tls/tls_client.c, tls/tls_server.c.
