@@ -17738,3 +17738,11 @@ Apologies for any names omitted.
 	Workaround: bugs in 10-year old gcc versions break compilation
 	with #ifdef inside a macro invocation (NOT: definition).
 	Files: tls/tls.h, tls/tls_client.c, tls/tls_server.c.
+
+20120426
+
+	Bugfix (introduced Postfix 2.9): postconf flagged parameters
+	defined in master.cf as "unused" when they were used only
+	in main.cf. Problem reported by Michael Tokarev. Files:
+	postconf/postconf_user.c, postconf/test4b.ref, postconf
+	Makefile.in.
