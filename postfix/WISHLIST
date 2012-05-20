@@ -9,6 +9,17 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	Make "rename" the default when postmapping a DB file
+	(later: use copy+rename for postmap -i, postmap -d).
+
+	Make the "trigger" service endpoint type configurable.  On
+	non-Solaris systems, switching from fifo to unix can avoid
+	disk spin-up due to mtime changes (Postfix on Solaris
+	emulates UNIX-domain sockets by sending a file handle through
+	a FIFO).
+
+	Service-name parameters aren't documented in daemon manpages.
+
 	When faking up the DSN ORCPT, don't send bare usernames
 	from local command-line submission.
 

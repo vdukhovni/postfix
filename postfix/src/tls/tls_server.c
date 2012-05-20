@@ -181,9 +181,10 @@ static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
 
 #define GEN_CACHE_ID(buf, id, len, service) \
     do { \
-	buf = vstring_alloc(2 * (len) + 1 + strlen(service) + 3); \
+	buf = vstring_alloc(2 * (len + strlen(service))); \
 	hex_encode(buf, (char *) (id), (len)); \
     	vstring_sprintf_append(buf, "&s=%s", (service)); \
+    	vstring_sprintf_append(buf, "&l=%ld", (long) SSLeay()); \
     } while (0)
 
 

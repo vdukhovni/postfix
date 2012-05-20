@@ -20,6 +20,11 @@
 /*	service.
 /* DIAGNOSTICS
 /*	The result is 0 in case of success, -1 in case of failure.
+/* FILES
+/*	$queue_directory/public/pickup, server endpoint
+/*	$queue_directory/public/qmgr, server endpoint
+/* SEE ALSO
+/*	mail_trigger(3), see note about event_drain() usage
 /* LICENSE
 /* .ad
 /* .fi

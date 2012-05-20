@@ -218,15 +218,24 @@ specifies the location of the temporary whitelist.  The
 temporary whitelist is not used for SMTP client addresses
 that appear on the <i>permanent</i> access list. </p>
 
-<blockquote> <p> NOTE: To share a <a href="postscreen.8.html">postscreen(8)</a> cache between
-multiple <a href="postscreen.8.html">postscreen(8)</a> instances, use "<tt><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> =
-<a href="proxymap.8.html">proxy</a>:btree:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache</tt>", and disable
-cache cleanup (<a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> = 0) in all
-<a href="postscreen.8.html">postscreen(8)</a> instances except one that is responsible for cache
-cleanup. </p> <p> <a href="postscreen.8.html">postscreen(8)</a> cache sharing requires Postfix 2.9
-or later; earlier <a href="proxymap.8.html">proxymap(8)</a> implementations don't support cache
-cleanup. </p> <p>  For an alternative <a href="postscreen.8.html">postscreen(8)</a> cache sharing
-approach see the <a href="memcache_table.5.html">memcache_table(5)</a> manpage.  </p> </blockquote>
+<blockquote> 
+
+    <p> NOTE: To share a <a href="postscreen.8.html">postscreen(8)</a> cache between multiple
+    <a href="postscreen.8.html">postscreen(8)</a> instances under the same <a href="master.8.html">master(8)</a> daemon, use
+    "<tt><a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> =
+    <a href="proxymap.8.html">proxy</a>:btree:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache</tt>", and disable
+    cache cleanup (<a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> = 0) in all
+    <a href="postscreen.8.html">postscreen(8)</a> instances except one that is responsible for cache
+    cleanup. </p>
+
+    <p> <a href="postscreen.8.html">postscreen(8)</a> cache sharing requires Postfix 2.9 or later;
+    earlier <a href="proxymap.8.html">proxymap(8)</a> implementations don't support cache cleanup.
+    </p>
+
+    <p>  For an alternative <a href="postscreen.8.html">postscreen(8)</a> cache sharing approach,
+    see the <a href="memcache_table.5.html">memcache_table(5)</a> manpage. </p>
+
+</blockquote>
 
 <p> When the SMTP client address appears on the temporary
 whitelist, <a href="postscreen.8.html">postscreen(8)</a> logs this with the client address and port

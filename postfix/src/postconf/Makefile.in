@@ -115,7 +115,7 @@ test4b:	$(PROG) test4b.ref
 	echo 'bar = aaa' >> main.cf
 	echo smtpd1 unix - n n - 0 smtpd >> master.cf
 	echo ' -o foo=xxx -o bar=yyy -o baz=zzz' >> master.cf
-	echo '#smtpd1 unix - n n - 0 smtpd' >> master.cf
+	echo '#smtpd2 unix - n n - 0 smtpd' >> master.cf
 	./$(PROG) -nc . >test4b.tmp 2>&1
 	diff test4b.ref test4b.tmp
 	rm -f main.cf master.cf test4b.tmp

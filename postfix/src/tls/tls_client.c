@@ -827,6 +827,12 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     vstring_sprintf_append(myserverid, "&c=%s", cipher_list);
 
     /*
+     * Finally, salt the session key with the OpenSSL library version,
+     * (run-time, rather than compile-time, just in case that matters).
+     */
+    vstring_sprintf_append(myserverid, "&l=%ld", (long) SSLeay());
+
+    /*
      * Allocate a new TLScontext for the new connection and get an SSL
      * structure. Add the location of TLScontext to the SSL to later retrieve
      * the information inside the tls_verify_certificate_callback().

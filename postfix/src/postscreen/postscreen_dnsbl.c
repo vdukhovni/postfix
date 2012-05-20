@@ -423,6 +423,9 @@ static void psc_dnsbl_receive(int event, char *context)
 	score->pending_lookups -= 1;
 	if (score->pending_lookups == 0)
 	    PSC_CALL_BACK_NOTIFY(score, PSC_NULL_EVENT);
+    } else if (event == EVENT_TIME) {
+	msg_warn("dnsblog reply timeout %ds for %s",
+		 DNSBLOG_TIMEOUT, (char *) vstream_context(stream));
     }
     /* Here, score may be a null pointer. */
     vstream_fclose(stream);
@@ -503,6 +506,9 @@ int     psc_dnsbl_request(const char *client_addr,
 	    continue;
 	}
 	stream = vstream_fdopen(fd, O_RDWR);
+	vstream_control(stream,
+			VSTREAM_CTL_CONTEXT, ht[0]->key,
+			VSTREAM_CTL_END);
 	attr_print(stream, ATTR_FLAG_NONE,
 		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, ht[0]->key,
 		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, client_addr,
