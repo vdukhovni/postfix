@@ -63,8 +63,6 @@ extern const NAME_CODE tls_level_table[];
 #include <name_mask.h>
 #include <name_code.h>
 
-#define TLS_BIO_BUFSIZE	8192
-
  /*
   * Names of valid tlsmgr(8) session caches.
   */
@@ -179,11 +177,15 @@ extern void tls_param_init(void);
 #define TLS_PROTOCOL_TLSv1_1	(1<<3)	/* TLSv1_1 */
 #else
 #define TLS_PROTOCOL_TLSv1_1	0	/* Unknown */
+#undef  SSL_OP_NO_TLSv1_1
+#define SSL_OP_NO_TLSv1_1	0L	/* Noop */
 #endif
 #ifdef SSL_TXT_TLSV1_2
 #define TLS_PROTOCOL_TLSv1_2	(1<<4)	/* TLSv1_2 */
 #else
 #define TLS_PROTOCOL_TLSv1_2	0	/* Unknown */
+#undef  SSL_OP_NO_TLSv1_2
+#define SSL_OP_NO_TLSv1_2	0L	/* Noop */
 #endif
 #define TLS_KNOWN_PROTOCOLS	\
 	( TLS_PROTOCOL_SSLv2 | TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_TLSv1 \
