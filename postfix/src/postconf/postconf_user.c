@@ -126,14 +126,27 @@ static const char *flag_user_parameter(const char *mac_name,
      * compatibility after a feature name change.
      */
     if (local_scope && dict_get(local_scope->all_params, mac_name)) {
+	/* $name in master.cf references name=value in master.cf. */
 	if (PC_PARAM_TABLE_LOCATE(local_scope->valid_names, mac_name) == 0)
 	    PC_PARAM_TABLE_ENTER(local_scope->valid_names, mac_name,
 				 PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
 				 convert_user_parameter);
     } else if (mail_conf_lookup(mac_name) != 0) {
+	/* $name in main/master.cf references name=value in main.cf. */
 	if (PC_PARAM_TABLE_LOCATE(param_table, mac_name) == 0)
 	    PC_PARAM_TABLE_ENTER(param_table, mac_name, PC_PARAM_FLAG_USER,
 				 PC_PARAM_NO_DATA, convert_user_parameter);
+    }
+    if (local_scope == 0) {
+	for (local_scope = master_table; local_scope->argv; local_scope++) {
+	    if (local_scope->all_params != 0
+		&& dict_get(local_scope->all_params, mac_name) != 0
+	    /* $name in main.cf references name=value in master.cf. */
+		&& PC_PARAM_TABLE_LOCATE(local_scope->valid_names, mac_name) == 0)
+		PC_PARAM_TABLE_ENTER(local_scope->valid_names, mac_name,
+				     PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
+				     convert_user_parameter);
+	}
     }
     return (0);
 }
@@ -277,21 +290,7 @@ void    register_user_parameters(void)
     rest_class_table = htable_create(1);
 
     /*
-     * Scan parameter values that are left at their defaults in the global
-     * name space. Some defaults contain the $name of an obsolete parameter
-     * for backwards compatilility purposes. We might warn that an explicit
-     * name=value is obsolete, but we must not warn that the parameter is
-     * unused.
-     */
-    scan_default_parameter_values(param_table, CONFIG_DICT, (PC_MASTER_ENT *) 0);
-
-    /*
-     * Scan the explicit name=value entries in the global name space.
-     */
-    scan_user_parameter_namespace(CONFIG_DICT, (PC_MASTER_ENT *) 0);
-
-    /*
-     * Scan the "-o parameter=value" instances in each master.cf name space.
+     * Initialize the per-service parameter name spaces.
      */
     for (masterp = master_table; (argv = masterp->argv) != 0; masterp++) {
 	for (field = PC_MASTER_MIN_FIELDS; argv->argv[field] != 0; field++) {
@@ -309,7 +308,27 @@ void    register_user_parameters(void)
 	if ((dict = dict_handle(masterp->name_space)) != 0) {
 	    masterp->all_params = dict;
 	    masterp->valid_names = htable_create(1);
-	    scan_user_parameter_namespace(masterp->name_space, masterp);
 	}
     }
+
+    /*
+     * Scan parameter values that are left at their defaults in the global
+     * name space. Some defaults contain the $name of an obsolete parameter
+     * for backwards compatilility purposes. We might warn that an explicit
+     * name=value is obsolete, but we must not warn that the parameter is
+     * unused.
+     */
+    scan_default_parameter_values(param_table, CONFIG_DICT, (PC_MASTER_ENT *) 0);
+
+    /*
+     * Scan the explicit name=value entries in the global name space.
+     */
+    scan_user_parameter_namespace(CONFIG_DICT, (PC_MASTER_ENT *) 0);
+
+    /*
+     * Scan the "-o parameter=value" instances in each master.cf name space.
+     */
+    for (masterp = master_table; masterp->argv != 0; masterp++)
+	if (masterp->all_params != 0)
+	    scan_user_parameter_namespace(masterp->name_space, masterp);
 }
