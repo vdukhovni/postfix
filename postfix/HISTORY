@@ -16781,3 +16781,51 @@ Apologies for any names omitted.
 	a patch by Victor Duchovni.  Files: proto/TLS_README.html,
 	proto/postconf.proto, tls/tls.h, tls/tls_misc.c, tls/tls_client.c,
 	tls/tls_server.c.
+
+20120425
+
+	Workaround: bugs in 10-year old gcc versions break compilation
+	with #ifdef inside a macro invocation (NOT: definition).
+	Files: tls/tls.h, tls/tls_client.c, tls/tls_server.c.
+
+20120516
+
+	Workaround: apparently, FreeBSD 8.3 kqueue notifications
+	sometimes break when a dnsblog(8) process loses an accept()
+	race on a shared socket, resulting in repeated "connect to
+	private/dnsblog service: Connection refused" warnings.  This
+	condition is unique to dnsblog(8). The postscreen(8) daemon
+	closes a postscreen-to-dnsblog connection as soon as it
+	receives a dnsblog(8) reply, resulting in hundreds or
+	thousands of connection requests per second.  All other
+	multi-server daemons such as anvil(8) or proxymap(8) have
+	connection lifetimes ranging from 5s to 1000s depending on
+	server load.  The workaround is for dnsblog to use the
+	single_server driver instead of the multi_server driver.
+	This one-line code change eliminates the accept() race
+	without any Postfix performance impact.  Problem reported
+	by Sahil Tandon.  File: dnsblog/dnsblog.c.
+
+20120517
+
+	Workaround: to avoid crashes when the OpenSSL library is
+	updated without "postfix reload", the Postfix TLS session
+	cache ID now includes the OpenSSL library version number.
+	Note: this problem cannot be fixed in tlsmgr(8). Code by
+	Victor Duchovni. Files: tls/tls_server.c, tls_client.c.
+
+20120520
+
+	Bugfix (introduced Postfix 2.4): the event_drain() function
+	was comparing bitmasks incorrectly causing the program to
+	always wait for the full time limit. This error affected
+	the unused postkick command, but only after s/fifo/unix/
+	in master.cf.  File: util/events.c.
+
+	Cleanup: laptop users have always been able to avoid
+	unnecessary disk spin-up by doing s/fifo/unix/ in master.cf
+	(this is currently not supported on Solaris systems).
+	However, to make this work reliably, the "postqueue -f"
+	command must wait until its requests have reached the pickup
+	and qmgr servers before closing the UNIX-domain request
+	sockets.  Files: postqueue/postqueue.c, postqueue/Makefile.in.
