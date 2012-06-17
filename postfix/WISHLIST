@@ -12,6 +12,19 @@ Wish list:
 	Make "rename" the default when postmapping a DB file
 	(later: use copy+rename for postmap -i, postmap -d).
 
+	"no-cache" option for selected postscreen tests?
+
+	Need primitive to find out if a map has a local lock.  If
+	it doesn't (like memcache or proxied map), then postscreen
+	etc. don't need to close a cache after "postfix reload".
+	After a fork() it is OK to keep using a memcache or proxymap
+	handle, because the parent exits immediately.
+
+	Different TTL values for different DNSBL sources?
+
+	Replace master(8) SIGHUP by very simple socket protocol to
+	allow reload of a specific service.
+
 	Make the "trigger" service endpoint type configurable.  On
 	non-Solaris systems, switching from fifo to unix can avoid
 	disk spin-up due to mtime changes (Postfix on Solaris
@@ -45,7 +58,8 @@ Wish list:
 	need to use attack-resistant code for numeric conversion.
 
 	move flush_init() etc. from defer service clients to the
-	bounce daemon?
+	bounce daemon? Postfix works best when work can be spread
+	out over many clients, instead of over a few servers.
 
 	multi_connect() function that takes a list of inet:host:port
 	and/or unix:pathname specs, with an explicit "inet" prefix

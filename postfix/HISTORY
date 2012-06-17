@@ -17799,3 +17799,15 @@ Apologies for any names omitted.
 	command must wait until its requests have reached the pickup
 	and qmgr servers before closing the UNIX-domain request
 	sockets.  Files: postqueue/postqueue.c, postqueue/Makefile.in.
+
+20120522
+
+	Robustness: set LC_ALL=C in post-install to avoid surprises
+	when parsing output from Postfix or non-Postfix commands.
+	File: postfix-install.
+
+20120611
+
+	Bugfix (introduced: 20031216-21): with soft_bounce=yes, the
+	SMTP client did not move on to the next MX host or fallback
+	relay after a 5xx reply. File: smtp/smtp_trouble.c.

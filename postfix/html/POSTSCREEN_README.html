@@ -17,11 +17,13 @@
 
 <h2> <a name="intro">Introduction</a> </h2>
 
-<p> The Postfix <a href="postscreen.8.html">postscreen(8)</a> server performs triage on multiple
-inbound SMTP connections at the same time. While a single <a href="postscreen.8.html">postscreen(8)</a>
-process keeps zombies away from Postfix SMTP server processes, more
-Postfix SMTP server processes remain available for legitimate
-clients. </p>
+<p> The Postfix <a href="postscreen.8.html">postscreen(8)</a> daemon provides additional protection
+against mail server overload. One <a href="postscreen.8.html">postscreen(8)</a> process handles
+multiple inbound SMTP connections, and decides which clients may
+talk to a Postfix SMTP server process.  By keeping spambots away,
+<a href="postscreen.8.html">postscreen(8)</a> leaves more SMTP server processes available for
+legitimate clients, and delays the onset of <a
+href="STRESS_README.html">server overload</a> conditions. </p>
 
 <p> <a href="postscreen.8.html">postscreen(8)</a> maintains a temporary whitelist for clients that
 pass its tests; by allowing whitelisted clients to skip tests,
@@ -1061,6 +1063,15 @@ collect real-world statistics. This version still used the embarrassing
 <a href="postscreen.8.html">postscreen(8)</a> usable for sites that require TLS support.  The
 implementation introduces the <a href="tlsproxy.8.html">tlsproxy(8)</a> event-driven TLS proxy
 that decrypts/encrypts the sessions for multiple SMTP clients. </p>
+
+<p> The <a href="tlsproxy.8.html">tlsproxy(8)</a> implementation led to the discovery of a "new"
+class of vulnerability (<a
+href="http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2011-0411"
+>CVE-2011-0411</a>) that affected multiple implementations of TLS
+over SMTP, POP, IMAP, NNTP, and FTP. </p>
+
+<p> <a href="postscreen.8.html">postscreen(8)</a> was officially released as part of the Postfix
+2.8 stable release in January 2011.</p>
 
 </body>
 

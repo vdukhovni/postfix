@@ -6,11 +6,12 @@
 /* SYNOPSIS
 /*	\fBpostscreen\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The Postfix \fBpostscreen\fR(8) server performs triage on
-/*	multiple inbound SMTP connections at the same time. While
-/*	a single \fBpostscreen\fR(8) process keeps spambots away
-/*	from Postfix SMTP server processes, more Postfix SMTP server
-/*	processes remain available for legitimate clients.
+/*	The Postfix \fBpostscreen\fR(8) server provides additional
+/*	protection against mail server overload. One \fBpostscreen\fR(8)
+/*	process handles multiple inbound SMTP connections, and decides
+/*	which clients may talk to a Postfix SMTP server process.
+/*	By keeping spambots away, \fBpostscreen\fR(8) leaves more
+/*	SMTP server processes available for legitimate clients.
 /*
 /*	This program should not be used on SMTP ports that receive
 /*	mail from end-user clients (MUAs). In a typical deployment,
@@ -557,7 +558,7 @@ static void psc_drain(char *unused_service, char **unused_argv)
      * XXX Some Berkeley DB versions break with close-after-fork. Every new
      * version is an improvement over its predecessor.
      */
-    if (psc_cache_map != 0) {
+    if (psc_cache_map != 0 /* XXX && psc_cache_map requires locking */) {
 	dict_cache_close(psc_cache_map);
 	psc_cache_map = 0;
     }

@@ -591,6 +591,7 @@ smtp_trouble.o: ../../include/header_body_checks.h
 smtp_trouble.o: ../../include/header_opts.h
 smtp_trouble.o: ../../include/htable.h
 smtp_trouble.o: ../../include/mail_error.h
+smtp_trouble.o: ../../include/mail_params.h
 smtp_trouble.o: ../../include/maps.h
 smtp_trouble.o: ../../include/match_list.h
 smtp_trouble.o: ../../include/mime_state.h

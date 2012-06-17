@@ -12,11 +12,12 @@ Postfix zombie blocker
 .SH DESCRIPTION
 .ad
 .fi
-The Postfix \fBpostscreen\fR(8) server performs triage on
-multiple inbound SMTP connections at the same time. While
-a single \fBpostscreen\fR(8) process keeps spambots away
-from Postfix SMTP server processes, more Postfix SMTP server
-processes remain available for legitimate clients.
+The Postfix \fBpostscreen\fR(8) server provides additional
+protection against mail server overload. One \fBpostscreen\fR(8)
+process handles multiple inbound SMTP connections, and decides
+which clients may talk to a Postfix SMTP server process.
+By keeping spambots away, \fBpostscreen\fR(8) leaves more
+SMTP server processes available for legitimate clients.
 
 This program should not be used on SMTP ports that receive
 mail from end-user clients (MUAs). In a typical deployment,

@@ -516,11 +516,11 @@ services that accept remote connections. </p>
 
 <p> The postscreen(8) daemon, introduced with Postfix 2.8, provides
 additional protection against mail server overload. One postscreen(8)
-process handles all connections from "new" SMTP clients, and allows
-only well-behaved clients to talk to a Postfix SMTP server process.
-By keeping spambots away, postscreen(8) leaves more SMTP server
-processes available for legitimate clients, and delays the onset
-of server overload conditions. </p>
+process handles multiple inbound SMTP connections, and decides which
+clients may to talk to a Postfix SMTP server process.  By keeping
+spambots away, postscreen(8) leaves more SMTP server processes
+available for legitimate clients, and delays the onset of server
+overload conditions. </p>
 
 <h2><a name="credits"> Credits </a></h2>
 

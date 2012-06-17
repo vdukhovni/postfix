@@ -4,10 +4,12 @@ PPoossttffiixx PPoossttssccrreeeenn HHoowwttoo
 
 IInnttrroodduuccttiioonn
 
-The Postfix postscreen(8) server performs triage on multiple inbound SMTP
-connections at the same time. While a single postscreen(8) process keeps
-zombies away from Postfix SMTP server processes, more Postfix SMTP server
-processes remain available for legitimate clients.
+The Postfix postscreen(8) daemon provides additional protection against mail
+server overload. One postscreen(8) process handles multiple inbound SMTP
+connections, and decides which clients may talk to a Postfix SMTP server
+process. By keeping spambots away, postscreen(8) leaves more SMTP server
+processes available for legitimate clients, and delays the onset of server
+overload conditions.
 
 postscreen(8) maintains a temporary whitelist for clients that pass its tests;
 by allowing whitelisted clients to skip tests, postscreen(8) minimizes its
@@ -766,4 +768,11 @@ Wietse added STARTTLS support in December 2010. This makes postscreen(8) usable
 for sites that require TLS support. The implementation introduces the tlsproxy
 (8) event-driven TLS proxy that decrypts/encrypts the sessions for multiple
 SMTP clients.
+
+The tlsproxy(8) implementation led to the discovery of a "new" class of
+vulnerability (CVE-2011-0411) that affected multiple implementations of TLS
+over SMTP, POP, IMAP, NNTP, and FTP.
+
+postscreen(8) was officially released as part of the Postfix 2.8 stable release
+in January 2011.
 

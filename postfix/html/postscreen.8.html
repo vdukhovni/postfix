@@ -13,11 +13,13 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <b>postscreen</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The Postfix <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server performs triage on multi-
-       ple inbound SMTP connections at the  same  time.  While  a
-       single  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  process  keeps  spambots  away from
-       Postfix SMTP server processes, more  Postfix  SMTP  server
-       processes remain available for legitimate clients.
+       The  Postfix <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server provides additional pro-
+       tection against mail server  overload.  One  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
+       process  handles  multiple  inbound  SMTP connections, and
+       decides which clients may talk to a  Postfix  SMTP  server
+       process.   By  keeping spambots away, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> leaves
+       more  SMTP  server  processes  available  for   legitimate
+       clients.
 
        This program should not be used on SMTP ports that receive
        mail from end-user clients (MUAs). In  a  typical  deploy-
