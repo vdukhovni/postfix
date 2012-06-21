@@ -14369,6 +14369,44 @@ and will never be allowed to talk to a Postfix SMTP server process.
 
 <p> This feature is available in Postfix 2.9 and later.  </p>
 
+%PARAM postscreen_upstream_proxy_protocol
+
+<p> The name of the proxy protocol used by an optional before-postscreen
+proxy agent. When a proxy agent is used, this protocol conveys local
+and remote address and port information. Specify
+"postscreen_upstream_proxy_protocol = haproxy" to enable the haproxy
+protocol. <p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+
+%PARAM postscreen_upstream_proxy_timeout 5s
+
+<p> The time limit for the proxy protocol specified with the
+postscreen_upstream_proxy_protocol parameter. </p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+ 
+%PARAM smtpd_upstream_proxy_protocol
+
+<p> The name of the proxy protocol used by an optional before-smtpd
+proxy agent. When a proxy agent is used, this protocol conveys local
+and remote address and port information.  Specify
+"smtpd_upstream_proxy_protocol = haproxy" to enable the haproxy
+protocol.  </p>
+
+<p> NOTE: To use the nginx proxy with smtpd(8), enable the XCLIENT
+protocol with smtpd_authorized_xclient_hosts. This supports SASL
+authentication in the proxy agent (Postfix 2.9 and later). <p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+
+%PARAM smtpd_upstream_proxy_timeout 5s
+
+<p> The time limit for the proxy protocol specified with the
+smtpd_upstream_proxy_protocol parameter. </p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+ 
 %PARAM enable_long_queue_ids no
 
 <p> Enable long, non-repeating, queue IDs (queue file names).  The

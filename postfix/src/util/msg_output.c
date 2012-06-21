@@ -148,6 +148,8 @@ void    msg_printf(int level, const char *format,...)
 
 void    msg_vprintf(int level, const char *format, va_list ap)
 {
+    int     saved_errno = errno;
+
     if (msg_vprintf_lock == 0) {
 	msg_vprintf_lock = 1;
 	/* On-the-fly initialization for debugging test programs only. */
@@ -158,6 +160,7 @@ void    msg_vprintf(int level, const char *format, va_list ap)
 	msg_text(level, vstring_str(msg_buffer));
 	msg_vprintf_lock = 0;
     }
+    errno = saved_errno;
 }
 
 /* msg_text - sanitize and log pre-formatted text */

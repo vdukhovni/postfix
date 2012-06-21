@@ -23,6 +23,7 @@ extern int valid_hostname(const char *, int);
 extern int valid_hostaddr(const char *, int);
 extern int valid_ipv4_hostaddr(const char *, int);
 extern int valid_ipv6_hostaddr(const char *, int);
+extern int valid_hostport(const char *, int);
 
 /* LICENSE
 /* .ad

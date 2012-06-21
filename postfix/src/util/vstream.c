@@ -324,16 +324,21 @@
 /*	This involves allocation of additional memory that normally isn't
 /*	used.
 /* .IP "VSTREAM_CTL_BUFSIZE (ssize_t)"
-/*	Specify a non-default write buffer size, or zero to implement
-/*	a no-op. Requests to shrink an existing buffer size are
-/*	ignored. Requests to change a fixed-size buffer (stdin,
-/*	stdout, stderr) are not allowed.
+/*	Specify a non-default buffer size, or zero to implement
+/*	a no-op. Requests to resize a fixed-size buffer (stderr)
+/*	are not allowed.
 /*
 /*	NOTE: the VSTREAM_CTL_BUFSIZE request specifies intent, not
 /*	reality.  Actual buffer sizes are not updated immediately.
-/*	Instead, an existing write buffer will be resized when it
-/*	is full, and an existing read buffer will be resized when
-/*	the buffer is filled.
+/*	Instead, a write buffer size will be updated when writing
+/*	to a stream for the first time, or when writing to a full
+/*	buffer, and a read buffer size will be updated when reading
+/*	from a stream for the first time, or when reading from an
+/*	empty buffer.
+/*
+/*	NOTE: the vstream_*printf() routines may silently expand a
+/*	buffer, so that the result of some %letter specifiers can
+/*	be written to contiguous memory.
 /*
 /*	NOTE: the VSTREAM_CTL_BUFSIZE argument type is ssize_t, not
 /*	int. Use an explicit cast to avoid problems on LP64
@@ -621,10 +626,17 @@ static void vstream_buf_alloc(VBUF *bp, ssize_t len)
     ssize_t used = bp->ptr - bp->data;
     const char *myname = "vstream_buf_alloc";
 
-    if (len < bp->len)
-	msg_panic("%s: attempt to shrink buffer", myname);
+    /*
+     * Don't shrink a non-empty read buffer, or a non-flushed write buffer.
+     */
+    if (len <= 0)
+	msg_panic("%s: bad buffer length: %ld", myname, (long) len);
+    if (len < bp->len
+	&& (((bp->flags & VSTREAM_FLAG_READ) && bp->cnt != 0)
+	    || ((bp->flags & VSTREAM_FLAG_WRITE) && bp->cnt != bp->len)))
+	msg_panic("%s: attempt to shrink non-empty buffer", myname);
     if (bp->flags & VSTREAM_FLAG_FIXED)
-	msg_panic("%s: unable to extend fixed-size buffer", myname);
+	msg_panic("%s: attempt to resize fixed-length buffer", myname);
 
     /*
      * Late buffer allocation allows the user to override the default policy.
@@ -842,7 +854,7 @@ static int vstream_buf_get_ready(VBUF *bp)
      * allocation gives the application a chance to override the default
      * buffering policy.
      */
-    if (bp->len < stream->req_bufsize)
+    if (bp->len != stream->req_bufsize)
 	vstream_buf_alloc(bp, stream->req_bufsize);
 
     /*
@@ -956,6 +968,8 @@ static int vstream_buf_put_ready(VBUF *bp)
 	if (VSTREAM_FFLUSH_SOME(stream))
 	    return (VSTREAM_EOF);
     }
+    if (bp->len > stream->req_bufsize)
+	vstream_buf_alloc(bp, stream->req_bufsize);
     return (0);
 }
 
@@ -1467,8 +1481,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    if (req_bufsize < 0)
 		msg_panic("VSTREAM_CTL_BUFSIZE with negative size: %ld",
 			  (long) req_bufsize);
-	    if (stream != VSTREAM_ERR
-		&& req_bufsize > stream->req_bufsize)
+	    if (req_bufsize > 0 && stream != VSTREAM_ERR)
 		stream->req_bufsize = req_bufsize;
 	    break;
 
@@ -1578,3 +1591,44 @@ const char *vstream_peek_data(VSTREAM *vp)
 	return (0);
     }
 }
+
+#ifdef TEST
+
+static void copy_line(ssize_t bufsize)
+{
+    int     c;
+
+    vstream_control(VSTREAM_IN, VSTREAM_CTL_BUFSIZE, bufsize, VSTREAM_CTL_END);
+    vstream_control(VSTREAM_OUT, VSTREAM_CTL_BUFSIZE, bufsize, VSTREAM_CTL_END);
+    while ((c = VSTREAM_GETC(VSTREAM_IN)) != VSTREAM_EOF) {
+	VSTREAM_PUTC(c, VSTREAM_OUT);
+	if (c == '\n')
+	    break;
+    }
+    vstream_fflush(VSTREAM_OUT);
+}
+
+static void printf_number(void)
+{
+    vstream_printf("%d\n", __MAXINT__(int));
+    vstream_fflush(VSTREAM_OUT);
+}
+
+ /*
+  * Exercise some of the features.
+  */
+int     main(int argc, char **argv)
+{
+
+    /*
+     * Test buffer expansion and shrinking. Formatted print may silently
+     * expand the write buffer and cause multiple bytes to be written.
+     */
+    copy_line(1);				/* one-byte read/write */
+    copy_line(2);				/* two-byte read/write */
+    copy_line(1);				/* one-byte read/write */
+    printf_number();				/* multi-byte write */
+    exit(0);
+}
+
+#endif

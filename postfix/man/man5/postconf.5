@@ -4426,6 +4426,19 @@ postscreen_use_tls and postscreen_enforce_tls. See smtpd_tls_security_level
 for details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH postscreen_upstream_proxy_protocol (default: empty)
+The name of the proxy protocol used by an optional before-postscreen
+proxy agent. When a proxy agent is used, this protocol conveys local
+and remote address and port information. Specify
+"postscreen_upstream_proxy_protocol = haproxy" to enable the haproxy
+protocol.
+.PP
+This feature is available in Postfix 2.10 and later.
+.SH postscreen_upstream_proxy_timeout (default: 5s)
+The time limit for the proxy protocol specified with the
+postscreen_upstream_proxy_protocol parameter.
+.PP
+This feature is available in Postfix 2.10 and later.
 .SH postscreen_use_tls (default: $smtpd_use_tls)
 Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption.
@@ -9806,6 +9819,23 @@ server's command line. Port 465 (smtps) was once chosen for this
 purpose.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtpd_upstream_proxy_protocol (default: empty)
+The name of the proxy protocol used by an optional before-smtpd
+proxy agent. When a proxy agent is used, this protocol conveys local
+and remote address and port information.  Specify
+"smtpd_upstream_proxy_protocol = haproxy" to enable the haproxy
+protocol.
+.PP
+NOTE: To use the nginx proxy with \fBsmtpd\fR(8), enable the XCLIENT
+protocol with smtpd_authorized_xclient_hosts. This supports SASL
+authentication in the proxy agent (Postfix 2.9 and later).
+.PP
+This feature is available in Postfix 2.10 and later.
+.SH smtpd_upstream_proxy_timeout (default: 5s)
+The time limit for the proxy protocol specified with the
+smtpd_upstream_proxy_protocol parameter.
+.PP
+This feature is available in Postfix 2.10 and later.
 .SH smtpd_use_tls (default: no)
 Opportunistic TLS: announce STARTTLS support to remote SMTP clients,
 but do not require that clients use TLS encryption.

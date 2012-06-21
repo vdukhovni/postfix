@@ -3458,6 +3458,14 @@ extern char *var_psc_acl;
 #define DEF_PSC_WLIST_IF	"static:all"
 extern char *var_psc_wlist_if;
 
+#define VAR_PSC_UPROXY_PROTO	"postscreen_upstream_proxy_protocol"
+#define DEF_PSC_UPROXY_PROTO	""
+extern char *var_psc_uproxy_proto;
+
+#define VAR_PSC_UPROXY_TMOUT	"postscreen_upstream_proxy_timeout"
+#define DEF_PSC_UPROXY_TMOUT	"5s"
+extern int var_psc_uproxy_tmout;
+
 #define VAR_DNSBLOG_SERVICE	"dnsblog_service_name"
 #define DEF_DNSBLOG_SERVICE	MAIL_SERVICE_DNSBLOG
 extern char *var_dnsblog_service;
@@ -3619,6 +3627,17 @@ extern bool var_smtp_rec_deadline;
 #define VAR_SMTPD_ACL_PERM_LOG	"smtpd_log_access_permit_actions"
 #define DEF_SMTPD_ACL_PERM_LOG	""
 extern char *var_smtpd_acl_perm_log;
+
+ /*
+  * Before-smtpd proxy support.
+  */
+#define VAR_SMTPD_UPROXY_PROTO	"smtpd_upstream_proxy_protocol"
+#define DEF_SMTPD_UPROXY_PROTO	""
+extern char *var_smtpd_uproxy_proto;
+
+#define VAR_SMTPD_UPROXY_TMOUT	"smtpd_upstream_proxy_timeout"
+#define DEF_SMTPD_UPROXY_TMOUT	"5s"
+extern int var_smtpd_uproxy_tmout;
 
  /*
   * Postfix sendmail command compatibility features.

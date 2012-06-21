@@ -107,7 +107,7 @@ static void master_wakeup_timer_event(int unused_event, char *context)
 	    break;
 #ifdef MASTER_SERV_TYPE_PASS
 	case MASTER_SERV_TYPE_PASS:
-	    status = PASS_TRIGGER(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);
+	    status = pass_trigger(serv->name, &wakeup, sizeof(wakeup), BRIEFLY);
 	    break;
 #endif
 

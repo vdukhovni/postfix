@@ -214,7 +214,8 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
     if ((state->sasl_server =
 	 XSASL_SERVER_CREATE(smtpd_sasl_impl, &create_args,
 			     stream = state->client,
-			     server_addr = "",	/* need smtpd_peer.c update */
+			     server_addr = (state->dest_addr ?
+					    state->dest_addr : ""),
 			     client_addr = ADDR_OR_EMPTY(state->addr,
 						       CLIENT_ADDR_UNKNOWN),
 			     service = SMTPD_SASL_SERVICE,

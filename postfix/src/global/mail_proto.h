@@ -193,6 +193,9 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_ACT_REVERSE_CLIENT_NAME "reverse_client_name"
 #define MAIL_ATTR_ACT_FORWARD_CLIENT_NAME "forward_client_name"
 
+#define MAIL_ATTR_ACT_SERVER_ADDR "server_address"	/* server address */
+#define MAIL_ATTR_ACT_SERVER_PORT "server_port"	/* server TCP port */
+
 #define MAIL_ATTR_PROTO_STATE	"protocol_state"	/* MAIL/RCPT/... */
 #define MAIL_ATTR_ORG_NONE	"unknown"	/* origin unknown */
 #define MAIL_ATTR_ORG_LOCAL	"local"	/* local submission */

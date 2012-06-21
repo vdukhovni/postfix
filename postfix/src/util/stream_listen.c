@@ -97,6 +97,6 @@ int     stream_accept(int fd)
 	return (-1);
     return (fdinfo.fd);
 #else
-    msg_fatal("stream connections are not implemented");
+            msg_fatal("stream connections are not implemented");
 #endif
 }

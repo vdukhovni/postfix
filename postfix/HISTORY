@@ -17811,3 +17811,51 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20031216-21): with soft_bounce=yes, the
 	SMTP client did not move on to the next MX host or fallback
 	relay after a 5xx reply. File: smtp/smtp_trouble.c.
+
+20120527-8
+
+	Infrastructure: limited support to shrink VSTREAM buffers.
+	The change takes place when reading from (a stream for the
+	first time | an empty buffer) or when writing to (a stream
+	for the first time | a full buffer). TODO: the change should
+	also happen after purging or flushing a buffer.  File:
+	util/vstream.c.
+
+20120531-617
+
+	Feature: haproxy support in postscreen(8) and smtpd(8).  To
+	enable, specify "smtpd_upstream_proxy_protocol = haproxy"
+	or "postscreen_upstream_proxy_protocol = haproxy".  Files:
+	mantools/postlink, proto/postconf.proto, global/Makefile.in,
+	global/haproxy_srvr.c, global/haproxy_srvr.h, global/mail_params.h,
+	global/mail_proto.h, master/single_server.c, master/multi_server.c,
+	master/event_server.c, postscreen/Makefile.in,
+	postscreen/postscreen.c, postscreen/postscreen.h,
+	postscreen/postscreen_endpt.c, postscreen/postscreen_haproxy.c,
+	postscreen/postscreen_haproxy.h, postscreen/postscreen_send.c,
+	postscreen/postscreen_state.c, smtpd/Makefile.in, smtpd/smtpd.h,
+	smtpd/smtpd_peer.c, smtpd/smtpd_sasl_glue.c, smtpd/smtpd_haproxy.c,
+	util/Makefile.in, util/listen.h, util/recv_pass_attr.c,
+	util/stream_listen.c, util/sys_defs.h, util/unix_pass_listen.c.
+
+
+20120618
+
+	Cleanup: made the postscreen-to-smtpd haproxy attribute
+	transmission more robust for Solaris. Files: util/sys_defs.h,
+	util/connect.h, util/steam_listen.c, postscreen/postscreen_send.c.
+
+	Cleanup: simplified the "stream used" workaround. Files:
+	util/vstream.h, master/event_server.c, master/multi_server.c.
+
+20120621
+
+	Cleanup: simplified workarounds for Solaris streams versus
+	UNIX-domain sockets.  Files: util/pass_accept.c (new),
+	util/pass_trigger.c (new), util/stream_pass_connect.c
+	(deleted), util/unix_pass_listen.c (deleted),
+	util/unix_pass_trigger.c (deleted), updated header files,
+	and replaced PASS_XXX macros by pass_xxx function calls.
+
+	Cleanup: don't clobber errno when logging a problem.
+	File util/msg_output.c.

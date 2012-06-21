@@ -7641,6 +7641,31 @@ for details. </p>
 
 </DD>
 
+<DT><b><a name="postscreen_upstream_proxy_protocol">postscreen_upstream_proxy_protocol</a>
+(default: empty)</b></DT><DD>
+
+<p> The name of the proxy protocol used by an optional before-postscreen
+proxy agent. When a proxy agent is used, this protocol conveys local
+and remote address and port information. Specify
+"<a href="postconf.5.html#postscreen_upstream_proxy_protocol">postscreen_upstream_proxy_protocol</a> = haproxy" to enable the haproxy
+protocol. <p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_upstream_proxy_timeout">postscreen_upstream_proxy_timeout</a>
+(default: 5s)</b></DT><DD>
+
+<p> The time limit for the proxy protocol specified with the
+<a href="postconf.5.html#postscreen_upstream_proxy_protocol">postscreen_upstream_proxy_protocol</a> parameter. </p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_use_tls">postscreen_use_tls</a>
 (default: $<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a>)</b></DT><DD>
 
@@ -15140,6 +15165,35 @@ server's command line. Port 465 (smtps) was once chosen for this
 purpose. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a>
+(default: empty)</b></DT><DD>
+
+<p> The name of the proxy protocol used by an optional before-smtpd
+proxy agent. When a proxy agent is used, this protocol conveys local
+and remote address and port information.  Specify
+"<a href="postconf.5.html#smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a> = haproxy" to enable the haproxy
+protocol.  </p>
+
+<p> NOTE: To use the nginx proxy with <a href="smtpd.8.html">smtpd(8)</a>, enable the XCLIENT
+protocol with <a href="postconf.5.html#smtpd_authorized_xclient_hosts">smtpd_authorized_xclient_hosts</a>. This supports SASL
+authentication in the proxy agent (Postfix 2.9 and later). <p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_upstream_proxy_timeout">smtpd_upstream_proxy_timeout</a>
+(default: 5s)</b></DT><DD>
+
+<p> The time limit for the proxy protocol specified with the
+<a href="postconf.5.html#smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a> parameter. </p>
+
+<p> This feature is available in Postfix 2.10 and later.  </p>
 
 
 </DD>

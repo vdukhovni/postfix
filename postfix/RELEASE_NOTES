@@ -14,6 +14,30 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
+Incompatible changes with snapshot 20120625
+===========================================
+
+The postscreen(8)-to-smtpd(8) protocol has changed.  To avoid "cannot
+receive connection attributes" warnings and dropped connections,
+execute the command "postfix reload". No mail will be lost as long
+as the remote SMTP client tries again later.
+
+Major changes with snapshot 20120625
+====================================
+
+Support for upstream proxy agent in the postscreen(8) and smtpd(8)
+daemons.  To enable the haproxy protocol, specify one of the
+following:
+
+    postscreen_upstream_proxy_protocol = haproxy
+    smtpd_upstream_proxy_protocol = haproxy
+
+Note 1: smtpd_upstream_proxy_protocol can't be used behind postscreen.
+
+Note 2: To use the nginx proxy with smtpd(8), enable the XCLIENT
+protocol with smtpd_authorized_xclient_hosts. This supports SASL
+authentication in the proxy agent (Postfix 2.9 and later).
+
 Major changes with snapshot 20120422
 ====================================
 

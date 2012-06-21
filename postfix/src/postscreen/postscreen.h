@@ -20,6 +20,7 @@
 #include <vstring.h>
 #include <events.h>
 #include <htable.h>
+#include <myaddrinfo.h>
 
  /*
   * Global library.
@@ -44,6 +45,8 @@ typedef struct {
     int     smtp_server_fd;		/* real SMTP server */
     char   *smtp_client_addr;		/* client address */
     char   *smtp_client_port;		/* client port */
+    char   *smtp_server_addr;		/* server address */
+    char   *smtp_server_port;		/* server port */
     int     client_concurrency;		/* per-client */
     const char *final_reply;		/* cause for hanging up */
     VSTRING *send_buf;			/* pending output */
@@ -379,7 +382,7 @@ extern HTABLE *psc_client_concurrency;	/* per-client concurrency */
 	(state)->smtp_client_stream = 0; \
 	psc_check_queue_length--; \
     } while (0)
-extern PSC_STATE *psc_new_session_state(VSTREAM *, const char *, const char *);
+extern PSC_STATE *psc_new_session_state(VSTREAM *, const char *, const char *, const char *, const char *);
 extern void psc_free_session_state(PSC_STATE *);
 extern const char *psc_print_state_flags(int, const char *);
 
@@ -467,6 +470,14 @@ extern void psc_starttls_open(PSC_STATE *, EVENT_NOTIFY_FN);
 extern VSTRING *psc_expand_filter;
 extern void psc_expand_init(void);
 extern const char *psc_expand_lookup(const char *, int, char *);
+
+ /*
+  * postscreen_endpt.c
+  */
+typedef void (*PSC_ENDPT_LOOKUP_FN) (int, VSTREAM *,
+			             MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *,
+			            MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *);
+extern void psc_endpt_lookup(VSTREAM *, PSC_ENDPT_LOOKUP_FN);
 
  /*
   * postscreen_access emulation.

@@ -673,6 +673,8 @@ while (<>) {
     s;\bsmtpd_use_tls\b;<a href="postconf.5.html#smtpd_use_tls">$&</a>;g;
     s;\bsmtpd_reject_footer\b;<a href="postconf.5.html#smtpd_reject_footer">$&</a>;g;
     s;\bsmtpd_per_record_deadline\b;<a href="postconf.5.html#smtpd_per_record_deadline">$&</a>;g;
+    s;\bsmtpd_upstream_proxy_protocol\b;<a href="postconf.5.html#smtpd_upstream_proxy_protocol">$&</a>;g;
+    s;\bsmtpd_upstream_proxy_timeout\b;<a href="postconf.5.html#smtpd_upstream_proxy_timeout">$&</a>;g;
     s;\btls_daemon_random_bytes\b;<a href="postconf.5.html#tls_daemon_random_bytes">$&</a>;g;
     s;\btls_daemon_random_source\b;<a href="postconf.5.html#tls_daemon_random_source">$&</a>;g;
     s;\btls_ran[-</Bb>]*\n* *[<Bb>]*dom_bytes\b;<a href="postconf.5.html#tls_random_bytes">$&</a>;g;
@@ -969,6 +971,8 @@ while (<>) {
     s;\bpostscreen_reject_footer\b;<a href="postconf.5.html#postscreen_reject_footer">$&</a>;g;
     s;\bpostscreen_command_filter\b;<a href="postconf.5.html#postscreen_command_filter">$&</a>;g;
     s;\bpostscreen_whitelist_interfaces\b;<a href="postconf.5.html#postscreen_whitelist_interfaces">$&</a>;g;
+    s;\bpostscreen_upstream_proxy_protocol\b;<a href="postconf.5.html#postscreen_upstream_proxy_protocol">$&</a>;g;
+    s;\bpostscreen_upstream_proxy_timeout\b;<a href="postconf.5.html#postscreen_upstream_proxy_timeout">$&</a>;g;
 
     s;\btlsproxy_watchdog_timeout\b;<a href="postconf.5.html#tlsproxy_watchdog_timeout">$&</a>;g;
     s;\btlsproxy_enforce_tls\b;<a href="postconf.5.html#tlsproxy_enforce_tls">$&</a>;g;

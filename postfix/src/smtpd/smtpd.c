@@ -154,6 +154,16 @@
 /*	at all, or rewrite message headers and update incomplete addresses
 /*	with the domain specified in the remote_header_rewrite_domain
 /*	parameter.
+/* BEFORE-SMTPD PROXY AGENT
+/* .ad
+/* .fi
+/*	Available in Postfix version 2.10 and later:
+/* .IP "\fBsmtpd_upstream_proxy_protocol (empty)\fR"
+/*	The name of the proxy protocol used by an optional before-smtpd
+/*	proxy agent.
+/* .IP "\fBsmtpd_upstream_proxy_timeout (5s)\fR"
+/*	The time limit for the proxy protocol specified with the
+/*	smtpd_upstream_proxy_protocol parameter.
 /* AFTER QUEUE EXTERNAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -1290,6 +1300,9 @@ int     smtpd_proxy_opts;
 char   *var_tlsproxy_service;
 
 #endif
+
+char   *var_smtpd_uproxy_proto;
+int     var_smtpd_uproxy_tmout;
 
  /*
   * Silly little macros.
@@ -4924,7 +4937,8 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
     /*
      * Provide the SMTP service.
      */
-    smtpd_proto(&state);
+    if ((state.flags & SMTPD_FLAG_HANGUP) == 0)
+	smtpd_proto(&state);
 
     /*
      * After the client has gone away, clean up whatever we have set up at
@@ -5273,6 +5287,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_CMD_TIME, DEF_MILT_CMD_TIME, &var_milt_cmd_time, 1, 0,
 	VAR_MILT_MSG_TIME, DEF_MILT_MSG_TIME, &var_milt_msg_time, 1, 0,
 	VAR_VERIFY_SENDER_TTL, DEF_VERIFY_SENDER_TTL, &var_verify_sender_ttl, 0, 0,
+	VAR_SMTPD_UPROXY_TMOUT, DEF_SMTPD_UPROXY_TMOUT, &var_smtpd_uproxy_tmout, 1, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -5401,6 +5416,7 @@ int     main(int argc, char **argv)
 	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
 #endif
 	VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log, 0, 0,
+	VAR_SMTPD_UPROXY_PROTO, DEF_SMTPD_UPROXY_PROTO, &var_smtpd_uproxy_proto, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

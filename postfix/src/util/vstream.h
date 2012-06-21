@@ -207,6 +207,8 @@ extern const char *vstream_peek_data(VSTREAM *);
 extern int vstream_tweak_sock(VSTREAM *);
 extern int vstream_tweak_tcp(VSTREAM *);
 
+#define vstream_flags(stream) ((const int) (stream)->buf.flags)
+
 /* LICENSE
 /* .ad
 /* .fi
