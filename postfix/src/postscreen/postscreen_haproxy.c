@@ -145,7 +145,7 @@ static void psc_endpt_haproxy_event(int event, char *context)
 	PSC_CLEAR_EVENT_REQUEST(vstream_fileno(state->stream),
 				psc_endpt_haproxy_event, context);
 	vstream_control(state->stream,
-			VSTREAM_CTL_BUFSIZE, VSTREAM_BUFSIZE,
+			VSTREAM_CTL_BUFSIZE, (ssize_t) VSTREAM_BUFSIZE,
 			VSTREAM_CTL_END);
 	state->notify(status, state->stream,
 		      &smtp_client_addr, &smtp_client_port,

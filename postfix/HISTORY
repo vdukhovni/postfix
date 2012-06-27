@@ -17859,3 +17859,9 @@ Apologies for any names omitted.
 
 	Cleanup: don't clobber errno when logging a problem.
 	File util/msg_output.c.
+
+20120627
+
+	Bugfix (introduced: 20120531-617): in the postscreen module
+	for HAproxy sypport, a VSTREAM buffer size request was not
+	LP64-clean.  File: postscreen/postscreen_haproxy.c.
