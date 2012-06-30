@@ -73,7 +73,7 @@ int     pass_accept(int listen_fd)
     }
 }
 
-/* pass_accept_attr - accept attribute list and descriptor */
+/* pass_accept_attr - accept descriptor and attribute list */
 
 int     pass_accept_attr(int listen_fd, HTABLE **attr)
 {

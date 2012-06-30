@@ -9,16 +9,25 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	mem_pool module for frequently-allocated objects
+	such as postscreen VSTRINGS and STATE objects.
+	Operations: create, put, get, maybe destroy.
+	Call-backs: create, reset, and maybe destroy.
+
 	Make "rename" the default when postmapping a DB file
 	(later: use copy+rename for postmap -i, postmap -d).
 
 	"no-cache" option for selected postscreen tests?
 
-	Need primitive to find out if a map has a local lock.  If
-	it doesn't (like memcache or proxied map), then postscreen
-	etc. don't need to close a cache after "postfix reload".
-	After a fork() it is OK to keep using a memcache or proxymap
-	handle, because the parent exits immediately.
+	Need a new DICT flag to indicate that a map handle supports
+	locking.  If it doesn't (as with memcache or proxymap
+	handles), then postscreen etc. don't need to close a cache
+	file after "postfix reload".  After a fork() it is OK to
+	keep using a memcache or proxymap handle, because the parent
+	exits immediately.  For this to work, the memcache client
+	needs to propagate the flag from a persistent backup map,
+	but the proxymap protocol should not propagate this to the
+	client.
 
 	Different TTL values for different DNSBL sources?
 

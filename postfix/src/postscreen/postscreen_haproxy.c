@@ -6,11 +6,11 @@
 /* SYNOPSIS
 /*	#include <postscreen_haproxy.h>
 /*
-/*	void	psc_endpt_haproxy_lookup(smtp_client_stream,
-/*			void *lookup_done(status, smtp_client_stream,
-/*				smtp_client_addr, smtp_client_port,
-/*				smtp_server_addr, smtp_server_port))
+/*	void	psc_endpt_haproxy_lookup(smtp_client_stream, lookup_done)
 /*	VSTRING	*smtp_client_stream;
+/*	void	(*lookup_done)(status, smtp_client_stream,
+/*				smtp_client_addr, smtp_client_port,
+/*				smtp_server_addr, smtp_server_port)
 /*	int	status;
 /*	MAI_HOSTADDR_STR *smtp_client_addr;
 /*	MAI_SERVPORT_STR *smtp_client_port;
@@ -20,16 +20,6 @@
 /*	psc_endpt_haproxy_lookup() looks up connection endpoint
 /*	information via the haproxy protocol.  Arguments and results
 /*	conform to the postscreen_endpt(3) API.
-/*
-/*	The following summarizes what the Postfix SMTP server expects
-/*	from an up-stream proxy adapter.
-/* .IP \(bu
-/*	Validate address and port syntax. Permit only protocols
-/*	that are configured with the main.cf:inet_protocols
-/*	setting.
-/* .IP \(bu
-/*	Convert IPv4-in-IPv6 address syntax to IPv4 form, when both
-/*	IPv4 and IPv6 support are enabled with main.cf:inet_protocols.
 /* LICENSE
 /* .ad
 /* .fi
@@ -91,9 +81,16 @@ static void psc_endpt_haproxy_event(int event, char *context)
     int     last_char = 0;
     const char *err;
     VSTRING *escape_buf;
+    char    read_buf[HAPROXY_MAX_LEN];
+    ssize_t read_len;
+    char   *cp;
 
     /*
-     * Basic event processing.
+     * We must not read(2) past the <CR><LF> that terminates the haproxy
+     * line. For efficiency reasons we read the entire haproxy line in one
+     * read(2) call when we know that the line is unfragmented. In the rare
+     * case that the line is fragmented, we fall back and read(2) it one
+     * character at a time.
      */
     switch (event) {
     case EVENT_TIME:
@@ -101,20 +98,35 @@ static void psc_endpt_haproxy_event(int event, char *context)
 	status = -1;
 	break;
     case EVENT_READ:
-	if ((last_char = VSTREAM_GETC(state->stream)) == VSTREAM_EOF) {
-	    if (vstream_ferror(state->stream))
-		msg_warn("haproxy read: %m");
-	    else
-		msg_warn("haproxy read: lost connection");
-	    status = -1;
-	    break;
+	/* Determine the initial VSTREAM read(2) buffer size. */
+	if (VSTRING_LEN(state->buffer) == 0) {
+	    if ((read_len = recv(vstream_fileno(state->stream),
+			      read_buf, sizeof(read_buf) - 1, MSG_PEEK)) > 0
+		&& ((cp = memchr(read_buf, '\n', read_len)) != 0)) {
+		read_len = cp - read_buf + 1;
+	    } else {
+		read_len = 1;
+	    }
+	    vstream_control(state->stream, VSTREAM_CTL_BUFSIZE, read_len,
+			    VSTREAM_CTL_END);
 	}
-	if (VSTRING_LEN(state->buffer) >= HAPROXY_MAX_LEN) {
-	    msg_warn("haproxy read: line too long");
-	    status = -1;
-	    break;
-	}
-	VSTRING_ADDCH(state->buffer, last_char);
+	/* Drain the VSTREAM buffer, otherwise this pseudo-thread will hang. */
+	do {
+	    if ((last_char = VSTREAM_GETC(state->stream)) == VSTREAM_EOF) {
+		if (vstream_ferror(state->stream))
+		    msg_warn("haproxy read: %m");
+		else
+		    msg_warn("haproxy read: lost connection");
+		status = -1;
+		break;
+	    }
+	    if (VSTRING_LEN(state->buffer) >= HAPROXY_MAX_LEN) {
+		msg_warn("haproxy read: line too long");
+		status = -1;
+		break;
+	    }
+	    VSTRING_ADDCH(state->buffer, last_char);
+	} while (vstream_peek(state->stream) > 0);
 	break;
     }
 
@@ -173,18 +185,6 @@ void    psc_endpt_haproxy_lookup(VSTREAM *stream,
     state->stream = stream;
     state->notify = notify;
     state->buffer = vstring_alloc(100);
-
-    /*
-     * We don't assume that the haproxy line will be unfragmented. Therefore,
-     * we use read(2) instead of recv(..., MSG_PEEK).
-     * 
-     * We must not read(2) past the <CR><LF> that terminates the haproxy line.
-     * Therefore we force one-character read(2) calls.
-     * 
-     * We want to (eventually) build this on top of a reusable line read
-     * routine, once we have figured out an easy-to-use and efficient API.
-     */
-    vstream_control(stream, VSTREAM_CTL_BUFSIZE, 1, VSTREAM_CTL_END);
 
     /*
      * Read the haproxy line.

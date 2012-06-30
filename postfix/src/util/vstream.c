@@ -1478,8 +1478,9 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	     */
 	case VSTREAM_CTL_BUFSIZE:
 	    req_bufsize = va_arg(ap, ssize_t);
-	    if (req_bufsize < 0)
-		msg_panic("VSTREAM_CTL_BUFSIZE with negative size: %ld",
+	    /* Heuristic to detect missing (ssize_t) type cast on LP64 hosts. */
+	    if (req_bufsize < 0 || req_bufsize > INT_MAX)
+		msg_panic("unreasonable VSTREAM_CTL_BUFSIZE request: %ld",
 			  (long) req_bufsize);
 	    if (req_bufsize > 0 && stream != VSTREAM_ERR)
 		stream->req_bufsize = req_bufsize;

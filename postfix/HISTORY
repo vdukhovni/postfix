@@ -17865,3 +17865,15 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20120531-617): in the postscreen module
 	for HAproxy sypport, a VSTREAM buffer size request was not
 	LP64-clean.  File: postscreen/postscreen_haproxy.c.
+
+	Cleanup: avoid single-character reads in the postscreen
+	HAproxy module. File: postscreen/postscreen_haproxy.c.
+
+20120628
+
+	Workaround: heuristic to detect missing (ssize_t) type-cast
+	in VSTREAM buffer size requests. File: util/vstream.c.
+
+20120629
+
+	Workaround: "sendmail -bl" emulation. File: sendmail/sendmail.c.

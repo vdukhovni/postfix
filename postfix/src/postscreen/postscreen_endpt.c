@@ -6,11 +6,11 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
-/*	void	psc_endpt_lookup(smtp_client_stream,
-/*			void *lookup_done(status, smtp_client_stream,
+/*	void	psc_endpt_lookup(smtp_client_stream, lookup_done)
+/*	VSTREAM	*smtp_client_stream;
+/*	void	(*lookup_done)(status, smtp_client_stream,
 /*				smtp_client_addr, smtp_client_port,
-/*				smtp_server_addr, smtp_server_port))
-/*	VSTRING	*smtp_client_stream;
+/*				smtp_server_addr, smtp_server_port)
 /*	int	status;
 /*	MAI_HOSTADDR_STR *smtp_client_addr;
 /*	MAI_SERVPORT_STR *smtp_client_port;
@@ -18,13 +18,33 @@
 /*	MAI_SERVPORT_STR *smtp_server_port;
 /* DESCRIPTION
 /*	psc_endpt_lookup() looks up remote and local connection
-/*	endpoint information through local system calls or through
-/*	a remote proxy protocol. The lookup_done() call-back routine
-/*	passes the result status, address and port information. The
-/*	result status is -1 in case of error, 0 in case of success.
-/*	This function (and its supporting routines) logs a warning
-/*	in case of error, and never communicates with a remote SMTP
-/*	client.
+/*	endpoint information, either through local system calls,
+/*	or through an adapter for an up-stream proxy protocol.
+/*
+/*	The following summarizes what the postscreen(8) server
+/*	expects from a proxy protocol adapter routine.
+/* .IP \(bu
+/*	Accept the same arguments as psc_endpt_lookup().
+/* .IP \(bu
+/*	Validate protocol, address and port syntax. Permit only
+/*	protocols that are configured with the main.cf:inet_protocols
+/*	setting.
+/* .IP \(bu
+/*	Convert IPv4-in-IPv6 address syntax to IPv4 syntax when
+/*	both IPv6 and IPv4 support are enabled with main.cf:inet_protocols.
+/* .IP \(bu
+/*	Log a clear warning message that explains why a request
+/*	fails.
+/* .IP \(bu
+/*	Never talk to the remote SMTP client.
+/* .PP
+/*	Arguments:
+/* .IP client_stream
+/*	A brand-new stream that is connected to the remote client.
+/* .IP lookup
+/*	Call-back routine that reports the result status, address
+/*	and port information. The result status is -1 in case of
+/*	error, 0 in case of success.
 /* LICENSE
 /* .ad
 /* .fi

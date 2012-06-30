@@ -82,6 +82,11 @@ Postfix has no persistent host status database.
 .IP \fB-bi\fR
 Initialize alias database. See the \fBnewaliases\fR
 command above.
+.IP \fB-bl\fR
+Go into daemon mode. To accept only local connections as
+with Sendmail\'s \fB-bl\fR option, specify "\fBinet_interfaces
+= loopback\fR" in the Postfix \fBmain.cf\fR configuration
+file.
 .IP \fB-bm\fR
 Read mail from standard input and arrange for delivery.
 This is the default mode of operation.

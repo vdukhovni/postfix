@@ -76,6 +76,11 @@
 /* .IP \fB-bi\fR
 /*	Initialize alias database. See the \fBnewaliases\fR
 /*	command above.
+/* .IP \fB-bl\fR
+/*	Go into daemon mode. To accept only local connections as
+/*	with Sendmail\'s \fB-bl\fR option, specify "\fBinet_interfaces
+/*	= loopback\fR" in the Postfix \fBmain.cf\fR configuration
+/*	file.
 /* .IP \fB-bm\fR
 /*	Read mail from standard input and arrange for delivery.
 /*	This is the default mode of operation.
@@ -1182,6 +1187,7 @@ int     main(int argc, char **argv)
 	    default:
 		msg_fatal_status(EX_USAGE, "unsupported: -%c%c", c, *optarg);
 	    case 'd':				/* daemon mode */
+	    case 'l':				/* daemon mode */
 		if (mode == SM_MODE_FLUSHQ)
 		    msg_warn("ignoring -q option in daemon mode");
 		mode = SM_MODE_DAEMON;

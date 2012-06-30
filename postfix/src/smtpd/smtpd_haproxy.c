@@ -15,12 +15,12 @@
 /*	The following summarizes what the Postfix SMTP server expects
 /*	from an up-stream proxy adapter.
 /* .IP \(bu
-/*	Validate address and port syntax. Permit only protocols
-/*	that are configured with the main.cf:inet_protocols
+/*	Validate protocol, address and port syntax. Permit only
+/*	protocols that are configured with the main.cf:inet_protocols
 /*	setting.
 /* .IP \(bu
-/*	Convert IPv4-in-IPv6 address syntax to IPv4 syntax, when
-/*	both IPv4 and IPv6 support are enabled with main.cf:inet_protocols.
+/*	Convert IPv4-in-IPv6 address syntax to IPv4 syntax when
+/*	both IPv6 and IPv4 support are enabled with main.cf:inet_protocols.
 /* .IP \(bu
 /*	Update the following session context fields: addr, port,
 /*	rfc_addr, addr_family, dest_addr. The addr_family field
@@ -30,7 +30,10 @@
 /*	mystrdup(). In case of error, leave unassigned string fields
 /*	at their initial zero value.
 /* .IP \(bu
-/*	Log warnings in case of data format error.
+/*	Log a clear warning message that explains why a request
+/*	fails.
+/* .IP \(bu
+/*	Never talk to the remote SMTP client.
 /* .PP
 /*	Arguments:
 /* .IP state
@@ -113,7 +116,7 @@ int     smtpd_peer_from_haproxy(SMTPD_STATE *state)
     case 0:
 	if (smtp_get(state->buffer, state->client, HAPROXY_MAX_LEN,
 		     SMTP_GET_FLAG_NONE) != '\n') {
-	    msg_warn("haproxy line > %d characters", HAPROXY_MAX_LEN);
+	    msg_warn("haproxy read: line > %d characters", HAPROXY_MAX_LEN);
 	    return (-1);
 	}
 	if ((proxy_err = haproxy_srvr_parse(STR(state->buffer),

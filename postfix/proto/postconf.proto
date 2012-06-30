@@ -5432,8 +5432,8 @@ feature is available in Postfix 2.1 and later.
 
 <dt><b><a name="reject_invalid_helo_hostname">reject_invalid_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_invalid_hostname)</dt>
 
-<dd>Reject the request when the HELO or EHLO hostname syntax is
-invalid. Note: specify "smtpd_helo_required = yes" to fully enforce
+<dd>Reject the request when the HELO or EHLO hostname is malformed.
+Note: specify "smtpd_helo_required = yes" to fully enforce
 this restriction (without "smtpd_helo_required = yes", a client can simply
 skip reject_invalid_helo_hostname by not sending HELO or EHLO).
 <br> The invalid_hostname_reject_code specifies the response code
