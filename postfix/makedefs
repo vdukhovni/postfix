@@ -367,7 +367,7 @@ EOF
 		esac
 		for name in nsl resolv
 		do
-		    for lib in /usr/lib64 /lib64 /usr/lib /lib
+		    for lib in /usr/lib64 /lib64 /usr/lib /usr/lib/* /lib /lib/*
 		    do
 			test -e $lib/lib$name.a -o -e $lib/lib$name.so && {
 			    SYSLIBS="$SYSLIBS -l$name"

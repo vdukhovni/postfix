@@ -138,7 +138,7 @@ static unsigned htable_hash(const char *s, unsigned size)
      */
 
     while (*s) {
-	h = (h << 4U) + *s++;
+	h = (h << 4U) + *(unsigned const char *) s++;
 	if ((g = (h & 0xf0000000)) != 0) {
 	    h ^= (g >> 24U);
 	    h ^= g;

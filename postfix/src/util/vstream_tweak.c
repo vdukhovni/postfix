@@ -116,12 +116,12 @@ int     vstream_tweak_tcp(VSTREAM *fp)
 
     /*
      * Fix for recent Postfix versions: increase the VSTREAM buffer size if
-     * the VSTREAM buffer is smaller than the MSS. Note: the MSS may change
-     * when the route changes and IP path MTU discovery is turned on, so we
-     * choose a somewhat larger buffer.
+     * the default VSTREAM buffer size is smaller than the MSS. Note: the MSS
+     * may change when the route changes and IP path MTU discovery is turned
+     * on, so we choose a somewhat larger buffer.
      */
 #ifdef VSTREAM_CTL_BUFSIZE
-    if (mss > 0) {
+    if (mss > VSTREAM_BUFSIZE) {
 	if (mss < INT_MAX / 2)
 	    mss *= 2;
 	vstream_control(fp,

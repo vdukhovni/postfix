@@ -324,17 +324,18 @@
 /*	This involves allocation of additional memory that normally isn't
 /*	used.
 /* .IP "VSTREAM_CTL_BUFSIZE (ssize_t)"
-/*	Specify a non-default buffer size, or zero to implement
-/*	a no-op. Requests to resize a fixed-size buffer (stderr)
-/*	are not allowed.
+/*	Specify a non-default write buffer size, or zero to implement
+/*	a no-op. Requests to shrink an existing buffer size are
+/*	silently ignored. To get a buffer size smaller than
+/*	VSTREAM_BUFSIZE, make the VSTREAM_CTL_BUFSIZE before the
+/*	stream has been used. Requests to change a fixed-size buffer
+/*	(e.g., stderr) are not allowed.
 /*
 /*	NOTE: the VSTREAM_CTL_BUFSIZE request specifies intent, not
 /*	reality.  Actual buffer sizes are not updated immediately.
-/*	Instead, a write buffer size will be updated when writing
-/*	to a stream for the first time, or when writing to a full
-/*	buffer, and a read buffer size will be updated when reading
-/*	from a stream for the first time, or when reading from an
-/*	empty buffer.
+/*	Instead, an existing write buffer will be resized when it
+/*	is full, and an existing read buffer will be resized when
+/*	the buffer is filled.
 /*
 /*	NOTE: the vstream_*printf() routines may silently expand a
 /*	buffer, so that the result of some %letter specifiers can
@@ -503,13 +504,13 @@ VSTREAM vstream_fstd[] = {
 	    0, 0, 0, 0,			/* buffer */
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
     }, STDIN_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,
-    VSTREAM_BUFSIZE,},
+    0,},
     {{
 	    0,				/* flags */
 	    0, 0, 0, 0,			/* buffer */
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
     }, STDOUT_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,
-    VSTREAM_BUFSIZE,},
+    0,},
     {{
 	    VBUF_FLAG_FIXED | VSTREAM_FLAG_WRITE,
 	    vstream_fstd_buf, VSTREAM_BUFSIZE, VSTREAM_BUFSIZE, vstream_fstd_buf,
@@ -626,17 +627,10 @@ static void vstream_buf_alloc(VBUF *bp, ssize_t len)
     ssize_t used = bp->ptr - bp->data;
     const char *myname = "vstream_buf_alloc";
 
-    /*
-     * Don't shrink a non-empty read buffer, or a non-flushed write buffer.
-     */
-    if (len <= 0)
-	msg_panic("%s: bad buffer length: %ld", myname, (long) len);
-    if (len < bp->len
-	&& (((bp->flags & VSTREAM_FLAG_READ) && bp->cnt != 0)
-	    || ((bp->flags & VSTREAM_FLAG_WRITE) && bp->cnt != bp->len)))
-	msg_panic("%s: attempt to shrink non-empty buffer", myname);
+    if (len < bp->len)
+	msg_panic("%s: attempt to shrink buffer", myname);
     if (bp->flags & VSTREAM_FLAG_FIXED)
-	msg_panic("%s: attempt to resize fixed-length buffer", myname);
+	msg_panic("%s: unable to extend fixed-size buffer", myname);
 
     /*
      * Late buffer allocation allows the user to override the default policy.
@@ -853,8 +847,12 @@ static int vstream_buf_get_ready(VBUF *bp)
      * If this is the first GET operation, allocate a buffer. Late buffer
      * allocation gives the application a chance to override the default
      * buffering policy.
+     * 
+     * XXX Tricky code to set the preferred buffer size as late as possible.
      */
-    if (bp->len != stream->req_bufsize)
+    if (stream->req_bufsize == 0)
+	stream->req_bufsize = VSTREAM_BUFSIZE;
+    if (bp->len < stream->req_bufsize)
 	vstream_buf_alloc(bp, stream->req_bufsize);
 
     /*
@@ -961,15 +959,17 @@ static int vstream_buf_put_ready(VBUF *bp)
      * stream or if the buffer is smaller than the requested size, allocate a
      * new buffer; obviously there is no data to be flushed yet. Otherwise,
      * flush the buffer.
+     * 
+     * XXX Tricky code to set the preferred buffer size as late as possible.
      */
+    if (stream->req_bufsize == 0)
+	stream->req_bufsize = VSTREAM_BUFSIZE;
     if (bp->len < stream->req_bufsize) {
 	vstream_buf_alloc(bp, stream->req_bufsize);
     } else if (bp->cnt <= 0) {
 	if (VSTREAM_FFLUSH_SOME(stream))
 	    return (VSTREAM_EOF);
     }
-    if (bp->len > stream->req_bufsize)
-	vstream_buf_alloc(bp, stream->req_bufsize);
     return (0);
 }
 
@@ -1014,10 +1014,14 @@ static int vstream_buf_space(VBUF *bp, ssize_t want)
      * VSTREAM_BUFSIZE bytes and resize the buffer to a multiple of
      * VSTREAM_BUFSIZE. We flush multiples of VSTREAM_BUFSIZE in an attempt
      * to keep file updates block-aligned for better performance.
+     * 
+     * XXX Tricky code to set the preferred buffer size as late as possible.
      */
 #define VSTREAM_TRUNCATE(count, base)	(((count) / (base)) * (base))
 #define VSTREAM_ROUNDUP(count, base)	VSTREAM_TRUNCATE(count + base - 1, base)
 
+    if (stream->req_bufsize == 0)
+	stream->req_bufsize = VSTREAM_BUFSIZE;
     if (want > bp->cnt) {
 	if ((used = bp->len - bp->cnt) > stream->req_bufsize)
 	    if (vstream_fflush_some(stream, VSTREAM_TRUNCATE(used, stream->req_bufsize)))
@@ -1231,7 +1235,7 @@ VSTREAM *vstream_fdopen(int fd, int flags)
     stream->jbuf = 0;
     stream->iotime.tv_sec = stream->iotime.tv_usec = 0;
     stream->time_limit.tv_sec = stream->time_limit.tv_usec = 0;
-    stream->req_bufsize = VSTREAM_BUFSIZE;
+    stream->req_bufsize = 0;
     return (stream);
 }
 
@@ -1482,7 +1486,8 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    if (req_bufsize < 0 || req_bufsize > INT_MAX)
 		msg_panic("unreasonable VSTREAM_CTL_BUFSIZE request: %ld",
 			  (long) req_bufsize);
-	    if (req_bufsize > 0 && stream != VSTREAM_ERR)
+	    if (stream != VSTREAM_ERR
+		&& req_bufsize > stream->req_bufsize)
 		stream->req_bufsize = req_bufsize;
 	    break;
 
@@ -1625,9 +1630,9 @@ int     main(int argc, char **argv)
      * Test buffer expansion and shrinking. Formatted print may silently
      * expand the write buffer and cause multiple bytes to be written.
      */
-    copy_line(1);				/* one-byte read/write */
+    copy_line(1);			/* one-byte read/write */
     copy_line(2);				/* two-byte read/write */
-    copy_line(1);				/* one-byte read/write */
+    copy_line(1);				/* two-byte read/write */
     printf_number();				/* multi-byte write */
     exit(0);
 }

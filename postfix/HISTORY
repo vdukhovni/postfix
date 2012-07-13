@@ -17877,3 +17877,20 @@ Apologies for any names omitted.
 20120629
 
 	Workaround: "sendmail -bl" emulation. File: sendmail/sendmail.c.
+
+20120630
+
+	Cleanup: sub-optimal hash performance on systems where the
+	"char" type is signed.  Files: util/htable.c, util/binhash.c.
+
+20120702
+
+	Bugfix (introduced: 19990127): the BIFF client leaked an
+	unprivileged UDP socket. Fix by Jaroslav Skarvada.  File:
+	local/biff_notify.c.
+
+20120713
+
+	Bugfix (introduced: 20120527-8): infrastructure to specify
+	a smaller-than-default VSTREAM buffer, without the complex
+	run-time checks. File: util/vstream.c, vstream_tweak.c.
