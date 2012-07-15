@@ -17894,3 +17894,10 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20120527-8): infrastructure to specify
 	a smaller-than-default VSTREAM buffer, without the complex
 	run-time checks. File: util/vstream.c, vstream_tweak.c.
+
+20120714
+
+	Cleanup: semantics of requests to query or modify the VSTREAM
+	buffer size that will be used with the next read(2) or
+	write(2) operation. Files: util/vstream.c, util/vstream.h,
+	util/vstream_tweak.c.
