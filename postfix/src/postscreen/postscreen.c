@@ -69,8 +69,7 @@
 /*	The \fBpostscreen\fR(8) built-in SMTP protocol engine
 /*	currently does not announce support for AUTH, XCLIENT or
 /*	XFORWARD.
-/*	Support for AUTH may be added in the future.
-/*	In the mean time, if you need to make these services available
+/*	If you need to make these services available
 /*	on port 25, then do not enable the optional "after 220
 /*	server greeting" tests, and do not use DNSBLs that reject
 /*	traffic from dial-up and residential networks.
@@ -78,15 +77,16 @@
 /*	The optional "after 220 server greeting" tests involve
 /*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine. When
 /*	these tests succeed, \fBpostscreen\fR(8) adds the client
-/*	to the temporary whitelist but it cannot not hand off the
+/*	to the temporary whitelist, but it cannot not hand off the
 /*	"live" connection to a Postfix SMTP server process in the
 /*	middle of a session.  Instead, \fBpostscreen\fR(8) defers
 /*	attempts to deliver mail with a 4XX status, and waits for
-/*	the client to disconnect.  The next time a good client
-/*	connects, it will be allowed to talk to a Postfix SMTP
-/*	server process to deliver mail. \fBpostscreen\fR(8) mitigates
-/*	the impact of this limitation by giving such tests a long
-/*	expiration time.
+/*	the client to disconnect.  When the client connects again,
+/*	\fBpostscreen\fR(8) will allow the client to talk to a
+/*	Postfix SMTP server process (provided that the whitelist
+/*	status has not expired).  \fBpostscreen\fR(8) mitigates
+/*	the impact of this limitation by giving the "after 220
+/*	server greeting" tests a long expiration time.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi

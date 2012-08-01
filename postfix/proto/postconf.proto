@@ -157,7 +157,7 @@ an access(5) map "reject" action.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM access_map_defer_code 450
@@ -170,7 +170,7 @@ is hard-coded as "450".
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 <p>
@@ -1291,7 +1291,7 @@ client request is rejected by the "defer" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM defer_transports 
@@ -1979,7 +1979,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM ipc_idle version dependent
@@ -2625,7 +2625,7 @@ reject_rhsbl_recipient restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM masquerade_classes envelope_sender, header_sender, header_recipient
@@ -2837,7 +2837,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 <p>
@@ -3468,7 +3468,7 @@ client request is rejected by the "reject" restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM relay_domains $mydestination
@@ -3508,7 +3508,7 @@ restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM relay_recipient_maps 
@@ -4242,12 +4242,12 @@ The default time unit is s (seconds).
 <p>
 Quote addresses in Postfix SMTP client MAIL FROM and RCPT TO commands
 as required
-by RFC 2821. This includes putting quotes around an address localpart
+by RFC 5321. This includes putting quotes around an address localpart
 that ends in ".".
 </p>
 
 <p>
-The default is to comply with RFC 2821. If you have to send mail to
+The default is to comply with RFC 5321. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in master.cf:
 </p>
 
@@ -6412,7 +6412,7 @@ always 450 in case of a temporary DNS error.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM unknown_client_reject_code 450
@@ -6425,7 +6425,7 @@ with 450 when the mapping failed due to a temporary error condition.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM unknown_hostname_reject_code 450
@@ -6437,7 +6437,7 @@ reject_unknown_helo_hostname restriction.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 %PARAM unknown_local_recipient_reject_code 550
@@ -6481,7 +6481,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 <p>
@@ -6501,7 +6501,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 <p>
@@ -6521,7 +6521,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 <p>
@@ -6541,7 +6541,7 @@ accept the address anyway.
 </p>
 
 <p>
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
 <p>
@@ -8272,6 +8272,10 @@ Lookup tables with the per-recipient group ID for virtual(8) mailbox
 delivery.
 </p>
 
+<p> This parameter is specific to the virtual(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.  </p>
+
 <p>
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
@@ -8308,6 +8312,10 @@ file system with mailboxes.  While virtual_mailbox_base could be
 set to "/", this setting isn't recommended.
 </p>
 
+<p> This parameter is specific to the virtual(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.  </p>
+
 <p>
 Example:
 </p>
@@ -8339,6 +8347,10 @@ value is backwards compatible with Postfix version 1.1.
 The maximal size in bytes of an individual virtual(8) mailbox or
 maildir file, or zero (no limit).  </p>
 
+<p> This parameter is specific to the virtual(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.  </p>
+
 %PARAM virtual_mailbox_lock see "postconf -d" output
 
 <p>
@@ -8346,6 +8358,10 @@ How to lock a UNIX-style virtual(8) mailbox before attempting
 delivery.  For a list of available file locking methods, use the
 "<b>postconf -l</b>" command.
 </p>
+
+<p> This parameter is specific to the virtual(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.  </p>
 
 <p>
 This setting is ignored with <b>maildir</b> style delivery, because
@@ -8374,6 +8390,10 @@ In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
 </p>
+
+<p> The remainder of this text is specific to the virtual(8) delivery
+agent.  It does not apply when mail is delivered with a different
+mail delivery program.  </p>
 
 <p>
 The virtual(8) delivery agent uses this table to look up the
@@ -8413,6 +8433,10 @@ values less than this will be rejected, and the message will be
 deferred.
 </p>
 
+<p> This parameter is specific to the virtual(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.  </p>
+
 %PARAM virtual_transport virtual
 
 <p>
@@ -8438,6 +8462,10 @@ This feature is available in Postfix 2.0 and later.
 Lookup tables with the per-recipient user ID that the virtual(8)
 delivery agent uses while writing to the recipient's mailbox.
 </p>
+
+<p> This parameter is specific to the virtual(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.  </p>
 
 <p>
 In a lookup table, specify a left-hand side of "@domain.tld"

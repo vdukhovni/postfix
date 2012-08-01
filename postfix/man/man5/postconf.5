@@ -69,14 +69,14 @@ an \fBaccess\fR(5) map "defer" action, including "defer_if_permit"
 or "defer_if_reject". Prior to Postfix 2.6, the response
 is hard-coded as "450".
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH access_map_reject_code (default: 554)
 The numerical Postfix SMTP server response code for
 an \fBaccess\fR(5) map "reject" action.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH address_verify_cache_cleanup_interval (default: 12h)
 The amount of time between \fBverify\fR(8) address verification
 database cleanup runs. This feature requires that the database
@@ -1392,7 +1392,7 @@ This feature is available in Postfix 1.1 and later.
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "defer" restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH defer_service_name (default: defer)
 The name of the defer service. This service is implemented by the
 \fBbounce\fR(8) daemon and maintains a record
@@ -2093,7 +2093,7 @@ The numerical Postfix SMTP server response code when the client
 HELO or EHLO command parameter is rejected by the reject_invalid_helo_hostname
 restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH ipc_idle (default: version dependent)
 The time after which a client closes an idle internal communication
 channel.  The purpose is to allow Postfix daemon processes to
@@ -3142,7 +3142,7 @@ client request is blocked by the reject_rbl_client, reject_rhsbl_client,
 reject_rhsbl_reverse_client, reject_rhsbl_sender or
 reject_rhsbl_recipient restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH masquerade_classes (default: envelope_sender, header_sender, header_recipient)
 What addresses are subject to address masquerading.
 .PP
@@ -3609,7 +3609,7 @@ The numerical Postfix SMTP server response code when a remote SMTP
 client request is blocked by the reject_multi_recipient_bounce
 restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH mydestination (default: $myhostname, localhost.$mydomain, localhost)
@@ -4860,7 +4860,7 @@ recipient_delimiter = +
 The numerical Postfix SMTP server response code when a remote SMTP
 client request is rejected by the "reject" restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH reject_tempfail_action (default: defer_if_permit)
 The Postfix SMTP server's action when a reject-type restriction
 fails due to a temporary error condition. Specify "defer" to defer
@@ -4950,7 +4950,7 @@ The numerical Postfix SMTP server response code when a client
 request is rejected by the reject_unauth_destination recipient
 restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH relay_recipient_maps (default: empty)
 Optional lookup tables with all valid addresses in the domains
 that match $relay_domains. Specify @domain as a wild-card for
@@ -5833,10 +5833,10 @@ The default time unit is s (seconds).
 .SH smtp_quote_rfc821_envelope (default: yes)
 Quote addresses in Postfix SMTP client MAIL FROM and RCPT TO commands
 as required
-by RFC 2821. This includes putting quotes around an address localpart
+by RFC 5321. This includes putting quotes around an address localpart
 that ends in ".".
 .PP
-The default is to comply with RFC 2821. If you have to send mail to
+The default is to comply with RFC 5321. If you have to send mail to
 a broken SMTP server, configure a special SMTP client in master.cf:
 .sp
 .in +4
@@ -10700,7 +10700,7 @@ recipient address is rejected by the reject_unknown_sender_domain
 or reject_unknown_recipient_domain restriction.  The response is
 always 450 in case of a temporary DNS error.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH unknown_address_tempfail_action (default: $reject_tempfail_action)
 The Postfix SMTP server's action when reject_unknown_sender_domain
 or reject_unknown_recipient_domain fail due to a temporary error
@@ -10716,7 +10716,7 @@ without valid address <=> name mapping is rejected by the
 reject_unknown_client_hostname restriction. The SMTP server always replies
 with 450 when the mapping failed due to a temporary error condition.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH unknown_helo_hostname_tempfail_action (default: $reject_tempfail_action)
 The Postfix SMTP server's action when reject_unknown_helo_hostname
 fails due to an temporary error condition. Specify "defer" to defer
@@ -10731,7 +10731,7 @@ The numerical Postfix SMTP server response code when the hostname
 specified with the HELO or EHLO command is rejected by the
 reject_unknown_helo_hostname restriction.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .SH unknown_local_recipient_reject_code (default: 550)
 The numerical Postfix SMTP server response code when a recipient
 address is local, and $local_recipient_maps specifies a list of
@@ -10779,7 +10779,7 @@ probe fails due to a temporary error condition.
 Unlike elsewhere in Postfix, you can specify 250 in order to
 accept the address anyway.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH unverified_recipient_reject_code (default: 450)
@@ -10789,7 +10789,7 @@ is rejected by the reject_unverified_recipient restriction.
 Unlike elsewhere in Postfix, you can specify 250 in order to
 accept the address anyway.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH unverified_recipient_reject_reason (default: empty)
@@ -10825,7 +10825,7 @@ probe fails due to a temporary error condition.
 Unlike elsewhere in Postfix, you can specify 250 in order to
 accept the address anyway.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .PP
 This feature is available in Postfix 2.6 and later.
 .SH unverified_sender_reject_code (default: 450)
@@ -10835,7 +10835,7 @@ address is rejected by the reject_unverified_sender restriction.
 Unlike elsewhere in Postfix, you can specify 250 in order to
 accept the address anyway.
 .PP
-Do not change this unless you have a complete understanding of RFC 2821.
+Do not change this unless you have a complete understanding of RFC 5321.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH unverified_sender_reject_reason (default: empty)
@@ -10961,6 +10961,10 @@ into concurrency per recipient.
 Lookup tables with the per-recipient group ID for \fBvirtual\fR(8) mailbox
 delivery.
 .PP
+This parameter is specific to the \fBvirtual\fR(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.
+.PP
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
@@ -10984,6 +10988,10 @@ results from $virtual_mailbox_maps table lookups.  This is a safety
 measure to ensure that an out of control map doesn't litter the
 file system with mailboxes.  While virtual_mailbox_base could be
 set to "/", this setting isn't recommended.
+.PP
+This parameter is specific to the \fBvirtual\fR(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.
 .PP
 Example:
 .PP
@@ -11010,10 +11018,18 @@ value is backwards compatible with Postfix version 1.1.
 .SH virtual_mailbox_limit (default: 51200000)
 The maximal size in bytes of an individual \fBvirtual\fR(8) mailbox or
 maildir file, or zero (no limit).
+.PP
+This parameter is specific to the \fBvirtual\fR(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.
 .SH virtual_mailbox_lock (default: see "postconf -d" output)
 How to lock a UNIX-style \fBvirtual\fR(8) mailbox before attempting
 delivery.  For a list of available file locking methods, use the
 "\fBpostconf -l\fR" command.
+.PP
+This parameter is specific to the \fBvirtual\fR(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.
 .PP
 This setting is ignored with \fBmaildir\fR style delivery, because
 such deliveries are safe without application-level locks.
@@ -11030,6 +11046,10 @@ match $virtual_mailbox_domains.
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
+.PP
+The remainder of this text is specific to the \fBvirtual\fR(8) delivery
+agent.  It does not apply when mail is delivered with a different
+mail delivery program.
 .PP
 The \fBvirtual\fR(8) delivery agent uses this table to look up the
 per-recipient mailbox or maildir pathname.  If the lookup result
@@ -11063,6 +11083,10 @@ The minimum user ID value that the \fBvirtual\fR(8) delivery agent accepts
 as a result from $virtual_uid_maps table lookup.  Returned
 values less than this will be rejected, and the message will be
 deferred.
+.PP
+This parameter is specific to the \fBvirtual\fR(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.
 .SH virtual_transport (default: virtual)
 The default mail delivery transport and next-hop destination for
 final delivery to domains listed with $virtual_mailbox_domains.
@@ -11077,6 +11101,10 @@ This feature is available in Postfix 2.0 and later.
 .SH virtual_uid_maps (default: empty)
 Lookup tables with the per-recipient user ID that the \fBvirtual\fR(8)
 delivery agent uses while writing to the recipient's mailbox.
+.PP
+This parameter is specific to the \fBvirtual\fR(8) delivery agent.
+It does not apply when mail is delivered with a different mail
+delivery program.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld"
 to match any user in the specified domain that does not have a

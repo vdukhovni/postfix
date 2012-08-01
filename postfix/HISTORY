@@ -17901,3 +17901,20 @@ Apologies for any names omitted.
 	buffer size that will be used with the next read(2) or
 	write(2) operation. Files: util/vstream.c, util/vstream.h,
 	util/vstream_tweak.c.
+
+20120717
+
+	Documentation: update to RFC5321.
+
+20120730
+
+	Bugfix (introduced: 20000314): AUTH is not allowed after
+	MAIL. Timo Sirainen.  Files: smtpd/smtpd.c, smtpd/smtpd.h,
+	smtpd/smtpd_sasl_proto.c.
+
+20120801
+
+	Documentation: point of what virtual_xxx parameters are
+	specific to the virtual(8) delivery agent, and will have
+	no effect when mail is delivered with a different program.
+	Files: proto/postconf.proto, proto/VIRTUAL_README.html.

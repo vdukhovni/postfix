@@ -78,24 +78,24 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 <b>BUGS</b>
        The <a href="postscreen.8.html"><b>postscreen</b>(8)</a> built-in SMTP protocol engine  currently
        does  not  announce support for AUTH, XCLIENT or XFORWARD.
-       Support for AUTH may be added in the future.  In the  mean
-       time, if you need to make these services available on port
-       25, then do not enable  the  optional  "after  220  server
-       greeting" tests, and do not use DNSBLs that reject traffic
-       from dial-up and residential networks.
+       If you need to make these services available on  port  25,
+       then  do  not enable the optional "after 220 server greet-
+       ing" tests, and do not use DNSBLs that reject traffic from
+       dial-up and residential networks.
 
-       The optional "after 220  server  greeting"  tests  involve
-       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s  built-in SMTP protocol engine. When these
+       The  optional  "after  220  server greeting" tests involve
+       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine. When  these
        tests succeed, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> adds the client to the tempo-
-       rary  whitelist but it cannot not hand off the "live" con-
-       nection to a Postfix SMTP server process in the middle  of
-       a  session.   Instead,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  defers  attempts to
-       deliver mail with a 4XX status, and waits for  the  client
-       to  disconnect.   The next time a good client connects, it
-       will be allowed to talk to a Postfix SMTP  server  process
-       to  deliver  mail.  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  mitigates the impact of
-       this limitation by giving such  tests  a  long  expiration
-       time.
+       rary whitelist, but it cannot not hand off the "live" con-
+       nection  to a Postfix SMTP server process in the middle of
+       a session.   Instead,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  defers  attempts  to
+       deliver  mail  with a 4XX status, and waits for the client
+       to  disconnect.    When   the   client   connects   again,
+       <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  allow the client to talk to a Postfix
+       SMTP server process (provided that  the  whitelist  status
+       has  not  expired).  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> mitigates the impact of
+       this limitation by giving the "after 220 server  greeting"
+       tests a long expiration time.
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes  to  <a href="postconf.5.html">main.cf</a>  are  not picked up automatically, as

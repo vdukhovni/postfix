@@ -306,6 +306,11 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 	(SMTPD_STAND_ALONE(state) == 0 && *var_smtpd_proxy_filt)
 
  /*
+  * Are we in a MAIL transaction?
+  */
+#define SMTPD_IN_MAIL_TRANSACTION(state) ((state)->sender != 0)
+
+ /*
   * SMTPD peer information lookup.
   */
 extern void smtpd_peer_init(SMTPD_STATE *state);
