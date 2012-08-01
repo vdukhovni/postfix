@@ -63,7 +63,7 @@
 struct unix_pass_trigger {
     int     fd;
     char   *service;
-    int    *pair;
+    int     pair[2];
 };
 
 /* unix_pass_trigger_event - disconnect from peer */
@@ -129,7 +129,8 @@ int     unix_pass_trigger(const char *service, const char *buf, ssize_t len, int
     up = (struct unix_pass_trigger *) mymalloc(sizeof(*up));
     up->fd = fd;
     up->service = mystrdup(service);
-    up->pair = pair;
+    up->pair[0] = pair[0];
+    up->pair[1] = pair[1];
 
     /*
      * Write the request...
