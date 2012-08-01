@@ -43,6 +43,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <iostuff.h>
 
 /* Application-specific. */
 
@@ -81,9 +82,12 @@ void    biff_notify(const char *text, ssize_t len)
     /*
      * Open a socket, or re-use an existing one.
      */
-    if (sock < 0 && (sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-	msg_warn("socket: %m");
-	return;
+    if (sock < 0) {
+	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+	    msg_warn("socket: %m");
+	    return;
+	}
+	close_on_exec(sock, CLOSE_ON_EXEC);
     }
 
     /*
