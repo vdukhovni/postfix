@@ -173,9 +173,16 @@
 /*	Set the envelope sender address. This is the address where
 /*	delivery problems are sent to. With Postfix versions before 2.1, the
 /*	\fBErrors-To:\fR message header overrides the error return address.
-/* .IP "\fB-R \fIreturn_limit\fR (ignored)"
-/*	Limit the size of bounced mail. Use the \fBbounce_size_limit\fR
-/*	configuration parameter instead.
+/* .IP "\fB-R \fIreturn\fR"
+/*	Delivery status notification control.  Specify "hdrs" to
+/*	return only the header if a message bounces, "full" to
+/*	return a full copy (the default behavior).
+/*
+/*	The \fB-R\fR option specifies an upper bound; for example,
+/*	Postfix will return only the header, when a full copy would
+/*	exceed the bounce_size_limit setting.
+/*
+/*	This option is ignored before Postfix version 2.10.
 /* .IP \fB-q\fR
 /*	Attempt to deliver all queued mail. This is implemented by
 /*	executing the \fBpostqueue\fR(1) command.
@@ -605,7 +612,7 @@ static void output_header(void *context, int header_class,
 /* enqueue - post one message */
 
 static void enqueue(const int flags, const char *encoding,
-		            const char *dsn_envid, int dsn_notify,
+		         const char *dsn_envid, int dsn_notify, int dsn_ret,
 		            const char *rewrite_context, const char *sender,
 		            const char *full_name, char **recipients)
 {
@@ -744,6 +751,9 @@ static void enqueue(const int flags, const char *encoding,
 		    if (dsn_notify)
 			rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
 				    MAIL_ATTR_DSN_NOTIFY, dsn_notify);
+		    if (dsn_ret)
+			rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
+				    MAIL_ATTR_DSN_RET, dsn_ret);
 		    if (REC_PUT_BUF(dst, REC_TYPE_RCPT, buf) < 0)
 			msg_fatal_status(EX_TEMPFAIL,
 				    "%s(%ld): error writing queue file: %m",
@@ -883,6 +893,10 @@ static void enqueue(const int flags, const char *encoding,
 	    if (dsn_notify)
 		rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
 			    MAIL_ATTR_DSN_NOTIFY, dsn_notify);
+	    if (dsn_ret)
+		rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
+			    MAIL_ATTR_DSN_RET, dsn_ret);
+
 	    if (rec_put(dst, REC_TYPE_RCPT, *cpp, strlen(*cpp)) < 0)
 		msg_fatal_status(EX_TEMPFAIL,
 				 "%s(%ld): error writing queue file: %m",
@@ -970,6 +984,7 @@ int     main(int argc, char **argv)
     uid_t   uid;
     const char *rewrite_context = MAIL_ATTR_RWR_LOCAL;
     int     dsn_notify = 0;
+    int     dsn_ret = 0;
     const char *dsn_envid = 0;
     int     saved_optind;
 
@@ -1162,6 +1177,10 @@ int     main(int argc, char **argv)
 	    if ((dsn_notify = dsn_notify_mask(optarg)) == 0)
 		msg_warn("bad -N option value -- ignored");
 	    break;
+	case 'R':
+	    if ((dsn_ret = dsn_ret_code(optarg)) == 0)
+		msg_warn("bad -R option value -- ignored");
+	    break;
 	case 'V':				/* DSN, was: VERP */
 	    if (strlen(optarg) > 100)
 		msg_warn("too long -V option value -- ignored");
@@ -1289,6 +1308,8 @@ int     main(int argc, char **argv)
 	    msg_fatal_status(EX_USAGE, "-t option cannot be used with -bv");
 	if (dsn_notify)
 	    msg_fatal_status(EX_USAGE, "-N option cannot be used with -bv");
+	if (dsn_ret)
+	    msg_fatal_status(EX_USAGE, "-R option cannot be used with -bv");
 	if (msg_verbose == 1)
 	    msg_fatal_status(EX_USAGE, "-v option cannot be used with -bv");
     }
@@ -1333,7 +1354,7 @@ int     main(int argc, char **argv)
 	    mail_run_replace(var_command_dir, ext_argv->argv);
 	    /* NOTREACHED */
 	} else {
-	    enqueue(flags, encoding, dsn_envid, dsn_notify,
+	    enqueue(flags, encoding, dsn_envid, dsn_notify, dsn_ret,
 		    rewrite_context, sender, full_name, argv + OPTIND);
 	    exit(0);
 	    /* NOTREACHED */

@@ -9849,9 +9849,15 @@ Postfix 2.3 and later use smtpd_tls_security_level instead.
 .SH soft_bounce (default: no)
 Safety net to keep mail queued that would otherwise be returned to
 the sender.  This parameter disables locally-generated bounces,
-and prevents the Postfix SMTP server from rejecting mail permanently,
+changes the handling of negative responses from remote servers,
+content filters or plugins,
+and prevents the Postfix SMTP server from rejecting mail permanently
 by changing 5xx reply codes into 4xx.  However, soft_bounce is no
 cure for address rewriting mistakes or mail routing mistakes.
+.PP
+Note: "soft_bounce = yes" is in some cases implemented by modifying
+server responses. Therefore, the response that Postfix logs may
+differ from the response that Postfix actually sends or receives.
 .PP
 Example:
 .PP

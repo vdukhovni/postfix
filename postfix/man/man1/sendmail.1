@@ -179,9 +179,16 @@ configuration parameter in \fBmain.cf\fR instead.
 Set the envelope sender address. This is the address where
 delivery problems are sent to. With Postfix versions before 2.1, the
 \fBErrors-To:\fR message header overrides the error return address.
-.IP "\fB-R \fIreturn_limit\fR (ignored)"
-Limit the size of bounced mail. Use the \fBbounce_size_limit\fR
-configuration parameter instead.
+.IP "\fB-R \fIreturn\fR"
+Delivery status notification control.  Specify "hdrs" to
+return only the header if a message bounces, "full" to
+return a full copy (the default behavior).
+
+The \fB-R\fR option specifies an upper bound; for example,
+Postfix will return only the header, when a full copy would
+exceed the bounce_size_limit setting.
+
+This option is ignored before Postfix version 2.10.
 .IP \fB-q\fR
 Attempt to deliver all queued mail. This is implemented by
 executing the \fBpostqueue\fR(1) command.

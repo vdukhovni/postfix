@@ -1592,10 +1592,11 @@ In the examples below, user input is shown in bboolldd font, and a "#" promp
 indicates a super-user shell.
 
   * Become your own Certificate Authority, so that you can sign your own public
-    keys. This example uses the CA.pl script that ships with OpenSSL. By
-    default, OpenSSL installs this as /usr/local/ssl/misc/CA.pl, but your
-    mileage may vary. The script creates a private key in ./demoCA/private/
-    cakey.pem and a public key in ./demoCA/cacert.pem.
+    keys. This example uses the CA.pl script that ships with OpenSSL. On some
+    systems, OpenSSL installs this as /usr/local/ssl/misc/CA.pl. Some systems
+    install this as part of a package named openssl-perl or something similar.
+    The script creates a private key in ./demoCA/private/cakey.pem and a public
+    key in ./demoCA/cacert.pem.
 
         % //uussrr//llooccaall//ssssll//mmiisscc//CCAA..ppll --nneewwccaa
         CA certificate filename (or enter to create)

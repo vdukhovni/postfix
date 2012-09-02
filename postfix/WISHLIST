@@ -9,10 +9,19 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	Parallelized queue preprocessing: rip out the queue manager
+	code to read queue files and resolve recipients, and run
+	it in parallel processes. The queue manager then processes
+	their results as they become available.  This would eliminate
+	the qmgr<->trivial-rewrite bottleneck. This can also eliminate
+	much of the scheduling disadvantage of a single queue manager
+	compared to hundreds of mail receiving or sending processes
+	(especially if there is a way to scan the queue in parallel).
+
 	mem_pool module for frequently-allocated objects
 	such as postscreen VSTRINGS and STATE objects.
 	Operations: create, put, get, maybe destroy.
-	Call-backs: create, reset, and maybe destroy.
+	Call-backs: init, reset, and maybe destroy.
 
 	Make "rename" the default when postmapping a DB file
 	(later: use copy+rename for postmap -i, postmap -d).

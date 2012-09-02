@@ -68,7 +68,7 @@
 #define REC_TYPE_VERP	'V'		/* VERP delimiters */
 
 #define REC_TYPE_DSN_RET	'<'	/* DSN full/hdrs */
-#define REC_TYPE_DSN_ENVID	'i'	/* DSN full/hdrs */
+#define REC_TYPE_DSN_ENVID	'i'	/* DSN envelope id */
 #define REC_TYPE_DSN_ORCPT	'o'	/* DSN orig rcpt address */
 #define REC_TYPE_DSN_NOTIFY	'n'	/* DSN notify flags */
 

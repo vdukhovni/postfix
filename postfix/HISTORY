@@ -17918,3 +17918,14 @@ Apologies for any names omitted.
 	specific to the virtual(8) delivery agent, and will have
 	no effect when mail is delivered with a different program.
 	Files: proto/postconf.proto, proto/VIRTUAL_README.html.
+
+20120824
+
+	Feature: support for "sendmail -R hdrs|full". Jan Kundrát.
+	File: sendmail/sendmail.c.
+
+20120902
+
+	Documentation: updated TUNING_README with new pointers to
+	the STRESS_README and POSTSCREEN_README documents. Miscellaneous
+	documentation clarifications based on postfix-users discussions.

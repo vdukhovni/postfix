@@ -4,6 +4,8 @@ PPoossttffiixx PPoossttssccrreeeenn HHoowwttoo
 
 IInnttrroodduuccttiioonn
 
+This document describes features that are available in Postfix 2.8 and later.
+
 The Postfix postscreen(8) daemon provides additional protection against mail
 server overload. One postscreen(8) process handles multiple inbound SMTP
 connections, and decides which clients may talk to a Postfix SMTP server
