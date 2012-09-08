@@ -612,7 +612,7 @@ static void output_header(void *context, int header_class,
 /* enqueue - post one message */
 
 static void enqueue(const int flags, const char *encoding,
-		         const char *dsn_envid, int dsn_notify, int dsn_ret,
+		         const char *dsn_envid, int dsn_ret, int dsn_notify,
 		            const char *rewrite_context, const char *sender,
 		            const char *full_name, char **recipients)
 {
@@ -726,6 +726,9 @@ static void enqueue(const int flags, const char *encoding,
     if (dsn_envid)
 	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s",
 		    MAIL_ATTR_DSN_ENVID, dsn_envid);
+    if (dsn_ret)
+	rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
+		    MAIL_ATTR_DSN_RET, dsn_ret);
     rec_fprintf(dst, REC_TYPE_ATTR, "%s=%s",
 		MAIL_ATTR_RWR_CONTEXT, rewrite_context);
     if (full_name || (full_name = fullname()) != 0)
@@ -751,9 +754,6 @@ static void enqueue(const int flags, const char *encoding,
 		    if (dsn_notify)
 			rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
 				    MAIL_ATTR_DSN_NOTIFY, dsn_notify);
-		    if (dsn_ret)
-			rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
-				    MAIL_ATTR_DSN_RET, dsn_ret);
 		    if (REC_PUT_BUF(dst, REC_TYPE_RCPT, buf) < 0)
 			msg_fatal_status(EX_TEMPFAIL,
 				    "%s(%ld): error writing queue file: %m",
@@ -893,10 +893,6 @@ static void enqueue(const int flags, const char *encoding,
 	    if (dsn_notify)
 		rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
 			    MAIL_ATTR_DSN_NOTIFY, dsn_notify);
-	    if (dsn_ret)
-		rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d",
-			    MAIL_ATTR_DSN_RET, dsn_ret);
-
 	    if (rec_put(dst, REC_TYPE_RCPT, *cpp, strlen(*cpp)) < 0)
 		msg_fatal_status(EX_TEMPFAIL,
 				 "%s(%ld): error writing queue file: %m",
@@ -1354,7 +1350,7 @@ int     main(int argc, char **argv)
 	    mail_run_replace(var_command_dir, ext_argv->argv);
 	    /* NOTREACHED */
 	} else {
-	    enqueue(flags, encoding, dsn_envid, dsn_notify, dsn_ret,
+	    enqueue(flags, encoding, dsn_envid, dsn_ret, dsn_notify,
 		    rewrite_context, sender, full_name, argv + OPTIND);
 	    exit(0);
 	    /* NOTREACHED */

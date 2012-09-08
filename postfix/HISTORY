@@ -17929,3 +17929,15 @@ Apologies for any names omitted.
 	Documentation: updated TUNING_README with new pointers to
 	the STRESS_README and POSTSCREEN_README documents. Miscellaneous
 	documentation clarifications based on postfix-users discussions.
+
+20120903
+
+	Bugfix (introduced 20120317): the socketmap client should
+	not share unrelated client endpoint handles. File:
+	util/dict_sockmap.c.
+
+20120907
+
+	Cleanup (for change 20120824): the DSN RET attribute should
+	not be stored once per recipient. It is a message property
+	just like DSN ENVID.  File: sendmail/sendmail.c.

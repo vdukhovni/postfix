@@ -20,6 +20,11 @@
 /*	Postfix socketmap names have the form inet:host:port:socketmap-name
 /*	or unix:pathname:socketmap-name, where socketmap-name
 /*	specifies the socketmap name that the socketmap server uses.
+/*
+/*	To test this module, build the netstring and dict_open test
+/*	programs. Run "./netstring nc -l portnumber" as the server,
+/*	and "./dict_open socketmap:127.0.0.1:portnumber:socketmapname"
+/*	as the client.
 /* PROTOCOL
 /* .ad
 /* .fi
@@ -89,6 +94,7 @@
 #include <netstring.h>
 #include <split_at.h>
 #include <stringops.h>
+#include <htable.h>
 #include <dict_sockmap.h>
 
  /*
@@ -98,6 +104,7 @@ typedef struct {
     DICT    dict;			/* parent class */
     char   *sockmap_name;		/* on-the-wire socketmap name */
     VSTRING *rdwr_buf;			/* read/write buffer */
+    HTABLE_INFO *client_info;		/* shared endpoint name and handle */
 } DICT_SOCKMAP;
 
  /*
@@ -111,12 +118,28 @@ typedef struct {
  /*
   * Class variables.
   */
-static AUTO_CLNT *dict_sockmap_clnt;	/* auto_clnt handle */
-static int dict_sockmap_refcount;	/* handle reference count */
 static int dict_sockmap_timeout = DICT_SOCKMAP_DEF_TIMEOUT;
 static int dict_sockmap_max_reply = DICT_SOCKMAP_DEF_MAX_REPLY;
 static int dict_sockmap_max_idle = DICT_SOCKMAP_DEF_MAX_IDLE;
 static int dict_sockmap_max_ttl = DICT_SOCKMAP_DEF_MAX_TTL;
+
+ /*
+  * The client handle is shared between socketmap instances that have the
+  * same inet:host:port or unix:pathame information. This could be factored
+  * out as a general module for reference-counted handles of any kind.
+  */
+static HTABLE *dict_sockmap_handles;	/* shared handles */
+
+typedef struct {
+    AUTO_CLNT *client_handle;		/* the client handle */
+    int     refcount;			/* the reference count */
+} DICT_SOCKMAP_REFC_HANDLE;
+
+#define DICT_SOCKMAP_RH_NAME(ht)	(ht)->key
+#define DICT_SOCKMAP_RH_HANDLE(ht) \
+	((DICT_SOCKMAP_REFC_HANDLE *) (ht)->value)->client_handle
+#define DICT_SOCKMAP_RH_REFCOUNT(ht) \
+	((DICT_SOCKMAP_REFC_HANDLE *) (ht)->value)->refcount
 
  /*
   * Socketmap protocol elements.
@@ -139,6 +162,7 @@ static const char *dict_sockmap_lookup(DICT *dict, const char *key)
 {
     const char *myname = "dict_sockmap_lookup";
     DICT_SOCKMAP *dp = (DICT_SOCKMAP *) dict;
+    AUTO_CLNT *sockmap_clnt = DICT_SOCKMAP_RH_HANDLE(dp->client_info);
     VSTREAM *fp;
     int     netstring_err;
     char   *reply_payload;
@@ -167,7 +191,7 @@ static const char *dict_sockmap_lookup(DICT *dict, const char *key)
 	/*
 	 * Look up the stream.
 	 */
-	if ((fp = auto_clnt_access(dict_sockmap_clnt)) == 0) {
+	if ((fp = auto_clnt_access(sockmap_clnt)) == 0) {
 	    msg_warn("table %s:%s lookup error: %m", dict->type, dict->name);
 	    dict->error = DICT_ERR_RETRY;
 	    return (0);
@@ -206,7 +230,7 @@ static const char *dict_sockmap_lookup(DICT *dict, const char *key)
 	     */
 	    if (except_count == 0 && netstring_err == NETSTRING_ERR_EOF
 		&& errno != ETIMEDOUT) {
-		auto_clnt_recover(dict_sockmap_clnt);
+		auto_clnt_recover(sockmap_clnt);
 		continue;
 	    }
 
@@ -263,17 +287,21 @@ static const char *dict_sockmap_lookup(DICT *dict, const char *key)
 
 static void dict_sockmap_close(DICT *dict)
 {
+    const char *myname = "dict_sockmap_close";
     DICT_SOCKMAP *dp = (DICT_SOCKMAP *) dict;
 
+    if (dict_sockmap_handles == 0 || dict_sockmap_handles->used == 0)
+	msg_panic("%s: attempt to close a non-existent map", myname);
     vstring_free(dp->rdwr_buf);
     myfree(dp->sockmap_name);
-    if (--dict_sockmap_refcount == 0) {
-	auto_clnt_free(dict_sockmap_clnt);
-	dict_sockmap_clnt = 0;
+    if (--DICT_SOCKMAP_RH_REFCOUNT(dp->client_info) == 0) {
+	auto_clnt_free(DICT_SOCKMAP_RH_HANDLE(dp->client_info));
+	htable_delete(dict_sockmap_handles,
+		      DICT_SOCKMAP_RH_NAME(dp->client_info), myfree);
     }
     if (dict->fold_buf)
 	vstring_free(dict->fold_buf);
-    myfree((char *) dp);
+    dict_free(dict);
 }
 
 /* dict_sockmap_open - open socket map */
@@ -283,6 +311,8 @@ DICT   *dict_sockmap_open(const char *mapname, int open_flags, int dict_flags)
     DICT_SOCKMAP *dp;
     char   *saved_name;
     char   *sockmap;
+    DICT_SOCKMAP_REFC_HANDLE *ref_handle;
+    HTABLE_INFO *client_info;
 
     /*
      * Sanity checks.
@@ -299,7 +329,7 @@ DICT   *dict_sockmap_open(const char *mapname, int open_flags, int dict_flags)
 			       DICT_TYPE_SOCKMAP, mapname));
 
     /*
-     * Split the socketmap name off the Postfix mapname.
+     * Separate the socketmap name from the socketmap server name.
      */
     saved_name = mystrdup(mapname);
     if ((sockmap = split_at_right(saved_name, ':')) == 0)
@@ -309,14 +339,24 @@ DICT   *dict_sockmap_open(const char *mapname, int open_flags, int dict_flags)
 			       DICT_TYPE_SOCKMAP));
 
     /*
-     * Instantiate the shared client handle.
+     * Use one reference-counted client handle for all socketmaps with the
+     * same inet:host:port or unix:pathname information.
      * 
      * XXX Todo: graceful degradation after endpoint syntax error.
      */
-    if (dict_sockmap_refcount == 0)
-	dict_sockmap_clnt = auto_clnt_create(saved_name, dict_sockmap_timeout,
-			       dict_sockmap_max_idle, dict_sockmap_max_ttl);
-    dict_sockmap_refcount += 1;
+    if (dict_sockmap_handles == 0)
+	dict_sockmap_handles = htable_create(1);
+    if ((client_info = htable_locate(dict_sockmap_handles, saved_name)) == 0) {
+	ref_handle = (DICT_SOCKMAP_REFC_HANDLE *) mymalloc(sizeof(*ref_handle));
+	client_info = htable_enter(dict_sockmap_handles,
+				   saved_name, (char *) ref_handle);
+	/* XXX Late initialization, so we can reuse macros for consistency. */
+	DICT_SOCKMAP_RH_REFCOUNT(client_info) = 1;
+	DICT_SOCKMAP_RH_HANDLE(client_info) =
+	    auto_clnt_create(saved_name, dict_sockmap_timeout,
+			     dict_sockmap_max_idle, dict_sockmap_max_ttl);
+    } else
+	DICT_SOCKMAP_RH_REFCOUNT(client_info) += 1;
 
     /*
      * Instantiate a socket map handle.
@@ -324,6 +364,7 @@ DICT   *dict_sockmap_open(const char *mapname, int open_flags, int dict_flags)
     dp = (DICT_SOCKMAP *) dict_alloc(DICT_TYPE_SOCKMAP, mapname, sizeof(*dp));
     dp->rdwr_buf = vstring_alloc(100);
     dp->sockmap_name = mystrdup(sockmap);
+    dp->client_info = client_info;
     dp->dict.lookup = dict_sockmap_lookup;
     dp->dict.close = dict_sockmap_close;
     /* Don't look up parent domains or network superblocks. */

@@ -1080,6 +1080,7 @@ dict_sockmap.o: auto_clnt.h
 dict_sockmap.o: dict.h
 dict_sockmap.o: dict_sockmap.c
 dict_sockmap.o: dict_sockmap.h
+dict_sockmap.o: htable.h
 dict_sockmap.o: msg.h
 dict_sockmap.o: mymalloc.h
 dict_sockmap.o: netstring.h
