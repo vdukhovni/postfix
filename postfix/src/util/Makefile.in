@@ -859,6 +859,7 @@ dict.o: line_number.h
 dict.o: mac_expand.h
 dict.o: mac_parse.h
 dict.o: msg.h
+dict.o: myflock.h
 dict.o: mymalloc.h
 dict.o: name_mask.h
 dict.o: readlline.h
@@ -872,6 +873,7 @@ dict_alloc.o: argv.h
 dict_alloc.o: dict.h
 dict_alloc.o: dict_alloc.c
 dict_alloc.o: msg.h
+dict_alloc.o: myflock.h
 dict_alloc.o: mymalloc.h
 dict_alloc.o: sys_defs.h
 dict_alloc.o: vbuf.h
@@ -883,6 +885,7 @@ dict_cache.o: dict_cache.c
 dict_cache.o: dict_cache.h
 dict_cache.o: events.h
 dict_cache.o: msg.h
+dict_cache.o: myflock.h
 dict_cache.o: mymalloc.h
 dict_cache.o: sys_defs.h
 dict_cache.o: vbuf.h
@@ -909,6 +912,7 @@ dict_cidr.o: dict_cidr.c
 dict_cidr.o: dict_cidr.h
 dict_cidr.o: msg.h
 dict_cidr.o: myaddrinfo.h
+dict_cidr.o: myflock.h
 dict_cidr.o: mymalloc.h
 dict_cidr.o: readlline.h
 dict_cidr.o: stringops.h
@@ -937,6 +941,7 @@ dict_debug.o: argv.h
 dict_debug.o: dict.h
 dict_debug.o: dict_debug.c
 dict_debug.o: msg.h
+dict_debug.o: myflock.h
 dict_debug.o: mymalloc.h
 dict_debug.o: sys_defs.h
 dict_debug.o: vbuf.h
@@ -947,6 +952,7 @@ dict_env.o: dict.h
 dict_env.o: dict_env.c
 dict_env.o: dict_env.h
 dict_env.o: msg.h
+dict_env.o: myflock.h
 dict_env.o: mymalloc.h
 dict_env.o: safe.h
 dict_env.o: stringops.h
@@ -959,6 +965,7 @@ dict_fail.o: dict.h
 dict_fail.o: dict_fail.c
 dict_fail.o: dict_fail.h
 dict_fail.o: msg.h
+dict_fail.o: myflock.h
 dict_fail.o: mymalloc.h
 dict_fail.o: sys_defs.h
 dict_fail.o: vbuf.h
@@ -969,6 +976,7 @@ dict_ht.o: dict.h
 dict_ht.o: dict_ht.c
 dict_ht.o: dict_ht.h
 dict_ht.o: htable.h
+dict_ht.o: myflock.h
 dict_ht.o: mymalloc.h
 dict_ht.o: stringops.h
 dict_ht.o: sys_defs.h
@@ -982,6 +990,7 @@ dict_nis.o: dict.h
 dict_nis.o: dict_nis.c
 dict_nis.o: dict_nis.h
 dict_nis.o: msg.h
+dict_nis.o: myflock.h
 dict_nis.o: mymalloc.h
 dict_nis.o: stringops.h
 dict_nis.o: sys_defs.h
@@ -993,6 +1002,7 @@ dict_nisplus.o: dict.h
 dict_nisplus.o: dict_nisplus.c
 dict_nisplus.o: dict_nisplus.h
 dict_nisplus.o: msg.h
+dict_nisplus.o: myflock.h
 dict_nisplus.o: mymalloc.h
 dict_nisplus.o: stringops.h
 dict_nisplus.o: sys_defs.h
@@ -1036,6 +1046,7 @@ dict_pcre.o: dict_pcre.c
 dict_pcre.o: dict_pcre.h
 dict_pcre.o: mac_parse.h
 dict_pcre.o: msg.h
+dict_pcre.o: myflock.h
 dict_pcre.o: mymalloc.h
 dict_pcre.o: readlline.h
 dict_pcre.o: safe.h
@@ -1051,6 +1062,7 @@ dict_regexp.o: dict_regexp.c
 dict_regexp.o: dict_regexp.h
 dict_regexp.o: mac_parse.h
 dict_regexp.o: msg.h
+dict_regexp.o: myflock.h
 dict_regexp.o: mymalloc.h
 dict_regexp.o: readlline.h
 dict_regexp.o: safe.h
@@ -1082,6 +1094,7 @@ dict_sockmap.o: dict_sockmap.c
 dict_sockmap.o: dict_sockmap.h
 dict_sockmap.o: htable.h
 dict_sockmap.o: msg.h
+dict_sockmap.o: myflock.h
 dict_sockmap.o: mymalloc.h
 dict_sockmap.o: netstring.h
 dict_sockmap.o: split_at.h
@@ -1095,6 +1108,7 @@ dict_static.o: dict.h
 dict_static.o: dict_static.c
 dict_static.o: dict_static.h
 dict_static.o: msg.h
+dict_static.o: myflock.h
 dict_static.o: mymalloc.h
 dict_static.o: sys_defs.h
 dict_static.o: vbuf.h
@@ -1104,6 +1118,7 @@ dict_surrogate.o: argv.h
 dict_surrogate.o: dict.h
 dict_surrogate.o: dict_surrogate.c
 dict_surrogate.o: msg.h
+dict_surrogate.o: myflock.h
 dict_surrogate.o: mymalloc.h
 dict_surrogate.o: sys_defs.h
 dict_surrogate.o: vbuf.h
@@ -1117,6 +1132,7 @@ dict_tcp.o: dict_tcp.h
 dict_tcp.o: hex_quote.h
 dict_tcp.o: iostuff.h
 dict_tcp.o: msg.h
+dict_tcp.o: myflock.h
 dict_tcp.o: mymalloc.h
 dict_tcp.o: stringops.h
 dict_tcp.o: sys_defs.h
@@ -1129,6 +1145,7 @@ dict_test.o: dict.h
 dict_test.o: dict_test.c
 dict_test.o: msg.h
 dict_test.o: msg_vstream.h
+dict_test.o: myflock.h
 dict_test.o: stringops.h
 dict_test.o: sys_defs.h
 dict_test.o: vbuf.h
@@ -1142,6 +1159,7 @@ dict_thash.o: dict_thash.h
 dict_thash.o: htable.h
 dict_thash.o: iostuff.h
 dict_thash.o: msg.h
+dict_thash.o: myflock.h
 dict_thash.o: mymalloc.h
 dict_thash.o: readlline.h
 dict_thash.o: stringops.h
@@ -1155,6 +1173,7 @@ dict_unix.o: dict.h
 dict_unix.o: dict_unix.c
 dict_unix.o: dict_unix.h
 dict_unix.o: msg.h
+dict_unix.o: myflock.h
 dict_unix.o: mymalloc.h
 dict_unix.o: stringops.h
 dict_unix.o: sys_defs.h
@@ -1438,6 +1457,7 @@ match_list.o: dict.h
 match_list.o: match_list.c
 match_list.o: match_list.h
 match_list.o: msg.h
+match_list.o: myflock.h
 match_list.o: mymalloc.h
 match_list.o: stringops.h
 match_list.o: sys_defs.h
@@ -1452,6 +1472,7 @@ match_ops.o: match_list.h
 match_ops.o: match_ops.c
 match_ops.o: msg.h
 match_ops.o: myaddrinfo.h
+match_ops.o: myflock.h
 match_ops.o: mymalloc.h
 match_ops.o: split_at.h
 match_ops.o: stringops.h

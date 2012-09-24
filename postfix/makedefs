@@ -204,8 +204,9 @@ case "$SYSTEM.$RELEASE" in
 		    5.[0-7]|5.[0-7].*) CCARGS="$CCARGS -DNO_IPV6 -DNO_DEVPOLL";;
 		esac
 		# Solaris 9 added closefrom(), futimesat() and /dev/*random
+		# and appears to have solid UNIX-domain sockets.
 		case $RELEASE in
-		    5.[0-8]|5.[0-8].*) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM -DNO_FUTIMESAT";;
+		    5.[0-8]|5.[0-8].*) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM -DNO_FUTIMESAT -DSTREAM_CONNECTIONS";;
 		esac
 		# Work around broken str*casecmp(). Do it all here instead
 		# of having half the solution in the sys_defs.h file.

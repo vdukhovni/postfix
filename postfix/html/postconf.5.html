@@ -1204,9 +1204,10 @@ enabled with the <a href="postconf.5.html#notify_classes">notify_classes</a> par
 (default: 5d)</b></DT><DD>
 
 <p>
-The maximal time a bounce message is queued before it is considered
-undeliverable.  By default, this is the same as the queue life time
-for regular mail.
+Consider a bounce message as undeliverable, when delivery fails
+with a temporary error, and the time in the queue has reached the
+<a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a> limit.  By default, this limit is the same
+as for regular mail.
 </p>
 
 <p>
@@ -2019,9 +2020,24 @@ is the <a href="master.5.html">master.cf</a> name of the message delivery transp
 (default: 0s)</b></DT><DD>
 
 <p> The default amount of delay that is inserted between individual
-deliveries to the same destination; with per-destination recipient
-limit &gt; 1, a destination is a domain, otherwise it is a recipient.
+deliveries to the same destination; the resulting behavior depends
+on the value of the corresponding per-destination recipient limit.
 </p>
+
+<ul>
+
+<li> <p> With a corresponding per-destination recipient limit &gt;
+1, the rate delay specifies the time between deliveries to the
+<i>same domain</i>.  Different domains are delivered in parallel,
+subject to the process limits specified in <a href="master.5.html">master.cf</a>. </p>
+
+<li> <p> With a corresponding per-destination recipient limit equal
+to 1, the rate delay specifies the time between deliveries to the
+<i>same recipient</i>. Different recipients are delivered in
+parallel, subject to the process limits specified in <a href="master.5.html">master.cf</a>.
+</p>
+
+</ul>
 
 <p> To enable the delay, specify a non-zero time value (an integral
 value plus an optional one-letter suffix that specifies the time
@@ -2059,9 +2075,29 @@ This is the default limit for delivery via the <a href="lmtp.8.html">lmtp(8)</a>
 <a href="smtp.8.html">smtp(8)</a> and <a href="virtual.8.html">virtual(8)</a> delivery agents.
 </p>
 
-<p> Setting this parameter to a value of 1 changes the meaning of
-the corresponding per-destination concurrency limit from concurrency
-per domain into concurrency per recipient.  </p>
+<p> Setting this parameter to a value of 1 affects email deliveries
+as follows:</p>
+
+<ul>
+
+<li> <p> It changes the meaning of the corresponding per-destination
+concurrency limit, from concurrency of deliveries to the <i>same
+domain</i> into concurrency of deliveries to the <i>same recipient</i>.
+Different recipients are delivered in parallel, subject to the
+process limits specified in <a href="master.5.html">master.cf</a>. </p>
+
+<li> <p> It changes the meaning of the corresponding per-destination
+rate delay, from the delay between deliveries to the <i>same
+domain</i> into the delay between deliveries to the <i>same
+recipient</i>.  Again, different recipients are delivered in parallel,
+subject to the process limits specified in <a href="master.5.html">master.cf</a>.  </p>
+
+<li> <p> It changes the meaning of other corresponding per-destination
+settings in a similar manner, from settings for delivery to the
+<i>same domain</i> into settings for delivery to the <i>same
+recipient</i>.
+
+</ul>
 
 <p> Use <a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> to specify a
 transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
@@ -5849,8 +5885,9 @@ The default time unit is s (seconds).
 (default: 5d)</b></DT><DD>
 
 <p>
-The maximal time a message is queued before it is sent back as
-undeliverable.
+Consider a message as undeliverable, when delivery fails with a
+temporary error, and the time in the queue has reached the
+<a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a> limit.
 </p>
 
 <p>
@@ -7717,6 +7754,26 @@ that connect only to backup MX addresses will never become whitelisted,
 and will never be allowed to talk to a Postfix SMTP server process.
 </p>
 
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. The netmask specifies the
+number of bits in the network part of a host address. Continue long
+lines by starting the next line with whitespace. </p>
+
+<p> You can also specify "/file/name" or "<a href="DATABASE_README.html">type:table</a>" patterns.  A
+"/file/name" pattern is replaced by its contents; a "<a href="DATABASE_README.html">type:table</a>"
+lookup table is matched when a table entry matches a lookup string
+(the lookup result is ignored). </p>
+
+<p> The list is matched left to right, and the search stops on the
+first match. Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+<p> Note: IP version 6 address information must be specified inside
+[] in the <a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> value, and in files
+specified with "/file/name".  IP version 6 addresses contain the
+":" character, and would otherwise be confused with a "<a href="DATABASE_README.html">type:table</a>"
+pattern. </p>
+
 <p> Example: </p>
 
 <pre>
@@ -7999,7 +8056,7 @@ The maximal number of messages in the <a href="QSHAPE_README.html#active_queue">
 (default: 20000)</b></DT><DD>
 
 <p> The maximal number of recipients held in memory by the Postfix
-queue manager, and the maximal size of the size of the short-term,
+queue manager, and the maximal size of the short-term,
 in-memory "dead" destination status cache.  </p>
 
 
@@ -9642,6 +9699,11 @@ parameter is called <a href="postconf.5.html#fallback_relay">fallback_relay</a>.
 By default, mail is returned to the sender when a destination is
 not found, and delivery is deferred when a destination is unreachable.
 </p>
+
+<p> With bulk email deliveries, it can be beneficial to run the
+fallback relay MTA on the same host, so that it can reuse the sender
+IP address.  This speeds up deliveries that are delayed by IP-based
+reputation systems (greylist, etc.). </p>
 
 <p> The fallback relays must be SMTP destinations. Specify a domain,
 host, host:port, [host]:port, [address] or [address]:port; the form
@@ -12565,7 +12627,7 @@ feature: </p>
 <pre>
     # Bounce-never mail sink. Use <a href="postconf.5.html#notify_classes">notify_classes</a>=bounce,resource,software
     # to send bounced mail to the postmaster (with message body removed).
-    /^(RCPT\s+TO:.*?)\bNOTIFY=\S+\b(.*)/ $1 NOTIFY=NEVER $2
+    /^(RCPT\s+TO:&lt;.*&gt;.*)\s+NOTIFY=\S+(.*)/ $1 NOTIFY=NEVER$2
     /^(RCPT\s+TO:.*)/                    $1 NOTIFY=NEVER
 </pre>
 

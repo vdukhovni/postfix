@@ -23,6 +23,13 @@
 /*	The purpose of the default methods is to trap an attempt to
 /*	invoke an unsupported method.
 /*
+/*	One exception is the default lock function.  When the
+/*	dictionary provides a file handle for locking, the default
+/*	lock function returns the result from myflock(), otherwise
+/*	it returns 0. The lock function is called to implement the
+/*	DICT_FLAG_OPEN_LOCK feature (lock database on open) when
+/*	a database is not multi-writer safe.
+/*
 /*	dict_free() releases memory and cleans up after dict_alloc().
 /*	It is up to the caller to dispose of any memory that was allocated
 /*	by the caller.
@@ -59,6 +66,7 @@
 
 #include "msg.h"
 #include "mymalloc.h"
+#include "myflock.h"
 #include "dict.h"
 
 /* dict_default_lookup - trap unimplemented operation */
@@ -95,6 +103,17 @@ static int dict_default_sequence(DICT *dict, int unused_function,
 	      dict->type, dict->name);
 }
 
+/* dict_default_lock - default lock handler */
+
+static int dict_default_lock(DICT *dict, int operation)
+{
+    if (dict->lock_fd >= 0) {
+	return (myflock(dict->lock_fd, INTERNAL_LOCK, operation));
+    } else {
+	return (0);
+    }
+}
+ 
 /* dict_default_close - trap unimplemented operation */
 
 static void dict_default_close(DICT *dict)
@@ -117,6 +136,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->delete = dict_default_delete;
     dict->sequence = dict_default_sequence;
     dict->close = dict_default_close;
+    dict->lock = dict_default_lock;
     dict->lock_fd = -1;
     dict->stat_fd = -1;
     dict->mtime = 0;

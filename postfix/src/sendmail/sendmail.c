@@ -175,12 +175,12 @@
 /*	\fBErrors-To:\fR message header overrides the error return address.
 /* .IP "\fB-R \fIreturn\fR"
 /*	Delivery status notification control.  Specify "hdrs" to
-/*	return only the header if a message bounces, "full" to
+/*	return only the header when a message bounces, "full" to
 /*	return a full copy (the default behavior).
 /*
-/*	The \fB-R\fR option specifies an upper bound; for example,
-/*	Postfix will return only the header, when a full copy would
-/*	exceed the bounce_size_limit setting.
+/*	The \fB-R\fR option specifies an upper bound; Postfix will
+/*	return only the header, when a full copy would exceed the
+/*	bounce_size_limit setting.
 /*
 /*	This option is ignored before Postfix version 2.10.
 /* .IP \fB-q\fR

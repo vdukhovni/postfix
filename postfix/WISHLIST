@@ -9,6 +9,32 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	Make "rename" the default when postmapping a DB file
+	(later: use copy+rename for postmap -i, postmap -d).
+
+	On most systems, switching the qmgr and pickup services
+	from "fifo" to "unix" endpoints can avoid disk spin-up due
+	to mtime changes.  However, Postfix on Solaris emulates
+	UNIX-domain sockets by sending a file handle through a FIFO.
+	Either we need to a) find out if a Solaris FIFO is a "unix"
+	or "fifo" endpoint (parsing master.cf is not an option for
+	chrooted daemons), or b) silently implement a Solaris "fifo"
+	endpoint as if master.cf says "unix", so that all Solaris
+	FIFOs are emulated UNIX-domain endpoints. Or, we bite the
+	bullet and stop emulating UNIX-domain onver FIFOs.
+
+	Service-name parameters aren't documented in daemon manpages.
+
+	When faking up the DSN ORCPT, don't send bare usernames
+	from local command-line submission.
+
+	lmtp_assume_final is broken. A 2XX response does not imply
+	final delivery. The Sieve language implements accept-then-bounce.
+
+	postscreen event-driven plug-in interface to send out a
+	query in parallel with the Pregreet and DNSBL tests, using
+	a simplified version of the policy delegation protocol.
+
 	Parallelized queue preprocessing: rip out the queue manager
 	code to read queue files and resolve recipients, and run
 	it in parallel processes. The queue manager then processes
@@ -18,13 +44,12 @@ Wish list:
 	compared to hundreds of mail receiving or sending processes
 	(especially if there is a way to scan the queue in parallel).
 
-	mem_pool module for frequently-allocated objects
-	such as postscreen VSTRINGS and STATE objects.
-	Operations: create, put, get, maybe destroy.
-	Call-backs: init, reset, and maybe destroy.
-
-	Make "rename" the default when postmapping a DB file
-	(later: use copy+rename for postmap -i, postmap -d).
+	Memory pools for same-type memory objects.  This can be
+	used to either increase memory locality for frequently-allocated
+	objects (MRU allocation) or to make use-after-free bugs
+	more detectable (use LRU allocation and wipe the object
+	immediately after free().  Finally, same-type memory pools
+	prevent object type errors with use-after-free bugs.
 
 	"no-cache" option for selected postscreen tests?
 
@@ -42,20 +67,6 @@ Wish list:
 
 	Replace master(8) SIGHUP by very simple socket protocol to
 	allow reload of a specific service.
-
-	Make the "trigger" service endpoint type configurable.  On
-	non-Solaris systems, switching from fifo to unix can avoid
-	disk spin-up due to mtime changes (Postfix on Solaris
-	emulates UNIX-domain sockets by sending a file handle through
-	a FIFO).
-
-	Service-name parameters aren't documented in daemon manpages.
-
-	When faking up the DSN ORCPT, don't send bare usernames
-	from local command-line submission.
-
-	lmtp_assume_final is broken. A 2XX response does not imply
-	final delivery. The Sieve language implements accept-then-bounce.
 
 	postscreen: in the dummy SMTP engine, log the protocol state
 	at time of violation (like smtpd, set state->where initially

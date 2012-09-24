@@ -429,13 +429,14 @@ extern int opterr;
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
 #define INT_MAX_IN_LIMITS_H
-#define STREAM_CONNECTIONS		/* avoid UNIX-domain sockets */
+#ifdef STREAM_CONNECTIONS		/* avoid UNIX-domain sockets */
 #define LOCAL_LISTEN	stream_listen
 #define LOCAL_ACCEPT	stream_accept
 #define LOCAL_CONNECT	stream_connect
 #define LOCAL_TRIGGER	stream_trigger
 #define LOCAL_SEND_FD	stream_send_fd
 #define LOCAL_RECV_FD	stream_recv_fd
+#endif
 #define HAS_VOLATILE_LOCKS
 #define BROKEN_READ_SELECT_ON_TCP_SOCKET
 #define CANT_WRITE_BEFORE_SENDING_FD

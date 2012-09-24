@@ -29,17 +29,17 @@
 # .fi
 #	The general format of the master.cf file is as follows:
 # .IP \(bu
-#	Each logical line defines a single Postfix service.
-#	Each service is identified by its name and type as described
-#	below.  When multiple lines specify the same service name
-#	and type, only the last one is remembered.  Otherwise, the
-#	order of master.cf service definitions does not matter.
-# .IP \(bu
 #	Empty lines and whitespace-only lines are ignored, as are
 #	lines whose first non-whitespace character is a `#'.
 # .IP \(bu
 #	A logical line starts with non-whitespace text. A line that
 #	starts with whitespace continues a logical line.
+# .IP \(bu
+#	Each logical line defines a single Postfix service.
+#	Each service is identified by its name and type as described
+#	below.  When multiple lines specify the same service name
+#	and type, only the last one is remembered.  Otherwise, the
+#	order of master.cf service definitions does not matter.
 # .PP
 #	Each logical line consists of eight fields separated by
 #	whitespace.  These are described below in the order as they

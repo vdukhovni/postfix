@@ -180,6 +180,7 @@ smtpd.o: ../../include/match_list.h
 smtpd.o: ../../include/milter.h
 smtpd.o: ../../include/msg.h
 smtpd.o: ../../include/myaddrinfo.h
+smtpd.o: ../../include/myflock.h
 smtpd.o: ../../include/mymalloc.h
 smtpd.o: ../../include/namadr_list.h
 smtpd.o: ../../include/name_code.h
@@ -289,6 +290,7 @@ smtpd_check.o: ../../include/milter.h
 smtpd_check.o: ../../include/msg.h
 smtpd_check.o: ../../include/msg_stats.h
 smtpd_check.o: ../../include/myaddrinfo.h
+smtpd_check.o: ../../include/myflock.h
 smtpd_check.o: ../../include/mymalloc.h
 smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/name_code.h

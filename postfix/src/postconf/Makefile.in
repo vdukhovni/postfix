@@ -467,6 +467,7 @@ postconf.o: ../../include/mail_run.h
 postconf.o: ../../include/mail_version.h
 postconf.o: ../../include/msg.h
 postconf.o: ../../include/msg_vstream.h
+postconf.o: ../../include/myflock.h
 postconf.o: ../../include/name_mask.h
 postconf.o: ../../include/stringops.h
 postconf.o: ../../include/sys_defs.h
@@ -489,6 +490,7 @@ postconf_builtin.o: ../../include/mail_params.h
 postconf_builtin.o: ../../include/mail_proto.h
 postconf_builtin.o: ../../include/mail_version.h
 postconf_builtin.o: ../../include/msg.h
+postconf_builtin.o: ../../include/myflock.h
 postconf_builtin.o: ../../include/mymalloc.h
 postconf_builtin.o: ../../include/mynetworks.h
 postconf_builtin.o: ../../include/server_acl.h
@@ -529,6 +531,7 @@ postconf_dbms.o: ../../include/htable.h
 postconf_dbms.o: ../../include/mac_expand.h
 postconf_dbms.o: ../../include/mac_parse.h
 postconf_dbms.o: ../../include/mail_conf.h
+postconf_dbms.o: ../../include/myflock.h
 postconf_dbms.o: ../../include/split_at.h
 postconf_dbms.o: ../../include/stringops.h
 postconf_dbms.o: ../../include/sys_defs.h
@@ -543,6 +546,7 @@ postconf_edit.o: ../../include/edit_file.h
 postconf_edit.o: ../../include/htable.h
 postconf_edit.o: ../../include/mail_params.h
 postconf_edit.o: ../../include/msg.h
+postconf_edit.o: ../../include/myflock.h
 postconf_edit.o: ../../include/mymalloc.h
 postconf_edit.o: ../../include/readlline.h
 postconf_edit.o: ../../include/stringops.h
@@ -559,6 +563,7 @@ postconf_main.o: ../../include/htable.h
 postconf_main.o: ../../include/mail_conf.h
 postconf_main.o: ../../include/mail_params.h
 postconf_main.o: ../../include/msg.h
+postconf_main.o: ../../include/myflock.h
 postconf_main.o: ../../include/mymalloc.h
 postconf_main.o: ../../include/readlline.h
 postconf_main.o: ../../include/stringops.h
@@ -574,6 +579,7 @@ postconf_master.o: ../../include/htable.h
 postconf_master.o: ../../include/mail_params.h
 postconf_master.o: ../../include/match_service.h
 postconf_master.o: ../../include/msg.h
+postconf_master.o: ../../include/myflock.h
 postconf_master.o: ../../include/mymalloc.h
 postconf_master.o: ../../include/readlline.h
 postconf_master.o: ../../include/stringops.h
@@ -588,6 +594,7 @@ postconf_misc.o: ../../include/dict.h
 postconf_misc.o: ../../include/htable.h
 postconf_misc.o: ../../include/mail_conf.h
 postconf_misc.o: ../../include/mail_params.h
+postconf_misc.o: ../../include/myflock.h
 postconf_misc.o: ../../include/mymalloc.h
 postconf_misc.o: ../../include/safe.h
 postconf_misc.o: ../../include/sys_defs.h
@@ -600,6 +607,7 @@ postconf_node.o: ../../include/argv.h
 postconf_node.o: ../../include/dict.h
 postconf_node.o: ../../include/htable.h
 postconf_node.o: ../../include/msg.h
+postconf_node.o: ../../include/myflock.h
 postconf_node.o: ../../include/mymalloc.h
 postconf_node.o: ../../include/sys_defs.h
 postconf_node.o: ../../include/vbuf.h
@@ -611,6 +619,7 @@ postconf_other.o: ../../include/argv.h
 postconf_other.o: ../../include/dict.h
 postconf_other.o: ../../include/htable.h
 postconf_other.o: ../../include/mbox_conf.h
+postconf_other.o: ../../include/myflock.h
 postconf_other.o: ../../include/sys_defs.h
 postconf_other.o: ../../include/vbuf.h
 postconf_other.o: ../../include/vstream.h
@@ -623,6 +632,7 @@ postconf_service.o: ../../include/dict.h
 postconf_service.o: ../../include/htable.h
 postconf_service.o: ../../include/mail_params.h
 postconf_service.o: ../../include/msg.h
+postconf_service.o: ../../include/myflock.h
 postconf_service.o: ../../include/mymalloc.h
 postconf_service.o: ../../include/stringops.h
 postconf_service.o: ../../include/sys_defs.h
@@ -637,6 +647,7 @@ postconf_unused.o: ../../include/htable.h
 postconf_unused.o: ../../include/mail_conf.h
 postconf_unused.o: ../../include/mail_params.h
 postconf_unused.o: ../../include/msg.h
+postconf_unused.o: ../../include/myflock.h
 postconf_unused.o: ../../include/sys_defs.h
 postconf_unused.o: ../../include/vbuf.h
 postconf_unused.o: ../../include/vstream.h
@@ -651,6 +662,7 @@ postconf_user.o: ../../include/mac_parse.h
 postconf_user.o: ../../include/mail_conf.h
 postconf_user.o: ../../include/mail_params.h
 postconf_user.o: ../../include/msg.h
+postconf_user.o: ../../include/myflock.h
 postconf_user.o: ../../include/mymalloc.h
 postconf_user.o: ../../include/stringops.h
 postconf_user.o: ../../include/sys_defs.h

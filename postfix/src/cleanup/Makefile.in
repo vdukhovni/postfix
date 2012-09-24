@@ -543,6 +543,7 @@ cleanup.o: ../../include/match_list.h
 cleanup.o: ../../include/milter.h
 cleanup.o: ../../include/mime_state.h
 cleanup.o: ../../include/msg.h
+cleanup.o: ../../include/myflock.h
 cleanup.o: ../../include/mymalloc.h
 cleanup.o: ../../include/nvtable.h
 cleanup.o: ../../include/rec_type.h
@@ -579,6 +580,7 @@ cleanup_addr.o: ../../include/match_list.h
 cleanup_addr.o: ../../include/milter.h
 cleanup_addr.o: ../../include/mime_state.h
 cleanup_addr.o: ../../include/msg.h
+cleanup_addr.o: ../../include/myflock.h
 cleanup_addr.o: ../../include/mymalloc.h
 cleanup_addr.o: ../../include/nvtable.h
 cleanup_addr.o: ../../include/rec_type.h
@@ -618,6 +620,7 @@ cleanup_api.o: ../../include/milter.h
 cleanup_api.o: ../../include/mime_state.h
 cleanup_api.o: ../../include/msg.h
 cleanup_api.o: ../../include/msg_stats.h
+cleanup_api.o: ../../include/myflock.h
 cleanup_api.o: ../../include/mymalloc.h
 cleanup_api.o: ../../include/nvtable.h
 cleanup_api.o: ../../include/rec_type.h
@@ -647,6 +650,7 @@ cleanup_body_edit.o: ../../include/match_list.h
 cleanup_body_edit.o: ../../include/milter.h
 cleanup_body_edit.o: ../../include/mime_state.h
 cleanup_body_edit.o: ../../include/msg.h
+cleanup_body_edit.o: ../../include/myflock.h
 cleanup_body_edit.o: ../../include/mymalloc.h
 cleanup_body_edit.o: ../../include/nvtable.h
 cleanup_body_edit.o: ../../include/rec_type.h
@@ -686,6 +690,7 @@ cleanup_bounce.o: ../../include/milter.h
 cleanup_bounce.o: ../../include/mime_state.h
 cleanup_bounce.o: ../../include/msg.h
 cleanup_bounce.o: ../../include/msg_stats.h
+cleanup_bounce.o: ../../include/myflock.h
 cleanup_bounce.o: ../../include/mymalloc.h
 cleanup_bounce.o: ../../include/nvtable.h
 cleanup_bounce.o: ../../include/rec_attr_map.h
@@ -721,6 +726,7 @@ cleanup_envelope.o: ../../include/match_list.h
 cleanup_envelope.o: ../../include/milter.h
 cleanup_envelope.o: ../../include/mime_state.h
 cleanup_envelope.o: ../../include/msg.h
+cleanup_envelope.o: ../../include/myflock.h
 cleanup_envelope.o: ../../include/mymalloc.h
 cleanup_envelope.o: ../../include/nvtable.h
 cleanup_envelope.o: ../../include/qmgr_user.h
@@ -758,6 +764,7 @@ cleanup_extracted.o: ../../include/match_list.h
 cleanup_extracted.o: ../../include/milter.h
 cleanup_extracted.o: ../../include/mime_state.h
 cleanup_extracted.o: ../../include/msg.h
+cleanup_extracted.o: ../../include/myflock.h
 cleanup_extracted.o: ../../include/mymalloc.h
 cleanup_extracted.o: ../../include/nvtable.h
 cleanup_extracted.o: ../../include/qmgr_user.h
@@ -790,6 +797,7 @@ cleanup_final.o: ../../include/match_list.h
 cleanup_final.o: ../../include/milter.h
 cleanup_final.o: ../../include/mime_state.h
 cleanup_final.o: ../../include/msg.h
+cleanup_final.o: ../../include/myflock.h
 cleanup_final.o: ../../include/mymalloc.h
 cleanup_final.o: ../../include/nvtable.h
 cleanup_final.o: ../../include/rec_type.h
@@ -824,6 +832,7 @@ cleanup_init.o: ../../include/match_list.h
 cleanup_init.o: ../../include/milter.h
 cleanup_init.o: ../../include/mime_state.h
 cleanup_init.o: ../../include/msg.h
+cleanup_init.o: ../../include/myflock.h
 cleanup_init.o: ../../include/mymalloc.h
 cleanup_init.o: ../../include/name_mask.h
 cleanup_init.o: ../../include/nvtable.h
@@ -854,6 +863,7 @@ cleanup_map11.o: ../../include/match_list.h
 cleanup_map11.o: ../../include/milter.h
 cleanup_map11.o: ../../include/mime_state.h
 cleanup_map11.o: ../../include/msg.h
+cleanup_map11.o: ../../include/myflock.h
 cleanup_map11.o: ../../include/mymalloc.h
 cleanup_map11.o: ../../include/nvtable.h
 cleanup_map11.o: ../../include/quote_822_local.h
@@ -885,6 +895,7 @@ cleanup_map1n.o: ../../include/match_list.h
 cleanup_map1n.o: ../../include/milter.h
 cleanup_map1n.o: ../../include/mime_state.h
 cleanup_map1n.o: ../../include/msg.h
+cleanup_map1n.o: ../../include/myflock.h
 cleanup_map1n.o: ../../include/mymalloc.h
 cleanup_map1n.o: ../../include/nvtable.h
 cleanup_map1n.o: ../../include/quote_822_local.h
@@ -915,6 +926,7 @@ cleanup_masquerade.o: ../../include/match_list.h
 cleanup_masquerade.o: ../../include/milter.h
 cleanup_masquerade.o: ../../include/mime_state.h
 cleanup_masquerade.o: ../../include/msg.h
+cleanup_masquerade.o: ../../include/myflock.h
 cleanup_masquerade.o: ../../include/mymalloc.h
 cleanup_masquerade.o: ../../include/nvtable.h
 cleanup_masquerade.o: ../../include/quote_822_local.h
@@ -955,6 +967,7 @@ cleanup_message.o: ../../include/match_list.h
 cleanup_message.o: ../../include/milter.h
 cleanup_message.o: ../../include/mime_state.h
 cleanup_message.o: ../../include/msg.h
+cleanup_message.o: ../../include/myflock.h
 cleanup_message.o: ../../include/mymalloc.h
 cleanup_message.o: ../../include/nvtable.h
 cleanup_message.o: ../../include/quote_822_local.h
@@ -994,6 +1007,7 @@ cleanup_milter.o: ../../include/match_list.h
 cleanup_milter.o: ../../include/milter.h
 cleanup_milter.o: ../../include/mime_state.h
 cleanup_milter.o: ../../include/msg.h
+cleanup_milter.o: ../../include/myflock.h
 cleanup_milter.o: ../../include/mymalloc.h
 cleanup_milter.o: ../../include/nvtable.h
 cleanup_milter.o: ../../include/off_cvt.h
@@ -1030,6 +1044,7 @@ cleanup_out.o: ../../include/match_list.h
 cleanup_out.o: ../../include/milter.h
 cleanup_out.o: ../../include/mime_state.h
 cleanup_out.o: ../../include/msg.h
+cleanup_out.o: ../../include/myflock.h
 cleanup_out.o: ../../include/mymalloc.h
 cleanup_out.o: ../../include/nvtable.h
 cleanup_out.o: ../../include/rec_type.h
@@ -1070,6 +1085,7 @@ cleanup_out_recipient.o: ../../include/milter.h
 cleanup_out_recipient.o: ../../include/mime_state.h
 cleanup_out_recipient.o: ../../include/msg.h
 cleanup_out_recipient.o: ../../include/msg_stats.h
+cleanup_out_recipient.o: ../../include/myflock.h
 cleanup_out_recipient.o: ../../include/mymalloc.h
 cleanup_out_recipient.o: ../../include/nvtable.h
 cleanup_out_recipient.o: ../../include/rec_type.h
@@ -1100,6 +1116,7 @@ cleanup_region.o: ../../include/match_list.h
 cleanup_region.o: ../../include/milter.h
 cleanup_region.o: ../../include/mime_state.h
 cleanup_region.o: ../../include/msg.h
+cleanup_region.o: ../../include/myflock.h
 cleanup_region.o: ../../include/mymalloc.h
 cleanup_region.o: ../../include/nvtable.h
 cleanup_region.o: ../../include/resolve_clnt.h
@@ -1130,6 +1147,7 @@ cleanup_rewrite.o: ../../include/match_list.h
 cleanup_rewrite.o: ../../include/milter.h
 cleanup_rewrite.o: ../../include/mime_state.h
 cleanup_rewrite.o: ../../include/msg.h
+cleanup_rewrite.o: ../../include/myflock.h
 cleanup_rewrite.o: ../../include/mymalloc.h
 cleanup_rewrite.o: ../../include/nvtable.h
 cleanup_rewrite.o: ../../include/quote_822_local.h
@@ -1162,6 +1180,7 @@ cleanup_state.o: ../../include/maps.h
 cleanup_state.o: ../../include/match_list.h
 cleanup_state.o: ../../include/milter.h
 cleanup_state.o: ../../include/mime_state.h
+cleanup_state.o: ../../include/myflock.h
 cleanup_state.o: ../../include/mymalloc.h
 cleanup_state.o: ../../include/nvtable.h
 cleanup_state.o: ../../include/resolve_clnt.h

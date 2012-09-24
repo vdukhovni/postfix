@@ -3378,14 +3378,6 @@ extern char *var_psc_barlf_action;
 #define DEF_PSC_BARLF_TTL	"30d"
 extern int var_psc_barlf_ttl;
 
-#define VAR_PSC_WLIST_NETS	"postscreen_whitelist_networks"
-#define DEF_PSC_WLIST_NETS	"$" VAR_MYNETWORKS
-extern char *var_psc_wlist_nets;
-
-#define VAR_PSC_BLIST_NETS	"postscreen_blacklist_networks"
-#define DEF_PSC_BLIST_NETS	""
-extern char *var_psc_blist_nets;
-
 #define VAR_PSC_BLIST_ACTION	"postscreen_blacklist_action"
 #define DEF_PSC_BLIST_ACTION	"ignore"
 extern char *var_psc_blist_nets;

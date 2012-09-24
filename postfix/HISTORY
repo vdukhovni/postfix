@@ -17941,3 +17941,40 @@ Apologies for any names omitted.
 	Cleanup (for change 20120824): the DSN RET attribute should
 	not be stored once per recipient. It is a message property
 	just like DSN ENVID.  File: sendmail/sendmail.c.
+
+20120911
+
+	Documentation: more explicit enumeration of what happens
+	when setting a per-destination recipient limit value to 1.
+	File: proto/postconf.proto.
+
+20120918
+
+	Documentation: clarified the bounce/queue_life-time parameter
+	descriptions. File: proto/postconf.proto.
+
+20120920
+
+	Documentation: the postscreen_whitelist_interfaces parameter
+	syntax was defined only by example. File: proto/postconf.proto.
+
+20120923
+
+	Infrastructure: cleaned up the support for database
+	lock-on-open. This is needed for databases that are not
+	multi-updater safe.  Files: util/dict_alloc.c, util/dict.c,
+	util/dict_open.c, util/dict.h.  tls/tls_scache.c.
+
+20120924
+
+	Documentation: some people are read-challenged distribute
+	their own incorrect understanding of master.cf syntax.
+	File: proto/master.
+
+	Cleanup: don't emulate UNIX-domain sockets over FIFOs on
+	Solaris systems less than 10 years old. This allows us to
+	globally s/fifo/unix/ in master.cf.  Files: makedefs,
+	util/sys_defs.h.
+
+	Laptop-friendliness: avoid disk spin-up on idle systems by
+	s/fifo/unix/ in master.cf.  Files: conf/master.cf.

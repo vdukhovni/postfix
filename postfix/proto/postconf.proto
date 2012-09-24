@@ -731,9 +731,10 @@ This feature is available in Postfix 2.0 and later.
 %PARAM bounce_queue_lifetime 5d
 
 <p>
-The maximal time a bounce message is queued before it is considered
-undeliverable.  By default, this is the same as the queue life time
-for regular mail.
+Consider a bounce message as undeliverable, when delivery fails
+with a temporary error, and the time in the queue has reached the
+bounce_queue_lifetime limit.  By default, this limit is the same
+as for regular mail.
 </p>
 
 <p>
@@ -1010,9 +1011,29 @@ This is the default limit for delivery via the lmtp(8), pipe(8),
 smtp(8) and virtual(8) delivery agents.
 </p>
 
-<p> Setting this parameter to a value of 1 changes the meaning of
-the corresponding per-destination concurrency limit from concurrency
-per domain into concurrency per recipient.  </p>
+<p> Setting this parameter to a value of 1 affects email deliveries
+as follows:</p>
+
+<ul>
+
+<li> <p> It changes the meaning of the corresponding per-destination
+concurrency limit, from concurrency of deliveries to the <i>same
+domain</i> into concurrency of deliveries to the <i>same recipient</i>.
+Different recipients are delivered in parallel, subject to the
+process limits specified in master.cf. </p>
+
+<li> <p> It changes the meaning of the corresponding per-destination
+rate delay, from the delay between deliveries to the <i>same
+domain</i> into the delay between deliveries to the <i>same
+recipient</i>.  Again, different recipients are delivered in parallel,
+subject to the process limits specified in master.cf.  </p>
+
+<li> <p> It changes the meaning of other corresponding per-destination
+settings in a similar manner, from settings for delivery to the
+<i>same domain</i> into settings for delivery to the <i>same
+recipient</i>.
+
+</ul>
 
 <p> Use <i>transport</i>_destination_recipient_limit to specify a
 transport-specific override, where <i>transport</i> is the master.cf
@@ -1409,6 +1430,11 @@ parameter is called fallback_relay.  </p>
 By default, mail is returned to the sender when a destination is
 not found, and delivery is deferred when a destination is unreachable.
 </p>
+
+<p> With bulk email deliveries, it can be beneficial to run the
+fallback relay MTA on the same host, so that it can reuse the sender
+IP address.  This speeds up deliveries that are delayed by IP-based
+reputation systems (greylist, etc.). </p>
 
 <p> The fallback relays must be SMTP destinations. Specify a domain,
 host, host:port, [host]:port, [address] or [address]:port; the form
@@ -2784,8 +2810,9 @@ The default time unit is s (seconds).
 %PARAM maximal_queue_lifetime 5d
 
 <p>
-The maximal time a message is queued before it is sent back as
-undeliverable.
+Consider a message as undeliverable, when delivery fails with a
+temporary error, and the time in the queue has reached the
+maximal_queue_lifetime limit. 
 </p>
 
 <p>
@@ -3180,7 +3207,7 @@ The maximal number of messages in the active queue.
 %PARAM qmgr_message_recipient_limit 20000
 
 <p> The maximal number of recipients held in memory by the Postfix
-queue manager, and the maximal size of the size of the short-term,
+queue manager, and the maximal size of the short-term,
 in-memory "dead" destination status cache.  </p>
 
 %PARAM qmgr_message_recipient_minimum 10
@@ -12398,9 +12425,24 @@ this case: "_recipient_refill_delay").  </p>
 %PARAM default_destination_rate_delay 0s
 
 <p> The default amount of delay that is inserted between individual
-deliveries to the same destination; with per-destination recipient
-limit &gt; 1, a destination is a domain, otherwise it is a recipient.
+deliveries to the same destination; the resulting behavior depends
+on the value of the corresponding per-destination recipient limit.
 </p>
+
+<ul>
+
+<li> <p> With a corresponding per-destination recipient limit &gt;
+1, the rate delay specifies the time between deliveries to the
+<i>same domain</i>.  Different domains are delivered in parallel,
+subject to the process limits specified in master.cf. </p>
+
+<li> <p> With a corresponding per-destination recipient limit equal
+to 1, the rate delay specifies the time between deliveries to the
+<i>same recipient</i>. Different recipients are delivered in
+parallel, subject to the process limits specified in master.cf.
+</p>
+
+</ul>
 
 <p> To enable the delay, specify a non-zero time value (an integral
 value plus an optional one-letter suffix that specifies the time
@@ -13287,7 +13329,7 @@ feature: </p>
 <pre>
     # Bounce-never mail sink. Use notify_classes=bounce,resource,software 
     # to send bounced mail to the postmaster (with message body removed).
-    /^(RCPT\s+TO:.*?)\bNOTIFY=\S+\b(.*)/ $1 NOTIFY=NEVER $2
+    /^(RCPT\s+TO:&lt;.*&gt;.*)\s+NOTIFY=\S+(.*)/ $1 NOTIFY=NEVER$2
     /^(RCPT\s+TO:.*)/                    $1 NOTIFY=NEVER
 </pre>
 
@@ -14394,6 +14436,26 @@ can talk to a Postfix SMTP server on any address. Thus, clients
 that connect only to backup MX addresses will never become whitelisted,
 and will never be allowed to talk to a Postfix SMTP server process.
 </p>
+
+<p> Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. The netmask specifies the
+number of bits in the network part of a host address. Continue long
+lines by starting the next line with whitespace. </p>
+
+<p> You can also specify "/file/name" or "type:table" patterns.  A
+"/file/name" pattern is replaced by its contents; a "type:table"
+lookup table is matched when a table entry matches a lookup string
+(the lookup result is ignored). </p>
+
+<p> The list is matched left to right, and the search stops on the
+first match. Specify "!pattern" to exclude an address or network
+block from the list.  </p>
+
+<p> Note: IP version 6 address information must be specified inside
+[] in the postscreen_whitelist_interfaces value, and in files
+specified with "/file/name".  IP version 6 addresses contain the
+":" character, and would otherwise be confused with a "type:table"
+pattern. </p>
 
 <p> Example: </p>
 

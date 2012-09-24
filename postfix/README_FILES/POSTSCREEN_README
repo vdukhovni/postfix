@@ -93,11 +93,11 @@ focused on.
 
 GGeenneerraall ooppeerraattiioonn
 
-The postscreen(8) triage process involves a number of tests, in the order as
-described below. Some tests introduce a delay of a few seconds. postscreen(8)
-maintains a temporary whitelist for clients that pass its tests; by allowing
-whitelisted clients to skip tests, postscreen(8) minimizes its impact on
-legitimate email traffic.
+For each connection from an SMTP client, postscreen(8) performs a number of
+tests in the order as described below. Some tests introduce a delay of a few
+seconds. postscreen(8) maintains a temporary whitelist for clients that pass
+its tests; by allowing whitelisted clients to skip tests, postscreen(8)
+minimizes its impact on legitimate email traffic.
 
 By default, postscreen(8) hands off all connections to a Postfix SMTP server
 process after logging its findings. This mode is useful for non-destructive

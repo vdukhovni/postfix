@@ -683,9 +683,10 @@ of mail that Postfix did not deliver and of SMTP conversation
 transcripts of mail that Postfix did not receive.  This feature is
 enabled with the notify_classes parameter.
 .SH bounce_queue_lifetime (default: 5d)
-The maximal time a bounce message is queued before it is considered
-undeliverable.  By default, this is the same as the queue life time
-for regular mail.
+Consider a bounce message as undeliverable, when delivery fails
+with a temporary error, and the time in the queue has reached the
+bounce_queue_lifetime limit.  By default, this limit is the same
+as for regular mail.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
@@ -1177,8 +1178,18 @@ is the master.cf name of the message delivery transport.
 This feature is available in Postfix 2.5 and later.
 .SH default_destination_rate_delay (default: 0s)
 The default amount of delay that is inserted between individual
-deliveries to the same destination; with per-destination recipient
-limit > 1, a destination is a domain, otherwise it is a recipient.
+deliveries to the same destination; the resulting behavior depends
+on the value of the corresponding per-destination recipient limit.
+.IP \(bu
+With a corresponding per-destination recipient limit >
+1, the rate delay specifies the time between deliveries to the
+\fIsame domain\fR.  Different domains are delivered in parallel,
+subject to the process limits specified in master.cf.
+.IP \(bu
+With a corresponding per-destination recipient limit equal
+to 1, the rate delay specifies the time between deliveries to the
+\fIsame recipient\fR. Different recipients are delivered in
+parallel, subject to the process limits specified in master.cf.
 .PP
 To enable the delay, specify a non-zero time value (an integral
 value plus an optional one-letter suffix that specifies the time
@@ -1206,9 +1217,25 @@ The default maximal number of recipients per message delivery.
 This is the default limit for delivery via the \fBlmtp\fR(8), \fBpipe\fR(8),
 \fBsmtp\fR(8) and \fBvirtual\fR(8) delivery agents.
 .PP
-Setting this parameter to a value of 1 changes the meaning of
-the corresponding per-destination concurrency limit from concurrency
-per domain into concurrency per recipient.
+Setting this parameter to a value of 1 affects email deliveries
+as follows:
+.IP \(bu
+It changes the meaning of the corresponding per-destination
+concurrency limit, from concurrency of deliveries to the \fIsame
+domain\fR into concurrency of deliveries to the \fIsame recipient\fR.
+Different recipients are delivered in parallel, subject to the
+process limits specified in master.cf.
+.IP \(bu
+It changes the meaning of the corresponding per-destination
+rate delay, from the delay between deliveries to the \fIsame
+domain\fR into the delay between deliveries to the \fIsame
+recipient\fR.  Again, different recipients are delivered in parallel,
+subject to the process limits specified in master.cf.
+.IP \(bu
+It changes the meaning of other corresponding per-destination
+settings in a similar manner, from settings for delivery to the
+\fIsame domain\fR into settings for delivery to the \fIsame
+recipient\fR.
 .PP
 Use \fItransport\fR_destination_recipient_limit to specify a
 transport-specific override, where \fItransport\fR is the master.cf
@@ -3292,8 +3319,9 @@ to $minimal_backoff_time. See also $queue_run_delay.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH maximal_queue_lifetime (default: 5d)
-The maximal time a message is queued before it is sent back as
-undeliverable.
+Consider a message as undeliverable, when delivery fails with a
+temporary error, and the time in the queue has reached the
+maximal_queue_lifetime limit.
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
@@ -4475,6 +4503,26 @@ can talk to a Postfix SMTP server on any address. Thus, clients
 that connect only to backup MX addresses will never become whitelisted,
 and will never be allowed to talk to a Postfix SMTP server process.
 .PP
+Specify a list of network addresses or network/netmask patterns,
+separated by commas and/or whitespace. The netmask specifies the
+number of bits in the network part of a host address. Continue long
+lines by starting the next line with whitespace.
+.PP
+You can also specify "/file/name" or "type:table" patterns.  A
+"/file/name" pattern is replaced by its contents; a "type:table"
+lookup table is matched when a table entry matches a lookup string
+(the lookup result is ignored).
+.PP
+The list is matched left to right, and the search stops on the
+first match. Specify "!pattern" to exclude an address or network
+block from the list.
+.PP
+Note: IP version 6 address information must be specified inside
+[] in the postscreen_whitelist_interfaces value, and in files
+specified with "/file/name".  IP version 6 addresses contain the
+":" character, and would otherwise be confused with a "type:table"
+pattern.
+.PP
 Example:
 .PP
 .nf
@@ -4626,7 +4674,7 @@ This feature is available in Postfix 2.8 and later.
 The maximal number of messages in the active queue.
 .SH qmgr_message_recipient_limit (default: 20000)
 The maximal number of recipients held in memory by the Postfix
-queue manager, and the maximal size of the size of the short-term,
+queue manager, and the maximal size of the short-term,
 in-memory "dead" destination status cache.
 .SH qmgr_message_recipient_minimum (default: 10)
 The minimal number of in-memory recipients for any message. This
@@ -5642,6 +5690,11 @@ parameter is called fallback_relay.
 .PP
 By default, mail is returned to the sender when a destination is
 not found, and delivery is deferred when a destination is unreachable.
+.PP
+With bulk email deliveries, it can be beneficial to run the
+fallback relay MTA on the same host, so that it can reuse the sender
+IP address.  This speeds up deliveries that are delayed by IP-based
+reputation systems (greylist, etc.).
 .PP
 The fallback relays must be SMTP destinations. Specify a domain,
 host, host:port, [host]:port, [address] or [address]:port; the form
@@ -7912,7 +7965,7 @@ feature:
 .ft C
     # Bounce-never mail sink. Use notify_classes=bounce,resource,software
     # to send bounced mail to the postmaster (with message body removed).
-    /^(RCPT\es+TO:.*?)\ebNOTIFY=\eS+\eb(.*)/ $1 NOTIFY=NEVER $2
+    /^(RCPT\es+TO:<.*>.*)\es+NOTIFY=\eS+(.*)/ $1 NOTIFY=NEVER$2
     /^(RCPT\es+TO:.*)/                    $1 NOTIFY=NEVER
 .fi
 .ad

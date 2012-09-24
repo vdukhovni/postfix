@@ -22,6 +22,7 @@
 #include <vstream.h>
 #include <argv.h>
 #include <vstring.h>
+#include <myflock.h>
 
  /*
   * Provenance information.
@@ -47,6 +48,7 @@ typedef struct DICT {
     int     (*update) (struct DICT *, const char *, const char *);
     int     (*delete) (struct DICT *, const char *);
     int     (*sequence) (struct DICT *, int, const char **, const char **);
+    int     (*lock) (struct DICT *, int);
     void    (*close) (struct DICT *);
     int     lock_fd;			/* for dict_update() lock */
     int     stat_fd;			/* change detection */
@@ -70,7 +72,7 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_TRY1NULL	(1<<3)	/* append 0 to key/value */
 #define DICT_FLAG_FIXED		(1<<4)	/* fixed key map */
 #define DICT_FLAG_PATTERN	(1<<5)	/* keys are patterns */
-#define DICT_FLAG_LOCK		(1<<6)	/* lock before access */
+#define DICT_FLAG_LOCK		(1<<6)	/* temp lock before each access */
 #define DICT_FLAG_DUP_REPLACE	(1<<7)	/* if file, replace dups */
 #define DICT_FLAG_SYNC_UPDATE	(1<<8)	/* if file, sync updates */
 #define DICT_FLAG_DEBUG		(1<<9)	/* log access */
@@ -81,7 +83,7 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_FOLD_FIX	(1<<14)	/* case-fold key with fixed-case map */
 #define DICT_FLAG_FOLD_MUL	(1<<15)	/* case-fold key with multi-case map */
 #define DICT_FLAG_FOLD_ANY	(DICT_FLAG_FOLD_FIX | DICT_FLAG_FOLD_MUL)
-#define DICT_FLAG_OPEN_LOCK	(1<<16)	/* open file with exclusive lock */
+#define DICT_FLAG_OPEN_LOCK	(1<<16)	/* perm lock if not multi-writer safe */
 
  /* IMPORTANT: Update the dict_mask[] table when the above changes */
 
