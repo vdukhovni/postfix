@@ -26,9 +26,10 @@
 /*	One exception is the default lock function.  When the
 /*	dictionary provides a file handle for locking, the default
 /*	lock function returns the result from myflock(), otherwise
-/*	it returns 0. The lock function is called to implement the
-/*	DICT_FLAG_OPEN_LOCK feature (lock database on open) when
-/*	a database is not multi-writer safe.
+/*	it returns 0. Presently, the lock function is used only to
+/*	implement the DICT_FLAG_OPEN_LOCK feature (lock the database
+/*	exclusively after it is opened) for databases that are not
+/*	multi-writer safe.
 /*
 /*	dict_free() releases memory and cleans up after dict_alloc().
 /*	It is up to the caller to dispose of any memory that was allocated

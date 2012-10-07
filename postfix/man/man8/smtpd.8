@@ -778,24 +778,24 @@ evaluating $smtpd_client_restrictions and $smtpd_helo_restrictions.
 What Postfix features match subdomains of "domain.tld" automatically,
 instead of requiring an explicit ".domain.tld" pattern.
 .IP "\fBsmtpd_client_restrictions (empty)\fR"
-Optional Postfix SMTP server access restrictions in the context of
-a remote SMTP client connection request.
+Optional restrictions that the Postfix SMTP server applies in the
+context of a client connection request.
 .IP "\fBsmtpd_helo_required (no)\fR"
 Require that a remote SMTP client introduces itself with the HELO
 or EHLO command before sending the MAIL command or other commands
 that require EHLO negotiation.
 .IP "\fBsmtpd_helo_restrictions (empty)\fR"
 Optional restrictions that the Postfix SMTP server applies in the
-context of the SMTP HELO command.
+context of a client HELO command.
 .IP "\fBsmtpd_sender_restrictions (empty)\fR"
 Optional restrictions that the Postfix SMTP server applies in the
-context of the MAIL FROM command.
-.IP "\fBsmtpd_recipient_restrictions (permit_mynetworks, reject_unauth_destination)\fR"
-The access restrictions that the Postfix SMTP server applies in
-the context of the RCPT TO command.
+context of a client MAIL FROM command.
+.IP "\fBsmtpd_recipient_restrictions (see 'postconf -d' output)\fR"
+Optional restrictions that the Postfix SMTP server applies in the
+context of a client RCPT TO command, after smtpd_relay_restrictions.
 .IP "\fBsmtpd_etrn_restrictions (empty)\fR"
-Optional SMTP server access restrictions in the context of a client
-ETRN request.
+Optional restrictions that the Postfix SMTP server applies in the
+context of a client ETRN command.
 .IP "\fBallow_untrusted_routing (no)\fR"
 Forward mail with sender-specified routing (user[@%!]remote[@%!]site)
 from untrusted clients to destinations matching $relay_domains.
@@ -830,6 +830,12 @@ Available in Postfix version 2.2 and later:
 .IP "\fBsmtpd_end_of_data_restrictions (empty)\fR"
 Optional access restrictions that the Postfix SMTP server
 applies in the context of the SMTP END-OF-DATA command.
+.PP
+Available in Postfix version 2.10 and later:
+.IP "\fBsmtpd_relay_restrictions (permit_mynetworks, reject_unauth_destination)\fR"
+Access restrictions for mail relay control that the Postfix
+SMTP server applies in the context of the RCPT TO command, before
+smtpd_recipient_restrictions.
 .SH "SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS"
 .na
 .nf

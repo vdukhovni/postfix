@@ -1957,8 +1957,13 @@ extern char *var_helo_checks;
 #define DEF_MAIL_CHECKS		""
 extern char *var_mail_checks;
 
+#define VAR_RELAY_CHECKS	"smtpd_relay_restrictions"
+#define DEF_RELAY_CHECKS	PERMIT_MYNETWORKS ", " \
+				REJECT_UNAUTH_DEST
+extern char *var_relay_checks;
+
 #define VAR_RCPT_CHECKS		"smtpd_recipient_restrictions"
-#define DEF_RCPT_CHECKS		PERMIT_MYNETWORKS ", " REJECT_UNAUTH_DEST
+#define DEF_RCPT_CHECKS		""
 extern char *var_rcpt_checks;
 
 #define VAR_ETRN_CHECKS		"smtpd_etrn_restrictions"
@@ -2113,6 +2118,7 @@ extern int var_mul_rcpt_code;
 
 #define PERMIT_AUTH_DEST	"permit_auth_destination"
 #define REJECT_UNAUTH_DEST	"reject_unauth_destination"
+#define DEFER_UNAUTH_DEST	"defer_unauth_destination"
 #define CHECK_RELAY_DOMAINS	"check_relay_domains"
 #define PERMIT_TLS_CLIENTCERTS	"permit_tls_clientcerts"
 #define PERMIT_TLS_ALL_CLIENTCERTS	"permit_tls_all_clientcerts"

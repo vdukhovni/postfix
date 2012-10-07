@@ -453,7 +453,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 #endif
 	    }
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
-	    vstring_sprintf(nexthop, "User unknown%s",
+	    vstring_sprintf(nexthop, "5.1.1 User unknown%s",
 			    var_show_unk_rcpt_table ?
 			    " in virtual alias table" : "");
 	    *flags |= RESOLVE_CLASS_ALIAS;

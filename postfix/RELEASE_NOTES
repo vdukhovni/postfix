@@ -14,6 +14,116 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
+Incompatible changes with snapshot 20121007
+===========================================
+
+As part of a forward compatibility safety net, the Postfix installation
+procedure adds the following smtpd_relay_restrictions entry to
+main.cf when there is none:
+
+    smtpd_relay_restrictions = 
+	permit_mynetworks 
+	permit_sasl_authenticated 
+	defer_unauth_destination
+
+If your site has a complex mail relay policy configured under
+smtpd_recipient_restrictions, this safety net will defer mail that
+the built-in smtpd_relay_restrictions setting would bounce. 
+
+To eliminate this safety net, take one of the following three
+actions:
+
+- Set smtpd_relay_restrictions empty, and keep using the existing
+  mail relay authorization policy in smtpd_recipient_restrictions.
+
+- Copy the existing mail relay authorization policy from
+  smtpd_recipient_restrictions to smtpd_relay_restrictions.
+
+- Set smtpd_relay_restrictions by hand to the new built-in
+  policy: permit_mynetworks reject_unauth_destination.
+
+There is no need to change the value of smtpd_recipient_restrictions.
+
+
+Major changes with snapshot 20121007
+====================================
+
+This version introduces the smtpd_relay_restrictions feature
+for mail relay control. The new built-in default settings are:
+
+    smtpd_relay_restrictions = 
+	permit_mynetworks 
+	reject_unauth_destination
+
+    smtpd_recipient_restrictions =
+	( optional spam blocking rules would go here )
+
+For comparison, this is the Postfix before 2.10 default:
+
+    smtpd_recipient_restrictions =
+	permit_mynetworks 
+	reject_unauth_destination
+	( optional spam blocking rules would go here )
+
+With Postfix versions before 2.10, the mail relay policy and spam
+blocking policy were combined under smtpd_recipient_restrictions,
+resulting in error-prone configuration.
+
+As of Postfix 2.10, the mail relay policy is preferably implemented
+with smtpd_relay_restrictions, so that a permissive spam blocking
+policy under smtpd_recipient_restrictions will not unexpectedly
+result in a permissive mail relay policy.
+
+As usual, this new feature is introduced with safety nets to prevent
+surprises when a site upgrades from an earlier Postfix release.
+
+1 - FORWARD COMPATIBILITY SAFETY NET: the Postfix installation
+    procedure adds the following smtpd_relay_restrictions entry to
+    main.cf when there is none:
+
+    smtpd_relay_restrictions = 
+	permit_mynetworks 
+	permit_sasl_authenticated 
+	defer_unauth_destination
+
+    If your site has a complex mail relay policy configured under
+    smtpd_recipient_restrictions, this safety net will defer mail
+    that the built-in smtpd_relay_restrictions setting would bounce.
+
+    To eliminate this safety net, take one of the following three
+    actions:
+
+    - Set smtpd_relay_restrictions empty, and keep using the existing
+      mail relay authorization policy in smtpd_recipient_restrictions.
+
+    - Copy the existing mail relay authorization policy from
+      smtpd_recipient_restrictions to smtpd_relay_restrictions.
+
+    - Set smtpd_relay_restrictions by hand to the new built-in
+      policy: permit_mynetworks reject_unauth_destination.
+
+    There is no need to change the value of smtpd_recipient_restrictions.
+
+2 - BACKWARDS COMPATIBILITY SAFETY NET: sites that migrate from
+    Postfix versions before 2.10 can set smtpd_relay_restrictions
+    to the empty value, and use smtpd_recipient_restrictions exactly
+    as they used it before.
+
+Incompatible changes with snapshot 20120924
+===========================================
+
+Postfix no longer uses FIFOs to emulate UNIX-domain sockets on
+Solaris 9 (Vintage 2002!) and later. If you install Postfix for
+the first time on an older Solaris system, edit the master.cf file
+and replace "unix" with "fifo" for the pickup and qmgr services.
+
+Major changes with snapshot 20120924
+====================================
+
+Laptop-friendliness: the default master.cf file now uses "unix"
+instead of "fifo" for the pickup and qmgr services. This avoids
+periodic disk drive spin-up.
+
 Incompatible changes with snapshot 20120625
 ===========================================
 
@@ -32,7 +142,9 @@ following:
     postscreen_upstream_proxy_protocol = haproxy
     smtpd_upstream_proxy_protocol = haproxy
 
-Note 1: smtpd_upstream_proxy_protocol can't be used behind postscreen.
+Note 1: smtpd_upstream_proxy_protocol can't be used in smtpd processes
+that are behind postscreen. Configure postscreen_upstream_proxy_protocol
+instead.
 
 Note 2: To use the nginx proxy with smtpd(8), enable the XCLIENT
 protocol with smtpd_authorized_xclient_hosts. This supports SASL

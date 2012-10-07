@@ -6,22 +6,13 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Spellcheck and double-word check.
+
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
 	Make "rename" the default when postmapping a DB file
 	(later: use copy+rename for postmap -i, postmap -d).
-
-	On most systems, switching the qmgr and pickup services
-	from "fifo" to "unix" endpoints can avoid disk spin-up due
-	to mtime changes.  However, Postfix on Solaris emulates
-	UNIX-domain sockets by sending a file handle through a FIFO.
-	Either we need to a) find out if a Solaris FIFO is a "unix"
-	or "fifo" endpoint (parsing master.cf is not an option for
-	chrooted daemons), or b) silently implement a Solaris "fifo"
-	endpoint as if master.cf says "unix", so that all Solaris
-	FIFOs are emulated UNIX-domain endpoints. Or, we bite the
-	bullet and stop emulating UNIX-domain onver FIFOs.
 
 	Service-name parameters aren't documented in daemon manpages.
 

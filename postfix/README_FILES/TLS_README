@@ -445,12 +445,23 @@ employee leaving).
 
 Example:
 
+    # With Postfix 2.10 and later, the mail relay policy is
+    # preferably specified under smtpd_relay_restrictions.
     /etc/postfix/main.cf:
-        smtpd_recipient_restrictions =
-            ...
+        smtpd_relay_restrictions =
+            permit_mynetworks
             permit_tls_clientcerts
             reject_unauth_destination
-            ...
+
+    # Older configurations combine relay control and spam control under
+    # smtpd_recipient_restrictions. To use this example with Postfix >=
+    # 2.10 specify "smtpd_relay_restrictions=".
+    /etc/postfix/main.cf:
+        smtpd_recipient_restrictions =
+            permit_mynetworks
+            permit_tls_clientcerts
+            reject_unauth_destination
+            ...other rules...
 
 Example: Postfix lookup tables are in the form of (key, value) pairs. Since we
 only need the key, the value can be chosen freely, e.g. the name of the user or
@@ -551,7 +562,7 @@ By default, the OpenSSL server selects the client's most preferred cipher that
 the server supports. With SSLv3 and later, the server may choose its own most
 preferred cipher that is supported (offered) by the client. Setting
 "tls_preempt_cipherlist = yes" enables server cipher preferences. The default
-OpenSSL behaviour applies with "tls_preempt_cipherlist = no".
+OpenSSL behavior applies with "tls_preempt_cipherlist = no".
 
 While server cipher selection may in some cases lead to a more secure or
 performant cipher choice, there is some risk of interoperability issues. In the

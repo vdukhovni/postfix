@@ -17978,3 +17978,37 @@ Apologies for any names omitted.
 
 	Laptop-friendliness: avoid disk spin-up on idle systems by
 	s/fifo/unix/ in master.cf.  Files: conf/master.cf.
+
+20120928-30
+
+	Feature: smtpd_relay_restrictions, proposed long ago by
+	Victor. The idea is to separate the mail relay policy from
+	the spam blocking policy, so that a permissive spam blocking
+	policy under smtpd_recipient_restrictions will no longer
+	unexpectedly result in a permissive mail relay policy.
+
+	This involves a change in default settings.  Similar to the
+	way that local_recipient_maps was introduced, there is a
+	safety net that prevents unexpected mail bounces when a
+	site upgrades to Postfix 2.10 or later, and there is no
+	change in documented smtpd_recipient_restrictions behavior.
+	See the RELEASE_NOTES file for details.  Files:
+	global/mail_params.h, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	proto/postconf.proto, proto/SMTPD_ACCESS_README.html,
+	mantools/postlink, conf/post-install, RELEASE_NOTES.
+
+20120931-1001
+
+	Documentation: updated the remainder of the README files
+	and manual pages that discuss smtpd_recipient_restrictions.
+
+20121001
+
+	Cleanup: prepend 5.1.1 status code to "User unknown in
+	virtual alias table". File: trivial-rewrite/resolve.c.
+
+20121003
+
+	Bugfix: the postscreen_access_list feature was case-sensitive
+	in the first character of permit, reject, etc. Reported by
+	Francis Picabia. File: global/server_acl.c.

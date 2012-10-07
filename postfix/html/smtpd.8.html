@@ -958,8 +958,8 @@ SMTPD(8)                                                              SMTPD(8)
               explicit ".domain.tld" pattern.
 
        <b><a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> (empty)</b>
-              Optional Postfix SMTP server access restrictions in
-              the  context  of  a  remote  SMTP client connection
+              Optional restrictions that the Postfix SMTP  server
+              applies  in  the  context  of  a  client connection
               request.
 
        <b><a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> (no)</b>
@@ -970,71 +970,80 @@ SMTPD(8)                                                              SMTPD(8)
 
        <b><a href="postconf.5.html#smtpd_helo_restrictions">smtpd_helo_restrictions</a> (empty)</b>
               Optional  restrictions that the Postfix SMTP server
-              applies in the context of the SMTP HELO command.
+              applies in the context of a client HELO command.
 
        <b><a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a> (empty)</b>
               Optional restrictions that the Postfix SMTP  server
-              applies in the context of the MAIL FROM command.
-
-       <b><a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>           (<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,</b>
-       <b><a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b>
-              The  access  restrictions  that  the  Postfix  SMTP
-              server applies in the context of the RCPT  TO  com-
+              applies  in  the context of a client MAIL FROM com-
               mand.
 
+       <b><a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> (see 'postconf -d' output)</b>
+              Optional restrictions that the Postfix SMTP  server
+              applies in the context of a client RCPT TO command,
+              after <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>.
+
        <b><a href="postconf.5.html#smtpd_etrn_restrictions">smtpd_etrn_restrictions</a> (empty)</b>
-              Optional  SMTP  server  access  restrictions in the
-              context of a client ETRN request.
+              Optional restrictions that the Postfix SMTP  server
+              applies in the context of a client ETRN command.
 
        <b><a href="postconf.5.html#allow_untrusted_routing">allow_untrusted_routing</a> (no)</b>
-              Forward   mail   with   sender-specified    routing
-              (user[@%!]remote[@%!]site)  from  untrusted clients
+              Forward    mail   with   sender-specified   routing
+              (user[@%!]remote[@%!]site) from  untrusted  clients
               to destinations matching $<a href="postconf.5.html#relay_domains">relay_domains</a>.
 
        <b><a href="postconf.5.html#smtpd_restriction_classes">smtpd_restriction_classes</a> (empty)</b>
-              User-defined aliases for groups of access  restric-
+              User-defined  aliases for groups of access restric-
               tions.
 
        <b><a href="postconf.5.html#smtpd_null_access_lookup_key">smtpd_null_access_lookup_key</a> (</b>&lt;&gt;<b>)</b>
-              The  lookup key to be used in SMTP <a href="access.5.html"><b>access</b>(5)</a> tables
+              The lookup key to be used in SMTP <a href="access.5.html"><b>access</b>(5)</a>  tables
               instead of the null sender address.
 
        <b><a href="postconf.5.html#permit_mx_backup_networks">permit_mx_backup_networks</a> (empty)</b>
               Restrict  the  use  of  the  <a href="postconf.5.html#permit_mx_backup">permit_mx_backup</a>  SMTP
-              access  feature  to  only  domains whose primary MX
+              access feature to only  domains  whose  primary  MX
               hosts match the listed networks.
 
        Available in Postfix version 2.0 and later:
 
        <b><a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> (empty)</b>
-              Optional access restrictions that the Postfix  SMTP
+              Optional  access restrictions that the Postfix SMTP
               server applies in the context of the SMTP DATA com-
               mand.
 
        <b><a href="postconf.5.html#smtpd_expansion_filter">smtpd_expansion_filter</a> (see 'postconf -d' output)</b>
-              What characters are allowed in $name expansions  of
+              What  characters are allowed in $name expansions of
               RBL reply templates.
 
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#smtpd_reject_unlisted_sender">smtpd_reject_unlisted_sender</a> (no)</b>
-              Request  that  the Postfix SMTP server rejects mail
-              from  unknown  sender  addresses,  even   when   no
-              explicit  <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a> access restriction
+              Request that the Postfix SMTP server  rejects  mail
+              from   unknown   sender  addresses,  even  when  no
+              explicit <a href="postconf.5.html#reject_unlisted_sender">reject_unlisted_sender</a> access  restriction
               is specified.
 
        <b><a href="postconf.5.html#smtpd_reject_unlisted_recipient">smtpd_reject_unlisted_recipient</a> (yes)</b>
-              Request that the Postfix SMTP server  rejects  mail
+              Request  that  the Postfix SMTP server rejects mail
               for  unknown  recipient  addresses,  even  when  no
-              explicit <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a> access  restric-
+              explicit  <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a> access restric-
               tion is specified.
 
        Available in Postfix version 2.2 and later:
 
        <b><a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a> (empty)</b>
-              Optional  access restrictions that the Postfix SMTP
-              server applies in the context of the  SMTP  END-OF-
+              Optional access restrictions that the Postfix  SMTP
+              server  applies  in the context of the SMTP END-OF-
               DATA command.
+
+       Available in Postfix version 2.10 and later:
+
+       <b><a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>               (<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,</b>
+       <b><a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b>
+              Access restrictions for mail relay control that the
+              Postfix  SMTP  server applies in the context of the
+              RCPT TO  command,  before  <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restric</a>-
+              <a href="postconf.5.html#smtpd_recipient_restrictions">tions</a>.
 
 <b>SENDER AND RECIPIENT ADDRESS VERIFICATION CONTROLS</b>
        Postfix   version  2.1  introduces  sender  and  recipient

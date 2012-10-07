@@ -320,6 +320,7 @@ static int access_parent_style;
 static ARGV *client_restrctions;
 static ARGV *helo_restrctions;
 static ARGV *mail_restrctions;
+static ARGV *relay_restrctions;
 static ARGV *rcpt_restrctions;
 static ARGV *etrn_restrctions;
 static ARGV *data_restrctions;
@@ -552,7 +553,7 @@ static void fail_required(const char *name, const char **required)
     for (reqd = required; *reqd; reqd++)
 	vstring_sprintf_append(example, "%s%s", *reqd,
 			  reqd[1] == 0 ? "" : reqd[2] == 0 ? " or " : ", ");
-    msg_fatal("parameter \"%s\": specify at least one working instance of: %s",
+    msg_fatal("in parameter %s, specify at least one working instance of: %s",
 	      name, STR(example));
 }
 
@@ -565,11 +566,12 @@ void    smtpd_check_init(void)
     const char *value;
     char   *cp;
     static const char *rcpt_required[] = {
-	CHECK_RELAY_DOMAINS,
 	REJECT_UNAUTH_DEST,
+	DEFER_UNAUTH_DEST,
 	REJECT_ALL,
 	DEFER_ALL,
 	DEFER_IF_PERMIT,
+	CHECK_RELAY_DOMAINS,
 	0,
     };
     static NAME_CODE tempfail_actions[] = {
@@ -662,6 +664,8 @@ void    smtpd_check_init(void)
 					 var_helo_checks);
     mail_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_mail_checks);
+    relay_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+					  var_relay_checks);
     rcpt_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_rcpt_checks);
     etrn_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
@@ -703,11 +707,14 @@ void    smtpd_check_init(void)
 
     /*
      * People screw up the relay restrictions too often. Require that they
-     * list at least one restriction that rejects mail by default.
+     * list at least one restriction that rejects mail by default. We allow
+     * relay restrictions to be empty for sites that require backwards
+     * compatibility.
      */
 #ifndef TEST
-    if (!has_required(rcpt_restrctions, rcpt_required))
-	fail_required(VAR_RCPT_CHECKS, rcpt_required);
+    if (!has_required(rcpt_restrctions, rcpt_required)
+	&& !has_required(relay_restrctions, rcpt_required))
+	fail_required(VAR_RELAY_CHECKS " or " VAR_RCPT_CHECKS, rcpt_required);
 #endif
 
     /*
@@ -1438,7 +1445,8 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 
 /* reject_unauth_destination - FAIL for message relaying */
 
-static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
+static int reject_unauth_destination(SMTPD_STATE *state, char *recipient,
+			              int reply_code, const char *reply_dsn)
 {
     const char *myname = "reject_unauth_destination";
 
@@ -1455,7 +1463,7 @@ static int reject_unauth_destination(SMTPD_STATE *state, char *recipient)
      * Reject relaying to sites that are not listed in relay_domains.
      */
     return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-			       var_relay_code, "5.7.1",
+			       reply_code, reply_dsn,
 			       "<%s>: Relay access denied",
 			       recipient));
 }
@@ -4066,7 +4074,12 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (strcasecmp(name, REJECT_UNAUTH_DEST) == 0) {
 	    if (state->recipient)
-		status = reject_unauth_destination(state, state->recipient);
+		status = reject_unauth_destination(state, state->recipient,
+						   var_relay_code, "5.7.1");
+	} else if (strcasecmp(name, DEFER_UNAUTH_DEST) == 0) {
+	    if (state->recipient)
+		status = reject_unauth_destination(state, state->recipient,
+					     var_relay_code - 100, "4.7.1");
 	} else if (strcasecmp(name, CHECK_RELAY_DOMAINS) == 0) {
 	    if (state->recipient)
 		status = check_relay_domains(state, state->recipient,
@@ -4191,7 +4204,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	if (state->defer_if_permit.active && state->defer_if_reject.active)
 	    break;
     }
-    if (msg_verbose && name == 0)
+    if (msg_verbose)
 	msg_info(">>> END %s RESTRICTIONS <<<", reply_class);
 
     state->recursion = saved_recursion;
@@ -4450,6 +4463,8 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     int     status;
     char   *saved_recipient;
     char   *err;
+    ARGV   *restrctions[2];
+    int     n;
 
     /*
      * Initialize.
@@ -4498,13 +4513,21 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     state->defer_if_permit.active = state->defer_if_permit_sender;
 
     /*
-     * Apply restrictions in the order as specified.
+     * Apply restrictions in the order as specified. We allow relay
+     * restrictions to be empty, for sites that require backwards
+     * compatibility.
      */
     SMTPD_CHECK_RESET();
-    status = setjmp(smtpd_check_buf);
-    if (status == 0 && rcpt_restrctions->argc)
-	status = generic_checks(state, rcpt_restrctions,
+    restrctions[0] = relay_restrctions;
+    restrctions[1] = rcpt_restrctions;
+    for (n = 0; n < 2; n++) {
+	status = setjmp(smtpd_check_buf);
+	if (status == 0 && restrctions[n]->argc)
+	    status = generic_checks(state, restrctions[n],
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
+	if (status == SMTPD_CHECK_REJECT)
+	    break;
+    }
 
     /*
      * Force permission into deferral when some earlier temporary error may
@@ -5435,6 +5458,7 @@ int     main(int argc, char **argv)
 	}
 	if (*bp == '#')
 	    continue;
+
 	if (*bp == '!') {
 	    vstream_printf("exit %d\n", system(bp + 1));
 	    continue;

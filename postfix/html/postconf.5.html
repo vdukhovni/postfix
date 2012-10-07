@@ -2688,7 +2688,7 @@ Example:
 <DT><b><a name="dnsblog_reply_delay">dnsblog_reply_delay</a>
 (default: 0s)</b></DT><DD>
 
-<p> A debugging aid to artifically delay DNS responses. </p>
+<p> A debugging aid to artificially delay DNS responses. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
@@ -3776,7 +3776,7 @@ configuration parameter.  See there for details. </p>
 the
 server performs final delivery, and send "delivered" delivery status
 notifications instead of "relayed". The default setting is backwards
-compatible to avoid the infinetisimal possibility of breaking
+compatible to avoid the infinitesimal possibility of breaking
 existing LMTP-based content filters. </p>
 
 
@@ -6532,7 +6532,7 @@ The list of "trusted" remote SMTP clients that have more privileges than
 
 <p>
 In particular, "trusted" SMTP clients are allowed to relay mail
-through Postfix.  See the <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> parameter
+through Postfix.  See the <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> parameter
 description in the <a href="postconf.5.html">postconf(5)</a> manual.
 </p>
 
@@ -7632,7 +7632,7 @@ one-letter suffix that specifies the time unit).  Time units: s
 <p> The number of clients that can be waiting for service from a
 real Postfix SMTP server process. When this queue is full, all
 clients will
-receive a 421 reponse. </p>
+receive a 421 response. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -7646,7 +7646,7 @@ receive a 421 reponse. </p>
 a decision whether they will receive service from a real Postfix
 SMTP server
 process. When this queue is full, all non-whitelisted clients will
-receive a 421 reponse. </p>
+receive a 421 response. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
@@ -11168,7 +11168,7 @@ protocol exclusions. One can now explicitly exclude SSLv2 by setting
 SSLv3 set "<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !SSLv3". Listing
 the protocols to include, rather than protocols to exclude, is
 supported, but not recommended. The exclusion form more closely
-matches the behaviour when the OpenSSL library is newer than Postfix.
+matches the behavior when the OpenSSL library is newer than Postfix.
 </p>
 
 <p> Since SSL version 2 has known protocol weaknesses and is now
@@ -11452,7 +11452,7 @@ with a "!" character. To exclude SSLv2 even for opportunistic TLS set
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2, !SSLv3". Explicitly listing the protocols to
 include, rather than protocols to exclude, is supported, but not
-recommended.  The exclusion form more closely matches the behaviour
+recommended.  The exclusion form more closely matches the behavior
 when the OpenSSL library is newer than Postfix.  </p>
 
 <p> Example: </p>
@@ -12196,8 +12196,8 @@ Example:
 (default: empty)</b></DT><DD>
 
 <p>
-Optional Postfix SMTP server access restrictions in the context of
-a remote SMTP client connection request.
+Optional restrictions that the Postfix SMTP server applies in the
+context of a client connection request.
 See <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, section "Delayed evaluation of SMTP access
 restriction lists" for a discussion of evaluation context and time.
 </p>
@@ -12832,8 +12832,8 @@ mail. </p>
 (default: empty)</b></DT><DD>
 
 <p>
-Optional SMTP server access restrictions in the context of a client
-ETRN request.
+Optional restrictions that the Postfix SMTP server applies in the
+context of a client ETRN command.
 See <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, section "Delayed evaluation of SMTP access
 restriction lists" for a discussion of evaluation context and time.
 </p>
@@ -12969,7 +12969,7 @@ Example:
 
 <p>
 Optional restrictions that the Postfix SMTP server applies in the
-context of the SMTP HELO command.
+context of a client HELO command.
 See <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, section "Delayed evaluation of SMTP access
 restriction lists" for a discussion of evaluation context and time.
 </p>
@@ -13407,42 +13407,43 @@ for each excess recipient.  </p>
 </DD>
 
 <DT><b><a name="smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>
-(default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
 <p>
-The access restrictions that the Postfix SMTP server applies in
-the context of the RCPT TO command.
+Optional restrictions that the Postfix SMTP server applies in the
+context of a client RCPT TO command, after <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>.
 See <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, section "Delayed evaluation of SMTP access
 restriction lists" for a discussion of evaluation context and time.
 </p>
 
-<p>
-By default, the Postfix SMTP server accepts:
-</p>
+<p> With Postfix versions before 2.10, the rules for relay permission
+and spam blocking were combined under <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>,
+resulting in error-prone configuration.  As of Postfix 2.10, relay
+permission rules are preferably implemented with <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>,
+so that a permissive spam blocking policy under
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> will no longer result in a permissive
+mail relay policy.  </p>
 
-<ul>
-
-<li> Mail from clients whose IP address matches $<a href="postconf.5.html#mynetworks">mynetworks</a>, or:
-
-<li> Mail to remote destinations that match $<a href="postconf.5.html#relay_domains">relay_domains</a>, except
-for addresses that contain sender-specified routing
-(user@elsewhere@domain), or:
-
-<li> Mail to local destinations that match $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
-or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or
-$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>.
-
-</ul>
+<p> For backwards compatibility, sites that migrate from Postfix
+versions before 2.10 can set <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> to the empty
+value, and use <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> exactly as before. </p>
 
 <p>
-IMPORTANT: If you change this parameter setting, you must specify
+IMPORTANT: Either the <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> or the
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> parameter must specify
 at least one of the following restrictions. Otherwise Postfix will
 refuse to receive mail:
 </p>
 
 <blockquote>
 <pre>
-reject, defer, <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
+reject, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+defer, <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>, <a href="postconf.5.html#defer_unauth_destination">defer_unauth_destination</a>
 </pre>
 </blockquote>
 
@@ -13562,8 +13563,14 @@ matches $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="po
 $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, and contains
 no sender-specified routing (user@elsewhere@domain).
 
-</ul> The <a href="postconf.5.html#relay_domains_reject_code">relay_domains_reject_code</a> parameter specifies the response
+</ul>The <a href="postconf.5.html#relay_domains_reject_code">relay_domains_reject_code</a> parameter specifies the response
 code for rejected requests (default: 554). </dd>
+
+<dt><b><a name="defer_unauth_destination">defer_unauth_destination</a></b></dt>
+
+<dd> Reject the same requests as <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>, with a
+non-permanent error code.  This feature is available in Postfix
+2.10 and later.</dd>
 
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
@@ -13623,6 +13630,8 @@ Example:
 </p>
 
 <pre>
+# The Postfix before 2.10 default mail relay policy. Later Postfix
+# versions implement this preferably with <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>.
 <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
 </pre>
 
@@ -13794,6 +13803,77 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_relay_restrictions">smtpd_relay_restrictions</a>
+(default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b></DT><DD>
+
+<p> Access restrictions for mail relay control that the Postfix
+SMTP server applies in the context of the RCPT TO command, before
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>.
+See <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, section "Delayed evaluation of SMTP access
+restriction lists" for a discussion of evaluation context and time.
+</p>
+
+<p> With Postfix versions before 2.10, the rules for relay permission
+and spam blocking were combined under <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>,
+resulting in error-prone configuration.  As of Postfix 2.10, relay
+permission rules are preferably implemented with <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>,
+so that a permissive spam blocking policy under
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> will no longer result in a permissive
+mail relay policy.  </p>
+
+<p> For backwards compatibility, sites that migrate from Postfix
+versions before 2.10 can set <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> to the empty
+value, and use <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> exactly as before. </p>
+
+<p>
+By default, the Postfix SMTP server accepts:
+</p>
+
+<ul>
+
+<li> Mail from clients whose IP address matches $<a href="postconf.5.html#mynetworks">mynetworks</a>, or:
+
+<li> Mail to remote destinations that match $<a href="postconf.5.html#relay_domains">relay_domains</a>, except
+for addresses that contain sender-specified routing
+(user@elsewhere@domain), or:
+
+<li> Mail to local destinations that match $<a href="postconf.5.html#inet_interfaces">inet_interfaces</a>
+or $<a href="postconf.5.html#proxy_interfaces">proxy_interfaces</a>, $<a href="postconf.5.html#mydestination">mydestination</a>, $<a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>, or
+$<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>.
+
+</ul>
+
+<p>
+IMPORTANT: Either the <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> or the
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> parameter must specify
+at least one of the following restrictions. Otherwise Postfix will
+refuse to receive mail:
+</p>
+
+<blockquote>
+<pre>
+reject, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+defer, <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>, <a href="postconf.5.html#defer_unauth_destination">defer_unauth_destination</a>
+</pre>
+</blockquote>
+
+<p>
+Specify a list of restrictions, separated by commas and/or whitespace.
+Continue long lines by starting the next line with whitespace.
+The same restrictions are available as documented under
+<a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>.
+</p>
+
+<p> This feature is available in Postix 2.10 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_restriction_classes">smtpd_restriction_classes</a>
 (default: empty)</b></DT><DD>
 
@@ -13845,6 +13925,15 @@ access restriction can be used to permit relay access, like this:
 
 <blockquote>
 <pre>
+# With Postfix 2.10 and later, the mail relay policy is
+# preferably specified under <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>.
+<a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> =
+    <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>, ...
+</pre>
+
+<pre>
+# With Postfix before 2.10, the relay policy can be
+# specified only under <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>.
 <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
     <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>, ...
 </pre>
@@ -14109,7 +14198,7 @@ or a list of SASL login names separated by comma and/or whitespace.
 
 <p>
 Optional restrictions that the Postfix SMTP server applies in the
-context of the MAIL FROM command.
+context of a client MAIL FROM command.
 See <a href="SMTPD_ACCESS_README.html">SMTPD_ACCESS_README</a>, section "Delayed evaluation of SMTP access
 restriction lists" for a discussion of evaluation context and time.
 </p>
@@ -15031,7 +15120,7 @@ protocol exclusions. One can now explicitly exclude SSLv2 by setting
 SSLv3 set "<a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2, !SSLv3". Listing
 the protocols to include, rather than protocols to exclude, is
 supported, but not recommended. The exclusion form more closely
-matches the behaviour when the OpenSSL library is newer than Postfix.
+matches the behavior when the OpenSSL library is newer than Postfix.
 </p>
 
 <p> Since SSL version 2 has known protocol weaknesses and is now
@@ -15076,7 +15165,7 @@ with a "!" character. To exclude SSLv2 even for opportunistic TLS set
 "<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
 "<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2, !SSLv3". Explicitly listing the protocols to
 include, rather than protocols to exclude, is supported, but not
-recommended.  The exclusion form more closely matches the behaviour
+recommended.  The exclusion form more closely matches the behavior
 when the OpenSSL library is newer than Postfix.  </p>
 
 <p> Example: </p>

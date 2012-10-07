@@ -82,11 +82,11 @@
 /*	before writing, and acquire a shared lock before reading.
 /* .IP DICT_FLAG_OPEN_LOCK
 /*	With databases that are not multi-writer safe, request that
-/*	dict_open() acquires an exclusive lock, or that it reports
-/*	a fatal run-time error otherwise.
+/*	dict_open() acquires an exclusive lock, or that it terminates
+/*	with a fatal run-time error.
 /* .IP DICT_FLAG_FOLD_FIX
 /*	With databases whose lookup fields are fixed-case strings,
-/*	fold the search key to lower case before accessing the
+/*	fold the search string to lower case before accessing the
 /*	database.  This includes hash:, cdb:, dbm:. nis:, ldap:,
 /*	*sql.
 /* .IP DICT_FLAG_FOLD_MUL
@@ -99,18 +99,21 @@
 /*	With file-based maps, flush I/O buffers to file after each update.
 /*	Thus feature is not supported with some file-based dictionaries.
 /* .IP DICT_FLAG_NO_REGSUB
-/*	Disallow regular expression substitution from left-hand side data
-/*	into the right-hand side.
+/*	Disallow regular expression substitution from the lookup string
+/*	into the lookup result, to block data injection attacks.
 /* .IP DICT_FLAG_NO_PROXY
-/*	Disallow access through the \fBproxymap\fR service.
+/*	Disallow access through the unprivileged \fBproxymap\fR
+/*	service, to block privilege escalation attacks.
 /* .IP DICT_FLAG_NO_UNAUTH
-/*	Disallow network lookup mechanisms that lack any form of
-/*	authentication (example: tcp_table; even NIS can be secured
-/*	to some extent by requiring that the server binds to a
-/*	privileged port).
+/*	Disallow lookup mechanisms that lack any form of authentication,
+/*	to block privilege escalation attacks (example: tcp_table;
+/*	even NIS can be secured to some extent by requiring that
+/*	the server binds to a privileged port).
 /* .IP DICT_FLAG_PARANOID
 /*	A combination of all the paranoia flags: DICT_FLAG_NO_REGSUB,
 /*	DICT_FLAG_NO_PROXY and DICT_FLAG_NO_UNAUTH.
+/* .IP DICT_FLAG_DEBUG
+/*	Enable additional logging.
 /* .PP
 /*	Specify DICT_FLAG_NONE for no special processing.
 /*

@@ -654,12 +654,25 @@ certificate must no longer be used (e.g. an employee leaving). </p>
  
 <blockquote>
 <pre>
+# With Postfix 2.10 and later, the mail relay policy is
+# preferably specified under <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>.
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
-        ... 
+    <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> = 
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
         <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> 
         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
-        ...
+</pre>
+
+<pre>
+# Older configurations combine relay control and spam control under
+# <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a>. To use this example with Postfix &ge;
+# 2.10 specify "<a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>=".
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
+        <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a> 
+        <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
+        ...other rules...
 </pre>
 </blockquote>
 
@@ -787,7 +800,7 @@ chooses the cipher from a list supplied by the server. </p>
 cipher that the server supports. With SSLv3 and later, the server
 may choose its own most preferred cipher that is supported (offered)
 by the client. Setting "<a href="postconf.5.html#tls_preempt_cipherlist">tls_preempt_cipherlist</a> = yes" enables server
-cipher preferences. The default OpenSSL behaviour applies with
+cipher preferences. The default OpenSSL behavior applies with
 "<a href="postconf.5.html#tls_preempt_cipherlist">tls_preempt_cipherlist</a> = no". </p>
 
 <p> While server cipher selection may in some cases lead to a more secure

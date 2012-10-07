@@ -654,12 +654,25 @@ certificate must no longer be used (e.g. an employee leaving). </p>
  
 <blockquote>
 <pre>
+# With Postfix 2.10 and later, the mail relay policy is
+# preferably specified under smtpd_relay_restrictions.
 /etc/postfix/main.cf:
-    smtpd_recipient_restrictions = 
-        ... 
+    smtpd_relay_restrictions = 
+        permit_mynetworks
         permit_tls_clientcerts 
         reject_unauth_destination
-        ...
+</pre>
+
+<pre>
+# Older configurations combine relay control and spam control under
+# smtpd_recipient_restrictions. To use this example with Postfix &ge;
+# 2.10 specify "smtpd_relay_restrictions=".
+/etc/postfix/main.cf:
+    smtpd_recipient_restrictions = 
+        permit_mynetworks
+        permit_tls_clientcerts 
+        reject_unauth_destination
+        ...other rules...
 </pre>
 </blockquote>
 
@@ -787,7 +800,7 @@ chooses the cipher from a list supplied by the server. </p>
 cipher that the server supports. With SSLv3 and later, the server
 may choose its own most preferred cipher that is supported (offered)
 by the client. Setting "tls_preempt_cipherlist = yes" enables server
-cipher preferences. The default OpenSSL behaviour applies with
+cipher preferences. The default OpenSSL behavior applies with
 "tls_preempt_cipherlist = no". </p>
 
 <p> While server cipher selection may in some cases lead to a more secure
