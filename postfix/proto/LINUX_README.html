@@ -35,6 +35,16 @@ addresses.  To fix, turn on support for multiple IP addresses: </p>
 </pre>
 </blockquote>
 
+<p> Alternatively, specify the RESOLV_MULTI environment variable
+in main.cf: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    import_environment = MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY LANG=C RESOLV_MULTI=on
+</pre>
+</blockquote>
+
 <h2>Berkeley DB issues</h2>
 
 <p> If you can't compile Postfix because the file "db.h"

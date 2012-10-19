@@ -890,6 +890,9 @@ int     main(int argc, char **argv)
     if ((query == 0 || strcmp(query, "-") != 0)
 	&& (postmap_flags & POSTMAP_FLAG_ANY_KEY))
 	msg_fatal("specify -b -h or -m only with \"-q -\"");
+    if ((postmap_flags & POSTMAP_FLAG_ANY_KEY)
+	== (postmap_flags & POSTMAP_FLAG_MIME_KEY))
+	msg_warn("ignoring -m option without -b or -h");
 
     /*
      * Use the map type specified by the user, or fall back to a default

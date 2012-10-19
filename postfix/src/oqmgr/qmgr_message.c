@@ -749,7 +749,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	if (rec_type > 0)
 	    msg_warn("%s: ignoring out-of-order DSN original recipient <%.200s>",
 		     message->queue_id, dsn_orcpt);
-	myfree(orig_rcpt);
+	myfree(dsn_orcpt);
     }
     if (orig_rcpt != 0) {
 	if (rec_type > 0)

@@ -102,20 +102,18 @@ mail from the network, and it does not deliver any mail locally. A
 null client typically uses POP, IMAP or NFS for mailbox access. </p>
 
 <p> In this example we assume that the Internet domain name is
-"example.com" and that the machine is named "nullclient.example.com".
+"example.com" and that the machine is named "hostname.example.com".
 As usual, the examples show only parameters that are not left at
 their default settings. </p>
 
 <blockquote>
 <pre>
 1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-2     <a href="postconf.5.html#myorigin">myorigin</a> = $<a href="postconf.5.html#mydomain">mydomain</a>
-3     <a href="postconf.5.html#relayhost">relayhost</a> = $<a href="postconf.5.html#mydomain">mydomain</a>
-4     <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only
-5     <a href="postconf.5.html#local_transport">local_transport</a> = <a href="error.8.html">error</a>:local delivery is disabled
-6 
-7 /etc/postfix/<a href="master.5.html">master.cf</a>:
-8     Comment out the local delivery agent entry
+2     <a href="postconf.5.html#myhostname">myhostname</a> = hostname.example.com
+3     <a href="postconf.5.html#myorigin">myorigin</a> = $<a href="postconf.5.html#mydomain">mydomain</a>
+4     <a href="postconf.5.html#relayhost">relayhost</a> = $<a href="postconf.5.html#mydomain">mydomain</a>
+5     <a href="postconf.5.html#inet_interfaces">inet_interfaces</a> = loopback-only
+6     <a href="postconf.5.html#mydestination">mydestination</a> =
 </pre>
 </blockquote>
 
@@ -123,19 +121,29 @@ their default settings. </p>
 
 <ul>
 
-<li> <p> Line 2: Send mail as "user@example.com" (instead of
-"user@nullclient.example.com"), so that nothing ever has a reason
-to send mail to "user@nullclient.example.com". </p>
+<li> <p> Line 2: Set <a href="postconf.5.html#myhostname">myhostname</a> to hostname.example.com, in case
+the machine name isn't set to a fully-qualified domain name (use
+the command "postconf -d <a href="postconf.5.html#myhostname">myhostname</a>" to find out what the machine
+name is).  </p>
 
-<li> <p> Line 3: Forward all mail to the mail server that is
+<li> <p> Line 2: The <a href="postconf.5.html#myhostname">myhostname</a> value also provides the default
+value for the <a href="postconf.5.html#mydomain">mydomain</a> parameter (here, "<a href="postconf.5.html#mydomain">mydomain</a> = example.com").
+</p>
+
+<li> <p> Line 3: Send mail as "user@example.com" (instead of
+"user@hostname.example.com"), so that nothing ever has a reason
+to send mail to "user@hostname.example.com". </p>
+
+<li> <p> Line 4: Forward all mail to the mail server that is
 responsible for the "example.com" domain. This prevents mail from
 getting stuck on the null client if it is turned off while some
-remote destination is unreachable. </p>
+remote destination is unreachable. Specify a real hostname
+here if your "example.com" domain has no MX record. </p>
 
-<li> <p> Line 4: Do not accept mail from the network. </p>
+<li> <p> Line 5: Do not accept mail from the network. </p>
 
-<li> <p> Lines 5-8: Disable local mail delivery. All mail goes to
-the mail server as specified in line 3.  </p>
+<li> <p> Line 6: Disable local mail delivery. All mail goes to
+the mail server as specified in line 4.  </p>
 
 </ul>
 

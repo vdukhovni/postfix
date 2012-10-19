@@ -60,7 +60,7 @@
 /*	should be used or the code will not be portable.
 /*
 /*	binhash_create() creates a table of the specified size and returns a
-/*	pointer to the result. The lookup keys are saved with strdup().
+/*	pointer to the result. The lookup keys are saved with mymemdup().
 /*
 /*	binhash_enter() stores a (key, value) pair into the specified table
 /*	and returns a pointer to the resulting entry. The code does not

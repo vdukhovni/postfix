@@ -1516,10 +1516,10 @@ The recipient of postmaster notifications with the message headers
 of mail that cannot be delivered within $delay_warning_time time
 units.
 .PP
-This feature is enabled with the delay_warning_time parameter.
+See also: delay_warning_time, notify_classes.
 .SH delay_warning_time (default: 0h)
-The time after which the sender receives the message headers of
-mail that is still queued.
+The time after which the sender receives a copy of the message
+headers of mail that is still queued.
 .PP
 To enable this feature, specify a non-zero time value (an integral
 value plus an optional one-letter suffix that specifies the time
@@ -1527,6 +1527,8 @@ unit).
 .PP
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).
+.PP
+See also: delay_notice_recipient, notify_classes.
 .SH deliver_lock_attempts (default: 20)
 The maximal number of attempts to acquire an exclusive lock on a
 mailbox file or \fBbounce\fR(8) logfile.
@@ -3989,7 +3991,8 @@ This feature
 is available in Postfix 2.9 and later.
 .br
 .IP "\fBdelay\fR"
-Send the postmaster copies of the headers of delayed mail. The
+Send the postmaster copies of the headers of delayed mail (see
+delay_warning_time). The
 notification is sent to the address specified with the
 delay_notice_recipient configuration parameter (default: postmaster).
 .br
@@ -5568,6 +5571,18 @@ SMTP client will try first, when a destination has IPv6 and IPv4
 addresses with equal MX preference. This feature has no effect
 unless the inet_protocols setting enables both IPv4 and IPv6.
 With Postfix 2.8 the default is "ipv6".
+.PP
+Notes for mail delivery between sites that have both IPv4 and
+IPv6 connectivity:
+.IP \(bu
+The setting "smtp_address_preference = ipv6" is unsafe.
+It can fail to deliver mail when there is an outage that affects
+IPv6, while the destination is still reachable over IPv4.
+.IP \(bu
+The setting "smtp_address_preference = any" is safe. With
+this, mail will eventually be delivered even if there is an outage
+that affects IPv6 or IPv4, as long as it does not affect both.
+.br
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH smtp_always_send_ehlo (default: yes)

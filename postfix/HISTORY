@@ -18012,3 +18012,49 @@ Apologies for any names omitted.
 	Bugfix: the postscreen_access_list feature was case-sensitive
 	in the first character of permit, reject, etc. Reported by
 	Francis Picabia. File: global/server_acl.c.
+
+20121009
+
+	Documentation: interaction between delay_warning_time,
+	notify_classes and delay_notice_recipient. File:
+	proto/postconf.proto.
+
+20101009
+
+	Human factors: log a warning that the postcat option -m
+	without -h or -b has no effect. File: postcat/postcat.c.
+
+20121010
+
+	Bugfix (introduced: Postfix 2.5): memory leak in program
+	initialization. Reported by Coverity. File: tls/tls_misc.c.
+
+	Bugfix (introduced: Postfix 2.3): memory leak in the unused
+	oqmgr program. Reported by Coverity. File: oqmgr/qmgr_message.c.
+
+20121011
+
+	Documentation: how to enable /etc/hosts multi-record lookups
+	with main.cf settings.  File: proto/LINUX_README.html.
+
+	Documentation: clarified the postscreen-tlsproxy interface.
+	File: tlsproxy/tlsproxy.c.
+
+20121012
+
+	Documentation: a simpler null-client example.  File:
+	proto/STANDARD_CONFIGURATION_README.html
+
+20120113
+
+	Cleanup: to compute the LDAP connection cache lookup key,
+	join the numeric fields with null, just like string fields.
+	Viktor Dukhovni. File: global/dict_ldap.c.
+
+20121015
+
+	Documentation: added section on regular-expression tables
+	to the aliases(5) manpage. File: proto/aliases.
+
+	Documentation: why "smtp_address_preference = any" is the
+	preferred setting. File: proto/postconf.proto.

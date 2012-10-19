@@ -63,32 +63,38 @@ the network, and it does not deliver any mail locally. A null client typically
 uses POP, IMAP or NFS for mailbox access.
 
 In this example we assume that the Internet domain name is "example.com" and
-that the machine is named "nullclient.example.com". As usual, the examples show
+that the machine is named "hostname.example.com". As usual, the examples show
 only parameters that are not left at their default settings.
 
     1 /etc/postfix/main.cf:
-    2     myorigin = $mydomain
-    3     relayhost = $mydomain
-    4     inet_interfaces = loopback-only
-    5     local_transport = error:local delivery is disabled
-    6
-    7 /etc/postfix/master.cf:
-    8     Comment out the local delivery agent entry
+    2     myhostname = hostname.example.com
+    3     myorigin = $mydomain
+    4     relayhost = $mydomain
+    5     inet_interfaces = loopback-only
+    6     mydestination =
 
 Translation:
 
-  * Line 2: Send mail as "user@example.com" (instead of
-    "user@nullclient.example.com"), so that nothing ever has a reason to send
-    mail to "user@nullclient.example.com".
+  * Line 2: Set myhostname to hostname.example.com, in case the machine name
+    isn't set to a fully-qualified domain name (use the command "postconf -
+    d myhostname" to find out what the machine name is).
 
-  * Line 3: Forward all mail to the mail server that is responsible for the
+  * Line 2: The myhostname value also provides the default value for the
+    mydomain parameter (here, "mydomain = example.com").
+
+  * Line 3: Send mail as "user@example.com" (instead of
+    "user@hostname.example.com"), so that nothing ever has a reason to send
+    mail to "user@hostname.example.com".
+
+  * Line 4: Forward all mail to the mail server that is responsible for the
     "example.com" domain. This prevents mail from getting stuck on the null
     client if it is turned off while some remote destination is unreachable.
+    Specify a real hostname here if your "example.com" domain has no MX record.
 
-  * Line 4: Do not accept mail from the network.
+  * Line 5: Do not accept mail from the network.
 
-  * Lines 5-8: Disable local mail delivery. All mail goes to the mail server as
-    specified in line 3.
+  * Line 6: Disable local mail delivery. All mail goes to the mail server as
+    specified in line 4.
 
 PPoossttffiixx oonn aa llooccaall nneettwwoorrkk
 

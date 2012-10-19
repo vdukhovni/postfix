@@ -3083,7 +3083,8 @@ is available in Postfix 2.9 and later.  </dd>
 
 <dt><b>delay</b></dt>
 
-<dd>Send the postmaster copies of the headers of delayed mail. The
+<dd>Send the postmaster copies of the headers of delayed mail (see
+delay_warning_time). The
 notification is sent to the address specified with the
 delay_notice_recipient configuration parameter (default: postmaster).
 </dd>
@@ -7245,14 +7246,14 @@ of mail that cannot be delivered within $delay_warning_time time
 units.  </p>
 
 <p>
-This feature is enabled with the delay_warning_time parameter.
+See also: delay_warning_time, notify_classes.
 </p>
 
 %PARAM delay_warning_time 0h
 
 <p>
-The time after which the sender receives the message headers of
-mail that is still queued.
+The time after which the sender receives a copy of the message
+headers of mail that is still queued.
 </p>
 
 <p>
@@ -7264,6 +7265,10 @@ unit).
 <p>
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is h (hours).
+</p>
+
+<p>
+See also: delay_notice_recipient, notify_classes.
 </p>
 
 %PARAM disable_dns_lookups no
@@ -13545,6 +13550,21 @@ SMTP client will try first, when a destination has IPv6 and IPv4
 addresses with equal MX preference. This feature has no effect
 unless the inet_protocols setting enables both IPv4 and IPv6.
 With Postfix 2.8 the default is "ipv6".  </p>
+
+<p> Notes for mail delivery between sites that have both IPv4 and
+IPv6 connectivity: </p>
+
+<ul>
+
+<li> <p> The setting "smtp_address_preference = ipv6" is unsafe.
+It can fail to deliver mail when there is an outage that affects
+IPv6, while the destination is still reachable over IPv4. </p>
+
+<li> <p> The setting "smtp_address_preference = any" is safe. With
+this, mail will eventually be delivered even if there is an outage
+that affects IPv6 or IPv4, as long as it does not affect both. </p>
+
+</ul>
 
 <p> This feature is available in Postfix 2.8 and later.  </p>
 
