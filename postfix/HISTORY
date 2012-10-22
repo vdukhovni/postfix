@@ -18058,3 +18058,9 @@ Apologies for any names omitted.
 
 	Documentation: why "smtp_address_preference = any" is the
 	preferred setting. File: proto/postconf.proto.
+
+20121022
+
+	Bugfix (introduced 20101009) don't complain abuot stray -m
+	option if none of -[bhm] is specified. Ralf Hildebrandt.
+	File: postmap/postmap.c.
