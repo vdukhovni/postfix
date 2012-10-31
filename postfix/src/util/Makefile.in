@@ -1526,6 +1526,7 @@ myaddrinfo.o: myaddrinfo.c
 myaddrinfo.o: myaddrinfo.h
 myaddrinfo.o: mymalloc.h
 myaddrinfo.o: sock_addr.h
+myaddrinfo.o: split_at.h
 myaddrinfo.o: stringops.h
 myaddrinfo.o: sys_defs.h
 myaddrinfo.o: valid_hostname.h

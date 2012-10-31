@@ -18064,3 +18064,18 @@ Apologies for any names omitted.
 	Bugfix (introduced 20101009) don't complain abuot stray -m
 	option if none of -[bhm] is specified. Ralf Hildebrandt.
 	File: postmap/postmap.c.
+
+20121029 
+
+	Strip datalink suffix from IPv6 addresses returned by the
+	system getaddrinfo() routine.  Such suffixes mess up the
+	default mynetworks value, host name/address verification
+	and possibly more. This change obsoletes the 20101108 change
+	that removes datalink suffixes in the SMTP and QMQP servers.
+	Files: util/myaddrinfo.c, smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+
+20121031
+
+	Bugfix: smtpd_relay_restrictions compatibility shim did not
+	detect "empty" value.  Sahil Tandon. The same problem existed
+	with the inet_protocols shim. File: conf/post-install.

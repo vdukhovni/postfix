@@ -152,11 +152,13 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 	state->port = mystrdup(client_port.buf);
 
 	/*
-	 * XXX Strip off the IPv6 datalink suffix to avoid false alarms with
-	 * strict address syntax checks.
+	 * XXX Require that the infrastructure strips off the IPv6 datalink
+	 * suffix to avoid false alarms with strict address syntax checks.
 	 */
 #ifdef HAS_IPV6
-	(void) split_at(client_addr.buf, '%');
+	if (strchr(client_addr.buf, '%') != 0)
+	    msg_panic("%s: address %s has datalink suffix",
+		      myname, client_addr.buf);
 #endif
 
 	/*

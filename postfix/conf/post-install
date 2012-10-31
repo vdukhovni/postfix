@@ -799,7 +799,7 @@ EOF
     # when IPv6 support is not compiled in. See util/sys_defs.h.
 
     test "`$POSTCONF -dh inet_protocols`" = "ipv4" ||
-	test -n "`$POSTCONF -c $config_directory -nh inet_protocols`" || {
+	test -n "`$POSTCONF -c $config_directory -n inet_protocols`" || {
 	cat <<EOF | ${FMT}
     COMPATIBILITY: editing $config_directory/main.cf, setting
     inet_protocols=ipv4.  Specify inet_protocols explicitly if you
@@ -816,7 +816,7 @@ EOF
     # PLEASE DO NOT REMOVE THIS CODE. ITS PURPOSE IS TO PREVENT
     # INBOUND MAIL FROM UNEXPECTEDLY BOUNCING AFTER UPGRADING FROM
     # POSTFIX BEFORE 2.10.
-    test -n "`$POSTCONF -c $config_directory -nh smtpd_relay_restrictions`" || {
+    test -n "`$POSTCONF -c $config_directory -n smtpd_relay_restrictions`" || {
 	cat <<EOF | ${FMT}
     COMPATIBILITY: editing $config_directory/main.cf, overriding
     smtpd_relay_restrictions to prevent inbound mail from
