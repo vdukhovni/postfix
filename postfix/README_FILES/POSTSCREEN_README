@@ -18,17 +18,17 @@ by allowing whitelisted clients to skip tests, postscreen(8) minimizes its
 impact on legitimate email traffic.
 
 postscreen(8) should not be used on SMTP ports that receive mail from end-user
-clients (MUAs). In a typical deployment, postscreen(8) is used on the "port 25"
-service, while MUA clients submit mail via the submission service (port 587)
-which normally requires client authentication, or via a "port 25" server that
-provides no MX service (i.e. a dedicated server that provides submission
-service on port 25).
+clients (MUAs). In a typical deployment, postscreen(8) handles the MX service
+on TCP port 25, while MUA clients submit mail via the submission service on TCP
+port 587 which requires client authentication. Alternatively, a site could set
+up a dedicated, non-postscreen, "port 25" server that provides submission
+service and client authentication, but no MX service.
 
 postscreen(8) is part of a multi-layer defense.
 
   * As the first layer, postscreen(8) blocks connections from zombies and other
     spambots that are responsible for about 90% of all spam. It is implemented
-    as a single process to make this defense as cheap as possible.
+    as a single process to make this defense as inexpensive as possible.
 
   * The second layer implements more complex SMTP-level access checks with
     Postfix SMTP servers, policy daemons, and Milter applications.
@@ -415,11 +415,12 @@ in SMTP engine anyway. This is to make postscreen(8) logging more informative.
 
 When a client sends non-SMTP commands, postscreen(8) logs this as:
 
-    NNOONN--SSMMTTPP CCOOMMMMAANNDD ffrroomm [address]:port command
+    NNOONN--SSMMTTPP CCOOMMMMAANNDD ffrroomm [address]:port aafftteerr command: text
 
 Translation: the SMTP client at [address]:port sent a command that matches the
 postscreen_forbidden_commands parameter, or that has the syntax of a message
-header label.
+header label (text followed by optional space and ":"). The "aafftteerr command"
+portion is logged with Postfix 2.10 and later.
 
 The postscreen_non_smtp_command_action parameter specifies the action that is
 taken next. See "When tests fail after the 220 SMTP server greeting" below.
@@ -439,10 +440,11 @@ in SMTP engine anyway. This is to make postscreen(8) logging more informative.
 
 When a client sends bare newline characters, postscreen(8) logs this as:
 
-    BBAARREE NNEEWWLLIINNEE ffrroomm [address]:port
+    BBAARREE NNEEWWLLIINNEE ffrroomm [address]:port aafftteerr command
 
 Translation: the SMTP client at [address]:port sent a bare newline character,
-that is newline not preceded by carriage return.
+that is newline not preceded by carriage return. The "aafftteerr command" portion is
+logged with Postfix 2.10 and later.
 
 The postscreen_bare_newline_action parameter specifies the action that is taken
 next. See "When tests fail after the 220 SMTP server greeting" below.
@@ -484,23 +486,26 @@ The following errors are reported by the built-in SMTP engine. This engine
 never accepts mail, therefore it has per-session limits on the number of
 commands and on the session length.
 
-    CCOOMMMMAANNDD TTIIMMEE LLIIMMIITT ffrroomm [address]:port
+    CCOOMMMMAANNDD TTIIMMEE LLIIMMIITT ffrroomm [address]:port aafftteerr command
 
 Translation: the SMTP client at [address]:port reached the per-command time
 limit as specified with the postscreen_command_time_limit parameter. The
-session is terminated immediately.
+session is terminated immediately. The "aafftteerr command" portion is logged with
+Postfix 2.10 and later.
 
-    CCOOMMMMAANNDD CCOOUUNNTT LLIIMMIITT ffrroomm [address]:port
+    CCOOMMMMAANNDD CCOOUUNNTT LLIIMMIITT ffrroomm [address]:port aafftteerr command
 
 Translation: the SMTP client at [address]:port reached the per-session command
 count limit as specified with the postscreen_command_count_limit parameter. The
-session is terminated immediately.
+session is terminated immediately. The "aafftteerr command" portion is logged with
+Postfix 2.10 and later.
 
-    CCOOMMMMAANNDD LLEENNGGTTHH LLIIMMIITT ffrroomm [address]:port
+    CCOOMMMMAANNDD LLEENNGGTTHH LLIIMMIITT ffrroomm [address]:port aafftteerr command
 
 Translation: the SMTP client at [address]:port reached the per-command length
 limit, as specified with the line_length_limit parameter. The session is
-terminated immediately.
+terminated immediately. The "aafftteerr command" portion is logged with Postfix 2.10
+and later.
 
 When an SMTP client makes too many connections at the same time, or when all
 postscreen(8) ports are busy, postscreen(8) rejects the connection with a 421

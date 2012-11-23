@@ -454,6 +454,7 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
     Darwin.*)   SYSTYPE=MACOSX
 		# Use the native compiler by default
 		: ${CC=cc}
+		CCARGS="$CCARGS \$(WARN)"
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;

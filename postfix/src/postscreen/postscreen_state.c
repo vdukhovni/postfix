@@ -173,6 +173,7 @@ PSC_STATE *psc_new_session_state(VSTREAM *stream,
     state->read_state = 0;
     state->ehlo_discard_mask = 0;		/* XXX Should be ~0 */
     state->expand_buf = 0;
+    state->where = PSC_SMTPD_CMD_CONNECT;
 
     /*
      * Update the stress level.

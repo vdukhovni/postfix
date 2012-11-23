@@ -55,7 +55,8 @@ different steps:
     addresses the client may use.
 
 Successful authentication in the Postfix SMTP server requires a functional SASL
-framework. Configuring SASL should therefore always be the first step.
+framework. Configuring SASL should therefore always be the first step, before
+configuring Postfix.
 
 You can read more about the following topics:
 

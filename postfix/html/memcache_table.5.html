@@ -69,57 +69,68 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               Access to remote proxymap servers is under develop-
               ment.
 
-              NOTE  1: When using memcache with persistent backup
-              as <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache, disable  auto-
-              matic  cache cleanup (*_cache_cleanup_interval = 0)
-              in all Postfix instances except  for  one  instance
-              that will be responsible for cache cleanup.
+              NOTE  1: When sharing a persistent <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or
+              <a href="verify.8.html"><b>verify</b>(8)</a> cache, disable  automatic  cache  cleanup
+              (set  *_cache_cleanup_interval = 0) except with one
+              Postfix instance that will be responsible for cache
+              cleanup.
 
-              NOTE  2:  In the case of a proxied backup database,
-              the  full  backup  database  name  (including   the
-              "<a href="proxymap.8.html">proxy</a>:"  prefix) must be specified in the proxymap
-              server's <a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a> or  <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a>  set-
-              ting  (depending on whether the access is read-only
-              or read-write).
+              NOTE  2:  When different tables share the same mem-
+              cache database, each table should use the  <b>key_for-</b>
+              <b>mat</b>  feature  (see below) to prepend its own unique
+              string to the  lookup  key.   Otherwise,  automatic
+              <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  or  <a href="verify.8.html"><b>verify</b>(8)</a>  cache cleanup may not
+              work.
+
+              NOTE 3: When the backup database is  accessed  with
+              "<a href="proxymap.8.html">proxy</a>:"  lookups,  the  full  backup database name
+              (including the "<a href="proxymap.8.html">proxy</a>:" prefix) must  be  specified
+              in   the   proxymap   server's  <a href="postconf.5.html#proxy_read_maps">proxy_read_maps</a>  or
+              <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a> setting (depending on whether  the
+              access is read-only or read-write).
 
        <b>flags (default: 0)</b>
-              Optional flags that should be stored along  with  a
+              Optional  flags  that should be stored along with a
               memcache update. The flags are ignored when looking
               up information.
 
        <b>ttl (default: 3600)</b>
               The expiration time in seconds of memcache updates.
 
-              NOTE   1:   When   using   a   memcache   table  as
+              NOTE  1:   When   using   a   memcache   table   as
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache without persistent
               backup,  specify  a  zero  *_cache_cleanup_interval
-              value with all Postfix instances that use the  mem-
-              cache,  and specify the largest <a href="postscreen.8.html"><b>postscreen</b>(8)</a> *_ttl
-              value or <a href="verify.8.html"><b>verify</b>(8)</a> *_expire_time value as the  mem-
+              value  with all Postfix instances that use the mem-
+              cache, and specify the largest <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  *_ttl
+              value  or <a href="verify.8.html"><b>verify</b>(8)</a> *_expire_time value as the mem-
               cache table's <b>ttl</b> value.
 
-              NOTE  2:  According to memcache protocol documenta-
-              tion, a value greater than 30  days  (2592000  sec-
-              onds)  specifies absolute UNIX time. Smaller values
+              NOTE 2: According to memcache  protocol  documenta-
+              tion,  a  value  greater than 30 days (2592000 sec-
+              onds) specifies absolute UNIX time. Smaller  values
               are relative to the time of the update.
 
 <b>MEMCACHE KEY PARAMETERS</b>
        <b>key_format (default: %s)</b>
-              Format of the lookup and update  keys  in  memcache
-              requests.   By  default,  these are the same as the
-              lookup and update keys that are given to the  Post-
+              Format  of  the  lookup and update keys in memcache
+              requests.  By default, these are the  same  as  the
+              lookup  and update keys that are given to the Post-
               fix memcache client.
 
-              NOTE: The <b>key_format</b> feature is not used for <b>backup</b>
-              database requests.
+              NOTE 1: The <b>key_format</b>  feature  is  not  used  for
+              <b>backup</b> database requests.
 
-              When the same memcache database is  used  to  cache
-              information  from  multiple tables, you can use the
-              <b>key_format</b> feature  to  avoid  name  collisions  by
-              prepending a fixed string.  Examples:
+              NOTE  2:  When different tables share the same mem-
+              cache database, each table should prepend  its  own
+              unique  string to the lookup key.  Otherwise, auto-
+              matic <a href="postscreen.8.html"><b>postscreen</b>(8)</a> or <a href="verify.8.html"><b>verify</b>(8)</a> cache cleanup  may
+              not work.
+
+              Examples:
 
                   key_format = aliases:%s
-                  key_format = access:%s
+                  key_format = verify:%s
+                  key_format = postscreen:%s
 
               The <b>key_format</b> parameter supports the following '%'
               expansions:

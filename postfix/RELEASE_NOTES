@@ -14,6 +14,20 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
+Incompatible changes with snapshot 20121123
+===========================================
+
+The postscreen deep protocol tests now log the last command before
+a protocol error ("UNIMPLEMENTED" when the last command is not
+implemented, "CONNECT" when there was no prior command). The
+changed logfile messages are:
+
+NON-SMTP COMMAND from [address]:port after command: text
+BARE NEWLINE from [address]:port after command
+COMMAND TIME LIMIT from [address]:port after command
+COMMAND COUNT LIMIT from [address]:port after command
+COMMAND LENGTH LIMIT from [address]:port after command
+
 Incompatible changes with snapshot 20121007
 ===========================================
 

@@ -73,6 +73,7 @@ typedef struct {
     /* smtpd(8) compatibility */
     int     ehlo_discard_mask;		/* EHLO filter */
     VSTRING *expand_buf;		/* macro expansion */
+    const char *where;			/* SMTP protocol state */
 } PSC_STATE;
 
 #define PSC_TIME_STAMP_NEW		(0)	/* test was never passed */
@@ -209,6 +210,13 @@ typedef struct {
 
 #define PSC_STATE_MASK_ANY_UPDATE \
 	(PSC_STATE_MASK_ANY_PASS | PSC_STATE_FLAG_PENAL_UPDATE)
+
+ /*
+  * Meta-commands for state->where that reflect the initial command processor
+  * state and commands that aren't implemented.
+  */
+#define PSC_SMTPD_CMD_CONNECT		"CONNECT"
+#define PSC_SMTPD_CMD_UNIMPL		"UNIMPLEMENTED"
 
  /*
   * See log_adhoc.c for discussion.

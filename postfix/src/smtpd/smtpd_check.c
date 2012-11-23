@@ -518,13 +518,20 @@ static int has_required(ARGV *restrictions, const char **required)
      * Recursively check list membership.
      */
     for (rest = restrictions->argv; *rest; rest++) {
-	if (strcmp(*rest, WARN_IF_REJECT) == 0 && rest[1] != 0) {
+	if (strcasecmp(*rest, WARN_IF_REJECT) == 0 && rest[1] != 0) {
 	    rest += 1;
 	    continue;
 	}
+	if (strcasecmp(*rest, PERMIT_ALL) == 0) {
+	    if (rest[1] != 0)
+		msg_warn("restriction `%s' after `%s' is ignored",
+			 rest[1], rest[0]);
+	    return (0);
+	}
 	for (reqd = required; *reqd; reqd++)
-	    if (strcmp(*rest, *reqd) == 0)
+	    if (strcasecmp(*rest, *reqd) == 0)
 		return (1);
+	/* XXX This lookup operation should not be case-sensitive. */
 	if ((expansion = (ARGV *) htable_find(smtpd_rest_classes, *rest)) != 0)
 	    if (has_required(expansion, required))
 		return (1);
@@ -684,6 +691,7 @@ void    smtpd_check_init(void)
 	while ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) != 0) {
 	    if ((value = mail_conf_lookup_eval(name)) == 0 || *value == 0)
 		msg_fatal("restriction class `%s' needs a definition", name);
+	    /* XXX This store operation should not be case-sensitive. */
 	    htable_enter(smtpd_rest_classes, name,
 			 (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 						    value));

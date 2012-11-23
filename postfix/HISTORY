@@ -18079,3 +18079,44 @@ Apologies for any names omitted.
 	Bugfix: smtpd_relay_restrictions compatibility shim did not
 	detect "empty" value.  Sahil Tandon. The same problem existed
 	with the inet_protocols shim. File: conf/post-install.
+
+20121105
+
+	Cleanup: the postscreen(8) "deep protocol" tests now log
+	the SMTP command that precedes a protocol violation.  Files:
+	postscreen/postscreen_smtpd.c, proto/POSTSCREEN_README.html.
+
+	Bugfix (introduced: Postfix 1.1): wrong string termination
+	when handling a MBOX From_ line at the start of a message.
+	File: qmqpd/qmqpd.c.
+
+20121110
+
+	Cleanup: specify $(WARN) on the MacOS X compiler command
+	line to suppress "nested comment" and possibly other unwanted
+	warnings. Problem reported by Jim Reid. File: makedefs,
+	Makefile.in.
+
+20121119
+
+	Documentation: added a note that key_format is required
+	when postscreen(8) and verify(8) share the same memcache
+	(with different persistent backup databases, or course)
+	otherwise automatic cache cleanup breaks due to a name
+	collision for the "last cache cleanup" database record.
+	File: proto/memcache.
+
+20121122
+
+	Cleanup: the safety-check for smtpd_recipient_restrictions
+	and smtpd_relay_restrictions now detects permit before
+	reject.  File: smtpd/smtpd_check.c.
+
+	Cleanup: the safety-check for smtpd_recipient_restrictions
+	and smtpd_relay_restrictions is no longer case-sensitive.
+	File: smtpd/smtpd_check.c.
+
+20121123
+
+	Cleanup: consistent escaping of commands in postscreen deep
+	protocol test logging. File: postscreen/postscreen_smtpd.c.

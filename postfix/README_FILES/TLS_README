@@ -147,7 +147,7 @@ Their DSA counterparts:
         smtpd_tls_dcert_file = /etc/postfix/server-dsa.pem
         smtpd_tls_dkey_file = $smtpd_tls_dcert_file
 
-Their ECDSA counterparts (Postfix >= 2.6 + OpenSSL >= 0.9.9):
+Their ECDSA counterparts (Postfix >= 2.6 + OpenSSL >= 1.0.0):
 
     /etc/postfix/main.cf:
         # Most clients will not be ECDSA capable, so you will likely also need
@@ -540,7 +540,7 @@ To generate your own set of DH parameters, use:
     % ooppeennssssll ggeennddhh --oouutt //eettcc//ppoossttffiixx//ddhh__11002244..ppeemm --22 11002244
 
 Support for elliptic curve cryptography is available with Postfix 2.6 and
-OpenSSL 0.9.9 or later. To enable ephemeral elliptic curve Diffie-Hellman
+OpenSSL 1.0.0 or later. To enable ephemeral elliptic curve Diffie-Hellman
 (EECDH) key-exchange, set "smtpd_tls_eecdh_grade = strong" or
 "smtpd_tls_eecdh_grade = ultra". The "ultra" setting is substantially more CPU
 intensive, and "strong" is sufficiently secure for most situations.
@@ -1085,7 +1085,7 @@ Their DSA counterparts:
         smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
         smtp_tls_dkey_file = $smtp_tls_dcert_file
 
-Their ECDSA counterparts (Postfix >= 2.6 + OpenSSL >= 0.9.9):
+Their ECDSA counterparts (Postfix >= 2.6 + OpenSSL >= 1.0.0):
 
     /etc/postfix/main.cf:
         smtp_tls_eccert_file = /etc/postfix/client-ecdsa.pem

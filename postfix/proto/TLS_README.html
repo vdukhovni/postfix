@@ -245,7 +245,7 @@ $smtpd_tls_CAfile or install it in the $smtpd_tls_CApath directory. </p>
 </pre>  
 </blockquote>
 
-<p> Their ECDSA counterparts (Postfix &ge; 2.6 + OpenSSL &ge; 0.9.9): </p>
+<p> Their ECDSA counterparts (Postfix &ge; 2.6 + OpenSSL &ge; 1.0.0): </p>
 
 <blockquote>
 <pre>
@@ -773,7 +773,7 @@ settings. </p>
 </blockquote>
 
 <p> Support for elliptic curve cryptography is available with Postfix
-2.6 and OpenSSL 0.9.9 or later.  To enable ephemeral elliptic curve
+2.6 and OpenSSL 1.0.0 or later.  To enable ephemeral elliptic curve
 Diffie-Hellman (EECDH) key-exchange, set "smtpd_tls_eecdh_grade =
 strong" or "smtpd_tls_eecdh_grade = ultra". The "ultra" setting is
 substantially more CPU intensive, and "strong" is sufficiently
@@ -1474,7 +1474,7 @@ $smtp_tls_CAfile or install it in the $smtp_tls_CApath directory. </p>
 </pre>  
 </blockquote>
 
-<p> Their ECDSA counterparts (Postfix &ge; 2.6 + OpenSSL &ge; 0.9.9): </p>
+<p> Their ECDSA counterparts (Postfix &ge; 2.6 + OpenSSL &ge; 1.0.0): </p>
 
 <blockquote>
 <pre>
