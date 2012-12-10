@@ -18045,7 +18045,7 @@ Apologies for any names omitted.
 	Documentation: a simpler null-client example.  File:
 	proto/STANDARD_CONFIGURATION_README.html
 
-20120113
+20121013
 
 	Cleanup: to compute the LDAP connection cache lookup key,
 	join the numeric fields with null, just like string fields.
@@ -18061,18 +18061,19 @@ Apologies for any names omitted.
 
 20121022
 
-	Bugfix (introduced 20101009) don't complain abuot stray -m
+	Bugfix (introduced 20101009) don't complain about stray -m
 	option if none of -[bhm] is specified. Ralf Hildebrandt.
 	File: postmap/postmap.c.
 
 20121029 
 
-	Strip datalink suffix from IPv6 addresses returned by the
-	system getaddrinfo() routine.  Such suffixes mess up the
-	default mynetworks value, host name/address verification
-	and possibly more. This change obsoletes the 20101108 change
-	that removes datalink suffixes in the SMTP and QMQP servers.
-	Files: util/myaddrinfo.c, smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c.
+	Workaround: strip datalink suffix from IPv6 addresses
+	returned by the system getaddrinfo() routine.  Such suffixes
+	mess up the default mynetworks value, host name/address
+	verification and possibly more. This change obsoletes the
+	20101108 change that removes datalink suffixes in the SMTP
+	and QMQP servers.  Files: util/myaddrinfo.c, smtpd/smtpd_peer.c,
+	qmqpd/qmqpd_peer.c.
 
 20121031
 
@@ -18087,7 +18088,7 @@ Apologies for any names omitted.
 	postscreen/postscreen_smtpd.c, proto/POSTSCREEN_README.html.
 
 	Bugfix (introduced: Postfix 1.1): wrong string termination
-	when handling a MBOX From_ line at the start of a message.
+	when handling an MBOX From_ line at the start of a message.
 	File: qmqpd/qmqpd.c.
 
 20121110
@@ -18120,3 +18121,22 @@ Apologies for any names omitted.
 
 	Cleanup: consistent escaping of commands in postscreen deep
 	protocol test logging. File: postscreen/postscreen_smtpd.c.
+
+20121124
+
+	Documentation: the bounce behavior for automatically-added
+	BCC recipients has changed with Postfix 2.3 when DSN support
+	was introduced.  File: proto/postconf.proto.
+
+20121203
+
+	Documentation: added explicit example for -o name=value.
+	File: proto/master.
+
+20121210
+
+	Bugfix (introduced: Postfix 2.9) nesting count error while
+	stripping the optional [] around a DNS[BW]L address pattern.
+	This part of the code is not documented and had escaped
+	testing.  Files: util/ip_match.c, util/ip_match.in,
+	util/ip_match.ref.

@@ -11,6 +11,9 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	Make errno white/blacklist for getpwnam_r etc. and mailbox
+	write errors.
+
 	smtpd_muble_restrictions rule names are case-insensitive.
 	restriction_classes values are case-sensitive but should
 	be case-insensitive for consistency with smtpd_muble_restrictions.

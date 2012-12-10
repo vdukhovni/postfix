@@ -17,15 +17,17 @@ protection against mail server overload. One \fBpostscreen\fR(8)
 process handles multiple inbound SMTP connections, and decides
 which clients may talk to a Postfix SMTP server process.
 By keeping spambots away, \fBpostscreen\fR(8) leaves more
-SMTP server processes available for legitimate clients.
+SMTP server processes available for legitimate clients, and
+delays the onset of server overload conditions.
 
 This program should not be used on SMTP ports that receive
 mail from end-user clients (MUAs). In a typical deployment,
-\fBpostscreen\fR(8) is used on the "port 25" service, while
-MUA clients submit mail via the \fBsubmission\fR service,
-or via a "port 25" server that provides no MX service (i.e.
-a dedicated server that provides \fBsubmission\fR service
-on port 25).
+\fBpostscreen\fR(8) handles the MX service on TCP port 25,
+while MUA clients submit mail via the \fBsubmission\fR
+service on TCP port 587 which requires client authentication.
+Alternatively, a site could set up a dedicated, non-postscreen,
+"port 25" server that provides \fBsubmission\fR service and
+client authentication, but no MX service.
 
 \fBpostscreen\fR(8) maintains a temporary whitelist for
 clients that have passed a number of tests.  When an SMTP

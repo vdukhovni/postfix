@@ -19,15 +19,17 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        decides which clients may talk to a  Postfix  SMTP  server
        process.   By  keeping spambots away, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> leaves
        more  SMTP  server  processes  available  for   legitimate
-       clients.
+       clients,  and  delays  the onset of server overload condi-
+       tions.
 
        This program should not be used on SMTP ports that receive
-       mail from end-user clients (MUAs). In  a  typical  deploy-
-       ment,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  is  used  on  the "port 25" service,
-       while MUA clients submit mail via the <b>submission</b>  service,
-       or  via  a  "port  25"  server that provides no MX service
-       (i.e.  a dedicated server that provides <b>submission</b> service
-       on port 25).
+       mail  from  end-user  clients (MUAs). In a typical deploy-
+       ment, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> handles the MX service on TCP port 25,
+       while  MUA  clients submit mail via the <b>submission</b> service
+       on TCP port  587  which  requires  client  authentication.
+       Alternatively,  a  site  could  set  up  a dedicated, non-
+       postscreen, "port 25" server that provides <b>submission</b> ser-
+       vice and client authentication, but no MX service.
 
        <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  maintains a temporary whitelist for clients
        that have passed a number of tests.  When an  SMTP  client

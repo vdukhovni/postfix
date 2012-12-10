@@ -208,21 +208,27 @@ MASTER(5)                                                            MASTER(5)
                      <a href="postconf.5.html">main.cf</a>.  See <a href="postconf.5.html"><b>postconf</b>(5)</a> for syntax.
 
                      NOTE 1: do not specify whitespace around the
-                     "=".  In  parameter  values,  either   avoid
-                     whitespace altogether, use commas instead of
-                     spaces,  or  consider  overrides  like   "-o
-                     name=$override_parameter"     with    $over-
-                     ride_parameter set in <a href="postconf.5.html">main.cf</a>.
+                     "=" or in parameter  values.  To  specify  a
+                     parameter  value  that  contains whitespace,
+                     use commas instead of spaces, or specify the
+                     value in <a href="postconf.5.html">main.cf</a>. Example:
 
-                     NOTE 2: Over-zealous use of parameter  over-
-                     rides  makes  the Postfix configuration hard
-                     to understand and maintain.   At  a  certain
-                     point,  it might be easier to configure mul-
-                     tiple instances of Postfix, instead of  con-
+                     /etc/postfix/<a href="master.5.html">master.cf</a>:
+                         submission inet .... smtpd
+                             -o smtpd_mumble=$submission_mumble
+
+                     /etc/postfix/<a href="postconf.5.html">main.cf</a>
+                         submission_mumble = text with whitespace...
+
+                     NOTE  2: Over-zealous use of parameter over-
+                     rides makes the Postfix  configuration  hard
+                     to  understand  and  maintain.  At a certain
+                     point, it might be easier to configure  mul-
+                     tiple  instances of Postfix, instead of con-
                      figuring  multiple  personalities  via  mas-
                      ter.cf.
 
-              <b>-v</b>     Increase the verbose logging level.  Specify
+              <b>-v</b>     Increase  the verbose logging level. Specify
                      multiple <b>-v</b> options to make a Postfix daemon
                      process increasingly verbose.
 
@@ -235,7 +241,7 @@ MASTER(5)                                                            MASTER(5)
        <a href="DEBUG_README.html">DEBUG_README</a>, Postfix debugging
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

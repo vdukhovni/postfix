@@ -28,11 +28,6 @@ postscreen(8) leaves more SMTP server processes available for
 legitimate clients, and delays the onset of <a
 href="STRESS_README.html">server overload</a> conditions. </p>
 
-<p> postscreen(8) maintains a temporary whitelist for clients that
-pass its tests; by allowing whitelisted clients to skip tests,
-postscreen(8) minimizes its impact on legitimate email traffic.
-</p>
-
 <p> postscreen(8) should not be used on SMTP ports that receive
 mail from end-user clients (MUAs). In a typical deployment,
 postscreen(8) handles the MX service on TCP port 25, while MUA
@@ -40,6 +35,11 @@ clients submit mail via the submission service on TCP port 587 which
 requires client authentication. Alternatively, a site could set up
 a dedicated, non-postscreen, "port 25" server that provides submission
 service and client authentication, but no MX service.  </p>
+
+<p> postscreen(8) maintains a temporary whitelist for clients that
+pass its tests; by allowing whitelisted clients to skip tests,
+postscreen(8) minimizes its impact on legitimate email traffic.
+</p>
 
 <p> postscreen(8) is part of a multi-layer defense. <p>
 

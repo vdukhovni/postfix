@@ -181,11 +181,19 @@
 #	etc., just like in main.cf.  See \fBpostconf\fR(5) for
 #	syntax.
 # .sp
-#	NOTE 1: do not specify whitespace around the "=". In parameter
-#	values, either avoid whitespace altogether, use commas
-#	instead of spaces, or consider overrides like "-o
-#	name=$override_parameter" with $override_parameter set in
-#	main.cf.
+#	NOTE 1: do not specify whitespace around the "=" or in
+#	parameter values. To specify a parameter value that contains
+#	whitespace, use commas instead of spaces, or specify the
+#	value in main.cf. Example:
+# .sp
+# .nf
+#	/etc/postfix/master.cf:
+#	    submission inet .... smtpd
+#		-o smtpd_mumble=$submission_mumble
+# .sp
+#	/etc/postfix/main.cf
+#	    submission_mumble = text with whitespace...
+# .fi
 # .sp
 #	NOTE 2: Over-zealous use of parameter overrides makes the
 #	Postfix configuration hard to understand and maintain.  At

@@ -28,11 +28,6 @@ talk to a Postfix SMTP server process.  By keeping spambots away,
 legitimate clients, and delays the onset of <a
 href="STRESS_README.html">server overload</a> conditions. </p>
 
-<p> <a href="postscreen.8.html">postscreen(8)</a> maintains a temporary whitelist for clients that
-pass its tests; by allowing whitelisted clients to skip tests,
-<a href="postscreen.8.html">postscreen(8)</a> minimizes its impact on legitimate email traffic.
-</p>
-
 <p> <a href="postscreen.8.html">postscreen(8)</a> should not be used on SMTP ports that receive
 mail from end-user clients (MUAs). In a typical deployment,
 <a href="postscreen.8.html">postscreen(8)</a> handles the MX service on TCP port 25, while MUA
@@ -40,6 +35,11 @@ clients submit mail via the submission service on TCP port 587 which
 requires client authentication. Alternatively, a site could set up
 a dedicated, non-postscreen, "port 25" server that provides submission
 service and client authentication, but no MX service.  </p>
+
+<p> <a href="postscreen.8.html">postscreen(8)</a> maintains a temporary whitelist for clients that
+pass its tests; by allowing whitelisted clients to skip tests,
+<a href="postscreen.8.html">postscreen(8)</a> minimizes its impact on legitimate email traffic.
+</p>
 
 <p> <a href="postscreen.8.html">postscreen(8)</a> is part of a multi-layer defense. <p>
 
