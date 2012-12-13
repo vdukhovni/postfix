@@ -445,7 +445,7 @@ char   *ip_match_parse(VSTRING *byte_codes, char *pattern)
      * Simplify this if we change to {} for wildcard notation.
      */
 #define FIND_TERMINATOR(start, cp) do { \
-	int _level = 1; \
+	int _level = 0; \
 	for (cp = (start) ; *cp; cp++) { \
 	    if (*cp == '[') _level++; \
 	    if (*cp != ']') continue; \
