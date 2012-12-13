@@ -112,8 +112,8 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
     char   *bp = saved_acl;
     char   *acl;
 
-#define STREQ(x,y) ((*x) == (*y) && strcasecmp((x), (y)) == 0)
-#define STRNE(x,y) ((*x) != (*y) || strcasecmp((x), (y)) != 0)
+#define STREQ(x,y) (strcasecmp((x), (y)) == 0)
+#define STRNE(x,y) (strcasecmp((x), (y)) != 0)
 
     /*
      * Nested tables are not allowed. Tables are opened before entering the
