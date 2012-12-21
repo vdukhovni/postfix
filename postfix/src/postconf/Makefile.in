@@ -42,7 +42,8 @@ test:	$(TESTPROG)
 
 tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test12 test13 test14 test15 test16 test17 test18 test19 test20 test21 \
-	test22 test23 test24 test25 test26 test27 test28 test29 test30 test4b
+	test22 test23 test24 test25 test26 test27 test28 test29 test30 test4b \
+	test31 test32 test33
 
 root_tests:
 
@@ -429,6 +430,38 @@ test30:	$(PROG) test30.ref
 	diff test30.ref test30.tmp
 	rm -f main.cf master.cf test30.tmp
 
+# Does a non-default setting propagate to a non-default value?
+
+test31:	$(PROG) test31.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'smtpd_helo_restrictions=whatever' >> main.cf
+	echo 'smtpd_sender_restrictions=$$smtpd_helo_restrictions' >> main.cf
+	./$(PROG) -nxc . >test31.tmp 2>&1
+	diff test31.ref test31.tmp
+	rm -f main.cf master.cf test31.tmp
+
+# Does a non-default setting propagate to a default value?
+
+test32:	$(PROG) test32.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'relay_domains=whatever' >> main.cf
+	./$(PROG) -xc . fast_flush_domains >test32.tmp 2>&1
+	diff test32.ref test32.tmp
+	rm -f main.cf master.cf test32.tmp
+
+# Does a default setting propagate to a non-default value?
+
+test33:	$(PROG) test33.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo 'mydestination=whatever' >> main.cf
+	echo 'always_bcc=$$relay_domains' >> main.cf
+	./$(PROG) -xc . always_bcc >test33.tmp 2>&1
+	diff test33.ref test33.tmp
+	rm -f main.cf master.cf test33.tmp
+
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
 	mkdir printfck
@@ -560,6 +593,8 @@ postconf_edit.o: postconf_edit.c
 postconf_main.o: ../../include/argv.h
 postconf_main.o: ../../include/dict.h
 postconf_main.o: ../../include/htable.h
+postconf_main.o: ../../include/mac_expand.h
+postconf_main.o: ../../include/mac_parse.h
 postconf_main.o: ../../include/mail_conf.h
 postconf_main.o: ../../include/mail_params.h
 postconf_main.o: ../../include/msg.h

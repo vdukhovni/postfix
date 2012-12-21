@@ -7,7 +7,7 @@
 /* .fi
 /*	\fBManaging main.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dfhnvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -275,6 +275,9 @@
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
+/* .IP \fB-x\fR
+/*	Expand \fI$name\fR in parameter values. The expansion is
+/*	recursive.
 /* .IP \fB-X\fR
 /*	Edit the \fBmain.cf\fR configuration file, and remove
 /*	the parameters named on the \fBpostconf\fR(1) command line.
@@ -430,7 +433,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMntvX")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMntvxX")) > 0) {
 	switch (ch) {
 	case 'a':
 	    cmd_mode |= SHOW_SASL_SERV;
@@ -462,17 +465,6 @@ int     main(int argc, char **argv)
 	    cmd_mode |= FOLD_LINE;
 	    break;
 
-	    /*
-	     * People, this does not work unless you properly handle default
-	     * settings. For example, fast_flush_domains = $relay_domains
-	     * must not evaluate to the empty string when relay_domains is
-	     * left at its default setting of $mydestination.
-	     */
-#if 0
-	case 'E':
-	    cmd_mode |= SHOW_EVAL;
-	    break;
-#endif
 	case '#':
 	    cmd_mode = COMMENT_OUT;
 	    break;
@@ -498,6 +490,9 @@ int     main(int argc, char **argv)
 	    ext_argv = argv_alloc(2);
 	    argv_add(ext_argv, "bounce", "-SVndump_templates", (char *) 0);
 	    break;
+	case 'x':
+	    cmd_mode |= SHOW_EVAL;
+	    break;
 	case 'X':
 	    /* This is irreversible, therefore require two-finger action. */
 	    cmd_mode = EDIT_EXCL;
@@ -521,6 +516,8 @@ int     main(int argc, char **argv)
 		       && junk != EDIT_EXCL)
 		      || ext_argv != 0))
 	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -l, -m, -M, -n, and -X");
+    if ((cmd_mode & SHOW_EVAL) != 0 && junk != 0 && junk != SHOW_DEFS && junk != SHOW_NONDEF)
+	msg_fatal("do not specify -x with -a, -A, -b, -e, -#, -l, -m, -M, or -X");
 
     /*
      * Display bounce template information and exit.
@@ -591,7 +588,6 @@ int     main(int argc, char **argv)
     else {
 	if ((cmd_mode & SHOW_DEFS) == 0) {
 	    read_parameters();
-	    set_parameters();
 	}
 	register_builtin_parameters();
 

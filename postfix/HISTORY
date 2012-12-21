@@ -18140,3 +18140,18 @@ Apologies for any names omitted.
 	This part of the code is not documented and had escaped
 	testing.  Files: util/ip_match.c, util/ip_match.in,
 	util/ip_match.ref.
+
+20121215
+
+	Bugfix (introduced: 19980218, when recipient_delimiter
+	support was added): The error message for unknown local
+	users (or missing required aliases) should report the user
+	name instead of the full localpart which may contain an
+	address extension.  Problem reported by Christian Holler.
+	File: local/unknown.c.
+
+20121221
+
+	Feature: "postconf -x" support to expand $nama in parameter
+	values. Files: postconf/postconf_main.c, postconf/postconf.h,
+	postconf/postconf_node.c, postconf/postconf.c.

@@ -11,7 +11,7 @@ Postfix configuration utility
 .fi
 \fBManaging main.cf:\fR
 
-\fBpostconf\fR [\fB-dfhnv\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-dfhnvx\fR] [\fB-c \fIconfig_dir\fR]
 [\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -281,6 +281,9 @@ This feature is available with Postfix 2.3 and later.
 .IP \fB-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 options make the software increasingly verbose.
+.IP \fB-x\fR
+Expand \fI$name\fR in parameter values. The expansion is
+recursive.
 .IP \fB-X\fR
 Edit the \fBmain.cf\fR configuration file, and remove
 the parameters named on the \fBpostconf\fR(1) command line.

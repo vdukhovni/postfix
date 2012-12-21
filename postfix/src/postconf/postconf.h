@@ -43,6 +43,7 @@ typedef struct {
     int     flags;			/* see below */
     char   *param_data;			/* mostly, the default value */
     const char *(*convert_fn) (char *);	/* value to string */
+    const char *cached_defval;		/* cached default value */
 } PC_PARAM_NODE;
 
  /* Values for flags. See the postconf_node module for narrative text. */

@@ -8,19 +8,12 @@
 /*
 /*	void	read_parameters()
 /*
-/*	void	set_parameters()
-/*
 /*	void	show_parameters(mode, param_class, names)
 /*	int	mode;
 /*	int	param_class;
 /*	char	**names;
 /* DESCRIPTION
 /*	read_parameters() reads parameters from main.cf.
-/*
-/*	set_parameters() does nothing. It is a place holder for
-/*	code that assigns actual or default parameter values, which
-/*	could be needed to implement "postconf -e" parameter value
-/*	expansion.
 /*
 /*	show_parameters() writes main.cf parameters to the standard
 /*	output stream.
@@ -38,7 +31,7 @@
 /* .IP SHOW_NAME
 /*	Output the parameter as "name = value".
 /* .IP SHOW_EVAL
-/*	Expand parameter values (not implemented).
+/*	Expand $name in parameter values.
 /* .RE
 /* .IP param_class
 /*	Bit-wise OR of one or more of the following:
@@ -83,6 +76,7 @@
 #include <dict.h>
 #include <stringops.h>
 #include <htable.h>
+#include <mac_expand.h>
 
 /* Global library. */
 
@@ -110,35 +104,6 @@ void    read_parameters(void)
     if (dict_load_file_xt(CONFIG_DICT, path) == 0)
 	msg_fatal("open %s: %m", path);
     myfree(path);
-}
-
-/* set_parameters - set parameter values from default or explicit setting */
-
-void set_parameters(void)
-{
-
-    /*
-     * The proposal below describes some of the steps needed to expand
-     * parameter values. It has a problem: it updates the configuration
-     * parameter dictionary, and in doing so breaks the "postconf -d"
-     * implementation. This makes "-d" and "-e" mutually exclusive.
-     * 
-     * Populate the configuration parameter dictionary with default settings or
-     * with actual settings.
-     * 
-     * Iterate over each entry in str_fn_table, str_fn_table_2, time_table,
-     * bool_table, int_table, str_table, and raw_table. Look up each
-     * parameter name in the configuration parameter dictionary. If the
-     * parameter is not set, take the default value, or take the value from
-     * main.cf, without doing $name expansions. This includes converting
-     * default values from numeric/boolean internal forms to external string
-     * form.
-     * 
-     * Once the configuration parameter dictionary is populated, printing a
-     * parameter setting is a matter of querying the configuration parameter
-     * dictionary, optionally expanding of $name values, and printing the
-     * result.
-     */
 }
 
 /* print_line - show line possibly folded, and with normalized whitespace */
@@ -194,6 +159,100 @@ static void print_line(int mode, const char *fmt,...)
     vstream_fputs("\n", VSTREAM_OUT);
 }
 
+/* lookup_parameter_value - look up specific parameter value */
+
+static const char *lookup_parameter_value(int mode, const char *name,
+					          PC_PARAM_NODE *node)
+{
+    const char *value;
+
+    /*
+     * Use the actual or built-in default parameter value. Some default
+     * values are computed by functions that have side effects, and those
+     * functions should be invoked only once. Therefore, when expanding $name
+     * in parameter values, we cache the default values.
+     */
+    if ((mode & SHOW_DEFS) != 0
+	|| ((value = dict_lookup(CONFIG_DICT, name)) == 0
+	    && (mode & SHOW_NONDEF) == 0)) {
+	if ((value = node->cached_defval) == 0
+	    && (value = convert_param_node(SHOW_DEFS, name, node)) != 0
+	    && (mode & SHOW_EVAL) != 0)
+	    node->cached_defval = value = mystrdup(value);
+    }
+    return (value);
+}
+
+ /*
+  * Data structure to pass private state while recursively expanding $name in
+  * parameter values.
+  */
+typedef struct {
+    int     mode;
+} PC_EVAL_CTX;
+
+/* expand_parameter_value_helper - macro parser call-back routine */
+
+static const char *expand_parameter_value_helper(const char *key,
+						         int unused_type,
+						         char *context)
+{
+    PC_PARAM_NODE *node;
+    PC_EVAL_CTX *cp = (PC_EVAL_CTX *) context;
+
+    /*
+     * XXX Do not spam the user with warnings about legacy parameter names in
+     * backwards-compatible default settings.
+     */
+    if ((node = PC_PARAM_TABLE_FIND(param_table, key)) != 0) {
+	return (lookup_parameter_value(cp->mode, key, node));
+    } else {
+	/* msg_warn("%s: unknown parameter", key); */
+	return (0);
+    }
+}
+
+/* expand_parameter_value - expand $name in parameter value */
+
+static const char *expand_parameter_value(int mode, const char *value,
+					          PC_PARAM_NODE *node)
+{
+    const char *myname = "expand_parameter_value";
+    static VSTRING *buf;
+    int     status;
+    PC_EVAL_CTX eval_ctx;
+
+    /*
+     * Initialize.
+     */
+    if (buf == 0)
+	buf = vstring_alloc(10);
+
+    /*
+     * Expand macros recursively.
+     * 
+     * When expanding $name in "postconf -n" parameter values, don't limit the
+     * search to only non-default parameter values.
+     * 
+     * When expanding $name in "postconf -d" parameter values, do limit the
+     * search to only default parameter values.
+     */
+#define DONT_FILTER (char *) 0
+
+    eval_ctx.mode = mode & ~SHOW_NONDEF;
+    status = mac_expand(buf, value, MAC_EXP_FLAG_RECURSE, DONT_FILTER,
+			expand_parameter_value_helper, (char *) &eval_ctx);
+    if (status & MAC_PARSE_ERROR)
+	msg_fatal("macro processing error");
+    if (msg_verbose > 1) {
+	if (strcmp(value, STR(buf)) != 0)
+	    msg_info("%s: expand %s -> %s", myname, value, STR(buf));
+	else
+	    msg_info("%s: const  %s", myname, value);
+    }
+    return (STR(buf));
+}
+
 /* print_parameter - show specific parameter */
 
 static void print_parameter(int mode, const char *name,
@@ -204,15 +263,15 @@ static void print_parameter(int mode, const char *name,
     /*
      * Use the default or actual value.
      */
-    if ((mode & SHOW_DEFS) != 0
-	|| ((value = dict_lookup(CONFIG_DICT, name)) == 0
-	    && (mode & SHOW_NONDEF) == 0))
-	value = convert_param_node(SHOW_DEFS, name, node);
+    value = lookup_parameter_value(mode, name, node);
 
     /*
-     * Print with or without the name= prefix.
+     * Optionally expand $name in the parameter value. Print the result with
+     * or without the name= prefix.
      */
     if (value != 0) {
+	if ((mode & SHOW_EVAL) != 0 && PC_RAW_PARAMETER(node) == 0)
+	    value = expand_parameter_value(mode, value, node);
 	if (mode & SHOW_NAME) {
 	    print_line(mode, "%s = %s\n", name, value);
 	} else {
