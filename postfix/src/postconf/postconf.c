@@ -18,7 +18,7 @@
 /*
 /*	\fBManaging master.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-fMv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-fMnvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice ...\fR]
 /*
 /*	\fBManaging bounce message templates:\fR
@@ -253,8 +253,11 @@
 /*
 /*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-n\fR
-/*	Print \fBmain.cf\fR parameter settings that are explicitly
-/*	specified in \fBmain.cf\fR.
+/*	Print only \fIname\fR=\fIvalue\fR parameter settings that
+/*	are explicitly specified in \fBmain.cf\fR. When specified
+/*	with \fB-M\fR, print only \fBmaster.cf\fR entries that have
+/*	"-o \fIname\fR=\fIvalue\fR" parameter settings (Postfix
+/*	2.10 and later).
 /*	Specify \fB-nf\fR to fold long lines for human readability
 /*	(Postfix 2.9 and later).
 /* .IP "\fB-t\fR [\fItemplate_file\fR]"
@@ -276,8 +279,10 @@
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
 /* .IP \fB-x\fR
-/*	Expand \fI$name\fR in parameter values. The expansion is
-/*	recursive.
+/*	Expand \fI$name\fR in \fBmain.cf\fR or \fBmaster.cf\fR
+/*	parameter values. The expansion is recursive.
+/*
+/*	This feature is available with Postfix 2.10 and later.
 /* .IP \fB-X\fR
 /*	Edit the \fBmain.cf\fR configuration file, and remove
 /*	the parameters named on the \fBpostconf\fR(1) command line.
@@ -508,16 +513,18 @@ int     main(int argc, char **argv)
     /*
      * Sanity check.
      */
-    junk = (cmd_mode & (SHOW_DEFS | SHOW_NONDEF | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT | COMMENT_OUT | SHOW_MASTER | EDIT_EXCL));
-    if (junk != 0 && ((junk != SHOW_DEFS && junk != SHOW_NONDEF
+    junk = (cmd_mode & (SHOW_DEFS | SHOW_MAPS | SHOW_LOCKS | EDIT_MAIN | SHOW_SASL_SERV | SHOW_SASL_CLNT | COMMENT_OUT | SHOW_MASTER | EDIT_EXCL));
+    if (junk != 0 && ((junk != SHOW_DEFS
 	     && junk != SHOW_MAPS && junk != SHOW_LOCKS && junk != EDIT_MAIN
 		       && junk != SHOW_SASL_SERV && junk != SHOW_SASL_CLNT
 		       && junk != COMMENT_OUT && junk != SHOW_MASTER
 		       && junk != EDIT_EXCL)
 		      || ext_argv != 0))
-	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -l, -m, -M, -n, and -X");
-    if ((cmd_mode & SHOW_EVAL) != 0 && junk != 0 && junk != SHOW_DEFS && junk != SHOW_NONDEF)
-	msg_fatal("do not specify -x with -a, -A, -b, -e, -#, -l, -m, -M, or -X");
+	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -l, -m, -M, and -X");
+    if ((cmd_mode & SHOW_EVAL) != 0 && junk != 0 && junk != SHOW_DEFS && junk != SHOW_MASTER)
+	msg_fatal("do not specify -x with -a, -A, -b, -e, -#, -l, -m, or -X");
+    if ((cmd_mode & SHOW_NONDEF) != 0 && junk != 0 && junk != SHOW_MASTER)
+	msg_fatal("do not specify -n with -a, -A, -b, -d, -e, -#, -l, -m, or -X");
 
     /*
      * Display bounce template information and exit.
@@ -560,6 +567,10 @@ int     main(int argc, char **argv)
      */
     else if (cmd_mode & SHOW_MASTER) {
 	read_master(FAIL_ON_OPEN_ERROR);
+	read_parameters();
+	register_builtin_parameters(basename(argv[0]), getpid());
+	register_service_parameters();
+	register_user_parameters();
 	show_master(cmd_mode, argv + optind);
     }
 
@@ -589,7 +600,7 @@ int     main(int argc, char **argv)
 	if ((cmd_mode & SHOW_DEFS) == 0) {
 	    read_parameters();
 	}
-	register_builtin_parameters();
+	register_builtin_parameters(basename(argv[0]), getpid());
 
 	/*
 	 * Add service-dependent parameters (service names from master.cf)

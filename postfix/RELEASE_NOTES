@@ -14,6 +14,38 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
+Incompatible changes with snapshot 20121224
+===========================================
+
+The postconf command produces more warnings:
+
+- An attempt to modify a read-only parameter (process_name, process_id)
+  in main.cf or master.cf.
+
+- An undefined $name in a parameter value in main.cf or master.cf
+  (except for backwards-compatibility parameters such as $virtual_maps).
+
+Major changes with snapshot 20121224
+====================================
+
+The postconf command has been updated to make trouble-shooting (and
+support) easier. In summary, use "postconf -Mnxf" and "postconf
+-nxf" to review master.cf and main.cf parameter settings with
+expanded parameter values.
+
+- "postconf -x" now expands $name in main.cf and master.cf parameter
+  values.
+
+- "postconf -Mn" now shows only master.cf entries with "-o name=value"
+  parameter settings.
+
+- postconf warns about attempts to modify a read-only parameter
+  (process_name, process_id) in main.cf or master.cf.
+
+- postconf warns about an undefined $name in a parameter value in
+  main.cf or master.cf (except for backwards-compatibility parameters
+  such as $virtual_maps).
+
 Incompatible changes with snapshot 20121123
 ===========================================
 
@@ -57,7 +89,6 @@ actions:
   policy: permit_mynetworks reject_unauth_destination.
 
 There is no need to change the value of smtpd_recipient_restrictions.
-
 
 Major changes with snapshot 20121007
 ====================================

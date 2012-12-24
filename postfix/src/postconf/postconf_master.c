@@ -176,10 +176,12 @@ void    read_master(int fail_on_open_error)
 
 /* print_master_line - print one master line */
 
-static void print_master_line(int mode, ARGV *argv)
+static void print_master_line(int mode, PC_MASTER_ENT *masterp)
 {
-    char   *arg;
-    char   *aval;
+    char  **argv = masterp->argv->argv;
+    const char *arg;
+    const char *aval;
+    int     arg_len;
     int     line_len;
     int     field;
     int     in_daemon_options;
@@ -204,7 +206,7 @@ static void print_master_line(int mode, ARGV *argv)
      * least one-space column separation.
      */
     for (line_len = 0, field = 0; field < PC_MASTER_MIN_FIELDS; field++) {
-	arg = argv->argv[field];
+	arg = argv[field];
 	if (line_len > 0) {
 	    do {
 		ADD_SPACE;
@@ -219,8 +221,9 @@ static void print_master_line(int mode, ARGV *argv)
      * have argument grouping preferences.
      */
     in_daemon_options = 1;
-    for ( /* void */ ; argv->argv[field] != 0; field++) {
-	arg = argv->argv[field];
+    for ( /* void */ ; (arg = argv[field]) != 0; field++) {
+	arg_len = strlen(arg);
+	aval = 0;
 	if (in_daemon_options) {
 
 	    /*
@@ -231,34 +234,33 @@ static void print_master_line(int mode, ARGV *argv)
 		in_daemon_options = 0;
 		if ((mode & FOLD_LINE)
 		    && line_len > column_goal[PC_MASTER_MIN_FIELDS - 1]) {
-		    vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
-		    line_len = INDENT_LEN;
+		    /* Force line wrap. */
+		    line_len = LINE_LIMIT;
 		}
-	    }
+	    } else {
 
-	    /*
-	     * Try to avoid breaking "-o name=value" over multiple lines if
-	     * it would fit on one line.
-	     */
-	    else if ((mode & FOLD_LINE)
-		     && line_len > INDENT_LEN && strcmp(arg, "-o") == 0
-		     && (aval = argv->argv[field + 1]) != 0
-		     && INDENT_LEN + 3 + strlen(aval) < LINE_LIMIT) {
-		vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
-		line_len = INDENT_LEN;
-		ADD_TEXT(arg, strlen(arg));
-		arg = aval;
-		field += 1;
+		/*
+		 * Process options with a value.
+		 */
+		if (strcmp(arg, "-o") == 0
+		    && (aval = argv[field + 1]) != 0
+		    && (mode & SHOW_EVAL) != 0)
+		    aval = expand_parameter_value(mode, aval, masterp);
+
+		/*
+		 * Keep option and value on the same line.
+		 */
+		if (aval)
+		    arg_len += strlen(aval) + 1;
 	    }
 	}
 
 	/*
-	 * Insert a line break when the next argument won't fit (unless, of
-	 * course, we just inserted a line break).
+	 * Insert a line break when the next item won't fit.
 	 */
 	if (line_len > INDENT_LEN) {
 	    if ((mode & FOLD_LINE) == 0
-		|| line_len + 1 + strlen(arg) < LINE_LIMIT) {
+		|| line_len + 1 + arg_len < LINE_LIMIT) {
 		ADD_SPACE;
 	    } else {
 		vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
@@ -266,6 +268,11 @@ static void print_master_line(int mode, ARGV *argv)
 	    }
 	}
 	ADD_TEXT(arg, strlen(arg));
+	if (aval) {
+	    ADD_SPACE;
+	    ADD_TEXT(aval, strlen(aval));
+	    field += 1;
+	}
     }
     vstream_fputs("\n", VSTREAM_OUT);
 }
@@ -275,7 +282,6 @@ static void print_master_line(int mode, ARGV *argv)
 void    show_master(int mode, char **filters)
 {
     PC_MASTER_ENT *masterp;
-    ARGV   *argv;
     ARGV   *service_filter = 0;
 
     /*
@@ -287,10 +293,11 @@ void    show_master(int mode, char **filters)
     /*
      * Iterate over the master table.
      */
-    for (masterp = master_table; (argv = masterp->argv) != 0; masterp++)
-	if (service_filter == 0
-	    || match_service_match(service_filter, masterp->name_space) != 0)
-	    print_master_line(mode, argv);
+    for (masterp = master_table; masterp->argv != 0; masterp++)
+	if ((service_filter == 0
+	     || match_service_match(service_filter, masterp->name_space))
+	    && ((mode & SHOW_NONDEF) == 0 || masterp->all_params != 0))
+	    print_master_line(mode, masterp);
 
     /*
      * Cleanup.

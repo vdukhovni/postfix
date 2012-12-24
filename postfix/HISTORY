@@ -18152,6 +18152,32 @@ Apologies for any names omitted.
 
 20121221
 
-	Feature: "postconf -x" support to expand $nama in parameter
-	values. Files: postconf/postconf_main.c, postconf/postconf.h,
-	postconf/postconf_node.c, postconf/postconf.c.
+	Feature: "postconf -x" support to expand $name in main.cf
+	parameter values. Files: postconf/postconf_main.c,
+	postconf/postconf.h, postconf/postconf_node.c, postconf/postconf.c.
+
+20121222
+
+	Feature: postconf support to warn about an attempt to modify
+	a read-only parameter (process_name etc.) in main.cf or
+	master.cf. Files: postconf/postconf_readonly.c,
+	postconf/postconf_builtin.c.
+
+20121223
+
+	Feature: postconf support to warn about an undefined $name
+	in a parameter value in main.cf or master.cf (except for
+	backwards-compatibility parameters such as $virtual_maps)
+	Files: postconf/postconf_user.c, postconf_dbms.c,
+	postconf_builtin.c, util/dict_ht.c, util/htable.c.
+
+	Feature: "postconf -Mx" support to expand $name in master.cf
+	parameter values.  Files: postconf/postconf_master.c,
+	postconf/postconf_lookup.c, postconf/postconf_main.c,
+	postconf/postconf.c.
+
+20121224
+
+	Feature: "postconf -Mn" support to print only master.cf
+	entries that have "-o name=value" parameter setttings.
+	Files: postconf/postconf_master.c.

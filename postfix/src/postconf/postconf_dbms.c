@@ -25,7 +25,7 @@
 /*	names for that database type.
 /* .IP flag_parameter
 /*	A function that takes as arguments a candidate parameter
-/*	name, an unused value, and a local namespace pointer. The
+/*	name, an unused value, and a PC_PARAM_CTX pointer.  The
 /*	function will flag the parameter as "used" if it has a
 /*	"name=value" entry in the local or global namespace.
 /* .IP local_scope
@@ -142,26 +142,6 @@ static const PC_DBMS_INFO dbms_info[] = {
     0,
 };
 
-/* register_dbms_parameters_cb - mac_expand() call-back */
-
-static const char *register_dbms_parameters_cb(const char *mac_name,
-					               int unused_mode,
-					               char *context)
-{
-    PC_MASTER_ENT *local_scope = (PC_MASTER_ENT *) context;
-    const char *mac_val;
-
-    /*
-     * Local namespace "name=value" settings are always explicit. They have
-     * precedence over global namespace "name=value" settings which are
-     * either explicit or defined by their default value.
-     */
-    if (local_scope == 0
-	|| (mac_val = dict_get(local_scope->all_params, mac_name)) == 0)
-	mac_val = mail_conf_lookup(mac_name);
-    return (mac_val);
-}
-
 /* register_dbms_parameters - look for database_type:prefix_name */
 
 void    register_dbms_parameters(const char *param_value,
@@ -175,51 +155,44 @@ void    register_dbms_parameters(const char *param_value,
     static VSTRING *buffer = 0;
     static VSTRING *candidate = 0;
     const char **cpp;
+    PC_PARAM_CTX param_ctx;
+
+    param_ctx.local_scope = local_scope;
+    param_ctx.param_class = PC_PARAM_FLAG_DBMS | PC_PARAM_FLAG_USER;
 
     /*
-     * Emulate Postfix parameter value expansion, prepending the appropriate
-     * local (master.cf "-o name-value") namespace to the global (main.cf
-     * "name=value") namespace.
-     * 
-     * XXX This does not examine both sides of conditional macro expansion, and
-     * may expand the "wrong" conditional macros. This is the best we can do
-     * for legacy database configuration support.
+     * XXX This does not examine both sides of conditional macro expansion,
+     * and may expand the "wrong" conditional macros. This is the best we can
+     * do for legacy database configuration support.
      */
-#define NO_SCAN_FILTER	((char *) 0)
-
-    (void) mac_expand(buffer ? buffer : (buffer = vstring_alloc(100)),
-		      param_value, MAC_EXP_FLAG_RECURSE, NO_SCAN_FILTER,
-		      register_dbms_parameters_cb, (char *) local_scope);
+    bufp = STR(vstring_strcpy(buffer ? buffer : (buffer = vstring_alloc(100)),
+	      expand_parameter_value(SHOW_EVAL, param_value, local_scope)));
 
     /*
      * Naive parsing. We don't really know if the parameter specifies free
      * text or a list of databases.
      */
-    bufp = STR(buffer);
     while ((db_type = mystrtok(&bufp, " ,\t\r\n")) != 0) {
 
 	/*
-	 * Skip over "proxy:" indirections.
-	 */
-	while ((prefix = split_at(db_type, ':')) != 0
-	       && strcmp(db_type, DICT_TYPE_PROXY) == 0)
-	    db_type = prefix;
-
-	/*
-	 * Look for database:prefix where the prefix is not a pathname and
-	 * the database is a known type. Synthesize candidate parameter names
+	 * Don't skip over "proxy:" indirections. They don't introduce
+	 * database-specific main.cf parameters on the proxy client side.
+	 * 
+	 * Look for database:prefix where the prefix is not a pathname and the
+	 * database is a known type. Synthesize candidate parameter names
 	 * from the user-defined prefix and from the database-defined suffix
 	 * list, and see if those parameters have a "name=value" entry in the
 	 * local or global namespace.
 	 */
-	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
+	if ((prefix = split_at(db_type, ':')) != 0
+	    && *prefix != '/' && *prefix != '.') {
 	    for (dp = dbms_info; dp->db_type != 0; dp++) {
 		if (strcmp(db_type, dp->db_type) == 0) {
 		    for (cpp = dp->db_suffixes; *cpp; cpp++) {
 			vstring_sprintf(candidate ? candidate :
 					(candidate = vstring_alloc(30)),
 					"%s_%s", prefix, *cpp);
-			flag_parameter(STR(candidate), 0, (char *) local_scope);
+			flag_parameter(STR(candidate), 0, (char *) &param_ctx);
 		    }
 		    break;
 		}

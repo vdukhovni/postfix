@@ -7,4 +7,4 @@ yy = aap
 zz_domain = whatever
 ./postconf: warning: ./main.cf: unused parameter: zz=$yy
 ./postconf: warning: ./main.cf: unused parameter: aa_domain=whatever
-./postconf: warning: ./main.cf: unused parameter: xx=proxy:ldap:foo
+./postconf: warning: ./main.cf: unused parameter: xx=ldap:foo

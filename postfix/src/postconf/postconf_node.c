@@ -150,7 +150,6 @@ PC_PARAM_NODE *make_param_node(int flags, char *param_data,
     node->flags = flags;
     node->param_data = param_data;
     node->convert_fn = convert_fn;
-    node->cached_defval = 0;
     return (node);
 }
 

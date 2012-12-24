@@ -159,100 +159,6 @@ static void print_line(int mode, const char *fmt,...)
     vstream_fputs("\n", VSTREAM_OUT);
 }
 
-/* lookup_parameter_value - look up specific parameter value */
-
-static const char *lookup_parameter_value(int mode, const char *name,
-					          PC_PARAM_NODE *node)
-{
-    const char *value;
-
-    /*
-     * Use the actual or built-in default parameter value. Some default
-     * values are computed by functions that have side effects, and those
-     * functions should be invoked only once. Therefore, when expanding $name
-     * in parameter values, we cache the default values.
-     */
-    if ((mode & SHOW_DEFS) != 0
-	|| ((value = dict_lookup(CONFIG_DICT, name)) == 0
-	    && (mode & SHOW_NONDEF) == 0)) {
-	if ((value = node->cached_defval) == 0
-	    && (value = convert_param_node(SHOW_DEFS, name, node)) != 0
-	    && (mode & SHOW_EVAL) != 0)
-	    node->cached_defval = value = mystrdup(value);
-    }
-    return (value);
-}
-
- /*
-  * Data structure to pass private state while recursively expanding $name in
-  * parameter values.
-  */
-typedef struct {
-    int     mode;
-} PC_EVAL_CTX;
-
-/* expand_parameter_value_helper - macro parser call-back routine */
-
-static const char *expand_parameter_value_helper(const char *key,
-						         int unused_type,
-						         char *context)
-{
-    PC_PARAM_NODE *node;
-    PC_EVAL_CTX *cp = (PC_EVAL_CTX *) context;
-
-    /*
-     * XXX Do not spam the user with warnings about legacy parameter names in
-     * backwards-compatible default settings.
-     */
-    if ((node = PC_PARAM_TABLE_FIND(param_table, key)) != 0) {
-	return (lookup_parameter_value(cp->mode, key, node));
-    } else {
-	/* msg_warn("%s: unknown parameter", key); */
-	return (0);
-    }
-}
-
-/* expand_parameter_value - expand $name in parameter value */
-
-static const char *expand_parameter_value(int mode, const char *value,
-					          PC_PARAM_NODE *node)
-{
-    const char *myname = "expand_parameter_value";
-    static VSTRING *buf;
-    int     status;
-    PC_EVAL_CTX eval_ctx;
-
-    /*
-     * Initialize.
-     */
-    if (buf == 0)
-	buf = vstring_alloc(10);
-
-    /*
-     * Expand macros recursively.
-     * 
-     * When expanding $name in "postconf -n" parameter values, don't limit the
-     * search to only non-default parameter values.
-     * 
-     * When expanding $name in "postconf -d" parameter values, do limit the
-     * search to only default parameter values.
-     */
-#define DONT_FILTER (char *) 0
-
-    eval_ctx.mode = mode & ~SHOW_NONDEF;
-    status = mac_expand(buf, value, MAC_EXP_FLAG_RECURSE, DONT_FILTER,
-			expand_parameter_value_helper, (char *) &eval_ctx);
-    if (status & MAC_PARSE_ERROR)
-	msg_fatal("macro processing error");
-    if (msg_verbose > 1) {
-	if (strcmp(value, STR(buf)) != 0)
-	    msg_info("%s: expand %s -> %s", myname, value, STR(buf));
-	else
-	    msg_info("%s: const  %s", myname, value);
-    }
-    return (STR(buf));
-}
-
 /* print_parameter - show specific parameter */
 
 static void print_parameter(int mode, const char *name,
@@ -263,7 +169,7 @@ static void print_parameter(int mode, const char *name,
     /*
      * Use the default or actual value.
      */
-    value = lookup_parameter_value(mode, name, node);
+    value = lookup_parameter_value(mode, name, (PC_MASTER_ENT *) 0, node);
 
     /*
      * Optionally expand $name in the parameter value. Print the result with
@@ -271,7 +177,7 @@ static void print_parameter(int mode, const char *name,
      */
     if (value != 0) {
 	if ((mode & SHOW_EVAL) != 0 && PC_RAW_PARAMETER(node) == 0)
-	    value = expand_parameter_value(mode, value, node);
+	    value = expand_parameter_value(mode, value, (PC_MASTER_ENT *) 0);
 	if (mode & SHOW_NAME) {
 	    print_line(mode, "%s = %s\n", name, value);
 	} else {

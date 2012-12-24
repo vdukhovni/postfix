@@ -21,7 +21,7 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>Managing <a href="master.5.html">master.cf</a>:</b>
 
-       <b>postconf</b> [<b>-fMv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service ...</i>]
+       <b>postconf</b> [<b>-fMnvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service ...</i>]
 
        <b>Managing bounce message templates:</b>
 
@@ -295,10 +295,12 @@ POSTCONF(1)                                                        POSTCONF(1)
               This  feature  is  available  with  Postfix 2.9 and
               later.
 
-       <b>-n</b>     Print <a href="postconf.5.html"><b>main.cf</b></a> parameter settings that  are  explic-
-              itly  specified  in  <a href="postconf.5.html"><b>main.cf</b></a>.   Specify <b>-nf</b> to fold
-              long lines for human readability (Postfix  2.9  and
-              later).
+       <b>-n</b>     Print only <i>name</i>=<i>value</i> parameter settings  that  are
+              explicitly  specified  in  <a href="postconf.5.html"><b>main.cf</b></a>.  When specified
+              with <b>-M</b>, print only <a href="master.5.html"><b>master.cf</b></a> entries that have "-o
+              <i>name</i>=<i>value</i>"  parameter  settings  (Postfix 2.10 and
+              later).  Specify <b>-nf</b> to fold long lines  for  human
+              readability (Postfix 2.9 and later).
 
        <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
               Display  the templates for text that appears at the
@@ -321,29 +323,32 @@ POSTCONF(1)                                                        POSTCONF(1)
               tiple <b>-v</b> options  make  the  software  increasingly
               verbose.
 
-       <b>-x</b>     Expand  <i>$name</i> in parameter values. The expansion is
-              recursive.
+       <b>-x</b>     Expand <i>$name</i> in <a href="postconf.5.html"><b>main.cf</b></a> or <a href="master.5.html"><b>master.cf</b></a> parameter val-
+              ues. The expansion is recursive.
 
-       <b>-X</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove the
-              parameters  named  on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
-              The file is copied to a temporary file then renamed
-              into place.  Specify a list of parameter names, not
-              "<i>name</i>=<i>value</i>" pairs.  There is no  <a href="postconf.1.html"><b>postconf</b>(1)</a>  com-
-              mand to perform the reverse operation.
-
-              This  feature  is  available  with Postfix 2.10 and
+              This feature is available  with  Postfix  2.10  and
               later.
 
-       <b>-#</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration  file,  and  comment
+       <b>-X</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove the
+              parameters named on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line.
+              The file is copied to a temporary file then renamed
+              into place.  Specify a list of parameter names, not
+              "<i>name</i>=<i>value</i>"  pairs.   There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> com-
+              mand to perform the reverse operation.
+
+              This feature is available  with  Postfix  2.10  and
+              later.
+
+       <b>-#</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a>  configuration file, and comment
               out the parameters named on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command
-              line, so that  those  parameters  revert  to  their
-              default  values.  The file is copied to a temporary
-              file then renamed into place.  Specify  a  list  of
-              parameter  names, not "<i>name</i>=<i>value</i>" pairs.  There is
+              line,  so  that  those  parameters  revert to their
+              default values.  The file is copied to a  temporary
+              file  then  renamed  into place.  Specify a list of
+              parameter names, not "<i>name</i>=<i>value</i>" pairs.  There  is
               no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse oper-
               ation.
 
-              This  feature  is  available  with  Postfix 2.6 and
+              This feature is  available  with  Postfix  2.6  and
               later.
 
 <b>DIAGNOSTICS</b>
@@ -354,18 +359,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are  especially  relevant
+       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant
        to this program.
 
-       The  text  below  provides  only  a parameter summary. See
+       The text below provides  only  a  parameter  summary.  See
        <a href="postconf.5.html"><b>postconf</b>(5)</a> for more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of  the  Postfix  <a href="postconf.5.html">main.cf</a>  and
+              The  default  location  of  the Postfix <a href="postconf.5.html">main.cf</a> and
               <a href="master.5.html">master.cf</a> configuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname  of  a configuration file with bounce mes-
+              Pathname of a configuration file with  bounce  mes-
               sage templates.
 
 <b>FILES</b>
@@ -381,7 +386,7 @@ POSTCONF(1)                                                        POSTCONF(1)
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>AUTHOR(S)</b>

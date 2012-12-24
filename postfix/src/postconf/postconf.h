@@ -9,6 +9,11 @@
 /* .nf
 
  /*
+  * System library.
+  */
+#include <unistd.h>
+
+ /*
   * Utility library.
   */
 #include <htable.h>
@@ -43,7 +48,6 @@ typedef struct {
     int     flags;			/* see below */
     char   *param_data;			/* mostly, the default value */
     const char *(*convert_fn) (char *);	/* value to string */
-    const char *cached_defval;		/* cached default value */
 } PC_PARAM_NODE;
 
  /* Values for flags. See the postconf_node module for narrative text. */
@@ -51,6 +55,9 @@ typedef struct {
 #define PC_PARAM_FLAG_BUILTIN	(1<<1)	/* built-in parameter name */
 #define PC_PARAM_FLAG_SERVICE	(1<<2)	/* service-defined parameter name */
 #define PC_PARAM_FLAG_USER	(1<<3)	/* user-defined parameter name */
+#define PC_PARAM_FLAG_LEGACY	(1<<4)	/* legacy parameter name */
+#define PC_PARAM_FLAG_READONLY	(1<<5)	/* legacy parameter name */
+#define PC_PARAM_FLAG_DBMS	(1<<6)	/* dbms-defined parameter name */
 
 #define PC_PARAM_MASK_CLASS \
 	(PC_PARAM_FLAG_BUILTIN | PC_PARAM_FLAG_SERVICE | PC_PARAM_FLAG_USER)
@@ -58,6 +65,9 @@ typedef struct {
 	((node)->flags = (((node)->flags & ~PC_PARAM_MASK_CLASS) | (class)))
 
 #define PC_RAW_PARAMETER(node) ((node)->flags & PC_PARAM_FLAG_RAW)
+#define PC_LEGACY_PARAMETER(node) ((node)->flags & PC_PARAM_FLAG_LEGACY)
+#define PC_READONLY_PARAMETER(node) ((node)->flags & PC_PARAM_FLAG_READONLY)
+#define PC_DBMS_PARAMETER(node) ((node)->flags & PC_PARAM_FLAG_DBMS)
 
  /* Values for param_data. See postconf_node module for narrative text. */
 #define PC_PARAM_NO_DATA	((char *) 0)
@@ -151,12 +161,20 @@ extern void show_master(int, char **);
  /*
   * postconf_builtin.c.
   */
-extern void register_builtin_parameters(void);
+extern void register_builtin_parameters(const char *, pid_t);
 
  /*
   * postconf_service.c.
   */
 extern void register_service_parameters(void);
+
+ /*
+  * Parameter context structure.
+  */
+typedef struct {
+    PC_MASTER_ENT *local_scope;
+    int     param_class;
+} PC_PARAM_CTX;
 
  /*
   * postconf_user.c.
@@ -169,6 +187,13 @@ extern void register_user_parameters(void);
 extern void register_dbms_parameters(const char *,
 			        const char *(*) (const char *, int, char *),
 				             PC_MASTER_ENT *);
+
+ /*
+  * postconf_lookup.c.
+  */
+const char *lookup_parameter_value(int, const char *, PC_MASTER_ENT *,
+				           PC_PARAM_NODE *);
+const char *expand_parameter_value(int, const char *, PC_MASTER_ENT *);
 
  /*
   * postconf_unused.c.

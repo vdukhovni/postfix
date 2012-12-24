@@ -91,15 +91,21 @@ static HTABLE *rest_class_table;
 
 /* SCAN_USER_PARAMETER_VALUE - examine macro names in parameter value */
 
-#define SCAN_USER_PARAMETER_VALUE(value, local_scope) do { \
+#define SCAN_USER_PARAMETER_VALUE(value, class, scope) do { \
+    PC_PARAM_CTX _ctx; \
+    _ctx.local_scope = (scope); \
+    _ctx.param_class = (class); \
     (void) mac_expand(NO_SCAN_RESULT, (value), MAC_EXP_FLAG_SCAN, \
-	    NO_SCAN_FILTER, flag_user_parameter, ((char *) (local_scope))); \
+	    NO_SCAN_FILTER, flag_user_parameter, (char *) &_ctx); \
 } while (0)
 
 /* FLAG_USER_PARAMETER - flag user-defined name "valid" if it has name=value */
 
-#define FLAG_USER_PARAMETER(name, local_scope) do { \
-    flag_user_parameter((name), NO_SCAN_MODE, ((char *) (local_scope))); \
+#define FLAG_USER_PARAMETER(name, class, scope) do { \
+    PC_PARAM_CTX _ctx; \
+    _ctx.local_scope = (scope); \
+    _ctx.param_class = (class); \
+    flag_user_parameter((name), NO_SCAN_MODE, (char *) &_ctx); \
 } while (0)
 
 /* convert_user_parameter - get user-defined parameter string value */
@@ -115,7 +121,11 @@ static const char *flag_user_parameter(const char *mac_name,
 				               int unused_mode,
 				               char *context)
 {
-    PC_MASTER_ENT *local_scope = (PC_MASTER_ENT *) context;
+    PC_PARAM_CTX *param_ctx = (PC_PARAM_CTX *) context;
+    PC_MASTER_ENT *local_scope = param_ctx->local_scope;
+    int     param_class = param_ctx->param_class;
+    const char *source = local_scope ? MASTER_CONF_FILE : MAIN_CONF_FILE;
+    int     user_supplied = 0;
 
     /*
      * If the name=value exists in the local (or global) name space, update
@@ -126,10 +136,11 @@ static const char *flag_user_parameter(const char *mac_name,
      * compatibility after a feature name change.
      */
     if (local_scope && dict_get(local_scope->all_params, mac_name)) {
+	user_supplied = 1;
 	/* $name in master.cf references name=value in master.cf. */
 	if (PC_PARAM_TABLE_LOCATE(local_scope->valid_names, mac_name) == 0) {
 	    PC_PARAM_TABLE_ENTER(local_scope->valid_names, mac_name,
-				 PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
+				 param_class, PC_PARAM_NO_DATA,
 				 convert_user_parameter);
 	    if (msg_verbose)
 		msg_info("$%s in %s:%s validates %s=value in %s:%s",
@@ -139,9 +150,10 @@ static const char *flag_user_parameter(const char *mac_name,
 			 local_scope->name_space);
 	}
     } else if (mail_conf_lookup(mac_name) != 0) {
+	user_supplied = 1;
 	/* $name in main/master.cf references name=value in main.cf. */
 	if (PC_PARAM_TABLE_LOCATE(param_table, mac_name) == 0) {
-	    PC_PARAM_TABLE_ENTER(param_table, mac_name, PC_PARAM_FLAG_USER,
+	    PC_PARAM_TABLE_ENTER(param_table, mac_name, param_class,
 				 PC_PARAM_NO_DATA, convert_user_parameter);
 	    if (msg_verbose) {
 		if (local_scope)
@@ -159,20 +171,33 @@ static const char *flag_user_parameter(const char *mac_name,
     if (local_scope == 0) {
 	for (local_scope = master_table; local_scope->argv; local_scope++) {
 	    if (local_scope->all_params != 0
-		&& dict_get(local_scope->all_params, mac_name) != 0
-	    /* $name in main.cf references name=value in master.cf. */
-		&& PC_PARAM_TABLE_LOCATE(local_scope->valid_names, mac_name) == 0) {
-		PC_PARAM_TABLE_ENTER(local_scope->valid_names, mac_name,
-				     PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
-				     convert_user_parameter);
-		if (msg_verbose)
-		    msg_info("$%s in %s validates %s=value in %s:%s",
-			     mac_name, MAIN_CONF_FILE,
-			     mac_name, MASTER_CONF_FILE,
-			     local_scope->name_space);
+		&& dict_get(local_scope->all_params, mac_name) != 0) {
+		user_supplied = 1;
+		/* $name in main.cf references name=value in master.cf. */
+		if (PC_PARAM_TABLE_LOCATE(local_scope->valid_names, mac_name) == 0) {
+		    PC_PARAM_TABLE_ENTER(local_scope->valid_names, mac_name,
+					 param_class, PC_PARAM_NO_DATA,
+					 convert_user_parameter);
+		    if (msg_verbose)
+			msg_info("$%s in %s validates %s=value in %s:%s",
+				 mac_name, MAIN_CONF_FILE,
+				 mac_name, MASTER_CONF_FILE,
+				 local_scope->name_space);
+		}
 	    }
 	}
     }
+
+    /*
+     * Warn about a $name that has no user-supplied explicit value or
+     * Postfix-supplied default value. We don't enforce this for legacy DBMS
+     * parameters because they exist only for backwards compatibility, so we
+     * don't bother to figure out which parameters come without defaults.
+     */
+    if (user_supplied == 0 && (param_class & PC_PARAM_FLAG_DBMS) == 0
+	&& PC_PARAM_TABLE_LOCATE(param_table, mac_name) == 0)
+	msg_warn("%s/%s: undefined parameter: %s",
+		 var_config_dir, source, mac_name);
     return (0);
 }
 
@@ -204,6 +229,7 @@ static void scan_user_parameter_namespace(const char *dict_name,
     const char *cparam_name;
     const char *cparam_value;
     PC_PARAM_NODE *node;
+    const char *source = local_scope ? MASTER_CONF_FILE : MAIN_CONF_FILE;
 
     /*
      * Flag parameter names in smtpd_restriction_classes as "valid", but only
@@ -217,7 +243,7 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	    if (local_scope == 0
 		&& htable_locate(rest_class_table, param_name) == 0)
 		htable_enter(rest_class_table, param_name, "");
-	    FLAG_USER_PARAMETER(param_name, local_scope);
+	    FLAG_USER_PARAMETER(param_name, PC_PARAM_FLAG_USER, local_scope);
 	}
 	myfree(saved_class_list);
     }
@@ -228,6 +254,9 @@ static void scan_user_parameter_namespace(const char *dict_name,
      * "valid" in the local name space; b) scan the value for macro
      * expansions of unknown parameter names, and flag those parameter names
      * as "valid" if they have a "name=value" entry.
+     * 
+     * We delete name=value entries for read-only parameters, to maintain
+     * compatibility with Postfix programs that ignore such settings.
      */
     if ((dict = dict_handle(dict_name)) == 0)
 	msg_panic("%s: parameter dictionary %s not found",
@@ -244,11 +273,24 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	    PC_PARAM_TABLE_ENTER(local_scope->valid_names, cparam_name,
 				 PC_PARAM_FLAG_USER, PC_PARAM_NO_DATA,
 				 convert_user_parameter);
-	/* Skip "do not expand" parameters. */
-	if ((node = PC_PARAM_TABLE_FIND(param_table, cparam_name)) != 0
-	    && PC_RAW_PARAMETER(node))
-	    continue;
-	SCAN_USER_PARAMETER_VALUE(cparam_value, local_scope);
+	if ((node = PC_PARAM_TABLE_FIND(param_table, cparam_name)) != 0) {
+	    if (PC_READONLY_PARAMETER(node)) {
+		msg_warn("%s/%s: read-only parameter assignment: %s=%s",
+			 var_config_dir, source, cparam_name, cparam_value);
+		/* Can't use dict_del() with Postfix<2.10 htable_sequence(). */
+		if (dict_del(dict, cparam_name) != 0)
+		    msg_panic("%s: can't delete %s/%s parameter entry for %s",
+			      myname, var_config_dir, source, cparam_name);
+		continue;
+	    }
+	    /* Re-label legacy parameter as user-defined, so it's printed. */
+	    if (PC_LEGACY_PARAMETER(node))
+		PC_PARAM_CLASS_OVERRIDE(node, PC_PARAM_FLAG_USER);
+	    /* Skip "do not expand" parameters. */
+	    if (PC_RAW_PARAMETER(node))
+		continue;
+	}
+	SCAN_USER_PARAMETER_VALUE(cparam_value, PC_PARAM_FLAG_USER, local_scope);
 #ifdef LEGACY_DBMS_SUPPORT
 	register_dbms_parameters(cparam_value, flag_user_parameter,
 				 local_scope);
@@ -279,7 +321,7 @@ static void scan_default_parameter_values(HTABLE *valid_params,
 					      PC_PARAM_INFO_NODE(*ht))) == 0)
 	    msg_panic("%s: parameter %s has no default value",
 		      myname, PC_PARAM_INFO_NAME(*ht));
-	SCAN_USER_PARAMETER_VALUE(param_value, local_scope);
+	SCAN_USER_PARAMETER_VALUE(param_value, PC_PARAM_FLAG_USER, local_scope);
 	/* No need to scan default values for legacy DBMS configuration. */
     }
     myfree((char *) list);
