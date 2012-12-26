@@ -177,7 +177,8 @@ static void print_parameter(int mode, const char *name,
      */
     if (value != 0) {
 	if ((mode & SHOW_EVAL) != 0 && PC_RAW_PARAMETER(node) == 0)
-	    value = expand_parameter_value(mode, value, (PC_MASTER_ENT *) 0);
+	    value = expand_parameter_value((VSTRING *) 0, mode, value,
+					   (PC_MASTER_ENT *) 0);
 	if (mode & SHOW_NAME) {
 	    print_line(mode, "%s = %s\n", name, value);
 	} else {

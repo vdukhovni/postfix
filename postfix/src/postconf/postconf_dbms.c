@@ -9,7 +9,7 @@
 /*	void	register_dbms_parameters(param_value, flag_parameter,
 /*					local_scope)
 /*	const char *param_value;
-/*	const char *(flag_parameter) (const char *, int, char *);
+/*	const char *(flag_parameter) (const char *, int, PC_MASTER_ENT *);
 /*	PC_MASTER_ENT *local_scope;
 /* DESCRIPTION
 /*	This module implements legacy support for database configuration
@@ -25,7 +25,7 @@
 /*	names for that database type.
 /* .IP flag_parameter
 /*	A function that takes as arguments a candidate parameter
-/*	name, an unused value, and a PC_PARAM_CTX pointer.  The
+/*	name, parameter flags, and a PC_MASTER_ENT pointer.  The
 /*	function will flag the parameter as "used" if it has a
 /*	"name=value" entry in the local or global namespace.
 /* .IP local_scope
@@ -145,7 +145,7 @@ static const PC_DBMS_INFO dbms_info[] = {
 /* register_dbms_parameters - look for database_type:prefix_name */
 
 void    register_dbms_parameters(const char *param_value,
-	           const char *(flag_parameter) (const char *, int, char *),
+          const char *(flag_parameter) (const char *, int, PC_MASTER_ENT *),
 				         PC_MASTER_ENT *local_scope)
 {
     const PC_DBMS_INFO *dp;
@@ -155,18 +155,15 @@ void    register_dbms_parameters(const char *param_value,
     static VSTRING *buffer = 0;
     static VSTRING *candidate = 0;
     const char **cpp;
-    PC_PARAM_CTX param_ctx;
-
-    param_ctx.local_scope = local_scope;
-    param_ctx.param_class = PC_PARAM_FLAG_DBMS | PC_PARAM_FLAG_USER;
 
     /*
      * XXX This does not examine both sides of conditional macro expansion,
      * and may expand the "wrong" conditional macros. This is the best we can
      * do for legacy database configuration support.
      */
-    bufp = STR(vstring_strcpy(buffer ? buffer : (buffer = vstring_alloc(100)),
-	      expand_parameter_value(SHOW_EVAL, param_value, local_scope)));
+    if (buffer == 0)
+	buffer = vstring_alloc(100);
+    bufp = expand_parameter_value(buffer, SHOW_EVAL, param_value, local_scope);
 
     /*
      * Naive parsing. We don't really know if the parameter specifies free
@@ -192,7 +189,9 @@ void    register_dbms_parameters(const char *param_value,
 			vstring_sprintf(candidate ? candidate :
 					(candidate = vstring_alloc(30)),
 					"%s_%s", prefix, *cpp);
-			flag_parameter(STR(candidate), 0, (char *) &param_ctx);
+			flag_parameter(STR(candidate),
+				    PC_PARAM_FLAG_DBMS | PC_PARAM_FLAG_USER,
+				       local_scope);
 		    }
 		    break;
 		}

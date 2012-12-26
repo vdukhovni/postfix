@@ -12,7 +12,8 @@
 /*	PC_MASTER_ENT *local_scope;
 /*	PC_PARAM_NODE *node;
 /*
-/*	const char *expand_parameter_value(mode, value, local_scope)
+/*	char    *expand_parameter_value(buf, mode, value, local_scope)
+/*	VSTRING *buf;
 /*	int	mode;
 /*	const char *value;
 /*	PC_MASTER_ENT *local_scope;
@@ -38,6 +39,8 @@
 /*	each call.
 /*
 /*	Arguments:
+/* .IP buf
+/*	Null pointer, or pointer to output storage.
 /* .IP mode
 /*	Bit-wise OR of zero or one of the following (other flags
 /*	are ignored):
@@ -54,9 +57,9 @@
 /*	The parameter value where $name should be expanded.
 /* .IP local_scope
 /*	Null pointer, or pointer to master.cf entry with local
-/*	parameter definitions.
+/*	name=value settings.
 /* .IP node
-/*	Null pointer, or global default settings for the named
+/*	Null pointer, or global default setting for the named
 /*	parameter.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
@@ -128,11 +131,11 @@ typedef struct {
     PC_MASTER_ENT *local_scope;
 } PC_EVAL_CTX;
 
-/* expand_parameter_value_helper - macro parser call-back routine */
+/* lookup_parameter_value_wrapper - macro parser call-back routine */
 
-static const char *expand_parameter_value_helper(const char *key,
-						         int unused_type,
-						         char *context)
+static const char *lookup_parameter_value_wrapper(const char *key,
+						          int unused_type,
+						          char *context)
 {
     PC_EVAL_CTX *cp = (PC_EVAL_CTX *) context;
 
@@ -142,19 +145,22 @@ static const char *expand_parameter_value_helper(const char *key,
 
 /* expand_parameter_value - expand $name in parameter value */
 
-const char *expand_parameter_value(int mode, const char *value,
-				           PC_MASTER_ENT *local_scope)
+char   *expand_parameter_value(VSTRING *buf, int mode, const char *value,
+			               PC_MASTER_ENT *local_scope)
 {
     const char *myname = "expand_parameter_value";
-    static VSTRING *buf;
+    static VSTRING *local_buf;
     int     status;
     PC_EVAL_CTX eval_ctx;
 
     /*
      * Initialize.
      */
-    if (buf == 0)
-	buf = vstring_alloc(10);
+    if (buf == 0) {
+	if (local_buf == 0)
+	    local_buf = vstring_alloc(10);
+	buf = local_buf;
+    }
 
     /*
      * Expand macros recursively.
@@ -170,7 +176,7 @@ const char *expand_parameter_value(int mode, const char *value,
     eval_ctx.mode = (mode & ~SHOW_NONDEF);
     eval_ctx.local_scope = local_scope;
     status = mac_expand(buf, value, MAC_EXP_FLAG_RECURSE, DONT_FILTER,
-			expand_parameter_value_helper, (char *) &eval_ctx);
+			lookup_parameter_value_wrapper, (char *) &eval_ctx);
     if (status & MAC_PARSE_ERROR)
 	msg_fatal("macro processing error");
     if (msg_verbose > 1) {

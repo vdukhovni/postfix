@@ -17203,6 +17203,7 @@ Apologies for any names omitted.
 	smtp/smtp_params.c, smtp/smtp_proto.c, smtpd/smtpd.c,
 	tls/tls.h, tls/tls_client.c, tls/tls_misc.c, tls/tls_server.c,
 	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c.
+
 20111203
 
 	Cleanup: time-dependent sender addresses of address
@@ -18181,3 +18182,12 @@ Apologies for any names omitted.
 	Feature: "postconf -Mn" support to print only master.cf
 	entries that have "-o name=value" parameter setttings.
 	Files: postconf/postconf_master.c.
+
+20121226
+
+	Miscellaneous cleanups of postconf internal APIs,
+	identifiers and comments. No changes in behavior.
+
+	Bugfix (omission in feature 20111203): the SMTP server
+	supported time-dependent address-verification sender addresses
+	only with RCPT TO but not with MAIL FROM. File: smtpd/smtpd.c.

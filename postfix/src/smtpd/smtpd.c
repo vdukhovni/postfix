@@ -2352,6 +2352,21 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			 VERP_CMD);
 	return (-1);
     }
+    if (SMTPD_STAND_ALONE(state) == 0) {
+	const char *verify_sender;
+
+	/*
+	 * XXX Don't reject the address when we're probed with our own
+	 * address verification sender address. Otherwise, some timeout or
+	 * some UCE block may result in mutual negative caching, making it
+	 * painful to get the mail through. Unfortunately we still have to
+	 * send the address to the Milters otherwise they may bail out with a
+	 * "missing recipient" protocol error.
+	 */
+	verify_sender = valid_verify_sender_addr(STR(state->addr_buf));
+	if (verify_sender != 0)
+	    vstring_strcpy(state->addr_buf, verify_sender);
+    }
     if (SMTPD_STAND_ALONE(state) == 0
 	&& var_smtpd_delay_reject == 0
 	&& (err = smtpd_check_mail(state, STR(state->addr_buf))) != 0) {

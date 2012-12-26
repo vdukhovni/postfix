@@ -56,7 +56,7 @@ update: ../../bin/$(PROG) $(SAMPLES)
 
 $(MAKES): makes_dummy
 
-makes_dummy: $(INC_DIR)/mail_params.h ../global/mail_params.c
+makes_dummy: $(INC_DIR)/mail_params.h ../global/mail_params.c extract.awk Makefile.in
 	$(AWK) -f extract.awk ../*/*.c | $(SHELL)
 	touch makes_dummy
 

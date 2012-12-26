@@ -96,16 +96,7 @@ static HTABLE *rest_class_table;
     _ctx.local_scope = (scope); \
     _ctx.param_class = (class); \
     (void) mac_expand(NO_SCAN_RESULT, (value), MAC_EXP_FLAG_SCAN, \
-	    NO_SCAN_FILTER, flag_user_parameter, (char *) &_ctx); \
-} while (0)
-
-/* FLAG_USER_PARAMETER - flag user-defined name "valid" if it has name=value */
-
-#define FLAG_USER_PARAMETER(name, class, scope) do { \
-    PC_PARAM_CTX _ctx; \
-    _ctx.local_scope = (scope); \
-    _ctx.param_class = (class); \
-    flag_user_parameter((name), NO_SCAN_MODE, (char *) &_ctx); \
+	    NO_SCAN_FILTER, flag_user_parameter_wrapper, (char *) &_ctx); \
 } while (0)
 
 /* convert_user_parameter - get user-defined parameter string value */
@@ -118,12 +109,9 @@ static const char *convert_user_parameter(char *unused_ptr)
 /* flag_user_parameter - flag user-defined name "valid" if it has name=value */
 
 static const char *flag_user_parameter(const char *mac_name,
-				               int unused_mode,
-				               char *context)
+				               int param_class,
+				               PC_MASTER_ENT *local_scope)
 {
-    PC_PARAM_CTX *param_ctx = (PC_PARAM_CTX *) context;
-    PC_MASTER_ENT *local_scope = param_ctx->local_scope;
-    int     param_class = param_ctx->param_class;
     const char *source = local_scope ? MASTER_CONF_FILE : MAIN_CONF_FILE;
     int     user_supplied = 0;
 
@@ -201,6 +189,17 @@ static const char *flag_user_parameter(const char *mac_name,
     return (0);
 }
 
+/* flag_user_parameter_wrapper - max_expand call-back helper */
+
+static const char *flag_user_parameter_wrapper(const char *mac_name,
+					               int unused_mode,
+					               char *context)
+{
+    PC_PARAM_CTX *ctx = (PC_PARAM_CTX *) context;
+
+    return (flag_user_parameter(mac_name, ctx->param_class, ctx->local_scope));
+}
+
 /* pc_lookup_eval - generalized mail_conf_lookup_eval */
 
 static const char *pc_lookup_eval(const char *dict_name, const char *name)
@@ -243,7 +242,7 @@ static void scan_user_parameter_namespace(const char *dict_name,
 	    if (local_scope == 0
 		&& htable_locate(rest_class_table, param_name) == 0)
 		htable_enter(rest_class_table, param_name, "");
-	    FLAG_USER_PARAMETER(param_name, PC_PARAM_FLAG_USER, local_scope);
+	    flag_user_parameter(param_name, PC_PARAM_FLAG_USER, local_scope);
 	}
 	myfree(saved_class_list);
     }

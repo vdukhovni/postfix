@@ -245,7 +245,8 @@ static void print_master_line(int mode, PC_MASTER_ENT *masterp)
 		if (strcmp(arg, "-o") == 0
 		    && (aval = argv[field + 1]) != 0
 		    && (mode & SHOW_EVAL) != 0)
-		    aval = expand_parameter_value(mode, aval, masterp);
+		    aval = expand_parameter_value((VSTRING *) 0, mode,
+						  aval, masterp);
 
 		/*
 		 * Keep option and value on the same line.

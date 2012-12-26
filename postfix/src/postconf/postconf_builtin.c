@@ -143,8 +143,8 @@ static const CONFIG_STR_TABLE legacy_str_table[] = {
   * function. We direct the calls to our own versions of those functions
   * because the run-time conditions are slightly different.
   * 
-  * Important: if the evaluation of these parameters has any side effects, then
-  * those side effects must happen only once.
+  * Important: if the evaluation of a parameter default value has any side
+  * effects, then those side effects must happen only once.
   */
 static const char *pc_check_myhostname(void);
 static const char *pc_check_mydomainname(void);
@@ -162,8 +162,8 @@ static const CONFIG_STR_FN_TABLE str_fn_table[] = {
   * The AWK script cannot identify these parameters or values, so we provide
   * our own.
   * 
-  * Important: if the evaluation of these parameters has any side effects, then
-  * those side effects must happen only once.
+  * Important: if the evaluation of a parameter default value has any side
+  * effects, then those side effects must happen only once.
   */
 static CONFIG_STR_TABLE adhoc_procname = {VAR_PROCNAME};
 static CONFIG_INT_TABLE adhoc_pid = {VAR_PID};
@@ -205,7 +205,7 @@ static void get_myhostname(void)
 
     if ((name = mail_conf_lookup_eval(VAR_MYHOSTNAME)) == 0)
 	name = pc_check_myhostname();
-    var_mynetworks = mystrdup(name);
+    var_myhostname = mystrdup(name);
 }
 
 /* pc_check_mydomainname - lookup domain name and validate */
@@ -225,9 +225,9 @@ static const char *pc_check_mydomainname(void)
      * Use the hostname when it is not a FQDN ("foo"), or when the hostname
      * actually is a domain name ("foo.com").
      */
-    if (var_mynetworks == 0)
+    if (var_myhostname == 0)
 	get_myhostname();
-    if ((dot = strchr(var_mynetworks, '.')) == 0 || strchr(dot + 1, '.') == 0)
+    if ((dot = strchr(var_myhostname, '.')) == 0 || strchr(dot + 1, '.') == 0)
 	return (domain = DEF_MYDOMAIN);
     return (domain = mystrdup(dot + 1));
 }
@@ -373,7 +373,7 @@ void    register_builtin_parameters(const char *procname, pid_t pid)
     /*
      * Initialize the global parameter table.
      */
-    param_table = PC_PARAM_TABLE_CREATE(100);
+    param_table = PC_PARAM_TABLE_CREATE(1000);
 
     /*
      * Add the built-in parameters to the global name space. The class

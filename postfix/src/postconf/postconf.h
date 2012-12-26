@@ -185,7 +185,7 @@ extern void register_user_parameters(void);
   * postconf_dbms.c
   */
 extern void register_dbms_parameters(const char *,
-			        const char *(*) (const char *, int, char *),
+	               const char *(*) (const char *, int, PC_MASTER_ENT *),
 				             PC_MASTER_ENT *);
 
  /*
@@ -193,7 +193,8 @@ extern void register_dbms_parameters(const char *,
   */
 const char *lookup_parameter_value(int, const char *, PC_MASTER_ENT *,
 				           PC_PARAM_NODE *);
-const char *expand_parameter_value(int, const char *, PC_MASTER_ENT *);
+
+char   *expand_parameter_value(VSTRING *, int, const char *, PC_MASTER_ENT *);
 
  /*
   * postconf_unused.c.
