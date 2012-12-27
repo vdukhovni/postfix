@@ -11,7 +11,7 @@ Postfix configuration utility
 .fi
 \fBManaging main.cf:\fR
 
-\fBpostconf\fR [\fB-dfhnvx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-dfhnovx\fR] [\fB-c \fIconfig_dir\fR]
 [\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -22,7 +22,7 @@ Postfix configuration utility
 
 \fBManaging master.cf:\fR
 
-\fBpostconf\fR [\fB-fMnvx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-fMnovx\fR] [\fB-c \fIconfig_dir\fR]
 [\fIservice ...\fR]
 
 \fBManaging bounce message templates:\fR
@@ -114,7 +114,7 @@ Specify \fB-df\fR to fold long lines for human readability
 (Postfix 2.9 and later).
 .IP \fB-e\fR
 Edit the \fBmain.cf\fR configuration file, and update
-parameter settings with the "\fIname\fR=\fIvalue\fR" pairs
+parameter settings with the "\fIname=value\fR" pairs
 on the \fBpostconf\fR(1) command line. The file is copied
 to a temporary file then renamed into place.
 Specify quotes to protect special characters and whitespace
@@ -259,13 +259,17 @@ or with a \fIservice-name.service-type\fR pair, where
 
 This feature is available with Postfix 2.9 and later.
 .IP \fB-n\fR
-Print only \fIname\fR=\fIvalue\fR parameter settings that
-are explicitly specified in \fBmain.cf\fR. When specified
-with \fB-M\fR, print only \fBmaster.cf\fR entries that have
-"-o \fIname\fR=\fIvalue\fR" parameter settings (Postfix
-2.10 and later).
+Show only configuration parameters that have explicit
+\fIname=value\fR settings in \fBmain.cf\fR.
+When specified with \fB-M\fR, show only services that have
+explicit "-o \fIname=value\fR" settings in \fBmaster.cf\fR
+(Postfix 2.10 and later).
 Specify \fB-nf\fR to fold long lines for human readability
 (Postfix 2.9 and later).
+.IP "\fB-o \fIname=value\fR"
+Override \fBmain.cf\fR parameter settings.
+
+This feature is available with Postfix 2.10 and later.
 .IP "\fB-t\fR [\fItemplate_file\fR]"
 Display the templates for text that appears at the beginning
 of delivery status notification (DSN) messages, without
@@ -294,7 +298,7 @@ Edit the \fBmain.cf\fR configuration file, and remove
 the parameters named on the \fBpostconf\fR(1) command line.
 The file is copied to a temporary file then renamed into
 place.
-Specify a list of parameter names, not "\fIname\fR=\fIvalue\fR"
+Specify a list of parameter names, not "\fIname=value\fR"
 pairs.  There is no \fBpostconf\fR(1) command to perform
 the reverse operation.
 
@@ -305,7 +309,7 @@ the parameters named on the \fBpostconf\fR(1) command line,
 so that those parameters revert to their default values.
 The file is copied to a temporary file then renamed into
 place.
-Specify a list of parameter names, not "\fIname\fR=\fIvalue\fR"
+Specify a list of parameter names, not "\fIname=value\fR"
 pairs.  There is no \fBpostconf\fR(1) command to perform
 the reverse operation.
 

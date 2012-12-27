@@ -15,6 +15,9 @@
 /* DESCRIPTION
 /*	read_parameters() reads parameters from main.cf.
 /*
+/*	set_parameters() takes an array of \fIname=value\fR pairs
+/*	and overrides settings read with read_parameters().
+/*
 /*	show_parameters() writes main.cf parameters to the standard
 /*	output stream.
 /*
@@ -104,6 +107,23 @@ void    read_parameters(void)
     if (dict_load_file_xt(CONFIG_DICT, path) == 0)
 	msg_fatal("open %s: %m", path);
     myfree(path);
+}
+
+/* set_parameters - add or override name=value pairs */
+
+void    set_parameters(char **name_val_array)
+{
+    char   *name, *value, *junk;
+    const char *err;
+    char  **cpp;
+
+    for (cpp = name_val_array; *cpp; cpp++) {
+	junk = mystrdup(*cpp);
+	if ((err = split_nameval(junk, &name, &value)) != 0)
+	    msg_fatal("invalid parameter override: %s: %s", *cpp, err);
+	mail_conf_update(name, value);
+	myfree(junk);
+    }
 }
 
 /* print_line - show line possibly folded, and with normalized whitespace */

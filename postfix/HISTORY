@@ -18185,9 +18185,16 @@ Apologies for any names omitted.
 
 20121226
 
-	Miscellaneous cleanups of postconf internal APIs,
-	identifiers and comments. No changes in behavior.
+	Miscellaneous cleanups of postconf internal APIs, identifiers
+	and comments. No changes in behavior.
 
-	Bugfix (omission in feature 20111203): the SMTP server
+	Bugfix (omission in feature 20111203): the SMTP server only
 	supported time-dependent address-verification sender addresses
-	only with RCPT TO but not with MAIL FROM. File: smtpd/smtpd.c.
+	with RCPT TO but not with MAIL FROM. File: smtpd/smtpd.c.
+
+20121227
+
+	Feature: "postconf -o name=value" support to override main.cf
+	settings (for example, "postconf -x -o stress=whatever"
+	shows effective settings under overload). Files:
+	postconf/postconf.c, postconf/postconf_main.c.

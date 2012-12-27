@@ -7,7 +7,7 @@
 /* .fi
 /*	\fBManaging main.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-dfhnvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dfhnovx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -18,7 +18,7 @@
 /*
 /*	\fBManaging master.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-fMnvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-fMnovx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice ...\fR]
 /*
 /*	\fBManaging bounce message templates:\fR
@@ -108,7 +108,7 @@
 /*	(Postfix 2.9 and later).
 /* .IP \fB-e\fR
 /*	Edit the \fBmain.cf\fR configuration file, and update
-/*	parameter settings with the "\fIname\fR=\fIvalue\fR" pairs
+/*	parameter settings with the "\fIname=value\fR" pairs
 /*	on the \fBpostconf\fR(1) command line. The file is copied
 /*	to a temporary file then renamed into place.
 /*	Specify quotes to protect special characters and whitespace
@@ -253,13 +253,17 @@
 /*
 /*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-n\fR
-/*	Print only \fIname\fR=\fIvalue\fR parameter settings that
-/*	are explicitly specified in \fBmain.cf\fR. When specified
-/*	with \fB-M\fR, print only \fBmaster.cf\fR entries that have
-/*	"-o \fIname\fR=\fIvalue\fR" parameter settings (Postfix
-/*	2.10 and later).
+/*	Show only configuration parameters that have explicit
+/*	\fIname=value\fR settings in \fBmain.cf\fR.
+/*	When specified with \fB-M\fR, show only services that have
+/*	explicit "-o \fIname=value\fR" settings in \fBmaster.cf\fR
+/*	(Postfix 2.10 and later).
 /*	Specify \fB-nf\fR to fold long lines for human readability
 /*	(Postfix 2.9 and later).
+/* .IP "\fB-o \fIname=value\fR"
+/*	Override \fBmain.cf\fR parameter settings.
+/*
+/*	This feature is available with Postfix 2.10 and later.
 /* .IP "\fB-t\fR [\fItemplate_file\fR]"
 /*	Display the templates for text that appears at the beginning
 /*	of delivery status notification (DSN) messages, without
@@ -288,7 +292,7 @@
 /*	the parameters named on the \fBpostconf\fR(1) command line.
 /*	The file is copied to a temporary file then renamed into
 /*	place.
-/*	Specify a list of parameter names, not "\fIname\fR=\fIvalue\fR"
+/*	Specify a list of parameter names, not "\fIname=value\fR"
 /*	pairs.  There is no \fBpostconf\fR(1) command to perform
 /*	the reverse operation.
 /*
@@ -299,7 +303,7 @@
 /*	so that those parameters revert to their default values.
 /*	The file is copied to a temporary file then renamed into
 /*	place.
-/*	Specify a list of parameter names, not "\fIname\fR=\fIvalue\fR"
+/*	Specify a list of parameter names, not "\fIname=value\fR"
 /*	pairs.  There is no \fBpostconf\fR(1) command to perform
 /*	the reverse operation.
 /*
@@ -367,6 +371,7 @@
 #include <stringops.h>
 #include <name_mask.h>
 #include <warn_stat.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -409,6 +414,7 @@ int     main(int argc, char **argv)
 	"all", PC_PARAM_MASK_CLASS,
 	0,
     };
+    ARGV   *override_params = 0;
 
     /*
      * Fingerprint executables and core dumps.
@@ -438,7 +444,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMntvxX")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEf#hlmMno:tvxX")) > 0) {
 	switch (ch) {
 	case 'a':
 	    cmd_mode |= SHOW_SASL_SERV;
@@ -469,11 +475,9 @@ int     main(int argc, char **argv)
 	case 'f':
 	    cmd_mode |= FOLD_LINE;
 	    break;
-
 	case '#':
 	    cmd_mode = COMMENT_OUT;
 	    break;
-
 	case 'h':
 	    cmd_mode &= ~SHOW_NAME;
 	    break;
@@ -488,6 +492,11 @@ int     main(int argc, char **argv)
 	    break;
 	case 'n':
 	    cmd_mode |= SHOW_NONDEF;
+	    break;
+	case 'o':
+	    if (override_params == 0)
+		override_params = argv_alloc(2);
+	    argv_add(override_params, optarg, (char *) 0);
 	    break;
 	case 't':
 	    if (ext_argv)
@@ -525,6 +534,8 @@ int     main(int argc, char **argv)
 	msg_fatal("do not specify -x with -a, -A, -b, -e, -#, -l, -m, or -X");
     if ((cmd_mode & SHOW_NONDEF) != 0 && junk != 0 && junk != SHOW_MASTER)
 	msg_fatal("do not specify -n with -a, -A, -b, -d, -e, -#, -l, -m, or -X");
+    if (override_params != 0 && junk != 0 && junk != SHOW_MASTER)
+	msg_fatal("do not specify -o with -a, -A, -b, -d, -e, -#, -l, -m, or -X");
 
     /*
      * Display bounce template information and exit.
@@ -568,6 +579,8 @@ int     main(int argc, char **argv)
     else if (cmd_mode & SHOW_MASTER) {
 	read_master(FAIL_ON_OPEN_ERROR);
 	read_parameters();
+	if (override_params)
+	    set_parameters(override_params->argv);
 	register_builtin_parameters(basename(argv[0]), getpid());
 	register_service_parameters();
 	register_user_parameters();
@@ -599,6 +612,8 @@ int     main(int argc, char **argv)
     else {
 	if ((cmd_mode & SHOW_DEFS) == 0) {
 	    read_parameters();
+	    if (override_params)
+		set_parameters(override_params->argv);
 	}
 	register_builtin_parameters(basename(argv[0]), getpid());
 

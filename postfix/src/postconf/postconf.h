@@ -141,7 +141,7 @@ extern void set_config_dir(void);
   * postconf_main.c
   */
 extern void read_parameters(void);
-extern void set_parameters(void);
+extern void set_parameters(char **);
 extern void show_parameters(int, int, char **);
 
  /*

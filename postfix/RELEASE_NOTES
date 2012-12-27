@@ -36,8 +36,8 @@ expanded parameter values.
 - "postconf -x" now expands $name in main.cf and master.cf parameter
   values.
 
-- "postconf -Mn" now shows only master.cf entries with "-o name=value"
-  parameter settings.
+- "postconf -Mn" now shows services that have "-o name=value"
+  parameter settings in master.cf.
 
 - postconf warns about attempts to modify a read-only parameter
   (process_name, process_id) in main.cf or master.cf.
@@ -45,6 +45,12 @@ expanded parameter values.
 - postconf warns about an undefined $name in a parameter value in
   main.cf or master.cf (except for backwards-compatibility parameters
   such as $virtual_maps).
+
+Added with snapshot 20121227:
+
+- "postconf -o name=value" overrides main.cf parameter settings.
+  This can be used, for example, to examine stress-dependent settings
+  with "postconf -x -o stress=yes".
 
 Incompatible changes with snapshot 20121123
 ===========================================

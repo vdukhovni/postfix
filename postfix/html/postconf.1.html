@@ -12,8 +12,8 @@ POSTCONF(1)                                                        POSTCONF(1)
 <b>SYNOPSIS</b>
        <b>Managing <a href="postconf.5.html">main.cf</a>:</b>
 
-       <b>postconf</b> [<b>-dfhnvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-C</b> <i>class,...</i>] [<i>parame-</i>
-       <i>ter ...</i>]
+       <b>postconf</b> [<b>-dfhnovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-C</b> <i>class,...</i>] [<i>param-</i>
+       <i>eter ...</i>]
 
        <b>postconf</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>parameter=value ...</i>]
 
@@ -21,7 +21,7 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>Managing <a href="master.5.html">master.cf</a>:</b>
 
-       <b>postconf</b> [<b>-fMnvx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service ...</i>]
+       <b>postconf</b> [<b>-fMnovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service ...</i>]
 
        <b>Managing bounce message templates:</b>
 
@@ -115,7 +115,7 @@ POSTCONF(1)                                                        POSTCONF(1)
               for human readability (Postfix 2.9 and later).
 
        <b>-e</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a>  configuration  file, and update
-              parameter settings with the "<i>name</i>=<i>value</i>"  pairs  on
+              parameter settings with the "<i>name=value</i>"  pairs  on
               the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line. The file is copied to
               a temporary file then renamed into place.   Specify
               quotes to protect special characters and whitespace
@@ -295,12 +295,19 @@ POSTCONF(1)                                                        POSTCONF(1)
               This  feature  is  available  with  Postfix 2.9 and
               later.
 
-       <b>-n</b>     Print only <i>name</i>=<i>value</i> parameter settings  that  are
-              explicitly  specified  in  <a href="postconf.5.html"><b>main.cf</b></a>.  When specified
-              with <b>-M</b>, print only <a href="master.5.html"><b>master.cf</b></a> entries that have "-o
-              <i>name</i>=<i>value</i>"  parameter  settings  (Postfix 2.10 and
-              later).  Specify <b>-nf</b> to fold long lines  for  human
-              readability (Postfix 2.9 and later).
+       <b>-n</b>     Show  only  configuration  parameters   that   have
+              explicit  <i>name=value</i>  settings  in  <a href="postconf.5.html"><b>main.cf</b></a>.   When
+              specified with <b>-M</b>, show  only  services  that  have
+              explicit  "-o  <i>name=value</i>"  settings  in  <a href="master.5.html"><b>master.cf</b></a>
+              (Postfix 2.10 and later).  Specify <b>-nf</b> to fold long
+              lines   for  human  readability  (Postfix  2.9  and
+              later).
+
+       <b>-o</b> <i>name=value</i>
+              Override <a href="postconf.5.html"><b>main.cf</b></a> parameter settings.
+
+              This feature is available  with  Postfix  2.10  and
+              later.
 
        <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
               Display  the templates for text that appears at the
@@ -333,7 +340,7 @@ POSTCONF(1)                                                        POSTCONF(1)
               parameters named on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line.
               The file is copied to a temporary file then renamed
               into place.  Specify a list of parameter names, not
-              "<i>name</i>=<i>value</i>"  pairs.   There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> com-
+              "<i>name=value</i>"  pairs.   There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> com-
               mand to perform the reverse operation.
 
               This feature is available  with  Postfix  2.10  and
@@ -344,7 +351,7 @@ POSTCONF(1)                                                        POSTCONF(1)
               line,  so  that  those  parameters  revert to their
               default values.  The file is copied to a  temporary
               file  then  renamed  into place.  Specify a list of
-              parameter names, not "<i>name</i>=<i>value</i>" pairs.  There  is
+              parameter names, not "<i>name=value</i>" pairs.  There  is
               no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse oper-
               ation.
 

@@ -11,6 +11,8 @@ Wish list:
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 
+	Should postconf -o refuse to work without the -x option?
+
 	Make errno white/blacklist for getpwnam_r etc. and mailbox
 	write errors.
 
