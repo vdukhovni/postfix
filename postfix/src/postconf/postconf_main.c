@@ -8,7 +8,8 @@
 /*
 /*	void	read_parameters()
 /*
-/*	void	show_parameters(mode, param_class, names)
+/*	void	show_parameters(fp, mode, param_class, names)
+/*	VSTREAM	*fp;
 /*	int	mode;
 /*	int	param_class;
 /*	char	**names;
@@ -18,10 +19,12 @@
 /*	set_parameters() takes an array of \fIname=value\fR pairs
 /*	and overrides settings read with read_parameters().
 /*
-/*	show_parameters() writes main.cf parameters to the standard
+/*	show_parameters() writes main.cf parameters to the specified
 /*	output stream.
 /*
 /*	Arguments:
+/* .IP fp
+/*	Output stream.
 /* .IP mode
 /*	Bit-wise OR of zero or more of the following:
 /* .RS
@@ -128,7 +131,7 @@ void    set_parameters(char **name_val_array)
 
 /* print_line - show line possibly folded, and with normalized whitespace */
 
-static void print_line(int mode, const char *fmt,...)
+static void print_line(VSTREAM *fp, int mode, const char *fmt,...)
 {
     va_list ap;
     static VSTRING *buf = 0;
@@ -166,22 +169,22 @@ static void print_line(int mode, const char *fmt,...)
 	    *next++ = 0;
 	if (word_len > 0 && line_len > 0) {
 	    if ((mode & FOLD_LINE) == 0 || line_len + word_len < LINE_LIMIT) {
-		vstream_fputs(" ", VSTREAM_OUT);
+		vstream_fputs(" ", fp);
 		line_len += 1;
 	    } else {
-		vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
+		vstream_fputs("\n" INDENT_TEXT, fp);
 		line_len = INDENT_LEN;
 	    }
 	}
-	vstream_fputs(start, VSTREAM_OUT);
+	vstream_fputs(start, fp);
 	line_len += word_len;
     }
-    vstream_fputs("\n", VSTREAM_OUT);
+    vstream_fputs("\n", fp);
 }
 
 /* print_parameter - show specific parameter */
 
-static void print_parameter(int mode, const char *name,
+static void print_parameter(VSTREAM *fp, int mode, const char *name,
 			            PC_PARAM_NODE *node)
 {
     const char *value;
@@ -200,12 +203,12 @@ static void print_parameter(int mode, const char *name,
 	    value = expand_parameter_value((VSTRING *) 0, mode, value,
 					   (PC_MASTER_ENT *) 0);
 	if (mode & SHOW_NAME) {
-	    print_line(mode, "%s = %s\n", name, value);
+	    print_line(fp, mode, "%s = %s\n", name, value);
 	} else {
-	    print_line(mode, "%s\n", value);
+	    print_line(fp, mode, "%s\n", value);
 	}
 	if (msg_verbose)
-	    vstream_fflush(VSTREAM_OUT);
+	    vstream_fflush(fp);
     }
 }
 
@@ -222,7 +225,7 @@ static int comp_names(const void *a, const void *b)
 
 /* show_parameters - show parameter info */
 
-void    show_parameters(int mode, int param_class, char **names)
+void    show_parameters(VSTREAM *fp, int mode, int param_class, char **names)
 {
     PC_PARAM_INFO **list;
     PC_PARAM_INFO **ht;
@@ -237,7 +240,7 @@ void    show_parameters(int mode, int param_class, char **names)
 	qsort((char *) list, param_table->used, sizeof(*list), comp_names);
 	for (ht = list; *ht; ht++)
 	    if (param_class & PC_PARAM_INFO_NODE(*ht)->flags)
-		print_parameter(mode, PC_PARAM_INFO_NAME(*ht),
+		print_parameter(fp, mode, PC_PARAM_INFO_NAME(*ht),
 				PC_PARAM_INFO_NODE(*ht));
 	myfree((char *) list);
 	return;
@@ -250,7 +253,7 @@ void    show_parameters(int mode, int param_class, char **names)
 	if ((node = PC_PARAM_TABLE_FIND(param_table, *namep)) == 0) {
 	    msg_warn("%s: unknown parameter", *namep);
 	} else {
-	    print_parameter(mode, *namep, node);
+	    print_parameter(fp, mode, *namep, node);
 	}
     }
 }

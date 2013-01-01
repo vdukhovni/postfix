@@ -6,22 +6,30 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
+/*	const char daemon_options_expecting_value[];
+/*
 /*	void	read_master(fail_on_open)
 /*	int	fail_on_open;
 /*
-/*	void	show_master(mode, filters)
+/*	void	show_master(fp, mode, filters)
+/*	VSTREAM	*fp;
 /*	int	mode;
 /*	char	**filters;
 /* DESCRIPTION
 /*	read_master() reads entries from master.cf into memory.
 /*
 /*	show_master() writes the entries in the master.cf file
-/*	to standard output.
+/*	to the specified stream.
+/*
+/*	daemon_options_expecting_value[] is an array of master.cf
+/*	daemon command-line options that expect an option value.
 /*
 /*	Arguments
 /* .IP fail_on_open
 /*	Specify FAIL_ON_OPEN if open failure is a fatal error,
 /*	WARN_ON_OPEN if a warning should be logged instead.
+/* .IP fp
+/*	Output stream.
 /* .IP mode
 /*	If the FOLD_LINE flag is set, show_master() wraps long
 /*	output lines.
@@ -66,6 +74,8 @@
 
 #include <postconf.h>
 
+const char daemon_options_expecting_value[] = "o";
+
 #define STR(x) vstring_str(x)
 
 /* normalize_options - bring options into canonical form */
@@ -74,6 +84,8 @@ static void normalize_options(ARGV *argv)
 {
     int     field;
     char   *arg;
+    char   *cp;
+    char   *junk;
 
     /*
      * Normalize options to simplify later processing.
@@ -82,17 +94,28 @@ static void normalize_options(ARGV *argv)
 	arg = argv->argv[field];
 	if (arg[0] != '-' || strcmp(arg, "--") == 0)
 	    break;
-	if (strncmp(arg, "-o", 2) == 0) {
-	    if (arg[2] != 0) {
-		/* Split "-oname=value" into "-o" "name=value". */
-		argv_insert_one(argv, field + 1, arg + 2);
-		argv_replace_one(argv, field, "-o");
-		/* arg is now a dangling pointer. */
-		field += 1;
-	    } else if (argv->argv[field + 1] != 0) {
-		/* Already in "-o" "name=value" form. */
-		field += 1;
+	for (cp = arg + 1; *cp; cp++) {
+	    if (strchr(daemon_options_expecting_value, *cp) != 0
+		&& cp > arg + 1) {
+		/* Split "-stuffo" into "-stuff" and "-o". */
+		junk = concatenate("-", cp, (char *) 0);
+		argv_insert_one(argv, field + 1, junk);
+		myfree(junk);
+		*cp = 0;
+		break;
 	    }
+	}
+	if (strchr(daemon_options_expecting_value, arg[1]) == 0)
+	    /* Option requires no value. */
+	    continue;
+	if (arg[2] != 0) {
+	    /* Split "-oname=value" into "-o" "name=value". */
+	    argv_insert_one(argv, field + 1, arg + 2);
+	    arg[2] = 0;
+	    field += 1;
+	} else if (argv->argv[field + 1] != 0) {
+	    /* Already in "-o" "name=value" form. */
+	    field += 1;
 	}
     }
 }
@@ -176,7 +199,7 @@ void    read_master(int fail_on_open_error)
 
 /* print_master_line - print one master line */
 
-static void print_master_line(int mode, PC_MASTER_ENT *masterp)
+static void print_master_line(VSTREAM *fp, int mode, PC_MASTER_ENT *masterp)
 {
     char  **argv = masterp->argv->argv;
     const char *arg;
@@ -197,7 +220,7 @@ static void print_master_line(int mode, PC_MASTER_ENT *masterp)
     };
 
 #define ADD_TEXT(text, len) do { \
-        vstream_fputs(text, VSTREAM_OUT); line_len += len; } \
+        vstream_fputs(text, fp); line_len += len; } \
     while (0)
 #define ADD_SPACE ADD_TEXT(" ", 1)
 
@@ -237,13 +260,18 @@ static void print_master_line(int mode, PC_MASTER_ENT *masterp)
 		    /* Force line wrap. */
 		    line_len = LINE_LIMIT;
 		}
-	    } else {
+	    }
+
+	    /*
+	     * Special processing for options that require a value.
+	     */
+	    else if (strchr(daemon_options_expecting_value, arg[1]) != 0
+		     && (aval = argv[field + 1]) != 0) {
 
 		/*
-		 * Process options with a value.
+		 * Optionally, expand $name in parameter value.
 		 */
 		if (strcmp(arg, "-o") == 0
-		    && (aval = argv[field + 1]) != 0
 		    && (mode & SHOW_EVAL) != 0)
 		    aval = expand_parameter_value((VSTRING *) 0, mode,
 						  aval, masterp);
@@ -251,8 +279,7 @@ static void print_master_line(int mode, PC_MASTER_ENT *masterp)
 		/*
 		 * Keep option and value on the same line.
 		 */
-		if (aval)
-		    arg_len += strlen(aval) + 1;
+		arg_len += strlen(aval) + 1;
 	    }
 	}
 
@@ -264,7 +291,7 @@ static void print_master_line(int mode, PC_MASTER_ENT *masterp)
 		|| line_len + 1 + arg_len < LINE_LIMIT) {
 		ADD_SPACE;
 	    } else {
-		vstream_fputs("\n" INDENT_TEXT, VSTREAM_OUT);
+		vstream_fputs("\n" INDENT_TEXT, fp);
 		line_len = INDENT_LEN;
 	    }
 	}
@@ -275,12 +302,12 @@ static void print_master_line(int mode, PC_MASTER_ENT *masterp)
 	    field += 1;
 	}
     }
-    vstream_fputs("\n", VSTREAM_OUT);
+    vstream_fputs("\n", fp);
 }
 
 /* show_master - show master.cf entries */
 
-void    show_master(int mode, char **filters)
+void    show_master(VSTREAM *fp, int mode, char **filters)
 {
     PC_MASTER_ENT *masterp;
     ARGV   *service_filter = 0;
@@ -298,7 +325,7 @@ void    show_master(int mode, char **filters)
 	if ((service_filter == 0
 	     || match_service_match(service_filter, masterp->name_space))
 	    && ((mode & SHOW_NONDEF) == 0 || masterp->all_params != 0))
-	    print_master_line(mode, masterp);
+	    print_master_line(fp, mode, masterp);
 
     /*
      * Cleanup.

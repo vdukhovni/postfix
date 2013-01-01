@@ -35,12 +35,12 @@
 /*
 /*	expand_parameter_value() expands $name in the specified
 /*	parameter value. This function ignores the SHOW_NONDEF flag.
-/*	The result is in static memory that is overwritten with
-/*	each call.
+/*	The result value is a pointer to storage in a user-supplied
+/*	buffer, or in a buffer that is overwritten with each call.
 /*
 /*	Arguments:
 /* .IP buf
-/*	Null pointer, or pointer to output storage.
+/*	Null buffer pointer, or pointer to user-supplied buffer.
 /* .IP mode
 /*	Bit-wise OR of zero or one of the following (other flags
 /*	are ignored):
@@ -48,7 +48,7 @@
 /* .IP SHOW_DEFS
 /*	Search built-in default parameter settings only.
 /* .IP SHOW_NONDEF
-/*	Search local (master.cf) or global (main.cf) name=value
+/*	Search local (master.cf) and global (main.cf) name=value
 /*	parameter settings only.
 /* .RE
 /* .IP name
@@ -56,11 +56,11 @@
 /* .IP value
 /*	The parameter value where $name should be expanded.
 /* .IP local_scope
-/*	Null pointer, or pointer to master.cf entry with local
-/*	name=value settings.
+/*	Pointer to master.cf entry with local name=value settings,
+/*	or a null pointer (i.e. no local parameter lookup).
 /* .IP node
-/*	Null pointer, or global default setting for the named
-/*	parameter.
+/*	Global default value for the named parameter, or a null
+/*	pointer (i.e. do the global default lookup anyway).
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* LICENSE
@@ -107,9 +107,9 @@ const char *lookup_parameter_value(int mode, const char *name,
     const char *value = 0;
 
     /*
-     * Use the actual or built-in default parameter value. Local name=value
-     * entries in master.cf take precedence over global name=value entries in
-     * main.cf. Built-in defaults have the lowest precedence.
+     * Local name=value entries in master.cf take precedence over global
+     * name=value entries in main.cf. Built-in defaults have the lowest
+     * precedence.
      */
     if ((mode & SHOW_DEFS) != 0
 	|| ((local_scope == 0 || local_scope->all_params == 0

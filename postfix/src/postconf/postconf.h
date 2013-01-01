@@ -142,7 +142,7 @@ extern void set_config_dir(void);
   */
 extern void read_parameters(void);
 extern void set_parameters(char **);
-extern void show_parameters(int, int, char **);
+extern void show_parameters(VSTREAM *, int, int, char **);
 
  /*
   * postconf_edit.c
@@ -152,8 +152,9 @@ extern void edit_parameters(int, int, char **);
  /*
   * postconf_master.c.
   */
+extern const char daemon_options_expecting_value[];
 extern void read_master(int);
-extern void show_master(int, char **);
+extern void show_master(VSTREAM *, int, char **);
 
 #define WARN_ON_OPEN_ERROR	0
 #define FAIL_ON_OPEN_ERROR	1

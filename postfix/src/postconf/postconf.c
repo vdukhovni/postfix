@@ -138,7 +138,8 @@
 /*	An application-level locking method. An application locks a file
 /*	named \fIfilename\fR by creating a file named \fIfilename\fB.lock\fR.
 /*	The application is expected to remove its own lock file, as well as
-/*	stale lock files that were left behind after abnormal termination.
+/*	stale lock files that were left behind after abnormal program
+/*	termination.
 /* .RE
 /* .IP \fB-m\fR
 /*	List the names of all supported lookup table types. In Postfix
@@ -584,7 +585,7 @@ int     main(int argc, char **argv)
 	register_builtin_parameters(basename(argv[0]), getpid());
 	register_service_parameters();
 	register_user_parameters();
-	show_master(cmd_mode, argv + optind);
+	show_master(VSTREAM_OUT, cmd_mode, argv + optind);
     }
 
     /*
@@ -631,7 +632,7 @@ int     main(int argc, char **argv)
 	/*
 	 * Show the requested values.
 	 */
-	show_parameters(cmd_mode, param_class, argv + optind);
+	show_parameters(VSTREAM_OUT, cmd_mode, param_class, argv + optind);
 
 	/*
 	 * Flag unused parameters. This makes no sense with "postconf -d",

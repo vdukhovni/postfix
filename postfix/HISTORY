@@ -18198,3 +18198,13 @@ Apologies for any names omitted.
 	settings (for example, "postconf -x -o stress=whatever"
 	shows effective settings under overload). Files:
 	postconf/postconf.c, postconf/postconf_main.c.
+
+20121230
+
+	Cleanup: postconf(1) master.cf options parser. Files:
+	postconf/postconf_master.c, postconf/postconf_user.c.
+
+	Bugfix (omission in feature 20111106): the postconf(1)
+	master.cf options parser didn't support "clusters" of
+	command-line option letters. Files: postconf/postconf_master.c,
+	postconf/test40.ref.

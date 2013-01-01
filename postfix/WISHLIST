@@ -13,6 +13,9 @@ Wish list:
 
 	Should postconf -o refuse to work without the -x option?
 
+	Make 30s caching (feature 20070414) configurable, such that
+	0 means no caching.
+
 	Make errno white/blacklist for getpwnam_r etc. and mailbox
 	write errors.
 

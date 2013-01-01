@@ -144,7 +144,8 @@ A kernel-based advisory locking method for local and remote files.
 An application-level locking method. An application locks a file
 named \fIfilename\fR by creating a file named \fIfilename\fB.lock\fR.
 The application is expected to remove its own lock file, as well as
-stale lock files that were left behind after abnormal termination.
+stale lock files that were left behind after abnormal program
+termination.
 .RE
 .IP \fB-m\fR
 List the names of all supported lookup table types. In Postfix

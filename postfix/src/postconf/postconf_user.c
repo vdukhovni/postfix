@@ -87,7 +87,6 @@ static HTABLE *rest_class_table;
   */
 #define NO_SCAN_RESULT	((VSTRING *) 0)
 #define NO_SCAN_FILTER	((char *) 0)
-#define NO_SCAN_MODE	(0)
 
 /* SCAN_USER_PARAMETER_VALUE - examine macro names in parameter value */
 
@@ -189,7 +188,7 @@ static const char *flag_user_parameter(const char *mac_name,
     return (0);
 }
 
-/* flag_user_parameter_wrapper - max_expand call-back helper */
+/* flag_user_parameter_wrapper - mac_expand call-back helper */
 
 static const char *flag_user_parameter_wrapper(const char *mac_name,
 					               int unused_mode,
@@ -334,6 +333,7 @@ void    register_user_parameters(void)
     PC_MASTER_ENT *masterp;
     ARGV   *argv;
     char   *arg;
+    char   *aval;
     int     field;
     char   *saved_arg;
     char   *param_name;
@@ -363,13 +363,16 @@ void    register_user_parameters(void)
 	    arg = argv->argv[field];
 	    if (arg[0] != '-' || strcmp(arg, "--") == 0)
 		break;
-	    if (strcmp(arg, "-o") == 0 && (arg = argv->argv[field + 1]) != 0) {
-		saved_arg = mystrdup(arg);
+	    if (strchr(daemon_options_expecting_value, arg[1]) == 0
+		|| (aval = argv->argv[field + 1]) == 0)
+		continue;
+	    if (strcmp(arg, "-o") == 0) {
+		saved_arg = mystrdup(aval);
 		if (split_nameval(saved_arg, &param_name, &param_value) == 0)
 		    dict_update(masterp->name_space, param_name, param_value);
 		myfree(saved_arg);
-		field += 1;
 	    }
+	    field += 1;
 	}
 	if ((dict = dict_handle(masterp->name_space)) != 0) {
 	    masterp->all_params = dict;
