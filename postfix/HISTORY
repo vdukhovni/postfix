@@ -18208,3 +18208,19 @@ Apologies for any names omitted.
 	master.cf options parser didn't support "clusters" of
 	command-line option letters. Files: postconf/postconf_master.c,
 	postconf/test40.ref.
+
+20130105
+
+	Undo a change made around 20121224, and always whitelist
+	configuration parameter names for legacy-style proxy:ldap:prefix
+	etc.  lookup tables.  Files: postconf/postconf_dbms.c,
+	postconf/test28.ref, postconf/test29.ref, postconf/Makefile.in.
+
+20130107
+
+	Factor out the master.cf line parser so that it can be
+	reused for "postconf -Me". File: postconf/postconf_master.c.
+
+20130113
+
+	Start of work on integrating a pile of new code.

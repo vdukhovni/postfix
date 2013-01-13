@@ -256,7 +256,7 @@ void    argv_insert_one(ARGV *argvp, ssize_t where, const char *arg)
     argvp->argc += 1;
 }
 
-/* argv_replace_one - insert one string into array */
+/* argv_replace_one - replace one string in array */
 
 void    argv_replace_one(ARGV *argvp, ssize_t where, const char *arg)
 {

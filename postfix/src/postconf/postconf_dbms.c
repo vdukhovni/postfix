@@ -172,17 +172,21 @@ void    register_dbms_parameters(const char *param_value,
     while ((db_type = mystrtok(&bufp, " ,\t\r\n")) != 0) {
 
 	/*
-	 * Don't skip over "proxy:" indirections. They don't introduce
-	 * database-specific main.cf parameters on the proxy client side.
-	 * 
-	 * Look for database:prefix where the prefix is not a pathname and the
-	 * database is a known type. Synthesize candidate parameter names
+	 * Skip over "proxy:" maptypes, to emulate the proxymap(8) server's
+	 * behavior when opening a local database configuration file.
+	 */
+	while ((prefix = split_at(db_type, ':')) != 0
+	       && strcmp(db_type, DICT_TYPE_PROXY) == 0)
+	    db_type = prefix;
+
+	/*
+	 * Look for database:prefix where the prefix is not a pathname and
+	 * the database is a known type. Synthesize candidate parameter names
 	 * from the user-defined prefix and from the database-defined suffix
 	 * list, and see if those parameters have a "name=value" entry in the
 	 * local or global namespace.
 	 */
-	if ((prefix = split_at(db_type, ':')) != 0
-	    && *prefix != '/' && *prefix != '.') {
+	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
 	    for (dp = dbms_info; dp->db_type != 0; dp++) {
 		if (strcmp(db_type, dp->db_type) == 0) {
 		    for (cpp = dp->db_suffixes; *cpp; cpp++) {

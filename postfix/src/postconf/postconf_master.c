@@ -101,7 +101,7 @@ static void normalize_options(ARGV *argv)
 		junk = concatenate("-", cp, (char *) 0);
 		argv_insert_one(argv, field + 1, junk);
 		myfree(junk);
-		*cp = 0;
+		*cp = 0;			/* XXX argv_replace_one() */
 		break;
 	    }
 	}
@@ -111,13 +111,43 @@ static void normalize_options(ARGV *argv)
 	if (arg[2] != 0) {
 	    /* Split "-oname=value" into "-o" "name=value". */
 	    argv_insert_one(argv, field + 1, arg + 2);
-	    arg[2] = 0;
+	    arg[2] = 0;				/* XXX argv_replace_one() */
 	    field += 1;
 	} else if (argv->argv[field + 1] != 0) {
 	    /* Already in "-o" "name=value" form. */
 	    field += 1;
 	}
     }
+}
+
+/* parse_master_line - parse one master line */
+
+static void parse_master_line(PC_MASTER_ENT *masterp, const char *buf,
+			              const char *path, int line_count)
+{
+    ARGV   *argv;
+
+    /*
+     * We can't use the master daemon's master_ent routines in their current
+     * form. They convert everything to internal form, and they skip disabled
+     * services.
+     * 
+     * The postconf command needs to show default fields as "-", and needs to
+     * know about all service names so that it can generate service-dependent
+     * parameter names (transport-dependent etc.).
+     */
+#define MASTER_BLANKS	" \t\r\n"		/* XXX */
+
+    argv = argv_split(buf, MASTER_BLANKS);
+    if (argv->argc < PC_MASTER_MIN_FIELDS)
+	msg_fatal("file %s: line %d: bad field count",
+		  path, line_count);
+    normalize_options(argv);
+    masterp->name_space =
+	concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);
+    masterp->argv = argv;
+    masterp->valid_names = 0;
+    masterp->all_params = 0;
 }
 
 /* read_master - read and digest the master.cf file */
@@ -127,7 +157,6 @@ void    read_master(int fail_on_open_error)
     const char *myname = "read_master";
     char   *path;
     VSTRING *buf;
-    ARGV   *argv;
     VSTREAM *fp;
     int     entry_count = 0;
     int     line_count = 0;
@@ -144,17 +173,6 @@ void    read_master(int fail_on_open_error)
     if (var_config_dir == 0)
 	set_config_dir();
     path = concatenate(var_config_dir, "/", MASTER_CONF_FILE, (char *) 0);
-
-    /*
-     * We can't use the master daemon's master_ent routines in their current
-     * form. They convert everything to internal form, and they skip disabled
-     * services.
-     * 
-     * The postconf command needs to show default fields as "-", and needs to
-     * know about all service names so that it can generate service-dependent
-     * parameter names (transport-dependent etc.).
-     */
-#define MASTER_BLANKS	" \t\r\n"		/* XXX */
 
     /*
      * Initialize the in-memory master table.
@@ -174,16 +192,8 @@ void    read_master(int fail_on_open_error)
 	while (readlline(buf, fp, &line_count) != 0) {
 	    master_table = (PC_MASTER_ENT *) myrealloc((char *) master_table,
 				 (entry_count + 2) * sizeof(*master_table));
-	    argv = argv_split(STR(buf), MASTER_BLANKS);
-	    if (argv->argc < PC_MASTER_MIN_FIELDS)
-		msg_fatal("file %s: line %d: bad field count",
-			  path, line_count);
-	    normalize_options(argv);
-	    master_table[entry_count].name_space =
-		concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);
-	    master_table[entry_count].argv = argv;
-	    master_table[entry_count].valid_names = 0;
-	    master_table[entry_count].all_params = 0;
+	    parse_master_line(master_table + entry_count, STR(buf),
+			      path, line_count);
 	    entry_count += 1;
 	}
 	vstream_fclose(fp);

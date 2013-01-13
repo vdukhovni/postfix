@@ -377,7 +377,7 @@ test27:	$(PROG) test27.ref
 test28:	$(PROG) test28.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	echo 'xx = ldap:foo' >> main.cf
+	echo 'xx = proxy:ldap:foo' >> main.cf
 	echo 'foo_domain = bar' >> main.cf
 	echo 'header_checks = ldap:hh' >> main.cf
 	echo 'hh_domain = whatever' >> main.cf
@@ -397,19 +397,19 @@ test28:	$(PROG) test28.ref
 test29:	$(PROG) test29.ref
 	rm -f main.cf master.cf
 	touch main.cf master.cf
-	echo 'ldapxx = ldap:ldapfoo' >> main.cf
+	echo 'ldapxx = proxy:ldap:ldapfoo' >> main.cf
 	echo 'ldapfoo_domain = bar' >> main.cf
 	echo 'ldapfoo_domainx = bar' >> main.cf
-	echo 'mysqlxx = mysql:mysqlfoo' >> main.cf
+	echo 'mysqlxx = proxy:mysql:mysqlfoo' >> main.cf
 	echo 'mysqlfoo_domain = bar' >> main.cf
 	echo 'mysqlfoo_domainx = bar' >> main.cf
-	echo 'pgsqlxx = pgsql:pgsqlfoo' >> main.cf
+	echo 'pgsqlxx = proxy:pgsql:pgsqlfoo' >> main.cf
 	echo 'pgsqlfoo_domain = bar' >> main.cf
 	echo 'pgsqlfoo_domainx = bar' >> main.cf
-	echo 'sqlitexx = sqlite:sqlitefoo' >> main.cf
+	echo 'sqlitexx = proxy:sqlite:sqlitefoo' >> main.cf
 	echo 'sqlitefoo_domain = bar' >> main.cf
 	echo 'sqlitefoo_domainx = bar' >> main.cf
-	echo 'memcachexx = memcache:memcachefoo' >> main.cf
+	echo 'memcachexx = proxy:memcache:memcachefoo' >> main.cf
 	echo 'memcachefoo_domain = bar' >> main.cf
 	echo 'memcachefoo_domainx = bar' >> main.cf
 	./$(PROG) -nc . >test29.tmp 2>&1

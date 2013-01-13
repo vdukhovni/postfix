@@ -1004,6 +1004,10 @@ Use "command .. & sleep 5" so that the debugger can attach before
 the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 .PP
+Note: the command is subject to $name expansion, before it is
+passed to the default commmand interpreter. Specify "$$" to
+produce a single "$" character.
+.PP
 Example:
 .PP
 .nf
