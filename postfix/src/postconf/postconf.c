@@ -18,7 +18,7 @@
 /*
 /*	\fBManaging master.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-fMnovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-fMovx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice ...\fR]
 /*
 /*	\fBManaging bounce message templates:\fR
@@ -256,9 +256,6 @@
 /* .IP \fB-n\fR
 /*	Show only configuration parameters that have explicit
 /*	\fIname=value\fR settings in \fBmain.cf\fR.
-/*	When specified with \fB-M\fR, show only services that have
-/*	explicit "-o \fIname=value\fR" settings in \fBmaster.cf\fR
-/*	(Postfix 2.10 and later).
 /*	Specify \fB-nf\fR to fold long lines for human readability
 /*	(Postfix 2.9 and later).
 /* .IP "\fB-o \fIname=value\fR"
@@ -510,7 +507,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'X':
 	    /* This is irreversible, therefore require two-finger action. */
-	    cmd_mode = EDIT_EXCL;
+	    cmd_mode |= EDIT_EXCL;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -533,8 +530,8 @@ int     main(int argc, char **argv)
 	msg_fatal("specify one of -a, -A, -b, -d, -e, -#, -l, -m, -M, and -X");
     if ((cmd_mode & SHOW_EVAL) != 0 && junk != 0 && junk != SHOW_DEFS && junk != SHOW_MASTER)
 	msg_fatal("do not specify -x with -a, -A, -b, -e, -#, -l, -m, or -X");
-    if ((cmd_mode & SHOW_NONDEF) != 0 && junk != 0 && junk != SHOW_MASTER)
-	msg_fatal("do not specify -n with -a, -A, -b, -d, -e, -#, -l, -m, or -X");
+    if ((cmd_mode & SHOW_NONDEF) != 0 && junk != 0)
+	msg_fatal("do not specify -n with -a, -A, -b, -d, -e, -#, -l, -m, -M, or -X");
     if (override_params != 0 && junk != 0 && junk != SHOW_MASTER)
 	msg_fatal("do not specify -o with -a, -A, -b, -d, -e, -#, -l, -m, or -X");
 

@@ -122,8 +122,7 @@ static void normalize_options(ARGV *argv)
 
 /* parse_master_line - parse one master line */
 
-static void parse_master_line(PC_MASTER_ENT *masterp, const char *buf,
-			              const char *path, int line_count)
+static const char *parse_master_line(PC_MASTER_ENT *masterp, const char *buf)
 {
     ARGV   *argv;
 
@@ -140,14 +139,14 @@ static void parse_master_line(PC_MASTER_ENT *masterp, const char *buf,
 
     argv = argv_split(buf, MASTER_BLANKS);
     if (argv->argc < PC_MASTER_MIN_FIELDS)
-	msg_fatal("file %s: line %d: bad field count",
-		  path, line_count);
+	return ("bad field count");
     normalize_options(argv);
     masterp->name_space =
 	concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);
     masterp->argv = argv;
     masterp->valid_names = 0;
     masterp->all_params = 0;
+    return (0);
 }
 
 /* read_master - read and digest the master.cf file */
@@ -158,6 +157,7 @@ void    read_master(int fail_on_open_error)
     char   *path;
     VSTRING *buf;
     VSTREAM *fp;
+    const char *err;
     int     entry_count = 0;
     int     line_count = 0;
 
@@ -192,8 +192,9 @@ void    read_master(int fail_on_open_error)
 	while (readlline(buf, fp, &line_count) != 0) {
 	    master_table = (PC_MASTER_ENT *) myrealloc((char *) master_table,
 				 (entry_count + 2) * sizeof(*master_table));
-	    parse_master_line(master_table + entry_count, STR(buf),
-			      path, line_count);
+	    if ((err = parse_master_line(master_table + entry_count,
+					 STR(buf))) != 0)
+		msg_fatal("file %s: line %d: %s", path, line_count, err);
 	    entry_count += 1;
 	}
 	vstream_fclose(fp);

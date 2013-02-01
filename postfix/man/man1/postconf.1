@@ -22,7 +22,7 @@ Postfix configuration utility
 
 \fBManaging master.cf:\fR
 
-\fBpostconf\fR [\fB-fMnovx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-fMovx\fR] [\fB-c \fIconfig_dir\fR]
 [\fIservice ...\fR]
 
 \fBManaging bounce message templates:\fR
@@ -262,9 +262,6 @@ This feature is available with Postfix 2.9 and later.
 .IP \fB-n\fR
 Show only configuration parameters that have explicit
 \fIname=value\fR settings in \fBmain.cf\fR.
-When specified with \fB-M\fR, show only services that have
-explicit "-o \fIname=value\fR" settings in \fBmaster.cf\fR
-(Postfix 2.10 and later).
 Specify \fB-nf\fR to fold long lines for human readability
 (Postfix 2.9 and later).
 .IP "\fB-o \fIname=value\fR"

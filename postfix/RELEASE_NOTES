@@ -14,6 +14,14 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
+Major changes with snapshot 20130201
+====================================
+
+The "postconf -Mn" feature is withdrawn, in favor of a better design
+that not only supports queries but also updates of named properties
+of a master.cf service entry. But there is not enough time to finish
+that for Postfix 2.10.
+
 Incompatible changes with snapshot 20121224
 ===========================================
 

@@ -18221,6 +18221,13 @@ Apologies for any names omitted.
 	Factor out the master.cf line parser so that it can be
 	reused for "postconf -Me". File: postconf/postconf_master.c.
 
-20130113
+20130121
 
-	Start of work on integrating a pile of new code.
+	Bugfix (introduced 20120307): the postconf -X option erased
+	other options.  File: postconf/postconf.c.
+
+20130131
+
+	Bugfix: the local(8) delivery agent dereferenced a null
+	pointer while delivering to null command (for example, "|"
+	in a .forward file).  Reported by Gilles Chehade.
