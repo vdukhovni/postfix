@@ -16083,12 +16083,6 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20000314): AUTH is not allowed after
 	MAIL. Timo Sirainen.  File: smtpd/smtpd_sasl_proto.c.
 
-20121003
-
-	Bugfix: the postscreen_access_list feature was case-sensitive
-	in the first character of permit, reject, etc. Reported by
-	Francis Picabia. File: global/server_acl.c.
-
 20121010
 
 	Bugfix (introduced: Postfix 2.5): memory leak in program
@@ -16109,3 +16103,14 @@ Apologies for any names omitted.
 	returned by the system getaddrinfo() routine.  Such suffixes
 	mess up the default mynetworks value, host name/address
 	verification and possibly more.  File: util/myaddrinfo.c.
+
+20130131
+
+	Bugfix: the local(8) delivery agent dereferenced a null
+	pointer while delivering to null command (for example, "|"
+	in a .forward file).  Reported by Gilles Chehade.
+
+20130203
+
+	Bugfix: the 20121010 fix for tls_misc.c was documented but
+	not included.
