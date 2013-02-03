@@ -16876,3 +16876,14 @@ Apologies for any names omitted.
 	20101108 change that removes datalink suffixes in the SMTP
 	and QMQP servers, but we leave that code alone.  File:
 	util/myaddrinfo.c.
+
+20130131
+
+	Bugfix: the local(8) delivery agent dereferenced a null
+	pointer while delivering to null command (for example, "|"
+	in a .forward file).  Reported by Gilles Chehade.
+
+20130203
+
+	Bugfix: the 20121010 fix for tls_misc.c was documented but
+	not included.
