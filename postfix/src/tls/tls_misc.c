@@ -382,8 +382,10 @@ int     tls_protocol_mask(const char *plist)
 	else
 	    include |= code =
 		name_code(protocol_table, NAME_CODE_FLAG_NONE, tok);
-	if (code == TLS_PROTOCOL_INVALID)
+	if (code == TLS_PROTOCOL_INVALID) {
+	    myfree(save);
 	    return TLS_PROTOCOL_INVALID;
+	}
     }
     myfree(save);
 
