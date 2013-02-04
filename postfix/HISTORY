@@ -17756,3 +17756,30 @@ Apologies for any names omitted.
 	This part of the code is not documented and had escaped
 	testing.  Files: util/ip_match.c, util/ip_match.in,
 	util/ip_match.ref.
+
+20121230
+
+	Bugfix (omission in feature 20111106): the postconf(1)
+	master.cf options parser didn't support "clusters" of
+	command-line option letters. File: postconf/postconf_master.c,
+	postconf/test40.ref.
+
+20130131
+
+	Bugfix: the local(8) delivery agent dereferenced a null
+	pointer while delivering to null command (for example, "|"
+	in a .forward file).  Reported by Gilles Chehade.
+
+20130203
+
+	Bugfix: the undocumented OpenSSL X509_pubkey_digest()
+	function is unsuitable for computing certificate PUBLIC KEY
+	fingerprints.  Postfix now provides a correct procedure
+	that accounts for the algorithm and parameters in addition
+	to the key data.  Specify "tls_legacy_public_key_fingerprints
+	= yes" if you need backwards compatibility. Fix by Victor
+	Duchovni, BC added by Wietse.  Files: tls/tls_verify.c,
+	tls/tls_misc.c, proto/TLS_README.html, global/mail_params.h.
+
+	Bugfix: the 20121010 fix for tls_misc.c was documented but
+	not included.
