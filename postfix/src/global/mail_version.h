@@ -21,7 +21,7 @@
   * patchlevel; they change the release date only.
   */
 #define MAIL_RELEASE_DATE	"20130204"
-#define MAIL_VERSION_NUMBER	"2.10"
+#define MAIL_VERSION_NUMBER	"2.10-RC1"
 
 #ifdef SNAPSHOT
 # define MAIL_VERSION_DATE	"-" MAIL_RELEASE_DATE

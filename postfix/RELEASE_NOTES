@@ -14,48 +14,31 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
-Incompatible changes with snapshot 20130203
-===========================================
+Major changes - laptop-friendliness
+-----------------------------------
 
-Thanks to OpenSSL documentation, the Postfix 2.9.0..2.9.5 SMTP
-client and server computed incorrect TLS certificate PUBLIC-KEY
-fingerprints.  Support for certificate PUBLIC-KEY finger prints
-was introduced with Postfix 2.9; there is no known problem with the
-certificate fingerprint algorithms available since Postfix 2.2.
+[Incompat 20120924] Postfix no longer uses FIFOs to emulate UNIX-domain
+sockets on Solaris 9 (Vintage 2002!) and later. If you install
+Postfix for the first time on an older Solaris system, edit the
+master.cf file and replace "unix" with "fifo" for the pickup and
+qmgr services.
 
-Certificate PUBLIC-KEY finger prints may be used in the Postfix
-SMTP server (with "check_ccert_access") and in the Postfix SMTP
-client (with the "fingerprint" security level).  
+[Feature 20120924] the default master.cf file now uses "unix" instead
+of "fifo" for the pickup and qmgr services. This avoids periodic
+disk drive spin-up.
 
-Specify "tls_legacy_public_key_fingerprints = yes" temporarily,
-pending a migration from configuration files with incorrect Postfix
-2.9.0..2.9.5 certificate PUBLIC-KEY finger prints, to the correct
-fingerprints used by Postfix 2.9.6 and later.
+Major changes - permit logging
+------------------------------
 
-To compute the correct PUBLIC-KEY finger prints:
+[Feature 20120303] [Feature 20120303] New control for "permit"
+logging in smtpd_mumble_restrictions (by default, the SMTP server
+logs "reject" actions but not "permit" actions).  Specify
+"smtpd_log_access_permit_actions = static:all" to log all "permit"-style
+actions, or specify a list of explicit action names.  More details
+are in the postconf(5) manpage.  Major changes - postconf
+------------------------
 
-# OpenSSL 1.0 with all certificates and SHA-1 fingerprints.
-$ openssl x509 -in cert.pem -noout -pubkey | \
-    openssl pkey -pubin -outform DER | \
-    openssl dgst -sha1 -c
-
-# OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
-$ openssl x509 -in cert.pem -noout -pubkey | \
-    openssl rsa -pubin -outform DER | \
-    openssl dgst -md5 -c
-
-Incompatible changes with snapshot 20130201
-===========================================
-
-The "postconf -Mn" feature is withdrawn, in favor of a better design
-that not only supports queries but also updates of named properties
-of a master.cf service entry. But there is not enough time to finish
-that for Postfix 2.10.
-
-Incompatible changes with snapshot 20121224
-===========================================
-
-The postconf command produces more warnings:
+[Incompat 20121224] The postconf command produces more warnings:
 
 - An attempt to modify a read-only parameter (process_name, process_id)
   in main.cf or master.cf.
@@ -63,13 +46,10 @@ The postconf command produces more warnings:
 - An undefined $name in a parameter value in main.cf or master.cf
   (except for backwards-compatibility parameters such as $virtual_maps).
 
-Major changes with snapshot 20121224
-====================================
-
-The postconf command has been updated to make trouble-shooting (and
-support) easier. In summary, use "postconf -Mxf" and "postconf -nxf"
-to review master.cf and main.cf parameter settings with expanded
-parameter values.
+[Feature 20121224] The postconf command has been updated to make
+trouble-shooting (and support) easier. In summary, use "postconf
+-Mxf" and "postconf -nxf" to review master.cf and main.cf parameter
+settings with expanded parameter values.
 
 - "postconf -x" now expands $name in main.cf and master.cf parameter
   values.
@@ -81,19 +61,19 @@ parameter values.
   main.cf or master.cf (except for backwards-compatibility parameters
   such as $virtual_maps).
 
-Added with snapshot 20121227:
+[Feature 20121227]
 
 - "postconf -o name=value" overrides main.cf parameter settings.
   This can be used, for example, to examine stress-dependent settings
   with "postconf -x -o stress=yes".
 
-Incompatible changes with snapshot 20121123
-===========================================
+Major changes - postscreen
+--------------------------
 
-The postscreen deep protocol tests now log the last command before
-a protocol error ("UNIMPLEMENTED" when the last command is not
-implemented, "CONNECT" when there was no prior command). The
-changed logfile messages are:
+[Incompat 20121123] The postscreen deep protocol tests now log the
+last command before a protocol error ("UNIMPLEMENTED" when the last
+command is not implemented, "CONNECT" when there was no prior
+command). The changed logfile messages are:
 
 NON-SMTP COMMAND from [address]:port after command: text
 BARE NEWLINE from [address]:port after command
@@ -101,12 +81,36 @@ COMMAND TIME LIMIT from [address]:port after command
 COMMAND COUNT LIMIT from [address]:port after command
 COMMAND LENGTH LIMIT from [address]:port after command
 
-Incompatible changes with snapshot 20121007
-===========================================
+Major changes - load-balancer support
+-------------------------------------
 
-As part of a forward compatibility safety net, the Postfix installation
-procedure adds the following smtpd_relay_restrictions entry to
-main.cf when there is none:
+[Incompat 20120625] The postscreen(8)-to-smtpd(8) protocol has
+changed.  To avoid "cannot receive connection attributes" warnings
+and dropped connections, execute the command "postfix reload". No
+mail will be lost as long as the remote SMTP client tries again
+later.
+
+[Feature 20120625] Support for upstream proxy agent in the postscreen(8)
+and smtpd(8) daemons.  To enable the haproxy protocol, specify one
+of the following:
+
+    postscreen_upstream_proxy_protocol = haproxy
+    smtpd_upstream_proxy_protocol = haproxy
+
+Note 1: smtpd_upstream_proxy_protocol can't be used in smtpd processes
+that are behind postscreen. Configure postscreen_upstream_proxy_protocol
+instead.
+
+Note 2: To use the nginx proxy with smtpd(8), enable the XCLIENT
+protocol with smtpd_authorized_xclient_hosts. This supports SASL
+authentication in the proxy agent (Postfix 2.9 and later).
+
+Major changes - relay safety
+----------------------------
+
+[Incompat 20121007] As part of a forward compatibility safety net,
+the Postfix installation procedure adds the following
+smtpd_relay_restrictions entry to main.cf when there is none:
 
     smtpd_relay_restrictions = 
 	permit_mynetworks 
@@ -131,11 +135,9 @@ actions:
 
 There is no need to change the value of smtpd_recipient_restrictions.
 
-Major changes with snapshot 20121007
-====================================
-
-This version introduces the smtpd_relay_restrictions feature
-for mail relay control. The new built-in default settings are:
+[Feature 20121007] This version introduces the smtpd_relay_restrictions
+feature for mail relay control. The new built-in default settings
+are:
 
     smtpd_relay_restrictions = 
 	permit_mynetworks 
@@ -195,53 +197,51 @@ surprises when a site upgrades from an earlier Postfix release.
     to the empty value, and use smtpd_recipient_restrictions exactly
     as they used it before.
 
-Incompatible changes with snapshot 20120924
-===========================================
+Major changes - start-up
+------------------------
 
-Postfix no longer uses FIFOs to emulate UNIX-domain sockets on
-Solaris 9 (Vintage 2002!) and later. If you install Postfix for
-the first time on an older Solaris system, edit the master.cf file
-and replace "unix" with "fifo" for the pickup and qmgr services.
+[Feature 20120306] New master "-w" option, to wait for master daemon
+process initialization to complete. This feature returns an error
+exit status if master daemon initialization fails, or if it does
+not complete in a reasonable amount of time. The exit status is
+used by "postfix start" to provide more accurate information to
+system start-up scripts.
 
-Major changes with snapshot 20120924
-====================================
+Major changes - tls
+-------------------
 
-Laptop-friendliness: the default master.cf file now uses "unix"
-instead of "fifo" for the pickup and qmgr services. This avoids
-periodic disk drive spin-up.
+[Incompat 20130203] Thanks to OpenSSL documentation, the Postfix
+2.9.0..2.9.5 SMTP client and server computed incorrect TLS certificate
+PUBLIC-KEY fingerprints.  Support for certificate PUBLIC-KEY finger
+prints was introduced with Postfix 2.9; there is no known problem
+with the certificate fingerprint algorithms available since Postfix
+2.2.
 
-Incompatible changes with snapshot 20120625
-===========================================
+Certificate PUBLIC-KEY finger prints may be used in the Postfix
+SMTP server (with "check_ccert_access") and in the Postfix SMTP
+client (with the "fingerprint" security level).  
 
-The postscreen(8)-to-smtpd(8) protocol has changed.  To avoid "cannot
-receive connection attributes" warnings and dropped connections,
-execute the command "postfix reload". No mail will be lost as long
-as the remote SMTP client tries again later.
+Specify "tls_legacy_public_key_fingerprints = yes" temporarily,
+pending a migration from configuration files with incorrect Postfix
+2.9.0..2.9.5 certificate PUBLIC-KEY finger prints, to the correct
+fingerprints used by Postfix 2.9.6 and later.
 
-Major changes with snapshot 20120625
-====================================
+To compute the correct PUBLIC-KEY finger prints:
 
-Support for upstream proxy agent in the postscreen(8) and smtpd(8)
-daemons.  To enable the haproxy protocol, specify one of the
-following:
+# OpenSSL 1.0 with all certificates and SHA-1 fingerprints.
+$ openssl x509 -in cert.pem -noout -pubkey | \
+    openssl pkey -pubin -outform DER | \
+    openssl dgst -sha1 -c
 
-    postscreen_upstream_proxy_protocol = haproxy
-    smtpd_upstream_proxy_protocol = haproxy
+# OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
+$ openssl x509 -in cert.pem -noout -pubkey | \
+    openssl rsa -pubin -outform DER | \
+    openssl dgst -md5 -c
 
-Note 1: smtpd_upstream_proxy_protocol can't be used in smtpd processes
-that are behind postscreen. Configure postscreen_upstream_proxy_protocol
-instead.
-
-Note 2: To use the nginx proxy with smtpd(8), enable the XCLIENT
-protocol with smtpd_authorized_xclient_hosts. This supports SASL
-authentication in the proxy agent (Postfix 2.9 and later).
-
-Major changes with snapshot 20120422
-====================================
-
-This release adds support to turn off the TLSv1.1 and TLSv1.2
-protocols.  Introduced with OpenSSL version 1.0.1, these are known
-to cause inter-operability problems with for example hotmail.
+[Feature 20120422] This release adds support to turn off the TLSv1.1
+and TLSv1.2 protocols.  Introduced with OpenSSL version 1.0.1, these
+are known to cause inter-operability problems with for example
+hotmail.
 
 The radical workaround is to temporarily turn off problematic
 protocols globally:
@@ -272,22 +272,3 @@ Important:
   override the next-hop destination with transport_maps, relayhost,
   sender_dependent_relayhost_maps, or otherwise, you need to specify
   the same destination for the smtp_tls_policy_maps lookup key.
-
-Major changes with snapshot 20120306
-====================================
-
-New master "-w" option, to wait for daemon process initialization
-to complete. This feature returns an error exit status if master
-daemon initialization fails, or if it does not complete in a
-reasonable amount of time. The exit status is used by "postfix
-start" to provide more accurate information to system start-up
-scripts.
-
-Major changes with snapshot 20120303
-====================================
-
-New control for "permit" logging in smtpd_mumble_restrictions (by
-default, the SMTP server logs "reject" actions but not "permit"
-actions).  Specify "smtpd_log_access_permit_actions = static:all"
-to log all "permit"-style actions, or specify a list of explicit
-action names.  More details are in the postconf(5) manpage.
