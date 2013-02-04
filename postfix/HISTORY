@@ -18231,3 +18231,14 @@ Apologies for any names omitted.
 	Bugfix: the local(8) delivery agent dereferenced a null
 	pointer while delivering to null command (for example, "|"
 	in a .forward file).  Reported by Gilles Chehade.
+
+20130203
+
+	Bugfix: the undocumented OpenSSL X509_pubkey_digest()
+	function is unsuitable for computing certificate PUBLIC KEY
+	fingerprints.  Postfix now provides a correct procedure
+	that accounts for the algorithm and parameters in addition
+	to the key data.  Specify "tls_legacy_public_key_fingerprints
+	= yes" if you need backwards compatibility. Fix by Victor
+	Duchovni, BC added by Wietse.  Files: tls/tls_verify.c,
+	tls/tls_misc.c, proto/TLS_README.html, global/mail_params.h.

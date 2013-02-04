@@ -1,10 +1,10 @@
-The stable Postfix release is called postfix-2.9.x where 2=major
-release number, 9=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-2.10.x where 2=major
+release number, 10=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-2.10-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-2.11-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day).  Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
@@ -14,8 +14,38 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.8 or earlier, read RELEASE_NOTES-2.9
 before proceeding.
 
-Major changes with snapshot 20130201
-====================================
+Incompatible changes with snapshot 20130203
+===========================================
+
+Thanks to OpenSSL documentation, the Postfix 2.9.0..2.9.5 SMTP
+client and server computed incorrect TLS certificate PUBLIC-KEY
+fingerprints.  Support for certificate PUBLIC-KEY finger prints
+was introduced with Postfix 2.9; there is no known problem with the
+certificate fingerprint algorithms available since Postfix 2.2.
+
+Certificate PUBLIC-KEY finger prints may be used in the Postfix
+SMTP server (with "check_ccert_access") and in the Postfix SMTP
+client (with the "fingerprint" security level).  
+
+Specify "tls_legacy_public_key_fingerprints = yes" temporarily,
+pending a migration from configuration files with incorrect Postfix
+2.9.0..2.9.5 certificate PUBLIC-KEY finger prints, to the correct
+fingerprints used by Postfix 2.9.6 and later.
+
+To compute the correct PUBLIC-KEY finger prints:
+
+# OpenSSL 1.0 with all certificates and SHA-1 fingerprints.
+$ openssl x509 -in cert.pem -noout -pubkey | \
+    openssl pkey -pubin -outform DER | \
+    openssl dgst -sha1 -c
+
+# OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
+$ openssl x509 -in cert.pem -noout -pubkey | \
+    openssl rsa -pubin -outform DER | \
+    openssl dgst -md5 -c
+
+Incompatible changes with snapshot 20130201
+===========================================
 
 The "postconf -Mn" feature is withdrawn, in favor of a better design
 that not only supports queries but also updates of named properties
@@ -37,15 +67,12 @@ Major changes with snapshot 20121224
 ====================================
 
 The postconf command has been updated to make trouble-shooting (and
-support) easier. In summary, use "postconf -Mnxf" and "postconf
--nxf" to review master.cf and main.cf parameter settings with
-expanded parameter values.
+support) easier. In summary, use "postconf -Mxf" and "postconf -nxf"
+to review master.cf and main.cf parameter settings with expanded
+parameter values.
 
 - "postconf -x" now expands $name in main.cf and master.cf parameter
   values.
-
-- "postconf -Mn" now shows services that have "-o name=value"
-  parameter settings in master.cf.
 
 - postconf warns about attempts to modify a read-only parameter
   (process_name, process_id) in main.cf or master.cf.
@@ -259,7 +286,8 @@ scripts.
 Major changes with snapshot 20120303
 ====================================
 
-New control for "permit" logging in smtpd_mumble_restrictions.
-Specify "smtpd_log_access_permit_actions = static:all" to log all
-"permit"-style actions, or specify a list of explicit names.  More
-details are in the postconf(5) manpage.
+New control for "permit" logging in smtpd_mumble_restrictions (by
+default, the SMTP server logs "reject" actions but not "permit"
+actions).  Specify "smtpd_log_access_permit_actions = static:all"
+to log all "permit"-style actions, or specify a list of explicit
+action names.  More details are in the postconf(5) manpage.
