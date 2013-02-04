@@ -74,6 +74,8 @@ static void normalize_options(ARGV *argv)
 {
     int     field;
     char   *arg;
+    char   *cp;
+    char   *junk;
 
     /*
      * Normalize options to simplify later processing.
@@ -82,6 +84,16 @@ static void normalize_options(ARGV *argv)
 	arg = argv->argv[field];
 	if (arg[0] != '-' || strcmp(arg, "--") == 0)
 	    break;
+	for (cp = arg + 1; *cp; cp++) {
+	    if (*cp == 'o' && cp > arg + 1) {
+		/* Split "-stuffo" into "-stuff" and "-o". */
+		junk = concatenate("-", cp, (char *) 0);
+		argv_insert_one(argv, field + 1, junk);
+		myfree(junk);
+		*cp = 0;
+		break;
+	    }
+	}
 	if (strncmp(arg, "-o", 2) == 0) {
 	    if (arg[2] != 0) {
 		/* Split "-oname=value" into "-o" "name=value". */

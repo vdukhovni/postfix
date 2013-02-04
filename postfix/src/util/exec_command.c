@@ -63,7 +63,8 @@ ABCDEFGHIJKLMNOPQRSTUVWXYZ" SPACE_TAB;
     /*
      * See if this command contains any shell magic characters.
      */
-    if (command[strspn(command, ok_chars)] == 0) {
+    if (command[strspn(command, ok_chars)] == 0
+	&& command[strspn(command, SPACE_TAB)] != 0) {
 
 	/*
 	 * No shell meta characters found, so we can try to avoid the overhead

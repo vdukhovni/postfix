@@ -17,6 +17,7 @@
 /*	int	var_tls_daemon_rand_bytes;
 /*	bool    var_tls_append_def_CA;
 /*	bool	var_tls_preempt_clist;
+/*	bool	var_tls_bc_pkey_fprint;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -205,6 +206,7 @@ char   *var_tls_eecdh_strong;
 char   *var_tls_eecdh_ultra;
 bool    var_tls_append_def_CA;
 char   *var_tls_bug_tweaks;
+bool    var_tls_bc_pkey_fprint;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -510,8 +512,10 @@ int     tls_protocol_mask(const char *plist)
 	else
 	    include |= code =
 		name_code(protocol_table, NAME_CODE_FLAG_NONE, tok);
-	if (code == TLS_PROTOCOL_INVALID)
+	if (code == TLS_PROTOCOL_INVALID) {
+	    myfree(save);
 	    return TLS_PROTOCOL_INVALID;
+	}
     }
     myfree(save);
 
@@ -546,6 +550,7 @@ void    tls_param_init(void)
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_TLS_APPEND_DEF_CA, DEF_TLS_APPEND_DEF_CA, &var_tls_append_def_CA,
+	VAR_TLS_BC_PKEY_FPRINT, DEF_TLS_BC_PKEY_FPRINT, &var_tls_bc_pkey_fprint,
 #if OPENSSL_VERSION_NUMBER >= 0x0090700fL	/* OpenSSL 0.9.7 and later */
 	VAR_TLS_PREEMPT_CLIST, DEF_TLS_PREEMPT_CLIST, &var_tls_preempt_clist,
 #endif
