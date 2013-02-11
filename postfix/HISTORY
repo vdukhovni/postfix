@@ -18242,3 +18242,8 @@ Apologies for any names omitted.
 	= yes" if you need backwards compatibility. Fix by Victor
 	Duchovni, BC added by Wietse.  Files: tls/tls_verify.c,
 	tls/tls_misc.c, proto/TLS_README.html, global/mail_params.h.
+
+20130210
+
+	Bugfix: an error handler for smtp_tls_policy_maps lookups
+	was never invoked.  File: smtp/smtp_session.c.

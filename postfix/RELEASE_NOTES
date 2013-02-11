@@ -35,7 +35,9 @@ logging in smtpd_mumble_restrictions (by default, the SMTP server
 logs "reject" actions but not "permit" actions).  Specify
 "smtpd_log_access_permit_actions = static:all" to log all "permit"-style
 actions, or specify a list of explicit action names.  More details
-are in the postconf(5) manpage.  Major changes - postconf
+are in the postconf(5) manpage.  
+
+Major changes - postconf
 ------------------------
 
 [Incompat 20121224] The postconf command produces more warnings:
@@ -211,11 +213,12 @@ Major changes - tls
 -------------------
 
 [Incompat 20130203] Thanks to OpenSSL documentation, the Postfix
-2.9.0..2.9.5 SMTP client and server computed incorrect TLS certificate
-PUBLIC-KEY fingerprints.  Support for certificate PUBLIC-KEY finger
-prints was introduced with Postfix 2.9; there is no known problem
-with the certificate fingerprint algorithms available since Postfix
-2.2.
+2.9.0..2.9.5 SMTP client and server server used an incorrect procedure
+to compute TLS certificate PUBLIC-KEY fingerprints (these may be
+used in the check_ccert_access and in smtp_tls_policy_maps features).
+Support for certificate PUBLIC-KEY finger prints was introduced
+with Postfix 2.9; there is no known problem with the certificate
+fingerprint algorithms available since Postfix 2.2.
 
 Certificate PUBLIC-KEY finger prints may be used in the Postfix
 SMTP server (with "check_ccert_access") and in the Postfix SMTP
