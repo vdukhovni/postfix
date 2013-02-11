@@ -220,14 +220,14 @@ static int tls_policy_lookup_one(SMTP_SESSION *session, int *site_level,
 #undef FREE_RETURN
 #define FREE_RETURN(x) do { myfree(saved_policy); return (x); } while (0)
 
-    if ((lookup = maps_find(tls_policy, site_name, 0)) == 0)
+    if ((lookup = maps_find(tls_policy, site_name, 0)) == 0) {
+	if (tls_policy->error) {
+	    msg_fatal("%s: %s lookup error for %s",
+		      session->state->request->queue_id,
+		      tls_policy->title, site_name);
+	    /* XXX session->stream has no longjmp context yet. */
+	}
 	return (0);
-
-    if (tls_policy->error) {
-	msg_warn("%s: %s lookup error for %s",
-		 session->state->request->queue_id,
-		 tls_policy->title, site_name);
-	vstream_longjmp(session->stream, SMTP_ERR_DATA);
     }
     if (cbuf == 0)
 	cbuf = vstring_alloc(10);
