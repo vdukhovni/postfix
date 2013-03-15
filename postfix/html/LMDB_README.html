@@ -1,0 +1,190 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix OpenLDAP LMDB Howto</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix OpenLDAP LMDB Howto</h1>
+
+<hr>
+
+<h2>Introduction</h2>
+
+<p> Postfix uses databases of various kinds to store and look up
+information. Postfix databases are specified as "type:name".
+OpenLDAP LMDB implements the Postfix database type "lmdb".
+The name of a Postfix OpenLDAP LMDB database is the name
+of the database file without the ".lmdb" suffix. OpenLDAP LMDB databases
+are maintained with the <a href="postmap.1.html">postmap(1)</a> command.  </p>
+
+<p> This document describes: </p>
+
+<ol>
+
+<li> <p> How to build Postfix <a href="#with_lmdb">with OpenLDAP
+LMDB support</a>. </p>
+
+<li> <p> How to <a href="#configure">configure</a> LMDB settings. </p>
+
+<li> <p> Missing <a href="#pthread">pthread</a> library trouble. </p>
+
+</ol>
+
+<blockquote> <p> Caution: the current Postfix LMDB client has <a
+href="#limitations">unexpected limitations</a>. For this reason,
+LMDB support is not part of the stable Postfix release. </p>
+</blockquote>
+
+<h2><a name="with_lmdb">Building Postfix with OpenLDAP LMDB support</a></h2>
+
+<p> Postfix normally does not enable OpenLDAP LMDB support.
+To build Postfix after you installed OpenLDAP LMDB from
+source code, use something like: </p>
+
+<blockquote>
+<pre>
+% make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
+    AUXLIBS="-L/usr/local/lib -llmdb"
+% make
+</pre>
+</blockquote>
+
+<p> Solaris needs this: </p>
+
+<blockquote>
+<pre>
+% make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
+    AUXLIBS="-R/usr/local/lib -L/usr/local/lib -llmdb"
+% make
+</pre>
+</blockquote>
+
+<p> The exact pathnames depend on how OpenLDAP LMDB was installed. </p>
+
+<h2><a name="configure">Configure LMDB settings</a></h2>
+
+<p> Postfix provides a configuration parameter that controls how
+large an OpenLDAP LMDB database may grow. </p>
+
+<ul>
+
+<li> <p> <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 10 MBytes per
+table).  This setting controls how large any OpenLDAP LMDB database
+may grow. It must be set large enough to accommodate the largest
+table that Postfix will use. </p>
+
+</ul>
+
+<h2><a name="pthread">Missing pthread library trouble</a></h2>
+
+<p> When building Postfix fails with: </p>
+
+<blockquote>
+<pre>
+undefined reference to `pthread_mutexattr_destroy'
+undefined reference to `pthread_mutexattr_init'
+undefined reference to `pthread_mutex_lock'
+</pre>
+</blockquote>
+
+<p> Add the "-lpthread" library to the "make makefiles" command. </p>
+
+<blockquote>
+<pre>
+% make makefiles .... AUXLIBS="... -lpthread"
+</pre>
+</blockquote>
+
+<p> Source code for OpenLDAP LMDB is available at
+<a href="http://www.openldap.org">http://www.openldap.org</a>.
+More information is available at
+<a href="http://highlandsun.com/hyc/mdb/">http://highlandsun.com/hyc/mdb/</a>. </p>
+
+<h2><a name="limitations">Limitations of Postfix LMDB databases. </a> </h2>
+
+<ul>
+
+<li> <p> <strong>Unexpected postmap/postalias "database full" errors.
+</strong></p>
+
+<p> Even if the "postmap filename" command succeeds, the exact same
+command, with the exact same input data, may fail subsequently with
+an MDB_MAP_FULL error. The reason is that unlike other Postfix
+databases such as "hash" or "btree", </p>
+
+<ul>
+
+<li> <p> LMDB databases have a hard size limit (configured with the
+<a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> configuration parameter). </p>
+
+<li> <p> The Postfix LMDB database client does not implement the
+"truncate" operation.  Instead it saves all store requests to a
+transaction (which takes up space in addition to the existing data),
+and commits the transaction when the database is closed.  Only then
+can the space for old data be reused.  </p>
+
+</ul>
+
+<p> This <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command failure does not affect
+Postfix availability, because the old data still exists in the
+database. </p>
+
+<p> To recover, increase the <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> limit in <a href="postconf.5.html">main.cf</a>, and
+retry the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command.  </p>
+
+<li> <p> <strong>Postfix daemon "database full" errors. </strong></p>
+
+<p> Unfortunately, "database full" problems will affect Postfix
+availability with daemon programs such as <a href="postscreen.8.html">postscreen(8)</a>, <a href="tlsmgr.8.html">tlsmgr(8)</a>
+or <a href="verify.8.html">verify(8)</a>. These daemon programs will continue to fail until
+someone increases the <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> parameter value. Meanwhile,
+mail processing comes to a halt. </p>
+
+<li> <p> <strong>Non-obvious recovery from a corrupted database.
+</strong></p>
+
+<p> Unlike other Postfix databases such as "hash" or "btree", you
+can't rebuild a corrupted LMDB database simply by running <a href="postmap.1.html">postmap(1)</a>
+or <a href="postalias.1.html">postalias(1)</a>, as those commands will crash, too. </p>
+
+<p> The reason for this limitation is that the Postfix LMDB database
+client does not implement the database "truncate" operation.  Instead
+it tries to save all store requests to a transaction for later
+processing.  That is obviously not possible with a corrupted database
+file. </p>
+
+<p> To recover, you must first delete the ".lmdb" file by hand, and
+only then you can retry the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command.
+</p>
+
+<li> <p> <strong>Incompatibility with <a href="tlsmgr.8.html">tlsmgr(8)</a>. </strong></p>
+
+<p> The Postfix LMDB database client breaks <a href="tlsmgr.8.html">tlsmgr(8)</a> TLS session
+cache management. Specifically, it breaks how <a href="tlsmgr.8.html">tlsmgr(8)</a> clears its
+TLS session cache databases upon start-up, it breaks how <a href="tlsmgr.8.html">tlsmgr(8)</a>
+looks up new TLS session cache entries, and it breaks how <a href="tlsmgr.8.html">tlsmgr(8)</a>
+automatically recovers from a corrupted database file.  <p>
+
+<p> The reason for these limitations is that the Postfix LMDB
+database client does not implement the database "truncate" operation.
+Instead it saves all store requests to a transaction which it commits
+only when the database is closed. Therefore, <a href="tlsmgr.8.html">tlsmgr(8)</a> will never
+find any entries that it stores after opening its TLS session cache
+databases. And when the database becomes corrupted, <a href="tlsmgr.8.html">tlsmgr(8)</a> will
+keep crashing until someone removes the file ".lmdb" file by hand.
+</p>
+
+</ul>
+
+</body>
+
+</html>

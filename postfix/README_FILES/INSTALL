@@ -148,17 +148,19 @@ compiler. Here are a few examples:
 
 and so on. In some cases, optimization is turned off automatically.
 
-44..33 -- BBuuiillddiinngg wwiitthh ooppttiioonnaall eexxtteennssiioonnss
+44..33 -- BBuuiillddiinngg wwiitthh ooppttiioonnaall ffeeaattuurreess
 
 By default, Postfix builds as a mail system with relatively few bells and
 whistles. Support for third-party databases etc. must be configured when
 Postfix is compiled. The following documents describe how to build Postfix with
-support for extensions:
+support for optional features:
 
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
-    |PPoossttffiixx eexxtteennssiioonn                 |DDooccuummeenntt     |AAvvaaiillaabbiilliittyy|
+    |OOppttiioonnaall ffeeaattuurree                  |DDooccuummeenntt     |AAvvaaiillaabbiilliittyy|
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
     |Berkeley DB database              |DB_README    |Postfix 1.0 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
+    |LMDB database                     |LMDB_README  |Postfix 2.11|
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
     |LDAP database                     |LDAP_README  |Postfix 1.0 |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |

@@ -16,7 +16,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	mail_params.c mail_pathname.c mail_queue.c mail_run.c \
 	mail_scan_dir.c mail_stream.c mail_task.c mail_trigger.c maps.c \
 	mark_corrupt.c match_parent_style.c mbox_conf.c mbox_open.c \
-	mime_state.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c mkmap_open.c \
+	mime_state.c mkmap_cdb.c mkmap_db.c mkmap_dbm.c mkmap_lmdb.c mkmap_open.c \
 	mkmap_sdbm.c msg_stats_print.c msg_stats_scan.c mynetworks.c \
 	mypwd.c namadr_list.c off_cvt.c opened.c own_inet_addr.c \
 	pipe_command.c post_mail.c quote_821_local.c quote_822_local.c \
@@ -50,7 +50,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	mail_params.o mail_pathname.o mail_queue.o mail_run.o \
 	mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o maps.o \
 	mark_corrupt.o match_parent_style.o mbox_conf.o mbox_open.o \
-	mime_state.o mkmap_cdb.o mkmap_db.o mkmap_dbm.o mkmap_open.o \
+	mime_state.o mkmap_cdb.o mkmap_db.o mkmap_dbm.o mkmap_lmdb.o mkmap_open.o \
 	mkmap_sdbm.o msg_stats_print.o msg_stats_scan.o mynetworks.o \
 	mypwd.o namadr_list.o off_cvt.o opened.o own_inet_addr.o \
 	pipe_command.o post_mail.o quote_821_local.o quote_822_local.o \
@@ -740,6 +740,7 @@ data_redirect.o: ../../include/dict.h
 data_redirect.o: ../../include/dict_cdb.h
 data_redirect.o: ../../include/dict_db.h
 data_redirect.o: ../../include/dict_dbm.h
+data_redirect.o: ../../include/dict_lmdb.h
 data_redirect.o: ../../include/msg.h
 data_redirect.o: ../../include/myflock.h
 data_redirect.o: ../../include/name_code.h
@@ -1434,6 +1435,7 @@ mail_params.o: ../../include/argv.h
 mail_params.o: ../../include/attr.h
 mail_params.o: ../../include/dict.h
 mail_params.o: ../../include/dict_db.h
+mail_params.o: ../../include/dict_lmdb.h
 mail_params.o: ../../include/get_hostname.h
 mail_params.o: ../../include/inet_addr_list.h
 mail_params.o: ../../include/inet_proto.h
@@ -1690,12 +1692,29 @@ mkmap_fail.o: ../../include/vstream.h
 mkmap_fail.o: ../../include/vstring.h
 mkmap_fail.o: mkmap.h
 mkmap_fail.o: mkmap_fail.c
+mkmap_lmdb.o: ../../include/argv.h
+mkmap_lmdb.o: ../../include/dict.h
+mkmap_lmdb.o: ../../include/dict_lmdb.h
+mkmap_lmdb.o: ../../include/msg.h
+mkmap_lmdb.o: ../../include/myflock.h
+mkmap_lmdb.o: ../../include/mymalloc.h
+mkmap_lmdb.o: ../../include/stringops.h
+mkmap_lmdb.o: ../../include/sys_defs.h
+mkmap_lmdb.o: ../../include/vbuf.h
+mkmap_lmdb.o: ../../include/vstream.h
+mkmap_lmdb.o: ../../include/vstring.h
+mkmap_lmdb.o: ../../include/warn_stat.h
+mkmap_lmdb.o: mail_conf.h
+mkmap_lmdb.o: mail_params.h
+mkmap_lmdb.o: mkmap.h
+mkmap_lmdb.o: mkmap_lmdb.c
 mkmap_open.o: ../../include/argv.h
 mkmap_open.o: ../../include/dict.h
 mkmap_open.o: ../../include/dict_cdb.h
 mkmap_open.o: ../../include/dict_db.h
 mkmap_open.o: ../../include/dict_dbm.h
 mkmap_open.o: ../../include/dict_fail.h
+mkmap_open.o: ../../include/dict_lmdb.h
 mkmap_open.o: ../../include/dict_sdbm.h
 mkmap_open.o: ../../include/msg.h
 mkmap_open.o: ../../include/myflock.h

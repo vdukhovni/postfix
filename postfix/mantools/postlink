@@ -208,6 +208,7 @@ while (<>) {
     s;\bipc_timeout\b;<a href="postconf.5.html#ipc_timeout">$&</a>;g;
     s;\bipc_ttl\b;<a href="postconf.5.html#ipc_ttl">$&</a>;g;
     s;\bline_length_limit\b;<a href="postconf.5.html#line_length_limit">$&</a>;g;
+    s;\blmdb_map_size\b;<a href="postconf.5.html#lmdb_map_size">$&</a>;g;
     s;\blmtp_bind_address\b;<a href="postconf.5.html#lmtp_bind_address">$&</a>;g;
     s;\blmtp_bind_address6\b;<a href="postconf.5.html#lmtp_bind_address6">$&</a>;g;
     s;\blmtp_assume_final\b;<a href="postconf.5.html#lmtp_assume_final">$&</a>;g;
@@ -1068,6 +1069,7 @@ while (<>) {
     s/\b(mysql):/<a href="mysql_table.5.html">$1<\/a>:/g;
     s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
+    s/\b(lmdb):/<a href="LMDB_README.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
     s/\b(sqlite):/<a href="sqlite_table.5.html">$1<\/a>:/g;
     s/\b(static):/<a href="DATABASE_README.html#types">$1<\/a>:/g;

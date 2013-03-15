@@ -229,6 +229,7 @@
 #include <dict_sdbm.h>
 #include <dict_dbm.h>
 #include <dict_db.h>
+#include <dict_lmdb.h>
 #include <dict_nis.h>
 #include <dict_nisplus.h>
 #include <dict_ni.h>
@@ -270,6 +271,9 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_DB
     DICT_TYPE_HASH, dict_hash_open,
     DICT_TYPE_BTREE, dict_btree_open,
+#endif
+#if defined(HAS_LMDB) && defined(SNAPSHOT)
+    DICT_TYPE_LMDB, dict_lmdb_open,
 #endif
 #ifdef HAS_NIS
     DICT_TYPE_NIS, dict_nis_open,

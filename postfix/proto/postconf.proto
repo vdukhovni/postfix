@@ -2831,6 +2831,17 @@ The default time unit is d (days).
 Specify 0 when mail delivery should be tried only once.
 </p>
 
+%PARAM lmdb_map_size 10485760
+
+<p>
+The per-table size limit for programs that create OpenLDAP LMDB
+tables.  Specify a byte count.
+</p>
+
+<p>
+This feature is available in Postfix 2.11 and later.
+</p>
+
 %PARAM message_size_limit 10240000
 
 <p>

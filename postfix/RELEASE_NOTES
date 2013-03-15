@@ -13,3 +13,11 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
+
+Major changes with snapshot 20130315
+====================================
+
+Perliminary LMDB support by Howard Chu. This implementation has
+unexpected limitations that make it a poor fit, and for this reason
+the code is "snapshot only", i.e. it will not be part of the stable
+release. See LMDB_README for details.

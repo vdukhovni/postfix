@@ -210,6 +210,12 @@ To find out what database types your Postfix system supports, use the "ppooss
     iinntteerrnnaall
         A non-shared, in-memory hash table. Its content are lost when a process
         terminates.
+    llmmddbb
+        The OpenLDAP LMDB database (a memory-mapped, persistent file). Database
+        files are created with the postmap(1) or postalias(1) command. The
+        database name as used in "lmdb:table" is the database file name without
+        the ".lmdb" suffix. This database type has unexpected limitations and
+        is therefore not part of the stable Postfix release.
     llddaapp (read-only)
         Perform lookups using the LDAP protocol. Configuration details are
         given in the ldap_table(5).

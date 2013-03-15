@@ -2236,6 +2236,11 @@ This feature is available in Postfix 2.1 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.
+.SH lmdb_map_size (default: 10485760)
+The per-table size limit for programs that create OpenLDAP LMDB
+tables.  Specify a byte count.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH lmtp_address_preference (default: ipv6)
 The LMTP-specific version of the smtp_address_preference
 configuration parameter.  See there for details.

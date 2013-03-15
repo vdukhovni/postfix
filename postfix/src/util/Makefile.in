@@ -4,7 +4,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	attr_scan_plain.c auto_clnt.c base64_code.c basename.c binhash.c \
 	chroot_uid.c cidr_match.c clean_env.c close_on_exec.c concatenate.c \
 	ctable.c dict.c dict_alloc.c dict_cdb.c dict_cidr.c dict_db.c \
-	dict_dbm.c dict_debug.c dict_env.c dict_ht.c dict_ni.c dict_nis.c \
+	dict_dbm.c dict_debug.c dict_env.c dict_ht.c dict_lmdb.c dict_ni.c dict_nis.c \
 	dict_nisplus.c dict_open.c dict_pcre.c dict_regexp.c dict_sdbm.c \
 	dict_static.c dict_tcp.c dict_unix.c dir_forest.c doze.c dummy_read.c \
 	dummy_write.c duplex_pipe.c environ.c events.c exec_command.c \
@@ -41,7 +41,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
 	chroot_uid.o cidr_match.o clean_env.o close_on_exec.o concatenate.o \
 	ctable.o dict.o dict_alloc.o dict_cdb.o dict_cidr.o dict_db.o \
-	dict_dbm.o dict_debug.o dict_env.o dict_ht.o dict_ni.o dict_nis.o \
+	dict_dbm.o dict_debug.o dict_env.o dict_ht.o dict_lmdb.o dict_ni.o dict_nis.o \
 	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_sdbm.o \
 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o dummy_read.o \
 	dummy_write.o duplex_pipe.o environ.o events.o exec_command.o \
@@ -76,7 +76,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
-	dict_ni.h dict_nis.h dict_nisplus.h dict_pcre.h dict_regexp.h \
+	dict_lmdb.h dict_ni.h dict_nis.h dict_nisplus.h dict_pcre.h dict_regexp.h \
 	dict_sdbm.h dict_static.h dict_tcp.h dict_unix.h dir_forest.h \
 	events.h exec_command.h find_inet.h fsspace.h fullname.h \
 	get_domainname.h get_hostname.h hex_code.h hex_quote.h host_port.h \
@@ -983,6 +983,21 @@ dict_ht.o: sys_defs.h
 dict_ht.o: vbuf.h
 dict_ht.o: vstream.h
 dict_ht.o: vstring.h
+dict_lmdb.o: argv.h
+dict_lmdb.o: dict.h
+dict_lmdb.o: dict_lmdb.c
+dict_lmdb.o: dict_lmdb.h
+dict_lmdb.o: htable.h
+dict_lmdb.o: iostuff.h
+dict_lmdb.o: msg.h
+dict_lmdb.o: myflock.h
+dict_lmdb.o: mymalloc.h
+dict_lmdb.o: stringops.h
+dict_lmdb.o: sys_defs.h
+dict_lmdb.o: vbuf.h
+dict_lmdb.o: vstream.h
+dict_lmdb.o: vstring.h
+dict_lmdb.o: warn_stat.h
 dict_ni.o: dict_ni.c
 dict_ni.o: sys_defs.h
 dict_nis.o: argv.h
@@ -1018,6 +1033,7 @@ dict_open.o: dict_dbm.h
 dict_open.o: dict_env.h
 dict_open.o: dict_fail.h
 dict_open.o: dict_ht.h
+dict_open.o: dict_lmdb.h
 dict_open.o: dict_ni.h
 dict_open.o: dict_nis.h
 dict_open.o: dict_nisplus.h
