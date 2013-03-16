@@ -8,6 +8,15 @@ Wish list:
 
 	Spellcheck and double-word check.
 
+	It would be nice if the result from one table lookup could
+	serve as input for another (e.g. virtual aliases before the
+	list of valid recipients). For this to work the magical
+	(bare user, domain only, etc.) lookups need to become a
+	table property, not a property of the client context.
+
+	It would be nice if "bare username" lookup is not hard-coded
+	for domains in the local address class.
+
 	Don't forget Apple's code donation for fetching mail from
 	IMAP server.
 

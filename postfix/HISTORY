@@ -18248,12 +18248,20 @@ Apologies for any names omitted.
 	Bugfix: an error handler for smtp_tls_policy_maps lookups
 	was never invoked.  File: smtp/smtp_session.c.
 
+20130212
+
+	Cleanup: logfile message formatting (X: subject_CN=X,
+	issuer_CN=X, fingerprint=X, pkey_fingerprint=X). File:
+	tls/tls_client.c.
+
 20130315
 
 	Feature: preliminary LMDB (memory-mapped persistent file)
-	support by Howard Chu. This feature has a number of unexpected
-	limitations and is therefore "snapshot only", i.e. it will
-	not be part of a stable release.  Files: proto/postconf.proto,
+	support by Howard Chu. This feature has unexpected limitations
+	that don't exist with other Postfix databases, and is
+	therefore "snapshot only", i.e. it will not be part of a
+	stable release without further changes to the Postfix LMDB
+	client or the Postfix dictionary API.  Files: proto/postconf.proto,
 	proto/LMDB_README.html, proto/DATABASE_README.html,
-	util/dict_lmdb.[hc], util/dict_open.c, global/mkmap_lmdb.[hc],
-	global/mkmap_open.c, postconf/postconf.c.
+	proto/INSTALL.html util/dict_lmdb.[hc], util/dict_open.c,
+	global/mkmap_lmdb.[hc], global/mkmap_open.c, postconf/postconf.c.
