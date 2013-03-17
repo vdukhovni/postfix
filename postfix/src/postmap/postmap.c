@@ -342,13 +342,17 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
      */
     line_buffer = vstring_alloc(100);
     if ((open_flags & O_TRUNC) == 0) {
+	/* Incremental mode. */
 	source_fp = VSTREAM_IN;
 	vstream_control(source_fp, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
-    } else if (strcmp(map_type, DICT_TYPE_PROXY) == 0) {
-	msg_fatal("can't create maps via the proxy service");
-    } else if ((source_fp = vstream_fopen(path_name, O_RDONLY, 0)) == 0) {
-	msg_fatal("open %s: %m", path_name);
+    } else {
+	/* Create database. */
+	if (strcmp(map_type, DICT_TYPE_PROXY) == 0)
+	    msg_fatal("can't create maps via the proxy service");
+	if ((source_fp = vstream_fopen(path_name, O_RDONLY, 0)) == 0)
+	    msg_fatal("open %s: %m", path_name);
     }
+    dict_flags |= DICT_FLAG_BULK_UPDATE;
     if (fstat(vstream_fileno(source_fp), &st) < 0)
 	msg_fatal("fstat %s: %m", path_name);
 

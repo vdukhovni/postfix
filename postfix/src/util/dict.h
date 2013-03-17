@@ -87,6 +87,7 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_FOLD_MUL	(1<<15)	/* case-fold key with multi-case map */
 #define DICT_FLAG_FOLD_ANY	(DICT_FLAG_FOLD_FIX | DICT_FLAG_FOLD_MUL)
 #define DICT_FLAG_OPEN_LOCK	(1<<16)	/* perm lock if not multi-writer safe */
+#define DICT_FLAG_BULK_UPDATE	(1<<17)	/* optimize for bulk updates */
 
  /* IMPORTANT: Update the dict_mask[] table when the above changes */
 
@@ -186,6 +187,7 @@ extern void dict_walk(DICT_WALK_ACTION, char *);
 extern int dict_changed(void);
 extern const char *dict_changed_name(void);
 extern const char *dict_flags_str(int);
+extern int dict_flags_mask(const char *);
 
  /*
   * Driver for interactive or scripted tests.

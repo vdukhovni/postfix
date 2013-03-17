@@ -18,11 +18,9 @@ This document describes:
 
  3. Missing pthread library trouble.
 
-Caution:
-    The current Postfix LMDB client has unexpected limitations that don't exist
-    with other Postfix databases. For this reason, LMDB support will not be
-    part of the stable Postfix release without further changes to the Postfix
-    LMDB client or the Postfix dictionary API.
+Note:
+    The Postfix LMDB client implementation introduces unexpected failure modes
+    that don't exist with other Postfix databases. Don't just yet abandon CDB.
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh OOppeennLLDDAAPP LLMMDDBB ssuuppppoorrtt
 
@@ -65,92 +63,95 @@ Add the "-lpthread" library to the "make makefiles" command.
 Source code for OpenLDAP LMDB is available at http://www.openldap.org. More
 information is available at http://highlandsun.com/hyc/mdb/.
 
-LLiimmiittaattiioonnss ooff PPoossttffiixx LLMMDDBB ddaattaabbaasseess..
+UUnneexxppeecctteedd ffaaiilluurree mmooddeess ooff PPoossttffiixx LLMMDDBB ddaattaabbaasseess..
+
+As documented below, conversion to LMDB introduces a number of failure modes
+that don't exist with other Postfix databases.
 
 UUnneexxppeecctteedd ppoossttmmaapp((11))//ppoossttaalliiaass((11)) ""ddaattaabbaassee ffuullll"" eerrrroorrss..
 
 Problem:
-    Even if the "postmap lmdb:filename" command succeeds, the exact same
-    command (with the exact same input data) may fail subsequently with an
-    MDB_MAP_FULL error. This problem does not exist with other Postfix
-    databases.
+    The "postmap lmdb:filename" command fails with an MDB_MAP_FULL error. This
+    problem does not exist with other Postfix databases.
 
 Background:
     LMDB databases have a hard size limit (configured with the lmdb_map_size
     configuration parameter).
 
     When executing "postmap lmdb:filename", the Postfix LMDB database client
-    does not truncate the database file. Instead it saves the "drop" request
-    and subsequent "store" requests to a transaction (which takes up space in
-    addition to the existing data), and commits the transaction when it closes
-    the database. Only then can the space for old data be reused.
+    stores the new data in a transaction which takes up space in addition to
+    the existing data, and commits the transaction when it closes the database.
+    Only then can the space for old data be reused.
 
 Impact:
     This failure does not affect Postfix availability, because the old data
     still exists in the database.
 
-Recovery:
-    Increase the lmdb_map_size limit in main.cf, and retry the postmap(1) or
-    postalias(1) command.
+Mitigation:
+    When the postmap(1) or postalias(1) command opens an LMDB file larger than
+    lmdb_map_size/3, it logs a warning and uses a larger size limit instead:
 
-PPoossttffiixx ddaaeemmoonn ""ddaattaabbaassee ffuullll"" eerrrroorrss..
+    warning: filename.lmdb: file size 15024128 >= (lmdb map size limit
+    16777216)/3 -- using a larger map size limit
+
+    This can be used to automate recovery and avoid the need for human
+    intervention. Just keep running "postmap lmdb:filename". After each failure
+    it will use a 3x larger size limit, and eventually the "database full"
+    error will disappear.
+
+Prevention:
+    Monitor your LMDB files and make sure that lmdb_map_size > 3x the largest
+    LMDB file size.
+
+UUnneexxppeecctteedd PPoossttffiixx ddaaeemmoonn ""ddaattaabbaassee ffuullll"" eerrrroorrss..
 
 Problem:
-    "database full" errors with daemon programs such as postscreen(8), tlsmgr
-    (8) or verify(8). This problem does not exist with other Postfix databases.
+    Postfix daemon programs fail with "database full" errors, such as
+    postscreen(8), tlsmgr(8) or verify(8). This problem does not exist with
+    other Postfix databases.
+
+Impact:
+    This failure temporarily affects Postfix availability. The daemon restarts
+    automatically and tries to open the database again as described next.
+
+Mitigation:
+    When a Postfix daemon opens an LMDB file larger than lmdb_map_size/3, it
+    logs a warning and uses a larger size limit instead:
+
+    warning: filename.lmdb: file size 15024128 >= (lmdb map size limit
+    16777216)/3 -- using a larger map size limit
+
+    This can be used to automate recovery and avoid the need for human
+    intervention. Each time the daemon runs into a "database full" error, it
+    restarts and uses a 3x larger size limit. The "database full" error will
+    disappear, at least for a while.
+
+Prevention:
+    Monitor your LMDB files and make sure that lmdb_map_size > 3x the largest
+    LMDB file size.
+
+NNoonn--oobbvviioouuss rreeccoovveerryy wwiitthh ppoossttmmaapp((11))//ppoossttaalliiaass((11))//ttllssmmggrr((88)) ffrroomm aa ccoorrrruupptteedd
+ddaattaabbaassee..
+
+Problem:
+    You cannot rebuild a corrupted LMDB database simply by running postmap(1)
+    or postalias(1), or by waiting until the tlsmgr(8) daemon restarts
+    automatically. This problem does not exist with other Postfix databases.
+
+Background:
+    The Postfix LMDB database client does not truncate the database file.
+    Instead it attempts to create a transaction for a "drop" request and
+    subsequent "store" requests. That is obviously not possible with a
+    corrupted database file.
 
 Impact:
     Postfix does not process mail until someone fixes the problem.
 
 Recovery:
-    Increase the lmdb_map_size limit in main.cf, and "reload" Postfix.
-
-NNoonn--oobbvviioouuss rreeccoovveerryy wwiitthh ppoossttmmaapp((11))//ppoossttaalliiaass((11)) ffrroomm aa ccoorrrruupptteedd ddaattaabbaassee..
-
-Problem:
-    You cannot rebuild a corrupted LMDB database simply by running postmap(1)
-    or postalias(1). This problem does not exist with other Postfix databases.
-
-Background:
-    The reason for this limitation is that the Postfix LMDB database client
-    does not truncate the database file. Instead it attempts to save the "drop"
-    request and subsequent "store" requests to a transaction for later
-    processing. That is obviously not possible with a corrupted database file.
-
-Recovery:
     First delete the ".lmdb" file by hand, then rebuild the file with the
-    postmap(1) or postalias(1) command.
+    postmap(1) or postalias(1) command, or wait until the tlsmgr(8) daemon
+    restarts automatically.
 
-IInnccoommppaattiibbiilliittyy wwiitthh ttllssmmggrr((88))..
-
-Problem:
-    The Postfix LMDB database client never commits any tlsmgr(8) transaction.
-    This problem does not exist with other Postfix databases.
-
-Background:
-    Instead, it creates a single transaction that accumulates a "drop" request
-    and all tlsmgr(8) "store" requests that are made during the lifetime of the
-    process.
-
-Solution:
-    This requires changes to the Postfix dictionary API, or to the Postfix LMDB
-    database client.
-
-Problem:
-    The Postfix LMDB database client breaks how tlsmgr(8) automatically
-    recovers from a corrupted database file. This problem does not exist with
-    other Postfix databases.
-
-Background:
-    The Postfix LMDB database client does not truncate the database file.
-    Instead it attempts to create a transaction which obviously is not possible
-    when the database file is corrupted.
-
-Impact:
-    The tlsmgr(8) process will keep crashing until someone removes the ".lmdb"
-    file.
-
-Recovery:
-    Remove the the ".lmdb" file by hand, and wait until the tlsmgr(8) process
-    restarts.
+Prevention:
+    Arrange your file systems such that they never run out of free space.
 

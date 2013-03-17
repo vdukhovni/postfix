@@ -45,7 +45,7 @@
 #include <myflock.h>
 #include <warn_stat.h>
 
-#if defined(HAS_LMDB) && defined(SNAPSHOT)
+#ifdef HAS_LMDB
 #ifdef PATH_LMDB_H
 #include PATH_LMDB_H
 #else

@@ -376,6 +376,10 @@ int     tls_scache_sequence(TLS_SCACHE *cp, int first_next,
      * Delete behind. This is a no-op if an expired cache entry was updated
      * in the mean time. Use the saved lookup criteria so that the "delete
      * behind" operation works as promised.
+     * 
+     * The delete-behind strategy assumes that all updates are made by a single
+     * process. Otherwise, delete-behind may remove an entry that was updated
+     * after it was scheduled for deletion.
      */
     if (cp->flags & TLS_SCACHE_FLAG_DEL_SAVED_CURSOR) {
 	cp->flags &= ~TLS_SCACHE_FLAG_DEL_SAVED_CURSOR;

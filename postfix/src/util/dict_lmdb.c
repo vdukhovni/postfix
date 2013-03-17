@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <dict_lmdb.h>
 /*
+/*	size_t	dict_lmdb_map_size;
+/*
 /*	DICT	*dict_lmdb_open(path, open_flags, dict_flags)
 /*	const char *name;
 /*	const char *path;
@@ -15,10 +17,16 @@
 /*	dict_lmdb_open() opens the named LMDB database and makes it available
 /*	via the generic interface described in dict_open(3).
 /*
-/*	The dict_lmdb_map_size variable specifies a non-default per-table
-/*	memory map size.  The map size is 10MB.  The map size is also the
-/*	maximum size the table can grow to, so it must be set large enough
+/*	The dict_lmdb_map_size variable specifies a non-default
+/*	per-table memory map size.  The map size is also the maximum
+/*	size the table can grow to, so it must be set large enough
 /*	to accomodate the largest tables in use.
+/*
+/*	As a safety measure, when Postfix opens an LMDB database it
+/*	will set the memory size limit to at least 3x the
+/*	".lmdb" file size, so that there is room for the file to
+/*	grow. This ensures continued availability of Postfix daemon
+/*	processes.
 /* DIAGNOSTICS
 /*	Fatal errors: cannot open file, file write error, out of memory.
 /* SEE ALSO
@@ -34,13 +42,14 @@
 
 #include "sys_defs.h"
 
-#if defined(HAS_LMDB) && defined(SNAPSHOT)
+#ifdef HAS_LMDB
 
 /* System library. */
 
 #include <sys/stat.h>
 #include <string.h>
 #include <unistd.h>
+#include <limits.h>
 
 #ifdef PATH_LMDB_H
 #include PATH_LMDB_H
@@ -67,7 +76,7 @@ typedef struct {
     DICT    dict;			/* generic members */
     MDB_env *env;			/* LMDB environment */
     MDB_dbi dbi;			/* database handle */
-    MDB_txn *txn;			/* write transaction for O_TRUNC */
+    MDB_txn *txn;			/* bulk update transaction */
     MDB_cursor *cursor;			/* for sequence ops */
     VSTRING *key_buf;			/* key buffer */
     VSTRING *val_buf;			/* result buffer */
@@ -461,6 +470,24 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     if ((status = mdb_env_create(&env)))
 	msg_fatal("env_create %s: %s", mdb_path, mdb_strerror(status));
 
+    /*
+     * For continued availability, try to ensure that the LMDB size limit is
+     * at least 3x the current LMDB file size. This should be sufficient for
+     * short-lived Postfix daemon processes.
+     */
+#ifdef SIZE_T_MAX
+#define SIZE_T_MAX __MAXINT__(size_t)
+#endif
+
+    if (stat(mdb_path, &st) == 0 && st.st_size >= dict_lmdb_map_size / 2) {
+	msg_warn("%s: file size %lu >= (%s map size limit %ld)/3 -- "
+		 "using a larger map size limit",
+		 mdb_path, (unsigned long) st.st_size,
+		 DICT_TYPE_LMDB, (long) dict_lmdb_map_size);
+	dict_lmdb_map_size = 3 * st.st_size;
+	if (dict_lmdb_map_size / 3 != st.st_size)
+	    dict_lmdb_map_size = SIZE_T_MAX;
+    }
     if ((status = mdb_env_set_mapsize(env, dict_lmdb_map_size)))
 	msg_fatal("env_set_mapsize %s: %s", mdb_path, mdb_strerror(status));
 
@@ -475,24 +502,33 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 
     /*
      * mdb_open requires a txn, but since the default DB always exists in an
-     * LMDB environment, we don't need to do anything else with the txn.
+     * LMDB environment, we usually don't need to do anything else with the
+     * txn.
      */
     if ((status = mdb_open(txn, NULL, 0, &dbi)))
 	msg_fatal("mdb_open %s: %s", mdb_path, mdb_strerror(status));
 
     /*
-     * However, if O_TRUNC was specified, we need to do it now. Also with
-     * O_TRUNC we keep this write txn for as long as the database is open,
-     * since we'll probably be doing a bulk import immediately after.
+     * Cases where we use the mdb_open transaction:
+     * 
+     * - With O_TRUNC we make the "drop" request before populating the database.
+     * 
+     * - With DICT_FLAG_BULK_UPDATE we commit the transaction when the database
+     * is closed.
      */
     if (open_flags & O_TRUNC) {
 	if ((status = mdb_drop(txn, dbi, 0)))
 	    msg_fatal("truncate %s: %s", mdb_path, mdb_strerror(status));
-    } else {
+	if ((dict_flags & DICT_FLAG_BULK_UPDATE) == 0) {
+	    if ((status = mdb_txn_commit(txn)))
+		msg_fatal("truncate %s: %s", mdb_path, mdb_strerror(status));
+	    txn = NULL;
+	}
+    } else if ((env_flags & MDB_RDONLY) != 0
+	       || (dict_flags & DICT_FLAG_BULK_UPDATE) == 0) {
 	mdb_txn_abort(txn);
 	txn = NULL;
     }
-
     dict_lmdb = (DICT_LMDB *) dict_alloc(DICT_TYPE_LMDB, path, sizeof(*dict_lmdb));
     dict_lmdb->dict.lookup = dict_lmdb_lookup;
     dict_lmdb->dict.update = dict_lmdb_update;
@@ -500,7 +536,8 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     dict_lmdb->dict.sequence = dict_lmdb_sequence;
     dict_lmdb->dict.close = dict_lmdb_close;
     dict_lmdb->dict.lock = dict_lmdb_lock;
-    dict_lmdb->dict.stat_fd = open(mdb_path, O_RDONLY);
+    if ((dict_lmdb->dict.stat_fd = open(mdb_path, O_RDONLY)) < 0)
+	msg_fatal("dict_lmdb_open: %s: %m", mdb_path);
     if (fstat(dict_lmdb->dict.stat_fd, &st) < 0)
 	msg_fatal("dict_lmdb_open: fstat: %m");
     dict_lmdb->dict.mtime = st.st_mtime;

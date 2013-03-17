@@ -59,6 +59,9 @@
 /*
 /*	const char *dict_flags_str(dict_flags)
 /*	int	dict_flags;
+/*
+/*	int	dict_flags_mask(names)
+/*	const char *names;
 /* DESCRIPTION
 /*	This module maintains a collection of name-value dictionaries.
 /*	Each dictionary has its own name and has its own methods to read
@@ -153,6 +156,9 @@
 /*	dict_flags_str() returns a printable representation of the
 /*	specified dictionary flags. The result is overwritten upon
 /*	each call.
+/*
+/*	dict_flags_mask() returns the bitmask for the specified
+/*	comma/space-separated dictionary flag names.
 /* SEE ALSO
 /*	htable(3)
 /* BUGS
@@ -578,10 +584,11 @@ static const NAME_MASK dict_mask[] = {
     "fold_fix", DICT_FLAG_FOLD_FIX,	/* case-fold with fixed-case key map */
     "fold_mul", DICT_FLAG_FOLD_MUL,	/* case-fold with multi-case key map */
     "open_lock", DICT_FLAG_OPEN_LOCK,	/* permanent lock upon open */
+    "bulk_update", DICT_FLAG_BULK_UPDATE,	/* bulk update if supported */
     0,
 };
 
-/* dict_flags_str - convert mask to string for debugging purposes */
+/* dict_flags_str - convert bitmask to symbolic flag names */
 
 const char *dict_flags_str(int dict_flags)
 {
@@ -592,4 +599,11 @@ const char *dict_flags_str(int dict_flags)
 
     return (str_name_mask_opt(buf, "dictionary flags", dict_mask, dict_flags,
 			      NAME_MASK_NUMBER | NAME_MASK_PIPE));
+}
+
+/* dict_flags_mask - convert symbolic flag names to bitmask */
+
+int     dict_flags_mask(const char *names)
+{
+    return (name_mask("dictionary flags", dict_mask, names));
 }

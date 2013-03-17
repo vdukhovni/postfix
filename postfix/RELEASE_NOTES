@@ -17,8 +17,6 @@ before proceeding.
 Major changes with snapshot 20130315
 ====================================
 
-Preliminary LMDB support by Howard Chu. This implementation has
-unexpected limitations that don't exist with other Postfix databases,
-and therefore the code is "snapshot only", i.e. it will not be part
-of the stable release without further changes to the Postfix LMDB
-client or the Postfix dictionary API.  See LMDB_README for details.
+LMDB support by Howard Chu. This implementation has unexpected
+failure modes that don't exist with other Postfix databases, so
+don't just yet abandon CDB. See LMDB_README for details.

@@ -18256,12 +18256,31 @@ Apologies for any names omitted.
 
 20130315
 
-	Feature: preliminary LMDB (memory-mapped persistent file)
-	support by Howard Chu. This feature has unexpected limitations
-	that don't exist with other Postfix databases, and is
-	therefore "snapshot only", i.e. it will not be part of a
-	stable release without further changes to the Postfix LMDB
-	client or the Postfix dictionary API.  Files: proto/postconf.proto,
-	proto/LMDB_README.html, proto/DATABASE_README.html,
-	proto/INSTALL.html util/dict_lmdb.[hc], util/dict_open.c,
-	global/mkmap_lmdb.[hc], global/mkmap_open.c, postconf/postconf.c.
+	Feature: LMDB (memory-mapped persistent file) support by
+	Howard Chu. This implementation has unexpected failure modes
+	that don't exist with other Postfix databases, so don't
+	just yet abandon CDB.  See LMDB_README for details.  Files:
+	proto/postconf.proto, proto/LMDB_README.html,
+	proto/DATABASE_README.html, proto/INSTALL.html util/dict_lmdb.[hc],
+	util/dict_open.c, global/mkmap_lmdb.[hc], global/mkmap_open.c,
+	postconf/postconf.c.
+
+20130316
+
+	Cleanup: new Postfix dictionary API flag to control the use
+	of (LMDB) bulk database transactions.  With this, LMDB
+	databases no longer fail to commit any transactions with
+	tlsmgr(8), and LMDB databases no longer perform glacially
+	slow with postmap -i/postalias -i.  Files: util/dict.h,
+	util/dict_lmdb.c, postmap/postmap.c, postalias/postalias.c.
+
+20130317
+
+	Debugging: generalized setting of dictionary API flags.
+	File: util/dict.[hc], util/dict_test.c.
+
+	Robustness: Postfix programs can now recover from LMDB
+	"database full" errors without requiring human intervention.
+	When a program opens an LMDB file larger than lmdb_map_size/3,
+	it logs a warning and uses a larger size limit instead.
+	Files: util/dict_lmdb.c, proto/LMDB_README.html.

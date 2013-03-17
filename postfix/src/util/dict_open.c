@@ -272,7 +272,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_HASH, dict_hash_open,
     DICT_TYPE_BTREE, dict_btree_open,
 #endif
-#if defined(HAS_LMDB) && defined(SNAPSHOT)
+#ifdef HAS_LMDB
     DICT_TYPE_LMDB, dict_lmdb_open,
 #endif
 #ifdef HAS_NIS

@@ -102,7 +102,7 @@ static const MKMAP_OPEN_INFO mkmap_types[] = {
     DICT_TYPE_HASH, mkmap_hash_open,
     DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
-#if defined(HAS_LMDB) && defined(SNAPSHOT)
+#ifdef HAS_LMDB
     DICT_TYPE_LMDB, mkmap_lmdb_open,
 #endif
     DICT_TYPE_FAIL, mkmap_fail_open,

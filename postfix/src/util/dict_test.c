@@ -26,7 +26,7 @@
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s type:file read|write|create [fold] [sync]", myname);
+    msg_fatal("usage: %s type:file read|write|create [flags...]", myname);
 }
 
 void    dict_test(int argc, char **argv)
@@ -41,7 +41,7 @@ void    dict_test(int argc, char **argv)
     const char *key;
     const char *value;
     int     ch;
-    int     dict_flags = DICT_FLAG_LOCK | DICT_FLAG_DUP_REPLACE;
+    int     dict_flags = 0;
     int     n;
     int     rc;
 
@@ -68,17 +68,12 @@ void    dict_test(int argc, char **argv)
 	open_flags = O_RDONLY;
     else
 	msg_fatal("unknown access mode: %s", argv[2]);
-    for (n = 2; argv[optind + n]; n++) {
-	if (strcasecmp(argv[optind + 2], "fold") == 0)
-	    dict_flags |= DICT_FLAG_FOLD_ANY;
-	else if (strcasecmp(argv[optind + 2], "sync") == 0)
-	    dict_flags |= DICT_FLAG_SYNC_UPDATE;
-	else if (strcasecmp(argv[optind + 2], "open_lock") == 0) {
-	    dict_flags |= DICT_FLAG_OPEN_LOCK;
-	    dict_flags &= ~DICT_FLAG_LOCK;
-	} else
-	    usage(argv[0]);
-    }
+    for (n = 2; argv[optind + n]; n++)
+	dict_flags |= dict_flags_mask(argv[optind + 2]);
+    if ((dict_flags & DICT_FLAG_OPEN_LOCK) == 0)
+	dict_flags |= DICT_FLAG_LOCK;
+    if ((dict_flags & (DICT_FLAG_DUP_WARN | DICT_FLAG_DUP_IGNORE)) == 0)
+	dict_flags |= DICT_FLAG_DUP_REPLACE;
     vstream_fflush(VSTREAM_OUT);
     dict_name = argv[optind];
     dict_allow_surrogate = 1;

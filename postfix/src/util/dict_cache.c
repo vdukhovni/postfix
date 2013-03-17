@@ -159,6 +159,11 @@
 /*	until a cache cleanup run is completed. Some entries may
 /*	never be removed when the process max_idle time is less
 /*	than the time needed to make a full pass over the cache.
+/*
+/*	The delete-behind strategy assumes that all updates are
+/*	made by a single process. Otherwise, delete-behind may
+/*	remove an entry that was updated after it was scheduled for
+/*	deletion.
 /* LICENSE
 /* .ad
 /* .fi
