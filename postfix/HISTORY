@@ -18284,3 +18284,7 @@ Apologies for any names omitted.
 	When a program opens an LMDB file larger than lmdb_map_size/3,
 	it logs a warning and uses a larger size limit instead.
 	Files: util/dict_lmdb.c, proto/LMDB_README.html.
+
+20130318
+
+	Portability: botched #ifdef. File: util/dict_lmdb.c.

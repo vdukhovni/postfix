@@ -471,21 +471,29 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 	msg_fatal("env_create %s: %s", mdb_path, mdb_strerror(status));
 
     /*
-     * For continued availability, try to ensure that the LMDB size limit is
-     * at least 3x the current LMDB file size. This should be sufficient for
-     * short-lived Postfix daemon processes.
+     * Try to ensure that the LMDB size limit is at least 3x the current LMDB
+     * file size. This should be sufficient to ensure that short-lived
+     * Postfix daemon processes can recover from a "table full" error.
+     * 
+     * Note: readers must increase their LMDB size limit, too, otherwise they
+     * won't be able to continue reading a table after grows.
      */
-#ifdef SIZE_T_MAX
+#ifndef SIZE_T_MAX
 #define SIZE_T_MAX __MAXINT__(size_t)
 #endif
+#define LMDB_SIZE_FUDGE_FACTOR	3
 
-    if (stat(mdb_path, &st) == 0 && st.st_size >= dict_lmdb_map_size / 2) {
-	msg_warn("%s: file size %lu >= (%s map size limit %ld)/3 -- "
+    if (stat(mdb_path, &st) == 0
+	&& st.st_size >= dict_lmdb_map_size / LMDB_SIZE_FUDGE_FACTOR) {
+	msg_warn("%s: file size %lu >= (%s map size limit %ld)/%d -- "
 		 "using a larger map size limit",
 		 mdb_path, (unsigned long) st.st_size,
-		 DICT_TYPE_LMDB, (long) dict_lmdb_map_size);
-	dict_lmdb_map_size = 3 * st.st_size;
-	if (dict_lmdb_map_size / 3 != st.st_size)
+		 DICT_TYPE_LMDB, (long) dict_lmdb_map_size,
+		 LMDB_SIZE_FUDGE_FACTOR);
+	/* Defense against naive optimizers. */
+	if (st.st_size < SIZE_T_MAX / LMDB_SIZE_FUDGE_FACTOR)
+	    dict_lmdb_map_size = st.st_size * LMDB_SIZE_FUDGE_FACTOR;
+	else
 	    dict_lmdb_map_size = SIZE_T_MAX;
     }
     if ((status = mdb_env_set_mapsize(env, dict_lmdb_map_size)))
