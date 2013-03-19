@@ -19,6 +19,13 @@
 
 <h2>Introduction</h2>
 
+<dl> <dt> Note: </dt> <dd> <p> Postfix support for LMDB databases
+is withdrawn due to the existence of a hard limit (an "out of
+storage" failure mode that cannot be resolved by increasing the
+database size). </p> <p> Postfix may support LMDB again when without
+exception all "out of storage" failure modes are resolved by
+increasing the database size.  </p> </dd> </dl>
+
 <p> Postfix uses databases of various kinds to store and look up
 information. Postfix databases are specified as "type:name".
 OpenLDAP LMDB implements the Postfix database type "lmdb".
@@ -119,6 +126,24 @@ failure modes that don't exist with other Postfix databases. </p>
 errors.  </strong></p>
 
 <dl>
+
+<dt> Problem: </dt> <dd> <p> The "postmap lmdb:filename" command
+fails with an MDB_TXN_FULL error.  This problem does not exist with
+other Postfix databases. </p> </dd>
+
+<dt> Background: </dt>
+
+<dd>
+
+<p> The LMDB implementation has a hard limit on the total transaction
+size. This limit is independent of the LMDB database size. Therefore,
+the problem cannot be resolved by increasing the lmdb_map_size
+value. </p>
+
+<p> This symptom is indicative of a flawed design.  All LMDB data
+structures should share the same storage pool so that they can scale
+with the database size, and so that all "out of storage" errors are
+resolved by increasing the database size. </p> </dd>
 
 <dt> Problem: </dt> <dd> <p> The "postmap lmdb:filename" command
 fails with an MDB_MAP_FULL error.  This problem does not exist with

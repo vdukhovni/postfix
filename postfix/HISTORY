@@ -18288,3 +18288,13 @@ Apologies for any names omitted.
 20130318
 
 	Portability: botched #ifdef. File: util/dict_lmdb.c.
+
+20130319
+
+	Postfix support for LMDB databases is withdrawn due to the
+	existence of a hard limit (an "out of storage" failure mode
+	that cannot be resolved by increasing the database size).
+
+	Postfix may support LMDB again when without exceptions all
+	"out of storage" failure modes are resolved by increasing
+	the database size.

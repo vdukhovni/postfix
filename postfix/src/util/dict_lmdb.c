@@ -22,11 +22,11 @@
 /*	size the table can grow to, so it must be set large enough
 /*	to accomodate the largest tables in use.
 /*
-/*	As a safety measure, when Postfix opens an LMDB database it
-/*	will set the memory size limit to at least 3x the
-/*	".lmdb" file size, so that there is room for the file to
-/*	grow. This ensures continued availability of Postfix daemon
-/*	processes.
+/*	As a safety measure, when Postfix opens an LMDB database
+/*	it will set the memory map size to at least 3x the ".lmdb"
+/*	file size, so that there is room for the file to grow. This
+/*	ensures that a process can recover from a "table full" error
+/*	with a simple terminate-and-restart.
 /* DIAGNOSTICS
 /*	Fatal errors: cannot open file, file write error, out of memory.
 /* SEE ALSO
@@ -472,11 +472,11 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 
     /*
      * Try to ensure that the LMDB size limit is at least 3x the current LMDB
-     * file size. This should be sufficient to ensure that short-lived
-     * Postfix daemon processes can recover from a "table full" error.
+     * file size. This ensures that Postfix daemon processes can recover from
+     * a "table full" error with a simple terminate-and-restart.
      * 
-     * Note: readers must increase their LMDB size limit, too, otherwise they
-     * won't be able to continue reading a table after grows.
+     * Note: read-only applications must increase their LMDB size limit, too,
+     * otherwise they won't be able to read a table after it grows.
      */
 #ifndef SIZE_T_MAX
 #define SIZE_T_MAX __MAXINT__(size_t)

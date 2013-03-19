@@ -14,6 +14,16 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Major changes with snapshot 20130319
+====================================
+
+Postfix support for LMDB databases is withdrawn due to the existence
+of a hard limit (an "out of storage" failure mode that cannot be
+resolved by increasing the database size).
+
+Postfix may support LMDB again when without exception all "out of
+storage" failure modes are resolved by increasing the database size.
+
 Major changes with snapshot 20130315
 ====================================
 

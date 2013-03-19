@@ -311,14 +311,12 @@ name as used in "hash:table" is the database file name without the
 <dd> A non-shared, in-memory hash table. Its content are lost when
 a process terminates. </dd>
 
-<dt> <b>lmdb</b> </dt>
+<dt> <b>lmdb</b> (unsupported) </dt>
 
 <dd> The OpenLDAP LMDB database (a memory-mapped, persistent file).
 Database files are created with the postmap(1) or postalias(1)
 command. The database name as used in "lmdb:table" is the database
-file name without the ".lmdb" suffix. This database type has
-unexpected limitations and is therefore not part of the stable
-Postfix release.
+file name without the ".lmdb" suffix.
 
 <dt> <b>ldap</b> (read-only) </dt>
 
