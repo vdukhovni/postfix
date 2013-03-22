@@ -78,6 +78,32 @@ Makefile
 /postfix/src/verify/verify
 /postfix/src/virtual/virtual
 
+# Generated default configs
+/postfix/conf/bounce.cf.default
+/postfix/conf/main.cf.default
+
+# Generated parameter headers for postconf
+/postfix/src/postconf/bool_table.h
+/postfix/src/postconf/bool_vars.h
+/postfix/src/postconf/int_table.h
+/postfix/src/postconf/int_vars.h
+/postfix/src/postconf/long_table.h
+/postfix/src/postconf/long_vars.h
+/postfix/src/postconf/nbool_table.h
+/postfix/src/postconf/nbool_vars.h
+/postfix/src/postconf/nint_table.h
+/postfix/src/postconf/nint_vars.h
+/postfix/src/postconf/raw_table.h
+/postfix/src/postconf/raw_vars.h
+/postfix/src/postconf/str_fn_table.h
+/postfix/src/postconf/str_fn_vars.h
+/postfix/src/postconf/str_table.h
+/postfix/src/postconf/str_vars.h
+/postfix/src/postconf/time_table.h
+/postfix/src/postconf/time_vars.h
+# Sentinel
+/postfix/src/postconf/makes_dummy
+
 # Test programs
 /postfix/src/cleanup/cleanup_masquerade
 /postfix/src/cleanup/cleanup_milter
