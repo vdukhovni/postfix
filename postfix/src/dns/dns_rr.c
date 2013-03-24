@@ -123,6 +123,7 @@ DNS_RR *dns_rr_create(const char *qname, const char *rname,
     rr->type = type;
     rr->class = class;
     rr->ttl = ttl;
+    rr->validated = 0;
     rr->pref = pref;
     if (data && data_len > 0)
 	memcpy(rr->data, data, data_len);

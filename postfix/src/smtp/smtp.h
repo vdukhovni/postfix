@@ -140,7 +140,7 @@ typedef struct SMTP_STATE {
   */
 #define SMTP_MISC_FLAG_LOOP_DETECT	(1<<0)
 #define	SMTP_MISC_FLAG_IN_STARTTLS	(1<<1)
-#define SMTP_MISC_FLAG_USE_LMTP		(1<<2)
+#define SMTP_MISC_FLAG_TLSA_HOST	(1<<2)
 #define SMTP_MISC_FLAG_FIRST_NEXTHOP	(1<<3)
 #define SMTP_MISC_FLAG_FINAL_NEXTHOP	(1<<4)
 #define SMTP_MISC_FLAG_FINAL_SERVER	(1<<5)
@@ -169,6 +169,13 @@ extern int smtp_host_lookup_mask;	/* host lookup methods to use */
 
 #define SMTP_HOST_FLAG_DNS	(1<<0)
 #define SMTP_HOST_FLAG_NATIVE	(1<<1)
+
+extern int smtp_dns_support;		/* dns support level */
+
+#define SMTP_DNS_INVALID	(-1)	/* smtp_dns_support_level = <bogus> */
+#define SMTP_DNS_DISABLED	0	/* smtp_dns_support_level = disabled */
+#define SMTP_DNS_ENABLED	1	/* smtp_dns_support_level = enabled */
+#define SMTP_DNS_DNSSEC		2	/* smtp_dns_support_level = dnssec */
 
 extern SCACHE *smtp_scache;		/* connection cache instance */
 extern STRING_LIST *smtp_cache_dest;	/* cached destinations */
@@ -257,9 +264,10 @@ extern void smtp_tls_list_init(void);
 #endif
 
  /*
-  * What's in a name?
+  * What's in a name?  With DANE TLSA we need the rr->rname (if validated).
   */
-#define SMTP_HNAME(rr) (var_smtp_cname_overr ? (rr)->rname : (rr)->qname)
+#define SMTP_HNAME(rr) ( (var_smtp_cname_overr || rr->validated) ? \
+			 (rr)->rname : (rr)->qname )
 
  /*
   * smtp_connect.c
@@ -464,6 +472,11 @@ extern int smtp_map11_internal(VSTRING *, MAPS *, int);
   */
 #define STR(s) vstring_str(s)
 #define LEN(s) VSTRING_LEN(s)
+
+extern int smtp_mode;
+
+#define SMTP_X(x) (smtp_mode ? VAR_SMTP_##x : VAR_LMTP_##x)
+#define X_SMTP(x) (smtp_mode ? x##_SMTP : x##_LMTP)
 
 /* LICENSE
 /* .ad

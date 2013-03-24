@@ -1005,7 +1005,7 @@ the process marches on. If you use an X-based debugger, be sure to
 set up your XAUTHORITY environment variable before starting Postfix.
 .PP
 Note: the command is subject to $name expansion, before it is
-passed to the default commmand interpreter. Specify "$$" to
+passed to the default command interpreter. Specify "$$" to
 produce a single "$" character.
 .PP
 Example:
@@ -1561,7 +1561,9 @@ This feature is available in Postfix 2.5 and later.
 .SH disable_dns_lookups (default: no)
 Disable DNS lookups in the Postfix SMTP and LMTP clients. When
 disabled, hosts are looked up with the getaddrinfo() system
-library routine which normally also looks in /etc/hosts.
+library routine which normally also looks in /etc/hosts.  As of
+Postfix 2.11, this parameter is deprecated; use smtp_dns_support_level
+instead.
 .PP
 DNS lookups are enabled by default.
 .SH disable_mime_input_processing (default: no)
@@ -2417,6 +2419,11 @@ The LMTP-specific version of the smtp_dns_resolver_options
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH lmtp_dns_support_level (default: empty)
+The LMTP-specific version of the smtp_dns_support_level
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH lmtp_enforce_tls (default: no)
 The LMTP-specific version of the smtp_enforce_tls configuration
 parameter.  See there for details.
@@ -5691,6 +5698,10 @@ false hostname information in DNS CNAME records, and makes SASL
 password file lookups more predictable. This is the default setting
 as of Postfix 2.3.
 .PP
+When DNS CNAME records are validated with secure DNS lookups
+(smtp_dns_support_level = dnssec), they are always allowed to
+override the above servername (Postfix 2.11 and later).
+.PP
 This feature is available in Postfix 2.2.9 and later.
 .SH smtp_connect_timeout (default: 30s)
 The Postfix SMTP client time limit for completing a TCP connection, or
@@ -5892,6 +5903,87 @@ recommended.
 .br
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH smtp_dns_support_level (default: empty)
+Level of DNS support in the Postfix SMTP client.  With
+"smtp_dns_support_level" left at its empty default value, the legacy
+"disable_dns_lookups" parameter controls whether DNS is enabled in
+the Postfix SMTP client, otherwise the legacy parameter is ignored.
+.PP
+Specify one of the following:
+.IP "\fBdisabled\fR"
+Disable DNS lookups.  No MX lookups are performed and hostname
+to address lookups are unconditionally "native".  This setting is
+not appropriate for hosts that deliver mail to the public Internet.
+Some obsolete how-to documents recommend disabling DNS lookups in
+some configurations with content_filters.  This is no longer required
+and strongly discouraged.
+.br
+.IP "\fBenabled\fR"
+Enable DNS lookups.  Nexthop destination domains not enclosed
+in "[]" will be subject to MX lookups.  If "dns" and "native" are
+included in the "smtp_host_lookup" parameter value, DNS will be
+queried first to resolve MX-host A records, followed by "native"
+lookups if no answer is found in DNS.
+.br
+.IP "\fBdnssec\fR"
+Enable DNSSEC
+lookups.  The "dnssec" setting differs from the "enabled" setting
+above in the following ways:
+.IP \(bu
+Any MX lookups will set
+RES_USE_DNSSEC and RES_USE_EDNS0 to request DNSSEC-validated
+responses. If the MX response is DNSSEC-validated the corresponding
+hostnames are considered validated.
+.IP \(bu
+The address lookups of
+validated hostnames are also validated, (provided of course
+"smtp_host_lookup" includes "dns", see below).
+.IP \(bu
+Temporary
+failures in DNSSEC-enabled hostname-to-address resolution block any
+"native" lookups.  Additional "native" lookups only happen when
+DNSSEC lookups hard-fail (NODATA or NXDOMAIN).
+.br
+.br
+.br
+.PP
+The Postfix SMTP client considers non-MX "[nexthop]" and
+"[nexthop]:port" destinations equivalent to statically-validated
+MX records of the form "nexthop.  IN MX 0 nexthop."  Therefore,
+with "dnssec" support turned on, validated hostname-to-address
+lookups apply to the nexthop domain of any "[nexthop]" or
+"[nexthop]:port" destination.  This is also true for LMTP "inet:host"
+and "inet:host:port" destinations, as LMTP hostnames are never
+subject to MX lookups.
+.PP
+The "dnssec" setting is recommended only if you plan to use the
+"dane" TLS security
+level, otherwise enabling DNSSEC support in Postfix offers no
+additional security. Postfix DNSSEC support relies on an up-stream
+recursive nameserver that validates DNSSEC signatures. Such a DNS
+server will always filter out forged DNS responses, even when Postfix
+itself is not configured to use DNSSEC.
+.PP
+When using Postfix DANE support the "smtp_host_lookup" parameter
+should include "dns", as DANE is not applicable
+to hosts resolved via "native" lookups.
+.PP
+As mentioned above, Postfix is not a validating stub
+resolver; it relies on the system's configured DNSSEC-validating
+recursive
+nameserver to perform all DNSSEC validation.  Since this
+nameserver's DNSSEC-validated responses will be fully trusted, it
+is strongly recommended that the MTA host have a local DNSSEC-validating
+recursive caching nameserver listening on a loopback address, and
+be configured to use only this nameserver for all lookups.  Otherwise,
+Postfix may remain subject to man-in-the-middle attacks that forge
+responses from the recursive nameserver
+.PP
+DNSSEC support requires a version of Postfix compiled against a
+reasonably-modern DNS \fBresolver\fR(3) library that implements the
+RES_USE_DNSSEC and RES_USE_EDNS0 resolver options.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH smtp_enforce_tls (default: no)
 Enforcement mode: require that remote SMTP servers use TLS
 encryption, and never send mail in the clear.  This also requires
@@ -5982,9 +6074,10 @@ and for receiving the initial remote SMTP server response.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .SH smtp_host_lookup (default: dns)
-What mechanisms the Postfix SMTP client uses to look up a host's IP
-address.  This parameter is ignored when DNS lookups are disabled
-(see: disable_dns_lookups).
+What mechanisms the Postfix SMTP client uses to look up a host's
+IP address.  This parameter is ignored when DNS lookups are disabled
+(see: disable_dns_lookups and smtp_dns_support_level).  The "dns"
+mechanism is always tried before "native" if both are listed.
 .PP
 Specify one of the following:
 .IP "\fBdns\fR"
@@ -6445,14 +6538,12 @@ Later Postfix versions always skip remote SMTP servers that greet
 with a
 4XX status code.
 .SH smtp_skip_5xx_greeting (default: yes)
-Skip remote SMTP servers that greet with a 5XX status code (go away,
-do
-not try again later).
+Skip remote SMTP servers that greet with a 5XX status code.
 .PP
 By default, the Postfix SMTP client moves on the next mail
 exchanger. Specify "smtp_skip_5xx_greeting = no" if Postfix should
-bounce the mail immediately. The default setting is incorrect, but
-it is what a lot of people expect to happen.
+bounce the mail immediately. Caution: the latter behavior appears
+to contradict RFC 2821.
 .SH smtp_skip_quit_response (default: yes)
 Do not wait for the response to the SMTP QUIT command.
 .SH smtp_starttls_timeout (default: 300s)
@@ -7351,8 +7442,7 @@ but not any CAs it delegates to.
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_secure_cert_match (default: nexthop, dot-nexthop)
 How the Postfix SMTP client verifies the server certificate
-peername for the
-"secure" TLS security level. In a "secure" TLS policy table
+peername for the "secure" TLS security level. In a "secure" TLS policy table
 ($smtp_tls_policy_maps) entry the optional "match" attribute
 overrides this main.cf setting.
 .PP
@@ -8599,7 +8689,7 @@ The non_fqdn_reject_code parameter specifies the response code for
 rejected requests (default: 504).
 .br
 .IP "\fBreject_rhsbl_helo \fIrbl_domain=d.d.d.d\fR\fR"
-Reject the request when the HELO or EHLO hostname hostname is
+Reject the request when the HELO or EHLO hostname is
 listed with the A record "\fId.d.d.d\fR" under \fIrbl_domain\fR
 (Postfix version 2.1 and later only).  Each "\fId\fR" is a number,
 or a pattern inside "[]" that contains one or more ";"-separated
@@ -9005,7 +9095,7 @@ temporary problem (default: 450).
 .br
 The
 unverified_recipient_tempfail_action parameter specifies the action
-after addres probe failure due to a temporary problem (default:
+after address probe failure due to a temporary problem (default:
 defer_if_permit).
 .br
 This feature is available in Postfix 2.1
@@ -9562,7 +9652,7 @@ response code when an address is known to bounce (default: 450,
 change into 550 when you are confident that it is safe to do so).
 .br
 The unverified_sender_defer_code specifies the numerical response
-code when an address address probe failed due to a temporary problem
+code when an address probe failed due to a temporary problem
 (default: 450).
 .br
 The unverified_sender_tempfail_action parameter

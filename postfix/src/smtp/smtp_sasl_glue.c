@@ -181,7 +181,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
      * the MX hostname.
      */
     smtp_sasl_passwd_map->error = 0;
-    if (((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0
+    if ((smtp_mode
 	 && var_smtp_sender_auth && state->request->sender[0]
 	 && (value = mail_addr_find(smtp_sasl_passwd_map,
 				 state->request->sender, (char **) 0)) != 0)
@@ -205,7 +205,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 	return (1);
     } else if (smtp_sasl_passwd_map->error) {
 	msg_warn("%s: %s lookup error",
-		  state->request->queue_id, smtp_sasl_passwd_map->title);
+		 state->request->queue_id, smtp_sasl_passwd_map->title);
 	vstream_longjmp(session->stream, SMTP_ERR_DATA);
     } else {
 	if (msg_verbose)
@@ -227,7 +227,7 @@ void    smtp_sasl_initialize(void)
 	msg_panic("smtp_sasl_initialize: repeated call");
     if (*var_smtp_sasl_passwd == 0)
 	msg_fatal("specify a password table via the `%s' configuration parameter",
-		  VAR_SMTP_SASL_PASSWD);
+		  SMTP_X(SASL_PASSWD));
 
     /*
      * Open the per-host password table and initialize the SASL library. Use
@@ -257,7 +257,7 @@ void    smtp_sasl_initialize(void)
 				      var_smtp_sasl_auth_cache_time);
 #else
 	msg_warn("not compiled with TLS support -- "
-		 "ignoring the " VAR_SMTP_SASL_AUTH_CACHE_NAME " setting");
+		 "ignoring the %s setting", SMTP_X(SASL_AUTH_CACHE_NAME));
 #endif
     }
 }

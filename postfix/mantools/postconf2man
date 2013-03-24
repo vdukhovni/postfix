@@ -40,8 +40,8 @@ while(<>) {
 	$block =~ tr/a-z/A-Z/;
     }
     $block =~ s/<DT><b><a[^>]+>([^<]+)<\/a>\n(.*)<\/b><\/DT><DD>/\n.SH \1 \2\n/g;
-    $block =~ s/<[Aa] [Hh][Rr][Ee][Ff]="[^"]+">//g;
-    $block =~ s/<[Aa] [Nn][Aa][Mm][Ee]="[^"]+">//g;
+    $block =~ s/<[Aa][ \n]+[Hh][Rr][Ee][Ff]="[^"]+">//g;
+    $block =~ s/<[Aa][ \n]+[Nn][Aa][Mm][Ee]="[^"]+">//g;
     $block =~ s/<\/[Aa]>//g;
     $block =~ s/<\/DD>/\n/g;
     $block =~ s/<DL>/\n/g;

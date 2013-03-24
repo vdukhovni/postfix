@@ -347,10 +347,10 @@ int     smtp_helo(SMTP_STATE *state)
 		&& (pix_bug_words =
 		    maps_find(smtp_pix_bug_maps,
 			      state->session->addr, 0)) != 0) {
-		pix_bug_source = VAR_SMTP_PIX_BUG_MAPS;
+		pix_bug_source = SMTP_X(PIX_BUG_MAPS);
 	    } else {
 		pix_bug_words = var_smtp_pix_bug_words;
-		pix_bug_source = VAR_SMTP_PIX_BUG_WORDS;
+		pix_bug_source = SMTP_X(PIX_BUG_WORDS);
 	    }
 	    if (*pix_bug_words) {
 		pix_bug_mask = name_mask_opt(pix_bug_source, pix_bug_table,
@@ -381,7 +381,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    } else if (strcasecmp(word, "ESMTP") == 0)
 		session->features |= SMTP_FEATURE_ESMTP;
 	}
-	if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+	if (smtp_mode) {
 	    if (var_smtp_always_ehlo
 		&& (session->features & SMTP_FEATURE_PIX_NO_ESMTP) == 0)
 		session->features |= SMTP_FEATURE_ESMTP;
@@ -405,7 +405,7 @@ int     smtp_helo(SMTP_STATE *state)
      * Return the compliment. Fall back to SMTP if our ESMTP recognition
      * heuristic failed.
      */
-    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+    if (smtp_mode) {
 	where = "performing the EHLO handshake";
 	if (session->features & SMTP_FEATURE_ESMTP) {
 	    smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
@@ -622,8 +622,8 @@ int     smtp_helo(SMTP_STATE *state)
 	}
 	if (msg_verbose)
 	    msg_info("Using %s PIPELINING, TCP send buffer size is %d, "
-		     "PIPELINING buffer size is %d", (state->misc_flags &
-				SMTP_MISC_FLAG_USE_LMTP) ? "LMTP" : "ESMTP",
+		     "PIPELINING buffer size is %d",
+		     smtp_mode ? "ESMTP" : "LMTP",
 		     tcp_bufsize, PIPELINING_BUFSIZE);
     }
 #ifdef USE_TLS
@@ -1662,7 +1662,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 				       "unexpected server message");
 			msg_warn("server %s violates %s policy",
 				 session->namaddr,
-				 VAR_SMTP_TLS_BLK_EARLY_MAIL_REPLY);
+				 SMTP_X(TLS_BLK_EARLY_MAIL_REPLY));
 			mail_from_rejected = 1;
 		    }
 #endif
@@ -1695,7 +1695,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 #endif
 			rcpt = request->rcpt_list.info + recv_rcpt;
 			if (resp->code / 100 == 2) {
-			    if (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) {
+			    if (!smtp_mode) {
 				if (survivors == 0)
 				    survivors = (int *)
 					mymalloc(request->rcpt_list.len
@@ -1752,7 +1752,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case SMTP_STATE_DOT:
 		    GETTIMEOFDAY(&request->msg_stats.deliver_done);
-		    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+		    if (smtp_mode) {
 			if (nrcpt > 0) {
 			    if (resp->code / 100 != 2) {
 				smtp_mesg_fail(state, session->host, resp,

@@ -209,12 +209,12 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
 #ifdef HAS_IPV6
     if (sa->sa_family == AF_INET6) {
 	bind_addr = var_smtp_bind_addr6;
-	bind_var = VAR_SMTP_BIND_ADDR6;
+	bind_var = SMTP_X(BIND_ADDR6);
     } else
 #endif
     if (sa->sa_family == AF_INET) {
 	bind_addr = var_smtp_bind_addr;
-	bind_var = VAR_SMTP_BIND_ADDR;
+	bind_var = SMTP_X(BIND_ADDR);
     } else
 	bind_var = bind_addr = "";
     if (*bind_addr) {
@@ -271,6 +271,9 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
 		 myname, SMTP_HNAME(addr), hostaddr.buf, ntohs(port));
+
+    if (addr->validated)
+	sess_flags |= SMTP_MISC_FLAG_TLSA_HOST;
 
     return (smtp_connect_sock(sock, sa, salen, SMTP_HNAME(addr), hostaddr.buf,
 			      port, destination, why, sess_flags));
@@ -718,7 +721,8 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", nexthop);
     non_fallback_sites = sites->argc;
-    if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0)
+    /* When we are lmtp(8) var_fallback_relay is null */
+    if (smtp_mode)
 	argv_split_append(sites, var_fallback_relay, ", \t\r\n");
 
     /*
@@ -776,12 +780,12 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 */
 	if (msg_verbose)
 	    msg_info("connecting to %s port %d", domain, ntohs(port));
-	if ((state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+	if (smtp_mode) {
 	    if (ntohs(port) == IPPORT_SMTP)
 		state->misc_flags |= SMTP_MISC_FLAG_LOOP_DETECT;
 	    else
 		state->misc_flags &= ~SMTP_MISC_FLAG_LOOP_DETECT;
-	    lookup_mx = (var_disable_dns == 0 && *dest != '[');
+	    lookup_mx = (smtp_dns_support != SMTP_DNS_DISABLED && *dest != '[');
 	} else
 	    lookup_mx = 0;
 	if (!lookup_mx) {
@@ -972,8 +976,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * Pay attention to what could be configuration problems, and pretend
 	 * that these are recoverable rather than bouncing the mail.
 	 */
-	else if (!SMTP_HAS_SOFT_DSN(why)
-		 && (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) == 0) {
+	else if (!SMTP_HAS_SOFT_DSN(why) && smtp_mode) {
 
 	    /*
 	     * The fall-back destination did not resolve as expected, or it
@@ -1041,7 +1044,7 @@ int     smtp_connect(SMTP_STATE *state)
      * With LMTP we have direct-to-host delivery only. The destination may
      * have multiple IP addresses.
      */
-    if (state->misc_flags & SMTP_MISC_FLAG_USE_LMTP) {
+    if (!smtp_mode) {
 	if (strncmp(destination, "unix:", 5) == 0) {
 	    smtp_connect_local(state, destination + 5);
 	} else {

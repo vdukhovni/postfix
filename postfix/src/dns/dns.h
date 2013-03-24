@@ -55,6 +55,50 @@
 #endif
 
  /*
+  * Compatibility with systems that lack RES_USE_DNSSEC and RES_USE_EDNS0
+  */
+#ifndef RES_USE_DNSSEC
+#define RES_USE_DNSSEC	0
+#endif
+#ifndef RES_USE_EDNS0
+#define RES_USE_EDNS0	0
+#endif
+
+ /*
+  * TLSA: https://tools.ietf.org/html/rfc6698#section-7.1 RRSIG:
+  * http://tools.ietf.org/html/rfc4034#section-3
+  * 
+  * We don't request RRSIG, but we get it "for free" when we send the DO-bit.
+  */
+#ifndef T_TLSA
+#define T_TLSA		52
+#endif
+#ifndef T_RRSIG
+#define T_RRSIG		46		/* Avoid unknown RR in logs */
+#endif
+
+ /*
+  * https://tools.ietf.org/html/rfc6698#section-7.2
+  */
+#define DNS_TLSA_USAGE_CA_CONSTRAINT			0
+#define DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT	1
+#define DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION		2
+#define DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE	3
+
+ /*
+  * https://tools.ietf.org/html/rfc6698#section-7.3
+  */
+#define DNS_TLSA_SELECTOR_FULL_CERTIFICATE	0
+#define DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO	1
+
+ /*
+  * https://tools.ietf.org/html/rfc6698#section-7.4
+  */
+#define DNS_TLSA_MATCHING_TYPE_NO_HASH_USED	0
+#define DNS_TLSA_MATCHING_TYPE_SHA256		1
+#define DNS_TLSA_MATCHING_TYPE_SHA512		2
+
+ /*
   * SunOS 4 needs this.
   */
 #ifndef T_TXT
@@ -88,6 +132,7 @@ typedef struct DNS_RR {
     unsigned short type;		/* T_A, T_CNAME, etc. */
     unsigned short class;		/* C_IN, etc. */
     unsigned int ttl;			/* always */
+    unsigned int validated;		/* DNSSEC */
     unsigned short pref;		/* T_MX only */
     struct DNS_RR *next;		/* linkage */
     size_t  data_len;			/* actual data size */

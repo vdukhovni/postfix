@@ -77,24 +77,6 @@ SMTP_STATE *smtp_state_alloc(void)
 	state->cache_used = 0;
     }
     state->why = dsb_create();
-
-    /*
-     * The process name, "smtp" or "lmtp", is also used as the DSN server
-     * reply type and for SASL service information lookup. Since all three
-     * external representations are identical there is no reason to transform
-     * from some external form X to some Postfix-specific canonical internal
-     * form, and then to transform from the internal form to external forms Y
-     * and Z.
-     */
-    if (strcmp(var_procname, "lmtp") == 0) {
-	state->misc_flags |= SMTP_MISC_FLAG_USE_LMTP;
-    } else if (strcmp(var_procname, "smtp") == 0) {
-	/* void */
-    } else {
-	msg_fatal("unexpected process name \"%s\" - "
-		  "specify \"smtp\" or \"lmtp\"",
-		  var_procname);
-    }
     return (state);
 }
 

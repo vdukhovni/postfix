@@ -43,9 +43,10 @@
 static void print_rr(DNS_RR *rr)
 {
     MAI_HOSTADDR_STR host;
+    size_t  i;
 
     while (rr) {
-	printf("%s: ttl: %9d ", rr->rname, rr->ttl);
+	printf("%s: ad: %d, ttl: %9d ", rr->rname, rr->validated, rr->ttl);
 	switch (rr->type) {
 	case T_A:
 #ifdef T_AAAA
@@ -68,6 +69,22 @@ static void print_rr(DNS_RR *rr)
 	case T_MX:
 	    printf("pref: %d %s: %s\n",
 		   rr->pref, dns_strtype(rr->type), rr->data);
+	    break;
+	case T_TLSA:
+	    if (rr->data_len >= 3) {
+		uint8_t *ip = (uint8_t *) rr->data;
+		uint8_t usage = *ip++;
+		uint8_t selector = *ip++;
+		uint8_t mtype = *ip++;
+
+		printf("%s: %d %d %d ", dns_strtype(rr->type),
+		       usage, selector, mtype);
+		for (i = 3; i < rr->data_len; ++i)
+		    printf("%02x", *ip++);
+		putchar('\n');
+	    } else {
+		printf("%s: truncated record\n", dns_strtype(rr->type));
+	    }
 	    break;
 	default:
 	    msg_fatal("print_rr: don't know how to print type %s",
@@ -99,7 +116,7 @@ int     main(int argc, char **argv)
     argv_free(types_argv);
     name = argv[2];
     msg_verbose = 1;
-    switch (dns_lookup_v(name, RES_DEBUG, &rr, fqdn, why,
+    switch (dns_lookup_v(name, RES_DEBUG | RES_USE_DNSSEC, &rr, fqdn, why,
 			 DNS_REQ_FLAG_NONE, types)) {
     default:
 	msg_fatal("%s", vstring_str(why));

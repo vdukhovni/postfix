@@ -5,12 +5,13 @@ PPoossttffiixx OOppeennLLDDAAPP LLMMDDBB HHoowwttoo
 IInnttrroodduuccttiioonn
 
 Note:
-    Postfix support for LMDB databases is withdrawn due to the existence of a
+    Postfix support for LMDB databases is suspended due to the existence of a
     hard limit (an "out of storage" failure mode that cannot be resolved by
     increasing the database size).
 
-    Postfix may support LMDB again when without exception all "out of storage"
-    failure modes are resolved by increasing the database size.
+    Postfix may support LMDB again when it no longer limits the size of Postfix
+    transactions, whether the limit is built into LMDB itself, or implicit by
+    requiring an unbounded amount of memory to handle a large transaction.
 
 Postfix uses databases of various kinds to store and look up information.
 Postfix databases are specified as "type:name". OpenLDAP LMDB implements the
@@ -26,9 +27,7 @@ This document describes:
 
  3. Missing pthread library trouble.
 
-Note:
-    The Postfix LMDB client implementation introduces unexpected failure modes
-    that don't exist with other Postfix databases. Don't just yet abandon CDB.
+ 4. Unexpected failure modes that don't exist with other Postfix databases.
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh OOppeennLLDDAAPP LLMMDDBB ssuuppppoorrtt
 

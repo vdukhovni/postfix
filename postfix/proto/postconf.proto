@@ -4178,9 +4178,10 @@ The default time unit is s (seconds).
 %PARAM smtp_host_lookup dns
 
 <p>
-What mechanisms the Postfix SMTP client uses to look up a host's IP
-address.  This parameter is ignored when DNS lookups are disabled
-(see: disable_dns_lookups).
+What mechanisms the Postfix SMTP client uses to look up a host's
+IP address.  This parameter is ignored when DNS lookups are disabled
+(see: disable_dns_lookups and smtp_dns_support_level).  The "dns"
+mechanism is always tried before "native" if both are listed.
 </p>
 
 <p>
@@ -4488,15 +4489,13 @@ with a
 %PARAM smtp_skip_5xx_greeting yes
 
 <p>
-Skip remote SMTP servers that greet with a 5XX status code (go away,
-do
-not try again later).
+Skip remote SMTP servers that greet with a 5XX status code.
 </p>
 
 <p> By default, the Postfix SMTP client moves on the next mail
 exchanger. Specify "smtp_skip_5xx_greeting = no" if Postfix should
-bounce the mail immediately. The default setting is incorrect, but
-it is what a lot of people expect to happen.  </p>
+bounce the mail immediately. Caution: the latter behavior appears
+to contradict RFC 2821. </p>
 
 %PARAM smtp_skip_quit_response yes
 
@@ -5511,7 +5510,7 @@ rejected requests (default: 504).</dd>
 
 <dt><b><a name="reject_rhsbl_helo">reject_rhsbl_helo <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
-<dd>Reject the request when the HELO or EHLO hostname hostname is
+<dd>Reject the request when the HELO or EHLO hostname is
 listed with the A record "<i>d.d.d.d</i>" under <i>rbl_domain</i>
 (Postfix version 2.1 and later only).  Each "<i>d</i>" is a number,
 or a pattern inside "[]" that contains one or more ";"-separated
@@ -5881,7 +5880,7 @@ change into 550 when you are confident that it is safe to do so).
 numerical response code when an address probe failed due to a
 temporary problem (default: 450). <br> The
 unverified_recipient_tempfail_action parameter specifies the action
-after addres probe failure due to a temporary problem (default:
+after address probe failure due to a temporary problem (default:
 defer_if_permit).  <br>  This feature is available in Postfix 2.1
 and later.  </dd>
 
@@ -6330,7 +6329,7 @@ unverified_sender_reject_code parameter specifies the numerical
 response code when an address is known to bounce (default: 450,
 change into 550 when you are confident that it is safe to do so).
 <br>The unverified_sender_defer_code specifies the numerical response
-code when an address address probe failed due to a temporary problem
+code when an address probe failed due to a temporary problem
 (default: 450).  <br> The unverified_sender_tempfail_action parameter
 specifies the action after address probe failure due to a temporary
 problem (default: defer_if_permit).  <br> This feature is available
@@ -6823,7 +6822,7 @@ set up your XAUTHORITY environment variable before starting Postfix.
 
 <p>
 Note: the command is subject to $name expansion, before it is
-passed to the default commmand interpreter. Specify "$$" to
+passed to the default command interpreter. Specify "$$" to
 produce a single "$" character.
 </p>
 
@@ -7314,7 +7313,9 @@ See also: delay_notice_recipient, notify_classes.
 <p>
 Disable DNS lookups in the Postfix SMTP and LMTP clients. When
 disabled, hosts are looked up with the getaddrinfo() system
-library routine which normally also looks in /etc/hosts.
+library routine which normally also looks in /etc/hosts.  As of
+Postfix 2.11, this parameter is deprecated; use smtp_dns_support_level
+instead.
 </p>
 
 <p>
@@ -10411,6 +10412,10 @@ false hostname information in DNS CNAME records, and makes SASL
 password file lookups more predictable. This is the default setting
 as of Postfix 2.3. </p>
 
+<p> When DNS CNAME records are validated with secure DNS lookups
+(smtp_dns_support_level = dnssec), they are always allowed to
+override the above servername (Postfix 2.11 and later). </p>
+
 <p> This feature is available in Postfix 2.2.9 and later. </p>
 
 %PARAM lmtp_cname_overrides_servername yes
@@ -10794,8 +10799,7 @@ example.com     verify  match=hostname:nexthop
 %PARAM smtp_tls_secure_cert_match nexthop, dot-nexthop
 
 <p> How the Postfix SMTP client verifies the server certificate
-peername for the
-"secure" TLS security level. In a "secure" TLS policy table
+peername for the "secure" TLS security level. In a "secure" TLS policy table
 ($smtp_tls_policy_maps) entry the optional "match" attribute
 overrides this main.cf setting. </p>
 
@@ -14946,3 +14950,95 @@ from the list. </p>
 </pre>
 
 <p> This feature is available in Postfix 2.10 and later.  </p>
+
+%PARAM smtp_dns_support_level
+
+<p> Level of DNS support in the Postfix SMTP client.  With
+"smtp_dns_support_level" left at its empty default value, the legacy
+"disable_dns_lookups" parameter controls whether DNS is enabled in
+the Postfix SMTP client, otherwise the legacy parameter is ignored.
+</p>
+
+<p> Specify one of the following: </p>
+
+<dl>
+
+<dt><b>disabled</b></dt>
+
+<dd>Disable DNS lookups.  No MX lookups are performed and hostname
+to address lookups are unconditionally "native".  This setting is
+not appropriate for hosts that deliver mail to the public Internet.
+Some obsolete how-to documents recommend disabling DNS lookups in
+some configurations with content_filters.  This is no longer required
+and strongly discouraged.  </dd>
+
+<dt><b>enabled</b></dt>
+
+<dd>Enable DNS lookups.  Nexthop destination domains not enclosed
+in "[]" will be subject to MX lookups.  If "dns" and "native" are
+included in the "smtp_host_lookup" parameter value, DNS will be
+queried first to resolve MX-host A records, followed by "native"
+lookups if no answer is found in DNS.  </dd>
+
+<dt><b>dnssec</b></dt>
+
+<dd>Enable <a href="https://tools.ietf.org/html/rfc4033">DNSSEC</a>
+lookups.  The "dnssec" setting differs from the "enabled" setting
+above in the following ways: <ul> <li>Any MX lookups will set
+RES_USE_DNSSEC and RES_USE_EDNS0 to request DNSSEC-validated
+responses. If the MX response is DNSSEC-validated the corresponding
+hostnames are considered validated.  <li> The address lookups of
+validated hostnames are also validated, (provided of course
+"smtp_host_lookup" includes "dns", see below).  <li>Temporary
+failures in DNSSEC-enabled hostname-to-address resolution block any
+"native" lookups.  Additional "native" lookups only happen when
+DNSSEC lookups hard-fail (NODATA or NXDOMAIN).  </ul> </dd>
+
+</dl>
+
+<p> The Postfix SMTP client considers non-MX "[nexthop]" and
+"[nexthop]:port" destinations equivalent to statically-validated
+MX records of the form "nexthop.  IN MX 0 nexthop."  Therefore,
+with "dnssec" support turned on, validated hostname-to-address
+lookups apply to the nexthop domain of any "[nexthop]" or
+"[nexthop]:port" destination.  This is also true for LMTP "inet:host"
+and "inet:host:port" destinations, as LMTP hostnames are never
+subject to MX lookups.  </p>
+
+<p>The "dnssec" setting is recommended only if you plan to use the
+"<a href="TLS_README.html#client_tls_dane">dane</a>" TLS security
+level, otherwise enabling DNSSEC support in Postfix offers no
+additional security. Postfix DNSSEC support relies on an up-stream
+recursive nameserver that validates DNSSEC signatures. Such a DNS
+server will always filter out forged DNS responses, even when Postfix
+itself is not configured to use DNSSEC. </p>
+
+<p> When using Postfix DANE support the "smtp_host_lookup" parameter
+should include "dns", as <a
+href="https://tools.ietf.org/html/rfc6698">DANE</a> is not applicable
+to hosts resolved via "native" lookups.  </p>
+
+<p> As mentioned above, Postfix is not a validating <a
+href="https://tools.ietf.org/html/rfc4035#section-4.9">stub
+resolver</a>; it relies on the system's configured DNSSEC-validating
+<a href="https://tools.ietf.org/html/rfc4035#section-3.2">recursive
+nameserver</a> to perform all DNSSEC validation.  Since this
+nameserver's DNSSEC-validated responses will be fully trusted, it
+is strongly recommended that the MTA host have a local DNSSEC-validating
+recursive caching nameserver listening on a loopback address, and
+be configured to use only this nameserver for all lookups.  Otherwise,
+Postfix may remain subject to man-in-the-middle attacks that forge
+responses from the recursive nameserver</p>
+
+<p>DNSSEC support requires a version of Postfix compiled against a
+reasonably-modern DNS resolver(3) library that implements the
+RES_USE_DNSSEC and RES_USE_EDNS0 resolver options. </p>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
+
+%PARAM lmtp_dns_support_level
+
+<p> The LMTP-specific version of the smtp_dns_support_level
+configuration parameter.  See there for details.  </p>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>

@@ -66,6 +66,8 @@
 /* .IP flags
 /*	Zero or more of the following:
 /* .RS
+/* .IP SMTP_MISC_FLAG_TLSA_HOST
+/*	The hostname is DNSSEC-validated.
 /* .IP SMTP_MISC_FLAG_CONN_LOAD
 /*	Enable re-use of cached SMTP or LMTP connections.
 /* .IP SMTP_MISC_FLAG_CONN_STORE
@@ -140,15 +142,15 @@ static MAPS *tls_per_site;		/* lookup table(s) */
 void    smtp_tls_list_init(void)
 {
     if (*var_smtp_tls_policy) {
-	tls_policy = maps_create(VAR_SMTP_TLS_POLICY, var_smtp_tls_policy,
+	tls_policy = maps_create(SMTP_X(TLS_POLICY), var_smtp_tls_policy,
 				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 	if (*var_smtp_tls_per_site)
 	    msg_warn("%s ignored when %s is not empty.",
-		     VAR_SMTP_TLS_PER_SITE, VAR_SMTP_TLS_POLICY);
+		     SMTP_X(TLS_PER_SITE), SMTP_X(TLS_POLICY));
 	return;
     }
     if (*var_smtp_tls_per_site) {
-	tls_per_site = maps_create(VAR_SMTP_TLS_PER_SITE, var_smtp_tls_per_site,
+	tls_per_site = maps_create(SMTP_X(TLS_PER_SITE), var_smtp_tls_per_site,
 				   DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
     }
 }

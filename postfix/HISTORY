@@ -18291,10 +18291,58 @@ Apologies for any names omitted.
 
 20130319
 
-	Postfix support for LMDB databases is withdrawn due to the
+	Postfix support for LMDB databases is suspended due to the
 	existence of a hard limit (an "out of storage" failure mode
 	that cannot be resolved by increasing the database size).
 
-	Postfix may support LMDB again when without exceptions all
-	"out of storage" failure modes are resolved by increasing
-	the database size.
+	Postfix may support LMDB again when it no longer limits the
+	size of Postfix transactions, whether the limit is built
+	into LMDB itself, or implicit by requiring an unbounded
+	amount of memory to handle a large transaction.
+
+20130322
+
+	Documentation: smtp_skip_5xx_greeting wording updated to
+	reflect text in RFC 2821, which appears to say that a 554
+	greeting is not a hard delivery error (note that RFC 2821
+	was published later than smtp_skip_5xx_greeting). File:
+	proto/postconf.proto.
+
+20130324
+
+	Workaround: MacOS 10.8 (Darwin 12) getrlimit(RLIMIT_NOFILE)
+	incorrectly reports that rlim_max, the hard limit on the
+	number of open files per process, is equal to RLIM_INFINITY
+	(i.e. no limit is enforced).  In reality, setrlimit(RLIMIT_NOFILE)
+	rejects requests where rlim_cur, the current limit, contains
+	any value > kern.maxfilesperproc.  Axel Luttgens.  File:
+	util/open_limit.c.
+
+	Portability: MacOS 10.8 (Darwin 12) kqueue support works.
+	Axel Luttgens. Files: makedefs.
+
+20130324
+
+	Support for anonymous certificates. Viktor Dukhovni. File:
+	tls/tls_verify.c.
+
+	Feature: support for DNSSEC-validated lookups and TLSA
+	RRsets.  Viktor Dukhovni. Files: src/dns/Makefile.in,
+	src/dns/dns.h, src/dns/dns_lookup.c, src/dns/dns_rr.c,
+	src/dns/dns_strtype.c, src/dns/test_dns_lookup.c,
+
+	Cleanup: the personality switch between "smtp" and "lmtp".
+	This streamlies the swicth in the SMTP/LMTP protocol, DNS
+	MX lookups, and configuration parameter names in error
+	messages.  Viktor Dukhovni. Files: src/smtp/smtp.c,
+	src/smtp/smtp.h, src/smtp/smtp_chat.c, src/smtp/smtp_connect.c,
+	src/smtp/smtp_proto.c, src/smtp/smtp_rcpt.c,
+	src/smtp/smtp_sasl_glue.c, src/smtp/smtp_sasl_proto.c,
+	src/smtp/smtp_session.c, src/smtp/smtp_state.c.
+
+	Feature: replace disable_dns_lookups with smtp_dns_support_level,
+	enable secure DNSSEC lookups in the Postfix SMTP client, and use
+	the DNSSEC-validated remote SMTP server name to select the SMTP
+	and TLS policies.  Viktor Dukhovni. Files: src/dns/Makefile.in,
+	src/dns/dns.h, src/dns/dns_lookup.c, src/dns/dns_rr.c,
+	src/dns/dns_strtype.c, src/dns/test_dns_lookup.c.

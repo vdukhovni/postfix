@@ -206,6 +206,16 @@ extern char *var_fallback_relay;
 #define DEF_DISABLE_DNS		0
 extern bool var_disable_dns;
 
+#define SMTP_DNS_SUPPORT_DISABLED	"disabled"
+#define SMTP_DNS_SUPPORT_ENABLED	"enabled"
+#define SMTP_DNS_SUPPORT_DNSSEC		"dnssec"
+
+#define VAR_SMTP_DNS_SUPPORT	"smtp_dns_support_level"
+#define DEF_SMTP_DNS_SUPPORT	""
+#define VAR_LMTP_DNS_SUPPORT	"lmtp_dns_support_level"
+#define DEF_LMTP_DNS_SUPPORT	""
+extern char *var_smtp_dns_support;
+
 #define SMTP_HOST_LOOKUP_DNS	"dns"
 #define SMTP_HOST_LOOKUP_NATIVE	"native"
 

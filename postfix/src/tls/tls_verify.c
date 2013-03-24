@@ -58,7 +58,7 @@
 /*	other respects the function behaves as tls_fingerprint().
 /*	The var_tls_bc_pkey_fprint variable enables an incorrect
 /*	algorithm that was used in Postfix versions 2.9.[0-5].
-/*	
+/*
 /*	tls_verify_callback() is called several times (directly or
 /*	indirectly) from crypto/x509/x509_vfy.c. It is called as
 /*	a final check, and if it returns "0", the handshake is
@@ -479,7 +479,7 @@ char   *tls_peer_CN(X509 *peercert, const TLS_SESS_STATE *TLScontext)
     char   *cn;
 
     cn = tls_text_name(X509_get_subject_name(peercert), NID_commonName,
-		       "subject CN", TLScontext, DO_GRIPE);
+		       "subject CN", TLScontext, DONT_GRIPE);
     return (cn ? cn : mystrdup(""));
 }
 
@@ -499,7 +499,7 @@ char   *tls_issuer_CN(X509 *peer, const TLS_SESS_STATE *TLScontext)
     if ((cn = tls_text_name(name, NID_commonName,
 			    "issuer CN", TLScontext, DONT_GRIPE)) == 0)
 	cn = tls_text_name(name, NID_organizationName,
-			   "issuer Organization", TLScontext, DO_GRIPE);
+			   "issuer Organization", TLScontext, DONT_GRIPE);
     return (cn ? cn : mystrdup(""));
 }
 
@@ -521,9 +521,9 @@ static char *tls_fprint(const char *buf, int len, const char *dgst)
 
     mdctx = EVP_MD_CTX_create();
     if (EVP_DigestInit_ex(mdctx, md_alg, NULL) == 0
-        || EVP_DigestUpdate(mdctx, buf, len) == 0
-        || EVP_DigestFinal_ex(mdctx, md_buf, &md_len) == 0)
-        msg_fatal("%s: error computing %s message digest", myname, dgst);
+	|| EVP_DigestUpdate(mdctx, buf, len) == 0
+	|| EVP_DigestFinal_ex(mdctx, md_buf, &md_len) == 0)
+	msg_fatal("%s: error computing %s message digest", myname, dgst);
     EVP_MD_CTX_destroy(mdctx);
 
     /* Check for OpenSSL contract violation */
@@ -551,9 +551,9 @@ char   *tls_fingerprint(X509 *peercert, const char *dgst)
 
     len = i2d_X509(peercert, NULL);
     buf2 = buf = mymalloc(len);
-    i2d_X509(peercert, (unsigned char **)&buf2);
+    i2d_X509(peercert, (unsigned char **) &buf2);
     if (buf2 - buf != len)
-        msg_panic("i2d_X509 invalid result length");
+	msg_panic("i2d_X509 invalid result length");
 
     result = tls_fprint(buf, len, dgst);
     myfree(buf);

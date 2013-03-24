@@ -60,6 +60,10 @@
 /*	Search local domain and parent domains.
 /* .IP RES_DEFNAMES
 /*	Append local domain to unqualified names.
+/* .IP RES_USE_DNSSEC
+/*	Request DNSSEC validation. This flag is silently ignored
+/*	when the system stub resolver API, resolver(3), does not
+/*	implement DNSSEC.
 /* .RE
 /* .IP lflags
 /*	Multi-type request control for dns_lookup_l() and dns_lookup_v().
@@ -162,6 +166,7 @@
 typedef struct DNS_REPLY {
     unsigned char *buf;			/* raw reply data */
     size_t  buf_len;			/* reply buffer length */
+    int     validated;			/* DNSSEC AD bit */
     int     query_count;		/* number of queries */
     int     answer_count;		/* number of answers */
     unsigned char *query_start;		/* start of query data */
@@ -202,11 +207,26 @@ static int dns_query(const char *name, int type, int flags,
      * Set search options: debugging, parent domain search, append local
      * domain. Do not allow the user to control other features.
      */
-#define USER_FLAGS (RES_DEBUG | RES_DNSRCH | RES_DEFNAMES)
+#define USER_FLAGS (RES_DEBUG | RES_DNSRCH | RES_DEFNAMES | RES_USE_DNSSEC)
 
     if ((flags & USER_FLAGS) != flags)
 	msg_panic("dns_query: bad flags: %d", flags);
-    saved_options = (_res.options & USER_FLAGS);
+
+    /*
+     * Set extra options that aren't exposed to the application.
+     */
+#define XTRA_FLAGS (RES_USE_EDNS0)
+
+    if (flags & RES_USE_DNSSEC)
+	flags |= RES_USE_EDNS0;
+
+    /*
+     * Save and restore resolver options that we overwrite, to avoid
+     * surprising behavior in other code that also invokes the resolver.
+     */
+#define SAVE_FLAGS (USER_FLAGS | XTRA_FLAGS)
+
+    saved_options = (_res.options & SAVE_FLAGS);
 
     /*
      * Perform the lookup. Claim that the information cannot be found if and
@@ -260,6 +280,11 @@ static int dns_query(const char *name, int type, int flags,
      * Initialize the reply structure. Some structure members are filled on
      * the fly while the reply is being parsed.
      */
+#if RES_USE_DNSSEC != 0
+    reply->validated = (flags & RES_USE_DNSSEC) ? reply_header->ad : 0;
+#else
+    reply->validated = 0;
+#endif
     reply->end = reply->buf + len;
     reply->query_start = reply->buf + sizeof(HEADER);
     reply->answer_start = 0;
@@ -360,6 +385,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 		              DNS_FIXED *fixed)
 {
     char    temp[DNS_NAME_LEN];
+    char   *tempbuf = temp;
     ssize_t data_len;
     unsigned pref = 0;
     unsigned char *src;
@@ -418,6 +444,11 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	data_len = fixed->length;
 	break;
 #endif
+
+	/*
+	 * We impose the same length limit here as for DNS names. However,
+	 * see T_TLSA discussion below.
+	 */
     case T_TXT:
 	data_len = MIN2(pos[0] + 1, MIN2(fixed->length + 1, sizeof(temp)));
 	for (src = pos + 1, dst = (unsigned char *) (temp);
@@ -427,9 +458,24 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	}
 	*dst = 0;
 	break;
+
+	/*
+	 * For a full certificate, fixed->length may be longer than
+	 * sizeof(tmpbuf) == DNS_NAME_LEN.  Since we don't need a decode
+	 * buffer, just copy the raw data into the rr.
+	 * 
+	 * XXX Reject replies with bogus length < 3.
+	 * 
+	 * XXX What about enforcing a sane upper bound? The RFC 1035 hard
+	 * protocol limit is the RRDATA length limit of 65535.
+	 */
+    case T_TLSA:
+	data_len = fixed->length;
+	tempbuf = (char *) pos;
+	break;
     }
     *list = dns_rr_create(orig_name, rr_name, fixed->type, fixed->class,
-			  fixed->ttl, pref, temp, data_len);
+			  fixed->ttl, pref, tempbuf, data_len);
     return (DNS_OK);
 }
 
@@ -450,7 +496,8 @@ static int dns_get_alias(DNS_REPLY *reply, unsigned char *pos,
 /* dns_get_answer - extract answers from name server reply */
 
 static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
-	             DNS_RR **rrlist, VSTRING *fqdn, char *cname, int c_len)
+	             DNS_RR **rrlist, VSTRING *fqdn, char *cname, int c_len,
+			          int *validate_mask)
 {
     char    rr_name[DNS_NAME_LEN];
     unsigned char *pos;
@@ -526,6 +573,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 		if ((status = dns_get_rr(&rr, orig_name, reply, pos, rr_name,
 					 &fixed)) == DNS_OK) {
 		    resource_found++;
+		    rr->validated = (reply->validated & *validate_mask);
 		    *rrlist = dns_rr_append(*rrlist, rr);
 		} else if (not_found_status != DNS_RETRY)
 		    not_found_status = status;
@@ -536,6 +584,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 	    if (cname && c_len > 0)
 		if ((status = dns_get_alias(reply, pos, &fixed, cname, c_len)) != DNS_OK)
 		    CORRUPT(status);
+	    *validate_mask &= reply->validated;
 	}
 	pos += fixed.length;
     }
@@ -562,6 +611,7 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
     static DNS_REPLY reply;
     int     count;
     int     status;
+    int     validate_mask = 1;		/* May reset to 0 via CNAME expansion */
     const char *orig_name = name;
 
     /*
@@ -602,10 +652,12 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 
 	/*
 	 * Extract resource records of the requested type. Pick up CNAME
-	 * information just in case the requested data is not found.
+	 * information just in case the requested data is not found. If any
+	 * CNAME result is not validated, all consequent RRs are deemed not
+	 * validated (the validate_mask is set to 0).
 	 */
 	status = dns_get_answer(orig_name, &reply, type, rrlist, fqdn,
-				cname, c_len);
+				cname, c_len, &validate_mask);
 	switch (status) {
 	default:
 	    if (why)
