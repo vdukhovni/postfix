@@ -18346,3 +18346,14 @@ Apologies for any names omitted.
 	and TLS policies.  Viktor Dukhovni. Files: src/dns/Makefile.in,
 	src/dns/dns.h, src/dns/dns_lookup.c, src/dns/dns_rr.c,
 	src/dns/dns_strtype.c, src/dns/test_dns_lookup.c.
+
+20130325
+
+	Portability: on MacOS X, use kqueue() for event handling
+	but use select() instead of poll() for read/write timeouts
+	(with a workaround to handle file decriptors >=FD_SETSIZE).
+	Files: util/sys_defs.h, util/readable.c, util/writable.c,
+	util/read_wait.c, util/write_wait.c.
+
+	Portability: support for NetBSD 5.x, NetBSD 6.x and DragonFly
+	BSD. Viktor Dukhovni. Files: makedefs, src/util/sys_defs.h.

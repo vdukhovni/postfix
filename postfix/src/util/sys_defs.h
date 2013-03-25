@@ -30,8 +30,8 @@
     || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
     || defined(OPENBSD5) \
     || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
-    || defined(NETBSD4) \
-    || defined(EKKOBSD1)
+    || defined(NETBSD4) || defined(NETBSD5) || defined(NETBSD6) \
+    || defined(EKKOBSD1) || defined(DRAGONFLY)
 #define SUPPORTED
 #include <sys/types.h>
 #include <sys/param.h>
@@ -165,9 +165,19 @@
 #define HAS_FUTIMES
 #endif
 
+#if defined(__DragonFly__)
+#define HAS_DEV_URANDOM
+#define HAS_ISSETUGID
+#define HAS_FUTIMES
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
+#define HAS_DUPLEX_PIPE
+#endif
+
 #if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 105000000) \
     || (defined(__FreeBSD__) && __FreeBSD__ >= 4) \
     || (defined(OpenBSD) && OpenBSD >= 200003) \
+    || defined(__DragonFly__) \
     || defined(USAGI_LIBINET6)
 #ifndef NO_IPV6
 # define HAS_IPV6
@@ -176,14 +186,16 @@
 
 #if (defined(__FreeBSD_version) && __FreeBSD_version >= 300000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 103000000) \
-    || (defined(OpenBSD) && OpenBSD >= 199700)	/* OpenBSD 2.0?? */
+    || (defined(OpenBSD) && OpenBSD >= 199700)	/* OpenBSD 2.0?? */ \
+    || defined(__DragonFly__)
 # define USE_SYSV_POLL
 #endif
 
 #ifndef NO_KQUEUE
 # if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 200000000) \
-    || (defined(OpenBSD) && OpenBSD >= 200105)	/* OpenBSD 2.9 */
+    || (defined(OpenBSD) && OpenBSD >= 200105)	/* OpenBSD 2.9 */ \
+    || defined(__DragonFly__)
 #  define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
 # endif
 #endif
@@ -242,7 +254,7 @@
 #define SOCKOPT_SIZE	socklen_t
 #ifndef NO_KQUEUE
 # define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
-# define USE_SYSV_POLL
+# define NO_SYSV_POLL
 #endif
 #ifndef NO_POSIX_GETPW_R
 # define HAVE_POSIX_GETPW_R
@@ -1368,8 +1380,8 @@ extern int inet_pton(int, const char *, void *);
 #define EVENTS_STYLE_DEVPOLL	3	/* Solaris /dev/poll */
 #define EVENTS_STYLE_EPOLL	4	/* Linux epoll */
 
-#if !defined(USE_SYSV_POLL) && (EVENTS_STYLE != EVENTS_STYLE_SELECT)
-#error "need USE_SYSV_POLL with EVENTS_STYLE != EVENTS_STYLE_SELECT"
+#if !defined(USE_SYSV_POLL) && !defined(NO_SYSV_POLL) && (EVENTS_STYLE != EVENTS_STYLE_SELECT)
+#error "need USE_SYSV_POLL or NO_SYSV_POLL with EVENTS_STYLE != EVENTS_STYLE_SELECT"
 #endif
 
  /*

@@ -15,8 +15,8 @@
 /*
 /*	Arguments:
 /* .IP fd
-/*	File descriptor in the range 0..FD_SETSIZE (on systems that
-/*	need to use select(2)).
+/*	File descriptor. With implementations based on select(),
+/*	a best effort is made to handle descriptors >=FD_SETSIZE.
 /* .IP timeout
 /*	If positive, deadline in seconds. A zero value effects a poll.
 /*	A negative value means wait until something happens.
@@ -62,17 +62,21 @@
 
 int     read_wait(int fd, int timeout)
 {
-#ifndef USE_SYSV_POLL
+#if defined(NO_SYSV_POLL)
     fd_set  read_fds;
     fd_set  except_fds;
     struct timeval tv;
     struct timeval *tp;
+    int     temp_fd = -1;
 
     /*
      * Sanity checks.
      */
-    if (FD_SETSIZE <= fd)
-	msg_panic("descriptor %d does not fit FD_SETSIZE %d", fd, FD_SETSIZE);
+    if (FD_SETSIZE <= fd) {
+	if ((temp_fd = dup(fd)) < 0 || temp_fd >= FD_SETSIZE)
+	    msg_fatal("descriptor %d does not fit FD_SETSIZE %d", fd, FD_SETSIZE);
+	fd = temp_fd;
+    }
 
     /*
      * Use select() so we do not depend on alarm() and on signal() handlers.
@@ -99,13 +103,17 @@ int     read_wait(int fd, int timeout)
 		msg_fatal("select: %m");
 	    continue;
 	case 0:
+	    if (temp_fd != -1)
+		(void) close(temp_fd);
 	    errno = ETIMEDOUT;
 	    return (-1);
 	default:
+	    if (temp_fd != -1)
+		(void) close(temp_fd);
 	    return (0);
 	}
     }
-#else
+#elif defined(USE_SYSV_POLL)
 
     /*
      * System-V poll() is optimal for polling a few descriptors.
@@ -132,5 +140,7 @@ int     read_wait(int fd, int timeout)
 	    return (0);
 	}
     }
+#else
+#error "define USE_SYSV_POLL or NO_SYSV_POLL"
 #endif
 }

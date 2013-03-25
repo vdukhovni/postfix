@@ -155,6 +155,8 @@ case "$SYSTEM.$RELEASE" in
 		;;
   FreeBSD.9*)	SYSTYPE=FREEBSD9
 		;;
+ DragonFly.*)	SYSTYPE=DRAGONFLY
+		;;
   OpenBSD.2*)	SYSTYPE=OPENBSD2
 		;;
   OpenBSD.3*)	SYSTYPE=OPENBSD3
@@ -172,6 +174,10 @@ case "$SYSTEM.$RELEASE" in
    NetBSD.3*)	SYSTYPE=NETBSD3
 		;;
    NetBSD.4*)	SYSTYPE=NETBSD4
+		;;
+   NetBSD.5*)	SYSTYPE=NETBSD5
+		;;
+   NetBSD.6*)	SYSTYPE=NETBSD6
 		;;
    BSD/OS.2*)	SYSTYPE=BSDI2
 		;;
@@ -476,7 +482,7 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		       *) CCARGS="$CCARGS -DRESOLVE_H_NEEDS_ARPA_NAMESER_COMPAT_H";;
 		esac
 		# kqueue and/or poll are broken in MacOS X 10.5 (Darwin 9).
-		# kqueue and poll work in Mac OS X 10.8 (Darwin 12).
+		# kqueue works in Mac OS X 10.8 (Darwin 12).
 		case $RELEASE in
 	    ?.*|1[0-1].*) CCARGS="$CCARGS -DNO_KQUEUE";;
 		esac

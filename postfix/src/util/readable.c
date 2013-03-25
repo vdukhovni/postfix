@@ -14,7 +14,8 @@
 /*
 /*	Arguments:
 /* .IP fd
-/*	File descriptor in the range 0..FD_SETSIZE.
+/*	File descriptor. With implementations based on select(),
+/*	a best effort is made to handle descriptors >=FD_SETSIZE.
 /* DIAGNOSTICS
 /*	All system call errors are fatal.
 /* LICENSE
@@ -54,16 +55,20 @@
 
 int     readable(int fd)
 {
-#ifndef USE_SYSV_POLL
+#if defined(NO_SYSV_POLL)
     struct timeval tv;
     fd_set  read_fds;
     fd_set  except_fds;
+    int     temp_fd = -1;
 
     /*
      * Sanity checks.
      */
-    if (fd >= FD_SETSIZE)
-	msg_fatal("fd %d does not fit in FD_SETSIZE", fd);
+    if (fd >= FD_SETSIZE) {
+	if ((temp_fd = dup(fd)) < 0 || temp_fd >= FD_SETSIZE)
+	    msg_fatal("fd %d does not fit in FD_SETSIZE", fd);
+	fd = temp_fd;
+    }
 
     /*
      * Initialize.
@@ -85,12 +90,16 @@ int     readable(int fd)
 		msg_fatal("select: %m");
 	    continue;
 	default:
+	    if (temp_fd != -1)
+		(void) close(temp_fd);
 	    return (FD_ISSET(fd, &read_fds));
 	case 0:
+	    if (temp_fd != -1)
+		(void) close(temp_fd);
 	    return (0);
 	}
     }
-#else
+#elif defined(USE_SYSV_POLL)
 
     /*
      * System-V poll() is optimal for polling a few descriptors.
@@ -115,5 +124,7 @@ int     readable(int fd)
 	    return (1);
 	}
     }
+#else
+#error "define USE_SYSV_POLL or NO_SYSV_POLL"
 #endif
 }
