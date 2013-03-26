@@ -569,7 +569,8 @@ What remote SMTP clients are allowed to use the XCLIENT feature.
 Available in Postfix version 2.10 and later:
 .IP "\fBsmtpd_log_access_permit_actions (empty)\fR"
 Enable logging of the named "permit" actions in SMTP server
-access lists.
+access lists (by default, the SMTP server logs "reject" actions but
+not "permit" actions).
 .SH "KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS"
 .na
 .nf

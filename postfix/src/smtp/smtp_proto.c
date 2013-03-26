@@ -751,15 +751,6 @@ static int smtp_start_tls(SMTP_STATE *state)
     DONT_CACHE_THIS_SESSION;
 
     /*
-     * As of Postfix 2.5, tls_client_start() tries hard to always complete
-     * the TLS handshake. It records the verification and match status in the
-     * resulting TLScontext. It is now up to the application to abort the TLS
-     * connection if it chooses.
-     * 
-     * XXX When tls_client_start() fails then we don't know what state the SMTP
-     * connection is in, so we give up on this connection even if we are not
-     * required to use TLS.
-     * 
      * The following assumes sites that use TLS in a perverse configuration:
      * multiple hosts per hostname, or even multiple hosts per IP address.
      * All this without a shared TLS session cache, and they still want to
@@ -779,15 +770,28 @@ static int smtp_start_tls(SMTP_STATE *state)
      * ehlo response name to build a lookup key that works for split caches
      * (that announce distinct names) behind a load balancer.
      * 
-     * XXX: The TLS library may salt the serverid with further details of the
-     * protocol and cipher requirements.
+     * XXX: The TLS library will salt the serverid with further details of the
+     * protocol and cipher requirements including the server ehlo response.
+     * Deferring the helo to the digested suffix results in more predictable
+     * SSL session lookup key lengths.
+     */
+    serverid = vstring_alloc(10);
+    vstring_sprintf(serverid, "%s:%s:%u",
+		    state->service, session->addr, ntohs(session->port));
+
+    /*
+     * As of Postfix 2.5, tls_client_start() tries hard to always complete
+     * the TLS handshake. It records the verification and match status in the
+     * resulting TLScontext. It is now up to the application to abort the TLS
+     * connection if it chooses.
+     * 
+     * XXX When tls_client_start() fails then we don't know what state the SMTP
+     * connection is in, so we give up on this connection even if we are not
+     * required to use TLS.
      * 
      * Large parameter lists are error-prone, so we emulate a language feature
      * that C does not have natively: named parameter lists.
      */
-    serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%s:%u:%s", state->service, session->addr,
-		  ntohs(session->port), session->helo ? session->helo : "");
     session->tls_context =
 	TLS_CLIENT_START(&tls_props,
 			 ctx = smtp_tls_ctx,
@@ -798,12 +802,13 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 host = session->host,
 			 namaddr = session->namaddrport,
 			 serverid = vstring_str(serverid),
+			 helo = session->helo,
 			 protocols = session->tls_protocols,
 			 cipher_grade = session->tls_grade,
 			 cipher_exclusions
 			 = vstring_str(session->tls_exclusions),
 			 matchargv = session->tls_matchargv,
-			 fpt_dgst = var_smtp_tls_fpt_dgst);
+			 mdalg = var_smtp_tls_fpt_dgst);
     vstring_free(serverid);
 
     if (session->tls_context == 0) {
@@ -851,7 +856,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    if (session->tls_level > TLS_LEV_ENCRYPT)
+    if (session->tls_level >= TLS_LEV_DANE)
 	if (!TLS_CERT_IS_MATCHED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),

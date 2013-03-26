@@ -168,7 +168,7 @@ static SSL_SESSION *load_clnt_session(TLS_SESS_STATE *TLScontext)
      * Prepare the query.
      */
     if (TLScontext->log_mask & TLS_LOG_CACHE)
-	/* serverid already contains namaddrport information */
+	/* serverid contains transport:addr:port information */
 	msg_info("looking for session %s in %s cache",
 		 TLScontext->serverid, TLScontext->cache_type);
 
@@ -190,7 +190,7 @@ static SSL_SESSION *load_clnt_session(TLS_SESS_STATE *TLScontext)
 	session = tls_session_activate(STR(session_data), LEN(session_data));
 	if (session) {
 	    if (TLScontext->log_mask & TLS_LOG_CACHE)
-		/* serverid already contains namaddrport information */
+		/* serverid contains transport:addr:port information */
 		msg_info("reloaded session %s from %s cache",
 			 TLScontext->serverid, TLScontext->cache_type);
 	}
@@ -230,7 +230,7 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
 		  myname);
 
     if (TLScontext->log_mask & TLS_LOG_CACHE)
-	/* serverid already contains namaddrport information */
+	/* serverid contains transport:addr:port information */
 	msg_info("save session %s to %s cache",
 		 TLScontext->serverid, TLScontext->cache_type);
 
@@ -278,7 +278,7 @@ static void uncache_session(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 	return;
 
     if (TLScontext->log_mask & TLS_LOG_CACHE)
-	/* serverid already contains namaddrport information */
+	/* serverid contains transport:addr:port information */
 	msg_info("remove session %s from client cache", TLScontext->serverid);
 
     tls_mgr_delete(TLScontext->cache_type, TLScontext->serverid);
@@ -292,8 +292,6 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     int     cachable;
     SSL_CTX *client_ctx;
     TLS_APPL_STATE *app_ctx;
-    const EVP_MD *md_alg;
-    unsigned int md_len;
     int     log_mask;
 
     /*
@@ -339,18 +337,8 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * If the administrator specifies an unsupported digest algorithm, fail
      * now, rather than in the middle of a TLS handshake.
      */
-    if ((md_alg = EVP_get_digestbyname(props->fpt_dgst)) == 0) {
-	msg_warn("Digest algorithm \"%s\" not found: disabling TLS support",
-		 props->fpt_dgst);
-	return (0);
-    }
-
-    /*
-     * Sanity check: Newer shared libraries may use larger digests.
-     */
-    if ((md_len = EVP_MD_size(md_alg)) > EVP_MAX_MD_SIZE) {
-	msg_warn("Digest algorithm \"%s\" output size %u too large:"
-		 " disabling TLS support", props->fpt_dgst, md_len);
+    if (!tls_validate_digest(props->mdalg)) {
+	msg_warn("disabling TLS support");
 	return (0);
     }
 
@@ -732,8 +720,8 @@ static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
     char  **cpp;
 
     /* Non-null by contract */
-    TLScontext->peer_fingerprint = tls_fingerprint(peercert, props->fpt_dgst);
-    TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->fpt_dgst);
+    TLScontext->peer_fingerprint = tls_fingerprint(peercert, props->mdalg);
+    TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->mdalg);
 
     /*
      * Compare the fingerprint against each acceptable value, ignoring
@@ -765,7 +753,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     X509   *peercert;
     TLS_SESS_STATE *TLScontext;
     TLS_APPL_STATE *app_ctx = props->ctx;
-    VSTRING *myserverid;
+    char   *myserverid;
     int     log_mask = app_ctx->log_mask;
 
     /*
@@ -781,19 +769,8 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /*
      * First make sure we have valid protocol and cipher parameters
      * 
-     * The cipherlist will be applied to the global SSL context, where it can be
-     * repeatedly reset if necessary, but the protocol restrictions will be
-     * is applied to the SSL connection, because protocol restrictions in the
-     * global context cannot be cleared.
-     */
-
-    /*
-     * OpenSSL will ignore cached sessions that use the wrong protocol. So we
-     * do not need to filter out cached sessions with the "wrong" protocol,
-     * rather OpenSSL will simply negotiate a new session.
-     * 
-     * Still, we salt the session lookup key with the protocol list, so that
-     * sessions found in the cache are always acceptable.
+     * Per-session protocol restrictions must be applied to the SSL connection,
+     * as restrictions in the global context cannot be cleared.
      */
     protomask = tls_protocol_mask(props->protocols);
     if (protomask == TLS_PROTOCOL_INVALID) {
@@ -802,11 +779,31 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 		 props->namaddr, props->protocols);
 	return (0);
     }
-    myserverid = vstring_alloc(100);
-    vstring_sprintf_append(myserverid, "%s&p=%d", props->serverid, protomask);
 
     /*
      * Per session cipher selection for sessions with mandatory encryption
+     * 
+     * The cipherlist is applied to the global SSL context, since it is likely
+     * to stay the same between connections, so we make use of a 1-element
+     * cache to return the same result for identical inputs.
+     */
+    cipher_list = tls_set_ciphers(app_ctx, "TLS", props->cipher_grade,
+				  props->cipher_exclusions);
+    if (cipher_list == 0) {
+	msg_warn("%s: %s: aborting TLS session",
+		 props->namaddr, vstring_str(app_ctx->why));
+	return (0);
+    }
+    if (log_mask & TLS_LOG_VERBOSE)
+	msg_info("%s: TLS cipher list \"%s\"", props->namaddr, cipher_list);
+
+    /*
+     * OpenSSL will ignore cached sessions that use the wrong protocol. So we
+     * do not need to filter out cached sessions with the "wrong" protocol,
+     * rather OpenSSL will simply negotiate a new session.
+     * 
+     * We salt the session lookup key with the protocol list, so that sessions
+     * found in the cache are plausibly acceptable.
      * 
      * By the time a TLS client is negotiating ciphers it has already offered to
      * re-use a session, it is too late to renege on the offer. So we must
@@ -814,23 +811,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * session lookup key with the cipher list, so that sessions found in the
      * cache are always acceptable.
      */
-    cipher_list = tls_set_ciphers(app_ctx, "TLS", props->cipher_grade,
-				  props->cipher_exclusions);
-    if (cipher_list == 0) {
-	msg_warn("%s: %s: aborting TLS session",
-		 props->namaddr, vstring_str(app_ctx->why));
-	vstring_free(myserverid);
-	return (0);
-    }
-    if (log_mask & TLS_LOG_VERBOSE)
-	msg_info("%s: TLS cipher list \"%s\"", props->namaddr, cipher_list);
-    vstring_sprintf_append(myserverid, "&c=%s", cipher_list);
-
-    /*
-     * Finally, salt the session key with the OpenSSL library version,
-     * (run-time, rather than compile-time, just in case that matters).
-     */
-    vstring_sprintf_append(myserverid, "&l=%ld", (long) SSLeay());
+    myserverid = tls_serverid_digest(props, protomask, cipher_list);
 
     /*
      * Allocate a new TLScontext for the new connection and get an SSL
@@ -843,8 +824,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     TLScontext = tls_alloc_sess_context(log_mask, props->namaddr);
     TLScontext->cache_type = app_ctx->cache_type;
 
-    TLScontext->serverid = vstring_export(myserverid);
+    TLScontext->serverid = myserverid;
     TLScontext->stream = props->stream;
+    TLScontext->mdalg = props->mdalg;
 
     if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
 	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");

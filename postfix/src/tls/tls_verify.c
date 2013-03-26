@@ -19,13 +19,6 @@
 /*	const GENERAL_NAME *gn;
 /*	TLS_SESS_STATE *TLScontext;
 /*
-/*	char *tls_fingerprint(peercert, dgst)
-/*	X509   *peercert;
-/*	const char *dgst;
-/*
-/*	char *tls_pkey_fprint(peercert, dgst)
-/*	X509   *peercert;
-/*	const char *dgst;
 /*
 /*	int	tls_verify_certificate_callback(ok, ctx)
 /*	int	ok;
@@ -47,17 +40,6 @@
 /*	from a DNS subjectAltName extension. If non-printable characters
 /*	are found, a null string is returned instead. Further sanity
 /*	checks may be added if the need arises.
-/*
-/* 	tls_fingerprint() returns a fingerprint of the the given
-/*	certificate using the requested message digest. Panics if the
-/*	(previously verified) digest algorithm is not found. The return
-/*	value is dynamically allocated with mymalloc(), and the caller
-/*	must eventually free it with myfree().
-/*
-/*	tls_pkey_fprint() returns a public-key fingerprint; in all
-/*	other respects the function behaves as tls_fingerprint().
-/*	The var_tls_bc_pkey_fprint variable enables an incorrect
-/*	algorithm that was used in Postfix versions 2.9.[0-5].
 /*
 /*	tls_verify_callback() is called several times (directly or
 /*	indirectly) from crypto/x509/x509_vfy.c. It is called as
@@ -99,10 +81,6 @@
 /*	to be decoded and checked for validity.
 /* .IP peercert
 /*	Server or client X.509 certificate.
-/* .IP dgst
-/*	Name of a message digest algorithm suitable for computing secure
-/*	(1st pre-image resistant) message digests of certificates. For now,
-/*	md5, sha1, or member of SHA-2 family if supported by OpenSSL.
 /* .IP TLScontext
 /*	Server or client context for warning messages.
 /* DIAGNOSTICS
@@ -149,18 +127,10 @@
 #include <mymalloc.h>
 #include <stringops.h>
 
-/* Global library. */
-
-#include <mail_params.h>
-
 /* TLS library. */
 
 #define TLS_INTERNAL
 #include <tls.h>
-
-/* Application-specific. */
-
-static const char hexcodes[] = "0123456789ABCDEF";
 
 /* tls_verify_certificate_callback - verify peer certificate info */
 
@@ -501,98 +471,6 @@ char   *tls_issuer_CN(X509 *peer, const TLS_SESS_STATE *TLScontext)
 	cn = tls_text_name(name, NID_organizationName,
 			   "issuer Organization", TLScontext, DONT_GRIPE);
     return (cn ? cn : mystrdup(""));
-}
-
-/* tls_fprint - compute and encode digest of DER-encoded object */
-
-static char *tls_fprint(const char *buf, int len, const char *dgst)
-{
-    const char *myname = "tls_fprint";
-    EVP_MD_CTX *mdctx;
-    const EVP_MD *md_alg;
-    unsigned char md_buf[EVP_MAX_MD_SIZE];
-    unsigned int md_len;
-    int     i;
-    char   *result = 0;
-
-    /* Previously available in "init" routine. */
-    if ((md_alg = EVP_get_digestbyname(dgst)) == 0)
-	msg_panic("%s: digest algorithm \"%s\" not found", myname, dgst);
-
-    mdctx = EVP_MD_CTX_create();
-    if (EVP_DigestInit_ex(mdctx, md_alg, NULL) == 0
-	|| EVP_DigestUpdate(mdctx, buf, len) == 0
-	|| EVP_DigestFinal_ex(mdctx, md_buf, &md_len) == 0)
-	msg_fatal("%s: error computing %s message digest", myname, dgst);
-    EVP_MD_CTX_destroy(mdctx);
-
-    /* Check for OpenSSL contract violation */
-    if (md_len > EVP_MAX_MD_SIZE || md_len >= INT_MAX / 3)
-	msg_panic("%s: unexpectedly large %s digest size: %u",
-		  myname, dgst, md_len);
-
-    result = mymalloc(md_len * 3);
-    for (i = 0; i < md_len; i++) {
-	result[i * 3] = hexcodes[(md_buf[i] & 0xf0) >> 4U];
-	result[(i * 3) + 1] = hexcodes[(md_buf[i] & 0x0f)];
-	result[(i * 3) + 2] = (i + 1 != md_len) ? ':' : '\0';
-    }
-    return (result);
-}
-
-/* tls_fingerprint - extract certificate fingerprint */
-
-char   *tls_fingerprint(X509 *peercert, const char *dgst)
-{
-    int     len;
-    char   *buf;
-    char   *buf2;
-    char   *result;
-
-    len = i2d_X509(peercert, NULL);
-    buf2 = buf = mymalloc(len);
-    i2d_X509(peercert, (unsigned char **) &buf2);
-    if (buf2 - buf != len)
-	msg_panic("i2d_X509 invalid result length");
-
-    result = tls_fprint(buf, len, dgst);
-    myfree(buf);
-
-    return (result);
-}
-
-/* tls_pkey_fprint - extract public key fingerprint from certificate */
-
-char   *tls_pkey_fprint(X509 *peercert, const char *dgst)
-{
-    if (var_tls_bc_pkey_fprint) {
-	const char *myname = "tls_pkey_fprint";
-	ASN1_BIT_STRING *key;
-	char   *result;
-
-	key = X509_get0_pubkey_bitstr(peercert);
-	if (key == 0)
-	    msg_fatal("%s: error extracting legacy public-key fingerprint: %m",
-		      myname);
-
-	result = tls_fprint((char *) key->data, key->length, dgst);
-	return (result);
-    } else {
-	int     len;
-	char   *buf;
-	char   *buf2;
-	char   *result;
-
-	len = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(peercert), NULL);
-	buf2 = buf = mymalloc(len);
-	i2d_X509_PUBKEY(X509_get_X509_PUBKEY(peercert), (unsigned char **) &buf2);
-	if (buf2 - buf != len)
-	    msg_panic("i2d_X509_PUBKEY invalid result length");
-
-	result = tls_fprint(buf, len, dgst);
-	myfree(buf);
-	return (result);
-    }
 }
 
 #endif

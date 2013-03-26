@@ -66,6 +66,9 @@ const NAME_CODE tls_level_table[] = {
     "none", TLS_LEV_NONE,
     "may", TLS_LEV_MAY,
     "encrypt", TLS_LEV_ENCRYPT,
+#if 0					/* Not yet */
+    "dane", TLS_LEV_DANE,
+#endif
     "fingerprint", TLS_LEV_FPRINT,
     "verify", TLS_LEV_VERIFY,
     "secure", TLS_LEV_SECURE,

@@ -698,7 +698,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 			 namaddr = state->remote_endpt,
 			 cipher_grade = cipher_grade,
 			 cipher_exclusions = STR(cipher_exclusions),
-			 fpt_dgst = var_tlsp_tls_fpt_dgst);
+			 mdalg = var_tlsp_tls_fpt_dgst);
 
     if (state->tls_context == 0) {
 	tlsp_state_free(state);
@@ -993,7 +993,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			    var_tlsp_tls_mand_proto :
 			    var_tlsp_tls_proto,
 			    ask_ccert = ask_client_cert,
-			    fpt_dgst = var_tlsp_tls_fpt_dgst);
+			    mdalg = var_tlsp_tls_fpt_dgst);
     else
 	msg_warn("No server certs available. TLS can't be enabled");
 

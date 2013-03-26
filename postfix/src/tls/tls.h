@@ -29,9 +29,10 @@
 #define TLS_LEV_NONE		0	/* plain-text only */
 #define TLS_LEV_MAY		1	/* wildcard */
 #define TLS_LEV_ENCRYPT		2	/* encrypted connection */
-#define TLS_LEV_FPRINT		3	/* "peer" CA-less verification */
-#define TLS_LEV_VERIFY		4	/* certificate verified */
-#define TLS_LEV_SECURE		5	/* "secure" verification */
+#define TLS_LEV_DANE		3	/* "peer" CA-less verification */
+#define TLS_LEV_FPRINT		4	/* "peer" CA-less verification */
+#define TLS_LEV_VERIFY		5	/* certificate verified */
+#define TLS_LEV_SECURE		6	/* "secure" verification */
 
 extern const NAME_CODE tls_level_table[];
 
@@ -97,8 +98,8 @@ typedef struct {
     int     log_mask;			/* What to log */
     int     session_reused;		/* this session was reused */
     int     am_server;			/* Are we an SSL server or client? */
+    const char *mdalg;			/* default message digest algorithm */
     /* Built-in vs external SSL_accept/read/write/shutdown support. */
-    char   *fpt_dgst;			/* Certificate fingerprint digest */
     VSTREAM *stream;			/* Blocking-mode SMTP session */
 } TLS_SESS_STATE;
 
@@ -234,7 +235,7 @@ typedef struct {
     const char *eckey_file;
     const char *CAfile;
     const char *CApath;
-    const char *fpt_dgst;		/* Fingerprint digest algorithm */
+    const char *mdalg;			/* default message digest algorithm */
 } TLS_CLIENT_INIT_PROPS;
 
 typedef struct {
@@ -246,11 +247,12 @@ typedef struct {
     const char *host;			/* MX hostname */
     const char *namaddr;		/* nam[addr] for logging */
     const char *serverid;		/* Session cache key */
+    const char *helo;			/* Server name from EHLO response */
     const char *protocols;		/* Enabled protocols */
     const char *cipher_grade;		/* Minimum cipher grade */
     const char *cipher_exclusions;	/* Ciphers to exclude */
     const ARGV *matchargv;		/* Cert match patterns */
-    const char *fpt_dgst;		/* Fingerprint digest algorithm */
+    const char *mdalg;			/* default message digest algorithm */
 } TLS_CLIENT_START_PROPS;
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);
@@ -267,11 +269,11 @@ extern TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *);
     ((props)->a12), ((props)->a13), (props)))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13) \
+    a10, a11, a12, a13, a14) \
     tls_client_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), (props)))
+    ((props)->a12), ((props)->a13), ((props)->a14), (props)))
 
  /*
   * tls_server.c
@@ -296,7 +298,7 @@ typedef struct {
     const char *dh1024_param_file;
     const char *dh512_param_file;
     int     ask_ccert;
-    const char *fpt_dgst;		/* Fingerprint digest algorithm */
+    const char *mdalg;			/* default message digest algorithm */
 } TLS_SERVER_INIT_PROPS;
 
 typedef struct {
@@ -309,7 +311,7 @@ typedef struct {
     const char *namaddr;		/* Client nam[addr] for logging */
     const char *cipher_grade;
     const char *cipher_exclusions;
-    const char *fpt_dgst;		/* Fingerprint digest algorithm */
+    const char *mdalg;			/* default message digest algorithm */
 } TLS_SERVER_START_PROPS;
 
 extern TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *);
@@ -397,9 +399,15 @@ extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
 extern char *tls_peer_CN(X509 *, const TLS_SESS_STATE *);
 extern char *tls_issuer_CN(X509 *, const TLS_SESS_STATE *);
 extern const char *tls_dns_name(const GENERAL_NAME *, const TLS_SESS_STATE *);
+extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
+
+ /*
+  * tls_fprint.c
+  */
 extern char *tls_fingerprint(X509 *, const char *);
 extern char *tls_pkey_fprint(X509 *, const char *);
-extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
+extern char *tls_serverid_digest(const TLS_CLIENT_START_PROPS *, long,
+				         const char *);
 
  /*
   * tls_certkey.c
@@ -423,6 +431,7 @@ extern long tls_bug_bits(void);
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
 extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);
+extern int tls_validate_digest(const char *);
 
  /*
   * tls_seed.c

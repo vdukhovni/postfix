@@ -254,7 +254,7 @@
 #define SOCKOPT_SIZE	socklen_t
 #ifndef NO_KQUEUE
 # define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
-# define NO_SYSV_POLL
+# define USE_SYSV_POLL_WITH_SELECT
 #endif
 #ifndef NO_POSIX_GETPW_R
 # define HAVE_POSIX_GETPW_R
@@ -1374,15 +1374,14 @@ extern int inet_pton(int, const char *, void *);
 #if !defined(EVENTS_STYLE)
 #define EVENTS_STYLE	EVENTS_STYLE_SELECT
 #endif
+#if !defined(USE_SYSV_POLL) && !defined(USE_SYSV_POLL_WITH_SELECT)
+#define USE_BSD_SELECT
+#endif
 
 #define EVENTS_STYLE_SELECT	1	/* Traditional BSD select */
 #define EVENTS_STYLE_KQUEUE	2	/* FreeBSD kqueue */
 #define EVENTS_STYLE_DEVPOLL	3	/* Solaris /dev/poll */
 #define EVENTS_STYLE_EPOLL	4	/* Linux epoll */
-
-#if !defined(USE_SYSV_POLL) && !defined(NO_SYSV_POLL) && (EVENTS_STYLE != EVENTS_STYLE_SELECT)
-#error "need USE_SYSV_POLL or NO_SYSV_POLL with EVENTS_STYLE != EVENTS_STYLE_SELECT"
-#endif
 
  /*
   * The Postfix 2.9 post-install workaround assumes that the inet_protocols

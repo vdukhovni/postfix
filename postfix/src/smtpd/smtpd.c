@@ -529,7 +529,8 @@
 /*	Available in Postfix version 2.10 and later:
 /* .IP "\fBsmtpd_log_access_permit_actions (empty)\fR"
 /*	Enable logging of the named "permit" actions in SMTP server
-/*	access lists.
+/*	access lists (by default, the SMTP server logs "reject" actions but
+/*	not "permit" actions).
 /* KNOWN VERSUS UNKNOWN RECIPIENT CONTROLS
 /* .ad
 /* .fi
@@ -4206,7 +4207,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
 			 namaddr = state->namaddr,
 			 cipher_grade = cipher_grade,
 			 cipher_exclusions = STR(cipher_exclusions),
-			 fpt_dgst = var_smtpd_tls_fpt_dgst);
+			 mdalg = var_smtpd_tls_fpt_dgst);
 
 #endif						/* USE_TLSPROXY */
 
@@ -5148,7 +5149,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    var_smtpd_tls_mand_proto :
 				    var_smtpd_tls_proto,
 				    ask_ccert = ask_client_cert,
-				    fpt_dgst = var_smtpd_tls_fpt_dgst);
+				    mdalg = var_smtpd_tls_fpt_dgst);
 	    else
 		msg_warn("No server certs available. TLS won't be enabled");
 #endif						/* USE_TLSPROXY */

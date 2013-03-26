@@ -1110,7 +1110,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    eckey_file = var_smtp_tls_eckey_file,
 			    CAfile = var_smtp_tls_CAfile,
 			    CApath = var_smtp_tls_CApath,
-			    fpt_dgst = var_smtp_tls_fpt_dgst);
+			    mdalg = var_smtp_tls_fpt_dgst);
 	smtp_tls_list_init();
 #else
 	msg_warn("TLS has been selected, but TLS support is not compiled in");

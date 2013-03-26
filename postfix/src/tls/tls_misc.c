@@ -72,6 +72,9 @@
 /*	int	tls_log_mask(log_param, log_level)
 /*	const char *log_param;
 /*	const char *log_level;
+/*
+/*	int	tls_validate_digest(dgst)
+/*	const char *dgst;
 /* DESCRIPTION
 /*	This module implements routines that support the TLS client
 /*	and server internals.
@@ -136,6 +139,9 @@
 /*	tls_log_mask() converts a TLS log_level value from string
 /*	to mask.  The main.cf parameter name is passed along for
 /*	diagnostics.
+/*
+/*	tls_validate_digest() returns non-zero if the named digest
+/*	is usable and zero otherwise.
 /* LICENSE
 /* .ad
 /* .fi
@@ -740,7 +746,7 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->cipher_name = 0;
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
-    TLScontext->fpt_dgst = 0;
+    TLScontext->mdalg = 0;			/* Alias for props->mdalg */
 
     return (TLScontext);
 }
@@ -771,8 +777,6 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_fingerprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
-    if (TLScontext->fpt_dgst)
-	myfree(TLScontext->fpt_dgst);
 
     myfree((char *) TLScontext);
 }
@@ -1052,6 +1056,31 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
 	tls_dump_buffer((unsigned char *) argp, (int) ret);
     }
     return (ret);
+}
+
+int     tls_validate_digest(const char *dgst)
+{
+    const EVP_MD *md_alg;
+    unsigned int md_len;
+
+    /*
+     * If the administrator specifies an unsupported digest algorithm, fail
+     * now, rather than in the middle of a TLS handshake.
+     */
+    if ((md_alg = EVP_get_digestbyname(dgst)) == 0) {
+	msg_warn("Digest algorithm \"%s\" not found", dgst);
+	return (0);
+    }
+
+    /*
+     * Sanity check: Newer shared libraries may use larger digests.
+     */
+    if ((md_len = EVP_MD_size(md_alg)) > EVP_MAX_MD_SIZE) {
+	msg_warn("Digest algorithm \"%s\" output size %u too large",
+		 dgst, md_len);
+	return (0);
+    }
+    return (1);
 }
 
 #else

@@ -286,8 +286,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     int     cachable;
     int     protomask;
     TLS_APPL_STATE *app_ctx;
-    const EVP_MD *md_alg;
-    unsigned int md_len;
     int     log_mask;
 
     /*
@@ -344,18 +342,8 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      * If the administrator specifies an unsupported digest algorithm, fail
      * now, rather than in the middle of a TLS handshake.
      */
-    if ((md_alg = EVP_get_digestbyname(props->fpt_dgst)) == 0) {
-	msg_warn("Digest algorithm \"%s\" not found: disabling TLS support",
-		 props->fpt_dgst);
-	return (0);
-    }
-
-    /*
-     * Sanity check: Newer shared libraries may use larger digests.
-     */
-    if ((md_len = EVP_MD_size(md_alg)) > EVP_MAX_MD_SIZE) {
-	msg_warn("Digest algorithm \"%s\" output size %u too large:"
-		 " disabling TLS support", props->fpt_dgst, md_len);
+    if (!tls_validate_digest(props->mdalg)) {
+	msg_warn("disabling TLS support");
 	return (0);
     }
 
@@ -643,9 +631,8 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 
     TLScontext->serverid = mystrdup(props->serverid);
     TLScontext->am_server = 1;
-
-    TLScontext->fpt_dgst = mystrdup(props->fpt_dgst);
     TLScontext->stream = props->stream;
+    TLScontext->mdalg = props->mdalg;
 
     ERR_clear_error();
     if ((TLScontext->con = (SSL *) SSL_new(app_ctx->ssl_ctx)) == 0) {
@@ -777,10 +764,8 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	}
 	TLScontext->peer_CN = tls_peer_CN(peer, TLScontext);
 	TLScontext->issuer_CN = tls_issuer_CN(peer, TLScontext);
-	TLScontext->peer_fingerprint =
-	    tls_fingerprint(peer, TLScontext->fpt_dgst);
-	TLScontext->peer_pkey_fprint =
-	    tls_pkey_fprint(peer, TLScontext->fpt_dgst);
+	TLScontext->peer_fingerprint = tls_fingerprint(peer, TLScontext->mdalg);
+	TLScontext->peer_pkey_fprint = tls_pkey_fprint(peer, TLScontext->mdalg);
 
 	if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
 	    msg_info("%s: subject_CN=%s, issuer=%s, fingerprint=%s"
@@ -795,6 +780,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->issuer_CN = mystrdup("");
 	TLScontext->peer_fingerprint = mystrdup("");
+	TLScontext->peer_pkey_fprint = mystrdup("");
     }
 
     /*
