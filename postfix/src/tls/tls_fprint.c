@@ -6,10 +6,19 @@
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
-/*	char	*tls_serverid_digest(props, protomask, ciphers);
+/*	char	*tls_serverid_digest(props, protomask, ciphers)
 /*	const TLS_CLIENT_START_PROPS *props;
 /*	long	protomask;
 /*	const char *ciphers;
+/*
+/*	char	*tls_digest_encode(md_buf, md_len)
+/*	const unsigned char *md_buf;
+/*	const char *md_len;
+/*
+/*	char	*tls_fprint(buf, len, mdalg)
+/*	const char *buf;
+/*	int	len;
+/*	const char *mdalg;
 /*
 /*	char	*tls_fingerprint(peercert, mdalg)
 /*	X509	*peercert;
@@ -19,8 +28,19 @@
 /*	X509	*peercert;
 /*	const char *mdalg;
 /* DESCRIPTION
+/*	tls_digest_encode() converts a binary message digest to a hex ASCII
+/*	format with ':' separators between each pair of hex digits.
+/*	The return value is dynamically allocated with mymalloc(),
+/*	and the caller must eventually free it with myfree().
+/*
+/*	tls_fprint() digests unstructured data, and encodes the digested
+/*	result via tls_digest_encode().
+/*	The return value is dynamically allocated with mymalloc(),
+/*	and the caller must eventually free it with myfree().
+/*
 /*	tls_fingerprint() returns a fingerprint of the the given
-/*	certificate using the requested message digest. Panics if the
+/*	certificate using the requested message digest, formatted
+/*	with tls_digest_encode(). Panics if the
 /*	(previously verified) digest algorithm is not found. The return
 /*	value is dynamically allocated with mymalloc(), and the caller
 /*	must eventually free it with myfree().
@@ -29,20 +49,32 @@
 /*	other respects the function behaves as tls_fingerprint().
 /*	The var_tls_bc_pkey_fprint variable enables an incorrect
 /*	algorithm that was used in Postfix versions 2.9.[0-5].
+/*	The return value is dynamically allocated with mymalloc(),
+/*	and the caller must eventually free it with myfree().
 /*
 /*	tls_serverid_digest() suffixes props->serverid computed by the SMTP
-/*	client with a digest of additional parameters needed to ensure
-/*	that re-used sessions are more likely to be reused and will satisfy
-/*	all protocol and security requirements. The caller should pass
-/*	the result to myfree().
+/*	client with ":" plus a digest of additional parameters
+/*	needed to ensure that re-used sessions are more likely to
+/*	be reused and that they will satisfy all protocol and
+/*	security requirements.
+/*	The return value is dynamically allocated with mymalloc(),
+/*	and the caller must eventually free it with myfree().
 /*
 /*	Arguments:
 /* .IP peercert
 /*	Server or client X.509 certificate.
+/* .IP md_buf
+/*	The raw binary digest.
+/* .IP md_len
+/*	The digest length in bytes.
 /* .IP mdalg
 /*	Name of a message digest algorithm suitable for computing secure
 /*	(1st pre-image resistant) message digests of certificates. For now,
 /*	md5, sha1, or member of SHA-2 family if supported by OpenSSL.
+/* .IP buf
+/*	Input data for the message digest algorithm mdalg.
+/* .IP len
+/*	The length of the input data.
 /* .IP props
 /*	The client start properties for the session, which include the
 /*	initial serverid from the SMTP client.
@@ -155,9 +187,29 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
     return (vstring_export(result));
 }
 
+/* tls_digest_encode - encode message digest binary blob as xx:xx:... */
+
+char   *tls_digest_encode(const unsigned char *md_buf, int md_len)
+{
+    int     i;
+    char   *result = mymalloc(md_len * 3);
+
+    /* Check for contract violation */
+    if (md_len > EVP_MAX_MD_SIZE || md_len >= INT_MAX / 3)
+	msg_panic("unexpectedly large message digest size: %u", md_len);
+
+    /* No risk of overrunes, len is bounded by OpenSSL digest length */
+    for (i = 0; i < md_len; i++) {
+	result[i * 3] = hexcodes[(md_buf[i] & 0xf0) >> 4U];
+	result[(i * 3) + 1] = hexcodes[(md_buf[i] & 0x0f)];
+	result[(i * 3) + 2] = (i + 1 != md_len) ? ':' : '\0';
+    }
+    return (result);
+}
+
 /* tls_fprint - compute and encode digest of DER-encoded object */
 
-static char *tls_fprint(const char *buf, int len, const char *mdalg)
+char   *tls_fprint(const char *buf, int len, const char *mdalg)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
@@ -179,17 +231,7 @@ static char *tls_fprint(const char *buf, int len, const char *mdalg)
     if (!ok)
 	msg_fatal("error computing %s message digest", mdalg);
 
-    /* Check for OpenSSL contract violation */
-    if (md_len > EVP_MAX_MD_SIZE || md_len >= INT_MAX / 3)
-	msg_panic("unexpectedly large %s digest size: %u", mdalg, md_len);
-
-    result = mymalloc(md_len * 3);
-    for (i = 0; i < md_len; i++) {
-	result[i * 3] = hexcodes[(md_buf[i] & 0xf0) >> 4U];
-	result[(i * 3) + 1] = hexcodes[(md_buf[i] & 0x0f)];
-	result[(i * 3) + 2] = (i + 1 != md_len) ? ':' : '\0';
-    }
-    return (result);
+    return (tls_digest_encode(md_buf, md_len));
 }
 
 /* tls_fingerprint - extract certificate fingerprint */

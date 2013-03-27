@@ -34,7 +34,7 @@
 #include <sys/resource.h>
 #include <errno.h>
 
-#ifdef MACOSX
+#ifdef USE_MAX_FILES_PER_PROC
 #include <sys/sysctl.h>
 #define MAX_FILES_PER_PROC      "kern.maxfilesperproc"
 #endif
@@ -73,7 +73,7 @@ int     open_limit(int limit)
 	 * MacOSX incorrectly reports rlim_max as RLIM_INFINITY. The true
 	 * hard limit is finite and equals the kern.maxfilesperproc value.
 	 */
-#ifdef MACOSX
+#ifdef USE_MAX_FILES_PER_PROC
 	int     max_files_per_proc;
 	size_t  len = sizeof(max_files_per_proc);
 

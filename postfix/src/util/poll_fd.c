@@ -12,13 +12,13 @@
 /*	int	writable(fd)
 /*	int	fd;
 /*
-/*	int	read_wait(fd, timeout)
+/*	int	read_wait(fd, time_limit)
 /*	int	fd;
-/*	int	timeout
+/*	int	time_limit;
 /*
-/*	int	write_wait(fd, timeout)
+/*	int	write_wait(fd, time_limit)
 /*	int	fd;
-/*	int	timeout
+/*	int	time_limit;
 /*
 /*	int	poll_fd(fd, request, time_limit, success_val)
 /*	int	fd;
@@ -95,6 +95,35 @@
 #include <unistd.h>
 #include <string.h>
 
+ /*
+  * Use poll() with fall-back to select(). MacOSX needs this for devices.
+  */
+#if defined(USE_SYSV_POLL_THEN_SELECT)
+#define poll_fd_sysv	poll_fd
+#define USE_SYSV_POLL
+#define USE_BSD_SELECT
+int     poll_fd_bsd(int, int, int, int);
+
+ /*
+  * Use select() only.
+  */
+#elif defined(USE_BSD_SELECT)
+#define poll_fd_bsd	poll_fd
+#undef USE_SYSV_POLL
+
+ /*
+  * Use poll() only.
+  */
+#elif defined(USE_SYSV_POLL)
+#define poll_fd_sysv	poll_fd
+
+ /*
+  * Sanity check.
+  */
+#else
+#error "specify USE_SYSV_POLL, USE_BSD_SELECT or USE_SYSV_POLL_THEN_SELECT"
+#endif
+
 #ifdef USE_SYSV_POLL
 #include <poll.h>
 #endif
@@ -107,41 +136,6 @@
 
 #include <msg.h>
 #include <iostuff.h>
-
- /*
-  * Use select() only.
-  */
-#ifdef USE_BSD_SELECT
-#define poll_fd_bsd	poll_fd
-#undef USE_SYSV_POLL
-#undef USE_SYSV_POLL_WITH_SELECT
-#endif
-
- /*
-  * Use poll() only.
-  */
-#ifdef USE_SYSV_POLL
-#define poll_fd_sysv	poll_fd
-#undef USE_SYSV_POLL_WITH_SELECT
-#endif
-
- /*
-  * Use poll() with fall-back to select(). MacOSX needs this for devices.
-  */
-#ifdef USE_SYSV_POLL_WITH_SELECT
-#define poll_fd_sysv	poll_fd
-#define USE_SYSV_POLL
-#define USE_BSD_SELECT
-int     poll_fd_bsd(int, int, int, int);
-
-#endif
-
- /*
-  * Sanity check.
-  */
-#if !defined(USE_BSD_SELECT) && !defined(USE_SYSV_POLL)
-#error "specify USE_BSD_SELECT, USE_SYSV_POLL or USE_SYSV_POLL_WITH_SELECT"
-#endif
 
 #ifdef USE_BSD_SELECT
 
@@ -168,7 +162,7 @@ int     poll_fd_bsd(int fd, int request, int time_limit, int success_val)
 
     /*
      * Use select() so we do not depend on alarm() and on signal() handlers.
-     * Restart the select when interrupted by some signal. Some select()
+     * Restart select() when interrupted by some signal. Some select()
      * implementations reduce the time to wait when interrupted, which is
      * exactly what we want.
      */
@@ -220,6 +214,14 @@ int     poll_fd_bsd(int fd, int request, int time_limit, int success_val)
 
 #ifdef USE_SYSV_POLL
 
+#ifdef USE_SYSV_POLL_THEN_SELECT
+#define HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val) \
+	return (poll_fd_bsd((fd), (request), (time_limit), (success_val)))
+#else
+#define HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val) \
+	msg_fatal("poll: %m")
+#endif
+
 /* poll_fd_sysv - block with time_limit until file descriptor is ready */
 
 int     poll_fd_sysv(int fd, int request, int time_limit, int success_val)
@@ -232,23 +234,20 @@ int     poll_fd_sysv(int fd, int request, int time_limit, int success_val)
 #define WAIT_FOR_EVENT	(-1)
 
     pollfd.fd = fd;
-    if (request == POLL_FD_READ)
+    if (request == POLL_FD_READ) {
 	pollfd.events = POLLIN;
-    else if (request == POLL_FD_WRITE)
+    } else if (request == POLL_FD_WRITE) {
 	pollfd.events = POLLOUT;
-    else
+    } else {
 	msg_panic("poll_fd: bad request %d", request);
+    }
 
     for (;;) {
 	switch (poll(&pollfd, 1, time_limit < 0 ?
 		     WAIT_FOR_EVENT : time_limit * 1000)) {
 	case -1:
 	    if (errno != EINTR)
-#ifdef USE_SYSV_POLL_WITH_SELECT
-		return (poll_fd_bsd(fd, request, time_limit, success_val));
-#else
-		msg_fatal("poll: %m");
-#endif
+		HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val);
 	    continue;
 	case 0:
 	    if (time_limit == 0) {
@@ -259,7 +258,7 @@ int     poll_fd_sysv(int fd, int request, int time_limit, int success_val)
 	    }
 	default:
 	    if (pollfd.revents & POLLNVAL)
-		msg_fatal("poll: %m");
+		HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val);
 	    return (success_val);
 	}
     }

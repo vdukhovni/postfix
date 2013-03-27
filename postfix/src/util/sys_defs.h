@@ -254,8 +254,9 @@
 #define SOCKOPT_SIZE	socklen_t
 #ifndef NO_KQUEUE
 # define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
-# define USE_SYSV_POLL_WITH_SELECT
+# define USE_SYSV_POLL_THEN_SELECT
 #endif
+#define USE_MAX_FILES_PER_PROC
 #ifndef NO_POSIX_GETPW_R
 # define HAVE_POSIX_GETPW_R
 #endif
@@ -1374,14 +1375,21 @@ extern int inet_pton(int, const char *, void *);
 #if !defined(EVENTS_STYLE)
 #define EVENTS_STYLE	EVENTS_STYLE_SELECT
 #endif
-#if !defined(USE_SYSV_POLL) && !defined(USE_SYSV_POLL_WITH_SELECT)
-#define USE_BSD_SELECT
-#endif
 
 #define EVENTS_STYLE_SELECT	1	/* Traditional BSD select */
 #define EVENTS_STYLE_KQUEUE	2	/* FreeBSD kqueue */
 #define EVENTS_STYLE_DEVPOLL	3	/* Solaris /dev/poll */
 #define EVENTS_STYLE_EPOLL	4	/* Linux epoll */
+
+ /*
+  * We use poll() for read/write time limit enforcement on modern systems. We
+  * use select() on historical systems without poll() support. And on systems
+  * where poll() is not implemented for some file handle types, we try to use
+  * select() as a fall-back solution (MacOS X needs this).
+  */
+#if !defined(USE_SYSV_POLL) && !defined(USE_SYSV_POLL_THEN_SELECT)
+#define USE_BSD_SELECT
+#endif
 
  /*
   * The Postfix 2.9 post-install workaround assumes that the inet_protocols
