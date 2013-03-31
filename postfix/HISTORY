@@ -18383,3 +18383,20 @@ Apologies for any names omitted.
 
 	Export tls_fprint() and tls_digest_encode() for use in DANE.
 	Viktor Dukhovni. Files: src/tls/tls.h, src/tls/tls_fprint.c.
+
+20130331
+
+	Refactoring: TLS verification callback processing in
+	preparation for DANE support. Viktor Dukhovni. Files:
+	src/tls/tls.h, src/tls/tls_client.c, src/tls/tls_misc.c,
+	src/tls/tls_verify.c.
+
+	Refactoring: split off SMTP client per-session TLS policy
+	data and code in preparation for DANE support.  Viktor
+	Dukhovni.  Files: src/smtp/Makefile.in, src/smtp/smtp.h,
+	src/smtp/smtp_connect.c, src/smtp/smtp_proto.c,
+	src/smtp/smtp_reuse.c, src/smtp/smtp_session.c,
+	src/smtp/smtp_tls_sess.c.
+
+	Cleanup: "zero time limit" corner case in read_wait() and
+	write_wait() emulation. Files: util/poll_fd.c, util/iostuff.h.

@@ -101,6 +101,9 @@ typedef struct {
     const char *mdalg;			/* default message digest algorithm */
     /* Built-in vs external SSL_accept/read/write/shutdown support. */
     VSTREAM *stream;			/* Blocking-mode SMTP session */
+    int     errordepth;			/* Chain depth of error cert */
+    int     errorcode;			/* First error at error depth */
+    X509   *errorcert;			/* Error certificate closest to leaf */
 } TLS_SESS_STATE;
 
  /*
@@ -400,6 +403,7 @@ extern char *tls_peer_CN(X509 *, const TLS_SESS_STATE *);
 extern char *tls_issuer_CN(X509 *, const TLS_SESS_STATE *);
 extern const char *tls_dns_name(const GENERAL_NAME *, const TLS_SESS_STATE *);
 extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
+extern void tls_log_verify_error(TLS_SESS_STATE *);
 
  /*
   * tls_fprint.c

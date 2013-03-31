@@ -700,16 +700,19 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 	TLScontext->peer_CN = tls_peer_CN(peercert, TLScontext);
 
     /*
-     * Give them a clue. Problems with trust chain verification were logged
-     * when the session was first negotiated, before the session was stored
+     * Give them a clue. Problems with trust chain verification are logged
+     * when the session is first negotiated, before the session is stored
      * into the cache. We don't want mystery failures, so log the fact the
      * real problem is to be found in the past.
      */
-    if (TLScontext->session_reused
-	&& !TLS_CERT_IS_TRUSTED(TLScontext)
-	&& (TLScontext->log_mask & TLS_LOG_UNTRUSTED))
-	msg_info("%s: re-using session with untrusted certificate, "
-		 "look for details earlier in the log", props->namaddr);
+    if (!TLS_CERT_IS_TRUSTED(TLScontext)
+	&& (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
+	if (TLScontext->session_reused == 0)
+	    tls_log_verify_error(TLScontext);
+	else
+	    msg_info("%s: re-using session with untrusted certificate, "
+		     "look for details earlier in the log", props->namaddr);
+    }
 }
 
 /* verify_extract_print - extract and verify peer fingerprint */
@@ -731,7 +734,8 @@ static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
 	for (cpp = props->matchargv->argv; *cpp; ++cpp) {
 	    if (strcasecmp(TLScontext->peer_fingerprint, *cpp) == 0
 		|| strcasecmp(TLScontext->peer_pkey_fprint, *cpp) == 0) {
-		TLScontext->peer_status |= TLS_CERT_FLAG_MATCHED;
+		TLScontext->peer_status |=
+		    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
 		break;
 	    }
 	}

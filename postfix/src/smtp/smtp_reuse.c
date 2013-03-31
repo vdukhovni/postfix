@@ -198,7 +198,7 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
      * lookups, because we can compute the TLS policy much earlier.
      */
 #ifdef USE_TLS
-    if (session->tls_level >= TLS_LEV_ENCRYPT) {
+    if (session->tls->level >= TLS_LEV_ENCRYPT) {
 	if (msg_verbose)
 	    msg_info("%s: skipping plain-text cached session to %s",
 		     myname, label);

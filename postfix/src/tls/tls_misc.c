@@ -747,6 +747,9 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */
+    TLScontext->errordepth = -1;
+    TLScontext->errorcode = X509_V_OK;
+    TLScontext->errorcert = 0;
 
     return (TLScontext);
 }
@@ -777,6 +780,8 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_fingerprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
+    if (TLScontext->errorcert)
+	X509_free(TLScontext->errorcert);
 
     myfree((char *) TLScontext);
 }

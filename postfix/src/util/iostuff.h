@@ -16,7 +16,7 @@
 extern int non_blocking(int, int);
 extern int close_on_exec(int, int);
 extern int open_limit(int);
-extern int poll_fd(int, int, int, int);
+extern int poll_fd(int, int, int, int, int);
 extern off_t get_file_limit(void);
 extern void set_file_limit(off_t);
 extern ssize_t peekfd(int);
@@ -33,11 +33,11 @@ extern int unix_send_fd(int, int);
 extern ssize_t dummy_read(int, void *, size_t, int, void *);
 extern ssize_t dummy_write(int, void *, size_t, int, void *);
 
-#define readable(fd)		poll_fd((fd), POLL_FD_READ, 0, 1)
-#define writable(fd)		poll_fd((fd), POLL_FD_WRITE, 0, 1)
+#define readable(fd)		poll_fd((fd), POLL_FD_READ, 0, 1, 0)
+#define writable(fd)		poll_fd((fd), POLL_FD_WRITE, 0, 1, 0)
 
-#define read_wait(fd, time_limit) poll_fd((fd), POLL_FD_READ, (time_limit), 0)
-#define write_wait(fd, time_limit) poll_fd((fd), POLL_FD_WRITE, (time_limit), 0)
+#define read_wait(fd, timeout) poll_fd((fd), POLL_FD_READ, (timeout), 0, -1)
+#define write_wait(fd, timeout) poll_fd((fd), POLL_FD_WRITE, (timeout), 0, -1)
 
 extern int inet_windowsize;
 extern void set_inet_windowsize(int, int);

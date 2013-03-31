@@ -520,10 +520,10 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
 	session->state = state;
 #ifdef USE_TLS
 	session->tls_nexthop = var_myhostname;	/* for TLS_LEV_SECURE */
-	if (session->tls_level == TLS_LEV_MAY) {
+	if (session->tls->level == TLS_LEV_MAY) {
 	    msg_warn("%s: opportunistic TLS encryption is not appropriate "
 		     "for unix-domain destinations.", myname);
-	    session->tls_level = TLS_LEV_NONE;
+	    session->tls->level = TLS_LEV_NONE;
 	}
 #endif
 	/* All delivery errors bounce or defer. */
@@ -902,9 +902,9 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 #ifdef USE_TLS
 		/* Disable TLS when retrying after a handshake failure */
 		if (retry_plain) {
-		    if (session->tls_level >= TLS_LEV_ENCRYPT)
+		    if (session->tls->level >= TLS_LEV_ENCRYPT)
 			msg_panic("Plain-text retry wrong for mandatory TLS");
-		    session->tls_level = TLS_LEV_NONE;
+		    session->tls->level = TLS_LEV_NONE;
 		    retry_plain = 0;
 		}
 		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */

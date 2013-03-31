@@ -215,9 +215,7 @@ char   *tls_fprint(const char *buf, int len, const char *mdalg)
     const EVP_MD *md;
     unsigned char md_buf[EVP_MAX_MD_SIZE];
     unsigned int md_len;
-    int     i;
     int     ok = 1;
-    char   *result = 0;
 
     /* Previously available in "init" routine. */
     if ((md = EVP_get_digestbyname(mdalg)) == 0)

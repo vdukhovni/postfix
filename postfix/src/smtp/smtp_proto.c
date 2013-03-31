@@ -329,7 +329,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * now.
 	 */
 #ifdef USE_TLS
-	if (session->tls_level == TLS_LEV_INVALID)
+	if (session->tls->level == TLS_LEV_INVALID)
 	    /* Warning is already logged. */
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.0"),
@@ -638,14 +638,14 @@ int     smtp_helo(SMTP_STATE *state)
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) &&
 	    var_smtp_tls_note_starttls_offer &&
-	    session->tls_level <= TLS_LEV_NONE)
+	    session->tls->level <= TLS_LEV_NONE)
 	    msg_info("Host offered STARTTLS: [%s]", session->host);
 
 	/*
 	 * Decide whether or not to send STARTTLS.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
-	    && smtp_tls_ctx != 0 && session->tls_level >= TLS_LEV_MAY) {
+	    && smtp_tls_ctx != 0 && session->tls->level >= TLS_LEV_MAY) {
 
 	    /*
 	     * Prepare for disaster.
@@ -685,7 +685,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (session->tls_level >= TLS_LEV_ENCRYPT)
+	    if (session->tls->level >= TLS_LEV_ENCRYPT)
 		return (smtp_site_fail(state, session->host, resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -700,7 +700,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
 	 */
-	if (session->tls_level >= TLS_LEV_ENCRYPT) {
+	if (session->tls->level >= TLS_LEV_ENCRYPT) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
@@ -797,17 +797,17 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 ctx = smtp_tls_ctx,
 			 stream = session->stream,
 			 timeout = var_smtp_starttls_tmout,
-			 tls_level = session->tls_level,
+			 tls_level = session->tls->level,
 			 nexthop = session->tls_nexthop,
 			 host = session->host,
 			 namaddr = session->namaddrport,
 			 serverid = vstring_str(serverid),
 			 helo = session->helo,
-			 protocols = session->tls_protocols,
-			 cipher_grade = session->tls_grade,
+			 protocols = session->tls->protocols,
+			 cipher_grade = session->tls->grade,
 			 cipher_exclusions
-			 = vstring_str(session->tls_exclusions),
-			 matchargv = session->tls_matchargv,
+			 = vstring_str(session->tls->exclusions),
+			 matchargv = session->tls->matchargv,
 			 mdalg = var_smtp_tls_fpt_dgst);
     vstring_free(serverid);
 
@@ -829,7 +829,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	 * plaintext connections, then we don't want delivery to fail with
 	 * "relay access denied".
 	 */
-	if (session->tls_level == TLS_LEV_MAY
+	if (session->tls->level == TLS_LEV_MAY
 #ifdef USE_SASL_AUTH
 	    && !(var_smtp_sasl_enable
 		 && *var_smtp_sasl_passwd
@@ -851,12 +851,12 @@ static int smtp_start_tls(SMTP_STATE *state)
      * See src/tls/tls_level.c. Levels above encrypt require matching. Levels >=
      * verify require CA trust.
      */
-    if (session->tls_level >= TLS_LEV_VERIFY)
+    if (session->tls->level >= TLS_LEV_VERIFY)
 	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    if (session->tls_level >= TLS_LEV_DANE)
+    if (session->tls->level >= TLS_LEV_DANE)
 	if (!TLS_CERT_IS_MATCHED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),

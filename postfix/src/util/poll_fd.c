@@ -20,11 +20,12 @@
 /*	int	fd;
 /*	int	time_limit;
 /*
-/*	int	poll_fd(fd, request, time_limit, success_val)
+/*	int	poll_fd(fd, request, time_limit, true_res, false_res)
 /*	int	fd;
 /*	int	request;
 /*	int	time_limit;
-/*	int	success_val;
+/*	int	true_res;
+/*	int	false_res;
 /* DESCRIPTION
 /*	The functions in this module are macros that provide a
 /*	convenient interface to poll_fd().
@@ -56,25 +57,28 @@
 /*	value effects a poll (return immediately).  A negative value
 /*	means wait until the requested POLL_FD_READ or POLL_FD_WRITE
 /*	condition becomes true.
-/* .IP success_val
+/* .IP true_res
 /*	Result value when the requested POLL_FD_READ or POLL_FD_WRITE
 /*	condition is true.
+/* .IP false_res
+/*	Result value when the requested POLL_FD_READ or POLL_FD_WRITE
+/*	condition is false.
 /* DIAGNOSTICS
 /*	Panic: interface violation. All system call errors are fatal
 /*	unless specified otherwise.
 /*
 /*	readable() and writable() return 1 when the requested
-/*	condition is true, zero when it is false. They never return
-/*	an error indication.
+/*	POLL_FD_READ or POLL_FD_WRITE condition is true, zero when
+/*	it is false. They never return an error indication.
 /*
-/*	read_wait() and write_wait() return zero when successful,
-/*	-1 with errno set to ETIMEDOUT when the time limit was
-/*	reached.
+/*	read_wait() and write_wait() return zero when the requested
+/*	POLL_FD_READ or POLL_FD_WRITE condition is true, -1 with
+/*	errno set to ETIMEDOUT when it is false.
 /*
-/*	poll_fd() returns -1 with errno set to ETIMEDOUT when the
-/*	time limit was reached, success_val if the requested
-/*	POLL_FD_READ or POLL_FD_WRITE condition is true, and returns
-/*	zero otherwise.
+/*	poll_fd() returns true_res when the requested POLL_FD_READ
+/*	or POLL_FD_WRITE condition is true, false_res when it is
+/*	false.  When poll_fd() returns a false_res value < 0, it
+/*	also sets errno to ETIMEDOUT.
 /* LICENSE
 /* .ad
 /* .fi
@@ -102,7 +106,7 @@
 #define poll_fd_sysv	poll_fd
 #define USE_SYSV_POLL
 #define USE_BSD_SELECT
-int     poll_fd_bsd(int, int, int, int);
+int     poll_fd_bsd(int, int, int, int, int);
 
  /*
   * Use select() only.
@@ -141,7 +145,8 @@ int     poll_fd_bsd(int, int, int, int);
 
 /* poll_fd_bsd - block with time_limit until file descriptor is ready */
 
-int     poll_fd_bsd(int fd, int request, int time_limit, int success_val)
+int     poll_fd_bsd(int fd, int request, int time_limit,
+		            int true_res, int false_res)
 {
     fd_set  req_fds;
     fd_set *read_fds;
@@ -196,16 +201,13 @@ int     poll_fd_bsd(int fd, int request, int time_limit, int success_val)
 	case 0:
 	    if (temp_fd != -1)
 		(void) close(temp_fd);
-	    if (time_limit == 0) {
-		return (0);
-	    } else {
+	    if (false_res < 0)
 		errno = ETIMEDOUT;
-		return (-1);
-	    }
+	    return (false_res);
 	default:
 	    if (temp_fd != -1)
 		(void) close(temp_fd);
-	    return (success_val);
+	    return (true_res);
 	}
     }
 }
@@ -215,16 +217,17 @@ int     poll_fd_bsd(int fd, int request, int time_limit, int success_val)
 #ifdef USE_SYSV_POLL
 
 #ifdef USE_SYSV_POLL_THEN_SELECT
-#define HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val) \
-	return (poll_fd_bsd((fd), (request), (time_limit), (success_val)))
+#define HANDLE_SYSV_POLL_ERROR(fd, req, time_limit, true_res, false_res) \
+	return (poll_fd_bsd((fd), (req), (time_limit), (true_res), (false_res)))
 #else
-#define HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val) \
+#define HANDLE_SYSV_POLL_ERROR(fd, req, time_limit, true_res, false_res) \
 	msg_fatal("poll: %m")
 #endif
 
 /* poll_fd_sysv - block with time_limit until file descriptor is ready */
 
-int     poll_fd_sysv(int fd, int request, int time_limit, int success_val)
+int     poll_fd_sysv(int fd, int request, int time_limit,
+		             int true_res, int false_res)
 {
     struct pollfd pollfd;
 
@@ -247,19 +250,18 @@ int     poll_fd_sysv(int fd, int request, int time_limit, int success_val)
 		     WAIT_FOR_EVENT : time_limit * 1000)) {
 	case -1:
 	    if (errno != EINTR)
-		HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val);
+		HANDLE_SYSV_POLL_ERROR(fd, request, time_limit,
+				       true_res, false_res);
 	    continue;
 	case 0:
-	    if (time_limit == 0) {
-		return (0);
-	    } else {
+	    if (false_res < 0)
 		errno = ETIMEDOUT;
-		return (-1);
-	    }
+	    return (false_res);
 	default:
 	    if (pollfd.revents & POLLNVAL)
-		HANDLE_SYSV_POLL_ERROR(fd, request, time_limit, success_val);
-	    return (success_val);
+		HANDLE_SYSV_POLL_ERROR(fd, request, time_limit,
+				       true_res, false_res);
+	    return (true_res);
 	}
     }
 }
