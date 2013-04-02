@@ -149,6 +149,7 @@ typedef struct SMTP_STATE {
 #define SMTP_MISC_FLAG_COMPLETE_SESSION	(1<<8)
 #define SMTP_MISC_FLAG_PREF_IPV6	(1<<9)
 #define SMTP_MISC_FLAG_PREF_IPV4	(1<<10)
+#define SMTP_MISC_FLAG_NO_TLS		(1<<11)
 
 #define SMTP_MISC_FLAG_CONN_CACHE_MASK \
 	(SMTP_MISC_FLAG_CONN_LOAD | SMTP_MISC_FLAG_CONN_STORE)
@@ -259,19 +260,21 @@ typedef struct SMTP_SESSION {
     SMTP_STATE *state;			/* back link */
 } SMTP_SESSION;
 
-extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, const char *, const char *,
-			               const char *, unsigned, time_t, int);
+extern SMTP_SESSION *smtp_session_alloc(DSN_BUF *, const char *, const char *,
+					        const char *, unsigned, int);
+extern void smtp_session_new_stream(SMTP_SESSION *, VSTREAM *, time_t, int);
+extern int smtp_sess_tls_check(const char *, const char *, unsigned, int);
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
 
 #ifdef USE_TLS
-extern void smtp_tls_list_init(void);
 
  /*
   * smtp_tls_sess.c
   */
-extern SMTP_TLS_SESS *smtp_tls_sess_alloc(const char *, const char *,
+extern void smtp_tls_list_init(void);
+extern SMTP_TLS_SESS *smtp_tls_sess_alloc(DSN_BUF *, const char *, const char *,
 					          unsigned, int);
 extern SMTP_TLS_SESS *smtp_tls_sess_free(SMTP_TLS_SESS *);
 

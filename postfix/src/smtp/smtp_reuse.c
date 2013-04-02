@@ -274,6 +274,7 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, const char *addr,
      * credentials or the wrong TLS policy.
      */
     if ((var_smtp_tls_per_site && *var_smtp_tls_per_site)
+	|| (var_smtp_tls_policy && *var_smtp_tls_policy)
 	|| (var_smtp_sasl_passwd && *var_smtp_sasl_passwd))
 	return (0);
 

@@ -18398,5 +18398,9 @@ Apologies for any names omitted.
 	src/smtp/smtp_reuse.c, src/smtp/smtp_session.c,
 	src/smtp/smtp_tls_sess.c.
 
+20130401
+
+	Refactoring: allow smtp_session_alloc() to fail gracefully
+	and report an error.
 	Cleanup: "zero time limit" corner case in read_wait() and
 	write_wait() emulation. Files: util/poll_fd.c, util/iostuff.h.
