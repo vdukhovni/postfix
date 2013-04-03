@@ -293,6 +293,17 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     int     saved_errno;
     VSTREAM *stream;
     time_t  start_time;
+    SMTP_SESSION *session;
+
+    /*
+     * Session construction is cheap, and can now tempfail when TLSA lookups
+     * don't work at the DANE security level. This also handles table lookup
+     * errors more gracefully. So construct the session, and then connect. If
+     * the connection fails, tear down the session.
+     */
+    if ((session = smtp_session_alloc(why, destination, name, addr,
+				      port, sess_flags)) == 0)
+	return (0);
 
     start_time = time((time_t *) 0);
     if (var_smtp_conn_tmout > 0) {
@@ -311,6 +322,7 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
 	else
 	    dsb_simple(why, "4.4.1", "connect to %s[%s]: %m", name, addr);
 	close(sock);
+	smtp_session_free(session);
 	return (0);
     }
     stream = vstream_fdopen(sock, O_RDWR);
@@ -326,10 +338,13 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
 	vstream_tweak_tcp(stream);
 
     /*
-     * Bundle up what we have into a nice SMTP_SESSION object.
+     * Update the SMTP_SESSION state with this newly-created stream, and make
+     * it subject to the new-stream connection caching policy (as opposed to
+     * the reused-stream caching policy).
      */
-    return (smtp_session_alloc(stream, destination, name, addr,
-			       port, start_time, sess_flags));
+    smtp_session_new_stream(session, stream, start_time, sess_flags);
+
+    return (session);
 }
 
 /* smtp_parse_destination - parse host/port destination */

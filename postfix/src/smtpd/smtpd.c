@@ -4347,14 +4347,14 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 				     state->port, var_smtpd_tmout);
     if (state->tlsproxy == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	/* RFC 4954 Section 6. */
+	/* RFC 3207 Section 4. */
 	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
 	return (-1);
     }
 #else						/* USE_TLSPROXY */
     if (smtpd_tls_ctx == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	/* RFC 4954 Section 6. */
+	/* RFC 3207 Section 4. */
 	smtpd_chat_reply(state, "454 4.7.0 TLS not available due to local problem");
 	return (-1);
     }

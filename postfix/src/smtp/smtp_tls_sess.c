@@ -8,7 +8,8 @@
 /*
 /*	void    smtp_tls_list_init()
 /*
-/*	SMTP_TLS_SESS *smtp_tls_sess_alloc(dest, host, port, valid)
+/*	SMTP_TLS_SESS *smtp_tls_sess_alloc(why, dest, host, port, valid)
+/*	DSN_BUF *why;
 /*	char	*dest;
 /*	char	*host;
 /*	unsigned port;
@@ -21,8 +22,12 @@
 /*	policy engine.
 /*
 /*	smtp_tls_sess_alloc() allocates memory for an SMTP_TLS_SESS structure
-/*	and initializes it based on the given information.  NOTE: the
-/*	port is in network byte order.
+/*	and initializes it based on the given information.  Any required
+/*	table and DNS lookups can fail.  When this happens, "why" is updated
+/*	with the error reason and a null pointer is returned.  NOTE: the
+/*	port is in network byte order.  If "dest" is null, no policy checks are
+/*	made, rather a trivial policy with tls disabled is returned (the
+/*	remaining arguments are unused in this case and may be null).
 /*
 /*	smtp_tls_sess_free() destroys an SMTP_TLS_SESS structure and its
 /*	members.  A null pointer is returned for convenience.
@@ -126,8 +131,9 @@ static const char *policy_name(int tls_level)
 
 /* tls_site_lookup - look up per-site TLS security level */
 
-static void tls_site_lookup(int *site_level, const char *site_name,
-			            const char *site_class)
+static void tls_site_lookup(SMTP_TLS_SESS *tls, int *site_level,
+		              const char *site_name, const char *site_class,
+			            DSN_BUF *why)
 {
     const char *lookup;
 
@@ -154,19 +160,27 @@ static void tls_site_lookup(int *site_level, const char *site_name,
 	    if (*site_level < TLS_LEV_VERIFY)
 		*site_level = TLS_LEV_VERIFY;
 	} else {
-	    msg_warn("Table %s: ignoring unknown TLS policy '%s' for %s %s",
-		     var_smtp_tls_per_site, lookup, site_class, site_name);
+	    msg_warn("%s: unknown TLS policy '%s' for %s %s",
+		     tls_per_site->title, lookup, site_class, site_name);
+	    dsb_simple(why, "4.7.5", "client TLS configuration problem");
+	    *site_level = TLS_LEV_INVALID;
+	    return;
 	}
     } else if (tls_per_site->error) {
-	msg_fatal("%s lookup error for %s", tls_per_site->title, site_name);
+	msg_warn("%s: %s \"%s\": per-site table lookup error",
+		 tls_per_site->title, site_class, site_name);
+	dsb_simple(why, "4.3.0", "Temporary lookup error");
+	*site_level = TLS_LEV_INVALID;
+	return;
     }
+    return;
 }
 
 /* tls_policy_lookup_one - look up destination TLS policy */
 
-static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
-				         const char *site_name,
-				         const char *site_class)
+static void tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
+				          const char *site_name,
+			               const char *site_class, DSN_BUF *why)
 {
     const char *lookup;
     char   *policy;
@@ -178,35 +192,37 @@ static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
     static VSTRING *cbuf;
 
 #undef FREE_RETURN
-#define FREE_RETURN(x) do { myfree(saved_policy); return (x); } while (0)
+#define FREE_RETURN do { myfree(saved_policy); return; } while (0)
 
-    if ((lookup = maps_find(tls_policy, site_name, 0)) == 0) {
-	if (tls_policy->error) {
-	    msg_fatal("%s lookup error for %s",
-		      tls_policy->title, site_name);
-	    /* XXX session->stream has no longjmp context yet. */
-	}
-	return (0);
-    }
+#define WHERE \
+    vstring_str(vstring_sprintf(cbuf, "%s, %s \"%s\"", \
+		tls_policy->title, site_class, site_name))
+
     if (cbuf == 0)
 	cbuf = vstring_alloc(10);
 
-#define WHERE \
-    vstring_str(vstring_sprintf(cbuf, "TLS policy table, %s \"%s\"", \
-		site_class, site_name))
-
+    if ((lookup = maps_find(tls_policy, site_name, 0)) == 0) {
+	if (tls_policy->error) {
+	    msg_warn("%s: policy table lookup error", WHERE);
+	    dsb_simple(why, "4.3.0", "Temporary lookup error");
+	    *site_level = TLS_LEV_INVALID;
+	}
+	return;
+    }
     saved_policy = policy = mystrdup(lookup);
 
     if ((tok = mystrtok(&policy, "\t\n\r ,")) == 0) {
 	msg_warn("%s: invalid empty policy", WHERE);
+	dsb_simple(why, "4.7.5", "client TLS configuration problem");
 	*site_level = TLS_LEV_INVALID;
-	FREE_RETURN(1);				/* No further lookups */
+	FREE_RETURN;
     }
     *site_level = tls_level_lookup(tok);
     if (*site_level == TLS_LEV_INVALID) {
 	/* tls_level_lookup() logs no warning. */
 	msg_warn("%s: invalid security level \"%s\"", WHERE, tok);
-	FREE_RETURN(1);				/* No further lookups */
+	dsb_simple(why, "4.7.5", "client TLS configuration problem");
+	FREE_RETURN;
     }
 
     /*
@@ -216,7 +232,7 @@ static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
 	while ((tok = mystrtok(&policy, "\t\n\r ,")) != 0)
 	    msg_warn("%s: ignoring attribute \"%s\" with TLS disabled",
 		     WHERE, tok);
-	FREE_RETURN(1);
+	FREE_RETURN;
     }
 
     /*
@@ -225,23 +241,26 @@ static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
      */
     while ((tok = mystrtok(&policy, "\t\n\r ,")) != 0) {
 	if ((err = split_nameval(tok, &name, &val)) != 0) {
-	    *site_level = TLS_LEV_INVALID;
 	    msg_warn("%s: malformed attribute/value pair \"%s\": %s",
 		     WHERE, tok, err);
-	    break;
+	    dsb_simple(why, "4.7.5", "client TLS configuration problem");
+	    *site_level = TLS_LEV_INVALID;
+	    FREE_RETURN;
 	}
 	/* Only one instance per policy. */
 	if (!strcasecmp(name, "ciphers")) {
 	    if (*val == 0) {
 		msg_warn("%s: attribute \"%s\" has empty value", WHERE, name);
+		dsb_simple(why, "4.7.5", "client TLS configuration problem");
 		*site_level = TLS_LEV_INVALID;
-		break;
+		FREE_RETURN;
 	    }
 	    if (tls->grade) {
 		msg_warn("%s: attribute \"%s\" is specified multiple times",
 			 WHERE, name);
+		dsb_simple(why, "4.7.5", "client TLS configuration problem");
 		*site_level = TLS_LEV_INVALID;
-		break;
+		FREE_RETURN;
 	    }
 	    tls->grade = mystrdup(val);
 	    continue;
@@ -251,8 +270,9 @@ static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
 	    if (tls->protocols) {
 		msg_warn("%s: attribute \"%s\" is specified multiple times",
 			 WHERE, name);
+		dsb_simple(why, "4.7.5", "client TLS configuration problem");
 		*site_level = TLS_LEV_INVALID;
-		break;
+		FREE_RETURN;
 	    }
 	    tls->protocols = mystrdup(val);
 	    continue;
@@ -264,13 +284,15 @@ static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
 	    if (*site_level <= TLS_LEV_ENCRYPT) {
 		msg_warn("%s: attribute \"%s\" invalid at security level "
 			 "\"%s\"", WHERE, name, policy_name(*site_level));
+		dsb_simple(why, "4.7.5", "client TLS configuration problem");
 		*site_level = TLS_LEV_INVALID;
-		break;
+		FREE_RETURN;
 	    }
 	    if (*val == 0) {
 		msg_warn("%s: attribute \"%s\" has empty value", WHERE, name);
+		dsb_simple(why, "4.7.5", "client TLS configuration problem");
 		*site_level = TLS_LEV_INVALID;
-		break;
+		FREE_RETURN;
 	    }
 	    if (tls->matchargv == 0)
 		tls->matchargv = argv_split(val, delim);
@@ -283,25 +305,27 @@ static int tls_policy_lookup_one(SMTP_TLS_SESS *tls, int *site_level,
 	    if (tls->exclusions) {
 		msg_warn("%s: attribute \"%s\" is specified multiple times",
 			 WHERE, name);
+		dsb_simple(why, "4.7.5", "client TLS configuration problem");
 		*site_level = TLS_LEV_INVALID;
-		break;
+		FREE_RETURN;
 	    }
 	    tls->exclusions = vstring_strcpy(vstring_alloc(10), val);
 	    continue;
-	} else {
-	    msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
-	    *site_level = TLS_LEV_INVALID;
-	    break;
 	}
+	msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
+	dsb_simple(why, "4.7.5", "client TLS configuration problem");
+	*site_level = TLS_LEV_INVALID;
+	FREE_RETURN;
     }
-    FREE_RETURN(1);
+
+    FREE_RETURN;
 }
 
 /* tls_policy_lookup - look up destination TLS policy */
 
 static void tls_policy_lookup(SMTP_TLS_SESS *tls, int *site_level,
 			              const char *site_name,
-			              const char *site_class)
+			              const char *site_class, DSN_BUF *why)
 {
 
     /*
@@ -312,22 +336,13 @@ static void tls_policy_lookup(SMTP_TLS_SESS *tls, int *site_level,
      * sub-domains of the recipient domain.
      */
     if (!valid_hostname(site_name, DONT_GRIPE)) {
-	tls_policy_lookup_one(tls, site_level, site_name, site_class);
+	tls_policy_lookup_one(tls, site_level, site_name, site_class, why);
 	return;
     }
-
-    /*
-     * XXX For clarity consider using ``do { .. } while'', instead of using
-     * ``while { .. }'' with loop control at the bottom.
-     */
-    while (1) {
-	/* Try the given domain */
-	if (tls_policy_lookup_one(tls, site_level, site_name, site_class))
-	    return;
-	/* Re-try with parent domain */
-	if ((site_name = strchr(site_name + 1, '.')) == 0)
-	    return;
-    }
+    do {
+	tls_policy_lookup_one(tls, site_level, site_name, site_class, why);
+    } while (*site_level == TLS_LEV_NOTFOUND
+	     && (site_name = strchr(site_name + 1, '.')) != 0);
 }
 
 /* set_cipher_grade - Set cipher grade and exclusions */
@@ -390,10 +405,10 @@ static void set_cipher_grade(SMTP_TLS_SESS *tls)
 
 /* smtp_tls_sess_alloc - session TLS policy parameters */
 
-SMTP_TLS_SESS *smtp_tls_sess_alloc(const char *dest, const char *host,
-				           unsigned port, int valid)
+SMTP_TLS_SESS *smtp_tls_sess_alloc(DSN_BUF *why, const char *dest,
+			         const char *host, unsigned port, int valid)
 {
-    const char *myname = "session_tls_init";
+    const char *myname = "smtp_tls_sess_alloc";
     int     global_level;
     int     site_level;
     SMTP_TLS_SESS *tls = (SMTP_TLS_SESS *) mymalloc(sizeof(*tls));
@@ -403,6 +418,9 @@ SMTP_TLS_SESS *smtp_tls_sess_alloc(const char *dest, const char *host,
     tls->grade = 0;
     tls->exclusions = 0;
     tls->matchargv = 0;
+
+    if (!dest)
+	return (tls);
 
     /*
      * Compute the global TLS policy. This is the default policy level when
@@ -433,13 +451,12 @@ SMTP_TLS_SESS *smtp_tls_sess_alloc(const char *dest, const char *host,
     site_level = TLS_LEV_NOTFOUND;
 
     if (tls_policy) {
-	tls_policy_lookup(tls, &site_level, dest, "next-hop destination");
+	tls_policy_lookup(tls, &site_level, dest, "next-hop destination", why);
     } else if (tls_per_site) {
-	tls_site_lookup(&site_level, dest, "next-hop destination");
-	if (strcasecmp(dest, host) != 0)
-	    tls_site_lookup(&site_level, host, "server hostname");
-	if (msg_verbose)
-	    msg_info("%s TLS level: %s", "site", policy_name(site_level));
+	tls_site_lookup(tls, &site_level, dest, "next-hop destination", why);
+	if (site_level != TLS_LEV_INVALID
+	    && strcasecmp(dest, host) != 0)
+	    tls_site_lookup(tls, &site_level, host, "server hostname", why);
 
 	/*
 	 * Override a wild-card per-site policy with a more specific global
@@ -460,10 +477,16 @@ SMTP_TLS_SESS *smtp_tls_sess_alloc(const char *dest, const char *host,
 	if (site_level == TLS_LEV_MAY && global_level > TLS_LEV_MAY)
 	    site_level = global_level;
     }
-    if (site_level == TLS_LEV_NOTFOUND)
+    switch (site_level) {
+    case TLS_LEV_INVALID:
+	return (smtp_tls_sess_free(tls));
+    case TLS_LEV_NOTFOUND:
 	tls->level = global_level;
-    else
+	break;
+    default:
 	tls->level = site_level;
+	break;
+    }
 
     /*
      * Use main.cf protocols setting if not set in per-destination table.

@@ -6,15 +6,26 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	SMTP_SESSION *smtp_session_alloc(stream, dest, host, addr,
-/*					port, start, flags)
-/*	VSTREAM *stream;
+/*	SMTP_SESSION *smtp_session_alloc(why, dest, host, addr,
+/*					port, flags)
+/*	DSN_BUF *why;
 /*	char	*dest;
 /*	char	*host;
 /*	char	*addr;
 /*	unsigned port;
+/*	int	flags;
+/*
+/*	void	smtp_session_new_stream(session, stream, start, flags)
+/*	SMTP_SESSION *session;
+/*	VSTREAM	*stream;
 /*	time_t	start;
 /*	int	flags;
+/*
+/*	int	smtp_sess_tls_check(dest, host, port, valid)
+/*	char	*dest;
+/*	char	*host;
+/*	unsigned port;
+/*	int	valid;
 /*
 /*	void	smtp_session_free(session)
 /*	SMTP_SESSION *session;
@@ -30,13 +41,24 @@
 /*	VSTRING	*endp_prop;
 /* DESCRIPTION
 /*	smtp_session_alloc() allocates memory for an SMTP_SESSION structure
-/*	and initializes it with the given stream and destination, host name
-/*	and address information.  The host name and address strings are
-/*	copied. The port is in network byte order.
-/*	When TLS is enabled, smtp_session_alloc() looks up the
-/*	per-site TLS policies for TLS enforcement and certificate
-/*	verification.  The resulting policy is stored into the
-/*	SMTP_SESSION object.
+/*	and initializes it with the given destination, host name and address
+/*	information.  The host name and address strings are copied. The port
+/*	is in network byte order.  When TLS is enabled, smtp_session_alloc()
+/*	looks up the per-site TLS policies for TLS enforcement and certificate
+/*	verification.  The resulting policy is stored into the SMTP_SESSION
+/*	object.  Table and DNS lookups can fail during TLS policy creation,
+/*	when this happens, "why" is updated with the error reason and a null
+/*	session pointer is returned.
+/*
+/*	smtp_session_new_stream() updates an SMTP_SESSION structure
+/*	with a newly-created stream that was created at the specified
+/*	start time, and makes it subject to the specified connection
+/*	caching policy.
+/*
+/*	smtp_sess_tls_check() returns true if TLS use is mandatory, invalid
+/*	or indeterminate. The return value is false only if TLS is optional.
+/*	This is not yet used anywhere, it can be used to safely enable TLS
+/*	policy with smtp_reuse_addr().
 /*
 /*	smtp_session_free() destroys an SMTP_SESSION structure and its
 /*	members, making memory available for reuse. It will handle the
@@ -61,6 +83,8 @@
 /*	The address of the host that we are connected to.
 /* .IP port
 /*	The remote port, network byte order.
+/* .IP valid
+/*	The DNSSEC validation status of the host name.
 /* .IP start
 /*	The time when this connection was opened.
 /* .IP flags
@@ -72,6 +96,8 @@
 /*	Enable re-use of cached SMTP or LMTP connections.
 /* .IP SMTP_MISC_FLAG_CONN_STORE
 /*	Enable saving of cached SMTP or LMTP connections.
+/* .IP SMTP_MISC_FLAG_NO_TLS
+/*	Used only internally in smtp_session.c
 /* .RE
 /*	SMTP_MISC_FLAG_CONN_MASK corresponds with both _LOAD and _STORE.
 /* .IP dest_prop
@@ -117,7 +143,6 @@
 #include <vstream.h>
 #include <stringops.h>
 #include <valid_hostname.h>
-#include <name_code.h>
 
 /* Global library. */
 
@@ -134,15 +159,16 @@
 
 /* smtp_session_alloc - allocate and initialize SMTP_SESSION structure */
 
-SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
+SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, const char *dest,
 				         const char *host, const char *addr,
-				         unsigned port, time_t start,
-				         int flags)
+				         unsigned port, int flags)
 {
+    const char *myname = "smtp_session_alloc";
     SMTP_SESSION *session;
+    int     valid = (flags & SMTP_MISC_FLAG_TLSA_HOST);
 
     session = (SMTP_SESSION *) mymalloc(sizeof(*session));
-    session->stream = stream;
+    session->stream = 0;
     session->dest = mystrdup(dest);
     session->host = mystrdup(host);
     session->addr = mystrdup(addr);
@@ -168,27 +194,73 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, const char *dest,
 
     session->send_proto_helo = 0;
 
-    if (flags & SMTP_MISC_FLAG_CONN_STORE)
-	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
-    else
-	DONT_CACHE_THIS_SESSION;
-    session->reuse_count = 0;
     USE_NEWBORN_SESSION;			/* He's not dead Jim! */
 
 #ifdef USE_SASL_AUTH
     smtp_sasl_connect(session);
 #endif
 
+    /*
+     * When the destination argument of smtp_tls_sess_alloc() is null, a
+     * trivial TLS policy (level = "none") is returned unconditionally and
+     * the other arguments are not used.  Soon the DSN_BUF "why" argument
+     * will be optional when the caller is not interested in the error
+     * status.
+     */
+#define NO_DSN_BUF	(DSN_BUF *) 0
+#define NO_DEST		(char *) 0
+#define NO_HOST		(char *) 0
+#define NO_PORT		0
+#define NO_FLAGS	0
+
 #ifdef USE_TLS
     session->tls_context = 0;
     session->tls_retry_plain = 0;
     session->tls_nexthop = 0;
-    session->tls =
-	smtp_tls_sess_alloc(dest, host, port, flags & SMTP_MISC_FLAG_TLSA_HOST);
+    if (flags & SMTP_MISC_FLAG_NO_TLS)
+	session->tls = smtp_tls_sess_alloc(NO_DSN_BUF, NO_DEST, NO_HOST,
+					   NO_PORT, NO_FLAGS);
+    else {
+	if (why == 0)
+	    msg_panic("%s: null error buffer", myname);
+	session->tls = smtp_tls_sess_alloc(why, dest, host, port, valid);
+    }
+    if (!session->tls) {
+	smtp_session_free(session);
+	return (0);
+    }
 #endif
     session->state = 0;
     debug_peer_check(host, addr);
     return (session);
+}
+
+/* smtp_session_new_stream - finalize session with newly-created connection */
+
+void    smtp_session_new_stream(SMTP_SESSION *session, VSTREAM *stream,
+				        time_t start, int flags)
+{
+    const char *myname = "smtp_session_new_stream";
+
+    /*
+     * Sanity check.
+     */
+    if (session->stream != 0)
+	msg_panic("%s: session exists", myname);
+
+    session->stream = stream;
+
+    /*
+     * Make the session subject to the new-stream connection caching policy,
+     * as opposed to the reused-stream connection caching policy at the
+     * bottom of this module. Both policies are enforced in this file, not
+     * one policy here and the other at some random place in smtp_connect.c.
+     */
+    if (flags & SMTP_MISC_FLAG_CONN_STORE)
+	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
+    else
+	DONT_CACHE_THIS_SESSION;
+    session->reuse_count = 0;
 }
 
 /* smtp_session_free - destroy SMTP_SESSION structure and contents */
@@ -231,6 +303,32 @@ void    smtp_session_free(SMTP_SESSION *session)
     debug_peer_restore();
     myfree((char *) session);
 }
+
+/* smtp_sess_tls_check - does session require tls */
+
+int     smtp_sess_tls_check(const char *dest, const char *host, unsigned port,
+			            int valid)
+{
+#ifdef USE_TLS
+    static DSN_BUF *why;
+    SMTP_TLS_SESS *tls;
+
+    if (!why)
+	why = dsb_create();
+
+    tls = smtp_tls_sess_alloc(why, dest, host, ntohs(port), valid);
+    dsb_reset(why);
+
+    if (tls && tls->level >= TLS_LEV_NONE && tls->level <= TLS_LEV_MAY)
+	return (0);
+    if (tls)
+	smtp_tls_sess_free(tls);
+    return (1);
+#else
+    return (0);
+#endif
+}
+
 
 /* smtp_session_passivate - passivate an SMTP_SESSION object */
 
@@ -372,11 +470,15 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
 
     /*
      * Allright, bundle up what we have sofar.
+     * 
+     * Caller is responsible for not reusing plain-text connections when TLS is
+     * required.  With TLS disabled, a trivial TLS policy (level "none") is
+     * returned without fail, with no other ways for session setup to fail,
+     * we assume it must succeed.
      */
-#define NO_FLAGS	0
-
-    session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR), dest, host,
-				 addr, port, (time_t) 0, NO_FLAGS);
+    session = smtp_session_alloc(NO_DSN_BUF, dest, host, addr, port,
+				 SMTP_MISC_FLAG_NO_TLS);
+    session->stream = vstream_fdopen(fd, O_RDWR);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     CACHE_THIS_SESSION_UNTIL(expire_time);
     session->reuse_count = ++reuse_count;

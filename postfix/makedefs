@@ -462,12 +462,10 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		: ${CC=cc}
 		CCARGS="$CCARGS \$(WARN)"
 		# Darwin > 1.3 uses awk and flat_namespace
-		# MacOS X 10.8.x (Darwin 12.x) needs libresolv, likely much
-		# older earlier also, but I don't have access to test systems.
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;
-		 ?.*|1[0-1].*) AWK=awk; SYSLIBS="-flat_namespace";;
-	         *) AWK=awk; SYSLIBS="-lresolv -flat_namespace";;
+		       *) AWK=awk
+			  SYSLIBS="$SYSLIBS -flat_namespace";;
 		esac
 		# Darwin 7 adds IPv6 support, BIND_8_COMPAT, NO_NETINFO
 		case $RELEASE in
@@ -482,6 +480,11 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		case $RELEASE in
 		     ?.*) CCARGS="$CCARGS -DRESOLVE_H_NEEDS_NAMESER8_COMPAT_H";;
 		       *) CCARGS="$CCARGS -DRESOLVE_H_NEEDS_ARPA_NAMESER_COMPAT_H";;
+		esac
+		# Darwin 12.x (MacOS X 10.8.x), maybe earlier, needs libresolv.
+		case $RELEASE in
+	    ?.*|1[0-1].*) ;;
+		       *) SYSLIBS="$SYSLIBS -lresolv";;
 		esac
 		# kqueue and/or poll are broken in MacOS X 10.5 (Darwin 9).
 		# kqueue works in Mac OS X 10.8 (Darwin 12).
