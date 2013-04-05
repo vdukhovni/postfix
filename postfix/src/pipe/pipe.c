@@ -390,7 +390,8 @@
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBrecipient_delimiter (empty)\fR"
-/*	The separator between user names and address extensions (user+foo).
+/*	The set of characters that can separate a user name from its
+/*	address extension (user+foo).
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
@@ -717,7 +718,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
 		    if (*var_rcpt_delim)
-			split_addr(STR(buf), *var_rcpt_delim);
+			split_addr(STR(buf), var_rcpt_delim);
 		    if (*STR(buf) == 0)
 			continue;
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_USER, STR(buf));
@@ -735,7 +736,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
 		    if (*var_rcpt_delim == 0
-		      || (ext = split_addr(STR(buf), *var_rcpt_delim)) == 0)
+		      || (ext = split_addr(STR(buf), var_rcpt_delim)) == 0)
 			ext = "";		/* insert null arg */
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_EXTENSION, ext);
 		}

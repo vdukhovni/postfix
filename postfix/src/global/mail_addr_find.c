@@ -109,7 +109,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
     if (*var_rcpt_delim == 0) {
 	bare_key = saved_ext = 0;
     } else {
-	bare_key = strip_addr(full_key, &saved_ext, *var_rcpt_delim);
+	bare_key = strip_addr(full_key, &saved_ext, var_rcpt_delim);
     }
 
     /*

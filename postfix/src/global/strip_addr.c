@@ -6,10 +6,10 @@
 /* SYNOPSIS
 /*	#include <strip_addr.h>
 /*
-/*	char	*strip_addr(address, extension, delimiter)
+/*	char	*strip_addr(address, extension, delimiter_set)
 /*	const char *address;
 /*	char	**extension;
-/*	int	delimiter;
+/*	const char *delimiter_set;
 /* DESCRIPTION
 /*	strip_addr() takes an address and either returns a null
 /*	pointer when the address contains no address extension,
@@ -25,8 +25,8 @@
 /*	that had to be chopped off.
 /*	The copy includes the recipient address delimiter.
 /*	The caller is expected to pass the copy to myfree().
-/* .IP delimiter
-/*	Recipient address delimiter.
+/* .IP delimiter_set
+/*	Set of recipient address delimiter characters.
 /* SEE ALSO
 /*	split_addr(3) strip extension from localpart
 /* LICENSE
@@ -56,7 +56,7 @@
 
 /* strip_addr - strip extension from address */
 
-char   *strip_addr(const char *full, char **extension, int delimiter)
+char   *strip_addr(const char *full, char **extension, const char *delimiter_set)
 {
     char   *ratsign;
     char   *extent;
@@ -66,16 +66,16 @@ char   *strip_addr(const char *full, char **extension, int delimiter)
     /*
      * A quick test to eliminate inputs without delimiter anywhere.
      */
-    if (delimiter == 0 || strchr(full, delimiter) == 0) {
+    if (*delimiter_set == 0 || full[strcspn(full, delimiter_set)] == 0) {
 	stripped = saved_ext = 0;
     } else {
 	stripped = mystrdup(full);
 	if ((ratsign = strrchr(stripped, '@')) != 0)
 	    *ratsign = 0;
-	if ((extent = split_addr(stripped, delimiter)) != 0) {
+	if ((extent = split_addr(stripped, delimiter_set)) != 0) {
 	    extent -= 1;
 	    if (extension) {
-		*extent = delimiter;
+		*extent = full[strlen(stripped)];
 		saved_ext = mystrdup(extent);
 		*extent = 0;
 	    } else
@@ -105,17 +105,19 @@ int     main(int unused_argc, char **unused_argv)
 {
     char   *extension;
     char   *stripped;
-    int     delim = '-';
+    char*  delim = "+-";
+
+#define NO_DELIM	""
 
     /*
      * Incredible. This function takes only three arguments, and the tests
      * already take more lines of code than the code being tested.
      */
-    stripped = strip_addr("foo", (char **) 0, 0);
+    stripped = strip_addr("foo", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 1");
 
-    stripped = strip_addr("foo", &extension, 0);
+    stripped = strip_addr("foo", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 2");
     if (extension != 0)
@@ -131,11 +133,11 @@ int     main(int unused_argc, char **unused_argv)
     if (extension != 0)
 	msg_panic("strip_addr botch 6");
 
-    stripped = strip_addr("foo@bar", (char **) 0, 0);
+    stripped = strip_addr("foo@bar", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 7");
 
-    stripped = strip_addr("foo@bar", &extension, 0);
+    stripped = strip_addr("foo@bar", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 8");
     if (extension != 0)
@@ -151,11 +153,11 @@ int     main(int unused_argc, char **unused_argv)
     if (extension != 0)
 	msg_panic("strip_addr botch 12");
 
-    stripped = strip_addr("foo-ext", (char **) 0, 0);
+    stripped = strip_addr("foo-ext", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 13");
 
-    stripped = strip_addr("foo-ext", &extension, 0);
+    stripped = strip_addr("foo-ext", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 14");
     if (extension != 0)
@@ -178,11 +180,11 @@ int     main(int unused_argc, char **unused_argv)
     myfree(stripped);
     myfree(extension);
 
-    stripped = strip_addr("foo-ext@bar", (char **) 0, 0);
+    stripped = strip_addr("foo-ext@bar", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 19");
 
-    stripped = strip_addr("foo-ext@bar", &extension, 0);
+    stripped = strip_addr("foo-ext@bar", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 20");
     if (extension != 0)
@@ -202,6 +204,16 @@ int     main(int unused_argc, char **unused_argv)
 	msg_panic("strip_addr botch 24");
     msg_info("wanted:    foo-ext@bar -> %s %s", "foo@bar", "-ext");
     msg_info("strip_addr foo-ext@bar -> %s %s", stripped, extension);
+    myfree(stripped);
+    myfree(extension);
+
+    stripped = strip_addr("foo+ext@bar", &extension, delim);
+    if (stripped == 0)
+	msg_panic("strip_addr botch 25");
+    if (extension == 0)
+	msg_panic("strip_addr botch 26");
+    msg_info("wanted:    foo+ext@bar -> %s %s", "foo@bar", "+ext");
+    msg_info("strip_addr foo+ext@bar -> %s %s", stripped, extension);
     myfree(stripped);
     myfree(extension);
 

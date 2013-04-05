@@ -431,6 +431,7 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     VSTRING *buf;
     char   *member;
     char   *val;
+    const char *old;
     int     old_lineno;
     int     lineno;
     const char *err;
@@ -455,6 +456,10 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 		      err, STR(buf));
 	if (msg_verbose > 1)
 	    msg_info("%s: %s = %s", myname, member, val);
+	if ((old = dict->lookup(dict, member)) != 0
+	    && strcmp(old, val) != 0)
+	    msg_warn("%s, line %d: overriding earlier entry: %s=%s",
+		     VSTREAM_PATH(fp), lineno, member, old);
 	if (dict->update(dict, member, val) != 0)
 	    msg_fatal("%s, line %d: unable to update %s:%s",
 		      VSTREAM_PATH(fp), lineno, dict->type, dict->name);

@@ -1234,7 +1234,7 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 		   : strlen(STR(reply.recipient)));
 	    vstring_strncpy(queue_name, STR(reply.recipient), len);
 	    /* Remove the address extension from the recipient localpart. */
-	    if (*var_rcpt_delim && split_addr(STR(queue_name), *var_rcpt_delim))
+	    if (*var_rcpt_delim && split_addr(STR(queue_name), var_rcpt_delim))
 		vstring_truncate(queue_name, strlen(STR(queue_name)));
 	    /* Assume the recipient domain is equivalent to nexthop. */
 	    vstring_sprintf_append(queue_name, "@%s", STR(reply.nexthop));

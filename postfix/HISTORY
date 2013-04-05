@@ -18410,3 +18410,24 @@ Apologies for any names omitted.
 
 	Documentation: in smtpd.c, the comment that justifies the
 	454 reply for "TLS unavailable" cited the wrong RFC.
+
+20130404
+
+	Human factors: warning when a main.cf parameter has multiple
+	entries with different values.  File: util/dict.c.
+
+20130405
+
+	Feature: the recipient_delimiter parameter can now specify
+	a set of characters. A user name is now separated from its
+	address extension by the first character that matches the
+	recipient_delimiter set.  Files: proto/postconf.proto,
+	src/global/mail_addr_find.c, src/global/mail_params.c,
+	src/global/split_addr.c, src/global/split_addr.h,
+	src/global/strip_addr.c, src/global/strip_addr.h,
+	src/global/strip_addr.ref, src/local/bounce_workaround.c,
+	src/local/local.c, src/local/local_expand.c, src/local/recipient.c,
+	src/local/resolve.c, src/oqmgr/qmgr_message.c, src/pipe/pipe.c,
+	src/qmgr/qmgr_message.c, src/smtpd/smtpd.c,
+	src/smtpd/smtpd_check.c, src/trivial-rewrite/transport.c,
+	src/trivial-rewrite/trivial-rewrite.c.
