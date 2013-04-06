@@ -203,9 +203,8 @@ SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, const char *dest,
     /*
      * When the destination argument of smtp_tls_sess_alloc() is null, a
      * trivial TLS policy (level = "none") is returned unconditionally and
-     * the other arguments are not used.  Soon the DSN_BUF "why" argument
-     * will be optional when the caller is not interested in the error
-     * status.
+     * the other arguments are not used.  The DSN_BUF "why" argument is
+     * optional when the caller is not interested in the error status.
      */
 #define NO_DSN_BUF	(DSN_BUF *) 0
 #define NO_DEST		(char *) 0
@@ -218,12 +217,12 @@ SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, const char *dest,
     session->tls_retry_plain = 0;
     session->tls_nexthop = 0;
     if (flags & SMTP_MISC_FLAG_NO_TLS)
-	session->tls = smtp_tls_sess_alloc(NO_DSN_BUF, NO_DEST, NO_HOST,
-					   NO_PORT, NO_FLAGS);
+	session->tls = smtp_tls_policy(NO_DSN_BUF, NO_DEST, NO_HOST,
+				       NO_PORT, NO_FLAGS);
     else {
 	if (why == 0)
 	    msg_panic("%s: null error buffer", myname);
-	session->tls = smtp_tls_sess_alloc(why, dest, host, port, valid);
+	session->tls = smtp_tls_policy(why, dest, host, port, valid);
     }
     if (!session->tls) {
 	smtp_session_free(session);
@@ -275,7 +274,7 @@ void    smtp_session_free(SMTP_SESSION *session)
 			  var_smtp_starttls_tmout, 0, session->tls_context);
     }
     if (session->tls)
-	(void) smtp_tls_sess_free(session->tls);
+	smtp_tls_policy_free(session->tls);
 #endif
     if (session->stream)
 	vstream_fclose(session->stream);
@@ -310,20 +309,15 @@ int     smtp_sess_tls_check(const char *dest, const char *host, unsigned port,
 			            int valid)
 {
 #ifdef USE_TLS
-    static DSN_BUF *why;
-    SMTP_TLS_SESS *tls;
+    int     needed = 1;
+    SMTP_TLS_POLICY *tls;
 
-    if (!why)
-	why = dsb_create();
-
-    tls = smtp_tls_sess_alloc(why, dest, host, ntohs(port), valid);
-    dsb_reset(why);
-
-    if (tls && tls->level >= TLS_LEV_NONE && tls->level <= TLS_LEV_MAY)
-	return (0);
-    if (tls)
-	smtp_tls_sess_free(tls);
-    return (1);
+    /* Say "no" only when we're sure. Otherwise, "yes". */
+    if ((tls = smtp_tls_policy(0, dest, host, ntohs(port), valid)) != 0) {
+	needed = tls->level >= TLS_LEV_NONE && tls->level <= TLS_LEV_MAY;
+	smtp_tls_policy_free(tls);
+    }
+    return (needed);
 #else
     return (0);
 #endif

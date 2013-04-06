@@ -72,6 +72,96 @@ extern const NAME_CODE tls_level_table[];
 #define TLS_MGR_SCACHE_LMTP	"lmtp"
 
  /*
+  * RFC 6698 DANE
+  */
+#define TLS_DANE_TA	0		/* Match trust-anchor digests */
+#define TLS_DANE_EE	1		/* Match end-entity digests */
+
+#define TLS_DANE_CERT	0		/* Match the certificate digest */
+#define TLS_DANE_PKEY	1		/* Match the public key digest */
+
+#define TLS_DANE_FLAG_MIXED	(1<<0)	/* Combined pkeys and certs */
+#define TLS_DANE_FLAG_FINAL	(1<<1)	/* No further changes */
+
+ /*
+  * Linked list of either t = X509 certs or t = EVP_PKEY public keys
+  */
+#define TLS_DANE_L(t)		TLS_DANE_##t##_L
+
+#define DECL_TLS_DANE_L(t) \
+    typedef struct TLS_DANE_L(t) { \
+	t *item; \
+	struct TLS_DANE_L(t) *next; \
+    } TLS_DANE_L(t)
+
+#define TLS_DANE_Z(t)		((TLS_DANE_L(t) *)0)
+#define TLS_DANE_H(t)		t##_head
+#define TLS_DANE_HEAD(d, t)	((d) ? (d)->TLS_DANE_H(t) : TLS_DANE_Z(t))
+#define TLS_DANE_MEMB(t)	TLS_DANE_L(t) *TLS_DANE_H(t)
+
+DECL_TLS_DANE_L(X509);
+DECL_TLS_DANE_L(EVP_PKEY);
+
+ /*
+  * Certificate and public key digests (typically from TLSA RRs),
+  * grouped by algorithm.
+  */
+typedef struct TLS_TLSA {
+    char   *mdalg;			/* Algorithm for this digest list */
+    ARGV   *certs;			/* Complete certificate digests */
+    ARGV   *pkeys;			/* SubjectPublicKeyInfo digests */
+    struct TLS_TLSA *next;		/* Chain to next algorithm */
+} TLS_TLSA;
+
+ /*
+  * When TLS_DANE_FLAG_MIXED is set, the pkeys digest list is not allocated
+  * separately, and aliases the certs digest list for each algorithm.
+  */
+typedef struct TLS_DANE {
+    TLS_TLSA *ta;			/* Trust-anchor cert/pubkey digests */
+    TLS_TLSA *ee;			/* End-entity cert/pubkey digests */
+    TLS_DANE_MEMB(X509);		/* Full trust-anchor certificates */
+    TLS_DANE_MEMB(EVP_PKEY);		/* Full trust-anchor public keys */
+    int     flags;			/* Conflate cert and pkey digests */
+} TLS_DANE;
+
+#define TLS_DANE_HASTA(d)	((d) ? (d)->ta : 0)
+#define TLS_DANE_HASEE(d)	((d) ? (d)->ee : 0)
+
+#define TLS_DANE_LINSERT(t)	dane_##t##_list_insert
+#define TLS_DANE_LFREE(t)	dane_##t##_list_free
+#define IMPL_TLS_DANE_L(t) \
+    static void TLS_DANE_LINSERT(t)(TLS_DANE *d, t *i) \
+    { \
+	TLS_DANE_L(t) *new = (TLS_DANE_L(t) *) mymalloc(sizeof(*new)); \
+	CRYPTO_add(&i->references, 1, CRYPTO_LOCK_##t); \
+	new->item = i; \
+	new->next = d->TLS_DANE_H(t); \
+	d->TLS_DANE_H(t) = new; \
+    } \
+    static void TLS_DANE_LFREE(t)(TLS_DANE *d) \
+    { \
+	TLS_DANE_L(t) *head; \
+	TLS_DANE_L(t) *next; \
+	for (head = TLS_DANE_HEAD(d, t); head; head = next) { \
+	    next = head->next; \
+	    t##_free(head->item); \
+	} \
+    }
+
+ /*
+  * tls_dane.c
+  */
+extern int tls_dane_avail(void);
+extern void tls_dane_verbose(int);
+extern TLS_DANE *tls_dane_alloc(int);
+extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
+			   const char *);
+extern TLS_DANE *tls_dane_final(TLS_DANE *);
+extern void tls_dane_free(TLS_DANE *);
+extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
+
+ /*
   * TLS session context, also used by the VSTREAM call-back routines for SMTP
   * input/output, and by OpenSSL call-back routines for key verification.
   * 
@@ -101,7 +191,11 @@ typedef struct {
     const char *mdalg;			/* default message digest algorithm */
     /* Built-in vs external SSL_accept/read/write/shutdown support. */
     VSTREAM *stream;			/* Blocking-mode SMTP session */
+    /* RFC 6698 DANE trust input and verification state */
+    const TLS_DANE *dane;		/* DANE TLSA digests */
+    int     trustdepth;			/* Chain depth of trusted cert */
     int     errordepth;			/* Chain depth of error cert */
+    int     chaindepth;			/* Chain depth of top cert */
     int     errorcode;			/* First error at error depth */
     X509   *errorcert;			/* Error certificate closest to leaf */
 } TLS_SESS_STATE;
@@ -256,6 +350,7 @@ typedef struct {
     const char *cipher_exclusions;	/* Ciphers to exclude */
     const ARGV *matchargv;		/* Cert match patterns */
     const char *mdalg;			/* default message digest algorithm */
+    const TLS_DANE *dane;		/* RFC 6698 verification */
 } TLS_CLIENT_START_PROPS;
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);
@@ -272,11 +367,11 @@ extern TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *);
     ((props)->a12), ((props)->a13), (props)))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14) \
+    a10, a11, a12, a13, a14, a15) \
     tls_client_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14), (props)))
+    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), (props)))
 
  /*
   * tls_server.c
@@ -402,6 +497,7 @@ extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
 extern char *tls_peer_CN(X509 *, const TLS_SESS_STATE *);
 extern char *tls_issuer_CN(X509 *, const TLS_SESS_STATE *);
 extern const char *tls_dns_name(const GENERAL_NAME *, const TLS_SESS_STATE *);
+extern int tls_cert_match(TLS_SESS_STATE *, int, X509 *, int);
 extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
 extern void tls_log_verify_error(TLS_SESS_STATE *);
 

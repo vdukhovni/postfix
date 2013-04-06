@@ -1,13 +1,13 @@
 SHELL	= /bin/sh
 SRCS	= tls_prng_dev.c tls_prng_egd.c tls_prng_file.c tls_fprint.c \
 	tls_prng_exch.c tls_stream.c tls_bio_ops.c tls_misc.c tls_dh.c \
-	tls_rsa.c tls_verify.c tls_certkey.c tls_session.c \
+	tls_rsa.c tls_verify.c tls_dane.c tls_certkey.c tls_session.c \
 	tls_client.c tls_server.c tls_scache.c tls_mgr.c tls_seed.c \
 	tls_level.c \
 	tls_proxy_clnt.c tls_proxy_print.c tls_proxy_scan.c
 OBJS	= tls_prng_dev.o tls_prng_egd.o tls_prng_file.o tls_fprint.o \
 	tls_prng_exch.o tls_stream.o tls_bio_ops.o tls_misc.o tls_dh.o \
-	tls_rsa.o tls_verify.o tls_certkey.o tls_session.o \
+	tls_rsa.o tls_verify.o tls_dane.o tls_certkey.o tls_session.o \
 	tls_client.o tls_server.o tls_scache.o tls_mgr.o tls_seed.o \
 	tls_level.o \
 	tls_proxy_clnt.o tls_proxy_print.o tls_proxy_scan.o
@@ -128,6 +128,21 @@ tls_client.o: ../../include/vstring.h
 tls_client.o: tls.h
 tls_client.o: tls_client.c
 tls_client.o: tls_mgr.h
+tls_dane.o: ../../include/argv.h
+tls_dane.o: ../../include/dns.h
+tls_dane.o: ../../include/msg.h
+tls_dane.o: ../../include/myaddrinfo.h
+tls_dane.o: ../../include/mymalloc.h
+tls_dane.o: ../../include/name_code.h
+tls_dane.o: ../../include/name_mask.h
+tls_dane.o: ../../include/sock_addr.h
+tls_dane.o: ../../include/stringops.h
+tls_dane.o: ../../include/sys_defs.h
+tls_dane.o: ../../include/vbuf.h
+tls_dane.o: ../../include/vstream.h
+tls_dane.o: ../../include/vstring.h
+tls_dane.o: tls.h
+tls_dane.o: tls_dane.c
 tls_dh.o: ../../include/argv.h
 tls_dh.o: ../../include/mail_params.h
 tls_dh.o: ../../include/msg.h

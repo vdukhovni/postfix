@@ -2818,6 +2818,11 @@ The LMTP-specific version of the smtp_tls_session_cache_timeout
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_trust_anchor_file (default: empty)
+The LMTP-specific version of the smtp_tls_trust_anchor_file
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH lmtp_tls_verify_cert_match (default: hostname)
 The LMTP-specific version of the smtp_tls_verify_cert_match
 configuration parameter. See there for details.
@@ -7673,6 +7678,53 @@ $smtp_tls_session_cache_database, this parameter is implemented in the
 are not possible.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_tls_trust_anchor_file (default: empty)
+Zero or more PEM-format files with trust-anchor certificates
+and/or public keys.  If the parameter is not empty the root CAs in
+CAfile and CApath are no longer trusted.  Rather, the Postfix SMTP
+client will only trust certificate-chains signed by one of the
+trust-anchors contained in the chosen files.  The specified
+trust-anchor certificates and public keys are not subject to
+expiration, and need not be (self-signed) root CAs.  They may, if
+desired, be intermediate certificates. Therefore, these certificates
+also may be found "in the middle" of the trust chain presented by
+the remote SMTP server, and any untrusted issuing parent certificates
+will be ignored.  Specify a list of pathnames separated by comma
+or whitespace.
+.PP
+This feature is implemented for completeness, to allow installations
+with a small set of SMTP peers to set global policy in main.cf,
+that at most sites would be set via smtp_tls_policy_maps.  In almost
+all cases it is better to use it on a per-destination basis via the
+"tafile" policy attribute of the "verify" and "secure" levels leaving
+the global main.cf setting empty.
+.PP
+When used on a per-destination basis, each "tafile" PEM file
+must be accessible to the Postfix SMTP client in the chroot jail
+if applicable.  The files should not contain any sensitive data,
+and must be readable by the non-privileged $mail_owner user.  This
+allows destinations to be bound to a set of specific CAs or public
+keys without trusting the same CAs for all destinations.
+.PP
+The underlying mechanism is in support of RFC 6698 (DANE TLSA),
+which defines mechanisms for a client to securely determine server
+TLS certificates via DNS.
+.PP
+If you want your trust anchors to be public keys, with OpenSSL
+you can extract a single PEM public key from a PEM X.509 file
+containing a single certificate, as follows:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ openssl x509 -in cert.pem -out ta-key.pem -noout -pubkey
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH smtp_tls_verify_cert_match (default: hostname)
 How the Postfix SMTP client verifies the server certificate
 peername for the

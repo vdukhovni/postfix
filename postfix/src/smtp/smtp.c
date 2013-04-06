@@ -441,6 +441,11 @@
 /*	Available in Postfix version 2.8 and later:
 /* .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
 /*	List or bit-mask of OpenSSL bug work-arounds to disable.
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBsmtp_tls_trust_anchor_file (empty)\fR"
+/*	Zero or more PEM-format files with trust-anchor certificates
+/*	and/or public keys.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -825,6 +830,7 @@ int     var_smtp_tls_scert_vd;
 char   *var_smtp_tls_vfy_cmatch;
 char   *var_smtp_tls_fpt_cmatch;
 char   *var_smtp_tls_fpt_dgst;
+char   *var_smtp_tls_tafile;
 char   *var_smtp_tls_proto;
 char   *var_smtp_tls_ciph;
 char   *var_smtp_tls_eccert_file;

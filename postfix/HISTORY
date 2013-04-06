@@ -18410,3 +18410,19 @@ Apologies for any names omitted.
 
 	Documentation: in smtpd.c, the comment that justifies the
 	454 reply for "TLS unavailable" cited the wrong RFC.
+
+20130405
+
+	Feature: support for trust anchors, i.e. CA certificates
+	or public keys that will be used instead of conventional
+	root certificates, and revised fingerprint support.  This
+	can be used by itself, and this provides support for an
+	upcoming DANE implementation.  Victor Duchovni.  Files:
+	mantools/postlink, proto/TLS_README.html, proto/postconf.proto,
+	src/global/mail_params.h, src/smtp/lmtp_params.c,
+	src/smtp/smtp.c, src/smtp/smtp.h, src/smtp/smtp_params.c,
+	src/smtp/smtp_proto.c, src/smtp/smtp_session.c,
+	src/smtp/smtp_state.c, src/smtp/smtp_tls_sess.c,
+	src/tls/Makefile.in, src/tls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_dane.c, src/tls/tls_fprint.c, src/tls/tls_misc.c,
+	src/tls/tls_verify.c, src/util/argv.c, src/util/argv.h.

@@ -4965,6 +4965,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_trust_anchor_file">lmtp_tls_trust_anchor_file</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>
+configuration parameter.  See there for details.  </p>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_verify_cert_match">lmtp_tls_verify_cert_match</a>
 (default: hostname)</b></DT><DD>
 
@@ -11916,6 +11927,55 @@ $<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cach
 are not possible. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>
+(default: empty)</b></DT><DD>
+
+<p> Zero or more PEM-format files with trust-anchor certificates
+and/or public keys.  If the parameter is not empty the root CAs in
+CAfile and CApath are no longer trusted.  Rather, the Postfix SMTP
+client will only trust certificate-chains signed by one of the
+trust-anchors contained in the chosen files.  The specified
+trust-anchor certificates and public keys are not subject to
+expiration, and need not be (self-signed) root CAs.  They may, if
+desired, be intermediate certificates. Therefore, these certificates
+also may be found "in the middle" of the trust chain presented by
+the remote SMTP server, and any untrusted issuing parent certificates
+will be ignored.  Specify a list of pathnames separated by comma
+or whitespace.  </p>
+
+<p> This feature is implemented for completeness, to allow installations
+with a small set of SMTP peers to set global policy in <a href="postconf.5.html">main.cf</a>,
+that at most sites would be set via <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  In almost
+all cases it is better to use it on a per-destination basis via the
+"tafile" policy attribute of the "verify" and "secure" levels leaving
+the global <a href="postconf.5.html">main.cf</a> setting empty.  </p>
+
+<p>  When used on a per-destination basis, each "tafile" PEM file
+must be accessible to the Postfix SMTP client in the chroot jail
+if applicable.  The files should not contain any sensitive data,
+and must be readable by the non-privileged $<a href="postconf.5.html#mail_owner">mail_owner</a> user.  This
+allows destinations to be bound to a set of specific CAs or public
+keys without trusting the same CAs for all destinations.  </p>
+
+<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA),
+which defines mechanisms for a client to securely determine server
+TLS certificates via DNS.  </p>
+
+<p> If you want your trust anchors to be public keys, with OpenSSL
+you can extract a single PEM public key from a PEM X.509 file
+containing a single certificate, as follows: </p>
+
+<blockquote>
+<pre>
+$ openssl x509 -in cert.pem -out ta-key.pem -noout -pubkey
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
 
 
 </DD>

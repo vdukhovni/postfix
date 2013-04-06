@@ -242,6 +242,7 @@ while (<>) {
     s;\blmtp_tls_security_level\b;<a href="postconf.5.html#lmtp_tls_security_level">$&</a>;g;
     s;\blmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#lmtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\blmtp_tls_verify_cert_match\b;<a href="postconf.5.html#lmtp_tls_verify_cert_match">$&</a>;g;
+    s;\blmtp_tls_trust_anchor_file\b;<a href="postconf.5.html#lmtp_tls_trust_anchor_file">$&</a>;g;
     s;\blmtp_tls_per_site\b;<a href="postconf.5.html#lmtp_tls_per_site">$&</a>;g;
     s;\blmtp_tls_cert_file\b;<a href="postconf.5.html#lmtp_tls_cert_file">$&</a>;g;
     s;\blmtp_tls_key_file\b;<a href="postconf.5.html#lmtp_tls_key_file">$&</a>;g;
@@ -638,6 +639,7 @@ while (<>) {
     s;\bsmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#smtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\bsmtp_tls_verify_cert_match\b;<a href="postconf.5.html#smtp_tls_verify_cert_match">$&</a>;g;
     s;\bsmtp_tls_secure_cert_match\b;<a href="postconf.5.html#smtp_tls_secure_cert_match">$&</a>;g;
+    s;\bsmtp_tls_trust_anchor_file\b;<a href="postconf.5.html#smtp_tls_trust_anchor_file">$&</a>;g;
     s;\bsmtp_tls_scert_verifydepth\b;<a href="postconf.5.html#smtp_tls_scert_verifydepth">$&</a>;g;
     s;\bsmtp_tls_security_level\b;<a href="postconf.5.html#smtp_tls_security_level">$&</a>;g;
     s;\bsmtp_tls_session_cache_database\b;<a href="postconf.5.html#smtp_tls_session_cache_database">$&</a>;g;

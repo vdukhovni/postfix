@@ -908,6 +908,17 @@ extension are used to verify the remote SMTP server name. If no DNS names are
 specified, the certificate CommonName is checked. If you want mandatory
 encryption without server certificate verification, see above.
 
+With Postfix >= 2.11 the "smtp_tls_trust_anchor_file" parameter or more
+typically the corresponding per-destination "tafile" attribute optionally
+modifies trust chain verification. If the parameter is not empty the root CAs
+in CAfile and CApath are no longer trusted. Rather, the Postfix SMTP client
+will only trust certificate-chains signed by one of the trust-anchors contained
+in the chosen files. The specified trust-anchor certificates and public keys
+are not subject to expiration, and need not be (self-signed) root CAs. They
+may, if desired, be intermediate certificates. Therefore, these certificates
+also may be found "in the middle" of the trust chain presented by the remote
+SMTP server, and any untrusted issuing parent certificates will be ignored.
+
 Despite the potential for eliminating "man-in-the-middle" and other attacks,
 mandatory certificate trust chain and subject name verification is not viable
 as a default Internet mail delivery policy. Most MX hosts do not support TLS at
@@ -957,6 +968,17 @@ smtp_tls_CApath), any DNS names in the SubjectAlternativeName certificate
 extension are used to verify the remote SMTP server name. If no DNS names are
 specified, the CommonName is checked. If you want mandatory encryption without
 server certificate verification, see above.
+
+With Postfix >= 2.11 the "smtp_tls_trust_anchor_file" parameter or more
+typically the corresponding per-destination "tafile" attribute optionally
+modifies trust chain verification. If the parameter is not empty the root CAs
+in CAfile and CApath are no longer trusted. Rather, the Postfix SMTP client
+will only trust certificate-chains signed by one of the trust-anchors contained
+in the chosen files. The specified trust-anchor certificates and public keys
+are not subject to expiration, and need not be (self-signed) root CAs. They
+may, if desired, be intermediate certificates. Therefore, these certificates
+also may be found "in the middle" of the trust chain presented by the remote
+SMTP server, and any untrusted issuing parent certificates will be ignored.
 
 Despite the potential for eliminating "man-in-the-middle" and other attacks,
 mandatory secure server certificate verification is not viable as a default
@@ -1360,14 +1382,21 @@ vveerriiffyy
     validated (not expired or revoked, and signed by a trusted certificate
     authority), and if the server certificate name matches the optional "match"
     attribute (or the main.cf smtp_tls_verify_cert_match parameter value when
-    no optional "match" attribute is specified).
+    no optional "match" attribute is specified). With Postfix >= 2.11 the
+    "tafile" attribute optionally modifies trust chain verification in the same
+    manner as the "smtp_tls_trust_anchor_file" parameter. The "tafile"
+    attribute may be specified multiple times to load multiple trust-anchor
+    files.
 sseeccuurree
     Secure certificate verification. Mail is delivered only if the TLS
     handshake succeeds, if the remote SMTP server certificate can be validated
     (not expired or revoked, and signed by a trusted certificate authority),
     and if the server certificate name matches the optional "match" attribute
     (or the main.cf smtp_tls_secure_cert_match parameter value when no optional
-    "match" attribute is specified).
+    "match" attribute is specified). With Postfix >= 2.11 the "tafile"
+    attribute optionally modifies trust chain verification in the same manner
+    as the "smtp_tls_trust_anchor_file" parameter. The "tafile" attribute may
+    be specified multiple times to load multiple trust-anchor files.
 Notes:
 
   * The "match" attribute is especially useful to verify TLS certificates for

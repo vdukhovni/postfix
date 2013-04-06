@@ -23,6 +23,7 @@
 	VAR_SMTP_TLS_SEC_CMATCH, DEF_SMTP_TLS_SEC_CMATCH, &var_smtp_tls_sec_cmatch, 1, 0,
 	VAR_SMTP_TLS_FPT_CMATCH, DEF_SMTP_TLS_FPT_CMATCH, &var_smtp_tls_fpt_cmatch, 0, 0,
 	VAR_SMTP_TLS_FPT_DGST, DEF_SMTP_TLS_FPT_DGST, &var_smtp_tls_fpt_dgst, 1, 0,
+	VAR_SMTP_TLS_TAFILE, DEF_SMTP_TLS_TAFILE, &var_smtp_tls_tafile, 0, 0,
 	VAR_SMTP_TLS_PROTO, DEF_SMTP_TLS_PROTO, &var_smtp_tls_proto, 0, 0,
 	VAR_SMTP_TLS_CIPH, DEF_SMTP_TLS_CIPH, &var_smtp_tls_ciph, 1, 0,
 	VAR_SMTP_TLS_ECCERT_FILE, DEF_SMTP_TLS_ECCERT_FILE, &var_smtp_tls_eccert_file, 0, 0,

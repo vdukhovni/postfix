@@ -593,6 +593,7 @@ smtp_state.o: smtp_sasl.h
 smtp_state.o: smtp_state.c
 smtp_tls_sess.o: ../../include/argv.h
 smtp_tls_sess.o: ../../include/attr.h
+smtp_tls_sess.o: ../../include/ctable.h
 smtp_tls_sess.o: ../../include/deliver_request.h
 smtp_tls_sess.o: ../../include/dict.h
 smtp_tls_sess.o: ../../include/dsn.h

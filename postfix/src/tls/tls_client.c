@@ -595,7 +595,8 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
 	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 
-    if (TLS_CERT_IS_TRUSTED(TLScontext) && props->tls_level >= TLS_LEV_VERIFY)
+    if (TLS_CERT_IS_TRUSTED(TLScontext)
+        && (props->tls_level >= TLS_LEV_VERIFY || TLS_DANE_HASTA(props->dane)))
 	verify_peername = 1;
 
     /* Force cert processing so we can log the data? */
@@ -720,26 +721,13 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
 				         const TLS_CLIENT_START_PROPS *props)
 {
-    char  **cpp;
-
-    /* Non-null by contract */
     TLScontext->peer_fingerprint = tls_fingerprint(peercert, props->mdalg);
     TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->mdalg);
 
-    /*
-     * Compare the fingerprint against each acceptable value, ignoring
-     * upper/lower case differences.
-     */
-    if (props->tls_level == TLS_LEV_FPRINT) {
-	for (cpp = props->matchargv->argv; *cpp; ++cpp) {
-	    if (strcasecmp(TLScontext->peer_fingerprint, *cpp) == 0
-		|| strcasecmp(TLScontext->peer_pkey_fprint, *cpp) == 0) {
-		TLScontext->peer_status |=
-		    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
-		break;
-	    }
-	}
-    }
+    if (TLS_DANE_HASEE(props->dane)
+	&& tls_cert_match(TLScontext, TLS_DANE_EE, peercert, 0))
+	    TLScontext->peer_status |=
+		TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
 }
 
  /*
@@ -764,7 +752,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * When certificate verification is required, log trust chain validation
      * errors even when disabled by default for opportunistic sessions.
      */
-    if (props->tls_level >= TLS_LEV_VERIFY)
+    if (props->tls_level >= TLS_LEV_VERIFY || TLS_DANE_HASTA(props->dane))
 	log_mask |= TLS_LOG_UNTRUSTED;
 
     if (log_mask & TLS_LOG_VERBOSE)
@@ -814,6 +802,15 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * not attempt to re-use sessions whose ciphers are too weak. We salt the
      * session lookup key with the cipher list, so that sessions found in the
      * cache are always acceptable.
+     *
+     * With DANE, (more generally any TLScontext where we specified explicit
+     * trust-anchor or end-entity certificates) the verification status of
+     * the SSL session depends on the specified list.  Since we verify the
+     * certificate only during the initial handshake, we must segregate
+     * sessions with different TA lists.  Note, that TA re-verification
+     * is not possible with cached sessions, since these don't hold the complete
+     * peer trust chain.  Therefore, we compute a digest of the sorted TA
+     * parameters and append it to the serverid.
      */
     myserverid = tls_serverid_digest(props, protomask, cipher_list);
 
@@ -831,6 +828,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     TLScontext->serverid = myserverid;
     TLScontext->stream = props->stream;
     TLScontext->mdalg = props->mdalg;
+
+    /* Alias DANE digest info from props */
+    TLScontext->dane = props->dane;
 
     if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
 	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
@@ -973,9 +973,11 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	/*
 	 * Peer name or fingerprint verification as requested.
 	 * Unconditionally set peer_CN, issuer_CN and peer_fingerprint.
+	 * Check fingerprint first, and avoid logging verified as untrusted
+	 * in the call to verify_extract_name().
 	 */
-	verify_extract_name(TLScontext, peercert, props);
 	verify_extract_print(TLScontext, peercert, props);
+	verify_extract_name(TLScontext, peercert, props);
 
 	if (TLScontext->log_mask &
 	    (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))

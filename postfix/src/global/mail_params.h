@@ -1440,6 +1440,12 @@ extern char *var_smtp_tls_mand_excl;
 #define DEF_LMTP_TLS_FPT_DGST	"md5"
 extern char *var_smtp_tls_fpt_dgst;
 
+#define VAR_SMTP_TLS_TAFILE	"smtp_tls_trust_anchor_file"
+#define DEF_SMTP_TLS_TAFILE	""
+#define VAR_LMTP_TLS_TAFILE	"lmtp_tls_trust_anchor_file"
+#define DEF_LMTP_TLS_TAFILE	""
+extern char *var_smtp_tls_tafile;
+
 #define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
 #define DEF_SMTP_TLS_LOGLEVEL	"0"
 #define VAR_LMTP_TLS_LOGLEVEL	"lmtp_tls_loglevel"

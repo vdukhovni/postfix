@@ -808,7 +808,8 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 cipher_exclusions
 			 = vstring_str(session->tls->exclusions),
 			 matchargv = session->tls->matchargv,
-			 mdalg = var_smtp_tls_fpt_dgst);
+			 mdalg = var_smtp_tls_fpt_dgst,
+			 dane = session->tls->dane);
     vstring_free(serverid);
 
     if (session->tls_context == 0) {
@@ -848,8 +849,23 @@ static int smtp_start_tls(SMTP_STATE *state)
      * server, so no need to disable I/O, ... we can even be polite and send
      * "QUIT".
      * 
-     * See src/tls/tls_level.c. Levels above encrypt require matching. Levels >=
-     * verify require CA trust.
+     * See src/tls/tls_level.c. Levels above encrypt require matching.
+     * Levels >= verify require CA trust.
+     *
+     * The DANE level is a hybrid of verify and fingerprint, if we have
+     * trust-anchors, we must do name checking, so we treat like verify.
+     * We also do fingerprint verification against any end-entity certs,
+     * so it'll work for that too.
+     *
+     * If we only have end-entity certs, then it is just like fingerprint.
+     *
+     * If we have no usable certs at all, but TLSA records were found,
+     * we do "encrypt". Contrary to draft-ietf-dane-srv, we can't
+     * do standard PKIX as a fallback, it will almost always fail,
+     * with no human present to "click ok".
+     *
+     * The DANE security level is for now still disabled in tls_level.c
+     * When it is enabled, we're ready to enforce its constraints. 
      */
     if (session->tls->level >= TLS_LEV_VERIFY)
 	if (!TLS_CERT_IS_TRUSTED(session->tls_context))

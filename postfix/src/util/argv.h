@@ -21,6 +21,7 @@ typedef struct ARGV {
 } ARGV;
 
 extern ARGV *argv_alloc(ssize_t);
+extern ARGV *argv_sort(ARGV *);
 extern void argv_add(ARGV *,...);
 extern void argv_addn(ARGV *,...);
 extern void argv_terminate(ARGV *);

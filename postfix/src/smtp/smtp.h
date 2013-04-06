@@ -202,13 +202,16 @@ extern HBC_CHECKS *smtp_body_checks;	/* limited body checks */
   * smtp_session.c
   */
 #ifdef USE_TLS
-typedef struct SMTP_TLS_SESS {
+typedef struct SMTP_TLS_POLICY {
+    int     refs;			/* Reference count */
     int     level;			/* TLS enforcement level */
     char   *protocols;			/* Acceptable SSL protocols */
     char   *grade;			/* Cipher grade: "export", ... */
     VSTRING *exclusions;		/* Excluded SSL ciphers */
     ARGV   *matchargv;			/* Cert match patterns */
-} SMTP_TLS_SESS;
+    DSN_BUF *why;			/* Lookup error status */
+    TLS_DANE *dane;			/* DANE TLSA digests */
+} SMTP_TLS_POLICY;
 
 #endif
 
@@ -254,7 +257,7 @@ typedef struct SMTP_SESSION {
     TLS_SESS_STATE *tls_context;	/* TLS library session state */
     char   *tls_nexthop;		/* Nexthop domain for cert checks */
     int     tls_retry_plain;		/* Try plain when TLS handshake fails */
-    SMTP_TLS_SESS *tls;			/* SMTP session TLS policy */
+    SMTP_TLS_POLICY *tls;		/* SMTP session TLS policy */
 #endif
 
     SMTP_STATE *state;			/* back link */
@@ -274,10 +277,10 @@ extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
   * smtp_tls_sess.c
   */
 extern void smtp_tls_list_init(void);
-extern SMTP_TLS_SESS *smtp_tls_sess_alloc(DSN_BUF *, const char *, const char *,
-					          unsigned, int);
-extern SMTP_TLS_SESS *smtp_tls_sess_free(SMTP_TLS_SESS *);
-
+extern SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *, const char *, const char *,
+					unsigned, int);
+extern void smtp_tls_policy_free(SMTP_TLS_POLICY *);
+extern void smtp_tls_policy_flush(void);
 #endif
 
  /*

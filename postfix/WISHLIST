@@ -11,6 +11,32 @@ Wish list:
 	Begin code revision, after DANE support stabilizes.  This
 	should be one pass that changes only names and no code.
 
+	Run new source files through ccformat. If I do it now,
+	almost every block of code or comments is changed. Having
+	different formatting styles in the same project is PROBLEMATIC.
+	There is a reason why ccformat is included with source code.
+
+	Embed all statement-like macros in do { ... } while (0).
+	This is especially necessary with macros that contain an
+	"if" statement, or that contain multiple statements.
+
+	Spell-check, double-word check, and HTML validator check.
+
+	Use make(1) and cc(1) to convert the C++ like templates
+	into debuggable source code, such that each statement has
+	its own distinct line number (what a revolutionary idea).
+
+	All source code must specify its original author and
+	license statement. Some code modules specify Lutz Jaenicke
+	as the original author and fall under his liberal license.
+	Code that is added to such a module has the same license
+	(or at least something that is not more restrictive). Code
+	modules without input from Lutz Jaenicke must state its
+	original author and license (preferably no more restrictive
+	than Postfix's own license). Currently, too many files list
+	Wietse as the original author, and Lutz Jaenicke's license,
+	which is wrong.
+
 	Generally, macro and function names should make a program
 	more clear, not merely reduce the number of programmer
 	keystrokes; similar considerations hold for variable names

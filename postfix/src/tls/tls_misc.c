@@ -746,7 +746,10 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->cipher_name = 0;
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
-    TLScontext->mdalg = 0;			/* Alias for props->mdalg */
+    TLScontext->mdalg = 0;		/* Alias for props->mdalg */
+    TLScontext->dane = 0;		/* Alias for client props->dane */
+    TLScontext->trustdepth = -1;
+    TLScontext->chaindepth = -1;
     TLScontext->errordepth = -1;
     TLScontext->errorcode = X509_V_OK;
     TLScontext->errorcert = 0;

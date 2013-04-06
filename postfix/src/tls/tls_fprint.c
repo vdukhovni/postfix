@@ -76,8 +76,9 @@
 /* .IP len
 /*	The length of the input data.
 /* .IP props
-/*	The client start properties for the session, which include the
-/*	initial serverid from the SMTP client.
+/*	The client start properties for the session, which contains the
+/*	initial serverid from the SMTP client and the DANE verification
+/*	parameters.
 /* .IP protomask
 /*	The mask of protocol exclusions.
 /* .IP ciphers
@@ -129,6 +130,34 @@ static const char hexcodes[] = "0123456789ABCDEF";
 #define digestptr(p) digestpl((p), sizeof(*(p)))
 #define digeststr(s) digestpl((s), strlen(s)+1)
 
+#define digestdane(dane, memb) do { \
+	if ((dane)->memb != 0) \
+	    chknonzero(tlsa_digest(mdctx, (dane)->memb, #memb)); \
+    } while (0)
+
+#define digesttlsa(tlsa, memb) do { \
+	if ((tlsa)->memb) { \
+	    digeststr(#memb); \
+	    for (dgst = (tlsa)->memb->argv; *dgst; ++dgst) \
+		digeststr(*dgst); \
+	} \
+    } while (0)
+
+/* tlsa_digest - digest a pre-sorted by caller TLSA match list */
+
+static int tlsa_digest(EVP_MD_CTX *mdctx, TLS_TLSA *tlsa, const char *usage)
+{
+    char  **dgst;
+    int     ok = 1;
+
+    for (digeststr(usage); tlsa; tlsa = tlsa->next) {
+	digeststr(tlsa->mdalg);
+	digesttlsa(tlsa, pkeys);
+	digesttlsa(tlsa, certs);
+    }
+    return (ok);
+}
+
 /* tls_serverid_digest - suffix props->serverid with parameter digest */
 
 char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
@@ -166,6 +195,37 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
     digestptr(&sslversion);
     digestptr(&protomask);
     digeststr(ciphers);
+
+    /*
+     * All we get from the session cache is a single bit telling us whether
+     * the certificate is trusted or not, but we need to know whether the
+     * trust is CA-based (in that case we must do name checks) or whether it
+     * is a direct end-point match.  We mustn't confuse the two, so it is best
+     * to process only TA trust in the verify callback and check the EE trust
+     * after. This works since re-used sessions always have access to the leaf
+     * certificate, while only the original session has the leaf and the full
+     * trust chain.
+     *
+     * Only the trust anchor matchlist is hashed into the session key.
+     * The end entity certs are not used to determine whether a certificate
+     * is trusted or not, rather these are rechecked against the leaf cert
+     * outside the verification callback, each time a session is created or
+     * reused.
+     *
+     * Therefore, the security context of the session does not depend on the
+     * EE matching data, which is checked separately each time.  So we exclude
+     * the EE part of the DANE structure from the serverid digest.
+     *
+     * If this changes, also update tls_dane_final() in tls_dane.c.
+     */
+    if (props->dane) {
+	int     mixed = (props->dane->flags & TLS_DANE_FLAG_MIXED);
+	digestptr(&mixed);
+	digestdane(props->dane, ta);
+#if 0
+	digestdane(props->dane, ee);		/* See above */
+#endif
+    }
     chknonzero(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);
     if (!ok)
