@@ -62,7 +62,11 @@ SMTP_STATE *smtp_state_alloc(void)
     state->session = 0;
     state->status = 0;
     state->space_left = 0;
-    state->nexthop_domain = 0;
+    state->iterator->request_nexthop = vstring_alloc(100);
+    state->iterator->dest = vstring_alloc(100);
+    state->iterator->host = vstring_alloc(100);
+    state->iterator->addr = vstring_alloc(100);
+    state->iterator->saved_dest = vstring_alloc(100);
     if (var_smtp_cache_conn) {
 	state->dest_label = vstring_alloc(10);
 	state->dest_prop = vstring_alloc(10);
@@ -88,6 +92,11 @@ void    smtp_state_free(SMTP_STATE *state)
     /* The TLS policy cache lifetime is one delivery. */
     smtp_tls_policy_flush();
 #endif
+    vstring_free(state->iterator->request_nexthop);
+    vstring_free(state->iterator->dest);
+    vstring_free(state->iterator->host);
+    vstring_free(state->iterator->addr);
+    vstring_free(state->iterator->saved_dest);
     if (state->dest_label)
 	vstring_free(state->dest_label);
     if (state->dest_prop)

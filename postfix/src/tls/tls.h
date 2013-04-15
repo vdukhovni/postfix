@@ -23,16 +23,34 @@
   * 
   * XXX TLS_LEV_NOTFOUND no longer belongs in this list. The SMTP client will
   * have to use something else to report that policy table lookup failed.
+  * 
+  * The order of levels matters, but we hide most of the details in macros.
+  * 
+  * "dane" vs. "fingerprint", both must lie between "encrypt" and "verify".
+  * 
+  * - With "may" and higher, TLS is enabled.
+  * 
+  * - With "encrypt" and higher, TLS encryption must be applied.
+  * 
+  * - Strictly above "encrypt", the peer certificate must match.
+  * 
+  * - At "dane" and higher, the peer certificate must also be trusted. With
+  * "dane" the trust may be self-asserted, so we only log trust verification
+  * errors when TA associations are involved.
   */
 #define TLS_LEV_INVALID		-2	/* sentinel */
 #define TLS_LEV_NOTFOUND	-1	/* XXX not in policy table */
 #define TLS_LEV_NONE		0	/* plain-text only */
 #define TLS_LEV_MAY		1	/* wildcard */
 #define TLS_LEV_ENCRYPT		2	/* encrypted connection */
-#define TLS_LEV_DANE		3	/* "peer" CA-less verification */
-#define TLS_LEV_FPRINT		4	/* "peer" CA-less verification */
+#define TLS_LEV_FPRINT		3	/* "peer" CA-less verification */
+#define TLS_LEV_DANE		4	/* TLSA RRset policy from DNSSEC */
 #define TLS_LEV_VERIFY		5	/* certificate verified */
 #define TLS_LEV_SECURE		6	/* "secure" verification */
+
+#define TLS_REQUIRED(l)		((l) > TLS_LEV_MAY)
+#define TLS_MUST_MATCH(l)	((l) > TLS_LEV_ENCRYPT)
+#define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_VERIFY || (l) == TLS_LEV_DANE)
 
 extern const NAME_CODE tls_level_table[];
 
@@ -84,27 +102,8 @@ extern const NAME_CODE tls_level_table[];
 #define TLS_DANE_FLAG_FINAL	(1<<1)	/* No further changes */
 
  /*
-  * Linked list of either t = X509 certs or t = EVP_PKEY public keys
-  */
-#define TLS_DANE_L(t)		TLS_DANE_##t##_L
-
-#define DECL_TLS_DANE_L(t) \
-    typedef struct TLS_DANE_L(t) { \
-	t *item; \
-	struct TLS_DANE_L(t) *next; \
-    } TLS_DANE_L(t)
-
-#define TLS_DANE_Z(t)		((TLS_DANE_L(t) *)0)
-#define TLS_DANE_H(t)		t##_head
-#define TLS_DANE_HEAD(d, t)	((d) ? (d)->TLS_DANE_H(t) : TLS_DANE_Z(t))
-#define TLS_DANE_MEMB(t)	TLS_DANE_L(t) *TLS_DANE_H(t)
-
-DECL_TLS_DANE_L(X509);
-DECL_TLS_DANE_L(EVP_PKEY);
-
- /*
-  * Certificate and public key digests (typically from TLSA RRs),
-  * grouped by algorithm.
+  * Certificate and public key digests (typically from TLSA RRs), grouped by
+  * algorithm.
   */
 typedef struct TLS_TLSA {
     char   *mdalg;			/* Algorithm for this digest list */
@@ -114,40 +113,35 @@ typedef struct TLS_TLSA {
 } TLS_TLSA;
 
  /*
+  * Linked list of full X509 trust-anchor certs.
+  */
+typedef struct TLS_CERTS {
+    X509   *cert;
+    struct TLS_CERTS *next;
+} TLS_CERTS;
+
+ /*
+  * Linked list of full EVP_PKEY trust-anchor public keys.
+  */
+typedef struct TLS_PKEYS {
+    EVP_PKEY *pkey;
+    struct TLS_PKEYS *next;
+} TLS_PKEYS;
+
+ /*
   * When TLS_DANE_FLAG_MIXED is set, the pkeys digest list is not allocated
   * separately, and aliases the certs digest list for each algorithm.
   */
 typedef struct TLS_DANE {
     TLS_TLSA *ta;			/* Trust-anchor cert/pubkey digests */
     TLS_TLSA *ee;			/* End-entity cert/pubkey digests */
-    TLS_DANE_MEMB(X509);		/* Full trust-anchor certificates */
-    TLS_DANE_MEMB(EVP_PKEY);		/* Full trust-anchor public keys */
+    TLS_CERTS *certs;			/* Full trust-anchor certificates */
+    TLS_PKEYS *pkeys;			/* Full trust-anchor public keys */
     int     flags;			/* Conflate cert and pkey digests */
 } TLS_DANE;
 
 #define TLS_DANE_HASTA(d)	((d) ? (d)->ta : 0)
 #define TLS_DANE_HASEE(d)	((d) ? (d)->ee : 0)
-
-#define TLS_DANE_LINSERT(t)	dane_##t##_list_insert
-#define TLS_DANE_LFREE(t)	dane_##t##_list_free
-#define IMPL_TLS_DANE_L(t) \
-    static void TLS_DANE_LINSERT(t)(TLS_DANE *d, t *i) \
-    { \
-	TLS_DANE_L(t) *new = (TLS_DANE_L(t) *) mymalloc(sizeof(*new)); \
-	CRYPTO_add(&i->references, 1, CRYPTO_LOCK_##t); \
-	new->item = i; \
-	new->next = d->TLS_DANE_H(t); \
-	d->TLS_DANE_H(t) = new; \
-    } \
-    static void TLS_DANE_LFREE(t)(TLS_DANE *d) \
-    { \
-	TLS_DANE_L(t) *head; \
-	TLS_DANE_L(t) *next; \
-	for (head = TLS_DANE_HEAD(d, t); head; head = next) { \
-	    next = head->next; \
-	    t##_free(head->item); \
-	} \
-    }
 
  /*
   * tls_dane.c
@@ -156,7 +150,7 @@ extern int tls_dane_avail(void);
 extern void tls_dane_verbose(int);
 extern TLS_DANE *tls_dane_alloc(int);
 extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
-			   const char *);
+			           const char *);
 extern TLS_DANE *tls_dane_final(TLS_DANE *);
 extern void tls_dane_free(TLS_DANE *);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);

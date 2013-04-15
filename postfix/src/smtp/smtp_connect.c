@@ -112,19 +112,17 @@
   * Forward declaration.
   */
 static SMTP_SESSION *smtp_connect_sock(int, struct sockaddr *, int,
-				               const char *, const char *,
-				               unsigned,
-				               const char *, DSN_BUF *,
+				               SMTP_ITERATOR *, DSN_BUF *,
 				               int);
 
 /* smtp_connect_unix - connect to UNIX-domain address */
 
-static SMTP_SESSION *smtp_connect_unix(const char *addr,
-				               DSN_BUF *why,
+static SMTP_SESSION *smtp_connect_unix(SMTP_ITERATOR *iter, DSN_BUF *why,
 				               int sess_flags)
 {
     const char *myname = "smtp_connect_unix";
     struct sockaddr_un sock_un;
+    const char *addr = STR(iter->addr);
     int     len = strlen(addr);
     int     sock;
 
@@ -162,14 +160,12 @@ static SMTP_SESSION *smtp_connect_unix(const char *addr,
 	msg_info("%s: trying: %s...", myname, addr);
 
     return (smtp_connect_sock(sock, (struct sockaddr *) & sock_un,
-			      sizeof(sock_un), var_myhostname, addr,
-			      0, addr, why, sess_flags));
+			      sizeof(sock_un), iter, why, sess_flags));
 }
 
 /* smtp_connect_addr - connect to explicit address */
 
-static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
-				               unsigned port, DSN_BUF *why,
+static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 				               int sess_flags)
 {
     const char *myname = "smtp_connect_addr";
@@ -177,6 +173,8 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     struct sockaddr *sa = (struct sockaddr *) & ss;
     SOCKADDR_SIZE salen = sizeof(ss);
     MAI_HOSTADDR_STR hostaddr;
+    DNS_RR *addr = iter->rr;
+    unsigned port = iter->port;
     int     sock;
     char   *bind_addr;
     char   *bind_var;
@@ -267,25 +265,21 @@ static SMTP_SESSION *smtp_connect_addr(const char *destination, DNS_RR *addr,
     /*
      * Connect to the server.
      */
-    SOCKADDR_TO_HOSTADDR(sa, salen, &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
     if (msg_verbose)
 	msg_info("%s: trying: %s[%s] port %d...",
-		 myname, SMTP_HNAME(addr), hostaddr.buf, ntohs(port));
+		 myname, STR(iter->host), STR(iter->addr), ntohs(port));
 
     if (addr->validated)
 	sess_flags |= SMTP_MISC_FLAG_TLSA_HOST;
 
-    return (smtp_connect_sock(sock, sa, salen, SMTP_HNAME(addr), hostaddr.buf,
-			      port, destination, why, sess_flags));
+    return (smtp_connect_sock(sock, sa, salen, iter, why, sess_flags));
 }
 
 /* smtp_connect_sock - connect a socket over some transport */
 
 static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
-				               int salen, const char *name,
-				               const char *addr,
-				               unsigned port,
-				               const char *destination,
+				               int salen,
+				               SMTP_ITERATOR *iter,
 				               DSN_BUF *why,
 				               int sess_flags)
 {
@@ -294,6 +288,9 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     VSTREAM *stream;
     time_t  start_time;
     SMTP_SESSION *session;
+    const char *name = STR(iter->host);
+    const char *addr = STR(iter->addr);
+    unsigned port = iter->port;
 
     /*
      * Session construction is cheap, and can now tempfail when TLSA lookups
@@ -301,8 +298,7 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
      * errors more gracefully. So construct the session, and then connect. If
      * the connection fails, tear down the session.
      */
-    if ((session = smtp_session_alloc(why, destination, name, addr,
-				      port, sess_flags)) == 0)
+    if ((session = smtp_session_alloc(why, iter, sess_flags)) == 0)
 	return (0);
 
     start_time = time((time_t *) 0);
@@ -426,7 +422,13 @@ static void smtp_cleanup_session(SMTP_STATE *state)
     /* Redundant tests for safety... */
 	&& vstream_ferror(session->stream) == 0
 	&& vstream_feof(session->stream) == 0) {
-	smtp_save_session(state);
+	smtp_save_session(state, SMTP_KEY_FLAG_SERVICE
+			  | SMTP_KEY_FLAG_SENDER
+			  | SMTP_KEY_FLAG_REQ_NEXTHOP,
+			  SMTP_KEY_FLAG_SERVICE
+			  | SMTP_KEY_FLAG_SENDER
+			  | SMTP_KEY_FLAG_ADDR
+			  | SMTP_KEY_FLAG_PORT);
     } else {
 	smtp_session_free(session);
     }
@@ -474,15 +476,6 @@ static void smtp_cache_policy(SMTP_STATE *state, const char *dest)
 
     state->misc_flags &= ~SMTP_MISC_FLAG_CONN_CACHE_MASK;
 
-    /*
-     * XXX Disable connection caching when sender-dependent authentication is
-     * enabled. We must not send someone elses mail over an authenticated
-     * connection, and we must not send mail that requires authentication
-     * over a connection that wasn't authenticated.
-     */
-    if (var_smtp_sender_auth)
-	return;
-
     if (smtp_cache_dest && string_list_match(smtp_cache_dest, dest)) {
 	state->misc_flags |= SMTP_MISC_FLAG_CONN_CACHE_MASK;
     } else if (var_smtp_cache_demand) {
@@ -498,6 +491,7 @@ static void smtp_cache_policy(SMTP_STATE *state, const char *dest)
 static void smtp_connect_local(SMTP_STATE *state, const char *path)
 {
     const char *myname = "smtp_connect_local";
+    SMTP_ITERATOR *iter = state->iterator;
     SMTP_SESSION *session;
     DSN_BUF *why = state->why;
 
@@ -511,11 +505,16 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     smtp_cache_policy(state, path);
 
     /*
-     * XXX We assume that the session->addr member refers to a copy of the
+     * Here we ensure that the iter->addr member refers to a copy of the
      * UNIX-domain pathname, so that smtp_save_session() will cache the
      * connection using the pathname as the physical endpoint name.
+     * 
+     * We set dest=path for backwards compatibility.
      */
+#define NO_RR	((DNS_RR *) 0)
 #define NO_PORT	0
+
+    SMTP_ITER_INIT(iter, path, var_myhostname, path, NO_PORT, NO_RR, state);
 
     /*
      * Opportunistic TLS for unix domain sockets does not make much sense,
@@ -529,8 +528,11 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * downgrade "encrypt" to "none", this time just to avoid waste.
      */
     if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
-	|| (session = smtp_reuse_addr(state, path, NO_PORT)) == 0)
-	session = smtp_connect_unix(path, why, state->misc_flags);
+	|| (session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
+				      | SMTP_KEY_FLAG_SENDER
+				      | SMTP_KEY_FLAG_ADDR
+				      | SMTP_KEY_FLAG_PORT)) == 0)
+	session = smtp_connect_unix(iter, why, state->misc_flags);
     if ((state->session = session) != 0) {
 	session->state = state;
 #ifdef USE_TLS
@@ -585,7 +587,7 @@ static void smtp_scrub_addr_list(HTABLE *cached_addr, DNS_RR **addr_list)
     for (addr = *addr_list; addr; addr = next) {
 	next = addr->next;
 	if (dns_rr_to_pa(addr, &hostaddr) == 0) {
-	    msg_warn("cannot convert type %s resource record to socket address",
+	    msg_warn("cannot convert type %s record to printable address",
 		     dns_strtype(addr->type));
 	    continue;
 	}
@@ -645,15 +647,15 @@ static void smtp_update_addr_list(DNS_RR **addr_list, const char *server_addr,
 
 /* smtp_reuse_session - try to use existing connection, return session count */
 
-static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
-			              const char *domain, unsigned port,
-			           DNS_RR **addr_list, int domain_best_pref)
+static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
+			              int domain_best_pref)
 {
     int     session_count = 0;
     DNS_RR *addr;
     DNS_RR *next;
     MAI_HOSTADDR_STR hostaddr;
     SMTP_SESSION *session;
+    SMTP_ITERATOR *iter = state->iterator;
 
     /*
      * First, search the cache by logical destination. We truncate the server
@@ -661,9 +663,16 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
      * to reduce the number of variables that need to be checked later.
      * 
      * Note: lookup by logical destination restores the "best MX" bit.
+     * 
+     * smtp_reuse_nexthop() clobbers the iterators's "dest" attribute. We save
+     * and restore it here, so that subsequent connections will use the
+     * proper nexthop information.
      */
+    SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
-    && (session = smtp_reuse_domain(state, lookup_mx, domain, port)) != 0) {
+	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_FLAG_SERVICE
+					 | SMTP_KEY_FLAG_SENDER
+				       | SMTP_KEY_FLAG_REQ_NEXTHOP)) != 0) {
 	session_count = 1;
 	smtp_update_addr_list(addr_list, session->addr, session_count);
 	if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
@@ -672,6 +681,7 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 	smtp_xfer(state);
 	smtp_cleanup_session(state);
     }
+    SMTP_ITER_RESTORE_DEST(state->iterator);
 
     /*
      * Second, search the cache by primary MX address. Again, we use address
@@ -684,8 +694,19 @@ static int smtp_reuse_session(SMTP_STATE *state, int lookup_mx,
 	if (addr->pref != domain_best_pref)
 	    break;
 	next = addr->next;
-	if (dns_rr_to_pa(addr, &hostaddr) != 0
-	    && (session = smtp_reuse_addr(state, hostaddr.buf, port)) != 0) {
+	if (dns_rr_to_pa(addr, &hostaddr) == 0) {
+	    msg_warn("cannot convert type %s record to printable address",
+		     dns_strtype(addr->type));
+	    /* XXX Assume there is no code at the end of this loop. */
+	    continue;
+	}
+	vstring_strcpy(iter->addr, hostaddr.buf);
+	vstring_strcpy(iter->host, SMTP_HNAME(addr));
+	iter->rr = addr;
+	if ((session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
+				       | SMTP_KEY_FLAG_SENDER
+				       | SMTP_KEY_FLAG_ADDR
+				       | SMTP_KEY_FLAG_PORT)) != 0) {
 	    session->features |= SMTP_FEATURE_BEST_MX;
 	    session_count += 1;
 	    smtp_update_addr_list(addr_list, session->addr, session_count);
@@ -707,6 +728,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 			              char *def_service)
 {
     DELIVER_REQUEST *request = state->request;
+    SMTP_ITERATOR *iter = state->iterator;
     ARGV   *sites;
     char   *dest;
     char  **cpp;
@@ -788,6 +810,11 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    msg_info("CLIENT wrappermode (port smtps/465) is unimplemented");
 	    msg_info("instead, send to (port submission/587) with STARTTLS");
 	}
+#define NO_HOST	""				/* safety */
+#define NO_ADDR	""				/* safety */
+#define NO_RR	((DNS_RR *) 0)			/* safety */
+
+	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, NO_RR, state);
 
 	/*
 	 * Resolve an SMTP server. Skip mail exchanger lookups when a quoted
@@ -856,7 +883,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	if (addr_list && (state->misc_flags & SMTP_MISC_FLAG_FIRST_NEXTHOP)) {
 	    smtp_cache_policy(state, domain);
 	    if (state->misc_flags & SMTP_MISC_FLAG_CONN_STORE)
-		SET_NEXTHOP_STATE(state, lookup_mx, domain, port);
+		SET_NEXTHOP_STATE(state, dest);
 	}
 
 	/*
@@ -873,8 +900,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    if (state->cache_used->used > 0)
 		smtp_scrub_addr_list(state->cache_used, &addr_list);
 	    sess_count = addr_count =
-		smtp_reuse_session(state, lookup_mx, domain, port,
-				   &addr_list, domain_best_pref);
+		smtp_reuse_session(state, &addr_list, domain_best_pref);
 	} else
 	    sess_count = addr_count = 0;
 
@@ -900,12 +926,22 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    next = addr->next;
 	    if (++addr_count == var_smtp_mxaddr_limit)
 		next = 0;
+	    if (dns_rr_to_pa(addr, &hostaddr) == 0) {
+		msg_warn("cannot convert type %s record to printable address",
+			 dns_strtype(addr->type));
+		/* XXX Assume there is no code at the end of this loop. */
+		continue;
+	    }
+	    vstring_strcpy(iter->addr, hostaddr.buf);
+	    vstring_strcpy(iter->host, SMTP_HNAME(addr));
+	    iter->rr = addr;
 	    if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
 		|| addr->pref == domain_best_pref
-		|| dns_rr_to_pa(addr, &hostaddr) == 0
-		|| !(session = smtp_reuse_addr(state, hostaddr.buf, port)))
-		session = smtp_connect_addr(dest, addr, port, why,
-					    state->misc_flags);
+		|| !(session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
+					       | SMTP_KEY_FLAG_SENDER
+					       | SMTP_KEY_FLAG_ADDR
+					       | SMTP_KEY_FLAG_PORT)))
+		session = smtp_connect_addr(iter, why, state->misc_flags);
 	    if ((state->session = session) != 0) {
 		session->state = state;
 		if (addr->pref == domain_best_pref)
@@ -917,7 +953,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 #ifdef USE_TLS
 		/* Disable TLS when retrying after a handshake failure */
 		if (retry_plain) {
-		    if (session->tls->level >= TLS_LEV_ENCRYPT)
+		    if (TLS_REQUIRED(session->tls->level))
 			msg_panic("Plain-text retry wrong for mandatory TLS");
 		    session->tls->level = TLS_LEV_NONE;
 		    retry_plain = 0;

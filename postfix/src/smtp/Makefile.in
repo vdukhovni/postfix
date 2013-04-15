@@ -2,11 +2,11 @@ SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
 	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c smtp_tls_sess.c \
 	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c \
-	smtp_sasl_auth_cache.c
+	smtp_sasl_auth_cache.c smtp_key.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o smtp_tls_sess.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o \
-	smtp_sasl_auth_cache.o
+	smtp_sasl_auth_cache.o smtp_key.o
 HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h smtp_sasl_auth_cache.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -260,6 +260,36 @@ smtp_connect.o: smtp.h
 smtp_connect.o: smtp_addr.h
 smtp_connect.o: smtp_connect.c
 smtp_connect.o: smtp_reuse.h
+smtp_key.o: ../../include/argv.h
+smtp_key.o: ../../include/attr.h
+smtp_key.o: ../../include/deliver_request.h
+smtp_key.o: ../../include/dict.h
+smtp_key.o: ../../include/dsn.h
+smtp_key.o: ../../include/dsn_buf.h
+smtp_key.o: ../../include/header_body_checks.h
+smtp_key.o: ../../include/header_opts.h
+smtp_key.o: ../../include/htable.h
+smtp_key.o: ../../include/mail_params.h
+smtp_key.o: ../../include/maps.h
+smtp_key.o: ../../include/match_list.h
+smtp_key.o: ../../include/mime_state.h
+smtp_key.o: ../../include/msg.h
+smtp_key.o: ../../include/msg_stats.h
+smtp_key.o: ../../include/myflock.h
+smtp_key.o: ../../include/name_code.h
+smtp_key.o: ../../include/name_mask.h
+smtp_key.o: ../../include/recipient_list.h
+smtp_key.o: ../../include/resolve_clnt.h
+smtp_key.o: ../../include/scache.h
+smtp_key.o: ../../include/string_list.h
+smtp_key.o: ../../include/sys_defs.h
+smtp_key.o: ../../include/tls.h
+smtp_key.o: ../../include/tok822.h
+smtp_key.o: ../../include/vbuf.h
+smtp_key.o: ../../include/vstream.h
+smtp_key.o: ../../include/vstring.h
+smtp_key.o: smtp.h
+smtp_key.o: smtp_key.c
 smtp_map11.o: ../../include/argv.h
 smtp_map11.o: ../../include/attr.h
 smtp_map11.o: ../../include/deliver_request.h

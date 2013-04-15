@@ -595,8 +595,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
 	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 
-    if (TLS_CERT_IS_TRUSTED(TLScontext)
-        && (props->tls_level >= TLS_LEV_VERIFY || TLS_DANE_HASTA(props->dane)))
+    if (TLS_CERT_IS_TRUSTED(TLScontext) && TLS_MUST_TRUST(props->tls_level))
 	verify_peername = 1;
 
     /* Force cert processing so we can log the data? */
@@ -724,10 +723,19 @@ static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
     TLScontext->peer_fingerprint = tls_fingerprint(peercert, props->mdalg);
     TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->mdalg);
 
+    /*
+     * Whether the level is "dane" or "fingerprint" when the peer certificate
+     * is matched without resorting to a separate CA, we set both the trusted
+     * and matched bits.  This simplifies logic in smtp_proto.c where "dane"
+     * must be trusted and matched, since some "dane" TLSA RRsets do use CAs.
+     * 
+     * This also suppresses spurious logging of the peer certificate as
+     * untrusted in verify_extract_name().
+     */
     if (TLS_DANE_HASEE(props->dane)
 	&& tls_cert_match(TLScontext, TLS_DANE_EE, peercert, 0))
-	    TLScontext->peer_status |=
-		TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
+	TLScontext->peer_status |=
+	    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
 }
 
  /*
@@ -752,7 +760,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * When certificate verification is required, log trust chain validation
      * errors even when disabled by default for opportunistic sessions.
      */
-    if (props->tls_level >= TLS_LEV_VERIFY || TLS_DANE_HASTA(props->dane))
+    if (TLS_MUST_TRUST(props->tls_level))
 	log_mask |= TLS_LOG_UNTRUSTED;
 
     if (log_mask & TLS_LOG_VERBOSE)
@@ -802,13 +810,13 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * not attempt to re-use sessions whose ciphers are too weak. We salt the
      * session lookup key with the cipher list, so that sessions found in the
      * cache are always acceptable.
-     *
+     * 
      * With DANE, (more generally any TLScontext where we specified explicit
      * trust-anchor or end-entity certificates) the verification status of
      * the SSL session depends on the specified list.  Since we verify the
      * certificate only during the initial handshake, we must segregate
-     * sessions with different TA lists.  Note, that TA re-verification
-     * is not possible with cached sessions, since these don't hold the complete
+     * sessions with different TA lists.  Note, that TA re-verification is
+     * not possible with cached sessions, since these don't hold the complete
      * peer trust chain.  Therefore, we compute a digest of the sorted TA
      * parameters and append it to the serverid.
      */
@@ -972,9 +980,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 
 	/*
 	 * Peer name or fingerprint verification as requested.
-	 * Unconditionally set peer_CN, issuer_CN and peer_fingerprint.
-	 * Check fingerprint first, and avoid logging verified as untrusted
-	 * in the call to verify_extract_name().
+	 * Unconditionally set peer_CN, issuer_CN and peer_fingerprint. Check
+	 * fingerprint first, and avoid logging verified as untrusted in the
+	 * call to verify_extract_name().
 	 */
 	verify_extract_print(TLScontext, peercert, props);
 	verify_extract_name(TLScontext, peercert, props);

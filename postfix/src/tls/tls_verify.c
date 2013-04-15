@@ -162,8 +162,8 @@ static void update_error_state(TLS_SESS_STATE *TLScontext, int depth,
     TLScontext->errorcode = errorcode;
 
     /*
-     * Maintain an invariant, at most one of errordepth and trustdepth
-     * is non-negative at any given time.
+     * Maintain an invariant, at most one of errordepth and trustdepth is
+     * non-negative at any given time.
      */
     TLScontext->errordepth = depth;
     TLScontext->trustdepth = -1;
@@ -175,12 +175,12 @@ static void update_trust_state(TLS_SESS_STATE *TLScontext, int depth)
 {
     /* No news is bad news */
     if ((TLScontext->trustdepth >= 0 && TLScontext->trustdepth <= depth)
-        || (TLScontext->errordepth >= 0 && TLScontext->errordepth <= depth))
+	|| (TLScontext->errordepth >= 0 && TLScontext->errordepth <= depth))
 	return;
 
     /*
-     * Maintain an invariant, at most one of errordepth and trustdepth
-     * is non-negative at any given time.
+     * Maintain an invariant, at most one of errordepth and trustdepth is
+     * non-negative at any given time.
      */
     TLScontext->trustdepth = depth;
     TLScontext->errordepth = -1;
@@ -188,13 +188,13 @@ static void update_trust_state(TLS_SESS_STATE *TLScontext, int depth)
 
 /* tls_cert_match - match cert against given list of TA or EE digests */
 
-int tls_cert_match(TLS_SESS_STATE *TLScontext, int usage, X509 *cert, int depth)
+int     tls_cert_match(TLS_SESS_STATE *TLScontext, int usage, X509 *cert, int depth)
 {
     const TLS_DANE *dane = TLScontext->dane;
     TLS_TLSA *tlsa = (usage == TLS_DANE_EE) ? dane->ee : dane->ta;
     const char *namaddr = TLScontext->namaddr;
     const char *ustr = (usage == TLS_DANE_EE) ? "end entity" : "trust anchor";
-    int	    mixed = (dane->flags & TLS_DANE_FLAG_MIXED);
+    int     mixed = (dane->flags & TLS_DANE_FLAG_MIXED);
     int     matched;
 
     for (matched = 0; tlsa && !matched; tlsa = tlsa->next) {
@@ -203,24 +203,25 @@ int tls_cert_match(TLS_SESS_STATE *TLScontext, int usage, X509 *cert, int depth)
 
 	if (tlsa->pkeys) {
 	    char   *pkey_dgst = tls_pkey_fprint(cert, tlsa->mdalg);
+
 	    for (dgst = tlsa->pkeys->argv; !matched && *dgst; ++dgst)
 		if (strcasecmp(pkey_dgst, *dgst) == 0)
 		    matched = 1;
-	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE|TLS_LOG_CERTMATCH))
+	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH))
 		msg_info("%s: depth=%d matched=%d %s public-key %s digest=%s",
-			 namaddr, depth, matched, ustr, tlsa->mdalg, pkey_dgst);
+		     namaddr, depth, matched, ustr, tlsa->mdalg, pkey_dgst);
 	    myfree(pkey_dgst);
 	}
-
 	certs = mixed ? tlsa->pkeys : tlsa->certs;
 	if (certs != 0 && !matched) {
 	    char   *cert_dgst = tls_fingerprint(cert, tlsa->mdalg);
+
 	    for (dgst = certs->argv; !matched && *dgst; ++dgst)
 		if (strcasecmp(cert_dgst, *dgst) == 0)
 		    matched = 1;
-	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE|TLS_LOG_CERTMATCH))
+	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH))
 		msg_info("%s: depth=%d matched=%d %s certificate %s digest %s",
-			 namaddr, depth, matched, ustr, tlsa->mdalg, cert_dgst);
+		     namaddr, depth, matched, ustr, tlsa->mdalg, cert_dgst);
 	    myfree(cert_dgst);
 	}
     }
@@ -231,16 +232,16 @@ int tls_cert_match(TLS_SESS_STATE *TLScontext, int usage, X509 *cert, int depth)
 /* ta_match - match cert against out-of-band TA keys or digests */
 
 static int ta_match(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx,
-		    X509 *cert, int depth, int expired)
+		            X509 *cert, int depth, int expired)
 {
     const TLS_DANE *dane = TLScontext->dane;
     int     matched = tls_cert_match(TLScontext, TLS_DANE_TA, cert, depth);
 
     /*
-     * If we are the TA, the first trusted certificate is one level below!
-     * As a degenerate case a self-signed TA at depth 0 is also treated as
-     * a TA validated trust chain, (even if the certificate is expired).
-     *
+     * If we are the TA, the first trusted certificate is one level below! As
+     * a degenerate case a self-signed TA at depth 0 is also treated as a TA
+     * validated trust chain, (even if the certificate is expired).
+     * 
      * Note: OpenSSL will flag an error when the chain contains just one
      * certificate that is not self-issued.
      */
@@ -257,16 +258,16 @@ static int ta_match(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx,
      * other expired certificate issued by the TA, which we don't accept.
      */
     if (expired)
-    	return (0);
+	return (0);
 
     /*
      * Compute the index of the topmost chain certificate; it may need to be
      * verified via one of our out-of-band trust-anchors.  Since we're here,
      * the chain contains at least one certificate.
-     *
+     * 
      * Optimization: if the top is self-issued, we don't need to try to check
-     * whether it is signed by any ancestor TAs.  If it is trusted, it will be
-     * matched by its fingerprint.
+     * whether it is signed by any ancestor TAs.  If it is trusted, it will
+     * be matched by its fingerprint.
      */
     if (TLScontext->trustdepth < 0 && TLScontext->chaindepth < 0) {
 	STACK_OF(X509) *chain = X509_STORE_CTX_get_chain(ctx);
@@ -281,26 +282,27 @@ static int ta_match(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx,
 
     /*
      * Last resort, check whether signed by out-of-band TA public key.
-     *
-     * Only the top certificate of the server chain needs this logic, since
-     * any certs below are signed by their parent, which we checked against
-     * the TA list more cheaply.  Do this at most once (by incrementing the
-     * depth when we're done).
+     * 
+     * Only the top certificate of the server chain needs this logic, since any
+     * certs below are signed by their parent, which we checked against the
+     * TA list more cheaply.  Do this at most once (by incrementing the depth
+     * when we're done).
      */
     if (depth == TLScontext->chaindepth) {
-	TLS_DANE_L(EVP_PKEY) *k;
-	TLS_DANE_L(X509) *x;
+	TLS_PKEYS *k;
+	TLS_CERTS *x;
 
 	/*
-	 * First check whether issued and signed by a TA cert, this is cheaper
-	 * than the bare-public key checks below, since we can determine
-	 * whether the candidate TA certificate issued the certificate
-	 * to be checked first (name comparisons), before we bother with
-	 * signature checks (public key operations).
+	 * First check whether issued and signed by a TA cert, this is
+	 * cheaper than the bare-public key checks below, since we can
+	 * determine whether the candidate TA certificate issued the
+	 * certificate to be checked first (name comparisons), before we
+	 * bother with signature checks (public key operations).
 	 */
-	for (x = TLS_DANE_HEAD(dane, X509); !matched && x; x = x->next) {
-	    if (X509_check_issued(x->item, cert) == X509_V_OK) {
-		EVP_PKEY *pk = X509_get_pubkey(x->item);
+	for (x = dane->certs; !matched && x; x = x->next) {
+	    if (X509_check_issued(x->cert, cert) == X509_V_OK) {
+		EVP_PKEY *pk = X509_get_pubkey(x->cert);
+
 		matched = pk && X509_verify(cert, pk) > 0;
 		EVP_PKEY_free(pk);
 	    }
@@ -308,15 +310,15 @@ static int ta_match(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx,
 
 	/*
 	 * With bare TA public keys, we can't check whether the trust chain
-	 * is issued by the key, but we can determine whether it is signed
-	 * by the key, so we go with that.  Ideally, the corresponding
-	 * certificate was presented in the chain, and we matched it by
-	 * its public key digest one level up.  This code is here to handle
+	 * is issued by the key, but we can determine whether it is signed by
+	 * the key, so we go with that.  Ideally, the corresponding
+	 * certificate was presented in the chain, and we matched it by its
+	 * public key digest one level up.  This code is here to handle
 	 * adverse conditions imposed by sloppy administrators of receiving
 	 * systems with poorly constructed chains.
 	 */
-	for (k = TLS_DANE_HEAD(dane, EVP_PKEY); !matched && k; k = k->next)
-	    matched = X509_verify(cert, k->item) > 0;
+	for (k = dane->pkeys; !matched && k; k = k->next)
+	    matched = X509_verify(cert, k->pkey) > 0;
 
 	if (matched)
 	    update_trust_state(TLScontext, depth);
@@ -379,25 +381,25 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     }
 
     /*
-     * Per RFC 5280 and its upstream ITU documents, a trust anchor is just
-     * a public key, no more no less, and thus certificates bearing the
+     * Per RFC 5280 and its upstream ITU documents, a trust anchor is just a
+     * public key, no more no less, and thus certificates bearing the
      * trust-anchor public key are just public keys in X.509v3 garb.  Any
      * meaning attached to their expiration, ... is simply local policy.
-     *
+     * 
      * We don't punish server administrators for including an expired optional
      * TA certificate in their chain.  Had they left it out, and provided us
      * instead with only the TA public-key via a "2 1 0" TLSA record, there'd
      * be no TA certificate from which to learn the expiration dates.
-     *
+     * 
      * Therefore, in the interests of consistent behavior, we only enforce
      * expiration dates BELOW the TA signature.  When we find an expired
      * certificate, we only check whether it is a TA, and not whether it is
      * signed by a TA.
-     *
-     * Other than allowing TA certificate expiration, the only errors we
-     * allow are failure to chain to a trusted root.  Our TA set includes
+     * 
+     * Other than allowing TA certificate expiration, the only errors we allow
+     * are failure to chain to a trusted root.  Our TA set includes
      * out-of-band data not available to the X509_STORE_CTX.
-     *
+     * 
      * More than one of the allowed errors may be reported at a given depth,
      * trap all instances, but run the matching code at most once.  If the
      * current cert is ok, we have a trusted ancestor, and we're not verbose,
@@ -406,11 +408,11 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     if (cert != 0
 	&& (ok == 0
 	    || TLScontext->trustdepth < 0
-	    || (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH)))
+	  || (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH)))
 	&& TLS_DANE_HASTA(TLScontext->dane)
 	&& (TLScontext->trustdepth == -1 || depth <= TLScontext->trustdepth)
-	&& (TLScontext->errordepth == -1 || depth < TLScontext->errordepth)) {
-	int     expired = 0; /* or not yet valid */
+      && (TLScontext->errordepth == -1 || depth < TLScontext->errordepth)) {
+	int     expired = 0;		/* or not yet valid */
 
 	switch (ok ? X509_V_OK : err) {
 	case X509_V_ERR_CERT_NOT_YET_VALID:
@@ -435,16 +437,16 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
      * Perhaps the chain is verified, or perhaps we'll get called again,
      * either way the best we know is that if trust depth is below error
      * depth we win and otherwise we lose. Set the error state accordingly.
-     *
-     * If we are given explicit TA match list, we must match one of them
-     * at a non-negative depth below any errors, otherwise we just need
-     * no errors.
+     * 
+     * If we are given explicit TA match list, we must match one of them at a
+     * non-negative depth below any errors, otherwise we just need no errors.
      */
     if (depth == 0) {
 	ok = 0;
-        if (TLScontext->trustdepth < 0 && TLS_DANE_HASTA(TLScontext->dane)) {
+	if (TLScontext->trustdepth < 0 && TLS_DANE_HASTA(TLScontext->dane)) {
 	    /* Required Policy or DANE certs not present */
 	    if (TLScontext->errordepth < 0) {
+
 		/*
 		 * For lack of a better choice log the trust problem against
 		 * the leaf cert when PKI says yes, but local policy or DANE
@@ -460,7 +462,6 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
 	}
 	X509_STORE_CTX_set_error(ctx, ok ? X509_V_OK : TLScontext->errorcode);
     }
-
     if (TLScontext->log_mask & TLS_LOG_VERBOSE) {
 	if (cert)
 	    X509_NAME_oneline(X509_get_subject_name(cert), buf, sizeof(buf));

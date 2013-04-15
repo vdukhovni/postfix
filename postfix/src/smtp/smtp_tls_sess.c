@@ -8,11 +8,9 @@
 /*
 /*	void    smtp_tls_list_init()
 /*
-/*	SMTP_TLS_POLICY *smtp_tls_policy(why, dest, host, port, valid)
+/*	SMTP_TLS_POLICY *smtp_tls_policy(why, iter, valid)
 /*	DSN_BUF *why;
-/*	char	*dest;
-/*	char	*host;
-/*	unsigned port;
+/*	SMTP_ITERATOR *iter;
 /*	int	valid;
 /*
 /*	void	smtp_tls_policy_free(tls)
@@ -156,7 +154,7 @@ static const char *policy_name(int tls_level)
 /* tls_site_lookup - look up per-site TLS security level */
 
 static void tls_site_lookup(SMTP_TLS_POLICY *tls, int *site_level,
-			      const char *site_name, const char *site_class)
+		              const char *site_name, const char *site_class)
 {
     const char *lookup;
 
@@ -201,8 +199,8 @@ static void tls_site_lookup(SMTP_TLS_POLICY *tls, int *site_level,
 /* tls_policy_lookup_one - look up destination TLS policy */
 
 static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
-					  const char *site_name,
-					  const char *site_class)
+				          const char *site_name,
+				          const char *site_class)
 {
     const char *lookup;
     char   *policy;
@@ -220,7 +218,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    MARK_INVALID((why), (levelp)); FREE_RETURN; } while (0)
 
 #define WHERE \
-    vstring_str(vstring_sprintf(cbuf, "%s, %s \"%s\"", \
+    STR(vstring_sprintf(cbuf, "%s, %s \"%s\"", \
 		tls_policy->title, site_class, site_name))
 
     if (cbuf == 0)
@@ -257,10 +255,10 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
     }
 
     /*
-     * The fingerprint, verify and secure levels require or
-     * support explicit TA or EE certificate digest match lists.
+     * Levels that check certificates require or support explicit TA or EE
+     * certificate digest match lists.
      */
-    if (*site_level >= TLS_LEV_FPRINT)
+    if (TLS_MUST_MATCH(*site_level))
 	tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
 
     /*
@@ -330,13 +328,13 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 			 WHERE, name);
 		INVALID_RETURN(tls->why, site_level);
 	    }
-	    tls->exclusions = vstring_strcpy(vstring_alloc(10), val);
+	    tls->exclusions = STR(vstring_alloc(10), val);
 	    continue;
 	}
 	/* Multiple instances per policy. */
 	if (!strcasecmp(name, "tafile")) {
 	    /* Only makes sense if we're using CA-based trust */
-	    if (*site_level <= TLS_LEV_ENCRYPT) {
+	    if (!TLS_MUST_TRUST(*site_level)) {
 		msg_warn("%s: attribute \"%s\" invalid at security level"
 			 " \"%s\"", WHERE, name, policy_name(*site_level));
 		INVALID_RETURN(tls->why, site_level);
@@ -350,7 +348,6 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    }
 	    continue;
 	}
-
 	msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
 	INVALID_RETURN(tls->why, site_level);
     }
@@ -460,17 +457,21 @@ static void set_cipher_grade(SMTP_TLS_POLICY *tls)
 
 /* tls_policy_init - initialize policy in an embryonic cache entry */
 
-static void tls_policy_init(SMTP_TLS_POLICY *tls, const char *dest,
-				 const char *host, unsigned port, int valid)
+static void tls_policy_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter,
+			            int valid)
 {
     const char *myname = "tls_policy_init";
     int     site_level;
+    const char *dest;
+    const char *host;
 
     /* Caller requested trivial policy */
-    if (!dest) {
+    if (!iter) {
 	tls->level = TLS_LEV_NONE;
 	return;
     }
+    dest = STR(iter->dest);
+    host = STR(iter->host);
 
     /*
      * Compute the per-site TLS enforcement level. For compatibility with the
@@ -544,13 +545,13 @@ static void tls_policy_init(SMTP_TLS_POLICY *tls, const char *dest,
     case TLS_LEV_FPRINT:
 	if (tls->dane == 0)
 	    tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
-        if (!TLS_DANE_HASEE(tls->dane)) {
+	if (!TLS_DANE_HASEE(tls->dane)) {
 	    tls_dane_split(tls->dane, TLS_DANE_EE, TLS_DANE_PKEY,
 			   var_smtp_tls_fpt_dgst, var_smtp_tls_fpt_cmatch,
 			   "\t\n\r, ");
 	    if (!TLS_DANE_HASEE(tls->dane)) {
 		msg_warn("nexthop domain %s: configured at fingerprint "
-			 "security level, but with no fingerprints to match.",
+		       "security level, but with no fingerprints to match.",
 			 dest);
 		MARK_INVALID(tls->why, &tls->level);
 		return;
@@ -588,7 +589,7 @@ static void tls_policy_init(SMTP_TLS_POLICY *tls, const char *dest,
 
 /* tls_policy_free - free no longer cached policy */
 
-void	smtp_tls_policy_free(SMTP_TLS_POLICY *tls)
+void    smtp_tls_policy_free(SMTP_TLS_POLICY *tls)
 {
 
     if (--tls->refs > 0)
@@ -613,7 +614,7 @@ void	smtp_tls_policy_free(SMTP_TLS_POLICY *tls)
 
 static void *policy_create(const char *key, void *unused_context)
 {
-    SMTP_TLS_POLICY *tls = (SMTP_TLS_POLICY *)mymalloc(sizeof(*tls));
+    SMTP_TLS_POLICY *tls = (SMTP_TLS_POLICY *) mymalloc(sizeof(*tls));
 
     tls->refs = 1;
 
@@ -633,13 +634,12 @@ static void *policy_create(const char *key, void *unused_context)
 
 static void policy_delete(void *item, void *unused_context)
 {
-    smtp_tls_policy_free((SMTP_TLS_POLICY *)item);
+    smtp_tls_policy_free((SMTP_TLS_POLICY *) item);
 }
 
 /* smtp_tls_policy - cached lookup of TLS policy */
 
-SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *why, const char *dest,
-				 const char *host, unsigned port, int valid)
+SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *why, SMTP_ITERATOR *iter, int valid)
 {
     SMTP_TLS_POLICY *tls;
     VSTRING *key;
@@ -648,24 +648,26 @@ SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *why, const char *dest,
 	policy_cache =
 	    ctable_create(CACHE_SIZE, policy_create, policy_delete, 0);
 
-    if (dest) {
-	key = vstring_alloc(strlen(dest) + strlen(host) + 10);
-	vstring_sprintf(key, "%s %s:%u %d", dest, host, ntohs(port), !!valid);
-	tls = (SMTP_TLS_POLICY *)ctable_locate(policy_cache, vstring_str(key));
+    if (iter != 0) {
+	key = vstring_alloc(100);
+	smtp_key_prefix(key, iter, SMTP_KEY_FLAG_NEXTHOP
+			| SMTP_KEY_FLAG_HOSTNAME
+			| SMTP_KEY_FLAG_PORT);
+	vstring_sprintf_append(key, "%d", !!valid);
+	tls = (SMTP_TLS_POLICY *) ctable_locate(policy_cache, STR(key));
 	vstring_free(key);
     } else {
-	tls = (SMTP_TLS_POLICY *)ctable_locate(policy_cache, "");
+	tls = (SMTP_TLS_POLICY *) ctable_locate(policy_cache, "");
     }
 
     /* One-time initialization */
     if (tls->level == TLS_LEV_NOTFOUND)
-	tls_policy_init(tls, dest, host, port, valid);
+	tls_policy_init(tls, iter, valid);
 
     if (tls->level != TLS_LEV_INVALID) {
 	++tls->refs;
 	return (tls);
     }
-
     if (why)
 	dsb_update(why,
 		   STR(tls->why->status), STR(tls->why->action),
@@ -698,7 +700,7 @@ static int global_tls_level(void)
      * Compute the global TLS policy. This is the default policy level when
      * no per-site policy exists. It also is used to override a wild-card
      * per-site policy.
-     *
+     * 
      * We require that the global level is valid on startup.
      */
     if (*var_smtp_tls_level) {

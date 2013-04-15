@@ -147,9 +147,6 @@ static int sha512len;
 static int dane_verbose;
 static TLS_TLSA **dane_locate(TLS_TLSA **, const char *);
 
-IMPL_TLS_DANE_L(X509)
-IMPL_TLS_DANE_L(EVP_PKEY)
-
 /* tls_dane_verbose - enable/disable verbose logging */
 
 void	tls_dane_verbose(int on)
@@ -159,7 +156,7 @@ void	tls_dane_verbose(int on)
 
 /* tls_dane_avail - check for availability of dane required digests */
 
-int tls_dane_avail(void)
+int	tls_dane_avail(void)
 {
     static int avail = -1;
     const EVP_MD *sha256md;
@@ -189,10 +186,54 @@ TLS_DANE *tls_dane_alloc(int flags)
 
     dane->ta = 0;
     dane->ee = 0;
-    dane->TLS_DANE_H(X509) = 0;
-    dane->TLS_DANE_H(EVP_PKEY) = 0;
+    dane->certs = 0;
+    dane->pkeys = 0;
     dane->flags = flags;
     return (dane);
+}
+
+static void ta_cert_insert(TLS_DANE *d, X509 *x)
+{
+    TLS_CERTS *new = (TLS_CERTS *)mymalloc(sizeof(*new));
+
+    CRYPTO_add(&x->references, 1, CRYPTO_LOCK_X509);
+    new->cert = x;
+    new->next = d->certs;
+    d->certs = new;
+}
+
+static void free_ta_certs(TLS_DANE *d)
+{
+    TLS_CERTS *head;
+    TLS_CERTS *next;
+
+    for (head = d->certs; head; head = next) {
+	next = head->next;
+	X509_free(head->cert);
+	myfree((char *)head);
+    }
+}
+
+static void ta_pkey_insert(TLS_DANE *d, EVP_PKEY *k)
+{
+    TLS_PKEYS *new = (TLS_PKEYS *)mymalloc(sizeof(*new));
+
+    CRYPTO_add(&k->references, 1, CRYPTO_LOCK_EVP_PKEY);
+    new->pkey = k;
+    new->next = d->pkeys;
+    d->pkeys = new;
+}
+
+static void free_ta_pkeys(TLS_DANE *d)
+{
+    TLS_PKEYS *head;
+    TLS_PKEYS *next;
+
+    for (head = d->pkeys; head; head = next) {
+	next = head->next;
+	EVP_PKEY_free(head->pkey);
+	myfree((char *)head);
+    }
 }
 
 static void tlsa_free(TLS_TLSA *tlsa)
@@ -222,8 +263,11 @@ void	tls_dane_free(TLS_DANE *dane)
 	next = tlsa->next;
 	tlsa_free(tlsa);
     }
-    TLS_DANE_LFREE(X509)(dane);
-    TLS_DANE_LFREE(EVP_PKEY)(dane);
+
+    /* De-allocate full trust-anchor certs and pkeys */
+    free_ta_certs(dane);
+    free_ta_pkeys(dane);
+
     myfree((char *)dane);
 }
 
@@ -370,19 +414,24 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
 
 int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 {
-    FILE   *fp;
+    BIO    *bp;
     char   *name = 0;
     char   *header = 0;
-    long    error = 0;
-    long    len;
-    int     ret = 0;
     unsigned char *data = 0;
+    long    len;
+    int     tacount;
+    char   *errtype = 0;			/* if error: cert or pkey? */
 
     /* nop */
     if (tafile == 0 || *tafile == 0)
 	return (1);
 
-    if ((fp = fopen(tafile, "r")) == NULL) {
+    /*
+     * On each call, PEM_read() wraps a stdio file in a BIO_NOCLOSE bio, calls
+     * PEM_read_bio() and then frees the bio.  It is just as easy to open a
+     * BIO as a stdio file, so we use BIOs and call PEM_read_bio() directly.
+     */
+    if ((bp = BIO_new_file(tafile, "r")) == NULL) {
 	msg_warn("error opening trust anchor file: %s: %m", tafile);
 	return (0);
     }
@@ -390,69 +439,68 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     /* Don't report old news */
     ERR_clear_error();
 
-    while (PEM_read(fp, &name, &header, &data, &len)) {
+    for (tacount = 0;
+	 errtype == 0 && PEM_read_bio(bp, &name, &header, &data, &len);
+	 ++tacount) {
 	const unsigned char *p = data;
-	int     selector = 0;
+	int     usage = DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION;
+	int     selector;
+	char   *digest;
 
 	if (strcmp(name, PEM_STRING_X509) == 0
 	    || strcmp(name, PEM_STRING_X509_OLD) == 0) {
 	    X509   *cert = d2i_X509(0, &p, len);
 
-	    if (!(ret = (cert && (p - data) == len))) {
-		msg_warn("error reading: %s: malformed trust-anchor %s",
-			 "certificate", tafile);
-		tls_print_errors();
-		break;
-	    }
-	    TLS_DANE_LINSERT(X509)(dane, cert);
-	    X509_free(cert);
-	    selector = DNS_TLSA_SELECTOR_FULL_CERTIFICATE;
+	    if (cert && (p - data) == len) {
+		selector = DNS_TLSA_SELECTOR_FULL_CERTIFICATE;
+		digest = tls_fprint((char *)data, len, sha256);
+		dane_add(dane, usage, selector, sha256, digest);
+		myfree(digest);
+		ta_cert_insert(dane, cert);
+	    } else
+		errtype = "certificate";
+	    if (cert)
+		X509_free(cert);
 	} else if (strcmp(name, PEM_STRING_PUBLIC) == 0) {
 	    EVP_PKEY *pkey = d2i_PUBKEY(0, &p, len);
 
-	    if (!(ret = (pkey && (p - data) == len))) {
-		msg_warn("error reading: %s: malformed trust-anchor %s",
-			 "public key", tafile);
-		tls_print_errors();
-		break;
-	    }
-	    TLS_DANE_LINSERT(EVP_PKEY)(dane, pkey);
-	    EVP_PKEY_free(pkey);
-	    selector = DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO;
+	    if (pkey && (p - data) == len) {
+		selector = DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO;
+		digest = tls_fprint((char *)data, len, sha256);
+		dane_add(dane, usage, selector, sha256, digest);
+		myfree(digest);
+		ta_pkey_insert(dane, pkey);
+	    } else
+		errtype = "public key";
+	    if (pkey)
+		EVP_PKEY_free(pkey);
 	}
 
-	if (ret) {
-	    int     usage = DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION;
-	    char   *digest = tls_fprint((char *)data, len, sha256);
-
-	    dane_add(dane, usage, selector, sha256, digest);
-	    myfree(digest);
-	}
-	if (name)
-	    OPENSSL_free(name);
-	if (header)
-	    OPENSSL_free(header);
-	if (data)
-	    OPENSSL_free(data);
-	name = header = (char *) (data = 0);
+	/*
+	 * If any of these were null, PEM_read() would have failed.
+	 */
+	OPENSSL_free(name);
+	OPENSSL_free(header);
+	OPENSSL_free(data);
     }
+    BIO_free(bp);
 
-    if (fclose(fp) == EOF) {
-	msg_warn("error reading trust anchor file: %s: %m", tafile);
+    if (errtype) {
+	tls_print_errors();
+	msg_warn("error reading: %s: malformed trust-anchor %s",
+		 tafile, errtype);
 	return (0);
     }
 
-    switch(ERR_GET_REASON(ERR_peek_last_error())) {
-    case PEM_R_NO_START_LINE:
+    if (ERR_GET_REASON(ERR_peek_last_error()) == PEM_R_NO_START_LINE) {
+	/* Reached end of PEM file */
 	ERR_clear_error();
-	break;
-    default:	/* Something to report */
-	tls_print_errors();
-    case 0:	/* All errors reported */
-	ret = 0;
-	break;
+	return (tacount > 0);
     }
-    return (ret);
+
+    /* Some other PEM read error */
+    tls_print_errors();
+    return (0);
 }
 
 #endif

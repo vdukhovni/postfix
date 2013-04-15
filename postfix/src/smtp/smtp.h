@@ -39,6 +39,52 @@
 #include <tls.h>
 
  /*
+  * Global iterator support. This is updated by the connection-management
+  * loop, and contains dynamic context that appears in lookup keys for SASL
+  * passwords, TLS policy, cached SMTP connections, and cached TLS session
+  * keys.
+  * 
+  * For consistency and maintainability, context that is used in more than one
+  * lookup key is formatted with smtp_key_format().
+  */
+typedef struct SMTP_ITERATOR {
+    /* Public members. */
+    VSTRING *request_nexthop;		/* request nexhop or empty */
+    VSTRING *dest;			/* current nexthop */
+    VSTRING *host;			/* hostname or empty */
+    VSTRING *addr;			/* printable address or empty */
+    unsigned port;			/* network byte order or null */
+    struct DNS_RR *rr;			/* DNS resource record or null */
+    /* Private members. */
+    VSTRING *saved_dest;		/* saved current nexthop */
+    struct SMTP_STATE *parent;		/* parent linkage */
+} SMTP_ITERATOR;
+
+#define SMTP_ITER_INIT(iter, _dest, _host, _addr, _port, _rr, state) do { \
+	vstring_strcpy((iter)->dest, (_dest)); \
+	vstring_strcpy((iter)->host, (_host)); \
+	vstring_strcpy((iter)->addr, (_addr)); \
+	(iter)->port = (_port); \
+	(iter)->rr = (_rr); \
+	vstring_strcpy((iter)->saved_dest, ""); \
+	(iter)->parent = (state); \
+    } while (0)
+
+#define SMTP_ITER_CLOBBER(iter, _dest, _host, _addr) do { \
+	vstring_strcpy((iter)->dest, (_dest)); \
+	vstring_strcpy((iter)->host, (_host)); \
+	vstring_strcpy((iter)->addr, (_addr)); \
+    } while (0)
+
+#define SMTP_ITER_SAVE_DEST(iter) do { \
+	vstring_strcpy((iter)->saved_dest, STR((iter)->dest)); \
+    } while (0)
+
+#define SMTP_ITER_RESTORE_DEST(iter) do { \
+	vstring_strcpy((iter)->dest, STR((iter)->saved_dest)); \
+    } while (0)
+
+ /*
   * State information associated with each SMTP delivery request.
   * Session-specific state is stored separately.
   */
@@ -52,23 +98,18 @@ typedef struct SMTP_STATE {
     ssize_t space_left;			/* output length control */
 
     /*
-     * Connection cache support. The (nexthop_lookup_mx, nexthop_domain,
-     * nexthop_port) triple is a parsed next-hop specification, and should be
-     * a data type by itself. The (service, nexthop_mumble) members specify
-     * the name under which the first good connection should be cached. The
-     * nexthop_mumble members are initialized by the connection management
-     * module. nexthop_domain is reset to null after one connection is saved
-     * under the (service, nexthop_mumble) label, or upon exit from the
-     * connection management module.
+     * Global iterator.
+     */
+    SMTP_ITERATOR iterator[1];		/* Usage: state->iterator->member */
+
+    /*
+     * Connection cache support.
      */
     HTABLE *cache_used;			/* cached addresses that were used */
     VSTRING *dest_label;		/* cached logical/physical binding */
     VSTRING *dest_prop;			/* binding properties, passivated */
     VSTRING *endp_label;		/* cached session physical endpoint */
     VSTRING *endp_prop;			/* endpoint properties, passivated */
-    int     nexthop_lookup_mx;		/* do/don't MX expand nexthop_domain */
-    char   *nexthop_domain;		/* next-hop name or bare address */
-    unsigned nexthop_port;		/* next-hop TCP port, network order */
 
     /*
      * Flags and counters to control the handling of mail delivery errors.
@@ -85,18 +126,18 @@ typedef struct SMTP_STATE {
     DSN_BUF *why;			/* on-the-fly formatting buffer */
 } SMTP_STATE;
 
-#define SET_NEXTHOP_STATE(state, lookup_mx, domain, port) { \
-	(state)->nexthop_lookup_mx = lookup_mx; \
-	(state)->nexthop_domain = mystrdup(domain); \
-	(state)->nexthop_port = port; \
+ /*
+  * TODO: use the new SMTP_ITER name space.
+  */
+#define SET_NEXTHOP_STATE(state, nexthop) { \
+	vstring_strcpy((state)->iterator->request_nexthop, nexthop); \
     }
 
 #define FREE_NEXTHOP_STATE(state) { \
-	myfree((state)->nexthop_domain); \
-	(state)->nexthop_domain = 0; \
+	STR((state)->iterator->request_nexthop)[0] = 0; \
     }
 
-#define HAVE_NEXTHOP_STATE(state) ((state)->nexthop_domain != 0)
+#define HAVE_NEXTHOP_STATE(state) (STR((state)->iterator->request_nexthop) != 0)
 
 
  /*
@@ -263,13 +304,12 @@ typedef struct SMTP_SESSION {
     SMTP_STATE *state;			/* back link */
 } SMTP_SESSION;
 
-extern SMTP_SESSION *smtp_session_alloc(DSN_BUF *, const char *, const char *,
-					        const char *, unsigned, int);
+extern SMTP_SESSION *smtp_session_alloc(DSN_BUF *, SMTP_ITERATOR *, int);
 extern void smtp_session_new_stream(SMTP_SESSION *, VSTREAM *, time_t, int);
-extern int smtp_sess_tls_check(const char *, const char *, unsigned, int);
+extern int smtp_sess_tls_required(SMTP_ITERATOR *, int);
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
-extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
+extern SMTP_SESSION *smtp_session_activate(int, SMTP_ITERATOR *, VSTRING *, VSTRING *);
 
 #ifdef USE_TLS
 
@@ -277,10 +317,10 @@ extern SMTP_SESSION *smtp_session_activate(int, VSTRING *, VSTRING *);
   * smtp_tls_sess.c
   */
 extern void smtp_tls_list_init(void);
-extern SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *, const char *, const char *,
-					unsigned, int);
+extern SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *, SMTP_ITERATOR *, int);
 extern void smtp_tls_policy_free(SMTP_TLS_POLICY *);
 extern void smtp_tls_policy_flush(void);
+
 #endif
 
  /*
@@ -488,6 +528,25 @@ extern int smtp_map11_tree(TOK822 *, MAPS *, int);
 extern int smtp_map11_internal(VSTRING *, MAPS *, int);
 
  /*
+  * smtp_key.c
+  */
+char   *smtp_key_prefix(VSTRING *, SMTP_ITERATOR *, int);
+
+#define SMTP_KEY_FLAG_SERVICE		(1<<0)	/* service name */
+#define SMTP_KEY_FLAG_SENDER		(1<<1)	/* sender address */
+#define SMTP_KEY_FLAG_REQ_NEXTHOP	(1<<2)	/* request nexthop */
+#define SMTP_KEY_FLAG_NEXTHOP		(1<<3)	/* current nexthop */
+#define SMTP_KEY_FLAG_HOSTNAME		(1<<4)	/* remote host name */
+#define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
+#define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
+
+#define SMTP_KEY_MASK_ALL \
+	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
+	SMTP_KEY_FLAG_REQ_NEXTHOP | \
+	SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
+	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
+
+ /*
   * Silly little macros.
   */
 #define STR(s) vstring_str(s)
@@ -514,4 +573,7 @@ extern int smtp_mode;
 /*	Allgemeine Elektrotechnik
 /*	Universitaetsplatz 3-4
 /*	D-03044 Cottbus, Germany
+/*
+/*	Victor Duchovni
+/*	Morgan Stanley
 /*--*/

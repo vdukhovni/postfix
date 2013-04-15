@@ -685,7 +685,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (session->tls->level >= TLS_LEV_ENCRYPT)
+	    if (TLS_REQUIRED(session->tls->level))
 		return (smtp_site_fail(state, session->host, resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -700,7 +700,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
 	 */
-	if (session->tls->level >= TLS_LEV_ENCRYPT) {
+	if (TLS_REQUIRED(session->tls->level)) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
@@ -776,8 +776,9 @@ static int smtp_start_tls(SMTP_STATE *state)
      * SSL session lookup key lengths.
      */
     serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%s:%u",
-		    state->service, session->addr, ntohs(session->port));
+    smtp_key_prefix(serverid, state->iterator, SMTP_KEY_FLAG_SERVICE
+		    | SMTP_KEY_FLAG_ADDR
+		    | SMTP_KEY_FLAG_PORT);
 
     /*
      * As of Postfix 2.5, tls_client_start() tries hard to always complete
@@ -849,30 +850,30 @@ static int smtp_start_tls(SMTP_STATE *state)
      * server, so no need to disable I/O, ... we can even be polite and send
      * "QUIT".
      * 
-     * See src/tls/tls_level.c. Levels above encrypt require matching.
-     * Levels >= verify require CA trust.
-     *
+     * See src/tls/tls_level.c. Levels above encrypt require matching. Levels >=
+     * verify require CA trust.
+     * 
      * The DANE level is a hybrid of verify and fingerprint, if we have
-     * trust-anchors, we must do name checking, so we treat like verify.
-     * We also do fingerprint verification against any end-entity certs,
-     * so it'll work for that too.
-     *
+     * trust-anchors, we must do name checking, so we treat like verify. We
+     * also do fingerprint verification against any end-entity certs, so
+     * it'll work for that too.
+     * 
      * If we only have end-entity certs, then it is just like fingerprint.
-     *
-     * If we have no usable certs at all, but TLSA records were found,
-     * we do "encrypt". Contrary to draft-ietf-dane-srv, we can't
-     * do standard PKIX as a fallback, it will almost always fail,
-     * with no human present to "click ok".
-     *
-     * The DANE security level is for now still disabled in tls_level.c
-     * When it is enabled, we're ready to enforce its constraints. 
+     * 
+     * If we have no usable certs at all, but TLSA records were found, we do
+     * "encrypt". Contrary to draft-ietf-dane-srv, we can't do standard PKIX
+     * as a fallback, it will almost always fail, with no human present to
+     * "click ok".
+     * 
+     * The DANE security level is for now still disabled in tls_level.c When it
+     * is enabled, we're ready to enforce its constraints.
      */
-    if (session->tls->level >= TLS_LEV_VERIFY)
+    if (TLS_MUST_TRUST(session->tls->level))
 	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    if (session->tls->level >= TLS_LEV_DANE)
+    if (TLS_MUST_MATCH(session->tls->level))
 	if (!TLS_CERT_IS_MATCHED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),

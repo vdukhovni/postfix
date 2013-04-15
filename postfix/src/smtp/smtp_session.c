@@ -6,13 +6,9 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	SMTP_SESSION *smtp_session_alloc(why, dest, host, addr,
-/*					port, flags)
+/*	SMTP_SESSION *smtp_session_alloc(why, iter, flags)
 /*	DSN_BUF *why;
-/*	char	*dest;
-/*	char	*host;
-/*	char	*addr;
-/*	unsigned port;
+/*	SMTP_ITERATOR *iter;
 /*	int	flags;
 /*
 /*	void	smtp_session_new_stream(session, stream, start, flags)
@@ -21,10 +17,8 @@
 /*	time_t	start;
 /*	int	flags;
 /*
-/*	int	smtp_sess_tls_check(dest, host, port, valid)
-/*	char	*dest;
-/*	char	*host;
-/*	unsigned port;
+/*	int	smtp_sess_tls_required(iter, valid)
+/*	SMTP_ITERATOR *iter;
 /*	int	valid;
 /*
 /*	void	smtp_session_free(session)
@@ -35,8 +29,9 @@
 /*	VSTRING	*dest_prop;
 /*	VSTRING	*endp_prop;
 /*
-/*	SMTP_SESSION *smtp_session_activate(fd, dest_prop, endp_prop)
+/*	SMTP_SESSION *smtp_session_activate(fd, iter, dest_prop, endp_prop)
 /*	int	fd;
+/*	SMTP_ITERATOR *iter;
 /*	VSTRING	*dest_prop;
 /*	VSTRING	*endp_prop;
 /* DESCRIPTION
@@ -55,10 +50,10 @@
 /*	start time, and makes it subject to the specified connection
 /*	caching policy.
 /*
-/*	smtp_sess_tls_check() returns true if TLS use is mandatory, invalid
-/*	or indeterminate. The return value is false only if TLS is optional.
-/*	This is not yet used anywhere, it can be used to safely enable TLS
-/*	policy with smtp_reuse_addr().
+/*	smtp_sess_tls_required() returns true if TLS policy is mandatory,
+/*	invalid or indeterminate. The return value is false only if TLS is
+/*	optional.  This is not yet used anywhere, it can be used to safely
+/*	enable TLS policy with smtp_reuse_addr().
 /*
 /*	smtp_session_free() destroys an SMTP_SESSION structure and its
 /*	members, making memory available for reuse. It will handle the
@@ -69,20 +64,18 @@
 /*	it can be cached. The SMTP_SESSION structure is destroyed.
 /*
 /*	smtp_session_activate() inflates a flattened SMTP session
-/*	so that it can be used. The input is modified.
+/*	so that it can be used. The input property arguments are
+/*	modified.
 /*
 /*	Arguments:
 /* .IP stream
 /*	A full-duplex stream.
-/* .IP dest
-/*	The unmodified next-hop or fall-back destination including
-/*	the optional [] and including the optional port or service.
-/* .IP host
-/*	The name of the host that we are connected to.
-/* .IP addr
-/*	The address of the host that we are connected to.
-/* .IP port
-/*	The remote port, network byte order.
+/* .IP iter
+/*	The literal next-hop or fall-back destination including
+/*	the optional [] and including the :port or :service;
+/*	the name of the remote host;
+/*	the printable address of the remote host;
+/*	the remote port in network byte order.
 /* .IP valid
 /*	The DNSSEC validation status of the host name.
 /* .IP start
@@ -102,7 +95,12 @@
 /*	SMTP_MISC_FLAG_CONN_MASK corresponds with both _LOAD and _STORE.
 /* .IP dest_prop
 /*	Destination specific session properties: the server is the
-/*	best MX host for the current logical destination.
+/*	best MX host for the current logical destination, the dest,
+/*	host, and addr properties. When dest_prop is non-empty, it
+/*	overrides the iterator dest, host, and addr properties.  It
+/*	is the caller's responsibility to save the current nexthop
+/*	with SMTP_ITER_SAVE_DEST() and to restore it afterwards
+/*	with SMTP_ITER_RESTORE_DEST() before trying alternatives.
 /* .IP endp_prop
 /*	Endpoint specific session properties: all the features
 /*	advertised by the remote server.
@@ -159,13 +157,15 @@
 
 /* smtp_session_alloc - allocate and initialize SMTP_SESSION structure */
 
-SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, const char *dest,
-				         const char *host, const char *addr,
-				         unsigned port, int flags)
+SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, SMTP_ITERATOR *iter, int flags)
 {
     const char *myname = "smtp_session_alloc";
     SMTP_SESSION *session;
     int     valid = (flags & SMTP_MISC_FLAG_TLSA_HOST);
+    const char *dest = STR(iter->dest);
+    const char *host = STR(iter->host);
+    const char *addr = STR(iter->addr);
+    unsigned port = iter->port;
 
     session = (SMTP_SESSION *) mymalloc(sizeof(*session));
     session->stream = 0;
@@ -207,9 +207,7 @@ SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, const char *dest,
      * optional when the caller is not interested in the error status.
      */
 #define NO_DSN_BUF	(DSN_BUF *) 0
-#define NO_DEST		(char *) 0
-#define NO_HOST		(char *) 0
-#define NO_PORT		0
+#define NO_ITERATOR	(SMTP_ITERATOR *) 0
 #define NO_FLAGS	0
 
 #ifdef USE_TLS
@@ -217,12 +215,11 @@ SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, const char *dest,
     session->tls_retry_plain = 0;
     session->tls_nexthop = 0;
     if (flags & SMTP_MISC_FLAG_NO_TLS)
-	session->tls = smtp_tls_policy(NO_DSN_BUF, NO_DEST, NO_HOST,
-				       NO_PORT, NO_FLAGS);
+	session->tls = smtp_tls_policy(NO_DSN_BUF, NO_ITERATOR, NO_FLAGS);
     else {
 	if (why == 0)
 	    msg_panic("%s: null error buffer", myname);
-	session->tls = smtp_tls_policy(why, dest, host, port, valid);
+	session->tls = smtp_tls_policy(why, iter, valid);
     }
     if (!session->tls) {
 	smtp_session_free(session);
@@ -303,21 +300,20 @@ void    smtp_session_free(SMTP_SESSION *session)
     myfree((char *) session);
 }
 
-/* smtp_sess_tls_check - does session require tls */
+/* smtp_sess_tls_required - does session require tls */
 
-int     smtp_sess_tls_check(const char *dest, const char *host, unsigned port,
-			            int valid)
+int     smtp_sess_tls_required(SMTP_ITERATOR *iter, int valid)
 {
 #ifdef USE_TLS
-    int     needed = 1;
+    int     optional = 0;
     SMTP_TLS_POLICY *tls;
 
-    /* Say "no" only when we're sure. Otherwise, "yes". */
-    if ((tls = smtp_tls_policy(0, dest, host, ntohs(port), valid)) != 0) {
-	needed = tls->level >= TLS_LEV_NONE && tls->level <= TLS_LEV_MAY;
+    /* Optional only when we're sure. Otherwise, (maybe) required. */
+    if ((tls = smtp_tls_policy(NO_DSN_BUF, iter, valid)) != 0) {
+	optional = tls->level >= TLS_LEV_NONE && tls->level <= TLS_LEV_MAY;
 	smtp_tls_policy_free(tls);
     }
-    return (needed);
+    return (!optional);
 #else
     return (0);
 #endif
@@ -341,7 +337,8 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * serialize the properties with attr_print() instead of using ad-hoc,
      * non-reusable, code and hard-coded format strings.
      */
-    vstring_sprintf(dest_prop, "%u",
+    vstring_sprintf(dest_prop, "%s\n%s\n%s\n%u",
+		    session->dest, session->host, session->addr,
 		    session->features & SMTP_FEATURE_DESTINATION_MASK);
 
     /*
@@ -360,10 +357,8 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * XXX Be sure to use unsigned types in the format string. Sign characters
      * would be rejected by the alldig() test on the reading end.
      */
-    vstring_sprintf(endp_prop, "%u\n%s\n%s\n%s\n%u\n%u\n%lu",
+    vstring_sprintf(endp_prop, "%u\n%u\n%lu",
 		    session->reuse_count,
-		    session->dest, session->host,
-		    session->addr, session->port,
 		    session->features & SMTP_FEATURE_ENDPOINT_MASK,
 		    (long) session->expire_time);
 
@@ -389,7 +384,8 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
 
 /* smtp_session_activate - re-activate a passivated SMTP_SESSION object */
 
-SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
+SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
+				            VSTRING *dest_prop,
 				            VSTRING *endp_prop)
 {
     const char *myname = "smtp_session_activate";
@@ -400,7 +396,6 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     const char *dest;
     const char *host;
     const char *addr;
-    unsigned port;
     unsigned features;			/* server features */
     time_t  expire_time;		/* session re-use expiration time */
     unsigned reuse_count;		/* # times reused */
@@ -419,30 +414,11 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
 	return (0);
     }
     reuse_count = atoi(prop);
-    if ((dest = mystrtok(&endp_props, "\n")) == 0) {
-	msg_warn("%s: missing cached session destination property", myname);
-	return (0);
-    }
-    if ((host = mystrtok(&endp_props, "\n")) == 0) {
-	msg_warn("%s: missing cached session hostname property", myname);
-	return (0);
-    }
-    if ((addr = mystrtok(&endp_props, "\n")) == 0) {
-	msg_warn("%s: missing cached session address property", myname);
-	return (0);
-    }
-    if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
-	msg_warn("%s: bad cached session port property", myname);
-	return (0);
-    }
-    port = atoi(prop);
-
     if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
 	msg_warn("%s: bad cached session features property", myname);
 	return (0);
     }
     features = atoi(prop);
-
     if ((prop = mystrtok(&endp_props, "\n")) == 0 || !alldig(prop)) {
 	msg_warn("%s: bad cached session expiration time property", myname);
 	return (0);
@@ -453,13 +429,35 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     expire_time = strtoul(prop, 0, 10);
 #endif
 
+    /*
+     * Clobber the iterator's current nexthop, host and address fields with
+     * cached-connection information. This is done when a session is looked
+     * up by request nexthop instead of address and port. It is the caller's
+     * responsibility to save and restore the request nexthop with
+     * SMTP_ITER_SAVE_DEST() and SMTP_ITER_RESTORE_DEST().
+     * 
+     * TODO: Eliminate the duplication between SMTP_ITERATOR and SMTP_SESSION.
+     */
     if (dest_prop && VSTRING_LEN(dest_prop)) {
 	dest_props = STR(dest_prop);
+	if ((dest = mystrtok(&dest_props, "\n")) == 0) {
+	    msg_warn("%s: missing cached session destination property", myname);
+	    return (0);
+	}
+	if ((host = mystrtok(&dest_props, "\n")) == 0) {
+	    msg_warn("%s: missing cached session hostname property", myname);
+	    return (0);
+	}
+	if ((addr = mystrtok(&dest_props, "\n")) == 0) {
+	    msg_warn("%s: missing cached session address property", myname);
+	    return (0);
+	}
 	if ((prop = mystrtok(&dest_props, "\n")) == 0 || !alldig(prop)) {
 	    msg_warn("%s: bad cached destination features property", myname);
 	    return (0);
 	}
 	features |= atoi(prop);
+	SMTP_ITER_CLOBBER(iter, dest, host, addr);
     }
 
     /*
@@ -470,8 +468,7 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
      * returned without fail, with no other ways for session setup to fail,
      * we assume it must succeed.
      */
-    session = smtp_session_alloc(NO_DSN_BUF, dest, host, addr, port,
-				 SMTP_MISC_FLAG_NO_TLS);
+    session = smtp_session_alloc(NO_DSN_BUF, iter, SMTP_MISC_FLAG_NO_TLS);
     session->stream = vstream_fdopen(fd, O_RDWR);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     CACHE_THIS_SESSION_UNTIL(expire_time);
@@ -480,8 +477,10 @@ SMTP_SESSION *smtp_session_activate(int fd, VSTRING *dest_prop,
     if (msg_verbose)
 	msg_info("%s: dest=%s host=%s addr=%s port=%u features=0x%x, "
 		 "ttl=%ld, reuse=%d",
-		 myname, dest, host, addr, ntohs(port), features,
-		 (long) (expire_time - time((time_t *) 0)), reuse_count);
+		 myname, STR(iter->dest), STR(iter->host),
+		 STR(iter->addr), ntohs(iter->port), features,
+		 (long) (expire_time - time((time_t *) 0)),
+		 reuse_count);
 
     /*
      * Re-activate the SASL attributes.
