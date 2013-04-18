@@ -306,7 +306,7 @@ typedef struct SMTP_SESSION {
 
 extern SMTP_SESSION *smtp_session_alloc(DSN_BUF *, SMTP_ITERATOR *, int);
 extern void smtp_session_new_stream(SMTP_SESSION *, VSTREAM *, time_t, int);
-extern int smtp_sess_tls_required(SMTP_ITERATOR *, int);
+extern int smtp_sess_plaintext_ok(SMTP_ITERATOR *, int);
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, SMTP_ITERATOR *, VSTRING *, VSTRING *);
@@ -539,12 +539,15 @@ char   *smtp_key_prefix(VSTRING *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_HOSTNAME		(1<<4)	/* remote host name */
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
+#define SMTP_KEY_FLAG_SASL		(1<<7)	/* username, password */
+#define SMTP_KEY_FLAG_NOSASL		(1<<8)	/* dummy-user, dummy-pass */
 
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
 	SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
-	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
+	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | \
+	SMTP_KEY_FLAG_SASL | SMTP_KEY_FLAG_NOSASL)
 
  /*
   * Silly little macros.

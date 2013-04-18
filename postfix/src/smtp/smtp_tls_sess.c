@@ -328,7 +328,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 			 WHERE, name);
 		INVALID_RETURN(tls->why, site_level);
 	    }
-	    tls->exclusions = STR(vstring_alloc(10), val);
+	    tls->exclusions = vstring_strcpy(vstring_alloc(10), val);
 	    continue;
 	}
 	/* Multiple instances per policy. */

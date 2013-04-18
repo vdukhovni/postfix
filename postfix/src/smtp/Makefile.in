@@ -262,6 +262,7 @@ smtp_connect.o: smtp_connect.c
 smtp_connect.o: smtp_reuse.h
 smtp_key.o: ../../include/argv.h
 smtp_key.o: ../../include/attr.h
+smtp_key.o: ../../include/base64_code.h
 smtp_key.o: ../../include/deliver_request.h
 smtp_key.o: ../../include/dict.h
 smtp_key.o: ../../include/dsn.h
@@ -418,6 +419,7 @@ smtp_reuse.o: ../../include/argv.h
 smtp_reuse.o: ../../include/attr.h
 smtp_reuse.o: ../../include/deliver_request.h
 smtp_reuse.o: ../../include/dict.h
+smtp_reuse.o: ../../include/dns.h
 smtp_reuse.o: ../../include/dsn.h
 smtp_reuse.o: ../../include/dsn_buf.h
 smtp_reuse.o: ../../include/header_body_checks.h
@@ -429,6 +431,7 @@ smtp_reuse.o: ../../include/match_list.h
 smtp_reuse.o: ../../include/mime_state.h
 smtp_reuse.o: ../../include/msg.h
 smtp_reuse.o: ../../include/msg_stats.h
+smtp_reuse.o: ../../include/myaddrinfo.h
 smtp_reuse.o: ../../include/myflock.h
 smtp_reuse.o: ../../include/mymalloc.h
 smtp_reuse.o: ../../include/name_code.h
@@ -436,6 +439,7 @@ smtp_reuse.o: ../../include/name_mask.h
 smtp_reuse.o: ../../include/recipient_list.h
 smtp_reuse.o: ../../include/resolve_clnt.h
 smtp_reuse.o: ../../include/scache.h
+smtp_reuse.o: ../../include/sock_addr.h
 smtp_reuse.o: ../../include/string_list.h
 smtp_reuse.o: ../../include/stringops.h
 smtp_reuse.o: ../../include/sys_defs.h

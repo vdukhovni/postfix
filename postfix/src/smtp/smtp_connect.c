@@ -414,6 +414,11 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * hosts. In fact, this is the only benefit of caching logical to
      * physical bindings; caching a session under its own hostname provides
      * no performance benefit, given the way smtp_connect() works.
+     * 
+     * The SMTP_KEY_FLAG_SASL attribute is required in the endpoint label to
+     * avoid false sharing of SASL-authenticated and -unauthenticated
+     * connections to the same IP address. We don't have this problem with
+     * UNIX-domain connections as long as we use nexthop == address.
      */
     bad_session = THIS_SESSION_IS_BAD;		/* smtp_quit() may fail */
     if (THIS_SESSION_IS_EXPIRED)
@@ -426,7 +431,7 @@ static void smtp_cleanup_session(SMTP_STATE *state)
 			  | SMTP_KEY_FLAG_SENDER
 			  | SMTP_KEY_FLAG_REQ_NEXTHOP,
 			  SMTP_KEY_FLAG_SERVICE
-			  | SMTP_KEY_FLAG_SENDER
+			  | SMTP_KEY_FLAG_SASL
 			  | SMTP_KEY_FLAG_ADDR
 			  | SMTP_KEY_FLAG_PORT);
     } else {
@@ -526,12 +531,16 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * We don't know who is authenticating whom, so if a client cert is
      * available, "encrypt" may be a sensible policy. Otherwise, we also
      * downgrade "encrypt" to "none", this time just to avoid waste.
+     * 
+     * We use smtp_reuse_nexthop() instead of smtp_reuse_addr(), so that we can
+     * reuse a SASL-authenticated connection (however unlikely this scenario
+     * may be). The smtp_reuse_addr() interface currently supports only reuse
+     * of SASL-unauthenticated connections.
      */
     if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
-	|| (session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
-				      | SMTP_KEY_FLAG_SENDER
-				      | SMTP_KEY_FLAG_ADDR
-				      | SMTP_KEY_FLAG_PORT)) == 0)
+	|| (session = smtp_reuse_nexthop(state, SMTP_KEY_FLAG_SERVICE
+					 | SMTP_KEY_FLAG_SENDER
+					 | SMTP_KEY_FLAG_REQ_NEXTHOP)) == 0)
 	session = smtp_connect_unix(iter, why, state->misc_flags);
     if ((state->session = session) != 0) {
 	session->state = state;
@@ -689,6 +698,20 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
      * 
      * XXX This loop is safe because smtp_update_addr_list() either truncates
      * the list to zero length, or removes at most one list element.
+     * 
+     * Currently, we use smtp_reuse_addr() only for SASL-unauthenticated
+     * connections. Furthermore, we rely on smtp_reuse_addr() to look up an
+     * existing SASL-unauthenticated connection only when a new connection
+     * would be guaranteed not to require SASL authentication.
+     * 
+     * In addition, we rely on smtp_reuse_addr() to look up an existing
+     * plaintext connection only when a new connection would be guaranteed
+     * not to use TLS.
+     * 
+     * For more precise control over reuse, the iterator should look up SASL and
+     * TLS policy as it evaluates mail exchangers in order, instead of
+     * relying on duplicate lookup request code in smtp_reuse(3) and
+     * smtp_session(3).
      */
     for (addr = *addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
 	if (addr->pref != domain_best_pref)
@@ -704,7 +727,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	vstring_strcpy(iter->host, SMTP_HNAME(addr));
 	iter->rr = addr;
 	if ((session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
-				       | SMTP_KEY_FLAG_SENDER
+				       | SMTP_KEY_FLAG_NOSASL
 				       | SMTP_KEY_FLAG_ADDR
 				       | SMTP_KEY_FLAG_PORT)) != 0) {
 	    session->features |= SMTP_FEATURE_BEST_MX;
@@ -921,6 +944,20 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * Don't query the session cache for primary MX hosts. We already did
 	 * that in smtp_reuse_session(), and if any were found in the cache,
 	 * they were already deleted from the address list.
+	 * 
+	 * Currently, we use smtp_reuse_addr() only for SASL-unauthenticated
+	 * connections. Furthermore, we rely on smtp_reuse_addr() to look up
+	 * an existing SASL-unauthenticated connection only when a new
+	 * connection would be guaranteed not to require SASL authentication.
+	 * 
+	 * In addition, we rely on smtp_reuse_addr() to look up an existing
+	 * plaintext connection only when a new connection would be
+	 * guaranteed not to use TLS.
+	 * 
+	 * For more precise control over reuse, the iterator should look up SASL
+	 * and TLS policy as it evaluates mail exchangers in order, instead
+	 * of relying on duplicate lookup request code in smtp_reuse(3) and
+	 * smtp_session(3).
 	 */
 	for (addr = addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
 	    next = addr->next;
@@ -938,7 +975,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
 		|| addr->pref == domain_best_pref
 		|| !(session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
-					       | SMTP_KEY_FLAG_SENDER
+					       | SMTP_KEY_FLAG_NOSASL
 					       | SMTP_KEY_FLAG_ADDR
 					       | SMTP_KEY_FLAG_PORT)))
 		session = smtp_connect_addr(iter, why, state->misc_flags);

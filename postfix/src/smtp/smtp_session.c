@@ -17,7 +17,7 @@
 /*	time_t	start;
 /*	int	flags;
 /*
-/*	int	smtp_sess_tls_required(iter, valid)
+/*	int	smtp_sess_plaintext_ok(iter, valid)
 /*	SMTP_ITERATOR *iter;
 /*	int	valid;
 /*
@@ -50,10 +50,11 @@
 /*	start time, and makes it subject to the specified connection
 /*	caching policy.
 /*
-/*	smtp_sess_tls_required() returns true if TLS policy is mandatory,
-/*	invalid or indeterminate. The return value is false only if TLS is
-/*	optional.  This is not yet used anywhere, it can be used to safely
-/*	enable TLS policy with smtp_reuse_addr().
+/*	smtp_sess_plaintext_ok() returns true if a plaintext session
+/*	context would be compliant with the TLS policy for the
+/*	specified mail delivery context. The result is false if a
+/*	new session would use TLS, or if the policy could not be
+/*	determined due to some error.
 /*
 /*	smtp_session_free() destroys an SMTP_SESSION structure and its
 /*	members, making memory available for reuse. It will handle the
@@ -300,22 +301,21 @@ void    smtp_session_free(SMTP_SESSION *session)
     myfree((char *) session);
 }
 
-/* smtp_sess_tls_required - does session require tls */
+/* smtp_sess_plaintext_ok - is plaintext session OK */
 
-int     smtp_sess_tls_required(SMTP_ITERATOR *iter, int valid)
+int     smtp_sess_plaintext_ok(SMTP_ITERATOR *iter, int valid)
 {
 #ifdef USE_TLS
-    int     optional = 0;
+    int     plaintext_ok = 0;		/* undecided */
     SMTP_TLS_POLICY *tls;
 
-    /* Optional only when we're sure. Otherwise, (maybe) required. */
     if ((tls = smtp_tls_policy(NO_DSN_BUF, iter, valid)) != 0) {
-	optional = tls->level >= TLS_LEV_NONE && tls->level <= TLS_LEV_MAY;
+	plaintext_ok = (tls->level == TLS_LEV_NONE);
 	smtp_tls_policy_free(tls);
     }
-    return (!optional);
+    return (plaintext_ok);
 #else
-    return (0);
+    return (1);
 #endif
 }
 

@@ -89,6 +89,10 @@
 #include <scache.h>
 #include <mail_params.h>
 
+/* DNS library. */
+
+#include <dns.h>			/* _plaintext_ok() predicate */
+
 /* Application-specific. */
 
 #include <smtp.h>
@@ -220,9 +224,6 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
 
     /*
      * Look up the session by its logical name.
-     * 
-     * Note: if the label needs to be made more specific (with e.g., SASL login
-     * information), just append the text with vstring_sprintf_append().
      */
     smtp_key_prefix(state->dest_label, state->iterator, name_key_flags);
     if ((fd = scache_find_dest(smtp_scache, STR(state->dest_label),
@@ -241,8 +242,40 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
 
 SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
 {
+    const char *myname = "smtp_reuse_addr";
     SMTP_SESSION *session;
     int     fd;
+
+    /*
+     * Sanity check. We currently lack support to look up SASL credentials.
+     */
+#ifdef USE_SASL_AUTH
+    if ((endp_key_flags & SMTP_KEY_FLAG_SASL) != 0)
+	msg_panic("%s: SASL credential lookup is not supported", myname);
+#endif
+
+    /*
+     * Don't look up an existing SASL-unauthenticated connection when a new
+     * connection may require authentication. We conservatively test below if
+     * unauthenticated connection reuse is guaranteed to be OK. This test can
+     * be replaced later with a more precise one.
+     */
+#ifdef USE_SASL_AUTH
+    if ((endp_key_flags & SMTP_KEY_FLAG_NOSASL) != 0
+	&& var_smtp_sasl_enable != 0
+	&& *var_smtp_sasl_passwd != 0)
+	return (0);
+#endif
+
+    /*
+     * Don't look up an existing plaintext connection when a new connection
+     * would (try to) use TLS.
+     */
+#ifdef USE_TLS
+    if (smtp_sess_plaintext_ok(state->iterator,
+			       state->iterator->rr->validated) == 0)
+	return (0);
+#endif
 
     /*
      * Look up the session by its IP address. This means that we have no
