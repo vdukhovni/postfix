@@ -650,7 +650,7 @@ SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *why, SMTP_ITERATOR *iter, int valid)
 
     if (iter != 0) {
 	key = vstring_alloc(100);
-	smtp_key_prefix(key, iter, SMTP_KEY_FLAG_NEXTHOP
+	smtp_key_prefix(key, ":", iter, SMTP_KEY_FLAG_NEXTHOP
 			| SMTP_KEY_FLAG_HOSTNAME
 			| SMTP_KEY_FLAG_PORT);
 	vstring_sprintf_append(key, "%d", !!valid);

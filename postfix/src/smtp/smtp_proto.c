@@ -776,7 +776,7 @@ static int smtp_start_tls(SMTP_STATE *state)
      * SSL session lookup key lengths.
      */
     serverid = vstring_alloc(10);
-    smtp_key_prefix(serverid, state->iterator, SMTP_KEY_FLAG_SERVICE
+    smtp_key_prefix(serverid, ":", state->iterator, SMTP_KEY_FLAG_SERVICE
 		    | SMTP_KEY_FLAG_ADDR
 		    | SMTP_KEY_FLAG_PORT);
 

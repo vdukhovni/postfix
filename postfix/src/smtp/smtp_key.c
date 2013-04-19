@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	char	*smtp_key_prefix(buffer, iterator, context_flags)
+/*	char	*smtp_key_prefix(buffer, delim_na, iterator, context_flags)
 /*	VSTRING	*buffer;
+/*	const char *delim_na;
 /*	SMTP_ITERATOR *iterator;
 /*	int	context_flags;
 /* DESCRIPTION
@@ -30,6 +31,14 @@
 /*	Arguments:
 /* .IP buffer
 /*	Storage for the result.
+/* .IP delim_na
+/*	The field delimiter character, and the optional place holder
+/*	character for a) information that is unavailable, b)
+/*	information that is inapplicable, or c) that would result
+/*	in an empty field.  Key fields that contain "delim_na"
+/*	characters will be base64-encoded.
+/*	Do not specify "delim_na" characters that are part of the
+/*	base64 character set.
 /* .IP iterator
 /*	Information that will be selected by the specified flags.
 /* .IP context_flags
@@ -85,6 +94,7 @@
 #include <sys_defs.h>
 #include <netinet/in.h>			/* ntohs() for Solaris or BSD */
 #include <arpa/inet.h>			/* ntohs() for Linux or BSD */
+#include <string.h>
 
  /*
   * Utility library.
@@ -104,19 +114,60 @@
 #include <smtp.h>
 
  /*
-  * We use newline as the field terminator and "*" as the place holder for
-  * "not applicable" data. We encode user-controlled content that may contain
-  * our special characters and content that needs obfuscation.
+  * We use a configurable field terminator and optional place holder for data
+  * that is unavailable or inapplicable. We base64-encode content that
+  * contains these characters, and content that needs obfuscation.
   */
-#define SMTP_KEY_DUMMY_SASL_CRED	"*\n*\n"
-#define SMTP_KEY_APPEND_BASE64_DELIM(buf, str) do { \
-	base64_encode_opt((buf), (str), strlen(str), BASE64_FLAG_APPEND); \
-	vstring_strcat(buffer, "\n"); \
-    } while (0)
+
+/* smtp_key_append_na - append place-holder key field */
+
+static void smtp_key_append_na(VSTRING *buffer, const char *delim_na)
+{
+    if (delim_na[1] != 0)
+	VSTRING_ADDCH(buffer, delim_na[1]);
+    VSTRING_ADDCH(buffer, delim_na[0]);
+}
+
+/* smtp_key_append_base64 - append base64-encoded key field */
+
+static void smtp_key_append_base64(VSTRING *buffer, const char *str,
+				           const char *delim_na)
+{
+    if (str == 0 || str[0] == 0) {
+	smtp_key_append_na(buffer, delim_na);
+    } else {
+	base64_encode_opt(buffer, str, strlen(str), BASE64_FLAG_APPEND);
+	VSTRING_ADDCH(buffer, delim_na[0]);
+    }
+}
+
+/* smtp_key_append_str - append string-valued key field */
+
+static void smtp_key_append_str(VSTRING *buffer, const char *str,
+				        const char *delim_na)
+{
+    if (str == 0 || str[0] == 0) {
+	smtp_key_append_na(buffer, delim_na);
+    } else if (str[strcspn(str, delim_na)] != 0) {
+	base64_encode_opt(buffer, str, strlen(str), BASE64_FLAG_APPEND);
+	VSTRING_ADDCH(buffer, delim_na[0]);
+    } else {
+	vstring_sprintf_append(buffer, "%s%c", str, delim_na[0]);
+    }
+}
+
+/* smtp_key_append_uint - append unsigned-valued key field */
+
+static void smtp_key_append_uint(VSTRING *buffer, unsigned num,
+				         const char *delim_na)
+{
+    vstring_sprintf_append(buffer, "%u%c", num, delim_na[0]);
+}
 
 /* smtp_key_prefix - format common elements in lookup key */
 
-char   *smtp_key_prefix(VSTRING *buffer, SMTP_ITERATOR *iter, int flags)
+char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
+			        SMTP_ITERATOR *iter, int flags)
 {
     const char myname[] = "smtp_key_prefix";
     SMTP_STATE *state = iter->parent;	/* private member */
@@ -126,7 +177,7 @@ char   *smtp_key_prefix(VSTRING *buffer, SMTP_ITERATOR *iter, int flags)
      * Sanity checks.
      */
     if (state == 0)
-	msg_panic("%s: no parent state :-)", myname);
+	msg_panic("%s: no parent state", myname);
     if (flags & ~SMTP_KEY_MASK_ALL)
 	msg_panic("%s: unknown key flags 0x%x",
 		  myname, flags & ~SMTP_KEY_MASK_ALL);
@@ -142,47 +193,56 @@ char   *smtp_key_prefix(VSTRING *buffer, SMTP_ITERATOR *iter, int flags)
      * Per-service and per-request context.
      */
     if (flags & SMTP_KEY_FLAG_SERVICE)
-	vstring_sprintf_append(buffer, "%s\n", state->service);
-    if (flags & SMTP_KEY_FLAG_SENDER)
-	vstring_sprintf_append(buffer, "%s\n",
-			       var_smtp_sender_auth
-			       && *var_smtp_sasl_passwd ?
-			       state->request->sender : "*");
+	smtp_key_append_str(buffer, state->service, delim_na);
+#ifdef USE_SASL_AUTH
+    if (flags & SMTP_KEY_FLAG_SENDER) {
+	if (var_smtp_sender_auth && *var_smtp_sasl_passwd) {
+	    smtp_key_append_str(buffer, state->request->sender, delim_na);
+	} else {
+	    smtp_key_append_na(buffer, delim_na);	/* sender n/a */
+	}
+    }
+#endif
 
     /*
      * Per-destination context, non-canonicalized form.
      */
     if (flags & SMTP_KEY_FLAG_REQ_NEXTHOP)
-	vstring_sprintf_append(buffer, "%s\n", STR(iter->request_nexthop));
+	smtp_key_append_str(buffer, STR(iter->request_nexthop), delim_na);
     if (flags & SMTP_KEY_FLAG_NEXTHOP)
-	vstring_sprintf_append(buffer, "%s\n", STR(iter->dest));
+	smtp_key_append_str(buffer, STR(iter->dest), delim_na);
 
     /*
      * Per-host context, canonicalized form.
      */
     if (flags & SMTP_KEY_FLAG_HOSTNAME)
-	vstring_sprintf_append(buffer, "%s\n", STR(iter->host));
+	smtp_key_append_str(buffer, STR(iter->host), delim_na);
     if (flags & SMTP_KEY_FLAG_ADDR)
-	vstring_sprintf_append(buffer, "%s\n", STR(iter->addr));
+	smtp_key_append_str(buffer, STR(iter->addr), delim_na);
     if (flags & SMTP_KEY_FLAG_PORT)
-	vstring_sprintf_append(buffer, "%u\n", ntohs(iter->port));
+	smtp_key_append_uint(buffer, ntohs(iter->port), delim_na);
 
     /*
      * Security attributes.
      */
 #ifdef USE_SASL_AUTH
-    if (flags & SMTP_KEY_FLAG_NOSASL)
-	vstring_strcat(buffer, SMTP_KEY_DUMMY_SASL_CRED);
+    if (flags & SMTP_KEY_FLAG_NOSASL) {
+	smtp_key_append_na(buffer, delim_na);	/* username n/a */
+	smtp_key_append_na(buffer, delim_na);	/* password n/a */
+    }
     if (flags & SMTP_KEY_FLAG_SASL) {
 	if ((session = state->session) == 0 || session->sasl_username == 0) {
-	    vstring_strcat(buffer, SMTP_KEY_DUMMY_SASL_CRED);
+	    smtp_key_append_na(buffer, delim_na);	/* username n/a */
+	    smtp_key_append_na(buffer, delim_na);	/* password n/a */
 	} else {
-	    SMTP_KEY_APPEND_BASE64_DELIM(buffer, session->sasl_username);
-	    SMTP_KEY_APPEND_BASE64_DELIM(buffer, session->sasl_passwd);
+	    smtp_key_append_base64(buffer, session->sasl_username, delim_na);
+	    smtp_key_append_base64(buffer, session->sasl_passwd, delim_na);
 	}
     }
 #endif
     /* Similarly, provide unique TLS fingerprint when applicable. */
+
+    VSTRING_TERMINATE(buffer);
 
     return STR(buffer);
 }

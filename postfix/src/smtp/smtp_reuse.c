@@ -98,6 +98,12 @@
 #include <smtp.h>
 #include <smtp_reuse.h>
 
+ /*
+  * Key field delimiter and place holder for unavailable/inapplicable
+  * information.
+  */
+#define SMTP_REUSE_KEY_DELIM_NA	"\n*"
+
 /* smtp_save_session - save session under next-hop name and server address */
 
 void    smtp_save_session(SMTP_STATE *state, int name_key_flags,
@@ -111,13 +117,15 @@ void    smtp_save_session(SMTP_STATE *state, int name_key_flags,
      * that is also used for cache lookup queries.
      */
     if (HAVE_NEXTHOP_STATE(state))
-	smtp_key_prefix(state->dest_label, state->iterator, name_key_flags);
+	smtp_key_prefix(state->dest_label, SMTP_REUSE_KEY_DELIM_NA,
+			state->iterator, name_key_flags);
 
     /*
      * Encode the physical endpoint name. Reuse storage that is also used for
      * cache lookup queries.
      */
-    smtp_key_prefix(state->endp_label, state->iterator, endp_key_flags);
+    smtp_key_prefix(state->endp_label, SMTP_REUSE_KEY_DELIM_NA,
+		    state->iterator, endp_key_flags);
 
     /*
      * Passivate the SMTP_SESSION object, destroying the object in the
@@ -225,7 +233,8 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
     /*
      * Look up the session by its logical name.
      */
-    smtp_key_prefix(state->dest_label, state->iterator, name_key_flags);
+    smtp_key_prefix(state->dest_label, SMTP_REUSE_KEY_DELIM_NA,
+		    state->iterator, name_key_flags);
     if ((fd = scache_find_dest(smtp_scache, STR(state->dest_label),
 			       state->dest_prop, state->endp_prop)) < 0)
 	return (0);
@@ -281,7 +290,8 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
      * Look up the session by its IP address. This means that we have no
      * destination-to-address binding properties.
      */
-    smtp_key_prefix(state->endp_label, state->iterator, endp_key_flags);
+    smtp_key_prefix(state->endp_label, SMTP_REUSE_KEY_DELIM_NA,
+		    state->iterator, endp_key_flags);
     if ((fd = scache_find_endp(smtp_scache, STR(state->endp_label),
 			       state->endp_prop)) < 0)
 	return (0);

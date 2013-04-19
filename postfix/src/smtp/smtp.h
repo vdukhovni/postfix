@@ -422,6 +422,9 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
  /*
   * Encapsulate the following so that we don't expose details of of
   * connection management and error handling to the SMTP protocol engine.
+  * 
+  * XXX Update the policy to TLS_LEV_NONE, so that smtp_reuse_addr() can do the
+  * right thing.
   */
 #define RETRY_AS_PLAINTEXT do { \
 	session->tls_retry_plain = 1; \
@@ -530,7 +533,7 @@ extern int smtp_map11_internal(VSTRING *, MAPS *, int);
  /*
   * smtp_key.c
   */
-char   *smtp_key_prefix(VSTRING *, SMTP_ITERATOR *, int);
+char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 
 #define SMTP_KEY_FLAG_SERVICE		(1<<0)	/* service name */
 #define SMTP_KEY_FLAG_SENDER		(1<<1)	/* sender address */
