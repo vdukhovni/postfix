@@ -523,7 +523,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * of SASL-unauthenticated connections.
      */
 #ifdef USE_TLS
-    if (!smtp_tls_policy(why, state->tls, iter)) {
+    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
 	msg_info("TLS policy lookup error for %s/%s: %s",
 		 STR(iter->host), STR(iter->addr), STR(why->reason));
 	return;
@@ -658,10 +658,10 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
     MAI_HOSTADDR_STR hostaddr;
     SMTP_SESSION *session;
     SMTP_ITERATOR *iter = state->iterator;
-    DSN_BUF *why;
+    DSN_BUF *why = state->why;
 
     /*
-     * First, search the cache by logical destination. We truncate the server
+     * First, search the cache by request nexthop. We truncate the server
      * address list when all the sessions for this destination are used up,
      * to reduce the number of variables that need to be checked later.
      * 
@@ -671,15 +671,13 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
      * and restore it here, so that subsequent connections will use the
      * proper nexthop information.
      * 
-     * Since we never reuse a connection after turning on TLS, we look up a
-     * dummy TLS policy ("surprise me") for initialization purposes only. XXX
-     * Implement a better API to initialize a TLS policy object.
+     * We request a dummy "TLS disabled" policy for connection-cache lookup by
+     * request nexthop only. If we find a saved connection, then we know that
+     * plaintext was permitted, because we never save a connection after
+     * turning on TLS.
      */
 #ifdef USE_TLS
-#define NO_DSN_BUF	((DSN_BUF *) 0)
-#define NO_ITERATOR     ((SMTP_ITERATOR *) 0)
-
-    (void) smtp_tls_policy(NO_DSN_BUF, state->tls, NO_ITERATOR);
+    smtp_tls_policy_dummy(state->tls);
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
@@ -734,7 +732,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	vstring_strcpy(iter->host, SMTP_HNAME(addr));
 	iter->rr = addr;
 #ifdef USE_TLS
-	if (!smtp_tls_policy(why, state->tls, iter)) {
+	if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
 	    msg_info("TLS policy lookup error for %s/%s: %s",
 		     STR(iter->dest), STR(iter->host), STR(why->reason));
 	    continue;
@@ -903,10 +901,6 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * good sessions will be stored under their specific server IP
 	 * address.
 	 * 
-	 * XXX Replace sites->argv by (lookup_mx, domain, port) triples so we
-	 * don't have to make clumsy ad-hoc copies and keep track of who
-	 * free()s the memory.
-	 * 
 	 * XXX smtp_session_cache_destinations specifies domain names without
 	 * :port, because : is already used for maptype:mapname. Because of
 	 * this limitation we use the bare domain without the optional [] or
@@ -915,11 +909,6 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * Opportunistic (a.k.a. on-demand) session caching on request by the
 	 * queue manager. This is turned temporarily when a destination has a
 	 * high volume of mail in the active queue.
-	 * 
-	 * XXX Disable connection caching when sender-dependent authentication
-	 * is enabled. We must not send someone elses mail over an
-	 * authenticated connection, and we must not send mail that requires
-	 * authentication over a connection that wasn't authenticated.
 	 */
 	if (addr_list && (state->misc_flags & SMTP_MISC_FLAG_FIRST_NEXTHOP)) {
 	    smtp_cache_policy(state, domain);
@@ -986,7 +975,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    vstring_strcpy(iter->host, SMTP_HNAME(addr));
 	    iter->rr = addr;
 #ifdef USE_TLS
-	    if (!smtp_tls_policy(why, state->tls, iter)) {
+	    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
 		msg_info("TLS policy lookup for %s/%s: %s",
 			 STR(iter->dest), STR(iter->host), STR(why->reason));
 		continue;
@@ -994,7 +983,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    }
 	    /* Disable TLS when retrying after a handshake failure */
 	    if (retry_plain) {
-		session->tls->level = TLS_LEV_NONE;
+		state->tls->level = TLS_LEV_NONE;
 		retry_plain = 0;
 	    }
 #endif
@@ -1009,6 +998,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		session->state = state;
 #ifdef USE_TLS
 		session->tls = state->tls;	/* TEMPORARY */
+		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
 #endif
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
@@ -1016,9 +1006,6 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
 		    && next == 0)
 		    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
-#ifdef USE_TLS
-		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
-#endif
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 		    && smtp_helo(state) != 0) {
 #ifdef USE_TLS
@@ -1056,7 +1043,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		/* The reason already includes the IP address and TCP port. */
 		msg_info("%s", STR(why->reason));
 	    }
-	    /* Insert: test if we must skip the remaining MX hosts. */
+	    /* XXX Code above assumes there is no code at this loop ending. */
 	}
 	dns_rr_free(addr_list);
 	myfree(dest_buf);

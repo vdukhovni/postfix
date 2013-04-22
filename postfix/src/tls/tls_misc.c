@@ -74,6 +74,10 @@
 /*	const char *log_param;
 /*	const char *log_level;
 /*
+/*	void	 tls_update_app_logmask(app_ctx, log_mask)
+/*	TLS_APPL_STATE *app_ctx;
+/*	int      log_mask;
+/*
 /*	int	tls_validate_digest(dgst)
 /*	const char *dgst;
 /* DESCRIPTION
@@ -140,6 +144,9 @@
 /*	tls_log_mask() converts a TLS log_level value from string
 /*	to mask.  The main.cf parameter name is passed along for
 /*	diagnostics.
+/*
+/*	tls_update_app_logmask() changes the log mask of the
+/*	application TLS context to the new setting.
 /*
 /*	tls_validate_digest() returns non-zero if the named digest
 /*	is usable and zero otherwise.
@@ -391,6 +398,13 @@ int     tls_log_mask(const char *log_param, const char *log_level)
     mask = name_mask_opt(log_param, tls_log_table, log_level,
 			 NAME_MASK_ANY_CASE | NAME_MASK_RETURN);
     return (mask);
+}
+
+/* tls_update_app_logmask - update log level after init */
+
+void	 tls_update_app_logmask(TLS_APPL_STATE *app_ctx, int log_mask)
+{
+    app_ctx->log_mask = log_mask;
 }
 
 /* tls_exclude_missing - Append exclusions for missing ciphers */

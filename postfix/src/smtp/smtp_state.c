@@ -90,7 +90,7 @@ void    smtp_state_free(SMTP_STATE *state)
 {
 #ifdef USE_TLS
     /* The TLS policy cache lifetime is one delivery. */
-    smtp_tls_policy_flush();
+    smtp_tls_policy_cache_flush();
 #endif
     vstring_free(state->iterator->request_nexthop);
     vstring_free(state->iterator->dest);

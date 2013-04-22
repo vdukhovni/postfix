@@ -158,6 +158,16 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     SMTP_SESSION *session;
 
     /*
+     * Can't happen. Both smtp_reuse_nexthop() and smtp_reuse_addr() decline
+     * the request when the TLS policy is not TLS_LEV_NONE.
+     */
+#ifdef USE_TLS
+    if (state->tls->level > TLS_LEV_NONE)
+	msg_panic("%s: unexpected plain-text cached session to %s",
+		  myname, label);
+#endif
+
+    /*
      * Re-activate the SMTP_SESSION object.
      */
     session = smtp_session_activate(fd, state->iterator, state->dest_prop,
@@ -171,37 +181,6 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     session->state = state;
 #ifdef USE_TLS
     session->tls = state->tls;			/* TEMPORARY */
-#endif
-
-    /*
-     * XXX Temporary fix.
-     * 
-     * Cached connections are always plaintext. They must never be reused when
-     * TLS encryption is required.
-     * 
-     * As long as we support the legacy smtp_tls_per_site feature, we must
-     * search the connection cache before making TLS policy decisions. This
-     * is because the policy can depend on the server name. For example, a
-     * site could have a global policy that requires encryption, with
-     * per-server exceptions that allow plaintext.
-     * 
-     * With the newer smtp_tls_policy_maps feature, the policy depends on the
-     * next-hop destination only. We can avoid unnecessary connection cache
-     * lookups, because we can compute the TLS policy much earlier.
-     * 
-     * XXX This can now be a panic. Connection reuse by nexthop uses a dummy
-     * "surprise me" policy, and smtp_reuse_addr() now explicitly declines
-     * the request when the policy is not TLS_LEV_NONE.
-     */
-#ifdef USE_TLS
-    if (session->tls->level >= TLS_LEV_ENCRYPT) {
-	if (msg_verbose)
-	    msg_info("%s: skipping plain-text cached session to %s",
-		     myname, label);
-	smtp_quit(state);			/* Close politely */
-	smtp_session_free(session);		/* And avoid leaks */
-	return (state->session = 0);
-    }
 #endif
 
     /*
@@ -232,6 +211,15 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
 {
     SMTP_SESSION *session;
     int     fd;
+
+    /*
+     * Don't look up an existing plaintext connection when a new connection
+     * would (try to) use TLS.
+     */
+#ifdef USE_TLS
+    if (state->tls->level > TLS_LEV_NONE)
+	return (0);
+#endif
 
     /*
      * Look up the session by its logical name.

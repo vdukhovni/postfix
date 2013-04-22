@@ -958,7 +958,7 @@ administrator should publish such EE records in preference to all types.
 
 The pre-requisites for DANE support in the Postfix SMTP client are:
 
-  * An compile-time OpenSSL library that supports the TLS SNI extension and the
+  * A compile-time OpenSSL library that supports the TLS SNI extension and the
     "sha256" and "sha512" message digests.
   * A compile-time DNS resolver library that supports DNSSEC. Postfix binaries
     built on an older system will not support DNSSEC even if deployed on a
@@ -976,8 +976,8 @@ plans to implement SNI in the Postfix SMTP server.
 Note: The Postfix SMTP client's internal stub DNS resolver is DNSSEC-aware, but
 it does not itself validate DNSSEC records, rather it delegates DNSSEC
 validation to the operating system's configured recursive DNS nameserver. The
-Postfix DNS resolver relies on a secure-channel to the cache for DNSSEC
-integrity, but does not support TSIG to protect the transmission channel
+Postfix DNS client relies on a secure channel to the resolver's cache for
+DNSSEC integrity, but does not support TSIG to protect the transmission channel
 between itself and the nameserver. Therefore, it is strongly recommended (DANE
 security guarantee void otherwise) that each MTA run a local DNSSEC-validating
 recursive resolver ("unbound" from nlnetlabs.nl is a reasonable choice)

@@ -790,6 +790,7 @@ while (<>) {
     s/[<bB>]*postmulti[<\/bB>]*\(1\)/<a href="postmulti.1.html">$&<\/a>/g;
     s/[<bB>]*postqueue[<\/bB>]*\(1\)/<a href="postqueue.1.html">$&<\/a>/g;
     s/[<bB>]*postsuper[<\/bB>]*\(1\)/<a href="postsuper.1.html">$&<\/a>/g;
+    s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*tls-finger[<\/bB>]*\(1\)/<a href="posttls-finger.1.html">$&<\/a>/g;
     s/[<bB>]*send[-<\/bB>]*\n*[ <bB>]*mail[<\/bB>]*\(1\)/<a href="sendmail.1.html">$&<\/a>/g;
     s/[<bB>]*smtp-[<\/bB>]*\n* *[<bB>]*source[<\/bB>]*\(1\)/<a href="smtp-source.1.html">$&<\/a>/g;
     s/[<bB>]*smtp-[<\/bB>]*\n* *[<bB>]*sink[<\/bB>]*\(1\)/<a href="smtp-sink.1.html">$&<\/a>/g;

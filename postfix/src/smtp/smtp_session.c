@@ -234,6 +234,10 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * XXX It would be nice to have a VSTRING to VSTREAM adapter so that we can
      * serialize the properties with attr_print() instead of using ad-hoc,
      * non-reusable, code and hard-coded format strings.
+     * 
+     * TODO: save SASL username and password information so that we can
+     * correctly save a reused authenticated connection.
+     * 
      */
     vstring_sprintf(dest_prop, "%s\n%s\n%s\n%u",
 		    session->dest, session->host, session->addr,
@@ -335,6 +339,9 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
      * SMTP_ITER_SAVE_DEST() and SMTP_ITER_RESTORE_DEST().
      * 
      * TODO: Eliminate the duplication between SMTP_ITERATOR and SMTP_SESSION.
+     * 
+     * TODO: restore SASL username and password information so that we can
+     * correctly save a reused authenticated connection.
      */
     if (dest_prop && VSTRING_LEN(dest_prop)) {
 	dest_props = STR(dest_prop);
@@ -364,7 +371,7 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
 #define NO_FLAGS	0
 
     session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR), iter,
-						(time_t) 0, NO_FLAGS);
+				 (time_t) 0, NO_FLAGS);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     CACHE_THIS_SESSION_UNTIL(expire_time);
     session->reuse_count = ++reuse_count;

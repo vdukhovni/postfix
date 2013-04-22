@@ -8,6 +8,16 @@ Wish list:
 
 	Spellcheck and double-word check.
 
+	Fix a false cache-sharing problem. After the SASL handshake,
+	the connection cache client does not store SASL credentials
+	in the destination properties; it stores them in the endpoint
+	label only.  When the connection cache client reuses the
+	connection with smtp_reuse_nexthop(), it does not restore
+	the SASL credentials.  When it saves the connection afterwards,
+	it creates a new endpoint label without SASL credentials,
+	so the authenticated connection can now be used for unrelated
+	deliveries.
+
 	Begin code revision, after DANE support stabilizes.  This
 	should be one pass that changes only names and no code.
 

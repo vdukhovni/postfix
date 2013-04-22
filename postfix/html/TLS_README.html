@@ -204,7 +204,7 @@ or via public-key infrastructure. This means that the Postfix server
 public-key certificate file must include the server certificate
 first, then the issuing CA(s) (bottom-up order). The Postfix SMTP
 server certificate must be usable as SSL server certificate and
-hence pass the "<tt>openssl verify -purpose sslserver ...<tt>" test.
+hence pass the "<tt>openssl verify -purpose sslserver ...</tt>" test.
 </p>
 
 <p> The examples that follow show how to create a server certificate
@@ -1296,7 +1296,7 @@ EE records in preference to all types. </p>
 
 <p> The pre-requisites for DANE support in the Postfix SMTP client are: </p>
 <ul>
-<li> An <i>compile-time</i> OpenSSL library that supports the TLS SNI
+<li> A <i>compile-time</i> OpenSSL library that supports the TLS SNI
 extension and the "sha256" and "sha512" message digests.
 <li> A <i>compile-time</i> DNS resolver library that supports DNSSEC.
 Postfix binaries built on an older system will not support DNSSEC even
@@ -1314,8 +1314,8 @@ records.  There are no plans to implement SNI in the Postfix SMTP server.  </p>
 <p> Note: The Postfix SMTP client's internal stub DNS resolver is
 DNSSEC-aware, but it does not itself validate DNSSEC records, rather
 it delegates DNSSEC validation to the operating system's configured
-recursive DNS nameserver.  The Postfix DNS resolver relies on a
-secure-channel to the cache for DNSSEC integrity, but does not
+recursive DNS nameserver.  The Postfix DNS client relies on a secure
+channel to the resolver's cache for DNSSEC integrity, but does not
 support TSIG to protect the transmission channel between itself and
 the nameserver.  Therefore, it is strongly recommended (DANE security
 guarantee void otherwise) that each MTA run a local DNSSEC-validating

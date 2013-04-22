@@ -105,8 +105,27 @@ typedef struct SMTP_TLS_POLICY {
   * smtp_tls_policy.c
   */
 extern void smtp_tls_list_init(void);
-extern int smtp_tls_policy(DSN_BUF *, SMTP_TLS_POLICY *, SMTP_ITERATOR *);
-extern void smtp_tls_policy_flush(void);
+extern int smtp_tls_policy_cache_query(DSN_BUF *, SMTP_TLS_POLICY *, SMTP_ITERATOR *);
+extern void smtp_tls_policy_cache_flush(void);
+
+#define smtp_tls_policy_dummy(t) do { \
+	SMTP_TLS_POLICY *_t = (t); \
+	smtp_tls_policy_init(_t, (DSN_BUF *) 0); \
+	_t->level = TLS_LEV_NONE; \
+    } while (0)
+
+ /* This macro is not part of the module external interface. */
+#define smtp_tls_policy_init(t, w) do { \
+	SMTP_TLS_POLICY *_t = (t); \
+	_t->protocols = 0; \
+	_t->grade = 0; \
+	_t->exclusions = 0; \
+	_t->matchargv = 0; \
+	_t->why = (w); \
+	_t->dane = 0; \
+	_t->dane_no_lev = TLS_LEV_NOTFOUND; \
+	_t->dane_un_lev = TLS_LEV_NOTFOUND; \
+    } while (0)
 
 #endif
 

@@ -18505,3 +18505,12 @@ Apologies for any names omitted.
 	creation. Temporarily link session->tls to state->tls.
 	Files: smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_reuse.c,
 	smtp/smtp_tls_policy.c.
+
+20130422
+
+	Feature: smtptls-finger test program for SMTP over TLS.
+	Viktor Dukhovni. Files: Makefile.in, html/Makefile.in,
+	man/Makefile.in, mantools/postlink, posttls-finger/.indent.pro,
+	posttls-finger/Makefile.in, posttls-finger/posttls-finger.c,
+	posttls-finger/tlsmgrmem.c, posttls-finger/tlsmgrmem.h,
+	tls/tls.h, tls/tls_misc.c.

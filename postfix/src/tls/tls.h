@@ -261,8 +261,9 @@ struct TLS_APPL_STATE {
 };
 
  /*
-  * tls_misc.c One time finalization of application context.
+  * tls_misc.c Application-context update and disposal.
   */
+extern void tls_update_app_logmask(TLS_APPL_STATE *, int);
 extern void tls_free_app_context(TLS_APPL_STATE *);
 
  /*

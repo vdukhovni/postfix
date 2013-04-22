@@ -349,3 +349,6 @@
 -Tsize_t
 -Tssize_t
 -Ttime_t
+-TRESPONSE
+-TSTATE
+-TOPTIONS
