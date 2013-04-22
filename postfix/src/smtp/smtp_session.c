@@ -6,20 +6,11 @@
 /* SYNOPSIS
 /*	#include "smtp.h"
 /*
-/*	SMTP_SESSION *smtp_session_alloc(why, iter, flags)
-/*	DSN_BUF *why;
-/*	SMTP_ITERATOR *iter;
-/*	int	flags;
-/*
-/*	void	smtp_session_new_stream(session, stream, start, flags)
-/*	SMTP_SESSION *session;
+/*	SMTP_SESSION *smtp_session_alloc(stream, iter, start, flags)
 /*	VSTREAM	*stream;
+/*	SMTP_ITERATOR *iter;
 /*	time_t	start;
 /*	int	flags;
-/*
-/*	int	smtp_sess_plaintext_ok(iter, valid)
-/*	SMTP_ITERATOR *iter;
-/*	int	valid;
 /*
 /*	void	smtp_session_free(session)
 /*	SMTP_SESSION *session;
@@ -36,25 +27,9 @@
 /*	VSTRING	*endp_prop;
 /* DESCRIPTION
 /*	smtp_session_alloc() allocates memory for an SMTP_SESSION structure
-/*	and initializes it with the given destination, host name and address
-/*	information.  The host name and address strings are copied. The port
-/*	is in network byte order.  When TLS is enabled, smtp_session_alloc()
-/*	looks up the per-site TLS policies for TLS enforcement and certificate
-/*	verification.  The resulting policy is stored into the SMTP_SESSION
-/*	object.  Table and DNS lookups can fail during TLS policy creation,
-/*	when this happens, "why" is updated with the error reason and a null
-/*	session pointer is returned.
-/*
-/*	smtp_session_new_stream() updates an SMTP_SESSION structure
-/*	with a newly-created stream that was created at the specified
-/*	start time, and makes it subject to the specified connection
-/*	caching policy.
-/*
-/*	smtp_sess_plaintext_ok() returns true if a plaintext session
-/*	context would be compliant with the TLS policy for the
-/*	specified mail delivery context. The result is false if a
-/*	new session would use TLS, or if the policy could not be
-/*	determined due to some error.
+/*	and initializes it with the given stream and destination, host name
+/*	and address information.  The host name and address strings are
+/*	copied. The port is in network byte order.
 /*
 /*	smtp_session_free() destroys an SMTP_SESSION structure and its
 /*	members, making memory available for reuse. It will handle the
@@ -77,8 +52,6 @@
 /*	the name of the remote host;
 /*	the printable address of the remote host;
 /*	the remote port in network byte order.
-/* .IP valid
-/*	The DNSSEC validation status of the host name.
 /* .IP start
 /*	The time when this connection was opened.
 /* .IP flags
@@ -90,8 +63,6 @@
 /*	Enable re-use of cached SMTP or LMTP connections.
 /* .IP SMTP_MISC_FLAG_CONN_STORE
 /*	Enable saving of cached SMTP or LMTP connections.
-/* .IP SMTP_MISC_FLAG_NO_TLS
-/*	Used only internally in smtp_session.c
 /* .RE
 /*	SMTP_MISC_FLAG_CONN_MASK corresponds with both _LOAD and _STORE.
 /* .IP dest_prop
@@ -115,12 +86,7 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
-/*	TLS support originally by:
-/*	Lutz Jaenicke
-/*	BTU Cottbus
-/*	Allgemeine Elektrotechnik
-/*	Universitaetsplatz 3-4
-/*	D-03044 Cottbus, Germany
+/*	Viktor Dukhovni
 /*--*/
 
 /* System library. */
@@ -141,15 +107,12 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <stringops.h>
-#include <valid_hostname.h>
 
 /* Global library. */
 
 #include <mime_state.h>
 #include <debug_peer.h>
 #include <mail_params.h>
-#include <maps.h>
-#include <smtp_stream.h>
 
 /* Application-specific. */
 
@@ -158,18 +121,17 @@
 
 /* smtp_session_alloc - allocate and initialize SMTP_SESSION structure */
 
-SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, SMTP_ITERATOR *iter, int flags)
+SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, SMTP_ITERATOR *iter,
+				         time_t start, int flags)
 {
-    const char *myname = "smtp_session_alloc";
     SMTP_SESSION *session;
-    int     valid = (flags & SMTP_MISC_FLAG_TLSA_HOST);
     const char *dest = STR(iter->dest);
     const char *host = STR(iter->host);
     const char *addr = STR(iter->addr);
     unsigned port = iter->port;
 
     session = (SMTP_SESSION *) mymalloc(sizeof(*session));
-    session->stream = 0;
+    session->stream = stream;
     session->dest = mystrdup(dest);
     session->host = mystrdup(host);
     session->addr = mystrdup(addr);
@@ -195,69 +157,26 @@ SMTP_SESSION *smtp_session_alloc(DSN_BUF *why, SMTP_ITERATOR *iter, int flags)
 
     session->send_proto_helo = 0;
 
+    if (flags & SMTP_MISC_FLAG_CONN_STORE)
+	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
+    else
+	DONT_CACHE_THIS_SESSION;
+    session->reuse_count = 0;
     USE_NEWBORN_SESSION;			/* He's not dead Jim! */
 
 #ifdef USE_SASL_AUTH
     smtp_sasl_connect(session);
 #endif
 
-    /*
-     * When the destination argument of smtp_tls_sess_alloc() is null, a
-     * trivial TLS policy (level = "none") is returned unconditionally and
-     * the other arguments are not used.  The DSN_BUF "why" argument is
-     * optional when the caller is not interested in the error status.
-     */
-#define NO_DSN_BUF	(DSN_BUF *) 0
-#define NO_ITERATOR	(SMTP_ITERATOR *) 0
-#define NO_FLAGS	0
-
 #ifdef USE_TLS
     session->tls_context = 0;
     session->tls_retry_plain = 0;
     session->tls_nexthop = 0;
-    if (flags & SMTP_MISC_FLAG_NO_TLS)
-	session->tls = smtp_tls_policy(NO_DSN_BUF, NO_ITERATOR, NO_FLAGS);
-    else {
-	if (why == 0)
-	    msg_panic("%s: null error buffer", myname);
-	session->tls = smtp_tls_policy(why, iter, valid);
-    }
-    if (!session->tls) {
-	smtp_session_free(session);
-	return (0);
-    }
+    session->tls = 0;				/* TEMPORARY */
 #endif
     session->state = 0;
     debug_peer_check(host, addr);
     return (session);
-}
-
-/* smtp_session_new_stream - finalize session with newly-created connection */
-
-void    smtp_session_new_stream(SMTP_SESSION *session, VSTREAM *stream,
-				        time_t start, int flags)
-{
-    const char *myname = "smtp_session_new_stream";
-
-    /*
-     * Sanity check.
-     */
-    if (session->stream != 0)
-	msg_panic("%s: session exists", myname);
-
-    session->stream = stream;
-
-    /*
-     * Make the session subject to the new-stream connection caching policy,
-     * as opposed to the reused-stream connection caching policy at the
-     * bottom of this module. Both policies are enforced in this file, not
-     * one policy here and the other at some random place in smtp_connect.c.
-     */
-    if (flags & SMTP_MISC_FLAG_CONN_STORE)
-	CACHE_THIS_SESSION_UNTIL(start + var_smtp_reuse_time);
-    else
-	DONT_CACHE_THIS_SESSION;
-    session->reuse_count = 0;
 }
 
 /* smtp_session_free - destroy SMTP_SESSION structure and contents */
@@ -271,8 +190,6 @@ void    smtp_session_free(SMTP_SESSION *session)
 	    tls_client_stop(smtp_tls_ctx, session->stream,
 			  var_smtp_starttls_tmout, 0, session->tls_context);
     }
-    if (session->tls)
-	smtp_tls_policy_free(session->tls);
 #endif
     if (session->stream)
 	vstream_fclose(session->stream);
@@ -300,25 +217,6 @@ void    smtp_session_free(SMTP_SESSION *session)
     debug_peer_restore();
     myfree((char *) session);
 }
-
-/* smtp_sess_plaintext_ok - is plaintext session OK */
-
-int     smtp_sess_plaintext_ok(SMTP_ITERATOR *iter, int valid)
-{
-#ifdef USE_TLS
-    int     plaintext_ok = 0;		/* undecided */
-    SMTP_TLS_POLICY *tls;
-
-    if ((tls = smtp_tls_policy(NO_DSN_BUF, iter, valid)) != 0) {
-	plaintext_ok = (tls->level == TLS_LEV_NONE);
-	smtp_tls_policy_free(tls);
-    }
-    return (plaintext_ok);
-#else
-    return (1);
-#endif
-}
-
 
 /* smtp_session_passivate - passivate an SMTP_SESSION object */
 
@@ -462,14 +360,11 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
 
     /*
      * Allright, bundle up what we have sofar.
-     * 
-     * Caller is responsible for not reusing plain-text connections when TLS is
-     * required.  With TLS disabled, a trivial TLS policy (level "none") is
-     * returned without fail, with no other ways for session setup to fail,
-     * we assume it must succeed.
      */
-    session = smtp_session_alloc(NO_DSN_BUF, iter, SMTP_MISC_FLAG_NO_TLS);
-    session->stream = vstream_fdopen(fd, O_RDWR);
+#define NO_FLAGS	0
+
+    session = smtp_session_alloc(vstream_fdopen(fd, O_RDWR), iter,
+						(time_t) 0, NO_FLAGS);
     session->features = (features | SMTP_FEATURE_FROM_CACHE);
     CACHE_THIS_SESSION_UNTIL(expire_time);
     session->reuse_count = ++reuse_count;

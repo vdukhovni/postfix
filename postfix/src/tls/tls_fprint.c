@@ -217,14 +217,21 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
      * the EE part of the DANE structure from the serverid digest.
      *
      * If this changes, also update tls_dane_final() in tls_dane.c.
+     *
+     * If the security level is "dane", we send SNI information to the peer.
+     * This may cause it to respond with a non-default certificate.  Since
+     * certificates for sessions with no or different SNI data may not match,
+     * we must include the SNI name in the session id.
      */
     if (props->dane) {
 	int     mixed = (props->dane->flags & TLS_DANE_FLAG_MIXED);
+
 	digestptr(&mixed);
 	digestdane(props->dane, ta);
 #if 0
 	digestdane(props->dane, ee);		/* See above */
 #endif
+	digeststr(props->tls_level == TLS_LEV_DANE ? props->host : "");
     }
     chknonzero(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);

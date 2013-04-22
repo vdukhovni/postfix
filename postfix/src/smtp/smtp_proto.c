@@ -236,7 +236,11 @@ char   *xfer_request[SMTP_STATE_LAST] = {
      && (session->features & SMTP_FEATURE_8BITMIME) == 0 \
      && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0)
 
+#ifdef USE_TLS
+
 static int smtp_start_tls(SMTP_STATE *);
+
+#endif
 
  /*
   * Call-back information for header/body checks. We don't provide call-backs
@@ -850,23 +854,12 @@ static int smtp_start_tls(SMTP_STATE *state)
      * server, so no need to disable I/O, ... we can even be polite and send
      * "QUIT".
      * 
-     * See src/tls/tls_level.c. Levels above encrypt require matching. Levels >=
-     * verify require CA trust.
+     * See src/tls/tls_level.c and src/tls/tls.h. Levels above "encrypt" require
+     * matching.  Levels >= "dane" require CA or DNSSEC trust.
      * 
-     * The DANE level is a hybrid of verify and fingerprint, if we have
-     * trust-anchors, we must do name checking, so we treat like verify. We
-     * also do fingerprint verification against any end-entity certs, so
-     * it'll work for that too.
-     * 
-     * If we only have end-entity certs, then it is just like fingerprint.
-     * 
-     * If we have no usable certs at all, but TLSA records were found, we do
-     * "encrypt". Contrary to draft-ietf-dane-srv, we can't do standard PKIX
-     * as a fallback, it will almost always fail, with no human present to
-     * "click ok".
-     * 
-     * The DANE security level is for now still disabled in tls_level.c When it
-     * is enabled, we're ready to enforce its constraints.
+     * When DANE TLSA records specify an end-entity certificate, the trust and
+     * match bits always coincide, but it is fine to report the wrong
+     * end-entity certificate as untrusted rather than unmatched.
      */
     if (TLS_MUST_TRUST(session->tls->level))
 	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
@@ -878,7 +871,6 @@ static int smtp_start_tls(SMTP_STATE *state)
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
-
 
     /* At this point there must not be any pending plaintext. */
     vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);

@@ -234,21 +234,6 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
 	msg_info("save session %s to %s cache",
 		 TLScontext->serverid, TLScontext->cache_type);
 
-#if (OPENSSL_VERSION_NUMBER < 0x00906011L) || (OPENSSL_VERSION_NUMBER == 0x00907000L)
-
-    /*
-     * Ugly Hack: OpenSSL before 0.9.6a does not store the verify result in
-     * sessions for the client side. We modify the session directly which is
-     * version specific, but this bug is version specific, too.
-     * 
-     * READ: 0-09-06-01-1 = 0-9-6-a-beta1: all versions before beta1 have this
-     * bug, it has been fixed during development of 0.9.6a. The development
-     * version of 0.9.7 can have this bug, too. It has been fixed on
-     * 2000/11/29.
-     */
-    session->verify_result = SSL_get_verify_result(TLScontext->con);
-#endif
-
     /*
      * Passivate and save the session object. Errors are non-fatal, since
      * caching is only an optimization.
@@ -595,7 +580,13 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
 	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 
-    if (TLS_CERT_IS_TRUSTED(TLScontext) && TLS_MUST_TRUST(props->tls_level))
+    /*
+     * With fingerprint or dane we may already be done. Otherwise, verify the
+     * peername if using traditional PKI or DANE with trust-anchors.
+     */
+    if (!TLS_CERT_IS_MATCHED(TLScontext)
+    	&& TLS_CERT_IS_TRUSTED(TLScontext)
+        && TLS_MUST_TRUST(props->tls_level))
 	verify_peername = 1;
 
     /* Force cert processing so we can log the data? */
@@ -748,7 +739,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     int     sts;
     int     protomask;
     const char *cipher_list;
-    SSL_SESSION *session;
+    SSL_SESSION *session = 0;
     const SSL_CIPHER *cipher;
     X509   *peercert;
     TLS_SESS_STATE *TLScontext;
@@ -758,9 +749,11 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 
     /*
      * When certificate verification is required, log trust chain validation
-     * errors even when disabled by default for opportunistic sessions.
+     * errors even when disabled by default for opportunistic sessions. For
+     * "dane" this only applies when using trust-anchors associations. 
      */
-    if (TLS_MUST_TRUST(props->tls_level))
+    if (TLS_MUST_TRUST(props->tls_level)
+        && (props->tls_level != TLS_LEV_DANE || TLS_DANE_HASTA(props->dane)))
 	log_mask |= TLS_LOG_UNTRUSTED;
 
     if (log_mask & TLS_LOG_VERBOSE)
@@ -779,6 +772,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 		 props->namaddr, props->protocols);
 	return (0);
     }
+    /* The DANE level requires TLS 1.0 or later, not SSLv2 or SSLv3. */
+    if (props->tls_level == TLS_LEV_DANE)
+    	protomask |= TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_SSLv2;
 
     /*
      * Per session cipher selection for sessions with mandatory encryption
@@ -874,24 +870,39 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	if (session) {
 	    SSL_set_session(TLScontext->con, session);
 	    SSL_SESSION_free(session);		/* 200411 */
-#if (OPENSSL_VERSION_NUMBER < 0x00906011L) || (OPENSSL_VERSION_NUMBER == 0x00907000L)
-
-	    /*
-	     * Ugly Hack: OpenSSL before 0.9.6a does not store the verify
-	     * result in sessions for the client side. We modify the session
-	     * directly which is version specific, but this bug is version
-	     * specific, too.
-	     * 
-	     * READ: 0-09-06-01-1 = 0-9-6-a-beta1: all versions before beta1
-	     * have this bug, it has been fixed during development of 0.9.6a.
-	     * The development version of 0.9.7 can have this bug, too. It
-	     * has been fixed on 2000/11/29.
-	     */
-	    SSL_set_verify_result(TLScontext->con, session->verify_result);
-#endif
-
 	}
     }
+
+#ifdef TLSEXT_MAXLEN_host_name
+    if (session == 0
+    	&& props->tls_level == TLS_LEV_DANE
+        && strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
+	/*
+	 * With new DANE sessions, send an SNI hint.  We don't care whether
+	 * the server reports finding a matching certificate or not, so no
+	 * callback is required to process the server response.  Our use of
+	 * SNI is limited to giving servers that are (mis)configured to use
+	 * SNI the best opportunity to find the certificate they promised via
+	 * the associated TLSA RRs.  (Generally, server administrators should
+	 * avoid SNI, and there are no plans to support SNI in the Postfix
+	 * SMTP server).
+	 *
+	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
+	 * thererefore valid for use with SNI.  Failure to set a valid SNI
+	 * hostname is a memory allocation error, and thus transient.  Since
+	 * we must not cache the session if we failed to send the SNI name,
+	 * we have little choice but to abort.
+	 */
+	if (!SSL_set_tlsext_host_name(TLScontext->con, props->host)) {
+	    msg_warn("%s: error setting SNI hostname to: %s", props->namaddr,
+		     props->host);
+	    tls_free_context(TLScontext);
+	    return (0);
+	}
+	if (log_mask & TLS_LOG_DEBUG)
+	    msg_info("%s: SNI hostname: %s", props->namaddr, props->host);
+    }
+#endif
 
     /*
      * Before really starting anything, try to seed the PRNG a little bit

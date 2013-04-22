@@ -89,18 +89,14 @@
 #include <scache.h>
 #include <mail_params.h>
 
-/* DNS library. */
-
-#include <dns.h>			/* _plaintext_ok() predicate */
-
 /* Application-specific. */
 
 #include <smtp.h>
 #include <smtp_reuse.h>
 
  /*
-  * Key field delimiter and place holder for unavailable/inapplicable
-  * information.
+  * Key field delimiter, and place holder field value for
+  * unavailable/inapplicable information.
   */
 #define SMTP_REUSE_KEY_DELIM_NA	"\n*"
 
@@ -173,6 +169,9 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     }
     state->session = session;
     session->state = state;
+#ifdef USE_TLS
+    session->tls = state->tls;			/* TEMPORARY */
+#endif
 
     /*
      * XXX Temporary fix.
@@ -189,6 +188,10 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
      * With the newer smtp_tls_policy_maps feature, the policy depends on the
      * next-hop destination only. We can avoid unnecessary connection cache
      * lookups, because we can compute the TLS policy much earlier.
+     * 
+     * XXX This can now be a panic. Connection reuse by nexthop uses a dummy
+     * "surprise me" policy, and smtp_reuse_addr() now explicitly declines
+     * the request when the policy is not TLS_LEV_NONE.
      */
 #ifdef USE_TLS
     if (session->tls->level >= TLS_LEV_ENCRYPT) {
@@ -281,8 +284,7 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
      * would (try to) use TLS.
      */
 #ifdef USE_TLS
-    if (smtp_sess_plaintext_ok(state->iterator,
-			       state->iterator->rr->validated) == 0)
+    if (state->tls->level > TLS_LEV_NONE)
 	return (0);
 #endif
 

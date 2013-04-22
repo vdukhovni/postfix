@@ -54,22 +54,26 @@
 /* Application-specific. */
 
  /*
-  * Order is critical:
+  * Numerical order of levels is critical (see tls.h):
   * 
-  * Levels > "encrypt" are expected to match a peer certificate.
+  * - With "may" and higher, TLS is enabled.
+  *
+  * - With "encrypt" and higher, TLS is required.
+  *
+  * - With "fingerprint" and higher, the peer certificate must match.
+  *
+  * - With "dane" and higher, the peer certificate must also be trusted,
+  *   possibly via TLSA RRs that make it its own authority.
   * 
-  * Levels >= "verify" are expected to require a valid CA trust-chain
-  * 
-  * This forces "fingerprint" between "encrypt" and "verify".
+  * The smtp(8) client will report trust failure in preference to reporting
+  * failure to match, so we make "dane" larger than "fingerprint".
   */
 const NAME_CODE tls_level_table[] = {
     "none", TLS_LEV_NONE,
     "may", TLS_LEV_MAY,
     "encrypt", TLS_LEV_ENCRYPT,
     "fingerprint", TLS_LEV_FPRINT,
-#if 0					/* Not yet */
     "dane", TLS_LEV_DANE,
-#endif
     "verify", TLS_LEV_VERIFY,
     "secure", TLS_LEV_SECURE,
     0, TLS_LEV_INVALID,

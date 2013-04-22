@@ -8,6 +8,8 @@
 /*
 /*	int	tls_dane_avail()
 /*
+/*	void	tls_dane_flush()
+/*
 /*	void	tls_dane_verbose(on)
 /*	int	on;
 /*
@@ -31,12 +33,26 @@
 /*
 /*	TLS_DANE *tls_dane_final(dane)
 /*	TLS_DANE *dane;
+/*
+/*	TLS_DANE *tls_dane_resolve(host, proto, port)
+/*	const char *host;
+/*	const char *proto;
+/*	unsigned port;
+/*
+/*	int	tls_dane_unusable(dane)
+/*	const TLS_DANE *dane;
+/*
+/*	int	tls_dane_notfound(dane)
+/*	const TLS_DANE *dane;
 /* DESCRIPTION
 /*	tls_dane_avail() returns true if the features required to support DANE
 /*	are present in OpenSSL's libcrypto and in libresolv.  Since OpenSSL's
 /*	libcrypto is not initialized until we call tls_client_init(), calls
 /*	to tls_dane_avail() must be deferred until this initialization is
 /*	completed successufully.
+/*
+/*	tls_dane_flush() flushes all entries from the cache, and deletes
+/*	the cache.
 /*
 /*	tls_dane_verbose() turns on verbose logging of TLSA record lookups.
 /*
@@ -63,6 +79,23 @@
 /*	tls_dane_load_trustfile().  After tls_dane_final() is called, the
 /*	structure must not be modified.  The return value is the input
 /*	argument.
+/*
+/*	tls_dane_resolve() maps a (host, protocol, port) triple to a
+/*	a corresponding TLS_DANE policy structure found in the DNS.  The port
+/*	argument is in network byte order.  A null pointer is returned when
+/*	the DNS query for the TLSA record tempfailed.  In all other cases the
+/*	return value is a pointer to the corresponding TLS_DANE structure.
+/*	The caller must free the structure via tls_dane_free().
+/*
+/*	tls_dane_unusable() checks whether a cached TLS_DANE record is
+/*	the result of a validated RRset, with no usable elements.  In
+/*	this case, TLS is mandatory, but certificate verification is
+/*	not DANE-based.
+/*
+/*	tls_dane_notfound() checks whether a cached TLS_DANE record is
+/*	the result of a validated DNS lookup returning NODATA. In
+/*	this case, TLS is not required by RFC, though users may elect
+/*	a mandatory TLS fallback policy.
 /*
 /*	Arguments:
 /* .IP dane
@@ -115,7 +148,6 @@
 
 #include <sys_defs.h>
 #include <ctype.h>
-#include <stdint.h>
 
 #ifdef USE_TLS
 #include <string.h>
@@ -126,8 +158,15 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <vstring.h>
+#include <events.h>		/* event_time() */
+#include <timecmp.h>
+#include <ctable.h>
 
 #define STR(x)	vstring_str(x)
+
+/* Global library */
+
+#include <mail_params.h>
 
 /* DNS library. */
 
@@ -145,7 +184,20 @@ static const char *sha512 = "sha512";
 static int sha256len;
 static int sha512len;
 static int dane_verbose;
+static int digest_mask;
 static TLS_TLSA **dane_locate(TLS_TLSA **, const char *);
+
+#define TLS_DANE_ENABLE_CC	(1<<0)	/* ca-constraint digests OK */
+#define TLS_DANE_ENABLE_TAA	(1<<1)	/* trust-anchor-assertion digests OK */
+
+/*
+ * This is not intended to be a long-term cache of pre-parsed TLSA data,
+ * rather we primarily want to avoid fetching and parsing the TLSA records
+ * for a single multi-homed MX host more than once per delivery. Therefore,
+ * we keep the table reasonably small.
+ */
+#define CACHE_SIZE 20
+static CTABLE *dane_cache;
 
 /* tls_dane_verbose - enable/disable verbose logging */
 
@@ -158,12 +210,18 @@ void	tls_dane_verbose(int on)
 
 int	tls_dane_avail(void)
 {
+#ifdef TLSEXT_MAXLEN_host_name			/* DANE mandates client SNI. */
     static int avail = -1;
     const EVP_MD *sha256md;
     const EVP_MD *sha512md;
+    static NAME_MASK ta_dgsts[] = {
+	TLS_DANE_CC,	TLS_DANE_ENABLE_CC,
+	TLS_DANE_TAA,	TLS_DANE_ENABLE_TAA,
+	0,
+    };
 
     if (avail >= 0)
-	return avail;
+	return (avail);
 
     sha256md = EVP_get_digestbyname(sha256);
     sha512md = EVP_get_digestbyname(sha512);
@@ -172,10 +230,26 @@ int	tls_dane_avail(void)
 	|| RES_USE_DNSSEC == 0 || RES_USE_EDNS0 == 0)
 	return (avail = 0);
 
+    digest_mask =
+	name_mask_opt(VAR_TLS_DANE_TA_DGST, ta_dgsts, var_tls_dane_ta_dgst,
+		      NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
+
     sha256len = EVP_MD_size(sha256md);
     sha512len = EVP_MD_size(sha512md);
 
     return (avail = 1);
+#else
+    return (0);
+#endif
+}
+
+/* tls_dane_flush - flush the cache */
+
+void	tls_dane_flush(void)
+{
+    if (dane_cache)
+	ctable_free(dane_cache);
+    dane_cache = 0;
 }
 
 /* tls_dane_alloc - allocate a TLS_DANE structure */
@@ -189,6 +263,8 @@ TLS_DANE *tls_dane_alloc(int flags)
     dane->certs = 0;
     dane->pkeys = 0;
     dane->flags = flags;
+    dane->expires = 0;
+    dane->refs = 1;
     return (dane);
 }
 
@@ -253,6 +329,9 @@ void	tls_dane_free(TLS_DANE *dane)
 {
     TLS_TLSA *tlsa;
     TLS_TLSA *next;
+
+    if (--dane->refs > 0)
+	return;
 
     /* De-allocate TA and EE lists */
     for (tlsa = dane->ta; tlsa; tlsa = next) {
@@ -408,6 +487,253 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     if (*argvp == 0)
 	*argvp = argv_alloc(1);
     argv_add(*argvp, digest, ARGV_END);
+}
+
+/* parse_tlsa_rrs - parse a validated TLSA RRset */
+
+static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
+{
+    uint8_t usage;
+    uint8_t selector;
+    uint8_t mtype;
+    int     mlen;
+    const unsigned char *p;
+    X509   *x = 0;		/* OpenSSL tries to re-use *x if x!=0 */
+    EVP_PKEY *k = 0;		/* OpenSSL tries to re-use *k if k!=0 */
+
+    if (rr == 0)
+	msg_panic("null TLSA rr");
+
+    for (/* nop */; rr; rr = rr->next) {
+	const char *mdalg = 0;
+	int     mdlen;
+	char   *digest;
+	int     same = (strcasecmp(rr->rname, rr->qname) == 0);
+	uint8_t *ip = (uint8_t *)rr->data;
+
+#define rcname(rr) (same ? "" : rr->qname)
+#define rarrow(rr) (same ? "" : " -> ")
+
+	if (rr->type != T_TLSA)
+	    msg_panic("unexpected non-TLSA RR type %u for %s%s%s", rr->type,
+		      rcname(rr), rarrow(rr), rr->rname);
+
+	/* Skip malformed */
+	if ((mlen = rr->data_len - 3) < 0) {
+	    msg_warn("truncated length %u RR: %s%s%s IN TLSA ...",
+		     (unsigned)rr->data_len, rcname(rr), rarrow(rr), rr->rname);
+	    continue;
+	}
+
+	switch (usage = *ip++) {
+	default:
+	    msg_warn("unsupported certificate usage %u in RR: "
+		     "%s%s%s IN TLSA %u ...", usage,
+		     rcname(rr), rarrow(rr), rr->rname, usage);
+	    continue;
+	case DNS_TLSA_USAGE_CA_CONSTRAINT:
+	case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
+	case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
+	case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
+	    break;
+	}
+
+	switch (selector = *ip++) {
+	default:
+	    msg_warn("unsupported selector %u in RR: "
+		     "%s%s%s IN TLSA %u %u ...", selector,
+		     rcname(rr), rarrow(rr), rr->rname, usage, selector);
+	    continue;
+	case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
+	case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
+	    break;
+	}
+
+	switch (mtype = *ip++) {
+	default:
+	    msg_warn("unsupported matching type %u in RR: "
+		     "%s%s%s IN TLSA %u %u %u ...", mtype, rcname(rr),
+		     rarrow(rr), rr->rname, usage, selector, mtype);
+	    continue;
+	case DNS_TLSA_MATCHING_TYPE_SHA256:
+	    if (!mdalg) {
+		mdalg = sha256;
+		mdlen = sha256len;
+	    }
+	    /* FALLTHROUGH */
+	case DNS_TLSA_MATCHING_TYPE_SHA512:
+	    if (!mdalg) {
+		mdalg = sha512;
+		mdlen = sha512len;
+	    }
+	    if (mlen != mdlen) {
+		msg_warn("malformed %s digest, length %u, in RR: "
+			 "%s%s%s IN TLSA %u %u %u ...", mdalg, mlen,
+			 rcname(rr), rarrow(rr), rr->rname,
+			 usage, selector, mtype);
+		continue;
+	    }
+	    switch (usage) {
+	    case DNS_TLSA_USAGE_CA_CONSTRAINT:
+		if (!(digest_mask & TLS_DANE_ENABLE_CC)) {
+		    msg_warn("%s trust-anchor %s digests disabled, in RR: "
+			     "%s%s%s IN TLSA %u %u %u ...", TLS_DANE_CC,
+			     mdalg, rcname(rr), rarrow(rr), rr->rname,
+			     usage, selector, mtype);
+		    continue;
+		}
+		break;
+	    case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
+		if (!(digest_mask & TLS_DANE_ENABLE_TAA)) {
+		    msg_warn("%s trust-anchor %s digests disabled, in RR: "
+			     "%s%s%s IN TLSA %u %u %u ...", TLS_DANE_TAA,
+			     mdalg, rcname(rr), rarrow(rr), rr->rname,
+			     usage, selector, mtype);
+		    continue;
+		}
+		break;
+	    }
+	    dane_add(dane, usage, selector, mdalg,
+		     digest = tls_digest_encode((unsigned char *)ip, mdlen));
+	    break;
+
+	case DNS_TLSA_MATCHING_TYPE_NO_HASH_USED:
+	    p = (unsigned char *)ip;
+
+	    /* Validate the cert or public key via d2i_mumble() */
+	    switch (selector) {
+	    case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
+		if (!d2i_X509(&x, &p, mlen)) {
+		    msg_warn("malformed %s in RR: "
+			     "%s%s%s IN TLSA %u %u %u ...", "certificate",
+			     rcname(rr), rarrow(rr), rr->rname,
+			     usage, selector, mtype);
+		    continue;
+		}
+		/*
+		 * When a full trust-anchor certificate is published via DNS,
+		 * we may need to use it to validate the server trust chain.
+		 * Store it away for later use.  We collapse certificate usage
+		 * 0/2 because MTAs don't stock a complete list of the usual
+		 * browser-trusted CAs.  Thus, here (and in the public key
+		 * case below) we treat the usages identically.
+		 */
+		switch (usage) {
+		case DNS_TLSA_USAGE_CA_CONSTRAINT:
+		case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
+		    ta_cert_insert(dane, x);
+		    break;
+		}
+		X509_free(x);
+		break;
+	    case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
+		if (!d2i_PUBKEY(&k, &p, mlen)) {
+		    msg_warn("malformed %s in RR: "
+			     "%s%s%s IN TLSA %u %u %u ...", "public key",
+			     rcname(rr), rarrow(rr), rr->rname,
+			     usage, selector, mtype);
+		    continue;
+		}
+		/* See full cert case above */
+		switch (usage) {
+		case DNS_TLSA_USAGE_CA_CONSTRAINT:
+		case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
+		    ta_pkey_insert(dane, k);
+		    break;
+		}
+		EVP_PKEY_free(k);
+		break;
+	    }
+	    /*
+	     * The cert or key was valid, just digest the raw object,
+	     * and encode the digest value.  We choose SHA256.
+	     */
+	    dane_add(dane, usage, selector, sha256,
+		     digest = tls_fprint((char *)ip, mlen, sha256));
+	    break;
+	}
+	if (msg_verbose || dane_verbose)
+	    msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u %s",
+		     rcname(rr), rarrow(rr), rr->rname,
+		     usage, selector, mtype, digest);
+	myfree(digest);
+    }
+
+    if (dane->ta == 0 && dane->ee == 0)
+	dane->flags |= TLS_DANE_FLAG_EMPTY;
+}
+
+/* dane_lookup - TLSA record lookup, ctable style */
+
+static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
+{
+    static VSTRING *why = 0;
+    int     ret;
+    DNS_RR *rrs = 0;
+    TLS_DANE *dane;
+
+    if (why == 0)
+	why = vstring_alloc(10);
+
+    dane = tls_dane_alloc(0);
+    ret = dns_lookup(tlsa_fqdn, T_TLSA, RES_USE_DNSSEC, &rrs, 0, why);
+
+    switch (ret) {
+    case DNS_OK:
+	if (TLS_DANE_CACHE_TTL_MIN && rrs->ttl < TLS_DANE_CACHE_TTL_MIN)
+	    rrs->ttl = TLS_DANE_CACHE_TTL_MIN;
+	if (TLS_DANE_CACHE_TTL_MAX && rrs->ttl > TLS_DANE_CACHE_TTL_MAX)
+	    rrs->ttl = TLS_DANE_CACHE_TTL_MAX;
+
+	/* One more second to account for discrete time */
+	dane->expires = 1 + event_time() + rrs->ttl;
+
+	if (rrs->validated)
+	    parse_tlsa_rrs(dane, rrs);
+
+	dns_rr_free(rrs);
+	break;
+
+    case DNS_NOTFOUND:
+	dane->flags |= TLS_DANE_FLAG_NORRS;
+	dane->expires = 1 + event_time() + TLS_DANE_CACHE_TTL_MIN;
+	break;
+
+    default:
+	msg_warn("DANE TLSA lookup problem: %s", STR(why));
+	dane->flags |= TLS_DANE_FLAG_ERROR;
+	break;
+    }
+
+    return ((void *)tls_dane_final(dane));
+}
+
+/* tls_dane_resolve - cached map: (host, proto, port) -> TLS_DANE */
+
+TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
+				 unsigned port)
+{
+    static VSTRING *qname;
+    TLS_DANE *dane;
+
+    if (!tls_dane_avail())
+	return (0);
+
+    if (!dane_cache)
+	dane_cache = ctable_create(CACHE_SIZE, dane_lookup, dane_free, 0);
+
+    if (qname == 0)
+	qname = vstring_alloc(64);
+    vstring_sprintf(qname, "_%u._%s.%s", ntohs(port), proto, host);
+    dane = (TLS_DANE *)ctable_locate(dane_cache, STR(qname));
+    if (timecmp(event_time(), dane->expires) > 0)
+	dane = (TLS_DANE *)ctable_refresh(dane_cache, STR(qname));
+
+    if (dane->flags & TLS_DANE_FLAG_ERROR)
+	return (0);
+
+    ++dane->refs;
+    return (dane);
 }
 
 /* tls_dane_load_trustfile - load trust anchor certs or keys from file */

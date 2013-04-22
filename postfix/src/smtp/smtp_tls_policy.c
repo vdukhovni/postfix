@@ -8,13 +8,10 @@
 /*
 /*	void    smtp_tls_list_init()
 /*
-/*	SMTP_TLS_POLICY *smtp_tls_policy(why, iter, valid)
-/*	DSN_BUF *why;
-/*	SMTP_ITERATOR *iter;
-/*	int	valid;
-/*
-/*	void	smtp_tls_policy_free(tls)
+/*	int	smtp_tls_policy(why, tls, iter)
+/*	DSN_BUF	*why;
 /*	SMTP_TLS_POLICY *tls;
+/*	SMTP_ITERATOR *iter;
 /*
 /*	void	smtp_tls_policy_flush()
 /* DESCRIPTION
@@ -22,60 +19,58 @@
 /*	policy engine.
 /*
 /*	smtp_tls_policy() returns the SMTP_TLS_POLICY structure for
-/*	the destination, host, port and DNSSEC validation status. Any of
-/*	the required table and DNS lookups can fail.  When this happens, and
-/*	"why" is non-null, it is updated with the error reason and a null
-/*	policy is returned.  NOTE: the port is in network byte order.  If
-/*	"dest" is null, no policy checks are made, rather a trivial policy
-/*	with TLS disabled is returned.  The caller must free the policy via
-/*	smtp_tls_policy_free().
+/*	the iterator's destination, host, port and DNSSEC validation
+/*	status. Any of the required table and DNS lookups can fail.
+/*	When this happens, the "why" argument is updated with the
+/*	error reason and the result value is zero (false).
+/*	If the iterator argument is null, no policy checks are made,
+/*	a trivial policy with TLS disabled is returned, and no error
+/*	is reported.
 /*
-/*	smtp_tls_policy_free() frees the SMTP_TLS_POLICY object.  The
-/*	objects are reference counted, so storage is deallocated when
-/*	the reference count drops to zero.  Since the objects are also
-/*	cached, this typically happens when the cached is flushed, provided
-/*	all other references have been released.
-/*
-/*	smtp_tls_policy_flush() frees the cache contents and cache object.
+/*	smtp_tls_policy_flush() destroys the TLS policy cache and
+/*	contents.
 /*
 /*	Arguments:
 /* .IP why
 /*	A pointer to a DSN_BUF which holds error status information when
 /*	the TLS policy lookup fails.
-/* .IP dest
-/*	The unmodified next-hop or fall-back destination including
-/*	the optional [] and including the optional port or service.
-/* .IP host
-/*	The name of the host that we are connected to.  If the name was
-/*	obtained via an MX lookup and/or CNAME expansion (any indirection),
-/*	all those lookups must also have been validated.  If the hostname
-/*	is validated, it must be the final name after all CNAME expansion.
-/*	Otherwise, it is generally the original name or that returned by
-/*	the MX lookup (see smtp_cname_overrides_servername).
-/* .IP port
-/*	The remote port, network byte order.
-/* .IP valid
-/*	The DNSSEC validation status of the host name.
 /* .IP tls
-/*	An SMTP_TLS_POLICY object.
+/*	Pointer to storage for a shallow copy of the cached TLS
+/*	policy. This a copy is guaranteed to be until the next
+/*	smtp_tls_policy() or smtp_tls_policy_flush() call.
+/*	The caller can override the TLS security level without
+/*	corrupting the policy cache.
+/* .IP iter
+/*	The literal next-hop or fall-back destination including
+/*	the optional [] and including the :port or :service;
+/*	the name of the remote host after MX and CNAME expansions
+/*	(see smtp_cname_overrides_servername for the handling
+/*	of hostnames that resolve to a CNAME record);
+/*	the printable address of the remote host;
+/*	the remote port in network byte order;
+/*	the DNSSEC validation status of the host name lookup after
+/*	MX and CNAME expansions.
 /* LICENSE
 /* .ad
 /* .fi
-/*	The Secure Mailer license must be distributed with this software.
+/*	This software is free. You can do with it whatever you want.
+/*	The original author kindly requests that you acknowledge
+/*	the use of his software.
 /* AUTHOR(S)
-/*	Wietse Venema
-/*	IBM T.J. Watson Research
-/*	P.O. Box 704
-/*	Yorktown Heights, NY 10598, USA
-/*
-/*	Viktor Dukhovni
-/*
 /*	TLS support originally by:
 /*	Lutz Jaenicke
 /*	BTU Cottbus
 /*	Allgemeine Elektrotechnik
 /*	Universitaetsplatz 3-4
 /*	D-03044 Cottbus, Germany
+/*
+/*	Updated by:
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
+/*
+/*	Viktor Dukhovni
 /*--*/
 
 /* System library. */
@@ -107,14 +102,21 @@
 #include <mail_params.h>
 #include <maps.h>
 
+/* DNS library. */
+
+#include <dns.h>
+
 /* Application-specific. */
 
 #include "smtp.h"
 
+/* XXX Cache size should scale with [sl]mtp_mx_address_limit. */
 #define CACHE_SIZE 20
 static CTABLE *policy_cache;
 
 static int global_tls_level(void);
+static void dane_init(SMTP_TLS_POLICY *, SMTP_ITERATOR *);
+
 static MAPS *tls_policy;		/* lookup table(s) */
 static MAPS *tls_per_site;		/* lookup table(s) */
 
@@ -307,6 +309,11 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		INVALID_RETURN(tls->why, site_level);
 	    }
 	    switch (*site_level) {
+	    case TLS_LEV_DANE:
+		if (tls->matchargv == 0)
+		    tls->matchargv = argv_alloc(1);
+		argv_add(tls->matchargv, val, ARGV_END);
+		break;
 	    case TLS_LEV_FPRINT:
 		tls_dane_split(tls->dane, TLS_DANE_EE, TLS_DANE_PKEY,
 			       var_smtp_tls_fpt_dgst, val, "|");
@@ -348,6 +355,48 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    }
 	    continue;
 	}
+	/* Only one instance per policy. */
+	if (!strcasecmp(name, "notfound_tlsa_level")) {
+	    if (*site_level != TLS_LEV_DANE) {
+		msg_warn("%s: attribute \"%s\" invalid at security level"
+			 " \"%s\"", WHERE, name, policy_name(*site_level));
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    if (tls->dane_no_lev != TLS_LEV_NOTFOUND) {
+		msg_warn("%s: attribute \"%s\" is specified multiple times",
+			 WHERE, name);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    switch (tls->dane_no_lev = tls_level_lookup(val)) {
+	    case TLS_LEV_INVALID:
+	    case TLS_LEV_DANE:
+		msg_warn("%s: invalid \"%s\" attribute value: \"%s\"",
+			 WHERE, name, val);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    continue;
+	}
+	/* Only one instance per policy. */
+	if (!strcasecmp(name, "unusable_tlsa_level")) {
+	    if (*site_level != TLS_LEV_DANE) {
+		msg_warn("%s: attribute \"%s\" invalid at security level"
+			 " \"%s\"", WHERE, name, policy_name(*site_level));
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    if (tls->dane_un_lev != TLS_LEV_NOTFOUND) {
+		msg_warn("%s: attribute \"%s\" is specified multiple times",
+			 WHERE, name);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    switch (tls->dane_un_lev = tls_level_lookup(val)) {
+	    case TLS_LEV_INVALID:
+	    case TLS_LEV_DANE:
+		msg_warn("%s: invalid \"%s\" attribute value: \"%s\"",
+			 WHERE, name, val);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    continue;
+	}
 	msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
 	INVALID_RETURN(tls->why, site_level);
     }
@@ -368,6 +417,8 @@ static void tls_policy_lookup(SMTP_TLS_POLICY *tls, int *site_level,
      * explicit nexthops from transport:nexthop, and match only the
      * corresponding policy. Parent domain matching (below) applies only to
      * sub-domains of the recipient domain.
+     * 
+     * XXX UNIX-domain connections query with the pathname as destination.
      */
     if (!valid_hostname(site_name, DONT_GRIPE)) {
 	tls_policy_lookup_one(tls, site_level, site_name, site_class);
@@ -426,6 +477,7 @@ static void set_cipher_grade(SMTP_TLS_POLICY *tls)
 	also_exclude = "eNULL";
 	break;
 
+    case TLS_LEV_DANE:
     case TLS_LEV_FPRINT:
     case TLS_LEV_VERIFY:
     case TLS_LEV_SECURE:
@@ -457,10 +509,8 @@ static void set_cipher_grade(SMTP_TLS_POLICY *tls)
 
 /* tls_policy_init - initialize policy in an embryonic cache entry */
 
-static void tls_policy_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter,
-			            int valid)
+static void tls_policy_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 {
-    const char *myname = "tls_policy_init";
     int     site_level;
     const char *dest;
     const char *host;
@@ -516,6 +566,15 @@ static void tls_policy_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter,
     case TLS_LEV_INVALID:
 	return;
     }
+
+    /*
+     * DANE initialization may change the security level to something else,
+     * so do this early, so that we use the right level below.
+     */
+    if (tls->level == TLS_LEV_DANE)
+	dane_init(tls, iter);
+    if (tls->level == TLS_LEV_INVALID)
+	return;
 
     /*
      * Use main.cf protocols setting if not set in per-destination table.
@@ -589,12 +648,8 @@ static void tls_policy_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter,
 
 /* tls_policy_free - free no longer cached policy */
 
-void    smtp_tls_policy_free(SMTP_TLS_POLICY *tls)
+static void smtp_tls_policy_free(SMTP_TLS_POLICY *tls)
 {
-
-    if (--tls->refs > 0)
-	return;
-
     if (tls->protocols)
 	myfree(tls->protocols);
     if (tls->grade)
@@ -612,20 +667,24 @@ void    smtp_tls_policy_free(SMTP_TLS_POLICY *tls)
 
 /* policy_create - create embryonic SMTP TLS policy, ctable glue. */
 
-static void *policy_create(const char *key, void *unused_context)
+static void *policy_create(const char *key, void *context)
 {
     SMTP_TLS_POLICY *tls = (SMTP_TLS_POLICY *) mymalloc(sizeof(*tls));
+    SMTP_ITERATOR *iter = (SMTP_ITERATOR *) context;
 
-    tls->refs = 1;
-
-    /* First use will update level to a real level or TLS_LEV_INVALID */
-    tls->level = TLS_LEV_NOTFOUND;
     tls->protocols = 0;
     tls->grade = 0;
     tls->exclusions = 0;
     tls->matchargv = 0;
     tls->why = dsb_create();
     tls->dane = 0;
+    tls->dane_no_lev = TLS_LEV_NOTFOUND;
+    tls->dane_un_lev = TLS_LEV_NOTFOUND;
+
+    if (iter)
+	tls_policy_init(tls, iter);
+    else
+	tls->level = TLS_LEV_NONE;
 
     return ((void *) tls);
 }
@@ -639,42 +698,45 @@ static void policy_delete(void *item, void *unused_context)
 
 /* smtp_tls_policy - cached lookup of TLS policy */
 
-SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *why, SMTP_ITERATOR *iter, int valid)
+int     smtp_tls_policy(DSN_BUF *why, SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 {
-    SMTP_TLS_POLICY *tls;
     VSTRING *key;
+    SMTP_TLS_POLICY *lookup;
+    int     valid = iter && iter->rr && iter->rr->validated;
 
     if (policy_cache == 0)
 	policy_cache =
-	    ctable_create(CACHE_SIZE, policy_create, policy_delete, 0);
+	    ctable_create(CACHE_SIZE, policy_create, policy_delete, (void *) 0);
 
+    ctable_newcontext(policy_cache, (void *) iter);
     if (iter != 0) {
+	if (why == 0)
+	    msg_panic("smtp_tls_policy: no storage for error information");
 	key = vstring_alloc(100);
 	smtp_key_prefix(key, ":", iter, SMTP_KEY_FLAG_NEXTHOP
 			| SMTP_KEY_FLAG_HOSTNAME
 			| SMTP_KEY_FLAG_PORT);
 	vstring_sprintf_append(key, "%d", !!valid);
-	tls = (SMTP_TLS_POLICY *) ctable_locate(policy_cache, STR(key));
+	lookup = (SMTP_TLS_POLICY *) ctable_locate(policy_cache, STR(key));
 	vstring_free(key);
     } else {
-	tls = (SMTP_TLS_POLICY *) ctable_locate(policy_cache, "");
+	lookup = (SMTP_TLS_POLICY *) ctable_locate(policy_cache, "");
     }
 
-    /* One-time initialization */
-    if (tls->level == TLS_LEV_NOTFOUND)
-	tls_policy_init(tls, iter, valid);
+    /* Shallow copy, so that caller can disable TLS without cache corruption. */
+    *tls = *lookup;
 
     if (tls->level != TLS_LEV_INVALID) {
-	++tls->refs;
-	return (tls);
-    }
-    if (why)
+	return (1);
+    } else {
+	/* XXX Simplify this by implementing a dsn_copy() primitive. */
 	dsb_update(why,
 		   STR(tls->why->status), STR(tls->why->action),
 		   STR(tls->why->mtype), STR(tls->why->mname),
 		   STR(tls->why->dtype), STR(tls->why->dtext),
 		   "%s", STR(tls->why->reason));
-    return (0);
+	return (0);
+    }
 }
 
 /* smtp_tls_policy_flush - flush TLS policy cache */
@@ -685,6 +747,46 @@ void    smtp_tls_policy_flush(void)
 	return;
     ctable_free(policy_cache);
     policy_cache = 0;
+}
+
+/* dane_no_level - parse and cache var_smtp_tls_dane_no_lev */
+
+static int dane_no_level(void)
+{
+    static int l = TLS_LEV_NOTFOUND;
+
+    if (l != TLS_LEV_NOTFOUND)
+	return l;
+
+    l = tls_level_lookup(var_smtp_tls_dane_no_lev);
+    if (l == TLS_LEV_INVALID || l == TLS_LEV_DANE)
+	msg_fatal("invalid %s: \"%s\"", SMTP_X(TLS_DANE_NO_LEV),
+		  var_smtp_tls_dane_no_lev);
+
+    if (msg_verbose)
+	msg_info("%s TLS level: %s", "DANE no_tlsa", policy_name(l));
+
+    return l;
+}
+
+/* dane_un_level - parse and cache var_smtp_tls_dane_un_lev */
+
+static int dane_un_level(void)
+{
+    static int l = TLS_LEV_NOTFOUND;
+
+    if (l != TLS_LEV_NOTFOUND)
+	return l;
+
+    l = tls_level_lookup(var_smtp_tls_dane_un_lev);
+    if (l == TLS_LEV_INVALID || l == TLS_LEV_DANE)
+	msg_fatal("invalid %s: \"%s\"", SMTP_X(TLS_DANE_UN_LEV),
+		  var_smtp_tls_dane_un_lev);
+
+    if (msg_verbose)
+	msg_info("%s TLS level: %s", "DANE unusable_tlsa", policy_name(l));
+
+    return l;
 }
 
 /* global_tls_level - parse and cache var_smtp_tls_level */
@@ -715,6 +817,139 @@ static int global_tls_level(void)
 	msg_info("%s TLS level: %s", "global", policy_name(l));
 
     return l;
+}
+
+/* dane_init - special initialization for "dane" security level */
+
+static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
+{
+    TLS_DANE *dane;
+    int     valid = iter && iter->rr && iter->rr->validated;
+
+    if (!iter->port) {
+	msg_warn("%s: the \"dane\" security level is invalid for delivery via"
+		 " unix-domain sockets", STR(iter->dest));
+	MARK_INVALID(tls->why, &tls->level);
+	return;
+    }
+
+    /*
+     * Some senders will want (destination-dependent) mandatory TLS with key
+     * management via DANE.  When TLSA lookups are not possible, use the
+     * locally specified "degraded" levels.
+     * 
+     * This is supported via the policy table:
+     * 
+     * tls_policy: # # If TLSA records vanish, force TLS without verification #
+     * example.com dane notfound_tlsa_level=encrypt # # If TLSA records
+     * vanish, resort to public CA trust # example.net dane
+     * notfound_tlsa_level=secure unusable_tlsa_level=secure
+     * match=example.net
+     * 
+     * or in isolated cases via global settings:
+     * 
+     * main.cf: relayhost = [secure.example.com] smtp_tls_security_level = dane
+     * smtp_tls_dane_tlsa_notfound_level = secure
+     * smtp_tls_dane_tlsa_unusable_level = secure smtp_tls_CAfile =
+     * /etc/ssl/certs/someCA.pem
+     */
+    if (tls->dane_no_lev == TLS_LEV_NOTFOUND)
+	tls->dane_no_lev = dane_no_level();
+    if (tls->dane_un_lev == TLS_LEV_NOTFOUND)
+	tls->dane_un_lev = dane_un_level();
+
+    /*
+     * To use DANE security the requisite features must be provided by the
+     * OpenSSL (runtime) and DNS resolver (compile-time) libraries. Also,
+     * "smtp_host_lookup = dns" and "smtp_dns_support_level = dnssec" are
+     * required.
+     * 
+     * If DANE is not available we log a warning and fall back to the security
+     * level for the TLSA records not found case.
+     * 
+     * XXX: We could get the administrator's attention by generating a lookup
+     * failure.  In that case all mail, or mail to some sites will tempfail
+     * and stay in the queue.  This will make it harder to accidentally
+     * deploy insecure configurations, but easier to have no mail going
+     * anywhere, security or ease of use, pick one.
+     * 
+     * XXX: Should there be a parameter controlling this choice?
+     */
+#define DANECARP(reason, iter, tls) \
+	msg_warn("%s: %s, the security level for delivery via %s:%u will " \
+		 "degrade to \"%s\"", STR((iter)->dest), reason, \
+		 STR((iter)->host), ntohs((iter)->port), \
+		 policy_name((tls)->level))
+    if (!tls_dane_avail()) {
+	tls->level = tls->dane_no_lev;
+	DANECARP("DANE not available", iter, tls);
+	return;
+    }
+    if (!(smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS)
+	|| smtp_dns_support != SMTP_DNS_DNSSEC) {
+	tls->level = tls->dane_no_lev;
+	DANECARP("DNSSEC hostname lookups not enabled", iter, tls);
+	return;
+    }
+    if (!valid) {
+	tls->level = tls->dane_no_lev;
+	if (msg_verbose)
+	    DANECARP("non-DNSSEC destination", iter, tls);
+	return;
+    }
+    /* When TLSA lookups fail, we defer the message */
+    if ((dane = tls_dane_resolve(STR(iter->host), "tcp", iter->port)) == 0) {
+	tls->level = TLS_LEV_INVALID;
+	dsb_simple(tls->why, "4.7.5", "TLSA lookup error for %s:%u",
+		   STR(iter->host), ntohs(iter->port));
+	return;
+    }
+    if (tls_dane_notfound(dane)) {
+	tls->level = tls->dane_no_lev;
+	if (msg_verbose)
+	    DANECARP("no TLSA records found", iter, tls);
+	return;
+    }
+
+    /*
+     * Some TLSA records found, but none usable, per
+     * 
+     * https://tools.ietf.org/html/draft-ietf-dane-srv-02#section-4
+     * 
+     * we MUST use TLS, and SHALL use full PKIX certificate checks.  The latter
+     * would be unwise for SMTP: no human present to "click ok" and risk of
+     * non-delivery in most cases exceeds risk of interception.
+     * 
+     * We also have a form of Goedel's incompleteness theorem in play: any list
+     * of public root CA certs is either incomplete or inconsistent (for any
+     * given verifier some of the CAs are surely not trustworthy).
+     */
+    if (tls_dane_unusable(dane)) {
+	tls->level = tls->dane_un_lev;
+	DANECARP("all TLSA records unusable", iter, tls);
+	return;
+    }
+    /* Going with DANE. Free up dane-like settings for fallback levels. */
+    if (tls->dane)
+	tls_dane_free(tls->dane);
+
+    /*
+     * With DANE trust anchors, peername matching is not configurable.
+     * 
+     * XXX: No SSLv3, DANE is for TLSv1 and later. We may also want to enable
+     * the client side of SNI to indicate the MX hostname.
+     * 
+     * Note: already sorted by tls_dane_lookup().
+     */
+    if (tls->matchargv)
+	argv_free(tls->matchargv);
+    if (TLS_DANE_HASTA(dane)) {
+	tls->matchargv = argv_alloc(2);
+	argv_add(tls->matchargv, "hostname", "nexthop", ARGV_END);
+    } else
+	tls->matchargv = 0;
+    tls->dane = dane;
+    return;
 }
 
 #endif

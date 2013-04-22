@@ -397,8 +397,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 		 | ((protomask & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L)
 	       | ((protomask & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L));
 
-#if OPENSSL_VERSION_NUMBER >= 0x0090700fL
-
     /*
      * Some sites may want to give the client less rope. On the other hand,
      * this could trigger inter-operability issues, the client should not
@@ -410,7 +408,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     if (var_tls_preempt_clist)
 	SSL_CTX_set_options(server_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
-#endif
 
     /*
      * Set the call-back routine to debug handshake progress.

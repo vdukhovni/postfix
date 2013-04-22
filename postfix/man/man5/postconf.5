@@ -2706,6 +2706,16 @@ The LMTP-specific version of the smtp_tls_ciphers configuration
 parameter. See there for details.
 .PP
 This feature is available in Postfix 2.6 and later.
+.SH lmtp_tls_dane_tlsa_notfound_level (default: may)
+The LMTP-specific version of the smtp_tls_dane_tlsa_notfound_level
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.11 and later.
+.SH lmtp_tls_dane_tlsa_unusable_level (default: encrypt)
+The LMTP-specific version of the smtp_tls_dane_tlsa_unusable_level
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH lmtp_tls_dcert_file (default: empty)
 The LMTP-specific version of the smtp_tls_dcert_file
 configuration parameter.  See there for details.
@@ -6720,6 +6730,27 @@ smtp_tls_ciphers = export
 This feature is available in Postfix 2.6 and later. With earlier Postfix
 releases only the smtp_tls_mandatory_ciphers parameter is implemented,
 and opportunistic TLS always uses "export" or better (i.e. all) ciphers.
+.SH smtp_tls_dane_tlsa_notfound_level (default: may)
+The "degraded" security level when the "dane" security level
+is specified, but no validated DANE TLSA records are published.
+Since the destination does not assert TLS support, the default
+"degraded" level is may,
+this can be adjusted per destination via the "no_tlsa_level" attribute
+of a dane entry in
+the policy table.
+.PP
+This feature is available in Postfix 2.11 and later.
+.SH smtp_tls_dane_tlsa_unusable_level (default: encrypt)
+The "degraded" security level when the "dane" security level
+is specified, validated DANE TLSA records are present, but none are
+usable.  This can happen when a site is using unsupported TLSA
+record parameter values.  Since the destination asserts TLS support,
+the default "degraded" level is encrypt, this can be
+adjusted per destination via the "unusable_tlsa_level" attribute
+of a dane entry in
+the policy table.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH smtp_tls_dcert_file (default: empty)
 File with the Postfix SMTP client DSA certificate in PEM format.
 This file may also contain the Postfix SMTP client private DSA key.
@@ -7131,6 +7162,17 @@ whitespace, commas or colons. In the policy table "protocols" attribute
 empty value means allow all protocols. The valid protocol names, (see
 \\fBfBSSL_get_version\fR(3)\fR), are "SSLv2", "SSLv3" and "TLSv1".
 .PP
+At the dane security
+level, when usable TLSA records are obtained for the remote SMTP
+server, the Postfix SMTP client is obligated to include the SNI TLS
+extension in its SSL client hello message.  This may help the remote
+SMTP server live up to its promise to provide a certificate that
+matches its TLSA records.  Since TLS extensions require TLS 1.0 or
+later, the Postfix SMTP client must disable SSLv2 and SSLv3 when
+SNI is required.  If you use "dane", do not disable TLSv1, except
+perhaps via the policy table for destinations which you are sure
+will support TLSv1.1 or TLSv1.2.
+.PP
 Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
 and "TLSv1.2". If an older Postfix version is linked against OpenSSL
 1.0.1 or later, these, or any other new protocol versions, are
@@ -7308,6 +7350,30 @@ optional "exclude" attribute (Postfix >= 2.6) overrides the main.cf
 smtp_tls_mandatory_exclude_ciphers parameter. In the policy table,
 multiple protocols or excluded ciphers must be separated by colons,
 as attribute values may not contain whitespace or commas.
+.br
+.IP "\fBdane\fR"
+DANE TLS authentication.  The TLS policy for the destination
+is obtained via TLSA records in DNSSEC. At this level the optional
+"no_tlsa_level" attribute overrides the "smtp_tls_dane_tlsa_notfound_level"
+main.cf parameter and specifies the "degraded" security level to
+use when no TLSA records are published.  The "unusable_tlsa_level"
+attribute overrides the "smtp_tls_dane_tlsa_unusable_level" main.cf
+parameter and specifies the "degraded" security level to use when
+TLSA DNSSEC validated records are published, but none are usable.
+The optional "match" attribute overrides the the default matching
+strategy for the server certificate when a "degraded" security level
+is used.  Since the match values may be either names or fingerprints,
+and these use incompatible delimiters, it is not possible to specify
+multiple patterns in a single "match" clause, instead use multiple
+match clauses, to assign multiple values.  The "tafile" attribute
+may be specified, but is used only when the connection "degrades"
+to either "verify" or "secure".  SSLv2 and SSLv3 are automatically
+disabled when usable TLSA records are obtained for the remote SMTP
+server, see smtp_tls_mandatory_protocols for details.  The
+tls_dane_trust_anchor_digest_enable parameter controls optional
+support for trust-anchor digest TLSA records.  RFC 6698 (DANE) TLS
+authentication and DNSSEC support is available with Postfix 2.11
+and later.
 .br
 .IP "\fBfingerprint\fR"
 Certificate fingerprint
@@ -7494,7 +7560,7 @@ parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
 .PP
 Specify one of the following security levels:
 .IP "\fBnone\fR"
-TLS will not be used unless enabled for specific
+No TLS. TLS will not be used unless enabled for specific
 destinations via smtp_tls_policy_maps.
 .br
 .IP "\fBmay\fR"
@@ -7521,16 +7587,43 @@ cipher grade which the administrator considers secure enough for
 mandatory encrypted sessions. This security level is not an appropriate
 default for systems delivering mail to the Internet.
 .br
+.IP "\fBdane\fR"
+DANE TLS authentication.  At this security level, the TLS policy
+for the destination is obtained via DNSSEC.  For DANE policy to be
+in effect, the destination domain's containing DNS zone must be
+signed and the Postfix SMTP client's operating system must be
+configured to send its DNS queries to a recursive DNS nameserver
+that is able to validate the signed records.  Each of the destination
+MX hosts' containing DNS zones should also be signed, and should
+publish TLSA records that specify how that MX host's TLS certificate
+is to be verified.  DANE TLSA records do not preempt the normal
+SMTP MX host selection algorithm, if some MX hosts support TLSA and
+others do not, TLS security will vary from delivery to delivery.
+It is up to the domain owner to configure their MX hosts and the
+DNS sensibly.  To configure the Postfix SMTP client for DNSSEC
+lookups see the documentation for the smtp_dns_support_level main.cf
+parameter.  For purposes of protocol and cipher selection, the
+"dane" security level is treated like a "mandatory" TLS security
+level, and weak ciphers and protocols are disabled.  SSLv2 and SSLv3
+are automatically disabled when usable TLSA records are obtained
+for the remote SMTP server, see smtp_tls_mandatory_protocols for
+details.  Since DANE authenticates server certificates the "aNULL"
+cipher-suites are transparently excluded at this level, no need to
+configure this manually.  The tls_dane_trust_anchor_digest_enable
+parameter controls optional support for trust-anchor digest TLSA
+records.  RFC 6698 (DANE) TLS authentication is available with
+Postfix 2.11 and later.
+.br
 .IP "\fBfingerprint\fR"
-Certificate fingerprint
-verification. Available with Postfix 2.5 and later. At this security
-level, there are no trusted certificate authorities. The certificate
-trust chain, expiration date, ... are not checked. Instead, the
-\fBsmtp_tls_fingerprint_cert_match\fR parameter lists the certificate
-fingerprint or public key fingerprint (Postfix 2.9 and later) of
-the valid server certificate. The digest
+Certificate fingerprint verification.
+At this security level, there are no trusted certificate authorities.
+The certificate trust chain, expiration date, etc., are
+not checked. Instead, the \fBsmtp_tls_fingerprint_cert_match\fR
+parameter lists the certificate fingerprint or public key fingerprint
+(Postfix 2.9 and later) of the valid server certificate. The digest
 algorithm used to calculate the fingerprint is selected by the
-\fBsmtp_tls_fingerprint_digest\fR parameter.
+\fBsmtp_tls_fingerprint_digest\fR parameter. Available with Postfix
+2.5 and later.
 .br
 .IP "\fBverify\fR"
 Mandatory TLS verification. At this security
@@ -10818,6 +10911,41 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 (or 168bit) session key.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_dane_trust_anchor_digest_enable (default: trust-anchor-assertion)
+RFC 6698 trust-anchor digest support in the Postfix TLS library.
+Specify zero or more of the following options, separated by comma or
+whitespace.  Option names are case-insensitive.
+.IP "\fBca-constraint\fR"
+Enable support for RFC 6698 (DANE TLSA) DNS records that
+contain digests of trust-anchors with certificate usage "0".
+These are often public root CAs, and server operators may
+expect that clients will have the corresponding root certificate
+in their CAfile or CApath.  Most SSL/TLS servers do not send public
+root CA certificate in their certificate chain, so if Postfix does
+not have the CA certificate locally, there is no way to associate
+the digest with the trust chain from the server.  These TLSA records
+are fragile, and only work when you have a complete (whatever that
+means) set of public CAs in your CAfile or CApath.  Enable this
+with caution if at all.
+.br
+.IP "\fBtrust-anchor-assertion\fR"
+Enable support for RFC 6698 (DANE TLSA) DNS records that contain
+digests of trust-anchors with certificate usage "2".  In this case
+the certificate usage logically requires the server administrator
+to configure the server to include the trust-anchor certificate in
+the server's SSL certificate chain.  These TLSA records are less
+fragile than "ca-constraint" TLSA records, and are enabled by
+default.  Having a "complete" CAfile or CApath does not help in
+this case, you are at the mercy of the remote server administrator's
+competence.
+.br
+.br
+.PP
+When a TLSA RRset includes only unusable associations, Postfix
+will "degrade" the connection to the "smtp_tls_dane_tlsa_unusable_level"
+security level. This defaults to \fIencrypt\fR.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH tls_disable_workarounds (default: see "postconf -d" output)
 List or bit-mask of OpenSSL bug work-arounds to disable.
 .PP

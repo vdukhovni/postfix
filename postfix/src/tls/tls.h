@@ -71,8 +71,8 @@ extern const NAME_CODE tls_level_table[];
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
-#if (OPENSSL_VERSION_NUMBER < 0x00905100L)
-#error "need OpenSSL version 0.9.5 or later"
+#if (OPENSSL_VERSION_NUMBER < 0x00090700f)
+#error "need OpenSSL version 0.9.7 or later"
 #endif
 
  /*
@@ -100,6 +100,15 @@ extern const NAME_CODE tls_level_table[];
 
 #define TLS_DANE_FLAG_MIXED	(1<<0)	/* Combined pkeys and certs */
 #define TLS_DANE_FLAG_FINAL	(1<<1)	/* No further changes */
+#define TLS_DANE_FLAG_NORRS	(1<<2)	/* Nothing found in DNS */
+#define TLS_DANE_FLAG_EMPTY	(1<<3)	/* Nothing usable found in DNS */
+#define TLS_DANE_FLAG_ERROR	(1<<4)	/* TLSA record lookup error */
+
+#define tls_dane_unusable(dane)	((dane)->flags & TLS_DANE_FLAG_EMPTY)
+#define tls_dane_notfound(dane)	((dane)->flags & TLS_DANE_FLAG_NORRS)
+
+#define TLS_DANE_CACHE_TTL_MIN 1	/* A lot can happen in ~2 seconds */
+#define TLS_DANE_CACHE_TTL_MAX 100	/* Comparable to max_idle */
 
  /*
   * Certificate and public key digests (typically from TLSA RRs), grouped by
@@ -138,6 +147,8 @@ typedef struct TLS_DANE {
     TLS_CERTS *certs;			/* Full trust-anchor certificates */
     TLS_PKEYS *pkeys;			/* Full trust-anchor public keys */
     int     flags;			/* Conflate cert and pkey digests */
+    time_t  expires;			/* Expiration time of this record */
+    int     refs;			/* Reference count */
 } TLS_DANE;
 
 #define TLS_DANE_HASTA(d)	((d) ? (d)->ta : 0)
@@ -147,12 +158,14 @@ typedef struct TLS_DANE {
   * tls_dane.c
   */
 extern int tls_dane_avail(void);
+extern void tls_dane_flush(void);
 extern void tls_dane_verbose(int);
 extern TLS_DANE *tls_dane_alloc(int);
 extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
 			           const char *);
 extern TLS_DANE *tls_dane_final(TLS_DANE *);
 extern void tls_dane_free(TLS_DANE *);
+extern TLS_DANE *tls_dane_resolve(const char *, const char *, unsigned);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
 
  /*

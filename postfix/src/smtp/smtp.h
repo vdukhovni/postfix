@@ -85,6 +85,32 @@ typedef struct SMTP_ITERATOR {
     } while (0)
 
  /*
+  * TLS Policy support.
+  */
+#ifdef USE_TLS
+
+typedef struct SMTP_TLS_POLICY {
+    int     level;			/* TLS enforcement level */
+    char   *protocols;			/* Acceptable SSL protocols */
+    char   *grade;			/* Cipher grade: "export", ... */
+    VSTRING *exclusions;		/* Excluded SSL ciphers */
+    ARGV   *matchargv;			/* Cert match patterns */
+    DSN_BUF *why;			/* Lookup error status */
+    TLS_DANE *dane;			/* DANE TLSA digests */
+    int     dane_no_lev;		/* TLS level when TLSA unavailable */
+    int     dane_un_lev;		/* TLS level when TLSA unusable */
+} SMTP_TLS_POLICY;
+
+ /*
+  * smtp_tls_policy.c
+  */
+extern void smtp_tls_list_init(void);
+extern int smtp_tls_policy(DSN_BUF *, SMTP_TLS_POLICY *, SMTP_ITERATOR *);
+extern void smtp_tls_policy_flush(void);
+
+#endif
+
+ /*
   * State information associated with each SMTP delivery request.
   * Session-specific state is stored separately.
   */
@@ -101,6 +127,13 @@ typedef struct SMTP_STATE {
      * Global iterator.
      */
     SMTP_ITERATOR iterator[1];		/* Usage: state->iterator->member */
+
+    /*
+     * Global iterator.
+     */
+#ifdef USE_TLS
+    SMTP_TLS_POLICY tls[1];		/* Usage: state->tls->member */
+#endif
 
     /*
      * Connection cache support.
@@ -190,7 +223,6 @@ typedef struct SMTP_STATE {
 #define SMTP_MISC_FLAG_COMPLETE_SESSION	(1<<8)
 #define SMTP_MISC_FLAG_PREF_IPV6	(1<<9)
 #define SMTP_MISC_FLAG_PREF_IPV4	(1<<10)
-#define SMTP_MISC_FLAG_NO_TLS		(1<<11)
 
 #define SMTP_MISC_FLAG_CONN_CACHE_MASK \
 	(SMTP_MISC_FLAG_CONN_LOAD | SMTP_MISC_FLAG_CONN_STORE)
@@ -242,19 +274,6 @@ extern HBC_CHECKS *smtp_body_checks;	/* limited body checks */
  /*
   * smtp_session.c
   */
-#ifdef USE_TLS
-typedef struct SMTP_TLS_POLICY {
-    int     refs;			/* Reference count */
-    int     level;			/* TLS enforcement level */
-    char   *protocols;			/* Acceptable SSL protocols */
-    char   *grade;			/* Cipher grade: "export", ... */
-    VSTRING *exclusions;		/* Excluded SSL ciphers */
-    ARGV   *matchargv;			/* Cert match patterns */
-    DSN_BUF *why;			/* Lookup error status */
-    TLS_DANE *dane;			/* DANE TLSA digests */
-} SMTP_TLS_POLICY;
-
-#endif
 
 typedef struct SMTP_SESSION {
     VSTREAM *stream;			/* network connection */
@@ -298,30 +317,18 @@ typedef struct SMTP_SESSION {
     TLS_SESS_STATE *tls_context;	/* TLS library session state */
     char   *tls_nexthop;		/* Nexthop domain for cert checks */
     int     tls_retry_plain;		/* Try plain when TLS handshake fails */
-    SMTP_TLS_POLICY *tls;		/* SMTP session TLS policy */
+    SMTP_TLS_POLICY *tls;		/* TEMPORARY */
 #endif
 
     SMTP_STATE *state;			/* back link */
 } SMTP_SESSION;
 
-extern SMTP_SESSION *smtp_session_alloc(DSN_BUF *, SMTP_ITERATOR *, int);
+extern SMTP_SESSION *smtp_session_alloc(VSTREAM *, SMTP_ITERATOR *, time_t, int);
 extern void smtp_session_new_stream(SMTP_SESSION *, VSTREAM *, time_t, int);
 extern int smtp_sess_plaintext_ok(SMTP_ITERATOR *, int);
 extern void smtp_session_free(SMTP_SESSION *);
 extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, SMTP_ITERATOR *, VSTRING *, VSTRING *);
-
-#ifdef USE_TLS
-
- /*
-  * smtp_tls_sess.c
-  */
-extern void smtp_tls_list_init(void);
-extern SMTP_TLS_POLICY *smtp_tls_policy(DSN_BUF *, SMTP_ITERATOR *, int);
-extern void smtp_tls_policy_free(SMTP_TLS_POLICY *);
-extern void smtp_tls_policy_flush(void);
-
-#endif
 
  /*
   * What's in a name?  With DANE TLSA we need the rr->rname (if validated).
@@ -422,9 +429,6 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
  /*
   * Encapsulate the following so that we don't expose details of of
   * connection management and error handling to the SMTP protocol engine.
-  * 
-  * XXX Update the policy to TLS_LEV_NONE, so that smtp_reuse_addr() can do the
-  * right thing.
   */
 #define RETRY_AS_PLAINTEXT do { \
 	session->tls_retry_plain = 1; \

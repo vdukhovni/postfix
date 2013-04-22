@@ -287,19 +287,9 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
     int     saved_errno;
     VSTREAM *stream;
     time_t  start_time;
-    SMTP_SESSION *session;
     const char *name = STR(iter->host);
     const char *addr = STR(iter->addr);
     unsigned port = iter->port;
-
-    /*
-     * Session construction is cheap, and can now tempfail when TLSA lookups
-     * don't work at the DANE security level. This also handles table lookup
-     * errors more gracefully. So construct the session, and then connect. If
-     * the connection fails, tear down the session.
-     */
-    if ((session = smtp_session_alloc(why, iter, sess_flags)) == 0)
-	return (0);
 
     start_time = time((time_t *) 0);
     if (var_smtp_conn_tmout > 0) {
@@ -318,7 +308,6 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
 	else
 	    dsb_simple(why, "4.4.1", "connect to %s[%s]: %m", name, addr);
 	close(sock);
-	smtp_session_free(session);
 	return (0);
     }
     stream = vstream_fdopen(sock, O_RDWR);
@@ -334,13 +323,9 @@ static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
 	vstream_tweak_tcp(stream);
 
     /*
-     * Update the SMTP_SESSION state with this newly-created stream, and make
-     * it subject to the new-stream connection caching policy (as opposed to
-     * the reused-stream caching policy).
+     * Bundle up what we have into a nice SMTP_SESSION object.
      */
-    smtp_session_new_stream(session, stream, start_time, sess_flags);
-
-    return (session);
+    return (smtp_session_alloc(stream, iter, start_time, sess_flags));
 }
 
 /* smtp_parse_destination - parse host/port destination */
@@ -537,6 +522,13 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * may be). The smtp_reuse_addr() interface currently supports only reuse
      * of SASL-unauthenticated connections.
      */
+#ifdef USE_TLS
+    if (!smtp_tls_policy(why, state->tls, iter)) {
+	msg_info("TLS policy lookup error for %s/%s: %s",
+		 STR(iter->host), STR(iter->addr), STR(why->reason));
+	return;
+    }
+#endif
     if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
 	|| (session = smtp_reuse_nexthop(state, SMTP_KEY_FLAG_SERVICE
 					 | SMTP_KEY_FLAG_SENDER
@@ -545,6 +537,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     if ((state->session = session) != 0) {
 	session->state = state;
 #ifdef USE_TLS
+	session->tls = state->tls;		/* TEMPORARY */
 	session->tls_nexthop = var_myhostname;	/* for TLS_LEV_SECURE */
 	if (session->tls->level == TLS_LEV_MAY) {
 	    msg_warn("%s: opportunistic TLS encryption is not appropriate "
@@ -665,6 +658,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
     MAI_HOSTADDR_STR hostaddr;
     SMTP_SESSION *session;
     SMTP_ITERATOR *iter = state->iterator;
+    DSN_BUF *why;
 
     /*
      * First, search the cache by logical destination. We truncate the server
@@ -676,7 +670,17 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
      * smtp_reuse_nexthop() clobbers the iterators's "dest" attribute. We save
      * and restore it here, so that subsequent connections will use the
      * proper nexthop information.
+     * 
+     * Since we never reuse a connection after turning on TLS, we look up a
+     * dummy TLS policy ("surprise me") for initialization purposes only. XXX
+     * Implement a better API to initialize a TLS policy object.
      */
+#ifdef USE_TLS
+#define NO_DSN_BUF	((DSN_BUF *) 0)
+#define NO_ITERATOR     ((SMTP_ITERATOR *) 0)
+
+    (void) smtp_tls_policy(NO_DSN_BUF, state->tls, NO_ITERATOR);
+#endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
 	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_FLAG_SERVICE
@@ -687,6 +691,9 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
 	    && *addr_list == 0)
 	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
+#ifdef USE_TLS
+	session->tls = state->tls;		/* TEMPORARY */
+#endif
 	smtp_xfer(state);
 	smtp_cleanup_session(state);
     }
@@ -726,6 +733,14 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	vstring_strcpy(iter->addr, hostaddr.buf);
 	vstring_strcpy(iter->host, SMTP_HNAME(addr));
 	iter->rr = addr;
+#ifdef USE_TLS
+	if (!smtp_tls_policy(why, state->tls, iter)) {
+	    msg_info("TLS policy lookup error for %s/%s: %s",
+		     STR(iter->dest), STR(iter->host), STR(why->reason));
+	    continue;
+	    /* XXX Assume there is no code at the end of this loop. */
+	}
+#endif
 	if ((session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
 				       | SMTP_KEY_FLAG_NOSASL
 				       | SMTP_KEY_FLAG_ADDR
@@ -738,6 +753,9 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	    if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
 		&& next == 0)
 		state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
+#ifdef USE_TLS
+	    session->tls = state->tls;		/* TEMPORARY */
+#endif
 	    smtp_xfer(state);
 	    smtp_cleanup_session(state);
 	}
@@ -953,11 +971,6 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * In addition, we rely on smtp_reuse_addr() to look up an existing
 	 * plaintext connection only when a new connection would be
 	 * guaranteed not to use TLS.
-	 * 
-	 * For more precise control over reuse, the iterator should look up SASL
-	 * and TLS policy as it evaluates mail exchangers in order, instead
-	 * of relying on duplicate lookup request code in smtp_reuse(3) and
-	 * smtp_session(3).
 	 */
 	for (addr = addr_list; SMTP_RCPT_LEFT(state) > 0 && addr; addr = next) {
 	    next = addr->next;
@@ -972,6 +985,19 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    vstring_strcpy(iter->addr, hostaddr.buf);
 	    vstring_strcpy(iter->host, SMTP_HNAME(addr));
 	    iter->rr = addr;
+#ifdef USE_TLS
+	    if (!smtp_tls_policy(why, state->tls, iter)) {
+		msg_info("TLS policy lookup for %s/%s: %s",
+			 STR(iter->dest), STR(iter->host), STR(why->reason));
+		continue;
+		/* XXX Assume there is no code at the end of this loop. */
+	    }
+	    /* Disable TLS when retrying after a handshake failure */
+	    if (retry_plain) {
+		session->tls->level = TLS_LEV_NONE;
+		retry_plain = 0;
+	    }
+#endif
 	    if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
 		|| addr->pref == domain_best_pref
 		|| !(session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
@@ -981,6 +1007,9 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		session = smtp_connect_addr(iter, why, state->misc_flags);
 	    if ((state->session = session) != 0) {
 		session->state = state;
+#ifdef USE_TLS
+		session->tls = state->tls;	/* TEMPORARY */
+#endif
 		if (addr->pref == domain_best_pref)
 		    session->features |= SMTP_FEATURE_BEST_MX;
 		/* Don't count handshake errors towards the session limit. */
@@ -988,13 +1017,6 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		    && next == 0)
 		    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 #ifdef USE_TLS
-		/* Disable TLS when retrying after a handshake failure */
-		if (retry_plain) {
-		    if (TLS_REQUIRED(session->tls->level))
-			msg_panic("Plain-text retry wrong for mandatory TLS");
-		    session->tls->level = TLS_LEV_NONE;
-		    retry_plain = 0;
-		}
 		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
 #endif
 		if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
