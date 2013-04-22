@@ -163,8 +163,8 @@ private key must not be encrypted, meaning:  the key must be accessible
 without a password.  The certificate and private key may be in the same
 file, in which case the certificate file should be owned by "root" and
 not be readable by any other user. If the key is stored separately,
-this applies to the key file only, and the certificate file may be
-"world-readable". </p>
+this access restriction applies to the key file only, and the
+certificate file may be "world-readable". </p>
 
 <p> Public Internet MX hosts without certificates signed by a
 well-known public CA must still generate, and be prepared to present
@@ -194,44 +194,51 @@ remote SMTP client determines which certificate is used.  If your
 DNS zone is signed, and you want to publish <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> TLSA records,
 these must match any of the configured certificates.  Since the
 best practice is to publish "3 1 1" certificate associations, create
-a separate TLSA record with the public-key digest each certificate.  </p>
+a separate TLSA record for each public-key certificate digest.  </p>
 
-<p> To enable a remote SMTP client to verify the Postfix SMTP server
-certificate, the issuing CA certificates must be made available to
-the client. You should include the required certificates in the
-server certificate file, the server certificate first, then the
-issuing CA(s) (bottom-up order).  If you want to use <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> TLSA
-"2 1 1" or "2 0 1" records to publish the digest of CA certificate
-that should be used to authenticate email delivery to your server
-you must make sure this CA certificate appears in your server
-trust chain, see below.  </p>
+<h4> Creating the server certificate file </h4>
 
-<p> Example: the certificate for "server.example.com" was issued by
-"intermediate CA" which itself has a certificate issued by "root
-CA".  Create the server.pem file with: </p>
+<p> To verify the Postfix SMTP server certificate, the remote SMTP
+client must receive the issuing CA certificates via the TLS handshake
+or via public-key infrastructure. This means that the Postfix server
+public-key certificate file must include the server certificate
+first, then the issuing CA(s) (bottom-up order). The Postfix SMTP
+server certificate must be usable as SSL server certificate and
+hence pass the "<tt>openssl verify -purpose sslserver ...</tt>" test.
+</p>
+
+<p> The examples that follow show how to create a server certificate
+file. We assume that the certificate for "server.example.com" was
+issued by "intermediate CA" which itself has a certificate issued
+by "root CA". </p>
+
+<ul>
+
+<li> <p> With legacy public CA trust verification, you can omit the
+root certificate from the "server.pem" certificate file.  If the
+client trusts the root CA, it will already have a local copy of the
+root CA certificate.  Omitting the root CA certificate reduces the
+size of the server TLS handshake.  </p>
 
 <blockquote>
 <pre>
 % <b>cat server_cert.pem intermediate_CA.pem &gt; server.pem</b>
+</pre>
+</blockquote>
+
+<li> <p> If you use <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> TLSA "2 0 1" or "2 1 1" records to
+specify root CA certificate digests, you must include the corresponding
+root CA certificates in the "server.pem" certificate file. </p>
+
+<blockquote>
+<pre>
 % <b>cat server_cert.pem intermediate_CA.pem root.pem &gt; server.pem</b>
 </pre>
 </blockquote>
 
-<p> A Postfix SMTP server certificate supplied here must be usable
-as SSL server certificate and hence pass the "openssl verify -purpose
-sslserver ..." test. </p>
-
-<p> With legacy public CA trust verification, you can use the first
-form with the root.pem file left out.  A client that trusts the
-root CA has a local copy of the root CA certificate, so it is not
-necessary to include the root CA certificate here.  Leaving it out
-of the "server.pem" file reduces the size of the server TLS handshake.  </p>
-
-<p> Use the second form with root.pem included when you publish a
-TLSA "2 0 1" or "2 1 1" record that specifies the root CA certificate
-as a trusted certificate authority.  Remote SMTP clients will not
+<p> Remote SMTP clients will
 be able to use the TLSA record you publish (which only contains the
-certificate digest) if they don't have access to the corresponding
+certificate digest) only if they have access to the corresponding
 certificate.  Failure to verify certificates per the server's
 published TLSA records will typically cause the SMTP client to defer
 mail delivery.  The foregoing also applies to "2 0 2" and "2 1 2"
@@ -249,6 +256,8 @@ a best practice, publish either "3 0 1" or "3 1 1" TLSA associations.
 See the documentation of the <a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>
 <a href="postconf.5.html">main.cf</a> parameter for details.  </p>
 
+</ul>
+
 <p> For instructions on how to compute the digest of a certificate
 or its public key for use in TLSA records, see the documentation of
 the <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a> <a href="postconf.5.html">main.cf</a> parameter. </p>
@@ -257,6 +266,8 @@ the <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint
 certificates issued by one or more root CAs, append the root
 certificate to $<a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> or install it in the $<a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a>
 directory. </p>
+
+<h4> Configuring the server certificate and key files </h4>
 
 <p> RSA key and certificate examples: </p>
 
@@ -1201,7 +1212,7 @@ queries</a>.  When the MX hostname is a CNAME, the draft proposal
 to use the unexpanded MX hostname in TLSA lookups is fragile and
 unintuitive.  For this to work, the domain owner has to either
 duplicate the TLSA records of the target (host, service) pair in
-his own DNS or furnish the the target host with an additional
+his own DNS or furnish the target host with an additional
 certificate and private key that would be negotiated via SNI.
 Neither of these are robust or easy to manage.  It is far better
 to expand the CNAME recursively to the underlying target hostname
@@ -1262,7 +1273,7 @@ per-destination "unusable_tlsa_level" attribute of a "dane" record
 in the <a href="#client_tls_policy">policy</a> table.  This security
 level is expected to require unconditional TLS with certificate
 verification if possible.  However, in most cases certificate
-verification will be impractical in the absense of usable TLSA
+verification will be impractical in the absence of usable TLSA
 records so the default degraded level is "encrypt".  </p>
 
 <p> When a DANE TLSA record specifies a trust-anchor (TA) certificate
@@ -1285,7 +1296,7 @@ EE records in preference to all types. </p>
 
 <p> The pre-requisites for DANE support in the Postfix SMTP client are: </p>
 <ul>
-<li> An <i>compile-time</i> OpenSSL library that supports the TLS SNI
+<li> A <i>compile-time</i> OpenSSL library that supports the TLS SNI
 extension and the "sha256" and "sha512" message digests.
 <li> A <i>compile-time</i> DNS resolver library that supports DNSSEC.
 Postfix binaries built on an older system will not support DNSSEC even
@@ -1303,8 +1314,8 @@ records.  There are no plans to implement SNI in the Postfix SMTP server.  </p>
 <p> Note: The Postfix SMTP client's internal stub DNS resolver is
 DNSSEC-aware, but it does not itself validate DNSSEC records, rather
 it delegates DNSSEC validation to the operating system's configured
-recursive DNS nameserver.  The Postfix DNS resolver relies on a
-secure-channel to the the cache for DNSSEC integrity, but does not
+recursive DNS nameserver.  The Postfix DNS client relies on a secure
+channel to the resolver's cache for DNSSEC integrity, but does not
 support TSIG to protect the transmission channel between itself and
 the nameserver.  Therefore, it is strongly recommended (DANE security
 guarantee void otherwise) that each MTA run a local DNSSEC-validating
@@ -2121,7 +2132,7 @@ are published.  The "unusable_tlsa_level" attribute overrides the
 "<a href="postconf.5.html#smtp_tls_dane_tlsa_unusable_level">smtp_tls_dane_tlsa_unusable_level</a>" <a href="postconf.5.html">main.cf</a> parameter and specifies
 the "degraded" security level to use when TLSA DNSSEC validated
 records are published, but none are usable. The optional "match"
-attribute overrides the the default matching strategy for the server
+attribute overrides the default matching strategy for the server
 certificate when a "degraded" security level is used.  Since the
 match values may be either names or fingerprints, and these use
 incompatible delimiters, it is not possible to specify multiple
