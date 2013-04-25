@@ -649,7 +649,7 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 	     * and encode the digest value.  We choose SHA256.
 	     */
 	    dane_add(dane, usage, selector, sha256,
-		     digest = tls_fprint((char *)ip, mlen, sha256));
+		     digest = tls_data_fprint((char *)ip, mlen, sha256));
 	    break;
 	}
 	if (msg_verbose || dane_verbose)
@@ -688,7 +688,7 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 	/* One more second to account for discrete time */
 	dane->expires = 1 + event_time() + rrs->ttl;
 
-	if (rrs->validated)
+	if (rrs->dnssec_valid)
 	    parse_tlsa_rrs(dane, rrs);
 
 	dns_rr_free(rrs);
@@ -779,7 +779,7 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 
 	    if (cert && (p - data) == len) {
 		selector = DNS_TLSA_SELECTOR_FULL_CERTIFICATE;
-		digest = tls_fprint((char *)data, len, sha256);
+		digest = tls_data_fprint((char *)data, len, sha256);
 		dane_add(dane, usage, selector, sha256, digest);
 		myfree(digest);
 		ta_cert_insert(dane, cert);
@@ -792,7 +792,7 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 
 	    if (pkey && (p - data) == len) {
 		selector = DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO;
-		digest = tls_fprint((char *)data, len, sha256);
+		digest = tls_data_fprint((char *)data, len, sha256);
 		dane_add(dane, usage, selector, sha256, digest);
 		myfree(digest);
 		ta_pkey_insert(dane, pkey);

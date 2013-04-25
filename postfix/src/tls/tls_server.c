@@ -70,7 +70,7 @@
 /* .IP TLScontext->issuer_CN
 /*	Extracted CommonName of the issuer, or zero-length string
 /*	when information could not be extracted.
-/* .IP TLScontext->peer_fingerprint
+/* .IP TLScontext->peer_cert_fprint
 /*	Fingerprint of the certificate, or zero-length string when no peer
 /*	certificate is available.
 /* .PP
@@ -761,7 +761,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	}
 	TLScontext->peer_CN = tls_peer_CN(peer, TLScontext);
 	TLScontext->issuer_CN = tls_issuer_CN(peer, TLScontext);
-	TLScontext->peer_fingerprint = tls_fingerprint(peer, TLScontext->mdalg);
+	TLScontext->peer_cert_fprint = tls_cert_fprint(peer, TLScontext->mdalg);
 	TLScontext->peer_pkey_fprint = tls_pkey_fprint(peer, TLScontext->mdalg);
 
 	if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
@@ -769,14 +769,14 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 		     ", pkey_fingerprint=%s",
 		     TLScontext->namaddr,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
-		     TLScontext->peer_fingerprint,
+		     TLScontext->peer_cert_fprint,
 		     TLScontext->peer_pkey_fprint);
 	}
 	X509_free(peer);
     } else {
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->issuer_CN = mystrdup("");
-	TLScontext->peer_fingerprint = mystrdup("");
+	TLScontext->peer_cert_fprint = mystrdup("");
 	TLScontext->peer_pkey_fprint = mystrdup("");
     }
 

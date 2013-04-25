@@ -402,7 +402,7 @@ int     tls_log_mask(const char *log_param, const char *log_level)
 
 /* tls_update_app_logmask - update log level after init */
 
-void	 tls_update_app_logmask(TLS_APPL_STATE *app_ctx, int log_mask)
+void    tls_update_app_logmask(TLS_APPL_STATE *app_ctx, int log_mask)
 {
     app_ctx->log_mask = log_mask;
 }
@@ -755,14 +755,15 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->serverid = 0;
     TLScontext->peer_CN = 0;
     TLScontext->issuer_CN = 0;
-    TLScontext->peer_fingerprint = 0;
+    TLScontext->peer_cert_fprint = 0;
     TLScontext->peer_pkey_fprint = 0;
     TLScontext->protocol = 0;
     TLScontext->cipher_name = 0;
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
-    TLScontext->mdalg = 0;		/* Alias for props->mdalg */
-    TLScontext->dane = 0;		/* Alias for client props->dane */
+    TLScontext->mdalg = 0;			/* Alias for props->mdalg */
+    TLScontext->dane = 0;			/* Alias for client
+						 * props->dane */
     TLScontext->trustdepth = -1;
     TLScontext->chaindepth = -1;
     TLScontext->errordepth = -1;
@@ -794,8 +795,8 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_CN);
     if (TLScontext->issuer_CN)
 	myfree(TLScontext->issuer_CN);
-    if (TLScontext->peer_fingerprint)
-	myfree(TLScontext->peer_fingerprint);
+    if (TLScontext->peer_cert_fprint)
+	myfree(TLScontext->peer_cert_fprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
     if (TLScontext->errorcert)

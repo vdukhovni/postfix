@@ -242,30 +242,8 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
 
 SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
 {
-    const char *myname = "smtp_reuse_addr";
     SMTP_SESSION *session;
     int     fd;
-
-    /*
-     * Sanity check. We currently lack support to look up SASL credentials.
-     */
-#ifdef USE_SASL_AUTH
-    if ((endp_key_flags & SMTP_KEY_FLAG_SASL) != 0)
-	msg_panic("%s: SASL credential lookup is not supported", myname);
-#endif
-
-    /*
-     * Don't look up an existing SASL-unauthenticated connection when a new
-     * connection may require authentication. We conservatively test below if
-     * unauthenticated connection reuse is guaranteed to be OK. This test can
-     * be replaced later with a more precise one.
-     */
-#ifdef USE_SASL_AUTH
-    if ((endp_key_flags & SMTP_KEY_FLAG_NOSASL) != 0
-	&& var_smtp_sasl_enable != 0
-	&& *var_smtp_sasl_passwd != 0)
-	return (0);
-#endif
 
     /*
      * Don't look up an existing plaintext connection when a new connection

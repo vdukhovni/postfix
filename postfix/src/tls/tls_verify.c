@@ -214,7 +214,7 @@ int     tls_cert_match(TLS_SESS_STATE *TLScontext, int usage, X509 *cert, int de
 	}
 	certs = mixed ? tlsa->pkeys : tlsa->certs;
 	if (certs != 0 && !matched) {
-	    char   *cert_dgst = tls_fingerprint(cert, tlsa->mdalg);
+	    char   *cert_dgst = tls_cert_fprint(cert, tlsa->mdalg);
 
 	    for (dgst = certs->argv; !matched && *dgst; ++dgst)
 		if (strcasecmp(cert_dgst, *dgst) == 0)

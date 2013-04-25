@@ -91,7 +91,7 @@
 /* .IP TLScontext->issuer_CN
 /*	Extracted CommonName of the issuer, or zero-length string if the
 /*	information could not be extracted.
-/* .IP TLScontext->peer_fingerprint
+/* .IP TLScontext->peer_cert_fprint
 /*	At the fingerprint security level, if the peer presented a certificate
 /*	the fingerprint of the certificate.
 /* .PP
@@ -585,8 +585,8 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
      * peername if using traditional PKI or DANE with trust-anchors.
      */
     if (!TLS_CERT_IS_MATCHED(TLScontext)
-    	&& TLS_CERT_IS_TRUSTED(TLScontext)
-        && TLS_MUST_TRUST(props->tls_level))
+	&& TLS_CERT_IS_TRUSTED(TLScontext)
+	&& TLS_MUST_TRUST(props->tls_level))
 	verify_peername = 1;
 
     /* Force cert processing so we can log the data? */
@@ -711,7 +711,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
 				         const TLS_CLIENT_START_PROPS *props)
 {
-    TLScontext->peer_fingerprint = tls_fingerprint(peercert, props->mdalg);
+    TLScontext->peer_cert_fprint = tls_cert_fprint(peercert, props->mdalg);
     TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->mdalg);
 
     /*
@@ -750,10 +750,10 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /*
      * When certificate verification is required, log trust chain validation
      * errors even when disabled by default for opportunistic sessions. For
-     * "dane" this only applies when using trust-anchors associations. 
+     * "dane" this only applies when using trust-anchors associations.
      */
     if (TLS_MUST_TRUST(props->tls_level)
-        && (props->tls_level != TLS_LEV_DANE || TLS_DANE_HASTA(props->dane)))
+	&& (props->tls_level != TLS_LEV_DANE || TLS_DANE_HASTA(props->dane)))
 	log_mask |= TLS_LOG_UNTRUSTED;
 
     if (log_mask & TLS_LOG_VERBOSE)
@@ -774,7 +774,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     }
     /* The DANE level requires TLS 1.0 or later, not SSLv2 or SSLv3. */
     if (props->tls_level == TLS_LEV_DANE)
-    	protomask |= TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_SSLv2;
+	protomask |= TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_SSLv2;
 
     /*
      * Per session cipher selection for sessions with mandatory encryption
@@ -872,11 +872,11 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	    SSL_SESSION_free(session);		/* 200411 */
 	}
     }
-
 #ifdef TLSEXT_MAXLEN_host_name
     if (session == 0
-    	&& props->tls_level == TLS_LEV_DANE
-        && strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
+	&& props->tls_level == TLS_LEV_DANE
+	&& strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
+
 	/*
 	 * With new DANE sessions, send an SNI hint.  We don't care whether
 	 * the server reports finding a matching certificate or not, so no
@@ -886,7 +886,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	 * the associated TLSA RRs.  (Generally, server administrators should
 	 * avoid SNI, and there are no plans to support SNI in the Postfix
 	 * SMTP server).
-	 *
+	 * 
 	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
 	 * thererefore valid for use with SNI.  Failure to set a valid SNI
 	 * hostname is a memory allocation error, and thus transient.  Since
@@ -991,7 +991,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 
 	/*
 	 * Peer name or fingerprint verification as requested.
-	 * Unconditionally set peer_CN, issuer_CN and peer_fingerprint. Check
+	 * Unconditionally set peer_CN, issuer_CN and peer_cert_fprint. Check
 	 * fingerprint first, and avoid logging verified as untrusted in the
 	 * call to verify_extract_name().
 	 */
@@ -1003,13 +1003,13 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	    msg_info("%s: subject_CN=%s, issuer_CN=%s, "
 		     "fingerprint=%s, pkey_fingerprint=%s", props->namaddr,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
-		     TLScontext->peer_fingerprint,
+		     TLScontext->peer_cert_fprint,
 		     TLScontext->peer_pkey_fprint);
 	X509_free(peercert);
     } else {
 	TLScontext->issuer_CN = mystrdup("");
 	TLScontext->peer_CN = mystrdup("");
-	TLScontext->peer_fingerprint = mystrdup("");
+	TLScontext->peer_cert_fprint = mystrdup("");
 	TLScontext->peer_pkey_fprint = mystrdup("");
     }
 

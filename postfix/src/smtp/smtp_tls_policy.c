@@ -679,7 +679,7 @@ int     smtp_tls_policy_cache_query(DSN_BUF *why, SMTP_TLS_POLICY *tls,
 				            SMTP_ITERATOR *iter)
 {
     VSTRING *key;
-    int     valid = iter->rr && iter->rr->validated;
+    int     valid = iter->rr && iter->rr->dnssec_valid;
 
     /*
      * Create an empty TLS Policy cache on the fly.
@@ -803,7 +803,7 @@ static int global_tls_level(void)
 static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 {
     TLS_DANE *dane;
-    int     valid = iter->rr && iter->rr->validated;
+    int     valid = iter->rr && iter->rr->dnssec_valid;
 
     if (!iter->port) {
 	msg_warn("%s: the \"dane\" security level is invalid for delivery via"

@@ -57,8 +57,6 @@
 /* .IP flags
 /*	Zero or more of the following:
 /* .RS
-/* .IP SMTP_MISC_FLAG_TLSA_HOST
-/*	The hostname is DNSSEC-validated.
 /* .IP SMTP_MISC_FLAG_CONN_LOAD
 /*	Enable re-use of cached SMTP or LMTP connections.
 /* .IP SMTP_MISC_FLAG_CONN_STORE

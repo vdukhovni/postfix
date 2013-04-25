@@ -18514,3 +18514,22 @@ Apologies for any names omitted.
 	posttls-finger/Makefile.in, posttls-finger/posttls-finger.c,
 	posttls-finger/tlsmgrmem.c, posttls-finger/tlsmgrmem.h,
 	tls/tls.h, tls/tls_misc.c.
+
+20130426
+
+	Non-production fixes: revert to using proxies (sender,
+	nexthop, hostname) to distinguish between different SASL
+	credentials for connections to the same IP address and port.
+	Files: smtp/smtp.h smtp/smtp_connect.c, smtp/smtp_key.c.
+
+	Non-production cleanup: documentation, identifiers.  Viktor
+	Dukhovni. Files: proto/postconf.proto, src/dns/dns.h,
+	src/dns/dns_lookup.c, src/dns/dns_rr.c, src/dns/test_dns_lookup.c,
+	src/global/mail_proto.h, src/posttls-finger/posttls-finger.c,
+	src/smtp/smtp.h, src/smtp/smtp_addr.c, src/smtp/smtp_connect.c,
+	src/smtp/smtp_session.c, src/smtp/smtp_tls_policy.c,
+	src/smtpd/smtpd_check.c, src/tls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_dane.c, src/tls/tls_fprint.c, src/tls/tls_misc.c,
+	src/tls/tls_proxy_clnt.c, src/tls/tls_proxy_print.c,
+	src/tls/tls_proxy_scan.c, src/tls/tls_server.c,
+	src/tls/tls_verify.c.

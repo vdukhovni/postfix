@@ -76,13 +76,12 @@
 /*	SMTP. The default TCP port for LMTP is 24.
 /*
 /*	Arguments:
-/* .IP "\fB-a\fR"
+/* .IP "\fB-a\fR \fIfamily\fR (default: \fBany\fR)"
 /*	Address family preference: \fBipv4\fR, \fBipv6\fR or \fBany\fR.  When
 /*	using \fBany\fR, posttls-finger will randomly select one of the two as
 /*	the more preferred, and exhaust all MX preferences for the first
-/*	address family before trying any addresses for the other.  The
-/*	default value is \fBany\fR.
-/* .IP "\fB-A\fR"
+/*	address family before trying any addresses for the other.
+/* .IP "\fB-A\fR \fItrust-anchor.pem\fR (default: none)"
 /*	A list of PEM trust-anchor files that overrides CAfile and CApath
 /*	trust chain verification.  Specify the option multiple times to
 /*	specify multiple files.  See the main.cf documentation for
@@ -97,19 +96,19 @@
 /*	\fB-P \fICApath\fR, the OpenSSL library may augment the chain with
 /*	missing issuer certificates.  To see the actual chain sent by the
 /*	remote SMTP server leave \fICAfile\fR and \fICApath\fR unset.
-/* .IP "\fB-d \fImdalg\fR"
+/* .IP "\fB-d \fImdalg\fR (default: \fBsha1\fR)"
 /*	The message digest algorithm to use for reporting remote SMTP server
 /*	fingerprints and matching against user provided certificate
 /*	fingerprints (with DANE TLSA records the algorithm is specified
-/*	in the DNS).  The default algorithm is sha1.
-/* .IP "\fB-F \fICAfile.pem\fR"
+/*	in the DNS).
+/* .IP "\fB-F \fICAfile.pem\fR (default: none)"
 /*	The PEM formatted CAfile for remote SMTP server certificate
 /*	verification.  By default no CAfile is used and no public CAs
 /*	are trusted.
-/* .IP "\fB-h \fIhost_lookup\fR"
+/* .IP "\fB-h \fIhost_lookup\fR (default: \fBdns\fR)"
 /*	The hostname lookup methods used for the connection.  See the
 /*	documentation of smtp_host_lookup for syntax and semantics.
-/* .IP "\fB-l \fIlevel\fR"
+/* .IP "\fB-l \fIlevel\fR (default: \fBdane\fR or \fBsecure\fR)"
 /*	The security level for the connection, default \fBdane\fR or
 /*	\fBsecure\fR depending on whether DNSSEC is available. For syntax
 /*	and semantics, see the documentation of smtp_tls_security_level.
@@ -126,11 +125,11 @@
 /*	so you won't learn much about the remote SMTP server's certificates
 /*	at these levels if it also supports anonymous TLS (though you may
 /*	learn that the server supports anonymous TLS).
-/* .IP "\fB-L \fIlogopts\fR"
+/* .IP "\fB-L \fIlogopts\fR (default: \fBroutine,certmatch\fR)"
 /*	Fine-grained TLS logging options. To tune the TLS features logged
 /*	during the TLS handshake, specify one or more of:
 /* .RS
-/* .IP "0, none"
+/* .IP "\fB0, none\fR"
 /*	These yield no TLS logging; you'll generally want more, but this
 /*	is handy if you just want the trust chain:
 /* .RS
@@ -139,62 +138,63 @@
 /*	$ posttls-finger -cC -L none destination
 /* .fi
 /* .RE
-/* .IP "1, routine, summary"
+/* .IP "\fB1, routine, summary\fR"
 /*	These synonymous values yield a normal one-line summary of the TLS
 /*	connection.
-/* .IP "2, debug"
+/* .IP "\fB2, debug\fR"
 /*	These synonymous values combine routine, ssl-debug, cache and verbose.
-/* .IP "3, ssl-expert"
+/* .IP "\fB3, ssl-expert\fR"
 /*	These synonymous values combine debug with ssl-handshake-packet-dump.
 /*	For experts only.
-/* .IP "4, ssl-developer"
+/* .IP "\fB4, ssl-developer\fR"
 /*	These synonymous values combine ssl-expert with ssl-session-packet-dump.
 /*	For experts only, and in most cases, use wireshark instead.
-/* .IP ssl-debug
+/* .IP "\fBssl-debug\fR"
 /*	Turn on OpenSSL logging of the progress of the SSL handshake.
-/* .IP ssl-handshake-packet-dump
+/* .IP "\fBssl-handshake-packet-dump\fR"
 /*	Log hexadecimal packet dumps of the SSL handshake; for experts only.
-/* .IP ssl-session-packet-dump
+/* .IP "\fBssl-session-packet-dump\fR"
 /*	Log hexadecimal packet dumps of the entire SSL session; only useful
 /*	to those who can debug SSL protocol problems from hex dumps.
-/* .IP untrusted
+/* .IP "\fBuntrusted\fR"
 /*	Logs trust chain verification problems.  This is turned on
 /*	automatically at security levels that use peer names signed
 /*	by certificate authorities to validate certificates.  So while
 /*	this setting is recognized, you should never need to set it
 /*	explicitly.
-/* .IP peercert
+/* .IP "\fBpeercert\fR"
 /*	This logs a one line summary of the remote SMTP server certificate
 /*	subject, issuer, and fingerprints.
-/* .IP certmatch
+/* .IP "\fBcertmatch\fR"
 /*	This logs remote SMTP server certificate matching, showing the CN
 /*	and each subjectAltName and which name matched.  With DANE, logs
 /*	matching of TLSA record trust-anchor and end-entity certificates.
-/* .IP cache
+/* .IP "\fBcache\fR"
 /*	This logs session cache operations, showing whether session caching
 /*	is effective with the remote SMTP server.  Automatically used when
 /*	reconnecting with the \fB-r\fR option; rarely needs to be set
 /*	explicitly.
-/* .IP verbose
+/* .IP "\fBverbose\fR"
 /*	Enables verbose logging in the Postfix TLS driver; includes all of
 /*	peercert..cache and more.
 /* .RE
 /* .IP
 /*	The default is \fBroutine,certmatch\fR. After a reconnect, the log
 /*	level is unconditionally \fBroutine,cache\fR.
-/* .IP "\fB-m \fIcount\fR"
+/* .IP "\fB-m \fIcount\fR (default: \fB5\fR)"
 /*	When the \fB-r \fIdelay\fR option is specified, the \fB-m\fR option
 /*	determines the maximum number of reconnect attempts to use with
 /*	a server behind a load-balacer, to see whether connection caching
-/*	is likely to be effective for this destination.  Some MTAs don't
-/*	expose the underlying server identity in their EHLO response; with
-/*	these servers there will never be more than 1 reconnection attempt.
+/*	is likely to be effective for this destination.  Some MTAs
+/*	don't expose the underlying server identity in their EHLO
+/*	response; with these servers there will never be more than
+/*	1 reconnection attempt.
 /* .IP "\fB-o \fIname=value\fR"
 /*	Specify zero or more times to override the value of the main.cf
 /*	parameter \fIname\fR with \fIvalue\fR.  Possible use-cases include
-/*	overriding the values of TLS library parameters or "myhostname" to
+/*	overriding the values of TLS library parameters, or "myhostname" to
 /*	configure the SMTP EHLO name sent to the remote server.
-/* .IP "\fB-P \fICApath/\fR"
+/* .IP "\fB-P \fICApath/\fR (default: none)"
 /*	The OpenSSL CApath/ directory (indexed via c_rehash(1)) for remote
 /*	SMTP server certificate verification.  By default no CApath is used
 /*	and no public CAs are trusted.
@@ -202,18 +202,21 @@
 /*	With a cachable TLS session, disconnect and reconnect after \fIdelay\fR
 /*	seconds. Report whether the session is re-used. Retry if a new server
 /*	is encountered, up to 5 times or as specified with the \fB-m\fR option.
+/*	By default reconnection is disabled, specify a positive delay to
+/*	enable this behavior.
 /* .IP "\fB-S\fR"
 /*	Disable SMTP; that is, connect to an LMTP server. The default port for
 /*	LMTP over TCP is 24.  Alternative ports can specified by appending
 /*	"\fI:servicename\fR" or ":\fIportnumber\fR" to the destination
 /*	argument.
-/* .IP "\fB-t \fItimeout\fR"
+/* .IP "\fB-t \fItimeout\fR (default: \fB5\fR)"
 /*	The TCP connection timeout to use.  This is also the timeout for
 /*	reading the remote server's 220 banner.
-/* .IP "\fB-T \fItimeout\fR"
+/* .IP "\fB-T \fItimeout\fR (default: \fB30\fR)"
 /*	The SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and QUIT.
 /* .IP "\fB-v\fR"
-/*	Enable more verbose logging.
+/*	Enable verose Postfix logging.  Specify more than once to increase
+/*	the level of verbose logging.
 /* .IP "[\fBinet:\fR]\fIdomain\fR[:\fIport\fR]"
 /*	Connect via TCP to domain \fIdomain\fR, port \fIport\fR. The default
 /*	port is \fBsmtp\fR (or 24 with LMTP).  With SMTP an MX lookup is
@@ -424,7 +427,7 @@ typedef struct STATE {
 
 static DNS_RR *host_addr(STATE *, const char *);
 
-#define HNAME(addr) (addr->validated ? addr->rname : addr->qname)
+#define HNAME(addr) (addr->dnssec_valid ? addr->rname : addr->qname)
 
  /*
   * Structure with broken-up SMTP server response.
@@ -588,7 +591,7 @@ static void print_trust_info(STATE *state)
 		X509_NAME_oneline(xn, buf, sizeof buf);
 		BIO_printf(state->tls_bio, "    issuer: %s\n", buf);
 	    }
-	    digest = tls_fingerprint(cert, state->mdalg);
+	    digest = tls_cert_fprint(cert, state->mdalg);
 	    BIO_printf(state->tls_bio, "   cert digest=%s\n", digest);
 	    myfree(digest);
 
@@ -1040,7 +1043,7 @@ static DNS_RR *mx_addr_list(STATE *state, DNS_RR *mx_names)
     static const char *myname = "mx_addr_list";
     DNS_RR *addr_list = 0;
     DNS_RR *rr;
-    int     res_opt = mx_names->validated ? RES_USE_DNSSEC : 0;
+    int     res_opt = mx_names->dnssec_valid ? RES_USE_DNSSEC : 0;
 
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX)
@@ -1133,7 +1136,7 @@ static int dane_host_level(STATE *state, DNS_RR *addr, unsigned port)
 
 #ifdef USE_TLS
     if (level == TLS_LEV_DANE) {
-	if (addr->validated) {
+	if (addr->dnssec_valid) {
 	    if (state->log_mask & (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE))
 		tls_dane_verbose(1);
 	    else
@@ -1765,4 +1768,3 @@ int     main(int argc, char *argv[])
 
     return (0);
 }
-

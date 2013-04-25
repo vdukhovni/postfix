@@ -1336,7 +1336,7 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	int     i;
 	char   *prints[2];
 
-	prints[0] = state->tls_context->peer_fingerprint;
+	prints[0] = state->tls_context->peer_cert_fprint;
 	prints[1] = state->tls_context->peer_pkey_fprint;
 
 	/* After lookup error, leave relay_ccerts->error at non-zero value. */
@@ -2794,7 +2794,7 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
 	int     i;
 	char   *prints[2];
 
-	prints[0] = state->tls_context->peer_fingerprint;
+	prints[0] = state->tls_context->peer_cert_fprint;
 	prints[1] = state->tls_context->peer_pkey_fprint;
 
 	for (i = 0; i < 2; ++i) {
@@ -3614,8 +3614,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
      * When directly checking the fingerprint, it is OK if the issuing CA is
      * not trusted.
      */
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_FINGERPRINT,
-		     IF_ENCRYPTED(state->tls_context->peer_fingerprint, ""),
+			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_CERT_FPRINT,
+		     IF_ENCRYPTED(state->tls_context->peer_cert_fprint, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_PKEY_FPRINT,
 		     IF_ENCRYPTED(state->tls_context->peer_pkey_fprint, ""),
 			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
@@ -5689,14 +5689,14 @@ int     main(int argc, char **argv)
 			(TLS_SESS_STATE *) mymalloc(sizeof(*state.tls_context));
 		    memset((char *) state.tls_context, 0,
 			   sizeof(*state.tls_context));
-		    state.tls_context->peer_fingerprint =
+		    state.tls_context->peer_cert_fprint =
 			state.tls_context->peer_pkey_fprint = 0;
 		}
 		state.tls_context->peer_status |= TLS_CERT_FLAG_PRESENT;
-		UPDATE_STRING(state.tls_context->peer_fingerprint,
+		UPDATE_STRING(state.tls_context->peer_cert_fprint,
 			      args->argv[1]);
 		state.tls_context->peer_pkey_fprint =
-		    state.tls_context->peer_fingerprint;
+		    state.tls_context->peer_cert_fprint;
 		resp = "OK";
 		break;
 #endif
@@ -5738,7 +5738,7 @@ int     main(int argc, char **argv)
     FREE_STRING(state.helo_name);
     FREE_STRING(state.sender);
     if (state.tls_context) {
-	FREE_STRING(state.tls_context->peer_fingerprint);
+	FREE_STRING(state.tls_context->peer_cert_fprint);
 	myfree((char *) state.tls_context);
     }
     exit(0);

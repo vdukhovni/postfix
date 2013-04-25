@@ -7785,19 +7785,19 @@ the remote SMTP server, and any untrusted issuing parent certificates
 will be ignored.  Specify a list of pathnames separated by comma
 or whitespace.
 .PP
-This feature is implemented for completeness, to allow installations
-with a small set of SMTP peers to set global policy in main.cf,
-that at most sites would be set via smtp_tls_policy_maps.  In almost
-all cases it is better to use it on a per-destination basis via the
-"tafile" policy attribute of the "verify" and "secure" levels leaving
-the global main.cf setting empty.
+Whether specified in main.cf, or on a per-destination basis,
+the trust-anchor PEM file must be accessible to the Postfix SMTP
+client in the chroot jail if applicable.  The trust-anchor file
+should contain only certificates and public keys, no private key
+material, and must be readable by the non-privileged $mail_owner
+user.  This allows destinations to be bound to a set of specific
+CAs or public keys without trusting the same CAs for all destinations.
 .PP
-When used on a per-destination basis, each "tafile" PEM file
-must be accessible to the Postfix SMTP client in the chroot jail
-if applicable.  The files should not contain any sensitive data,
-and must be readable by the non-privileged $mail_owner user.  This
-allows destinations to be bound to a set of specific CAs or public
-keys without trusting the same CAs for all destinations.
+The main.cf parameter supports single-purpose Postfix installations
+that send mail to a fixed set of SMTP peers.  At most sites, if
+trust-anchor files are used at all, they will be specified on a
+per-destination basis via the "tafile" attribute of the "verify"
+and "secure" levels in smtp_tls_policy_maps.
 .PP
 The underlying mechanism is in support of RFC 6698 (DANE TLSA),
 which defines mechanisms for a client to securely determine server

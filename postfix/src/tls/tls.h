@@ -180,7 +180,7 @@ typedef struct {
     /* Public, read-only. */
     char   *peer_CN;			/* Peer Common Name */
     char   *issuer_CN;			/* Issuer Common Name */
-    char   *peer_fingerprint;		/* ASCII fingerprint */
+    char   *peer_cert_fprint;		/* ASCII certificate fingerprint */
     char   *peer_pkey_fprint;		/* ASCII public key fingerprint */
     int     peer_status;		/* Certificate and match status */
     const char *protocol;
@@ -513,8 +513,8 @@ extern void tls_log_verify_error(TLS_SESS_STATE *);
   * tls_fprint.c
   */
 extern char *tls_digest_encode(const unsigned char *, int);
-extern char *tls_fprint(const char *, int, const char *);
-extern char *tls_fingerprint(X509 *, const char *);
+extern char *tls_data_fprint(const char *, int, const char *);
+extern char *tls_cert_fprint(X509 *, const char *);
 extern char *tls_pkey_fprint(X509 *, const char *);
 extern char *tls_serverid_digest(const TLS_CLIENT_START_PROPS *, long,
 				         const char *);

@@ -233,15 +233,14 @@ typedef struct SMTP_STATE {
   */
 #define SMTP_MISC_FLAG_LOOP_DETECT	(1<<0)
 #define	SMTP_MISC_FLAG_IN_STARTTLS	(1<<1)
-#define SMTP_MISC_FLAG_TLSA_HOST	(1<<2)
-#define SMTP_MISC_FLAG_FIRST_NEXTHOP	(1<<3)
-#define SMTP_MISC_FLAG_FINAL_NEXTHOP	(1<<4)
-#define SMTP_MISC_FLAG_FINAL_SERVER	(1<<5)
-#define SMTP_MISC_FLAG_CONN_LOAD	(1<<6)
-#define SMTP_MISC_FLAG_CONN_STORE	(1<<7)
-#define SMTP_MISC_FLAG_COMPLETE_SESSION	(1<<8)
-#define SMTP_MISC_FLAG_PREF_IPV6	(1<<9)
-#define SMTP_MISC_FLAG_PREF_IPV4	(1<<10)
+#define SMTP_MISC_FLAG_FIRST_NEXTHOP	(1<<2)
+#define SMTP_MISC_FLAG_FINAL_NEXTHOP	(1<<3)
+#define SMTP_MISC_FLAG_FINAL_SERVER	(1<<4)
+#define SMTP_MISC_FLAG_CONN_LOAD	(1<<5)
+#define SMTP_MISC_FLAG_CONN_STORE	(1<<6)
+#define SMTP_MISC_FLAG_COMPLETE_SESSION	(1<<7)
+#define SMTP_MISC_FLAG_PREF_IPV6	(1<<8)
+#define SMTP_MISC_FLAG_PREF_IPV4	(1<<9)
 
 #define SMTP_MISC_FLAG_CONN_CACHE_MASK \
 	(SMTP_MISC_FLAG_CONN_LOAD | SMTP_MISC_FLAG_CONN_STORE)
@@ -352,7 +351,7 @@ extern SMTP_SESSION *smtp_session_activate(int, SMTP_ITERATOR *, VSTRING *, VSTR
  /*
   * What's in a name?  With DANE TLSA we need the rr->rname (if validated).
   */
-#define SMTP_HNAME(rr) ( (var_smtp_cname_overr || rr->validated) ? \
+#define SMTP_HNAME(rr) ( (var_smtp_cname_overr || rr->dnssec_valid) ? \
 			 (rr)->rname : (rr)->qname )
 
  /*
@@ -565,15 +564,34 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_HOSTNAME		(1<<4)	/* remote host name */
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
-#define SMTP_KEY_FLAG_SASL		(1<<7)	/* username, password */
-#define SMTP_KEY_FLAG_NOSASL		(1<<8)	/* dummy-user, dummy-pass */
 
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
 	SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
-	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | \
-	SMTP_KEY_FLAG_SASL | SMTP_KEY_FLAG_NOSASL)
+	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
+
+ /*
+  * Connection-cache destination lookup key. The SENDER attribute is a proxy
+  * for sender-dependent SASL credentials (or absence thereof), and prevents
+  * false connection sharing when different SASL credentials may be required
+  * for different deliveries to the same domain and port. The SERVICE
+  * attribute is a proxy for all request-independent configuration details.
+  */
+#define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
+	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER \
+	| SMTP_KEY_FLAG_REQ_NEXTHOP)
+
+ /*
+  * Connection-cache endpoint lookup key. The SENDER, NEXTHOP, and HOSTNAME
+  * attributes are proxies for SASL credentials (or absence thereof), and
+  * prevent false connection sharing when different SASL credentials may be
+  * required for different deliveries to the same IP address and port.
+  */
+#define SMTP_KEY_MASK_SCACHE_ENDP_LABEL \
+	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER \
+	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME \
+	| SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
 
  /*
   * Silly little macros.

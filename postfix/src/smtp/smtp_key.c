@@ -128,19 +128,6 @@ static void smtp_key_append_na(VSTRING *buffer, const char *delim_na)
     VSTRING_ADDCH(buffer, delim_na[0]);
 }
 
-/* smtp_key_append_base64 - append base64-encoded key field */
-
-static void smtp_key_append_base64(VSTRING *buffer, const char *str,
-				           const char *delim_na)
-{
-    if (str == 0 || str[0] == 0) {
-	smtp_key_append_na(buffer, delim_na);
-    } else {
-	base64_encode_opt(buffer, str, strlen(str), BASE64_FLAG_APPEND);
-	VSTRING_ADDCH(buffer, delim_na[0]);
-    }
-}
-
 /* smtp_key_append_str - append string-valued key field */
 
 static void smtp_key_append_str(VSTRING *buffer, const char *str,
@@ -171,7 +158,6 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
 {
     const char myname[] = "smtp_key_prefix";
     SMTP_STATE *state = iter->parent;	/* private member */
-    SMTP_SESSION *session;
 
     /*
      * Sanity checks.
@@ -222,24 +208,6 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
     if (flags & SMTP_KEY_FLAG_PORT)
 	smtp_key_append_uint(buffer, ntohs(iter->port), delim_na);
 
-    /*
-     * Security attributes.
-     */
-#ifdef USE_SASL_AUTH
-    if (flags & SMTP_KEY_FLAG_NOSASL) {
-	smtp_key_append_na(buffer, delim_na);	/* username n/a */
-	smtp_key_append_na(buffer, delim_na);	/* password n/a */
-    }
-    if (flags & SMTP_KEY_FLAG_SASL) {
-	if ((session = state->session) == 0 || session->sasl_username == 0) {
-	    smtp_key_append_na(buffer, delim_na);	/* username n/a */
-	    smtp_key_append_na(buffer, delim_na);	/* password n/a */
-	} else {
-	    smtp_key_append_base64(buffer, session->sasl_username, delim_na);
-	    smtp_key_append_base64(buffer, session->sasl_passwd, delim_na);
-	}
-    }
-#endif
     /* Similarly, provide unique TLS fingerprint when applicable. */
 
     VSTRING_TERMINATE(buffer);

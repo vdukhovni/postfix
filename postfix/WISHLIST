@@ -54,8 +54,6 @@ Wish list:
 	some_bound". Instead of bare numbers use named constants
 	in function argument lists.
 
-	Code clarity: replace "valid" with or "dnssec_valid".
-
 	Code clarity: replace obscure macro/function names: for
 	example SMTP_X(XXX) -> VAR_SMTP(XXX), as the purpose is to
 	choose between VAR_SMTP_XXX or VAR_LMTP_XXX; replace
@@ -64,28 +62,12 @@ Wish list:
 	contents of a buffer with the specified length). Replace r
 	with res_opt, ditto for other 1-letter names.
 
-	Code consistency: replace the VSTRING-based digest output
-	loop with a tls_digest_encode() call.
-
-	Code clarity: rename tls_fingerprint() to tls_cert_fprint()
-	(compute certifate fingerprint).  Keep tls_pkey_fprint()
-	(compute public-key fingerprint).  Rename tls_fprint() to
-	tls_data_fprint() (compute fingerprint for arbitrary data).
-
-	Collect SMTP client connection-management state in one
-	iterator object, that provides the same information for
-	SMTP reuse policy, TLS policy, and SASL password lookups.
-
 	Unnecessary complexity: the SMTP_SESSION "tls" field is
 	mandatory (always allocated) therefore the content can be
 	a permanent part of the SMTP_SESSION structure, just like
 	SASL-related information.  This avoids silly indirections
 	all over the code, as well as awkward smtp_tls_sess_alloc()
 	error semantics.
-
-	Provide an iterator object API that provides consistent
-	search key generation for SMTP reuse policy, TLS policy,
-	and SASL password lookups.
 
 	We have smtp_host_lookup, smtp_dns_resolver_options, and
 	now smtp_dns_support_level.  Of these, smtp_dns_resolver_options

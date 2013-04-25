@@ -269,9 +269,6 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 	msg_info("%s: trying: %s[%s] port %d...",
 		 myname, STR(iter->host), STR(iter->addr), ntohs(port));
 
-    if (addr->validated)
-	sess_flags |= SMTP_MISC_FLAG_TLSA_HOST;
-
     return (smtp_connect_sock(sock, sa, salen, iter, why, sess_flags));
 }
 
@@ -399,11 +396,6 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * hosts. In fact, this is the only benefit of caching logical to
      * physical bindings; caching a session under its own hostname provides
      * no performance benefit, given the way smtp_connect() works.
-     * 
-     * The SMTP_KEY_FLAG_SASL attribute is required in the endpoint label to
-     * avoid false sharing of SASL-authenticated and -unauthenticated
-     * connections to the same IP address. We don't have this problem with
-     * UNIX-domain connections as long as we use nexthop == address.
      */
     bad_session = THIS_SESSION_IS_BAD;		/* smtp_quit() may fail */
     if (THIS_SESSION_IS_EXPIRED)
@@ -412,13 +404,8 @@ static void smtp_cleanup_session(SMTP_STATE *state)
     /* Redundant tests for safety... */
 	&& vstream_ferror(session->stream) == 0
 	&& vstream_feof(session->stream) == 0) {
-	smtp_save_session(state, SMTP_KEY_FLAG_SERVICE
-			  | SMTP_KEY_FLAG_SENDER
-			  | SMTP_KEY_FLAG_REQ_NEXTHOP,
-			  SMTP_KEY_FLAG_SERVICE
-			  | SMTP_KEY_FLAG_SASL
-			  | SMTP_KEY_FLAG_ADDR
-			  | SMTP_KEY_FLAG_PORT);
+	smtp_save_session(state, SMTP_KEY_MASK_SCACHE_DEST_LABEL,
+			  SMTP_KEY_MASK_SCACHE_ENDP_LABEL);
     } else {
 	smtp_session_free(session);
     }
@@ -530,9 +517,8 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     }
 #endif
     if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
-	|| (session = smtp_reuse_nexthop(state, SMTP_KEY_FLAG_SERVICE
-					 | SMTP_KEY_FLAG_SENDER
-					 | SMTP_KEY_FLAG_REQ_NEXTHOP)) == 0)
+	|| (session = smtp_reuse_nexthop(state,
+				     SMTP_KEY_MASK_SCACHE_DEST_LABEL)) == 0)
 	session = smtp_connect_unix(iter, why, state->misc_flags);
     if ((state->session = session) != 0) {
 	session->state = state;
@@ -681,9 +667,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
-	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_FLAG_SERVICE
-					 | SMTP_KEY_FLAG_SENDER
-				       | SMTP_KEY_FLAG_REQ_NEXTHOP)) != 0) {
+	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_MASK_SCACHE_DEST_LABEL)) != 0) {
 	session_count = 1;
 	smtp_update_addr_list(addr_list, session->addr, session_count);
 	if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
@@ -739,10 +723,8 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	    /* XXX Assume there is no code at the end of this loop. */
 	}
 #endif
-	if ((session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
-				       | SMTP_KEY_FLAG_NOSASL
-				       | SMTP_KEY_FLAG_ADDR
-				       | SMTP_KEY_FLAG_PORT)) != 0) {
+	if ((session = smtp_reuse_addr(state,
+				   SMTP_KEY_MASK_SCACHE_ENDP_LABEL)) != 0) {
 	    session->features |= SMTP_FEATURE_BEST_MX;
 	    session_count += 1;
 	    smtp_update_addr_list(addr_list, session->addr, session_count);
@@ -989,10 +971,8 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 #endif
 	    if ((state->misc_flags & SMTP_MISC_FLAG_CONN_LOAD) == 0
 		|| addr->pref == domain_best_pref
-		|| !(session = smtp_reuse_addr(state, SMTP_KEY_FLAG_SERVICE
-					       | SMTP_KEY_FLAG_NOSASL
-					       | SMTP_KEY_FLAG_ADDR
-					       | SMTP_KEY_FLAG_PORT)))
+		|| !(session = smtp_reuse_addr(state,
+					  SMTP_KEY_MASK_SCACHE_ENDP_LABEL)))
 		session = smtp_connect_addr(iter, why, state->misc_flags);
 	    if ((state->session = session) != 0) {
 		session->state = state;

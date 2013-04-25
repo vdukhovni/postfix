@@ -237,7 +237,7 @@ static DNS_RR *smtp_addr_list(DNS_RR *mx_names, DSN_BUF *why)
 {
     DNS_RR *addr_list = 0;
     DNS_RR *rr;
-    int     res_opt = mx_names->validated ? RES_USE_DNSSEC : 0;
+    int     res_opt = mx_names->dnssec_valid ? RES_USE_DNSSEC : 0;
 
     /*
      * As long as we are able to look up any host address, we ignore problems
