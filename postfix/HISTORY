@@ -18515,7 +18515,7 @@ Apologies for any names omitted.
 	posttls-finger/tlsmgrmem.c, posttls-finger/tlsmgrmem.h,
 	tls/tls.h, tls/tls_misc.c.
 
-20130426
+20130425
 
 	Non-production fixes: revert to using proxies (sender,
 	nexthop, hostname) to distinguish between different SASL
@@ -18533,3 +18533,10 @@ Apologies for any names omitted.
 	src/tls/tls_proxy_clnt.c, src/tls/tls_proxy_print.c,
 	src/tls/tls_proxy_scan.c, src/tls/tls_server.c,
 	src/tls/tls_verify.c.
+
+20130426
+
+	Non-production fixes: refinement of SASL-dependent context
+	for connection-cache reuse, documentation. Viktor Dukhovni
+	and Wietse Venema. Files: smtp/smtp.h, smtp/smtp_key.c,
+	tls/tls_client.c.

@@ -572,6 +572,23 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
 
  /*
+  * Conditional lookup-key flags for cached connections that may be
+  * SASL-authenticated with a per-{sender, nexthop, or hostname} credential.
+  * Each bit corresponds to one type of smtp_sasl_password_file lookup key,
+  * and is turned on only when the corresponding main.cf parameter is turned
+  * on.
+  */
+#define COND_SASL_SMTP_KEY_FLAG_SENDER \
+	((var_smtp_sender_auth && *var_smtp_sasl_passwd) ? \
+	    SMTP_KEY_FLAG_SENDER : 0)
+
+#define COND_SASL_SMTP_KEY_FLAG_NEXTHOP \
+	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_NEXTHOP : 0)
+
+#define COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
+	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_HOSTNAME : 0)
+
+ /*
   * Connection-cache destination lookup key. The SENDER attribute is a proxy
   * for sender-dependent SASL credentials (or absence thereof), and prevents
   * false connection sharing when different SASL credentials may be required
@@ -579,7 +596,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   * attribute is a proxy for all request-independent configuration details.
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
-	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER \
+	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
 	| SMTP_KEY_FLAG_REQ_NEXTHOP)
 
  /*
@@ -589,8 +606,8 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   * required for different deliveries to the same IP address and port.
   */
 #define SMTP_KEY_MASK_SCACHE_ENDP_LABEL \
-	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER \
-	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME \
+	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
+	| COND_SASL_SMTP_KEY_FLAG_NEXTHOP | COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
 	| SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
 
  /*

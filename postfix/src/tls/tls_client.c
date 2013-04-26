@@ -750,7 +750,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /*
      * When certificate verification is required, log trust chain validation
      * errors even when disabled by default for opportunistic sessions. For
-     * "dane" this only applies when using trust-anchors associations.
+     * "dane" this only applies when using trust-anchor associations.
      */
     if (TLS_MUST_TRUST(props->tls_level)
 	&& (props->tls_level != TLS_LEV_DANE || TLS_DANE_HASTA(props->dane)))

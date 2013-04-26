@@ -49,8 +49,7 @@
 /*	destination-independent and request-independent context.
 /* .IP SMTP_KEY_FLAG_SENDER
 /*	The envelope sender address. This is a proxy for sender-dependent
-/*	context, such as per-sender SASL authentication. This flag
-/*	is ignored when all sender-dependent context is disabled.
+/*	context, such as per-sender SASL authentication.
 /* .IP SMTP_KEY_FLAG_REQ_NEXTHOP
 /*	The request nexthop destination. This is a proxy for
 /*	destination-dependent, but host-independent context.
@@ -65,15 +64,6 @@
 /*	The current iterator's remote address.
 /* .IP SMTP_KEY_FLAG_PORT
 /*	The current iterator's remote port.
-/* .IP SMTP_KEY_FLAG_SASL
-/*	The current (obfuscated) SASL login name and password, or
-/*	dummy SASL credentials in the case of an object without
-/*	SASL authentication.
-/*	This option is ignored unless SASL support is compiled in.
-/* .IP SMTP_KEY_FLAG_NOSASL
-/*	Dummy SASL credentials that match only objects without SASL
-/*	authentication.
-/*	This option is ignored unless SASL support is compiled in.
 /* .RE
 /* DIAGNOSTICS
 /*	Panic: undefined flag or zero flags. Fatal: out of memory.
@@ -180,15 +170,8 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
      */
     if (flags & SMTP_KEY_FLAG_SERVICE)
 	smtp_key_append_str(buffer, state->service, delim_na);
-#ifdef USE_SASL_AUTH
-    if (flags & SMTP_KEY_FLAG_SENDER) {
-	if (var_smtp_sender_auth && *var_smtp_sasl_passwd) {
-	    smtp_key_append_str(buffer, state->request->sender, delim_na);
-	} else {
-	    smtp_key_append_na(buffer, delim_na);	/* sender n/a */
-	}
-    }
-#endif
+    if (flags & SMTP_KEY_FLAG_SENDER)
+	smtp_key_append_str(buffer, state->request->sender, delim_na);
 
     /*
      * Per-destination context, non-canonicalized form.
