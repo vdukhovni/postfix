@@ -12076,19 +12076,20 @@ the remote SMTP server, and any untrusted issuing parent certificates
 will be ignored.  Specify a list of pathnames separated by comma
 or whitespace.  </p>
 
-<p> This feature is implemented for completeness, to allow installations
-with a small set of SMTP peers to set global policy in <a href="postconf.5.html">main.cf</a>,
-that at most sites would be set via <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  In almost
-all cases it is better to use it on a per-destination basis via the
-"tafile" policy attribute of the "verify" and "secure" levels leaving
-the global <a href="postconf.5.html">main.cf</a> setting empty.  </p>
+<p>  Whether specified in <a href="postconf.5.html">main.cf</a>, or on a per-destination basis,
+the trust-anchor PEM file must be accessible to the Postfix SMTP
+client in the chroot jail if applicable.  The trust-anchor file
+should contain only certificates and public keys, no private key
+material, and must be readable by the non-privileged $<a href="postconf.5.html#mail_owner">mail_owner</a>
+user.  This allows destinations to be bound to a set of specific
+CAs or public keys without trusting the same CAs for all destinations.
+</p>
 
-<p>  When used on a per-destination basis, each "tafile" PEM file
-must be accessible to the Postfix SMTP client in the chroot jail
-if applicable.  The files should not contain any sensitive data,
-and must be readable by the non-privileged $<a href="postconf.5.html#mail_owner">mail_owner</a> user.  This
-allows destinations to be bound to a set of specific CAs or public
-keys without trusting the same CAs for all destinations.  </p>
+<p> The <a href="postconf.5.html">main.cf</a> parameter supports single-purpose Postfix installations
+that send mail to a fixed set of SMTP peers.  At most sites, if
+trust-anchor files are used at all, they will be specified on a
+per-destination basis via the "tafile" attribute of the "verify"
+and "secure" levels in <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  </p>
 
 <p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA),
 which defines mechanisms for a client to securely determine server
