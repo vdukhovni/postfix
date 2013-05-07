@@ -18540,3 +18540,20 @@ Apologies for any names omitted.
 	for connection-cache reuse, documentation. Viktor Dukhovni
 	and Wietse Venema. Files: smtp/smtp.h, smtp/smtp_key.c,
 	tls/tls_client.c.
+
+20130506
+
+	Non-production bugfix: macros must use distinct names for
+	temporary variables, to avoid name collision problems.
+	Problem report: Ralf Hildebrandt. Problem fix: Viktor
+	Dukhovni.  File: smtp/smtp.h.
+
+	Non-production cleanup: simplified "dane" user interface,
+	replacing one "dane" security level plus multiple fall-back
+	options, with two "dane" security levels, one opportunistic
+	and one mandatory. Viktor Dukhovni.  Files: proto/TLS_README.html,
+	proto/postconf.proto, mantools/postlink, proto/TLS_README.html,
+	proto/postconf.proto, global/mail_params.h,
+	posttls-finger/posttls-finger.c, smtp/lmtp_params.c,
+	smtp/smtp.c, smtp/smtp.h, smtp/smtp_params.c,
+	smtp/smtp_tls_policy.c, tls/tls.h, tls/tls_level.c.

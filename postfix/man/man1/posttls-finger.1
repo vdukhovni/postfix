@@ -116,12 +116,12 @@ The hostname lookup methods used for the connection.  See the
 documentation of smtp_host_lookup for syntax and semantics.
 .IP "\fB-l \fIlevel\fR (default: \fBdane\fR or \fBsecure\fR)"
 The security level for the connection, default \fBdane\fR or
-\fBsecure\fR depending on whether DNSSEC is available. For syntax
+\fBsecure\fR depending on whether DNSSEC is available.  For syntax
 and semantics, see the documentation of smtp_tls_security_level.
-When \fBdane\fR is supported and selected, if no TLSA records are
-found, or all the records found are unusable, the \fIdegraded\fR
-level will be \fBsecure\fR.  The main additional level to consider
-is \fBfingerprint\fR, which allows you test certificate or public-key
+When \fBdane\fR or \fBdane-only\fR is supported and selected, if no
+TLSA records are found, or all the records found are unusable, the
+\fIsecure\fR level will be used instead.  The \fBfingerprint\fR
+security level allows you to test certificate or public-key
 fingerprint matches before you deploy them in the policy table.
 .IP
 Note, since \fBposttls-finger\fR does not actually deliver any email,
@@ -233,8 +233,8 @@ as the destination and \fIexample.com\fR as a \fBmatch\fR argument.
 When using DNS, the destination domain is assumed fully qualified
 and no default domain or search suffixes are applied; you must use
 fully-qualified names or also enable \fBnative\fR host lookups
-(these don't support \fBdane\fR as no DNSSEC validation information
-is available via \fBnative\fR lookups).
+(these don't support \fBdane\fR or \fBdane-only\fR as no DNSSEC
+validation information is available via \fBnative\fR lookups).
 .IP "\fBunix:\fIpathname\fR"
 Connect to the UNIX-domain socket at \fIpathname\fR. LMTP only.
 .IP "\fBmatch ...\fR"
@@ -244,11 +244,8 @@ specify one or more arguments, these will be used as the list of
 certificate or public-key digests to match for the \fBfingerprint\fR
 level, or as the list of DNS names to match in the certificate at the
 \fBverify\fR and \fBsecure\fR levels.  If the security level is
-\fBdane\fR, and usable TLSA records are found, the match names are
-ignored, and \fBhostname, nexthop\fR strategies are used.  If no
-TLSA records are found or none are usable, the level \fIdegrades\fR
-to \fBsecure\fR and the provided list is used to match names in
-the certificate.
+\fBdane\fR, or \fBdane-only\fR the match names are ignored, and
+\fBhostname, nexthop\fR strategies are used.
 .ad
 .fi
 .SH "ENVIRONMENT"

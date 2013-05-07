@@ -44,13 +44,15 @@
 #define TLS_LEV_MAY		1	/* wildcard */
 #define TLS_LEV_ENCRYPT		2	/* encrypted connection */
 #define TLS_LEV_FPRINT		3	/* "peer" CA-less verification */
-#define TLS_LEV_DANE		4	/* TLSA RRset policy from DNSSEC */
-#define TLS_LEV_VERIFY		5	/* certificate verified */
-#define TLS_LEV_SECURE		6	/* "secure" verification */
+#define TLS_LEV_DANE		4	/* Opportunistic TLSA policy */
+#define TLS_LEV_DANE_ONLY	5	/* Required TLSA policy */
+#define TLS_LEV_VERIFY		6	/* certificate verified */
+#define TLS_LEV_SECURE		7	/* "secure" verification */
 
 #define TLS_REQUIRED(l)		((l) > TLS_LEV_MAY)
 #define TLS_MUST_MATCH(l)	((l) > TLS_LEV_ENCRYPT)
-#define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_VERIFY || (l) == TLS_LEV_DANE)
+#define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_DANE)
+#define TLS_MUST_PKIX(l)	((l) >= TLS_LEV_VERIFY)
 
 extern const NAME_CODE tls_level_table[];
 

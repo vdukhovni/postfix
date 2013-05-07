@@ -155,12 +155,25 @@ assume that the certificate for "server.example.com" was issued by
 
     By default, support for TLSA records that specify certificate usage "0" via
     a digest is disabled in the Postfix SMTP client. As a best practice,
-    publish either "3 0 1" or "3 1 1" TLSA associations. See the documentation
-    of the tls_dane_trust_anchor_digest_enable main.cf parameter for details.
+    publish either "3 0 1" or "3 1 1" TLSA associations that specify the SHA256
+    digest of the server certificate public key with the alias-expanded
+    hostname of each STARTTLS capable SMTP server. These continue to work when
+    a certificate is renewed with the same public/private key pair. See the
+    documentation of the tls_dane_trust_anchor_digest_enable main.cf parameter
+    for details.
 
 For instructions on how to compute the digest of a certificate or its public
 key for use in TLSA records, see the documentation of the
 smtpd_tls_fingerprint_digest main.cf parameter.
+
+When a new key or certificate is generated, an additional TLSA record with the
+new digest must be published in advance of the actual deployment of the new key
+or certificate on the server. You must allow sufficient time for any TLSA
+RRsets with only the old digest to expire from DNS caches. The safest practice
+is to wait until the DNSSEC signature on the previous TLSA RRset expires, and
+only then switch the server to use new keys published in the updated TLSA
+RRset. Once the new certificate trust chain and private key are in effect, the
+DNS should be updated once again to remove the old digest from the TLSA RRset.
 
 If you want the Postfix SMTP server to accept remote SMTP client certificates
 issued by one or more root CAs, append the root certificate to
@@ -687,7 +700,9 @@ mmaayy
 eennccrryypptt
     Mandatory TLS encryption.
 ddaannee
-    DANE TLS authentication.
+    Opportunistic DANE TLS.
+ddaannee--oonnllyy
+    Mandatory DANE TLS.
 ffiinnggeerrpprriinntt
     Certificate fingerprint verification.
 vveerriiffyy
@@ -842,12 +857,30 @@ not specified consistently.
 
 DDAANNEE TTLLSS aauutthheennttiiccaattiioonn..
 
-At the dane security level, the TLS policy for the destination is obtained via
-DNSSEC. For "dane" policy to be in effect, the destination domain's containing
-DNS zone must be signed and the Postfix SMTP client's operating system must be
-configured to send its DNS queries to a recursive DNS nameserver that is able
-to validate the signed records. Each of the destination MX hosts' containing
-DNS zones should also be signed, and should publish DANE TLSA (RFC 6698)
+The Postfix SMTP client supports two TLS security levels based on RFC6698 DANE
+TLSA records. The opportunistic "dane" level and the mandatory "dane-only"
+level.
+
+The "dane" level is a stronger form of opportunistic TLS that is resistant to
+man in the middle and downgrade attacks when the destination domain uses DNSSEC
+to publish DANE TLSA records for its MX hosts. If a remote SMTP server has
+usable DANE TLSA records, these will be used to authenticate the server. If
+TLSA records are published for a given remote SMTP server (implying TLS
+support), but are not usable due to unsupported parameters, the Postfix SMTP
+client will use mandatory unauthenticated TLS. Otherwise, the Postfix SMTP
+client behavior is the same as with may.
+
+The "dane-only" level is a form of secure-channel TLS based on the DANE PKI. If
+usable TLSA records are present these are used to authenticate the remote SMTP
+server. Otherwise, or when server certificate verification fails, delivery via
+the server in question tempfails.
+
+At both security levels, the TLS policy for the destination is obtained via
+TLSA records validated with DNSSEC. For TLSA policy to be in effect, the
+destination domain's containing DNS zone must be signed and the Postfix SMTP
+client's operating system must be configured to send its DNS queries to a
+recursive DNS nameserver that is able to validate the signed records. Each MX
+host's DNS zone should also be signed, and should publish DANE TLSA (RFC 6698)
 records that specify how that MX host's TLS certificate is to be verified. TLSA
 records do not preempt the normal SMTP MX host selection algorithm, if some MX
 hosts support TLSA and others do not, TLS security will vary from delivery to
@@ -900,22 +933,9 @@ SMTP client is obligated to include the SNI TLS extension in its SSL client
 hello message. This may help the remote SMTP server live up to its promise to
 provide a certificate that matches its TLSA records. Since TLS extensions
 require TLS 1.0 or later, the Postfix SMTP client must disable SSLv2 and SSLv3
-when SNI is required. If you use "dane", do not disable TLSv1, except perhaps
-via the policy table for destinations which you are sure will support TLSv1.1
-or TLSv1.2.
-
-The best practice for publishing server TLSA records is to publish "IN TLSA 3 1
-1" records that specify the SHA256 digest of the server certificate public key
-under the alias-expanded hostname of each STARTTLS capable SMTP server. These
-continue to work when a certificate is renewed with the same public/private key
-pair. When new keys are generated, an additional TLSA record with the new key
-fingerprint must be published in advance of the actual deployment of the new
-key on the server. You must allow sufficient time for any TLSA records with
-only the old keys to expire from DNS caches. The safest practice is to wait
-until the DNSSEC signature on the previous TLSA RRset expires, and only then
-switch the server to use new keys published in the updated TLSA RRset. Once the
-new certificate trust chain and private key are in effect, the DNS should be
-updated once again to remove the old public-key digest from the TLSA RRset.
+when SNI is required. If you use "dane" or "dane-only", do not disable TLSv1,
+except perhaps via the policy table for destinations which you are sure will
+support TLSv1.1 or TLSv1.2.
 
 For purposes of protocol and cipher selection, the "dane" security level is
 treated like a "mandatory" TLS security level, and weak ciphers and protocols
@@ -924,37 +944,17 @@ suites are transparently excluded at this level, no need to configure this
 manually. RFC 6698 (DANE) TLS authentication is available with Postfix 2.11 and
 later.
 
-If the target domain's zone, or the MX host's zone is not signed, or no TLSA
-records are published for the MX host the "dane" security level degrades to a
-security level specified via the main.cf "smtp_tls_dane_tlsa_notfound_level"
-parameter (default "may") or via the per-destination "no_tlsa_level" attribute
-of a "dane" record in the policy table. One can thereby choose to use DANE key
-management and still ensure that TLS is always used, even when no DNSSEC TLSA
-records are available.
-
-If DNSSEC validated TLSA records are found, but none are usable (unsupported
-parameters or are malformed), the "dane" security level degrades to a security
-level specified via the "smtp_tls_dane_tlsa_unusable_level" main.cf parameter
-or via the per-destination "unusable_tlsa_level" attribute of a "dane" record
-in the policy table. This security level is expected to require unconditional
-TLS with certificate verification if possible. However, in most cases
-certificate verification will be impractical in the absence of usable TLSA
-records so the default degraded level is "encrypt".
-
 When a DANE TLSA record specifies a trust-anchor (TA) certificate (that is an
 issuing CA), the strategy used to verify the peername of the server certificate
 is unconditionally "nexthop, hostname". Both the nexthop domain and the
 hostname obtained from the DNSSEC-validated MX lookup are safe from forgery and
-the server certificate must contain at least one of these names. The optional
-"match" attribute of the policy table overrides the default certificate
-matching strategy of the "degraded" security level used when DANE TLSA records
-are unavailable or unusable (see above).
+the server certificate must contain at least one of these names.
 
 When a DANE TLSA record specifies an end-entity (EE) certificate, (that is the
 actual server certificate), as with the fingerprint security level below, no
 name checks or certificate expiration checks are applied. The server
 certificate (or its public key) either matches the DANE record or not. Server
-administrator should publish such EE records in preference to all types.
+administrators should publish such EE records in preference to all other types.
 
 The pre-requisites for DANE support in the Postfix SMTP client are:
 
@@ -1001,14 +1001,9 @@ smtp_dns_support_level in main.cf.
 EExxaammppllee: "dane" security for selected destinations, with opportunistic TLS by
 default. This is the recommended configuration for early adopters.
 
-  * The "example.com" destination uses DANE, but if TLSA records are not found
-    (the nexthop or MX host zone is unsigned, or TLSA records fail to be
-    published) mandatory TLS encryption is enforced ensuring that mail to
-    example.com is never sent in the clear.
-  * The "example.net" destination uses DANE, but if TLSA records are not
-    present or are unusable, a public CA verified secure-channel is established
-    to the destination, ensuring that mail to example.com is never sent in the
-    clear or vulnerable to man-in-the-middle interception.
+  * The "example.com" destination uses DANE, but if TLSA records are not
+    present or are unusable, mail is deferred.
+
   * The "example.org" destination uses DANE if possible, but if no TLSA records
     are found opportunistic TLS is used.
 
@@ -1020,10 +1015,6 @@ default. This is the recommended configuration for early adopters.
         smtp_tls_security_level = may
         smtp_dns_support_level = enabled
         #
-        # CA trusted for example.net et. al.
-        #
-        smtp_tls_CAfile = /etc/ssl/certs/someCA.pem
-        #
         # Per-destination TLS policy
         #
         smtp_tls_policy_maps = ${indexed}tls_policy
@@ -1034,15 +1025,10 @@ default. This is the recommended configuration for early adopters.
 
     transport:
         example.com dane
-        example.net dane
         example.org dane
 
     tls_policy:
-        example.com dane   no_tlsa_level=encrypt
-        # Expect DANE for example.net, but if not rely on public CA trust.
-        #
-        example.net dane   no_tlsa_level=secure   unusable_tlsa_level=secure
-           match=nexthop   match=dot-nexthop
+        example.com dane-only
 
     master.cf:
         dane       unix  -       -       n       -       -       smtp
@@ -1528,11 +1514,11 @@ these are usually unauthenticated - to obtain the domain's SMTP server hostname
 (s). When, as is current practice, the client verifies the insecurely obtained
 MX hostname, it is subject to a DNS man-in-the-middle attack.
 
-Adoption of DNSSEC and RFC 6698 (DANE) may gradually (as domains implement
+Adoption of DNSSEC and RFC6698 (DANE) may gradually (as domains implement
 DNSSEC and publish TLSA records for their MX hosts) address the DNS man-in-the-
 middle risk and provide scalable key management for SMTP with TLS. Postfix >=
-2.11 supports a new dane security level that takes advantage of these
-standards.
+2.11 supports the new dane and dane-only security levels that take advantage of
+these standards.
 
 If clients instead attempted to verify the recipient domain name, an SMTP
 server for multiple domains would need to list all its email domain names in
@@ -1614,25 +1600,24 @@ eennccrryypptt
     optional "exclude" attribute (Postfix >= 2.6) overrides the main.cf
     smtp_tls_mandatory_exclude_ciphers parameter.
 ddaannee
-    DANE TLS authentication. The TLS policy for the destination is obtained via
-    TLSA records in DNSSEC. At this level the optional "no_tlsa_level"
-    attribute overrides the "smtp_tls_dane_tlsa_notfound_level" main.cf
-    parameter and specifies the "degraded" security level to use when no TLSA
-    records are published. The "unusable_tlsa_level" attribute overrides the
-    "smtp_tls_dane_tlsa_unusable_level" main.cf parameter and specifies the
-    "degraded" security level to use when TLSA DNSSEC validated records are
-    published, but none are usable. The optional "match" attribute overrides
-    the default matching strategy for the server certificate when a "degraded"
-    security level is used. Since the match values may be either names or
-    fingerprints, and these use incompatible delimiters, it is not possible to
-    specify multiple patterns in a single "match" clause, instead use multiple
-    match clauses, to assign multiple values. The "tafile" attribute may be
-    specified, but is used only when the connection "degrades" to either
-    "verify" or "secure". SSLv2 and SSLv3 are automatically disabled when
-    usable TLSA records are obtained for the remote SMTP server, see
-    smtp_tls_mandatory_protocols for details. The
-    tls_dane_trust_anchor_digest_enable main.cf parameter controls optional
-    support for trust-anchor digest TLSA records. RFC 6698 (DANE) TLS
+    Opportunistic DANE TLS. The TLS policy for the destination is obtained via
+    TLSA records in DNSSEC. If no TLSA records are found, the effective
+    security level used is may. If TLSA records are found, but none are usable,
+    the effective security level is encrypt. When usable TLSA records are
+    obtained for the remote SMTP server, SSLv2 and SSLv3 are automatically
+    disabled (see smtp_tls_mandatory_protocols), and the server certificate
+    must match the TLSA records. The tls_dane_trust_anchor_digest_enable
+    parameter controls optional support for trust-anchor digest TLSA records.
+    RFC 6698 (DANE) TLS authentication and DNSSEC support is available with
+    Postfix 2.11 and later.
+ddaannee--oonnllyy
+    Mandatory DANE TLS. The TLS policy for the destination is obtained via TLSA
+    records in DNSSEC. If no TLSA records are found, or none are usable, no
+    connection is made to the server. When usable TLSA records are obtained for
+    the remote SMTP server, SSLv2 and SSLv3 are automatically disabled (see
+    smtp_tls_mandatory_protocols), and the server certificate must match the
+    TLSA records. The tls_dane_trust_anchor_digest_enable parameter controls
+    optional support for trust-anchor digest TLSA records. RFC 6698 (DANE) TLS
     authentication and DNSSEC support is available with Postfix 2.11 and later.
 ffiinnggeerrpprriinntt
     Certificate fingerprint verification. Available with Postfix 2.5 and later.

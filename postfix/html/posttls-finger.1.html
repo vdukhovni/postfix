@@ -140,13 +140,13 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               The security level for the connection, default <b>dane</b>
               or <b>secure</b> depending on whether DNSSEC is available.
               For  syntax and semantics, see the documentation of
-              <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>.  When  <b>dane</b>  is  supported
-              and  selected, if no TLSA records are found, or all
-              the records found are unusable, the <i>degraded</i>  level
-              will  be <b>secure</b>.  The main additional level to con-
-              sider is <b>fingerprint</b>, which allows  you  test  cer-
-              tificate  or  public-key fingerprint matches before
-              you deploy them in the policy table.
+              <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>.  When <b>dane</b> or <b>dane-only</b> is
+              supported  and  selected,  if  no  TLSA records are
+              found, or all the records found are  unusable,  the
+              <i>secure</i> level will be used instead.  The <b>fingerprint</b>
+              security level allows you to  test  certificate  or
+              public-key  fingerprint  matches  before you deploy
+              them in the policy table.
 
               Note,  since  <b>posttls-finger</b>  does   not   actually
               deliver  any email, the <b>none</b>, <b>may</b> and <b>encrypt</b> secu-
@@ -296,8 +296,9 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               assumed  fully  qualified  and no <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a> or
               search suffixes are applied; you  must  use  fully-
               qualified  names or also enable <b>native</b> host lookups
-              (these don't support <b>dane</b> as no  DNSSEC  validation
-              information is available via <b>native</b> lookups).
+              (these don't support <b>dane</b> or <b>dane-only</b> as no DNSSEC
+              validation  information  is  available  via  <b>native</b>
+              lookups).
 
        <b>unix:</b><i>pathname</i>
               Connect to the UNIX-domain socket at <i>pathname</i>. LMTP
@@ -307,16 +308,13 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               With  no  match  arguments  specified,  certificate
               peername  matching  uses  the  compiled-in  default
               strategies for each security level.  If you specify
-              one  or  more  arguments, these will be used as the
-              list of certificate or public-key digests to  match
-              for  the  <b>fingerprint</b>  level, or as the list of DNS
+              one or more arguments, these will be  used  as  the
+              list  of certificate or public-key digests to match
+              for the <b>fingerprint</b> level, or as the  list  of  DNS
               names to match in the certificate at the <b>verify</b> and
-              <b>secure</b>  levels.  If the security level is <b>dane</b>, and
-              usable TLSA records are found, the match names  are
-              ignored, and <b>hostname, nexthop</b> strategies are used.
-              If no TLSA records are found or  none  are  usable,
-              the  level <i>degrades</i> to <b>secure</b> and the provided list
-              is used to match names in the certificate.
+              <b>secure</b> levels.  If the security level is  <b>dane</b>,  or
+              <b>dane-only</b>  the  match  names are ignored, and <b>host-</b>
+              <b>name, nexthop</b> strategies are used.
 
 <b>ENVIRONMENT</b>
        <b>MAIL_CONFIG</b>

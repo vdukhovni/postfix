@@ -1446,18 +1446,6 @@ extern char *var_smtp_tls_fpt_dgst;
 #define DEF_LMTP_TLS_TAFILE	""
 extern char *var_smtp_tls_tafile;
 
-#define VAR_SMTP_TLS_DANE_NO_LEV	"smtp_tls_dane_tlsa_notfound_level"
-#define DEF_SMTP_TLS_DANE_NO_LEV	"may"
-#define VAR_LMTP_TLS_DANE_NO_LEV	"lmtp_tls_dane_tlsa_notfound_level"
-#define DEF_LMTP_TLS_DANE_NO_LEV	DEF_SMTP_TLS_DANE_NO_LEV
-extern char *var_smtp_tls_dane_no_lev;
-
-#define VAR_SMTP_TLS_DANE_UN_LEV	"smtp_tls_dane_tlsa_unusable_level"
-#define DEF_SMTP_TLS_DANE_UN_LEV	"encrypt"
-#define VAR_LMTP_TLS_DANE_UN_LEV	"lmtp_tls_dane_tlsa_unusable_level"
-#define DEF_LMTP_TLS_DANE_UN_LEV	DEF_SMTP_TLS_DANE_UN_LEV
-extern char *var_smtp_tls_dane_un_lev;
-
 #define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
 #define DEF_SMTP_TLS_LOGLEVEL	"0"
 #define VAR_LMTP_TLS_LOGLEVEL	"lmtp_tls_loglevel"

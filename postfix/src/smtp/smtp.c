@@ -840,8 +840,6 @@ char   *var_smtp_tls_vfy_cmatch;
 char   *var_smtp_tls_fpt_cmatch;
 char   *var_smtp_tls_fpt_dgst;
 char   *var_smtp_tls_tafile;
-char   *var_smtp_tls_dane_no_lev;
-char   *var_smtp_tls_dane_un_lev;
 char   *var_smtp_tls_proto;
 char   *var_smtp_tls_ciph;
 char   *var_smtp_tls_eccert_file;
@@ -1081,6 +1079,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 	switch (tls_level_lookup(var_smtp_tls_level)) {
 	case TLS_LEV_SECURE:
 	case TLS_LEV_VERIFY:
+	case TLS_LEV_DANE_ONLY:
 	case TLS_LEV_FPRINT:
 	case TLS_LEV_ENCRYPT:
 	    var_smtp_use_tls = var_smtp_enforce_tls = 1;

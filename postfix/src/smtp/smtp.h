@@ -97,8 +97,6 @@ typedef struct SMTP_TLS_POLICY {
     ARGV   *matchargv;			/* Cert match patterns */
     DSN_BUF *why;			/* Lookup error status */
     TLS_DANE *dane;			/* DANE TLSA digests */
-    int     dane_no_lev;		/* TLS level when TLSA unavailable */
-    int     dane_un_lev;		/* TLS level when TLSA unusable */
 } SMTP_TLS_POLICY;
 
  /*
@@ -108,23 +106,30 @@ extern void smtp_tls_list_init(void);
 extern int smtp_tls_policy_cache_query(DSN_BUF *, SMTP_TLS_POLICY *, SMTP_ITERATOR *);
 extern void smtp_tls_policy_cache_flush(void);
 
+ /*
+  * Macros must use distinct names for local temporary variables, otherwise
+  * there will be bugs due to shadowing. This happened when an earlier
+  * version of smtp_tls_policy_dummy() invoked smtp_tls_policy_init(), but it
+  * could also happen without macro nesting.
+  * 
+  * General principle: use all or part of the macro name in each temporary
+  * variable name. Then, append suffixes to the names if needed.
+  */
 #define smtp_tls_policy_dummy(t) do { \
-	SMTP_TLS_POLICY *_t = (t); \
-	smtp_tls_policy_init(_t, (DSN_BUF *) 0); \
-	_t->level = TLS_LEV_NONE; \
+	SMTP_TLS_POLICY *_tls_policy_dummy_tmp = (t); \
+	smtp_tls_policy_init(_tls_policy_dummy_tmp, (DSN_BUF *) 0); \
+	_tls_policy_dummy_tmp->level = TLS_LEV_NONE; \
     } while (0)
 
  /* This macro is not part of the module external interface. */
 #define smtp_tls_policy_init(t, w) do { \
-	SMTP_TLS_POLICY *_t = (t); \
-	_t->protocols = 0; \
-	_t->grade = 0; \
-	_t->exclusions = 0; \
-	_t->matchargv = 0; \
-	_t->why = (w); \
-	_t->dane = 0; \
-	_t->dane_no_lev = TLS_LEV_NOTFOUND; \
-	_t->dane_un_lev = TLS_LEV_NOTFOUND; \
+	SMTP_TLS_POLICY *_tls_policy_init_tmp = (t); \
+	_tls_policy_init_tmp->protocols = 0; \
+	_tls_policy_init_tmp->grade = 0; \
+	_tls_policy_init_tmp->exclusions = 0; \
+	_tls_policy_init_tmp->matchargv = 0; \
+	_tls_policy_init_tmp->why = (w); \
+	_tls_policy_init_tmp->dane = 0; \
     } while (0)
 
 #endif

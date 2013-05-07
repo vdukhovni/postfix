@@ -110,12 +110,12 @@
 /*	documentation of smtp_host_lookup for syntax and semantics.
 /* .IP "\fB-l \fIlevel\fR (default: \fBdane\fR or \fBsecure\fR)"
 /*	The security level for the connection, default \fBdane\fR or
-/*	\fBsecure\fR depending on whether DNSSEC is available. For syntax
+/*	\fBsecure\fR depending on whether DNSSEC is available.  For syntax
 /*	and semantics, see the documentation of smtp_tls_security_level.
-/*	When \fBdane\fR is supported and selected, if no TLSA records are
-/*	found, or all the records found are unusable, the \fIdegraded\fR
-/*	level will be \fBsecure\fR.  The main additional level to consider
-/*	is \fBfingerprint\fR, which allows you test certificate or public-key
+/*	When \fBdane\fR or \fBdane-only\fR is supported and selected, if no
+/*	TLSA records are found, or all the records found are unusable, the
+/*	\fIsecure\fR level will be used instead.  The \fBfingerprint\fR
+/*	security level allows you to test certificate or public-key
 /*	fingerprint matches before you deploy them in the policy table.
 /* .IP
 /*	Note, since \fBposttls-finger\fR does not actually deliver any email,
@@ -227,8 +227,8 @@
 /*	When using DNS, the destination domain is assumed fully qualified
 /*	and no default domain or search suffixes are applied; you must use
 /*	fully-qualified names or also enable \fBnative\fR host lookups
-/*	(these don't support \fBdane\fR as no DNSSEC validation information
-/*	is available via \fBnative\fR lookups).
+/*	(these don't support \fBdane\fR or \fBdane-only\fR as no DNSSEC
+/*	validation information is available via \fBnative\fR lookups).
 /* .IP "\fBunix:\fIpathname\fR"
 /*	Connect to the UNIX-domain socket at \fIpathname\fR. LMTP only.
 /* .IP "\fBmatch ...\fR"
@@ -238,11 +238,8 @@
 /*	certificate or public-key digests to match for the \fBfingerprint\fR
 /*	level, or as the list of DNS names to match in the certificate at the
 /*	\fBverify\fR and \fBsecure\fR levels.  If the security level is
-/*	\fBdane\fR, and usable TLSA records are found, the match names are
-/*	ignored, and \fBhostname, nexthop\fR strategies are used.  If no
-/*	TLSA records are found or none are usable, the level \fIdegrades\fR
-/*	to \fBsecure\fR and the provided list is used to match names in
-/*	the certificate.
+/*	\fBdane\fR, or \fBdane-only\fR the match names are ignored, and
+/*	\fBhostname, nexthop\fR strategies are used.
 /* .ad
 /* .fi
 /* ENVIRONMENT
@@ -1452,7 +1449,7 @@ static void cleanup(STATE *state)
 
 /* usage - explain */
 
-static void usage()
+static void usage(void)
 {
 #ifdef USE_TLS
     fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s destination [match ...]\n",
@@ -1460,7 +1457,7 @@ static void usage()
 	    "[-h host_lookup] [-l level] [-L logopts] [-m count]",
 	    "[-o name=value] [-P CApath/] [-r delay]");
 #else
-    fprintf(stderr, "usage: %s [-acStTv] [-h host_lookup] [-o name=value] destination\n"
+    fprintf(stderr, "usage: %s [-acStTv] [-h host_lookup] [-o name=value] destination\n",
 	    var_procname);
 #endif
     exit(1);
@@ -1633,11 +1630,15 @@ static void parse_options(STATE *state, int argc, char *argv[])
     if (state->options.level) {
 	state->level = tls_level_lookup(state->options.level);
 
-	if (state->level == TLS_LEV_INVALID)
-	    msg_fatal("Invalid TLS level \"%s\"", state->options.level);
-
-	if (state->level == TLS_LEV_NONE)
+	switch (state->level) {
+	case TLS_LEV_DANE_ONLY:
+	    state->level = TLS_LEV_DANE;
+	    break;
+	case TLS_LEV_NONE:
 	    return;
+	case TLS_LEV_INVALID:
+	    msg_fatal("Invalid TLS level \"%s\"", state->options.level);
+	}
     }
 
     /*
@@ -1668,8 +1669,7 @@ static void parse_match(STATE *state, int argc, char *argv[])
 
     switch (state->level) {
     case TLS_LEV_SECURE:
-    case TLS_LEV_DANE:
-	state->match = argv_alloc(1);
+	state->match = argv_alloc(2);
 	while (*argv)
 	    argv_split_append(state->match, *argv++, "");
 	if (state->match->argc == 0)
@@ -1688,6 +1688,10 @@ static void parse_match(STATE *state, int argc, char *argv[])
 	    tls_dane_split((TLS_DANE *) state->dane, TLS_DANE_EE, TLS_DANE_PKEY,
 			   state->mdalg, *argv++, "");
 	tls_dane_final((TLS_DANE *) state->dane);
+	break;
+    case TLS_LEV_DANE:
+	state->match = argv_alloc(2);
+	argv_add(state->match, "nexthop", "hostname", ARGV_END);
 	break;
     }
 #endif
@@ -1708,7 +1712,6 @@ static void parse_tas(STATE *state)
 	return;
     case TLS_LEV_SECURE:
     case TLS_LEV_VERIFY:
-    case TLS_LEV_DANE:
 	state->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
 	for (file = state->options.tas->argv; *file; ++file) {
 	    if (!tls_dane_load_trustfile((TLS_DANE *) state->dane, *file))

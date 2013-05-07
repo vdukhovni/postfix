@@ -57,13 +57,13 @@
   * Numerical order of levels is critical (see tls.h):
   * 
   * - With "may" and higher, TLS is enabled.
-  *
+  * 
   * - With "encrypt" and higher, TLS is required.
-  *
+  * 
   * - With "fingerprint" and higher, the peer certificate must match.
-  *
+  * 
   * - With "dane" and higher, the peer certificate must also be trusted,
-  *   possibly via TLSA RRs that make it its own authority.
+  * possibly via TLSA RRs that make it its own authority.
   * 
   * The smtp(8) client will report trust failure in preference to reporting
   * failure to match, so we make "dane" larger than "fingerprint".
@@ -74,6 +74,7 @@ const NAME_CODE tls_level_table[] = {
     "encrypt", TLS_LEV_ENCRYPT,
     "fingerprint", TLS_LEV_FPRINT,
     "dane", TLS_LEV_DANE,
+    "dane-only", TLS_LEV_DANE_ONLY,
     "verify", TLS_LEV_VERIFY,
     "secure", TLS_LEV_SECURE,
     0, TLS_LEV_INVALID,

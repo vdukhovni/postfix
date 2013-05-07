@@ -261,13 +261,6 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
     }
 
     /*
-     * Levels that check certificates require or support explicit TA or EE
-     * certificate digest match lists.
-     */
-    if (TLS_MUST_MATCH(*site_level))
-	tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
-
-    /*
      * Errors in attributes may have security consequences, don't ignore
      * errors that can degrade security.
      */
@@ -303,22 +296,19 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	}
 	/* Multiple instances per policy. */
 	if (!strcasecmp(name, "match")) {
-	    if (*site_level <= TLS_LEV_ENCRYPT) {
-		msg_warn("%s: attribute \"%s\" invalid at security level "
-			 "\"%s\"", WHERE, name, policy_name(*site_level));
-		INVALID_RETURN(tls->why, site_level);
-	    }
 	    if (*val == 0) {
 		msg_warn("%s: attribute \"%s\" has empty value", WHERE, name);
 		INVALID_RETURN(tls->why, site_level);
 	    }
 	    switch (*site_level) {
-	    case TLS_LEV_DANE:
-		if (tls->matchargv == 0)
-		    tls->matchargv = argv_alloc(1);
-		argv_add(tls->matchargv, val, ARGV_END);
+	    default:
+		msg_warn("%s: attribute \"%s\" invalid at security level "
+			 "\"%s\"", WHERE, name, policy_name(*site_level));
+		INVALID_RETURN(tls->why, site_level);
 		break;
 	    case TLS_LEV_FPRINT:
+		if (!tls->dane)
+		    tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
 		tls_dane_split(tls->dane, TLS_DANE_EE, TLS_DANE_PKEY,
 			       var_smtp_tls_fpt_dgst, val, "|");
 		break;
@@ -345,7 +335,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	/* Multiple instances per policy. */
 	if (!strcasecmp(name, "tafile")) {
 	    /* Only makes sense if we're using CA-based trust */
-	    if (!TLS_MUST_TRUST(*site_level)) {
+	    if (!TLS_MUST_PKIX(*site_level)) {
 		msg_warn("%s: attribute \"%s\" invalid at security level"
 			 " \"%s\"", WHERE, name, policy_name(*site_level));
 		INVALID_RETURN(tls->why, site_level);
@@ -354,49 +344,9 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		msg_warn("%s: attribute \"%s\" has empty value", WHERE, name);
 		INVALID_RETURN(tls->why, site_level);
 	    }
+	    if (!tls->dane)
+		tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
 	    if (!tls_dane_load_trustfile(tls->dane, val)) {
-		INVALID_RETURN(tls->why, site_level);
-	    }
-	    continue;
-	}
-	/* Only one instance per policy. */
-	if (!strcasecmp(name, "notfound_tlsa_level")) {
-	    if (*site_level != TLS_LEV_DANE) {
-		msg_warn("%s: attribute \"%s\" invalid at security level"
-			 " \"%s\"", WHERE, name, policy_name(*site_level));
-		INVALID_RETURN(tls->why, site_level);
-	    }
-	    if (tls->dane_no_lev != TLS_LEV_NOTFOUND) {
-		msg_warn("%s: attribute \"%s\" is specified multiple times",
-			 WHERE, name);
-		INVALID_RETURN(tls->why, site_level);
-	    }
-	    switch (tls->dane_no_lev = tls_level_lookup(val)) {
-	    case TLS_LEV_INVALID:
-	    case TLS_LEV_DANE:
-		msg_warn("%s: invalid \"%s\" attribute value: \"%s\"",
-			 WHERE, name, val);
-		INVALID_RETURN(tls->why, site_level);
-	    }
-	    continue;
-	}
-	/* Only one instance per policy. */
-	if (!strcasecmp(name, "unusable_tlsa_level")) {
-	    if (*site_level != TLS_LEV_DANE) {
-		msg_warn("%s: attribute \"%s\" invalid at security level"
-			 " \"%s\"", WHERE, name, policy_name(*site_level));
-		INVALID_RETURN(tls->why, site_level);
-	    }
-	    if (tls->dane_un_lev != TLS_LEV_NOTFOUND) {
-		msg_warn("%s: attribute \"%s\" is specified multiple times",
-			 WHERE, name);
-		INVALID_RETURN(tls->why, site_level);
-	    }
-	    switch (tls->dane_un_lev = tls_level_lookup(val)) {
-	    case TLS_LEV_INVALID:
-	    case TLS_LEV_DANE:
-		msg_warn("%s: invalid \"%s\" attribute value: \"%s\"",
-			 WHERE, name, val);
 		INVALID_RETURN(tls->why, site_level);
 	    }
 	    continue;
@@ -573,9 +523,11 @@ static void *policy_create(const char *unused_key, void *context)
 
     /*
      * DANE initialization may change the security level to something else,
-     * so do this early, so that we use the right level below.
+     * so do this early, so that we use the right level below.  Note that
+     * "dane-only" changes to "dane" after any fallback strategies are
+     * applied.
      */
-    if (tls->level == TLS_LEV_DANE)
+    if (tls->level == TLS_LEV_DANE || tls->level == TLS_LEV_DANE_ONLY)
 	dane_init(tls, iter);
     if (tls->level == TLS_LEV_INVALID)
 	return ((void *) tls);
@@ -728,46 +680,6 @@ void    smtp_tls_policy_cache_flush(void)
     }
 }
 
-/* dane_no_level - parse and cache var_smtp_tls_dane_no_lev */
-
-static int dane_no_level(void)
-{
-    static int l = TLS_LEV_NOTFOUND;
-
-    if (l != TLS_LEV_NOTFOUND)
-	return l;
-
-    l = tls_level_lookup(var_smtp_tls_dane_no_lev);
-    if (l == TLS_LEV_INVALID || l == TLS_LEV_DANE)
-	msg_fatal("invalid %s: \"%s\"", SMTP_X(TLS_DANE_NO_LEV),
-		  var_smtp_tls_dane_no_lev);
-
-    if (msg_verbose)
-	msg_info("%s TLS level: %s", "DANE no_tlsa", policy_name(l));
-
-    return l;
-}
-
-/* dane_un_level - parse and cache var_smtp_tls_dane_un_lev */
-
-static int dane_un_level(void)
-{
-    static int l = TLS_LEV_NOTFOUND;
-
-    if (l != TLS_LEV_NOTFOUND)
-	return l;
-
-    l = tls_level_lookup(var_smtp_tls_dane_un_lev);
-    if (l == TLS_LEV_INVALID || l == TLS_LEV_DANE)
-	msg_fatal("invalid %s: \"%s\"", SMTP_X(TLS_DANE_UN_LEV),
-		  var_smtp_tls_dane_un_lev);
-
-    if (msg_verbose)
-	msg_info("%s TLS level: %s", "DANE unusable_tlsa", policy_name(l));
-
-    return l;
-}
-
 /* global_tls_level - parse and cache var_smtp_tls_level */
 
 static int global_tls_level(void)
@@ -811,73 +723,52 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	MARK_INVALID(tls->why, &tls->level);
 	return;
     }
-    /*-
-     * Some senders will want (destination-dependent) mandatory TLS with key
-     * management via DANE.  When TLSA lookups are not possible, use the
-     * locally specified "degraded" levels.
-     *
-     * This is supported via the policy table:
-     *
-     * tls_policy:
-     *
-     *     # If TLSA records vanish, force TLS without verification
-     *     example.com dane notfound_tlsa_level=encrypt
-     *
-     *     # If TLSA records vanish, resort to public CA trust
-     *     example.net dane notfound_tlsa_level=secure
-     *		unusable_tlsa_level=secure match=example.net
-     *
-     * or in isolated cases via global settings:
-     *
-     * main.cf:
-     *     relayhost = [secure.example.com]
-     *     smtp_tls_security_level = dane
-     *     smtp_tls_dane_tlsa_notfound_level = secure
-     *     smtp_tls_dane_tlsa_unusable_level = secure
-     *     smtp_tls_CAfile = /etc/ssl/certs/someCA.pem
-     */
-    if (tls->dane_no_lev == TLS_LEV_NOTFOUND)
-	tls->dane_no_lev = dane_no_level();
-    if (tls->dane_un_lev == TLS_LEV_NOTFOUND)
-	tls->dane_un_lev = dane_un_level();
 
     /*
      * To use DANE security the requisite features must be provided by the
      * OpenSSL (runtime) and DNS resolver (compile-time) libraries. Also,
      * "smtp_host_lookup = dns" and "smtp_dns_support_level = dnssec" are
      * required.
-     * 
-     * If DANE is not available we log a warning and fall back to the security
-     * level for the TLSA records not found case.
-     * 
-     * XXX: We could get the administrator's attention by generating a lookup
-     * failure.  In that case all mail, or mail to some sites will tempfail
-     * and stay in the queue.  This will make it harder to accidentally
-     * deploy insecure configurations, but easier to have no mail going
-     * anywhere, security or ease of use, pick one.
-     * 
-     * XXX: Should there be a parameter controlling this choice?
      */
-#define DANECARP(reason, iter, tls) \
-	msg_warn("%s: %s, the security level for delivery via %s:%u will " \
+#define DANEMSG(msg_func, reason, iter, tls) \
+	msg_func("%s: %s, the security level for delivery via %s:%u will " \
 		 "degrade to \"%s\"", STR((iter)->dest), reason, \
 		 STR((iter)->host), ntohs((iter)->port), \
 		 policy_name((tls)->level))
+#define DANEWARN(reason, iter, tls) DANEMSG(msg_warn, (reason), (iter), (tls))
+
     if (!tls_dane_avail()) {
-	tls->level = tls->dane_no_lev;
-	DANECARP("DANE not available", iter, tls);
+	if (tls->level == TLS_LEV_DANE) {
+	    tls->level = TLS_LEV_MAY;
+	    DANEWARN("DANE not available", iter, tls);
+	} else {
+	    msg_warn("%s: \"%s\" requested without requisite library support",
+		     STR(iter->dest), policy_name(tls->level));
+	    MARK_INVALID(tls->why, &tls->level);
+	}
 	return;
     }
     if (!(smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS)
 	|| smtp_dns_support != SMTP_DNS_DNSSEC) {
-	tls->level = tls->dane_no_lev;
-	DANECARP("DNSSEC hostname lookups not enabled", iter, tls);
+	if (tls->level == TLS_LEV_DANE) {
+	    tls->level = TLS_LEV_MAY;
+	    DANEWARN("DNSSEC hostname lookups not enabled", iter, tls);
+	} else {
+	    msg_warn("%s: \"%s\" requested with dnssec lookups disabled",
+		     STR(iter->dest), policy_name(tls->level));
+	    MARK_INVALID(tls->why, &tls->level);
+	}
 	return;
     }
     if (!valid) {
-	tls->level = tls->dane_no_lev;
-	if (msg_verbose)
-	    DANECARP("non-DNSSEC destination", iter, tls);
+	if (tls->level == TLS_LEV_DANE) {
+	    tls->level = TLS_LEV_MAY;
+	    if (msg_verbose)
+		DANEMSG(msg_info, "non DNSSEC destination", iter, tls);
+	} else {
+	    tls->level = TLS_LEV_INVALID;
+	    dsb_simple(tls->why, "4.7.5", "non DNSSEC destination");
+	}
 	return;
     }
     /* When TLSA lookups fail, we defer the message */
@@ -888,9 +779,15 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	return;
     }
     if (tls_dane_notfound(dane)) {
-	tls->level = tls->dane_no_lev;
-	if (msg_verbose)
-	    DANECARP("no TLSA records found", iter, tls);
+	if (tls->level == TLS_LEV_DANE) {
+	    tls->level = TLS_LEV_MAY;
+	    if (msg_verbose)
+		DANEMSG(msg_info, "no TLSA records found", iter, tls);
+	} else {
+	    tls->level = TLS_LEV_INVALID;
+	    dsb_simple(tls->why, "4.7.5", "no TLSA records found");
+	}
+	tls_dane_free(dane);
 	return;
     }
 
@@ -908,25 +805,27 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
      * given verifier some of the CAs are surely not trustworthy).
      */
     if (tls_dane_unusable(dane)) {
-	tls->level = tls->dane_un_lev;
-	DANECARP("all TLSA records unusable", iter, tls);
+	if (tls->level == TLS_LEV_DANE) {
+	    tls->level = TLS_LEV_ENCRYPT;
+	    if (msg_verbose)
+		DANEWARN("TLSA records unusable", iter, tls);
+	} else {
+	    tls->level = TLS_LEV_INVALID;
+	    dsb_simple(tls->why, "4.7.5", "TLSA records unusable");
+	}
+	tls_dane_free(dane);
 	return;
     }
-    /* Going with DANE. Free up dane-like settings for fallback levels. */
-    if (tls->dane)
-	tls_dane_free(tls->dane);
 
     /*
      * With DANE trust anchors, peername matching is not configurable.
      */
-    if (tls->matchargv)
-	argv_free(tls->matchargv);
     if (TLS_DANE_HASTA(dane)) {
 	tls->matchargv = argv_alloc(2);
 	argv_add(tls->matchargv, "hostname", "nexthop", ARGV_END);
-    } else
-	tls->matchargv = 0;
+    }
     tls->dane = dane;
+    tls->level = TLS_LEV_DANE;
     return;
 }
 
