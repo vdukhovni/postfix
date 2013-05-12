@@ -7407,6 +7407,25 @@ one-letter suffix that specifies the time unit).  Time units: s
 
 </DD>
 
+<DT><b><a name="postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a>
+(default: 0)</b></DT><DD>
+
+<p> Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.  </p>
+
+<p> Specify a negative value to enable this feature. When a client
+passes the <a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a> without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>.
+When a test was already completed, its time-to-live value is updated
+if it was less than <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>. </p>
+
+<p> This feature is available in Postfix 2.11.  </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_enforce_tls">postscreen_enforce_tls</a>
 (default: $<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>)</b></DT><DD>
 

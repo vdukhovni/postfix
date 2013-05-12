@@ -13770,6 +13770,21 @@ parameter. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
+%PARAM postscreen_dnsbl_whitelist_threshold 0
+
+<p> Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.  </p>
+
+<p> Specify a negative value to enable this feature. When a client
+passes the postscreen_dnsbl_whitelist_threshold without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to postscreen_dnsbl_ttl.
+When a test was already completed, its time-to-live value is updated
+if it was less than postscreen_dnsbl_ttl. </p>
+
+<p> This feature is available in Postfix 2.11.  </p>
+
 %PARAM postscreen_command_count_limit 20
 
 <p> The limit on the total number of commands per SMTP session for

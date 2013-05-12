@@ -4459,6 +4459,19 @@ one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_whitelist_threshold (default: 0)
+Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.
+.PP
+Specify a negative value to enable this feature. When a client
+passes the postscreen_dnsbl_whitelist_threshold without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to postscreen_dnsbl_ttl.
+When a test was already completed, its time-to-live value is updated
+if it was less than postscreen_dnsbl_ttl.
+.PP
+This feature is available in Postfix 2.11.
 .SH postscreen_enforce_tls (default: $smtpd_enforce_tls)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption.  See smtpd_postscreen_enforce_tls

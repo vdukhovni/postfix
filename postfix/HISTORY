@@ -18431,3 +18431,13 @@ Apologies for any names omitted.
 	src/qmgr/qmgr_message.c, src/smtpd/smtpd.c,
 	src/smtpd/smtpd_check.c, src/trivial-rewrite/transport.c,
 	src/trivial-rewrite/trivial-rewrite.c.
+
+20130512
+
+	Feature: allow an SMTP client to skip postscreen(8) tests
+	before or after the 220 greeting, based on its DNSBL score.
+	Suggested by Rob McGee (/dev/rob0). Files: mantools/postlink,
+	proto/postconf.proto, global/mail_params.h,
+	postscreen/postscreen.c, postscreen/postscreen.h,
+	postscreen/postscreen_early.c, postscreen/postscreen_state.c,
+	postscreen/postscreen_tests.c.

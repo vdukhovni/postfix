@@ -14,6 +14,17 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Major changes with snapshot 20130512
+====================================
+
+Allow an SMTP client to skip postscreen(8) tests based on its
+postscreen_dnsbl_sites score. 
+
+Specify a negative "postscreen_dnsbl_whitelist_threshold" to enable
+this feature.  When a client passes the threshold value without
+having failed other tests, all pending or disabled tests are flagged
+as completed.
+
 Major changes with snapshot 20130405
 ====================================
 

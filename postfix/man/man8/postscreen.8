@@ -242,6 +242,12 @@ up to 6 seconds otherwise).
 .IP "\fBsmtpd_service_name (smtpd)\fR"
 The internal service that \fBpostscreen\fR(8) hands off allowed
 connections to.
+.PP
+Available in Postfix version 2.11 and later:
+.IP "\fBpostscreen_dnsbl_whitelist_threshold (0)\fR"
+Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.
 .SH "AFTER-GREETING TESTS"
 .na
 .nf
