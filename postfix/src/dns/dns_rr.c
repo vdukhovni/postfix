@@ -303,10 +303,12 @@ DNS_RR *dns_rr_shuffle(DNS_RR *list)
 	rr_array[len] = rr;
 
     /*
-     * Shuffle resource records.
+     * Shuffle resource records. Every element has an equal chance of landing
+     * in slot 0.  After that every remaining element has an equal chance of
+     * landing in slot 1, ...  This is exactly n! states for n! permutations.
      */
-    for (i = 0; i < len; i++) {
-	r = myrand() % len;
+    for (i = 0; i < len - 1; i++) {
+	r = i + (myrand() % (len - i));		/* Victor&Son */
 	rr = rr_array[i];
 	rr_array[i] = rr_array[r];
 	rr_array[r] = rr;

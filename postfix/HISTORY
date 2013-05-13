@@ -18432,6 +18432,32 @@ Apologies for any names omitted.
 	src/smtpd/smtpd_check.c, src/trivial-rewrite/transport.c,
 	src/trivial-rewrite/trivial-rewrite.c.
 
+20130409
+
+	Documentation: pointers to other actions under "ACCEPT
+	ACTIONS" and "REJECT ACTIONS". File: proto/access.
+
+20130410
+
+	Cleanup: more uniform permutation in dns_rr() by Victor
+	Duchovni & Son. File: dns/dns_rr.c.
+
+20130411
+
+	Documentation: clarified text about result formats. Files:
+	proto/canonical, proto/virtual.
+
+20130423
+
+	Bugfix (introduced: Postfix 2.0): when myhostname is not
+	listed in mydestination, the trivial-rewrite resolver may
+	log "do not list <myhostname value> in both mydestination
+	and <name of non-mydestination domain list>".  The fix is
+	to re-resolve a domain-less address after adding $myhostname
+	as the surrogate domain, so that it pops out with the right
+	address-class label.  Problem reported by Quanah Gibson-Mount.
+	File: trivial-rewrite/resolve.c.
+
 20130512
 
 	Feature: allow an SMTP client to skip postscreen(8) tests
@@ -18441,3 +18467,15 @@ Apologies for any names omitted.
 	postscreen/postscreen.c, postscreen/postscreen.h,
 	postscreen/postscreen_early.c, postscreen/postscreen_state.c,
 	postscreen/postscreen_tests.c.
+
+20130513
+
+	Bugfix (introduced: 20130512): postscreen logged no "PASS
+	NEW" event when the pregreet tests were turned off and the
+	postscreen_dnsbl_whitelist_treshold feature was turned on.
+	Reported by Rob McGee (/dev/rob0). Files: postscreen/postscreen.h,
+	postscreen/postscreen_early.c.
+
+	Bugfix (introduced: 20130512): postscreen panic because the
+	logic for dnsbl result retrieval was changed. Reported by
+	Noel Jones. File: postscreen/postscreen_early.c.

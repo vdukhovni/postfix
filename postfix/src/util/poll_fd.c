@@ -27,8 +27,8 @@
 /*	int	true_res;
 /*	int	false_res;
 /* DESCRIPTION
-/*	The functions in this module are macros that provide a
-/*	convenient interface to poll_fd().
+/*	The read*() and write*() functions in this module are macros
+/*	that provide a convenient interface to poll_fd().
 /*
 /*	readable() asks the kernel if the specified file descriptor
 /*	is readable, i.e. a read operation would not block.
@@ -72,8 +72,8 @@
 /*	it is false. They never return an error indication.
 /*
 /*	read_wait() and write_wait() return zero when the requested
-/*	POLL_FD_READ or POLL_FD_WRITE condition is true, -1 with
-/*	errno set to ETIMEDOUT when it is false.
+/*	POLL_FD_READ or POLL_FD_WRITE condition is true, -1 (with
+/*	errno set to ETIMEDOUT) when it is false.
 /*
 /*	poll_fd() returns true_res when the requested POLL_FD_READ
 /*	or POLL_FD_WRITE condition is true, false_res when it is

@@ -30,9 +30,6 @@
 /*	int	expect;
 /*	const char *format;
 /*
-/*	void	smtpd_proxy_disconnect(state)
-/*	SMTPD_STATE *state;
-/*
 /*	void	smtpd_proxy_free(state)
 /*	SMTPD_STATE *state;
 /*
@@ -91,10 +88,6 @@
 /*	error response to avoid support problems.
 /*	In case of error, proxy->cmd() updates the state->error_mask
 /*	and state->err fields.
-/*
-/*	smtpd_proxy_disconnect() disconnects from a proxy server.
-/*	The last proxy server reply or error description remains
-/*	available via the proxy->buffer field.
 /*
 /*	smtpd_proxy_free() destroys a proxy server handle and resets
 /*	the state->proxy field.

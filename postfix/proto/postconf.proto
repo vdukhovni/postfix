@@ -3547,7 +3547,7 @@ recipient_delimiters = +-
 # Use .forward for mail without address extension, and for mail with
 # an unrecognized address extension.
 forward_path = $home/.forward${recipient_delimiter}${extension},
-    $home/.forward,
+    $home/.forward
 </pre>
 
 %PARAM reject_code 554

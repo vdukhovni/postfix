@@ -89,8 +89,8 @@ static void psc_early_event(int event, char *context)
 	/*
 	 * Check if the SMTP client spoke before its turn.
 	 */
-	if ((state->flags & PSC_STATE_MASK_PREGR_TODO_FAIL)
-	    == (state->flags & PSC_STATE_MASK_PREGR_TODO_DONE)) {
+	if ((state->flags & PSC_STATE_FLAG_PREGR_TODO) != 0
+	    && (state->flags & PSC_STATE_MASK_PREGR_FAIL_DONE) == 0) {
 	    state->pregr_stamp = event_time() + var_psc_pregr_ttl;
 	    PSC_PASS_SESSION_STATE(state, "pregreet test",
 				   PSC_STATE_FLAG_PREGR_PASS);
@@ -171,7 +171,8 @@ static void psc_early_event(int event, char *context)
 	if ((read_count = recv(vstream_fileno(state->smtp_client_stream),
 			  read_buf, sizeof(read_buf) - 1, MSG_PEEK)) <= 0) {
 	    /* Avoid memory leak. */
-	    if (state->flags & PSC_STATE_FLAG_DNSBL_TODO)
+	    if (state->dnsbl_score == NO_DNSBL_SCORE
+		&& (state->flags & PSC_STATE_FLAG_DNSBL_TODO))
 		(void) psc_dnsbl_retrieve(state->smtp_client_addr,
 					  &state->dnsbl_name,
 					  state->dnsbl_index);
@@ -188,7 +189,8 @@ static void psc_early_event(int event, char *context)
 	switch (psc_pregr_action) {
 	case PSC_ACT_DROP:
 	    /* Avoid memory leak. */
-	    if (state->flags & PSC_STATE_FLAG_DNSBL_TODO)
+	    if (state->dnsbl_score == NO_DNSBL_SCORE
+		&& (state->flags & PSC_STATE_FLAG_DNSBL_TODO))
 		(void) psc_dnsbl_retrieve(state->smtp_client_addr,
 					  &state->dnsbl_name,
 					  state->dnsbl_index);
