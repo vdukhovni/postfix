@@ -51,6 +51,44 @@
 static char *psc_teaser_greeting;
 static VSTRING *psc_escape_buf;
 
+/* psc_whitelist_non_dnsbl - whitelist pending non-dnsbl tests */
+
+static void psc_whitelist_non_dnsbl(PSC_STATE *state)
+{
+    time_t  now;
+    int     tindx;
+
+    /*
+     * If no tests failed (we can't undo those), and if the whitelist
+     * threshold is met, flag all other pending or disabled tests as
+     * successfully completed, and set their expiration times equal to the
+     * DNSBL expiration time, except for tests that would expire later.
+     */
+    if ((state->flags & PSC_STATE_MASK_ANY_FAIL) == 0
+	&& state->dnsbl_score < var_psc_dnsbl_thresh
+	&& var_psc_dnsbl_wthresh < 0
+	&& state->dnsbl_score <= var_psc_dnsbl_wthresh) {
+	now = event_time();
+	for (tindx = 0; tindx < PSC_TINDX_COUNT; tindx++) {
+	    if (tindx == PSC_TINDX_DNSBL)
+		continue;
+	    if ((state->flags & PSC_STATE_FLAG_BYTINDX_TODO(tindx))
+		&& !(state->flags & PSC_STATE_FLAG_BYTINDX_PASS(tindx))) {
+		if (msg_verbose)
+		    msg_info("skip %s test for [%s]:%s",
+			 psc_test_name(tindx), PSC_CLIENT_ADDR_PORT(state));
+		/* Wrong for deep protocol tests, but we disable those. */
+		state->flags |= PSC_STATE_FLAG_BYTINDX_DONE(tindx);
+		/* This also disables pending deep protocol tests. */
+		state->flags |= PSC_STATE_FLAG_BYTINDX_PASS(tindx);
+	    }
+	    /* Update expiration even if the test was completed or disabled. */
+	    if (state->expire_time[tindx] < now + var_psc_dnsbl_ttl)
+		state->expire_time[tindx] = now + var_psc_dnsbl_ttl;
+	}
+    }
+}
+
 /* psc_early_event - handle pre-greet, EOF, and DNSBL results. */
 
 static void psc_early_event(int event, char *context)
@@ -82,7 +120,8 @@ static void psc_early_event(int event, char *context)
     switch (event) {
 
 	/*
-	 * We reached the end of the early tests time limit.
+	 * We either reached the end of the early tests time limit, or all
+	 * early tests completed before the pregreet timer would go off.
 	 */
     case EVENT_TIME:
 
@@ -102,6 +141,10 @@ static void psc_early_event(int event, char *context)
 	}
 
 	/*
+	 * Collect the DNSBL score, and whitelist other tests if applicable.
+	 * Note: this score will be partial when some DNS lookup did not
+	 * complete before the pregreet timer expired.
+	 * 
 	 * If the client is DNS blocklisted, drop the connection, send the
 	 * client to a dummy protocol engine, or continue to the next test.
 	 */
@@ -110,11 +153,14 @@ static void psc_early_event(int event, char *context)
 #define NO_DNSBL_SCORE	INT_MAX
 
 	if (state->flags & PSC_STATE_FLAG_DNSBL_TODO) {
-	    if (state->dnsbl_score == NO_DNSBL_SCORE)
+	    if (state->dnsbl_score == NO_DNSBL_SCORE) {
 		state->dnsbl_score =
 		    psc_dnsbl_retrieve(state->smtp_client_addr,
 				       &state->dnsbl_name,
 				       state->dnsbl_index);
+		if (var_psc_dnsbl_wthresh < 0)
+		    psc_whitelist_non_dnsbl(state);
+	    }
 	    if (state->dnsbl_score < var_psc_dnsbl_thresh) {
 		state->dnsbl_stamp = event_time() + var_psc_dnsbl_ttl;
 		PSC_PASS_SESSION_STATE(state, "dnsbl test",
@@ -236,44 +282,18 @@ static void psc_early_dnsbl_event(int unused_event, char *context)
 {
     const char *myname = "psc_early_dnsbl_event";
     PSC_STATE *state = (PSC_STATE *) context;
-    time_t  now;
-    int     tindx;
 
     if (msg_verbose)
 	msg_info("%s: notify [%s]:%s", myname, PSC_CLIENT_ADDR_PORT(state));
 
     /*
-     * Collect the DNSBL score. If no tests failed (we can't undo those), and
-     * if the whitelist threshold is met, flag all other pending or disabled
-     * tests as successfully completed, and set their expiration times equal
-     * to the DNSBL expiration time, except for tests that would expire
-     * later.
+     * Collect the DNSBL score, and whitelist other tests if applicable.
      */
     state->dnsbl_score =
 	psc_dnsbl_retrieve(state->smtp_client_addr, &state->dnsbl_name,
 			   state->dnsbl_index);
-    if (var_psc_dnsbl_wthresh < 0
-	&& (state->flags & PSC_STATE_MASK_ANY_FAIL) == 0
-	&& state->dnsbl_score <= var_psc_dnsbl_wthresh) {
-	now = event_time();
-	for (tindx = 0; tindx < PSC_TINDX_COUNT; tindx++) {
-	    if (tindx == PSC_TINDX_DNSBL)
-		continue;
-	    if ((state->flags & PSC_STATE_FLAG_BYTINDX_TODO(tindx))
-		&& !(state->flags & PSC_STATE_FLAG_BYTINDX_PASS(tindx))) {
-		if (msg_verbose)
-		    msg_info("skip %s test for [%s]:%s",
-			 psc_test_name(tindx), PSC_CLIENT_ADDR_PORT(state));
-		/* Wrong for deep protocol tests, but we disable those. */
-		state->flags |= PSC_STATE_FLAG_BYTINDX_DONE(tindx);
-		/* This also disables pending deep protocol tests. */
-		state->flags |= PSC_STATE_FLAG_BYTINDX_PASS(tindx);
-	    }
-	    /* Update expiration even if the test was completed or disabled. */
-	    if (state->expire_time[tindx] < now + var_psc_dnsbl_ttl)
-		state->expire_time[tindx] = now + var_psc_dnsbl_ttl;
-	}
-    }
+    if (var_psc_dnsbl_wthresh < 0)
+	psc_whitelist_non_dnsbl(state);
 
     /*
      * Terminate the greet delay if we're just waiting for DNSBL lookup to

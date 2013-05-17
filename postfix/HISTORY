@@ -18479,3 +18479,11 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20130512): postscreen panic because the
 	logic for dnsbl result retrieval was changed. Reported by
 	Noel Jones. File: postscreen/postscreen_early.c.
+
+20130517
+
+	Cleanup: just like the postscreen DNS block test will use
+	partial scores when some DNS lookup result is unavailable,
+	the postscreen_dnsbl_whitelist_treshold feature will now
+	use partial scores instead of ignoring them.  File:
+	postscreen/postscreen_early.c.
