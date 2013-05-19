@@ -11190,6 +11190,59 @@ Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
 gives timeout errors.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_ssl_options (default: empty)
+List or bit-mask of OpenSSL options to enable.
+.PP
+The OpenSSL toolkit provides a set of options that applications
+can enable to tune the OpenSSL behavior.  Some of these work around
+bugs in other implementations and are on by default.  You can use
+the tls_disable_workarounds parameter to selectively disable some
+or all of the bug work-arounds, making OpenSSL more strict at the
+cost of non-interoperability with SSL clients or servers that exhibit
+the bugs.
+.PP
+Other options are off by default, and typically enable or disable
+features rather than bug work-arounds.  These may be turned on (with
+care) via the tls_ssl_options parameter.  The value is a white-space
+or comma separated list of named options chosen from the list below.
+The names are not case-sensitive, you can use lower-case if you
+prefer.  The upper case values below match the corresponding macro
+name in the ssl.h header file with the SSL_OP_ prefix removed.  It
+is possible that your OpenSSL version includes new options added
+after your Postfix source code was last updated, in that case you
+can only enable one of these via the hexadecimal syntax below.
+.PP
+You should only enable features via the hexadecimal mask when
+the need to control the feature is critical (to deal with a new
+vulnerability or a serious interoperability problem).  Postfix DOES
+NOT promise backwards compatible behavior with respect to the mask
+bits.  A feature enabled via the mask in one release may be enabled
+by other means in a later release, and the mask bit will then be
+ignored.  Therefore, use of the hexadecimal mask is only a temporary
+measure until a new Postfix or OpenSSL release provides a better
+solution.
+.PP
+If the value of the parameter is a hexadecimal long integer
+starting with "0x", the options corresponding to the bits specified
+in its value are enabled (see openssl/ssl.h and SSL_CTX_\fBset_options\fR(3)).
+You can only enable options not already controlled by other Postfix
+settings.  For example, you cannot disable protocols or enable
+server cipher preference.  Do not attempt to turn all features by
+specifying 0xFFFFFFFF, this is unlikely to be a good idea.
+.IP "\fBLEGACY_SERVER_CONNECT\fR"
+See SSL_CTX_\fBset_options\fR(3).
+.br
+.IP "\fBNO_TICKET\fR"
+See SSL_CTX_\fBset_options\fR(3).
+.br
+.IP "\fBNO_COMPRESSION\fR"
+Disable SSL compression even if
+supported by the OpenSSL library.  Compression is CPU-intensive,
+and compression before encryption does not always improve security.
+.br
+.br
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH tlsproxy_enforce_tls (default: $smtpd_enforce_tls)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption. See smtpd_enforce_tls for

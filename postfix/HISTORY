@@ -18557,3 +18557,26 @@ Apologies for any names omitted.
 	posttls-finger/posttls-finger.c, smtp/lmtp_params.c,
 	smtp/smtp.c, smtp/smtp.h, smtp/smtp_params.c,
 	smtp/smtp_tls_policy.c, tls/tls.h, tls/tls_level.c.
+
+20130518
+
+	Feature: posttls-finger protocol and cipher grade selection
+	options.  Leave protocol debug flags active across reconnects,
+	only suppress redundant logging of the certificate details.
+	Viktor Dukhovni. File: posttls-finger/posttls-finger.c.
+
+	Robustness: send SNI even when trying to reuse a DANE
+	session, because a new session may be negotiated anyway.
+	Viktor Dukhovni. File: tls/tls_client.c.
+
+	Cleanup: eliminate variable that is redundant with respect
+	to more authoritative state.  Viktor Dukhovni. File:
+	posttls-finger/posttls-finger.c.
+
+	Feature: new tls_ssl_options parameter to enable OpenSSL
+	features (as opposed to tls_disable_workarounds which is
+	disables bug workarounds that are on by default). Viktor
+	Dukhovni. Files: proto/TLS_README.html, proto/postconf.proto,
+	src/global/mail_params.h, src/tls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_misc.c.
+

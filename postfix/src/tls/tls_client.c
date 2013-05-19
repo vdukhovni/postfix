@@ -853,12 +853,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * Apply session protocol restrictions.
      */
     if (protomask != 0)
-	SSL_set_options(TLScontext->con,
-		   ((protomask & TLS_PROTOCOL_TLSv1) ? SSL_OP_NO_TLSv1 : 0L)
-	     | ((protomask & TLS_PROTOCOL_TLSv1_1) ? SSL_OP_NO_TLSv1_1 : 0L)
-	     | ((protomask & TLS_PROTOCOL_TLSv1_2) ? SSL_OP_NO_TLSv1_2 : 0L)
-		 | ((protomask & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L)
-	       | ((protomask & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L));
+	SSL_set_options(TLScontext->con, TLS_SSL_OP_PROTOMASK(protomask));
 
     /*
      * XXX To avoid memory leaks we must always call SSL_SESSION_free() after
@@ -873,13 +868,12 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	}
     }
 #ifdef TLSEXT_MAXLEN_host_name
-    if (session == 0
-	&& props->tls_level == TLS_LEV_DANE
+    if (props->tls_level == TLS_LEV_DANE
 	&& strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
 
 	/*
-	 * With new DANE sessions, send an SNI hint.  We don't care whether
-	 * the server reports finding a matching certificate or not, so no
+	 * With DANE sessions, send an SNI hint.  We don't care whether the
+	 * server reports finding a matching certificate or not, so no
 	 * callback is required to process the server response.  Our use of
 	 * SNI is limited to giving servers that are (mis)configured to use
 	 * SNI the best opportunity to find the certificate they promised via

@@ -295,9 +295,22 @@ extern void tls_param_init(void);
 #undef  SSL_OP_NO_TLSv1_2
 #define SSL_OP_NO_TLSv1_2	0L	/* Noop */
 #endif
-#define TLS_KNOWN_PROTOCOLS	\
+#define TLS_KNOWN_PROTOCOLS \
 	( TLS_PROTOCOL_SSLv2 | TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_TLSv1 \
 	   | TLS_PROTOCOL_TLSv1_1 | TLS_PROTOCOL_TLSv1_2 )
+#define TLS_SSL_OP_PROTOMASK(m) \
+	    ((((m) & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L) \
+	     | (((m) & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L) \
+	     | (((m) & TLS_PROTOCOL_TLSv1) ? SSL_OP_NO_TLSv1 : 0L) \
+	     | (((m) & TLS_PROTOCOL_TLSv1_1) ? SSL_OP_NO_TLSv1_1 : 0L) \
+	     | (((m) & TLS_PROTOCOL_TLSv1_2) ? SSL_OP_NO_TLSv1_2 : 0L))
+
+/*
+ * SSL options that are managed via dedicated Postfix features, rather than
+ * just exposed via hex codes or named elements of tls_ssl_options.
+ */
+#define TLS_SSL_OP_MANAGED_BITS \
+	(SSL_OP_CIPHER_SERVER_PREFERENCE | TLS_SSL_OP_PROTOMASK(~0))
 
 extern int tls_protocol_mask(const char *);
 

@@ -105,6 +105,9 @@
 /*	The PEM formatted CAfile for remote SMTP server certificate
 /*	verification.  By default no CAfile is used and no public CAs
 /*	are trusted.
+/* .IP "\fB-g \fIgrade\fR (default: medium)"
+/*	The minimum TLS cipher grade used by posttls-finger.  See
+/*	smtp_tls_mandatory_ciphers for details.
 /* .IP "\fB-h \fIhost_lookup\fR (default: \fBdns\fR)"
 /*	The hostname lookup methods used for the connection.  See the
 /*	documentation of smtp_host_lookup for syntax and semantics.
@@ -179,8 +182,9 @@
 /*	peercert..cache and more.
 /* .RE
 /* .IP
-/*	The default is \fBroutine,certmatch\fR. After a reconnect, the log
-/*	level is unconditionally \fBroutine,cache\fR.
+/*	The default is \fBroutine,certmatch\fR. After a reconnect,
+/*	\fBpeercert\fR, \fBcertmatch\fR and \fBverbose\fR are automatically
+/*	disabled while \fBcache\fR and \fBsummary\fR are enabled.
 /* .IP "\fB-m \fIcount\fR (default: \fB5\fR)"
 /*	When the \fB-r \fIdelay\fR option is specified, the \fB-m\fR option
 /*	determines the maximum number of reconnect attempts to use with
@@ -194,6 +198,9 @@
 /*	parameter \fIname\fR with \fIvalue\fR.  Possible use-cases include
 /*	overriding the values of TLS library parameters, or "myhostname" to
 /*	configure the SMTP EHLO name sent to the remote server.
+/* .IP "\fB-p \fIprotocols\fR (default: !SSLv2)"
+/*	List of TLS protocols that posttls-finger will exclude or include.  See
+/*	smtp_tls_mandatory_protocols for details.
 /* .IP "\fB-P \fICApath/\fR (default: none)"
 /*	The OpenSSL CApath/ directory (indexed via c_rehash(1)) for remote
 /*	SMTP server certificate verification.  By default no CApath is used
@@ -418,6 +425,8 @@ typedef struct STATE {
     TLS_SESS_STATE *tls_context;	/* Session TLS context */
     TLS_DANE *dane;			/* DANE TLSA validation structure */
     TLS_DANE *ddane;			/* DANE TLSA from DNS */
+    char     *grade;			/* Minimum cipher grade */
+    char     *protocols;		/* Protocol inclusion/exclusion */
 #endif
     OPTIONS options;			/* JCL */
 } STATE;
@@ -667,8 +676,8 @@ static int starttls(STATE *state)
 			 namaddr = state->namaddrport,
 			 serverid = STR(serverid),
 			 helo = state->helo ? state->helo : "",
-			 protocols = "!SSLv2",	/* XXX */
-			 cipher_grade = "medium",	/* XXX */
+			 protocols = state->protocols,
+			 cipher_grade = state->grade,
 			 cipher_exclusions
 			 = vstring_str(cipher_exclusions),
 			 matchargv = state->match,
@@ -693,7 +702,9 @@ static int starttls(STATE *state)
 	    msg_info("Server is anonymous");
 	else if (state->print_trust)
 	    print_trust_info(state);
-	state->log_mask = TLS_LOG_SUMMARY | TLS_LOG_CACHE;
+	state->log_mask &= ~(TLS_LOG_CERTMATCH | TLS_LOG_PEERCERT |
+			     TLS_LOG_VERBOSE | TLS_LOG_UNTRUSTED);
+	state->log_mask |= TLS_LOG_CACHE | TLS_LOG_SUMMARY;
 	tls_update_app_logmask(state->tls_ctx, state->log_mask);
     }
     return (0);
@@ -1127,7 +1138,7 @@ static DNS_RR *host_addr(STATE *state, const char *host)
 
 /* dane_host_level - canidate host "dane" or degraded security level */
 
-static int dane_host_level(STATE *state, DNS_RR *addr, unsigned port)
+static int dane_host_level(STATE *state, DNS_RR *addr)
 {
     int     level = state->level;
 
@@ -1144,11 +1155,11 @@ static int dane_host_level(STATE *state, DNS_RR *addr, unsigned port)
 		tls_dane_free(state->ddane);
 
 	    /* When TLSA lookups fail, next host */
-	    state->ddane = tls_dane_resolve(HNAME(addr), "tcp", port);
+	    state->ddane = tls_dane_resolve(HNAME(addr), "tcp", state->port);
 	    if (!state->ddane) {
 		dsb_simple(state->why, "4.7.5",
 			   "TLSA lookup error for %s:%u",
-			   HNAME(addr), ntohs(port));
+			   HNAME(addr), ntohs(state->port));
 		return (TLS_LEV_INVALID);
 	    }
 	    /* If unusable or not found, same fallback to "secure" */
@@ -1222,12 +1233,11 @@ static void connect_remote(STATE *state, char *dest)
     DNS_RR *addr;
     char   *buf;
     char   *domain;
-    unsigned port;
 
     /* When reconnecting use IP address of previous session */
     if (state->addr == 0) {
 	buf = parse_destination(dest, state->smtp ? "smtp" : "24",
-				&domain, &port);
+				&domain, &state->port);
 	if (!state->nexthop)
 	    state->nexthop = mystrdup(domain);
 	if (state->smtp == 0 || *dest == '[')
@@ -1241,10 +1251,9 @@ static void connect_remote(STATE *state, char *dest)
 		     vstring_str(state->why->reason));
 	    return;
 	}
-	state->port = port;
     }
     for (addr = state->addr; addr; addr = addr->next) {
-	int     level = dane_host_level(state, addr, port);
+	int     level = dane_host_level(state, addr);
 
 	if (level == TLS_LEV_INVALID
 	    || (state->stream = connect_addr(state, addr)) == 0) {
@@ -1440,6 +1449,8 @@ static void cleanup(STATE *state)
     tls_dane_flush();
     /* Flush and free memory tlsmgr cache */
     tlsmgrmem_flush();
+    myfree(state->grade);
+    myfree(state->protocols);
 #endif
     myfree(state->options.host_lookup);
     myfree(state->dest);
@@ -1453,7 +1464,7 @@ static void usage(void)
 {
 #ifdef USE_TLS
     fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s destination [match ...]\n",
-	    var_procname, "[-acCStTv] [-d mdalg] [-F CAfile.pem]",
+	    var_procname, "[-acCStTv] [-d mdalg] [-g grade] [-p protocols] [-F CAfile.pem]",
 	    "[-h host_lookup] [-l level] [-L logopts] [-m count]",
 	    "[-o name=value] [-P CApath/] [-r delay]");
 #else
@@ -1515,12 +1526,16 @@ static void parse_options(STATE *state, int argc, char *argv[])
     state->pass = 1;
     state->reconnect = -1;
     state->max_reconnect = 5;
+#ifdef USE_TLS
+    state->protocols = mystrdup("!SSLv2");
+    state->grade = mystrdup("medium");
+#endif
     memset((char *) &state->options, 0, sizeof(state->options));
     state->options.host_lookup = mystrdup("dns");
 
 #define OPTS "a:ch:o:St:T:v"
 #ifdef USE_TLS
-#define TLSOPTS "A:Cd:F:l:L:m:P:r:"
+#define TLSOPTS "A:Cd:F:g:l:L:m:p:P:r:"
 
     state->mdalg = mystrdup("sha1");
     state->CApath = mystrdup("");
@@ -1578,6 +1593,10 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	    myfree(state->CAfile);
 	    state->CAfile = mystrdup(optarg);
 	    break;
+	case 'g':
+	    myfree(state->grade);
+	    state->grade = mystrdup(optarg);
+	    break;
 	case 'l':
 	    if (state->options.level)
 		myfree(state->options.level);
@@ -1590,6 +1609,10 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	    break;
 	case 'm':
 	    state->max_reconnect = atoi(optarg);
+	    break;
+	case 'p':
+	    myfree(state->protocols);
+	    state->protocols = mystrdup(optarg);
 	    break;
 	case 'P':
 	    myfree(state->CApath);

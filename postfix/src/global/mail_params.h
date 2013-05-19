@@ -3065,6 +3065,10 @@ extern bool var_tls_preempt_clist;
 #define DEF_TLS_BUG_TWEAKS	TLS_BUG_TWEAKS
 extern char *var_tls_bug_tweaks;
 
+#define VAR_TLS_SSL_OPTIONS	"tls_ssl_options"
+#define DEF_TLS_SSL_OPTIONS	""
+extern char *var_tls_ssl_options;
+
 #define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
 #define DEF_TLS_BC_PKEY_FPRINT	0
 extern bool var_tls_bc_pkey_fprint;
