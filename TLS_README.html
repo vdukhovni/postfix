@@ -931,15 +931,48 @@ an OpenSSL library that could be vulnerable. </p>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> = 0xFFFFFFFF
-    <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> = CVE-2010-4180, LEGACY_SERVER_CONNECT
+    <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> = CVE-2010-4180
 </pre>
 </blockquote>
 
-<p> Note: Disabling LEGACY_SERVER_CONNECT is not wise at this
-time, lots of servers are still unpatched and Postfix is <a
-href="http://www.postfix.org/wip.html#tls-renegotiation">not
-significantly vulnerable</a> to the renegotiation issue in the TLS
-protocol. </p>
+<p> With Postfix &ge; 2.11, the tls_ssl_options parameter specifies
+a list or bit-mask of OpenSSL options to enable.  Specify one or
+more of the named options below, or a hexadecimal bitmask of options
+found in the ssl.h file corresponding to the run-time OpenSSL
+library.  While it may be reasonable to turn off all bug workarounds
+(see above), it is not a good idea to attempt to turn on all features.
+</p>
+
+<dl>
+
+<dt><b>LEGACY_SERVER_CONNECT</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
+
+<dt><b>NO_TICKET</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
+
+<dt><b>NO_COMPRESSION</b></dt> <dd>Disable SSL compression even if
+supported by the OpenSSL library.  Compression is CPU-intensive,
+and compression before encryption does not always improve security.  </dd>
+
+</dl>
+
+<p> Example: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    tls_ssl_options = no_ticket, no_compression
+</pre>
+</blockquote>
+
+<p> You should only enable features via the hexadecimal mask when
+the need to control the feature is critical (to deal with a new
+vulnerability or a serious interoperability problem).  Postfix DOES
+NOT promise backwards compatible behavior with respect to the mask
+bits.  A feature enabled via the mask in one release may be enabled
+by other means in a later release, and the mask bit will then be
+ignored.  Therefore, use of the hexadecimal mask is only a temporary
+measure until a new Postfix or OpenSSL release provides a better
+solution.  </p>
 
 <h2> <a name="client_tls">SMTP Client specific settings</a> </h2>
 
@@ -2434,6 +2467,64 @@ defers delivery if no alternative server is available. </p>
     <a href="postconf.5.html#smtp_starttls_timeout">smtp_starttls_timeout</a> = 300s
 </pre>
 </blockquote>
+
+<p> With Postfix 2.8 and later, the <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> parameter
+specifies a list or bit-mask of OpenSSL bug work-arounds to disable. This
+may be necessary if one of the work-arounds enabled by default in
+OpenSSL proves to pose a security risk, or introduces an unexpected
+interoperability issue. Some bug work-arounds known to be problematic
+are disabled in the default value of the parameter when linked with
+an OpenSSL library that could be vulnerable. </p>
+
+<p> Example: </p>
+ 
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> = 0xFFFFFFFF
+    <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> = CVE-2010-4180, LEGACY_SERVER_CONNECT
+</pre>
+</blockquote>
+
+<p> Note: Disabling LEGACY_SERVER_CONNECT is not wise at this
+time, lots of servers are still unpatched and Postfix is <a
+href="http://www.postfix.org/wip.html#tls-renegotiation">not
+significantly vulnerable</a> to the renegotiation issue in the TLS
+protocol. </p>
+
+<p> With Postfix &ge; 2.11, the tls_ssl_options parameter specifies
+a list or bit-mask of OpenSSL options to enable.  Specify one or
+more of the named options below, or a hexadecimal bitmask of options
+found in the ssl.h file corresponding to the run-time OpenSSL
+library.  While it may be reasonable to turn off all bug workarounds
+(see above), it is not a good idea to attempt to turn on all features.
+</p>
+
+<p> A future version of OpenSSL may by default no longer allow
+connections to servers that don't support secure renegotiation.
+Since the exposure for SMTP is minimal, and some SMTP servers may
+remain unpatched, you can add LEGACY_SERVER_CONNECT to the
+options to restore the more permissive default of current OpenSSL
+releases.  </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    tls_ssl_options = NO_TICKET, NO_COMPRESSION, LEGACY_SERVER_CONNECT
+</pre>
+</blockquote>
+
+<p> You should only enable features via the hexadecimal mask when
+the need to control the feature is critical (to deal with a new
+vulnerability or a serious interoperability problem).  Postfix DOES
+NOT promise backwards compatible behavior with respect to the mask
+bits.  A feature enabled via the mask in one release may be enabled
+by other means in a later release, and the mask bit will then be
+ignored.  Therefore, use of the hexadecimal mask is only a temporary
+measure until a new Postfix or OpenSSL release provides a better
+solution.  </p>
 
 <h2><a name="tlsmgr_controls"> TLS manager specific settings </a> </h2>
 
