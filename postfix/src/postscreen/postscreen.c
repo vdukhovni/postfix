@@ -214,6 +214,12 @@
 /* .IP "\fBsmtpd_service_name (smtpd)\fR"
 /*	The internal service that \fBpostscreen\fR(8) hands off allowed
 /*	connections to.
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBpostscreen_dnsbl_whitelist_threshold (0)\fR"
+/*	Allow a remote SMTP client to skip "before" and "after 220
+/*	greeting" protocol tests, based on its combined DNSBL score as
+/*	defined with the postscreen_dnsbl_sites parameter.
 /* AFTER-GREETING TESTS
 /* .ad
 /* .fi
@@ -465,6 +471,7 @@ int     var_psc_pregr_ttl;
 char   *var_psc_dnsbl_sites;
 char   *var_psc_dnsbl_reply;
 int     var_psc_dnsbl_thresh;
+int     var_psc_dnsbl_wthresh;
 char   *var_psc_dnsbl_action;
 int     var_psc_dnsbl_ttl;
 
@@ -1095,6 +1102,7 @@ int     main(int argc, char **argv)
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
 	VAR_PSC_DNSBL_THRESH, DEF_PSC_DNSBL_THRESH, &var_psc_dnsbl_thresh, 0, 0,
+	VAR_PSC_DNSBL_WTHRESH, DEF_PSC_DNSBL_WTHRESH, &var_psc_dnsbl_wthresh, 0, 0,
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	0,

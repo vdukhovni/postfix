@@ -158,7 +158,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <vstring.h>
-#include <events.h>		/* event_time() */
+#include <events.h>			/* event_time() */
 #include <timecmp.h>
 #include <ctable.h>
 
@@ -201,22 +201,22 @@ static CTABLE *dane_cache;
 
 /* tls_dane_verbose - enable/disable verbose logging */
 
-void	tls_dane_verbose(int on)
+void    tls_dane_verbose(int on)
 {
     dane_verbose = on;
 }
 
 /* tls_dane_avail - check for availability of dane required digests */
 
-int	tls_dane_avail(void)
+int     tls_dane_avail(void)
 {
-#ifdef TLSEXT_MAXLEN_host_name			/* DANE mandates client SNI. */
+#ifdef TLSEXT_MAXLEN_host_name		/* DANE mandates client SNI. */
     static int avail = -1;
     const EVP_MD *sha256md;
     const EVP_MD *sha512md;
     static NAME_MASK ta_dgsts[] = {
-	TLS_DANE_CC,	TLS_DANE_ENABLE_CC,
-	TLS_DANE_TAA,	TLS_DANE_ENABLE_TAA,
+	TLS_DANE_CC, TLS_DANE_ENABLE_CC,
+	TLS_DANE_TAA, TLS_DANE_ENABLE_TAA,
 	0,
     };
 
@@ -239,13 +239,13 @@ int	tls_dane_avail(void)
 
     return (avail = 1);
 #else
-    return (0);
+            return (0);
 #endif
 }
 
 /* tls_dane_flush - flush the cache */
 
-void	tls_dane_flush(void)
+void    tls_dane_flush(void)
 {
     if (dane_cache)
 	ctable_free(dane_cache);
@@ -256,7 +256,7 @@ void	tls_dane_flush(void)
 
 TLS_DANE *tls_dane_alloc(int flags)
 {
-    TLS_DANE *dane = (TLS_DANE *)mymalloc(sizeof(*dane));
+    TLS_DANE *dane = (TLS_DANE *) mymalloc(sizeof(*dane));
 
     dane->ta = 0;
     dane->ee = 0;
@@ -270,7 +270,7 @@ TLS_DANE *tls_dane_alloc(int flags)
 
 static void ta_cert_insert(TLS_DANE *d, X509 *x)
 {
-    TLS_CERTS *new = (TLS_CERTS *)mymalloc(sizeof(*new));
+    TLS_CERTS *new = (TLS_CERTS *) mymalloc(sizeof(*new));
 
     CRYPTO_add(&x->references, 1, CRYPTO_LOCK_X509);
     new->cert = x;
@@ -286,13 +286,13 @@ static void free_ta_certs(TLS_DANE *d)
     for (head = d->certs; head; head = next) {
 	next = head->next;
 	X509_free(head->cert);
-	myfree((char *)head);
+	myfree((char *) head);
     }
 }
 
 static void ta_pkey_insert(TLS_DANE *d, EVP_PKEY *k)
 {
-    TLS_PKEYS *new = (TLS_PKEYS *)mymalloc(sizeof(*new));
+    TLS_PKEYS *new = (TLS_PKEYS *) mymalloc(sizeof(*new));
 
     CRYPTO_add(&k->references, 1, CRYPTO_LOCK_EVP_PKEY);
     new->pkey = k;
@@ -308,7 +308,7 @@ static void free_ta_pkeys(TLS_DANE *d)
     for (head = d->pkeys; head; head = next) {
 	next = head->next;
 	EVP_PKEY_free(head->pkey);
-	myfree((char *)head);
+	myfree((char *) head);
     }
 }
 
@@ -320,12 +320,12 @@ static void tlsa_free(TLS_TLSA *tlsa)
 	argv_free(tlsa->certs);
     if (tlsa->pkeys)
 	argv_free(tlsa->pkeys);
-    myfree((char *)tlsa);
+    myfree((char *) tlsa);
 }
 
 /* tls_dane_free - free a TLS_DANE structure */
 
-void	tls_dane_free(TLS_DANE *dane)
+void    tls_dane_free(TLS_DANE *dane)
 {
     TLS_TLSA *tlsa;
     TLS_TLSA *next;
@@ -347,14 +347,14 @@ void	tls_dane_free(TLS_DANE *dane)
     free_ta_certs(dane);
     free_ta_pkeys(dane);
 
-    myfree((char *)dane);
+    myfree((char *) dane);
 }
 
 /* dane_free - ctable style */
 
 static void dane_free(void *dane, void *unused_context)
 {
-    tls_dane_free((TLS_DANE *)dane);
+    tls_dane_free((TLS_DANE *) dane);
 }
 
 /* tlsa_sort - sort digests for a single certusage */
@@ -373,6 +373,7 @@ static void tlsa_sort(TLS_TLSA *tlsa)
 
 TLS_DANE *tls_dane_final(TLS_DANE *dane)
 {
+
     /*
      * We only sort the trust anchors, see tls_serverid_digest().
      */
@@ -390,8 +391,8 @@ static TLS_TLSA **dane_locate(TLS_TLSA **tlsap, const char *mdalg)
 
     /*
      * Correct computation of the session cache serverid requires a TLSA
-     * digest list that is sorted by algorithm name.  Below we maintain
-     * the sort order (by algorithm name canonicalized to lowercase).
+     * digest list that is sorted by algorithm name.  Below we maintain the
+     * sort order (by algorithm name canonicalized to lowercase).
      */
     for (; *tlsap; tlsap = &(*tlsap)->next) {
 	int     cmp = strcasecmp(mdalg, (*tlsap)->mdalg);
@@ -402,7 +403,7 @@ static TLS_TLSA **dane_locate(TLS_TLSA **tlsap, const char *mdalg)
 	    break;
     }
 
-    new = (TLS_TLSA *)mymalloc(sizeof(*new));
+    new = (TLS_TLSA *) mymalloc(sizeof(*new));
     new->mdalg = lowercase(mystrdup(mdalg));
     new->certs = 0;
     new->pkeys = 0;
@@ -414,8 +415,8 @@ static TLS_TLSA **dane_locate(TLS_TLSA **tlsap, const char *mdalg)
 
 /* tls_dane_split - split and append digests */
 
-void tls_dane_split(TLS_DANE *dane, int certusage, int selector,
-		    const char *mdalg, const char *digest, const char *delim)
+void    tls_dane_split(TLS_DANE *dane, int certusage, int selector,
+	           const char *mdalg, const char *digest, const char *delim)
 {
     TLS_TLSA **tlsap;
     TLS_TLSA *tlsa;
@@ -450,7 +451,7 @@ void tls_dane_split(TLS_DANE *dane, int certusage, int selector,
 /* dane_add - add a digest entry */
 
 static void dane_add(TLS_DANE *dane, int certusage, int selector,
-		     const char *mdalg, char *digest)
+		             const char *mdalg, char *digest)
 {
     TLS_TLSA **tlsap;
     TLS_TLSA *tlsa;
@@ -462,11 +463,11 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     switch (certusage) {
     case DNS_TLSA_USAGE_CA_CONSTRAINT:
     case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-	certusage = TLS_DANE_TA;	/* Collapse 0/2 -> 2 */
+	certusage = TLS_DANE_TA;		/* Collapse 0/2 -> 2 */
 	break;
     case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
     case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
-	certusage = TLS_DANE_EE;	/* Collapse 1/3 -> 3 */
+	certusage = TLS_DANE_EE;		/* Collapse 1/3 -> 3 */
 	break;
     }
 
@@ -498,18 +499,18 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
     uint8_t mtype;
     int     mlen;
     const unsigned char *p;
-    X509   *x = 0;		/* OpenSSL tries to re-use *x if x!=0 */
-    EVP_PKEY *k = 0;		/* OpenSSL tries to re-use *k if k!=0 */
+    X509   *x = 0;			/* OpenSSL tries to re-use *x if x!=0 */
+    EVP_PKEY *k = 0;			/* OpenSSL tries to re-use *k if k!=0 */
 
     if (rr == 0)
 	msg_panic("null TLSA rr");
 
-    for (/* nop */; rr; rr = rr->next) {
+    for ( /* nop */ ; rr; rr = rr->next) {
 	const char *mdalg = 0;
 	int     mdlen;
 	char   *digest;
 	int     same = (strcasecmp(rr->rname, rr->qname) == 0);
-	uint8_t *ip = (uint8_t *)rr->data;
+	uint8_t *ip = (uint8_t *) rr->data;
 
 #define rcname(rr) (same ? "" : rr->qname)
 #define rarrow(rr) (same ? "" : " -> ")
@@ -521,10 +522,9 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 	/* Skip malformed */
 	if ((mlen = rr->data_len - 3) < 0) {
 	    msg_warn("truncated length %u RR: %s%s%s IN TLSA ...",
-		     (unsigned)rr->data_len, rcname(rr), rarrow(rr), rr->rname);
+		(unsigned) rr->data_len, rcname(rr), rarrow(rr), rr->rname);
 	    continue;
 	}
-
 	switch (usage = *ip++) {
 	default:
 	    msg_warn("unsupported certificate usage %u in RR: "
@@ -594,11 +594,11 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 		break;
 	    }
 	    dane_add(dane, usage, selector, mdalg,
-		     digest = tls_digest_encode((unsigned char *)ip, mdlen));
+		   digest = tls_digest_encode((unsigned char *) ip, mdlen));
 	    break;
 
 	case DNS_TLSA_MATCHING_TYPE_NO_HASH_USED:
-	    p = (unsigned char *)ip;
+	    p = (unsigned char *) ip;
 
 	    /* Validate the cert or public key via d2i_mumble() */
 	    switch (selector) {
@@ -610,13 +610,14 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 			     usage, selector, mtype);
 		    continue;
 		}
+
 		/*
 		 * When a full trust-anchor certificate is published via DNS,
 		 * we may need to use it to validate the server trust chain.
-		 * Store it away for later use.  We collapse certificate usage
-		 * 0/2 because MTAs don't stock a complete list of the usual
-		 * browser-trusted CAs.  Thus, here (and in the public key
-		 * case below) we treat the usages identically.
+		 * Store it away for later use.  We collapse certificate
+		 * usage 0/2 because MTAs don't stock a complete list of the
+		 * usual browser-trusted CAs.  Thus, here (and in the public
+		 * key case below) we treat the usages identically.
 		 */
 		switch (usage) {
 		case DNS_TLSA_USAGE_CA_CONSTRAINT:
@@ -644,12 +645,13 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 		EVP_PKEY_free(k);
 		break;
 	    }
+
 	    /*
-	     * The cert or key was valid, just digest the raw object,
-	     * and encode the digest value.  We choose SHA256.
+	     * The cert or key was valid, just digest the raw object, and
+	     * encode the digest value.  We choose SHA256.
 	     */
 	    dane_add(dane, usage, selector, sha256,
-		     digest = tls_data_fprint((char *)ip, mlen, sha256));
+		     digest = tls_data_fprint((char *) ip, mlen, sha256));
 	    break;
 	}
 	if (msg_verbose || dane_verbose)
@@ -705,13 +707,13 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 	break;
     }
 
-    return ((void *)tls_dane_final(dane));
+    return ((void *) tls_dane_final(dane));
 }
 
 /* tls_dane_resolve - cached map: (host, proto, port) -> TLS_DANE */
 
 TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
-				 unsigned port)
+			           unsigned port)
 {
     static VSTRING *qname;
     TLS_DANE *dane;
@@ -725,9 +727,9 @@ TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
     if (qname == 0)
 	qname = vstring_alloc(64);
     vstring_sprintf(qname, "_%u._%s.%s", ntohs(port), proto, host);
-    dane = (TLS_DANE *)ctable_locate(dane_cache, STR(qname));
+    dane = (TLS_DANE *) ctable_locate(dane_cache, STR(qname));
     if (timecmp(event_time(), dane->expires) > 0)
-	dane = (TLS_DANE *)ctable_refresh(dane_cache, STR(qname));
+	dane = (TLS_DANE *) ctable_refresh(dane_cache, STR(qname));
 
     if (dane->flags & TLS_DANE_FLAG_ERROR)
 	return (0);
@@ -738,7 +740,7 @@ TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
 
 /* tls_dane_load_trustfile - load trust anchor certs or keys from file */
 
-int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
+int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 {
     BIO    *bp;
     char   *name = 0;
@@ -746,22 +748,22 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     unsigned char *data = 0;
     long    len;
     int     tacount;
-    char   *errtype = 0;			/* if error: cert or pkey? */
+    char   *errtype = 0;		/* if error: cert or pkey? */
 
     /* nop */
     if (tafile == 0 || *tafile == 0)
 	return (1);
 
     /*
-     * On each call, PEM_read() wraps a stdio file in a BIO_NOCLOSE bio, calls
-     * PEM_read_bio() and then frees the bio.  It is just as easy to open a
-     * BIO as a stdio file, so we use BIOs and call PEM_read_bio() directly.
+     * On each call, PEM_read() wraps a stdio file in a BIO_NOCLOSE bio,
+     * calls PEM_read_bio() and then frees the bio.  It is just as easy to
+     * open a BIO as a stdio file, so we use BIOs and call PEM_read_bio()
+     * directly.
      */
     if ((bp = BIO_new_file(tafile, "r")) == NULL) {
 	msg_warn("error opening trust anchor file: %s: %m", tafile);
 	return (0);
     }
-
     /* Don't report old news */
     ERR_clear_error();
 
@@ -779,7 +781,7 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 
 	    if (cert && (p - data) == len) {
 		selector = DNS_TLSA_SELECTOR_FULL_CERTIFICATE;
-		digest = tls_data_fprint((char *)data, len, sha256);
+		digest = tls_data_fprint((char *) data, len, sha256);
 		dane_add(dane, usage, selector, sha256, digest);
 		myfree(digest);
 		ta_cert_insert(dane, cert);
@@ -792,7 +794,7 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 
 	    if (pkey && (p - data) == len) {
 		selector = DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO;
-		digest = tls_data_fprint((char *)data, len, sha256);
+		digest = tls_data_fprint((char *) data, len, sha256);
 		dane_add(dane, usage, selector, sha256, digest);
 		myfree(digest);
 		ta_pkey_insert(dane, pkey);
@@ -817,13 +819,11 @@ int	tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 		 tafile, errtype);
 	return (0);
     }
-
     if (ERR_GET_REASON(ERR_peek_last_error()) == PEM_R_NO_START_LINE) {
 	/* Reached end of PEM file */
 	ERR_clear_error();
 	return (tacount > 0);
     }
-
     /* Some other PEM read error */
     tls_print_errors();
     return (0);

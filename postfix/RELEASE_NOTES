@@ -14,6 +14,30 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Major changes with snapshot 20130512
+====================================
+
+Allow an SMTP client to skip postscreen(8) tests based on its
+postscreen_dnsbl_sites score. 
+
+Specify a negative "postscreen_dnsbl_whitelist_threshold" to enable
+this feature.  When a client passes the threshold value without
+having failed other tests, all pending or disabled tests are flagged
+as completed.
+
+Major changes with snapshot 20130405
+====================================
+
+The recipient_delimiter parameter can now specify a set of characters.
+A user name is now separated from its address extension by the first
+character that matches the recipient_delimiter set.
+
+For example, specify "recipient_delimiter = +-" to support both the
+Postfix-style "+" and the qmail-style "-" extension delimiter.  
+
+As before, this implementation recognizes one delimiter character
+per email address, and one address extension per email address.
+
 Major changes with snapshot 20130319
 ====================================
 

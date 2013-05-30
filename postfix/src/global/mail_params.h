@@ -3374,6 +3374,10 @@ extern char *var_psc_dnsbl_sites;
 #define DEF_PSC_DNSBL_THRESH	1
 extern int var_psc_dnsbl_thresh;
 
+#define VAR_PSC_DNSBL_WTHRESH	"postscreen_dnsbl_whitelist_threshold"
+#define DEF_PSC_DNSBL_WTHRESH	0
+extern int var_psc_dnsbl_wthresh;
+
 #define VAR_PSC_DNSBL_ENABLE	"postscreen_dnsbl_enable"
 #define DEF_PSC_DNSBL_ENABLE	0
 extern char *var_psc_dnsbl_enable;

@@ -2866,7 +2866,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     if (*var_rcpt_delim == 0) {
 	bare_addr = 0;
     } else {
-	bare_addr = strip_addr(addr, (char **) 0, *var_rcpt_delim);
+	bare_addr = strip_addr(addr, (char **) 0, var_rcpt_delim);
     }
 
 #define CHECK_MAIL_ACCESS_RETURN(x) \

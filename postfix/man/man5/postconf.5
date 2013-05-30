@@ -835,7 +835,9 @@ The recipient domain.
 The entire recipient localpart.
 .br
 .IP "\fB$recipient_delimiter\fR"
-The system-wide recipient address extension delimiter.
+The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier).
 .br
 .IP "\fB${name?value}\fR"
 Expands to \fIvalue\fR when \fI$name\fR is non-empty.
@@ -1919,7 +1921,9 @@ The recipient domain.
 The entire recipient localpart.
 .br
 .IP "\fB$recipient_delimiter\fR"
-The system-wide recipient address extension delimiter.
+The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier).
 .br
 .IP "\fB${name?value}\fR"
 Expands to \fIvalue\fR when \fI$name\fR is non-empty.
@@ -3073,7 +3077,9 @@ The entire recipient address localpart.
 The full recipient address.
 .br
 .IP "\fB$recipient_delimiter\fR"
-The system-wide recipient address extension delimiter.
+The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier).
 .br
 .IP "\fB$shell\fR"
 The recipient's login shell.
@@ -4458,6 +4464,19 @@ one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_whitelist_threshold (default: 0)
+Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.
+.PP
+Specify a negative value to enable this feature. When a client
+passes the postscreen_dnsbl_whitelist_threshold without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to postscreen_dnsbl_ttl.
+When a test was already completed, its time-to-live value is updated
+if it was less than postscreen_dnsbl_ttl.
+.PP
+This feature is available in Postfix 2.11.
 .SH postscreen_enforce_tls (default: $smtpd_enforce_tls)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption.  See smtpd_postscreen_enforce_tls
@@ -5100,18 +5119,58 @@ recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
 .ad
 .ft R
 .SH recipient_delimiter (default: empty)
-The separator between user names and address extensions (user+foo).
-See \fBcanonical\fR(5), \fBlocal\fR(8), \fBrelocated\fR(5) and \fBvirtual\fR(5) for the
-effects this has on aliases, canonical, virtual, relocated and
-on .forward file lookups.  Basically, the software tries user+foo
-and .forward+foo before trying user and .forward.
+The set of characters that can separate a user name from its
+address extension (user+foo).  See \fBcanonical\fR(5), \fBlocal\fR(8), \fBrelocated\fR(5)
+and \fBvirtual\fR(5) for the effects this has on aliases, canonical,
+virtual, and relocated lookups.  Basically, the software tries
+user+foo and .forward+foo before trying user and .forward.
 .PP
-Example:
+This implementation recognizes one delimiter character per email
+address, and one address extension per email address.
+.PP
+When the recipient_delimiter set contains multiple characters
+(Postfix 2.11 and later), a user name is separated from its address
+extension by the first character that matches the recipient_delimiter
+set.
+.PP
+When used in forward_path, ${recipient_delimiter} is replaced
+with the recipient delimiter that was found in the recipient email
+address (Postfix 2.11 and later), or it is replaced with the main.cf
+recipient_delimiter parameter value (Postfix 2.10 and earlier).
+.PP
+The recipient_delimiter is not applied to the mailer-daemon
+address, the postmaster address, or the double-bounce address. With
+the default "owner_request_special = yes" setting, the recipient_delimiter
+is also not applied to addresses with the special "owner-" prefix
+or the special "-request" suffix.
+.PP
+Examples:
 .PP
 .nf
 .na
 .ft C
+# Handle Postfix-style extensions.
 recipient_delimiter = +
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# Handle both Postfix and qmail extensions (Postfix 2.11 and later).
+recipient_delimiters = +-
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# Use .forward for mail without address extension, and for mail with
+# an unrecognized address extension.
+forward_path = $home/.forward${recipient_delimiter}${extension},
+    $home/.forward
 .fi
 .ad
 .ft R

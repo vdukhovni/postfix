@@ -1609,7 +1609,9 @@ execution_directory_expansion_filter parameter.  </p>
 
 <dt><b>$recipient_delimiter</b></dt>
 
-<dd>The system-wide recipient address extension delimiter. </dd>
+<dd>The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
@@ -1670,7 +1672,9 @@ forward_expansion_filter parameter.  </p>
 
 <dt><b>$recipient_delimiter</b></dt>
 
-<dd>The system-wide recipient address extension delimiter. </dd>
+<dd>The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
@@ -2404,7 +2408,9 @@ The following $name expansions are done on luser_relay:
 
 <dt><b>$recipient_delimiter</b></dt>
 
-<dd>The system-wide recipient address extension delimiter. </dd>
+<dd>The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>$shell</b></dt>
 
@@ -3495,22 +3501,53 @@ Example:
 recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
 </pre>
 
-%PARAM recipient_delimiter 
+%PARAM recipient_delimiter
 
-<p>
-The separator between user names and address extensions (user+foo).
-See canonical(5), local(8), relocated(5) and virtual(5) for the
-effects this has on aliases, canonical, virtual, relocated and
-on .forward file lookups.  Basically, the software tries user+foo
-and .forward+foo before trying user and .forward.
+<p> The set of characters that can separate a user name from its
+address extension (user+foo).  See canonical(5), local(8), relocated(5)
+and virtual(5) for the effects this has on aliases, canonical,
+virtual, and relocated lookups.  Basically, the software tries
+user+foo and .forward+foo before trying user and .forward.  </p>
+
+<p> This implementation recognizes one delimiter character per email
+address, and one address extension per email address.  </p>
+
+<p> When the recipient_delimiter set contains multiple characters
+(Postfix 2.11 and later), a user name is separated from its address
+extension by the first character that matches the recipient_delimiter
+set. </p>
+
+<p> When used in forward_path, ${recipient_delimiter} is replaced
+with the recipient delimiter that was found in the recipient email
+address (Postfix 2.11 and later), or it is replaced with the main.cf
+recipient_delimiter parameter value (Postfix 2.10 and earlier).
 </p>
 
+<p> The recipient_delimiter is not applied to the mailer-daemon
+address, the postmaster address, or the double-bounce address. With
+the default "owner_request_special = yes" setting, the recipient_delimiter
+is also not applied to addresses with the special "owner-" prefix
+or the special "-request" suffix. </p>
+
 <p>
-Example:
+Examples:
 </p>
+  
+<pre>
+# Handle Postfix-style extensions.
+recipient_delimiter = +
+</pre>
 
 <pre>
-recipient_delimiter = +
+# Handle both Postfix and qmail extensions (Postfix 2.11 and later).
+recipient_delimiters = +-
+</pre>
+
+<pre>
+# Use .forward for mail without address extension, and for mail with
+# an unrecognized address extension.
+forward_path = $home/.forward${recipient_delimiter}${extension},
+    $home/.forward
 </pre>
 
 %PARAM reject_code 554
@@ -13815,6 +13852,21 @@ its combined DNSBL score as defined with the postscreen_dnsbl_sites
 parameter. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
+
+%PARAM postscreen_dnsbl_whitelist_threshold 0
+
+<p> Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the postscreen_dnsbl_sites parameter.  </p>
+
+<p> Specify a negative value to enable this feature. When a client
+passes the postscreen_dnsbl_whitelist_threshold without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to postscreen_dnsbl_ttl.
+When a test was already completed, its time-to-live value is updated
+if it was less than postscreen_dnsbl_ttl. </p>
+
+<p> This feature is available in Postfix 2.11.  </p>
 
 %PARAM postscreen_command_count_limit 20
 

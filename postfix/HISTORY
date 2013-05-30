@@ -18408,7 +18408,26 @@ Apologies for any names omitted.
 	Documentation: in smtpd.c, the comment that justifies the
 	454 reply for "TLS unavailable" cited the wrong RFC.
 
+20130404
+
+	Human factors: warning when a main.cf parameter has multiple
+	entries with different values.  File: util/dict.c.
+
 20130405
+
+	Feature: the recipient_delimiter parameter can now specify
+	a set of characters. A user name is now separated from its
+	address extension by the first character that matches the
+	recipient_delimiter set.  Files: proto/postconf.proto,
+	src/global/mail_addr_find.c, src/global/mail_params.c,
+	src/global/split_addr.c, src/global/split_addr.h,
+	src/global/strip_addr.c, src/global/strip_addr.h,
+	src/global/strip_addr.ref, src/local/bounce_workaround.c,
+	src/local/local.c, src/local/local_expand.c, src/local/recipient.c,
+	src/local/resolve.c, src/oqmgr/qmgr_message.c, src/pipe/pipe.c,
+	src/qmgr/qmgr_message.c, src/smtpd/smtpd.c,
+	src/smtpd/smtpd_check.c, src/trivial-rewrite/transport.c,
+	src/trivial-rewrite/trivial-rewrite.c.
 
 	Feature: support for trust anchors, i.e. CA certificates
 	or public keys that will be used instead of conventional
@@ -18422,6 +18441,21 @@ Apologies for any names omitted.
 	tls/Makefile.in, tls/tls.h, tls/tls_client.c, tls/tls_dane.c,
 	tls/tls_fprint.c, tls/tls_misc.c, tls/tls_verify.c,
 	util/argv.c, util/argv.h.
+
+20130409
+
+	Documentation: pointers to other actions under "ACCEPT
+	ACTIONS" and "REJECT ACTIONS". File: proto/access.
+
+20130410
+
+	Cleanup: more uniform permutation in dns_rr() by Victor
+	Duchovni & Son. File: dns/dns_rr.c.
+
+20130411
+
+	Documentation: clarified text about result formats. Files:
+	proto/canonical, proto/virtual.
 
 20130414
 
@@ -18515,6 +18549,17 @@ Apologies for any names omitted.
 	posttls-finger/tlsmgrmem.c, posttls-finger/tlsmgrmem.h,
 	tls/tls.h, tls/tls_misc.c.
 
+20130423
+
+	Bugfix (introduced: Postfix 2.0): when myhostname is not
+	listed in mydestination, the trivial-rewrite resolver may
+	log "do not list <myhostname value> in both mydestination
+	and <name of non-mydestination domain list>".  The fix is
+	to re-resolve a domain-less address after adding $myhostname
+	as the surrogate domain, so that it pops out with the right
+	address-class label.  Problem reported by Quanah Gibson-Mount.
+	File: trivial-rewrite/resolve.c.
+
 20130425
 
 	Non-production fixes: revert to using proxies (sender,
@@ -18558,7 +18603,41 @@ Apologies for any names omitted.
 	smtp/smtp.c, smtp/smtp.h, smtp/smtp_params.c,
 	smtp/smtp_tls_policy.c, tls/tls.h, tls/tls_level.c.
 
+20130512
+
+	Feature: allow an SMTP client to skip postscreen(8) tests
+	before or after the 220 greeting, based on its DNSBL score.
+	Suggested by Rob McGee (/dev/rob0). Files: mantools/postlink,
+	proto/postconf.proto, global/mail_params.h,
+	postscreen/postscreen.c, postscreen/postscreen.h,
+	postscreen/postscreen_early.c, postscreen/postscreen_state.c,
+	postscreen/postscreen_tests.c.
+
+20130513
+
+	Bugfix (introduced: 20130512): postscreen logged no "PASS
+	NEW" event when the pregreet tests were turned off and the
+	postscreen_dnsbl_whitelist_treshold feature was turned on.
+	Reported by Rob McGee (/dev/rob0). Files: postscreen/postscreen.h,
+	postscreen/postscreen_early.c.
+
+	Bugfix (introduced: 20130512): postscreen panic because the
+	logic for dnsbl result retrieval was changed. Reported by
+	Noel Jones. File: postscreen/postscreen_early.c.
+
+20130517
+
+	Cleanup: just like the postscreen DNS block test will use
+	partial scores when some DNS lookup result is unavailable,
+	the postscreen_dnsbl_whitelist_treshold feature will now
+	use partial scores instead of ignoring them.  File:
+	postscreen/postscreen_early.c.
+
 20130518
+
+	Bugfix (introduced: 1997): memory leak after error while
+	forwarding mail through the cleanup server. Viktor found
+	one, Wietse eliminated the rest.  File: local/forward.c.
 
 	Feature: posttls-finger protocol and cipher grade selection
 	options.  Leave protocol debug flags active across reconnects,
@@ -18579,4 +18658,3 @@ Apologies for any names omitted.
 	Dukhovni. Files: proto/TLS_README.html, proto/postconf.proto,
 	src/global/mail_params.h, src/tls/tls.h, src/tls/tls_client.c,
 	src/tls/tls_misc.c.
-

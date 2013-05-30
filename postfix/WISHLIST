@@ -2,39 +2,17 @@ Wish list:
 
 	Things to do before the stable release:
 
+	Spell-check, double-word check, and HTML validator check.
+
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
 
-	Spellcheck and double-word check.
-
-	Fix a false cache-sharing problem. After the SASL handshake,
-	the connection cache client does not store SASL credentials
-	in the destination properties; it stores them in the endpoint
-	label only.  When the connection cache client reuses the
-	connection with smtp_reuse_nexthop(), it does not restore
-	the SASL credentials.  When it saves the connection afterwards,
-	it creates a new endpoint label without SASL credentials,
-	so the authenticated connection can now be used for unrelated
-	deliveries.
+	Discourage the use of "after 220" tests in POSTSCREEN_README
+	and the documentation of individual parameter settings.
 
 	Begin code revision, after DANE support stabilizes.  This
 	should be one pass that changes only names and no code.
-
-	Run new source files through ccformat. If I do it now,
-	almost every block of code or comments is changed. Having
-	different formatting styles in the same project is PROBLEMATIC.
-	There is a reason why ccformat is included with source code.
-
-	Embed all statement-like macros in do { ... } while (0).
-	This is especially necessary with macros that contain an
-	"if" statement, or that contain multiple statements.
-
-	Spell-check, double-word check, and HTML validator check.
-
-	Use make(1) and cc(1) to convert the C++ like templates
-	into debuggable source code, such that each statement has
-	its own distinct line number (what a revolutionary idea).
 
 	All source code must specify its original author and
 	license statement. Some code modules specify Lutz Jaenicke
@@ -47,13 +25,6 @@ Wish list:
 	Wietse as the original author, and Lutz Jaenicke's license,
 	which is wrong.
 
-	Generally, macro and function names should make a program
-	more clear, not merely reduce the number of programmer
-	keystrokes; similar considerations hold for variable names
-	and constants. Avoid 1-letter names except "for i=1 to
-	some_bound". Instead of bare numbers use named constants
-	in function argument lists.
-
 	Code clarity: replace obscure macro/function names: for
 	example SMTP_X(XXX) -> VAR_SMTP(XXX), as the purpose is to
 	choose between VAR_SMTP_XXX or VAR_LMTP_XXX; replace
@@ -61,13 +32,6 @@ Wish list:
 	is being performed (in this case, update a digest with the
 	contents of a buffer with the specified length). Replace r
 	with res_opt, ditto for other 1-letter names.
-
-	Unnecessary complexity: the SMTP_SESSION "tls" field is
-	mandatory (always allocated) therefore the content can be
-	a permanent part of the SMTP_SESSION structure, just like
-	SASL-related information.  This avoids silly indirections
-	all over the code, as well as awkward smtp_tls_sess_alloc()
-	error semantics.
 
 	We have smtp_host_lookup, smtp_dns_resolver_options, and
 	now smtp_dns_support_level.  Of these, smtp_dns_resolver_options

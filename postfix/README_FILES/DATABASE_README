@@ -99,9 +99,9 @@ performance.
     read/write access conflicts and gives the new data to Postfix once that
     data is available.
 
-  * If you change a regexp: or pcre: file then Postfix may or may not pick up
-    the file changes immediately. This is because a Postfix process reads the
-    entire file into memory once and never examines the file again.
+  * If you change a regexp:, pcre:, cidr: or texthash: file then Postfix may
+    not pick up the file changes immediately. This is because a Postfix process
+    reads the entire file into memory once and never examines the file again.
 
       o If the file is used by a short-running process such as smtpd(8),
         cleanup(8) or local(8), there is no need to execute "postfix reload"

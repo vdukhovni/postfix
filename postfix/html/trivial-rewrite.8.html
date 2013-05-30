@@ -97,10 +97,14 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
               Resolve  a recipient address safely instead of cor-
               rectly, by looking inside quotes.
 
+       Available with Postfix version 2.1 and later:
+
        <b><a href="postconf.5.html#resolve_null_domain">resolve_null_domain</a> (no)</b>
               Resolve an address that ends in the "@" null domain
               as if the local hostname were specified, instead of
               rejecting the address as invalid.
+
+       Available with Postfix version 2.3 and later:
 
        <b><a href="postconf.5.html#resolve_numeric_domain">resolve_numeric_domain</a> (no)</b>
               Resolve  "user@ipaddress"  as   "user@[ipaddress]",
@@ -133,8 +137,8 @@ TRIVIAL-REWRITE(8)                                          TRIVIAL-REWRITE(8)
               information.
 
        <b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> (empty)</b>
-              The separator between user names and address exten-
-              sions (user+foo).
+              The set of characters that can separate a user name
+              from its address extension (user+foo).
 
        <b><a href="postconf.5.html#swap_bangpath">swap_bangpath</a> (yes)</b>
               Enable   the   rewriting   of   "site!user"    into

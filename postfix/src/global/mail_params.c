@@ -557,7 +557,7 @@ void    mail_params_init()
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
-	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 1,
+	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 0,
 	VAR_RELAY_DOMAINS, DEF_RELAY_DOMAINS, &var_relay_domains, 0, 0,
 	VAR_FFLUSH_DOMAINS, DEF_FFLUSH_DOMAINS, &var_fflush_domains, 0, 0,
 	VAR_EXPORT_ENVIRON, DEF_EXPORT_ENVIRON, &var_export_environ, 0, 0,

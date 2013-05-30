@@ -109,7 +109,7 @@ int     bounce_workaround(LOCAL_STATE state)
 	if (alias_maps->error == 0 && owner_expansion == 0
 	    && (stripped_recipient = strip_addr(state.msg_attr.rcpt.address,
 						(char **) 0,
-						*var_rcpt_delim)) != 0) {
+						var_rcpt_delim)) != 0) {
 	    myfree(owner_alias);
 	    FIND_OWNER(owner_alias, owner_expansion, stripped_recipient);
 	    myfree(stripped_recipient);

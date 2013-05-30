@@ -950,11 +950,12 @@ long    tls_bug_bits(void)
     }
 
     /*
-     * Allow users to set options not in SSL_OP_ALL, and not already
-     * managed via other Postfix parameters.
+     * Allow users to set options not in SSL_OP_ALL, and not already managed
+     * via other Postfix parameters.
      */
     if (*var_tls_ssl_options) {
-        long    enable;
+	long    enable;
+
 	enable = long_name_mask_opt(VAR_TLS_SSL_OPTIONS, ssl_op_tweaks,
 				    var_tls_ssl_options, NAME_MASK_ANY_CASE |
 				    NAME_MASK_NUMBER | NAME_MASK_WARN);

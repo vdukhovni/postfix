@@ -425,8 +425,8 @@ typedef struct STATE {
     TLS_SESS_STATE *tls_context;	/* Session TLS context */
     TLS_DANE *dane;			/* DANE TLSA validation structure */
     TLS_DANE *ddane;			/* DANE TLSA from DNS */
-    char     *grade;			/* Minimum cipher grade */
-    char     *protocols;		/* Protocol inclusion/exclusion */
+    char   *grade;			/* Minimum cipher grade */
+    char   *protocols;			/* Protocol inclusion/exclusion */
 #endif
     OPTIONS options;			/* JCL */
 } STATE;

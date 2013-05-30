@@ -140,4 +140,3 @@ int     tls_mgr_delete(const char *unused_type, const char *key)
 }
 
 #endif
-

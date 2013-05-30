@@ -156,8 +156,9 @@ ARGV   *argv_alloc(ssize_t len)
 
 static int argv_cmp(const void *e1, const void *e2)
 {
-    const char *s1 = *(const char **)e1;
-    const char *s2 = *(const char **)e2;
+    const char *s1 = *(const char **) e1;
+    const char *s2 = *(const char **) e2;
+
     return strcmp(s1, s2);
 }
 
