@@ -1451,7 +1451,9 @@ with the character set that is specified with the
 
 <dt><b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a></b></dt>
 
-<dd>The system-wide recipient address extension delimiter. </dd>
+<dd>The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
@@ -3254,7 +3256,9 @@ filtered with the character set that is specified with the
 
 <dt><b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a></b></dt>
 
-<dd>The system-wide recipient address extension delimiter. </dd>
+<dd>The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>${name?value}</b></dt>
 
@@ -5319,7 +5323,9 @@ The following $name expansions are done on <a href="postconf.5.html#luser_relay"
 
 <dt><b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a></b></dt>
 
-<dd>The system-wide recipient address extension delimiter. </dd>
+<dd>The address extension delimiter that was found in the recipient
+address (Postfix 2.11 and later), or the system-wide recipient
+address extension delimiter (Postfix 2.10 and earlier). </dd>
 
 <dt><b>$shell</b></dt>
 
@@ -7412,6 +7418,25 @@ one-letter suffix that specifies the time unit).  Time units: s
 
 </DD>
 
+<DT><b><a name="postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a>
+(default: 0)</b></DT><DD>
+
+<p> Allow a remote SMTP client to skip "before" and "after 220
+greeting" protocol tests, based on its combined DNSBL score as
+defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.  </p>
+
+<p> Specify a negative value to enable this feature. When a client
+passes the <a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a> without having
+failed other tests, all pending or disabled tests are flagged as
+completed with a time-to-live value equal to <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>.
+When a test was already completed, its time-to-live value is updated
+if it was less than <a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>. </p>
+
+<p> This feature is available in Postfix 2.11.  </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_enforce_tls">postscreen_enforce_tls</a>
 (default: $<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>)</b></DT><DD>
 
@@ -8509,20 +8534,51 @@ Example:
 <DT><b><a name="recipient_delimiter">recipient_delimiter</a>
 (default: empty)</b></DT><DD>
 
-<p>
-The separator between user names and address extensions (user+foo).
-See <a href="canonical.5.html">canonical(5)</a>, <a href="local.8.html">local(8)</a>, <a href="relocated.5.html">relocated(5)</a> and <a href="virtual.5.html">virtual(5)</a> for the
-effects this has on aliases, canonical, virtual, relocated and
-on .forward file lookups.  Basically, the software tries user+foo
-and .forward+foo before trying user and .forward.
+<p> The set of characters that can separate a user name from its
+address extension (user+foo).  See <a href="canonical.5.html">canonical(5)</a>, <a href="local.8.html">local(8)</a>, <a href="relocated.5.html">relocated(5)</a>
+and <a href="virtual.5.html">virtual(5)</a> for the effects this has on aliases, canonical,
+virtual, and relocated lookups.  Basically, the software tries
+user+foo and .forward+foo before trying user and .forward.  </p>
+
+<p> This implementation recognizes one delimiter character per email
+address, and one address extension per email address.  </p>
+
+<p> When the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set contains multiple characters
+(Postfix 2.11 and later), a user name is separated from its address
+extension by the first character that matches the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>
+set. </p>
+
+<p> When used in <a href="postconf.5.html#forward_path">forward_path</a>, ${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>} is replaced
+with the recipient delimiter that was found in the recipient email
+address (Postfix 2.11 and later), or it is replaced with the <a href="postconf.5.html">main.cf</a>
+<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> parameter value (Postfix 2.10 and earlier).
 </p>
 
+<p> The <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> is not applied to the mailer-daemon
+address, the postmaster address, or the double-bounce address. With
+the default "<a href="postconf.5.html#owner_request_special">owner_request_special</a> = yes" setting, the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>
+is also not applied to addresses with the special "owner-" prefix
+or the special "-request" suffix. </p>
+
 <p>
-Example:
+Examples:
 </p>
 
 <pre>
+# Handle Postfix-style extensions.
 <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> = +
+</pre>
+
+<pre>
+# Handle both Postfix and qmail extensions (Postfix 2.11 and later).
+recipient_delimiters = +-
+</pre>
+
+<pre>
+# Use .forward for mail without address extension, and for mail with
+# an unrecognized address extension.
+<a href="postconf.5.html#forward_path">forward_path</a> = $home/.forward${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>}${extension},
+    $home/.forward
 </pre>
 
 
