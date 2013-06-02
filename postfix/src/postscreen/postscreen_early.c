@@ -60,9 +60,13 @@ static void psc_whitelist_non_dnsbl(PSC_STATE *state)
 
     /*
      * If no tests failed (we can't undo those), and if the whitelist
-     * threshold is met, flag all other pending or disabled tests as
+     * threshold is met, flag non-dnsbl tests that are pending or disabled as
      * successfully completed, and set their expiration times equal to the
      * DNSBL expiration time, except for tests that would expire later.
+     * 
+     * Why flag disabled tests as passed? When a disabled test is turned on,
+     * postscreen should not apply that test to clients that are already
+     * whitelisted based on their combined DNSBL score.
      */
     if ((state->flags & PSC_STATE_MASK_ANY_FAIL) == 0
 	&& state->dnsbl_score < var_psc_dnsbl_thresh

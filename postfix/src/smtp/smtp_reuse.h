@@ -11,9 +11,9 @@
  /*
   * Internal interfaces.
   */
-extern void smtp_save_session(SMTP_STATE *);
-extern SMTP_SESSION *smtp_reuse_domain(SMTP_STATE *, int, const char *, unsigned);
-extern SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *, const char *, unsigned);
+extern void smtp_save_session(SMTP_STATE *, int, int);
+extern SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *, int);
+extern SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *, int);
 
 /* LICENSE
 /* .ad

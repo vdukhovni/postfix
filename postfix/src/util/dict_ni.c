@@ -88,7 +88,7 @@ static const char *dict_ni_do_lookup(char *path, char *key_prop,
 	msg_warn("ni_open `.': %d", r);
 	return NULL;
     }
-    query = alloca(strlen(path) + strlen(key_prop) + 3 + strlen(key_value));
+    query = mymalloc(strlen(path) + strlen(key_prop) + 3 + strlen(key_value));
     sprintf(query, "%s/%s=%s", path, key_prop, key_value);
 
     for (;;) {
@@ -138,6 +138,7 @@ static const char *dict_ni_do_lookup(char *path, char *key_prop,
     }
 
     ni_free(domain);
+    myfree(query);
 
     return return_val;
 }

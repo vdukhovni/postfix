@@ -587,6 +587,27 @@ SMTP(8)                                                                SMTP(8)
               List or bit-mask of  OpenSSL  bug  work-arounds  to
               disable.
 
+       Available in Postfix version 2.11 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a> (empty)</b>
+              Zero  or  more  PEM-format  files with trust-anchor
+              certificates and/or public keys.
+
+       <b>smtp_tls_dane_notfound_tlsa_level (may)</b>
+              The "degraded" security level when the "dane" secu-
+              rity level is specified, but no validated DANE TLSA
+              records are published.
+
+       <b>smtp_tls_dane_unusable_tlsa_level (encrypt)</b>
+              The "degraded" security level when the "dane" secu-
+              rity   level  is  specified,  validated  DANE  TLSA
+              records are present, but none are usable.
+
+       <b><a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>   (trust-anchor-asser-</b>
+       <b>tion)</b>
+              <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> trust-anchor digest support in the Postfix
+              TLS library.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following configuration parameters exist for compati-
        bility with Postfix versions before 2.3. Support for these

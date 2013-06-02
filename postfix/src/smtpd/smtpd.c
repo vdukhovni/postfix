@@ -90,10 +90,6 @@
 /*	not contain RFC 822 style comments or phrases.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
-/* .IP "\fBresolve_null_domain (no)\fR"
-/*	Resolve an address that ends in the "@" null domain as if the
-/*	local hostname were specified, instead of rejecting the address as
-/*	invalid.
 /* .IP "\fBsmtpd_reject_unlisted_sender (no)\fR"
 /*	Request that the Postfix SMTP server rejects mail from unknown
 /*	sender addresses, even when no explicit reject_unlisted_sender

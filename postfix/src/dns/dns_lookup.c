@@ -166,7 +166,7 @@
 typedef struct DNS_REPLY {
     unsigned char *buf;			/* raw reply data */
     size_t  buf_len;			/* reply buffer length */
-    int     validated;			/* DNSSEC AD bit */
+    int     dnssec_valid;		/* DNSSEC AD bit */
     int     query_count;		/* number of queries */
     int     answer_count;		/* number of answers */
     unsigned char *query_start;		/* start of query data */
@@ -281,9 +281,9 @@ static int dns_query(const char *name, int type, int flags,
      * the fly while the reply is being parsed.
      */
 #if RES_USE_DNSSEC != 0
-    reply->validated = (flags & RES_USE_DNSSEC) ? reply_header->ad : 0;
+    reply->dnssec_valid = (flags & RES_USE_DNSSEC) ? reply_header->ad : 0;
 #else
-    reply->validated = 0;
+    reply->dnssec_valid = 0;
 #endif
     reply->end = reply->buf + len;
     reply->query_start = reply->buf + sizeof(HEADER);
@@ -573,7 +573,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 		if ((status = dns_get_rr(&rr, orig_name, reply, pos, rr_name,
 					 &fixed)) == DNS_OK) {
 		    resource_found++;
-		    rr->validated = (reply->validated & *validate_mask);
+		    rr->dnssec_valid = (reply->dnssec_valid & *validate_mask);
 		    *rrlist = dns_rr_append(*rrlist, rr);
 		} else if (not_found_status != DNS_RETRY)
 		    not_found_status = status;
@@ -584,7 +584,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 	    if (cname && c_len > 0)
 		if ((status = dns_get_alias(reply, pos, &fixed, cname, c_len)) != DNS_OK)
 		    CORRUPT(status);
-	    *validate_mask &= reply->validated;
+	    *validate_mask &= reply->dnssec_valid;
 	}
 	pos += fixed.length;
     }

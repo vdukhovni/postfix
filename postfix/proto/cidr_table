@@ -35,6 +35,9 @@
 #	separated by ".", and an IPv6 network address is a sequence
 #	of three to eight hexadecimal octet pairs separated by ":".
 #
+#	The \fInetwork_mask\fR is the number of high-order bits in
+#	the \fInetwork_address\fR that the search string must match.
+#
 #	Before comparisons are made, lookup keys and table entries
 #	are converted from string to binary. Therefore table entries
 #	will be matched regardless of redundant zero characters.

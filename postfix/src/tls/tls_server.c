@@ -70,7 +70,7 @@
 /* .IP TLScontext->issuer_CN
 /*	Extracted CommonName of the issuer, or zero-length string
 /*	when information could not be extracted.
-/* .IP TLScontext->peer_fingerprint
+/* .IP TLScontext->peer_cert_fprint
 /*	Fingerprint of the certificate, or zero-length string when no peer
 /*	certificate is available.
 /* .PP
@@ -397,8 +397,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 		 | ((protomask & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L)
 	       | ((protomask & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L));
 
-#if OPENSSL_VERSION_NUMBER >= 0x0090700fL
-
     /*
      * Some sites may want to give the client less rope. On the other hand,
      * this could trigger inter-operability issues, the client should not
@@ -410,7 +408,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     if (var_tls_preempt_clist)
 	SSL_CTX_set_options(server_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
-#endif
 
     /*
      * Set the call-back routine to debug handshake progress.
@@ -764,7 +761,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	}
 	TLScontext->peer_CN = tls_peer_CN(peer, TLScontext);
 	TLScontext->issuer_CN = tls_issuer_CN(peer, TLScontext);
-	TLScontext->peer_fingerprint = tls_fingerprint(peer, TLScontext->mdalg);
+	TLScontext->peer_cert_fprint = tls_cert_fprint(peer, TLScontext->mdalg);
 	TLScontext->peer_pkey_fprint = tls_pkey_fprint(peer, TLScontext->mdalg);
 
 	if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_PEERCERT)) {
@@ -772,14 +769,14 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 		     ", pkey_fingerprint=%s",
 		     TLScontext->namaddr,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
-		     TLScontext->peer_fingerprint,
+		     TLScontext->peer_cert_fprint,
 		     TLScontext->peer_pkey_fprint);
 	}
 	X509_free(peer);
     } else {
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->issuer_CN = mystrdup("");
-	TLScontext->peer_fingerprint = mystrdup("");
+	TLScontext->peer_cert_fprint = mystrdup("");
 	TLScontext->peer_pkey_fprint = mystrdup("");
     }
 

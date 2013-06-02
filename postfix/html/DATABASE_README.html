@@ -156,7 +156,8 @@ SQL, there is no need to execute "postfix reload".  The LDAP, NIS
 or SQL server takes care of read/write access conflicts and gives
 the new data to Postfix once that data is available.  </p>
 
-<li> <p> If you change a <a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>: file then Postfix may or
+<li> <p> If you change a <a href="regexp_table.5.html">regexp</a>:, <a href="pcre_table.5.html">pcre</a>:, <a href="cidr_table.5.html">cidr</a>: or <a href="DATABASE_README.html#types">texthash</a>: file
+then Postfix 
 may not pick up the file changes immediately. This is because a
 Postfix process reads the entire file into memory once and never
 examines the file again.  </p>

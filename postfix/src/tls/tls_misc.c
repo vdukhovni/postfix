@@ -14,10 +14,12 @@
 /*	char	*var_tls_null_clist;
 /*	char	*var_tls_eecdh_strong;
 /*	char	*var_tls_eecdh_ultra;
+/*	char	*var_tls_dane_ta_dgst;
 /*	int	var_tls_daemon_rand_bytes;
-/*	bool    var_tls_append_def_CA;
+/*	bool	var_tls_append_def_CA;
 /*	bool	var_tls_preempt_clist;
 /*	bool	var_tls_bc_pkey_fprint;
+/*	bool	var_tls_multi_wildcard;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -72,6 +74,10 @@
 /*	int	tls_log_mask(log_param, log_level)
 /*	const char *log_param;
 /*	const char *log_level;
+/*
+/*	void	 tls_update_app_logmask(app_ctx, log_mask)
+/*	TLS_APPL_STATE *app_ctx;
+/*	int      log_mask;
 /*
 /*	int	tls_validate_digest(dgst)
 /*	const char *dgst;
@@ -139,6 +145,9 @@
 /*	tls_log_mask() converts a TLS log_level value from string
 /*	to mask.  The main.cf parameter name is passed along for
 /*	diagnostics.
+/*
+/*	tls_update_app_logmask() changes the log mask of the
+/*	application TLS context to the new setting.
 /*
 /*	tls_validate_digest() returns non-zero if the named digest
 /*	is usable and zero otherwise.
@@ -210,9 +219,12 @@ char   *var_tls_null_clist;
 int     var_tls_daemon_rand_bytes;
 char   *var_tls_eecdh_strong;
 char   *var_tls_eecdh_ultra;
+char   *var_tls_dane_ta_dgst;
 bool    var_tls_append_def_CA;
 char   *var_tls_bug_tweaks;
+char   *var_tls_ssl_options;
 bool    var_tls_bc_pkey_fprint;
+bool    var_tls_multi_wildcard;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -304,6 +316,28 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
 };
 
  /*
+  * SSL_OP_MUMBLE option name <=> mask conversion for options that are not
+  * (or may in the future not be) in SSL_OP_ALL.  These enable optional
+  * behavior, rather than bug interoperability work-arounds.
+  */
+#define NAME_SSL_OP(x)	#x, SSL_OP_##x
+static const LONG_NAME_MASK ssl_op_tweaks[] = {
+
+#if defined(SSL_OP_LEGACY_SERVER_CONNECT)
+    NAME_SSL_OP(LEGACY_SERVER_CONNECT),
+#endif
+
+#if defined(SSL_OP_NO_TICKET)
+    NAME_SSL_OP(NO_TICKET),
+#endif
+
+#if defined(SSL_OP_NO_COMPRESSION)
+    NAME_SSL_OP(NO_COMPRESSION),
+#endif
+    0, 0,
+};
+
+ /*
   * Ciphersuite name <=> code conversion.
   */
 const NAME_CODE tls_cipher_grade_table[] = {
@@ -389,6 +423,13 @@ int     tls_log_mask(const char *log_param, const char *log_level)
     mask = name_mask_opt(log_param, tls_log_table, log_level,
 			 NAME_MASK_ANY_CASE | NAME_MASK_RETURN);
     return (mask);
+}
+
+/* tls_update_app_logmask - update log level after init */
+
+void    tls_update_app_logmask(TLS_APPL_STATE *app_ctx, int log_mask)
+{
+    app_ctx->log_mask = log_mask;
 }
 
 /* tls_exclude_missing - Append exclusions for missing ciphers */
@@ -551,6 +592,8 @@ void    tls_param_init(void)
 	VAR_TLS_EECDH_STRONG, DEF_TLS_EECDH_STRONG, &var_tls_eecdh_strong, 1, 0,
 	VAR_TLS_EECDH_ULTRA, DEF_TLS_EECDH_ULTRA, &var_tls_eecdh_ultra, 1, 0,
 	VAR_TLS_BUG_TWEAKS, DEF_TLS_BUG_TWEAKS, &var_tls_bug_tweaks, 0, 0,
+	VAR_TLS_SSL_OPTIONS, DEF_TLS_SSL_OPTIONS, &var_tls_ssl_options, 0, 0,
+	VAR_TLS_DANE_TA_DGST, DEF_TLS_DANE_TA_DGST, &var_tls_dane_ta_dgst, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
@@ -560,9 +603,8 @@ void    tls_param_init(void)
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_TLS_APPEND_DEF_CA, DEF_TLS_APPEND_DEF_CA, &var_tls_append_def_CA,
 	VAR_TLS_BC_PKEY_FPRINT, DEF_TLS_BC_PKEY_FPRINT, &var_tls_bc_pkey_fprint,
-#if OPENSSL_VERSION_NUMBER >= 0x0090700fL	/* OpenSSL 0.9.7 and later */
 	VAR_TLS_PREEMPT_CLIST, DEF_TLS_PREEMPT_CLIST, &var_tls_preempt_clist,
-#endif
+	VAR_TLS_MULTI_WILDCARD, DEF_TLS_MULTI_WILDCARD, &var_tls_multi_wildcard,
 	0,
     };
     static int init_done;
@@ -740,13 +782,17 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->serverid = 0;
     TLScontext->peer_CN = 0;
     TLScontext->issuer_CN = 0;
-    TLScontext->peer_fingerprint = 0;
+    TLScontext->peer_cert_fprint = 0;
     TLScontext->peer_pkey_fprint = 0;
     TLScontext->protocol = 0;
     TLScontext->cipher_name = 0;
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */
+    TLScontext->dane = 0;			/* Alias for client
+						 * props->dane */
+    TLScontext->trustdepth = -1;
+    TLScontext->chaindepth = -1;
     TLScontext->errordepth = -1;
     TLScontext->errorcode = X509_V_OK;
     TLScontext->errorcert = 0;
@@ -776,8 +822,8 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_CN);
     if (TLScontext->issuer_CN)
 	myfree(TLScontext->issuer_CN);
-    if (TLScontext->peer_fingerprint)
-	myfree(TLScontext->peer_fingerprint);
+    if (TLScontext->peer_cert_fprint)
+	myfree(TLScontext->peer_cert_fprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
     if (TLScontext->errorcert)
@@ -904,6 +950,20 @@ long    tls_bug_bits(void)
 	bits &= ~long_name_mask_opt(VAR_TLS_BUG_TWEAKS, ssl_bug_tweaks,
 				    var_tls_bug_tweaks, NAME_MASK_ANY_CASE |
 				    NAME_MASK_NUMBER | NAME_MASK_WARN);
+    }
+
+    /*
+     * Allow users to set options not in SSL_OP_ALL, and not already managed
+     * via other Postfix parameters.
+     */
+    if (*var_tls_ssl_options) {
+	long    enable;
+
+	enable = long_name_mask_opt(VAR_TLS_SSL_OPTIONS, ssl_op_tweaks,
+				    var_tls_ssl_options, NAME_MASK_ANY_CASE |
+				    NAME_MASK_NUMBER | NAME_MASK_WARN);
+	enable &= ~(SSL_OP_ALL | TLS_SSL_OP_MANAGED_BITS);
+	bits |= enable;
     }
     return (bits);
 }

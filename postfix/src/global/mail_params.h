@@ -1440,6 +1440,12 @@ extern char *var_smtp_tls_mand_excl;
 #define DEF_LMTP_TLS_FPT_DGST	"md5"
 extern char *var_smtp_tls_fpt_dgst;
 
+#define VAR_SMTP_TLS_TAFILE	"smtp_tls_trust_anchor_file"
+#define DEF_SMTP_TLS_TAFILE	""
+#define VAR_LMTP_TLS_TAFILE	"lmtp_tls_trust_anchor_file"
+#define DEF_LMTP_TLS_TAFILE	""
+extern char *var_smtp_tls_tafile;
+
 #define VAR_SMTP_TLS_LOGLEVEL	"smtp_tls_loglevel"
 #define DEF_SMTP_TLS_LOGLEVEL	"0"
 #define VAR_LMTP_TLS_LOGLEVEL	"lmtp_tls_loglevel"
@@ -3043,6 +3049,10 @@ extern char *var_tls_eecdh_ultra;
 #define DEF_TLS_PREEMPT_CLIST	0
 extern bool var_tls_preempt_clist;
 
+#define VAR_TLS_MULTI_WILDCARD	"tls_wildcard_matches_multiple_labels"
+#define DEF_TLS_MULTI_WILDCARD	1
+extern bool var_tls_multi_wildcard;
+
  /* The tweak for CVE-2010-4180 is needed in some versions prior to 1.0.1 */
  /* The tweak for CVE-2005-2969 is needed in some versions prior to 1.0.0 */
 #if defined(USE_TLS) && (OPENSSL_VERSION_NUMBER < 0x1000100fL)
@@ -3059,9 +3069,24 @@ extern bool var_tls_preempt_clist;
 #define DEF_TLS_BUG_TWEAKS	TLS_BUG_TWEAKS
 extern char *var_tls_bug_tweaks;
 
+#define VAR_TLS_SSL_OPTIONS	"tls_ssl_options"
+#define DEF_TLS_SSL_OPTIONS	""
+extern char *var_tls_ssl_options;
+
 #define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
 #define DEF_TLS_BC_PKEY_FPRINT	0
 extern bool var_tls_bc_pkey_fprint;
+
+ /*
+  * External interface for enabling trust-anchor digests, which are risky
+  * when the corresponding certificate is missing from the peer chain (this
+  * can't happend with the leaf certificate).
+  */
+#define TLS_DANE_CC		"ca-constraint"
+#define TLS_DANE_TAA		"trust-anchor-assertion"
+#define VAR_TLS_DANE_TA_DGST	"tls_dane_trust_anchor_digest_enable"
+#define DEF_TLS_DANE_TA_DGST	TLS_DANE_TAA
+extern char *var_tls_dane_ta_dgst;
 
  /*
   * Sendmail-style mail filter support.

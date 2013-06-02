@@ -4969,6 +4969,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_trust_anchor_file">lmtp_tls_trust_anchor_file</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>
+configuration parameter.  See there for details.  </p>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_verify_cert_match">lmtp_tls_verify_cert_match</a>
 (default: hostname)</b></DT><DD>
 
@@ -9855,10 +9866,11 @@ and "inet:host:port" destinations, as LMTP hostnames are never
 subject to MX lookups.  </p>
 
 <p>The "dnssec" setting is recommended only if you plan to use the
-"<a href="TLS_README.html#client_tls_dane">dane</a>" TLS security
+<a href="TLS_README.html#client_tls_dane">dane</a> or <a
+href="TLS_README.html#client_tls_dane">dane-only</a> TLS security
 level, otherwise enabling DNSSEC support in Postfix offers no
-additional security. Postfix DNSSEC support relies on an up-stream
-recursive nameserver that validates DNSSEC signatures. Such a DNS
+additional security.  Postfix DNSSEC support relies on an upstream
+recursive nameserver that validates DNSSEC signatures.  Such a DNS
 server will always filter out forged DNS responses, even when Postfix
 itself is not configured to use DNSSEC. </p>
 
@@ -11420,6 +11432,18 @@ whitespace, commas or colons. In the policy table "protocols" attribute
 empty value means allow all protocols. The valid protocol names, (see
 <b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3" and "TLSv1". </p>
 
+<p> At the <a href="TLS_README.html#client_tls_dane">dane</a> and
+<a href="TLS_README.html#client_tls_dane">dane-only</a> security
+levels, when usable TLSA records are obtained for the remote SMTP
+server, the Postfix SMTP client is obligated to include the SNI TLS
+extension in its SSL client hello message.  This may help the remote
+SMTP server live up to its promise to provide a certificate that
+matches its TLSA records.  Since TLS extensions require TLS 1.0 or
+later, the Postfix SMTP client must disable SSLv2 and SSLv3 when
+SNI is required.  If you use "dane" or "dane-only" do not disable
+TLSv1, except perhaps via the policy table for destinations which
+you are sure will support TLSv1.1 or TLSv1.2.  </p>
+
 <p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
 and "TLSv1.2". If an older Postfix version is linked against OpenSSL
 1.0.1 or later, these, or any other new protocol versions, are
@@ -11588,10 +11612,10 @@ security are: </p>
 
 <dl>
 
-<dt><b>none</b></dt>
+<dt><b><a href="TLS_README.html#client_tls_none">none</a></b></dt>
 <dd>No TLS. No additional attributes are supported at this level. </dd>
 
-<dt><b>may</b></dt>
+<dt><b><a href="TLS_README.html#client_tls_may">may</a></b></dt>
 <dd>Opportunistic TLS. Since sending in the clear is acceptable,
 demanding stronger than default TLS security merely reduces
 inter-operability. The optional "ciphers", "exclude" and "protocols"
@@ -11602,7 +11626,8 @@ handshakes fail, Postfix retries the connection with TLS disabled.
 This allows mail delivery to sites with non-interoperable TLS
 implementations.</dd>
 
-<dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption. At this level
+<dt><b><a href="TLS_README.html#client_tls_encrypt">encrypt</a></b></dt>
+<dd>Mandatory TLS encryption. At this level
 and higher, the optional "protocols" attribute overrides the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> parameter, the optional "ciphers" attribute
 overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter, and the
@@ -11611,7 +11636,35 @@ optional "exclude" attribute (Postfix &ge; 2.6) overrides the <a href="postconf.
 multiple protocols or excluded ciphers must be separated by colons,
 as attribute values may not contain whitespace or commas. </dd>
 
-<dt><b>fingerprint</b></dt> <dd>Certificate fingerprint
+<dt><b><a href="TLS_README.html#client_tls_dane">dane</a></b></dt>
+<dd>Opportunistic DANE TLS.  The TLS policy for the destination is
+obtained via TLSA records in DNSSEC.  If no TLSA records are found,
+the effective security level used is <a
+href="TLS_README.html#client_tls_may">may</a>.  If TLSA records are
+found, but none are usable, the effective security level is <a
+href="TLS_README.html#client_tls_encrypt">encrypt</a>.  When usable
+TLSA records are obtained for the remote SMTP server, SSLv2 and
+SSLv3 are automatically disabled (see <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>),
+and the server certificate must match the TLSA records.  The
+<a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a> parameter controls optional
+support for trust-anchor digest TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS
+authentication and DNSSEC support is available with Postfix 2.11
+and later.  </dd>
+
+<dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
+<dd>Mandatory DANE TLS.  The TLS policy for the destination is
+obtained via TLSA records in DNSSEC.  If no TLSA records are found,
+or none are usable, no connection is made to the server.  When
+usable TLSA records are obtained for the remote SMTP server, SSLv2
+and SSLv3 are automatically disabled (see <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>),
+and the server certificate must match the TLSA records.  The
+<a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a> parameter controls optional
+support for trust-anchor digest TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS
+authentication and DNSSEC support is available with Postfix 2.11
+and later.  </dd>
+
+<dt><b><a href="TLS_README.html#client_tls_fingerprint">fingerprint</a></b></dt>
+<dd>Certificate fingerprint
 verification. Available with Postfix 2.5 and later. At this security
 level, there are no trusted certificate authorities. The certificate
 trust chain, expiration date, ... are not checked. Instead,
@@ -11626,7 +11679,8 @@ match attributes can be employed. The ":" character is not used as a
 delimiter as it occurs between each pair of fingerprint (hexadecimal)
 digits. </dd>
 
-<dt><b>verify</b></dt> <dd>Mandatory TLS verification.  At this security
+<dt><b><a href="TLS_README.html#client_tls_verify">verify</a></b></dt>
+<dd>Mandatory TLS verification.  At this security
 level, DNS MX lookups are trusted to be secure enough, and the name
 verified in the server certificate is usually obtained indirectly via
 unauthenticated DNS MX lookups.  The optional "match" attribute overrides
@@ -11635,7 +11689,8 @@ multiple match patterns and strategies must be separated by colons.
 In practice explicit control over matching is more common with the
 "secure" policy, described below. </dd>
 
-<dt><b>secure</b></dt> <dd>Secure-channel TLS. At this security level, DNS
+<dt><b><a href="TLS_README.html#client_tls_secure">secure</a></b></dt>
+<dd>Secure-channel TLS. At this security level, DNS
 MX lookups, though potentially used to determine the candidate next-hop
 gateway IP addresses, are <b>not</b> trusted to be secure enough for TLS
 peername verification. Instead, the default name verified in the server
@@ -11806,10 +11861,11 @@ parameters <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>, <a href="pos
 
 <dl>
 
-<dt><b>none</b></dt> <dd> TLS will not be used unless enabled for specific
+<dt><b><a href="TLS_README.html#client_tls_none">none</a></b></dt>
+<dd> No TLS. TLS will not be used unless enabled for specific
 destinations via <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>. </dd>
 
-<dt><b>may</b></dt>
+<dt><b><a href="TLS_README.html#client_tls_may">may</a></b></dt>
 <dd> Opportunistic TLS. Use TLS if this is supported by the remote
 SMTP server, otherwise use plaintext. Since
 sending in the clear is acceptable, demanding stronger than default TLS
@@ -11823,7 +11879,8 @@ When TLS handshakes fail, the connection is retried with TLS disabled.
 This allows mail delivery to sites with non-interoperable TLS
 implementations. </dd>
 
-<dt><b>encrypt</b></dt> <dd>Mandatory TLS encryption. Since a minimum
+<dt><b><a href="TLS_README.html#client_tls_encrypt">encrypt</a></b></dt>
+<dd>Mandatory TLS encryption. Since a minimum
 level of security is intended, it is reasonable to be specific about
 sufficiently secure protocol versions and ciphers. At this security level
 and higher, the <a href="postconf.5.html">main.cf</a> parameters <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> and
@@ -11832,17 +11889,53 @@ cipher grade which the administrator considers secure enough for
 mandatory encrypted sessions. This security level is not an appropriate
 default for systems delivering mail to the Internet. </dd>
 
-<dt><b>fingerprint</b></dt> <dd>Certificate fingerprint
-verification. Available with Postfix 2.5 and later. At this security
-level, there are no trusted certificate authorities. The certificate
-trust chain, expiration date, ... are not checked. Instead, the
-<b><a href="postconf.5.html#smtp_tls_fingerprint_cert_match">smtp_tls_fingerprint_cert_match</a></b> parameter lists the certificate
-fingerprint or public key fingerprint (Postfix 2.9 and later) of
-the valid server certificate. The digest
-algorithm used to calculate the fingerprint is selected by the
-<b><a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a></b> parameter. </dd>
+<dt><b><a href="TLS_README.html#client_tls_dane">dane</a></b></dt>
+<dd>Opportunistic DANE TLS.  At this security level, the TLS policy
+for the destination is obtained via DNSSEC.  For TLSA policy to be
+in effect, the destination domain's containing DNS zone must be
+signed and the Postfix SMTP client's operating system must be
+configured to send its DNS queries to a recursive DNS nameserver
+that is able to validate the signed records.  Each MX host's DNS
+zone should also be signed, and should publish DANE TLSA (<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>)
+records that specify how that MX host's TLS certificate is to be
+verified.  TLSA records do not preempt the normal SMTP MX host
+selection algorithm, if some MX hosts support TLSA and others do
+not, TLS security will vary from delivery to delivery.  It is up
+to the domain owner to configure their MX hosts and their DNS
+sensibly.  To configure the Postfix SMTP client for DNSSEC lookups
+see the documentation for the <a href="postconf.5.html#smtp_dns_support_level">smtp_dns_support_level</a> <a href="postconf.5.html">main.cf</a>
+parameter.  When TLSA records are not found or are all unusable the
+effective security level is "may" or "encrypt" respectively.  For
+purposes of protocol and cipher selection, the "dane" security level
+is treated like a "mandatory" TLS security level, and weak ciphers
+and protocols are disabled.  SSLv2 and SSLv3 are automatically
+disabled when usable TLSA records are obtained for the remote SMTP
+server, see <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> for details.  Since DANE
+authenticates server certificates the "aNULL" cipher-suites are
+transparently excluded at this level, no need to configure this
+manually.  The <a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a> <a href="postconf.5.html">main.cf</a> parameter
+controls optional support for trust-anchor digest TLSA records.
+<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS authentication is available with Postfix 2.11
+and later.  </dd>
 
-<dt><b>verify</b></dt> <dd>Mandatory TLS verification. At this security
+<dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
+<dd>Mandatory DANE TLS.  This is just like "dane" above, only DANE
+TLSA authentication is mandatory.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS authentication
+is available with Postfix 2.11 and later.  </dd>
+
+<dt><b><a href="TLS_README.html#client_tls_fingerprint">fingerprint</a></b></dt>
+<dd>Certificate fingerprint verification.
+At this security level, there are no trusted certificate authorities.
+The certificate trust chain, expiration date, etc., are
+not checked. Instead, the <b><a href="postconf.5.html#smtp_tls_fingerprint_cert_match">smtp_tls_fingerprint_cert_match</a></b>
+parameter lists the certificate fingerprint or public key fingerprint
+(Postfix 2.9 and later) of the valid server certificate. The digest
+algorithm used to calculate the fingerprint is selected by the
+<b><a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a></b> parameter. Available with Postfix
+2.5 and later.  </dd>
+
+<dt><b><a href="TLS_README.html#client_tls_verify">verify</a></b></dt>
+<dd>Mandatory TLS verification. At this security
 level, DNS MX lookups are trusted to be secure enough, and the name
 verified in the server certificate is usually obtained indirectly
 via unauthenticated DNS MX lookups. The <a href="postconf.5.html#smtp_tls_verify_cert_match">smtp_tls_verify_cert_match</a>
@@ -11851,7 +11944,8 @@ control over matching is more common at the "secure" level, described
 below. This security level is not an appropriate default for systems
 delivering mail to the Internet. </dd>
 
-<dt><b>secure</b></dt> <dd>Secure-channel TLS.  At this security level,
+<dt><b><a href="TLS_README.html#client_tls_secure">secure</a></b></dt>
+<dd>Secure-channel TLS.  At this security level,
 DNS MX lookups, though potentially used to determine the candidate
 next-hop gateway IP addresses, are <b>not</b> trusted to be secure enough
 for TLS peername verification. Instead, the default name verified in
@@ -11972,6 +12066,56 @@ $<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cach
 are not possible. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>
+(default: empty)</b></DT><DD>
+
+<p> Zero or more PEM-format files with trust-anchor certificates
+and/or public keys.  If the parameter is not empty the root CAs in
+CAfile and CApath are no longer trusted.  Rather, the Postfix SMTP
+client will only trust certificate-chains signed by one of the
+trust-anchors contained in the chosen files.  The specified
+trust-anchor certificates and public keys are not subject to
+expiration, and need not be (self-signed) root CAs.  They may, if
+desired, be intermediate certificates. Therefore, these certificates
+also may be found "in the middle" of the trust chain presented by
+the remote SMTP server, and any untrusted issuing parent certificates
+will be ignored.  Specify a list of pathnames separated by comma
+or whitespace.  </p>
+
+<p>  Whether specified in <a href="postconf.5.html">main.cf</a>, or on a per-destination basis,
+the trust-anchor PEM file must be accessible to the Postfix SMTP
+client in the chroot jail if applicable.  The trust-anchor file
+should contain only certificates and public keys, no private key
+material, and must be readable by the non-privileged $<a href="postconf.5.html#mail_owner">mail_owner</a>
+user.  This allows destinations to be bound to a set of specific
+CAs or public keys without trusting the same CAs for all destinations.
+</p>
+
+<p> The <a href="postconf.5.html">main.cf</a> parameter supports single-purpose Postfix installations
+that send mail to a fixed set of SMTP peers.  At most sites, if
+trust-anchor files are used at all, they will be specified on a
+per-destination basis via the "tafile" attribute of the "verify"
+and "secure" levels in <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  </p>
+
+<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA),
+which defines mechanisms for a client to securely determine server
+TLS certificates via DNS.  </p>
+
+<p> If you want your trust anchors to be public keys, with OpenSSL
+you can extract a single PEM public key from a PEM X.509 file
+containing a single certificate, as follows: </p>
+
+<blockquote>
+<pre>
+$ openssl x509 -in cert.pem -out ta-key.pem -noout -pubkey
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
 
 
 </DD>
@@ -15992,6 +16136,57 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 
 </DD>
 
+<DT><b><a name="tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>
+(default: trust-anchor-assertion)</b></DT><DD>
+
+<p> <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> trust-anchor digest support in the Postfix TLS library.
+Specify zero or more of the following options, separated by comma or
+whitespace.  Option names are case-insensitive.  </p>
+
+<dl>
+
+<dt><b>ca-constraint</b></dt>
+
+<dd> Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that
+contain digests of trust-anchors with certificate usage "0".
+These are often public root CAs, and server operators may
+expect that clients will have the corresponding root certificate
+in their CAfile or CApath.  Most SSL/TLS servers do not send public
+root CA certificate in their certificate chain, so if Postfix does
+not have the CA certificate locally, there is no way to associate
+the digest with the trust chain from the server.  These TLSA records
+are fragile, and only work when you have a complete (whatever that
+means) set of public CAs in your CAfile or CApath.  Enable this
+with caution if at all.  </dd>
+
+<dt><b>trust-anchor-assertion</b></dt>
+
+<dd> Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
+digests of trust-anchors with certificate usage "2".  In this case
+the certificate usage logically requires the server administrator
+to configure the server to include the trust-anchor certificate in
+the server's SSL certificate chain.  These TLSA records are less
+fragile than "ca-constraint" TLSA records, and are enabled by
+default.  Having a "complete" CAfile or CApath does not help in
+this case, you are at the mercy of the remote server administrator's
+competence.  </dd>
+
+</dl>
+
+<p> At the <a href="TLS_README.html#client_tls_dane">dane</a>
+security level, when a TLSA RRset includes only unusable associations,
+the Postfix SMTP client will automatically switch the connection
+to the <a href="TLS_README.html#client_tls_encrypt">encrypt</a>
+security level.  At the <a
+href="TLS_README.html#client_tls_dane">dane-only</a> security level,
+the server in question is skipped and delivery is deferred if no
+secure servers are found.  </p>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="tls_disable_workarounds">tls_disable_workarounds</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -16330,6 +16525,109 @@ device file.  </p>
 gives timeout errors.  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="tls_ssl_options">tls_ssl_options</a>
+(default: empty)</b></DT><DD>
+
+<p> List or bit-mask of OpenSSL options to enable. </p>
+
+<p> The OpenSSL toolkit provides a set of options that applications
+can enable to tune the OpenSSL behavior.  Some of these work around
+bugs in other implementations and are on by default.  You can use
+the <a href="postconf.5.html#tls_disable_workarounds">tls_disable_workarounds</a> parameter to selectively disable some
+or all of the bug work-arounds, making OpenSSL more strict at the
+cost of non-interoperability with SSL clients or servers that exhibit
+the bugs.  </p>
+
+<p> Other options are off by default, and typically enable or disable
+features rather than bug work-arounds.  These may be turned on (with
+care) via the tls_ssl_options parameter.  The value is a white-space
+or comma separated list of named options chosen from the list below.
+The names are not case-sensitive, you can use lower-case if you
+prefer.  The upper case values below match the corresponding macro
+name in the ssl.h header file with the SSL_OP_ prefix removed.  It
+is possible that your OpenSSL version includes new options added
+after your Postfix source code was last updated, in that case you
+can only enable one of these via the hexadecimal syntax below.  </p>
+
+<p> You should only enable features via the hexadecimal mask when
+the need to control the feature is critical (to deal with a new
+vulnerability or a serious interoperability problem).  Postfix DOES
+NOT promise backwards compatible behavior with respect to the mask
+bits.  A feature enabled via the mask in one release may be enabled
+by other means in a later release, and the mask bit will then be
+ignored.  Therefore, use of the hexadecimal mask is only a temporary
+measure until a new Postfix or OpenSSL release provides a better
+solution.  </p>
+
+<p> If the value of the parameter is a hexadecimal long integer
+starting with "0x", the options corresponding to the bits specified
+in its value are enabled (see openssl/ssl.h and SSL_CTX_set_options(3)).
+You can only enable options not already controlled by other Postfix
+settings.  For example, you cannot disable protocols or enable
+server cipher preference.  Do not attempt to turn all features by
+specifying 0xFFFFFFFF, this is unlikely to be a good idea.  </p>
+
+<dl>
+
+<dt><b>LEGACY_SERVER_CONNECT</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
+
+<dt><b>NO_TICKET</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
+
+<dt><b>NO_COMPRESSION</b></dt> <dd>Disable SSL compression even if
+supported by the OpenSSL library.  Compression is CPU-intensive,
+and compression before encryption does not always improve security.  </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="tls_wildcard_matches_multiple_labels">tls_wildcard_matches_multiple_labels</a>
+(default: yes)</b></DT><DD>
+
+<p> Match multiple DNS labels with "*" in wildcard certificates.
+</p>
+
+<p> Some mail service providers prepend the customer domain name
+to a base domain for which they have a wildcard TLS certificate.
+For example, the MX records for example.com hosted by example.net
+may be: </p>
+
+<blockquote>
+<pre>
+example.com. IN MX 0 example.com.mx1.example.net.
+example.com. IN MX 0 example.com.mx2.example.net.
+</pre>
+</blockquote>
+
+<p> and the TLS certificate may be for "*.example.net". The "*"
+then corresponds with multiple labels in the mail server domain
+name.  While multi-label wildcards are not widely supported, and
+are not blessed by any standard, there is little to be gained by
+disallowing their use in this context.  </p>
+
+<p> Notes: <p>
+
+<ul>
+
+<li> <p> In a certificate name, the "*" is special only when it is
+used as the first label. </p>
+
+<li> <p> While Postfix (2.11 or later) can match "*" with multiple
+domain name labels, other implementations likely will not.  </p>
+
+<li> <p> Earlier Postfix implementations behave as if
+"<a href="postconf.5.html#tls_wildcard_matches_multiple_labels">tls_wildcard_matches_multiple_labels</a> = no". </p>
+
+</ul>
+
+<p> This feature is available in Postfix 2.11 and later.  </p>
 
 
 </DD>

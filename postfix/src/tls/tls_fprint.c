@@ -15,12 +15,12 @@
 /*	const unsigned char *md_buf;
 /*	const char *md_len;
 /*
-/*	char	*tls_fprint(buf, len, mdalg)
+/*	char	*tls_data_fprint(buf, len, mdalg)
 /*	const char *buf;
 /*	int	len;
 /*	const char *mdalg;
 /*
-/*	char	*tls_fingerprint(peercert, mdalg)
+/*	char	*tls_cert_fprint(peercert, mdalg)
 /*	X509	*peercert;
 /*	const char *mdalg;
 /*
@@ -33,12 +33,12 @@
 /*	The return value is dynamically allocated with mymalloc(),
 /*	and the caller must eventually free it with myfree().
 /*
-/*	tls_fprint() digests unstructured data, and encodes the digested
-/*	result via tls_digest_encode().
-/*	The return value is dynamically allocated with mymalloc(),
-/*	and the caller must eventually free it with myfree().
+/*	tls_data_fprint() digests unstructured data, and encodes the digested
+/*	result via tls_digest_encode().  The return value is dynamically
+/*	allocated with mymalloc(), and the caller must eventually free it
+/*	with myfree().
 /*
-/*	tls_fingerprint() returns a fingerprint of the the given
+/*	tls_cert_fprint() returns a fingerprint of the the given
 /*	certificate using the requested message digest, formatted
 /*	with tls_digest_encode(). Panics if the
 /*	(previously verified) digest algorithm is not found. The return
@@ -46,7 +46,7 @@
 /*	must eventually free it with myfree().
 /*
 /*	tls_pkey_fprint() returns a public-key fingerprint; in all
-/*	other respects the function behaves as tls_fingerprint().
+/*	other respects the function behaves as tls_cert_fprint().
 /*	The var_tls_bc_pkey_fprint variable enables an incorrect
 /*	algorithm that was used in Postfix versions 2.9.[0-5].
 /*	The return value is dynamically allocated with mymalloc(),
@@ -76,8 +76,9 @@
 /* .IP len
 /*	The length of the input data.
 /* .IP props
-/*	The client start properties for the session, which include the
-/*	initial serverid from the SMTP client.
+/*	The client start properties for the session, which contains the
+/*	initial serverid from the SMTP client and the DANE verification
+/*	parameters.
 /* .IP protomask
 /*	The mask of protocol exclusions.
 /* .IP ciphers
@@ -124,10 +125,39 @@
 
 static const char hexcodes[] = "0123456789ABCDEF";
 
-#define chknonzero(ret)	(ok &= ((ret) ? 1 : 0))
-#define digestpl(p, l) chknonzero(EVP_DigestUpdate(mdctx, (char *)(p), (l)))
-#define digestptr(p) digestpl((p), sizeof(*(p)))
-#define digeststr(s) digestpl((s), strlen(s)+1)
+#define checkok(ret)	(ok &= ((ret) ? 1 : 0))
+#define digest_data(p, l) checkok(EVP_DigestUpdate(mdctx, (char *)(p), (l)))
+#define digest_object(p) digest_data((p), sizeof(*(p)))
+#define digest_string(s) digest_data((s), strlen(s)+1)
+
+#define digest_dane(dane, memb) do { \
+	if ((dane)->memb != 0) \
+	    checkok(digest_tlsa_usage(mdctx, (dane)->memb, #memb)); \
+    } while (0)
+
+#define digest_tlsa_argv(tlsa, memb) do { \
+	if ((tlsa)->memb) { \
+	    digest_string(#memb); \
+	    for (dgst = (tlsa)->memb->argv; *dgst; ++dgst) \
+		digest_string(*dgst); \
+	} \
+    } while (0)
+
+/* digest_tlsa_usage - digest TA or EE match list sorted by alg and value */
+
+static int digest_tlsa_usage(EVP_MD_CTX * mdctx, TLS_TLSA *tlsa,
+			             const char *usage)
+{
+    char  **dgst;
+    int     ok = 1;
+
+    for (digest_string(usage); tlsa; tlsa = tlsa->next) {
+	digest_string(tlsa->mdalg);
+	digest_tlsa_argv(tlsa, pkeys);
+	digest_tlsa_argv(tlsa, certs);
+    }
+    return (ok);
+}
 
 /* tls_serverid_digest - suffix props->serverid with parameter digest */
 
@@ -161,12 +191,50 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
     sslversion = SSLeay();
 
     mdctx = EVP_MD_CTX_create();
-    chknonzero(EVP_DigestInit_ex(mdctx, md, NULL));
-    digeststr(props->helo ? props->helo : "");
-    digestptr(&sslversion);
-    digestptr(&protomask);
-    digeststr(ciphers);
-    chknonzero(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
+    checkok(EVP_DigestInit_ex(mdctx, md, NULL));
+    digest_string(props->helo ? props->helo : "");
+    digest_object(&sslversion);
+    digest_object(&protomask);
+    digest_string(ciphers);
+
+    /*
+     * All we get from the session cache is a single bit telling us whether
+     * the certificate is trusted or not, but we need to know whether the
+     * trust is CA-based (in that case we must do name checks) or whether it
+     * is a direct end-point match.  We mustn't confuse the two, so it is
+     * best to process only TA trust in the verify callback and check the EE
+     * trust after. This works since re-used sessions always have access to
+     * the leaf certificate, while only the original session has the leaf and
+     * the full trust chain.
+     * 
+     * Only the trust anchor matchlist is hashed into the session key. The end
+     * entity certs are not used to determine whether a certificate is
+     * trusted or not, rather these are rechecked against the leaf cert
+     * outside the verification callback, each time a session is created or
+     * reused.
+     * 
+     * Therefore, the security context of the session does not depend on the EE
+     * matching data, which is checked separately each time.  So we exclude
+     * the EE part of the DANE structure from the serverid digest.
+     * 
+     * If this changes, also update tls_dane_final() in tls_dane.c.
+     * 
+     * If the security level is "dane", we send SNI information to the peer.
+     * This may cause it to respond with a non-default certificate.  Since
+     * certificates for sessions with no or different SNI data may not match,
+     * we must include the SNI name in the session id.
+     */
+    if (props->dane) {
+	int     mixed = (props->dane->flags & TLS_DANE_FLAG_MIXED);
+
+	digest_object(&mixed);
+	digest_dane(props->dane, ta);
+#if 0
+	digest_dane(props->dane, ee);		/* See above */
+#endif
+	digest_string(props->tls_level == TLS_LEV_DANE ? props->host : "");
+    }
+    checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);
     if (!ok)
 	msg_fatal("error computing %s message digest", mdalg);
@@ -175,7 +243,17 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
     if (md_len > EVP_MAX_MD_SIZE)
 	msg_panic("unexpectedly large %s digest size: %u", mdalg, md_len);
 
-    /* Append the digest to the serverid */
+    /*
+     * Append the digest to the serverid.  We don't compare this digest to
+     * any user-specified fingerprints.  Therefore, we don't need to use a
+     * colon-separated format, which saves space in the TLS session cache and
+     * makes logging of session cache lookup keys more readable.
+     * 
+     * This does however duplicate a few lines of code from the digest encoder
+     * for colon-separated cert and pkey fingerprints. If that is a
+     * compelling reason to consolidate, we could use that and append the
+     * result.
+     */
     result = vstring_alloc(strlen(props->serverid) + 1 + 2 * md_len);
     vstring_strcpy(result, props->serverid);
     VSTRING_ADDCH(result, ':');
@@ -207,9 +285,9 @@ char   *tls_digest_encode(const unsigned char *md_buf, int md_len)
     return (result);
 }
 
-/* tls_fprint - compute and encode digest of DER-encoded object */
+/* tls_data_fprint - compute and encode digest of binary object */
 
-char   *tls_fprint(const char *buf, int len, const char *mdalg)
+char   *tls_data_fprint(const char *buf, int len, const char *mdalg)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
@@ -222,9 +300,9 @@ char   *tls_fprint(const char *buf, int len, const char *mdalg)
 	msg_panic("digest algorithm \"%s\" not found", mdalg);
 
     mdctx = EVP_MD_CTX_create();
-    chknonzero(EVP_DigestInit_ex(mdctx, md, NULL));
-    digestpl(buf, len);
-    chknonzero(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
+    checkok(EVP_DigestInit_ex(mdctx, md, NULL));
+    digest_data(buf, len);
+    checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);
     if (!ok)
 	msg_fatal("error computing %s message digest", mdalg);
@@ -232,9 +310,9 @@ char   *tls_fprint(const char *buf, int len, const char *mdalg)
     return (tls_digest_encode(md_buf, md_len));
 }
 
-/* tls_fingerprint - extract certificate fingerprint */
+/* tls_cert_fprint - extract certificate fingerprint */
 
-char   *tls_fingerprint(X509 *peercert, const char *mdalg)
+char   *tls_cert_fprint(X509 *peercert, const char *mdalg)
 {
     int     len;
     char   *buf;
@@ -247,7 +325,7 @@ char   *tls_fingerprint(X509 *peercert, const char *mdalg)
     if (buf2 - buf != len)
 	msg_panic("i2d_X509 invalid result length");
 
-    result = tls_fprint(buf, len, mdalg);
+    result = tls_data_fprint(buf, len, mdalg);
     myfree(buf);
 
     return (result);
@@ -267,7 +345,7 @@ char   *tls_pkey_fprint(X509 *peercert, const char *mdalg)
 	    msg_fatal("%s: error extracting legacy public-key fingerprint: %m",
 		      myname);
 
-	result = tls_fprint((char *) key->data, key->length, mdalg);
+	result = tls_data_fprint((char *) key->data, key->length, mdalg);
 	return (result);
     } else {
 	int     len;
@@ -281,7 +359,7 @@ char   *tls_pkey_fprint(X509 *peercert, const char *mdalg)
 	if (buf2 - buf != len)
 	    msg_panic("i2d_X509_PUBKEY invalid result length");
 
-	result = tls_fprint(buf, len, mdalg);
+	result = tls_data_fprint(buf, len, mdalg);
 	myfree(buf);
 	return (result);
     }

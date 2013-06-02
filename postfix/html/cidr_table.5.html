@@ -43,6 +43,10 @@ CIDR_TABLE(5)                                                    CIDR_TABLE(5)
               address is a sequence of three to eight hexadecimal
               octet pairs separated by ":".
 
+              The  <i>network</i><b>_</b><i>mask</i>  is the number of high-order bits
+              in the <i>network</i><b>_</b><i>address</i> that the search string  must
+              match.
+
               Before  comparisons are made, lookup keys and table
               entries are converted from string to binary. There-
               fore  table  entries  will be matched regardless of

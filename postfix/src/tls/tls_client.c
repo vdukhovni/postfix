@@ -91,7 +91,7 @@
 /* .IP TLScontext->issuer_CN
 /*	Extracted CommonName of the issuer, or zero-length string if the
 /*	information could not be extracted.
-/* .IP TLScontext->peer_fingerprint
+/* .IP TLScontext->peer_cert_fprint
 /*	At the fingerprint security level, if the peer presented a certificate
 /*	the fingerprint of the certificate.
 /* .PP
@@ -233,21 +233,6 @@ static int new_client_session_cb(SSL *ssl, SSL_SESSION *session)
 	/* serverid contains transport:addr:port information */
 	msg_info("save session %s to %s cache",
 		 TLScontext->serverid, TLScontext->cache_type);
-
-#if (OPENSSL_VERSION_NUMBER < 0x00906011L) || (OPENSSL_VERSION_NUMBER == 0x00907000L)
-
-    /*
-     * Ugly Hack: OpenSSL before 0.9.6a does not store the verify result in
-     * sessions for the client side. We modify the session directly which is
-     * version specific, but this bug is version specific, too.
-     * 
-     * READ: 0-09-06-01-1 = 0-9-6-a-beta1: all versions before beta1 have this
-     * bug, it has been fixed during development of 0.9.6a. The development
-     * version of 0.9.7 can have this bug, too. It has been fixed on
-     * 2000/11/29.
-     */
-    session->verify_result = SSL_get_verify_result(TLScontext->con);
-#endif
 
     /*
      * Passivate and save the session object. Errors are non-fatal, since
@@ -503,66 +488,70 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     return (app_ctx);
 }
 
-/* match_hostname -  match hostname against pattern */
+/* match_servername -  match servername against pattern */
 
-static int match_hostname(const char *peerid,
+static int match_servername(const char *certid,
 			          const TLS_CLIENT_START_PROPS *props)
 {
     const ARGV *cmatch_argv;
     const char *nexthop = props->nexthop;
     const char *hname = props->host;
-    const char *pattern;
-    const char *pattern_left;
-    int     sub;
+    const char *domain;
+    const char *parent;
+    int     match_subdomain;
     int     i;
     int     idlen;
-    int     patlen;
+    int     domlen;
 
     if ((cmatch_argv = props->matchargv) == 0)
 	return 0;
 
     /*
-     * Match the peerid against each pattern until we find a match.
+     * Match the certid against each pattern until we find a match.
      */
     for (i = 0; i < cmatch_argv->argc; ++i) {
-	sub = 0;
+	match_subdomain = 0;
 	if (!strcasecmp(cmatch_argv->argv[i], "nexthop"))
-	    pattern = nexthop;
+	    domain = nexthop;
 	else if (!strcasecmp(cmatch_argv->argv[i], "hostname"))
-	    pattern = hname;
+	    domain = hname;
 	else if (!strcasecmp(cmatch_argv->argv[i], "dot-nexthop")) {
-	    pattern = nexthop;
-	    sub = 1;
+	    domain = nexthop;
+	    match_subdomain = 1;
 	} else {
-	    pattern = cmatch_argv->argv[i];
-	    if (*pattern == '.' && pattern[1] != '\0') {
-		++pattern;
-		sub = 1;
+	    domain = cmatch_argv->argv[i];
+	    if (*domain == '.' && domain[1] != '\0') {
+		++domain;
+		match_subdomain = 1;
 	    }
 	}
 
 	/*
-	 * Sub-domain match: peerid is any sub-domain of pattern.
+	 * Sub-domain match: certid is any sub-domain of hostname.
 	 */
-	if (sub) {
-	    if ((idlen = strlen(peerid)) > (patlen = strlen(pattern)) + 1
-		&& peerid[idlen - patlen - 1] == '.'
-		&& !strcasecmp(peerid + (idlen - patlen), pattern))
+	if (match_subdomain) {
+	    if ((idlen = strlen(certid)) > (domlen = strlen(domain)) + 1
+		&& certid[idlen - domlen - 1] == '.'
+		&& !strcasecmp(certid + (idlen - domlen), domain))
 		return (1);
 	    else
 		continue;
 	}
 
 	/*
-	 * Exact match and initial "*" match. The initial "*" in a peerid
-	 * matches exactly one hostname component, under the condition that
-	 * the peerid contains multiple hostname components.
+	 * Exact match and initial "*" match. The initial "*" in a certid
+	 * matches one (if var_tls_multi_label is false) or more hostname
+	 * components under the condition that the certid contains multiple
+	 * hostname components.
 	 */
-	if (!strcasecmp(peerid, pattern)
-	    || (peerid[0] == '*' && peerid[1] == '.' && peerid[2] != 0
-		&& (pattern_left = strchr(pattern, '.')) != 0
-		&& strcasecmp(pattern_left + 1, peerid + 2) == 0))
-	    return (1);
+	if (!strcasecmp(certid, domain)
+	    || (certid[0] == '*' && certid[1] == '.' && certid[2] != 0
+                && (parent = strchr(domain, '.')) != 0
+                && (idlen = strlen(certid + 1)) <= (domlen = strlen(parent))
+                && strcasecmp(var_tls_multi_wildcard == 0 ? parent :
+                              parent + domlen - idlen,
+                              certid + 1) == 0))
+            return (1);
     }
     return (0);
 }
@@ -595,7 +584,13 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK)
 	TLScontext->peer_status |= TLS_CERT_FLAG_TRUSTED;
 
-    if (TLS_CERT_IS_TRUSTED(TLScontext) && props->tls_level >= TLS_LEV_VERIFY)
+    /*
+     * With fingerprint or dane we may already be done. Otherwise, verify the
+     * peername if using traditional PKI or DANE with trust-anchors.
+     */
+    if (!TLS_CERT_IS_MATCHED(TLScontext)
+	&& TLS_CERT_IS_TRUSTED(TLScontext)
+	&& TLS_MUST_TRUST(props->tls_level))
 	verify_peername = 1;
 
     /* Force cert processing so we can log the data? */
@@ -646,7 +641,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 		TLScontext->peer_status |= TLS_CERT_FLAG_ALTNAME;
 		dnsname = tls_dns_name(gn, TLScontext);
 		if (dnsname && *dnsname) {
-		    if ((dnsname_match = match_hostname(dnsname, props)) != 0)
+		    if ((dnsname_match = match_servername(dnsname, props)) != 0)
 			matched++;
 		    /* Keep the first matched name. */
 		    if (TLScontext->peer_CN
@@ -680,7 +675,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 	if (TLScontext->peer_CN == 0) {
 	    TLScontext->peer_CN = tls_peer_CN(peercert, TLScontext);
 	    if (*TLScontext->peer_CN)
-		matched = match_hostname(TLScontext->peer_CN, props);
+		matched = match_servername(TLScontext->peer_CN, props);
 	    if (verify_peername && matched)
 		TLScontext->peer_status |= TLS_CERT_FLAG_MATCHED;
 	    if (verbose)
@@ -720,26 +715,22 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
 static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
 				         const TLS_CLIENT_START_PROPS *props)
 {
-    char  **cpp;
-
-    /* Non-null by contract */
-    TLScontext->peer_fingerprint = tls_fingerprint(peercert, props->mdalg);
+    TLScontext->peer_cert_fprint = tls_cert_fprint(peercert, props->mdalg);
     TLScontext->peer_pkey_fprint = tls_pkey_fprint(peercert, props->mdalg);
 
     /*
-     * Compare the fingerprint against each acceptable value, ignoring
-     * upper/lower case differences.
+     * Whether the level is "dane" or "fingerprint" when the peer certificate
+     * is matched without resorting to a separate CA, we set both the trusted
+     * and matched bits.  This simplifies logic in smtp_proto.c where "dane"
+     * must be trusted and matched, since some "dane" TLSA RRsets do use CAs.
+     * 
+     * This also suppresses spurious logging of the peer certificate as
+     * untrusted in verify_extract_name().
      */
-    if (props->tls_level == TLS_LEV_FPRINT) {
-	for (cpp = props->matchargv->argv; *cpp; ++cpp) {
-	    if (strcasecmp(TLScontext->peer_fingerprint, *cpp) == 0
-		|| strcasecmp(TLScontext->peer_pkey_fprint, *cpp) == 0) {
-		TLScontext->peer_status |=
-		    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
-		break;
-	    }
-	}
-    }
+    if (TLS_DANE_HASEE(props->dane)
+	&& tls_cert_match(TLScontext, TLS_DANE_EE, peercert, 0))
+	TLScontext->peer_status |=
+	    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
 }
 
  /*
@@ -752,7 +743,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     int     sts;
     int     protomask;
     const char *cipher_list;
-    SSL_SESSION *session;
+    SSL_SESSION *session = 0;
     const SSL_CIPHER *cipher;
     X509   *peercert;
     TLS_SESS_STATE *TLScontext;
@@ -762,9 +753,11 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 
     /*
      * When certificate verification is required, log trust chain validation
-     * errors even when disabled by default for opportunistic sessions.
+     * errors even when disabled by default for opportunistic sessions. For
+     * "dane" this only applies when using trust-anchor associations.
      */
-    if (props->tls_level >= TLS_LEV_VERIFY)
+    if (TLS_MUST_TRUST(props->tls_level)
+	&& (props->tls_level != TLS_LEV_DANE || TLS_DANE_HASTA(props->dane)))
 	log_mask |= TLS_LOG_UNTRUSTED;
 
     if (log_mask & TLS_LOG_VERBOSE)
@@ -783,6 +776,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 		 props->namaddr, props->protocols);
 	return (0);
     }
+    /* The DANE level requires TLS 1.0 or later, not SSLv2 or SSLv3. */
+    if (props->tls_level == TLS_LEV_DANE)
+	protomask |= TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_SSLv2;
 
     /*
      * Per session cipher selection for sessions with mandatory encryption
@@ -814,6 +810,15 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * not attempt to re-use sessions whose ciphers are too weak. We salt the
      * session lookup key with the cipher list, so that sessions found in the
      * cache are always acceptable.
+     * 
+     * With DANE, (more generally any TLScontext where we specified explicit
+     * trust-anchor or end-entity certificates) the verification status of
+     * the SSL session depends on the specified list.  Since we verify the
+     * certificate only during the initial handshake, we must segregate
+     * sessions with different TA lists.  Note, that TA re-verification is
+     * not possible with cached sessions, since these don't hold the complete
+     * peer trust chain.  Therefore, we compute a digest of the sorted TA
+     * parameters and append it to the serverid.
      */
     myserverid = tls_serverid_digest(props, protomask, cipher_list);
 
@@ -832,6 +837,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     TLScontext->stream = props->stream;
     TLScontext->mdalg = props->mdalg;
 
+    /* Alias DANE digest info from props */
+    TLScontext->dane = props->dane;
+
     if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
 	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
 	tls_print_errors();
@@ -849,12 +857,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * Apply session protocol restrictions.
      */
     if (protomask != 0)
-	SSL_set_options(TLScontext->con,
-		   ((protomask & TLS_PROTOCOL_TLSv1) ? SSL_OP_NO_TLSv1 : 0L)
-	     | ((protomask & TLS_PROTOCOL_TLSv1_1) ? SSL_OP_NO_TLSv1_1 : 0L)
-	     | ((protomask & TLS_PROTOCOL_TLSv1_2) ? SSL_OP_NO_TLSv1_2 : 0L)
-		 | ((protomask & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L)
-	       | ((protomask & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L));
+	SSL_set_options(TLScontext->con, TLS_SSL_OP_PROTOMASK(protomask));
 
     /*
      * XXX To avoid memory leaks we must always call SSL_SESSION_free() after
@@ -866,24 +869,38 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	if (session) {
 	    SSL_set_session(TLScontext->con, session);
 	    SSL_SESSION_free(session);		/* 200411 */
-#if (OPENSSL_VERSION_NUMBER < 0x00906011L) || (OPENSSL_VERSION_NUMBER == 0x00907000L)
-
-	    /*
-	     * Ugly Hack: OpenSSL before 0.9.6a does not store the verify
-	     * result in sessions for the client side. We modify the session
-	     * directly which is version specific, but this bug is version
-	     * specific, too.
-	     * 
-	     * READ: 0-09-06-01-1 = 0-9-6-a-beta1: all versions before beta1
-	     * have this bug, it has been fixed during development of 0.9.6a.
-	     * The development version of 0.9.7 can have this bug, too. It
-	     * has been fixed on 2000/11/29.
-	     */
-	    SSL_set_verify_result(TLScontext->con, session->verify_result);
-#endif
-
 	}
     }
+#ifdef TLSEXT_MAXLEN_host_name
+    if (props->tls_level == TLS_LEV_DANE
+	&& strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
+
+	/*
+	 * With DANE sessions, send an SNI hint.  We don't care whether the
+	 * server reports finding a matching certificate or not, so no
+	 * callback is required to process the server response.  Our use of
+	 * SNI is limited to giving servers that are (mis)configured to use
+	 * SNI the best opportunity to find the certificate they promised via
+	 * the associated TLSA RRs.  (Generally, server administrators should
+	 * avoid SNI, and there are no plans to support SNI in the Postfix
+	 * SMTP server).
+	 * 
+	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
+	 * thererefore valid for use with SNI.  Failure to set a valid SNI
+	 * hostname is a memory allocation error, and thus transient.  Since
+	 * we must not cache the session if we failed to send the SNI name,
+	 * we have little choice but to abort.
+	 */
+	if (!SSL_set_tlsext_host_name(TLScontext->con, props->host)) {
+	    msg_warn("%s: error setting SNI hostname to: %s", props->namaddr,
+		     props->host);
+	    tls_free_context(TLScontext);
+	    return (0);
+	}
+	if (log_mask & TLS_LOG_DEBUG)
+	    msg_info("%s: SNI hostname: %s", props->namaddr, props->host);
+    }
+#endif
 
     /*
      * Before really starting anything, try to seed the PRNG a little bit
@@ -972,23 +989,25 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 
 	/*
 	 * Peer name or fingerprint verification as requested.
-	 * Unconditionally set peer_CN, issuer_CN and peer_fingerprint.
+	 * Unconditionally set peer_CN, issuer_CN and peer_cert_fprint. Check
+	 * fingerprint first, and avoid logging verified as untrusted in the
+	 * call to verify_extract_name().
 	 */
-	verify_extract_name(TLScontext, peercert, props);
 	verify_extract_print(TLScontext, peercert, props);
+	verify_extract_name(TLScontext, peercert, props);
 
 	if (TLScontext->log_mask &
 	    (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))
 	    msg_info("%s: subject_CN=%s, issuer_CN=%s, "
 		     "fingerprint=%s, pkey_fingerprint=%s", props->namaddr,
 		     TLScontext->peer_CN, TLScontext->issuer_CN,
-		     TLScontext->peer_fingerprint,
+		     TLScontext->peer_cert_fprint,
 		     TLScontext->peer_pkey_fprint);
 	X509_free(peercert);
     } else {
 	TLScontext->issuer_CN = mystrdup("");
 	TLScontext->peer_CN = mystrdup("");
-	TLScontext->peer_fingerprint = mystrdup("");
+	TLScontext->peer_cert_fprint = mystrdup("");
 	TLScontext->peer_pkey_fprint = mystrdup("");
     }
 

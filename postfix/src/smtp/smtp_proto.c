@@ -236,7 +236,11 @@ char   *xfer_request[SMTP_STATE_LAST] = {
      && (session->features & SMTP_FEATURE_8BITMIME) == 0 \
      && strcmp(request->encoding, MAIL_ATTR_ENC_7BIT) != 0)
 
+#ifdef USE_TLS
+
 static int smtp_start_tls(SMTP_STATE *);
+
+#endif
 
  /*
   * Call-back information for header/body checks. We don't provide call-backs
@@ -685,7 +689,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (session->tls->level >= TLS_LEV_ENCRYPT)
+	    if (TLS_REQUIRED(session->tls->level))
 		return (smtp_site_fail(state, session->host, resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -700,7 +704,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
 	 */
-	if (session->tls->level >= TLS_LEV_ENCRYPT) {
+	if (TLS_REQUIRED(session->tls->level)) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
@@ -776,8 +780,9 @@ static int smtp_start_tls(SMTP_STATE *state)
      * SSL session lookup key lengths.
      */
     serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%s:%u",
-		    state->service, session->addr, ntohs(session->port));
+    smtp_key_prefix(serverid, ":", state->iterator, SMTP_KEY_FLAG_SERVICE
+		    | SMTP_KEY_FLAG_ADDR
+		    | SMTP_KEY_FLAG_PORT);
 
     /*
      * As of Postfix 2.5, tls_client_start() tries hard to always complete
@@ -808,7 +813,8 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 cipher_exclusions
 			 = vstring_str(session->tls->exclusions),
 			 matchargv = session->tls->matchargv,
-			 mdalg = var_smtp_tls_fpt_dgst);
+			 mdalg = var_smtp_tls_fpt_dgst,
+			 dane = session->tls->dane);
     vstring_free(serverid);
 
     if (session->tls_context == 0) {
@@ -848,20 +854,23 @@ static int smtp_start_tls(SMTP_STATE *state)
      * server, so no need to disable I/O, ... we can even be polite and send
      * "QUIT".
      * 
-     * See src/tls/tls_level.c. Levels above encrypt require matching. Levels >=
-     * verify require CA trust.
+     * See src/tls/tls_level.c and src/tls/tls.h. Levels above "encrypt" require
+     * matching.  Levels >= "dane" require CA or DNSSEC trust.
+     * 
+     * When DANE TLSA records specify an end-entity certificate, the trust and
+     * match bits always coincide, but it is fine to report the wrong
+     * end-entity certificate as untrusted rather than unmatched.
      */
-    if (session->tls->level >= TLS_LEV_VERIFY)
+    if (TLS_MUST_TRUST(session->tls->level))
 	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    if (session->tls->level >= TLS_LEV_DANE)
+    if (TLS_MUST_MATCH(session->tls->level))
 	if (!TLS_CERT_IS_MATCHED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
-
 
     /* At this point there must not be any pending plaintext. */
     vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);

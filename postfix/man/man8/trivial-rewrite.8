@@ -101,10 +101,14 @@ The text below provides only a parameter summary. See
 .IP "\fBresolve_dequoted_address (yes)\fR"
 Resolve a recipient address safely instead of correctly, by
 looking inside quotes.
+.PP
+Available with Postfix version 2.1 and later:
 .IP "\fBresolve_null_domain (no)\fR"
 Resolve an address that ends in the "@" null domain as if the
 local hostname were specified, instead of rejecting the address as
 invalid.
+.PP
+Available with Postfix version 2.3 and later:
 .IP "\fBresolve_numeric_domain (no)\fR"
 Resolve "user@ipaddress" as "user@[ipaddress]", instead of
 rejecting the address as invalid.

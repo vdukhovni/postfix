@@ -22,7 +22,7 @@ CONFIG	= man5/access.5 man5/aliases.5 man5/canonical.5 man5/relocated.5 \
 	man5/generic.5 man5/bounce.5 man5/postfix-wrapper.5 \
 	man5/sqlite_table.5
 TOOLS	= man1/smtp-sink.1 man1/smtp-source.1 man1/qmqp-sink.1 \
-	man1/qmqp-source.1 man1/qshape.1
+	man1/qmqp-source.1 man1/qshape.1 man1/posttls-finger.1
 
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG) $(TOOLS)
 
@@ -318,6 +318,11 @@ man1/smtp-sink.1: ../src/smtpstone/smtp-sink.c
 	../mantools/srctoman $? >$@
 
 man1/smtp-source.1: ../src/smtpstone/smtp-source.c
+	../mantools/fixman ../proto/postconf.proto $? >junk && \
+	    (cmp -s junk $? || mv junk $?) && rm -f junk
+	../mantools/srctoman $? >$@
+
+man1/posttls-finger.1: ../src/posttls-finger/posttls-finger.c
 	../mantools/fixman ../proto/postconf.proto $? >junk && \
 	    (cmp -s junk $? || mv junk $?) && rm -f junk
 	../mantools/srctoman $? >$@

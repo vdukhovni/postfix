@@ -9,6 +9,9 @@
 /*	ARGV	*argv_alloc(len)
 /*	ssize_t	len;
 /*
+/*	ARGV    *argv_sort(argvp)
+/*	ARGV    *argvp;
+/*
 /*	ARGV	*argv_free(argvp)
 /*	ARGV	*argvp;
 /*
@@ -55,6 +58,9 @@
 /*	argv_alloc() returns an empty string array of the requested
 /*	length. The result is ready for use by argv_add(). The array
 /*	is null terminated.
+/*
+/*	argv_sort() sorts the elements of argvp in place returning
+/*	the original array.
 /*
 /*	argv_add() copies zero or more strings and adds them to the
 /*	specified string array. The array is null terminated.
@@ -145,6 +151,22 @@ ARGV   *argv_alloc(ssize_t len)
     argvp->len = sane_len;
     argvp->argc = 0;
     argvp->argv[0] = 0;
+    return (argvp);
+}
+
+static int argv_cmp(const void *e1, const void *e2)
+{
+    const char *s1 = *(const char **) e1;
+    const char *s2 = *(const char **) e2;
+
+    return strcmp(s1, s2);
+}
+
+/* argv_sort - sort array in place */
+
+ARGV   *argv_sort(ARGV *argvp)
+{
+    qsort(argvp->argv, argvp->argc, sizeof(argvp->argv[0]), argv_cmp);
     return (argvp);
 }
 

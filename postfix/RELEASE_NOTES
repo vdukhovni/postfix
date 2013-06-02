@@ -14,6 +14,30 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Major changes with snapshot 20130602
+====================================
+
+Support for PKI-less TLS server certificate verification, where the
+CA public key is identified via DNSSEC lookup. 
+
+This feature introduces a new TLS security level called "dane"
+(DNS-based Authentication of Named Entities) that uses DNSSEC to
+look up CA information for a server TLS certificate.  The details
+of DANE core protocols are still evolving, as are the details of
+how DANE should be used in the context of SMTP. Postfix implements
+what appears to be a "rational" subset of the DANE profiles.
+
+The problem with PKI is that there are literally hundreds of
+organizations world-wide that can provide a certificate in anyone's
+name. There have been widely-published incidents in recent history
+where a certificate authority gave out an inappropriate certificate
+(e.g., a certificate in the name of Microsoft to someone who did
+not represent Microsoft), where a CA was compromised (e.g., DigiNotar,
+Comodo), or where a CA made operational mistakes (e.g., TURKTRUST).
+Another concern is that a legitimate CA might be coerced to provide
+a certificate that allows its government to play man-in-the-middle
+on TLS traffic and observe the plaintext.
+
 Major changes with snapshot 20130512
 ====================================
 

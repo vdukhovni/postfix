@@ -242,6 +242,7 @@ while (<>) {
     s;\blmtp_tls_security_level\b;<a href="postconf.5.html#lmtp_tls_security_level">$&</a>;g;
     s;\blmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#lmtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\blmtp_tls_verify_cert_match\b;<a href="postconf.5.html#lmtp_tls_verify_cert_match">$&</a>;g;
+    s;\blmtp_tls_trust_anchor_file\b;<a href="postconf.5.html#lmtp_tls_trust_anchor_file">$&</a>;g;
     s;\blmtp_tls_per_site\b;<a href="postconf.5.html#lmtp_tls_per_site">$&</a>;g;
     s;\blmtp_tls_cert_file\b;<a href="postconf.5.html#lmtp_tls_cert_file">$&</a>;g;
     s;\blmtp_tls_key_file\b;<a href="postconf.5.html#lmtp_tls_key_file">$&</a>;g;
@@ -638,6 +639,7 @@ while (<>) {
     s;\bsmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#smtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\bsmtp_tls_verify_cert_match\b;<a href="postconf.5.html#smtp_tls_verify_cert_match">$&</a>;g;
     s;\bsmtp_tls_secure_cert_match\b;<a href="postconf.5.html#smtp_tls_secure_cert_match">$&</a>;g;
+    s;\bsmtp_tls_trust_anchor_file\b;<a href="postconf.5.html#smtp_tls_trust_anchor_file">$&</a>;g;
     s;\bsmtp_tls_scert_verifydepth\b;<a href="postconf.5.html#smtp_tls_scert_verifydepth">$&</a>;g;
     s;\bsmtp_tls_security_level\b;<a href="postconf.5.html#smtp_tls_security_level">$&</a>;g;
     s;\bsmtp_tls_session_cache_database\b;<a href="postconf.5.html#smtp_tls_session_cache_database">$&</a>;g;
@@ -709,6 +711,8 @@ while (<>) {
     s;\btls_disable_workarounds\b;<a href="postconf.5.html#tls_disable_workarounds">$&</a>;g;
     s;\btls_append_default_CA\b;<a href="postconf.5.html#tls_append_default_CA">$&</a>;g;
     s;\btls_legacy_public_key_fingerprints\b;<a href="postconf.5.html#tls_legacy_public_key_fingerprint">$&</a>;g;
+    s;\btls_dane_trust_anchor_digest_enable\b;<a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">$&</a>;g;
+    s;\btls_wildcard_matches_multiple_labels\b;<a href="postconf.5.html#tls_wildcard_matches_multiple_labels">$&</a>;g;
  
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
     s;\breset_owner_alias\b;<a href="postconf.5.html#reset_owner_alias">$&</a>;g;
@@ -783,6 +787,7 @@ while (<>) {
     s/[<bB>]*postmulti[<\/bB>]*\(1\)/<a href="postmulti.1.html">$&<\/a>/g;
     s/[<bB>]*postqueue[<\/bB>]*\(1\)/<a href="postqueue.1.html">$&<\/a>/g;
     s/[<bB>]*postsuper[<\/bB>]*\(1\)/<a href="postsuper.1.html">$&<\/a>/g;
+    s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*tls-finger[<\/bB>]*\(1\)/<a href="posttls-finger.1.html">$&<\/a>/g;
     s/[<bB>]*send[-<\/bB>]*\n*[ <bB>]*mail[<\/bB>]*\(1\)/<a href="sendmail.1.html">$&<\/a>/g;
     s/[<bB>]*smtp-[<\/bB>]*\n* *[<bB>]*source[<\/bB>]*\(1\)/<a href="smtp-source.1.html">$&<\/a>/g;
     s/[<bB>]*smtp-[<\/bB>]*\n* *[<bB>]*sink[<\/bB>]*\(1\)/<a href="smtp-sink.1.html">$&<\/a>/g;
