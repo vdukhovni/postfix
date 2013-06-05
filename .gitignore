@@ -59,6 +59,7 @@ Makefile
 /postfix/src/postqueue/postqueue
 /postfix/src/postscreen/postscreen
 /postfix/src/postsuper/postsuper
+/postfix/src/posttls-finger/posttls-finger
 /postfix/src/proxymap/proxymap
 /postfix/src/qmgr/qmgr
 /postfix/src/qmqpd/qmqpd
