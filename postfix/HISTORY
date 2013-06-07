@@ -18686,3 +18686,15 @@ Apologies for any names omitted.
 	certificates. Viktor Dukhovni. Files: proto/postconf.proto,
 	mantools/postlink, global/mail_params.h, tls/tls_client.c,
 	tls/tls_misc.c.
+
+20130607
+
+	Bugfix (DANE support): with multiple TLSA RR that carry "x
+	0 0" certificates or "x 1 0" keys, Postfix failed to reset
+	the cert/key pointer before calling d2i_mumble(), causing
+	OpenSSL to clobber the previous cert or key.  Viktor Dukhovni.
+	tls/tls_dane.c.
+
+	Robustness: check that TLSA-supplied certs have valid keys.
+	It is not clear whether that check is performed in d2i().
+	Viktor Dukhovni. tls/tls_dane.c.

@@ -499,8 +499,6 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
     uint8_t mtype;
     int     mlen;
     const unsigned char *p;
-    X509   *x = 0;			/* OpenSSL tries to re-use *x if x!=0 */
-    EVP_PKEY *k = 0;			/* OpenSSL tries to re-use *k if k!=0 */
 
     if (rr == 0)
 	msg_panic("null TLSA rr");
@@ -511,6 +509,8 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 	char   *digest;
 	int     same = (strcasecmp(rr->rname, rr->qname) == 0);
 	uint8_t *ip = (uint8_t *) rr->data;
+	X509   *x = 0;			/* OpenSSL tries to re-use *x if x!=0 */
+	EVP_PKEY *k = 0;		/* OpenSSL tries to re-use *k if k!=0 */
 
 #define rcname(rr) (same ? "" : rr->qname)
 #define rarrow(rr) (same ? "" : " -> ")
@@ -610,6 +610,17 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 			     usage, selector, mtype);
 		    continue;
 		}
+
+		/* Also unusable if public key is malformed */
+		if ((k = X509_get_pubkey(x)) == 0) {
+		    msg_warn("%s public key malformed in RR: "
+			     "%s%s%s IN TLSA %u %u %u ...", "certificate",
+			     rcname(rr), rarrow(rr), rr->rname,
+			     usage, selector, mtype);
+		    X509_free(x);
+		    continue;
+		}
+		EVP_PKEY_free(k);
 
 		/*
 		 * When a full trust-anchor certificate is published via DNS,
