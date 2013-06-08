@@ -18698,3 +18698,8 @@ Apologies for any names omitted.
 	Robustness: check that TLSA-supplied certs have valid keys.
 	It is not clear whether that check is performed in d2i().
 	Viktor Dukhovni. tls/tls_dane.c.
+
+20130608
+
+	Cleanup (DANE support): be more explicit in the logging of
+	object digests.  Viktor Dukhovni. tls/tls_dane.c.

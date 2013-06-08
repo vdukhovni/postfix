@@ -661,14 +661,27 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 	     * The cert or key was valid, just digest the raw object, and
 	     * encode the digest value.  We choose SHA256.
 	     */
-	    dane_add(dane, usage, selector, sha256,
+	    dane_add(dane, usage, selector, mdalg = sha256,
 		     digest = tls_data_fprint((char *) ip, mlen, sha256));
 	    break;
 	}
-	if (msg_verbose || dane_verbose)
-	    msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u %s",
-		     rcname(rr), rarrow(rr), rr->rname,
-		     usage, selector, mtype, digest);
+	if (msg_verbose || dane_verbose) {
+	    switch (mtype) {
+	    default:
+		msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u %s",
+			 rcname(rr), rarrow(rr), rr->rname,
+			 usage, selector, mtype, digest);
+		break;
+	    case DNS_TLSA_MATCHING_TYPE_NO_HASH_USED:
+		msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u <%s>; "
+			 "%s digest %s",
+			 rcname(rr), rarrow(rr), rr->rname,
+			 usage, selector, mtype,
+			 (selector == DNS_TLSA_SELECTOR_FULL_CERTIFICATE) ?
+			 "certificate" : "public key", mdalg, digest);
+		break;
+	    }
+	}
 	myfree(digest);
     }
 
