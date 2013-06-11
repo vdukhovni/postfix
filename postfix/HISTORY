@@ -18703,3 +18703,16 @@ Apologies for any names omitted.
 
 	Cleanup (DANE support): be more explicit in the logging of
 	object digests.  Viktor Dukhovni. tls/tls_dane.c.
+
+20100613
+
+	Workaround: unhelpful down-stream maintainers fail to install
+	the new smtpd_relay_restrictions safety net, causing things
+	to break. We hard-code the safety net instead.  Files:
+	global/mail_params.h, conf/post-install, RELEASE_NOTES_2.10.
+
+	Bugfix (DANE support): when TLSA records are insecure,
+	report that none are found. Viktor Dukhovni. Files:
+	posttls-finger/posttls-finger.c, smtp/smtp_tls_policy.c,
+	tls/tls_dane.c.
+

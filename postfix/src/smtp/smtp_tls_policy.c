@@ -823,7 +823,8 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
     if (TLS_DANE_HASTA(dane)) {
 	tls->matchargv = argv_alloc(2);
 	argv_add(tls->matchargv, "hostname", "nexthop", ARGV_END);
-    }
+    } else if (!TLS_DANE_HASEE(dane))
+	msg_panic("empty DANE match list");
     tls->dane = dane;
     tls->level = TLS_LEV_DANE;
     return;

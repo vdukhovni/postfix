@@ -1171,6 +1171,9 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 			     tls_dane_unusable(state->ddane) ?
 			     "usable " : "");
 		level = TLS_LEV_SECURE;
+	    } else if (!TLS_DANE_HASTA(state->ddane)
+		       && !TLS_DANE_HASEE(state->ddane)) {
+		msg_panic("empty DANE match list");
 	    } else {
 		if (state->match)
 		    argv_free(state->match);

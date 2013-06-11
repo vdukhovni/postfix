@@ -809,25 +809,26 @@ EOF
 	$POSTCONF -c $config_directory inet_protocols=ipv4 || exit 1
     }
 
-    # Postfix 2.10.
-    # Safety net for incompatible changes due to the introduction
-    # of the smtpd_relay_restrictions feature to separate the
-    # mail relay policy from the spam blocking policy.
-    # PLEASE DO NOT REMOVE THIS CODE. ITS PURPOSE IS TO PREVENT
-    # INBOUND MAIL FROM UNEXPECTEDLY BOUNCING AFTER UPGRADING FROM
-    # POSTFIX BEFORE 2.10.
-    test -n "`$POSTCONF -c $config_directory -n smtpd_relay_restrictions`" || {
-	cat <<EOF | ${FMT}
-    COMPATIBILITY: editing $config_directory/main.cf, overriding
-    smtpd_relay_restrictions to prevent inbound mail from
-    unexpectedly bouncing.
-    Specify an empty smtpd_relay_restrictions value to keep using 
-    smtpd_recipient_restrictions as before.
-EOF
-	$POSTCONF -c $config_directory "smtpd_relay_restrictions = \
-	    permit_mynetworks permit_sasl_authenticated \
-	    defer_unauth_destination" || exit 1
-    }
+# Disabled because unhelpful down-stream maintainers disable the safety net.
+#    # Postfix 2.10.
+#    # Safety net for incompatible changes due to the introduction
+#    # of the smtpd_relay_restrictions feature to separate the
+#    # mail relay policy from the spam blocking policy.
+#    # PLEASE DO NOT REMOVE THIS CODE. ITS PURPOSE IS TO PREVENT
+#    # INBOUND MAIL FROM UNEXPECTEDLY BOUNCING AFTER UPGRADING FROM
+#    # POSTFIX BEFORE 2.10.
+#    test -n "`$POSTCONF -c $config_directory -n smtpd_relay_restrictions`" || {
+#	cat <<EOF | ${FMT}
+#    COMPATIBILITY: editing $config_directory/main.cf, overriding
+#    smtpd_relay_restrictions to prevent inbound mail from
+#    unexpectedly bouncing.
+#    Specify an empty smtpd_relay_restrictions value to keep using 
+#    smtpd_recipient_restrictions as before.
+#EOF
+#	$POSTCONF -c $config_directory "smtpd_relay_restrictions = \
+#	    permit_mynetworks permit_sasl_authenticated \
+#	    defer_unauth_destination" || exit 1
+#    }
 }
 
 # A reminder if this is the first time Postfix is being installed.

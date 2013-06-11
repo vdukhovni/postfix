@@ -716,6 +716,8 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 
 	if (rrs->dnssec_valid)
 	    parse_tlsa_rrs(dane, rrs);
+	else
+	    dane->flags |= TLS_DANE_FLAG_NORRS;
 
 	dns_rr_free(rrs);
 	break;

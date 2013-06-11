@@ -1975,7 +1975,8 @@ extern char *var_mail_checks;
 
 #define VAR_RELAY_CHECKS	"smtpd_relay_restrictions"
 #define DEF_RELAY_CHECKS	PERMIT_MYNETWORKS ", " \
-				REJECT_UNAUTH_DEST
+				PERMIT_SASL_AUTH \
+				DEFER_UNAUTH_DEST
 extern char *var_relay_checks;
 
 #define VAR_RCPT_CHECKS		"smtpd_recipient_restrictions"
