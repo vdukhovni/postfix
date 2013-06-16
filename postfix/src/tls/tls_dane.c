@@ -31,8 +31,15 @@
 /*	TLS_DANE *dane;
 /*	const char *tafile;
 /*
-/*	TLS_DANE *tls_dane_final(dane)
-/*	TLS_DANE *dane;
+/*	int	tls_dane_match(TLSContext, usage, cert, depth)
+/*	TLS_SESS_STATE *TLScontext;
+/*	int	usage;
+/*	X509	*cert;
+/*	int	depth;
+/*
+/*	void	tls_dane_set_callback(ssl_ctx, TLScontext)
+/*	SSL_CTX *ssl_ctx;
+/*	TLS_SESS_STATE *TLScontext;
 /*
 /*	TLS_DANE *tls_dane_resolve(host, proto, port)
 /*	const char *host;
@@ -68,17 +75,25 @@
 /*	delimiters and stores the results with the requested "certusage"
 /*	and "selector".  This is an incremental interface, that builds a
 /*	TLS_DANE structure outside the cache by manually adding entries.
-/*	Once all the entries have been added, the caller must call
-/*	tls_dane_final() to complete its construction.
 /*
 /*	tls_dane_load_trustfile() imports trust-anchor certificates and
 /*	public keys from a file (rather than DNS TLSA records).
 /*
-/*	tls_dane_final() completes the construction of a TLS_DANE structure,
-/*	obtained via tls_dane_alloc() and populated via tls_dane_split() or
-/*	tls_dane_load_trustfile().  After tls_dane_final() is called, the
-/*	structure must not be modified.  The return value is the input
-/*	argument.
+/*	tls_dane_match() matches the full and/or public key digest of
+/*	"cert" against each candidate digest in TLScontext->dane. If usage
+/*	is TLS_DANE_EE, the match is against end-entity digests, otherwise
+/*	it is against trust-anchor digests.  Returns true if a match is found,
+/*	false otherwise.
+/*
+/*	tls_dane_set_callback() wraps the SSL certificate verification logic
+/*	in a function that modifies the input trust chain and trusted
+/*	certificate store to map DANE TA validation onto the existing PKI
+/*	verification model.  When TLScontext is NULL the callback is
+/*	cleared, otherwise it is set.  This callback should only be set
+/*	when out-of-band trust-anchors (via DNSSEC DANE TLSA records or
+/*	per-destination local configuration) are provided.  Such trust
+/*	anchors always override the legacy public CA PKI.  Otherwise, the
+/*	callback MUST be cleared.
 /*
 /*	tls_dane_resolve() maps a (host, protocol, port) triple to a
 /*	a corresponding TLS_DANE policy structure found in the DNS.  The port
@@ -109,6 +124,17 @@
 /*	The TCP port in network byte order.
 /* .IP flags
 /*	Only one flag is part of the public interface at this time:
+/* .IP TLScontext
+/*	Client context with TA/EE matching data and related state.
+/* .IP usage
+/*	Trust anchor (TLS_DANE_TA) or end-entity (TLS_DANE_EE) digests?
+/* .IP cert
+/*	Certificate from peer trust chain (CA or leaf server).
+/* .IP depth
+/*	The certificate depth for logging.
+/* .IP ssl_ctx
+/*	The global SSL_CTX structure used to initialize child SSL
+/*	conenctions.
 /* .RS
 /* .IP TLS_DANE_FLAG_MIXED
 /*	Don't distinguish between certificate and public-key digests.
@@ -161,6 +187,7 @@
 #include <events.h>			/* event_time() */
 #include <timecmp.h>
 #include <ctable.h>
+#include <hex_code.h>
 
 #define STR(x)	vstring_str(x)
 
@@ -179,13 +206,45 @@
 
 /* Application-specific. */
 
+#undef TRUST_ANCHOR_SUPPORT
+#undef DANE_TLSA_SUPPORT
+#undef WRAP_SIGNED
+
+#if OPENSSL_VERSION_NUMBER >= 0x1000000fL && \
+	(defined(X509_V_FLAG_PARTIAL_CHAIN) || !defined(OPENSSL_NO_ECDH))
+#define TRUST_ANCHOR_SUPPORT
+
+#ifndef X509_V_FLAG_PARTIAL_CHAIN
+#define WRAP_SIGNED
+#endif
+
+#if defined(TLSEXT_MAXLEN_host_name) && RES_USE_DNSSEC && RES_USE_EDNS0
+#define DANE_TLSA_SUPPORT
+#endif
+
+#endif					/* OPENSSL_VERSION_NUMBER ... */
+
+#ifdef WRAP_SIGNED
+static int wrap_signed = 1;
+
+#else
+static int wrap_signed = 0;
+
+#endif
+static const EVP_MD *signmd;
+
+static EVP_PKEY *danekey;
+static ASN1_OBJECT *serverAuth;
+
 static const char *sha256 = "sha256";
-static const char *sha512 = "sha512";
+static const EVP_MD *sha256md;
 static int sha256len;
+
+static const char *sha512 = "sha512";
+static const EVP_MD *sha512md;
 static int sha512len;
-static int dane_verbose;
+
 static int digest_mask;
-static TLS_TLSA **dane_locate(TLS_TLSA **, const char *);
 
 #define TLS_DANE_ENABLE_CC	(1<<0)	/* ca-constraint digests OK */
 #define TLS_DANE_ENABLE_TAA	(1<<1)	/* trust-anchor-assertion digests OK */
@@ -199,6 +258,9 @@ static TLS_TLSA **dane_locate(TLS_TLSA **, const char *);
 #define CACHE_SIZE 20
 static CTABLE *dane_cache;
 
+static int dane_initialized;
+static int dane_verbose;
+
 /* tls_dane_verbose - enable/disable verbose logging */
 
 void    tls_dane_verbose(int on)
@@ -206,40 +268,82 @@ void    tls_dane_verbose(int on)
     dane_verbose = on;
 }
 
-/* tls_dane_avail - check for availability of dane required digests */
+/* gencakey - generate interal DANE root CA key */
 
-int     tls_dane_avail(void)
+static EVP_PKEY *gencakey(void)
 {
-#ifdef TLSEXT_MAXLEN_host_name		/* DANE mandates client SNI. */
-    static int avail = -1;
-    const EVP_MD *sha256md;
-    const EVP_MD *sha512md;
+    EVP_PKEY *key = 0;
+
+#ifdef WRAP_SIGNED
+    int     len;
+    unsigned char *p;
+    EC_KEY *eckey;
+    EC_GROUP *group;
+
+    ERR_clear_error();
+
+    if ((eckey = EC_KEY_new()) != 0
+	&& (group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1)) != 0
+	&& (EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE),
+	    EC_KEY_set_group(eckey, group))
+	&& EC_KEY_generate_key(eckey)
+	&& (key = EVP_PKEY_new()) != 0
+	&& !EVP_PKEY_set1_EC_KEY(key, eckey)) {
+	EVP_PKEY_free(key);
+	key = 0;
+    }
+    if (group)
+	EC_GROUP_free(group);
+    if (eckey)
+	EC_KEY_free(eckey);
+#endif
+    return (key);
+}
+
+/* dane_init - initialize DANE parameters */
+
+static void dane_init(void)
+{
     static NAME_MASK ta_dgsts[] = {
 	TLS_DANE_CC, TLS_DANE_ENABLE_CC,
 	TLS_DANE_TAA, TLS_DANE_ENABLE_TAA,
 	0,
     };
 
-    if (avail >= 0)
-	return (avail);
-
-    sha256md = EVP_get_digestbyname(sha256);
-    sha512md = EVP_get_digestbyname(sha512);
-
-    if (sha256md == 0 || sha512md == 0
-	|| RES_USE_DNSSEC == 0 || RES_USE_EDNS0 == 0)
-	return (avail = 0);
-
     digest_mask =
 	name_mask_opt(VAR_TLS_DANE_TA_DGST, ta_dgsts, var_tls_dane_ta_dgst,
 		      NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
 
-    sha256len = EVP_MD_size(sha256md);
-    sha512len = EVP_MD_size(sha512md);
+    if ((sha256md = EVP_get_digestbyname(sha256)) != 0)
+	sha256len = EVP_MD_size(sha256md);
+    if ((sha512md = EVP_get_digestbyname(sha512)) != 0)
+	sha512len = EVP_MD_size(sha512md);
+    signmd = sha256md ? sha256md : EVP_sha1();
 
-    return (avail = 1);
+    /* Don't report old news */
+    ERR_clear_error();
+
+#ifdef TRUST_ANCHOR_SUPPORT
+    if ((wrap_signed && (danekey = gencakey()) == 0)
+	|| (serverAuth = OBJ_nid2obj(NID_server_auth)) == 0) {
+	msg_warn("cannot generate TA certificates, no DANE support");
+	tls_print_errors();
+    }
+#endif
+    dane_initialized = 1;
+}
+
+/* tls_dane_avail - check for availability of dane required digests */
+
+int     tls_dane_avail(void)
+{
+    if (!dane_initialized)
+	dane_init();
+
+#ifdef DANE_TLSA_SUPPORT
+    return (sha256md && sha512md && serverAuth);
 #else
-            return (0);
+    return (0);
 #endif
 }
 
@@ -357,32 +461,6 @@ static void dane_free(void *dane, void *unused_context)
     tls_dane_free((TLS_DANE *) dane);
 }
 
-/* tlsa_sort - sort digests for a single certusage */
-
-static void tlsa_sort(TLS_TLSA *tlsa)
-{
-    for (; tlsa; tlsa = tlsa->next) {
-	if (tlsa->pkeys)
-	    argv_sort(tlsa->pkeys);
-	if (tlsa->certs)
-	    argv_sort(tlsa->certs);
-    }
-}
-
-/* tls_dane_final - finish by sorting into canonical order */
-
-TLS_DANE *tls_dane_final(TLS_DANE *dane)
-{
-
-    /*
-     * We only sort the trust anchors, see tls_serverid_digest().
-     */
-    if (dane->ta)
-	tlsa_sort(dane->ta);
-    dane->flags |= TLS_DANE_FLAG_FINAL;
-    return (dane);
-}
-
 /* dane_locate - list head address of TLSA sublist for given algorithm */
 
 static TLS_TLSA **dane_locate(TLS_TLSA **tlsap, const char *mdalg)
@@ -422,9 +500,6 @@ void    tls_dane_split(TLS_DANE *dane, int certusage, int selector,
     TLS_TLSA *tlsa;
     ARGV  **argvp;
 
-    if (dane->flags & TLS_DANE_FLAG_FINAL)
-	msg_panic("updating frozen TLS_DANE object");
-
     tlsap = (certusage == TLS_DANE_EE) ? &dane->ee : &dane->ta;
     tlsa = *(tlsap = dane_locate(tlsap, mdalg));
     argvp = ((dane->flags & TLS_DANE_FLAG_MIXED) || selector == TLS_DANE_PKEY) ?
@@ -457,9 +532,6 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     TLS_TLSA *tlsa;
     ARGV  **argvp;
 
-    if (dane->flags & TLS_DANE_FLAG_FINAL)
-	msg_panic("updating frozen TLS_DANE object");
-
     switch (certusage) {
     case DNS_TLSA_USAGE_CA_CONSTRAINT:
     case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
@@ -488,6 +560,17 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     if (*argvp == 0)
 	*argvp = argv_alloc(1);
     argv_add(*argvp, digest, ARGV_END);
+}
+
+#ifdef DANE_TLSA_SUPPORT
+
+/* tlsa_rr_cmp - qsort TLSA rrs in case shuffled by name server */
+
+static int tlsa_rr_cmp(DNS_RR *a, DNS_RR *b)
+{
+    if (a->data_len == b->data_len)
+	return (memcmp(a->data, b->data, a->data_len));
+    return ((a->data_len > b->data_len) ? 1 : -1);
 }
 
 /* parse_tlsa_rrs - parse a validated TLSA RRset */
@@ -610,7 +693,6 @@ static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
 			     usage, selector, mtype);
 		    continue;
 		}
-
 		/* Also unusable if public key is malformed */
 		if ((k = X509_get_pubkey(x)) == 0) {
 		    msg_warn("%s public key malformed in RR: "
@@ -714,9 +796,11 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 	/* One more second to account for discrete time */
 	dane->expires = 1 + event_time() + rrs->ttl;
 
-	if (rrs->dnssec_valid)
+	if (rrs->dnssec_valid) {
+	    /* Sort for deterministic digest in session cache lookup key */
+	    rrs = dns_rr_sort(rrs, tlsa_rr_cmp);
 	    parse_tlsa_rrs(dane, rrs);
-	else
+	} else
 	    dane->flags |= TLS_DANE_FLAG_NORRS;
 
 	dns_rr_free(rrs);
@@ -733,8 +817,10 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 	break;
     }
 
-    return ((void *) tls_dane_final(dane));
+    return (void *) dane;
 }
+
+#endif
 
 /* tls_dane_resolve - cached map: (host, proto, port) -> TLS_DANE */
 
@@ -742,10 +828,11 @@ TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
 			           unsigned port)
 {
     static VSTRING *qname;
-    TLS_DANE *dane;
+    TLS_DANE *dane = 0;
 
+#ifdef DANE_TLSA_SUPPORT
     if (!tls_dane_avail())
-	return (0);
+	return (dane);
 
     if (!dane_cache)
 	dane_cache = ctable_create(CACHE_SIZE, dane_lookup, dane_free, 0);
@@ -761,6 +848,7 @@ TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
 	return (0);
 
     ++dane->refs;
+#endif
     return (dane);
 }
 
@@ -768,6 +856,7 @@ TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
 
 int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 {
+#ifdef TRUST_ANCHOR_SUPPORT
     BIO    *bp;
     char   *name = 0;
     char   *header = 0;
@@ -775,10 +864,20 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     long    len;
     int     tacount;
     char   *errtype = 0;		/* if error: cert or pkey? */
+    const char *mdalg;
 
     /* nop */
     if (tafile == 0 || *tafile == 0)
 	return (1);
+
+    if (!dane_initialized)
+	dane_init();
+
+    if (serverAuth == 0) {
+	msg_warn("trust-anchor files not supported");
+	return (0);
+    }
+    mdalg = sha256md ? sha256 : "sha1";
 
     /*
      * On each call, PEM_read() wraps a stdio file in a BIO_NOCLOSE bio,
@@ -807,8 +906,8 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 
 	    if (cert && (p - data) == len) {
 		selector = DNS_TLSA_SELECTOR_FULL_CERTIFICATE;
-		digest = tls_data_fprint((char *) data, len, sha256);
-		dane_add(dane, usage, selector, sha256, digest);
+		digest = tls_data_fprint((char *) data, len, mdalg);
+		dane_add(dane, usage, selector, mdalg, digest);
 		myfree(digest);
 		ta_cert_insert(dane, cert);
 	    } else
@@ -820,8 +919,8 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 
 	    if (pkey && (p - data) == len) {
 		selector = DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO;
-		digest = tls_data_fprint((char *) data, len, sha256);
-		dane_add(dane, usage, selector, sha256, digest);
+		digest = tls_data_fprint((char *) data, len, mdalg);
+		dane_add(dane, usage, selector, mdalg, digest);
 		myfree(digest);
 		ta_pkey_insert(dane, pkey);
 	    } else
@@ -852,7 +951,444 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     }
     /* Some other PEM read error */
     tls_print_errors();
+#else
+    msg_warn("Trust anchor files not supported");
+#endif
     return (0);
 }
 
-#endif
+/* tls_dane_match - match cert against given list of TA or EE digests */
+
+int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
+		               X509 *cert, int depth)
+{
+    const TLS_DANE *dane = TLScontext->dane;
+    TLS_TLSA *tlsa = (usage == TLS_DANE_EE) ? dane->ee : dane->ta;
+    const char *namaddr = TLScontext->namaddr;
+    const char *ustr = (usage == TLS_DANE_EE) ? "end entity" : "trust anchor";
+    int     mixed = (dane->flags & TLS_DANE_FLAG_MIXED);
+    int     matched;
+
+    for (matched = 0; tlsa && !matched; tlsa = tlsa->next) {
+	char  **dgst;
+	ARGV   *certs;
+
+	if (tlsa->pkeys) {
+	    char   *pkey_dgst = tls_pkey_fprint(cert, tlsa->mdalg);
+
+	    for (dgst = tlsa->pkeys->argv; !matched && *dgst; ++dgst)
+		if (strcasecmp(pkey_dgst, *dgst) == 0)
+		    matched = 1;
+	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH)
+		&& matched)
+		msg_info("%s: depth=%d matched %s public-key %s digest=%s",
+			 namaddr, depth, ustr, tlsa->mdalg, pkey_dgst);
+	    myfree(pkey_dgst);
+	}
+
+	/*
+	 * Backwards compatible "fingerprint" security level interface:
+	 * 
+	 * Certificate digests and public key digests are interchangeable, each
+	 * leaf certificate is matched via either the public key digest or
+	 * full certificate digest when "mixed" is true.  The combined set of
+	 * digests is stored on the pkeys digest list and the certs list is
+	 * empty.  An attacker would need a 2nd-preimage (not just a
+	 * collision) that is feasible across types (given cert digest ==
+	 * some key digest) while difficult within a type (e.g. given cert
+	 * some other cert digest).  No such attacks are know at this time,
+	 * and it is expected that if any are found they would work within as
+	 * well as across the cert/key data types.
+	 */
+	certs = mixed ? tlsa->pkeys : tlsa->certs;
+	if (certs != 0 && !matched) {
+	    char   *cert_dgst = tls_cert_fprint(cert, tlsa->mdalg);
+
+	    for (dgst = certs->argv; !matched && *dgst; ++dgst)
+		if (strcasecmp(cert_dgst, *dgst) == 0)
+		    matched = 1;
+	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH)
+		&& matched)
+		msg_info("%s: depth=%d matched %s certificate %s digest %s",
+			 namaddr, depth, ustr, tlsa->mdalg, cert_dgst);
+	    myfree(cert_dgst);
+	}
+    }
+
+    return (matched);
+}
+
+/* add_ext - add simple extension (no config section references) */
+
+static int add_ext(X509 *issuer, X509 *subject, int ext_nid, char *ext_val)
+{
+    X509V3_CTX v3ctx;
+    X509_EXTENSION *ext;
+    x509_extension_stack_t *exts;
+
+    X509V3_set_ctx(&v3ctx, issuer, subject, 0, 0, 0);
+    if ((exts = subject->cert_info->extensions) == 0)
+	exts = subject->cert_info->extensions = sk_X509_EXTENSION_new_null();
+
+    if ((ext = X509V3_EXT_conf_nid(0, &v3ctx, ext_nid, ext_val)) != 0
+	&& sk_X509_EXTENSION_push(exts, ext))
+	return (1);
+    if (ext)
+	X509_EXTENSION_free(ext);
+    return (0);
+}
+
+/* set_serial - set serial number to match akid or use subject's plus 1 */
+
+static int set_serial(X509 *cert, AUTHORITY_KEYID *akid, X509 *subject)
+{
+    int     ret = 0;
+    BIGNUM *bn;
+
+    if (akid && akid->serial)
+	return (X509_set_serialNumber(cert, akid->serial));
+
+    /*
+     * Add one to subject's serial to avoid collisions between TA serial and
+     * serial of signing root.
+     */
+    if ((bn = ASN1_INTEGER_to_BN(X509_get_serialNumber(subject), 0)) != 0
+	&& BN_add_word(bn, 1)
+	&& BN_to_ASN1_INTEGER(bn, X509_get_serialNumber(cert)))
+	ret = 1;
+
+    if (bn)
+	BN_free(bn);
+    return (ret);
+}
+
+/* add_akid - add authority key identifier */
+
+static int add_akid(X509 *cert, AUTHORITY_KEYID *akid)
+{
+    ASN1_STRING *id;
+    unsigned char c = 0;
+    int     ret = 0;
+
+    /*
+     * 0 will never be our subject keyid from a SHA-1 hash, but it could be
+     * our subject keyid if forced from child's akid.  If so, set our
+     * authority keyid to 1.  This way we are never self-signed, and thus
+     * exempt from any potential (off by default for now in OpenSSL)
+     * self-signature checks!
+     */
+    id = (ASN1_STRING *) ((akid && akid->keyid) ? akid->keyid : 0);
+    if (id && M_ASN1_STRING_length(id) == 1 && *M_ASN1_STRING_data(id) == c)
+	c = 1;
+
+    if ((akid = AUTHORITY_KEYID_new()) != 0
+	&& (akid->keyid = ASN1_OCTET_STRING_new()) != 0
+	&& M_ASN1_OCTET_STRING_set(akid->keyid, (void *) &c, 1)
+	&& X509_add1_ext_i2d(cert, NID_authority_key_identifier, akid, 0, 0))
+	ret = 1;
+    if (akid)
+	AUTHORITY_KEYID_free(akid);
+    return (ret);
+}
+
+/* add_skid - add subject key identifier to match child's akid */
+
+static int add_skid(X509 *cert, AUTHORITY_KEYID *akid)
+{
+    int     ret;
+
+    if (akid && akid->keyid) {
+	VSTRING *hexid = vstring_alloc(2 * EVP_MAX_MD_SIZE);
+	ASN1_STRING *id = (ASN1_STRING *) (akid->keyid);
+
+	hex_encode(hexid, (char *) M_ASN1_STRING_data(id),
+		   M_ASN1_STRING_length(id));
+	ret = add_ext(0, cert, NID_subject_key_identifier, STR(hexid));
+	vstring_free(hexid);
+    } else {
+	ret = add_ext(0, cert, NID_subject_key_identifier, "hash");
+    }
+    return (ret);
+}
+
+/* set_issuer - set issuer DN to match akid if specified */
+
+static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid)
+{
+
+    /*
+     * If subject's akid specifies an authority key identifer issuer name, we
+     * must use that.
+     */
+    if (akid && akid->issuer) {
+	int     i;
+	general_name_stack_t *gens = akid->issuer;
+
+	for (i = 0; i < sk_GENERAL_NAME_num(gens); ++i) {
+	    GENERAL_NAME *gn = sk_GENERAL_NAME_value(gens, i);
+
+	    if (gn->type == GEN_DIRNAME)
+		return (X509_set_issuer_name(cert, gn->d.dirn));
+	}
+    }
+    return (X509_set_issuer_name(cert, X509_get_subject_name(cert)));
+}
+
+/* grow_chain - add certificate to chain */
+
+static void grow_chain(x509_stack_t **skptr, X509 *cert, ASN1_OBJECT *trust)
+{
+    if (!*skptr && (*skptr = sk_X509_new_null()) == 0)
+	msg_fatal("out of memory");
+    if (cert) {
+	if (trust && !X509_add1_trust_object(cert, trust))
+	    msg_fatal("out of memory");
+	CRYPTO_add(&cert->references, 1, CRYPTO_LOCK_X509);
+	if (!sk_X509_push(*skptr, cert))
+	    msg_fatal("out of memory");
+    }
+}
+
+/* wrap_key - wrap TA "key" as issuer of "subject" */
+
+static int wrap_key(TLS_SESS_STATE *TLScontext, EVP_PKEY *key, X509 *subject,
+		            int depth)
+{
+    int     ret = 1;
+    X509   *cert = 0;
+    AUTHORITY_KEYID *akid;
+    X509_NAME *name = X509_get_issuer_name(subject);
+
+    /*
+     * Record the depth of the intermediate wrapper certificate, logged in
+     * the verify callback, unlike the parent root CA.
+     */
+    if (!key)
+	TLScontext->tadepth = depth;
+    else if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH))
+	msg_info("%s: depth=%d chain is trust-anchor signed",
+		 TLScontext->namaddr, depth);
+
+    /*
+     * If key is NULL generate a self-signed root CA, with key "danekey",
+     * otherwise an intermediate CA signed by above.
+     */
+    if ((cert = X509_new()) == 0)
+	return (0);
+
+    akid = X509_get_ext_d2i(subject, NID_authority_key_identifier, 0, 0);
+
+    ERR_clear_error();
+
+    /* CA cert valid for +/- 30 days */
+    if (!X509_set_version(cert, 2)
+	|| !set_serial(cert, akid, subject)
+	|| !X509_set_subject_name(cert, name)
+	|| !set_issuer_name(cert, akid)
+	|| !X509_gmtime_adj(X509_get_notBefore(cert), -30 * 86400L)
+	|| !X509_gmtime_adj(X509_get_notAfter(cert), 30 * 86400L)
+	|| !X509_set_pubkey(cert, key ? key : danekey)
+	|| !add_ext(0, cert, NID_basic_constraints, "CA:TRUE")
+	|| (key && !add_akid(cert, akid))
+	|| !add_skid(cert, akid)
+	|| (wrap_signed
+	    && (!X509_sign(cert, danekey, signmd)
+	    	|| (key && !wrap_key(TLScontext, 0, cert, depth + 1))))) {
+	msg_warn("error generating DANE wrapper certificate");
+	tls_print_errors();
+	ret = 0;
+    }
+    if (akid)
+	AUTHORITY_KEYID_free(akid);
+    if (ret) {
+	if (key && wrap_signed)
+	    grow_chain(&TLScontext->untrusted, cert, 0);
+	else
+	    grow_chain(&TLScontext->trusted, cert, serverAuth);
+    }
+    if (cert)
+	X509_free(cert);
+    return (ret);
+}
+
+/* ta_signed - is certificate signed by a TLSA cert or pkey */
+
+static int ta_signed(TLS_SESS_STATE *TLScontext, X509 *cert, int depth)
+{
+    const TLS_DANE *dane = TLScontext->dane;
+    EVP_PKEY *pk;
+    TLS_PKEYS *k;
+    TLS_CERTS *x;
+    int     done = 0;
+
+    /*
+     * First check whether issued and signed by a TA cert, this is cheaper
+     * than the bare-public key checks below, since we can determine whether
+     * the candidate TA certificate issued the certificate to be checked
+     * first (name comparisons), before we bother with signature checks
+     * (public key operations).
+     */
+    for (x = dane->certs; !done && x; x = x->next) {
+	if (X509_check_issued(x->cert, cert) == X509_V_OK) {
+	    if ((pk = X509_get_pubkey(x->cert)) == 0)
+		continue;
+	    /* Check signature, since some other TA may work if not this. */
+	    if (X509_verify(cert, pk) > 0)
+		done = wrap_key(TLScontext, pk, cert, depth);
+	    EVP_PKEY_free(pk);
+	}
+    }
+
+    /*
+     * With bare TA public keys, we can't check whether the trust chain is
+     * issued by the key, but we can determine whether it is signed by the
+     * key, so we go with that.
+     * 
+     * Ideally, the corresponding certificate was presented in the chain, and we
+     * matched it by its public key digest one level up.  This code is here
+     * to handle adverse conditions imposed by sloppy administrators of
+     * receiving systems with poorly constructed chains.
+     * 
+     * We'd like to optimize out keys that should not match when the cert's
+     * authority key id does not match the key id of this key computed via
+     * the RFC keyid algorithm (SHA-1 digest of public key bit-string sans
+     * ASN1 tag and length thus also excluding the unused bits field that is
+     * logically part of the length).  However, some CAs have a non-standard
+     * authority keyid, so we lose.  Too bad.
+     */
+    for (k = dane->pkeys; !done && k; k = k->next)
+	if (X509_verify(cert, k->pkey) > 0)
+	    done = wrap_key(TLScontext, k->pkey, cert, depth);
+
+    return (done);
+}
+
+/* set_trust - configure for DANE validation */
+
+static void set_trust(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx)
+{
+    int     n;
+    int     i;
+    int     depth = 0;
+    EVP_PKEY *takey;
+    X509   *ca;
+    X509   *cert = ctx->cert;		/* XXX: Accessor? */
+    x509_stack_t *in = ctx->untrusted;	/* XXX: Accessor? */
+
+    /* shallow copy */
+    if ((in = sk_X509_dup(in)) == 0)
+	msg_fatal("out of memory");
+
+    /*
+     * At each iteration we consume the issuer of the current cert.  This
+     * reduces the length of the "in" chain by one.  If no issuer is found,
+     * we are done.  We also stop when a certificate matches a TA in the
+     * peer's TLSA RRset.
+     * 
+     * Caller ensures that the initial certificate is not self-signed.
+     */
+    for (n = sk_X509_num(in); n > 0; --n, ++depth) {
+	for (i = 0; i < n; ++i)
+	    if (X509_check_issued(sk_X509_value(in, i), cert) == X509_V_OK)
+		break;
+
+	/*
+	 * Final untrusted element with no issuer in the peer's chain, it may
+	 * however be signed by a pkey or cert obtained via a TLSA RR.
+	 */
+	if (i == n)
+	    break;
+
+	/* Peer's chain contains an issuer ca. */
+	ca = sk_X509_delete(in, i);
+
+	/* Is it a trust anchor? */
+	if (tls_dane_match(TLScontext, TLS_DANE_TA, ca, depth + 1)) {
+	    if ((takey = X509_get_pubkey(ca)) != 0
+		&& wrap_key(TLScontext, takey, cert, depth))
+		EVP_PKEY_free(takey);
+	    cert = 0;
+	    break;
+	}
+	/* Add untrusted ca. */
+	grow_chain(&TLScontext->untrusted, ca, 0);
+
+	/* Final untrusted self-signed element? */
+	if (X509_check_issued(ca, ca) == X509_V_OK) {
+	    cert = 0;
+	    break;
+	}
+	/* Restart with issuer as subject */
+	cert = ca;
+    }
+
+    /*
+     * When the loop exits, if "cert" is set, it is not self-signed and has
+     * no issuer in the chain, we check for a possible signature via a DNS
+     * obtained TA cert or public key.  Otherwise, we found no TAs and no
+     * issuer, so set an empty list of TAs.
+     */
+    if (!cert || !ta_signed(TLScontext, cert, depth)) {
+	/* Create empty trust list if null, else NOP */
+	grow_chain(&TLScontext->trusted, 0, 0);
+    }
+    /* shallow free */
+    if (in)
+	sk_X509_free(in);
+}
+
+/* dane_cb - wrap chain verification for DANE */
+
+static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
+{
+    const char *myname = "dane_cb";
+    TLS_SESS_STATE *TLScontext = (TLS_SESS_STATE *) app_ctx;
+    X509   *cert = ctx->cert;		/* XXX: accessor? */
+
+    /*
+     * Degenerate case: depth 0 self-signed cert.
+     * 
+     * XXX: Should we suppress name checks, ... when the leaf certificate is a
+     * TA.  After all they could sign any name they want.  However, this
+     * requires a bit of additional code.  For now we allow depth 0 TAs, but
+     * then the peer name has to match.
+     */
+    if (X509_check_issued(cert, cert) == X509_V_OK) {
+
+	/*
+	 * Empty untrusted chain, could be NULL, but then ABI check less
+	 * reliable, we may zero some other field, ...
+	 */
+	grow_chain(&TLScontext->untrusted, 0, 0);
+	if (tls_dane_match(TLScontext, TLS_DANE_TA, cert, 0))
+	    grow_chain(&TLScontext->trusted, cert, serverAuth);
+	else
+	    grow_chain(&TLScontext->trusted, 0, 0);
+    } else {
+	set_trust(TLScontext, ctx);
+    }
+
+    /*
+     * Check that setting the untrusted chain updates the expected structure
+     * member at the expected offset.
+     */
+    X509_STORE_CTX_trusted_stack(ctx, TLScontext->trusted);
+    X509_STORE_CTX_set_chain(ctx, TLScontext->untrusted);
+    if (ctx->untrusted != TLScontext->untrusted)
+	msg_panic("%s: OpenSSL ABI change", myname);
+
+    return X509_verify_cert(ctx);
+}
+
+/* tls_dane_set_callback - set or clear verification wrapper callback */
+
+void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
+{
+    if (!serverAuth || !TLS_DANE_HASTA(TLScontext->dane))
+	SSL_CTX_set_cert_verify_callback(ctx, 0, 0);
+    else
+	SSL_CTX_set_cert_verify_callback(ctx, dane_cb, (void *) TLScontext);
+}
+
+#endif					/* USE_TLS */
+

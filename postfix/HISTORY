@@ -18716,3 +18716,28 @@ Apologies for any names omitted.
 	posttls-finger/posttls-finger.c, smtp/smtp_tls_policy.c,
 	tls/tls_dane.c.
 
+20130615
+
+	Interoperability: turn on SHA-2XX digests by force. This
+	improves interoperability with clients and servers with
+	ancient OpenSSL versions and that that prematurely deploy
+	SHA-2 certificates. Viktor Dukhovni. File: tls/tls_misc.c
+
+20130616
+
+	Workaround: The Postfix SMTP server TLS session cache was
+	broken because OpenSSL now enables session tickets by
+	default, resulting in different ticket encryption key for
+	each smtpd(8) process.  the workaround turns off session
+	tickets. In 2.11 we'll enable session tickets properly.
+	Viktor Dukhovni. File: tls/tls_server.c.
+
+	Updated DANE support (trust in DNS instead of PKI).  With
+	OpenSSL 1.0.2 (under development) trusted certificates don't
+	need to be self-signed roots.  Otherwise we use an ephemeral
+	root certificate to sign the trust anchor. Viktor Dukhovni.
+	Files: posttls-finger/posttls-finger.c, smtp/smtp_proto.c,
+	smtp/smtp_tls_policy.c, tls/tls.h, tls/tls_client.c,
+	tls/tls_dane.c, tls/tls_fprint.c, tls/tls_misc.c,
+	tls/tls_verify.c.
+

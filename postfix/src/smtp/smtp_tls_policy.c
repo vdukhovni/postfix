@@ -572,7 +572,6 @@ static void *policy_create(const char *unused_key, void *context)
 		return ((void *) tls);
 	    }
 	}
-	tls_dane_final(tls->dane);
 	break;
     case TLS_LEV_VERIFY:
     case TLS_LEV_SECURE:
@@ -584,13 +583,10 @@ static void *policy_create(const char *unused_key, void *context)
 	if (*var_smtp_tls_tafile) {
 	    if (tls->dane == 0)
 		tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
-	    if (!TLS_DANE_HASTA(tls->dane)) {
-		if (load_tas(tls->dane, var_smtp_tls_tafile))
-		    tls_dane_final(tls->dane);
-		else {
-		    MARK_INVALID(tls->why, &tls->level);
-		    return ((void *) tls);
-		}
+	    if (!TLS_DANE_HASTA(tls->dane)
+		&& !load_tas(tls->dane, var_smtp_tls_tafile)) {
+		MARK_INVALID(tls->why, &tls->level);
+		return ((void *) tls);
 	    }
 	}
 	break;

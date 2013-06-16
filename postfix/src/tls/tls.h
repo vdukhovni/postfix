@@ -73,6 +73,13 @@ extern const NAME_CODE tls_level_table[];
 #include <openssl/rand.h>
 #include <openssl/ssl.h>
 
+ /* Appease indent(1) */
+#define x509_stack_t STACK_OF(X509)
+#define x509_extension_stack_t STACK_OF(X509_EXTENSION)
+#define general_name_stack_t STACK_OF(GENERAL_NAME)
+#define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
+#define ssl_comp_stack_t STACK_OF(SSL_COMP)
+
 #if (OPENSSL_VERSION_NUMBER < 0x00090700f)
 #error "need OpenSSL version 0.9.7 or later"
 #endif
@@ -101,10 +108,9 @@ extern const NAME_CODE tls_level_table[];
 #define TLS_DANE_PKEY	1		/* Match the public key digest */
 
 #define TLS_DANE_FLAG_MIXED	(1<<0)	/* Combined pkeys and certs */
-#define TLS_DANE_FLAG_FINAL	(1<<1)	/* No further changes */
-#define TLS_DANE_FLAG_NORRS	(1<<2)	/* Nothing found in DNS */
-#define TLS_DANE_FLAG_EMPTY	(1<<3)	/* Nothing usable found in DNS */
-#define TLS_DANE_FLAG_ERROR	(1<<4)	/* TLSA record lookup error */
+#define TLS_DANE_FLAG_NORRS	(1<<1)	/* Nothing found in DNS */
+#define TLS_DANE_FLAG_EMPTY	(1<<2)	/* Nothing usable found in DNS */
+#define TLS_DANE_FLAG_ERROR	(1<<3)	/* TLSA record lookup error */
 
 #define tls_dane_unusable(dane)	((dane)->flags & TLS_DANE_FLAG_EMPTY)
 #define tls_dane_notfound(dane)	((dane)->flags & TLS_DANE_FLAG_NORRS)
@@ -165,7 +171,6 @@ extern void tls_dane_verbose(int);
 extern TLS_DANE *tls_dane_alloc(int);
 extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
 			           const char *);
-extern TLS_DANE *tls_dane_final(TLS_DANE *);
 extern void tls_dane_free(TLS_DANE *);
 extern TLS_DANE *tls_dane_resolve(const char *, const char *, unsigned);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
@@ -202,11 +207,12 @@ typedef struct {
     VSTREAM *stream;			/* Blocking-mode SMTP session */
     /* RFC 6698 DANE trust input and verification state */
     const TLS_DANE *dane;		/* DANE TLSA digests */
-    int     trustdepth;			/* Chain depth of trusted cert */
     int     errordepth;			/* Chain depth of error cert */
-    int     chaindepth;			/* Chain depth of top cert */
+    int     tadepth;			/* Chain depth of trust anchor */
     int     errorcode;			/* First error at error depth */
     X509   *errorcert;			/* Error certificate closest to leaf */
+    x509_stack_t *untrusted;		/* Certificate chain fodder */
+    x509_stack_t *trusted;		/* Internal root CA list */
 } TLS_SESS_STATE;
 
  /*
@@ -520,9 +526,14 @@ extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
 extern char *tls_peer_CN(X509 *, const TLS_SESS_STATE *);
 extern char *tls_issuer_CN(X509 *, const TLS_SESS_STATE *);
 extern const char *tls_dns_name(const GENERAL_NAME *, const TLS_SESS_STATE *);
-extern int tls_cert_match(TLS_SESS_STATE *, int, X509 *, int);
 extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
 extern void tls_log_verify_error(TLS_SESS_STATE *);
+
+ /*
+  * tls_dane.c
+  */
+extern int tls_dane_match(TLS_SESS_STATE *, int, X509 *, int);
+extern void tls_dane_set_callback(SSL_CTX *, TLS_SESS_STATE *);
 
  /*
   * tls_fprint.c

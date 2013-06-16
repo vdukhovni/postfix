@@ -439,8 +439,7 @@ static const char *tls_exclude_missing(SSL_CTX *ctx, VSTRING *buf)
     const char *myname = "tls_exclude_missing";
     static ARGV *exclude;		/* Cached */
     SSL    *s = 0;
-
-    STACK_OF(SSL_CIPHER) * ciphers;
+    ssl_cipher_stack_t *ciphers;
     SSL_CIPHER *c;
     const cipher_probe_t *probe;
     int     alg_bits;
@@ -789,13 +788,13 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */
-    TLScontext->dane = 0;			/* Alias for client
-						 * props->dane */
-    TLScontext->trustdepth = -1;
-    TLScontext->chaindepth = -1;
+    TLScontext->dane = 0;			/* Alias for props->dane */
     TLScontext->errordepth = -1;
+    TLScontext->tadepth = -1;
     TLScontext->errorcode = X509_V_OK;
     TLScontext->errorcert = 0;
+    TLScontext->untrusted = 0;
+    TLScontext->trusted = 0;
 
     return (TLScontext);
 }
@@ -828,6 +827,10 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_pkey_fprint);
     if (TLScontext->errorcert)
 	X509_free(TLScontext->errorcert);
+    if (TLScontext->untrusted)
+	sk_X509_pop_free(TLScontext->untrusted, X509_free);
+    if (TLScontext->trusted)
+	sk_X509_pop_free(TLScontext->trusted, X509_free);
 
     myfree((char *) TLScontext);
 }
@@ -934,7 +937,7 @@ long    tls_bug_bits(void)
      * breaking on all 0.9.8[ab] systems that have zlib support enabled.
      */
     if (lib_version >= 0x00908000L && lib_version <= 0x0090802fL) {
-	STACK_OF(SSL_COMP) * comp_methods;
+	ssl_comp_stack_t *comp_methods = SSL_COMP_get_compression_methods();
 
 	comp_methods = SSL_COMP_get_compression_methods();
 	if (comp_methods != 0 && sk_SSL_COMP_num(comp_methods) > 0)
@@ -1127,6 +1130,24 @@ int     tls_validate_digest(const char *dgst)
 {
     const EVP_MD *md_alg;
     unsigned int md_len;
+
+    /*
+     * Register SHA-2 digests, if implemented and not already registered.
+     * Improves interoperability with clients and servers that prematurely
+     * deploy SHA-2 certificates.  Also facilitates DANE and TA support.
+     */
+#if defined(LN_sha256) && defined(NID_sha256) && !defined(OPENSSL_NO_SHA256)
+    if (!EVP_get_digestbyname(LN_sha224))
+	EVP_add_digest(EVP_sha224());
+    if (!EVP_get_digestbyname(LN_sha256))
+	EVP_add_digest(EVP_sha256());
+#endif
+#if defined(LN_sha512) && defined(NID_sha512) && !defined(OPENSSL_NO_SHA512)
+    if (!EVP_get_digestbyname(LN_sha384))
+	EVP_add_digest(EVP_sha384());
+    if (!EVP_get_digestbyname(LN_sha512))
+	EVP_add_digest(EVP_sha512());
+#endif
 
     /*
      * If the administrator specifies an unsupported digest algorithm, fail

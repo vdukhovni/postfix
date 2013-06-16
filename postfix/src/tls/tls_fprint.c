@@ -53,7 +53,7 @@
 /*	and the caller must eventually free it with myfree().
 /*
 /*	tls_serverid_digest() suffixes props->serverid computed by the SMTP
-/*	client with ":" plus a digest of additional parameters
+/*	client with "&" plus a digest of additional parameters
 /*	needed to ensure that re-used sessions are more likely to
 /*	be reused and that they will satisfy all protocol and
 /*	security requirements.
@@ -217,8 +217,6 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
      * matching data, which is checked separately each time.  So we exclude
      * the EE part of the DANE structure from the serverid digest.
      * 
-     * If this changes, also update tls_dane_final() in tls_dane.c.
-     * 
      * If the security level is "dane", we send SNI information to the peer.
      * This may cause it to respond with a non-default certificate.  Since
      * certificates for sessions with no or different SNI data may not match,
@@ -256,7 +254,7 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
      */
     result = vstring_alloc(strlen(props->serverid) + 1 + 2 * md_len);
     vstring_strcpy(result, props->serverid);
-    VSTRING_ADDCH(result, ':');
+    VSTRING_ADDCH(result, '&');
     for (i = 0; i < md_len; i++) {
 	VSTRING_ADDCH(result, hexcodes[(md_buf[i] & 0xf0) >> 4U]);
 	VSTRING_ADDCH(result, hexcodes[(md_buf[i] & 0x0f)]);

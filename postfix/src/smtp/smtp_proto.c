@@ -780,9 +780,10 @@ static int smtp_start_tls(SMTP_STATE *state)
      * SSL session lookup key lengths.
      */
     serverid = vstring_alloc(10);
-    smtp_key_prefix(serverid, ":", state->iterator, SMTP_KEY_FLAG_SERVICE
-		    | SMTP_KEY_FLAG_ADDR
-		    | SMTP_KEY_FLAG_PORT);
+    smtp_key_prefix(serverid, "&", state->iterator, SMTP_KEY_FLAG_SERVICE
+		    | SMTP_KEY_FLAG_NEXTHOP	/* With port */
+		    | SMTP_KEY_FLAG_HOSTNAME
+		    | SMTP_KEY_FLAG_ADDR);
 
     /*
      * As of Postfix 2.5, tls_client_start() tries hard to always complete

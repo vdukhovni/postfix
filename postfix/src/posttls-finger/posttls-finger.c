@@ -575,39 +575,59 @@ static RESPONSE *ehlo(STATE *state)
 
 #ifdef USE_TLS
 
+static void print_stack(STATE *state, x509_stack_t *sk, int trustout)
+{
+    int     i;
+
+    for (i = 0; i < sk_X509_num(sk); i++) {
+	X509   *cert = sk_X509_value(sk, i);
+	char    buf[CCERT_BUFSIZ];
+	X509_NAME *xn;
+	char   *digest;
+
+	if ((xn = X509_get_subject_name(cert)) != 0) {
+	    X509_NAME_oneline(xn, buf, sizeof buf);
+	    BIO_printf(state->tls_bio, "%2d subject: %s\n", i, buf);
+	}
+	if ((xn = X509_get_issuer_name(cert)) != 0) {
+	    X509_NAME_oneline(xn, buf, sizeof buf);
+	    BIO_printf(state->tls_bio, "    issuer: %s\n", buf);
+	}
+	digest = tls_cert_fprint(cert, state->mdalg);
+	BIO_printf(state->tls_bio, "   cert digest=%s\n", digest);
+	myfree(digest);
+
+	digest = tls_pkey_fprint(cert, state->mdalg);
+	BIO_printf(state->tls_bio, "   pkey digest=%s\n", digest);
+	myfree(digest);
+
+	if (trustout)
+	    PEM_write_bio_X509_AUX(state->tls_bio, cert);
+	else
+	    PEM_write_bio_X509(state->tls_bio, cert);
+    }
+}
+
 static void print_trust_info(STATE *state)
 {
-    STACK_OF(X509) *sk = SSL_get_peer_cert_chain(state->tls_context->con);
+    x509_stack_t *sk = SSL_get_peer_cert_chain(state->tls_context->con);
 
-    if (sk != NULL) {
-	int     i;
-
-	BIO_printf(state->tls_bio, "---\nCertificate chain\n");
-	for (i = 0; i < sk_X509_num(sk); i++) {
-	    X509   *cert = sk_X509_value(sk, i);
-	    char    buf[CCERT_BUFSIZ];
-	    X509_NAME *xn;
-	    char   *digest;
-
-	    if ((xn = X509_get_subject_name(cert)) != 0) {
-		X509_NAME_oneline(xn, buf, sizeof buf);
-		BIO_printf(state->tls_bio, "%2d subject: %s\n", i, buf);
-	    }
-	    if ((xn = X509_get_issuer_name(cert)) != 0) {
-		X509_NAME_oneline(xn, buf, sizeof buf);
-		BIO_printf(state->tls_bio, "    issuer: %s\n", buf);
-	    }
-	    digest = tls_cert_fprint(cert, state->mdalg);
-	    BIO_printf(state->tls_bio, "   cert digest=%s\n", digest);
-	    myfree(digest);
-
-	    digest = tls_pkey_fprint(cert, state->mdalg);
-	    BIO_printf(state->tls_bio, "   pkey digest=%s\n", digest);
-	    myfree(digest);
-
-	    PEM_write_bio_X509(state->tls_bio, cert);
-	}
+    if (sk != 0) {
+	BIO_printf(state->tls_bio, "\n---\nCertificate chain\n");
+	print_stack(state, sk, 0);
     }
+#ifdef dane_verify_debug
+    /* print internally constructed untrusted chain */
+    if ((sk = state->tls_context->untrusted) != 0) {
+	BIO_printf(state->tls_bio, "\n---\nUntrusted chain\n");
+	print_stack(state, sk, 0);
+    }
+    /* print associated root CA */
+    if ((sk = state->tls_context->trusted) != 0) {
+	BIO_printf(state->tls_bio, "\n---\nTrusted chain\n");
+	print_stack(state, sk, 1);
+    }
+#endif
 }
 
 /* starttls - SMTP STARTTLS handshake */
@@ -615,7 +635,6 @@ static void print_trust_info(STATE *state)
 static int starttls(STATE *state)
 {
     VSTRING *cipher_exclusions;
-    VSTRING *serverid;
     int     except;
     RESPONSE *resp;
     VSTREAM *stream = state->stream;
@@ -662,9 +681,6 @@ static int starttls(STATE *state)
     else
 	ADD_EXCLUDE(cipher_exclusions, "eNULL");
 
-    serverid = vstring_alloc(10);
-    vstring_sprintf(serverid, "%s:%s", var_procname, state->addrport);
-
     state->tls_context =
 	TLS_CLIENT_START(&tls_props,
 			 ctx = state->tls_ctx,
@@ -674,7 +690,7 @@ static int starttls(STATE *state)
 			 nexthop = state->nexthop,
 			 host = state->hostname,
 			 namaddr = state->namaddrport,
-			 serverid = STR(serverid),
+			 serverid = state->addrport,
 			 helo = state->helo ? state->helo : "",
 			 protocols = state->protocols,
 			 cipher_grade = state->grade,
@@ -684,7 +700,6 @@ static int starttls(STATE *state)
 			 mdalg = state->mdalg,
 			 dane = state->ddane ? state->ddane : state->dane);
     vstring_free(cipher_exclusions);
-    vstring_free(serverid);
     if (state->helo) {
 	myfree(state->helo);
 	state->helo = 0;
@@ -1466,10 +1481,12 @@ static void cleanup(STATE *state)
 static void usage(void)
 {
 #ifdef USE_TLS
-    fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s destination [match ...]\n",
-	    var_procname, "[-acCStTv] [-d mdalg] [-g grade] [-p protocols] [-F CAfile.pem]",
-	    "[-h host_lookup] [-l level] [-L logopts] [-m count]",
-	    "[-o name=value] [-P CApath/] [-r delay]");
+    fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s \\\n\t%s"
+	    " destination [match ...]\n", var_procname,
+	    "[-acCSv] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
+	 "[-h host_lookup] [-l level] [-d mdalg] [-g grade] [-p protocols]",
+	    "[-A tafile] [-F CAfile.pem] [-P CApath/] [-m count] [-r delay]",
+	    "[-o name=value]");
 #else
     fprintf(stderr, "usage: %s [-acStTv] [-h host_lookup] [-o name=value] destination\n",
 	    var_procname);
@@ -1713,7 +1730,6 @@ static void parse_match(STATE *state, int argc, char *argv[])
 	while (*argv)
 	    tls_dane_split((TLS_DANE *) state->dane, TLS_DANE_EE, TLS_DANE_PKEY,
 			   state->mdalg, *argv++, "");
-	tls_dane_final((TLS_DANE *) state->dane);
 	break;
     case TLS_LEV_DANE:
 	state->match = argv_alloc(2);
@@ -1745,7 +1761,6 @@ static void parse_tas(STATE *state)
 	}
 	if (*file)
 	    msg_fatal("Failed to load trust anchor file: %s", *file);
-	tls_dane_final((TLS_DANE *) state->dane);
 	break;
     }
 #endif

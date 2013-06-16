@@ -383,6 +383,9 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     /*
      * Protocol work-arounds, OpenSSL version dependent.
      */
+#ifdef SSL_OP_NO_TICKET
+    off |= SSL_OP_NO_TICKET;
+#endif
     off |= tls_bug_bits();
     SSL_CTX_set_options(server_ctx, off);
 

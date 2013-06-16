@@ -491,7 +491,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 /* match_servername -  match servername against pattern */
 
 static int match_servername(const char *certid,
-			          const TLS_CLIENT_START_PROPS *props)
+			            const TLS_CLIENT_START_PROPS *props)
 {
     const ARGV *cmatch_argv;
     const char *nexthop = props->nexthop;
@@ -570,8 +570,7 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
     int     verbose;
     const char *dnsname;
     const GENERAL_NAME *gn;
-
-    STACK_OF(GENERAL_NAME) * gens;
+    general_name_stack_t *gens;
 
     /*
      * On exit both peer_CN and issuer_CN should be set.
@@ -728,7 +727,7 @@ static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
      * untrusted in verify_extract_name().
      */
     if (TLS_DANE_HASEE(props->dane)
-	&& tls_cert_match(TLScontext, TLS_DANE_EE, peercert, 0))
+	&& tls_dane_match(TLScontext, TLS_DANE_EE, peercert, 0))
 	TLScontext->peer_status |=
 	    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
 }
@@ -944,6 +943,8 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     if (log_mask & TLS_LOG_TLSPKTS)
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
+
+    tls_dane_set_callback(app_ctx->ssl_ctx, TLScontext);
 
     /*
      * Start TLS negotiations. This process is a black box that invokes our
