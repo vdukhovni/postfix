@@ -385,12 +385,6 @@
 /* .IP "\fBsmtpd_tls_req_ccert (no)\fR"
 /*	With mandatory TLS encryption, require a trusted remote SMTP client
 /*	certificate in order to allow TLS connections to proceed.
-/* .IP "\fBsmtpd_tls_session_cache_database (empty)\fR"
-/*	Name of the file containing the optional Postfix SMTP server
-/*	TLS session cache.
-/* .IP "\fBsmtpd_tls_session_cache_timeout (3600s)\fR"
-/*	The expiration time of Postfix SMTP server TLS session cache
-/*	information.
 /* .IP "\fBsmtpd_tls_wrappermode (no)\fR"
 /*	Run the Postfix SMTP server in the non-standard "wrapper" mode,
 /*	instead of using the STARTTLS command.
@@ -1264,7 +1258,6 @@ char   *var_smtpd_tls_loglevel;
 char   *var_smtpd_tls_mand_proto;
 bool    var_smtpd_tls_received_header;
 bool    var_smtpd_tls_req_ccert;
-int     var_smtpd_tls_scache_timeout;
 bool    var_smtpd_tls_set_sessid;
 char   *var_smtpd_tls_fpt_dgst;
 char   *var_smtpd_tls_ciph;
@@ -5152,8 +5145,6 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    log_level = var_smtpd_tls_loglevel,
 				    verifydepth = var_smtpd_tls_ccert_vd,
 				    cache_type = TLS_MGR_SCACHE_SMTPD,
-				    scache_timeout
-				    = var_smtpd_tls_scache_timeout,
 				    set_sessid = var_smtpd_tls_set_sessid,
 				    cert_file = cert_file,
 				    key_file = var_smtpd_tls_key_file,
@@ -5326,7 +5317,6 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_POLICY_TTL, DEF_SMTPD_POLICY_TTL, &var_smtpd_policy_ttl, 1, 0,
 #ifdef USE_TLS
 	VAR_SMTPD_STARTTLS_TMOUT, DEF_SMTPD_STARTTLS_TMOUT, &var_smtpd_starttls_tmout, 1, 0,
-	VAR_SMTPD_TLS_SCACHTIME, DEF_SMTPD_TLS_SCACHTIME, &var_smtpd_tls_scache_timeout, 0, 0,
 #endif
 	VAR_MILT_CONN_TIME, DEF_MILT_CONN_TIME, &var_milt_conn_time, 1, 0,
 	VAR_MILT_CMD_TIME, DEF_MILT_CMD_TIME, &var_milt_cmd_time, 1, 0,

@@ -82,11 +82,12 @@ int     tls_mgr_seed(VSTRING *buf, int len)
     return (TLS_MGR_STAT_OK);
 }
 
-int     tls_mgr_policy(const char *unused_type, int *cachable)
+int     tls_mgr_policy(const char *unused_type, int *cachable, int *timeout)
 {
     if (cache_enabled && tls_cache == 0)
 	tls_cache = htable_create(1);
     *cachable = cache_enabled;
+    *timeout = TLS_SESSION_LIFEMIN;
     return (TLS_MGR_STAT_OK);
 }
 

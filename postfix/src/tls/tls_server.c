@@ -276,6 +276,47 @@ static int new_server_session_cb(SSL *ssl, SSL_SESSION *session)
     return (1);
 }
 
+#define NOENGINE	((ENGINE *) 0)
+#define TLS_TKT_NOKEYS -1		/* No keys for encryption */
+#define TLS_TKT_STALE	0		/* No matching keys for decryption */
+#define TLS_TKT_ACCEPT	1		/* Ticket decryptable and re-usable */
+#define TLS_TKT_REISSUE	2		/* Ticket decryptable, not re-usable */
+
+/* ticket_cb - configure tls session ticket encrypt/decrypt context */
+
+static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
+		          EVP_CIPHER_CTX * ctx, HMAC_CTX * hctx, int create)
+{
+    static const EVP_MD *sha256;
+    static const EVP_CIPHER *aes128;
+    TLS_TICKET_KEY *key;
+    TLS_SESS_STATE *TLScontext = SSL_get_ex_data(con, TLScontext_index);
+    int     timeout = ((int) SSL_CTX_get_timeout(SSL_get_SSL_CTX(con))) / 2;
+
+    if ((!sha256 && (sha256 = EVP_sha256()) == 0)
+	|| (!aes128 && (aes128 = EVP_aes_128_cbc()) == 0)
+	|| (key = tls_mgr_key(create ? 0 : name, timeout)) == 0
+	|| (create && RAND_bytes(iv, TLS_TICKET_IVLEN) <= 0))
+	return (create ? TLS_TKT_NOKEYS : TLS_TKT_STALE);
+
+    HMAC_Init_ex(hctx, key->hmac, TLS_TICKET_MACLEN, sha256, NOENGINE);
+
+    if (create) {
+	EVP_EncryptInit_ex(ctx, aes128, NOENGINE, key->bits, iv);
+	memcpy((char *) name, (char *) key->name, TLS_TICKET_NAMELEN);
+	if (TLScontext->log_mask & TLS_LOG_CACHE)
+	    msg_info("%s: Issuing session ticket, key expiration: %ld",
+		     TLScontext->namaddr, (long) key->tout);
+    } else {
+	EVP_DecryptInit_ex(ctx, aes128, NOENGINE, key->bits, iv);
+	if (TLScontext->log_mask & TLS_LOG_CACHE)
+	    msg_info("%s: Decrypting session ticket, key expiration: %ld",
+		     TLScontext->namaddr, (long) key->tout);
+    }
+    TLScontext->ticketed = 1;
+    return (TLS_TKT_ACCEPT);
+}
+
 /* tls_server_init - initialize the server-side TLS engine */
 
 TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
@@ -284,6 +325,8 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     long    off = 0;
     int     verify_flags = SSL_VERIFY_NONE;
     int     cachable;
+    int     scache_timeout;
+    int     ticketable = 0;
     int     protomask;
     TLS_APPL_STATE *app_ctx;
     int     log_mask;
@@ -381,12 +424,41 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     SSL_CTX_set_verify_depth(server_ctx, props->verifydepth + 1);
 
     /*
+     * The session cache is implemented by the tlsmgr(8) server.
+     * 
+     * XXX 200502 Surprise: when OpenSSL purges an entry from the in-memory
+     * cache, it also attempts to purge the entry from the on-disk cache.
+     * This is undesirable, especially when we set the in-memory cache size
+     * to 1. For this reason we don't allow OpenSSL to purge on-disk cache
+     * entries, and leave it up to the tlsmgr process instead. Found by
+     * Victor Duchovni.
+     */
+    if (tls_mgr_policy(props->cache_type, &cachable,
+		       &scache_timeout) != TLS_MGR_STAT_OK)
+	scache_timeout = 0;
+    if (scache_timeout <= 0)
+	cachable = 0;
+
+    /*
      * Protocol work-arounds, OpenSSL version dependent.
      */
-#ifdef SSL_OP_NO_TICKET
-    off |= SSL_OP_NO_TICKET;
-#endif
     off |= tls_bug_bits();
+
+    /*
+     * Add SSL_OP_NO_TICKET the timeout is zero or library support is
+     * incomplete.  The SSL_CTX_set_tlsext_ticket_key_cb feature was added in
+     * OpenSSL 0.9.8h, while SSL_NO_TICKET was added in 0.9.8f.
+     */
+#ifdef SSL_OP_NO_TICKET
+#if !defined(OPENSSL_NO_TLSEXT) && OPENSSL_VERSION_NUMBER >= 0x0090808fL
+    ticketable = (scache_timeout > 0 && !(off & SSL_OP_NO_TICKET));
+    if (ticketable)
+	SSL_CTX_set_tlsext_ticket_key_cb(server_ctx, ticket_cb);
+#endif
+    if (!ticketable)
+	off |= SSL_OP_NO_TICKET;
+#endif
+
     SSL_CTX_set_options(server_ctx, off);
 
     /*
@@ -521,21 +593,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     app_ctx = tls_alloc_app_context(server_ctx, log_mask);
 
-    /*
-     * The session cache is implemented by the tlsmgr(8) server.
-     * 
-     * XXX 200502 Surprise: when OpenSSL purges an entry from the in-memory
-     * cache, it also attempts to purge the entry from the on-disk cache.
-     * This is undesirable, especially when we set the in-memory cache size
-     * to 1. For this reason we don't allow OpenSSL to purge on-disk cache
-     * entries, and leave it up to the tlsmgr process instead. Found by
-     * Victor Duchovni.
-     */
-
-    if (tls_mgr_policy(props->cache_type, &cachable) != TLS_MGR_STAT_OK)
-	cachable = 0;
-
-    if (cachable || props->set_sessid) {
+    if (cachable || ticketable || props->set_sessid) {
 
 	/*
 	 * Initialize the session cache.
@@ -572,9 +630,14 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	/*
 	 * OpenSSL ignores timed-out sessions. We need to set the internal
 	 * cache timeout at least as high as the external cache timeout. This
-	 * applies even if no internal cache is used.
+	 * applies even if no internal cache is used.  We set the session
+	 * lifetime to twice the cache lifetime, which is also the issuing
+	 * and retired key validation lifetime of session tickets keys. This
+	 * way a session always lasts longer than the server's ability to
+	 * decrypt its session ticket.  Otherwise, a bug in OpenSSL may fail
+	 * to re-issue tickets when sessions decrypt, but are expired.
 	 */
-	SSL_CTX_set_timeout(server_ctx, props->scache_timeout);
+	SSL_CTX_set_timeout(server_ctx, 2 * scache_timeout);
     } else {
 
 	/*
@@ -742,7 +805,8 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
      */
     TLScontext->session_reused = SSL_session_reused(TLScontext->con);
     if ((TLScontext->log_mask & TLS_LOG_CACHE) && TLScontext->session_reused)
-	msg_info("%s: Reusing old session", TLScontext->namaddr);
+	msg_info("%s: Reusing old session%s", TLScontext->namaddr,
+		 TLScontext->ticketed ? " (RFC 5077 session ticket)" : "");
 
     /*
      * Let's see whether a peer certificate is available and what is the

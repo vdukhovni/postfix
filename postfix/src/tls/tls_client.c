@@ -275,6 +275,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 {
     long    off = 0;
     int     cachable;
+    int     scache_timeout;
     SSL_CTX *client_ctx;
     TLS_APPL_STATE *app_ctx;
     int     log_mask;
@@ -445,7 +446,10 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * sessions from the external cache, so we must delete them directly (not
      * via a callback).
      */
-    if (tls_mgr_policy(props->cache_type, &cachable) != TLS_MGR_STAT_OK)
+    if (tls_mgr_policy(props->cache_type, &cachable,
+		       &scache_timeout) != TLS_MGR_STAT_OK)
+	scache_timeout = 0;
+    if (scache_timeout <= 0)
 	cachable = 0;
 
     /*
@@ -484,6 +488,15 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 				       SSL_SESS_CACHE_NO_INTERNAL_STORE |
 				       SSL_SESS_CACHE_NO_AUTO_CLEAR);
 	SSL_CTX_sess_set_new_cb(client_ctx, new_client_session_cb);
+
+	/*
+	 * OpenSSL ignores timed-out sessions. We need to set the internal
+	 * cache timeout at least as high as the external cache timeout. This
+	 * applies even if no internal cache is used.  We set the session to
+	 * twice the cache lifetime.  This way a session always lasts longer
+	 * than its lifetime in the cache.
+	 */
+	SSL_CTX_set_timeout(client_ctx, 2 * scache_timeout);
     }
     return (app_ctx);
 }

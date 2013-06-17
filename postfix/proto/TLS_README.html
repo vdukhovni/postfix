@@ -604,18 +604,48 @@ In order to change this behavior, set
 
 <h3><a name="server_tls_cache">Server-side TLS session cache</a> </h3>
 
-<p> The Postfix SMTP server and the remote SMTP client negotiate
-a session, which takes some computer time and network bandwidth.
-By default, this session information is cached only in the smtpd(8)
-process actually using this session and is lost when the process
-terminates.  To share the session information between multiple
-smtpd(8) processes, a persistent session cache can be used. You
+<p> The Postfix SMTP server and the remote SMTP client negotiate a
+session, which takes some computer time and network bandwidth.  SSL
+protocol versions other than SSLv2 support resumption of cached
+sessions.  Not only is this more CPU and bandwidth efficient, it
+also reduces latency as only one network round-trip is used to
+resume a session while it takes two round-trips to create a session
+from scratch.  </p>
+
+<p> Since Postfix uses multiple smtpd(8) service processes, an
+in-memory cache is not sufficient for session re-use.  Clients store
+at most one cached session per server and are very unlikey to
+repeatedly connect to the same server process.  Thus session caching
+in the Postfix SMTP server generally requires a shared cache (an
+alternative available with Postfix &ge; 2.11 is described below).
+</p>
+
+<p> To share the session information between multiple
+smtpd(8) processes, a session cache database is used. You
 can specify any database type that can store objects of several
 kbytes and that supports the sequence operator. DBM databases are
 not suitable because they can only store small objects. The cache
 is maintained by the tlsmgr(8) process, so there is no problem with
 concurrent access. Session caching is highly recommended, because
 the cost of repeatedly negotiating TLS session keys is high.</p>
+
+<p> Starting with Postfix 2.11, linked with a compatible OpenSSL
+library (at least 0.9.8h, preferably 1.0.0 or later) the Postfix
+SMTP server supports RFC 5077 TLS session resumption without
+server-side state when the remote SMTP client also supports RFC
+5077.  The session is encrypted by the server in a <i>session
+ticket</i> returned to client for storage.  When a client sends a
+valid session ticket, the server decrypts it and resumes the session,
+provided neither the ticket nor the session have expired.  This
+makes it possible to resume cached sessions without allocating space
+for a shared database on the server.  This feature can be disabled
+by setting the session cache timeout to zero, otherwise the timeout
+must be at least 2 minutes and at most 100 days.  </p>
+
+<p> Note, session tickets can only be negotiated if the client
+disables SSLv2 and does not use the legacy SSLv2 compatible HELLO
+message.  This is true by default with the Postfix &ge; 2.6 SMTP
+client.  </p>
 
 <p> Example: </p>
  
@@ -646,9 +676,13 @@ recommends a maximum of 24 hours.  </p>
 </pre>
 </blockquote>
 
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
+
 <p> When the Postfix SMTP server does not save TLS sessions to an
 external cache database, client-side session caching is unlikely
-to be useful.  To prevent such wastage, the Postfix SMTP server can
+to be useful.  To reduce waste of client resources, the Postfix SMTP server can
 be configured to not issue TLS session ids. By default the Postfix
 SMTP server always issues TLS session ids. This works around known
 interoperability issues with some MUAs, and prevents possible
@@ -1979,6 +2013,10 @@ recommends a maximum of 24 hours.  </p>
     smtp_tls_session_cache_timeout = 3600s
 </pre>
 </blockquote>
+
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
 
 <h3><a name="client_tls_limits"> Client TLS limitations </a>
 </h3>

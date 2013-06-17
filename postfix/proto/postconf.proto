@@ -9271,7 +9271,16 @@ $smtpd_tls_session_cache_database, this parameter is implemented in the
 tlsmgr(8) daemon and therefore per-smtpd-instance master.cf overrides
 are not possible. </p>
 
-<p> This feature is available in Postfix 2.2 and later.  </p>
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled, not just via the database, but
+also via RFC 5077 TLS session tickets, which don't require server-side
+storage.  If set to a positive value less than 2 minutes, the minimum
+value of 2 minutes is used instead.  TLS session tickets require
+an OpenSSL library (at least version 0.9.8h) that provides full
+support for this TLS extension. </p>
+
+<p> This feature is available in Postfix 2.2 and later, and updated
+for TLS session ticket support in Postfix 2.11. </p>
 
 %PARAM relay_clientcerts
 
@@ -9572,6 +9581,10 @@ every $smtp_tls_session_cache_timeout seconds. As with
 $smtp_tls_session_cache_database, this parameter is implemented in the
 tlsmgr(8) daemon and therefore per-smtp-instance master.cf overrides
 are not possible. </p>
+
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -14601,10 +14614,10 @@ smtpd_tls_security_level for further details. </p>
 
 %PARAM tlsproxy_tls_session_cache_timeout $smtpd_tls_session_cache_timeout
 
-<p> The expiration time of Postfix tlsproxy(8) server TLS session
-cache information. A cache cleanup is performed periodically every
-$smtpd_tls_session_cache_timeout seconds. See
-smtpd_tls_session_cache_timeout for further details. </p>
+<p> Obsolete expiration time of Postfix tlsproxy(8) server TLS session
+cache information. Since the cache is shared with smtpd(8) and managed
+by tlsmgr(8), there is only one expiration time for the SMTP server cache
+shared by all three services, namely smtpd_tls_session_cache_timeout. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
