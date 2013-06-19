@@ -14211,7 +14211,7 @@ This feature is available in Postfix 2.1 and later.
 </DD>
 
 <DT><b><a name="smtpd_relay_restrictions">smtpd_relay_restrictions</a>
-(default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b></DT><DD>
+(default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>, <a href="postconf.5.html#defer_unauth_destination">defer_unauth_destination</a>)</b></DT><DD>
 
 <p> Access restrictions for mail relay control that the Postfix
 SMTP server applies in the context of the RCPT TO command, before
@@ -15727,6 +15727,10 @@ under a non-Postfix directory is redirected to the Postfix-owned
 <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = btree:/var/lib/postfix/smtpd_scache
 </pre>
 
+<p> Set <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> only in <a href="postconf.5.html">main.cf</a> since its value
+must be consistent across multiple services: <a href="smtpd.8.html">smtpd(8)</a>, <a href="tlsmgr.8.html">tlsmgr(8)</a> and
+<a href="tlsproxy.8.html">tlsproxy(8)</a>.  </p>
+
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
 
@@ -15742,7 +15746,16 @@ $<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_ca
 <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon and therefore per-smtpd-instance <a href="master.5.html">master.cf</a> overrides
 are not possible. </p>
 
-<p> This feature is available in Postfix 2.2 and later.  </p>
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+to 0, session caching is disabled, not just via the database, but
+also via <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
+storage.  If set to a positive value less than 2 minutes, the minimum
+value of 2 minutes is used instead.  TLS session tickets require
+an OpenSSL library (at least version 0.9.8h) that provides full
+support for this TLS extension. </p>
+
+<p> This feature is available in Postfix 2.2 and later, and updated
+for TLS session ticket support in Postfix 2.11. </p>
 
 
 </DD>
@@ -16954,10 +16967,14 @@ parameters <a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> and <a href
 <DT><b><a name="tlsproxy_tls_session_cache_timeout">tlsproxy_tls_session_cache_timeout</a>
 (default: $<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a>)</b></DT><DD>
 
-<p> The expiration time of Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> server TLS session
-cache information. A cache cleanup is performed periodically every
-$<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a> seconds. See
-<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a> for further details. </p>
+<p> Obsolete expiration time of Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> server TLS session
+cache information. Since the cache is shared with <a href="smtpd.8.html">smtpd(8)</a> and managed
+by <a href="tlsmgr.8.html">tlsmgr(8)</a>, there is only expiration time for the SMTP server cache
+shared by all three services, namely <a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a>. </p>
+
+<p> Set <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> only in <a href="postconf.5.html">main.cf</a> since its value
+must be consistent across multiple services: <a href="smtpd.8.html">smtpd(8)</a>, <a href="tlsmgr.8.html">tlsmgr(8)</a> and
+<a href="tlsproxy.8.html">tlsproxy(8)</a>.  </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
