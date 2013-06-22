@@ -13892,7 +13892,7 @@ This feature is available in Postfix 2.1 and later.
 </DD>
 
 <DT><b><a name="smtpd_relay_restrictions">smtpd_relay_restrictions</a>
-(default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>)</b></DT><DD>
+(default: <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>, <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>, <a href="postconf.5.html#defer_unauth_destination">defer_unauth_destination</a>)</b></DT><DD>
 
 <p> Access restrictions for mail relay control that the Postfix
 SMTP server applies in the context of the RCPT TO command, before

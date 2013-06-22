@@ -9169,7 +9169,7 @@ not null.
 .br
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH smtpd_relay_restrictions (default: permit_mynetworks, reject_unauth_destination)
+.SH smtpd_relay_restrictions (default: permit_mynetworks, permit_sasl_authenticated, defer_unauth_destination)
 Access restrictions for mail relay control that the Postfix
 SMTP server applies in the context of the RCPT TO command, before
 smtpd_recipient_restrictions.

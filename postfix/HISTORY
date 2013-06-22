@@ -18247,3 +18247,39 @@ Apologies for any names omitted.
 
 	Bugfix: an error handler for smtp_tls_policy_maps lookups
 	was never invoked.  File: smtp/smtp_session.c.
+
+20130403
+
+	Bugfix (introduced: Postfix 2.3): don't reuse TCP connections
+	when smtp_tls_policy_maps is specified. Victor Duchovni.
+	Found during Postfix 2.11 code maintenance.  File:
+	smtp/smtp_reuse.c.
+
+20130423
+
+	Bugfix (introduced: Postfix 2.0): when myhostname is not
+	listed in mydestination, the trivial-rewrite resolver may
+	log "do not list <myhostname value> in both mydestination
+	and <name of non-mydestination domain list>".  The fix is
+	to re-resolve a domain-less address after adding $myhostname
+	as the surrogate domain, so that it pops out with the right
+	address-class label.  Problem reported by Quanah Gibson-Mount.
+	File: trivial-rewrite/resolve.c.
+
+20130425
+
+	Bugfix (introduced: Postfix 2.2): don't reuse TCP connections
+	when SASL authentication is enabled. SASL passwords may
+	depend on the remote SMTP server hostname, but the Postfix
+	<2.11 SMTP connection cache client does not distinguish
+	between different hostnames that resolve to the same IP
+	address.  Found during Postfix 2.11 code maintenance.  File:
+	smtp/smtp_connect.c.
+
+20130613
+
+	Workaround: unhelpful down-stream maintainers fail to install
+	the new smtpd_relay_restrictions safety net, causing breakage
+	that could have been avoided. We now hard-code the safety
+	net instead.  Files: global/mail_params.h, conf/post-install,
+	RELEASE_NOTES.

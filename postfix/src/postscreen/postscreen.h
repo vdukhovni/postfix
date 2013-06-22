@@ -418,6 +418,7 @@ extern int psc_dnsbl_request(const char *, void (*) (int, char *), char *);
 	(dst)->pregr_stamp = PSC_TIME_STAMP_INVALID; \
 	(dst)->dnsbl_stamp = PSC_TIME_STAMP_INVALID; \
 	(dst)->pipel_stamp = PSC_TIME_STAMP_INVALID; \
+	(dst)->nsmtp_stamp = PSC_TIME_STAMP_INVALID; \
 	(dst)->barlf_stamp = PSC_TIME_STAMP_INVALID; \
 	(dst)->penal_stamp = PSC_TIME_STAMP_INVALID; \
     } while (0)

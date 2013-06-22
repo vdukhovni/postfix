@@ -5901,7 +5901,7 @@ Example:
 smtpd_recipient_restrictions = permit_mynetworks, reject_unauth_destination
 </pre>
 
-%PARAM smtpd_relay_restrictions permit_mynetworks, reject_unauth_destination
+%PARAM smtpd_relay_restrictions permit_mynetworks, permit_sasl_authenticated, defer_unauth_destination
 
 <p> Access restrictions for mail relay control that the Postfix
 SMTP server applies in the context of the RCPT TO command, before
