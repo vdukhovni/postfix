@@ -15374,3 +15374,10 @@ and compression before encryption does not always improve security.  </dd>
 
 <p> This feature is available in Postfix 2.11 and later.  </p>
 
+%PARAM tlsmgr_service_name tlsmgr
+
+<p> The name of the tlsmgr(8) service entry in master.cf. This
+service maintains TLS session caches and other information in support
+of TLS. </p>
+
+<p> This feature is available in Postfix 2.11 and later. </p>

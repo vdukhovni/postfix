@@ -11340,6 +11340,12 @@ Earlier Postfix implementations behave as if
 .br
 .PP
 This feature is available in Postfix 2.11 and later.
+.SH tlsmgr_service_name (default: tlsmgr)
+The name of the \fBtlsmgr\fR(8) service entry in master.cf. This
+service maintains TLS session caches and other information in support
+of TLS.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH tlsproxy_enforce_tls (default: $smtpd_enforce_tls)
 Mandatory TLS: announce STARTTLS support to remote SMTP clients, and
 require that clients use TLS encryption. See smtpd_enforce_tls for

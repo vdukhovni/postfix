@@ -635,12 +635,19 @@ extern bool var_exp_own_alias;
 extern bool var_stat_home_dir;
 
  /*
-  * Queue manager: maximal size of the duplicate expansion filter. By
+  * Cleanup server: maximal size of the duplicate expansion filter. By
   * default, we do graceful degradation with huge mailing lists.
   */
 #define VAR_DUP_FILTER_LIMIT	"duplicate_filter_limit"
 #define DEF_DUP_FILTER_LIMIT	1000
 extern int var_dup_filter_limit;
+
+ /*
+  * Transport Layer Security (TLS) protocol support.
+  */
+#define VAR_TLS_MGR_SERVICE	"tlsmgr_service_name"
+#define DEF_TLS_MGR_SERVICE	"tlsmgr"
+extern char *var_tls_mgr_service;
 
 #define VAR_TLS_APPEND_DEF_CA	"tls_append_default_CA"
 #define DEF_TLS_APPEND_DEF_CA	0	/* Postfix < 2.8 BC break */
@@ -1975,7 +1982,7 @@ extern char *var_mail_checks;
 
 #define VAR_RELAY_CHECKS	"smtpd_relay_restrictions"
 #define DEF_RELAY_CHECKS	PERMIT_MYNETWORKS ", " \
-				PERMIT_SASL_AUTH \
+				PERMIT_SASL_AUTH ", " \
 				DEFER_UNAUTH_DEST
 extern char *var_relay_checks;
 

@@ -455,6 +455,8 @@
 /*	usable.
 /* .IP "\fBtls_dane_trust_anchor_digest_enable (trust-anchor-assertion)\fR"
 /*	RFC 6698 trust-anchor digest support in the Postfix TLS library.
+/* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
+/*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi

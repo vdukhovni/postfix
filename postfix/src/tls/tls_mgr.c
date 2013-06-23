@@ -104,6 +104,8 @@
 #include <vstring.h>
 #include <attr.h>
 #include <attr_clnt.h>
+#include <mymalloc.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -119,6 +121,7 @@ static ATTR_CLNT *tls_mgr;
 
 static void tls_mgr_open(void)
 {
+    char   *service;
 
     /*
      * Sanity check.
@@ -130,14 +133,12 @@ static void tls_mgr_open(void)
      * Use whatever IPC is preferred for internal use: UNIX-domain sockets or
      * Solaris streams.
      */
-#ifndef VAR_TLS_MGR_SERVICE
-    tls_mgr = attr_clnt_create("local:" TLS_MGR_CLASS "/" TLS_MGR_SERVICE,
-			       var_ipc_timeout, var_ipc_idle_limit,
-			       var_ipc_ttl_limit);
-#else
-    tls_mgr = attr_clnt_create(var_tlsmgr_service, var_ipc_timeout,
+    service = concatenate("local:" TLS_MGR_CLASS "/", var_tls_mgr_service,
+			  (char *) 0);
+    tls_mgr = attr_clnt_create(service, var_ipc_timeout,
 			       var_ipc_idle_limit, var_ipc_ttl_limit);
-#endif
+    myfree(service);
+
     attr_clnt_control(tls_mgr,
 		      ATTR_CLNT_CTL_PROTO, attr_vprint, attr_vscan,
 		      ATTR_CLNT_CTL_END);

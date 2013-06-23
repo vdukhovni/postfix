@@ -18707,9 +18707,10 @@ Apologies for any names omitted.
 20100613
 
 	Workaround: unhelpful down-stream maintainers fail to install
-	the new smtpd_relay_restrictions safety net, causing things
-	to break. We hard-code the safety net instead.  Files:
-	global/mail_params.h, conf/post-install, RELEASE_NOTES_2.10.
+	the new smtpd_relay_restrictions safety net, causing breakage
+	that could have been avoided. We now hard-code the safety
+	net instead.  Files: global/mail_params.h, conf/post-install,
+	RELEASE_NOTES_2.10.
 
 	Bugfix (DANE support): when TLSA records are insecure,
 	report that none are found. Viktor Dukhovni. Files:
@@ -18741,3 +18742,22 @@ Apologies for any names omitted.
 	tls/tls_dane.c, tls/tls_fprint.c, tls/tls_misc.c,
 	tls/tls_verify.c.
 
+20130619
+
+	Documentation: troff lint. Patch by ES Raymond's bot.  File:
+	proto/header_checks.
+
+	Cleanup: enforce smtpd_client_recipient_rate_limit for VRFY
+	commands. File: smtpd/smtpd.c.
+
+20130622
+
+	Bugfix: typo in the 20130613 smtpd_relay_restrictions default
+	setting. File: global/mail_params.h.
+
+20130623
+
+	Cleanup: configurable tlsmgr(8) service name. Files:
+	mantools/postlink, proto/postconf.proto, tls/tls_mgr.c,
+	tls/tls_misc.c, tlsproxy/tls-proxy.c, smtp/smtp.c,
+	smtpd/smtpd.c.

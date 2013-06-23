@@ -447,6 +447,10 @@
 /*	order.
 /* .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
 /*	List or bit-mask of OpenSSL bug work-arounds to disable.
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
+/*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -779,7 +783,7 @@
 /*	applies in the context of the SMTP END-OF-DATA command.
 /* .PP
 /*	Available in Postfix version 2.10 and later:
-/* .IP "\fBsmtpd_relay_restrictions (permit_mynetworks, reject_unauth_destination)\fR"
+/* .IP "\fBsmtpd_relay_restrictions (permit_mynetworks, permit_sasl_authenticated, defer_unauth_destination)\fR"
 /*	Access restrictions for mail relay control that the Postfix
 /*	SMTP server applies in the context of the RCPT TO command, before
 /*	smtpd_recipient_restrictions.
@@ -3369,6 +3373,7 @@ static int noop_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     const char *err = 0;
+    int     rate;
 
     /*
      * The SMTP standard (RFC 821) disallows unquoted special characters in
@@ -3399,15 +3404,36 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "502 5.5.1 VRFY command is disabled");
 	return (-1);
     }
+    if (argc < 2) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: VRFY address");
+	return (-1);
+    }
+
+    /*
+     * XXX The client event count/rate control must be consistent in its use
+     * of client address information in connect and disconnect events. For
+     * now we exclude xclient authorized hosts from event count/rate control.
+     */
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& var_smtpd_crcpt_limit > 0
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_rcpt(anvil_clnt, state->service, state->addr,
+			   &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_crcpt_limit) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	msg_warn("Recipient address rate limit exceeded: %d from %s for service %s",
+		 rate, state->namaddr, state->service);
+	smtpd_chat_reply(state, "450 4.7.1 Error: too many recipients from %s",
+			 state->addr);
+	return (-1);
+    }
     if (smtpd_milters != 0 && (err = milter_other_event(smtpd_milters)) != 0
 	&& (err[0] == '5' || err[0] == '4')) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	smtpd_chat_reply(state, "%s", err);
-	return (-1);
-    }
-    if (argc < 2) {
-	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 5.5.4 Syntax: VRFY address");
 	return (-1);
     }
     if (argc > 2)

@@ -20,6 +20,7 @@
 /*	bool	var_tls_preempt_clist;
 /*	bool	var_tls_bc_pkey_fprint;
 /*	bool	var_tls_multi_wildcard;
+/*	char	*var_tls_mgr_service;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -225,6 +226,7 @@ char   *var_tls_bug_tweaks;
 char   *var_tls_ssl_options;
 bool    var_tls_bc_pkey_fprint;
 bool    var_tls_multi_wildcard;
+char   *var_tls_mgr_service;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -593,6 +595,7 @@ void    tls_param_init(void)
 	VAR_TLS_BUG_TWEAKS, DEF_TLS_BUG_TWEAKS, &var_tls_bug_tweaks, 0, 0,
 	VAR_TLS_SSL_OPTIONS, DEF_TLS_SSL_OPTIONS, &var_tls_ssl_options, 0, 0,
 	VAR_TLS_DANE_TA_DGST, DEF_TLS_DANE_TA_DGST, &var_tls_dane_ta_dgst, 0, 0,
+	VAR_TLS_MGR_SERVICE, DEF_TLS_MGR_SERVICE, &var_tls_mgr_service, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

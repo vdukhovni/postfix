@@ -135,6 +135,10 @@
 /* .IP "\fBtlsproxy_tls_session_cache_timeout ($smtpd_tls_session_cache_timeout)\fR"
 /*	The expiration time of Postfix \fBtlsproxy\fR(8) server TLS session
 /*	cache information.
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
+/*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi

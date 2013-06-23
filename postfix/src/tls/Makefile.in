@@ -129,7 +129,11 @@ tls_client.o: tls.h
 tls_client.o: tls_client.c
 tls_client.o: tls_mgr.h
 tls_dane.o: ../../include/argv.h
+tls_dane.o: ../../include/ctable.h
 tls_dane.o: ../../include/dns.h
+tls_dane.o: ../../include/events.h
+tls_dane.o: ../../include/hex_code.h
+tls_dane.o: ../../include/mail_params.h
 tls_dane.o: ../../include/msg.h
 tls_dane.o: ../../include/myaddrinfo.h
 tls_dane.o: ../../include/mymalloc.h
@@ -138,6 +142,7 @@ tls_dane.o: ../../include/name_mask.h
 tls_dane.o: ../../include/sock_addr.h
 tls_dane.o: ../../include/stringops.h
 tls_dane.o: ../../include/sys_defs.h
+tls_dane.o: ../../include/timecmp.h
 tls_dane.o: ../../include/vbuf.h
 tls_dane.o: ../../include/vstream.h
 tls_dane.o: ../../include/vstring.h
@@ -182,6 +187,8 @@ tls_mgr.o: ../../include/iostuff.h
 tls_mgr.o: ../../include/mail_params.h
 tls_mgr.o: ../../include/mail_proto.h
 tls_mgr.o: ../../include/msg.h
+tls_mgr.o: ../../include/mymalloc.h
+tls_mgr.o: ../../include/stringops.h
 tls_mgr.o: ../../include/sys_defs.h
 tls_mgr.o: ../../include/vbuf.h
 tls_mgr.o: ../../include/vstream.h
