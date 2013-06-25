@@ -604,23 +604,20 @@ In order to change this behavior, set
 
 <h3><a name="server_tls_cache">Server-side TLS session cache</a> </h3>
 
-<p> The Postfix SMTP server and the remote SMTP client negotiate
-a session, which takes some computer time and network bandwidth.
-SSLv3, TLSv1 and later support resumption of cached sessions.  Not
-is this more CPU and bandwidth efficient, it also reduces latency
-as it uses only one network round-trip instead of two.  </p>
+<p> The Postfix SMTP server and the remote SMTP client negotiate a
+session, which takes some computer time and network bandwidth.  SSL
+protocol versions other than SSLv2 support resumption of cached
+sessions.  Not only is this more CPU and bandwidth efficient, it
+also reduces latency as only one network round-trip is used to
+resume a session while it takes two round-trips to create a session
+from scratch.  </p>
 
-<p> Since Postfix uses multiple <a href="smtpd.8.html">smtpd(8)</a> service processes, an in
-memory cache is not sufficient for session re-use.  Clients store
+<p> Since Postfix uses multiple <a href="smtpd.8.html">smtpd(8)</a> service processes, an
+in-memory cache is not sufficient for session re-use.  Clients store
 at most one cached session per server and are very unlikey to
-repeatedly connect to the same server process.  With a per-process
-server cache, when a client attempts to reuse a session with a
-different process than the one that created it, a new session is
-negotiated and the old forgotten.  Returning to the original server
-process later (except with back to back connections) does not help,
-as that session has most probably been replaced.  Thus session
-caching in the Postfix SMTP server generally requires a shared cache
-(an alternative available with Postfix &ge; 2.11 is described below).
+repeatedly connect to the same server process.  Thus session caching
+in the Postfix SMTP server generally requires a shared cache (an
+alternative available with Postfix &ge; 2.11 is described below).
 </p>
 
 <p> To share the session information between multiple
@@ -633,7 +630,7 @@ concurrent access. Session caching is highly recommended, because
 the cost of repeatedly negotiating TLS session keys is high.</p>
 
 <p> Starting with Postfix 2.11, linked with a compatible OpenSSL
-library (at least 0.9.8h, preferrably 1.0.0 or later) the Postfix
+library (at least 0.9.8h, preferably 1.0.0 or later) the Postfix
 SMTP server supports <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session resumption without
 server-side state when the remote SMTP client also supports <a href="http://tools.ietf.org/html/rfc5077">RFC</a>
 <a href="http://tools.ietf.org/html/rfc5077">5077</a>.  The session is encrypted by the server in a <i>session
@@ -678,6 +675,10 @@ recommends a maximum of 24 hours.  </p>
     <a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a> = 3600s
 </pre>
 </blockquote>
+
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
 
 <p> When the Postfix SMTP server does not save TLS sessions to an
 external cache database, client-side session caching is unlikely
@@ -2012,6 +2013,10 @@ recommends a maximum of 24 hours.  </p>
     <a href="postconf.5.html#smtp_tls_session_cache_timeout">smtp_tls_session_cache_timeout</a> = 3600s
 </pre>
 </blockquote>
+
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
 
 <h3><a name="client_tls_limits"> Client TLS limitations </a>
 </h3>
