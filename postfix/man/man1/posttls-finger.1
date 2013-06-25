@@ -107,6 +107,10 @@ The message digest algorithm to use for reporting remote SMTP server
 fingerprints and matching against user provided certificate
 fingerprints (with DANE TLSA records the algorithm is specified
 in the DNS).
+.IP "\fB-f\fR"
+Lookup the associated DANE TLSA RRset even when a hostname is not an
+alias and its address records lie in an unsigned zone.  See
+smtp_tls_force_insecure_host_tlsa_lookup for details.
 .IP "\fB-F \fICAfile.pem\fR (default: none)"
 The PEM formatted CAfile for remote SMTP server certificate
 verification.  By default no CAfile is used and no public CAs

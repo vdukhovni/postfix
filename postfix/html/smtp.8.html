@@ -603,6 +603,11 @@ SMTP(8)                                                                SMTP(8)
               rity   level  is  specified,  validated  DANE  TLSA
               records are present, but none are usable.
 
+       <b><a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">smtp_tls_force_insecure_host_tlsa_lookup</a> (no)</b>
+              Lookup the associated DANE TLSA RRset even  when  a
+              hostname  is  not  an alias and its address records
+              lie in an unsigned zone.
+
        <b><a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>   (trust-anchor-asser-</b>
        <b>tion)</b>
               <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> trust-anchor digest support in the Postfix

@@ -483,6 +483,9 @@ is specified, but no validated DANE TLSA records are published.
 The "degraded" security level when the "dane" security level
 is specified, validated DANE TLSA records are present, but none are
 usable.
+.IP "\fBsmtp_tls_force_insecure_host_tlsa_lookup (no)\fR"
+Lookup the associated DANE TLSA RRset even when a hostname is
+not an alias and its address records lie in an unsigned zone.
 .IP "\fBtls_dane_trust_anchor_digest_enable (trust-anchor-assertion)\fR"
 RFC 6698 trust-anchor digest support in the Postfix TLS library.
 .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
