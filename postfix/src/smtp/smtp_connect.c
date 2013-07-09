@@ -488,10 +488,9 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * 
      * We set dest=path for backwards compatibility.
      */
-#define NO_RR	((DNS_RR *) 0)
 #define NO_PORT	0
 
-    SMTP_ITER_INIT(iter, path, var_myhostname, path, NO_PORT, NO_RR, state);
+    SMTP_ITER_INIT(iter, path, var_myhostname, path, NO_PORT, state);
 
     /*
      * Opportunistic TLS for unix domain sockets does not make much sense,
@@ -833,9 +832,8 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	}
 #define NO_HOST	""				/* safety */
 #define NO_ADDR	""				/* safety */
-#define NO_RR	((DNS_RR *) 0)			/* safety */
 
-	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, NO_RR, state);
+	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, state);
 
 	/*
 	 * Resolve an SMTP server. Skip mail exchanger lookups when a quoted
@@ -857,7 +855,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	} else {
 	    int     i_am_mx = 0;
 
-	    addr_list = smtp_domain_addr(domain, state->misc_flags,
+	    addr_list = smtp_domain_addr(domain, &iter->mx, state->misc_flags,
 					 why, &i_am_mx);
 	    /* If we're MX host, don't connect to non-MX backups. */
 	    if (i_am_mx)
@@ -1026,6 +1024,10 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    /* XXX Code above assumes there is no code at this loop ending. */
 	}
 	dns_rr_free(addr_list);
+	if (iter->mx) {
+	    dns_rr_free(iter->mx);
+	    iter->mx = 0;			/* Just in case */
+	}
 	myfree(dest_buf);
 	if (state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
 	    break;

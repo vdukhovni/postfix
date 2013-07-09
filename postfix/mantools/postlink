@@ -281,6 +281,7 @@ while (<>) {
     s;\blmtp_tls_enforce_peername\b;<a href="postconf.5.html#lmtp_tls_enforce_peername">$&</a>;g;
     s;\blmtp_tls_note_starttls_offer\b;<a href="postconf.5.html#lmtp_tls_note_starttls_offer">$&</a>;g;
     s;\blmtp_tls_block_early_mail_reply\b;<a href="postconf.5.html#lmtp_tls_block_early_mail_reply">$&</a>;g;
+    s;\blmtp_tls_force_insecure_host_tlsa_lookup\b;<a href="postconf.5.html#lmtp_tls_force_insecure_host_tlsa_lookup">$&</a>;g;
     s;\blmtp_sender_dependent_authentication\b;<a href="postconf.5.html#lmtp_sender_dependent_authentication">$&</a>;g;
     s;\blmtp_sasl_path\b;<a href="postconf.5.html#lmtp_sasl_path">$&</a>;g;
     s;\blmtp_lhlo_name\b;<a href="postconf.5.html#lmtp_lhlo_name">$&</a>;g;
@@ -646,6 +647,7 @@ while (<>) {
     s;\bsmtp_tls_session_cache_database\b;<a href="postconf.5.html#smtp_tls_session_cache_database">$&</a>;g;
     s;\bsmtp_tls_session_cache_timeout\b;<a href="postconf.5.html#smtp_tls_session_cache_timeout">$&</a>;g;
     s;\bsmtp_tls_block_early_mail_reply\b;<a href="postconf.5.html#smtp_tls_block_early_mail_reply">$&</a>;g;
+    s;\bsmtp_tls_force_insecure_host_tlsa_lookup\b;<a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">$&</a>;g;
     s;\bsmtp_use_tls\b;<a href="postconf.5.html#smtp_use_tls">$&</a>;g;
     s;\bsmtp_header_checks\b;<a href="postconf.5.html#smtp_header_checks">$&</a>;g;
     s;\bsmtp_mime_header_checks\b;<a href="postconf.5.html#smtp_mime_header_checks">$&</a>;g;

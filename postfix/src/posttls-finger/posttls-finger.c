@@ -101,6 +101,10 @@
 /*	fingerprints and matching against user provided certificate
 /*	fingerprints (with DANE TLSA records the algorithm is specified
 /*	in the DNS).
+/* .IP "\fB-f\fR"
+/*	Lookup the associated DANE TLSA RRset even when a hostname is not an
+/*	alias and its address records lie in an unsigned zone.  See
+/*	smtp_tls_force_insecure_host_tlsa_lookup for details.
 /* .IP "\fB-F \fICAfile.pem\fR (default: none)"
 /*	The PEM formatted CAfile for remote SMTP server certificate
 /*	verification.  By default no CAfile is used and no public CAs
@@ -400,6 +404,7 @@ typedef struct STATE {
     int     log_mask;			/* via tls_log_mask() */
     int     reconnect;			/* -r option */
     int     max_reconnect;		/* -m option */
+    int     force_tlsa;			/* -f option */
     unsigned port;			/* TCP port */
     char   *dest;			/* Full destination spec */
     char   *addrport;			/* [addr]:port */
@@ -407,6 +412,7 @@ typedef struct STATE {
     char   *nexthop;			/* Nexthop domain for verification */
     char   *hostname;			/* Hostname for verification */
     DNS_RR *addr;			/* IPv[46] Address to (re)connect to */
+    DNS_RR *mx;				/* MX RRset qname, rname, valid */
     int     pass;			/* Pass number, 2 for reconnect */
     int     nochat;			/* disable chat logging */
     char   *helo;			/* Server name from EHLO reply */
@@ -433,7 +439,7 @@ typedef struct STATE {
 
 static DNS_RR *host_addr(STATE *, const char *);
 
-#define HNAME(addr) (addr->dnssec_valid ? addr->rname : addr->qname)
+#define HNAME(addr) (addr->qname)
 
  /*
   * Structure with broken-up SMTP server response.
@@ -1105,6 +1111,7 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref_any);
 	addr_list = mx_addr_list(state, mx_names);
+	state->mx = dns_rr_copy(mx_names);
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
 	    msg_warn("no MX host for %s has a valid address record", domain);
@@ -1156,10 +1163,26 @@ static DNS_RR *host_addr(STATE *state, const char *host)
 static int dane_host_level(STATE *state, DNS_RR *addr)
 {
     int     level = state->level;
+    int     valid;
+    int     mxvalid;
 
 #ifdef USE_TLS
     if (level == TLS_LEV_DANE) {
-	if (addr->dnssec_valid) {
+
+	/*
+	 * Suppress TLSA lookups for non-DNSSEC + non-MX + non-CNAME hosts.
+	 * If the host address is not DNSSEC validated, the TLSA RRset is
+	 * safely assumed to not be in a DNSSEC Look-aside Validation child
+	 * zone.
+	 */
+	mxvalid = state->mx == 0 || state->mx->dnssec_valid;
+	valid = addr->dnssec_valid;
+	if (!state->force_tlsa
+	    && !valid
+	    && state->mx == 0
+	    && strcmp(addr->qname, addr->rname) == 0)
+	    mxvalid = 0;
+	if (mxvalid) {
 	    if (state->log_mask & (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE))
 		tls_dane_verbose(1);
 	    else
@@ -1170,7 +1193,9 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 		tls_dane_free(state->ddane);
 
 	    /* When TLSA lookups fail, next host */
-	    state->ddane = tls_dane_resolve(HNAME(addr), "tcp", state->port);
+	    state->ddane = tls_dane_resolve(addr->qname,
+					    valid ? addr->rname : 0,
+					    "tcp", state->port);
 	    if (!state->ddane) {
 		dsb_simple(state->why, "4.7.5",
 			   "TLSA lookup error for %s:%u",
@@ -1193,7 +1218,14 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 		if (state->match)
 		    argv_free(state->match);
 		argv_add(state->match = argv_alloc(2),
-			 "hostname", "nexthop", ARGV_END);
+			 state->ddane->base_domain, ARGV_END);
+		if (state->mx) {
+		    if (strcmp(state->mx->qname, state->mx->rname) == 0)
+			argv_add(state->match, state->mx->qname, ARGV_END);
+		    else
+			argv_add(state->match, state->mx->rname,
+				 state->mx->qname, ARGV_END);
+		}
 	    }
 	} else {
 	    level = TLS_LEV_SECURE;
@@ -1346,6 +1378,9 @@ static void disconnect_dest(STATE *state)
 	if (state->addr)
 	    dns_rr_free(state->addr);
 	state->addr = 0;
+	if (state->mx)
+	    dns_rr_free(state->mx);
+	state->mx = 0;
 
 	if (state->nexthop)
 	    myfree(state->nexthop);
@@ -1483,7 +1518,7 @@ static void usage(void)
 #ifdef USE_TLS
     fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s \\\n\t%s"
 	    " destination [match ...]\n", var_procname,
-	    "[-acCSv] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
+	    "[-acCfSv] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
 	 "[-h host_lookup] [-l level] [-d mdalg] [-g grade] [-p protocols]",
 	    "[-A tafile] [-F CAfile.pem] [-P CApath/] [-m count] [-r delay]",
 	    "[-o name=value]");
@@ -1555,7 +1590,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
 
 #define OPTS "a:ch:o:St:T:v"
 #ifdef USE_TLS
-#define TLSOPTS "A:Cd:F:g:l:L:m:p:P:r:"
+#define TLSOPTS "A:Cd:fF:g:l:L:m:p:P:r:"
 
     state->mdalg = mystrdup("sha1");
     state->CApath = mystrdup("");
@@ -1608,6 +1643,9 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	case 'd':
 	    myfree(state->mdalg);
 	    state->mdalg = mystrdup(optarg);
+	    break;
+	case 'f':
+	    state->force_tlsa = 1;
 	    break;
 	case 'F':
 	    myfree(state->CAfile);

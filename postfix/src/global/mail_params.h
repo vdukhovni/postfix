@@ -1535,6 +1535,12 @@ extern char *var_smtp_tls_fpt_cmatch;
 #define DEF_LMTP_TLS_BLK_EARLY_MAIL_REPLY 0
 extern bool var_smtp_tls_blk_early_mail_reply;
 
+#define VAR_SMTP_TLS_FORCE_TLSA "smtp_tls_force_insecure_host_tlsa_lookup"
+#define DEF_SMTP_TLS_FORCE_TLSA 0
+#define VAR_LMTP_TLS_FORCE_TLSA "lmtp_tls_force_insecure_host_tlsa_lookup"
+#define DEF_LMTP_TLS_FORCE_TLSA 0
+extern bool var_smtp_tls_force_tlsa;
+
  /*
   * SASL authentication support, SMTP server side.
   */

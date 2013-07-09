@@ -628,6 +628,7 @@ int     smtp_tls_policy_cache_query(DSN_BUF *why, SMTP_TLS_POLICY *tls,
 {
     VSTRING *key;
     int     valid = iter->rr && iter->rr->dnssec_valid;
+    int     mxvalid = iter->mx == 0 || iter->mx->dnssec_valid;
 
     /*
      * Create an empty TLS Policy cache on the fly.
@@ -644,7 +645,7 @@ int     smtp_tls_policy_cache_query(DSN_BUF *why, SMTP_TLS_POLICY *tls,
     smtp_key_prefix(key, ":", iter, SMTP_KEY_FLAG_NEXTHOP
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_PORT);
-    vstring_sprintf_append(key, "%d", !!valid);
+    vstring_sprintf_append(key, "%d:%d", !!valid, !!mxvalid);
     ctable_newcontext(policy_cache, (void *) iter);
     *tls = *(SMTP_TLS_POLICY *) ctable_locate(policy_cache, STR(key));
     vstring_free(key);
@@ -711,7 +712,8 @@ static int global_tls_level(void)
 static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 {
     TLS_DANE *dane;
-    int     valid = iter->rr && iter->rr->dnssec_valid;
+    int     valid;
+    int     mxvalid;
 
     if (!iter->port) {
 	msg_warn("%s: the \"dane\" security level is invalid for delivery via"
@@ -756,7 +758,26 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	}
 	return;
     }
-    if (!valid) {
+
+    /*
+     * If there were no MX records and the destination host is the original
+     * nexthop domain, or if the MX RRset is DNS validated, we can at least
+     * try DANE with the destination host prior to CNAME expansion, but we
+     * prefer CNAME expanded MX hosts if those are also secure.
+     * 
+     * By default suppress TLSA lookups for non-DNSSEC + non-MX + non-CNAME
+     * hosts.  If the host address is not DNSSEC validated, the TLSA RRset is
+     * safely assumed to not be in a DNSSEC Look-aside Validation child zone.
+     */
+    mxvalid = iter->mx == 0 || iter->mx->dnssec_valid;
+    valid = iter->rr && iter->rr->dnssec_valid;
+    if (!var_smtp_tls_force_tlsa
+	&& !valid
+	&& iter->mx == 0
+	&& strcmp(iter->rr->qname, iter->rr->rname) == 0)
+	mxvalid = 0;
+
+    if (!mxvalid) {
 	if (tls->level == TLS_LEV_DANE) {
 	    tls->level = TLS_LEV_MAY;
 	    if (msg_verbose)
@@ -768,7 +789,8 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	return;
     }
     /* When TLSA lookups fail, we defer the message */
-    if ((dane = tls_dane_resolve(STR(iter->host), "tcp", iter->port)) == 0) {
+    if ((dane = tls_dane_resolve(iter->rr->qname, valid ? iter->rr->rname : 0,
+				 "tcp", iter->port)) == 0) {
 	tls->level = TLS_LEV_INVALID;
 	dsb_simple(tls->why, "4.7.5", "TLSA lookup error for %s:%u",
 		   STR(iter->host), ntohs(iter->port));
@@ -818,7 +840,14 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
      */
     if (TLS_DANE_HASTA(dane)) {
 	tls->matchargv = argv_alloc(2);
-	argv_add(tls->matchargv, "hostname", "nexthop", ARGV_END);
+	argv_add(tls->matchargv, dane->base_domain, ARGV_END);
+	if (iter->mx) {
+	    if (strcmp(iter->mx->qname, iter->mx->rname) == 0)
+		argv_add(tls->matchargv, iter->mx->qname, ARGV_END);
+	    else
+		argv_add(tls->matchargv, iter->mx->rname,
+			 iter->mx->qname, ARGV_END);
+	}
     } else if (!TLS_DANE_HASEE(dane))
 	msg_panic("empty DANE match list");
     tls->dane = dane;

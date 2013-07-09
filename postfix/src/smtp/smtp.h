@@ -55,17 +55,18 @@ typedef struct SMTP_ITERATOR {
     VSTRING *addr;			/* printable address or empty */
     unsigned port;			/* network byte order or null */
     struct DNS_RR *rr;			/* DNS resource record or null */
+    struct DNS_RR *mx;			/* DNS resource record or null */
     /* Private members. */
     VSTRING *saved_dest;		/* saved current nexthop */
     struct SMTP_STATE *parent;		/* parent linkage */
 } SMTP_ITERATOR;
 
-#define SMTP_ITER_INIT(iter, _dest, _host, _addr, _port, _rr, state) do { \
+#define SMTP_ITER_INIT(iter, _dest, _host, _addr, _port, state) do { \
 	vstring_strcpy((iter)->dest, (_dest)); \
 	vstring_strcpy((iter)->host, (_host)); \
 	vstring_strcpy((iter)->addr, (_addr)); \
 	(iter)->port = (_port); \
-	(iter)->rr = (_rr); \
+	(iter)->mx = (iter)->rr = 0; \
 	vstring_strcpy((iter)->saved_dest, ""); \
 	(iter)->parent = (state); \
     } while (0)
@@ -354,10 +355,9 @@ extern int smtp_session_passivate(SMTP_SESSION *, VSTRING *, VSTRING *);
 extern SMTP_SESSION *smtp_session_activate(int, SMTP_ITERATOR *, VSTRING *, VSTRING *);
 
  /*
-  * What's in a name?  With DANE TLSA we need the rr->rname (if validated).
+  * What's in a name?
   */
-#define SMTP_HNAME(rr) ( (var_smtp_cname_overr || rr->dnssec_valid) ? \
-			 (rr)->rname : (rr)->qname )
+#define SMTP_HNAME(rr) (var_smtp_cname_overr ? (rr)->rname : (rr)->qname)
 
  /*
   * smtp_connect.c

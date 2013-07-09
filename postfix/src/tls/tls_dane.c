@@ -41,8 +41,9 @@
 /*	SSL_CTX *ssl_ctx;
 /*	TLS_SESS_STATE *TLScontext;
 /*
-/*	TLS_DANE *tls_dane_resolve(host, proto, port)
-/*	const char *host;
+/*	TLS_DANE *tls_dane_resolve(qname, rname, proto, port)
+/*	const char *qname;
+/*	const char *rname;
 /*	const char *proto;
 /*	unsigned port;
 /*
@@ -95,7 +96,7 @@
 /*	anchors always override the legacy public CA PKI.  Otherwise, the
 /*	callback MUST be cleared.
 /*
-/*	tls_dane_resolve() maps a (host, protocol, port) triple to a
+/*	tls_dane_resolve() maps a (qname, rname, protocol, port) tuple to a
 /*	a corresponding TLS_DANE policy structure found in the DNS.  The port
 /*	argument is in network byte order.  A null pointer is returned when
 /*	the DNS query for the TLSA record tempfailed.  In all other cases the
@@ -116,7 +117,9 @@
 /* .IP dane
 /*	Pointer to a TLS_DANE structure that lists the valid trust-anchor
 /*	and end-entity full-certificate and/or public-key digests.
-/* .IP host
+/* .IP qname
+/*	FQDN of target service (original input form).
+/* .IP rname
 /*	DNSSEC validated (cname resolved) FQDN of target service.
 /* .IP proto
 /*	Almost certainly "tcp".
@@ -366,6 +369,7 @@ TLS_DANE *tls_dane_alloc(int flags)
     dane->ee = 0;
     dane->certs = 0;
     dane->pkeys = 0;
+    dane->base_domain = 0;
     dane->flags = flags;
     dane->expires = 0;
     dane->refs = 1;
@@ -450,6 +454,8 @@ void    tls_dane_free(TLS_DANE *dane)
     /* De-allocate full trust-anchor certs and pkeys */
     free_ta_certs(dane);
     free_ta_pkeys(dane);
+    if (dane->base_domain)
+	myfree(dane->base_domain);
 
     myfree((char *) dane);
 }
@@ -820,14 +826,33 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
     return (void *) dane;
 }
 
+/* resolve_host - resolve TLSA RRs for hostname (rname or qname) */
+
+static TLS_DANE *resolve_host(const char *host, const char *proto,
+			              unsigned port)
+{
+    static VSTRING *query_domain;
+    TLS_DANE *dane;
+
+    if (query_domain == 0)
+	query_domain = vstring_alloc(64);
+
+    vstring_sprintf(query_domain, "_%u._%s.%s", ntohs(port), proto, host);
+    dane = (TLS_DANE *) ctable_locate(dane_cache, STR(query_domain));
+    if (timecmp(event_time(), dane->expires) > 0)
+	dane = (TLS_DANE *) ctable_refresh(dane_cache, STR(query_domain));
+    if (dane->base_domain == 0)
+	dane->base_domain = mystrdup(host);
+    return (dane);
+}
+
 #endif
 
-/* tls_dane_resolve - cached map: (host, proto, port) -> TLS_DANE */
+/* tls_dane_resolve - cached map: (name, proto, port) -> TLS_DANE */
 
-TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
-			           unsigned port)
+TLS_DANE *tls_dane_resolve(const char *qname, const char *rname,
+			           const char *proto, unsigned port)
 {
-    static VSTRING *qname;
     TLS_DANE *dane = 0;
 
 #ifdef DANE_TLSA_SUPPORT
@@ -837,13 +862,16 @@ TLS_DANE *tls_dane_resolve(const char *host, const char *proto,
     if (!dane_cache)
 	dane_cache = ctable_create(CACHE_SIZE, dane_lookup, dane_free, 0);
 
-    if (qname == 0)
-	qname = vstring_alloc(64);
-    vstring_sprintf(qname, "_%u._%s.%s", ntohs(port), proto, host);
-    dane = (TLS_DANE *) ctable_locate(dane_cache, STR(qname));
-    if (timecmp(event_time(), dane->expires) > 0)
-	dane = (TLS_DANE *) ctable_refresh(dane_cache, STR(qname));
-
+    /*
+     * Try the rname first, if nothing there, try the qname.  Note, lookup
+     * errors are distinct from success with nothing found.  If the rname
+     * lookup fails we don't try the qname.  The rname may be null when only
+     * the qname is in a secure zone.
+     */
+    if (rname)
+	dane = resolve_host(rname, proto, port);
+    if (!rname || (tls_dane_notfound(dane) && strcmp(qname, rname) != 0))
+	dane = resolve_host(qname, proto, port);
     if (dane->flags & TLS_DANE_FLAG_ERROR)
 	return (0);
 
@@ -1193,7 +1221,7 @@ static int wrap_key(TLS_SESS_STATE *TLScontext, EVP_PKEY *key, X509 *subject,
 	|| !add_skid(cert, akid)
 	|| (wrap_signed
 	    && (!X509_sign(cert, danekey, signmd)
-	    	|| (key && !wrap_key(TLScontext, 0, cert, depth + 1))))) {
+		|| (key && !wrap_key(TLScontext, 0, cert, depth + 1))))) {
 	msg_warn("error generating DANE wrapper certificate");
 	tls_print_errors();
 	ret = 0;

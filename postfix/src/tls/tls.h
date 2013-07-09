@@ -154,6 +154,7 @@ typedef struct TLS_DANE {
     TLS_TLSA *ee;			/* End-entity cert/pubkey digests */
     TLS_CERTS *certs;			/* Full trust-anchor certificates */
     TLS_PKEYS *pkeys;			/* Full trust-anchor public keys */
+    char   *base_domain;		/* Base domain of TLSA RRset */
     int     flags;			/* Conflate cert and pkey digests */
     time_t  expires;			/* Expiration time of this record */
     int     refs;			/* Reference count */
@@ -172,7 +173,8 @@ extern TLS_DANE *tls_dane_alloc(int);
 extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
 			           const char *);
 extern void tls_dane_free(TLS_DANE *);
-extern TLS_DANE *tls_dane_resolve(const char *, const char *, unsigned);
+extern TLS_DANE *tls_dane_resolve(const char *, const char *, const char *,
+				          unsigned);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
 
  /*

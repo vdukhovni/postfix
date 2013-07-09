@@ -15406,3 +15406,24 @@ the most connections to that destination.  This limitation does not
 exist with the smtp_connection_reuse_time_limit feature. </p>
 
 <p> This feature is available in Postfix 2.11. </p>
+
+%PARAM lmtp_tls_force_insecure_host_tlsa_lookup no
+
+<p> The LMTP-specific version of the smtp_tls_force_insecure_host_tlsa_lookup
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.11 and later. </p>
+
+%PARAM smtp_tls_force_insecure_host_tlsa_lookup no
+
+<p> Lookup the associated DANE TLSA RRset even when a hostname is
+not an alias and its address records lie in an unsigned zone.  This
+is unlikely to ever yield DNSSEC validated results, since child
+zones of unsigned zones are also unsigned in the absense of DLV or
+locally configured non-root trust-anchors.  We anticipate that such
+mechanisms will not be used for just the "_tcp" subdomain of a host.
+Suppressing the TLSA RRset lookup reduces latency and avoids potential
+interoperability problems with nameservers for unsigned zones that
+are not prepared to handle the new TLSA RRset.  </p>
+
+<p> This feature is available in Postfix 2.11. </p>
