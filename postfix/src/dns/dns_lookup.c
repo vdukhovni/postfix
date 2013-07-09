@@ -401,6 +401,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	msg_panic("dns_get_rr: don't know how to extract resource type %s",
 		  dns_strtype(fixed->type));
     case T_CNAME:
+    case T_DNAME:
     case T_MB:
     case T_MG:
     case T_MR:

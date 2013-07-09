@@ -179,7 +179,7 @@ typedef struct {
 } PSC_ENDPT_LOOKUP_INFO;
 
 static const PSC_ENDPT_LOOKUP_INFO psc_endpt_lookup_info[] = {
-    DEF_PSC_UPROXY_PROTO, psc_endpt_local_lookup,
+    NOPROXY_PROTO_NAME, psc_endpt_local_lookup,
     HAPROXY_PROTO_NAME, psc_endpt_haproxy_lookup,
     0,
 };

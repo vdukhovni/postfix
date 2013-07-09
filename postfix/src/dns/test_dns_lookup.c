@@ -58,6 +58,7 @@ static void print_rr(DNS_RR *rr)
 	    printf("%s: %s\n", dns_strtype(rr->type), host.buf);
 	    break;
 	case T_CNAME:
+	case T_DNAME:
 	case T_MB:
 	case T_MG:
 	case T_MR:

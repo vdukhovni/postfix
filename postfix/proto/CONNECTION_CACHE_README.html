@@ -71,7 +71,7 @@ waits for the TCP final handshake to complete.  </p>
 <li> <p> SMTP Connection caching introduces some overhead: the
 client needs to send an RSET command to find out if a connection
 is still usable, before it can send the next MAIL FROM command.
-</p>
+This introduces one additional round-trip delay. </p>
 
 </ul>
 

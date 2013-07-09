@@ -76,6 +76,9 @@
 #ifndef T_RRSIG
 #define T_RRSIG		46		/* Avoid unknown RR in logs */
 #endif
+#ifndef T_DNAME
+#define T_DNAME		39		/* [RFC6672] */
+#endif
 
  /*
   * https://tools.ietf.org/html/rfc6698#section-7.2

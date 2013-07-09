@@ -18761,3 +18761,24 @@ Apologies for any names omitted.
 	mantools/postlink, proto/postconf.proto, tls/tls_mgr.c,
 	tls/tls_misc.c, tlsproxy/tls-proxy.c, smtp/smtp.c,
 	smtpd/smtpd.c.
+
+20130629
+
+	Cleanup: documentation. Files: proto/CONNECTION_CACHE_README.html,
+	proto/SCHEDULER_README.html.
+
+20130708
+
+	Cleanup: postscreen_upstream_proxy_protocol setting.  Files:
+	global/mail_params.h, postscreen/postscreen_endpt.c.
+
+20130709
+
+	Cleanup: qmgr documentation clarification by Patrik Rak.
+	Files: proto/SCHEDULER_README.html, qmgr/qmgr_job.c.
+
+	Cleanup: re-indented code. File: qmgr/qmgr_job.c.
+
+	Logging: minimal DNAME support. Viktor Dukhovni.  dns/dns.h,
+	dns/dns_lookup.c, dns/dns_strtype.c, dns/test_dns_lookup.c.
+

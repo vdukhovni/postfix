@@ -40,7 +40,8 @@ improves performance depends on the conditions:
 
   * SMTP Connection caching introduces some overhead: the client needs to send
     an RSET command to find out if a connection is still usable, before it can
-    send the next MAIL FROM command.
+    send the next MAIL FROM command. This introduces one additional round-trip
+    delay.
 
 For other potential issues with SMTP connection caching, see the discussion of
 limitations at the end of this document.

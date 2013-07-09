@@ -71,7 +71,7 @@ waits for the TCP final handshake to complete.  </p>
 <li> <p> SMTP Connection caching introduces some overhead: the
 client needs to send an RSET command to find out if a connection
 is still usable, before it can send the next MAIL FROM command.
-</p>
+This introduces one additional round-trip delay. </p>
 
 </ul>
 
@@ -200,7 +200,7 @@ lookups is ignored.  </p>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a> = $<a href="postconf.5.html#relayhost">relayhost</a>
     <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a> = hotmail.com, ...
-    <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a> = static:all (<i>not recommended</i>)
+    <a href="postconf.5.html#smtp_connection_cache_destinations">smtp_connection_cache_destinations</a> = <a href="DATABASE_README.html#types">static</a>:all (<i>not recommended</i>)
 </pre>
 
 </blockquote>

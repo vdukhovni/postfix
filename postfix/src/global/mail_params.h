@@ -3514,8 +3514,10 @@ extern char *var_psc_acl;
 #define DEF_PSC_WLIST_IF	"static:all"
 extern char *var_psc_wlist_if;
 
+#define NOPROXY_PROTO_NAME	""
+
 #define VAR_PSC_UPROXY_PROTO	"postscreen_upstream_proxy_protocol"
-#define DEF_PSC_UPROXY_PROTO	""
+#define DEF_PSC_UPROXY_PROTO	NOPROXY_PROTO_NAME
 extern char *var_psc_uproxy_proto;
 
 #define VAR_PSC_UPROXY_TMOUT	"postscreen_upstream_proxy_timeout"
