@@ -422,7 +422,9 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 
 #define THIS_SESSION_IS_EXPIRED \
 	(THIS_SESSION_IS_CACHED \
-	    && session->expire_time < vstream_ftime(session->stream))
+	    && (session->expire_time < vstream_ftime(session->stream) \
+		|| (var_smtp_reuse_count > 0 \
+		    && session->reuse_count >= var_smtp_reuse_count)))
 
 #define THIS_SESSION_IS_BAD \
 	(!THIS_SESSION_IS_DEAD && session->expire_time < 0)

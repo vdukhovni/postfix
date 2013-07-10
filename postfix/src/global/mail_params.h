@@ -964,6 +964,12 @@ extern char *var_bestmx_transp;
 #define DEF_LMTP_CACHE_CONNT	"2s"
 extern int var_smtp_cache_conn;
 
+#define VAR_SMTP_REUSE_COUNT	"smtp_connection_reuse_count_limit"
+#define DEF_SMTP_REUSE_COUNT	0
+#define VAR_LMTP_REUSE_COUNT	"lmtp_connection_reuse_count_limit"
+#define DEF_LMTP_REUSE_COUNT	0
+extern int var_smtp_reuse_count;
+
 #define VAR_SMTP_REUSE_TIME	"smtp_connection_reuse_time_limit"
 #define DEF_SMTP_REUSE_TIME	"300s"
 #define VAR_LMTP_REUSE_TIME	"lmtp_connection_reuse_time_limit"

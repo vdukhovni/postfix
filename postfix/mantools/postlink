@@ -264,6 +264,7 @@ while (<>) {
     s;\blmtp_pix_workaround_delay_time\b;<a href="postconf.5.html#lmtp_pix_workaround_delay_time">$&</a>;g;
     s;\blmtp_pix_workarounds\b;<a href="postconf.5.html#lmtp_pix_workarounds">$&</a>;g;
     s;\blmtp_pix_workaround_maps\b;<a href="postconf.5.html#lmtp_pix_workaround_maps">$&</a>;g;
+    s;\blmtp_connection_reuse_count_limit\b;<a href="postconf.5.html#lmtp_connection_reuse_count_limit">$&</a>;g;
     s;\blmtp_connection_reuse_time_limit\b;<a href="postconf.5.html#lmtp_connection_reuse_time_limit">$&</a>;g;
     s;\blmtp_starttls_timeout\b;<a href="postconf.5.html#lmtp_starttls_timeout">$&</a>;g;
     s;\blmtp_line_length_limit\b;<a href="postconf.5.html#lmtp_line_length_limit">$&</a>;g;
@@ -444,7 +445,7 @@ while (<>) {
     s;\bsmtp_connect_timeout\b;<a href="postconf.5.html#smtp_connect_timeout">$&</a>;g;
 
     s;\bsmtp_connection_cache_on_demand\b;<a href="postconf.5.html#smtp_connection_cache_on_demand">$&</a>;g;
-    s;\bsmtp_connection_cache_reuse_limit\b;<a href="postconf.5.html#smtp_connection_cache_reuse_limit">$&</a>;g;
+    s;\bsmtp_connection_reuse_count_limit\b;<a href="postconf.5.html#smtp_connection_reuse_count_limit">$&</a>;g;
     s;\bsmtp_connection_reuse_time_limit\b;<a href="postconf.5.html#smtp_connection_reuse_time_limit">$&</a>;g;
     s;\bsmtp_connection_cache_time_limit\b;<a href="postconf.5.html#smtp_connection_cache_time_limit">$&</a>;g;
     s;\bsmtp_connection_cache_destinations\b;<a href="postconf.5.html#smtp_connection_cache_destinations">$&</a>;g;

@@ -18782,3 +18782,17 @@ Apologies for any names omitted.
 	Logging: minimal DNAME support. Viktor Dukhovni.  dns/dns.h,
 	dns/dns_lookup.c, dns/dns_strtype.c, dns/test_dns_lookup.c.
 
+20130710
+
+	Workaround: smtp_connection_reuse_count_limit (default 0,
+	i.e.  unlimited) for sites that must deal with hostile
+	connection reuse policies. The documentation comes with a
+	warning that this feature introduces a "fatal attractor"
+	failure mode.  Files: global/mail_params.h, mantools/postlink,
+	proto/postconf.proto, smtp/smtp.c, smtp/smtp_params.c,
+	smtp/lmtp_params.c, smtp/smtp.h.
+
+	Workaround: FreeBSD9 nroff outputs ANSI escape sequences
+	instead of overstrike sequences. To make matters worse, it
+	uses the ESC[0m sequence sometimes for end-of-bold and
+	sometimes for end-of-italic.  File: mantools/man2html.

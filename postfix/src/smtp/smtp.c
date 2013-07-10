@@ -61,7 +61,7 @@
 /*      \fIpathname\fR. If the process runs chrooted, an absolute pathname
 /*      is interpreted relative to the Postfix queue directory.
 /* .IP \fBinet\fR:\fIhostname\fR
-/* .IP \fBinet\fB:\fIhostname\fR:\fIport\fR
+/* .IP \fBinet\fR:\fIhostname\fR:\fIport\fR
 /* .IP \fBinet\fR:[\fIaddress\fR]
 /* .IP \fBinet\fR:[\fIaddress\fR]:\fIport\fR
 /*      Connect to the specified TCP port on the specified local or
@@ -562,6 +562,11 @@
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBsmtp_connection_reuse_count_limit (0)\fR"
+/*	When SMTP connection caching is enabled, the number of times that
+/*	an SMTP session may be reused before it is closed, or zero (no limit).
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -806,6 +811,7 @@ int     var_smtp_mxaddr_limit;
 int     var_smtp_mxsess_limit;
 int     var_smtp_cache_conn;
 int     var_smtp_reuse_time;
+int     var_smtp_reuse_count;
 char   *var_smtp_cache_dest;
 char   *var_scache_service;		/* You can now leave this here. */
 bool    var_smtp_cache_demand;

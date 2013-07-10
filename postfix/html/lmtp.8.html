@@ -79,7 +79,7 @@ SMTP(8)                                                                SMTP(8)
 
        <b>inet</b>:<i>hostname</i>
 
-       <b>inet:</b><i>hostname</i>:<i>port</i>
+       <b>inet</b>:<i>hostname</i>:<i>port</i>
 
        <b>inet</b>:[<i>address</i>]
 
@@ -761,6 +761,13 @@ SMTP(8)                                                                SMTP(8)
               record  (an  SMTP command line, SMTP response line,
               SMTP message content line,  or  TLS  protocol  mes-
               sage).
+
+       Available in Postfix version 2.11 and later:
+
+       <b><a href="postconf.5.html#smtp_connection_reuse_count_limit">smtp_connection_reuse_count_limit</a> (0)</b>
+              When SMTP connection caching is enabled, the number
+              of times that an SMTP session may be reused  before
+              it is closed, or zero (no limit).
 
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>

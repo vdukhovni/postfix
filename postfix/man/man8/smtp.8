@@ -71,7 +71,7 @@ Connect to the local UNIX-domain server that is bound to the specified
 \fIpathname\fR. If the process runs chrooted, an absolute pathname
 is interpreted relative to the Postfix queue directory.
 .IP \fBinet\fR:\fIhostname\fR
-.IP \fBinet\fB:\fIhostname\fR:\fIport\fR
+.IP \fBinet\fR:\fIhostname\fR:\fIport\fR
 .IP \fBinet\fR:[\fIaddress\fR]
 .IP \fBinet\fR:[\fIaddress\fR]:\fIport\fR
 Connect to the specified TCP port on the specified local or
@@ -596,6 +596,11 @@ Change the behavior of the smtp_*_timeout time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
+.PP
+Available in Postfix version 2.11 and later:
+.IP "\fBsmtp_connection_reuse_count_limit (0)\fR"
+When SMTP connection caching is enabled, the number of times that
+an SMTP session may be reused before it is closed, or zero (no limit).
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf

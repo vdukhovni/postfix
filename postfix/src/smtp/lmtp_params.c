@@ -85,6 +85,7 @@
 	VAR_LMTP_LINE_LIMIT, DEF_LMTP_LINE_LIMIT, &var_smtp_line_limit, 0, 0,
 	VAR_LMTP_MXADDR_LIMIT, DEF_LMTP_MXADDR_LIMIT, &var_smtp_mxaddr_limit, 0, 0,
 	VAR_LMTP_MXSESS_LIMIT, DEF_LMTP_MXSESS_LIMIT, &var_smtp_mxsess_limit, 0, 0,
+	VAR_LMTP_REUSE_COUNT, DEF_LMTP_REUSE_COUNT, &var_smtp_reuse_count, 0, 0,
 #ifdef USE_TLS
 	VAR_LMTP_TLS_SCERT_VD, DEF_LMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
 #endif

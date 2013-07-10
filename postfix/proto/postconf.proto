@@ -3907,15 +3907,6 @@ not specify larger values without permission from the remote sites.
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
-%PARAM smtp_connection_cache_reuse_limit 10
-
-<p> When SMTP connection caching is enabled, the number of times that
-an SMTP session may be reused before it is closed. 
-</p>
-
-<p> This feature is available in Postfix 2.2. In Postfix 2.3 it is
-replaced by $smtp_connection_reuse_time_limit.</p>
-
 %PARAM smtp_connection_reuse_time_limit 300s
 
 <p> The amount of time during which Postfix will use an SMTP
@@ -15381,3 +15372,24 @@ service maintains TLS session caches and other information in support
 of TLS. </p>
 
 <p> This feature is available in Postfix 2.11 and later. </p>
+
+%PARAM lmtp_connection_reuse_count_limit 0
+
+<p> The LMTP-specific version of the smtp_connection_reuse_count_limit
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.11 and later. </p>
+
+%PARAM smtp_connection_reuse_count_limit 0
+
+<p> When SMTP connection caching is enabled, the number of times
+that an SMTP session may be reused before it is closed, or zero (no
+limit).  With a reuse count limit of N, a connection is used up to
+N+1 times.  </p>
+
+<p> NOTE: This feature is unsafe. When a high-volume destination
+has multiple inbound MTAs, then the slowest inbound MTA will attract
+the most connections to that destination.  This limitation does not
+exist with the smtp_connection_reuse_time_limit feature. </p>
+
+<p> This feature is available in Postfix 2.11. </p>

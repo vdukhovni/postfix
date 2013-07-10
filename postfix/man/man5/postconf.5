@@ -2345,6 +2345,11 @@ smtp_connection_cache_time_limit configuration parameter.
 See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_connection_reuse_count_limit (default: 0)
+The LMTP-specific version of the smtp_connection_reuse_count_limit
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH lmtp_connection_reuse_time_limit (default: 300s)
 The LMTP-specific version of the smtp_connection_reuse_time_limit
 configuration parameter.  See there for details.
@@ -5820,18 +5825,24 @@ connections to be reused for other deliveries, and can improve mail
 delivery performance.
 .PP
 This feature is available in Postfix 2.2 and later.
-.SH smtp_connection_cache_reuse_limit (default: 10)
-When SMTP connection caching is enabled, the number of times that
-an SMTP session may be reused before it is closed.
-.PP
-This feature is available in Postfix 2.2. In Postfix 2.3 it is
-replaced by $smtp_connection_reuse_time_limit.
 .SH smtp_connection_cache_time_limit (default: 2s)
 When SMTP connection caching is enabled, the amount of time that
 an unused SMTP client socket is kept open before it is closed.  Do
 not specify larger values without permission from the remote sites.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_connection_reuse_count_limit (default: 0)
+When SMTP connection caching is enabled, the number of times
+that an SMTP session may be reused before it is closed, or zero (no
+limit).  With a reuse count limit of N, a connection is used up to
+N+1 times.
+.PP
+NOTE: This feature is unsafe. When a high-volume destination
+has multiple inbound MTAs, then the slowest inbound MTA will attract
+the most connections to that destination.  This limitation does not
+exist with the smtp_connection_reuse_time_limit feature.
+.PP
+This feature is available in Postfix 2.11.
 .SH smtp_connection_reuse_time_limit (default: 300s)
 The amount of time during which Postfix will use an SMTP
 connection repeatedly.  The timer starts when the connection is
