@@ -3970,6 +3970,17 @@ See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_connection_reuse_count_limit">lmtp_connection_reuse_count_limit</a>
+(default: 0)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_connection_reuse_count_limit">smtp_connection_reuse_count_limit</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.11 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_connection_reuse_time_limit">lmtp_connection_reuse_time_limit</a>
 (default: 300s)</b></DT><DD>
 
@@ -4811,6 +4822,17 @@ configuration parameter.  See there for details. </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_force_insecure_host_tlsa_lookup">lmtp_tls_force_insecure_host_tlsa_lookup</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">smtp_tls_force_insecure_host_tlsa_lookup</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.11 and later. </p>
 
 
 </DD>
@@ -9558,19 +9580,6 @@ delivery performance. </p>
 
 </DD>
 
-<DT><b><a name="smtp_connection_cache_reuse_limit">smtp_connection_cache_reuse_limit</a>
-(default: 10)</b></DT><DD>
-
-<p> When SMTP connection caching is enabled, the number of times that
-an SMTP session may be reused before it is closed.
-</p>
-
-<p> This feature is available in Postfix 2.2. In Postfix 2.3 it is
-replaced by $<a href="postconf.5.html#smtp_connection_reuse_time_limit">smtp_connection_reuse_time_limit</a>.</p>
-
-
-</DD>
-
 <DT><b><a name="smtp_connection_cache_time_limit">smtp_connection_cache_time_limit</a>
 (default: 2s)</b></DT><DD>
 
@@ -9580,6 +9589,24 @@ not specify larger values without permission from the remote sites.
 </p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_connection_reuse_count_limit">smtp_connection_reuse_count_limit</a>
+(default: 0)</b></DT><DD>
+
+<p> When SMTP connection caching is enabled, the number of times
+that an SMTP session may be reused before it is closed, or zero (no
+limit).  With a reuse count limit of N, a connection is used up to
+N+1 times.  </p>
+
+<p> NOTE: This feature is unsafe. When a high-volume destination
+has multiple inbound MTAs, then the slowest inbound MTA will attract
+the most connections to that destination.  This limitation does not
+exist with the <a href="postconf.5.html#smtp_connection_reuse_time_limit">smtp_connection_reuse_time_limit</a> feature. </p>
+
+<p> This feature is available in Postfix 2.11. </p>
 
 
 </DD>
@@ -11273,6 +11300,24 @@ fingerprint incorrectly. To use public-key fingerprints, upgrade
 to Postfix 2.9.6 or later. </p>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_force_insecure_host_tlsa_lookup">smtp_tls_force_insecure_host_tlsa_lookup</a>
+(default: no)</b></DT><DD>
+
+<p> Lookup the associated DANE TLSA RRset even when a hostname is
+not an alias and its address records lie in an unsigned zone.  This
+is unlikely to ever yield DNSSEC validated results, since child
+zones of unsigned zones are also unsigned in the absense of DLV or
+locally configured non-root trust-anchors.  We anticipate that such
+mechanisms will not be used for just the "_tcp" subdomain of a host.
+Suppressing the TLSA RRset lookup reduces latency and avoids potential
+interoperability problems with nameservers for unsigned zones that
+are not prepared to handle the new TLSA RRset.  </p>
+
+<p> This feature is available in Postfix 2.11. </p>
 
 
 </DD>

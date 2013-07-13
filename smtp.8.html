@@ -79,7 +79,7 @@ SMTP(8)                                                                SMTP(8)
 
        <b>inet</b>:<i>hostname</i>
 
-       <b>inet:</b><i>hostname</i>:<i>port</i>
+       <b>inet</b>:<i>hostname</i>:<i>port</i>
 
        <b>inet</b>:[<i>address</i>]
 
@@ -603,6 +603,11 @@ SMTP(8)                                                                SMTP(8)
               rity   level  is  specified,  validated  DANE  TLSA
               records are present, but none are usable.
 
+       <b><a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">smtp_tls_force_insecure_host_tlsa_lookup</a> (no)</b>
+              Lookup the associated DANE TLSA RRset even  when  a
+              hostname  is  not  an alias and its address records
+              lie in an unsigned zone.
+
        <b><a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>   (trust-anchor-asser-</b>
        <b>tion)</b>
               <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> trust-anchor digest support in the Postfix
@@ -761,6 +766,13 @@ SMTP(8)                                                                SMTP(8)
               record  (an  SMTP command line, SMTP response line,
               SMTP message content line,  or  TLS  protocol  mes-
               sage).
+
+       Available in Postfix version 2.11 and later:
+
+       <b><a href="postconf.5.html#smtp_connection_reuse_count_limit">smtp_connection_reuse_count_limit</a> (0)</b>
+              When SMTP connection caching is enabled, the number
+              of times that an SMTP session may be reused  before
+              it is closed, or zero (no limit).
 
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>

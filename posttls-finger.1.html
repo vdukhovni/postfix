@@ -126,6 +126,11 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               (with DANE TLSA records the algorithm is  specified
               in the DNS).
 
+       <b>-f</b>     Lookup  the  associated DANE TLSA RRset even when a
+              hostname is not an alias and  its  address  records
+              lie  in an unsigned zone.  See smtp_tls_force_inse-
+              cure_host_tlsa_lookup for details.
+
        <b>-F</b> <i>CAfile.pem</i> (default: none)
               The  PEM  formatted  CAfile  for remote SMTP server
               certificate verification.  By default no CAfile  is
