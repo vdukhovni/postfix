@@ -9,7 +9,7 @@ TESTPROG=
 PROG	= tlsproxy
 INC_DIR = ../../include
 LIBS	= ../../lib/libtls.a ../../lib/libmaster.a ../../lib/libglobal.a \
-	../../lib/libutil.a
+	../../lib/libutil.a ../../lib/libdns.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
