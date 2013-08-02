@@ -17,7 +17,7 @@ TESTPROG=
 PROG	= postscreen
 INC_DIR = ../../include
 LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libglobal.a \
-	../../lib/libutil.a
+	../../lib/libutil.a ../../lib/libdns.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
