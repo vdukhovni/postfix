@@ -96,7 +96,7 @@
 /*	char   *var_proxywrite_service;
 /*	int	var_db_create_buf;
 /*	int	var_db_read_buf;
-/*	int	var_lmdb_map_size;
+/*	long	var_lmdb_map_size;
 /*	int	var_mime_maxdepth;
 /*	int	var_mime_bound_len;
 /*	int	var_header_limit;
@@ -288,7 +288,7 @@ char   *var_proxymap_service;
 char   *var_proxywrite_service;
 int     var_db_create_buf;
 int     var_db_read_buf;
-int     var_lmdb_map_size;
+long    var_lmdb_map_size;
 int     var_mime_maxdepth;
 int     var_mime_bound_len;
 int     var_header_limit;
@@ -601,7 +601,6 @@ void    mail_params_init()
 	VAR_FAULT_INJ_CODE, DEF_FAULT_INJ_CODE, &var_fault_inj_code, 0, 0,
 	VAR_DB_CREATE_BUF, DEF_DB_CREATE_BUF, &var_db_create_buf, 1, 0,
 	VAR_DB_READ_BUF, DEF_DB_READ_BUF, &var_db_read_buf, 1, 0,
-	VAR_LMDB_MAP_SIZE, DEF_LMDB_MAP_SIZE, &var_lmdb_map_size, 1, 0,
 	VAR_HEADER_LIMIT, DEF_HEADER_LIMIT, &var_header_limit, 1, 0,
 	VAR_TOKEN_LIMIT, DEF_TOKEN_LIMIT, &var_token_limit, 1, 0,
 	VAR_MIME_MAXDEPTH, DEF_MIME_MAXDEPTH, &var_mime_maxdepth, 1, 0,
@@ -612,6 +611,7 @@ void    mail_params_init()
     };
     static const CONFIG_LONG_TABLE long_defaults[] = {
 	VAR_MESSAGE_LIMIT, DEF_MESSAGE_LIMIT, &var_message_limit, 0, 0,
+	VAR_LMDB_MAP_SIZE, DEF_LMDB_MAP_SIZE, &var_lmdb_map_size, 1, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_defaults[] = {

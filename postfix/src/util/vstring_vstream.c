@@ -166,7 +166,7 @@ int     vstring_get_null_bound(VSTRING *vp, VSTREAM *fp, ssize_t bound)
     int     c;
 
     if (bound <= 0)
-	msg_panic("vstring_get_nonl_bound: invalid bound %ld", (long) bound);
+	msg_panic("vstring_get_null_bound: invalid bound %ld", (long) bound);
 
     VSTRING_RESET(vp);
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)

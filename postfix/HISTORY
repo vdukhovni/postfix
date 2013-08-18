@@ -18796,3 +18796,46 @@ Apologies for any names omitted.
 	instead of overstrike sequences. To make matters worse, it
 	uses the ESC[0m sequence sometimes for end-of-bold and
 	sometimes for end-of-italic.  File: mantools/man2html.
+
+20130714
+
+	Cleanup: added smtpd_relay_restrictions entries to the
+	default master.cf file, so that main.cf settings won't
+	affect the submission and smtps services. Simon Matter.
+	File: conf/master.cf.
+
+20130728
+
+	Cleanup: wrong function name in error message. John Fawcett.
+	File: util/vstring_vstream.c.
+
+20130801
+
+	Cleanup: with ``make makefiles CCARGS="-DHAS_DB...'', the
+	makedefs script no longer tries to locate the Linux Berkeley
+	DB include and library files. Instead it assumes that the
+	locations are given on the command line, as shown in the
+	DB_README examples.  Leo Baltus. File: makedefs.
+
+20130805
+
+	Documentation: clarified reject_non_fqdn_helo_hostname.
+	File: proto/postconf.proto.
+
+20130809
+
+	Cleanup: the lmdb_map_size parameter is now a long integer.
+	Howard Chu. Files: global/mail_params.[hc].
+
+20130815
+
+	Documentation: added pointer to Dovecot 2 configuration.
+	File: proto/SASL_README.html
+
+20130818
+
+	Update: LMDB client updated to LMDB 0.9.7, which hopefully
+	fixes the unrecoverable "transaction full" error. With a
+	new MDB_MAP_FULL workaround by Howard Chu that ensures that
+	postfix will make progress as long as the disk is not full.
+	File: util/dict_lmdb.c.

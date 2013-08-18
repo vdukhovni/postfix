@@ -10,9 +10,9 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
        pcre_table - format of Postfix PCRE tables
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -q "<i></b>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/<i></b>filename[0m
 
-       <b>postmap -q - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -q - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/<i></b>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  Postfix  mail system uses optional tables for address
@@ -39,15 +39,15 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
 <b>TABLE FORMAT</b>
        The general form of a PCRE table is:
 
-       <b>/</b><i>pattern</i><b>/</b><i>flags result</i>
+       <b>/<i></b>pattern</i><b>/<i></b>flags result</i>
               When <i>pattern</i> matches the input string, use the cor-
               responding <i>result</i> value.
 
-       <b>!/</b><i>pattern</i><b>/</b><i>flags result</i>
+       <b>!/<i></b>pattern</i><b>/<i></b>flags result</i>
               When <i>pattern</i> does <b>not</b> match the input  string,  use
               the corresponding <i>result</i> value.
 
-       <b>if /</b><i>pattern</i><b>/</b><i>flags</i>
+       <b>if /<i></b>pattern</i><b>/<i></b>flags[0m
 
        <b>endif</b>  Match the input string against the patterns between
               <b>if</b> and <b>endif</b>, if and only if that same input string
@@ -58,7 +58,7 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
 
               This feature is available in Postfix 2.1 and later.
 
-       <b>if !/</b><i>pattern</i><b>/</b><i>flags</i>
+       <b>if !/<i></b>pattern</i><b>/<i></b>flags[0m
 
        <b>endif</b>  Match the input string against the patterns between
               <b>if</b> and <b>endif</b>, if and only if that same input string
@@ -115,7 +115,7 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
               a whitespace character  as  part  of  the  pattern,
               escape it with backslash.
 
-              Note: do not use <b>#</b><i>comment</i> after patterns.
+              Note: do not use <b>#<i></b>comment</i> after patterns.
 
        <b>A</b> (default: off)
               Toggles  the PCRE_ANCHORED flag.  When this flag is
@@ -164,12 +164,12 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
        nor is <i>user+foo</i> broken up into <i>user</i> and <i>foo</i>.
 
 <b>TEXT SUBSTITUTION</b>
-       Substitution of substrings  from  the  matched  expression
-       into  the result string is possible using the conventional
-       perl syntax ($1, $2, etc.); specify  $$  to  produce  a  $
-       character  as output.  The macros in the result string may
-       need to be written as ${n} or $(n) if they aren't followed
-       by whitespace.
+       Substitution of substrings  (text  that  matches  patterns
+       inside  "()")  from the matched expression into the result
+       string is requested with $1, $2, etc.; specify $$ to  pro-
+       duce  a  $  character as output.  The macros in the result
+       string may need to be written as  ${n}  or  $(n)  if  they
+       aren't followed by whitespace.
 
        Note:  since negated patterns (those preceded by <b>!</b>) return
        a result when the expression does not match, substitutions

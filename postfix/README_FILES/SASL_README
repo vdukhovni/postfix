@@ -120,6 +120,9 @@ specified on the Dovecot server side in dovecot.conf.
 The following example assumes that the Postfix queue is under /var/spool/
 postfix/.
 
+Note: the example uses Dovecot 1 syntax, See http://www.dovecot.org/ for newer
+syntax.
+
      1 /etc/dovecot.conf:
      2     auth default {
      3       mechanisms = plain login
@@ -151,6 +154,9 @@ on the Dovecot server side in 10-auth.conf and 10-master.conf.
 
 The following examples assume that Postfix should communicate with Dovecot on
 TCP port 12345.
+
+Note: the examples use Dovecot 1 syntax, See http://www.dovecot.org/ for newer
+syntax.
 
     1 /etc/dovecot/conf.d/10-auth.conf:
     2     auth_mechanisms = plain login

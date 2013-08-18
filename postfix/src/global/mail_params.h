@@ -2762,7 +2762,7 @@ extern int var_db_read_buf;
   */
 #define VAR_LMDB_MAP_SIZE		"lmdb_map_size"
 #define DEF_LMDB_MAP_SIZE		(16 * 1024 *1024)
-extern int var_lmdb_map_size;
+extern long var_lmdb_map_size;
 
  /*
   * Named queue file attributes.

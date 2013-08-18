@@ -11,6 +11,8 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Why does postlink no longer hyperlink static:all?
+
 	Begin code revision, after DANE support stabilizes.  This
 	should be one pass that changes only names and no code.
 

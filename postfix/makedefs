@@ -278,12 +278,14 @@ case "$SYSTEM.$RELEASE" in
     Linux.1*)	SYSTYPE=LINUX1
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
+		 *-DHAS_DB*) ;;
 		 *) SYSLIBS="-ldb";;
 		esac
 		;;
     Linux.2*)	SYSTYPE=LINUX2
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
+		 *-DHAS_DB*) ;;
 		 *) if [ -f /usr/include/db.h ]
 		    then
 			: we are all set
@@ -356,6 +358,7 @@ EOF
     Linux.3*)	SYSTYPE=LINUX3
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
+		 *-DHAS_DB*) ;;
 		 *) if [ -f /usr/include/db.h ]
 		    then
 			: we are all set

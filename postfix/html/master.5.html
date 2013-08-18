@@ -74,8 +74,8 @@ MASTER(5)                                                            MASTER(5)
                      port  may be given in symbolic form (host or
                      service name) or in numeric form (IP address
                      or  port  number).   Host information may be
-                     enclosed inside "[]", but this form  is  not
-                     necessary.
+                     enclosed inside "[]"; this form is necessary
+                     only with IPv6 addresses.
 
                      Examples:  a service named <b>127.0.0.1:smtp</b> or
                      <b>::1:smtp</b>  receives  mail  via  the  loopback
@@ -201,7 +201,7 @@ MASTER(5)                                                            MASTER(5)
                      in  the  <a href="postconf.5.html">main.cf</a>  configuration  file.   See
                      <a href="DEBUG_README.html">DEBUG_README</a> for hints and tips.
 
-              <b>-o</b> <i>name</i>=<i>value</i>
+              <b>-o <i></b>name</i>=<i>value</i>
                      Override  the  named  <a href="postconf.5.html">main.cf</a>  configuration
                      parameter.  The parameter value can refer to
                      other parameters as <i>$name</i> etc., just like in

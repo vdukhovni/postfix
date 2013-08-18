@@ -13463,7 +13463,8 @@ for rejected requests (default: 501).</dd>
 <dt><b><a name="reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_non_fqdn_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname is not in
-fully-qualified domain form, as required by the RFC. Note: specify
+fully-qualified domain or address literal form, as required by the
+RFC. Note: specify
 "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this restriction
 (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can simply skip
 <a href="postconf.5.html#reject_non_fqdn_helo_hostname">reject_non_fqdn_helo_hostname</a> by not sending HELO or EHLO).  <br>
