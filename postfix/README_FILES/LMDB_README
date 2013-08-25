@@ -4,6 +4,14 @@ PPoossttffiixx OOppeennLLDDAAPP LLMMDDBB HHoowwttoo
 
 IInnttrroodduuccttiioonn
 
+    WWaarrnniinngg:: LLMMDDBB ddaattaabbaasseess hhaavvee aa sshhooww--ssttooppppeerr bbuugg:: tthheeyy ddoo nnoott ggrrooww bbeeyyoonndd aa
+    ssppeecciiffiieedd lliimmiitt,, aanndd iinnttrroodduuccee aa ""ddaattaabbaassee ffuullll"" hhaarrdd eerrrroorr ccoonnddiittiioonn tthhaatt
+    ddooeess nnoott eexxiisstt wwiitthh aannyy ootthheerr PPoossttffiixx ddaattaabbaassee ttyyppee.. TThhiiss iiss aa pprroobblleemm ffoorr
+    pprrooggrraammss wwhhoossee ddaattaabbaassee ggrroowwss wwiitthh ssyysstteemm llooaadd.. EExxaammpplleess aarree ppoossttssccrreeeenn((88)),,
+    ggrreeyylliissttiinngg,, vveerriiffyy((88)) aanndd ttllssmmggrr((88))..
+
+    YYoouu hhaavvee bbeeeenn wwaarrnneedd..
+
 Postfix uses databases of various kinds to store and look up information.
 Postfix databases are specified as "type:name". OpenLDAP LMDB implements the
 Postfix database type "lmdb". The name of a Postfix OpenLDAP LMDB database is

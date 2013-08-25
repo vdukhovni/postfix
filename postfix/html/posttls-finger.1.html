@@ -126,55 +126,60 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               (with DANE TLSA records the algorithm is  specified
               in the DNS).
 
+       <b>-f</b>     Lookup  the  associated DANE TLSA RRset even when a
+              hostname is not an alias and  its  address  records
+              lie  in an unsigned zone.  See smtp_tls_force_inse-
+              cure_host_tlsa_lookup for details.
+
        <b>-F</b> <i>CAfile.pem</i> (default: none)
-              The  PEM  formatted  CAfile  for remote SMTP server
-              certificate verification.  By default no CAfile  is
+              The PEM formatted CAfile  for  remote  SMTP  server
+              certificate  verification.  By default no CAfile is
               used and no public CAs are trusted.
 
        <b>-g</b> <i>grade</i> (default: medium)
-              The  minimum  TLS cipher grade used by posttls-fin-
+              The minimum TLS cipher grade used  by  posttls-fin-
               ger.  See <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> for details.
 
        <b>-h</b> <i>host</i><b>_</b><i>lookup</i> (default: <b>dns</b>)
-              The hostname lookup methods used  for  the  connec-
-              tion.   See  the  documentation of <a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a>
+              The  hostname  lookup  methods used for the connec-
+              tion.  See the  documentation  of  <a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a>
               for syntax and semantics.
 
        <b>-l</b> <i>level</i> (default: <b>dane</b> or <b>secure</b>)
               The security level for the connection, default <b>dane</b>
               or <b>secure</b> depending on whether DNSSEC is available.
-              For syntax and semantics, see the documentation  of
+              For  syntax and semantics, see the documentation of
               <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>.  When <b>dane</b> or <b>dane-only</b> is
-              supported and selected,  if  no  TLSA  records  are
-              found,  or  all the records found are unusable, the
+              supported  and  selected,  if  no  TLSA records are
+              found, or all the records found are  unusable,  the
               <i>secure</i> level will be used instead.  The <b>fingerprint</b>
-              security  level  allows  you to test certificate or
-              public-key fingerprint matches  before  you  deploy
+              security level allows you to  test  certificate  or
+              public-key  fingerprint  matches  before you deploy
               them in the policy table.
 
-              Note,   since   <b>posttls-finger</b>  does  not  actually
-              deliver any email, the <b>none</b>, <b>may</b> and <b>encrypt</b>  secu-
-              rity  levels  are  not  very useful.  Since <b>may</b> and
-              <b>encrypt</b> don't require peer certificates, they  will
-              often  negotiate anonymous TLS ciphersuites, so you
-              won't learn much about  the  remote  SMTP  server's
-              certificates  at  these  levels if it also supports
+              Note,  since  <b>posttls-finger</b>  does   not   actually
+              deliver  any email, the <b>none</b>, <b>may</b> and <b>encrypt</b> secu-
+              rity levels are not very  useful.   Since  <b>may</b>  and
+              <b>encrypt</b>  don't require peer certificates, they will
+              often negotiate anonymous TLS ciphersuites, so  you
+              won't  learn  much  about  the remote SMTP server's
+              certificates at these levels if  it  also  supports
               anonymous TLS (though you may learn that the server
               supports anonymous TLS).
 
        <b>-L</b> <i>logopts</i> (default: <b>routine,certmatch</b>)
-              Fine-grained  TLS  logging options. To tune the TLS
-              features logged during the TLS  handshake,  specify
+              Fine-grained TLS logging options. To tune  the  TLS
+              features  logged  during the TLS handshake, specify
               one or more of:
 
               <b>0, none</b>
                      These yield no TLS logging; you'll generally
-                     want more, but this is  handy  if  you  just
+                     want  more,  but  this  is handy if you just
                      want the trust chain:
                      $ posttls-finger -cC -L none destination
 
               <b>1, routine, summary</b>
-                     These  synonymous values yield a normal one-
+                     These synonymous values yield a normal  one-
                      line summary of the TLS connection.
 
               <b>2, debug</b>
@@ -182,129 +187,129 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
                      ssl-debug, cache and verbose.
 
               <b>3, ssl-expert</b>
-                     These  synonymous  values combine debug with
-                     ssl-handshake-packet-dump.    For    experts
+                     These synonymous values combine  debug  with
+                     ssl-handshake-packet-dump.     For   experts
                      only.
 
               <b>4, ssl-developer</b>
-                     These  synonymous  values combine ssl-expert
-                     with ssl-session-packet-dump.   For  experts
+                     These synonymous values  combine  ssl-expert
+                     with  ssl-session-packet-dump.   For experts
                      only,  and  in  most  cases,  use  wireshark
                      instead.
 
               <b>ssl-debug</b>
-                     Turn on OpenSSL logging of the  progress  of
+                     Turn  on  OpenSSL logging of the progress of
                      the SSL handshake.
 
               <b>ssl-handshake-packet-dump</b>
-                     Log  hexadecimal  packet  dumps  of  the SSL
+                     Log hexadecimal  packet  dumps  of  the  SSL
                      handshake; for experts only.
 
               <b>ssl-session-packet-dump</b>
-                     Log hexadecimal packet dumps of  the  entire
-                     SSL  session;  only  useful to those who can
-                     debug SSL protocol problems from hex  dumps.
+                     Log  hexadecimal  packet dumps of the entire
+                     SSL session; only useful to  those  who  can
+                     debug  SSL protocol problems from hex dumps.
 
               <b>untrusted</b>
-                     Logs   trust  chain  verification  problems.
-                     This is turned on automatically at  security
-                     levels  that  use  peer names signed by cer-
-                     tificate authorities  to  validate  certifi-
+                     Logs  trust  chain  verification   problems.
+                     This  is turned on automatically at security
+                     levels that use peer names  signed  by  cer-
+                     tificate  authorities  to  validate certifi-
                      cates.  So while this setting is recognized,
-                     you should never need to set it  explicitly.
+                     you  should never need to set it explicitly.
 
               <b>peercert</b>
-                     This  logs  a one line summary of the remote
+                     This logs a one line summary of  the  remote
                      SMTP server certificate subject, issuer, and
                      fingerprints.
 
               <b>certmatch</b>
-                     This  logs  remote  SMTP  server certificate
-                     matching, showing the CN  and  each  subjec-
+                     This logs  remote  SMTP  server  certificate
+                     matching,  showing  the  CN and each subjec-
                      tAltName and which name matched.  With DANE,
-                     logs matching of  TLSA  record  trust-anchor
+                     logs  matching  of  TLSA record trust-anchor
                      and end-entity certificates.
 
-              <b>cache</b>  This  logs session cache operations, showing
-                     whether session caching  is  effective  with
-                     the  remote SMTP server.  Automatically used
+              <b>cache</b>  This logs session cache operations,  showing
+                     whether  session  caching  is effective with
+                     the remote SMTP server.  Automatically  used
                      when reconnecting with the <b>-r</b> option; rarely
                      needs to be set explicitly.
 
               <b>verbose</b>
-                     Enables  verbose  logging in the Postfix TLS
-                     driver; includes all of peercert..cache  and
+                     Enables verbose logging in the  Postfix  TLS
+                     driver;  includes all of peercert..cache and
                      more.
 
-              The  default  is  <b>routine,certmatch</b>. After a recon-
+              The default is <b>routine,certmatch</b>.  After  a  recon-
               nect, <b>peercert</b>, <b>certmatch</b> and <b>verbose</b> are automati-
               cally disabled while <b>cache</b> and <b>summary</b> are enabled.
 
        <b>-m</b> <i>count</i> (default: <b>5</b>)
-              When the <b>-r</b>  <i>delay</i>  option  is  specified,  the  <b>-m</b>
-              option  determines  the maximum number of reconnect
-              attempts to use with a server  behind  a  load-bal-
-              acer,  to  see whether connection caching is likely
-              to be effective for this  destination.   Some  MTAs
-              don't  expose  the  underlying  server  identity in
-              their EHLO response; with these servers there  will
+              When  the  <b>-r</b>  <i>delay</i>  option  is  specified, the <b>-m</b>
+              option determines the maximum number  of  reconnect
+              attempts  to  use  with a server behind a load-bal-
+              acer, to see whether connection caching  is  likely
+              to  be  effective  for this destination.  Some MTAs
+              don't expose  the  underlying  server  identity  in
+              their  EHLO response; with these servers there will
               never be more than 1 reconnection attempt.
 
        <b>-o</b> <i>name=value</i>
               Specify zero or more times to override the value of
-              the <a href="postconf.5.html">main.cf</a> parameter <i>name</i>  with  <i>value</i>.   Possible
-              use-cases  include  overriding  the  values  of TLS
-              library parameters, or  "<a href="postconf.5.html#myhostname">myhostname</a>"  to  configure
+              the  <a href="postconf.5.html">main.cf</a>  parameter  <i>name</i> with <i>value</i>.  Possible
+              use-cases include  overriding  the  values  of  TLS
+              library  parameters,  or  "<a href="postconf.5.html#myhostname">myhostname</a>" to configure
               the SMTP EHLO name sent to the remote server.
 
        <b>-p</b> <i>protocols</i> (default: !SSLv2)
-              List  of  TLS  protocols  that  posttls-finger will
-              exclude or include.  See  smtp_tls_mandatory_proto-
+              List of  TLS  protocols  that  posttls-finger  will
+              exclude  or include.  See smtp_tls_mandatory_proto-
               cols for details.
 
        <b>-P</b> <i>CApath/</i> (default: none)
-              The   OpenSSL   CApath/   directory   (indexed  via
-              c_rehash(1)) for  remote  SMTP  server  certificate
-              verification.   By default no CApath is used and no
+              The  OpenSSL   CApath/   directory   (indexed   via
+              c_rehash(1))  for  remote  SMTP  server certificate
+              verification.  By default no CApath is used and  no
               public CAs are trusted.
 
        <b>-r</b> <i>delay</i>
-              With a cachable TLS session, disconnect and  recon-
-              nect  after  <i>delay</i> seconds. Report whether the ses-
-              sion is re-used. Retry if a new server  is  encoun-
-              tered,  up  to  5 times or as specified with the <b>-m</b>
+              With  a cachable TLS session, disconnect and recon-
+              nect after <i>delay</i> seconds. Report whether  the  ses-
+              sion  is  re-used. Retry if a new server is encoun-
+              tered, up to 5 times or as specified  with  the  <b>-m</b>
               option.  By default reconnection is disabled, spec-
               ify a positive delay to enable this behavior.
 
-       <b>-S</b>     Disable  SMTP;  that is, connect to an LMTP server.
+       <b>-S</b>     Disable SMTP; that is, connect to an  LMTP  server.
               The default port for LMTP over TCP is 24.  Alterna-
-              tive  ports  can  specified by appending "<i>:service-</i>
+              tive ports can specified  by  appending  "<i>:service-</i>
               <i>name</i>" or ":<i>portnumber</i>" to the destination argument.
 
        <b>-t</b> <i>timeout</i> (default: <b>5</b>)
-              The  TCP  connection  timeout to use.  This is also
-              the timeout for reading  the  remote  server's  220
+              The TCP connection timeout to use.   This  is  also
+              the  timeout  for  reading  the remote server's 220
               banner.
 
        <b>-T</b> <i>timeout</i> (default: <b>30</b>)
               The SMTP/LMTP command timeout for EHLO/LHLO, START-
               TLS and QUIT.
 
-       <b>-v</b>     Enable verose Postfix logging.  Specify  more  than
+       <b>-v</b>     Enable  verose  Postfix logging.  Specify more than
               once to increase the level of verbose logging.
 
        [<b>inet:</b>]<i>domain</i>[:<i>port</i>]
-              Connect  via  TCP  to domain <i>domain</i>, port <i>port</i>. The
-              default port is <b>smtp</b> (or 24 with LMTP).  With  SMTP
-              an  MX lookup is performed to resolve the domain to
-              a host, unless the domain is enclosed  in  <b>[]</b>.   If
-              you  want  to  connect  to  a specific MX host, for
+              Connect via TCP to domain <i>domain</i>,  port  <i>port</i>.  The
+              default  port is <b>smtp</b> (or 24 with LMTP).  With SMTP
+              an MX lookup is performed to resolve the domain  to
+              a  host,  unless  the domain is enclosed in <b>[]</b>.  If
+              you want to connect to  a  specific  MX  host,  for
               instance <i>mx1.example.com</i>, specify [<i>mx1.example.com</i>]
               as the destination and <i>example.com</i> as a <b>match</b> argu-
-              ment.  When using DNS, the  destination  domain  is
-              assumed  fully  qualified  and no <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a> or
-              search suffixes are applied; you  must  use  fully-
-              qualified  names or also enable <b>native</b> host lookups
+              ment.   When  using  DNS, the destination domain is
+              assumed fully qualified and no  default  domain  or
+              search  suffixes  are  applied; you must use fully-
+              qualified names or also enable <b>native</b> host  lookups
               (these don't support <b>dane</b> or <b>dane-only</b> as no DNSSEC
               validation  information  is  available  via  <b>native</b>
               lookups).
@@ -317,17 +322,17 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               With  no  match  arguments  specified,  certificate
               peername  matching  uses  the  compiled-in  default
               strategies for each security level.  If you specify
-              one or more arguments, these will be  used  as  the
-              list  of certificate or public-key digests to match
-              for the <b>fingerprint</b> level, or as the  list  of  DNS
+              one  or  more  arguments, these will be used as the
+              list of certificate or public-key digests to  match
+              for  the  <b>fingerprint</b>  level, or as the list of DNS
               names to match in the certificate at the <b>verify</b> and
-              <b>secure</b> levels.  If the security level is  <b>dane</b>,  or
-              <b>dane-only</b>  the  match  names are ignored, and <b>host-</b>
+              <b>secure</b>  levels.   If the security level is <b>dane</b>, or
+              <b>dane-only</b> the match names are  ignored,  and  <b>host-</b>
               <b>name, nexthop</b> strategies are used.
 
 <b>ENVIRONMENT</b>
        <b>MAIL_CONFIG</b>
-              Read configuration parameters  from  a  non-default
+              Read  configuration  parameters  from a non-default
               location.
 
        <b>MAIL_VERBOSE</b>
@@ -341,7 +346,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <a href="TLS_README.html">TLS_README</a>, Postfix STARTTLS howto
 
 <b>LICENSE</b>
-       The Secure Mailer license must be  distributed  with  this
+       The  Secure  Mailer  license must be distributed with this
        software.
 
 <b>AUTHOR(S)</b>

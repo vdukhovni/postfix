@@ -18839,3 +18839,76 @@ Apologies for any names omitted.
 	new MDB_MAP_FULL workaround by Howard Chu that ensures that
 	postfix will make progress as long as the disk is not full.
 	File: util/dict_lmdb.c.
+
+20130822
+
+	The status of LMDB databases is "not recommended".  Unlike
+	other Postfix databases, LMDB does not grow beyond a specified
+	limit even when the file system has room.  This show-stopper
+	bug breaks applications whose requirements grow with load:
+	postscreen(8), greylisting, tlsmgr(8) and verify(8).
+
+20130825
+
+	Bitrot: Arrange for shared keys in SMTP server session
+	tickets.  Otherwise, with clients that enable session
+	tickets, the SMTP session cache is per-process and largely
+	ineffective.  Older releases should add SSL_OP_NO_TICKET
+	to the SSL options bit mask in the SMTP server only.  The
+	session ticket key validity interval (sum of initial issuing
+	and retired key validation intervals) must not exceed the
+	SSL session lifetime.  Otherwise, clients may send valid
+	tickets for expired sessions, which the OpenSSL server code
+	mishandles (does not send a replacement ticket, patch
+	pending...).
+
+	We set the session lifetime to 2 times the configured cache
+	lifetime which is also the ticket issuing and retired
+	validation lifetime, so ticketed sessions last 1 to 2 times
+	the configured session lifetime and never longer than a
+	session's expiration time. 
+
+	Code by Viktor Dukhovni.  Files: .indent.pro, mantools/postlink,
+	proto/TLS_README.html, proto/postconf.proto, global/mail_params.h,
+	posttls-finger/posttls-finger.c, posttls-finger/tlsmgrmem.c,
+	smtpd/smtpd.c, tls/tls.h, tls/tls_client.c, tls/tls_mgr.c,
+	tls/tls_mgr.h, tls/tls_scache.c, tls/tls_scache.h,
+	tls/tls_server.c, tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c.
+
+	Robustness: Search for TLSA RRs at the resolved server name
+	(rname) and failing that request server name (qname), and
+	use whichever was found as the TLSA base domain for certificate
+	matching.
+
+	When we find a DNSSEC validated MX RRset, and the initial
+	next-hop domain is a CNAME, include both the initial and
+	final (the one with the actual MX RRs) domains in the list
+	of valid server certificate names.
+
+	When we find no MX records, then the initial next-hop domain
+	is obtained securely from the recipient domain or transport
+	next-hop.  Without MX records, this is a destination hostname,
+	so we should generally do a TLSA lookup.  If however the
+	address lookup yields an insecure result, and its rname is
+	equal to its qname (no CNAMEs), we reasonably assume that
+	the its child "_port._tcp" sub-domain is likewise insecure
+	(security here would require DLV just for this sub-domain).
+	This allows us to skip futile TLSA queries for most non-MX
+	destinations (those that are in insecure zones and are not
+	CNAMEs).  This heuristic can be disabled by setting the new
+	main.cf parameter smtp_tls_force_insecure_host_tlsa_lookup
+	to "yes", the default is "no".
+
+	Finally, with MX hostnames, if the MX RRset is secure, we
+	look for TLSA RRs at the qname only when the MX host is an
+	alias with an insecure rname.  If both the qname and the
+	rname are secure, as before we prefer the rname, but when
+	nothing is found there, fall back to the qname.
+
+	Code by Viktor Dukhovni. Files: mantools/postlink,
+	proto/postconf.proto, src/global/mail_params.h,
+	src/posttls-finger/posttls-finger.c, src/smtp/lmtp_params.c,
+	src/smtp/smtp.c, src/smtp/smtp.h, src/smtp/smtp_addr.c,
+	src/smtp/smtp_addr.h, src/smtp/smtp_connect.c,
+	src/smtp/smtp_params.c, src/smtp/smtp_tls_policy.c,
+	src/tls/tls.h, src/tls/tls_dane.c.

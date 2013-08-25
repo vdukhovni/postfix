@@ -2757,6 +2757,11 @@ The LMTP-specific version of the smtp_tls_fingerprint_digest
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.5 and later.
+.SH lmtp_tls_force_insecure_host_tlsa_lookup (default: no)
+The LMTP-specific version of the smtp_tls_force_insecure_host_tlsa_lookup
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH lmtp_tls_key_file (default: $lmtp_tls_cert_file)
 The LMTP-specific version of the smtp_tls_key_file
 configuration parameter.  See there for details.
@@ -7069,6 +7074,18 @@ fingerprint incorrectly. To use public-key fingerprints, upgrade
 to Postfix 2.9.6 or later.
 .PP
 This feature is available in Postfix 2.5 and later.
+.SH smtp_tls_force_insecure_host_tlsa_lookup (default: no)
+Lookup the associated DANE TLSA RRset even when a hostname is
+not an alias and its address records lie in an unsigned zone.  This
+is unlikely to ever yield DNSSEC validated results, since child
+zones of unsigned zones are also unsigned in the absense of DLV or
+locally configured non-root trust-anchors.  We anticipate that such
+mechanisms will not be used for just the "_tcp" subdomain of a host.
+Suppressing the TLSA RRset lookup reduces latency and avoids potential
+interoperability problems with nameservers for unsigned zones that
+are not prepared to handle the new TLSA RRset.
+.PP
+This feature is available in Postfix 2.11.
 .SH smtp_tls_key_file (default: $smtp_tls_cert_file)
 File with the Postfix SMTP client RSA private key in PEM format.
 This file may be combined with the Postfix SMTP client RSA certificate
@@ -7817,6 +7834,10 @@ every $smtp_tls_session_cache_timeout seconds. As with
 $smtp_tls_session_cache_database, this parameter is implemented in the
 \fBtlsmgr\fR(8) daemon and therefore per-smtp-instance master.cf overrides
 are not possible.
+.PP
+As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+<= 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_trust_anchor_file (default: empty)
@@ -10731,7 +10752,16 @@ $smtpd_tls_session_cache_database, this parameter is implemented in the
 \fBtlsmgr\fR(8) daemon and therefore per-smtpd-instance master.cf overrides
 are not possible.
 .PP
-This feature is available in Postfix 2.2 and later.
+As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+<= 0, session caching is disabled, not just via the database, but
+also via RFC 5077 TLS session tickets, which don't require server-side
+storage.  If set to a positive value less than 2 minutes, the minimum
+value of 2 minutes is used instead.  TLS session tickets require
+an OpenSSL library (at least version 0.9.8h) that provides full
+support for this TLS extension.
+.PP
+This feature is available in Postfix 2.2 and later, and updated
+for TLS session ticket support in Postfix 2.11.
 .SH smtpd_tls_wrappermode (default: no)
 Run the Postfix SMTP server in the non-standard "wrapper" mode,
 instead of using the STARTTLS command.
@@ -11520,10 +11550,10 @@ smtpd_tls_security_level for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_session_cache_timeout (default: $smtpd_tls_session_cache_timeout)
-The expiration time of Postfix \fBtlsproxy\fR(8) server TLS session
-cache information. A cache cleanup is performed periodically every
-$smtpd_tls_session_cache_timeout seconds. See
-smtpd_tls_session_cache_timeout for further details.
+Obsolete expiration time of Postfix \fBtlsproxy\fR(8) server TLS session
+cache information. Since the cache is shared with \fBsmtpd\fR(8) and managed
+by \fBtlsmgr\fR(8), there is only one expiration time for the SMTP server cache
+shared by all three services, namely smtpd_tls_session_cache_timeout.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_use_tls (default: $smtpd_use_tls)

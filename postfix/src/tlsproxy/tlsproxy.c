@@ -132,9 +132,6 @@
 /*	The SMTP TLS security level for the Postfix \fBtlsproxy\fR(8) server;
 /*	when a non-empty value is specified, this overrides the obsolete
 /*	parameters smtpd_use_tls and smtpd_enforce_tls.
-/* .IP "\fBtlsproxy_tls_session_cache_timeout ($smtpd_tls_session_cache_timeout)\fR"
-/*	The expiration time of Postfix \fBtlsproxy\fR(8) server TLS session
-/*	cache information.
 /* .PP
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
@@ -237,7 +234,6 @@
   */
 int     var_smtpd_tls_ccert_vd;
 char   *var_smtpd_tls_loglevel;
-int     var_smtpd_tls_scache_timeout;
 bool    var_smtpd_use_tls;
 bool    var_smtpd_enforce_tls;
 bool    var_smtpd_tls_ask_ccert;
@@ -266,7 +262,6 @@ char   *var_smtpd_tls_level;
 
 int     var_tlsp_tls_ccert_vd;
 char   *var_tlsp_tls_loglevel;
-int     var_tlsp_tls_scache_timeout;
 bool    var_tlsp_use_tls;
 bool    var_tlsp_enforce_tls;
 bool    var_tlsp_tls_ask_ccert;
@@ -978,7 +973,6 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			    log_level = var_tlsp_tls_loglevel,
 			    verifydepth = var_tlsp_tls_ccert_vd,
 			    cache_type = TLS_MGR_SCACHE_SMTPD,
-			    scache_timeout = var_tlsp_tls_scache_timeout,
 			    set_sessid = var_tlsp_tls_set_sessid,
 			    cert_file = cert_file,
 			    key_file = var_tlsp_tls_key_file,
@@ -1036,9 +1030,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
-	VAR_SMTPD_TLS_SCACHTIME, DEF_SMTPD_TLS_SCACHTIME, &var_smtpd_tls_scache_timeout, 0, 0,
 	VAR_TLSP_WATCHDOG, DEF_TLSP_WATCHDOG, &var_tlsp_watchdog, 10, 0,
-	VAR_TLSP_TLS_SCACHTIME, DEF_TLSP_TLS_SCACHTIME, &var_tlsp_tls_scache_timeout, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {

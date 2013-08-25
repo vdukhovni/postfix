@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include "smtp_addr.h"
 /*
-/*	DNS_RR *smtp_domain_addr(name, misc_flags, why, found_myself)
+/*	DNS_RR *smtp_domain_addr(name, mxrr, misc_flags, why, found_myself)
 /*	char	*name;
+/*	DNS_RR  **mxrr;
 /*	int	misc_flags;
 /*	DSN_BUF	*why;
 /*	int	*found_myself;
@@ -29,7 +30,9 @@
 /*	so that it contains only hosts that are more preferred than the
 /*	local mail server itself. The found_myself result parameter
 /*	is updated when the local MTA is MX host for the specified
-/*	destination.
+/*	destination.  If MX records were found, the rname, qname,
+/*	and dnssec validation status of the MX RRset are returned
+/*	via mxrr, which the caller must free with dns_rr_free().
 /*
 /*	When no mail exchanger is listed in the DNS for \fIname\fR, the
 /*	request is passed to smtp_host_addr().
@@ -339,8 +342,8 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
-			         int *found_myself)
+DNS_RR *smtp_domain_addr(char *name, DNS_RR **mxrr, int misc_flags,
+			         DSN_BUF *why, int *found_myself)
 {
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
@@ -426,6 +429,8 @@ DNS_RR *smtp_domain_addr(char *name, int misc_flags, DSN_BUF *why,
 	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref_any);
 	best_pref = (mx_names ? mx_names->pref : IMPOSSIBLE_PREFERENCE);
 	addr_list = smtp_addr_list(mx_names, why);
+	if (mxrr)
+	    *mxrr = dns_rr_copy(mx_names);	/* copies one record! */
 	dns_rr_free(mx_names);
 	if (addr_list == 0) {
 	    /* Text does not change. */

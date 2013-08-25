@@ -19,17 +19,13 @@
 
 <h2>Introduction</h2>
 
-<!--
-
-<dl> <dt> Note: </dt> <dd> <p> Postfix support for LMDB databases
-is suspended due to the existence of a hard limit (an "out of
-storage" failure mode that cannot be resolved by increasing the
-database size). </p> <p> Postfix may support LMDB again when it no
-longer limits the size of Postfix transactions, whether the limit
-is built into LMDB itself, or implicit by requiring an unbounded
-amount of memory to handle a large transaction. </p> </dd> </dl>
-
--->
+<blockquote> <p> <strong> Warning: LMDB databases have a show-stopper
+bug: they do not grow beyond a specified limit, and introduce a
+"database full" hard error condition that does not exist with any
+other Postfix database type.  This is a problem for programs whose
+database grows with system load. Examples are <a href="postscreen.8.html">postscreen(8)</a>,
+greylisting, <a href="verify.8.html">verify(8)</a> and <a href="tlsmgr.8.html">tlsmgr(8)</a>.  </strong> </p> <p> <strong>
+You have been warned.  </strong> </p> </blockquote>
 
 <p> Postfix uses databases of various kinds to store and look up
 information. Postfix databases are specified as "type:name".

@@ -154,6 +154,7 @@ typedef struct TLS_DANE {
     TLS_TLSA *ee;			/* End-entity cert/pubkey digests */
     TLS_CERTS *certs;			/* Full trust-anchor certificates */
     TLS_PKEYS *pkeys;			/* Full trust-anchor public keys */
+    char   *base_domain;		/* Base domain of TLSA RRset */
     int     flags;			/* Conflate cert and pkey digests */
     time_t  expires;			/* Expiration time of this record */
     int     refs;			/* Reference count */
@@ -172,7 +173,8 @@ extern TLS_DANE *tls_dane_alloc(int);
 extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
 			           const char *);
 extern void tls_dane_free(TLS_DANE *);
-extern TLS_DANE *tls_dane_resolve(const char *, const char *, unsigned);
+extern TLS_DANE *tls_dane_resolve(const char *, const char *, const char *,
+				          unsigned);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
 
  /*
@@ -197,6 +199,7 @@ typedef struct {
     /* Private. */
     SSL    *con;
     char   *cache_type;			/* tlsmgr(8) cache type if enabled */
+    int     ticketed;			/* Session ticket issued */
     char   *serverid;			/* unique server identifier */
     char   *namaddr;			/* nam[addr] for logging */
     int     log_mask;			/* What to log */
@@ -254,6 +257,7 @@ extern int tls_log_mask(const char *, const char *);
 #define TLS_LOG_DEBUG			(1<<7)
 #define TLS_LOG_TLSPKTS			(1<<8)
 #define TLS_LOG_ALLPKTS			(1<<9)
+#define TLS_LOG_SESSTKT			(1<<10)
 
  /*
   * Client and Server application contexts
@@ -410,7 +414,6 @@ typedef struct {
     const char *log_level;
     int     verifydepth;
     const char *cache_type;
-    long    scache_timeout;
     int     set_sessid;
     const char *cert_file;
     const char *key_file;
@@ -449,13 +452,12 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
 #define TLS_SERVER_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) \
+    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) \
     tls_server_init((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
-    ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), \
-    ((props)->a20), (props)))
+    ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), (props)))
 
 #define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
     tls_server_start((((props)->a1), ((props)->a2), ((props)->a3), \

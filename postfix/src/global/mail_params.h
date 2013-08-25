@@ -1327,6 +1327,7 @@ extern bool var_smtpd_tls_received_header;
 #define DEF_SMTPD_TLS_SCACHE_DB	""
 extern char *var_smtpd_tls_scache_db;
 
+#define MAX_SMTPD_TLS_SCACHETIME	8640000
 #define VAR_SMTPD_TLS_SCACHTIME	"smtpd_tls_session_cache_timeout"
 #define DEF_SMTPD_TLS_SCACHTIME	"3600s"
 extern int var_smtpd_tls_scache_timeout;
@@ -1479,8 +1480,10 @@ extern bool var_smtp_tls_note_starttls_offer;
 extern char *var_smtp_tls_scache_db;
 extern char *var_lmtp_tls_scache_db;
 
+#define MAX_SMTP_TLS_SCACHETIME	8640000
 #define VAR_SMTP_TLS_SCACHTIME	"smtp_tls_session_cache_timeout"
 #define DEF_SMTP_TLS_SCACHTIME	"3600s"
+#define MAX_LMTP_TLS_SCACHETIME	8640000
 #define VAR_LMTP_TLS_SCACHTIME	"lmtp_tls_session_cache_timeout"
 #define DEF_LMTP_TLS_SCACHTIME	"3600s"
 extern int var_smtp_tls_scache_timeout;
@@ -1531,6 +1534,12 @@ extern char *var_smtp_tls_fpt_cmatch;
 #define VAR_LMTP_TLS_BLK_EARLY_MAIL_REPLY "lmtp_tls_block_early_mail_reply"
 #define DEF_LMTP_TLS_BLK_EARLY_MAIL_REPLY 0
 extern bool var_smtp_tls_blk_early_mail_reply;
+
+#define VAR_SMTP_TLS_FORCE_TLSA "smtp_tls_force_insecure_host_tlsa_lookup"
+#define DEF_SMTP_TLS_FORCE_TLSA 0
+#define VAR_LMTP_TLS_FORCE_TLSA "lmtp_tls_force_insecure_host_tlsa_lookup"
+#define DEF_LMTP_TLS_FORCE_TLSA 0
+extern bool var_smtp_tls_force_tlsa;
 
  /*
   * SASL authentication support, SMTP server side.
@@ -3652,14 +3661,6 @@ extern char *var_tlsp_tls_loglevel;
 #define VAR_TLSP_TLS_RECHEAD	"tlsproxy_tls_received_header"
 #define DEF_TLSP_TLS_RECHEAD	"$" VAR_SMTPD_TLS_RECHEAD
 extern bool var_tlsp_tls_received_header;
-
-#define VAR_TLSP_TLS_SCACHE_DB	"tlsproxy_tls_session_cache_database"
-#define DEF_TLSP_TLS_SCACHE_DB	"$" VAR_SMTPD_TLS_SCACHE_DB
-extern char *var_tlsp_tls_scache_db;
-
-#define VAR_TLSP_TLS_SCACHTIME	"tlsproxy_tls_session_cache_timeout"
-#define DEF_TLSP_TLS_SCACHTIME	"$" VAR_SMTPD_TLS_SCACHTIME
-extern int var_tlsp_tls_scache_timeout;
 
 #define VAR_TLSP_TLS_SET_SESSID	"tlsproxy_tls_always_issue_session_ids"
 #define DEF_TLSP_TLS_SET_SESSID	"$" VAR_SMTPD_TLS_SET_SESSID

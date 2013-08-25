@@ -446,13 +446,9 @@
 /* .IP "\fBsmtp_tls_trust_anchor_file (empty)\fR"
 /*	Zero or more PEM-format files with trust-anchor certificates
 /*	and/or public keys.
-/* .IP "\fBsmtp_tls_dane_notfound_tlsa_level (may)\fR"
-/*	The "degraded" security level when the "dane" security level
-/*	is specified, but no validated DANE TLSA records are published.
-/* .IP "\fBsmtp_tls_dane_unusable_tlsa_level (encrypt)\fR"
-/*	The "degraded" security level when the "dane" security level
-/*	is specified, validated DANE TLSA records are present, but none are
-/*	usable.
+/* .IP "\fBsmtp_tls_force_insecure_host_tlsa_lookup (no)\fR"
+/*	Lookup the associated DANE TLSA RRset even when a hostname is
+/*	not an alias and its address records lie in an unsigned zone.
 /* .IP "\fBtls_dane_trust_anchor_digest_enable (trust-anchor-assertion)\fR"
 /*	RFC 6698 trust-anchor digest support in the Postfix TLS library.
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
@@ -565,8 +561,9 @@
 /* .PP
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBsmtp_connection_reuse_count_limit (0)\fR"
-/*	When SMTP connection caching is enabled, the number of times that
-/*	an SMTP session may be reused before it is closed, or zero (no limit).
+/*	When SMTP connection caching is enabled, the number of times
+/*	that an SMTP session may be reused before it is closed, or zero (no
+/*	limit).
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -853,6 +850,7 @@ char   *var_smtp_tls_ciph;
 char   *var_smtp_tls_eccert_file;
 char   *var_smtp_tls_eckey_file;
 bool    var_smtp_tls_blk_early_mail_reply;
+bool    var_smtp_tls_force_tlsa;
 
 #endif
 

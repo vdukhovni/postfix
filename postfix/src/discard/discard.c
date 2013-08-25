@@ -29,7 +29,7 @@
 /*	The \fBdiscard\fR(8) mailer is not security-sensitive. It does not talk
 /*	to the network, and can be run chrooted at fixed low privilege.
 /* STANDARDS
-/*	None.
+/*	RFC 3463 (Enhanced Status Codes)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*

@@ -4826,6 +4826,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_force_insecure_host_tlsa_lookup">lmtp_tls_force_insecure_host_tlsa_lookup</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">smtp_tls_force_insecure_host_tlsa_lookup</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.11 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_key_file">lmtp_tls_key_file</a>
 (default: $<a href="postconf.5.html#lmtp_tls_cert_file">lmtp_tls_cert_file</a>)</b></DT><DD>
 
@@ -11293,6 +11304,24 @@ to Postfix 2.9.6 or later. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tls_force_insecure_host_tlsa_lookup">smtp_tls_force_insecure_host_tlsa_lookup</a>
+(default: no)</b></DT><DD>
+
+<p> Lookup the associated DANE TLSA RRset even when a hostname is
+not an alias and its address records lie in an unsigned zone.  This
+is unlikely to ever yield DNSSEC validated results, since child
+zones of unsigned zones are also unsigned in the absense of DLV or
+locally configured non-root trust-anchors.  We anticipate that such
+mechanisms will not be used for just the "_tcp" subdomain of a host.
+Suppressing the TLSA RRset lookup reduces latency and avoids potential
+interoperability problems with nameservers for unsigned zones that
+are not prepared to handle the new TLSA RRset.  </p>
+
+<p> This feature is available in Postfix 2.11. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_key_file">smtp_tls_key_file</a>
 (default: $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>)</b></DT><DD>
 
@@ -12080,6 +12109,10 @@ every $<a href="postconf.5.html#smtp_tls_session_cache_timeout">smtp_tls_session
 $<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a>, this parameter is implemented in the
 <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon and therefore per-smtp-instance <a href="master.5.html">master.cf</a> overrides
 are not possible. </p>
+
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled.  If set to a positive value
+less than 2 minutes, the minimum value of 2 minutes is used instead.  </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
 
@@ -15759,7 +15792,16 @@ $<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_ca
 <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon and therefore per-smtpd-instance <a href="master.5.html">master.cf</a> overrides
 are not possible. </p>
 
-<p> This feature is available in Postfix 2.2 and later.  </p>
+<p> As of Postfix 2.11 this setting cannot exceed 100 days.  If set
+&le; 0, session caching is disabled, not just via the database, but
+also via <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
+storage.  If set to a positive value less than 2 minutes, the minimum
+value of 2 minutes is used instead.  TLS session tickets require
+an OpenSSL library (at least version 0.9.8h) that provides full
+support for this TLS extension. </p>
+
+<p> This feature is available in Postfix 2.2 and later, and updated
+for TLS session ticket support in Postfix 2.11. </p>
 
 
 </DD>
@@ -16983,10 +17025,10 @@ parameters <a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a> and <a href
 <DT><b><a name="tlsproxy_tls_session_cache_timeout">tlsproxy_tls_session_cache_timeout</a>
 (default: $<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a>)</b></DT><DD>
 
-<p> The expiration time of Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> server TLS session
-cache information. A cache cleanup is performed periodically every
-$<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a> seconds. See
-<a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a> for further details. </p>
+<p> Obsolete expiration time of Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> server TLS session
+cache information. Since the cache is shared with <a href="smtpd.8.html">smtpd(8)</a> and managed
+by <a href="tlsmgr.8.html">tlsmgr(8)</a>, there is only one expiration time for the SMTP server cache
+shared by all three services, namely <a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a>. </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
