@@ -18292,17 +18292,17 @@ Apologies for any names omitted.
 
 20130615
 
-	Interoperability: turn on SHA-2XX digests by force. This
-	improves interoperability with clients and servers with
-	ancient OpenSSL versions that prematurely deploy SHA-2
-	certificates. Based on patch by Viktor Dukhovni. Files:
-	tls/tls_client.c, tls/tls_server.c.
+	TLS Interoperability: turn on SHA-2 digests by force.  This
+	improves interoperability with clients and servers that
+	deploy SHA-2 digests without the required support for
+	TLSv1.2-style digest negotiation.  Based on patch by Viktor
+	Dukhovni.  Files: tls/tls_client.c, tls/tls_server.c.
 
 20130616
 
-	Workaround: The Postfix SMTP server TLS session cache was
-	broken because OpenSSL now enables session tickets by
-	default, resulting in a different ticket encryption key for
-	each smtpd(8) process.  The workaround turns off session
-	tickets. In 2.11 we'll enable session tickets properly.
-	Viktor Dukhovni. File: tls/tls_server.c.
+	TLS Performance: the Postfix SMTP server TLS session cache
+	was ineffective because recent OpenSSL versions enable
+	session tickets by default, resulting in a different ticket
+	encryption key for each smtpd(8) process.  The workaround
+	turns off session tickets. In 2.11 we'll enable session
+	tickets properly.  Viktor Dukhovni. File: tls/tls_server.c.
