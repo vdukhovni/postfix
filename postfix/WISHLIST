@@ -16,6 +16,8 @@ Wish list:
 	Begin code revision, after DANE support stabilizes.  This
 	should be one pass that changes only names and no code.
 
+	recipient_delimiters = $recipient_delimiter for BC
+
 	All source code must specify its original author and
 	license statement. Some code modules specify Lutz Jaenicke
 	as the original author and fall under his liberal license.

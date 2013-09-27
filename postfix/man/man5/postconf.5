@@ -2242,9 +2242,9 @@ This feature is available in Postfix 2.1 and later.
 .SH line_length_limit (default: 2048)
 Upon input, long lines are chopped up into pieces of at most
 this length; upon delivery, long lines are reconstructed.
-.SH lmdb_map_size (default: 10485760)
-The per-table size limit for programs that create OpenLDAP LMDB
-tables.  Specify a byte count.
+.SH lmdb_map_size (default: 16777216)
+The initial OpenLDAP LMDB database size limit in bytes.  Each time
+a database becomes full, its size limit is doubled.
 .PP
 This feature is available in Postfix 2.11 and later.
 .SH lmtp_address_preference (default: ipv6)
@@ -9034,7 +9034,8 @@ DNS lookup and increases the maximal inbound delivery rate.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_per_record_deadline (default: normal: no, overload: yes)
-Change the behavior of the smtpd_timeout time limit, from a
+Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).  This
@@ -9796,6 +9797,11 @@ feature is available in Postfix 2.1 and later.
 Enforces the reject_sender_login_mismatch restriction for
 authenticated clients only. This feature is available in
 Postfix version 2.1 and later.
+.br
+.IP "\fBreject_known_sender_login_mismatch\fR"
+Apply the reject_sender_login_mismatch restriction only to MAIL
+FROM addresses that are known in $smtpd_sender_login_maps.  This
+feature is available in Postfix version 2.11 and later.
 .br
 .IP "\fBreject_non_fqdn_sender\fR"
 Reject the request when the MAIL FROM address is not in

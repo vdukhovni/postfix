@@ -189,7 +189,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               where a  non-whitelisted  remote  SMTP  client  can
               obtain  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s temporary whitelist status.
 
-<b>BEFORE-GREETING TESTS</b>
+<b>BEFORE 220 GREETING TESTS</b>
        These tests are executed before  the  remote  SMTP  client
        receives the "220 servername" greeting. If no tests remain
        after the successful completion of this phase, the  client
@@ -253,13 +253,13 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               combined  DNSBL   score   as   defined   with   the
               <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.
 
-<b>AFTER-GREETING TESTS</b>
+<b>AFTER 220 GREETING TESTS</b>
        These  tests  are  executed  after  the remote SMTP client
        receives the "220 servername" greeting. If a client passes
        all  tests  during  this  phase,  it  will  receive  a 4XX
-       response to RCPT TO commands until the  client  hangs  up.
-       After this, the client will be allowed to talk directly to
-       a Postfix SMTP server process.
+       response to all RCPT TO commands. After the client  recon-
+       nects,  it  will  be allowed to talk directly to a Postfix
+       SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_bare_newline_action">postscreen_bare_newline_action</a> (ignore)</b>
               The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when  a  remote

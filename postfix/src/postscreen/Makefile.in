@@ -16,8 +16,9 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG=
 PROG	= postscreen
 INC_DIR = ../../include
-LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libglobal.a \
-	../../lib/libutil.a
+# Fake libdns dependency, for early-binding shared-library builds.
+LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
+	../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 

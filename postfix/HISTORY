@@ -18719,10 +18719,11 @@ Apologies for any names omitted.
 
 20130615
 
-	Interoperability: turn on SHA-2XX digests by force. This
-	improves interoperability with clients and servers with
-	ancient OpenSSL versions and that that prematurely deploy
-	SHA-2 certificates. Viktor Dukhovni. File: tls/tls_misc.c
+	TLS Interoperability: turn on SHA-2 digests by force.  This
+	improves interoperability with clients and servers that
+	deploy SHA-2 digests without the required support for
+	TLSv1.2-style digest negotiation.  Based on patch by Viktor
+	Dukhovni.  Files: tls/tls_client.c, tls/tls_server.c.
 
 20130616
 
@@ -18912,3 +18913,33 @@ Apologies for any names omitted.
 	src/smtp/smtp_addr.h, src/smtp/smtp_connect.c,
 	src/smtp/smtp_params.c, src/smtp/smtp_tls_policy.c,
 	src/tls/tls.h, src/tls/tls_dane.c.
+
+20130826
+
+	Documentation: re-ordered STRESS_README, now that all
+	supported releases have stress-adaptive behavior built in.
+	File: proto/STRESS_README.html.
+
+20130903
+
+	Cleanup: made the default_database_type compile-time
+	configurable. Files: util/sys_defs.h, makedefs, proto/INSTALL.
+
+20130916
+
+	Feature: reject_known_sender_login_mismatch, which applies
+	reject_sender_login_mismatch only to MAIL FROM addresses
+	that are known in $smtpd_sender_login_maps. Viktor & Wietse.
+	Files: mantools/postlink, proto/SASL_README.html,
+	proto/postconf.proto, global/mail_params.h, smtpd/smtpd_check.c.
+
+20130927
+
+	Cleanup: no more LMDB "database full" errors.  Postfix now
+	requires LMDB >= 0.9.8 which supports on-the-fly database
+	resizing. When a database becomes full, its size limit is
+	automatically doubled, and other processes automatically
+	pick up the new database size limit.  Files: util/dict.h,
+	util/dict_open.c, util/dict_alloc.c, util/dict_lmdb.c,
+	postmap/postmap.c, postalias/postalias.c, proto/LMDB_README.html,
+	proto/postconf.proto.

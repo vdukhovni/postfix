@@ -2837,11 +2837,11 @@ The default time unit is d (days).
 Specify 0 when mail delivery should be tried only once.
 </p>
 
-%PARAM lmdb_map_size 10485760
+%PARAM lmdb_map_size 16777216
 
 <p>
-The per-table size limit for programs that create OpenLDAP LMDB
-tables.  Specify a byte count.
+The initial OpenLDAP LMDB database size limit in bytes.  Each time
+a database becomes full, its size limit is doubled.
 </p>
 
 <p>
@@ -6291,6 +6291,12 @@ feature is available in Postfix 2.1 and later.  </dd>
 <dd>Enforces the reject_sender_login_mismatch restriction for
 authenticated clients only. This feature is available in
 Postfix version 2.1 and later. </dd>
+
+<dt><b><a name="reject_known_sender_login_mismatch">reject_known_sender_login_mismatch</a></b></dt>
+
+<dd>Apply the reject_sender_login_mismatch restriction only to MAIL
+FROM addresses that are known in $smtpd_sender_login_maps.  This
+feature is available in Postfix version 2.11 and later. </dd>
 
 <dt><b><a name="reject_non_fqdn_sender">reject_non_fqdn_sender</a></b></dt>
 
@@ -14754,7 +14760,8 @@ service performs plaintext &lt;=&gt; TLS ciphertext conversion. <p>
 
 %PARAM smtpd_per_record_deadline normal: no, overload: yes
 
-<p> Change the behavior of the smtpd_timeout time limit, from a
+<p> Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).  This

@@ -16,9 +16,10 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= smtpd_token smtpd_check
 PROG	= smtpd
 INC_DIR	= ../../include
+# Fake libdns dependency, for early-binding shared-library builds.
 LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
-	../../lib/libxsasl.a ../../lib/libmilter.a ../../lib/libglobal.a \
-	../../lib/libutil.a
+	../../lib/libxsasl.a ../../lib/libmilter.a ../../lib/libdns.a \
+	../../lib/libglobal.a ../../lib/libutil.a
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 

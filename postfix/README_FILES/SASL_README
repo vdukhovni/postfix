@@ -896,7 +896,8 @@ With this, the reject_sender_login_mismatch restriction above will reject the
 sender address in the MAIL FROM command if smtpd_sender_login_maps does not
 specify the SMTP client's login name as an owner of that address.
 
-See also reject_authenticated_sender_login_mismatch and
+See also reject_authenticated_sender_login_mismatch,
+reject_known_sender_login_mismatch, and
 reject_unauthenticated_sender_login_mismatch for additional control over the
 SASL login name and the envelope sender.
 

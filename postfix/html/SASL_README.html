@@ -1450,7 +1450,8 @@ restriction above will reject the sender address in the MAIL FROM
 command if <code><a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a></code> does not specify
 the SMTP client's login name as an owner of that address. </p>
 
-<p> See also <code><a href="postconf.5.html#reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a></code> and
+<p> See also <code><a href="postconf.5.html#reject_authenticated_sender_login_mismatch">reject_authenticated_sender_login_mismatch</a></code>,
+<code><a href="postconf.5.html#reject_known_sender_login_mismatch">reject_known_sender_login_mismatch</a></code>, and
 <code><a href="postconf.5.html#reject_unauthenticated_sender_login_mismatch">reject_unauthenticated_sender_login_mismatch</a></code> for additional
 control over the SASL login name and the envelope sender. </p>
 

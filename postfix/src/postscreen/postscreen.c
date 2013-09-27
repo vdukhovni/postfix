@@ -170,7 +170,7 @@
 /*	A list of local \fBpostscreen\fR(8) server IP addresses where a
 /*	non-whitelisted remote SMTP client can obtain \fBpostscreen\fR(8)'s temporary
 /*	whitelist status.
-/* BEFORE-GREETING TESTS
+/* BEFORE 220 GREETING TESTS
 /* .ad
 /* .fi
 /*	These tests are executed before the remote SMTP client
@@ -220,15 +220,15 @@
 /*	Allow a remote SMTP client to skip "before" and "after 220
 /*	greeting" protocol tests, based on its combined DNSBL score as
 /*	defined with the postscreen_dnsbl_sites parameter.
-/* AFTER-GREETING TESTS
+/* AFTER 220 GREETING TESTS
 /* .ad
 /* .fi
 /*	These tests are executed after the remote SMTP client
 /*	receives the "220 servername" greeting. If a client passes
 /*	all tests during this phase, it will receive a 4XX response
-/*	to RCPT TO commands until the client hangs up. After this,
-/*	the client will be allowed to talk directly to a Postfix
-/*	SMTP server process.
+/*	to all RCPT TO commands. After the client reconnects, it
+/*	will be allowed to talk directly to a Postfix SMTP server
+/*	process.
 /* .IP "\fBpostscreen_bare_newline_action (ignore)\fR"
 /*	The action that \fBpostscreen\fR(8) takes when a remote SMTP client sends
 /*	a bare newline character, that is, a newline not preceded by carriage

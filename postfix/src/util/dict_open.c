@@ -44,6 +44,16 @@
 /*	DICT	*(*open) (const char *, int, int);
 /*
 /*	ARGV	*dict_mapnames()
+/*
+/*	int	dict_isjmp(dict)
+/*	DICT	*dict;
+/*
+/*	int	dict_setjmp(dict)
+/*	DICT	*dict;
+/*
+/*	int	dict_longjmp(dict, val)
+/*	DICT	*dict;
+/*	int	val;
 /* DESCRIPTION
 /*	This module implements a low-level interface to multiple
 /*	physical dictionary types.
@@ -112,6 +122,10 @@
 /* .IP DICT_FLAG_PARANOID
 /*	A combination of all the paranoia flags: DICT_FLAG_NO_REGSUB,
 /*	DICT_FLAG_NO_PROXY and DICT_FLAG_NO_UNAUTH.
+/* .IP DICT_FLAG_BULK_UPDATE
+/*	Enable preliminary code for bulk-mode database updates.
+/*	The caller must create an exception handler with dict_jmp_alloc()
+/*	and must trap exceptions from the database client with dict_setjmp().
 /* .IP DICT_FLAG_DEBUG
 /*	Enable additional logging.
 /* .PP
@@ -169,6 +183,18 @@
 /*
 /*	dict_mapnames() returns a sorted list with the names of all available
 /*	dictionary types.
+/*
+/*	dict_setjmp() saves processing context and makes that context
+/*	available for use with dict_longjmp().  Normally, dict_setjmp()
+/*	returns zero.  A non-zero result means that dict_setjmp()
+/*	returned through a dict_longjmp() call; the result is the
+/*	\fIval\fR argment given to dict_longjmp(). dict_isjmp()
+/*	returns non-zero when dict_setjmp() and dict_longjmp()
+/*	are enabled for a given dictionary.
+/*
+/*	NB: non-local jumps such as dict_longjmp() are not safe for
+/*	jumping out of any routine that manipulates DICT data.
+/*	longjmp() like calls are best avoided in signal handlers.
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
 /*	update non-writable dictionary.

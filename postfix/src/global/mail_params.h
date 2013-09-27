@@ -1591,6 +1591,8 @@ extern char *var_smtpd_snd_auth_maps;
 #define REJECT_SENDER_LOGIN_MISMATCH	"reject_sender_login_mismatch"
 #define REJECT_AUTH_SENDER_LOGIN_MISMATCH \
 				"reject_authenticated_sender_login_mismatch"
+#define REJECT_KNOWN_SENDER_LOGIN_MISMATCH \
+				"reject_known_sender_login_mismatch"
 #define REJECT_UNAUTH_SENDER_LOGIN_MISMATCH \
 				"reject_unauthenticated_sender_login_mismatch"
 

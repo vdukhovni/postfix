@@ -897,6 +897,7 @@ while (<>) {
     s;\bcheck_sender_mx_access\b;<a href="postconf.5.html#check_sender_mx_access">$&</a>;g;
     s;\bcheck_sender_ns_access\b;<a href="postconf.5.html#check_sender_ns_access">$&</a>;g;
     s;\b(reject_authenti)([-</bB>]*\n*[ <bB>]*)(cated_sender_login_mismatch)\b;<a href="postconf.5.html#reject_authenticated_sender_login_mismatch">$1<\/a>$2<a href="postconf.5.html#reject_authenticated_sender_login_mismatch">$3</a>;g;
+    s;\breject_known_sender_login_mismatch\b;<a href="postconf.5.html#reject_known_sender_login_mismatch">$&</a>;g;
     s;\breject_non_fqdn_sender\b;<a href="postconf.5.html#reject_non_fqdn_sender">$&</a>;g;
     s;\breject_rhsbl_sender\b;<a href="postconf.5.html#reject_rhsbl_sender">$&</a>;g;
     s;\breject_sender_login_mis[-</bB>]*\n*[ <bB>]*match\b;<a href="postconf.5.html#reject_sender_login_mismatch">$&</a>;g;

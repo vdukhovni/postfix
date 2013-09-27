@@ -45,6 +45,8 @@ void    dict_test(int argc, char **argv)
     int     n;
     int     rc;
 
+#define USAGE	"verbose|del key|get key|put key=value|first|next|masks|flags"
+
     signal(SIGPIPE, SIG_IGN);
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
@@ -88,7 +90,7 @@ void    dict_test(int argc, char **argv)
 	if (*bufp == '#')
 	    continue;
 	if ((cmd = mystrtok(&bufp, " ")) == 0) {
-	    vstream_printf("usage: verbose|del key|get key|put key=value|first|next|masks|flags\n");
+	    vstream_printf("usage: %s\n", USAGE);
 	    vstream_fflush(VSTREAM_OUT);
 	    continue;
 	}
@@ -143,7 +145,7 @@ void    dict_test(int argc, char **argv)
 	    vstream_printf("DICT_FLAG_INST_MASK %s\n",
 			   dict_flags_str(DICT_FLAG_INST_MASK));
 	} else {
-	    vstream_printf("usage: del key|get key|put key=value|first|next|masks|flags\n");
+	    vstream_printf("usage: %s\n", USAGE);
 	}
 	vstream_fflush(VSTREAM_OUT);
     }

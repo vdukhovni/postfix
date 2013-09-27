@@ -13,6 +13,9 @@
 /*
 /*	void	dict_free(dict)
 /*	DICT	*ptr;
+/*
+/*	void	dict_jmp_alloc(dict)
+/*	DICT	*ptr;
 /* DESCRIPTION
 /*	dict_alloc() allocates memory for a dictionary structure of
 /*	\fIsize\fR bytes, initializes all generic dictionary
@@ -34,6 +37,9 @@
 /*	dict_free() releases memory and cleans up after dict_alloc().
 /*	It is up to the caller to dispose of any memory that was allocated
 /*	by the caller.
+/*
+/*	dict_jmp_alloc() implements preliminary support for exception
+/*	handling. This will eventually be built into dict_alloc().
 /*
 /*	Arguments:
 /* .IP dict_type
@@ -114,7 +120,7 @@ static int dict_default_lock(DICT *dict, int operation)
 	return (0);
     }
 }
- 
+
 /* dict_default_close - trap unimplemented operation */
 
 static void dict_default_close(DICT *dict)
@@ -145,6 +151,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->owner.status = DICT_OWNER_UNKNOWN;
     dict->owner.uid = ~0;
     dict->error = DICT_ERR_NONE;
+    dict->jbuf = 0;
     return dict;
 }
 
@@ -154,5 +161,20 @@ void    dict_free(DICT *dict)
 {
     myfree(dict->type);
     myfree(dict->name);
+    if (dict->jbuf)
+	myfree((char *) dict->jbuf);
     myfree((char *) dict);
+}
+
+ /*
+  * TODO: add a dict_flags() argument to dict_alloc() and handle jump buffer
+  * allocation there.
+  */
+
+/* dict_jmp_alloc - enable exception handling */
+
+void    dict_jmp_alloc(DICT *dict)
+{
+    if (dict->jbuf == 0)
+	dict->jbuf = (DICT_JMP_BUF *) mymalloc(sizeof(DICT_JMP_BUF));
 }

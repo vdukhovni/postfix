@@ -46,15 +46,15 @@
 #define HAS_FSYNC
 #define HAS_DB
 #define HAS_SA_LEN
-#define DEF_DB_TYPE	"hash"
+#define NATIVE_DB_TYPE	"hash"
 #if (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 104250000)
-#define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* sendmail 8.10 */
+#define ALIAS_DB_MAP   DEF_DB_TYPE ":/etc/mail/aliases"	/* sendmail 8.10 */
 #endif
 #if (defined(OpenBSD) && OpenBSD >= 200006)
-#define ALIAS_DB_MAP   "hash:/etc/mail/aliases"	/* OpenBSD 2.7 */
+#define ALIAS_DB_MAP   DEF_DB_TYPE ":/etc/mail/aliases"	/* OpenBSD 2.7 */
 #endif
 #ifndef ALIAS_DB_MAP
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #endif
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
@@ -227,8 +227,8 @@
 #define HAS_FSYNC
 #define HAS_DB
 #define HAS_SA_LEN
-#define DEF_DB_TYPE	"hash"
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define NATIVE_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #define GETTIMEOFDAY(t) gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #define USE_STATFS
@@ -287,12 +287,12 @@
 #define HAS_FSYNC
 /* might be set by makedef */
 #ifdef HAS_DB
-#define DEF_DB_TYPE	"hash"
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define NATIVE_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #else
 #define HAS_DBM
-#define	DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define	NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #endif
 extern int optind;
 extern char *optarg;
@@ -336,8 +336,8 @@ extern int h_errno;
 #define HAS_FSYNC
 #define HAVE_BASENAME
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/var/adm/sendmail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/var/adm/sendmail/aliases"
 extern int optind;			/* XXX use <getopt.h> */
 extern char *optarg;			/* XXX use <getopt.h> */
 extern int opterr;			/* XXX use <getopt.h> */
@@ -383,8 +383,8 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define DEF_MAILBOX_LOCK "flock, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 extern int optind;
 extern char *optarg;
 extern int opterr;
@@ -429,8 +429,8 @@ extern int opterr;
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #define HAS_NISPLUS
@@ -506,8 +506,8 @@ extern int opterr;
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -537,8 +537,8 @@ extern int opterr;
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE     "dbm"
-#define ALIAS_DB_MAP    "dbm:/etc/mail/aliases"
+#define NATIVE_DB_TYPE     "dbm"
+#define ALIAS_DB_MAP    DEF_DB_TYPE ":/etc/mail/aliases"
 #ifndef NO_NIS
 #define HAS_NIS */
 #endif
@@ -580,8 +580,8 @@ extern int opterr;
 #define USE_SYS_SELECT_H
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -634,8 +634,8 @@ extern int opterr;
 #define USE_SYS_SELECT_H
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -680,8 +680,8 @@ extern int initgroups(const char *, int);
 #define USE_SYS_SELECT_H
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -722,8 +722,8 @@ extern int initgroups(const char *, int);
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -766,8 +766,8 @@ extern int initgroups(const char *, int);
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"	/* RedHat >= 4.x */
 #define HAS_FSYNC
 #define HAS_DB
-#define DEF_DB_TYPE	"hash"
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define NATIVE_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -843,8 +843,8 @@ extern int initgroups(const char *, int);
 #define DEF_MAILBOX_LOCK "dotlock"	/* verified RedHat 3.03 */
 #define HAS_FSYNC
 #define HAS_DB
-#define DEF_DB_TYPE	"hash"
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define NATIVE_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -877,8 +877,8 @@ extern int initgroups(const char *, int);
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"	/* RedHat >= 4.x */
 #define HAS_FSYNC
 #define HAS_DB
-#define DEF_DB_TYPE	"hash"
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define NATIVE_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
 #endif
@@ -943,8 +943,8 @@ extern int initgroups(const char *, int);
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
 #define ROOT_PATH	"/usr/bin:/sbin:/usr/sbin"
 #define MISSING_SETENV
 #ifndef NO_NIS
@@ -982,8 +982,8 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
 #define ROOT_PATH	"/usr/bin:/sbin:/usr/sbin"
 #define MISSING_SETENV
 #ifndef NO_NIS
@@ -1027,8 +1027,8 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define MISSING_SETENV
 #define MISSING_RLIMIT_FSIZE
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/usr/lib/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/usr/lib/aliases"
 #define ROOT_PATH	"/bin:/usr/bin:/etc"
 #define _PATH_BSHELL	"/bin/sh"
 #define _PATH_MAILDIR	"/usr/mail"
@@ -1087,7 +1087,7 @@ extern int h_errno;
 #define _PATH_DEFPATH	"/bin:/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/bin:/usr/bin:/usr/ucb"
 #define ROOT_PATH	"/bin:/usr/bin:/usr/etc:/usr/ucb"
-#define DEF_DB_TYPE	"dbm"
+#define NATIVE_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"netinfo:/aliases"
 #include <libc.h>
 #define MISSING_POSIX_S_IS
@@ -1142,7 +1142,7 @@ typedef unsigned short mode_t;
 #define _PATH_DEFPATH	"/bin:/usr/bin:/usr/ucb"
 #define _PATH_STDPATH	"/bin:/usr/bin:/usr/ucb"
 #define ROOT_PATH	"/bin:/usr/bin:/usr/etc:/usr/ucb"
-#define DEF_DB_TYPE	"dbm"
+#define NATIVE_DB_TYPE	"dbm"
 #define ALIAS_DB_MAP	"netinfo:/aliases"
 #include <libc.h>
 #define MISSING_POSIX_S_IS
@@ -1179,8 +1179,8 @@ typedef unsigned short mode_t;
 #define FIONREAD_IN_SYS_FILIO_H
 #define USE_SYS_SOCKIO_H
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/var/adm/sendmail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/var/adm/sendmail/aliases"
 extern int optind;			/* XXX use <getopt.h> */
 extern char *optarg;			/* XXX use <getopt.h> */
 extern int opterr;			/* XXX use <getopt.h> */
@@ -1209,8 +1209,8 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define INTERNAL_LOCK	MYFLOCK_STYLE_FCNTL
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
-#define DEF_DB_TYPE	"hash"
-#define ALIAS_DB_MAP	"hash:/etc/aliases"
+#define NATIVE_DB_TYPE	"hash"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/aliases"
 /* Uncomment the following line if you have NIS package installed */
 /* #define HAS_NIS */
 #define USE_SYS_SOCKIO_H
@@ -1242,8 +1242,8 @@ extern int h_errno;
 #define DEF_MAILBOX_LOCK "fcntl, dotlock"
 #define HAS_FSYNC
 #define HAS_DBM
-#define DEF_DB_TYPE	"dbm"
-#define ALIAS_DB_MAP	"dbm:/etc/mail/aliases"
+#define NATIVE_DB_TYPE	"dbm"
+#define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
 #define DBM_NO_TRAILING_NULL
 #ifndef NO_NIS
 #define HAS_NIS
@@ -1301,6 +1301,10 @@ extern int h_errno;
 #ifdef NATIVE_NEWALIAS_PATH
 #define DEF_NEWALIAS_PATH NATIVE_NEWALIAS_PATH
 #endif
+#endif
+
+#ifndef DEF_DB_TYPE
+#define DEF_DB_TYPE	NATIVE_DB_TYPE
 #endif
 
 #define CAST_CHAR_PTR_TO_INT(cptr)	((int) (long) (cptr))

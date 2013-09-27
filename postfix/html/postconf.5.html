@@ -3782,11 +3782,11 @@ this length; upon delivery, long lines are reconstructed.  </p>
 </DD>
 
 <DT><b><a name="lmdb_map_size">lmdb_map_size</a>
-(default: 10485760)</b></DT><DD>
+(default: 16777216)</b></DT><DD>
 
 <p>
-The per-table size limit for programs that create OpenLDAP LMDB
-tables.  Specify a byte count.
+The initial OpenLDAP LMDB database size limit in bytes.  Each time
+a database becomes full, its size limit is doubled.
 </p>
 
 <p>
@@ -13683,7 +13683,8 @@ DNS lookup and increases the maximal inbound delivery rate. </p>
 <DT><b><a name="smtpd_per_record_deadline">smtpd_per_record_deadline</a>
 (default: normal: no, overload: yes)</b></DT><DD>
 
-<p> Change the behavior of the <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> time limit, from a
+<p> Change the behavior of the <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> and <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a>
+time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).  This
@@ -14705,6 +14706,12 @@ feature is available in Postfix 2.1 and later.  </dd>
 <dd>Enforces the <a href="postconf.5.html#reject_sender_login_mismatch">reject_sender_login_mismatch</a> restriction for
 authenticated clients only. This feature is available in
 Postfix version 2.1 and later. </dd>
+
+<dt><b><a name="reject_known_sender_login_mismatch">reject_known_sender_login_mismatch</a></b></dt>
+
+<dd>Apply the <a href="postconf.5.html#reject_sender_login_mismatch">reject_sender_login_mismatch</a> restriction only to MAIL
+FROM addresses that are known in $<a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a>.  This
+feature is available in Postfix version 2.11 and later. </dd>
 
 <dt><b><a name="reject_non_fqdn_sender">reject_non_fqdn_sender</a></b></dt>
 

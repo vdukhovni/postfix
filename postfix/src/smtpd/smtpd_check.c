@@ -3461,7 +3461,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 
 /* reject_auth_sender_login_mismatch - logged in client must own sender address */
 
-static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sender)
+static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sender, int allow_unknown_sender)
 {
     const RESOLVE_REPLY *reply;
     const char *owners;
@@ -3469,6 +3469,9 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
     char   *cp;
     char   *name;
     int     found = 0;
+
+#define ALLOW_UNKNOWN_SENDER	1
+#define FORBID_UNKNOWN_SENDER	0
 
     /*
      * Reject if the client is logged in and does not own the sender address.
@@ -3487,7 +3490,8 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
 		}
 	    }
 	    myfree(saved_owners);
-	}
+	} else if (allow_unknown_sender)
+	    return (SMTPD_CHECK_DUNNO);
 	if (!found)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY, 553, "5.7.1",
 		      "<%s>: Sender address rejected: not owned by user %s",
@@ -4017,7 +4021,21 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 #ifdef USE_SASL_AUTH
 	    if (var_smtpd_sasl_enable) {
 		if (state->sender && *state->sender)
-		    status = reject_auth_sender_login_mismatch(state, state->sender);
+		    status = reject_auth_sender_login_mismatch(state,
+				      state->sender, FORBID_UNKNOWN_SENDER);
+	    } else
+#endif
+		msg_warn("restriction `%s' ignored: no SASL support", name);
+	} else if (strcasecmp(name, REJECT_KNOWN_SENDER_LOGIN_MISMATCH) == 0) {
+#ifdef USE_SASL_AUTH
+	    if (var_smtpd_sasl_enable) {
+		if (state->sender && *state->sender) {
+		    if (state->sasl_username)
+			status = reject_auth_sender_login_mismatch(state,
+				       state->sender, ALLOW_UNKNOWN_SENDER);
+		    else
+			status = reject_unauth_sender_login_mismatch(state, state->sender);
+		}
 	    } else
 #endif
 		msg_warn("restriction `%s' ignored: no SASL support", name);
