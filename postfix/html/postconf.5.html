@@ -3796,6 +3796,18 @@ This feature is available in Postfix 2.11 and later.
 
 </DD>
 
+<DT><b><a name="lmdb_max_readers">lmdb_max_readers</a>
+(default: $<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b></DT><DD>
+
+<p> The hard limit on the number of read transactions that may be
+open at the same time for the same OpenLDAP LMDB database.  When
+this number is too small, the Postfix LMDB client will log
+MDB_READERS_FULL errors, and will run with reduced performance.
+</p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_address_preference">lmtp_address_preference</a>
 (default: ipv6)</b></DT><DD>
 

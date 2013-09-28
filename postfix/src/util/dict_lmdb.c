@@ -7,6 +7,7 @@
 /*	#include <dict_lmdb.h>
 /*
 /*	size_t	dict_lmdb_map_size;
+/*	unsigned int dict_lmdb_max_readers;
 /*
 /*	DICT	*dict_lmdb_open(path, open_flags, dict_flags)
 /*	const char *name;
@@ -21,6 +22,11 @@
 /*	The dict_lmdb_map_size variable specifies the initial
 /*	database memory map size.  When a map becomes full its size
 /*	is doubled, and other programs pick up the size change.
+/*
+/*	The dict_lmdb_max_readers variable specifies the hard (ugh)
+/*	limit on the number of read transactions that may be open
+/*	at the same time. This should be propertional to the number
+/*	of processes that read the table.
 /* DIAGNOSTICS
 /*	Fatal errors: cannot open file, file write error, out of
 /*	memory.
@@ -97,8 +103,9 @@ typedef struct {
     /* The following facilitate LMDB quirk workarounds. */
     int     dict_api_retries;		/* workarounds per dict(3) call */
     int     bulk_mode_retries;		/* workarounds per bulk transaction */
-    int     open_flags;			/* dict(3) open flags */
-    int     env_flags;			/* LMDB open flags */
+    int     dict_open_flags;		/* dict(3) open flags */
+    int     mdb_open_flags;		/* LMDB open flags */
+    int     readers_full;		/* MDB_READERS_FULL errors */
 } DICT_LMDB;
 
  /*
@@ -130,7 +137,7 @@ typedef struct {
 #define DICT_LMDB_SIZE_INCR	2	/* Increase size by 1 bit on retry */
 #define DICT_LMDB_SIZE_MAX	SSIZE_T_MAX
 
-#define DICT_LMDB_API_RETRY_LIMIT 2	/* Retries per dict(3) API call */
+#define DICT_LMDB_API_RETRY_LIMIT 100	/* Retries per dict(3) API call */
 #define DICT_LMDB_BULK_RETRY_LIMIT \
 	(2 * sizeof(size_t) * CHAR_BIT)	/* Retries per bulk-mode transaction */
 
@@ -146,8 +153,9 @@ unsigned int dict_lmdb_max_readers = 216;	/* 200 postfix processes,
 
  /*
   * The purpose of the error-recovering functions below is to hide LMDB
-  * quirks (MAP_FULL, MAP_CHANGED), so that the dict(3) API routines can
-  * pretend that those quirks don't exist, and focus on their own job.
+  * quirks (MAP_FULL, MAP_CHANGED, READERS_FULL), so that the dict(3) API
+  * routines can pretend that those quirks don't exist, and focus on their
+  * own job.
   * 
   * - To recover from a single-transaction LMDB error, each wrapper function
   * uses tail recursion instead of goto. Since LMDB errors are rare, code
@@ -175,7 +183,7 @@ static void dict_lmdb_prepare(DICT_LMDB *dict_lmdb)
      * - With DICT_FLAG_BULK_UPDATE we commit a bulk-mode transaction when the
      * database is closed.
      */
-    if (dict_lmdb->open_flags & O_TRUNC) {
+    if (dict_lmdb->dict_open_flags & O_TRUNC) {
 	if ((status = mdb_drop(dict_lmdb->txn, dict_lmdb->dbi, 0)) != 0)
 	    msg_fatal("truncate %s:%s: %s",
 		      dict_lmdb->dict.type, dict_lmdb->dict.name,
@@ -187,7 +195,7 @@ static void dict_lmdb_prepare(DICT_LMDB *dict_lmdb)
 			  mdb_strerror(status));
 	    dict_lmdb->txn = NULL;
 	}
-    } else if ((dict_lmdb->env_flags & MDB_RDONLY) != 0
+    } else if ((dict_lmdb->mdb_open_flags & MDB_RDONLY) != 0
 	       || (dict_lmdb->dict.flags & DICT_FLAG_BULK_UPDATE) == 0) {
 	mdb_txn_abort(dict_lmdb->txn);
 	dict_lmdb->txn = NULL;
@@ -278,6 +286,20 @@ static int dict_lmdb_recover(DICT_LMDB *dict_lmdb, int status)
 	break;
 
 	/*
+	 * What is it with these built-in hard limits that cause systems to
+	 * fail when resources are needed most? When the system is under
+	 * stress it should slow down, not stop working.
+	 */
+    case MDB_READERS_FULL:
+	if (dict_lmdb->readers_full++ == 0)
+	    msg_warn("database %s:%s: %s - increase lmdb_max_readers",
+		     dict_lmdb->dict.type, dict_lmdb->dict.name,
+		     mdb_strerror(status));
+	rand_sleep(1000000, 1000000);
+	status = 0;
+	break;
+
+	/*
 	 * We can't solve this problem. The application should terminate with
 	 * a fatal run-time error and the program should be re-run later.
 	 */
@@ -293,7 +315,7 @@ static int dict_lmdb_recover(DICT_LMDB *dict_lmdb, int status)
     if (dict_lmdb->txn != 0 && status == 0
      && (dict_lmdb->bulk_mode_retries += 1) <= DICT_LMDB_BULK_RETRY_LIMIT) {
 	status = mdb_txn_begin(dict_lmdb->env, NULL,
-			       dict_lmdb->env_flags & MDB_RDONLY,
+			       dict_lmdb->mdb_open_flags & MDB_RDONLY,
 			       &dict_lmdb->txn);
 	if (status != 0)
 	    msg_fatal("txn_begin %s:%s: %s",
@@ -466,9 +488,21 @@ static int dict_lmdb_cursor_get(DICT_LMDB *dict_lmdb, MDB_val *mdb_key,
      * Database lookup.
      */
     status = mdb_cursor_get(dict_lmdb->cursor, mdb_key, mdb_value, op);
-    if (status != 0 && status != MDB_NOTFOUND)
-	if ((status = dict_lmdb_recover(dict_lmdb, status)) == 0)
-	    return (dict_lmdb_cursor_get(dict_lmdb, mdb_key, mdb_value, op));
+
+    /*
+     * Handle end-of-database or other error.
+     */
+    if (status != 0) {
+	if (status == MDB_NOTFOUND) {
+	    txn = mdb_cursor_txn(dict_lmdb->cursor);
+	    mdb_cursor_close(dict_lmdb->cursor);
+	    mdb_txn_abort(txn);
+	    dict_lmdb->cursor = 0;
+	} else {
+	    if ((status = dict_lmdb_recover(dict_lmdb, status)) == 0)
+		return (dict_lmdb_cursor_get(dict_lmdb, mdb_key, mdb_value, op));
+	}
+    }
     return (status);
 }
 
@@ -735,7 +769,6 @@ static int dict_lmdb_sequence(DICT *dict, int function,
     DICT_LMDB *dict_lmdb = (DICT_LMDB *) dict;
     MDB_val mdb_key;
     MDB_val mdb_value;
-    MDB_txn *txn;
     MDB_cursor_op op;
     int     status;
 
@@ -774,14 +807,10 @@ static int dict_lmdb_sequence(DICT *dict, int function,
 	break;
 
 	/*
-	 * Destroy cursor and read transaction.
+	 * End-of-database.
 	 */
     case MDB_NOTFOUND:
 	status = 1;
-	txn = mdb_cursor_txn(dict_lmdb->cursor);
-	mdb_cursor_close(dict_lmdb->cursor);
-	mdb_txn_abort(txn);
-	dict_lmdb->cursor = 0;
 	break;
 
 	/*
@@ -845,8 +874,16 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     if ((status = mdb_env_create(&env)))
 	msg_fatal("env_create %s: %s", mdb_path, mdb_strerror(status));
 
-    if (stat(mdb_path, &st) == 0 && st.st_size > map_size)
-	map_size = st.st_size;
+    if (stat(mdb_path, &st) == 0 && st.st_size > map_size) {
+	if (st.st_size / map_size < DICT_LMDB_SIZE_MAX / map_size) {
+	    map_size = (st.st_size / map_size + 1) * map_size;
+	} else {
+	    map_size = st.st_size;
+	}
+	if (msg_verbose)
+	    msg_info("using %s:%s map size %lu",
+		     DICT_TYPE_LMDB, path, (unsigned long) map_size);
+    }
     if ((status = mdb_env_set_mapsize(env, map_size)))
 	msg_fatal("env_set_mapsize %s: %s", mdb_path, mdb_strerror(status));
 
@@ -872,6 +909,9 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     if ((status = mdb_open(txn, NULL, 0, &dbi)))
 	msg_fatal("mdb_open %s: %s", mdb_path, mdb_strerror(status));
 
+    /*
+     * Bundle up.
+     */
     dict_lmdb = (DICT_LMDB *) dict_alloc(DICT_TYPE_LMDB, path, sizeof(*dict_lmdb));
     dict_lmdb->dict.lookup = dict_lmdb_lookup;
     dict_lmdb->dict.update = dict_lmdb_update;
@@ -914,9 +954,10 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     /* The following facilitate transparent error recovery. */
     dict_lmdb->dict_api_retries = 0;
     dict_lmdb->bulk_mode_retries = 0;
-    dict_lmdb->open_flags = open_flags;
-    dict_lmdb->env_flags = env_flags;
+    dict_lmdb->dict_open_flags = open_flags;
+    dict_lmdb->mdb_open_flags = env_flags;
     dict_lmdb->txn = txn;
+    dict_lmdb->readers_full = 0;
     dict_lmdb_prepare(dict_lmdb);
     if (dict_flags & DICT_FLAG_BULK_UPDATE)
 	dict_jmp_alloc(&dict_lmdb->dict);	/* build into dict_alloc() */

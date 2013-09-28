@@ -424,7 +424,6 @@
  /*
   * Configuration parameters.
   */
-int     var_proc_limit;
 char   *var_smtpd_service;
 char   *var_smtpd_banner;
 bool    var_disable_vrfy_cmd;
@@ -1100,7 +1099,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
-	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
 	VAR_PSC_DNSBL_THRESH, DEF_PSC_DNSBL_THRESH, &var_psc_dnsbl_thresh, 0, 0,
 	VAR_PSC_DNSBL_WTHRESH, DEF_PSC_DNSBL_WTHRESH, &var_psc_dnsbl_wthresh, 0, 0,
 	VAR_PSC_CMD_COUNT, DEF_PSC_CMD_COUNT, &var_psc_cmd_count, 1, 0,

@@ -18943,3 +18943,14 @@ Apologies for any names omitted.
 	util/dict_open.c, util/dict_alloc.c, util/dict_lmdb.c,
 	postmap/postmap.c, postalias/postalias.c, proto/LMDB_README.html,
 	proto/postconf.proto.
+
+20130928
+
+	Cleanup: the lmdb_max_readers property is now configurable.
+	This is a hard limit built into the OpenLDAP library that
+	causes requests to fail when the number of open read
+	transactions exceeds the limit.  When this happens the LMDB
+	client logs a MDB_READERS_FULL warning and continues with
+	reduced performance.  Files: util/dict_lmdb.c, util/dict_lmdb.h,
+	global/mail_params.h, global/mail_params.c, proto/postconf.proto,
+	proto/LMDB_README.html.

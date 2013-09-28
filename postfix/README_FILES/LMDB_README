@@ -39,12 +39,18 @@ The exact pathnames depend on how OpenLDAP LMDB was installed.
 
 CCoonnffiigguurree LLMMDDBB sseettttiinnggss
 
-Postfix provides one configuration parameter that controls OpenLDAP LMDB
-database behavior.
+Postfix provides configuration parameters that control OpenLDAP LMDB database
+behavior.
 
   * lmdb_map_size (default: 16777216). This setting specifies the initial
     OpenLDAP LMDB database size limit in bytes. Each time a database becomes
     full, its size limit is doubled.
+
+  * lmdb_max_readers (default: $default_process_limit). This specifies a hard
+    limit on the number of read transactions that may be open at the same time
+    for the same OpenLDAP LMDB database. When this number is too small, the
+    Postfix LMDB client will log MDB_READERS_FULL warnings, and will run with
+    reduced performance.
 
 MMiissssiinngg pptthhrreeaadd lliibbrraarryy ttrroouubbllee
 
@@ -67,6 +73,26 @@ As documented below, conversion to LMDB introduces a number of failure modes
 that don't exist with other Postfix databases. Some failure modes have been
 eliminated on the course of time. The writeup below reflects the status as of
 of LMDB 0.9.8.
+
+UUnneexxppeecctteedd ""rreeaaddeerrss ffuullll"" eerrrroorrss..
+
+Problem:
+    Under heavy load, database read operations fail with MDB_READERS_FULL
+    errors. This problem does not exist with other Postfix databases.
+
+Background:
+    The LMDB implementation enforces a hard limit on the number of simultaneous
+    read requests for the same database environment. This limit must be
+    specified with the lmdb_max_readers configuration parameter.
+
+Mitigation:
+    Postfix logs a warning suggesting that the lmdb_max_readers parameter value
+    be increased, and retries the failed operation for a limited number of
+    times while running with reduced performance.
+
+Prevention:
+    Monitor your LMDB files for MDB_READERS_FULL errors and make the necessary
+    adjustments. Consider using CDB for read-mostly databases.
 
 NNoonn--oobbvviioouuss rreeccoovveerryy wwiitthh ppoossttmmaapp((11))//ppoossttaalliiaass((11))//ttllssmmggrr((88)) ffrroomm aa ccoorrrruupptteedd
 ddaattaabbaassee..

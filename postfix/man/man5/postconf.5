@@ -2247,6 +2247,11 @@ The initial OpenLDAP LMDB database size limit in bytes.  Each time
 a database becomes full, its size limit is doubled.
 .PP
 This feature is available in Postfix 2.11 and later.
+.SH lmdb_max_readers (default: $default_process_limit)
+The hard limit on the number of read transactions that may be
+open at the same time for the same OpenLDAP LMDB database.  When
+this number is too small, the Postfix LMDB client will log
+MDB_READERS_FULL errors, and will run with reduced performance.
 .SH lmtp_address_preference (default: ipv6)
 The LMTP-specific version of the smtp_address_preference
 configuration parameter.  See there for details.

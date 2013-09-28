@@ -2769,11 +2769,15 @@ extern int var_db_create_buf;
 extern int var_db_read_buf;
 
  /*
-  * OpenLDAP LMDB memory map size.
+  * OpenLDAP LMDB settings.
   */
 #define VAR_LMDB_MAP_SIZE		"lmdb_map_size"
 #define DEF_LMDB_MAP_SIZE		(16 * 1024 *1024)
 extern long var_lmdb_map_size;
+
+#define VAR_LMDB_MAX_READERS		"lmdb_max_readers"
+#define DEF_LMDB_MAX_READERS		"$" VAR_PROC_LIMIT
+extern int var_lmdb_max_readers;
 
  /*
   * Named queue file attributes.

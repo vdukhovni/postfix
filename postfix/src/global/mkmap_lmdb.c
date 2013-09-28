@@ -61,53 +61,11 @@
 
 #include "mkmap.h"
 
-int     var_proc_limit;
-
 /* mkmap_lmdb_open */
 
 MKMAP  *mkmap_lmdb_open(const char *path)
 {
     MKMAP  *mkmap = (MKMAP *) mymalloc(sizeof(*mkmap));
-    static const CONFIG_INT_TABLE int_table[] = {
-	VAR_PROC_LIMIT, DEF_PROC_LIMIT, &var_proc_limit, 1, 0,
-	0,
-    };
-
-    get_mail_conf_int_table(int_table);
-
-    /*
-     * XXX Why is this not set in mail_params.c (with proper #ifdefs)?
-     * 
-     * Override the default per-table map size for map (re)builds.
-     * 
-     * lmdb_map_size is defined in util/dict_lmdb.c and defaults to 10MB. It
-     * needs to be large enough to contain the largest tables in use.
-     * 
-     * XXX This should be specified via the DICT interface so that the buffer
-     * size becomes an object property, instead of being specified by poking
-     * a global variable so that it becomes a class property.
-     * 
-     * XXX Wietse disagrees: storage infrastructure that requires up-front
-     * max-size information is evil. This unlike Postfix (e.g. line length or
-     * process count) limits which are a defense against out-of-control or
-     * malicious external actors.
-     * 
-     * XXX Need to check that an existing table can be rebuilt with a larger
-     * size limit than was used for the initial build.
-     */
-    dict_lmdb_map_size = var_lmdb_map_size;
-
-    /*
-     * XXX Why is this not set in mail_params.c (with proper #ifdefs)?
-     * 
-     * Set the max number of concurrent readers per table. This is the
-     * maximum number of postfix processes, plus some extra for CLI users.
-     * 
-     * XXX Postfix uses asynchronous or blocking I/O with single-threaded
-     * processes so this limit will never be reached, assuming that the limit
-     * is a per-client property, not a shared database property.
-     */
-    dict_lmdb_max_readers = var_proc_limit * 2 + 16;
 
     /*
      * Fill in the generic members.

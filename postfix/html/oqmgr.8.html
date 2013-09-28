@@ -292,8 +292,9 @@ OQMGR(8)                                                              OQMGR(8)
               deferred message.
 
        <b><a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a> (5d)</b>
-              The maximal time a message is queued before  it  is
-              sent back as undeliverable.
+              Consider a message as undeliverable, when  delivery
+              fails  with  a temporary error, and the time in the
+              queue has reached the <a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a> limit.
 
        <b><a href="postconf.5.html#queue_run_delay">queue_run_delay</a> (300s)</b>
               The  time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a> scans by the queue
@@ -308,8 +309,10 @@ OQMGR(8)                                                              OQMGR(8)
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a> (5d)</b>
-              The  maximal time a bounce message is queued before
-              it is considered undeliverable.
+              Consider  a  bounce  message as undeliverable, when
+              delivery fails with a temporary error, and the time
+              in  the queue has reached the <a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a>
+              limit.
 
        Available in Postfix version 2.5 and later:
 

@@ -69,7 +69,7 @@ build Postfix with OpenLDAP LMDB support, use something like: </p>
 
 <h2><a name="configure">Configure LMDB settings</a></h2>
 
-<p> Postfix provides one configuration parameter that controls 
+<p> Postfix provides configuration parameters that control 
 OpenLDAP LMDB database behavior. </p>
 
 <ul>
@@ -77,6 +77,13 @@ OpenLDAP LMDB database behavior. </p>
 <li> <p> lmdb_map_size (default: 16777216).  This setting specifies
 the initial OpenLDAP LMDB database size limit in bytes.  Each time
 a database becomes full, its size limit is doubled.  </p>
+
+<li> <p> lmdb_max_readers (default: $default_process_limit). This
+specifies a hard limit on the number of read transactions that may
+be open at the same time for the same OpenLDAP LMDB database. When
+this number is too small, the Postfix LMDB client will log
+MDB_READERS_FULL warnings, and will run with reduced performance.
+</p>
 
 </ul>
 
@@ -112,6 +119,28 @@ databases.  </a> </h2>
 failure modes that don't exist with other Postfix databases.  Some
 failure modes have been eliminated on the course of time.
 The writeup below reflects the status as of of LMDB 0.9.8. </p>
+
+<p> <strong>Unexpected "readers full" errors. </strong></p>
+
+<dl>
+
+<dt> Problem: </dt> <dd> <p> Under heavy load, database read
+operations fail with MDB_READERS_FULL errors. This problem does not
+exist with other Postfix databases. </p> </dd>
+
+<dt> Background: </dt> <dd> <p> The LMDB implementation enforces a
+hard limit on the number of simultaneous read requests for the same
+database environment. This limit must be specified with the
+lmdb_max_readers configuration parameter. </p> </dd>
+
+<dt> Mitigation: </dt> <dd> <p> Postfix logs a warning suggesting
+that the lmdb_max_readers parameter value be increased, and retries
+the failed operation for a limited number of times while running
+with reduced performance.  </p> </dd>
+
+<dt> Prevention: </dt> <dd> <p> Monitor your LMDB files for
+MDB_READERS_FULL errors and make the necessary adjustments.
+Consider using CDB for read-mostly databases.  </p> </dd> </dl>
 
 <!--
 

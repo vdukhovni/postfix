@@ -209,6 +209,7 @@ while (<>) {
     s;\bipc_ttl\b;<a href="postconf.5.html#ipc_ttl">$&</a>;g;
     s;\bline_length_limit\b;<a href="postconf.5.html#line_length_limit">$&</a>;g;
     s;\blmdb_map_size\b;<a href="postconf.5.html#lmdb_map_size">$&</a>;g;
+    s;\blmdb_max_readers\b;<a href="postconf.5.html#lmdb_max_readers">$&</a>;g;
     s;\blmtp_address_preference\b;<a href="postconf.5.html#lmtp_address_preference">$&</a>;g;
     s;\blmtp_body_checks\b;<a href="postconf.5.html#lmtp_body_checks">$&</a>;g;
     s;\blmtp_cname_overrides_servername\b;<a href="postconf.5.html#lmtp_cname_overrides_servername">$&</a>;g;

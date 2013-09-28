@@ -2848,6 +2848,15 @@ a database becomes full, its size limit is doubled.
 This feature is available in Postfix 2.11 and later.
 </p>
 
+%PARAM lmdb_max_readers $default_process_limit
+
+<p> The hard limit on the number of read transactions that may be
+open at the same time for the same OpenLDAP LMDB database.  When
+this number is too small, the Postfix LMDB client will log
+MDB_READERS_FULL errors, and will run with reduced performance.
+</p>
+
+
 %PARAM message_size_limit 10240000
 
 <p>
