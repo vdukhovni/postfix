@@ -18950,7 +18950,22 @@ Apologies for any names omitted.
 	This is a hard limit built into the OpenLDAP library that
 	causes requests to fail when the number of open read
 	transactions exceeds the limit.  When this happens the LMDB
-	client logs a MDB_READERS_FULL warning and continues with
+	client logs an MDB_READERS_FULL warning and continues with
 	reduced performance.  Files: util/dict_lmdb.c, util/dict_lmdb.h,
 	global/mail_params.h, global/mail_params.c, proto/postconf.proto,
 	proto/LMDB_README.html.
+
+20130929
+
+	Security violation: LMDB opens files with read/write access
+	for lock management purposes.  This gives unprivileged
+	daemon processes read/write file handles for root-owned
+	files under /etc/postfix.  This also breaks when a non-root
+	process needs to access a root-owned database.  Even if
+	LMDB lock files were world-writable, and kept in a dedicated
+	directory, they would still violate the principle of least
+	privilege. For all these reasons, support to create LMDB
+	files is removed from the postmap and postalias commands.
+	LMDB files can still be created by unprivileged Postfix
+	daemon processes under the postfix-owned data_directory.
+	Files: proto/LMDB_README.html, global/mkmap.c.

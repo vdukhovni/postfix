@@ -14,6 +14,24 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Major changes with snapshot 20130929
+====================================
+
+Support to create LMDB databases is no longer available for the
+postmap(1) and postalias(1) commands.  Instead, consider using cdb:
+to manage root-owned databases under the root-owned config_directory
+(default: /etc/postfix) such as access(5), virtual(5), transport(5).
+
+The reason is that LMDB applications require write access even when
+the application itself is read-only. This violates the principle
+of least privilege, and causes all kinds of problems when a non-root
+process needs to query a root-owned database.
+
+Support to create LMDB databases is available only for unprivileged
+Postfix daemon processes such as postscreen(8), tlsmgr(8) and
+verify(8) that manage postfix-owned databases under the postfix-owned
+data_directory (default: /var/lib/postfix).
+
 Major changes with snapshot 20130927
 ====================================
 

@@ -102,7 +102,29 @@ static const MKMAP_OPEN_INFO mkmap_types[] = {
     DICT_TYPE_HASH, mkmap_hash_open,
     DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
-#ifdef HAS_LMDB
+
+    /*
+     * LMDB readers open the LMDB lock file O_RDWR.  This complicates
+     * database sharing between processes that run with different effective
+     * UIDs.
+     * 
+     * For example, this violates the Postfix security model as it passes a
+     * read-write file handle for a root-owned file under /etc/postfix into a
+     * non-root daemon process.
+     * 
+     * This also totally breaks non-root access for root-owned databases by
+     * non-daemon processes.
+     * 
+     * Even if LMDB lock files were kept under /tmp or /var/run, those files
+     * would still have to be world-writable, and that would still violate
+     * the principle of least privilege.
+     * 
+     * For all these reasons, LMDB is supported only for caches that are
+     * maintained by non-root daemon processes such as postscreen(8),
+     * tlsmgr(8) or verify(8). All the effort to recover from bogus LMDB
+     * errors was good for something.
+     */
+#ifdef notdef
     DICT_TYPE_LMDB, mkmap_lmdb_open,
 #endif
     DICT_TYPE_FAIL, mkmap_fail_open,
@@ -165,7 +187,7 @@ MKMAP  *mkmap_open(const char *type, const char *path,
      */
     for (mp = mkmap_types; /* void */ ; mp++) {
 	if (mp->type == 0)
-	    msg_fatal("unsupported map type: %s", type);
+	    msg_fatal("unsupported map type for this operation: %s", type);
 	if (strcmp(type, mp->type) == 0)
 	    break;
     }

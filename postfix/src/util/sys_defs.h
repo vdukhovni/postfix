@@ -433,7 +433,9 @@ extern int opterr;
 #define ALIAS_DB_MAP	DEF_DB_TYPE ":/etc/mail/aliases"
 #ifndef NO_NIS
 #define HAS_NIS
+#ifndef NO_NISPLUS
 #define HAS_NISPLUS
+#endif	/* NO_NISPLUS */
 #endif
 #define USE_SYS_SOCKIO_H		/* Solaris 2.5, changed sys/ioctl.h */
 #define GETTIMEOFDAY(t)	gettimeofday(t)

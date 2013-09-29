@@ -277,8 +277,12 @@ The following is an extensive list of names and values.
 ||                             |known to support it.                          |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                             |Do not build with NIS or NISPLUS support. NIS |
-||-DNO_NIS                     |is not available on some recent Linux or      |
-||                             |Solaris distributions.                        |
+||-DNO_NIS                     |is not available on some recent Linux         |
+||                             |distributions.                                |
+|_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+||                             |Do not build with NISPLUS support. NISPLUS is |
+||-DNO_NISPLUS                 |not available on some recent Solaris          |
+||                             |distributions.                                |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                             |Do not build with PCRE support. By default,   |
 ||-DNO_PCRE                    |PCRE support is compiled in when the pcre-    |

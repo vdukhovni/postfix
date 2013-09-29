@@ -19,12 +19,28 @@
 
 <h2>Introduction</h2>
 
+<blockquote> <p> Warning: LMDB applications require write access
+even when the application itself is read-only. This violates the
+principle of least privilege, and causes all kinds of problems
+when a non-root process needs to query a root-owned database such
+as <a href="access.5.html">access(5)</a>, <a href="virtual.5.html">virtual(5)</a>, or <a href="transport.5.html">transport(5)</a>. </p>
+
+<p> Support to create LMDB databases is no longer available for the
+<a href="postmap.1.html">postmap(1)</a> and <a href="postalias.1.html">postalias(1)</a> commands.  Instead, consider using <a href="CDB_README.html">cdb</a>:
+to manage root-owned databases under the root-owned <a href="postconf.5.html#config_directory">config_directory</a>
+(default: <tt>/etc/postfix</tt>) such as <a href="access.5.html">access(5)</a>, <a href="virtual.5.html">virtual(5)</a>, or
+<a href="transport.5.html">transport(5)</a>. </p>
+
+<p> Support to create LMDB databases is available only for unprivileged
+Postfix daemon processes such as <a href="postscreen.8.html">postscreen(8)</a>, <a href="tlsmgr.8.html">tlsmgr(8)</a> and
+<a href="verify.8.html">verify(8)</a> that manage postfix-owned databases under the postfix-owned
+<a href="postconf.5.html#data_directory">data_directory</a> (default: <tt>/var/lib/postfix</tt>).  </p> </blockquote>
+
 <p> Postfix uses databases of various kinds to store and look up
 information. Postfix databases are specified as "type:name".
 OpenLDAP LMDB implements the Postfix database type "lmdb".
 The name of a Postfix OpenLDAP LMDB database is the name
-of the database file without the ".lmdb" suffix. OpenLDAP LMDB databases
-are maintained with the <a href="postmap.1.html">postmap(1)</a> and <a href="postalias.1.html">postalias(1)</a> commands.  </p>
+of the database file without the ".lmdb" suffix. </p>
 
 <p> This document describes: </p>
 
@@ -117,8 +133,33 @@ databases.  </a> </h2>
 
 <p> As documented below, conversion to LMDB introduces a number of
 failure modes that don't exist with other Postfix databases.  Some
-failure modes have been eliminated on the course of time.
+failure modes have been eliminated in the course of time.
 The writeup below reflects the status as of of LMDB 0.9.8. </p>
+
+<p> <strong>Unexpected "Permission denied" errors. </strong></p>
+
+<dl>
+
+<dt> Problem: </dt> <dd> <p> A world-readable LMDB database cannot
+be opened by a process with a UID that differs from the database
+file owner, even when an attempt is made to open the database
+read-only.  This problem does not exist with other Postfix databases.
+</p> </dd>
+
+<dt> Background: </dt> <dd> <p> The LMDB implementation requires 
+write access to maintain read locks, and perhaps for other purposes.
+</p> </dd>
+
+<dt> Solution: </dt> <dd> <p> Consider using <a href="CDB_README.html">cdb</a>: to manage root-owned
+databases under the root-owned <tt>/etc</tt> or <a href="postconf.5.html#config_directory">config_directory</a>
+(default: <tt>/etc/postfix</tt>) such as <a href="access.5.html">access(5)</a>, <a href="virtual.5.html">virtual(5)</a>,
+<a href="transport.5.html">transport(5)</a>. Support to create LMDB databases is available only
+for unprivileged Postfix daemon processes such as <a href="postscreen.8.html">postscreen(8)</a>,
+<a href="tlsmgr.8.html">tlsmgr(8)</a> and <a href="verify.8.html">verify(8)</a> that manage postfix-owned databases under
+the postfix-owned <a href="postconf.5.html#data_directory">data_directory</a> (default: <tt>/var/lib/postfix</tt>).
+</p> </dd>
+
+</dl>
 
 <p> <strong>Unexpected "readers full" errors. </strong></p>
 
@@ -130,8 +171,8 @@ exist with other Postfix databases. </p> </dd>
 
 <dt> Background: </dt> <dd> <p> The LMDB implementation enforces a
 hard limit on the number of simultaneous read requests for the same
-database environment. This limit must be specified with the
-<a href="postconf.5.html#lmdb_max_readers">lmdb_max_readers</a> configuration parameter. </p> </dd>
+database environment. This limit must be specified in advance with
+the <a href="postconf.5.html#lmdb_max_readers">lmdb_max_readers</a> configuration parameter. </p> </dd>
 
 <dt> Mitigation: </dt> <dd> <p> Postfix logs a warning suggesting
 that the <a href="postconf.5.html#lmdb_max_readers">lmdb_max_readers</a> parameter value be increased, and retries
@@ -139,8 +180,10 @@ the failed operation for a limited number of times while running
 with reduced performance.  </p> </dd>
 
 <dt> Prevention: </dt> <dd> <p> Monitor your LMDB files for
-MDB_READERS_FULL errors and make the necessary adjustments.
-Consider using CDB for read-mostly databases.  </p> </dd> </dl>
+MDB_READERS_FULL errors. After making the necessary adjustments,
+restart Postfix. </p> </dd>
+
+</dl>
 
 <!--
 
@@ -249,15 +292,16 @@ sure that <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> &gt; 3x the 
 
 -->
 
-<p> <strong>Non-obvious recovery with <a href="postmap.1.html">postmap(1)</a>/<a href="postalias.1.html">postalias(1)</a>/<a href="tlsmgr.8.html">tlsmgr(8)</a>
-from a corrupted database.  </strong></p>
+<p> <strong>Non-obvious recovery with <!-- <a href="postmap.1.html">postmap(1)</a>, <a href="postalias.1.html">postalias(1)</a>, -->
+<a href="postscreen.8.html">postscreen(8)</a>, <a href="tlsmgr.8.html">tlsmgr(8)</a>, or <a href="verify.8.html">verify(8)</a> from a corrupted database.
+</strong></p>
 
 <dl>
 
 <dt> Problem: </dt> <dd> <p> You cannot rebuild a corrupted LMDB
-database simply by re-running <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>, or by
-waiting until the <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon restarts.  This problem
-does not exist with other Postfix databases.  </p> </dd>
+database simply by <!-- re-running <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>, or
+by --> waiting until a daemon restarts.  This problem does not exist
+with other Postfix databases.  </p> </dd>
 
 <dt> Background: </dt> <dd> <p> The Postfix LMDB database client
 does not truncate the database file.  Instead it attempts to create
@@ -269,11 +313,12 @@ That is obviously not possible with a corrupted database file. </p>
 someone fixes the problem.  </p> </dd>
 
 <dt> Recovery: </dt> <dd> <p> First delete the ".lmdb" file by hand.
-Then, rebuild the file with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command,
-or wait until the <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon restarts.  </p>
-</dd>
+Then, <!-- rebuild the file with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>
+command if the file was created with those commands, or --> restart
+postfix.  <!-- daemons if the file is maintained by daemon processes.
+--> </p> </dd>
 
-<dt> Prevention: </dt> <dd> 
+<dt> Prevention: </dt> <dd>
 
 <p> Arrange your file systems such that they never run out of free
 space. </p>
