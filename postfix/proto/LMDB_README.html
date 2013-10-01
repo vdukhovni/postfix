@@ -17,6 +17,16 @@
 
 <hr>
 
+<hr>
+
+
+<p> Postfix LMDB support is forbidden due to problems with LMDB lock
+management. These problems hinder error recovery in multi-programmed
+systems, and prohibit database sharing between privileged writer
+processes and unprivileged reader processes. </p>
+
+<!--
+
 <h2>Introduction</h2>
 
 <blockquote> <p> Warning: LMDB applications require write access
@@ -185,7 +195,7 @@ restart Postfix. </p> </dd>
 
 </dl>
 
-<!--
+<!- -
 
 <p> <strong>Unexpected postmap(1)/postalias(1) "database full"
 errors.  </strong></p>
@@ -290,17 +300,17 @@ full" error will disappear, at least for a while.  </p>
 sure that lmdb_map_size &gt; 3x the largest LMDB file size. </p>
 </dd> </dl>
 
--->
+- ->
 
-<p> <strong>Non-obvious recovery with <!-- postmap(1), postalias(1), -->
+<p> <strong>Non-obvious recovery with <!- - postmap(1), postalias(1), - ->
 postscreen(8), tlsmgr(8), or verify(8) from a corrupted database.
 </strong></p>
 
 <dl>
 
 <dt> Problem: </dt> <dd> <p> You cannot rebuild a corrupted LMDB
-database simply by <!-- re-running postmap(1) or postalias(1), or
-by --> waiting until a daemon restarts.  This problem does not exist
+database simply by <!- - re-running postmap(1) or postalias(1), or
+by - -> waiting until a daemon restarts.  This problem does not exist
 with other Postfix databases.  </p> </dd>
 
 <dt> Background: </dt> <dd> <p> The Postfix LMDB database client
@@ -313,10 +323,10 @@ That is obviously not possible with a corrupted database file. </p>
 someone fixes the problem.  </p> </dd>
 
 <dt> Recovery: </dt> <dd> <p> First delete the ".lmdb" file by hand.
-Then, <!-- rebuild the file with the postmap(1) or postalias(1)
-command if the file was created with those commands, or --> restart
-postfix.  <!-- daemons if the file is maintained by daemon processes.
---> </p> </dd>
+Then, <!- - rebuild the file with the postmap(1) or postalias(1)
+command if the file was created with those commands, or - -> restart
+postfix.  <!- - daemons if the file is maintained by daemon processes.
+- -> </p> </dd>
 
 <dt> Prevention: </dt> <dd>
 
@@ -330,3 +340,5 @@ in-memory file system data and metadata. </p>
 corruption of on-disk file system data and metadata. </p>
 
 </dd> </dl>
+
+-->

@@ -59,7 +59,7 @@ libexec/postmulti-script: conf/postmulti-script
 manpages:
 	set -e; for i in $(MANDIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) -f Makefile.in $(OPTS) MAKELEVEL=) || exit 1; \
-	done
+	done </dev/null
 
 printfck: update
 

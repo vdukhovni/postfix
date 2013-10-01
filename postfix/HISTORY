@@ -18969,3 +18969,11 @@ Apologies for any names omitted.
 	LMDB files can still be created by unprivileged Postfix
 	daemon processes under the postfix-owned data_directory.
 	Files: proto/LMDB_README.html, global/mkmap.c.
+
+20131001
+
+	Cleanup: LMDB support is forbidden due to problems with
+	LMDB lock management. These problems hinder error recovery
+	in multi-programmed systems, and prohibit database sharing
+	between privileged writer processes and unprivileged reader
+	processes.
