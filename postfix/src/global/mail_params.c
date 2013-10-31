@@ -98,7 +98,6 @@
 /*	int	var_db_read_buf;
 /*	long	var_lmdb_map_size;
 /*	int	var_proc_limit;
-/*	int	var_lmdb_max_readers;
 /*	int	var_mime_maxdepth;
 /*	int	var_mime_bound_len;
 /*	int	var_header_limit;
@@ -291,7 +290,6 @@ char   *var_proxywrite_service;
 int     var_db_create_buf;
 int     var_db_read_buf;
 long    var_lmdb_map_size;
-int     var_lmdb_max_readers;
 int     var_proc_limit;
 int     var_mime_maxdepth;
 int     var_mime_bound_len;
@@ -614,13 +612,9 @@ void    mail_params_init()
 	VAR_INET_WINDOW, DEF_INET_WINDOW, &var_inet_windowsize, 0, 0,
 	0,
     };
-    static const CONFIG_NINT_TABLE nint_defaults[] = {
-	VAR_LMDB_MAX_READERS, DEF_LMDB_MAX_READERS, &var_lmdb_max_readers, 1, 0,
-	0,
-    };
     static const CONFIG_LONG_TABLE long_defaults[] = {
 	VAR_MESSAGE_LIMIT, DEF_MESSAGE_LIMIT, &var_message_limit, 0, 0,
-	VAR_LMDB_MAP_SIZE, DEF_LMDB_MAP_SIZE, &var_lmdb_map_size, 8192, 0,
+	VAR_LMDB_MAP_SIZE, DEF_LMDB_MAP_SIZE, &var_lmdb_map_size, 1, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_defaults[] = {
@@ -718,7 +712,6 @@ void    mail_params_init()
     }
 #endif
     get_mail_conf_int_table(other_int_defaults);
-    get_mail_conf_nint_table(nint_defaults);
     get_mail_conf_long_table(long_defaults);
     get_mail_conf_bool_table(bool_defaults);
     get_mail_conf_time_table(time_defaults);
@@ -731,7 +724,6 @@ void    mail_params_init()
 #endif
 #ifdef HAS_LMDB
     dict_lmdb_map_size = var_lmdb_map_size;
-    dict_lmdb_max_readers = var_lmdb_max_readers;
 #endif
     inet_windowsize = var_inet_windowsize;
 

@@ -103,7 +103,6 @@ static const MKMAP_OPEN_INFO mkmap_types[] = {
     DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
 #ifdef HAS_LMDB
-#error "LMDB support is forbidden"
     DICT_TYPE_LMDB, mkmap_lmdb_open,
 #endif
     DICT_TYPE_FAIL, mkmap_fail_open,
@@ -189,7 +188,11 @@ MKMAP  *mkmap_open(const char *type, const char *path,
 
     /*
      * Truncate the database upon open, and update it. Read-write mode is
-     * needed because the underlying routines read as well as write.
+     * needed because the underlying routines read as well as write. We
+     * explicitly clobber lock_fd to trigger a fatal error when a map wants
+     * to unlock the database after individual transactions: that would
+     * result in race condition problems. We clobbber stat_fd as well,
+     * because that, too, is used only for individual-transaction clients.
      */
     mkmap->dict = mkmap->open(path, open_flags, dict_flags);
     mkmap->dict->lock_fd = -1;			/* XXX just in case */

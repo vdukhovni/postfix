@@ -209,7 +209,6 @@ while (<>) {
     s;\bipc_ttl\b;<a href="postconf.5.html#ipc_ttl">$&</a>;g;
     s;\bline_length_limit\b;<a href="postconf.5.html#line_length_limit">$&</a>;g;
     s;\blmdb_map_size\b;<a href="postconf.5.html#lmdb_map_size">$&</a>;g;
-    s;\blmdb_max_readers\b;<a href="postconf.5.html#lmdb_max_readers">$&</a>;g;
     s;\blmtp_address_preference\b;<a href="postconf.5.html#lmtp_address_preference">$&</a>;g;
     s;\blmtp_body_checks\b;<a href="postconf.5.html#lmtp_body_checks">$&</a>;g;
     s;\blmtp_cname_overrides_servername\b;<a href="postconf.5.html#lmtp_cname_overrides_servername">$&</a>;g;
@@ -864,6 +863,7 @@ while (<>) {
     s;\bcheck_reverse_client_hostname_access\b;<a href="postconf.5.html#check_reverse_client_hostname_access">$&</a>;g;
     s;\bcheck_reverse_client_hostname_mx_access\b;<a href="postconf.5.html#check_reverse_client_hostname_mx_access">$&</a>;g;
     s;\bcheck_reverse_client_hostname_ns_access\b;<a href="postconf.5.html#check_reverse_client_hostname_ns_access">$&</a>;g;
+    s;\bcheck_sasl_access\b;<a href="postconf.5.html#check_sasl_access">$&</a>;g;
     s;\bpermit_inet_interfaces\b;<a href="postconf.5.html#permit_inet_interfaces">$&</a>;g;
     s;\bpermit_mynetworks\b;<a href="postconf.5.html#permit_mynetworks">$&</a>;g;
     s;\bper[-</bB>]*\n* *[<bB>]*mit_sasl_authenticated\b;<a href="postconf.5.html#permit_sasl_authenticated">$&</a>;g;

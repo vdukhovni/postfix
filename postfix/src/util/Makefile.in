@@ -36,7 +36,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	ip_match.c nbbio.c base32_code.c dict_test.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
-	poll_fd.c timecmp.c
+	poll_fd.c timecmp.c slmdb.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -74,7 +74,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	ip_match.o nbbio.o base32_code.o dict_test.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
-	poll_fd.o timecmp.o
+	poll_fd.o timecmp.o slmdb.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -95,7 +95,8 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	username.h valid_hostname.h vbuf.h vbuf_print.h vstream.h vstring.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
-	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h
+	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
+	slmdb.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -1002,6 +1003,7 @@ dict_lmdb.o: iostuff.h
 dict_lmdb.o: msg.h
 dict_lmdb.o: myflock.h
 dict_lmdb.o: mymalloc.h
+dict_lmdb.o: slmdb.h
 dict_lmdb.o: stringops.h
 dict_lmdb.o: sys_defs.h
 dict_lmdb.o: vbuf.h
@@ -1764,6 +1766,8 @@ skipblanks.o: stringops.h
 skipblanks.o: sys_defs.h
 skipblanks.o: vbuf.h
 skipblanks.o: vstring.h
+slmdb.o: slmdb.c
+slmdb.o: slmdb.h
 sock_addr.o: msg.h
 sock_addr.o: sock_addr.c
 sock_addr.o: sock_addr.h

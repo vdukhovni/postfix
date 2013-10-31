@@ -14,13 +14,14 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
-Major changes with snapshot 20131001
+Major changes with snapshot 20131031
 ====================================
 
-LMDB support is forbidden due to problems with LMDB lock management.
-These problems hinder error recovery in multi-programmed systems,
-and prohibit database sharing between privileged writer processes
-and unprivileged reader processes.
+LMDB support is enabled after changes to LMDB lock management.  This
+includes creating databases with postmap(1) and postalias(1);
+read/write access by postscreen(8), proxymap(8), verify(8), and
+tlsmgr(8); and database sharing between privileged writer processes
+and unprivileged reader processes without world-writable files.
 
 Major changes with snapshot 20130929
 ====================================

@@ -55,12 +55,13 @@ new address) or access control (the lookup string is the client, sender or
 recipient, and the result is an action such as "reject").
 
 With some tables, however, Postfix needs to know only if the lookup key exists.
-The lookup result itself is not used. Examples are the local_recipient_maps
-that determine what local recipients Postfix accepts in mail from the network,
-the mydestination parameter that specifies what domains Postfix delivers
-locally, or the mynetworks parameter that specifies the IP addresses of trusted
-clients or client networks. Technically, these are lists, not tables. Despite
-the difference, Postfix lists are described here because they use the same
+Any non-empty lookup result value may be used here: the lookup result is not
+used. Examples are the local_recipient_maps that determine what local
+recipients Postfix accepts in mail from the network, the mydestination
+parameter that specifies what domains Postfix delivers locally, or the
+mynetworks parameter that specifies the IP addresses of trusted clients or
+client networks. Technically, these are lists, not tables. Despite the
+difference, Postfix lists are described here because they use the same
 underlying infrastructure as Postfix lookup tables.
 
 PPrreeppaarriinngg PPoossttffiixx ffoorr LLDDAAPP oorr SSQQLL llooookkuuppss
@@ -119,18 +120,21 @@ performance.
 
 UUppddaattiinngg BBeerrkkeelleeyy DDBB ffiilleess ssaaffeellyy
 
-Although Postfix uses file locking to avoid access conflicts while updating
-Berkeley DB or other local database files, you still have a problem when the
-update fails because the disk is full or because something else happens. This
-is because commands such as postmap(1) or postalias(1) overwrite existing
-files. If the update fails in the middle then you have no usable database, and
-Postfix will stop working. This is not an issue with the CDB database type
+Postfix uses file locking to avoid access conflicts while updating Berkeley DB
+or other local database files. This used to be safe, but as Berkeley DB has
+evolved to use more aggressive caching, file locking may no longer be
+sufficient.
+
+Furthermore, file locking would not prevent problems when the update fails
+because the disk is full or something else causes a database update to fail. In
+particular, commands such as postmap(1) or postalias(1) overwrite existing
+files. If the overwrite fails in the middle then you have no usable database,
+and Postfix will stop working. This is not an issue with the CDB database type
 available with Postfix 2.2 and later: CDB creates a new file, and renames the
 file upon successful completion.
 
-With multi-file databases such as DBM, there is no simple solution. With
-Berkeley DB and other "one file" databases, it is possible to add some extra
-robustness by using "mv" to REPLACE an existing database file instead of
+With Berkeley DB and other "one file" databases, it is possible to add some
+extra robustness by using "mv" to REPLACE an existing database file instead of
 overwriting it:
 
     # ppoossttmmaapp aacccceessss..iinn &&&& mmvv aacccceessss..iinn..ddbb aacccceessss..ddbb

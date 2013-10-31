@@ -2158,8 +2158,9 @@ When IPv6 support is enabled via the inet_protocols parameter,
 Postfix will do DNS type AAAA record lookups.
 .PP
 When both IPv4 and IPv6 support are enabled, the Postfix SMTP
-client will attempt to connect via IPv6 before attempting to use
-IPv4.
+client will choose the protocol as specified with the
+smtp_address_preference parameter. Postfix versions before 2.8
+attempt to connect via IPv6 before attempting to use IPv4.
 .PP
 Examples:
 .PP
@@ -2247,11 +2248,6 @@ The initial OpenLDAP LMDB database size limit in bytes.  Each time
 a database becomes full, its size limit is doubled.
 .PP
 This feature is available in Postfix 2.11 and later.
-.SH lmdb_max_readers (default: $default_process_limit)
-The hard limit on the number of read transactions that may be
-open at the same time for the same OpenLDAP LMDB database.  When
-this number is too small, the Postfix LMDB client will log
-MDB_READERS_FULL errors, and will run with reduced performance.
 .SH lmtp_address_preference (default: ipv6)
 The LMTP-specific version of the smtp_address_preference
 configuration parameter.  See there for details.
@@ -5234,7 +5230,7 @@ For more fine-grained control, use check_ccert_access to select
 an appropriate \fBaccess\fR(5) policy for each client.
 See RESTRICTION_CLASS_README.
 .PP
-\fBNote:\fR Postfix 2.9.0&ndash;2.9.5 computed the public key
+\fBNote:\fR Postfix 2.9.0-2.9.5 computed the public key
 fingerprint incorrectly. To use public-key fingerprints, upgrade
 to Postfix 2.9.6 or later.
 .PP
@@ -7074,7 +7070,7 @@ The Postfix SMTP server and client log the peer (leaf) certificate
 fingerprint and public key fingerprint when the TLS loglevel is 2 or
 higher.
 .PP
-\fBNote:\fR Postfix 2.9.0&ndash;2.9.5 computed the public key
+\fBNote:\fR Postfix 2.9.0-2.9.5 computed the public key
 fingerprint incorrectly. To use public-key fingerprints, upgrade
 to Postfix 2.9.6 or later.
 .PP
@@ -7118,7 +7114,7 @@ Each logging level also includes the information that is logged at
 a lower logging level.
 .IP ""
 0 Log only a summary message on TLS handshake completion
-&mdash; no logging of remote SMTP server certificate trust-chain
+- no logging of remote SMTP server certificate trust-chain
 verification errors if server certificate verification is not required.
 With Postfix 2.8 and earlier, disable logging of TLS activity.
 .br
@@ -8283,6 +8279,15 @@ the unverified reverse client hostname, and execute the corresponding
 action.  Note: a result of "OK" is not allowed for safety reasons.
 Instead, use DUNNO in order to exclude specific hosts from blacklists.
 This feature is available in Postfix 2.7 and later.
+.br
+.IP "\fBcheck_sasl_access \fItype:table\fR\fR"
+Use the remote SMTP client SASL user name as lookup key for
+the specified \fBaccess\fR(5) database. The lookup key has the form
+"username@domainname" when the smtpd_sasl_local_domain parameter
+value is non-empty.  Unlike the check_client_access feature,
+check_sasl_access does not perform matches of parent domains or IP
+subnet ranges.  This feature is available with Postfix version 2.11
+and later.
 .br
 .IP "\fBpermit_inet_interfaces\fR"
 Permit the request when the client IP address matches
@@ -10442,7 +10447,7 @@ The Postfix SMTP server and client log the peer (leaf) certificate
 fingerprint and public key fingerprint when the TLS loglevel is 2 or
 higher.
 .PP
-\fBNote:\fR Postfix 2.9.0&ndash;2.9.5 computed the public key
+\fBNote:\fR Postfix 2.9.0-2.9.5 computed the public key
 fingerprint incorrectly. To use public-key fingerprints, upgrade
 to Postfix 2.9.6 or later.
 .PP
@@ -10490,7 +10495,7 @@ Each logging level also includes the information that is logged at
 a lower logging level.
 .IP ""
 0 Log only a summary message on TLS handshake completion
-&mdash; no logging of remote SMTP client certificate trust-chain verification
+- no logging of remote SMTP client certificate trust-chain verification
 errors
 if client certificate verification is not required. With Postfix 2.8
 and earlier, disable logging of TLS activity.

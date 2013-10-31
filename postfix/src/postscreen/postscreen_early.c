@@ -120,6 +120,9 @@ static void psc_early_event(int event, char *context)
      * XXX We can avoid "forgetting" to do this by keeping a pointer to the
      * DNSBL lookup buffer in the PSC_STATE structure. This also allows us to
      * shave off a hash table lookup when retrieving the DNSBL result.
+     * 
+     * A direct pointer increases the odds of dangling pointers. Hash-table
+     * lookup is safer, and that is why it's done that way.
      */
     switch (event) {
 

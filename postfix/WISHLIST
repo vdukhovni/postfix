@@ -1,5 +1,9 @@
 Wish list:
 
+	Per SASL account rate limits.
+
+	Add watchdog timer to postmap/postalias.
+
 	Things to do before the stable release:
 
 	Spell-check, double-word check, and HTML validator check.

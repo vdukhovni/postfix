@@ -2184,6 +2184,7 @@ extern int var_map_defer_code;
 #define CHECK_CLIENT_ACL	"check_client_access"
 #define CHECK_REVERSE_CLIENT_ACL "check_reverse_client_hostname_access"
 #define CHECK_CCERT_ACL		"check_ccert_access"
+#define CHECK_SASL_ACL		"check_sasl_access"
 #define CHECK_HELO_ACL		"check_helo_access"
 #define CHECK_SENDER_ACL	"check_sender_access"
 #define CHECK_RECIP_ACL		"check_recipient_access"
@@ -2774,10 +2775,6 @@ extern int var_db_read_buf;
 #define VAR_LMDB_MAP_SIZE		"lmdb_map_size"
 #define DEF_LMDB_MAP_SIZE		(16 * 1024 *1024)
 extern long var_lmdb_map_size;
-
-#define VAR_LMDB_MAX_READERS		"lmdb_max_readers"
-#define DEF_LMDB_MAX_READERS		"$" VAR_PROC_LIMIT
-extern int var_lmdb_max_readers;
 
  /*
   * Named queue file attributes.

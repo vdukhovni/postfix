@@ -2823,6 +2823,26 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
     return (result);
 }
 
+/* check_sasl_access - access by SASL user name */
+
+#ifdef USE_SASL_AUTH
+
+static int check_sasl_access(SMTPD_STATE *state, const char *table,
+			             const char *def_acl)
+{
+    int     result;
+    int     unused_found;
+    char   *sane_username = printable(mystrdup(state->sasl_username), '_');
+
+    result = check_access(state, table, state->sasl_username,
+			  DICT_FLAG_NONE, &unused_found, sane_username,
+			  SMTPD_NAME_SASL_USER, def_acl);
+    myfree(sane_username);
+    return (result);
+}
+
+#endif
+
 /* check_mail_access - OK/FAIL based on mail address lookup */
 
 static int check_mail_access(SMTPD_STATE *state, const char *table,
@@ -3882,6 +3902,14 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    }
 	} else if (is_map_command(state, name, CHECK_CCERT_ACL, &cpp)) {
 	    status = check_ccert_access(state, *cpp, def_acl);
+#ifdef USE_SASL_AUTH
+	} else if (is_map_command(state, name, CHECK_SASL_ACL, &cpp)) {
+	    if (var_smtpd_sasl_enable) {
+		if (state->sasl_username && state->sasl_username[0])
+		    status = check_sasl_access(state, *cpp, def_acl);
+	    } else
+#endif
+		msg_warn("restriction `%s' ignored: no SASL support", name);
 	} else if (is_map_command(state, name, CHECK_CLIENT_NS_ACL, &cpp)) {
 	    if (strcasecmp(state->name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->name,
