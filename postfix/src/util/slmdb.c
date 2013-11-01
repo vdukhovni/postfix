@@ -6,56 +6,60 @@
 /* SYNOPSIS
 /*	#include <slmdb.h>
 /*
-/*	size_t	slmdb_map_size;
-/*
-/*	int	slmdb_open(slmdb, path, open_flags, lmdb_flags, bulk_mode,
-/*				curr_limit, size_incr, hard_limit)
-/*	SLMDB *slmdb;
-/*	const char *path;
-/*	int	open_flags;
-/*	int	lmdb_flags;
-/*	int	bulk_mode;
+/*	int	slmdb_init(slmdb, curr_limit, size_incr, hard_limit)
+/*	SLMDB	*slmdb;
 /*	size_t	curr_limit;
 /*	int	size_incr;
 /*	size_t	hard_limit;
 /*
+/*	int	slmdb_open(slmdb, path, open_flags, lmdb_flags, slmdb_flags)
+/*	SLMDB	*slmdb;
+/*	const char *path;
+/*	int	open_flags;
+/*	int	lmdb_flags;
+/*	int	slmdb_flags;
+/*
 /*	int	slmdb_close(slmdb)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*
 /*	int	slmdb_get(slmdb, mdb_key, mdb_value)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*	MDB_val	*mdb_key;
 /*	MDB_val	*mdb_value;
 /*
 /*	int	slmdb_put(slmdb, mdb_key, mdb_value, flags)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*	MDB_val	*mdb_key;
 /*	MDB_val	*mdb_value;
 /*	int	flags;
 /*
 /*	int	slmdb_del(slmdb, mdb_key)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*	MDB_val	*mdb_key;
 /*
 /*	int	slmdb_cursor_get(slmdb, mdb_key, mdb_value, op)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*	MDB_val	*mdb_key;
 /*	MDB_val	*mdb_value;
 /*	MDB_cursor_op op;
 /* AUXILIARY FUNCTIONS
 /*	int	slmdb_fd(slmdb)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*
 /*	size_t	slmdb_curr_limit(slmdb)
-/*	SLMDB *slmdb;
+/*	SLMDB	*slmdb;
 /*
-/*	int	slmdb_control(slmdb, id, ...)
-/*	SLMDB *slmdb;
-/*	int	id;
+/*	int	slmdb_control(slmdb, request, ...)
+/*	SLMDB	*slmdb;
+/*	int	request;
 /* DESCRIPTION
 /*	This module simplifies the LMDB API by hiding recoverable
 /*	errors from the application.  Details are given in the
 /*	section "ERROR RECOVERY".
+/*
+/*	slmdb_init() performs mandatory initialization before opening
+/*	an LMDB database. The result value is an LMDB status code
+/*	(zero in case of success).
 /*
 /*	slmdb_open() opens an LMDB database.  The result value is
 /*	an LMDB status code (zero in case of success).
@@ -76,34 +80,68 @@
 /*	recovery.  The result value is an LMDB status code (zero
 /*	in case of success).
 /*
-/*	slmdb_cursor_get() iterates over an LMDB database.  The
-/*	result value is an LMDB status code (zero in case of success).
+/*	slmdb_cursor_get() is an mdb_cursor_get() wrapper with
+/*	automatic error recovery.  The result value is an LMDB
+/*	status code (zero in case of success).
 /*
-/*	slmdb_fd() returns the file descriptor for an open LMDB
+/*	slmdb_fd() returns the file descriptor for the specified
 /*	database.  This may be used for file status queries or
 /*	application-controlled locking.
 /*
 /*	slmdb_curr_limit() returns the current database size limit
 /*	for the specified database.
 /*
-/*	slmdb_control() specifies optional features. The arguments
-/*	are a list of (name, value) pairs, terminated with
-/*	SLMDB_CTL_END.  The result is 0 in case of success, or -1
-/*	with errno indicating the nature of the problem. The following
-/*	text enumerates the symbolic request names and the types
-/*	of the corresponding additional arguments.
-/* .IP "SLMDB_CTL_LONGJMP_FN (void (*)(void *, int))
+/*	slmdb_control() specifies optional features. The result is
+/*	0 in case of success, or -1 with errno indicating the nature
+/*	of the problem.
+/*
+/* Arguments:
+/* .IP slmdb
+/*	Pointer to caller-provided storage.
+/* .IP curr_limit
+/*	The initial memory mapping size limit. This limit is
+/*	automatically increased when the database becomes full.
+/* .IP size_incr
+/*	An integer factor by which the memory mapping size limit
+/*	is increased when the database becomes full.
+/* .IP hard_limit
+/*	The upper bound for the memory mapping size limit.
+/* .IP path
+/*	LMDB database pathname.
+/* .IP open_flags
+/*	Flags that control file open operations. Do not specify
+/*	locking flags here.
+/* .IP lmdb_flags
+/*	Flags that control the LMDB environment.
+/* .IP slmdb_flags
+/*	Bit-wise OR of zero or more of the following:
+/* .RS
+/* .IP SLMDB_FLAG_BULK
+/*	Open the database for a "bulk" transaction that is not
+/*	committed until the database is closed.
+/* .RE
+/* .IP mdb_key
+/*	Pointer to caller-provided lookup key storage.
+/* .IP mdb_value
+/*	Pointer to caller-provided value storage.
+/* .IP op
+/*	LMDB cursor operation.
+/* .IP request
+/*	The start of a list of (name, value) pairs, terminated with
+/*	SLMDB_CTL_END.  The following text enumerates the symbolic
+/*	request names and the corresponding value types.
+/* .RS .IP "SLMDB_CTL_LONGJMP_FN (void (*)(void *, int))
 /*	Application long-jump call-back function pointer. The
 /*	function must not return and is called to repeat a failed
-/*	bulk-mode transaction from the start. The arguments are
-/*	the application context and the setjmp() or sigsetjmp()
-/*	result value.
+/*	bulk-mode transaction from the start. The arguments are the
+/*	application context and the setjmp() or sigsetjmp() result
+/*	value.
 /* .IP "SLMDB_CTL_NOTIFY_FN (void (*)(void *, int, ...))"
 /*	Application notification call-back function pointer. The
-/*	function is called after succesful error recovery with as
+/*	function is called after succesful error recovery with
 /*	arguments the application context, the MDB error code, and
-/*	additional arguments that depend on the error code.
-/*	Details are given in the section "ERROR RECOVERY".
+/*	additional arguments that depend on the error code.  Details
+/*	are given in the section "ERROR RECOVERY".
 /* .IP "SLMDB_CTL_CONTEXT (void *)"
 /*	Application context that is passed in application notification
 /*	and long-jump call-back function calls.
@@ -113,11 +151,13 @@
 /* .IP "SLMDB_CTL_BULK_RETRY_LIMIT (int)"
 /*	How many times to recover from a bulk-mode transaction
 /*	before giving up.
+/* .RE
 /* ERROR RECOVERY
 /* .ad
 /* .fi
 /*	This module automatically repeats failed requests after
-/*	recoverable errors, up to limits specified with slmdb_control().
+/*	recoverable errors, up to the limits specified with
+/*	slmdb_control().
 /*
 /*	Recoverable errors are reported through an optional
 /*	notification function specified with slmdb_control().  With
@@ -145,6 +185,8 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
+
+#ifdef HAS_LMDB
 
 /* System library. */
 
@@ -226,20 +268,17 @@ static int slmdb_prepare(SLMDB *slmdb)
      * - With O_TRUNC we make a "drop" request before updating the database.
      * 
      * - With a bulk-mode transaction we commit when the database is closed.
-     * 
-     * XXX If we want to make the slmdb API suitable for general use, then the
-     * bulk/non-bulk handling must be generalized.
      */
     if (slmdb->open_flags & O_TRUNC) {
 	if ((status = mdb_drop(slmdb->txn, slmdb->dbi, 0)) != 0)
 	    return (status);
-	if ((slmdb->bulk_mode) == 0) {
+	if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) == 0) {
 	    if ((status = mdb_txn_commit(slmdb->txn)))
 		return (status);
 	    slmdb->txn = 0;
 	}
     } else if ((slmdb->lmdb_flags & MDB_RDONLY) != 0
-	       || (slmdb->bulk_mode) == 0) {
+	       || (slmdb->slmdb_flags & SLMDB_FLAG_BULK) == 0) {
 	mdb_txn_abort(slmdb->txn);
 	slmdb->txn = 0;
     }
@@ -267,9 +306,6 @@ static int slmdb_recover(SLMDB *slmdb, int status)
      * 
      * slmdb->txn must be either null (non-bulk transaction error), or an
      * aborted bulk-mode transaction.
-     * 
-     * XXX If we want to make the slmdb API suitable for general use, then the
-     * bulk/non-bulk handling must be generalized.
      */
     switch (status) {
 
@@ -583,11 +619,27 @@ int     slmdb_close(SLMDB *slmdb)
     SLMDB_API_RETURN(slmdb, status);
 }
 
+/* slmdb_init - mandatory initialization */
+
+int     slmdb_init(SLMDB *slmdb, size_t curr_limit, int size_incr,
+		           size_t hard_limit)
+{
+
+    /*
+     * This is a separate operation to keep the slmdb_open() API simple.
+     * Don't allocate resources here. Just store control information,
+     */
+    slmdb->curr_limit = curr_limit;
+    slmdb->size_incr = size_incr;
+    slmdb->hard_limit = hard_limit;
+
+    return (MDB_SUCCESS);
+}
+
 /* slmdb_open - open wrapped LMDB database */
 
 int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
-		           int lmdb_flags, int bulk_mode, size_t curr_limit,
-		           int size_incr, size_t hard_limit)
+		           int lmdb_flags, int slmdb_flags)
 {
     struct stat st;
     MDB_env *env;
@@ -604,20 +656,21 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
 
     /*
      * Make sure that the memory map has room to store and commit an initial
-     * "drop" transaction. We have no way to recover from errors before the
-     * first application-level request.
+     * "drop" transaction as well as fixed database metadata. We have no way
+     * to recover from errors before the first application-level I/O request.
      */
-#define SLMDB_FUDGE      8192
+#define SLMDB_FUDGE      10240
 
-    if (curr_limit < SLMDB_FUDGE)
-	curr_limit = SLMDB_FUDGE;
-    if (stat(path, &st) == 0 && st.st_size > curr_limit - SLMDB_FUDGE) {
-	if (st.st_size > hard_limit)
-	    hard_limit = st.st_size;
-	if (st.st_size < hard_limit - SLMDB_FUDGE)
-	    curr_limit = st.st_size + SLMDB_FUDGE;
+    if (slmdb->curr_limit < SLMDB_FUDGE)
+	slmdb->curr_limit = SLMDB_FUDGE;
+    if (stat(path, &st) == 0
+	&& st.st_size > slmdb->curr_limit - SLMDB_FUDGE) {
+	if (st.st_size > slmdb->hard_limit)
+	    slmdb->hard_limit = st.st_size;
+	if (st.st_size < slmdb->hard_limit - SLMDB_FUDGE)
+	    slmdb->curr_limit = st.st_size + SLMDB_FUDGE;
 	else
-	    curr_limit = hard_limit;
+	    slmdb->curr_limit = slmdb->hard_limit;
     }
 
     /*
@@ -625,7 +678,7 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
      * an LMDB environment, we usually don't need to do anything else with
      * the txn. It is currently used for truncate and for bulk transactions.
      */
-    if ((status = mdb_env_set_mapsize(env, curr_limit)) != 0
+    if ((status = mdb_env_set_mapsize(env, slmdb->curr_limit)) != 0
 	|| (status = mdb_env_open(env, path, lmdb_flags, 0644)) != 0
 	|| (status = mdb_txn_begin(env, (MDB_txn *) 0,
 				   lmdb_flags & MDB_RDONLY, &txn)) != 0
@@ -640,10 +693,7 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
      */
     slmdb->open_flags = open_flags;
     slmdb->lmdb_flags = lmdb_flags;
-    slmdb->bulk_mode = bulk_mode;
-    slmdb->curr_limit = curr_limit;
-    slmdb->size_incr = size_incr;
-    slmdb->hard_limit = hard_limit;
+    slmdb->slmdb_flags = slmdb_flags;
     slmdb->env = env;
     slmdb->dbi = dbi;
     slmdb->db_fd = db_fd;
@@ -662,3 +712,5 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
 
     return (status);
 }
+
+#endif

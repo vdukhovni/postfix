@@ -99,6 +99,9 @@ typedef struct {
   * Each dict(3) API call is retried no more than a few times. For bulk-mode
   * transactions the number of retries is proportional to the size of the
   * address space.
+  * 
+  * We do not expise these details to the Postfix user interface. The purpose of
+  * Postfix is to solve problems, not punt them to the user.
   */
 #ifndef SSIZE_T_MAX			/* The maximum map size */
 #define SSIZE_T_MAX __MAXINT__(ssize_t)	/* XXX Assumes two's complement */
@@ -471,7 +474,7 @@ static void dict_lmdb_close(DICT *dict)
     dict_free(dict);
 }
 
-/* dict_lmdb_longjmp - debug logging */
+/* dict_lmdb_longjmp - repeat bulk transaction */
 
 static void dict_lmdb_longjmp(void *context, int val)
 {
@@ -517,30 +520,38 @@ static void dict_lmdb_notify(void *context, int error_code,...)
 
 /* dict_lmdb_open - open LMDB data base */
 
-DICT   *dict_lmdb_open(const char *path, int dict_open_flags, int dict_flags)
+DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 {
     DICT_LMDB *dict_lmdb;
     DICT   *dict;
     struct stat st;
     SLMDB   slmdb;
     char   *mdb_path;
-    int     mdb_open_flags, status;
+    int     mdb_flags, slmdb_flags, status;
     int     db_fd;
 
     mdb_path = concatenate(path, "." DICT_TYPE_LMDB, (char *) 0);
 
-    mdb_open_flags = MDB_NOSUBDIR | MDB_NOLOCK;
-    if (dict_open_flags == O_RDONLY)
-	mdb_open_flags |= MDB_RDONLY;
+    /*
+     * Impedance adapters.
+     */
+    mdb_flags = MDB_NOSUBDIR | MDB_NOLOCK;
+    if (open_flags == O_RDONLY)
+	mdb_flags |= MDB_RDONLY;
+
+    slmdb_flags = 0;
+    if (dict_flags & DICT_FLAG_BULK_UPDATE)
+	slmdb_flags |= SLMDB_FLAG_BULK;
 
     /*
      * Gracefully handle most database open errors.
      */
-    if ((status = slmdb_open(&slmdb, mdb_path, dict_open_flags, mdb_open_flags,
-		     dict_flags & DICT_FLAG_BULK_UPDATE, dict_lmdb_map_size,
-			   DICT_LMDB_SIZE_INCR, DICT_LMDB_SIZE_MAX)) != 0) {
-	dict = dict_surrogate(DICT_TYPE_LMDB, path, dict_open_flags,
-			      dict_flags, "open database %s: %m", mdb_path);
+    if ((status = slmdb_init(&slmdb, dict_lmdb_map_size, DICT_LMDB_SIZE_INCR,
+			     DICT_LMDB_SIZE_MAX)) != 0
+	|| (status = slmdb_open(&slmdb, mdb_path, open_flags, mdb_flags,
+				slmdb_flags)) != 0) {
+	dict = dict_surrogate(DICT_TYPE_LMDB, path, open_flags, dict_flags,
+		    "open database %s: %s", mdb_path, mdb_strerror(status));
 	myfree(mdb_path);
 	return (dict);
     }

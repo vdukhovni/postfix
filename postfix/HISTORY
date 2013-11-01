@@ -19023,3 +19023,9 @@ Apologies for any names omitted.
 	numbers in lockfiles that can prevent automatic crash
 	recovery.  Files: proto/LMDB_README.html, proto/postconf.proto,
 	mantools/postlink, util/dict_lmdb.c.
+
+20131101
+
+	Cleanup: restore ability to build without LMDB support;
+	further slmdb API streamlining. Files: util/slmdb.[hc],
+	util/dict_lmdb.c.

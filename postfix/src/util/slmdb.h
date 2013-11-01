@@ -33,18 +33,18 @@
 #endif
 
 typedef struct {
+    size_t  curr_limit;			/* database soft size limit */
+    int     size_incr;			/* database expansion factor */
+    size_t  hard_limit;			/* database hard size limit */
     int     open_flags;			/* open() flags */
     int     lmdb_flags;			/* LMDB-specific flags */
-    int     bulk_mode;			/* bulk-mode flag */
-    size_t  curr_limit;			/* database soft size limit */
-    int     size_incr;			/* database growth factor */
-    size_t  hard_limit;			/* database hard size limit */
+    int     slmdb_flags;		/* bulk-mode flag */
     MDB_env *env;			/* database environment */
     MDB_dbi dbi;			/* database instance */
     MDB_txn *txn;			/* bulk transaction */
     int     db_fd;			/* database file handle */
     MDB_cursor *cursor;			/* iterator */
-    void    (*longjmp_fn) (void *, int);	/* exception handling */
+    void    (*longjmp_fn) (void *, int);/* exception handling */
     void    (*notify_fn) (void *, int,...);	/* workaround notification */
     void   *cb_context;			/* call-back context */
     int     api_retry_count;		/* slmdb(3) API call retry count */
@@ -53,12 +53,15 @@ typedef struct {
     int     bulk_retry_limit;		/* bulk_mode retry limit */
 } SLMDB;
 
-extern int slmdb_open(SLMDB *, const char *, int, int, int, size_t, int, size_t);
+#define SLMDB_FLAG_BULK		(1 << 0)
+
+extern int slmdb_init(SLMDB *, size_t, int, size_t);
+extern int slmdb_open(SLMDB *, const char *, int, int, int);
 extern int slmdb_get(SLMDB *, MDB_val *, MDB_val *);
 extern int slmdb_put(SLMDB *, MDB_val *, MDB_val *, int);
 extern int slmdb_del(SLMDB *, MDB_val *);
 extern int slmdb_cursor_get(SLMDB *, MDB_val *, MDB_val *, MDB_cursor_op);
-extern int slmdb_control(SLMDB *, int, ...);
+extern int slmdb_control(SLMDB *, int,...);
 extern int slmdb_close(SLMDB *);
 
 #define slmdb_fd(slmdb)			((slmdb)->db_fd)
@@ -72,8 +75,8 @@ extern int slmdb_close(SLMDB *);
 #define SLMDB_CTL_API_RETRY_LIMIT	5	/* per slmdb(3) API call */
 #define SLMDB_CTL_BULK_RETRY_LIMIT	6	/* per bulk update */
 
-typedef void (*SLMDB_NOTIFY_FN)(void *, int, ...);
-typedef void (*SLMDB_LONGJMP_FN)(void *, int);
+typedef void (*SLMDB_NOTIFY_FN) (void *, int,...);
+typedef void (*SLMDB_LONGJMP_FN) (void *, int);
 
 /* LICENSE
 /* .ad
