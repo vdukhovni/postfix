@@ -907,6 +907,25 @@ Postfix provides a wide range of SASL authentication configuration options. The
 next section lists a few that are discussed frequently. See postconf(5) for a
 complete list.
 
+PPeerr--aaccccoouunntt aacccceessss ccoonnttrrooll
+
+Postfix can implement policies that depend on the SASL login name (Postfix 2.11
+and later). Typically this is used to HOLD or REJECT mail from accounts whose
+credentials have been compromised.
+
+    /etc/postfix/main.cf:
+        smtpd_recipient_restrictions =
+    	permit_mynetworks
+    	check_sasl_access hash:/etc/postfix/sasl_access
+    	permit_sasl_authenticated
+    	...
+
+    /etc/postfix/sasl_access:
+         # Use this when smtpd_sasl_local_domain is empty.
+         username	HOLD
+         # Use this when smtpd_sasl_local_domain=example.com.
+         username@example.com HOLD
+
 DDeeffaauulltt aauutthheennttiiccaattiioonn ddoommaaiinn
 
 Postfix can append a domain name (or any other string) to a SASL login name

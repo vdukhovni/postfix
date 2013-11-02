@@ -130,7 +130,8 @@
 /*	The start of a list of (name, value) pairs, terminated with
 /*	SLMDB_CTL_END.  The following text enumerates the symbolic
 /*	request names and the corresponding value types.
-/* .RS .IP "SLMDB_CTL_LONGJMP_FN (void (*)(void *, int))
+/* .RS
+/* .IP "SLMDB_CTL_LONGJMP_FN (void (*)(void *, int))
 /*	Application long-jump call-back function pointer. The
 /*	function must not return and is called to repeat a failed
 /*	bulk-mode transaction from the start. The arguments are the
@@ -202,51 +203,52 @@
 #include <slmdb.h>
 
  /*
+  * Supported LMDB versions.
+  * 
   * LMDB 0.9.8 allows the application to update the database size limit
-  * on-the-fly (typically after an MDB_MAP_FULL error). The only limit that
-  * remains is imposed by the hardware address space. The implementation is
-  * supposed to handle databases larger than physical memory. However, at
-  * some point in time there was no such guarantee for (bulk) transactions
-  * larger than physical memory.
-  * 
-  * LMDB 0.9.9 allows the application to manage locks. This elimimates multiple
-  * problems:
-  * 
-  * - The need for a (world-)writable lockfile, which is a show-stopper for
-  * multiprogrammed applications that have privileged writers and
-  * unprivileged readers.
-  * 
-  * - Hard-coded inode numbers (in ftok() output) in lockfile content that can
-  * prevent automatic crash recovery, and related to that, sub-optimal
-  * semaphore performance on BSD systems.
+  * on-the-fly, so that it can recover from an MDB_MAP_FULL error; it also
+  * allows an application to "pick up" a new database size limit on-the-fly,
+  * so that it can recover from an MDB_MAP_RESIZED error. The database size
+  * limit that remains is imposed by the hardware address space. The
+  * implementation is supposed to handle databases larger than physical
+  * memory. However, this is not necessarily guaranteed for (bulk)
+  * transactions larger than physical memory.
   */
-#if MDB_VERSION_FULL < MDB_VERINT(0, 9, 9)
-#error "Build with LMDB version 0.9.9 or later"
+#if MDB_VERSION_FULL < MDB_VERINT(0, 9, 8)
+#error "Build with LMDB version 0.9.8 or later"
 #endif
 
-#define SLMDB_DEF_API_RETRY_LIMIT 2	/* Retries per dict(3) API call */
-#define SLMDB_DEF_BULK_RETRY_LIMIT \
-        (2 * sizeof(size_t) * CHAR_BIT)	/* Retries per bulk-mode transaction */
-
  /*
-  * The purpose of the error-recovering functions below is to hide LMDB
-  * quirks (MAP_FULL, MAP_RESIZED, MDB_READERS_FULL), so that the caller can
-  * pretend that those quirks don't exist, and focus on its own job.
+  * Error recovery.
+  * 
+  * The purpose of the slmdb(3) API is to hide LMDB quirks (recoverable
+  * MAP_FULL, MAP_RESIZED, or MDB_READERS_FULL errors). With these out of the
+  * way, applications can pretend that those quirks don't exist, and focus on
+  * their own job.
   * 
   * - To recover from a single-transaction LMDB error, each wrapper function
   * uses tail recursion instead of goto. Since LMDB errors are rare, code
   * clarity is more important than speed.
   * 
   * - To recover from a bulk-transaction LMDB error, the error-recovery code
-  * jumps back into the caller to some pre-arranged point (the closest thing
-  * that C has to exception handling). The application is then expected to
-  * repeat the bulk transaction from scratch.
+  * triggers a long jump back into the caller to some pre-arranged point (the
+  * closest thing that C has to exception handling). The application is then
+  * expected to repeat the bulk transaction from scratch.
   */
+
+ /*
+  * Our default retry attempt limits. We allow a few retries per slmdb(3) API
+  * call for non-bulk transactions. We allow a number of bulk-transaction
+  * retries that is proportional to the memory address space.
+  */
+#define SLMDB_DEF_API_RETRY_LIMIT 2	/* Retries per slmdb(3) API call */
+#define SLMDB_DEF_BULK_RETRY_LIMIT \
+        (2 * sizeof(size_t) * CHAR_BIT)	/* Retries per bulk-mode transaction */
 
  /*
   * We increment the recursion counter each time we try to recover from
   * error, and reset the recursion counter when returning to the application
-  * from the slmdb API.
+  * from the slmdb(3) API.
   */
 #define SLMDB_API_RETURN(slmdb, status) do { \
 	(slmdb)->api_retry_count = 0; \
@@ -257,7 +259,7 @@
 
 static int slmdb_prepare(SLMDB *slmdb)
 {
-    int     status;
+    int     status = 0;
 
     /*
      * This is called before accessing the database, or after recovery from
@@ -273,7 +275,7 @@ static int slmdb_prepare(SLMDB *slmdb)
 	if ((status = mdb_drop(slmdb->txn, slmdb->dbi, 0)) != 0)
 	    return (status);
 	if ((slmdb->slmdb_flags & SLMDB_FLAG_BULK) == 0) {
-	    if ((status = mdb_txn_commit(slmdb->txn)))
+	    if ((status = mdb_txn_commit(slmdb->txn)) != 0)
 		return (status);
 	    slmdb->txn = 0;
 	}
@@ -564,7 +566,7 @@ int     slmdb_control(SLMDB *slmdb, int first,...)
     int     reqno;
 
     va_start(ap, first);
-    for (reqno = first; reqno != SLMDB_CTL_END; reqno = va_arg(ap, int)) {
+    for (reqno = first; status == 0 && reqno != SLMDB_CTL_END; reqno = va_arg(ap, int)) {
 	switch (reqno) {
 	case SLMDB_CTL_LONGJMP_FN:
 	    slmdb->longjmp_fn = va_arg(ap, SLMDB_LONGJMP_FN);

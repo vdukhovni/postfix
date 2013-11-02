@@ -19029,3 +19029,8 @@ Apologies for any names omitted.
 	Cleanup: restore ability to build without LMDB support;
 	further slmdb API streamlining. Files: util/slmdb.[hc],
 	util/dict_lmdb.c.
+
+	Bugfix: uninitialized variable. File: util/slmdb.c.
+
+	Documentation: added SASL_README example for check_sasl_access.
+	File: proto/SASL_README.html.

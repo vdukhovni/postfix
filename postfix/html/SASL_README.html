@@ -1461,6 +1461,30 @@ control over the SASL login name and the envelope sender. </p>
 options.  The next section lists a few that are discussed frequently.
 See <a href="postconf.5.html">postconf(5)</a> for a complete list. </p>
 
+<h4><a name="sasl_access">Per-account access control</a></h4>
+
+<p> Postfix can implement policies that depend on the SASL login
+name (Postfix 2.11 and later).  Typically this is used to HOLD or
+REJECT mail from accounts whose credentials have been compromised.
+</p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
+	<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> 
+	<a href="postconf.5.html#check_sasl_access">check_sasl_access</a> hash:/etc/postfix/sasl_access
+	<a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
+	...
+
+/etc/postfix/sasl_access:
+     # Use this when <a href="postconf.5.html#smtpd_sasl_local_domain">smtpd_sasl_local_domain</a> is empty.
+     username	HOLD
+     # Use this when <a href="postconf.5.html#smtpd_sasl_local_domain">smtpd_sasl_local_domain</a>=example.com.
+     username@example.com HOLD
+</pre>
+</blockquote>
+
 <h4><a name="id397172">Default  authentication domain</a></h4>
 
 <p> Postfix can append a domain name (or any other string) to a

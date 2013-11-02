@@ -69,6 +69,24 @@
 #include <dict_lmdb.h>
 #include <warn_stat.h>
 
+ /*
+  * Supported LMDB versions.
+  * 
+  * LMDB 0.9.9 allows the application to manage locks. This elimimates multiple
+  * problems:
+  * 
+  * - The need for a (world-)writable lockfile, which was a show-stopper for
+  * multiprogrammed applications such as Postfix that consist of privileged
+  * writer processes and unprivileged reader processes.
+  * 
+  * - Hard-coded inode numbers (from ftok() output) in lockfile content that
+  * could prevent automatic crash recovery, and related to that, sub-optimal
+  * semaphore performance on BSD systems.
+  */
+#if MDB_VERSION_FULL < MDB_VERINT(0, 9, 9)
+#error "Build with LMDB version 0.9.9 or later"
+#endif
+
 /* Application-specific. */
 
 typedef struct {
@@ -100,7 +118,7 @@ typedef struct {
   * transactions the number of retries is proportional to the size of the
   * address space.
   * 
-  * We do not expise these details to the Postfix user interface. The purpose of
+  * We do not expose these details to the Postfix user interface. The purpose of
   * Postfix is to solve problems, not punt them to the user.
   */
 #ifndef SSIZE_T_MAX			/* The maximum map size */
