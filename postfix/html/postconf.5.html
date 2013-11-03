@@ -7018,7 +7018,7 @@ to the configured before/after 220 greeting tests. </dd>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
-		<a href="cidr_table.5.html">cidr</a>:/etc/postfix/postscreen_access.cidr
+                <a href="cidr_table.5.html">cidr</a>:/etc/postfix/postscreen_access.cidr
     <a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> = enforce
 </pre>
 
@@ -7341,7 +7341,7 @@ the file is read). </p>
 
 <pre>
 /etc/postfix/dnsbl_reply:
-   secret.zen.spamhaus.org	zen.spamhaus.org
+   secret.zen.spamhaus.org      zen.spamhaus.org
 </pre>
 
 <p> This feature is available in Postfix 2.8.  </p>
@@ -11199,7 +11199,7 @@ As in the example above, we show two matching fingerprints: </p>
 <blockquote>
 <pre>
 /etc/postfix/tls_policy:
-    example.com	fingerprint
+    example.com fingerprint
         match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
         match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
 </pre>
@@ -11777,8 +11777,8 @@ Example:
     [mail.example.org]:587      secure match=nexthop
     # Postfix 2.5 and later
     [thumb.example.org]          fingerprint
-    	match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
-	match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+        match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
 </pre>
 
 <p> <b>Note:</b> The <b>hostname</b> strategy if listed in a non-default

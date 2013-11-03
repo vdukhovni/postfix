@@ -19034,3 +19034,20 @@ Apologies for any names omitted.
 
 	Documentation: added SASL_README example for check_sasl_access.
 	File: proto/SASL_README.html.
+
+20131102
+
+	Security violation: by default, LMDB 0.9.9 writes fragments
+	of uninitialized heap memory to a world-readable database
+	file.  This is a basic memory disclosure vulnerability:
+	memory content that a program does not intend to share ends
+	up in a world-readable file. The content of uninitialized
+	heap memory depends on program execution history. That
+	history includes code execution in other libraries that are
+	linked into the program. To work around this problem we
+	disable the use of malloc() in LMDB. However, that does not
+	address several disclosures of stack memory.  File:
+	util/dict_lmdb.c.
+
+	Cleanup: expand TAB characters when generating HTML and
+	README files.  Files: proto/Makefile.in.

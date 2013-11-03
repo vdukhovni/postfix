@@ -551,11 +551,30 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     mdb_path = concatenate(path, "." DICT_TYPE_LMDB, (char *) 0);
 
     /*
-     * Impedance adapters.
+     * Security violation.
+     * 
+     * By default, LMDB 0.9.9 writes uninitialized heap memory to a
+     * world-readable database file. This is a basic memory disclosure
+     * vulnerability: memory content that a program does not intend to share
+     * ends up in a world-readable file. The content of uninitialized heap
+     * memory depends on program execution history. That history includes
+     * code execution in other libraries that are linked into the program.
+     * 
+     * As a workaround we turn on MDB_WRITEMAP which disables the use of
+     * malloc() in LMDB. However, that does not address several disclosures
+     * of stack memory.
      */
     mdb_flags = MDB_NOSUBDIR | MDB_NOLOCK;
     if (open_flags == O_RDONLY)
 	mdb_flags |= MDB_RDONLY;
+
+    /*
+     * Replace with MDB_VERSION_FULL < MDB_VERINT(X, Y, Z) after this is
+     * fixed up-stream.
+     */
+#if 1
+    mdb_flags |= MDB_WRITEMAP;
+#endif
 
     slmdb_flags = 0;
     if (dict_flags & DICT_FLAG_BULK_UPDATE)

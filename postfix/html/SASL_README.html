@@ -1385,9 +1385,9 @@ Examples:
 # preferably specified under <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>.
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a> =
-	<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
-	<strong><a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a></strong>
-	<a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
+        <strong><a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a></strong>
+        <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
 </pre>
 
 <pre>
@@ -1396,10 +1396,10 @@ Examples:
 # 2.10 specify "<a href="postconf.5.html#smtpd_relay_restrictions">smtpd_relay_restrictions</a>=".
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
-	<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
-	<strong><a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a></strong>
-	<a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
-	...other rules...
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>
+        <strong><a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a></strong>
+        <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a>
+        ...other rules...
 </pre>
 </blockquote>
 
@@ -1425,7 +1425,7 @@ use a particular envelope sender address: </p>
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
         ...
         <strong><a href="postconf.5.html#reject_sender_login_mismatch">reject_sender_login_mismatch</a></strong>
-	<a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
+        <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
         ...
 </pre>
 </blockquote>
@@ -1472,14 +1472,14 @@ REJECT mail from accounts whose credentials have been compromised.
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
-	<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> 
-	<a href="postconf.5.html#check_sasl_access">check_sasl_access</a> hash:/etc/postfix/sasl_access
-	<a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
-	...
+        <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> 
+        <a href="postconf.5.html#check_sasl_access">check_sasl_access</a> hash:/etc/postfix/sasl_access
+        <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
+        ...
 
 /etc/postfix/sasl_access:
      # Use this when <a href="postconf.5.html#smtpd_sasl_local_domain">smtpd_sasl_local_domain</a> is empty.
-     username	HOLD
+     username   HOLD
      # Use this when <a href="postconf.5.html#smtpd_sasl_local_domain">smtpd_sasl_local_domain</a>=example.com.
      username@example.com HOLD
 </pre>

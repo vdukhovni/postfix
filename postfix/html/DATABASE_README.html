@@ -225,16 +225,16 @@ all: aliases.db access.db virtual.db ...etcetera...
 # Note 1: commands are specified after a TAB character.
 # Note 2: use <a href="postalias.1.html">postalias(1)</a> for local aliases, <a href="postmap.1.html">postmap(1)</a> for the rest.
 aliases.db: aliases.in
-	postalias aliases.in
-	mv aliases.in.db aliases.db
+        postalias aliases.in
+        mv aliases.in.db aliases.db
 
 access.db: access.in
-	postmap access.in
-	mv access.in.db access.db
+        postmap access.in
+        mv access.in.db access.db
 
 virtual.db: virtual.in
-	postmap virtual.in
-	mv virtual.in.db virtual.db
+        postmap virtual.in
+        mv virtual.in.db virtual.db
 
 ...etcetera...
 # <b>vi access.in</b>

@@ -1140,7 +1140,7 @@ the example above, we show two matching fingerprints:
         smtp_tls_fingerprint_digest = md5
 
     /etc/postfix/tls_policy:
-        example.com	fingerprint
+        example.com     fingerprint
             match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
             match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
 
@@ -1753,8 +1753,8 @@ Example:
         [mail.example.org]:587  secure match=nexthop
         # Postfix 2.5 and later
         [thumb.example.org]         fingerprint
-        	match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
-    	match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+                match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
         # Postfix 2.6 and later
         example.info            may protocols=!SSLv2 ciphers=medium
     exclude=3DES
@@ -2135,14 +2135,14 @@ indicates a super-user shell.
         /etc/postfix/main.cf:
             smtp_tls_CAfile = /etc/postfix/cacert.pem
             smtp_tls_session_cache_database =
-        	btree:/var/lib/postfix/smtp_tls_session_cache
+                btree:/var/lib/postfix/smtp_tls_session_cache
             smtp_tls_security_level = may
             smtpd_tls_CAfile = /etc/postfix/cacert.pem
             smtpd_tls_cert_file = /etc/postfix/foo-cert.pem
             smtpd_tls_key_file = /etc/postfix/foo-key.pem
             smtpd_tls_received_header = yes
             smtpd_tls_session_cache_database =
-        	btree:/var/lib/postfix/smtpd_tls_session_cache
+                btree:/var/lib/postfix/smtpd_tls_session_cache
             tls_random_source = dev:/dev/urandom
             smtpd_tls_security_level = may
 
