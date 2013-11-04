@@ -19035,19 +19035,36 @@ Apologies for any names omitted.
 	Documentation: added SASL_README example for check_sasl_access.
 	File: proto/SASL_README.html.
 
-20131102
+20131102-3
 
-	Security violation: by default, LMDB 0.9.9 writes fragments
-	of uninitialized heap memory to a world-readable database
-	file.  This is a basic memory disclosure vulnerability:
-	memory content that a program does not intend to share ends
-	up in a world-readable file. The content of uninitialized
-	heap memory depends on program execution history. That
-	history includes code execution in other libraries that are
-	linked into the program. To work around this problem we
-	disable the use of malloc() in LMDB. However, that does not
-	address several disclosures of stack memory.  File:
-	util/dict_lmdb.c.
+	Security violation: by default, LMDB 0.9.9 writes uninitialized
+	heap memory to a world-readable database file, as chunks
+	of up to 4096 bytes.  This is a gross memory disclosure
+	vulnerability: memory content that a program does not intend
+	to share ends up in a world-readable file.  The content of
+	uninitialized heap memory depends on program execution
+	history. That history includes code execution in other
+	libraries that are linked into the program.
 
-	Cleanup: expand TAB characters when generating HTML and
-	README files.  Files: proto/Makefile.in.
+	This is a problem whenever the user who writes the database
+	file differs from the user who reads the database file. For
+	example, a privileged writer and an unprivileged reader.
+	In the case of Postfix, the postmap(1) and postalias(1)
+	commands would leak uninitialized heap memory, as chunks
+	of up to 4096 bytes, from a root-privileged process that
+	writes to a database file, to unprivileged processes that
+	read from that database file.
+
+	To work around this problem the postmap(1) and postalias(1)
+	commands disable the use of malloc() in LMDB. However, that
+	does not address several disclosures of stack memory.  Other
+	Postfix databases do not need this workaround: those databases
+	are maintained by Postfix daemon processes, and are accessible
+	only by the postfix user. File: util/dict_lmdb.c.
+
+20131102-3
+
+	Cleanup: expand TAB characters when generating documentation.
+	This was primarily an issue with non-HTML output, but it does
+	not hurt to do this also for HTML.  Files: proto/Makefile.in,
+	proto/MULTI_INSTANCE_README.html.

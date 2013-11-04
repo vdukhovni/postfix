@@ -295,9 +295,11 @@ static int slmdb_recover(SLMDB *slmdb, int status)
     MDB_envinfo info;
 
     /*
-     * Limit the number of recovery attempts per slmdb(3) API request.
+     * Recover bulk transactions only if they can be restarted. Limit
+     * the number of recovery attempts per slmdb(3) API request.
      */
-    if ((slmdb->api_retry_count += 1) >= slmdb->api_retry_limit)
+    if ((slmdb->txn != 0 && slmdb->longjmp_fn == 0)
+	|| ((slmdb->api_retry_count += 1) >= slmdb->api_retry_limit))
 	return (status);
 
     /*

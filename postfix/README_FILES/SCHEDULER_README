@@ -594,10 +594,10 @@ The first approximation of the new scheduling algorithm is like this:
         if transport process limit reached continue
         foreach transport's job (in the order of the transport's job list)
         do
-        foreach job's peer (round-robin-by-destination)
-             if peer->queue->concurrency < peer->queue->window
-                 return next peer entry.
-        done
+            foreach job's peer (round-robin-by-destination)
+                 if peer->queue->concurrency < peer->queue->window
+                     return next peer entry.
+            done
         done
     done
 

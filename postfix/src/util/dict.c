@@ -590,6 +590,7 @@ static const NAME_MASK dict_mask[] = {
     "fold_mul", DICT_FLAG_FOLD_MUL,	/* case-fold with multi-case key map */
     "open_lock", DICT_FLAG_OPEN_LOCK,	/* permanent lock upon open */
     "bulk_update", DICT_FLAG_BULK_UPDATE,	/* bulk update if supported */
+    "world_read", DICT_FLAG_WORLD_READ,	/* assume writer != reader */
     0,
 };
 

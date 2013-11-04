@@ -1140,7 +1140,7 @@ the example above, we show two matching fingerprints:
         smtp_tls_fingerprint_digest = md5
 
     /etc/postfix/tls_policy:
-        example.com     fingerprint
+        example.com fingerprint
             match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
             match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
 
@@ -1753,8 +1753,8 @@ Example:
         [mail.example.org]:587  secure match=nexthop
         # Postfix 2.5 and later
         [thumb.example.org]         fingerprint
-                match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
-        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+            match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+            match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
         # Postfix 2.6 and later
         example.info            may protocols=!SSLv2 ciphers=medium
     exclude=3DES

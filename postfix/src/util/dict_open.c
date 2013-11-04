@@ -126,6 +126,9 @@
 /*	Enable preliminary code for bulk-mode database updates.
 /*	The caller must create an exception handler with dict_jmp_alloc()
 /*	and must trap exceptions from the database client with dict_setjmp().
+/* .IP DICT_FLAG_WORLD_READ
+/*	Assume that the database file will be read by users other
+/*	than the writer.
 /* .IP DICT_FLAG_DEBUG
 /*	Enable additional logging.
 /* .PP

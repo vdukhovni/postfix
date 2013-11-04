@@ -151,16 +151,16 @@ font.
     # Note 1: commands are specified after a TAB character.
     # Note 2: use postalias(1) for local aliases, postmap(1) for the rest.
     aliases.db: aliases.in
-        postalias aliases.in
-        mv aliases.in.db aliases.db
+            postalias aliases.in
+            mv aliases.in.db aliases.db
 
     access.db: access.in
-        postmap access.in
-        mv access.in.db access.db
+            postmap access.in
+            mv access.in.db access.db
 
     virtual.db: virtual.in
-        postmap virtual.in
-        mv virtual.in.db virtual.db
+            postmap virtual.in
+            mv virtual.in.db virtual.db
 
     ...etcetera...
     # vvii aacccceessss..iinn

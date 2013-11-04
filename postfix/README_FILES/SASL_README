@@ -846,19 +846,19 @@ authenticated SMTP clients to send mail to remote destinations. Examples:
     # preferably specified under smtpd_relay_restrictions.
     /etc/postfix/main.cf:
         smtpd_relay_restrictions =
-        permit_mynetworks
-        ppeerrmmiitt__ssaassll__aauutthheennttiiccaatteedd
-        reject_unauth_destination
+            permit_mynetworks
+            ppeerrmmiitt__ssaassll__aauutthheennttiiccaatteedd
+            reject_unauth_destination
 
     # Older configurations combine relay control and spam control under
     # smtpd_recipient_restrictions. To use this example with Postfix >=
     # 2.10 specify "smtpd_relay_restrictions=".
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
-        permit_mynetworks
-        ppeerrmmiitt__ssaassll__aauutthheennttiiccaatteedd
-        reject_unauth_destination
-        ...other rules...
+            permit_mynetworks
+            ppeerrmmiitt__ssaassll__aauutthheennttiiccaatteedd
+            reject_unauth_destination
+            ...other rules...
 
 EEnnvveellooppee sseennddeerr aaddddrreessss aauutthhoorriizzaattiioonn
 
@@ -878,7 +878,7 @@ authenticated client is allowed to use a particular envelope sender address:
         smtpd_recipient_restrictions =
             ...
             rreejjeecctt__sseennddeerr__llooggiinn__mmiissmmaattcchh
-        permit_sasl_authenticated
+            permit_sasl_authenticated
             ...
 
 The controlled_envelope_senders table specifies the binding between a sender
@@ -915,14 +915,14 @@ credentials have been compromised.
 
     /etc/postfix/main.cf:
         smtpd_recipient_restrictions =
-        permit_mynetworks
-        check_sasl_access hash:/etc/postfix/sasl_access
-        permit_sasl_authenticated
-        ...
+            permit_mynetworks
+            check_sasl_access hash:/etc/postfix/sasl_access
+            permit_sasl_authenticated
+            ...
 
     /etc/postfix/sasl_access:
          # Use this when smtpd_sasl_local_domain is empty.
-         username       HOLD
+         username   HOLD
          # Use this when smtpd_sasl_local_domain=example.com.
          username@example.com HOLD
 

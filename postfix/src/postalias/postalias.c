@@ -290,6 +290,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	if ((source_fp = vstream_fopen(path_name, O_RDONLY, 0)) == 0)
 	    msg_fatal("open %s: %m", path_name);
     }
+    dict_flags |= DICT_FLAG_WORLD_READ;
     if (fstat(vstream_fileno(source_fp), &st) < 0)
 	msg_fatal("fstat %s: %m", path_name);
 
