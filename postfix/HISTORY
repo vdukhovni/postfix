@@ -19039,7 +19039,7 @@ Apologies for any names omitted.
 
 	Security violation: by default, LMDB 0.9.9 writes uninitialized
 	heap memory to a world-readable database file, as chunks
-	of up to 4096 bytes.  This is a gross memory disclosure
+	of up to 4096 bytes.  This is a huge memory disclosure
 	vulnerability: memory content that a program does not intend
 	to share ends up in a world-readable file.  The content of
 	uninitialized heap memory depends on program execution
@@ -19068,3 +19068,8 @@ Apologies for any names omitted.
 	This was primarily an issue with non-HTML output, but it does
 	not hurt to do this also for HTML.  Files: proto/Makefile.in,
 	proto/MULTI_INSTANCE_README.html.
+
+20121104
+
+	Feature: ${queue_id} macro support for the pipe(8) delivery
+	agent by Andreas Schulze. File: pipe/pipe.c.

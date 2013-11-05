@@ -566,7 +566,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
      * 
      * By default, LMDB 0.9.9 writes uninitialized heap memory to a
      * world-readable database file, as chunks of up to 4096 bytes. This is a
-     * gross memory disclosure vulnerability: memory content that a program
+     * huge memory disclosure vulnerability: memory content that a program
      * does not intend to share ends up in a world-readable file. The content
      * of uninitialized heap memory depends on program execution history.
      * That history includes code execution in other libraries that are

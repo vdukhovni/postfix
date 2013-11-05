@@ -830,7 +830,7 @@ while (<>) {
     s/[<bB>]*header_checks[<\/bB>]*\(5\)/<a href="header_checks.5.html">$&<\/a>/g;
 
     s/[<bB>]*main\.cf[<\/bB>]*/<a href="postconf.5.html">$&<\/a>/g;
-    s/[<bB>]*master\.cf[<\/bB>]*/<a href="master.5.html">$&<\/a>/g;
+    s/[<bB>]*mas[-<\/bB>]*\n* *[<bB>]*ter\.cf[<\/bB>]*/<a href="master.5.html">$&<\/a>/g;
 
     # Hyperlink README document names
 
