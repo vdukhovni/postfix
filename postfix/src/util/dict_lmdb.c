@@ -548,6 +548,15 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     int     mdb_flags, slmdb_flags, status;
     int     db_fd;
 
+    /*
+     * Let the optimizer worry about eliminating redundant code.
+     */
+#define DICT_LMDB_OPEN_RETURN(d) { \
+	DICT *__d = (d); \
+	myfree(mdb_path); \
+	return (__d); \
+    } while (0)
+
     mdb_path = concatenate(path, "." DICT_TYPE_LMDB, (char *) 0);
 
     /*
@@ -583,12 +592,17 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
      * As a workaround the postmap(1) and postalias(1) commands turn on
      * MDB_WRITEMAP which disables the use of malloc() in LMDB. However, that
      * does not address several disclosures of stack memory. Other Postfix
-     * databases do not need this workaround: those databases are maintained
-     * by Postfix daemon processes, and are accessible only by the postfix
-     * user.
+     * databases are maintained by Postfix daemon processes, and are
+     * accessible only by the postfix user.
+     * 
+     * LMDB 0.9.10 by default does not write uninitialized heap memory to file
+     * (specify MDB_NOMEMINIT to revert that change). We use the MDB_WRITEMAP
+     * workaround for older LMDB versions.
      */
+#ifndef MDB_NOMEMINIT
     if (dict_flags & DICT_FLAG_WORLD_READ)
 	mdb_flags |= MDB_WRITEMAP;
+#endif
 
     /*
      * Gracefully handle most database open errors.
@@ -599,8 +613,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 				slmdb_flags)) != 0) {
 	dict = dict_surrogate(DICT_TYPE_LMDB, path, open_flags, dict_flags,
 		    "open database %s: %s", mdb_path, mdb_strerror(status));
-	myfree(mdb_path);
-	return (dict);
+	DICT_LMDB_OPEN_RETURN(dict);
     }
 
     /*
@@ -682,9 +695,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
      */
     dict_lmdb->slmdb = slmdb;
 
-    myfree(mdb_path);
-
-    return (DICT_DEBUG (&dict_lmdb->dict));
+    DICT_LMDB_OPEN_RETURN(DICT_DEBUG (&dict_lmdb->dict));
 }
 
 #endif

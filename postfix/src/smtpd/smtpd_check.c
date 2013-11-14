@@ -5044,11 +5044,14 @@ int     smtpd_input_transp_mask;
 char   *var_client_checks = "";
 char   *var_helo_checks = "";
 char   *var_mail_checks = "";
+char   *var_relay_checks = "";
 char   *var_rcpt_checks = "";
 char   *var_etrn_checks = "";
 char   *var_data_checks = "";
 char   *var_eod_checks = "";
 char   *var_relay_domains = "";
+char   *var_smtpd_uproxy_proto = "";
+int     var_smtpd_uproxy_tmout = 0;
 
 #ifdef USE_TLS
 char   *var_relay_ccerts = "";
@@ -5295,6 +5298,7 @@ static const REST_TABLE rest_table[] = {
     "client_restrictions", &client_restrctions,
     "helo_restrictions", &helo_restrctions,
     "sender_restrictions", &mail_restrctions,
+    "relay_restrictions", &relay_restrctions,
     "recipient_restrictions", &rcpt_restrctions,
     "etrn_restrictions", &etrn_restrctions,
     0,

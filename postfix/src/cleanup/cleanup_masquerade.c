@@ -110,7 +110,8 @@ int     cleanup_masquerade_external(CLEANUP_STATE *state, VSTRING *addr,
 	excluded = (string_list_match(cleanup_masq_exceptions, lowercase(name)) != 0);
 	myfree(name);
 	if (cleanup_masq_exceptions->error) {
-	    msg_info("%s: %s lookup error -- deferring delivery",
+	    msg_info("%s: %s map lookup problem -- "
+		     "message not accepted, try again later",
 		     state->queue_id, VAR_MASQ_EXCEPTIONS);
 	    state->errs |= CLEANUP_STAT_WRITE;
 	}

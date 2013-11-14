@@ -1,8 +1,17 @@
 Wish list:
 
+	Un-break "make tests" under src/smtpd.
+
+	Make been_here flag BH_FLAG_FOLD configurable for masochists.
+
+	Preserve case in smtpd_resolve_addr() and add a structure
+	member for the case-folded address.
+
 	Per SASL account rate limits.
 
-	Add watchdog timer to postmap/postalias.
+	Watchdog timer to postmap/postalias.
+
+	C99 va_copy() support.
 
 	Things to do before the stable release:
 

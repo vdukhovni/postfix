@@ -149,7 +149,8 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
 				  IGNORE_EXTENSION)) != 0) {
 	    cleanup_addr_bcc(state, bcc);
 	} else if (cleanup_send_bcc_maps->error) {
-	    msg_warn("%s: %s lookup problem",
+	    msg_warn("%s: %s map lookup problem -- "
+		     "message not accepted, try again later",
 		     state->queue_id, cleanup_send_bcc_maps->title);
 	    state->errs |= CLEANUP_STAT_WRITE;
 	}
@@ -198,7 +199,8 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
 				  IGNORE_EXTENSION)) != 0) {
 	    cleanup_addr_bcc(state, bcc);
 	} else if (cleanup_rcpt_bcc_maps->error) {
-	    msg_warn("%s: %s lookup problem",
+	    msg_warn("%s: %s map lookup problem -- "
+		     "message not accepted, try again later",
 		     state->queue_id, cleanup_rcpt_bcc_maps->title);
 	    state->errs |= CLEANUP_STAT_WRITE;
 	}

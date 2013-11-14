@@ -499,7 +499,8 @@ static void cleanup_header_callback(void *context, int header_class,
 		myfree((char *) result);
 	    }
 	} else if (checks->error) {
-	    msg_warn("%s: %s map lookup problem -- deferring delivery",
+	    msg_warn("%s: %s map lookup problem -- "
+		     "message not accepted, try again later",
 		     state->queue_id, checks->title);
 	    state->errs |= CLEANUP_STAT_WRITE;
 	}
@@ -789,7 +790,8 @@ static void cleanup_body_callback(void *context, int type,
 		return;
 	    }
 	} else if (cleanup_body_checks->error) {
-	    msg_warn("%s: %s map lookup problem -- deferring delivery",
+	    msg_warn("%s: %s map lookup problem -- "
+		     "message not accepted, try again later",
 		     state->queue_id, cleanup_body_checks->title);
 	    state->errs |= CLEANUP_STAT_WRITE;
 	}

@@ -138,8 +138,10 @@ static const char *parse_master_line(PC_MASTER_ENT *masterp, const char *buf)
 #define MASTER_BLANKS	" \t\r\n"		/* XXX */
 
     argv = argv_split(buf, MASTER_BLANKS);
-    if (argv->argc < PC_MASTER_MIN_FIELDS)
+    if (argv->argc < PC_MASTER_MIN_FIELDS) {
+	argv_free(argv);			/* Coverity 201311 */
 	return ("bad field count");
+    }
     normalize_options(argv);
     masterp->name_space =
 	concatenate(argv->argv[0], ".", argv->argv[1], (char *) 0);

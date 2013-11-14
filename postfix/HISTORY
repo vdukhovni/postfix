@@ -19069,7 +19069,45 @@ Apologies for any names omitted.
 	not hurt to do this also for HTML.  Files: proto/Makefile.in,
 	proto/MULTI_INSTANCE_README.html.
 
-20121104
+20131104
 
 	Feature: ${queue_id} macro support for the pipe(8) delivery
 	agent by Andreas Schulze. File: pipe/pipe.c.
+
+20131107
+
+	Cleanup: after 16 years the SKIP() and TRIM() macros were
+	triggering compiler warnings.  Files: global/mail_params.c,
+	smtpstone/smtp-sink.c, util/mac_parse.c, util/split_nameval.c.
+
+20131110
+
+	Bugfix (introduced Oct 26 1997): don't clobber errno before
+	expanding %m. File: util/vbuf_print.c.
+
+20131114
+
+	Cleanup: LMDB >= 0.9.10 does not need the MDB_WRITEMAP
+	workaround to avoid heap memory information leaks.  File:
+	util/dict_lmdb.c.
+
+20131114
+
+	Cleanup: Coverity found a harmless memory leak in the
+	postconf master.cf parser.  Reported by Christos Zoulas,
+	NetBSD.  File: postconf/postconf_master.c.
+
+	Cleanup: graceful degradation after database open() error.
+	Several instances of that code introduced a harmless memory
+	leak, and Coverity complained about one of them (Christos
+	Zoulas, NetBSD).  Instead of adding random code in random
+	places, restructured dict_foo_open() routines with consistent
+	code to dispose of memory or file handles. Files: dict_thash.c,
+	dict_sockmap.c, dict_regexp.c, dict_pcre.c, dict_lmdb.c,
+	dict_dbm.c, dict_cidr.c, dict_cdb.c.
+
+	Cleanup: warning message after canonical/virtal/etc.
+	table lookup error. Files: cleanup/cleanup_addr.c,
+	cleanup/cleanup_map11.c, cleanup/cleanup_map1n.c,
+	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c,
+	cleanup/cleanup_milter.c.

@@ -557,10 +557,10 @@ plaintext.
 
     If you must store encrypted passwords, you cannot use the ldapdb auxprop
     plugin. Instead, you can use "saslauthd -a ldap" to query the LDAP database
-    directly, with appropriate configuration in saslauthd.conf. This may be
-    documented in a later version of this document. You will not be able to use
-    any of the methods that require access to plaintext passwords, such as the
-    shared-secret methods CRAM-MD5 and DIGEST-MD5.
+    directly, with appropriate configuration in saslauthd.conf, as described
+    here. You will not be able to use any of the methods that require access to
+    plaintext passwords, such as the shared-secret methods CRAM-MD5 and DIGEST-
+    MD5.
 
 The ldapdb plugin implements proxy authorization. This means that the ldapdb
 plugin uses its own username and password to authenticate with the LDAP server,

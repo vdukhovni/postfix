@@ -284,6 +284,10 @@ static int new_server_session_cb(SSL *ssl, SSL_SESSION *session)
 
 /* ticket_cb - configure tls session ticket encrypt/decrypt context */
 
+#if defined(SSL_OP_NO_TICKET) \
+    && !defined(OPENSSL_NO_TLSEXT) \
+    && OPENSSL_VERSION_NUMBER >= 0x0090808fL
+
 static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 		          EVP_CIPHER_CTX * ctx, HMAC_CTX * hctx, int create)
 {
@@ -316,6 +320,8 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
     TLScontext->ticketed = 1;
     return (TLS_TKT_ACCEPT);
 }
+
+#endif
 
 /* tls_server_init - initialize the server-side TLS engine */
 

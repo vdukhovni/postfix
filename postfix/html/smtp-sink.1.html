@@ -12,7 +12,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 <b>SYNOPSIS</b>
        <b>smtp-sink</b> [<i>options</i>] [<b>inet:</b>][<i>host</i>]:<i>port backlog</i>
 
-       <b>smtp-sink</b> [<i>options</i>] <b>unix:</b><i>pathname backlog</i>
+       <b>smtp-sink</b> [<i>options</i>] <b>unix:<i></b>pathname backlog</i>
 
 <b>DESCRIPTION</b>
        <b>smtp-sink</b> listens on the named host (or address) and port.
@@ -47,19 +47,19 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-a</b>     Do not announce SASL authentication support.
 
-       <b>-A</b> <i>delay</i>
+       <b>-A <i></b>delay[0m
               Wait  <i>delay</i>  seconds after responding to DATA, then
               abort prematurely with a 550 reply status.  Do  not
               read  further  input  from  the  client; this is an
               attempt to block the client before  it  sends  ".".
               Specify a zero delay value to abort immediately.
 
-       <b>-b</b> <i>soft-bounce-reply</i>
+       <b>-b <i></b>soft-bounce-reply[0m
               Use  <i>soft-bounce-reply</i>  for  soft reject responses.
               The default reply  is  "450  4.3.0  Error:  command
               failed".
 
-       <b>-B</b> <i>hard-bounce-reply</i>
+       <b>-B <i></b>hard-bounce-reply[0m
               Use  <i>hard-bounce-reply</i>  for  hard reject responses.
               The default reply  is  "500  5.3.0  Error:  command
               failed".
@@ -70,7 +70,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-C</b>     Disable XCLIENT support.
 
-       <b>-d</b> <i>dump-template</i>
+       <b>-d <i></b>dump-template[0m
               Dump each mail transaction to a single-message file
               whose name is created by  expanding  the  <i>dump-tem-</i>
               <i>plate</i> via strftime(3) and appending a pseudo-random
@@ -83,7 +83,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               Note: this option keeps one capture file  open  for
               every mail transaction in progress.
 
-       <b>-D</b> <i>dump-template</i>
+       <b>-D <i></b>dump-template[0m
               Append  mail  transactions  to a multi-message dump
               file whose name is created by expanding  the  <i>dump-</i>
               <i>template</i> via strftime(3).  If the template contains
@@ -98,7 +98,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-E</b>     Do not announce ENHANCEDSTATUSCODES support.
 
-       <b>-f</b> <i>command,command,...</i>
+       <b>-f <i></b>command,command,...[0m
               Reject  the  specified  commands  with a hard (5xx)
               error code.  This option implies <b>-p</b>.
 
@@ -110,24 +110,24 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-F</b>     Disable XFORWARD support.
 
-       <b>-h</b> <i>hostname</i>
+       <b>-h <i></b>hostname[0m
               Use <i>hostname</i> in the  SMTP  greeting,  in  the  HELO
               response,  and  in  the  EHLO response. The default
               hostname is "smtp-sink".
 
        <b>-L</b>     Enable LMTP instead of SMTP.
 
-       <b>-m</b> <i>count</i> (default: 256)
+       <b>-m <i></b>count</i> (default: 256)
               An upper bound on the maximal number of  simultane-
               ous  connections  that  <b>smtp-sink</b> will handle. This
               prevents the  process  from  running  out  of  file
               descriptors. Excess connections will stay queued in
               the TCP/IP stack.
 
-       <b>-M</b> <i>count</i>
+       <b>-M <i></b>count[0m
               Terminate after receiving <i>count</i> messages.
 
-       <b>-n</b> <i>count</i>
+       <b>-n <i></b>count[0m
               Terminate after <i>count</i> sessions.
 
        <b>-p</b>     Do not announce support for ESMTP command  pipelin-
@@ -136,7 +136,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
        <b>-P</b>     Change  the  server  greeting so that it appears to
               come through a CISCO PIX system. Implies <b>-e</b>.
 
-       <b>-q</b> <i>command,command,...</i>
+       <b>-q <i></b>command,command,...[0m
               Disconnect (without replying) after  receiving  one
               of the specified commands.
 
@@ -146,7 +146,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               and use quotes to  protect  white  space  from  the
               shell. Command names are case-insensitive.
 
-       <b>-Q</b> <i>command,command,...</i>
+       <b>-Q <i></b>command,command,...[0m
               Send a 421 reply and disconnect after receiving one
               of the specified commands.
 
@@ -156,7 +156,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               and  use  quotes  to  protect  white space from the
               shell. Command names are case-insensitive.
 
-       <b>-r</b> <i>command,command,...</i>
+       <b>-r <i></b>command,command,...[0m
               Reject the specified commands  with  a  soft  (4xx)
               error code.  This option implies <b>-p</b>.
 
@@ -166,12 +166,12 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               and use quotes to  protect  white  space  from  the
               shell. Command names are case-insensitive.
 
-       <b>-R</b> <i>root-directory</i>
+       <b>-R <i></b>root-directory[0m
               Change  the process root directory to the specified
               location.  This option requires  super-user  privi-
               leges. See also the <b>-u</b> option.
 
-       <b>-s</b> <i>command,command,...</i>
+       <b>-s <i></b>command,command,...[0m
               Log the named commands to syslogd.
 
               Examples of commands are CONNECT, HELO, EHLO, LHLO,
@@ -190,16 +190,16 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               tab),  \<i>ddd</i>  (up to three octal digits) and \\ (the
               backslash character).
 
-       <b>-t</b> <i>timeout</i> (default: 100)
+       <b>-t <i></b>timeout</i> (default: 100)
               Limit the time for receiving a command or sending a
               response.   The time limit is specified in seconds.
 
-       <b>-T</b> <i>windowsize</i>
+       <b>-T <i></b>windowsize[0m
               Override the  default  TCP  window  size.  To  work
               around  broken  TCP window scaling implementations,
               specify a value &gt; 0 and &lt; 65536.
 
-       <b>-u</b> <i>username</i>
+       <b>-u <i></b>username[0m
               Switch to the specified user privileges after open-
               ing  the network socket and optionally changing the
               process root directory.  This  option  is  required
@@ -208,11 +208,11 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
 
        <b>-v</b>     Show the SMTP conversations.
 
-       <b>-w</b> <i>delay</i>
+       <b>-w <i></b>delay[0m
               Wait <i>delay</i> seconds before responding to a DATA com-
               mand.
 
-       <b>-W</b> <i>command:delay[:odds]</i>
+       <b>-W <i></b>command:delay[:odds][0m
               Wait  <i>delay</i>  seconds  before responding to <i>command</i>.
               If <i>odds</i> is also specified (a  number  between  1-99
               inclusive),  wait  for  a random multiple of <i>delay</i>.
@@ -226,7 +226,7 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
               interface) TCP port <i>port</i>. Both <i>host</i> and <i>port</i> may be
               specified in numeric or symbolic form.
 
-       <b>unix:</b><i>pathname</i>
+       <b>unix:<i></b>pathname[0m
               Listen on the UNIX-domain socket at <i>pathname</i>.
 
        <i>backlog</i>
@@ -251,45 +251,45 @@ SMTP-SINK(1)                                                      SMTP-SINK(1)
        The format of the <b>smtp-sink</b> generated headers is  as  fol-
        lows:
 
-       <b>X-Client-Addr:</b> <i>text</i>
+       <b>X-Client-Addr: <i></b>text[0m
               The client IP address without enclosing []. An IPv6
               address is prefixed with "ipv6:".  This  record  is
               always present.
 
-       <b>X-Client-Proto:</b> <i>text</i>
+       <b>X-Client-Proto: <i></b>text[0m
               The  client  protocol:  SMTP,  ESMTP  or LMTP. This
               record is always present.
 
-       <b>X-Helo-Args:</b> <i>text</i>
+       <b>X-Helo-Args: <i></b>text[0m
               The arguments of the  last  HELO  or  EHLO  command
               before  this mail delivery transaction. This record
               is present only if the client sent  a  recognizable
               HELO or EHLO command before the DATA command.
 
-       <b>X-Mail-Args:</b> <i>text</i>
+       <b>X-Mail-Args: <i></b>text[0m
               The arguments of the MAIL command that started this
               mail delivery transaction. This record  is  present
               exactly once.
 
-       <b>X-Rcpt-Args:</b> <i>text</i>
+       <b>X-Rcpt-Args: <i></b>text[0m
               The  arguments  of an RCPT command within this mail
               delivery transaction. There is one record for  each
               RCPT  command, and they are in the order as sent by
               the client.
 
-       <b>Received:</b> <i>text</i>
+       <b>Received: <i></b>text[0m
               A message header for compatibility with  mail  pro-
               cessing  software. This three-line header marks the
               end of the headers provided by  <b>smtp-sink</b>,  and  is
               formatted as follows:
 
-              <b>from</b> <i>helo</i> <b>([</b><i>addr</i><b>])</b>
+              <b>from <i></b>helo</i> <b>([<i></b>addr</i><b>])</b>
                      The HELO or EHLO command argument and client
                      IP address.  If the client did not send HELO
                      or  EHLO,  the  client  IP  address  is used
                      instead.
 
-              <b>by</b> <i>host</i> <b>(smtp-sink) with</b> <i>proto</i> <b>id</b> <i>random</i><b>;</b>
+              <b>by <i></b>host</i> <b>(smtp-sink) with <i></b>proto</i> <b>id <i></b>random</i><b>;</b>
                      The hostname specified with the  <b>-h</b>  option,
                      the   client  protocol  (see  <b>X-Client-Proto</b>
                      above), and the pseudo-random portion of the

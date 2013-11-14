@@ -68,14 +68,17 @@ const char *split_nameval(char *buf, char **name, char **value)
     /*
      * Ugly macros to make complex expressions less unreadable.
      */
-#define SKIP(start, var, cond) \
-	for (var = start; *var && (cond); var++);
+#define SKIP(start, var, cond) do { \
+	for (var = start; *var && (cond); var++) \
+	    /* void */; \
+    } while (0)
 
-#define TRIM(s) { \
+#define TRIM(s) do { \
 	char *p; \
-	for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--); \
+	for (p = (s) + strlen(s); p > (s) && ISSPACE(p[-1]); p--) \
+	    /* void */; \
 	*p = 0; \
-    }
+    } while (0)
 
     SKIP(buf, np, ISSPACE(*np));		/* find name begin */
     if (*np == 0)

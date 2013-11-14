@@ -948,8 +948,9 @@ stored as plaintext. </p>
 <p> If you must store encrypted passwords, you cannot use the ldapdb
 auxprop plugin. Instead, you can use "<code>saslauthd -a ldap</code>"
 to query the LDAP database directly, with appropriate configuration
-in <code>saslauthd.conf</code>. This may be documented in a later
-version of this document.  You will not be able to use any of the
+in <code>saslauthd.conf</code>, <a
+href="http://git.cyrusimap.org/cyrus-sasl/tree/saslauthd/LDAP_SASLAUTHD">as
+described here</a>.  You will not be able to use any of the
 methods that require access to plaintext passwords, such as the
 shared-secret methods CRAM-MD5 and DIGEST-MD5.  </p>
 

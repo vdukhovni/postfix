@@ -392,7 +392,8 @@ static int cleanup_milter_header_checks(CLEANUP_STATE *state, VSTRING *buf)
     if (ret == 0) {
 	return (0);
     } else if (ret == HBC_CHECKS_STAT_ERROR) {
-	msg_warn("%s: %s lookup error -- deferring delivery",
+	msg_warn("%s: %s map lookup problem -- "
+		 "message not accepted, try again later",
 		 state->queue_id, VAR_MILT_HEAD_CHECKS);
 	state->errs |= CLEANUP_STAT_WRITE;
 	return (0);
@@ -2092,7 +2093,7 @@ void    cleanup_milter_emul_rcpt(CLEANUP_STATE *state,
 	&& cleanup_milter_apply(state, "RCPT", resp) != 0) {
 	msg_warn("%s: milter configuration error: can't reject recipient "
 		 "in non-smtpd(8) submission", state->queue_id);
-	msg_warn("%s: deferring delivery of this message", state->queue_id);
+	msg_warn("%s: message not accepted, try again later", state->queue_id);
 	CLEANUP_MILTER_SET_REASON(state, "4.3.5 Server configuration error");
 	state->errs |= CLEANUP_STAT_DEFER;
     }

@@ -125,6 +125,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
     unsigned long_flag;			/* long or plain integer */
     int     ch;
     char   *s;
+    int     saved_errno = errno;	/* VBUF_SPACE() may clobber it */
 
     /*
      * Assume that format strings are short.
@@ -241,7 +242,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		VBUF_SKIP(bp);
 		break;
 	    case 'm':
-		VBUF_STRCAT(bp, strerror(errno));
+		VBUF_STRCAT(bp, strerror(saved_errno));
 		break;
 	    case 'p':
 		if (VBUF_SPACE(bp, (width > prec ? width : prec) + PTR_SPACE))

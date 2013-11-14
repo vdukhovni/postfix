@@ -94,8 +94,10 @@ int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
     int     level;
     int     status = 0;
 
-#define SKIP(start, var, cond) \
-        for (var = start; *var && (cond); var++);
+#define SKIP(start, var, cond) do { \
+        for (var = start; *var && (cond); var++) \
+	    /* void */; \
+    } while (0)
 
     if (msg_verbose > 1)
 	msg_info("%s: %s", myname, value);
