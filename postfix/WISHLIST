@@ -4,6 +4,9 @@ Wish list:
 
 	Make been_here flag BH_FLAG_FOLD configurable for masochists.
 
+	Allow LMDB-based caches to be shared. This requires a new
+	flag that says a database is concurrency-safe.
+
 	Preserve case in smtpd_resolve_addr() and add a structure
 	member for the case-folded address.
 

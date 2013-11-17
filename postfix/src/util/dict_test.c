@@ -1,8 +1,6 @@
  /*
-  * Proof-of-concept test program. Create, update or read a database. When
-  * the input is a name=value pair, the database is updated, otherwise the
-  * program assumes that the input specifies a lookup key and prints the
-  * corresponding value.
+  * Proof-of-concept test program. Create, update or read a database. Type
+  * '?' for a list of commands.
   */
 
 /* System library. */

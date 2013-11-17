@@ -15,6 +15,7 @@
 /*	char	*var_tls_eecdh_strong;
 /*	char	*var_tls_eecdh_ultra;
 /*	char	*var_tls_dane_ta_dgst;
+/*	char	*var_tls_dane_digests;
 /*	int	var_tls_daemon_rand_bytes;
 /*	bool	var_tls_append_def_CA;
 /*	bool	var_tls_preempt_clist;
@@ -220,6 +221,7 @@ char   *var_tls_null_clist;
 int     var_tls_daemon_rand_bytes;
 char   *var_tls_eecdh_strong;
 char   *var_tls_eecdh_ultra;
+char   *var_tls_dane_digests;
 char   *var_tls_dane_ta_dgst;
 bool    var_tls_append_def_CA;
 char   *var_tls_bug_tweaks;
@@ -227,6 +229,7 @@ char   *var_tls_ssl_options;
 bool    var_tls_bc_pkey_fprint;
 bool    var_tls_multi_wildcard;
 char   *var_tls_mgr_service;
+char   *tls_dane_digests;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -594,6 +597,7 @@ void    tls_param_init(void)
 	VAR_TLS_EECDH_ULTRA, DEF_TLS_EECDH_ULTRA, &var_tls_eecdh_ultra, 1, 0,
 	VAR_TLS_BUG_TWEAKS, DEF_TLS_BUG_TWEAKS, &var_tls_bug_tweaks, 0, 0,
 	VAR_TLS_SSL_OPTIONS, DEF_TLS_SSL_OPTIONS, &var_tls_ssl_options, 0, 0,
+	VAR_TLS_DANE_DIGESTS, DEF_TLS_DANE_DIGESTS, &var_tls_dane_digests, 1, 0,
 	VAR_TLS_DANE_TA_DGST, DEF_TLS_DANE_TA_DGST, &var_tls_dane_ta_dgst, 0, 0,
 	VAR_TLS_MGR_SERVICE, DEF_TLS_MGR_SERVICE, &var_tls_mgr_service, 1, 0,
 	0,

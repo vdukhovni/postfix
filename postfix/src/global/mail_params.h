@@ -3104,6 +3104,13 @@ extern char *var_tls_ssl_options;
 extern bool var_tls_bc_pkey_fprint;
 
  /*
+  * Ordered list of DANE digest algorithms.
+  */
+#define VAR_TLS_DANE_DIGESTS	"tls_dane_digests"
+#define DEF_TLS_DANE_DIGESTS	"sha512 sha256"
+extern char *var_tls_dane_digests;
+
+ /*
   * External interface for enabling trust-anchor digests, which are risky
   * when the corresponding certificate is missing from the peer chain (this
   * can't happend with the leaf certificate).

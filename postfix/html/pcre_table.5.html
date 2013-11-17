@@ -10,9 +10,9 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
        pcre_table - format of Postfix PCRE tables
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "<i></b>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/<i></b>filename[0m
+       <b>postmap -q "</b><i>string</i><b>" <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i>
 
-       <b>postmap -q - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/<i></b>filename</i> &lt;<i>inputfile</i>
+       <b>postmap -q - <a href="pcre_table.5.html">pcre</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  Postfix  mail system uses optional tables for address
@@ -39,15 +39,15 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
 <b>TABLE FORMAT</b>
        The general form of a PCRE table is:
 
-       <b>/<i></b>pattern</i><b>/<i></b>flags result</i>
+       <b>/</b><i>pattern</i><b>/</b><i>flags result</i>
               When <i>pattern</i> matches the input string, use the cor-
               responding <i>result</i> value.
 
-       <b>!/<i></b>pattern</i><b>/<i></b>flags result</i>
+       <b>!/</b><i>pattern</i><b>/</b><i>flags result</i>
               When <i>pattern</i> does <b>not</b> match the input  string,  use
               the corresponding <i>result</i> value.
 
-       <b>if /<i></b>pattern</i><b>/<i></b>flags[0m
+       <b>if /</b><i>pattern</i><b>/</b><i>flags</i>
 
        <b>endif</b>  Match the input string against the patterns between
               <b>if</b> and <b>endif</b>, if and only if that same input string
@@ -58,7 +58,7 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
 
               This feature is available in Postfix 2.1 and later.
 
-       <b>if !/<i></b>pattern</i><b>/<i></b>flags[0m
+       <b>if !/</b><i>pattern</i><b>/</b><i>flags</i>
 
        <b>endif</b>  Match the input string against the patterns between
               <b>if</b> and <b>endif</b>, if and only if that same input string
@@ -115,7 +115,7 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
               a whitespace character  as  part  of  the  pattern,
               escape it with backslash.
 
-              Note: do not use <b>#<i></b>comment</i> after patterns.
+              Note: do not use <b>#</b><i>comment</i> after patterns.
 
        <b>A</b> (default: off)
               Toggles  the PCRE_ANCHORED flag.  When this flag is

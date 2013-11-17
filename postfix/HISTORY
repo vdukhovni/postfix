@@ -19111,3 +19111,36 @@ Apologies for any names omitted.
 	cleanup/cleanup_map11.c, cleanup/cleanup_map1n.c,
 	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c,
 	cleanup/cleanup_milter.c.
+
+20131116
+
+	Feature: MySQL client support for option_file, option_group,
+	tls_cert_file, tls_key_file, tls_CAfile, tls_CApath,
+	tls_verify_cert. See mysql_table(5).  Code by Gareth Palmer.
+	Files: proto/mysql_table, global/dict_mysql.c.
+
+	Cleanup: DANE support. Keep the attributes of TA certificates
+	obtained via "IN TLSA 2 0 X" RRs, while continuing to only
+	use the key from "IN TLSA 2 1 X" RRs.  This means in the
+	"2 0 X" case that we re-sign the TA certificate in place,
+	rather than synthesize a vanilla cert around just the key.
+	Viktor Dukhovni. File: tls/tls_dane.c.
+
+	Bugfix: posttls-finger parsing of destination and optional
+	match values. Viktor Dukhovni.  File:
+	posttls-finger/posttls-finger.c.
+
+	Cleanup: When wrap_signed is false (OpenSSL 1.0.2 some day),
+	we don't have to sign trust anchors, and don't generate a
+	key to do so.  Thus don't attempt to re-sign trust-anchor
+	certificates (IN TLSA 2 0 X) in this case. Viktor Dukhovni.
+	File: tls/tls_dane.c.
+
+	Feature: configurable DANE digest algorithm priority. Use
+	only the most-preferred, shared, digest algorithm for any
+	give (usage, selector) combination. Viktor Dukhovni.
+	mantools/postlink, proto/postconf.proto, global/mail_params.h,
+	tls/tls_dane.c, tls/tls_misc.c.
+
+	Bugfix: FreeBSD nroff workaround messed up. File:
+	mantools/postlink.

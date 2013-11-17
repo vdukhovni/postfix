@@ -4173,7 +4173,7 @@ Example:
 .ft C
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks,
-		cidr:/etc/postfix/postscreen_access.cidr
+                cidr:/etc/postfix/postscreen_access.cidr
     postscreen_blacklist_action = enforce
 .fi
 .ad
@@ -4393,7 +4393,7 @@ Example:
 .na
 .ft C
 /etc/postfix/dnsbl_reply:
-   secret.zen.spamhaus.org	zen.spamhaus.org
+   secret.zen.spamhaus.org      zen.spamhaus.org
 .fi
 .ad
 .ft R
@@ -6962,7 +6962,7 @@ As in the example above, we show two matching fingerprints:
 .na
 .ft C
 /etc/postfix/tls_policy:
-    example.com	fingerprint
+    example.com fingerprint
         match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
         match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
 .fi
@@ -7079,7 +7079,7 @@ This feature is available in Postfix 2.5 and later.
 Lookup the associated DANE TLSA RRset even when a hostname is
 not an alias and its address records lie in an unsigned zone.  This
 is unlikely to ever yield DNSSEC validated results, since child
-zones of unsigned zones are also unsigned in the absense of DLV or
+zones of unsigned zones are also unsigned in the absence of DLV or
 locally configured non-root trust-anchors.  We anticipate that such
 mechanisms will not be used for just the "_tcp" subdomain of a host.
 Suppressing the TLSA RRset lookup reduces latency and avoids potential
@@ -7506,8 +7506,8 @@ Example:
     [mail.example.org]:587      secure match=nexthop
     # Postfix 2.5 and later
     [thumb.example.org]          fingerprint
-    	match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
-	match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+        match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
 .fi
 .ad
 .ft R
@@ -11006,6 +11006,49 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 (or 168bit) session key.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_dane_digests (default: sha512 sha256)
+RFC 6698 TLSA resource-record "matching type" digest algorithms
+in descending preference order.  All the specified algorithms must
+be supported by the underlying OpenSSL library, otherwise the Postfix
+SMTP client will not support DANE TLSA security.
+.PP
+When for a particular combination of "certificate usage" and
+"selector" the TLSA RRset contains a well-formed record with a
+matching type of "0", i.e. a full value of the associated certificate
+or public key, the Postfix SMTP client will ignore all other matching
+types for the same certificate usage and selector.  In this case
+the first algorithm listed in tls_dane_digests will be used to
+compute a digest of the full value, which will then be used to match
+certificates or public keys in the server's certificate chain.
+.PP
+Otherwise, when for a particular combination of "certificate
+usage" and "selector" the TLSA RRset contains a records with more
+than one non-zero matching type, i.e. multiple digest algorithms,
+only records with the highest preference digest are used after
+discarding any records with an incorrect digest length as unusable.
+.PP
+This strategy ensures that the strongest digest supported by
+both the Postfix SMTP client and the remote server is used, and
+weaker digests are ignored.  This supports non-disruptive deprecation
+of outdated digest algorithms.
+.PP
+The strategy requires that when a TLSA RRset provides association
+data for multiple certificates or public keys, all RRs with the same
+"certificate usage" and "selector" be published with the same set
+of digests.  In particular, during key rotation, when a certificate
+or public key is being replaced with another (and both are published
+during the transition) both the old and the new certificate MUST be
+specified with the same set of digests.  One can change the list of
+digest algorithms later, once old keys are retired.  At any given
+time change either the list of digests without changing the list of
+certificates or public keys or the list of certificates or public
+keys without changing the list of digests.
+.PP
+It is expected that this algorithm agility mechanism will be
+published in a standards track RFC for SMTP with DANE, and perhaps
+in an eventual update to RFC 6698.
+.PP
+This feature is available in Postfix 2.11.
 .SH tls_dane_trust_anchor_digest_enable (default: trust-anchor-assertion)
 RFC 6698 trust-anchor digest support in the Postfix TLS library.
 Specify zero or more of the following options, separated by comma or

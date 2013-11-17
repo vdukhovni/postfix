@@ -1745,11 +1745,8 @@ static void parse_match(STATE *state, int argc, char *argv[])
 {
 #ifdef USE_TLS
 
-    argc -= optind;
-    argv += optind;
-
     switch (state->level) {
-    case TLS_LEV_SECURE:
+	case TLS_LEV_SECURE:
 	state->match = argv_alloc(2);
 	while (*argv)
 	    argv_split_append(state->match, *argv++, "");
@@ -1826,14 +1823,17 @@ int     main(int argc, char *argv[])
     mail_conf_suck();
     parse_options(&state, argc, argv);
     mail_params_init();
-
-    parse_match(&state, argc, argv);
     parse_tas(&state);
 
+    argc -= optind;
+    argv += optind;
+
     /* The first non-option argument is the destination. */
-    if (argc < optind)
+    if (!argc)
 	usage();
-    state.dest = mystrdup(argv[optind]);
+
+    state.dest = mystrdup(argv[0]);
+    parse_match(&state, --argc, ++argv);
 
     /* Don't talk to remote systems as root */
     if (!geteuid())
