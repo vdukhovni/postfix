@@ -283,23 +283,6 @@ void    tls_dane_verbose(int on)
     dane_verbose = on;
 }
 
-/* digest_info_cmp - qsort() comparator for digest_table */
-
-static int digest_info_cmp(const void *a, const void *b)
-{
-    register const digest_info *ai = (const digest_info *) a;
-    register const digest_info *bi = (const digest_info *) b;
-
-    /*
-     * Negative preferences sort last.  Otherwise, sort in ascending order.
-     */
-    if (ai->pref == bi->pref)
-	return (0);
-    if (ai->pref < 0 || bi->pref < 0)
-	return bi->pref - ai->pref;
-    return ai->pref - bi->pref;
-}
-
 /* dane_digest_info - locate digest_table entry for given IANA id */
 
 static digest_info *dane_digest_info(uint8_t dane_id)
@@ -396,10 +379,6 @@ static void dane_init(void)
 	}
     }
     myfree(save);
-
-    if (digest_pref > 0)
-	qsort(digest_table, digest_pref, sizeof(digest_table[0]),
-	      digest_info_cmp);
 
     /* Don't report old news */
     ERR_clear_error();

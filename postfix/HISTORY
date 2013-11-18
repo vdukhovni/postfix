@@ -19144,3 +19144,24 @@ Apologies for any names omitted.
 
 	Bugfix: FreeBSD nroff workaround messed up. File:
 	mantools/postlink.
+
+20131118
+
+	Cleanup: FreeBSD nroff workaround. Files: man/Makefile.in,
+	proto/Makefile.in.
+
+	Cleanup: the smtpd_proxy_filter client now sends QUIT before
+	closing the connection to a content filter.  Files:
+	smtpd/smtpd_proxy.c, smtpd/smtpd.c.
+
+	Portability: C99 va_copy() compatibility, in case some
+	implementation does not permit multiple va_start() calls
+	on the same argument list. Files: global/memcache_proto.c,
+	milter/milter8.c, smtpstone/smtp-source.c, util/attr_clnt.c,
+	util/concatenate.c, util/dict_surrogate.c, util/netstring.c,
+	util/compat_va_copy.h.
+
+	Cleanup: comment formatting. Viktor Dukhovni. File: dns/dns.h.
+
+	Cleanup: removed redundant sort operation. Viktor Dukhovni.
+	File: tls/tls_dane.c.

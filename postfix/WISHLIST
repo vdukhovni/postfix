@@ -10,11 +10,10 @@ Wish list:
 	Preserve case in smtpd_resolve_addr() and add a structure
 	member for the case-folded address.
 
-	Per SASL account rate limits.
+	Per SASL account rate limits. This requires new infrastructure
+	that maintains stats by SASL account.
 
 	Watchdog timer to postmap/postalias.
-
-	C99 va_copy() support.
 
 	Things to do before the stable release:
 

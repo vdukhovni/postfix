@@ -130,7 +130,8 @@
 /* .PP
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
-/*	Change the behavior of the smtpd_timeout time limit, from a
+/*	Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+/*	time limits, from a
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
@@ -660,7 +661,8 @@
 /* .PP
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
-/*	Change the behavior of the smtpd_timeout time limit, from a
+/*	Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+/*	time limits, from a
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
@@ -1840,7 +1842,7 @@ static int mail_open_stream(SMTPD_STATE *state)
 	if (smtpd_proxy_create(state, smtpd_proxy_opts, var_smtpd_proxy_filt,
 			       var_smtpd_proxy_tmout, var_smtpd_proxy_ehlo,
 			       state->proxy_mail) != 0) {
-	    smtpd_chat_reply(state, "%s", STR(state->proxy->buffer));
+	    smtpd_chat_reply(state, "%s", STR(state->proxy->reply));
 	    smtpd_proxy_free(state);
 	    return (-1);
 	}
@@ -2683,7 +2685,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     proxy = state->proxy;
     if (proxy != 0 && proxy->cmd(state, SMTPD_PROX_WANT_OK,
 				 "%s", STR(state->buffer)) != 0) {
-	smtpd_chat_reply(state, "%s", STR(proxy->buffer));
+	smtpd_chat_reply(state, "%s", STR(proxy->reply));
 	return (-1);
     }
 
@@ -2932,7 +2934,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     proxy = state->proxy;
     if (proxy != 0 && proxy->cmd(state, SMTPD_PROX_WANT_MORE,
 				 "%s", STR(state->buffer)) != 0) {
-	smtpd_chat_reply(state, "%s", STR(proxy->buffer));
+	smtpd_chat_reply(state, "%s", STR(proxy->reply));
 	return (-1);
     }
 
@@ -3142,7 +3144,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (state->err == CLEANUP_STAT_OK) {
 	    (void) proxy->cmd(state, SMTPD_PROX_WANT_ANY, ".");
 	    if (state->err == CLEANUP_STAT_OK &&
-		*STR(proxy->buffer) != '2')
+		*STR(proxy->reply) != '2')
 		state->err = CLEANUP_STAT_CONT;
 	}
     }
@@ -3231,7 +3233,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_mask = 0;
 	state->junk_cmds = 0;
 	if (proxy)
-	    smtpd_chat_reply(state, "%s", STR(proxy->buffer));
+	    smtpd_chat_reply(state, "%s", STR(proxy->reply));
 	else
 	    smtpd_chat_reply(state,
 			     "250 2.0.0 Ok: queued as %s", state->queue_id);
@@ -3267,7 +3269,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	state->error_mask |= MAIL_ERROR_POLICY;
 	detail = cleanup_stat_detail(CLEANUP_STAT_CONT);
 	if (proxy) {
-	    smtpd_chat_reply(state, "%s", STR(proxy->buffer));
+	    smtpd_chat_reply(state, "%s", STR(proxy->reply));
 	} else if (why && LEN(why) > 0) {
 	    /* Allow address-specific DSN status in header/body_checks. */
 	    smtpd_chat_reply(state, "%d %s", detail->smtp, STR(why));
@@ -3282,7 +3284,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			 detail->smtp, detail->dsn, detail->text);
     } else if ((state->err & CLEANUP_STAT_PROXY) != 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
-	smtpd_chat_reply(state, "%s", STR(proxy->buffer));
+	smtpd_chat_reply(state, "%s", STR(proxy->reply));
     } else {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	detail = cleanup_stat_detail(CLEANUP_STAT_BAD);
@@ -3296,7 +3298,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     if (proxy)
 	msg_info("proxy-%s: %s: %s;%s",
 		 (state->err == CLEANUP_STAT_OK) ? "accept" : "reject",
-		 state->where, STR(proxy->buffer), smtpd_whatsup(state));
+		 state->where, STR(proxy->reply), smtpd_whatsup(state));
 
     /*
      * Cleanup. The client may send another MAIL command.

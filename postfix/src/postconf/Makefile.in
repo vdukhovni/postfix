@@ -567,6 +567,7 @@ postconf.o: ../../include/mail_version.h
 postconf.o: ../../include/msg.h
 postconf.o: ../../include/msg_vstream.h
 postconf.o: ../../include/myflock.h
+postconf.o: ../../include/mymalloc.h
 postconf.o: ../../include/name_mask.h
 postconf.o: ../../include/stringops.h
 postconf.o: ../../include/sys_defs.h

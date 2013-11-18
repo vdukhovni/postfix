@@ -625,6 +625,7 @@ smtp_tls_policy.o: ../../include/attr.h
 smtp_tls_policy.o: ../../include/ctable.h
 smtp_tls_policy.o: ../../include/deliver_request.h
 smtp_tls_policy.o: ../../include/dict.h
+smtp_tls_policy.o: ../../include/dns.h
 smtp_tls_policy.o: ../../include/dsn.h
 smtp_tls_policy.o: ../../include/dsn_buf.h
 smtp_tls_policy.o: ../../include/header_body_checks.h
@@ -636,6 +637,7 @@ smtp_tls_policy.o: ../../include/match_list.h
 smtp_tls_policy.o: ../../include/mime_state.h
 smtp_tls_policy.o: ../../include/msg.h
 smtp_tls_policy.o: ../../include/msg_stats.h
+smtp_tls_policy.o: ../../include/myaddrinfo.h
 smtp_tls_policy.o: ../../include/myflock.h
 smtp_tls_policy.o: ../../include/mymalloc.h
 smtp_tls_policy.o: ../../include/name_code.h
@@ -643,6 +645,7 @@ smtp_tls_policy.o: ../../include/name_mask.h
 smtp_tls_policy.o: ../../include/recipient_list.h
 smtp_tls_policy.o: ../../include/resolve_clnt.h
 smtp_tls_policy.o: ../../include/scache.h
+smtp_tls_policy.o: ../../include/sock_addr.h
 smtp_tls_policy.o: ../../include/string_list.h
 smtp_tls_policy.o: ../../include/stringops.h
 smtp_tls_policy.o: ../../include/sys_defs.h

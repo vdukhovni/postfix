@@ -80,6 +80,7 @@
 #include <name_mask.h>
 #include <name_code.h>
 #include <stringops.h>
+#include <compat_va_copy.h>
 
 /* Global library. */
 
@@ -911,22 +912,27 @@ static int vmilter8_write_cmd(MILTER8 *milter, int command, ssize_t data_len,
 static int milter8_write_cmd(MILTER8 *milter, int command,...)
 {
     va_list ap;
+    va_list ap2;
     ssize_t data_len;
     int     err;
 
     /*
-     * Size the command data.
+     * Initialize argument lists.
      */
     va_start(ap, command);
+    VA_COPY(ap2, ap);
+
+    /*
+     * Size the command data.
+     */
     data_len = vmilter8_size_data(ap);
     va_end(ap);
 
     /*
      * Send the command and data.
      */
-    va_start(ap, command);
-    err = vmilter8_write_cmd(milter, command, data_len, ap);
-    va_end(ap);
+    err = vmilter8_write_cmd(milter, command, data_len, ap2);
+    va_end(ap2);
 
     return (err);
 }
@@ -940,6 +946,7 @@ static const char *milter8_event(MILTER8 *milter, int event,
 {
     const char *myname = "milter8_event";
     va_list ap;
+    va_list ap2;
     ssize_t data_len;
     int     err;
     unsigned char cmd;
@@ -1037,19 +1044,27 @@ static const char *milter8_event(MILTER8 *milter, int event,
     }
 
     /*
+     * Initialize argument lists.
+     */
+    va_start(ap, macros);
+    VA_COPY(ap2, ap);
+
+    /*
      * Compute the command data size. This is necessary because the protocol
      * sends length before content.
      */
-    va_start(ap, macros);
     data_len = vmilter8_size_data(ap);
     va_end(ap);
 
     /*
      * Send the command and data.
      */
-    va_start(ap, macros);
-    err = vmilter8_write_cmd(milter, event, data_len, ap);
-    va_end(ap);
+    err = vmilter8_write_cmd(milter, event, data_len, ap2);
+    va_end(ap2);
+
+    /*
+     * C99 requires that we finalize argument lists before returning.
+     */
     if (err != 0)
 	return (milter->def_reply);
 

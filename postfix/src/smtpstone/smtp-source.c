@@ -143,6 +143,7 @@
 #include <inet_proto.h>
 #include <valid_hostname.h>
 #include <valid_mailhost_addr.h>
+#include <compat_va_copy.h>
 
 /* Global library. */
 
@@ -245,6 +246,9 @@ static void command(VSTREAM *stream, char *fmt,...)
 {
     VSTRING *buf;
     va_list ap;
+    va_list ap2;
+
+    va_start(ap, fmt);
 
     /*
      * Optionally, log the command before actually sending, so we can see
@@ -252,13 +256,12 @@ static void command(VSTREAM *stream, char *fmt,...)
      */
     if (msg_verbose) {
 	buf = vstring_alloc(100);
-	va_start(ap, fmt);
-	vstring_vsprintf(buf, fmt, ap);
-	va_end(ap);
+	VA_COPY(ap2, ap);
+	vstring_vsprintf(buf, fmt, ap2);
+	va_end(ap2);
 	msg_info("%s", vstring_str(buf));
 	vstring_free(buf);
     }
-    va_start(ap, fmt);
     smtp_vprintf(stream, fmt, ap);
     va_end(ap);
     smtp_flush(stream);

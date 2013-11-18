@@ -64,10 +64,10 @@
 #define RES_USE_EDNS0	0
 #endif
 
- /*
-  * TLSA: https://tools.ietf.org/html/rfc6698#section-7.1 RRSIG:
-  * http://tools.ietf.org/html/rfc4034#section-3
-  * 
+ /*-
+  * TLSA: https://tools.ietf.org/html/rfc6698#section-7.1
+  * RRSIG: http://tools.ietf.org/html/rfc4034#section-3
+  *
   * We don't request RRSIG, but we get it "for free" when we send the DO-bit.
   */
 #ifndef T_TLSA

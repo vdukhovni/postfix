@@ -197,6 +197,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <limits.h>
+#include <stdarg.h>
 
 /* Application-specific. */
 

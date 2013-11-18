@@ -25,7 +25,8 @@ typedef int (*SMTPD_PROXY_REC_PUT_FN) (VSTREAM *, int, const char *, ssize_t);
 typedef struct SMTPD_PROXY {
     /* Public. */
     VSTREAM *stream;
-    VSTRING *buffer;			/* proxy query/reply buffer */
+    VSTRING *request;			/* proxy request buffer */
+    VSTRING *reply;			/* proxy reply buffer */
     SMTPD_PROXY_CMD_FN cmd;
     SMTPD_PROXY_REC_FPRINTF_FN rec_fprintf;
     SMTPD_PROXY_REC_PUT_FN rec_put;

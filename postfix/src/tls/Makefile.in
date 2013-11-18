@@ -114,9 +114,11 @@ tls_certkey.o: ../../include/vstring.h
 tls_certkey.o: tls.h
 tls_certkey.o: tls_certkey.c
 tls_client.o: ../../include/argv.h
+tls_client.o: ../../include/dict.h
 tls_client.o: ../../include/iostuff.h
 tls_client.o: ../../include/mail_params.h
 tls_client.o: ../../include/msg.h
+tls_client.o: ../../include/myflock.h
 tls_client.o: ../../include/mymalloc.h
 tls_client.o: ../../include/name_code.h
 tls_client.o: ../../include/name_mask.h
@@ -128,6 +130,7 @@ tls_client.o: ../../include/vstring.h
 tls_client.o: tls.h
 tls_client.o: tls_client.c
 tls_client.o: tls_mgr.h
+tls_client.o: tls_scache.h
 tls_dane.o: ../../include/argv.h
 tls_dane.o: ../../include/ctable.h
 tls_dane.o: ../../include/dns.h
@@ -181,12 +184,15 @@ tls_level.o: ../../include/vstream.h
 tls_level.o: ../../include/vstring.h
 tls_level.o: tls.h
 tls_level.o: tls_level.c
+tls_mgr.o: ../../include/argv.h
 tls_mgr.o: ../../include/attr.h
 tls_mgr.o: ../../include/attr_clnt.h
+tls_mgr.o: ../../include/dict.h
 tls_mgr.o: ../../include/iostuff.h
 tls_mgr.o: ../../include/mail_params.h
 tls_mgr.o: ../../include/mail_proto.h
 tls_mgr.o: ../../include/msg.h
+tls_mgr.o: ../../include/myflock.h
 tls_mgr.o: ../../include/mymalloc.h
 tls_mgr.o: ../../include/stringops.h
 tls_mgr.o: ../../include/sys_defs.h
@@ -195,6 +201,7 @@ tls_mgr.o: ../../include/vstream.h
 tls_mgr.o: ../../include/vstring.h
 tls_mgr.o: tls_mgr.c
 tls_mgr.o: tls_mgr.h
+tls_mgr.o: tls_scache.h
 tls_misc.o: ../../include/argv.h
 tls_misc.o: ../../include/mail_conf.h
 tls_misc.o: ../../include/mail_params.h
@@ -298,13 +305,16 @@ tls_scache.o: ../../include/myflock.h
 tls_scache.o: ../../include/mymalloc.h
 tls_scache.o: ../../include/stringops.h
 tls_scache.o: ../../include/sys_defs.h
+tls_scache.o: ../../include/timecmp.h
 tls_scache.o: ../../include/vbuf.h
 tls_scache.o: ../../include/vstream.h
 tls_scache.o: ../../include/vstring.h
 tls_scache.o: tls_scache.c
 tls_scache.o: tls_scache.h
 tls_seed.o: ../../include/argv.h
+tls_seed.o: ../../include/dict.h
 tls_seed.o: ../../include/msg.h
+tls_seed.o: ../../include/myflock.h
 tls_seed.o: ../../include/name_code.h
 tls_seed.o: ../../include/name_mask.h
 tls_seed.o: ../../include/sys_defs.h
@@ -313,6 +323,7 @@ tls_seed.o: ../../include/vstream.h
 tls_seed.o: ../../include/vstring.h
 tls_seed.o: tls.h
 tls_seed.o: tls_mgr.h
+tls_seed.o: tls_scache.h
 tls_seed.o: tls_seed.c
 tls_server.o: ../../include/argv.h
 tls_server.o: ../../include/dict.h
@@ -331,6 +342,7 @@ tls_server.o: ../../include/vstream.h
 tls_server.o: ../../include/vstring.h
 tls_server.o: tls.h
 tls_server.o: tls_mgr.h
+tls_server.o: tls_scache.h
 tls_server.o: tls_server.c
 tls_session.o: ../../include/argv.h
 tls_session.o: ../../include/msg.h

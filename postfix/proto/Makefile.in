@@ -96,6 +96,7 @@ AWK	= awk '{ print; if (NR == 1) print ".pl 9999\n.ll 65" }'
 SRCTOMAN= ../mantools/srctoman
 POSTLINK= ../mantools/postlink
 DETAB	= pr -tre
+NROFF	= GROFF_NO_SGR=1 nroff
 HT2READ	= ../mantools/html2readme
 MAKEAAA	= ../mantools/makereadme
 MAKESOHO= ../mantools/make_soho_readme
@@ -115,28 +116,28 @@ clobber:
 #$(HTML): $(POSTLINK)
 
 ../conf/access: access
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/aliases: aliases0 aliases
-	(cat aliases0; $(SRCTOMAN) - aliases | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /') >$@
+	(cat aliases0; $(SRCTOMAN) - aliases | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /') >$@
 
 ../conf/canonical: canonical
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/generic: generic
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/header_checks: header_checks
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/relocated: relocated
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/transport: transport
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../conf/virtual: virtual
-	$(SRCTOMAN) - $? | $(AWK) | nroff -man | col -bx | uniq | sed 's/^/# /' >$@
+	$(SRCTOMAN) - $? | $(AWK) | $(NROFF) -man | col -bx | uniq | sed 's/^/# /' >$@
 
 ../html/ADDRESS_CLASS_README.html: ADDRESS_CLASS_README.html
 	$(DETAB) $? | $(POSTLINK) >$@

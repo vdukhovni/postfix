@@ -146,7 +146,8 @@ A mechanism to transform commands from remote SMTP clients.
 .PP
 Available in Postfix version 2.9 and later:
 .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
-Change the behavior of the smtpd_timeout time limit, from a
+Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
@@ -704,7 +705,8 @@ time unit.
 .PP
 Available in Postfix version 2.9 and later:
 .IP "\fBsmtpd_per_record_deadline (normal: no, overload: yes)\fR"
-Change the behavior of the smtpd_timeout time limit, from a
+Change the behavior of the smtpd_timeout and smtpd_starttls_timeout
+time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).

@@ -14,7 +14,6 @@
  /*
   * System library.
   */
-#include <stdarg.h>
 #include <setjmp.h>
 
 #ifdef PATH_LMDB_H
