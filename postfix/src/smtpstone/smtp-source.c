@@ -244,9 +244,7 @@ static int random_interval(int interval)
 
 static void command(VSTREAM *stream, char *fmt,...)
 {
-    VSTRING *buf;
     va_list ap;
-    va_list ap2;
 
     va_start(ap, fmt);
 
@@ -255,12 +253,11 @@ static void command(VSTREAM *stream, char *fmt,...)
      * what the program is trying to do.
      */
     if (msg_verbose) {
-	buf = vstring_alloc(100);
+	va_list ap2;
+
 	VA_COPY(ap2, ap);
-	vstring_vsprintf(buf, fmt, ap2);
+	vmsg_info(fmt, ap2);
 	va_end(ap2);
-	msg_info("%s", vstring_str(buf));
-	vstring_free(buf);
     }
     smtp_vprintf(stream, fmt, ap);
     va_end(ap);

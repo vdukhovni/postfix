@@ -57,7 +57,8 @@ typedef struct DICT {
     int     (*sequence) (struct DICT *, int, const char **, const char **);
     int     (*lock) (struct DICT *, int);
     void    (*close) (struct DICT *);
-    int     lock_fd;			/* for dict_update() lock */
+    int     lock_type;			/* for read/write lock */
+    int     lock_fd;			/* for read/write lock */
     int     stat_fd;			/* change detection */
     time_t  mtime;			/* mod time at open */
     VSTRING *fold_buf;			/* key folding buffer */

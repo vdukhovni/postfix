@@ -19165,3 +19165,21 @@ Apologies for any names omitted.
 
 	Cleanup: removed redundant sort operation. Viktor Dukhovni.
 	File: tls/tls_dane.c.
+
+20131119
+
+	Bugfix (introduced: 20111211): the Postfix memcache client
+	did not propagate a persistent "open()" lock to the optional
+	backup database.  File: global/dict_memcache.c.
+
+	Feature: a Postfix LMDB database can now be used as shared
+	cache. Until now only the Postfix memcache database could
+	be used in this manner. This is implemented by allowing a
+	database to downgrade the permanent DICT_FLAG_OPEN_LOCK
+	method to the temporary DICT_FLAG_LOCK method. Files:
+	util/dict.h, util/dict_alloc.c, util/dict_open.c,
+	util/dict_lmdb.c.
+
+	Internal: DNS client support to report reply RCODE information,
+	in addition to the simplified DNS_NOTFOUND, DNS_RETRY etc.
+	Files: dns/dns.h. dns/dns_lookup.c, dns/test_dns_lookup.c.

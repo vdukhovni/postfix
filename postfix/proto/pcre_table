@@ -6,7 +6,7 @@
 # SYNOPSIS
 #	\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 #
-#	\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+#	\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 # DESCRIPTION
 #	The Postfix mail system uses optional tables for address
 #	rewriting, mail routing, or access control. These tables

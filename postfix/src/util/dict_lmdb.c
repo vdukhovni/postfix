@@ -646,6 +646,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     if (fstat(db_fd, &st) < 0)
 	msg_fatal("dict_lmdb_open: fstat: %m");
     dict_lmdb->dict.lock_fd = dict_lmdb->dict.stat_fd = db_fd;
+    dict_lmdb->dict.lock_type = MYFLOCK_STYLE_FCNTL;
     dict_lmdb->dict.mtime = st.st_mtime;
     dict_lmdb->dict.owner.uid = st.st_uid;
     dict_lmdb->dict.owner.status = (st.st_uid != 0);
@@ -671,6 +672,12 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 
     if (dict_flags & DICT_FLAG_BULK_UPDATE)
 	dict_jmp_alloc(&dict_lmdb->dict);
+
+    /* LMDB is write-share safe; downgrade a persistent lock to temporary. */
+    if (dict_flags & DICT_FLAG_OPEN_LOCK) {
+	dict_lmdb->dict.flags &= ~DICT_FLAG_OPEN_LOCK;
+	dict_lmdb->dict.flags |= DICT_FLAG_LOCK;
+    }
 
     /*
      * The following requests return an error result only if we have serious

@@ -31,6 +31,37 @@
 /*	VSTRING *why;
 /*	int	lflags;
 /*	unsigned *ltype;
+/* AUXILIARY FUNCTIONS
+/*	int	dns_lookup_r(name, type, rflags, list, fqdn, why, rcode)
+/*	const char *name;
+/*	unsigned type;
+/*	unsigned rflags;
+/*	DNS_RR	**list;
+/*	VSTRING *fqdn;
+/*	VSTRING *why;
+/*	int	*rcode;
+/*
+/*	int	dns_lookup_rl(name, rflags, list, fqdn, why, rcode, lflags,
+/*				ltype, ...)
+/*	const char *name;
+/*	unsigned rflags;
+/*	DNS_RR	**list;
+/*	VSTRING *fqdn;
+/*	VSTRING *why;
+/*	int	*rcode;
+/*	int	lflags;
+/*	unsigned ltype;
+/*
+/*	int	dns_lookup_rv(name, rflags, list, fqdn, why, rcode, lflags,
+/*				ltype)
+/*	const char *name;
+/*	unsigned rflags;
+/*	DNS_RR	**list;
+/*	VSTRING *fqdn;
+/*	VSTRING *why;
+/*	int	*rcode;
+/*	int	lflags;
+/*	unsigned *ltype;
 /* DESCRIPTION
 /*	dns_lookup() looks up DNS resource records. When requested to
 /*	look up data other than type CNAME, it will follow a limited
@@ -42,6 +73,9 @@
 /*
 /*	dns_lookup_l() and dns_lookup_v() allow the user to specify
 /*	a list of resource types.
+/*
+/*	dns_lookup_r(), dns_lookup_rl() and dns_lookup_rv() provide
+/*	additional information.
 /* INPUTS
 /* .ad
 /* .fi
@@ -64,6 +98,9 @@
 /*	Request DNSSEC validation. This flag is silently ignored
 /*	when the system stub resolver API, resolver(3), does not
 /*	implement DNSSEC.
+/* .IP
+/*	Pointer to storage for the reply RCODE value. This gives
+/*	more detailed information than DNS_FAIL, DNS_RETRY, etc.
 /* .RE
 /* .IP lflags
 /*	Multi-type request control for dns_lookup_l() and dns_lookup_v().
@@ -161,11 +198,12 @@
   * Structure to keep track of things while decoding a name server reply.
   */
 #define DEF_DNS_REPLY_SIZE	4096	/* in case we're using TCP */
-#define MAX_DNS_REPLY_SIZE	32768	/* in case we're using TCP */
+#define MAX_DNS_REPLY_SIZE	65536	/* in case we're using TCP */
 
 typedef struct DNS_REPLY {
     unsigned char *buf;			/* raw reply data */
     size_t  buf_len;			/* reply buffer length */
+    int     rcode;			/* unfiltered reply code */
     int     dnssec_valid;		/* DNSSEC AD bit */
     int     query_count;		/* number of queries */
     int     answer_count;		/* number of answers */
@@ -238,6 +276,8 @@ static int dns_query(const char *name, int type, int flags,
 	len = res_search((char *) name, C_IN, type, reply->buf, reply->buf_len);
 	_res.options &= ~flags;
 	_res.options |= saved_options;
+	reply_header = (HEADER *) reply->buf;
+	reply->rcode = reply_header->rcode;
 	if (len < 0) {
 	    if (why)
 		vstring_sprintf(why, "Host or domain name not found. "
@@ -259,7 +299,6 @@ static int dns_query(const char *name, int type, int flags,
 	if (msg_verbose)
 	    msg_info("dns_query: %s (%s): OK", name, dns_strtype(type));
 
-	reply_header = (HEADER *) reply->buf;
 	if (reply_header->tc == 0 || reply->buf_len >= MAX_DNS_REPLY_SIZE)
 	    break;
 	reply->buf = (unsigned char *)
@@ -602,10 +641,11 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
     return (not_found_status);
 }
 
-/* dns_lookup - DNS lookup user interface */
+/* dns_lookup_r - DNS lookup user interface */
 
-int     dns_lookup(const char *name, unsigned type, unsigned flags,
-		           DNS_RR **rrlist, VSTRING *fqdn, VSTRING *why)
+int     dns_lookup_r(const char *name, unsigned type, unsigned flags,
+		             DNS_RR **rrlist, VSTRING *fqdn, VSTRING *why,
+		             int *rcode)
 {
     char    cname[DNS_NAME_LEN];
     int     c_len = sizeof(cname);
@@ -648,7 +688,10 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
 	/*
 	 * Perform the DNS lookup, and pre-parse the name server reply.
 	 */
-	if ((status = dns_query(name, type, flags, &reply, why)) != DNS_OK)
+	status = dns_query(name, type, flags, &reply, why);
+	if (rcode)
+	    *rcode = reply.rcode;
+	if (status != DNS_OK)
 	    return (status);
 
 	/*
@@ -680,10 +723,11 @@ int     dns_lookup(const char *name, unsigned type, unsigned flags,
     return (DNS_NOTFOUND);
 }
 
-/* dns_lookup_l - DNS lookup interface with types list */
+/* dns_lookup_rl - DNS lookup interface with types list */
 
-int     dns_lookup_l(const char *name, unsigned flags, DNS_RR **rrlist,
-		             VSTRING *fqdn, VSTRING *why, int lflags,...)
+int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
+		              VSTRING *fqdn, VSTRING *why, int *rcode,
+		              int lflags,...)
 {
     va_list ap;
     unsigned type;
@@ -699,8 +743,8 @@ int     dns_lookup_l(const char *name, unsigned flags, DNS_RR **rrlist,
 	if (msg_verbose)
 	    msg_info("lookup %s type %s flags %d",
 		     name, dns_strtype(type), flags);
-	status = dns_lookup(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
-			    fqdn, why);
+	status = dns_lookup_r(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
+			      fqdn, why, rcode);
 	if (status == DNS_OK) {
 	    non_err = 1;
 	    if (rrlist)
@@ -719,11 +763,11 @@ int     dns_lookup_l(const char *name, unsigned flags, DNS_RR **rrlist,
     return (non_err ? DNS_OK : soft_err ? DNS_RETRY : status);
 }
 
-/* dns_lookup_v - DNS lookup interface with types vector */
+/* dns_lookup_rv - DNS lookup interface with types vector */
 
-int     dns_lookup_v(const char *name, unsigned flags, DNS_RR **rrlist,
-		             VSTRING *fqdn, VSTRING *why, int lflags,
-		             unsigned *types)
+int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
+		              VSTRING *fqdn, VSTRING *why, int *rcode,
+		              int lflags, unsigned *types)
 {
     unsigned type;
     int     status = DNS_NOTFOUND;
@@ -737,8 +781,8 @@ int     dns_lookup_v(const char *name, unsigned flags, DNS_RR **rrlist,
 	if (msg_verbose)
 	    msg_info("lookup %s type %s flags %d",
 		     name, dns_strtype(type), flags);
-	status = dns_lookup(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
-			    fqdn, why);
+	status = dns_lookup_r(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
+			      fqdn, why, rcode);
 	if (status == DNS_OK) {
 	    non_err = 1;
 	    if (rrlist)

@@ -8571,7 +8571,8 @@ address, and one address extension per email address.  </p>
 extension by the first character that matches the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>
 set. </p>
 
-<p> When used in <a href="postconf.5.html#forward_path">forward_path</a>, ${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>} is replaced
+<p> When used in <a href="postconf.5.html#command_execution_directory">command_execution_directory</a>, <a href="postconf.5.html#forward_path">forward_path</a>, or
+<a href="postconf.5.html#luser_relay">luser_relay</a>, ${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>} is replaced
 with the recipient delimiter that was found in the recipient email
 address (Postfix 2.11 and later), or it is replaced with the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> parameter value (Postfix 2.10 and earlier).

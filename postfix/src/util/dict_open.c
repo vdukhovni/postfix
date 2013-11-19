@@ -90,10 +90,15 @@
 /* .IP DICT_FLAG_LOCK
 /*	With maps where this is appropriate, acquire an exclusive lock
 /*	before writing, and acquire a shared lock before reading.
+/*	Release the lock when the operation completes.
 /* .IP DICT_FLAG_OPEN_LOCK
 /*	With databases that are not multi-writer safe, request that
 /*	dict_open() acquires an exclusive lock, or that it terminates
 /*	with a fatal run-time error.
+/*
+/*	With databases that are multi-writer safe, downgrade from
+/*	DICT_FLAG_OPEN_LOCK (persistent lock) to DICT_FLAG_LOCK
+/*	(temporary lock).
 /* .IP DICT_FLAG_FOLD_FIX
 /*	With databases whose lookup fields are fixed-case strings,
 /*	fold the search string to lower case before accessing the
@@ -384,9 +389,10 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 			    "cannot open %s:%s: %m", dict_type, dict_name));
     if (msg_verbose)
 	msg_info("%s: %s:%s", myname, dict_type, dict_name);
-    /* XXX the choice between wait-for-lock or no-wait is hard-coded. */
-    if (dict_flags & DICT_FLAG_OPEN_LOCK) {
-	if (dict_flags & DICT_FLAG_LOCK)
+    /* Write-share safe maps may downgrade a persistent lock to temporary. */
+    /* XXX The choice between wait-for-lock or no-wait is hard-coded. */
+    if (dict->flags & DICT_FLAG_OPEN_LOCK) {
+	if (dict->flags & DICT_FLAG_LOCK)
 	    msg_panic("%s: attempt to open %s:%s with both \"open\" lock and \"access\" lock",
 		      myname, dict_type, dict_name);
 	if (dict->lock(dict, MYFLOCK_OP_EXCLUSIVE | MYFLOCK_OP_NOWAIT) < 0)

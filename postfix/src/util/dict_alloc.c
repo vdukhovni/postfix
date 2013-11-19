@@ -28,7 +28,8 @@
 /*
 /*	One exception is the default lock function.  When the
 /*	dictionary provides a file handle for locking, the default
-/*	lock function returns the result from myflock(), otherwise
+/*	lock function returns the result from myflock with the
+/*	locking method specified in the lock_type member, otherwise
 /*	it returns 0. Presently, the lock function is used only to
 /*	implement the DICT_FLAG_OPEN_LOCK feature (lock the database
 /*	exclusively after it is opened) for databases that are not
@@ -115,7 +116,7 @@ static int dict_default_sequence(DICT *dict, int unused_function,
 static int dict_default_lock(DICT *dict, int operation)
 {
     if (dict->lock_fd >= 0) {
-	return (myflock(dict->lock_fd, INTERNAL_LOCK, operation));
+	return (myflock(dict->lock_fd, dict->lock_type, operation));
     } else {
 	return (0);
     }
@@ -144,6 +145,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->sequence = dict_default_sequence;
     dict->close = dict_default_close;
     dict->lock = dict_default_lock;
+    dict->lock_type = INTERNAL_LOCK;
     dict->lock_fd = -1;
     dict->stat_fd = -1;
     dict->mtime = 0;

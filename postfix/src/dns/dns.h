@@ -207,12 +207,20 @@ extern int dns_rr_eq_sa(DNS_RR *, struct sockaddr *);
  /*
   * dns_lookup.c
   */
-extern int dns_lookup(const char *, unsigned, unsigned, DNS_RR **,
-		              VSTRING *, VSTRING *);
-extern int dns_lookup_l(const char *, unsigned, DNS_RR **, VSTRING *,
-			        VSTRING *, int,...);
-extern int dns_lookup_v(const char *, unsigned, DNS_RR **, VSTRING *,
-			        VSTRING *, int, unsigned *);
+extern int dns_lookup_r(const char *, unsigned, unsigned, DNS_RR **,
+		              VSTRING *, VSTRING *, int *);
+extern int dns_lookup_rl(const char *, unsigned, DNS_RR **, VSTRING *,
+			        VSTRING *, int *, int,...);
+extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
+			        VSTRING *, int *, int, unsigned *);
+#define dns_lookup(name, type, rflags, list, fqdn, why) \
+    dns_lookup_r((name), (type), (rflags), (list), (fqdn), (why), (int *) 0)
+#define dns_lookup_l(name, rflags, list, fqdn, why, lflags, ...) \
+    dns_lookup_rl((name), (rflags), (list), (fqdn), (why), (int *) 0, \
+	(lflags), __VA_ARGS__)
+#define dns_lookup_v(name, rflags, list, fqdn, why, lflags, ltype) \
+    dns_lookup_rv((name), (rflags), (list), (fqdn), (why), (int *) 0, \
+	(lflags), (ltype))
 
  /*
   * Request flags.

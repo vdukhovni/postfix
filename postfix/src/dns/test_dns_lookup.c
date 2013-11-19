@@ -102,6 +102,7 @@ int     main(int argc, char **argv)
     char   *name;
     VSTRING *fqdn = vstring_alloc(100);
     VSTRING *why = vstring_alloc(100);
+    int     rcode;
     DNS_RR *rr;
     int     i;
 
@@ -117,10 +118,10 @@ int     main(int argc, char **argv)
     argv_free(types_argv);
     name = argv[2];
     msg_verbose = 1;
-    switch (dns_lookup_v(name, RES_DEBUG | RES_USE_DNSSEC, &rr, fqdn, why,
-			 DNS_REQ_FLAG_NONE, types)) {
+    switch (dns_lookup_rv(name, RES_DEBUG | RES_USE_DNSSEC, &rr, fqdn, why,
+			  &rcode, DNS_REQ_FLAG_NONE, types)) {
     default:
-	msg_fatal("%s", vstring_str(why));
+	msg_fatal("%s (rcode=%d)", vstring_str(why), rcode);
     case DNS_OK:
 	printf("%s: fqdn: %s\n", name, vstring_str(fqdn));
 	print_rr(rr);

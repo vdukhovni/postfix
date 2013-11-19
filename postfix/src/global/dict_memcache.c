@@ -574,9 +574,28 @@ DICT   *dict_memcache_open(const char *name, int open_flags, int dict_flags)
 			 (char *) 0, 0, 0);
     if (backup) {
 	dict_mc->backup = dict_open(backup, open_flags, dict_flags);
+	/* Expose backup lock and status to caller. */
+	dict_mc->dict.lock = dict_mc->backup->lock;
+	dict_mc->dict.lock_type = dict_mc->backup->lock_type;
+	dict_mc->dict.lock_fd = dict_mc->backup->lock_fd;
+	dict_mc->dict.stat_fd = dict_mc->backup->stat_fd;
 	myfree(backup);
     } else
 	dict_mc->backup = 0;
+
+    /*
+     * Memcached is write-share safe. If the backup database is also
+     * write-share safe, e.g. it has downgraded its persistent lock to
+     * temporary, then expose that downgraded lock to the caller.
+     */
+    if ((dict_flags & DICT_FLAG_OPEN_LOCK) != 0
+	&& (dict_mc->backup == 0
+	    || dict_mc->backup->lock_fd < 0
+	    || ((dict_mc->backup->flags & DICT_FLAG_OPEN_LOCK) == 0
+		&& (dict_mc->backup->flags & DICT_FLAG_LOCK) != 0))) {
+	dict_mc->dict.flags &= ~DICT_FLAG_OPEN_LOCK;
+	dict_mc->dict.flags |= DICT_FLAG_LOCK;
+    }
 
     /*
      * Parse templates and common database parameters. Maps that use

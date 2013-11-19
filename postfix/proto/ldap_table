@@ -4,9 +4,9 @@
 # SUMMARY
 #	Postfix LDAP client configuration
 # SYNOPSIS
-#	\fBpostmap -q "\fIstring\fB" ldap:/etc/postfix/filename\fR
+#	\fBpostmap -q "\fIstring\fB" ldap:/etc/postfix/\fIfilename\fR
 #
-#	\fBpostmap -q - ldap:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+#	\fBpostmap -q - ldap:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 # DESCRIPTION
 #	The Postfix mail system uses optional tables for address
 #	rewriting or mail routing. These tables are usually in

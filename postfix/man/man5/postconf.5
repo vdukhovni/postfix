@@ -5144,7 +5144,8 @@ When the recipient_delimiter set contains multiple characters
 extension by the first character that matches the recipient_delimiter
 set.
 .PP
-When used in forward_path, ${recipient_delimiter} is replaced
+When used in command_execution_directory, forward_path, or
+luser_relay, ${recipient_delimiter} is replaced
 with the recipient delimiter that was found in the recipient email
 address (Postfix 2.11 and later), or it is replaced with the main.cf
 recipient_delimiter parameter value (Postfix 2.10 and earlier).
