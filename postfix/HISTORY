@@ -19168,18 +19168,44 @@ Apologies for any names omitted.
 
 20131119
 
-	Bugfix (introduced: 20111211): the Postfix memcache client
-	did not propagate a persistent "open()" lock to the optional
-	backup database.  File: global/dict_memcache.c.
-
 	Feature: a Postfix LMDB database can now be used as shared
-	cache. Until now only the Postfix memcache database could
-	be used in this manner. This is implemented by allowing a
-	database to downgrade the permanent DICT_FLAG_OPEN_LOCK
-	method to the temporary DICT_FLAG_LOCK method. Files:
-	util/dict.h, util/dict_alloc.c, util/dict_open.c,
-	util/dict_lmdb.c.
+	persistent cache with multiple postscreen(8) or verify(8)
+	daemons (but not both), without the need for a shared
+	proxymap server.  Files: util/dict.h, util/dict_alloc.c,
+	util/dict_open.c, util/dict_lmdb.c.
 
 	Internal: DNS client support to report reply RCODE information,
 	in addition to the simplified DNS_NOTFOUND, DNS_RETRY etc.
+	Portability note: this requires the C99 __VA_ARGS__ feature.
 	Files: dns/dns.h. dns/dns_lookup.c, dns/test_dns_lookup.c.
+
+20131120
+
+	Cleanup: reduced the code footprint for the LMDB < 0.9.10
+	heap-to-file information leak workaround, and simplified
+	the implementation to "good enough". Files: util/dict.h,
+	util/dict.c, util/dict_lmdb.c, postalias/postalias.c,
+	postmap/postmap.c.
+
+	Cleanup: reduced the code footprint for the handling of
+	multi-writer safe maps. A map only needs to assert that it
+	is multi-writer safe, and the rest just happens.  Files:
+	util/dict.h, util/dict_open.c, util/dict_lmdb.c,
+	global/dict_memcache.c.
+
+	Cleanup: Postfix daemons no longer restart when a multi-writer
+	safe map is updated. File: util/dict.c.
+
+	Documentation: sharing an LMDB cache between multiple
+	verify(8) or postscreen(8) servers (but not both).  Files:
+	proto/ADDRESS_VERIFICATION_README.html,
+	proto/POSTSCREEN_README.html.
+
+	Cleanup: improve suppression of TLSA lookups in insecure
+	zones.  This is now applied not only to non-MX destinations,
+	but also to each MX record.  Viktor Dukhovni. Files:
+	src/posttls-finger/posttls-finger.c, src/smtp/smtp_tls_policy.c,
+	src/tls/tls.h, src/tls/tls_dane.c.
+
+	Workaround: increased the 5s connection timeout to 30s.
+	Viktor Dukhovni. File: posttls-finger/posttls-finger.c.

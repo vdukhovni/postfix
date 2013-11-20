@@ -90,6 +90,7 @@ extern const NAME_CODE tls_level_table[];
 #include <vstream.h>
 #include <name_mask.h>
 #include <name_code.h>
+#include <dns.h>
 
  /*
   * Names of valid tlsmgr(8) session caches.
@@ -173,8 +174,7 @@ extern TLS_DANE *tls_dane_alloc(int);
 extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
 			           const char *);
 extern void tls_dane_free(TLS_DANE *);
-extern TLS_DANE *tls_dane_resolve(const char *, const char *, const char *,
-				          unsigned);
+extern TLS_DANE *tls_dane_resolve(unsigned, const char *, DNS_RR *, int);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
 
  /*

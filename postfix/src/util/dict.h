@@ -97,7 +97,7 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_FOLD_ANY	(DICT_FLAG_FOLD_FIX | DICT_FLAG_FOLD_MUL)
 #define DICT_FLAG_OPEN_LOCK	(1<<16)	/* perm lock if not multi-writer safe */
 #define DICT_FLAG_BULK_UPDATE	(1<<17)	/* optimize for bulk updates */
-#define DICT_FLAG_WORLD_READ	(1<<18)	/* assume writer != reader */
+#define DICT_FLAG_MULTI_WRITER	(1<<18)	/* multi-writer safe map */
 
  /* IMPORTANT: Update the dict_mask[] table when the above changes */
 
@@ -124,7 +124,8 @@ extern DICT *dict_debug(DICT *);
   */
 #define DICT_FLAG_PARANOID \
 	(DICT_FLAG_NO_REGSUB | DICT_FLAG_NO_PROXY | DICT_FLAG_NO_UNAUTH)
-#define DICT_FLAG_IMPL_MASK	(DICT_FLAG_FIXED | DICT_FLAG_PATTERN)
+#define DICT_FLAG_IMPL_MASK	(DICT_FLAG_FIXED | DICT_FLAG_PATTERN | \
+				DICT_FLAG_MULTI_WRITER)
 #define DICT_FLAG_RQST_MASK	(DICT_FLAG_FOLD_ANY | DICT_FLAG_LOCK | \
 				DICT_FLAG_DUP_REPLACE | DICT_FLAG_DUP_WARN | \
 				DICT_FLAG_DUP_IGNORE | DICT_FLAG_SYNC_UPDATE | \

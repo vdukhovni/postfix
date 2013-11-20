@@ -712,8 +712,6 @@ static int global_tls_level(void)
 static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 {
     TLS_DANE *dane;
-    int     valid;
-    int     mxvalid;
 
     if (!iter->port) {
 	msg_warn("%s: the \"dane\" security level is invalid for delivery via"
@@ -764,20 +762,8 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
      * nexthop domain, or if the MX RRset is DNS validated, we can at least
      * try DANE with the destination host prior to CNAME expansion, but we
      * prefer CNAME expanded MX hosts if those are also secure.
-     * 
-     * By default suppress TLSA lookups for non-DNSSEC + non-MX + non-CNAME
-     * hosts.  If the host address is not DNSSEC validated, the TLSA RRset is
-     * safely assumed to not be in a DNSSEC Look-aside Validation child zone.
      */
-    mxvalid = iter->mx == 0 || iter->mx->dnssec_valid;
-    valid = iter->rr && iter->rr->dnssec_valid;
-    if (!var_smtp_tls_force_tlsa
-	&& !valid
-	&& iter->mx == 0
-	&& strcmp(iter->rr->qname, iter->rr->rname) == 0)
-	mxvalid = 0;
-
-    if (!mxvalid) {
+    if (iter->mx && !iter->mx->dnssec_valid) {
 	if (tls->level == TLS_LEV_DANE) {
 	    tls->level = TLS_LEV_MAY;
 	    if (msg_verbose)
@@ -789,8 +775,8 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	return;
     }
     /* When TLSA lookups fail, we defer the message */
-    if ((dane = tls_dane_resolve(iter->rr->qname, valid ? iter->rr->rname : 0,
-				 "tcp", iter->port)) == 0) {
+    if ((dane = tls_dane_resolve(iter->port, "tcp", iter->rr,
+				 var_smtp_tls_force_tlsa)) == 0) {
 	tls->level = TLS_LEV_INVALID;
 	dsb_simple(tls->why, "4.7.5", "TLSA lookup error for %s:%u",
 		   STR(iter->host), ntohs(iter->port));

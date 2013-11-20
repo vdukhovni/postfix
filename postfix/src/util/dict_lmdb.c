@@ -591,16 +591,16 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
      * 
      * As a workaround the postmap(1) and postalias(1) commands turn on
      * MDB_WRITEMAP which disables the use of malloc() in LMDB. However, that
-     * does not address several disclosures of stack memory. Other Postfix
-     * databases are maintained by Postfix daemon processes, and are
-     * accessible only by the postfix user.
+     * does not address several disclosures of stack memory. We don't enable
+     * this workaround for Postfix databases are maintained by Postfix daemon
+     * processes, because those are accessible only by the postfix user.
      * 
      * LMDB 0.9.10 by default does not write uninitialized heap memory to file
      * (specify MDB_NOMEMINIT to revert that change). We use the MDB_WRITEMAP
      * workaround for older LMDB versions.
      */
 #ifndef MDB_NOMEMINIT
-    if (dict_flags & DICT_FLAG_WORLD_READ)
+    if (dict_flags & DICT_FLAG_BULK_UPDATE)	/* XXX Good enough */
 	mdb_flags |= MDB_WRITEMAP;
 #endif
 
@@ -664,7 +664,9 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 	&& st.st_mtime < time((time_t *) 0) - 100)
 	msg_warn("database %s is older than source file %s", mdb_path, path);
 
-    dict_lmdb->dict.flags = dict_flags | DICT_FLAG_FIXED;
+#define DICT_LMDB_IMPL_FLAGS	(DICT_FLAG_FIXED | DICT_FLAG_MULTI_WRITER)
+
+    dict_lmdb->dict.flags = dict_flags | DICT_LMDB_IMPL_FLAGS;
     if ((dict_flags & (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL)) == 0)
 	dict_lmdb->dict.flags |= (DICT_FLAG_TRY0NULL | DICT_FLAG_TRY1NULL);
     if (dict_flags & DICT_FLAG_FOLD_FIX)
@@ -672,12 +674,6 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 
     if (dict_flags & DICT_FLAG_BULK_UPDATE)
 	dict_jmp_alloc(&dict_lmdb->dict);
-
-    /* LMDB is write-share safe; downgrade a persistent lock to temporary. */
-    if (dict_flags & DICT_FLAG_OPEN_LOCK) {
-	dict_lmdb->dict.flags &= ~DICT_FLAG_OPEN_LOCK;
-	dict_lmdb->dict.flags |= DICT_FLAG_LOCK;
-    }
 
     /*
      * The following requests return an error result only if we have serious

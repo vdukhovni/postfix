@@ -98,9 +98,6 @@
 /*	Request DNSSEC validation. This flag is silently ignored
 /*	when the system stub resolver API, resolver(3), does not
 /*	implement DNSSEC.
-/* .IP
-/*	Pointer to storage for the reply RCODE value. This gives
-/*	more detailed information than DNS_FAIL, DNS_RETRY, etc.
 /* .RE
 /* .IP lflags
 /*	Multi-type request control for dns_lookup_l() and dns_lookup_v().
@@ -132,6 +129,9 @@
 /*	name found for \fIname\fR.
 /* .IP why
 /*	A null pointer, or storage for the reason for failure.
+/* .IP rcode
+/*	Pointer to storage for the reply RCODE value. This gives
+/*	more detailed information than DNS_FAIL, DNS_RETRY, etc.
 /* DIAGNOSTICS
 /*	dns_lookup() returns one of the following codes and sets the
 /*	\fIwhy\fR argument accordingly:

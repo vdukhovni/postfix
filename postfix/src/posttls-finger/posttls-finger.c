@@ -220,7 +220,7 @@
 /*	LMTP over TCP is 24.  Alternative ports can specified by appending
 /*	"\fI:servicename\fR" or ":\fIportnumber\fR" to the destination
 /*	argument.
-/* .IP "\fB-t \fItimeout\fR (default: \fB5\fR)"
+/* .IP "\fB-t \fItimeout\fR (default: \fB30\fR)"
 /*	The TCP connection timeout to use.  This is also the timeout for
 /*	reading the remote server's 220 banner.
 /* .IP "\fB-T \fItimeout\fR (default: \fB30\fR)"
@@ -358,7 +358,7 @@
   */
 #include "tlsmgrmem.h"
 
-static int conn_tmout = 5;
+static int conn_tmout = 30;
 static int smtp_tmout = 30;
 
 #define HOST_FLAG_DNS		(1<<0)
@@ -1163,26 +1163,10 @@ static DNS_RR *host_addr(STATE *state, const char *host)
 static int dane_host_level(STATE *state, DNS_RR *addr)
 {
     int     level = state->level;
-    int     valid;
-    int     mxvalid;
 
 #ifdef USE_TLS
     if (level == TLS_LEV_DANE) {
-
-	/*
-	 * Suppress TLSA lookups for non-DNSSEC + non-MX + non-CNAME hosts.
-	 * If the host address is not DNSSEC validated, the TLSA RRset is
-	 * safely assumed to not be in a DNSSEC Look-aside Validation child
-	 * zone.
-	 */
-	mxvalid = state->mx == 0 || state->mx->dnssec_valid;
-	valid = addr->dnssec_valid;
-	if (!state->force_tlsa
-	    && !valid
-	    && state->mx == 0
-	    && strcmp(addr->qname, addr->rname) == 0)
-	    mxvalid = 0;
-	if (mxvalid) {
+	if (state->mx == 0 || state->mx->dnssec_valid) {
 	    if (state->log_mask & (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE))
 		tls_dane_verbose(1);
 	    else
@@ -1192,19 +1176,19 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 	    if (state->ddane)
 		tls_dane_free(state->ddane);
 
-	    /* When TLSA lookups fail, next host */
-	    state->ddane = tls_dane_resolve(addr->qname,
-					    valid ? addr->rname : 0,
-					    "tcp", state->port);
+	    /*
+	     * When TLSA lookups fail, next host.  If unusable or not found,
+	     * fallback to "secure"
+	     */
+	    state->ddane = tls_dane_resolve(state->port, "tcp", addr,
+					    state->force_tlsa);
 	    if (!state->ddane) {
 		dsb_simple(state->why, "4.7.5",
 			   "TLSA lookup error for %s:%u",
 			   HNAME(addr), ntohs(state->port));
-		return (TLS_LEV_INVALID);
-	    }
-	    /* If unusable or not found, same fallback to "secure" */
-	    if (tls_dane_notfound(state->ddane)
-		|| tls_dane_unusable(state->ddane)) {
+		level = TLS_LEV_INVALID;
+	    } else if (tls_dane_notfound(state->ddane)
+		       || tls_dane_unusable(state->ddane)) {
 		if (msg_verbose)
 		    msg_info("no %sTLSA records found, "
 			     "resorting to \"secure\"",

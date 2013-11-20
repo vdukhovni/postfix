@@ -555,7 +555,9 @@ const char *dict_changed_name(void)
 	    msg_warn("%s: table %s: null time stamp", myname, h->key);
 	if (fstat(dict->stat_fd, &st) < 0)
 	    msg_fatal("%s: fstat: %m", myname);
-	if (st.st_mtime != dict->mtime || st.st_nlink == 0)
+	if (((dict->flags & DICT_FLAG_MULTI_WRITER) == 0
+	     && st.st_mtime != dict->mtime)
+	    || st.st_nlink == 0)
 	    status = h->key;
     }
     myfree((char *) ht_info_list);
@@ -590,7 +592,7 @@ static const NAME_MASK dict_mask[] = {
     "fold_mul", DICT_FLAG_FOLD_MUL,	/* case-fold with multi-case key map */
     "open_lock", DICT_FLAG_OPEN_LOCK,	/* permanent lock upon open */
     "bulk_update", DICT_FLAG_BULK_UPDATE,	/* bulk update if supported */
-    "world_read", DICT_FLAG_WORLD_READ,	/* assume writer != reader */
+    "multi_writer", DICT_FLAG_MULTI_WRITER,	/* multi-writer safe */
     0,
 };
 
