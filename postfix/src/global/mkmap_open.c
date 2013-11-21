@@ -144,7 +144,8 @@ void    mkmap_close(MKMAP *mkmap)
     /*
      * Resume signal delivery.
      */
-    sigresume();
+    if (mkmap->multi_writer == 0)
+	sigresume();
 
     /*
      * Cleanup.
@@ -198,6 +199,7 @@ MKMAP  *mkmap_open(const char *type, const char *path,
     mkmap->dict->lock_fd = -1;			/* XXX just in case */
     mkmap->dict->stat_fd = -1;			/* XXX just in case */
     mkmap->dict->flags |= DICT_FLAG_DUP_WARN;
+    mkmap->multi_writer = (mkmap->dict->flags & DICT_FLAG_MULTI_WRITER);
 
     /*
      * Do whatever post-open initialization is needed, such as acquiring a
@@ -208,6 +210,12 @@ MKMAP  *mkmap_open(const char *type, const char *path,
      */
     if (mkmap->after_open)
 	mkmap->after_open(mkmap);
+
+    /*
+     * Resume signal delivery if multi-writer safe.
+     */
+    if (mkmap->multi_writer)
+	sigresume();
 
     return (mkmap);
 }

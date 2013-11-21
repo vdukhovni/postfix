@@ -165,9 +165,11 @@ $manpage_directory/man5/generics.5:f:root:-:644:o
 $manpage_directory/man5/generic.5:f:root:-:644
 $manpage_directory/man5/header_checks.5:f:root:-:644
 $manpage_directory/man5/ldap_table.5:f:root:-:644
+$manpage_directory/man5/lmdb_table.5:f:root:-:644
 $manpage_directory/man5/master.5:f:root:-:644
 $manpage_directory/man5/memcache_table.5:f:root:-:644
 $manpage_directory/man5/mysql_table.5:f:root:-:644
+$manpage_directory/man5/socketmap_table.5:f:root:-:644
 $manpage_directory/man5/sqlite_table.5:f:root:-:644
 $manpage_directory/man5/nisplus_table.5:f:root:-:644
 $manpage_directory/man5/pcre_table.5:f:root:-:644

@@ -583,7 +583,7 @@ Enable the rewriting of the form "user%domain" to "user@domain".
 This is enabled by default.
 </p>
 
-<p> Note: with Postfix version 2.2, message header address rewriting
+<p> Note: as of Postfix version 2.2, message header address rewriting
 happens only when one of the following conditions is true: </p>
  
 <ul>

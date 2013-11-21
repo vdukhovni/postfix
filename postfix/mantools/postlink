@@ -805,8 +805,9 @@ while (<>) {
     s/[<bB>]*canonical[<\/bB>]*\(5\)/<a href="canonical.5.html">$&<\/a>/g;
     s/[<bB>]*gener[-<\/bB>]*\n* *[<bB>]*ic[<\/bB>]*\(5\)/<a href="generic.5.html">$&<\/a>/g;
     s/[<bB>]*ldap[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="ldap_table.5.html">$&<\/a>/g;
+    s/[<bB>]*lmdb[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="lmdb_table.5.html">$&<\/a>/g;
     s/[<bB>]*mas[-<\/bB>]*\n* *[<bB>]*ter[<\/bB>]*\(5\)/<a href="master.5.html">$&<\/a>/g;
-    s/[<bB>]*memcache[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="memcache_table.5.html">$&<\/a>/g;
+    s/[<bB>]*mem[-<\/bB>]*\n* *[<bB>]*cache[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="memcache_table.5.html">$&<\/a>/g;
     s/[<bB>]*mysql[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="mysql_table.5.html">$&<\/a>/g;
     s/[<bB>]*nisplus[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="nisplus_table.5.html">$&<\/a>/g;
     s/[<bB>]*pcre[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="pcre_table.5.html">$&<\/a>/g;
@@ -817,6 +818,7 @@ while (<>) {
     s/[<bB>]*reg[-<\/bB>]*\n*[ <bB>]*exp[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="regexp_table.5.html">$&<\/a>/g;
     s/[<bB>]*relocated[<\/bB>]*\(5\)/<a href="relocated.5.html">$&<\/a>/g;
     s/[<bB>]*scache[<\/bB>]*\(8\)/<a href="scache.8.html">$&<\/a>/g;
+    s/[<bB>]*sock[-<\/bB>]*\n*[ <bB>]*etmap[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="socketmap_table.5.html">$&<\/a>/g;
     s/[<bB>]*sqlite[<\/bBiI>]*_[<\/iIbB>]*ta[-<\/bB>]*\n*[ <bB>]*ble[<\/bB>]*\(5\)/<a href="sqlite_table.5.html">$&<\/a>/g;
     s/[<bB>]*trans[-<\/bB>]*\n*[ <bB>]*port[<\/bB>]*\(5\)/<a href="transport.5.html">$&<\/a>/g;
     s/[<bB>]*ver[-<\/bB>]*\n*[ <bB>]*ify[<\/bB>]*\(8\)/<a href="verify.8.html">$&<\/a>/g;
@@ -1095,8 +1097,9 @@ while (<>) {
     s/\b(mysql):/<a href="mysql_table.5.html">$1<\/a>:/g;
     s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
-    s/\b(lmdb):/<a href="LMDB_README.html">$1<\/a>:/g;
+    s/\b(lmdb):/<a href="lmdb_table.5.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
+    s/\b(socketmap):/<a href="socketmap_table.html">$1<\/a>:/g;
     s/\b(sqlite):/<a href="sqlite_table.5.html">$1<\/a>:/g;
     s/\b(static):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;

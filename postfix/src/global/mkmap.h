@@ -27,6 +27,7 @@ typedef struct MKMAP {
     struct DICT *dict;			/* dict_xx_open() result */
     void    (*after_open) (struct MKMAP *);	/* may be null */
     void    (*after_close) (struct MKMAP *);	/* may be null */
+    int     multi_writer;			/* multi-writer safe */
 } MKMAP;
 
 extern MKMAP *mkmap_open(const char *, const char *, int, int);

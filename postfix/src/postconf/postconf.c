@@ -150,85 +150,77 @@
 /*	DATABASE_README document.
 /* .RS
 /* .IP \fBbtree\fR
-/*	A sorted, balanced tree structure.
-/*	This is available on systems with support for Berkeley DB
-/*	databases.
+/*	A sorted, balanced tree structure.  Available on systems
+/*	with support for Berkeley DB databases.
 /* .IP \fBcdb\fR
-/*	A read-optimized structure with no support for incremental updates.
-/*	This is available on systems with support for CDB databases.
+/*	A read-optimized structure with no support for incremental
+/*	updates.  Available on systems with support for CDB databases.
 /* .IP \fBcidr\fR
-/*	A table that associates values with Classless Inter-Domain Routing
-/*	(CIDR) patterns. This is described in \fBcidr_table\fR(5).
+/*	A table that associates values with Classless Inter-Domain
+/*	Routing (CIDR) patterns. This is described in \fBcidr_table\fR(5).
 /* .IP \fBdbm\fR
-/*	An indexed file type based on hashing.
-/*	This is available on systems with support for DBM databases.
+/*	An indexed file type based on hashing.  Available on systems
+/*	with support for DBM databases.
 /* .IP \fBenviron\fR
-/*	The UNIX process environment array. The lookup key is the variable
-/*	name. Originally implemented for testing, someone may find this
-/*	useful someday.
+/*	The UNIX process environment array. The lookup key is the
+/*	variable name. Originally implemented for testing, someone
+/*	may find this useful someday.
 /* .IP \fBfail\fR
 /*	A table that reliably fails all requests. The lookup table
 /*	name is used for logging. This table exists to simplify
 /*	Postfix error tests.
 /* .IP \fBhash\fR
-/*	An indexed file type based on hashing.
-/*	This is available on systems with support for Berkeley DB
-/*	databases.
+/*	An indexed file type based on hashing.  Available on systems
+/*	with support for Berkeley DB databases.
 /* .IP \fBinternal\fR
 /*	A non-shared, in-memory hash table. Its content are lost
 /*	when a process terminates.
-/* .IP "\fBlmdb\fR (unsupported)"
-/*	The OpenLDAP LMDB database (a memory-mapped, persistent
-/*	file).
+/* .IP "\fBlmdb\fR"
+/*	OpenLDAP LMDB database (a memory-mapped, persistent file).
+/*	Available on systems with support for LMDB databases.  This
+/*	is described in \fBlmdb_table\fR(5).
 /* .IP "\fBldap\fR (read-only)"
-/*	Perform lookups using the LDAP protocol. This is described
-/*	in \fBldap_table\fR(5).
+/*	LDAP database client. This is described in \fBldap_table\fR(5).
 /* .IP "\fBmemcache\fR"
-/*	Perform lookups using the memcache protocol. This is described
-/*	in \fBmemcache_table\fR(5).
+/*	Memcache database client. This is described in
+/*	\fBmemcache_table\fR(5).
 /* .IP "\fBmysql\fR (read-only)"
-/*	Perform lookups using the MYSQL protocol. This is described
-/*	in \fBmysql_table\fR(5).
+/*	MySQL database client.  Available on systems with support
+/*	for MySQL databases.  This is described in \fBmysql_table\fR(5).
 /* .IP "\fBpcre\fR (read-only)"
-/*	A lookup table based on Perl Compatible Regular Expressions. The
-/*	file format is described in \fBpcre_table\fR(5).
+/*	A lookup table based on Perl Compatible Regular Expressions.
+/*	The file format is described in \fBpcre_table\fR(5).
 /* .IP "\fBpgsql\fR (read-only)"
-/*	Perform lookups using the PostgreSQL protocol. This is described
-/*	in \fBpgsql_table\fR(5).
+/*	PostgreSQL database client. This is described in
+/*	\fBpgsql_table\fR(5).
 /* .IP "\fBproxy\fR"
-/*	A lookup table that is implemented via the Postfix
-/*	\fBproxymap\fR(8) service. The table name syntax is
-/*	\fItype\fB:\fIname\fR.
+/*	Postfix \fBproxymap\fR(8) client for shared access to Postfix
+/*	databases. The table name syntax is \fItype\fB:\fIname\fR.
 /* .IP "\fBregexp\fR (read-only)"
-/*	A lookup table based on regular expressions. The file format is
-/*	described in \fBregexp_table\fR(5).
+/*	A lookup table based on regular expressions. The file format
+/*	is described in \fBregexp_table\fR(5).
 /* .IP \fBsdbm\fR
-/*	An indexed file type based on hashing.
-/*	This is available on systems with support for SDBM databases.
+/*	An indexed file type based on hashing.  Available on systems
+/*	with support for SDBM databases.
 /* .IP "\fBsocketmap\fR (read-only)"
-/*	Query a Sendmail-style socketmap server. The name of the
-/*	table specifies
-/*	\fBinet\fR:\fIhost\fR:\fIport\fR:\fIsocketmap-name\fR for
-/*	a TCP-based server, or
-/*	\fBunix\fR:\fIpathname\fR:\fIsocketmap-name\fR for a
-/*	UNIX-domain server. In both cases, \fIsocketmap-name\fR is
-/*	the name of the socketmap.
+/*	Sendmail-style socketmap client. The table name is
+/*	\fBinet\fR:\fIhost\fR:\fIport\fR:\fIname\fR for a TCP/IP
+/*	server, or \fBunix\fR:\fIpathname\fR:\fIname\fR for a
+/*	UNIX-domain server. This is described in \fBsocketmap_table\fR(5).
 /* .IP "\fBsqlite\fR (read-only)"
-/*	Perform lookups from SQLite database files. This is described
-/*	in \fBsqlite_table\fR(5).
+/*	SQLite database. This is described in \fBsqlite_table\fR(5).
 /* .IP "\fBstatic\fR (read-only)"
 /*	A table that always returns its name as lookup result. For example,
 /*	\fBstatic:foobar\fR always returns the string \fBfoobar\fR as lookup
 /*	result.
 /* .IP "\fBtcp\fR (read-only)"
-/*	Perform lookups using a simple request-reply protocol that is
-/*	described in \fBtcp_table\fR(5).
+/*	TCP/IP client. The protocol is described in \fBtcp_table\fR(5).
 /* .IP "\fBtexthash\fR (read-only)"
 /*	Produces similar results as hash: files, except that you don't
 /*	need to run the \fBpostmap\fR(1) command before you can use the file,
 /*	and that it does not detect changes after the file is read.
 /* .IP "\fBunix\fR (read-only)"
-/*	A limited way to query the UNIX authentication database. The
+/*	A limited view of the UNIX authentication database. The
 /*	following tables are implemented:
 /* .RS
 /*. IP \fBunix:passwd.byname\fR

@@ -195,10 +195,11 @@ To find out what database types your Postfix system supports, use the "ppooss
         (CIDR) patterns. The table format is described in cidr_table(5).
     ddbbmm
         An indexed file type based on hashing. This is available only on
-        systems with support for DBM databases. Database files are created with
-        the postmap(1) or postalias(1) command. The lookup table name as used
-        in "dbm:table" is the database file name without the ".dir" or ".pag"
-        suffix.
+        systems with support for DBM databases. Public database files are
+        created with the postmap(1) or postalias(1) command, and private
+        databases are maintained by Postfix daemons. The lookup table name as
+        used in "dbm:table" is the database file name without the ".dir" or
+        ".pag" suffix.
     eennvviirroonn
         The UNIX process environment array. The lookup key is the variable
         name. The lookup table name in "environ:table" is ignored.
@@ -207,79 +208,80 @@ To find out what database types your Postfix system supports, use the "ppooss
         for logging only. This table exists to simplify Postfix error tests.
     hhaasshh
         An indexed file type based on hashing. This is available only on
-        systems with support for Berkeley DB databases. Database files are
-        created with the postmap(1) or postalias(1) command. The database name
-        as used in "hash:table" is the database file name without the ".db"
-        suffix.
+        systems with support for Berkeley DB databases. Public database files
+        are created with the postmap(1) or postalias(1) command, and private
+        databases are maintained by Postfix daemons. The database name as used
+        in "hash:table" is the database file name without the ".db" suffix.
     iinntteerrnnaall
         A non-shared, in-memory hash table. Its content are lost when a process
         terminates.
-    llmmddbb (unsupported)
-        The OpenLDAP LMDB database (a memory-mapped, persistent file). Database
-        files are created with the postmap(1) or postalias(1) command. The
-        database name as used in "lmdb:table" is the database file name without
-        the ".lmdb" suffix.
+    llmmddbb
+        OpenLDAP LMDB database (a memory-mapped. This is available only on
+        systems with support for LMDB databases. Public database files are
+        created with the postmap(1) or postalias(1) command, and private
+        databases are maintained by Postfix daemons. The database name as used
+        in "lmdb:table" is the database file name without the ".lmdb" suffix.
+        See lmdb_table(5) for details.
     llddaapp (read-only)
-        Perform lookups using the LDAP protocol. Configuration details are
-        given in the ldap_table(5).
+        LDAP database client. Configuration details are given in the ldap_table
+        (5).
     mmeemmccaacchhee
-        Perform memcache database lookups or updates. Configuration details are
-        given in memcache_table(5).
+        Memcache database client. Configuration details are given in
+        memcache_table(5).
     mmyyssqqll (read-only)
-        Perform MySQL database lookups. Configuration details are given in
-        mysql_table(5).
+        MySQL database client. Configuration details are given in mysql_table
+        (5).
     nneettiinnffoo (read-only)
-        Perform Netinfo database lookups.
+        Netinfo database client.
     nniiss (read-only)
-        Perform NIS database lookups.
+        NIS database client.
     nniisspplluuss (read-only)
-        Perform NIS+ database lookups. Configuration details are given in
-        nisplus_table(5).
+        NIS+ database client. Configuration details are given in nisplus_table
+        (5).
     ppccrree (read-only)
         A lookup table based on Perl Compatible Regular Expressions. The file
         format is described in pcre_table(5). The lookup table name as used in
         "pcre:table" is the name of the regular expression file.
     ppggssqqll (read-only)
-        Perform PostgreSQL database lookups. Configuration details are given in
+        PostgreSQL database client. Configuration details are given in
         pgsql_table(5).
     pprrooxxyy
-        Access information via the Postfix proxymap(8) service. The lookup
-        table name syntax is "proxy:type:table".
+        Postfix proxymap(8) client for shared access to Postfix databases. The
+        lookup table name syntax is "proxy:type:table".
     rreeggeexxpp (read-only)
         A lookup table based on regular expressions. The file format is
         described in regexp_table(5). The lookup table name as used in "regexp:
         table" is the name of the regular expression file.
     ssddbbmm
         An indexed file type based on hashing. This is available only on
-        systems with support for SDBM databases. Database files are created
-        with the postmap(1) or postalias(1) command. The lookup table name as
+        systems with support for SDBM databases. Public database files are
+        created with the postmap(1) or postalias(1) command, and private
+        databases are maintained by Postfix daemons. The lookup table name as
         used in "sdbm:table" is the database file name without the ".dir" or
         ".pag" suffix.
     ssoocckkeettmmaapp (read-only)
-        Query a Sendmail-style socketmap server. The name of the table
-        specifies iinneett:host:port:socketmap-name for a TCP-based server, or
-        uunniixx:pathname:socketmap-name for a UNIX-domain server. In both cases
-        socketmap-name is the name of the socketmap.
+        Sendmail-style socketmap client. The name of the table is either iinneett:
+        host:port:name for a TCP/IP server, or uunniixx:pathname:name for a UNIX-
+        domain server. See socketmap_table(5) for details.
     ssqqlliittee (read-only)
-        Perform SQLite database lookups. Configuration details are given in
-        sqlite_table(5).
+        SQLite database. Configuration details are given in sqlite_table(5).
     ssttaattiicc (read-only)
-        Always returns its lookup table name as lookup result. For example, the
-        lookup table "static:foobar" always returns the string "foobar" as
+        A table that always returns its name as the lookup result. For example,
+        the lookup table "static:foobar" always returns the string "foobar" as
         lookup result.
     ttccpp
-        Access information through a TCP/IP server. The protocol is described
-        in tcp_table(5). The lookup table name is "tcp:host:port" where "host"
-        specifies a symbolic hostname or a numeric IP address, and "port"
-        specifies a symbolic service name or a numeric port number.
+        TCP/IP client. The protocol is described in tcp_table(5). The lookup
+        table name is "tcp:host:port" where "host" specifies a symbolic
+        hostname or a numeric IP address, and "port" specifies a symbolic
+        service name or a numeric port number.
     tteexxtthhaasshh (read-only)
-        This produces similar results as hash: files, except that you don't
-        have to run the postmap(1) command before you can use the file, and
-        that texthash: does not detect changes after the file is read. The
+        A table that produces similar results as hash: files, except that you
+        don't have to run the postmap(1) command before you can use the file,
+        and that texthash: does not detect changes after the file is read. The
         lookup table name is "texthash:filename", where the file name is taken
         literally; no suffix is appended.
     uunniixx (read-only)
-        A limited way to query the UNIX authentication database. The following
+        A limited view of the UNIX authentication database. The following
         tables are implemented:
         uunniixx::ppaasssswwdd..bbyynnaammee
             The table is the UNIX password database. The key is a login name.

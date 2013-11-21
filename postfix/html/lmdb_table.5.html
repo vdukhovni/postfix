@@ -1,0 +1,96 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html> <head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<title> Postfix manual - lmdb_table(5) </title>
+</head> <body> <pre>
+LMDB_TABLE(5)                                                    LMDB_TABLE(5)
+
+<b>NAME</b>
+       lmdb_table - Postfix LMDB adapter
+
+<b>SYNOPSIS</b>
+       <b>postmap <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -i <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+
+       <b>postmap -d "</b><i>key</i><b>" <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -d - <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+
+       <b>postmap -q "</b><i>key</i><b>" <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i>
+       <b>postmap -q - <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
+
+<b>DESCRIPTION</b>
+       The  Postfix LMDB adapter provides access to a persistent,
+       memory-mapped, key-value store.  The database size is lim-
+       ited only by the size of the memory address space and file
+       system.
+
+<b>REQUESTS</b>
+       The LMDB adapter supports all Postfix lookup table  opera-
+       tions.   This  makes  LMDB  suitable  for  Postfix address
+       rewriting, routing, access policies, caches, or any infor-
+       mation that can be stored under a fixed lookup key.
+
+       When  a  transaction fails due to a full database, Postfix
+       resizes the database and retries the transaction.
+
+       Postfix access, address mapping and  routing  tables  will
+       generate  queries with partial keys such as parent domains
+       or networks, and keys without  the  address  extension  or
+       domain portion of an email address.
+
+       Unlike other flat-file based Postfix databases, changes to
+       an LMDB database do not require automatic  daemon  program
+       restart.
+
+<b>RELIABILITY</b>
+       LMDB's   copy-on-write   architecture   achieves  reliable
+       updates, at the cost of using more space than  some  other
+       flat-file  databases.   Read  operations are memory-mapped
+       for speed.  Write  operations  are  not  memory-mapped  to
+       avoid silent curruption due stray pointer bugs.
+
+       The  Postfix LMDB adapter implements locking with fcntl(2)
+       locks at whole-file  granularity.  LMDB's  native  locking
+       scheme  would  require  world-writable lockfiles and would
+       therefore violate the Postfix security model.  Unlike some
+       other  Postfix  flat-file  databases,  LMDB  databases can
+       safely be updated without serializing requests through the
+       <a href="proxymap.8.html">proxymap(8)</a> service.
+
+<b>CONFIGURATION PARAMETERS</b>
+       Short-lived  programs  automatically  pick  up  changes to
+       <a href="postconf.5.html">main.cf</a>.  With long-running daemon programs, Use the  com-
+       mand "<b>postfix reload</b>" after a configuration change.
+
+       <b><a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216)</b>
+              The  initial  OpenLDAP  LMDB database size limit in
+              bytes.
+
+<b>SEE ALSO</b>
+       <a href="postconf.1.html">postconf(1)</a>, Postfix supported lookup tables
+       <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table maintenance
+       <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+
+<b>README FILES</b>
+       <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
+       <a href="LMDB_README.html">LMDB_README</a>, Postfix LMDB howto
+
+<b>LICENSE</b>
+       The  Secure  Mailer  license must be distributed with this
+       software.
+
+<b>HISTORY</b>
+       LMDB support was introduced with Postfix version 2.11.
+
+<b>AUTHOR(S)</b>
+       Howard Chu
+       Symas Corporation
+
+       Wietse Venema
+       IBM T.J. Watson Research
+       P.O. Box 704
+       Yorktown Heights, NY 10598, USA
+
+                                                                 LMDB_TABLE(5)
+</pre> </body> </html>

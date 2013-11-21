@@ -1,0 +1,113 @@
+.TH LMDB_TABLE 5 
+.ad
+.fi
+.SH NAME
+lmdb_table
+\-
+Postfix LMDB adapter
+.SH "SYNOPSIS"
+.na
+.nf
+\fBpostmap lmdb:/etc/postfix/\fIfilename\fR
+.br
+\fBpostmap -i lmdb:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+
+\fBpostmap -d "\fIkey\fB" lmdb:/etc/postfix/\fIfilename\fR
+.br
+\fBpostmap -d - lmdb:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+
+\fBpostmap -q "\fIkey\fB" lmdb:/etc/postfix/\fIfilename\fR
+.br
+\fBpostmap -q - lmdb:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+.SH DESCRIPTION
+.ad
+.fi
+The Postfix LMDB adapter provides access to a persistent,
+memory-mapped, key-value store.  The database size is limited
+only by the size of the memory address space and file system.
+.SH "REQUESTS"
+.na
+.nf
+.ad
+.fi
+The LMDB adapter supports all Postfix lookup table operations.
+This makes LMDB suitable for Postfix address rewriting,
+routing, access policies, caches, or any information that
+can be stored under a fixed lookup key.
+
+When a transaction fails due to a full database, Postfix
+resizes the database and retries the transaction.
+
+Postfix access, address mapping and routing tables will
+generate queries with partial keys such as parent domains
+or networks, and keys without the address extension or
+domain portion of an email address.
+
+Unlike other flat-file based Postfix databases, changes to
+an LMDB database do not require automatic daemon program
+restart.
+.SH "RELIABILITY"
+.na
+.nf
+.ad
+.fi
+LMDB's copy-on-write architecture achieves reliable updates,
+at the cost of using more space than some other flat-file
+databases.  Read operations are memory-mapped for speed.
+Write operations are not memory-mapped to avoid silent
+curruption due stray pointer bugs.
+
+The Postfix LMDB adapter implements locking with fcntl(2)
+locks at whole-file granularity. LMDB's native locking
+scheme would require world-writable lockfiles and would
+therefore violate the Postfix security model.  Unlike some
+other Postfix flat-file databases, LMDB databases can safely
+be updated without serializing requests through the proxymap(8)
+service.
+.SH "CONFIGURATION PARAMETERS"
+.na
+.nf
+.ad
+.fi
+Short-lived programs automatically pick up changes to
+main.cf.  With long-running daemon programs, Use the command
+"\fBpostfix reload\fR" after a configuration change.
+.IP "\fBlmdb_map_size (default: 16777216)\fR"
+The initial OpenLDAP LMDB database size limit in bytes.
+.SH "SEE ALSO"
+.na
+.nf
+postconf(1), Postfix supported lookup tables
+postmap(1), Postfix lookup table maintenance
+postconf(5), configuration parameters
+.SH "README FILES"
+.na
+.nf
+.ad
+.fi
+Use "\fBpostconf readme_directory\fR" or
+"\fBpostconf html_directory\fR" to locate this information.
+.na
+.nf
+DATABASE_README, Postfix lookup table overview
+LMDB_README, Postfix LMDB howto
+.SH "LICENSE"
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+LMDB support was introduced with Postfix version 2.11.
+.SH "AUTHOR(S)"
+.na
+.nf
+Howard Chu
+Symas Corporation
+
+Wietse Venema
+IBM T.J. Watson Research
+P.O. Box 704
+Yorktown Heights, NY 10598, USA

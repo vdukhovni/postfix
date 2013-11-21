@@ -19209,3 +19209,10 @@ Apologies for any names omitted.
 
 	Workaround: increased the 5s connection timeout to 30s.
 	Viktor Dukhovni. File: posttls-finger/posttls-finger.c.
+
+20131121
+
+	Documentation: new socketmap_table(5) and lmdb_table(5)
+	manpages.  Files: mantools/postlink, conf/postfix-files,
+	html/Makefile.in, man/Makefile.in, proto/DATABASE_README.html,
+	postconf/postconf.c, proto/socketmap_table, proto/lmdb_table.
