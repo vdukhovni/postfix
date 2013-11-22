@@ -80,10 +80,10 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
 
 <b>MYSQL PARAMETERS</b>
        <b>hosts</b>  The  hosts  that Postfix will try to connect to and
-              query from.  Specify <i>unix:</i> for UNIX domain sockets,
+              query from.  Specify <i><a href="DATABASE_README.html#types">unix</a>:</i> for UNIX domain sockets,
               <i>inet:</i> for TCP connections (default).  Example:
                   hosts = host1.some.domain host2.some.domain:port
-                  hosts = unix:/file/name
+                  hosts = <a href="DATABASE_README.html#types">unix</a>:/file/name
 
               The  hosts are tried in random order, with all con-
               nections  over  UNIX  domain  sockets  being  tried
@@ -236,7 +236,7 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               lookups, bare domain lookups and "@domain"  lookups
               are  not  performed.  This can significantly reduce
               the query load on the MySQL server.
-                  domain = postfix.org, hash:/etc/postfix/searchdomains
+                  domain = postfix.org, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
 
               It is best not to use SQL to store the domains eli-
               gible for SQL lookups.

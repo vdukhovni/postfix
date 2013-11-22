@@ -181,18 +181,22 @@ with support for Berkeley DB databases.
 .IP \fBinternal\fR
 A non-shared, in-memory hash table. Its content are lost
 when a process terminates.
+.IP "\fBldap\fR (read-only)"
+LDAP database client. This is described in \fBldap_table\fR(5).
 .IP "\fBlmdb\fR"
 OpenLDAP LMDB database (a memory-mapped, persistent file).
 Available on systems with support for LMDB databases.  This
 is described in \fBlmdb_table\fR(5).
-.IP "\fBldap\fR (read-only)"
-LDAP database client. This is described in \fBldap_table\fR(5).
 .IP "\fBmemcache\fR"
 Memcache database client. This is described in
 \fBmemcache_table\fR(5).
 .IP "\fBmysql\fR (read-only)"
 MySQL database client.  Available on systems with support
 for MySQL databases.  This is described in \fBmysql_table\fR(5).
+.IP "\fBnis\fR (read-only)"
+NIS client.
+.IP "\fBnisplus\fR (read-only)"
+NIS+ client.
 .IP "\fBpcre\fR (read-only)"
 A lookup table based on Perl Compatible Regular Expressions.
 The file format is described in \fBpcre_table\fR(5).

@@ -320,7 +320,7 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
               are  not  performed.  This can significantly reduce
               the query load on the LDAP server.
 
-                  domain = postfix.org, hash:/etc/postfix/searchdomains
+                  domain = postfix.org, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
 
               It is best not to use LDAP  to  store  the  domains
               eligible for LDAP lookups.
@@ -741,7 +741,7 @@ LDAP_TABLE(5)                                                    LDAP_TABLE(5)
        Here's a basic example for using LDAP to look up  <a href="local.8.html">local(8)</a>
        aliases.  Assume that in <a href="postconf.5.html">main.cf</a>, you have:
 
-           <a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases,
+           <a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/aliases,
                    <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf
 
        and in <a href="ldap_table.5.html">ldap</a>:/etc/postfix/ldap-aliases.cf you have:

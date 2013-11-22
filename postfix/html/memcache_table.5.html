@@ -41,12 +41,12 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               "inet:" followed by a hostname or address, ":", and
               a  port  name  or  number.  Specify an IPv6 address
               inside "[]".   For  a  UNIX-domain  server  specify
-              "unix:" followed by the socket pathname. Examples:
+              "<a href="DATABASE_README.html#types">unix</a>:" followed by the socket pathname. Examples:
 
                   memcache = inet:memcache.example.com:11211
                   memcache = inet:127.0.0.1:11211
                   memcache = inet:[fc00:8d00:189::3]:11211
-                  memcache = unix:/path/to/socket
+                  memcache = <a href="DATABASE_README.html#types">unix</a>:/path/to/socket
 
               NOTE: to access a UNIX-domain socket with the <a href="proxymap.8.html">prox-</a>
               <a href="proxymap.8.html">ymap(8)</a> server, the socket must  be  accessible  by
@@ -61,10 +61,10 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               database. Examples:
 
                   # Non-shared postscreen cache.
-                  backup = btree:/var/lib/postfix/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>
+                  backup = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>
 
                   # Shared postscreen cache for processes on the same host.
-                  backup = <a href="proxymap.8.html">proxy</a>:btree:/var/lib/postfix/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>
+                  backup = <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a>
 
               Access to remote proxymap servers is under develop-
               ment.
@@ -183,7 +183,7 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               skipped  (updates  are  skipped  with  a  warning).
               Example:
 
-                  domain = example.com, hash:/etc/postfix/searchdomains
+                  domain = example.com, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
 
 <b>MEMCACHE ERROR CONTROLS</b>
        <b>data_size_limit (default: 10240)</b>

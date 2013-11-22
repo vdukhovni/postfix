@@ -35,36 +35,39 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        resizes the database and retries the transaction.
 
        Postfix access, address mapping and  routing  tables  will
-       generate  queries with partial keys such as parent domains
-       or networks, and keys without  the  address  extension  or
-       domain portion of an email address.
+       generate  partial search keys such as domain names without
+       one or more subdomains, network addresses without  one  or
+       more  least-significant octets, or email addresses without
+       the localpart, address extension or domain portion.   This
+       behavior  is  also  found  with  <a href="DATABASE_README.html#types">btree</a>:,  <a href="DATABASE_README.html#types">hash</a>:,  or <a href="ldap_table.5.html">ldap</a>:
+       tables.
 
        Unlike other flat-file based Postfix databases, changes to
-       an LMDB database do not require automatic  daemon  program
+       an  LMDB  database do not require automatic daemon program
        restart.
 
 <b>RELIABILITY</b>
-       LMDB's   copy-on-write   architecture   achieves  reliable
-       updates, at the cost of using more space than  some  other
-       flat-file  databases.   Read  operations are memory-mapped
-       for speed.  Write  operations  are  not  memory-mapped  to
+       LMDB's  copy-on-write   architecture   achieves   reliable
+       updates,  at  the cost of using more space than some other
+       flat-file databases.  Read  operations  are  memory-mapped
+       for  speed.   Write  operations  are  not memory-mapped to
        avoid silent curruption due stray pointer bugs.
 
-       The  Postfix LMDB adapter implements locking with fcntl(2)
-       locks at whole-file  granularity.  LMDB's  native  locking
-       scheme  would  require  world-writable lockfiles and would
+       The Postfix LMDB adapter implements locking with  fcntl(2)
+       locks  at  whole-file  granularity.  LMDB's native locking
+       scheme would require world-writable  lockfiles  and  would
        therefore violate the Postfix security model.  Unlike some
-       other  Postfix  flat-file  databases,  LMDB  databases can
+       other Postfix  flat-file  databases,  LMDB  databases  can
        safely be updated without serializing requests through the
        <a href="proxymap.8.html">proxymap(8)</a> service.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Short-lived  programs  automatically  pick  up  changes to
-       <a href="postconf.5.html">main.cf</a>.  With long-running daemon programs, Use the  com-
+       Short-lived programs  automatically  pick  up  changes  to
+       <a href="postconf.5.html">main.cf</a>.   With long-running daemon programs, Use the com-
        mand "<b>postfix reload</b>" after a configuration change.
 
        <b><a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216)</b>
-              The  initial  OpenLDAP  LMDB database size limit in
+              The initial OpenLDAP LMDB database  size  limit  in
               bytes.
 
 <b>SEE ALSO</b>
@@ -77,7 +80,7 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        <a href="LMDB_README.html">LMDB_README</a>, Postfix LMDB howto
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>HISTORY</b>

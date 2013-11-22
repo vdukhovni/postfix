@@ -862,7 +862,7 @@ For example: </p>
     secret.zen.spamhaus.org    zen.spamhaus.org
 </pre>
 
-<p> The <a href="DATABASE_README.html#types">texthash</a>: format is similar to hash: except that there is
+<p> The <a href="DATABASE_README.html#types">texthash</a>: format is similar to <a href="DATABASE_README.html#types">hash</a>: except that there is
 no need to run <a href="postmap.1.html">postmap(1)</a> before the file can be used, and that it
 does not detect changes after the file is read. It is new with
 Postfix version 2.8. </p>
@@ -1071,7 +1071,7 @@ of the following options: </p>
         key_format = postscreen:%s
     </pre>
 
-<li> <p> A persistent <a href="LMDB_README.html">lmdb</a>: temporary whitelist can be shared between
+<li> <p> A persistent <a href="lmdb_table.5.html">lmdb</a>: temporary whitelist can be shared between
     <a href="postscreen.8.html">postscreen(8)</a> daemons that run under the same <a href="master.8.html">master(8)</a> daemon,
     or under different <a href="master.8.html">master(8)</a> daemons on the same host.  Disable
     cache cleanup (<a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> = 0) in all
@@ -1079,9 +1079,9 @@ of the following options: </p>
     cleanup. This requires Postfix 2.11 or later. </p>
 
     <pre>
-    # Example 2: persistent <a href="LMDB_README.html">lmdb</a>: whitelist.
+    # Example 2: persistent <a href="lmdb_table.5.html">lmdb</a>: whitelist.
     /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-        <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> = <a href="LMDB_README.html">lmdb</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache
+        <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> = <a href="lmdb_table.5.html">lmdb</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache
         # See note 1 below.
         # <a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> = 0
     </pre>
@@ -1093,18 +1093,18 @@ of the following options: </p>
     2.9 or later. </p>
 
     <pre> 
-    # Example 3: proxied btree: whitelist.
+    # Example 3: proxied <a href="DATABASE_README.html#types">btree</a>: whitelist.
     /etc/postfix/<a href="postconf.5.html">main.cf</a>:
         <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> = 
-            <a href="proxymap.8.html">proxy</a>:btree:/var/lib/postfix/postscreen_cache
+            <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/postscreen_cache
         # See note 1 below.
         # <a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> = 0
 
-    # Example 4: proxied btree: whitelist with <a href="memcache_table.5.html">memcache</a>: accelerator.
+    # Example 4: proxied <a href="DATABASE_README.html#types">btree</a>: whitelist with <a href="memcache_table.5.html">memcache</a>: accelerator.
     /etc/postfix/<a href="postconf.5.html">main.cf</a>:
         <a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> = <a href="memcache_table.5.html">memcache</a>:/etc/postfix/postscreen_cache
         <a href="postconf.5.html#proxy_write_maps">proxy_write_maps</a> = 
-            <a href="proxymap.8.html">proxy</a>:btree:/var/lib/postfix/postscreen_cache 
+            <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/postscreen_cache 
             ... other proxied tables ...
         # See note 1 below.
         # <a href="postconf.5.html#postscreen_cache_cleanup_interval">postscreen_cache_cleanup_interval</a> = 0
@@ -1112,7 +1112,7 @@ of the following options: </p>
     /etc/postfix/postscreen_cache:
         # Note: the $<a href="postconf.5.html#data_directory">data_directory</a> macro is not defined in this context.
         memcache = inet:127.0.0.1:11211
-        backup = <a href="proxymap.8.html">proxy</a>:btree:/var/lib/postfix/postscreen_cache
+        backup = <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/postscreen_cache
         key_format = postscreen:%s
     </pre>
 

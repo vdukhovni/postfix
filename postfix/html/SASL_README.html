@@ -1421,7 +1421,7 @@ use a particular envelope sender address: </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <strong><a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a> = hash:/etc/postfix/controlled_envelope_senders</strong>
+    <strong><a href="postconf.5.html#smtpd_sender_login_maps">smtpd_sender_login_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/controlled_envelope_senders</strong>
 
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
         ...
@@ -1474,7 +1474,7 @@ REJECT mail from accounts whose credentials have been compromised.
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> = 
         <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a> 
-        <a href="postconf.5.html#check_sasl_access">check_sasl_access</a> hash:/etc/postfix/sasl_access
+        <a href="postconf.5.html#check_sasl_access">check_sasl_access</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sasl_access
         <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a>
         ...
 
@@ -1717,7 +1717,7 @@ second part sets up the username/password information.  </p>
     <a href="postconf.5.html#relayhost">relayhost</a> = [mail.isp.example]
     # Alternative form:
     # <a href="postconf.5.html#relayhost">relayhost</a> = [mail.isp.example]:submission
-    <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = hash:/etc/postfix/sasl_passwd
+    <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sasl_passwd
 </pre>
 </blockquote>
 
@@ -1823,9 +1823,9 @@ resort.  </p>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_sender_dependent_authentication">smtp_sender_dependent_authentication</a> = yes
-    <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> = hash:/etc/postfix/sender_relay
+    <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sender_relay
     <a href="postconf.5.html#smtp_sasl_auth_enable">smtp_sasl_auth_enable</a> = yes
-    <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = hash:/etc/postfix/sasl_passwd
+    <a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sasl_passwd
     <a href="postconf.5.html#relayhost">relayhost</a> = [mail.isp.example]
     # Alternative form:
     # <a href="postconf.5.html#relayhost">relayhost</a> = [mail.isp.example]:submission

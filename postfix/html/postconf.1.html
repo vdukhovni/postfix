@@ -195,14 +195,14 @@ POSTCONF(1)                                                        POSTCONF(1)
                      A non-shared, in-memory hash table. Its con-
                      tent are lost when a process terminates.
 
+              <b>ldap</b> (read-only)
+                     LDAP database client. This is  described  in
+                     <a href="ldap_table.5.html"><b>ldap_table</b>(5)</a>.
+
               <b>lmdb</b>   OpenLDAP  LMDB  database  (a  memory-mapped,
                      persistent file).  Available on systems with
-                     support  for  LMDB   databases.    This   is
+                     support   for   LMDB   databases.   This  is
                      described in <a href="lmdb_table.5.html"><b>lmdb_table</b>(5)</a>.
-
-              <b>ldap</b> (read-only)
-                     LDAP  database  client. This is described in
-                     <a href="ldap_table.5.html"><b>ldap_table</b>(5)</a>.
 
               <b>memcache</b>
                      Memcache database client. This is  described
@@ -212,6 +212,12 @@ POSTCONF(1)                                                        POSTCONF(1)
                      MySQL database client.  Available on systems
                      with support for MySQL databases.   This  is
                      described in <a href="mysql_table.5.html"><b>mysql_table</b>(5)</a>.
+
+              <b>nis</b> (read-only)
+                     NIS client.
+
+              <b>nisplus</b> (read-only)
+                     NIS+ client.
 
               <b>pcre</b> (read-only)
                      A lookup table based on Perl Compatible Reg-
@@ -257,7 +263,7 @@ POSTCONF(1)                                                        POSTCONF(1)
                      <a href="tcp_table.5.html"><b>tcp_table</b>(5)</a>.
 
               <b>texthash</b> (read-only)
-                     Produces  similar  results  as  hash: files,
+                     Produces  similar  results  as  <a href="DATABASE_README.html#types">hash</a>: files,
                      except  that  you  don't  need  to  run  the
                      <a href="postmap.1.html"><b>postmap</b>(1)</a>  command  before  you can use the
                      file, and that it does  not  detect  changes
@@ -268,13 +274,13 @@ POSTCONF(1)                                                        POSTCONF(1)
                      database. The following  tables  are  imple-
                      mented:
 
-                     <b>unix:passwd.byname</b>
+                     <b><a href="DATABASE_README.html#types">unix</a>:passwd.byname</b>
                             The  table is the UNIX password data-
                             base. The key is a login  name.   The
                             result  is  a  password file entry in
                             <b>passwd</b>(5) format.
 
-                     <b>unix:group.byname</b>
+                     <b><a href="DATABASE_README.html#types">unix</a>:group.byname</b>
                             The table is the UNIX group database.
                             The  key is a group name.  The result
                             is a group  file  entry  in  <b>group</b>(5)

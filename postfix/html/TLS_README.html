@@ -652,7 +652,7 @@ client.  </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = btree:/var/lib/postfix/smtpd_scache
+    <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtpd_scache
 </pre>
 </blockquote>
 
@@ -776,7 +776,7 @@ the name of the user or host:</p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> = hash:/etc/postfix/relay_clientcerts
+    <a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relay_clientcerts
 
 /etc/postfix/relay_clientcerts:
     D7:04:2F:A7:0B:8C:A5:21:FA:31:77:E1:41:8A:EE:80 lutzpc.at.home
@@ -1202,7 +1202,7 @@ level sessions. </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
 
 /etc/postfix/tls_policy:
     example.com       encrypt
@@ -1229,7 +1229,7 @@ just in case the transport table entries are not specified consistently. </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
 
 /etc/services:
     submission      587/tcp         msa             # mail message submission
@@ -1521,7 +1521,7 @@ As in the example above, we show two matching fingerprints: </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
     <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> = md5
 </pre>
 </blockquote>
@@ -1737,7 +1737,7 @@ the first approach is more appropriate in most cases. <p>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> = /etc/postfix/CAfile.pem
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
 
 /etc/postfix/transport:
 
@@ -1761,8 +1761,8 @@ listed in their certificates. </p>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> = /etc/postfix/CAfile.pem
-    <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#transport_maps">transport_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/transport
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
 
 /etc/postfix/transport:
     example.com     <a href="smtp.8.html">smtp</a>:[tls.example.com]
@@ -1990,7 +1990,7 @@ is allowed to negotiate per unit time.</p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = btree:/var/lib/postfix/smtp_scache
+    <a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtp_scache
 </pre>
 </blockquote>
 
@@ -2285,7 +2285,7 @@ Example:
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
     # Postfix 2.5 and later
     <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> = md5
 /etc/postfix/tls_policy:
@@ -2479,14 +2479,14 @@ mail for "example.com" through the tunnel: </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport
+    <a href="postconf.5.html#transport_maps">transport_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/transport
 
 /etc/postfix/transport:
     example.com  relay:[127.0.0.1]:11125
 </pre>
 </blockquote>
 
-<p> Use "postmap hash:/etc/postfix/transport" and "postfix reload"
+<p> Use "postmap <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/transport" and "postfix reload"
 to make the change effective. </p>
 
 <h3> <a name="client_misc"> Miscellaneous client controls </a> </h3>
@@ -2791,14 +2791,14 @@ but don't require them from all clients. </p>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> = /etc/postfix/cacert.pem
     <a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> =
-        btree:/var/lib/postfix/smtp_tls_session_cache
+        <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtp_tls_session_cache
     <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
     <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> = /etc/postfix/cacert.pem
     <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = /etc/postfix/foo-cert.pem
     <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = /etc/postfix/foo-key.pem
     <a href="postconf.5.html#smtpd_tls_received_header">smtpd_tls_received_header</a> = yes
     <a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> =
-        btree:/var/lib/postfix/smtpd_tls_session_cache
+        <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtpd_tls_session_cache
     <a href="postconf.5.html#tls_random_source">tls_random_source</a> = dev:/dev/urandom
     <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = may
 </pre>

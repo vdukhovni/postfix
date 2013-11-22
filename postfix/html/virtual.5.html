@@ -162,7 +162,7 @@ VIRTUAL(5)                                                          VIRTUAL(5)
        Support for a <a href="ADDRESS_CLASS_README.html#virtual_alias_class">virtual alias domain</a> looks like:
 
        /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-           <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
+           <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/virtual
 
        Note: some systems use <b>dbm</b> databases instead of <b>hash</b>.  See
        the output  from  "<b>postconf  -m</b>"  for  available  database

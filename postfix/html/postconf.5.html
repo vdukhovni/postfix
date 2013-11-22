@@ -207,8 +207,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#address_verify_map">address_verify_map</a> = hash:/var/lib/postfix/verify
-<a href="postconf.5.html#address_verify_map">address_verify_map</a> = btree:/var/lib/postfix/verify
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">hash</a>:/var/lib/postfix/verify
+<a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/verify
 </pre>
 
 <p>
@@ -546,8 +546,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#alias_database">alias_database</a> = hash:/etc/aliases
-<a href="postconf.5.html#alias_database">alias_database</a> = hash:/etc/mail/aliases
+<a href="postconf.5.html#alias_database">alias_database</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/aliases
+<a href="postconf.5.html#alias_database">alias_database</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/mail/aliases
 </pre>
 
 
@@ -590,8 +590,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases, nis:mail.aliases
-<a href="postconf.5.html#alias_maps">alias_maps</a> = hash:/etc/aliases
+<a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/aliases, nis:mail.aliases
+<a href="postconf.5.html#alias_maps">alias_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/aliases
 </pre>
 
 
@@ -1373,8 +1373,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#canonical_maps">canonical_maps</a> = dbm:/etc/postfix/canonical
-<a href="postconf.5.html#canonical_maps">canonical_maps</a> = hash:/etc/postfix/canonical
+<a href="postconf.5.html#canonical_maps">canonical_maps</a> = <a href="DATABASE_README.html#types">dbm</a>:/etc/postfix/canonical
+<a href="postconf.5.html#canonical_maps">canonical_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/canonical
 </pre>
 
 
@@ -5212,7 +5212,7 @@ system.  </p>
 <pre>
 <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> = <a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>,
     <a href="postconf.5.html#permit_sasl_authenticated">permit_sasl_authenticated</a> <a href="postconf.5.html#permit_tls_clientcerts">permit_tls_clientcerts</a>
-    <a href="postconf.5.html#check_address_map">check_address_map</a> hash:/etc/postfix/pop-before-smtp
+    <a href="postconf.5.html#check_address_map">check_address_map</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/pop-before-smtp
 </pre>
 </blockquote>
 
@@ -5220,7 +5220,7 @@ system.  </p>
 </DD>
 
 <DT><b><a name="local_recipient_maps">local_recipient_maps</a>
-(default: <a href="proxymap.8.html">proxy</a>:unix:passwd.byname $<a href="postconf.5.html#alias_maps">alias_maps</a>)</b></DT><DD>
+(default: <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">unix</a>:passwd.byname $<a href="postconf.5.html#alias_maps">alias_maps</a>)</b></DT><DD>
 
 <p> Lookup tables with all names or addresses of local recipients:
 a recipient address is local when its domain matches $<a href="postconf.5.html#mydestination">mydestination</a>,
@@ -6660,7 +6660,7 @@ and would otherwise be confused with a "<a href="DATABASE_README.html">type:tabl
 <a href="postconf.5.html#mynetworks">mynetworks</a> = !192.168.0.1, 192.168.0.0/28
 <a href="postconf.5.html#mynetworks">mynetworks</a> = 127.0.0.0/8 168.100.189.0/28 [::1]/128 [2001:240:587::]/64
 <a href="postconf.5.html#mynetworks">mynetworks</a> = $<a href="postconf.5.html#config_directory">config_directory</a>/mynetworks
-<a href="postconf.5.html#mynetworks">mynetworks</a> = hash:/etc/postfix/network_table
+<a href="postconf.5.html#mynetworks">mynetworks</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/network_table
 </pre>
 
 
@@ -7161,12 +7161,12 @@ seconds. </p>
 </DD>
 
 <DT><b><a name="postscreen_cache_map">postscreen_cache_map</a>
-(default: btree:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache)</b></DT><DD>
+(default: <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/postscreen_cache)</b></DT><DD>
 
 <p> Persistent storage for the <a href="postscreen.8.html">postscreen(8)</a> server decisions. </p>
 
 <p> To share a <a href="postscreen.8.html">postscreen(8)</a> cache between multiple <a href="postscreen.8.html">postscreen(8)</a>
-instances, use "<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> = <a href="proxymap.8.html">proxy</a>:btree:/path/to/file".
+instances, use "<a href="postconf.5.html#postscreen_cache_map">postscreen_cache_map</a> = <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">btree</a>:/path/to/file".
 This requires Postfix version 2.9 or later; earlier <a href="proxymap.8.html">proxymap(8)</a>
 implementations don't support cache cleanup. For an alternative
 approach see the <a href="memcache_table.5.html">memcache_table(5)</a> manpage. </p>
@@ -7328,7 +7328,7 @@ domain will be used. </p>
 
 <p> For maximal stability it is best to use a file that is read
 into memory such as <a href="pcre_table.5.html">pcre</a>:, <a href="regexp_table.5.html">regexp</a>: or <a href="DATABASE_README.html#types">texthash</a>: (<a href="DATABASE_README.html#types">texthash</a>: is similar
-to hash:, except a) there is no need to run <a href="postmap.1.html">postmap(1)</a> before the
+to <a href="DATABASE_README.html#types">hash</a>:, except a) there is no need to run <a href="postmap.1.html">postmap(1)</a> before the
 file can be used, and b) <a href="DATABASE_README.html#types">texthash</a>: does not detect changes after
 the file is read). </p>
 
@@ -8508,7 +8508,7 @@ Example:
 </p>
 
 <pre>
-<a href="postconf.5.html#recipient_bcc_maps">recipient_bcc_maps</a> = hash:/etc/postfix/recipient_bcc
+<a href="postconf.5.html#recipient_bcc_maps">recipient_bcc_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/recipient_bcc
 </pre>
 
 
@@ -8548,7 +8548,7 @@ Example:
 </p>
 
 <pre>
-<a href="postconf.5.html#recipient_canonical_maps">recipient_canonical_maps</a> = hash:/etc/postfix/recipient_canonical
+<a href="postconf.5.html#recipient_canonical_maps">recipient_canonical_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/recipient_canonical
 </pre>
 
 
@@ -8660,7 +8660,7 @@ D7:04:2F:A7:0B:8C:A5:21:FA:31:77:E1:41:8A:EE:80 lutzpc.at.home </p>
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> = hash:/etc/postfix/relay_clientcerts
+<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relay_clientcerts
 </pre>
 
 <p>For more fine-grained control, use <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> to select
@@ -8782,7 +8782,7 @@ Example:
 </p>
 
 <pre>
-<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> = hash:/etc/postfix/relay_recipients
+<a href="postconf.5.html#relay_recipient_maps">relay_recipient_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relay_recipients
 </pre>
 
 <p>
@@ -8885,8 +8885,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#relocated_maps">relocated_maps</a> = dbm:/etc/postfix/relocated
-<a href="postconf.5.html#relocated_maps">relocated_maps</a> = hash:/etc/postfix/relocated
+<a href="postconf.5.html#relocated_maps">relocated_maps</a> = <a href="DATABASE_README.html#types">dbm</a>:/etc/postfix/relocated
+<a href="postconf.5.html#relocated_maps">relocated_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/relocated
 </pre>
 
 
@@ -9159,7 +9159,7 @@ Example:
 </p>
 
 <pre>
-<a href="postconf.5.html#sender_bcc_maps">sender_bcc_maps</a> = hash:/etc/postfix/sender_bcc
+<a href="postconf.5.html#sender_bcc_maps">sender_bcc_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sender_bcc
 </pre>
 
 
@@ -9204,7 +9204,7 @@ Example:
 </p>
 
 <pre>
-<a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> = hash:/etc/postfix/sender_canonical
+<a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sender_canonical
 </pre>
 
 
@@ -9550,7 +9550,7 @@ IP address),
 transport map,
 
 <li> if mail is sent via a UNIX-domain socket: a pathname (without
-the unix: prefix),
+the <a href="DATABASE_README.html#types">unix</a>: prefix),
 
 <li> a /file/name with domain names and/or <a href="postconf.5.html#relayhost">relay host</a> names as
 defined above,
@@ -10490,7 +10490,7 @@ passwords, and requires that Postfix is compiled with TLS support.
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a> = <a href="proxymap.8.html">proxy</a>:btree:/var/lib/postfix/sasl_auth_cache
+<a href="postconf.5.html#smtp_sasl_auth_cache_name">smtp_sasl_auth_cache_name</a> = <a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/sasl_auth_cache
 </pre>
 
 <p> This feature is available in Postfix 2.5 and later. </p>
@@ -11192,7 +11192,7 @@ As in the example above, we show two matching fingerprints: </p>
 <blockquote>
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
     <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> = md5
 </pre>
 </blockquote>
@@ -11637,7 +11637,7 @@ which is either the recipient domain, or the verbatim next-hop
 specified in the transport table, $<a href="postconf.5.html#local_transport">local_transport</a>, $<a href="postconf.5.html#virtual_transport">virtual_transport</a>,
 $<a href="postconf.5.html#relay_transport">relay_transport</a> or $<a href="postconf.5.html#default_transport">default_transport</a>. This includes any enclosing
 square brackets and any non-default destination server port suffix. The
-LMTP socket type prefix (inet: or unix:) is not included in the lookup
+LMTP socket type prefix (inet: or <a href="DATABASE_README.html#types">unix</a>:) is not included in the lookup
 key. </p>
 
 <p> Only the next-hop domain, or $<a href="postconf.5.html#myhostname">myhostname</a> with LMTP over UNIX-domain
@@ -11762,7 +11762,7 @@ Example:
 
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = hash:/etc/postfix/tls_policy
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
     # Postfix 2.5 and later
     <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> = md5
 </pre>
@@ -12094,7 +12094,7 @@ under a non-Postfix directory is redirected to the Postfix-owned
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = btree:/var/lib/postfix/smtp_scache
+<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtp_scache
 </pre>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
@@ -13785,7 +13785,7 @@ supposed to give the result to another Postfix SMTP server process.
 </p>
 
 <p> Specify "host:port" or "inet:host:port" for a TCP endpoint, or
-"unix:pathname" for a UNIX-domain endpoint. The host can be specified
+"<a href="DATABASE_README.html#types">unix</a>:pathname" for a UNIX-domain endpoint. The host can be specified
 as an IP address or as a symbolic name; no MX lookups are done.
 When no "host" or "host:"  are specified, the local machine is
 assumed.  Pathname interpretation is relative to the Postfix queue
@@ -13793,7 +13793,7 @@ directory.  </p>
 
 <p> This feature is available in Postfix 2.1 and later.  </p>
 
-<p> The "inet:" and "unix:" prefixes are available in Postfix 2.3
+<p> The "inet:" and "<a href="DATABASE_README.html#types">unix</a>:" prefixes are available in Postfix 2.3
 and later.  </p>
 
 
@@ -14826,7 +14826,7 @@ Examples:
 <pre>
 <a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a> = <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
 <a href="postconf.5.html#smtpd_sender_restrictions">smtpd_sender_restrictions</a> = <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>,
-    <a href="postconf.5.html#check_sender_access">check_sender_access</a> hash:/etc/postfix/access
+    <a href="postconf.5.html#check_sender_access">check_sender_access</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/access
 </pre>
 
 
@@ -15453,7 +15453,7 @@ to Postfix 2.9.6 or later. </p>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a> = sha1
     <a href="postconf.5.html#smtpd_client_restrictions">smtpd_client_restrictions</a> =
-        <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> hash:/etc/postfix/access,
+        <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/access,
         reject
 </pre>
 <pre>
@@ -15793,7 +15793,7 @@ under a non-Postfix directory is redirected to the Postfix-owned
 <p> Example: </p>
 
 <pre>
-<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = btree:/var/lib/postfix/smtpd_scache
+<a href="postconf.5.html#smtpd_tls_session_cache_database">smtpd_tls_session_cache_database</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtpd_scache
 </pre>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
@@ -17369,8 +17369,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#transport_maps">transport_maps</a> = dbm:/etc/postfix/transport
-<a href="postconf.5.html#transport_maps">transport_maps</a> = hash:/etc/postfix/transport
+<a href="postconf.5.html#transport_maps">transport_maps</a> = <a href="DATABASE_README.html#types">dbm</a>:/etc/postfix/transport
+<a href="postconf.5.html#transport_maps">transport_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/transport
 </pre>
 
 
@@ -17943,8 +17943,8 @@ Examples:
 </p>
 
 <pre>
-<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = dbm:/etc/postfix/virtual
-<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = hash:/etc/postfix/virtual
+<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = <a href="DATABASE_README.html#types">dbm</a>:/etc/postfix/virtual
+<a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/virtual
 </pre>
 
 

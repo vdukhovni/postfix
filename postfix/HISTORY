@@ -19216,3 +19216,11 @@ Apologies for any names omitted.
 	manpages.  Files: mantools/postlink, conf/postfix-files,
 	html/Makefile.in, man/Makefile.in, proto/DATABASE_README.html,
 	postconf/postconf.c, proto/socketmap_table, proto/lmdb_table.
+
+20121122
+
+	Documentation: missing database hyperlinks, refined text
+	about partial lookup keys. Files: mantools/postlink,
+	proto/DATABASE_README.html, proto/lmdb_table,
+	proto/socketmap_table.
+

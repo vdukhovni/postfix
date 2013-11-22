@@ -320,12 +320,12 @@ a process terminates. </dd>
 
 <dt> <b>lmdb</b> </dt>
 
-<dd> OpenLDAP LMDB database (a memory-mapped.  This is available
-only on systems with support for LMDB databases. Public database
-files are created with the postmap(1) or postalias(1) command, and
-private databases are maintained by Postfix daemons. The database
-name as used in "lmdb:table" is the database file name without the
-".lmdb" suffix.  See lmdb_table(5) for details.  </dd>
+<dd> OpenLDAP LMDB database.  This is available only on systems
+with support for LMDB databases. Public database files are created
+with the postmap(1) or postalias(1) command, and private databases
+are maintained by Postfix daemons. The database name as used in
+"lmdb:table" is the database file name without the ".lmdb" suffix.
+See lmdb_table(5) for details.  </dd>
 
 <dt> <b>ldap</b> (read-only) </dt>
 
@@ -403,8 +403,8 @@ server. See socketmap_table(5) for details.  </dd>
 <dt> <b>static</b> (read-only) </dt>
 
 <dd> A table that always returns its name as the lookup result.
-For example, the lookup table "static:foobar" always returns the
-string "foobar" as lookup result. </dd>
+For example, "static:foobar" always returns the string "foobar" as
+lookup result. </dd>
 
 <dt> <b>tcp</b> </dt>
 

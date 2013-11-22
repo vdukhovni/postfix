@@ -40,10 +40,13 @@ reply are sent as one netstring object.
 .ad
 .fi
 The socketmap protocol supports only the lookup request.
-Postfix access, address mapping and routing tables will not
-generate requests with partial keys such as parent domains
-or networks, or keys without the address extension or domain
-portion of an email address.
+
+Postfix will not generate partial search keys such as domain
+names without one or more subdomains, network addresses
+without one or more least-significant octets, or email
+addresses without the localpart, address extension or domain
+portion. This behavior is also found with cidr:, pcre:, and
+regexp: tables.
 .IP "\fB\fIname\fB <space> \fIkey\fR"
 Search the named socketmap for the specified key.
 .SH "REPLY FORMAT"
@@ -71,6 +74,7 @@ because neither the connection nor the server are authenticated.
 .SH "SEE ALSO"
 .na
 .nf
+http://cr.yp.to/proto/netstrings.txt, netstring definition
 postconf(1), Postfix supported lookup tables
 postmap(1), Postfix lookup table manager
 regexp_table(5), format of regular expression tables
@@ -96,6 +100,10 @@ The protocol limits are not yet configurable.
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
+.SH "HISTORY"
+.na
+.nf
+Socketmap support was introduced with Postfix version 2.10.
 .SH "AUTHOR(S)"
 .na
 .nf

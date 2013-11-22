@@ -255,7 +255,7 @@ filters (BSD kqueue(2), Linux epoll(4), or Solaris /dev/poll).
 
 <li> <p> More processes use more memory. You can reduce the Postfix
 memory footprint by using <a href="CDB_README.html">cdb</a>:
-lookup tables instead of Berkeley DB's hash: or btree: tables. </p>
+lookup tables instead of Berkeley DB's <a href="DATABASE_README.html#types">hash</a>: or <a href="DATABASE_README.html#types">btree</a>: tables. </p>
 
 <pre>
  1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
@@ -368,7 +368,7 @@ response, use something like: </p>
  5         <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> zen.spamhaus.org=127.0.0.11
  6         <a href="postconf.5.html#reject_rbl_client">reject_rbl_client</a> zen.spamhaus.org
  7  
- 8      <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> = hash:/etc/postfix/rbl_reply_maps
+ 8      <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/rbl_reply_maps
  9  
 10  /etc/postfix/rbl_reply_maps:
 11      # With Postfix 2.3-2.5 use "421" to hang up connections.
@@ -400,7 +400,7 @@ listed at <a href="http://www.postfix.org/download.html">http://www.postfix.org/
 above 8 with: </p>
 
 <pre>
- 8      <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> = ${stress?hash:/etc/postfix/rbl_reply_maps}
+ 8      <a href="postconf.5.html#rbl_reply_maps">rbl_reply_maps</a> = ${stress?<a href="DATABASE_README.html#types">hash</a>:/etc/postfix/rbl_reply_maps}
 </pre>
 
 </ul>

@@ -128,7 +128,7 @@ while (<>) {
     s;\bcommand_time_limit\b;<a href="postconf.5.html#command_time_limit">$&</a>;g;
     s;\bconfig_direc[-</bB>]*\n*[ <bB>]*tory\b;<a href="postconf.5.html#config_directory">$&</a>;g;
     s;\bcon[-</bB>]*\n*[ <bB>]*tent_filter\b;<a href="postconf.5.html#content_filter">$&</a>;g;
-    s;\bdata_directory\b;<a href="postconf.5.html#data_directory">$&</a>;g;
+    s;\bdata_direc[-</bB>]*\n*[ <bB>]*tory\b;<a href="postconf.5.html#data_directory">$&</a>;g;
     s;\bdae[-</bB>]*\n*[ <bB>]*mon_direc[-</bB>]*\n*[ <bB>]*tory\b;<a href="postconf.5.html#daemon_directory">$&</a>;g;
     s;\bdaemon_timeout\b;<a href="postconf.5.html#daemon_timeout">$&</a>;g;
     s;\bdebug_peer_level\b;<a href="postconf.5.html#debug_peer_level">$&</a>;g;
@@ -1089,22 +1089,30 @@ while (<>) {
 
     # Hyperlink map types.
 
+    s/\b(btree):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(cdb):/<a href="CDB_README.html">$1<\/a>:/g;
     s/\b(cidr):/<a href="cidr_table.5.html">$1<\/a>:/g;
-    s/\b(pcre):/<a href="pcre_table.5.html">$1<\/a>:/g;
-    s/\b(proxy):/<a href="proxymap.8.html">$1<\/a>:/g;
-    s/\b(pgsql):/<a href="pgsql_table.5.html">$1<\/a>:/g;
-    s/\b(mysql):/<a href="mysql_table.5.html">$1<\/a>:/g;
-    s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
+    s/\b(dbm):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
+    s/\b(environ):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
+    s/\b(fail):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
+    s/\b(hash):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
+    s/\b(internal):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(ldap):/<a href="ldap_table.5.html">$1<\/a>:/g;
     s/\b(lmdb):/<a href="lmdb_table.5.html">$1<\/a>:/g;
+    s/\b(memcache):/<a href="memcache_table.5.html">$1<\/a>:/g;
+    s/\b(mysql):/<a href="mysql_table.5.html">$1<\/a>:/g;
+    s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
+    s/\b(pcre):/<a href="pcre_table.5.html">$1<\/a>:/g;
+    s/\b(pgsql):/<a href="pgsql_table.5.html">$1<\/a>:/g;
+    s/\b(proxy):/<a href="proxymap.8.html">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
+    s/\b(sdbm):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(socketmap):/<a href="socketmap_table.html">$1<\/a>:/g;
     s/\b(sqlite):/<a href="sqlite_table.5.html">$1<\/a>:/g;
     s/\b(static):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
     s/\b(texthash):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
-    s/\b(memcache):/<a href="memcache_table.5.html">$1<\/a>:/g;
+    s/\b(unix):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
 
     # Do nice links for smtp:host:port etc.
 

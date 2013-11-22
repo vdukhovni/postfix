@@ -235,8 +235,8 @@ or to a UNIX-domain socket. Examples: </p>
 <blockquote>
 <pre>
 inet:127.0.0.1:9998
-unix:/some/where/policy
-unix:private/policy
+<a href="DATABASE_README.html#types">unix</a>:/some/where/policy
+<a href="DATABASE_README.html#types">unix</a>:private/policy
 </pre>
 </blockquote>
 
@@ -261,7 +261,7 @@ daemon, you would use something like this: </p>
  6     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  7         ... 
  8         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
- 9         <a href="postconf.5.html#check_policy_service">check_policy_service</a> unix:private/policy 
+ 9         <a href="postconf.5.html#check_policy_service">check_policy_service</a> <a href="DATABASE_README.html#types">unix</a>:private/policy 
 10         ...
 11     <a href="postconf.5.html#transport_time_limit">policy_time_limit</a> = 3600
 </pre>
@@ -411,7 +411,7 @@ processes only: </p>
  7     <a href="postconf.5.html#smtpd_recipient_restrictions">smtpd_recipient_restrictions</a> =
  8         ... 
  9         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
-10         <a href="postconf.5.html#check_policy_service">check_policy_service</a> unix:private/greylist
+10         <a href="postconf.5.html#check_policy_service">check_policy_service</a> <a href="DATABASE_README.html#types">unix</a>:private/greylist
 11         ...
 </pre>
 </blockquote>
@@ -454,7 +454,7 @@ a built-in suffix (in the above example: "_time_limit").  </p>
 </ul>
 
 <p> With Solaris &lt; 9, or Postfix &lt; 2.10 on any Solaris
-version, use inet: style sockets instead of unix:
+version, use inet: style sockets instead of <a href="DATABASE_README.html#types">unix</a>:
 style, as detailed in the "<a href="#client_config">Policy
 client/server configuration</a>" section above.  </p>
 
@@ -489,10 +489,10 @@ forged MAIL FROM domains could be found at
  3         <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a>
  4         ...
  5         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
- 6         <a href="postconf.5.html#check_sender_access">check_sender_access</a> hash:/etc/postfix/sender_access
+ 6         <a href="postconf.5.html#check_sender_access">check_sender_access</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sender_access
  7         ...
  8     <a href="postconf.5.html#smtpd_restriction_classes">smtpd_restriction_classes</a> = greylist
- 9     greylist = <a href="postconf.5.html#check_policy_service">check_policy_service</a> unix:private/greylist
+ 9     greylist = <a href="postconf.5.html#check_policy_service">check_policy_service</a> <a href="DATABASE_README.html#types">unix</a>:private/greylist
 10 
 11 /etc/postfix/sender_access:
 12     aol.com     greylist
@@ -547,8 +547,8 @@ most of the delays and most of the database pollution problem. </p>
  3         <a href="postconf.5.html#reject_unlisted_recipient">reject_unlisted_recipient</a>
  4         ...
  5         <a href="postconf.5.html#reject_unauth_destination">reject_unauth_destination</a> 
- 6         <a href="postconf.5.html#check_sender_access">check_sender_access</a> hash:/etc/postfix/sender_access
- 7         <a href="postconf.5.html#check_policy_service">check_policy_service</a> unix:private/policy
+ 6         <a href="postconf.5.html#check_sender_access">check_sender_access</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sender_access
+ 7         <a href="postconf.5.html#check_policy_service">check_policy_service</a> <a href="DATABASE_README.html#types">unix</a>:private/policy
  8         ...
  9 
 10 /etc/postfix/sender_access:

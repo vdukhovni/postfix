@@ -39,9 +39,12 @@ When a transaction fails due to a full database, Postfix
 resizes the database and retries the transaction.
 
 Postfix access, address mapping and routing tables will
-generate queries with partial keys such as parent domains
-or networks, and keys without the address extension or
-domain portion of an email address.
+generate partial search keys such as domain names without
+one or more subdomains, network addresses without one or
+more least-significant octets, or email addresses without
+the localpart, address extension or domain portion.
+This behavior is also found with btree:, hash:, or ldap:
+tables.
 
 Unlike other flat-file based Postfix databases, changes to
 an LMDB database do not require automatic daemon program
