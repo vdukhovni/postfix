@@ -10,7 +10,7 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
        mysql_table - Postfix MySQL client configuration
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" <a href="mysql_table.5.html">mysql</a>:/etc/postfix/filename</b>
+       <b>postmap -q "</b><i>string</i><b>" <a href="mysql_table.5.html">mysql</a>:/etc/postfix/</b><i>filename</i>
 
        <b>postmap -q - <a href="mysql_table.5.html">mysql</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
@@ -80,10 +80,10 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
 
 <b>MYSQL PARAMETERS</b>
        <b>hosts</b>  The  hosts  that Postfix will try to connect to and
-              query from.  Specify <i>unix:</i> for UNIX domain sockets,
+              query from.  Specify <i><a href="DATABASE_README.html#types">unix</a>:</i> for UNIX domain sockets,
               <i>inet:</i> for TCP connections (default).  Example:
                   hosts = host1.some.domain host2.some.domain:port
-                  hosts = unix:/file/name
+                  hosts = <a href="DATABASE_README.html#types">unix</a>:/file/name
 
               The  hosts are tried in random order, with all con-
               nections  over  UNIX  domain  sockets  being  tried
@@ -236,7 +236,7 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               lookups, bare domain lookups and "@domain"  lookups
               are  not  performed.  This can significantly reduce
               the query load on the MySQL server.
-                  domain = postfix.org, hash:/etc/postfix/searchdomains
+                  domain = postfix.org, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
 
               It is best not to use SQL to store the domains eli-
               gible for SQL lookups.
@@ -256,15 +256,63 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               limit is exceeded.  Setting the limit to 1  ensures
               that lookups do not return multiple values.
 
+       <b>option_file</b>
+              Read  options  from  the  given file instead of the
+              default my.cnf location.
+
+              This parameter is available with Postfix  2.11  and
+              later.
+
+       <b>option_group</b>
+              Read options from the given group.
+
+              This  parameter  is available with Postfix 2.11 and
+              later.
+
+       <b>tls_cert_file</b>
+              File containing client's X509 certificate.
+
+              This parameter is available with Postfix  2.11  and
+              later.
+
+       <b>tls_key_file</b>
+              File  containing  the  private key corresponding to
+              <b>tls_cert_file</b>.
+
+              This parameter is available with Postfix  2.11  and
+              later.
+
+       <b>tls_CAfile</b>
+              File  containing  certificates  for all of the X509
+              Certificate Authorities the client will  recognize.
+              Takes precedence over <b>tls_CApath</b>.
+
+              This  parameter  is available with Postfix 2.11 and
+              later.
+
+       <b>tls_CApath</b>
+              Directory  containing  X509  Certificate  Authority
+              certificates in separate individual files.
+
+              This  parameter  is available with Postfix 2.11 and
+              later.
+
+       <b>tls_verify_cert (default: no)</b>
+              Verify that the server's name  matches  the  common
+              name in the certficate.
+
+              This  parameter  is available with Postfix 2.11 and
+              later.
+
 <b>OBSOLETE QUERY INTERFACE</b>
-       This  section describes an interface that is deprecated as
-       of Postfix 2.2. It is replaced by the more  general  <b>query</b>
-       interface  described  above.   If  the  <b>query</b> parameter is
-       defined, the legacy  parameters  described  here  ignored.
-       Please  migrate  to the new interface as the legacy inter-
+       This section describes an interface that is deprecated  as
+       of  Postfix  2.2. It is replaced by the more general <b>query</b>
+       interface described above.   If  the  <b>query</b>  parameter  is
+       defined,  the  legacy  parameters  described here ignored.
+       Please migrate to the new interface as the  legacy  inter-
        face may be removed in a future release.
 
-       The following parameters can be used to fill in  a  SELECT
+       The  following  parameters can be used to fill in a SELECT
        template statement of the form:
 
            SELECT [<b>select_field</b>]
@@ -272,7 +320,7 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
            WHERE [<b>where_field</b>] = '%s'
                  [<b>additional_conditions</b>]
 
-       The  specifier %s is replaced by the search string, and is
+       The specifier %s is replaced by the search string, and  is
        escaped so if it contains single quotes or other odd char-
        acters, it will not cause a parse error, or worse, a secu-
        rity problem.
@@ -304,7 +352,7 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
        <a href="MYSQL_README.html">MYSQL_README</a>, Postfix MYSQL client guide
 
 <b>LICENSE</b>
-       The  Secure  Mailer  license must be distributed with this
+       The Secure Mailer license must be  distributed  with  this
        software.
 
 <b>HISTORY</b>

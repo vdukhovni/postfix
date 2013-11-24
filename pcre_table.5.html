@@ -164,12 +164,12 @@ PCRE_TABLE(5)                                                    PCRE_TABLE(5)
        nor is <i>user+foo</i> broken up into <i>user</i> and <i>foo</i>.
 
 <b>TEXT SUBSTITUTION</b>
-       Substitution of substrings  from  the  matched  expression
-       into  the result string is possible using the conventional
-       perl syntax ($1, $2, etc.); specify  $$  to  produce  a  $
-       character  as output.  The macros in the result string may
-       need to be written as ${n} or $(n) if they aren't followed
-       by whitespace.
+       Substitution of substrings  (text  that  matches  patterns
+       inside  "()")  from the matched expression into the result
+       string is requested with $1, $2, etc.; specify $$ to  pro-
+       duce  a  $  character as output.  The macros in the result
+       string may need to be written as  ${n}  or  $(n)  if  they
+       aren't followed by whitespace.
 
        Note:  since negated patterns (those preceded by <b>!</b>) return
        a result when the expression does not match, substitutions

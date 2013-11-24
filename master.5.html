@@ -74,8 +74,8 @@ MASTER(5)                                                            MASTER(5)
                      port  may be given in symbolic form (host or
                      service name) or in numeric form (IP address
                      or  port  number).   Host information may be
-                     enclosed inside "[]", but this form  is  not
-                     necessary.
+                     enclosed inside "[]"; this form is necessary
+                     only with IPv6 addresses.
 
                      Examples:  a service named <b>127.0.0.1:smtp</b> or
                      <b>::1:smtp</b>  receives  mail  via  the  loopback
@@ -98,8 +98,8 @@ MASTER(5)                                                            MASTER(5)
                      trolled  with the <b><a href="postconf.5.html#queue_directory">queue_directory</a></b> configura-
                      tion parameter in <a href="postconf.5.html">main.cf</a>).
 
-                     On Solaris systems the <b>unix</b> type  is  imple-
-                     mented with streams sockets.
+                     On Solaris 8 and earlier  systems  the  <b>unix</b>
+                     type is implemented with streams sockets.
 
               <b>fifo</b>   The  service  listens on a FIFO (named pipe)
                      and is accessible for local clients only.
@@ -119,8 +119,8 @@ MASTER(5)                                                            MASTER(5)
                      trolled with the <b><a href="postconf.5.html#queue_directory">queue_directory</a></b>  configura-
                      tion parameter in <a href="postconf.5.html">main.cf</a>).
 
-                     On  Solaris  systems the <b>pass</b> type is imple-
-                     mented with streams sockets.
+                     On  Solaris  8  and earlier systems the <b>pass</b>
+                     type is implemented with streams sockets.
 
                      This feature is available as of Postfix ver-
                      sion 2.5.
@@ -201,7 +201,7 @@ MASTER(5)                                                            MASTER(5)
                      in  the  <a href="postconf.5.html">main.cf</a>  configuration  file.   See
                      <a href="DEBUG_README.html">DEBUG_README</a> for hints and tips.
 
-              <b>-o</b> <i>name</i>=<i>value</i>
+              <b>-o <i></b>name</i>=<i>value</i>
                      Override  the  named  <a href="postconf.5.html">main.cf</a>  configuration
                      parameter.  The parameter value can refer to
                      other parameters as <i>$name</i> etc., just like in
@@ -225,8 +225,8 @@ MASTER(5)                                                            MASTER(5)
                      to  understand  and  maintain.  At a certain
                      point, it might be easier to configure  mul-
                      tiple  instances of Postfix, instead of con-
-                     figuring  multiple  personalities  via  mas-
-                     ter.cf.
+                     figuring  multiple  personalities  via  <a href="master.5.html">mas-
+                     ter.cf</a>.
 
               <b>-v</b>     Increase  the verbose logging level. Specify
                      multiple <b>-v</b> options to make a Postfix daemon

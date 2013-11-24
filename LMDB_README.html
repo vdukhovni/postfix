@@ -19,20 +19,11 @@
 
 <h2>Introduction</h2>
 
-<dl> <dt> Note: </dt> <dd> <p> Postfix support for LMDB databases
-is suspended due to the existence of a hard limit (an "out of
-storage" failure mode that cannot be resolved by increasing the
-database size). </p> <p> Postfix may support LMDB again when it no
-longer limits the size of Postfix transactions, whether the limit
-is built into LMDB itself, or implicit by requiring an unbounded
-amount of memory to handle a large transaction. </p> </dd> </dl>
-
 <p> Postfix uses databases of various kinds to store and look up
 information. Postfix databases are specified as "type:name".
 OpenLDAP LMDB implements the Postfix database type "lmdb".
 The name of a Postfix OpenLDAP LMDB database is the name
-of the database file without the ".lmdb" suffix. OpenLDAP LMDB databases
-are maintained with the <a href="postmap.1.html">postmap(1)</a> command.  </p>
+of the database file without the ".lmdb" suffix. </p>
 
 <p> This document describes: </p>
 
@@ -52,9 +43,8 @@ don't exist with other Postfix databases. </p>
 
 <h2><a name="with_lmdb">Building Postfix with OpenLDAP LMDB support</a></h2>
 
-<p> Postfix normally does not enable OpenLDAP LMDB support.
-To build Postfix after you installed OpenLDAP LMDB from
-source code, use something like: </p>
+<p> Postfix normally does not enable OpenLDAP LMDB support.  To
+build Postfix with OpenLDAP LMDB support, use something like: </p>
 
 <blockquote>
 <pre>
@@ -64,7 +54,7 @@ source code, use something like: </p>
 </pre>
 </blockquote>
 
-<p> Solaris needs this: </p>
+<p> Solaris may need this: </p>
 
 <blockquote>
 <pre>
@@ -78,15 +68,15 @@ source code, use something like: </p>
 
 <h2><a name="configure">Configure LMDB settings</a></h2>
 
-<p> Postfix provides a configuration parameter that controls how
-large an OpenLDAP LMDB database may grow. </p>
+<p> Postfix provides one configuration parameter that controls
+OpenLDAP LMDB database behavior. </p>
 
 <ul>
 
-<li> <p> <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 10 MBytes per
-table).  This setting controls how large any OpenLDAP LMDB database
-may grow. It must be set large enough to accommodate the largest
-table that Postfix will use. </p>
+<li> <p> <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216).  This setting specifies
+the initial OpenLDAP LMDB database size limit in bytes.  Each time
+a database becomes full, its size limit is doubled. The maximum
+size is the largest signed integer value of "long".  </p>
 
 </ul>
 
@@ -119,14 +109,75 @@ More information is available at
 databases.  </a> </h2>
 
 <p> As documented below, conversion to LMDB introduces a number of
-failure modes that don't exist with other Postfix databases. </p>
+failure modes that don't exist with other Postfix databases.  Some
+failure modes have been eliminated in the course of time.
+The writeup below reflects the status as of LMDB 0.9.9. </p>
+
+<!--
+
+<p> <strong>Unexpected "Permission denied" errors. </strong></p>
+
+<dl>
+
+<dt> Problem: </dt> <dd> <p> A world-readable LMDB database cannot
+be opened by a process with a UID that differs from the database
+file owner, even when an attempt is made to open the database
+read-only.  This problem does not exist with other Postfix databases.
+</p> </dd>
+
+<dt> Background: </dt> <dd> <p> The LMDB implementation requires 
+write access to maintain read locks, and perhaps for other purposes.
+</p> </dd>
+
+<dt> Solution: </dt> <dd> <p> Consider using <a href="CDB_README.html">cdb</a>: to manage root-owned
+databases under the root-owned <tt>/etc</tt> or <a href="postconf.5.html#config_directory">config_directory</a>
+(default: <tt>/etc/postfix</tt>) such as <a href="access.5.html">access(5)</a>, <a href="virtual.5.html">virtual(5)</a>,
+<a href="transport.5.html">transport(5)</a>. Support to create LMDB databases is available only
+for unprivileged Postfix daemon processes such as <a href="postscreen.8.html">postscreen(8)</a>,
+<a href="tlsmgr.8.html">tlsmgr(8)</a> and <a href="verify.8.html">verify(8)</a> that manage postfix-owned databases under
+the postfix-owned <a href="postconf.5.html#data_directory">data_directory</a> (default: <tt>/var/lib/postfix</tt>).
+</p> </dd>
+
+</dl>
+
+-->
+
+<!--
+
+<p> <strong>Unexpected "readers full" errors. </strong></p>
+
+<dl>
+
+<dt> Problem: </dt> <dd> <p> Under heavy load, database read
+operations fail with MDB_READERS_FULL errors. This problem does not
+exist with other Postfix databases. </p> </dd>
+
+<dt> Background: </dt> <dd> <p> The LMDB implementation enforces a
+hard limit on the number of simultaneous read requests for the same
+database environment. This limit must be specified in advance with
+the lmdb_max_readers configuration parameter. </p> </dd>
+
+<dt> Mitigation: </dt> <dd> <p> Postfix logs a warning suggesting
+that the lmdb_max_readers parameter value be increased, and retries
+the failed operation for a limited number of times while running
+with reduced performance.  </p> </dd>
+
+<dt> Prevention: </dt> <dd> <p> Monitor your LMDB files for
+MDB_READERS_FULL errors. After making the necessary adjustments,
+restart Postfix. </p> </dd>
+
+</dl>
+
+-->
+
+<!--
 
 <p> <strong>Unexpected <a href="postmap.1.html">postmap(1)</a>/<a href="postalias.1.html">postalias(1)</a> "database full"
 errors.  </strong></p>
 
 <dl>
 
-<dt> Problem: </dt> <dd> <p> The "postmap <a href="LMDB_README.html">lmdb</a>:filename" command
+<dt> Problem: </dt> <dd> <p> The "postmap <a href="lmdb_table.5.html">lmdb</a>:filename" command
 fails with an MDB_TXN_FULL error.  This problem does not exist with
 other Postfix databases. </p> </dd>
 
@@ -144,9 +195,15 @@ structures should share the same storage pool so that they can scale
 with the database size, and so that all "out of storage" errors are
 resolved by increasing the database size. </p> </dd>
 
-<dt> Problem: </dt> <dd> <p> The "postmap <a href="LMDB_README.html">lmdb</a>:filename" command
+-->
+
+<!--
+
+<p> Problem: </dt> <dd> <p> The "postmap <a href="lmdb_table.5.html">lmdb</a>:filename" command
 fails with an MDB_MAP_FULL error.  This problem does not exist with
 other Postfix databases. </p> </dd>
+
+<dl>
 
 <dt> Background: </dt>
 
@@ -155,7 +212,7 @@ other Postfix databases. </p> </dd>
 <p> LMDB databases have a hard size limit (configured with the
 <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> configuration parameter). </p>
 
-<p> When executing "postmap <a href="LMDB_README.html">lmdb</a>:filename", the Postfix LMDB database
+<p> When executing "postmap <a href="lmdb_table.5.html">lmdb</a>:filename", the Postfix LMDB database
 client stores the new data in a transaction which takes up space
 in addition to the existing data, and commits the transaction when
 it closes the database.  Only then can the space for old data be
@@ -167,22 +224,37 @@ reused.  </p>
 availability, because the old data still exists in the database.
 </p> </dd>
 
-<dt> Mitigation: </dt> <dd> <p> When the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>
-command opens an LMDB file larger than <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a>/3, it logs a
-warning and uses a larger size limit instead: </p>
+<dt> Mitigation: </dt> <dd>
 
-<p> <tt> warning: <i>filename</i>.<a href="LMDB_README.html">lmdb</a>: file size 15024128 &ge;
-(lmdb map size limit 16777216)/3 -- using a larger map size limit</tt>
-</p>
+<p> When the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command fails with an
+MDB_MAP_FULL error, it expands the database file size to the current
+LMDB map size limit before terminating.  </p>
 
-<p> This can be used to automate recovery and avoid the need for
-human intervention. Just keep running "postmap <a href="LMDB_README.html">lmdb</a>:filename".
-After each failure it will use a 3x larger size limit, and eventually
-the "database full" error will disappear. </p>
+<p> Next, when you re-run the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command,
+it discovers that the LMDB file is larger than <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a>/3,
+logs a warning, and uses a larger LMDB map size limit instead: </p>
+
+<p> <tt> warning: <i>filename</i>.<a href="lmdb_table.5.html">lmdb</a>: file size 15024128 &ge;
+(lmdb map size limit 16777216)/3<br> warning: <i>filename</i>.<a href="lmdb_table.5.html">lmdb</a>:
+using map size limit 45072384</tt> </p>
+
+<p> By repeating the two steps above you can automate recovery and
+avoid the need for human intervention. Just repeat "postmap
+<a href="lmdb_table.5.html">lmdb</a>:filename" (up to some limit).  After each failure it will use
+a 3x larger size limit, and eventually the "database full" error
+should disappear. This fails only when the disk is full or when
+the LMDB map size limit would exceed the memory address space size
+limit.  </p>
 
 <dt> Prevention: </dt> <dd> <p> Monitor your LMDB files and make
-sure that <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> &gt; 3x the largest LMDB file size. </p>
-</dd> </dl>
+sure that in <a href="postconf.5.html">main.cf</a>, <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> &gt; 3x the largest LMDB file
+size. </p> </dd> </dl>
+
+</dl>
+
+-->
+
+<!--
 
 <p> <strong>Unexpected Postfix daemon "database full" errors.
 </strong></p>
@@ -202,9 +274,9 @@ the database again as described next.  </p> </dd>
 file larger than <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a>/3, it logs a warning and uses a
 larger size limit instead: </p>
 
-<p> <tt> warning: <i>filename</i>.<a href="LMDB_README.html">lmdb</a>: file size 15024128 &ge;
-(lmdb map size limit 16777216)/3 -- using a larger map size limit</tt>
-</p>
+<p> <tt> warning: <i>filename</i>.<a href="lmdb_table.5.html">lmdb</a>: file size 15024128 &ge;
+(lmdb map size limit 16777216)/3 <br>warning: <i>filename</i>.<a href="lmdb_table.5.html">lmdb</a>:
+using map size limit 45072384</tt> </p>
 
 <p> This can be used to automate recovery and avoid the need for
 human intervention. Each time the daemon runs into a "database full"
@@ -215,33 +287,43 @@ full" error will disappear, at least for a while.  </p>
 sure that <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> &gt; 3x the largest LMDB file size. </p>
 </dd> </dl>
 
-</dl>
+-->
 
-<p> <strong>Non-obvious recovery with <a href="postmap.1.html">postmap(1)</a>/<a href="postalias.1.html">postalias(1)</a>/<a href="tlsmgr.8.html">tlsmgr(8)</a>
-from a corrupted database.  </strong></p>
+<p> <strong>Non-obvious recovery with <a href="postmap.1.html">postmap(1)</a>, <a href="postalias.1.html">postalias(1)</a>, or
+<a href="tlsmgr.8.html">tlsmgr(8)</a> from a corrupted database.  </strong></p>
 
 <dl>
 
-<dt> Problem: </dt> <dd> <p> You cannot rebuild a corrupted LMDB
-database simply by running <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>, or by waiting
-until the <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon restarts automatically.  This problem
-does not exist with other Postfix databases.  </p> </dd>
+<dt> Problem: </dt> <dd> <p> A corrupted LMDB database cann't be
+rebuilt simply by re-running <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>, or by
+waiting until a <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon restarts.  This problem does not
+exist with other Postfix databases.  </p> </dd>
 
 <dt> Background: </dt> <dd> <p> The Postfix LMDB database client
 does not truncate the database file.  Instead it attempts to create
-a transaction for a "drop" request and subsequent "store" requests.
+a transaction for a "drop" request plus subsequent "store" requests.
 That is obviously not possible with a corrupted database file. </p>
 </dd>
 
 <dt> Impact: </dt> <dd> <p> Postfix does not process mail until
 someone fixes the problem.  </p> </dd>
 
-<dt> Recovery: </dt> <dd> <p> First delete the ".lmdb" file by hand,
-then rebuild the file with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a> command,
-or wait until the <a href="tlsmgr.8.html">tlsmgr(8)</a> daemon restarts automatically.  </p>
-</dd>
+<dt> Recovery: </dt> <dd> <p> First delete the ".lmdb" file by hand.
+Then rebuild the file with the <a href="postmap.1.html">postmap(1)</a> or <a href="postalias.1.html">postalias(1)</a>
+command if the file was created with those commands, or restart
+postfix daemons if the file is maintained by <a href="tlsmgr.8.html">tlsmgr(8)</a>.
+</p> </dd>
 
-<dt> Prevention: </dt> <dd> <p> Arrange your file systems such that
-they never run out of free space.  </p> </dd> </dl>
+<dt> Prevention: </dt> <dd>
 
-</dl>
+<p> Arrange your file systems such that they never run out of free
+space. </p>
+
+<p> Use ECC memory to detect and correct silent corruption of
+in-memory file system data and metadata. </p>
+
+<p> Use a file system such as ZFS to detect and correct silent
+corruption of on-disk file system data and metadata. DO NOT
+use ZFS on systems without ECC memory error correction. </p>
+
+</dd> </dl>

@@ -10,7 +10,7 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
        sqlite_table - Postfix SQLite configuration
 
 <b>SYNOPSIS</b>
-       <b>postmap -q "</b><i>string</i><b>" <a href="sqlite_table.5.html">sqlite</a>:/etc/postfix/filename</b>
+       <b>postmap -q "</b><i>string</i><b>" <a href="sqlite_table.5.html">sqlite</a>:/etc/postfix/</b><i>filename</i>
 
        <b>postmap -q - <a href="sqlite_table.5.html">sqlite</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
@@ -204,7 +204,7 @@ SQLITE_TABLE(5)                                                SQLITE_TABLE(5)
               lookups, bare domain lookups and "@domain"  lookups
               are  not  performed.  This can significantly reduce
               the query load on the SQLite server.
-                  domain = postfix.org, hash:/etc/postfix/searchdomains
+                  domain = postfix.org, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
 
               It is best not to use SQL to store the domains eli-
               gible for SQL lookups.
