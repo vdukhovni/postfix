@@ -129,59 +129,6 @@ void    set_parameters(char **name_val_array)
     }
 }
 
-/* print_line - show line possibly folded, and with normalized whitespace */
-
-static void print_line(VSTREAM *fp, int mode, const char *fmt,...)
-{
-    va_list ap;
-    static VSTRING *buf = 0;
-    char   *start;
-    char   *next;
-    int     line_len = 0;
-    int     word_len;
-
-    /*
-     * One-off initialization.
-     */
-    if (buf == 0)
-	buf = vstring_alloc(100);
-
-    /*
-     * Format the text.
-     */
-    va_start(ap, fmt);
-    vstring_vsprintf(buf, fmt, ap);
-    va_end(ap);
-
-    /*
-     * Normalize the whitespace. We don't use the line_wrap() routine because
-     * 1) that function does not normalize whitespace between words and 2) we
-     * want to normalize whitespace even when not wrapping lines.
-     * 
-     * XXX Some parameters preserve whitespace: for example, smtpd_banner and
-     * smtpd_reject_footer. If we have to preserve whitespace between words,
-     * then perhaps readlline() can be changed to canonicalize whitespace
-     * that follows a newline.
-     */
-    for (start = STR(buf); *(start += strspn(start, SEPARATORS)) != 0; start = next) {
-	word_len = strcspn(start, SEPARATORS);
-	if (*(next = start + word_len) != 0)
-	    *next++ = 0;
-	if (word_len > 0 && line_len > 0) {
-	    if ((mode & FOLD_LINE) == 0 || line_len + word_len < LINE_LIMIT) {
-		vstream_fputs(" ", fp);
-		line_len += 1;
-	    } else {
-		vstream_fputs("\n" INDENT_TEXT, fp);
-		line_len = INDENT_LEN;
-	    }
-	}
-	vstream_fputs(start, fp);
-	line_len += word_len;
-    }
-    vstream_fputs("\n", fp);
-}
-
 /* print_parameter - show specific parameter */
 
 static void print_parameter(VSTREAM *fp, int mode, const char *name,
@@ -202,7 +149,7 @@ static void print_parameter(VSTREAM *fp, int mode, const char *name,
 	if ((mode & SHOW_EVAL) != 0 && PC_RAW_PARAMETER(node) == 0)
 	    value = expand_parameter_value((VSTRING *) 0, mode, value,
 					   (PC_MASTER_ENT *) 0);
-	if (mode & SHOW_NAME) {
+	if ((mode & HIDE_NAME) == 0) {
 	    print_line(fp, mode, "%s = %s\n", name, value);
 	} else {
 	    print_line(fp, mode, "%s\n", value);

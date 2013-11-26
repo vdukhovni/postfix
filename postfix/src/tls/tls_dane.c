@@ -97,7 +97,7 @@
 /*	callback MUST be cleared.
 /*
 /*	tls_dane_resolve() maps a (port, protocol, hostrr) tuple to a
-/*	a corresponding TLS_DANE policy structure found in the DNS.  The port
+/*	corresponding TLS_DANE policy structure found in the DNS.  The port
 /*	argument is in network byte order.  A null pointer is returned when
 /*	the DNS query for the TLSA record tempfailed.  In all other cases the
 /*	return value is a pointer to the corresponding TLS_DANE structure.
@@ -194,6 +194,9 @@
 #include <timecmp.h>
 #include <ctable.h>
 #include <hex_code.h>
+#include <safe_ultostr.h>
+#include <split_at.h>
+#include <name_code.h>
 
 #define STR(x)	vstring_str(x)
 
@@ -246,26 +249,41 @@ static ASN1_OBJECT *serverAuth;
 /*
  * https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml
  */
-typedef struct digest_info {
-    const char *alg;			/* OpenSSL name */
+typedef struct {
+    const char *mdalg;
+    uint8_t dane_id;
+} iana_digest;
+
+static iana_digest iana_table[] = {
+    {"", DNS_TLSA_MATCHING_TYPE_NO_HASH_USED},
+    {"sha256", DNS_TLSA_MATCHING_TYPE_SHA256},
+    {"sha512", DNS_TLSA_MATCHING_TYPE_SHA512},
+    {0, 0}
+};
+
+typedef struct dane_digest {
+    struct dane_digest *next;		/* linkage */
+    const char *mdalg;			/* OpenSSL name */
     const EVP_MD *md;			/* OpenSSL EVP handle */
     int     len;			/* digest octet length */
     int     pref;			/* tls_dane_digests index or -1 */
     uint8_t dane_id;			/* IANA id */
-}       digest_info;
+} dane_digest;
 
 #define MAXDIGESTS 256			/* RFC limit */
-digest_info digest_table[] = {
-    {"full", 0, 0, 0, DNS_TLSA_MATCHING_TYPE_NO_HASH_USED},
-    {"sha256", 0, 0, -1, DNS_TLSA_MATCHING_TYPE_SHA256},
-    {"sha512", 0, 0, -1, DNS_TLSA_MATCHING_TYPE_SHA512},
-    {0, 0, 0, 0, 0}
+static dane_digest *digest_list;
+static int digest_agility = -1;
+
+#define AGILITY_OFF	0
+#define AGILITY_ON	1
+#define AGILITY_MAYBE	2
+
+static NAME_CODE agility[] = {
+    {TLS_DANE_AGILITY_OFF, AGILITY_OFF},
+    {TLS_DANE_AGILITY_ON, AGILITY_ON},
+    {TLS_DANE_AGILITY_MAYBE, AGILITY_MAYBE},
+    {0, -1}
 };
-
-static int digest_mask;
-
-#define TLS_DANE_ENABLE_CC	(1<<0)	/* ca-constraint digests OK */
-#define TLS_DANE_ENABLE_TAA	(1<<1)	/* trust-anchor-assertion digests OK */
 
 /*
  * This is not intended to be a long-term cache of pre-parsed TLSA data,
@@ -286,27 +304,123 @@ void    tls_dane_verbose(int on)
     dane_verbose = on;
 }
 
-/* dane_digest_info - locate digest_table entry for given IANA id */
+/* add_digest - validate and append digest to digest list */
 
-static digest_info *dane_digest_info(uint8_t dane_id)
+static dane_digest *add_digest(char *mdalg, int pref)
 {
-    digest_info *di;
+    iana_digest *i;
+    dane_digest *d;
+    int     dane_id = -1;
+    const char *dane_mdalg = mdalg;
+    char   *value = split_at(mdalg, '=');
+    const EVP_MD *md = 0;
+    size_t  mdlen = 0;
 
-    for (di = digest_table; di->alg; ++di)
-	if (di->dane_id == dane_id)
-	    return (di);
+    if (value && *value) {
+	unsigned long l;
+	char   *endcp;
+
+	/*
+	 * XXX: safe_strtoul() does not flag empty or white-space only input.
+	 * Since we get idbuf by splitting white-space/comma delimited
+	 * tokens, this is not a problem here.
+	 */
+	l = safe_strtoul(value, &endcp, 10);
+	if ((l == 0 && (errno == EINVAL || endcp == value))
+	    || l >= MAXDIGESTS
+	    || *endcp) {
+	    msg_warn("Invalid matching type number in %s: %s=%s",
+		     VAR_TLS_DANE_DIGESTS, mdalg, value);
+	    return (0);
+	}
+	dane_id = l;
+    }
+
+    /*
+     * Check for known IANA conflicts
+     */
+    for (i = iana_table; i->mdalg; ++i) {
+	if (*mdalg && strcasecmp(i->mdalg, mdalg) == 0) {
+	    if (dane_id >= 0 && i->dane_id != dane_id) {
+		msg_warn("Non-standard value in %s: %s%s%s",
+			 VAR_TLS_DANE_DIGESTS, mdalg,
+			 value ? "=" : "", value ? value : "");
+		return (0);
+	    }
+	    dane_id = i->dane_id;
+	} else if (i->dane_id == dane_id) {
+	    if (*mdalg) {
+		msg_warn("Non-standard algorithm in %s: %s%s%s",
+			 VAR_TLS_DANE_DIGESTS, mdalg,
+			 value ? "=" : "", value ? value : "");
+		return (0);
+	    }
+	    dane_mdalg = i->mdalg;
+	}
+    }
+
+    /*
+     * Check for unknown implicit digest or value
+     */
+    if (dane_id < 0 || (dane_id > 0 && !*dane_mdalg)) {
+	msg_warn("Unknown incompletely specified element in %s: %s%s%s",
+		 VAR_TLS_DANE_DIGESTS, mdalg,
+		 value ? "=" : "", value ? value : "");
+	return 0;
+    }
+
+    /*
+     * Check for duplicate entries
+     */
+    for (d = digest_list; d; d = d->next) {
+	if (strcasecmp(d->mdalg, dane_mdalg) == 0
+	    || d->dane_id == dane_id) {
+	    msg_warn("Duplicate element in %s: %s%s%s",
+		     VAR_TLS_DANE_DIGESTS, mdalg,
+		     value ? "=" : "", value ? value : "");
+	    return (0);
+	}
+    }
+
+    if (*dane_mdalg
+	&& ((md = EVP_get_digestbyname(dane_mdalg)) == 0
+	    || (mdlen = EVP_MD_size(md)) <= 0
+	    || mdlen > EVP_MAX_MD_SIZE)) {
+	msg_warn("Unimplemented digest algoritm in %s: %s%s%s",
+		 VAR_TLS_DANE_DIGESTS, mdalg,
+		 value ? "=" : "", value ? value : "");
+	return (0);
+    }
+    d = (dane_digest *) mymalloc(sizeof(*d));
+    d->next = digest_list;
+    d->mdalg = mystrdup(dane_mdalg);
+    d->md = md;
+    d->len = mdlen;
+    d->pref = pref;
+    d->dane_id = dane_id;
+
+    return (digest_list = d);
+}
+
+/* digest_byid - locate digest_table entry for given IANA id */
+
+static dane_digest *digest_byid(uint8_t dane_id)
+{
+    dane_digest *d;
+
+    for (d = digest_list; d; d = d->next)
+	if (d->dane_id == dane_id)
+	    return (d);
     return (0);
 }
 
-/* dane_digest_pref - digest preference by IANA id */
+/* digest_pref_byid - digest preference by IANA id */
 
-static int dane_digest_pref(uint8_t dane_id)
+static int digest_pref_byid(uint8_t dane_id)
 {
-    digest_info *di = dane_digest_info(dane_id);
+    dane_digest *d = digest_byid(dane_id);
 
-    if (di && di->pref >= 0)
-	return (di->pref);
-    return (MAXDIGESTS + dane_id);
+    return (d ? (d->pref) : (MAXDIGESTS + dane_id));
 }
 
 /* gencakey - generate interal DANE root CA key */
@@ -343,46 +457,38 @@ static EVP_PKEY *gencakey(void)
 
 static void dane_init(void)
 {
-    static NAME_MASK ta_dgsts[] = {
-	TLS_DANE_CC, TLS_DANE_ENABLE_CC,
-	TLS_DANE_TAA, TLS_DANE_ENABLE_TAA,
-	0,
-    };
     int     digest_pref = 0;
     char   *cp;
     char   *save;
     char   *tok;
-    digest_info *di;
+    static char fullmtype[] = "=0";
+    dane_digest *d;
 
-    digest_mask =
-	name_mask_opt(VAR_TLS_DANE_TA_DGST, ta_dgsts, var_tls_dane_ta_dgst,
-		      NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
-
-    save = cp = mystrdup(var_tls_dane_digests);
-    while ((tok = mystrtok(&cp, "\t\n\r ,")) != 0) {
-	for (di = digest_table; di->alg; ++di)
-	    if (strcasecmp(tok, di->alg) == 0)
+    /*
+     * Add the full matching type at highest preference and then the users
+     * configured list.
+     * 
+     * The most preferred digest will be used for cert signing and hashing full
+     * values for comparison.
+     */
+    if ((digest_agility = name_code(agility, 0, var_tls_dane_agility)) < 0) {
+	msg_warn("Invalid %s syntax: %s. DANE support disabled.",
+		 VAR_TLS_DANE_AGILITY, var_tls_dane_agility);
+    } else if (add_digest(fullmtype, 0)) {
+	save = cp = mystrdup(var_tls_dane_digests);
+	while ((tok = mystrtok(&cp, "\t\n\r ,")) != 0) {
+	    if ((d = add_digest(tok, ++digest_pref)) == 0) {
+		signalg = 0;
+		signmd = 0;
 		break;
-	if (di->alg != 0
-	    && (di->md = EVP_get_digestbyname(di->alg)) != 0
-	    && (di->len = EVP_MD_size(di->md)) > 0
-	    && di->len <= EVP_MAX_MD_SIZE) {
-
-	    /*
-	     * The most preferred digest will be used for cert signing and
-	     * digesting for comparison.
-	     */
-	    if ((di->pref = ++digest_pref) == 1) {
-		signalg = di->alg;
-		signmd = di->md;
 	    }
-	} else {
-	    msg_warn("Unsupported DANE digest algorithm: %s", tok);
-	    continue;
+	    if (digest_pref == 1) {
+		signalg = d->mdalg;
+		signmd = d->md;
+	    }
 	}
+	myfree(save);
     }
-    myfree(save);
-
     /* Don't report old news */
     ERR_clear_error();
 
@@ -599,14 +705,15 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     ARGV  **argvp;
 
     switch (certusage) {
-    case DNS_TLSA_USAGE_CA_CONSTRAINT:
     case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-	certusage = TLS_DANE_TA;		/* Collapse 0/2 -> 2 */
+	certusage = TLS_DANE_TA;
 	break;
     case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
     case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
 	certusage = TLS_DANE_EE;		/* Collapse 1/3 -> 3 */
 	break;
+    default:
+	msg_panic("Unsupported DANE certificate usage: %d", certusage);
     }
 
     switch (selector) {
@@ -616,6 +723,8 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
 	selector = TLS_DANE_PKEY;
 	break;
+    default:
+	msg_panic("Unsupported DANE selector: %d", selector);
     }
 
     tlsap = (certusage == TLS_DANE_EE) ? &dane->ee : &dane->ta;
@@ -629,6 +738,60 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
 }
 
 #ifdef DANE_TLSA_SUPPORT
+
+#define FILTER_CTX_AGILITY_OK		(1<<0)
+#define FILTER_CTX_CHECK_AGILITY	(1<<1)
+#define FILTER_CTX_APPLY_AGILITY	(1<<2)
+#define FILTER_CTX_PARSE_DATA		(1<<3)
+
+#define FILTER_RR_DROP			0
+#define FILTER_RR_KEEP			1
+
+typedef struct filter_ctx {
+    TLS_DANE *dane;			/* Parsed result */
+    int     count;			/* Digest mtype count */
+    int     target;			/* Digest mtype target count */
+    int     flags;			/* Action/result bitmask */
+} filter_ctx;
+
+typedef int (*tlsa_filter) (DNS_RR *, filter_ctx *);
+
+/* tlsa_apply - apply filter to each rr in turn */
+
+static DNS_RR *tlsa_apply(DNS_RR *rr, tlsa_filter filter, filter_ctx *ctx)
+{
+    DNS_RR *head = 0;			/* First retained RR */
+    DNS_RR *tail = 0;			/* Last retained RR */
+    DNS_RR *next;
+
+    for ( /* nop */ ; rr; rr = next) {
+	next = rr->next;
+
+	if (filter(rr, ctx) == FILTER_RR_KEEP) {
+	    tail = rr;
+	    if (!head)
+		head = rr;
+	} else {
+	    if (tail)
+		tail->next = rr->next;
+	    rr->next = 0;
+	    dns_rr_free(rr);
+	}
+    }
+    return (head);
+}
+
+/* usmdelta - packed usage/selector/mtype bits changing in next record */
+
+static unsigned int usmdelta(uint8_t u, uint8_t s, uint8_t m, DNS_RR *next)
+{
+    uint8_t *ip = (next && next->data_len >= 3) ? (uint8_t *) next->data : 0;
+    uint8_t nu = ip ? *ip++ : ~u;
+    uint8_t ns = ip ? *ip++ : ~s;
+    uint8_t nm = ip ? *ip++ : ~m;
+
+    return (((u ^ nu) << 16) | ((s ^ ns) << 8) | (m ^ nm));
+}
 
 /* tlsa_rr_cmp - qsort TLSA rrs in case shuffled by name server */
 
@@ -645,11 +808,12 @@ static int tlsa_rr_cmp(DNS_RR *a, DNS_RR *b)
 	uint8_t *ai = (uint8_t *) a->data;
 	uint8_t *bi = (uint8_t *) b->data;
 
-#define signedcmp(x, y) (((int)(y)) - ((int)(x)))
+#define signedcmp(x, y) (((int)(x)) - ((int)(y)))
 
 	if ((cmp = signedcmp(ai[0], bi[0])) != 0
 	    || (cmp = signedcmp(ai[1], bi[1])) != 0
-	  || (cmp = dane_digest_pref(ai[2]) - dane_digest_pref(bi[2])) != 0)
+	    || (cmp = digest_pref_byid(ai[2]) -
+		digest_pref_byid(bi[2])) != 0)
 	    return (cmp);
     }
     if ((cmp = a->data_len - b->data_len) != 0)
@@ -657,224 +821,244 @@ static int tlsa_rr_cmp(DNS_RR *a, DNS_RR *b)
     return (memcmp(a->data, b->data, a->data_len));
 }
 
-/* parse_tlsa_rrs - parse a validated TLSA RRset */
+/* parse_tlsa_rr - parse a validated TLSA RRset */
 
-static void parse_tlsa_rrs(TLS_DANE *dane, DNS_RR *rr)
+static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 {
+    uint8_t *ip;
     uint8_t usage;
     uint8_t selector;
     uint8_t mtype;
-    int     mlen;
+    ssize_t dlen;
+    const unsigned char *data;
     const unsigned char *p;
-    uint32_t prev_usage_selector;	/* Previous (usage<<8|selector) */
-    uint32_t prev_mtype;		/* Previous valid mtype for above */
+    int     iscname = strcasecmp(rr->rname, rr->qname);
+    const char *q = (iscname) ? (rr)->qname : "";
+    const char *a = (iscname) ? " -> " : "";
+    const char *r = rr->rname;
+    unsigned int change;
 
-#define NO_PREV 0xffffffff			/* Not any usage|selector or
-						 * mtype */
-    prev_usage_selector = NO_PREV;
+    if (rr->type != T_TLSA)
+	msg_panic("unexpected non-TLSA RR type %u for %s%s%s", rr->type,
+		  q, a, r);
 
-    if (rr == 0)
-	msg_panic("null TLSA rr");
+    /* Drop truncated records */
+    if ((dlen = rr->data_len - 3) < 0) {
+	msg_warn("truncated length %u RR: %s%s%s IN TLSA ...",
+		 (unsigned) rr->data_len, q, a, r);
+	ctx->flags &= ~FILTER_CTX_AGILITY_OK;
+	return (FILTER_RR_DROP);
+    }
+    ip = (uint8_t *) rr->data;
+    usage = *ip++;
+    selector = *ip++;
+    mtype = *ip++;
+    change = usmdelta(usage, selector, mtype, rr->next);
+    p = data = (const unsigned char *) ip;
 
-    for ( /* nop */ ; rr; rr = rr->next) {
-	const char *mdalg = 0;
-	char   *digest;
-	int     iscname = strcasecmp(rr->rname, rr->qname);
-	uint8_t *ip = (uint8_t *) rr->data;
-	X509   *x = 0;			/* OpenSSL tries to re-use *x if x!=0 */
-	EVP_PKEY *k = 0;		/* OpenSSL tries to re-use *k if k!=0 */
-	digest_info *di;
-
-#define rcname(rr) (iscname ? rr->qname : "")
-#define rarrow(rr) (iscname ? " -> " : "")
-
-	if (rr->type != T_TLSA)
-	    msg_panic("unexpected non-TLSA RR type %u for %s%s%s", rr->type,
-		      rcname(rr), rarrow(rr), rr->rname);
-
-	/* Skip malformed */
-	if ((mlen = rr->data_len - 3) < 0) {
-	    msg_warn("truncated length %u RR: %s%s%s IN TLSA ...",
-		(unsigned) rr->data_len, rcname(rr), rarrow(rr), rr->rname);
-	    continue;
+    /*
+     * Handle digest agility for non-zero matching types.
+     */
+    if (mtype) {
+	if (ctx->count && (ctx->flags & FILTER_CTX_APPLY_AGILITY)) {
+	    if (change & 0xffff00)		/* New usage/selector, */
+		ctx->count = 0;			/* disable drop */
+	    return (FILTER_RR_DROP);
 	}
-	switch (usage = *ip++) {
-	default:
-	    msg_warn("unsupported certificate usage %u in RR: "
-		     "%s%s%s IN TLSA %u ...", usage,
-		     rcname(rr), rarrow(rr), rr->rname, usage);
-	    continue;
-	case DNS_TLSA_USAGE_CA_CONSTRAINT:
-	case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-	case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
-	case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
-	    break;
-	}
-
-	switch (selector = *ip++) {
-	default:
-	    msg_warn("unsupported selector %u in RR: "
-		     "%s%s%s IN TLSA %u %u ...", selector,
-		     rcname(rr), rarrow(rr), rr->rname, usage, selector);
-	    continue;
-	case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
-	case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
-	    break;
-	}
-
-	/*
-	 * Skip all but the most preferred matching type for any given
-	 * (usage, selector) combination.
-	 */
-	mtype = *ip++;
-	if (prev_usage_selector != (usage << 8 | selector))
-	    prev_mtype = NO_PREV;
-	else if (prev_mtype != NO_PREV && prev_mtype != mtype)
-	    continue;
-
-	switch (mtype) {
-	default:
-	    if ((di = dane_digest_info(mtype)) == 0) {
-		msg_warn("unsupported matching type %u in RR: "
-			 "%s%s%s IN TLSA %u %u %u ...", mtype, rcname(rr),
-			 rarrow(rr), rr->rname, usage, selector, mtype);
-		continue;
-	    }
-	    if (di->pref < 0) {
-		msg_warn("digest algorithm %s locally disabled, in RR: "
-			 "%s%s%s IN TLSA %u %u %u ...", di->alg,
-			 rcname(rr), rarrow(rr), rr->rname,
-			 usage, selector, mtype);
-		continue;
-	    }
-	    if (mlen != di->len) {
-		msg_warn("malformed %s digest, length %u, in RR: "
-			 "%s%s%s IN TLSA %u %u %u ...", di->alg, mlen,
-			 rcname(rr), rarrow(rr), rr->rname,
-			 usage, selector, mtype);
-		continue;
-	    }
-	    switch (usage) {
-	    case DNS_TLSA_USAGE_CA_CONSTRAINT:
-		if (!(digest_mask & TLS_DANE_ENABLE_CC)) {
-		    msg_warn("%s trust-anchor %s digests disabled, in RR: "
-			     "%s%s%s IN TLSA %u %u %u ...", TLS_DANE_CC,
-			     di->alg, rcname(rr), rarrow(rr), rr->rname,
-			     usage, selector, mtype);
-		    continue;
-		}
-		break;
-	    case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-		if (!(digest_mask & TLS_DANE_ENABLE_TAA)) {
-		    msg_warn("%s trust-anchor %s digests disabled, in RR: "
-			     "%s%s%s IN TLSA %u %u %u ...", TLS_DANE_TAA,
-			     di->alg, rcname(rr), rarrow(rr), rr->rname,
-			     usage, selector, mtype);
-		    continue;
-		}
-		break;
-	    }
-	    digest = tls_digest_encode((unsigned char *) ip, di->len);
-	    dane_add(dane, usage, selector, di->alg, digest);
-	    break;
-
-	case DNS_TLSA_MATCHING_TYPE_NO_HASH_USED:
-	    p = (unsigned char *) ip;
-
-	    /* Validate the cert or public key via d2i_mumble() */
-	    switch (selector) {
-	    case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
-		if (!d2i_X509(&x, &p, mlen)) {
-		    msg_warn("malformed %s in RR: "
-			     "%s%s%s IN TLSA %u %u %u ...", "certificate",
-			     rcname(rr), rarrow(rr), rr->rname,
-			     usage, selector, mtype);
-		    continue;
-		}
-		/* Also unusable if public key is malformed */
-		if ((k = X509_get_pubkey(x)) == 0) {
-		    msg_warn("%s public key malformed in RR: "
-			     "%s%s%s IN TLSA %u %u %u ...", "certificate",
-			     rcname(rr), rarrow(rr), rr->rname,
-			     usage, selector, mtype);
-		    X509_free(x);
-		    continue;
-		}
-		EVP_PKEY_free(k);
-
-		/*
-		 * When a full trust-anchor certificate is published via DNS,
-		 * we may need to use it to validate the server trust chain.
-		 * Store it away for later use.  We collapse certificate
-		 * usage 0/2 because MTAs don't stock a complete list of the
-		 * usual browser-trusted CAs.  Thus, here (and in the public
-		 * key case below) we treat the usages identically.
+	if ((ctx->flags & FILTER_CTX_CHECK_AGILITY)
+	    && (ctx->flags & FILTER_CTX_AGILITY_OK)) {
+	    ++ctx->count;
+	    if (change) {
+		/*-
+		 * Count changed from last mtype for same usage/selector?
+		 * Yes, disable agility.
+		 * Else, set or (on usage/selector change) reset target.
 		 */
-		switch (usage) {
-		case DNS_TLSA_USAGE_CA_CONSTRAINT:
-		case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-		    ta_cert_insert(dane, x);
-		    break;
-		}
-		X509_free(x);
-		break;
+		if (ctx->target && ctx->target != ctx->count)
+		    ctx->flags &= ~FILTER_CTX_AGILITY_OK;
+		else
+		    ctx->target = (change & ~0xff) ? 0 : ctx->count;
+		ctx->count = 0;
+	    }
+	}
+    }
+    /*-
+     * Drop unsupported usages.
+     * Note: NO SUPPORT for usage 0 which does not apply to SMTP.
+     * Note: Best-effort support for usage 1, which simply maps to 3.
+     */
+    switch (usage) {
+    case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
+    case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
+    case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
+	break;
+    default:
+	msg_warn("unsupported certificate usage %u in RR: "
+		 "%s%s%s IN TLSA %u ...", usage,
+		 q, a, r, usage);
+	return (FILTER_RR_DROP);
+    }
 
-	    case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
-		if (!d2i_PUBKEY(&k, &p, mlen)) {
-		    msg_warn("malformed %s in RR: "
-			     "%s%s%s IN TLSA %u %u %u ...", "public key",
-			     rcname(rr), rarrow(rr), rr->rname,
-			     usage, selector, mtype);
-		    continue;
-		}
-		/* See full cert case above */
-		switch (usage) {
-		case DNS_TLSA_USAGE_CA_CONSTRAINT:
-		case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-		    ta_pkey_insert(dane, k);
-		    break;
-		}
-		EVP_PKEY_free(k);
-		break;
+    /*
+     * Drop unsupported selectors
+     */
+    switch (selector) {
+    case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
+    case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
+	break;
+    default:
+	msg_warn("unsupported selector %u in RR: "
+		 "%s%s%s IN TLSA %u %u ...", selector,
+		 q, a, r, usage, selector);
+	return (FILTER_RR_DROP);
+    }
+
+    if (mtype) {
+	dane_digest *d = digest_byid(mtype);
+
+	if (d == 0) {
+	    msg_warn("unsupported matching type %u in RR: "
+		     "%s%s%s IN TLSA %u %u %u ...", mtype,
+		     q, a, r, usage, selector, mtype);
+	    return (FILTER_RR_DROP);
+	}
+	if (dlen != d->len) {
+	    msg_warn("malformed %s digest, length %u, in RR: "
+		     "%s%s%s IN TLSA %u %u %u ...", d->mdalg, dlen,
+		     q, a, r, usage, selector, mtype);
+	    ctx->flags &= ~FILTER_CTX_AGILITY_OK;
+	    return (FILTER_RR_DROP);
+	}
+	if (!var_tls_dane_taa_dgst
+	    && usage == DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION) {
+	    msg_warn("trust-anchor digests disabled, ignoring RR: "
+		     "%s%s%s IN TLSA %u %u %u ...", q, a, r,
+		     usage, selector, mtype);
+	    return (FILTER_RR_DROP);
+	}
+	/* New digest mtype next? Prepare to drop following RRs */
+	if (change && (change & 0xffff00) == 0
+	    && (ctx->flags & FILTER_CTX_APPLY_AGILITY))
+	    ++ctx->count;
+
+	if (ctx->flags & FILTER_CTX_PARSE_DATA) {
+	    char   *digest = tls_digest_encode(data, dlen);
+
+	    dane_add(ctx->dane, usage, selector, d->mdalg, digest);
+	    if (msg_verbose || dane_verbose)
+		msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u %s",
+			 q, a, r, usage, selector, mtype, digest);
+	    myfree(digest);
+	}
+    } else {
+	X509   *x = 0;			/* OpenSSL re-uses *x if x!=0 */
+	EVP_PKEY *k = 0;		/* OpenSSL re-uses *k if k!=0 */
+
+	/* Validate the cert or public key via d2i_mumble() */
+	switch (selector) {
+	case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
+	    if (!d2i_X509(&x, &p, dlen) || dlen != p - data) {
+		msg_warn("malformed %s in RR: "
+			 "%s%s%s IN TLSA %u %u %u ...", "certificate",
+			 q, a, r, usage, selector, mtype);
+		if (x)
+		    X509_free(x);
+		return (FILTER_RR_DROP);
+	    }
+	    /* Also unusable if public key is malformed or unsupported */
+	    k = X509_get_pubkey(x);
+	    EVP_PKEY_free(k);
+	    if (k == 0) {
+		msg_warn("%s public key malformed in RR: "
+			 "%s%s%s IN TLSA %u %u %u ...", "certificate",
+			 q, a, r, usage, selector, mtype);
+		X509_free(x);
+		return (FILTER_RR_DROP);
 	    }
 
 	    /*
-	     * The cert or key was valid, just digest the raw object, and
-	     * encode the digest value.
+	     * When a full trust-anchor certificate is published via DNS, we
+	     * may need to use it to validate the server trust chain. Store
+	     * it away for later use.
 	     */
-	    digest = tls_data_fprint((char *) ip, mlen, signalg);
-	    dane_add(dane, usage, selector, mdalg = signalg, digest);
+	    if (usage == DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION
+		&& (ctx->flags & FILTER_CTX_PARSE_DATA))
+		ta_cert_insert(ctx->dane, x);
+	    X509_free(x);
+	    break;
+
+	case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
+	    if (!d2i_PUBKEY(&k, &p, dlen) || dlen != p - data) {
+		msg_warn("malformed %s in RR: "
+			 "%s%s%s IN TLSA %u %u %u ...", "public key",
+			 q, a, r, usage, selector, mtype);
+		if (k)
+		    EVP_PKEY_free(k);
+		return (FILTER_RR_DROP);
+	    }
+	    /* See full cert case above */
+	    if (usage == DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION
+		&& (ctx->flags & FILTER_CTX_PARSE_DATA))
+		ta_pkey_insert(ctx->dane, k);
+	    EVP_PKEY_free(k);
 	    break;
 	}
 
 	/*
-	 * Save state
+	 * The cert or key was valid, just digest the raw object, and encode
+	 * the digest value.
 	 */
-	prev_usage_selector = (usage << 8 | selector);
-	prev_mtype = mtype;
+	if (ctx->flags & FILTER_CTX_PARSE_DATA) {
+	    char   *digest = tls_data_fprint((char *) data, dlen, signalg);
 
-	if (msg_verbose || dane_verbose) {
-	    switch (mtype) {
-	    default:
-		msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u %s",
-			 rcname(rr), rarrow(rr), rr->rname,
-			 usage, selector, mtype, digest);
-		break;
-	    case DNS_TLSA_MATCHING_TYPE_NO_HASH_USED:
+	    dane_add(ctx->dane, usage, selector, signalg, digest);
+	    if (msg_verbose || dane_verbose)
 		msg_info("using DANE RR: %s%s%s IN TLSA %u %u %u <%s>; "
-			 "%s digest %s",
-			 rcname(rr), rarrow(rr), rr->rname,
-			 usage, selector, mtype,
+			 "%s digest %s", q, a, r, usage, selector, mtype,
 			 (selector == DNS_TLSA_SELECTOR_FULL_CERTIFICATE) ?
-			 "certificate" : "public key", mdalg, digest);
-		break;
-	    }
+			 "certificate" : "public key", signalg, digest);
+	    myfree(digest);
 	}
-	myfree(digest);
+    }
+    return (FILTER_RR_KEEP);
+}
+
+/* process_rrs - filter and parse the TLSA RRset */
+
+static DNS_RR *process_rrs(TLS_DANE *dane, DNS_RR *rrset)
+{
+    filter_ctx ctx;
+
+    ctx.dane = dane;
+    ctx.count = ctx.target = 0;
+    ctx.flags = 0;
+
+    switch (digest_agility) {
+    case AGILITY_ON:
+	ctx.flags |= FILTER_CTX_APPLY_AGILITY | FILTER_CTX_PARSE_DATA;
+	break;
+    case AGILITY_OFF:
+	ctx.flags |= FILTER_CTX_PARSE_DATA;
+	break;
+    case AGILITY_MAYBE:
+	ctx.flags |= FILTER_CTX_CHECK_AGILITY | FILTER_CTX_AGILITY_OK;
+	break;
     }
 
+    rrset = tlsa_apply(rrset, parse_tlsa_rr, &ctx);
+
+    if (digest_agility == AGILITY_MAYBE) {
+	/* Two-pass algorithm */
+	if (ctx.flags & FILTER_CTX_AGILITY_OK)
+	    ctx.flags = FILTER_CTX_APPLY_AGILITY | FILTER_CTX_PARSE_DATA;
+	else
+	    ctx.flags = FILTER_CTX_PARSE_DATA;
+	rrset = tlsa_apply(rrset, parse_tlsa_rr, &ctx);
+    }
     if (dane->ta == 0 && dane->ee == 0)
 	dane->flags |= TLS_DANE_FLAG_EMPTY;
+
+    return (rrset);
 }
 
 /* dane_lookup - TLSA record lookup, ctable style */
@@ -911,11 +1095,12 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
 	     * same usage and selector.
 	     */
 	    rrs = dns_rr_sort(rrs, tlsa_rr_cmp);
-	    parse_tlsa_rrs(dane, rrs);
+	    rrs = process_rrs(dane, rrs);
 	} else
 	    dane->flags |= TLS_DANE_FLAG_NORRS;
 
-	dns_rr_free(rrs);
+	if (rrs)
+	    dns_rr_free(rrs);
 	break;
 
     case DNS_NOTFOUND:

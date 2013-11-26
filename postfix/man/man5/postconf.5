@@ -7220,18 +7220,6 @@ whitespace, commas or colons. In the policy table "protocols" attribute
 empty value means allow all protocols. The valid protocol names, (see
 \\fBfBSSL_get_version\fR(3)\fR), are "SSLv2", "SSLv3" and "TLSv1".
 .PP
-At the dane and
-dane-only security
-levels, when usable TLSA records are obtained for the remote SMTP
-server, the Postfix SMTP client is obligated to include the SNI TLS
-extension in its SSL client hello message.  This may help the remote
-SMTP server live up to its promise to provide a certificate that
-matches its TLSA records.  Since TLS extensions require TLS 1.0 or
-later, the Postfix SMTP client must disable SSLv2 and SSLv3 when
-SNI is required.  If you use "dane" or "dane-only" do not disable
-TLSv1, except perhaps via the policy table for destinations which
-you are sure will support TLSv1.1 or TLSv1.2.
-.PP
 Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
 and "TLSv1.2". If an older Postfix version is linked against OpenSSL
 1.0.1 or later, these, or any other new protocol versions, are
@@ -7260,7 +7248,7 @@ Example:
 .ft C
 # Preferred form with Postfix >= 2.5:
 smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
-# Alternative form.
+# Legacy form with Postfix < 2.5:
 smtp_tls_mandatory_protocols = TLSv1
 .fi
 .ad
@@ -7415,23 +7403,17 @@ Opportunistic DANE TLS.  The TLS policy for the destination is
 obtained via TLSA records in DNSSEC.  If no TLSA records are found,
 the effective security level used is may.  If TLSA records are
 found, but none are usable, the effective security level is encrypt.  When usable
-TLSA records are obtained for the remote SMTP server, SSLv2 and
-SSLv3 are automatically disabled (see smtp_tls_mandatory_protocols),
-and the server certificate must match the TLSA records.  The
-tls_dane_trust_anchor_digest_enable parameter controls optional
-support for trust-anchor digest TLSA records.  RFC 6698 (DANE) TLS
-authentication and DNSSEC support is available with Postfix 2.11
-and later.
+TLSA records are obtained for the remote SMTP server, the
+server certificate must match the TLSA records.  RFC 6698 (DANE)
+TLS authentication and DNSSEC support is available with Postfix
+2.11 and later.
 .br
 .IP "\fBdane-only\fR"
 Mandatory DANE TLS.  The TLS policy for the destination is
 obtained via TLSA records in DNSSEC.  If no TLSA records are found,
 or none are usable, no connection is made to the server.  When
-usable TLSA records are obtained for the remote SMTP server, SSLv2
-and SSLv3 are automatically disabled (see smtp_tls_mandatory_protocols),
-and the server certificate must match the TLSA records.  The
-tls_dane_trust_anchor_digest_enable parameter controls optional
-support for trust-anchor digest TLSA records.  RFC 6698 (DANE) TLS
+usable TLSA records are obtained for the remote SMTP server, the
+server certificate must match the TLSA records.  RFC 6698 (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
 and later.
 .br
@@ -7549,7 +7531,7 @@ Example:
 .nf
 .na
 .ft C
-# TLSv1 only!
+# TLSv1 or better:
 smtp_tls_protocols = !SSLv2, !SSLv3
 .fi
 .ad
@@ -7666,20 +7648,16 @@ parameter.  When TLSA records are not found or are all unusable the
 effective security level is "may" or "encrypt" respectively.  For
 purposes of protocol and cipher selection, the "dane" security level
 is treated like a "mandatory" TLS security level, and weak ciphers
-and protocols are disabled.  SSLv2 and SSLv3 are automatically
-disabled when usable TLSA records are obtained for the remote SMTP
-server, see smtp_tls_mandatory_protocols for details.  Since DANE
-authenticates server certificates the "aNULL" cipher-suites are
-transparently excluded at this level, no need to configure this
-manually.  The tls_dane_trust_anchor_digest_enable main.cf parameter
-controls optional support for trust-anchor digest TLSA records.
-RFC 6698 (DANE) TLS authentication is available with Postfix 2.11
-and later.
+and protocols are disabled.  Since DANE authenticates server
+certificates the "aNULL" cipher-suites are transparently excluded
+at this level, no need to configure this manually.  RFC 6698 (DANE)
+TLS authentication is available with Postfix 2.11 and later.
 .br
 .IP "\fBdane-only\fR"
-Mandatory DANE TLS.  This is just like "dane" above, only DANE
-TLSA authentication is mandatory.  RFC 6698 (DANE) TLS authentication
-is available with Postfix 2.11 and later.
+Mandatory DANE TLS.  This is just like "dane" above, but DANE
+TLSA authentication is required.  There is no fallback to "may" or
+"encrypt" when TLSA records are missing or unusable.  RFC 6698
+(DANE) TLS authentication is available with Postfix 2.11 and later.
 .br
 .IP "\fBfingerprint\fR"
 Certificate fingerprint verification.
@@ -10599,11 +10577,11 @@ works in addition to the exclusions listed with smtpd_tls_exclude_ciphers
 This feature is available in Postfix 2.3 and later.
 .SH smtpd_tls_mandatory_protocols (default: !SSLv2)
 The SSL/TLS protocols accepted by the Postfix SMTP server with
-mandatory TLS encryption. If the list is empty, the server supports all
-available SSL/TLS protocol versions.  A non-empty value is a list
-of protocol
-names separated by whitespace, commas or colons. The supported protocol
-names are "SSLv2", "SSLv3" and "TLSv1", and are not case sensitive.
+mandatory TLS encryption. If the list is empty, the server supports
+all available SSL/TLS protocol versions.  A non-empty value is a
+list of protocol names separated by whitespace, commas or colons.
+The supported protocol names are "SSLv2", "SSLv3" and "TLSv1", and
+are not case sensitive.
 .PP
 Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
 and "TLSv1.2". If an older Postfix version is linked against OpenSSL
@@ -10628,9 +10606,9 @@ Example:
 .nf
 .na
 .ft C
-smtpd_tls_mandatory_protocols = TLSv1
-# Alternative form with Postfix >= 2.5:
 smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+# Legacy form with Postfix < 2.5:
+smtpd_tls_mandatory_protocols = TLSv1
 .fi
 .ad
 .ft R
@@ -11007,78 +10985,111 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 (or 168bit) session key.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_dane_digest_agility (default: on)
+Configure DANE TLSA digest algorithm agility.  When digest
+algorithm agility is enabled, and the server and client support a
+common strong digest algorithm, TLSA records with weaker digest
+algorithms are ignored.
+.PP
+Specify one of the following:
+.IP "\fBoff\fR"
+DANE verification examines each well-formed record in the TLSA
+RRset whose matching type is either "0" (no hash used) or is one of
+the digest algorithms listed in $tls_dane_digests.  This setting
+is not recommended.
+.br
+.IP "\fBon\fR"
+From each group of well-formed TLSA RRs a non-zero digest
+matching type with the same certificate usage and selector, DANE
+verification examines only those records whose matching type has
+the highest precedence (appear earliest in $tls_dane_digests) are
+considered.
+.br
+.IP "\fBmaybe\fR"
+For compatibility with digest algorithm agility, each certificate
+or public key whose digest is included in a DANE TLSA RRset, SHOULD
+be published with the same set of digest matching type values as
+any other with the same usage and selector.  Therefore, compatible
+TLSA RRsets will contain an identical count of well-formed RRs with
+each non-zero digest matching type for any fixed combination of
+usage and selector.  When this constraint is violated, or any of
+the digest records are malformed, digest algorithm agility will
+disabled.  Otherwise, digest algorithm agility is enabled.
+.br
+.br
+.PP
+Digest algorithm agility ensures that the strongest digest
+supported by both the Postfix SMTP client and the remote server is
+used, and weaker digests are ignored.  This supports non-disruptive
+deprecation of outdated digest algorithms.
+.PP
+To ensure compatibility with digest algorithm agility during
+key rotation, when a certificate or public key is being replaced
+with another, and both are published during the transition, both
+the old and the new certificate MUST be specified with the same set
+of digests.  One can change the list of digest algorithms later,
+once old keys are retired.  At any given time, change either the
+list of digests without changing the list of certificates or public
+keys or the list of certificates or public keys without changing
+the list of digests.  Full value matching type "0" records are not
+subject to this constraint, but are discouraged due to the size of
+the resulting DNS records.
+.PP
+It is expected that this algorithm agility mechanism will be
+published in a standards track RFC for SMTP with DANE, and also in
+an eventual update to RFC 6698.
+.PP
+This feature is available in Postfix 2.11 and later.
 .SH tls_dane_digests (default: sha512 sha256)
 RFC 6698 TLSA resource-record "matching type" digest algorithms
 in descending preference order.  All the specified algorithms must
 be supported by the underlying OpenSSL library, otherwise the Postfix
 SMTP client will not support DANE TLSA security.
 .PP
+Specify a list of digest names separated by commas and/or
+whitespace.  Each digest name may be followed by an optional
+"=<number>" suffix.  For example, "sha512" may instead be specified
+as "sha512=2" and "sha256" may instead be specified as "sha256=1".
+The optional number must match the <a
+href="https://www.iana.org/assignments/dane-parameters/dane-parameters.xhtml#matching-types"
+>IANA assigned TLSA matching type number the algorithm in question.
+Postfix will check this constraint for the algorithms it knows about.
+Additional matching type algorithms registered with IANA can be added
+with explicit numbers provided they are supported by OpenSSL.
+.PP
+Invalid list elements are logged with a warning and disable DANE
+support.  TLSA RRs that specify digests not included in the list are
+ignored with a warning.
+.PP
+Note: It is unwise to omit sha256 from the digest list.  This
+digest algorithm is the only mandatory to implement digest algorithm
+in RFC 6698, and many servers are expected publish TLSA records
+with just sha256 digests.  Unless one of the standard digests is
+seriously compromised and servers have had ample time to update their
+TLSA records you should not omit any standard digests, just arrange
+them in order from strongest to weakest.
+.PP
 When for a particular combination of "certificate usage" and
-"selector" the TLSA RRset contains a well-formed record with a
-matching type of "0", i.e. a full value of the associated certificate
-or public key, the Postfix SMTP client will ignore all other matching
-types for the same certificate usage and selector.  In this case
-the first algorithm listed in tls_dane_digests will be used to
-compute a digest of the full value, which will then be used to match
-certificates or public keys in the server's certificate chain.
+"selector" the TLSA RRset contains records with more than one digest
+matching type, the tls_dane_digest_agility parameter determines
+whether all the RRs are used, or only those with the most preferred
+digest matching type.
 .PP
-Otherwise, when for a particular combination of "certificate
-usage" and "selector" the TLSA RRset contains a records with more
-than one non-zero matching type, i.e. multiple digest algorithms,
-only records with the highest preference digest are used after
-discarding any records with an incorrect digest length as unusable.
+The tls_dane_trust_anchor_digest_enable parameter controls
+whether any digest TLSA records are acceptable in usage "2" (trust
+anchor assertion) TLSA records.
 .PP
-This strategy ensures that the strongest digest supported by
-both the Postfix SMTP client and the remote server is used, and
-weaker digests are ignored.  This supports non-disruptive deprecation
-of outdated digest algorithms.
-.PP
-The strategy requires that when a TLSA RRset provides association
-data for multiple certificates or public keys, all RRs with the same
-"certificate usage" and "selector" be published with the same set
-of digests.  In particular, during key rotation, when a certificate
-or public key is being replaced with another (and both are published
-during the transition) both the old and the new certificate MUST be
-specified with the same set of digests.  One can change the list of
-digest algorithms later, once old keys are retired.  At any given
-time change either the list of digests without changing the list of
-certificates or public keys or the list of certificates or public
-keys without changing the list of digests.
-.PP
-It is expected that this algorithm agility mechanism will be
-published in a standards track RFC for SMTP with DANE, and perhaps
-in an eventual update to RFC 6698.
-.PP
-This feature is available in Postfix 2.11.
-.SH tls_dane_trust_anchor_digest_enable (default: trust-anchor-assertion)
+This feature is available in Postfix 2.11 and later.
+.SH tls_dane_trust_anchor_digest_enable (default: yes)
 RFC 6698 trust-anchor digest support in the Postfix TLS library.
-Specify zero or more of the following options, separated by comma or
-whitespace.  Option names are case-insensitive.
-.IP "\fBca-constraint\fR"
-Enable support for RFC 6698 (DANE TLSA) DNS records that
-contain digests of trust-anchors with certificate usage "0".
-These are often public root CAs, and server operators may
-expect that clients will have the corresponding root certificate
-in their CAfile or CApath.  Most SSL/TLS servers do not send public
-root CA certificate in their certificate chain, so if Postfix does
-not have the CA certificate locally, there is no way to associate
-the digest with the trust chain from the server.  These TLSA records
-are fragile, and only work when you have a complete (whatever that
-means) set of public CAs in your CAfile or CApath.  Enable this
-with caution if at all.
-.br
-.IP "\fBtrust-anchor-assertion\fR"
 Enable support for RFC 6698 (DANE TLSA) DNS records that contain
 digests of trust-anchors with certificate usage "2".  In this case
 the certificate usage logically requires the server administrator
 to configure the server to include the trust-anchor certificate in
-the server's SSL certificate chain.  These TLSA records are less
-fragile than "ca-constraint" TLSA records, and are enabled by
-default.  Having a "complete" CAfile or CApath does not help in
-this case, you are at the mercy of the remote server administrator's
-competence.
-.br
-.br
+the server's SSL certificate chain.  If enough domains mess this
+up, you can disable support for these TLSA records, but you'll no
+longer have secure connections that get it right and only publish
+trust anchor records.
 .PP
 At the dane
 security level, when a TLSA RRset includes only unusable associations,
@@ -11087,6 +11098,10 @@ to the encrypt
 security level.  At the dane-only security level,
 the server in question is skipped and delivery is deferred if no
 secure servers are found.
+.PP
+The tls_dane_digests parameter controls the list of digest
+algorithms that are supported in TLSA records.  The tls_dane_digest_agility
+parameter controls digest algorithm downgrade attack resistance.
 .PP
 This feature is available in Postfix 2.11 and later.
 .SH tls_disable_workarounds (default: see "postconf -d" output)
@@ -11301,7 +11316,11 @@ or performant cipher choice, there is some risk of interoperability
 issues. In the past, some SSL clients have listed lower priority ciphers
 that they did not implement correctly. If the server chooses a cipher
 that the client prefers less, it may select a cipher whose client
-implementation is flawed.
+implementation is flawed. Most notably Windows 2003 Microsoft
+Exchange servers have flawed implementations of DES-CBC3-SHA, which
+OpenSSL considers stronger than RC4-SHA.  Enabling server cipher-suite
+selection may create interoperability issues with Windows 2003
+Microsoft Exchange clients.
 .PP
 This feature is available in Postfix 2.8 and later, in combination
 with OpenSSL 0.9.7 and later.

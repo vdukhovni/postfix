@@ -788,9 +788,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 		 props->namaddr, props->protocols);
 	return (0);
     }
-    /* The DANE level requires TLS 1.0 or later, not SSLv2 or SSLv3. */
+    /* The DANE level requires SSLv3 or later, not SSLv2. */
     if (props->tls_level == TLS_LEV_DANE)
-	protomask |= TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_SSLv2;
+	protomask |= TLS_PROTOCOL_SSLv2;
 
     /*
      * Per session cipher selection for sessions with mandatory encryption

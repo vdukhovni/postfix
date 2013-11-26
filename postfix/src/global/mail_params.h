@@ -3106,6 +3106,16 @@ extern bool var_tls_bc_pkey_fprint;
  /*
   * Ordered list of DANE digest algorithms.
   */
+#define TLS_DANE_AGILITY_OFF	"off"
+#define TLS_DANE_AGILITY_ON	"on"
+#define TLS_DANE_AGILITY_MAYBE	"maybe"
+#define VAR_TLS_DANE_AGILITY	"tls_dane_digest_agility"
+#define DEF_TLS_DANE_AGILITY	TLS_DANE_AGILITY_ON
+extern char *var_tls_dane_agility;
+
+ /*
+  * Ordered list of DANE digest algorithms.
+  */
 #define VAR_TLS_DANE_DIGESTS	"tls_dane_digests"
 #define DEF_TLS_DANE_DIGESTS	"sha512 sha256"
 extern char *var_tls_dane_digests;
@@ -3113,13 +3123,11 @@ extern char *var_tls_dane_digests;
  /*
   * External interface for enabling trust-anchor digests, which are risky
   * when the corresponding certificate is missing from the peer chain (this
-  * can't happend with the leaf certificate).
+  * can't happen with the leaf certificate).
   */
-#define TLS_DANE_CC		"ca-constraint"
-#define TLS_DANE_TAA		"trust-anchor-assertion"
-#define VAR_TLS_DANE_TA_DGST	"tls_dane_trust_anchor_digest_enable"
-#define DEF_TLS_DANE_TA_DGST	TLS_DANE_TAA
-extern char *var_tls_dane_ta_dgst;
+#define VAR_TLS_DANE_TAA_DGST	"tls_dane_trust_anchor_digest_enable"
+#define DEF_TLS_DANE_TAA_DGST	1
+extern bool var_tls_dane_taa_dgst;
 
  /*
   * Sendmail-style mail filter support.

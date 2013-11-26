@@ -8,9 +8,11 @@
 /*
 /*	ARGV	*argv_split(string, delim)
 /*	const char *string;
+/*	const char *delim;
 /*
 /*	ARGV	*argv_split_count(string, delim, count)
 /*	const char *string;
+/*	const char *delim;
 /*	ssize_t	count;
 /*
 /*	ARGV	*argv_split_append(argv, string, delim)

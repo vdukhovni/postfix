@@ -14,6 +14,131 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
+Incompatible changes with snapshot 20131126-nonprod
+===================================================
+
+The master_service_disable syntax has changed: use "service/type"
+instead of "service.type".  The new form is consistent with master.cf
+parameter namespaces.  The old form is still supported to avoid
+breaking existing configurations.
+
+Major changes with with snapshot 20131126-nonprod
+=================================================
+
+Support for advanced master.cf query and update operations.  This
+was implemented primarily to support automated system management
+tools.
+
+The idea is to make all Postfix master.cf details accessible as a
+list of "name=value" pairs, where the names are organized into
+structured name spaces.  This allows other programs to query
+information or request updates, without having to worry about the
+exact layout of master.cf files.
+
+First, an example that shows the smtp/inet service in the traditional
+form:
+
+    $ postconf -M smtp/inet
+    smtp       inet  n       -       n       -       -       smtpd
+
+Different variants of this command show different amounts of output.
+For example, "postconf -M smtp" enumerates all services that have
+a name "smtp" and any service type ("inet", "unix", etc.), and
+"postconf -M" enumerates all master.cf services.  
+
+General rule: each name component that is not present becomes a "*"
+wildcard.
+
+Coming back to the above example, the postconf -F option can now
+enumerate the smtp/inet service fields as follows:
+
+    $ postconf -F smtp/inet
+    smtp/inet/service = smtp
+    smtp/inet/type = inet
+    smtp/inet/private = n
+    smtp/inet/unprivileged = -
+    smtp/inet/chroot = n
+    smtp/inet/wakeup = -
+    smtp/inet/process_limit = -
+    smtp/inet/command = smtpd
+
+This form makes it very easy to change one field in master.cf.
+For example to turn on chroot on the smtp/inet service you use:
+
+    $ postconf -F smtp/inet/chroot=y
+
+Moreover, with "-F" you can specify "*" for service name or service
+type to get a wild-card match.  For example, to turn off chroot on
+all Postfix daemons, use this:
+
+    $ postconf -F '*/*/chroot=n'
+
+For a second example, let's look at the submission service.  This
+service typically has multple "-o parameter=value" overrides. First
+the traditional view:
+
+    $ postconf -Mf submission
+    submission inet  n       -       n       -       -       smtpd
+        -o smtpd_tls_security_level=encrypt
+        -o smtpd_sasl_auth_enable=yes
+        ...
+
+The postconf -P option can now enumerate these parameters as follows:
+
+    $ postconf -P submission
+    submission/inet/smtpd_sasl_auth_enable = yes
+    submission/inet/smtpd_tls_security_level = encrypt
+    ...
+
+Again, this form makes it very easy to modify one parameter
+setting, for example to change the smtpd_tls_security_level setting for
+the submission/inet service:
+
+    $ postconf -P 'submission/inet/smtpd_tls_security_level=may'
+
+You can create or remove a parametername=parametervalue setting:
+
+Create:
+    $ postconf -P 'submission/inet/parametername=parametervalue'
+
+Remove:
+    $ postconf -PX submission/inet/parametername
+
+Finally, adding master.cf entries is possible, but currently this
+does not yet have "advanced" support. It can only be done at the
+level of the traditional master.cf file format.
+
+For example, to clone the smtp/unix service settings and create a
+new delay/unix service you would enumerate the smtp/unix service
+like this:
+
+    $ postconf -M smtp/unix
+    smtp      unix  -       -       n       -       -       smtp
+
+Then you would copy those fields (except the first field) to 
+update or create the delay/unix service:
+
+    $ postconf -M delay/unix="delay   unix   -   -   n   -   -   smtp"
+
+To combine the above in one command:
+
+    $ postconf -M delay/unix="`postconf -M smtp/unix|awk '{$1 = "delay"}'`"
+
+This is perhaps not super-convenient for manual cloning, but it
+should be sufficient for programmatic configuration management.
+
+The -X (delete entry) and -# (comment out entry) options already
+exist for main.cf, and they now also work work for entire master.cf
+entries:
+
+Remove main.cf or master.cf entry:
+    $ postconf -X parametername
+    $ postconf -MX delay/unix
+
+Comment out main.cf or master.cf entry:
+    $ postconf -# parametername
+    $ postconf -M# delay/unix
+
 Major changes with snapshot 20131031
 ====================================
 

@@ -18218,6 +18218,13 @@ Apologies for any names omitted.
 	Factor out the master.cf line parser so that it can be
 	reused for "postconf -Me". File: postconf/postconf_master.c.
 
+20130113
+
+	Feature: master.cf attribute namespace. "postconf -F" shows
+	individual master.cf fields as "service/type/attribute =
+	value", where attribute is "service", "type", "private",
+	"unprivileged", "wakeup", "process_limit", or "command".
+
 20130121
 
 	Bugfix (introduced 20120307): the postconf -X option erased
@@ -19232,9 +19239,67 @@ Apologies for any names omitted.
 	cleanup/cleanup_milter.c, cleanup/cleanup_state.c,
 	global/xtext.c, global/xtext.h, milter/test-milter.c.
 
+20131122
+
+	Feature: "postcon -Fe service/type/attribute = value" edits
+	master.cf attribute values. The -e is optional. Example:
+	use "postconf -F "*/*/chroot = n" to turn off chroot on all
+	master.cf services. Files: postconf/postconf.h,
+	postconf/postconf.c, postconf/postcof_master.c,
+	postconf/postconf_edit.c.
+
 20131124
 
 	Cleanup: remove extra blank line from ccformat output,
 	making it compatible with the script that Wietse actually
 	uses (this line was part of a test to detect file truncation,
 	but it is now obsolete).  File: mantools/ccformat.
+
+	Feature: master.cf parameter namespace. "postconf -P" shows
+	master.cf parameter settings as "service/type/parameter =
+	value". This is applicable only to parameter settings in
+	master.cf. Files: postconf/postconf.h, postconf/postconf.c,
+	postconf/postcof_master.c, postconf/postconf_print.c.
+
+	Incompatibility: the master_service_disable syntax has
+	changed: use "service/type" instead of "service.type".  The
+	new form is consistent with master.cf parameter namespaces.
+	The old form is still supported to avoid breaking existing
+	configurations.  Files: global/master_service.c,
+	master/master_ent.c.
+
+20131125
+
+	Feature: change, add or delete "-o parameter=value" setting
+	in master.cf. Examples: "postconf -P smtp/inet/parameter=value"
+	(add or modify "-o name=value" setting) and "postconf -P
+	smtp/inet/parameter" (delete "-o parameter=value" setting).
+	Files: util/argv.[hc], postconf/postconf.h,
+	postconf/postconf_edit.c, postconf_master.c.
+
+20131126
+
+	Cleanup: Leave SSLv3 enabled with DANE. Viktor Dukhovni.
+	Files: proto/TLS_README.html proto/postconf.proto
+	tls/tls_client.c.
+
+	Cleanup: DANE support: Drop support for usage 0. It SHOULD
+	NOT be supported in DANE with SMTP, and we already don't
+	support digest TLSA RRs in this case, while full content
+	TLSA RRs are not recommended for DNS bloat reasons.  Viktor
+	Dukhovni. Files: proto/postconf.proto src/global/mail_params.h
+	src/smtp/smtp.c src/tls/tls_dane.c src/tls/tls_misc.c.
+
+	Feature: TLS support: Support future digest algorithms
+	without re-compilation. Viktor Dukhovni. Files: .indent.pro
+	proto/postconf.proto src/tls/tls_dane.c.
+
+	Feature: DNS support: New configurable digest agility.
+	Viktor Dukhovni. Files: .indent.pro proto/TLS_README.html
+	proto/postconf.proto src/global/mail_params.h src/tls/tls_dane.c
+	src/tls/tls_misc.c.
+
+20131127
+
+	Bugfix (introduced: 20090106): the postconf '-#' option
+	erased prior options. File: postconf/postconf.c.

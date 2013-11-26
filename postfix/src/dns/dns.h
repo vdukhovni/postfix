@@ -208,11 +208,12 @@ extern int dns_rr_eq_sa(DNS_RR *, struct sockaddr *);
   * dns_lookup.c
   */
 extern int dns_lookup_r(const char *, unsigned, unsigned, DNS_RR **,
-		              VSTRING *, VSTRING *, int *);
+			        VSTRING *, VSTRING *, int *);
 extern int dns_lookup_rl(const char *, unsigned, DNS_RR **, VSTRING *,
-			        VSTRING *, int *, int,...);
+			         VSTRING *, int *, int,...);
 extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
-			        VSTRING *, int *, int, unsigned *);
+			         VSTRING *, int *, int, unsigned *);
+
 #define dns_lookup(name, type, rflags, list, fqdn, why) \
     dns_lookup_r((name), (type), (rflags), (list), (fqdn), (why), (int *) 0)
 #define dns_lookup_l(name, rflags, list, fqdn, why, lflags, ...) \
