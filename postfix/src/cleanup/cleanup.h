@@ -114,6 +114,7 @@ typedef struct CLEANUP_STATE {
     VSTRING *milter_err_text;		/* milter call-back reply */
     HBC_CHECKS *milter_hbc_checks;	/* Milter header checks */
     VSTRING *milter_hbc_reply;		/* Milter header checks reply */
+    VSTRING *milter_orcpt_buf;		/* add_rcpt_par() orcpt */
 
     /*
      * Support for Milter body replacement requests.

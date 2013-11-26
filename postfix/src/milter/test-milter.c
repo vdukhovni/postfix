@@ -20,8 +20,8 @@
 /*	Specifies a non-default reply for the MTA command specified
 /*	with \fB-c\fR. The default is \fBtempfail\fR.
 /* .IP "\fB-A address\fR"
-/*	Add the specified recipient address. Multiple -A options
-/*	are supported.
+/*	Add the specified recipient address (specify ESMTP parameters
+/*	separated by space). Multiple -A options are supported.
 /* .IP "\fB-b pathname
 /*	Replace the message body by the content of the specified file.
 /* .IP "\fB-c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort\fR"
@@ -358,10 +358,20 @@ static sfsistat test_eom(SMFICTX *ctx)
 #endif
     {
 	int     count;
+	char *args;
 
-	for (count = 0; count < add_rcpt_count; count++)
-	    if (smfi_addrcpt(ctx, add_rcpt[count]) == MI_FAILURE)
-		fprintf(stderr, "smfi_addrcpt `%s' failed\n", add_rcpt[count]);
+	for (count = 0; count < add_rcpt_count; count++) {
+	    if ((args = strchr(add_rcpt[count], ' ')) != 0) {
+		*args++ = 0;
+		if (smfi_addrcpt_par(ctx, add_rcpt[count], args) == MI_FAILURE)
+		    fprintf(stderr, "smfi_addrcpt_par `%s' `%s' failed\n",
+			    add_rcpt[count], args);
+	    } else {
+		if (smfi_addrcpt(ctx, add_rcpt[count]) == MI_FAILURE)
+		    fprintf(stderr, "smfi_addrcpt `%s' failed\n",
+			    add_rcpt[count]);
+	    }
+	}
 
 	for (count = 0; count < del_rcpt_count; count++)
 	    if (smfi_delrcpt(ctx, del_rcpt[count]) == MI_FAILURE)

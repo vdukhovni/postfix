@@ -19217,10 +19217,24 @@ Apologies for any names omitted.
 	html/Makefile.in, man/Makefile.in, proto/DATABASE_README.html,
 	postconf/postconf.c, proto/socketmap_table, proto/lmdb_table.
 
-20121122
+20131122
 
 	Documentation: missing database hyperlinks, refined text
 	about partial lookup keys. Files: mantools/postlink,
 	proto/DATABASE_README.html, proto/lmdb_table,
 	proto/socketmap_table.
 
+20131123
+
+	Feature: support for NOTIFY parameter in the Milter
+	SMFIR_ADDRCPT_PAR request. Contributed by by Andrew Ayer.
+	Wietse added support for ORCPT.  Files: cleanup/cleanup.h,
+	cleanup/cleanup_milter.c, cleanup/cleanup_state.c,
+	global/xtext.c, global/xtext.h, milter/test-milter.c.
+
+20131124
+
+	Cleanup: remove extra blank line from ccformat output,
+	making it compatible with the script that Wietse actually
+	uses (this line was part of a test to detect file truncation,
+	but it is now obsolete).  File: mantools/ccformat.

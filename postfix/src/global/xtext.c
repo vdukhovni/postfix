@@ -19,6 +19,10 @@
 /*	VSTRING	*xtext_unquote(unquoted, quoted)
 /*	VSTRING	*unquoted;
 /*	const char *quoted;
+/*
+/*	VSTRING	*xtext_unquote_append(unquoted, quoted)
+/*	VSTRING	*unquoted;
+/*	const char *quoted;
 /* DESCRIPTION
 /*	xtext_quote() takes a null-terminated string and replaces characters
 /*	+, <33(10) and >126(10), as well as characters specified with "special"
@@ -31,6 +35,9 @@
 /*	understands lowercase, uppercase, and mixed case +XX sequences. The
 /*	result value is the unquoted argument in case of success, a null pointer
 /*	otherwise.
+/*
+/*	xtext_unquote_append() is like xtext_unquote(), but appends
+/*	the conversion result to the result buffer.
 /* BUGS
 /*	This module cannot process null characters in data.
 /* LICENSE
@@ -90,14 +97,13 @@ VSTRING *xtext_quote(VSTRING *quoted, const char *unquoted, const char *special)
     return (quoted);
 }
 
-/* xtext_unquote - quoted data to unquoted */
+/* xtext_unquote_append - quoted data to unquoted */
 
-VSTRING *xtext_unquote(VSTRING *unquoted, const char *quoted)
+VSTRING *xtext_unquote_append(VSTRING *unquoted, const char *quoted)
 {
     const char *cp;
     int     ch;
 
-    VSTRING_RESET(unquoted);
     for (cp = quoted; (ch = *cp) != 0; cp++) {
 	if (ch == '+') {
 	    if (ISDIGIT(cp[1]))
@@ -121,6 +127,14 @@ VSTRING *xtext_unquote(VSTRING *unquoted, const char *quoted)
 	VSTRING_ADDCH(unquoted, ch);
     }
     VSTRING_TERMINATE(unquoted);
+    return (unquoted);
+}
+/* xtext_unquote - quoted data to unquoted */
+
+VSTRING *xtext_unquote(VSTRING *unquoted, const char *quoted)
+{
+    VSTRING_RESET(unquoted);
+    xtext_unquote_append(unquoted, quoted);
     return (unquoted);
 }
 
