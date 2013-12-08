@@ -798,7 +798,7 @@ static int doproto(STATE *state)
 
 /* connect_sock - connect a socket over some transport */
 
-static VSTREAM *connect_sock(int sock, struct sockaddr * sa, int salen,
+static VSTREAM *connect_sock(int sock, struct sockaddr *sa, int salen,
 		           const char *name, const char *addr, STATE *state)
 {
     DSN_BUF *why = state->why;
@@ -895,7 +895,7 @@ static VSTREAM *connect_unix(STATE *state, const char *path)
     if (msg_verbose)
 	msg_info("%s: trying: %s...", myname, path);
 
-    return (connect_sock(sock, (struct sockaddr *) & sock_un, sizeof(sock_un),
+    return (connect_sock(sock, (struct sockaddr *) &sock_un, sizeof(sock_un),
 			 var_myhostname, path, state));
 }
 
@@ -906,7 +906,7 @@ static VSTREAM *connect_addr(STATE *state, DNS_RR *addr)
     static const char *myname = "connect_addr";
     DSN_BUF *why = state->why;
     struct sockaddr_storage ss;		/* remote */
-    struct sockaddr *sa = (struct sockaddr *) & ss;
+    struct sockaddr *sa = (struct sockaddr *) &ss;
     SOCKADDR_SIZE salen = sizeof(ss);
     MAI_HOSTADDR_STR hostaddr;
     int     sock;
@@ -1392,7 +1392,7 @@ static int finger(STATE *state)
     state->why = dsb_create();
 
     if (!(err = connect_dest(state))) {
-	if (state->pass == 1)
+	if (state->pass == 1 && !state->nochat)
 	    msg_info("Connected to %s", state->namaddrport);
 	err = doproto(state);
     }
@@ -1745,10 +1745,10 @@ static void parse_match(STATE *state, int argc, char *argv[])
 	    argv_add(state->match, "hostname", ARGV_END);
 	break;
     case TLS_LEV_FPRINT:
-	state->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
+	state->dane = tls_dane_alloc();
 	while (*argv)
-	    tls_dane_split((TLS_DANE *) state->dane, TLS_DANE_EE, TLS_DANE_PKEY,
-			   state->mdalg, *argv++, "");
+	    tls_dane_add_ee_digests((TLS_DANE *) state->dane,
+				    state->mdalg, *argv++, "");
 	break;
     case TLS_LEV_DANE:
 	state->match = argv_alloc(2);
@@ -1773,7 +1773,7 @@ static void parse_tas(STATE *state)
 	return;
     case TLS_LEV_SECURE:
     case TLS_LEV_VERIFY:
-	state->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
+	state->dane = tls_dane_alloc();
 	for (file = state->options.tas->argv; *file; ++file) {
 	    if (!tls_dane_load_trustfile((TLS_DANE *) state->dane, *file))
 		break;

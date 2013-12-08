@@ -56,10 +56,12 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        The Postfix LMDB adapter implements locking with  fcntl(2)
        locks  at  whole-file  granularity.  LMDB's native locking
        scheme would require world-writable  lockfiles  and  would
-       therefore violate the Postfix security model.  Unlike some
-       other Postfix  flat-file  databases,  LMDB  databases  can
-       safely be updated without serializing requests through the
-       <a href="proxymap.8.html">proxymap(8)</a> service.
+       therefore violate the Postfix security model.
+
+       Multiple  processes  can  safely  update  an LMDB database
+       without serializing requests through the <a href="proxymap.8.html">proxymap(8)</a>  ser-
+       vice.  This makes LMDB suitable as a shared cache for <a href="verify.8.html">ver-</a>
+       <a href="verify.8.html">ify(8)</a> or <a href="postscreen.8.html">postscreen(8)</a> services.
 
 <b>CONFIGURATION PARAMETERS</b>
        Short-lived programs  automatically  pick  up  changes  to

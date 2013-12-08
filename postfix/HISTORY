@@ -19303,3 +19303,16 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20090106): the postconf '-#' option
 	erased prior options. File: postconf/postconf.c.
+
+20131129
+
+	Bugfix: Makefile example in MULTI_INSTANCE_README. Viktor
+	Dukhovni. File: proto/MULTI_INSTANCE_README.html.
+
+20131130
+
+	Cleanup: simplify fingerprint security level implementation
+	in new DANE code.  Viktor Dukhovni.  Files: src/tls/tls.h
+	src/smtp/smtp_tls_policy.c src/tls/tls_dane.c
+	src/posttls-finger/posttls-finger.c.
+

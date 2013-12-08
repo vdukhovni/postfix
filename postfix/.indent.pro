@@ -155,6 +155,7 @@
 -TLMTP_STATE
 -TLOCAL_EXP
 -TLOCAL_STATE
+-TLONG_NAME_MASK
 -TMAC_EXP
 -TMAC_HEAD
 -TMAC_PARSE
@@ -372,6 +373,7 @@
 -Tsfsistat
 -Tsigset_t
 -Tsize_t
+-Tsockaddr
 -Tssize_t
 -Tssl_cipher_stack_t
 -Tssl_comp_stack_t

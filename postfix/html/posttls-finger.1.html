@@ -12,14 +12,14 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
 
 <b>SYNOPSIS</b>
        <b>posttls-finger</b> [<i>options</i>] [<b>inet:</b>]<i>domain</i>[:<i>port</i>] [<i>match ...</i>]
-       <b>posttls-finger</b> -S [<i>options</i>] <b>unix:</b><i>pathname</i> [<i>match ...</i>]
+       <b>posttls-finger</b> -S [<i>options</i>] <b><a href="DATABASE_README.html#types">unix</a>:</b><i>pathname</i> [<i>match ...</i>]
 
 <b>DESCRIPTION</b>
        <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a> connects to  the  specified  destination
        and reports TLS-related information about the server. With
        SMTP, the destination is a domainname;  with  LMTP  it  is
        either a domainname prefixed with <b>inet:</b> or a pathname pre-
-       fixed with <b>unix:</b>.  If Postfix is built  without  TLS  sup-
+       fixed with <b><a href="DATABASE_README.html#types">unix</a>:</b>.  If Postfix is built  without  TLS  sup-
        port,  the  resulting posttls-finger program has very lim-
        ited functionality, and only the <b>-a</b>, <b>-c</b>, <b>-h</b>, <b>-o</b>,  <b>-S</b>,  <b>-t</b>,
        <b>-T</b> and <b>-v</b> options are available.
@@ -83,7 +83,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        taken from the <b>smtp/tcp</b> entry in /etc/services, defaulting
        to 25 if the entry is not found.
 
-       With  LMTP,  specify  <b>unix:</b><i>pathname</i>  to connect to a local
+       With  LMTP,  specify  <b><a href="DATABASE_README.html#types">unix</a>:</b><i>pathname</i>  to connect to a local
        server listening on a  unix-domain  socket  bound  to  the
        specified  pathname;  otherwise, specify an optional <b>inet:</b>
        prefix followed by a <i>domain</i> and an optional port, with the
@@ -314,7 +314,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               validation  information  is  available  via  <b>native</b>
               lookups).
 
-       <b>unix:</b><i>pathname</i>
+       <b><a href="DATABASE_README.html#types">unix</a>:</b><i>pathname</i>
               Connect to the UNIX-domain socket at <i>pathname</i>. LMTP
               only.
 

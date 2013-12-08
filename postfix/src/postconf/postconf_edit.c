@@ -2,7 +2,7 @@
 /* NAME
 /*	postconf_edit 3
 /* SUMMARY
-/*	edit main.cf
+/*	edit main.cf or master.cf
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
@@ -25,19 +25,27 @@
 /*
 /*	edit_master() edits the \fBmaster.cf\fR configuration file.
 /*	The file is copied to a temporary file then renamed into
-/*	place. Depending on the value of \fBmode\fR:
+/*	place. Depending on the flags in \fBmode\fR:
 /* .IP MASTER_ENTRY
-/*	edit_master() replaces or adds entire master.cf entries,
-/*	specified on the command line as "\fIname/type = name type
-/*	private unprivileged chroot wakeup process_limit command...\fR".
-/* ,IP MASTER_FIELD
-/*	edit_master() replaces the value of specific service
-/*	attributes, specified on the command line as
+/*	With EDIT_CONF, edit_master() replaces or adds entire
+/*	master.cf entries, specified on the command line as
+/*	"\fIname/type = name type private unprivileged chroot wakeup
+/*	process_limit command...\fR".
+/*
+/*	With EDIT_EXCL or COMMENT_OUT, edit_master() removes or
+/*	comments out entries specified on the command line as
+/*	"\fIname/type\fR.
+/* .IP MASTER_FIELD
+/*	With EDIT_CONF, edit_master() replaces the value of specific
+/*	service attributes, specified on the command line as
 /*	"\fIname/type/attribute = value\fR".
 /* .IP MASTER_PARAM
-/*	edit_master() replaces the value of specific service
-/*	parameters, specified on the command line as
+/*	With EDIT_CONF, edit_master() replaces or adds the value
+/*	of service parameters, specified on the command line as
 /*	"\fIname/type/parameter = value\fR".
+/*
+/*	With EDIT_EXCL, edit_master() removes service parameters
+/*	specified on the command line as "\fIparametername\fR".
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* FILES
@@ -346,7 +354,7 @@ void    edit_master(int mode, int argc, char **argv)
 #define PC_MASTER_MASK (MASTER_ENTRY | MASTER_FIELD | MASTER_PARAM)
 
 	/*
-	 * Split name/type or name/type/field pattern into components.
+	 * Split name/type or name/type/whatever pattern into components.
 	 */
 	switch (mode & PC_MASTER_MASK) {
 	case MASTER_ENTRY:

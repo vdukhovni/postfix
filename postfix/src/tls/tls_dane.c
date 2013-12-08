@@ -13,16 +13,13 @@
 /*	void	tls_dane_verbose(on)
 /*	int	on;
 /*
-/*	TLS_DANE *tls_dane_alloc(flags)
-/*	int     flags;
+/*	TLS_DANE *tls_dane_alloc()
 /*
 /*	void	tls_dane_free(dane)
 /*	TLS_DANE *dane;
 /*
-/*	void	tls_dane_split(dane, certusage, selector, mdalg, digest, delim)
+/*	void	tls_dane_add_ee_digests(dane, mdalg, digest, delim)
 /*	TLS_DANE *dane;
-/*	int	certusage;
-/*	int	selector;
 /*	const char *mdalg;
 /*	const char *digest;
 /*	const char *delim;
@@ -65,17 +62,15 @@
 /*	tls_dane_verbose() turns on verbose logging of TLSA record lookups.
 /*
 /*	tls_dane_alloc() returns a pointer to a newly allocated TLS_DANE
-/*	structure with null ta and ee digest sublists.  If "flags" includes
-/*	TLS_DANE_FLAG_MIXED, the cert and pkey digests are stored together on
-/*	the pkeys list with the certs list empty, otherwise they are stored
-/*	separately.
+/*	structure with null ta and ee digest sublists.
 /*
 /*	tls_dane_free() frees the structure allocated by tls_dane_alloc().
 /*
-/*	tls_dane_split() splits "digest" using the characters in "delim" as
-/*	delimiters and stores the results with the requested "certusage"
-/*	and "selector".  This is an incremental interface, that builds a
-/*	TLS_DANE structure outside the cache by manually adding entries.
+/*	tls_dane_add_ee_digests() splits "digest" using the characters in
+/*	"delim" as delimiters and stores the results on the EE match list
+/*	to match either a certificate or a public key.  This is an incremental
+/*	interface, that builds a TLS_DANE structure outside the cache by
+/*	manually adding entries.
 /*
 /*	tls_dane_load_trustfile() imports trust-anchor certificates and
 /*	public keys from a file (rather than DNS TLSA records).
@@ -128,8 +123,6 @@
 /*	When true, TLSA lookups are performed even when the qname and rname
 /*	are insecure.  This is only useful in the unlikely case that DLV is
 /*	used to secure the TLSA RRset in an otherwise insecure zone.
-/* .IP flags
-/*	Only one flag is part of the public interface at this time:
 /* .IP TLScontext
 /*	Client context with TA/EE matching data and related state.
 /* .IP usage
@@ -141,17 +134,6 @@
 /* .IP ssl_ctx
 /*	The global SSL_CTX structure used to initialize child SSL
 /*	conenctions.
-/* .RS
-/* .IP TLS_DANE_FLAG_MIXED
-/*	Don't distinguish between certificate and public-key digests.
-/*	A single digest list for both certificates and keys with be
-/*	stored for each algorithm in the "pkeys" field, the "certs"
-/*	field will be null.
-/* .RE
-/* .IP certusage
-/*	Trust anchor (TLS_DANE_TA) or end-entity (TLS_DANE_EE) digests?
-/* .IP selector
-/*	Full certificate (TLS_DANE_CERT) or pubkey (TLS_DANE_PKEY) digests?
 /* .IP mdalg
 /*	Name of a message digest algorithm suitable for computing secure
 /*	(1st pre-image resistant) message digests of certificates. For now,
@@ -527,7 +509,7 @@ void    tls_dane_flush(void)
 
 /* tls_dane_alloc - allocate a TLS_DANE structure */
 
-TLS_DANE *tls_dane_alloc(int flags)
+TLS_DANE *tls_dane_alloc(void)
 {
     TLS_DANE *dane = (TLS_DANE *) mymalloc(sizeof(*dane));
 
@@ -536,7 +518,7 @@ TLS_DANE *tls_dane_alloc(int flags)
     dane->certs = 0;
     dane->pkeys = 0;
     dane->base_domain = 0;
-    dane->flags = flags;
+    dane->flags = 0;
     dane->expires = 0;
     dane->refs = 1;
     return (dane);
@@ -663,36 +645,49 @@ static TLS_TLSA **dane_locate(TLS_TLSA **tlsap, const char *mdalg)
     return (tlsap);
 }
 
-/* tls_dane_split - split and append digests */
+/* tls_dane_add_ee_digests - split and append digests */
 
-void    tls_dane_split(TLS_DANE *dane, int certusage, int selector,
-	           const char *mdalg, const char *digest, const char *delim)
+void    tls_dane_add_ee_digests(TLS_DANE *dane, const char *mdalg,
+			              const char *digest, const char *delim)
 {
-    TLS_TLSA **tlsap;
-    TLS_TLSA *tlsa;
-    ARGV  **argvp;
-
-    tlsap = (certusage == TLS_DANE_EE) ? &dane->ee : &dane->ta;
-    tlsa = *(tlsap = dane_locate(tlsap, mdalg));
-    argvp = ((dane->flags & TLS_DANE_FLAG_MIXED) || selector == TLS_DANE_PKEY) ?
-	&tlsa->pkeys : &tlsa->certs;
+    TLS_TLSA **tlsap = dane_locate(&dane->ee, mdalg);
+    TLS_TLSA *tlsa = *tlsap;
 
     /* Delimited append, may append nothing */
-    if (*argvp == 0)
-	*argvp = argv_split(digest, delim);
+    if (tlsa->pkeys == 0)
+	tlsa->pkeys = argv_split(digest, delim);
     else
-	argv_split_append(*argvp, digest, delim);
+	argv_split_append(tlsa->pkeys, digest, delim);
 
-    if ((*argvp)->argc == 0) {
-	argv_free(*argvp);
-	*argvp = 0;
+    /* Remove empty elements from the list */
+    if (tlsa->pkeys->argc == 0) {
+	argv_free(tlsa->pkeys);
+	tlsa->pkeys = 0;
 
-	/* Remove empty elements from the list */
-	if (tlsa->pkeys == 0 && tlsa->certs == 0) {
+	if (tlsa->certs == 0) {
 	    *tlsap = tlsa->next;
 	    tlsa_free(tlsa);
 	}
+	return;
     }
+
+    /*
+     * At the "fingerprint" security level certificate digests and public key
+     * digests are interchangeable.  Each leaf certificate is matched via
+     * either the public key digest or full certificate digest.  The DER
+     * encoding of a certificate is not a valid public key, and conversely,
+     * the DER encoding of a public key is not a valid certificate.  An
+     * attacker would need a 2nd-preimage that is feasible across types
+     * (given cert digest == some pkey digest) and yet presumably difficult
+     * within a type (e.g. given cert digest == some other cert digest).  No
+     * such attacks are known at this time, and it is expected that if any
+     * are found they would work within as well as across the cert/pkey data
+     * types.
+     */
+    if (tlsa->certs == 0)
+	tlsa->certs = argv_split(digest, delim);
+    else
+	argv_split_append(tlsa->certs, digest, delim);
 }
 
 /* dane_add - add a digest entry */
@@ -729,8 +724,7 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
 
     tlsap = (certusage == TLS_DANE_EE) ? &dane->ee : &dane->ta;
     tlsa = *(tlsap = dane_locate(tlsap, mdalg));
-    argvp = ((dane->flags & TLS_DANE_FLAG_MIXED) || selector == TLS_DANE_PKEY) ?
-	&tlsa->pkeys : &tlsa->certs;
+    argvp = (selector == TLS_DANE_PKEY) ? &tlsa->pkeys : &tlsa->certs;
 
     if (*argvp == 0)
 	*argvp = argv_alloc(1);
@@ -877,7 +871,7 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 		if (ctx->target && ctx->target != ctx->count)
 		    ctx->flags &= ~FILTER_CTX_AGILITY_OK;
 		else
-		    ctx->target = (change & ~0xff) ? 0 : ctx->count;
+		    ctx->target = (change & 0xffff00) ? 0 : ctx->count;
 		ctx->count = 0;
 	    }
 	}
@@ -969,8 +963,8 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 	    k = X509_get_pubkey(x);
 	    EVP_PKEY_free(k);
 	    if (k == 0) {
-		msg_warn("%s public key malformed in RR: "
-			 "%s%s%s IN TLSA %u %u %u ...", "certificate",
+		msg_warn("malformed %s in RR: %s%s%s IN TLSA %u %u %u ...",
+			 "or unsupported certificate public key",
 			 q, a, r, usage, selector, mtype);
 		X509_free(x);
 		return (FILTER_RR_DROP);
@@ -989,14 +983,18 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 
 	case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
 	    if (!d2i_PUBKEY(&k, &p, dlen) || dlen != p - data) {
-		msg_warn("malformed %s in RR: "
-			 "%s%s%s IN TLSA %u %u %u ...", "public key",
-			 q, a, r, usage, selector, mtype);
+		msg_warn("malformed %s in RR: %s%s%s IN TLSA %u %u %u ...",
+			 "public key", q, a, r, usage, selector, mtype);
 		if (k)
 		    EVP_PKEY_free(k);
 		return (FILTER_RR_DROP);
 	    }
-	    /* See full cert case above */
+
+	    /*
+	     * When a full trust-anchor public key is published via DNS, we
+	     * may need to use it to validate the server trust chain. Store
+	     * it away for later use.
+	     */
 	    if (usage == DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION
 		&& (ctx->flags & FILTER_CTX_PARSE_DATA))
 		ta_pkey_insert(ctx->dane, k);
@@ -1073,7 +1071,7 @@ static void *dane_lookup(const char *tlsa_fqdn, void *unused_ctx)
     if (why == 0)
 	why = vstring_alloc(10);
 
-    dane = tls_dane_alloc(0);
+    dane = tls_dane_alloc();
     ret = dns_lookup(tlsa_fqdn, T_TLSA, RES_USE_DNSSEC, &rrs, 0, why);
 
     switch (ret) {
@@ -1163,7 +1161,7 @@ TLS_DANE *tls_dane_resolve(unsigned port, const char *proto, DNS_RR *hostrr,
      */
     iscname = strcasecmp(hostrr->rname, hostrr->qname);
     if (!forcetlsa && !hostrr->dnssec_valid && !iscname) {
-	dane = tls_dane_alloc(0);
+	dane = tls_dane_alloc();
 	dane->flags = TLS_DANE_FLAG_NORRS;
     } else {
 
@@ -1301,12 +1299,10 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
     TLS_TLSA *tlsa = (usage == TLS_DANE_EE) ? dane->ee : dane->ta;
     const char *namaddr = TLScontext->namaddr;
     const char *ustr = (usage == TLS_DANE_EE) ? "end entity" : "trust anchor";
-    int     mixed = (dane->flags & TLS_DANE_FLAG_MIXED);
     int     matched;
 
     for (matched = 0; tlsa && !matched; tlsa = tlsa->next) {
 	char  **dgst;
-	ARGV   *certs;
 
 	/*
 	 * Note, set_trust() needs to know whether the match was for a pkey
@@ -1328,26 +1324,10 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
 			 namaddr, depth, ustr, tlsa->mdalg, pkey_dgst);
 	    myfree(pkey_dgst);
 	}
-
-	/*
-	 * Backwards compatible "fingerprint" security level interface:
-	 * 
-	 * Certificate digests and public key digests are interchangeable, each
-	 * leaf certificate is matched via either the public key digest or
-	 * full certificate digest when "mixed" is true.  The combined set of
-	 * digests is stored on the pkeys digest list and the certs list is
-	 * empty.  An attacker would need a 2nd-preimage (not just a
-	 * collision) that is feasible across types (given cert digest ==
-	 * some key digest) while difficult within a type (e.g. given cert
-	 * some other cert digest).  No such attacks are know at this time,
-	 * and it is expected that if any are found they would work within as
-	 * well as across the cert/key data types.
-	 */
-	certs = mixed ? tlsa->pkeys : tlsa->certs;
-	if (certs != 0 && !matched) {
+	if (tlsa->certs != 0 && !matched) {
 	    char   *cert_dgst = tls_cert_fprint(cert, tlsa->mdalg);
 
-	    for (dgst = certs->argv; !matched && *dgst; ++dgst)
+	    for (dgst = tlsa->certs->argv; !matched && *dgst; ++dgst)
 		if (strcasecmp(cert_dgst, *dgst) == 0)
 		    matched = MATCHED_CERT;
 	    if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH)

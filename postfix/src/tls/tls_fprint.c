@@ -223,9 +223,6 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
      * we must include the SNI name in the session id.
      */
     if (props->dane) {
-	int     mixed = (props->dane->flags & TLS_DANE_FLAG_MIXED);
-
-	digest_object(&mixed);
 	digest_dane(props->dane, ta);
 #if 0
 	digest_dane(props->dane, ee);		/* See above */

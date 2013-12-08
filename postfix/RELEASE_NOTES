@@ -74,7 +74,7 @@ all Postfix daemons, use this:
     $ postconf -F '*/*/chroot=n'
 
 For a second example, let's look at the submission service.  This
-service typically has multple "-o parameter=value" overrides. First
+service typically has multiple "-o parameter=value" overrides. First
 the traditional view:
 
     $ postconf -Mf submission
