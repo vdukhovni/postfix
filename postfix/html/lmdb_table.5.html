@@ -34,16 +34,16 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        When  a  transaction fails due to a full database, Postfix
        resizes the database and retries the transaction.
 
-       Postfix access, address mapping and  routing  tables  will
-       generate  partial search keys such as domain names without
-       one or more subdomains, network addresses without  one  or
-       more  least-significant octets, or email addresses without
-       the localpart, address extension or domain portion.   This
-       behavior  is  also  found  with  <a href="DATABASE_README.html#types">btree</a>:,  <a href="DATABASE_README.html#types">hash</a>:,  or <a href="ldap_table.5.html">ldap</a>:
-       tables.
+       Postfix access, address mapping and routing table  lookups
+       may  generate  partial  search  keys  such as domain names
+       without one or more subdomains, network addresses  without
+       one  or  more least-significant octets, or email addresses
+       without the localpart, address extension  or  domain  por-
+       tion.   This behavior is also found with <a href="DATABASE_README.html#types">btree</a>:, <a href="DATABASE_README.html#types">hash</a>:, or
+       <a href="ldap_table.5.html">ldap</a>: tables.
 
        Unlike other flat-file based Postfix databases, changes to
-       an  LMDB  database do not require automatic daemon program
+       an  LMDB  database do not trigger automatic daemon program
        restart.
 
 <b>RELIABILITY</b>

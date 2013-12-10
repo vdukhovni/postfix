@@ -11479,19 +11479,46 @@ whitespace, commas or colons. In the policy table "protocols" attribute
 empty value means allow all protocols. The valid protocol names, (see
 <b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3" and "TLSv1". </p>
 
-<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". If an older Postfix version is linked against OpenSSL
-1.0.1 or later, these, or any other new protocol versions, are
-unconditionally enabled. </p>
-
-<p> With Postfix &ge; 2.5 the parameter syntax is expanded to support
-protocol exclusions. One can now explicitly exclude SSLv2 by setting
-"<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2". To exclude both SSLv2 and
-SSLv3 set "<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !SSLv3". Listing
+<p> With Postfix &ge; 2.5 the parameter syntax was expanded to support
+protocol exclusions. One can explicitly exclude "SSLv2" by setting
+"<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2". To exclude both "SSLv2" and
+"SSLv3" set "<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !SSLv3". Listing
 the protocols to include, rather than protocols to exclude, is
 supported, but not recommended. The exclusion form more closely
-matches the behavior when the OpenSSL library is newer than Postfix.
+matches the underlying OpenSSL interface semantics.
 </p>
+
+<p> The range of protocols advertised by an SSL/TLS client must be
+contiguous.  When a protocol version is enabled, disabling any
+higher version implicitly disables all versions above that higher
+version.  Thus, for example: </p>
+<blockquote>
+<pre>
+<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !TLSv1
+</pre>
+</blockquote>
+<p> also disables any protocols version higher than TLSv1 leaving
+only "SSLv3" enabled.  </p>
+
+<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
+and "TLSv1.2". When Postfix &le; 2.5 is linked against OpenSSL 1.0.1
+or later, these, or any other new protocol versions, cannot be
+disabled except by also disabling "TLSv1" (typically leaving just
+"SSLv3").  The latest patch levels of Postfix &ge; 2.6, and all
+versions of Postfix &ge; 2.10 can explicitly disable support for
+"TLSv1.1" or "TLSv1.2". </p>
+
+<p> At the <a href="TLS_README.html#client_tls_dane">dane</a> and
+<a href="TLS_README.html#client_tls_dane">dane-only</a> security
+levels, when usable TLSA records are obtained for the remote SMTP
+server, the Postfix SMTP client is obligated to include the SNI TLS
+extension in its SSL client hello message.  This may help the remote
+SMTP server live up to its promise to provide a certificate that
+matches its TLSA records.  Since TLS extensions require TLS 1.0 or
+later, the Postfix SMTP client must disable "SSLv2" and "SSLv3" when
+SNI is required.  If you use "dane" or "dane-only" do not disable
+TLSv1, except perhaps via the policy table for destinations which
+you are sure will support "TLSv1.1" or "TLSv1.2".  </p>
 
 <p> Since SSL version 2 has known protocol weaknesses and is now
 deprecated, the default setting excludes "SSLv2".  This means that by
@@ -11504,9 +11531,9 @@ and higher. </p>
 <p> Example: </p>
 
 <pre>
-# Preferred form with Postfix &ge; 2.5:
+# Preferred syntax with Postfix &ge; 2.5:
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !SSLv3
-# Legacy form with Postfix &lt; 2.5:
+# Legacy syntax:
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = TLSv1
 </pre>
 
@@ -11789,18 +11816,30 @@ separator is colon. An empty value means allow all protocols. The valid
 protocol names, (see <b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3"
 and "TLSv1". </p>
 
+<p> The range of protocols advertised by an SSL/TLS client must be
+contiguous.  When a protocol version is enabled, disabling any
+higher version implicitly disables all versions above that higher
+version.  Thus, for example: </p>
+<blockquote>
+<pre>
+<a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2, !TLSv1
+</pre>
+</blockquote>
+<p> also disables any protocols version higher than TLSv1 leaving
+only "SSLv3" enabled.  </p>
+
 <p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". If an older Postfix version is linked against OpenSSL
-1.0.1 or later, these, or any other new protocol versions, are
-unconditionally enabled. </p>
+and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
+versions of Postfix &ge; 2.10 can explicitly disable support for
+"TLSv1.1" or "TLSv1.2"</p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
 with a "!" character. To exclude SSLv2 even for opportunistic TLS set
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2, !SSLv3". Explicitly listing the protocols to
 include, rather than protocols to exclude, is supported, but not
-recommended.  The exclusion form more closely matches the behavior
-when the OpenSSL library is newer than Postfix.  </p>
+recommended.  The exclusion form more closely matches the underlying
+OpenSSL interface semantics. </p>
 
 <p> Example: </p>
 <pre>
@@ -15600,19 +15639,20 @@ list of protocol names separated by whitespace, commas or colons.
 The supported protocol names are "SSLv2", "SSLv3" and "TLSv1", and
 are not case sensitive. </p>
 
-<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". If an older Postfix version is linked against OpenSSL
-1.0.1 or later, these, or any other new protocol versions, are
-unconditionally enabled. </p>
-
-<p> With Postfix &ge; 2.5 the parameter syntax is expanded to support
-protocol exclusions. One can now explicitly exclude SSLv2 by setting
-"<a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2". To exclude both SSLv2 and
-SSLv3 set "<a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2, !SSLv3". Listing
+<p> With Postfix &ge; 2.5 the parameter syntax was expanded to support
+protocol exclusions. One can explicitly exclude "SSLv2" by setting
+"<a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2". To exclude both "SSLv2" and
+"SSLv3" set "<a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2, !SSLv3". Listing
 the protocols to include, rather than protocols to exclude, is
 supported, but not recommended. The exclusion form more closely
-matches the behavior when the OpenSSL library is newer than Postfix.
-</p>
+matches the underlying OpenSSL interface semantics.  </p>
+
+<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
+and "TLSv1.2". When Postfix &le; 2.5 is linked against OpenSSL 1.0.1
+or later, these, or any other new protocol versions, cannot be
+disabled.  The latest patch levels of Postfix &ge; 2.6, and all
+versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
+"TLSv1.2". </p>
 
 <p> Since SSL version 2 has known protocol weaknesses and is now
 deprecated, the default setting excludes "SSLv2".  This means that
@@ -15622,8 +15662,9 @@ level. </p>
 <p> Example: </p>
 
 <pre>
+# Preferred syntax with Postfix &ge; 2.5:
 <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2, !SSLv3
-# Legacy form with Postfix &lt; 2.5:
+# Legacy syntax:
 <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = TLSv1
 </pre>
 
@@ -15636,28 +15677,25 @@ level. </p>
 (default: empty)</b></DT><DD>
 
 <p> List of TLS protocols that the Postfix SMTP server will exclude
-or include with opportunistic TLS encryption. This parameter SHOULD be
-left at its default empty value, allowing all protocols to be used with
-opportunistic TLS. </p>
-
-<p> In <a href="postconf.5.html">main.cf</a> the values are separated by whitespace, commas or
-colons. An empty value means allow all protocols. The valid protocol
-names, (see <b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3" and
-"TLSv1". In <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> table entries, "protocols" attribute
-values are separated by a colon. </p>
+or include with opportunistic TLS encryption. This parameter SHOULD
+be left at its default empty value, allowing all protocols to be
+used with opportunistic TLS.  A non-empty value is a list of protocol
+names separated by whitespace, commas or colons.  The supported
+protocol names are "SSLv2", "SSLv3" and "TLSv1", and are not case
+sensitive. </p>
 
 <p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". If an older Postfix version is linked against OpenSSL
-1.0.1 or later, these, or any other new protocol versions, are
-unconditionally enabled. </p>
+and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
+versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
+"TLSv1.2". </p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
 with a "!" character. To exclude SSLv2 even for opportunistic TLS set
 "<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
 "<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2, !SSLv3". Explicitly listing the protocols to
 include, rather than protocols to exclude, is supported, but not
-recommended.  The exclusion form more closely matches the behavior
-when the OpenSSL library is newer than Postfix.  </p>
+recommended.  The exclusion form more closely matches the underlying
+OpenSSL interface semantics. </p>
 
 <p> Example: </p>
 <pre>
@@ -16215,8 +16253,8 @@ is not recommended.  </dd>
 <dd> From each group of well-formed TLSA RRs a non-zero digest
 matching type with the same certificate usage and selector, DANE
 verification examines only those records whose matching type has
-the highest precedence (appear earliest in $<a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a>) are
-considered.  </dd>
+the highest precedence (appear earliest in $<a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a>).
+</dd>
 
 <dt><b>maybe</b></dt>
 <dd> For compatibility with digest algorithm agility, each certificate

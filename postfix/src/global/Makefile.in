@@ -312,6 +312,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
 	mail_version_test server_acl_test resolve_local_test maps_test
+	safe_ultostr_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -515,6 +516,11 @@ mail_conf_time_test: mail_conf_time mail_conf_time.ref
 	./mail_conf_time >mail_conf_time.tmp
 	diff mail_conf_time.ref mail_conf_time.tmp
 	rm -f mail_conf_time.tmp
+
+safe_ultostr_test: safe_ultostr safe_ultostr.in safe_ultostr.ref
+	./safe_ultostr <safe_ultostr.in >safe_ultostr.tmp 2>&1
+	diff safe_ultostr.ref safe_ultostr.tmp
+	rm -f safe_ultostr.tmp
 
 header_body_checks_null_test: header_body_checks header_body_checks_null.ref
 	./header_body_checks "" "" "" "" \

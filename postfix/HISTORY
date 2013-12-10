@@ -19316,3 +19316,21 @@ Apologies for any names omitted.
 	src/smtp/smtp_tls_policy.c src/tls/tls_dane.c
 	src/posttls-finger/posttls-finger.c.
 
+20131209
+
+	Cleanup: safe_strtoul() did not report an error for empty
+	or all-space input (the code to report this was in the wrong
+	place). This was not a problem as long as safe_strtoul()
+	was used only for output from safe_ultostr().  Files:
+	global/safe_ultostr.c, global/safe_ultostr.in,
+	global/safe_ultostr.ref.
+
+20131210
+
+	Documentation: updated description of SSL protocol controls.
+	In particular, emabled protocols are psrt of a contiguous
+	range. Viktor Dukhovni.  Files: proto/TLS_README.html,
+	proto/postconf.proto.
+
+	Bugfix (DANE support): handle OpenSSL memory allocation
+	error. Viktor Dukhovni.  File: tls/tls_dane.c.

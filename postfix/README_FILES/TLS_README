@@ -412,7 +412,7 @@ from scratch.
 
 Since Postfix uses multiple smtpd(8) service processes, an in-memory cache is
 not sufficient for session re-use. Clients store at most one cached session per
-server and are very unlikey to repeatedly connect to the same server process.
+server and are very unlikely to repeatedly connect to the same server process.
 Thus session caching in the Postfix SMTP server generally requires a shared
 cache (an alternative available with Postfix >= 2.11 is described below).
 
@@ -617,9 +617,9 @@ ciphers:
         smtpd_tls_mandatory_ciphers = high
         smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5
         smtpd_tls_security_level = encrypt
-        # Postfix >= 2.5:
+        # Preferred syntax with Postfix >= 2.5:
         smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
-        # Legacy form with Postfix prior to 2.5:
+        # Legacy syntax:
         smtpd_tls_mandatory_protocols = TLSv1
 
 If you want to take advantage of ciphers with ephemeral Diffie-Hellman (EDH)
@@ -931,7 +931,7 @@ not look for TLSA records associated with MX hosts whose "A" or "AAAA" records
 lie in an "insecure" DNS zone. Such lookups have been observed to cause
 interoperability issues with poorly implemented DNS servers, and are in any
 case not expected to ever yield "secure" results, since that would require a
-very unlikey DLV DNS trust anchor configured between the host record and the
+very unlikely DLV DNS trust anchor configured between the host record and the
 associated "_25._tcp" child TLSA record.
 
 The "dane-only" level is a form of secure-channel TLS based on the DANE PKI. If

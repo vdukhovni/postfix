@@ -305,7 +305,7 @@ static dane_digest *add_digest(char *mdalg, int pref)
 	/*
 	 * XXX: safe_strtoul() does not flag empty or white-space only input.
 	 * Since we get idbuf by splitting white-space/comma delimited
-	 * tokens, this is not a problem here.
+	 * tokens, this is not a problem here. Fixed as of 210131209.
 	 */
 	l = safe_strtoul(value, &endcp, 10);
 	if ((l == 0 && (errno == EINVAL || endcp == value))
@@ -758,6 +758,10 @@ static DNS_RR *tlsa_apply(DNS_RR *rr, tlsa_filter filter, filter_ctx *ctx)
     DNS_RR *tail = 0;			/* Last retained RR */
     DNS_RR *next;
 
+    /*
+     * XXX Code that modifies or destroys DNS_RR lists or entries belongs in
+     * the DNS library, not here.
+     */
     for ( /* nop */ ; rr; rr = next) {
 	next = rr->next;
 
@@ -1352,6 +1356,8 @@ static int add_ext(X509 *issuer, X509 *subject, int ext_nid, char *ext_val)
     X509V3_set_ctx(&v3ctx, issuer, subject, 0, 0, 0);
     if ((exts = subject->cert_info->extensions) == 0)
 	exts = subject->cert_info->extensions = sk_X509_EXTENSION_new_null();
+    if (!exts)
+	return (0);
 
     if ((ext = X509V3_EXT_conf_nid(0, &v3ctx, ext_nid, ext_val)) != 0
 	&& sk_X509_EXTENSION_push(exts, ext))
