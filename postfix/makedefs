@@ -201,7 +201,7 @@ case "$SYSTEM.$RELEASE" in
 		;;
     SunOS.5*)	SYSTYPE=SUNOS5
 		RANLIB=echo
-		SYSLIBS="-lresolv -lsocket -lnsl"
+		SYSLIBS="-lresolv -lsocket -lnsl -ldl"
 		# Stock awk breaks with >10 files.
 		test -x /usr/xpg4/bin/awk && AWK=/usr/xpg4/bin/awk
 		# Solaris 2.5 added usleep(), POSIX regexp, POSIX getpwnam/uid_r

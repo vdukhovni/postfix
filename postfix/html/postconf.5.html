@@ -8558,23 +8558,27 @@ Example:
 (default: empty)</b></DT><DD>
 
 <p> The set of characters that can separate a user name from its
-address extension (user+foo).  See <a href="canonical.5.html">canonical(5)</a>, <a href="local.8.html">local(8)</a>, <a href="relocated.5.html">relocated(5)</a>
-and <a href="virtual.5.html">virtual(5)</a> for the effects this has on aliases, canonical,
-virtual, and relocated lookups.  Basically, the software tries
-user+foo and .forward+foo before trying user and .forward.  </p>
-
-<p> This implementation recognizes one delimiter character per email
-address, and one address extension per email address.  </p>
+extension (example: user+foo), or a .forward file name from its
+extension (example: .forward+foo).  Basically, the software tries
+user+foo and .forward+foo before trying user and .forward.  This
+implementation recognizes one delimiter character and one extension
+per email address or .forward file name. </p>
 
 <p> When the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set contains multiple characters
-(Postfix 2.11 and later), a user name is separated from its address
-extension by the first character that matches the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>
-set. </p>
+(Postfix 2.11 and later), a user name or .forward file name is
+separated from its extension by the first character that matches
+the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set. </p>
+
+<p> See <a href="canonical.5.html">canonical(5)</a>, <a href="local.8.html">local(8)</a>, <a href="relocated.5.html">relocated(5)</a> and <a href="virtual.5.html">virtual(5)</a> for the
+effects of <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> on lookups in aliases, canonical,
+virtual, and relocated maps, and see the <a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a>
+parameter for propagating an extension from one email address to
+another.  </p>
 
 <p> When used in <a href="postconf.5.html#command_execution_directory">command_execution_directory</a>, <a href="postconf.5.html#forward_path">forward_path</a>, or
-<a href="postconf.5.html#luser_relay">luser_relay</a>, ${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>} is replaced
-with the recipient delimiter that was found in the recipient email
-address (Postfix 2.11 and later), or it is replaced with the <a href="postconf.5.html">main.cf</a>
+<a href="postconf.5.html#luser_relay">luser_relay</a>, ${<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>} is replaced with the actual
+recipient delimiter that was found in the recipient email address
+(Postfix 2.11 and later), or it is replaced with the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> parameter value (Postfix 2.10 and earlier).
 </p>
 

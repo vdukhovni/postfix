@@ -1345,26 +1345,30 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
     return (matched);
 }
 
+/* push_ext - push extension onto certificate's stack, else free it */
+
+static int push_ext(X509 *cert, X509_EXTENSION *ext)
+{
+    x509_extension_stack_t *exts;
+
+    if (ext) {
+	if ((exts = cert->cert_info->extensions) == 0)
+	    exts = cert->cert_info->extensions = sk_X509_EXTENSION_new_null();
+	if (exts && sk_X509_EXTENSION_push(exts, ext))
+	    return 1;
+	X509_EXTENSION_free(ext);
+    }
+    return 0;
+}
+
 /* add_ext - add simple extension (no config section references) */
 
 static int add_ext(X509 *issuer, X509 *subject, int ext_nid, char *ext_val)
 {
     X509V3_CTX v3ctx;
-    X509_EXTENSION *ext;
-    x509_extension_stack_t *exts;
 
     X509V3_set_ctx(&v3ctx, issuer, subject, 0, 0, 0);
-    if ((exts = subject->cert_info->extensions) == 0)
-	exts = subject->cert_info->extensions = sk_X509_EXTENSION_new_null();
-    if (!exts)
-	return (0);
-
-    if ((ext = X509V3_EXT_conf_nid(0, &v3ctx, ext_nid, ext_val)) != 0
-	&& sk_X509_EXTENSION_push(exts, ext))
-	return (1);
-    if (ext)
-	X509_EXTENSION_free(ext);
-    return (0);
+    return push_ext(subject, X509V3_EXT_conf_nid(0, &v3ctx, ext_nid, ext_val));
 }
 
 /* set_serial - set serial number to match akid or use subject's plus 1 */
@@ -1397,6 +1401,7 @@ static int add_akid(X509 *cert, AUTHORITY_KEYID *akid)
 {
     ASN1_STRING *id;
     unsigned char c = 0;
+    int     nid = NID_authority_key_identifier;
     int     ret = 0;
 
     /*
@@ -1413,7 +1418,7 @@ static int add_akid(X509 *cert, AUTHORITY_KEYID *akid)
     if ((akid = AUTHORITY_KEYID_new()) != 0
 	&& (akid->keyid = ASN1_OCTET_STRING_new()) != 0
 	&& M_ASN1_OCTET_STRING_set(akid->keyid, (void *) &c, 1)
-	&& X509_add1_ext_i2d(cert, NID_authority_key_identifier, akid, 0, 0))
+	&& X509_add1_ext_i2d(cert, nid, akid, 0, X509V3_ADD_DEFAULT) > 0)
 	ret = 1;
     if (akid)
 	AUTHORITY_KEYID_free(akid);
@@ -1424,20 +1429,12 @@ static int add_akid(X509 *cert, AUTHORITY_KEYID *akid)
 
 static int add_skid(X509 *cert, AUTHORITY_KEYID *akid)
 {
-    int     ret;
+    int     nid = NID_subject_key_identifier;
 
-    if (akid && akid->keyid) {
-	VSTRING *hexid = vstring_alloc(2 * EVP_MAX_MD_SIZE);
-	ASN1_STRING *id = (ASN1_STRING *) (akid->keyid);
-
-	hex_encode(hexid, (char *) M_ASN1_STRING_data(id),
-		   M_ASN1_STRING_length(id));
-	ret = add_ext(0, cert, NID_subject_key_identifier, STR(hexid));
-	vstring_free(hexid);
-    } else {
-	ret = add_ext(0, cert, NID_subject_key_identifier, "hash");
-    }
-    return (ret);
+    if (!akid || !akid->keyid)
+	return add_ext(0, cert, nid, "hash");
+    else
+	return X509_add1_ext_i2d(cert, nid, akid, 0, X509V3_ADD_DEFAULT) > 0;
 }
 
 /* akid_issuer_name - get akid issuer directory name */
@@ -1473,32 +1470,43 @@ static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid)
     return (X509_set_issuer_name(cert, X509_get_subject_name(cert)));
 }
 
-/* grow_chain - add certificate to chain */
+/* grow_chain - add certificate to trusted or untrusted chain */
 
-static void grow_chain(x509_stack_t **skptr, X509 *cert, ASN1_OBJECT *trust)
+static void grow_chain(TLS_SESS_STATE *TLScontext, int trusted, X509 *cert)
 {
-    if (!*skptr && (*skptr = sk_X509_new_null()) == 0)
+    x509_stack_t **xs = trusted ? &TLScontext->trusted : &TLScontext->untrusted;
+
+#define UNTRUSTED 0
+#define TRUSTED 1
+
+    if (!*xs && (*xs = sk_X509_new_null()) == 0)
 	msg_fatal("out of memory");
     if (cert) {
-	if (trust && !X509_add1_trust_object(cert, trust))
+	if (trusted && !X509_add1_trust_object(cert, serverAuth))
 	    msg_fatal("out of memory");
 	CRYPTO_add(&cert->references, 1, CRYPTO_LOCK_X509);
-	if (!sk_X509_push(*skptr, cert))
+	if (!sk_X509_push(*xs, cert))
 	    msg_fatal("out of memory");
     }
 }
 
 /* wrap_key - wrap TA "key" as issuer of "subject" */
 
-static int wrap_key(TLS_SESS_STATE *TLScontext, int depth,
-		            EVP_PKEY *key, X509 *subject)
+static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
+		             EVP_PKEY *key, X509 *subject)
 {
-    int     ret = 1;
-    int     selfsigned = 0;
     X509   *cert = 0;
     AUTHORITY_KEYID *akid;
     X509_NAME *name = X509_get_issuer_name(subject);
     X509_NAME *akid_name;
+
+    /*
+     * The subject name is never a NULL object unless we run out of memory.
+     * It may be an empty sequence, but the containing object always exists
+     * and its storage is owned by the certificate itself.
+     */
+    if (name == 0 || (cert = X509_new()) == 0)
+	msg_fatal("Out of memory");
 
     /*
      * Record the depth of the intermediate wrapper certificate, logged in
@@ -1510,22 +1518,16 @@ static int wrap_key(TLS_SESS_STATE *TLScontext, int depth,
 	    msg_info("%s: depth=%d chain is trust-anchor signed",
 		     TLScontext->namaddr, depth);
     }
+    akid = X509_get_ext_d2i(subject, NID_authority_key_identifier, 0, 0);
+
+    ERR_clear_error();
 
     /*
      * If key is NULL generate a self-signed root CA, with key "danekey",
      * otherwise an intermediate CA signed by above.
+     * 
+     * CA cert valid for +/- 30 days.
      */
-    if ((cert = X509_new()) == 0)
-	return (0);
-
-    akid = X509_get_ext_d2i(subject, NID_authority_key_identifier, 0, 0);
-    if ((akid_name = akid_issuer_name(akid)) == 0
-	|| X509_NAME_cmp(name, akid_name) == 0)
-	selfsigned = 1;
-
-    ERR_clear_error();
-
-    /* CA cert valid for +/- 30 days */
     if (!X509_set_version(cert, 2)
 	|| !set_serial(cert, akid, subject)
 	|| !X509_set_subject_name(cert, name)
@@ -1534,41 +1536,35 @@ static int wrap_key(TLS_SESS_STATE *TLScontext, int depth,
 	|| !X509_gmtime_adj(X509_get_notAfter(cert), 30 * 86400L)
 	|| !X509_set_pubkey(cert, key ? key : danekey)
 	|| !add_ext(0, cert, NID_basic_constraints, "CA:TRUE")
-	|| (key && !selfsigned && !add_akid(cert, akid))
+	|| (key && !add_akid(cert, akid))
 	|| !add_skid(cert, akid)
-	|| (wrap_signed
-	    && (!X509_sign(cert, danekey, signmd)
-		|| (key && !selfsigned
-		    && !wrap_key(TLScontext, depth + 1, 0, cert))))) {
-	msg_warn("error generating DANE wrapper certificate");
+	|| (wrap_signed && !X509_sign(cert, danekey, signmd))) {
 	tls_print_errors();
-	ret = 0;
+	msg_fatal("error generating DANE wrapper certificate");
     }
     if (akid)
 	AUTHORITY_KEYID_free(akid);
-    if (ret) {
-	if (key && !selfsigned && wrap_signed)
-	    grow_chain(&TLScontext->untrusted, cert, 0);
-	else
-	    grow_chain(&TLScontext->trusted, cert, serverAuth);
-    }
+    if (key && wrap_signed) {
+	wrap_key(TLScontext, depth + 1, 0, cert);
+	grow_chain(TLScontext, UNTRUSTED, cert);
+    } else
+	grow_chain(TLScontext, TRUSTED, cert);
     if (cert)
 	X509_free(cert);
-    return (ret);
 }
 
-/* wrap_cert - wrap "tacert" as issuer of "subject" */
+/* wrap_cert - wrap "tacert" as trust-anchor. */
 
-static int wrap_cert(TLS_SESS_STATE *TLScontext, int depth,
-		             X509 *tacert, X509 *subject)
+static void wrap_cert(TLS_SESS_STATE *TLScontext, X509 *tacert, int depth)
 {
-    int     ret = 1;
     X509   *cert;
     int     len;
     unsigned char *asn1;
     unsigned char *buf;
 
-    TLScontext->tadepth = depth;
+    if (TLScontext->tadepth < 0)
+	TLScontext->tadepth = depth + 1;
+
     if (TLScontext->log_mask & (TLS_LOG_VERBOSE | TLS_LOG_CERTMATCH))
 	msg_info("%s: depth=%d trust-anchor certificate",
 		 TLScontext->namaddr, depth);
@@ -1576,10 +1572,9 @@ static int wrap_cert(TLS_SESS_STATE *TLScontext, int depth,
     /*
      * If the TA certificate is self-issued, use it directly.
      */
-    if (!wrap_signed
-	|| X509_check_issued(tacert, tacert) == X509_V_OK) {
-	grow_chain(&TLScontext->trusted, tacert, serverAuth);
-	return (ret);
+    if (!wrap_signed || X509_check_issued(tacert, tacert) == X509_V_OK) {
+	grow_chain(TLScontext, TRUSTED, tacert);
+	return;
     }
     /* Deep-copy tacert by converting to ASN.1 and back */
     len = i2d_X509(tacert, NULL);
@@ -1594,17 +1589,15 @@ static int wrap_cert(TLS_SESS_STATE *TLScontext, int depth,
 	msg_panic("d2i_X509 failed to decode TA certificate");
     myfree((char *) asn1);
 
-    grow_chain(&TLScontext->untrusted, cert, 0);
+    grow_chain(TLScontext, UNTRUSTED, cert);
 
     /* Sign and wrap TA cert with internal "danekey" */
-    if (!X509_sign(cert, danekey, signmd)
-	|| !wrap_key(TLScontext, depth + 1, danekey, cert)) {
-	msg_warn("error generating DANE wrapper certificate");
+    if (!X509_sign(cert, danekey, signmd)) {
 	tls_print_errors();
-	ret = 0;
+	msg_fatal("error generating DANE wrapper certificate");
     }
+    wrap_key(TLScontext, depth + 1, danekey, cert);
     X509_free(cert);
-    return (ret);
 }
 
 /* ta_signed - is certificate signed by a TLSA cert or pkey */
@@ -1629,8 +1622,8 @@ static int ta_signed(TLS_SESS_STATE *TLScontext, X509 *cert, int depth)
 	    if ((pk = X509_get_pubkey(x->cert)) == 0)
 		continue;
 	    /* Check signature, since some other TA may work if not this. */
-	    if (X509_verify(cert, pk) > 0)
-		done = wrap_cert(TLScontext, depth + 1, x->cert, cert);
+	    if ((done = (X509_verify(cert, pk) > 0)) != 0)
+		wrap_cert(TLScontext, x->cert, depth);
 	    EVP_PKEY_free(pk);
 	}
     }
@@ -1651,10 +1644,15 @@ static int ta_signed(TLS_SESS_STATE *TLScontext, X509 *cert, int depth)
      * ASN1 tag and length thus also excluding the unused bits field that is
      * logically part of the length).  However, some CAs have a non-standard
      * authority keyid, so we lose.  Too bad.
+     * 
+     * This may push errors onto the stack when the certificate signature is not
+     * of the right type or length, throw these away.
      */
     for (k = dane->pkeys; !done && k; k = k->next)
-	if (X509_verify(cert, k->pkey) > 0)
-	    done = wrap_key(TLScontext, depth, k->pkey, cert);
+	if ((done = (X509_verify(cert, k->pkey) > 0)) != 0)
+	    wrap_key(TLScontext, depth, k->pkey, cert);
+	else
+	    ERR_clear_error();
 
     return (done);
 }
@@ -1704,7 +1702,7 @@ static void set_trust(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx)
 	if (match) {
 	    switch (match) {
 	    case MATCHED_CERT:
-		wrap_cert(TLScontext, depth, ca, cert);
+		wrap_cert(TLScontext, ca, depth);
 		break;
 	    case MATCHED_PKEY:
 		if ((takey = X509_get_pubkey(ca)) == 0)
@@ -1719,7 +1717,7 @@ static void set_trust(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx)
 	    break;
 	}
 	/* Add untrusted ca. */
-	grow_chain(&TLScontext->untrusted, ca, 0);
+	grow_chain(TLScontext, UNTRUSTED, ca);
 
 	/* Final untrusted self-signed element? */
 	if (X509_check_issued(ca, ca) == X509_V_OK) {
@@ -1738,7 +1736,7 @@ static void set_trust(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx)
      */
     if (!cert || !ta_signed(TLScontext, cert, depth)) {
 	/* Create empty trust list if null, else NOP */
-	grow_chain(&TLScontext->trusted, 0, 0);
+	grow_chain(TLScontext, TRUSTED, 0);
     }
     /* shallow free */
     if (in)
@@ -1767,11 +1765,12 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
 	 * Empty untrusted chain, could be NULL, but then ABI check less
 	 * reliable, we may zero some other field, ...
 	 */
-	grow_chain(&TLScontext->untrusted, 0, 0);
-	if (tls_dane_match(TLScontext, TLS_DANE_TA, cert, 0))
-	    grow_chain(&TLScontext->trusted, cert, serverAuth);
-	else
-	    grow_chain(&TLScontext->trusted, 0, 0);
+	grow_chain(TLScontext, UNTRUSTED, 0);
+	if (tls_dane_match(TLScontext, TLS_DANE_TA, cert, 0)) {
+	    TLScontext->tadepth = 0;
+	    grow_chain(TLScontext, TRUSTED, cert);
+	} else
+	    grow_chain(TLScontext, TRUSTED, 0);
     } else {
 	set_trust(TLScontext, ctx);
     }
