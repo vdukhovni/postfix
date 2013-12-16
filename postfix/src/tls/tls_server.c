@@ -797,7 +797,7 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 
 TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 {
-    const SSL_CIPHER *cipher;
+    SSL_CIPHER_const SSL_CIPHER *cipher;
     X509   *peer;
     char    buf[CCERT_BUFSIZ];
 

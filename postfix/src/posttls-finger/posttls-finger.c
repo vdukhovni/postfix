@@ -1430,7 +1430,11 @@ static int finger(STATE *state)
 
 static void ssl_cleanup(void)
 {
-    ERR_remove_state(0);
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+    ERR_remove_thread_state(0);		/* Thread-id is now a pointer */
+#else
+    ERR_remove_state(0);		/* Deprecated with OpenSSL 1.0.0 */
+#endif
     ENGINE_cleanup();
     CONF_modules_unload(1);
     ERR_free_strings();

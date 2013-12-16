@@ -215,6 +215,14 @@
 
 #endif					/* OPENSSL_VERSION_NUMBER ... */
 
+#ifdef TRUST_ANCHOR_SUPPORT
+static int ta_support = 1;
+
+#else
+static int ta_support = 0;
+
+#endif
+
 #ifdef WRAP_SIGNED
 static int wrap_signed = 1;
 
@@ -222,10 +230,18 @@ static int wrap_signed = 1;
 static int wrap_signed = 0;
 
 #endif
+
+#ifdef DANE_TLSA_SUPPORT
+static int dane_tlsa_support = 1;
+
+#else
+static int dane_tlsa_support = 0;
+
+#endif
+
+static EVP_PKEY *signkey;
 static const EVP_MD *signmd;
 static const char *signalg;
-
-static EVP_PKEY *danekey;
 static ASN1_OBJECT *serverAuth;
 
 /*
@@ -431,7 +447,7 @@ static EVP_PKEY *gencakey(void)
 	EC_GROUP_free(group);
     if (eckey)
 	EC_KEY_free(eckey);
-#endif
+#endif						/* WRAP_SIGNED */
     return (key);
 }
 
@@ -474,13 +490,22 @@ static void dane_init(void)
     /* Don't report old news */
     ERR_clear_error();
 
-#ifdef TRUST_ANCHOR_SUPPORT
-    if ((wrap_signed && (danekey = gencakey()) == 0)
+    /*
+     * DANE TLSA support requires trust-anchor support plus working DANE
+     * digests.
+     */
+    if (!ta_support
+	|| (wrap_signed && (signkey = gencakey()) == 0)
 	|| (serverAuth = OBJ_nid2obj(NID_server_auth)) == 0) {
-	msg_warn("cannot generate TA certificates, no DANE support");
+	msg_warn("cannot generate TA certificates, "
+		 "no trust-anchor or DANE support");
 	tls_print_errors();
+	dane_tlsa_support = ta_support = 0;
+    } else if (signmd == 0) {
+	msg_warn("digest algorithm initializaton failed, no DANE support");
+	tls_print_errors();
+	dane_tlsa_support = 0;
     }
-#endif
     dane_initialized = 1;
 }
 
@@ -490,12 +515,7 @@ int     tls_dane_avail(void)
 {
     if (!dane_initialized)
 	dane_init();
-
-#ifdef DANE_TLSA_SUPPORT
-    return (signalg && serverAuth);
-#else
-    return (0);
-#endif
+    return (dane_tlsa_support);
 }
 
 /* tls_dane_flush - flush the cache */
@@ -731,8 +751,6 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     argv_add(*argvp, digest, ARGV_END);
 }
 
-#ifdef DANE_TLSA_SUPPORT
-
 #define FILTER_CTX_AGILITY_OK		(1<<0)
 #define FILTER_CTX_CHECK_AGILITY	(1<<1)
 #define FILTER_CTX_APPLY_AGILITY	(1<<2)
@@ -828,8 +846,8 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
     uint8_t selector;
     uint8_t mtype;
     ssize_t dlen;
-    const unsigned char *data;
-    const unsigned char *p;
+    D2I_const unsigned char *data;
+    D2I_const unsigned char *p;
     int     iscname = strcasecmp(rr->rname, rr->qname);
     const char *q = (iscname) ? (rr)->qname : "";
     const char *a = (iscname) ? " -> " : "";
@@ -852,7 +870,7 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
     selector = *ip++;
     mtype = *ip++;
     change = usmdelta(usage, selector, mtype, rr->next);
-    p = data = (const unsigned char *) ip;
+    p = data = (D2I_const unsigned char *) ip;
 
     /*
      * Handle digest agility for non-zero matching types.
@@ -921,8 +939,9 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 	    return (FILTER_RR_DROP);
 	}
 	if (dlen != d->len) {
-	    msg_warn("malformed %s digest, length %u, in RR: "
-		     "%s%s%s IN TLSA %u %u %u ...", d->mdalg, dlen,
+	    msg_warn("malformed %s digest, length %lu, in RR: "
+		     "%s%s%s IN TLSA %u %u %u ...",
+		     d->mdalg, (unsigned long) dlen,
 		     q, a, r, usage, selector, mtype);
 	    ctx->flags &= ~FILTER_CTX_AGILITY_OK;
 	    return (FILTER_RR_DROP);
@@ -1141,8 +1160,6 @@ static TLS_DANE *resolve_host(const char *host, const char *proto,
     return (dane);
 }
 
-#endif
-
 /* tls_dane_resolve - cached map: (name, proto, port) -> TLS_DANE */
 
 TLS_DANE *tls_dane_resolve(unsigned port, const char *proto, DNS_RR *hostrr,
@@ -1151,7 +1168,6 @@ TLS_DANE *tls_dane_resolve(unsigned port, const char *proto, DNS_RR *hostrr,
     TLS_DANE *dane = 0;
     int     iscname;
 
-#ifdef DANE_TLSA_SUPPORT
     if (!tls_dane_avail())
 	return (dane);
 
@@ -1185,7 +1201,6 @@ TLS_DANE *tls_dane_resolve(unsigned port, const char *proto, DNS_RR *hostrr,
 	}
     }
 
-#endif
     return (dane);
 }
 
@@ -1210,7 +1225,7 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     if (!dane_initialized)
 	dane_init();
 
-    if (serverAuth == 0) {
+    if (!ta_support) {
 	msg_warn("trust-anchor files not supported");
 	return (0);
     }
@@ -1232,7 +1247,7 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     for (tacount = 0;
 	 errtype == 0 && PEM_read_bio(bp, &name, &header, &data, &len);
 	 ++tacount) {
-	const unsigned char *p = data;
+	D2I_const unsigned char *p = data;
 	int     usage = DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION;
 	int     selector;
 	char   *digest;
@@ -1498,7 +1513,6 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
     X509   *cert = 0;
     AUTHORITY_KEYID *akid;
     X509_NAME *name = X509_get_issuer_name(subject);
-    X509_NAME *akid_name;
 
     /*
      * The subject name is never a NULL object unless we run out of memory.
@@ -1523,7 +1537,7 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
     ERR_clear_error();
 
     /*
-     * If key is NULL generate a self-signed root CA, with key "danekey",
+     * If key is NULL generate a self-signed root CA, with key "signkey",
      * otherwise an intermediate CA signed by above.
      * 
      * CA cert valid for +/- 30 days.
@@ -1534,11 +1548,11 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
 	|| !set_issuer_name(cert, akid)
 	|| !X509_gmtime_adj(X509_get_notBefore(cert), -30 * 86400L)
 	|| !X509_gmtime_adj(X509_get_notAfter(cert), 30 * 86400L)
-	|| !X509_set_pubkey(cert, key ? key : danekey)
+	|| !X509_set_pubkey(cert, key ? key : signkey)
 	|| !add_ext(0, cert, NID_basic_constraints, "CA:TRUE")
 	|| (key && !add_akid(cert, akid))
 	|| !add_skid(cert, akid)
-	|| (wrap_signed && !X509_sign(cert, danekey, signmd))) {
+	|| (wrap_signed && !X509_sign(cert, signkey, signmd))) {
 	tls_print_errors();
 	msg_fatal("error generating DANE wrapper certificate");
     }
@@ -1584,19 +1598,19 @@ static void wrap_cert(TLS_SESS_STATE *TLScontext, X509 *tacert, int depth)
 	msg_panic("i2d_X509 failed to encode TA certificate");
 
     buf = asn1;
-    cert = d2i_X509(0, (unsigned const char **) &buf, len);
+    cert = d2i_X509(0, (D2I_const unsigned char **) &buf, len);
     if (!cert || (buf - asn1) != len)
 	msg_panic("d2i_X509 failed to decode TA certificate");
     myfree((char *) asn1);
 
     grow_chain(TLScontext, UNTRUSTED, cert);
 
-    /* Sign and wrap TA cert with internal "danekey" */
-    if (!X509_sign(cert, danekey, signmd)) {
+    /* Sign and wrap TA cert with internal "signkey" */
+    if (!X509_sign(cert, signkey, signmd)) {
 	tls_print_errors();
 	msg_fatal("error generating DANE wrapper certificate");
     }
-    wrap_key(TLScontext, depth + 1, danekey, cert);
+    wrap_key(TLScontext, depth + 1, signkey, cert);
     X509_free(cert);
 }
 
@@ -1791,10 +1805,10 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
 
 void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 {
-    if (!serverAuth || !TLS_DANE_HASTA(TLScontext->dane))
-	SSL_CTX_set_cert_verify_callback(ctx, 0, 0);
-    else
+    if (ta_support && TLS_DANE_HASTA(TLScontext->dane))
 	SSL_CTX_set_cert_verify_callback(ctx, dane_cb, (void *) TLScontext);
+    else
+	SSL_CTX_set_cert_verify_callback(ctx, 0, 0);
 }
 
 #endif					/* USE_TLS */

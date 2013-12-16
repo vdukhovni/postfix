@@ -50,20 +50,27 @@
 
 /* tls_tmp_rsa_cb - call-back to generate ephemeral RSA key */
 
-RSA *tls_tmp_rsa_cb(SSL *unused_ssl, int unused_export, int keylength)
+RSA    *tls_tmp_rsa_cb(SSL *unused_ssl, int unused_export, int keylength)
 {
     static RSA *rsa_tmp;
 
-    /* Code adapted from OpenSSL apps/s_cb.c */
+    if (rsa_tmp == 0) {
+	BIGNUM *e = BN_new();
 
-    if (rsa_tmp == 0)
-	rsa_tmp = RSA_generate_key(keylength, RSA_F4, NULL, NULL);
+	if (e != 0 && BN_set_word(e, RSA_F4) && (rsa_tmp = RSA_new()) != 0)
+	    if (!RSA_generate_key_ex(rsa_tmp, keylength, e, 0)) {
+		RSA_free(rsa_tmp);
+		rsa_tmp = 0;
+	    }
+	if (e)
+	    BN_free(e);
+    }
     return (rsa_tmp);
 }
 
 #ifdef TEST
 
-int main(int unused_argc, char **unused_argv)
+int     main(int unused_argc, char **unused_argv)
 {
     tls_tmp_rsa_cb(0, 1, 512);
     tls_tmp_rsa_cb(0, 1, 1024);

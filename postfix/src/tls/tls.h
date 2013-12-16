@@ -84,6 +84,20 @@ extern const NAME_CODE tls_level_table[];
 #error "need OpenSSL version 0.9.7 or later"
 #endif
 
+/* SSL_CIPHER_get_name() got constified in 0.9.7g */
+#if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
+#define SSL_CIPHER_const const
+#else
+#define SSL_CIPHER_const
+#endif
+
+/* d2i_X509() got constified in 0.9.8a */
+#if OPENSSL_VERSION_NUMBER >= 0x0090801fL
+#define D2I_const const
+#else
+#define D2I_const
+#endif
+
  /*
   * Utility library.
   */

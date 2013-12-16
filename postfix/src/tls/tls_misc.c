@@ -265,59 +265,72 @@ static const NAME_CODE protocol_table[] = {
 #define NAMEBUG(x)	#x, SSL_OP_##x
 static const LONG_NAME_MASK ssl_bug_tweaks[] = {
 
-#if defined(SSL_OP_MICROSOFT_SESS_ID_BUG)
-    NAMEBUG(MICROSOFT_SESS_ID_BUG),	/* 0x00000001L */
+#ifndef SSL_OP_MICROSOFT_SESS_ID_BUG
+#define SSL_OP_MICROSOFT_SESS_ID_BUG		0
 #endif
+    NAMEBUG(MICROSOFT_SESS_ID_BUG),
 
-#if defined(SSL_OP_NETSCAPE_CHALLENGE_BUG)
-    NAMEBUG(NETSCAPE_CHALLENGE_BUG),	/* 0x00000002L */
+#ifndef SSL_OP_NETSCAPE_CHALLENGE_BUG
+#define SSL_OP_NETSCAPE_CHALLENGE_BUG		0
 #endif
+    NAMEBUG(NETSCAPE_CHALLENGE_BUG),
 
-#if defined(SSL_OP_LEGACY_SERVER_CONNECT)
-    NAMEBUG(LEGACY_SERVER_CONNECT),	/* 0x00000004L */
+#ifndef SSL_OP_LEGACY_SERVER_CONNECT
+#define SSL_OP_LEGACY_SERVER_CONNECT		0
 #endif
+    NAMEBUG(LEGACY_SERVER_CONNECT),
 
-#if defined(SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG)
-    NAMEBUG(NETSCAPE_REUSE_CIPHER_CHANGE_BUG),	/* 0x00000008L */
+#ifndef SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG
+#define SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG 0
+#endif
+    NAMEBUG(NETSCAPE_REUSE_CIPHER_CHANGE_BUG),
     "CVE-2010-4180", SSL_OP_NETSCAPE_REUSE_CIPHER_CHANGE_BUG,
-#endif
 
-#if defined(SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG)
-    NAMEBUG(SSLREF2_REUSE_CERT_TYPE_BUG),	/* 0x00000010L */
+#ifndef SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG
+#define SSL_OP_SSLREF2_REUSE_CERT_TYPE_BUG	0
 #endif
+    NAMEBUG(SSLREF2_REUSE_CERT_TYPE_BUG),
 
-#if defined(SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER)
-    NAMEBUG(MICROSOFT_BIG_SSLV3_BUFFER),/* 0x00000020L	 */
+#ifndef SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER
+#define SSL_OP_MICROSOFT_BIG_SSLV3_BUFFER	0
 #endif
+    NAMEBUG(MICROSOFT_BIG_SSLV3_BUFFER),
 
-#if defined(SSL_OP_MSIE_SSLV2_RSA_PADDING)
-    NAMEBUG(MSIE_SSLV2_RSA_PADDING),	/* 0x00000040L */
+#ifndef SSL_OP_MSIE_SSLV2_RSA_PADDING
+#define SSL_OP_MSIE_SSLV2_RSA_PADDING		0
+#endif
+    NAMEBUG(MSIE_SSLV2_RSA_PADDING),
     "CVE-2005-2969", SSL_OP_MSIE_SSLV2_RSA_PADDING,
-#endif
 
-#if defined(SSL_OP_SSLEAY_080_CLIENT_DH_BUG)
-    NAMEBUG(SSLEAY_080_CLIENT_DH_BUG),	/* 0x00000080L */
+#ifndef SSL_OP_SSLEAY_080_CLIENT_DH_BUG
+#define SSL_OP_SSLEAY_080_CLIENT_DH_BUG		0
 #endif
+    NAMEBUG(SSLEAY_080_CLIENT_DH_BUG),
 
-#if defined(SSL_OP_TLS_D5_BUG)
-    NAMEBUG(TLS_D5_BUG),		/* 0x00000100L	 */
+#ifndef SSL_OP_TLS_D5_BUG
+#define SSL_OP_TLS_D5_BUG			0
 #endif
+    NAMEBUG(TLS_D5_BUG),
 
-#if defined(SSL_OP_TLS_BLOCK_PADDING_BUG)
-    NAMEBUG(TLS_BLOCK_PADDING_BUG),	/* 0x00000200L */
+#ifndef SSL_OP_TLS_BLOCK_PADDING_BUG
+#define SSL_OP_TLS_BLOCK_PADDING_BUG		0
 #endif
+    NAMEBUG(TLS_BLOCK_PADDING_BUG),
 
-#if defined(SSL_OP_TLS_ROLLBACK_BUG)
-    NAMEBUG(TLS_ROLLBACK_BUG),		/* 0x00000400L */
+#ifndef SSL_OP_TLS_ROLLBACK_BUG
+#define SSL_OP_TLS_ROLLBACK_BUG			0
 #endif
+    NAMEBUG(TLS_ROLLBACK_BUG),
 
-#if defined(SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS)
-    NAMEBUG(DONT_INSERT_EMPTY_FRAGMENTS),	/* 0x00000800L */
+#ifndef SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS
+#define SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS	0
 #endif
+    NAMEBUG(DONT_INSERT_EMPTY_FRAGMENTS),
 
-#if defined(SSL_OP_CRYPTOPRO_TLSEXT_BUG)
-    NAMEBUG(CRYPTOPRO_TLSEXT_BUG),	/* 0x80000000L */
+#ifndef SSL_OP_CRYPTOPRO_TLSEXT_BUG
+#define SSL_OP_CRYPTOPRO_TLSEXT_BUG		0
 #endif
+    NAMEBUG(CRYPTOPRO_TLSEXT_BUG),
     0, 0,
 };
 
@@ -329,17 +342,20 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
 #define NAME_SSL_OP(x)	#x, SSL_OP_##x
 static const LONG_NAME_MASK ssl_op_tweaks[] = {
 
-#if defined(SSL_OP_LEGACY_SERVER_CONNECT)
+#ifndef SSL_OP_LEGACY_SERVER_CONNECT
+#define SSL_OP_LEGACY_SERVER_CONNECT	0
+#endif
     NAME_SSL_OP(LEGACY_SERVER_CONNECT),
-#endif
 
-#if defined(SSL_OP_NO_TICKET)
+#ifndef SSL_OP_NO_TICKET
+#define SSL_OP_NO_TICKET		0
+#endif
     NAME_SSL_OP(NO_TICKET),
-#endif
 
-#if defined(SSL_OP_NO_COMPRESSION)
-    NAME_SSL_OP(NO_COMPRESSION),
+#ifndef SSL_OP_NO_COMPRESSION
+#define SSL_OP_NO_COMPRESSION		0
 #endif
+    NAME_SSL_OP(NO_COMPRESSION),
     0, 0,
 };
 
@@ -936,7 +952,8 @@ long    tls_bug_bits(void)
 {
     long    bits = SSL_OP_ALL;		/* Work around all known bugs */
 
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L
+#if OPENSSL_VERSION_NUMBER >= 0x00908000L && \
+	OPENSSL_VERSION_NUMBER < 0x10000000L
     long    lib_version = SSLeay();
 
     /*
@@ -962,6 +979,10 @@ long    tls_bug_bits(void)
 	bits &= ~long_name_mask_opt(VAR_TLS_BUG_TWEAKS, ssl_bug_tweaks,
 				    var_tls_bug_tweaks, NAME_MASK_ANY_CASE |
 				    NAME_MASK_NUMBER | NAME_MASK_WARN);
+#ifdef SSL_OP_SAFARI_ECDHE_ECDSA_BUG
+	/* Not relevant to SMTP */
+	bits &= ~SSL_OP_SAFARI_ECDHE_ECDSA_BUG;
+#endif
     }
 
     /*
@@ -990,17 +1011,14 @@ void    tls_print_errors(void)
     const char *data;
     int     line;
     int     flags;
-    unsigned long thread;
 
-    thread = CRYPTO_thread_id();
     while ((err = ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
 	ERR_error_string_n(err, buffer, sizeof(buffer));
 	if (flags & ERR_TXT_STRING)
-	    msg_warn("TLS library problem: %lu:%s:%s:%d:%s:",
-		     thread, buffer, file, line, data);
+	    msg_warn("TLS library problem: %s:%s:%d:%s:",
+		     buffer, file, line, data);
 	else
-	    msg_warn("TLS library problem: %lu:%s:%s:%d:",
-		     thread, buffer, file, line);
+	    msg_warn("TLS library problem: %s:%s:%d:", buffer, file, line);
     }
 }
 

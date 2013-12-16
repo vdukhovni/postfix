@@ -19364,3 +19364,28 @@ Apologies for any names omitted.
 	0 TAs. Robustness: Though it should never happen, don't
 	update the tadepth if already set. Viktor Dukhovni.  Files:
 	tls/tls_dane.c, tls/tls_server.c.
+
+20131215
+
+	Cleanup: OpenSSL "const" declarations have changed over
+	time. Viktor Dukhovni. Files: src/tls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_dane.c, src/tls/tls_server.c.
+
+20131216
+
+	Cleanup: TLS support. Eliminate calls of deprecated functions
+	before they are removed from OpenSSL.  CRYPTO_thread_id is
+	deprecated and we don't need it.  Replace the deprecated
+	ERR_remove_state() call with ERR_remove_thread_state(), and
+	use RSA_generate_key_ex().  Viktor Dukhovni. Files:
+	posttls-finger/posttls-finger.c, tls/tls_misc.c, tls/tls_rsa.c.
+
+	Cleanup: DANE support: Reduce #ifdef clutter to improve
+	redability and maintability. Viktor Dukhovni.  File:
+	tls/tls_dane.c.
+
+	Future proofing: Tolerate disappearance of named bug-workaround
+	bits without invalidating user configurations.  When support
+	for a bug workaround is removed, the corresponding bit is
+	defined as zero (i.e. NOOP) intstead of causing programs
+	to break. Viktor Dukhovni.  File: tls/tls_misc.c.
