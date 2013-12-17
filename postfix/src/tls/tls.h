@@ -84,6 +84,20 @@ extern const NAME_CODE tls_level_table[];
 #error "need OpenSSL version 0.9.7 or later"
 #endif
 
+/* SSL_CIPHER_get_name() got constified in 0.9.7g */
+#if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
+#define SSL_CIPHER_const const
+#else
+#define SSL_CIPHER_const
+#endif
+
+/* d2i_X509() got constified in 0.9.8a */
+#if OPENSSL_VERSION_NUMBER >= 0x0090801fL
+#define D2I_const const
+#else
+#define D2I_const
+#endif
+
  /*
   * Utility library.
   */
@@ -108,10 +122,9 @@ extern const NAME_CODE tls_level_table[];
 #define TLS_DANE_CERT	0		/* Match the certificate digest */
 #define TLS_DANE_PKEY	1		/* Match the public key digest */
 
-#define TLS_DANE_FLAG_MIXED	(1<<0)	/* Combined pkeys and certs */
-#define TLS_DANE_FLAG_NORRS	(1<<1)	/* Nothing found in DNS */
-#define TLS_DANE_FLAG_EMPTY	(1<<2)	/* Nothing usable found in DNS */
-#define TLS_DANE_FLAG_ERROR	(1<<3)	/* TLSA record lookup error */
+#define TLS_DANE_FLAG_NORRS	(1<<0)	/* Nothing found in DNS */
+#define TLS_DANE_FLAG_EMPTY	(1<<1)	/* Nothing usable found in DNS */
+#define TLS_DANE_FLAG_ERROR	(1<<2)	/* TLSA record lookup error */
 
 #define tls_dane_unusable(dane)	((dane)->flags & TLS_DANE_FLAG_EMPTY)
 #define tls_dane_notfound(dane)	((dane)->flags & TLS_DANE_FLAG_NORRS)
@@ -146,10 +159,6 @@ typedef struct TLS_PKEYS {
     struct TLS_PKEYS *next;
 } TLS_PKEYS;
 
- /*
-  * When TLS_DANE_FLAG_MIXED is set, the pkeys digest list is not allocated
-  * separately, and aliases the certs digest list for each algorithm.
-  */
 typedef struct TLS_DANE {
     TLS_TLSA *ta;			/* Trust-anchor cert/pubkey digests */
     TLS_TLSA *ee;			/* End-entity cert/pubkey digests */
@@ -170,9 +179,9 @@ typedef struct TLS_DANE {
 extern int tls_dane_avail(void);
 extern void tls_dane_flush(void);
 extern void tls_dane_verbose(int);
-extern TLS_DANE *tls_dane_alloc(int);
-extern void tls_dane_split(TLS_DANE *, int, int, const char *, const char *,
-			           const char *);
+extern TLS_DANE *tls_dane_alloc(void);
+extern void tls_dane_add_ee_digests(TLS_DANE *, const char *, const char *,
+				            const char *);
 extern void tls_dane_free(TLS_DANE *);
 extern TLS_DANE *tls_dane_resolve(unsigned, const char *, DNS_RR *, int);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);

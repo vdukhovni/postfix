@@ -209,7 +209,7 @@ described in the <a href="postconf.5.html">postconf(5)</a> manual page. </p>
     <a href="postconf.5.html#smtpd_data_restrictions">smtpd_data_restrictions</a> = <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a>
 
     # Enforce mail volume quota via policy service callouts.
-    <a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a> = <a href="postconf.5.html#check_policy_service">check_policy_service</a> <a href="DATABASE_README.html#types">unix</a>:private/policy
+    <a href="postconf.5.html#smtpd_end_of_data_restrictions">smtpd_end_of_data_restrictions</a> = <a href="postconf.5.html#check_policy_service">check_policy_service</a> unix:private/policy
 </pre>
 
 <p> Each restriction list is evaluated from left to right until

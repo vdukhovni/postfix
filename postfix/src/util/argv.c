@@ -41,6 +41,11 @@
 /*	ssize_t	pos;
 /*	const char *arg;
 /*
+/*	void	argv_delete(argvp, pos, how_many)
+/*	ARGV	*argvp;
+/*	ssize_t	pos;
+/*	ssize_t	how_many;
+/*
 /*	void	ARGV_FAKE_BEGIN(argv, arg)
 /*	const char *arg;
 /*
@@ -84,6 +89,10 @@
 /*
 /*	argv_replace_one() replaces one string at the specified
 /*	position.
+/*
+/*	argv_delete() deletes the specified number of elements
+/*	starting at the specified array position. The result is
+/*	null-terminated.
 /*
 /*	ARGV_FAKE_BEGIN/END are an optimization for the case where
 /*	a single string needs to be passed into an ARGV-based
@@ -291,4 +300,24 @@ void    argv_replace_one(ARGV *argvp, ssize_t where, const char *arg)
 
     myfree(argvp->argv[where]);
     argvp->argv[where] = mystrdup(arg);
+}
+
+/* argv_delete - remove string(s) from array */
+
+void    argv_delete(ARGV *argvp, ssize_t first, ssize_t how_many)
+{
+    ssize_t pos;
+
+    /*
+     * Sanity check.
+     */
+    if (first < 0 || how_many < 0 || first + how_many > argvp->argc)
+	msg_panic("argv_delete bad range: (start=%ld count=%ld)",
+		  (long) first, (long) how_many);
+
+    for (pos = first; pos < first + how_many; pos++)
+	myfree(argvp->argv[pos]);
+    for (pos = first; pos <= argvp->argc - how_many; pos++)
+	argvp->argv[pos] = argvp->argv[pos + how_many];
+    argvp->argc -= how_many;
 }

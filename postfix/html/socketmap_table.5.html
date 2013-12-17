@@ -11,10 +11,10 @@ SOCKETMAP_TABLE(5)                                          SOCKETMAP_TABLE(5)
 
 <b>SYNOPSIS</b>
        <b>postmap -q "</b><i>string</i><b>" <a href="socketmap_table.html">socketmap</a>:inet:</b><i>host</i><b>:</b><i>port</i><b>:</b><i>name</i>
-       <b>postmap -q "</b><i>string</i><b>" <a href="socketmap_table.html">socketmap</a>:<a href="DATABASE_README.html#types">unix</a>:</b><i>pathname</i><b>:</b><i>name</i>
+       <b>postmap -q "</b><i>string</i><b>" <a href="socketmap_table.html">socketmap</a>:unix:</b><i>pathname</i><b>:</b><i>name</i>
 
        <b>postmap -q - <a href="socketmap_table.html">socketmap</a>:inet:</b><i>host</i><b>:</b><i>port</i><b>:</b><i>name</i> &lt;<i>inputfile</i>
-       <b>postmap -q - <a href="socketmap_table.html">socketmap</a>:<a href="DATABASE_README.html#types">unix</a>:</b><i>pathname</i><b>:</b><i>name</i> &lt;<i>inputfile</i>
+       <b>postmap -q - <a href="socketmap_table.html">socketmap</a>:unix:</b><i>pathname</i><b>:</b><i>name</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
        The  Postfix  mail system uses optional tables for address
@@ -22,7 +22,7 @@ SOCKETMAP_TABLE(5)                                          SOCKETMAP_TABLE(5)
 
        The Postfix socketmap client expects TCP endpoint names of
        the  form  <b>inet:</b><i>host</i><b>:</b><i>port</i><b>:</b><i>name</i>, or UNIX-domain endponts of
-       the form <b><a href="DATABASE_README.html#types">unix</a>:</b><i>pathname</i><b>:</b><i>name</i>.  In both cases,  <i>name</i>  speci-
+       the form <b>unix:</b><i>pathname</i><b>:</b><i>name</i>.  In both cases,  <i>name</i>  speci-
        fies  the  name  field  in a socketmap client request (see
        "REQUEST FORMAT" below).
 

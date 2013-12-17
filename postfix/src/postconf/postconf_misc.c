@@ -45,13 +45,13 @@
 
 /* set_config_dir - forcibly override var_config_dir */
 
-void set_config_dir(void)
+void    set_config_dir(void)
 {
     char   *config_dir;
 
     if (var_config_dir)
-        myfree(var_config_dir);
+	myfree(var_config_dir);
     var_config_dir = mystrdup((config_dir = safe_getenv(CONF_ENV_PATH)) != 0 ?
-                              config_dir : DEF_CONFIG_DIR);     /* XXX */
+			      config_dir : DEF_CONFIG_DIR);	/* XXX */
     set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
 }

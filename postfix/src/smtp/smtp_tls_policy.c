@@ -308,9 +308,9 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		break;
 	    case TLS_LEV_FPRINT:
 		if (!tls->dane)
-		    tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
-		tls_dane_split(tls->dane, TLS_DANE_EE, TLS_DANE_PKEY,
-			       var_smtp_tls_fpt_dgst, val, "|");
+		    tls->dane = tls_dane_alloc();
+		tls_dane_add_ee_digests(tls->dane,
+					var_smtp_tls_fpt_dgst, val, "|");
 		break;
 	    case TLS_LEV_VERIFY:
 	    case TLS_LEV_SECURE:
@@ -345,7 +345,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		INVALID_RETURN(tls->why, site_level);
 	    }
 	    if (!tls->dane)
-		tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
+		tls->dane = tls_dane_alloc();
 	    if (!tls_dane_load_trustfile(tls->dane, val)) {
 		INVALID_RETURN(tls->why, site_level);
 	    }
@@ -559,11 +559,10 @@ static void *policy_create(const char *unused_key, void *context)
 	break;
     case TLS_LEV_FPRINT:
 	if (tls->dane == 0)
-	    tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
+	    tls->dane = tls_dane_alloc();
 	if (!TLS_DANE_HASEE(tls->dane)) {
-	    tls_dane_split(tls->dane, TLS_DANE_EE, TLS_DANE_PKEY,
-			   var_smtp_tls_fpt_dgst, var_smtp_tls_fpt_cmatch,
-			   "\t\n\r, ");
+	    tls_dane_add_ee_digests(tls->dane, var_smtp_tls_fpt_dgst,
+				    var_smtp_tls_fpt_cmatch, "\t\n\r, ");
 	    if (!TLS_DANE_HASEE(tls->dane)) {
 		msg_warn("nexthop domain %s: configured at fingerprint "
 		       "security level, but with no fingerprints to match.",
@@ -582,7 +581,7 @@ static void *policy_create(const char *unused_key, void *context)
 			   "\t\n\r, :");
 	if (*var_smtp_tls_tafile) {
 	    if (tls->dane == 0)
-		tls->dane = tls_dane_alloc(TLS_DANE_FLAG_MIXED);
+		tls->dane = tls_dane_alloc();
 	    if (!TLS_DANE_HASTA(tls->dane)
 		&& !load_tas(tls->dane, var_smtp_tls_tafile)) {
 		MARK_INVALID(tls->why, &tls->level);

@@ -358,7 +358,7 @@ static sfsistat test_eom(SMFICTX *ctx)
 #endif
     {
 	int     count;
-	char *args;
+	char   *args;
 
 	for (count = 0; count < add_rcpt_count; count++) {
 	    if ((args = strchr(add_rcpt[count], ' ')) != 0) {

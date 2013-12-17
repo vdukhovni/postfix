@@ -115,7 +115,7 @@ const char *host_port(char *buf, char **host, char *def_host,
     char   *cp = buf;
     int     ipv6 = 0;
 
-    /*
+    /*-
      * [host]:port, [host]:, [host].
      * [ipv6:ipv6addr]:port, [ipv6:ipv6addr]:, [ipv6:ipv6addr].
      */

@@ -38,8 +38,8 @@ can be stored under a fixed lookup key.
 When a transaction fails due to a full database, Postfix
 resizes the database and retries the transaction.
 
-Postfix access, address mapping and routing tables will
-generate partial search keys such as domain names without
+Postfix access, address mapping and routing table lookups
+may generate partial search keys such as domain names without
 one or more subdomains, network addresses without one or
 more least-significant octets, or email addresses without
 the localpart, address extension or domain portion.
@@ -47,7 +47,7 @@ This behavior is also found with btree:, hash:, or ldap:
 tables.
 
 Unlike other flat-file based Postfix databases, changes to
-an LMDB database do not require automatic daemon program
+an LMDB database do not trigger automatic daemon program
 restart.
 .SH "RELIABILITY"
 .na
@@ -63,10 +63,12 @@ curruption due stray pointer bugs.
 The Postfix LMDB adapter implements locking with fcntl(2)
 locks at whole-file granularity. LMDB's native locking
 scheme would require world-writable lockfiles and would
-therefore violate the Postfix security model.  Unlike some
-other Postfix flat-file databases, LMDB databases can safely
-be updated without serializing requests through the proxymap(8)
-service.
+therefore violate the Postfix security model.
+
+Multiple processes can safely update an LMDB database without
+serializing requests through the proxymap(8) service.  This
+makes LMDB suitable as a shared cache for verify(8) or
+postscreen(8) services.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf

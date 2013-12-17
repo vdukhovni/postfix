@@ -19,25 +19,33 @@
 #include <htable.h>
 #include <argv.h>
 #include <dict.h>
+#include <name_code.h>
 
  /*
   * What we're supposed to be doing.
   */
 #define SHOW_NONDEF	(1<<0)		/* show main.cf non-default settings */
 #define SHOW_DEFS	(1<<1)		/* show main.cf default setting */
-#define SHOW_NAME	(1<<2)		/* show main.cf parameter name */
+#define HIDE_NAME	(1<<2)		/* hide main.cf parameter name */
 #define SHOW_MAPS	(1<<3)		/* show map types */
-#define EDIT_MAIN	(1<<4)		/* edit main.cf */
+#define EDIT_CONF	(1<<4)		/* edit main.cf or master.cf */
 #define SHOW_LOCKS	(1<<5)		/* show mailbox lock methods */
 #define SHOW_EVAL	(1<<6)		/* expand main.cf right-hand sides */
 #define SHOW_SASL_SERV	(1<<7)		/* show server auth plugin types */
 #define SHOW_SASL_CLNT	(1<<8)		/* show client auth plugin types */
 #define COMMENT_OUT	(1<<9)		/* #-out selected main.cf entries */
-#define SHOW_MASTER	(1<<10)		/* show master.cf entries */
+#define MASTER_ENTRY	(1<<10)		/* manage master.cf entries */
 #define FOLD_LINE	(1<<11)		/* fold long *.cf entries */
 #define EDIT_EXCL	(1<<12)		/* exclude main.cf entries */
+#define MASTER_FIELD	(1<<13)		/* hierarchical pathname */
+#define MAIN_PARAM	(1<<14)		/* manage main.cf entries */
+#define EXP_DSN_TEMPL	(1<<15)		/* expand bounce templates */
+#define PARAM_CLASS	(1<<16)		/* select parameter class */
+#define MAIN_OVER	(1<<17)		/* override parameter values */
+#define DUMP_DSN_TEMPL	(1<<18)		/* show bounce templates */
+#define MASTER_PARAM	(1<<19)		/* manage master.cf -o name=value */
 
-#define DEF_MODE	SHOW_NAME	/* default mode */
+#define DEF_MODE	0
 
  /*
   * Structure for one "valid parameter" (built-in, service-defined or valid
@@ -105,7 +113,7 @@ extern VSTRING *param_string_buf;
   * Structure of one master.cf entry.
   */
 typedef struct {
-    char   *name_space;			/* service.type, parameter name space */
+    char   *name_space;			/* service/type, parameter name space */
     ARGV   *argv;			/* null, or master.cf fields */
     DICT   *all_params;			/* null, or all name=value entries */
     HTABLE *valid_names;		/* null, or "valid" parameter names */
@@ -113,10 +121,31 @@ typedef struct {
 
 #define PC_MASTER_MIN_FIELDS	8	/* mandatory field count */
 
- /*
-  * Lookup table for master.cf entries. The table is terminated with an entry
-  * that has a null argv member.
-  */
+#define PC_MASTER_NAME_SERVICE	"service"
+#define PC_MASTER_NAME_TYPE	"type"
+#define PC_MASTER_NAME_PRIVATE	"private"
+#define PC_MASTER_NAME_UNPRIV	"unprivileged"
+#define PC_MASTER_NAME_CHROOT	"chroot"
+#define PC_MASTER_NAME_WAKEUP	"wakeup"
+#define PC_MASTER_NAME_MAXPROC	"process_limit"
+#define PC_MASTER_NAME_CMD	"command"
+
+#define PC_MASTER_FIELD_SERVICE	0	/* service name */
+#define PC_MASTER_FIELD_TYPE	1	/* service type */
+#define PC_MASTER_FIELD_PRIVATE	2	/* private service */
+#define PC_MASTER_FIELD_UNPRIV	3	/* unprivileged service */
+#define PC_MASTER_FIELD_CHROOT	4	/* chrooted service */
+#define PC_MASTER_FIELD_WAKEUP	5	/* wakeup timer */
+#define PC_MASTER_FIELD_MAXPROC	6	/* process limit */
+#define PC_MASTER_FIELD_CMD	7	/* command */
+
+#define PC_MASTER_FIELD_WILDC	-1	/* wild-card */
+#define PC_MASTER_FIELD_NONE	-2	/* not available
+					 * 
+					/* Lookup table for master.cf
+					 * entries. The table is terminated
+					 * with an entry that has a null argv
+					 * member. */
 PC_MASTER_ENT *master_table;
 
  /*
@@ -147,17 +176,74 @@ extern void show_parameters(VSTREAM *, int, int, char **);
  /*
   * postconf_edit.c
   */
-extern void edit_parameters(int, int, char **);
+extern void edit_main(int, int, char **);
+extern void edit_master(int, int, char **);
 
  /*
   * postconf_master.c.
   */
 extern const char daemon_options_expecting_value[];
 extern void read_master(int);
-extern void show_master(VSTREAM *, int, char **);
+extern void show_master_entries(VSTREAM *, int, int, char **);
+extern const char *parse_master_entry(PC_MASTER_ENT *, const char *);
+extern void print_master_entry(VSTREAM *, int, PC_MASTER_ENT *);
+extern void free_master_entry(PC_MASTER_ENT *);
+extern void show_master_fields(VSTREAM *, int, int, char **);
+extern void edit_master_field(PC_MASTER_ENT *, int, const char *);
+extern void show_master_params(VSTREAM *, int, int, char **);
+extern void edit_master_param(PC_MASTER_ENT *, int, const char *, const char *);
 
 #define WARN_ON_OPEN_ERROR	0
 #define FAIL_ON_OPEN_ERROR	1
+
+#define PC_MASTER_BLANKS	" \t\r\n"	/* XXX */
+
+ /*
+  * Master.cf parameter namespace management. The idea is to manage master.cf
+  * "-o name=value" settings with other tools than text editors.
+  * 
+  * The natural choice is to use "service-name.service-type.parameter-name", but
+  * unfortunately the '.' may appear in service and parameter names.
+  * 
+  * For example, a spawn(8) listener can have a service name 127.0.0.1:10028.
+  * This service name becomes part of a service-dependent parameter name
+  * "127.0.0.1:10028_time_limit". All those '.' characters mean we can't use
+  * '.' as the parameter namespace delimiter.
+  * 
+  * (We could require that such service names are specified as $foo:port with
+  * the value of "foo" defined in main.cf or at the top of master.cf.)
+  * 
+  * But it is easier if we use '/' instead.
+  */
+#define PC_NAMESP_SEP_CH	'/'
+#define PC_NAMESP_SEP_STR	"/"
+
+#define PC_LEGACY_SEP_CH	'.'
+
+ /*
+  * postconf_match.c.
+  */
+#define PC_MATCH_WILDC_STR	"*"
+#define PC_MATCH_ANY(p)		((p)[0] == PC_MATCH_WILDC_STR[0] && (p)[1] == 0)
+#define PC_MATCH_STRING(p, s)	(PC_MATCH_ANY(p) || strcmp((p), (s)) == 0)
+
+extern ARGV *parse_service_pattern(const char *, int, int);
+extern int parse_field_pattern(const char *);
+
+#define IS_MAGIC_SERVICE_PATTERN(pat) \
+    (PC_MATCH_ANY((pat)->argv[0]) || PC_MATCH_ANY((pat)->argv[1]))
+#define MATCH_SERVICE_PATTERN(pat, name, type) \
+    (PC_MATCH_STRING((pat)->argv[0], (name)) \
+	&& PC_MATCH_STRING((pat)->argv[1], (type)))
+
+#define is_magic_field_pattern(pat) ((pat) == PC_MASTER_FIELD_WILDC)
+#define str_field_pattern(pat) ((const char *) (field_name_offset[pat].name))
+
+#define IS_MAGIC_PARAM_PATTERN(pat) PC_MATCH_ANY(pat)
+#define MATCH_PARAM_PATTERN(pat, name) PC_MATCH_STRING((pat), (name))
+
+/* The following is not part of the postconf_match API. */
+extern NAME_CODE field_name_offset[];
 
  /*
   * postconf_builtin.c.
@@ -196,6 +282,11 @@ const char *lookup_parameter_value(int, const char *, PC_MASTER_ENT *,
 				           PC_PARAM_NODE *);
 
 char   *expand_parameter_value(VSTRING *, int, const char *, PC_MASTER_ENT *);
+
+ /*
+  * postconf_print.c.
+  */
+extern void print_line(VSTREAM *, int, const char *,...);
 
  /*
   * postconf_unused.c.

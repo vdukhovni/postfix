@@ -183,8 +183,8 @@ static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
     do { \
 	buf = vstring_alloc(2 * (len + strlen(service))); \
 	hex_encode(buf, (char *) (id), (len)); \
-    	vstring_sprintf_append(buf, "&s=%s", (service)); \
-    	vstring_sprintf_append(buf, "&l=%ld", (long) SSLeay()); \
+	vstring_sprintf_append(buf, "&s=%s", (service)); \
+	vstring_sprintf_append(buf, "&l=%ld", (long) SSLeay()); \
     } while (0)
 
 
@@ -797,7 +797,7 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 
 TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 {
-    const SSL_CIPHER *cipher;
+    SSL_CIPHER_const SSL_CIPHER *cipher;
     X509   *peer;
     char    buf[CCERT_BUFSIZ];
 
