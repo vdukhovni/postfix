@@ -34,16 +34,16 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        When  a  transaction fails due to a full database, Postfix
        resizes the database and retries the transaction.
 
-       Postfix access, address mapping and  routing  tables  will
-       generate  partial search keys such as domain names without
-       one or more subdomains, network addresses without  one  or
-       more  least-significant octets, or email addresses without
-       the localpart, address extension or domain portion.   This
-       behavior  is  also  found  with  <a href="DATABASE_README.html#types">btree</a>:,  <a href="DATABASE_README.html#types">hash</a>:,  or <a href="ldap_table.5.html">ldap</a>:
-       tables.
+       Postfix access, address mapping and routing table  lookups
+       may  generate  partial  search  keys  such as domain names
+       without one or more subdomains, network addresses  without
+       one  or  more least-significant octets, or email addresses
+       without the localpart, address extension  or  domain  por-
+       tion.   This behavior is also found with <a href="DATABASE_README.html#types">btree</a>:, <a href="DATABASE_README.html#types">hash</a>:, or
+       <a href="ldap_table.5.html">ldap</a>: tables.
 
        Unlike other flat-file based Postfix databases, changes to
-       an  LMDB  database do not require automatic daemon program
+       an  LMDB  database do not trigger automatic daemon program
        restart.
 
 <b>RELIABILITY</b>
@@ -56,10 +56,12 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        The Postfix LMDB adapter implements locking with  fcntl(2)
        locks  at  whole-file  granularity.  LMDB's native locking
        scheme would require world-writable  lockfiles  and  would
-       therefore violate the Postfix security model.  Unlike some
-       other Postfix  flat-file  databases,  LMDB  databases  can
-       safely be updated without serializing requests through the
-       <a href="proxymap.8.html">proxymap(8)</a> service.
+       therefore violate the Postfix security model.
+
+       Multiple  processes  can  safely  update  an LMDB database
+       without serializing requests through the <a href="proxymap.8.html">proxymap(8)</a>  ser-
+       vice.  This makes LMDB suitable as a shared cache for <a href="verify.8.html">ver-</a>
+       <a href="verify.8.html">ify(8)</a> or <a href="postscreen.8.html">postscreen(8)</a> services.
 
 <b>CONFIGURATION PARAMETERS</b>
        Short-lived programs  automatically  pick  up  changes  to

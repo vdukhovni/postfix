@@ -607,7 +607,7 @@ from scratch.  </p>
 
 <p> Since Postfix uses multiple <a href="smtpd.8.html">smtpd(8)</a> service processes, an
 in-memory cache is not sufficient for session re-use.  Clients store
-at most one cached session per server and are very unlikey to
+at most one cached session per server and are very unlikely to
 repeatedly connect to the same server process.  Thus session caching
 in the Postfix SMTP server generally requires a shared cache (an
 alternative available with Postfix &ge; 2.11 is described below).
@@ -865,9 +865,9 @@ with high grade ciphers: </p>
     <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> = high
     <a href="postconf.5.html#smtpd_tls_mandatory_exclude_ciphers">smtpd_tls_mandatory_exclude_ciphers</a> = aNULL, MD5
     <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = encrypt
-    # Postfix &ge; 2.5:
+    # Preferred syntax with Postfix &ge; 2.5:
     <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = !SSLv2, !SSLv3
-    # Legacy form with Postfix prior to 2.5:
+    # Legacy syntax:
     <a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> = TLSv1
 </pre>
 </blockquote>
@@ -1266,7 +1266,7 @@ with MX hosts whose "A" or "AAAA" records lie in an "insecure" DNS
 zone.  Such lookups have been observed to cause interoperability
 issues with poorly implemented DNS servers, and are in any case not
 expected to ever yield "secure" results, since that would require
-a very unlikey DLV DNS trust anchor configured between the host
+a very unlikely DLV DNS trust anchor configured between the host
 record and the associated "_25._tcp" child TLSA record. </p>
 
 <p> The "dane-only" level is a form of <a

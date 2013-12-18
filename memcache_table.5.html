@@ -41,12 +41,12 @@ MEMCACHE_TABLE(5)                                            MEMCACHE_TABLE(5)
               "inet:" followed by a hostname or address, ":", and
               a  port  name  or  number.  Specify an IPv6 address
               inside "[]".   For  a  UNIX-domain  server  specify
-              "<a href="DATABASE_README.html#types">unix</a>:" followed by the socket pathname. Examples:
+              "unix:" followed by the socket pathname. Examples:
 
                   memcache = inet:memcache.example.com:11211
                   memcache = inet:127.0.0.1:11211
                   memcache = inet:[fc00:8d00:189::3]:11211
-                  memcache = <a href="DATABASE_README.html#types">unix</a>:/path/to/socket
+                  memcache = unix:/path/to/socket
 
               NOTE: to access a UNIX-domain socket with the <a href="proxymap.8.html">prox-</a>
               <a href="proxymap.8.html">ymap(8)</a> server, the socket must  be  accessible  by
