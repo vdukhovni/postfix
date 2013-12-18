@@ -151,6 +151,8 @@
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
+/* HISTORY
+/*	This service was introduced with Postfix version 2.2.
 /* AUTHOR(S)
 /*	Lutz Jaenicke
 /*	BTU Cottbus

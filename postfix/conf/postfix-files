@@ -259,6 +259,7 @@ $readme_directory/DEBUG_README:f:root:-:644
 $readme_directory/DSN_README:f:root:-:644
 $readme_directory/ETRN_README:f:root:-:644
 $readme_directory/FILTER_README:f:root:-:644
+$readme_directory/FORWARD_SECRECY_README:f:root:-:644
 $readme_directory/HOSTING_README:f:root:-:644:o
 $readme_directory/INSTALL:f:root:-:644
 $readme_directory/IPV6_README:f:root:-:644
@@ -316,6 +317,7 @@ $html_directory/DEBUG_README.html:f:root:-:644
 $html_directory/DSN_README.html:f:root:-:644
 $html_directory/ETRN_README.html:f:root:-:644
 $html_directory/FILTER_README.html:f:root:-:644
+$html_directory/FORWARD_SECRECY_README.html:f:root:-:644
 $html_directory/INSTALL.html:f:root:-:644
 $html_directory/IPV6_README.html:f:root:-:644
 $html_directory/LDAP_README.html:f:root:-:644

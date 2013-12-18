@@ -19241,7 +19241,7 @@ Apologies for any names omitted.
 
 20131122
 
-	Feature: "postcon -Fe service/type/attribute = value" edits
+	Feature: "postconf -Fe service/type/attribute = value" edits
 	master.cf attribute values. The -e is optional. Example:
 	use "postconf -F "*/*/chroot = n" to turn off chroot on all
 	master.cf services. Files: postconf/postconf.h,
@@ -19397,3 +19397,10 @@ Apologies for any names omitted.
 	Enforce that this function will be used only for creating
 	a 512-bit ephemeral RSA key.  Viktor Dukhovni. File:
 	tls/tls_rsa.c.
+
+20131218
+
+	Documentation: new document FORWARD_SECRECY_README that
+	describes how Postfix implements forward secrecy since
+	Postfix 2.2, and how that support has evolved. Viktor
+	Dukhovni. File: proto/FORWARD_SECRECY_README.html.
