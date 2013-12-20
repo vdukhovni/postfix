@@ -6,46 +6,45 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
-/*	void	edit_main(mode, argc, argv)
+/*	void	pcf_edit_main(mode, argc, argv)
 /*	int	mode;
 /*	int	argc;
 /*	char	**argv;
 /*
-/*	void	edit_master(mode, argc, argv)
+/*	void	pcf_edit_master(mode, argc, argv)
 /*	int	mode;
 /*	int	argc;
 /*	char	**argv;
 /* DESCRIPTION
-/*	edit_main() edits the \fBmain.cf\fR configuration
-/*	file. It replaces or adds parameter settings given as
-/*	"\fIname=value\fR" pairs given on the command line, or
-/*	removes parameter settings given as "\fIname\fR" on the
-/*	command line.  The file is copied to a temporary file
-/*	then renamed into place.
+/*	pcf_edit_main() edits the \fBmain.cf\fR configuration file.
+/*	It replaces or adds parameter settings given as "\fIname=value\fR"
+/*	pairs given on the command line, or removes parameter
+/*	settings given as "\fIname\fR" on the command line.  The
+/*	file is copied to a temporary file then renamed into place.
 /*
-/*	edit_master() edits the \fBmaster.cf\fR configuration file.
-/*	The file is copied to a temporary file then renamed into
-/*	place. Depending on the flags in \fBmode\fR:
-/* .IP MASTER_ENTRY
-/*	With EDIT_CONF, edit_master() replaces or adds entire
-/*	master.cf entries, specified on the command line as
+/*	pcf_edit_master() edits the \fBmaster.cf\fR configuration
+/*	file.  The file is copied to a temporary file then renamed
+/*	into place. Depending on the flags in \fBmode\fR:
+/* .IP PCF_MASTER_ENTRY
+/*	With PCF_EDIT_CONF, pcf_edit_master() replaces or adds
+/*	entire master.cf entries, specified on the command line as
 /*	"\fIname/type = name type private unprivileged chroot wakeup
 /*	process_limit command...\fR".
 /*
-/*	With EDIT_EXCL or COMMENT_OUT, edit_master() removes or
-/*	comments out entries specified on the command line as
-/*	"\fIname/type\fR.
-/* .IP MASTER_FIELD
-/*	With EDIT_CONF, edit_master() replaces the value of specific
-/*	service attributes, specified on the command line as
-/*	"\fIname/type/attribute = value\fR".
-/* .IP MASTER_PARAM
-/*	With EDIT_CONF, edit_master() replaces or adds the value
-/*	of service parameters, specified on the command line as
-/*	"\fIname/type/parameter = value\fR".
+/*	With PCF_EDIT_EXCL or PCF_COMMENT_OUT, pcf_edit_master()
+/*	removes or comments out entries specified on the command
+/*	line as "\fIname/type\fR.
+/* .IP PCF_MASTER_FLD
+/*	With PCF_EDIT_CONF, pcf_edit_master() replaces the value
+/*	of specific service attributes, specified on the command
+/*	line as "\fIname/type/attribute = value\fR".
+/* .IP PCF_MASTER_PARAM
+/*	With PCF_EDIT_CONF, pcf_edit_master() replaces or adds the
+/*	value of service parameters, specified on the command line
+/*	as "\fIname/type/parameter = value\fR".
 /*
-/*	With EDIT_EXCL, edit_master() removes service parameters
-/*	specified on the command line as "\fIparametername\fR".
+/*	With PCF_EDIT_EXCL, pcf_edit_master() removes service
+/*	parameters specified on the command line as "\fIparametername\fR".
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* FILES
@@ -92,9 +91,9 @@
 
 #define STR(x) vstring_str(x)
 
-/* find_cf_info - pass-through non-content line, return content or null */
+/* pcf_find_cf_info - pass-through non-content line, return content or null */
 
-static char *find_cf_info(VSTRING *buf, VSTREAM *dst)
+static char *pcf_find_cf_info(VSTRING *buf, VSTREAM *dst)
 {
     char   *cp;
 
@@ -109,25 +108,25 @@ static char *find_cf_info(VSTRING *buf, VSTREAM *dst)
     }
 }
 
-/* next_cf_line - return next content line, pass-through non-content */
+/* pcf_next_cf_line - return next content line, pass non-content */
 
-static char *next_cf_line(VSTRING *buf, VSTREAM *src, VSTREAM *dst, int *lineno)
+static char *pcf_next_cf_line(VSTRING *buf, VSTREAM *src, VSTREAM *dst, int *lineno)
 {
     char   *cp;
 
     while (vstring_get(buf, src) != VSTREAM_EOF) {
 	if (lineno)
 	    *lineno += 1;
-	if ((cp = find_cf_info(buf, dst)) != 0)
+	if ((cp = pcf_find_cf_info(buf, dst)) != 0)
 	    return (cp);
     }
     return (0);
 }
 
-/* gobble_cf_line - accumulate multi-line content, pass-through non-content */
+/* pcf_gobble_cf_line - accumulate multi-line content, pass non-content */
 
-static void gobble_cf_line(VSTRING *full_entry_buf, VSTRING *line_buf,
-			           VSTREAM *src, VSTREAM *dst, int *lineno)
+static void pcf_gobble_cf_line(VSTRING *full_entry_buf, VSTRING *line_buf,
+			            VSTREAM *src, VSTREAM *dst, int *lineno)
 {
     int     ch;
 
@@ -139,14 +138,14 @@ static void gobble_cf_line(VSTRING *full_entry_buf, VSTRING *line_buf,
 	    || vstring_get(line_buf, src) == VSTREAM_EOF)
 	    break;
 	lineno += 1;
-	if (find_cf_info(line_buf, dst))
+	if (pcf_find_cf_info(line_buf, dst))
 	    vstring_strcat(full_entry_buf, STR(line_buf));
     }
 }
 
-/* edit_main - edit main.cf file */
+/* pcf_edit_main - edit main.cf file */
 
-void    edit_main(int mode, int argc, char **argv)
+void    pcf_edit_main(int mode, int argc, char **argv)
 {
     char   *path;
     EDIT_FILE *ep;
@@ -179,10 +178,10 @@ void    edit_main(int mode, int argc, char **argv)
 	    cp++;
 	if (*cp == '#')
 	    msg_fatal("-e, -X, or -# accepts no comment input");
-	if (mode & EDIT_CONF) {
+	if (mode & PCF_EDIT_CONF) {
 	    if ((err = split_nameval(cp, &pattern, &edit_value)) != 0)
 		msg_fatal("%s: \"%s\"", err, cp);
-	} else if (mode & (COMMENT_OUT | EDIT_EXCL)) {
+	} else if (mode & (PCF_COMMENT_OUT | PCF_EDIT_EXCL)) {
 	    if (*cp == 0)
 		msg_fatal("-X or -# requires non-blank parameter names");
 	    if (strchr(cp, '=') != 0)
@@ -191,7 +190,7 @@ void    edit_main(int mode, int argc, char **argv)
 	    trimblanks(pattern, 0);
 	    edit_value = 0;
 	} else {
-	    msg_panic("edit_main: unknown mode %d", mode);
+	    msg_panic("pcf_edit_main: unknown mode %d", mode);
 	}
 	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
 	cvalue->value = edit_value;
@@ -203,7 +202,7 @@ void    edit_main(int mode, int argc, char **argv)
      * Open a temp file for the result. This uses a deterministic name so we
      * don't leave behind thrash with random names.
      */
-    set_config_dir();
+    pcf_set_config_dir();
     path = concatenate(var_config_dir, "/", MAIN_CONF_FILE, (char *) 0);
     if ((ep = edit_file_open(path, O_CREAT | O_WRONLY, 0644)) == 0)
 	msg_fatal("open %s%s: %m", path, EDIT_FILE_SUFFIX);
@@ -225,12 +224,12 @@ void    edit_main(int mode, int argc, char **argv)
 #define STR(x) vstring_str(x)
 
     interesting = 0;
-    while ((cp = next_cf_line(buf, src, dst, (int *) 0)) != 0) {
+    while ((cp = pcf_next_cf_line(buf, src, dst, (int *) 0)) != 0) {
 	/* Copy, skip or replace continued text. */
 	if (cp > STR(buf)) {
 	    if (interesting == 0)
 		vstream_fputs(STR(buf), dst);
-	    else if (mode & COMMENT_OUT)
+	    else if (mode & PCF_COMMENT_OUT)
 		vstream_fprintf(dst, "#%s", STR(buf));
 	}
 	/* Copy or replace start of logical line. */
@@ -240,9 +239,9 @@ void    edit_main(int mode, int argc, char **argv)
 	    if ((interesting = !!cvalue) != 0) {
 		if (cvalue->found++ == 1)
 		    msg_warn("%s: multiple entries for \"%s\"", path, STR(key));
-		if (mode & EDIT_CONF)
+		if (mode & PCF_EDIT_CONF)
 		    vstream_fprintf(dst, "%s = %s\n", STR(key), cvalue->value);
-		else if (mode & COMMENT_OUT)
+		else if (mode & PCF_COMMENT_OUT)
 		    vstream_fprintf(dst, "#%s", cp);
 	    } else {
 		vstream_fputs(STR(buf), dst);
@@ -253,7 +252,7 @@ void    edit_main(int mode, int argc, char **argv)
     /*
      * Generate new entries for parameters that were not found.
      */
-    if (mode & EDIT_CONF) {
+    if (mode & PCF_EDIT_CONF) {
 	for (ht_info = ht = htable_list(table); *ht; ht++) {
 	    cvalue = (struct cvalue *) ht[0]->value;
 	    if (cvalue->found == 0)
@@ -290,13 +289,13 @@ typedef struct {
     int     field_number;		/* attribute field number */
     const char *param_pattern;		/* parameter name */
     char   *edit_value;			/* value substring */
-} PC_MASTER_EDIT_REQ;
+} PCF_MASTER_EDIT_REQ;
 
-/* edit_master - edit master.cf file */
+/* pcf_edit_master - edit master.cf file */
 
-void    edit_master(int mode, int argc, char **argv)
+void    pcf_edit_master(int mode, int argc, char **argv)
 {
-    const char *myname = "edit_master";
+    const char *myname = "pcf_edit_master";
     char   *path;
     EDIT_FILE *ep;
     VSTREAM *src;
@@ -304,14 +303,14 @@ void    edit_master(int mode, int argc, char **argv)
     VSTRING *line_buf = vstring_alloc(100);
     VSTRING *parse_buf = vstring_alloc(100);
     int     lineno;
-    PC_MASTER_ENT *new_entry;
+    PCF_MASTER_ENT *new_entry;
     VSTRING *full_entry_buf = vstring_alloc(100);
     char   *cp;
     char   *pattern;
     int     service_name_type_matched;
     const char *err;
-    PC_MASTER_EDIT_REQ *edit_reqs;
-    PC_MASTER_EDIT_REQ *req;
+    PCF_MASTER_EDIT_REQ *edit_reqs;
+    PCF_MASTER_EDIT_REQ *req;
     int     num_reqs = argc;
     const char *edit_opts = "-Me, -Fe, -Pe, -X, or -#";
     char   *service_name;
@@ -326,7 +325,7 @@ void    edit_master(int mode, int argc, char **argv)
     /*
      * Preprocessing: split pattern=value, then split the pattern components.
      */
-    edit_reqs = (PC_MASTER_EDIT_REQ *) mymalloc(sizeof(*edit_reqs) * num_reqs);
+    edit_reqs = (PCF_MASTER_EDIT_REQ *) mymalloc(sizeof(*edit_reqs) * num_reqs);
     for (req = edit_reqs; *argv != 0; req++, argv++) {
 	req->match_count = 0;
 	req->raw_text = *argv;
@@ -338,14 +337,14 @@ void    edit_master(int mode, int argc, char **argv)
 	if (*cp == '#')
 	    msg_fatal("%s accept no comment input", edit_opts);
 	/* Separate the pattern from the value. */
-	if (mode & EDIT_CONF) {
+	if (mode & PCF_EDIT_CONF) {
 	    if ((err = split_nameval(cp, &pattern, &req->edit_value)) != 0)
 		msg_fatal("%s: \"%s\"", err, req->raw_text);
-	    if ((mode & MASTER_PARAM)
-	     && req->edit_value[strcspn(req->edit_value, PC_MASTER_BLANKS)])
+	    if ((mode & PCF_MASTER_PARAM)
+	    && req->edit_value[strcspn(req->edit_value, PCF_MASTER_BLANKS)])
 		msg_fatal("whitespace in parameter value: \"%s\"",
 			  req->raw_text);
-	} else if (mode & (COMMENT_OUT | EDIT_EXCL)) {
+	} else if (mode & (PCF_COMMENT_OUT | PCF_EDIT_EXCL)) {
 	    if (strchr(cp, '=') != 0)
 		msg_fatal("-X or -# requires names without value");
 	    pattern = cp;
@@ -355,39 +354,39 @@ void    edit_master(int mode, int argc, char **argv)
 	    msg_panic("%s: unknown mode %d", myname, mode);
 	}
 
-#define PC_MASTER_MASK (MASTER_ENTRY | MASTER_FIELD | MASTER_PARAM)
+#define PCF_MASTER_MASK (PCF_MASTER_ENTRY | PCF_MASTER_FLD | PCF_MASTER_PARAM)
 
 	/*
 	 * Split name/type or name/type/whatever pattern into components.
 	 */
-	switch (mode & PC_MASTER_MASK) {
-	case MASTER_ENTRY:
+	switch (mode & PCF_MASTER_MASK) {
+	case PCF_MASTER_ENTRY:
 	    if ((req->service_pattern =
-		 parse_service_pattern(pattern, 2, 2)) == 0)
+		 pcf_parse_service_pattern(pattern, 2, 2)) == 0)
 		msg_fatal("-Me, -MX or -M# requires service_name/type");
 	    break;
-	case MASTER_FIELD:
+	case PCF_MASTER_FLD:
 	    if ((req->service_pattern =
-		 parse_service_pattern(pattern, 3, 3)) == 0)
+		 pcf_parse_service_pattern(pattern, 3, 3)) == 0)
 		msg_fatal("-Fe or -FX requires service_name/type/field_name");
 	    req->field_number =
-		parse_field_pattern(req->service_pattern->argv[2]);
-	    if (is_magic_field_pattern(req->field_number))
+		pcf_parse_field_pattern(req->service_pattern->argv[2]);
+	    if (pcf_is_magic_field_pattern(req->field_number))
 		msg_fatal("-Fe does not accept wild-card field name");
-	    if ((mode & EDIT_CONF)
-		&& req->field_number < PC_MASTER_FIELD_CMD
-	     && req->edit_value[strcspn(req->edit_value, PC_MASTER_BLANKS)])
+	    if ((mode & PCF_EDIT_CONF)
+		&& req->field_number < PCF_MASTER_FLD_CMD
+	    && req->edit_value[strcspn(req->edit_value, PCF_MASTER_BLANKS)])
 		msg_fatal("-Fe does not accept whitespace in non-command field");
 	    break;
-	case MASTER_PARAM:
+	case PCF_MASTER_PARAM:
 	    if ((req->service_pattern =
-		 parse_service_pattern(pattern, 3, 3)) == 0)
+		 pcf_parse_service_pattern(pattern, 3, 3)) == 0)
 		msg_fatal("-Pe or -PX requires service_name/type/parameter");
 	    req->param_pattern = req->service_pattern->argv[2];
-	    if (IS_MAGIC_PARAM_PATTERN(req->param_pattern))
+	    if (PCF_IS_MAGIC_PARAM_PATTERN(req->param_pattern))
 		msg_fatal("-Pe does not accept wild-card parameter name");
-	    if ((mode & EDIT_CONF)
-	     && req->edit_value[strcspn(req->edit_value, PC_MASTER_BLANKS)])
+	    if ((mode & PCF_EDIT_CONF)
+	    && req->edit_value[strcspn(req->edit_value, PCF_MASTER_BLANKS)])
 		msg_fatal("-Pe does not accept whitespace in parameter value");
 	    break;
 	default:
@@ -399,7 +398,7 @@ void    edit_master(int mode, int argc, char **argv)
      * Open a temp file for the result. This uses a deterministic name so we
      * don't leave behind thrash with random names.
      */
-    set_config_dir();
+    pcf_set_config_dir();
     path = concatenate(var_config_dir, "/", MASTER_CONF_FILE, (char *) 0);
     if ((ep = edit_file_open(path, O_CREAT | O_WRONLY, 0644)) == 0)
 	msg_fatal("open %s%s: %m", path, EDIT_FILE_SUFFIX);
@@ -421,7 +420,7 @@ void    edit_master(int mode, int argc, char **argv)
     service_name_type_matched = 0;
     new_entry = 0;
     lineno = 0;
-    while ((cp = next_cf_line(parse_buf, src, dst, &lineno)) != 0) {
+    while ((cp = pcf_next_cf_line(parse_buf, src, dst, &lineno)) != 0) {
 	vstring_strcpy(line_buf, STR(parse_buf));
 
 	/*
@@ -430,7 +429,7 @@ void    edit_master(int mode, int argc, char **argv)
 	if (cp > STR(parse_buf)) {
 	    if (service_name_type_matched == 0)
 		vstream_fputs(STR(line_buf), dst);
-	    else if (mode & COMMENT_OUT)
+	    else if (mode & PCF_COMMENT_OUT)
 		vstream_fprintf(dst, "#%s", STR(line_buf));
 	}
 
@@ -443,8 +442,8 @@ void    edit_master(int mode, int argc, char **argv)
 	    /*
 	     * Parse out the service name and type.
 	     */
-	    if ((service_name = mystrtok(&cp, PC_MASTER_BLANKS)) == 0
-		|| (service_type = mystrtok(&cp, PC_MASTER_BLANKS)) == 0)
+	    if ((service_name = mystrtok(&cp, PCF_MASTER_BLANKS)) == 0
+		|| (service_type = mystrtok(&cp, PCF_MASTER_BLANKS)) == 0)
 		msg_fatal("file %s: line %d: specify service name and type "
 			  "on the same line", path, lineno);
 	    if (strchr(service_name, '='))
@@ -460,54 +459,56 @@ void    edit_master(int mode, int argc, char **argv)
 	     * Match each service pattern.
 	     */
 	    for (req = edit_reqs; req < edit_reqs + num_reqs; req++) {
-		if (MATCH_SERVICE_PATTERN(req->service_pattern, service_name,
-					  service_type)) {
+		if (PCF_MATCH_SERVICE_PATTERN(req->service_pattern,
+					      service_name,
+					      service_type)) {
 		    service_name_type_matched = 1;	/* Sticky flag */
 		    req->match_count += 1;
 
 		    /*
 		     * Generate replacement master.cf entries.
 		     */
-		    if ((mode & EDIT_CONF)
-			|| ((mode & MASTER_PARAM) && (mode & EDIT_EXCL))) {
-			switch (mode & PC_MASTER_MASK) {
+		    if ((mode & PCF_EDIT_CONF)
+			|| ((mode & PCF_MASTER_PARAM) && (mode & PCF_EDIT_EXCL))) {
+			switch (mode & PCF_MASTER_MASK) {
 
 			    /*
 			     * Replace master.cf entry field or parameter
 			     * value.
 			     */
-			case MASTER_FIELD:
-			case MASTER_PARAM:
+			case PCF_MASTER_FLD:
+			case PCF_MASTER_PARAM:
 			    if (new_entry == 0) {
 				/* Gobble up any continuation lines. */
-				gobble_cf_line(full_entry_buf, line_buf, src,
-					       dst, &lineno);
-				new_entry = (PC_MASTER_ENT *)
+				pcf_gobble_cf_line(full_entry_buf, line_buf,
+						   src, dst, &lineno);
+				new_entry = (PCF_MASTER_ENT *)
 				    mymalloc(sizeof(*new_entry));
-				if ((err = parse_master_entry(new_entry,
+				if ((err = pcf_parse_master_entry(new_entry,
 						 STR(full_entry_buf))) != 0)
 				    msg_fatal("file %s: line %d: %s",
 					      path, lineno, err);
 			    }
-			    if (mode & MASTER_FIELD) {
-				edit_master_field(new_entry, req->field_number,
-						  req->edit_value);
+			    if (mode & PCF_MASTER_FLD) {
+				pcf_edit_master_field(new_entry,
+						      req->field_number,
+						      req->edit_value);
 			    } else {
-				edit_master_param(new_entry, mode,
-						  req->param_pattern,
-						  req->edit_value);
+				pcf_edit_master_param(new_entry, mode,
+						      req->param_pattern,
+						      req->edit_value);
 			    }
 			    break;
 
 			    /*
 			     * Replace entire master.cf entry.
 			     */
-			case MASTER_ENTRY:
+			case PCF_MASTER_ENTRY:
 			    if (new_entry != 0)
-				free_master_entry(new_entry);
-			    new_entry = (PC_MASTER_ENT *)
+				pcf_free_master_entry(new_entry);
+			    new_entry = (PCF_MASTER_ENT *)
 				mymalloc(sizeof(*new_entry));
-			    if ((err = parse_master_entry(new_entry,
+			    if ((err = pcf_parse_master_entry(new_entry,
 						     req->edit_value)) != 0)
 				msg_fatal("%s: \"%s\"", err, req->raw_text);
 			    break;
@@ -522,12 +523,12 @@ void    edit_master(int mode, int argc, char **argv)
 	     * Pass through or replace the current input line.
 	     */
 	    if (new_entry) {
-		print_master_entry(dst, FOLD_LINE, new_entry);
-		free_master_entry(new_entry);
+		pcf_print_master_entry(dst, PCF_FOLD_LINE, new_entry);
+		pcf_free_master_entry(new_entry);
 		new_entry = 0;
 	    } else if (service_name_type_matched == 0) {
 		vstream_fputs(STR(line_buf), dst);
-	    } else if (mode & COMMENT_OUT) {
+	    } else if (mode & PCF_COMMENT_OUT) {
 		vstream_fprintf(dst, "#%s", STR(line_buf));
 	    }
 	}
@@ -540,13 +541,13 @@ void    edit_master(int mode, int argc, char **argv)
      */
     for (req = edit_reqs; req < edit_reqs + num_reqs; req++) {
 	if (req->match_count == 0) {
-	    if ((mode & MASTER_ENTRY) && (mode & EDIT_CONF)) {
-		new_entry = (PC_MASTER_ENT *) mymalloc(sizeof(*new_entry));
-		if ((err = parse_master_entry(new_entry, req->edit_value)) != 0)
+	    if ((mode & PCF_MASTER_ENTRY) && (mode & PCF_EDIT_CONF)) {
+		new_entry = (PCF_MASTER_ENT *) mymalloc(sizeof(*new_entry));
+		if ((err = pcf_parse_master_entry(new_entry, req->edit_value)) != 0)
 		    msg_fatal("%s: \"%s\"", err, req->raw_text);
-		print_master_entry(dst, FOLD_LINE, new_entry);
-		free_master_entry(new_entry);
-	    } else if ((mode & MASTER_ENTRY) == 0) {
+		pcf_print_master_entry(dst, PCF_FOLD_LINE, new_entry);
+		pcf_free_master_entry(new_entry);
+	    } else if ((mode & PCF_MASTER_ENTRY) == 0) {
 		msg_warn("unmatched service_name/type: \"%s\"", req->raw_text);
 	    }
 	}

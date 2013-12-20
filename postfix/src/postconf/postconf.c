@@ -7,52 +7,63 @@
 /* .fi
 /*	\fBManaging main.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-dfhnovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dfhnopvx\fR] [\fB-c \fIconf_dir\fR]
 /*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
-/*	\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
-/*	\fIparameter=value ...\fR
+/*	\fBpostconf\fR [\fB-epv\fR] [\fB-c \fIconf_dir\fR]
+/*	\fIparameter\fB=\fIvalue ...\fR
 /*
-/*	\fBpostconf\fR [\fB-#vX\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-#\fR [\fB-pv\fR] [\fB-c \fIconf_dir\fR]
+/*	\fIparameter ...\fR
+/*
+/*	\fBpostconf\fR \fB-X\fR [\fB-pv\fR] [\fB-c \fIconf_dir\fR]
 /*	\fIparameter ...\fR
 /*
 /*	\fBManaging master.cf service entries:\fR
 /*
-/*	\fBpostconf\fR [\fB-fMovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-M\fR [\fB-fovx\fR] [\fB-c \fIconf_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR]\fI ...\fR]
 /*
-/*	\fBpostconf\fR [\fB-eMv\fR] [\fB-c \fIconfig_dir\fR]
-/*	\fIservice\fB/\fItype=value ...\fR
+/*	\fBpostconf\fR \fB-M\fR [\fB-ev\fR] [\fB-c \fIconf_dir\fR]
+/*	\fIservice\fB/\fItype\fB=\fIvalue ...\fR
 /*
-/*	\fBpostconf\fR [\fB-#MvX\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-M#\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
+/*	\fIservice\fB/\fItype ...\fR
+/*
+/*	\fBpostconf\fR \fB-MX\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
 /*	\fIservice\fB/\fItype ...\fR
 /*
 /*	\fBManaging master.cf service fields:\fR
 /*
-/*	\fBpostconf\fR [\fB-fFovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-F\fR [\fB-fovx\fR] [\fB-c \fIconf_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 /*
-/*	\fBpostconf\fR [\fB-eFv\fR] [\fB-c \fIconfig_dir\fR]
-/*	\fIservice\fB/\fItype\fB/\fIfield=value ...\fR
+/*	\fBpostconf\fR \fB-F\fR [\fB-ev\fR] [\fB-c \fIconf_dir\fR]
+/*	\fIservice\fB/\fItype\fB/\fIfield\fB=\fIvalue ...\fR
 /*
 /*	\fBManaging master.cf service parameters:\fR
 /*
-/*	\fBpostconf\fR [\fB-fPovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-P\fR [\fB-fovx\fR] [\fB-c \fIconf_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 /*
-/*	\fBpostconf\fR [\fB-ePv\fR] [\fB-c \fIconfig_dir\fR]
-/*	\fIservice\fB/\fItype\fB/\fIparameter=value ...\fR
+/*	\fBpostconf\fR \fB-P\fR [\fB-ev\fR] [\fB-c \fIconf_dir\fR]
+/*	\fIservice\fB/\fItype\fB/\fIparameter\fB=\fIvalue ...\fR
 /*
-/*	\fBpostconf\fR [\fB-PXv\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-PX\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
 /*	\fIservice\fB/\fItype\fB/\fIparameter ...\fR
 /*
 /*	\fBManaging bounce message templates:\fR
 /*
-/*	\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
+/*	\fBpostconf\fR \fB-b\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
+/*	[\fItemplate_file\fR]
+/*
+/*	\fBpostconf\fR \fB-t\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
+/*	[\fItemplate_file\fR]
 /*
 /*	\fBManaging other configuration:\fR
 /*
-/*	\fBpostconf\fR [\fB-aAlmv\fR] [\fB-c \fIconfig_dir\fR]
+/*      \fBpostconf\fR \fB-a\fR|\fB-A\fR|\fB-l\fR|\fB-m\fR [\fB-v\fR]
+/*	[\fB-c \fIconf_dir\fR]
 /* DESCRIPTION
 /*	By default, the \fBpostconf\fR(1) command displays the
 /*	values of \fBmain.cf\fR configuration parameters, and warns
@@ -106,7 +117,7 @@
 /*	line (in shell language: "").
 /*
 /*	This feature is available with Postfix 2.3 and later.
-/* .IP "\fB-c \fIconfig_dir\fR"
+/* .IP "\fB-c \fIconf_dir\fR"
 /*	The \fBmain.cf\fR configuration file is in the named directory
 /*	instead of the default configuration directory.
 /* .IP "\fB-C \fIclass,...\fR"
@@ -491,9 +502,9 @@
  /*
   * Global storage. See postconf.h for description.
   */
-PC_PARAM_TABLE *param_table;
-PC_MASTER_ENT *master_table;
-int     cmd_mode = DEF_MODE;
+PCF_PARAM_TABLE *pcf_param_table;
+PCF_MASTER_ENT *pcf_master_table;
+int     pcf_cmd_mode = PCF_DEF_MODE;
 
  /*
   * Application fingerprinting.
@@ -510,16 +521,19 @@ MAIL_VERSION_STAMP_DECLARE;
   * Options that are mutually-exclusive. First entry must specify the major
   * modes. Other entries specify conflicts between option modifiers.
   */
-static const int incompat_options[] = {
+static const int pcf_incompat_options[] = {
     /* Major modes. */
-    SHOW_SASL_SERV | SHOW_SASL_CLNT | EXP_DSN_TEMPL | SHOW_LOCKS | SHOW_MAPS \
-    |DUMP_DSN_TEMPL | MAIN_PARAM | MASTER_ENTRY | MASTER_FIELD | MASTER_PARAM,
+    PCF_SHOW_SASL_SERV | PCF_SHOW_SASL_CLNT | PCF_EXP_DSN_TEMPL \
+    |PCF_SHOW_LOCKS | PCF_SHOW_MAPS | PCF_DUMP_DSN_TEMPL | PCF_MAIN_PARAM \
+    |PCF_MASTER_ENTRY | PCF_MASTER_FLD | PCF_MASTER_PARAM,
     /* Modifiers. */
-    SHOW_DEFS | EDIT_CONF | SHOW_NONDEF | COMMENT_OUT | EDIT_EXCL,
-    FOLD_LINE | EDIT_CONF | COMMENT_OUT | EDIT_EXCL,
-    SHOW_EVAL | EDIT_CONF | COMMENT_OUT | EDIT_EXCL,
-    MAIN_OVER | SHOW_DEFS | EDIT_CONF | COMMENT_OUT | EDIT_EXCL,
-    HIDE_NAME | EDIT_CONF | COMMENT_OUT | EDIT_EXCL,
+    PCF_SHOW_DEFS | PCF_EDIT_CONF | PCF_SHOW_NONDEF | PCF_COMMENT_OUT \
+    |PCF_EDIT_EXCL,
+    PCF_FOLD_LINE | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
+    PCF_SHOW_EVAL | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
+    PCF_MAIN_OVER | PCF_SHOW_DEFS | PCF_EDIT_CONF | PCF_COMMENT_OUT \
+    |PCF_EDIT_EXCL,
+    PCF_HIDE_NAME | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
     0,
 };
 
@@ -528,50 +542,53 @@ static const int incompat_options[] = {
   * be one entry for each major mode. Other entries specify compatibility
   * between option modifiers.
   */
-static const int compat_options[][2] = {
+static const int pcf_compat_options[][2] = {
     /* Major modes. */
-    {SHOW_SASL_SERV, 0},
-    {SHOW_SASL_CLNT, 0},
-    {EXP_DSN_TEMPL, 0},
-    {SHOW_LOCKS, 0},
-    {SHOW_MAPS, 0,},
-    {DUMP_DSN_TEMPL, 0},
-    {MAIN_PARAM, EDIT_CONF | EDIT_EXCL | COMMENT_OUT | FOLD_LINE | HIDE_NAME \
-    |PARAM_CLASS | SHOW_EVAL | SHOW_DEFS | SHOW_NONDEF | MAIN_OVER},
-    {MASTER_ENTRY, EDIT_CONF | EDIT_EXCL | COMMENT_OUT | FOLD_LINE | MAIN_OVER \
-    |SHOW_EVAL},
-    {MASTER_FIELD, EDIT_CONF | FOLD_LINE | HIDE_NAME | MAIN_OVER | SHOW_EVAL},
-    {MASTER_PARAM, EDIT_CONF | EDIT_EXCL | FOLD_LINE | HIDE_NAME | MAIN_OVER \
-    |SHOW_EVAL},
+    {PCF_SHOW_SASL_SERV, 0},
+    {PCF_SHOW_SASL_CLNT, 0},
+    {PCF_EXP_DSN_TEMPL, 0},
+    {PCF_SHOW_LOCKS, 0},
+    {PCF_SHOW_MAPS, 0,},
+    {PCF_DUMP_DSN_TEMPL, 0},
+    {PCF_MAIN_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT \
+		      |PCF_FOLD_LINE | PCF_HIDE_NAME | PCF_PARAM_CLASS \
+		      |PCF_SHOW_EVAL | PCF_SHOW_DEFS | PCF_SHOW_NONDEF \
+		      |PCF_MAIN_OVER)},
+    {PCF_MASTER_ENTRY, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT \
+			|PCF_FOLD_LINE | PCF_MAIN_OVER | PCF_SHOW_EVAL)},
+    {PCF_MASTER_FLD, (PCF_EDIT_CONF | PCF_FOLD_LINE | PCF_HIDE_NAME \
+		      |PCF_MAIN_OVER | PCF_SHOW_EVAL)},
+    {PCF_MASTER_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_FOLD_LINE \
+			|PCF_HIDE_NAME | PCF_MAIN_OVER | PCF_SHOW_EVAL)},
     /* Modifiers. */
-    {PARAM_CLASS, MAIN_PARAM | SHOW_DEFS | SHOW_NONDEF},
+    {PCF_PARAM_CLASS, (PCF_MAIN_PARAM | PCF_SHOW_DEFS | PCF_SHOW_NONDEF)},
     0,
 };
 
  /*
   * Compatibility to string conversion support.
   */
-static const NAME_MASK compat_names[] = {
-    "-a", SHOW_SASL_SERV,
-    "-A", SHOW_SASL_CLNT,
-    "-b", EXP_DSN_TEMPL,
-    "-C", PARAM_CLASS,
-    "-d", SHOW_DEFS,
-    "-e", EDIT_CONF,
-    "-f", FOLD_LINE,
-    "-F", MASTER_FIELD,
-    "-h", HIDE_NAME,
-    "-l", SHOW_LOCKS,
-    "-m", SHOW_MAPS,
-    "-M", MASTER_ENTRY,
-    "-n", SHOW_NONDEF,
-    "-o", MAIN_OVER,
-    "-p", MAIN_PARAM,
-    "-P", MASTER_PARAM,
-    "-t", DUMP_DSN_TEMPL,
-    "-x", SHOW_EVAL,
-    "-X", EDIT_EXCL,
-    "-#", COMMENT_OUT,
+static const NAME_MASK pcf_compat_names[] = {
+    "-a", PCF_SHOW_SASL_SERV,
+    "-A", PCF_SHOW_SASL_CLNT,
+    "-b", PCF_EXP_DSN_TEMPL,
+    "-C", PCF_PARAM_CLASS,
+    "-d", PCF_SHOW_DEFS,
+    "-e", PCF_EDIT_CONF,
+    "-f", PCF_FOLD_LINE,
+    "-F", PCF_MASTER_FLD,
+    "-h", PCF_HIDE_NAME,
+    "-l", PCF_SHOW_LOCKS,
+    "-m", PCF_SHOW_MAPS,
+    "-M", PCF_MASTER_ENTRY,
+    "-n", PCF_SHOW_NONDEF,
+    "-o", PCF_MAIN_OVER,
+    "-p", PCF_MAIN_PARAM,
+    "-P", PCF_MASTER_PARAM,
+    "-t", PCF_DUMP_DSN_TEMPL,
+    "-x", PCF_SHOW_EVAL,
+    "-X", PCF_EDIT_EXCL,
+    "-#", PCF_COMMENT_OUT,
     0,
 };
 
@@ -605,43 +622,43 @@ static void usage(const char *progname)
 	      " [name...]", progname);
 }
 
-/* check_exclusive_options - complain about mutually-exclusive options */
+/* pcf_check_exclusive_options - complain about mutually-exclusive options */
 
-static void check_exclusive_options(int optval)
+static void pcf_check_exclusive_options(int optval)
 {
-    const char *myname = "check_exclusive_options";
+    const char *myname = "pcf_check_exclusive_options";
     const int *op;
     int     oval;
     unsigned mask;
 
-    for (op = incompat_options; (oval = *op) != 0; op++) {
+    for (op = pcf_incompat_options; (oval = *op) != 0; op++) {
 	oval &= optval;
 	for (mask = ~0; (mask & oval) != 0; mask >>= 1) {
 	    if ((mask & oval) != oval)
 		msg_fatal("specify one of %s",
-			  str_name_mask(myname, compat_names, oval));
+			  str_name_mask(myname, pcf_compat_names, oval));
 	}
     }
 }
 
-/* check_compat_options - complain about incompatible options */
+/* pcf_check_compat_options - complain about incompatible options */
 
-static void check_compat_options(int optval)
+static void pcf_check_compat_options(int optval)
 {
-    const char *myname = "check_compat_options";
+    const char *myname = "pcf_check_compat_options";
     VSTRING *buf1 = vstring_alloc(10);
     VSTRING *buf2 = vstring_alloc(10);
     const int (*op)[2];
     int     excess;
 
-    for (op = compat_options; op[0][0] != 0; op++) {
+    for (op = pcf_compat_options; op[0][0] != 0; op++) {
 	if ((optval & *op[0]) != 0
 	    && (excess = (optval & ~((*op)[0] | (*op)[1]))) != 0)
 	    msg_fatal("with option %s, do not specify %s",
-		      str_name_mask_opt(buf1, myname, compat_names,
+		      str_name_mask_opt(buf1, myname, pcf_compat_names,
 					(*op)[0], NAME_MASK_NUMBER),
-		      str_name_mask_opt(buf2, myname, compat_names, excess,
-					NAME_MASK_NUMBER));
+		      str_name_mask_opt(buf2, myname, pcf_compat_names,
+					excess, NAME_MASK_NUMBER));
     }
     vstring_free(buf1);
     vstring_free(buf2);
@@ -655,12 +672,12 @@ int     main(int argc, char **argv)
     int     fd;
     struct stat st;
     ARGV   *ext_argv = 0;
-    int     param_class = PC_PARAM_MASK_CLASS;
+    int     param_class = PCF_PARAM_MASK_CLASS;
     static const NAME_MASK param_class_table[] = {
-	"builtin", PC_PARAM_FLAG_BUILTIN,
-	"service", PC_PARAM_FLAG_SERVICE,
-	"user", PC_PARAM_FLAG_USER,
-	"all", PC_PARAM_MASK_CLASS,
+	"builtin", PCF_PARAM_FLAG_BUILTIN,
+	"service", PCF_PARAM_FLAG_SERVICE,
+	"user", PCF_PARAM_FLAG_USER,
+	"all", PCF_PARAM_MASK_CLASS,
 	0,
     };
     ARGV   *override_params = 0;
@@ -696,13 +713,13 @@ int     main(int argc, char **argv)
     while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhlmMno:pPtvxX#")) > 0) {
 	switch (ch) {
 	case 'a':
-	    cmd_mode |= SHOW_SASL_SERV;
+	    pcf_cmd_mode |= PCF_SHOW_SASL_SERV;
 	    break;
 	case 'A':
-	    cmd_mode |= SHOW_SASL_CLNT;
+	    pcf_cmd_mode |= PCF_SHOW_SASL_CLNT;
 	    break;
 	case 'b':
-	    cmd_mode |= EXP_DSN_TEMPL;
+	    pcf_cmd_mode |= PCF_EXP_DSN_TEMPL;
 	    if (ext_argv)
 		msg_fatal("specify one of -b and -t");
 	    ext_argv = argv_alloc(2);
@@ -717,60 +734,60 @@ int     main(int argc, char **argv)
 			      optarg, NAME_MASK_ANY_CASE | NAME_MASK_FATAL);
 	    break;
 	case 'd':
-	    cmd_mode |= SHOW_DEFS;
+	    pcf_cmd_mode |= PCF_SHOW_DEFS;
 	    break;
 	case 'e':
-	    cmd_mode |= EDIT_CONF;
+	    pcf_cmd_mode |= PCF_EDIT_CONF;
 	    break;
 	case 'f':
-	    cmd_mode |= FOLD_LINE;
+	    pcf_cmd_mode |= PCF_FOLD_LINE;
 	    break;
 	case 'F':
-	    cmd_mode |= MASTER_FIELD;
+	    pcf_cmd_mode |= PCF_MASTER_FLD;
 	    break;
 	case '#':
-	    cmd_mode |= COMMENT_OUT;
+	    pcf_cmd_mode |= PCF_COMMENT_OUT;
 	    break;
 	case 'h':
-	    cmd_mode |= HIDE_NAME;
+	    pcf_cmd_mode |= PCF_HIDE_NAME;
 	    break;
 	case 'l':
-	    cmd_mode |= SHOW_LOCKS;
+	    pcf_cmd_mode |= PCF_SHOW_LOCKS;
 	    break;
 	case 'm':
-	    cmd_mode |= SHOW_MAPS;
+	    pcf_cmd_mode |= PCF_SHOW_MAPS;
 	    break;
 	case 'M':
-	    cmd_mode |= MASTER_ENTRY;
+	    pcf_cmd_mode |= PCF_MASTER_ENTRY;
 	    break;
 	case 'n':
-	    cmd_mode |= SHOW_NONDEF;
+	    pcf_cmd_mode |= PCF_SHOW_NONDEF;
 	    break;
 	case 'o':
-	    cmd_mode |= MAIN_OVER;
+	    pcf_cmd_mode |= PCF_MAIN_OVER;
 	    if (override_params == 0)
 		override_params = argv_alloc(2);
 	    argv_add(override_params, optarg, (char *) 0);
 	    break;
 	case 'p':
-	    cmd_mode |= MAIN_PARAM;
+	    pcf_cmd_mode |= PCF_MAIN_PARAM;
 	    break;
 	case 'P':
-	    cmd_mode |= MASTER_PARAM;
+	    pcf_cmd_mode |= PCF_MASTER_PARAM;
 	    break;
 	case 't':
-	    cmd_mode |= DUMP_DSN_TEMPL;
+	    pcf_cmd_mode |= PCF_DUMP_DSN_TEMPL;
 	    if (ext_argv)
 		msg_fatal("specify one of -b and -t");
 	    ext_argv = argv_alloc(2);
 	    argv_add(ext_argv, "bounce", "-SVndump_templates", (char *) 0);
 	    break;
 	case 'x':
-	    cmd_mode |= SHOW_EVAL;
+	    pcf_cmd_mode |= PCF_SHOW_EVAL;
 	    break;
 	case 'X':
 	    /* This is irreversible, therefore require two-finger action. */
-	    cmd_mode |= EDIT_EXCL;
+	    pcf_cmd_mode |= PCF_EDIT_EXCL;
 	    break;
 	case 'v':
 	    msg_verbose++;
@@ -783,19 +800,22 @@ int     main(int argc, char **argv)
     /*
      * Make all options explicit, before checking their compatibility.
      */
-    if ((cmd_mode & incompat_options[0]) == 0)
-	cmd_mode |= MAIN_PARAM;
-    if ((cmd_mode & (MAIN_PARAM | MASTER_ENTRY | MASTER_FIELD | MASTER_PARAM))
+#define PCF_MAIN_OR_MASTER \
+	(PCF_MAIN_PARAM | PCF_MASTER_ENTRY | PCF_MASTER_FLD | PCF_MASTER_PARAM)
+
+    if ((pcf_cmd_mode & pcf_incompat_options[0]) == 0)
+	pcf_cmd_mode |= PCF_MAIN_PARAM;
+    if ((pcf_cmd_mode & PCF_MAIN_OR_MASTER)
 	&& argv[optind] && strchr(argv[optind], '='))
-	cmd_mode |= EDIT_CONF;
+	pcf_cmd_mode |= PCF_EDIT_CONF;
 
     /*
      * Sanity check.
      */
-    check_exclusive_options(cmd_mode);
-    check_compat_options(cmd_mode);
+    pcf_check_exclusive_options(pcf_cmd_mode);
+    pcf_check_compat_options(pcf_cmd_mode);
 
-    if ((cmd_mode & EDIT_CONF) && argc == optind)
+    if ((pcf_cmd_mode & PCF_EDIT_CONF) && argc == optind)
 	msg_fatal("-e requires name=value argument");
 
     /*
@@ -822,57 +842,60 @@ int     main(int argc, char **argv)
     /*
      * If showing map types, show them and exit
      */
-    if (cmd_mode & SHOW_MAPS) {
+    if (pcf_cmd_mode & PCF_SHOW_MAPS) {
 	mail_dict_init();
-	show_maps();
+	pcf_show_maps();
     }
 
     /*
      * If showing locking methods, show them and exit
      */
-    else if (cmd_mode & SHOW_LOCKS) {
-	show_locks();
+    else if (pcf_cmd_mode & PCF_SHOW_LOCKS) {
+	pcf_show_locks();
     }
 
     /*
      * If showing master.cf entries, show them and exit
      */
-    else if ((cmd_mode & (MASTER_ENTRY | MASTER_FIELD | MASTER_PARAM))
-	     && !(cmd_mode & (EDIT_CONF | EDIT_EXCL | COMMENT_OUT))) {
-	read_master(FAIL_ON_OPEN_ERROR);
-	read_parameters();
+    else if ((pcf_cmd_mode & (PCF_MASTER_ENTRY | PCF_MASTER_FLD | PCF_MASTER_PARAM))
+    && !(pcf_cmd_mode & (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT))) {
+	pcf_read_master(PCF_FAIL_ON_OPEN_ERROR);
+	pcf_read_parameters();
 	if (override_params)
-	    set_parameters(override_params->argv);
-	register_builtin_parameters(basename(argv[0]), getpid());
-	register_service_parameters();
-	register_user_parameters();
-	if (cmd_mode & MASTER_FIELD)
-	    show_master_fields(VSTREAM_OUT, cmd_mode, argc - optind, argv + optind);
-	else if (cmd_mode & MASTER_PARAM)
-	    show_master_params(VSTREAM_OUT, cmd_mode, argc - optind, argv + optind);
+	    pcf_set_parameters(override_params->argv);
+	pcf_register_builtin_parameters(basename(argv[0]), getpid());
+	pcf_register_service_parameters();
+	pcf_register_user_parameters();
+	if (pcf_cmd_mode & PCF_MASTER_FLD)
+	    pcf_show_master_fields(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
+				   argv + optind);
+	else if (pcf_cmd_mode & PCF_MASTER_PARAM)
+	    pcf_show_master_params(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
+				   argv + optind);
 	else
-	    show_master_entries(VSTREAM_OUT, cmd_mode, argc - optind, argv + optind);
+	    pcf_show_master_entries(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
+				    argv + optind);
     }
 
     /*
      * If showing SASL plug-in types, show them and exit
      */
-    else if (cmd_mode & SHOW_SASL_SERV) {
-	show_sasl(SHOW_SASL_SERV);
-    } else if (cmd_mode & SHOW_SASL_CLNT) {
-	show_sasl(SHOW_SASL_CLNT);
+    else if (pcf_cmd_mode & PCF_SHOW_SASL_SERV) {
+	pcf_show_sasl(PCF_SHOW_SASL_SERV);
+    } else if (pcf_cmd_mode & PCF_SHOW_SASL_CLNT) {
+	pcf_show_sasl(PCF_SHOW_SASL_CLNT);
     }
 
     /*
      * Edit main.cf or master.cf.
      */
-    else if (cmd_mode & (EDIT_CONF | COMMENT_OUT | EDIT_EXCL)) {
+    else if (pcf_cmd_mode & (PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL)) {
 	if (optind == argc)
 	    msg_fatal("missing service argument");
-	if (cmd_mode & (MASTER_ENTRY | MASTER_FIELD | MASTER_PARAM)) {
-	    edit_master(cmd_mode, argc - optind, argv + optind);
+	if (pcf_cmd_mode & (PCF_MASTER_ENTRY | PCF_MASTER_FLD | PCF_MASTER_PARAM)) {
+	    pcf_edit_master(pcf_cmd_mode, argc - optind, argv + optind);
 	} else {
-	    edit_main(cmd_mode, argc - optind, argv + optind);
+	    pcf_edit_main(pcf_cmd_mode, argc - optind, argv + optind);
 	}
     }
 
@@ -880,12 +903,12 @@ int     main(int argc, char **argv)
      * If showing non-default values, read main.cf.
      */
     else {
-	if ((cmd_mode & SHOW_DEFS) == 0) {
-	    read_parameters();
+	if ((pcf_cmd_mode & PCF_SHOW_DEFS) == 0) {
+	    pcf_read_parameters();
 	    if (override_params)
-		set_parameters(override_params->argv);
+		pcf_set_parameters(override_params->argv);
 	}
-	register_builtin_parameters(basename(argv[0]), getpid());
+	pcf_register_builtin_parameters(basename(argv[0]), getpid());
 
 	/*
 	 * Add service-dependent parameters (service names from master.cf)
@@ -893,24 +916,25 @@ int     main(int argc, char **argv)
 	 * main.cf and master.cf, but only if those names have a name=value
 	 * in main.cf or master.cf).
 	 */
-	read_master(WARN_ON_OPEN_ERROR);
-	register_service_parameters();
-	if ((cmd_mode & SHOW_DEFS) == 0)
-	    register_user_parameters();
+	pcf_read_master(PCF_WARN_ON_OPEN_ERROR);
+	pcf_register_service_parameters();
+	if ((pcf_cmd_mode & PCF_SHOW_DEFS) == 0)
+	    pcf_register_user_parameters();
 
 	/*
 	 * Show the requested values.
 	 */
-	show_parameters(VSTREAM_OUT, cmd_mode, param_class, argv + optind);
+	pcf_show_parameters(VSTREAM_OUT, pcf_cmd_mode, param_class,
+			    argv + optind);
 
 	/*
 	 * Flag unused parameters. This makes no sense with "postconf -d",
 	 * because that ignores all the user-specified parameters and
 	 * user-specified macro expansions in main.cf.
 	 */
-	if ((cmd_mode & SHOW_DEFS) == 0) {
-	    flag_unused_main_parameters();
-	    flag_unused_master_parameters();
+	if ((pcf_cmd_mode & PCF_SHOW_DEFS) == 0) {
+	    pcf_flag_unused_main_parameters();
+	    pcf_flag_unused_master_parameters();
 	}
     }
     vstream_fflush(VSTREAM_OUT);

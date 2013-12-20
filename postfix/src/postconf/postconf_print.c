@@ -6,12 +6,12 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
-/*	void	print_line(fp, mode, const char *fmt, ...)
+/*	void	pcf_print_line(fp, mode, const char *fmt, ...)
 /*	VSTREAM	*fp;
 /*	int	mode;
 /*	const char *fmt;
 /* DESCRIPTION
-/*	print_line() formats text, normalized whitespace, and
+/*	pcf_print_line() formats text, normalized whitespace, and
 /*	optionally folds long lines.
 /*
 /*	Arguments:
@@ -21,7 +21,7 @@
 /*	Bit-wise OR of zero or more of the following (other flags
 /*	are ignored):
 /* .RS
-/* .IP FOLD_LINE
+/* .IP PCF_FOLD_LINE
 /*	Fold long lines.
 /* .RE
 /* .IP fmt
@@ -59,9 +59,9 @@
 
 #define STR(x)	vstring_str(x)
 
-/* print_line - show line possibly folded, and with normalized whitespace */
+/* pcf_print_line - show line possibly folded, and with normalized whitespace */
 
-void    print_line(VSTREAM *fp, int mode, const char *fmt,...)
+void    pcf_print_line(VSTREAM *fp, int mode, const char *fmt,...)
 {
     va_list ap;
     static VSTRING *buf = 0;
@@ -93,17 +93,18 @@ void    print_line(VSTREAM *fp, int mode, const char *fmt,...)
      * then perhaps readlline() can be changed to canonicalize whitespace
      * that follows a newline.
      */
-    for (start = STR(buf); *(start += strspn(start, SEPARATORS)) != 0; start = next) {
-	word_len = strcspn(start, SEPARATORS);
+    for (start = STR(buf); *(start += strspn(start, PCF_SEPARATORS)) != 0; start = next) {
+	word_len = strcspn(start, PCF_SEPARATORS);
 	if (*(next = start + word_len) != 0)
 	    *next++ = 0;
 	if (word_len > 0 && line_len > 0) {
-	    if ((mode & FOLD_LINE) == 0 || line_len + word_len < LINE_LIMIT) {
+	    if ((mode & PCF_FOLD_LINE) == 0
+		|| line_len + word_len < PCF_LINE_LIMIT) {
 		vstream_fputs(" ", fp);
 		line_len += 1;
 	    } else {
-		vstream_fputs("\n" INDENT_TEXT, fp);
-		line_len = INDENT_LEN;
+		vstream_fputs("\n" PCF_INDENT_TEXT, fp);
+		line_len = PCF_INDENT_LEN;
 	    }
 	}
 	vstream_fputs(start, fp);

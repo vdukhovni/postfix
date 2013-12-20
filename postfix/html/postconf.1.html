@@ -12,46 +12,52 @@ POSTCONF(1)                                                        POSTCONF(1)
 <b>SYNOPSIS</b>
        <b>Managing <a href="postconf.5.html">main.cf</a>:</b>
 
-       <b>postconf</b> [<b>-dfhnovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-C</b> <i>class,...</i>] [<i>param-</i>
-       <i>eter ...</i>]
+       <b>postconf</b> [<b>-dfhnopvx</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] [<b>-C</b> <i>class,...</i>] [<i>parame-</i>
+       <i>ter ...</i>]
 
-       <b>postconf</b> [<b>-ev</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>parameter=value ...</i>
+       <b>postconf</b> [<b>-epv</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>parameter</i><b>=</b><i>value ...</i>
 
-       <b>postconf</b> [<b>-#vX</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>parameter ...</i>
+       <b>postconf -#</b> [<b>-pv</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>parameter ...</i>
+
+       <b>postconf -X</b> [<b>-pv</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>parameter ...</i>
 
        <b>Managing <a href="master.5.html">master.cf</a> service entries:</b>
 
-       <b>postconf</b> [<b>-fMovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>] <i>...</i>]
+       <b>postconf -M</b> [<b>-fovx</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>] <i>...</i>]
 
-       <b>postconf</b> [<b>-eMv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type=value ...</i>
+       <b>postconf -M</b> [<b>-ev</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>=</b><i>value ...</i>
 
-       <b>postconf</b> [<b>-#MvX</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type ...</i>
+       <b>postconf -M#</b> [<b>-v</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type ...</i>
+
+       <b>postconf -MX</b> [<b>-v</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type ...</i>
 
        <b>Managing <a href="master.5.html">master.cf</a> service fields:</b>
 
-       <b>postconf</b> [<b>-fFovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>field</i>]]
+       <b>postconf -F</b> [<b>-fovx</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>field</i>]]
        <i>...</i>]
 
-       <b>postconf</b> [<b>-eFv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>field=value</i>
+       <b>postconf -F</b> [<b>-ev</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>field</i><b>=</b><i>value</i>
        <i>...</i>
 
        <b>Managing <a href="master.5.html">master.cf</a> service parameters:</b>
 
-       <b>postconf</b> [<b>-fPovx</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>parame-</i>
+       <b>postconf -P</b> [<b>-fovx</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] [<i>service</i>[<b>/</b><i>type</i>[<b>/</b><i>parame-</i>
        <i>ter</i>]] <i>...</i>]
 
-       <b>postconf</b> [<b>-ePv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>parame-</i>
-       <i>ter=value ...</i>
+       <b>postconf -P</b> [<b>-ev</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>parame-</i>
+       <i>ter</i><b>=</b><i>value ...</i>
 
-       <b>postconf</b> [<b>-PXv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>parameter ...</i>
+       <b>postconf -PX</b> [<b>-v</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] <i>service</i><b>/</b><i>type</i><b>/</b><i>parameter ...</i>
 
        <b>Managing bounce message templates:</b>
 
-       <b>postconf</b> [<b>-btv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<i>template</i><b>_</b><i>file</i>]
+       <b>postconf -b</b> [<b>-v</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] [<i>template</i><b>_</b><i>file</i>]
+
+       <b>postconf -t</b> [<b>-v</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>] [<i>template</i><b>_</b><i>file</i>]
 
        <b>Managing other configuration:</b>
 
-       <b>postconf</b> [<b>-aAlmv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>]
+       <b>postconf -a</b>|<b>-A</b>|<b>-l</b>|<b>-m</b> [<b>-v</b>] [<b>-c</b> <i>conf</i><b>_</b><i>dir</i>]
 
 <b>DESCRIPTION</b>
        By default, the <a href="postconf.1.html"><b>postconf</b>(1)</a> command displays the values of
@@ -109,7 +115,7 @@ POSTCONF(1)                                                        POSTCONF(1)
               This feature is  available  with  Postfix  2.3  and
               later.
 
-       <b>-c</b> <i>config</i><b>_</b><i>dir</i>
+       <b>-c</b> <i>conf</i><b>_</b><i>dir</i>
               The  <a href="postconf.5.html"><b>main.cf</b></a>  configuration  file  is  in the named
               directory  instead  of  the  default  configuration
               directory.

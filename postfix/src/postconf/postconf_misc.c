@@ -6,9 +6,9 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
-/*	void	set_config_dir()
+/*	void	pcf_set_config_dir()
 /* DESCRIPTION
-/*	set_config_dir() forcibly overrides the var_config_dir
+/*	pcf_set_config_dir() forcibly overrides the var_config_dir
 /*	parameter setting with the value from the environment or
 /*	with the default pathname, and updates the mail parameter
 /*	dictionary.
@@ -43,9 +43,9 @@
 
 #include <postconf.h>
 
-/* set_config_dir - forcibly override var_config_dir */
+/* pcf_set_config_dir - forcibly override var_config_dir */
 
-void    set_config_dir(void)
+void    pcf_set_config_dir(void)
 {
     char   *config_dir;
 

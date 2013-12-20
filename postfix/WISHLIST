@@ -4,8 +4,12 @@ Wish list:
 
 	Make been_here flag BH_FLAG_FOLD configurable for masochists.
 
+	Change html/Makefile to ".pl 99999" and ".ll 78".
+
 	Replace some redundant TLS_README sections with pointers to
 	FORWARD_SECRECY_README.
+
+	Move html/index.html source to proto/.
 
 	Preserve case in smtpd_resolve_addr() and add a structure
 	member for the case-folded address.

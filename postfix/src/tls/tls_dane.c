@@ -1447,9 +1447,10 @@ static int add_skid(X509 *cert, AUTHORITY_KEYID *akid)
     int     nid = NID_subject_key_identifier;
 
     if (!akid || !akid->keyid)
-	return add_ext(0, cert, nid, "hash");
+	return (add_ext(0, cert, nid, "hash"));
     else
-	return X509_add1_ext_i2d(cert, nid, akid, 0, X509V3_ADD_DEFAULT) > 0;
+	return (X509_add1_ext_i2d(cert, nid, akid->keyid, 0,
+				  X509V3_ADD_DEFAULT) > 0);
 }
 
 /* akid_issuer_name - get akid issuer directory name */

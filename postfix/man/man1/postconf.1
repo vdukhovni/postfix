@@ -11,52 +11,63 @@ Postfix configuration utility
 .fi
 \fBManaging main.cf:\fR
 
-\fBpostconf\fR [\fB-dfhnovx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB-dfhnopvx\fR] [\fB-c \fIconf_dir\fR]
 [\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 
-\fBpostconf\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
-\fIparameter=value ...\fR
+\fBpostconf\fR [\fB-epv\fR] [\fB-c \fIconf_dir\fR]
+\fIparameter\fB=\fIvalue ...\fR
 
-\fBpostconf\fR [\fB-#vX\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-#\fR [\fB-pv\fR] [\fB-c \fIconf_dir\fR]
+\fIparameter ...\fR
+
+\fBpostconf\fR \fB-X\fR [\fB-pv\fR] [\fB-c \fIconf_dir\fR]
 \fIparameter ...\fR
 
 \fBManaging master.cf service entries:\fR
 
-\fBpostconf\fR [\fB-fMovx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-M\fR [\fB-fovx\fR] [\fB-c \fIconf_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR]\fI ...\fR]
 
-\fBpostconf\fR [\fB-eMv\fR] [\fB-c \fIconfig_dir\fR]
-\fIservice\fB/\fItype=value ...\fR
+\fBpostconf\fR \fB-M\fR [\fB-ev\fR] [\fB-c \fIconf_dir\fR]
+\fIservice\fB/\fItype\fB=\fIvalue ...\fR
 
-\fBpostconf\fR [\fB-#MvX\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-M#\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
+\fIservice\fB/\fItype ...\fR
+
+\fBpostconf\fR \fB-MX\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
 \fIservice\fB/\fItype ...\fR
 
 \fBManaging master.cf service fields:\fR
 
-\fBpostconf\fR [\fB-fFovx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-F\fR [\fB-fovx\fR] [\fB-c \fIconf_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 
-\fBpostconf\fR [\fB-eFv\fR] [\fB-c \fIconfig_dir\fR]
-\fIservice\fB/\fItype\fB/\fIfield=value ...\fR
+\fBpostconf\fR \fB-F\fR [\fB-ev\fR] [\fB-c \fIconf_dir\fR]
+\fIservice\fB/\fItype\fB/\fIfield\fB=\fIvalue ...\fR
 
 \fBManaging master.cf service parameters:\fR
 
-\fBpostconf\fR [\fB-fPovx\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-P\fR [\fB-fovx\fR] [\fB-c \fIconf_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 
-\fBpostconf\fR [\fB-ePv\fR] [\fB-c \fIconfig_dir\fR]
-\fIservice\fB/\fItype\fB/\fIparameter=value ...\fR
+\fBpostconf\fR \fB-P\fR [\fB-ev\fR] [\fB-c \fIconf_dir\fR]
+\fIservice\fB/\fItype\fB/\fIparameter\fB=\fIvalue ...\fR
 
-\fBpostconf\fR [\fB-PXv\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-PX\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
 \fIservice\fB/\fItype\fB/\fIparameter ...\fR
 
 \fBManaging bounce message templates:\fR
 
-\fBpostconf\fR [\fB-btv\fR] [\fB-c \fIconfig_dir\fR] [\fItemplate_file\fR]
+\fBpostconf\fR \fB-b\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
+[\fItemplate_file\fR]
+
+\fBpostconf\fR \fB-t\fR [\fB-v\fR] [\fB-c \fIconf_dir\fR]
+[\fItemplate_file\fR]
 
 \fBManaging other configuration:\fR
 
-\fBpostconf\fR [\fB-aAlmv\fR] [\fB-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB-a\fR|\fB-A\fR|\fB-l\fR|\fB-m\fR [\fB-v\fR]
+[\fB-c \fIconf_dir\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -112,7 +123,7 @@ empty template file name on the \fBpostconf\fR(1) command
 line (in shell language: "").
 
 This feature is available with Postfix 2.3 and later.
-.IP "\fB-c \fIconfig_dir\fR"
+.IP "\fB-c \fIconf_dir\fR"
 The \fBmain.cf\fR configuration file is in the named directory
 instead of the default configuration directory.
 .IP "\fB-C \fIclass,...\fR"

@@ -19401,6 +19401,25 @@ Apologies for any names omitted.
 20131218
 
 	Documentation: new document FORWARD_SECRECY_README that
-	describes how Postfix implements forward secrecy since
-	Postfix 2.2, and how that support has evolved. Viktor
-	Dukhovni. File: proto/FORWARD_SECRECY_README.html.
+	describes how different versions of Postfix >= 2.2 implement
+	"perfect" forward secrecy. Viktor Dukhovni. File:
+	proto/FORWARD_SECRECY_README.html, proto/Makefile.in,
+	conf/postfix-files, html/index.html.
+
+20131219
+
+	Cleanup: renamed postconf(1) internal identifiers according
+	to a consistent scheme, to avoid name future name conflicts
+	as Postfix evolves. This is a no-feature change.  Files:
+	postconf/*.[hc], postconf/extract.awk.
+
+	Documentation: linearized the order of exposition in
+	FORWARD_SECRECY_README. File: proto/FORWARD_SECRECY_README.html.
+
+20131220
+
+	Bugfix: DANE support: segfault. Viktor Dukhovni. File:
+	tls/tls_dane.c.
+
+	Documentation: typo in SASL_README. Patrick Ben Koetter.
+	File: proto/SASL_README.html.

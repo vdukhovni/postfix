@@ -81,7 +81,7 @@ key agreement method. </p>
 
 <p> Early implementations of the SSL protocol do not provide forward
 secrecy (some provide it only with artificially-weakened "export"
-cipher suites, but we will ignore those cases here). The client
+cipher suites, but we will ignore those here). The client
 sends a random "pre-master secret" to the server encrypted with the
 server's RSA public key.  The server decrypts this with its private
 key, and uses it together with other data exchanged in the clear
@@ -103,11 +103,14 @@ mathematical "group" and an element of that group called a "generator".
 There are two flavors of "groups" that work with PFS: </p>
 
 <ul>
+
 <li> Prime field groups.  The server needs to be configured with a
 suitably large prime and a corresponding "generator".
+
 <li> Elliptic curve groups.  The server needs to be configured with
 a "named curve".  These offer better security at lower computational
 cost than prime field groups, but are not as widely implemented.
+
 </ul>
 
 <p> The acronym for forward secrecy over prime fields is EDH or
@@ -131,53 +134,68 @@ free to select its own suitably-strong prime and generator.  </p>
 
 <h2><a name="server_fs">Forward Secrecy in the Postfix SMTP Server</a></h2>
 
-<p> First the good news: The Postfix SMTP server supports forward
-secrecy in its default configuration.  If the SMTP client also
-supports and prefers TLS cipher suites with forward secrecy, then
-the traffic between the server and client will resist decryption
-even if the server's long-term authentication keys are <i>later</i>
-compromised.  When the SMTP client is Postfix, it prefers forward
-secrecy cipher suites by default. </p>
+<p> The Postfix &ge; 2.2 SMTP server supports forward secrecy in
+its default configuration.  If the remote SMTP client prefers cipher
+suites with forward secrecy, then the traffic between the server
+and client will resist decryption even if the server's long-term
+authentication keys are <i>later</i> compromised. </p>
 
-<p> Postfix &ge; 2.8 when compiled with OpenSSL &ge; 1.0.0 supports
-EECDH key exchange by default (via the most widely supported NIST
-P-256 curve).  So when the SMTP client also supports EECDH and
-implements the P-256 curve, forward secrecy just works.  </p>
+<p> Some remote SMTP clients may support forward secrecy, but prefer
+cipher suites <i>without</i> forward secrecy. In that case, Postfix
+&ge; 2.8 could be configured to ignore the client's preference with
+the main.cf setting "tls_preempt_cipherlist = yes".  However, this
+will likely cause interoperability issues with older Exchange servers
+and is not recommended for now.  </p>
 
-<p> For Postfix 2.6 and 2.7, in which EECDH was supported, but
-disabled by default, one can safely enable EECDH by setting the
-main.cf parameter smtpd_tls_eecdh_grade to "strong".  </p>
+</ul>
 
-<p> For Postfix 2.2-2.5, or for interoperability with clients
-that do not support EECDH, you need the older prime-field EDH, and
-here OpenSSL wants the server to provide two explicitly selected
-(prime, generator) combinations.  One for the now long obsolete
-"export" cipher suites, and another for non-export cipher suites.
-Postfix has two such default combinations compiled in, but also
-supports explicitly configured overrides. </p>
+<h3> EDH Server support </h3>
 
-<p> The export EDH parameters are used only with the obsolete
+<p> Postfix &ge; 2.2 support 1024-bit-prime EDH out of the box,
+with no additional configuration, but you may want to override the
+default prime to be 2048 bits long, and you may want to regenerate
+your primes periodically. See the <a href="#quick-start">quick-start</a>
+section for details.  </p>
+
+<p> With prime-field EDH, OpenSSL wants the server to provide
+two explicitly-selected (prime, generator) combinations.  One for
+the now long-obsolete "export" cipher suites, and another for
+non-export cipher suites.  Postfix has two such default combinations
+compiled in, but also supports explicitly-configured overrides.
+</p>
+
+<ul>
+
+<li> <p> The "export" EDH parameters are used only with the obsolete
 "export" ciphers.  To use a non-default prime, generate a 512-bit
-DH parameter file and set smtpd_tls_dh512_param_file to the filename. </p>
+DH parameter file and set smtpd_tls_dh512_param_file to the filename
+(see the <a href="#quick-start">quick-start</a> section for details).
+</p>
 
-<p> The non-export EDH parameters are used for all other EDH
+<li> <p> The non-export EDH parameters are used for all other EDH
 cipher suites.  To use a non-default prime, generate a 1024-bit or
 2048-bit DH parameter file and set smtpd_tls_dh1024_param_file to
 the filename.  Despite the name this is simply the non-export
-parameter file and the prime need not actually be 1024 bits long. </p>
+parameter file and the prime need not actually be 1024 bits long
+(see the <a href="#quick-start">quick-start</a> section for details).
+</p>
 
-<p> It turns out that (inadvisably patched in some Debian releases)
-Exim SMTP clients enforce a minimum of 2048 bits for the non-export
+</ul>
+
+<p> It turns out that (inadvisably-patched in some Debian releases)
+Exim SMTP clients enforce a minimum 2048-bit length for the non-export
 prime.  See the <a href="#quick-start">quick-start</a> section for
 the recommended configuration to work around this issue.  </p>
 
-<p> So, in summary, Postfix supports 1024-bit-prime EDH out of the
-box, with no additional configuration, but you may want to override
-the default prime to be 2048 bits long.  It also supports NIST P-256
-EECDH out of the box with Postfix 2.8 or later, but this is disabled
-in Postfix 2.6 and 2.7 when the feature was too new to enable by
-default.  In retrospect it turned out to work reliably, and is now
-on by default.  </p>
+<h3> EECDH Server support </h3>
+
+<p> Postfix &ge; 2.6 support NIST P-256 EECDH when built with OpenSSL
+&ge; 1.0.0.  When the remote SMTP client also supports EECDH and
+implements the P-256 curve, forward secrecy just works.  </p>
+
+<blockquote> <p> Note: With Postfix 2.6 and 2.7, enable EECDH by
+setting the main.cf parameter smtpd_tls_eecdh_grade to "strong".
+</p> </blockquote>
 
 <p> The elliptic curve situation is evolving, with new curves being
 introduced to augment or replace the NIST curves tarnished by the
@@ -209,13 +227,12 @@ main.cf. </p>
 
 <h2> <a name="client_fs">Forward Secrecy in the Postfix SMTP Client</a> </h2>
 
-<p> EDH and EECDH use depends on SMTP client support and preference
-for the corresponding TLS cipher suites.  If the client prefers
-ciphers without forward secrecy, these will be used instead.  Though
-Postfix &ge; 2.8 supports setting "tls_preempt_cipherlist = yes"
-to select the use of the server's, rather than the client's, most
-preferred cipher suite, this setting will likely cause interoperability
-issues with older Exchange servers and is not recommended for now.  </p>
+<p> The Postfix &ge; 2.2 SMTP client supports forward secrecy in
+its default configuration.  If the remote SMTP server supports
+cipher suites with forward secrecy (and does not override the SMTP
+client cipher preference), then the traffic between the server and
+client will resist decryption even if the server's long-term
+authentication keys are <i>later</i> compromised. </p>
 
 <p> The default Postfix SMTP client cipher lists are correctly ordered
 to prefer EECDH and EDH cipher suites ahead of similar cipher suites
