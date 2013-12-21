@@ -1,13 +1,13 @@
 Wish list:
 
-	Un-break "make tests" under src/smtpd.
+	To un-break "make tests" under src/smtpd, make tests
+	independent from the DNS and native routines for host
+	name/address lookup.
 
 	Make been_here flag BH_FLAG_FOLD configurable for masochists.
 
-	Change html/Makefile to ".pl 99999" and ".ll 78".
-
-	Replace some redundant TLS_README sections with pointers to
-	FORWARD_SECRECY_README.
+	Replace some redundant TLS_README sections with pointers
+	to FORWARD_SECRECY_README.
 
 	Move html/index.html source to proto/.
 

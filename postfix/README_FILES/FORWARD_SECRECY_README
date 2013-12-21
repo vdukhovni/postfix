@@ -34,11 +34,18 @@ cost constraints on the efficacy of bulk surveillance, recovering all past
 traffic is generally infeasible, and even recovery of individual sessions may
 be infeasible given a sufficiently-strong key agreement method.
 
+Forward secrecy protects network communication in the absence of active
+attacks, i.e. no forged DNS replies, and no forged TLS server certificates. If
+active attacks are a concern, then you will need to authenticate the remote
+SMTP server in a secure manner. For example, by the fingerprint of the public
+key or certificate. Conventional PKI relies on too many trusted parties.
+
 Topics covered in this document:
 
   * Forward Secrecy in TLS
   * Forward Secrecy in the Postfix SMTP Server
   * Forward Secrecy in the Postfix SMTP Client
+  * How do I know that it works?
   * Credits
 
 And last but not least, for the impatient:
@@ -199,24 +206,70 @@ not secret, after all these are sent to all SMTP clients in the clear. Mode
 
 Once the parameters are in place, update main.cf as follows:
 
-     main.cf:
-       # Postfix >= 2.6
-       smtpd_tls_eecdh_grade = strong
-       # All versions of Postfix:
-       smtpd_tls_dh1024_param_file = ${config_directory}/dh2048.pem
-       smtpd_tls_dh512_param_file = ${config_directory}/dh512.pem
+    /etc/postfix/main.cf:
+        # Postfix >= 2.6
+        smtpd_tls_eecdh_grade = strong
+        # All versions of Postfix:
+        smtpd_tls_dh1024_param_file = ${config_directory}/dh2048.pem
+        smtpd_tls_dh512_param_file = ${config_directory}/dh512.pem
 
 If some of your MSA clients don't support 2048-bit EDH, you may need to adjust
 the submission entry in master.cf accordingly:
 
-    master.cf:
-      submission inet n       -       n       -       -       smtpd
-        # Some submission clients may not yet do 2048-bit EDH, if such
-        # clients use your MSA, configure 1024-bit EDH instead:
-        -o smtpd_tls_dh1024_param_file=${config_directory}/dh1024.pem
-        -o smtpd_tls_security_level=encrypt
-        -o smtpd_sasl_auth_enable=yes
-        ...
+    /etc/postfix/master.cf:
+        submission inet n       -       n       -       -       smtpd
+            # Some submission clients may not yet do 2048-bit EDH, if such
+            # clients use your MSA, configure 1024-bit EDH instead:
+            -o smtpd_tls_dh1024_param_file=${config_directory}/dh1024.pem
+            -o smtpd_tls_security_level=encrypt
+            -o smtpd_sasl_auth_enable=yes
+            ...
+
+HHooww ddoo II kknnooww tthhaatt iitt wwoorrkkss??
+
+Postfix reports TLS connection information in several ways:
+
+  * With "smtp_tls_loglevel = 1" and "smtpd_tls_loglevel = 1", the Postfix SMTP
+    client and server will log information about, among others, the remote peer
+    certificate or public-key verification status, the negotiated cipher, and
+    key lengths. The general logfile format is:
+
+        postfix/smtp[xxx]: Trusted TLS connection established to
+        host.example.com[192.168.0.2]:25: TLSv1 with cipher XXX (YYY/ZZZ bits)
+
+        postfix/smtpd[xxx]: Untrusted TLS connection established from
+        host.example.com[192.168.0.2]: TLSv1 with cipher XXX (YYY/ZZZ bits)
+
+  * With "smtpd_tls_received_header = yes", the Postfix SMTP server will record
+    similar information in the Received: header in the form of comments (text
+    inside parentheses). The general format is:
+
+        Received: from host.example.com (host.example.com [192.168.0.2])
+                (using TLSv1 with cipher XXX (YYY/ZZZ bits))
+                (Client CN "host.example.com", Issuer "Wietse Venema" (not
+        verified))
+
+There are dozens of ciphers that support forward secrecy. What follows is the
+beginning of a list of 51 ciphers available with OpenSSL 1.0.1e:
+
+    $ openssl ciphers -v \
+            'aNULL:-aNULL:kEECDH:kEDH:+RC4:!eNULL:!EXPORT:!LOW:@STRENGTH' |
+        awk '{printf "%-32s %s\n", $1, $3}'
+    AECDH-AES256-SHA                 Kx=ECDH
+    ECDHE-RSA-AES256-GCM-SHA384      Kx=ECDH
+    ECDHE-ECDSA-AES256-GCM-SHA384    Kx=ECDH
+    ECDHE-RSA-AES256-SHA384          Kx=ECDH
+    ECDHE-ECDSA-AES256-SHA384        Kx=ECDH
+    ECDHE-RSA-AES256-SHA             Kx=ECDH
+    ECDHE-ECDSA-AES256-SHA           Kx=ECDH
+    ADH-AES256-GCM-SHA384            Kx=DH
+    ADH-AES256-SHA256                Kx=DH
+    ADH-AES256-SHA                   Kx=DH
+    ADH-CAMELLIA256-SHA              Kx=DH
+    DHE-DSS-AES256-GCM-SHA384        Kx=DH
+    DHE-RSA-AES256-GCM-SHA384        Kx=DH
+    DHE-RSA-AES256-SHA256            Kx=DH
+    ...
 
 CCrreeddiittss
 

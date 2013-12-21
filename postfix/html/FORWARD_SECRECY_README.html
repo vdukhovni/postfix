@@ -55,6 +55,13 @@ all past traffic is generally infeasible, and even recovery of
 individual sessions may be infeasible given a sufficiently-strong
 key agreement method. </p>
 
+<p> Forward secrecy protects network communication in the absence
+of active attacks, i.e. no forged DNS replies, and no forged TLS
+server certificates. If active attacks are a concern, then you will
+need to authenticate the remote SMTP server in a secure manner.
+For example, by the fingerprint of the public key or certificate.
+Conventional PKI relies on too many trusted parties. </p>
+
 <p> Topics covered in this document: </p>
 
 <ul>
@@ -64,6 +71,8 @@ key agreement method. </p>
 <li><a href="#server_fs">Forward Secrecy in the Postfix SMTP Server</a>
 
 <li><a href="#client_fs">Forward Secrecy in the Postfix SMTP Client</a>
+
+<li><a href="#test">How do I know that it works?</a>
 
 <li><a href="#credits"> Credits </a>
 
@@ -271,12 +280,12 @@ sent to all SMTP clients in the clear. Mode 0644 is fine.  </p>
 
 <blockquote>
 <pre>
- <a href="postconf.5.html">main.cf</a>:
-   # Postfix &ge; 2.6
-   <a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong
-   # All versions of Postfix:
-   <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a> = ${<a href="postconf.5.html#config_directory">config_directory</a>}/dh2048.pem
-   <a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a> = ${<a href="postconf.5.html#config_directory">config_directory</a>}/dh512.pem
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Postfix &ge; 2.6
+    <a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong
+    # All versions of Postfix:
+    <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a> = ${<a href="postconf.5.html#config_directory">config_directory</a>}/dh2048.pem
+    <a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a> = ${<a href="postconf.5.html#config_directory">config_directory</a>}/dh512.pem
 </pre>
 </blockquote>
 
@@ -285,14 +294,76 @@ need to adjust the submission entry in <a href="master.5.html">master.cf</a> acc
 
 <blockquote>
 <pre>
-<a href="master.5.html">master.cf</a>:
-  submission inet n       -       n       -       -       smtpd
-    # Some submission clients may not yet do 2048-bit EDH, if such
-    # clients use your MSA, configure 1024-bit EDH instead:
-    -o <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a>=${<a href="postconf.5.html#config_directory">config_directory</a>}/dh1024.pem
-    -o <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>=encrypt
-    -o <a href="postconf.5.html#smtpd_sasl_auth_enable">smtpd_sasl_auth_enable</a>=yes
-    ...
+/etc/postfix/<a href="master.5.html">master.cf</a>:
+    submission inet n       -       n       -       -       smtpd
+        # Some submission clients may not yet do 2048-bit EDH, if such
+        # clients use your MSA, configure 1024-bit EDH instead:
+        -o <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a>=${<a href="postconf.5.html#config_directory">config_directory</a>}/dh1024.pem
+        -o <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>=encrypt
+        -o <a href="postconf.5.html#smtpd_sasl_auth_enable">smtpd_sasl_auth_enable</a>=yes
+        ...
+</pre>
+</blockquote>
+
+<h2><a name="test">How do I know that it works? </a> </h2>
+
+<p> Postfix reports TLS connection information in several ways: </p>
+
+<ul>
+
+<li> <p> With "<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> = 1" and "<a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a> = 1",
+the Postfix SMTP client and server will log information about, among
+others, the remote peer certificate or public-key verification
+status, the negotiated cipher, and key lengths. The general logfile
+format is: </p>
+
+<blockquote>
+<pre>
+postfix/smtp[xxx]: Trusted TLS connection established to host.example.com[192.168.0.2]:25: TLSv1 with cipher XXX (YYY/ZZZ bits)
+
+postfix/smtpd[xxx]: Untrusted TLS connection established from host.example.com[192.168.0.2]: TLSv1 with cipher XXX (YYY/ZZZ bits)
+</pre>
+</blockquote>
+
+<li> <p> With "<a href="postconf.5.html#smtpd_tls_received_header">smtpd_tls_received_header</a> = yes", the Postfix SMTP
+server will record similar information in the Received: header in
+the form of comments (text inside parentheses). The general format
+is: </p>
+
+<blockquote>
+<pre>
+Received: from host.example.com (host.example.com [192.168.0.2])
+        (using TLSv1 with cipher XXX (YYY/ZZZ bits))
+        (Client CN "host.example.com", Issuer "Wietse Venema" (not verified))
+</pre>
+</blockquote>
+
+</ul>
+
+<p> There are dozens of ciphers that support forward secrecy. What
+follows is the beginning of a list of 51 ciphers available with
+OpenSSL 1.0.1e: </p>
+
+<blockquote>
+<pre>
+$ openssl ciphers -v \
+        'aNULL:-aNULL:kEECDH:kEDH:+RC4:!eNULL:!EXPORT:!LOW:@STRENGTH' | 
+    awk '{printf "%-32s %s\n", $1, $3}'
+AECDH-AES256-SHA                 Kx=ECDH
+ECDHE-RSA-AES256-GCM-SHA384      Kx=ECDH
+ECDHE-ECDSA-AES256-GCM-SHA384    Kx=ECDH
+ECDHE-RSA-AES256-SHA384          Kx=ECDH
+ECDHE-ECDSA-AES256-SHA384        Kx=ECDH
+ECDHE-RSA-AES256-SHA             Kx=ECDH
+ECDHE-ECDSA-AES256-SHA           Kx=ECDH
+ADH-AES256-GCM-SHA384            Kx=DH
+ADH-AES256-SHA256                Kx=DH
+ADH-AES256-SHA                   Kx=DH
+ADH-CAMELLIA256-SHA              Kx=DH
+DHE-DSS-AES256-GCM-SHA384        Kx=DH
+DHE-RSA-AES256-GCM-SHA384        Kx=DH
+DHE-RSA-AES256-SHA256            Kx=DH
+...
 </pre>
 </blockquote>
 

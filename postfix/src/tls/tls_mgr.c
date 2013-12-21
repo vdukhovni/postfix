@@ -10,9 +10,10 @@
 /*	VSTRING	*buf;
 /*	int	len;
 /*
-/*	int	tls_mgr_policy(cache_type, cachable)
+/*	int	tls_mgr_policy(cache_type, cachable, timeout)
 /*	const char *cache_type;
 /*	int	*cachable;
+/*	int	*timeout;
 /*
 /*	int	tls_mgr_update(cache_type, cache_id, buf, len)
 /*	const char *cache_type;
@@ -62,6 +63,8 @@
 /* .IP cachable
 /*	Pointer to int, set non-zero if the requested cache_type
 /*	is enabled.
+/* .IP timeout
+/*	Pointer to int, returns the cache entry timeout.
 /* .IP cache_id
 /*	The session cache lookup key.
 /* .IP buf
@@ -418,9 +421,11 @@ int     main(int unused_ac, char **av)
 
 	if (COMMAND(argv, "policy", 2)) {
 	    int     cachable;
+	    int     timeout;
 
-	    status = tls_mgr_policy(argv->argv[1], &cachable);
-	    vstream_printf("status=%d cachable=%d\n", status, cachable);
+	    status = tls_mgr_policy(argv->argv[1], &cachable, &timeout);
+	    vstream_printf("status=%d cachable=%d timeout=%d\n",
+			   status, cachable, timeout);
 	} else if (COMMAND(argv, "seed", 2)) {
 	    VSTRING *buf = vstring_alloc(10);
 	    VSTRING *hex = vstring_alloc(10);

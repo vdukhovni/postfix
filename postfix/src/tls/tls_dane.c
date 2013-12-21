@@ -1812,4 +1812,382 @@ void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 	SSL_CTX_set_cert_verify_callback(ctx, 0, 0);
 }
 
+#ifdef TEST
+
+#include <unistd.h>
+#include <stdarg.h>
+
+#include <mail_params.h>
+#include <mail_conf.h>
+#include <msg_vstream.h>
+
+/* Cut/paste from OpenSSL 1.0.1: ssl/ssl_cert.c */
+
+static int ssl_verify_cert_chain(SSL *s, x509_stack_t *sk)
+{
+    X509   *x;
+    int     i;
+    X509_STORE_CTX ctx;
+
+    if ((sk == NULL) || (sk_X509_num(sk) == 0))
+	return (0);
+
+    x = sk_X509_value(sk, 0);
+    if (!X509_STORE_CTX_init(&ctx, s->ctx->cert_store, x, sk)) {
+	SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_X509_LIB);
+	return (0);
+    }
+    X509_STORE_CTX_set_ex_data(&ctx, SSL_get_ex_data_X509_STORE_CTX_idx(), s);
+    X509_STORE_CTX_set_default(&ctx, s->server ? "ssl_client" : "ssl_server");
+    X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(&ctx), s->param);
+
+    if (s->verify_callback)
+	X509_STORE_CTX_set_verify_cb(&ctx, s->verify_callback);
+
+    if (s->ctx->app_verify_callback != NULL)
+	i = s->ctx->app_verify_callback(&ctx, s->ctx->app_verify_arg);
+    else
+	i = X509_verify_cert(&ctx);
+
+    s->verify_result = ctx.error;
+    X509_STORE_CTX_cleanup(&ctx);
+
+    return (i);
+}
+
+static void add_tlsa(TLS_DANE *dane, char *argv[])
+{
+    char   *digest;
+    X509   *cert = 0;
+    BIO    *bp;
+    unsigned char *buf;
+    unsigned char *buf2;
+    int     len;
+    uint8_t u = atoi(argv[1]);
+    uint8_t s = atoi(argv[2]);
+    const char *mdname = argv[3];
+    EVP_PKEY *pkey;
+
+    if ((bp = BIO_new_file(argv[4], "r")) == NULL)
+	msg_fatal("error opening %s: %m", argv[4]);
+    if (!PEM_read_bio_X509(bp, &cert, 0, 0)) {
+	tls_print_errors();
+	msg_fatal("error loading certificate from %s: %m", argv[4]);
+    }
+    BIO_free(bp);
+
+    /*
+     * Extract ASN.1 DER form of certificate or public key.
+     */
+    switch (s) {
+    case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
+	len = i2d_X509(cert, NULL);
+	buf2 = buf = (unsigned char *) mymalloc(len);
+	i2d_X509(cert, &buf2);
+	if (!*mdname)
+	    ta_cert_insert(dane, cert);
+	break;
+    case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
+	pkey = X509_get_pubkey(cert);
+	len = i2d_PUBKEY(pkey, NULL);
+	buf2 = buf = (unsigned char *) mymalloc(len);
+	i2d_PUBKEY(pkey, &buf2);
+	if (!*mdname)
+	    ta_pkey_insert(dane, pkey);
+	EVP_PKEY_free(pkey);
+	break;
+    }
+    OPENSSL_assert(buf2 - buf == len);
+
+    digest = tls_data_fprint((char *) buf, len, *mdname ? mdname : signalg);
+    dane_add(dane, u, s, *mdname ? mdname : signalg, digest);
+    myfree((char *) digest);
+    myfree((char *) buf);
+}
+
+static x509_stack_t *load_chain(const char *chainfile)
+{
+    BIO    *bp;
+    char   *name = 0;
+    char   *header = 0;
+    unsigned char *data = 0;
+    long    len;
+    int     count;
+    char   *errtype = 0;		/* if error: cert or pkey? */
+    x509_stack_t *chain;
+    typedef X509 *(*d2i_X509_t) (X509 **, const unsigned char **, long);
+
+    if ((chain = sk_X509_new_null()) == 0) {
+	perror("malloc");
+	exit(1);
+    }
+
+    /*
+     * On each call, PEM_read() wraps a stdio file in a BIO_NOCLOSE bio,
+     * calls PEM_read_bio() and then frees the bio.  It is just as easy to
+     * open a BIO as a stdio file, so we use BIOs and call PEM_read_bio()
+     * directly.
+     */
+    if ((bp = BIO_new_file(chainfile, "r")) == NULL) {
+	fprintf(stderr, "error opening chainfile: %s: %m\n", chainfile);
+	exit(1);
+    }
+    /* Don't report old news */
+    ERR_clear_error();
+
+    for (count = 0;
+	 errtype == 0 && PEM_read_bio(bp, &name, &header, &data, &len);
+	 ++count) {
+	const unsigned char *p = data;
+
+	if (strcmp(name, PEM_STRING_X509) == 0
+	    || strcmp(name, PEM_STRING_X509_TRUSTED) == 0
+	    || strcmp(name, PEM_STRING_X509_OLD) == 0) {
+	    d2i_X509_t d;
+	    X509   *cert;
+
+	    d = strcmp(name, PEM_STRING_X509_TRUSTED) ? d2i_X509_AUX : d2i_X509;
+	    if ((cert = d(0, &p, len)) == 0 || (p - data) != len)
+		errtype = "certificate";
+	    else if (sk_X509_push(chain, cert) == 0) {
+		perror("malloc");
+		exit(1);
+	    }
+	} else {
+	    fprintf(stderr, "unexpected chain file object: %s\n", name);
+	    exit(1);
+	}
+
+	/*
+	 * If any of these were null, PEM_read() would have failed.
+	 */
+	OPENSSL_free(name);
+	OPENSSL_free(header);
+	OPENSSL_free(data);
+    }
+    BIO_free(bp);
+
+    if (errtype) {
+	tls_print_errors();
+	fprintf(stderr, "error reading: %s: malformed %s", chainfile, errtype);
+	exit(1);
+    }
+    if (ERR_GET_REASON(ERR_peek_last_error()) == PEM_R_NO_START_LINE) {
+	/* Reached end of PEM file */
+	ERR_clear_error();
+	if (count > 0)
+	    return chain;
+	fprintf(stderr, "no certificates found in: %s\n", chainfile);
+	exit(1);
+    }
+    /* Some other PEM read error */
+    tls_print_errors();
+    fprintf(stderr, "error reading: %s\n", chainfile);
+    exit(1);
+}
+
+static void usage(const char *progname)
+{
+    fprintf(stderr, "Usage: %s certificate-usage selector matching-type"
+	    " certfile \\\n\t\tCAfile chainfile hostname [certname ...]\n",
+	    progname);
+    fprintf(stderr, "  where, certificate-usage = TLSA certificate usage,\n");
+    fprintf(stderr, "\t selector = TLSA selector,\n");
+    fprintf(stderr, "\t matching-type = empty string or OpenSSL digest algorithm name,\n");
+    fprintf(stderr, "\t PEM certfile provides certificate association data,\n");
+    fprintf(stderr, "\t PEM CAfile contains any usage 0/1 trusted roots,\n");
+    fprintf(stderr, "\t PEM chainfile = server chain file to verify\n");
+    fprintf(stderr, "\t hostname = destination hostname,\n");
+    fprintf(stderr, "\t each certname augments the hostname for name checks.\n");
+    exit(1);
+}
+
+/* match_servername -  match servername against pattern */
+
+static int match_servername(const char *certid, ARGV *margv)
+{
+    const char *domain;
+    const char *parent;
+    int     match_subdomain;
+    int     i;
+    int     idlen;
+    int     domlen;
+
+    /*
+     * Match the certid against each pattern until we find a match.
+     */
+    for (i = 0; i < margv->argc; ++i) {
+	match_subdomain = 0;
+	domain = margv->argv[i];
+	if (*domain == '.' && domain[1] != '\0') {
+	    ++domain;
+	    match_subdomain = 1;
+	}
+
+	/*
+	 * Sub-domain match: certid is any sub-domain of hostname.
+	 */
+	if (match_subdomain) {
+	    if ((idlen = strlen(certid)) > (domlen = strlen(domain)) + 1
+		&& certid[idlen - domlen - 1] == '.'
+		&& !strcasecmp(certid + (idlen - domlen), domain))
+		return (1);
+	    else
+		continue;
+	}
+
+	/*
+	 * Exact match and initial "*" match. The initial "*" in a certid
+	 * matches one (if var_tls_multi_label is false) or more hostname
+	 * components under the condition that the certid contains multiple
+	 * hostname components.
+	 */
+	if (!strcasecmp(certid, domain)
+	    || (certid[0] == '*' && certid[1] == '.' && certid[2] != 0
+		&& (parent = strchr(domain, '.')) != 0
+		&& (idlen = strlen(certid + 1)) <= (domlen = strlen(parent))
+		&& strcasecmp(var_tls_multi_wildcard == 0 ? parent :
+			      parent + domlen - idlen,
+			      certid + 1) == 0))
+	    return (1);
+    }
+    return (0);
+}
+
+static void check_name(TLS_SESS_STATE *tctx, X509 *cert, ARGV *margs)
+{
+    char   *cn;
+    int     matched = 0;
+    general_name_stack_t *gens;
+
+    if (SSL_get_verify_result(tctx->con) != X509_V_OK)
+	return;
+
+    tctx->peer_status |= TLS_CERT_FLAG_TRUSTED;
+
+    gens = X509_get_ext_d2i(cert, NID_subject_alt_name, 0, 0);
+    if (gens) {
+	int     has_dnsname = 0;
+	int     num_gens = sk_GENERAL_NAME_num(gens);
+	int     i;
+
+	for (i = 0; !matched && i < num_gens; ++i) {
+	    const GENERAL_NAME *gn = sk_GENERAL_NAME_value(gens, i);
+	    const char *dnsname;
+
+	    if (gn->type != GEN_DNS)
+		continue;
+	    has_dnsname = 1;
+	    tctx->peer_status |= TLS_CERT_FLAG_ALTNAME;
+	    dnsname = tls_dns_name(gn, tctx);
+	    if (dnsname && *dnsname
+		&& (matched = match_servername(dnsname, margs)) != 0)
+		tctx->peer_status |= TLS_CERT_FLAG_MATCHED;
+	}
+	sk_GENERAL_NAME_pop_free(gens, GENERAL_NAME_free);
+	if (has_dnsname)
+	    return;
+    }
+    cn = tls_peer_CN(cert, tctx);
+    if (match_servername(cn, margs))
+	tctx->peer_status |= TLS_CERT_FLAG_MATCHED;
+    myfree(cn);
+}
+
+static void check_print(TLS_SESS_STATE *tctx, X509 *cert)
+{
+    if (TLS_DANE_HASEE(tctx->dane)
+	&& tls_dane_match(tctx, TLS_DANE_EE, cert, 0))
+	tctx->peer_status |= TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
+}
+
+static void check_peer(TLS_SESS_STATE *tctx, X509 *cert, int argc, char **argv)
+{
+    ARGV    match;
+
+    tctx->peer_status |= TLS_CERT_FLAG_PRESENT;
+    check_print(tctx, cert);
+    if (!TLS_CERT_IS_MATCHED(tctx)) {
+	match.argc = argc;
+	match.argv = argv;
+	check_name(tctx, cert, &match);
+    }
+}
+
+static SSL_CTX *ctx_init(const char *CAfile)
+{
+    SSL_CTX *client_ctx;
+
+    tls_param_init();
+    tls_check_version();
+
+    SSL_load_error_strings();
+    SSL_library_init();
+
+    if (!tls_validate_digest(LN_sha1))
+	msg_fatal("%s digest algorithm not available", LN_sha1);
+
+    if (TLScontext_index < 0)
+	if ((TLScontext_index = SSL_get_ex_new_index(0, 0, 0, 0, 0)) < 0)
+	    msg_fatal("Cannot allocate SSL application data index");
+
+    ERR_clear_error();
+    if ((client_ctx = SSL_CTX_new(SSLv23_client_method())) == 0)
+	msg_fatal("cannot allocate client SSL_CTX");
+    SSL_CTX_set_verify_depth(client_ctx, 5);
+
+    if (tls_set_ca_certificate_info(client_ctx, CAfile, "") < 0) {
+	tls_print_errors();
+	msg_fatal("cannot load CAfile: %s", CAfile);
+    }
+    SSL_CTX_set_verify(client_ctx, SSL_VERIFY_NONE,
+		       tls_verify_certificate_callback);
+    return (client_ctx);
+}
+
+int     main(int argc, char *argv[])
+{
+    SSL_CTX *ssl_ctx;
+    TLS_SESS_STATE *tctx;
+    x509_stack_t *chain;
+
+    var_procname = mystrdup(basename(argv[0]));
+    set_mail_conf_str(VAR_PROCNAME, var_procname);
+    msg_vstream_init(var_procname, VSTREAM_OUT);
+
+    if (argc < 8)
+	usage(argv[0]);
+
+    ssl_ctx = ctx_init(argv[5]);
+    if (!tls_dane_avail())
+	msg_fatal("DANE TLSA support not available");
+
+    tctx = tls_alloc_sess_context(TLS_LOG_NONE, argv[7]);
+    tctx->namaddr = argv[7];
+    tctx->mdalg = LN_sha1;
+    tctx->dane = tls_dane_alloc();
+
+    if ((tctx->con = SSL_new(ssl_ctx)) == 0
+	|| !SSL_set_ex_data(tctx->con, TLScontext_index, tctx)) {
+	tls_print_errors();
+	msg_fatal("Error allocating SSL connection");
+    }
+    SSL_set_connect_state(tctx->con);
+    add_tlsa((TLS_DANE *) tctx->dane, argv);
+    tls_dane_set_callback(ssl_ctx, tctx);
+
+    /* Verify saved server chain */
+    chain = load_chain(argv[6]);
+    ssl_verify_cert_chain(tctx->con, chain);
+    check_peer(tctx, sk_X509_value(chain, 0), argc - 7, argv + 7);
+    tls_print_errors();
+
+    msg_info("%s %s", TLS_CERT_IS_MATCHED(tctx) ? "Verified" :
+	     TLS_CERT_IS_TRUSTED(tctx) ? "Trusted" : "Untrusted", argv[7]);
+
+    return (TLS_CERT_IS_MATCHED(tctx) ? 0 : 1);
+}
+
+#endif					/* TEST */
+
 #endif					/* USE_TLS */

@@ -361,6 +361,7 @@
 -TXSASL_SERVER_IMPL_INFO
 -Tbind_props
 -Tcipher_probe_t
+-Td2i_X509_t
 -Tdane_digest
 -Tfilter_ctx
 -Tgeneral_name_stack_t

@@ -17,9 +17,9 @@ DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
 LIB	= libtls.a
-TESTPROG= tls_dh tls_mgr tls_rsa
+TESTPROG= tls_dh tls_mgr tls_rsa tls_dane
 
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/libglobal.a ../../lib/libutil.a ../../lib/libdns.a
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 MAKES	=
@@ -82,6 +82,11 @@ tls_mgr: $(LIB) $(LIBS)
 	mv junk $@.o
 
 tls_rsa: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
+tls_dane: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o

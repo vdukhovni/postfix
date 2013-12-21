@@ -19423,3 +19423,20 @@ Apologies for any names omitted.
 
 	Documentation: typo in SASL_README. Patrick Ben Koetter.
 	File: proto/SASL_README.html.
+
+	Documentation: increased the *.[0-9].html manpage width
+	from the historical 65 columns to the more contemporary 78
+	columns, and future-proofed the pattern that eliminates
+	redundant text from the "README FILES" section.  Files:
+	mantools/postlink, mantools/man2html, man/Makefile.in.
+
+	Documentation: misc manual page cleanups. Files:
+	postconf/postconf.c, postmulti/postmulti.c.
+
+20131221
+
+	Testbed: TLS support. Viktor Dukhovni. Files: tls/Makefile.in,
+	tls/tls_dane.c, tls/tls_dane.sh, tls/tls_mgr.c, .indent.pro.
+
+	Documentation: added section on how to verify that forward
+	secrecy works. File: proto/FORWARD_SECRECY_README.html.

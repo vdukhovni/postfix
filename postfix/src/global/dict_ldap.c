@@ -152,7 +152,7 @@
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
-/*	Yorktown Heights, NY 10532, USA
+/*	Yorktown Heights, NY 10598, USA
 /*
 /*	John Hensley
 /*	john@sunislelodge.com
