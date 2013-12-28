@@ -347,6 +347,11 @@ Available in Postfix version 2.5 and later:
 .IP "\fBcyrus_sasl_config_path (empty)\fR"
 Search path for Cyrus SASL application configuration files,
 currently used only to locate the $smtpd_sasl_path.conf file.
+.PP
+Available in Postfix version 2.11 and later:
+.IP "\fBsmtpd_sasl_service (smtp)\fR"
+The service name that is passed to the SASL plug-in that is
+selected with \fBsmtpd_sasl_type\fR and \fBsmtpd_sasl_path\fR.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf

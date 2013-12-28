@@ -19409,8 +19409,8 @@ Apologies for any names omitted.
 20131219
 
 	Cleanup: renamed postconf(1) internal identifiers according
-	to a consistent scheme, to avoid name future name conflicts
-	as Postfix evolves. This is a no-feature change.  Files:
+	to a consistent scheme, to avoid future name conflicts as
+	Postfix evolves. This is a no-feature change.  Files:
 	postconf/*.[hc], postconf/extract.awk.
 
 	Documentation: linearized the order of exposition in
@@ -19440,3 +19440,32 @@ Apologies for any names omitted.
 
 	Documentation: added section on how to verify that forward
 	secrecy works. File: proto/FORWARD_SECRECY_README.html.
+
+20131222
+
+	Documentation: forward secrecy, with feedback from Adam
+	Shostack.  Viktor Dukhovni and Wietse Venema. File:
+	proto/FORWARD_SECRECY_README.html.
+
+20131224
+
+	Feature: smtpd_sasl_service (until now, this was hard-coded
+	internally as "smtp"). On request by Michal (sksoft.cz).
+	Files: global/mail_params.h, proto/postconf.proto,
+	mantools/postlink, smtpd/smtpd.c, smtpd/smtpd_sasl_glue.c.
+
+	Documentation: updated example to Dovecot version 2 syntax.
+	File: proto/SASL_README/html.
+
+20131228
+
+	Cleanup: DANE support: test script. Viktor Dukhovni. File
+	tls/tls_dane.sh.
+
+	LMDB will not be supported in the stable Postfix 2.11 release.
+
+	Debugging: test driver to speed up LMDB debugging and stress
+	testing.  Shockingly, LMDB terminates the postcreen daemon
+	without logfile record.  Fixing this will require changes
+	in LMDB or changes in the way Postfix can use LMDB. File:
+	util/dict_cache.c.

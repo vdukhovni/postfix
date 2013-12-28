@@ -46,7 +46,7 @@
 
 #include <sys_defs.h>
 
-#ifdef HAS_LMDB
+#if defined(SNAPSHOT) && defined(HAS_LMDB)
 
 /* System library. */
 

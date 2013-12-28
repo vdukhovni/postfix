@@ -10389,6 +10389,15 @@ configuration file or rendezvous point. </p>
 <p> This feature is available in Postfix 2.3 and later. In earlier
 releases it was called <b>smtpd_sasl_application_name</b>. </p>
 
+%PARAM smtpd_sasl_service smtp
+
+<p> The service name that is passed to the SASL plug-in that is
+selected with <b>smtpd_sasl_type</b> and <b>smtpd_sasl_path</b>.
+</p>
+
+<p> This feature is available in Postfix 2.11 and later. Prior
+versions behave as if "<b>smtp</b>" is specified. </p>
+
 %PARAM cyrus_sasl_config_path
 
 <p> Search path for Cyrus SASL application configuration files,

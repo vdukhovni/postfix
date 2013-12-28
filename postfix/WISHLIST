@@ -4,6 +4,10 @@ Wish list:
 	independent from the DNS and native routines for host
 	name/address lookup.
 
+	Incorporate 3rd-party code such as dynamic_maps.
+
+	Support 3rd-party extension with /etc/postfix/postfix-files.d
+
 	Make been_here flag BH_FLAG_FOLD configurable for masochists.
 
 	Replace some redundant TLS_README sections with pointers

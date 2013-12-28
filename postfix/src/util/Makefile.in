@@ -115,7 +115,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf_8 ip_match base32_code msg_rate_delay netstring \
-	vstream timecmp
+	vstream timecmp dict_cache
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
@@ -456,6 +456,11 @@ vstream: $(LIB)
 	mv junk $@.o
 
 timecmp: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+dict_cache: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o

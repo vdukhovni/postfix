@@ -9767,6 +9767,12 @@ smtpd_sasl_security_options = noanonymous, noplaintext
 .fi
 .ad
 .ft R
+.SH smtpd_sasl_service (default: smtp)
+The service name that is passed to the SASL plug-in that is
+selected with \fBsmtpd_sasl_type\fR and \fBsmtpd_sasl_path\fR.
+.PP
+This feature is available in Postfix 2.11 and later. Prior
+versions behave as if "\fBsmtp\fR" is specified.
 .SH smtpd_sasl_tls_security_options (default: $smtpd_sasl_security_options)
 The SASL authentication security options that the Postfix SMTP
 server uses for TLS encrypted SMTP sessions.

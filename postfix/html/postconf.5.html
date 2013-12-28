@@ -14622,6 +14622,19 @@ Example:
 
 </DD>
 
+<DT><b><a name="smtpd_sasl_service">smtpd_sasl_service</a>
+(default: smtp)</b></DT><DD>
+
+<p> The service name that is passed to the SASL plug-in that is
+selected with <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b> and <b><a href="postconf.5.html#smtpd_sasl_path">smtpd_sasl_path</a></b>.
+</p>
+
+<p> This feature is available in Postfix 2.11 and later. Prior
+versions behave as if "<b>smtp</b>" is specified. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_sasl_tls_security_options">smtpd_sasl_tls_security_options</a>
 (default: $<a href="postconf.5.html#smtpd_sasl_security_options">smtpd_sasl_security_options</a>)</b></DT><DD>
 

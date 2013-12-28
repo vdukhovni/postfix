@@ -187,7 +187,7 @@
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
 
-#ifdef HAS_LMDB
+#if defined(SNAPSHOT) && defined(HAS_LMDB)
 
 /* System library. */
 

@@ -1,3 +1,5 @@
+X
+
 PPoossttffiixx SSAASSLL HHoowwttoo
 
 -------------------------------------------------------------------------------
@@ -109,71 +111,30 @@ configure and operate the Dovecot authentication server.
 PPoossttffiixx ttoo DDoovveeccoott SSAASSLL ccoommmmuunniiccaattiioonn
 
 Communication between the Postfix SMTP server and Dovecot SASL happens over a
-UNIX-domain socket or over a TCP socket. Dovecot 1 supports UNIX-domain socket
-communication only.
+UNIX-domain socket or over a TCP socket. We will be using a UNIX-domain socket
+for better privacy.
 
-UUNNIIXX--ddoommaaiinn ssoocckkeett ccoommmmuunniiccaattiioonn
+The following fragment for Dovecot version 2 assumes that the Postfix queue is
+under /var/spool/postfix/.
 
-The socket pathname and the list of mechanisms offered to Postfix need to be
-specified on the Dovecot server side in dovecot.conf.
+     1 conf.d/10-master.conf:
+     2     service auth {
+     3       ...
+     4       unix_listener /var/spool/postfix/private/auth {
+     5         mode = 0660
+     6         # Assuming the default Postfix user and group
+     7         user = postfix
+     8         group = postfix
+     9       }
+    10       ...
+    11     }
+    12
+    13 conf.d/10-auth.conf
+    14     auth_mechanisms = plain login
 
-The following example assumes that the Postfix queue is under /var/spool/
-postfix/.
-
-Note: the example uses Dovecot 1 syntax, See http://www.dovecot.org/ for newer
-syntax.
-
-     1 /etc/dovecot.conf:
-     2     auth default {
-     3       mechanisms = plain login
-     4         passdb pam {
-     5         }
-     6         userdb passwd {
-     7         }
-     8         socket listen {
-     9         client {
-    10           path = /var/spool/postfix/private/auth
-    11           mode = 0660
-    12           user = postfix
-    13           group = postfix
-    14         }
-    15       }
-    16     }
-
-Line 3 provides plain and login as mechanisms for the Postfix SMTP server, line
-10 places the Dovecot SASL socket in /var/spool/postfix/private/auth, and lines
-11-13 limit read+write permissions to user and group postfix only.
-
-Proceed with the section "Enabling SASL authentication and authorization in the
-Postfix SMTP server" to turn on and use SASL in the Postfix SMTP server.
-
-TTCCPP ssoocckkeett ccoommmmuunniiccaattiioonn
-
-The TCP port and the list of mechanisms offered to Postfix need to be specified
-on the Dovecot server side in 10-auth.conf and 10-master.conf.
-
-The following examples assume that Postfix should communicate with Dovecot on
-TCP port 12345.
-
-Note: the examples use Dovecot 1 syntax, See http://www.dovecot.org/ for newer
-syntax.
-
-    1 /etc/dovecot/conf.d/10-auth.conf:
-    2     auth_mechanisms = plain login
-
-Line 2 provides plain and login as mechanisms for the Postfix SMTP server.
-
-    1 /etc/dovecot/conf.d/10-master.conf:
-    2     service auth {
-    3       unix_listener auth-userdb {
-    4       }
-    5       inet_listener {
-    6         port = 12345
-    7       }
-    8     }
-
-Line 5 creates a new TCP socket and line 6 specifies port 12345 where Dovecot
-SASL should wait for Postfix authentication requests.
+Line 4 places the Dovecot SASL socket in /var/spool/postfix/private/auth, lines
+5-8 limit read+write permissions to user and group postfix only, and line 14
+provides plain and login as mechanisms for the Postfix SMTP server.
 
 Proceed with the section "Enabling SASL authentication and authorization in the
 Postfix SMTP server" to turn on and use SASL in the Postfix SMTP server.

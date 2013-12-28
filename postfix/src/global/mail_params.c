@@ -179,7 +179,7 @@
 #ifdef HAS_DB
 #include <dict_db.h>
 #endif
-#ifdef HAS_LMDB
+#if defined(SNAPSHOT) && defined(HAS_LMDB)
 #include <dict_lmdb.h>
 #endif
 #include <inet_proto.h>
@@ -725,7 +725,7 @@ void    mail_params_init()
 #ifdef HAS_DB
     dict_db_cache_size = var_db_read_buf;
 #endif
-#ifdef HAS_LMDB
+#if defined(SNAPSHOT) && defined(HAS_LMDB)
     dict_lmdb_map_size = var_lmdb_map_size;
 #endif
     inet_windowsize = var_inet_windowsize;

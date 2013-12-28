@@ -315,6 +315,11 @@
 /* .IP "\fBcyrus_sasl_config_path (empty)\fR"
 /*	Search path for Cyrus SASL application configuration files,
 /*	currently used only to locate the $smtpd_sasl_path.conf file.
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBsmtpd_sasl_service (smtp)\fR"
+/*	The service name that is passed to the SASL plug-in that is
+/*	selected with \fBsmtpd_sasl_type\fR and \fBsmtpd_sasl_path\fR.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -1179,6 +1184,7 @@ bool    var_smtpd_sasl_enable;
 bool    var_smtpd_sasl_auth_hdr;
 char   *var_smtpd_sasl_opts;
 char   *var_smtpd_sasl_path;
+char   *var_smtpd_sasl_service;
 char   *var_cyrus_conf_path;
 char   *var_smtpd_sasl_realm;
 char   *var_smtpd_sasl_exceptions_networks;
@@ -5382,6 +5388,7 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_MAPS, DEF_LOCAL_RCPT_MAPS, &var_local_rcpt_maps, 0, 0,
 	VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts, 0, 0,
 	VAR_SMTPD_SASL_PATH, DEF_SMTPD_SASL_PATH, &var_smtpd_sasl_path, 1, 0,
+	VAR_SMTPD_SASL_SERVICE, DEF_SMTPD_SASL_SERVICE, &var_smtpd_sasl_service, 1, 0,
 	VAR_CYRUS_CONF_PATH, DEF_CYRUS_CONF_PATH, &var_cyrus_conf_path, 0, 0,
 	VAR_SMTPD_SASL_REALM, DEF_SMTPD_SASL_REALM, &var_smtpd_sasl_realm, 0, 0,
 	VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS, DEF_SMTPD_SASL_EXCEPTIONS_NETWORKS, &var_smtpd_sasl_exceptions_networks, 0, 0,

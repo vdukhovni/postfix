@@ -202,7 +202,6 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
     /*
      * Set up a new server context for this connection.
      */
-#define SMTPD_SASL_SERVICE "smtp"
 #ifdef USE_TLS
     tls_flag = state->tls_context != 0;
 #else
@@ -218,7 +217,7 @@ void    smtpd_sasl_activate(SMTPD_STATE *state, const char *sasl_opts_name,
 					    state->dest_addr : ""),
 			     client_addr = ADDR_OR_EMPTY(state->addr,
 						       CLIENT_ADDR_UNKNOWN),
-			     service = SMTPD_SASL_SERVICE,
+			     service = var_smtpd_sasl_service,
 			   user_realm = REALM_OR_NULL(var_smtpd_sasl_realm),
 			     security_options = sasl_opts_val,
 			     tls_flag = tls_flag)) == 0)
