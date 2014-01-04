@@ -125,24 +125,26 @@ Presently, there are two flavors of "groups" that work with PFS: </p>
 
 <li> <p> <b> Prime-field groups (EDH):</b>  The server needs to be
 configured with a suitably-large prime and a corresponding "generator".
-The acronym for forward secrecy over prime fields is EDH or Ephemeral
-Diffie-Hellman (sometimes also abbreviated as DHE).  </p>
+The acronym for forward secrecy over prime fields is EDH for Ephemeral
+Diffie-Hellman (also abbreviated as DHE for Diffie-Hellman Exchange).
+</p>
 
 <li> <p> <b> Elliptic-curve groups (EECDH): </b>  The server needs
 to be configured with a "named curve".  These offer better security
 at lower computational cost than prime field groups, but are not
 as widely implemented.  The acronym for the elliptic curve version
-is EECDH which is short for Ephemeral Elliptic Curve Diffie-Hellman.
-</p>
+is EECDH which is short for Ephemeral Elliptic Curve Diffie-Hellman
+(also abbreviated as ECDHE for Elliptic Curve Diffie-Hellman
+Exchange).  </p>
 
 </ul>
 
 <p> It is not essential to know what these are, but one does need
-to know that OpenSSL only supports EECDH as of version 1.0.0.  Thus
-the configuration parameters related to Elliptic Curve forward secrecy
-are only available when Postfix is linked with OpenSSL 1.0.0 or
-later (provided EC support has not been disabled by the vendor, as
-in some versions of RedHat Linux).  </p>
+to know that OpenSSL supports EECDH with version 1.0.0 or later.
+Thus the configuration parameters related to Elliptic-Curve forward
+secrecy are available when Postfix is linked with OpenSSL &ge; 1.0.0
+(provided EC support has not been disabled by the vendor, as in
+some versions of RedHat Linux).  </p>
 
 <p> Elliptic curves used in cryptography are typically identified
 by a "name" that stands for a set of well-known parameter values,
@@ -200,7 +202,7 @@ parameter file and the prime need not actually be 1024 bits long
 </ul>
 
 <p> It turns out that (inadvisably-patched in some Debian releases)
-Exim SMTP clients enforce a minimum 2048-bit length for the non-export
+Exim SMTP clients require a &ge; 2048-bit length for the non-export
 prime.  See the <a href="#quick-start">quick-start</a> section for
 the recommended configuration to work around this issue.  </p>
 
@@ -269,10 +271,12 @@ href="TLS_README.html#client_tls_policy">TLS policy</a> table. </p>
 
 <h2><a name="quick-start">Getting started, quick and dirty</a></h2>
 
-<ul>
+<h3> EECDH Client and server support (Postfix &ge; 2.6 with OpenSSL
+&ge; 1.0.0) </h3>
 
-<li> <p> Postfix 2.6 and 2.7: Enable elliptic-curve support. This
-is the default with Postfix &ge; 2.8.
+<p> With Postfix 2.6 and 2.7, enable elliptic-curve support in the
+Postfix SMTP client and server. This is the default with Postfix
+&ge; 2.8.
 
 <blockquote>
 <pre>
@@ -282,12 +286,16 @@ is the default with Postfix &ge; 2.8.
 </pre>
 </blockquote>
 
-<li> <p> Optionally generate non-default EDH parameters for improved
-security against pre-computation attacks and for compatibility with
-Debian-patched EXIM SMTP clients (these require a minimum 2048-bit
-length for the non-export prime).  The parameter files are not
-secret, after all these parameters are sent to all SMTP clients in
-the clear.  Mode 0644 is fine.  </p>
+<h3> EDH Client support (Postfix &ge; 2.2) </h3>
+
+<p> This space intentionally left blank. </p>
+
+<h3> EDH Server support (Postfix &ge; 2.2) </h3>
+
+<p> Optionally generate non-default Postfix SMTP server EDH parameters
+for improved security against pre-computation attacks and for
+compatibility with Debian-patched Exim SMTP clients that require a
+&ge; 2048-bit length for the non-export prime. </p>
 
 <p> Execute as root (prime group generation can take a
 few seconds to a few minutes): </p>
@@ -295,6 +303,7 @@ few seconds to a few minutes): </p>
 <blockquote>
 <pre>
 # cd /etc/postfix
+# umask 022
 # openssl dhparam -out dh512.tmp 512 && mv dh512.tmp dh512.pem
 # openssl dhparam -out dh1024.tmp 1024 && mv dh1024.tmp dh1024.pem
 # openssl dhparam -out dh2048.tmp 2048 && mv dh2048.tmp dh2048.pem
@@ -302,9 +311,14 @@ few seconds to a few minutes): </p>
 </pre>
 </blockquote>
 
+<p> The Postfix SMTP server EDH parameter files are not secret,
+after all these parameters are sent to all remote SMTP clients in
+the clear. Mode 0644 is fine. </p>
+
 <p> You can improve security against pre-computation attacks further
-by regenerating the EDH parameters periodically (an hourly or daily
-cron job running as root can automate this task). </p>
+by regenerating the Postfix SMTP server EDH parameters periodically
+(an hourly or daily cron job running the above commands as root can
+automate this task). </p>
 
 <p> Once the parameters are in place, update <a href="postconf.5.html">main.cf</a> as follows: </p>
 
@@ -331,8 +345,6 @@ need to adjust the submission entry in <a href="master.5.html">master.cf</a> acc
         ...
 </pre>
 </blockquote>
-
-</ul>
 
 <h2><a name="test">How can I see that a connection has forward
 secrecy? </a> </h2>
@@ -392,7 +404,7 @@ OpenSSL 1.0.1e.  The list is sorted in the default Postfix preference
 order.  It excludes null ciphers that only authenticate and don't
 encrypt, together with export and low-grade ciphers whose encryption
 is too weak to offer meaningful secrecy. The first column shows the
-cipher name, and the second shows the key exchange method. </p>
+cipher name, and the second shows the key exchange method.  </p>
 
 <blockquote>
 <pre>
