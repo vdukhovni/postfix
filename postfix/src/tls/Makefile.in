@@ -19,7 +19,7 @@ INCL	=
 LIB	= libtls.a
 TESTPROG= tls_dh tls_mgr tls_rsa tls_dane
 
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a ../../lib/libdns.a
+LIBS	= ../../lib/libdns.a ../../lib/libglobal.a ../../lib/libutil.a
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 MAKES	=

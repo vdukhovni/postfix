@@ -158,6 +158,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 {
     const char *myname = "smtp_sasl_passwd_lookup";
     SMTP_STATE *state = session->state;
+    SMTP_ITERATOR *iter = session->iterator;
     const char *value;
     char   *passwd;
 
@@ -187,10 +188,10 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 				 state->request->sender, (char **) 0)) != 0)
 	|| (smtp_sasl_passwd_map->error == 0
 	    && (value = maps_find(smtp_sasl_passwd_map,
-				  session->host, 0)) != 0)
+				  STR(iter->host), 0)) != 0)
 	|| (smtp_sasl_passwd_map->error == 0
 	    && (value = maps_find(smtp_sasl_passwd_map,
-				  session->dest, 0)) != 0)) {
+				  STR(iter->dest), 0)) != 0)) {
 	if (session->sasl_username)
 	    myfree(session->sasl_username);
 	session->sasl_username = mystrdup(value);
@@ -200,7 +201,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
 	session->sasl_passwd = mystrdup(passwd ? passwd : "");
 	if (msg_verbose)
 	    msg_info("%s: host `%s' user `%s' pass `%s'",
-		     myname, session->host,
+		     myname, STR(iter->host),
 		     session->sasl_username, session->sasl_passwd);
 	return (1);
     } else if (smtp_sasl_passwd_map->error) {
@@ -210,7 +211,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
     } else {
 	if (msg_verbose)
 	    msg_info("%s: no auth info found (sender=`%s', host=`%s')",
-		     myname, state->request->sender, session->host);
+		     myname, state->request->sender, STR(iter->host));
 	return (0);
     }
 }
@@ -284,6 +285,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 			        const char *sasl_opts_val)
 {
     XSASL_CLIENT_CREATE_ARGS create_args;
+    SMTP_ITERATOR *iter = session->iterator;
 
     if (msg_verbose)
 	msg_info("starting new SASL client");
@@ -291,7 +293,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 	 XSASL_CLIENT_CREATE(smtp_sasl_impl, &create_args,
 			     stream = session->stream,
 			     service = var_procname,
-			     server_name = session->host,
+			     server_name = STR(iter->host),
 			     security_options = sasl_opts_val)) == 0)
 	msg_fatal("SASL per-connection initialization failed");
     session->sasl_reply = vstring_alloc(20);
@@ -302,6 +304,7 @@ void    smtp_sasl_start(SMTP_SESSION *session, const char *sasl_opts_name,
 int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 {
     const char *myname = "smtp_sasl_authenticate";
+    SMTP_ITERATOR *iter = session->iterator;
     SMTP_RESP *resp;
     const char *mechanism;
     int     result;
@@ -330,9 +333,9 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 	if (var_smtp_sasl_auth_soft_bounce && resp_dsn[0] == '5')
 	    resp_dsn[0] = '4';
 	dsb_update(why, resp_dsn, DSB_DEF_ACTION, DSB_MTYPE_DNS,
-		   session->host, var_procname, resp_str,
+		   STR(iter->host), var_procname, resp_str,
 		   "SASL [CACHED] authentication failed; server %s said: %s",
-		   session->host, resp_str);
+		   STR(iter->host), resp_str);
 	return (0);
     }
 #endif
@@ -416,7 +419,7 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
 	if (var_smtp_sasl_auth_soft_bounce && resp->code / 100 == 5)
 	    STR(resp->dsn_buf)[0] = '4';
 	dsb_update(why, resp->dsn, DSB_DEF_ACTION,
-		   DSB_MTYPE_DNS, session->host,
+		   DSB_MTYPE_DNS, STR(iter->host),
 		   var_procname, resp->str,
 		   "SASL authentication failed; server %s said: %s",
 		   session->namaddr, resp->str);

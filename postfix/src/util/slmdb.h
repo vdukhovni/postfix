@@ -31,6 +31,9 @@
 #define SLMDB_JMP_BUF sigjmp_buf
 #endif
 
+ /*
+  * All data structure members are private.
+  */
 typedef struct {
     size_t  curr_limit;			/* database soft size limit */
     int     size_incr;			/* database expansion factor */
@@ -43,6 +46,8 @@ typedef struct {
     MDB_txn *txn;			/* bulk transaction */
     int     db_fd;			/* database file handle */
     MDB_cursor *cursor;			/* iterator */
+    MDB_val saved_key;			/* saved cursor key buffer */
+    size_t  saved_key_size;		/* saved cursor key buffer size */
     void    (*longjmp_fn) (void *, int);/* exception handling */
     void    (*notify_fn) (void *, int,...);	/* workaround notification */
     void   *cb_context;			/* call-back context */

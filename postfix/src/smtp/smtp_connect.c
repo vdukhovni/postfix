@@ -159,7 +159,7 @@ static SMTP_SESSION *smtp_connect_unix(SMTP_ITERATOR *iter, DSN_BUF *why,
     if (msg_verbose)
 	msg_info("%s: trying: %s...", myname, addr);
 
-    return (smtp_connect_sock(sock, (struct sockaddr *) & sock_un,
+    return (smtp_connect_sock(sock, (struct sockaddr *) &sock_un,
 			      sizeof(sock_un), iter, why, sess_flags));
 }
 
@@ -170,7 +170,7 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 {
     const char *myname = "smtp_connect_addr";
     struct sockaddr_storage ss;		/* remote */
-    struct sockaddr *sa = (struct sockaddr *) & ss;
+    struct sockaddr *sa = (struct sockaddr *) &ss;
     SOCKADDR_SIZE salen = sizeof(ss);
     MAI_HOSTADDR_STR hostaddr;
     DNS_RR *addr = iter->rr;
@@ -274,7 +274,7 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 
 /* smtp_connect_sock - connect a socket over some transport */
 
-static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr * sa,
+static SMTP_SESSION *smtp_connect_sock(int sock, struct sockaddr *sa,
 				               int salen,
 				               SMTP_ITERATOR *iter,
 				               DSN_BUF *why,
@@ -668,7 +668,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
 	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_MASK_SCACHE_DEST_LABEL)) != 0) {
 	session_count = 1;
-	smtp_update_addr_list(addr_list, session->addr, session_count);
+	smtp_update_addr_list(addr_list, STR(iter->addr), session_count);
 	if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)
 	    && *addr_list == 0)
 	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
@@ -726,7 +726,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 				   SMTP_KEY_MASK_SCACHE_ENDP_LABEL)) != 0) {
 	    session->features |= SMTP_FEATURE_BEST_MX;
 	    session_count += 1;
-	    smtp_update_addr_list(addr_list, session->addr, session_count);
+	    smtp_update_addr_list(addr_list, STR(iter->addr), session_count);
 	    if (*addr_list == 0)
 		next = 0;
 	    if ((state->misc_flags & SMTP_MISC_FLAG_FINAL_NEXTHOP)

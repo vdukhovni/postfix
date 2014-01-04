@@ -705,11 +705,11 @@ const char *dict_cache_name(DICT_CACHE *cp)
 		"\n\treset (discard pending requests)" \
 		"\n\trun (execute pending requests in interleaved order)" \
 		"\n\n\tTo add a pending request:" \
-		"\n\tquery <key-prefix> <count> (negative to reverse order)" \
-		"\n\tupdate <key-prefix> <count> (negative to reverse order)" \
-		"\n\tdelete <key-prefix> <count> (negative to reverse order)" \
-		"\n\tpurge <key-prefix>" \
-		"\n\tcount <key-prefix>"
+		"\n\tquery <key-suffix> <count> (negative to reverse order)" \
+		"\n\tupdate <key-suffix> <count> (negative to reverse order)" \
+		"\n\tdelete <key-suffix> <count> (negative to reverse order)" \
+		"\n\tpurge <key-suffix>" \
+		"\n\tcount <key-suffix>"
 
  /*
   * For realism, open the cache with the same flags as postscreen(8) and
@@ -725,7 +725,7 @@ typedef struct DICT_CACHE_SREQ {
     int     flags;			/* per-request: reverse, purge */
     char   *cmd;			/* command for status report */
     void    (*action) (struct DICT_CACHE_SREQ *, DICT_CACHE *, VSTRING *);
-    char   *prefix;			/* key prefix */
+    char   *suffix;			/* key suffix */
     int     done;			/* progress indicator */
     int     todo;			/* number of entries to process */
     int     first_next;			/* first/next */
@@ -772,9 +772,9 @@ static void make_tagged_key(VSTRING *bp, DICT_CACHE_SREQ *cp)
 	msg_panic("make_tagged_key: bad done count: %d", cp->done);
     if (cp->todo < 1)
 	msg_panic("make_tagged_key: bad todo count: %d", cp->todo);
-    vstring_sprintf(bp, "%s-%d", cp->prefix,
+    vstring_sprintf(bp, "%d-%s",
 		    (cp->flags & DICT_CACHE_SREQ_FLAG_REVERSE) ?
-		    cp->todo - cp->done - 1 : cp->done);
+		    cp->todo - cp->done - 1 : cp->done, cp->suffix);
 }
 
 /* create_requests - create request list */
@@ -793,7 +793,7 @@ static DICT_CACHE_TEST *create_requests(int count)
 	cp->flags = 0;
 	cp->cmd = 0;
 	cp->action = 0;
-	cp->prefix = 0;
+	cp->suffix = 0;
 	cp->todo = 0;
 	cp->first_next = DICT_SEQ_FUN_FIRST;
     }
@@ -815,9 +815,9 @@ static void reset_requests(DICT_CACHE_TEST *tp)
 	    cp->cmd = 0;
 	}
 	cp->action = 0;
-	if (cp->prefix) {
-	    myfree(cp->prefix);
-	    cp->prefix = 0;
+	if (cp->suffix) {
+	    myfree(cp->suffix);
+	    cp->suffix = 0;
 	}
 	cp->todo = 0;
 	cp->first_next = DICT_SEQ_FUN_FIRST;
@@ -876,8 +876,11 @@ static void show_status(DICT_CACHE_TEST *tp, DICT_CACHE *dp)
 #endif
     vstream_printf("cache\t%s\n", dp ? dp->name : "(none)");
 
-    vstream_printf("%s\t%s\t%s\t%s\t%s\t%s\n",
-		   "cmd", "dir", "prefix", "count", "done", "first/next");
+    if (tp->used == 0)
+	vstream_printf("No pending requests\n");
+    else
+	vstream_printf("%s\t%s\t%s\t%s\t%s\t%s\n",
+		     "cmd", "dir", "suffix", "count", "done", "first/next");
 
     for (cp = tp->job_list; cp < tp->job_list + tp->used; cp++)
 	if (cp->todo > 0)
@@ -885,7 +888,7 @@ static void show_status(DICT_CACHE_TEST *tp, DICT_CACHE *dp)
 			   cp->cmd,
 			   (cp->flags & DICT_CACHE_SREQ_FLAG_REVERSE) ?
 			   "reverse" : "forward",
-			   cp->prefix ? cp->prefix : "(null)", cp->todo,
+			   cp->suffix ? cp->suffix : "(null)", cp->todo,
 			   cp->done, cp->first_next);
 }
 
@@ -936,21 +939,21 @@ static void delete_action(DICT_CACHE_SREQ *cp, DICT_CACHE *dp, VSTRING *bp)
     cp->done += 1;
 }
 
-/* iter_action - iterate over cache and act on entries with given prefix */
+/* iter_action - iterate over cache and act on entries with given suffix */
 
 static void iter_action(DICT_CACHE_SREQ *cp, DICT_CACHE *dp, VSTRING *bp)
 {
     const char *cache_key;
     const char *cache_val;
     const char *what;
-    int     len;
+    const char *suffix;
 
     if (dict_cache_sequence(dp, cp->first_next, &cache_key, &cache_val) == 0) {
 	if (strcmp(cache_key, cache_val) != 0)
 	    msg_warn("value \"%s\" differs from key \"%s\"",
 		     cache_val, cache_key);
-	len = strlen(cp->prefix);
-	if (strncmp(cache_key, cp->prefix, len) == 0 && cache_key[len] == '-') {
+	suffix = cache_key + strspn(cache_key, "0123456789");
+	if (suffix[0] == '-' && strcmp(suffix + 1, cp->suffix) == 0) {
 	    cp->done += 1;
 	    cp->todo = cp->done + 1;		/* XXX */
 	    if ((cp->flags & DICT_CACHE_SREQ_FLAG_PURGE)
@@ -967,7 +970,7 @@ static void iter_action(DICT_CACHE_SREQ *cp, DICT_CACHE *dp, VSTRING *bp)
 	if (dp->error)
 	    msg_warn("%s error after %d: %m", what, cp->done);
 	else
-	    vstream_printf("prefix=%s %s=%d\n", cp->prefix, what, cp->done);
+	    vstream_printf("suffix=%s %s=%d\n", cp->suffix, what, cp->done);
 	cp->todo = 0;
     }
 }
@@ -1001,7 +1004,7 @@ static void add_request(DICT_CACHE_TEST *tp, ARGV *argv)
     int     req_flags;
     int     count;
     char   *cmd = argv->argv[0];
-    char   *prefix = (argv->argc > 1 ? argv->argv[1] : 0);
+    char   *suffix = (argv->argc > 1 ? argv->argv[1] : 0);
     char   *todo = (argv->argc > 2 ? argv->argv[2] : "1");	/* XXX */
 
     if (tp->used >= tp->size) {
@@ -1034,8 +1037,8 @@ static void add_request(DICT_CACHE_TEST *tp, ARGV *argv)
     cp = tp->job_list + tp->used;
     cp->cmd = mystrdup(cmd);
     cp->action = rp->action;
-    if (prefix)
-	cp->prefix = mystrdup(prefix);
+    if (suffix)
+	cp->suffix = mystrdup(suffix);
     cp->done = 0;
     cp->flags = req_flags;
     cp->todo = count;

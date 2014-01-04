@@ -19462,10 +19462,33 @@ Apologies for any names omitted.
 	Cleanup: DANE support: test script. Viktor Dukhovni. File
 	tls/tls_dane.sh.
 
-	LMDB will not be supported in the stable Postfix 2.11 release.
+	Debugging: test driver for LMDB debugging and stress testing.
+	Shockingly, LMDB terminates the postscreen daemon without
+	logfile record.  File: util/dict_cache.c.
 
-	Debugging: test driver to speed up LMDB debugging and stress
-	testing.  Shockingly, LMDB terminates the postcreen daemon
-	without logfile record.  Fixing this will require changes
-	in LMDB or changes in the way Postfix can use LMDB. File:
-	util/dict_cache.c.
+	Because of the above behavior, LMDB cannot be supported in
+	the stable Postfix 2.11 release.
+
+20140102
+
+	Bugfix: close the LMDB database cursor's read transaction
+	before writing with MDB_NOLOCK and before changing the
+	database memory map size. File: util/slmdb.c.
+
+20140103
+
+	Cleanup: eliminated data duplication from the new SMTP_ITERATOR
+	structure to the old SMTP_SESSION structure. The SMTP_ITERATOR
+	structure now maintains the sole copy. Files: smtp/smtp.h,
+	smtp_sasl_auth_cache.c, smtp_reuse.c, smtp_sasl_glue.c,
+	smtp_rcpt.c, smtp_session.c, smtp_chat.c, smtp_proto.c,
+	smtp_connect.c.
+
+20130104
+
+	Feature: support for optional configuration files
+	"$daemon-directory/postfix-files.d/*".  These are processed
+	in sorted order after "$daemon-directory/postfix-files",
+	This avoids breaking "postfix set-permissions" etc. when a
+	Postfix distributions comes in multiple packages.  File:
+	conf/post-install.

@@ -261,6 +261,7 @@ int     smtp_helo(SMTP_STATE *state)
     const char *myname = "smtp_helo";
     SMTP_SESSION *session = state->session;
     DELIVER_REQUEST *request = state->request;
+    SMTP_ITERATOR *iter = state->iterator;
     SMTP_RESP *resp;
     SMTP_RESP fake;
     int     except;
@@ -322,7 +323,7 @@ int     smtp_helo(SMTP_STATE *state)
 		STR(resp->dsn_buf)[0] = '4';
 	    /* FALLTHROUGH */
 	default:
-	    return (smtp_site_fail(state, session->host, resp,
+	    return (smtp_site_fail(state, STR(iter->host), resp,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -350,7 +351,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    if (smtp_pix_bug_maps != 0
 		&& (pix_bug_words =
 		    maps_find(smtp_pix_bug_maps,
-			      state->session->addr, 0)) != 0) {
+			      STR(iter->addr), 0)) != 0) {
 		pix_bug_source = SMTP_X(PIX_BUG_MAPS);
 	    } else {
 		pix_bug_words = var_smtp_pix_bug_words;
@@ -415,7 +416,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    smtp_chat_cmd(session, "EHLO %s", var_smtp_helo_name);
 	    if ((resp = smtp_chat_resp(session))->code / 100 != 2) {
 		if (resp->code == 421)
-		    return (smtp_site_fail(state, session->host, resp,
+		    return (smtp_site_fail(state, STR(iter->host), resp,
 					"host %s refused to talk to me: %s",
 					   session->namaddr,
 					   translit(resp->str, "\n", " ")));
@@ -427,7 +428,7 @@ int     smtp_helo(SMTP_STATE *state)
 	    where = "performing the HELO handshake";
 	    smtp_chat_cmd(session, "HELO %s", var_smtp_helo_name);
 	    if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-		return (smtp_site_fail(state, session->host, resp,
+		return (smtp_site_fail(state, STR(iter->host), resp,
 				       "host %s refused to talk to me: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
@@ -436,7 +437,7 @@ int     smtp_helo(SMTP_STATE *state)
 	where = "performing the LHLO handshake";
 	smtp_chat_cmd(session, "LHLO %s", var_smtp_helo_name);
 	if ((resp = smtp_chat_resp(session))->code / 100 != 2)
-	    return (smtp_site_fail(state, session->host, resp,
+	    return (smtp_site_fail(state, STR(iter->host), resp,
 				   "host %s refused to talk to me: %s",
 				   session->namaddr,
 				   translit(resp->str, "\n", " ")));
@@ -454,12 +455,12 @@ int     smtp_helo(SMTP_STATE *state)
 	 */
 	if (smtp_ehlo_dis_maps == 0
 	    || (ehlo_words = maps_find(smtp_ehlo_dis_maps,
-				       state->session->addr, 0)) == 0)
+				       STR(iter->addr), 0)) == 0)
 	    ehlo_words = var_smtp_ehlo_dis_words;
 	if (smtp_ehlo_dis_maps && smtp_ehlo_dis_maps->error) {
 	    msg_warn("%s: %s map lookup error for %s",
 		     session->state->request->queue_id,
-		     smtp_ehlo_dis_maps->title, state->session->addr);
+		     smtp_ehlo_dis_maps->title, STR(iter->addr));
 	    vstream_longjmp(session->stream, SMTP_ERR_DATA);
 	}
 	discard_mask = ehlo_mask(ehlo_words);
@@ -643,7 +644,7 @@ int     smtp_helo(SMTP_STATE *state)
 	if ((session->features & SMTP_FEATURE_STARTTLS) &&
 	    var_smtp_tls_note_starttls_offer &&
 	    session->tls->level <= TLS_LEV_NONE)
-	    msg_info("Host offered STARTTLS: [%s]", session->host);
+	    msg_info("Host offered STARTTLS: [%s]", STR(iter->host));
 
 	/*
 	 * Decide whether or not to send STARTTLS.
@@ -690,7 +691,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
 	    if (TLS_REQUIRED(session->tls->level))
-		return (smtp_site_fail(state, session->host, resp,
+		return (smtp_site_fail(state, STR(iter->host), resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
@@ -739,6 +740,7 @@ int     smtp_helo(SMTP_STATE *state)
 static int smtp_start_tls(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
+    SMTP_ITERATOR *iter = state->iterator;
     TLS_CLIENT_START_PROPS tls_props;
     VSTRING *serverid;
     SMTP_RESP fake;
@@ -805,7 +807,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 timeout = var_smtp_starttls_tmout,
 			 tls_level = session->tls->level,
 			 nexthop = session->tls_nexthop,
-			 host = session->host,
+			 host = STR(iter->host),
 			 namaddr = session->namaddrport,
 			 serverid = vstring_str(serverid),
 			 helo = session->helo,
@@ -1142,6 +1144,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     const char *myname = "smtp_loop";
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
+    SMTP_ITERATOR *iter = state->iterator;
     SMTP_RESP *resp;
     RECIPIENT *rcpt;
     VSTRING *next_command = vstring_alloc(100);
@@ -1652,7 +1655,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     */
 		case SMTP_STATE_MAIL:
 		    if (resp->code / 100 != 2) {
-			smtp_mesg_fail(state, session->host, resp,
+			smtp_mesg_fail(state, STR(iter->host), resp,
 				       "host %s said: %s (in reply to %s)",
 				       session->namaddr,
 				       translit(resp->str, "\n", " "),
@@ -1724,7 +1727,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 				smtp_rcpt_done(state, resp, rcpt);
 			    }
 			} else {
-			    smtp_rcpt_fail(state, rcpt, session->host, resp,
+			    smtp_rcpt_fail(state, rcpt, STR(iter->host), resp,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1746,7 +1749,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		case SMTP_STATE_DATA:
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
-			    smtp_mesg_fail(state, session->host, resp,
+			    smtp_mesg_fail(state, STR(iter->host), resp,
 					"host %s said: %s (in reply to %s)",
 					   session->namaddr,
 					   translit(resp->str, "\n", " "),
@@ -1770,7 +1773,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    if (smtp_mode) {
 			if (nrcpt > 0) {
 			    if (resp->code / 100 != 2) {
-				smtp_mesg_fail(state, session->host, resp,
+				smtp_mesg_fail(state, STR(iter->host), resp,
 					"host %s said: %s (in reply to %s)",
 					       session->namaddr,
 					     translit(resp->str, "\n", " "),
@@ -1797,7 +1800,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    rcpt = request->rcpt_list.info
 				+ survivors[recv_done++];
 			    if (resp->code / 100 != 2) {
-				smtp_rcpt_fail(state, rcpt, session->host, resp,
+				smtp_rcpt_fail(state, rcpt, STR(iter->host), resp,
 					"host %s said: %s (in reply to %s)",
 					       session->namaddr,
 					     translit(resp->str, "\n", " "),

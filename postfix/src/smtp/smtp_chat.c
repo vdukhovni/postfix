@@ -363,7 +363,8 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 		     session->namaddrport, STR(session->buffer));
 	    if (var_helpful_warnings)
 		msg_warn("to prevent loss of mail, turn off command pipelining "
-			 "for %s with the %s parameter", session->addr,
+			 "for %s with the %s parameter",
+			 STR(session->iterator->addr),
 			 SMTP_X(EHLO_DIS_MAPS));
 	}
     }

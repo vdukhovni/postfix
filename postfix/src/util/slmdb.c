@@ -82,7 +82,8 @@
 /*
 /*	slmdb_cursor_get() is an mdb_cursor_get() wrapper with
 /*	automatic error recovery.  The result value is an LMDB
-/*	status code (zero in case of success).
+/*	status code (zero in case of success). This wrapper supports
+/*	only one cursor per database.
 /*
 /*	slmdb_fd() returns the file descriptor for the specified
 /*	database.  This may be used for file status queries or
@@ -198,6 +199,8 @@
 #include <unistd.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <string.h>
+#include <stdlib.h>
 
 /* Application-specific. */
 
@@ -256,6 +259,80 @@
 	return (status); \
     } while (0)
 
+ /*
+  * We must close the cursor's read transaction before writing to the
+  * database with MDB_NOLOCK, and before changing the memory map size. Our
+  * database iterator saves the key under the last cursor position, and
+  * restores the cursor if needed. This supports only one cursor per
+  * database.
+  */
+
+/* slmdb_cursor_close - close cursor and its read transaction */
+
+static void slmdb_cursor_close(SLMDB *slmdb)
+{
+    MDB_txn *txn;
+
+    /*
+     * Close the cursor and its read transaction. We can restore it later
+     * from the saved key information.
+     */
+    txn = mdb_cursor_txn(slmdb->cursor);
+    mdb_cursor_close(slmdb->cursor);
+    slmdb->cursor = 0;
+    mdb_txn_abort(txn);
+}
+
+/* slmdb_saved_key_init - initialize saved key info */
+
+static void slmdb_saved_key_init(SLMDB *slmdb)
+{
+    slmdb->saved_key.mv_data = 0;
+    slmdb->saved_key_size = 0;
+}
+
+/* slmdb_saved_key_free - destroy saved key info */
+
+static void slmdb_saved_key_free(SLMDB *slmdb)
+{
+    free(slmdb->saved_key.mv_data);
+    slmdb->saved_key.mv_data = 0;
+    slmdb->saved_key_size = 0;
+}
+
+#define HAVE_SLMDB_SAVED_KEY(s) ((s)->saved_key.mv_data != 0)
+
+/* slmdb_saved_key_assign - copy the saved key */
+
+static int slmdb_saved_key_assign(SLMDB *slmdb, MDB_val *key_val)
+{
+
+    /*
+     * Extend the buffer to fit the key, so that we can avoid malloc()
+     * overhead most of the time.
+     */
+    if (slmdb->saved_key_size < key_val->mv_size) {
+	if (slmdb->saved_key.mv_data == 0)
+	    slmdb->saved_key.mv_data = malloc(key_val->mv_size);
+	else
+	    slmdb->saved_key.mv_data =
+		realloc(slmdb->saved_key.mv_data, key_val->mv_size);
+	if (slmdb->saved_key.mv_data == 0) {
+	    slmdb->saved_key_size = 0;
+	    return (ENOMEM);
+	} else {
+	    slmdb->saved_key_size = key_val->mv_size;
+	}
+    }
+
+    /*
+     * Copy the key under the cursor.
+     */
+    memcpy(slmdb->saved_key.mv_data, key_val->mv_data, key_val->mv_size);
+    slmdb->saved_key.mv_size = key_val->mv_size;
+    return (0);
+}
+
 /* slmdb_prepare - LMDB-specific (re)initialization before actual access */
 
 static int slmdb_prepare(SLMDB *slmdb)
@@ -294,6 +371,13 @@ static int slmdb_prepare(SLMDB *slmdb)
 static int slmdb_recover(SLMDB *slmdb, int status)
 {
     MDB_envinfo info;
+
+    /*
+     * Close the cursor and its read transaction before changing the memory
+     * map size. We can restore it later with the saved key information.
+     */
+    if (slmdb->cursor != 0)
+	slmdb_cursor_close(slmdb);
 
     /*
      * Recover bulk transactions only if they can be restarted. Limit the
@@ -457,6 +541,15 @@ int     slmdb_put(SLMDB *slmdb, MDB_val *mdb_key,
 	SLMDB_API_RETURN(slmdb, status);
 
     /*
+     * Before doing a non-bulk write transaction in MDB_NOLOCK mode, close a
+     * cursor and its read transaction. We can restore it later with the
+     * saved key information.
+     */
+    if (slmdb->cursor != 0 && slmdb->txn == 0
+	&& (slmdb->lmdb_flags & MDB_NOLOCK))
+	slmdb_cursor_close(slmdb);
+
+    /*
      * Do the update.
      */
     if ((status = mdb_put(txn, slmdb->dbi, mdb_key, mdb_value, flags)) != 0) {
@@ -494,6 +587,15 @@ int     slmdb_del(SLMDB *slmdb, MDB_val *mdb_key)
 	SLMDB_API_RETURN(slmdb, status);
 
     /*
+     * Before doing a non-bulk write transaction in MDB_NOLOCK mode, close a
+     * cursor and its read transaction. We can restore it later with the
+     * saved key information.
+     */
+    if (slmdb->cursor != 0 && slmdb->txn == 0
+	&& (slmdb->lmdb_flags & MDB_NOLOCK))
+	slmdb_cursor_close(slmdb);
+
+    /*
      * Do the update.
      */
     if ((status = mdb_del(txn, slmdb->dbi, mdb_key, (MDB_val *) 0)) != 0) {
@@ -527,12 +629,26 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
      * Open a read transaction and cursor if needed.
      */
     if (slmdb->cursor == 0) {
-	slmdb_txn_begin(slmdb, MDB_RDONLY, &txn);
+	if ((status = slmdb_txn_begin(slmdb, MDB_RDONLY, &txn)) != 0)
+	    SLMDB_API_RETURN(slmdb, status);
 	if ((status = mdb_cursor_open(txn, slmdb->dbi, &slmdb->cursor)) != 0) {
 	    mdb_txn_abort(txn);
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_cursor_get(slmdb, mdb_key, mdb_value, op);
 	    SLMDB_API_RETURN(slmdb, status);
+	}
+
+	/*
+	 * Restore the cursor to the saved key position.
+	 */
+	if (HAVE_SLMDB_SAVED_KEY(slmdb) && op != MDB_FIRST) {
+	    if ((status = mdb_cursor_get(slmdb->cursor, &slmdb->saved_key,
+					 (MDB_val *) 0, MDB_SET)) != 0) {
+		slmdb_cursor_close(slmdb);
+		if ((status = slmdb_recover(slmdb, status)) == 0)
+		    status = slmdb_cursor_get(slmdb, mdb_key, mdb_value, op);
+		SLMDB_API_RETURN(slmdb, status);
+	    }
 	}
     }
 
@@ -542,14 +658,19 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
     status = mdb_cursor_get(slmdb->cursor, mdb_key, mdb_value, op);
 
     /*
+     * Save the cursor position. This can fail only with ENOMEM.
+     */
+    if (status == 0)
+	status = slmdb_saved_key_assign(slmdb, mdb_key);
+
+    /*
      * Handle end-of-database or other error.
      */
-    if (status != 0) {
+    else {
 	if (status == MDB_NOTFOUND) {
-	    txn = mdb_cursor_txn(slmdb->cursor);
-	    mdb_cursor_close(slmdb->cursor);
-	    mdb_txn_abort(txn);
-	    slmdb->cursor = 0;
+	    slmdb_cursor_close(slmdb);
+	    if (HAVE_SLMDB_SAVED_KEY(slmdb))
+		slmdb_saved_key_free(slmdb);
 	} else {
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_cursor_get(slmdb, mdb_key, mdb_value, op);
@@ -613,13 +734,16 @@ int     slmdb_close(SLMDB *slmdb)
     /*
      * Clean up after an unfinished sequence() operation.
      */
-    if (slmdb->cursor) {
-	MDB_txn *txn = mdb_cursor_txn(slmdb->cursor);
+    if (slmdb->cursor != 0)
+	slmdb_cursor_close(slmdb);
 
-	mdb_cursor_close(slmdb->cursor);
-	mdb_txn_abort(txn);
-    }
     mdb_env_close(slmdb->env);
+
+    /*
+     * Clean up the saved key position.
+     */
+    if (HAVE_SLMDB_SAVED_KEY(slmdb))
+	slmdb_saved_key_free(slmdb);
 
     SLMDB_API_RETURN(slmdb, status);
 }
@@ -703,6 +827,7 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
     slmdb->dbi = dbi;
     slmdb->db_fd = db_fd;
     slmdb->cursor = 0;
+    slmdb_saved_key_init(slmdb);
     slmdb->api_retry_count = 0;
     slmdb->bulk_retry_count = 0;
     slmdb->api_retry_limit = SLMDB_DEF_API_RETRY_LIMIT;
@@ -716,6 +841,22 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
 	mdb_env_close(env);
 
     return (status);
+}
+
+#endif
+
+ /*
+  * Implementation-dependent workaround to debug LMDB assert() failures. The
+  * code below prevents daemons from disappearing without logfile record.
+  */
+#ifdef LMDB_ASSERT_WORKAROUND
+
+#include <assert.h>
+
+void    __assert(const char *func, const char *file, int line, const char *text)
+{
+    msg_panic("Assertion failed: %s, function %s, file %s, line %d.",
+	      text, func, file, line);
 }
 
 #endif

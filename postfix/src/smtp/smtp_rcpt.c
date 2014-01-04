@@ -132,6 +132,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
+    SMTP_ITERATOR *iter = state->iterator;
     DSN_BUF *why = state->why;
     const char *dsn_action = "relayed";
     int     status;
@@ -162,7 +163,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
      * 
      * Note: the DSN action is ignored in case of address probes.
      */
-    dsb_update(why, resp->dsn, dsn_action, DSB_MTYPE_DNS, session->host,
+    dsb_update(why, resp->dsn, dsn_action, DSB_MTYPE_DNS, STR(iter->host),
 	       DSB_DTYPE_SMTP, resp->str, "%s", resp->str);
 
     status = sent(DEL_REQ_TRACE_FLAGS(request->flags),

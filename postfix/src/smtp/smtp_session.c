@@ -123,16 +123,13 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, SMTP_ITERATOR *iter,
 				         time_t start, int flags)
 {
     SMTP_SESSION *session;
-    const char *dest = STR(iter->dest);
     const char *host = STR(iter->host);
     const char *addr = STR(iter->addr);
     unsigned port = iter->port;
 
     session = (SMTP_SESSION *) mymalloc(sizeof(*session));
     session->stream = stream;
-    session->dest = mystrdup(dest);
-    session->host = mystrdup(host);
-    session->addr = mystrdup(addr);
+    session->iterator = iter;
     session->namaddr = concatenate(host, "[", addr, "]", (char *) 0);
     session->helo = 0;
     session->port = port;
@@ -191,9 +188,6 @@ void    smtp_session_free(SMTP_SESSION *session)
 #endif
     if (session->stream)
 	vstream_fclose(session->stream);
-    myfree(session->dest);
-    myfree(session->host);
-    myfree(session->addr);
     myfree(session->namaddr);
     myfree(session->namaddrport);
     if (session->helo)
@@ -221,6 +215,7 @@ void    smtp_session_free(SMTP_SESSION *session)
 int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
 			               VSTRING *endp_prop)
 {
+    SMTP_ITERATOR *iter = session->iterator;
     int     fd;
 
     /*
@@ -238,7 +233,7 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * 
      */
     vstring_sprintf(dest_prop, "%s\n%s\n%s\n%u",
-		    session->dest, session->host, session->addr,
+		    STR(iter->dest), STR(iter->host), STR(iter->addr),
 		    session->features & SMTP_FEATURE_DESTINATION_MASK);
 
     /*

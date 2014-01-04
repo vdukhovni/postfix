@@ -301,9 +301,7 @@ extern HBC_CHECKS *smtp_body_checks;	/* limited body checks */
 
 typedef struct SMTP_SESSION {
     VSTREAM *stream;			/* network connection */
-    char   *dest;			/* nexthop or fallback */
-    char   *host;			/* mail exchanger */
-    char   *addr;			/* mail exchanger */
+    SMTP_ITERATOR *iterator;		/* dest, host, addr, port */
     char   *namaddr;			/* mail exchanger */
     char   *helo;			/* helo response */
     unsigned port;			/* network byte order */

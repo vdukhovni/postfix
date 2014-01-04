@@ -82,20 +82,21 @@ element of that group called a "generator". Presently, there are two flavors of
 
   * PPrriimmee--ffiieelldd ggrroouuppss ((EEDDHH)):: The server needs to be configured with a
     suitably-large prime and a corresponding "generator". The acronym for
-    forward secrecy over prime fields is EDH or Ephemeral Diffie-Hellman
-    (sometimes also abbreviated as DHE).
+    forward secrecy over prime fields is EDH for Ephemeral Diffie-Hellman (also
+    abbreviated as DHE for Diffie-Hellman Exchange).
 
   * EElllliippttiicc--ccuurrvvee ggrroouuppss ((EEEECCDDHH)):: The server needs to be configured with a
     "named curve". These offer better security at lower computational cost than
     prime field groups, but are not as widely implemented. The acronym for the
     elliptic curve version is EECDH which is short for Ephemeral Elliptic Curve
-    Diffie-Hellman.
+    Diffie-Hellman (also abbreviated as ECDHE for Elliptic Curve Diffie-Hellman
+    Exchange).
 
 It is not essential to know what these are, but one does need to know that
-OpenSSL only supports EECDH as of version 1.0.0. Thus the configuration
-parameters related to Elliptic Curve forward secrecy are only available when
-Postfix is linked with OpenSSL 1.0.0 or later (provided EC support has not been
-disabled by the vendor, as in some versions of RedHat Linux).
+OpenSSL supports EECDH with version 1.0.0 or later. Thus the configuration
+parameters related to Elliptic-Curve forward secrecy are available when Postfix
+is linked with OpenSSL >= 1.0.0 (provided EC support has not been disabled by
+the vendor, as in some versions of RedHat Linux).
 
 Elliptic curves used in cryptography are typically identified by a "name" that
 stands for a set of well-known parameter values, and it is these "names" (or
@@ -141,9 +142,8 @@ configured overrides.
     1024 bits long (see the quick-start section for details).
 
 It turns out that (inadvisably-patched in some Debian releases) Exim SMTP
-clients enforce a minimum 2048-bit length for the non-export prime. See the
-quick-start section for the recommended configuration to work around this
-issue.
+clients require a >= 2048-bit length for the non-export prime. See the quick-
+start section for the recommended configuration to work around this issue.
 
 EEEECCDDHH SSeerrvveerr ssuuppppoorrtt
 
@@ -198,50 +198,60 @@ a case-by-case basis via the TLS policy table.
 
 GGeettttiinngg ssttaarrtteedd,, qquuiicckk aanndd ddiirrttyy
 
-  * Postfix 2.6 and 2.7: Enable elliptic-curve support. This is the default
-    with Postfix >= 2.8.
+EEEECCDDHH CClliieenntt aanndd sseerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..66 wwiitthh OOppeennSSSSLL >>== 11..00..00))
 
-        /etc/postfix/main.cf:
-            # Postfix 2.6 or 2.7 only. This is default with Postfix 2.8 and
-        later.
-            smtpd_tls_eecdh_grade = strong
+With Postfix 2.6 and 2.7, enable elliptic-curve support in the Postfix SMTP
+client and server. This is the default with Postfix >= 2.8.
 
-  * Optionally generate non-default EDH parameters for improved security
-    against pre-computation attacks and for compatibility with Debian-patched
-    EXIM SMTP clients (these require a minimum 2048-bit length for the non-
-    export prime). The parameter files are not secret, after all these
-    parameters are sent to all SMTP clients in the clear. Mode 0644 is fine.
+    /etc/postfix/main.cf:
+        # Postfix 2.6 or 2.7 only. This is default with Postfix 2.8 and later.
+        smtpd_tls_eecdh_grade = strong
 
-    Execute as root (prime group generation can take a few seconds to a few
-    minutes):
+EEDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22))
 
-        # cd /etc/postfix
-        # openssl dhparam -out dh512.tmp 512 && mv dh512.tmp dh512.pem
-        # openssl dhparam -out dh1024.tmp 1024 && mv dh1024.tmp dh1024.pem
-        # openssl dhparam -out dh2048.tmp 2048 && mv dh2048.tmp dh2048.pem
-        # chmod 644 dh512.pem dh1024.pem dh2048.pem
+This space intentionally left blank.
 
-    You can improve security against pre-computation attacks further by
-    regenerating the EDH parameters periodically (an hourly or daily cron job
-    running as root can automate this task).
+EEDDHH SSeerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..22))
 
-    Once the parameters are in place, update main.cf as follows:
+Optionally generate non-default Postfix SMTP server EDH parameters for improved
+security against pre-computation attacks and for compatibility with Debian-
+patched Exim SMTP clients that require a >= 2048-bit length for the non-export
+prime.
 
-        /etc/postfix/main.cf:
-            smtpd_tls_dh1024_param_file = ${config_directory}/dh2048.pem
-            smtpd_tls_dh512_param_file = ${config_directory}/dh512.pem
+Execute as root (prime group generation can take a few seconds to a few
+minutes):
 
-    If some of your MSA clients don't support 2048-bit EDH, you may need to
-    adjust the submission entry in master.cf accordingly:
+    # cd /etc/postfix
+    # umask 022
+    # openssl dhparam -out dh512.tmp 512 && mv dh512.tmp dh512.pem
+    # openssl dhparam -out dh1024.tmp 1024 && mv dh1024.tmp dh1024.pem
+    # openssl dhparam -out dh2048.tmp 2048 && mv dh2048.tmp dh2048.pem
+    # chmod 644 dh512.pem dh1024.pem dh2048.pem
 
-        /etc/postfix/master.cf:
-            submission inet n       -       n       -       -       smtpd
-                # Some submission clients may not yet do 2048-bit EDH, if such
-                # clients use your MSA, configure 1024-bit EDH instead:
-                -o smtpd_tls_dh1024_param_file=${config_directory}/dh1024.pem
-                -o smtpd_tls_security_level=encrypt
-                -o smtpd_sasl_auth_enable=yes
-                ...
+The Postfix SMTP server EDH parameter files are not secret, after all these
+parameters are sent to all remote SMTP clients in the clear. Mode 0644 is fine.
+
+You can improve security against pre-computation attacks further by
+regenerating the Postfix SMTP server EDH parameters periodically (an hourly or
+daily cron job running the above commands as root can automate this task).
+
+Once the parameters are in place, update main.cf as follows:
+
+    /etc/postfix/main.cf:
+        smtpd_tls_dh1024_param_file = ${config_directory}/dh2048.pem
+        smtpd_tls_dh512_param_file = ${config_directory}/dh512.pem
+
+If some of your MSA clients don't support 2048-bit EDH, you may need to adjust
+the submission entry in master.cf accordingly:
+
+    /etc/postfix/master.cf:
+        submission inet n       -       n       -       -       smtpd
+            # Some submission clients may not yet do 2048-bit EDH, if such
+            # clients use your MSA, configure 1024-bit EDH instead:
+            -o smtpd_tls_dh1024_param_file=${config_directory}/dh1024.pem
+            -o smtpd_tls_security_level=encrypt
+            -o smtpd_sasl_auth_enable=yes
+            ...
 
 HHooww ccaann II sseeee tthhaatt aa ccoonnnneeccttiioonn hhaass ffoorrwwaarrdd sseeccrreeccyy??
 
