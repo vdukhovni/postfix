@@ -288,6 +288,7 @@ static void slmdb_cursor_close(SLMDB *slmdb)
 static void slmdb_saved_key_init(SLMDB *slmdb)
 {
     slmdb->saved_key.mv_data = 0;
+    slmdb->saved_key.mv_size = 0;
     slmdb->saved_key_size = 0;
 }
 
@@ -296,8 +297,7 @@ static void slmdb_saved_key_init(SLMDB *slmdb)
 static void slmdb_saved_key_free(SLMDB *slmdb)
 {
     free(slmdb->saved_key.mv_data);
-    slmdb->saved_key.mv_data = 0;
-    slmdb->saved_key_size = 0;
+    slmdb_saved_key_init(slmdb);
 }
 
 #define HAVE_SLMDB_SAVED_KEY(s) ((s)->saved_key.mv_data != 0)
@@ -318,7 +318,7 @@ static int slmdb_saved_key_assign(SLMDB *slmdb, MDB_val *key_val)
 	    slmdb->saved_key.mv_data =
 		realloc(slmdb->saved_key.mv_data, key_val->mv_size);
 	if (slmdb->saved_key.mv_data == 0) {
-	    slmdb->saved_key_size = 0;
+	    slmdb_saved_key_init(slmdb);
 	    return (ENOMEM);
 	} else {
 	    slmdb->saved_key_size = key_val->mv_size;
@@ -374,7 +374,7 @@ static int slmdb_recover(SLMDB *slmdb, int status)
 
     /*
      * Close the cursor and its read transaction before changing the memory
-     * map size. We can restore it later with the saved key information.
+     * map size. We can restore it later from the saved key information.
      */
     if (slmdb->cursor != 0)
 	slmdb_cursor_close(slmdb);
@@ -588,7 +588,7 @@ int     slmdb_del(SLMDB *slmdb, MDB_val *mdb_key)
 
     /*
      * Before doing a non-bulk write transaction in MDB_NOLOCK mode, close a
-     * cursor and its read transaction. We can restore it later with the
+     * cursor and its read transaction. We can restore it later from the
      * saved key information.
      */
     if (slmdb->cursor != 0 && slmdb->txn == 0
@@ -639,7 +639,7 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
 	}
 
 	/*
-	 * Restore the cursor to the saved key position.
+	 * Restore the cursor position from the saved key information.
 	 */
 	if (HAVE_SLMDB_SAVED_KEY(slmdb) && op != MDB_FIRST) {
 	    if ((status = mdb_cursor_get(slmdb->cursor, &slmdb->saved_key,
@@ -740,7 +740,7 @@ int     slmdb_close(SLMDB *slmdb)
     mdb_env_close(slmdb->env);
 
     /*
-     * Clean up the saved key position.
+     * Clean up the saved key information.
      */
     if (HAVE_SLMDB_SAVED_KEY(slmdb))
 	slmdb_saved_key_free(slmdb);

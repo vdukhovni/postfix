@@ -1,12 +1,21 @@
 Wish list:
 
+	Things to do before the stable release:
+
+	Spell-check, double-word check, and HTML validator check.
+
+	Remove this file from the stable release.
+
+	Things to do after the stable release:
+
+	Discourage the use of "after 220" tests in POSTSCREEN_README
+	and the documentation of individual parameter settings.
+
 	To un-break "make tests" under src/smtpd, make tests
 	independent from the DNS and native routines for host
 	name/address lookup.
 
 	Incorporate 3rd-party code such as dynamic_maps.
-
-	Support 3rd-party extension with /etc/postfix/postfix-files.d
 
 	Make been_here flag BH_FLAG_FOLD configurable for masochists.
 
@@ -15,24 +24,18 @@ Wish list:
 
 	Move html/index.html source to proto/.
 
+	How hard is it to follow canonical or virtual mapping
+	for the purpose of address validation? We must never
+	reject a valid address.
+
 	Preserve case in smtpd_resolve_addr() and add a structure
-	member for the case-folded address.
+	member for the case-folded address. IIRC some Milter macro
+	needs to show the unfolded address.
 
 	Per SASL account rate limits. This requires new infrastructure
 	that maintains stats by SASL account.
 
-	Watchdog timer to postmap/postalias.
-
-	Things to do before the stable release:
-
-	Spell-check, double-word check, and HTML validator check.
-
-	Discourage the use of "after 220" tests in POSTSCREEN_README
-	and the documentation of individual parameter settings.
-
-	Remove this file from the stable release.
-
-	Things to do after the stable release:
+	Watchdog timer in postmap/postalias.
 
 	Begin code revision, after DANE support stabilizes.  This
 	should be one pass that changes only names and no code.

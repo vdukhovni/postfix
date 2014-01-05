@@ -17,6 +17,13 @@
 
 <hr>
 
+<h2>Note</h2>
+
+<p> LMDB is not supported in the stable Postfix release.  It will
+spontaneously terminate a Postfix daemon process without allowing
+Postfix to 1) report the problem to the maillog file, and to 2)
+provide reduced service where this is appropriate. </p>
+
 <h2>Introduction</h2>
 
 <p> Postfix uses databases of various kinds to store and look up
@@ -294,7 +301,7 @@ tlsmgr(8) from a corrupted database.  </strong></p>
 
 <dl>
 
-<dt> Problem: </dt> <dd> <p> A corrupted LMDB database cann't be
+<dt> Problem: </dt> <dd> <p> A corrupted LMDB database can't be
 rebuilt simply by re-running postmap(1) or postalias(1), or by
 waiting until a tlsmgr(8) daemon restarts.  This problem does not
 exist with other Postfix databases.  </p> </dd>
