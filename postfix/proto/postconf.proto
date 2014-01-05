@@ -13020,7 +13020,7 @@ This service is normally implemented by the proxymap(8) daemon.
 
 <p> Selectively disable master(8) listener ports by service type
 or by service name and type.  Specify a list of service types
-("inet", "unix", "fifo", or "pass") or "name.type" tuples, where
+("inet", "unix", "fifo", or "pass") or "name/type" tuples, where
 "name" is the first field of a master.cf entry and "type" is a
 service type. As with other Postfix matchlists, a search stops at
 the first match.  Specify "!pattern" to exclude a service from the
@@ -13033,14 +13033,15 @@ is intentional. </p>
 <p> Examples: </p>
 
 <pre>
+# With Postfix 2.6..2.10 use '.' instead of '/'.
 # Turn on all master(8) listener ports (the default).
 master_service_disable =
 # Turn off only the main SMTP listener port.
-master_service_disable = smtp.inet
+master_service_disable = smtp/inet
 # Turn off all TCP/IP listener ports.
 master_service_disable = inet
 # Turn off all TCP/IP listener ports except "foo".
-master_service_disable = !foo.inet, inet
+master_service_disable = !foo/inet, inet
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>

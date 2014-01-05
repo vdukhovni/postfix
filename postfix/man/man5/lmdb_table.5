@@ -22,6 +22,12 @@ Postfix LMDB adapter
 .SH DESCRIPTION
 .ad
 .fi
+LMDB is not supported in the stable Postfix release. It
+will spontaneously terminate a Postfix daemon process without
+allowing Postfix to 1) report the problem to the maillog
+file, and to 2) provide reduced service where this is
+appropriate.
+
 The Postfix LMDB adapter provides access to a persistent,
 memory-mapped, key-value store.  The database size is limited
 only by the size of the memory address space and file system.

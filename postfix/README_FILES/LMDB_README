@@ -2,6 +2,13 @@ PPoossttffiixx OOppeennLLDDAAPP LLMMDDBB HHoowwttoo
 
 -------------------------------------------------------------------------------
 
+NNoottee
+
+LMDB is not supported in the stable Postfix release. It will spontaneously
+terminate a Postfix daemon process without allowing Postfix to 1) report the
+problem to the maillog file, and to 2) provide reduced service where this is
+appropriate.
+
 IInnttrroodduuccttiioonn
 
 Postfix uses databases of various kinds to store and look up information.
@@ -72,7 +79,7 @@ NNoonn--oobbvviioouuss rreeccoovveerryy wwiitthh ppoos
 ccoorrrruupptteedd ddaattaabbaassee..
 
 Problem:
-    A corrupted LMDB database cann't be rebuilt simply by re-running postmap(1)
+    A corrupted LMDB database can't be rebuilt simply by re-running postmap(1)
     or postalias(1), or by waiting until a tlsmgr(8) daemon restarts. This
     problem does not exist with other Postfix databases.
 

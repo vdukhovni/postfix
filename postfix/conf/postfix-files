@@ -165,7 +165,7 @@ $manpage_directory/man5/generics.5:f:root:-:644:o
 $manpage_directory/man5/generic.5:f:root:-:644
 $manpage_directory/man5/header_checks.5:f:root:-:644
 $manpage_directory/man5/ldap_table.5:f:root:-:644
-$manpage_directory/man5/lmdb_table.5:f:root:-:644
+#$manpage_directory/man5/lmdb_table.5:f:root:-:644
 $manpage_directory/man5/master.5:f:root:-:644
 $manpage_directory/man5/memcache_table.5:f:root:-:644
 $manpage_directory/man5/mysql_table.5:f:root:-:644
@@ -265,7 +265,7 @@ $readme_directory/INSTALL:f:root:-:644
 $readme_directory/IPV6_README:f:root:-:644
 $readme_directory/LDAP_README:f:root:-:644
 $readme_directory/LINUX_README:f:root:-:644
-$readme_directory/LMDB_README:f:root:-:644
+#$readme_directory/LMDB_README:f:root:-:644
 $readme_directory/LOCAL_RECIPIENT_README:f:root:-:644
 $readme_directory/MACOSX_README:f:root:-:644:o
 $readme_directory/MAILDROP_README:f:root:-:644
@@ -322,7 +322,7 @@ $html_directory/INSTALL.html:f:root:-:644
 $html_directory/IPV6_README.html:f:root:-:644
 $html_directory/LDAP_README.html:f:root:-:644
 $html_directory/LINUX_README.html:f:root:-:644
-$html_directory/LMDB_README.html:f:root:-:644
+#$html_directory/LMDB_README.html:f:root:-:644
 $html_directory/LOCAL_RECIPIENT_README.html:f:root:-:644
 $html_directory/MAILDROP_README.html:f:root:-:644
 $html_directory/MILTER_README.html:f:root:-:644

@@ -1,12 +1,10 @@
-This is the Postfix 2.11 (experimental) branch.
-
-The stable Postfix release is called postfix-2.10.x where 2=major
-release number, 10=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-2.11.x where 2=major
+release number, 11=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-2.11-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-2.12-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day).  Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
@@ -16,20 +14,111 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.9 or earlier, read RELEASE_NOTES-2.10
 before proceeding.
 
-Incompatible changes with snapshot 20131217
-===========================================
+Major changes - tls
+-------------------
 
-The master_service_disable syntax has changed: use "service/type"
-instead of "service.type".  The new form is consistent with master.cf
-parameter namespaces.  The old form is still supported to avoid
-breaking existing configurations.
+[Documentation 20131218] The new FORWARD_SECRECY_README document
+conveniently presents all information about Postfix "perfect" forward
+secrecy support in one place: what forward secrecy is, how to tweak
+settings, and what you can expect to see when Postfix uses ciphers
+with forward secrecy.
 
-Major changes with with snapshot 20131217
-=========================================
+[Feature 20130602] Support for PKI-less TLS server certificate
+verification, where the CA public key or the server certificate is
+identified via DNSSEC lookup.
 
-Support for advanced master.cf query and update operations.  This
-was implemented primarily to support automated system management
-tools.
+This feature introduces a new TLS security level called "dane"
+(DNS-based Authentication of Named Entities) that uses DNSSEC to
+look up CA information for a server TLS certificate.  The details
+of DANE core protocols are still evolving, as are the details of
+how DANE should be used in the context of SMTP. Postfix implements
+what appears to be a "rational" subset of the DANE profiles.
+
+The problem with PKI is that there are literally hundreds of
+organizations world-wide that can provide a certificate in anyone's
+name. There have been widely-published incidents in recent history
+where a certificate authority gave out an inappropriate certificate
+(e.g., a certificate in the name of Microsoft to someone who did
+not represent Microsoft), where a CA was compromised (e.g., DigiNotar,
+Comodo), or where a CA made operational mistakes (e.g., TURKTRUST).
+Another concern is that a legitimate CA might be coerced to provide
+a certificate that allows its government to play man-in-the-middle
+on TLS traffic and observe the plaintext.
+
+Major changes - postscreen whitelisting
+---------------------------------------
+
+[Feature 20130512] Allow an SMTP client to skip postscreen(8) tests
+based on its postscreen_dnsbl_sites score.
+
+Specify a negative "postscreen_dnsbl_whitelist_threshold" to enable
+this feature.  When a client passes the threshold value without
+having failed other tests, all pending or disabled tests are flagged
+as completed.
+
+Major changes - recipient_delimiter
+-----------------------------------
+
+[Feature 20130405] The recipient_delimiter parameter can now specify
+a set of characters.  A user name is now separated from its address
+extension by the first character that matches the recipient_delimiter
+set.
+
+For example, specify "recipient_delimiter = +-" to support both the
+Postfix-style "+" and the qmail-style "-" extension delimiter.  
+
+As before, this implementation recognizes one delimiter character
+per email address, and one address extension per email address.
+
+Major changes - smtpd access control
+------------------------------------
+
+[Feature 20131031] The check_sasl_access feature can be used to
+block hijacked logins. Like other check_mumble_acces features it
+queries a lookup table (in this case with the SASL login name), and
+it supports the same actions as any Postfix access(5) table.
+
+[Feature 20130924] The reject_known_sender_login_mismatch feature
+applies reject_sender_login_mismatch only to MAIL FROM addresses
+that are known in $smtpd_sender_login_maps.
+
+Major changes - MacOS X
+-----------------------
+
+[Feature 20130325] Full support for kqueue() event handling which
+scales better with large numbers of file handles, plus a workaround
+for timeout handling on file handles (such as /dev/urandom) that
+still do not correctly support poll().
+
+Major changes - master
+----------------------
+
+[Incompat 20131217] The master_service_disable parameter value
+syntax has changed: use "service/type" instead of "service.type".
+The new form is consistent with postconf(1) namespaces for master.cf.
+The old form is still supported to avoid breaking existing
+configurations.
+
+Major changes - milter
+----------------------
+
+[Feature 20131126] Support for ESMTP parameters NOTIFY and ORCPT
+in the SMFIR_ADDRCPT_PAR (add recipient) request. Credits: Andrew
+Ayer.
+
+Major changes - mysql
+---------------------
+
+[Feature 20131117] MySQL client support for option_file, option_group,
+tls_cert_file, tls_key_file, tls_CAfile, tls_CApath, tls_verify_cert.
+Credits: Gareth Palmer.
+
+Major changes - postconf
+------------------------
+
+[Feature 20131217] Support for advanced master.cf query and update
+operations.  This was implemented primarily to support automated
+system management tools.
 
 The goal is to make all Postfix master.cf details accessible as
 lists of "name=value" pairs, where the names are organized into
@@ -165,105 +254,3 @@ As with main.cf, there is no support to "undo" master.cf changes
 that are made with -X or -#.
 
 Again, always execute "postfix reload" after updating master.cf.
-
-Major changes with snapshot 20131031
-====================================
-
-LMDB support is enabled after changes to LMDB lock management.  This
-includes creating databases with postmap(1) and postalias(1);
-read/write access by postscreen(8), proxymap(8), verify(8), and
-tlsmgr(8); and database sharing between privileged writer processes
-and unprivileged reader processes without world-writable files.
-
-Major changes with snapshot 20130929
-====================================
-
-Support to create LMDB databases is no longer available for the
-postmap(1) and postalias(1) commands.  Instead, consider using cdb:
-to manage root-owned databases under the root-owned config_directory
-(default: /etc/postfix) such as access(5), virtual(5), transport(5).
-
-The reason is that LMDB applications require write access even when
-the application itself is read-only. This violates the principle
-of least privilege, and causes all kinds of problems when a non-root
-process needs to query a root-owned database.
-
-Support to create LMDB databases is available only for unprivileged
-Postfix daemon processes such as postscreen(8), tlsmgr(8) and
-verify(8) that manage postfix-owned databases under the postfix-owned
-data_directory (default: /var/lib/postfix).
-
-Major changes with snapshot 20130927
-====================================
-
-Postfix now handles LMDB "database full" errors automatically. When
-a database becomes full, its size limit is doubled, and other
-processes automatically pick up the new size limit. The lmdb_map_size
-parameter is now mostly irrelevant, and may be removed in the future.
-
-Major changes with snapshot 20130602
-====================================
-
-Support for PKI-less TLS server certificate verification, where the
-CA public key is identified via DNSSEC lookup. 
-
-This feature introduces a new TLS security level called "dane"
-(DNS-based Authentication of Named Entities) that uses DNSSEC to
-look up CA information for a server TLS certificate.  The details
-of DANE core protocols are still evolving, as are the details of
-how DANE should be used in the context of SMTP. Postfix implements
-what appears to be a "rational" subset of the DANE profiles.
-
-The problem with PKI is that there are literally hundreds of
-organizations world-wide that can provide a certificate in anyone's
-name. There have been widely-published incidents in recent history
-where a certificate authority gave out an inappropriate certificate
-(e.g., a certificate in the name of Microsoft to someone who did
-not represent Microsoft), where a CA was compromised (e.g., DigiNotar,
-Comodo), or where a CA made operational mistakes (e.g., TURKTRUST).
-Another concern is that a legitimate CA might be coerced to provide
-a certificate that allows its government to play man-in-the-middle
-on TLS traffic and observe the plaintext.
-
-Major changes with snapshot 20130512
-====================================
-
-Allow an SMTP client to skip postscreen(8) tests based on its
-postscreen_dnsbl_sites score. 
-
-Specify a negative "postscreen_dnsbl_whitelist_threshold" to enable
-this feature.  When a client passes the threshold value without
-having failed other tests, all pending or disabled tests are flagged
-as completed.
-
-Major changes with snapshot 20130405
-====================================
-
-The recipient_delimiter parameter can now specify a set of characters.
-A user name is now separated from its address extension by the first
-character that matches the recipient_delimiter set.
-
-For example, specify "recipient_delimiter = +-" to support both the
-Postfix-style "+" and the qmail-style "-" extension delimiter.  
-
-As before, this implementation recognizes one delimiter character
-per email address, and one address extension per email address.
-
-Major changes with snapshot 20130319
-====================================
-
-Postfix support for LMDB databases is suspended due to the existence
-of a hard limit (an "out of storage" failure mode that cannot be
-resolved by increasing the database size).
-
-Postfix may support LMDB again when it no longer limits the size
-of Postfix transactions, whether the limit is built into LMDB itself,
-or implicit by requiring an unbounded amount of memory to handle a
-large transaction.
-
-Major changes with snapshot 20130315
-====================================
-
-LMDB support by Howard Chu. This implementation has unexpected
-failure modes that don't exist with other Postfix databases, so
-don't just yet abandon CDB. See LMDB_README for details.

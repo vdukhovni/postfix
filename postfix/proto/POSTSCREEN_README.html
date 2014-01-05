@@ -1071,7 +1071,9 @@ of the following options: </p>
 	key_format = postscreen:%s
     </pre>
 
-<li> <p> A persistent lmdb: temporary whitelist can be shared between
+<li> <p>
+    (Not supported in the stable Postfix release)
+    A persistent lmdb: temporary whitelist can be shared between
     postscreen(8) daemons that run under the same master(8) daemon,
     or under different master(8) daemons on the same host.  Disable
     cache cleanup (postscreen_cache_cleanup_interval = 0) in all
