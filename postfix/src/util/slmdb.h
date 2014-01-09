@@ -50,6 +50,7 @@ typedef struct {
     size_t  saved_key_size;		/* saved cursor key buffer size */
     void    (*longjmp_fn) (void *, int);/* exception handling */
     void    (*notify_fn) (void *, int,...);	/* workaround notification */
+    void    (*assert_fn) (void *, const char *);	/* assert notification */
     void   *cb_context;			/* call-back context */
     int     api_retry_count;		/* slmdb(3) API call retry count */
     int     bulk_retry_count;		/* bulk_mode retry count */
@@ -74,13 +75,15 @@ extern int slmdb_close(SLMDB *);
 #define SLMDB_CTL_END		0
 #define SLMDB_CTL_LONGJMP_FN	1	/* exception handling */
 #define SLMDB_CTL_NOTIFY_FN	2	/* debug logging function */
-#define SLMDB_CTL_CONTEXT	3	/* exception/debug logging context */
+#define SLMDB_CTL_CB_CONTEXT	3	/* call-back context */
 #define SLMDB_CTL_HARD_LIMIT	4	/* hard database size limit */
 #define SLMDB_CTL_API_RETRY_LIMIT	5	/* per slmdb(3) API call */
 #define SLMDB_CTL_BULK_RETRY_LIMIT	6	/* per bulk update */
+#define SLMDB_CTL_ASSERT_FN	7	/* report assertion failure */
 
 typedef void (*SLMDB_NOTIFY_FN) (void *, int,...);
 typedef void (*SLMDB_LONGJMP_FN) (void *, int);
+typedef void (*SLMDB_ASSERT_FN) (void *, const char *);
 
 /* LICENSE
 /* .ad

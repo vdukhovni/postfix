@@ -204,7 +204,7 @@ typedef struct DNS_REPLY {
     unsigned char *buf;			/* raw reply data */
     size_t  buf_len;			/* reply buffer length */
     int     rcode;			/* unfiltered reply code */
-    int     dnssec_valid;		/* DNSSEC AD bit */
+    int     dnssec_ad;			/* DNSSEC AD bit */
     int     query_count;		/* number of queries */
     int     answer_count;		/* number of answers */
     unsigned char *query_start;		/* start of query data */
@@ -317,12 +317,12 @@ static int dns_query(const char *name, int type, int flags,
 
     /*
      * Initialize the reply structure. Some structure members are filled on
-     * the fly while the reply is being parsed.
+     * the fly while the reply is being parsed.  Coerce AD bit to boolean.
      */
 #if RES_USE_DNSSEC != 0
-    reply->dnssec_valid = (flags & RES_USE_DNSSEC) ? reply_header->ad : 0;
+    reply->dnssec_ad = (flags & RES_USE_DNSSEC) ? !!reply_header->ad : 0;
 #else
-    reply->dnssec_valid = 0;
+    reply->dnssec_ad = 0;
 #endif
     reply->end = reply->buf + len;
     reply->query_start = reply->buf + sizeof(HEADER);
@@ -537,7 +537,7 @@ static int dns_get_alias(DNS_REPLY *reply, unsigned char *pos,
 
 static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 	             DNS_RR **rrlist, VSTRING *fqdn, char *cname, int c_len,
-			          int *validate_mask)
+			          int *maybe_secure)
 {
     char    rr_name[DNS_NAME_LEN];
     unsigned char *pos;
@@ -613,7 +613,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 		if ((status = dns_get_rr(&rr, orig_name, reply, pos, rr_name,
 					 &fixed)) == DNS_OK) {
 		    resource_found++;
-		    rr->dnssec_valid = (reply->dnssec_valid & *validate_mask);
+		    rr->dnssec_valid = *maybe_secure ? reply->dnssec_ad : 0;
 		    *rrlist = dns_rr_append(*rrlist, rr);
 		} else if (not_found_status != DNS_RETRY)
 		    not_found_status = status;
@@ -624,7 +624,8 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 	    if (cname && c_len > 0)
 		if ((status = dns_get_alias(reply, pos, &fixed, cname, c_len)) != DNS_OK)
 		    CORRUPT(status);
-	    *validate_mask &= reply->dnssec_valid;
+	    if (!reply->dnssec_ad)
+		*maybe_secure = 0;
 	}
 	pos += fixed.length;
     }
@@ -652,7 +653,7 @@ int     dns_lookup_r(const char *name, unsigned type, unsigned flags,
     static DNS_REPLY reply;
     int     count;
     int     status;
-    int     validate_mask = 1;		/* May reset to 0 via CNAME expansion */
+    int     maybe_secure = 1;		/* Query name presumed secure */
     const char *orig_name = name;
 
     /*
@@ -696,12 +697,10 @@ int     dns_lookup_r(const char *name, unsigned type, unsigned flags,
 
 	/*
 	 * Extract resource records of the requested type. Pick up CNAME
-	 * information just in case the requested data is not found. If any
-	 * CNAME result is not validated, all consequent RRs are deemed not
-	 * validated (the validate_mask is set to 0).
+	 * information just in case the requested data is not found.
 	 */
 	status = dns_get_answer(orig_name, &reply, type, rrlist, fqdn,
-				cname, c_len, &validate_mask);
+				cname, c_len, &maybe_secure);
 	switch (status) {
 	default:
 	    if (why)
@@ -714,6 +713,16 @@ int     dns_lookup_r(const char *name, unsigned type, unsigned flags,
 	case DNS_RECURSE:
 	    if (msg_verbose)
 		msg_info("dns_lookup: %s aliased to %s", name, cname);
+#if RES_USE_DNSSEC
+
+	    /*
+	     * Once an intermediate CNAME reply is not validated, all
+	     * consequent RRs are deemed not validated, so we don't ask for
+	     * further DNSSEC replies.
+	     */
+	    if (maybe_secure == 0)
+		flags &= ~RES_USE_DNSSEC;
+#endif
 	    name = cname;
 	}
     }

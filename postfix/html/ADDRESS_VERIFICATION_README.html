@@ -459,7 +459,6 @@ results are lost after "postfix reload" or "postfix stop". </p>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/verify_cache
 
-# (Not supported in the stable Postfix release)
 # Example 2: Shared persistent <a href="lmdb_table.5.html">lmdb</a>: cache (Postfix 2.11 or later).  
 # Disable automatic cache cleanup in all Postfix instances except
 # for one instance that will be responsible for cache cleanup.

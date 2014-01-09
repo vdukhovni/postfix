@@ -459,7 +459,6 @@ results are lost after "postfix reload" or "postfix stop". </p>
 /etc/postfix/main.cf:
     address_verify_map = btree:$data_directory/verify_cache
 
-# (Not supported in the stable Postfix release)
 # Example 2: Shared persistent lmdb: cache (Postfix 2.11 or later).  
 # Disable automatic cache cleanup in all Postfix instances except
 # for one instance that will be responsible for cache cleanup.

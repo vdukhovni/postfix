@@ -180,6 +180,7 @@
 -TMATCH_OPS
 -TMBLOCK
 -TMBOX
+-TMDB_env
 -TMDB_txn
 -TMDB_val
 -TMILTER
@@ -381,6 +382,7 @@
 -Tssize_t
 -Tssl_cipher_stack_t
 -Tssl_comp_stack_t
+-Tstat
 -Ttime_t
 -Ttlsa_filter
 -Tx509_extension_stack_t

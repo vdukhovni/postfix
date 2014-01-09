@@ -17,41 +17,31 @@
 
 <hr>
 
-<h2>Note</h2>
-
-<p> LMDB is not supported in the stable Postfix release.  It will
-spontaneously terminate a Postfix daemon process without allowing
-Postfix to 1) report the problem to the maillog file, and to 2)
-provide reduced service where this is appropriate. </p>
-
 <h2>Introduction</h2>
 
 <p> Postfix uses databases of various kinds to store and look up
-information. Postfix databases are specified as "type:name".
-OpenLDAP LMDB implements the Postfix database type "lmdb".
-The name of a Postfix OpenLDAP LMDB database is the name
-of the database file without the ".lmdb" suffix. </p>
+information. Postfix databases are specified as "type:name".  OpenLDAP
+LMDB (called "LMDB" from here on) implements the Postfix database
+type "lmdb".  The name of a Postfix LMDB database is the name of
+the database file without the ".lmdb" suffix. </p>
 
 <p> This document describes: </p>
 
-<ol>
+<ul>
 
-<li> <p> How to build Postfix <a href="#with_lmdb">with OpenLDAP
-LMDB support</a>. </p>
+<li> <p> <a href="#with_lmdb">Building Postfix with LMDB support</a>.
+</p>
 
-<li> <p> How to <a href="#configure">configure</a> LMDB settings. </p>
+<li> <p> <a href="#configure">Configuring LMDB settings</a>. </p>
 
-<li> <p> Missing <a href="#pthread">pthread</a> library trouble. </p>
+<li> <p> <a href="#supported"> Supported minimum LMDB patchlevel</a>. </p>
 
-<li> <p> Unexpected <a href="#limitations">failure modes</a> that
-don't exist with other Postfix databases. </p>
+</ul>
 
-</ol>
+<h2><a name="with_lmdb">Building Postfix with LMDB support</a></h2>
 
-<h2><a name="with_lmdb">Building Postfix with OpenLDAP LMDB support</a></h2>
-
-<p> Postfix normally does not enable OpenLDAP LMDB support.  To
-build Postfix with OpenLDAP LMDB support, use something like: </p>
+<p> Postfix normally does not enable LMDB support.  To
+build Postfix with LMDB support, use something like: </p>
 
 <blockquote>
 <pre>
@@ -71,23 +61,7 @@ build Postfix with OpenLDAP LMDB support, use something like: </p>
 </pre>
 </blockquote>
 
-<p> The exact pathnames depend on how OpenLDAP LMDB was installed. </p>
-
-<h2><a name="configure">Configure LMDB settings</a></h2>
-
-<p> Postfix provides one configuration parameter that controls
-OpenLDAP LMDB database behavior. </p>
-
-<ul>
-
-<li> <p> <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216).  This setting specifies
-the initial OpenLDAP LMDB database size limit in bytes.  Each time
-a database becomes full, its size limit is doubled. The maximum
-size is the largest signed integer value of "long".  </p>
-
-</ul>
-
-<h2><a name="pthread">Missing pthread library trouble</a></h2>
+<p> The exact pathnames depend on how LMDB was installed. </p>
 
 <p> When building Postfix fails with: </p>
 
@@ -107,10 +81,55 @@ undefined reference to `pthread_mutex_lock'
 </pre>
 </blockquote>
 
-<p> Source code for OpenLDAP LMDB is available at
-<a href="http://www.openldap.org">http://www.openldap.org</a>.
-More information is available at
-<a href="http://highlandsun.com/hyc/mdb/">http://highlandsun.com/hyc/mdb/</a>. </p>
+<h2><a name="configure">Configuring LMDB settings</a></h2>
+
+<p> Postfix provides one configuration parameter that controls
+LMDB database behavior. </p>
+
+<ul>
+
+<li> <p> <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216).  This setting specifies
+the initial LMDB database size limit in bytes.  Each time
+a database becomes full, its size limit is doubled. The maximum
+size is the largest signed integer value of "long".  </p>
+
+</ul>
+
+<h2> <a name="supported"> Supported minimum LMDB patchlevel </a> </h2>
+
+<p> Currently, Postfix supports LMDB 0.9.11 or later. The supported
+minimum LMDB patchlevel has evolved over time, as the result of
+deployment experience with Postfix. </p>
+
+<ul>
+
+<li> <p> LMDB 0.9.11 allows Postfix daemons to log an LMDB error
+message, instead of falling out of the sky without any notification.
+</p>
+
+<li> <p> LMDB 0.9.10 closes an information leak where LMDB was
+writing up to 4kbyte-chunks of uninitialized heap memory to the
+database, persisting information that was not meant to be persisted,
+or sharing information that was not meant to be shared. </p>
+
+<li> <p> LMDB 0.9.8 allows Postfix to use external (fcntl()-based)
+locks, instead of having to use world-writable LMDB lock files.
+</p>
+
+<li> <p> LMDB 0.9.8 allows an application to recover from a "database
+full" error without having to close the database, by adding support
+to update the database size limit on-the-fly; and it adds support
+for an application to adopt someone elses change to the database
+size limit, without having to close the database. </p>
+
+<li> <p> LMDB 0.9.7 allows the postmap and postalias commands to
+use a bulk-mode transaction larger than the amount of physical
+memory. This is necessary because LMDB supports databases larger
+than physical memory. </p>
+
+</ul>
+
+<!--
 
 <h2><a name="limitations">Unexpected failure modes of Postfix LMDB
 databases.  </a> </h2>
@@ -119,6 +138,8 @@ databases.  </a> </h2>
 failure modes that don't exist with other Postfix databases.  Some
 failure modes have been eliminated in the course of time.
 The writeup below reflects the status as of LMDB 0.9.9. </p>
+
+-->
 
 <!--
 
@@ -296,6 +317,8 @@ sure that <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> &gt; 3x the 
 
 -->
 
+<!--
+
 <p> <strong>Non-obvious recovery with <a href="postmap.1.html">postmap(1)</a>, <a href="postalias.1.html">postalias(1)</a>, or
 <a href="tlsmgr.8.html">tlsmgr(8)</a> from a corrupted database.  </strong></p>
 
@@ -334,3 +357,9 @@ corruption of on-disk file system data and metadata. DO NOT
 use ZFS on systems without ECC memory error correction. </p>
 
 </dd> </dl>
+
+-->
+
+</body>
+
+</html>

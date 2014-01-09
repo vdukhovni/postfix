@@ -240,7 +240,7 @@
 /*	Table lookup mechanisms:
 /*	cidr_table(5), Associate CIDR pattern with value
 /*	ldap_table(5), Postfix LDAP client
-/*	\"lmdb_table(5), Postfix LMDB database driver
+/*	lmdb_table(5), Postfix LMDB database driver
 /*	memcache_table(5), Postfix memcache client
 /*	mysql_table(5), Postfix MYSQL client
 /*	nisplus_table(5), Postfix NIS+ client

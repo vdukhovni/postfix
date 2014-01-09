@@ -364,10 +364,10 @@
 /*	File with the Postfix SMTP server DSA certificate in PEM format.
 /* .IP "\fBsmtpd_tls_dh1024_param_file (empty)\fR"
 /*	File with DH parameters that the Postfix SMTP server should
-/*	use with EDH ciphers.
+/*	use with non-export EDH ciphers.
 /* .IP "\fBsmtpd_tls_dh512_param_file (empty)\fR"
 /*	File with DH parameters that the Postfix SMTP server should
-/*	use with EDH ciphers.
+/*	use with export-grade EDH ciphers.
 /* .IP "\fBsmtpd_tls_dkey_file ($smtpd_tls_dcert_file)\fR"
 /*	File with the Postfix SMTP server DSA private key in PEM format.
 /* .IP "\fBsmtpd_tls_key_file ($smtpd_tls_cert_file)\fR"

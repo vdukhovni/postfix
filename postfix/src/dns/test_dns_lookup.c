@@ -46,7 +46,7 @@ static void print_rr(DNS_RR *rr)
     size_t  i;
 
     while (rr) {
-	printf("%s: ad: %d, ttl: %9d ", rr->rname, rr->dnssec_valid, rr->ttl);
+	printf("%s: ad: %u, ttl: %9u ", rr->rname, rr->dnssec_valid, rr->ttl);
 	switch (rr->type) {
 	case T_A:
 #ifdef T_AAAA

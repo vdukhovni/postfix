@@ -45,6 +45,23 @@ Another concern is that a legitimate CA might be coerced to provide
 a certificate that allows its government to play man-in-the-middle
 on TLS traffic and observe the plaintext.
 
+Major changes - LMDB database support
+-------------------------------------
+
+LMDB is a memory-mapped database that was originally developed as
+part of OpenLDAP. The Postfix LMDB driver was originally written
+by Howard Chu, LMDB's creator. Support for LMDB has evolved throughout
+the Postfix 2.11 development cycle.
+
+LMDB can be used for all Postfix lookup table and cache storage.
+It is the first persistent Postfix database that can be shared among
+multiple writers such as postscreen daemons (Postfix already supported
+non-persistent memcached caches).  See lmdb_table(5) and LMDB_README
+for further information.
+
+Postfix currently supports LMDB version 0.9.11 and later. The minimum
+version may change over time in the light of deployment experience.
+
 Major changes - postscreen whitelisting
 ---------------------------------------
 
@@ -74,7 +91,7 @@ Major changes - smtpd access control
 ------------------------------------
 
 [Feature 20131031] The check_sasl_access feature can be used to
-block hijacked logins. Like other check_mumble_acces features it
+block hijacked logins. Like other check_mumble_access features it
 queries a lookup table (in this case with the SASL login name), and
 it supports the same actions as any Postfix access(5) table.
 

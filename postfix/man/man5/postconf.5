@@ -5771,8 +5771,9 @@ that change the delivery time or destination are not available.
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH smtp_cname_overrides_servername (default: version dependent)
-Allow DNS CNAME records to override the servername that the
-Postfix SMTP client uses for logging, SASL password lookup, TLS
+When the remote SMTP servername is a DNS CNAME, replace the
+servername with the result from CNAME expansion for the purpose of
+logging, SASL password lookup, TLS
 policy decisions, or TLS certificate verification. The value "no"
 hardens Postfix smtp_tls_per_site hostname-based policies against
 false hostname information in DNS CNAME records, and makes SASL
@@ -7698,8 +7699,9 @@ not, TLS security will vary from delivery to delivery.  It is up
 to the domain owner to configure their MX hosts and their DNS
 sensibly.  To configure the Postfix SMTP client for DNSSEC lookups
 see the documentation for the smtp_dns_support_level main.cf
-parameter.  When TLSA records are not found or are all unusable the
-effective security level is "may" or "encrypt" respectively.  For
+parameter.  When DNSSEC-validated TLSA records are not found the
+effective tls security level is "may".  When TLSA records are found,
+but are all unusable the effective security level is "encrypt".  For
 purposes of protocol and cipher selection, the "dane" security level
 is treated like a "mandatory" TLS security level, and weak ciphers
 and protocols are disabled.  Since DANE authenticates server
@@ -10245,32 +10247,42 @@ smtpd_tls_dcert_file = /etc/postfix/server-dsa.pem
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_dh1024_param_file (default: empty)
 File with DH parameters that the Postfix SMTP server should
-use with EDH ciphers.
+use with non-export EDH ciphers.
 .PP
 Instead of using the exact same parameter sets as distributed
 with other TLS packages, it is more secure to generate your own
-set of parameters with something like the following command:
+set of parameters with something like the following commands:
 .sp
 .in +4
 .nf
 .na
 .ft C
-openssl gendh -out /etc/postfix/dh_1024.pem -2 1024
+openssl dhparam -out /etc/postfix/dh512.pem 512
+openssl dhparam -out /etc/postfix/dh1024.pem 1024
+openssl dhparam -out /etc/postfix/dh2048.pem 2048
 .fi
 .ad
 .ft R
 .in -4
 .PP
-Your actual source for entropy may differ. Some systems have
-/dev/random; on other system you may consider using the "Entropy
-Gathering Daemon EGD", available at http://egd.sourceforge.net/
+It is safe to share the same DH parameters between multiple
+Postfix instances.  If you prefer, you can generate separate
+parameters for each instance.
+.PP
+If you want to take maximal advantage of ciphers that offer forward secrecy see
+the Getting
+started section of FORWARD_SECRECY_README.  The
+full document conveniently presents all information about Postfix
+"perfect" forward secrecy support in one place: what forward secrecy
+is, how to tweak settings, and what you can expect to see when
+Postfix uses ciphers with forward secrecy.
 .PP
 Example:
 .PP
 .nf
 .na
 .ft C
-smtpd_tls_dh1024_param_file = /etc/postfix/dh_1024.pem
+smtpd_tls_dh1024_param_file = /etc/postfix/dh2048.pem
 .fi
 .ad
 .ft R
@@ -10278,7 +10290,7 @@ smtpd_tls_dh1024_param_file = /etc/postfix/dh_1024.pem
 This feature is available with Postfix version 2.2.
 .SH smtpd_tls_dh512_param_file (default: empty)
 File with DH parameters that the Postfix SMTP server should
-use with EDH ciphers.
+use with export-grade EDH ciphers.
 .PP
 See also the discussion under the smtpd_tls_dh1024_param_file
 configuration parameter.
@@ -10360,8 +10372,17 @@ users.
 .br
 .br
 .PP
+If you want to take maximal advantage of ciphers that offer forward secrecy see
+the Getting
+started section of FORWARD_SECRECY_README.  The
+full document conveniently presents all information about Postfix
+"perfect" forward secrecy support in one place: what forward secrecy
+is, how to tweak settings, and what you can expect to see when
+Postfix uses ciphers with forward secrecy.
+.PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 1.0.0 or later.
+compiled and linked with OpenSSL 1.0.0 or later on platforms
+where EC algorithms have not been disabled by the vendor.
 .SH smtpd_tls_exclude_ciphers (default: empty)
 List of ciphers or cipher types to exclude from the SMTP server
 cipher list at all TLS security levels. Excluding valid ciphers
@@ -11258,11 +11279,13 @@ strong" means approximately 128-bit security based on best known
 attacks. The selected curve must be implemented by OpenSSL (as
 reported by \fBecparam\fR(1) with the "-list_curves" option) and be one
 of the curves listed in Section 5.1.1 of RFC 4492. You should not
-generally change this setting.
+generally change this setting.  Remote SMTP client implementations
+must support this curve for EECDH key exchange to take place.  It
+is unwise to choose an "exotic" curve supported by only a small subset
+of clients.
 .PP
-This default curve is specified in NSA "Suite B" Cryptography
-(see http://www.nsa.gov/ia/industry/crypto_suite_b.cfm) for
-information classified as SECRET.
+The default "strong" curve is rated in NSA Suite
+B for information classified up to SECRET.
 .PP
 Note: elliptic curve names are poorly standardized; different
 standards groups are assigning different names to the same underlying
@@ -11270,8 +11293,17 @@ curves.  The curve with the X9.62 name "prime256v1" is also known
 under the SECG name "secp256r1", but OpenSSL does not recognize the
 latter name.
 .PP
+If you want to take maximal advantage of ciphers that offer forward secrecy see
+the Getting
+started section of FORWARD_SECRECY_README.  The
+full document conveniently presents all information about Postfix
+"perfect" forward secrecy support in one place: what forward secrecy
+is, how to tweak settings, and what you can expect to see when
+Postfix uses ciphers with forward secrecy.
+.PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 1.0.0 or later.
+compiled and linked with OpenSSL 1.0.0 or later on platforms where
+EC algorithms have not been disabled by the vendor.
 .SH tls_eecdh_ultra_curve (default: secp384r1)
 The elliptic curve used by the Postfix SMTP server for maximally
 strong
@@ -11284,12 +11316,20 @@ curve must be implemented by OpenSSL (as reported by \fBecparam\fR(1) with the
 "-list_curves" option) and be one of the curves listed in Section 5.1.1
 of RFC 4492. You should not generally change this setting.
 .PP
-This default "ultra" curve is specified in NSA "Suite B" Cryptography
-(see http://www.nsa.gov/ia/industry/crypto_suite_b.cfm) for information
-classified as TOP SECRET.
+This default "ultra" curve is rated in NSA Suite
+B for information classified up to TOP SECRET.
+.PP
+If you want to take maximal advantage of ciphers that offer forward secrecy see
+the Getting
+started section of FORWARD_SECRECY_README.  The
+full document conveniently presents all information about Postfix
+"perfect" forward secrecy support in one place: what forward secrecy
+is, how to tweak settings, and what you can expect to see when
+Postfix uses ciphers with forward secrecy.
 .PP
 This feature is available in Postfix 2.6 and later, when it is
-compiled and linked with OpenSSL 1.0.0 or later.
+compiled and linked with OpenSSL 1.0.0 or later on platforms where
+EC algorithms have not been disabled by the vendor.
 .SH tls_export_cipherlist (default: ALL:+RC4:@STRENGTH)
 The OpenSSL cipherlist for "EXPORT" or higher grade ciphers. This
 defines the meaning of the "export" setting in smtpd_tls_mandatory_ciphers,
@@ -11586,14 +11626,14 @@ private DSA key.  See smtpd_tls_dcert_file for further details.
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dh1024_param_file (default: $smtpd_tls_dh1024_param_file)
 File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
-should use with EDH ciphers. See smtpd_tls_dh1024_param_file for
-further details.
+should use with non-export EDH ciphers. See smtpd_tls_dh1024_param_file
+for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dh512_param_file (default: $smtpd_tls_dh512_param_file)
 File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
-should use with EDH ciphers. See smtpd_tls_dh512_param_file for
-further details.
+should use with export-grade EDH ciphers. See smtpd_tls_dh512_param_file
+for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dkey_file (default: $smtpd_tls_dkey_file)

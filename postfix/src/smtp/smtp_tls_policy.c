@@ -105,6 +105,7 @@
 
 #include <mail_params.h>
 #include <maps.h>
+#include <dsn_buf.h>
 
 /* DNS library. */
 
@@ -626,8 +627,6 @@ int     smtp_tls_policy_cache_query(DSN_BUF *why, SMTP_TLS_POLICY *tls,
 				            SMTP_ITERATOR *iter)
 {
     VSTRING *key;
-    int     valid = iter->rr && iter->rr->dnssec_valid;
-    int     mxvalid = iter->mx == 0 || iter->mx->dnssec_valid;
 
     /*
      * Create an empty TLS Policy cache on the fly.
@@ -644,7 +643,6 @@ int     smtp_tls_policy_cache_query(DSN_BUF *why, SMTP_TLS_POLICY *tls,
     smtp_key_prefix(key, ":", iter, SMTP_KEY_FLAG_NEXTHOP
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_PORT);
-    vstring_sprintf_append(key, "%d:%d", !!valid, !!mxvalid);
     ctable_newcontext(policy_cache, (void *) iter);
     *tls = *(SMTP_TLS_POLICY *) ctable_locate(policy_cache, STR(key));
     vstring_free(key);
@@ -706,6 +704,35 @@ static int global_tls_level(void)
     return l;
 }
 
+#define NONDANE_CONFIG	0		/* Administrator's fault */
+#define NONDANE_DEST	1		/* Remote server's fault */
+
+static void PRINTFLIKE(4, 5) dane_incompat(SMTP_TLS_POLICY *tls,
+					           SMTP_ITERATOR *iter,
+					           int errtype,
+					           const char *fmt,...)
+{
+    va_list ap;
+
+    va_start(ap, fmt);
+    if (tls->level == TLS_LEV_DANE) {
+	tls->level = TLS_LEV_MAY;
+	if (errtype == NONDANE_CONFIG)
+	    vmsg_warn(fmt, ap);
+	else if (msg_verbose)
+	    vmsg_info(fmt, ap);
+    } else {
+	if (errtype == NONDANE_CONFIG) {
+	    vmsg_warn(fmt, ap);
+	    MARK_INVALID(tls->why, &tls->level);
+	} else {
+	    tls->level = TLS_LEV_INVALID;
+	    vdsb_simple(tls->why, "4.7.5", fmt, ap);
+	}
+    }
+    va_end(ap);
+}
+
 /* dane_init - special initialization for "dane" security level */
 
 static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
@@ -718,59 +745,47 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	MARK_INVALID(tls->why, &tls->level);
 	return;
     }
-
-    /*
-     * To use DANE security the requisite features must be provided by the
-     * OpenSSL (runtime) and DNS resolver (compile-time) libraries. Also,
-     * "smtp_host_lookup = dns" and "smtp_dns_support_level = dnssec" are
-     * required.
-     */
-#define DANEMSG(msg_func, reason, iter, tls) \
-	msg_func("%s: %s, the security level for delivery via %s:%u will " \
-		 "degrade to \"%s\"", STR((iter)->dest), reason, \
-		 STR((iter)->host), ntohs((iter)->port), \
-		 policy_name((tls)->level))
-#define DANEWARN(reason, iter, tls) DANEMSG(msg_warn, (reason), (iter), (tls))
-
     if (!tls_dane_avail()) {
-	if (tls->level == TLS_LEV_DANE) {
-	    tls->level = TLS_LEV_MAY;
-	    DANEWARN("DANE not available", iter, tls);
-	} else {
-	    msg_warn("%s: \"%s\" requested without requisite library support",
-		     STR(iter->dest), policy_name(tls->level));
-	    MARK_INVALID(tls->why, &tls->level);
-	}
+	dane_incompat(tls, iter, NONDANE_CONFIG,
+		      "%s: %s configured, but no requisite library support",
+		      STR(iter->dest), policy_name(tls->level));
 	return;
     }
     if (!(smtp_host_lookup_mask & SMTP_HOST_FLAG_DNS)
 	|| smtp_dns_support != SMTP_DNS_DNSSEC) {
-	if (tls->level == TLS_LEV_DANE) {
-	    tls->level = TLS_LEV_MAY;
-	    DANEWARN("DNSSEC hostname lookups not enabled", iter, tls);
-	} else {
-	    msg_warn("%s: \"%s\" requested with dnssec lookups disabled",
-		     STR(iter->dest), policy_name(tls->level));
-	    MARK_INVALID(tls->why, &tls->level);
-	}
+	dane_incompat(tls, iter, NONDANE_CONFIG,
+		      "%s: %s configured with dnssec lookups disabled",
+		      STR(iter->dest), policy_name(tls->level));
 	return;
     }
 
     /*
-     * If there were no MX records and the destination host is the original
-     * nexthop domain, or if the MX RRset is DNS validated, we can at least
-     * try DANE with the destination host prior to CNAME expansion, but we
-     * prefer CNAME expanded MX hosts if those are also secure.
+     * If we ignore MX lookup errors, we also ignore DNSSEC security problems
+     * and thus avoid any reasonable expectation that we get the right DANE
+     * key material.
      */
+    if (smtp_mode && var_ign_mx_lookup_err) {
+	dane_incompat(tls, iter, NONDANE_CONFIG,
+		      "%s: %s configured with MX lookup errors ignored",
+		      STR(iter->dest), policy_name(tls->level));
+	return;
+    }
+
+    /*
+     * This is not optional, code in tls_dane.c assumes that the nexthop
+     * qname is already an fqdn.  If we're using these flags to go from qname
+     * to rname, the assumption is invalid.  Likewise we cannot add the qname
+     * to certificate name checks, ...
+     */
+    if (smtp_dns_res_opt & (RES_DEFNAMES | RES_DNSRCH)) {
+	dane_incompat(tls, iter, NONDANE_CONFIG,
+		      "%s: dns resolver options incompatible with %s TLS",
+		      STR(iter->dest), policy_name(tls->level));
+	return;
+    }
+    /* When the MX name is present and insecure, DANE does not apply. */
     if (iter->mx && !iter->mx->dnssec_valid) {
-	if (tls->level == TLS_LEV_DANE) {
-	    tls->level = TLS_LEV_MAY;
-	    if (msg_verbose)
-		DANEMSG(msg_info, "non DNSSEC destination", iter, tls);
-	} else {
-	    tls->level = TLS_LEV_INVALID;
-	    dsb_simple(tls->why, "4.7.5", "non DNSSEC destination");
-	}
+	dane_incompat(tls, iter, NONDANE_DEST, "non DNSSEC destination");
 	return;
     }
     /* When TLSA lookups fail, we defer the message */
@@ -782,14 +797,7 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	return;
     }
     if (tls_dane_notfound(dane)) {
-	if (tls->level == TLS_LEV_DANE) {
-	    tls->level = TLS_LEV_MAY;
-	    if (msg_verbose)
-		DANEMSG(msg_info, "no TLSA records found", iter, tls);
-	} else {
-	    tls->level = TLS_LEV_INVALID;
-	    dsb_simple(tls->why, "4.7.5", "no TLSA records found");
-	}
+	dane_incompat(tls, iter, NONDANE_DEST, "no TLSA records found");
 	tls_dane_free(dane);
 	return;
     }
@@ -808,15 +816,7 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
      * given verifier some of the CAs are surely not trustworthy).
      */
     if (tls_dane_unusable(dane)) {
-	if (tls->level == TLS_LEV_DANE) {
-	    tls->level = TLS_LEV_ENCRYPT;
-	    if (msg_verbose)
-		DANEWARN("TLSA records unusable", iter, tls);
-	} else {
-	    tls->level = TLS_LEV_INVALID;
-	    dsb_simple(tls->why, "4.7.5", "TLSA records unusable");
-	}
-	tls_dane_free(dane);
+	dane_incompat(tls, iter, NONDANE_DEST, "TLSA records unusable");
 	return;
     }
 

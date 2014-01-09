@@ -766,12 +766,12 @@ By default, the temporary whitelist is not shared between multiple postscreen
             memcache = inet:127.0.0.1:11211
             key_format = postscreen:%s
 
-  * (Not supported in the stable Postfix release) A persistent lmdb: temporary
-    whitelist can be shared between postscreen(8) daemons that run under the
-    same master(8) daemon, or under different master(8) daemons on the same
-    host. Disable cache cleanup (postscreen_cache_cleanup_interval = 0) in all
-    postscreen(8) daemons except one that is responsible for cache cleanup.
-    This requires Postfix 2.11 or later.
+  * A persistent lmdb: temporary whitelist can be shared between postscreen(8)
+    daemons that run under the same master(8) daemon, or under different master
+    (8) daemons on the same host. Disable cache cleanup
+    (postscreen_cache_cleanup_interval = 0) in all postscreen(8) daemons except
+    one that is responsible for cache cleanup. This requires Postfix 2.11 or
+    later.
 
         # Example 2: persistent lmdb: whitelist.
         /etc/postfix/main.cf:
