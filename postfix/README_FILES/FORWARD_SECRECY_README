@@ -83,14 +83,13 @@ element of that group called a "generator". Presently, there are two flavors of
   * PPrriimmee--ffiieelldd ggrroouuppss ((EEDDHH)):: The server needs to be configured with a
     suitably-large prime and a corresponding "generator". The acronym for
     forward secrecy over prime fields is EDH for Ephemeral Diffie-Hellman (also
-    abbreviated as DHE for Diffie-Hellman Exchange).
+    abbreviated as DHE).
 
   * EElllliippttiicc--ccuurrvvee ggrroouuppss ((EEEECCDDHH)):: The server needs to be configured with a
     "named curve". These offer better security at lower computational cost than
     prime field groups, but are not as widely implemented. The acronym for the
     elliptic curve version is EECDH which is short for Ephemeral Elliptic Curve
-    Diffie-Hellman (also abbreviated as ECDHE for Elliptic Curve Diffie-Hellman
-    Exchange).
+    Diffie-Hellman (also abbreviated as ECDHE).
 
 It is not essential to know what these are, but one does need to know that
 OpenSSL supports EECDH with version 1.0.0 or later. Thus the configuration
@@ -201,7 +200,9 @@ GGeettttiinngg ssttaarrtteedd,, qquuiicckk aanndd ddiir
 EEEECCDDHH CClliieenntt aanndd sseerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..66 wwiitthh OOppeennSSSSLL >>== 11..00..00))
 
 With Postfix 2.6 and 2.7, enable elliptic-curve support in the Postfix SMTP
-client and server. This is the default with Postfix >= 2.8.
+client and server. This is the default with Postfix >= 2.8. Note, however, that
+elliptic-curve support may be disabled by the vendor, as in some versions of
+RedHat Linux.
 
     /etc/postfix/main.cf:
         # Postfix 2.6 or 2.7 only. This is default with Postfix 2.8 and later.
@@ -209,7 +210,7 @@ client and server. This is the default with Postfix >= 2.8.
 
 EEDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22))
 
-This space intentionally left blank.
+This works "out of the box" without additional configuration.
 
 EEDDHH SSeerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..22))
 

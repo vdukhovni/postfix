@@ -752,7 +752,7 @@ typedef struct DICT_CACHE_TEST {
 
 int     show_elapsed = 1;		/* show elapsed time */
 
-#if defined(SNAPSHOT) && defined(HAS_LMDB)
+#ifdef HAS_LMDB
 extern size_t dict_lmdb_map_size;	/* LMDB-specific */
 
 #endif
@@ -871,7 +871,7 @@ static void show_status(DICT_CACHE_TEST *tp, DICT_CACHE *dp)
 {
     DICT_CACHE_SREQ *cp;
 
-#if defined(SNAPSHOT) && defined(HAS_LMDB)
+#ifdef HAS_LMDB
     vstream_printf("lmdb_map_size\t%ld\n", (long) dict_lmdb_map_size);
 #endif
     vstream_printf("cache\t%s\n", dp ? dp->name : "(none)");
@@ -1089,7 +1089,7 @@ int     main(int argc, char **argv)
 	    msg_verbose = atoi(args->argv[1]);
 	} else if (strcmp(args->argv[0], "elapsed") == 0 && args->argc == 2) {
 	    show_elapsed = atoi(args->argv[1]);
-#if defined(SNAPSHOT) && defined(HAS_LMDB)
+#ifdef HAS_LMDB
 	} else if (strcmp(args->argv[0], "lmdb_map_size") == 0 && args->argc == 2) {
 	    dict_lmdb_map_size = atol(args->argv[1]);
 #endif

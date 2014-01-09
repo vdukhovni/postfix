@@ -117,8 +117,7 @@
 /* .IP proto
 /*	Almost certainly "tcp".
 /* .IP hostrr
-/*	DNS_RR pointer to TLSA base domain data.  When dnssec_valid is false,
-/*	the rname (and the qname if same as rname) are insecure.
+/*	DNS_RR pointer to TLSA base domain data.
 /* .IP forcetlsa
 /*	When true, TLSA lookups are performed even when the qname and rname
 /*	are insecure.  This is only useful in the unlikely case that DLV is
@@ -1160,39 +1159,78 @@ static TLS_DANE *resolve_host(const char *host, const char *proto,
     return (dane);
 }
 
+/* qname_secure - Lookup qname DNSSEC status */
+
+static int qname_secure(const char *qname)
+{
+    static VSTRING *why;
+    int     ret = 0;
+    DNS_RR *rrs;
+
+    if (!why)
+	why = vstring_alloc(10);
+
+    /*
+     * We assume that qname is already an fqdn, and does not need any
+     * suffixes from RES_DEFNAME or RES_DNSRCH.  This is typically the name
+     * of an MX host, and must be a complete DNS name.  DANE initialization
+     * code in the SMTP client is responsible for checking that the default
+     * resolver flags do not include RES_DEFNAME and RES_DNSRCH.
+     */
+    ret = dns_lookup(qname, T_CNAME, RES_USE_DNSSEC, &rrs, 0, why);
+    if (ret == DNS_OK) {
+	ret = rrs->dnssec_valid;
+	dns_rr_free(rrs);
+	return (ret);
+    }
+    if (ret == DNS_NOTFOUND)
+	vstring_sprintf(why, "no longer a CNAME");
+    msg_warn("DNSSEC status lookup error for %s: %s", qname, STR(why));
+    return (-1);
+}
+
 /* tls_dane_resolve - cached map: (name, proto, port) -> TLS_DANE */
 
 TLS_DANE *tls_dane_resolve(unsigned port, const char *proto, DNS_RR *hostrr,
 			           int forcetlsa)
 {
     TLS_DANE *dane = 0;
-    int     iscname;
+    int     iscname = strcasecmp(hostrr->rname, hostrr->qname);
+    int     isvalid = 1;
 
     if (!tls_dane_avail())
-	return (dane);
-
-    if (!dane_cache)
-	dane_cache = ctable_create(CACHE_SIZE, dane_lookup, dane_free, 0);
+	return (0);				/* Error */
 
     /*
-     * By default suppress TLSA lookups for non-DNSSEC + non-CNAME hosts. If
-     * the host address is not DNSSEC validated, the TLSA RRset is safely
-     * assumed to not be in a DNSSEC Look-aside Validation child zone.
+     * By default suppress TLSA lookups for hosts in non-DNSSEC zones.  If
+     * the host zone is not DNSSEC validated, the TLSA qname sub-domain is
+     * safely assumed to not be in a DNSSEC Look-aside Validation child zone.
      */
-    iscname = strcasecmp(hostrr->rname, hostrr->qname);
-    if (!forcetlsa && !hostrr->dnssec_valid && !iscname) {
+    if (!forcetlsa && !hostrr->dnssec_valid) {
+	isvalid = iscname ? qname_secure(hostrr->qname) : 0;
+	if (isvalid < 0)
+	    return (0);				/* Error */
+    }
+    if (!isvalid) {
 	dane = tls_dane_alloc();
 	dane->flags = TLS_DANE_FLAG_NORRS;
     } else {
+	if (!dane_cache)
+	    dane_cache = ctable_create(CACHE_SIZE, dane_lookup, dane_free, 0);
 
 	/*
-	 * Try the rname first, if nothing there, try the qname.  Note,
-	 * lookup errors are distinct from success with nothing found.  If
-	 * the rname lookup fails we don't try the qname.
+	 * Try the rname first if secure, if nothing there, try the qname if
+	 * different.  Note, lookup errors are distinct from success with
+	 * nothing found.  If the rname lookup fails we don't try the qname.
 	 */
-	if (hostrr->dnssec_valid)
+	if (hostrr->dnssec_valid) {
 	    dane = resolve_host(hostrr->rname, proto, port);
-	if (!dane || (iscname && tls_dane_notfound(dane)))
+	    if (tls_dane_notfound(dane) && iscname) {
+		tls_dane_free(dane);
+		dane = 0;
+	    }
+	}
+	if (!dane)
 	    dane = resolve_host(hostrr->qname, proto, port);
 	if (dane->flags & TLS_DANE_FLAG_ERROR) {
 	    /* We don't return this object. */

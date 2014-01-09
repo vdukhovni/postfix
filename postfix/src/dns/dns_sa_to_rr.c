@@ -15,7 +15,8 @@
 /*
 /*	Arguments:
 /* .IP hostname
-/*	The resource record host name.
+/*	The resource record host name. This will be both the qname
+/*	and the rname in the synthetic DNS resource record.
 /* .IP pref
 /*	The resource record MX host preference, if applicable.
 /* .IP sa

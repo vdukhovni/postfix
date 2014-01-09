@@ -46,7 +46,7 @@
 
 #include <sys_defs.h>
 
-#if defined(SNAPSHOT) && defined(HAS_LMDB)
+#ifdef HAS_LMDB
 
 /* System library. */
 
@@ -536,6 +536,16 @@ static void dict_lmdb_notify(void *context, int error_code,...)
     va_end(ap);
 }
 
+/* dict_lmdb_assert - report LMDB internal assertion failure */
+
+static void dict_lmdb_assert(void *context, const char *text)
+{
+    DICT_LMDB *dict_lmdb = (DICT_LMDB *) context;
+
+    msg_fatal("%s:%s: internal error: %s",
+	      dict_lmdb->dict.type, dict_lmdb->dict.name, text);
+}
+
 /* dict_lmdb_open - open LMDB data base */
 
 DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
@@ -611,6 +621,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
 			     DICT_LMDB_SIZE_MAX)) != 0
 	|| (status = slmdb_open(&slmdb, mdb_path, open_flags, mdb_flags,
 				slmdb_flags)) != 0) {
+	/* This leaks a little memory that would have been used otherwise. */
 	dict = dict_surrogate(DICT_TYPE_LMDB, path, open_flags, dict_flags,
 		    "open database %s: %s", mdb_path, mdb_strerror(status));
 	DICT_LMDB_OPEN_RETURN(dict);
@@ -634,9 +645,10 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     }
 
     /*
-     * Bundle up.
+     * Bundle up. From here on no more assignments to slmdb.
      */
     dict_lmdb = (DICT_LMDB *) dict_alloc(DICT_TYPE_LMDB, path, sizeof(*dict_lmdb));
+    dict_lmdb->slmdb = slmdb;
     dict_lmdb->dict.lookup = dict_lmdb_lookup;
     dict_lmdb->dict.update = dict_lmdb_update;
     dict_lmdb->dict.delete = dict_lmdb_delete;
@@ -679,24 +691,20 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
      * The following requests return an error result only if we have serious
      * memory corruption problem.
      */
-    slmdb_control(&slmdb,
-		  SLMDB_CTL_API_RETRY_LIMIT, DICT_LMDB_API_RETRY_LIMIT,
-		  SLMDB_CTL_BULK_RETRY_LIMIT, DICT_LMDB_BULK_RETRY_LIMIT,
-		  SLMDB_CTL_LONGJMP_FN, dict_lmdb_longjmp,
-		  SLMDB_CTL_CONTEXT, (void *) dict_lmdb,
-		  SLMDB_CTL_END);
-    if (msg_verbose) {
-	slmdb_control(&slmdb,
-		      SLMDB_CTL_NOTIFY_FN, dict_lmdb_notify,
-		      SLMDB_CTL_END);
-	dict_lmdb_notify((void *) dict_lmdb, MDB_SUCCESS,
-			 slmdb_curr_limit(&slmdb));
-    }
+    if (slmdb_control(&dict_lmdb->slmdb,
+		      SLMDB_CTL_API_RETRY_LIMIT, DICT_LMDB_API_RETRY_LIMIT,
+		      SLMDB_CTL_BULK_RETRY_LIMIT, DICT_LMDB_BULK_RETRY_LIMIT,
+		      SLMDB_CTL_LONGJMP_FN, dict_lmdb_longjmp,
+		      SLMDB_CTL_NOTIFY_FN, msg_verbose ?
+		      dict_lmdb_notify : (SLMDB_NOTIFY_FN) 0,
+		      SLMDB_CTL_ASSERT_FN, dict_lmdb_assert,
+		      SLMDB_CTL_CB_CONTEXT, (void *) dict_lmdb,
+		      SLMDB_CTL_END) != 0)
+	msg_panic("dict_lmdb_open: slmdb_control: %m");
 
-    /*
-     * From here on no direct assignments to slmdb.
-     */
-    dict_lmdb->slmdb = slmdb;
+    if (msg_verbose)
+	dict_lmdb_notify((void *) dict_lmdb, MDB_SUCCESS,
+			 slmdb_curr_limit(&dict_lmdb->slmdb));
 
     DICT_LMDB_OPEN_RETURN(DICT_DEBUG (&dict_lmdb->dict));
 }

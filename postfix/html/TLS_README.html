@@ -872,43 +872,15 @@ with high grade ciphers: </p>
 </pre>
 </blockquote>
 
-<p> If you want to take advantage of ciphers with ephemeral Diffie-Hellman
-(EDH) key exchange (this offers "forward-secrecy"), DH parameters are
-needed.  Instead of using the built-in DH parameters for both 1024-bit
-(non-export ciphers) and 512-bit (export ciphers), it is better to
-generate your own parameters, since otherwise it would "pay" for a
-possible attacker to start a brute force attack against parameters that
-are used by everybody.  Postfix defaults to compiled-in parameters
-that are shared by all Postfix users who don't generate their own
-settings. </p>
-
-<p> To generate your own set of DH parameters, use: </p>
-
-<blockquote>
-<pre>
-% <b>openssl gendh -out /etc/postfix/dh_512.pem -2 512</b>
-% <b>openssl gendh -out /etc/postfix/dh_1024.pem -2 1024</b>
-</pre>
-</blockquote>
-
-<p> Support for elliptic curve cryptography is available with Postfix
-2.6 and OpenSSL 1.0.0 or later.  To enable ephemeral elliptic curve
-Diffie-Hellman (EECDH) key-exchange, set "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> =
-strong" or "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = ultra". The "ultra" setting is
-substantially more CPU intensive, and "strong" is sufficiently
-secure for most situations. </p>
-
-<p> Examples: </p>
- 
-<blockquote>
-<pre>
-/etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a> = /etc/postfix/dh_1024.pem
-    <a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a> = /etc/postfix/dh_512.pem
-    # Postfix &ge; 2.6:
-    <a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = strong
-</pre>
-</blockquote>
+<p> If you want to take maximal advantage of ciphers that offer <a
+href="FORWARD_SECRECY_README.html#dfn_fs">forward secrecy</a> see
+the <a href="FORWARD_SECRECY_README.html#quick-start">Getting
+started</a> section of <a
+href="FORWARD_SECRECY_README.html">FORWARD_SECRECY_README</a>.  The
+full document conveniently presents all information about Postfix
+"perfect" forward secrecy support in one place: what forward secrecy
+is, how to tweak settings, and what you can expect to see when
+Postfix uses ciphers with forward secrecy.  </p>
 
 <p> Postfix 2.8 and later, in combination with OpenSSL 0.9.7 and later
 allows TLS servers to preempt the TLS client's cipher-suite preference list.
@@ -2390,7 +2362,7 @@ the SSL/TLS protocols used with opportunistic TLS. </p>
     <a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> = aNULL
     # Preferred form with Postfix &ge; 2.5:
     <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = !SSLv2
-    # Legacy form for Postifx &lt; 2.5:
+    # Legacy form for Postfix &lt; 2.5:
     <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> = SSLv3, TLSv1
     # Also available with Postfix &ge; 2.6:
     <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> = export

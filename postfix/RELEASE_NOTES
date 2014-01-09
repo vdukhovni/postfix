@@ -1,4 +1,4 @@
-This is the Postfix 2.12 (experimental) branch.
+This is the Postfix 2.12 (experimental) release.
 
 The stable Postfix release is called postfix-2.11.x where 2=major
 release number, 11=minor release number, x=patchlevel.  The stable

@@ -22,15 +22,10 @@ Postfix LMDB adapter
 .SH DESCRIPTION
 .ad
 .fi
-LMDB is not supported in the stable Postfix release. It
-will spontaneously terminate a Postfix daemon process without
-allowing Postfix to 1) report the problem to the maillog
-file, and to 2) provide reduced service where this is
-appropriate.
-
 The Postfix LMDB adapter provides access to a persistent,
 memory-mapped, key-value store.  The database size is limited
-only by the size of the memory address space and file system.
+only by the size of the memory address space (typically 32
+or 64 bits) and by the available file system space.
 .SH "REQUESTS"
 .na
 .nf
@@ -84,7 +79,7 @@ Short-lived programs automatically pick up changes to
 main.cf.  With long-running daemon programs, Use the command
 "\fBpostfix reload\fR" after a configuration change.
 .IP "\fBlmdb_map_size (default: 16777216)\fR"
-The initial OpenLDAP LMDB database size limit in bytes.
+The initial LMDB database size limit in bytes.
 .SH "SEE ALSO"
 .na
 .nf
@@ -101,7 +96,7 @@ Use "\fBpostconf readme_directory\fR" or
 .na
 .nf
 DATABASE_README, Postfix lookup table overview
-LMDB_README, Postfix LMDB howto
+LMDB_README, Postfix OpenLDAP LMDB howto
 .SH "LICENSE"
 .na
 .nf

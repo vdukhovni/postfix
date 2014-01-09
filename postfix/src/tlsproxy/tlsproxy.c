@@ -84,10 +84,10 @@
 /*	format.
 /* .IP "\fBtlsproxy_tls_dh1024_param_file ($smtpd_tls_dh1024_param_file)\fR"
 /*	File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
-/*	should use with EDH ciphers.
+/*	should use with non-export EDH ciphers.
 /* .IP "\fBtlsproxy_tls_dh512_param_file ($smtpd_tls_dh512_param_file)\fR"
 /*	File with DH parameters that the Postfix \fBtlsproxy\fR(8) server
-/*	should use with EDH ciphers.
+/*	should use with export-grade EDH ciphers.
 /* .IP "\fBtlsproxy_tls_dkey_file ($smtpd_tls_dkey_file)\fR"
 /*	File with the Postfix \fBtlsproxy\fR(8) server DSA private key in PEM
 /*	format.

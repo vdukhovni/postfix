@@ -19466,9 +19466,6 @@ Apologies for any names omitted.
 	Shockingly, LMDB terminates the postscreen daemon without
 	logfile record.  File: util/dict_cache.c.
 
-	Because of the above behavior, LMDB cannot be supported in
-	the stable Postfix 2.11 release.
-
 20140102
 
 	Bugfix: close the LMDB database cursor's read transaction
@@ -19484,11 +19481,46 @@ Apologies for any names omitted.
 	smtp_rcpt.c, smtp_session.c, smtp_chat.c, smtp_proto.c,
 	smtp_connect.c.
 
-20130104
+20140104
 
 	Feature: support for optional configuration files
 	"$daemon-directory/postfix-files.d/*".  These are processed
 	in sorted order after "$daemon-directory/postfix-files",
 	This avoids breaking "postfix set-permissions" etc. when a
-	Postfix distributions comes in multiple packages.  File:
+	Postfix distribution comes in multiple packages.  File:
 	conf/post-install.
+
+20140107
+
+	Feature: LMDB 0.9.11 allows Postfix daemons to log an LMDB
+	error message, instead of falling out of the sky without
+	any notification.  Files: util/slmdb.[hc], util/dict_lmdb.c.
+
+20140108
+
+	Bugfix: every Postfix LMDB transaction is now protected by
+	an external lock for its entire life time. File: util/slmdb.c.
+
+20140109
+
+	Cleanup: turn off DNSSEC lookup after CNAME redirection to
+	an insecure zone. This is an optimization for resolvers
+	that do not automatically resolve CNAME chains. Viktor
+	Dukhovni. File: dns/dns_lookup.c.
+
+	Cleanup: do not salt the SMTP TLS policy lookup cache key
+	with the DNSSEC status. The DNSSEC status will not change
+	when the same nexthop/host pair is looked up repeatedly.
+	Viktor Dukhovni. File: smtp/smtp_tls_policy.c.
+
+	Robustness: Suppress TLSA lookups only when the qname zone
+	is insecure, not just because the rname zone is insecure.
+	This requires an extra T_CNAME lookup for the qname, since
+	nameservers are often "too helpful" and report CNAME records
+	together with the CNAME targets. When the targets are
+	insecure the whole reply is marked as insecure.  Viktor
+	Dukhovni.  File: tls/tls_dane.c.
+
+	Cleanup: Unify/simplify reporting of configuration or other
+	conditions that prevent DANE security.  Viktor Dukhovni.
+	Files: global/dsn_buf.[hc], tls/tls_dane.c, smtp/smtp_tls_policy.c.

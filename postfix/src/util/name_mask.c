@@ -448,8 +448,7 @@ static int hex_to_ulong(char *value, unsigned long mask, unsigned long *ulp)
     if (*cp != '\0' || errno == ERANGE)
 	return (0);
 
-    if (ulp)
-	*ulp = (result & mask);
+    *ulp = (result & mask);
     return (*ulp == result);
 }
 

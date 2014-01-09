@@ -20,14 +20,10 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        <b>postmap -q - <a href="lmdb_table.5.html">lmdb</a>:/etc/postfix/</b><i>filename</i> &lt;<i>inputfile</i>
 
 <b>DESCRIPTION</b>
-       LMDB  is  not  supported in the stable Postfix release. It will sponta-
-       neously terminate a Postfix daemon process without allowing Postfix  to
-       1)  report  the  problem to the maillog file, and to 2) provide reduced
-       service where this is appropriate.
-
-       The Postfix LMDB adapter  provides  access  to  a  persistent,  memory-
+       The  Postfix  LMDB  adapter  provides  access  to a persistent, memory-
        mapped, key-value store.  The database size is limited only by the size
-       of the memory address space and file system.
+       of the memory address space (typically 32 or 64 bits) and by the avail-
+       able file system space.
 
 <b>REQUESTS</b>
        The LMDB adapter supports all Postfix lookup  table  operations.   This
@@ -69,7 +65,7 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        configuration change.
 
        <b><a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216)</b>
-              The initial OpenLDAP LMDB database size limit in bytes.
+              The initial LMDB database size limit in bytes.
 
 <b>SEE ALSO</b>
        <a href="postconf.1.html">postconf(1)</a>, Postfix supported lookup tables
@@ -78,7 +74,7 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
 
 <b>README FILES</b>
        <a href="DATABASE_README.html">DATABASE_README</a>, Postfix lookup table overview
-       <a href="LMDB_README.html">LMDB_README</a>, Postfix LMDB howto
+       <a href="LMDB_README.html">LMDB_README</a>, Postfix OpenLDAP LMDB howto
 
 <b>LICENSE</b>
        The Secure Mailer license must be distributed with this software.

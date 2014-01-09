@@ -93,8 +93,7 @@
 /*	for the specified database.
 /*
 /*	slmdb_control() specifies optional features. The result is
-/*	0 in case of success, or -1 with errno indicating the nature
-/*	of the problem.
+/*	an LMDB status code (zero in case of success).
 /*
 /* Arguments:
 /* .IP slmdb
@@ -113,13 +112,24 @@
 /*	Flags that control file open operations. Do not specify
 /*	locking flags here.
 /* .IP lmdb_flags
-/*	Flags that control the LMDB environment.
+/*	Flags that control the LMDB environment. If MDB_NOLOCK is
+/*	specified, then each slmdb_get() or slmdb_cursor_get() call
+/*	must be protected with a shared (or stronger) external lock,
+/*	and each slmdb_put() or slmdb_del() call must be protected
+/*	with an exclusive external lock. The locks may be released
+/*	after the call returns.
 /* .IP slmdb_flags
 /*	Bit-wise OR of zero or more of the following:
 /* .RS
 /* .IP SLMDB_FLAG_BULK
-/*	Open the database for a "bulk" transaction that is not
-/*	committed until the database is closed.
+/*	Open the database and create a "bulk" transaction that is
+/*	committed when the database is closed. If MDB_NOLOCK is
+/*	specified, then the entire transaction must be protected
+/*	with a persistent exclusive external lock (the lock may be
+/*	atomically downgraded to a shared lock to permit concurrent
+/*	read-only access). All slmdb_get(), slmdb_put() and slmdb_del()
+/*	requests will be directed to the "bulk" transaction. The effect
+/*	of calling slmdb_cursor_get() is undefined.
 /* .RE
 /* .IP mdb_key
 /*	Pointer to caller-provided lookup key storage.
@@ -133,20 +143,24 @@
 /*	request names and the corresponding value types.
 /* .RS
 /* .IP "SLMDB_CTL_LONGJMP_FN (void (*)(void *, int))
-/*	Application long-jump call-back function pointer. The
-/*	function must not return and is called to repeat a failed
-/*	bulk-mode transaction from the start. The arguments are the
-/*	application context and the setjmp() or sigsetjmp() result
-/*	value.
+/*	Call-back function pointer. The function is called to repeat
+/*	a failed bulk-mode transaction from the start. The arguments
+/*	are the application context and the setjmp() or sigsetjmp()
+/*	result value.
 /* .IP "SLMDB_CTL_NOTIFY_FN (void (*)(void *, int, ...))"
-/*	Application notification call-back function pointer. The
-/*	function is called after succesful error recovery with
-/*	arguments the application context, the MDB error code, and
-/*	additional arguments that depend on the error code.  Details
-/*	are given in the section "ERROR RECOVERY".
-/* .IP "SLMDB_CTL_CONTEXT (void *)"
-/*	Application context that is passed in application notification
-/*	and long-jump call-back function calls.
+/*	Call-back function pointer. The function is called to report
+/*	succesful error recovery. The arguments are the application
+/*	context, the MDB error code, and additional arguments that
+/*	depend on the error code.  Details are given in the section
+/*	"ERROR RECOVERY".
+/* .IP "SLMDB_CTL_ASSERT_FN (void (*)(void *, const char *))"
+/*	Call-back function pointer.  The function is called to
+/*	report an LMDB internal assertion failure. The arguments
+/*	are the application context, and text that describes the
+/*	problem.
+/* .IP "SLMDB_CTL_CB_CONTEXT (void *)"
+/*	Application context that is passed in call-back function
+/*	calls.
 /* .IP "SLMDB_CTL_API_RETRY_LIMIT (int)"
 /*	How many times to recover from LMDB errors within the
 /*	execution of a single slmdb(3) API call before giving up.
@@ -172,12 +186,12 @@
 /*	memory mapping.  According to LMDB documentation this
 /*	requires that there is no concurrent activity in the same
 /*	database by other threads in the same memory address space.
+/*
+/*	When a database is opened with MDB_NOLOCK, and the external
+/*	lock is based on fcntl() or the like, there is no protection
+/*	against concurrent activity in the same process.
 /* SEE ALSO
 /*	lmdb(3) API manpage (currently, non-existent).
-/* LICENSE
-/* .ad
-/* .fi
-/*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
 /*	Howard Chu
 /*	Symas Corporation
@@ -188,7 +202,12 @@
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
 
-#if defined(SNAPSHOT) && defined(HAS_LMDB)
+ /*
+  * DO NOT include other Postfix-specific header files. This LMDB wrapper
+  * must be usable outside Postfix.
+  */
+
+#ifdef HAS_LMDB
 
 /* System library. */
 
@@ -207,19 +226,31 @@
 #include <slmdb.h>
 
  /*
-  * Supported LMDB versions.
+  * Minimum LMDB patchlevel.
+  * 
+  * LMDB 0.9.11 allows Postfix daemons to log an LMDB error message instead of
+  * falling out of the sky without any explanation. Without such logging,
+  * Postfix with LMDB would be too hard to support.
+  * 
+  * LMDB 0.9.10 fixes an information leak where LMDB wrote chunks of up to 4096
+  * bytes of uninitialized heap memory to a database. This was a security
+  * violation because it made information persistent that was not meant to be
+  * persisted, or it was sharing information that was not meant to be shared.
   * 
   * LMDB 0.9.8 allows the application to update the database size limit
-  * on-the-fly, so that it can recover from an MDB_MAP_FULL error; it also
-  * allows an application to "pick up" a new database size limit on-the-fly,
-  * so that it can recover from an MDB_MAP_RESIZED error. The database size
-  * limit that remains is imposed by the hardware address space. The
-  * implementation is supposed to handle databases larger than physical
-  * memory. However, this is not necessarily guaranteed for (bulk)
+  * on-the-fly, so that it can recover from an MDB_MAP_FULL error without
+  * having to close the database. It also allows an application to "pick up"
+  * a new database size limit on-the-fly, so that it can recover from an
+  * MDB_MAP_RESIZED error without having to close the database. Finally, it
+  * avoids the need for world-writable lockfiles, by using MDB_NOLOCK.
+  * 
+  * The database size limit that remains is imposed by the hardware address
+  * space. The implementation is supposed to handle databases larger than
+  * physical memory. However, this is not necessarily guaranteed for (bulk)
   * transactions larger than physical memory.
   */
-#if MDB_VERSION_FULL < MDB_VERINT(0, 9, 8)
-#error "Build with LMDB version 0.9.8 or later"
+#if MDB_VERSION_FULL < MDB_VERINT(0, 9, 11)
+#error "This Postfix version requires LMDB version 0.9.11 or later"
 #endif
 
  /*
@@ -245,7 +276,7 @@
   * call for non-bulk transactions. We allow a number of bulk-transaction
   * retries that is proportional to the memory address space.
   */
-#define SLMDB_DEF_API_RETRY_LIMIT 2	/* Retries per slmdb(3) API call */
+#define SLMDB_DEF_API_RETRY_LIMIT 30	/* Retries per slmdb(3) API call */
 #define SLMDB_DEF_BULK_RETRY_LIMIT \
         (2 * sizeof(size_t) * CHAR_BIT)	/* Retries per bulk-mode transaction */
 
@@ -260,11 +291,9 @@
     } while (0)
 
  /*
-  * We must close the cursor's read transaction before writing to the
-  * database with MDB_NOLOCK, and before changing the memory map size. Our
-  * database iterator saves the key under the last cursor position, and
-  * restores the cursor if needed. This supports only one cursor per
-  * database.
+  * With MDB_NOLOCK, the iterator must close the cursor's read transaction
+  * before returning the (key, value) to the caller. See ITS#7774 and
+  * followups.
   */
 
 /* slmdb_cursor_close - close cursor and its read transaction */
@@ -373,8 +402,8 @@ static int slmdb_recover(SLMDB *slmdb, int status)
     MDB_envinfo info;
 
     /*
-     * Close the cursor and its read transaction before changing the memory
-     * map size. We can restore it later from the saved key information.
+     * This may be needed in non-MDB_NOLOCK mode. Recovery is rare enough that
+     * we don't care about a few wasted cycles.
      */
     if (slmdb->cursor != 0)
 	slmdb_cursor_close(slmdb);
@@ -541,15 +570,6 @@ int     slmdb_put(SLMDB *slmdb, MDB_val *mdb_key,
 	SLMDB_API_RETURN(slmdb, status);
 
     /*
-     * Before doing a non-bulk write transaction in MDB_NOLOCK mode, close a
-     * cursor and its read transaction. We can restore it later with the
-     * saved key information.
-     */
-    if (slmdb->cursor != 0 && slmdb->txn == 0
-	&& (slmdb->lmdb_flags & MDB_NOLOCK))
-	slmdb_cursor_close(slmdb);
-
-    /*
      * Do the update.
      */
     if ((status = mdb_put(txn, slmdb->dbi, mdb_key, mdb_value, flags)) != 0) {
@@ -587,15 +607,6 @@ int     slmdb_del(SLMDB *slmdb, MDB_val *mdb_key)
 	SLMDB_API_RETURN(slmdb, status);
 
     /*
-     * Before doing a non-bulk write transaction in MDB_NOLOCK mode, close a
-     * cursor and its read transaction. We can restore it later from the
-     * saved key information.
-     */
-    if (slmdb->cursor != 0 && slmdb->txn == 0
-	&& (slmdb->lmdb_flags & MDB_NOLOCK))
-	slmdb_cursor_close(slmdb);
-
-    /*
      * Do the update.
      */
     if ((status = mdb_del(txn, slmdb->dbi, mdb_key, (MDB_val *) 0)) != 0) {
@@ -623,7 +634,7 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
 			         MDB_val *mdb_value, MDB_cursor_op op)
 {
     MDB_txn *txn;
-    int     status;
+    int     status = 0;
 
     /*
      * Open a read transaction and cursor if needed.
@@ -641,37 +652,41 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
 	/*
 	 * Restore the cursor position from the saved key information.
 	 */
-	if (HAVE_SLMDB_SAVED_KEY(slmdb) && op != MDB_FIRST) {
-	    if ((status = mdb_cursor_get(slmdb->cursor, &slmdb->saved_key,
-					 (MDB_val *) 0, MDB_SET)) != 0) {
-		slmdb_cursor_close(slmdb);
-		if ((status = slmdb_recover(slmdb, status)) == 0)
-		    status = slmdb_cursor_get(slmdb, mdb_key, mdb_value, op);
-		SLMDB_API_RETURN(slmdb, status);
-	    }
-	}
+	if (HAVE_SLMDB_SAVED_KEY(slmdb) && op != MDB_FIRST)
+	    status = mdb_cursor_get(slmdb->cursor, &slmdb->saved_key,
+					 (MDB_val *) 0, MDB_SET);
     }
 
     /*
      * Database lookup.
      */
-    status = mdb_cursor_get(slmdb->cursor, mdb_key, mdb_value, op);
+    if (status == 0)
+	status = mdb_cursor_get(slmdb->cursor, mdb_key, mdb_value, op);
 
     /*
-     * Save the cursor position. This can fail only with ENOMEM.
+     * Save the cursor position if successful. This can fail only with
+     * ENOMEM.
+     * 
+     * Close the cursor read transaction if in MDB_NOLOCK mode, because the
+     * caller may release the external lock after we return.
      */
-    if (status == 0)
+    if (status == 0) {
 	status = slmdb_saved_key_assign(slmdb, mdb_key);
+	if (slmdb->lmdb_flags & MDB_NOLOCK)
+	    slmdb_cursor_close(slmdb);
+    }
 
     /*
      * Handle end-of-database or other error.
      */
     else {
+	/* Do not hand-optimize out the slmdb_cursor_close() calls below. */
 	if (status == MDB_NOTFOUND) {
 	    slmdb_cursor_close(slmdb);
 	    if (HAVE_SLMDB_SAVED_KEY(slmdb))
 		slmdb_saved_key_free(slmdb);
 	} else {
+	    slmdb_cursor_close(slmdb);
 	    if ((status = slmdb_recover(slmdb, status)) == 0)
 		status = slmdb_cursor_get(slmdb, mdb_key, mdb_value, op);
 	    SLMDB_API_RETURN(slmdb, status);
@@ -681,6 +696,16 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
     SLMDB_API_RETURN(slmdb, status);
 }
 
+/* slmdb_assert_cb - report LMDB assertion failure */
+
+static void slmdb_assert_cb(MDB_env *env, const char *text)
+{
+    SLMDB  *slmdb = (SLMDB *) mdb_env_get_userctx(env);
+
+    if (slmdb->assert_fn)
+	slmdb->assert_fn(slmdb->cb_context, text);
+}
+
 /* slmdb_control - control optional settings */
 
 int     slmdb_control(SLMDB *slmdb, int first,...)
@@ -688,6 +713,7 @@ int     slmdb_control(SLMDB *slmdb, int first,...)
     va_list ap;
     int     status = 0;
     int     reqno;
+    int     rc;
 
     va_start(ap, first);
     for (reqno = first; status == 0 && reqno != SLMDB_CTL_END; reqno = va_arg(ap, int)) {
@@ -698,7 +724,13 @@ int     slmdb_control(SLMDB *slmdb, int first,...)
 	case SLMDB_CTL_NOTIFY_FN:
 	    slmdb->notify_fn = va_arg(ap, SLMDB_NOTIFY_FN);
 	    break;
-	case SLMDB_CTL_CONTEXT:
+	case SLMDB_CTL_ASSERT_FN:
+	    slmdb->assert_fn = va_arg(ap, SLMDB_ASSERT_FN);
+	    if ((rc = mdb_env_set_userctx(slmdb->env, (void *) slmdb)) != 0
+	     || (rc = mdb_env_set_assert(slmdb->env, slmdb_assert_cb)) != 0)
+		status = rc;
+	    break;
+	case SLMDB_CTL_CB_CONTEXT:
 	    slmdb->cb_context = va_arg(ap, void *);
 	    break;
 	case SLMDB_CTL_API_RETRY_LIMIT:
@@ -708,8 +740,7 @@ int     slmdb_control(SLMDB *slmdb, int first,...)
 	    slmdb->bulk_retry_limit = va_arg(ap, int);
 	    break;
 	default:
-	    errno = EINVAL;
-	    status = -1;
+	    status = errno = EINVAL;
 	    break;
 	}
     }
@@ -834,6 +865,7 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
     slmdb->bulk_retry_limit = SLMDB_DEF_BULK_RETRY_LIMIT;
     slmdb->longjmp_fn = 0;
     slmdb->notify_fn = 0;
+    slmdb->assert_fn = 0;
     slmdb->cb_context = 0;
     slmdb->txn = txn;
 
@@ -841,22 +873,6 @@ int     slmdb_open(SLMDB *slmdb, const char *path, int open_flags,
 	mdb_env_close(env);
 
     return (status);
-}
-
-#endif
-
- /*
-  * Implementation-dependent workaround to debug LMDB assert() failures. The
-  * code below prevents daemons from disappearing without logfile record.
-  */
-#ifdef LMDB_ASSERT_WORKAROUND
-
-#include <assert.h>
-
-void    __assert(const char *func, const char *file, int line, const char *text)
-{
-    msg_panic("Assertion failed: %s, function %s, file %s, line %d.",
-	      text, func, file, line);
 }
 
 #endif

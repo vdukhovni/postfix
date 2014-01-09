@@ -51,6 +51,7 @@ typedef struct {
 
 extern DSN_BUF *dsb_create(void);
 extern DSN_BUF *PRINTFLIKE(8, 9) dsb_update(DSN_BUF *, const char *, const char *, const char *, const char *, const char *, const char *, const char *,...);
+extern DSN_BUF *vdsb_simple(DSN_BUF *, const char *, const char *, va_list);
 extern DSN_BUF *PRINTFLIKE(3, 4) dsb_simple(DSN_BUF *, const char *, const char *,...);
 extern DSN_BUF *PRINTFLIKE(4, 5) dsb_unix(DSN_BUF *, const char *, const char *, const char *,...);
 extern DSN_BUF *dsb_formal(DSN_BUF *, const char *, const char *, const char *, const char *, const char *, const char *);

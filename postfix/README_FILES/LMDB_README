@@ -2,34 +2,26 @@ PPoossttffiixx OOppeennLLDDAAPP LLMMDDBB HHoowwttoo
 
 -------------------------------------------------------------------------------
 
-NNoottee
-
-LMDB is not supported in the stable Postfix release. It will spontaneously
-terminate a Postfix daemon process without allowing Postfix to 1) report the
-problem to the maillog file, and to 2) provide reduced service where this is
-appropriate.
-
 IInnttrroodduuccttiioonn
 
 Postfix uses databases of various kinds to store and look up information.
-Postfix databases are specified as "type:name". OpenLDAP LMDB implements the
-Postfix database type "lmdb". The name of a Postfix OpenLDAP LMDB database is
-the name of the database file without the ".lmdb" suffix.
+Postfix databases are specified as "type:name". OpenLDAP LMDB (called "LMDB"
+from here on) implements the Postfix database type "lmdb". The name of a
+Postfix LMDB database is the name of the database file without the ".lmdb"
+suffix.
 
 This document describes:
 
- 1. How to build Postfix with OpenLDAP LMDB support.
+  * Building Postfix with LMDB support.
 
- 2. How to configure LMDB settings.
+  * Configuring LMDB settings.
 
- 3. Missing pthread library trouble.
+  * Supported minimum LMDB patchlevel.
 
- 4. Unexpected failure modes that don't exist with other Postfix databases.
+BBuuiillddiinngg PPoossttffiixx wwiitthh LLMMDDBB ssuuppppoorrtt
 
-BBuuiillddiinngg PPoossttffiixx wwiitthh OOppeennLLDDAAPP LLMMDDBB ssuuppppoorrtt
-
-Postfix normally does not enable OpenLDAP LMDB support. To build Postfix with
-OpenLDAP LMDB support, use something like:
+Postfix normally does not enable LMDB support. To build Postfix with LMDB
+support, use something like:
 
     % make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
         AUXLIBS="-L/usr/local/lib -llmdb"
@@ -41,19 +33,7 @@ Solaris may need this:
         AUXLIBS="-R/usr/local/lib -L/usr/local/lib -llmdb"
     % make
 
-The exact pathnames depend on how OpenLDAP LMDB was installed.
-
-CCoonnffiigguurree LLMMDDBB sseettttiinnggss
-
-Postfix provides one configuration parameter that controls OpenLDAP LMDB
-database behavior.
-
-  * lmdb_map_size (default: 16777216). This setting specifies the initial
-    OpenLDAP LMDB database size limit in bytes. Each time a database becomes
-    full, its size limit is doubled. The maximum size is the largest signed
-    integer value of "long".
-
-MMiissssiinngg pptthhrreeaadd lliibbrraarryy ttrroouubbllee
+The exact pathnames depend on how LMDB was installed.
 
 When building Postfix fails with:
 
@@ -65,46 +45,40 @@ Add the "-lpthread" library to the "make makefiles" command.
 
     % make makefiles .... AUXLIBS="... -lpthread"
 
-Source code for OpenLDAP LMDB is available at http://www.openldap.org. More
-information is available at http://highlandsun.com/hyc/mdb/.
+CCoonnffiigguurriinngg LLMMDDBB sseettttiinnggss
 
-UUnneexxppeecctteedd ffaaiilluurree mmooddeess ooff PPoossttffiixx LLMMDDBB ddaattaabbaasseess..
+Postfix provides one configuration parameter that controls LMDB database
+behavior.
 
-As documented below, conversion to LMDB introduces a number of failure modes
-that don't exist with other Postfix databases. Some failure modes have been
-eliminated in the course of time. The writeup below reflects the status as of
-LMDB 0.9.9.
+  * lmdb_map_size (default: 16777216). This setting specifies the initial LMDB
+    database size limit in bytes. Each time a database becomes full, its size
+    limit is doubled. The maximum size is the largest signed integer value of
+    "long".
 
-NNoonn--oobbvviioouuss rreeccoovveerryy wwiitthh ppoossttmmaapp((11)),, ppoossttaalliiaass((11)),, oorr ttllssmmggrr((88)) ffrroomm aa
-ccoorrrruupptteedd ddaattaabbaassee..
+SSuuppppoorrtteedd mmiinniimmuumm LLMMDDBB ppaattcchhlleevveell
 
-Problem:
-    A corrupted LMDB database can't be rebuilt simply by re-running postmap(1)
-    or postalias(1), or by waiting until a tlsmgr(8) daemon restarts. This
-    problem does not exist with other Postfix databases.
+Currently, Postfix supports LMDB 0.9.11 or later. The supported minimum LMDB
+patchlevel has evolved over time, as the result of deployment experience with
+Postfix.
 
-Background:
-    The Postfix LMDB database client does not truncate the database file.
-    Instead it attempts to create a transaction for a "drop" request plus
-    subsequent "store" requests. That is obviously not possible with a
-    corrupted database file.
+  * LMDB 0.9.11 allows Postfix daemons to log an LMDB error message, instead of
+    falling out of the sky without any notification.
 
-Impact:
-    Postfix does not process mail until someone fixes the problem.
+  * LMDB 0.9.10 closes an information leak where LMDB was writing up to 4kbyte-
+    chunks of uninitialized heap memory to the database, persisting information
+    that was not meant to be persisted, or sharing information that was not
+    meant to be shared.
 
-Recovery:
-    First delete the ".lmdb" file by hand. Then rebuild the file with the
-    postmap(1) or postalias(1) command if the file was created with those
-    commands, or restart postfix daemons if the file is maintained by tlsmgr
-    (8).
+  * LMDB 0.9.8 allows Postfix to use external (fcntl()-based) locks, instead of
+    having to use world-writable LMDB lock files.
 
-Prevention:
-    Arrange your file systems such that they never run out of free space.
+  * LMDB 0.9.8 allows an application to recover from a "database full" error
+    without having to close the database, by adding support to update the
+    database size limit on-the-fly; and it adds support for an application to
+    adopt someone elses change to the database size limit, without having to
+    close the database.
 
-    Use ECC memory to detect and correct silent corruption of in-memory file
-    system data and metadata.
-
-    Use a file system such as ZFS to detect and correct silent corruption of
-    on-disk file system data and metadata. DO NOT use ZFS on systems without
-    ECC memory error correction.
+  * LMDB 0.9.7 allows the postmap and postalias commands to use a bulk-mode
+    transaction larger than the amount of physical memory. This is necessary
+    because LMDB supports databases larger than physical memory.
 

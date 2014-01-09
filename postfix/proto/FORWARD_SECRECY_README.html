@@ -38,7 +38,7 @@ will focus on TLS Forward Secrecy in the Postfix SMTP client and
 server.  See <a href="TLS_README.html">TLS_README</a> for a general
 description of Postfix TLS support. </p>
 
-<h2> What is Forward Secrecy </h2>
+<h2><a name="dfn_fs">What is Forward Secrecy</a></h2>
 
 <p> The term "Forward Secrecy" (or sometimes "Perfect Forward Secrecy")
 is used to describe security protocols in which the confidentiality
@@ -126,7 +126,7 @@ Presently, there are two flavors of "groups" that work with PFS: </p>
 <li> <p> <b> Prime-field groups (EDH):</b>  The server needs to be
 configured with a suitably-large prime and a corresponding "generator".
 The acronym for forward secrecy over prime fields is EDH for Ephemeral
-Diffie-Hellman (also abbreviated as DHE for Diffie-Hellman Exchange).
+Diffie-Hellman (also abbreviated as DHE).
 </p>
 
 <li> <p> <b> Elliptic-curve groups (EECDH): </b>  The server needs
@@ -134,8 +134,7 @@ to be configured with a "named curve".  These offer better security
 at lower computational cost than prime field groups, but are not
 as widely implemented.  The acronym for the elliptic curve version
 is EECDH which is short for Ephemeral Elliptic Curve Diffie-Hellman
-(also abbreviated as ECDHE for Elliptic Curve Diffie-Hellman
-Exchange).  </p>
+(also abbreviated as ECDHE). </p>
 
 </ul>
 
@@ -276,7 +275,8 @@ href="TLS_README.html#client_tls_policy">TLS policy</a> table. </p>
 
 <p> With Postfix 2.6 and 2.7, enable elliptic-curve support in the
 Postfix SMTP client and server. This is the default with Postfix
-&ge; 2.8.
+&ge; 2.8. Note, however, that elliptic-curve support may be disabled
+by the vendor, as in some versions of RedHat Linux. </p>
 
 <blockquote>
 <pre>
@@ -288,7 +288,7 @@ Postfix SMTP client and server. This is the default with Postfix
 
 <h3> EDH Client support (Postfix &ge; 2.2) </h3>
 
-<p> This space intentionally left blank. </p>
+<p> This works "out of the box" without additional configuration. </p>
 
 <h3> EDH Server support (Postfix &ge; 2.2) </h3>
 

@@ -714,7 +714,7 @@ int     main(int argc, char **argv)
 	    fprintf(stderr,
 		    "usage: %s [-dv] \n"
 		    "\t[-a action]              non-default action\n"
-		    "\t[-b body_text]           replace body\n",
+		    "\t[-b body_text]           replace body\n"
 		    "\t[-c command]             non-default action trigger\n"
 		    "\t[-h 'index label value'] replace header\n"
 		    "\t[-i 'index label value'] insert header\n"
