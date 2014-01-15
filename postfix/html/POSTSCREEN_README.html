@@ -449,36 +449,50 @@ this test the next time the client connects. </dd>
 number of "deep protocol" tests. These tests use an SMTP protocol
 engine that is built into the <a href="postscreen.8.html">postscreen(8)</a> server. </p>
 
-<p> Important note: deep protocol tests are disabled by default.
+<p> Important note: these protocol tests are disabled by default.
 They are more intrusive than the pregreet and DNSBL tests, and they
 have limitations as discussed next. </p>
 
 <ul>
 
-<li> <p> When a good client passes the <a href="#after_220">deep
-protocol tests</a>, postscreen(8) adds the client to the temporary
-whitelist but it cannot hand off the "live" connection to a Postfix
-SMTP server process in the middle of the session. Instead, <a href="postscreen.8.html">postscreen(8)</a>
-defers mail delivery attempts with a 4XX status, logs the
-helo/sender/recipient information, and waits for the client to
-disconnect. </p>
+<li> <p> The main limitation of "after 220 greeting" tests is that
+a new client must disconnect after passing these tests (reason:
+postscreen is not a proxy).  Then the client must reconnect from
+the same IP address before it can deliver mail.  The following
+measures may help to avoid email delays: </p>
 
-<p> The next time the client connects it will be allowed to talk
-to a Postfix SMTP server process to deliver its mail.  To minimize the
-impact of this limitation, <a href="postscreen.8.html">postscreen(8)</a> gives deep protocol tests
-a relatively long expiration time. </p>
+<ul>
 
-<li> <p> <a href="postscreen.8.html">postscreen(8)</a>'s built-in SMTP engine does not implement
-the AUTH, XCLIENT, and XFORWARD features.  AUTH support may be added
-in a future version. In the mean time, if you need to make these
-services available on port 25, then do not enable the tests after
-the 220 server greeting. </p>
+<li> <p> Allow "good" clients to skip tests with the
+<a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a> feature (Postfix 2.11 and
+later). This is especially effective for sites such as Google that
+never retry immediately from the same IP address. </p>
+
+<li> <p> Small sites: Configure <a href="postscreen.8.html">postscreen(8)</a> to listen on multiple
+IP addresses, published in DNS as different IP addresses for the
+same MX hostname or for different MX hostnames. This avoids mail
+delivery delays with clients that reconnect immediately from the
+same IP address.  </p>
+
+<li> <p> Large sites: Share the <a href="postscreen.8.html">postscreen(8)</a> cache between different
+Postfix MTAs with a large-enough <a href="memcache_table.5.html">memcache_table(5)</a>. Again, this
+avoids mail delivery delays with clients that reconnect immediately
+from the same IP address. </p>
 
 </ul>
 
-<p> End-user clients should connect directly to the submission
+<li> <p> <a href="postscreen.8.html">postscreen(8)</a>'s built-in SMTP engine does not implement the
+AUTH, XCLIENT, and XFORWARD features. If you need to make these
+services available on port 25, then do not enable the tests after
+the 220 server greeting. </p>
+
+<li> <p> End-user clients should connect directly to the submission
 service, so that they never have to deal with <a href="postscreen.8.html">postscreen(8)</a>'s tests.
 </p>
+
+</ul>
+
+<p> The following "after 220 greeting" tests are available: </p>
 
 <ul>
 

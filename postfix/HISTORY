@@ -19524,3 +19524,7 @@ Apologies for any names omitted.
 	Cleanup: Unify/simplify reporting of configuration or other
 	conditions that prevent DANE security.  Viktor Dukhovni.
 	Files: global/dsn_buf.[hc], tls/tls_dane.c, smtp/smtp_tls_policy.c.
+
+20140110-15
+
+	Miscellaneous documentation cleanups.

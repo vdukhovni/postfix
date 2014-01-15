@@ -7,17 +7,35 @@ WWaarrnniinngg
 Forward secrecy does not protect against active attacks such as forged DNS
 replies or forged TLS server certificates. If such attacks are a concern, then
 the SMTP client will need to authenticate the remote SMTP server in a
-sufficiently-secure manner. For example, by the fingerprint of the public key
-or certificate. Conventional PKI relies on many trusted parties and is easily
-subverted by a state-funded adversary.
+sufficiently-secure manner. For example, by the fingerprint of a (CA or leaf)
+public key or certificate. Conventional PKI relies on many trusted parties and
+is easily subverted by a state-funded adversary.
 
-BBaacckkggrroouunndd
+OOvveerrvviieeww
 
 Postfix supports forward secrecy of TLS network communication since version
 2.2. This support was adopted from Lutz Jänicke's "Postfix TLS patch" for
 earlier Postfix versions. This document will focus on TLS Forward Secrecy in
 the Postfix SMTP client and server. See TLS_README for a general description of
 Postfix TLS support.
+
+Topics covered in this document:
+
+  * Give me some background on forward secrecy in Postfix
+
+      o What is Forward Secrecy
+      o Forward Secrecy in TLS
+      o Forward Secrecy in the Postfix SMTP Server
+      o Forward Secrecy in the Postfix SMTP Client
+
+  * Never mind, just show me what it takes to get forward secrecy
+
+      o Getting started, quick and dirty
+      o How can I see that a connection has forward secrecy?
+      o What ciphers provide forward secrecy?
+      o What do "Anonymous", "Untrusted", etc. in Postfix logging mean?
+
+  * Credits
 
 WWhhaatt iiss FFoorrwwaarrdd SSeeccrreeccyy
 
@@ -42,21 +60,6 @@ feasible for sessions of sufficiently high value. Thus forward secrecy places
 cost constraints on the efficacy of bulk surveillance, recovering all past
 traffic is generally infeasible, and even recovery of individual sessions may
 be infeasible given a sufficiently-strong key agreement method.
-
-Topics covered in this document:
-
-  * Forward Secrecy in TLS
-  * Forward Secrecy in the Postfix SMTP Server
-  * Forward Secrecy in the Postfix SMTP Client
-  * Getting started, quick and dirty
-  * How can I see that a connection has forward secrecy?
-  * What ciphers provide forward secrecy?
-  * What do "Anonymous", "Untrusted", etc. in Postfix logging mean?
-  * Credits
-
-And last but not least, for the impatient:
-
-  * Configuring forward secrecy, quick and dirty
 
 FFoorrwwaarrdd SSeeccrreeccyy iinn TTLLSS
 
@@ -208,11 +211,11 @@ RedHat Linux.
         # Postfix 2.6 or 2.7 only. This is default with Postfix 2.8 and later.
         smtpd_tls_eecdh_grade = strong
 
-EEDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22))
+EEDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22,, aallll ssuuppppoorrtteedd OOppeennSSSSLL vveerrssiioonnss))
 
 This works "out of the box" without additional configuration.
 
-EEDDHH SSeerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..22))
+EEDDHH SSeerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..22,, aallll ssuuppppoorrtteedd OOppeennSSSSLL vveerrssiioonnss))
 
 Optionally generate non-default Postfix SMTP server EDH parameters for improved
 security against pre-computation attacks and for compatibility with Debian-
@@ -334,9 +337,9 @@ WWhhaatt ddoo ""AAnnoonnyymmoouuss"",, ""UUnnttrruusst
 The verification levels below are subject to man-in-the-middle attacks to
 different degrees. If such attacks are a concern, then the SMTP client will
 need to authenticate the remote SMTP server in a sufficiently-secure manner.
-For example, by the fingerprint of the public key or certificate. Remember that
-conventional PKI relies on many trusted parties and is easily subverted by a
-state-funded adversary.
+For example, by the fingerprint of a (CA or leaf) public key or certificate.
+Remember that conventional PKI relies on many trusted parties and is easily
+subverted by a state-funded adversary.
 
 AAnnoonnyymmoouuss (no peer certificate)
     PPoossttffiixx SSMMTTPP cclliieenntt:: With opportunistic TLS (the "may" security level) the
@@ -379,20 +382,28 @@ TTrruusstteedd (peer certificate signed by trusted CA, unverified peer na
 
     PPoossttffiixx SSMMTTPP sseerrvveerr:: The remote SMTP client certificate was signed by a CA
     that the Postfix SMTP server trusts. The Postfix SMTP server never verifies
-    the remote SMTP client name against the names in the certificate. Since the
-    client chooses to connect to the server, the Postfix SMTP server has no
-    expectation of a particular client hostname.
+    the remote SMTP client name against the names in the client certificate.
+    Since the client chooses to connect to the server, the Postfix SMTP server
+    has no expectation of a particular client hostname.
 
-VVeerriiffiieedd (peer certificate signed by trusted CA, verified peer name)
+VVeerriiffiieedd (peer certificate signed by trusted CA and verified peer name; or:
+peer certificate with expected public-key or certificate fingerprint)
     PPoossttffiixx SSMMTTPP cclliieenntt:: The remote SMTP server's certificate was signed by a
-    CA that the Postfix SMTP client trusts, and it matches one of the expected
-    server names. This implies that the Postfix SMTP client enforced
-    verification for the destination server name, otherwise the verification
-    status would have been just "Trusted".
+    CA that the Postfix SMTP client trusts, and the certificate name matches
+    the destination or server name(s). The Postfix SMTP client was configured
+    to require a verified name, otherwise the verification status would have
+    been just "Trusted".
 
-    PPoossttffiixx SSMMTTPP sseerrvveerr:: The status is never "Verified", as the Postfix SMTP
-    server never verifies the remote SMTP client name against the names in the
-    certificate.
+    PPoossttffiixx SSMMTTPP cclliieenntt:: The "Verified" status may also mean that the Postfix
+    SMTP client successfully matched the expected fingerprint against the
+    remote SMTP server public key or certificate. The expected fingerprint may
+    come from smtp_tls_policy_maps or from TLSA (secure) DNS records. The
+    Postfix SMTP client ignores the CA signature.
+
+    PPoossttffiixx SSMMTTPP sseerrvveerr:: The status is never "Verified", because the Postfix
+    SMTP server never verifies the remote SMTP client name against the names in
+    the client certificate, and because the Postfix SMTP does not expect a
+    specific fingerprint in the client public key or certificate.
 
 CCrreeddiittss
 
