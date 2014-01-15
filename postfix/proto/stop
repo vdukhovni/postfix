@@ -1296,3 +1296,11 @@ ciphersuites
 nlnetlabs
 resolver's
 tempfails
+Chu
+LMDB's
+NDBM
+dict
+kbyte
+llmdb
+lockfiles
+slmdb

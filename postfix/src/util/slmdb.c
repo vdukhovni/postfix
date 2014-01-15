@@ -114,10 +114,19 @@
 /* .IP lmdb_flags
 /*	Flags that control the LMDB environment. If MDB_NOLOCK is
 /*	specified, then each slmdb_get() or slmdb_cursor_get() call
-/*	must be protected with a shared (or stronger) external lock,
+/*	must be protected with a shared (or exclusive) external lock,
 /*	and each slmdb_put() or slmdb_del() call must be protected
-/*	with an exclusive external lock. The locks may be released
-/*	after the call returns.
+/*	with an exclusive external lock. A lock may be released
+/*	after the call returns. A writer may atomically downgrade
+/*	an exclusive lock to shared, but it must obtain an exclusive
+/*	lock before making another slmdb(3) write request.
+/* .sp
+/*	Note: when a database is opened with MDB_NOLOCK, external
+/*	locks such as fcntl() do not protect slmdb(3) requests
+/*	within the same process against each other.  If a program
+/*	cannot avoid making simultaneous slmdb(3) requests, then
+/*	it must synchronize these requests with in-process locks,
+/*	in addition to the per-process fcntl(2) locks.
 /* .IP slmdb_flags
 /*	Bit-wise OR of zero or more of the following:
 /* .RS
@@ -125,11 +134,9 @@
 /*	Open the database and create a "bulk" transaction that is
 /*	committed when the database is closed. If MDB_NOLOCK is
 /*	specified, then the entire transaction must be protected
-/*	with a persistent exclusive external lock (the lock may be
-/*	atomically downgraded to a shared lock to permit concurrent
-/*	read-only access). All slmdb_get(), slmdb_put() and slmdb_del()
-/*	requests will be directed to the "bulk" transaction. The effect
-/*	of calling slmdb_cursor_get() is undefined.
+/*	with a persistent external lock.  All slmdb_get(), slmdb_put()
+/*	and slmdb_del() requests will be directed to the "bulk"
+/*	transaction.
 /* .RE
 /* .IP mdb_key
 /*	Pointer to caller-provided lookup key storage.
@@ -186,10 +193,6 @@
 /*	memory mapping.  According to LMDB documentation this
 /*	requires that there is no concurrent activity in the same
 /*	database by other threads in the same memory address space.
-/*
-/*	When a database is opened with MDB_NOLOCK, and the external
-/*	lock is based on fcntl() or the like, there is no protection
-/*	against concurrent activity in the same process.
 /* SEE ALSO
 /*	lmdb(3) API manpage (currently, non-existent).
 /* AUTHOR(S)
@@ -237,16 +240,19 @@
   * violation because it made information persistent that was not meant to be
   * persisted, or it was sharing information that was not meant to be shared.
   * 
-  * LMDB 0.9.8 allows the application to update the database size limit
-  * on-the-fly, so that it can recover from an MDB_MAP_FULL error without
-  * having to close the database. It also allows an application to "pick up"
-  * a new database size limit on-the-fly, so that it can recover from an
-  * MDB_MAP_RESIZED error without having to close the database. Finally, it
-  * avoids the need for world-writable lockfiles, by using MDB_NOLOCK.
+  * LMDB 0.9.9 allows Postfix to use external (fcntl()-based) locks, instead of
+  * having to use world-writable LMDB lock files.
   * 
-  * The database size limit that remains is imposed by the hardware address
-  * space. The implementation is supposed to handle databases larger than
-  * physical memory. However, this is not necessarily guaranteed for (bulk)
+  * LMDB 0.9.8 allows Postfix to update the database size limit on-the-fly, so
+  * that it can recover from an MDB_MAP_FULL error without having to close
+  * the database. It also allows an application to "pick up" a new database
+  * size limit on-the-fly, so that it can recover from an MDB_MAP_RESIZED
+  * error without having to close the database.
+  * 
+  * The database size limit that remains is imposed by the hardware memory
+  * address space (31 or 47 bits, typically) or file system. The LMDB
+  * implementation is supposed to handle databases larger than physical
+  * memory. However, this is not necessarily guaranteed for (bulk)
   * transactions larger than physical memory.
   */
 #if MDB_VERSION_FULL < MDB_VERINT(0, 9, 11)
@@ -291,9 +297,10 @@
     } while (0)
 
  /*
-  * With MDB_NOLOCK, the iterator must close the cursor's read transaction
-  * before returning the (key, value) to the caller. See ITS#7774 and
-  * followups.
+  * With MDB_NOLOCK, the application uses an external lock for inter-process
+  * synchronization. Because the caller may release the external lock after
+  * an SLMDB API call, each SLMDB API function must use a short-lived
+  * transaction unless the transaction is a bulk-mode transaction.
   */
 
 /* slmdb_cursor_close - close cursor and its read transaction */
@@ -402,8 +409,8 @@ static int slmdb_recover(SLMDB *slmdb, int status)
     MDB_envinfo info;
 
     /*
-     * This may be needed in non-MDB_NOLOCK mode. Recovery is rare enough that
-     * we don't care about a few wasted cycles.
+     * This may be needed in non-MDB_NOLOCK mode. Recovery is rare enough
+     * that we don't care about a few wasted cycles.
      */
     if (slmdb->cursor != 0)
 	slmdb_cursor_close(slmdb);
@@ -492,7 +499,9 @@ static int slmdb_recover(SLMDB *slmdb, int status)
     /*
      * If a bulk-transaction error is recoverable, build a new bulk
      * transaction from scratch, by making a long jump back into the caller
-     * at some pre-arranged point.
+     * at some pre-arranged point. In MDB_NOLOCK mode, there is no need to
+     * upgrade the lock to "exclusive", because the failed write transaction
+     * has no side effects.
      */
     if (slmdb->txn != 0 && status == 0 && slmdb->longjmp_fn != 0
 	&& (slmdb->bulk_retry_count += 1) <= slmdb->bulk_retry_limit) {
@@ -654,7 +663,7 @@ int     slmdb_cursor_get(SLMDB *slmdb, MDB_val *mdb_key,
 	 */
 	if (HAVE_SLMDB_SAVED_KEY(slmdb) && op != MDB_FIRST)
 	    status = mdb_cursor_get(slmdb->cursor, &slmdb->saved_key,
-					 (MDB_val *) 0, MDB_SET);
+				    (MDB_val *) 0, MDB_SET);
     }
 
     /*

@@ -382,7 +382,6 @@
 -Tssize_t
 -Tssl_cipher_stack_t
 -Tssl_comp_stack_t
--Tstat
 -Ttime_t
 -Ttlsa_filter
 -Tx509_extension_stack_t

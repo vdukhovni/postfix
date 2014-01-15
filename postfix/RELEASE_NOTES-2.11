@@ -27,51 +27,58 @@ with forward secrecy.
 verification, where the CA public key or the server certificate is
 identified via DNSSEC lookup.
 
-This feature introduces a new TLS security level called "dane"
-(DNS-based Authentication of Named Entities) that uses DNSSEC to
-look up CA information for a server TLS certificate.  The details
+This feature introduces new TLS security levels called "dane" and
+"dane-only" (DNS-based Authentication of Named Entities) that use
+DNSSEC to look up CA or server certificate information.  The details
 of DANE core protocols are still evolving, as are the details of
 how DANE should be used in the context of SMTP. Postfix implements
-what appears to be a "rational" subset of the DANE profiles.
+what appears to be a "rational" subset of the DANE profiles that
+is suitable for SMTP.
 
-The problem with PKI is that there are literally hundreds of
-organizations world-wide that can provide a certificate in anyone's
-name. There have been widely-published incidents in recent history
-where a certificate authority gave out an inappropriate certificate
-(e.g., a certificate in the name of Microsoft to someone who did
-not represent Microsoft), where a CA was compromised (e.g., DigiNotar,
-Comodo), or where a CA made operational mistakes (e.g., TURKTRUST).
-Another concern is that a legitimate CA might be coerced to provide
-a certificate that allows its government to play man-in-the-middle
-on TLS traffic and observe the plaintext.
+The problem with conventional PKI is that there are literally
+hundreds of organizations world-wide that can provide a certificate
+in anyone's name. There have been widely-published incidents in
+recent history where a certificate authority gave out an inappropriate
+certificate (e.g., a certificate in the name of Microsoft to someone
+who did not represent Microsoft), where a CA was compromised (e.g.,
+DigiNotar, Comodo), or where a CA made operational mistakes (e.g.,
+TURKTRUST).  Another concern is that a legitimate CA might be coerced
+to provide a certificate that allows its government to play
+man-in-the-middle on TLS traffic and observe the plaintext.
 
 Major changes - LMDB database support
 -------------------------------------
 
 LMDB is a memory-mapped database that was originally developed as
-part of OpenLDAP. The Postfix LMDB driver was originally written
-by Howard Chu, LMDB's creator. Support for LMDB has evolved throughout
-the Postfix 2.11 development cycle.
+part of OpenLDAP. The Postfix LMDB driver was originally contributed
+by Howard Chu, LMDB's creator.
 
-LMDB can be used for all Postfix lookup table and cache storage.
-It is the first persistent Postfix database that can be shared among
+LMDB can be used for all Postfix lookup tables and caches.  It is
+the first persistent Postfix database that can be shared among
 multiple writers such as postscreen daemons (Postfix already supported
-non-persistent memcached caches).  See lmdb_table(5) and LMDB_README
-for further information.
+shared non-persistent memcached caches).  See lmdb_table(5) and
+LMDB_README for further information, including how to access Postfix
+LMDB databases with non-Postfix programs.
 
-Postfix currently supports LMDB version 0.9.11 and later. The minimum
+Postfix currently requires LMDB version 0.9.11 or later. The minimum
 version may change over time in the light of deployment experience.
 
 Major changes - postscreen whitelisting
 ---------------------------------------
 
-[Feature 20130512] Allow an SMTP client to skip postscreen(8) tests
-based on its postscreen_dnsbl_sites score.
+[Feature 20130512] Allow a remote SMTP client to skip postscreen(8)
+tests based on its postscreen_dnsbl_sites score.
 
-Specify a negative "postscreen_dnsbl_whitelist_threshold" to enable
-this feature.  When a client passes the threshold value without
-having failed other tests, all pending or disabled tests are flagged
-as completed.
+Specify a negative "postscreen_dnsbl_whitelist_threshold" value to
+enable this feature.  When a client passes the threshold value
+without having failed other tests, all pending or disabled tests
+are flagged as completed.
+
+This feature can mitigate the email delays due to "after 220 greeting"
+protocol tests, which otherwise require that a client reconnects
+before it can deliver mail. Some providers such as Google don't
+retry from the same IP address. This can result in large email
+delivery delays.
 
 Major changes - recipient_delimiter
 -----------------------------------
@@ -119,9 +126,9 @@ configurations.
 Major changes - milter
 ----------------------
 
-[Feature 20131126] Support for ESMTP parameters NOTIFY and ORCPT
-in the SMFIR_ADDRCPT_PAR (add recipient) request. Credits: Andrew
-Ayer.
+[Feature 20131126] Support for ESMTP parameters "NOTIFY" and "ORCPT"
+in the SMFIR_ADDRCPT_PAR (add recipient with parameters) request.
+Credits: Andrew Ayer.
 
 Major changes - mysql
 ---------------------

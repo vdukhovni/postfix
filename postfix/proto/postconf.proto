@@ -14993,8 +14993,8 @@ easier queue migration (there is no need to run "postsuper" to
 change queue file names that don't match their message file inode
 number).  </p>
 
-<p> Note: see below for how to prepare long queue file names
-for migration to Postfix &le; 2.8. </p>
+<p> Note: see below for how to convert long queue file names to
+Postfix &le; 2.8. </p>
 
 <p> Changing the parameter value to "yes" has the following effects:
 </p>
