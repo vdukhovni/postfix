@@ -474,7 +474,7 @@ int     main(int argc, char **argv)
 	    cmd_mode |= FOLD_LINE;
 	    break;
 	case '#':
-	    cmd_mode = COMMENT_OUT;
+	    cmd_mode |= COMMENT_OUT;
 	    break;
 	case 'h':
 	    cmd_mode &= ~SHOW_NAME;

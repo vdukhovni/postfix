@@ -464,7 +464,7 @@ test -n "$create" && {
 	case $type in
 	[hl]) continue;;
 	[df]) ;;
-	   *) echo unknown type $type for $path in $daemon_directory/postfix-files1>&2; exit 1;;
+	   *) echo unknown type $type for $path in $daemon_directory/postfix-files 1>&2; exit 1;;
 	esac
 	# Expand $name, and canonicalize null fields.
 	for name in path owner group flags
