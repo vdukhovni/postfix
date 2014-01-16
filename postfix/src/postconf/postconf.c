@@ -1157,7 +1157,7 @@ int     main(int argc, char **argv)
 	    break;
 #endif
 	case '#':
-	    cmd_mode = COMMENT_OUT;
+	    cmd_mode |= COMMENT_OUT;
 	    break;
 
 	case 'h':
