@@ -181,12 +181,13 @@ main.cf.
 FFoorrwwaarrdd SSeeccrreeccyy iinn tthhee PPoossttffiixx SSMMTTPP CClliieenntt
 
 The Postfix >= 2.2 SMTP client supports forward secrecy in its default
-configuration. No configuration changes are needed besides turning on elliptic-
-curve support with Postfix 2.6 and 2.7 (see the quick-start section). If the
-remote SMTP server supports cipher suites with forward secrecy (and does not
-override the SMTP client's cipher preference), then the traffic between the
-server and client will resist decryption even if the server's long-term
-authentication keys are later compromised.
+configuration. All supported OpenSSL releases support EDH key exchange. OpenSSL
+releases >= 1.0.0 also support EECDH key exchange (provided elliptic-curve
+support has not been disabled by the vendor as in some versions of RedHat
+Linux). If the remote SMTP server supports cipher suites with forward secrecy
+(and does not override the SMTP client's cipher preference), then the traffic
+between the server and client will resist decryption even if the server's long-
+term authentication keys are later compromised.
 
 The default Postfix SMTP client cipher lists are correctly ordered to prefer
 EECDH and EDH cipher suites ahead of similar cipher suites that don't implement
@@ -200,12 +201,16 @@ a case-by-case basis via the TLS policy table.
 
 GGeettttiinngg ssttaarrtteedd,, qquuiicckk aanndd ddiirrttyy
 
-EEEECCDDHH CClliieenntt aanndd sseerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..66 wwiitthh OOppeennSSSSLL >>== 11..00..00))
+EEEECCDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22 wwiitthh OOppeennSSSSLL >>== 11..00..00))
+
+This works "out of the box" without additional configuration.
+
+EEEECCDDHH SSeerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..66 wwiitthh OOppeennSSSSLL >>== 11..00..00))
 
 With Postfix 2.6 and 2.7, enable elliptic-curve support in the Postfix SMTP
-client and server. This is the default with Postfix >= 2.8. Note, however, that
-elliptic-curve support may be disabled by the vendor, as in some versions of
-RedHat Linux.
+server. This is the default with Postfix >= 2.8. Note, however, that elliptic-
+curve support may be disabled by the vendor, as in some versions of RedHat
+Linux.
 
     /etc/postfix/main.cf:
         # Postfix 2.6 or 2.7 only. This is default with Postfix 2.8 and later.

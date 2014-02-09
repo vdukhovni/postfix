@@ -1015,6 +1015,19 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 			&& next == 0)
 			state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 		    smtp_xfer(state);
+#ifdef USE_TLS
+
+		    /*
+		     * When opportunistic TLS fails after the STARTTLS
+		     * handshake, try the same address again, with TLS
+		     * disabled. See also the RETRY_AS_PLAINTEXT macro.
+		     */
+		    if ((retry_plain = session->tls_retry_plain) != 0) {
+			--sess_count;
+			--addr_count;
+			next = addr;
+		    }
+#endif
 		}
 		smtp_cleanup_session(state);
 	    } else {

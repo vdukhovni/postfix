@@ -728,6 +728,7 @@ smtp_trouble.o: ../../include/vbuf.h
 smtp_trouble.o: ../../include/vstream.h
 smtp_trouble.o: ../../include/vstring.h
 smtp_trouble.o: smtp.h
+smtp_trouble.o: smtp_sasl.h
 smtp_trouble.o: smtp_trouble.c
 smtp_unalias.o: ../../include/argv.h
 smtp_unalias.o: ../../include/attr.h

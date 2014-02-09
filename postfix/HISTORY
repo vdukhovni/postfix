@@ -19528,3 +19528,23 @@ Apologies for any names omitted.
 20140110-15
 
 	Miscellaneous documentation cleanups.
+
+20140116
+
+	Workaround: prepend "-I. -I../../include" to CCARGS, to
+	avoid name clashes with non-Postfix header files. File:
+	makedefs.
+
+20140125
+
+	Cleanup: assorted documentation glitches.
+
+20140209
+
+	Workaround: the Postfix SMTP client now also falls back to
+	plaintext when TLS fails after the TLS protocol handshake.
+	Files: smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_trouble.c.
+
+	Testbed: unsupported HANGUP access map action that drops
+	the connection without responding to the remote SMTP client.
+	File: smtpd/smtpd_check.c.

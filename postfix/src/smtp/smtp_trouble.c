@@ -156,6 +156,7 @@
 /* Application-specific. */
 
 #include "smtp.h"
+#include "smtp_sasl.h"
 
 #define SMTP_THROTTLE	1
 #define SMTP_NOTHROTTLE	0
@@ -433,10 +434,18 @@ int     smtp_stream_except(SMTP_STATE *state, int code, const char *description)
     case SMTP_ERR_EOF:
 	dsb_simple(why, "4.4.2", "lost connection with %s while %s",
 		   session->namaddr, description);
+#ifdef USE_TLS
+	if (PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE)
+	    RETRY_AS_PLAINTEXT;
+#endif
 	break;
     case SMTP_ERR_TIME:
 	dsb_simple(why, "4.4.2", "conversation with %s timed out while %s",
 		   session->namaddr, description);
+#ifdef USE_TLS
+	if (PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE)
+	    RETRY_AS_PLAINTEXT;
+#endif
 	break;
     case SMTP_ERR_DATA:
 	session->error_mask |= MAIL_ERROR_DATA;

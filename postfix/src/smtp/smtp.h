@@ -453,6 +453,29 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
   * Encapsulate the following so that we don't expose details of of
   * connection management and error handling to the SMTP protocol engine.
   */
+#ifdef USE_SASL_AUTH
+#define HAVE_SASL_CREDENTIALS \
+	(var_smtp_sasl_enable \
+	     && *var_smtp_sasl_passwd \
+	     && smtp_sasl_passwd_lookup(session))
+#else
+#define HAVE_SASL_CREDENTIALS	(0)
+#endif
+
+#define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
+	(session->tls_context == 0 \
+	    && session->tls->level == TLS_LEV_MAY \
+	    && !HAVE_SASL_CREDENTIALS)
+
+#define PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE \
+	(session->tls_context != 0 \
+	    && session->tls->level == TLS_LEV_MAY \
+	    && !HAVE_SASL_CREDENTIALS)
+
+ /*
+  * XXX The following will not retry recipients that were deferred while the
+  * SMTP_MISC_FLAG_FINAL_SERVER flag was already set.
+  */
 #define RETRY_AS_PLAINTEXT do { \
 	session->tls_retry_plain = 1; \
 	state->misc_flags &= ~SMTP_MISC_FLAG_FINAL_SERVER; \

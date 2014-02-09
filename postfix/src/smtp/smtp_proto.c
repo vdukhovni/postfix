@@ -838,13 +838,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	 * plaintext connections, then we don't want delivery to fail with
 	 * "relay access denied".
 	 */
-	if (session->tls->level == TLS_LEV_MAY
-#ifdef USE_SASL_AUTH
-	    && !(var_smtp_sasl_enable
-		 && *var_smtp_sasl_passwd
-		 && smtp_sasl_passwd_lookup(session))
-#endif
-	    )
+	if (PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE)
 	    RETRY_AS_PLAINTEXT;
 	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),

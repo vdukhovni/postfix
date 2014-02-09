@@ -137,6 +137,8 @@
 /* .IP
 /*	The default is as if "\fB-C all\fR" is
 /*	specified.
+/*
+/*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-d\fR
 /*	Print \fBmain.cf\fR default parameter settings instead of
 /*	actual settings.
@@ -341,6 +343,8 @@
 /*	This feature is available with Postfix 2.10 and later.
 /* .IP \fB-p\fR
 /*	Show \fBmain.cf\fR parameter settings. This is the default.
+/*
+/*	This feature is available with Postfix 2.11 and later.
 /* .IP \fB-P\fR
 /*	Show \fBmaster.cf\fR service parameter settings (by default
 /*	all services and all parameters).  formatted as one
@@ -464,8 +468,10 @@
 /*	The Secure Mailer license must be distributed with this
 /*	software.
 /* AUTHOR(S)
-/*	Wietse Venema IBM T.J. Watson Research P.O. Box 704 Yorktown
-/*	Heights, NY 10598, USA
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
 /*--*/
 
 /* System library. */

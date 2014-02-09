@@ -236,6 +236,7 @@
 #include <dsn_util.h>
 #include <conv_time.h>
 #include <xtext.h>
+#include <smtp_stream.h>
 
 /* Application-specific. */
 
@@ -1068,7 +1069,7 @@ static int permit_inet_interfaces(SMTPD_STATE *state)
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
-    if (own_inet_addr((struct sockaddr *) & (state->sockaddr)))
+    if (own_inet_addr((struct sockaddr *) &(state->sockaddr)))
 	/* Permit logging in generic_checks() only. */
 	return (SMTPD_CHECK_OK);
     return (SMTPD_CHECK_DUNNO);
@@ -2109,6 +2110,22 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 				   "<%s>: %s rejected: %s",
 				   reply_name, reply_class,
 				   *dp.text ? dp.text : "Access denied"));
+    }
+#ifndef SHUT_RDWR
+#define SHUT_RDWR   2
+#endif
+
+    /*
+     * HANGUP. Text is optional. Drop the connection without sending any
+     * reply.
+     * 
+     * Note: this is an unsupported test feature. No attempt is made to maintain
+     * compatibility between successive versions.
+     */
+    if (STREQUAL(value, "HANGUP", cmd_len)) {
+	shutdown(vstream_fileno(state->client), SHUT_RDWR);
+	log_whatsup(state, "hangup", cmd_text);
+	vstream_longjmp(state->client, SMTP_ERR_QUIET);
     }
 
     /*
