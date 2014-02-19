@@ -19548,3 +19548,25 @@ Apologies for any names omitted.
 	Testbed: unsupported HANGUP access map action that drops
 	the connection without responding to the remote SMTP client.
 	File: smtpd/smtpd_check.c.
+
+20140214
+
+	Workaround: apparently some buggy kernels report WIFSTOPPED
+	events to the parent process (master daemon) instead of the
+	tracing process (e.g., gdb). File: master/master_spawn.c.
+
+20140218
+
+	Workaround: require that a queue file is older than
+	$minimal_backoff_time, before falling back from failed TLS
+	(both during or after the TLS handshake) to plaintext
+	delivery.  Viktor Dukhovni. Files: smtp/smtp.h, smtp/smtp.c,
+	smtp/lmtp_params.c, smtp/smtp_params.c.
+
+20140219
+
+	Workaround: disable the fallback to plaintext when all
+	recipients have already been bounced or deferred. This
+	happens for example when TLS breaks after the TLS handshake
+	while talking to the "final" SMTP server.  Wietse and Viktor.
+	Files: smtp/smtp.h.

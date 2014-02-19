@@ -5896,7 +5896,8 @@ non-permanent error code.  This feature is available in Postfix
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the recipient domain, and the RCPT TO domain has 1) no DNS A or MX
+the recipient domain, and the RCPT TO domain has 1) no DNS MX and
+no DNS address
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the numerical
@@ -6354,7 +6355,8 @@ Postfix version 2.1 and later. </dd>
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the sender address, and the MAIL FROM domain has 1) no DNS A or MX
+the sender address, and the MAIL FROM domain has 1) no DNS MX and
+no DNS address
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the numerical

@@ -462,19 +462,27 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 #define HAVE_SASL_CREDENTIALS	(0)
 #endif
 
+#define PREACTIVE_DELAY \
+	(session->state->request->msg_stats.active_arrival.tv_sec - \
+	 session->state->request->msg_stats.incoming_arrival.tv_sec)
+
 #define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
 	(session->tls_context == 0 \
 	    && session->tls->level == TLS_LEV_MAY \
+	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE \
 	(session->tls_context != 0 \
+	    && SMTP_RCPT_LEFT(state) > 0 \
 	    && session->tls->level == TLS_LEV_MAY \
+	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
 
  /*
   * XXX The following will not retry recipients that were deferred while the
-  * SMTP_MISC_FLAG_FINAL_SERVER flag was already set.
+  * SMTP_MISC_FLAG_FINAL_SERVER flag was already set. This includes the case
+  * when TLS fails in the middle of a delivery.
   */
 #define RETRY_AS_PLAINTEXT do { \
 	session->tls_retry_plain = 1; \

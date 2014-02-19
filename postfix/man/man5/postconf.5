@@ -9320,7 +9320,8 @@ non-permanent error code.  This feature is available in Postfix
 .br
 .IP "\fBreject_unknown_recipient_domain\fR"
 Reject the request when Postfix is not final destination for
-the recipient domain, and the RCPT TO domain has 1) no DNS A or MX
+the recipient domain, and the RCPT TO domain has 1) no DNS MX and
+no DNS address
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later).
 .br
@@ -9893,7 +9894,8 @@ Postfix version 2.1 and later.
 .br
 .IP "\fBreject_unknown_sender_domain\fR"
 Reject the request when Postfix is not final destination for
-the sender address, and the MAIL FROM domain has 1) no DNS A or MX
+the sender address, and the MAIL FROM domain has 1) no DNS MX and
+no DNS address
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later).
 .br

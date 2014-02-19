@@ -310,7 +310,21 @@ void    master_reap_child(void)
 	(MASTER_MARKED_FOR_DELETION(serv) \
 	    && WTERMSIG(status) == MASTER_KILL_SIGNAL)
 
+	/*
+	 * XXX The code for WIFSTOPPED() is here in case some buggy kernel
+	 * reports WIFSTOPPED() events to a Postfix daemon's parent process
+	 * (the master(8) daemon) instead of the tracing process (e.g., gdb).
+	 * 
+	 * The WIFSTOPPED() test prevents master(8) from deleting its record of
+	 * a child process that is stopped. That would cause a master(8)
+	 * panic (unknown child) when the child terminates.
+	 */
 	if (!NORMAL_EXIT_STATUS(status)) {
+	    if (WIFSTOPPED(status)) {
+		msg_warn("process %s pid %d stopped by signal %d",
+			 serv->path, pid, WSTOPSIG(status));
+		continue;
+	    }
 	    if (WIFEXITED(status))
 		msg_warn("process %s pid %d exit status %d",
 			 serv->path, pid, WEXITSTATUS(status));

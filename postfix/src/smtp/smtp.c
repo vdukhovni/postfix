@@ -797,6 +797,7 @@ char   *var_smtp_bind_addr;
 char   *var_smtp_bind_addr6;
 bool    var_smtp_rand_addr;
 int     var_smtp_pix_thresh;
+int     var_min_backoff_time;
 int     var_smtp_pix_delay;
 int     var_smtp_line_limit;
 char   *var_smtp_helo_name;

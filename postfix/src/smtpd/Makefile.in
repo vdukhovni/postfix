@@ -306,6 +306,7 @@ smtpd_check.o: ../../include/recipient_list.h
 smtpd_check.o: ../../include/record.h
 smtpd_check.o: ../../include/resolve_clnt.h
 smtpd_check.o: ../../include/resolve_local.h
+smtpd_check.o: ../../include/smtp_stream.h
 smtpd_check.o: ../../include/sock_addr.h
 smtpd_check.o: ../../include/split_at.h
 smtpd_check.o: ../../include/string_list.h
