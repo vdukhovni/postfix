@@ -195,8 +195,9 @@
 /* .PP
 /*	Available in Postfix version 2.2.9 and later:
 /* .IP "\fBsmtp_cname_overrides_servername (version dependent)\fR"
-/*	Allow DNS CNAME records to override the servername that the
-/*	Postfix SMTP client uses for logging, SASL password lookup, TLS
+/*	When the remote SMTP servername is a DNS CNAME, replace the
+/*	servername with the result from CNAME expansion for the purpose of
+/*	logging, SASL password lookup, TLS
 /*	policy decisions, or TLS certificate verification.
 /* .PP
 /*	Available in Postfix version 2.3 and later:
@@ -797,6 +798,7 @@ char   *var_smtp_bind_addr;
 char   *var_smtp_bind_addr6;
 bool    var_smtp_rand_addr;
 int     var_smtp_pix_thresh;
+int     var_queue_run_delay;
 int     var_min_backoff_time;
 int     var_smtp_pix_delay;
 int     var_smtp_line_limit;

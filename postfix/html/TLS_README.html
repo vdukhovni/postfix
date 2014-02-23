@@ -2635,10 +2635,44 @@ font, and a "<tt>#</tt>" prompt indicates a super-user shell. </p>
 
 <ul>
 
+<li> <p> <a name="#self-signed">Self-signed server certificate</a>.</p>
+
+<li> <p> <a name="#private-ca">Private Certificate Authority</a>. </p>
+
+</ul>
+
+<h3><a name="self-signed">Self-signed server certificate</a></h3>
+
+<p> The following commands (credits: Viktor Dukhovni) generate
+and install a private key and 10-year self-signed certificate for
+the local Postfix system. This requires super-user privileges. </p>
+
+<blockquote>
+<pre>
+# dir="$(postconf -h <a href="postconf.5.html#config_directory">config_directory</a>)"
+# fqdn=$(postconf -h <a href="postconf.5.html#myhostname">myhostname</a>)
+# ymd=$(date +%Y-%m-%d)
+# key="${dir}/key-${ymd}.pem"; rm -f "${key}"
+# cert="${dir}/cert-${ymd}.pem"; rm -f "${cert}"
+# (umask 077; openssl genrsa -out "${key}" 2048) &&
+  openssl req -new -key "${key}" \
+    -x509 -subj "/CN=${fqdn}" -days 3650 -out "${cert}" &&
+  postconf -e \
+    "<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = ${cert}" \
+    "<a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = ${key}"
+</pre>
+</blockquote>
+
+<h3><a name="private-ca">Private Certificate Authority</a></h3>
+
+<ul>
+
 <li> <p> Become your own Certificate Authority, so that you can
-sign your own public keys. This example uses the CA.pl script that
-ships with OpenSSL.  On some systems, OpenSSL installs this as
-<tt>/usr/local/ssl/misc/CA.pl</tt>. Some systems install this as
+sign your own certificates, and so that your own systems can
+authenticate certificates from your own CA. This example uses the
+CA.pl script that ships with OpenSSL.  On some systems, OpenSSL
+installs this as <tt>/usr/local/openssl/misc/CA.pl</tt>. Some systems
+install this as
 part of a package named <tt>openssl-perl</tt> or something similar.
 The script creates a private key in <tt>./demoCA/private/cakey.pem</tt>
 and a public key in <tt>./demoCA/cacert.pem</tt>.</p>
@@ -2663,7 +2697,7 @@ an unsigned public key certificate. </p>
 
 <blockquote>
 <pre>
-% <b>openssl req -new -nodes -keyout foo-key.pem -out foo-req.pem -days 365</b>
+% <b>openssl req -new -nodes -keyout foo-key.pem -out foo-req.pem</b>
 Using configuration from /etc/ssl/openssl.cnf
 Generating a 1024 bit RSA private key
 ........................................++++++
@@ -2698,7 +2732,7 @@ steps ago. </p>
 
 <blockquote>
 <pre>
-% <b>openssl ca -out foo-cert.pem -infiles foo-req.pem</b>
+% <b>openssl ca -out foo-cert.pem -days 365 -infiles foo-req.pem</b>
 Using configuration from /etc/ssl/openssl.cnf
 Enter PEM pass phrase:<b>whatever</b>
 Check that the request matches the signature
@@ -2723,6 +2757,10 @@ Data Base Updated
 <li> <p> Install the host private key, the host public key certificate,
 and the Certification Authority certificate files.  This requires
 super-user privileges. </p>
+
+<p> The following commands assume that the key and certificate will
+be installed for the local Postfix MTA. You will need to adjust the
+commands if the Postfix MTA is on a different host. </p>
 
 <blockquote>
 <pre>

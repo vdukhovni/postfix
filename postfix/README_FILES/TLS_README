@@ -2011,12 +2011,37 @@ key certificates of remote hosts.
 In the examples below, user input is shown in bboolldd font, and a "#" prompt
 indicates a super-user shell.
 
-  * Become your own Certificate Authority, so that you can sign your own public
-    keys. This example uses the CA.pl script that ships with OpenSSL. On some
-    systems, OpenSSL installs this as /usr/local/ssl/misc/CA.pl. Some systems
-    install this as part of a package named openssl-perl or something similar.
-    The script creates a private key in ./demoCA/private/cakey.pem and a public
-    key in ./demoCA/cacert.pem.
+  * Self-signed server certificate.
+
+  * Private Certificate Authority.
+
+SSeellff--ssiiggnneedd sseerrvveerr cceerrttiiffiiccaattee
+
+The following commands (credits: Viktor Dukhovni) generate and install a
+private key and 10-year self-signed certificate for the local Postfix system.
+This requires super-user privileges.
+
+    # dir="$(postconf -h config_directory)"
+    # fqdn=$(postconf -h myhostname)
+    # ymd=$(date +%Y-%m-%d)
+    # key="${dir}/key-${ymd}.pem"; rm -f "${key}"
+    # cert="${dir}/cert-${ymd}.pem"; rm -f "${cert}"
+    # (umask 077; openssl genrsa -out "${key}" 2048) &&
+      openssl req -new -key "${key}" \
+        -x509 -subj "/CN=${fqdn}" -days 3650 -out "${cert}" &&
+      postconf -e \
+        "smtpd_tls_cert_file = ${cert}" \
+        "smtpd_tls_key_file = ${key}"
+
+PPrriivvaattee CCeerrttiiffiiccaattee AAuutthhoorriittyy
+
+  * Become your own Certificate Authority, so that you can sign your own
+    certificates, and so that your own systems can authenticate certificates
+    from your own CA. This example uses the CA.pl script that ships with
+    OpenSSL. On some systems, OpenSSL installs this as /usr/local/openssl/misc/
+    CA.pl. Some systems install this as part of a package named openssl-perl or
+    something similar. The script creates a private key in ./demoCA/private/
+    cakey.pem and a public key in ./demoCA/cacert.pem.
 
         % //uussrr//llooccaall//ssssll//mmiisscc//CCAA..ppll --nneewwccaa
         CA certificate filename (or enter to create)
@@ -2032,8 +2057,7 @@ indicates a super-user shell.
   * Create an unpassworded private key for host foo.porcupine.org and create an
     unsigned public key certificate.
 
-        % ooppeennssssll rreeqq --nneeww --nnooddeess --kkeeyyoouutt ffoooo--kkeeyy..ppeemm --oouutt ffoooo--rreeqq..ppeemm --ddaayyss
-        336655
+        % ooppeennssssll rreeqq --nneeww --nnooddeess --kkeeyyoouutt ffoooo--kkeeyy..ppeemm --oouutt ffoooo--rreeqq..ppeemm
         Using configuration from /etc/ssl/openssl.cnf
         Generating a 1024 bit RSA private key
         ........................................++++++
@@ -2065,7 +2089,7 @@ indicates a super-user shell.
   * Sign the public key certificate for host foo.porcupine.org with the
     Certification Authority private key that we created a few steps ago.
 
-        % ooppeennssssll ccaa --oouutt ffoooo--cceerrtt..ppeemm --iinnffiilleess ffoooo--rreeqq..ppeemm
+        % ooppeennssssll ccaa --oouutt ffoooo--cceerrtt..ppeemm --ddaayyss 336655 --iinnffiilleess ffoooo--rreeqq..ppeemm
         Using configuration from /etc/ssl/openssl.cnf
         Enter PEM pass phrase:wwhhaatteevveerr
         Check that the request matches the signature
@@ -2088,6 +2112,10 @@ indicates a super-user shell.
   * Install the host private key, the host public key certificate, and the
     Certification Authority certificate files. This requires super-user
     privileges.
+
+    The following commands assume that the key and certificate will be
+    installed for the local Postfix MTA. You will need to adjust the commands
+    if the Postfix MTA is on a different host.
 
         # ccpp ddeemmooCCAA//ccaacceerrtt..ppeemm ffoooo--kkeeyy..ppeemm ffoooo--cceerrtt..ppeemm //eettcc//ppoossttffiixx
         # cchhmmoodd 664444 //eettcc//ppoossttffiixx//ffoooo--cceerrtt..ppeemm //eettcc//ppoossttffiixx//ccaacceerrtt..ppeemm

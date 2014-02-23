@@ -14,7 +14,6 @@
 extern int smtpd_sasl_auth_cmd(SMTPD_STATE *, int, SMTPD_TOKEN *);
 extern void smtpd_sasl_auth_reset(SMTPD_STATE *);
 extern char *smtpd_sasl_mail_opt(SMTPD_STATE *, const char *);
-extern void smtpd_sasl_mail_log(SMTPD_STATE *);
 extern void smtpd_sasl_mail_reset(SMTPD_STATE *);
 
 #define smtpd_sasl_auth_extern	smtpd_sasl_login

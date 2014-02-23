@@ -217,8 +217,9 @@ a globally valid address when sending mail across the Internet.
 .PP
 Available in Postfix version 2.2.9 and later:
 .IP "\fBsmtp_cname_overrides_servername (version dependent)\fR"
-Allow DNS CNAME records to override the servername that the
-Postfix SMTP client uses for logging, SASL password lookup, TLS
+When the remote SMTP servername is a DNS CNAME, replace the
+servername with the result from CNAME expansion for the purpose of
+logging, SASL password lookup, TLS
 policy decisions, or TLS certificate verification.
 .PP
 Available in Postfix version 2.3 and later:

@@ -19559,14 +19559,32 @@ Apologies for any names omitted.
 
 	Workaround: require that a queue file is older than
 	$minimal_backoff_time, before falling back from failed TLS
-	(both during or after the TLS handshake) to plaintext
-	delivery.  Viktor Dukhovni. Files: smtp/smtp.h, smtp/smtp.c,
+	to plaintext (both during or after the TLS handshake).
+	Viktor Dukhovni. Files: smtp/smtp.h, smtp/smtp.c,
 	smtp/lmtp_params.c, smtp/smtp_params.c.
 
-20140219
+20140220
 
-	Workaround: disable the fallback to plaintext when all
-	recipients have already been bounced or deferred. This
-	happens for example when TLS breaks after the TLS handshake
-	while talking to the "final" SMTP server.  Wietse and Viktor.
-	Files: smtp/smtp.h.
+	Workaround: in case "minimal_backoff_time = $queue_run_delay".
+	Files: smtp/smtp.c, smtp/smtp_params.c, smtp/lmtp_params.c.
+
+	Cleanup: consolidate the code to log the start of a new
+	mail transaction in one place, so that code can easily be
+	added to log TLS status information in addition to the
+	existing client and SASL status information. Files:
+	smtpd/smtpd_sasl_proto.h, smtpd/smtpd_sasl_proto.c,
+	smtpd/smtpd.c.
+
+20140223
+
+	Workaround: when a session breaks after the TLS handshake,
+	do not fall back from TLS to plaintext when all recipients
+	were deferred or rejected during the TLS phase. Files:
+	smtp/smtp.h, smtp/smtp_rcpt.c.
+
+	Logging: the TLS client logged that an "Untrusted" TLS
+	connection was established instead of "Anonymous".
+	Viktor Dukhovni. File: tls/tls_client.c.
+
+	Documentation: new self-signed certificate example and
+	updated private CA example. File: proto/TLS_README.html.

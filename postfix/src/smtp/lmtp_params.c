@@ -71,8 +71,9 @@
 	VAR_LMTP_RSET_TMOUT, DEF_LMTP_RSET_TMOUT, &var_smtp_rset_tmout, 1, 0,
 	VAR_LMTP_QUIT_TMOUT, DEF_LMTP_QUIT_TMOUT, &var_smtp_quit_tmout, 1, 0,
 	VAR_LMTP_PIX_THRESH, DEF_LMTP_PIX_THRESH, &var_smtp_pix_thresh, 0, 0,
-	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
 	VAR_LMTP_PIX_DELAY, DEF_LMTP_PIX_DELAY, &var_smtp_pix_delay, 1, 0,
+	VAR_QUEUE_RUN_DELAY, DEF_QUEUE_RUN_DELAY, &var_queue_run_delay, 1, 0,
+	VAR_MIN_BACKOFF_TIME, DEF_MIN_BACKOFF_TIME, &var_min_backoff_time, 1, 0,
 	VAR_LMTP_CACHE_CONNT, DEF_LMTP_CACHE_CONNT, &var_smtp_cache_conn, 1, 0,
 	VAR_LMTP_REUSE_TIME, DEF_LMTP_REUSE_TIME, &var_smtp_reuse_time, 1, 0,
 #ifdef USE_TLS

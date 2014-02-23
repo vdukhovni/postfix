@@ -2036,27 +2036,29 @@ static int mail_open_stream(SMTPD_STATE *state)
     /*
      * Log the queue ID with the message origin.
      */
-#ifdef USE_SASL_AUTH
-    if (state->sasl_username)
-	smtpd_sasl_mail_log(state);
-    else
-#endif
-
-	/*
-	 * See also: smtpd_sasl_proto.c, for a longer client= logfile record.
-	 */
 #define PRINT_OR_NULL(cond, str) \
 	    ((cond) ? (str) : "")
 #define PRINT2_OR_NULL(cond, name, value) \
 	    PRINT_OR_NULL((cond), (name)), PRINT_OR_NULL((cond), (value))
 
-	msg_info("%s: client=%s%s%s%s%s",
-		 (state->queue_id ? state->queue_id : "NOQUEUE"),
-		 state->namaddr,
-		 PRINT2_OR_NULL(HAVE_FORWARDED_IDENT(state),
-				", orig_queue_id=", FORWARD_IDENT(state)),
-		 PRINT2_OR_NULL(HAVE_FORWARDED_CLIENT_ATTR(state),
-				", orig_client=", FORWARD_NAMADDR(state)));
+    msg_info("%s: client=%s%s%s%s%s%s%s%s%s%s%s",
+	     (state->queue_id ? state->queue_id : "NOQUEUE"),
+	     state->namaddr,
+#ifdef USE_SASL_AUTH
+	     PRINT2_OR_NULL(state->sasl_method,
+			    ", sasl_method=", state->sasl_method),
+	     PRINT2_OR_NULL(state->sasl_username,
+			    ", sasl_username=", state->sasl_username),
+	     PRINT2_OR_NULL(state->sasl_sender,
+			    ", sasl_sender=", state->sasl_sender),
+#else
+	     "", "", "", "", "", "",
+#endif
+    /* Insert transaction TLS status here. */
+	     PRINT2_OR_NULL(HAVE_FORWARDED_IDENT(state),
+			    ", orig_queue_id=", FORWARD_IDENT(state)),
+	     PRINT2_OR_NULL(HAVE_FORWARDED_CLIENT_ATTR(state),
+			    ", orig_client=", FORWARD_NAMADDR(state)));
     return (0);
 }
 

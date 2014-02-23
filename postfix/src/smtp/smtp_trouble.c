@@ -452,5 +452,11 @@ int     smtp_stream_except(SMTP_STATE *state, int code, const char *description)
 	dsb_simple(why, "4.3.0", "local data error while talking to %s",
 		   session->namaddr);
     }
+
+    /*
+     * The smtp_bulk_fail() call below will not throttle the destination when
+     * falling back to plaintext, because RETRY_AS_PLAINTEXT clears the
+     * FINAL_SERVER flag.
+     */
     return (smtp_bulk_fail(state, SMTP_THROTTLE));
 }

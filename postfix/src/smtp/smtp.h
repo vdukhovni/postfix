@@ -474,7 +474,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE \
 	(session->tls_context != 0 \
-	    && SMTP_RCPT_LEFT(state) > 0 \
+	    && SMTP_RCPT_LEFT(state) > SMTP_RCPT_MARK_COUNT(state) \
 	    && session->tls->level == TLS_LEV_MAY \
 	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
@@ -552,6 +552,8 @@ extern void smtp_chat_notify(SMTP_SESSION *);
 #define SMTP_RCPT_ISMARKED(rcpt) ((rcpt)->u.status != 0)
 
 #define SMTP_RCPT_LEFT(state) (state)->rcpt_left
+
+#define SMTP_RCPT_MARK_COUNT(state) ((state)->rcpt_drop + (state)->rcpt_keep)
 
 extern void smtp_rcpt_cleanup(SMTP_STATE *);
 extern void smtp_rcpt_done(SMTP_STATE *, SMTP_RESP *, RECIPIENT *);

@@ -26,6 +26,9 @@
 /*	int	SMTP_RCPT_LEFT(state)
 /*	SMTP_STATE *state;
 /*
+/*	int	SMTP_RCPT_MARK_COUNT(state)
+/*	SMTP_STATE *state;
+/*
 /*	void	smtp_rcpt_done(state, resp, rcpt)
 /*	SMTP_STATE *state;
 /*	SMTP_RESP *resp;
@@ -63,6 +66,9 @@
 /*
 /*	SMTP_RCPT_LEFT() returns the number of left_over recipients
 /*	(the total number of marked and non-marked recipients).
+/*
+/*	SMTP_RCPT_MARK_COUNT() returns the number of left_over
+/*	recipients that are marked.
 /*
 /*	smtp_rcpt_cleanup() cleans up the in-memory recipient list.
 /*	It removes the recipients marked DROP from the left-over
