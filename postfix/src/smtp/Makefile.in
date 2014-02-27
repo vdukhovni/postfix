@@ -2,11 +2,11 @@ SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
 	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c smtp_tls_policy.c \
 	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c \
-	smtp_sasl_auth_cache.c smtp_key.c
+	smtp_sasl_auth_cache.c smtp_key.c smtp_tls_audit.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o smtp_tls_policy.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o \
-	smtp_sasl_auth_cache.o smtp_key.o
+	smtp_sasl_auth_cache.o smtp_key.o smtp_tls_audit.o
 HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h smtp_sasl_auth_cache.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -662,6 +662,41 @@ smtp_state.o: ../../include/vstring.h
 smtp_state.o: smtp.h
 smtp_state.o: smtp_sasl.h
 smtp_state.o: smtp_state.c
+smtp_tls_audit.o: ../../include/argv.h
+smtp_tls_audit.o: ../../include/attr.h
+smtp_tls_audit.o: ../../include/deliver_request.h
+smtp_tls_audit.o: ../../include/dict.h
+smtp_tls_audit.o: ../../include/dns.h
+smtp_tls_audit.o: ../../include/dsn.h
+smtp_tls_audit.o: ../../include/dsn_buf.h
+smtp_tls_audit.o: ../../include/header_body_checks.h
+smtp_tls_audit.o: ../../include/header_opts.h
+smtp_tls_audit.o: ../../include/htable.h
+smtp_tls_audit.o: ../../include/mac_expand.h
+smtp_tls_audit.o: ../../include/mac_parse.h
+smtp_tls_audit.o: ../../include/mail_params.h
+smtp_tls_audit.o: ../../include/maps.h
+smtp_tls_audit.o: ../../include/match_list.h
+smtp_tls_audit.o: ../../include/mime_state.h
+smtp_tls_audit.o: ../../include/msg.h
+smtp_tls_audit.o: ../../include/msg_stats.h
+smtp_tls_audit.o: ../../include/myaddrinfo.h
+smtp_tls_audit.o: ../../include/myflock.h
+smtp_tls_audit.o: ../../include/name_code.h
+smtp_tls_audit.o: ../../include/name_mask.h
+smtp_tls_audit.o: ../../include/recipient_list.h
+smtp_tls_audit.o: ../../include/resolve_clnt.h
+smtp_tls_audit.o: ../../include/scache.h
+smtp_tls_audit.o: ../../include/sock_addr.h
+smtp_tls_audit.o: ../../include/string_list.h
+smtp_tls_audit.o: ../../include/sys_defs.h
+smtp_tls_audit.o: ../../include/tls.h
+smtp_tls_audit.o: ../../include/tok822.h
+smtp_tls_audit.o: ../../include/vbuf.h
+smtp_tls_audit.o: ../../include/vstream.h
+smtp_tls_audit.o: ../../include/vstring.h
+smtp_tls_audit.o: smtp.h
+smtp_tls_audit.o: smtp_tls_audit.c
 smtp_tls_policy.o: ../../include/argv.h
 smtp_tls_policy.o: ../../include/attr.h
 smtp_tls_policy.o: ../../include/ctable.h

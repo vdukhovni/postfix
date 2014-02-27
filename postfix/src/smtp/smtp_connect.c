@@ -108,6 +108,13 @@
 #include <smtp_addr.h>
 #include <smtp_reuse.h>
 
+#ifdef USE_TLS
+#define TLS_SESS_INIT(session, state) do { \
+	session->tls_level = state->tls->level;	/* Pre fallback */ \
+	session->tls = state->tls;		/* TEMPORARY */ \
+    } while (0)
+#endif
+
  /*
   * Forward declaration.
   */
@@ -522,7 +529,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     if ((state->session = session) != 0) {
 	session->state = state;
 #ifdef USE_TLS
-	session->tls = state->tls;		/* TEMPORARY */
+	TLS_SESS_INIT(session, state);
 	session->tls_nexthop = var_myhostname;	/* for TLS_LEV_SECURE */
 	if (session->tls->level == TLS_LEV_MAY) {
 	    msg_warn("%s: opportunistic TLS encryption is not appropriate "
@@ -674,7 +681,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	    && *addr_list == 0)
 	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 #ifdef USE_TLS
-	session->tls = state->tls;		/* TEMPORARY */
+	TLS_SESS_INIT(session, state);
 #endif
 	smtp_xfer(state);
 	smtp_cleanup_session(state);
@@ -734,7 +741,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 		&& next == 0)
 		state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 #ifdef USE_TLS
-	    session->tls = state->tls;		/* TEMPORARY */
+	    TLS_SESS_INIT(session, state);
 #endif
 	    smtp_xfer(state);
 	    smtp_cleanup_session(state);
@@ -978,7 +985,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    if ((state->session = session) != 0) {
 		session->state = state;
 #ifdef USE_TLS
-		session->tls = state->tls;	/* TEMPORARY */
+		TLS_SESS_INIT(session, state);
 		/* XXX: EAI: Convert to A-label here or in TLS library */
 		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
 #endif
