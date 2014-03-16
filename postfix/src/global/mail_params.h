@@ -3744,6 +3744,27 @@ extern char *var_sm_fix_eol;
 #define DEF_DAEMON_OPEN_FATAL	0
 extern bool var_daemon_open_fatal;
 
+ /*
+  * Optional DSN bounce/defer filter.
+  */
+#define VAR_NDR_FILTER			"default_bounce_defer_filter"
+#define DEF_NDR_FILTER			""
+extern char *var_ndr_filter;
+
+#define VAR_SMTP_NDR_FILTER		"smtp_bounce_defer_filter"
+#define DEF_SMTP_NDR_FILTER		"$" VAR_NDR_FILTER
+#define VAR_LMTP_NDR_FILTER		"lmtp_bounce_defer_filter"
+#define DEF_LMTP_NDR_FILTER		"$" VAR_NDR_FILTER
+extern char *var_smtp_ndr_filter;
+
+#define VAR_PIPE_NDR_FILTER		"pipe_bounce_defer_filter"
+#define DEF_PIPE_NDR_FILTER		"$" VAR_NDR_FILTER
+extern char *var_pipe_ndr_filter;
+
+#define VAR_VIRT_NDR_FILTER		"virtual_bounce_defer_filter"
+#define DEF_VIRT_NDR_FILTER		"$" VAR_NDR_FILTER
+extern char *var_virt_ndr_filter;
+
 /* LICENSE
 /* .ad
 /* .fi

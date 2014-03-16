@@ -128,6 +128,9 @@
 /*	This service must be configured with process limit of 0.
 /* .IP MAIL_SERVER_PRIVILEGED
 /*	This service must be configured as privileged.
+/* .IP "MAIL_SERVER_BOUNCE_INIT (const char *, const char **)"
+/*	Initialize the DSN filter for the bounce/defer service
+/*	clients with the specified map source and map names.
 /* .PP
 /*	multi_server_disconnect() should be called by the application
 /*	to close a client connection.
@@ -218,6 +221,7 @@
 #include <resolve_local.h>
 #include <mail_flow.h>
 #include <mail_version.h>
+#include <bounce.h>
 
 /* Process manager. */
 
@@ -393,9 +397,9 @@ static void multi_server_wakeup(int fd, HTABLE *attr)
     stream = vstream_fdopen(fd, O_RDWR);
     tmp = concatenate(multi_server_name, " socket", (char *) 0);
     vstream_control(stream,
-                    VSTREAM_CTL_PATH, tmp,
-                    VSTREAM_CTL_CONTEXT, (char *) attr,
-                    VSTREAM_CTL_END);
+		    VSTREAM_CTL_PATH, tmp,
+		    VSTREAM_CTL_CONTEXT, (char *) attr,
+		    VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
     multi_server_saved_flags = vstream_flags(stream);
@@ -552,6 +556,8 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     char   *generation;
     int     msg_vstream_needed = 0;
     int     redo_syslog_init = 0;
+    const char *ndr_filter_title;
+    const char **ndr_filter_maps;
 
     /*
      * Process environment options as early as we can.
@@ -602,7 +608,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Register dictionaries that use higher-level interfaces and protocols.
      */
     mail_dict_init();
- 
+
     /*
      * After database open error, continue execution with reduced
      * functionality.
@@ -755,6 +761,11 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    if (user_name)
 		msg_fatal("service %s requires privileged operation",
 			  service_name);
+	    break;
+	case MAIL_SERVER_BOUNCE_INIT:
+	    ndr_filter_title = va_arg(ap, const char *);
+	    ndr_filter_maps = va_arg(ap, const char **);
+	    bounce_client_init(ndr_filter_title, *ndr_filter_maps);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

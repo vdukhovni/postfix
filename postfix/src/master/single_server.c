@@ -118,6 +118,9 @@
 /*	This service must be configured with process limit of 0.
 /* .IP MAIL_SERVER_PRIVILEGED
 /*	This service must be configured as privileged.
+/* .IP "MAIL_SERVER_BOUNCE_INIT (const char *, const char **)"
+/*	Initialize the DSN filter for the bounce/defer service
+/*	clients with the specified map source and map names.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -194,6 +197,7 @@
 #include <resolve_local.h>
 #include <mail_flow.h>
 #include <mail_version.h>
+#include <bounce.h>
 
 /* Process manager. */
 
@@ -430,6 +434,8 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     char   *generation;
     int     msg_vstream_needed = 0;
     int     redo_syslog_init = 0;
+    const char *ndr_filter_title;
+    const char **ndr_filter_maps;
 
     /*
      * Process environment options as early as we can.
@@ -630,6 +636,11 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    if (user_name)
 		msg_fatal("service %s requires privileged operation",
 			  service_name);
+	    break;
+	case MAIL_SERVER_BOUNCE_INIT:
+	    ndr_filter_title = va_arg(ap, const char *);
+	    ndr_filter_maps = va_arg(ap, const char **);
+	    bounce_client_init(ndr_filter_title, *ndr_filter_maps);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

@@ -35,6 +35,7 @@ extern int bounce_one(int, const char *, const char *, const char *,
 		              const char *, const char *,
 		              int, MSG_STATS *, RECIPIENT *,
 		              const char *, DSN *);
+extern void bounce_client_init(const char *, const char *);
 
  /*
   * Bounce/defer protocol commands.
@@ -64,6 +65,25 @@ extern int bounce_one(int, const char *, const char *, const char *,
   * Backwards compatibility.
   */
 #define BOUNCE_FLAG_KEEP	BOUNCE_FLAG_NONE
+
+ /*
+  * Start of private API.
+  */
+
+#ifdef BOUNCE_DEFER_INTERN
+
+#include <ndr_filter.h>
+
+extern NDR_FILTER *bounce_defer_filter;
+
+extern int bounce_append_intern(int, const char *, MSG_STATS *, RECIPIENT *,
+				        const char *, DSN *);
+extern int bounce_one_intern(int, const char *, const char *, const char *,
+			             const char *, const char *,
+			             int, MSG_STATS *, RECIPIENT *,
+			             const char *, DSN *);
+
+#endif
 
 /* LICENSE
 /* .ad

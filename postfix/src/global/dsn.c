@@ -18,7 +18,7 @@
 /* .in -4
 /*	} DSN;
 /*
-/*	DSN	*create(status, action, reason, dtype, dtext, mtype, mname)
+/*	DSN	*dsn_create(status, action, reason, dtype, dtext, mtype, mname)
 /*	const char *status;
 /*	const char *action;
 /*	const char *reason;

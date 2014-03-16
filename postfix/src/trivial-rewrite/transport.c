@@ -152,7 +152,8 @@ static void update_entry(const char *new_channel, const char *new_nexthop,
 	vstring_strcpy(channel, new_channel);
 	if (*new_nexthop != 0)
 	    vstring_strcpy(nexthop, new_nexthop);
-	else if (strcmp(STR(channel), MAIL_SERVICE_ERROR) != 0)
+	else if (strcmp(STR(channel), MAIL_SERVICE_ERROR) != 0
+		 && strcmp(STR(channel), MAIL_SERVICE_RETRY) != 0)
 	    vstring_strcpy(nexthop, rcpt_domain);
 	else
 	    vstring_strcpy(nexthop, "Address is undeliverable");

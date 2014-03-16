@@ -68,9 +68,8 @@
 #	Every Postfix LMDB database read or write transaction must
 #	be protected from start to end with a shared or exclusive
 #	fcntl(2) lock.  A writer may atomically downgrade an exclusive
-#	lock to a shared lock, but it must acquire an exclusive
-#	lock between updating the database and starting another
-#	write transaction.
+#	lock to a shared lock, but it must hold an exclusive lock
+#	while opening another write transaction.
 #
 #	Note that fcntl(2) locks do not protect transactions within
 #	the same process against each other.  If a program cannot

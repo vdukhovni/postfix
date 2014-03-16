@@ -31,6 +31,13 @@
 /*	const char *sender;
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
+/* INTERNAL API
+/*	int	defer_append_intern(flags, id, stats, rcpt, relay, dsn)
+/*	int	flags;
+/*	const char *id;
+/*	MSG_STATS *stats;
+/*	RECIPIENT *rcpt;
+/*	const char *relay;
 /* DESCRIPTION
 /*	This module implements a client interface to the defer service,
 /*	which maintains a per-message logfile with status records for
@@ -55,6 +62,8 @@
 /*	defer_warn() sends a warning message that the mail in
 /*	question has been deferred.  The defer log is not deleted,
 /*	and no recipients are deleted from the original queue file.
+/*
+/*	defer_append_intern() is for use after the DSN filter.
 /*
 /*	Arguments:
 /* .IP flags
@@ -134,6 +143,7 @@
 
 /* Global library. */
 
+#define BOUNCE_DEFER_INTERN
 #include <mail_params.h>
 #include <mail_queue.h>
 #include <mail_proto.h>
@@ -154,9 +164,8 @@ int     defer_append(int flags, const char *id, MSG_STATS *stats,
 		             RECIPIENT *rcpt, const char *relay,
 		             DSN *dsn)
 {
-    const char *rcpt_domain;
     DSN     my_dsn = *dsn;
-    int     status;
+    DSN    *dsn_res;
 
     /*
      * Sanity check.
@@ -165,6 +174,28 @@ int     defer_append(int flags, const char *id, MSG_STATS *stats,
 	msg_warn("defer_append: ignoring dsn code \"%s\"", my_dsn.status);
 	my_dsn.status = "4.0.0";
     }
+
+    /*
+     * DSN filter (Postfix 2.12).
+     */
+    if (bounce_defer_filter != 0
+      && (dsn_res = ndr_filter_lookup(bounce_defer_filter, &my_dsn)) != 0) {
+	if (dsn_res->status[0] == '5')
+	    return (bounce_append_intern(flags, id, stats, rcpt, relay, dsn_res));
+	my_dsn = *dsn_res;
+    }
+    return (defer_append_intern(flags, id, stats, rcpt, relay, &my_dsn));
+}
+
+/* defer_append_intern - defer message delivery */
+
+int     defer_append_intern(int flags, const char *id, MSG_STATS *stats,
+			            RECIPIENT *rcpt, const char *relay,
+			            DSN *dsn)
+{
+    const char *rcpt_domain;
+    DSN     my_dsn = *dsn;
+    int     status;
 
     /*
      * MTA-requested address verification information is stored in the verify

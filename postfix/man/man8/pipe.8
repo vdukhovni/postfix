@@ -409,6 +409,9 @@ for an incoming connection before terminating voluntarily.
 .IP "\fBmax_use (100)\fR"
 The maximal number of incoming connections that a Postfix daemon
 process will service before terminating voluntarily.
+.IP "\fBpipe_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa.
 .IP "\fBprocess_id (read-only)\fR"
 The process ID of a Postfix command or daemon process.
 .IP "\fBprocess_name (read-only)\fR"

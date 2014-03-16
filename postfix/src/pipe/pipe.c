@@ -387,6 +387,9 @@
 /* .IP "\fBmax_use (100)\fR"
 /*	The maximal number of incoming connections that a Postfix daemon
 /*	process will service before terminating voluntarily.
+/* .IP "\fBpipe_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+/*	Optional filter to change arbitrary hard delivery errors into
+/*	soft errors and vice versa.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -538,6 +541,11 @@
   * prepending the service name to _name, and so on.
   */
 int     var_command_maxtime;		/* You can now leave this here. */
+
+ /*
+  * Other main.cf parameters.
+  */
+char   *var_pipe_ndr_filter;
 
  /*
   * For convenience. Instead of passing around lists of parameters, bundle
@@ -1021,25 +1029,18 @@ static int eval_command_status(int command_status, char *service,
     case PIPE_STAT_BOUNCE:
     case PIPE_STAT_DEFER:
 	(void) DSN_FROM_DSN_BUF(why);
-	if (STR(why->status)[0] != '4') {
-	    for (n = 0; n < request->rcpt_list.len; n++) {
-		rcpt = request->rcpt_list.info + n;
-		status = bounce_append(DEL_REQ_TRACE_FLAGS(request->flags),
-				       request->queue_id,
-				       &request->msg_stats, rcpt,
-				       service, &why->dsn);
-		if (status == 0)
-		    deliver_completed(request->fp, rcpt->offset);
-		result |= status;
-	    }
-	} else {
-	    for (n = 0; n < request->rcpt_list.len; n++) {
-		rcpt = request->rcpt_list.info + n;
-		result |= defer_append(DEL_REQ_TRACE_FLAGS(request->flags),
-				       request->queue_id,
-				       &request->msg_stats, rcpt,
-				       service, &why->dsn);
-	    }
+	for (n = 0; n < request->rcpt_list.len; n++) {
+	    rcpt = request->rcpt_list.info + n;
+	    /* XXX Maybe encapsulate this with ndr_append(). */
+	    status = (STR(why->status)[0] != '4' ?
+		      bounce_append : defer_append)
+		(DEL_REQ_TRACE_FLAGS(request->flags),
+		 request->queue_id,
+		 &request->msg_stats, rcpt,
+		 service, &why->dsn);
+	    if (status == 0)
+		deliver_completed(request->fp, rcpt->offset);
+	    result |= status;
 	}
 	break;
     case PIPE_STAT_CORRUPT:
@@ -1325,6 +1326,10 @@ int     main(int argc, char **argv)
 	VAR_COMMAND_MAXTIME, DEF_COMMAND_MAXTIME, &var_command_maxtime, 1, 0,
 	0,
     };
+    static const CONFIG_STR_TABLE str_table[] = {
+	VAR_PIPE_NDR_FILTER, DEF_PIPE_NDR_FILTER, &var_pipe_ndr_filter, 0, 0,
+	0,
+    };
 
     /*
      * Fingerprint executables and core dumps.
@@ -1337,5 +1342,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_POST_INIT, drop_privileges,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_PIPE_NDR_FILTER,
+		       &var_pipe_ndr_filter,
 		       0);
 }

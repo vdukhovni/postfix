@@ -126,6 +126,9 @@
 /* .IP "MAIL_SERVER_WATCHDOG (int *)"
 /*	Override the default 1000s watchdog timeout. The value is
 /*	used after command-line and main.cf file processing.
+/* .IP "MAIL_SERVER_BOUNCE_INIT (const char *, const char **)"
+/*	Initialize the DSN filter for the bounce/defer service
+/*	clients with the specified map source and map names.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
@@ -202,6 +205,7 @@
 #include <resolve_local.h>
 #include <mail_flow.h>
 #include <mail_version.h>
+#include <bounce.h>
 
 /* Process manager. */
 
@@ -433,6 +437,8 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     char   *generation;
     int     msg_vstream_needed = 0;
     int     redo_syslog_init = 0;
+    const char *ndr_filter_title;
+    const char **ndr_filter_maps;
 
     /*
      * Process environment options as early as we can.
@@ -483,7 +489,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * Register dictionaries that use higher-level interfaces and protocols.
      */
     mail_dict_init();
- 
+
     /*
      * After database open error, continue execution with reduced
      * functionality.
@@ -636,6 +642,11 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
 	    break;
 	case MAIL_SERVER_WATCHDOG:
 	    trigger_server_watchdog = *va_arg(ap, int *);
+	    break;
+	case MAIL_SERVER_BOUNCE_INIT:
+	    ndr_filter_title = va_arg(ap, const char *);
+	    ndr_filter_maps = va_arg(ap, const char **);
+	    bounce_client_init(ndr_filter_title, *ndr_filter_maps);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

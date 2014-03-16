@@ -4783,6 +4783,16 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 				   recipient, reply_class,
 				   dp.text));
     }
+    if (strcmp(STR(reply->transport), MAIL_SERVICE_RETRY) == 0) {
+	dsn_split(&dp, strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+		  "4.1.0" : "4.1.1", STR(reply->nexthop));
+	return (smtpd_check_reject(state, MAIL_ERROR_BOUNCE, 450,
+				   smtpd_dsn_fix(DSN_STATUS(dp.dsn),
+						 reply_class),
+				   "<%s>: %s rejected: %s",
+				   recipient, reply_class,
+				   dp.text));
+    }
 
     /*
      * Search the recipient lookup tables of the respective address class.

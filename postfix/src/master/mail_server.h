@@ -38,6 +38,7 @@
 
 #define MAIL_SERVER_IN_FLOW_DELAY	20
 #define MAIL_SERVER_SLOW_EXIT	21
+#define MAIL_SERVER_BOUNCE_INIT	22
 
 typedef void (*MAIL_SERVER_INIT_FN) (char *, char **);
 typedef int (*MAIL_SERVER_LOOP_FN) (char *, char **);

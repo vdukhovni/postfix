@@ -98,6 +98,10 @@
 /*	The policy is: non-final server: log an informational record
 /*	with the reason why the host is being skipped; final server:
 /*	defer delivery of all remaining recipients.
+/*	Retry plaintext delivery after TLS post-handshake session
+/*	failure, provided that at least one recipient was not
+/*	deferred or rejected during the TLS phase, and that global
+/*	preconditions for plaintext fallback are met.
 /*	The session is marked as "do not cache".
 /*	The result is non-zero.
 /*

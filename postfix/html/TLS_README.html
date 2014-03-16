@@ -2651,6 +2651,7 @@ the local Postfix system. This requires super-user privileges. </p>
 <pre>
 # dir="$(postconf -h <a href="postconf.5.html#config_directory">config_directory</a>)"
 # fqdn=$(postconf -h <a href="postconf.5.html#myhostname">myhostname</a>)
+# case $fqdn in /*) fqdn=$(cat "$fqdn");; esac
 # ymd=$(date +%Y-%m-%d)
 # key="${dir}/key-${ymd}.pem"; rm -f "${key}"
 # cert="${dir}/cert-${ymd}.pem"; rm -f "${cert}"
@@ -2697,9 +2698,9 @@ an unsigned public key certificate. </p>
 
 <blockquote>
 <pre>
-% <b>openssl req -new -nodes -keyout foo-key.pem -out foo-req.pem</b>
+% <b>(umask 077; openssl req -new -newkey rsa:2048 -nodes -keyout foo-key.pem -out foo-req.pem)</b>
 Using configuration from /etc/ssl/openssl.cnf
-Generating a 1024 bit RSA private key
+Generating a 2048 bit RSA private key
 ........................................++++++
 ....++++++
 writing new private key to 'foo-key.pem'

@@ -2023,6 +2023,7 @@ This requires super-user privileges.
 
     # dir="$(postconf -h config_directory)"
     # fqdn=$(postconf -h myhostname)
+    # case $fqdn in /*) fqdn=$(cat "$fqdn");; esac
     # ymd=$(date +%Y-%m-%d)
     # key="${dir}/key-${ymd}.pem"; rm -f "${key}"
     # cert="${dir}/cert-${ymd}.pem"; rm -f "${cert}"
@@ -2057,9 +2058,10 @@ PPrriivvaattee CCeerrttiiffiiccaattee AAuutthhoorriitt
   * Create an unpassworded private key for host foo.porcupine.org and create an
     unsigned public key certificate.
 
-        % ooppeennssssll rreeqq --nneeww --nnooddeess --kkeeyyoouutt ffoooo--kkeeyy..ppeemm --oouutt ffoooo--rreeqq..ppeemm
+        % ((uummaasskk 007777;; ooppeennssssll rreeqq --nneeww --nneewwkkeeyy rrssaa::22004488 --nnooddeess --kkeeyyoouutt ffoooo--
+        kkeeyy..ppeemm --oouutt ffoooo--rreeqq..ppeemm))
         Using configuration from /etc/ssl/openssl.cnf
-        Generating a 1024 bit RSA private key
+        Generating a 2048 bit RSA private key
         ........................................++++++
         ....++++++
         writing new private key to 'foo-key.pem'

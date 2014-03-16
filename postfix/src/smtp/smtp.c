@@ -141,6 +141,9 @@
 /*	Always send EHLO at the start of an SMTP session.
 /* .IP "\fBsmtp_never_send_ehlo (no)\fR"
 /*	Never send EHLO at the start of an SMTP session.
+/* .IP "\fBsmtp_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+/*	Optional filter to change arbitrary hard delivery errors into
+/*	soft errors and vice versa.
 /* .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 /*	Defer mail delivery when no MX record resolves to an IP address.
 /* .IP "\fBsmtp_line_length_limit (998)\fR"
@@ -876,6 +879,7 @@ char   *var_smtp_dns_res_opt;
 char   *var_smtp_dns_support;
 bool    var_smtp_rec_deadline;
 bool    var_smtp_dummy_mail_auth;
+char   *var_smtp_ndr_filter;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1271,5 +1275,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_SMTP_NDR_FILTER,
+		       &var_smtp_ndr_filter,
 		       0);
 }

@@ -48,6 +48,19 @@
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
 /*	DSN	*dsn;
+/*
+/*	void	bounce_client_init(title, maps)
+/*	const char *title;
+/*	const char *maps;
+/* INTERNAL API
+/*	NDR_FILTER *bounce_defer_filter;
+/*
+/*	int	bounce_append_intern(flags, id, stats, recipient, relay, dsn)
+/*	int	flags;
+/*	const char *id;
+/*	MSG_STATS *stats;
+/*	RECIPIENT *rcpt;
+/*	const char *relay;
 /* DESCRIPTION
 /*	This module implements the client interface to the message
 /*	bounce service, which maintains a per-message log of status
@@ -74,6 +87,11 @@
 /*	should be used when a delivery agent changes the error
 /*	return address in a manner that depends on the recipient
 /*	address.
+/*
+/*	bounce_client_init() initializes an optional DSN filter.
+/*
+/*	bounce_append_intern() is for use after the DSN filter. DSN
+/*	filtering is not yet supported for bounce_one().
 /*
 /*	Arguments:
 /* .IP flags
@@ -131,6 +149,11 @@
 /*	zero value. Otherwise, the functions return a non-zero result,
 /*	and when BOUNCE_FLAG_CLEAN is disabled, log that message
 /*	delivery is deferred.
+/* .IP title
+/*	The origin of the optional DSN filter lookup table names.
+/* .IP maps
+/*	The optional "type:table" DSN filter lookup table names,
+/*	separated by comma or whitespace.
 /* BUGS
 /*	Should be replaced by routines with an attribute-value based
 /*	interface instead of an interface that uses a rigid argument list.
@@ -158,6 +181,7 @@
 
 /* Global library. */
 
+#define BOUNCE_DEFER_INTERN
 #include <mail_params.h>
 #include <mail_proto.h>
 #include <log_adhoc.h>
@@ -169,14 +193,18 @@
 #include <trace.h>
 #include <bounce.h>
 
-/* bounce_append - append dsn_text to per-message bounce log */
+/* Shared internally, between bounce and defer clients. */
+
+NDR_FILTER *bounce_defer_filter;
+
+/* bounce_append - append delivery status to per-message bounce log */
 
 int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 		              RECIPIENT *rcpt, const char *relay,
 		              DSN *dsn)
 {
     DSN     my_dsn = *dsn;
-    int     status;
+    DSN    *dsn_res;
 
     /*
      * Sanity check. If we're really confident, change this into msg_panic
@@ -186,6 +214,27 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 	msg_warn("bounce_append: ignoring dsn code \"%s\"", my_dsn.status);
 	my_dsn.status = "5.0.0";
     }
+
+    /*
+     * DSN filter (Postfix 2.12).
+     */
+    if (bounce_defer_filter != 0
+      && (dsn_res = ndr_filter_lookup(bounce_defer_filter, &my_dsn)) != 0) {
+	if (dsn_res->status[0] == '4')
+	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
+	my_dsn = *dsn_res;
+    }
+    return (bounce_append_intern(flags, id, stats, rcpt, relay, &my_dsn));
+}
+
+/* bounce_append_intern - append delivery status to per-message bounce log */
+
+int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
+			             RECIPIENT *rcpt, const char *relay,
+			             DSN *dsn)
+{
+    DSN     my_dsn = *dsn;
+    int     status;
 
     /*
      * MTA-requested address verification information is stored in the verify
@@ -259,7 +308,7 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
 	    vstring_sprintf(junk, "%s or %s service failure",
 			    var_bounce_service, var_trace_service);
 	    my_dsn.reason = vstring_str(junk);
-	    status = defer_append(flags, id, stats, rcpt, relay, &my_dsn);
+	    status = defer_append_intern(flags, id, stats, rcpt, relay, &my_dsn);
 	    vstring_free(junk);
 	} else {
 	    status = -1;
@@ -427,4 +476,16 @@ int     bounce_one(int flags, const char *queue, const char *id,
 	}
 	return (status);
     }
+}
+
+/* bounce_client_init - initialize bounce/defer DSN filter */
+
+void    bounce_client_init(const char *title, const char *maps)
+{
+    const char myname[] = "bounce_client_init";
+
+    if (bounce_defer_filter != 0)
+	msg_panic("%s: duplicate initialization", myname);
+    if (*maps)
+	bounce_defer_filter = ndr_filter_create(title, maps);
 }

@@ -163,6 +163,9 @@ Ignore DNS MX lookups that produce no response.
 Always send EHLO at the start of an SMTP session.
 .IP "\fBsmtp_never_send_ehlo (no)\fR"
 Never send EHLO at the start of an SMTP session.
+.IP "\fBsmtp_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa.
 .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 Defer mail delivery when no MX record resolves to an IP address.
 .IP "\fBsmtp_line_length_limit (998)\fR"

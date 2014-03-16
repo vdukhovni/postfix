@@ -19588,3 +19588,38 @@ Apologies for any names omitted.
 
 	Documentation: new self-signed certificate example and
 	updated private CA example. File: proto/TLS_README.html.
+
+20140224
+
+	Bugfix (introduced: 20061106): when the "retry" transport
+	was added to Postfix, it was not given special status like
+	the "error" transport. The Postfix SMTP server did not defer
+	mail that resolves to the "retry" transport, and the
+	trivial-rewrite daemon would override the null nexthop
+	destination in "retry:" with the current nexthop destination.
+	Files: smtpd/smtpd_check.c, trivial-rewrite/transport.c.
+
+20140227
+
+	Bugfix: Enforce TLS when TLSA records exist, but all are
+	unusable; Don't leak dane handle when all TLSA records are
+	unusable.  Viktor Dukhovni. File: smtp/smtp_tls_policy.c.
+
+	Cleanup: log TLS policy lookups as warnings. Viktor Dukhovni.
+	File: smtp/smtp_connect.c.
+
+20140316
+
+	Feature: preliminary support to change arbitrary hard
+	delivery errors into soft errors and vice versa, originally
+	introduced for sites that want to hard-bounce mail when a
+	remote SMTP server does not announce TLS support. New main.cf
+	parameters: {default,smtp,pipe,virtual}_bounce_defer_filter.
+	Support for the local(8) delivery agent is awaiting additional
+	code to emulate defer_one() support, and support for qmgr(8)
+	is awaiting further analysis.  Files: proto/postconf.proto,
+	mantools/postlink, global/bounce.[hc], bounce/defer.[hc],
+	global/ndr_filter.[hc], global/mail_params.[hc],
+	master/event_server.c, master/multi_server.c,
+	master/single_server.c, master/trigger_server.c, smtp/smtp.c,
+	pipe/pipe.c, virtual/virtual.c.

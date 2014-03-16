@@ -15615,3 +15615,102 @@ whether any digest TLSA records are acceptable in usage "2" (trust
 anchor assertion) TLSA records. </p>
 
 <p> This feature is available in Postfix 2.11 and later. </p>
+
+%PARAM default_bounce_defer_filter
+
+<p> Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa.  This is implemented by rewriting the
+three-number enhanced status code and the explanatory text in a
+Postfix delivery agent bounce/defer message. </p>
+
+<p> Specify zero or more "type:table" lookup table names, separated
+by comma or whitespace. With each bounce or defer request, the
+tables are queried in the specified order with one line of text
+that is structured as follows: </p>
+
+<blockquote>
+enhanced-status-code SPACE explanatory-text
+</blockquote>
+
+<p> The first table match wins. The lookup result must have the
+same structure as the query:  enhanced status codes must have a
+first numerical field of 4 (defer) or 5 (bounce), and the explanatory
+text field must be non-empty. Other results will result in a warning.
+</p>
+
+<p> Example: </p>
+
+<p> The following example turns specific soft TLS errors into hard
+errors, by overriding the first number in the enhanced status code.
+</p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_bounce_defer_filter = pcre:/etc/postfix/smtp_ndr_filter
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/smtp_ndr_filter:
+    /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/
+        5$1
+    /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/
+        5$1
+    # Do not change the following into hard bounces. They may
+    # result from a local configuration problem.
+    # 4.\d+.\d+ TLS is required, but our TLS engine is unavailable
+    # 4.\d+.\d+ TLS is required, but unavailable
+    # 4.\d+.\d+ Cannot start TLS: handshake failure
+</pre>
+</blockquote>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> This feature will NOT override the soft_bounce safety net. </p>
+
+<li> <p> This feature will change the enhanced status code and text
+that is logged to the maillog file, and that is reported to the
+sender. </p>
+
+</ul>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM smtp_bounce_defer_filter $default_bounce_defer_filter
+
+<p> Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa. See default_bounce_defer_filter for
+details.  </p>
+
+<p> NOTE: This feature modifies error messages that are generated
+by the Postfix SMTP client, and that may or may not be derived from
+remote SMTP server responses.  In contrast, the smtp_reply_filter
+feature modifies remote SMTP server responses that may result in
+email non-delivery or delivery. </p>
+
+%PARAM lmtp_bounce_defer_filter 
+
+<p> The LMTP-specific version of the smtp_bounce_defer_filter
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM pipe_bounce_defer_filter $default_bounce_defer_filter
+
+<p> Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa. See default_bounce_defer_filter for
+details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM virtual_bounce_defer_filter $default_bounce_defer_filter
+
+<p> Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa. See default_bounce_defer_filter for
+details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>

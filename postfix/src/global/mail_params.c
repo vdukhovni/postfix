@@ -121,6 +121,7 @@
 /*	bool	var_multi_enable;
 /*	bool	var_long_queue_ids;
 /*	bool	var_daemon_open_fatal;
+/*	char	*var_ndr_filter;
 /*
 /*	void	mail_params_init()
 /*
@@ -314,6 +315,7 @@ char   *var_multi_name;
 bool    var_multi_enable;
 bool    var_long_queue_ids;
 bool    var_daemon_open_fatal;
+char   *var_ndr_filter;
 
 const char null_format_string[1] = "";
 
@@ -589,6 +591,7 @@ void    mail_params_init()
 	VAR_INT_FILT_CLASSES, DEF_INT_FILT_CLASSES, &var_int_filt_classes, 0, 0,
 	/* multi_instance_wrapper may have dependencies but not dependents. */
 	VAR_MULTI_WRAPPER, DEF_MULTI_WRAPPER, &var_multi_wrapper, 0, 0,
+	VAR_NDR_FILTER, DEF_NDR_FILTER, &var_ndr_filter, 0, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

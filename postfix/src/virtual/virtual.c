@@ -245,6 +245,9 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .IP "\fBvirtual_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+/*	Optional filter to change arbitrary hard delivery errors into
+/*	soft errors and vice versa.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
@@ -334,6 +337,7 @@ char   *var_virt_mailbox_lock;
 long    var_virt_mailbox_limit;
 char   *var_mail_spool_dir;		/* XXX dependency fix */
 bool    var_strict_mbox_owner;
+char   *var_virt_ndr_filter;
 
  /*
   * Mappings.
@@ -510,6 +514,7 @@ int     main(int argc, char **argv)
 	VAR_VIRT_GID_MAPS, DEF_VIRT_GID_MAPS, &var_virt_gid_maps, 0, 0,
 	VAR_VIRT_MAILBOX_BASE, DEF_VIRT_MAILBOX_BASE, &var_virt_mailbox_base, 1, 0,
 	VAR_VIRT_MAILBOX_LOCK, DEF_VIRT_MAILBOX_LOCK, &var_virt_mailbox_lock, 1, 0,
+	VAR_VIRT_NDR_FILTER, DEF_VIRT_NDR_FILTER, &var_virt_ndr_filter, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -531,5 +536,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_VIRT_NDR_FILTER,
+		       &var_virt_ndr_filter,
 		       0);
 }
