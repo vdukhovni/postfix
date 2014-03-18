@@ -31,6 +31,20 @@
 /*	const char *sender;
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
+/*
+/*	int	defer_one(flags, queue, id, encoding, sender, envid, ret,
+/*				stats, recipient, relay, dsn)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *encoding;
+/*	const char *sender;
+/*	const char *dsn_envid;
+/*	int	dsn_ret;
+/*	MSG_STATS *stats;
+/*	RECIPIENT *rcpt;
+/*	const char *relay;
+/*	DSN	*dsn;
 /* INTERNAL API
 /*	int	defer_append_intern(flags, id, stats, rcpt, relay, dsn)
 /*	int	flags;
@@ -62,6 +76,9 @@
 /*	defer_warn() sends a warning message that the mail in
 /*	question has been deferred.  The defer log is not deleted,
 /*	and no recipients are deleted from the original queue file.
+/*
+/*	defer_one() implements ndr_filter(3) compatibility for the
+/*	bounce_one() routine.
 /*
 /*	defer_append_intern() is for use after the DSN filter.
 /*
@@ -310,4 +327,37 @@ int     defer_warn(int flags, const char *queue, const char *id,
     } else {
 	return (-1);
     }
+}
+
+/* defer_one - defer mail for one recipient */
+
+int     defer_one(int flags, const char *queue, const char *id,
+		          const char *encoding, const char *sender,
+		          const char *dsn_envid, int dsn_ret,
+		          MSG_STATS *stats, RECIPIENT *rcpt,
+		          const char *relay, DSN *dsn)
+{
+    DSN     my_dsn = *dsn;
+    DSN    *dsn_res;
+
+    /*
+     * Sanity check.
+     */
+    if (my_dsn.status[0] != '4' || !dsn_valid(my_dsn.status)) {
+	msg_warn("defer_one: ignoring dsn code \"%s\"", my_dsn.status);
+	my_dsn.status = "4.0.0";
+    }
+
+    /*
+     * DSN filter (Postfix 2.12).
+     */
+    if (bounce_defer_filter != 0
+      && (dsn_res = ndr_filter_lookup(bounce_defer_filter, &my_dsn)) != 0) {
+	if (dsn_res->status[0] == '5')
+	    return (bounce_one_intern(flags, queue, id, encoding, sender,
+				      dsn_envid, dsn_ret, stats, rcpt,
+				      relay, dsn_res));
+	my_dsn = *dsn_res;
+    }
+    return (defer_append_intern(flags, id, stats, rcpt, relay, &my_dsn));
 }

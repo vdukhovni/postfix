@@ -419,6 +419,11 @@ Defer delivery when a mailbox file is not owned by its recipient.
 Reset the \fBlocal\fR(8) delivery agent's idea of the owner-alias
 attribute, when delivering mail to a child alias that does not have
 its own owner alias.
+.PP
+Available in Postfix version 2.12 and later:
+.IP "\fBlocal_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa in the \fBlocal\fR(8) delivery agent.
 .SH "DELIVERY METHOD CONTROLS"
 .na
 .nf

@@ -25,6 +25,10 @@ extern int defer_flush(int, const char *, const char *, const char *,
 		               const char *, const char *, int);
 extern int defer_warn(int, const char *, const char *, const char *,
 		              const char *, int);
+extern int defer_one(int, const char *, const char *, const char *,
+		             const char *, const char *,
+		             int, MSG_STATS *, RECIPIENT *,
+		             const char *, DSN *);
 
  /*
   * Start of private API.

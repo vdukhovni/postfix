@@ -245,9 +245,11 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available in Postfix version 2.12 and later:
 /* .IP "\fBvirtual_bounce_defer_filter ($default_bounce_defer_filter)\fR"
 /*	Optional filter to change arbitrary hard delivery errors into
-/*	soft errors and vice versa.
+/*	soft errors and vice versa in the \fBvirtual\fR(8) delivery agent.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports

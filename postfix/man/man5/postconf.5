@@ -2929,6 +2929,12 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH local_bounce_defer_filter (default: $default_bounce_defer_filter)
+Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa in the \fBlocal\fR(8) delivery agent. See
+default_bounce_defer_filter for details.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH local_command_shell (default: empty)
 Optional shell program for \fBlocal\fR(8) delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
@@ -4169,8 +4175,8 @@ submissions from the Postfix maildrop queue.
 This feature is available in Postfix 2.0 and later.
 .SH pipe_bounce_defer_filter (default: $default_bounce_defer_filter)
 Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See default_bounce_defer_filter for
-details.
+soft errors and vice versa in the \fBpipe\fR(8) delivery agent. See
+default_bounce_defer_filter for details.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH plaintext_reject_code (default: 450)
@@ -5848,8 +5854,8 @@ that change the delivery time or destination are not available.
 This feature is available in Postfix 2.5 and later.
 .SH smtp_bounce_defer_filter (default: $default_bounce_defer_filter)
 Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See default_bounce_defer_filter for
-details.
+soft errors and vice versa in the \fBsmtp\fR(8) delivery agent. See
+default_bounce_defer_filter for details.
 .PP
 NOTE: This feature modifies error messages that are generated
 by the Postfix SMTP client, and that may or may not be derived from
@@ -12334,8 +12340,8 @@ change in the future.
 This feature is available in Postfix 2.1 and later.
 .SH virtual_bounce_defer_filter (default: $default_bounce_defer_filter)
 Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See default_bounce_defer_filter for
-details.
+soft errors and vice versa in the \fBvirtual\fR(8) delivery agent. See
+default_bounce_defer_filter for details.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH virtual_destination_concurrency_limit (default: $default_destination_concurrency_limit)

@@ -385,6 +385,11 @@
 /*	Reset the \fBlocal\fR(8) delivery agent's idea of the owner-alias
 /*	attribute, when delivering mail to a child alias that does not have
 /*	its own owner alias.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBlocal_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+/*	Optional filter to change arbitrary hard delivery errors into
+/*	soft errors and vice versa in the \fBlocal\fR(8) delivery agent.
 /* DELIVERY METHOD CONTROLS
 /* .ad
 /* .fi
@@ -663,6 +668,7 @@ int     local_ext_prop_mask;
 int     local_deliver_hdr_mask;
 int     local_mbox_lock_mask;
 MAPS   *alias_maps;
+char   *var_local_ndr_filter;
 
 /* local_deliver - deliver message with extreme prejudice */
 
@@ -898,6 +904,7 @@ int     main(int argc, char **argv)
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
 	VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, &var_mailbox_lock, 1, 0,
 	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
+	VAR_LOCAL_NDR_FILTER, DEF_LOCAL_NDR_FILTER, &var_local_ndr_filter, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -936,5 +943,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_LOCAL_NDR_FILTER,
+		       &var_local_ndr_filter,
 		       0);
 }

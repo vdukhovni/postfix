@@ -12,7 +12,7 @@
 /*
 /*	DSN	*ndr_filter_lookup(
 /*	NDR_FILTER *fp,
-/*	DSN	dsn)
+/*	DSN	*dsn)
 /*
 /*	void	dsn_free(
 /*	NDR_FILTER *fp)
@@ -125,8 +125,12 @@ DSN    *ndr_filter_lookup(NDR_FILTER *fp, DSN *dsn)
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, dsn->status, dsn->reason);
 
+    /*
+     * XXX Instead of hard-coded '4' or '5', use some form of encapsulation
+     * to read or update the class field.
+     */
 #define IS_NDR_DSN(s) \
-	(dsn_valid(s) && (s)[1] == '.' && ((s)[0] == '4' || (s)[0] == '5'))
+	(dsn_valid(s) && ((s)[0] == '4' || (s)[0] == '5'))
 
     /*
      * Sanity check. We filter only bounce/defer DSNs.

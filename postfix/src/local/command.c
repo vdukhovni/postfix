@@ -235,13 +235,8 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 	break;
     case PIPE_STAT_BOUNCE:
     case PIPE_STAT_DEFER:
-	if (STR(why->status)[0] == '4')
-	    deliver_status =
-		defer_append(BOUNCE_FLAGS(state.request),
-			     BOUNCE_ATTR(state.msg_attr));
-	else
-	    /* Account for possible owner- sender address override. */
-	    deliver_status = bounce_workaround(state);
+	/* Account for possible owner- sender address override. */
+	deliver_status = bounce_workaround(state);
 	break;
     case PIPE_STAT_CORRUPT:
 	deliver_status = DEL_STAT_DEFER;

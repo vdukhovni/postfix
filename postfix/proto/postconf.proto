@@ -15683,8 +15683,8 @@ sender. </p>
 %PARAM smtp_bounce_defer_filter $default_bounce_defer_filter
 
 <p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See default_bounce_defer_filter for
-details.  </p>
+soft errors and vice versa in the smtp(8) delivery agent. See
+default_bounce_defer_filter for details.  </p>
 
 <p> NOTE: This feature modifies error messages that are generated
 by the Postfix SMTP client, and that may or may not be derived from
@@ -15702,15 +15702,23 @@ configuration parameter.  See there for details. </p>
 %PARAM pipe_bounce_defer_filter $default_bounce_defer_filter
 
 <p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See default_bounce_defer_filter for
-details.  </p>
+soft errors and vice versa in the pipe(8) delivery agent. See
+default_bounce_defer_filter for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
 %PARAM virtual_bounce_defer_filter $default_bounce_defer_filter
 
 <p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See default_bounce_defer_filter for
-details.  </p>
+soft errors and vice versa in the virtual(8) delivery agent. See
+default_bounce_defer_filter for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM local_bounce_defer_filter $default_bounce_defer_filter
+
+<p> Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa in the local(8) delivery agent. See
+default_bounce_defer_filter for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

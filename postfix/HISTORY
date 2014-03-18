@@ -19611,15 +19611,26 @@ Apologies for any names omitted.
 20140316
 
 	Feature: preliminary support to change arbitrary hard
-	delivery errors into soft errors and vice versa, originally
-	introduced for sites that want to hard-bounce mail when a
-	remote SMTP server does not announce TLS support. New main.cf
+	delivery errors into soft errors and vice versa, or to
+	replace the descriptive text of non-delivery notifications.
+	This was originally introduced for sites that want to bounce
+	mail when no remote SMTP server announces TLS support. New
 	parameters: {default,smtp,pipe,virtual}_bounce_defer_filter.
-	Support for the local(8) delivery agent is awaiting additional
-	code to emulate defer_one() support, and support for qmgr(8)
-	is awaiting further analysis.  Files: proto/postconf.proto,
-	mantools/postlink, global/bounce.[hc], bounce/defer.[hc],
-	global/ndr_filter.[hc], global/mail_params.[hc],
+	Files: proto/postconf.proto, mantools/postlink, global/bounce.[hc],
+	bounce/defer.[hc], global/ndr_filter.[hc], global/mail_params.[hc],
 	master/event_server.c, master/multi_server.c,
 	master/single_server.c, master/trigger_server.c, smtp/smtp.c,
 	pipe/pipe.c, virtual/virtual.c.
+
+20140317
+
+	Feature: local_bounce_defer_filter support. Files:
+	global/bounce.[hc], global/defer.[hc], local/command.c,
+	local/file.c, local/bounce_workaround.c, local/local.c,
+	global/mail_params.h.
+
+20140318
+
+	Refinement: don't throttle an SMTP destination when the new
+	smtp_bounce_defer_filter feature turns a soft bounce into
+	a hard bounce.  File: smtp/smtp_trouble.c.

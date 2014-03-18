@@ -3765,6 +3765,10 @@ extern char *var_pipe_ndr_filter;
 #define DEF_VIRT_NDR_FILTER		"$" VAR_NDR_FILTER
 extern char *var_virt_ndr_filter;
 
+#define VAR_LOCAL_NDR_FILTER		"local_bounce_defer_filter"
+#define DEF_LOCAL_NDR_FILTER		"$" VAR_NDR_FILTER
+extern char *var_local_ndr_filter;
+
 /* LICENSE
 /* .ad
 /* .fi

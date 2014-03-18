@@ -16,17 +16,17 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.10 or earlier, read RELEASE_NOTES-2.11
 before proceeding.
 
-Major changes with snapshot 20140316
+Major changes with snapshot 20140318
 ====================================
 
-Preliminary support to change arbitrary hard delivery errors into
-soft errors and vice versa, originally implemented for sites that
-want to bounce mail when a remote SMTP server does not support
-STARTTLS.
+Support to change arbitrary hard delivery errors into soft errors
+and vice versa, or to replace the descriptive text in non-delivery
+notifications. This was originally implemented for sites that want
+to bounce mail when no remote SMTP server supports STARTTLS.
 
 This feature is implemented as a filter that replaces the three-number
 enhanced status code and descriptive text in Postfix delivery agent
-bounce/defer messages.
+bounce/defer messages. Note: this will not override "soft_bounce=yes".
 
 The following example turns specific soft TLS errors into hard
 errors, by overriding the first number in the enhanced status code.
@@ -38,15 +38,20 @@ errors, by overriding the first number in the enhanced status code.
     /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/ 5$1
     /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/ 5$1
 
-Support is currently limited to the lmtp(8), pipe(8), smtp(8) and
-virtual(8) delivery agents. The new main.cf parameters and default
-values are:
+This feature is supported in the lmtp(8), local(8), pipe(8), smtp(8)
+and virtual(8) delivery agents. That is, all delivery agents that
+actually deliver mail. 
+
+This feature will not be supported in the error(8) or retry(8) dummy
+delivery agents, because lots of things would break.
+
+The new main.cf parameters and default values are:
 
     default_bounce_defer_filter =
     lmtp_bounce_defer_filter = $default_bounce_defer_filter
+    local_bounce_defer_filter = $default_bounce_defer_filter
     pipe_bounce_defer_filter = $default_bounce_defer_filter
     smtp_bounce_defer_filter = $default_bounce_defer_filter
     virtual_bounce_defer_filter = $default_bounce_defer_filter
 
-See the postconf(5) manpage for more details.  Support for local(8)
-and qmgr(8) will be added as time is available.
+See the postconf(5) manpage for more details.

@@ -141,9 +141,6 @@
 /*	Always send EHLO at the start of an SMTP session.
 /* .IP "\fBsmtp_never_send_ehlo (no)\fR"
 /*	Never send EHLO at the start of an SMTP session.
-/* .IP "\fBsmtp_bounce_defer_filter ($default_bounce_defer_filter)\fR"
-/*	Optional filter to change arbitrary hard delivery errors into
-/*	soft errors and vice versa.
 /* .IP "\fBsmtp_defer_if_no_mx_address_found (no)\fR"
 /*	Defer mail delivery when no MX record resolves to an IP address.
 /* .IP "\fBsmtp_line_length_limit (998)\fR"
@@ -255,6 +252,11 @@
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBsmtp_dns_support_level (empty)\fR"
 /*	Level of DNS support in the Postfix SMTP client.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtp_bounce_defer_filter ($default_bounce_defer_filter)\fR"
+/*	Optional filter to change arbitrary hard delivery errors into
+/*	soft errors and vice versa in the \fBsmtp\fR(8) delivery agent.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

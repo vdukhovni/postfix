@@ -261,9 +261,11 @@ VIRTUAL(8)                                                          VIRTUAL(8)
               syslog  records,  so  that  "smtpd" becomes, for example, "post-
               fix/smtpd".
 
+       Available in Postfix version 2.12 and later:
+
        <b><a href="postconf.5.html#virtual_bounce_defer_filter">virtual_bounce_defer_filter</a> ($<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b>
               Optional filter to change arbitrary hard  delivery  errors  into
-              soft errors and vice versa.
+              soft errors and vice versa in the <a href="virtual.8.html"><b>virtual</b>(8)</a> delivery agent.
 
 <b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager

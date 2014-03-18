@@ -90,8 +90,8 @@
 /*
 /*	bounce_client_init() initializes an optional DSN filter.
 /*
-/*	bounce_append_intern() is for use after the DSN filter. DSN
-/*	filtering is not yet supported for bounce_one().
+/*	bounce_append_intern() and bounce_one_intern() are for use
+/*	after the DSN filter.
 /*
 /*	Arguments:
 /* .IP flags
@@ -393,7 +393,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
 		           const char *relay, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
-    int     status;
+    DSN    *dsn_res;
 
     /*
      * Sanity check.
@@ -402,6 +402,30 @@ int     bounce_one(int flags, const char *queue, const char *id,
 	msg_warn("bounce_one: ignoring dsn code \"%s\"", my_dsn.status);
 	my_dsn.status = "5.0.0";
     }
+
+    /*
+     * DSN filter (Postfix 2.12).
+     */
+    if (bounce_defer_filter != 0
+      && (dsn_res = ndr_filter_lookup(bounce_defer_filter, &my_dsn)) != 0) {
+	if (dsn_res->status[0] == '4')
+	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
+	my_dsn = *dsn_res;
+    }
+    return (bounce_one_intern(flags, queue, id, encoding, sender, dsn_envid,
+			      dsn_ret, stats, rcpt, relay, &my_dsn));
+}
+
+/* bounce_one_intern - send notice for one recipient */
+
+int     bounce_one_intern(int flags, const char *queue, const char *id,
+			          const char *encoding, const char *sender,
+			          const char *dsn_envid, int dsn_ret,
+			          MSG_STATS *stats, RECIPIENT *rcpt,
+			          const char *relay, DSN *dsn)
+{
+    DSN     my_dsn = *dsn;
+    int     status;
 
     /*
      * MTA-requested address verification information is stored in the verify
@@ -429,7 +453,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
      * based procedure.
      */
     else if (var_soft_bounce) {
-	return (bounce_append(flags, id, stats, rcpt, relay, &my_dsn));
+	return (bounce_append_intern(flags, id, stats, rcpt, relay, &my_dsn));
     }
 
     /*
@@ -469,7 +493,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
 	    vstring_sprintf(junk, "%s or %s service failure",
 			    var_bounce_service, var_trace_service);
 	    my_dsn.reason = vstring_str(junk);
-	    status = defer_append(flags, id, stats, rcpt, relay, &my_dsn);
+	    status = defer_append_intern(flags, id, stats, rcpt, relay, &my_dsn);
 	    vstring_free(junk);
 	} else {
 	    status = -1;

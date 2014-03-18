@@ -152,10 +152,6 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_never_send_ehlo">smtp_never_send_ehlo</a> (no)</b>
               Never send EHLO at the start of an SMTP session.
 
-       <b><a href="postconf.5.html#smtp_bounce_defer_filter">smtp_bounce_defer_filter</a> ($<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b>
-              Optional  filter  to  change arbitrary hard delivery errors into
-              soft errors and vice versa.
-
        <b><a href="postconf.5.html#smtp_defer_if_no_mx_address_found">smtp_defer_if_no_mx_address_found</a> (no)</b>
               Defer mail delivery when no MX record resolves to an IP address.
 
@@ -164,8 +160,8 @@ SMTP(8)                                                                SMTP(8)
               will send via SMTP.
 
        <b><a href="postconf.5.html#smtp_pix_workaround_delay_time">smtp_pix_workaround_delay_time</a> (10s)</b>
-              How  long  the  Postfix  SMTP  client  pauses   before   sending
-              ".&lt;CR&gt;&lt;LF&gt;"   in   order   to   work  around  the  PIX  firewall
+              How   long   the  Postfix  SMTP  client  pauses  before  sending
+              ".&lt;CR&gt;&lt;LF&gt;"  in  order  to  work   around   the   PIX   firewall
               "&lt;CR&gt;&lt;LF&gt;.&lt;CR&gt;&lt;LF&gt;" bug.
 
        <b><a href="postconf.5.html#smtp_pix_workaround_threshold_time">smtp_pix_workaround_threshold_time</a> (500s)</b>
@@ -174,19 +170,19 @@ SMTP(8)                                                                SMTP(8)
               delivery through firewalls with "smtp fixup" mode turned on.
 
        <b><a href="postconf.5.html#smtp_pix_workarounds">smtp_pix_workarounds</a> (disable_esmtp, delay_dotcrlf)</b>
-              A list that specifies zero or more  workarounds  for  CISCO  PIX
+              A  list  that  specifies  zero or more workarounds for CISCO PIX
               firewall bugs.
 
        <b><a href="postconf.5.html#smtp_pix_workaround_maps">smtp_pix_workaround_maps</a> (empty)</b>
-              Lookup  tables,  indexed by the remote SMTP server address, with
+              Lookup tables, indexed by the remote SMTP server  address,  with
               per-destination workarounds for CISCO PIX firewall bugs.
 
        <b><a href="postconf.5.html#smtp_quote_rfc821_envelope">smtp_quote_rfc821_envelope</a> (yes)</b>
-              Quote addresses in Postfix SMTP client MAIL  FROM  and  RCPT  TO
+              Quote  addresses  in  Postfix  SMTP client MAIL FROM and RCPT TO
               commands as required by <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>.
 
        <b><a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a> (empty)</b>
-              A  mechanism  to  transform replies from remote SMTP servers one
+              A mechanism to transform replies from remote  SMTP  servers  one
               line at a time.
 
        <b><a href="postconf.5.html#smtp_skip_5xx_greeting">smtp_skip_5xx_greeting</a> (yes)</b>
@@ -198,68 +194,68 @@ SMTP(8)                                                                SMTP(8)
        Available in Postfix version 2.0 and earlier:
 
        <b><a href="postconf.5.html#smtp_skip_4xx_greeting">smtp_skip_4xx_greeting</a> (yes)</b>
-              Skip SMTP servers that greet with a 4XX status  code  (go  away,
+              Skip  SMTP  servers  that greet with a 4XX status code (go away,
               try again later).
 
        Available in Postfix version 2.2 and later:
 
        <b><a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a> (empty)</b>
-              Lookup  tables,  indexed by the remote SMTP server address, with
-              case insensitive lists of EHLO keywords  (pipelining,  starttls,
+              Lookup tables, indexed by the remote SMTP server  address,  with
+              case  insensitive  lists of EHLO keywords (pipelining, starttls,
               auth, etc.) that the Postfix SMTP client will ignore in the EHLO
               response from a remote SMTP server.
 
        <b><a href="postconf.5.html#smtp_discard_ehlo_keywords">smtp_discard_ehlo_keywords</a> (empty)</b>
-              A case insensitive list of EHLO keywords (pipelining,  starttls,
+              A  case insensitive list of EHLO keywords (pipelining, starttls,
               auth, etc.) that the Postfix SMTP client will ignore in the EHLO
               response from a remote SMTP server.
 
        <b><a href="postconf.5.html#smtp_generic_maps">smtp_generic_maps</a> (empty)</b>
-              Optional lookup tables that perform  address  rewriting  in  the
-              Postfix  SMTP  client,  typically  to  transform a locally valid
-              address into a globally valid address when sending  mail  across
+              Optional  lookup  tables  that  perform address rewriting in the
+              Postfix SMTP client, typically  to  transform  a  locally  valid
+              address  into  a globally valid address when sending mail across
               the Internet.
 
        Available in Postfix version 2.2.9 and later:
 
        <b><a href="postconf.5.html#smtp_cname_overrides_servername">smtp_cname_overrides_servername</a> (version dependent)</b>
-              When  the  remote  SMTP  servername  is a DNS CNAME, replace the
-              servername with the result from CNAME expansion for the  purpose
-              of  logging,  SASL password lookup, TLS policy decisions, or TLS
+              When the remote SMTP servername is  a  DNS  CNAME,  replace  the
+              servername  with the result from CNAME expansion for the purpose
+              of logging, SASL password lookup, TLS policy decisions,  or  TLS
               certificate verification.
 
        Available in Postfix version 2.3 and later:
 
        <b><a href="postconf.5.html#lmtp_discard_lhlo_keyword_address_maps">lmtp_discard_lhlo_keyword_address_maps</a> (empty)</b>
-              Lookup tables, indexed by the remote LMTP server  address,  with
-              case  insensitive  lists of LHLO keywords (pipelining, starttls,
+              Lookup  tables,  indexed by the remote LMTP server address, with
+              case insensitive lists of LHLO keywords  (pipelining,  starttls,
               auth, etc.) that the Postfix LMTP client will ignore in the LHLO
               response from a remote LMTP server.
 
        <b><a href="postconf.5.html#lmtp_discard_lhlo_keywords">lmtp_discard_lhlo_keywords</a> (empty)</b>
-              A  case insensitive list of LHLO keywords (pipelining, starttls,
+              A case insensitive list of LHLO keywords (pipelining,  starttls,
               auth, etc.) that the Postfix LMTP client will ignore in the LHLO
               response from a remote LMTP server.
 
        Available in Postfix version 2.4.4 and later:
 
        <b><a href="postconf.5.html#send_cyrus_sasl_authzid">send_cyrus_sasl_authzid</a> (no)</b>
-              When  authenticating  to  a  remote SMTP or LMTP server with the
-              default setting "no", send no SASL authoriZation  ID  (authzid);
-              send  only  the  SASL authentiCation ID (authcid) plus the auth-
+              When authenticating to a remote SMTP or  LMTP  server  with  the
+              default  setting  "no", send no SASL authoriZation ID (authzid);
+              send only the SASL authentiCation ID (authcid)  plus  the  auth-
               cid's password.
 
        Available in Postfix version 2.5 and later:
 
        <b><a href="postconf.5.html#smtp_header_checks">smtp_header_checks</a> (empty)</b>
-              Restricted <a href="header_checks.5.html"><b>header_checks</b>(5)</a> tables for the Postfix SMTP  client.
+              Restricted  <a href="header_checks.5.html"><b>header_checks</b>(5)</a> tables for the Postfix SMTP client.
 
        <b><a href="postconf.5.html#smtp_mime_header_checks">smtp_mime_header_checks</a> (empty)</b>
-              Restricted  <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>(5)  tables  for  the Postfix SMTP
+              Restricted <b><a href="postconf.5.html#mime_header_checks">mime_header_checks</a></b>(5) tables  for  the  Postfix  SMTP
               client.
 
        <b><a href="postconf.5.html#smtp_nested_header_checks">smtp_nested_header_checks</a> (empty)</b>
-              Restricted <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a></b>(5) tables for the  Postfix  SMTP
+              Restricted  <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a></b>(5)  tables for the Postfix SMTP
               client.
 
        <b><a href="postconf.5.html#smtp_body_checks">smtp_body_checks</a> (empty)</b>
@@ -268,7 +264,7 @@ SMTP(8)                                                                SMTP(8)
        Available in Postfix version 2.6 and later:
 
        <b><a href="postconf.5.html#tcp_windowsize">tcp_windowsize</a> (0)</b>
-              An  optional  workaround for routers that break TCP window scal-
+              An optional workaround for routers that break TCP  window  scal-
               ing.
 
        Available in Postfix version 2.8 and later:
@@ -279,20 +275,26 @@ SMTP(8)                                                                SMTP(8)
        Available in Postfix version 2.9 and later:
 
        <b><a href="postconf.5.html#smtp_per_record_deadline">smtp_per_record_deadline</a> (no)</b>
-              Change the behavior of the smtp_*_timeout time  limits,  from  a
-              time  limit  per  read  or write system call, to a time limit to
-              send or receive a complete record (an SMTP  command  line,  SMTP
-              response  line,  SMTP message content line, or TLS protocol mes-
+              Change  the  behavior  of the smtp_*_timeout time limits, from a
+              time limit per read or write system call, to  a  time  limit  to
+              send  or  receive  a complete record (an SMTP command line, SMTP
+              response line, SMTP message content line, or TLS  protocol  mes-
               sage).
 
        <b><a href="postconf.5.html#smtp_send_dummy_mail_auth">smtp_send_dummy_mail_auth</a> (no)</b>
-              Whether or not to append the "AUTH=&lt;&gt;" option to the  MAIL  FROM
+              Whether  or  not to append the "AUTH=&lt;&gt;" option to the MAIL FROM
               command in SASL-authenticated SMTP sessions.
 
        Available in Postfix version 2.11 and later:
 
        <b><a href="postconf.5.html#smtp_dns_support_level">smtp_dns_support_level</a> (empty)</b>
               Level of DNS support in the Postfix SMTP client.
+
+       Available in Postfix version 2.12 and later:
+
+       <b><a href="postconf.5.html#smtp_bounce_defer_filter">smtp_bounce_defer_filter</a> ($<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b>
+              Optional filter to change arbitrary hard  delivery  errors  into
+              soft errors and vice versa in the <a href="smtp.8.html"><b>smtp</b>(8)</a> delivery agent.
 
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:

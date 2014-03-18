@@ -184,13 +184,8 @@ int     deliver_file(LOCAL_STATE state, USER_ATTR usr_attr, char *path)
     } else if (mail_copy_status != 0) {
 	vstring_sprintf_prepend(why->reason,
 				"cannot append message to file %s: ", path);
-	if (STR(why->status)[0] == '4')
-	    deliver_status =
-		defer_append(BOUNCE_FLAGS(state.request),
-			     BOUNCE_ATTR(state.msg_attr));
-	else
-	    /* Account for possible owner- sender address override. */
-	    deliver_status = bounce_workaround(state);
+	/* Account for possible owner- sender address override. */
+	deliver_status = bounce_workaround(state);
     } else {
 	dsb_simple(why, "2.0.0", "delivered to file: %s", path);
 	deliver_status = sent(BOUNCE_FLAGS(state.request),

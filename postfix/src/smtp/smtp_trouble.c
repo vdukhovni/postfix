@@ -195,6 +195,7 @@ static int smtp_bulk_fail(SMTP_STATE *state, int throttle_queue)
     DSN_BUF *why = state->why;
     RECIPIENT *rcpt;
     int     status;
+    int     aggregate_status;
     int     soft_error = (STR(why->status)[0] == '4');
     int     soft_bounce_error = (STR(why->status)[0] == '5' && var_soft_bounce);
     int     nrcpt;
@@ -239,6 +240,7 @@ static int smtp_bulk_fail(SMTP_STATE *state, int throttle_queue)
 	    GETTIMEOFDAY(&request->msg_stats.deliver_done);
 
 	(void) DSN_FROM_DSN_BUF(why);
+	aggregate_status = 0;
 	for (nrcpt = 0; nrcpt < SMTP_RCPT_LEFT(state); nrcpt++) {
 	    rcpt = request->rcpt_list.info + nrcpt;
 	    if (SMTP_RCPT_ISMARKED(rcpt))
@@ -250,10 +252,11 @@ static int smtp_bulk_fail(SMTP_STATE *state, int throttle_queue)
 	    if (status == 0)
 		deliver_completed(state->src, rcpt->offset);
 	    SMTP_RCPT_DROP(state, rcpt);
-	    state->status |= status;
+	    aggregate_status |= status;
 	}
+	state->status |= aggregate_status;
 	if ((state->misc_flags & SMTP_MISC_FLAG_COMPLETE_SESSION) == 0
-	    && throttle_queue && (soft_error || soft_bounce_error)
+	    && throttle_queue && aggregate_status
 	    && request->hop_status == 0)
 	    request->hop_status = DSN_COPY(&why->dsn);
     }

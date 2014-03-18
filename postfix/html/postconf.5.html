@@ -5129,6 +5129,18 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="local_bounce_defer_filter">local_bounce_defer_filter</a>
+(default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
+
+<p> Optional filter to change arbitrary hard delivery errors into
+soft errors and vice versa in the <a href="local.8.html">local(8)</a> delivery agent. See
+<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="local_command_shell">local_command_shell</a>
 (default: empty)</b></DT><DD>
 
@@ -7005,8 +7017,8 @@ This feature is available in Postfix 2.0 and later.
 (default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
 
 <p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See <a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for
-details.  </p>
+soft errors and vice versa in the <a href="pipe.8.html">pipe(8)</a> delivery agent. See
+<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -9582,8 +9594,8 @@ that change the delivery time or destination are not available.
 (default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
 
 <p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See <a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for
-details.  </p>
+soft errors and vice versa in the <a href="smtp.8.html">smtp(8)</a> delivery agent. See
+<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
 
 <p> NOTE: This feature modifies error messages that are generated
 by the Postfix SMTP client, and that may or may not be derived from
@@ -18211,8 +18223,8 @@ This feature is available in Postfix 2.1 and later.
 (default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
 
 <p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa. See <a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for
-details.  </p>
+soft errors and vice versa in the <a href="virtual.8.html">virtual(8)</a> delivery agent. See
+<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
