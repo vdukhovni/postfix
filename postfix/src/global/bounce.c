@@ -53,7 +53,7 @@
 /*	const char *title;
 /*	const char *maps;
 /* INTERNAL API
-/*	NDR_FILTER *bounce_defer_filter;
+/*	DSN_FILTER *delivery_status_filter;
 /*
 /*	int	bounce_append_intern(flags, id, stats, recipient, relay, dsn)
 /*	int	flags;
@@ -181,7 +181,7 @@
 
 /* Global library. */
 
-#define BOUNCE_DEFER_INTERN
+#define DSN_INTERN
 #include <mail_params.h>
 #include <mail_proto.h>
 #include <log_adhoc.h>
@@ -195,7 +195,7 @@
 
 /* Shared internally, between bounce and defer clients. */
 
-NDR_FILTER *bounce_defer_filter;
+DSN_FILTER *delivery_status_filter;
 
 /* bounce_append - append delivery status to per-message bounce log */
 
@@ -218,8 +218,8 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
     /*
      * DSN filter (Postfix 2.12).
      */
-    if (bounce_defer_filter != 0
-      && (dsn_res = ndr_filter_lookup(bounce_defer_filter, &my_dsn)) != 0) {
+    if (delivery_status_filter != 0
+      && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
 	if (dsn_res->status[0] == '4')
 	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
 	my_dsn = *dsn_res;
@@ -406,8 +406,8 @@ int     bounce_one(int flags, const char *queue, const char *id,
     /*
      * DSN filter (Postfix 2.12).
      */
-    if (bounce_defer_filter != 0
-      && (dsn_res = ndr_filter_lookup(bounce_defer_filter, &my_dsn)) != 0) {
+    if (delivery_status_filter != 0
+      && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
 	if (dsn_res->status[0] == '4')
 	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
 	my_dsn = *dsn_res;
@@ -508,8 +508,8 @@ void    bounce_client_init(const char *title, const char *maps)
 {
     const char myname[] = "bounce_client_init";
 
-    if (bounce_defer_filter != 0)
+    if (delivery_status_filter != 0)
 	msg_panic("%s: duplicate initialization", myname);
     if (*maps)
-	bounce_defer_filter = ndr_filter_create(title, maps);
+	delivery_status_filter = dsn_filter_create(title, maps);
 }

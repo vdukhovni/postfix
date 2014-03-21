@@ -3747,27 +3747,27 @@ extern bool var_daemon_open_fatal;
  /*
   * Optional DSN bounce/defer filter.
   */
-#define VAR_NDR_FILTER			"default_bounce_defer_filter"
-#define DEF_NDR_FILTER			""
-extern char *var_ndr_filter;
+#define VAR_DSN_FILTER			"default_delivery_status_filter"
+#define DEF_DSN_FILTER			""
+extern char *var_dsn_filter;
 
-#define VAR_SMTP_NDR_FILTER		"smtp_bounce_defer_filter"
-#define DEF_SMTP_NDR_FILTER		"$" VAR_NDR_FILTER
-#define VAR_LMTP_NDR_FILTER		"lmtp_bounce_defer_filter"
-#define DEF_LMTP_NDR_FILTER		"$" VAR_NDR_FILTER
-extern char *var_smtp_ndr_filter;
+#define VAR_SMTP_DSN_FILTER		"smtp_delivery_status_filter"
+#define DEF_SMTP_DSN_FILTER		"$" VAR_DSN_FILTER
+#define VAR_LMTP_DSN_FILTER		"lmtp_delivery_status_filter"
+#define DEF_LMTP_DSN_FILTER		"$" VAR_DSN_FILTER
+extern char *var_smtp_dsn_filter;
 
-#define VAR_PIPE_NDR_FILTER		"pipe_bounce_defer_filter"
-#define DEF_PIPE_NDR_FILTER		"$" VAR_NDR_FILTER
-extern char *var_pipe_ndr_filter;
+#define VAR_PIPE_DSN_FILTER		"pipe_delivery_status_filter"
+#define DEF_PIPE_DSN_FILTER		"$" VAR_DSN_FILTER
+extern char *var_pipe_dsn_filter;
 
-#define VAR_VIRT_NDR_FILTER		"virtual_bounce_defer_filter"
-#define DEF_VIRT_NDR_FILTER		"$" VAR_NDR_FILTER
-extern char *var_virt_ndr_filter;
+#define VAR_VIRT_DSN_FILTER		"virtual_delivery_status_filter"
+#define DEF_VIRT_DSN_FILTER		"$" VAR_DSN_FILTER
+extern char *var_virt_dsn_filter;
 
-#define VAR_LOCAL_NDR_FILTER		"local_bounce_defer_filter"
-#define DEF_LOCAL_NDR_FILTER		"$" VAR_NDR_FILTER
-extern char *var_local_ndr_filter;
+#define VAR_LOCAL_DSN_FILTER		"local_delivery_status_filter"
+#define DEF_LOCAL_DSN_FILTER		"$" VAR_DSN_FILTER
+extern char *var_local_dsn_filter;
 
 /* LICENSE
 /* .ad

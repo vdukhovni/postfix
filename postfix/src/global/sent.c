@@ -19,8 +19,6 @@
 /*	message delivery record on request by the sender. The
 /*	flags argument determines the action.
 /*
-/*	vsent() implements an alternative interface.
-/*
 /*	Arguments:
 /* .IP flags
 /*	Zero or more of the following:
@@ -79,6 +77,7 @@
 
 /* Global library. */
 
+#define DSN_INTERN
 #include <mail_params.h>
 #include <verify.h>
 #include <log_adhoc.h>
@@ -97,6 +96,7 @@ int     sent(int flags, const char *id, MSG_STATS *stats,
 	             DSN *dsn)
 {
     DSN     my_dsn = *dsn;
+    DSN    *dsn_res;
     int     status;
 
     /*
@@ -106,6 +106,13 @@ int     sent(int flags, const char *id, MSG_STATS *stats,
 	msg_warn("sent: ignoring dsn code \"%s\"", my_dsn.status);
 	my_dsn.status = "2.0.0";
     }
+
+    /*
+     * DSN filter (Postfix 2.12).
+     */
+    if (delivery_status_filter != 0
+     && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0)
+	my_dsn = *dsn_res;
 
     /*
      * MTA-requested address verification information is stored in the verify
@@ -147,7 +154,7 @@ int     sent(int flags, const char *id, MSG_STATS *stats,
 	    vstring_sprintf(junk, "%s: %s service failed",
 			    id, var_trace_service);
 	    my_dsn.reason = vstring_str(junk);
-	    my_dsn.status ="4.3.0";
+	    my_dsn.status = "4.3.0";
 	    status = defer_append(flags, id, stats, recipient, relay, &my_dsn);
 	    vstring_free(junk);
 	}

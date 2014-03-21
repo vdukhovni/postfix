@@ -133,7 +133,7 @@ while (<>) {
     s;\bdaemon_timeout\b;<a href="postconf.5.html#daemon_timeout">$&</a>;g;
     s;\bdebug_peer_level\b;<a href="postconf.5.html#debug_peer_level">$&</a>;g;
     s;\bdebug_peer_list\b;<a href="postconf.5.html#debug_peer_list">$&</a>;g;
-    s;\bdefault_bounce_defer_filter\b;<a href="postconf.5.html#default_bounce_defer_filter">$&</a>;g;
+    s;\bdefault_delivery_status_filter\b;<a href="postconf.5.html#default_delivery_status_filter">$&</a>;g;
     s;\bdefault_data[-</Bb>]*\n* *[<Bb>]*base_type\b;<a href="postconf.5.html#default_database_type">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_cost\b;<a href="postconf.5.html#default_delivery_slot_cost">$&</a>;g;
     s;\bdefault_deliv[-</Bb>]*\n* *[<Bb>]*ery_slot_discount\b;<a href="postconf.5.html#default_delivery_slot_discount">$&</a>;g;
@@ -213,7 +213,7 @@ while (<>) {
     s;\blmtp_address_preference\b;<a href="postconf.5.html#lmtp_address_preference">$&</a>;g;
     s;\blmtp_body_checks\b;<a href="postconf.5.html#lmtp_body_checks">$&</a>;g;
     s;\blmtp_cname_overrides_servername\b;<a href="postconf.5.html#lmtp_cname_overrides_servername">$&</a>;g;
-    s;\blmtp_bounce_defer_filter\b;<a href="postconf.5.html#lmtp_bounce_defer_filter">$&</a>;g;
+    s;\blmtp_delivery_status_filter\b;<a href="postconf.5.html#lmtp_delivery_status_filter">$&</a>;g;
     s;\blmtp_dns_resolver_options\b;<a href="postconf.5.html#lmtp_dns_resolver_options">$&</a>;g;
     s;\blmtp_dns_support_level\b;<a href="postconf.5.html#lmtp_dns_support_level">$&</a>;g;
     s;\blmtp_header_checks\b;<a href="postconf.5.html#lmtp_header_checks">$&</a>;g;
@@ -307,7 +307,7 @@ while (<>) {
     s;\blmtp_skip_quit_response\b;<a href="postconf.5.html#lmtp_skip_quit_response">$&</a>;g;
     s;\blmtp_tcp_port\b;<a href="postconf.5.html#lmtp_tcp_port">$&</a>;g;
     s;\blmtp_xforward_timeout\b;<a href="postconf.5.html#lmtp_xforward_timeout">$&</a>;g;
-    s;\blocal_bounce_defer_filter\b;<a href="postconf.5.html#local_bounce_defer_filter">$&</a>;g;
+    s;\blocal_delivery_status_filter\b;<a href="postconf.5.html#local_delivery_status_filter">$&</a>;g;
     s;\blocal_command_shell\b;<a href="postconf.5.html#local_command_shell">$&</a>;g;
     s;\blocal_destina[-</bB>]*\n* *[<bB>]*tion_concurrency_limit\b;<a href="postconf.5.html#local_destination_concurrency_limit">$&</a>;g;
     s;\blocal_destina[-</bB>]*\n* *[<bB>]*tion_recip[-</bB>]*\n* *[<bB>]*ient_limit\b;<a href="postconf.5.html#local_destination_recipient_limit">$&</a>;g;
@@ -360,7 +360,7 @@ while (<>) {
     s;\bpar[-</bB>]*\n* *[<bB>]*ent_domain_matches_subdomains\b;<a href="postconf.5.html#parent_domain_matches_subdomains">$&</a>;g;
     s;\bpermit_mx_backup_networks\b;<a href="postconf.5.html#permit_mx_backup_networks">$&</a>;g;
     s;\bpickup_service_name\b;<a href="postconf.5.html#pickup_service_name">$&</a>;g;
-    s;\bpipe_bounce_defer_filter\b;<a href="postconf.5.html#pipe_bounce_defer_filter">$&</a>;g;
+    s;\bpipe_delivery_status_filter\b;<a href="postconf.5.html#pipe_delivery_status_filter">$&</a>;g;
     s;\bplaintext_reject_code\b;<a href="postconf.5.html#plaintext_reject_code">$&</a>;g;
     s;\bpost[-</bB>]*\n* *[<bB>]*multi_start_commands\b;<a href="postconf.5.html#postmulti_start_commands">$&</a>;g;
     s;\bpost[-</bB>]*\n* *[<bB>]*multi_stop_commands\b;<a href="postconf.5.html#postmulti_stop_commands">$&</a>;g;
@@ -455,7 +455,7 @@ while (<>) {
     s;\bsmtp_connection_cache_time_limit\b;<a href="postconf.5.html#smtp_connection_cache_time_limit">$&</a>;g;
     s;\bsmtp_connection_cache_destinations\b;<a href="postconf.5.html#smtp_connection_cache_destinations">$&</a>;g;
 
-    s;\bsmtp_bounce_defer_filter\b;<a href="postconf.5.html#smtp_bounce_defer_filter">$&</a>;g;
+    s;\bsmtp_delivery_status_filter\b;<a href="postconf.5.html#smtp_delivery_status_filter">$&</a>;g;
     s;\bsmtp_data_done_timeout\b;<a href="postconf.5.html#smtp_data_done_timeout">$&</a>;g;
     s;\bsmtp_data_init_timeout\b;<a href="postconf.5.html#smtp_data_init_timeout">$&</a>;g;
     s;\bsmtp_data_xfer_timeout\b;<a href="postconf.5.html#smtp_data_xfer_timeout">$&</a>;g;
@@ -606,7 +606,7 @@ while (<>) {
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_maps\b;<a href="postconf.5.html#virtual_alias_maps">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_maps\b;<a href="postconf.5.html#virtual_maps">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_recursion_limit\b;<a href="postconf.5.html#virtual_alias_recursion_limit">$&</a>;g;
-    s;\bvir[-</bB>]*\n*[ <bB>]*tual_bounce_defer_filter\b;<a href="postconf.5.html#virtual_bounce_defer_filter">$&</a>;g;
+    s;\bvir[-</bB>]*\n*[ <bB>]*tual_delivery_status_filter\b;<a href="postconf.5.html#virtual_delivery_status_filter">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_gid_maps\b;<a href="postconf.5.html#virtual_gid_maps">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_mail[-</bB>]*\n* *[<bB>]*box_base\b;<a href="postconf.5.html#virtual_mailbox_base">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_mail[-</bB>]*\n* *[<bB>]*box_domains\b;<a href="postconf.5.html#virtual_mailbox_domains">$&</a>;g;

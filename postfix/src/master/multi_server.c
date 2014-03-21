@@ -556,8 +556,8 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     char   *generation;
     int     msg_vstream_needed = 0;
     int     redo_syslog_init = 0;
-    const char *ndr_filter_title;
-    const char **ndr_filter_maps;
+    const char *dsn_filter_title;
+    const char **dsn_filter_maps;
 
     /*
      * Process environment options as early as we can.
@@ -763,9 +763,9 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 			  service_name);
 	    break;
 	case MAIL_SERVER_BOUNCE_INIT:
-	    ndr_filter_title = va_arg(ap, const char *);
-	    ndr_filter_maps = va_arg(ap, const char **);
-	    bounce_client_init(ndr_filter_title, *ndr_filter_maps);
+	    dsn_filter_title = va_arg(ap, const char *);
+	    dsn_filter_maps = va_arg(ap, const char **);
+	    bounce_client_init(dsn_filter_title, *dsn_filter_maps);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);

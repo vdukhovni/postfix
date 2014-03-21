@@ -70,11 +70,11 @@ extern void bounce_client_init(const char *, const char *);
   * Start of private API.
   */
 
-#ifdef BOUNCE_DEFER_INTERN
+#ifdef DSN_INTERN
 
-#include <ndr_filter.h>
+#include <dsn_filter.h>
 
-extern NDR_FILTER *bounce_defer_filter;
+extern DSN_FILTER *delivery_status_filter;
 
 extern int bounce_append_intern(int, const char *, MSG_STATS *, RECIPIENT *,
 				        const char *, DSN *);

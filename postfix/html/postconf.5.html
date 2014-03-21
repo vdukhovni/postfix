@@ -1758,74 +1758,6 @@ Example:
 
 </DD>
 
-<DT><b><a name="default_bounce_defer_filter">default_bounce_defer_filter</a>
-(default: empty)</b></DT><DD>
-
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa.  This is implemented by rewriting the
-three-number enhanced status code and the explanatory text in a
-Postfix delivery agent bounce/defer message. </p>
-
-<p> Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup table names, separated
-by comma or whitespace. With each bounce or defer request, the
-tables are queried in the specified order with one line of text
-that is structured as follows: </p>
-
-<blockquote>
-enhanced-status-code SPACE explanatory-text
-</blockquote>
-
-<p> The first table match wins. The lookup result must have the
-same structure as the query:  enhanced status codes must have a
-first numerical field of 4 (defer) or 5 (bounce), and the explanatory
-text field must be non-empty. Other results will result in a warning.
-</p>
-
-<p> Example: </p>
-
-<p> The following example turns specific soft TLS errors into hard
-errors, by overriding the first number in the enhanced status code.
-</p>
-
-<blockquote>
-<pre>
-/etc/postfix/<a href="postconf.5.html">main.cf</a>:
-    <a href="postconf.5.html#smtp_bounce_defer_filter">smtp_bounce_defer_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/smtp_ndr_filter
-</pre>
-</blockquote>
-
-<blockquote>
-<pre>
-/etc/postfix/smtp_ndr_filter:
-    /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/
-        5$1
-    /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/
-        5$1
-    # Do not change the following into hard bounces. They may
-    # result from a local configuration problem.
-    # 4.\d+.\d+ TLS is required, but our TLS engine is unavailable
-    # 4.\d+.\d+ TLS is required, but unavailable
-    # 4.\d+.\d+ Cannot start TLS: handshake failure
-</pre>
-</blockquote>
-
-<p> Notes: </p>
-
-<ul>
-
-<li> <p> This feature will NOT override the <a href="postconf.5.html#soft_bounce">soft_bounce</a> safety net. </p>
-
-<li> <p> This feature will change the enhanced status code and text
-that is logged to the maillog file, and that is reported to the
-sender. </p>
-
-</ul>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="default_database_type">default_database_type</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -1950,6 +1882,93 @@ another preemption can take place later.
 transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
 name of the message delivery transport.
 </p>
+
+
+</DD>
+
+<DT><b><a name="default_delivery_status_filter">default_delivery_status_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional filter to replace the delivery status code or explanatory
+text of successful or unsuccessful deliveries.  This does, however,
+not allow the replacement of a successful status code (2.X.X) with
+an unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
+
+<p> Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup table names, separated
+by comma or whitespace. With each bounce or defer request, the
+tables are queried in the specified order with one line of text
+that is structured as follows: </p>
+
+<blockquote>
+enhanced-status-code SPACE explanatory-text
+</blockquote>
+
+<p> The first table match wins. The lookup result must have the
+same structure as the query, a successful status code (2.X.X) must
+be replaced with a successful status code, an unsuccessful status
+code (4.X.X or 5.X.X) must be replaced with an unsuccessful status
+code, and the explanatory text field must be non-empty. Other results
+will result in a warning.  </p>
+
+<p> Example 1: convert specific soft TLS errors into hard errors,
+by overriding the first number in the enhanced status code.  </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_delivery_status_filter">smtp_delivery_status_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/smtp_dsn_filter
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/smtp_dsn_filter:
+    /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/
+        5$1
+    /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/
+        5$1
+    # Do not change the following into hard bounces. They may
+    # result from a local configuration problem.
+    # 4.\d+.\d+ TLS is required, but our TLS engine is unavailable
+    # 4.\d+.\d+ TLS is required, but unavailable
+    # 4.\d+.\d+ Cannot start TLS: handshake failure
+</pre>
+</blockquote>
+
+<p> Example 2: censor the per-recipient delivery status text so
+that it does not not reveal the destination command or filename
+when a remote sender requests confirmation of successful delivery.
+</p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#local_delivery_status_filter">local_delivery_status_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/local_dsn_filter
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/local_dsn_filter:
+    /^(2\S+ delivered to file).+/    $1
+    /^(2\S+ delivered to command).+/ $1
+</pre>
+</blockquote>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> This feature will NOT override the <a href="postconf.5.html#soft_bounce">soft_bounce</a> safety net. </p>
+
+<li> <p> This feature will change the enhanced status code and text
+that is logged to the maillog file, and that is reported to the
+sender in delivery confirmation or non-delivery notifications.
+</p>
+
+</ul>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -3922,17 +3941,6 @@ parameter. See there for details. </p>
 
 </DD>
 
-<DT><b><a name="lmtp_bounce_defer_filter">lmtp_bounce_defer_filter</a>
-(default: empty)</b></DT><DD>
-
-<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_bounce_defer_filter">smtp_bounce_defer_filter</a>
-configuration parameter.  See there for details. </p>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="lmtp_cache_connection">lmtp_cache_connection</a>
 (default: yes)</b></DT><DD>
 
@@ -4130,6 +4138,17 @@ The default time unit is s (seconds).
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_delivery_status_filter">lmtp_delivery_status_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_delivery_status_filter">smtp_delivery_status_filter</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -5129,18 +5148,6 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
-<DT><b><a name="local_bounce_defer_filter">local_bounce_defer_filter</a>
-(default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
-
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the <a href="local.8.html">local(8)</a> delivery agent. See
-<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
-
-
-</DD>
-
 <DT><b><a name="local_command_shell">local_command_shell</a>
 (default: empty)</b></DT><DD>
 
@@ -5167,6 +5174,18 @@ Example:
 <a href="postconf.5.html#local_command_shell">local_command_shell</a> = /some/where/smrsh -c
 <a href="postconf.5.html#local_command_shell">local_command_shell</a> = /bin/bash -c
 </pre>
+
+
+</DD>
+
+<DT><b><a name="local_delivery_status_filter">local_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
+
+<p> Optional filter for the <a href="local.8.html">local(8)</a> delivery agent to change the
+status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -7013,12 +7032,12 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
-<DT><b><a name="pipe_bounce_defer_filter">pipe_bounce_defer_filter</a>
-(default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
+<DT><b><a name="pipe_delivery_status_filter">pipe_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
 
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the <a href="pipe.8.html">pipe(8)</a> delivery agent. See
-<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
+<p> Optional filter for the <a href="pipe.8.html">pipe(8)</a> delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -9590,22 +9609,6 @@ that change the delivery time or destination are not available.
 
 </DD>
 
-<DT><b><a name="smtp_bounce_defer_filter">smtp_bounce_defer_filter</a>
-(default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
-
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the <a href="smtp.8.html">smtp(8)</a> delivery agent. See
-<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
-
-<p> NOTE: This feature modifies error messages that are generated
-by the Postfix SMTP client, and that may or may not be derived from
-remote SMTP server responses.  In contrast, the <a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a>
-feature modifies remote SMTP server responses that may result in
-email non-delivery or delivery. </p>
-
-
-</DD>
-
 <DT><b><a name="smtp_cname_overrides_servername">smtp_cname_overrides_servername</a>
 (default: version dependent)</b></DT><DD>
 
@@ -9866,6 +9869,21 @@ than the local MTA itself.
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_delivery_status_filter">smtp_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
+
+<p> Optional filter for the <a href="smtp.8.html">smtp(8)</a> delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
+
+<p> NOTE: This feature modifies Postfix SMTP client error or non-error
+messages that may or may not be derived from remote SMTP server
+responses.  In contrast, the <a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a> feature modifies
+remote SMTP server responses only.  </p>
 
 
 </DD>
@@ -18219,12 +18237,12 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
-<DT><b><a name="virtual_bounce_defer_filter">virtual_bounce_defer_filter</a>
-(default: $<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a>)</b></DT><DD>
+<DT><b><a name="virtual_delivery_status_filter">virtual_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
 
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the <a href="virtual.8.html">virtual(8)</a> delivery agent. See
-<a href="postconf.5.html#default_bounce_defer_filter">default_bounce_defer_filter</a> for details.  </p>
+<p> Optional filter for the <a href="virtual.8.html">virtual(8)</a> delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 

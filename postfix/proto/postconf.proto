@@ -15616,12 +15616,12 @@ anchor assertion) TLSA records. </p>
 
 <p> This feature is available in Postfix 2.11 and later. </p>
 
-%PARAM default_bounce_defer_filter
+%PARAM default_delivery_status_filter
 
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa.  This is implemented by rewriting the
-three-number enhanced status code and the explanatory text in a
-Postfix delivery agent bounce/defer message. </p>
+<p> Optional filter to replace the delivery status code or explanatory
+text of successful or unsuccessful deliveries.  This does, however,
+not allow the replacement of a successful status code (2.X.X) with
+an unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
 
 <p> Specify zero or more "type:table" lookup table names, separated
 by comma or whitespace. With each bounce or defer request, the
@@ -15633,27 +15633,25 @@ enhanced-status-code SPACE explanatory-text
 </blockquote>
 
 <p> The first table match wins. The lookup result must have the
-same structure as the query:  enhanced status codes must have a
-first numerical field of 4 (defer) or 5 (bounce), and the explanatory
-text field must be non-empty. Other results will result in a warning.
-</p>
+same structure as the query, a successful status code (2.X.X) must
+be replaced with a successful status code, an unsuccessful status
+code (4.X.X or 5.X.X) must be replaced with an unsuccessful status
+code, and the explanatory text field must be non-empty. Other results
+will result in a warning.  </p>
 
-<p> Example: </p>
-
-<p> The following example turns specific soft TLS errors into hard
-errors, by overriding the first number in the enhanced status code.
-</p>
+<p> Example 1: convert specific soft TLS errors into hard errors,
+by overriding the first number in the enhanced status code.  </p>
 
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    smtp_bounce_defer_filter = pcre:/etc/postfix/smtp_ndr_filter
+    smtp_delivery_status_filter = pcre:/etc/postfix/smtp_dsn_filter
 </pre>
 </blockquote>
 
 <blockquote>
 <pre>
-/etc/postfix/smtp_ndr_filter:
+/etc/postfix/smtp_dsn_filter:
     /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/
         5$1
     /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/
@@ -15666,6 +15664,26 @@ errors, by overriding the first number in the enhanced status code.
 </pre>
 </blockquote>
 
+<p> Example 2: censor the per-recipient delivery status text so
+that it does not not reveal the destination command or filename
+when a remote sender requests confirmation of successful delivery.
+</p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    local_delivery_status_filter = pcre:/etc/postfix/local_dsn_filter
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/local_dsn_filter:
+    /^(2\S+ delivered to file).+/    $1
+    /^(2\S+ delivered to command).+/ $1
+</pre>
+</blockquote>
+
 <p> Notes: </p>
 
 <ul>
@@ -15674,51 +15692,51 @@ errors, by overriding the first number in the enhanced status code.
 
 <li> <p> This feature will change the enhanced status code and text
 that is logged to the maillog file, and that is reported to the
-sender. </p>
+sender in delivery confirmation or non-delivery notifications.
+</p>
 
 </ul>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
-%PARAM smtp_bounce_defer_filter $default_bounce_defer_filter
+%PARAM smtp_delivery_status_filter $default_delivery_status_filter
 
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the smtp(8) delivery agent. See
-default_bounce_defer_filter for details.  </p>
+<p> Optional filter for the smtp(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.  </p>
 
-<p> NOTE: This feature modifies error messages that are generated
-by the Postfix SMTP client, and that may or may not be derived from
-remote SMTP server responses.  In contrast, the smtp_reply_filter
-feature modifies remote SMTP server responses that may result in
-email non-delivery or delivery. </p>
+<p> NOTE: This feature modifies Postfix SMTP client error or non-error
+messages that may or may not be derived from remote SMTP server
+responses.  In contrast, the smtp_reply_filter feature modifies
+remote SMTP server responses only.  </p>
 
-%PARAM lmtp_bounce_defer_filter 
+%PARAM lmtp_delivery_status_filter
 
-<p> The LMTP-specific version of the smtp_bounce_defer_filter
+<p> The LMTP-specific version of the smtp_delivery_status_filter
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
-%PARAM pipe_bounce_defer_filter $default_bounce_defer_filter
+%PARAM pipe_delivery_status_filter $default_delivery_status_filter
 
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the pipe(8) delivery agent. See
-default_bounce_defer_filter for details.  </p>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
-
-%PARAM virtual_bounce_defer_filter $default_bounce_defer_filter
-
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the virtual(8) delivery agent. See
-default_bounce_defer_filter for details.  </p>
+<p> Optional filter for the pipe(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
-%PARAM local_bounce_defer_filter $default_bounce_defer_filter
+%PARAM virtual_delivery_status_filter $default_delivery_status_filter
 
-<p> Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the local(8) delivery agent. See
-default_bounce_defer_filter for details.  </p>
+<p> Optional filter for the virtual(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM local_delivery_status_filter $default_delivery_status_filter
+
+<p> Optional filter for the local(8) delivery agent to change the
+status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

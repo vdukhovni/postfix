@@ -421,9 +421,10 @@ attribute, when delivering mail to a child alias that does not have
 its own owner alias.
 .PP
 Available in Postfix version 2.12 and later:
-.IP "\fBlocal_bounce_defer_filter ($default_bounce_defer_filter)\fR"
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the \fBlocal\fR(8) delivery agent.
+.IP "\fBlocal_delivery_status_filter ($default_delivery_status_filter)\fR"
+Optional filter for the \fBlocal\fR(8) delivery agent to change the
+status code or explanatory text of successful or unsuccessful
+deliveries.
 .SH "DELIVERY METHOD CONTROLS"
 .na
 .nf

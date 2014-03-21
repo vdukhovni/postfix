@@ -33,7 +33,7 @@ extern int defer_one(int, const char *, const char *, const char *,
  /*
   * Start of private API.
   */
-#ifdef BOUNCE_DEFER_INTERN
+#ifdef DSN_INTERN
 
 extern int defer_append_intern(int, const char *, MSG_STATS *, RECIPIENT *,
 			               const char *, DSN *);

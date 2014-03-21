@@ -247,9 +247,10 @@
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
 /*	Available in Postfix version 2.12 and later:
-/* .IP "\fBvirtual_bounce_defer_filter ($default_bounce_defer_filter)\fR"
-/*	Optional filter to change arbitrary hard delivery errors into
-/*	soft errors and vice versa in the \fBvirtual\fR(8) delivery agent.
+/* .IP "\fBvirtual_delivery_status_filter ($default_delivery_status_filter)\fR"
+/*	Optional filter for the \fBvirtual\fR(8) delivery agent to change the
+/*	delivery status code or explanatory text of successful or unsuccessful
+/*	deliveries.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
@@ -516,7 +517,7 @@ int     main(int argc, char **argv)
 	VAR_VIRT_GID_MAPS, DEF_VIRT_GID_MAPS, &var_virt_gid_maps, 0, 0,
 	VAR_VIRT_MAILBOX_BASE, DEF_VIRT_MAILBOX_BASE, &var_virt_mailbox_base, 1, 0,
 	VAR_VIRT_MAILBOX_LOCK, DEF_VIRT_MAILBOX_LOCK, &var_virt_mailbox_lock, 1, 0,
-	VAR_VIRT_NDR_FILTER, DEF_VIRT_NDR_FILTER, &var_virt_ndr_filter, 0, 0,
+	VAR_VIRT_DSN_FILTER, DEF_VIRT_DSN_FILTER, &var_virt_ndr_filter, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -538,7 +539,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
-		       MAIL_SERVER_BOUNCE_INIT, VAR_VIRT_NDR_FILTER,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_VIRT_DSN_FILTER,
 		       &var_virt_ndr_filter,
 		       0);
 }

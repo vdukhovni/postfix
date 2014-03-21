@@ -276,9 +276,10 @@ Available in Postfix version 2.11 and later:
 Level of DNS support in the Postfix SMTP client.
 .PP
 Available in Postfix version 2.12 and later:
-.IP "\fBsmtp_bounce_defer_filter ($default_bounce_defer_filter)\fR"
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the \fBsmtp\fR(8) delivery agent.
+.IP "\fBsmtp_delivery_status_filter ($default_delivery_status_filter)\fR"
+Optional filter for the \fBsmtp\fR(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.
 .SH "MIME PROCESSING CONTROLS"
 .na
 .nf

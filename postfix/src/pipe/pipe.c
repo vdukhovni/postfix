@@ -404,9 +404,10 @@
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
 /*	Available in Postfix version 2.12 and later:
-/* .IP "\fBpipe_bounce_defer_filter ($default_bounce_defer_filter)\fR"
-/*	Optional filter to change arbitrary hard delivery errors into
-/*	soft errors and vice versa in the \fBpipe\fR(8) delivery agent.
+/* .IP "\fBpipe_delivery_status_filter ($default_delivery_status_filter)\fR"
+/*	Optional filter for the \fBpipe\fR(8) delivery agent to change the
+/*	delivery status code or explanatory text of successful or unsuccessful
+/*	deliveries.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
@@ -1329,7 +1330,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {
-	VAR_PIPE_NDR_FILTER, DEF_PIPE_NDR_FILTER, &var_pipe_ndr_filter, 0, 0,
+	VAR_PIPE_DSN_FILTER, DEF_PIPE_DSN_FILTER, &var_pipe_ndr_filter, 0, 0,
 	0,
     };
 
@@ -1344,7 +1345,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_POST_INIT, drop_privileges,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
-		       MAIL_SERVER_BOUNCE_INIT, VAR_PIPE_NDR_FILTER,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_PIPE_DSN_FILTER,
 		       &var_pipe_ndr_filter,
 		       0);
 }

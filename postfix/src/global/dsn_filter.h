@@ -1,24 +1,24 @@
-#ifndef _NDR_FILTER_H_INCLUDED_
-#define _NDR_FILTER_H_INCLUDED_
+#ifndef _DSN_FILTER_H_INCLUDED_
+#define _DSN_FILTER_H_INCLUDED_
 
 /*++
 /* NAME
-/*	ndr_filter 3h
+/*	dsn_filter 3h
 /* SUMMARY
 /*	bounce/defer DSN filter
 /* SYNOPSIS
-/*	#include <ndr_filter.h>
+/*	#include <dsn_filter.h>
 /* DESCRIPTION
 /* .nf
 
  /*
   * External interface.
   */
-typedef struct NDR_FILTER NDR_FILTER;
+typedef struct DSN_FILTER DSN_FILTER;
 
-extern NDR_FILTER *ndr_filter_create(const char *, const char *);
-extern DSN *ndr_filter_lookup(NDR_FILTER *, DSN *);
-extern void ndr_filter_free(NDR_FILTER *);
+extern DSN_FILTER *dsn_filter_create(const char *, const char *);
+extern DSN *dsn_filter_lookup(DSN_FILTER *, DSN *);
+extern void dsn_filter_free(DSN_FILTER *);
 
 /* LICENSE
 /* .ad

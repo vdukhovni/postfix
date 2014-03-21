@@ -32,7 +32,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
-	mkmap_fail.c haproxy_srvr.c ndr_filter.c
+	mkmap_fail.c haproxy_srvr.c dsn_filter.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -66,7 +66,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
-	mkmap_fail.o haproxy_srvr.o ndr_filter.o
+	mkmap_fail.o haproxy_srvr.o dsn_filter.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -93,7 +93,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h ndr_filter.h
+	haproxy_srvr.h dsn_filter.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -666,7 +666,7 @@ bounce.o: log_adhoc.h
 bounce.o: mail_params.h
 bounce.o: mail_proto.h
 bounce.o: msg_stats.h
-bounce.o: ndr_filter.h
+bounce.o: dsn_filter.h
 bounce.o: rcpt_print.h
 bounce.o: recipient_list.h
 bounce.o: trace.h
@@ -812,7 +812,7 @@ defer.o: mail_params.h
 defer.o: mail_proto.h
 defer.o: mail_queue.h
 defer.o: msg_stats.h
-defer.o: ndr_filter.h
+defer.o: dsn_filter.h
 defer.o: rcpt_print.h
 defer.o: recipient_list.h
 defer.o: trace.h
@@ -1806,20 +1806,20 @@ namadr_list.o: ../../include/match_list.h
 namadr_list.o: ../../include/sys_defs.h
 namadr_list.o: namadr_list.c
 namadr_list.o: namadr_list.h
-ndr_filter.o: ../../include/argv.h
-ndr_filter.o: ../../include/dict.h
-ndr_filter.o: ../../include/msg.h
-ndr_filter.o: ../../include/myflock.h
-ndr_filter.o: ../../include/mymalloc.h
-ndr_filter.o: ../../include/sys_defs.h
-ndr_filter.o: ../../include/vbuf.h
-ndr_filter.o: ../../include/vstream.h
-ndr_filter.o: ../../include/vstring.h
-ndr_filter.o: dsn.h
-ndr_filter.o: dsn_util.h
-ndr_filter.o: maps.h
-ndr_filter.o: ndr_filter.c
-ndr_filter.o: ndr_filter.h
+dsn_filter.o: ../../include/argv.h
+dsn_filter.o: ../../include/dict.h
+dsn_filter.o: ../../include/msg.h
+dsn_filter.o: ../../include/myflock.h
+dsn_filter.o: ../../include/mymalloc.h
+dsn_filter.o: ../../include/sys_defs.h
+dsn_filter.o: ../../include/vbuf.h
+dsn_filter.o: ../../include/vstream.h
+dsn_filter.o: ../../include/vstring.h
+dsn_filter.o: dsn.h
+dsn_filter.o: dsn_util.h
+dsn_filter.o: maps.h
+dsn_filter.o: dsn_filter.c
+dsn_filter.o: dsn_filter.h
 off_cvt.o: ../../include/msg.h
 off_cvt.o: ../../include/sys_defs.h
 off_cvt.o: ../../include/vbuf.h

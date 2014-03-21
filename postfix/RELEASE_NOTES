@@ -16,42 +16,53 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.10 or earlier, read RELEASE_NOTES-2.11
 before proceeding.
 
-Major changes with snapshot 20140318
+Major changes with snapshot 20140321
 ====================================
 
-Support to change arbitrary hard delivery errors into soft errors
-and vice versa, or to replace the descriptive text in non-delivery
-notifications. This was originally implemented for sites that want
-to bounce mail when no remote SMTP server supports STARTTLS.
+Delivery status filter support, to replace the delivery status codes
+and explanatory text of successful or unsuccessful deliveries.  This
+was originally implemented for sites that want to turn certain soft
+delivery errors into hard delivery errors, but it can also be used
+to censor out information from delivery confirmation reports.
 
 This feature is implemented as a filter that replaces the three-number
 enhanced status code and descriptive text in Postfix delivery agent
-bounce/defer messages. Note: this will not override "soft_bounce=yes".
+success, bounce, or defer messages. Note: this will not override
+"soft_bounce=yes", and this will not change a successful delivery
+status into an unsuccessful status or vice versa.
 
-The following example turns specific soft TLS errors into hard
+The first example turns specific soft TLS errors into hard
 errors, by overriding the first number in the enhanced status code.
 
 /etc/postfix/main.cf:
-    smtp_bounce_defer_filter = pcre:/etc/postfix/smtp_ndr_filter
+    smtp_delivery_status_filter = pcre:/etc/postfix/smtp_dsn_filter
 
-/etc/postfix/smtp_ndr_filter:
+/etc/postfix/smtp_dsn_filter:
     /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/ 5$1
     /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/ 5$1
+
+The second example removes the destination command name and file
+name from local(8) successful delivery reports, so that they will
+not be reported when a sender requests confirmation of delivery.
+
+/etc/postfix/main.cf:
+    local_delivery_status_filter = pcre:/etc/postfix/local_dsn_filter
+
+/etc/postfix/local_dsn_filter:
+    /^(2\S+ delivered to file).+/    $1
+    /^(2\S+ delivered to command).+/ $1
 
 This feature is supported in the lmtp(8), local(8), pipe(8), smtp(8)
 and virtual(8) delivery agents. That is, all delivery agents that
 actually deliver mail. 
 
-This feature will not be supported in the error(8) or retry(8) dummy
-delivery agents, because lots of things would break.
-
 The new main.cf parameters and default values are:
 
-    default_bounce_defer_filter =
-    lmtp_bounce_defer_filter = $default_bounce_defer_filter
-    local_bounce_defer_filter = $default_bounce_defer_filter
-    pipe_bounce_defer_filter = $default_bounce_defer_filter
-    smtp_bounce_defer_filter = $default_bounce_defer_filter
-    virtual_bounce_defer_filter = $default_bounce_defer_filter
+    default_delivery_status_filter =
+    lmtp_delivery_status_filter = $default_delivery_status_filter
+    local_delivery_status_filter = $default_delivery_status_filter
+    pipe_delivery_status_filter = $default_delivery_status_filter
+    smtp_delivery_status_filter = $default_delivery_status_filter
+    virtual_delivery_status_filter = $default_delivery_status_filter
 
 See the postconf(5) manpage for more details.

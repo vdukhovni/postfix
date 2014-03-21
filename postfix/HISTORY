@@ -19627,10 +19627,25 @@ Apologies for any names omitted.
 	Feature: local_bounce_defer_filter support. Files:
 	global/bounce.[hc], global/defer.[hc], local/command.c,
 	local/file.c, local/bounce_workaround.c, local/local.c,
-	global/mail_params.h.
+	global/mail_params.h, mantools/postlink.
 
 20140318
 
 	Refinement: don't throttle an SMTP destination when the new
 	smtp_bounce_defer_filter feature turns a soft bounce into
 	a hard bounce.  File: smtp/smtp_trouble.c.
+
+20140320
+
+	Feature: support to replace successful delivery status code
+	and explanatory text.  This can be used to to hide local
+	details such as destination commands or file names when a
+	remote sender requests confirmation of delivery.  As of now
+	*_bounce_defer_filter is renamed into *_delivery_status_filter.
+	Files: global/bounce.c, global/bounce.h, global/defer.c,
+	global/defer.h, global/dsn_filter.c, global/dsn_filter.h,
+	global/mail_params.c, global/mail_params.h, global/sent.c,
+	local/local.c, master/event_server.c, master/multi_server.c,
+	master/single_server.c, master/trigger_server.c, pipe/pipe.c,
+	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp_params.c,
+	virtual/virtual.c, mantools/postlink.

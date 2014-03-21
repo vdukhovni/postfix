@@ -1021,71 +1021,6 @@ debugger_command =
 .fi
 .ad
 .ft R
-.SH default_bounce_defer_filter (default: empty)
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa.  This is implemented by rewriting the
-three-number enhanced status code and the explanatory text in a
-Postfix delivery agent bounce/defer message.
-.PP
-Specify zero or more "type:table" lookup table names, separated
-by comma or whitespace. With each bounce or defer request, the
-tables are queried in the specified order with one line of text
-that is structured as follows:
-.sp
-.in +4
-enhanced-status-code SPACE explanatory-text
-.in -4
-.PP
-The first table match wins. The lookup result must have the
-same structure as the query:  enhanced status codes must have a
-first numerical field of 4 (defer) or 5 (bounce), and the explanatory
-text field must be non-empty. Other results will result in a warning.
-.PP
-Example:
-.PP
-The following example turns specific soft TLS errors into hard
-errors, by overriding the first number in the enhanced status code.
-.sp
-.in +4
-.nf
-.na
-.ft C
-/etc/postfix/main.cf:
-    smtp_bounce_defer_filter = pcre:/etc/postfix/smtp_ndr_filter
-.fi
-.ad
-.ft R
-.in -4
-.sp
-.in +4
-.nf
-.na
-.ft C
-/etc/postfix/smtp_ndr_filter:
-    /^4(\e.\ed+\e.\ed+ TLS is required, but host \eS+ refused to start TLS: .+)/
-        5$1
-    /^4(\e.\ed+\e.\ed+ TLS is required, but was not offered by host .+)/
-        5$1
-    # Do not change the following into hard bounces. They may
-    # result from a local configuration problem.
-    # 4.\ed+.\ed+ TLS is required, but our TLS engine is unavailable
-    # 4.\ed+.\ed+ TLS is required, but unavailable
-    # 4.\ed+.\ed+ Cannot start TLS: handshake failure
-.fi
-.ad
-.ft R
-.in -4
-.PP
-Notes:
-.IP \(bu
-This feature will NOT override the soft_bounce safety net.
-.IP \(bu
-This feature will change the enhanced status code and text
-that is logged to the maillog file, and that is reported to the
-sender.
-.br
-.PP
-This feature is available in Postfix 2.12 and later.
 .SH default_database_type (default: see "postconf -d" output)
 The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 and \fBpostmap\fR(1) commands. On many UNIX systems the default type is
@@ -1173,6 +1108,98 @@ another preemption can take place later.
 Use \fItransport\fR_delivery_slot_loan to specify a
 transport-specific override, where \fItransport\fR is the master.cf
 name of the message delivery transport.
+.SH default_delivery_status_filter (default: empty)
+Optional filter to replace the delivery status code or explanatory
+text of successful or unsuccessful deliveries.  This does, however,
+not allow the replacement of a successful status code (2.X.X) with
+an unsuccessful status code (4.X.X or 5.X.X) or vice versa.
+.PP
+Specify zero or more "type:table" lookup table names, separated
+by comma or whitespace. With each bounce or defer request, the
+tables are queried in the specified order with one line of text
+that is structured as follows:
+.sp
+.in +4
+enhanced-status-code SPACE explanatory-text
+.in -4
+.PP
+The first table match wins. The lookup result must have the
+same structure as the query, a successful status code (2.X.X) must
+be replaced with a successful status code, an unsuccessful status
+code (4.X.X or 5.X.X) must be replaced with an unsuccessful status
+code, and the explanatory text field must be non-empty. Other results
+will result in a warning.
+.PP
+Example 1: convert specific soft TLS errors into hard errors,
+by overriding the first number in the enhanced status code.
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_delivery_status_filter = pcre:/etc/postfix/smtp_dsn_filter
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/smtp_dsn_filter:
+    /^4(\e.\ed+\e.\ed+ TLS is required, but host \eS+ refused to start TLS: .+)/
+        5$1
+    /^4(\e.\ed+\e.\ed+ TLS is required, but was not offered by host .+)/
+        5$1
+    # Do not change the following into hard bounces. They may
+    # result from a local configuration problem.
+    # 4.\ed+.\ed+ TLS is required, but our TLS engine is unavailable
+    # 4.\ed+.\ed+ TLS is required, but unavailable
+    # 4.\ed+.\ed+ Cannot start TLS: handshake failure
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Example 2: censor the per-recipient delivery status text so
+that it does not not reveal the destination command or filename
+when a remote sender requests confirmation of successful delivery.
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    local_delivery_status_filter = pcre:/etc/postfix/local_dsn_filter
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/local_dsn_filter:
+    /^(2\eS+ delivered to file).+/    $1
+    /^(2\eS+ delivered to command).+/ $1
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Notes:
+.IP \(bu
+This feature will NOT override the soft_bounce safety net.
+.IP \(bu
+This feature will change the enhanced status code and text
+that is logged to the maillog file, and that is reported to the
+sender in delivery confirmation or non-delivery notifications.
+.br
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH default_destination_concurrency_failed_cohort_limit (default: 1)
 How many pseudo-cohorts must suffer connection or handshake
 failure before a specific destination is considered unavailable
@@ -2340,11 +2367,6 @@ The LMTP-specific version of the smtp_body_checks configuration
 parameter. See there for details.
 .PP
 This feature is available in Postfix 2.5 and later.
-.SH lmtp_bounce_defer_filter (default: empty)
-The LMTP-specific version of the smtp_bounce_defer_filter
-configuration parameter.  See there for details.
-.PP
-This feature is available in Postfix 2.12 and later.
 .SH lmtp_cache_connection (default: yes)
 Keep Postfix LMTP client connections open for up to $max_idle
 seconds. When the LMTP client receives a request for the same
@@ -2454,6 +2476,11 @@ The LMTP-specific version of the smtp_defer_if_no_mx_address_found
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_delivery_status_filter (default: empty)
+The LMTP-specific version of the smtp_delivery_status_filter
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH lmtp_destination_concurrency_limit (default: $default_destination_concurrency_limit)
 The maximal number of parallel deliveries to the same destination
 via the lmtp message delivery transport. This limit is enforced by
@@ -2929,12 +2956,6 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is s (seconds).
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH local_bounce_defer_filter (default: $default_bounce_defer_filter)
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the \fBlocal\fR(8) delivery agent. See
-default_bounce_defer_filter for details.
-.PP
-This feature is available in Postfix 2.12 and later.
 .SH local_command_shell (default: empty)
 Optional shell program for \fBlocal\fR(8) delivery to non-Postfix command.
 By default, non-Postfix commands are executed directly; commands
@@ -2959,6 +2980,12 @@ local_command_shell = /bin/bash -c
 .fi
 .ad
 .ft R
+.SH local_delivery_status_filter (default: $default_delivery_status_filter)
+Optional filter for the \fBlocal\fR(8) delivery agent to change the
+status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH local_destination_concurrency_limit (default: 2)
 The maximal number of parallel deliveries via the local mail
 delivery transport to the same recipient (when
@@ -4173,10 +4200,10 @@ The name of the \fBpickup\fR(8) service. This service picks up local mail
 submissions from the Postfix maildrop queue.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH pipe_bounce_defer_filter (default: $default_bounce_defer_filter)
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the \fBpipe\fR(8) delivery agent. See
-default_bounce_defer_filter for details.
+.SH pipe_delivery_status_filter (default: $default_delivery_status_filter)
+Optional filter for the \fBpipe\fR(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH plaintext_reject_code (default: 450)
@@ -5852,16 +5879,6 @@ These tables are searched while mail is being delivered.  Actions
 that change the delivery time or destination are not available.
 .PP
 This feature is available in Postfix 2.5 and later.
-.SH smtp_bounce_defer_filter (default: $default_bounce_defer_filter)
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the \fBsmtp\fR(8) delivery agent. See
-default_bounce_defer_filter for details.
-.PP
-NOTE: This feature modifies error messages that are generated
-by the Postfix SMTP client, and that may or may not be derived from
-remote SMTP server responses.  In contrast, the smtp_reply_filter
-feature modifies remote SMTP server responses that may result in
-email non-delivery or delivery.
 .SH smtp_cname_overrides_servername (default: version dependent)
 When the remote SMTP servername is a DNS CNAME, replace the
 servername with the result from CNAME expansion for the purpose of
@@ -6027,6 +6044,15 @@ or worse preference
 than the local MTA itself.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtp_delivery_status_filter (default: $default_delivery_status_filter)
+Optional filter for the \fBsmtp\fR(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.
+.PP
+NOTE: This feature modifies Postfix SMTP client error or non-error
+messages that may or may not be derived from remote SMTP server
+responses.  In contrast, the smtp_reply_filter feature modifies
+remote SMTP server responses only.
 .SH smtp_destination_concurrency_limit (default: $default_destination_concurrency_limit)
 The maximal number of parallel deliveries to the same destination
 via the smtp message delivery transport. This limit is enforced by
@@ -12338,10 +12364,10 @@ reach the sum of the expansion and recursion limits.  This may
 change in the future.
 .PP
 This feature is available in Postfix 2.1 and later.
-.SH virtual_bounce_defer_filter (default: $default_bounce_defer_filter)
-Optional filter to change arbitrary hard delivery errors into
-soft errors and vice versa in the \fBvirtual\fR(8) delivery agent. See
-default_bounce_defer_filter for details.
+.SH virtual_delivery_status_filter (default: $default_delivery_status_filter)
+Optional filter for the \fBvirtual\fR(8) delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See default_delivery_status_filter for details.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH virtual_destination_concurrency_limit (default: $default_destination_concurrency_limit)

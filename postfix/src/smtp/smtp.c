@@ -254,9 +254,10 @@
 /*	Level of DNS support in the Postfix SMTP client.
 /* .PP
 /*	Available in Postfix version 2.12 and later:
-/* .IP "\fBsmtp_bounce_defer_filter ($default_bounce_defer_filter)\fR"
-/*	Optional filter to change arbitrary hard delivery errors into
-/*	soft errors and vice versa in the \fBsmtp\fR(8) delivery agent.
+/* .IP "\fBsmtp_delivery_status_filter ($default_delivery_status_filter)\fR"
+/*	Optional filter for the \fBsmtp\fR(8) delivery agent to change the
+/*	delivery status code or explanatory text of successful or unsuccessful
+/*	deliveries.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -1277,7 +1278,7 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_INIT, pre_init,
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_BOUNCE_INIT, VAR_SMTP_NDR_FILTER,
+		       MAIL_SERVER_BOUNCE_INIT, VAR_SMTP_DSN_FILTER,
 		       &var_smtp_ndr_filter,
 		       0);
 }
