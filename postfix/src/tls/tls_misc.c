@@ -23,6 +23,7 @@
 /*	bool	var_tls_bc_pkey_fprint;
 /*	bool	var_tls_multi_wildcard;
 /*	char	*var_tls_mgr_service;
+/*	char	*var_tls_tkt_cipher;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -231,6 +232,7 @@ bool    var_tls_bc_pkey_fprint;
 bool    var_tls_dane_taa_dgst;
 bool    var_tls_multi_wildcard;
 char   *var_tls_mgr_service;
+char   *var_tls_tkt_cipher;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -617,6 +619,7 @@ void    tls_param_init(void)
 	VAR_TLS_DANE_AGILITY, DEF_TLS_DANE_AGILITY, &var_tls_dane_agility, 1, 0,
 	VAR_TLS_DANE_DIGESTS, DEF_TLS_DANE_DIGESTS, &var_tls_dane_digests, 1, 0,
 	VAR_TLS_MGR_SERVICE, DEF_TLS_MGR_SERVICE, &var_tls_mgr_service, 1, 0,
+	VAR_TLS_TKT_CIPHER, DEF_TLS_TKT_CIPHER, &var_tls_tkt_cipher, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

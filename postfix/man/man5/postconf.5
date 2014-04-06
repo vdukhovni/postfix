@@ -1110,14 +1110,20 @@ transport-specific override, where \fItransport\fR is the master.cf
 name of the message delivery transport.
 .SH default_delivery_status_filter (default: empty)
 Optional filter to replace the delivery status code or explanatory
-text of successful or unsuccessful deliveries.  This does, however,
-not allow the replacement of a successful status code (2.X.X) with
-an unsuccessful status code (4.X.X or 5.X.X) or vice versa.
+text of successful or unsuccessful deliveries.  This does not allow
+the replacement of a successful status code (2.X.X) with an
+unsuccessful status code (4.X.X or 5.X.X) or vice versa.
+.PP
+The following parameters can be used to implement a filter for
+specific delivery agents: lmtp_delivery_status_filter,
+local_delivery_status_filter, pipe_delivery_status_filter,
+smtp_delivery_status_filter or virtual_delivery_status_filter. These
+parameters support the same filter syntax as described here.
 .PP
 Specify zero or more "type:table" lookup table names, separated
-by comma or whitespace. With each bounce or defer request, the
-tables are queried in the specified order with one line of text
-that is structured as follows:
+by comma or whitespace. For each successful or unsuccessful delivery
+to a recipient, the tables are queried in the specified order with
+one line of text that is structured as follows:
 .sp
 .in +4
 enhanced-status-code SPACE explanatory-text
@@ -11589,6 +11595,18 @@ Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
 gives timeout errors.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_session_ticket_cipher (default: aes-128-cbc)
+Algorithm used to encrypt RFC5077 TLS session tickets.  This
+algorithm must use CBC mode, have a 128-bit initialization vector
+(IV), and must have a key length between 128 and 256 bits.  The
+default is aes-128-cbc.  Sensible alternatives include aes-192-cbc
+and aes-256-cbc.
+.PP
+Setting this parameter empty disables session ticket support
+in the Postfix SMTP server.  Another way to disable session ticket
+support is via the tls_ssl_options parameter.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH tls_ssl_options (default: empty)
 List or bit-mask of OpenSSL options to enable.
 .PP

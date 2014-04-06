@@ -19649,3 +19649,26 @@ Apologies for any names omitted.
 	master/single_server.c, master/trigger_server.c, pipe/pipe.c,
 	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp_params.c,
 	virtual/virtual.c, mantools/postlink.
+
+20140322
+
+	Cleanup: code comments and identifier names to reflect the
+	evolution from "NDR filter" to "delivery status filter".
+	Files: global/mail_params.h, smtp/smtp.c, global/dsn_filter.c,
+	global/dsn_filter.h, local/local.c, pipe/pipe.c,
+	smtp/lmtp_params.c, smtp/smtp_params.c, virtual/virtual.c,
+	global/bounce.c.
+
+20140406
+
+	Bugfix: when testing session caching, stop reconnecting
+	after encountering a previously-used server (when the session
+	is re-used or not). Viktor Dukhovni. File:
+	posttls-finger/posttls-finger.c.
+
+	Feature: configurable TLS session-ticket cipher (default:
+	tls_sesion_ticket_cipher = aes-128-cbc). Viktor Dukhovni
+	and Wietse. Files: mantools/postlink, smtpd/smtpd.c,
+	proto/postconf.proto, global/mail_params.h, tls/tls_misc.c,
+	tls/tls_scache.h, tls/tls_server.c.
+

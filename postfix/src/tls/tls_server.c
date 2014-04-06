@@ -292,13 +292,13 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 		          EVP_CIPHER_CTX * ctx, HMAC_CTX * hctx, int create)
 {
     static const EVP_MD *sha256;
-    static const EVP_CIPHER *aes128;
+    static const EVP_CIPHER *ciph;
     TLS_TICKET_KEY *key;
     TLS_SESS_STATE *TLScontext = SSL_get_ex_data(con, TLScontext_index);
     int     timeout = ((int) SSL_CTX_get_timeout(SSL_get_SSL_CTX(con))) / 2;
 
     if ((!sha256 && (sha256 = EVP_sha256()) == 0)
-	|| (!aes128 && (aes128 = EVP_aes_128_cbc()) == 0)
+	|| (!ciph && (ciph = EVP_get_cipherbyname(var_tls_tkt_cipher)) == 0)
 	|| (key = tls_mgr_key(create ? 0 : name, timeout)) == 0
 	|| (create && RAND_bytes(iv, TLS_TICKET_IVLEN) <= 0))
 	return (create ? TLS_TKT_NOKEYS : TLS_TKT_STALE);
@@ -306,13 +306,13 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
     HMAC_Init_ex(hctx, key->hmac, TLS_TICKET_MACLEN, sha256, NOENGINE);
 
     if (create) {
-	EVP_EncryptInit_ex(ctx, aes128, NOENGINE, key->bits, iv);
+	EVP_EncryptInit_ex(ctx, ciph, NOENGINE, key->bits, iv);
 	memcpy((char *) name, (char *) key->name, TLS_TICKET_NAMELEN);
 	if (TLScontext->log_mask & TLS_LOG_CACHE)
 	    msg_info("%s: Issuing session ticket, key expiration: %ld",
 		     TLScontext->namaddr, (long) key->tout);
     } else {
-	EVP_DecryptInit_ex(ctx, aes128, NOENGINE, key->bits, iv);
+	EVP_DecryptInit_ex(ctx, ciph, NOENGINE, key->bits, iv);
 	if (TLScontext->log_mask & TLS_LOG_CACHE)
 	    msg_info("%s: Decrypting session ticket, key expiration: %ld",
 		     TLScontext->namaddr, (long) key->tout);
@@ -457,7 +457,21 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
 #ifdef SSL_OP_NO_TICKET
 #if !defined(OPENSSL_NO_TLSEXT) && OPENSSL_VERSION_NUMBER >= 0x0090808fL
-    ticketable = (scache_timeout > 0 && !(off & SSL_OP_NO_TICKET));
+    ticketable = (*var_tls_tkt_cipher && scache_timeout > 0
+		  && !(off & SSL_OP_NO_TICKET));
+    if (ticketable) {
+	const EVP_CIPHER *ciph;
+
+	if ((ciph = EVP_get_cipherbyname(var_tls_tkt_cipher)) == 0
+	    || EVP_CIPHER_mode(ciph) != EVP_CIPH_CBC_MODE
+	    || EVP_CIPHER_iv_length(ciph) != TLS_TICKET_IVLEN
+	    || EVP_CIPHER_key_length(ciph) < TLS_TICKET_IVLEN
+	    || EVP_CIPHER_key_length(ciph) > TLS_TICKET_KEYLEN) {
+	    msg_warn("%s: invalid value: %s; session tickets disabled",
+		     VAR_TLS_TKT_CIPHER, var_tls_tkt_cipher);
+	    ticketable = 0;
+	}
+    }
     if (ticketable)
 	SSL_CTX_set_tlsext_ticket_key_cb(server_ctx, ticket_cb);
 #endif

@@ -55,20 +55,20 @@
 /* LMTP DESTINATION SYNTAX
 /* .ad
 /* .fi
-/*      LMTP destinations have the following form:
+/*	LMTP destinations have the following form:
 /* .IP \fBunix\fR:\fIpathname\fR
-/*      Connect to the local UNIX-domain server that is bound to the specified
-/*      \fIpathname\fR. If the process runs chrooted, an absolute pathname
-/*      is interpreted relative to the Postfix queue directory.
+/*	Connect to the local UNIX-domain server that is bound to the specified
+/*	\fIpathname\fR. If the process runs chrooted, an absolute pathname
+/*	is interpreted relative to the Postfix queue directory.
 /* .IP \fBinet\fR:\fIhostname\fR
 /* .IP \fBinet\fR:\fIhostname\fR:\fIport\fR
 /* .IP \fBinet\fR:[\fIaddress\fR]
 /* .IP \fBinet\fR:[\fIaddress\fR]:\fIport\fR
-/*      Connect to the specified TCP port on the specified local or
-/*      remote host. If no port is specified, connect to the port defined as
-/*      \fBlmtp\fR in \fBservices\fR(4).
-/*      If no such service is found, the \fBlmtp_tcp_port\fR configuration
-/*      parameter (default value of 24) will be used.
+/*	Connect to the specified TCP port on the specified local or
+/*	remote host. If no port is specified, connect to the port defined as
+/*	\fBlmtp\fR in \fBservices\fR(4).
+/*	If no such service is found, the \fBlmtp_tcp_port\fR configuration
+/*	parameter (default value of 24) will be used.
 /*	An IPv6 address must be formatted as [\fBipv6\fR:\fIaddress\fR].
 /* .PP
 /* SECURITY
@@ -219,7 +219,7 @@
 /*	default setting "no", send no SASL authoriZation ID (authzid); send
 /*	only the SASL authentiCation ID (authcid) plus the authcid's password.
 /* .PP
-/*      Available in Postfix version 2.5 and later:
+/*	Available in Postfix version 2.5 and later:
 /* .IP "\fBsmtp_header_checks (empty)\fR"
 /*	Restricted \fBheader_checks\fR(5) tables for the Postfix SMTP client.
 /* .IP "\fBsmtp_mime_header_checks (empty)\fR"
@@ -882,7 +882,7 @@ char   *var_smtp_dns_res_opt;
 char   *var_smtp_dns_support;
 bool    var_smtp_rec_deadline;
 bool    var_smtp_dummy_mail_auth;
-char   *var_smtp_ndr_filter;
+char   *var_smtp_dsn_filter;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1279,6 +1279,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_POST_INIT, post_init,
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_BOUNCE_INIT, VAR_SMTP_DSN_FILTER,
-		       &var_smtp_ndr_filter,
+		       &var_smtp_dsn_filter,
 		       0);
 }

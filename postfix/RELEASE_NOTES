@@ -20,10 +20,12 @@ Major changes with snapshot 20140321
 ====================================
 
 Delivery status filter support, to replace the delivery status codes
-and explanatory text of successful or unsuccessful deliveries.  This
-was originally implemented for sites that want to turn certain soft
-delivery errors into hard delivery errors, but it can also be used
-to censor out information from delivery confirmation reports.
+and explanatory text of successful or unsuccessful deliveries by
+Postfix mail delivery agents.
+
+This was originally implemented for sites that want to turn certain
+soft delivery errors into hard delivery errors, but it can also be
+used to censor out information from delivery confirmation reports.
 
 This feature is implemented as a filter that replaces the three-number
 enhanced status code and descriptive text in Postfix delivery agent

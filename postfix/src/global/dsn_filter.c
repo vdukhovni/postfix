@@ -2,7 +2,7 @@
 /* NAME
 /*	dsn_filter 3
 /* SUMMARY
-/*	filter DSN status or text
+/*	filter delivery status code or text
 /* SYNOPSIS
 /*	#include <dsn_filter.h>
 /*
@@ -23,7 +23,7 @@
 /*	text) into replacement (success status code and text). Other
 /*	DSN attributes are passed through without modification.
 /*
-/*	dsn_filter_create() instantiates a DSN filter.
+/*	dsn_filter_create() instantiates a delivery status filter.
 /*
 /*	dsn_filter_lookup() queries the specified filter. The input
 /*	DSN must be a success, bounce or defer DSN. If a match is
@@ -34,7 +34,7 @@
 /*	overwritten upon each call.  This function must not be
 /*	called with the result from a dsn_filter_lookup() call.
 /*
-/*	dsn_free() destroys the specified DSN filter.
+/*	dsn_free() destroys the specified delivery status filter.
 /*
 /*	Arguments:
 /* .IP title
@@ -101,7 +101,7 @@ struct DSN_FILTER {
   */
 #define STR(x) vstring_str(x)
 
-/* dsn_filter_create - create bounce/defer NDR filter */
+/* dsn_filter_create - create delivery status filter */
 
 DSN_FILTER *dsn_filter_create(const char *title, const char *map_names)
 {
@@ -117,7 +117,7 @@ DSN_FILTER *dsn_filter_create(const char *title, const char *map_names)
     return (fp);
 }
 
-/* dsn_filter_lookup - apply bounce/defer NDR filter */
+/* dsn_filter_lookup - apply delivery status filter */
 
 DSN    *dsn_filter_lookup(DSN_FILTER *fp, DSN *dsn)
 {
@@ -147,7 +147,8 @@ DSN    *dsn_filter_lookup(DSN_FILTER *fp, DSN *dsn)
 		  myname, dsn->status);
 
     /*
-     * Sanity check. A DSN filter must not be invoked with its own result.
+     * Sanity check. A delivery status filter must not be invoked with its
+     * own result.
      */
     if (dsn->reason == fp->dsn.reason)
 	msg_panic("%s: recursive call is not allowed", myname);
@@ -177,7 +178,7 @@ DSN    *dsn_filter_lookup(DSN_FILTER *fp, DSN *dsn)
     return (0);
 }
 
-/* dsn_filter_free - destroy bounce/defer NDR filter */
+/* dsn_filter_free - destroy delivery status filter */
 
 void    dsn_filter_free(DSN_FILTER *fp)
 {

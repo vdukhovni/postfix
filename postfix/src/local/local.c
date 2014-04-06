@@ -669,7 +669,7 @@ int     local_ext_prop_mask;
 int     local_deliver_hdr_mask;
 int     local_mbox_lock_mask;
 MAPS   *alias_maps;
-char   *var_local_ndr_filter;
+char   *var_local_dsn_filter;
 
 /* local_deliver - deliver message with extreme prejudice */
 
@@ -905,7 +905,7 @@ int     main(int argc, char **argv)
 	VAR_DELIVER_HDR, DEF_DELIVER_HDR, &var_deliver_hdr, 0, 0,
 	VAR_MAILBOX_LOCK, DEF_MAILBOX_LOCK, &var_mailbox_lock, 1, 0,
 	VAR_MAILBOX_CMD_MAPS, DEF_MAILBOX_CMD_MAPS, &var_mailbox_cmd_maps, 0, 0,
-	VAR_LOCAL_DSN_FILTER, DEF_LOCAL_DSN_FILTER, &var_local_ndr_filter, 0, 0,
+	VAR_LOCAL_DSN_FILTER, DEF_LOCAL_DSN_FILTER, &var_local_dsn_filter, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -945,6 +945,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
 		       MAIL_SERVER_BOUNCE_INIT, VAR_LOCAL_DSN_FILTER,
-		       &var_local_ndr_filter,
+		       &var_local_dsn_filter,
 		       0);
 }

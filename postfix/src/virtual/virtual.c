@@ -340,7 +340,7 @@ char   *var_virt_mailbox_lock;
 long    var_virt_mailbox_limit;
 char   *var_mail_spool_dir;		/* XXX dependency fix */
 bool    var_strict_mbox_owner;
-char   *var_virt_ndr_filter;
+char   *var_virt_dsn_filter;
 
  /*
   * Mappings.
@@ -517,7 +517,7 @@ int     main(int argc, char **argv)
 	VAR_VIRT_GID_MAPS, DEF_VIRT_GID_MAPS, &var_virt_gid_maps, 0, 0,
 	VAR_VIRT_MAILBOX_BASE, DEF_VIRT_MAILBOX_BASE, &var_virt_mailbox_base, 1, 0,
 	VAR_VIRT_MAILBOX_LOCK, DEF_VIRT_MAILBOX_LOCK, &var_virt_mailbox_lock, 1, 0,
-	VAR_VIRT_DSN_FILTER, DEF_VIRT_DSN_FILTER, &var_virt_ndr_filter, 0, 0,
+	VAR_VIRT_DSN_FILTER, DEF_VIRT_DSN_FILTER, &var_virt_dsn_filter, 0, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -540,6 +540,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
 		       MAIL_SERVER_BOUNCE_INIT, VAR_VIRT_DSN_FILTER,
-		       &var_virt_ndr_filter,
+		       &var_virt_dsn_filter,
 		       0);
 }

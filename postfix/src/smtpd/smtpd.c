@@ -451,6 +451,10 @@
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBtls_session_ticket_cipher (aes-128-cbc)\fR"
+/*	Algorithm used to encrypt RFC5077 TLS session tickets.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi

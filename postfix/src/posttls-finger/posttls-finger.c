@@ -1411,7 +1411,7 @@ static int finger(STATE *state)
 	if (cache_enabled && cache_count == 0) {
 	    msg_info("Server declined session caching. Done reconnecting.");
 	    state->reconnect = 0;
-	} else if (cache_hits > 0 && (state->log_mask & TLS_LOG_SESSTKT) != 0) {
+	} else if (cache_hits > 0 && (state->log_mask & TLS_LOG_CACHE) != 0) {
 	    msg_info("Found a previously used server.  Done reconnecting.");
 	    state->reconnect = 0;
 	} else if (state->max_reconnect-- <= 0) {

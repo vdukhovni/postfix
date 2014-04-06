@@ -5,7 +5,7 @@
 /* NAME
 /*	dsn_filter 3h
 /* SUMMARY
-/*	bounce/defer DSN filter
+/*	delivery status filter
 /* SYNOPSIS
 /*	#include <dsn_filter.h>
 /* DESCRIPTION

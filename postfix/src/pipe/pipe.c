@@ -548,7 +548,7 @@ int     var_command_maxtime;		/* You can now leave this here. */
  /*
   * Other main.cf parameters.
   */
-char   *var_pipe_ndr_filter;
+char   *var_pipe_dsn_filter;
 
  /*
   * For convenience. Instead of passing around lists of parameters, bundle
@@ -1330,7 +1330,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {
-	VAR_PIPE_DSN_FILTER, DEF_PIPE_DSN_FILTER, &var_pipe_ndr_filter, 0, 0,
+	VAR_PIPE_DSN_FILTER, DEF_PIPE_DSN_FILTER, &var_pipe_dsn_filter, 0, 0,
 	0,
     };
 
@@ -1346,6 +1346,6 @@ int     main(int argc, char **argv)
 		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
 		       MAIL_SERVER_PRIVILEGED,
 		       MAIL_SERVER_BOUNCE_INIT, VAR_PIPE_DSN_FILTER,
-		       &var_pipe_ndr_filter,
+		       &var_pipe_dsn_filter,
 		       0);
 }

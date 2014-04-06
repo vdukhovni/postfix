@@ -3103,6 +3103,10 @@ extern char *var_tls_bug_tweaks;
 #define DEF_TLS_SSL_OPTIONS	""
 extern char *var_tls_ssl_options;
 
+#define VAR_TLS_TKT_CIPHER	"tls_session_ticket_cipher"
+#define DEF_TLS_TKT_CIPHER	"aes-128-cbc"
+extern char *var_tls_tkt_cipher;
+
 #define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
 #define DEF_TLS_BC_PKEY_FPRINT	0
 extern bool var_tls_bc_pkey_fprint;
@@ -3745,7 +3749,7 @@ extern char *var_sm_fix_eol;
 extern bool var_daemon_open_fatal;
 
  /*
-  * Optional DSN bounce/defer filter.
+  * Optional delivery status filter.
   */
 #define VAR_DSN_FILTER			"default_delivery_status_filter"
 #define DEF_DSN_FILTER			""

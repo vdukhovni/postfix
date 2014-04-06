@@ -15616,17 +15616,37 @@ anchor assertion) TLSA records. </p>
 
 <p> This feature is available in Postfix 2.11 and later. </p>
 
+%PARAM tls_session_ticket_cipher aes-128-cbc
+
+<p> Algorithm used to encrypt RFC5077 TLS session tickets.  This
+algorithm must use CBC mode, have a 128-bit initialization vector
+(IV), and must have a key length between 128 and 256 bits.  The
+default is aes-128-cbc.  Sensible alternatives include aes-192-cbc
+and aes-256-cbc.  </p>
+
+<p> Setting this parameter empty disables session ticket support
+in the Postfix SMTP server.  Another way to disable session ticket
+support is via the tls_ssl_options parameter.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
 %PARAM default_delivery_status_filter
 
 <p> Optional filter to replace the delivery status code or explanatory
-text of successful or unsuccessful deliveries.  This does, however,
-not allow the replacement of a successful status code (2.X.X) with
-an unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
+text of successful or unsuccessful deliveries.  This does not allow
+the replacement of a successful status code (2.X.X) with an
+unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
+
+<p> The following parameters can be used to implement a filter for
+specific delivery agents: lmtp_delivery_status_filter,
+local_delivery_status_filter, pipe_delivery_status_filter,
+smtp_delivery_status_filter or virtual_delivery_status_filter. These
+parameters support the same filter syntax as described here. </p>
 
 <p> Specify zero or more "type:table" lookup table names, separated
-by comma or whitespace. With each bounce or defer request, the
-tables are queried in the specified order with one line of text
-that is structured as follows: </p>
+by comma or whitespace. For each successful or unsuccessful delivery
+to a recipient, the tables are queried in the specified order with
+one line of text that is structured as follows: </p>
 
 <blockquote>
 enhanced-status-code SPACE explanatory-text

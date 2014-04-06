@@ -61,6 +61,20 @@
 /*	MSG_STATS *stats;
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
+/*
+/*	int	bounce_one_intern(flags, queue, id, encoding, sender, envid, ret,
+/*				stats, recipient, relay, dsn)
+/*	int	flags;
+/*	const char *queue;
+/*	const char *id;
+/*	const char *encoding;
+/*	const char *sender;
+/*	const char *dsn_envid;
+/*	int	dsn_ret;
+/*	MSG_STATS *stats;
+/*	RECIPIENT *rcpt;
+/*	const char *relay;
+/*	DSN	*dsn;
 /* DESCRIPTION
 /*	This module implements the client interface to the message
 /*	bounce service, which maintains a per-message log of status

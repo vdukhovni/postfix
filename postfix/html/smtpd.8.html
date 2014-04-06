@@ -537,6 +537,11 @@ SMTPD(8)                                                              SMTPD(8)
        <b><a href="postconf.5.html#tlsmgr_service_name">tlsmgr_service_name</a> (tlsmgr)</b>
               The name of the <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 
+       Available in Postfix version 2.12 and later:
+
+       <b><a href="postconf.5.html#tls_session_ticket_cipher">tls_session_ticket_cipher</a> (aes-128-cbc)</b>
+              Algorithm used to encrypt <a href="http://tools.ietf.org/html/rfc5077">RFC5077</a> TLS session tickets.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The following configuration parameters  exist  for  compatibility  with
        Postfix  versions  before  2.3.  Support for these will be removed in a
