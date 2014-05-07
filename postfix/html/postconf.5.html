@@ -8600,7 +8600,7 @@ Examples:
 
 <pre>
 # Handle both Postfix and qmail extensions (Postfix 2.11 and later).
-recipient_delimiters = +-
+<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> = +-
 </pre>
 
 <pre>
@@ -11362,14 +11362,13 @@ a lower logging level.  </p>
 
 <dl compact>
 
-<dt> </dt> <dd> 0 Log only a summary message on TLS handshake completion
+<dt> </dt> <dd> 0 Disable logging of TLS activity. </dd>
+
+<dt> </dt> <dd> 1 Log only a summary message on TLS handshake completion
 &mdash; no logging of remote SMTP server certificate trust-chain
 verification errors if server certificate verification is not required.
-With Postfix 2.8 and earlier, disable logging of TLS activity.  </dd>
-
-<dt> </dt> <dd> 1 Also log remote SMTP server trust-chain verification
-errors and peer certificate summary information. With Postfix 2.8
-and earlier, log TLS handshake and certificate information.  </dd>
+With Postfix 2.8 and earlier, log the summary message and unconditionally
+log trust-chain verification errors.  </dd>
 
 <dt> </dt> <dd> 2 Also log levels during TLS negotiation.  </dd>
 
@@ -15555,15 +15554,13 @@ a lower logging level.  </p>
 
 <dl compact>
 
-<dt> </dt> <dd> 0 Log only a summary message on TLS handshake completion
-&mdash; no logging of remote SMTP client certificate trust-chain verification
-errors
-if client certificate verification is not required. With Postfix 2.8
-and earlier, disable logging of TLS activity. </dd>
+<dt> </dt> <dd> 0 Disable logging of TLS activity. </dd>
 
-<dt> </dt> <dd> 1 Also log trust-chain verification errors and peer
-certificate name and issuer. With Postfix 2.8 and earlier, log TLS
-handshake and certificate information. </dd>
+<dt> </dt> <dd> 1 Log only a summary message on TLS handshake completion
+&mdash; no logging of client certificate trust-chain verification errors
+if client certificate verification is not required.  With Postfix 2.8 and
+earlier, log the summary message, peer certificate summary information
+and unconditionally log trust-chain verification errors.  </dd>
 
 <dt> </dt> <dd> 2 Also log levels during TLS negotiation. </dd>
 

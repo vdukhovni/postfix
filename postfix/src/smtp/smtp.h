@@ -195,7 +195,7 @@ typedef struct SMTP_STATE {
 	STR((state)->iterator->request_nexthop)[0] = 0; \
     }
 
-#define HAVE_NEXTHOP_STATE(state) (STR((state)->iterator->request_nexthop) != 0)
+#define HAVE_NEXTHOP_STATE(state) (STR((state)->iterator->request_nexthop)[0] != 0)
 
 
  /*

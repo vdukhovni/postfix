@@ -19528,3 +19528,49 @@ Apologies for any names omitted.
 20140110-15
 
 	Miscellaneous documentation cleanups.
+
+20140116
+
+	Workaround: prepend "-I. -I../../include" to CCARGS, to
+	avoid name clashes with non-Postfix header files. File:
+	makedefs.
+
+20140125
+
+	Cleanup: postconf(1) manpage missing version attribution
+	and incorrect "author" formatting. File: postconf/postconf.c.
+
+20140223
+
+	Logging: the TLS client logged that an "Untrusted" TLS
+	connection was established instead of "Anonymous".  Viktor
+	Dukhovni. File: tls/tls_client.c.
+
+20140227
+
+	Bugfix: Enforce TLS when TLSA records exist, but all are
+	unusable; Don't leak dane handle when all TLSA records are
+	unusable.  Viktor Dukhovni. File: smtp/smtp_tls_policy.c.
+
+	Cleanup: log TLS policy lookup errors as warnings. Viktor
+	Dukhovni.  File: smtp/smtp_connect.c.
+
+20140407
+
+	Documentation: the documentation for Postfix > 2.8 TLS
+	activity logging was incorrect. Loglevel 0 produces no
+	logging. Instead, information is logged only with loglevel
+	1 or higher. Viktor Dukhovni. Files: proto/TLS_README.html,
+	proto/postconf.proto.
+
+20140507
+
+	Bugfix (introduced: Postfix 2.11): with connection caching
+	enabled (the default), recipients could be given to the
+	wrong mail server.  Root cause: due to an incorrect predicate,
+	the Postfix SMTP client could save and restore plaintext
+	connections that should not be cached, under nonsensical
+	lookup keys that did not distinguish by destination.  Problem
+	reported by Sahil Tandon, predicate error found by Viktor,
+	redundant connection restore request eliminated by Wietse.
+	File: smtp/smtp_connect.c.

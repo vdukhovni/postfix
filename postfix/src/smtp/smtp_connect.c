@@ -510,7 +510,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      */
 #ifdef USE_TLS
     if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
-	msg_info("TLS policy lookup error for %s/%s: %s",
+	msg_warn("TLS policy lookup error for %s/%s: %s",
 		 STR(iter->host), STR(iter->addr), STR(why->reason));
 	return;
     }
@@ -666,6 +666,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
+	&& HAVE_NEXTHOP_STATE(state)
 	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_MASK_SCACHE_DEST_LABEL)) != 0) {
 	session_count = 1;
 	smtp_update_addr_list(addr_list, STR(iter->addr), session_count);
@@ -716,7 +717,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	iter->rr = addr;
 #ifdef USE_TLS
 	if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
-	    msg_info("TLS policy lookup error for %s/%s: %s",
+	    msg_warn("TLS policy lookup error for %s/%s: %s",
 		     STR(iter->dest), STR(iter->host), STR(why->reason));
 	    continue;
 	    /* XXX Assume there is no code at the end of this loop. */
@@ -956,7 +957,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    iter->rr = addr;
 #ifdef USE_TLS
 	    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
-		msg_info("TLS policy lookup for %s/%s: %s",
+		msg_warn("TLS policy lookup for %s/%s: %s",
 			 STR(iter->dest), STR(iter->host), STR(why->reason));
 		continue;
 		/* XXX Assume there is no code at the end of this loop. */

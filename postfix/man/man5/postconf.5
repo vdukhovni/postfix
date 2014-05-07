@@ -5176,7 +5176,7 @@ recipient_delimiter = +
 .na
 .ft C
 # Handle both Postfix and qmail extensions (Postfix 2.11 and later).
-recipient_delimiters = +-
+recipient_delimiter = +-
 .fi
 .ad
 .ft R
@@ -7120,15 +7120,14 @@ Enable additional Postfix SMTP client logging of TLS activity.
 Each logging level also includes the information that is logged at
 a lower logging level.
 .IP ""
-0 Log only a summary message on TLS handshake completion
-- no logging of remote SMTP server certificate trust-chain
-verification errors if server certificate verification is not required.
-With Postfix 2.8 and earlier, disable logging of TLS activity.
+0 Disable logging of TLS activity.
 .br
 .IP ""
-1 Also log remote SMTP server trust-chain verification
-errors and peer certificate summary information. With Postfix 2.8
-and earlier, log TLS handshake and certificate information.
+1 Log only a summary message on TLS handshake completion
+- no logging of remote SMTP server certificate trust-chain
+verification errors if server certificate verification is not required.
+With Postfix 2.8 and earlier, log the summary message and unconditionally
+log trust-chain verification errors.
 .br
 .IP ""
 2 Also log levels during TLS negotiation.
@@ -10554,16 +10553,14 @@ Enable additional Postfix SMTP server logging of TLS activity.
 Each logging level also includes the information that is logged at
 a lower logging level.
 .IP ""
-0 Log only a summary message on TLS handshake completion
-- no logging of remote SMTP client certificate trust-chain verification
-errors
-if client certificate verification is not required. With Postfix 2.8
-and earlier, disable logging of TLS activity.
+0 Disable logging of TLS activity.
 .br
 .IP ""
-1 Also log trust-chain verification errors and peer
-certificate name and issuer. With Postfix 2.8 and earlier, log TLS
-handshake and certificate information.
+1 Log only a summary message on TLS handshake completion
+- no logging of client certificate trust-chain verification errors
+if client certificate verification is not required.  With Postfix 2.8 and
+earlier, log the summary message, peer certificate summary information
+and unconditionally log trust-chain verification errors.
 .br
 .IP ""
 2 Also log levels during TLS negotiation.

@@ -525,8 +525,8 @@ static void *policy_create(const char *unused_key, void *context)
     /*
      * DANE initialization may change the security level to something else,
      * so do this early, so that we use the right level below.  Note that
-     * "dane-only" changes to "dane" after any fallback strategies are
-     * applied.
+     * "dane-only" changes to "dane" once we obtain the requisite TLSA
+     * records.
      */
     if (tls->level == TLS_LEV_DANE || tls->level == TLS_LEV_DANE_ONLY)
 	dane_init(tls, iter);
@@ -706,6 +706,7 @@ static int global_tls_level(void)
 
 #define NONDANE_CONFIG	0		/* Administrator's fault */
 #define NONDANE_DEST	1		/* Remote server's fault */
+#define DANE_UNUSABLE	2		/* Remote server's fault */
 
 static void PRINTFLIKE(4, 5) dane_incompat(SMTP_TLS_POLICY *tls,
 					           SMTP_ITERATOR *iter,
@@ -716,12 +717,12 @@ static void PRINTFLIKE(4, 5) dane_incompat(SMTP_TLS_POLICY *tls,
 
     va_start(ap, fmt);
     if (tls->level == TLS_LEV_DANE) {
-	tls->level = TLS_LEV_MAY;
+	tls->level = (errtype == DANE_UNUSABLE) ? TLS_LEV_ENCRYPT : TLS_LEV_MAY;
 	if (errtype == NONDANE_CONFIG)
 	    vmsg_warn(fmt, ap);
 	else if (msg_verbose)
 	    vmsg_info(fmt, ap);
-    } else {
+    } else {					/* dane-only */
 	if (errtype == NONDANE_CONFIG) {
 	    vmsg_warn(fmt, ap);
 	    MARK_INVALID(tls->why, &tls->level);
@@ -816,7 +817,8 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
      * given verifier some of the CAs are surely not trustworthy).
      */
     if (tls_dane_unusable(dane)) {
-	dane_incompat(tls, iter, NONDANE_DEST, "TLSA records unusable");
+	dane_incompat(tls, iter, DANE_UNUSABLE, "TLSA records unusable");
+	tls_dane_free(dane);
 	return;
     }
 

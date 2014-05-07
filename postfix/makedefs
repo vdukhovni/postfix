@@ -638,6 +638,9 @@ export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 # needed before the code stabilizes.
 #CCARGS="$CCARGS -DNONPROD"
 
+# Workaround: prepend Postfix include files before other include files.
+CCARGS="-I. -I../../include $CCARGS"
+
 sed 's/  / /g' <<EOF
 SYSTYPE	= $SYSTYPE
 AR	= $AR
