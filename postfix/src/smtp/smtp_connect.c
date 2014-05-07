@@ -666,6 +666,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0
+	&& HAVE_NEXTHOP_STATE(state)
 	&& (session = smtp_reuse_nexthop(state, SMTP_KEY_MASK_SCACHE_DEST_LABEL)) != 0) {
 	session_count = 1;
 	smtp_update_addr_list(addr_list, STR(iter->addr), session_count);

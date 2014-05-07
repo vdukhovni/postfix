@@ -305,6 +305,10 @@ alias_database = hash:/etc/mail/aliases
 .SH alias_maps (default: see "postconf -d" output)
 The alias databases that are used for \fBlocal\fR(8) delivery. See
 \fBaliases\fR(5) for syntax details.
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+Note: these lookups are recursive.
 .PP
 The default list is system dependent.  On systems with NIS, the
 default is to search the local alias database, then the NIS alias
@@ -764,6 +768,11 @@ to clean up dirty addresses from legacy mail systems, or to replace
 login names by Firstname.Lastname.  The table format and lookups
 are documented in \fBcanonical\fR(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+Note: these lookups are recursive.
 .PP
 If you use this feature, run "\fBpostmap /etc/postfix/canonical\fR" to
 build the necessary DBM or DB file after every change. The changes
@@ -3123,6 +3132,10 @@ Technically, tables listed with $local_recipient_maps are used as
 lists: Postfix needs to know only if a lookup string is found or
 not, but it does not use the result from table lookup.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+.PP
 If this parameter is non-empty (the default), then the Postfix SMTP
 server will reject mail for unknown local users.
 .PP
@@ -3382,6 +3395,10 @@ The precedence of \fBlocal\fR(8) delivery features from high to low
 is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .SH mailbox_delivery_lock (default: see "postconf -d" output)
 How to lock a UNIX-style \fBlocal\fR(8) mailbox before attempting delivery.
 For a list of available file locking methods, use the "\fBpostconf
@@ -3420,6 +3437,10 @@ The precedence of \fBlocal\fR(8) delivery features from high to low
 is: aliases, .forward files, mailbox_transport_maps, mailbox_transport,
 mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 For safety reasons, this feature does not allow $number
 substitutions in regular expression maps.
@@ -4580,6 +4601,12 @@ its combined DNSBL score as defined with the postscreen_dnsbl_sites
 parameter.
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_timeout (default: 10s)
+The time limit for DNSBL or DNSWL lookups. This is separate from
+the timeouts in the \fBdnsblog\fR(8) daemon which are defined by system
+\fBresolver\fR(3) routines.
+.PP
+This feature is available in Postfix 2.12.
 .SH postscreen_dnsbl_ttl (default: 1h)
 The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful DNS blocklist test. During this time, the client IP address
@@ -4964,6 +4991,9 @@ proxy_interfaces = 1.2.3.4
 .SH proxy_read_maps (default: see "postconf -d" output)
 The lookup tables that the \fBproxymap\fR(8) server is allowed to
 access for the read-only service.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma.
 Table references that don't begin with proxy: are ignored.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -5175,7 +5205,9 @@ Optional BCC (blind carbon-copy) address lookup tables, indexed by
 recipient address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
-This feature is available in Postfix 2.1 and later.
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 The table search order is as follows:
 .IP \(bu
@@ -5194,9 +5226,6 @@ equals $myorigin, $mydestination, $inet_interfaces or $proxy_interfaces.
 .IP \(bu
 Look up the "@domain.tld" part.
 .br
-.PP
-Specify the types and names of databases to use.  After change,
-run "\fBpostmap /etc/postfix/recipient_bcc\fR".
 .PP
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
@@ -5220,6 +5249,10 @@ recipient_bcc_maps = hash:/etc/postfix/recipient_bcc
 .fi
 .ad
 .ft R
+.PP
+After a change, run "\fBpostmap /etc/postfix/recipient_bcc\fR".
+.PP
+This feature is available in Postfix 2.1 and later.
 .SH recipient_canonical_classes (default: envelope_recipient, header_recipient)
 What addresses are subject to recipient_canonical_maps address
 mapping.  By default, recipient_canonical_maps address mapping is
@@ -5291,7 +5324,7 @@ recipient_delimiter = +
 .na
 .ft C
 # Handle both Postfix and qmail extensions (Postfix 2.11 and later).
-recipient_delimiters = +-
+recipient_delimiter = +-
 .fi
 .ad
 .ft R
@@ -5416,6 +5449,10 @@ listed with $relay_recipient_maps are used as lists: Postfix needs
 to know only if a lookup string is found or not, but it does not
 use the result from table lookup.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+.PP
 If this parameter is non-empty, then the Postfix SMTP server will reject
 mail to unknown relay users. This feature is off by default.
 .PP
@@ -5484,6 +5521,10 @@ relayhost = [an.ip.add.ress]
 Optional lookup tables with new contact information for users or
 domains that no longer exist.  The table format and lookups are
 documented in \fBrelocated\fR(5).
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 If you use this feature, run "\fBpostmap /etc/postfix/relocated\fR" to
 build the necessary DBM or DB file after change, then "\fBpostfix
@@ -5646,7 +5687,9 @@ Optional BCC (blind carbon-copy) address lookup tables, indexed
 by sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
-This feature is available in Postfix 2.1 and later.
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 The table search order is as follows:
 .IP \(bu
@@ -5665,9 +5708,6 @@ equals $myorigin, $mydestination, $inet_interfaces or $proxy_interfaces.
 .IP \(bu
 Look up the "@domain.tld" part.
 .br
-.PP
-Specify the types and names of databases to use.  After change,
-run "\fBpostmap /etc/postfix/sender_bcc\fR".
 .PP
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
@@ -5691,6 +5731,10 @@ sender_bcc_maps = hash:/etc/postfix/sender_bcc
 .fi
 .ad
 .ft R
+.PP
+After a change, run "\fBpostmap /etc/postfix/sender_bcc\fR".
+.PP
+This feature is available in Postfix 2.1 and later.
 .SH sender_canonical_classes (default: envelope_sender, header_sender)
 What addresses are subject to sender_canonical_maps address
 mapping.  By default, sender_canonical_maps address mapping is
@@ -5726,6 +5770,10 @@ address and @domain. A lookup result of DUNNO terminates the search
 without overriding the global default_transport parameter setting.
 This information is overruled with the \fBtransport\fR(5) table.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+.PP
 Note: this overrides default_transport, not transport_maps, and
 therefore the expected syntax is that of default_transport, not the
 syntax of transport_maps.  Specifically, this does not support the
@@ -5744,6 +5792,10 @@ overriding the global relayhost parameter setting (Postfix 2.6 and
 later). This information is overruled with relay_transport,
 sender_dependent_default_transport_maps, default_transport and with
 the \fBtransport\fR(5) table.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 For safety reasons, this feature does not allow $number
 substitutions in regular expression maps.
@@ -6081,6 +6133,10 @@ remote SMTP server. See smtp_discard_ehlo_keywords for details. The
 table is not indexed by hostname for consistency with
 smtpd_discard_ehlo_keyword_address_maps.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+.PP
 This feature is available in Postfix 2.2 and later.
 .SH smtp_discard_ehlo_keywords (default: empty)
 A case insensitive list of EHLO keywords (pipelining, starttls,
@@ -6246,6 +6302,10 @@ This is needed when the local machine does not have its own Internet
 domain name, but uses something like \fIlocaldomain.local\fR
 instead.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+.PP
 The table format and lookups are documented in \fBgeneric\fR(5);
 examples are shown in the ADDRESS_REWRITING_README and
 STANDARD_CONFIGURATION_README documents.
@@ -6384,6 +6444,10 @@ Lookup tables, indexed by the remote SMTP server address, with
 per-destination workarounds for CISCO PIX firewall bugs.  The table
 is not indexed by hostname for consistency with
 smtp_discard_ehlo_keyword_address_maps.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 This feature is available in Postfix 2.4 and later.
 .SH smtp_pix_workaround_threshold_time (default: 500s)
@@ -6633,6 +6697,10 @@ attempt to authenticate to the remote host.
 .PP
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .SH smtp_sasl_path (default: empty)
 Implementation-specific information that the Postfix SMTP client
 passes through to
@@ -7244,15 +7312,14 @@ Enable additional Postfix SMTP client logging of TLS activity.
 Each logging level also includes the information that is logged at
 a lower logging level.
 .IP ""
-0 Log only a summary message on TLS handshake completion
-- no logging of remote SMTP server certificate trust-chain
-verification errors if server certificate verification is not required.
-With Postfix 2.8 and earlier, disable logging of TLS activity.
+0 Disable logging of TLS activity.
 .br
 .IP ""
-1 Also log remote SMTP server trust-chain verification
-errors and peer certificate summary information. With Postfix 2.8
-and earlier, log TLS handshake and certificate information.
+1 Log only a summary message on TLS handshake completion
+- no logging of remote SMTP server certificate trust-chain
+verification errors if server certificate verification is not required.
+With Postfix 2.8 and earlier, log the summary message and unconditionally
+log trust-chain verification errors.
 .br
 .IP ""
 2 Also log levels during TLS negotiation.
@@ -7511,6 +7578,10 @@ Optional lookup tables with the Postfix SMTP client TLS security
 policy by next-hop destination; when a non-empty value is specified,
 this overrides the obsolete smtp_tls_per_site parameter.  See
 TLS_README for a more detailed discussion of TLS security levels.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 The TLS policy table is indexed by the full next-hop destination,
 which is either the recipient domain, or the verbatim next-hop
@@ -8878,7 +8949,11 @@ case insensitive lists of EHLO keywords (pipelining, starttls, auth,
 etc.) that the Postfix SMTP server will not send in the EHLO response
 to a
 remote SMTP client. See smtpd_discard_ehlo_keywords for details.
-The table is not searched by hostname for robustness reasons.
+The tables are not searched by hostname for robustness reasons.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_discard_ehlo_keywords (default: empty)
@@ -9445,7 +9520,7 @@ non-permanent error code.  This feature is available in Postfix
 .IP "\fBreject_unknown_recipient_domain\fR"
 Reject the request when Postfix is not final destination for
 the recipient domain, and the RCPT TO domain has 1) no DNS MX and
-no DNS address
+no DNS A
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later).
 .br
@@ -9916,7 +9991,9 @@ This feature is available in Postfix 2.3 and later.
 Optional lookup table with the SASL login names that own sender
 (MAIL FROM) addresses.
 .PP
-Specify zero or more "type:table" lookup tables. With lookups from
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.  With lookups from
 indexed files such as DB or DBM, or from networked tables such as
 NIS, LDAP or SQL, the following search operations are done with a
 sender address of \fIuser@domain\fR:
@@ -10019,7 +10096,7 @@ Postfix version 2.1 and later.
 .IP "\fBreject_unknown_sender_domain\fR"
 Reject the request when Postfix is not final destination for
 the sender address, and the MAIL FROM domain has 1) no DNS MX and
-no DNS address
+no DNS A
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later).
 .br
@@ -10680,16 +10757,14 @@ Enable additional Postfix SMTP server logging of TLS activity.
 Each logging level also includes the information that is logged at
 a lower logging level.
 .IP ""
-0 Log only a summary message on TLS handshake completion
-- no logging of remote SMTP client certificate trust-chain verification
-errors
-if client certificate verification is not required. With Postfix 2.8
-and earlier, disable logging of TLS activity.
+0 Disable logging of TLS activity.
 .br
 .IP ""
-1 Also log trust-chain verification errors and peer
-certificate name and issuer. With Postfix 2.8 and earlier, log TLS
-handshake and certificate information.
+1 Log only a summary message on TLS handshake completion
+- no logging of client certificate trust-chain verification errors
+if client certificate verification is not required.  With Postfix 2.8 and
+earlier, log the summary message, peer certificate summary information
+and unconditionally log trust-chain verification errors.
 .br
 .IP ""
 2 Also log levels during TLS negotiation.
@@ -12031,7 +12106,9 @@ Optional lookup tables with mappings from recipient address to
 (message delivery transport, next-hop destination).  See \fBtransport\fR(5)
 for details.
 .PP
-Specify zero or more "type:table" lookup tables.  If you use this
+Specify zero or more "type:table" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.  If you use this
 feature with local files, run "\fBpostmap /etc/postfix/transport\fR"
 after making a change.
 .PP
@@ -12361,6 +12438,11 @@ manipulations see the ADDRESS_REWRITING_README document.
 This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix version 1.1.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+Note: these lookups are recursive.
+.PP
 If you use this feature with indexed files, run "\fBpostmap
 /etc/postfix/virtual\fR" after changing the file.
 .PP
@@ -12409,6 +12491,10 @@ delivery.
 This parameter is specific to the \fBvirtual\fR(8) delivery agent.
 It does not apply when mail is delivered with a different mail
 delivery program.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
@@ -12488,6 +12574,10 @@ Note 2: the default setting of this parameter is system dependent.
 Optional lookup tables with all valid addresses in the domains that
 match $virtual_mailbox_domains.
 .PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+.PP
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
@@ -12550,6 +12640,10 @@ delivery agent uses while writing to the recipient's mailbox.
 This parameter is specific to the \fBvirtual\fR(8) delivery agent.
 It does not apply when mail is delivered with a different mail
 delivery program.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld"
 to match any user in the specified domain that does not have a

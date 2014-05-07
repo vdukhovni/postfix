@@ -19605,8 +19605,8 @@ Apologies for any names omitted.
 	unusable; Don't leak dane handle when all TLSA records are
 	unusable.  Viktor Dukhovni. File: smtp/smtp_tls_policy.c.
 
-	Cleanup: log TLS policy lookups as warnings. Viktor Dukhovni.
-	File: smtp/smtp_connect.c.
+	Cleanup: log TLS policy lookup errors as warnings. Viktor
+	Dukhovni.  File: smtp/smtp_connect.c.
 
 20140316
 
@@ -19672,3 +19672,42 @@ Apologies for any names omitted.
 	proto/postconf.proto, global/mail_params.h, tls/tls_misc.c,
 	tls/tls_scache.h, tls/tls_server.c.
 
+20140416
+
+	Cleanup: replace "~0 << positive" with "~0U << positive"
+	even if we use only the lower bytes.  Jeffrey Walton.  File:
+	util/mask_addr.c.
+
+20140407
+
+	Documentation: the documentation for Postfix > 2.8 TLS
+	activity logging was incorrect. Loglevel 0 produces no
+	logging. Instead, information is logged only with loglevel
+	1 or higher. Viktor Dukhovni. Files: proto/TLS_README.html,
+	proto/postconf.proto.
+
+20140501
+
+	Cleanup: postcreen_dnsbl_timeout parameter. Files:
+	mantools/postlink, proto/postconf.proto, global/mail_params.h,
+	postscreen/postscreen.c, postscreen/postscreen_dnsbl.c.
+
+	Cleanup: added table search order information to the
+	postconf(5) manpage. File: proto/postconf.proto.
+
+20140505
+
+	Cleanup: added a client port attribute to the policy
+	delegation protocol. Jernej Porenta. File: smtpd/smtpd_check.c.
+
+20140507
+
+	Bugfix (introduced: Postfix 2.11): with connection caching
+	enabled (the default), recipients could be given to the
+	wrong mail server.  Root cause: due to an incorrect predicate,
+	the Postfix SMTP client could save and restore plaintext
+	connections that should not be cached, under nonsensical
+	lookup keys that did not distinguish by destination.  Problem
+	reported by Sahil Tandon, predicate error found by Viktor,
+	redundant connection restore request eliminated by Wietse.
+	File: smtp/smtp_connect.c.

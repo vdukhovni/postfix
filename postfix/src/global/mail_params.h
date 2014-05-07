@@ -3447,6 +3447,10 @@ extern int var_psc_dnsbl_ttl;
 #define	DEF_PSC_DNSBL_REPLY	""
 extern char *var_psc_dnsbl_reply;
 
+#define VAR_PSC_DNSBL_TMOUT	"postscreen_dnsbl_timeout"
+#define DEF_PSC_DNSBL_TMOUT	"10s"
+extern int var_psc_dnsbl_tmout;
+
 #define VAR_PSC_PIPEL_ENABLE	"postscreen_pipelining_enable"
 #define DEF_PSC_PIPEL_ENABLE	0
 extern bool var_psc_pipel_enable;

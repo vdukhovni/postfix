@@ -86,7 +86,6 @@
  /*
   * Talking to the DNSBLOG service.
   */
-#define DNSBLOG_TIMEOUT			10
 static char *psc_dnsbl_service;
 
  /*
@@ -425,7 +424,7 @@ static void psc_dnsbl_receive(int event, char *context)
 	    PSC_CALL_BACK_NOTIFY(score, PSC_NULL_EVENT);
     } else if (event == EVENT_TIME) {
 	msg_warn("dnsblog reply timeout %ds for %s",
-		 DNSBLOG_TIMEOUT, (char *) vstream_context(stream));
+		 var_psc_dnsbl_tmout, (char *) vstream_context(stream));
     }
     /* Here, score may be a null pointer. */
     vstream_fclose(stream);
@@ -521,7 +520,7 @@ int     psc_dnsbl_request(const char *client_addr,
 	    continue;
 	}
 	PSC_READ_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive,
-			       (char *) stream, DNSBLOG_TIMEOUT);
+			       (char *) stream, var_psc_dnsbl_tmout);
 	score->pending_lookups += 1;
     }
     return (PSC_CALL_BACK_INDEX_OF_LAST(score));

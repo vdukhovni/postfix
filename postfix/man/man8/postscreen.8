@@ -248,6 +248,10 @@ Available in Postfix version 2.11 and later:
 Allow a remote SMTP client to skip "before" and "after 220
 greeting" protocol tests, based on its combined DNSBL score as
 defined with the postscreen_dnsbl_sites parameter.
+.PP
+Available in Postfix version 2.11 and later:
+.IP "\fBpostscreen_dnsbl_timeout (10s)\fR"
+The time limit for DNSBL or DNSWL lookups.
 .SH "AFTER 220 GREETING TESTS"
 .na
 .nf

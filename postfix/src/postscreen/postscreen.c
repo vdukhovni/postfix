@@ -220,6 +220,10 @@
 /*	Allow a remote SMTP client to skip "before" and "after 220
 /*	greeting" protocol tests, based on its combined DNSBL score as
 /*	defined with the postscreen_dnsbl_sites parameter.
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBpostscreen_dnsbl_timeout (10s)\fR"
+/*	The time limit for DNSBL or DNSWL lookups.
 /* AFTER 220 GREETING TESTS
 /* .ad
 /* .fi
@@ -473,6 +477,7 @@ int     var_psc_dnsbl_thresh;
 int     var_psc_dnsbl_wthresh;
 char   *var_psc_dnsbl_action;
 int     var_psc_dnsbl_ttl;
+int     var_psc_dnsbl_tmout;
 
 bool    var_psc_pipel_enable;
 char   *var_psc_pipel_action;
@@ -1122,6 +1127,8 @@ int     main(int argc, char **argv)
 	VAR_PSC_CACHE_SCAN, DEF_PSC_CACHE_SCAN, &var_psc_cache_scan, 0, 0,
 	VAR_PSC_WATCHDOG, DEF_PSC_WATCHDOG, &var_psc_watchdog, 10, 0,
 	VAR_PSC_UPROXY_TMOUT, DEF_PSC_UPROXY_TMOUT, &var_psc_uproxy_tmout, 1, 0,
+	VAR_PSC_DNSBL_TMOUT, DEF_PSC_DNSBL_TMOUT, &var_psc_dnsbl_tmout, 1, 0,
+
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {

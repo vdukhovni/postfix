@@ -384,16 +384,15 @@ logging level. </p>
 <tr> <th> Level </th> <th> Postfix 2.9 and later</th> <th> Earlier
 releases. </th> </tr>
 
-<tr> <td valign="top"> 0 </td> <td valign="top"> Log only a summary
+<tr> <td valign="top"> 0 </td> <td valign="top" colspan="2"> Disable
+logging of TLS activity. </td> </tr>
+
+<tr> <td valign="top"> 1 </td> <td valign="top"> Log only a summary
 message on TLS handshake completion &mdash; no logging of client
 certificate trust-chain verification errors if client certificate
-verification is not required. </td> <td valign="top"> Disable logging
-of TLS activity.</td> </tr>
-
-<tr> <td valign="top"> 1 </td> <td valign="top"> Also log trust-chain
-verification errors and peer certificate summary information. </td>
-<td valign="top"> Also log TLS handshake and certificate information.
-</td> </tr>
+verification is not required. </td> <td valign="top"> Log the summary
+message, peer certificate summary information and unconditionally log
+trust-chain verification errors.  </td> </tr>
 
 <tr> <td valign="top"> 2 </td> <td valign="top" colspan="2"> Also
 log levels during TLS negotiation.  </td> </tr>
@@ -1750,16 +1749,15 @@ logging level. </p>
 <tr> <th> Level </th> <th> Postfix 2.9 and later</th> <th> Earlier
 releases. </th> </tr>
 
-<tr> <td valign="top"> 0 </td> <td valign="top"> Log only a summary
-message on TLS handshake completion &mdash; no logging of remote
-SMTP server certificate trust-chain verification errors if server
-certificate verification is not required. </td> <td valign="top">
-Disable logging of TLS activity.</td> </tr>
+<tr> <td valign="top"> 0 </td> <td valign="top" colspan="2"> Disable
+logging of TLS activity.  </td> </tr>
 
-<tr> <td valign="top"> 1 </td> <td valign="top"> Also log remote
-SMTP server trust-chain verification errors and peer certificate
-summary information. </td> <td valign="top"> Also log TLS handshake
-and certificate information.  </td> </tr>
+<tr> <td valign="top"> 1 </td> <td valign="top"> Log only a summary
+message on TLS handshake completion &mdash; no logging of remote SMTP
+server certificate trust-chain verification errors if server certificate
+verification is not required. </td> <td valign="top"> Log the summary
+message and unconditionally log trust-chain verification errors.
+</td> </tr>
 
 <tr> <td valign="top"> 2 </td> <td valign="top" colspan="2"> Also
 log levels during TLS negotiation. </td> </tr>

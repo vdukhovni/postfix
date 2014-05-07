@@ -19,12 +19,12 @@ DNSBLOG(8)                                                          DNSBLOG(8)
 
 <b>PROTOCOL</b>
        With each connection, the <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> server receives a DNS white/black-
-       list domain name, IP address, and an ID.   If  the  address  is  listed
-       under the DNS white/blacklist, the <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> server logs the match and
-       replies with the query arguments plus an address list with the  result-
-       ing  IP  addresses  separated by whitespace.  Otherwise it replies with
-       the query arguments plus an empty  address  list.   Finally,  The  <a href="dnsblog.8.html"><b>dns-</b></a>
-       <a href="dnsblog.8.html"><b>blog</b>(8)</a> server closes the connection.
+       list domain name, an IP address, and an  ID.   If  the  IP  address  is
+       listed  under  the  DNS white/blacklist, the <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> server logs the
+       match and replies with the query arguments plus an  address  list  with
+       the  resulting  IP  addresses  separated  by  whitespace.  Otherwise it
+       replies with the query arguments plus an empty address list.   Finally,
+       The <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> server closes the connection.
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).

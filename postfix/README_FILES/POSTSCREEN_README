@@ -622,8 +622,8 @@ mail:
         postscreen_dnsbl_reply_map = texthash:/etc/postfix/dnsbl_reply
 
     /etc/postfix/dnsbl_reply:
-        # Secret DNSBL name        Name in postscreen(8) replies
-        secret.zen.spamhaus.org    zen.spamhaus.org
+        # Secret DNSBL name           Name in postscreen(8) replies
+        secret.zen.dq.spamhaus.net    zen.spamhaus.org
 
     The texthash: format is similar to hash: except that there is no need to
     run postmap(1) before the file can be used, and that it does not detect
