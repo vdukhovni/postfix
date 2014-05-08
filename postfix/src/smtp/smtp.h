@@ -322,7 +322,7 @@ typedef struct SMTP_SESSION {
 
     time_t  expire_time;		/* session reuse expiration time */
     int     reuse_count;		/* # of times reused (for logging) */
-    int     dead;			/* No further I/O allowed */
+    int     forbidden;			/* No further I/O allowed */
 
 #ifdef USE_SASL_AUTH
     char   *sasl_mechanism_list;	/* server mechanism list */
@@ -416,7 +416,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
   * connections and other reasons why connections cannot be cached.
   */
 #define THIS_SESSION_IS_CACHED \
-	(!THIS_SESSION_IS_DEAD && session->expire_time > 0)
+	(!THIS_SESSION_IS_FORBIDDEN && session->expire_time > 0)
 
 #define THIS_SESSION_IS_EXPIRED \
 	(THIS_SESSION_IS_CACHED \
@@ -424,27 +424,27 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 		|| (var_smtp_reuse_count > 0 \
 		    && session->reuse_count >= var_smtp_reuse_count)))
 
-#define THIS_SESSION_IS_BAD \
-	(!THIS_SESSION_IS_DEAD && session->expire_time < 0)
+#define THIS_SESSION_IS_THROTTLED \
+	(!THIS_SESSION_IS_FORBIDDEN && session->expire_time < 0)
 
-#define THIS_SESSION_IS_DEAD \
-	(session->dead != 0)
+#define THIS_SESSION_IS_FORBIDDEN \
+	(session->forbidden != 0)
 
  /* Bring the bad news. */
 
 #define DONT_CACHE_THIS_SESSION \
 	(session->expire_time = 0)
 
-#define DONT_CACHE_BAD_SESSION \
+#define DONT_CACHE_THROTTLED_SESSION \
 	(session->expire_time = -1)
 
-#define DONT_USE_DEAD_SESSION \
-	(session->dead = 1)
+#define DONT_USE_FORBIDDEN_SESSION \
+	(session->forbidden = 1)
 
  /* Initialization. */
 
 #define USE_NEWBORN_SESSION \
-	(session->dead = 0)
+	(session->forbidden = 0)
 
 #define CACHE_THIS_SESSION_UNTIL(when) \
 	(session->expire_time = (when))

@@ -368,7 +368,7 @@ static void smtp_cleanup_session(SMTP_STATE *state)
 {
     DELIVER_REQUEST *request = state->request;
     SMTP_SESSION *session = state->session;
-    int     bad_session;
+    int     throttled;
 
     /*
      * Inform the postmaster of trouble.
@@ -397,7 +397,7 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * physical bindings; caching a session under its own hostname provides
      * no performance benefit, given the way smtp_connect() works.
      */
-    bad_session = THIS_SESSION_IS_BAD;		/* smtp_quit() may fail */
+    throttled = THIS_SESSION_IS_THROTTLED;	/* smtp_quit() may fail */
     if (THIS_SESSION_IS_EXPIRED)
 	smtp_quit(state);			/* also disables caching */
     if (THIS_SESSION_IS_CACHED
@@ -417,7 +417,7 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * next-hop destination. Otherwise we could end up skipping over the
      * available and more preferred servers.
      */
-    if (HAVE_NEXTHOP_STATE(state) && !bad_session)
+    if (HAVE_NEXTHOP_STATE(state) && !throttled)
 	FREE_NEXTHOP_STATE(state);
 
     /*
@@ -539,7 +539,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
 	 */
 	if ((session->features & SMTP_FEATURE_FROM_CACHE) == 0
 	    && smtp_helo(state) != 0) {
-	    if (!THIS_SESSION_IS_DEAD
+	    if (!THIS_SESSION_IS_FORBIDDEN
 		&& vstream_ferror(session->stream) == 0
 		&& vstream_feof(session->stream) == 0)
 		smtp_quit(state);
@@ -889,11 +889,13 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * 
 	 * Opportunistic (a.k.a. on-demand) session caching on request by the
 	 * queue manager. This is turned temporarily when a destination has a
-	 * high volume of mail in the active queue.
+	 * high volume of mail in the active queue. When the surge reaches
+	 * its end, the queue manager requests that connections be retrieved
+	 * but not stored.
 	 */
 	if (addr_list && (state->misc_flags & SMTP_MISC_FLAG_FIRST_NEXTHOP)) {
 	    smtp_cache_policy(state, domain);
-	    if (state->misc_flags & SMTP_MISC_FLAG_CONN_STORE)
+	    if (state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE_MASK)
 		SET_NEXTHOP_STATE(state, dest);
 	}
 
@@ -1004,7 +1006,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		     * When a TLS handshake fails, the stream is marked
 		     * "dead" to avoid further I/O over a broken channel.
 		     */
-		    if (!THIS_SESSION_IS_DEAD
+		    if (!THIS_SESSION_IS_FORBIDDEN
 			&& vstream_ferror(session->stream) == 0
 			&& vstream_feof(session->stream) == 0)
 			smtp_quit(state);

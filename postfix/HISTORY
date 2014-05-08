@@ -19711,3 +19711,13 @@ Apologies for any names omitted.
 	reported by Sahil Tandon, predicate error found by Viktor,
 	redundant connection restore request eliminated by Wietse.
 	File: smtp/smtp_connect.c.
+
+	Cleanup: the macros that control SMTP connection reuse
+	poorly reflected their purpose. "DEAD" is replaced with
+	"FORBIDDEN" (no I/O allowed) and "BAD" is replaced with
+	"THROTTLED" (anything that causes the queue manager to back
+	off from some destination). Files: smtp.h, smtp_coonnect.c,
+	smtp_proto.c, smtp_trouble.c.
+
+	Cleanup: enable SMTP connection cache lookup by destination
+	while a surge of mail is drying up. File: smtp_connect.c.

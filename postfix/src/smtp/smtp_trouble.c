@@ -265,7 +265,7 @@ static int smtp_bulk_fail(SMTP_STATE *state, int throttle_queue)
      * Don't cache this session. We can't talk to this server.
      */
     if (throttle_queue && session)
-	DONT_CACHE_BAD_SESSION;
+	DONT_CACHE_THROTTLED_SESSION;
 
     return (-1);
 }
