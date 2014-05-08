@@ -148,7 +148,29 @@ compiler. Here are a few examples:
 
 and so on. In some cases, optimization is turned off automatically.
 
-44..33 -- BBuuiillddiinngg wwiitthh ooppttiioonnaall ffeeaattuurreess
+44..33 -- BBuuiillddiinngg wwiitthh PPoossttffiixx sshhaarreedd lliibbrraarriieess ((PPoossttffiixx >>== 22..1122))
+
+Postfix can be built with Postfix shared libraries (files named libpostfix-
+*.so.*). These files are needed to dynamically load Postfix database clients
+with the Debian-style dynamicmaps.cf feature. Postfix shared libraries add
+minor run-time overhead and result in smaller Postfix executable files.
+
+Although Debian-style dynamicmaps.cf support is functional, it is not yet used.
+Postfix database clients are still built into the Postfix library files.
+Postfix database clients may become plugins at some later point in time.
+
+Postfix shared-library support is evolving. Support exists for Linux, FreeBSD
+and MacOS X. Shared-library builds will become the default once the build
+system stops changing.
+
+For now, specify "shared=yes" on the "make makefiles" command line to build
+Postfix with shared-library support.
+
+    $ make makefiles shared=yes ...other arguments...
+    $ make makefiles shared=no ...other arguments...
+    $ make
+
+44..44 -- BBuuiillddiinngg wwiitthh ooppttiioonnaall ffeeaattuurreess
 
 By default, Postfix builds as a mail system with relatively few bells and
 whistles. Support for third-party databases etc. must be configured when
@@ -180,7 +202,53 @@ support for optional features:
 Note: IP version 6 support is compiled into Postfix on operating systems that
 have IPv6 support. See the IPV6_README file for details.
 
-44..44 -- OOvveerrrriiddiinngg bbuuiilltt--iinn ppaarraammeetteerr ddeeffaauulltt sseettttiinnggss
+44..55 -- OOvveerrrriiddiinngg bbuuiilltt--iinn ppaarraammeetteerr ddeeffaauulltt sseettttiinnggss
+
+44..55..11 -- PPoossttffiixx 22..1122 aanndd llaatteerr
+
+All Postfix configuration parameters can be changed by editing a Postfix
+configuration file, except for one: the parameter that specifies the location
+of Postfix configuration files. In order to build Postfix with a configuration
+directory other than /etc/postfix, use:
+
+    $ make makefiles config_directory=/some/where ...other arguments...
+    $ make
+
+Parameters whose defaults can be specified in this way are listed below. See
+the postconf(5) manpage for a description (command: "nroff -man man/man5/
+postconf.5 | less").
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |ppaarraammeetteerr nnaammee       |ttyyppiiccaall ddeeffaauulltt     |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |command_directory    |/usr/sbin           |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |config_directory     |/etc/postfix        |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |default_database_type|hash                |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |daemon_directory     |/usr/libexec/postfix|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |data_directory       |/var/lib/postfix    |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |html_directory       |no                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |mailq_path           |/usr/bin/mailq      |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |manpage_directory    |/usr/local/man      |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |newaliases_path      |/usr/bin/newaliases |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |queue_directory      |/var/spool/postfix  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |readme_directory     |no                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |sendmail_path        |/usr/sbin/sendmail  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |shlib_directory      |/usr/local/lib      |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+
+44..55..22 -- AAllll PPoossttffiixx vveerrssiioonnss
 
 All Postfix configuration parameters can be changed by editing a Postfix
 configuration file, except for one: the parameter that specifies the location
@@ -192,7 +260,9 @@ directory other than /etc/postfix, use:
 
 IMPORTANT: Be sure to get the quotes right. These details matter a lot.
 
-Parameters whose defaults can be specified in this way are:
+Parameters whose defaults can be specified in this way are listed below. See
+the postconf(5) manpage for a description (command: "nroff -man man/man5/
+postconf.5 | less").
 
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
     |MMaaccrroo nnaammee       |ddeeffaauulltt vvaalluuee ffoorr    |ttyyppiiccaall ddeeffaauulltt     |
@@ -225,7 +295,7 @@ Parameters whose defaults can be specified in this way are:
 Note: the data_directory parameter (for caches and pseudo-random numbers) was
 introduced with Postfix version 2.5.
 
-44..55 -- OOvveerrrriiddiinngg ootthheerr ccoommppiillee--ttiimmee ffeeaattuurreess
+44..66 -- OOvveerrrriiddiinngg ootthheerr ccoommppiillee--ttiimmee ffeeaattuurreess
 
 The general method to override Postfix compile-time features is as follows:
 
@@ -253,7 +323,7 @@ The following is an extensive list of names and values.
 ||-DNO_DB                      |platforms that are known to support this      |
 ||                             |feature. If you override this, then you       |
 ||                             |probably should also override DEF_DB_TYPE as  |
-||                             |described in section 4.4.                     |
+||                             |described in section 4.5.                     |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                             |Do not build with Solaris /dev/poll support.  |
 ||-DNO_DEVPOLL                 |By default, /dev/poll support is compiled in  |
@@ -305,12 +375,18 @@ The following is an extensive list of names and values.
 |OPT=optimization_level        |The default is -O. Specify OPT= to turn off   |
 |                              |optimization.                                 |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+|                              |Specifies a non-default Postfix shared-library|
+|                              |version number. The default is to use the     |
+|SHLIB_VERSION=version         |Postfix version: X.Y.Z for stable releases,   |
+|                              |X.Y-DATE for snapshot releases, X.Y-DATE-     |
+|                              |nonprod for non-production releases.          |
+|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 |                              |Specifies non-default gcc compiler warning    |
 |WARN="warning_flags..."       |options for use when "make" is invoked in a   |
 |                              |source subdirectory only.                     |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
-44..66 -- SSuuppppoorrtt ffoorr tthhoouussaannddss ooff pprroocceesssseess
+44..77 -- SSuuppppoorrtt ffoorr tthhoouussaannddss ooff pprroocceesssseess
 
 The number of connections that Postfix can manage simultaneously is limited by
 the number of processes that it can run. This number in turn is limited by the
@@ -342,7 +418,7 @@ But wait, there is more: none of this will work unless the operating system is
 configured to handle thousands of connections. See the TUNING_README guide for
 examples of how to increase the number of open sockets or files.
 
-44..77 -- CCoommppiilliinngg PPoossttffiixx,, aatt llaasstt
+44..88 -- CCoommppiilliinngg PPoossttffiixx,, aatt llaasstt
 
 If the command
 

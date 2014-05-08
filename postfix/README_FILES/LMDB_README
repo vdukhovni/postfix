@@ -24,6 +24,9 @@ This document describes:
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh LLMMDDBB ssuuppppoorrtt
 
+[Note: instructions to build as a dynamicmaps.cf-style plugin will be added
+later.]
+
 Postfix normally does not enable LMDB support. To build Postfix with LMDB
 support, use something like:
 

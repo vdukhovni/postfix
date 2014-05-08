@@ -116,48 +116,49 @@
 /* .fi
 /*	The following \fBmain.cf\fR configuration parameters are
 /*	exported as environment variables with the same names:
+/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+/*	The default location of the Postfix main.cf and master.cf
+/*	configuration files.
 /* .IP "\fBcommand_directory (see 'postconf -d' output)\fR"
 /*	The location of all postfix administrative commands.
 /* .IP "\fBdaemon_directory (see 'postconf -d' output)\fR"
 /*	The directory with Postfix support programs and daemon programs.
-/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
-/*	The default location of the Postfix main.cf and master.cf
-/*	configuration files.
-/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
-/*	The location of the Postfix top-level queue directory.
-/* .IP "\fBmail_owner (postfix)\fR"
-/*	The UNIX system account that owns the Postfix queue and most Postfix
-/*	daemon processes.
-/* .IP "\fBsetgid_group (postdrop)\fR"
-/*	The group ownership of set-gid Postfix commands and of group-writable
-/*	Postfix directories.
-/* .IP "\fBsendmail_path (see 'postconf -d' output)\fR"
-/*	A Sendmail compatibility feature that specifies the location of
-/*	the Postfix \fBsendmail\fR(1) command.
-/* .IP "\fBnewaliases_path (see 'postconf -d' output)\fR"
-/*	Sendmail compatibility feature that specifies the location of the
-/*	\fBnewaliases\fR(1) command.
-/* .IP "\fBmailq_path (see 'postconf -d' output)\fR"
-/*	Sendmail compatibility feature that specifies where the Postfix
-/*	\fBmailq\fR(1) command is installed.
 /* .IP "\fBhtml_directory (see 'postconf -d' output)\fR"
 /*	The location of Postfix HTML files that describe how to build,
 /*	configure or operate a specific Postfix subsystem or feature.
+/* .IP "\fBmail_owner (postfix)\fR"
+/*	The UNIX system account that owns the Postfix queue and most Postfix
+/*	daemon processes.
+/* .IP "\fBmailq_path (see 'postconf -d' output)\fR"
+/*	Sendmail compatibility feature that specifies where the Postfix
+/*	\fBmailq\fR(1) command is installed.
 /* .IP "\fBmanpage_directory (see 'postconf -d' output)\fR"
 /*	Where the Postfix manual pages are installed.
+/* .IP "\fBnewaliases_path (see 'postconf -d' output)\fR"
+/*	Sendmail compatibility feature that specifies the location of the
+/*	\fBnewaliases\fR(1) command.
+/* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
+/*	The location of the Postfix top-level queue directory.
 /* .IP "\fBreadme_directory (see 'postconf -d' output)\fR"
 /*	The location of Postfix README files that describe how to build,
 /*	configure or operate a specific Postfix subsystem or feature.
+/* .IP "\fBsendmail_path (see 'postconf -d' output)\fR"
+/*	A Sendmail compatibility feature that specifies the location of
+/*	the Postfix \fBsendmail\fR(1) command.
+/* .IP "\fBsetgid_group (postdrop)\fR"
+/*	The group ownership of set-gid Postfix commands and of group-writable
+/*	Postfix directories.
 /* .PP
 /*	Available in Postfix version 2.5 and later:
 /* .IP "\fBdata_directory (see 'postconf -d' output)\fR"
 /*	The directory with Postfix-writable data files (for example:
 /*	caches, pseudo-random numbers).
 /* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBshlib_directory (see 'postconf -d' output)\fR"
+/*	The location of Postfix shared libraries (libpostfix-*.so.*).
+/* .PP
 /*	Other configuration parameters:
-/* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
-/*	The default location of the Postfix main.cf and master.cf
-/*	configuration files.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
 /*	The list of environment parameters that a Postfix process will
 /*	import from a non-Postfix parent process.
@@ -204,6 +205,7 @@
 /*	$daemon_directory/postfix-files, file/directory permissions
 /*	$daemon_directory/postfix-script, administrative commands
 /*	$daemon_directory/post-install, post-installation configuration
+/*	$daemon_directory/dynamicmaps.cf, plug-in database clients
 /* SEE ALSO
 /*	Commands:
 /*	postalias(1), create/update/query alias database
@@ -505,6 +507,7 @@ int     main(int argc, char **argv)
     check_setenv(VAR_DATA_DIR, var_data_dir);	/* main.cf */
     check_setenv(VAR_QUEUE_DIR, var_queue_dir);	/* main.cf */
     check_setenv(VAR_CONFIG_DIR, var_config_dir);	/* main.cf */
+    check_setenv(VAR_SHLIB_DIR, var_shlib_dir);	/* main.cf */
 
     /*
      * Do we want to keep adding things here as shell scripts evolve?

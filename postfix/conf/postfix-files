@@ -7,9 +7,10 @@
 # Postfix configuration files. See the respective manual pages within
 # the script files.
 #
-# Do not list $command_directory in this file, or it will be blown
-# away by a future Postfix uninstallation procedure. You would not
-# want to lose all files in /usr/sbin.
+# Do not list $command_directory or $shlib_directory in this file,
+# or it will be blown away by a future Postfix uninstallation
+# procedure. You would not want to lose all files in /usr/sbin or
+# /usr/local/lib.
 #
 # Each record in this file describes one file or directory.
 # Fields are separated by ":". Specify a null field as "-".
@@ -63,11 +64,17 @@ $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
 $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
+$shlib_directory/lib${LIB_PREFIX}util${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}global${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}dns${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}tls${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}master${LIB_SUFFIX}:f:root:-:755
 $daemon_directory/anvil:f:root:-:755
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
 $daemon_directory/discard:f:root:-:755
 $daemon_directory/dnsblog:f:root:-:755
+$daemon_directory/dynamicmaps.cf:f:root:-:755:p
 $daemon_directory/error:f:root:-:755
 $daemon_directory/flush:f:root:-:755
 #$daemon_directory/lmtp:f:root:-:755

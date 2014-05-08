@@ -16,15 +16,17 @@ TESTSRC	=
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
-LIB	= libtls.a
+LIB	= lib$(LIB_PREFIX)tls$(LIB_SUFFIX)
 TESTPROG= tls_dh tls_mgr tls_rsa tls_dane
 
-LIBS	= ../../lib/libdns.a ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 MAKES	=
 
-.c.o:;	$(CC) $(CFLAGS) -c $*.c
+.c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
 all: $(LIB)
 
@@ -42,6 +44,7 @@ root_tests:
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
+	$(SHLIB_LD) -o $(LIB) $(OBJS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)

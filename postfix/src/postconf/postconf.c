@@ -849,6 +849,7 @@ int     main(int argc, char **argv)
      * If showing map types, show them and exit
      */
     if (pcf_cmd_mode & PCF_SHOW_MAPS) {
+	mail_conf_read();
 	mail_dict_init();
 	pcf_show_maps();
     }

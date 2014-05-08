@@ -11,6 +11,9 @@ if you want.
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh SSQQLLiittee ssuuppppoorrtt
 
+[Note: instructions to build as a dynamicmaps.cf-style plugin will be added
+later.]
+
 The Postfix SQLite client utilizes the sqlite3 library, which can be obtained
 from:
 

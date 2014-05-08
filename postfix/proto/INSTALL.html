@@ -229,7 +229,35 @@ $ make
 
 <p> and so on. In some cases, optimization is turned off automatically. </p>
 
-<h3>4.3 - Building with optional features</h3>
+<h3>4.3 - Building with Postfix shared libraries (Postfix &ge; 2.12) </h3>
+
+<p> Postfix can be built with Postfix shared libraries (files named
+<tt>libpostfix-*.so.*</tt>). These files are needed to dynamically
+load Postfix database clients with the Debian-style dynamicmaps.cf
+feature. Postfix shared libraries add minor run-time overhead and
+result in smaller Postfix executable files. </p>
+
+<p> Although Debian-style dynamicmaps.cf support is functional, it
+is not yet used. Postfix database clients are still built into the
+Postfix library files. Postfix database clients may become plugins
+at some later point in time. </p>
+
+<p> Postfix shared-library support is evolving. Support exists for
+Linux, FreeBSD and MacOS X. Shared-library builds will become the
+default once the build system stops changing. </p>
+
+<p> For now, specify "shared=yes" on the "make makefiles"
+command line to build Postfix with shared-library support. </p>
+
+<blockquote>
+<pre>
+$ make makefiles shared=yes ...other arguments...
+$ make makefiles shared=no ...other arguments...
+$ make
+</pre>
+</blockquote>
+
+<h3>4.4 - Building with optional features</h3>
 
 By default, Postfix builds as a mail system with relatively few
 bells and whistles. Support for third-party databases etc.
@@ -277,7 +305,64 @@ Postfix 2.2 </td> </tr>
 systems that have IPv6 support. See the IPV6_README file for details.
 </p>
 
-<h3>4.4 - Overriding built-in parameter default settings</h3>
+<h3>4.5 - Overriding built-in parameter default settings</h3>
+
+<h4>4.5.1 - Postfix 2.12 and later </h4>
+
+<p> All Postfix configuration parameters can be changed by editing
+a Postfix configuration file, except for one: the parameter that
+specifies the location of Postfix configuration files. In order to
+build Postfix with a configuration directory other than /etc/postfix,
+use: </p>
+
+<blockquote>
+<pre>
+$ make makefiles config_directory=/some/where ...other arguments...
+$ make
+</pre>
+</blockquote>
+
+<p> Parameters whose defaults can be specified in this way are
+listed below. See the postconf(5) manpage for a description
+(command: "<tt>nroff -man man/man5/postconf.5 | less</tt>").  </p>
+
+<blockquote>
+
+<table border="1">
+
+<tr> <th>parameter name</th>  <th>typical default</th> </tr>
+
+<tr> <td>command_directory</td> <td>/usr/sbin</td> </tr>
+
+<tr> <td>config_directory</td> <td>/etc/postfix</td> </tr>
+
+<tr> <td>default_database_type</td> <td>hash</td> </tr>
+
+<tr> <td>daemon_directory</td> <td>/usr/libexec/postfix</td> </tr>
+
+<tr> <td>data_directory</td> <td>/var/lib/postfix</td> </tr>
+
+<tr> <td>html_directory</td> <td>no</td> </tr>
+
+<tr> <td>mailq_path</td> <td>/usr/bin/mailq</td> </tr>
+
+<tr> <td>manpage_directory</td> <td>/usr/local/man</td> </tr>
+
+<tr> <td>newaliases_path</td> <td>/usr/bin/newaliases</td> </tr>
+
+<tr> <td>queue_directory</td> <td>/var/spool/postfix</td> </tr>
+
+<tr> <td>readme_directory</td> <td>no</td> </tr>
+
+<tr> <td>sendmail_path</td> <td>/usr/sbin/sendmail</td> </tr>
+
+<tr> <td>shlib_directory</td> <td>/usr/local/lib</td> </tr>
+
+</table>
+
+</blockquote>
+
+<h4>4.5.2 - All Postfix versions </h4>
 
 <p> All Postfix configuration parameters can be changed by editing
 a Postfix configuration file, except for one: the parameter that
@@ -295,7 +380,9 @@ $ make
 <p> IMPORTANT: Be sure to get the quotes right. These details matter
 a lot. </p>
 
-<p> Parameters whose defaults can be specified in this way are: </p>
+<p> Parameters whose defaults can be specified in this way are
+listed below. See the postconf(5) manpage for a description
+(command: "<tt>nroff -man man/man5/postconf.5 | less</tt>").  </p>
 
 <blockquote>
 
@@ -347,7 +434,7 @@ default</th> </tr>
 <p> Note: the data_directory parameter (for caches and pseudo-random
 numbers) was introduced with Postfix version 2.5. </p>
 
-<h3>4.5 - Overriding other compile-time features</h3>
+<h3>4.6 - Overriding other compile-time features</h3>
 
 <p> The general method to override Postfix compile-time features
 is as follows: </p>
@@ -381,7 +468,7 @@ off Postfix features at compile time:</td> </tr>
 DB support. By default, Berkeley DB support is compiled in on
 platforms that are known to support this feature. If you override
 this, then you probably should also override DEF_DB_TYPE as described
-in section 4.4.  </td> </tr>
+in section 4.5.  </td> </tr>
 
 <tr> <td> </td> <td> -DNO_DEVPOLL </td> <td> Do not build with
 Solaris <tt>/dev/poll</tt> support. By default, <tt>/dev/poll</tt>
@@ -432,6 +519,12 @@ Specify DEBUG= to turn off debugging. </td> </tr>
 a non-default optimization level. The default is -O.  Specify OPT=
 to turn off optimization. </td> </tr>
 
+<tr> <td colspan="2"> SHLIB_VERSION=version </td> <td> Specifies a
+non-default Postfix shared-library version number. The default is
+to use the Postfix version: X.Y.Z for stable releases, X.Y-DATE for
+snapshot releases, X.Y-DATE-nonprod for non-production releases.
+</td> </tr>
+
 <tr> <td colspan="2"> WARN="warning_flags..." </td> <td> Specifies
 non-default <tt>gcc</tt> compiler warning options for use when
 "<tt>make</tt>" is invoked in a source subdirectory only. </td>
@@ -439,7 +532,7 @@ non-default <tt>gcc</tt> compiler warning options for use when
 
 </table>
 
-<h3>4.6 - Support for thousands of processes</h3>
+<h3>4.7 - Support for thousands of processes</h3>
 
 <p> The number of connections that Postfix can manage simultaneously
 is limited by the number of processes that it can run.  This number
@@ -487,7 +580,7 @@ operating system is configured to handle thousands of connections.
 See the TUNING_README guide for examples of how to increase the
 number of open sockets or files. </p>
 
-<h3>4.7 - Compiling Postfix, at last</h3>
+<h3>4.8 - Compiling Postfix, at last</h3>
 
 <p> If the command </p>
 

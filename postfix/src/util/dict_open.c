@@ -280,6 +280,7 @@
 #include <split_at.h>
 #include <htable.h>
 #include <myflock.h>
+#include <dynamicmaps.h>
 
  /*
   * lookup table for available map types.
@@ -382,9 +383,20 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 		  dict_type, dict_name);
     if (dict_open_hash == 0)
 	dict_open_init();
-    if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0)
+    if ((dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type)) == 0) {
+#ifdef USE_DYNAMIC_LIBS
+	dymap_open_t open_fn;
+
+	if ((open_fn = dymap_get_open_fn(dict_type)) == 0)
+	    return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
+			     "unsupported dictionary type: %s", dict_type));
+	dict_open_register(dict_type, open_fn);
+	dp = (DICT_OPEN_INFO *) htable_find(dict_open_hash, dict_type);
+#else
 	return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
 			     "unsupported dictionary type: %s", dict_type));
+#endif
+    }
     if ((dict = dp->open(dict_name, open_flags, dict_flags)) == 0)
 	return (dict_surrogate(dict_type, dict_name, open_flags, dict_flags,
 			    "cannot open %s:%s: %m", dict_type, dict_name));
@@ -449,6 +461,9 @@ ARGV   *dict_mapnames()
 	dp = (DICT_OPEN_INFO *) ht[0]->value;
 	argv_add(mapnames, dp->type, ARGV_END);
     }
+#ifdef USE_DYNAMIC_LIBS
+    dymap_list(mapnames);
+#endif
     qsort((void *) mapnames->argv, mapnames->argc, sizeof(mapnames->argv[0]),
 	  dict_sort_alpha_cpp);
     myfree((char *) ht_info);

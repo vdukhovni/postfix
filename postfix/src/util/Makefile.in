@@ -21,6 +21,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	readlline.c ring.c safe_getenv.c safe_open.c \
 	sane_accept.c sane_connect.c sane_link.c sane_rename.c \
 	sane_socketpair.c sane_time.c scan_dir.c set_eugid.c set_ugid.c \
+	load_lib.c dynamicmaps.c \
 	sigdelay.c skipblanks.c sock_addr.c spawn_command.c split_at.c \
 	split_nameval.c stat_as.c strcasecmp.c stream_connect.c \
 	stream_listen.c stream_recv_fd.c stream_send_fd.c stream_trigger.c \
@@ -51,6 +52,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	host_port.o htable.o inet_addr_host.o inet_addr_list.o \
 	inet_addr_local.o inet_connect.o inet_listen.o inet_proto.o \
 	inet_trigger.o line_wrap.o lowercase.o lstat_as.o mac_expand.o \
+	load_lib.o dynamicmaps.o \
 	mac_parse.o make_dirs.o mask_addr.o match_list.o match_ops.o msg.o \
 	msg_output.o msg_syslog.o msg_vstream.o mvect.o myaddrinfo.o myflock.o \
 	mymalloc.o myrand.o mystrtok.o name_code.o name_mask.o netstring.o \
@@ -89,6 +91,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	mymalloc.h myrand.h name_code.h name_mask.h netstring.h nvtable.h \
 	open_as.h open_lock.h percentm.h posix_signals.h readlline.h ring.h \
 	safe.h safe_open.h sane_accept.h sane_connect.h sane_fsops.h \
+	load_lib.h dynamicmaps.h \
 	sane_socketpair.h sane_time.h scan_dir.h set_eugid.h set_ugid.h \
 	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
 	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
@@ -103,7 +106,7 @@ DEFS	= -I. -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 FILES	= Makefile $(SRCS) $(HDRS)
 INCL	=
-LIB	= libutil.a
+LIB	= lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	fifo_rdonly_bug fifo_rdwr_bug fifo_trigger fsspace fullname \
 	inet_addr_host inet_addr_local mac_parse make_dirs msg_syslog \
@@ -120,7 +123,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 
-.c.o:;	$(CC) $(CFLAGS) -c $*.c
+.c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
 all: $(LIB)
 
@@ -134,6 +137,7 @@ test:	$(TESTPROG)
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
+	$(SHLIB_LD) -o $(LIB) $(OBJS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
@@ -475,128 +479,128 @@ tests: valid_hostname_test mac_expand_test dict_test unescape_test \
 root_tests:
 
 valid_hostname_test: valid_hostname valid_hostname.in valid_hostname.ref
-	./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
+	$(SHLIB_ENV) ./valid_hostname <valid_hostname.in 2>valid_hostname.tmp
 	diff valid_hostname.ref valid_hostname.tmp
 	rm -f valid_hostname.tmp
 
 mac_expand_test: mac_expand mac_expand.in mac_expand.ref
-	./mac_expand <mac_expand.in >mac_expand.tmp 2>&1
+	$(SHLIB_ENV) ./mac_expand <mac_expand.in >mac_expand.tmp 2>&1
 	diff mac_expand.ref mac_expand.tmp
 	rm -f mac_expand.tmp
 
 unescape_test: unescape unescape.in unescape.ref
-	./unescape <unescape.in | od -cb >unescape.tmp
+	$(SHLIB_ENV) ./unescape <unescape.in | od -cb >unescape.tmp
 	diff -b unescape.ref unescape.tmp
 	rm -f unescape.tmp
 
 hex_quote_test: hex_quote
-	./hex_quote <hex_quote.c | od -cb >hex_quote.tmp
+	$(SHLIB_ENV) ./hex_quote <hex_quote.c | od -cb >hex_quote.tmp
 	od -cb <hex_quote.c >hex_quote.ref
 	cmp hex_quote.ref hex_quote.tmp
 	rm -f hex_quote.ref hex_quote.tmp
 
 ctable_test: ctable
-	./ctable <ctable.in >ctable.tmp 2>&1
+	$(SHLIB_ENV) ./ctable <ctable.in >ctable.tmp 2>&1
 	diff ctable.ref ctable.tmp
 	rm -f ctable.tmp
 
 # On Linux, following test may require "modprobe ipv6" to enable IPv6.
 
 inet_addr_list_test: inet_addr_list
-	./inet_addr_list `cat inet_addr_list.in` >inet_addr_list.tmp 2>&1
+	$(SHLIB_ENV) ./inet_addr_list `cat inet_addr_list.in` >inet_addr_list.tmp 2>&1
 	diff inet_addr_list.ref inet_addr_list.tmp
 	rm -f inet_addr_list.tmp
 
 sane_basename_test: sane_basename
-	./sane_basename <sane_basename.in >sane_basename.tmp 2>&1
+	$(SHLIB_ENV) ./sane_basename <sane_basename.in >sane_basename.tmp 2>&1
 	diff sane_basename.ref sane_basename.tmp
 	rm -f sane_basename.tmp
 
 base64_code_test: base64_code
-	./base64_code
+	$(SHLIB_ENV) ./base64_code
 
 attr_scan64_test: attr_print64 attr_scan64 attr_scan64.ref
-	(./attr_print64 2>&3 | (sleep 1; ./attr_scan64)) >attr_scan64.tmp 2>&1 3>&1
+	($(SHLIB_ENV) ./attr_print64 2>&3 | (sleep 1;  $(SHLIB_ENV) ./attr_scan64)) >attr_scan64.tmp 2>&1 3>&1
 	diff attr_scan64.ref attr_scan64.tmp
 	rm -f attr_scan64.tmp
 
 attr_scan0_test: attr_print0 attr_scan0 attr_scan0.ref
-	(./attr_print0 2>&3 | (sleep 1; ./attr_scan0)) >attr_scan0.tmp 2>&1 3>&1
+	($(SHLIB_ENV) ./attr_print0 2>&3 | (sleep 1;  $(SHLIB_ENV) ./attr_scan0)) >attr_scan0.tmp 2>&1 3>&1
 	diff attr_scan0.ref attr_scan0.tmp
 	rm -f attr_scan0.tmp
 
 dict_test: dict_open testdb dict_test.in dict_test.ref
 	rm -f testdb.db testdb.dir testdb.pag
-	../postmap/postmap -N hash:testdb
-	./dict_open hash:testdb write < dict_test.in > dict_test.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap -N hash:testdb
+	$(SHLIB_ENV) ./dict_open hash:testdb write < dict_test.in > dict_test.tmp 2>&1
 	diff dict_test.ref dict_test.tmp
-	../postmap/postmap -n hash:testdb
-	./dict_open hash:testdb write < dict_test.in > dict_test.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap -n hash:testdb
+	$(SHLIB_ENV) ./dict_open hash:testdb write < dict_test.in > dict_test.tmp 2>&1
 	diff dict_test.ref dict_test.tmp
 	rm -f testdb.db testdb.dir testdb.pag dict_test.tmp
 
 dict_pcre_test: dict_open dict_pcre.in dict_pcre.map dict_pcre.ref
-	./dict_open pcre:dict_pcre.map read <dict_pcre.in >dict_pcre.tmp 2>&1
+	$(SHLIB_ENV) ./dict_open pcre:dict_pcre.map read <dict_pcre.in >dict_pcre.tmp 2>&1
 	diff dict_pcre.ref dict_pcre.tmp
 	rm -f dict_pcre.tmp
 
 dict_regexp_test: dict_open dict_regexp.in dict_regexp.map dict_regexp.ref
-	./dict_open regexp:dict_regexp.map read <dict_regexp.in >dict_regexp.tmp 2>&1
+	$(SHLIB_ENV) ./dict_open regexp:dict_regexp.map read <dict_regexp.in >dict_regexp.tmp 2>&1
 	diff dict_regexp.ref dict_regexp.tmp
 	rm -f dict_regexp.tmp
 
 dict_cidr_test: dict_open dict_cidr.in dict_cidr.map dict_cidr.ref
-	./dict_open cidr:dict_cidr.map read <dict_cidr.in >dict_cidr.tmp 2>&1
+	$(SHLIB_ENV) ./dict_open cidr:dict_cidr.map read <dict_cidr.in >dict_cidr.tmp 2>&1
 	diff dict_cidr.ref dict_cidr.tmp
 	rm -f dict_cidr.tmp
 
 dict_seq_test: dict_open testdb dict_seq.in dict_seq.ref
 	rm -f testdb.db testdb.dir testdb.pag
-	./dict_open hash:testdb create sync < dict_seq.in > dict_seq.tmp 2>&1
+	$(SHLIB_ENV) ./dict_open hash:testdb create sync < dict_seq.in > dict_seq.tmp 2>&1
 	diff dict_seq.ref dict_seq.tmp
 	rm -f testdb.db testdb.dir testdb.pag dict_seq.tmp
 
 host_port_test: host_port host_port.in host_port.ref
-	./host_port <host_port.in >host_port.tmp 2>&1
+	$(SHLIB_ENV) ./host_port <host_port.in >host_port.tmp 2>&1
 	diff host_port.ref host_port.tmp
 	rm -f host_port.tmp
 
 attr_scan_plain_test: attr_print_plain attr_scan_plain attr_scan_plain.ref
-	(./attr_print_plain 2>&3 | (sleep 1; ./attr_scan_plain)) >attr_scan_plain.tmp 2>&1 3>&1
+	($(SHLIB_ENV) ./attr_print_plain 2>&3 | (sleep 1;  $(SHLIB_ENV) ./attr_scan_plain)) >attr_scan_plain.tmp 2>&1 3>&1
 	diff attr_scan_plain.ref attr_scan_plain.tmp
 	rm -f attr_scan_plain.tmp
 
 htable_test: htable /usr/share/dict/words
-	./htable < /usr/share/dict/words
+	$(SHLIB_ENV) ./htable < /usr/share/dict/words
 
 hex_code_test: hex_code
-	./hex_code
+	$(SHLIB_ENV) ./hex_code
 
 timecmp_test: timecmp
-	./timecmp
+	$(SHLIB_ENV) ./timecmp
 
 myaddrinfo_test: myaddrinfo myaddrinfo.ref myaddrinfo.ref2
-	./myaddrinfo all belly.porcupine.org 168.100.189.2 >myaddrinfo.tmp 2>&1
+	$(SHLIB_ENV) ./myaddrinfo all belly.porcupine.org 168.100.189.2 >myaddrinfo.tmp 2>&1
 	diff myaddrinfo.ref myaddrinfo.tmp
 	rm -f myaddrinfo.tmp
-	./myaddrinfo all null.porcupine.org 10.0.0.0 >myaddrinfo.tmp 2>&1
+	$(SHLIB_ENV) ./myaddrinfo all null.porcupine.org 10.0.0.0 >myaddrinfo.tmp 2>&1
 	diff myaddrinfo.ref2 myaddrinfo.tmp
 	rm -f myaddrinfo.tmp
 
 myaddrinfo4_test: myaddrinfo4 myaddrinfo4.ref myaddrinfo4.ref2
-	./myaddrinfo4 all belly.porcupine.org 168.100.189.2 >myaddrinfo4.tmp 2>&1
+	$(SHLIB_ENV) ./myaddrinfo4 all belly.porcupine.org 168.100.189.2 >myaddrinfo4.tmp 2>&1
 	diff myaddrinfo4.ref myaddrinfo4.tmp
-	./myaddrinfo4 all null.porcupine.org 10.0.0.0 >myaddrinfo4.tmp 2>&1
+	$(SHLIB_ENV) ./myaddrinfo4 all null.porcupine.org 10.0.0.0 >myaddrinfo4.tmp 2>&1
 	diff myaddrinfo4.ref2 myaddrinfo4.tmp
 	rm -f myaddrinfo4.tmp
 
 format_tv_test: format_tv format_tv.in format_tv.ref
-	./format_tv <format_tv.in >format_tv.tmp
+	$(SHLIB_ENV) ./format_tv <format_tv.in >format_tv.tmp
 	diff format_tv.ref format_tv.tmp
 	rm -f format_tv.tmp
 
 ip_match_test: ip_match ip_match.in ip_match.ref
-	./ip_match <ip_match.in >ip_match.tmp
+	$(SHLIB_ENV) ./ip_match <ip_match.in >ip_match.tmp
 	diff ip_match.ref ip_match.tmp
 	rm -f ip_match.tmp
 
@@ -605,76 +609,76 @@ name_mask_tests: name_mask_test0 name_mask_test1 name_mask_test2 \
 	name_mask_test7 name_mask_test8 name_mask_test9
 
 name_mask_test0: name_mask name_mask.in name_mask.ref0
-	./name_mask IGNORE IGNORE < name_mask.in > name_mask.tmp 2>&0
+	$(SHLIB_ENV) ./name_mask IGNORE IGNORE < name_mask.in > name_mask.tmp 2>&0
 	diff name_mask.ref0 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test1: name_mask name_mask.in name_mask.ref1
-	./name_mask NUMBER,WARN NUMBER < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,WARN NUMBER < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref1 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test2: name_mask name_mask.in name_mask.ref2
-	./name_mask NUMBER,RETURN NUMBER < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,RETURN NUMBER < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref2 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test3: name_mask name_mask.in name_mask.ref3
-	./name_mask WARN NUMBER < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask WARN NUMBER < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref3 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test4: name_mask name_mask.in name_mask.ref4
-	./name_mask RETURN NUMBER < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask RETURN NUMBER < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref4 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test5: name_mask name_mask.in name_mask.ref5
-	./name_mask NUMBER,WARN RETURN < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,WARN RETURN < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref5 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test6: name_mask name_mask.in name_mask.ref6
-	./name_mask NUMBER,WARN WARN < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,WARN WARN < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref6 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test7: name_mask name_mask.in name_mask.ref7
-	./name_mask NUMBER,WARN IGNORE < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,WARN IGNORE < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref7 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test8: name_mask name_mask.in name_mask.ref8
-	./name_mask NUMBER,WARN NUMBER,COMMA < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,WARN NUMBER,COMMA < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref8 name_mask.tmp
 	rm -f name_mask.tmp
 
 name_mask_test9: name_mask name_mask.in name_mask.ref9
-	./name_mask NUMBER,WARN NUMBER,PIPE < name_mask.in > name_mask.tmp 2>&1
+	$(SHLIB_ENV) ./name_mask NUMBER,WARN NUMBER,PIPE < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref9 name_mask.tmp
 	rm -f name_mask.tmp
 
 base32_code_test: base32_code
-	./base32_code
+	$(SHLIB_ENV) ./base32_code
 
 dict_thash_test: ../postmap/postmap dict_thash.map
-	../postmap/postmap -s texthash:dict_thash.map >dict_thash.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap -s texthash:dict_thash.map >dict_thash.tmp 2>&1
 	sort dict_thash.tmp | diff -b dict_thash.map -
 	rm -f dict_thash.tmp
 
 surrogate_test: dict_open surrogate.ref
 	cp /dev/null surrogate.tmp
-	echo get foo|./dict_open cidr:/xx write >>surrogate.tmp 2>&1
-	echo get foo|./dict_open cidr:/xx read >>surrogate.tmp 2>&1
-	echo get foo|./dict_open pcre:/xx write >>surrogate.tmp 2>&1
-	echo get foo|./dict_open pcre:/xx read >>surrogate.tmp 2>&1
-	echo get foo|./dict_open regexp:/xx write >>surrogate.tmp 2>&1
-	echo get foo|./dict_open regexp:/xx read >>surrogate.tmp 2>&1
-	echo get foo|./dict_open unix:xx write >>surrogate.tmp 2>&1
-	echo get foo|./dict_open unix:xx read >>surrogate.tmp 2>&1
-	echo get foo|./dict_open texthash:/xx write >>surrogate.tmp 2>&1
-	echo get foo|./dict_open texthash:/xx read >>surrogate.tmp 2>&1
-	echo get foo|./dict_open hash:/xx read >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open cidr:/xx write >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open cidr:/xx read >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open pcre:/xx write >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open pcre:/xx read >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open regexp:/xx write >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open regexp:/xx read >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open unix:xx write >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open unix:xx read >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open texthash:/xx write >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open texthash:/xx read >>surrogate.tmp 2>&1
+	echo get foo|$(SHLIB_ENV) ./dict_open hash:/xx read >>surrogate.tmp 2>&1
 	diff surrogate.ref surrogate.tmp
 	rm -f surrogate.tmp
 

@@ -16,6 +16,80 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.10 or earlier, read RELEASE_NOTES-2.11
 before proceeding.
 
+Major changes with snapshot 20140508
+====================================
+
+Preliminary support to build Postfix with Postfix shared libraries,
+based on Debian code by LaMont Jones, based on a port by Viktor
+Dukhovni. Support exists for Linux, FreeBSD and MacOS X. 
+
+Shared-library support is introduced early in the Postfix development
+cycle so that down-stream maintainers will have time to prepare for
+the next stable Postfix release.
+
+Postfix shared libraries are required to load database plugins using
+the dynamicmaps configuration file. However, the preliminary build
+procedure still puts all supported database code inside the Postfix
+shared libraries themselves. The dynamicmaps support is operational
+but it is not yet used.
+
+Postfix shared libraries introduce minor runtime overhead and result
+in smaller Postfix executable files.
+
+Differences with Debian
+-----------------------
+
+Besides changes to the Postfix "build" system as described below,
+the only user-visible changes with respect to Debian are:
+
+- The dynamicmaps.cf configuration file is in $daemon_directory,
+  because this file is shared among all Postfix instances just like
+  postfix-files and other files.
+
+- The location of the libpostfix-*.so.* files is configurable with
+  the shlib_directory parameter.
+
+- You can change the location of libpostfix-*.so.* files after
+  Postfix is built. However you may have to run ldconfig if you
+  move the libpostfix-*.so.* files to a non-system directory.
+  No ldconfig is needed if you keep the libpostfix-*.so.* files
+  in the default $shlib_directory location.
+
+Building with Postfix shared libraries
+--------------------------------------
+
+As noted above, the preliminary build procedure still puts all
+supported database code inside the Postfix shared libraries themselves.
+The dynamicmaps support is operational but it is not yet used.
+
+To build with Postfix shared-library support:
+
+% make makefiles shared=yes
+% make
+
+This defaults to installing shared libraries in /usr/local/lib,
+with a shared-library version that equals the Postfix version
+(e.g., libpostfix-util.so.x.y.z, libpostfix-util.so.x.y-date, or
+libpostfix-util.so.x.y-date-nonprod).
+
+To override this, use, for example:
+
+% make makefiles shared=yes shlib_directory=/usr/lib \
+    SHLIB_VERSION=1 ...other arguments...
+
+The same syntax can be used to override other Postfix installation
+parameter settings such as:
+
+% make makefiles config_directory=/usr/local/etc/postfix ...other arguments...
+
+The earlier override method that uses CCARGS remains supported.
+
+Further information
+-------------------
+
+For more, see "mantools/srctoman - makedefs | nroff -man | less".
+and see the preliminary documentation in the INSTALL guide.
+
 Major changes with snapshot 20140321
 ====================================
 

@@ -14,15 +14,16 @@ HDRS	= mail_server.h master_proto.h mail_flow.h
 INT_HDR	= master.h
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
-LIB	= libmaster.a
+LIB	= lib$(LIB_PREFIX)master$(LIB_SUFFIX)
 PROG	= master
 TESTPROG= 
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 BIN_DIR	= ../../libexec
 
-.c.o:;	$(CC) $(CFLAGS) -c $*.c
+.c.o:;	$(CC) `for i in $(LIB_OBJ); do [ $$i = $@ ] && echo $(SHLIB_CFLAGS); done` $(CFLAGS) -c $*.c
 
 all:	$(PROG) $(LIB)
 
@@ -32,7 +33,7 @@ Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
 
 $(PROG): $(OBJS) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 test:	$(TESTPROG)
 
@@ -43,6 +44,7 @@ root_tests:
 $(LIB):	$(LIB_OBJ)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
+	$(SHLIB_LD) -o $(LIB) $(LIB_OBJ)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)/$(LIB)
@@ -51,7 +53,7 @@ $(LIB_DIR)/$(LIB): $(LIB)
 $(BIN_DIR)/$(PROG): $(PROG)
 	 cp $(PROG) $(BIN_DIR)
 
-update: $(LIB_DIR)/$(LIB) $(BIN_DIR)/$(PROG)
+update: $(LIB_DIR)/$(LIB) $(BIN_DIR)/$(PROG) $(HDRS)
 	-for i in $(HDRS); \
 	do \
 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \

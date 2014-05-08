@@ -73,6 +73,8 @@ a delegated SMTPD access policy request:
     stress=
     PPoossttffiixx vveerrssiioonn 22..99 aanndd llaatteerr::
     ccert_pubkey_fingerprint=68:B3:29:DA:98:93:E3:40:99:C7:D8:AD:5C:B9:C9:40
+    PPoossttffiixx vveerrssiioonn 22..1122 aanndd llaatteerr::
+    client_port=1234
     [empty line]
 
 Notes:

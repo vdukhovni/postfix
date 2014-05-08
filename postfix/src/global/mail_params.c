@@ -29,6 +29,7 @@
 /*	char	*var_data_dir;
 /*	char	*var_command_dir;
 /*	char	*var_queue_dir;
+/*	char	*var_shlib_dir;
 /*	int	var_use_limit;
 /*	int	var_idle_limit;
 /*	int	var_event_drain;
@@ -223,6 +224,7 @@ char   *var_daemon_dir;
 char   *var_data_dir;
 char   *var_command_dir;
 char   *var_queue_dir;
+char   *var_shlib_dir;
 int     var_use_limit;
 int     var_event_drain;
 int     var_idle_limit;
@@ -554,6 +556,7 @@ void    mail_params_init()
 	VAR_DATA_DIR, DEF_DATA_DIR, &var_data_dir, 1, 0,
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
+	VAR_SHLIB_DIR, DEF_SHLIB_DIR, &var_shlib_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,
 	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 0, 0,
 	VAR_PROXY_INTERFACES, DEF_PROXY_INTERFACES, &var_proxy_interfaces, 0, 0,

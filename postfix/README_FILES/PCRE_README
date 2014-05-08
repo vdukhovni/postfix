@@ -16,6 +16,9 @@ pcre_table(5) manual page. Information about PCRE itself can be found at http:/
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh PPCCRREE ssuuppppoorrtt
 
+[Note: instructions to build as a dynamicmaps.cf-style plugin will be added
+later.]
+
 These instructions assume that you build Postfix from source code as described
 in the INSTALL document. Some modification may be required if you build Postfix
 from a vendor-specific source package.

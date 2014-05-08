@@ -147,6 +147,12 @@
 # .IP readme_directory
 #	The final destination directory for the Postfix README files.
 #	This parameter setting is recorded in the installed main.cf file.
+# .IP shlib_directory
+#	The final destination directory for Postfix shared-library files.
+#	The built-in default value is specified at compile time.
+#	If you change this at installation time, then you should specify
+#	only "standard" system directories. Otherwise, additional
+#	configuration will be required with ldconfig(1) or equivalent.
 # SEE ALSO
 #	post-install(1) post-installation procedure
 # FILES
@@ -364,6 +370,8 @@ README files. Specify \"no\" if you do not want to install these files."
 html_directory_prompt="the final destination directory for the Postfix
 HTML files. Specify \"no\" if you do not want to install these files."
 
+shlib_directory_prompt="the final destination directory for Postfix shared-library files."
+
 # Default settings, just to get started.
 
 : ${install_root=/}
@@ -426,8 +434,8 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
 }
 
 CONFIG_PARAMS="command_directory daemon_directory data_directory \
-html_directory mail_owner mailq_path  manpage_directory newaliases_path \
-queue_directory readme_directory sendmail_path setgid_group"
+html_directory mail_owner mailq_path manpage_directory newaliases_path \
+queue_directory readme_directory sendmail_path setgid_group shlib_directory"
 
 # Extract parameter settings from the installed main.cf file.
 
@@ -489,7 +497,7 @@ case "$manpage_directory" in
      exit 1;;
 esac
 
-for path in "$html_directory" "$readme_directory"
+for path in "$html_directory" "$readme_directory" "$shlib_directory"
 do
    case "$path" in
    /*) ;;
@@ -517,12 +525,16 @@ do
 done
 
 for path in command_directory config_directory daemon_directory data_directory \
-    manpage_directory queue_directory html_directory readme_directory
+    manpage_directory queue_directory shlib_directory html_directory \
+    readme_directory
 do
-    eval test -f $install_root\$$path && {
+   case "$path" in
+   no) ;;
+    *) eval test -f $install_root\$$path && {
 	echo $0: Error: \"$path\" specifies a regular file. 1>&2
 	exit 1
-    }
+   };;
+   esac
 done
 
 test -d $tempdir || mkdir -p $tempdir || exit 1
@@ -569,12 +581,15 @@ SENDMAIL_PATH=$install_root$sendmail_path
 HTML_DIRECTORY=$install_root$html_directory
 MANPAGE_DIRECTORY=$install_root$manpage_directory
 README_DIRECTORY=$install_root$readme_directory
+SHLIB_DIRECTORY=$install_root$shlib_directory
 
 # Avoid repeated tests for existence of these; default permissions suffice.
 
 test -d $DAEMON_DIRECTORY || mkdir -p $DAEMON_DIRECTORY || exit 1
 test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
-test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
+test -d $QUEUE_DIRECTORY || mkdir -p $QUEUE_DIRECTORY || exit 1
+test "$shlib_directory" = "no" -o -d $SHLIB_DIRECTORY ||
+	mkdir -p $SHLIB_DIRECTORY || exit 1
 test "$html_directory" = "no" -o -d $HTML_DIRECTORY || 
 	mkdir -p $HTML_DIRECTORY || exit 1
 test "$readme_directory" = "no" -o -d $README_DIRECTORY || 
@@ -662,6 +677,9 @@ do
 
      f) echo $path | (IFS=/ read prefix file; IFS="$BACKUP_IFS"
 	case $prefix in
+	'$shlib_directory')
+	    compare_or_replace $mode "$owner" "$group" lib/$file \
+		    $SHLIB_DIRECTORY/$file || exit 1;;
 	'$daemon_directory')
 	    compare_or_replace $mode "$owner" "$group" libexec/$file \
 		$DAEMON_DIRECTORY/$file || exit 1;;
@@ -743,6 +761,7 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
     "manpage_directory = $manpage_directory" \
     "sample_directory = $sample_directory" \
     "readme_directory = $readme_directory" \
+    "shlib_directory = $shlib_directory" \
 || exit 1
 
 # If Postfix is being installed locally from source code, do the

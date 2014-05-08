@@ -69,6 +69,22 @@
 # .IP \fBOPT=\fIoptimization_level\fR
 #	Specifies a non-default optimization level. The default is \fB-O\fR.
 #	Specify \fBOPT=\fR to turn off optimization.
+# .IP \fIinstallation_parameter\fB=\fIvalue\fR...
+#	Override the compiled-in default value of the specified 
+#	installation parameter(s). The following parameters are
+#	supported in this context:
+#
+#	command_directory config_directory daemon_directory
+#	data_directory default_database_type html_directory
+#	mailq_path manpage_directory newaliases_path queue_directory
+#	readme_directory sendmail_path shlib_directory
+#
+#	See the postconf(5) manpage for a description of these
+#	parameters.
+# .IP \fBSHLIB_VERSION=\fIversion\fR
+#	Specifies a non-default shared-library version for Postfix
+#	libraries.  By default, the version equals the default value
+#	for the $mail_version parameter.
 # .IP \fBWARN=\fIwarning_flags\fR
 #	Specifies non-default gcc compiler warning options for use when
 #	"make" is invoked in a source subdirectory only.
@@ -155,8 +171,18 @@ case "$SYSTEM.$RELEASE" in
   FreeBSD.7*)	SYSTYPE=FREEBSD7
 		;;
   FreeBSD.8*)	SYSTYPE=FREEBSD8
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		;;
   FreeBSD.9*)	SYSTYPE=FREEBSD9
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		;;
  DragonFly.*)	SYSTYPE=DRAGONFLY
 		;;
@@ -361,6 +387,12 @@ EOF
 			   rm -f makedefs.test makedefs.test.[co]
 		       fi;;
 		esac
+		SYSLIBS="$SYSLIBS -ldl"
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		;;
     Linux.3*)	SYSTYPE=LINUX3
 		case "$CCARGS" in
@@ -392,6 +424,12 @@ EOF
 			}
 		    done
 		done
+		SYSLIBS="$SYSLIBS -ldl"
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		;;
      GNU.0*|GNU/kFreeBSD.[567]*)
 		SYSTYPE=GNU0
@@ -501,6 +539,11 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		case $RELEASE in
 	    ?.*|1[0-1].*) CCARGS="$CCARGS -DNO_KQUEUE";;
 		esac
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_SUFFIX=.dylib}
+		: ${SHLIB_LD='cc -shared -Wl,-flat_namespace -Wl,-undefined,dynamic_lookup -Wl,-install_name,@rpath/${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="DYLD_LIBRARY_PATH=`pwd`/lib"}
 		;;
     dcosx.1*)	SYSTYPE=DCOSX1
 		RANLIB=echo
@@ -617,6 +660,150 @@ case "$CC" in
       *CC) error "Don't use CC. That's the C++ compiler";;
 	*) : ${OPT='-O'};;
 esac
+
+# Snapshot only.
+CCARGS="$CCARGS -DSNAPSHOT"
+
+# Non-production: needs thorough testing, or major changes are still
+# needed before the code stabilizes.
+CCARGS="$CCARGS -DNONPROD"
+
+# Workaround: prepend Postfix include files before other include files.
+CCARGS="-I. -I../../include $CCARGS"
+
+# Optionally override installation-parameter default settings.
+
+command_directory_macro=DEF_COMMAND_DIR
+config_directory_macro=DEF_CONFIG_DIR
+daemon_directory_macro=DEF_DAEMON_DIR
+data_directory_macro=DEF_DATA_DIR
+mailq_path_macro=DEF_MAILQ_PATH
+newaliases_path_macro=DEF_NEWALIAS_PATH
+queue_directory_macro=DEF_QUEUE_DIR
+sendmail_path_macro=DEF_SENDMAIL_PATH
+shlib_directory_macro=DEF_SHLIB_DIR
+
+for parm_name in command_directory config_directory daemon_directory \
+	data_directory mailq_path newaliases_path \
+	queue_directory sendmail_path shlib_directory
+do
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    "") ;;
+    /*) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+     *) error "$parm_name must specify an absolute path name";;
+    esac
+done
+
+html_directory_macro=DEF_HTML_DIR
+manpage_directory_macro=DEF_MANPAGE_DIR
+readme_directory_macro=DEF_README_DIR
+
+for parm_name in html_directory manpage_directory
+do
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    "") ;;
+ /*|no) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+     *) error "$parm_name must specify \"no\" or an absolute path name";;
+    esac
+done
+
+default_database_type_macro=DEF_DB_TYPE
+
+for parm_name in default_database_type
+do
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    "") ;;
+     *) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+    esac
+done
+
+# The following are for non-shared libsasl and libmilter builds.
+
+_AR=$AR
+_RANLIB=$RANLIB
+
+# Choose between shared and non-shared library builds.
+
+case "$shared" in
+yes)
+    if [ -z "$SHLIB_SUFFIX" ]
+    then 
+	error "Shared libraries are requested, but not supported on this platform"
+    fi
+    AR=:
+    RANLIB=:
+    CCARGS="$CCARGS -DUSE_DYNAMIC_LIBS"
+
+    # Determine the shared-library installation directory.
+    case "$shlib_directory" in
+    /*) # CCARGS was already updated above.
+	;;
+    "") trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+	sed -n '/_SHLIB_DIR/,/^$/p' src/global/mail_params.h >makedefs.test.c
+	cat >>makedefs.test.c <<'EOF'
+#include <stdlib.h>
+#include <stdio.h>
+int     main(void)
+{
+    printf("%s\n", DEF_SHLIB_DIR);
+    fflush(stdout);
+    exit(ferror(stdout) ? 1 : 0);
+}
+EOF
+	eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+	shlib_directory=`./makedefs.test` || exit 1
+	rm -f makedefs.test makedefs.test.[co]
+	;;
+     *) # shlib_directory was already checked above.
+	error "Can't happen in $0 - $shlib_directory is not an absolute path"
+	;;
+    esac
+
+    # Determine the shared-library version.
+    test -z "$SHLIB_VERSION" && {
+	trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+	cat >makedefs.test.c <<'EOF'
+#include <stdlib.h>
+#include <stdio.h>
+#include <mail_version.h>
+int     main(void)
+{
+    printf("%s\n", DEF_MAIL_VERSION);
+    fflush(stdout);
+    exit(ferror(stdout) ? 1 : 0);
+}
+EOF
+	eval ${CC-gcc} -Isrc/global ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+	SHLIB_VERSION=`./makedefs.test` || exit 1
+	rm -f makedefs.test makedefs.test.[co]
+    }
+    LIB_PREFIX=postfix-
+    LIB_SUFFIX=${SHLIB_SUFFIX}.${SHLIB_VERSION}
+    ;;
+
+no|"")
+    shlib_directory=no
+    CCARGS="$CCARGS -UUSE_DYNAMIC_LIBS -UDEF_SHLIB_DIR -DDEF_SHLIB_DIR=\\\"no\\\""
+    SHLIB_CFLAGS=
+    SHLIB_SUFFIX=
+    SHLIB_LD=:
+    SHLIB_RPATH=
+    SHLIB_ENV=
+    LIB_PREFIX=
+    LIB_SUFFIX=.a
+    ;;
+
+*)  echo "Specify \"shared=yes\" or \"shared=no\"" 1>&2
+    exit 1
+    ;;
+esac
+
 #
 # "gcc -W" 3.4.2 no longer reports functions that fail to return a
 # result.  Use "gcc -Wall -Wno-comment" instead. We'll figure out
@@ -631,20 +818,13 @@ ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 
 export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 
-# Snapshot only.
-CCARGS="$CCARGS -DSNAPSHOT"
-
-# Non-production: needs thorough testing, or major changes are still
-# needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
-
-# Workaround: prepend Postfix include files before other include files.
-CCARGS="-I. -I../../include $CCARGS"
 
 sed 's/  / /g' <<EOF
 SYSTYPE	= $SYSTYPE
+_AR	= $_AR
 AR	= $AR
 ARFL	= $ARFL
+_RANLIB	= $_RANLIB
 RANLIB	= $RANLIB
 SYSLIBS	= $AUXLIBS $SYSLIBS
 CC	= $CC $CCARGS
@@ -654,4 +834,11 @@ AWK	= $AWK
 STRCASE = $STRCASE
 EXPORT	= AUXLIBS='$AUXLIBS' CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
 WARN	= $WARN
+LIB_PREFIX = $LIB_PREFIX
+LIB_SUFFIX = $LIB_SUFFIX
+SHLIB_CFLAGS = $SHLIB_CFLAGS
+SHLIB_DIR = $shlib_directory
+SHLIB_ENV = $SHLIB_ENV
+SHLIB_LD = $SHLIB_LD
+SHLIB_RPATH = $SHLIB_RPATH
 EOF

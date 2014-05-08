@@ -10,6 +10,12 @@
 /* DESCRIPTION
 /*	This module registers dictionary types that depend on higher-level
 /*	Postfix-specific interfaces and protocols.
+/*
+/*	This also initializes the support for run-time loading of
+/*	lookup tables, if applicable.
+/*
+/*	The latter requires basic parameter initialization
+/*	by either mail_conf_read() or mail_params_init().
 /* LICENSE
 /* .ad
 /* .fi
@@ -29,6 +35,9 @@
 
 #include <dict.h>
 #include <msg.h>
+#include <mymalloc.h>
+#include <stringops.h>
+#include <dynamicmaps.h>
 
 /* Global library. */
 
@@ -38,6 +47,8 @@
 #include <dict_pgsql.h>
 #include <dict_sqlite.h>
 #include <dict_memcache.h>
+#include <mail_dict.h>
+#include <mail_params.h>
 #include <mail_dict.h>
 
 typedef struct {
@@ -69,11 +80,20 @@ void    mail_dict_init(void)
 {
     const DICT_OPEN_INFO *dp;
 
+#ifdef USE_DYNAMIC_LIBS
+    char   *path;
+
+    path = concatenate(var_daemon_dir, "/", "dynamicmaps.cf", (char *) 0);
+    dymap_init(path);
+    myfree(path);
+#endif
+
     for (dp = dict_open_info; dp->type; dp++)
 	dict_open_register(dp->type, dp->open);
 }
 
 #ifdef TEST
+
  /*
   * Proof-of-concept test program.
   */

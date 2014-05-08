@@ -8,7 +8,8 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 INC_DIR	= ../../include
 PROG	= smtp-source smtp-sink qmqp-source qmqp-sink
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 

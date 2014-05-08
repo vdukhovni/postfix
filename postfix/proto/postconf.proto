@@ -15897,3 +15897,11 @@ status code or explanatory text of successful or unsuccessful
 deliveries.  See default_delivery_status_filter for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM shlib_directory see 'postconf -d' output
+
+<p> The location of Postfix shared libraries (libpostfix-*.so.*).
+This parameter defaults to "no" when Postfix shared libraries are
+disabled at compile time. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>

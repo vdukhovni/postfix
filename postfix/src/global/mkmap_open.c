@@ -72,6 +72,10 @@
 #include <sigdelay.h>
 #include <mymalloc.h>
 
+#ifdef USE_DYNAMIC_LIBS
+#include <dynamicmaps.h>
+#endif
+
 /* Global library. */
 
 #include "mkmap.h"
@@ -83,7 +87,7 @@
   * We use a different table (in dict_open.c) when querying maps.
   */
 typedef struct {
-    char   *type;
+    const char *type;
     MKMAP  *(*before_open) (const char *);
 } MKMAP_OPEN_INFO;
 
@@ -161,12 +165,27 @@ MKMAP  *mkmap_open(const char *type, const char *path,
     MKMAP  *mkmap;
     const MKMAP_OPEN_INFO *mp;
 
+#ifdef USE_DYNAMIC_LIBS
+    MKMAP_OPEN_INFO oi;
+
+#endif
+
     /*
      * Find out what map type to use.
      */
     for (mp = mkmap_types; /* void */ ; mp++) {
-	if (mp->type == 0)
+	if (mp->type == 0) {
+#ifdef USE_DYNAMIC_LIBS
+	    /* Either returns a handle, or raises a fatal error */
+	    oi.before_open =
+		(MKMAP *(*) (const char *)) dymap_get_mkmap_fn(type);
+	    oi.type = type;
+	    mp = &oi;
+	    break;
+#else
 	    msg_fatal("unsupported map type for this operation: %s", type);
+#endif
+	}
 	if (strcmp(type, mp->type) == 0)
 	    break;
     }

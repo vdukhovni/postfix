@@ -826,7 +826,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	 * We must avoid further I/O, the peer is in an undefined state.
 	 */
 	(void) vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
-	DONT_USE_DEAD_SESSION;
+	DONT_USE_FORBIDDEN_SESSION;
 
 	/*
 	 * If TLS is optional, try delivery to the same server over a
@@ -2002,7 +2002,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 					     "unreadable mail queue entry");
 		    /* Bailing out, abort stream with prejudice */
 		    (void) vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
-		    DONT_USE_DEAD_SESSION;
+		    DONT_USE_FORBIDDEN_SESSION;
 		    /* If bounce_append() succeeded, status is still 0 */
 		    if (state->status == 0)
 			(void) mark_corrupt(state->src);

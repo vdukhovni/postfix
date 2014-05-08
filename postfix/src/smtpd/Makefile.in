@@ -17,14 +17,19 @@ TESTPROG= smtpd_token smtpd_check
 PROG	= smtpd
 INC_DIR	= ../../include
 # Fake libdns dependency, for early-binding shared-library builds.
-LIBS	= ../../lib/libmaster.a ../../lib/libtls.a ../../lib/libdns.a \
-	../../lib/libxsasl.a ../../lib/libmilter.a ../../lib/libdns.a \
-	../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)master$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)tls$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
+	../../lib/libxsasl.a \
+	../../lib/libmilter.a \
+	../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
 $(PROG): $(OBJS) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 $(OBJS): ../../conf/makedefs.out
 
@@ -76,66 +81,66 @@ root_tests:
 # This requires that the DNS server can query porcupine.org.
 
 smtpd_check_test: smtpd_check smtpd_check.in smtpd_check.ref smtpd_check_access
-	../postmap/postmap hash:smtpd_check_access
-	./smtpd_check <smtpd_check.in >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_check.in >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
 # This requires that the DNS server can query porcupine.org.
 
 smtpd_check_test2: smtpd_check smtpd_check.in2 smtpd_check.ref2 smtpd_check_access
-	../postmap/postmap hash:smtpd_check_access
-	./smtpd_check <smtpd_check.in2 >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_check.in2 >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref2 smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
 smtpd_check_test4: smtpd_check smtpd_check.in4 smtpd_check.ref4 smtpd_check_access
-	../postmap/postmap hash:smtpd_check_access
-	./smtpd_check <smtpd_check.in4 >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_check.in4 >smtpd_check.tmp 2>&1
 	diff smtpd_check.ref4 smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
 smtpd_acl_test: smtpd_check smtpd_acl.in smtpd_acl.ref smtpd_check_access
-	../postmap/postmap hash:smtpd_check_access
-	./smtpd_check <smtpd_acl.in >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_acl.in >smtpd_check.tmp 2>&1
 	diff smtpd_acl.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
 # This requires that the DNS server can query porcupine.org.
 
 smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
-	../postmap/postmap hash:smtpd_check_access
-	./smtpd_check <smtpd_exp.in >smtpd_exp.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_exp.in >smtpd_exp.tmp 2>&1
 	diff smtpd_exp.ref smtpd_exp.tmp
 	rm -f smtpd_exp.tmp smtpd_check_access.*
 
 smtpd_check_dsn_test: smtpd_check smtpd_check_dsn.in smtpd_check_dsn.ref smtpd_check_access
-	../postmap/postmap hash:smtpd_check_access
-	./smtpd_check <smtpd_check_dsn.in >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_check_dsn.in >smtpd_check.tmp 2>&1
 	diff smtpd_check_dsn.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp smtpd_check_access.*
 
 # This requires that 168,100.189.7 is a local or virtual interface.
 
 smtpd_check_backup_test: smtpd_check smtpd_check_backup.in smtpd_check_backup.ref
-	./smtpd_check <smtpd_check_backup.in >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ./smtpd_check <smtpd_check_backup.in >smtpd_check.tmp 2>&1
 	diff smtpd_check_backup.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp
 
 smtpd_token_test: smtpd_token smtpd_token.in smtpd_token.ref
-	./smtpd_token <smtpd_token.in >smtpd_token.tmp 2>&1
+	$(SHLIB_ENV) ./smtpd_token <smtpd_token.in >smtpd_token.tmp 2>&1
 	diff smtpd_token.ref smtpd_token.tmp
 	rm -f smtpd_token.tmp
 
 # This requires that the DNS server can query porcupine.org and rfc-ignorant.org
 
 smtpd_dnswl_test: smtpd_check smtpd_dnswl.in smtpd_dnswl.ref
-	./smtpd_check <smtpd_dnswl.in >smtpd_dnswl.tmp 2>&1
+	$(SHLIB_ENV) ./smtpd_check <smtpd_dnswl.in >smtpd_dnswl.tmp 2>&1
 	diff smtpd_dnswl.ref smtpd_dnswl.tmp
 	rm -f smtpd_dnswl.tmp
 
 smtpd_error_test: smtpd_check smtpd_error.in smtpd_error.ref
-	./smtpd_check <smtpd_error.in >smtpd_check.tmp 2>&1
+	$(SHLIB_ENV) ./smtpd_check <smtpd_error.in >smtpd_check.tmp 2>&1
 	diff smtpd_error.ref smtpd_check.tmp
 	rm -f smtpd_check.tmp
 
