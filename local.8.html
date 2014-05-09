@@ -358,6 +358,13 @@ LOCAL(8)                                                              LOCAL(8)
               attribute, when delivering mail to a child alias that  does  not
               have its own owner alias.
 
+       Available in Postfix version 2.12 and later:
+
+       <b><a href="postconf.5.html#local_delivery_status_filter">local_delivery_status_filter</a> ($<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b>
+              Optional  filter  for  the <a href="local.8.html"><b>local</b>(8)</a> delivery agent to change the
+              status code or explanatory text of  successful  or  unsuccessful
+              deliveries.
+
 <b>DELIVERY METHOD CONTROLS</b>
        The  precedence  of  <a href="local.8.html"><b>local</b>(8)</a>  delivery  methods  from  high to low is:
        aliases,  .forward  files,  <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>,  <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,

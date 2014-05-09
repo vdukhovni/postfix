@@ -559,6 +559,10 @@ Examples:
 <p>
 The alias databases that are used for <a href="local.8.html">local(8)</a> delivery. See
 <a href="aliases.5.html">aliases(5)</a> for syntax details.
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+Note: these lookups are recursive.
 </p>
 
 <p>
@@ -1344,6 +1348,13 @@ manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_
 </p>
 
 <p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+Note: these lookups are recursive.
+</p>
+
+<p>
 If you use this feature, run "<b>postmap /etc/postfix/canonical</b>" to
 build the necessary DBM or DB file after every change. The changes
 will become visible after a minute or so.  Use "<b>postfix reload</b>"
@@ -1882,6 +1893,99 @@ another preemption can take place later.
 transport-specific override, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
 name of the message delivery transport.
 </p>
+
+
+</DD>
+
+<DT><b><a name="default_delivery_status_filter">default_delivery_status_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional filter to replace the delivery status code or explanatory
+text of successful or unsuccessful deliveries.  This does not allow
+the replacement of a successful status code (2.X.X) with an
+unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
+
+<p> The following parameters can be used to implement a filter for
+specific delivery agents: <a href="postconf.5.html#lmtp_delivery_status_filter">lmtp_delivery_status_filter</a>,
+<a href="postconf.5.html#local_delivery_status_filter">local_delivery_status_filter</a>, <a href="postconf.5.html#pipe_delivery_status_filter">pipe_delivery_status_filter</a>,
+<a href="postconf.5.html#smtp_delivery_status_filter">smtp_delivery_status_filter</a> or <a href="postconf.5.html#virtual_delivery_status_filter">virtual_delivery_status_filter</a>. These
+parameters support the same filter syntax as described here. </p>
+
+<p> Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup table names, separated
+by comma or whitespace. For each successful or unsuccessful delivery
+to a recipient, the tables are queried in the specified order with
+one line of text that is structured as follows: </p>
+
+<blockquote>
+enhanced-status-code SPACE explanatory-text
+</blockquote>
+
+<p> The first table match wins. The lookup result must have the
+same structure as the query, a successful status code (2.X.X) must
+be replaced with a successful status code, an unsuccessful status
+code (4.X.X or 5.X.X) must be replaced with an unsuccessful status
+code, and the explanatory text field must be non-empty. Other results
+will result in a warning.  </p>
+
+<p> Example 1: convert specific soft TLS errors into hard errors,
+by overriding the first number in the enhanced status code.  </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_delivery_status_filter">smtp_delivery_status_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/smtp_dsn_filter
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/smtp_dsn_filter:
+    /^4(\.\d+\.\d+ TLS is required, but host \S+ refused to start TLS: .+)/
+        5$1
+    /^4(\.\d+\.\d+ TLS is required, but was not offered by host .+)/
+        5$1
+    # Do not change the following into hard bounces. They may
+    # result from a local configuration problem.
+    # 4.\d+.\d+ TLS is required, but our TLS engine is unavailable
+    # 4.\d+.\d+ TLS is required, but unavailable
+    # 4.\d+.\d+ Cannot start TLS: handshake failure
+</pre>
+</blockquote>
+
+<p> Example 2: censor the per-recipient delivery status text so
+that it does not not reveal the destination command or filename
+when a remote sender requests confirmation of successful delivery.
+</p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#local_delivery_status_filter">local_delivery_status_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/local_dsn_filter
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/local_dsn_filter:
+    /^(2\S+ delivered to file).+/    $1
+    /^(2\S+ delivered to command).+/ $1
+</pre>
+</blockquote>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> This feature will NOT override the <a href="postconf.5.html#soft_bounce">soft_bounce</a> safety net. </p>
+
+<li> <p> This feature will change the enhanced status code and text
+that is logged to the maillog file, and that is reported to the
+sender in delivery confirmation or non-delivery notifications.
+</p>
+
+</ul>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -2816,8 +2920,8 @@ easier queue migration (there is no need to run "postsuper" to
 change queue file names that don't match their message file inode
 number).  </p>
 
-<p> Note: see below for how to prepare long queue file names
-for migration to Postfix &le; 2.8. </p>
+<p> Note: see below for how to convert long queue file names to
+Postfix &le; 2.8. </p>
 
 <p> Changing the parameter value to "yes" has the following effects:
 </p>
@@ -4055,6 +4159,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_delivery_status_filter">lmtp_delivery_status_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_delivery_status_filter">smtp_delivery_status_filter</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_destination_concurrency_limit">lmtp_destination_concurrency_limit</a>
 (default: $<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a>)</b></DT><DD>
 
@@ -5080,6 +5195,18 @@ Example:
 
 </DD>
 
+<DT><b><a name="local_delivery_status_filter">local_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
+
+<p> Optional filter for the <a href="local.8.html">local(8)</a> delivery agent to change the
+status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="local_destination_concurrency_limit">local_destination_concurrency_limit</a>
 (default: 2)</b></DT><DD>
 
@@ -5229,6 +5356,12 @@ wild-card for domains that do not have a valid recipient list.
 Technically, tables listed with $<a href="postconf.5.html#local_recipient_maps">local_recipient_maps</a> are used as
 lists: Postfix needs to know only if a lookup string is found or
 not, but it does not use the result from table lookup.  </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p>
 If this parameter is non-empty (the default), then the Postfix SMTP
@@ -5626,6 +5759,12 @@ is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">ma
 <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
 <a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
 
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
+
 
 </DD>
 
@@ -5699,6 +5838,12 @@ recipients are found in the UNIX passwd database. </p>
 is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>, <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
 <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>, <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_directory</a>,
 <a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a> and <a href="postconf.5.html#luser_relay">luser_relay</a>.  </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> For safety reasons, this feature does not allow $number
 substitutions in regular expression maps. </p>
@@ -6922,6 +7067,18 @@ This feature is available in Postfix 2.0 and later.
 
 </DD>
 
+<DT><b><a name="pipe_delivery_status_filter">pipe_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
+
+<p> Optional filter for the <a href="pipe.8.html">pipe(8)</a> delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="plaintext_reject_code">plaintext_reject_code</a>
 (default: 450)</b></DT><DD>
 
@@ -7420,6 +7577,18 @@ its combined DNSBL score as defined with the <a href="postconf.5.html#postscreen
 parameter. </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_dnsbl_timeout">postscreen_dnsbl_timeout</a>
+(default: 10s)</b></DT><DD>
+
+<p> The time limit for DNSBL or DNSWL lookups. This is separate from
+the timeouts in the <a href="dnsblog.8.html">dnsblog(8)</a> daemon which are defined by system
+resolver(3) routines. </p>
+
+<p> This feature is available in Postfix 2.12.  </p>
 
 
 </DD>
@@ -8029,6 +8198,11 @@ Example:
 <p>
 The lookup tables that the <a href="proxymap.8.html">proxymap(8)</a> server is allowed to
 access for the read-only service.
+</p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma.
 Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are ignored.
 </p>
 
@@ -8456,7 +8630,9 @@ supported) is added when mail enters from outside of Postfix.
 </p>
 
 <p>
-This feature is available in Postfix 2.1 and later.
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 </p>
 
 <p>
@@ -8483,11 +8659,6 @@ equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.ht
 </ul>
 
 <p>
-Specify the types and names of databases to use.  After change,
-run "<b>postmap /etc/postfix/recipient_bcc</b>".
-</p>
-
-<p>
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
 when the BCC address is undeliverable, as long as all down-stream
@@ -8511,6 +8682,14 @@ Example:
 <pre>
 <a href="postconf.5.html#recipient_bcc_maps">recipient_bcc_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/recipient_bcc
 </pre>
+
+<p>
+After a change, run "<b>postmap /etc/postfix/recipient_bcc</b>".
+</p>
+
+<p>
+This feature is available in Postfix 2.1 and later.
+</p>
 
 
 </DD>
@@ -8600,7 +8779,7 @@ Examples:
 
 <pre>
 # Handle both Postfix and qmail extensions (Postfix 2.11 and later).
-recipient_delimiters = +-
+<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> = +-
 </pre>
 
 <pre>
@@ -8773,6 +8952,12 @@ to know only if a lookup string is found or not, but it does not
 use the result from table lookup.  </p>
 
 <p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
+
+<p>
 If this parameter is non-empty, then the Postfix SMTP server will reject
 mail to unknown relay users. This feature is off by default.
 </p>
@@ -8877,6 +9062,12 @@ Examples:
 Optional lookup tables with new contact information for users or
 domains that no longer exist.  The table format and lookups are
 documented in <a href="relocated.5.html">relocated(5)</a>.
+</p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 </p>
 
 <p>
@@ -9111,7 +9302,9 @@ by sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
-This feature is available in Postfix 2.1 and later.
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 </p>
 
 <p>
@@ -9138,11 +9331,6 @@ equals $<a href="postconf.5.html#myorigin">myorigin</a>, $<a href="postconf.5.ht
 </ul>
 
 <p>
-Specify the types and names of databases to use.  After change,
-run "<b>postmap /etc/postfix/sender_bcc</b>".
-</p>
-
-<p>
 Note: with Postfix 2.3 and later the BCC address is added as if it
 was specified with NOTIFY=NONE. The sender will not be notified
 when the BCC address is undeliverable, as long as all down-stream
@@ -9166,6 +9354,14 @@ Example:
 <pre>
 <a href="postconf.5.html#sender_bcc_maps">sender_bcc_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/sender_bcc
 </pre>
+
+<p>
+After a change, run "<b>postmap /etc/postfix/sender_bcc</b>".
+</p>
+
+<p>
+This feature is available in Postfix 2.1 and later.
+</p>
 
 
 </DD>
@@ -9224,6 +9420,12 @@ address and @domain. A lookup result of DUNNO terminates the search
 without overriding the global <a href="postconf.5.html#default_transport">default_transport</a> parameter setting.
 This information is overruled with the <a href="transport.5.html">transport(5)</a> table. </p>
 
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
+
 <p> Note: this overrides <a href="postconf.5.html#default_transport">default_transport</a>, not <a href="postconf.5.html#transport_maps">transport_maps</a>, and
 therefore the expected syntax is that of <a href="postconf.5.html#default_transport">default_transport</a>, not the
 syntax of <a href="postconf.5.html#transport_maps">transport_maps</a>.  Specifically, this does not support the
@@ -9248,6 +9450,12 @@ overriding the global <a href="postconf.5.html#relayhost">relayhost</a> paramete
 later). This information is overruled with <a href="postconf.5.html#relay_transport">relay_transport</a>,
 <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>, <a href="postconf.5.html#default_transport">default_transport</a> and with
 the <a href="transport.5.html">transport(5)</a> table. </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> For safety reasons, this feature does not allow $number
 substitutions in regular expression maps. </p>
@@ -9325,6 +9533,18 @@ Postfix directories. When this parameter value is changed you need
 to re-run "<b>postfix set-permissions</b>" (with Postfix version 2.0 and
 earlier: "<b>/etc/postfix/post-install set-permissions</b>".
 </p>
+
+
+</DD>
+
+<DT><b><a name="shlib_directory">shlib_directory</a>
+(default: see 'postconf -d' output)</b></DT><DD>
+
+<p> The location of Postfix shared libraries (libpostfix-*.so.*).
+This parameter defaults to "no" when Postfix shared libraries are
+disabled at compile time. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -9751,6 +9971,21 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="smtp_delivery_status_filter">smtp_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
+
+<p> Optional filter for the <a href="smtp.8.html">smtp(8)</a> delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
+
+<p> NOTE: This feature modifies Postfix SMTP client error or non-error
+messages that may or may not be derived from remote SMTP server
+responses.  In contrast, the <a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a> feature modifies
+remote SMTP server responses only.  </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_destination_concurrency_limit">smtp_destination_concurrency_limit</a>
 (default: $<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concurrency_limit</a>)</b></DT><DD>
 
@@ -9786,6 +10021,12 @@ etc.) that the Postfix SMTP client will ignore in the EHLO response from a
 remote SMTP server. See <a href="postconf.5.html#smtp_discard_ehlo_keywords">smtp_discard_ehlo_keywords</a> for details. The
 table is not indexed by hostname for consistency with
 <a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_keyword_address_maps</a>. </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
@@ -10002,6 +10243,12 @@ a globally valid address when sending mail across the Internet.
 This is needed when the local machine does not have its own Internet
 domain name, but uses something like <i>localdomain.local</i>
 instead.  </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> The table format and lookups are documented in <a href="generic.5.html">generic(5)</a>;
 examples are shown in the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_README</a> and
@@ -10262,6 +10509,12 @@ sending large messages over slow network connections.
 per-destination workarounds for CISCO PIX firewall bugs.  The table
 is not indexed by hostname for consistency with
 <a href="postconf.5.html#smtp_discard_ehlo_keyword_address_maps">smtp_discard_ehlo_keyword_address_maps</a>. </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
 
@@ -10606,6 +10859,12 @@ attempt to authenticate to the remote host.
 <p>
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
+</p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 </p>
 
 
@@ -11362,14 +11621,13 @@ a lower logging level.  </p>
 
 <dl compact>
 
-<dt> </dt> <dd> 0 Log only a summary message on TLS handshake completion
+<dt> </dt> <dd> 0 Disable logging of TLS activity. </dd>
+
+<dt> </dt> <dd> 1 Log only a summary message on TLS handshake completion
 &mdash; no logging of remote SMTP server certificate trust-chain
 verification errors if server certificate verification is not required.
-With Postfix 2.8 and earlier, disable logging of TLS activity.  </dd>
-
-<dt> </dt> <dd> 1 Also log remote SMTP server trust-chain verification
-errors and peer certificate summary information. With Postfix 2.8
-and earlier, log TLS handshake and certificate information.  </dd>
+With Postfix 2.8 and earlier, log the summary message and unconditionally
+log trust-chain verification errors.  </dd>
 
 <dt> </dt> <dd> 2 Also log levels during TLS negotiation.  </dd>
 
@@ -11651,6 +11909,12 @@ Postfix 2.3 and later use <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tl
 policy by next-hop destination; when a non-empty value is specified,
 this overrides the obsolete <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter.  See
 <a href="TLS_README.html">TLS_README</a> for a more detailed discussion of TLS security levels.
+</p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
 </p>
 
 <p> The TLS policy table is indexed by the full next-hop destination,
@@ -13236,7 +13500,13 @@ case insensitive lists of EHLO keywords (pipelining, starttls, auth,
 etc.) that the Postfix SMTP server will not send in the EHLO response
 to a
 remote SMTP client. See <a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a> for details.
-The table is not searched by hostname for robustness reasons.  </p>
+The tables are not searched by hostname for robustness reasons.  </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p> This feature is available in Postfix 2.2 and later. </p>
 
@@ -14070,7 +14340,8 @@ non-permanent error code.  This feature is available in Postfix
 <dt><b><a name="reject_unknown_recipient_domain">reject_unknown_recipient_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the recipient domain, and the RCPT TO domain has 1) no DNS A or MX
+the recipient domain, and the RCPT TO domain has 1) no DNS MX and
+no DNS A
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
@@ -14670,7 +14941,9 @@ Optional lookup table with the SASL login names that own sender
 </p>
 
 <p>
-Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup tables. With lookups from
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.  With lookups from
 indexed files such as DB or DBM, or from networked tables such as
 NIS, LDAP or SQL, the following search operations are done with a
 sender address of <i>user@domain</i>:  </p>
@@ -14803,7 +15076,8 @@ Postfix version 2.1 and later. </dd>
 <dt><b><a name="reject_unknown_sender_domain">reject_unknown_sender_domain</a></b></dt>
 
 <dd>Reject the request when Postfix is not final destination for
-the sender address, and the MAIL FROM domain has 1) no DNS A or MX
+the sender address, and the MAIL FROM domain has 1) no DNS MX and
+no DNS A
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
@@ -15555,15 +15829,13 @@ a lower logging level.  </p>
 
 <dl compact>
 
-<dt> </dt> <dd> 0 Log only a summary message on TLS handshake completion
-&mdash; no logging of remote SMTP client certificate trust-chain verification
-errors
-if client certificate verification is not required. With Postfix 2.8
-and earlier, disable logging of TLS activity. </dd>
+<dt> </dt> <dd> 0 Disable logging of TLS activity. </dd>
 
-<dt> </dt> <dd> 1 Also log trust-chain verification errors and peer
-certificate name and issuer. With Postfix 2.8 and earlier, log TLS
-handshake and certificate information. </dd>
+<dt> </dt> <dd> 1 Log only a summary message on TLS handshake completion
+&mdash; no logging of client certificate trust-chain verification errors
+if client certificate verification is not required.  With Postfix 2.8 and
+earlier, log the summary message, peer certificate summary information
+and unconditionally log trust-chain verification errors.  </dd>
 
 <dt> </dt> <dd> 2 Also log levels during TLS negotiation. </dd>
 
@@ -16786,6 +17058,24 @@ gives timeout errors.  </p>
 
 </DD>
 
+<DT><b><a name="tls_session_ticket_cipher">tls_session_ticket_cipher</a>
+(default: aes-128-cbc)</b></DT><DD>
+
+<p> Algorithm used to encrypt <a href="http://tools.ietf.org/html/rfc5077">RFC5077</a> TLS session tickets.  This
+algorithm must use CBC mode, have a 128-bit initialization vector
+(IV), and must have a key length between 128 and 256 bits.  The
+default is aes-128-cbc.  Sensible alternatives include aes-192-cbc
+and aes-256-cbc.  </p>
+
+<p> Setting this parameter empty disables session ticket support
+in the Postfix SMTP server.  Another way to disable session ticket
+support is via the tls_ssl_options parameter.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="tls_ssl_options">tls_ssl_options</a>
 (default: empty)</b></DT><DD>
 
@@ -17487,7 +17777,9 @@ for details.
 </p>
 
 <p>
-Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup tables.  If you use this
+Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.  If you use this
 feature with local files, run "<b>postmap /etc/postfix/transport</b>"
 after making a change.  </p>
 
@@ -18064,6 +18356,13 @@ value is backwards compatible with Postfix version 1.1.
 </p>
 
 <p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+Note: these lookups are recursive.
+</p>
+
+<p>
 If you use this feature with indexed files, run "<b>postmap
 /etc/postfix/virtual</b>" after changing the file.
 </p>
@@ -18094,6 +18393,18 @@ change in the future.
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="virtual_delivery_status_filter">virtual_delivery_status_filter</a>
+(default: $<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b></DT><DD>
+
+<p> Optional filter for the <a href="virtual.8.html">virtual(8)</a> delivery agent to change the
+delivery status code or explanatory text of successful or unsuccessful
+deliveries.  See <a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a> for details.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -18135,6 +18446,12 @@ delivery.
 <p> This parameter is specific to the <a href="virtual.8.html">virtual(8)</a> delivery agent.
 It does not apply when mail is delivered with a different mail
 delivery program.  </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p>
 In a lookup table, specify a left-hand side of "@domain.tld" to
@@ -18266,6 +18583,12 @@ match $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains
 </p>
 
 <p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
+
+<p>
 In a lookup table, specify a left-hand side of "@domain.tld" to
 match any user in the specified domain that does not have a specific
 "user@domain.tld" entry.
@@ -18371,6 +18694,12 @@ delivery agent uses while writing to the recipient's mailbox.
 <p> This parameter is specific to the <a href="virtual.8.html">virtual(8)</a> delivery agent.
 It does not apply when mail is delivered with a different mail
 delivery program.  </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace of comma. Tables will be searched in the specified order
+until a match is found.
+</p>
 
 <p>
 In a lookup table, specify a left-hand side of "@domain.tld"

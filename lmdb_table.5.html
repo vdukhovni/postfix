@@ -22,8 +22,8 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
 <b>DESCRIPTION</b>
        The  Postfix  LMDB  adapter  provides  access  to a persistent, memory-
        mapped, key-value store.  The database size is limited only by the size
-       of the memory address space (typically 32 or 64 bits) and by the avail-
-       able file system space.
+       of  the  memory  address  space  (typically  31 or 47 bits on 32-bit or
+       64-bit CPUs, respectively) and by the available file system space.
 
 <b>REQUESTS</b>
        The LMDB adapter supports all Postfix lookup  table  operations.   This
@@ -34,34 +34,46 @@ LMDB_TABLE(5)                                                    LMDB_TABLE(5)
        When  a  transaction  fails due to a full database, Postfix resizes the
        database and retries the transaction.
 
-       Postfix access, address mapping and routing table lookups may  generate
-       partial  search  keys  such  as domain names without one or more subdo-
-       mains, network addresses without one or more least-significant  octets,
-       or  email  addresses without the localpart, address extension or domain
-       portion.  This behavior is also found  with  <a href="DATABASE_README.html#types">btree</a>:,  <a href="DATABASE_README.html#types">hash</a>:,  or  <a href="ldap_table.5.html">ldap</a>:
-       tables.
+       Postfix table lookups may generate partial search keys such  as  domain
+       names  without one or more subdomains, network addresses without one or
+       more least-significant octets, or email addresses  without  the  local-
+       part, address extension or domain portion.  This behavior is also found
+       with, for example, <a href="DATABASE_README.html#types">btree</a>:, <a href="DATABASE_README.html#types">hash</a>:, or <a href="ldap_table.5.html">ldap</a>: tables.
 
-       Unlike  other  flat-file  based  Postfix  databases, changes to an LMDB
-       database do not trigger automatic daemon program restart.
+       Unlike other flat-file Postfix databases, changes to an  LMDB  database
+       do  not  trigger  automatic  daemon program restart, and do not require
+       "<b>postfix reload</b>".
 
 <b>RELIABILITY</b>
-       LMDB's copy-on-write architecture achieves  reliable  updates,  at  the
-       cost  of  using  more  space than some other flat-file databases.  Read
-       operations are memory-mapped for speed.  Write operations are not  mem-
-       ory-mapped to avoid silent curruption due stray pointer bugs.
-
-       The  Postfix  LMDB  adapter  implements  locking with fcntl(2) locks at
-       whole-file granularity. LMDB's  native  locking  scheme  would  require
-       world-writable  lockfiles and would therefore violate the Postfix secu-
-       rity model.
+       LMDB's copy-on-write architecture provides safe updates, at the cost of
+       using  more space than some other flat-file databases.  Read operations
+       are memory-mapped for speed.  Write operations are not memory-mapped to
+       avoid silent curruption due to stray pointer bugs.
 
        Multiple processes can safely update an LMDB database without serializ-
        ing requests through the <a href="proxymap.8.html">proxymap(8)</a> service.  This makes LMDB suitable
        as a shared cache for <a href="verify.8.html">verify(8)</a> or <a href="postscreen.8.html">postscreen(8)</a> services.
 
+<b>SYNCHRONIZATION</b>
+       The  Postfix  LMDB adapter does not use LMDB's built-in locking scheme,
+       because that would require world-writable lockfiles and  would  violate
+       the  Postfix security model.  Instead, Postfix uses fcntl(2) locks with
+       whole-file granularity.  Programs that use LMDB's built-in locking pro-
+       tocol will corrupt a Postfix LMDB database or will read garbage.
+
+       Every Postfix LMDB database read or write transaction must be protected
+       from start to end with a shared or exclusive fcntl(2) lock.   A  writer
+       may  atomically  downgrade  an  exclusive lock to a shared lock, but it
+       must hold an exclusive lock while opening another write transaction.
+
+       Note that fcntl(2) locks do not protect transactions  within  the  same
+       process  against each other.  If a program cannot avoid making simulta-
+       neous database requests, then it must protect its transactions with in-
+       process locks, in addition to the per-process fcntl(2) locks.
+
 <b>CONFIGURATION PARAMETERS</b>
-       Short-lived programs automatically pick up changes  to  <a href="postconf.5.html">main.cf</a>.   With
-       long-running  daemon programs, Use the command "<b>postfix reload</b>" after a
+       Short-lived  programs  automatically  pick up changes to <a href="postconf.5.html">main.cf</a>.  With
+       long-running daemon programs, Use the command "<b>postfix reload</b>" after  a
        configuration change.
 
        <b><a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216)</b>

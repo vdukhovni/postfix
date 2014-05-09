@@ -34,11 +34,18 @@ the database file without the ".lmdb" suffix. </p>
 
 <li> <p> <a href="#configure">Configuring LMDB settings</a>. </p>
 
-<li> <p> <a href="#supported"> Supported minimum LMDB patchlevel</a>. </p>
+<li> <p> <a href="#locking">Using LMDB maps with non-Postfix programs</a>. </p>
+
+<li> <p> <a href="#supported"> Required minimum LMDB patchlevel</a>. </p>
+
+<li> <p> <a href="#credits"> Credits</a>. </p>
 
 </ul>
 
 <h2><a name="with_lmdb">Building Postfix with LMDB support</a></h2>
+
+<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
+will be added later.] </p>
 
 <p> Postfix normally does not enable LMDB support.  To
 build Postfix with LMDB support, use something like: </p>
@@ -89,17 +96,32 @@ LMDB database behavior. </p>
 <ul>
 
 <li> <p> <a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (default: 16777216).  This setting specifies
-the initial LMDB database size limit in bytes.  Each time
-a database becomes full, its size limit is doubled. The maximum
-size is the largest signed integer value of "long".  </p>
+the initial LMDB database size limit in bytes.  Each time a database
+becomes "full", its size limit is doubled. The maximum size is the
+largest signed integer value of "long". </p>
 
 </ul>
 
-<h2> <a name="supported"> Supported minimum LMDB patchlevel </a> </h2>
+<h2> <a name="locking">Using LMDB maps with non-Postfix programs</a> </h2>
 
-<p> Currently, Postfix supports LMDB 0.9.11 or later. The supported
+<p> Programs that use LMDB's built-in locking protocol will corrupt
+a Postfix LMDB database or will read garbage. </p>
+
+<p> Postfix does not use LMDB's built-in locking protocol, because
+that would require world-writable lockfiles, and would violate
+Postfix security policy.  Instead, Postfix uses external locks based
+on fcntl(2) to prevent writers from corrupting the database, and
+to prevent readers from receiving garbage.  </p>
+
+<p> See <a href="lmdb_table.5.html">lmdb_table(5)</a> for a detailed description of the locking
+protocol that all programs must use when they access a Postfix LMDB
+database. </p>
+
+<h2> <a name="supported"> Required minimum LMDB patchlevel </a> </h2>
+
+<p> Currently, Postfix requires LMDB 0.9.11 or later. The required
 minimum LMDB patchlevel has evolved over time, as the result of
-deployment experience with Postfix. </p>
+Postfix deployment experience: </p>
 
 <ul>
 
@@ -108,24 +130,41 @@ message, instead of falling out of the sky without any notification.
 </p>
 
 <li> <p> LMDB 0.9.10 closes an information leak where LMDB was
-writing up to 4kbyte-chunks of uninitialized heap memory to the
-database, persisting information that was not meant to be persisted,
-or sharing information that was not meant to be shared. </p>
-
-<li> <p> LMDB 0.9.8 allows Postfix to use external (fcntl()-based)
-locks, instead of having to use world-writable LMDB lock files.
+writing up to 4-kbyte chunks of uninitialized heap memory to the
+database. This would persist information that was not meant to be
+persisted, or share information that was not meant to be shared.
 </p>
 
-<li> <p> LMDB 0.9.8 allows an application to recover from a "database
-full" error without having to close the database, by adding support
-to update the database size limit on-the-fly; and it adds support
-for an application to adopt someone elses change to the database
-size limit, without having to close the database. </p>
+<li> <p> LMDB 0.9.9 allows Postfix to use external (fcntl()-based)
+locks, instead of having to use world-writable LMDB lock files,
+violating the Postfix security model in multiple ways. </p>
 
-<li> <p> LMDB 0.9.7 allows the postmap and postalias commands to
-use a bulk-mode transaction larger than the amount of physical
+<li> <p> LMDB 0.9.8 allows Postfix to recover from a "database full"
+error without having to close the database. This version adds support
+to update the database size limit on-the-fly.  This is necessary
+because Postfix database sizes vary with mail server load. </p>
+
+<li> <p> LMDB 0.9.7 allows the <a href="postmap.1.html">postmap(1)</a> and <a href="postalias.1.html">postalias(1)</a> commands
+to use a bulk-mode transaction larger than the amount of physical
 memory. This is necessary because LMDB supports databases larger
 than physical memory. </p>
+
+</ul>
+
+<h2> <a name="credits"> Credits</a> </h2>
+
+<ul>
+
+<li> <p> Howard Chu contributed the initial Postfix dict_lmdb driver.
+</p>
+
+<li> <p> Wietse Venema wrote an abstraction layer (slmdb) that
+behaves more like Berkeley DB, NDBM, etc.  This layer automatically
+retries an LMDB request when a database needs to be resized, or
+after a database was resized by a different process.  </p>
+
+<li> <p> Howard and Wietse went through many iterations with changes
+to both LMDB and Postfix, with input from Viktor Dukhovni. </p>
 
 </ul>
 
