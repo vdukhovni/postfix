@@ -683,6 +683,9 @@ queue_directory_macro=DEF_QUEUE_DIR
 sendmail_path_macro=DEF_SENDMAIL_PATH
 shlib_directory_macro=DEF_SHLIB_DIR
 
+# shlib_directory is checked here because "no" is not a good answer.
+# Instead, build with "shared=no".
+
 for parm_name in command_directory config_directory daemon_directory \
 	data_directory mailq_path newaliases_path \
 	queue_directory sendmail_path shlib_directory

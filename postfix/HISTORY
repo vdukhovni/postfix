@@ -19721,7 +19721,7 @@ Apologies for any names omitted.
 	poorly reflected their purpose. "DEAD" is replaced with
 	"FORBIDDEN" (no I/O allowed) and "BAD" is replaced with
 	"THROTTLED" (anything that causes the queue manager to back
-	off from some destination). Files: smtp.h, smtp_coonnect.c,
+	off from some destination). Files: smtp.h, smtp_connect.c,
 	smtp_proto.c, smtp_trouble.c.
 
 	Cleanup: enable SMTP connection cache lookup by destination
@@ -19764,3 +19764,23 @@ Apologies for any names omitted.
 	print/view README-format files are in the INSTALL file).
 
 	Documentation: updated INSTALL instructions and RELEASE_NOTES.
+
+20140512
+
+	Portability: Berkeley DB6 support. File: util/dict_db.c.
+
+20140514
+
+	Cleanup: replace #ifdefs with hard-coded dynamicmaps calls
+	with an extension mechanism. Files: util/dict.h, util/dict_open.c,
+	global/dynamicmaps.[hc], global/mkmap.h, global/mkmap_open.c.
+
+20140515
+
+	Bugfix (introduced: 20140320): missing initialization.
+	Viktor Dukhovni. File pipe/pipe.c.
+
+	Cleanup: mkmap_open() now caches a dynamically-loaded
+	function. This is useful because postmap/postalias may open
+	the same database type multiple times. Files: global/mkmap.h,
+	global/mkmap_open.c.

@@ -12,22 +12,11 @@
 /* .nf
 
  /*
-  * Utility library.
-  */
-#include <argv.h>
-
- /*
   * External interface.
   */
 #ifdef USE_DYNAMIC_LIBS
 
-typedef DICT *(*dymap_open_t) (const char *, int, int);
-typedef void *(*dymap_mkmap_t) (const char *);
-
 extern void dymap_init(const char *);
-extern ARGV *dymap_list(ARGV *);
-extern dymap_open_t dymap_get_open_fn(const char *);
-extern dymap_mkmap_t dymap_get_mkmap_fn(const char *);
 
 #endif
 /* LICENSE

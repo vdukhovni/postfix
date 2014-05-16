@@ -32,7 +32,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
-	mkmap_fail.c haproxy_srvr.c dsn_filter.c
+	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -66,7 +66,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
-	mkmap_fail.o haproxy_srvr.o dsn_filter.o
+	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -93,7 +93,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h dsn_filter.h
+	haproxy_srvr.h dsn_filter.h dynamicmaps.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -1054,6 +1054,21 @@ dsn_util.o: ../../include/vbuf.h
 dsn_util.o: ../../include/vstring.h
 dsn_util.o: dsn_util.c
 dsn_util.o: dsn_util.h
+dynamicmaps.o: ../../include/argv.h
+dynamicmaps.o: ../../include/dict.h
+dynamicmaps.o: ../../include/load_lib.h
+dynamicmaps.o: ../../include/msg.h
+dynamicmaps.o: ../../include/mvect.h
+dynamicmaps.o: ../../include/myflock.h
+dynamicmaps.o: ../../include/mymalloc.h
+dynamicmaps.o: ../../include/sys_defs.h
+dynamicmaps.o: ../../include/vbuf.h
+dynamicmaps.o: ../../include/vstream.h
+dynamicmaps.o: ../../include/vstring.h
+dynamicmaps.o: ../../include/vstring_vstream.h
+dynamicmaps.o: dynamicmaps.c
+dynamicmaps.o: dynamicmaps.h
+dynamicmaps.o: mkmap.h
 ehlo_mask.o: ../../include/name_mask.h
 ehlo_mask.o: ../../include/sys_defs.h
 ehlo_mask.o: ../../include/vbuf.h
@@ -1380,7 +1395,6 @@ mail_date.o: mail_date.c
 mail_date.o: mail_date.h
 mail_dict.o: ../../include/argv.h
 mail_dict.o: ../../include/dict.h
-mail_dict.o: ../../include/dynamicmaps.h
 mail_dict.o: ../../include/msg.h
 mail_dict.o: ../../include/myflock.h
 mail_dict.o: ../../include/mymalloc.h
@@ -1395,6 +1409,7 @@ mail_dict.o: dict_mysql.h
 mail_dict.o: dict_pgsql.h
 mail_dict.o: dict_proxy.h
 mail_dict.o: dict_sqlite.h
+mail_dict.o: dynamicmaps.h
 mail_dict.o: mail_dict.c
 mail_dict.o: mail_dict.h
 mail_dict.o: mail_params.h
@@ -1705,10 +1720,10 @@ mkmap_open.o: ../../include/dict.h
 mkmap_open.o: ../../include/dict_cdb.h
 mkmap_open.o: ../../include/dict_db.h
 mkmap_open.o: ../../include/dict_dbm.h
-mkmap_open.o: ../../include/dynamicmaps.h
 mkmap_open.o: ../../include/dict_fail.h
 mkmap_open.o: ../../include/dict_lmdb.h
 mkmap_open.o: ../../include/dict_sdbm.h
+mkmap_open.o: ../../include/htable.h
 mkmap_open.o: ../../include/msg.h
 mkmap_open.o: ../../include/myflock.h
 mkmap_open.o: ../../include/mymalloc.h

@@ -21,7 +21,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	readlline.c ring.c safe_getenv.c safe_open.c \
 	sane_accept.c sane_connect.c sane_link.c sane_rename.c \
 	sane_socketpair.c sane_time.c scan_dir.c set_eugid.c set_ugid.c \
-	load_lib.c dynamicmaps.c \
+	load_lib.c \
 	sigdelay.c skipblanks.c sock_addr.c spawn_command.c split_at.c \
 	split_nameval.c stat_as.c strcasecmp.c stream_connect.c \
 	stream_listen.c stream_recv_fd.c stream_send_fd.c stream_trigger.c \
@@ -52,7 +52,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	host_port.o htable.o inet_addr_host.o inet_addr_list.o \
 	inet_addr_local.o inet_connect.o inet_listen.o inet_proto.o \
 	inet_trigger.o line_wrap.o lowercase.o lstat_as.o mac_expand.o \
-	load_lib.o dynamicmaps.o \
+	load_lib.o \
 	mac_parse.o make_dirs.o mask_addr.o match_list.o match_ops.o msg.o \
 	msg_output.o msg_syslog.o msg_vstream.o mvect.o myaddrinfo.o myflock.o \
 	mymalloc.o myrand.o mystrtok.o name_code.o name_mask.o netstring.o \
@@ -91,7 +91,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	mymalloc.h myrand.h name_code.h name_mask.h netstring.h nvtable.h \
 	open_as.h open_lock.h percentm.h posix_signals.h readlline.h ring.h \
 	safe.h safe_open.h sane_accept.h sane_connect.h sane_fsops.h \
-	load_lib.h dynamicmaps.h \
+	load_lib.h \
 	sane_socketpair.h sane_time.h scan_dir.h set_eugid.h set_ugid.h \
 	sigdelay.h sock_addr.h spawn_command.h split_at.h stat_as.h \
 	stringops.h sys_defs.h timed_connect.h timed_wait.h trigger.h \
@@ -1454,6 +1454,10 @@ load_file.o: sys_defs.h
 load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
+load_lib.o: load_lib.c
+load_lib.o: load_lib.h
+load_lib.o: msg.h
+load_lib.o: sys_defs.h
 lowercase.o: lowercase.c
 lowercase.o: stringops.h
 lowercase.o: sys_defs.h

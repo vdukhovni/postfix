@@ -21,16 +21,16 @@ Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
 
 smtp-sink: smtp-sink.o $(LIBS)
-	$(CC) $(CFLAGS) -o $@ smtp-sink.o $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ smtp-sink.o $(LIBS) $(SYSLIBS)
 
 smtp-source: smtp-source.o $(LIBS)
-	$(CC) $(CFLAGS) -o $@ smtp-source.o $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ smtp-source.o $(LIBS) $(SYSLIBS)
 
 qmqp-sink: qmqp-sink.o $(LIBS)
-	$(CC) $(CFLAGS) -o $@ qmqp-sink.o $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ qmqp-sink.o $(LIBS) $(SYSLIBS)
 
 qmqp-source: qmqp-source.o $(LIBS)
-	$(CC) $(CFLAGS) -o $@ qmqp-source.o $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ qmqp-source.o $(LIBS) $(SYSLIBS)
 
 test:	$(TESTPROG)
 
