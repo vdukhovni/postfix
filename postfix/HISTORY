@@ -19716,8 +19716,17 @@ Apologies for any names omitted.
 	poorly reflected their purpose. "DEAD" is replaced with
 	"FORBIDDEN" (no I/O allowed) and "BAD" is replaced with
 	"THROTTLED" (anything that causes the queue manager to back
-	off from some destination). Files: smtp.h, smtp_coonnect.c,
+	off from some destination). Files: smtp.h, smtp_connect.c,
 	smtp_proto.c, smtp_trouble.c.
 
 	Cleanup: enable SMTP connection cache lookup by destination
 	while a surge of mail is drying up. File: smtp_connect.c.
+
+20140512
+
+	Portability: Berkeley DB6 support. File: util/dict_db.c.
+
+20140515
+
+	Bugfix (introduced: 20140320): missing initialization.
+	Viktor Dukhovni. File pipe/pipe.c.
