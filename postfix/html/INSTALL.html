@@ -257,6 +257,21 @@ $ make
 </pre>
 </blockquote>
 
+<p> Postfix shared libraries are named
+libpostfix-<i>xxx</i>.so.<i>version</i> where <i>xxx</i> is a
+source-code directory name such as "util" or "global", and the
+default <i>version</i> is the Postfix version: X.Y.Z for stable
+releases, X.Y-DATE for snapshot releases, or X.Y-DATE-nonprod for
+non-production releases.  </p>
+
+<p> To override the default shared-library version, specfy: </p>
+
+<blockquote>
+<pre>
+$ make makefiles shared=yes SHLIB_VERSION=<i>version</i> ...other arguments...
+</pre>
+</blockquote>
+
 <h3>4.4 - Building with optional features</h3>
 
 By default, Postfix builds as a mail system with relatively few

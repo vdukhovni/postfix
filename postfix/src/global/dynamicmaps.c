@@ -7,27 +7,24 @@
 /*	#include <dynamicmaps.h>
 /*
 /*	void dymap_init(const char *path)
-/*
-/*	ARGV *dymap_list(ARGV *map_names)
 /* DESCRIPTION
 /*	This module reads the dynamicmaps.cf file and performs
 /*	run-time loading of Postfix dictionaries. Each dynamicmaps.cf
 /*	entry specifies the name of a dictionary type, the pathname
-/*	of a shared-library object, the name of an "open" function
-/*	for access to individual dictionary entries, and optionally
-/*	the name of a "mkmap" function for bulk-mode dictionary
-/*	creation.
+/*	of a shared-library object, the name of a "dict_open"
+/*	function for access to individual dictionary entries, and
+/*	optionally the name of a "mkmap_open" function for bulk-mode
+/*	dictionary creation.
 /*
-/*	dymap_init() must be called at least once before any other
-/*	functions in this module.  This function reads the specified
-/*	configuration file which is in dynamicmaps.cf format, hooks
-/*	itself into the dict_open(), dict_mapames(), and mkmap_open()
-/*	functions, and may be called multiple times during a process
-/*	lifetime, but only the last-read dynamicmaps content will be
-/*	remembered.
+/*	dymap_init() reads the specified configuration file which
+/*	is in dynamicmaps.cf format, and hooks itself into the
+/*	dict_open(), dict_mapnames(), and mkmap_open() functions.
 /*
-/*	dymap_list() appends to its argument the names of dictionary
-/*	types available in dynamicmaps.cf.
+/*	dymap_init() may be called multiple times during a process
+/*	lifetime, but it will not "unload" dictionaries that have
+/*	already been linked into the process address space, nor
+/*	will it hide their dictionaries types from later "open"
+/*	requests.
 /* SEE ALSO
 /*	load_lib(3) low-level run-time linker adapter
 /* DIAGNOSTICS
@@ -55,12 +52,14 @@
 #include <sys_defs.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <ctype.h>
 
  /*
   * Utility library.
   */
 #include <msg.h>
 #include <mymalloc.h>
+#include <htable.h>
 #include <argv.h>
 #include <dict.h>
 #include <load_lib.h>
@@ -81,39 +80,21 @@
   * Contents of one dynamicmaps.cf entry.
   */
 typedef struct {
-    const char *dict_type;		/* database type name */
-    const char *soname;			/* shared-object file name */
-    const char *open_name;		/* dict_xx_open() function name */
-    const char *mkmap_name;		/* mkmap_xx_open() function name */
+    char   *soname;			/* shared-object file name */
+    char   *dict_name;			/* dict_xx_open() function name */
+    char   *mkmap_name;			/* mkmap_xx_open() function name */
 } DYMAP_INFO;
 
-static DYMAP_INFO *dymap_info;
+static HTABLE *dymap_info;
 static DICT_OPEN_EXTEND_FN saved_dict_open_hook = 0;
 static MKMAP_OPEN_EXTEND_FN saved_mkmap_open_hook = 0;
 static DICT_MAPNAMES_EXTEND_FN saved_dict_mapnames_hook = 0;
 
 #define STREQ(x, y) (strcmp((x), (y)) == 0)
 
-/* dymap_find - find dynamicmaps.cf metadata */
+/* dymap_dict_lookup - look up "dict_foo_open" function */
 
-static DYMAP_INFO *dymap_find(const char *dict_type)
-{
-    static const char myname[] = "dymap_find";
-    DYMAP_INFO *dp;
-
-    if (!dymap_info)
-	msg_panic("%s: dlinfo==NULL", myname);
-
-    for (dp = dymap_info; dp->dict_type; dp++) {
-	if (STREQ(dp->dict_type, dict_type))
-	    return dp;
-    }
-    return (0);
-}
-
-/* dymap_open_lookup - look up "dict_foo_open" function */
-
-static DICT_OPEN_FN dymap_open_lookup(const char *dict_type)
+static DICT_OPEN_FN dymap_dict_lookup(const char *dict_type)
 {
     struct stat st;
     LIB_FN  fn[2];
@@ -129,22 +110,26 @@ static DICT_OPEN_FN dymap_open_lookup(const char *dict_type)
 
     /*
      * Allow for graceful degradation when a database is unavailable. This
-     * allows daemon processes to continue handling email with reduced
-     * functionality.
+     * allows Postfix daemon processes to continue handling email with
+     * reduced functionality.
      */
-    if ((dp = dymap_find(dict_type)) == 0
-	|| stat(dp->soname, &st) < 0
-	|| dp->open_name == 0)
+    if ((dp = (DYMAP_INFO *) htable_find(dymap_info, dict_type)) == 0)
 	return (0);
-    if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
-	msg_warn("%s: file must be writable only by root", dp->soname);
+    if (stat(dp->soname, &st) < 0) {
+	msg_warn("unsupported dictionary type: %s (%s: %m)",
+		 dict_type, dp->soname);
 	return (0);
     }
-    fn[0].name = dp->open_name;
-    fn[0].ptr = (void **) &dict_open_fn;
-    fn[1].name = NULL;
-    load_library_symbols(dp->soname, fn, NULL);
-    return (dict_open_fn);
+    if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+	msg_warn("unsupported dictionary type: %s "
+		 "(%s: file is writable by non-root users)",
+		 dict_type, dp->soname);
+	return (0);
+    }
+    fn[0].name = dp->dict_name;
+    fn[1].name = 0;
+    load_library_symbols(dp->soname, fn, (LIB_DP *) 0);
+    return ((DICT_OPEN_FN) fn[0].fptr);
 }
 
 /* dymap_mkmap_lookup - look up "mkmap_foo_open" function */
@@ -164,11 +149,11 @@ static MKMAP_OPEN_FN dymap_mkmap_lookup(const char *dict_type)
 	return (mkmap_open_fn);
 
     /*
-     * All errors are fatal. If we can't create the requetsed database, then
-     * graceful degradation is not useful.
+     * All errors are fatal. If the postmap(1) or postalias(1) command can't
+     * create the requested database, then graceful degradation is not
+     * useful.
      */
-    dp = dymap_find(dict_type);
-    if (!dp)
+    if ((dp = (DYMAP_INFO *) htable_find(dymap_info, dict_type)) == 0)
 	msg_fatal("unsupported dictionary type: %s. "
 		  "Is the postfix-%s package installed?",
 		  dict_type, dict_type);
@@ -176,117 +161,140 @@ static MKMAP_OPEN_FN dymap_mkmap_lookup(const char *dict_type)
 	msg_fatal("unsupported dictionary type: %s does not support "
 		  "bulk-mode creation.", dict_type);
     if (stat(dp->soname, &st) < 0)
-	msg_fatal("unsupported dictionary type: %s (%s not found). "
+	msg_fatal("unsupported dictionary type: %s (%s: %m). "
 		  "Is the postfix-%s package installed?",
 		  dict_type, dp->soname, dict_type);
     if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0)
-	msg_fatal("%s: file must be writable only by root", dp->soname);
+	msg_fatal("unsupported dictionary type: %s "
+		  "(%s: file is writable by non-root users)",
+		  dict_type, dp->soname);
     fn[0].name = dp->mkmap_name;
-    fn[0].ptr = (void **) &mkmap_open_fn;
-    fn[1].name = NULL;
-    load_library_symbols(dp->soname, fn, NULL);
-    return (mkmap_open_fn);
+    fn[1].name = 0;
+    load_library_symbols(dp->soname, fn, (LIB_DP *) 0);
+    return ((MKMAP_OPEN_FN) fn[0].fptr);
 }
 
 /* dymap_list - enumerate dynamically-linked database type names */
 
-static ARGV *dymap_list(ARGV *map_names)
+static void dymap_list(ARGV *map_names)
 {
-    static const char myname[] = "dymap_list";
-    DYMAP_INFO *dp;
-
-    if (!dymap_info)
-	msg_panic("%s: dlinfo==NULL", myname);
+    HTABLE_INFO **ht_list, **ht;
 
     /*
      * Respect the hook nesting order.
      */
     if (saved_dict_mapnames_hook != 0)
-	map_names = saved_dict_mapnames_hook(map_names);
+	saved_dict_mapnames_hook(map_names);
 
-    if (map_names == 0)
-	map_names = argv_alloc(2);
-    for (dp = dymap_info; dp->dict_type; dp++) {
-	argv_add(map_names, dp->dict_type, ARGV_END);
-    }
-    return (map_names);
+    for (ht_list = ht = htable_list(dymap_info); *ht != 0; ht++)
+	argv_add(map_names, ht[0]->key, ARGV_END);
+    myfree((char *) ht_list);
+}
+
+/* dymap_entry_alloc - allocate dynamicmaps.cf entry */
+
+static DYMAP_INFO *dymap_entry_alloc(char **argv)
+{
+    DYMAP_INFO *dp;
+
+    dp = (DYMAP_INFO *) mymalloc(sizeof(*dp));
+    dp->soname = mystrdup(argv[0]);
+    dp->dict_name = mystrdup(argv[1]);
+    dp->mkmap_name = argv[2] ? mystrdup(argv[2]) : 0;
+    return (dp);
+}
+
+/* dymap_entry_free - htable(3) call-back to destroy dynamicmaps.cf entry */
+
+static void dymap_entry_free(char *ptr)
+{
+    DYMAP_INFO *dp = (DYMAP_INFO *) ptr;
+
+    myfree(dp->soname);
+    myfree(dp->dict_name);
+    if (dp->mkmap_name)
+	myfree(dp->mkmap_name);
+    myfree((char *) dp);
 }
 
 /* dymap_init - initialize dictionary type to soname etc. mapping */
 
 void    dymap_init(const char *path)
 {
-    VSTREAM *conf_fp;
+    const char myname[] = "dymap_init";
+    VSTREAM *fp;
     VSTRING *buf;
     char   *cp;
     ARGV   *argv;
-    static MVECT vector;
-    int     nelm = 0;
     int     linenum = 0;
     static int hooks_done = 0;
     struct stat st;
 
+    /*
+     * Reload dynamicsmaps.cf, but don't reload already-loaded modules.
+     */
     if (dymap_info != 0)
-	mvect_free(&vector);
+	htable_free(dymap_info, dymap_entry_free);
+    dymap_info = htable_create(3);
 
-    dymap_info =
-	(DYMAP_INFO *) mvect_alloc(&vector, sizeof(DYMAP_INFO), 3, 0, 0);
-
-    /* Silently ignore missing dynamic maps file. */
-    if ((conf_fp = vstream_fopen(path, O_RDONLY, 0)) != 0) {
-	if (fstat(vstream_fileno(conf_fp), &st) < 0)
+    /*
+     * Silently ignore a missing dynamicmaps.cf file, but be explicit about
+     * problems when the file does exist.
+     */
+    if ((fp = vstream_fopen(path, O_RDONLY, 0)) != 0) {
+	if (fstat(vstream_fileno(fp), &st) < 0)
 	    msg_fatal("%s: fstat failed; %m", path);
-	if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0)
-	    msg_fatal("%s: file must be writable only by root", path);
-	buf = vstring_alloc(100);
-	while (vstring_get_nonl(buf, conf_fp) != VSTREAM_EOF) {
-	    cp = vstring_str(buf);
-	    linenum++;
-	    if (*cp == '#' || *cp == '\0')
-		continue;
-	    argv = argv_split(cp, " \t");
-	    if (argv->argc != 3 && argv->argc != 4) {
-		msg_fatal("%s: Expected \"dict_type .so-name open-function"
-			  " [mkmap-function]\" at line %d", path, linenum);
+	if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
+	    msg_warn("%s: file is writable by non-root users"
+		     " -- skipping this file", path);
+	}
+
+	/*
+	 * Read the dynamicmaps.cf file.
+	 */
+	else {
+	    buf = vstring_alloc(100);
+	    while (vstring_get_nonl(buf, fp) != VSTREAM_EOF) {
+		cp = vstring_str(buf);
+		linenum++;
+		if (*cp == '#' || *cp == '\0')
+		    continue;
+		argv = argv_split(cp, " \t");
+		if (argv->argc != 3 && argv->argc != 4)
+		    msg_fatal("%s, line %d: Expected \"dict_type .so-name dict"
+			      "-function [mkmap-function]\"", path, linenum);
+		if (!ISALNUM(argv->argv[0][0]))
+		    msg_fatal("%s, line %d: unsupported syntax \"%s\"",
+			      path, linenum, argv->argv[0]);
+		if (argv->argv[1][0] != '/')
+		    msg_fatal("%s, line %d: .so-name must begin with a \"/\"",
+			      path, linenum);
+		htable_enter(dymap_info, argv->argv[0],
+			     (char *) dymap_entry_alloc(argv->argv + 1));
+		argv_free(argv);
 	    }
-	    if (STREQ(argv->argv[0], "*")) {
-		msg_warn("%s: wildcard dynamic map entry no longer supported.",
-			 path);
-		continue;
-	    }
-	    if (argv->argv[1][0] != '/') {
-		msg_fatal("%s: .so name must begin with a \"/\" at line %d",
-			  path, linenum);
-	    }
-	    if (nelm >= vector.nelm) {
-		dymap_info = (DYMAP_INFO *) mvect_realloc(&vector, vector.nelm + 3);
-	    }
-	    dymap_info[nelm].dict_type = mystrdup(argv->argv[0]);
-	    dymap_info[nelm].soname = mystrdup(argv->argv[1]);
-	    dymap_info[nelm].open_name = mystrdup(argv->argv[2]);
-	    if (argv->argc == 4)
-		dymap_info[nelm].mkmap_name = mystrdup(argv->argv[3]);
-	    else
-		dymap_info[nelm].mkmap_name = NULL;
-	    nelm++;
-	    argv_free(argv);
+	    vstring_free(buf);
+
+	    /*
+	     * Once-only: hook into the dict_open(3) and mkmap_open(3)
+	     * infrastructure,
+	     */
 	    if (hooks_done == 0) {
 		hooks_done = 1;
-		saved_dict_open_hook = dict_open_extend(dymap_open_lookup);
+		saved_dict_open_hook = dict_open_extend(dymap_dict_lookup);
 		saved_mkmap_open_hook = mkmap_open_extend(dymap_mkmap_lookup);
 		saved_dict_mapnames_hook = dict_mapnames_extend(dymap_list);
 	    }
 	}
-	vstring_free(buf);
-	vstream_fclose(conf_fp);
+	vstream_fclose(fp);
     }
-    if (nelm >= vector.nelm) {
-	dymap_info = (DYMAP_INFO *) mvect_realloc(&vector, vector.nelm + 1);
-    }
-    dymap_info[nelm].dict_type = NULL;
-    dymap_info[nelm].soname = NULL;
-    dymap_info[nelm].open_name = NULL;
-    dymap_info[nelm].mkmap_name = NULL;
+
+    /*
+     * Future proofing, in case someone "improves" the code. We can't hook
+     * into other functions without having our private lookup table.
+     */
+    if (hooks_done != 0 && dymap_info == 0)
+	msg_panic("%s: post-condition botch", myname);
 }
 
 #endif

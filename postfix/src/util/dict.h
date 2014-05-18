@@ -165,7 +165,7 @@ extern DICT *dict_debug(DICT *);
   * Interface for dictionary types.
   */
 extern ARGV *dict_mapnames(void);
-typedef ARGV *(*DICT_MAPNAMES_EXTEND_FN) (ARGV *);
+typedef void (*DICT_MAPNAMES_EXTEND_FN) (ARGV *);
 extern DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN);
 
 

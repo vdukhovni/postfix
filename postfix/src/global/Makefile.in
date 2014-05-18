@@ -112,6 +112,9 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
+MAPS	= $(LIB_PREFIX)ldap$(LIB_SUFFIX) $(LIB_PREFIX)mysql$(LIB_SUFFIX) \
+	$(LIB_PREFIX)pgsql$(LIB_SUFFIX) $(LIB_PREFIX)sqlite$(LIB_SUFFIX) \
+	$(LIB_PREFIX)lmdb$(LIB_SUFFIX) $(LIB_PREFIX)cdb$(LIB_SUFFIX)
 MAKES	=
 
 .c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
@@ -133,6 +136,16 @@ $(LIB):	$(OBJS)
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
 	$(RANLIB) $(LIB_DIR)/$(LIB)
+
+plugins:
+	$(MAKE) LIB='$(LIB_PREFIX)ldap$(LIB_SUFFIX)' OBJS=dict_ldap.o all
+	$(MAKE) LIB='$(LIB_PREFIX)mysql$(LIB_SUFFIX)' OBJS=dict_mysql.o all
+	$(MAKE) LIB='$(LIB_PREFIX)pgsql$(LIB_SUFFIX)' OBJS=dict_pgsql.o all
+	$(MAKE) LIB='$(LIB_PREFIX)sqlite$(LIB_SUFFIX)' OBJS=dict_sqlite.o all
+	$(MAKE) LIB='$(LIB_PREFIX)lmdb$(LIB_SUFFIX)' \
+		OBJS='../util/dict_lmdb.o mkmap_lmdb.o' all
+	$(MAKE) LIB='$(LIB_PREFIX)cdb$(LIB_SUFFIX)' \
+		OBJS='../util/dict_cdb.o mkmap_cdb.o' all
 
 update: $(LIB_DIR)/$(LIB) $(HDRS)
 	-for i in $(HDRS); \
@@ -585,7 +598,7 @@ lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
 clean:
-	rm -f *.o $(LIB) *core $(TESTPROG) junk
+	rm -f *.o $(LIB) *core $(TESTPROG) junk $(MAPS)
 	rm -rf printfck
 
 tidy:	clean
