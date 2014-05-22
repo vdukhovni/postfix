@@ -58,6 +58,7 @@ typedef struct {
 
 static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_PROXY, dict_proxy_open,
+#ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_LDAP
     DICT_TYPE_LDAP, dict_ldap_open,
 #endif
@@ -70,6 +71,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_SQLITE
     DICT_TYPE_SQLITE, dict_sqlite_open,
 #endif
+#endif					/* !USE_DYNAMIC_MAPS */
     DICT_TYPE_MEMCACHE, dict_memcache_open,
     0,
 };
@@ -80,10 +82,10 @@ void    mail_dict_init(void)
 {
     const DICT_OPEN_INFO *dp;
 
-#ifdef USE_DYNAMIC_LIBS
+#ifdef USE_DYNAMIC_MAPS
     char   *path;
 
-    path = concatenate(var_daemon_dir, "/", "dynamicmaps.cf", (char *) 0);
+    path = concatenate(var_plugin_dir, "/", "dynamicmaps.cf", (char *) 0);
     dymap_init(path);
     myfree(path);
 #endif

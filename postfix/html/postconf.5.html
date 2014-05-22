@@ -7092,6 +7092,19 @@ is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_
 
 </DD>
 
+<DT><b><a name="plugin_directory">plugin_directory</a>
+(default: see 'postconf -d' output)</b></DT><DD>
+
+<p> The location of the Postfix dynamicmaps.cf database plugin
+configuration file, and of database plugins with a relative pathname.
+This is set to "no" when Postfix database plugin support is disabled
+at compile time. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="postmulti_control_commands">postmulti_control_commands</a>
 (default: reload flush)</b></DT><DD>
 

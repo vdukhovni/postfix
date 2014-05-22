@@ -14,7 +14,11 @@ DIRS	= src/util src/global src/dns src/tls src/xsasl src/milter src/master \
 MANDIRS	= proto man html
 LIBEXEC	= libexec/post-install libexec/postfix-files libexec/postfix-script \
 	libexec/postfix-wrapper libexec/main.cf libexec/master.cf \
-	libexec/postmulti-script libexec/dynamicmaps.cf
+	libexec/postmulti-script
+PLUGINS	= plugins/dynamicmaps.cf.$(SHLIB_VERSION)
+EXPAND = sed -e "s;\$${LIB_PREFIX};$(LIB_PREFIX);" \
+	    -e "s;\$${LIB_SUFFIX};$(LIB_SUFFIX);" \
+	    -e "s;\$${SHLIB_VERSION};$(SHLIB_VERSION);"
 
 default: update
 
@@ -33,7 +37,7 @@ update printfck tests root_tests:
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done
 
-update: $(LIBEXEC)
+update: $(LIBEXEC) $(PLUGINS)
 
 libexec/makedefs.out: conf/makedefs.out
 	rm -f $@ && ln -f $? $@
@@ -41,17 +45,15 @@ libexec/makedefs.out: conf/makedefs.out
 libexec/post-install: conf/post-install
 	rm -f $@ && ln -f $? $@
 
-libexec/dynamicmaps.cf: conf/dynamicmaps.cf
-	rm -f $@ && ln -f $? $@
-
 libexec/postfix-files: conf/postfix-files conf/makedefs.out Makefile
 	rm -f $@
 	if [ "${SHLIB_DIR}" = "no" -o "${SHLIB_DIR}" = "" ]; then \
 	    sed -e '/^\$$shlib_directory/d' \
-		-e '/dynamicmaps.cf/d' conf/postfix-files >$@; \
+		-e '/^\$$plugin_directory/d' conf/postfix-files >$@; \
+	elif [ "${PLUGIN_DIR}" = "no" -o "${PLUGIN_DIR}" = "" ]; then \
+	    sed -e '/^\$$plugin_directory/d' conf/postfix-files | $(EXPAND) >$@; \
 	else \
-	    sed -e "s;\$${LIB_PREFIX};$(LIB_PREFIX);" \
-		-e "s;\$${LIB_SUFFIX};$(LIB_SUFFIX);" conf/postfix-files >$@; \
+	    $(EXPAND) conf/postfix-files >$@; \
 	fi
 
 libexec/postfix-script: conf/postfix-script
@@ -69,6 +71,9 @@ libexec/master.cf: conf/master.cf
 libexec/postmulti-script: conf/postmulti-script
 	rm -f $@ && ln -f $? $@
 
+plugins/dynamicmaps.cf.$(SHLIB_VERSION): conf/dynamicmaps.cf
+	rm -f $@ && $(EXPAND) $? >$@
+
 manpages:
 	set -e; for i in $(MANDIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) -f Makefile.in $(OPTS) MAKELEVEL=) || exit 1; \
@@ -77,19 +82,19 @@ manpages:
 printfck: update
 
 install: update
-	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} \
+	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} plugin_directory=$(PLUGIN_DIR) \
 		$(SHELL) postfix-install
 
 package: update
-	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} \
+	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} plugin_directory=$(PLUGIN_DIR) \
 		$(SHELL) postfix-install -package
 
 upgrade: update
-	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} \
+	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} plugin_directory=$(PLUGIN_DIR) \
 		$(SHELL) postfix-install -non-interactive
 
 non-interactive-package: update
-	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} \
+	$(SHLIB_ENV) shlib_directory=${SHLIB_DIR} plugin_directory=$(PLUGIN_DIR) \
 		$(SHELL) postfix-install -non-interactive -package
 
 depend clean:
@@ -108,8 +113,8 @@ tidy:	clean
 	cp Makefile.init Makefile
 	rm -f README_FILES/RELEASE_NOTES
 	ln -s ../RELEASE_NOTES README_FILES
-	rm -f bin/[!CRS]* lib/[!CRS]* include/[!CRS]* libexec/[!CRS]* \
-	    src/*/libpostfix-* \
+	rm -f bin/[!CRS]* lib/[!CRS]* include/[!CRS]* libexec/[!CRS]* plugins/[!CRS]* \
+	    src/*/postfix-*.so.* src/*/postfix-*.dylib.* \
 	    junk */junk */*/junk \
 	    *core */*core */*/*core \
 	    .nfs* */.nfs* */*/.nfs* \

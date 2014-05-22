@@ -6,7 +6,9 @@
 /* SYNOPSIS
 /*	#include <dict_lmdb.h>
 /*
-/*	size_t	dict_lmdb_map_size;
+/*	extern size_t dict_lmdb_map_size;
+/*
+/*	DEFINE_DICT_LMDB_MAP_SIZE;
 /*
 /*	DICT	*dict_lmdb_open(path, open_flags, dict_flags)
 /*	const char *name;
@@ -21,6 +23,10 @@
 /*	The dict_lmdb_map_size variable specifies the initial
 /*	database memory map size.  When a map becomes full its size
 /*	is doubled, and other programs pick up the size change.
+/*
+/*	This variable cannot be exported via the dict(3) API and
+/*	must therefore be defined in the calling program by invoking
+/*	the DEFINE_DICT_LMDB_MAP_SIZE macro at the global level.
 /* DIAGNOSTICS
 /*	Fatal errors: cannot open file, file write error, out of
 /*	memory.
@@ -114,8 +120,6 @@ typedef struct {
 #define DICT_LMDB_BULK_RETRY_LIMIT \
 	((int) (2 * sizeof(size_t) * CHAR_BIT))	/* Retries per bulk-mode
 						 * transaction */
-
-size_t  dict_lmdb_map_size = 8192;	/* Minimum size without SIGSEGV */
 
 /* #define msg_verbose 1 */
 

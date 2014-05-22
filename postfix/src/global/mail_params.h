@@ -3793,6 +3793,12 @@ extern char *var_local_dsn_filter;
 #endif
 extern char *var_shlib_dir;
 
+#define VAR_PLUGIN_DIR	"plugin_directory"
+#ifndef DEF_PLUGIN_DIR
+#define DEF_PLUGIN_DIR	"/usr/libexec/postfix"
+#endif
+extern char *var_plugin_dir;
+
 /* LICENSE
 /* .ad
 /* .fi

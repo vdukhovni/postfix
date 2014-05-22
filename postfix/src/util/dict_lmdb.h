@@ -29,6 +29,9 @@ extern DICT *dict_lmdb_open(const char *, int, int);
 extern size_t dict_lmdb_map_size;
 extern unsigned int dict_lmdb_max_readers;
 
+ /* Minimum size without SIGSEGV. */
+#define DEFINE_DICT_LMDB_MAP_SIZE size_t dict_lmdb_map_size = 8192
+
 /* LICENSE
 /* .ad
 /* .fi

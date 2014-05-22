@@ -37,8 +37,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
 	defer.o deliver_completed.o deliver_flock.o deliver_pass.o \
-	deliver_request.o dict_ldap.o dict_mysql.o dict_pgsql.o \
-	dict_proxy.o dict_sqlite.o domain_list.o dot_lockfile.o dot_lockfile_as.o \
+	deliver_request.o \
+	dict_proxy.o domain_list.o dot_lockfile.o dot_lockfile_as.o \
 	dsb_scan.o dsn.o dsn_buf.o dsn_mask.o dsn_print.o dsn_util.o \
 	ehlo_mask.o ext_prop.o file_id.o flush_clnt.o header_opts.o \
 	header_token.o input_transp.o int_filt.o is_header.o log_adhoc.o \
@@ -50,8 +50,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	mail_params.o mail_pathname.o mail_queue.o mail_run.o \
 	mail_scan_dir.o mail_stream.o mail_task.o mail_trigger.o maps.o \
 	mark_corrupt.o match_parent_style.o mbox_conf.o mbox_open.o \
-	mime_state.o mkmap_cdb.o mkmap_db.o mkmap_dbm.o mkmap_lmdb.o mkmap_open.o \
-	mkmap_sdbm.o msg_stats_print.o msg_stats_scan.o mynetworks.o \
+	mime_state.o mkmap_db.o mkmap_dbm.o mkmap_open.o \
+	msg_stats_print.o msg_stats_scan.o mynetworks.o \
 	mypwd.o namadr_list.o off_cvt.o opened.o own_inet_addr.o \
 	pipe_command.o post_mail.o quote_821_local.o quote_822_local.o \
 	rcpt_buf.o rcpt_print.o rec_attr_map.o rec_streamlf.o rec_type.o \
@@ -66,7 +66,14 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
-	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o
+	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o \
+	$(NON_PLUGIN_MAP_OBJ)
+MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o mkmap_cdb.o \
+	mkmap_lmdb.o mkmap_sdbm.o 
+# MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
+# When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
+# otherwise it sets PLUGIN_MAP_OBJ, PLUGIN_MAP_OBJ_UPDATE,
+# PLUGIN_MAP_SO_MAKE, and PLUGIN_MAP_SO_UPDATE.
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -112,16 +119,18 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
-MAPS	= $(LIB_PREFIX)ldap$(LIB_SUFFIX) $(LIB_PREFIX)mysql$(LIB_SUFFIX) \
+PLG_DIR= ../../plugins
+PLUGIN_MAP_SO = $(LIB_PREFIX)ldap$(LIB_SUFFIX) $(LIB_PREFIX)mysql$(LIB_SUFFIX) \
 	$(LIB_PREFIX)pgsql$(LIB_SUFFIX) $(LIB_PREFIX)sqlite$(LIB_SUFFIX) \
-	$(LIB_PREFIX)lmdb$(LIB_SUFFIX) $(LIB_PREFIX)cdb$(LIB_SUFFIX)
+	$(LIB_PREFIX)lmdb$(LIB_SUFFIX) $(LIB_PREFIX)cdb$(LIB_SUFFIX) \
+	$(LIB_PREFIX)sdbm$(LIB_SUFFIX)
 MAKES	=
 
 .c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
-all: $(LIB)
+all: $(LIB) $(PLUGIN_MAP_SO) $(PLUGIN_MAP_OBJ)
 
-$(OBJS): ../../conf/makedefs.out
+$(OBJS) $(PLUGIN_MAP_OBJ): ../../conf/makedefs.out
 
 Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
@@ -137,22 +146,43 @@ $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
 	$(RANLIB) $(LIB_DIR)/$(LIB)
 
-plugins:
-	$(MAKE) LIB='$(LIB_PREFIX)ldap$(LIB_SUFFIX)' OBJS=dict_ldap.o all
-	$(MAKE) LIB='$(LIB_PREFIX)mysql$(LIB_SUFFIX)' OBJS=dict_mysql.o all
-	$(MAKE) LIB='$(LIB_PREFIX)pgsql$(LIB_SUFFIX)' OBJS=dict_pgsql.o all
-	$(MAKE) LIB='$(LIB_PREFIX)sqlite$(LIB_SUFFIX)' OBJS=dict_sqlite.o all
-	$(MAKE) LIB='$(LIB_PREFIX)lmdb$(LIB_SUFFIX)' \
-		OBJS='../util/dict_lmdb.o mkmap_lmdb.o' all
-	$(MAKE) LIB='$(LIB_PREFIX)cdb$(LIB_SUFFIX)' \
-		OBJS='../util/dict_cdb.o mkmap_cdb.o' all
+plugin_map_so: $(PLUGIN_MAP_SO)
 
-update: $(LIB_DIR)/$(LIB) $(HDRS)
+$(LIB_PREFIX)ldap$(LIB_SUFFIX): dict_ldap.o
+	$(SHLIB_LD) -o $@ dict_ldap.o
+
+$(LIB_PREFIX)mysql$(LIB_SUFFIX): dict_mysql.o
+	$(SHLIB_LD) -o $@ dict_mysql.o
+
+$(LIB_PREFIX)pgsql$(LIB_SUFFIX): dict_pgsql.o
+	$(SHLIB_LD) -o $@ dict_pgsql.o
+
+$(LIB_PREFIX)sqlite$(LIB_SUFFIX): dict_sqlite.o
+	$(SHLIB_LD) -o $@ dict_sqlite.o
+
+$(LIB_PREFIX)lmdb$(LIB_SUFFIX): mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
+	$(LIB_DIR)/slmdb.o
+	$(SHLIB_LD) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
+	$(LIB_DIR)/slmdb.o
+
+$(LIB_PREFIX)cdb$(LIB_SUFFIX): mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
+	$(SHLIB_LD) -o $@ mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
+
+$(LIB_PREFIX)sdbm$(LIB_SUFFIX): mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
+	$(SHLIB_LD) -o $@ mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
+
+update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE)
 	-for i in $(HDRS); \
 	do \
 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
 	done
 	cd $(INC_DIR); chmod 644 $(HDRS)
+
+plugin_map_so_update: $(PLUGIN_MAP_SO)
+	-for i in $(PLUGIN_MAP_SO); \
+	do \
+	  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+	done
 
 dot_lockfile: $(LIB) $(LIBS)
 	mv $@.o junk
@@ -1069,11 +1099,12 @@ dsn_util.o: dsn_util.c
 dsn_util.o: dsn_util.h
 dynamicmaps.o: ../../include/argv.h
 dynamicmaps.o: ../../include/dict.h
+dynamicmaps.o: ../../include/htable.h
 dynamicmaps.o: ../../include/load_lib.h
 dynamicmaps.o: ../../include/msg.h
-dynamicmaps.o: ../../include/mvect.h
 dynamicmaps.o: ../../include/myflock.h
 dynamicmaps.o: ../../include/mymalloc.h
+dynamicmaps.o: ../../include/stringops.h
 dynamicmaps.o: ../../include/sys_defs.h
 dynamicmaps.o: ../../include/vbuf.h
 dynamicmaps.o: ../../include/vstream.h

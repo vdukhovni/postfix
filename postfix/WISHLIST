@@ -8,6 +8,8 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Update INSTALL.html for make "dynamicmaps=yes".
+
 	Discourage the use of "after 220" tests in POSTSCREEN_README
 	and the documentation of individual parameter settings.
 

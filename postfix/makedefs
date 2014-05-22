@@ -69,15 +69,25 @@
 # .IP \fBOPT=\fIoptimization_level\fR
 #	Specifies a non-default optimization level. The default is \fB-O\fR.
 #	Specify \fBOPT=\fR to turn off optimization.
+# .IP \fBshared=yes\fR
+# .IP \fBshared=no\fR
+#	Enable (disable) Postfix builds with shared libraries
+#	typically named $shlib_directory/libpostfix-*.so.*.
+# .IP \fBdynamicmaps=yes\fR
+# .IP \fBdynamicmaps=no\fR
+#	Enable (disable) Postfix builds with the configuration file
+#	$plugin_directory/dynamicmaps.cf for database plugins
+#	typically named postfix-*.so.*.  The setting "dynamicmaps=yes"
+#	implicitly enables Postfix shared libraries.
 # .IP \fIinstallation_parameter\fB=\fIvalue\fR...
-#	Override the compiled-in default value of the specified 
+#	Override the compiled-in default value of the specified
 #	installation parameter(s). The following parameters are
 #	supported in this context:
 #
 #	command_directory config_directory daemon_directory
 #	data_directory default_database_type html_directory
-#	mailq_path manpage_directory newaliases_path queue_directory
-#	readme_directory sendmail_path shlib_directory
+#	mailq_path manpage_directory newaliases_path plugin_directory
+#	queue_directory readme_directory sendmail_path shlib_directory
 #
 #	See the postconf(5) manpage for a description of these
 #	parameters.
@@ -679,15 +689,16 @@ daemon_directory_macro=DEF_DAEMON_DIR
 data_directory_macro=DEF_DATA_DIR
 mailq_path_macro=DEF_MAILQ_PATH
 newaliases_path_macro=DEF_NEWALIAS_PATH
+plugin_directory_macro=DEF_PLUGIN_DIR
 queue_directory_macro=DEF_QUEUE_DIR
 sendmail_path_macro=DEF_SENDMAIL_PATH
 shlib_directory_macro=DEF_SHLIB_DIR
 
-# shlib_directory is checked here because "no" is not a good answer.
-# Instead, build with "shared=no".
+# shlib_directory and plugin_directory are checked here because "no"
+# is not a good answer.  Instead, build with "shared=no".
 
 for parm_name in command_directory config_directory daemon_directory \
-	data_directory mailq_path newaliases_path \
+	data_directory mailq_path newaliases_path plugin_directory \
 	queue_directory sendmail_path shlib_directory
 do
     eval parm_val=\"\$$parm_name\"
@@ -733,6 +744,12 @@ _RANLIB=$RANLIB
 
 # Choose between shared and non-shared library builds.
 
+case "$dynamicmaps" in
+  yes) shared=yes;;
+""|no) ;;
+    *) error "Specify \"dynamicmaps=yes\" or \"dynamicmaps=no\"" 1>&2;;
+esac
+
 case "$shared" in
 yes)
     if [ -z "$SHLIB_SUFFIX" ]
@@ -742,31 +759,56 @@ yes)
     AR=:
     RANLIB=:
     CCARGS="$CCARGS -DUSE_DYNAMIC_LIBS"
+    case "$dynamicmaps" in
+    yes) NON_PLUGIN_MAP_OBJ=
+	 PLUGIN_MAP_OBJ='$(MAP_OBJ)'
+	 PLUGIN_MAP_OBJ_UPDATE=plugin_map_obj_update
+	 PLUGIN_MAP_SO_MAKE=plugin_map_so_make
+	 PLUGIN_MAP_SO_UPDATE=plugin_map_so_update
+	 CCARGS="$CCARGS -DUSE_DYNAMIC_MAPS"
+	 ;;
+      *) NON_PLUGIN_MAP_OBJ='$(MAP_OBJ)'
+	 PLUGIN_MAP_OBJ=
+	 PLUGIN_MAP_OBJ_UPDATE=
+	 PLUGIN_MAP_SO_MAKE=
+	 PLUGIN_MAP_SO_UPDATE=
+	 plugin_directory=no
+	 CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS -UDEF_PLUGIN_DIR -DDEF_PLUGIN_DIR=\\\"no\\\""
+	 ;;
+    esac
 
-    # Determine the shared-library installation directory.
-    case "$shlib_directory" in
-    /*) # CCARGS was already updated above.
-	;;
-    "") trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
-	sed -n '/_SHLIB_DIR/,/^$/p' src/global/mail_params.h >makedefs.test.c
-	cat >>makedefs.test.c <<'EOF'
+    # Determine the shared-library and plugin installation directory.
+    for parm_name in shlib_directory plugin_directory
+    do
+	eval parm_val=\"\$$parm_name\"
+	eval parm_macro=\"\$${parm_name}_macro\"
+	case "$parm_val" in
+	/*|no) # CCARGS was already updated above.
+	    ;;
+	"") trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+	    sed -n '
+		/_SHLIB_DIR/,/^$/p
+		/_PLUGIN_DIR/,/^$/p
+	    ' src/global/mail_params.h >makedefs.test.c
+	    cat >>makedefs.test.c <<EOF
 #include <stdlib.h>
 #include <stdio.h>
 int     main(void)
 {
-    printf("%s\n", DEF_SHLIB_DIR);
+    printf("%s\n", $parm_macro);
     fflush(stdout);
     exit(ferror(stdout) ? 1 : 0);
 }
 EOF
-	eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
-	shlib_directory=`./makedefs.test` || exit 1
-	rm -f makedefs.test makedefs.test.[co]
-	;;
-     *) # shlib_directory was already checked above.
-	error "Can't happen in $0 - $shlib_directory is not an absolute path"
-	;;
-    esac
+	    eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+	    eval $parm_name=`./makedefs.test` || exit 1
+	    rm -f makedefs.test makedefs.test.[co]
+	    ;;
+	 *) # this parameter was already checked above.
+	    error "Can't happen in $0 - $parm_val is not an absolute path"
+	    ;;
+	esac
+    done
 
     # Determine the shared-library version.
     test -z "$SHLIB_VERSION" && {
@@ -792,18 +834,25 @@ EOF
 
 no|"")
     shlib_directory=no
+    plugin_directory=no
     CCARGS="$CCARGS -UUSE_DYNAMIC_LIBS -UDEF_SHLIB_DIR -DDEF_SHLIB_DIR=\\\"no\\\""
+    CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS -UDEF_PLUGIN_DIR -DDEF_PLUGIN_DIR=\\\"no\\\""
     SHLIB_CFLAGS=
     SHLIB_SUFFIX=
     SHLIB_LD=:
     SHLIB_RPATH=
     SHLIB_ENV=
+    SHLIB_VERSION=
     LIB_PREFIX=
     LIB_SUFFIX=.a
+    NON_PLUGIN_MAP_OBJ='$(MAP_OBJ)'
+    PLUGIN_MAP_OBJ=
+    PLUGIN_MAP_OBJ_UPDATE=
+    PLUGIN_MAP_SO_MAKE=
+    PLUGIN_MAP_SO_UPDATE=
     ;;
 
-*)  echo "Specify \"shared=yes\" or \"shared=no\"" 1>&2
-    exit 1
+*)  error "Specify \"shared=yes\" or \"shared=no\"" 1>&2
     ;;
 esac
 
@@ -823,12 +872,11 @@ export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 
 
 sed 's/  / /g' <<EOF
+# System-dependent settings and compiler/linker overrides.
 SYSTYPE	= $SYSTYPE
 _AR	= $_AR
-AR	= $AR
 ARFL	= $ARFL
 _RANLIB	= $_RANLIB
-RANLIB	= $RANLIB
 SYSLIBS	= $AUXLIBS $SYSLIBS
 CC	= $CC $CCARGS
 OPT	= $OPT
@@ -837,6 +885,9 @@ AWK	= $AWK
 STRCASE = $STRCASE
 EXPORT	= AUXLIBS='$AUXLIBS' CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
 WARN	= $WARN
+# Switch between Postfix static and shared libraries.
+AR	= $AR
+RANLIB	= $RANLIB
 LIB_PREFIX = $LIB_PREFIX
 LIB_SUFFIX = $LIB_SUFFIX
 SHLIB_CFLAGS = $SHLIB_CFLAGS
@@ -844,4 +895,13 @@ SHLIB_DIR = $shlib_directory
 SHLIB_ENV = $SHLIB_ENV
 SHLIB_LD = $SHLIB_LD
 SHLIB_RPATH = $SHLIB_RPATH
+SHLIB_VERSION = $SHLIB_VERSION
+# Switch between dynamicmaps.cf plugins and hard-linked databases.
+PLUGIN_DIR = $plugin_directory
+NON_PLUGIN_MAP_OBJ = $NON_PLUGIN_MAP_OBJ
+PLUGIN_MAP_OBJ = $PLUGIN_MAP_OBJ
+PLUGIN_MAP_OBJ_UPDATE = $PLUGIN_MAP_OBJ_UPDATE
+PLUGIN_MAP_SO_MAKE = $PLUGIN_MAP_SO_MAKE
+PLUGIN_MAP_SO_UPDATE = $PLUGIN_MAP_SO_UPDATE
+# Application-specific rules.
 EOF

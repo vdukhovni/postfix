@@ -42,9 +42,9 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
 	chroot_uid.o cidr_match.o clean_env.o close_on_exec.o concatenate.o \
-	ctable.o dict.o dict_alloc.o dict_cdb.o dict_cidr.o dict_db.o \
-	dict_dbm.o dict_debug.o dict_env.o dict_ht.o dict_lmdb.o dict_ni.o dict_nis.o \
-	dict_nisplus.o dict_open.o dict_pcre.o dict_regexp.o dict_sdbm.o \
+	ctable.o dict.o dict_alloc.o dict_cidr.o dict_db.o \
+	dict_dbm.o dict_debug.o dict_env.o dict_ht.o dict_ni.o dict_nis.o \
+	dict_nisplus.o dict_open.o dict_regexp.o \
 	dict_static.o dict_tcp.o dict_unix.o dir_forest.o doze.o dummy_read.o \
 	dummy_write.o duplex_pipe.o environ.o events.o exec_command.o \
 	fifo_listen.o fifo_trigger.o file_limit.o find_inet.o fsspace.o \
@@ -76,7 +76,13 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	ip_match.o nbbio.o base32_code.o dict_test.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
-	poll_fd.o timecmp.o slmdb.o
+	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ)
+MAP_OBJ	= dict_pcre.o $(MKMAP_OBJ)
+MKMAP_OBJ = dict_cdb.o dict_lmdb.o dict_sdbm.o slmdb.o
+# MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
+# When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
+# otherwise it sets PLUGIN_MAP_OBJ, PLUGIN_MAP_OBJ_UPDATE,
+# PLUGIN_MAP_SO_MAKE, and PLUGIN_MAP_SO_UPDATE.
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -119,15 +125,17 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf_8 ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache
+PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
+PLG_DIR = ../../plugins
 
 .c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
-all: $(LIB)
+all: $(LIB) $(PLUGIN_MAP_SO_MAKE) $(PLUGIN_MAP_OBJ)
 
-$(OBJS): ../../conf/makedefs.out
+$(OBJS) $(PLUGIN_MAP_OBJ): ../../conf/makedefs.out
 
 Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
@@ -143,12 +151,30 @@ $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
 	$(RANLIB) $(LIB_DIR)/$(LIB)
 
-update: $(LIB_DIR)/$(LIB) $(HDRS)
+plugin_map_so_make: $(PLUGIN_MAP_SO)
+
+$(LIB_PREFIX)pcre$(LIB_SUFFIX): dict_pcre.o
+	$(SHLIB_LD) -o $@ dict_pcre.o
+
+update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE) \
+	$(PLUGIN_MAP_OBJ_UPDATE)
 	-for i in $(HDRS); \
 	do \
 	  cmp -s $$i $(INC_DIR)/$$i 2>/dev/null || cp $$i $(INC_DIR); \
 	done
 	cd $(INC_DIR); chmod 644 $(HDRS)
+
+plugin_map_so_update: $(PLUGIN_MAP_SO)
+	-for i in $(PLUGIN_MAP_SO); \
+	do \
+	  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+	done
+
+plugin_map_obj_update: $(MKMAP_OBJ)
+	-for i in $(MKMAP_OBJ); \
+	do \
+	  cmp -s $$i $(LIB_DIR)/$$i 2>/dev/null || cp $$i $(LIB_DIR); \
+	done
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

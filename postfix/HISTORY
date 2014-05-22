@@ -19801,3 +19801,14 @@ Apologies for any names omitted.
 	Preliminary "make plugins" support. Todo: macros to dynamically
 	remove pluggable maps from compile-time tables in dict_open.c
 	and mkmap_open.c, and from the OBJS lists in Makefile.in.
+
+20140522
+
+	Support for "make shared=yes" and "make dynamicmaps=yes".
+	New plugin_directory parameter for the location of the
+	dynamicmaps.cf file and for plugins with a relative pathname.
+	See RELEASE_NOTES and INSTALL for details. Files:
+	mail_params.[hc], dynamicmaps.c, mail_dict.c, makedefs,
+	postfix-files, dynamicmaps.cf, Makefile.in, util/Makefile.in,
+	global/Makefile.in, postlink, postconf.proto.  INSTALL.html,
+	RELEASE_NOTES.

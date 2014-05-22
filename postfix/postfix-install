@@ -144,6 +144,11 @@
 #	The final destination directory for the Postfix sample configuration
 #	files. This parameter is obsolete as of Postfix version 2.1.
 #	This parameter setting is recorded in the installed main.cf file.
+# .IP plugin_directory
+#	The final destination directory for the Postfix dynamicmaps.cf
+#	database plugin configuration file, and files referenced by
+#	that file.  This is "no" when dynamic linking is disabled
+#	at compile time.
 # .IP readme_directory
 #	The final destination directory for the Postfix README files.
 #	This parameter setting is recorded in the installed main.cf file.
@@ -370,7 +375,11 @@ README files. Specify \"no\" if you do not want to install these files."
 html_directory_prompt="the final destination directory for the Postfix
 HTML files. Specify \"no\" if you do not want to install these files."
 
-shlib_directory_prompt="the final destination directory for Postfix shared-library files."
+shlib_directory_prompt="the final destination directory for Postfix
+shared-library files."
+plugin_directory_prompt="the final destination directory for the
+Postfix dynamicmaps.cf configuration file and files referenced by
+that file."
 
 # Default settings, just to get started.
 
@@ -435,7 +444,8 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
 
 CONFIG_PARAMS="command_directory daemon_directory data_directory \
 html_directory mail_owner mailq_path manpage_directory newaliases_path \
-queue_directory readme_directory sendmail_path setgid_group shlib_directory"
+queue_directory readme_directory sendmail_path setgid_group shlib_directory \
+plugin_directory"
 
 # Extract parameter settings from the installed main.cf file.
 
@@ -497,7 +507,7 @@ case "$manpage_directory" in
      exit 1;;
 esac
 
-for path in "$html_directory" "$readme_directory" "$shlib_directory"
+for path in "$html_directory" "$readme_directory" "$shlib_directory" "$plugin_directory"
 do
    case "$path" in
    /*) ;;
@@ -525,7 +535,7 @@ do
 done
 
 for path in command_directory config_directory daemon_directory data_directory \
-    manpage_directory queue_directory shlib_directory html_directory \
+    manpage_directory queue_directory shlib_directory plugin_directory html_directory \
     readme_directory
 do
    case "$path" in
@@ -582,12 +592,15 @@ HTML_DIRECTORY=$install_root$html_directory
 MANPAGE_DIRECTORY=$install_root$manpage_directory
 README_DIRECTORY=$install_root$readme_directory
 SHLIB_DIRECTORY=$install_root$shlib_directory
+PLUGIN_DIRECTORY=$install_root$plugin_directory
 
 # Avoid repeated tests for existence of these; default permissions suffice.
 
 test -d $DAEMON_DIRECTORY || mkdir -p $DAEMON_DIRECTORY || exit 1
 test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
 test -d $QUEUE_DIRECTORY || mkdir -p $QUEUE_DIRECTORY || exit 1
+test "$plugin_directory" = "no" -o -d $PLUGIN_DIRECTORY ||
+	mkdir -p $PLUGIN_DIRECTORY || exit 1
 test "$shlib_directory" = "no" -o -d $SHLIB_DIRECTORY ||
 	mkdir -p $SHLIB_DIRECTORY || exit 1
 test "$html_directory" = "no" -o -d $HTML_DIRECTORY || 
@@ -680,6 +693,9 @@ do
 	'$shlib_directory')
 	    compare_or_replace $mode "$owner" "$group" lib/$file \
 		    $SHLIB_DIRECTORY/$file || exit 1;;
+	'$plugin_directory')
+	    compare_or_replace $mode "$owner" "$group" plugins/$file \
+		    $PLUGIN_DIRECTORY/$file || exit 1;;
 	'$daemon_directory')
 	    compare_or_replace $mode "$owner" "$group" libexec/$file \
 		$DAEMON_DIRECTORY/$file || exit 1;;
@@ -762,6 +778,7 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
     "sample_directory = $sample_directory" \
     "readme_directory = $readme_directory" \
     "shlib_directory = $shlib_directory" \
+    "plugin_directory = $plugin_directory" \
 || exit 1
 
 # If Postfix is being installed locally from source code, do the

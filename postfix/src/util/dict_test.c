@@ -22,6 +22,8 @@
 #include <vstring_vstream.h>
 #include <dict.h>
 
+DEFINE_DICT_LMDB_MAP_SIZE;
+
 static NORETURN usage(char *myname)
 {
     msg_fatal("usage: %s type:file read|write|create [flags...]", myname);

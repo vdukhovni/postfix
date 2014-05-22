@@ -117,21 +117,23 @@ typedef struct {
 } MKMAP_OPEN_INFO;
 
 static const MKMAP_OPEN_INFO mkmap_open_info[] = {
+#ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_CDB
     DICT_TYPE_CDB, mkmap_cdb_open,
 #endif
 #ifdef HAS_SDBM
     DICT_TYPE_SDBM, mkmap_sdbm_open,
 #endif
+#ifdef HAS_LMDB
+    DICT_TYPE_LMDB, mkmap_lmdb_open,
+#endif
+#endif					/* !USE_DYNAMIC_MAPS */
 #ifdef HAS_DBM
     DICT_TYPE_DBM, mkmap_dbm_open,
 #endif
 #ifdef HAS_DB
     DICT_TYPE_HASH, mkmap_hash_open,
     DICT_TYPE_BTREE, mkmap_btree_open,
-#endif
-#ifdef HAS_LMDB
-    DICT_TYPE_LMDB, mkmap_lmdb_open,
 #endif
     DICT_TYPE_FAIL, mkmap_fail_open,
     0,

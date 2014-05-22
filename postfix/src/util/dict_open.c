@@ -312,25 +312,16 @@ typedef struct {
 } DICT_OPEN_INFO;
 
 static const DICT_OPEN_INFO dict_open_info[] = {
-#ifdef HAS_CDB
-    DICT_TYPE_CDB, dict_cdb_open,
-#endif
     DICT_TYPE_ENVIRON, dict_env_open,
     DICT_TYPE_HT, dict_ht_open,
     DICT_TYPE_UNIX, dict_unix_open,
     DICT_TYPE_TCP, dict_tcp_open,
-#ifdef HAS_SDBM
-    DICT_TYPE_SDBM, dict_sdbm_open,
-#endif
 #ifdef HAS_DBM
     DICT_TYPE_DBM, dict_dbm_open,
 #endif
 #ifdef HAS_DB
     DICT_TYPE_HASH, dict_hash_open,
     DICT_TYPE_BTREE, dict_btree_open,
-#endif
-#ifdef HAS_LMDB
-    DICT_TYPE_LMDB, dict_lmdb_open,
 #endif
 #ifdef HAS_NIS
     DICT_TYPE_NIS, dict_nis_open,
@@ -341,9 +332,6 @@ static const DICT_OPEN_INFO dict_open_info[] = {
 #ifdef HAS_NETINFO
     DICT_TYPE_NETINFO, dict_ni_open,
 #endif
-#ifdef HAS_PCRE
-    DICT_TYPE_PCRE, dict_pcre_open,
-#endif
 #ifdef HAS_POSIX_REGEXP
     DICT_TYPE_REGEXP, dict_regexp_open,
 #endif
@@ -352,6 +340,20 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_THASH, dict_thash_open,
     DICT_TYPE_SOCKMAP, dict_sockmap_open,
     DICT_TYPE_FAIL, dict_fail_open,
+#ifndef USE_DYNAMIC_MAPS
+#ifdef HAS_PCRE
+    DICT_TYPE_PCRE, dict_pcre_open,
+#endif
+#ifdef HAS_CDB
+    DICT_TYPE_CDB, dict_cdb_open,
+#endif
+#ifdef HAS_SDBM
+    DICT_TYPE_SDBM, dict_sdbm_open,
+#endif
+#ifdef HAS_LMDB
+    DICT_TYPE_LMDB, dict_lmdb_open,
+#endif
+#endif					/* !USE_DYNAMIC_MAPS */
     0,
 };
 

@@ -15905,3 +15905,12 @@ This parameter defaults to "no" when Postfix shared libraries are
 disabled at compile time. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM plugin_directory see 'postconf -d' output
+
+<p> The location of the Postfix dynamicmaps.cf database plugin
+configuration file, and of database plugins with a relative pathname.
+This is set to "no" when Postfix database plugin support is disabled
+at compile time. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>

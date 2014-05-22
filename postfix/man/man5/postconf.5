@@ -4238,6 +4238,13 @@ The numerical Postfix SMTP server response code when a request
 is rejected by the \fBreject_plaintext_session\fR restriction.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH plugin_directory (default: see 'postconf -d' output)
+The location of the Postfix dynamicmaps.cf database plugin
+configuration file, and of database plugins with a relative pathname.
+This is set to "no" when Postfix database plugin support is disabled
+at compile time.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH postmulti_control_commands (default: reload flush)
 The \fBpostfix\fR(1) commands that the \fBpostmulti\fR(1) instance manager
 treats as "control" commands, that operate on running instances. For

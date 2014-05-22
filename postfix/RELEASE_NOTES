@@ -16,56 +16,47 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.10 or earlier, read RELEASE_NOTES-2.11
 before proceeding.
 
-Major changes with snapshot 20140508
+Major changes with snapshot 20140522
 ====================================
 
-Preliminary support to build Postfix with Postfix shared libraries,
-based on Debian code by LaMont Jones, based on a port by Viktor
-Dukhovni. Support exists for Linux, FreeBSD and MacOS X. 
+Support to build Postfix with Postfix shared libraries, and with
+support for database plugins. This is based on Debian code by LaMont
+Jones, and based on a port by Viktor Dukhovni. Support exists for
+Linux, FreeBSD and MacOS X. Postfix shared libraries introduce minor
+runtime overhead and result in smaller Postfix executable files.
 
-Shared-library support is introduced early in the Postfix development
-cycle so that down-stream maintainers will have time to prepare for
-the next stable Postfix release.
-
-Postfix shared libraries are required to load database plugins using
-the dynamicmaps configuration file. However, the preliminary build
-procedure still puts all supported database code inside the Postfix
-shared libraries themselves. The dynamicmaps support is operational
-but it is not yet used.
-
-Postfix shared libraries introduce minor runtime overhead and result
-in smaller Postfix executable files.
+This is introduced early in the Postfix development cycle to give
+down-stream maintainers sufficient time to prepare their build
+systems for the next stable Postfix release.
 
 Differences with Debian
 -----------------------
 
 Besides changes to the Postfix "build" system as described below,
-the only user-visible changes with respect to Debian are:
+the user-visible changes with respect to Debian are:
 
-- The dynamicmaps.cf configuration file is in $daemon_directory,
-  because this file is shared among all Postfix instances just like
-  postfix-files and other files.
+- The shlib_directory parameter specifies the location of the
+  libpostfix-*.so.* shared-library files. You can change the location
+  of these files after Postfix is built. However you may have to
+  run ldconfig if you move the libpostfix-*.so.* files to a non-system
+  directory.  No ldconfig is needed if you keep the libpostfix-*.so.*
+  files in the default $shlib_directory location.
 
-- The location of the libpostfix-*.so.* files is configurable with
-  the shlib_directory parameter.
-
-- You can change the location of libpostfix-*.so.* files after
-  Postfix is built. However you may have to run ldconfig if you
-  move the libpostfix-*.so.* files to a non-system directory.
-  No ldconfig is needed if you keep the libpostfix-*.so.* files
-  in the default $shlib_directory location.
+- The plugin_directory parameter specifies the location of the
+  dynamicmaps.cf database plugin configuration file (and of any
+  postfix-*.so.* plugins with a relative pathname).  The dynamicmaps.cf
+  location is not hard-coded to /etc, because this file is shared
+  among all Postfix instances just like postfix-files and other
+  files.
 
 Building with Postfix shared libraries
 --------------------------------------
-
-As noted above, the preliminary build procedure still puts all
-supported database code inside the Postfix shared libraries themselves.
-The dynamicmaps support is operational but it is not yet used.
 
 To build with Postfix shared-library support:
 
 % make makefiles shared=yes
 % make
+# make install
 
 This defaults to installing shared libraries in /usr/local/lib,
 with a shared-library version that equals the Postfix version
@@ -80,9 +71,28 @@ To override this, use, for example:
 The same syntax can be used to override other Postfix installation
 parameter settings such as:
 
-% make makefiles config_directory=/usr/local/etc/postfix ...other arguments...
+% make makefiles config_directory=/usr/local/etc/postfix ...
 
-The earlier override method that uses CCARGS remains supported.
+The earlier override method using CCARGS remains supported.
+
+Building with dynamicmaps.cf database plugins
+---------------------------------------------
+
+To build with dynamicmaps.cf database plugin support:
+
+% make makefiles dynamicmaps=yes
+% make
+# make install
+
+This implicitly enables Postfix shared-library support, and defaults
+to installing dynamicmaps.cf and postfix-*.so.* plugins in
+/usr/libexec/postfix.  The dynamicmaps.cf file and database plugins
+are given a suffix that equals the shared-library version (see
+SHLIB_VERSION discussion above). 
+
+To override the plugin_directory location, use, for example,
+
+% make makefiles dynamicmaps=yes plugin_directory=/usr/lib/postfix ...
 
 Further information
 -------------------

@@ -66,7 +66,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
-#include <mvect.h>
+#include <stringops.h>
 
  /*
   * Global library.
@@ -74,7 +74,7 @@
 #include <mkmap.h>
 #include <dynamicmaps.h>
 
-#ifdef USE_DYNAMIC_LIBS
+#ifdef USE_DYNAMIC_MAPS
 
  /*
   * Contents of one dynamicmaps.cf entry.
@@ -89,6 +89,7 @@ static HTABLE *dymap_info;
 static DICT_OPEN_EXTEND_FN saved_dict_open_hook = 0;
 static MKMAP_OPEN_EXTEND_FN saved_mkmap_open_hook = 0;
 static DICT_MAPNAMES_EXTEND_FN saved_dict_mapnames_hook = 0;
+static char *dymap_base;
 
 #define STREQ(x, y) (strcmp((x), (y)) == 0)
 
@@ -254,6 +255,8 @@ void    dymap_init(const char *path)
 	 */
 	else {
 	    buf = vstring_alloc(100);
+	    dymap_base = mystrdup(path);
+	    (void) split_at_right(dymap_base, '/');
 	    while (vstring_get_nonl(buf, fp) != VSTREAM_EOF) {
 		cp = vstring_str(buf);
 		linenum++;
@@ -266,9 +269,11 @@ void    dymap_init(const char *path)
 		if (!ISALNUM(argv->argv[0][0]))
 		    msg_fatal("%s, line %d: unsupported syntax \"%s\"",
 			      path, linenum, argv->argv[0]);
-		if (argv->argv[1][0] != '/')
-		    msg_fatal("%s, line %d: .so-name must begin with a \"/\"",
-			      path, linenum);
+		if (argv->argv[1][0] != '/') {
+		    cp = concatenate(dymap_base, "/", argv->argv[1], (char *) 0);
+		    argv_replace_one(argv, 1, cp);
+		    myfree(cp);
+		}
 		htable_enter(dymap_info, argv->argv[0],
 			     (char *) dymap_entry_alloc(argv->argv + 1));
 		argv_free(argv);

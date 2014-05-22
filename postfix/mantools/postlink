@@ -390,6 +390,7 @@ while (<>) {
     s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_con[-</Bb>]*\n* *[<Bb>]*currency_failed_cohort_limit\b;<a href="postconf.5.html#default_destination_concurrency_failed_cohort_limit">$&</a>;g;
     s;\bdestination_concurrency_feedback_debug\b;<a href="postconf.5.html#destination_concurrency_feedback_debug">$&</a>;g;
     s;\bdefault_destina[-</Bb>]*\n* *[<Bb>]*tion_rate_delay\b;<a href="postconf.5.html#default_destination_rate_delay">$&</a>;g;
+    s;\bplugin_directory\b;<a href="postconf.5.html#plugin_directory">$&</a>;g;
 
     s;\bqmqpd_client_port_logging\b;<a href="postconf.5.html#qmqpd_client_port_logging">$&</a>;g;
     s;\bqmqpd_error_delay\b;<a href="postconf.5.html#qmqpd_error_delay">$&</a>;g;

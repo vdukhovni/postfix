@@ -148,36 +148,56 @@ compiler. Here are a few examples:
 
 and so on. In some cases, optimization is turned off automatically.
 
-44..33 -- BBuuiillddiinngg wwiitthh PPoossttffiixx sshhaarreedd lliibbrraarriieess ((PPoossttffiixx >>== 22..1122))
+44..33 -- BBuuiillddiinngg wwiitthh PPoossttffiixx sshhaarreedd lliibbrraarriieess aanndd ddaattaabbaassee pplluuggiinnss ((PPoossttffiixx >>==
+22..1122))
 
-Postfix can be built with Postfix shared libraries (files named libpostfix-
-*.so.*). These files are needed to dynamically load Postfix database clients
-with the Debian-style dynamicmaps.cf feature. Postfix shared libraries add
-minor run-time overhead and result in smaller Postfix executable files.
-
-Although Debian-style dynamicmaps.cf support is functional, it is not yet used.
-Postfix database clients are still built into the Postfix library files.
-Postfix database clients may become plugins at some later point in time.
+Postfix can be built with Postfix shared libraries (files typically named
+libpostfix-*.so.*). Postfix shared libraries add minor run-time overhead and
+result in significantly-smaller Postfix executable files.
 
 Postfix shared-library support is evolving. Support exists for Linux, FreeBSD
 and MacOS X. Shared-library builds will become the default once the build
 system stops changing.
 
-For now, specify "shared=yes" on the "make makefiles" command line to build
-Postfix with shared-library support.
+Specify "shared=yes" on the "make makefiles" command line to build Postfix with
+shared-library support.
 
     $ make makefiles shared=yes ...other arguments...
     $ make makefiles shared=no ...other arguments...
     $ make
 
-Postfix shared libraries are named libpostfix-xxx.so.version where xxx is a
-source-code directory name such as "util" or "global", and the default version
-is the Postfix version: X.Y.Z for stable releases, X.Y-DATE for snapshot
-releases, or X.Y-DATE-nonprod for non-production releases.
+Postfix shared libraries are typically named libpostfix-name.so.version, where
+name is a source-code directory name such as "util" or "global", and the
+default version is the Postfix version: X.Y.Z for stable releases, X.Y-DATE for
+snapshot releases, or X.Y-DATE-nonprod for non-production releases.
 
 To override the default shared-library version, specfy:
 
     $ make makefiles shared=yes SHLIB_VERSION=version ...other arguments...
+
+The shlib_directory parameter specifies the location of Postfix shared library
+files. See section 4.5 defaults and how to override this.
+
+Additionally, Postfix can be built with support to dynamically load Postfix
+database clients with the Debian-style dynamicmaps.cf feature. This is useful
+mainly for distributors of pre-compiled Postfix packages.
+
+Specify "dynamicmaps=yes" on the "make makefiles" command line to build Postfix
+with support to dynamically load Postfix database clients with the Debian-style
+dynamicmaps.cf feature, This implicitly enables shared-library support.
+
+    $ make makefiles dynamicmaps=yes ...other arguments...
+    $ make makefiles dynamicmaps=no ...other arguments...
+    $ make
+
+Postfix database plugins libraries are typically named postfix-type.so.version
+where type is a database type such as "ldap" or "lmdb". The version is the same
+as for Postfix shared libraries. The installed dynamicmaps.cf configuration
+file is given a suffix with the same version.
+
+The plugin_directory parameter specifies the location of the dynamicmaps.cf
+file and for database plugins with relative pathnames. See section 4.5 defaults
+and how to override this.
 
 44..44 -- BBuuiillddiinngg wwiitthh ooppttiioonnaall ffeeaattuurreess
 
@@ -247,6 +267,8 @@ postconf.5 | less").
     |manpage_directory    |/usr/local/man      |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |newaliases_path      |/usr/bin/newaliases |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |plugin_directory     |/usr/libexec/postfix|
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |queue_directory      |/var/spool/postfix  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
