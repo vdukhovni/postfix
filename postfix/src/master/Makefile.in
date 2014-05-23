@@ -23,7 +23,7 @@ LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 BIN_DIR	= ../../libexec
 
-.c.o:;	$(CC) `for i in $(LIB_OBJ); do [ $$i = $@ ] && echo $(SHLIB_CFLAGS); done` $(CFLAGS) -c $*.c
+.c.o:;	$(CC) `for i in $(LIB_OBJ); do if [ $$i = $@ ]; then echo $(SHLIB_CFLAGS); else true; fi; done` $(CFLAGS) -c $*.c
 
 all:	$(PROG) $(LIB)
 

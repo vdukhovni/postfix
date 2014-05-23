@@ -182,9 +182,7 @@
 #ifdef HAS_DB
 #include <dict_db.h>
 #endif
-#ifdef HAS_LMDB
 #include <dict_lmdb.h>
-#endif
 #include <inet_proto.h>
 #include <vstring_vstream.h>
 #include <iostuff.h>

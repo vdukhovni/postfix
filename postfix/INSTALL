@@ -155,9 +155,9 @@ Postfix can be built with Postfix shared libraries (files typically named
 libpostfix-*.so.*). Postfix shared libraries add minor run-time overhead and
 result in significantly-smaller Postfix executable files.
 
-Postfix shared-library support is evolving. Support exists for Linux, FreeBSD
-and MacOS X. Shared-library builds will become the default once the build
-system stops changing.
+Postfix shared-library and database plugin support exists for recent versions
+of Linux, FreeBSD and MacOS X. Shared-library builds may become the default at
+some point in the future.
 
 Specify "shared=yes" on the "make makefiles" command line to build Postfix with
 shared-library support.
@@ -166,17 +166,22 @@ shared-library support.
     $ make makefiles shared=no ...other arguments...
     $ make
 
-Postfix shared libraries are typically named libpostfix-name.so.version, where
-name is a source-code directory name such as "util" or "global", and the
-default version is the Postfix version: X.Y.Z for stable releases, X.Y-DATE for
-snapshot releases, or X.Y-DATE-nonprod for non-production releases.
+This defaults to installing shared libraries in /usr/local/lib, typically with
+names like libpostfix-name.so.version, where the name is a source-code
+directory name such as "util" or "global", and the version is the Postfix
+version: x.y.z for stable releases, x.y-date for snapshot (development)
+releases, or x.y-date-nonprod for non-production releases.
 
-To override the default shared-library version, specfy:
+To override the default location or shared-library version, specify, for
+example:
 
-    $ make makefiles shared=yes SHLIB_VERSION=version ...other arguments...
+    $ make makefiles shared=yes shlib_directory=/usr/lib \
+	SHLIB_VERSION=1 ...other arguments...
 
-The shlib_directory parameter specifies the location of Postfix shared library
-files. See section 4.5 defaults and how to override this.
+You can also override the shlib_directory setting with "make install" or "make
+upgrade". However, you may have to run ldconfig if you move the libpostfix-
+*.so.* files to a non-system directory. No ldconfig is needed if you keep the
+libpostfix-*.so.* files in the compiled-in default $shlib_directory location.
 
 Additionally, Postfix can be built with support to dynamically load Postfix
 database clients with the Debian-style dynamicmaps.cf feature. This is useful
@@ -190,14 +195,20 @@ dynamicmaps.cf feature, This implicitly enables shared-library support.
     $ make makefiles dynamicmaps=no ...other arguments...
     $ make
 
-Postfix database plugins libraries are typically named postfix-type.so.version
-where type is a database type such as "ldap" or "lmdb". The version is the same
-as for Postfix shared libraries. The installed dynamicmaps.cf configuration
-file is given a suffix with the same version.
+This defaults to installing dynamicmaps.cf and database plugins in /usr/
+libexec/postfix. Database plugins are typically named postfix-type.so.version
+where the type is a database type such as "ldap" or "lmdb", and where the
+version is the same as for Postfix shared libraries. The installed
+dynamicmaps.cf configuration file is given a suffix with the same version.
 
-The plugin_directory parameter specifies the location of the dynamicmaps.cf
-file and for database plugins with relative pathnames. See section 4.5 defaults
-and how to override this.
+To override the default location or shared-library version, specify, for
+example:
+
+    % make makefiles dynamicmaps=yes plugin_directory=/usr/lib/postfix \
+	SHLIB_VERSION=1  ...
+
+You can also override the plugin_directory setting with "make install" or "make
+upgrade".
 
 4.4 - Building with optional features
 

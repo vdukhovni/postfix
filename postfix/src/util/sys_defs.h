@@ -489,6 +489,8 @@ extern int opterr;
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+
+#define HAS_DLOPEN
 #endif
 
  /*

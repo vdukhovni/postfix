@@ -77,12 +77,11 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ)
-MAP_OBJ	= dict_pcre.o $(MKMAP_OBJ)
-MKMAP_OBJ = dict_cdb.o dict_lmdb.o dict_sdbm.o slmdb.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
-# otherwise it sets PLUGIN_MAP_OBJ, PLUGIN_MAP_OBJ_UPDATE,
-# PLUGIN_MAP_SO_MAKE, and PLUGIN_MAP_SO_UPDATE.
+# otherwise it sets the PLUGIN_* macros.
+MAP_OBJ	= dict_pcre.o $(LIB_MAP_OBJ)
+LIB_MAP_OBJ = dict_cdb.o dict_lmdb.o dict_sdbm.o slmdb.o
 HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	chroot_uid.h cidr_match.h clean_env.h connect.h ctable.h dict.h \
 	dict_cdb.h dict_cidr.h dict_db.h dict_dbm.h dict_env.h dict_ht.h \
@@ -154,7 +153,7 @@ $(LIB_DIR)/$(LIB): $(LIB)
 plugin_map_so_make: $(PLUGIN_MAP_SO)
 
 $(LIB_PREFIX)pcre$(LIB_SUFFIX): dict_pcre.o
-	$(SHLIB_LD) -o $@ dict_pcre.o
+	$(PLUGIN_LD) -o $@ dict_pcre.o
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE) \
 	$(PLUGIN_MAP_OBJ_UPDATE)
@@ -167,11 +166,17 @@ update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE) \
 plugin_map_so_update: $(PLUGIN_MAP_SO)
 	-for i in $(PLUGIN_MAP_SO); \
 	do \
-	  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+	  for type in $(DEFINED_MAP_TYPES); do \
+	      case $$i in $(LIB_PREFIX)$$type$(LIB_SUFFIX)) \
+		  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+		  continue 2;; \
+	      esac; \
+	  done; \
+	  rm -f $(PLG_DIR)/$$i; \
 	done
 
-plugin_map_obj_update: $(MKMAP_OBJ)
-	-for i in $(MKMAP_OBJ); \
+plugin_map_obj_update: $(LIB_MAP_OBJ)
+	-for i in $(LIB_MAP_OBJ); \
 	do \
 	  cmp -s $$i $(LIB_DIR)/$$i 2>/dev/null || cp $$i $(LIB_DIR); \
 	done

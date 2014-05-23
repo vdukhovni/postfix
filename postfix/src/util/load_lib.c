@@ -50,7 +50,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 #include <string.h>
-#ifdef USE_DYNAMIC_LIBS
+#ifdef USE_DYNAMIC_MAPS
 #if defined(HAS_DLOPEN)
 #include <dlfcn.h>
 #elif defined(HAS_SHL_LOAD)

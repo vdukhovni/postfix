@@ -78,7 +78,7 @@ $plugin_directory/${LIB_PREFIX}pgsql${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}sdbm${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}sqlite${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/dynamicmaps.cf.${SHLIB_VERSION}:f:root:-:644:
-$plugin_directory/dynamicmaps.cf:h:$plugin_directory/dynamicmaps.cf.${SHLIB_VERSION}:-:644:
+$plugin_directory/dynamicmaps.cf:l:dynamicmaps.cf.${SHLIB_VERSION}:-:644:
 $daemon_directory/anvil:f:root:-:755
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755

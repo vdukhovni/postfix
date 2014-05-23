@@ -21,6 +21,7 @@
 #include <msg_vstream.h>
 #include <vstring_vstream.h>
 #include <dict.h>
+#include <dict_lmdb.h>
 
 DEFINE_DICT_LMDB_MAP_SIZE;
 

@@ -22,6 +22,9 @@ EXPAND = sed -e "s;\$${LIB_PREFIX};$(LIB_PREFIX);" \
 
 default: update
 
+# While generating the top-level Makefile, we must get the PLUGIN_DIR
+# setting directly from the latest makedefs.out result.
+
 makefiles Makefiles:
 	(echo "# Do not edit -- this file documents how Postfix was built for your machine."; $(SHELL) makedefs) >makedefs.tmp
 	set +e; if cmp makedefs.tmp conf/makedefs.out; then rm makedefs.tmp; \
@@ -29,8 +32,13 @@ makefiles Makefiles:
 	set -e; for i in $(DIRS); do \
 	 (set -e; echo "[$$i]"; cd $$i; rm -f Makefile; \
 	 $(MAKE) -f Makefile.in Makefile MAKELEVEL=) || exit 1; \
-	done;
-	rm -f Makefile; (cat conf/makedefs.out Makefile.in) >Makefile
+	done
+	set -- `grep '^PLUGIN_DIR' conf/makedefs.out`; \
+	rm -f Makefile; (cat conf/makedefs.out; \
+	case  "$$3" in \
+	/*) cat Makefile.in;; \
+	 *) grep -v '^PLUGINS' Makefile.in;; \
+	esac) >Makefile
 
 update printfck tests root_tests:
 	set -e; for i in $(DIRS); do \
@@ -71,8 +79,13 @@ libexec/master.cf: conf/master.cf
 libexec/postmulti-script: conf/postmulti-script
 	rm -f $@ && ln -f $? $@
 
-plugins/dynamicmaps.cf.$(SHLIB_VERSION): conf/dynamicmaps.cf
-	rm -f $@ && $(EXPAND) $? >$@
+plugins/dynamicmaps.cf.$(SHLIB_VERSION): conf/dynamicmaps.cf Makefile
+	rm -f $@ && $(EXPAND) conf/dynamicmaps.cf | $(AWK) ' \
+		BEGIN { split("'"$(DEFINED_MAP_TYPES)"'", map_types); \
+			for (n in map_types) has_type[map_types[n]] = n } \
+		/^#/ { print } \
+		/^[a-z]/ { if (has_type[$$1]) print } \
+	' >$@
 
 manpages:
 	set -e; for i in $(MANDIRS); do \

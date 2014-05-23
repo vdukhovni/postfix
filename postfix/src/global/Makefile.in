@@ -68,12 +68,11 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o \
 	$(NON_PLUGIN_MAP_OBJ)
-MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o mkmap_cdb.o \
-	mkmap_lmdb.o mkmap_sdbm.o 
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
-# otherwise it sets PLUGIN_MAP_OBJ, PLUGIN_MAP_OBJ_UPDATE,
-# PLUGIN_MAP_SO_MAKE, and PLUGIN_MAP_SO_UPDATE.
+# otherwise it sets the PLUGIN_* macros.
+MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o mkmap_cdb.o \
+	mkmap_lmdb.o mkmap_sdbm.o 
 HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
 	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
@@ -149,27 +148,27 @@ $(LIB_DIR)/$(LIB): $(LIB)
 plugin_map_so: $(PLUGIN_MAP_SO)
 
 $(LIB_PREFIX)ldap$(LIB_SUFFIX): dict_ldap.o
-	$(SHLIB_LD) -o $@ dict_ldap.o
+	$(PLUGIN_LD) -o $@ dict_ldap.o
 
 $(LIB_PREFIX)mysql$(LIB_SUFFIX): dict_mysql.o
-	$(SHLIB_LD) -o $@ dict_mysql.o
+	$(PLUGIN_LD) -o $@ dict_mysql.o
 
 $(LIB_PREFIX)pgsql$(LIB_SUFFIX): dict_pgsql.o
-	$(SHLIB_LD) -o $@ dict_pgsql.o
+	$(PLUGIN_LD) -o $@ dict_pgsql.o
 
 $(LIB_PREFIX)sqlite$(LIB_SUFFIX): dict_sqlite.o
-	$(SHLIB_LD) -o $@ dict_sqlite.o
+	$(PLUGIN_LD) -o $@ dict_sqlite.o
 
 $(LIB_PREFIX)lmdb$(LIB_SUFFIX): mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
 	$(LIB_DIR)/slmdb.o
-	$(SHLIB_LD) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
+	$(PLUGIN_LD) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
 	$(LIB_DIR)/slmdb.o
 
 $(LIB_PREFIX)cdb$(LIB_SUFFIX): mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
-	$(SHLIB_LD) -o $@ mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
+	$(PLUGIN_LD) -o $@ mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
 
 $(LIB_PREFIX)sdbm$(LIB_SUFFIX): mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
-	$(SHLIB_LD) -o $@ mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
+	$(PLUGIN_LD) -o $@ mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE)
 	-for i in $(HDRS); \
@@ -181,7 +180,13 @@ update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE)
 plugin_map_so_update: $(PLUGIN_MAP_SO)
 	-for i in $(PLUGIN_MAP_SO); \
 	do \
-	  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+	  for type in $(DEFINED_MAP_TYPES); do \
+	      case $$i in $(LIB_PREFIX)$$type$(LIB_SUFFIX)) \
+		  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+		  continue 2;; \
+	      esac; \
+	  done; \
+	  rm -f $(PLG_DIR)/$$i; \
 	done
 
 dot_lockfile: $(LIB) $(LIBS)

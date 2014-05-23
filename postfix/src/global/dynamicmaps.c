@@ -67,6 +67,7 @@
 #include <vstream.h>
 #include <vstring_vstream.h>
 #include <stringops.h>
+#include <split_at.h>
 
  /*
   * Global library.
@@ -255,6 +256,8 @@ void    dymap_init(const char *path)
 	 */
 	else {
 	    buf = vstring_alloc(100);
+	    if (dymap_base)
+		myfree(dymap_base);
 	    dymap_base = mystrdup(path);
 	    (void) split_at_right(dymap_base, '/');
 	    while (vstring_get_nonl(buf, fp) != VSTREAM_EOF) {
