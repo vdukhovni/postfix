@@ -19730,3 +19730,12 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20140320): missing initialization.
 	Viktor Dukhovni. File pipe/pipe.c.
+
+20140516
+
+	Cleanup: Berkeley DB6 support. File: util/dict_db.c.
+
+20140524
+
+	Cleanup: symlink handling in post-install, back-ported
+	from the non-production release. File: post-install.

@@ -252,11 +252,16 @@ compare_or_replace() {
     }
 }
 
+myreadlink() {
+    ls -l -- "$@" | awk '
+	/->/ { print $NF; next } 
+	{ exit(1) }  
+    '
+}
+
 compare_or_symlink() {
-    (cmp $1 $2 >/dev/null 2>&1 && echo Skipping $2...) || {
-	echo Updating $2...
-	rm -f $tempdir/junk || exit 1
-	dest=`echo $1 | sed '
+    case $1 in
+    /*) dest=`echo $1 | sed '
 	    s;^'$install_root';;
 	    s;/\./;/;g
 	    s;//*;/;g
@@ -271,6 +276,13 @@ compare_or_symlink() {
 	    s;[^/]*/;../;g
 	    s;$;'$dest';
 	'`
+	;;
+     *) link=$1
+	;;
+    esac
+    (test $link = "`myreadlink $2`" >/dev/null 2>&1 && echo Skipping $2...) || {
+	echo Updating $2...
+	rm -f $tempdir/junk || exit 1
 	ln -s $link $tempdir/junk || exit 1
 	mv -f $tempdir/junk $2 || {
 	    echo $0: Error: your mv command has trouble renaming symlinks. 1>&2
