@@ -67,7 +67,7 @@ like: </p>
 % make tidy
 % CDB=../../../tinycdb-0.5
 % make -f Makefile.init makefiles "CCARGS=-DHAS_CDB -I$CDB" \
-    "AUXLIBS=$CDB/libcdb.a"
+    "AUXLIBS_CDB=$CDB/libcdb.a"
 % make
 </pre>
 </blockquote>
@@ -79,10 +79,15 @@ like: </p>
 % make tidy
 % CDB=../../../cdb-0.75
 % make -f Makefile.init makefiles "CCARGS=-DHAS_CDB -I$CDB" \
-    "AUXLIBS=$CDB/cdb.a $CDB/alloc.a $CDB/buffer.a $CDB/unix.a $CDB/byte.a"
+    "AUXLIBS_CDB=$CDB/cdb.a $CDB/alloc.a $CDB/buffer.a $CDB/unix.a $CDB/byte.a"
 % make
 </pre>
 </blockquote>
+
+<p> Postfix versions before 2.12 should use AUXLIBS instead of
+AUXLIBS_CDB. Postfix 2.12 and later still support the old global
+AUXLIBS variable, but AUXLIBS_CDB is required when building
+dynamically-loadable database plugins.  </p>
 
 <p> After Postfix has been built with cdb support, you can use
 "cdb" tables wherever you can use read-only "hash", "btree" or

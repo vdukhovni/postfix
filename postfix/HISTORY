@@ -19831,3 +19831,22 @@ Apologies for any names omitted.
 
 	Cleanup: port for ancient Solaris9 revealed some non-portability.
 	Files: master/Makefile.in, makedefs, sys_defs.h.
+
+20140524
+
+	Cleanup: specify database library dependencies with variables
+	named AUXLIBS_CDB, AUXLIBS_LDAP, etc. The global AUXLIBS
+	variable is still supported, but the new variables are
+	required when building dynamically-loadable building database
+	plugins.  Files: RELEASE_NOTES, INSTALL.html, CDB_README.html,
+	LDAP_README.html, LMDB_README.html, MYSQL_README.html,
+	PCRE_README.html, PGSQL_README.html, SQLITE_README.html,
+	makedefs, util/Makefile.in, global/Makefile.in.
+
+	Workaround: reportedly, MacOS can fail to move a symlink
+	with a relative target across file system boundaries, because
+	it examines the symlink with stat() instead of lstat().
+	Files: makedefs, Makefile.in.
+
+	Cleanup: use readlink to verify symlink target. File:
+	postfix-install.

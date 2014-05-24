@@ -26,9 +26,6 @@ databases: you can use one for a <a href="virtual.5.html">virtual(5)</a> table, 
 
 <h2>Building Postfix with SQLite support</h2>
 
-<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
-will be added later.] </p>
-
 <p> The Postfix SQLite client utilizes the sqlite3 library,
 which can be obtained from: </p>
 
@@ -47,9 +44,14 @@ name of the standard POSIX thread library (pthread).  For example:
 <pre>
 make -f Makefile.init makefiles \
      'CCARGS=-DHAS_SQLITE -I/usr/local/include' \
-     'AUXLIBS=-L/usr/local/lib -lsqlite3 -lpthread'
+     '<a href="SQLITE_README.html">AUXLIBS_SQLITE</a>=-L/usr/local/lib -lsqlite3 -lpthread'
 </pre>
 </blockquote>
+
+<p> Postfix versions before 2.12 should use AUXLIBS instead of
+<a href="SQLITE_README.html">AUXLIBS_SQLITE</a>. Postfix 2.12 and later still support the old global 
+AUXLIBS variable, but <a href="SQLITE_README.html">AUXLIBS_SQLITE</a> is required when building 
+dynamically-loadable database plugins.  </p>
 
 <p> Then, just run 'make'.</p>
 

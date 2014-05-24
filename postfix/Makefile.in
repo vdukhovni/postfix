@@ -55,14 +55,17 @@ libexec/post-install: conf/post-install
 
 libexec/postfix-files: conf/postfix-files conf/makedefs.out Makefile
 	rm -f $@
-	if [ "${SHLIB_DIR}" = "no" -o "${SHLIB_DIR}" = "" ]; then \
+	(if [ "${SHLIB_DIR}" = "no" -o "${SHLIB_DIR}" = "" ]; then \
 	    sed -e '/^\$$shlib_directory/d' \
-		-e '/^\$$plugin_directory/d' conf/postfix-files >$@; \
+		-e '/^\$$plugin_directory/d' conf/postfix-files; \
 	elif [ "${PLUGIN_DIR}" = "no" -o "${PLUGIN_DIR}" = "" ]; then \
-	    sed -e '/^\$$plugin_directory/d' conf/postfix-files | $(EXPAND) >$@; \
+	    sed -e '/^\$$plugin_directory/d' conf/postfix-files | $(EXPAND); \
 	else \
-	    $(EXPAND) conf/postfix-files >$@; \
-	fi
+	    $(EXPAND) conf/postfix-files; \
+	fi) | case "$(MAKE_FIX)" in \
+	*cant-move-relative-symlink*) sed 's/:l:dynamic/:h:dynamic/';; \
+	                           *) cat;; \
+	esac > $@
 
 libexec/postfix-script: conf/postfix-script
 	rm -f $@ && ln -f $? $@
@@ -127,6 +130,7 @@ tidy:	clean
 	rm -f README_FILES/RELEASE_NOTES
 	ln -s ../RELEASE_NOTES README_FILES
 	rm -f bin/[!CRS]* lib/[!CRS]* include/[!CRS]* libexec/[!CRS]* plugins/[!CRS]* \
+	    src/*/libpostfix-*.so.* src/*/libpostfix-*.dylib.* \
 	    src/*/postfix-*.so.* src/*/postfix-*.dylib.* \
 	    junk */junk */*/junk \
 	    *core */*core */*/*core \

@@ -9557,6 +9557,12 @@ earlier: "<b>/etc/postfix/post-install set-permissions</b>".
 This parameter defaults to "no" when Postfix shared libraries are
 disabled at compile time. </p>
 
+<p> NOTE: You can change the location of these files after Postfix
+is built. However, you may have to run ldconfig if you move the
+libpostfix-*.so.* files to a non-system directory.  No ldconfig is
+needed if you keep the libpostfix-*.so.* files in the compiled-in
+default $<a href="postconf.5.html#shlib_directory">shlib_directory</a> location. </p>
+
 <p> This feature is available in Postfix 2.12 and later. </p>
 
 

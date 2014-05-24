@@ -44,26 +44,28 @@ the database file without the ".lmdb" suffix. </p>
 
 <h2><a name="with_lmdb">Building Postfix with LMDB support</a></h2>
 
-<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
-will be added later.] </p>
-
 <p> Postfix normally does not enable LMDB support.  To
 build Postfix with LMDB support, use something like: </p>
 
 <blockquote>
 <pre>
 % make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
-    AUXLIBS="-L/usr/local/lib -llmdb"
+    <a href="LMDB_README.html">AUXLIBS_LMDB</a>="-L/usr/local/lib -llmdb"
 % make
 </pre>
 </blockquote>
+
+<p> Postfix versions before 2.12 should use AUXLIBS instead of
+<a href="LMDB_README.html">AUXLIBS_LMDB</a>. Postfix 2.12 and later still support the old global
+AUXLIBS variable, but <a href="LMDB_README.html">AUXLIBS_LMDB</a> is required when building
+dynamically-loadable database plugins.  </p>
 
 <p> Solaris may need this: </p>
 
 <blockquote>
 <pre>
 % make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
-    AUXLIBS="-R/usr/local/lib -L/usr/local/lib -llmdb"
+    <a href="LMDB_README.html">AUXLIBS_LMDB</a>="-R/usr/local/lib -L/usr/local/lib -llmdb"
 % make
 </pre>
 </blockquote>
@@ -84,7 +86,7 @@ undefined reference to `pthread_mutex_lock'
 
 <blockquote>
 <pre>
-% make makefiles .... AUXLIBS="... -lpthread"
+% make makefiles .... <a href="LMDB_README.html">AUXLIBS_LMDB</a>="... -lpthread"
 </pre>
 </blockquote>
 

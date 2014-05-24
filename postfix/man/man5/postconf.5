@@ -5849,6 +5849,12 @@ The location of Postfix shared libraries (libpostfix-*.so.*).
 This parameter defaults to "no" when Postfix shared libraries are
 disabled at compile time.
 .PP
+NOTE: You can change the location of these files after Postfix
+is built. However, you may have to run ldconfig if you move the
+libpostfix-*.so.* files to a non-system directory.  No ldconfig is
+needed if you keep the libpostfix-*.so.* files in the compiled-in
+default $shlib_directory location.
+.PP
 This feature is available in Postfix 2.12 and later.
 .SH show_user_unknown_table_name (default: yes)
 Display the name of the recipient table in the "User unknown"

@@ -42,7 +42,7 @@ To build Postfix after you have installed tinycdb, use something like:
     % make tidy
     % CDB=../../../tinycdb-0.5
     % make -f Makefile.init makefiles "CCARGS=-DHAS_CDB -I$CDB" \
-        "AUXLIBS=$CDB/libcdb.a"
+        "AUXLIBS_CDB=$CDB/libcdb.a"
     % make
 
 Alternatively, for the D.J.B. version of CDB:
@@ -50,8 +50,13 @@ Alternatively, for the D.J.B. version of CDB:
     % make tidy
     % CDB=../../../cdb-0.75
     % make -f Makefile.init makefiles "CCARGS=-DHAS_CDB -I$CDB" \
-        "AUXLIBS=$CDB/cdb.a $CDB/alloc.a $CDB/buffer.a $CDB/unix.a $CDB/byte.a"
+        "AUXLIBS_CDB=$CDB/cdb.a $CDB/alloc.a $CDB/buffer.a $CDB/unix.a $CDB/
+    byte.a"
     % make
+
+Postfix versions before 2.12 should use AUXLIBS instead of AUXLIBS_CDB. Postfix
+2.12 and later still support the old global AUXLIBS variable, but AUXLIBS_CDB
+is required when building dynamically-loadable database plugins.
 
 After Postfix has been built with cdb support, you can use "cdb" tables
 wherever you can use read-only "hash", "btree" or "dbm" tables. However, the

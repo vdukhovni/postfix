@@ -16,7 +16,11 @@
 #	environment variables. Use quotes if variables contain
 #	whitespace or shell meta characters.
 # .IP \fBAUXLIBS=\fIobject_library...\fR
-#	Specifies one or more non-default object libraries.
+#	Specifies one or more non-default object libraries. Postfix
+#	2,12 and later specify some of their database library
+#	dependencies with AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,
+#	AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL, AUXLIBS_SDBM,
+#	and AUXLIBS_SQLITE, respectively.
 # .IP \fBCC=\fIcompiler_command\fR
 #	Specifies a non-default compiler. On many systems, the default
 #	is \fBgcc\fR.
@@ -76,9 +80,9 @@
 # .IP \fBdynamicmaps=yes\fR
 # .IP \fBdynamicmaps=no\fR
 #	Enable (disable) Postfix builds with the configuration file
-#	$plugin_directory/dynamicmaps.cf for database plugins
-#	typically named postfix-*.so.*.  The setting "dynamicmaps=yes"
-#	implicitly enables Postfix shared libraries.
+#	$plugin_directory/dynamicmaps.cf for dynamically-loadable
+#	database plugins typically named postfix-*.so.*.  The setting
+#	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
 # .IP \fIinstallation_parameter\fB=\fIvalue\fR...
 #	Override the compiled-in default value of the specified
 #	installation parameter(s). The following parameters are
@@ -530,6 +534,7 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		: ${CC=cc}
 		CCARGS="$CCARGS"
 		CCWARN='$(WARN)'
+		MAKE_FIX=cant-move-relative-symlink
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;
@@ -664,7 +669,7 @@ case "$CCARGS" in
 	   *)	pcre_cflags=`(pcre-config --cflags) 2>/dev/null` &&
 		    pcre_libs=`(pcre-config --libs) 2>/dev/null` && {
 			CCARGS="$CCARGS -DHAS_PCRE $pcre_cflags"
-			AUXLIBS="$AUXLIBS $pcre_libs"
+			AUXLIBS_PCRE="$pcre_libs"
 		}
 		;;
 esac
@@ -707,7 +712,8 @@ sendmail_path_macro=DEF_SENDMAIL_PATH
 shlib_directory_macro=DEF_SHLIB_DIR
 
 # shlib_directory and plugin_directory are checked here because "no"
-# is not a good answer.  Instead, build with "shared=no".
+# is not a good answer.  Instead, build with "dynamicmaps=no" or
+# "shared=no" as appropriate.
 
 for parm_name in command_directory config_directory daemon_directory \
 	data_directory mailq_path newaliases_path plugin_directory \
@@ -866,7 +872,7 @@ no|"")
     PLUGIN_LD=
     ;;
 
-*)  error "Specify \"shared=yes\" or \"shared=no\"" 1>&2
+*)  error "Specify \"shared=yes\" or \"shared=no\""
     ;;
 esac
 
@@ -896,21 +902,39 @@ DEFINED_MAP_TYPES=`
 	END { print names }
 '`
 
-sed 's/  / /g' <<EOF
+# Propagate AUXLIBS_FOO or merge them into global AUXLIBS (i.e. SYSLIBS).
+
+PLUGGABLE_MAPS="CDB LDAP LMDB MYSQL PCRE PGSQL SDBM SQLITE"
+
+case "$plugin_directory" in
+/*) for name in $PLUGGABLE_MAPS
+    do
+	eval test -n "\"\$AUXLIBS_$name\"" && 
+	    eval PLUGIN_AUXLIBS="\"\$PLUGIN_AUXLIBS
+AUXLIBS_$name = \$AUXLIBS_$name\""
+    done;;
+ *) for name in $PLUGGABLE_MAPS
+    do
+	eval AUXLIBS="\"\$AUXLIBS \$AUXLIBS_$name\""
+    done;;
+esac
+
+sed 's/   */ /g' <<EOF
 # System-dependent settings and compiler/linker overrides.
 SYSTYPE	= $SYSTYPE
 _AR	= $_AR
 ARFL	= $ARFL
 _RANLIB	= $_RANLIB
-SYSLIBS	= $AUXLIBS $SYSLIBS
+SYSLIBS	= $AUXLIBS $SYSLIBS $PLUGIN_AUXLIBS
 CC	= $CC $CCARGS $CCWARN
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK
 STRCASE = $STRCASE
-EXPORT	= AUXLIBS='$AUXLIBS' CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
+EXPORT	= CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
 WARN	= $WARN
 DEFINED_MAP_TYPES = $DEFINED_MAP_TYPES
+MAKE_FIX = $MAKE_FIX
 # Switch between Postfix static and shared libraries.
 AR	= $AR
 RANLIB	= $RANLIB

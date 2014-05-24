@@ -33,9 +33,6 @@ clients by using the Postfix <a href="proxymap.8.html">proxymap(8)</a> service. 
 
 <h2>Building Postfix with MySQL support</h2>
 
-<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
-will be added later.] </p>
-
 <p> These instructions assume that you build Postfix from source
 code as described in the <a href="INSTALL.html">INSTALL</a> document. Some modification may
 be required if you build Postfix from a vendor-specific source
@@ -55,15 +52,20 @@ which can be obtained from: </p>
 
 <p> In order to build Postfix with mysql map support, you will need to add
 -DHAS_MYSQL and -I for the directory containing the mysql headers, and
-the mysqlclient library (and libm) to AUXLIBS, for example: </p>
+the mysqlclient library (and libm) to <a href="MYSQL_README.html">AUXLIBS_MYSQL</a>, for example: </p>
 
 <blockquote>
 <pre>
 make -f Makefile.init makefiles \
     'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
-    'AUXLIBS=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
+    '<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
 </pre>
 </blockquote>
+
+<p> Postfix versions before 2.12 should use AUXLIBS instead of
+<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>. Postfix 2.12 and later still support the old global
+AUXLIBS variable, but <a href="MYSQL_README.html">AUXLIBS_MYSQL</a> is required when building
+dynamically-loadable database plugins.  </p>
 
 <p> On Solaris, use this instead: </p>
 
@@ -71,7 +73,7 @@ make -f Makefile.init makefiles \
 <pre>
 make -f Makefile.init makefiles \
     'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
-    'AUXLIBS=-L/usr/local/mysql/lib -R/usr/local/mysql/lib \
+    '<a href="MYSQL_README.html">AUXLIBS_MYSQL</a>=-L/usr/local/mysql/lib -R/usr/local/mysql/lib \
         -lmysqlclient -lz -lm'
 </pre>
 </blockquote>

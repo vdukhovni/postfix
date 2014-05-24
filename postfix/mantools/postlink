@@ -1131,6 +1131,10 @@ while (<>) {
     s/\b(lmtp):/<a href="lmtp.8.html">$1<\/a>:/g;
     s/\b(local):/<a href="local.8.html">$1<\/a>:/g;
     s/([^\/])\b(virtual):/$1<a href="virtual.8.html">$2<\/a>:/g;
+
+    # Database library dependencies.
+
+    s/\b(AUXLIBS_)([A-Z]+)\b/<a href="$2_README.html">$1$2<\/a>/g;
 }
 continue {
     if ($printit)

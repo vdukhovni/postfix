@@ -302,6 +302,11 @@ is the same as for Postfix shared libraries. The installed
 dynamicmaps.cf configuration file is given a suffix with the same
 version. </p>
 
+<p> NOTE: Postfix 2.12 expects that you specify database library
+dependencies with variables named <a href="CDB_README.html">AUXLIBS_CDB</a>, <a href="LDAP_README.html">AUXLIBS_LDAP</a>, etc.
+The old AUXLIBS variable is still supported, but the new variables
+are required when building database plugins. </p>
+
 <p> To override the default location or shared-library version,
 specify, for example: </p>
 
@@ -513,7 +518,10 @@ $ make
 <tr> <th colspan="2"> Name/Value </th> <th> Description </th> </tr>
 
 <tr> <td colspan="2"> AUXLIBS="object_library..."</td> <td> Specifies
-one or more non-default object libraries. </td> </tr>
+one or more non-default object libraries. Postfix 2,12 and later
+specify some of their database library dependencies with <a href="CDB_README.html">AUXLIBS_CDB</a>,
+<a href="LDAP_README.html">AUXLIBS_LDAP</a>, <a href="LMDB_README.html">AUXLIBS_LMDB</a>, <a href="MYSQL_README.html">AUXLIBS_MYSQL</a>, <a href="PCRE_README.html">AUXLIBS_PCRE</a>, <a href="PGSQL_README.html">AUXLIBS_PGSQL</a>,
+<a href="SDBM_README.html">AUXLIBS_SDBM</a>, and <a href="SQLITE_README.html">AUXLIBS_SQLITE</a>, respectively. </td> </tr>
 
 <tr> <td colspan="2"> CC=compiler_command</td> <td> Specifies a
 non-default compiler. On many systems, the default is <tt>gcc</tt>.

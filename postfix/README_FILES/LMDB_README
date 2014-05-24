@@ -24,20 +24,21 @@ This document describes:
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh LLMMDDBB ssuuppppoorrtt
 
-[Note: instructions to build as a dynamicmaps.cf-style plugin will be added
-later.]
-
 Postfix normally does not enable LMDB support. To build Postfix with LMDB
 support, use something like:
 
     % make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
-        AUXLIBS="-L/usr/local/lib -llmdb"
+        AUXLIBS_LMDB="-L/usr/local/lib -llmdb"
     % make
+
+Postfix versions before 2.12 should use AUXLIBS instead of AUXLIBS_LMDB.
+Postfix 2.12 and later still support the old global AUXLIBS variable, but
+AUXLIBS_LMDB is required when building dynamically-loadable database plugins.
 
 Solaris may need this:
 
     % make makefiles CCARGS="-DHAS_LMDB -I/usr/local/include" \
-        AUXLIBS="-R/usr/local/lib -L/usr/local/lib -llmdb"
+        AUXLIBS_LMDB="-R/usr/local/lib -L/usr/local/lib -llmdb"
     % make
 
 The exact pathnames depend on how LMDB was installed.
@@ -50,7 +51,7 @@ When building Postfix fails with:
 
 Add the "-lpthread" library to the "make makefiles" command.
 
-    % make makefiles .... AUXLIBS="... -lpthread"
+    % make makefiles .... AUXLIBS_LMDB="... -lpthread"
 
 CCoonnffiigguurriinngg LLMMDDBB sseettttiinnggss
 

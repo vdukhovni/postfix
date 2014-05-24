@@ -201,6 +201,11 @@ where the type is a database type such as "ldap" or "lmdb", and where the
 version is the same as for Postfix shared libraries. The installed
 dynamicmaps.cf configuration file is given a suffix with the same version.
 
+NOTE: Postfix 2.12 expects that you specify database library dependencies with
+variables named AUXLIBS_CDB, AUXLIBS_LDAP, etc. The old AUXLIBS variable is
+still supported, but the new variables are required when building database
+plugins.
+
 To override the default location or shared-library version, specify, for
 example:
 
@@ -349,8 +354,13 @@ The following is an extensive list of names and values.
  _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
 |NNaammee//VVaalluuee                    |DDeessccrriippttiioonn                                   |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-|AUXLIBS="object_library..."   |Specifies one or more non-default object      |
-|                              |libraries.                                    |
+|                              |Specifies one or more non-default object      |
+|                              |libraries. Postfix 2,12 and later specify some|
+|                              |of their database library dependencies with   |
+|AUXLIBS="object_library..."   |AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,      |
+|                              |AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL,   |
+|                              |AUXLIBS_SDBM, and AUXLIBS_SQLITE,             |
+|                              |respectively.                                 |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 |CC=compiler_command           |Specifies a non-default compiler. On many     |
 |                              |systems, the default is gcc.                  |

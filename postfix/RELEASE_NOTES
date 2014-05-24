@@ -16,29 +16,64 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.10 or earlier, read RELEASE_NOTES-2.11
 before proceeding.
 
-Major changes with snapshot 20140522
+Incompatible changes with snapshot 20140524
+===========================================
+
+Postfix 2.12 expects that you specify database library dependencies
+with variables named AUXLIBS_CDB, AUXLIBS_LDAP, etc.  The old AUXLIBS
+variable is still supported, but the new variables are required
+when building dynamically-loadable database plugins. See CDB_README,
+LDAP_README, etc. for details.
+
+Major changes with snapshot 20140524
 ====================================
 
 Support to build Postfix with Postfix shared libraries, and with
-support for database plugins. Postfix shared libraries introduce
-minor runtime overhead and result in smaller Postfix executable
-files. Postfix database plugins are useful primarily for people
-who distribute pre-compiled packages.
+dynamically-loadable database plugins. Postfix shared libraries
+introduce minor runtime overhead and result in smaller Postfix
+executable files. Dynamically-loadable database plugins are useful
+primarily for people who install pre-compiled packages.
 
 This is based on Debian code by LaMont Jones, and based on a port
 by Viktor Dukhovni. Currently, support exists for recent versions
-of Linux, FreeBSD and MacOS X.
+of Linux, FreeBSD and MacOS X, as well as ancient Solaris 9.
 
-Postfix shared libraries and database plugins require changes in
-the Postix build procedure (specifically, the makedefs and Makefile.in
-files). These changes are introduced early in the annual Postfix
+Postfix shared libraries and dynamically-loadable database plugins
+require changes in the Postfix build procedure (specifically, the
+makedefs and Makefile.in files, and scripts that install or update
+Postfix).  These changes are introduced early in the annual Postfix
 development cycle to give down-stream maintainers sufficient time
 to prepare their build systems for the next stable Postfix release.
+
+Building with Postfix shared libraries and database plugins
+-----------------------------------------------------------
+
+Please see the INSTALL section "Building with Postfix shared libraries
+and database plugins" for fine-tuning details. 
+
+To build with Postfix shared libraries (libpostfix-*.so.*), use:
+
+% make makefiles shared=yes ...other arguments...
+
+To build with dynamicmaps.cf support and dynamically-loadable
+database plugins (postfix-*.so.*), use:
+
+% make makefiles dynamicmaps=yes ...other arguments...
+
+This implicitly enables support for libpostfix-*.so.* shared
+libraries. Database plugin support is available for CDB, LDAP, LMDB,
+MySQL, PCRE, PGSQL, SDBM, and SQLITE.
+
+NOTE: Postfix 2.12 expects that you specify database library
+dependencies with variables named AUXLIBS_CDB, AUXLIBS_LDAP, etc.
+The old AUXLIBS variable is still supported, but the new variables
+are required when building dynamically-loadable database plugins.
+See CDB_README, LDAP_README, etc. for details.
 
 Differences with Debian
 -----------------------
 
-Besides changes to the Postfix "build" system as described below,
+Besides changes to the Postfix "build" system as described above,
 the user-visible changes with respect to Debian are:
 
 - The new shlib_directory parameter specifies the location of the
@@ -55,13 +90,7 @@ the user-visible changes with respect to Debian are:
   among all Postfix instances just like postfix-files and other
   files. Files in /etc are meant to be instance-specific.
 
-Building with Postfix shared libraries and database plugins
------------------------------------------------------------
-
-Please see the INSTALL section "Building with Postfix shared libraries
-and database plugins". 
-
-Fuurther information
+Further information
 --------------------
 
 Maintainers may also benefit from the makedefs documentation

@@ -33,9 +33,6 @@ clients by using the Postfix proxymap(8) service. </p>
 
 <h2>Building Postfix with PostgreSQL support</h2>
 
-<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
-will be added later.] </p>
-
 <p> These instructions assume that you build Postfix from source
 code as described in the INSTALL document. Some modification may
 be required if you build Postfix from a vendor-specific source
@@ -56,9 +53,14 @@ the location of the libpq library file. </p>
 % make tidy
 % make -f Makefile.init makefiles \
         'CCARGS=-DHAS_PGSQL -I/usr/local/include/pgsql' \
-        'AUXLIBS=-L/usr/local/lib -lpq'
+        'AUXLIBS_PGSQL=-L/usr/local/lib -lpq'
 </pre>
 </blockquote>
+
+<p> Postfix versions before 2.12 should use AUXLIBS instead of
+AUXLIBS_PGSQL. Postfix 2.12 and later still support the old global
+AUXLIBS variable, but AUXLIBS_PGSQL is required when building
+dynamically-loadable database plugins.  </p>
 
 <p> Then just run 'make'.  </p>
 

@@ -43,6 +43,8 @@
 # it is a good idea to "u" all the files that have special ownership or
 # permissions, so that running "make install" fixes any glitches.
 #
+# Note: order matters. Update shared libraries and database plugins
+# before daemon/command-line programs.
 $config_directory:d:root:-:755:u
 $data_directory:d:$mail_owner:-:700:uc
 $daemon_directory:d:root:-:755:u
@@ -64,11 +66,13 @@ $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
 $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
+# Update shared libraries before daemon or command-line programs.
 $shlib_directory/lib${LIB_PREFIX}util${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}global${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}dns${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}tls${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}master${LIB_SUFFIX}:f:root:-:755
+# Update database plugins before daemon or command-line programs.
 $plugin_directory/${LIB_PREFIX}cdb${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}ldap${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}lmdb${LIB_SUFFIX}:f:root:-:755

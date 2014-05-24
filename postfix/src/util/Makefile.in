@@ -153,7 +153,7 @@ $(LIB_DIR)/$(LIB): $(LIB)
 plugin_map_so_make: $(PLUGIN_MAP_SO)
 
 $(LIB_PREFIX)pcre$(LIB_SUFFIX): dict_pcre.o
-	$(PLUGIN_LD) -o $@ dict_pcre.o
+	$(PLUGIN_LD) -o $@ dict_pcre.o $(AUXLIBS_PCRE) $(SYSLIBS)
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE) \
 	$(PLUGIN_MAP_OBJ_UPDATE)

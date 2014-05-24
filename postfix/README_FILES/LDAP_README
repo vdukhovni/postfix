@@ -26,9 +26,6 @@ Topics covered in this document:
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh LLDDAAPP ssuuppppoorrtt
 
-[Note: instructions to build as a dynamicmaps.cf-style plugin will be added
-later.]
-
 These instructions assume that you build Postfix from source code as described
 in the INSTALL document. Some modification may be required if you build Postfix
 from a vendor-specific source package.
@@ -55,14 +52,18 @@ this in the top level of your Postfix source tree should work:
 
     % make tidy
     % make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
-        AUXLIBS="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
+        AUXLIBS_LDAP="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
+
+Postfix versions before 2.12 should use AUXLIBS instead of AUXLIBS_LDAP.
+Postfix 2.12 and later still support the old global AUXLIBS variable, but
+AUXLIBS_LDAP is required when building dynamically-loadable database plugins.
 
 On Solaris 2.x you may have to specify run-time link information, otherwise
 ld.so will not find some of the shared libraries:
 
     % make tidy
     % make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
-        AUXLIBS="-L/usr/local/lib -R/usr/local/lib -lldap \
+        AUXLIBS_LDAP="-L/usr/local/lib -R/usr/local/lib -lldap \
                 -L/usr/local/lib -R/usr/local/lib -llber"
 
 The 'make tidy' command is needed only if you have previously built Postfix

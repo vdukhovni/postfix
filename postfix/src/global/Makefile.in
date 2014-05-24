@@ -127,7 +127,7 @@ MAKES	=
 
 .c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
-all: $(LIB) $(PLUGIN_MAP_SO) $(PLUGIN_MAP_OBJ)
+all: $(LIB) $(PLUGIN_MAP_SO_MAKE) $(PLUGIN_MAP_OBJ)
 
 $(OBJS) $(PLUGIN_MAP_OBJ): ../../conf/makedefs.out
 
@@ -145,30 +145,32 @@ $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
 	$(RANLIB) $(LIB_DIR)/$(LIB)
 
-plugin_map_so: $(PLUGIN_MAP_SO)
+plugin_map_so_make: $(PLUGIN_MAP_SO)
 
 $(LIB_PREFIX)ldap$(LIB_SUFFIX): dict_ldap.o
-	$(PLUGIN_LD) -o $@ dict_ldap.o
+	$(PLUGIN_LD) -o $@ dict_ldap.o $(AUXLIBS_LDAP) $(SYSLIBS)
 
 $(LIB_PREFIX)mysql$(LIB_SUFFIX): dict_mysql.o
-	$(PLUGIN_LD) -o $@ dict_mysql.o
+	$(PLUGIN_LD) -o $@ dict_mysql.o $(AUXLIBS_MYSQL) $(SYSLIBS)
 
 $(LIB_PREFIX)pgsql$(LIB_SUFFIX): dict_pgsql.o
-	$(PLUGIN_LD) -o $@ dict_pgsql.o
+	$(PLUGIN_LD) -o $@ dict_pgsql.o $(AUXLIBS_PGSQL) $(SYSLIBS)
 
 $(LIB_PREFIX)sqlite$(LIB_SUFFIX): dict_sqlite.o
-	$(PLUGIN_LD) -o $@ dict_sqlite.o
-
-$(LIB_PREFIX)lmdb$(LIB_SUFFIX): mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
-	$(LIB_DIR)/slmdb.o
-	$(PLUGIN_LD) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
-	$(LIB_DIR)/slmdb.o
+	$(PLUGIN_LD) -o $@ dict_sqlite.o $(AUXLIBS_SQLITE) $(SYSLIBS)
 
 $(LIB_PREFIX)cdb$(LIB_SUFFIX): mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
-	$(PLUGIN_LD) -o $@ mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
+	$(PLUGIN_LD) -o $@ mkmap_cdb.o $(LIB_DIR)/dict_cdb.o \
+	    $(AUXLIBS_CDB) $(SYSLIBS)
+
+$(LIB_PREFIX)lmdb$(LIB_SUFFIX): mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
+	    $(LIB_DIR)/slmdb.o
+	$(PLUGIN_LD) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
+	    $(LIB_DIR)/slmdb.o $(AUXLIBS_LMDB) $(SYSLIBS)
 
 $(LIB_PREFIX)sdbm$(LIB_SUFFIX): mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
-	$(PLUGIN_LD) -o $@ mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
+	$(PLUGIN_LD) -o $@ mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o \
+	    $(AUXLIBS_SDBM) $(SYSLIBS)
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE)
 	-for i in $(HDRS); \

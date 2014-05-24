@@ -32,9 +32,6 @@ itself can be found at http://www.pcre.org/. </p>
 
 <h2>Building Postfix with PCRE support</h2>
 
-<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
-will be added later.] </p>
-
 <p> These instructions assume that you build Postfix from source
 code as described in the INSTALL document. Some modification may
 be required if you build Postfix from a vendor-specific source
@@ -59,15 +56,20 @@ ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/.
 
 <p> In order to build Postfix with PCRE support you need to add
 -DHAS_PCRE and a -I for the PCRE include file to CCARGS, and add
-the path to the PCRE library to AUXLIBS, for example: </p>
+the path to the PCRE library to AUXLIBS_PCRE, for example: </p>
 
 <blockquote>
 <pre>
 make -f Makefile.init makefiles \
     "CCARGS=-DHAS_PCRE -I/usr/local/include" \
-    "AUXLIBS=-L/usr/local/lib -lpcre"
+    "AUXLIBS_PCRE=-L/usr/local/lib -lpcre"
 </pre>
 </blockquote>
+
+<p> Postfix versions before 2.12 should use AUXLIBS instead of
+AUXLIBS_PCRE. Postfix 2.12 and later still support the old global
+AUXLIBS variable, but AUXLIBS_PCRE is required when building
+dynamically-loadable database plugins.  </p>
 
 <p> Solaris needs run-time path information too: </p>
 
@@ -75,7 +77,7 @@ make -f Makefile.init makefiles \
 <pre>
 make -f Makefile.init makefiles \
     "CCARGS=-DHAS_PCRE -I/usr/local/include" \
-    "AUXLIBS=-L/usr/local/lib -R/usr/local/lib -lpcre"
+    "AUXLIBS_PCRE=-L/usr/local/lib -R/usr/local/lib -lpcre"
 </pre>
 </blockquote>
 
