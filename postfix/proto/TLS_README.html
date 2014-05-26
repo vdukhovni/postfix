@@ -810,14 +810,15 @@ to Postfix 2.9.6 or later. </p>
 
 <h3><a name="server_cipher">Server-side cipher controls</a> </h3>
 
-<p> The Postfix SMTP server supports 5 distinct cipher security levels
-as specified by the smtpd_tls_mandatory_ciphers configuration parameter,
-which determines the cipher grade with mandatory TLS encryption. The
-default value is "medium" which is essentially 128-bit encryption or better.
-With opportunistic TLS encryption, the minimum accepted cipher grade is
-typically "export". The corresponding smtpd_tls_ciphers parameter
-(Postfix &ge; 2.6) controls the cipher grade used with opportunistic
-TLS. </p>
+<p> The Postfix SMTP server supports 5 distinct cipher grades as
+specified by the smtpd_tls_mandatory_ciphers configuration parameter,
+which determines the cipher grade with mandatory TLS encryption.
+The default cipher grade for mandatory TLS is "medium" which is
+essentially 128-bit encryption or better.  The smtpd_tls_ciphers
+parameter (Postfix &ge; 2.6) controls the cipher grade used with
+opportunistic TLS.  With opportunistic TLS encryption, the minimum
+accepted cipher grade is "export" for Postfix &le; 3.0 and "medium"
+for Postfix &ge; 3.1.  </p>
 
 <p> By default anonymous ciphers are enabled. They are automatically
 disabled when remote SMTP client certificates are requested. If
@@ -827,12 +828,6 @@ by setting "smtpd_tls_mandatory_exclude_ciphers = aNULL" or
 "smtpd_tls_exclude_ciphers = aNULL", as appropriate. One can't force
 a remote SMTP client to check the server certificate, so excluding
 anonymous ciphers is generally unnecessary. </p>
-
-<p> The "smtpd_tls_ciphers" configuration parameter (Postfix &ge;
-2.6) provides control over the minimum cipher grade for opportunistic
-TLS. With
-Postfix &lt; 2.6, the minimum opportunistic TLS cipher grade is always
-"export". </p>
 
 <p> With mandatory TLS encryption, the Postfix SMTP server will by
 default disable SSLv2. SSLv2 is used only when TLS encryption
@@ -1080,14 +1075,11 @@ is supported by the server. Otherwise, messages are sent in the clear.
 Opportunistic TLS can be configured by setting "smtp_tls_security_level = may".
 For LMTP, use the corresponding "lmtp_" parameter. </p>
 
-<p> Since sending in the clear is acceptable, demanding stronger
-than default TLS security mostly reduces inter-operability. If you
-must restrict TLS protocol or cipher selection even with opportunistic
-TLS, the "smtp_tls_ciphers" and "smtp_tls_protocols" configuration
-parameters (Postfix &ge; 2.6) provide control over the protocols
-and cipher grade
-used with opportunistic TLS. With earlier releases the opportunistic TLS
-cipher grade is always "export" and no protocols are disabled. </p>
+<p> The "smtp_tls_ciphers" and "smtp_tls_protocols" configuration
+parameters (Postfix &ge; 2.6) provide control over the cipher grade
+and protocols used with opportunistic TLS.  With earlier releases
+the opportunistic TLS cipher grade is always "export" and no protocols
+are disabled. </p>
 
 <p> With opportunistic TLS, mail delivery continues even if the
 server certificate is untrusted or bears the wrong name.  
@@ -2318,7 +2310,7 @@ configured to supply its intermediate CA certificate). </p>
 
 <h3> <a name="client_cipher">Client-side cipher controls </a> </h3>
 
-<p> The Postfix SMTP client supports 5 distinct cipher security levels
+<p> The Postfix SMTP client supports 5 distinct cipher grades
 as specified by the smtp_tls_mandatory_ciphers configuration
 parameter. This setting controls the minimum acceptable SMTP client
 TLS cipher grade for use with mandatory TLS encryption. The default
@@ -2341,7 +2333,8 @@ little point in requesting them. </p>
 <p> The "smtp_tls_ciphers" configuration parameter (Postfix &ge; 2.6)
 provides control over the minimum cipher grade for opportunistic TLS. With
 Postfix &lt; 2.6, the minimum opportunistic TLS cipher grade is always
-"export". </p>
+"export".  Starting with Postfix 3.1, the default grade is "medium" even
+for opportunistic TLS.  </p>
 
 <p> With mandatory TLS encryption, the Postfix SMTP client will by
 default disable SSLv2. SSLv2 is used only when TLS encryption
@@ -2363,7 +2356,7 @@ the SSL/TLS protocols used with opportunistic TLS. </p>
     # Legacy form for Postfix &lt; 2.5:
     smtp_tls_mandatory_protocols = SSLv3, TLSv1
     # Also available with Postfix &ge; 2.6:
-    smtp_tls_ciphers = export
+    smtp_tls_ciphers = medium
     smtp_tls_protocols = !SSLv2
 </pre>
 </blockquote>
@@ -2708,9 +2701,10 @@ font, and a "<tt>#</tt>" prompt indicates a super-user shell. </p>
 
 <h3><a name="self-signed">Self-signed server certificate</a></h3>
 
-<p> The following commands (credits: Viktor Dukhovni) generate
-and install a private key and 10-year self-signed certificate for
-the local Postfix system. This requires super-user privileges. </p>
+<p> The following commands (credits: Viktor Dukhovni) generate and
+install a 2048-bit RSA private key and 10-year self-signed certificate
+for the local Postfix system. This requires super-user privileges.
+</p>
 
 <blockquote>
 <pre>

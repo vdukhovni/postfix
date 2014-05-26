@@ -402,14 +402,14 @@
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 /*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
-/* .IP "\fBtls_high_cipherlist (ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "HIGH" grade ciphers.
-/* .IP "\fBtls_medium_cipherlist (ALL:!EXPORT:!LOW:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "MEDIUM" or higher grade ciphers.
-/* .IP "\fBtls_low_cipherlist (ALL:!EXPORT:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "LOW" or higher grade ciphers.
-/* .IP "\fBtls_export_cipherlist (ALL:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
+/* .IP "\fBtls_high_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "high" grade ciphers.
+/* .IP "\fBtls_medium_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "medium" grade ciphers.
+/* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "low" grade ciphers.
+/* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "export" grade ciphers.
 /* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
 /*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
 /*	authentication without encryption.
@@ -433,9 +433,9 @@
 /* .IP "\fBsmtp_tls_protocols (!SSLv2)\fR"
 /*	List of TLS protocols that the Postfix SMTP client will exclude or
 /*	include with opportunistic TLS encryption.
-/* .IP "\fBsmtp_tls_ciphers (export)\fR"
-/*	The minimum TLS cipher grade that the Postfix SMTP client
-/*	will use with opportunistic TLS encryption.
+/* .IP "\fBsmtp_tls_ciphers (see 'postconf -d' output)\fR"
+/*	The minimum TLS cipher grade that the Postfix SMTP client will
+/*	use with opportunistic TLS encryption.
 /* .IP "\fBsmtp_tls_eccert_file (empty)\fR"
 /*	File with the Postfix SMTP client ECDSA certificate in PEM format.
 /* .IP "\fBsmtp_tls_eckey_file ($smtp_tls_eccert_file)\fR"

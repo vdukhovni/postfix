@@ -79,7 +79,7 @@
 /* .ad
 /* .fi
 /* .IP "\fBbroken_sasl_auth_clients (no)\fR"
-/*	Enable inter-operability with remote SMTP clients that implement an obsolete
+/*	Enable interoperability with remote SMTP clients that implement an obsolete
 /*	version of the AUTH command (RFC 4954).
 /* .IP "\fBdisable_vrfy_command (no)\fR"
 /*	Disable the SMTP VRFY command.
@@ -284,7 +284,7 @@
 /*	Postfix SMTP client to a remote SMTP server.
 /*	See the SASL_README document for details.
 /* .IP "\fBbroken_sasl_auth_clients (no)\fR"
-/*	Enable inter-operability with remote SMTP clients that implement an obsolete
+/*	Enable interoperability with remote SMTP clients that implement an obsolete
 /*	version of the AUTH command (RFC 4954).
 /* .IP "\fBsmtpd_sasl_auth_enable (no)\fR"
 /*	Enable SASL authentication in the Postfix SMTP server.
@@ -378,8 +378,8 @@
 /*	File with DH parameters that the Postfix SMTP server should
 /*	use with non-export EDH ciphers.
 /* .IP "\fBsmtpd_tls_dh512_param_file (empty)\fR"
-/*	File with DH parameters that the Postfix SMTP server should
-/*	use with export-grade EDH ciphers.
+/*	File with DH parameters that the Postfix SMTP server should use
+/*	with export-grade EDH ciphers.
 /* .IP "\fBsmtpd_tls_dkey_file ($smtpd_tls_dcert_file)\fR"
 /*	File with the Postfix SMTP server DSA private key in PEM format.
 /* .IP "\fBsmtpd_tls_key_file ($smtpd_tls_cert_file)\fR"
@@ -410,14 +410,14 @@
 /*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 /*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
 /*	internal pseudo random number generator (PRNG).
-/* .IP "\fBtls_high_cipherlist (ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "HIGH" grade ciphers.
-/* .IP "\fBtls_medium_cipherlist (ALL:!EXPORT:!LOW:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "MEDIUM" or higher grade ciphers.
-/* .IP "\fBtls_low_cipherlist (ALL:!EXPORT:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "LOW" or higher grade ciphers.
-/* .IP "\fBtls_export_cipherlist (ALL:+RC4:@STRENGTH)\fR"
-/*	The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
+/* .IP "\fBtls_high_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "high" grade ciphers.
+/* .IP "\fBtls_medium_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "medium" grade ciphers.
+/* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "low" grade ciphers.
+/* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "export" grade ciphers.
 /* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
 /*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
 /*	authentication without encryption.
@@ -433,9 +433,9 @@
 /* .IP "\fBsmtpd_tls_protocols (empty)\fR"
 /*	List of TLS protocols that the Postfix SMTP server will exclude
 /*	or include with opportunistic TLS encryption.
-/* .IP "\fBsmtpd_tls_ciphers (export)\fR"
-/*	The minimum TLS cipher grade that the Postfix SMTP server
-/*	will use with opportunistic TLS encryption.
+/* .IP "\fBsmtpd_tls_ciphers (see 'postconf -d' output)\fR"
+/*	The minimum TLS cipher grade that the Postfix SMTP server will
+/*	use with opportunistic TLS encryption.
 /* .IP "\fBsmtpd_tls_eccert_file (empty)\fR"
 /*	File with the Postfix SMTP server ECDSA certificate in PEM format.
 /* .IP "\fBsmtpd_tls_eckey_file ($smtpd_tls_eccert_file)\fR"

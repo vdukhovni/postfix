@@ -1317,7 +1317,7 @@ extern char *var_smtpd_tls_proto;
 extern char *var_smtpd_tls_mand_proto;
 
 #define VAR_SMTPD_TLS_CIPH	"smtpd_tls_ciphers"
-#define DEF_SMTPD_TLS_CIPH	"export"
+#define DEF_SMTPD_TLS_CIPH	"medium"
 extern char *var_smtpd_tls_ciph;
 
 #define VAR_SMTPD_TLS_MAND_CIPH	"smtpd_tls_mandatory_ciphers"
@@ -1464,9 +1464,9 @@ extern char *var_smtp_tls_CAfile;
 extern char *var_smtp_tls_CApath;
 
 #define VAR_SMTP_TLS_CIPH	"smtp_tls_ciphers"
-#define DEF_SMTP_TLS_CIPH	"export"
+#define DEF_SMTP_TLS_CIPH	"medium"
 #define VAR_LMTP_TLS_CIPH	"lmtp_tls_ciphers"
-#define DEF_LMTP_TLS_CIPH	"export"
+#define DEF_LMTP_TLS_CIPH	"medium"
 extern char *var_smtp_tls_ciph;
 
 #define VAR_SMTP_TLS_MAND_CIPH	"smtp_tls_mandatory_ciphers"
