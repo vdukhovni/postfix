@@ -28,7 +28,9 @@
 /*	char	*var_daemon_dir;
 /*	char	*var_data_dir;
 /*	char	*var_command_dir;
+/*	char	*var_plugin_dir;
 /*	char	*var_queue_dir;
+/*	char	*var_shlib_dir;
 /*	int	var_use_limit;
 /*	int	var_idle_limit;
 /*	int	var_event_drain;
@@ -180,9 +182,7 @@
 #ifdef HAS_DB
 #include <dict_db.h>
 #endif
-#ifdef HAS_LMDB
 #include <dict_lmdb.h>
-#endif
 #include <inet_proto.h>
 #include <vstring_vstream.h>
 #include <iostuff.h>
@@ -222,7 +222,9 @@ char   *var_config_dir;
 char   *var_daemon_dir;
 char   *var_data_dir;
 char   *var_command_dir;
+char   *var_plugin_dir;
 char   *var_queue_dir;
+char   *var_shlib_dir;
 int     var_use_limit;
 int     var_event_drain;
 int     var_idle_limit;
@@ -318,6 +320,8 @@ bool    var_daemon_open_fatal;
 char   *var_dsn_filter;
 
 const char null_format_string[1] = "";
+
+DEFINE_DICT_LMDB_MAP_SIZE;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -553,7 +557,9 @@ void    mail_params_init()
 	VAR_DAEMON_DIR, DEF_DAEMON_DIR, &var_daemon_dir, 1, 0,
 	VAR_DATA_DIR, DEF_DATA_DIR, &var_data_dir, 1, 0,
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
+	VAR_PLUGIN_DIR, DEF_PLUGIN_DIR, &var_plugin_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
+	VAR_SHLIB_DIR, DEF_SHLIB_DIR, &var_shlib_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,
 	VAR_INET_INTERFACES, DEF_INET_INTERFACES, &var_inet_interfaces, 0, 0,
 	VAR_PROXY_INTERFACES, DEF_PROXY_INTERFACES, &var_proxy_interfaces, 0, 0,
@@ -728,9 +734,7 @@ void    mail_params_init()
 #ifdef HAS_DB
     dict_db_cache_size = var_db_read_buf;
 #endif
-#ifdef HAS_LMDB
     dict_lmdb_map_size = var_lmdb_map_size;
-#endif
     inet_windowsize = var_inet_windowsize;
 
     /*

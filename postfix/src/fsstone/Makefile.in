@@ -8,7 +8,8 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 PROG	= fsstone
 INC_DIR	= ../../include
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -20,7 +21,7 @@ Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
 
 fsstone: fsstone.o $(LIBS)
-	$(CC) $(CFLAGS) -o $@ fsstone.o $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ fsstone.o $(LIBS) $(SYSLIBS)
 
 test:	$(TESTPROG)
 

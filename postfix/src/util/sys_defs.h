@@ -73,6 +73,7 @@
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+#define HAS_DLOPEN
 #endif
 
 #ifdef FREEBSD2
@@ -260,7 +261,7 @@
 #ifndef NO_POSIX_GETPW_R
 # define HAVE_POSIX_GETPW_R
 #endif
-
+#define HAS_DLOPEN
 #endif
 
  /*
@@ -488,6 +489,8 @@ extern int opterr;
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
+
+#define HAS_DLOPEN
 #endif
 
  /*
@@ -780,6 +783,7 @@ extern int initgroups(const char *, int);
 #define STATFS_IN_SYS_VFS_H
 #define PREPEND_PLUS_TO_OPTSTRING
 #define HAS_POSIX_REGEXP
+#define HAS_DLOPEN
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
@@ -966,6 +970,7 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define HAS_POSIX_REGEXP
+#define HAS_DLOPEN
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
@@ -1005,6 +1010,7 @@ extern int h_errno;			/* <netdb.h> imports too much stuff */
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define HAS_POSIX_REGEXP
+#define HAS_SHL_LOAD
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"
@@ -1046,6 +1052,7 @@ extern int h_errno;
 #define USE_STATFS
 #define STATFS_IN_SYS_VFS_H
 #define HAS_POSIX_REGEXP
+#define HAS_SHL_LOAD
 #define NATIVE_SENDMAIL_PATH "/usr/bin/sendmail"
 #define NATIVE_MAILQ_PATH "/usr/bin/mailq"
 #define NATIVE_NEWALIAS_PATH "/usr/bin/newaliases"

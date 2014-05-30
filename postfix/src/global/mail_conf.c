@@ -194,10 +194,10 @@ void    mail_conf_suck(void)
 
 /* mail_conf_flush - discard configuration dictionary */
 
-void mail_conf_flush(void)
+void    mail_conf_flush(void)
 {
     if (dict_handle(CONFIG_DICT) != 0)
-        dict_unregister(CONFIG_DICT);
+	dict_unregister(CONFIG_DICT);
 }
 
 /* mail_conf_eval - expand macros in string */

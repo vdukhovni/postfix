@@ -6,6 +6,14 @@
 /* SYNOPSIS
 /*	#include <mkmap.h>
 /*
+/*	typedef struct MKMAP {
+/*	    DICT_OPEN_FN open;				/* dict_xx_open() */
+/*	    DICT *dict;					/* dict_xx_open() result */
+/*	    void    (*after_open) (struct MKMAP *);	/* may be null */
+/*	    void    (*after_close) (struct MKMAP *);	/* may be null */
+/*	    int     multi_writer;			/* multi-writer safe */
+/*	} MKMAP;
+/*
 /*	MKMAP	*mkmap_open(type, path, open_flags, dict_flags)
 /*	char	*type;
 /*	char	*path;
@@ -20,6 +28,16 @@
 /*
 /*	void	mkmap_close(mkmap)
 /*	MKMAP	*mkmap;
+/*
+/*	typedef MKMAP *(*MKMAP_OPEN_FN) (const char *);
+/*	typedef MKMAP_OPEN_FN *(*MKMAP_OPEN_EXTEND_FN) (const char *);
+/*
+/*	void	mkmap_open_register(type, open_fn)
+/*	const char *type;
+/*	MKMAP_OPEN_FN open_fn;
+/*
+/*	MKMAP_OPEN_EXTEND_FN mkmap_open_extend(call_back)
+/*	MKMAP_OPEN_EXTEND_FN call_back;
 /* DESCRIPTION
 /*	This module implements support for creating Postfix databases.
 /*	It is a dict(3) wrapper that adds global locking to dict-level
@@ -29,8 +47,8 @@
 /*	appending the appropriate suffixes to the specified filename.
 /*	Before the database is updated, it is locked for exclusive
 /*	access, and signal delivery is suspended.
-/*	See dict(3) for a description of \fBopen_flags\fR and \fBdict_flags\fR.
-/*	All errors are fatal.
+/*	See dict(3) for a description of \fBopen_flags\fR and
+/*	\fBdict_flags\fR.  All errors are fatal.
 /*
 /*	mkmap_append() appends the named (key, value) pair to the
 /*	database. Update errors are fatal; duplicate keys are ignored
@@ -39,6 +57,15 @@
 /*
 /*	mkmap_close() closes the database, releases any locks,
 /*	and resumes signal delivery. All errors are fatal.
+/*
+/*	mkmap_open_register() adds support for a new database type.
+/*
+/*	mkmap_open_extend() registers a call-back function that looks
+/*	up the mkmap open() function for a database type that is not
+/*	registered, or null in case of error. The result value is the
+/*	last previously-registered call-back or null. A mkmap open()
+/*	function is cached after it is looked up through this extension
+/*	mechanism.
 /* SEE ALSO
 /*	sigdelay(3) suspend/resume signal delivery
 /* LICENSE
@@ -61,6 +88,7 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <htable.h>
 #include <dict.h>
 #include <dict_db.h>
 #include <dict_cdb.h>
@@ -78,23 +106,28 @@
 
  /*
   * Information about available database types. Here, we list only those map
-  * types that support "create" operations.
+  * types that support "bulk create" operations.
   * 
-  * We use a different table (in dict_open.c) when querying maps.
+  * We use a different table (in dict_open.c and mail_dict.c) when querying maps
+  * or when making incremental updates.
   */
 typedef struct {
-    char   *type;
-    MKMAP  *(*before_open) (const char *);
+    const char *type;
+    MKMAP_OPEN_FN before_open;
 } MKMAP_OPEN_INFO;
 
-static const MKMAP_OPEN_INFO mkmap_types[] = {
-    DICT_TYPE_PROXY, mkmap_proxy_open,
+static const MKMAP_OPEN_INFO mkmap_open_info[] = {
+#ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_CDB
     DICT_TYPE_CDB, mkmap_cdb_open,
 #endif
 #ifdef HAS_SDBM
     DICT_TYPE_SDBM, mkmap_sdbm_open,
 #endif
+#ifdef HAS_LMDB
+    DICT_TYPE_LMDB, mkmap_lmdb_open,
+#endif
+#endif					/* !USE_DYNAMIC_MAPS */
 #ifdef HAS_DBM
     DICT_TYPE_DBM, mkmap_dbm_open,
 #endif
@@ -102,12 +135,57 @@ static const MKMAP_OPEN_INFO mkmap_types[] = {
     DICT_TYPE_HASH, mkmap_hash_open,
     DICT_TYPE_BTREE, mkmap_btree_open,
 #endif
-#ifdef HAS_LMDB
-    DICT_TYPE_LMDB, mkmap_lmdb_open,
-#endif
     DICT_TYPE_FAIL, mkmap_fail_open,
     0,
 };
+
+static HTABLE *mkmap_open_hash;
+
+static MKMAP_OPEN_EXTEND_FN mkmap_open_extend_hook = 0;
+
+/* mkmap_open_init - one-off initialization */
+
+static void mkmap_open_init(void)
+{
+    const char myname[] = "mkmap_open_init";
+    const MKMAP_OPEN_INFO *mp;
+
+    if (mkmap_open_hash != 0)
+	msg_panic("%s: multiple initialization", myname);
+    mkmap_open_hash = htable_create(10);
+
+    for (mp = mkmap_open_info; mp->type; mp++)
+	htable_enter(mkmap_open_hash, mp->type, (char *) mp);
+}
+
+/* mkmap_open_register - register dictionary type */
+
+void    mkmap_open_register(const char *type, MKMAP_OPEN_FN open_fn)
+{
+    const char myname[] = "mkmap_open_register";
+    MKMAP_OPEN_INFO *mp;
+    HTABLE_INFO *ht;
+
+    if (mkmap_open_hash == 0)
+	mkmap_open_init();
+    if (htable_find(mkmap_open_hash, type))
+	msg_panic("%s: database type exists: %s", myname, type);
+    mp = (MKMAP_OPEN_INFO *) mymalloc(sizeof(*mp));
+    mp->before_open = open_fn;
+    ht = htable_enter(mkmap_open_hash, type, (char *) mp);
+    mp->type = ht->key;
+}
+
+/* mkmap_open_extend - register alternate lookup function */
+
+MKMAP_OPEN_EXTEND_FN mkmap_open_extend(MKMAP_OPEN_EXTEND_FN new_cb)
+{
+    MKMAP_OPEN_EXTEND_FN old_cb;
+
+    old_cb = mkmap_open_extend_hook;
+    mkmap_open_extend_hook = new_cb;
+    return (old_cb);
+}
 
 /* mkmap_append - append entry to map */
 
@@ -160,15 +238,21 @@ MKMAP  *mkmap_open(const char *type, const char *path,
 {
     MKMAP  *mkmap;
     const MKMAP_OPEN_INFO *mp;
+    MKMAP_OPEN_FN open_fn;
 
     /*
      * Find out what map type to use.
      */
-    for (mp = mkmap_types; /* void */ ; mp++) {
-	if (mp->type == 0)
+    if (mkmap_open_hash == 0)
+	mkmap_open_init();
+    if ((mp = (MKMAP_OPEN_INFO *) htable_find(mkmap_open_hash, type)) == 0) {
+	if (mkmap_open_extend_hook != 0 &&
+	    (open_fn = mkmap_open_extend_hook(type)) != 0) {
+	    mkmap_open_register(type, open_fn);
+	    mp = (MKMAP_OPEN_INFO *) htable_find(mkmap_open_hash, type);
+	}
+	if (mp == 0)
 	    msg_fatal("unsupported map type for this operation: %s", type);
-	if (strcmp(type, mp->type) == 0)
-	    break;
     }
     if (msg_verbose)
 	msg_info("open %s %s", type, path);

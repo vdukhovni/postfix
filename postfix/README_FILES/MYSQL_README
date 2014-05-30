@@ -33,17 +33,27 @@ obtained from:
 
 In order to build Postfix with mysql map support, you will need to add -
 DHAS_MYSQL and -I for the directory containing the mysql headers, and the
-mysqlclient library (and libm) to AUXLIBS, for example:
+mysqlclient library (and libm) to AUXLIBS_MYSQL, for example:
 
     make -f Makefile.init makefiles \
         'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
-        'AUXLIBS=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
+        'AUXLIBS_MYSQL=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
+
+Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_MYSQL. With Postfix
+2.12 and later, the old AUXLIBS variable still supports building a statically-
+loaded MySQL database client, but only the new AUXLIBS_MYSQL variable supports
+building a dynamically-loaded or statically-loaded MySQL database client.
+
+    Failure to use the AUXLIBS_MYSQL variable will defeat the purpose of
+    dynamic database client loading. Every Postfix executable file will have
+    MYSQL database library dependencies. And that was exactly what dynamic
+    database client loading was meant to avoid.
 
 On Solaris, use this instead:
 
     make -f Makefile.init makefiles \
         'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
-        'AUXLIBS=-L/usr/local/mysql/lib -R/usr/local/mysql/lib \
+        'AUXLIBS_MYSQL=-L/usr/local/mysql/lib -R/usr/local/mysql/lib \
             -lmysqlclient -lz -lm'
 
 Then, just run 'make'. This requires libz, the compression library. Older mysql

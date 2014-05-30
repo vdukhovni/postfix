@@ -16,7 +16,11 @@
 #	environment variables. Use quotes if variables contain
 #	whitespace or shell meta characters.
 # .IP \fBAUXLIBS=\fIobject_library...\fR
-#	Specifies one or more non-default object libraries.
+#	Specifies one or more non-default object libraries. Postfix
+#	2,12 and later specify some of their database library
+#	dependencies with AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,
+#	AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL, AUXLIBS_SDBM,
+#	and AUXLIBS_SQLITE, respectively.
 # .IP \fBCC=\fIcompiler_command\fR
 #	Specifies a non-default compiler. On many systems, the default
 #	is \fBgcc\fR.
@@ -69,6 +73,32 @@
 # .IP \fBOPT=\fIoptimization_level\fR
 #	Specifies a non-default optimization level. The default is \fB-O\fR.
 #	Specify \fBOPT=\fR to turn off optimization.
+# .IP \fBshared=yes\fR
+# .IP \fBshared=no\fR
+#	Enable (disable) Postfix builds with shared libraries
+#	typically named $shlib_directory/libpostfix-*.so.*.
+# .IP \fBdynamicmaps=yes\fR
+# .IP \fBdynamicmaps=no\fR
+#	Enable (disable) Postfix builds with the configuration file
+#	$plugin_directory/dynamicmaps.cf for dynamically-loadable
+#	database plugins typically named postfix-*.so.*.  The setting
+#	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
+# .IP \fIinstallation_parameter\fB=\fIvalue\fR...
+#	Override the compiled-in default value of the specified
+#	installation parameter(s). The following parameters are
+#	supported in this context:
+#
+#	command_directory config_directory daemon_directory
+#	data_directory default_database_type html_directory
+#	mailq_path manpage_directory newaliases_path plugin_directory
+#	queue_directory readme_directory sendmail_path shlib_directory
+#
+#	See the postconf(5) manpage for a description of these
+#	parameters.
+# .IP \fBSHLIB_VERSION=\fIversion\fR
+#	Specifies a non-default shared-library version for Postfix
+#	libraries and database plugins.  By default, the version
+#	equals the default value for the $mail_version parameter.
 # .IP \fBWARN=\fIwarning_flags\fR
 #	Specifies non-default gcc compiler warning options for use when
 #	"make" is invoked in a source subdirectory only.
@@ -155,8 +185,20 @@ case "$SYSTEM.$RELEASE" in
   FreeBSD.7*)	SYSTYPE=FREEBSD7
 		;;
   FreeBSD.8*)	SYSTYPE=FREEBSD8
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD='gcc -shared'}
 		;;
   FreeBSD.9*)	SYSTYPE=FREEBSD9
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD='gcc -shared'}
 		;;
  DragonFly.*)	SYSTYPE=DRAGONFLY
 		;;
@@ -202,6 +244,12 @@ case "$SYSTEM.$RELEASE" in
     SunOS.5*)	SYSTYPE=SUNOS5
 		RANLIB=echo
 		SYSLIBS="-lresolv -lsocket -lnsl -ldl"
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-h,${LIB}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${SHLIB_RPATH='-Wl,-R,${SHLIB_DIR}'}
+		: ${PLUGIN_LD='gcc -shared'}
 		# Stock awk breaks with >10 files.
 		test -x /usr/xpg4/bin/awk && AWK=/usr/xpg4/bin/awk
 		# Solaris 2.5 added usleep(), POSIX regexp, POSIX getpwnam/uid_r
@@ -361,6 +409,13 @@ EOF
 			   rm -f makedefs.test makedefs.test.[co]
 		       fi;;
 		esac
+		SYSLIBS="$SYSLIBS -ldl"
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD='gcc -shared'}
 		;;
     Linux.3*)	SYSTYPE=LINUX3
 		case "$CCARGS" in
@@ -392,6 +447,13 @@ EOF
 			}
 		    done
 		done
+		SYSLIBS="$SYSLIBS -ldl"
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD='gcc -shared'}
 		;;
      GNU.0*|GNU/kFreeBSD.[567]*)
 		SYSTYPE=GNU0
@@ -470,7 +532,9 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
     Darwin.*)   SYSTYPE=MACOSX
 		# Use the native compiler by default
 		: ${CC=cc}
-		CCARGS="$CCARGS \$(WARN)"
+		CCARGS="$CCARGS"
+		CCWARN='$(WARN)'
+		MAKE_FIX=cant-move-relative-symlink
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;
@@ -501,6 +565,12 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		case $RELEASE in
 	    ?.*|1[0-1].*) CCARGS="$CCARGS -DNO_KQUEUE";;
 		esac
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_SUFFIX=.dylib}
+		: ${SHLIB_LD='cc -shared -Wl,-flat_namespace -Wl,-undefined,dynamic_lookup -Wl,-install_name,@rpath/${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="DYLD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD='cc -shared -Wl,-flat_namespace -Wl,-undefined,dynamic_lookup'}
 		;;
     dcosx.1*)	SYSTYPE=DCOSX1
 		RANLIB=echo
@@ -599,7 +669,7 @@ case "$CCARGS" in
 	   *)	pcre_cflags=`(pcre-config --cflags) 2>/dev/null` &&
 		    pcre_libs=`(pcre-config --libs) 2>/dev/null` && {
 			CCARGS="$CCARGS -DHAS_PCRE $pcre_cflags"
-			AUXLIBS="$AUXLIBS $pcre_libs"
+			AUXLIBS_PCRE="$pcre_libs"
 		}
 		;;
 esac
@@ -617,19 +687,6 @@ case "$CC" in
       *CC) error "Don't use CC. That's the C++ compiler";;
 	*) : ${OPT='-O'};;
 esac
-#
-# "gcc -W" 3.4.2 no longer reports functions that fail to return a
-# result.  Use "gcc -Wall -Wno-comment" instead. We'll figure out
-# later if the other -Wmumble options are really redundant. Having
-# een burned once by a compiler that lies about what warnings it
-# produces, not taking that chance again.
-
-: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
-${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
-	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused -Wno-missing-braces'}
-
-export SYSTYPE AR ARFL RANLIB SYSLIBS CC OPT DEBUG AWK OPTS
 
 # Snapshot only.
 CCARGS="$CCARGS -DSNAPSHOT"
@@ -641,17 +698,268 @@ CCARGS="$CCARGS -DSNAPSHOT"
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"
 
-sed 's/  / /g' <<EOF
+# Optionally override installation-parameter default settings.
+
+command_directory_macro=DEF_COMMAND_DIR
+config_directory_macro=DEF_CONFIG_DIR
+daemon_directory_macro=DEF_DAEMON_DIR
+data_directory_macro=DEF_DATA_DIR
+mailq_path_macro=DEF_MAILQ_PATH
+newaliases_path_macro=DEF_NEWALIAS_PATH
+plugin_directory_macro=DEF_PLUGIN_DIR
+queue_directory_macro=DEF_QUEUE_DIR
+sendmail_path_macro=DEF_SENDMAIL_PATH
+shlib_directory_macro=DEF_SHLIB_DIR
+
+# shlib_directory and plugin_directory are checked here because "no"
+# is not a good answer.  Instead, build with "dynamicmaps=no" or
+# "shared=no" as appropriate.
+
+for parm_name in command_directory config_directory daemon_directory \
+	data_directory mailq_path newaliases_path plugin_directory \
+	queue_directory sendmail_path shlib_directory
+do
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    "") ;;
+    /*) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+     *) error "$parm_name must specify an absolute path name";;
+    esac
+done
+
+html_directory_macro=DEF_HTML_DIR
+manpage_directory_macro=DEF_MANPAGE_DIR
+readme_directory_macro=DEF_README_DIR
+
+for parm_name in html_directory manpage_directory
+do
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    "") ;;
+ /*|no) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+     *) error "$parm_name must specify \"no\" or an absolute path name";;
+    esac
+done
+
+default_database_type_macro=DEF_DB_TYPE
+
+for parm_name in default_database_type
+do
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    "") ;;
+     *) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+    esac
+done
+
+# The following are for non-shared libsasl and libmilter builds.
+
+_AR=$AR
+_RANLIB=$RANLIB
+
+# Choose between shared and non-shared library builds.
+
+case "$dynamicmaps" in
+  yes) shared=yes;;
+""|no) ;;
+    *) error "Specify \"dynamicmaps=yes\" or \"dynamicmaps=no\"";;
+esac
+
+case "$shared" in
+yes)
+    if [ -z "$SHLIB_SUFFIX" ]
+    then 
+	error "Shared libraries are requested, but not supported on this platform"
+    fi
+    AR=:
+    RANLIB=:
+    CCARGS="$CCARGS -DUSE_DYNAMIC_LIBS"
+    case "$dynamicmaps" in
+    yes) NON_PLUGIN_MAP_OBJ=
+	 PLUGIN_MAP_OBJ='$(MAP_OBJ)'
+	 PLUGIN_MAP_OBJ_UPDATE=plugin_map_obj_update
+	 PLUGIN_MAP_SO_MAKE=plugin_map_so_make
+	 PLUGIN_MAP_SO_UPDATE=plugin_map_so_update
+	 CCARGS="$CCARGS -DUSE_DYNAMIC_MAPS"
+	 ;;
+      *) NON_PLUGIN_MAP_OBJ='$(MAP_OBJ)'
+	 PLUGIN_MAP_OBJ=
+	 PLUGIN_MAP_OBJ_UPDATE=
+	 PLUGIN_MAP_SO_MAKE=
+	 PLUGIN_MAP_SO_UPDATE=
+	 PLUGIN_LD=
+	 plugin_directory=no
+	 CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS -DDEF_PLUGIN_DIR=\\\"no\\\""
+	 ;;
+    esac
+
+    # Determine the shared-library and plugin installation directory.
+    for parm_name in shlib_directory plugin_directory
+    do
+	eval parm_val=\"\$$parm_name\"
+	eval parm_macro=\"\$${parm_name}_macro\"
+	case "$parm_val" in
+	/*|no) # CCARGS was already updated above.
+	    ;;
+	"") trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+	    sed -n '
+		/_SHLIB_DIR/,/^$/p
+		/_PLUGIN_DIR/,/^$/p
+	    ' src/global/mail_params.h >makedefs.test.c
+	    cat >>makedefs.test.c <<EOF
+#include <stdlib.h>
+#include <stdio.h>
+int     main(void)
+{
+    printf("%s\n", $parm_macro);
+    fflush(stdout);
+    exit(ferror(stdout) ? 1 : 0);
+}
+EOF
+	    eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+	    eval $parm_name=`./makedefs.test` || exit 1
+	    rm -f makedefs.test makedefs.test.[co]
+	    ;;
+	 *) # this parameter was already checked above.
+	    error "Can't happen in $0 - $parm_val is not an absolute path"
+	    ;;
+	esac
+    done
+
+    # Determine the shared-library version.
+    test -z "$SHLIB_VERSION" && {
+	trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+	(cat <<'EOF'
+#include <stdlib.h>
+#include <stdio.h>
+EOF
+	# Avoid "nested comment" warnings. Top-of-file comments start in
+	# column 1 and have no code after "*/", not even in header files.
+	# If this is insufficient, kill the problem with #ifndef MAKEDEFS.
+	sed '/^\/\*/,/\*\//d' src/global/mail_version.h
+	cat <<'EOF'
+int     main(void)
+{
+    printf("%s\n", DEF_MAIL_VERSION);
+    fflush(stdout);
+    exit(ferror(stdout) ? 1 : 0);
+}
+EOF
+    ) >makedefs.test.c
+	eval ${CC-gcc} -DMAKEDEFS ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+	SHLIB_VERSION=`./makedefs.test` || exit 1
+	rm -f makedefs.test makedefs.test.[co]
+    }
+    LIB_PREFIX=postfix-
+    LIB_SUFFIX=${SHLIB_SUFFIX}.${SHLIB_VERSION}
+    CCARGS="$CCARGS -DSHLIB_VERSION=\\\"$SHLIB_VERSION\\\""
+    ;;
+
+no|"")
+    shlib_directory=no
+    plugin_directory=no
+    CCARGS="$CCARGS -UUSE_DYNAMIC_LIBS -DDEF_SHLIB_DIR=\\\"no\\\""
+    CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS -DDEF_PLUGIN_DIR=\\\"no\\\""
+    SHLIB_CFLAGS=
+    SHLIB_SUFFIX=
+    SHLIB_LD=:
+    SHLIB_RPATH=
+    SHLIB_ENV=
+    SHLIB_VERSION=
+    LIB_PREFIX=
+    LIB_SUFFIX=.a
+    NON_PLUGIN_MAP_OBJ='$(MAP_OBJ)'
+    PLUGIN_MAP_OBJ=
+    PLUGIN_MAP_OBJ_UPDATE=
+    PLUGIN_MAP_SO_MAKE=
+    PLUGIN_MAP_SO_UPDATE=
+    PLUGIN_LD=
+    ;;
+
+*)  error "Specify \"shared=yes\" or \"shared=no\""
+    ;;
+esac
+
+# "gcc -W" 3.4.2 no longer reports functions that fail to return a
+# result.  Use "gcc -Wall -Wno-comment" instead. We'll figure out
+# later if the other -Wmumble options are really redundant. Having
+# een burned once by a compiler that lies about what warnings it
+# produces, not taking that chance again.
+
+: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
+${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
+	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
+	-Wunused -Wno-missing-braces'}
+
+# Extract map type names from -DHAS_XXX compiler options.  We avoid
+# problems with tr(1) range syntax by using enumerations instead,
+# and we don't try to figure out which awk versions have tolower().
+# The following was validated in 2014 on FreeBSD/Linux and Solaris 9.
+
+DEFINED_MAP_TYPES=`
+    echo $CCARGS | tr -cd '\- _ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789' | 
+	tr ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz | ${AWK} '
+	{ for (n = 1; n <= NF; n++)
+	      if ($n ~ /^-dhas_/)
+		  if (seen[name = substr($n, 7)]++ == 0)
+		      names = name " " names }
+	END { print names }
+'`
+
+# Propagate AUXLIBS_FOO or merge them into global AUXLIBS (i.e. SYSLIBS).
+
+PLUGGABLE_MAPS="CDB LDAP LMDB MYSQL PCRE PGSQL SDBM SQLITE"
+
+case "$plugin_directory" in
+/*) for name in $PLUGGABLE_MAPS
+    do
+	eval test -n "\"\$AUXLIBS_$name\"" && 
+	    eval PLUGIN_AUXLIBS="\"\$PLUGIN_AUXLIBS
+AUXLIBS_$name = \$AUXLIBS_$name\""
+    done;;
+ *) for name in $PLUGGABLE_MAPS
+    do
+	eval AUXLIBS="\"\$AUXLIBS \$AUXLIBS_$name\""
+    done;;
+esac
+
+sed 's/   */ /g' <<EOF
+# System-dependent settings and compiler/linker overrides.
 SYSTYPE	= $SYSTYPE
-AR	= $AR
+_AR	= $_AR
 ARFL	= $ARFL
-RANLIB	= $RANLIB
-SYSLIBS	= $AUXLIBS $SYSLIBS
-CC	= $CC $CCARGS
+_RANLIB	= $_RANLIB
+SYSLIBS	= $AUXLIBS $SYSLIBS $PLUGIN_AUXLIBS
+CC	= $CC $CCARGS $CCWARN
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK
 STRCASE = $STRCASE
-EXPORT	= AUXLIBS='$AUXLIBS' CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
+EXPORT	= CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
 WARN	= $WARN
+DEFINED_MAP_TYPES = $DEFINED_MAP_TYPES
+MAKE_FIX = $MAKE_FIX
+# Switch between Postfix static and shared libraries.
+AR	= $AR
+RANLIB	= $RANLIB
+LIB_PREFIX = $LIB_PREFIX
+LIB_SUFFIX = $LIB_SUFFIX
+SHLIB_CFLAGS = $SHLIB_CFLAGS
+SHLIB_DIR = $shlib_directory
+SHLIB_ENV = $SHLIB_ENV
+SHLIB_LD = $SHLIB_LD
+SHLIB_RPATH = $SHLIB_RPATH
+SHLIB_VERSION = $SHLIB_VERSION
+# Switch between dynamicmaps.cf plugins and hard-linked databases.
+PLUGIN_DIR = $plugin_directory
+NON_PLUGIN_MAP_OBJ = $NON_PLUGIN_MAP_OBJ
+PLUGIN_MAP_OBJ = $PLUGIN_MAP_OBJ
+PLUGIN_MAP_OBJ_UPDATE = $PLUGIN_MAP_OBJ_UPDATE
+PLUGIN_MAP_SO_MAKE = $PLUGIN_MAP_SO_MAKE
+PLUGIN_MAP_SO_UPDATE = $PLUGIN_MAP_SO_UPDATE
+PLUGIN_LD = $PLUGIN_LD
+# Application-specific rules.
 EOF

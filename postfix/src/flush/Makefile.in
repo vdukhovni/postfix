@@ -8,12 +8,14 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 PROG	= flush
 INC_DIR = ../../include
-LIBS	= ../../lib/libmaster.a ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)master$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
 $(PROG): $(OBJS) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 $(OBJS): ../../conf/makedefs.out
 

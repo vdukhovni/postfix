@@ -15897,3 +15897,26 @@ status code or explanatory text of successful or unsuccessful
 deliveries.  See default_delivery_status_filter for details.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM shlib_directory see 'postconf -d' output
+
+<p> The location of Postfix shared libraries (libpostfix-*.so.*).
+This parameter defaults to "no" when Postfix shared libraries are
+disabled at compile time. </p>
+
+<p> NOTE: You can change the location of these files after Postfix
+is built. However, you may have to run ldconfig if you move the
+libpostfix-*.so.* files to a non-system directory.  No ldconfig is
+needed if you keep the libpostfix-*.so.* files in the compiled-in
+default $shlib_directory location. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM plugin_directory see 'postconf -d' output
+
+<p> The location of the Postfix dynamicmaps.cf database plugin
+configuration file, and of database plugins with a relative pathname.
+This is set to "no" when Postfix database plugin support is disabled
+at compile time. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>

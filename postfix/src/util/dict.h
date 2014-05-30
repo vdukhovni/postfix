@@ -165,6 +165,9 @@ extern DICT *dict_debug(DICT *);
   * Interface for dictionary types.
   */
 extern ARGV *dict_mapnames(void);
+typedef void (*DICT_MAPNAMES_EXTEND_FN) (ARGV *);
+extern DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN);
+
 
  /*
   * High-level interface, with logical dictionary names.
@@ -184,9 +187,12 @@ extern int dict_error(const char *);
  /*
   * Low-level interface, with physical dictionary handles.
   */
+typedef DICT *(*DICT_OPEN_FN) (const char *, int, int);
+typedef DICT_OPEN_FN (*DICT_OPEN_EXTEND_FN) (const char *);
 extern DICT *dict_open(const char *, int, int);
 extern DICT *dict_open3(const char *, const char *, int, int);
-extern void dict_open_register(const char *, DICT *(*) (const char *, int, int));
+extern void dict_open_register(const char *, DICT_OPEN_FN);
+extern DICT_OPEN_EXTEND_FN dict_open_extend(DICT_OPEN_EXTEND_FN);
 
 #define dict_get(dp, key)	((const char *) (dp)->lookup((dp), (key)))
 #define dict_put(dp, key, val)	(dp)->update((dp), (key), (val))

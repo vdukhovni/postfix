@@ -3777,6 +3777,28 @@ extern char *var_virt_dsn_filter;
 #define DEF_LOCAL_DSN_FILTER		"$" VAR_DSN_FILTER
 extern char *var_local_dsn_filter;
 
+ /*
+  * Location of shared-library files.
+  * 
+  * If the files will be installed into a known directory, such as a directory
+  * that is processed with the ldconfig(1) command, then the shlib_directory
+  * parameter may be configured at installation time.
+  * 
+  * Otherwise, the shlib_directory parameter must be specified at compile time,
+  * and it cannot be changed afterwards.
+  */
+#define VAR_SHLIB_DIR	"shlib_directory"
+#ifndef DEF_SHLIB_DIR
+#define DEF_SHLIB_DIR	"/usr/local/lib"
+#endif
+extern char *var_shlib_dir;
+
+#define VAR_PLUGIN_DIR	"plugin_directory"
+#ifndef DEF_PLUGIN_DIR
+#define DEF_PLUGIN_DIR	"/usr/libexec/postfix"
+#endif
+extern char *var_plugin_dir;
+
 /* LICENSE
 /* .ad
 /* .fi

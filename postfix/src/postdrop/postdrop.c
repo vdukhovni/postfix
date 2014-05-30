@@ -135,6 +135,7 @@
 #include <cleanup_user.h>
 #include <record.h>
 #include <rec_type.h>
+#include <mail_dict.h>
 #include <user_acl.h>
 #include <rec_attr_map.h>
 
@@ -312,6 +313,7 @@ int     main(int argc, char **argv)
      * Mail submission access control. Should this be in the user-land gate,
      * or in the daemon process?
      */
+    mail_dict_init();
     if ((errstr = check_user_acl_byuid(var_submit_acl, uid)) != 0)
 	msg_fatal("User %s(%ld) is not allowed to submit mail",
 		  errstr, (long) uid);

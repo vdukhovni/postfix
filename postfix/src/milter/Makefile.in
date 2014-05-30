@@ -9,7 +9,8 @@ INCL	=
 LIB	= libmilter.a
 TESTPROG= milter test-milter
 
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 MAKES	=
@@ -30,12 +31,12 @@ tests:
 root_tests:
 
 $(LIB):	$(OBJS)
-	$(AR) $(ARFL) $(LIB) $?
-	$(RANLIB) $(LIB)
+	$(_AR) $(ARFL) $(LIB) $?
+	$(_RANLIB) $(LIB)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
-	$(RANLIB) $(LIB_DIR)/$(LIB)
+	$(_RANLIB) $(LIB_DIR)/$(LIB)
 
 update: $(LIB_DIR)/$(LIB) $(HDRS)
 	-for i in $(HDRS); \

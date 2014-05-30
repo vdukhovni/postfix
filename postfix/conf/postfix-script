@@ -64,6 +64,20 @@ cd $config_directory || {
 	$FATAL no Postfix configuration directory $config_directory!
 	exit 1
 }
+case $shlib_directory in
+no) ;;
+ *) cd $shlib_directory || {
+	$FATAL no Postfix shared-library directory $shlib_directory!
+        exit 1
+    }
+esac
+case $plugin_directory in
+no) ;;
+ *) cd $plugin_directory || {
+	$FATAL no Postfix plugin directory $plugin_directory!
+        exit 1
+    }
+esac
 cd $queue_directory || {
 	$FATAL no Postfix queue directory $queue_directory!
 	exit 1
@@ -242,7 +256,11 @@ check-warn)
 	# This command is NOT part of the public interface.
 
 	todo="$config_directory $queue_directory $queue_directory/pid"
-	test -n "$check_shared_files" && todo="$daemon_directory $todo"
+	test -n "$check_shared_files" && {
+		todo="$daemon_directory $todo"
+		test "$shlib_directory" = "no" || todo="$shlib_directory $todo"
+		test "$plugin_directory" = "no" || todo="$plugin_directory $todo"
+	}
 
 	for dir in $todo
 	do
@@ -255,13 +273,21 @@ check-warn)
 		$WARN group or other writable: $queue_directory
 
 	todo="$config_directory/*"
-	test -n "$check_shared_files" && todo="$daemon_directory/* $todo"
+	test -n "$check_shared_files" && {
+		todo="$daemon_directory/* $todo"
+		test "$shlib_directory" = "no" || 
+		    todo="$shlib_directory/libpostfix* $todo"
+		# plugin_directory/* is checked by dynamicmaps routines.
+	}
 
 	find $todo ! -user root \
 		-exec $WARN not owned by root: {} \;
 
 	todo="$config_directory/."
 	test -n "$check_shared_files" && todo="$daemon_directory/. $todo"
+	# FIXME don't scan non-Postfix files under /usr/local/lib.
+	test "$shlib_directory" = "no" || 
+	    todo="$shlib_directory/libpostfix* $todo"
 
 	find $todo \
 		\( -perm -020 -o -perm -002 \) -type f \

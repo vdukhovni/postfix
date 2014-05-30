@@ -7,9 +7,10 @@
 # Postfix configuration files. See the respective manual pages within
 # the script files.
 #
-# Do not list $command_directory in this file, or it will be blown
-# away by a future Postfix uninstallation procedure. You would not
-# want to lose all files in /usr/sbin.
+# Do not list $command_directory or $shlib_directory in this file,
+# or it will be blown away by a future Postfix uninstallation
+# procedure. You would not want to lose all files in /usr/sbin or
+# /usr/local/lib.
 #
 # Each record in this file describes one file or directory.
 # Fields are separated by ":". Specify a null field as "-".
@@ -42,6 +43,8 @@
 # it is a good idea to "u" all the files that have special ownership or
 # permissions, so that running "make install" fixes any glitches.
 #
+# Note: order matters. Update shared libraries and database plugins
+# before daemon/command-line programs.
 $config_directory:d:root:-:755:u
 $data_directory:d:$mail_owner:-:700:uc
 $daemon_directory:d:root:-:755:u
@@ -63,6 +66,25 @@ $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
 $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
+# Update shared libraries before daemon or command-line programs.
+$shlib_directory/lib${LIB_PREFIX}util${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}global${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}dns${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}tls${LIB_SUFFIX}:f:root:-:755
+$shlib_directory/lib${LIB_PREFIX}master${LIB_SUFFIX}:f:root:-:755
+# Update database plugins before daemon or command-line programs.
+$plugin_directory/${LIB_PREFIX}cdb${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}ldap${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}lmdb${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}mysql${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}pcre${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}pgsql${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}sdbm${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/${LIB_PREFIX}sqlite${LIB_SUFFIX}:f:root:-:755
+$plugin_directory/dynamicmaps.cf.${SHLIB_VERSION}:f:root:-:644:
+$plugin_directory/dynamicmaps.cf.${SHLIB_VERSION}.d:d:root:-:755:
+$plugin_directory/dynamicmaps.cf:l:dynamicmaps.cf.${SHLIB_VERSION}:-::
+$plugin_directory/dynamicmaps.cf.d:l:dynamicmaps.cf.${SHLIB_VERSION}.d:-::
 $daemon_directory/anvil:f:root:-:755
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
@@ -80,6 +102,7 @@ $daemon_directory/pickup:f:root:-:755
 $daemon_directory/pipe:f:root:-:755
 $daemon_directory/post-install:f:root:-:755
 $daemon_directory/postfix-files:f:root:-:644
+$daemon_directory/postfix-files.d:d:root:-:755
 $daemon_directory/postfix-script:f:root:-:755
 $daemon_directory/postfix-wrapper:f:root:-:755
 $daemon_directory/postmulti-script:f:root:-:755

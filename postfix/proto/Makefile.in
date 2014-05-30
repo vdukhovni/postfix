@@ -94,6 +94,8 @@ README	= ../README_FILES/ADDRESS_CLASS_README \
 
 MAN	= ../man/man5/postconf.5
 
+TOP	= ../INSTALL
+
 AWK	= awk '{ print; if (NR == 1) print ".pl 9999\n.ll 65" }'
 SRCTOMAN= ../mantools/srctoman
 POSTLINK= ../mantools/postlink
@@ -104,7 +106,7 @@ MAKEAAA	= ../mantools/makereadme
 MAKESOHO= ../mantools/make_soho_readme
 DEPSOHO	= SASL_README.html STANDARD_CONFIGURATION_README.html
 
-update:	$(CONFIG) $(HTML) $(README) $(MAN)
+update:	$(CONFIG) $(HTML) $(README) $(MAN) $(TOP)
 
 clean:
 	:
@@ -486,3 +488,7 @@ clobber:
 	(cat postconf.html.prolog; ../mantools/xpostconf postconf.proto | \
 	    ../mantools/postconf2html | ../mantools/postlink; \
 	    cat postconf.html.epilog ) | $(DETAB) > $@
+
+../INSTALL: ../README_FILES/INSTALL
+	rm -f $@
+	col -b < $? > $@

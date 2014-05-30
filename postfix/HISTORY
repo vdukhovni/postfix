@@ -19659,6 +19659,11 @@ Apologies for any names omitted.
 	smtp/lmtp_params.c, smtp/smtp_params.c, virtual/virtual.c,
 	global/bounce.c.
 
+20140323
+
+	Feature: initial merge of Debian-style dynamic linking.
+	Viktor Dukhovni. 
+
 20140406
 
 	Bugfix: when testing session caching, stop reconnecting
@@ -19720,22 +19725,137 @@ Apologies for any names omitted.
 	smtp_proto.c, smtp_trouble.c.
 
 	Cleanup: enable SMTP connection cache lookup by destination
-	while a surge of mail is drying up. File: smtp_connect.c.
+	name while a surge of mail dries up. File: smtp_connect.c.
+
+20140505
+
+	Bugfix: the postdrop authorized_submit_users feature requires
+	that lookup table support is initialized so that it can use
+	libglobal or dynamicmaps maps.  File: postdrop/postdrop.c.
+
+	Cleanup: moved dynamicmaps initialization from parameter
+	inititialization (mail_conf_suck()) to dictionary initialization
+	(mail_dict_init()).  A benefit of this is that dynamicmaps.cf
+	is no longer read by programs that don't use Postfix lookup
+	tables.  Files: global/mail_conf.[hc], global/mail_dict.c.
+
+	Cleanup: move the mail_dict_init() call after the
+	mail_conf_read() or mail_params_init() call, to prepare for
+	a configurable dynamicmaps.cf directory.   Files:
+	master/event_server.c, master/multi_server.c,
+	master/single_server.c, master/trigger_server.c.
+
+20140506
+
+	Cleanup: you can now specify "make makefiles parameter=value"
+	for selected compile-time parameter default overrides.  The
+	old "make makefiles 'CCARGS=-DDEF_MUMBLE=\"mumble\"'"
+	approach remains supported.  File: makedefs.
+
+20140508
+
+	Cleanup: dynamicmaps.cf is now installed into $daemon_directory
+	because the file is shared among Postfix instances just like
+	postfix-files and other files.  Files: conf/dynamicmaps.cf,
+	Makefile.in, conf/postfix-files.
+
+	Cleanup: INSTALL is now plain ASCII instead of README format,
+	to avoid a chicken-and-egg problem (the instructions to
+	print/view README-format files are in the INSTALL file).
+
+	Documentation: updated INSTALL instructions and RELEASE_NOTES.
 
 20140512
 
 	Portability: Berkeley DB6 support. File: util/dict_db.c.
+
+20140514
+
+	Cleanup: replace #ifdef/endif containing hard-coded calls
+	of dynamicmaps functions with an extension mechanism that
+	dynamicmaps functions invoke instead. Files: util/dict.h,
+	util/dict_open.c, global/dynamicmaps.[hc], global/mkmap.h,
+	global/mkmap_open.c.
 
 20140515
 
 	Bugfix (introduced: 20140320): missing initialization.
 	Viktor Dukhovni. File pipe/pipe.c.
 
-20140516
+	Cleanup: mkmap_open() now caches a dynamically-loaded
+	function. This is useful because postmap/postalias may open
+	the same database type multiple times. Files: global/mkmap.h,
+	global/mkmap_open.c.
 
-	Cleanup: Berkeley DB6 support. File: util/dict_db.c.
+	Security: the dynamicmaps.cf file and its and shared-object
+	files must not be writable by non-root users. File:
+	global/dynamicmaps.c.
+
+20140517
+
+	Cleanup: dynamic linking and hooking. Files: util/dict.h,
+	util/load_lib.[hc], global/dynamicmaps.c.
+
+20140518
+
+	Preliminary "make plugins" support. Todo: macros to dynamically
+	remove pluggable maps from compile-time tables in dict_open.c
+	and mkmap_open.c, and from the OBJS lists in Makefile.in.
+
+20140522
+
+	Support for "make shared=yes" and "make dynamicmaps=yes".
+	New plugin_directory parameter for the location of the
+	dynamicmaps.cf file and for plugins with a relative pathname.
+	See RELEASE_NOTES and INSTALL for details. Files:
+	postfix.c, mail_params.[hc], dynamicmaps.c, mail_dict.c,
+	makedefs, postfix-files, dynamicmaps.cf, Makefile.in,
+	util/Makefile.in, global/Makefile.in, postlink, postconf.proto.
+	INSTALL.html, RELEASE_NOTES.
+
+20140523
+
+	Cleanup: don't install plugins for unsupported databases,
+	and don't make dynamicmaps.cf entries for them. Files:
+	makedefs, Makefile.in, util/Makefile.in, global/Makefile.in.
+
+	Cleanup: added support for symlinks where the "source" is
+	specified as a relative pathname. File: postfix-install.
+
+	Cleanup: moved instructions from RELEASE_NOTES to INSTALL
+	to avoid duplication. Files: RELEASE_NOTES, proto/INSTALL.html.
+
+	Cleanup: include <dict_lmdb.h> unconditionally so that
+	dict_lmdb_map_size is always defined. Files: mail_params.c,
+	dict_test.c.
+
+	Cleanup: port for ancient Solaris9 revealed some non-portability.
+	Files: master/Makefile.in, makedefs, sys_defs.h.
 
 20140524
 
-	Cleanup: symlink handling in post-install, back-ported
-	from the non-production release. File: post-install.
+	Cleanup: specify database library dependencies with variables
+	named AUXLIBS_CDB, AUXLIBS_LDAP, etc. The global AUXLIBS
+	variable is still supported, but the new variables are
+	required when building dynamically-loadable building database
+	plugins.  Files: RELEASE_NOTES, INSTALL.html, CDB_README.html,
+	LDAP_README.html, LMDB_README.html, MYSQL_README.html,
+	PCRE_README.html, PGSQL_README.html, SQLITE_README.html,
+	makedefs, util/Makefile.in, global/Makefile.in.
+
+	Workaround: reportedly, MacOS can fail to move a symlink
+	with a relative target across file system boundaries, because
+	it examines the symlink with stat() instead of lstat().
+	Files: makedefs, Makefile.in.
+
+	Cleanup: use readlink to verify symlink target. File:
+	postfix-install.
+
+20140528
+
+	Cleanup: the configuration file dynamicmaps.cf will now
+	automatically include files under the directory dynamicmaps.cf.d,
+	just like the configuration file postfix-files will
+	automatically include files under the directory postfix-files.d.
+	See INSTALL section "Building with Postfix shared libraries
+	and database plugins".  File: dynamicmaps.c.

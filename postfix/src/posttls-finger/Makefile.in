@@ -8,8 +8,10 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG= 
 INC_DIR	= ../../include
 PROG	= posttls-finger
-LIBS	= ../../lib/libtls.a ../../lib/libdns.a \
-	../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)tls$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
@@ -21,7 +23,7 @@ Makefile: Makefile.in
 	cat ../../conf/makedefs.out $? >$@
 
 posttls-finger: $(OBJS) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 test:	$(TESTPROG)
 

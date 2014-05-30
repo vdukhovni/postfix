@@ -8,13 +8,13 @@ TESTSRC	= test_dns_lookup.c test_alias_token.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
-LIB	= libdns.a
+LIB	= lib$(LIB_PREFIX)dns$(LIB_SUFFIX)
 TESTPROG= test_dns_lookup dns_rr_to_pa dns_rr_to_sa dns_sa_to_rr dns_rr_eq_sa
-LIBS	= ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
 
-.c.o:;	$(CC) $(CFLAGS) -c $*.c
+.c.o:;	$(CC) $(SHLIB_CFLAGS) $(CFLAGS) -c $*.c
 
 all: $(LIB)
 
@@ -33,6 +33,7 @@ root_tests:
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
+	$(SHLIB_LD) -o $(LIB) $(OBJS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
@@ -69,22 +70,22 @@ dns_rr_eq_sa: $(LIB) $(LIBS)
 	mv junk $@.o
 
 dns_rr_to_pa_test: dns_rr_to_pa dns_rr_to_pa.in dns_rr_to_pa.ref
-	./dns_rr_to_pa `cat dns_rr_to_pa.in` >dns_rr_to_pa.tmp
+	$(SHLIB_ENV) ./dns_rr_to_pa `cat dns_rr_to_pa.in` >dns_rr_to_pa.tmp
 	diff dns_rr_to_pa.ref dns_rr_to_pa.tmp
 	rm -f dns_rr_to_pa.tmp
 
 dns_rr_to_sa_test: dns_rr_to_sa dns_rr_to_sa.in dns_rr_to_sa.ref
-	./dns_rr_to_sa `cat dns_rr_to_sa.in` >dns_rr_to_sa.tmp
+	$(SHLIB_ENV) ./dns_rr_to_sa `cat dns_rr_to_sa.in` >dns_rr_to_sa.tmp
 	diff dns_rr_to_sa.ref dns_rr_to_sa.tmp
 	rm -f dns_rr_to_sa.tmp
 
 dns_sa_to_rr_test: dns_sa_to_rr dns_sa_to_rr.in dns_sa_to_rr.ref
-	./dns_sa_to_rr `cat dns_sa_to_rr.in` >dns_sa_to_rr.tmp
+	$(SHLIB_ENV) ./dns_sa_to_rr `cat dns_sa_to_rr.in` >dns_sa_to_rr.tmp
 	diff dns_sa_to_rr.ref dns_sa_to_rr.tmp
 	rm -f dns_sa_to_rr.tmp
 
 dns_rr_eq_sa_test: dns_rr_eq_sa dns_rr_eq_sa.in dns_rr_eq_sa.ref
-	./dns_rr_eq_sa `cat dns_rr_eq_sa.in` >dns_rr_eq_sa.tmp
+	$(SHLIB_ENV) ./dns_rr_eq_sa `cat dns_rr_eq_sa.in` >dns_rr_eq_sa.tmp
 	diff dns_rr_eq_sa.ref dns_rr_eq_sa.tmp
 	rm -f dns_rr_eq_sa.tmp
 

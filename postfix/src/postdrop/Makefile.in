@@ -8,12 +8,13 @@ CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG=
 PROG	= postdrop
 INC_DIR	= ../../include
-LIBS	= ../../lib/libglobal.a ../../lib/libutil.a
+LIBS	= ../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
 .c.o:;	$(CC) $(CFLAGS) -c $*.c
 
 $(PROG): $(OBJS) $(LIBS)
-	$(CC) $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
+	$(CC) $(CFLAGS) $(SHLIB_RPATH) -o $@ $(OBJS) $(LIBS) $(SYSLIBS)
 
 $(OBJS): ../../conf/makedefs.out
 
@@ -63,6 +64,7 @@ postdrop.o: ../../include/clean_env.h
 postdrop.o: ../../include/cleanup_user.h
 postdrop.o: ../../include/iostuff.h
 postdrop.o: ../../include/mail_conf.h
+postdrop.o: ../../include/mail_dict.h
 postdrop.o: ../../include/mail_params.h
 postdrop.o: ../../include/mail_proto.h
 postdrop.o: ../../include/mail_queue.h

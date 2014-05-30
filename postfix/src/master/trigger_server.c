@@ -486,11 +486,6 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     mail_conf_suck();
 
     /*
-     * Register dictionaries that use higher-level interfaces and protocols.
-     */
-    mail_dict_init();
-
-    /*
      * After database open error, continue execution with reduced
      * functionality.
      */
@@ -568,6 +563,12 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     mail_params_init();
     if (redo_syslog_init)
 	msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
+
+    /*
+     * Register higher-level dictionaries and initialize the support for
+     * dynamically-loaded dictionarles.
+     */
+    mail_dict_init();
 
     /*
      * If not connected to stdin, stdin must not be a terminal.

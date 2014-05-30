@@ -219,6 +219,7 @@ int     main(int argc, char **argv)
     vstream_printf("address:    %s\n", argv[3]);
 
     state.errs = 0;
+    state.queue_id = "NOQUEUE";
     cleanup_masquerade_external(&state, addr, masq_domains);
 
     vstream_printf("result:     %s\n", STR(addr));
