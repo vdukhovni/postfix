@@ -55,9 +55,6 @@ it to each. </p>
 
 <h2><a name="build">Building Postfix with LDAP support</a></h2>
 
-<p> [Note: instructions to build as a dynamicmaps.cf-style plugin 
-will be added later.] </p>
-
 <p> These instructions assume that you build Postfix from source
 code as described in the <a href="INSTALL.html">INSTALL</a> document. Some modification may   
 be required if you build Postfix from a vendor-specific source
@@ -95,8 +92,23 @@ your Postfix source tree should work: </p>
 <pre>
 % make tidy
 % make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
-    AUXLIBS="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
+    <a href="LDAP_README.html">AUXLIBS_LDAP</a>="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
 </pre>
+</blockquote>
+
+<p> Postfix versions before 2.12 use AUXLIBS instead of <a href="LDAP_README.html">AUXLIBS_LDAP</a>.
+With Postfix 2.12 and later, the old AUXLIBS variable still supports
+building a statically-loaded LDAP database client, but only the new
+<a href="LDAP_README.html">AUXLIBS_LDAP</a> variable supports building a dynamically-loaded or
+statically-loaded LDAP database client.  </p>
+
+<blockquote>
+ 
+<p> Failure to use the <a href="LDAP_README.html">AUXLIBS_LDAP</a> variable will defeat the purpose
+of dynamic database client loading. Every Postfix executable file
+will have LDAP database library dependencies. And that was exactly
+what dynamic database client loading was meant to avoid. </p>
+ 
 </blockquote>
 
 <p> On Solaris 2.x you may have to specify run-time link information,
@@ -106,7 +118,7 @@ otherwise ld.so will not find some of the shared libraries: </p>
 <pre>
 % make tidy
 % make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
-    AUXLIBS="-L/usr/local/lib -R/usr/local/lib -lldap \
+    <a href="LDAP_README.html">AUXLIBS_LDAP</a>="-L/usr/local/lib -R/usr/local/lib -lldap \
             -L/usr/local/lib -R/usr/local/lib -llber"
 </pre>
 </blockquote>
