@@ -2,13 +2,17 @@
 *.o
 *.a
 *.dylib
+*.dylib.*
 *.so
-lib*.so.*
+*.so.*
+*.dSYM
 
 # Test by-products
 *.db
 *.out
 *.tmp
+
+dynamicmaps.cf.*
 
 # Makefiles are generated, the top-level Makefile is a copy of
 # Makefile.init, included in the release, but need not be versioned.
