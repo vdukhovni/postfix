@@ -534,7 +534,6 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		: ${CC=cc}
 		CCARGS="$CCARGS"
 		CCWARN='$(WARN)'
-		MAKE_FIX=cant-move-relative-symlink
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;

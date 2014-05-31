@@ -61,10 +61,19 @@ libexec/postfix-files: conf/postfix-files conf/makedefs.out Makefile
 	elif [ "${PLUGIN_DIR}" = "no" -o "${PLUGIN_DIR}" = "" ]; then \
 	    sed -e '/^\$$plugin_directory/d' conf/postfix-files | $(EXPAND); \
 	else \
-	    $(EXPAND) conf/postfix-files; \
+	    $(EXPAND) conf/postfix-files | awk -F: ' \
+		BEGIN { \
+		    count = split("'"$(DEFINED_MAP_TYPES)"'", names, " "); \
+		    for (n = 1; n <= count; n++) \
+			have["$$plugin_directory/$(LIB_PREFIX)" names[n] \
+			    "$(LIB_SUFFIX)"] = 1; } \
+		/^[$$]plugin_directory.dynamicmaps/ { \
+		    print; next } \
+		/^[$$]plugin_directory.$(LIB_PREFIX)/ { \
+		    if (have[$$1]) print; next } \
+		{ print } \
+	    '; \
 	fi) | case "$(MAKE_FIX)" in \
-	*cant-move-relative-symlink*) \
-	    sed 's;:l:dynamic;:h:$plugin_directory/dynamic;';; \
 	 *) cat;; \
 	esac > $@
 

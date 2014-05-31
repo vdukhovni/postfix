@@ -19859,3 +19859,19 @@ Apologies for any names omitted.
 	automatically include files under the directory postfix-files.d.
 	See INSTALL section "Building with Postfix shared libraries
 	and database plugins".  File: dynamicmaps.c.
+
+20140530
+
+	Cleanup: add shlib_directory and plugin_directory to the
+	postmulti-script list of shared parameters. Viktor Dukhovni.
+	File: postmulti-script.
+
+	Cleanup: to avoid "postfix set-permission" errors, don't
+	create postfix-files entries for non-existent database
+	plugins. Problem reported by Viktor. File: Makefile.in.
+
+	Bugfix: we can't use "mv" to replace a symlink-to-directory.
+	Instead we now create all symlinks in place. Unfortunately
+	the "ln -n" option is not universally implemented, so we
+	remove the old symlink first.  Problem reported by Viktor.
+	File: postfix-install.

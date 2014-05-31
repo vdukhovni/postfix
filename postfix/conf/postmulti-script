@@ -156,6 +156,8 @@ create|import)
 	    manpage_directory
 	    sample_directory
 	    readme_directory
+	    shlib_directory
+	    plugin_directory
 	"
 
 	shift $#	# Needed on SunOS where bare "set --" is NOP!

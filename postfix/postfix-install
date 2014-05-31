@@ -293,15 +293,12 @@ compare_or_symlink() {
     esac
     (test $link = "`myreadlink $2`" >/dev/null 2>&1 && echo Skipping $2...) || {
 	echo Updating $2...
-	rm -f $tempdir/junk || exit 1
-	ln -s $link $tempdir/junk || exit 1
-	mv -f $tempdir/junk $2 || {
-	    echo $0: Error: your mv command has trouble renaming symlinks. 1>&2
-	    echo If you run Linux, upgrade to GNU fileutils-4.0 or better, 1>&2
-	    echo or choose a tempdir that is in the same file system as $2. 1>&2
-	    echo If you run FreeBSD, upgrade to version 5 or better. 1>&2
-	    exit 1
-	}
+	# We create the symlink in place instead of using mv because:
+	# 1) some systems cannot move symlinks between file systems;
+	# 2) we cannot use mv to replace a symlink-to-directory;
+	# 3) "ln -n" is not in POSIX, therefore it's not portable.
+	# rm+ln is less atomic but this affects compatibility symlinks only.
+	rm -f $2 && ln -sf $link $2 || exit 1
     }
 }
 
@@ -707,9 +704,8 @@ do
 	    compare_or_replace $mode "$owner" "$group" lib/$file \
 		    $SHLIB_DIRECTORY/$file || exit 1;;
 	'$plugin_directory')
-	    test ! -f plugins/$file ||
-		compare_or_replace $mode "$owner" "$group" plugins/$file \
-		    $PLUGIN_DIRECTORY/$file || exit 1;;
+	    compare_or_replace $mode "$owner" "$group" plugins/$file \
+		$PLUGIN_DIRECTORY/$file || exit 1;;
 	'$daemon_directory')
 	    compare_or_replace $mode "$owner" "$group" libexec/$file \
 		$DAEMON_DIRECTORY/$file || exit 1;;
