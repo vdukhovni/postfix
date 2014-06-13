@@ -398,6 +398,11 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 	return (0);
     }
 
+#ifdef SSL_SECOP_PEER
+    /* Backwards compatible security as a base for opportunistic TLS. */
+    SSL_CTX_set_security_level(client_ctx, 0);
+#endif
+
     /*
      * See the verify callback in tls_verify.c
      */
@@ -892,6 +897,12 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	     | ((protomask & TLS_PROTOCOL_TLSv1_2) ? SSL_OP_NO_TLSv1_2 : 0L)
 		 | ((protomask & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L)
 	       | ((protomask & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L));
+
+#ifdef SSL_SECOP_PEER
+    /* When authenticating the peer, use 80-bit plus OpenSSL security level */
+    if (props->tls_level > TLS_LEV_ENCRYPT)
+	SSL_set_security_level(TLScontext->con, 1);
+#endif
 
     /*
      * XXX To avoid memory leaks we must always call SSL_SESSION_free() after
