@@ -444,6 +444,11 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	return (0);
     }
 
+#ifdef SSL_SECOP_PEER
+    /* Backwards compatible security as a base for opportunistic TLS. */
+    SSL_CTX_set_security_level(server_ctx, 0);
+#endif
+
     /*
      * See the verify callback in tls_verify.c
      */
@@ -751,6 +756,12 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	return (0);
     }
 
+#ifdef SSL_SECOP_PEER
+    /* When authenticating the peer, use 80-bit plus OpenSSL security level */
+    if (props->requirecert)
+	SSL_set_security_level(TLScontext->con, 1);
+#endif
+
     /*
      * Before really starting anything, try to seed the PRNG a little bit
      * more.
@@ -880,6 +891,22 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 		     TLScontext->peer_pkey_fprint);
 	}
 	X509_free(peer);
+
+	/*
+	 * Give them a clue. Problems with trust chain verification are logged
+	 * when the session is first negotiated, before the session is stored
+	 * into the cache. We don't want mystery failures, so log the fact the
+	 * real problem is to be found in the past.
+	 */
+	if (!TLS_CERT_IS_TRUSTED(TLScontext)
+	    && (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
+	    if (TLScontext->session_reused == 0)
+		tls_log_verify_error(TLScontext);
+	    else
+		msg_info("%s: re-using session with untrusted certificate, "
+			 "look for details earlier in the log",
+			 TLScontext->namaddr);
+	}
     } else {
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->issuer_CN = mystrdup("");
