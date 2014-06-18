@@ -26,7 +26,8 @@
 /*	An open message queue file, positioned at the start of the actual
 /*	message content.
 /* .IP why
-/*	Delivery status information.
+/*	Delivery status information. The reason attribute may contain
+/*	a limited portion of command output, among other free text.
 /* .IP key
 /*	Specifies what value will follow. pipe_command() takes a list
 /*	of (key, value) arguments, terminated by PIPE_CMD_END. The
@@ -675,6 +676,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	    vstring_sprintf_append(why->reason, ": \"%s\"", args.command);
 	    return (PIPE_STAT_BOUNCE);
 	} else {
+	    vstring_strcpy(why->reason, log_buf);
 	    return (PIPE_STAT_OK);
 	}
     }

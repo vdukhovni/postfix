@@ -164,6 +164,15 @@
   */
 static const char server_session_id_context[] = "Postfix/TLS";
 
+#if OPENSSL_VERSION_NUMBER >= 0x1000000fL
+#define GET_SID(s, v, lptr)	((v) = SSL_SESSION_get_id((s), (lptr)))
+
+#else					/* Older OpenSSL releases */
+#define GET_SID(s, v, lptr) \
+    do { (v) = (s)->session_id; *(lptr) = (s)->session_id_length; } while (0)
+
+#endif					/* OPENSSL_VERSION_NUMBER */
+
 /* get_server_session_cb - callback to retrieve session from server cache */
 
 static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
@@ -221,14 +230,16 @@ static void uncache_session(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 {
     VSTRING *cache_id;
     SSL_SESSION *session = SSL_get_session(TLScontext->con);
+    const unsigned char *sid;
+    unsigned int sid_length;
 
     SSL_CTX_remove_session(ctx, session);
 
     if (TLScontext->cache_type == 0)
 	return;
 
-    GEN_CACHE_ID(cache_id, session->session_id, session->session_id_length,
-		 TLScontext->serverid);
+    GET_SID(session, sid, &sid_length);
+    GEN_CACHE_ID(cache_id, sid, sid_length, TLScontext->serverid);
 
     if (TLScontext->log_mask & TLS_LOG_CACHE)
 	msg_info("%s: remove session %s from %s cache", TLScontext->namaddr,
@@ -246,12 +257,14 @@ static int new_server_session_cb(SSL *ssl, SSL_SESSION *session)
     VSTRING *cache_id;
     TLS_SESS_STATE *TLScontext;
     VSTRING *session_data;
+    const unsigned char *sid;
+    unsigned int sid_length;
 
     if ((TLScontext = SSL_get_ex_data(ssl, TLScontext_index)) == 0)
 	msg_panic("%s: null TLScontext in new session callback", myname);
 
-    GEN_CACHE_ID(cache_id, session->session_id, session->session_id_length,
-		 TLScontext->serverid);
+    GET_SID(session, sid, &sid_length);
+    GEN_CACHE_ID(cache_id, sid, sid_length, TLScontext->serverid);
 
     if (TLScontext->log_mask & TLS_LOG_CACHE)
 	msg_info("%s: save session %s to %s cache", TLScontext->namaddr,

@@ -8,6 +8,15 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Don't accept AUTH or other features that are not announced
+	in the EHLO response.
+
+	Per-Milter error action.
+
+	Suggested at Mailserver conference: Postscreen RDNS-based
+	reputation (but this introduces dependency on random DNS
+	servers).
+
 	Discourage the use of "after 220" tests in POSTSCREEN_README
 	and the documentation of individual parameter settings.
 

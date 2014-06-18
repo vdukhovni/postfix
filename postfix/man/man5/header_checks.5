@@ -136,18 +136,17 @@ When /\fIpattern\fR/ does \fBnot\fR match the input string,
 execute the corresponding \fIaction\fR.
 .IP "\fBif /\fIpattern\fB/\fIflags\fR"
 .IP "\fBendif\fR"
-Match the input string against the patterns between \fBif\fR
-and \fBendif\fR, if and only if the same input string also
-matches /\fIpattern\fR/. The \fBif\fR..\fBendif\fR can nest.
+If the input string matches /\fIpattern\fR/, then match that
+input string against the patterns between \fBif\fR and
+\fBendif\fR.  The \fBif\fR..\fBendif\fR can nest.
 .sp
 Note: do not prepend whitespace to patterns inside
 \fBif\fR..\fBendif\fR.
 .IP "\fBif !/\fIpattern\fB/\fIflags\fR"
 .IP "\fBendif\fR"
-Match the input string against the patterns between \fBif\fR
-and \fBendif\fR, if and only if the same input string does
-\fBnot\fR match /\fIpattern\fR/. The \fBif\fR..\fBendif\fR
-can nest.
+If the input string does not match /\fIpattern\fR/, then
+match that input string against the patterns between \fBif\fR
+and \fBendif\fR. The \fBif\fR..\fBendif\fR can nest.
 .IP "blank lines and comments"
 Empty lines and whitespace-only lines are ignored, as
 are lines whose first non-whitespace character is a `#'.

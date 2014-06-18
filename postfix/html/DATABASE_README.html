@@ -362,6 +362,17 @@ The file format is described in <a href="pcre_table.5.html">pcre_table(5)</a>. T
 name as used in "<a href="pcre_table.5.html">pcre</a>:table" is the name of the regular expression
 file.  </dd>
 
+<dt> <b>pipeline</b> (read-only) </dt>
+
+<dd> A pipeline of lookup tables. Example:
+"<b><a href="DATABASE_README.html#types">pipeline</a>:</b><i>!type_1:name_1! ... !type_n:name_n</i>".  Each
+"<a href="DATABASE_README.html#types">pipeline</a>:" query is given to the first table.  Each lookup result
+becomes the query for the next table in the pipeline, and the last
+table produces the final result.  When any table lookup produces
+no result, the pipeline produces no result.  The ASCII character
+after "<a href="DATABASE_README.html#types">pipeline</a>:" will be used as the separator between the lookup
+tables that follow (do not use space, ",", ":" or non-ASCII).  </dd>
+
 <dt> <b>pgsql</b> (read-only) </dt>
 
 <dd> PostgreSQL database client.  Configuration details are given
@@ -371,6 +382,15 @@ in <a href="pgsql_table.5.html">pgsql_table(5)</a>. </dd>
 
 <dd> Postfix <a href="proxymap.8.html">proxymap(8)</a> client for shared access to Postfix
 databases. The lookup table name syntax is "<a href="proxymap.8.html">proxy</a>:<a href="DATABASE_README.html">type:table</a>".
+</dd>
+
+<dt> <b>random</b> (read-only) </dt>
+
+<dd> An in-memory table that performs random selection.  Example:
+"<b><a href="DATABASE_README.html#types">random</a>:</b><i>!result_1! ... !result_n</i>". Each table query
+returns a random choice from the specified results. The ASCII
+character after "<a href="DATABASE_README.html#types">random</a>:" will be used as the separator between the
+results that follow (do not use space, ",", ":" or non-ASCII).
 </dd>
 
 <dt> <b>regexp</b> (read-only) </dt>

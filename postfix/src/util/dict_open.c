@@ -298,6 +298,8 @@
 #include <dict_thash.h>
 #include <dict_sockmap.h>
 #include <dict_fail.h>
+#include <dict_pipe.h>
+#include <dict_random.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -340,6 +342,8 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_THASH, dict_thash_open,
     DICT_TYPE_SOCKMAP, dict_sockmap_open,
     DICT_TYPE_FAIL, dict_fail_open,
+    DICT_TYPE_PIPE, dict_pipe_open,
+    DICT_TYPE_RANDOM, dict_random_open,
 #ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,

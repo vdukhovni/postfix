@@ -2129,6 +2129,14 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
     }
 
     /*
+     * INFO. Text is optional.
+     */
+    if (STREQUAL(value, "INFO", cmd_len)) {
+	log_whatsup(state, "info", cmd_text);
+	return (SMTPD_CHECK_DUNNO);
+    }
+
+    /*
      * WARN. Text is optional.
      */
     if (STREQUAL(value, "WARN", cmd_len)) {

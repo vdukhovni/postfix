@@ -124,17 +124,17 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
 
        <b>if /</b><i>pattern</i><b>/</b><i>flags</i>
 
-       <b>endif</b>  Match  the  input  string  against  the  patterns between <b>if</b> and
-              <b>endif</b>, if and only if the same input string also  matches  /<i>pat-</i>
-              <i>tern</i>/. The <b>if</b>..<b>endif</b> can nest.
+       <b>endif</b>  If  the  input  string  matches /<i>pattern</i>/, then match that input
+              string against the patterns between <b>if</b> and <b>endif</b>.  The <b>if</b>..<b>endif</b>
+              can nest.
 
               Note: do not prepend whitespace to patterns inside <b>if</b>..<b>endif</b>.
 
        <b>if !/</b><i>pattern</i><b>/</b><i>flags</i>
 
-       <b>endif</b>  Match  the  input  string  against  the  patterns between <b>if</b> and
-              <b>endif</b>, if and only if the same input string does <b>not</b> match /<i>pat-</i>
-              <i>tern</i>/. The <b>if</b>..<b>endif</b> can nest.
+       <b>endif</b>  If  the  input  string does not match /<i>pattern</i>/, then match that
+              input string against the patterns  between  <b>if</b>  and  <b>endif</b>.  The
+              <b>if</b>..<b>endif</b> can nest.
 
        blank lines and comments
               Empty  lines and whitespace-only lines are ignored, as are lines

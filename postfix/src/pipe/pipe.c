@@ -316,10 +316,16 @@
 /*	Exit status 0 means normal successful completion.
 /*
 /*	In the case of a non-zero exit status, a limited amount of
-/*	command output is reported in an delivery status notification.
-/*	When the output begins with a 4.X.X or 5.X.X enhanced status
-/*	code, the status code takes precedence over the non-zero
-/*	exit status (Postfix version 2.3 and later).
+/*	command output is logged, and reported in a delivery status
+/*	notification.  When the output begins with a 4.X.X or 5.X.X
+/*	enhanced status code, the status code takes precedence over
+/*	the non-zero exit status (Postfix version 2.3 and later).
+/*
+/*	After successful delivery (zero exit status) a limited
+/*	amount of command output is logged, and reported in "success"
+/*	delivery status notifications (Postfix 2.12 and later).
+/*	This command output is not examined for the presence of an
+/*	enhanced status code.
 /*
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager
@@ -1008,6 +1014,7 @@ static int eval_command_status(int command_status, char *service,
     int     status;
     int     result = 0;
     int     n;
+    char   *saved_text;
 
     /*
      * Depending on the result, bounce or defer the message, and mark the
@@ -1015,9 +1022,21 @@ static int eval_command_status(int command_status, char *service,
      */
     switch (command_status) {
     case PIPE_STAT_OK:
+	/* Save the command output before dsb_update() clobbers it. */
+	vstring_truncate(why->reason, trimblanks(STR(why->reason),
+			      VSTRING_LEN(why->reason)) - STR(why->reason));
+	if (VSTRING_LEN(why->reason) > 0) {
+	    VSTRING_TERMINATE(why->reason);
+	    saved_text =
+		vstring_export(vstring_sprintf(
+				    vstring_alloc(VSTRING_LEN(why->reason)),
+					    " (%.100s)", STR(why->reason)));
+	} else
+	    saved_text = mystrdup("");		/* uses shared R/O storage */
 	dsb_update(why, "2.0.0", (attr->flags & PIPE_OPT_FINAL_DELIVERY) ?
 		   "delivered" : "relayed", DSB_SKIP_RMTA, DSB_SKIP_REPLY,
-		   "delivered via %s service", service);
+		   "delivered via %s service%s", service, saved_text);
+	myfree(saved_text);
 	(void) DSN_FROM_DSN_BUF(why);
 	for (n = 0; n < request->rcpt_list.len; n++) {
 	    rcpt = request->rcpt_list.info + n;

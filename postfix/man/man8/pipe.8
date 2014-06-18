@@ -330,10 +330,16 @@ follow the conventions defined in <\fBsysexits.h\fR>.
 Exit status 0 means normal successful completion.
 
 In the case of a non-zero exit status, a limited amount of
-command output is reported in an delivery status notification.
-When the output begins with a 4.X.X or 5.X.X enhanced status
-code, the status code takes precedence over the non-zero
-exit status (Postfix version 2.3 and later).
+command output is logged, and reported in a delivery status
+notification.  When the output begins with a 4.X.X or 5.X.X
+enhanced status code, the status code takes precedence over
+the non-zero exit status (Postfix version 2.3 and later).
+
+After successful delivery (zero exit status) a limited
+amount of command output is logged, and reported in "success"
+delivery status notifications (Postfix 2.12 and later).
+This command output is not examined for the presence of an
+enhanced status code.
 
 Problems and transactions are logged to \fBsyslogd\fR(8).
 Corrupted message files are marked so that the queue manager

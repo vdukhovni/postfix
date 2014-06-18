@@ -1114,7 +1114,9 @@ while (<>) {
     s/\b(nisplus):/<a href="nisplus_table.5.html">$1<\/a>:/g;
     s/\b(pcre):/<a href="pcre_table.5.html">$1<\/a>:/g;
     s/\b(pgsql):/<a href="pgsql_table.5.html">$1<\/a>:/g;
+    s;\b(pipe[-</bB>]*\n*[ <bB>]*line):;<a href="DATABASE_README.html#types">$1<\/a>:;g;
     s/\b(proxy):/<a href="proxymap.8.html">$1<\/a>:/g;
+    s/\b(random):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(regexp):/<a href="regexp_table.5.html">$1<\/a>:/g;
     s/\b(sdbm):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     s/\b(socketmap):/<a href="socketmap_table.html">$1<\/a>:/g;

@@ -37,7 +37,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	ip_match.c nbbio.c base32_code.c dict_test.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
-	poll_fd.c timecmp.c slmdb.c
+	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -76,7 +76,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	ip_match.o nbbio.o base32_code.o dict_test.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
-	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ)
+	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -104,7 +104,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	vstring_vstream.h watchdog.h format_tv.h load_file.h killme_after.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
-	slmdb.h compat_va_copy.h
+	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -1093,9 +1093,11 @@ dict_open.o: dict_nis.h
 dict_open.o: dict_nisplus.h
 dict_open.o: dict_open.c
 dict_open.o: dict_pcre.h
+dict_open.o: dict_random.h
 dict_open.o: dict_regexp.h
 dict_open.o: dict_sdbm.h
 dict_open.o: dict_sockmap.h
+dict_open.o: dict_pipe.h
 dict_open.o: dict_static.h
 dict_open.o: dict_tcp.h
 dict_open.o: dict_thash.h
@@ -1126,6 +1128,18 @@ dict_pcre.o: vbuf.h
 dict_pcre.o: vstream.h
 dict_pcre.o: vstring.h
 dict_pcre.o: warn_stat.h
+dict_random.o: argv.h
+dict_random.o: dict.h
+dict_random.o: dict_random.c
+dict_random.o: dict_random.h
+dict_random.o: msg.h
+dict_random.o: myflock.h
+dict_random.o: mymalloc.h
+dict_random.o: myrand.h
+dict_random.o: sys_defs.h
+dict_random.o: vbuf.h
+dict_random.o: vstream.h
+dict_random.o: vstring.h
 dict_regexp.o: argv.h
 dict_regexp.o: dict.h
 dict_regexp.o: dict_regexp.c
@@ -1173,6 +1187,19 @@ dict_sockmap.o: sys_defs.h
 dict_sockmap.o: vbuf.h
 dict_sockmap.o: vstream.h
 dict_sockmap.o: vstring.h
+dict_pipe.o: argv.h
+dict_pipe.o: dict.h
+dict_pipe.o: dict_pipe.c
+dict_pipe.o: dict_pipe.h
+dict_pipe.o: htable.h
+dict_pipe.o: msg.h
+dict_pipe.o: myflock.h
+dict_pipe.o: mymalloc.h
+dict_pipe.o: stringops.h
+dict_pipe.o: sys_defs.h
+dict_pipe.o: vbuf.h
+dict_pipe.o: vstream.h
+dict_pipe.o: vstring.h
 dict_static.o: argv.h
 dict_static.o: dict.h
 dict_static.o: dict_static.c
@@ -1213,6 +1240,7 @@ dict_tcp.o: vstring.h
 dict_tcp.o: vstring_vstream.h
 dict_test.o: argv.h
 dict_test.o: dict.h
+dict_test.o: dict_lmdb.h
 dict_test.o: dict_test.c
 dict_test.o: msg.h
 dict_test.o: msg_vstream.h
@@ -1486,8 +1514,6 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
-load_lib.o: load_lib.h
-load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: lowercase.c
 lowercase.o: stringops.h

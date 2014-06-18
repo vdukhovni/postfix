@@ -240,7 +240,7 @@ static void dymap_entry_free(char *ptr)
 
 /* dymap_read_conf - read dynamicmaps.cf-like file */
 
-static void dymap_read_conf(const char *path, const char *base)
+static void dymap_read_conf(const char *path, const char *path_base)
 {
     VSTREAM *fp;
     VSTRING *buf;
@@ -274,7 +274,7 @@ static void dymap_read_conf(const char *path, const char *base)
 		    msg_fatal("%s, line %d: unsupported syntax \"%s\"",
 			      path, linenum, argv->argv[0]);
 		if (argv->argv[1][0] != '/') {
-		    cp = concatenate(base, "/", argv->argv[1], (char *) 0);
+		    cp = concatenate(path_base, "/", argv->argv[1], (char *) 0);
 		    argv_replace_one(argv, 1, cp);
 		    myfree(cp);
 		}

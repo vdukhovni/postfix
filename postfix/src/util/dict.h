@@ -43,6 +43,16 @@ typedef struct DICT_OWNER {
 #define DICT_OWNER_TRUSTED	(!1)	/* ex: root-owned config file */
 #define DICT_OWNER_UNTRUSTED	(!0)	/* ex: non-root config file */
 
+#define DICT_OWNER_AGGREGATE(dst, src) do { \
+	if ((src).status == DICT_OWNER_UNKNOWN) { \
+	    (dst).status = (src).status; \
+	    (dst).uid = ~0; \
+	} else if ((src).status == DICT_OWNER_UNTRUSTED) { \
+	    (dst).status = (src).status; \
+	    (dst).uid = ~0; \
+	} \
+    } while (0)
+
  /*
   * Generic dictionary interface - in reality, a dictionary extends this
   * structure with private members to maintain internal state.

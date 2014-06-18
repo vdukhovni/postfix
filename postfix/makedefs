@@ -4,17 +4,20 @@
 # NAME
 #	makedefs 1
 # SUMMARY
-#	makefile configuration utility
+#	Postfix makefile configuration utility
 # SYNOPSIS
 #	\fBmake makefiles \fIname=value...\fR
 # DESCRIPTION
 #	The \fBmakedefs\fR command identifies the compilation
-#	environment, and emits macro definitions on the standard output
-#	stream that can be prepended to template Makefiles.
+#	environment, and emits macro definitions on the standard
+#	output stream that can be prepended to template Makefiles.
+#	These macros implement an internal interface and are subject
+#	to change without notice.
 #
 #	Default settings can be overruled by specifying them as
-#	environment variables. Use quotes if variables contain
-#	whitespace or shell meta characters.
+#	environment variables (or as name=value pairs on the "make"
+#	command line). Use quotes if variables contain whitespace
+#	or shell meta characters.
 # .IP \fBAUXLIBS=\fIobject_library...\fR
 #	Specifies one or more non-default object libraries. Postfix
 #	2,12 and later specify some of their database library
@@ -77,12 +80,16 @@
 # .IP \fBshared=no\fR
 #	Enable (disable) Postfix builds with shared libraries
 #	typically named $shlib_directory/libpostfix-*.so.*.
+#
+#	This feature was introduced with Postfix 2.12.
 # .IP \fBdynamicmaps=yes\fR
 # .IP \fBdynamicmaps=no\fR
 #	Enable (disable) Postfix builds with the configuration file
-#	$plugin_directory/dynamicmaps.cf for dynamically-loadable
+#	$plugin_directory/dynamicmaps.cf and dynamically-loadable
 #	database plugins typically named postfix-*.so.*.  The setting
 #	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
+#
+#	This feature was introduced with Postfix 2.12.
 # .IP \fIinstallation_parameter\fB=\fIvalue\fR...
 #	Override the compiled-in default value of the specified
 #	installation parameter(s). The following parameters are
@@ -95,10 +102,14 @@
 #
 #	See the postconf(5) manpage for a description of these
 #	parameters.
+#
+#	This feature was introduced with Postfix 2.12.
 # .IP \fBSHLIB_VERSION=\fIversion\fR
 #	Specifies a non-default shared-library version for Postfix
 #	libraries and database plugins.  By default, the version
 #	equals the default value for the $mail_version parameter.
+#
+#	This feature was introduced with Postfix 2.12.
 # .IP \fBWARN=\fIwarning_flags\fR
 #	Specifies non-default gcc compiler warning options for use when
 #	"make" is invoked in a source subdirectory only.
@@ -904,8 +915,7 @@ DEFINED_MAP_TYPES=`
 	{ for (n = 1; n <= NF; n++)
 	      if ($n ~ /^-dhas_/)
 		  if (seen[name = substr($n, 7)]++ == 0)
-		      names = name " " names }
-	END { print names }
+		      printf(" %s", name) }
 '`
 
 # Propagate AUXLIBS_FOO or merge them into global AUXLIBS (i.e. SYSLIBS).

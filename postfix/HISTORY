@@ -19875,3 +19875,47 @@ Apologies for any names omitted.
 	the "ln -n" option is not universally implemented, so we
 	remove the old symlink first.  Problem reported by Viktor.
 	File: postfix-install.
+
+20140603
+
+	Cleanup: use the OpenSSL session id accessor (available
+	since OpenSSL 0.9.8 or so) instead of groping a session
+	object directly. Viktor Dukhovni. File: tls_server.c.
+
+20140605
+
+	Feature: the pipe(8) daemon logs some command output after
+	successful delivery as "dsn=2.0.0, status=sent (delivered
+	via XXX service (YYY))" where XXX is the master.cf service
+	name, and YYY is command output. Files: pipe/command.c,
+	pipe.c.
+
+20140613
+
+	Feature: the "pipeline" table implements a table pipeline.
+	Example "pipeline:!type_1:name_1!...!type_n:name_n".  The
+	ASCII character after "pipeline:" will be used as the
+	separator between the lookup tables that follow (do not use
+	space, ",", ":" or non-ASCII).  Each "pipeline:" query is
+	given to the first table.  Each lookup result becomes the
+	query for the next table in the pipeline, and the last table
+	produces the final result.  When any table lookup produces
+	no result, the pipeline produces no result.  Files:
+	dict_pipe.[hc], dict_open.c, postlink, DATABASE_README.html,
+	postconf.c.
+
+20140617
+
+	Feature: the "random" table performs random selection.
+	Example: "random:!result_1!...!result_n". Each table query
+	returns a random choice from the specified results. The
+	ASCII character after "random:" will be used as the separator
+	between the results that follow (do not use space, ",", ":"
+	or non-ASCII).  Files: dict_random.[hc], dict_open.c,
+	postlink, DATABASE_README.html, postconf.c.
+
+20140618
+
+	Cleanup: INFO action in access(5) tables, for consistency
+	with header/body_checks. Viktor Dukhovni.  Files:
+	smtpd/smtpd_check.c, proto/access.

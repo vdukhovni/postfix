@@ -33,6 +33,79 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Incompatible changes with snapshot 20140618
+===========================================
+
+The pipe(8) delivery agent will now log a limited amount of command
+output upon successful delivery, and will report that output in
+"SUCCESS" delivery status reports. This is another good reason to
+disable inbound DSN requests at the Internet perimeter.
+
+Major changes with snapshot 20140618
+====================================
+
+This introduces several lookup tables with unusual properties.
+
+random table
+------------
+
+The "random" lookup table performs random selection. This may be
+used to implement load balancing, for example:
+
+/etc/postfix/transport:
+    # Deliver my own domain as usual.
+    example.com :
+    .example.com :
+
+/etc/postfix/main.cf:
+    transport_maps = 
+	# Deliver my own domain as usual.
+	hash:/etc/postfix/transport 
+	# Deliver other domains via randomly-selected relayhosts
+	random:!smtp:smtp0.example.com!smtp:smtp1.example.com
+
+A variant of this can randomly select SMTP clients with different
+smtp_bind_address settings.
+
+The ASCII character after "random:" will be used as the separator
+between the results that follow (do not use space, ",", ":" or
+non-ASCII).
+
+Some future version may support the form random:/path/to/file,
+to load the list of random values, one per line, from a textfile.
+
+To implement different weights, specify lookup results multiple
+times. For example, to choose smtp:smtp1.example.com twice as often
+as smtp:smtp0.example.com, specify smtp:smtp1.example.com twice.
+
+pipeline table
+--------------
+
+As the name suggests, the "pipeline" table implements a pipeline
+of lookup tables. The name of the table specifies the pipeline as
+a sequence of tables. For example, the following prevents SMTP mail
+to system accounts that have "nologin" as their login shell:
+
+    /etc/postfix/main.cf:
+	local_recipient_maps = 
+	    pipeline:!unix:passwd.byname!pcre:/etc/postfix/no-nologin.pcre
+	    alias_maps
+
+    /etc/postfix/no-nologin.pcre:
+	!/nologin/	whatever
+
+The ASCII character after "pipeline:" will be used as the separator
+between the lookup tables that follow (do not use space, ",", ":"
+or non-ASCII).
+
+Each "pipeline:" query is given to the first table. Each table
+lookup result becomes the query for the next table in the pipeline,
+and the last table produces the final result.  When any table lookup
+produces no result, the entire pipeline produces no result.
+
+Some future version may support the form pipeline:/path/to/file,
+to load the list of lookup tables, one per line, from a textfile.
+
 Incompatible changes with snapshot 20140530
 ===========================================
 

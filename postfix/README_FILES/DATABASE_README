@@ -242,12 +242,26 @@ To find out what database types your Postfix system supports, use the "ppooss
         A lookup table based on Perl Compatible Regular Expressions. The file
         format is described in pcre_table(5). The lookup table name as used in
         "pcre:table" is the name of the regular expression file.
+    ppiippeelliinnee (read-only)
+        A pipeline of lookup tables. Example: "ppiippeelliinnee::!type_1:name_1! ...
+        !type_n:name_n". Each "pipeline:" query is given to the first table.
+        Each lookup result becomes the query for the next table in the
+        pipeline, and the last table produces the final result. When any table
+        lookup produces no result, the pipeline produces no result. The ASCII
+        character after "pipeline:" will be used as the separator between the
+        lookup tables that follow (do not use space, ",", ":" or non-ASCII).
     ppggssqqll (read-only)
         PostgreSQL database client. Configuration details are given in
         pgsql_table(5).
     pprrooxxyy
         Postfix proxymap(8) client for shared access to Postfix databases. The
         lookup table name syntax is "proxy:type:table".
+    rraannddoomm (read-only)
+        An in-memory table that performs random selection. Example: "rraannddoomm::
+        !result_1! ... !result_n". Each table query returns a random choice
+        from the specified results. The ASCII character after "random:" will be
+        used as the separator between the results that follow (do not use
+        space, ",", ":" or non-ASCII).
     rreeggeexxpp (read-only)
         A lookup table based on regular expressions. The file format is
         described in regexp_table(5). The lookup table name as used in "regexp:

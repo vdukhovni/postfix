@@ -362,6 +362,17 @@ The file format is described in pcre_table(5). The lookup table
 name as used in "pcre:table" is the name of the regular expression
 file.  </dd>
 
+<dt> <b>pipeline</b> (read-only) </dt>
+
+<dd> A pipeline of lookup tables. Example:
+"<b>pipeline:</b><i>!type_1:name_1! ... !type_n:name_n</i>".  Each
+"pipeline:" query is given to the first table.  Each lookup result
+becomes the query for the next table in the pipeline, and the last
+table produces the final result.  When any table lookup produces
+no result, the pipeline produces no result.  The ASCII character
+after "pipeline:" will be used as the separator between the lookup
+tables that follow (do not use space, ",", ":" or non-ASCII).  </dd>
+
 <dt> <b>pgsql</b> (read-only) </dt>
 
 <dd> PostgreSQL database client.  Configuration details are given
@@ -371,6 +382,15 @@ in pgsql_table(5). </dd>
 
 <dd> Postfix proxymap(8) client for shared access to Postfix
 databases. The lookup table name syntax is "proxy:type:table".
+</dd>
+
+<dt> <b>random</b> (read-only) </dt>
+
+<dd> An in-memory table that performs random selection.  Example:
+"<b>random:</b><i>!result_1! ... !result_n</i>". Each table query
+returns a random choice from the specified results. The ASCII
+character after "random:" will be used as the separator between the
+results that follow (do not use space, ",", ":" or non-ASCII).
 </dd>
 
 <dt> <b>regexp</b> (read-only) </dt>

@@ -130,18 +130,18 @@
 # 
 #        if /pattern/flags
 # 
-#        endif  Match the input string against the patterns between
-#               if  and endif, if and only if the same input string
-#               also matches /pattern/. The if..endif can nest.
+#        endif  If the input string matches /pattern/,  then  match
+#               that  input  string against the patterns between if
+#               and endif.  The if..endif can nest.
 # 
 #               Note: do not prepend whitespace to patterns  inside
 #               if..endif.
 # 
 #        if !/pattern/flags
 # 
-#        endif  Match the input string against the patterns between
-#               if and endif, if and only if the same input  string
-#               does not match /pattern/. The if..endif can nest.
+#        endif  If  the input string does not match /pattern/, then
+#               match  that  input  string  against  the   patterns
+#               between if and endif. The if..endif can nest.
 # 
 #        blank lines and comments
 #               Empty  lines and whitespace-only lines are ignored,
