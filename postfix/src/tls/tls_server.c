@@ -827,10 +827,10 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	if (TLScontext->log_mask & TLS_LOG_VERBOSE) {
 	    X509_NAME_oneline(X509_get_subject_name(peer),
 			      buf, sizeof(buf));
-	    msg_info("subject=%s", buf);
+	    msg_info("subject=%s", printable(buf, '?'));
 	    X509_NAME_oneline(X509_get_issuer_name(peer),
 			      buf, sizeof(buf));
-	    msg_info("issuer=%s", buf);
+	    msg_info("issuer=%s", printable(buf, '?'));
 	}
 	TLScontext->peer_CN = tls_peer_CN(peer, TLScontext);
 	TLScontext->issuer_CN = tls_issuer_CN(peer, TLScontext);
