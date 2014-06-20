@@ -16,7 +16,7 @@
   */
 #ifdef USE_DYNAMIC_LIBS
 
-extern void dymap_init(const char *);
+extern void dymap_init(const char *, const char *);
 
 #endif
 /* LICENSE

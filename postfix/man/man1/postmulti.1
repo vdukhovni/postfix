@@ -368,11 +368,17 @@ The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.PP
+Available in Postfix 2.12 and later:
+.IP "\fBmeta_directory (see 'postconf -d' output)\fR"
+The location of non-executable files that are shared among
+multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
+and the multi-instance template files main.cf.proto and master.cf.proto.
 .SH "FILES"
 .na
 .nf
-$daemon_directory/main.cf, stock configuration file
-$daemon_directory/master.cf, stock configuration file
+$meta_directory/main.cf.proto, stock configuration file
+$meta_directory/master.cf.proto, stock configuration file
 $daemon_directory/postmulti-script, life-cycle helper program
 .SH "SEE ALSO"
 .na

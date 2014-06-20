@@ -241,6 +241,17 @@ typically named <tt>libpostfix-*.so.*</tt>). Postfix shared libraries
 add minor run-time overhead and result in significantly-smaller
 Postfix executable files. </p>
 
+<blockquote> <p> <b> Note: Postfix shared libraries should not be
+installed in a "public" system directory such as /usr/lib or
+/usr/local/lib. Linking Postfix shared-library files into non-Postfix
+programs is not supported. Postfix shared libraries implement a
+Postfix-internal API that will change without maintaining compatibility.
+Because Postfix-internal APIs are subject to change, Postfix
+shared-library files are always linked with their fully-qualified
+name, i.e.  libpostfix-<i>name</i>.so.<i>version</i>.  There are
+no libpostfix-<i>name</i>.so symlinks, because no program uses them.
+</b> </p> </blockquote>
+
 <p> Specify "shared=yes" on the "make makefiles" command line to
 build Postfix with shared-library support. </p>
 
@@ -252,7 +263,7 @@ $ make
 </pre>
 </blockquote>
 
-<p> This defaults to installing shared libraries in /usr/local/lib,
+<p> This defaults to installing shared libraries in /usr/lib/postfix,
 typically with names like libpostfix-<i>name</i>.so.<i>version</i>,
 where the <i>name</i> is a source-code directory name such as "util"
 or "global", and the <i>version</i> is the Postfix version:
@@ -265,7 +276,7 @@ specify, for example: </p>
 
 <blockquote>
 <pre>
-$ make makefiles shared=yes <a href="postconf.5.html#shlib_directory">shlib_directory</a>=/usr/lib \
+$ make makefiles shared=yes <a href="postconf.5.html#shlib_directory">shlib_directory</a>=/usr/local/lib/postfix \
     SHLIB_VERSION=1 ...other arguments...
 </pre>
 </blockquote>
@@ -277,16 +288,33 @@ and install the libpostfix-*.so.* files in a non-system directory.
 No ldconfig is needed if you keep the libpostfix-*.so.* files in
 the compiled-in default $<a href="postconf.5.html#shlib_directory">shlib_directory</a> location. </p>
 
+<blockquote>
+<pre>
+# make upgrade <a href="postconf.5.html#shlib_directory">shlib_directory</a>=/usr/local/lib/postfix ...
+# make install <a href="postconf.5.html#shlib_directory">shlib_directory</a>=/usr/local/lib/postfix ...
+</pre>
+</blockquote>
+
 <p> Additionally, Postfix can be built to support dynamic loading
-of Postfix database clients with the Debian-style dynamicmaps
-feature. Postfix 2.12 supports dynamic loading of <a href="CDB_README.html">cdb</a>:, <a href="ldap_table.5.html">ldap</a>:,
-<a href="lmdb_table.5.html">lmdb</a>:, <a href="mysql_table.5.html">mysql</a>:, <a href="pcre_table.5.html">pcre</a>:, <a href="pgsql_table.5.html">pgsql</a>:, <a href="DATABASE_README.html#types">sdbm</a>:, and <a href="sqlite_table.5.html">sqlite</a>: database clients.
-Dynamic loading is useful when you distribute or install pre-compiled
-Postfix packages. </p>
+of Postfix database clients (database plugins) with the Debian-style
+dynamicmaps feature. Postfix 2.12 supports dynamic loading of <a href="CDB_README.html">cdb</a>:,
+<a href="ldap_table.5.html">ldap</a>:, <a href="lmdb_table.5.html">lmdb</a>:, <a href="mysql_table.5.html">mysql</a>:, <a href="pcre_table.5.html">pcre</a>:, <a href="pgsql_table.5.html">pgsql</a>:, <a href="DATABASE_README.html#types">sdbm</a>:, and <a href="sqlite_table.5.html">sqlite</a>: database
+clients.  Dynamic loading is useful when you distribute or install
+pre-compiled Postfix packages. </p>
+
+<blockquote> <p> <b> Note: Postfix database plugins should not be
+installed in a "public" system directory such as /usr/lib or
+/usr/local/lib. Linking Postfix database plugins into non-Postfix
+programs is not supported. Postfix database plugins implement a
+Postfix-internal API that will change without maintaining compatibility.
+Because Postfix-internal APIs are subject to change, Postfix database
+plugins are always linked with their fully-qualified name, i.e.
+postfix-<i>name</i>.so.<i>version</i>.  There are no postfix-<i>name</i>.so
+symlinks, because no program uses them.  </b> </p> </blockquote>
 
 <p> Specify "dynamicmaps=yes" on the "make makefiles" command line
 to build Postfix with support to dynamically load Postfix database
-clients (database plugins) with the Debian-style dynamicmaps feature.
+clients with the Debian-style dynamicmaps feature.
 </p>
 
 <blockquote>
@@ -297,13 +325,15 @@ $ make
 </pre>
 </blockquote>
 
-<p> This implicitly enables shared-library support, and defaults
-to installing dynamicmaps.cf and database plugins in /usr/libexec/postfix.
-Database plugins are typically named postfix-<i>type</i>.so.<i>version</i>
-where the <i>type</i> is a database type such as "cdb" or "ldap",
-and where the <i>version</i> is the same as for Postfix shared
-libraries. The installed dynamicmaps.cf configuration file is given
-a suffix with the same version. </p>
+<p> This implicitly enables shared-library support, installs the
+dynamicmaps.cf configuration file in the default configuration
+directory (usually, /etc/postfix), and installs database plugins
+by default in /usr/lib/postfix.  Database plugins are typically
+named postfix-<i>type</i>.so.<i>version</i> where the <i>type</i>
+is a database type such as "cdb" or "ldap", and where the <i>version</i>
+is the same as for Postfix shared libraries. The installed
+dynamicmaps.cf configuration file is given a suffix with the same
+version. </p>
 
 <blockquote>
 
@@ -327,7 +357,7 @@ specify, for example: </p>
 
 <blockquote>
 <pre>
-% make makefiles dynamicmaps=yes <a href="postconf.5.html#plugin_directory">plugin_directory</a>=/usr/lib/postfix \
+% make makefiles dynamicmaps=yes <a href="postconf.5.html#plugin_directory">plugin_directory</a>=/usr/local/lib/postfix \
     SHLIB_VERSION=1  ...
 </pre>
 </blockquote>
@@ -335,6 +365,13 @@ specify, for example: </p>
 <p> You can also override the <a href="postconf.5.html#plugin_directory">plugin_directory</a> setting after Postfix
 is built, with "make install" or "make upgrade". In this case, there
 is no need to run the ldconfig command. </p>
+
+<blockquote>
+<pre>
+# make upgrade <a href="postconf.5.html#plugin_directory">plugin_directory</a>=/usr/local/lib/postfix ...
+# make install <a href="postconf.5.html#plugin_directory">plugin_directory</a>=/usr/local/lib/postfix ...
+</pre>
+</blockquote>
 
 <p> Tips for distribution maintainers: 
 
@@ -348,34 +385,36 @@ configuration file names when installing or deinstalling a database
 plugin. However, Postfix itself will use the "versioned" names, to
 allow minor upgrades to happen without having to stop Postfix. </p>
 
+<li> <p> The <a href="postconf.5.html#meta_directory">meta_directory</a> parameter specifies the location of the
+files dynamicmaps.cf, postfix-files, and some multi-instance template
+files. The <a href="postconf.5.html#meta_directory">meta_directory</a> parameter has the same default value as
+the <a href="postconf.5.html#config_directory">config_directory</a> parameter. For backwards compatibility with
+Postfix 2.6 .. 2.11, specify "<a href="postconf.5.html#meta_directory">meta_directory</a> = $<a href="postconf.5.html#daemon_directory">daemon_directory</a>"
+in <a href="postconf.5.html">main.cf</a> before installing or upgrading Postfix, or specify
+"<a href="postconf.5.html#meta_directory">meta_directory</a> = /path/name" on the "make makefiles", "make install"
+or "make upgrade" command line.  </p>
+
 <li> <p> The configuration file dynamicmaps.cf.<i>version</i> will
 automatically include files under the directory
-dynamicmaps.cf.d.<i>version</i>, just like the configuration file
+dynamicmaps.cf.<i>version</i>.d, just like the configuration file
 postfix-files will automatically include files under the directory
 postfix-files.d.  Thanks to this, you don't have to edit postfix-files
 or dynamicmaps.cf, when installing or deinstalling a database plugin
-package. Instead, each plugin can have its own configuration file.
-</p>
+package. Instead, you give that plugin its own configuration file,
+and add or remove the configuration file. </p>
 
 <li> <p> The <a href="postconf.5.html#plugin_directory">plugin_directory</a> setting provides the default directory
 for shared-library objects with a relative pathname in the file
 dynamicmaps.cf.<i>version</i>.
 
-<li> <p> Each configuration file under the directory
-dynamicmaps.cf.d.<i>version</i> must have a name that ends in ".cf"
-and must have the same format as the file dynamicmaps.cf.<i>version</i>.
-</p>
-
-<li> <p> The directory dynamicmaps.cf.d.<i>version</i> is the default
-directory for shared-library objects with a relative pathname in
-the files dynamicmaps.cf.d.<i>version</i>/*.cf.  Thus, the directory
-dynamicmaps.cf.d.<i>version</i> may contain both configuration files
-and shared-library object files.  Hence, the requirement that
-configuration file names must end in ".cf".  </p>
+<li> <p> Each configuration file under the directory dynamicmaps.cf.d
+must have the same format as the configuration file dynamicmaps.cf.
+There is no requirement that these configuration file *names* have a
+specific format.  </p>
 
 <li> <p> Each configuration file under the directory postfix-files.d
 must have the same format as the configuration file postfix-files.
-There is no requirement that these configuration file names have a
+There is no requirement that these configuration file *names* have a
 specific format.  </p>
 
 </ul>
@@ -471,9 +510,11 @@ listed below. See the <a href="postconf.5.html">postconf(5)</a> manpage for a de
 
 <tr> <td><a href="postconf.5.html#manpage_directory">manpage_directory</a></td> <td>/usr/local/man</td> </tr>
 
+<tr> <td><a href="postconf.5.html#meta_directory">meta_directory</a></td> <td>/etc/postfix</td> </tr>
+
 <tr> <td><a href="postconf.5.html#newaliases_path">newaliases_path</a></td> <td>/usr/bin/newaliases</td> </tr>
 
-<tr> <td><a href="postconf.5.html#plugin_directory">plugin_directory</a></td> <td>/usr/libexec/postfix</td> </tr>
+<tr> <td><a href="postconf.5.html#plugin_directory">plugin_directory</a></td> <td>/usr/lib/postfix</td> </tr>
 
 <tr> <td><a href="postconf.5.html#queue_directory">queue_directory</a></td> <td>/var/spool/postfix</td> </tr>
 
@@ -481,7 +522,7 @@ listed below. See the <a href="postconf.5.html">postconf(5)</a> manpage for a de
 
 <tr> <td><a href="postconf.5.html#sendmail_path">sendmail_path</a></td> <td>/usr/sbin/sendmail</td> </tr>
 
-<tr> <td><a href="postconf.5.html#shlib_directory">shlib_directory</a></td> <td>/usr/local/lib</td> </tr>
+<tr> <td><a href="postconf.5.html#shlib_directory">shlib_directory</a></td> <td>/usr/lib/postfix</td> </tr>
 
 </table>
 

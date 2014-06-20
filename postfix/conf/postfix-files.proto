@@ -66,13 +66,18 @@ $queue_directory/public:d:$mail_owner:$setgid_group:710:uc
 $queue_directory/pid:d:root:-:755:uc
 $queue_directory/saved:d:$mail_owner:-:700:ucr
 $queue_directory/trace:d:$mail_owner:-:700:ucr
-# Update shared libraries before daemon or command-line programs.
+# Update shared libraries and plugins before daemon or command-line programs.
 $shlib_directory/lib${LIB_PREFIX}util${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}global${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}dns${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}tls${LIB_SUFFIX}:f:root:-:755
 $shlib_directory/lib${LIB_PREFIX}master${LIB_SUFFIX}:f:root:-:755
-# Update database plugins before daemon or command-line programs.
+# Never needed because libpostfix-* is not a public API.
+#$shlib_directory/lib${LIB_PREFIX}util${SHLIB_SUFFIX}:l:lib${LIB_PREFIX}util${LIB_SUFFIX}:-::
+#$shlib_directory/lib${LIB_PREFIX}global${SHLIB_SUFFIX}:l:lib${LIB_PREFIX}global${LIB_SUFFIX}:-::
+#$shlib_directory/lib${LIB_PREFIX}dns${SHLIB_SUFFIX}:l:lib${LIB_PREFIX}dns${LIB_SUFFIX}:-::
+#$shlib_directory/lib${LIB_PREFIX}tls${SHLIB_SUFFIX}:l:lib${LIB_PREFIX}tls${LIB_SUFFIX}:-::
+#$shlib_directory/lib${LIB_PREFIX}master${SHLIB_SUFFIX}:l:lib${LIB_PREFIX}master${LIB_SUFFIX}:-::
 $plugin_directory/${LIB_PREFIX}cdb${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}ldap${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}lmdb${LIB_SUFFIX}:f:root:-:755
@@ -81,10 +86,14 @@ $plugin_directory/${LIB_PREFIX}pcre${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}pgsql${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}sdbm${LIB_SUFFIX}:f:root:-:755
 $plugin_directory/${LIB_PREFIX}sqlite${LIB_SUFFIX}:f:root:-:755
-$plugin_directory/dynamicmaps.cf.${SHLIB_VERSION}:f:root:-:644:
-$plugin_directory/dynamicmaps.cf.${SHLIB_VERSION}.d:d:root:-:755:
-$plugin_directory/dynamicmaps.cf:l:dynamicmaps.cf.${SHLIB_VERSION}:-::
-$plugin_directory/dynamicmaps.cf.d:l:dynamicmaps.cf.${SHLIB_VERSION}.d:-::
+$meta_directory/dynamicmaps.cf.${SHLIB_VERSION}:f:root:-:644:
+$meta_directory/dynamicmaps.cf.${SHLIB_VERSION}.d:d:root:-:755:
+$meta_directory/dynamicmaps.cf:l:dynamicmaps.cf.${SHLIB_VERSION}:-::
+$meta_directory/dynamicmaps.cf.d:l:dynamicmaps.cf.${SHLIB_VERSION}.d:-::
+$meta_directory/main.cf.proto:f:root:-:644
+$meta_directory/master.cf.proto:f:root:-:644:p
+$meta_directory/postfix-files.d:d:root:-:755
+$meta_directory/postfix-files:f:root:-:644
 $daemon_directory/anvil:f:root:-:755
 $daemon_directory/bounce:f:root:-:755
 $daemon_directory/cleanup:f:root:-:755
@@ -94,15 +103,15 @@ $daemon_directory/error:f:root:-:755
 $daemon_directory/flush:f:root:-:755
 #$daemon_directory/lmtp:f:root:-:755
 $daemon_directory/local:f:root:-:755
-$daemon_directory/main.cf:f:root:-:644
-$daemon_directory/master.cf:f:root:-:644
+$daemon_directory/main.cf:f:root:-:644:o
+$daemon_directory/master.cf:f:root:-:644:o
 $daemon_directory/master:f:root:-:755
 $daemon_directory/oqmgr:f:root:-:755
 $daemon_directory/pickup:f:root:-:755
 $daemon_directory/pipe:f:root:-:755
 $daemon_directory/post-install:f:root:-:755
-$daemon_directory/postfix-files:f:root:-:644
-$daemon_directory/postfix-files.d:d:root:-:755
+$daemon_directory/postfix-files:f:root:-:644:o
+$daemon_directory/postfix-files.d:d:root:-:755:o
 $daemon_directory/postfix-script:f:root:-:755
 $daemon_directory/postfix-wrapper:f:root:-:755
 $daemon_directory/postmulti-script:f:root:-:755
@@ -153,7 +162,6 @@ $config_directory/main.cf:f:root:-:644:p
 $config_directory/makedefs.out:f:root:-:644:1
 $config_directory/master.cf:f:root:-:644:p
 $config_directory/pcre_table:f:root:-:644:o
-$config_directory/postfix-files:f:root:-:644:o
 $config_directory/regexp_table:f:root:-:644:o
 $config_directory/relocated:f:root:-:644:p1
 $config_directory/tcp_table:f:root:-:644:o

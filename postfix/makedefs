@@ -97,8 +97,9 @@
 #
 #	command_directory config_directory daemon_directory
 #	data_directory default_database_type html_directory
-#	mailq_path manpage_directory newaliases_path plugin_directory
-#	queue_directory readme_directory sendmail_path shlib_directory
+#	mailq_path manpage_directory meta_directory newaliases_path
+#	plugin_directory queue_directory readme_directory sendmail_path
+#	shlib_directory
 #
 #	See the postconf(5) manpage for a description of these
 #	parameters.
@@ -703,7 +704,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
+CCARGS="$CCARGS -DNONPROD"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"
@@ -715,6 +716,7 @@ config_directory_macro=DEF_CONFIG_DIR
 daemon_directory_macro=DEF_DAEMON_DIR
 data_directory_macro=DEF_DATA_DIR
 mailq_path_macro=DEF_MAILQ_PATH
+meta_directory_macro=DEF_META_DIR
 newaliases_path_macro=DEF_NEWALIAS_PATH
 plugin_directory_macro=DEF_PLUGIN_DIR
 queue_directory_macro=DEF_QUEUE_DIR
@@ -726,8 +728,8 @@ shlib_directory_macro=DEF_SHLIB_DIR
 # "shared=no" as appropriate.
 
 for parm_name in command_directory config_directory daemon_directory \
-	data_directory mailq_path newaliases_path plugin_directory \
-	queue_directory sendmail_path shlib_directory
+	data_directory mailq_path meta_directory newaliases_path \
+	plugin_directory queue_directory sendmail_path shlib_directory
 do
     eval parm_val=\"\$$parm_name\"
     eval parm_macro=\"\$${parm_name}_macro\"
@@ -961,6 +963,7 @@ SHLIB_DIR = $shlib_directory
 SHLIB_ENV = $SHLIB_ENV
 SHLIB_LD = $SHLIB_LD
 SHLIB_RPATH = $SHLIB_RPATH
+SHLIB_SUFFIX = $SHLIB_SUFFIX
 SHLIB_VERSION = $SHLIB_VERSION
 # Switch between dynamicmaps.cf plugins and hard-linked databases.
 PLUGIN_DIR = $plugin_directory

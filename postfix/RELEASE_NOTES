@@ -16,10 +16,15 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.10 or earlier, read RELEASE_NOTES-2.11
 before proceeding.
 
-Notes for distribution maintainers (20140530)
+Notes for distribution maintainers (20140620)
 ---------------------------------------------
 
 The Postfix build/install procedure has changed.
+
+[For compliance with some file system policies, non-executable files
+have been moved away from $daemon_directory (for example, postfix-files,
+dynamicmaps.cf, and multi-instance template files). The notes for
+20140530 have been updated accordingly.]
 
 To avoid massive frustration due to broken patches, PLEASE BUILD
 POSTFIX FIRST WITHOUT APPLYING ANY PATCHES.  Follow the INSTALL
@@ -32,6 +37,22 @@ customizations.
 Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
+
+Incompatible changes with snapshot 20140620
+===========================================
+
+For compliance with file system policies, some files have been moved
+from $daemon_directory to the directory specified with the new
+meta_directory configuration parameter which has the same default
+value as the config_directory parameter. This change affects
+non-executable files that are shared between multiple Postfix
+instances such as postfix-files, dynamicmaps.cf, and multi-instance
+template files.
+
+For backwards compatibility with Postfix 2.6 .. 2.11, specify
+"meta_directory = $daemon_directory" in main.cf before installing
+or upgrading Postfix, or specify "meta_directory = /path/name" on
+the "make makefiles", "make install" or "make upgrade" command line.
 
 Incompatible changes with snapshot 20140618
 ===========================================
@@ -191,15 +212,19 @@ the user-visible changes with respect to Debian are:
   files in the compiled-in default $shlib_directory location.
 
 - The new plugin_directory parameter specifies the location of the
-  dynamicmaps.cf database plugin configuration file and of any
-  postfix-*.so.* plugins with a relative pathname.  The dynamicmaps.cf
-  location is not hard-coded to /etc, because the file is shared
-  among all Postfix instances just like postfix-files and other
-  files. Files in /etc are meant to be instance-specific.
+  postfix-*.so.* plugins that are configured with a relative pathname
+  in the file dynamicmaps.cf.
 
-- Postfix supports the directory dynamicmaps.cf.d. in addition to
-  the file dynamicmaps.cf. Maintainers can one configuration file
-  per database plugin, which simplifies installation and removal.
+- The new meta_directory parameter specifies the location of the
+  file dynamicmaps.cf and some other files. The meta_directory
+  parameter has the same default value as the config_directory
+  parameter, so this is backwards compatible with Debian (but the
+  default setting may be changed at compile time).
+
+- Postfix supports the directory dynamicmaps.cf.d in addition to
+  the file dynamicmaps.cf. Maintainers can use one configuration
+  file per database plugin, which simplifies installation and
+  removal of individual plugins.
 
 Major changes with snapshot 20140321
 ====================================

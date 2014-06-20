@@ -12,12 +12,13 @@ DIRS	= src/util src/global src/dns src/tls src/xsasl src/milter src/master \
 	src/postmulti src/postscreen src/dnsblog src/tlsproxy \
 	src/posttls-finger
 MANDIRS	= proto man html
-LIBEXEC	= libexec/post-install libexec/postfix-files libexec/postfix-script \
-	libexec/postfix-wrapper libexec/main.cf libexec/master.cf \
-	libexec/postmulti-script
-PLUGINS	= plugins/dynamicmaps.cf.$(SHLIB_VERSION)
+LIBEXEC	= libexec/post-install libexec/postfix-script libexec/postfix-wrapper \
+	libexec/postmulti-script libexec/post-install
+PLUGINS	= meta/dynamicmaps.cf.$(SHLIB_VERSION)
+META	= meta/main.cf.proto meta/master.cf.proto meta/postfix-files $(PLUGINS)
 EXPAND = sed -e "s;\$${LIB_PREFIX};$(LIB_PREFIX);" \
 	    -e "s;\$${LIB_SUFFIX};$(LIB_SUFFIX);" \
+	    -e "s;\$${SHLIB_SUFFIX};$(SHLIB_SUFFIX);" \
 	    -e "s;\$${SHLIB_VERSION};$(SHLIB_VERSION);"
 
 default: update
@@ -45,23 +46,22 @@ update printfck tests root_tests:
 	 (set -e; echo "[$$i]"; cd $$i; $(MAKE) $(OPTS) $@ MAKELEVEL=) || exit 1; \
 	done
 
-update: $(LIBEXEC) $(PLUGINS)
-
-libexec/makedefs.out: conf/makedefs.out
-	rm -f $@ && ln -f $? $@
+update: $(META) $(LIBEXEC)
 
 libexec/post-install: conf/post-install
 	rm -f $@ && ln -f $? $@
 
-libexec/postfix-files: conf/postfix-files conf/makedefs.out Makefile
+meta/postfix-files: conf/postfix-files.proto conf/makedefs.out Makefile
 	rm -f $@
 	(if [ "${SHLIB_DIR}" = "no" -o "${SHLIB_DIR}" = "" ]; then \
 	    sed -e '/^\$$shlib_directory/d' \
-		-e '/^\$$plugin_directory/d' conf/postfix-files; \
+		-e '/^\$$plugin_directory/d' \
+		-e '/dynamicmaps.cf/d' conf/postfix-files.proto; \
 	elif [ "${PLUGIN_DIR}" = "no" -o "${PLUGIN_DIR}" = "" ]; then \
-	    sed -e '/^\$$plugin_directory/d' conf/postfix-files | $(EXPAND); \
+	    sed -e '/^\$$plugin_directory/d' \
+		-e '/dynamicmaps.cf/d' conf/postfix-files.proto | $(EXPAND); \
 	else \
-	    $(EXPAND) conf/postfix-files | awk -F: ' \
+	    $(EXPAND) conf/postfix-files.proto | awk -F: ' \
 		BEGIN { \
 		    count = split("'"$(DEFINED_MAP_TYPES)"'", names, " "); \
 		    for (n = 1; n <= count; n++) \
@@ -83,17 +83,17 @@ libexec/postfix-script: conf/postfix-script
 libexec/postfix-wrapper: conf/postfix-wrapper
 	rm -f $@ && ln -f $? $@
 
-libexec/main.cf: conf/main.cf
+meta/main.cf.proto: conf/main.cf
 	rm -f $@ && ln -f $? $@
 
-libexec/master.cf: conf/master.cf
+meta/master.cf.proto: conf/master.cf
 	rm -f $@ && ln -f $? $@
 
 libexec/postmulti-script: conf/postmulti-script
 	rm -f $@ && ln -f $? $@
 
-plugins/dynamicmaps.cf.$(SHLIB_VERSION): conf/dynamicmaps.cf Makefile
-	rm -f $@ && $(EXPAND) conf/dynamicmaps.cf | $(AWK) ' \
+meta/dynamicmaps.cf.$(SHLIB_VERSION): conf/dynamicmaps.cf.proto Makefile
+	rm -f $@ && $(EXPAND) conf/dynamicmaps.cf.proto | $(AWK) ' \
 		BEGIN { split("'"$(DEFINED_MAP_TYPES)"'", map_types); \
 			for (n in map_types) has_type[map_types[n]] = n } \
 		/^#/ { print } \
@@ -160,7 +160,7 @@ tidy:	clean
 	    *.bak */*.bak */*/*.bak \
 	    make.err */make.err */*/make.err \
 	    *.gmon */*.gmon */*/*.gmon \
-	    conf/main.cf.default conf/bounce.cf.default
+	    conf/main.cf.default conf/bounce.cf.default meta/*
 	find . -type s -print | xargs rm -f
 	find . -type d -print | xargs chmod 755
 	find . -type f -print | xargs chmod a+r

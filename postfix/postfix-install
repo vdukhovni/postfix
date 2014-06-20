@@ -144,6 +144,11 @@
 #	The final destination directory for the Postfix sample configuration
 #	files. This parameter is obsolete as of Postfix version 2.1.
 #	This parameter setting is recorded in the installed main.cf file.
+# .IP meta_directory
+#	The final destination directory for non-executable files
+#	that are shared among multiple Postfix instances, such
+#	as postfix-files, dynamicmaps.cf, as well as the multi-instance
+#	template files main.cf.proto and master.cf.proto.
 # .IP plugin_directory
 #	The final destination directory for the Postfix dynamicmaps.cf
 #	database plugin configuration file, and files referenced by
@@ -162,7 +167,7 @@
 #	post-install(1) post-installation procedure
 # FILES
 #	$config_directory/main.cf, Postfix installation configuration.
-#	$daemon_directory/postfix-files, installation control file.
+#	$meta_directory/postfix-files, installation control file.
 #	$config_directory/install.cf, obsolete configuration file.
 # LICENSE
 # .ad
@@ -391,6 +396,11 @@ plugin_directory_prompt="the final destination directory for the
 Postfix dynamicmaps.cf configuration file and files referenced by
 that file."
 
+meta_directory_prompt="the final destination directory for
+non-executable files that are shared among multiple Postfix instances,
+such as postfix-files, dynamicmaps.cf, as well as the multi-instance
+template files main.cf.proto and master.cf.proto."
+
 # Default settings, just to get started.
 
 : ${install_root=/}
@@ -455,7 +465,7 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
 CONFIG_PARAMS="command_directory daemon_directory data_directory \
 html_directory mail_owner mailq_path manpage_directory newaliases_path \
 queue_directory readme_directory sendmail_path setgid_group shlib_directory \
-plugin_directory"
+plugin_directory meta_directory"
 
 # Extract parameter settings from the installed main.cf file.
 
@@ -528,7 +538,8 @@ do
 done
 
 for path in "$daemon_directory" "$data_directory" "$command_directory" "$queue_directory" \
-    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory"
+    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory" \
+    "$meta_directory"
 do
    case "$path" in
    /*) ;;
@@ -546,7 +557,7 @@ done
 
 for path in command_directory config_directory daemon_directory data_directory \
     manpage_directory queue_directory shlib_directory plugin_directory html_directory \
-    readme_directory
+    readme_directory meta_directory
 do
    case "$path" in
    no) ;;
@@ -603,6 +614,7 @@ MANPAGE_DIRECTORY=$install_root$manpage_directory
 README_DIRECTORY=$install_root$readme_directory
 SHLIB_DIRECTORY=$install_root$shlib_directory
 PLUGIN_DIRECTORY=$install_root$plugin_directory
+META_DIRECTORY=$install_root$meta_directory
 
 # Avoid repeated tests for existence of these; default permissions suffice.
 
@@ -617,6 +629,7 @@ test "$html_directory" = "no" -o -d $HTML_DIRECTORY ||
 	mkdir -p $HTML_DIRECTORY || exit 1
 test "$readme_directory" = "no" -o -d $README_DIRECTORY || 
 	mkdir -p $README_DIRECTORY || exit 1
+test -d $META_DIRECTORY || mkdir -p $META_DIRECTORY || exit 1
 
 # Upgrade or first-time installation?
 
@@ -629,7 +642,7 @@ fi
 
 # Install files, using information from the postfix-files file.
 
-exec < libexec/postfix-files || exit 1
+exec < meta/postfix-files || exit 1
 while IFS=: read path type owner group mode flags junk
 do
     IFS="$BACKUP_IFS"
@@ -706,6 +719,9 @@ do
 	'$plugin_directory')
 	    compare_or_replace $mode "$owner" "$group" plugins/$file \
 		$PLUGIN_DIRECTORY/$file || exit 1;;
+	'$meta_directory')
+	    compare_or_replace $mode "$owner" "$group" meta/$file \
+		$META_DIRECTORY/$file || exit 1;;
 	'$daemon_directory')
 	    compare_or_replace $mode "$owner" "$group" libexec/$file \
 		$DAEMON_DIRECTORY/$file || exit 1;;
@@ -731,7 +747,7 @@ do
 	    test "$readme_directory" = "no" ||
 		compare_or_replace $mode "$owner" "$group" README_FILES/$file \
 		    $README_DIRECTORY/$file || exit 1;;
-	 *) echo $0: Error: unknown entry $path in libexec/postfix-files 1>&2
+	 *) echo $0: Error: unknown entry $path in meta/postfix-files 1>&2
 	    exit 1;;
 	esac) || exit 1
 	continue;;
@@ -762,7 +778,7 @@ do
 	) || exit 1
 	continue;;
 
-     *) echo $0: Error: unknown type $type for $path in libexec/postfix-files 1>&2
+     *) echo $0: Error: unknown type $type for $path in meta/postfix-files 1>&2
 	exit 1;;
     esac
 
@@ -789,6 +805,7 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
     "readme_directory = $readme_directory" \
     "shlib_directory = $shlib_directory" \
     "plugin_directory = $plugin_directory" \
+    "meta_directory = $meta_directory" \
 || exit 1
 
 # If Postfix is being installed locally from source code, do the

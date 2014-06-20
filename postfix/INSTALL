@@ -159,6 +159,15 @@ Postfix can be built with Postfix shared libraries (files typically named
 libpostfix-*.so.*). Postfix shared libraries add minor run-time overhead and
 result in significantly-smaller Postfix executable files.
 
+    Note: Postfix shared libraries should not be installed in a "public" system
+    directory such as /usr/lib or /usr/local/lib. Linking Postfix shared-
+    library files into non-Postfix programs is not supported. Postfix shared
+    libraries implement a Postfix-internal API that will change without
+    maintaining compatibility. Because Postfix-internal APIs are subject to
+    change, Postfix shared-library files are always linked with their fully-
+    qualified name, i.e. libpostfix-name.so.version. There are no libpostfix-
+    name.so symlinks, because no program uses them.
+
 Specify "shared=yes" on the "make makefiles" command line to build Postfix with
 shared-library support.
 
@@ -166,8 +175,8 @@ shared-library support.
     $ make makefiles shared=no ...other arguments...
     $ make
 
-This defaults to installing shared libraries in /usr/local/lib, typically with
-names like libpostfix-name.so.version, where the name is a source-code
+This defaults to installing shared libraries in /usr/lib/postfix, typically
+with names like libpostfix-name.so.version, where the name is a source-code
 directory name such as "util" or "global", and the version is the Postfix
 version: x.y.z for stable releases, x.y-date for snapshot (development)
 releases, or x.y-date-nonprod for non-production releases.
@@ -175,7 +184,7 @@ releases, or x.y-date-nonprod for non-production releases.
 To override the default location or shared-library version, specify, for
 example:
 
-    $ make makefiles shared=yes shlib_directory=/usr/lib \
+    $ make makefiles shared=yes shlib_directory=/usr/local/lib/postfix \
 	SHLIB_VERSION=1 ...other arguments...
 
 You can change the shlib_directory setting after Postfix is built, with "make
@@ -184,26 +193,39 @@ shlib_directory after Postfix is built and install the libpostfix-*.so.* files
 in a non-system directory. No ldconfig is needed if you keep the libpostfix-
 *.so.* files in the compiled-in default $shlib_directory location.
 
+    # make upgrade shlib_directory=/usr/local/lib/postfix ...
+    # make install shlib_directory=/usr/local/lib/postfix ...
+
 Additionally, Postfix can be built to support dynamic loading of Postfix
-database clients with the Debian-style dynamicmaps feature. Postfix 2.12
-supports dynamic loading of cdb:, ldap:, lmdb:, mysql:, pcre:, pgsql:, sdbm:,
-and sqlite: database clients. Dynamic loading is useful when you distribute or
-install pre-compiled Postfix packages.
+database clients (database plugins) with the Debian-style dynamicmaps feature.
+Postfix 2.12 supports dynamic loading of cdb:, ldap:, lmdb:, mysql:, pcre:,
+pgsql:, sdbm:, and sqlite: database clients. Dynamic loading is useful when you
+distribute or install pre-compiled Postfix packages.
+
+    Note: Postfix database plugins should not be installed in a "public" system
+    directory such as /usr/lib or /usr/local/lib. Linking Postfix database
+    plugins into non-Postfix programs is not supported. Postfix database
+    plugins implement a Postfix-internal API that will change without
+    maintaining compatibility. Because Postfix-internal APIs are subject to
+    change, Postfix database plugins are always linked with their fully-
+    qualified name, i.e. postfix-name.so.version. There are no postfix-name.so
+    symlinks, because no program uses them.
 
 Specify "dynamicmaps=yes" on the "make makefiles" command line to build Postfix
-with support to dynamically load Postfix database clients (database plugins)
-with the Debian-style dynamicmaps feature.
+with support to dynamically load Postfix database clients with the Debian-style
+dynamicmaps feature.
 
     $ make makefiles dynamicmaps=yes ...other arguments...
     $ make makefiles dynamicmaps=no ...other arguments...
     $ make
 
-This implicitly enables shared-library support, and defaults to installing
-dynamicmaps.cf and database plugins in /usr/libexec/postfix. Database plugins
-are typically named postfix-type.so.version where the type is a database type
-such as "cdb" or "ldap", and where the version is the same as for Postfix
-shared libraries. The installed dynamicmaps.cf configuration file is given a
-suffix with the same version.
+This implicitly enables shared-library support, installs the dynamicmaps.cf
+configuration file in the default configuration directory (usually, /etc/
+postfix), and installs database plugins by default in /usr/lib/postfix.
+Database plugins are typically named postfix-type.so.version where the type is
+a database type such as "cdb" or "ldap", and where the version is the same as
+for Postfix shared libraries. The installed dynamicmaps.cf configuration file
+is given a suffix with the same version.
 
     NOTE: The Postfix 2.12 build procedure expects that you specify database
     library dependencies with variables named AUXLIBS_CDB, AUXLIBS_LDAP, etc.
@@ -220,12 +242,15 @@ suffix with the same version.
 To override the default location or shared-library version, specify, for
 example:
 
-    % make makefiles dynamicmaps=yes plugin_directory=/usr/lib/postfix \
+    % make makefiles dynamicmaps=yes plugin_directory=/usr/local/lib/postfix \
 	SHLIB_VERSION=1  ...
 
 You can also override the plugin_directory setting after Postfix is built, with
 "make install" or "make upgrade". In this case, there is no need to run the
 ldconfig command.
+
+    # make upgrade plugin_directory=/usr/local/lib/postfix ...
+    # make install plugin_directory=/usr/local/lib/postfix ...
 
 Tips for distribution maintainers:
 
@@ -237,30 +262,33 @@ Tips for distribution maintainers:
     use the "versioned" names, to allow minor upgrades to happen without having
     to stop Postfix.
 
+  * The meta_directory parameter specifies the location of the files
+    dynamicmaps.cf, postfix-files, and some multi-instance template files. The
+    meta_directory parameter has the same default value as the config_directory
+    parameter. For backwards compatibility with Postfix 2.6 .. 2.11, specify
+    "meta_directory = $daemon_directory" in main.cf before installing or
+    upgrading Postfix, or specify "meta_directory = /path/name" on the "make
+    makefiles", "make install" or "make upgrade" command line.
+
   * The configuration file dynamicmaps.cf.version will automatically include
-    files under the directory dynamicmaps.cf.d.version, just like the
+    files under the directory dynamicmaps.cf.version.d, just like the
     configuration file postfix-files will automatically include files under the
     directory postfix-files.d. Thanks to this, you don't have to edit postfix-
     files or dynamicmaps.cf, when installing or deinstalling a database plugin
-    package. Instead, each plugin can have its own configuration file.
+    package. Instead, you give that plugin its own configuration file, and add
+    or remove the configuration file.
 
   * The plugin_directory setting provides the default directory for shared-
     library objects with a relative pathname in the file
     dynamicmaps.cf.version.
 
-  * Each configuration file under the directory dynamicmaps.cf.d.version must
-    have a name that ends in ".cf" and must have the same format as the file
-    dynamicmaps.cf.version.
-
-  * The directory dynamicmaps.cf.d.version is the default directory for shared-
-    library objects with a relative pathname in the files
-    dynamicmaps.cf.d.version/*.cf. Thus, the directory dynamicmaps.cf.d.version
-    may contain both configuration files and shared-library object files.
-    Hence, the requirement that configuration file names must end in ".cf".
+  * Each configuration file under the directory dynamicmaps.cf.d must have the
+    same format as the configuration file dynamicmaps.cf. There is no
+    requirement that these configuration file *names* have a specific format.
 
   * Each configuration file under the directory postfix-files.d must have the
     same format as the configuration file postfix-files. There is no
-    requirement that these configuration file names have a specific format.
+    requirement that these configuration file *names* have a specific format.
 
 4.4 - Building with optional features
 
@@ -329,9 +357,11 @@ postconf.5 | less").
     |_____________________|____________________|
     |manpage_directory	  |/usr/local/man      |
     |_____________________|____________________|
+    |meta_directory	  |/etc/postfix        |
+    |_____________________|____________________|
     |newaliases_path	  |/usr/bin/newaliases |
     |_____________________|____________________|
-    |plugin_directory	  |/usr/libexec/postfix|
+    |plugin_directory	  |/usr/lib/postfix    |
     |_____________________|____________________|
     |queue_directory	  |/var/spool/postfix  |
     |_____________________|____________________|
@@ -339,7 +369,7 @@ postconf.5 | less").
     |_____________________|____________________|
     |sendmail_path	  |/usr/sbin/sendmail  |
     |_____________________|____________________|
-    |shlib_directory	  |/usr/local/lib      |
+    |shlib_directory	  |/usr/lib/postfix    |
     |_____________________|____________________|
 
 4.5.2 - All Postfix versions

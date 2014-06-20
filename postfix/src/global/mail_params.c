@@ -28,6 +28,7 @@
 /*	char	*var_daemon_dir;
 /*	char	*var_data_dir;
 /*	char	*var_command_dir;
+/*	char	*var_meta_dir;
 /*	char	*var_plugin_dir;
 /*	char	*var_queue_dir;
 /*	char	*var_shlib_dir;
@@ -222,6 +223,7 @@ char   *var_config_dir;
 char   *var_daemon_dir;
 char   *var_data_dir;
 char   *var_command_dir;
+char   *var_meta_dir;
 char   *var_plugin_dir;
 char   *var_queue_dir;
 char   *var_shlib_dir;
@@ -557,6 +559,7 @@ void    mail_params_init()
 	VAR_DAEMON_DIR, DEF_DAEMON_DIR, &var_daemon_dir, 1, 0,
 	VAR_DATA_DIR, DEF_DATA_DIR, &var_data_dir, 1, 0,
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
+	VAR_META_DIR, DEF_META_DIR, &var_meta_dir, 1, 0,
 	VAR_PLUGIN_DIR, DEF_PLUGIN_DIR, &var_plugin_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
 	VAR_SHLIB_DIR, DEF_SHLIB_DIR, &var_shlib_dir, 1, 0,

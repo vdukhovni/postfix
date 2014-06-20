@@ -85,12 +85,12 @@ void    mail_dict_init(void)
 #ifdef USE_DYNAMIC_MAPS
     char   *path;
 
-    path = concatenate(var_plugin_dir, "/", "dynamicmaps.cf",
+    path = concatenate(DEF_CONFIG_DIR, "/", "dynamicmaps.cf",
 #ifdef SHLIB_VERSION
 		       ".", SHLIB_VERSION,
 #endif
 		       (char *) 0);
-    dymap_init(path);
+    dymap_init(path, var_plugin_dir);
     myfree(path);
 #endif
 

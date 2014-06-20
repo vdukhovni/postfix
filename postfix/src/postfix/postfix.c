@@ -155,6 +155,10 @@
 /*	caches, pseudo-random numbers).
 /* .PP
 /*	Available in Postfix version 2.12 and later:
+/* .IP "\fBmeta_directory (see 'postconf -d' output)\fR"
+/*	The location of non-executable files that are shared among
+/*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
+/*	and the multi-instance template files main.cf.proto and master.cf.proto.
 /* .IP "\fBplugin_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix dynamicmaps.cf database plugin
 /*	configuration file, and of database plugins with a relative pathname.
@@ -508,6 +512,7 @@ int     main(int argc, char **argv)
     check_setenv(VAR_COMMAND_DIR, var_command_dir);	/* main.cf */
     check_setenv(VAR_DAEMON_DIR, var_daemon_dir);	/* main.cf */
     check_setenv(VAR_DATA_DIR, var_data_dir);	/* main.cf */
+    check_setenv(VAR_META_DIR, var_meta_dir);	/* main.cf */
     check_setenv(VAR_PLUGIN_DIR, var_plugin_dir);	/* main.cf */
     check_setenv(VAR_QUEUE_DIR, var_queue_dir);	/* main.cf */
     check_setenv(VAR_CONFIG_DIR, var_config_dir);	/* main.cf */

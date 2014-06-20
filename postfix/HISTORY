@@ -19919,3 +19919,47 @@ Apologies for any names omitted.
 	Cleanup: INFO action in access(5) tables, for consistency
 	with header/body_checks. Viktor Dukhovni.  Files:
 	smtpd/smtpd_check.c, proto/access.
+
+20140619
+
+	Cleanup: process LaMont Jones feedback for shared-library
+	and database-plugin builds. Changes: 1) move non-executable
+	files from $daemon_directory to the default $config_directory
+	(postfix-files*, dynamicmaps.cf*, main.cf.proto/master.cf.proto
+	for multi-instance support); 2) add foo.so -> foo.so.version
+	symlinks; 3) change $shlib_directory and $plugin_directory
+	defaults to /usr/lib/postfix to reduce sprawl.  Files:
+	conf/main.cf.proto, conf/master.cf.proto, conf/postfix-files.proto,
+	conf/post-install, conf/postmulti-script, makedefs,
+	postfix-install, proto/INSTALL.html, global/dynamicmaps.c,
+	global/dynamicmaps.h, global/mail_dict.c, global/mail_params.h,
+	postmulti/postmulti.c.
+
+	Bugfix (introduced: 2001): qmqpd null pointer bug when it
+	logs a lost connection while not in a mail transaction.
+	Reported by Michal Adamek. File: qmqpd/qmqpd.c.
+
+	Cleanup: filter non-printable characters in X509 subject
+	or issuer names. Viktor Dukhovni. File: tls/tls_server.c.
+
+20140620
+
+	Cleanup: for compliance with file system policies, some
+	files have been moved from $daemon-directory to the directory
+	specified with the new meta_directory parameter which has
+	the same default value as config_directory.  This change
+	affects non-executable files that are shared among multiple
+	Postfix instances, such as postfix-files, dynamicmaps.cf,
+	and multi-instance template files.
+
+	For backwards compatibility with Postfix 2.6..2.11, specify
+	"meta_directory = $daemon_directory" in main.cf before
+	installing Postfix, or specify "meta_directory = /path/name"
+	on the "make makefiles", "make install" or "make upgrade"
+	command line.
+
+	Files: Makefile.in, RELEASE_NOTES, conf/post-install,
+	conf/postfix-files.proto, conf/postmulti-script, makedefs,
+	mantools/postlink, postfix-install, proto/INSTALL.html,
+	proto/postconf.proto, global/mail_params.c, global/mail_params.h,
+	postfix/postfix.c, postmulti/postmulti.c.

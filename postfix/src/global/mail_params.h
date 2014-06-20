@@ -3789,15 +3789,21 @@ extern char *var_local_dsn_filter;
   */
 #define VAR_SHLIB_DIR	"shlib_directory"
 #ifndef DEF_SHLIB_DIR
-#define DEF_SHLIB_DIR	"/usr/local/lib"
+#define DEF_SHLIB_DIR	"/usr/lib/postfix"
 #endif
 extern char *var_shlib_dir;
 
 #define VAR_PLUGIN_DIR	"plugin_directory"
 #ifndef DEF_PLUGIN_DIR
-#define DEF_PLUGIN_DIR	"/usr/libexec/postfix"
+#define DEF_PLUGIN_DIR	"/usr/lib/postfix"
 #endif
 extern char *var_plugin_dir;
+
+#define VAR_META_DIR	"meta_directory"
+#ifndef DEF_META_DIR
+#define DEF_META_DIR	DEF_CONFIG_DIR
+#endif
+extern char *var_meta_dir;
 
 /* LICENSE
 /* .ad

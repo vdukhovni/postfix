@@ -15904,11 +15904,27 @@ deliveries.  See default_delivery_status_filter for details.  </p>
 This parameter defaults to "no" when Postfix shared libraries are
 disabled at compile time. </p>
 
-<p> NOTE: You can change the location of these files after Postfix
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Postfix shared libraries should not be installed in a
+"public" system directory such as /usr/lib or /usr/local/lib. Linking
+Postfix shared-library files into non-Postfix programs is not
+supported.  Postfix shared libraries implement a Postfix-internal
+API that will change without maintaining compatibility.  Because
+Postfix-internal APIs are subject to change, Postfix shared-library
+files are always linked with their fully-qualified name
+libpostfix-*.so.<i>version</i>.  There are no libpostfix-*.so
+symlinks, because no program uses them.  </p>
+
+<li> <p> You can change the location of these files after Postfix
 is built. However, you may have to run ldconfig if you move the
 libpostfix-*.so.* files to a non-system directory.  No ldconfig is
 needed if you keep the libpostfix-*.so.* files in the compiled-in
 default $shlib_directory location. </p>
+
+</ul>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -15918,5 +15934,31 @@ default $shlib_directory location. </p>
 configuration file, and of database plugins with a relative pathname.
 This is set to "no" when Postfix database plugin support is disabled
 at compile time. </p>
+
+<p> Note: Postfix database plugins should not be installed in a
+"public" system directory such as /usr/lib or /usr/local/lib.
+Linking Postfix database plugins into non-Postfix programs is not
+supported. Postfix database plugins implement a Postfix-internal
+API that will change without maintaining compatibility.  Because
+Postfix-internal APIs are subject to change, Postfix database plugins
+are always linked with their fully-qualified name
+postfix-*.so.<i>version</i>.  There are no postfix-*.so symlinks,
+because no program uses them.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM meta_directory see 'postconf -d' output
+
+<p> The location of non-executable files that are shared among
+multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
+and the multi-instance template files main.cf.proto and master.cf.proto.
+This parameter has the same default value as the config_directory
+parameter. </p>
+
+<p> For backwards compatibility with Postfix versions 2.6..2.11,
+specify "meta_directory = $daemon_directory" in main.cf before
+installing or upgrading Postfix, or specify "meta_directory =
+/path/name" on the "make makefiles", "make install" or "make upgrade"
+command line.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
