@@ -2668,7 +2668,11 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     /*
      * Sanity check.
      */
-    if (type != T_MX && type != T_NS)
+    if (type != T_MX && type != T_NS && type != T_A
+#ifdef HAS_IPV6
+	&& type != T_AAAA
+#endif
+	)
 	msg_panic("%s: unexpected resource type \"%s\" in request",
 		  myname, dns_strtype(type));
 
@@ -2711,6 +2715,9 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     }
 
     /*
+     * If the request is type A or AAAA, fabricate an MX record that points
+     * to the domain name itself, and skip name-based access control.
+     * 
      * If the domain name does not exist then we apply no restriction.
      * 
      * If the domain name exists but no MX record exists, fabricate an MX record
@@ -2719,27 +2726,36 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * If the domain name exists but no NS record exists, look up parent domain
      * NS records.
      */
-    dns_status = dns_lookup(domain, type, 0, &server_list,
-			    (VSTRING *) 0, (VSTRING *) 0);
-    if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
-	if (type == T_MX) {
-	    server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
-					domain, strlen(domain) + 1);
-	    dns_status = DNS_OK;
-	} else if (type == T_NS && h_errno == NO_DATA) {
-	    while ((domain = strchr(domain, '.')) != 0 && domain[1]) {
-		domain += 1;
-		dns_status = dns_lookup(domain, type, 0, &server_list,
-					(VSTRING *) 0, (VSTRING *) 0);
-		if (dns_status != DNS_NOTFOUND || h_errno != NO_DATA)
-		    break;
+    if (type == T_A
+#ifdef HAS_IPV6
+	|| type == T_AAAA
+#endif
+	) {
+	server_list = dns_rr_create(domain, domain, T_MX, C_IN, 0, 0,
+				    domain, strlen(domain) + 1);
+    } else {
+	dns_status = dns_lookup(domain, type, 0, &server_list,
+				(VSTRING *) 0, (VSTRING *) 0);
+	if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
+	    if (type == T_MX) {
+		server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
+					    domain, strlen(domain) + 1);
+		dns_status = DNS_OK;
+	    } else if (type == T_NS && h_errno == NO_DATA) {
+		while ((domain = strchr(domain, '.')) != 0 && domain[1]) {
+		    domain += 1;
+		    dns_status = dns_lookup(domain, type, 0, &server_list,
+					    (VSTRING *) 0, (VSTRING *) 0);
+		    if (dns_status != DNS_NOTFOUND || h_errno != NO_DATA)
+			break;
+		}
 	    }
 	}
-    }
-    if (dns_status != DNS_OK) {
-	msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
-		 domain && domain[1] ? domain : name, dns_strerror(h_errno));
-	return (SMTPD_CHECK_DUNNO);
+	if (dns_status != DNS_OK) {
+	    msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
+		domain && domain[1] ? domain : name, dns_strerror(h_errno));
+	    return (SMTPD_CHECK_DUNNO);
+	}
     }
 
     /*
@@ -2762,9 +2778,10 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 		CHECK_SERVER_RETURN(status);
 	    continue;
 	}
-	if ((status = check_domain_access(state, table, (char *) server->data,
+	if (type != T_A && type != T_AAAA
+	    && ((status = check_domain_access(state, table, (char *) server->data,
 				      FULL, &found, reply_name, reply_class,
-					  def_acl)) != 0 || found)
+					      def_acl)) != 0 || found))
 	    CHECK_SERVER_RETURN(status);
 	if ((aierr = hostname_to_sockaddr((char *) server->data,
 					  (char *) 0, 0, &res0)) != 0) {
@@ -3950,6 +3967,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					     SMTPD_NAME_CLIENT, def_acl);
 		forbid_whitelist(state, name, status, state->name);
 	    }
+	} else if (is_map_command(state, name, CHECK_CLIENT_A_ACL, &cpp)) {
+	    if (strcasecmp(state->name, "unknown") != 0) {
+		status = check_server_access(state, *cpp, state->name,
+					     T_A, state->namaddr,
+					     SMTPD_NAME_CLIENT, def_acl);
+		forbid_whitelist(state, name, status, state->name);
+	    }
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_NS_ACL, &cpp)) {
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
@@ -3961,6 +3985,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
 					     T_MX, state->namaddr,
+					     SMTPD_NAME_REV_CLIENT, def_acl);
+		forbid_whitelist(state, name, status, state->reverse_name);
+	    }
+	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_A_ACL, &cpp)) {
+	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
+		status = check_server_access(state, *cpp, state->reverse_name,
+					     T_A, state->namaddr,
 					     SMTPD_NAME_REV_CLIENT, def_acl);
 		forbid_whitelist(state, name, status, state->reverse_name);
 	    }
@@ -4015,6 +4046,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->helo_name) {
 		status = check_server_access(state, *cpp, state->helo_name,
 					     T_MX, state->helo_name,
+					     SMTPD_NAME_HELO, def_acl);
+		forbid_whitelist(state, name, status, state->helo_name);
+	    }
+	} else if (is_map_command(state, name, CHECK_HELO_A_ACL, &cpp)) {
+	    if (state->helo_name) {
+		status = check_server_access(state, *cpp, state->helo_name,
+					     T_A, state->helo_name,
 					     SMTPD_NAME_HELO, def_acl);
 		forbid_whitelist(state, name, status, state->helo_name);
 	    }
@@ -4115,6 +4153,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					     SMTPD_NAME_SENDER, def_acl);
 		forbid_whitelist(state, name, status, state->sender);
 	    }
+	} else if (is_map_command(state, name, CHECK_SENDER_A_ACL, &cpp)) {
+	    if (state->sender && *state->sender) {
+		status = check_server_access(state, *cpp, state->sender,
+					     T_A, state->sender,
+					     SMTPD_NAME_SENDER, def_acl);
+		forbid_whitelist(state, name, status, state->sender);
+	    }
 	} else if (strcasecmp(name, REJECT_RHSBL_SENDER) == 0) {
 	    if (cpp[1] == 0)
 		msg_warn("restriction %s requires domain name argument", name);
@@ -4209,6 +4254,13 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	    if (state->recipient && *state->recipient) {
 		status = check_server_access(state, *cpp, state->recipient,
 					     T_MX, state->recipient,
+					     SMTPD_NAME_RECIPIENT, def_acl);
+		forbid_whitelist(state, name, status, state->recipient);
+	    }
+	} else if (is_map_command(state, name, CHECK_RECIP_A_ACL, &cpp)) {
+	    if (state->recipient && *state->recipient) {
+		status = check_server_access(state, *cpp, state->recipient,
+					     T_A, state->recipient,
 					     SMTPD_NAME_RECIPIENT, def_acl);
 		forbid_whitelist(state, name, status, state->recipient);
 	    }

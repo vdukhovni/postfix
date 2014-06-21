@@ -74,7 +74,8 @@ tidy:	clean
 
 tests: smtpd_check_test smtpd_check_test2 smtpd_acl_test smtpd_exp_test \
 	smtpd_token_test smtpd_check_test4 smtpd_check_dsn_test \
-	smtpd_check_backup_test smtpd_dnswl_test smtpd_error_test
+	smtpd_check_backup_test smtpd_dnswl_test smtpd_error_test \
+	smtpd_server_test
 
 root_tests:
 
@@ -113,6 +114,12 @@ smtpd_exp_test: smtpd_check smtpd_exp.in smtpd_exp.ref
 	$(SHLIB_ENV) ./smtpd_check <smtpd_exp.in >smtpd_exp.tmp 2>&1
 	diff smtpd_exp.ref smtpd_exp.tmp
 	rm -f smtpd_exp.tmp smtpd_check_access.*
+
+smtpd_server_test: smtpd_check smtpd_server.in smtpd_server.ref
+	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access
+	$(SHLIB_ENV) ./smtpd_check <smtpd_server.in >smtpd_server.tmp 2>&1
+	diff smtpd_server.ref smtpd_server.tmp
+	rm -f smtpd_server.tmp smtpd_check_access.*
 
 smtpd_check_dsn_test: smtpd_check smtpd_check_dsn.in smtpd_check_dsn.ref smtpd_check_access
 	$(SHLIB_ENV) ../postmap/postmap hash:smtpd_check_access

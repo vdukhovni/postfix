@@ -148,21 +148,24 @@
 #	The final destination directory for non-executable files
 #	that are shared among multiple Postfix instances, such
 #	as postfix-files, dynamicmaps.cf, as well as the multi-instance
-#	template files main.cf.proto and master.cf.proto.
+#	template files main.cf.proto and master.cf.proto. This
+#	directory should contain only Postfix-related files.
 # .IP plugin_directory
-#	The final destination directory for the Postfix dynamicmaps.cf
-#	database plugin configuration file, and files referenced by
-#	that file.  This is "no" when dynamic linking is disabled
-#	at compile time.
+#	The final destination directory for Postfix database plugin
+#	files with a relative pathname in the file dynamicmaps.cf.
+#	This directory should contain only Postfix-related files.
+#	The plugin_directory parameter defaults to "no" when dynamic
+#	linking is disabled at compile time.
 # .IP readme_directory
 #	The final destination directory for the Postfix README files.
 #	This parameter setting is recorded in the installed main.cf file.
 # .IP shlib_directory
 #	The final destination directory for Postfix shared-library files.
-#	The built-in default value is specified at compile time.
-#	If you change this at installation time, then you should specify
-#	only "standard" system directories. Otherwise, additional
-#	configuration will be required with ldconfig(1) or equivalent.
+#	This directory should contain only Postfix-related files.
+#	The shlib_directory parameter built-in default value is
+#	specified at compile time.  If you change this at installation
+#	time, then additional configuration will be required with
+#	ldconfig(1) or equivalent.
 # SEE ALSO
 #	post-install(1) post-installation procedure
 # FILES
@@ -392,9 +395,9 @@ HTML files. Specify \"no\" if you do not want to install these files."
 shlib_directory_prompt="the final destination directory for Postfix
 shared-library files."
 
-plugin_directory_prompt="the final destination directory for the
-Postfix dynamicmaps.cf configuration file and files referenced by
-that file."
+plugin_directory_prompt="the final destination directory for Postfix
+database plugin files with a relative pathname in the file
+dynamicmaps.cf."
 
 meta_directory_prompt="the final destination directory for
 non-executable files that are shared among multiple Postfix instances,

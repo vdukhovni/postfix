@@ -8,9 +8,6 @@ Wish list:
 
 	Things to do after the stable release:
 
-	check_mumble_a_access. Some spammer is sending mail with
-	sender domain names that all resolve to the same IP adress.
-
 	Don't accept AUTH or other features that are not announced
 	in the EHLO response.
 

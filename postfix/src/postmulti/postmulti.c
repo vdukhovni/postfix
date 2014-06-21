@@ -358,6 +358,11 @@
 /*	The location of non-executable files that are shared among
 /*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
 /*	and the multi-instance template files main.cf.proto and master.cf.proto.
+/* .IP "\fBshlib_directory (see 'postconf -d' output)\fR"
+/*	The location of Postfix shared libraries (libpostfix-*.so.*).
+/* .IP "\fBplugin_directory (see 'postconf -d' output)\fR"
+/*	The location of Postfix database plugins with a relative pathname
+/*	in the file dynamicmaps.cf.
 /* FILES
 /*	$meta_directory/main.cf.proto, stock configuration file
 /*	$meta_directory/master.cf.proto, stock configuration file
@@ -454,6 +459,8 @@ static SHARED_PATH shared_dir_table[] = {
     VAR_COMMAND_DIR, &var_command_dir,
     VAR_DAEMON_DIR, &var_daemon_dir,
     VAR_META_DIR, &var_meta_dir,
+    VAR_SHLIB_DIR, &var_shlib_dir,
+    VAR_PLUGIN_DIR, &var_plugin_dir,
     0,
 };
 
@@ -949,13 +956,26 @@ static void check_shared_dir_status(void)
     struct stat st;
     const SHARED_PATH *sp;
 
+    /*
+     * XXX Avoid false conflicts with meta_directory, shlib_directory and
+     * plugin_directory. The first usually overlaps with other directories
+     * and the last two usually overlap with each other. These parameters may
+     * need to be set in per-instance main.cf files, so they must exist in
+     * shared_dir_table.
+     */
     for (sp = shared_dir_table; sp->param_name; ++sp) {
+	if (sp->param_value[0][0] != '/')	/* "no" or other special */
+	    continue;
 	if (stat(sp->param_value[0], &st) < 0)
 	    msg_fatal("%s = '%s': directory not found: %m",
 		      sp->param_name, sp->param_value[0]);
 	if (!S_ISDIR(st.st_mode))
 	    msg_fatal("%s = '%s' is not a directory",
 		      sp->param_name, sp->param_value[0]);
+	if (strcmp(sp->param_name, VAR_META_DIR) == 0
+	    || strcmp(sp->param_name, VAR_SHLIB_DIR) == 0
+	    || strcmp(sp->param_name, VAR_PLUGIN_DIR) == 0)
+	    continue;
 	register_claim(var_config_dir, sp->param_name, sp->param_value[0]);
     }
 }

@@ -110,8 +110,9 @@ $daemon_directory/oqmgr:f:root:-:755
 $daemon_directory/pickup:f:root:-:755
 $daemon_directory/pipe:f:root:-:755
 $daemon_directory/post-install:f:root:-:755
-$daemon_directory/postfix-files:f:root:-:644:o
-$daemon_directory/postfix-files.d:d:root:-:755:o
+# In case meta_directory == daemon_directory.
+#$daemon_directory/postfix-files:f:root:-:644:o
+#$daemon_directory/postfix-files.d:d:root:-:755:o
 $daemon_directory/postfix-script:f:root:-:755
 $daemon_directory/postfix-wrapper:f:root:-:755
 $daemon_directory/postmulti-script:f:root:-:755

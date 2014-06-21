@@ -19963,3 +19963,11 @@ Apologies for any names omitted.
 	mantools/postlink, postfix-install, proto/INSTALL.html,
 	proto/postconf.proto, global/mail_params.c, global/mail_params.h,
 	postfix/postfix.c, postmulti/postmulti.c.
+
+	Feature: check_xxx_a_access (for xxx in client, reverse_client,
+	helo, sender, recipient) implements access control on all
+	A and AAAA IP addresses for the client hostname, helo
+	parameter, sender domain or recipient domain. Some spam has
+	sender domains with the same IP address but different MX
+	hosts.  Files: global/mail_params.h, smtpd/smtpd_check.c,
+	proto/postconf.proto.

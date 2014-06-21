@@ -1,0 +1,109 @@
+>>> #
+>>> # Initialize.
+>>> #
+>>> #! ../bin/postmap smtpd_check_access
+>>> #msg_verbose 1
+>>> smtpd_delay_reject 0
+OK
+>>> mynetworks 127.0.0.0/8,168.100.189.0/28
+OK
+>>> relay_domains porcupine.org
+OK
+>>> maps_rbl_domains dnsbltest.porcupine.org
+OK
+>>> rbl_reply_maps hash:smtpd_check_access
+OK
+>>> client spike.porcupine.org 168.100.189.2
+OK
+>>> #
+>>> # Check MX access
+>>> #
+>>> helo_restrictions check_helo_mx_access,hash:smtpd_check_access
+OK
+>>> #helo verisign-wildcard.com
+>>> helo verisign.com
+OK
+>>> helo example.tld
+./smtpd_check: warning: Unable to look up MX host example.tld for Helo command example.tld: hostname nor servname provided, or not known
+OK
+>>> sender_restrictions check_sender_mx_access,hash:smtpd_check_access
+OK
+>>> mail foo@pls.net.au
+OK
+>>> #mail foo@verisign-wildcard.com
+>>> mail foo@verisign.com
+OK
+>>> recipient_restrictions check_recipient_mx_access,hash:smtpd_check_access
+OK
+>>> #rcpt foo@verisign-wildcard.com
+>>> rcpt foo@verisign.com
+OK
+>>> rcpt foo@1.2.3.porcupine.org
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@1.2.3.porcupine.org>: Recipient address rejected: mail server 10.10.10.10; from=<foo@verisign.com> to=<foo@1.2.3.porcupine.org> proto=SMTP helo=<example.tld>
+554 5.7.1 <foo@1.2.3.porcupine.org>: Recipient address rejected: mail server 10.10.10.10
+>>> #
+>>> # Check NS access
+>>> #
+>>> helo_restrictions check_helo_ns_access,hash:smtpd_check_access
+OK
+>>> helo email-publisher.com
+./smtpd_check: <queue id>: reject: HELO from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <email-publisher.com>: Helo command rejected: Access denied; from=<foo@verisign.com> proto=SMTP helo=<email-publisher.com>
+554 5.7.1 <email-publisher.com>: Helo command rejected: Access denied
+>>> helo ns1.topica.com
+./smtpd_check: <queue id>: reject: HELO from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <ns1.topica.com>: Helo command rejected: Access denied; from=<foo@verisign.com> proto=SMTP helo=<ns1.topica.com>
+554 5.7.1 <ns1.topica.com>: Helo command rejected: Access denied
+>>> #helo verisign-wildcard.com
+>>> helo example.tld
+./smtpd_check: warning: Unable to look up NS host for example.tld: Host not found
+OK
+>>> sender_restrictions check_sender_ns_access,hash:smtpd_check_access
+OK
+>>> mail foo@email-publisher.com
+./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@email-publisher.com>: Sender address rejected: Access denied; from=<foo@email-publisher.com> proto=SMTP helo=<example.tld>
+554 5.7.1 <foo@email-publisher.com>: Sender address rejected: Access denied
+>>> mail foo@ns1.topica.com
+./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@ns1.topica.com>: Sender address rejected: Access denied; from=<foo@ns1.topica.com> proto=SMTP helo=<example.tld>
+554 5.7.1 <foo@ns1.topica.com>: Sender address rejected: Access denied
+>>> #mail foo@verisign-wildcard.com
+>>> recipient_restrictions check_recipient_ns_access,hash:smtpd_check_access
+OK
+>>> rcpt foo@email-publisher.com
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@email-publisher.com>: Recipient address rejected: Access denied; from=<foo@ns1.topica.com> to=<foo@email-publisher.com> proto=SMTP helo=<example.tld>
+554 5.7.1 <foo@email-publisher.com>: Recipient address rejected: Access denied
+>>> rcpt foo@ns1.topica.com
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@ns1.topica.com>: Recipient address rejected: Access denied; from=<foo@ns1.topica.com> to=<foo@ns1.topica.com> proto=SMTP helo=<example.tld>
+554 5.7.1 <foo@ns1.topica.com>: Recipient address rejected: Access denied
+>>> #rcpt foo@verisign-wildcard.com
+>>> rcpt foo@1.2.3.porcupine.org
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org; from=<foo@ns1.topica.com> to=<foo@1.2.3.porcupine.org> proto=SMTP helo=<example.tld>
+554 5.7.1 <foo@1.2.3.porcupine.org>: Recipient address rejected: name server spike.porcupine.org
+>>> #
+>>> # Check A access
+>>> #
+>>> helo_restrictions check_helo_a_access,hash:smtpd_check_access
+OK
+>>> helo help.gypsysoul.org
+OK
+>>> helo gypsysoul.org
+./smtpd_check: <queue id>: reject: HELO from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <gypsysoul.org>: Helo command rejected: bizsat.net, gypsysoul.org spam; from=<foo@ns1.topica.com> proto=SMTP helo=<gypsysoul.org>
+554 5.7.1 <gypsysoul.org>: Helo command rejected: bizsat.net, gypsysoul.org spam
+>>> client_restrictions check_client_a_access,hash:smtpd_check_access
+OK
+>>> client help.gypsysoul.org 1.2.3.4
+OK
+>>> client gypsysoul.org 1.2.3.4
+./smtpd_check: <queue id>: reject: CONNECT from gypsysoul.org[1.2.3.4]: 554 5.7.1 <gypsysoul.org[1.2.3.4]>: Client host rejected: bizsat.net, gypsysoul.org spam; from=<foo@ns1.topica.com> proto=SMTP helo=<gypsysoul.org>
+554 5.7.1 <gypsysoul.org[1.2.3.4]>: Client host rejected: bizsat.net, gypsysoul.org spam
+>>> #reverse_client_restrictions check_reverse_client_a_access,hash:smtpd_check_access
+>>> #client help.gypsysoul.org 1.2.3.4
+>>> #client gypsysoul.org 1.2.3.4
+>>> sender_restrictions check_sender_a_access,hash:smtpd_check_access
+OK
+>>> mail foo@gypsysoul.org
+./smtpd_check: <queue id>: reject: MAIL from gypsysoul.org[1.2.3.4]: 554 5.7.1 <foo@gypsysoul.org>: Sender address rejected: bizsat.net, gypsysoul.org spam; from=<foo@gypsysoul.org> proto=SMTP helo=<gypsysoul.org>
+554 5.7.1 <foo@gypsysoul.org>: Sender address rejected: bizsat.net, gypsysoul.org spam
+>>> recipient_restrictions check_recipient_a_access,hash:smtpd_check_access
+OK
+>>> mail foo@gypsysoul.org
+./smtpd_check: <queue id>: reject: MAIL from gypsysoul.org[1.2.3.4]: 554 5.7.1 <foo@gypsysoul.org>: Sender address rejected: bizsat.net, gypsysoul.org spam; from=<foo@gypsysoul.org> proto=SMTP helo=<gypsysoul.org>
+554 5.7.1 <foo@gypsysoul.org>: Sender address rejected: bizsat.net, gypsysoul.org spam

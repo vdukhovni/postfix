@@ -3678,8 +3678,9 @@ This feature is available in Postfix 2.3 and later.
 The location of non-executable files that are shared among
 multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
 and the multi-instance template files main.cf.proto and master.cf.proto.
-This parameter has the same default value as the config_directory
-parameter.
+This directory should contain only Postfix-related files.  The
+meta_directory parameter has the same default value as the
+config_directory parameter.
 .PP
 For backwards compatibility with Postfix versions 2.6..2.11,
 specify "meta_directory = $daemon_directory" in main.cf before
@@ -4253,10 +4254,11 @@ is rejected by the \fBreject_plaintext_session\fR restriction.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH plugin_directory (default: see 'postconf -d' output)
-The location of the Postfix dynamicmaps.cf database plugin
-configuration file, and of database plugins with a relative pathname.
-This is set to "no" when Postfix database plugin support is disabled
-at compile time.
+The location of Postfix database plugins with a relative pathname
+in the file dynamicmaps.cf.  This directory should contain only
+Postfix-related files.  The plugin_directory parameter defaults to
+"no" when Postfix database plugin support is disabled at compile
+time.
 .PP
 Note: Postfix database plugins should not be installed in a
 "public" system directory such as /usr/lib or /usr/local/lib.
@@ -5870,8 +5872,9 @@ to re-run "\fBpostfix set-permissions\fR" (with Postfix version 2.0 and
 earlier: "\fB/etc/postfix/post-install set-permissions\fR".
 .SH shlib_directory (default: see 'postconf -d' output)
 The location of Postfix shared libraries (libpostfix-*.so.*).
-This parameter defaults to "no" when Postfix shared libraries are
-disabled at compile time.
+This directory should contain only Postfix-related files.  The
+shlib_directory parameter defaults to "no" when Postfix shared
+libraries are disabled at compile time.
 .PP
 Notes:
 .IP \(bu
@@ -8529,6 +8532,13 @@ Search the specified access database for the client hostname,
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the \fBaccess\fR(5) manual page for details.
 .br
+.IP "\fBcheck_client_a_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the IP addresses for the
+client hostname, and execute the corresponding action.  Note: a result
+of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
+to exclude specific hosts from blacklists.  This feature is available
+in Postfix 2.12 and later.
+.br
 .IP "\fBcheck_client_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for the
 client hostname, and execute the corresponding action.  Note: a result
@@ -8551,6 +8561,13 @@ manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
 hosts from blacklists.  This feature is available in Postfix 2.6
 and later.
+.br
+.IP "\fBcheck_reverse_client_hostname_a_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the IP addresses for the
+unverified reverse client hostname, and execute the corresponding
+action.  Note: a result of "OK" is not allowed for safety reasons.
+Instead, use DUNNO in order to exclude specific hosts from blacklists.
+This feature is available in Postfix 2.12 and later.
 .br
 .IP "\fBcheck_reverse_client_hostname_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for the
@@ -9163,6 +9180,16 @@ Note: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_access by not sending HELO or EHLO).
 .br
+.IP "\fBcheck_helo_a_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the IP addresses for
+the HELO or EHLO hostname, and execute the corresponding action.
+Note 1: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  Note
+2: specify "smtpd_helo_required = yes" to fully enforce this
+restriction (without "smtpd_helo_required = yes", a client can
+simply skip check_helo_a_access by not sending HELO or EHLO).  This
+feature is available in Postfix 2.12 and later.
+.br
 .IP "\fBcheck_helo_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
@@ -9479,6 +9506,13 @@ that is received with the RCPT TO command.
 Search the specified \fBaccess\fR(5) database for the resolved RCPT
 TO address, domain, parent domains, or localpart@, and execute the
 corresponding action.
+.br
+.IP "\fBcheck_recipient_a_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the IP addresses for
+the RCPT TO domain, and execute the corresponding action.  Note:
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.12 and later.
 .br
 .IP "\fBcheck_recipient_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
@@ -10088,16 +10122,23 @@ Search the specified \fBaccess\fR(5) database for the MAIL FROM
 address, domain, parent domains, or localpart@, and execute the
 corresponding action.
 .br
+.IP "\fBcheck_sender_a_access \fItype:table\fR\fR"
+Search the specified \fBaccess\fR(5) database for the IP addresses for
+the MAIL FROM domain, and execute the corresponding action.  Note:
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.12 and later.
+.br
 .IP "\fBcheck_sender_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
-the MAIL FROM address, and execute the corresponding action.  Note:
+the MAIL FROM domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
 .br
 .IP "\fBcheck_sender_ns_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the DNS servers
-for the MAIL FROM address, and execute the corresponding action.
+for the MAIL FROM domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.

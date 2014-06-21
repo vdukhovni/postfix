@@ -85,7 +85,7 @@
 # .IP \fBdynamicmaps=yes\fR
 # .IP \fBdynamicmaps=no\fR
 #	Enable (disable) Postfix builds with the configuration file
-#	$plugin_directory/dynamicmaps.cf and dynamically-loadable
+#	$meta_directory/dynamicmaps.cf and dynamically-loadable
 #	database plugins typically named postfix-*.so.*.  The setting
 #	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
 #

@@ -178,8 +178,8 @@
 # .IP shlib_directory
 #	The directory for the Postfix shared-library files.
 # .IP plugin_directory
-#	The directory for the Postfix dynamicmaps.cf database plugin
-#	configuration file, and files referenced by that file.
+#	The directory for the Postfix dabatase plugin files with
+#	a relative pathname in the file dynamicmaps.cf.
 # .IP meta_directory
 #	The directory for non-executable files that are shared
 #	among multiple Postfix instances, such as postfix-files,

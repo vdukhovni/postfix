@@ -374,6 +374,11 @@ Available in Postfix 2.12 and later:
 The location of non-executable files that are shared among
 multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
 and the multi-instance template files main.cf.proto and master.cf.proto.
+.IP "\fBshlib_directory (see 'postconf -d' output)\fR"
+The location of Postfix shared libraries (libpostfix-*.so.*).
+.IP "\fBplugin_directory (see 'postconf -d' output)\fR"
+The location of Postfix database plugins with a relative pathname
+in the file dynamicmaps.cf.
 .SH "FILES"
 .na
 .nf
