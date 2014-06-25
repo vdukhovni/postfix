@@ -2204,6 +2204,11 @@ extern int var_map_defer_code;
 #define CHECK_HELO_NS_ACL	"check_helo_ns_access"
 #define CHECK_SENDER_NS_ACL	"check_sender_ns_access"
 #define CHECK_RECIP_NS_ACL	"check_recipient_ns_access"
+#define CHECK_CLIENT_A_ACL	"check_client_a_access"
+#define CHECK_REVERSE_CLIENT_A_ACL "check_reverse_client_hostname_a_access"
+#define CHECK_HELO_A_ACL	"check_helo_a_access"
+#define CHECK_SENDER_A_ACL	"check_sender_a_access"
+#define CHECK_RECIP_A_ACL	"check_recipient_a_access"
 
 #define WARN_IF_REJECT		"warn_if_reject"
 
@@ -3789,15 +3794,15 @@ extern char *var_local_dsn_filter;
   */
 #define VAR_SHLIB_DIR	"shlib_directory"
 #ifndef DEF_SHLIB_DIR
-#define DEF_SHLIB_DIR	"/usr/local/lib"
+#define DEF_SHLIB_DIR	"/usr/lib/postfix/$mail_version"
 #endif
 extern char *var_shlib_dir;
 
-#define VAR_PLUGIN_DIR	"plugin_directory"
-#ifndef DEF_PLUGIN_DIR
-#define DEF_PLUGIN_DIR	"/usr/libexec/postfix"
+#define VAR_META_DIR	"meta_directory"
+#ifndef DEF_META_DIR
+#define DEF_META_DIR	DEF_CONFIG_DIR
 #endif
-extern char *var_plugin_dir;
+extern char *var_meta_dir;
 
 /* LICENSE
 /* .ad

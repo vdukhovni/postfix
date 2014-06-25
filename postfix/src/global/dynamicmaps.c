@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <dynamicmaps.h>
 /*
-/*	void dymap_init(const char *path)
+/*	void dymap_init(const char *conf_path, const char *plugin_dir)
 /* DESCRIPTION
 /*	This module reads the dynamicmaps.cf file and performs
 /*	run-time loading of Postfix dictionaries. Each dynamicmaps.cf
@@ -14,19 +14,13 @@
 /*	of a shared-library object, the name of a "dict_open"
 /*	function for access to individual dictionary entries, and
 /*	optionally the name of a "mkmap_open" function for bulk-mode
-/*	dictionary creation. The configuration file's parent directory
-/*	is the default directory for shared-library objects with a
-/*	relative pathname.
+/*	dictionary creation. Plugins may be specified with a relative
+/*	pathname.
 /*
 /*	A dictionary may be installed without editing the file
 /*	dynamicmaps.cf, by placing a configuration file under the
 /*	directory dynamicmaps.cf.d, with the same format as
-/*	dynamicmaps.cf.  These configuration file names must end in
-/*	".cf".  As before, a configuration file's parent directory
-/*	is the default directory for shared-library objects with a
-/*	relative pathname. Thus, the directory dynamicmaps.cf.d may
-/*	contain both configuration files and shared-library object
-/*	files.
+/*	dynamicmaps.cf.
 /*
 /*	dymap_init() reads the specified configuration file which
 /*	is in dynamicmaps.cf format, and hooks itself into the
@@ -37,6 +31,12 @@
 /*	already been linked into the process address space, nor
 /*	will it hide their dictionaries types from later "open"
 /*	requests.
+/*
+/*	Arguments:
+/* .IP conf_path
+/*	Pathname for the dynamicmaps configuration file.
+/* .IP plugin_dir
+/*	Default directory for plugins with a relative pathname.
 /* SEE ALSO
 /*	load_lib(3) low-level run-time linker adapter
 /* DIAGNOSTICS
@@ -106,11 +106,6 @@ static DICT_OPEN_EXTEND_FN saved_dict_open_hook = 0;
 static MKMAP_OPEN_EXTEND_FN saved_mkmap_open_hook = 0;
 static DICT_MAPNAMES_EXTEND_FN saved_dict_mapnames_hook = 0;
 
- /*
-  * Mandatory dynamicmaps.cf.d/ configuration file suffix.
-  */
-#define DYMAP_CF_SUFFIX	".cf"
-
 #define STREQ(x, y) (strcmp((x), (y)) == 0)
 
 /* dymap_dict_lookup - look up "dict_foo_open" function */
@@ -143,7 +138,7 @@ static DICT_OPEN_FN dymap_dict_lookup(const char *dict_type)
     }
     if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
 	msg_warn("unsupported dictionary type: %s "
-		 "(%s: file is writable by non-root users)",
+		 "(%s: file is owned or writable by non-root users)",
 		 dict_type, dp->soname);
 	return (0);
     }
@@ -187,7 +182,7 @@ static MKMAP_OPEN_FN dymap_mkmap_lookup(const char *dict_type)
 		  dict_type, dp->soname, dict_type);
     if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0)
 	msg_fatal("unsupported dictionary type: %s "
-		  "(%s: file is writable by non-root users)",
+		  "(%s: file is owned or writable by non-root users)",
 		  dict_type, dp->soname);
     fn[0].name = dp->mkmap_name;
     fn[1].name = 0;
@@ -257,7 +252,7 @@ static void dymap_read_conf(const char *path, const char *path_base)
 	if (fstat(vstream_fileno(fp), &st) < 0)
 	    msg_fatal("%s: fstat failed; %m", path);
 	if (st.st_uid != 0 || (st.st_mode & (S_IWGRP | S_IWOTH)) != 0) {
-	    msg_warn("%s: file is writable by non-root users"
+	    msg_warn("%s: file is owned or writable by non-root users"
 		     " -- skipping this file", path);
 	} else {
 	    buf = vstring_alloc(100);
@@ -307,15 +302,13 @@ static void dymap_read_conf(const char *path, const char *path_base)
 
 /* dymap_init - initialize dictionary type to soname etc. mapping */
 
-void    dymap_init(const char *path)
+void    dymap_init(const char *conf_path, const char *plugin_dir)
 {
     const char myname[] = "dymap_init";
     SCAN_DIR *dir;
-    char   *path_base;
-    char   *path_d;
+    char   *conf_path_d;
     const char *conf_name;
-    char   *path_d_conf;
-    char   *suffix;
+    VSTRING *sub_conf_path;
 
     /*
      * Reload dynamicsmaps.cf, but don't reload already-loaded plugins.
@@ -327,35 +320,29 @@ void    dymap_init(const char *path)
     /*
      * Read dynamicmaps.cf.
      */
-    path_base = mystrdup(path);
-    (void) split_at_right(path_base, '/');
-    dymap_read_conf(path, path_base);
-    myfree(path_base);
+    dymap_read_conf(conf_path, plugin_dir);
 
     /*
-     * Read dynamicmaps.cf.d/filename entries. We allow shared-object files
-     * in dynamicmaps.cf.d. Therefore, configuration file names must have a
-     * distinct suffix.
+     * Read dynamicmaps.cf.d/filename entries.
      */
-    path_d = concatenate(path, ".d", (char *) 0);
-    if ((dir = scan_dir_open(path_d)) != 0) {
+    conf_path_d = concatenate(conf_path, ".d", (char *) 0);
+    if (access(conf_path_d, R_OK | X_OK) == 0
+	&& (dir = scan_dir_open(conf_path_d)) != 0) {
+	sub_conf_path = vstring_alloc(100);
 	while ((conf_name = scan_dir_next(dir)) != 0) {
-	    if ((suffix = strrchr(conf_name, '.')) != 0
-		&& strcmp(suffix, DYMAP_CF_SUFFIX) == 0) {
-		path_d_conf = concatenate(path_d, "/", conf_name, (char *) 0);
-		dymap_read_conf(path_d_conf, path_d);
-		myfree(path_d_conf);
-	    } else if (errno != 0) {
-		/* Don't crash all programs - degrade gracefully. */
-		msg_warn("%s: directory read error: %m", path_d);
-	    }
+	    vstring_sprintf(sub_conf_path, "%s/%s", conf_path_d, conf_name);
+	    dymap_read_conf(vstring_str(sub_conf_path), plugin_dir);
 	}
+	if (errno != 0)
+	    /* Don't crash all programs - degrade gracefully. */
+	    msg_warn("%s: directory read error: %m", conf_path_d);
 	scan_dir_close(dir);
+	vstring_free(sub_conf_path);
     } else if (errno != ENOENT) {
 	/* Don't crash all programs - degrade gracefully. */
-	msg_warn("%s: directory open failed: %m", path_d);
+	msg_warn("%s: directory open failed: %m", conf_path_d);
     }
-    myfree(path_d);
+    myfree(conf_path_d);
 
     /*
      * Future proofing, in case someone "improves" the code. We can't hook

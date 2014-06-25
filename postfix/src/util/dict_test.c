@@ -24,6 +24,7 @@
 #include <dict_lmdb.h>
 
 DEFINE_DICT_LMDB_MAP_SIZE;
+DEFINE_DICT_DB_CACHE_SIZE;
 
 static NORETURN usage(char *myname)
 {

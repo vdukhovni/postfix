@@ -28,7 +28,7 @@
 /*	char	*var_daemon_dir;
 /*	char	*var_data_dir;
 /*	char	*var_command_dir;
-/*	char	*var_plugin_dir;
+/*	char	*var_meta_dir;
 /*	char	*var_queue_dir;
 /*	char	*var_shlib_dir;
 /*	int	var_use_limit;
@@ -179,9 +179,7 @@
 #include <safe_open.h>
 #include <mymalloc.h>
 #include <dict.h>
-#ifdef HAS_DB
 #include <dict_db.h>
-#endif
 #include <dict_lmdb.h>
 #include <inet_proto.h>
 #include <vstring_vstream.h>
@@ -222,7 +220,7 @@ char   *var_config_dir;
 char   *var_daemon_dir;
 char   *var_data_dir;
 char   *var_command_dir;
-char   *var_plugin_dir;
+char   *var_meta_dir;
 char   *var_queue_dir;
 char   *var_shlib_dir;
 int     var_use_limit;
@@ -322,6 +320,7 @@ char   *var_dsn_filter;
 const char null_format_string[1] = "";
 
 DEFINE_DICT_LMDB_MAP_SIZE;
+DEFINE_DICT_DB_CACHE_SIZE;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -557,7 +556,7 @@ void    mail_params_init()
 	VAR_DAEMON_DIR, DEF_DAEMON_DIR, &var_daemon_dir, 1, 0,
 	VAR_DATA_DIR, DEF_DATA_DIR, &var_data_dir, 1, 0,
 	VAR_COMMAND_DIR, DEF_COMMAND_DIR, &var_command_dir, 1, 0,
-	VAR_PLUGIN_DIR, DEF_PLUGIN_DIR, &var_plugin_dir, 1, 0,
+	VAR_META_DIR, DEF_META_DIR, &var_meta_dir, 1, 0,
 	VAR_QUEUE_DIR, DEF_QUEUE_DIR, &var_queue_dir, 1, 0,
 	VAR_SHLIB_DIR, DEF_SHLIB_DIR, &var_shlib_dir, 1, 0,
 	VAR_PID_DIR, DEF_PID_DIR, &var_pid_dir, 1, 0,
@@ -731,9 +730,7 @@ void    mail_params_init()
     check_mail_owner();
     check_sgid_group();
     check_overlap();
-#ifdef HAS_DB
     dict_db_cache_size = var_db_read_buf;
-#endif
     dict_lmdb_map_size = var_lmdb_map_size;
     inet_windowsize = var_inet_windowsize;
 

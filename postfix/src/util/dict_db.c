@@ -6,7 +6,9 @@
 /* SYNOPSIS
 /*	#include <dict_db.h>
 /*
-/*	int	dict_db_cache_size;
+/*	extern int dict_db_cache_size;
+/*
+/*	DEFINE_DICT_DB_CACHE_SIZE;
 /*
 /*	DICT	*dict_hash_open(path, open_flags, dict_flags)
 /*	const char *path;
@@ -26,6 +28,10 @@
 /*	I/O buffer size.  The default buffer size is adequate for reading.
 /*	For better performance while creating a large table, specify a large
 /*	buffer size before opening the file.
+/*
+/*	This variable cannot be exported via the dict(3) API and
+/*	must therefore be defined in the calling program by invoking
+/*	the DEFINE_DICT_DB_CACHE_SIZE macro at the global level.
 /*
 /*	Arguments:
 /* .IP path
@@ -125,17 +131,6 @@ typedef struct {
 
 #define SCOPY(buf, data, size) \
     vstring_str(vstring_strncpy(buf ? buf : (buf = vstring_alloc(10)), data, size))
-
- /*
-  * You can override the default dict_db_cache_size setting before calling
-  * dict_hash_open() or dict_btree_open(). This is done in mkmap_db_open() to
-  * set a larger memory pool for database (re)builds.
-  * 
-  * XXX This should be specified via the DICT interface so that it becomes an
-  * object property, instead of being specified by poking a global variable
-  * so that it becomes a class property.
-  */
-int     dict_db_cache_size = (128 * 1024);	/* 128K default memory pool */
 
 #define DICT_DB_NELM		4096
 

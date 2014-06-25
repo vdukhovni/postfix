@@ -352,9 +352,19 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available in Postfix 2.12 and later:
+/* .IP "\fBmeta_directory (see 'postconf -d' output)\fR"
+/*	The location of non-executable files that are shared among
+/*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
+/*	and the multi-instance template files main.cf.proto and master.cf.proto.
+/* .IP "\fBshlib_directory (see 'postconf -d' output)\fR"
+/*	The location of Postfix shared libraries (libpostfix-*.so.*),
+/*	and of Postfix database plugins that have a relative pathname in
+/*	the dynamicmaps.cf file.
 /* FILES
-/*	$daemon_directory/main.cf, stock configuration file
-/*	$daemon_directory/master.cf, stock configuration file
+/*	$meta_directory/main.cf.proto, stock configuration file
+/*	$meta_directory/master.cf.proto, stock configuration file
 /*	$daemon_directory/postmulti-script, life-cycle helper program
 /* SEE ALSO
 /*	postfix(1), Postfix control program
@@ -447,6 +457,8 @@ typedef struct {
 static SHARED_PATH shared_dir_table[] = {
     VAR_COMMAND_DIR, &var_command_dir,
     VAR_DAEMON_DIR, &var_daemon_dir,
+    VAR_META_DIR, &var_meta_dir,
+    VAR_SHLIB_DIR, &var_shlib_dir,
     0,
 };
 
@@ -942,13 +954,22 @@ static void check_shared_dir_status(void)
     struct stat st;
     const SHARED_PATH *sp;
 
+    /*
+     * XXX Avoid false conflicts with meta_directory. This usually overlaps
+     * with other directories, typcally config_directory, shlib_directory or
+     * daemon_directory.
+     */
     for (sp = shared_dir_table; sp->param_name; ++sp) {
+	if (sp->param_value[0][0] != '/')	/* "no" or other special */
+	    continue;
 	if (stat(sp->param_value[0], &st) < 0)
 	    msg_fatal("%s = '%s': directory not found: %m",
 		      sp->param_name, sp->param_value[0]);
 	if (!S_ISDIR(st.st_mode))
 	    msg_fatal("%s = '%s' is not a directory",
 		      sp->param_name, sp->param_value[0]);
+	if (strcmp(sp->param_name, VAR_META_DIR) == 0)
+	    continue;
 	register_claim(var_config_dir, sp->param_name, sp->param_value[0]);
     }
 }

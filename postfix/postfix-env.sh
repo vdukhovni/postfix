@@ -1,8 +1,5 @@
 #!/bin/sh
 
-# Run a program with the new libraries, not the installed ones.
+# Run a program with the new shared libraries instead of the installed ones.
 
-export LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/lib
-
-"$@"
+LD_LIBRARY_PATH=`pwd`/lib exec "$@"

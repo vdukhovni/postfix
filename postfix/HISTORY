@@ -19919,3 +19919,107 @@ Apologies for any names omitted.
 	Cleanup: INFO action in access(5) tables, for consistency
 	with header/body_checks. Viktor Dukhovni.  Files:
 	smtpd/smtpd_check.c, proto/access.
+
+20140619
+
+	Cleanup: process LaMont Jones feedback for shared-library
+	and database-plugin builds. Changes: 1) move non-executable
+	files from $daemon_directory to the default $config_directory
+	(postfix-files*, dynamicmaps.cf*, main.cf.proto/master.cf.proto
+	for multi-instance support); 2) add foo.so -> foo.so.version
+	symlinks; 3) change $shlib_directory and $plugin_directory
+	defaults to /usr/lib/postfix to reduce sprawl.  Files:
+	conf/main.cf.proto, conf/master.cf.proto, conf/postfix-files.proto,
+	conf/post-install, conf/postmulti-script, makedefs,
+	postfix-install, proto/INSTALL.html, global/dynamicmaps.c,
+	global/dynamicmaps.h, global/mail_dict.c, global/mail_params.h,
+	postmulti/postmulti.c.
+
+	Bugfix (introduced: 2001): qmqpd null pointer bug when it
+	logs a lost connection while not in a mail transaction.
+	Reported by Michal Adamek. File: qmqpd/qmqpd.c.
+
+	Cleanup: filter non-printable characters in X509 subject
+	or issuer names. Viktor Dukhovni. File: tls/tls_server.c.
+
+20140620
+
+	Cleanup: for compliance with file system policies, some
+	files have been moved from $daemon-directory to the directory
+	specified with the new meta_directory parameter which has
+	the same default value as config_directory.  This change
+	affects non-executable files that are shared among multiple
+	Postfix instances, such as postfix-files, dynamicmaps.cf,
+	and multi-instance template files.
+
+	For backwards compatibility with Postfix 2.6..2.11, specify
+	"meta_directory = $daemon_directory" in main.cf before
+	installing Postfix, or specify "meta_directory = /path/name"
+	on the "make makefiles", "make install" or "make upgrade"
+	command line.
+
+	Files: Makefile.in, RELEASE_NOTES, conf/post-install,
+	conf/postfix-files.proto, conf/postmulti-script, makedefs,
+	mantools/postlink, postfix-install, proto/INSTALL.html,
+	proto/postconf.proto, global/mail_params.c, global/mail_params.h,
+	postfix/postfix.c, postmulti/postmulti.c.
+
+	Feature: check_xxx_a_access (for xxx in client, reverse_client,
+	helo, sender, recipient) implements access control on all
+	A and AAAA IP addresses for the client hostname, helo
+	parameter, sender domain or recipient domain. Some spam has
+	sender domains with the same IP address but different MX
+	hosts.  Files: global/mail_params.h, smtpd/smtpd_check.c,
+	proto/postconf.proto.
+
+20140622
+
+	Cleanup: eliminated plugin_directory to reduce configuration
+	parameter sprawl. Files: Makefile.in, RELEASE_NOTES,
+	conf/post-install, conf/postfix-files.proto, conf/postfix-script,
+	conf/postmulti-script, makedefs, mantools/postlink,
+	postfix-install, proto/INSTALL.html, proto/postconf.proto,
+	global/Makefile.in, global/mail_dict.c, global/mail_params.c,
+	global/mail_params.h, global/mail_version.h, postfix/postfix.c,
+	postmulti/postmulti.c, smtpd/smtpd_check.c, util/Makefile.in.
+
+20140623
+
+	Cleanup: eliminated the use of Postfix release versions as
+	file name suffixes for shared libraries, database plugins
+	and dynamicmaps.cf.  The shared-library version suffixes
+	were fighting against assumptions and conventions in run-time
+	linkers, including the assumption that ABIs are preserved
+	from one version to the next. The Postfix version can now
+	be embedded in the shlib_directory parameter. As this is
+	sufficient to permit upgrade of a running Postfix system
+	without risking that old binaries will link against newer
+	shared objects, we no longer need a version suffix for
+	dynamicmaps.cf.  Files: Makefile.in, RELEASE_NOTES,
+	conf/postfix-files.proto, makedefs, proto/INSTALL.html,
+	proto/postconf.proto, global/mail_params.h, global/mail_version.h,
+
+20140624
+
+	Cleanup: the commands "make (makefiles|install|upgrade|package)
+	parameter=value" now replace the string MAIL_VERSION in a
+	configuration parameter value with the Postfix release
+	version.  Unfortunately, the more obvious approach, a
+	parameter value with the unexpanded '$mail_version', produces
+	inconsistent results with different make implementations.
+	Files: makedefs, Makefile.in, postfix-install, proto/INSTALL.html,
+	proto/PACKAGE_README.html
+
+	Cleanup: postmulti now requires "postmulti -e init" before
+	accepting other multi-instance requests.  Viktor Dukhovni.
+	File: conf/postmulti-script.
+
+20140625
+
+	Kludge: moved dict_db_cache_size away from dict_db.c in
+	preparation for Berkeley DB database plugin support (a
+	similar kludge was implemented for LMDB).  Files:
+	util/dict_db.[hc], util/dict_test.c, global/mail_params.c.
+
+	Cleanup: don't leak build directory information via SHLIB_ENV
+	in makedefs.out.  Files: Makefile.in, conf/postfix-files.

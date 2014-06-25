@@ -57,11 +57,16 @@
 #	parameter settings. These settings have the highest precedence.
 # .IP "command line"
 #	Parameter settings can be given as name=value arguments on
-#	the postfix-install command line.
+#	the postfix-install command line. This mode will replace
+#	the string MAIL_VERSION in a configuration parameter value
+#	with the Postfix release version (Postfix 2.12 and later).
 # .IP "process environment"
 #	Parameter settings can be given as name=value environment
-#	variables. Environment parameters can also be specified on the
-#	make(1) command line as "make install name=value ...".
+#	variables. Environment parameters can also be specified on
+#	the make(1) command line as "make install name=value ...".
+#	This mode will replace the string MAIL_VERSION in a
+#	configuration parameter value with the Postfix release
+#	version (Postfix 2.12 and later).
 # .IP "installed configuration files"
 #	If a parameter is not specified via the command line or via the
 #	process environment, postfix-install will attempt to extract its
@@ -144,25 +149,29 @@
 #	The final destination directory for the Postfix sample configuration
 #	files. This parameter is obsolete as of Postfix version 2.1.
 #	This parameter setting is recorded in the installed main.cf file.
-# .IP plugin_directory
-#	The final destination directory for the Postfix dynamicmaps.cf
-#	database plugin configuration file, and files referenced by
-#	that file.  This is "no" when dynamic linking is disabled
-#	at compile time.
+# .IP meta_directory
+#	The final destination directory for non-executable files
+#	that are shared among multiple Postfix instances, such
+#	as postfix-files, dynamicmaps.cf, as well as the multi-instance
+#	template files main.cf.proto and master.cf.proto. This
+#	directory should contain only Postfix-related files.
 # .IP readme_directory
 #	The final destination directory for the Postfix README files.
 #	This parameter setting is recorded in the installed main.cf file.
 # .IP shlib_directory
-#	The final destination directory for Postfix shared-library files.
-#	The built-in default value is specified at compile time.
-#	If you change this at installation time, then you should specify
-#	only "standard" system directories. Otherwise, additional
-#	configuration will be required with ldconfig(1) or equivalent.
+#	The final destination directory for Postfix shared-library
+#	files, and the default directory for Postfix database plugin
+#	files with a relative pathname in the file dynamicmaps.cf.
+#	This directory should contain only Postfix-related files.
+#	The shlib_directory parameter built-in default value is
+#	specified at compile time.  If you change this at installation
+#	time, then additional configuration will be required with
+#	ldconfig(1) or equivalent.
 # SEE ALSO
 #	post-install(1) post-installation procedure
 # FILES
 #	$config_directory/main.cf, Postfix installation configuration.
-#	$daemon_directory/postfix-files, installation control file.
+#	$meta_directory/postfix-files, installation control file.
 #	$config_directory/install.cf, obsolete configuration file.
 # LICENSE
 # .ad
@@ -220,6 +229,28 @@ test -x bin/postconf || {
     echo $0: Error: no bin/postconf file. Did you forget to run \"make\"? 1>&2
     exit 1
 }
+
+CONFIG_PARAMS="command_directory daemon_directory data_directory \
+html_directory mail_owner mailq_path manpage_directory newaliases_path \
+queue_directory readme_directory sendmail_path setgid_group shlib_directory \
+meta_directory"
+
+# Expand the string MAIL_VERSION in "make install" etc. name=value
+# command-line arguments (and consequently, in environment settings),
+# for consistency with "make makefiles".
+
+for name in $CONFIG_PARAMS sample_directory install_root tempdir
+do
+    eval junk=\$$name
+    case "$junk" in
+    *MAIL_VERSION*) 
+	case "$mail_version" in
+	"") mail_version="`bin/postconf -dhx mail_version`" || exit 1
+	esac
+	eval ${name}=\"`echo "$junk" | sed "s/MAIL_VERSION/$mail_version/g"`\" ||
+	    exit 1;; 
+    esac
+done
 
 case `uname -s` in
 HP-UX*) FMT=cat;;
@@ -387,9 +418,10 @@ HTML files. Specify \"no\" if you do not want to install these files."
 shlib_directory_prompt="the final destination directory for Postfix
 shared-library files."
 
-plugin_directory_prompt="the final destination directory for the
-Postfix dynamicmaps.cf configuration file and files referenced by
-that file."
+meta_directory_prompt="the final destination directory for
+non-executable files that are shared among multiple Postfix instances,
+such as postfix-files, dynamicmaps.cf, as well as the multi-instance
+template files main.cf.proto and master.cf.proto."
 
 # Default settings, just to get started.
 
@@ -452,11 +484,6 @@ grep setgid_group $CONFIG_DIRECTORY/main.cf >/dev/null 2>&1 || {
     }
 }
 
-CONFIG_PARAMS="command_directory daemon_directory data_directory \
-html_directory mail_owner mailq_path manpage_directory newaliases_path \
-queue_directory readme_directory sendmail_path setgid_group shlib_directory \
-plugin_directory"
-
 # Extract parameter settings from the installed main.cf file.
 
 test -f $CONFIG_DIRECTORY/main.cf && {
@@ -517,7 +544,7 @@ case "$manpage_directory" in
      exit 1;;
 esac
 
-for path in "$html_directory" "$readme_directory" "$shlib_directory" "$plugin_directory"
+for path in "$html_directory" "$readme_directory" "$shlib_directory"
 do
    case "$path" in
    /*) ;;
@@ -528,7 +555,8 @@ do
 done
 
 for path in "$daemon_directory" "$data_directory" "$command_directory" "$queue_directory" \
-    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory"
+    "$sendmail_path" "$newaliases_path" "$mailq_path" "$manpage_directory" \
+    "$meta_directory"
 do
    case "$path" in
    /*) ;;
@@ -545,8 +573,8 @@ do
 done
 
 for path in command_directory config_directory daemon_directory data_directory \
-    manpage_directory queue_directory shlib_directory plugin_directory html_directory \
-    readme_directory
+    manpage_directory queue_directory shlib_directory html_directory \
+    readme_directory meta_directory
 do
    case "$path" in
    no) ;;
@@ -602,21 +630,20 @@ HTML_DIRECTORY=$install_root$html_directory
 MANPAGE_DIRECTORY=$install_root$manpage_directory
 README_DIRECTORY=$install_root$readme_directory
 SHLIB_DIRECTORY=$install_root$shlib_directory
-PLUGIN_DIRECTORY=$install_root$plugin_directory
+META_DIRECTORY=$install_root$meta_directory
 
 # Avoid repeated tests for existence of these; default permissions suffice.
 
 test -d $DAEMON_DIRECTORY || mkdir -p $DAEMON_DIRECTORY || exit 1
 test -d $COMMAND_DIRECTORY || mkdir -p $COMMAND_DIRECTORY || exit 1
 test -d $QUEUE_DIRECTORY || mkdir -p $QUEUE_DIRECTORY || exit 1
-test "$plugin_directory" = "no" -o -d $PLUGIN_DIRECTORY ||
-	mkdir -p $PLUGIN_DIRECTORY || exit 1
 test "$shlib_directory" = "no" -o -d $SHLIB_DIRECTORY ||
 	mkdir -p $SHLIB_DIRECTORY || exit 1
 test "$html_directory" = "no" -o -d $HTML_DIRECTORY || 
 	mkdir -p $HTML_DIRECTORY || exit 1
 test "$readme_directory" = "no" -o -d $README_DIRECTORY || 
 	mkdir -p $README_DIRECTORY || exit 1
+test -d $META_DIRECTORY || mkdir -p $META_DIRECTORY || exit 1
 
 # Upgrade or first-time installation?
 
@@ -629,7 +656,7 @@ fi
 
 # Install files, using information from the postfix-files file.
 
-exec < libexec/postfix-files || exit 1
+exec < meta/postfix-files || exit 1
 while IFS=: read path type owner group mode flags junk
 do
     IFS="$BACKUP_IFS"
@@ -703,9 +730,9 @@ do
 	'$shlib_directory')
 	    compare_or_replace $mode "$owner" "$group" lib/$file \
 		    $SHLIB_DIRECTORY/$file || exit 1;;
-	'$plugin_directory')
-	    compare_or_replace $mode "$owner" "$group" plugins/$file \
-		$PLUGIN_DIRECTORY/$file || exit 1;;
+	'$meta_directory')
+	    compare_or_replace $mode "$owner" "$group" meta/$file \
+		$META_DIRECTORY/$file || exit 1;;
 	'$daemon_directory')
 	    compare_or_replace $mode "$owner" "$group" libexec/$file \
 		$DAEMON_DIRECTORY/$file || exit 1;;
@@ -731,7 +758,7 @@ do
 	    test "$readme_directory" = "no" ||
 		compare_or_replace $mode "$owner" "$group" README_FILES/$file \
 		    $README_DIRECTORY/$file || exit 1;;
-	 *) echo $0: Error: unknown entry $path in libexec/postfix-files 1>&2
+	 *) echo $0: Error: unknown entry $path in meta/postfix-files 1>&2
 	    exit 1;;
 	esac) || exit 1
 	continue;;
@@ -762,7 +789,7 @@ do
 	) || exit 1
 	continue;;
 
-     *) echo $0: Error: unknown type $type for $path in libexec/postfix-files 1>&2
+     *) echo $0: Error: unknown type $type for $path in meta/postfix-files 1>&2
 	exit 1;;
     esac
 
@@ -788,7 +815,7 @@ bin/postconf -c $CONFIG_DIRECTORY -e \
     "sample_directory = $sample_directory" \
     "readme_directory = $readme_directory" \
     "shlib_directory = $shlib_directory" \
-    "plugin_directory = $plugin_directory" \
+    "meta_directory = $meta_directory" \
 || exit 1
 
 # If Postfix is being installed locally from source code, do the

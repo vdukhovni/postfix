@@ -118,7 +118,6 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
 INC_DIR	= ../../include
-PLG_DIR= ../../plugins
 PLUGIN_MAP_SO = $(LIB_PREFIX)ldap$(LIB_SUFFIX) $(LIB_PREFIX)mysql$(LIB_SUFFIX) \
 	$(LIB_PREFIX)pgsql$(LIB_SUFFIX) $(LIB_PREFIX)sqlite$(LIB_SUFFIX) \
 	$(LIB_PREFIX)lmdb$(LIB_SUFFIX) $(LIB_PREFIX)cdb$(LIB_SUFFIX) \
@@ -182,11 +181,11 @@ plugin_map_so_update: $(PLUGIN_MAP_SO)
 	do \
 	  for type in $(DEFINED_MAP_TYPES); do \
 	      case $$i in $(LIB_PREFIX)$$type$(LIB_SUFFIX)) \
-		  cmp -s $$i $(PLG_DIR)/$$i 2>/dev/null || cp $$i $(PLG_DIR); \
+		  cmp -s $$i $(LIB_DIR)/$$i 2>/dev/null || cp $$i $(LIB_DIR); \
 		  continue 2;; \
 	      esac; \
 	  done; \
-	  rm -f $(PLG_DIR)/$$i; \
+	  rm -f $(LIB_DIR)/$$i; \
 	done
 
 dot_lockfile: $(LIB) $(LIBS)

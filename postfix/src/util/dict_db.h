@@ -27,8 +27,14 @@ extern DICT *dict_btree_open(const char *, int, int);
 
  /*
   * XXX Should be part of the DICT interface.
+  * 
+  * You can override the default dict_db_cache_size setting before calling
+  * dict_hash_open() or dict_btree_open(). This is done in mkmap_db_open() to
+  * set a larger memory pool for database (re)builds.
   */
 extern int dict_db_cache_size;
+
+#define DEFINE_DICT_DB_CACHE_SIZE int dict_db_cache_size = (128 * 1024)
 
 /* LICENSE
 /* .ad

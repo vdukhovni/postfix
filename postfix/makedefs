@@ -18,6 +18,12 @@
 #	environment variables (or as name=value pairs on the "make"
 #	command line). Use quotes if variables contain whitespace
 #	or shell meta characters.
+#
+#	The "make makefiles name=value..." command will replace the
+#	string MAIL_VERSION in a parameter value with the Postfix
+#	release version. Do not try to specify something like
+#	$mail_version on this command line. This produces inconsistent
+#	results with different versions of the make(1) command.
 # .IP \fBAUXLIBS=\fIobject_library...\fR
 #	Specifies one or more non-default object libraries. Postfix
 #	2,12 and later specify some of their database library
@@ -85,7 +91,7 @@
 # .IP \fBdynamicmaps=yes\fR
 # .IP \fBdynamicmaps=no\fR
 #	Enable (disable) Postfix builds with the configuration file
-#	$plugin_directory/dynamicmaps.cf and dynamically-loadable
+#	$meta_directory/dynamicmaps.cf and dynamically-loadable
 #	database plugins typically named postfix-*.so.*.  The setting
 #	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
 #
@@ -97,17 +103,11 @@
 #
 #	command_directory config_directory daemon_directory
 #	data_directory default_database_type html_directory
-#	mailq_path manpage_directory newaliases_path plugin_directory
+#	mailq_path manpage_directory meta_directory newaliases_path
 #	queue_directory readme_directory sendmail_path shlib_directory
 #
 #	See the postconf(5) manpage for a description of these
 #	parameters.
-#
-#	This feature was introduced with Postfix 2.12.
-# .IP \fBSHLIB_VERSION=\fIversion\fR
-#	Specifies a non-default shared-library version for Postfix
-#	libraries and database plugins.  By default, the version
-#	equals the default value for the $mail_version parameter.
 #
 #	This feature was introduced with Postfix 2.12.
 # .IP \fBWARN=\fIwarning_flags\fR
@@ -708,6 +708,91 @@ CCARGS="$CCARGS -DSNAPSHOT"
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"
 
+# Portability and usability considerations.
+#
+# In an ideal world we would be able to provide the option to say
+# "make makefiles shlib_directory=/some/where/'$mail_version'".  This
+# would allow a running system to be upggraded without worries about
+# tempororary program-library ABI incompatibilities (the Postfix
+# library API changes incompatibly from one version to the next).
+#
+# Unfortunately, gmake performs macro expansion on values in name=value
+# command-line arguments. In the specific example above, gmake would
+# eat up the "$" and "m" before it even invokes makedefs, and it
+# ould replace "'${mail_version}'" and "'$(mail_version)'" with
+# nothing. 
+#
+# We could work around this by documenting that $$ must be used (and
+# fix $$ in the case that people use traditional make).  But this
+# would be non-intuitive and bad from a usability point of view.
+#
+# We could work around this by documenting that people must pass
+# name=value via the environment instead of the command line, as in
+# "shlib_directory=/some/where/'$mail_version' make makefiles", or
+# that they issue "export" or "setenv" commands depending on their
+# interactive shell. That would be non-intuitive and bad usability.
+#
+# Even if we did any of the above, we would not want to pass the
+# unexpanded $mail_version via CCARGS, because that requires extra
+# quoting with `echo "$parm_val" | sed 's/[$]/\\\\$$/'` which is
+# just too ugly to be portable.
+#
+# The upshot of all this is that we will expand MAIL_VERSION in the
+# "make makefiles parameter=value" command line, and that we pass
+# the expanded text via CCARGS. This is clumsier but cleaner.
+
+# Helper function to determine DEF_MAIL_VERSION.
+
+def_mail_version()
+{
+    trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+    cat > makedefs.test.c <<'EOF'
+#include <stdlib.h>
+#include <stdio.h>
+EOF
+        # Avoid "nested comment" warnings. Top-of-file comments start in
+        # column 1 and have no code after "*/", not even in header files.
+        # If this is insufficient, kill the problem with #ifndef MAKEDEFS.
+        sed '/^\/\*/,/\*\//d' src/global/mail_version.h >>makedefs.test.c
+        cat >>makedefs.test.c <<EOF
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+int     main(void)
+{
+    printf("%s\n", DEF_MAIL_VERSION);
+    fflush(stdout);
+    exit(ferror(stdout) ? 1 : 0);
+}
+EOF
+    eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+    ./makedefs.test || exit 1
+    rm -f makedefs.test makedefs.test.[co]
+}
+
+# Helper function to expand MAIL_VERSION in command-line value.
+
+expand_MAIL_VERSION()
+{
+    case "$mail_version" in
+    "") mail_version=`def_mail_version` || exit 1
+    esac
+    echo "$1" | sed "s/MAIL_VERSION/$mail_version/g"
+}
+
+
+# Helper function to expand $mail_version in parameter value.
+
+expand_mail_version()
+{
+    case "$mail_version" in
+    "") mail_version=`def_mail_version` || exit 1
+    esac
+    echo "$1" | sed "
+	s/\$[{(]mail_version[)}]/$mail_version/g
+	s/\$mail_version/$mail_version/g
+    "
+}
 # Optionally override installation-parameter default settings.
 
 command_directory_macro=DEF_COMMAND_DIR
@@ -715,25 +800,29 @@ config_directory_macro=DEF_CONFIG_DIR
 daemon_directory_macro=DEF_DAEMON_DIR
 data_directory_macro=DEF_DATA_DIR
 mailq_path_macro=DEF_MAILQ_PATH
+meta_directory_macro=DEF_META_DIR
 newaliases_path_macro=DEF_NEWALIAS_PATH
-plugin_directory_macro=DEF_PLUGIN_DIR
 queue_directory_macro=DEF_QUEUE_DIR
 sendmail_path_macro=DEF_SENDMAIL_PATH
 shlib_directory_macro=DEF_SHLIB_DIR
 
-# shlib_directory and plugin_directory are checked here because "no"
-# is not a good answer.  Instead, build with "dynamicmaps=no" or
-# "shared=no" as appropriate.
+# shlib_directory is checked here because "no" is not a good answer.
+# Instead, build with "dynamicmaps=no" and "shared=no" as appropriate.
 
 for parm_name in command_directory config_directory daemon_directory \
-	data_directory mailq_path newaliases_path plugin_directory \
+	data_directory mailq_path meta_directory newaliases_path \
 	queue_directory sendmail_path shlib_directory
 do
     eval parm_val=\"\$$parm_name\"
     eval parm_macro=\"\$${parm_name}_macro\"
     case "$parm_val" in
     "") ;;
-    /*) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+    /*) case "$parm_val" in
+	*MAIL_VERSION*)
+	    parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
+	    eval ${parm_name}=\""\$parm_val"\";;
+	esac
+	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
      *) error "$parm_name must specify an absolute path name";;
     esac
 done
@@ -748,7 +837,12 @@ do
     eval parm_macro=\"\$${parm_name}_macro\"
     case "$parm_val" in
     "") ;;
- /*|no) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+ /*|no) case "$parm_val" in
+	*MAIL_VERSION*)
+	    parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
+	    eval ${parm_name}=\""\$parm_val"\";;
+	esac
+	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
      *) error "$parm_name must specify \"no\" or an absolute path name";;
     esac
 done
@@ -761,7 +855,12 @@ do
     eval parm_macro=\"\$${parm_name}_macro\"
     case "$parm_val" in
     "") ;;
-     *) CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+     *) case "$parm_val" in
+	*MAIL_VERSION*)
+	    parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
+	    eval ${parm_name}=\""\$parm_val"\";;
+	esac
+	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
     esac
 done
 
@@ -801,25 +900,27 @@ yes)
 	 PLUGIN_MAP_SO_MAKE=
 	 PLUGIN_MAP_SO_UPDATE=
 	 PLUGIN_LD=
-	 plugin_directory=no
-	 CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS -DDEF_PLUGIN_DIR=\\\"no\\\""
+	 CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS"
 	 ;;
     esac
 
     # Determine the shared-library and plugin installation directory.
-    for parm_name in shlib_directory plugin_directory
-    do
-	eval parm_val=\"\$$parm_name\"
-	eval parm_macro=\"\$${parm_name}_macro\"
-	case "$parm_val" in
-	/*|no) # CCARGS was already updated above.
-	    ;;
-	"") trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
-	    sed -n '
-		/_SHLIB_DIR/,/^$/p
-		/_PLUGIN_DIR/,/^$/p
-	    ' src/global/mail_params.h >makedefs.test.c
-	    cat >>makedefs.test.c <<EOF
+    # The shlib_directory parameter is special. If the DEF_SHLIB_DIR
+    # C-language constant ends in "$mail_version" then the custom
+    # code below expands this by peeking at the DEF_MAIL_VERSION
+    # C-language constant.
+    #
+    parm_name=shlib_directory
+    eval parm_val=\"\$$parm_name\"
+    eval parm_macro=\"\$${parm_name}_macro\"
+    case "$parm_val" in
+    /*|no) # CCARGS was already updated above.
+	;;
+    "") trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+	sed -n '
+	    /_SHLIB_DIR/,/^$/p
+	' src/global/mail_params.h >makedefs.test.c
+	cat >>makedefs.test.c <<EOF
 #include <stdlib.h>
 #include <stdio.h>
 int     main(void)
@@ -829,56 +930,34 @@ int     main(void)
     exit(ferror(stdout) ? 1 : 0);
 }
 EOF
-	    eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
-	    eval $parm_name=`./makedefs.test` || exit 1
-	    rm -f makedefs.test makedefs.test.[co]
-	    ;;
-	 *) # this parameter was already checked above.
-	    error "Can't happen in $0 - $parm_val is not an absolute path"
-	    ;;
-	esac
-    done
-
-    # Determine the shared-library version.
-    test -z "$SHLIB_VERSION" && {
-	trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
-	(cat <<'EOF'
-#include <stdlib.h>
-#include <stdio.h>
-EOF
-	# Avoid "nested comment" warnings. Top-of-file comments start in
-	# column 1 and have no code after "*/", not even in header files.
-	# If this is insufficient, kill the problem with #ifndef MAKEDEFS.
-	sed '/^\/\*/,/\*\//d' src/global/mail_version.h
-	cat <<'EOF'
-int     main(void)
-{
-    printf("%s\n", DEF_MAIL_VERSION);
-    fflush(stdout);
-    exit(ferror(stdout) ? 1 : 0);
-}
-EOF
-    ) >makedefs.test.c
-	eval ${CC-gcc} -DMAKEDEFS ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
-	SHLIB_VERSION=`./makedefs.test` || exit 1
+	eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
+	parm_val=`./makedefs.test` || exit 1
 	rm -f makedefs.test makedefs.test.[co]
-    }
+	case $parm_val in
+	*'$'mail_version*|*'$'{mail_version}*|'$('mail_version')'*)
+	    parm_val=`expand_mail_version "$parm_val"` || exit 1
+	    eval ${parm_name}=\""\$parm_val"\"
+	esac
+	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\""
+	;;
+     *) # this parameter was already checked above.
+	error "Can't happen in $0 - $parm_val is not an absolute path"
+	;;
+    esac
+
     LIB_PREFIX=postfix-
-    LIB_SUFFIX=${SHLIB_SUFFIX}.${SHLIB_VERSION}
-    CCARGS="$CCARGS -DSHLIB_VERSION=\\\"$SHLIB_VERSION\\\""
+    LIB_SUFFIX=${SHLIB_SUFFIX}
     ;;
 
 no|"")
     shlib_directory=no
-    plugin_directory=no
     CCARGS="$CCARGS -UUSE_DYNAMIC_LIBS -DDEF_SHLIB_DIR=\\\"no\\\""
-    CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS -DDEF_PLUGIN_DIR=\\\"no\\\""
+    CCARGS="$CCARGS -UUSE_DYNAMIC_MAPS"
     SHLIB_CFLAGS=
     SHLIB_SUFFIX=
     SHLIB_LD=:
     SHLIB_RPATH=
     SHLIB_ENV=
-    SHLIB_VERSION=
     LIB_PREFIX=
     LIB_SUFFIX=.a
     NON_PLUGIN_MAP_OBJ='$(MAP_OBJ)'
@@ -922,17 +1001,17 @@ DEFINED_MAP_TYPES=`
 
 PLUGGABLE_MAPS="CDB LDAP LMDB MYSQL PCRE PGSQL SDBM SQLITE"
 
-case "$plugin_directory" in
-/*) for name in $PLUGGABLE_MAPS
-    do
-	eval test -n "\"\$AUXLIBS_$name\"" && 
-	    eval PLUGIN_AUXLIBS="\"\$PLUGIN_AUXLIBS
+case "$dynamicmaps" in
+yes) for name in $PLUGGABLE_MAPS
+     do
+	 eval test -n "\"\$AUXLIBS_$name\"" && 
+	     eval PLUGIN_AUXLIBS="\"\$PLUGIN_AUXLIBS
 AUXLIBS_$name = \$AUXLIBS_$name\""
-    done;;
- *) for name in $PLUGGABLE_MAPS
-    do
-	eval AUXLIBS="\"\$AUXLIBS \$AUXLIBS_$name\""
-    done;;
+     done;;
+  *) for name in $PLUGGABLE_MAPS
+     do
+	 eval AUXLIBS="\"\$AUXLIBS \$AUXLIBS_$name\""
+     done;;
 esac
 
 sed 's/   */ /g' <<EOF
@@ -961,9 +1040,7 @@ SHLIB_DIR = $shlib_directory
 SHLIB_ENV = $SHLIB_ENV
 SHLIB_LD = $SHLIB_LD
 SHLIB_RPATH = $SHLIB_RPATH
-SHLIB_VERSION = $SHLIB_VERSION
 # Switch between dynamicmaps.cf plugins and hard-linked databases.
-PLUGIN_DIR = $plugin_directory
 NON_PLUGIN_MAP_OBJ = $NON_PLUGIN_MAP_OBJ
 PLUGIN_MAP_OBJ = $PLUGIN_MAP_OBJ
 PLUGIN_MAP_OBJ_UPDATE = $PLUGIN_MAP_OBJ_UPDATE

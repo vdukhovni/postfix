@@ -165,11 +165,14 @@ The directory with Postfix-writable data files (for example:
 caches, pseudo-random numbers).
 .PP
 Available in Postfix version 2.12 and later:
-.IP "\fBplugin_directory (see 'postconf -d' output)\fR"
-The location of the Postfix dynamicmaps.cf database plugin
-configuration file, and of database plugins with a relative pathname.
+.IP "\fBmeta_directory (see 'postconf -d' output)\fR"
+The location of non-executable files that are shared among
+multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
+and the multi-instance template files main.cf.proto and master.cf.proto.
 .IP "\fBshlib_directory (see 'postconf -d' output)\fR"
-The location of Postfix shared libraries (libpostfix-*.so.*).
+The location of Postfix shared libraries (libpostfix-*.so.*),
+and of Postfix database plugins that have a relative pathname in
+the dynamicmaps.cf file.
 .PP
 Other configuration parameters:
 .IP "\fBimport_environment (see 'postconf -d' output)\fR"

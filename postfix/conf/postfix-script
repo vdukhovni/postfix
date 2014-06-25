@@ -71,13 +71,10 @@ no) ;;
         exit 1
     }
 esac
-case $plugin_directory in
-no) ;;
- *) cd $plugin_directory || {
-	$FATAL no Postfix plugin directory $plugin_directory!
-        exit 1
-    }
-esac
+cd $meta_directory || {
+	$FATAL no Postfix meta directory $meta_directory!
+	exit 1
+}
 cd $queue_directory || {
 	$FATAL no Postfix queue directory $queue_directory!
 	exit 1
@@ -259,10 +256,10 @@ check-warn)
 	test -n "$check_shared_files" && {
 		todo="$daemon_directory $todo"
 		test "$shlib_directory" = "no" || todo="$shlib_directory $todo"
-		test "$plugin_directory" = "no" || todo="$plugin_directory $todo"
+		todo="$meta_directory $todo"
 	}
 
-	for dir in $todo
+	for dir in `echo "$todo" | tr ' ' '\12' | sort -u`
 	do
 		ls -lLd $dir | (grep " root " >/dev/null ||
 		    $WARN not owned by root: $dir)
@@ -277,7 +274,6 @@ check-warn)
 		todo="$daemon_directory/* $todo"
 		test "$shlib_directory" = "no" || 
 		    todo="$shlib_directory/libpostfix* $todo"
-		# plugin_directory/* is checked by dynamicmaps routines.
 	}
 
 	find $todo ! -user root \
@@ -287,7 +283,7 @@ check-warn)
 	test -n "$check_shared_files" && todo="$daemon_directory/. $todo"
 	# FIXME don't scan non-Postfix files under /usr/local/lib.
 	test "$shlib_directory" = "no" || 
-	    todo="$shlib_directory/libpostfix* $todo"
+	    todo="$shlib_directory/libpostfix* $shlib_directory/postfix* $todo"
 
 	find $todo \
 		\( -perm -020 -o -perm -002 \) -type f \

@@ -31,6 +31,8 @@ ok@ok.domain		OK
 ok.domain		OK
 <>			550 Go away postmaster
 
+54.187.136.235		reject bizsat.net, gypsysoul.org spam
+
 blackholes.mail-abuse.org	$rbl_code client=$client
  client_address=$client_address
  client_name=$client_name helo_name=$helo_name 
