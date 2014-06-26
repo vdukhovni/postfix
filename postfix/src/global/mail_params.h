@@ -3794,7 +3794,7 @@ extern char *var_local_dsn_filter;
   */
 #define VAR_SHLIB_DIR	"shlib_directory"
 #ifndef DEF_SHLIB_DIR
-#define DEF_SHLIB_DIR	"/usr/lib/postfix/$mail_version"
+#define DEF_SHLIB_DIR	"/usr/lib/postfix"
 #endif
 extern char *var_shlib_dir;
 

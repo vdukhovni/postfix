@@ -258,8 +258,9 @@ check-warn)
 		test "$shlib_directory" = "no" || todo="$shlib_directory $todo"
 		todo="$meta_directory $todo"
 	}
+	todo=`echo "$todo" | tr ' ' '\12' | sort -u`
 
-	for dir in `echo "$todo" | tr ' ' '\12' | sort -u`
+	for dir in $todo
 	do
 		ls -lLd $dir | (grep " root " >/dev/null ||
 		    $WARN not owned by root: $dir)
@@ -273,17 +274,22 @@ check-warn)
 	test -n "$check_shared_files" && {
 		todo="$daemon_directory/* $todo"
 		test "$shlib_directory" = "no" || 
-		    todo="$shlib_directory/libpostfix* $todo"
+		    todo="$shlib_directory/* $todo"
+		todo="$meta_directory/* $todo"
 	}
+	todo=`echo "$todo" | tr ' ' '\12' | sort -u`
 
 	find $todo ! -user root \
 		-exec $WARN not owned by root: {} \;
 
 	todo="$config_directory/."
-	test -n "$check_shared_files" && todo="$daemon_directory/. $todo"
-	# FIXME don't scan non-Postfix files under /usr/local/lib.
-	test "$shlib_directory" = "no" || 
-	    todo="$shlib_directory/libpostfix* $shlib_directory/postfix* $todo"
+	test -n "$check_shared_files" && {
+		todo="$daemon_directory/. $todo"
+		test "$shlib_directory" = "no" || 
+		    todo="$shlib_directory/. $todo"
+		todo="$meta_directory/. $todo"
+	}
+	todo=`echo "$todo" | tr ' ' '\12' | sort -u`
 
 	find $todo \
 		\( -perm -020 -o -perm -002 \) -type f \

@@ -493,7 +493,7 @@ test -f $CONFIG_DIRECTORY/main.cf && {
 	case "$junk" in
 	"") eval unset $name;;
 	esac
-	eval : \${$name=\`bin/postconf -c $CONFIG_DIRECTORY -h $name\`} ||
+	eval : \${$name=\`bin/postconf -c $CONFIG_DIRECTORY -hx $name\`} ||
 	    exit 1
     done
 }
@@ -506,7 +506,7 @@ do
     case "$junk" in
     "") eval unset $name;;
     esac
-    eval : \${$name=\`bin/postconf -c conf -d -h $name\`} || exit 1
+    eval : \${$name=\`bin/postconf -c conf -d -hx $name\`} || exit 1
 done
 
 # Override settings manually.
@@ -799,6 +799,23 @@ do
 # changed from their current default. Defaults can change between
 # Postfix releases, and software should not suddenly be installed in
 # the wrong place when Postfix is being upgraded.
+
+case "$mail_version" in
+"") mail_version="`bin/postconf -dhx mail_version`" || exit 1
+esac
+
+# Undo MAIL_VERSION expansion. If someone really wants the expanded
+# mail version in main.cf, we're sorry.
+
+for name in $CONFIG_PARAMS sample_directory
+do
+    eval junk=\$$name
+    case "$junk" in
+    *"$mail_version"*) 
+	val=`echo "$junk" | sed "s/$mail_version/"'$mail_version/g'` || exit 1
+	eval ${name}='"$val"'
+    esac
+done
 
 bin/postconf -c $CONFIG_DIRECTORY -e \
     "daemon_directory = $daemon_directory" \

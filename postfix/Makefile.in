@@ -59,10 +59,10 @@ meta/makedefs.out: conf/makedefs.out
 
 meta/postfix-files: conf/postfix-files conf/makedefs.out Makefile
 	rm -f $@
-	(if [ "${SHLIB_DIR_OVERRIDE}" = "no" -o "${SHLIB_DIR}" = "" ]; then \
+	(if [ "${SHLIB_DIR}" = "no" -o "${SHLIB_DIR}" = "" ]; then \
 	    sed -e '/^\$$shlib_directory/d' \
 		-e '/dynamicmaps.cf/d' conf/postfix-files; \
-	elif [ "${PLUGIN_LD}" = "" ]; then \
+	elif [ "${PLUGIN_LD}" = ":" -o "${PLUGIN_LD}" = "" ]; then \
 	    sed -e '/dynamicmaps.cf/d' \
 		-e '/^\$$shlib_directory\/\$${LIB_PREFIX}/d' \
 		conf/postfix-files | $(EXPAND); \

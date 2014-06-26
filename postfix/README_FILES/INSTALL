@@ -185,15 +185,15 @@ shared-library support.
 (Specify "make makefiles shared=no" to explicitly disable Postfix shared-
 library support).
 
-This installs shared libraries in $shlib_directory, typically, /usr/lib/
-postfix/version or /usr/local/lib/postfix/version, with names like libpostfix-
-name.so, where the name is a source-code directory name such as "util" or
-"global", and the version is the Postfix release version: x.y.z for stable
-releases, x.y-date for snapshot (development) releases, or x.y-date-nonprod for
-non-production releases.
+This installs shared libraries in $shlib_directory, typically /usr/lib/postfix
+or /usr/local/lib/postfix, with file names libpostfix-name.so, where the name
+is a source-code directory name such as "util" or "global", and the version is
+the Postfix release version: x.y.z for stable releases, x.y-date for snapshot
+(development) releases, or x.y-date-nonprod for non-production releases.
 
 See section 4.3.3 "Customizing Postfix shared libraries and database plugins"
-below for how to customize the Postfix shared-library location and version.
+below for how to customize the Postfix shared-library location and version,
+including support to upgrade a running mail system.
 
 44..33..22 TTuurrnniinngg oonn PPoossttffiixx ddaattaabbaassee--pplluuggiinn ssuuppppoorrtt
 
@@ -249,8 +249,8 @@ plugins specify, for example:
 
 If you intend to upgrade Postfix without stopping the mail system, then you
 should append the Postfix release version to the shlib_directory pathname, to
-eliminate the possibility that programs from the old Postfix version will link
-with files from the new Postfix version. For example:
+eliminate the possibility that programs will link with shared libraries or
+database plugins from the wrong Postfix version. For example:
 
     $ make makefiles shared=yes \
         shlib_directory=/usr/local/lib/postfix/MAIL_VERSION ...

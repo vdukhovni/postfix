@@ -20023,3 +20023,20 @@ Apologies for any names omitted.
 
 	Cleanup: don't leak build directory information via SHLIB_ENV
 	in makedefs.out.  Files: Makefile.in, conf/postfix-files.
+
+20140626
+
+	Cleanup: construction debris. Files: Makefile.in,
+	conf/postfix-script.
+
+	Cleanup: replace expanded MAIL_VERSION with $mail_version
+	in main.cf installation parameter settings, to permit safe
+	upgrade of a running mail system. File: postfix-install.
+
+	Cleanup: replace expanded MAIL_VERSION with $mail_version
+	in built-in default installation parameter settings, for
+	consistency with main.cf. File: makedefs, postfix-install,
+	conf/post-install.
+
+	Cleanup: removed $mail_version from the default shlib_directory
+	value. Files: global/mail_params.h, proto/INSTALL.html.

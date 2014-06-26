@@ -720,26 +720,14 @@ CCARGS="-I. -I../../include $CCARGS"
 # command-line arguments. In the specific example above, gmake would
 # eat up the "$" and "m" before it even invokes makedefs, and it
 # ould replace "'${mail_version}'" and "'$(mail_version)'" with
-# nothing. 
+# nothing.
 #
-# We could work around this by documenting that $$ must be used (and
-# fix $$ in the case that people use traditional make).  But this
-# would be non-intuitive and bad from a usability point of view.
-#
-# We could work around this by documenting that people must pass
-# name=value via the environment instead of the command line, as in
-# "shlib_directory=/some/where/'$mail_version' make makefiles", or
-# that they issue "export" or "setenv" commands depending on their
-# interactive shell. That would be non-intuitive and bad usability.
-#
-# Even if we did any of the above, we would not want to pass the
-# unexpanded $mail_version via CCARGS, because that requires extra
-# quoting with `echo "$parm_val" | sed 's/[$]/\\\\$$/'` which is
-# just too ugly to be portable.
-#
-# The upshot of all this is that we will expand MAIL_VERSION in the
-# "make makefiles parameter=value" command line, and that we pass
-# the expanded text via CCARGS. This is clumsier but cleaner.
+# Requiring people to specify $$ is not a good option. Instead we
+# replace the string MAIL_VERSION in "make makefiles name=value"
+# parameter values with a form that depends on usage context: the
+# actual release version in actual pathnames, the unexpanded
+# $mail_version in main.cf parameter values and built-in default
+# parameter settings.
 
 # Helper function to determine DEF_MAIL_VERSION.
 
@@ -793,6 +781,22 @@ expand_mail_version()
 	s/\$mail_version/$mail_version/g
     "
 }
+
+# Helper to invoke the above. global: parm_name, parm_val, cparm_val, CCARGS.
+
+process_input_parameter()
+{
+    case "$parm_val" in
+    *MAIL_VERSION*)
+	cparm_val=`echo "$parm_val"|sed 's/MAIL_VERSION/\\\\$$mail_version/g'`||
+	    exit 1
+	parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
+	eval ${parm_name}=\""\$parm_val"\";;
+     *) cparm_val="$parm_val";;
+    esac
+    CCARGS="$CCARGS -D$parm_macro=\\\"$cparm_val\\\""
+}
+
 # Optionally override installation-parameter default settings.
 
 command_directory_macro=DEF_COMMAND_DIR
@@ -817,12 +821,7 @@ do
     eval parm_macro=\"\$${parm_name}_macro\"
     case "$parm_val" in
     "") ;;
-    /*) case "$parm_val" in
-	*MAIL_VERSION*)
-	    parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
-	    eval ${parm_name}=\""\$parm_val"\";;
-	esac
-	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+    /*) process_input_parameter;;
      *) error "$parm_name must specify an absolute path name";;
     esac
 done
@@ -837,12 +836,7 @@ do
     eval parm_macro=\"\$${parm_name}_macro\"
     case "$parm_val" in
     "") ;;
- /*|no) case "$parm_val" in
-	*MAIL_VERSION*)
-	    parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
-	    eval ${parm_name}=\""\$parm_val"\";;
-	esac
-	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+ /*|no) process_input_parameter;;
      *) error "$parm_name must specify \"no\" or an absolute path name";;
     esac
 done
@@ -855,12 +849,7 @@ do
     eval parm_macro=\"\$${parm_name}_macro\"
     case "$parm_val" in
     "") ;;
-     *) case "$parm_val" in
-	*MAIL_VERSION*)
-	    parm_val=`expand_MAIL_VERSION "$parm_val"` || exit 1
-	    eval ${parm_name}=\""\$parm_val"\";;
-	esac
-	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\"";;
+     *) process_input_parameter;;
     esac
 done
 
