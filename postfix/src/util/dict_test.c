@@ -22,6 +22,7 @@
 #include <vstring_vstream.h>
 #include <dict.h>
 #include <dict_lmdb.h>
+#include <dict_db.h>
 
 DEFINE_DICT_LMDB_MAP_SIZE;
 DEFINE_DICT_DB_CACHE_SIZE;

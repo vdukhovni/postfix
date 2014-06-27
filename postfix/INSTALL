@@ -187,13 +187,11 @@ library support).
 
 This installs shared libraries in $shlib_directory, typically /usr/lib/postfix
 or /usr/local/lib/postfix, with file names libpostfix-name.so, where the name
-is a source-code directory name such as "util" or "global", and the version is
-the Postfix release version: x.y.z for stable releases, x.y-date for snapshot
-(development) releases, or x.y-date-nonprod for non-production releases.
+is a source-code directory name such as "util" or "global".
 
 See section 4.3.3 "Customizing Postfix shared libraries and database plugins"
-below for how to customize the Postfix shared-library location and version,
-including support to upgrade a running mail system.
+below for how to customize the Postfix shared-library location, including
+support to upgrade a running mail system safely.
 
 4.3.2 Turning on Postfix database-plugin support
 

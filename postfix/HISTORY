@@ -20029,14 +20029,42 @@ Apologies for any names omitted.
 	Cleanup: construction debris. Files: Makefile.in,
 	conf/postfix-script.
 
-	Cleanup: replace expanded MAIL_VERSION with $mail_version
-	in main.cf installation parameter settings, to permit safe
-	upgrade of a running mail system. File: postfix-install.
+	Cleanup: replace the result of MAIL_VERSION expansion with
+	$mail_version in main.cf installation parameter settings,
+	to permit safe upgrade of a running mail system. File:
+	postfix-install.
 
-	Cleanup: replace expanded MAIL_VERSION with $mail_version
-	in built-in default installation parameter settings, for
-	consistency with main.cf. File: makedefs, postfix-install,
-	conf/post-install.
+	Cleanup: replace the result of MAIL_VERSION expansion with
+	$mail_version in built-in default installation parameter
+	settings, for consistency with main.cf. File: makedefs,
+	postfix-install, conf/post-install.
 
 	Cleanup: removed $mail_version from the default shlib_directory
 	value. Files: global/mail_params.h, proto/INSTALL.html.
+
+	Cleanup: in postfix-script, use find instead of ls to
+	determine permissions or ownership, and group some checks
+	with "pathname/." and "pathname/*" into one.  Downside:
+	more warnings will now have "/./" in the middle of a pathname.
+	File: conf/postfix-script.
+
+	Cleanup: need to evaluate mail_version before evaluating
+	parameters that may contain $mail_version. File:
+	global/mail_params.h
+
+	Cleanup: the postmulti command now exercises the postconf
+	"-x" option to expand $parameter_name in secondary-instance
+	parameter values.  File: postmulti/postmulti.c.
+
+	Cleanup: post-install also needed to replace the result of
+	MAIL_VERSION expansion with $mail_version, for the same
+	reasons as postfix-script. Viktor Dukhovni. File:
+	conf/post-install.
+
+20140627
+
+	Bugfix (introduced: 20140626) broken build and broken install
+	with default shlib_directory. Files: makedefs.
+
+	Bugfix (introduced: 20140627) broken install with default
+	shlib_directory. Files: conf/post-install.

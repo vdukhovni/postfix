@@ -527,6 +527,8 @@ static char *read_param_from_file(const char *path)
 void    mail_params_init()
 {
     static const CONFIG_STR_TABLE first_str_defaults[] = {
+	/* $mail_version may appear in other parameters. */
+	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_SYSLOG_FACILITY, DEF_SYSLOG_FACILITY, &var_syslog_facility, 1, 0,
 	VAR_INET_PROTOCOLS, DEF_INET_PROTOCOLS, &var_inet_protocols, 0, 0,
 	VAR_MULTI_CONF_DIRS, DEF_MULTI_CONF_DIRS, &var_multi_conf_dirs, 0, 0,
@@ -566,7 +568,6 @@ void    mail_params_init()
 	VAR_DEFAULT_PRIVS, DEF_DEFAULT_PRIVS, &var_default_privs, 1, 0,
 	VAR_ALIAS_DB_MAP, DEF_ALIAS_DB_MAP, &var_alias_db_map, 0, 0,
 	VAR_MAIL_RELEASE, DEF_MAIL_RELEASE, &var_mail_release, 1, 0,
-	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
 	VAR_DB_TYPE, DEF_DB_TYPE, &var_db_type, 1, 0,
 	VAR_HASH_QUEUE_NAMES, DEF_HASH_QUEUE_NAMES, &var_hash_queue_names, 1, 0,
 	VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim, 0, 0,

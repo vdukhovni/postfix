@@ -286,15 +286,12 @@ shared-library support). </p>
 <p> This installs shared libraries in $<a href="postconf.5.html#shlib_directory">shlib_directory</a>, typically
 /usr/lib/postfix or /usr/local/lib/postfix, with file names
 libpostfix-<i>name</i>.so, where the <i>name</i> is a source-code
-directory name such as "util" or "global", and the <i>version</i>
-is the Postfix release version: <i>x.y.z</i> for stable releases,
-<i>x.y</i>-<i>date</i> for snapshot (development) releases, or
-<i>x.y</i>-<i>date</i>-nonprod for non-production releases.  </p>
+directory name such as "util" or "global".  </p>
 
 <p> See section 4.3.3 "Customizing Postfix shared libraries and
 database plugins" below for how to customize the Postfix shared-library
-location and version, including support to upgrade a running mail
-system. </p>
+location, including support to upgrade a running mail system safely.
+</p>
 
 <h4><a name="dynamicmaps_enable"> 4.3.2 Turning on Postfix
 database-plugin support </a></h4>

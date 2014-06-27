@@ -922,12 +922,8 @@ EOF
 	eval ${CC-gcc} ${CCARGS} -o makedefs.test makedefs.test.c || exit 1
 	parm_val=`./makedefs.test` || exit 1
 	rm -f makedefs.test makedefs.test.[co]
-	case $parm_val in
-	*'$'mail_version*|*'$'{mail_version}*|'$('mail_version')'*)
-	    parm_val=`expand_mail_version "$parm_val"` || exit 1
-	    eval ${parm_name}=\""\$parm_val"\"
-	esac
-	CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\""
+	eval ${parm_name}=\""\$parm_val"\"
+	#CCARGS="$CCARGS -D$parm_macro=\\\"$parm_val\\\""
 	;;
      *) # this parameter was already checked above.
 	error "Can't happen in $0 - $parm_val is not an absolute path"

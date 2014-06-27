@@ -424,6 +424,28 @@ POSTCONF="$command_directory/postconf"
 
 # Save settings, allowing command line/environment override.
 
+# Undo MAIL_VERSION expansion. If someone really wants the expanded
+# mail version in main.cf, we're sorry.
+
+# Confine side effects from mail_version unexpansion within a subshell.
+
+(case "$mail_version" in
+"") mail_version="`$POSTCONF -dhx mail_version`" || exit 1
+esac
+
+for name in $MOST_PARAMETERS
+do
+    eval junk=\$$name
+    case "$junk" in
+    *"$mail_version"*) 
+	case "$pattern" in
+	"") pattern=`echo "$mail_version" | sed 's/\./\\\\./g'` || exit 1
+	esac
+	val=`echo "$junk" | sed "s/$pattern/"'$mail_version/g'` || exit 1
+	eval ${name}='"$val"'
+    esac
+done
+
 override=
 for name in $MOST_PARAMETERS
 do
@@ -451,7 +473,7 @@ test -n "$override" && {
 	"shlib_directory = $shlib_directory" \
 	"meta_directory = $meta_directory" \
     || exit 1
-}
+} || exit 0) || exit 1
 
 # Use file/directory status information in $meta_directory/postfix-files.
 

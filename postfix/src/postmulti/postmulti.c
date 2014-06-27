@@ -359,9 +359,9 @@
 /*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
 /*	and the multi-instance template files main.cf.proto and master.cf.proto.
 /* .IP "\fBshlib_directory (see 'postconf -d' output)\fR"
-/*	The location of Postfix shared libraries (libpostfix-*.so.*),
-/*	and of Postfix database plugins that have a relative pathname in
-/*	the dynamicmaps.cf file.
+/*	The location of Postfix shared libraries (libpostfix-*.so),
+/*	and the default location of Postfix database plugins (libpostfix-*.so)
+/*	that have a relative pathname in the dynamicmaps.cf file.
 /* FILES
 /*	$meta_directory/main.cf.proto, stock configuration file
 /*	$meta_directory/master.cf.proto, stock configuration file
@@ -789,14 +789,13 @@ static INSTANCE *load_instance(INSTANCE *ip)
     };
 
     /*
-     * XXX: We could really use a "postconf -E" to expand values in the
-     * context of the target main.cf!
+     * Expand parameter values in the context of the target main.cf file.
      */
 #define REQUEST_PARAM_COUNT 5			/* # of requested parameters */
 
     cmd = argv_alloc(REQUEST_PARAM_COUNT + 3);
     name = concatenate(var_command_dir, "/", "postconf", (char *) 0);
-    argv_add(cmd, name, "-c", ip->config_dir,
+    argv_add(cmd, name, "-xc", ip->config_dir,
 	     VAR_QUEUE_DIR, VAR_DATA_DIR,
 	     VAR_MULTI_NAME, VAR_MULTI_GROUP, VAR_MULTI_ENABLE,
 	     (char *) 0);
