@@ -20050,7 +20050,7 @@ Apologies for any names omitted.
 
 	Cleanup: need to evaluate mail_version before evaluating
 	parameters that may contain $mail_version. File:
-	global/mail_params.h
+	global/mail_params.c.
 
 	Cleanup: the postmulti command now exercises the postconf
 	"-x" option to expand $parameter_name in secondary-instance
@@ -20066,5 +20066,14 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20140626) broken build and broken install
 	with default shlib_directory. Files: makedefs.
 
-	Bugfix (introduced: 20140627) broken install with default
-	shlib_directory. Files: conf/post-install.
+	Bugfix (introduced: 20140627) "make install" stopped with
+	a bogus error when there was no real "make install name=value"
+	parameter override.  Files: conf/post-install.
+
+	Cleanup: support MAIL_VERSION magic (see INSTALL) only at
+	the end of a parameter value. Files: proto/INSTALL.html
+	makedefs, postfix-install, conf/postfix-files.
+
+	Cleanup: use ${mail_version} as the MAIL_VERSION-unexpanded
+	form.  Viktor Dukhovni. Files: makedefs, postfix-install,
+	conf/postfix-files.

@@ -58,14 +58,15 @@
 # .IP "command line"
 #	Parameter settings can be given as name=value arguments on
 #	the postfix-install command line. This mode will replace
-#	the string MAIL_VERSION in a configuration parameter value
-#	with the Postfix release version (Postfix 2.12 and later).
+#	the string MAIL_VERSION at the end of a configuration
+#	parameter value with the Postfix release version (Postfix
+#	2.12 and later).
 # .IP "process environment"
 #	Parameter settings can be given as name=value environment
 #	variables. Environment parameters can also be specified on
 #	the make(1) command line as "make install name=value ...".
-#	This mode will replace the string MAIL_VERSION in a
-#	configuration parameter value with the Postfix release
+#	This mode will replace the string MAIL_VERSION at the end
+#	of a configuration parameter value with the Postfix release
 #	version (Postfix 2.12 and later).
 # .IP "installed configuration files"
 #	If a parameter is not specified via the command line or via the
@@ -235,9 +236,11 @@ html_directory mail_owner mailq_path manpage_directory newaliases_path \
 queue_directory readme_directory sendmail_path setgid_group shlib_directory \
 meta_directory"
 
-# Expand the string MAIL_VERSION in "make install" etc. name=value
-# command-line arguments (and consequently, in environment settings),
-# for consistency with "make makefiles".
+# Expand the string MAIL_VERSION at the end of "make install" etc.
+# name=value command-line arguments (and consequently, in environment
+# settings), for consistency with "make makefiles".
+
+# Note that MAIL_VERSION) does not anchor the match at the end.
 
 for name in $CONFIG_PARAMS sample_directory install_root tempdir
 do
@@ -247,8 +250,12 @@ do
 	case "$mail_version" in
 	"") mail_version="`bin/postconf -dhx mail_version`" || exit 1
 	esac
-	eval ${name}=\"`echo "$junk" | sed "s/MAIL_VERSION/$mail_version/g"`\" ||
-	    exit 1;; 
+	val=`echo "$junk" | sed 's/MAIL_VERSION$/'"$mail_version/g"` || exit 1
+	case "$val" in
+	*MAIL_VERSION*)
+	   echo "MAIL_VERSION not at end of parameter value: $junk" 1>&2; exit 1
+	esac
+	eval ${name}='"$val"'
     esac
 done
 
@@ -804,8 +811,9 @@ case "$mail_version" in
 "") mail_version="`bin/postconf -dhx mail_version`" || exit 1
 esac
 
-# Undo MAIL_VERSION expansion. If someone really wants the expanded
-# mail version in main.cf, we're sorry.
+# Undo MAIL_VERSION expansion at the end of a parameter value. If
+# someone really wants the expanded mail version in main.cf, then
+# we're sorry.
 
 for name in $CONFIG_PARAMS sample_directory
 do
@@ -815,7 +823,7 @@ do
 	case "$pattern" in
 	"") pattern=`echo "$mail_version" | sed 's/\./\\\\./g'` || exit 1
 	esac
-	val=`echo "$junk" | sed "s/$pattern/"'$mail_version/g'` || exit 1
+	val=`echo "$junk" | sed "s/$pattern"'$/${mail_version}/g'` || exit 1
 	eval ${name}='"$val"'
     esac
 done

@@ -379,9 +379,9 @@ $ make makefiles shared=yes \
 </blockquote>
 
 <p> The command "make makefiles name=value..." will replace the
-string MAIL_VERSION in a configuration parameter value with the
-Postfix release version. Do not try to specify something like
-$mail_version on this command line. This produces inconsistent
+string MAIL_VERSION at the end of a configuration parameter value
+with the Postfix release version. Do not try to specify something
+like $mail_version on this command line. This produces inconsistent
 results with different versions of the make(1) command.  </p>
 
 <p> You can change the shlib_directory setting after Postfix is
@@ -431,11 +431,11 @@ at compile time specify, for example: </p>
 
 <p> Here is a tip if you want to make a pathname dependent on the
 Postfix release version: the command "make makefiles name=value..."
-will replace the string MAIL_VERSION in a configuration parameter
-value with the Postfix release version. Do not try to specify
-something like $mail_version on this command line. This produces
-inconsistent results with different versions of the make(1) command.
-</p>
+will replace the string MAIL_VERSION at the end of a configuration
+parameter value with the Postfix release version. Do not try to
+specify something like $mail_version on this command line. This
+produces inconsistent results with different versions of the make(1)
+command.  </p>
 
 <p> You can override the meta_directory setting after Postfix is
 built, with "make install" or "make upgrade". </p>
@@ -449,10 +449,10 @@ built, with "make install" or "make upgrade". </p>
 
 <p> As with the command "make makefiles, the command "make
 install/upgrade name=value..." will replace the string MAIL_VERSION
-in a configuration parameter value with the Postfix release version.
-Do not try to specify something like $mail_version on this command
-line. This produces inconsistent results with different versions
-of the make(1) command.  </p>
+at the end of a configuration parameter value with the Postfix
+release version.  Do not try to specify something like $mail_version
+on this command line. This produces inconsistent results with
+different versions of the make(1) command.  </p>
 
 <h4><a name="shared_tips"> 4.4.4 Tips for distribution maintainers
 </a></h4>
@@ -561,9 +561,9 @@ $ make
 </blockquote>
 
 <p> The command "make makefiles name=value ..." will replace the
-string MAIL_VERSION in a configuration parameter value with the
-Postfix release version. Do not try to specify something like
-$mail_version on this command line. This produces inconsistent
+string MAIL_VERSION at the end of a configuration parameter value
+with the Postfix release version. Do not try to specify something
+like $mail_version on this command line. This produces inconsistent
 results with different versions of the make(1) command.  </p>
 
 <p> Parameters whose defaults can be specified in this way are
@@ -977,10 +977,11 @@ or "make upgrade" command line, then these will take precedence
 over compiled-in default settings or main.cf settings. </p>
 
 <p> The command "make install/upgrade name=value ..." will replace
-the string MAIL_VERSION in a configuration parameter value with the
-Postfix release version. Do not try to specify something like
-$mail_version on this command line. This produces inconsistent
-results with different versions of the make(1) command.  </p>
+the string MAIL_VERSION at the end of a configuration parameter
+value with the Postfix release version. Do not try to specify
+something like $mail_version on this command line. This produces
+inconsistent results with different versions of the make(1) command.
+</p>
 
 </ul>
 
