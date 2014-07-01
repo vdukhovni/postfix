@@ -20077,3 +20077,20 @@ Apologies for any names omitted.
 	Cleanup: use ${mail_version} as the MAIL_VERSION-unexpanded
 	form.  Viktor Dukhovni. Files: makedefs, postfix-install,
 	conf/postfix-files.
+
+20140630
+
+	Cleanup: the pipeline and random lookup tables are now
+	called pipemap and randmap, respectively. These names are
+	more specific. The old names remain available, at least
+	temporarily.  Files: util/dict_pipe.[hc], util/dict_random.[hc],
+	postconf/postconf.c, mantools/postlink, proto/DATABASE_README.html.
+
+	Feature: smtpd_policy_service_request_limit to limit the
+	number of requests per Postfix SMTP server policy connection.
+	This is a workaround to avoid error-recovery delays with
+	policy servers that cannot maintain a persistent connection.
+	Based on code by Markus Benning. Files: global/mail_params.h,
+	mantools/postlink, proto/SMTPD_POLICY_README.html,
+	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	util/attr_clnt.[hc].

@@ -456,15 +456,20 @@ double  smtpd_space_multf = 1.5;
 
 static void policy_client_register(const char *name)
 {
+    ATTR_CLNT *client;
+
     if (policy_clnt_table == 0)
 	policy_clnt_table = htable_create(1);
 
-    if (htable_find(policy_clnt_table, name) == 0)
-	htable_enter(policy_clnt_table, name,
-		     (char *) attr_clnt_create(name,
-					       var_smtpd_policy_tmout,
-					       var_smtpd_policy_idle,
-					       var_smtpd_policy_ttl));
+    if (htable_find(policy_clnt_table, name) == 0) {
+	client = attr_clnt_create(name,
+				  var_smtpd_policy_tmout,
+				  var_smtpd_policy_idle,
+				  var_smtpd_policy_ttl);
+	attr_clnt_control(client, ATTR_CLNT_CTL_REQ_LIMIT,
+			  var_smtpd_policy_req_limit, ATTR_CLNT_CTL_END);
+	htable_enter(policy_clnt_table, name, (char *) client);
+    }
 }
 
 /* smtpd_check_parse - pre-parse restrictions */

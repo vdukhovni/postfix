@@ -768,6 +768,11 @@ closed.
 .IP "\fBsmtpd_policy_service_timeout (100s)\fR"
 The time limit for connecting to, writing to or receiving from a
 delegated SMTPD policy server.
+.PP
+Available in Postfix version 2.12 and later:
+.IP "\fBsmtpd_policy_service_request_limit (0)\fR"
+The maximal number of requests per Postfix SMTP server policy
+connection, or zero (no limit).
 .SH "ACCESS CONTROLS"
 .na
 .nf

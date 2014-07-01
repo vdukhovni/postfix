@@ -19,7 +19,11 @@
  /*
   * External interface.
   */
-#define DICT_TYPE_PIPE	"pipeline"
+#define DICT_TYPE_PIPE	"pipemap"
+
+#ifdef SNAPSHOT
+#define DICT_TYPE_PIPE_LEGACY	"pipeline"
+#endif
 
 extern DICT *dict_pipe_open(const char *, int, int);
 

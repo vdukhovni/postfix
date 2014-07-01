@@ -8343,6 +8343,21 @@ delegated SMTPD policy server.
 This feature is available in Postfix 2.1 and later.
 </p>
 
+%PARAM smtpd_policy_service_request_limit 0
+
+<p>
+The maximal number of requests per Postfix SMTP server policy
+connection, or zero (no limit). Once a connection reaches this
+limit, the connection is closed and the next request will be sent
+over a new connection. This is a workaround to avoid error-recovery
+delays with policy servers that cannot maintain a persistent
+connection.
+</p>
+
+<p>
+This feature is available in Postfix 2.12 and later.
+</p>
+
 %PARAM smtpd_reject_unlisted_recipient yes
 
 <p>

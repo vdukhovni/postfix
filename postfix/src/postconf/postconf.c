@@ -267,24 +267,24 @@
 /* .IP "\fBpgsql\fR (read-only)"
 /*	PostgreSQL database client. This is described in
 /*	\fBpgsql_table\fR(5).
-/* .IP "\fBpipeline\fR (read-only)"
+/* .IP "\fBpipemap\fR (read-only)"
 /*	A pipeline of lookup tables.  Example:
-/*	"\fBpipeline:\fI!type_1:name_1!  ... !type_n:name_n\fR".
-/*	Each "pipeline:" query is given to the first table.  Each
+/*	"\fBpipemap:\fI!type_1:name_1!  ... !type_n:name_n\fR".
+/*	Each "pipemap:" query is given to the first table.  Each
 /*	lookup result becomes the query for the next table in the
 /*	pipeline, and the last table produces the final result.
 /*	When any table lookup produces no result, the pipeline
-/*	produces no result. The ASCII character after "pipeline:"
+/*	produces no result. The first ASCII character after "pipemap:"
 /*	will be used as the separator between the lookup tables
 /*	that follow (do not use space, ",", ":" or non-ASCII).
 /* .IP "\fBproxy\fR"
 /*	Postfix \fBproxymap\fR(8) client for shared access to Postfix
 /*	databases. The table name syntax is \fItype\fB:\fIname\fR.
-/* .IP "\fBrandom\fR (read-only)"
+/* .IP "\fBrandmap\fR (read-only)"
 /*	An in-memory table that performs random selection. Example:
-/*	"\fBrandom:\fI!result_1! ... !result_n\fR". Each table query
-/*	returns a random choice from the specified results. The
-/*	ASCII character after "random:" will be used as the separator
+/*	"\fBrandmap:\fI!result_1! ... !result_n\fR". Each table query
+/*	returns a random choice from the specified results. The first
+/*	ASCII character after "randmap:" will be used as the separator
 /*	between the results that follow (do not use space, ",", ":"
 /*	or non-ASCII).
 /* .IP "\fBregexp\fR (read-only)"

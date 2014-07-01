@@ -12,15 +12,15 @@
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_pipe_open() opens a pipeline of one or more tables.
-/*	Example: "\fBpipeline:\fI!type_1:name_1! ... !type_n:name_n\fR".
+/*	Example: "\fBpipemap:\fI!type_1:name_1! ... !type_n:name_n\fR".
 /*
-/*	Each "pipeline:" query is given to the first table.  Each
+/*	Each "pipemap:" query is given to the first table.  Each
 /*	lookup result becomes the query for the next table in the
 /*	pipeline, and the last table produces the final result.
 /*	When any table lookup produces no result, the pipeline
 /*	produces no result.
 /*
-/*	The ASCII character after "pipeline:" will be used as the
+/*	The ASCII character after "pipemap:" will be used as the
 /*	separator between the lookup tables that follow (do not use
 /*	space, ",", ":" or non-ASCII).
 /*
@@ -115,6 +115,11 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     int     match_flags = 0;
     struct DICT_OWNER aggr_owner;
     char    delim[2];
+
+#ifdef DICT_TYPE_PIPE_LEGACY
+    msg_warn("obsolete dictionary type: \"%s\"; use \"%s\" instead",
+	     DICT_TYPE_PIPE_LEGACY, DICT_TYPE_PIPE);
+#endif
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.

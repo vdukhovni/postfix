@@ -2884,6 +2884,10 @@ extern char *var_smtpd_input_transp;
 #define DEF_SMTPD_POLICY_TMOUT		"100s"
 extern int var_smtpd_policy_tmout;
 
+#define VAR_SMTPD_POLICY_REQ_LIMIT	"smtpd_policy_service_request_limit"
+#define DEF_SMTPD_POLICY_REQ_LIMIT	0
+extern int var_smtpd_policy_req_limit;
+
 #define VAR_SMTPD_POLICY_IDLE		"smtpd_policy_service_max_idle"
 #define DEF_SMTPD_POLICY_IDLE		"300s"
 extern int var_smtpd_policy_idle;

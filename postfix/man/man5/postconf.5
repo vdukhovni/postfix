@@ -9370,6 +9370,15 @@ The time after which an active SMTPD policy service connection is
 closed.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtpd_policy_service_request_limit (default: 0)
+The maximal number of requests per Postfix SMTP server policy
+connection, or zero (no limit). Once a connection reaches this
+limit, the connection is closed and the next request will be sent
+over a new connection. This is a workaround to avoid error-recovery
+delays with policy servers that cannot maintain a persistent
+connection.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtpd_policy_service_timeout (default: 100s)
 The time limit for connecting to, writing to or receiving from a
 delegated SMTPD policy server.

@@ -720,6 +720,11 @@
 /* .IP "\fBsmtpd_policy_service_timeout (100s)\fR"
 /*	The time limit for connecting to, writing to or receiving from a
 /*	delegated SMTPD policy server.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtpd_policy_service_request_limit (0)\fR"
+/*	The maximal number of requests per Postfix SMTP server policy
+/*	connection, or zero (no limit).
 /* ACCESS CONTROLS
 /* .ad
 /* .fi
@@ -1224,6 +1229,7 @@ char   *var_smtpd_proxy_ehlo;
 char   *var_smtpd_proxy_opts;
 char   *var_input_transp;
 int     var_smtpd_policy_tmout;
+int     var_smtpd_policy_req_limit;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
 char   *var_xclient_hosts;
@@ -5320,6 +5326,7 @@ int     main(int argc, char **argv)
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 #endif
+	VAR_SMTPD_POLICY_REQ_LIMIT, DEF_SMTPD_POLICY_REQ_LIMIT, &var_smtpd_policy_req_limit, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {

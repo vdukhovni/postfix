@@ -266,6 +266,7 @@ daemon, you would use something like this: </p>
  9         check_policy_service unix:private/policy 
 10         ...
 11     policy_time_limit = 3600
+12     # smtpd_policy_service_request_limit = 1
 </pre>
 </blockquote>
 
@@ -305,6 +306,10 @@ of a master.cf service name (in the above example, "policy") and a
 built-in suffix (in the above example: "_time_limit").  </p>
 </blockquote>
 
+<li> <p> Line 12: specify smtpd_policy_service_request_limit to
+avoid error-recovery delays with policy servers that cannot
+maintain a persistent connection. </p>
+
 <li> <p> With Solaris &lt; 9, or Postfix &lt; 2.10 on any Solaris
 version, use TCP sockets instead of UNIX-domain sockets: </p>
 
@@ -323,11 +328,12 @@ version, use TCP sockets instead of UNIX-domain sockets: </p>
  9         check_policy_service inet:127.0.0.1:9998
 10         ...
 11     127.0.0.1:9998_time_limit = 3600
+12     # smtpd_policy_service_request_limit = 1
 </pre>
 </blockquote>
 
-<p> Other configuration parameters that control the client side of
-the policy delegation protocol: </p>
+<p> Configuration parameters that control the client side of the
+policy delegation protocol: </p>
 
 <ul>
 
@@ -341,6 +347,22 @@ client connection. </p>
 
 <li> <p> smtpd_policy_service_timeout (default: 100s): The time
 limit to connect to, send to or receive from a policy server. </p>
+
+<li> <p> smtpd_policy_service_request_limit (default: 0): The maximal
+number of requests per policy connection, or zero (no limit). </p>
+
+</ul>
+
+<p> Configuration parameters that control the server side of the
+policy delegation protocol: </p>
+
+<ul>
+
+<li> <p> <i>transport</i>_time_limit ($command_time_limit): The
+maximal amount of time the policy daemon is allowed to run before
+it is terminated. The <i>transport</i> is the service name of the
+master.cf entry for the policy daemon service. In the above
+examples, the service name is "policy" or "127.0.0.1:9998". </p>
 
 </ul>
 
@@ -415,6 +437,7 @@ processes only: </p>
  9         reject_unauth_destination 
 10         check_policy_service unix:private/greylist
 11         ...
+12     # smtpd_policy_service_request_limit = 1
 </pre>
 </blockquote>
 
@@ -453,6 +476,10 @@ of a master.cf service name (in the above example, "greylist") and
 a built-in suffix (in the above example: "_time_limit").  </p>
 </blockquote>
 
+<li> <p> Line 12: specify smtpd_policy_service_request_limit to
+avoid error-recovery delays with policy servers that cannot
+maintain a persistent connection. </p>
+
 </ul>
 
 <p> With Solaris &lt; 9, or Postfix &lt; 2.10 on any Solaris
@@ -473,6 +500,7 @@ client/server configuration</a>" section above.  </p>
  9         reject_unauth_destination 
 10         check_policy_service inet:127.0.0.1:9998
 11         ...
+12     # smtpd_policy_service_request_limit = 1
 </pre>
 </blockquote>
 

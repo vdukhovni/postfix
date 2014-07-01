@@ -362,16 +362,17 @@ The file format is described in pcre_table(5). The lookup table
 name as used in "pcre:table" is the name of the regular expression
 file.  </dd>
 
-<dt> <b>pipeline</b> (read-only) </dt>
+<dt> <b>pipemap</b> (read-only) </dt>
 
 <dd> A pipeline of lookup tables. Example:
-"<b>pipeline:</b><i>!type_1:name_1! ... !type_n:name_n</i>".  Each
-"pipeline:" query is given to the first table.  Each lookup result
-becomes the query for the next table in the pipeline, and the last
-table produces the final result.  When any table lookup produces
-no result, the pipeline produces no result.  The ASCII character
-after "pipeline:" will be used as the separator between the lookup
-tables that follow (do not use space, ",", ":" or non-ASCII).  </dd>
+"<b>pipemap:</b><i>!type<sub>1</sub>:name<sub>1</sub>! ...
+!type<sub>n</sub>:name<sub>n</sub></i>".  Each "pipemap:" query is
+given to the first table.  Each lookup result becomes the query for
+the next table in the pipeline, and the last table produces the
+final result.  When any table lookup produces no result, the pipeline
+produces no result.  The first ASCII character after "pipemap:"
+will be used as the separator between the lookup tables that follow
+(do not use space, ",", ":" or non-ASCII).  </dd>
 
 <dt> <b>pgsql</b> (read-only) </dt>
 
@@ -384,14 +385,14 @@ in pgsql_table(5). </dd>
 databases. The lookup table name syntax is "proxy:type:table".
 </dd>
 
-<dt> <b>random</b> (read-only) </dt>
+<dt> <b>randmap</b> (read-only) </dt>
 
 <dd> An in-memory table that performs random selection.  Example:
-"<b>random:</b><i>!result_1! ... !result_n</i>". Each table query
-returns a random choice from the specified results. The ASCII
-character after "random:" will be used as the separator between the
-results that follow (do not use space, ",", ":" or non-ASCII).
-</dd>
+"<b>randmap:</b><i>!result<sub>1</sub>! ... !result<sub>n</sub></i>".
+Each table query returns a random choice from the specified results.
+The first ASCII character after "randmap:" will be used as the
+separator between the results that follow (do not use space, ",",
+":" or non-ASCII).  </dd>
 
 <dt> <b>regexp</b> (read-only) </dt>
 

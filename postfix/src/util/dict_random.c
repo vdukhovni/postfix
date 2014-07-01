@@ -12,12 +12,12 @@
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_random_open() opens an in-memory, read-only, table.
-/*	Example: "\fBrandom:\fI!result_1! ... !result_n\fR".
+/*	Example: "\fBrandmap:\fI!result_1! ... !result_n\fR".
 /*
 /*	Each table query returns a random choice from the specified
 /*	results. Other table access methods are not supported.
 /*
-/*	The ASCII character after "random:" will be used as the
+/*	The ASCII character after "randmap:" will be used as the
 /*	separator between the results that follow (do not use space,
 /*	",", ":" or non-ASCII).
 /* SEE ALSO
@@ -81,6 +81,11 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
     DICT_RANDOM *dict_random;
     char   *saved_name = 0;
     char    delim[2];
+
+#ifdef DICT_TYPE_RANDOM_LEGACY
+    msg_warn("obsolete dictionary type: \"%s\"; use \"%s\" instead",
+             DICT_TYPE_RANDOM_LEGACY, DICT_TYPE_RANDOM);
+#endif
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.

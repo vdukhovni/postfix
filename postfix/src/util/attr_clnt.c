@@ -54,6 +54,9 @@
 /* .IP "ATTR_CLNT_CTL_PROTO(ATTR_CLNT_PRINT_FN, ATTR_CLNT_SCAN_FN)"
 /*	Specifies alternatives for the attr_plain_print() and
 /*	attr_plain_scan() functions.
+/* .IP "ATTR_CLNT_CTL_REQ_LIMIT(int)"
+/*	The maximal number of requests per connection.  To enable
+/*	the limit, specify a value greater than zero.
 /* DIAGNOSTICS
 /*	Warnings: communication failure.
 /* SEE ALSO
@@ -95,6 +98,8 @@ struct ATTR_CLNT {
     AUTO_CLNT *auto_clnt;
     ATTR_CLNT_PRINT_FN print;
     ATTR_CLNT_SCAN_FN scan;
+    int     req_limit;
+    int     req_count;
 };
 
 /* attr_clnt_free - destroy attribute client */
@@ -116,6 +121,8 @@ ATTR_CLNT *attr_clnt_create(const char *service, int timeout,
     client->auto_clnt = auto_clnt_create(service, timeout, max_idle, max_ttl);
     client->scan = attr_vscan_plain;
     client->print = attr_vprint_plain;
+    client->req_limit = 0;
+    client->req_count = 0;
     return (client);
 }
 
@@ -188,8 +195,14 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 		ret = client->scan(stream, recv_flags, ap);
 		va_end(ap);
 		/* Finalize argument lists before returning. */
-		if (ret > 0)
+		if (ret > 0) {
+		    if (client->req_limit > 0
+			&& (client->req_count += 1) >= client->req_limit) {
+			auto_clnt_recover(client->auto_clnt);
+			client->req_count = 0;
+		    }
 		    break;
+		}
 	    }
 	}
 	if (++count >= 2
@@ -204,6 +217,7 @@ int     attr_clnt_request(ATTR_CLNT *client, int send_flags,...)
 	}
 	sleep(1);				/* XXX make configurable */
 	auto_clnt_recover(client->auto_clnt);
+	client->req_count = 0;
     }
     /* Finalize argument lists before returning. */
     va_end(saved_ap);
@@ -222,6 +236,11 @@ void    attr_clnt_control(ATTR_CLNT *client, int name,...)
 	case ATTR_CLNT_CTL_PROTO:
 	    client->print = va_arg(ap, ATTR_CLNT_PRINT_FN);
 	    client->scan = va_arg(ap, ATTR_CLNT_SCAN_FN);
+	    break;
+	case ATTR_CLNT_CTL_REQ_LIMIT:
+	    client->req_limit = va_arg(ap, int);
+	    if (msg_verbose)
+		msg_info("%s: new request limit %d", myname, client->req_limit);
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

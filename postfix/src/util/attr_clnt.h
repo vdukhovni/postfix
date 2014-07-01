@@ -35,6 +35,7 @@ extern void attr_clnt_control(ATTR_CLNT *, int, ...);
 
 #define ATTR_CLNT_CTL_END	0
 #define ATTR_CLNT_CTL_PROTO	1
+#define ATTR_CLNT_CTL_REQ_LIMIT	2
 
 /* LICENSE
 /* .ad

@@ -343,7 +343,13 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_SOCKMAP, dict_sockmap_open,
     DICT_TYPE_FAIL, dict_fail_open,
     DICT_TYPE_PIPE, dict_pipe_open,
+#ifdef DICT_TYPE_PIPE_LEGACY
+    DICT_TYPE_PIPE_LEGACY, dict_pipe_open,
+#endif
     DICT_TYPE_RANDOM, dict_random_open,
+#ifdef DICT_TYPE_RANDOM_LEGACY
+    DICT_TYPE_RANDOM_LEGACY, dict_random_open,
+#endif
 #ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,
