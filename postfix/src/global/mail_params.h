@@ -524,7 +524,9 @@ extern char *var_luser_relay;
   * Local delivery: mailbox delivery.
   */
 #define VAR_MAIL_SPOOL_DIR	"mail_spool_directory"
+#ifndef DEF_MAIL_SPOOL_DIR
 #define DEF_MAIL_SPOOL_DIR	_PATH_MAILDIR
+#endif
 extern char *var_mail_spool_dir;
 
 #define VAR_HOME_MAILBOX	"home_mailbox"
@@ -2895,6 +2897,18 @@ extern int var_smtpd_policy_idle;
 #define VAR_SMTPD_POLICY_TTL		"smtpd_policy_service_max_ttl"
 #define DEF_SMTPD_POLICY_TTL		"1000s"
 extern int var_smtpd_policy_ttl;
+
+#define VAR_SMTPD_POLICY_TRY_LIMIT	"smtpd_policy_service_try_limit"
+#define DEF_SMTPD_POLICY_TRY_LIMIT	2
+extern int var_smtpd_policy_try_limit;
+
+#define VAR_SMTPD_POLICY_TRY_DELAY	"smtpd_policy_service_retry_delay"
+#define DEF_SMTPD_POLICY_TRY_DELAY	"1s"
+extern int var_smtpd_policy_try_delay;
+
+#define VAR_SMTPD_POLICY_DEF_ACTION	"smtpd_policy_service_default_action"
+#define DEF_SMTPD_POLICY_DEF_ACTION	"451 4.3.5 Server configuration problem"
+extern char *var_smtpd_policy_def_action;
 
 #define CHECK_POLICY_SERVICE		"check_policy_service"
 

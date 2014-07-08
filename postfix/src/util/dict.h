@@ -39,16 +39,34 @@ typedef struct DICT_OWNER {
     uid_t   uid;			/* use only if status == UNTRUSTED */
 } DICT_OWNER;
 
+ /*
+  * Note that trust levels are not in numerical order.
+  */
 #define DICT_OWNER_UNKNOWN	(-1)	/* ex: unauthenticated tcp, proxy */
 #define DICT_OWNER_TRUSTED	(!1)	/* ex: root-owned config file */
 #define DICT_OWNER_UNTRUSTED	(!0)	/* ex: non-root config file */
 
-#define DICT_OWNER_AGGREGATE(dst, src) do { \
-	if ((src).status == DICT_OWNER_UNKNOWN) { \
-	    (dst).status = (src).status; \
-	    (dst).uid = ~0; \
-	} else if ((src).status == DICT_OWNER_UNTRUSTED) { \
-	    (dst).status = (src).status; \
+ /*
+  * When combining tables with different provenance, we initialize to the
+  * highest trust level, and remember the lowest trust level that we find
+  * during aggregation. If we combine tables that are owned by different
+  * untrusted users, the resulting provenance is "unknown".
+  */
+#define DICT_OWNER_AGGREGATE_INIT(dst) { \
+	(dst).status = DICT_OWNER_TRUSTED; \
+	(dst).uid = 0; \
+    } while (0)
+
+ /*
+  * The following is derived from the 3x3 transition matrix.
+  */
+#define DICT_OWNER_AGGREGATE_UPDATE(dst, src) do { \
+	if ((dst).status == DICT_OWNER_TRUSTED \
+	    || (src).status == DICT_OWNER_UNKNOWN) { \
+	    (dst) = (src); \
+	} else if ((dst).status == (src).status \
+		&& (dst).uid != (src).uid) { \
+	    (dst).status = DICT_OWNER_UNKNOWN; \
 	    (dst).uid = ~0; \
 	} \
     } while (0)

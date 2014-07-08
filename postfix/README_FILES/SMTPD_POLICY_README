@@ -250,17 +250,30 @@ NOTES:
 Configuration parameters that control the client side of the policy delegation
 protocol:
 
+  * smtpd_policy_service_default_action (default: 451 4.3.5 Server
+    configuration problem): The default action when an SMTPD policy service
+    request fails. Available with Postfix 2.12 and later.
+
   * smtpd_policy_service_max_idle (default: 300s): The amount of time before
     the Postfix SMTP server closes an unused policy client connection.
 
   * smtpd_policy_service_max_ttl (default: 1000s): The amount of time before
     the Postfix SMTP server closes an active policy client connection.
 
+  * smtpd_policy_service_request_limit (default: 0): The maximal number of
+    requests per policy connection, or zero (no limit). Available with Postfix
+    2.12 and later.
+
   * smtpd_policy_service_timeout (default: 100s): The time limit to connect to,
     send to or receive from a policy server.
 
-  * smtpd_policy_service_request_limit (default: 0): The maximal number of
-    requests per policy connection, or zero (no limit).
+  * smtpd_policy_service_try_limit (default: 2): The maximal number of attempts
+    to send an SMTPD policy service request before giving up. Available with
+    Postfix 2.12 and later.
+
+  * smtpd_policy_service_retry_delay (default: 1s): The delay between attempts
+    to resend a failed SMTPD policy service request. Available with Postfix
+    2.12 and later.
 
 Configuration parameters that control the server side of the policy delegation
 protocol:

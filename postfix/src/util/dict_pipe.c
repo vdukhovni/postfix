@@ -20,9 +20,9 @@
 /*	When any table lookup produces no result, the pipeline
 /*	produces no result.
 /*
-/*	The ASCII character after "pipemap:" will be used as the
-/*	separator between the lookup tables that follow (do not use
-/*	space, ",", ":" or non-ASCII).
+/*	The first ASCII character after "pipemap:" will be used as
+/*	the separator between the lookup tables that follow (do not
+/*	use space, ",", ":" or non-ASCII).
 /*
 /*	The open_flags and dict_flags arguments are passed on to
 /*	the underlying dictionaries.
@@ -116,11 +116,6 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     struct DICT_OWNER aggr_owner;
     char    delim[2];
 
-#ifdef DICT_TYPE_PIPE_LEGACY
-    msg_warn("obsolete dictionary type: \"%s\"; use \"%s\" instead",
-	     DICT_TYPE_PIPE_LEGACY, DICT_TYPE_PIPE);
-#endif
-
     /*
      * Clarity first. Let the optimizer worry about redundant code.
      */
@@ -155,7 +150,8 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     if (*saved_name == 0)
 	DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
 					open_flags, dict_flags,
-		      "bad syntax: \"%s:%s\"; need \"%s:%stype:name%s...\"",
+					"bad syntax: \"%s:%s\"; "
+					"need \"%s:%stype:name%s...\"",
 					DICT_TYPE_PIPE, name,
 					DICT_TYPE_PIPE, delim, delim));
 
@@ -163,8 +159,7 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
      * The least-trusted table in the pipeline determines the over-all trust
      * level. The first table determines the pattern-matching flags.
      */
-    aggr_owner.status = DICT_OWNER_TRUSTED;
-    aggr_owner.uid = 0;
+    DICT_OWNER_AGGREGATE_INIT(aggr_owner);
     argv = argv_split(saved_name, delim);
     for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
 	if (msg_verbose)
@@ -172,14 +167,14 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
 	if (strchr(dict_type_name, ':') == 0)
 	    DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
 					    open_flags, dict_flags,
-					 "bad syntax: \"%s\" in \"%s:%s\"; "
-					    "need \"type:name\"",
-					    dict_type_name, DICT_TYPE_PIPE,
-					    name));
+					    "bad syntax: \"%s:%s\"; "
+					    "need \"%s:%stype:name%s...\"",
+					    DICT_TYPE_PIPE, name,
+					    DICT_TYPE_PIPE, delim, delim));
 	if ((dict = dict_handle(dict_type_name)) == 0)
 	    dict = dict_open(dict_type_name, open_flags, dict_flags);
 	dict_register(dict_type_name, dict);
-	DICT_OWNER_AGGREGATE(aggr_owner, dict->owner);
+	DICT_OWNER_AGGREGATE_UPDATE(aggr_owner, dict->owner);
 	if (cpp == argv->argv)
 	    match_flags = dict->flags & (DICT_FLAG_FIXED | DICT_FLAG_PATTERN);
     }

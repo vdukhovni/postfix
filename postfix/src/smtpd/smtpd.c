@@ -718,13 +718,21 @@
 /*	The time after which an active SMTPD policy service connection is
 /*	closed.
 /* .IP "\fBsmtpd_policy_service_timeout (100s)\fR"
-/*	The time limit for connecting to, writing to or receiving from a
+/*	The time limit for connecting to, writing to, or receiving from a
 /*	delegated SMTPD policy server.
 /* .PP
 /*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtpd_policy_service_default_action (451 4.3.5 Server configuration problem)\fR"
+/*	The default action when an SMTPD policy service request fails.
 /* .IP "\fBsmtpd_policy_service_request_limit (0)\fR"
-/*	The maximal number of requests per Postfix SMTP server policy
-/*	connection, or zero (no limit).
+/*	The maximal number of requests per SMTPD policy service connection,
+/*	or zero (no limit).
+/* .IP "\fBsmtpd_policy_service_try_limit (2)\fR"
+/*	The maximal number of attempts to send an SMTPD policy service
+/*	request before giving up.
+/* .IP "\fBsmtpd_policy_service_retry_delay (1s)\fR"
+/*	The delay between attempts to resend a failed SMTPD policy
+/*	service request.
 /* ACCESS CONTROLS
 /* .ad
 /* .fi
@@ -1230,6 +1238,9 @@ char   *var_smtpd_proxy_opts;
 char   *var_input_transp;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_req_limit;
+int     var_smtpd_policy_try_limit;
+int     var_smtpd_policy_try_delay;
+char   *var_smtpd_policy_def_action;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
 char   *var_xclient_hosts;
@@ -5327,6 +5338,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 #endif
 	VAR_SMTPD_POLICY_REQ_LIMIT, DEF_SMTPD_POLICY_REQ_LIMIT, &var_smtpd_policy_req_limit, 0, 0,
+	VAR_SMTPD_POLICY_TRY_LIMIT, DEF_SMTPD_POLICY_TRY_LIMIT, &var_smtpd_policy_try_limit, 1, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
@@ -5345,6 +5357,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_MSG_TIME, DEF_MILT_MSG_TIME, &var_milt_msg_time, 1, 0,
 	VAR_VERIFY_SENDER_TTL, DEF_VERIFY_SENDER_TTL, &var_verify_sender_ttl, 0, 0,
 	VAR_SMTPD_UPROXY_TMOUT, DEF_SMTPD_UPROXY_TMOUT, &var_smtpd_uproxy_tmout, 1, 0,
+	VAR_SMTPD_POLICY_TRY_DELAY, DEF_SMTPD_POLICY_TRY_DELAY, &var_smtpd_policy_try_delay, 1, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
@@ -5476,6 +5489,7 @@ int     main(int argc, char **argv)
 #endif
 	VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log, 0, 0,
 	VAR_SMTPD_UPROXY_PROTO, DEF_SMTPD_UPROXY_PROTO, &var_smtpd_uproxy_proto, 0, 0,
+	VAR_SMTPD_POLICY_DEF_ACTION, DEF_SMTPD_POLICY_DEF_ACTION, &var_smtpd_policy_def_action, 1, 0, 
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

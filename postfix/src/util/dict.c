@@ -48,6 +48,13 @@
 /*	const char *dict_name;
 /*
 /*	const char *dict_changed_name()
+/*
+/*	void	DICT_OWNER_AGGREGATE_INIT(aggregate)
+/*	DICT_OWNER aggregate;
+/*
+/*	void	DICT_OWNER_AGGREGATE_UPDATE(aggregate, source)
+/*	DICT_OWNER aggregate;
+/*	DICT_OWNER source;
 /* AUXILIARY FUNCTIONS
 /*	int	dict_load_file_xt(dict_name, path)
 /*	const char *dict_name;
@@ -159,6 +166,43 @@
 /*
 /*	dict_flags_mask() returns the bitmask for the specified
 /*	comma/space-separated dictionary flag names.
+/* TRUST AND PROVENANCE
+/* .ad
+/* .fi
+/*	Each dictionary has an owner attribute that contains (status,
+/*	uid) information about the owner of a dictionary.  The
+/*	status is one of the following:
+/* .IP DICT_OWNER_TRUSTED
+/*	The dictionary is owned by a trusted user. The uid is zero,
+/*	and specifies a UNIX user ID.
+/* .IP DICT_OWNER_UNTRUSTED
+/*	The dictionary is owned by an untrusted user.  The uid is
+/*	non-zero, and specifies a UNIX user ID.
+/* .IP DICT_OWNER_UNKNOWN
+/*	The dictionary is owned by an unspecified user.  For example,
+/*	the origin is unauthenticated, or different parts of a
+/*	dictionary aggregate (see below) are owned by different
+/*	untrusted users.  The uid is non-zero and does not specify
+/*	a UNIX user ID.
+/* .PP
+/*	Note that dictionary ownership does not necessarily imply
+/*	ownership of lookup results. For example, a PCRE table may
+/*	be owned by the trusted root user, but the result of $number
+/*	expansion can contain data from an arbitrary remote SMTP
+/*	client.  See dict_open(3) for how to disallow $number
+/*	expansions with security-sensitive operations.
+/*
+/*	Two macros are available to help determine the provenance
+/*	and trustworthiness of a dictionary aggregate. The macros
+/*	are unsafe because they may evaluate arguments more than
+/*	once.
+/*
+/*	DICT_OWNER_AGGREGATE_INIT() initialize aggregate owner
+/*	attributes to the highest trust level.
+/*
+/*	DICT_OWNER_AGGREGATE_UPDATE() updates the aggregate owner
+/*	attributes with the attributes of the specified source, and
+/*	reduces the aggregate trust level as appropriate.
 /* SEE ALSO
 /*	htable(3)
 /* BUGS

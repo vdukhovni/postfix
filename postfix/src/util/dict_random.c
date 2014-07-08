@@ -82,11 +82,6 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
     char   *saved_name = 0;
     char    delim[2];
 
-#ifdef DICT_TYPE_RANDOM_LEGACY
-    msg_warn("obsolete dictionary type: \"%s\"; use \"%s\" instead",
-             DICT_TYPE_RANDOM_LEGACY, DICT_TYPE_RANDOM);
-#endif
-
     /*
      * Clarity first. Let the optimizer worry about redundant code.
      */

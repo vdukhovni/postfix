@@ -408,6 +408,8 @@ postconf.5 | less").
     |_____________________|____________________|
     |html_directory	  |no		       |
     |_____________________|____________________|
+    |mail_spool_directory |/var/mail	       |
+    |_____________________|____________________|
     |mailq_path 	  |/usr/bin/mailq      |
     |_____________________|____________________|
     |manpage_directory	  |/usr/local/man      |

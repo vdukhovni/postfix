@@ -20094,3 +20094,31 @@ Apologies for any names omitted.
 	mantools/postlink, proto/SMTPD_POLICY_README.html,
 	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_check.c,
 	util/attr_clnt.[hc].
+
+20140701
+
+	Cleanup: documented how Postfix maintains dictionary
+	provenance. Provenance matters: for example, the owner UID
+	of an aliases(5) database file determines the execution
+	privileges for delivery to |command or /file/name.  Refined
+	the algorithm that computes the provenance of a pipemap,
+	based on the provenance of its constituent lookup tables.
+	Files: util/dict.[hc], util/dict_pipe.c.
+
+	Cleanup: made mail_spool_directory configurable with "make
+	makefiles mail_spool_directory=/path/name".  This allows
+	Postfix to be built without any pathnames that reference
+	system directories. This is useful for testing and sandboxing.
+	Files: global/mail_params.h, makedefs.
+
+	Cleanup: configurable attr_clnt(3) retry strategy (try limit
+	and retry delay).  Files: util/attr_clnt.[hc].
+
+	Feature: control over SMTPD policy lookup error handling:
+	smtpd_policy_service_try_limit, smtpd_policy_service_retry_delay,
+	smtpd_policy_service_default_action determine how many times
+	to try to send a policy request before giving up, the delay
+	before resending a failed policy request, and a default
+	action when giving up. The defaults are backwards-compatible.
+	Files: global/mail_params.h, mantools/postlink,
+	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_check.c.

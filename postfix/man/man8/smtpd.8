@@ -766,13 +766,21 @@ closed.
 The time after which an active SMTPD policy service connection is
 closed.
 .IP "\fBsmtpd_policy_service_timeout (100s)\fR"
-The time limit for connecting to, writing to or receiving from a
+The time limit for connecting to, writing to, or receiving from a
 delegated SMTPD policy server.
 .PP
 Available in Postfix version 2.12 and later:
+.IP "\fBsmtpd_policy_service_default_action (451 4.3.5 Server configuration problem)\fR"
+The default action when an SMTPD policy service request fails.
 .IP "\fBsmtpd_policy_service_request_limit (0)\fR"
-The maximal number of requests per Postfix SMTP server policy
-connection, or zero (no limit).
+The maximal number of requests per SMTPD policy service connection,
+or zero (no limit).
+.IP "\fBsmtpd_policy_service_try_limit (2)\fR"
+The maximal number of attempts to send an SMTPD policy service
+request before giving up.
+.IP "\fBsmtpd_policy_service_retry_delay (1s)\fR"
+The delay between attempts to resend a failed SMTPD policy
+service request.
 .SH "ACCESS CONTROLS"
 .na
 .nf

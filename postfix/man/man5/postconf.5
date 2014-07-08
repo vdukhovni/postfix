@@ -9360,6 +9360,24 @@ sent or received within the per-record deadline.
 This feature is available in Postfix 2.9 and later. With older
 Postfix releases, the behavior is as if this parameter is set to
 "no".
+.SH smtpd_policy_service_default_action (default: 451 4.3.5 Server configuration problem)
+The default action when an SMTPD policy service request fails.
+Specify "DUNNO" to behave as if the failed  SMTPD policy service
+request was not sent, and to continue processing other access
+restrictions, if any.
+.PP
+Limitations:
+.IP \(bu
+This parameter may specify any value that would be a valid
+SMTPD policy server response (or \fBaccess\fR(5) map lookup result).  An
+\fBaccess\fR(5) map or policy server in this parameter value may need to
+be declared in advance with a restriction_class setting.
+.IP \(bu
+If the specified action invokes another check_policy_service
+request, that request will have the built-in default action.
+.br
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtpd_policy_service_max_idle (default: 300s)
 The time after which an idle SMTPD policy service connection is
 closed.
@@ -9371,19 +9389,28 @@ closed.
 .PP
 This feature is available in Postfix 2.1 and later.
 .SH smtpd_policy_service_request_limit (default: 0)
-The maximal number of requests per Postfix SMTP server policy
-connection, or zero (no limit). Once a connection reaches this
-limit, the connection is closed and the next request will be sent
-over a new connection. This is a workaround to avoid error-recovery
-delays with policy servers that cannot maintain a persistent
-connection.
+The maximal number of requests per SMTPD policy service connection,
+or zero (no limit). Once a connection reaches this limit, the
+connection is closed and the next request will be sent over a new
+connection. This is a workaround to avoid error-recovery delays
+with policy servers that cannot maintain a persistent connection.
+.PP
+This feature is available in Postfix 2.12 and later.
+.SH smtpd_policy_service_retry_delay (default: 1s)
+The delay between attempts to resend a failed SMTPD policy
+service request. Specify a value greater than zero.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH smtpd_policy_service_timeout (default: 100s)
-The time limit for connecting to, writing to or receiving from a
+The time limit for connecting to, writing to, or receiving from a
 delegated SMTPD policy server.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtpd_policy_service_try_limit (default: 2)
+The maximal number of attempts to send an SMTPD policy service
+request before giving up. Specify a value greater than zero.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtpd_proxy_ehlo (default: $myhostname)
 How the Postfix SMTP server announces itself to the proxy filter.
 By default, the Postfix hostname is used.

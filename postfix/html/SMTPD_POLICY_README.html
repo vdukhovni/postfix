@@ -337,6 +337,11 @@ policy delegation protocol: </p>
 
 <ul>
 
+<li> <p> <a href="postconf.5.html#smtpd_policy_service_default_action">smtpd_policy_service_default_action</a> (default: 451 4.3.5
+Server configuration problem): The default action when an SMTPD
+policy service request fails.  Available with Postfix 2.12 and
+later. </p>
+
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_max_idle">smtpd_policy_service_max_idle</a> (default: 300s): The amount
 of time before the Postfix SMTP server closes an unused policy
 client connection. </p>
@@ -345,11 +350,20 @@ client connection. </p>
 of time before the Postfix SMTP server closes an active policy
 client connection. </p>
 
+<li> <p> <a href="postconf.5.html#smtpd_policy_service_request_limit">smtpd_policy_service_request_limit</a> (default: 0): The maximal
+number of requests per policy connection, or zero (no limit).
+Available with Postfix 2.12 and later. </p>
+
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_timeout">smtpd_policy_service_timeout</a> (default: 100s): The time
 limit to connect to, send to or receive from a policy server. </p>
 
-<li> <p> <a href="postconf.5.html#smtpd_policy_service_request_limit">smtpd_policy_service_request_limit</a> (default: 0): The maximal
-number of requests per policy connection, or zero (no limit). </p>
+<li> <p> <a href="postconf.5.html#smtpd_policy_service_try_limit">smtpd_policy_service_try_limit</a> (default: 2): The maximal
+number of attempts to send an SMTPD policy service request before
+giving up.  Available with Postfix 2.12 and later.  </p>
+
+<li> <p> <a href="postconf.5.html#smtpd_policy_service_retry_delay">smtpd_policy_service_retry_delay</a> (default: 1s): The delay
+between attempts to resend a failed SMTPD policy service request.
+Available with Postfix 2.12 and later.  </p>
 
 </ul>
 

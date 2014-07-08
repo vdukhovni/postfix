@@ -466,8 +466,11 @@ static void policy_client_register(const char *name)
 				  var_smtpd_policy_tmout,
 				  var_smtpd_policy_idle,
 				  var_smtpd_policy_ttl);
-	attr_clnt_control(client, ATTR_CLNT_CTL_REQ_LIMIT,
-			  var_smtpd_policy_req_limit, ATTR_CLNT_CTL_END);
+	attr_clnt_control(client,
+			ATTR_CLNT_CTL_REQ_LIMIT, var_smtpd_policy_req_limit,
+			ATTR_CLNT_CTL_TRY_LIMIT, var_smtpd_policy_try_limit,
+			ATTR_CLNT_CTL_TRY_DELAY, var_smtpd_policy_try_delay,
+			  ATTR_CLNT_CTL_END);
 	htable_enter(policy_clnt_table, name, (char *) client);
     }
 }
@@ -3702,9 +3705,28 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
 			  ATTR_TYPE_END) != 1) {
-	ret = smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				 451, "4.3.5",
-				 "Server configuration problem");
+	NOCLOBBER static int nesting_level = 0;
+	jmp_buf savebuf;
+	int     status;
+
+	/*
+	 * Safety to prevent recursive execution of the default action.
+	 */
+	nesting_level += 1;
+	memcpy(ADDROF(savebuf), ADDROF(smtpd_check_buf), sizeof(savebuf));
+	status = setjmp(smtpd_check_buf);
+	if (status != 0) {
+	    nesting_level -= 1;
+	    memcpy(ADDROF(smtpd_check_buf), ADDROF(savebuf),
+		   sizeof(smtpd_check_buf));
+	    longjmp(smtpd_check_buf, status);
+	}
+	ret = check_table_result(state, server, nesting_level == 1 ?
+				 var_smtpd_policy_def_action :
+				 DEF_SMTPD_POLICY_DEF_ACTION,
+				 "policy query", reply_name,
+				 reply_class, def_acl);
+	nesting_level -= 1;
     } else {
 
 	/*

@@ -14085,6 +14085,33 @@ Postfix releases, the behavior is as if this parameter is set to
 
 </DD>
 
+<DT><b><a name="smtpd_policy_service_default_action">smtpd_policy_service_default_action</a>
+(default: 451 4.3.5 Server configuration problem)</b></DT><DD>
+
+<p> The default action when an SMTPD policy service request fails.
+Specify "DUNNO" to behave as if the failed  SMTPD policy service
+request was not sent, and to continue processing other access
+restrictions, if any. </p>
+
+<p> Limitations: </p>
+
+<ul>
+
+<li> <p>  This parameter may specify any value that would be a valid
+SMTPD policy server response (or <a href="access.5.html">access(5)</a> map lookup result).  An
+<a href="access.5.html">access(5)</a> map or policy server in this parameter value may need to
+be declared in advance with a restriction_class setting.  </p>
+
+<li> <p> If the specified action invokes another <a href="postconf.5.html#check_policy_service">check_policy_service</a>
+request, that request will have the built-in default action. </p>
+
+</ul>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_policy_service_max_idle">smtpd_policy_service_max_idle</a>
 (default: 300s)</b></DT><DD>
 
@@ -14119,12 +14146,11 @@ This feature is available in Postfix 2.1 and later.
 (default: 0)</b></DT><DD>
 
 <p>
-The maximal number of requests per Postfix SMTP server policy
-connection, or zero (no limit). Once a connection reaches this
-limit, the connection is closed and the next request will be sent
-over a new connection. This is a workaround to avoid error-recovery
-delays with policy servers that cannot maintain a persistent
-connection.
+The maximal number of requests per SMTPD policy service connection,
+or zero (no limit). Once a connection reaches this limit, the
+connection is closed and the next request will be sent over a new
+connection. This is a workaround to avoid error-recovery delays
+with policy servers that cannot maintain a persistent connection.
 </p>
 
 <p>
@@ -14134,17 +14160,39 @@ This feature is available in Postfix 2.12 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_policy_service_retry_delay">smtpd_policy_service_retry_delay</a>
+(default: 1s)</b></DT><DD>
+
+<p> The delay between attempts to resend a failed SMTPD policy
+service request. Specify a value greater than zero. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_policy_service_timeout">smtpd_policy_service_timeout</a>
 (default: 100s)</b></DT><DD>
 
 <p>
-The time limit for connecting to, writing to or receiving from a
+The time limit for connecting to, writing to, or receiving from a
 delegated SMTPD policy server.
 </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_policy_service_try_limit">smtpd_policy_service_try_limit</a>
+(default: 2)</b></DT><DD>
+
+<p> The maximal number of attempts to send an SMTPD policy service
+request before giving up. Specify a value greater than zero. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
