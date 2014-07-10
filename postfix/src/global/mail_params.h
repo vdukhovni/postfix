@@ -3822,6 +3822,17 @@ extern char *var_shlib_dir;
 #endif
 extern char *var_meta_dir;
 
+ /*
+  * SMTPUTF8 support.
+  */
+#define VAR_SMTPUTF8_ENABLE		"smtputf8_enable"
+#define DEF_SMTPUTF8_ENABLE		0
+extern int var_smtputf8_enable;
+
+#define VAR_STRICT_SMTPUTF8		"strict_smtputf8"
+#define DEF_STRICT_SMTPUTF8		0
+extern int var_strict_smtputf8;
+
 /* LICENSE
 /* .ad
 /* .fi

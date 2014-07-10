@@ -6,12 +6,15 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_notify_service(flags, queue_name, queue_id, encoding,
-/*					sender, dsn_envid, dsn_ret, templates)
+/*	int     bounce_notify_service(flags, service, queue_name, queue_id,
+/*					encoding, smtputf8, sender, dsn_envid,
+/*					dsn_ret, templates)
 /*	int	flags;
+/*	char	*service;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
+/*	int	smtputf8;
 /*	char	*sender;
 /*	char	*dsn_envid;
 /*	int	dsn_ret;
@@ -72,6 +75,7 @@
 #include <mail_error.h>
 #include <bounce.h>
 #include <dsn_mask.h>
+#include <rec_type.h>
 
 /* Application-specific. */
 
@@ -83,8 +87,9 @@
 
 int     bounce_notify_service(int flags, char *service, char *queue_name,
 			              char *queue_id, char *encoding,
-			              char *recipient, char *dsn_envid,
-			              int dsn_ret, BOUNCE_TEMPLATES *ts)
+			              int smtputf8, char *recipient,
+			              char *dsn_envid, int dsn_ret,
+			              BOUNCE_TEMPLATES *ts)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -129,7 +134,8 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
      * notification is enabled.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, dsn_envid, ts->failure);
+				   encoding, smtputf8, dsn_envid,
+				   ts->failure);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
@@ -193,7 +199,10 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 		    && bounce_diagnostic_dsn(bounce, bounce_info,
 					     DSN_NOTIFY_OVERRIDE) > 0) {
 		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
-		    bounce_status = post_mail_fclose(bounce);
+		    bounce_status =
+			post_mail_fclose_extra(bounce, REC_TYPE_ATTR,
+					       bounce_info->smtputf8_attr,
+					       REC_TYPE_END);
 		    if (bounce_status == 0)
 			msg_info("%s: postmaster non-delivery notification: %s",
 				 queue_id, STR(new_id));
@@ -233,7 +242,10 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 					 DSN_NOTIFY_FAILURE) > 0) {
 		bounce_original(bounce, bounce_info, dsn_ret ?
 				dsn_ret : DSN_RET_FULL);
-		bounce_status = post_mail_fclose(bounce);
+		bounce_status =
+		    post_mail_fclose_extra(bounce, REC_TYPE_ATTR,
+					   bounce_info->smtputf8_attr,
+					   REC_TYPE_END);
 		if (bounce_status == 0)
 		    msg_info("%s: sender non-delivery notification: %s",
 			     queue_id, STR(new_id));
@@ -279,7 +291,10 @@ int     bounce_notify_service(int flags, char *service, char *queue_name,
 		    && bounce_diagnostic_dsn(bounce, bounce_info,
 					     DSN_NOTIFY_OVERRIDE) > 0) {
 		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
-		    postmaster_status = post_mail_fclose(bounce);
+		    postmaster_status =
+			post_mail_fclose_extra(bounce, REC_TYPE_ATTR,
+					       bounce_info->smtputf8_attr,
+					       REC_TYPE_END);
 		    if (postmaster_status == 0)
 			msg_info("%s: postmaster non-delivery notification: %s",
 				 queue_id, STR(new_id));

@@ -6,12 +6,16 @@
 /* SYNOPSIS
 /*	#include "bounce_service.h"
 /*
-/*	int     bounce_notify_verp(flags, service, queue_name, queue_id, sender,
+/*	int     bounce_notify_verp(flags, service, queue_name, queue_id,
+/*					encoding, smtputf8, sender,
 /*					dsn_envid, dsn_ret, verp_delims,
 /*					templates)
 /*	int	flags;
+/*	char	*service;
 /*	char	*queue_name;
 /*	char	*queue_id;
+/*	char	*encoding;
+/*	int	smtputf8;
 /*	char	*sender;
 /*	char	*dsn_envid;
 /*	int	dsn_ret;
@@ -74,6 +78,7 @@
 #include <verp_sender.h>
 #include <bounce.h>
 #include <dsn_mask.h>
+#include <rec_type.h>
 
 /* Application-specific. */
 
@@ -85,9 +90,9 @@
 
 int     bounce_notify_verp(int flags, char *service, char *queue_name,
 			           char *queue_id, char *encoding,
-			           char *recipient, char *dsn_envid,
-			           int dsn_ret, char *verp_delims,
-			           BOUNCE_TEMPLATES *ts)
+			           int smtputf8, char *recipient,
+			           char *dsn_envid, int dsn_ret,
+			           char *verp_delims, BOUNCE_TEMPLATES *ts)
 {
     const char *myname = "bounce_notify_verp";
     BOUNCE_INFO *bounce_info;
@@ -113,7 +118,8 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_init(service, queue_name, queue_id,
-				   encoding, dsn_envid, ts->failure);
+				   encoding, smtputf8, dsn_envid,
+				   ts->failure);
 
     /*
      * If we have no recipient list then we can't send VERP replies. Send
@@ -128,8 +134,9 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 	vstring_strcpy(rcpt_buf->address, "(recipient address unavailable)");
 	(void) RECIPIENT_FROM_RCPT_BUF(rcpt_buf);
 	bounce_status = bounce_one_service(flags, queue_name, queue_id,
-					   encoding, recipient, dsn_envid,
-					   dsn_ret, rcpt_buf, dsn_buf, ts);
+					   encoding, smtputf8, recipient,
+					   dsn_envid, dsn_ret, rcpt_buf,
+					   dsn_buf, ts);
 	rcpb_free(rcpt_buf);
 	dsb_free(dsn_buf);
 	bounce_mail_free(bounce_info);
@@ -177,7 +184,10 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, dsn_ret ?
 				    dsn_ret : DSN_RET_FULL);
-		bounce_status = post_mail_fclose(bounce);
+		bounce_status =
+		    post_mail_fclose_extra(bounce, REC_TYPE_ATTR,
+					   bounce_info->smtputf8_attr,
+					   REC_TYPE_END);
 		if (bounce_status == 0)
 		    msg_info("%s: sender non-delivery notification: %s",
 			     queue_id, STR(new_id));
@@ -228,7 +238,10 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
-		postmaster_status = post_mail_fclose(bounce);
+		postmaster_status =
+		    post_mail_fclose_extra(bounce, REC_TYPE_ATTR,
+					   bounce_info->smtputf8_attr,
+					   REC_TYPE_END);
 		if (postmaster_status == 0)
 		    msg_info("%s: postmaster non-delivery notification: %s",
 			     queue_id, STR(new_id));

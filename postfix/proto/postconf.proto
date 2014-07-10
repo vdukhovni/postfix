@@ -16042,3 +16042,20 @@ request before giving up. Specify a value greater than zero. </p>
 service request. Specify a value greater than zero. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM smtputf8_enable no
+
+<p> Enable experimental SMTPUTF8 support for the protocols described
+in RFC 6531..6533. This requires that Postfix is built to support
+these protocols. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM strict_smtputf8 no
+
+<p> Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts non-ASCII sender or recipient addresses only
+when the client requests an SMTPUTF8 mail transaction. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+

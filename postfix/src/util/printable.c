@@ -6,19 +6,24 @@
 /* SYNOPSIS
 /*	#include <stringops.h>
 /*
+/*	int	temp_utf8_kludge;
+/*
 /*	char	*printable(buffer, replacement)
 /*	char	*buffer;
 /*	int	replacement;
 /* DESCRIPTION
-/*	printable() replaces non-ASCII or non-printable characters in its input
-/*	by the given replacement.
+/*	printable() replaces non-printable characters
+/*	in its input with the given replacement.
+/*
+/*	temp_utf8_kludge controls whether UTF8 is considered printable.
+/*	By default, non-ASCII text is replaced.
 /*
 /*	Arguments:
 /* .IP buffer
 /*	The null-terminated input string.
 /* .IP replacement
 /*	Replacement value for characters in \fIbuffer\fR that do not
-/*	pass the isprint(3) test.
+/*	pass the ASCII isprint(3) test or that are not valid UTF8.
 /* LICENSE
 /* .ad
 /* .fi
@@ -39,13 +44,31 @@
 
 #include "stringops.h"
 
+int temp_utf8_kludge = 0;
+
 char   *printable(char *string, int replacement)
 {
-    char   *cp;
+    unsigned char *cp;
     int     ch;
 
-    for (cp = string; (ch = *(unsigned char *) cp) != 0; cp++)
-	if (!ISASCII(ch) || !ISPRINT(ch))
+    /*
+     * XXX Replace invalid UTF8 sequences (too short, over-long encodings,
+     * out-of-range code points, etc). See valid_utf8_string.c.
+     */
+    cp = (unsigned char *) string;
+    while ((ch = *cp) != 0) {
+	if (ISASCII(ch) && ISPRINT(ch)) {
+	    /* ok */
+	} else if (temp_utf8_kludge && ch >= 194 && ch <= 254
+		   && cp[1] >= 128 && cp[1] < 192) {
+	    /* UTF8; skip the rest of the bytes in the character. */
+	    while (cp[1] >= 128 && cp[1] < 192)
+		cp++;
+	} else {
+	    /* Not ASCII and not UTF8. */
 	    *cp = replacement;
+	}
+	cp++;
+    }
     return (string);
 }

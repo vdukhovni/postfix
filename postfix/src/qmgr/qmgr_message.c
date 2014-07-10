@@ -179,6 +179,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->sender = 0;
     message->dsn_envid = 0;
     message->dsn_ret = 0;
+    message->smtputf8 = 0;
     message->filter_xport = 0;
     message->inspect_xport = 0;
     message->redirect_addr = 0;
@@ -645,6 +646,13 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 		else
 		    message->dsn_ret = n;
 	    }
+	}
+	if (rec_type == REC_TYPE_SMTPUTF8) {
+	    if (!alldig(start))
+		msg_warn("%s: ignoring malformed SMTPUTF8 flags in queue file record: %.100s",
+			 message->queue_id, start);
+	    else
+		message->smtputf8 = atoi(start);
 	}
 	if (rec_type == REC_TYPE_ATTR) {
 	    /* Allow extra segment to override envelope segment info. */

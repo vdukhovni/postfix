@@ -49,6 +49,8 @@
 #	Do not build with Linux EPOLL support.
 #	By default, EPOLL support is compiled in on platforms that
 #	are known to support it.
+# .IP \fB-DNO_EAI\fR
+#	Do not build with EAI (SMTPUTF8) support.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
@@ -659,6 +661,45 @@ EOF
 esac
 
 #
+# Look for ICU and enable unicode email if available. This tests
+# a different function that Postfix uses in order to avoid having UTF8
+# in this file. The two functions use the same data structures, so they
+# should be equivalent for testing purposes.
+#
+case "$CCARGS" in
+ *-DNO_EAI*) ;;
+          *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+             cat >makedefs.test.c <<'EOF'
+#include <unicode/uidna.h>
+#include <stdlib.h>
+
+int main(int argc, char **argv)
+{
+    char    buf[1024];
+    UErrorCode error = U_ZERO_ERROR;
+    UIDNAInfo info = UIDNA_INFO_INITIALIZER;
+    UIDNA  *idna = uidna_openUTS46(UIDNA_DEFAULT, &error);
+
+    exit(uidna_labelToUnicodeUTF8(idna,
+				  "xn--lgbbat1ad8j",	/* an arabic TLD */
+				  15,
+				  buf,
+				  sizeof(buf),
+				  &info,
+				  &error) != 14);
+}
+EOF
+             ${CC-gcc} -o makedefs.test makedefs.test.c -I/usr/local/include \
+		-L/usr/local/lib -licuuc >/dev/null 2>&1
+             if ./makedefs.test 2>/dev/null ; then
+                 SYSLIBS="$SYSLIBS -L/usr/local/lib -licuuc"
+             else
+                 CCARGS="$CCARGS -DNO_EAI"
+             fi
+             rm -f makedefs.test makedefs.test.[co]
+esac
+
+#
 # OpenSSL has no configuration query utility, but we don't try to
 # guess. We assume includes in /usr/include/openssl and libraries in
 # /usr/lib, or in their /usr/local equivalents. If the OpenSSL files
@@ -926,6 +967,7 @@ no|"")
     SHLIB_CFLAGS=
     SHLIB_SUFFIX=
     SHLIB_LD=:
+    SHLIB_SYSLIBS=
     SHLIB_RPATH=
     SHLIB_ENV=
     LIB_PREFIX=
@@ -984,6 +1026,21 @@ AUXLIBS_$name = \$AUXLIBS_$name\""
      done;;
 esac
 
+# Remove static libraries from SYSLIBS when building shared objects,
+# Can't use the shell "case" patterns to detect names ending in *.a.
+
+case "$shared" in
+yes) SHLIB_SYSLIBS=`${AWK} '
+     BEGIN { wc = split("'"$SYSLIBS"'", words) 
+	 for (n = 1; n <= wc; n++)
+	     if (words[n] !~ /\.a$/)
+		 printf(" %s", words[n])
+     }
+     '`
+esac
+
+# Finally...
+
 sed 's/   */ /g' <<EOF
 # System-dependent settings and compiler/linker overrides.
 SYSTYPE	= $SYSTYPE
@@ -1009,6 +1066,7 @@ SHLIB_CFLAGS = $SHLIB_CFLAGS
 SHLIB_DIR = $shlib_directory
 SHLIB_ENV = $SHLIB_ENV
 SHLIB_LD = $SHLIB_LD
+SHLIB_SYSLIBS = $SHLIB_SYSLIBS
 SHLIB_RPATH = $SHLIB_RPATH
 # Switch between dynamicmaps.cf plugins and hard-linked databases.
 NON_PLUGIN_MAP_OBJ = $NON_PLUGIN_MAP_OBJ

@@ -15805,7 +15805,7 @@ Apologies for any names omitted.
 	Robustness: skip LDAP queries with non-UTF-8 search strings
 	(in anticipation of UTF8SMTP support).  File: global/dict_ldap.c.
 
-	Strict UTF-8 validator per RFC 3629. File: util/valid_utf_8.c.
+	Strict UTF-8 validator per RFC 3629. File: util/valid_utf8_string.c.
 
 20100601
 
@@ -20122,3 +20122,29 @@ Apologies for any names omitted.
 	action when giving up. The defaults are backwards-compatible.
 	Files: global/mail_params.h, mantools/postlink,
 	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20140709
+
+	Cleanup: bitrot in unused function. File: global/defer.c.
+
+	Cleanup: add SYSLIBS minus static libraries while building
+	Postfix shared-library objects. Files: makedefs, util/Makefile.in,
+	global/Makefile.in, dns/Makefile.in, master/Makefile.in/.
+
+20140708
+
+        Bugfix (introduced 20140701): did not restore jumpbuf
+        while evaluatingsmtpd_policy_service_default_action.
+        Viktor Dukhovni. File: smtpd/smtpd_check.c.
+
+	Feature: VERY PRELIMINARY support for SMTPUTF8 based on an
+	initial implementation by Arnt Gulbrandsen, funded by CNNIC.
+	This implements the syntax of SMTP commands and DSN delivery
+	status notifications. It does not address the problem that
+	the same domain name may show up in different forms: an
+	UTF8-encoded name with non-ASCII charaters, or an IDNA-encoded
+	(xn--mumble) name with ASCII-only characters. This means
+	that access policies, mydestination, virtual_*_domains and
+	relay_domans will have to understand both forms in order
+	to provide complete coverage.  For now, SMTPUTF8 support
+	must not be enabled except for testing.

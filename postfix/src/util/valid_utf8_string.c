@@ -1,16 +1,16 @@
 /*++
 /* NAME
-/*	valid_utf_8 3
+/*	valid_utf8_string 3
 /* SUMMARY
 /*	predicate if string is valid UTF-8
 /* SYNOPSIS
 /*	#include <stringops.h>
 /*
-/*	int	valid_utf_8(str, len)
+/*	int	valid_utf8_string(str, len)
 /*	const char *str;
 /*	ssize_t	len;
 /* DESCRIPTION
-/*	valid_utf_8() determines if a string satisfies the UTF-8
+/*	valid_utf8_string() determines if a string satisfies the UTF-8
 /*	definition in RFC 3629. That is, it contains proper encodings
 /*	of code points U+0000..U+10FFFF, excluding over-long encodings
 /*	and excluding U+D800..U+DFFF surrogates.
@@ -46,9 +46,9 @@
 
 #include <stringops.h>
 
-/* valid_utf_8 - validate string according to RFC 3629 */
+/* valid_utf8_string - validate string according to RFC 3629 */
 
-int     valid_utf_8(const char *str, ssize_t len)
+int     valid_utf8_string(const char *str, ssize_t len)
 {
     const unsigned char *end = (const unsigned char *) str + len;
     const unsigned char *cp;
@@ -74,7 +74,7 @@ int     valid_utf_8(const char *str, ssize_t len)
 	    if (UNEXPECTED(c0 < 0xc2)
 		|| UNEXPECTED(cp + 1 >= end)
 	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED((ch = *++cp) < 0x80) || UNEXPECTED(ch > 0xbf))
+		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
 		return (0);
 	}
 	/* Three-byte encodings. */
@@ -85,7 +85,7 @@ int     valid_utf_8(const char *str, ssize_t len)
 	    /* Exclude U+D800..U+DFFF. */
 		|| UNEXPECTED(ch > (c0 == 0xed ? 0x9f : 0xbf))
 	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED((ch = *++cp) < 0x80) || UNEXPECTED(ch > 0xbf))
+		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
 		return (0);
 	}
 	/* Four-byte encodings. */
@@ -96,9 +96,9 @@ int     valid_utf_8(const char *str, ssize_t len)
 	    /* Exclude code points above U+10FFFF. */
 		|| UNEXPECTED(ch > (c0 == 0xf4 ? 0x8f : 0xbf))
 	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED((ch = *++cp) < 0x80) || UNEXPECTED(ch > 0xbf)
+		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80)
 	    /* Require UTF-8 tail byte. */
-		|| UNEXPECTED((ch = *++cp) < 0x80) || UNEXPECTED(ch > 0xbf))
+		|| UNEXPECTED(((ch = *++cp) & 0xc0) != 0x80))
 		return (0);
 	}
 	/* Invalid: c0 >= 0xf5 */
@@ -126,7 +126,7 @@ int     main(void)
     VSTRING *buf = vstring_alloc(1);
 
     while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF) {
-	vstream_printf("%c", (LEN(buf) && !valid_utf_8(STR(buf), LEN(buf))) ?
+	vstream_printf("%c", (LEN(buf) && !valid_utf8_string(STR(buf), LEN(buf))) ?
 		       '!' : ' ');
 	vstream_fwrite(VSTREAM_OUT, STR(buf), LEN(buf));
 	vstream_printf("\n");

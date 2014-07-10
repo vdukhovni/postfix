@@ -434,6 +434,16 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	cleanup_out(state, type, buf, len);
 	return;
     }
+    if (mapped_type == REC_TYPE_SMTPUTF8) {
+	if (!alldig(mapped_buf)) {
+	    msg_warn("%s: message rejected: bad SMTPUTF8 record <%.200s>",
+		     state->queue_id, buf);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	state->smtputf8 = atoi(mapped_buf);
+	return;
+    }
     if (type == REC_TYPE_WARN) {
 	/* First instance wins. */
 	if ((state->flags & CLEANUP_FLAG_WARN_SEEN) == 0) {

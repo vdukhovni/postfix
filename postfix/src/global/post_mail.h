@@ -34,6 +34,7 @@ extern int PRINTFLIKE(2, 3) post_mail_fprintf(VSTREAM *, const char *,...);
 extern int post_mail_fputs(VSTREAM *, const char *);
 extern int post_mail_buffer(VSTREAM *, const char *, int);
 extern int post_mail_fclose(VSTREAM *);
+extern int post_mail_fclose_extra(VSTREAM *, ...);
 
 #define POST_MAIL_BUFFER(v, b) \
 	post_mail_buffer((v), vstring_str(b), VSTRING_LEN(b))

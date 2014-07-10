@@ -167,6 +167,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_LONG, MAIL_ATTR_SIZE, message->cont_length,
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, entry->queue->nexthop,
 	       ATTR_TYPE_STR, MAIL_ATTR_ENCODING, message->encoding,
+	       ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, message->smtputf8,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, message->dsn_envid,
 	       ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, message->dsn_ret,

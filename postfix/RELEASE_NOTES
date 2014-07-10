@@ -41,6 +41,26 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20140703
+====================================
+
+This release introduces three new configuration parameters that
+control error recovery for failed SMTPD policy requests.
+
+  * smtpd_policy_service_default_action (default: 451 4.3.5 Server
+    configuration problem): The default action when an SMTPD policy
+    service request fails.
+
+  * smtpd_policy_service_try_limit (default: 2): The maximal number
+    of attempts to send an SMTPD policy service request before
+    giving up. This must be a number greater than zero.
+
+  * smtpd_policy_service_retry_delay (default: 1s): The delay between
+    attempts to resend a failed SMTPD policy service request. This
+    must be a number greater than zero.
+
+See postconf(5) for details and limitations.
+
 Incompatible changes with snapshot 20140701
 ===========================================
 

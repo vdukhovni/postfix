@@ -16374,6 +16374,18 @@ Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smt
 
 </DD>
 
+<DT><b><a name="smtputf8_enable">smtputf8_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable experimental SMTPUTF8 support for the protocols described
+in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support
+these protocols. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="soft_bounce">soft_bounce</a>
 (default: no)</b></DT><DD>
 
@@ -16542,6 +16554,18 @@ from poorly written software.
 By default, the Postfix SMTP server accepts <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> syntax in MAIL
 FROM and RCPT TO addresses.
 </p>
+
+
+</DD>
+
+<DT><b><a name="strict_smtputf8">strict_smtputf8</a>
+(default: no)</b></DT><DD>
+
+<p> Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts non-ASCII sender or recipient addresses only
+when the client requests an SMTPUTF8 mail transaction. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>

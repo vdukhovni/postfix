@@ -122,6 +122,11 @@ typedef struct CLEANUP_STATE {
     struct CLEANUP_REGION *free_regions;/* unused regions */
     struct CLEANUP_REGION *body_regions;/* regions with body content */
     struct CLEANUP_REGION *curr_body_region;
+
+    /*
+     * Internationalization.
+     */
+    int     smtputf8;			/* what support is desired */
 } CLEANUP_STATE;
 
  /*

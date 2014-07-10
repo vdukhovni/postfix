@@ -179,6 +179,7 @@ bounce_notify_service.o: ../../include/msg_stats.h
 bounce_notify_service.o: ../../include/name_mask.h
 bounce_notify_service.o: ../../include/post_mail.h
 bounce_notify_service.o: ../../include/rcpt_buf.h
+bounce_notify_service.o: ../../include/rec_type.h
 bounce_notify_service.o: ../../include/recipient_list.h
 bounce_notify_service.o: ../../include/sys_defs.h
 bounce_notify_service.o: ../../include/vbuf.h
@@ -243,6 +244,7 @@ bounce_notify_verp.o: ../../include/msg_stats.h
 bounce_notify_verp.o: ../../include/name_mask.h
 bounce_notify_verp.o: ../../include/post_mail.h
 bounce_notify_verp.o: ../../include/rcpt_buf.h
+bounce_notify_verp.o: ../../include/rec_type.h
 bounce_notify_verp.o: ../../include/recipient_list.h
 bounce_notify_verp.o: ../../include/sys_defs.h
 bounce_notify_verp.o: ../../include/vbuf.h
@@ -269,6 +271,7 @@ bounce_one_service.o: ../../include/msg_stats.h
 bounce_one_service.o: ../../include/name_mask.h
 bounce_one_service.o: ../../include/post_mail.h
 bounce_one_service.o: ../../include/rcpt_buf.h
+bounce_one_service.o: ../../include/rec_type.h
 bounce_one_service.o: ../../include/recipient_list.h
 bounce_one_service.o: ../../include/sys_defs.h
 bounce_one_service.o: ../../include/vbuf.h
@@ -326,6 +329,7 @@ bounce_trace_service.o: ../../include/msg_stats.h
 bounce_trace_service.o: ../../include/name_mask.h
 bounce_trace_service.o: ../../include/post_mail.h
 bounce_trace_service.o: ../../include/rcpt_buf.h
+bounce_trace_service.o: ../../include/rec_type.h
 bounce_trace_service.o: ../../include/recipient_list.h
 bounce_trace_service.o: ../../include/sys_defs.h
 bounce_trace_service.o: ../../include/vbuf.h
@@ -349,6 +353,7 @@ bounce_warn_service.o: ../../include/msg.h
 bounce_warn_service.o: ../../include/name_mask.h
 bounce_warn_service.o: ../../include/post_mail.h
 bounce_warn_service.o: ../../include/rcpt_buf.h
+bounce_warn_service.o: ../../include/rec_type.h
 bounce_warn_service.o: ../../include/recipient_list.h
 bounce_warn_service.o: ../../include/sys_defs.h
 bounce_warn_service.o: ../../include/vbuf.h

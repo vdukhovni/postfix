@@ -51,6 +51,9 @@
 /*
 /*	int	post_mail_fclose(stream)
 /*	VSTREAM	*STREAM;
+/*
+/*	int	post_mail_fclose_extra(stream, ...)
+/*	VSTREAM	*STREAM;
 /* DESCRIPTION
 /*	This module provides a convenient interface for the most
 /*	common case of sending one message to one recipient. It
@@ -87,6 +90,12 @@
 /*	evaluates its buffer argument more than once.
 /*
 /*	post_mail_fclose() completes the posting of a message.
+/*
+/*	post_mail_fclose_extra() completes the posting of a message
+/*	after writing some extra records. The records are specified
+/*	as a sequence of type, value, .., REC_TYPE_END, and the
+/*	values are null-terminated strings.
+/*	
 /*
 /*	Arguments:
 /* .IP sender
@@ -401,15 +410,30 @@ int     post_mail_fputs(VSTREAM *cleanup, const char *str)
 
 int     post_mail_fclose(VSTREAM *cleanup)
 {
+    return (post_mail_fclose_extra(cleanup, REC_TYPE_END));
+}
+
+/* post_mail_fclose_extra - finish posting of message with extra attributes */
+
+int     post_mail_fclose_extra(VSTREAM *cleanup, ...)
+{
+    va_list ap;
+    int     rec_type;
+    char   *rec_val;
     int     status = 0;
 
     /*
      * Send the message end marker only when there were no errors.
      */
+    va_start(ap, cleanup);
     if (vstream_ferror(cleanup) != 0) {
 	status = CLEANUP_STAT_WRITE;
     } else {
 	rec_fputs(cleanup, REC_TYPE_XTRA, "");
+	while ((rec_type = va_arg(ap, int)) != REC_TYPE_END) {
+	    rec_val = va_arg(ap, char *);
+	    rec_fputs(cleanup, rec_type, rec_val);
+	}
 	rec_fputs(cleanup, REC_TYPE_END, "");
 	if (vstream_fflush(cleanup)
 	    || attr_scan(cleanup, ATTR_FLAG_MISSING,
@@ -417,6 +441,7 @@ int     post_mail_fclose(VSTREAM *cleanup)
 			 ATTR_TYPE_END) != 1)
 	    status = CLEANUP_STAT_WRITE;
     }
+    va_end(ap);
     (void) vstream_fclose(cleanup);
     return (status);
 }

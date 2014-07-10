@@ -390,7 +390,7 @@ int     main(int argc, char **argv)
      * client, otherwise the client will give up after detecting SIGPIPE.
      * 
      * Allow attribute records if the attribute specifies the MIME body type
-     * (sendmail -B).
+     * (sendmail -B), or if the message requires SMTPUTF8.
      */
     vstream_control(VSTREAM_IN, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
     buf = vstring_alloc(100);
@@ -439,6 +439,7 @@ int     main(int argc, char **argv)
 		 && (STREQ(attr_value, MAIL_ATTR_ENC_7BIT)
 		     || STREQ(attr_value, MAIL_ATTR_ENC_8BIT)
 		     || STREQ(attr_value, MAIL_ATTR_ENC_NONE)))
+		|| STREQ(attr_name, MAIL_ATTR_SMTPUTF8)
 		|| STREQ(attr_name, MAIL_ATTR_DSN_ENVID)
 		|| STREQ(attr_name, MAIL_ATTR_DSN_NOTIFY)
 		|| rec_attr_map(attr_name)

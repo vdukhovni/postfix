@@ -221,6 +221,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_XFORWARD_PORT	(1<<18)
 #define SMTP_FEATURE_EARLY_TLS_MAIL_REPLY (1<<19)	/* CVE-2009-3555 */
 #define SMTP_FEATURE_XFORWARD_IDENT	(1<<20)
+#define SMTP_FEATURE_SMTPUTF8		(1<<21)	/* RFC 6531 */
 
  /*
   * Features that passivate under the endpoint.

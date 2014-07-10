@@ -14,33 +14,36 @@
 /*	const char *relay;
 /*	DSN	*dsn;
 /*
-/*	int	bounce_flush(flags, queue, id, encoding, sender,
+/*	int	bounce_flush(flags, queue, id, encoding, smtputf8, sender,
 /*				dsn_envid, dsn_ret)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
 /*	const char *encoding;
+/*	int	smtputf8;
 /*	const char *sender;
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
 /*
-/*	int	bounce_flush_verp(flags, queue, id, encoding, sender,
-/*				dsn_envid, dsn_ret, verp_delims)
+/*	int	bounce_flush_verp(flags, queue, id, encoding, smtputf8,
+/*				sender, dsn_envid, dsn_ret, verp_delims)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
 /*	const char *encoding;
+/*	int	smtputf8;
 /*	const char *sender;
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
 /*	const char *verp_delims;
 /*
-/*	int	bounce_one(flags, queue, id, encoding, sender, envid, ret,
-/*				stats, recipient, relay, dsn)
+/*	int	bounce_one(flags, queue, id, encoding, smtputf8, sender,
+/*				dsn_envid, ret, stats, recipient, relay, dsn)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
 /*	const char *encoding;
+/*	int	smtputf8;
 /*	const char *sender;
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
@@ -62,12 +65,13 @@
 /*	RECIPIENT *rcpt;
 /*	const char *relay;
 /*
-/*	int	bounce_one_intern(flags, queue, id, encoding, sender, envid, ret,
-/*				stats, recipient, relay, dsn)
+/*	int	bounce_one_intern(flags, queue, id, encoding, smtputf8, sender,
+/*				dsn_envid, ret, stats, recipient, relay, dsn)
 /*	int	flags;
 /*	const char *queue;
 /*	const char *id;
 /*	const char *encoding;
+/*	int	smtputf8;
 /*	const char *sender;
 /*	const char *dsn_envid;
 /*	int	dsn_ret;
@@ -147,6 +151,8 @@
 /*	This information is used for syslogging only.
 /* .IP encoding
 /*	The body content encoding: MAIL_ATTR_ENC_{7BIT,8BIT,NONE}.
+/* .IP smtputf8
+/*	The level of SMTPUTF8 support (to be defined).
 /* .IP sender
 /*	The sender envelope address.
 /* .IP dsn_envid
@@ -233,7 +239,7 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
      * DSN filter (Postfix 2.12).
      */
     if (delivery_status_filter != 0
-      && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
+    && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
 	if (dsn_res->status[0] == '4')
 	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
 	my_dsn = *dsn_res;
@@ -335,8 +341,9 @@ int     bounce_append_intern(int flags, const char *id, MSG_STATS *stats,
 /* bounce_flush - flush the bounce log and deliver to the sender */
 
 int     bounce_flush(int flags, const char *queue, const char *id,
-		             const char *encoding, const char *sender,
-		             const char *dsn_envid, int dsn_ret)
+		             const char *encoding, int smtputf8,
+		             const char *sender, const char *dsn_envid,
+		             int dsn_ret)
 {
 
     /*
@@ -351,6 +358,7 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, smtputf8,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
@@ -367,9 +375,9 @@ int     bounce_flush(int flags, const char *queue, const char *id,
 /* bounce_flush_verp - verpified notification */
 
 int     bounce_flush_verp(int flags, const char *queue, const char *id,
-			          const char *encoding, const char *sender,
-			          const char *dsn_envid, int dsn_ret,
-			          const char *verp_delims)
+			          const char *encoding, int smtputf8,
+			          const char *sender, const char *dsn_envid,
+			          int dsn_ret, const char *verp_delims)
 {
 
     /*
@@ -384,6 +392,7 @@ int     bounce_flush_verp(int flags, const char *queue, const char *id,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, smtputf8,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
@@ -401,9 +410,9 @@ int     bounce_flush_verp(int flags, const char *queue, const char *id,
 /* bounce_one - send notice for one recipient */
 
 int     bounce_one(int flags, const char *queue, const char *id,
-		           const char *encoding, const char *sender,
-		           const char *dsn_envid, int dsn_ret,
-		           MSG_STATS *stats, RECIPIENT *rcpt,
+		           const char *encoding, int smtputf8,
+		           const char *sender, const char *dsn_envid,
+		           int dsn_ret, MSG_STATS *stats, RECIPIENT *rcpt,
 		           const char *relay, DSN *dsn)
 {
     DSN     my_dsn = *dsn;
@@ -421,22 +430,23 @@ int     bounce_one(int flags, const char *queue, const char *id,
      * DSN filter (Postfix 2.12).
      */
     if (delivery_status_filter != 0
-      && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
+    && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
 	if (dsn_res->status[0] == '4')
 	    return (defer_append_intern(flags, id, stats, rcpt, relay, dsn_res));
 	my_dsn = *dsn_res;
     }
-    return (bounce_one_intern(flags, queue, id, encoding, sender, dsn_envid,
-			      dsn_ret, stats, rcpt, relay, &my_dsn));
+    return (bounce_one_intern(flags, queue, id, encoding, smtputf8, sender,
+			  dsn_envid, dsn_ret, stats, rcpt, relay, &my_dsn));
 }
 
 /* bounce_one_intern - send notice for one recipient */
 
 int     bounce_one_intern(int flags, const char *queue, const char *id,
-			          const char *encoding, const char *sender,
-			          const char *dsn_envid, int dsn_ret,
-			          MSG_STATS *stats, RECIPIENT *rcpt,
-			          const char *relay, DSN *dsn)
+			          const char *encoding, int smtputf8,
+			          const char *sender, const char *dsn_envid,
+			          int dsn_ret, MSG_STATS *stats,
+			          RECIPIENT *rcpt, const char *relay,
+			          DSN *dsn)
 {
     DSN     my_dsn = *dsn;
     int     status;
@@ -489,6 +499,7 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
 				ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
 				ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+				ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, smtputf8,
 				ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			      ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 				ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,

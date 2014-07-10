@@ -48,6 +48,8 @@ int     rec_attr_map(const char *attr_name)
 	return (REC_TYPE_DSN_RET);
     } else if (strcmp(attr_name, MAIL_ATTR_CREATE_TIME) == 0) {
 	return (REC_TYPE_CTIME);
+    } else if (strcmp(attr_name, MAIL_ATTR_SMTPUTF8) == 0) {
+	return (REC_TYPE_SMTPUTF8);
     } else {
 	return (0);
     }

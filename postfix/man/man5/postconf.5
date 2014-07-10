@@ -11191,6 +11191,12 @@ key. This is intended behavior.
 .PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtpd_tls_security_level instead.
+.SH smtputf8_enable (default: no)
+Enable experimental SMTPUTF8 support for the protocols described
+in RFC 6531..6533. This requires that Postfix is built to support
+these protocols.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH soft_bounce (default: no)
 Safety net to keep mail queued that would otherwise be returned to
 the sender.  This parameter disables locally-generated bounces,
@@ -11273,6 +11279,12 @@ from poorly written software.
 .PP
 By default, the Postfix SMTP server accepts RFC 822 syntax in MAIL
 FROM and RCPT TO addresses.
+.SH strict_smtputf8 (default: no)
+Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts non-ASCII sender or recipient addresses only
+when the client requests an SMTPUTF8 mail transaction.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH sun_mailtool_compatibility (default: no)
 Obsolete SUN mailtool compatibility feature. Instead, use
 "mailbox_delivery_lock = dotlock".

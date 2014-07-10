@@ -7,12 +7,13 @@
 /*	#include "bounce_service.h"
 /*
 /*	int     bounce_one_service(flags, queue_name, queue_id, encoding,
-/*					orig_sender, envid, ret,
+/*					smtputf8, orig_sender, envid, ret,
 /*					rcpt_buf, dsn_buf, templates)
 /*	int	flags;
 /*	char	*queue_name;
 /*	char	*queue_id;
 /*	char	*encoding;
+/*	int	smtputf8;
 /*	char	*orig_sender;
 /*	char	*envid;
 /*	int	ret;
@@ -74,6 +75,7 @@
 #include <mail_error.h>
 #include <bounce.h>
 #include <dsn_mask.h>
+#include <rec_type.h>
 
 /* Application-specific. */
 
@@ -84,10 +86,10 @@
 /* bounce_one_service - send a bounce for one recipient */
 
 int     bounce_one_service(int flags, char *queue_name, char *queue_id,
-			           char *encoding, char *orig_sender,
-			           char *dsn_envid, int dsn_ret,
-			           RCPT_BUF *rcpt_buf, DSN_BUF *dsn_buf,
-			           BOUNCE_TEMPLATES *ts)
+			           char *encoding, int smtputf8,
+			           char *orig_sender, char *dsn_envid,
+			           int dsn_ret, RCPT_BUF *rcpt_buf,
+			           DSN_BUF *dsn_buf, BOUNCE_TEMPLATES *ts)
 {
     BOUNCE_INFO *bounce_info;
     int     bounce_status = 1;
@@ -101,8 +103,8 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
      * Initialize. Open queue file, bounce log, etc.
      */
     bounce_info = bounce_mail_one_init(queue_name, queue_id, encoding,
-				       dsn_envid, rcpt_buf, dsn_buf,
-				       ts->failure);
+				       smtputf8, dsn_envid, rcpt_buf,
+				       dsn_buf, ts->failure);
 
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 #define NULL_TRACE_FLAGS	0
@@ -163,7 +165,9 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, DSN_RET_FULL);
-		bounce_status = post_mail_fclose(bounce);
+		bounce_status = post_mail_fclose_extra(bounce,
+                        REC_TYPE_ATTR, bounce_info->smtputf8_attr,
+                        REC_TYPE_END);
 		if (bounce_status == 0)
 		    msg_info("%s: postmaster non-delivery notification: %s",
 			     queue_id, STR(new_id));
@@ -200,7 +204,9 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, dsn_ret ?
 				    dsn_ret : DSN_RET_FULL);
-		bounce_status = post_mail_fclose(bounce);
+		bounce_status = post_mail_fclose_extra(bounce,
+                        REC_TYPE_ATTR, bounce_info->smtputf8_attr,
+                        REC_TYPE_END);
 		if (bounce_status == 0)
 		    msg_info("%s: sender non-delivery notification: %s",
 			     queue_id, STR(new_id));
@@ -237,7 +243,9 @@ int     bounce_one_service(int flags, char *queue_name, char *queue_id,
 		    && bounce_header_dsn(bounce, bounce_info) == 0
 		    && bounce_recipient_dsn(bounce, bounce_info) == 0)
 		    bounce_original(bounce, bounce_info, DSN_RET_HDRS);
-		postmaster_status = post_mail_fclose(bounce);
+		postmaster_status = post_mail_fclose_extra(bounce,
+                        REC_TYPE_ATTR, bounce_info->smtputf8_attr,
+                        REC_TYPE_END);
 		if (postmaster_status == 0)
 		    msg_info("%s: postmaster non-delivery notification: %s",
 			     queue_id, STR(new_id));

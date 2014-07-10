@@ -96,6 +96,8 @@
 /*	RFC 3463 (Enhanced Status Codes)
 /*	RFC 4954 (AUTH command)
 /*	RFC 5321 (SMTP protocol)
+/*	RFC 6531 (Internationalized SMTP)
+/*	RFC 6533 (Internationalized Delivery Status Notifications)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can

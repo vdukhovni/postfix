@@ -343,6 +343,7 @@ struct QMGR_MESSAGE {
     char   *sender;			/* complete address */
     char   *dsn_envid;			/* DSN envelope ID */
     int     dsn_ret;			/* DSN headers/full */
+    int     smtputf8;			/* requires unicode */
     char   *verp_delims;		/* VERP delimiters */
     char   *filter_xport;		/* filtering transport */
     char   *inspect_xport;		/* inspecting transport */

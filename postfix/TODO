@@ -1,0 +1,32 @@
+mailinglist support: if a message requires SMTPUTF8 only because
+some recipient addresses are UTF8, then deliveries to other domains
+should not require SMTPUTF8. This means that Postfix needs to
+maintain multiple flags:
+
+1) The message has UTF8 header values. This is a queue file property.
+
+2) The message has an UTF8 sender address. This is also a queue
+file property.
+
+3) A specific delivery request contains UTF8 recipients.  This is
+a delivery-request property.
+
+Only in cases 1) or 2) should all deliveries require SMTPUTF8.
+Otherwise, only cases 3) require SMTPUTF8, and all other
+deliveries can use lagacy SMTP.
+
+Is an smtputf8 bounce always 8bit?
+
+What happens when address rewriting or aliasing introduces non-ASCII
+domains or addresses?
+
+printable() stricter UTF8 parsing.
+
+lowercase() find a way to enable/disable UTF8
+
+qmqpd support.
+
+sendmail: auto-detect or command-line flag?
+
+bounce: don't scan the entire queue file for smtputf8 info. Just
+like encoding, receive smtputf8 info in the "bounce flush" request.

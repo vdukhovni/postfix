@@ -71,6 +71,7 @@ REC_TYPE_NAME rec_type_names[] = {
     REC_TYPE_DSN_ENVID, "dsn_envelope_id",
     REC_TYPE_DSN_ORCPT, "dsn_original_recipient",
     REC_TYPE_DSN_NOTIFY, "dsn_notify_flags",
+    REC_TYPE_SMTPUTF8, "smtputf8",
     0, 0,
 };
 

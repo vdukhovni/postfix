@@ -173,10 +173,32 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	    type = junk;
 	}
     }
+    if (type == REC_TYPE_SMTPUTF8) {
+	if (state->flags & CLEANUP_FLAG_INRCPT) {
+	    msg_warn("%s: message rejected: SMTPUTF8 record after extra recipient",
+		     state->queue_id);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	if (!alldig(buf)) {
+	    msg_warn("%s: message rejected: bad SMTPUTF8 record <%.200s>",
+		     state->queue_id, buf);
+	    state->errs |= CLEANUP_STAT_BAD;
+	    return;
+	}
+	state->smtputf8 = atoi(buf);
+	return;
+    }
 
     /*
      * On the transition from non-recipient records to recipient records,
-     * emit optional information from header/body content.
+     * emit optional information from header/body content, and whether the
+     * sender requested SMTPUTF8.
+     * 
+     * Having the SMTPUTF8 record here, just like the MIME content-transfer
+     * encoding, allows the queue manager to locate the information without
+     * having to read all queue file records. The queue manager forwards both
+     * attributes to delivery agents and to the bounce daemon.
      */
     if ((state->flags & CLEANUP_FLAG_INRCPT) == 0
 	&& strchr(REC_TYPE_EXT_RECIPIENT, type) != 0) {
@@ -187,6 +209,8 @@ void    cleanup_extracted_process(CLEANUP_STATE *state, int type,
 	if ((encoding = nvtable_find(state->attr, MAIL_ATTR_ENCODING)) != 0)
 	    cleanup_out_format(state, REC_TYPE_ATTR, "%s=%s",
 			       MAIL_ATTR_ENCODING, encoding);
+	cleanup_out_format(state, REC_TYPE_ATTR, "%s=%d",
+			   MAIL_ATTR_SMTPUTF8, state->smtputf8);
 	state->flags |= CLEANUP_FLAG_INRCPT;
 	/* Make room to append more meta records. */
 	if (state->milters || cleanup_milters) {

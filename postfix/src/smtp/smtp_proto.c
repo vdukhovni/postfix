@@ -147,6 +147,7 @@
 #include <lex_822.h>
 #include <dsn_mask.h>
 #include <xtext.h>
+#include <uxtext.h>
 
 /* Application-specific. */
 
@@ -231,6 +232,11 @@ char   *xfer_request[SMTP_STATE_LAST] = {
     "QUIT command",
 };
 
+ /*
+  * Note: MIME downgrade never happens for mail that must be delivered with
+  * SMTPUTF8 (the sender requested SMTPUTF8, AND the delivery request
+  * involves at least one UTF-8 envelope address or header value.
+  */
 #define SMTP_MIME_DOWNGRADE(session, request) \
     (var_disable_mime_oconv == 0 \
      && (session->features & SMTP_FEATURE_8BITMIME) == 0 \
@@ -547,6 +553,9 @@ int     smtp_helo(SMTP_STATE *state)
 		} else if (strcasecmp(word, "DSN") == 0) {
 		    if ((discard_mask & EHLO_MASK_DSN) == 0)
 			session->features |= SMTP_FEATURE_DSN;
+		} else if (strcasecmp(word, "SMTPUTF8") == 0) {
+		    if ((discard_mask & EHLO_MASK_SMTPUTF8) == 0)
+			session->features |= SMTP_FEATURE_SMTPUTF8;
 		}
 		n++;
 	    }
@@ -555,6 +564,54 @@ int     smtp_helo(SMTP_STATE *state)
     if (msg_verbose)
 	msg_info("server features: 0x%x size %.0f",
 		 session->features, (double) session->size_limit);
+
+    /*
+     * Decide if this delivery requires SMTPUTF8 server support.
+     * 
+     * For now, we require that the remote SMTP server supports SMTPUTF8 when
+     * the sender requested SMTPUTF8 support.
+     * 
+     * XXX EAI Refine this to: the sender requested SMTPUTF8 support AND the
+     * delivery request involves at least one UTF-8 envelope address or
+     * header value.
+     * 
+     * If the sender requested SMTPUTF8 support but the delivery request
+     * involves no UTF-8 envelope address or header value, then we could
+     * still deliver such mail to a non-SMTPUTF8 server, except that we must
+     * not send uxtext-encoded ORCPT parameters. Legacy SMTP requires xtext
+     * encoding. We cannot re-encode the ORCPT in xtext, because legacy SMTP
+     * requires that the unencoded text consist entirely of printable
+     * (graphic and white space) characters from the US-ASCII repertoire (RFC
+     * 3461 section 4).
+     */
+#define DELIVERY_REQUIRES_SMTPUTF8 \
+	(request->smtputf8 != 0)
+
+    /*
+     * Require that the server supports SMTPUTF8 when delivery requires
+     * SMTPUTF8.
+     * 
+     * Fix 20140706: moved this before negotiating TLS, AUTH, and so on.
+     */
+    if ((session->features & SMTP_FEATURE_SMTPUTF8) == 0
+	&& DELIVERY_REQUIRES_SMTPUTF8)
+	return (smtp_mesg_fail(state, DSN_BY_LOCAL_MTA,
+			       SMTP_RESP_FAKE(&fake, "5.6.7"),
+			       "SMTPUTF8 is required, "
+			       "but was not offered by host %s",
+			       session->namaddr));
+
+    /*
+     * Fix 20140706: don't do silly things when the remote server announces
+     * SMTPUTF8 but not not 8BITMIME support. Out primary mission is to
+     * deliver mail, not to force people into compliance.
+     */
+    if ((session->features & SMTP_FEATURE_SMTPUTF8) != 0
+	&& (session->features & SMTP_FEATURE_8BITMIME) == 0) {
+	msg_info("host %s offers SMTPUTF8 support, but not 8BITMIME",
+		 session->namaddr);
+	session->features |= SMTP_FEATURE_8BITMIME;
+    }
 
     /*
      * We use SMTP command pipelining if the server said it supported it.
@@ -1379,6 +1436,23 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    }
 
 	    /*
+	     * Request SMTPUTF8 when the sender requested SMTPUTF8 AND the
+	     * remote SMTP server supports SMTPUTF8.
+	     * 
+	     * If the sender requested SMTPUTF8 but the remote SMTP server does
+	     * not support SMTPUTF8, then we have already determined earlier
+	     * that delivering this message without SMTPUTF8 will not break
+	     * the SMTPUTF8 promise that was made to the sender.
+	     */
+#define SEND_SMTPUTF8_MAIL_PARAM \
+	    (request->smtputf8 != 0 \
+		&& (session->features & SMTP_FEATURE_SMTPUTF8) != 0)
+
+	    if (SEND_SMTPUTF8_MAIL_PARAM) {
+		vstring_strcat(next_command, " SMTPUTF8");
+	    }
+
+	    /*
 	     * We authenticate the local MTA only, but not the sender.
 	     */
 #ifdef USE_SASL_AUTH
@@ -1432,17 +1506,35 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    vstring_str(session->scratch));
 	    if (session->features & SMTP_FEATURE_DSN) {
 		/* XXX DSN xtext encode address value not type. */
-		if (rcpt->dsn_orcpt[0]) {
-		    xtext_quote(session->scratch, rcpt->dsn_orcpt, "+=");
-		    vstring_sprintf_append(next_command, " ORCPT=%s",
-					   vstring_str(session->scratch));
-		} else if (rcpt->orig_addr[0]) {
+		const char *orcpt_type_addr = rcpt->dsn_orcpt;
+
+		/* Fix 20140706: don't use empty rcpt->orig_addr. */
+		if (orcpt_type_addr[0] == 0 && rcpt->orig_addr[0] != 0) {
 		    quote_822_local(session->scratch, rcpt->orig_addr);
-		    vstring_sprintf(session->scratch2, "rfc822;%s",
+		    vstring_sprintf(session->scratch2, "%s;%s",
+		    /* Fix 20140707: sender must request SMTPUTF8. */
+			      (request->smtputf8 != 0
+			       && !allascii(vstring_str(session->scratch))) ?
+				    "utf-8" : "rfc822",
 				    vstring_str(session->scratch));
-		    xtext_quote(session->scratch, vstring_str(session->scratch2), "+=");
-		    vstring_sprintf_append(next_command, " ORCPT=%s",
-					   vstring_str(session->scratch));
+		    orcpt_type_addr = vstring_str(session->scratch2);
+		}
+		if (orcpt_type_addr[0] != 0) {
+		    /* Fix 20140706: don't send unquoted ORCPT. */
+		    /* Fix 20140707: quoting method must match orcpt type. */
+		    /* Fix 20140707: don't send uxtext over legacy SMTP. */
+		    /* Fix 20140707: handle uxtext encoder errors. */
+		    if (strncasecmp(orcpt_type_addr, "utf-8;", 6) == 0) {
+			if (SEND_SMTPUTF8_MAIL_PARAM
+			    && uxtext_quote(session->scratch,
+					    orcpt_type_addr, "+=") != 0)
+			    vstring_sprintf_append(next_command, " ORCPT=%s",
+					     vstring_str(session->scratch));
+		    } else {
+			xtext_quote(session->scratch, orcpt_type_addr, "=");
+			vstring_sprintf_append(next_command, " ORCPT=%s",
+					     vstring_str(session->scratch));
+		    }
 		}
 		if (rcpt->dsn_notify)
 		    vstring_sprintf_append(next_command, " NOTIFY=%s",

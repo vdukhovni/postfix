@@ -215,6 +215,7 @@ smtpd.o: ../../include/sys_defs.h
 smtpd.o: ../../include/tls.h
 smtpd.o: ../../include/tls_proxy.h
 smtpd.o: ../../include/tok822.h
+smtpd.o: ../../include/uxtext.h
 smtpd.o: ../../include/valid_hostname.h
 smtpd.o: ../../include/valid_mailhost_addr.h
 smtpd.o: ../../include/vbuf.h
@@ -303,6 +304,7 @@ smtpd_check.o: ../../include/mail_stream.h
 smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/match_list.h
 smtpd_check.o: ../../include/match_parent_style.h
+smtpd_check.o: ../../include/midna.h
 smtpd_check.o: ../../include/milter.h
 smtpd_check.o: ../../include/msg.h
 smtpd_check.o: ../../include/msg_stats.h
@@ -328,6 +330,7 @@ smtpd_check.o: ../../include/sys_defs.h
 smtpd_check.o: ../../include/tls.h
 smtpd_check.o: ../../include/valid_hostname.h
 smtpd_check.o: ../../include/valid_mailhost_addr.h
+smtpd_check.o: ../../include/valid_utf8_hostname.h
 smtpd_check.o: ../../include/vbuf.h
 smtpd_check.o: ../../include/verify_clnt.h
 smtpd_check.o: ../../include/vstream.h

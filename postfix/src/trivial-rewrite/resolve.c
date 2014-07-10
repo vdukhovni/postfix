@@ -57,7 +57,7 @@
 #include <vstream.h>
 #include <vstring_vstream.h>
 #include <split_at.h>
-#include <valid_hostname.h>
+#include <valid_utf8_hostname.h>
 #include <stringops.h>
 #include <mymalloc.h>
 
@@ -329,7 +329,6 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	    tree->head = tok822_scan(var_empty_addr, &tree->tail);
 	    continue;
 	}
-
 	/* XXX Re-resolve with @$myhostname for backwards compatibility. */
 	if (domain == 0 && saved_domain == 0) {
 	    tok822_sub_append(tree, tok822_alloc('@', (char *) 0));
@@ -382,7 +381,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     if (*rcpt_domain == '[') {
 	if (!valid_mailhost_literal(rcpt_domain, DONT_GRIPE))
 	    *flags |= RESOLVE_FLAG_ERROR;
-    } else if (!valid_hostname(rcpt_domain, DONT_GRIPE)) {
+    } else if (!valid_utf8_hostname(var_smtputf8_enable, rcpt_domain,
+				    DONT_GRIPE)) {
 	if (var_resolve_num_dom && valid_hostaddr(rcpt_domain, DONT_GRIPE)) {
 	    vstring_insert(nextrcpt, rcpt_domain - STR(nextrcpt), "[", 1);
 	    vstring_strcat(nextrcpt, "]");

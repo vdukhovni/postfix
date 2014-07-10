@@ -286,6 +286,10 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
 
     /*
      * Parse pseudo-header labels and values.
+     * 
+     * XXX EAI: allow UTF8 in template headers when responding to SMTPUTF8
+     * message. Sending SMTPUTF8 in reponse to non-SMTPUTF8 mail would make
+     * no sense.
      */
 #define GETLINE(line, buf) \
         (((line) = (buf)) != 0 ? ((buf) = split_at((buf), '\n'), (line)) : 0)

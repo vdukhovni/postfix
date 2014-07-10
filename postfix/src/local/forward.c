@@ -195,6 +195,10 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
     PASS_ATTR(cleanup, MAIL_ATTR_LOG_IDENT, request->log_ident);
     PASS_ATTR(cleanup, MAIL_ATTR_RWR_CONTEXT, request->rewrite_context);
 
+    /* Fix 20140709: propagate smtputf8 attribute to forwarded message. */
+    rec_fprintf(cleanup, REC_TYPE_ATTR, "%s=%d",
+		MAIL_ATTR_SMTPUTF8, request->smtputf8);
+
     FORWARD_OPEN_RETURN(info);
 }
 

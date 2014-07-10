@@ -32,7 +32,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
-	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c
+	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -66,7 +66,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
-	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o \
+	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
 	$(NON_PLUGIN_MAP_OBJ)
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
@@ -99,7 +99,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h dsn_filter.h dynamicmaps.h
+	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -113,7 +113,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	verify_clnt xtext anvil_clnt scache ehlo_mask \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
-	mail_version mail_dict server_acl
+	mail_version mail_dict server_acl uxtext
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -138,7 +138,7 @@ test:	$(TESTPROG)
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
-	$(SHLIB_LD) -o $(LIB) $(OBJS)
+	$(SHLIB_LD) -o $(LIB) $(OBJS) $(SHLIB_SYSLIBS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
@@ -303,6 +303,11 @@ mime_state: $(LIB) $(LIBS)
 strip_addr: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
+uxtext: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
 verify_clnt: $(LIB) $(LIBS)
@@ -978,26 +983,8 @@ dict_memcache.o: dict_memcache.c
 dict_memcache.o: dict_memcache.h
 dict_memcache.o: memcache_proto.h
 dict_memcache.o: string_list.h
-dict_mysql.o: ../../include/argv.h
-dict_mysql.o: ../../include/dict.h
-dict_mysql.o: ../../include/events.h
-dict_mysql.o: ../../include/find_inet.h
-dict_mysql.o: ../../include/match_list.h
-dict_mysql.o: ../../include/msg.h
-dict_mysql.o: ../../include/myflock.h
-dict_mysql.o: ../../include/mymalloc.h
-dict_mysql.o: ../../include/myrand.h
-dict_mysql.o: ../../include/split_at.h
-dict_mysql.o: ../../include/stringops.h
 dict_mysql.o: ../../include/sys_defs.h
-dict_mysql.o: ../../include/vbuf.h
-dict_mysql.o: ../../include/vstream.h
-dict_mysql.o: ../../include/vstring.h
-dict_mysql.o: cfg_parser.h
-dict_mysql.o: db_common.h
 dict_mysql.o: dict_mysql.c
-dict_mysql.o: dict_mysql.h
-dict_mysql.o: string_list.h
 dict_pgsql.o: ../../include/argv.h
 dict_pgsql.o: ../../include/dict.h
 dict_pgsql.o: ../../include/events.h
@@ -1514,6 +1501,10 @@ mail_flush.o: mail_flush.c
 mail_flush.o: mail_flush.h
 mail_flush.o: mail_params.h
 mail_flush.o: mail_proto.h
+mail_idna.o: ../../include/mymalloc.h
+mail_idna.o: ../../include/sys_defs.h
+mail_idna.o: mail_idna.c
+mail_idna.o: mail_idna.h
 mail_open_ok.o: ../../include/msg.h
 mail_open_ok.o: ../../include/sys_defs.h
 mail_open_ok.o: ../../include/vbuf.h
@@ -2323,6 +2314,12 @@ user_acl.o: mypwd.h
 user_acl.o: string_list.h
 user_acl.o: user_acl.c
 user_acl.o: user_acl.h
+uxtext.o: ../../include/msg.h
+uxtext.o: ../../include/sys_defs.h
+uxtext.o: ../../include/vbuf.h
+uxtext.o: ../../include/vstring.h
+uxtext.o: uxtext.c
+uxtext.o: uxtext.h
 valid_mailhost_addr.o: ../../include/msg.h
 valid_mailhost_addr.o: ../../include/myaddrinfo.h
 valid_mailhost_addr.o: ../../include/sys_defs.h

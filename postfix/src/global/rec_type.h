@@ -74,6 +74,8 @@
 
 #define REC_TYPE_MILT_COUNT	'm'
 
+#define REC_TYPE_SMTPUTF8	'8'	/* RFC 6530 */
+
 #define REC_TYPE_END	'E'		/* terminator, required */
 
  /*

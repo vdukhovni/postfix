@@ -357,15 +357,9 @@
 /* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
 /*	The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 /*	and \fBpostmap\fR(1) commands.
-/* .IP "\fBdelay_warning_time (0h)\fR"
-/*	The time after which the sender receives a copy of the message
-/*	headers of mail that is still queued.
-/* .IP "\fBenable_errors_to (no)\fR"
-/*	Report mail delivery errors to the address specified with the
-/*	non-standard Errors-To: message header, instead of the envelope
-/*	sender address (this feature is removed with Postfix version 2.2, is
-/*	turned off by default with Postfix version 2.1, and is always turned on
-/*	with older Postfix versions).
+/* .IP "\fBsmtputf8_enable (no)\fR"
+/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
 /* .IP "\fBmail_owner (postfix)\fR"
 /*	The UNIX system account that owns the Postfix queue and most Postfix
 /*	daemon processes.
@@ -513,6 +507,7 @@ typedef struct SM_STATE {
     const char *saved_sender;		/* for error messages */
     uid_t   uid;			/* for error messages */
     VSTRING *temp;			/* scratch buffer */
+    int     smtputf8;			/* UTF8 header value */
 } SM_STATE;
 
  /*
@@ -531,6 +526,7 @@ static const CONFIG_STR_TABLE str_table[] = {
   * Silly little macros (SLMs).
   */
 #define STR	vstring_str
+#define LEN	VSTRING_LEN
 
 /* output_text - output partial or complete text line */
 
@@ -560,6 +556,14 @@ static void output_header(void *context, int header_class,
     char   *line;
     char   *next_line;
     ssize_t len;
+
+    /*
+     * Fix 20140708: auto-detect SMTPUTF8 in message header values. This
+     * includes "sendmail -t" recipients extracted from message headers.
+     */
+    if (var_smtputf8_enable)
+	state->smtputf8 |= (*STR(buf) && !allascii(STR(buf))
+			    && valid_utf8_string(STR(buf), LEN(buf)));
 
     /*
      * Parse the header line, and save copies of recipient addresses in the
@@ -641,6 +645,7 @@ static void enqueue(const int flags, const char *encoding,
     const char *errstr;
     int     addr_count;
     int     level;
+    int     smtputf8 = 0;
     static NAME_CODE sm_fix_eol_table[] = {
 	SM_FIX_EOL_ALWAYS, STRIP_CR_DO,
 	SM_FIX_EOL_STRICT, STRIP_CR_DUNNO,
@@ -691,6 +696,13 @@ static void enqueue(const int flags, const char *encoding,
 			     (unsigned long) uid);
 	saved_sender = mystrdup(sender);
     }
+
+    /*
+     * SMTPUTF8 auto-detection.
+     */
+    if (var_smtputf8_enable)
+	smtputf8 |= (*saved_sender && !allascii(saved_sender)
+		  && valid_utf8_string(saved_sender, strlen(saved_sender)));
 
     /*
      * Let the postdrop command open the queue file for us, and sanity check
@@ -760,6 +772,13 @@ static void enqueue(const int flags, const char *encoding,
 					 saved_sender, (long) uid);
 		    ++rcpt_count;
 		    ++addr_count;
+
+		    /*
+		     * SMTPUTF8 auto-detection.
+		     */
+		    if (var_smtputf8_enable)
+			smtputf8 |= (*STR(buf) && !allascii(STR(buf))
+				  && valid_utf8_string(STR(buf), LEN(buf)));
 		}
 	    }
 	    tok822_free_tree(tree);
@@ -810,6 +829,7 @@ static void enqueue(const int flags, const char *encoding,
 	    state.saved_sender = saved_sender;
 	    state.uid = uid;
 	    state.temp = vstring_alloc(10);
+	    state.smtputf8 = smtputf8;
 	    mime_state = mime_state_alloc(MIME_OPT_DISABLE_MIME
 					  | MIME_OPT_REPORT_TRUNC_HEADER,
 					  output_header,
@@ -881,12 +901,18 @@ static void enqueue(const int flags, const char *encoding,
 			     saved_sender, (long) uid,
 			     mime_state_error(mime_errs));
 	mime_state = mime_state_free(mime_state);
+	smtputf8 = state.smtputf8;
     }
 
     /*
+     * Fix 20040708: Report the result from SMTPUTF8 auto-detection before
+     * recipients that were extracted from message headers. See also comments
+     * in cleanup_extracted.c.
+     * 
      * Append recipient addresses that were extracted from message headers.
      */
     rec_fputs(dst, REC_TYPE_XTRA, "");
+    rec_fprintf(dst, REC_TYPE_ATTR, "%s=%d", MAIL_ATTR_SMTPUTF8, smtputf8);
     if (flags & SM_FLAG_XRCPT) {
 	for (cpp = state.resent ? state.resent_recip->argv :
 	     state.recipients->argv; *cpp; cpp++) {
