@@ -44,7 +44,7 @@ root_tests:
 $(LIB):	$(LIB_OBJ)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
-	$(SHLIB_LD) -o $(LIB) $(LIB_OBJ)
+	$(SHLIB_LD) -o $(LIB) $(LIB_OBJ) $(SHLIB_SYSLIBS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)/$(LIB)

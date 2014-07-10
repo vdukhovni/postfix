@@ -8,14 +8,18 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Document and test restriction_classes example for 
+	smtpd_policy_service_default_action.
+
 	Don't accept AUTH or other features that are not announced
 	in the EHLO response.
 
 	Per-Milter error action.
 
 	Suggested at Mailserver conference: Postscreen RDNS-based
-	reputation (but this introduces dependency on random DNS
-	servers).
+	reputation (but this makes postscreen performance highly
+	unpredicable because it introduces a dependency on random
+	DNS servers).
 
 	Discourage the use of "after 220" tests in POSTSCREEN_README
 	and the documentation of individual parameter settings.

@@ -138,7 +138,7 @@ test:	$(TESTPROG)
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
-	$(SHLIB_LD) -o $(LIB) $(OBJS)
+	$(SHLIB_LD) -o $(LIB) $(OBJS) $(SHLIB_SYSLIBS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)

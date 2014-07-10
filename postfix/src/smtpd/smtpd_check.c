@@ -3727,6 +3727,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 				 "policy query", reply_name,
 				 reply_class, def_acl);
 	nesting_level -= 1;
+	memcpy(ADDROF(smtpd_check_buf), ADDROF(savebuf),
+		sizeof(smtpd_check_buf));
     } else {
 
 	/*

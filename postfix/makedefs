@@ -926,6 +926,7 @@ no|"")
     SHLIB_CFLAGS=
     SHLIB_SUFFIX=
     SHLIB_LD=:
+    SHLIB_SYSLIBS=
     SHLIB_RPATH=
     SHLIB_ENV=
     LIB_PREFIX=
@@ -984,6 +985,21 @@ AUXLIBS_$name = \$AUXLIBS_$name\""
      done;;
 esac
 
+# Remove static libraries from SYSLIBS when building shared objects,
+# Can't use the shell "case" patterns to detect names ending in *.a.
+
+case "$shared" in
+yes) SHLIB_SYSLIBS=`${AWK} '
+     BEGIN { wc = split("'"$SYSLIBS"'", words) 
+	 for (n = 1; n <= wc; n++)
+	     if (words[n] !~ /\.a$/)
+		 printf(" %s", words[n])
+     }
+     '`
+esac
+
+# Finally...
+
 sed 's/   */ /g' <<EOF
 # System-dependent settings and compiler/linker overrides.
 SYSTYPE	= $SYSTYPE
@@ -1009,6 +1025,7 @@ SHLIB_CFLAGS = $SHLIB_CFLAGS
 SHLIB_DIR = $shlib_directory
 SHLIB_ENV = $SHLIB_ENV
 SHLIB_LD = $SHLIB_LD
+SHLIB_SYSLIBS = $SHLIB_SYSLIBS
 SHLIB_RPATH = $SHLIB_RPATH
 # Switch between dynamicmaps.cf plugins and hard-linked databases.
 NON_PLUGIN_MAP_OBJ = $NON_PLUGIN_MAP_OBJ

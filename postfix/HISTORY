@@ -20122,3 +20122,17 @@ Apologies for any names omitted.
 	action when giving up. The defaults are backwards-compatible.
 	Files: global/mail_params.h, mantools/postlink,
 	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20140708
+
+	Bugfix (introduced 20140701): did not restore jumpbuf
+	while evaluatingsmtpd_policy_service_default_action.
+	Viktor Dukhovni. File: smtpd/smtpd_check.c.
+
+20140709
+
+	Cleanup: bitrot in unused function. File: global/defer.c.
+
+	Cleanup: add SYSLIBS minus static libraries while building
+	Postfix shared-library objects. Files: makedefs, util/Makefile.in,
+	global/Makefile.in, dns/Makefile.in, master/Makefile.in/.
