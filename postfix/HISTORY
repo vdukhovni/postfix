@@ -20136,3 +20136,9 @@ Apologies for any names omitted.
 	Cleanup: add SYSLIBS minus static libraries while building
 	Postfix shared-library objects. Files: makedefs, util/Makefile.in,
 	global/Makefile.in, dns/Makefile.in, master/Makefile.in/.
+
+20140710
+
+	Portability: add '-Wl,--enable-new-dtags' to the linker
+	command line with building with Postfix shared libraries
+	on Linux. Viktor Dukhovni. file: makedefs.
