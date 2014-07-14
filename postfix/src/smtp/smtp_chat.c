@@ -458,7 +458,7 @@ void    smtp_chat_notify(SMTP_SESSION *session)
 
     notice = post_mail_fopen_nowait(mail_addr_double_bounce(),
 				    var_error_rcpt,
-				    INT_FILT_MASK_NOTIFY,
+				    MAIL_SRC_MASK_NOTIFY,
 				    NULL_TRACE_FLAGS, NO_QUEUE_ID);
     if (notice == 0) {
 	msg_warn("postmaster notify: %m");

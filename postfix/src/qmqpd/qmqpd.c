@@ -50,6 +50,13 @@
 /* .IP "\fBreceive_override_options (empty)\fR"
 /*	Enable or disable recipient validation, built-in content
 /*	filtering, or address mapping.
+/* SMTPUTF8 CONTROLS
+/* .ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
@@ -187,6 +194,7 @@
 #include <lex_822.h>
 #include <verp_sender.h>
 #include <input_transp.h>
+#include <smtputf8.h>
 
 /* Single-threaded server skeleton. */
 
@@ -241,6 +249,7 @@ static void qmqpd_open_file(QMQPD_STATE *state)
      */
     cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
 					 qmqpd_input_transp_mask);
+    cleanup_flags |= smtputf8_autodetect(MAIL_SRC_MASK_QMQPD);
     state->dest = mail_stream_service(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (state->dest == 0
 	|| attr_print(state->dest->stream, ATTR_FLAG_NONE,

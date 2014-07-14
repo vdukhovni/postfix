@@ -21,7 +21,7 @@
   * Global library.
   */
 #include <cleanup_user.h>
-#include <int_filt.h>
+#include <mail_proto.h>
 
  /*
   * External interface.

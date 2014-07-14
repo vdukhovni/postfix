@@ -36,6 +36,7 @@ typedef struct DELIVER_REQUEST {
     long    data_size;			/* message size */
     char   *nexthop;			/* next hop name */
     char   *encoding;			/* content encoding */
+    int     smtputf8;			/* SMTPUTF8 level */
     char   *sender;			/* envelope sender */
     MSG_STATS msg_stats;		/* time profile */
     RECIPIENT_LIST rcpt_list;		/* envelope recipients */

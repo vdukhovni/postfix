@@ -519,6 +519,10 @@ The following is an extensive list of names and values.
 ||			       |platforms that are known to support this      |
 ||			       |feature.				      |
 ||_____________________________|______________________________________________|
+||			       |Do not build with EAI (SMTPUTF8) support. By  |
+||-DNO_EAI		       |default, EAI support is compiled in when the  |
+||			       |"icuuc" library and header files are found.   |
+||_____________________________|______________________________________________|
 ||			       |Do not build with IPv6 support. By default,   |
 ||			       |IPv6 support is compiled in on platforms that |
 ||-DNO_IPV6		       |are known to have IPv6 support. Note: this    |

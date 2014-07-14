@@ -76,6 +76,7 @@
 #include <dsn_buf.h>
 #include <dsb_scan.h>
 #include <rcpt_print.h>
+#include <smtputf8.h>
 
 /* Application-specific. */
 
@@ -140,6 +141,16 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
     MSG_STATS stats;
     char   *sender;
     int     flags;
+    int     smtputf8 = message->smtputf8;
+    const char *addr;
+
+    /*
+     * Todo: integrate with code up-stream that builds the delivery request.
+     */
+    for (recipient = list.info; recipient < list.info + list.len; recipient++)
+	if (var_smtputf8_enable && (addr = recipient->address)[0]
+	    && !allascii(addr) && valid_utf8_string(addr, strlen(addr)))
+	    smtputf8 |= SMTPUTF8_FLAG_RECIPIENT;
 
     /*
      * If variable envelope return path is requested, change prefix+@origin
@@ -167,6 +178,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 	       ATTR_TYPE_LONG, MAIL_ATTR_SIZE, message->cont_length,
 	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, entry->queue->nexthop,
 	       ATTR_TYPE_STR, MAIL_ATTR_ENCODING, message->encoding,
+	       ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, smtputf8,
 	       ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 	       ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, message->dsn_envid,
 	       ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, message->dsn_ret,

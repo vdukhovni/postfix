@@ -48,6 +48,9 @@ RFC 3462 (Delivery Status Notifications)
 RFC 3464 (Delivery Status Notifications)
 RFC 3834 (Auto-Submitted: message header)
 RFC 5322 (Internet Message Format)
+RFC 6531 (Internationalized SMTP)
+RFC 6532 (Internationalized Message Format)
+RFC 6533 (Internationalized Delivery Status Notifications)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -123,6 +126,11 @@ The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 The mail system name that is prepended to the process name in syslog
 records, so that "smtpd" becomes, for example, "postfix/smtpd".
+.PP
+Available in Postfix 2.12 and later:
+.IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.
 .SH "FILES"
 .na
 .nf

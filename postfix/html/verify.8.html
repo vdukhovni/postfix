@@ -72,8 +72,8 @@ VERIFY(8)                                                            VERIFY(8)
        principle.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes to <a href="postconf.5.html"><b>main.cf</b></a> are not picked up automatically, as  <a href="verify.8.html"><b>verify</b>(8)</a>  pro-
-       cesses are long-lived. Use the command "<b>postfix reload</b>" after a config-
+       Changes to <a href="postconf.5.html"><b>main.cf</b></a> are not picked up automatically, as  <a href="verify.8.html"><b>verify</b>(8)</a>  pro‐
+       cesses are long-lived. Use the command "<b>postfix reload</b>" after a config‐
        uration change.
 
        The text below provides only a parameter summary. See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for
@@ -116,7 +116,7 @@ VERIFY(8)                                                            VERIFY(8)
        Available with Postfix 2.7 and later:
 
        <b><a href="postconf.5.html#address_verify_cache_cleanup_interval">address_verify_cache_cleanup_interval</a> (12h)</b>
-              The amount of time between <a href="verify.8.html"><b>verify</b>(8)</a> address verification  data-
+              The amount of time between <a href="verify.8.html"><b>verify</b>(8)</a> address verification  data‐
               base cleanup runs.
 
 <b>PROBE MESSAGE ROUTING CONTROLS</b>
@@ -125,15 +125,15 @@ VERIFY(8)                                                            VERIFY(8)
        message routing mechanisms.
 
        <b><a href="postconf.5.html#address_verify_relayhost">address_verify_relayhost</a> ($<a href="postconf.5.html#relayhost">relayhost</a>)</b>
-              Overrides  the <a href="postconf.5.html#relayhost">relayhost</a> parameter setting for address verifica-
+              Overrides  the <a href="postconf.5.html#relayhost">relayhost</a> parameter setting for address verifica‐
               tion probes.
 
        <b><a href="postconf.5.html#address_verify_transport_maps">address_verify_transport_maps</a> ($<a href="postconf.5.html#transport_maps">transport_maps</a>)</b>
-              Overrides the <a href="postconf.5.html#transport_maps">transport_maps</a> parameter setting for address veri-
+              Overrides the <a href="postconf.5.html#transport_maps">transport_maps</a> parameter setting for address veri‐
               fication probes.
 
        <b><a href="postconf.5.html#address_verify_local_transport">address_verify_local_transport</a> ($<a href="postconf.5.html#local_transport">local_transport</a>)</b>
-              Overrides the <a href="postconf.5.html#local_transport">local_transport</a> parameter setting for address ver-
+              Overrides the <a href="postconf.5.html#local_transport">local_transport</a> parameter setting for address ver‐
               ification probes.
 
        <b><a href="postconf.5.html#address_verify_virtual_transport">address_verify_virtual_transport</a> ($<a href="postconf.5.html#virtual_transport">virtual_transport</a>)</b>
@@ -141,7 +141,7 @@ VERIFY(8)                                                            VERIFY(8)
               verification probes.
 
        <b><a href="postconf.5.html#address_verify_relay_transport">address_verify_relay_transport</a> ($<a href="postconf.5.html#relay_transport">relay_transport</a>)</b>
-              Overrides the <a href="postconf.5.html#relay_transport">relay_transport</a> parameter setting for address ver-
+              Overrides the <a href="postconf.5.html#relay_transport">relay_transport</a> parameter setting for address ver‐
               ification probes.
 
        <b><a href="postconf.5.html#address_verify_default_transport">address_verify_default_transport</a> ($<a href="postconf.5.html#default_transport">default_transport</a>)</b>
@@ -150,29 +150,36 @@ VERIFY(8)                                                            VERIFY(8)
 
        Available in Postfix 2.3 and later:
 
-       <b><a href="postconf.5.html#address_verify_sender_dependent_relayhost_maps">address_verify_sender_dependent_relayhost_maps</a>          ($<a href="postconf.5.html#sender_dependent_relayhost_maps">sender_depen</a>-</b>
-       <b><a href="postconf.5.html#sender_dependent_relayhost_maps">dent_relayhost_maps</a>)</b>
+       <b><a href="postconf.5.html#address_verify_sender_dependent_relayhost_maps">address_verify_sender_dependent_relayhost_maps</a>          ($sender_depen</b>‐‐
+       <b>dent_relayhost_maps)</b>
               Overrides  the <a href="postconf.5.html#sender_dependent_relayhost_maps">sender_dependent_relayhost_maps</a> parameter setting
               for address verification probes.
 
        Available in Postfix 2.7 and later:
 
-       <b><a href="postconf.5.html#address_verify_sender_dependent_default_transport_maps">address_verify_sender_dependent_default_transport_maps</a>  ($<a href="postconf.5.html#sender_dependent_default_transport_maps">sender_depen</a>-</b>
-       <b><a href="postconf.5.html#sender_dependent_default_transport_maps">dent_default_transport_maps</a>)</b>
+       <b><a href="postconf.5.html#address_verify_sender_dependent_default_transport_maps">address_verify_sender_dependent_default_transport_maps</a>  ($sender_depen</b>‐‐
+       <b>dent_default_transport_maps)</b>
               Overrides the <a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default_transport_maps</a>  parameter
               setting for address verification probes.
 
+<b>SMTPUTF8 CONTROLS</b>
+       Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+
+       <b><a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> (sendmail, verify)</b>
+              Enable  SMTPUTF8  autodetection  for  the  specified mail origin
+              classes.
+
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
+              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con‐
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process  may  take  to  handle  a
+              How  much  time  a  Postfix  daemon process may take to handle a
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
-              The  time  limit  for  sending  or receiving information over an
+              The time limit for sending  or  receiving  information  over  an
               internal communication channel.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -188,8 +195,8 @@ VERIFY(8)                                                            VERIFY(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
+              The  mail  system  name that is prepended to the process name in
+              syslog records, so that "smtpd"  becomes,  for  example,  "post‐
               fix/smtpd".
 
 <b>SEE ALSO</b>

@@ -11191,6 +11191,69 @@ key. This is intended behavior.
 .PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtpd_tls_security_level instead.
+.SH smtputf8_autodetect_classes (default: sendmail, verify)
+Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.  This is a workaround to avoid chicken-and-egg
+problems during the initial SMTPUTF8 roll-out in environments with
+pre-existing mail flows that contain UTF8. Those mail flows should
+not break because Postfix suddenly refuses to deliver such mail
+to down-stream MTAs that don't announce SMTPUTF8 support.
+.PP
+The problem is that Postfix cannot rely solely on the sender's
+declaration that a message requires SMTPUTF8 support, because UTF8
+may be introduced during local processing (for example, the client
+hostname in Postfix's Received: header, adding @$myorigin or
+\&.$mydomain to an incomplete address, address rewriting, alias
+expansion, automatic BCC recipients, local forwarding, and changes
+made by header checks or Milter applications).
+.PP
+For now, the default is to enable "SMTPUTF8 required" autodetection
+only for Postfix sendmail command-line submissions and address
+verification probes.  This may change once SMTPUTF8 support achieves
+world domination.  However, sites that add UTF8 content via local
+processing (see above) should autodetect the need for SMTPUTF8
+support for all email.
+.PP
+Specify one or more of the following:
+.IP "\fB sendmail \fR"
+Submission with the Postfix
+\fBsendmail\fR(1) command.
+.br
+.IP "\fB smtpd \fR"
+Mail received with the \fBsmtpd\fR(8)
+daemon.
+.br
+.IP "\fB qmqpd \fR"
+Mail received with the \fBqmqpd\fR(8)
+daemon.
+.br
+.IP "\fB forward \fR"
+Local forwarding or aliasing.
+.br
+.IP "\fB bounce \fR"
+Submission by the \fBbounce\fR(8) daemon.
+.br
+.IP "\fB notify \fR"
+Postmaster notification from the
+\fBsmtp\fR(8) or \fBsmtpd\fR(8) daemon.
+.br
+.IP "\fB verify \fR"
+Address verification probe from the
+\fBverify\fR(8) daemon.
+.br
+.IP "\fB all \fR"
+Enable SMTPUTF8 autodetection for all
+mail.
+.br
+.br
+.PP
+This feature is available in Postfix 2.12 and later.
+.SH smtputf8_enable (default: no)
+Enable experimental SMTPUTF8 support for the protocols described
+in RFC 6531..6533. This requires that Postfix is built to support
+these protocols.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH soft_bounce (default: no)
 Safety net to keep mail queued that would otherwise be returned to
 the sender.  This parameter disables locally-generated bounces,
@@ -11273,6 +11336,12 @@ from poorly written software.
 .PP
 By default, the Postfix SMTP server accepts RFC 822 syntax in MAIL
 FROM and RCPT TO addresses.
+.SH strict_smtputf8 (default: no)
+Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts UTF8 sender or recipient addresses only when
+the client requests an SMTPUTF8 mail transaction.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH sun_mailtool_compatibility (default: no)
 Obsolete SUN mailtool compatibility feature. Instead, use
 "mailbox_delivery_lock = dotlock".

@@ -15805,7 +15805,7 @@ Apologies for any names omitted.
 	Robustness: skip LDAP queries with non-UTF-8 search strings
 	(in anticipation of UTF8SMTP support).  File: global/dict_ldap.c.
 
-	Strict UTF-8 validator per RFC 3629. File: util/valid_utf_8.c.
+	Strict UTF-8 validator per RFC 3629. File: util/valid_utf8_string.c.
 
 20100601
 
@@ -20123,12 +20123,6 @@ Apologies for any names omitted.
 	Files: global/mail_params.h, mantools/postlink,
 	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_check.c.
 
-20140708
-
-	Bugfix (introduced 20140701): did not restore jumpbuf
-	while evaluatingsmtpd_policy_service_default_action.
-	Viktor Dukhovni. File: smtpd/smtpd_check.c.
-
 20140709
 
 	Cleanup: bitrot in unused function. File: global/defer.c.
@@ -20136,3 +20130,89 @@ Apologies for any names omitted.
 	Cleanup: add SYSLIBS minus static libraries while building
 	Postfix shared-library objects. Files: makedefs, util/Makefile.in,
 	global/Makefile.in, dns/Makefile.in, master/Makefile.in/.
+
+20140708
+
+	Bugfix (introduced 20140701): did not restore jumpbuf while
+	evaluatingsmtpd_policy_service_default_action.  Viktor
+	Dukhovni. File: smtpd/smtpd_check.c.
+
+	Feature: VERY PRELIMINARY support for SMTPUTF8 based on an
+	initial implementation by Arnt Gulbrandsen, funded by CNNIC.
+	This implements the syntax of SMTP commands and DSN delivery
+	status notifications. It does not address the problem that
+	the same domain name may show up in different forms: an
+	UTF8-encoded name with non-ASCII charaters, or an IDNA-encoded
+	(xn--mumble) name with ASCII-only characters. This means
+	that access policies, mydestination, virtual_*_domains and
+	relay_domans will have to understand both forms in order
+	to provide complete coverage.  For now, SMTPUTF8 support
+	must not be enabled except for testing.
+
+20140710
+
+	Portability: add '-Wl,--enable-new-dtags' to the linker
+	command line with building with Postfix shared libraries
+	on Linux. Viktor Dukhovni. file: makedefs.
+
+20140711
+
+	Background: What is SMTPUTF8 autodetection? Postfix cannot
+	rely solely on the sender's declaration that a message
+	requires SMTPUTF8 support, because UTF8 may be introduced
+	during local processing (for example, the client hostname
+	in Postfix's Received: header, adding @$myorigin or .$mydomain
+	to an incomplete address, address rewriting, alias expansion,
+	automatic BCC recipients, local forwarding, and modifications
+	made by header checks or Milter applications).  This means
+	that some form of autodetection is needed that a message
+	requires SMTPUTF8 support.
+
+	Cleanup: don't try to distinguish between UTF that is already
+	present in a message or envelope, and UTF8 that is introduced
+	during local processing (see above).  Maintaining this
+	distinction is too problematic.
+
+	Cleanup: mailing list friendliness. Allow delivery of
+	SMTPUTF8 mail to non-SMTPUTF8 servers when a message has
+	no UTF8 headers, no UTF8 envelope sender, and when the
+	specific delivery request contains no UTF8 envelope recipient.
+	This is needed for mailing lists that may have a mix of
+	UTF8 and non-UTF8 subscriber addresses. File: global/smtputf8.h,
+	smtp/smtp_proto.c.
+
+	Cleanup: moved all SMTPUTF8 detection to the cleanup server,
+	so that it can apply equally to sendmail command-line
+	submission, forwarded mail, postmaster notifications,
+	delivery status notifications, mail received with the qmqpd
+	server, address verification probes, as well as UTF8
+	introduced during local processing (see above).  Files:
+	cleanup/cleanup_out.c, cleanup/cleanup_addr.c.
+
+	Cleanup: store the SMTPUTF8 message (i.e. non-recipient)
+	flags in the first queue file record, so that the queue
+	manager can find the information without having to read
+	every queue file record.  Files: cleanup/cleanup_final.c,
+	*qmgr/qmgr_message.c.
+
+20140713
+
+	Interoperability: new parameter smtputf8_autodetect_classes
+	for selective autodetection that a message requires UTF8SMTP
+	support. During the initial SMTPUTF8 rollout, this is limited
+	by default to Postfix sendmail command-line submissions and
+	address verification probes.  Sites that introduce UTF8
+	during local processing (see above) will have to enable
+	SMTPUTF8 autodetection for all mail sources. This feature
+	shares infrastructure with the older internal_filter_classes
+	feature.  Files: bounce/bounce_notify_service.c,
+	bounce/bounce_notify_verp.c, bounce/bounce_one_service.c,
+	bounce/bounce_trace_service.c, bounce/bounce_warn_service.c,
+	global/int_filt.c, global/mail_proto.h, global/smtputf8.c,
+	local/forward.c, pickup/pickup.c, qmqpd/qmqpd.c, smtp/smtp_chat.c,
+	smtpd/smtpd.c, smtpd/smtpd_chat.c, verify/verify.c.
+
+	Feature: preliminary message/global support. This does not
+	yet parse encoded message/global (such as message/global
+	sent through an non-8BITMIME system). Such mail cannot yet
+	be inspected with header_checks. File: global/mime_state.c.

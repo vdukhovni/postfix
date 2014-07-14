@@ -40,6 +40,9 @@
 /*	RFC 3464 (Delivery Status Notifications)
 /*	RFC 3834 (Auto-Submitted: message header)
 /*	RFC 5322 (Internet Message Format)
+/*	RFC 6531 (Internationalized SMTP)
+/*	RFC 6532 (Internationalized Message Format)
+/*	RFC 6533 (Internationalized Delivery Status Notifications)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* CONFIGURATION PARAMETERS
@@ -111,6 +114,11 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available in Postfix 2.12 and later:
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* FILES
 /*	/var/spool/postfix/bounce/* non-delivery records
 /*	/var/spool/postfix/defer/* non-delivery records
@@ -275,11 +283,12 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
 
 static int bounce_notify_proto(char *service_name, VSTREAM *client,
 			        int (*service) (int, char *, char *, char *,
-					        char *, char *, char *, int,
+				           char *, int, char *, char *, int,
 						        BOUNCE_TEMPLATES *))
 {
     const char *myname = "bounce_notify_proto";
     int     flags;
+    int     smtputf8;
     int     dsn_ret;
 
     /*
@@ -290,10 +299,11 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
-			    ATTR_TYPE_END) != 7) {
+			    ATTR_TYPE_END) != 8) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -311,9 +321,10 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
     }
     printable(STR(dsn_envid), '?');
     if (msg_verbose)
-	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s sender=%s envid=%s ret=0x%x",
+	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s smtputf8=%d sender=%s envid=%s ret=0x%x",
 		 myname, flags, service_name, STR(queue_name), STR(queue_id),
-		 STR(encoding), STR(sender), STR(dsn_envid), dsn_ret);
+		 STR(encoding), smtputf8, STR(sender), STR(dsn_envid),
+		 dsn_ret);
 
     /*
      * On request by the client, set up a trap to delete the log file in case
@@ -326,7 +337,7 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
      * Execute the request.
      */
     return (service(flags, service_name, STR(queue_name),
-		    STR(queue_id), STR(encoding),
+		    STR(queue_id), STR(encoding), smtputf8,
 		    STR(sender), STR(dsn_envid), dsn_ret,
 		    bounce_templates));
 }
@@ -337,6 +348,7 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 {
     const char *myname = "bounce_verp_proto";
     int     flags;
+    int     smtputf8;
     int     dsn_ret;
 
     /*
@@ -347,11 +359,12 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
 			    ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
-			    ATTR_TYPE_END) != 8) {
+			    ATTR_TYPE_END) != 9) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -374,9 +387,9 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 	return (-1);
     }
     if (msg_verbose)
-	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s sender=%s envid=%s ret=0x%x delim=%s",
+	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s smtputf8=%d sender=%s envid=%s ret=0x%x delim=%s",
 		 myname, flags, service_name, STR(queue_name),
-		 STR(queue_id), STR(encoding), STR(sender),
+		 STR(queue_id), STR(encoding), smtputf8, STR(sender),
 		 STR(dsn_envid), dsn_ret, STR(verp_delims));
 
     /*
@@ -393,12 +406,12 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
     if (!*STR(sender) || !strcasecmp(STR(sender), mail_addr_double_bounce())) {
 	msg_warn("request to send VERP-style notification of bounced mail");
 	return (bounce_notify_service(flags, service_name, STR(queue_name),
-				      STR(queue_id), STR(encoding),
+				      STR(queue_id), STR(encoding), smtputf8,
 				      STR(sender), STR(dsn_envid), dsn_ret,
 				      bounce_templates));
     } else
 	return (bounce_notify_verp(flags, service_name, STR(queue_name),
-				   STR(queue_id), STR(encoding),
+				   STR(queue_id), STR(encoding), smtputf8,
 				   STR(sender), STR(dsn_envid), dsn_ret,
 				   STR(verp_delims), bounce_templates));
 }
@@ -409,6 +422,7 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 {
     const char *myname = "bounce_one_proto";
     int     flags;
+    int     smtputf8;
     int     dsn_ret;
 
     /*
@@ -419,12 +433,13 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
 			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
 			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
 			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
 			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
 			    ATTR_TYPE_FUNC, rcpb_scan, (void *) rcpt_buf,
 			    ATTR_TYPE_FUNC, dsb_scan, (void *) dsn_buf,
-			    ATTR_TYPE_END) != 9) {
+			    ATTR_TYPE_END) != 10) {
 	msg_warn("malformed request");
 	return (-1);
     }
@@ -465,10 +480,10 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
      * RECIPIENT_FROM_RCPT_BUF().
      */
     if (msg_verbose)
-	msg_info("%s: flags=0x%x queue=%s id=%s encoding=%s sender=%s envid=%s dsn_ret=0x%x orig_to=%s to=%s off=%ld dsn_orig=%s notif=0x%x stat=%s act=%s why=%s",
+	msg_info("%s: flags=0x%x queue=%s id=%s encoding=%s smtputf8=%d sender=%s envid=%s dsn_ret=0x%x orig_to=%s to=%s off=%ld dsn_orig=%s notif=0x%x stat=%s act=%s why=%s",
 		 myname, flags, STR(queue_name), STR(queue_id),
-		 STR(encoding), STR(sender), STR(dsn_envid), dsn_ret,
-		 STR(rcpt_buf->orig_addr), STR(rcpt_buf->address),
+		 STR(encoding), smtputf8, STR(sender), STR(dsn_envid),
+		 dsn_ret, STR(rcpt_buf->orig_addr), STR(rcpt_buf->address),
 		 rcpt_buf->offset, STR(rcpt_buf->dsn_orcpt),
 		 rcpt_buf->dsn_notify, STR(dsn_buf->status),
 		 STR(dsn_buf->action), STR(dsn_buf->reason));
@@ -477,8 +492,9 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
      * Execute the request.
      */
     return (bounce_one_service(flags, STR(queue_name), STR(queue_id),
-			       STR(encoding), STR(sender), STR(dsn_envid),
-			     dsn_ret, rcpt_buf, dsn_buf, bounce_templates));
+			       STR(encoding), smtputf8, STR(sender),
+			       STR(dsn_envid), dsn_ret, rcpt_buf,
+			       dsn_buf, bounce_templates));
 }
 
 /* bounce_service - parse bounce command type and delegate */

@@ -80,6 +80,7 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <split_at.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -88,10 +89,13 @@
 #include <cleanup_user.h>
 #include <mail_params.h>
 #include <lex_822.h>
+#include <smtputf8.h>
 
 /* Application-specific. */
 
 #include "cleanup.h"
+
+#define STR	vstring_str
 
 /* cleanup_out - output one single record */
 
@@ -169,6 +173,16 @@ void    cleanup_out_header(CLEANUP_STATE *state, VSTRING *header_buf)
     char   *line;
     char   *next_line;
     ssize_t line_len;
+
+    /*
+     * Fix 20140711: Auto-detect the presence of a non-ASCII header.
+     */
+    if (var_smtputf8_enable && *STR(header_buf) && !allascii(STR(header_buf))) {
+	state->smtputf8 |= SMTPUTF8_FLAG_HEADER;
+	/* Fix 20140713: request SMTPUTF8 support selectively. */
+	if (state->flags & CLEANUP_FLAG_AUTOUTF8)
+	    state->smtputf8 |= SMTPUTF8_FLAG_REQUESTED;
+    }
 
     /*
      * Prepend a tab to continued header lines that went through the address

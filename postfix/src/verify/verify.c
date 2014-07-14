@@ -148,6 +148,13 @@
 /* .IP "\fBaddress_verify_sender_dependent_default_transport_maps ($sender_dependent_default_transport_maps)\fR"
 /*	Overrides the sender_dependent_default_transport_maps parameter
 /*	setting for address verification probes.
+/* SMTPUTF8 CONTROLS
+/* .ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Enable SMTPUTF8 autodetection for the specified mail origin
+/*	classes.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -499,7 +506,7 @@ static void verify_query_service(VSTREAM *client_stream)
 		msg_info("PROBE %s status=%d probed=%ld updated=%ld",
 			 STR(addr), addr_status, now, updated);
 	    post_mail_fopen_async(make_verify_sender_addr(), STR(addr),
-				  INT_FILT_MASK_NONE,
+				  MAIL_SRC_MASK_VERIFY,
 				  DEL_REQ_FLAG_MTA_VRFY,
 				  (VSTRING *) 0,
 				  verify_post_mail_action,

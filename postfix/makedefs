@@ -49,6 +49,8 @@
 #	Do not build with Linux EPOLL support.
 #	By default, EPOLL support is compiled in on platforms that
 #	are known to support it.
+# .IP \fB-DNO_EAI\fR
+#	Do not build with EAI (SMTPUTF8) support.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
@@ -426,7 +428,7 @@ EOF
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
 		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_RPATH='-Wl,--enable-new-dtags -Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${PLUGIN_LD='gcc -shared'}
 		;;
@@ -464,7 +466,7 @@ EOF
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
 		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
-		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_RPATH='-Wl,--enable-new-dtags -Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${PLUGIN_LD='gcc -shared'}
 		;;
@@ -656,6 +658,45 @@ EOF
 		   ./makedefs.test 2>/dev/null ||
 			CCARGS="$CCARGS -DNO_SIGSETJMP"
 		   rm -f makedefs.test makedefs.test.[co]
+esac
+
+#
+# Look for ICU and enable unicode email if available. This tests
+# a different function that Postfix uses in order to avoid having UTF8
+# in this file. The two functions use the same data structures, so they
+# should be equivalent for testing purposes.
+#
+case "$CCARGS" in
+ *-DNO_EAI*) ;;
+          *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+             cat >makedefs.test.c <<'EOF'
+#include <unicode/uidna.h>
+#include <stdlib.h>
+
+int main(int argc, char **argv)
+{
+    char    buf[1024];
+    UErrorCode error = U_ZERO_ERROR;
+    UIDNAInfo info = UIDNA_INFO_INITIALIZER;
+    UIDNA  *idna = uidna_openUTS46(UIDNA_DEFAULT, &error);
+
+    exit(uidna_labelToUnicodeUTF8(idna,
+				  "xn--lgbbat1ad8j",	/* an arabic TLD */
+				  15,
+				  buf,
+				  sizeof(buf),
+				  &info,
+				  &error) != 14);
+}
+EOF
+             ${CC-gcc} -o makedefs.test makedefs.test.c -I/usr/local/include \
+		-L/usr/local/lib -licuuc >/dev/null 2>&1
+             if ./makedefs.test 2>/dev/null ; then
+                 SYSLIBS="$SYSLIBS -L/usr/local/lib -licuuc"
+             else
+                 CCARGS="$CCARGS -DNO_EAI"
+             fi
+             rm -f makedefs.test makedefs.test.[co]
 esac
 
 #

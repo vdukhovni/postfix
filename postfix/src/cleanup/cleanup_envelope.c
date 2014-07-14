@@ -44,6 +44,7 @@
 #include <sys_defs.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>			/* ssscanf() */
 #include <ctype.h>
 
 /* Utility library. */
@@ -66,6 +67,7 @@
 #include <mail_proto.h>
 #include <dsn_mask.h>
 #include <rec_attr_map.h>
+#include <smtputf8.h>
 
 /* Application-specific. */
 
@@ -93,7 +95,8 @@ void    cleanup_envelope(CLEANUP_STATE *state, int type,
 		       (REC_TYPE_SIZE_CAST2) 0,	/* content offset */
 		       (REC_TYPE_SIZE_CAST3) 0,	/* recipient count */
 		       (REC_TYPE_SIZE_CAST4) 0,	/* qmgr options */
-		       (REC_TYPE_SIZE_CAST5) 0);	/* content length */
+		       (REC_TYPE_SIZE_CAST5) 0,	/* content length */
+		       (REC_TYPE_SIZE_CAST6) 0);	/* smtputf8 */
 
     /*
      * Pass control to the actual envelope processing routine.
@@ -340,13 +343,19 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 
     /*
      * Initial envelope non-recipient record processing.
+     * 
+     * If the message was requeued with "postsuper -r" use their
+     * SMTPUTF8_REQUESTED flag.
      */
     if (state->flags & CLEANUP_FLAG_INRCPT)
 	/* Tell qmgr that recipient records are mixed with other information. */
 	state->qmgr_opts |= QMGR_READ_FLAG_MIXED_RCPT_OTHER;
-    if (type == REC_TYPE_SIZE)
-	/* Use our own SIZE record instead. */
+    if (type == REC_TYPE_SIZE) {
+	/* Use our own SIZE record, except for the SMTPUTF8_REQUESTED flag. */
+	(void) sscanf(buf, "%*s $*s %*s %*s %*s %d", &state->smtputf8);
+	state->smtputf8 &= SMTPUTF8_FLAG_REQUESTED;
 	return;
+    }
     if (mapped_type == REC_TYPE_CTIME)
 	/* Use our own expiration time base record instead. */
 	return;

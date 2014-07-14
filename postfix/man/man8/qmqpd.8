@@ -66,6 +66,15 @@ specified \fItransport:destination\fR.
 .IP "\fBreceive_override_options (empty)\fR"
 Enable or disable recipient validation, built-in content
 filtering, or address mapping.
+.SH "SMTPUTF8 CONTROLS"
+.na
+.nf
+.ad
+.fi
+Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+.IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.
 .SH "RESOURCE AND RATE CONTROLS"
 .na
 .nf

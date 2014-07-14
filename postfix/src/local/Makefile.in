@@ -297,6 +297,7 @@ forward.o: ../../include/recipient_list.h
 forward.o: ../../include/record.h
 forward.o: ../../include/resolve_clnt.h
 forward.o: ../../include/sent.h
+forward.o: ../../include/smtputf8.h
 forward.o: ../../include/stringops.h
 forward.o: ../../include/sys_defs.h
 forward.o: ../../include/tok822.h

@@ -18,28 +18,28 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        The <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon always performs the following transformations:
 
-       <b>o</b>      Insert missing message headers: (<b>Resent-</b>) <b>From:</b>,  <b>To:</b>,  <b>Message-</b>
+       ·      Insert missing message headers: (<b>Resent-</b>) <b>From:</b>,  <b>To:</b>,  <b>Message-</b>
               <b>Id:</b>, and <b>Date:</b>.
 
-       <b>o</b>      Transform   envelope   and  header  addresses  to  the  standard
-              <i>user@fully-qualified-domain</i> form that is expected by other Post-
+       ·      Transform   envelope   and  header  addresses  to  the  standard
+              <i>user@fully-qualified-domain</i> form that is expected by other Post‐
               fix  programs.  This task is delegated to the <a href="trivial-rewrite.8.html"><b>trivial-rewrite</b>(8)</a>
               daemon.
 
-       <b>o</b>      Eliminate duplicate envelope recipient addresses.
+       ·      Eliminate duplicate envelope recipient addresses.
 
        The following address transformations are optional:
 
-       <b>o</b>      Optionally, rewrite all envelope and header addresses  according
+       ·      Optionally, rewrite all envelope and header addresses  according
               to the mappings specified in the <a href="canonical.5.html"><b>canonical</b>(5)</a> lookup tables.
 
-       <b>o</b>      Optionally,  masquerade  envelope  sender  addresses and message
+       ·      Optionally,  masquerade  envelope  sender  addresses and message
               header addresses (i.e. strip host or  domain  information  below
               all  domains  listed in the <b><a href="postconf.5.html#masquerade_domains">masquerade_domains</a></b> parameter, except
               for user names listed in  <b><a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a></b>).   By  default,
               address masquerading does not affect envelope recipients.
 
-       <b>o</b>      Optionally,  expand envelope recipients according to information
+       ·      Optionally,  expand envelope recipients according to information
               found in the <a href="virtual.5.html"><b>virtual</b>(5)</a> lookup tables.
 
        The <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon performs sanity checks on  the  content  of  each
@@ -107,7 +107,7 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        <b><a href="postconf.5.html#header_checks">header_checks</a> (empty)</b>
               Optional lookup tables for content inspection  of  primary  non-
-              MIME  message headers, as specified in the <a href="header_checks.5.html"><b>header_checks</b>(5)</a> man-
+              MIME  message headers, as specified in the <a href="header_checks.5.html"><b>header_checks</b>(5)</a> man‐
               ual page.
 
        Available in Postfix version 2.0 and later:
@@ -122,18 +122,18 @@ CLEANUP(8)                                                          CLEANUP(8)
               page.
 
        <b><a href="postconf.5.html#nested_header_checks">nested_header_checks</a> ($<a href="postconf.5.html#header_checks">header_checks</a>)</b>
-              Optional lookup tables for content inspection of  non-MIME  mes-
+              Optional lookup tables for content inspection of  non-MIME  mes‐
               sage   headers   in  attached  messages,  as  described  in  the
               <a href="header_checks.5.html"><b>header_checks</b>(5)</a> manual page.
 
        Available in Postfix version 2.3 and later:
 
        <b><a href="postconf.5.html#message_reject_characters">message_reject_characters</a> (empty)</b>
-              The set of characters that Postfix will reject in  message  con-
+              The set of characters that Postfix will reject in  message  con‐
               tent.
 
        <b><a href="postconf.5.html#message_strip_characters">message_strip_characters</a> (empty)</b>
-              The set of characters that Postfix will remove from message con-
+              The set of characters that Postfix will remove from message con‐
               tent.
 
 <b>BEFORE QUEUE MILTER CONTROLS</b>
@@ -147,7 +147,7 @@ CLEANUP(8)                                                          CLEANUP(8)
               does not arrive via the Postfix <a href="smtpd.8.html"><b>smtpd</b>(8)</a> server.
 
        <b><a href="postconf.5.html#milter_protocol">milter_protocol</a> (6)</b>
-              The mail filter protocol version and  optional  protocol  exten-
+              The mail filter protocol version and  optional  protocol  exten‐
               sions  for  communication  with  a  Milter application; prior to
               Postfix 2.6 the default protocol is 2.
 
@@ -156,14 +156,14 @@ CLEANUP(8)                                                          CLEANUP(8)
               unavailable or mis-configured.
 
        <b><a href="postconf.5.html#milter_macro_daemon_name">milter_macro_daemon_name</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
-              The  {daemon_name} macro value for Milter (mail filter) applica-
+              The  {daemon_name} macro value for Milter (mail filter) applica‐
               tions.
 
        <b><a href="postconf.5.html#milter_macro_v">milter_macro_v</a> ($<a href="postconf.5.html#mail_name">mail_name</a> $<a href="postconf.5.html#mail_version">mail_version</a>)</b>
               The {v} macro value for Milter (mail filter) applications.
 
        <b><a href="postconf.5.html#milter_connect_timeout">milter_connect_timeout</a> (30s)</b>
-              The time limit for connecting to a Milter (mail filter) applica-
+              The time limit for connecting to a Milter (mail filter) applica‐
               tion, and for negotiating protocol options.
 
        <b><a href="postconf.5.html#milter_command_timeout">milter_command_timeout</a> (30s)</b>
@@ -233,7 +233,7 @@ CLEANUP(8)                                                          CLEANUP(8)
               Reject mail with 8-bit text in message headers.
 
        <b><a href="postconf.5.html#strict_8bitmime_body">strict_8bitmime_body</a> (no)</b>
-              Reject 8-bit message body text without 8-bit MIME content encod-
+              Reject 8-bit message body text without 8-bit MIME content encod‐
               ing information.
 
        <b><a href="postconf.5.html#strict_mime_encoding_domain">strict_mime_encoding_domain</a> (no)</b>
@@ -243,7 +243,7 @@ CLEANUP(8)                                                          CLEANUP(8)
        Available in Postfix version 2.5 and later:
 
        <b><a href="postconf.5.html#detect_8bit_encoding_header">detect_8bit_encoding_header</a> (yes)</b>
-              Automatically  detect  8BITMIME  body content by looking at Con-
+              Automatically  detect  8BITMIME  body content by looking at Con‐
               tent-Transfer-Encoding:  message  headers;  historically,   this
               behavior was hard-coded to be "always on".
 
@@ -293,8 +293,8 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        <b><a href="postconf.5.html#masquerade_exceptions">masquerade_exceptions</a> (empty)</b>
               Optional list of user names that are not  subjected  to  address
-              masquerading,   even   when   their  address  matches  $<a href="postconf.5.html#masquerade_domains">masquer</a>-
-              <a href="postconf.5.html#masquerade_domains">ade_domains</a>.
+              masquerading,   even   when   their  address  matches  $masquer‐
+              ade_domains.
 
        <b><a href="postconf.5.html#propagate_unmatched_extensions">propagate_unmatched_extensions</a> (canonical, virtual)</b>
               What address lookup tables copy an address  extension  from  the
@@ -325,7 +325,7 @@ CLEANUP(8)                                                          CLEANUP(8)
               mapping.
 
        <b><a href="postconf.5.html#sender_canonical_classes">sender_canonical_classes</a> (envelope_sender, header_sender)</b>
-              What addresses are subject to <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> address map-
+              What addresses are subject to <a href="postconf.5.html#sender_canonical_maps">sender_canonical_maps</a> address map‐
               ping.
 
        <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
@@ -335,7 +335,7 @@ CLEANUP(8)                                                          CLEANUP(8)
 
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#duplicate_filter_limit">duplicate_filter_limit</a> (1000)</b>
-              The maximal number of addresses remembered by the address dupli-
+              The maximal number of addresses remembered by the address dupli‐
               cate filter for <a href="aliases.5.html"><b>aliases</b>(5)</a> or <a href="virtual.5.html"><b>virtual</b>(5)</a> alias expansion, or for
               <a href="showq.8.html"><b>showq</b>(8)</a> queue displays.
 
@@ -382,7 +382,7 @@ CLEANUP(8)                                                          CLEANUP(8)
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con‐
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
@@ -390,7 +390,7 @@ CLEANUP(8)                                                          CLEANUP(8)
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The  maximal  number of digits after the decimal point when log-
+              The  maximal  number of digits after the decimal point when log‐
               ging sub-second delay values.
 
        <b><a href="postconf.5.html#delay_warning_time">delay_warning_time</a> (0h)</b>
@@ -434,7 +434,7 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
+              syslog records, so that "smtpd"  becomes,  for  example,  "post‐
               fix/smtpd".
 
        Available in Postfix version 2.1 and later:

@@ -16042,3 +16042,75 @@ request before giving up. Specify a value greater than zero. </p>
 service request. Specify a value greater than zero. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM smtputf8_enable no
+
+<p> Enable experimental SMTPUTF8 support for the protocols described
+in RFC 6531..6533. This requires that Postfix is built to support
+these protocols. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM strict_smtputf8 no
+
+<p> Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts UTF8 sender or recipient addresses only when
+the client requests an SMTPUTF8 mail transaction. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM smtputf8_autodetect_classes sendmail, verify
+
+<p> Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.  This is a workaround to avoid chicken-and-egg
+problems during the initial SMTPUTF8 roll-out in environments with
+pre-existing mail flows that contain UTF8. Those mail flows should
+not break because Postfix suddenly refuses to deliver such mail
+to down-stream MTAs that don't announce SMTPUTF8 support.  </p>
+
+<p> The problem is that Postfix cannot rely solely on the sender's
+declaration that a message requires SMTPUTF8 support, because UTF8
+may be introduced during local processing (for example, the client
+hostname in Postfix's Received: header, adding @$myorigin or
+.$mydomain to an incomplete address, address rewriting, alias
+expansion, automatic BCC recipients, local forwarding, and changes
+made by header checks or Milter applications). </p>
+
+<p> For now, the default is to enable "SMTPUTF8 required" autodetection
+only for Postfix sendmail command-line submissions and address
+verification probes.  This may change once SMTPUTF8 support achieves
+world domination.  However, sites that add UTF8 content via local
+processing (see above) should autodetect the need for SMTPUTF8
+support for all email.</p>
+
+<p> Specify one or more of the following: </p>
+
+<dl compact>
+
+<dt> <b> sendmail </b> </dt> <dd> Submission with the Postfix
+sendmail(1) command. </dd>
+
+<dt> <b> smtpd </b> </dt> <dd> Mail received with the smtpd(8)
+daemon. </dd>
+
+<dt> <b> qmqpd </b> </dt> <dd> Mail received with the qmqpd(8)
+daemon. </dd>
+
+<dt> <b> forward </b> </dt> <dd> Local forwarding or aliasing.
+</dd>
+
+<dt> <b> bounce </b> </dt> <dd> Submission by the bounce(8) daemon.
+</dd>
+
+<dt> <b> notify </b> </dt> <dd> Postmaster notification from the
+smtp(8) or smtpd(8) daemon. </dd>
+
+<dt> <b> verify </b> </dt> <dd> Address verification probe from the
+verify(8) daemon.  </dd>
+
+<dt> <b> all </b> </dt> <dd> Enable SMTPUTF8 autodetection for all
+mail. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.12 and later. </p>

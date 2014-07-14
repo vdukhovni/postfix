@@ -979,6 +979,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 		session->state = state;
 #ifdef USE_TLS
 		session->tls = state->tls;	/* TEMPORARY */
+		/* XXX: EAI: Convert to A-label here or in TLS library */
 		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
 #endif
 		if (addr->pref == domain_best_pref)
