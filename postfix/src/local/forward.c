@@ -79,6 +79,7 @@
 #include <mail_date.h>
 #include <mail_params.h>
 #include <dsn_mask.h>
+#include <smtputf8.h>
 
 /* Application-specific. */
 
@@ -147,7 +148,11 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
     info->queue_id = mystrdup(STR(buffer));
     GETTIMEOFDAY(&info->posting_time);
 
-#define FORWARD_CLEANUP_FLAGS (CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL)
+#define FORWARD_CLEANUP_FLAGS \
+	(CLEANUP_FLAG_BOUNCE | CLEANUP_FLAG_MASK_INTERNAL \
+	| smtputf8_autodetect(MAIL_SRC_MASK_FORWARD) \
+	| ((request->smtputf8 & SMTPUTF8_FLAG_REQUESTED) ? \
+	CLEANUP_FLAG_SMTPUTF8 : 0))
 
     attr_print(cleanup, ATTR_FLAG_NONE,
 	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS,

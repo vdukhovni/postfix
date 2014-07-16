@@ -53,6 +53,8 @@
 /*	RFC 4409 (Message submission)
 /*	RFC 4954 (AUTH command)
 /*	RFC 5321 (SMTP protocol)
+/*	RFC 6531 (Internationalized SMTP)
+/*	RFC 6533 (Internationalized Delivery Status Notifications)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
@@ -470,6 +472,18 @@
 /* .IP "\fBsmtpd_tls_cipherlist (empty)\fR"
 /*	Obsolete Postfix < 2.3 control for the Postfix SMTP server TLS
 /*	cipher list.
+/* SMTPUTF8 CONTROLS
+/* .ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/* .IP "\fBsmtputf8_enable (no)\fR"
+/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
+/* .IP "\fBstrict_smtputf8 (no)\fR"
+/*	Enable stricter enforcement of the SMTPUTF8 protocol.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* VERP SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -1122,8 +1136,10 @@
 #include <valid_mailhost_addr.h>
 #include <dsn_mask.h>
 #include <xtext.h>
+#include <uxtext.h>
 #include <tls_proxy.h>
 #include <verify_sender_addr.h>
+#include <smtputf8.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1812,6 +1828,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	EHLO_APPEND(state, "8BITMIME");
     if ((discard_mask & EHLO_MASK_DSN) == 0)
 	EHLO_APPEND(state, "DSN");
+    if (var_smtputf8_enable && (discard_mask & EHLO_MASK_SMTPUTF8) == 0)
+	EHLO_APPEND(state, "SMTPUTF8");
 
     /*
      * Send the reply.
@@ -1892,6 +1910,10 @@ static int mail_open_stream(SMTPD_STATE *state)
 	cleanup_flags = input_transp_cleanup(CLEANUP_FLAG_MASK_EXTERNAL,
 					     smtpd_input_transp_mask)
 	    | CLEANUP_FLAG_SMTP_REPLY;
+	if (state->flags & SMTPD_FLAG_SMTPUTF8)
+	    cleanup_flags |= CLEANUP_FLAG_SMTPUTF8;
+	else
+	    cleanup_flags |= smtputf8_autodetect(MAIL_SRC_MASK_SMTPD);
 	state->dest = mail_stream_service(MAIL_CLASS_PUBLIC,
 					  var_cleanup_service);
 	if (state->dest == 0
@@ -2086,7 +2108,8 @@ static int mail_open_stream(SMTPD_STATE *state)
 /* extract_addr - extract address from rubble */
 
 static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
-			        int allow_empty_addr, int strict_rfc821)
+			        int allow_empty_addr, int strict_rfc821,
+			        int smtputf8)
 {
     const char *myname = "extract_addr";
     TOK822 *tree;
@@ -2185,7 +2208,7 @@ static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 	if ((STR(state->addr_buf)[0] == 0 && !allow_empty_addr)
 	    || (strict_rfc821 && STR(state->addr_buf)[0] == '@')
 	    || (SMTPD_STAND_ALONE(state) == 0
-		&& smtpd_check_addr(STR(state->addr_buf)) != 0)) {
+		&& smtpd_check_addr(STR(state->addr_buf), smtputf8) != 0)) {
 	    msg_warn("Illegal address syntax from %s in %s command: %s",
 		     state->namaddr, state->where,
 		     printable(STR(arg->vstrval), '?'));
@@ -2235,7 +2258,9 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *verp_delims = 0;
     int     rate;
     int     dsn_envid = 0;
+    int     smtputf8 = 0;
 
+    state->flags &= ~SMTPD_FLAG_SMTPUTF8;
     state->encoding = 0;
     state->dsn_ret = 0;
 
@@ -2289,7 +2314,24 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 5.1.7 Bad sender address syntax");
 	return (-1);
     }
-    if (extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR, var_strict_rfc821_env) != 0) {
+
+    /*
+     * XXX The sender address comes first, but the optional SMTPUTF8
+     * parameter determines what address syntax is permitted. We must process
+     * this parameter early.
+     */
+    if (var_smtputf8_enable
+	&& (state->ehlo_discard_mask & EHLO_MASK_SMTPUTF8) == 0) {
+	for (narg = 3; narg < argc; narg++) {
+	    arg = argv[narg].strval;
+	    if (strcasecmp(arg, "SMTPUTF8") == 0) {	/* RFC 6531 */
+		smtputf8 = 1;
+		break;
+	    }
+	}
+    }
+    if (extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR,
+		     var_strict_rfc821_env, smtputf8) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.1.7 Bad sender address syntax");
 	return (-1);
@@ -2313,6 +2355,10 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		smtpd_chat_reply(state, "552 5.3.4 Message size exceeds file system imposed limit");
 		return (-1);
 	    }
+	} else if (var_smtputf8_enable
+		   && (state->ehlo_discard_mask & EHLO_MASK_SMTPUTF8) == 0
+		   && strcasecmp(arg, "SMTPUTF8") == 0) {	/* RFC 6531 */
+	     /* Already processed early. */ ;
 #ifdef USE_SASL_AUTH
 	} else if (strncasecmp(arg, "AUTH=", 5) == 0) {
 	    if ((err = smtpd_sasl_mail_opt(state, arg + 5)) != 0) {
@@ -2431,6 +2477,19 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
 
     /*
+     * Historically, Postfix does not forbid 8-bit envelope localparts.
+     * Changing this would be a compatibility break. That can't happen in the
+     * forseeable future.
+     */
+    if (var_strict_smtputf8 && (state->flags & SMTPD_FLAG_SMTPUTF8) == 0) {
+	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
+	    mail_reset(state);
+	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
+	    return (-1);
+	}
+    }
+
+    /*
      * Check the queue file space, if applicable. The optional before-filter
      * speed-adjust buffers use disk space. However, we don't know if they
      * compete for storage space with the after-filter queue, so we can't
@@ -2459,6 +2518,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->verp_delims = mystrdup(verp_delims);
     if (dsn_envid)
 	state->dsn_envid = mystrdup(STR(state->dsn_buf));
+    if (smtputf8)
+	state->flags |= SMTPD_FLAG_SMTPUTF8;
     if (USE_SMTPD_PROXY(state))
 	state->proxy_mail = mystrdup(STR(state->buffer));
     if (var_smtpd_delay_open == 0 && mail_open_stream(state) < 0) {
@@ -2610,7 +2671,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
     }
-    if (extract_addr(state, argv + 2, REJECT_EMPTY_ADDR, var_strict_rfc821_env) != 0) {
+    if (extract_addr(state, argv + 2, REJECT_EMPTY_ADDR, var_strict_rfc821_env,
+		     state->flags & SMTPD_FLAG_SMTPUTF8) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
@@ -2640,8 +2702,10 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    vstring_strcpy(state->dsn_orcpt_buf, arg + 6);
 	    if (dsn_orcpt_addr
 	     || (coded_addr = split_at(STR(state->dsn_orcpt_buf), ';')) == 0
-		|| xtext_unquote(state->dsn_buf, coded_addr) == 0
-		|| *(dsn_orcpt_type = STR(state->dsn_orcpt_buf)) == 0) {
+		|| *(dsn_orcpt_type = STR(state->dsn_orcpt_buf)) == 0
+		|| (strcasecmp(dsn_orcpt_type, "utf-8") == 0 ?
+		    uxtext_unquote(state->dsn_buf, coded_addr) == 0 :
+		    xtext_unquote(state->dsn_buf, coded_addr) == 0)) {
 		state->error_mask |= MAIL_ERROR_PROTOCOL;
 		smtpd_chat_reply(state,
 			     "501 5.5.4 Error: Bad ORCPT parameter syntax");
@@ -2661,6 +2725,19 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (0);
 	state->error_mask |= MAIL_ERROR_POLICY;
 	return (-1);
+    }
+
+    /*
+     * Historically, Postfix does not forbid 8-bit envelope localparts.
+     * Changing this would be a compatibility break. That can't happen in the
+     * forseeable future.
+     */
+    if (var_strict_smtputf8 && (state->flags & SMTPD_FLAG_SMTPUTF8) == 0) {
+	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
+	    mail_reset(state);
+	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
+	    return (-1);
+	}
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
 	const char *verify_sender;
@@ -2919,6 +2996,8 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     const CLEANUP_STAT_DETAIL *detail;
     const char *rfc3848_sess;
     const char *rfc3848_auth;
+    const char *with_protocol = (state->flags & SMTPD_FLAG_SMTPUTF8) ?
+    "UTF8SMTP" : state->protocol;
 
 #ifdef USE_TLS
     VSTRING *peer_CN;
@@ -3081,7 +3160,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			state->cleanup ? "\tby %s (%s) with %s%s%s id %s" :
 			"\tby %s (%s) with %s%s%s",
 			var_myhostname, var_mail_name,
-			state->protocol, rfc3848_sess,
+			with_protocol, rfc3848_sess,
 			rfc3848_auth, state->queue_id);
 	    quote_822_local(state->buffer, state->recipient);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
@@ -3092,7 +3171,7 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 			state->cleanup ? "\tby %s (%s) with %s%s%s id %s;" :
 			"\tby %s (%s) with %s%s%s;",
 			var_myhostname, var_mail_name,
-			state->protocol, rfc3848_sess,
+			with_protocol, rfc3848_sess,
 			rfc3848_auth, state->queue_id);
 	    out_fprintf(out_stream, REC_TYPE_NORM,
 			"\t%s", mail_date(state->arrival_time.tv_sec));
@@ -3399,6 +3478,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 {
     const char *err = 0;
     int     rate;
+    int     smtputf8 = 0;
 
     /*
      * The SMTP standard (RFC 821) disallows unquoted special characters in
@@ -3429,9 +3509,17 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "502 5.5.1 VRFY command is disabled");
 	return (-1);
     }
+    /* Fix 20140707: handle missing address. */
+    if (var_smtputf8_enable
+	&& (state->ehlo_discard_mask & EHLO_MASK_SMTPUTF8) == 0
+	&& argc > 1 && strcasecmp(argv[argc - 1].strval, "SMTPUTF8") == 0) {
+	argc--;					/* RFC 6531 */
+	smtputf8 = 1;
+    }
     if (argc < 2) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
-	smtpd_chat_reply(state, "501 5.5.4 Syntax: VRFY address");
+	smtpd_chat_reply(state, "501 5.5.4 Syntax: VRFY address%s",
+			 var_smtputf8_enable ? " [SMTPUTF8]" : "");
 	return (-1);
     }
 
@@ -3463,10 +3551,18 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (argc > 2)
 	collapse_args(argc - 1, argv + 1);
-    if (extract_addr(state, argv + 1, REJECT_EMPTY_ADDR, SLOPPY) != 0) {
+    if (extract_addr(state, argv + 1, REJECT_EMPTY_ADDR, SLOPPY, smtputf8) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.1.3 Bad recipient address syntax");
 	return (-1);
+    }
+    /* Fix 20140707: Check the VRFY command. */
+    if (smtputf8 == 0 && var_strict_smtputf8) {
+	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
+	    mail_reset(state);
+	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
+	    return (-1);
+	}
     }
     /* Use state->addr_buf, with the unquoted result from extract_addr() */
     if (SMTPD_STAND_ALONE(state) == 0
@@ -3524,6 +3620,8 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * As an extension to RFC 1985 we also allow an RFC 2821 address literal
      * enclosed in [].
+     * 
+     * XXX EAI: Convert to ASCII and use that form internally.
      */
     if (!valid_hostname(argv[1].strval, DONT_GRIPE)
 	&& !valid_mailhost_literal(argv[1].strval, DONT_GRIPE)) {
@@ -3694,6 +3792,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (name_status != SMTPD_PEER_CODE_OK) {
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
+		/* XXX EAI */
 		if (!valid_hostname(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
@@ -3719,6 +3818,7 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (name_status != SMTPD_PEER_CODE_OK) {
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
+		/* XXX EAI */
 		if (!valid_hostname(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
@@ -3987,6 +4087,7 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_NAME_UNKNOWN;
 	    } else {
+		/* XXX EAI */
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
 		if (!valid_hostname(attr_value, DONT_GRIPE)) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -5489,7 +5590,7 @@ int     main(int argc, char **argv)
 #endif
 	VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log, 0, 0,
 	VAR_SMTPD_UPROXY_PROTO, DEF_SMTPD_UPROXY_PROTO, &var_smtpd_uproxy_proto, 0, 0,
-	VAR_SMTPD_POLICY_DEF_ACTION, DEF_SMTPD_POLICY_DEF_ACTION, &var_smtpd_policy_def_action, 1, 0, 
+	VAR_SMTPD_POLICY_DEF_ACTION, DEF_SMTPD_POLICY_DEF_ACTION, &var_smtpd_policy_def_action, 1, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

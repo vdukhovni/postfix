@@ -17,6 +17,9 @@
 /*	name or address, and the service name or port number.
 /*	The input string is modified.
 /*
+/*	Host/domain names are validated with valid_utf8_hostname(),
+/*	and host addresses are validated with valid_hostaddr().
+/*
 /*	The following input formats are understood (null means
 /*	a null pointer argument):
 /*
@@ -88,8 +91,8 @@
 
 #include <msg.h>
 #include <split_at.h>
-#include <stringops.h>
-#include <valid_hostname.h>
+#include <stringops.h>			/* XXX temp_utf8_kludge */
+#include <valid_utf8_hostname.h>
 
 /* Global library. */
 
@@ -154,7 +157,8 @@ const char *host_port(char *buf, char **host, char *def_host,
      * Final sanity checks. We're still sloppy, allowing bare numerical
      * network addresses instead of requiring proper [ipaddress] forms.
      */
-    if (*host != def_host && !valid_hostname(*host, DONT_GRIPE)
+    if (*host != def_host 
+	&& !valid_utf8_hostname(temp_utf8_kludge, *host, DONT_GRIPE)
 	&& !valid_hostaddr(*host, DONT_GRIPE))
 	return ("valid hostname or network address required");
     if (*port != def_service && ISDIGIT(**port) && !alldig(*port))

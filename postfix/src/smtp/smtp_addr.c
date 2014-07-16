@@ -85,6 +85,7 @@
 #include <stringops.h>
 #include <myaddrinfo.h>
 #include <inet_proto.h>
+#include <midna.h>
 
 /* Global library. */
 
@@ -342,7 +343,7 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref)
 
 /* smtp_domain_addr - mail exchanger address lookup */
 
-DNS_RR *smtp_domain_addr(char *name, DNS_RR **mxrr, int misc_flags,
+DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 			         DSN_BUF *why, int *found_myself)
 {
     DNS_RR *mx_names;
@@ -351,6 +352,7 @@ DNS_RR *smtp_domain_addr(char *name, DNS_RR **mxrr, int misc_flags,
     unsigned best_pref;
     unsigned best_found;
     int     r = 0;			/* Resolver flags */
+    const char *aname;
 
     dsb_reset(why);				/* Paranoia */
 
@@ -366,6 +368,17 @@ DNS_RR *smtp_domain_addr(char *name, DNS_RR **mxrr, int misc_flags,
 	msg_panic("smtp_domain_addr: DNS lookup is disabled");
     if (smtp_dns_support == SMTP_DNS_DNSSEC)
 	r |= RES_USE_DNSSEC;
+
+    /*
+     * IDNA support.
+     */
+#ifndef NO_EAI
+    if (!allascii(name) && (aname = midna_utf8_to_ascii(name)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", name, aname);
+    } else
+#endif
+	aname = name;
 
     /*
      * Look up the mail exchanger hosts listed for this name. Sort the
@@ -409,21 +422,21 @@ DNS_RR *smtp_domain_addr(char *name, DNS_RR **mxrr, int misc_flags,
      * at hostnames provides a partial solution for MX hosts behind a NAT
      * gateway.
      */
-    switch (dns_lookup(name, T_MX, r, &mx_names, (VSTRING *) 0, why->reason)) {
+    switch (dns_lookup(aname, T_MX, r, &mx_names, (VSTRING *) 0, why->reason)) {
     default:
 	dsb_status(why, "4.4.3");
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(name, misc_flags, why);
+	    addr_list = smtp_host_addr(aname, misc_flags, why);
 	break;
     case DNS_INVAL:
 	dsb_status(why, "5.4.4");
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(name, misc_flags, why);
+	    addr_list = smtp_host_addr(aname, misc_flags, why);
 	break;
     case DNS_FAIL:
 	dsb_status(why, "5.4.3");
 	if (var_ign_mx_lookup_err)
-	    addr_list = smtp_host_addr(name, misc_flags, why);
+	    addr_list = smtp_host_addr(aname, misc_flags, why);
 	break;
     case DNS_OK:
 	mx_names = dns_rr_sort(mx_names, dns_rr_compare_pref_any);
@@ -472,7 +485,7 @@ DNS_RR *smtp_domain_addr(char *name, DNS_RR **mxrr, int misc_flags,
 	}
 	break;
     case DNS_NOTFOUND:
-	addr_list = smtp_host_addr(name, misc_flags, why);
+	addr_list = smtp_host_addr(aname, misc_flags, why);
 	break;
     }
 
@@ -489,6 +502,7 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
 {
     DNS_RR *addr_list;
     int     res_opt = 0;
+    const char *ahost;
 
     dsb_reset(why);				/* Paranoia */
 
@@ -496,11 +510,22 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
 	res_opt |= RES_USE_DNSSEC;
 
     /*
+     * IDNA support.
+     */
+#ifndef NO_EAI
+    if (!allascii(host) && (ahost = midna_utf8_to_ascii(host)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", host, ahost);
+    } else
+#endif
+	ahost = host;
+
+    /*
      * If the host is specified by numerical address, just convert the
      * address to internal form. Otherwise, the host is specified by name.
      */
 #define PREF0	0
-    addr_list = smtp_addr_one((DNS_RR *) 0, host, res_opt, PREF0, why);
+    addr_list = smtp_addr_one((DNS_RR *) 0, ahost, res_opt, PREF0, why);
     if (addr_list
 	&& (misc_flags & SMTP_MISC_FLAG_LOOP_DETECT)
 	&& smtp_find_self(addr_list) != 0) {

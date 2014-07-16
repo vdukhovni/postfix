@@ -53,6 +53,7 @@ static struct cleanup_flag_map cleanup_flag_map[] = {
     CLEANUP_FLAG_MAP_OK, "enable_address_mapping",
     CLEANUP_FLAG_MILTER, "enable_milters",
     CLEANUP_FLAG_SMTP_REPLY, "enable_smtp_reply",
+    CLEANUP_FLAG_SMTPUTF8, "smtputf8_requested",
 };
 
 /* cleanup_strflags - map flags code to printable string */

@@ -151,6 +151,7 @@ smtp_addr.o: ../../include/inet_proto.h
 smtp_addr.o: ../../include/mail_params.h
 smtp_addr.o: ../../include/maps.h
 smtp_addr.o: ../../include/match_list.h
+smtp_addr.o: ../../include/midna.h
 smtp_addr.o: ../../include/mime_state.h
 smtp_addr.o: ../../include/msg.h
 smtp_addr.o: ../../include/msg_stats.h
@@ -188,10 +189,12 @@ smtp_chat.o: ../../include/header_body_checks.h
 smtp_chat.o: ../../include/header_opts.h
 smtp_chat.o: ../../include/htable.h
 smtp_chat.o: ../../include/int_filt.h
+smtp_chat.o: ../../include/iostuff.h
 smtp_chat.o: ../../include/line_wrap.h
 smtp_chat.o: ../../include/mail_addr.h
 smtp_chat.o: ../../include/mail_error.h
 smtp_chat.o: ../../include/mail_params.h
+smtp_chat.o: ../../include/mail_proto.h
 smtp_chat.o: ../../include/maps.h
 smtp_chat.o: ../../include/match_list.h
 smtp_chat.o: ../../include/mime_state.h
@@ -207,6 +210,7 @@ smtp_chat.o: ../../include/recipient_list.h
 smtp_chat.o: ../../include/resolve_clnt.h
 smtp_chat.o: ../../include/scache.h
 smtp_chat.o: ../../include/smtp_stream.h
+smtp_chat.o: ../../include/smtputf8.h
 smtp_chat.o: ../../include/sock_addr.h
 smtp_chat.o: ../../include/string_list.h
 smtp_chat.o: ../../include/stringops.h
@@ -331,7 +335,6 @@ smtp_map11.o: ../../include/string_list.h
 smtp_map11.o: ../../include/sys_defs.h
 smtp_map11.o: ../../include/tls.h
 smtp_map11.o: ../../include/tok822.h
-smtp_map11.o: ../../include/valid_hostname.h
 smtp_map11.o: ../../include/vbuf.h
 smtp_map11.o: ../../include/vstream.h
 smtp_map11.o: ../../include/vstring.h
@@ -380,6 +383,7 @@ smtp_proto.o: ../../include/record.h
 smtp_proto.o: ../../include/resolve_clnt.h
 smtp_proto.o: ../../include/scache.h
 smtp_proto.o: ../../include/smtp_stream.h
+smtp_proto.o: ../../include/smtputf8.h
 smtp_proto.o: ../../include/sock_addr.h
 smtp_proto.o: ../../include/split_at.h
 smtp_proto.o: ../../include/string_list.h
@@ -387,6 +391,7 @@ smtp_proto.o: ../../include/stringops.h
 smtp_proto.o: ../../include/sys_defs.h
 smtp_proto.o: ../../include/tls.h
 smtp_proto.o: ../../include/tok822.h
+smtp_proto.o: ../../include/uxtext.h
 smtp_proto.o: ../../include/vbuf.h
 smtp_proto.o: ../../include/vstream.h
 smtp_proto.o: ../../include/vstring.h
@@ -689,6 +694,7 @@ smtp_tls_policy.o: ../../include/sys_defs.h
 smtp_tls_policy.o: ../../include/tls.h
 smtp_tls_policy.o: ../../include/tok822.h
 smtp_tls_policy.o: ../../include/valid_hostname.h
+smtp_tls_policy.o: ../../include/valid_utf8_hostname.h
 smtp_tls_policy.o: ../../include/vbuf.h
 smtp_tls_policy.o: ../../include/vstream.h
 smtp_tls_policy.o: ../../include/vstring.h

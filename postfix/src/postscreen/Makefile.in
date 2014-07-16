@@ -296,6 +296,7 @@ postscreen_smtpd.o: ../../include/argv.h
 postscreen_smtpd.o: ../../include/attr.h
 postscreen_smtpd.o: ../../include/dict.h
 postscreen_smtpd.o: ../../include/dict_cache.h
+postscreen_smtpd.o: ../../include/dns.h
 postscreen_smtpd.o: ../../include/ehlo_mask.h
 postscreen_smtpd.o: ../../include/events.h
 postscreen_smtpd.o: ../../include/htable.h
@@ -313,6 +314,7 @@ postscreen_smtpd.o: ../../include/mymalloc.h
 postscreen_smtpd.o: ../../include/name_code.h
 postscreen_smtpd.o: ../../include/name_mask.h
 postscreen_smtpd.o: ../../include/server_acl.h
+postscreen_smtpd.o: ../../include/sock_addr.h
 postscreen_smtpd.o: ../../include/string_list.h
 postscreen_smtpd.o: ../../include/stringops.h
 postscreen_smtpd.o: ../../include/sys_defs.h
@@ -328,6 +330,7 @@ postscreen_starttls.o: ../../include/attr.h
 postscreen_starttls.o: ../../include/connect.h
 postscreen_starttls.o: ../../include/dict.h
 postscreen_starttls.o: ../../include/dict_cache.h
+postscreen_starttls.o: ../../include/dns.h
 postscreen_starttls.o: ../../include/events.h
 postscreen_starttls.o: ../../include/htable.h
 postscreen_starttls.o: ../../include/iostuff.h
@@ -342,6 +345,7 @@ postscreen_starttls.o: ../../include/mymalloc.h
 postscreen_starttls.o: ../../include/name_code.h
 postscreen_starttls.o: ../../include/name_mask.h
 postscreen_starttls.o: ../../include/server_acl.h
+postscreen_starttls.o: ../../include/sock_addr.h
 postscreen_starttls.o: ../../include/string_list.h
 postscreen_starttls.o: ../../include/stringops.h
 postscreen_starttls.o: ../../include/sys_defs.h

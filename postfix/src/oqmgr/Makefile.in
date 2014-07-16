@@ -168,6 +168,7 @@ qmgr_deliver.o: ../../include/mymalloc.h
 qmgr_deliver.o: ../../include/rcpt_print.h
 qmgr_deliver.o: ../../include/recipient_list.h
 qmgr_deliver.o: ../../include/scan_dir.h
+qmgr_deliver.o: ../../include/smtputf8.h
 qmgr_deliver.o: ../../include/stringops.h
 qmgr_deliver.o: ../../include/sys_defs.h
 qmgr_deliver.o: ../../include/vbuf.h

@@ -124,6 +124,9 @@
 /*	bool	var_long_queue_ids;
 /*	bool	var_daemon_open_fatal;
 /*	char	*var_dsn_filter;
+/*	int	var_smtputf8_enable
+/*	int	var_strict_smtputf8;
+/*	char	*var_smtputf8_autoclass;
 /*
 /*	void	mail_params_init()
 /*
@@ -316,6 +319,9 @@ bool    var_multi_enable;
 bool    var_long_queue_ids;
 bool    var_daemon_open_fatal;
 char   *var_dsn_filter;
+int     var_smtputf8_enable;
+int     var_strict_smtputf8;
+char   *var_smtputf8_autoclass;
 
 const char null_format_string[1] = "";
 
@@ -598,6 +604,7 @@ void    mail_params_init()
 	/* multi_instance_wrapper may have dependencies but not dependents. */
 	VAR_MULTI_WRAPPER, DEF_MULTI_WRAPPER, &var_multi_wrapper, 0, 0,
 	VAR_DSN_FILTER, DEF_DSN_FILTER, &var_dsn_filter, 0, 0,
+	VAR_SMTPUTF8_AUTOCLASS, DEF_SMTPUTF8_AUTOCLASS, &var_smtputf8_autoclass, 1, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {
@@ -659,6 +666,8 @@ void    mail_params_init()
 	VAR_CYRUS_SASL_AUTHZID, DEF_CYRUS_SASL_AUTHZID, &var_cyrus_sasl_authzid,
 	VAR_MULTI_ENABLE, DEF_MULTI_ENABLE, &var_multi_enable,
 	VAR_LONG_QUEUE_IDS, DEF_LONG_QUEUE_IDS, &var_long_queue_ids,
+	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
+	VAR_STRICT_SMTPUTF8, DEF_STRICT_SMTPUTF8, &var_strict_smtputf8,
 	0,
     };
     const char *cp;
@@ -734,6 +743,16 @@ void    mail_params_init()
     dict_db_cache_size = var_db_read_buf;
     dict_lmdb_map_size = var_lmdb_map_size;
     inet_windowsize = var_inet_windowsize;
+    temp_utf8_kludge = var_smtputf8_enable;
+
+    /*
+     * Report run-time versus compile-time discrepancies.
+     */
+#ifdef NO_IDNA
+    if (var_smtputf8_enable)
+	msg_warn("%s is true, but EAI support is not compiled in",
+		 VAR_SMTPUTF8_ENABLE);
+#endif
 
     /*
      * Variables whose defaults are determined at runtime, after other

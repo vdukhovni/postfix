@@ -32,7 +32,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	match_service.c mail_conf_nint.c addr_match_list.c mail_conf_nbool.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
-	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c
+	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
+	smtputf8.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -66,8 +67,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	match_service.o mail_conf_nint.o addr_match_list.o mail_conf_nbool.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
-	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o \
-	$(NON_PLUGIN_MAP_OBJ)
+	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
+	smtputf8.o $(NON_PLUGIN_MAP_OBJ)
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -99,7 +100,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h dsn_filter.h dynamicmaps.h
+	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -113,7 +114,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	verify_clnt xtext anvil_clnt scache ehlo_mask \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
-	mail_version mail_dict server_acl
+	mail_version mail_dict server_acl uxtext
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -138,7 +139,7 @@ test:	$(TESTPROG)
 $(LIB):	$(OBJS)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
-	$(SHLIB_LD) -o $(LIB) $(OBJS) $(SHLIB_SYSLIBS)
+	$(SHLIB_LD) $(SHLIB_RPATH) -o $(LIB) $(OBJS) $(SHLIB_SYSLIBS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)
@@ -147,27 +148,29 @@ $(LIB_DIR)/$(LIB): $(LIB)
 plugin_map_so_make: $(PLUGIN_MAP_SO)
 
 $(LIB_PREFIX)ldap$(LIB_SUFFIX): dict_ldap.o
-	$(PLUGIN_LD) -o $@ dict_ldap.o $(AUXLIBS_LDAP)
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ dict_ldap.o $(AUXLIBS_LDAP)
 
 $(LIB_PREFIX)mysql$(LIB_SUFFIX): dict_mysql.o
-	$(PLUGIN_LD) -o $@ dict_mysql.o $(AUXLIBS_MYSQL)
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ dict_mysql.o $(AUXLIBS_MYSQL)
 
 $(LIB_PREFIX)pgsql$(LIB_SUFFIX): dict_pgsql.o
-	$(PLUGIN_LD) -o $@ dict_pgsql.o $(AUXLIBS_PGSQL)
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ dict_pgsql.o $(AUXLIBS_PGSQL)
 
 $(LIB_PREFIX)sqlite$(LIB_SUFFIX): dict_sqlite.o
-	$(PLUGIN_LD) -o $@ dict_sqlite.o $(AUXLIBS_SQLITE)
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ dict_sqlite.o $(AUXLIBS_SQLITE)
 
 $(LIB_PREFIX)cdb$(LIB_SUFFIX): mkmap_cdb.o $(LIB_DIR)/dict_cdb.o
-	$(PLUGIN_LD) -o $@ mkmap_cdb.o $(LIB_DIR)/dict_cdb.o $(AUXLIBS_CDB)
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ mkmap_cdb.o \
+	    $(LIB_DIR)/dict_cdb.o $(AUXLIBS_CDB)
 
 $(LIB_PREFIX)lmdb$(LIB_SUFFIX): mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
 	    $(LIB_DIR)/slmdb.o
-	$(PLUGIN_LD) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ mkmap_lmdb.o $(LIB_DIR)/dict_lmdb.o \
 	    $(LIB_DIR)/slmdb.o $(AUXLIBS_LMDB)
 
 $(LIB_PREFIX)sdbm$(LIB_SUFFIX): mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o
-	$(PLUGIN_LD) -o $@ mkmap_sdbm.o $(LIB_DIR)/dict_sdbm.o $(AUXLIBS_SDBM)
+	$(PLUGIN_LD) $(SHLIB_RPATH) -o $@ mkmap_sdbm.o \
+	    $(LIB_DIR)/dict_sdbm.o $(AUXLIBS_SDBM)
 
 update: $(LIB_DIR)/$(LIB) $(HDRS) $(PLUGIN_MAP_SO_UPDATE)
 	-for i in $(HDRS); \
@@ -303,6 +306,11 @@ mime_state: $(LIB) $(LIBS)
 strip_addr: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) -DTEST $(CFLAGS) -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
+uxtext: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
 verify_clnt: $(LIB) $(LIBS)
@@ -978,26 +986,8 @@ dict_memcache.o: dict_memcache.c
 dict_memcache.o: dict_memcache.h
 dict_memcache.o: memcache_proto.h
 dict_memcache.o: string_list.h
-dict_mysql.o: ../../include/argv.h
-dict_mysql.o: ../../include/dict.h
-dict_mysql.o: ../../include/events.h
-dict_mysql.o: ../../include/find_inet.h
-dict_mysql.o: ../../include/match_list.h
-dict_mysql.o: ../../include/msg.h
-dict_mysql.o: ../../include/myflock.h
-dict_mysql.o: ../../include/mymalloc.h
-dict_mysql.o: ../../include/myrand.h
-dict_mysql.o: ../../include/split_at.h
-dict_mysql.o: ../../include/stringops.h
 dict_mysql.o: ../../include/sys_defs.h
-dict_mysql.o: ../../include/vbuf.h
-dict_mysql.o: ../../include/vstream.h
-dict_mysql.o: ../../include/vstring.h
-dict_mysql.o: cfg_parser.h
-dict_mysql.o: db_common.h
 dict_mysql.o: dict_mysql.c
-dict_mysql.o: dict_mysql.h
-dict_mysql.o: string_list.h
 dict_pgsql.o: ../../include/argv.h
 dict_pgsql.o: ../../include/dict.h
 dict_pgsql.o: ../../include/events.h
@@ -1252,15 +1242,19 @@ input_transp.o: cleanup_user.h
 input_transp.o: input_transp.c
 input_transp.o: input_transp.h
 input_transp.o: mail_params.h
+int_filt.o: ../../include/attr.h
+int_filt.o: ../../include/iostuff.h
 int_filt.o: ../../include/msg.h
 int_filt.o: ../../include/name_mask.h
 int_filt.o: ../../include/sys_defs.h
 int_filt.o: ../../include/vbuf.h
+int_filt.o: ../../include/vstream.h
 int_filt.o: ../../include/vstring.h
 int_filt.o: cleanup_user.h
 int_filt.o: int_filt.c
 int_filt.o: int_filt.h
 int_filt.o: mail_params.h
+int_filt.o: mail_proto.h
 is_header.o: ../../include/sys_defs.h
 is_header.o: is_header.c
 is_header.o: is_header.h
@@ -1959,6 +1953,7 @@ post_mail.o: post_mail.c
 post_mail.o: post_mail.h
 post_mail.o: rec_type.h
 post_mail.o: record.h
+post_mail.o: smtputf8.h
 quote_821_local.o: ../../include/sys_defs.h
 quote_821_local.o: ../../include/vbuf.h
 quote_821_local.o: ../../include/vstring.h
@@ -2203,6 +2198,19 @@ smtp_stream.o: ../../include/vstring.h
 smtp_stream.o: ../../include/vstring_vstream.h
 smtp_stream.o: smtp_stream.c
 smtp_stream.o: smtp_stream.h
+smtputf8.o: ../../include/attr.h
+smtputf8.o: ../../include/iostuff.h
+smtputf8.o: ../../include/msg.h
+smtputf8.o: ../../include/name_mask.h
+smtputf8.o: ../../include/sys_defs.h
+smtputf8.o: ../../include/vbuf.h
+smtputf8.o: ../../include/vstream.h
+smtputf8.o: ../../include/vstring.h
+smtputf8.o: cleanup_user.h
+smtputf8.o: mail_params.h
+smtputf8.o: mail_proto.h
+smtputf8.o: smtputf8.c
+smtputf8.o: smtputf8.h
 split_addr.o: ../../include/split_at.h
 split_addr.o: ../../include/sys_defs.h
 split_addr.o: mail_addr.h
@@ -2323,6 +2331,12 @@ user_acl.o: mypwd.h
 user_acl.o: string_list.h
 user_acl.o: user_acl.c
 user_acl.o: user_acl.h
+uxtext.o: ../../include/msg.h
+uxtext.o: ../../include/sys_defs.h
+uxtext.o: ../../include/vbuf.h
+uxtext.o: ../../include/vstring.h
+uxtext.o: uxtext.c
+uxtext.o: uxtext.h
 valid_mailhost_addr.o: ../../include/msg.h
 valid_mailhost_addr.o: ../../include/myaddrinfo.h
 valid_mailhost_addr.o: ../../include/sys_defs.h

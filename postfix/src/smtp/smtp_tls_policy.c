@@ -98,7 +98,7 @@
 #include <mymalloc.h>
 #include <vstring.h>
 #include <stringops.h>
-#include <valid_hostname.h>
+#include <valid_utf8_hostname.h>
 #include <ctable.h>
 
 /* Global library. */
@@ -375,7 +375,7 @@ static void tls_policy_lookup(SMTP_TLS_POLICY *tls, int *site_level,
      * 
      * XXX UNIX-domain connections query with the pathname as destination.
      */
-    if (!valid_hostname(site_name, DONT_GRIPE)) {
+    if (!valid_utf8_hostname(var_smtputf8_enable, site_name, DONT_GRIPE)) {
 	tls_policy_lookup_one(tls, site_level, site_name, site_class);
 	return;
     }

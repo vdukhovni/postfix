@@ -16374,6 +16374,78 @@ Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smt
 
 </DD>
 
+<DT><b><a name="smtputf8_autodetect_classes">smtputf8_autodetect_classes</a>
+(default: sendmail, verify)</b></DT><DD>
+
+<p> Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.  This is a workaround to avoid chicken-and-egg
+problems during the initial SMTPUTF8 roll-out in environments with
+pre-existing mail flows that contain UTF8. Those mail flows should
+not break because Postfix suddenly refuses to deliver such mail
+to down-stream MTAs that don't announce SMTPUTF8 support.  </p>
+
+<p> The problem is that Postfix cannot rely solely on the sender's
+declaration that a message requires SMTPUTF8 support, because UTF8
+may be introduced during local processing (for example, the client
+hostname in Postfix's Received: header, adding @$<a href="postconf.5.html#myorigin">myorigin</a> or
+.$<a href="postconf.5.html#mydomain">mydomain</a> to an incomplete address, address rewriting, alias
+expansion, automatic BCC recipients, local forwarding, and changes
+made by header checks or Milter applications). </p>
+
+<p> For now, the default is to enable "SMTPUTF8 required" autodetection
+only for Postfix sendmail command-line submissions and address
+verification probes.  This may change once SMTPUTF8 support achieves
+world domination.  However, sites that add UTF8 content via local
+processing (see above) should autodetect the need for SMTPUTF8
+support for all email.</p>
+
+<p> Specify one or more of the following: </p>
+
+<dl compact>
+
+<dt> <b> sendmail </b> </dt> <dd> Submission with the Postfix
+<a href="sendmail.1.html">sendmail(1)</a> command. </dd>
+
+<dt> <b> smtpd </b> </dt> <dd> Mail received with the <a href="smtpd.8.html">smtpd(8)</a>
+daemon. </dd>
+
+<dt> <b> qmqpd </b> </dt> <dd> Mail received with the <a href="qmqpd.8.html">qmqpd(8)</a>
+daemon. </dd>
+
+<dt> <b> forward </b> </dt> <dd> Local forwarding or aliasing.
+</dd>
+
+<dt> <b> bounce </b> </dt> <dd> Submission by the <a href="bounce.8.html">bounce(8)</a> daemon.
+</dd>
+
+<dt> <b> notify </b> </dt> <dd> Postmaster notification from the
+<a href="smtp.8.html">smtp(8)</a> or <a href="smtpd.8.html">smtpd(8)</a> daemon. </dd>
+
+<dt> <b> verify </b> </dt> <dd> Address verification probe from the
+<a href="verify.8.html">verify(8)</a> daemon.  </dd>
+
+<dt> <b> all </b> </dt> <dd> Enable SMTPUTF8 autodetection for all
+mail. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtputf8_enable">smtputf8_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable experimental SMTPUTF8 support for the protocols described
+in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support
+these protocols. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="soft_bounce">soft_bounce</a>
 (default: no)</b></DT><DD>
 
@@ -16542,6 +16614,18 @@ from poorly written software.
 By default, the Postfix SMTP server accepts <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> syntax in MAIL
 FROM and RCPT TO addresses.
 </p>
+
+
+</DD>
+
+<DT><b><a name="strict_smtputf8">strict_smtputf8</a>
+(default: no)</b></DT><DD>
+
+<p> Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts UTF8 sender or recipient addresses only when
+the client requests an SMTPUTF8 mail transaction. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>

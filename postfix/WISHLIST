@@ -8,6 +8,13 @@ Wish list:
 
 	Things to do after the stable release:
 
+	When downgrading message/global to 7bit, is quoted-printable
+	the appropriate encoding? Should it be base64?
+
+	Should we encode headers with RFC 2047, when that is the
+	only reason that Postfix cannot deliver to a non-UTF8SMTP
+	server?
+
 	Document and test restriction_classes example for 
 	smtpd_policy_service_default_action.
 

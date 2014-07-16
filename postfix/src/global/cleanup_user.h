@@ -23,6 +23,8 @@
 #define CLEANUP_FLAG_MAP_OK	(1<<5)	/* Ok to map addresses */
 #define CLEANUP_FLAG_MILTER	(1<<6)	/* Enable Milter applications */
 #define CLEANUP_FLAG_SMTP_REPLY	(1<<7)	/* Enable SMTP reply */
+#define CLEANUP_FLAG_SMTPUTF8	(1<<8)	/* SMTPUTF8 requested */
+#define CLEANUP_FLAG_AUTOUTF8	(1<<9)	/* Autodetect SMTPUTF8 */
 
 #define CLEANUP_FLAG_FILTER_ALL	(CLEANUP_FLAG_FILTER | CLEANUP_FLAG_MILTER)
  /*

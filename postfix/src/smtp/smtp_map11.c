@@ -62,7 +62,6 @@
 #include <dict.h>
 #include <argv.h>
 #include <tok822.h>
-#include <valid_hostname.h>
 
 /* Global library. */
 

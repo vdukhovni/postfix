@@ -148,6 +148,13 @@
 /* .IP "\fBaddress_verify_sender_dependent_default_transport_maps ($sender_dependent_default_transport_maps)\fR"
 /*	Overrides the sender_dependent_default_transport_maps parameter
 /*	setting for address verification probes.
+/* SMTPUTF8 CONTROLS
+/* .ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -499,8 +506,9 @@ static void verify_query_service(VSTREAM *client_stream)
 		msg_info("PROBE %s status=%d probed=%ld updated=%ld",
 			 STR(addr), addr_status, now, updated);
 	    post_mail_fopen_async(make_verify_sender_addr(), STR(addr),
-				  INT_FILT_MASK_NONE,
+				  MAIL_SRC_MASK_VERIFY,
 				  DEL_REQ_FLAG_MTA_VRFY,
+				  SMTPUTF8_FLAG_NONE,
 				  (VSTRING *) 0,
 				  verify_post_mail_action,
 				  (void *) 0);
@@ -524,7 +532,7 @@ static void verify_query_service(VSTREAM *client_stream)
 /* verify_cache_validator - cache cleanup validator */
 
 static int verify_cache_validator(const char *addr, const char *raw_data,
-			            char *context)
+				          char *context)
 {
     VSTRING *get_buf = (VSTRING *) context;
     int     addr_status;

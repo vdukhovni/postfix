@@ -139,6 +139,7 @@
 #include <input_transp.h>
 #include <rec_attr_map.h>
 #include <mail_version.h>
+#include <smtputf8.h>
 
 /* Single-threaded server skeleton. */
 
@@ -198,7 +199,7 @@ static int cleanup_service_error_reason(PICKUP_INFO *info, int status,
      */
     if (reason == 0 || *reason == 0)
 	msg_warn("%s: error writing %s: %s",
-		  info->path, info->id, cleanup_strerror(status));
+		 info->path, info->id, cleanup_strerror(status));
     return ((status & (CLEANUP_STAT_BAD | CLEANUP_STAT_RCPT)) ?
 	    REMOVE_MESSAGE_FILE : KEEP_MESSAGE_FILE);
 }
@@ -465,6 +466,8 @@ static int pickup_file(PICKUP_INFO *info)
     /* As documented in postsuper(1). */
     if (MAIL_IS_REQUEUED(info))
 	cleanup_flags &= ~CLEANUP_FLAG_MILTER;
+    else
+	cleanup_flags |= smtputf8_autodetect(MAIL_SRC_MASK_SENDMAIL);
 
     cleanup = mail_connect_wait(MAIL_CLASS_PUBLIC, var_cleanup_service);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,

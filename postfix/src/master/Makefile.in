@@ -44,7 +44,7 @@ root_tests:
 $(LIB):	$(LIB_OBJ)
 	$(AR) $(ARFL) $(LIB) $?
 	$(RANLIB) $(LIB)
-	$(SHLIB_LD) -o $(LIB) $(LIB_OBJ) $(SHLIB_SYSLIBS)
+	$(SHLIB_LD) $(SHLIB_RPATH) -o $(LIB) $(LIB_OBJ) $(SHLIB_SYSLIBS)
 
 $(LIB_DIR)/$(LIB): $(LIB)
 	cp $(LIB) $(LIB_DIR)/$(LIB)
@@ -96,7 +96,6 @@ event_server.o: ../../include/deliver_request.h
 event_server.o: ../../include/dict.h
 event_server.o: ../../include/dsn.h
 event_server.o: ../../include/dsn_buf.h
-event_server.o: ../../include/dsn_filter.h
 event_server.o: ../../include/events.h
 event_server.o: ../../include/htable.h
 event_server.o: ../../include/iostuff.h
@@ -302,7 +301,6 @@ multi_server.o: ../../include/deliver_request.h
 multi_server.o: ../../include/dict.h
 multi_server.o: ../../include/dsn.h
 multi_server.o: ../../include/dsn_buf.h
-multi_server.o: ../../include/dsn_filter.h
 multi_server.o: ../../include/events.h
 multi_server.o: ../../include/htable.h
 multi_server.o: ../../include/iostuff.h
@@ -343,7 +341,6 @@ single_server.o: ../../include/deliver_request.h
 single_server.o: ../../include/dict.h
 single_server.o: ../../include/dsn.h
 single_server.o: ../../include/dsn_buf.h
-single_server.o: ../../include/dsn_filter.h
 single_server.o: ../../include/events.h
 single_server.o: ../../include/htable.h
 single_server.o: ../../include/iostuff.h
@@ -384,7 +381,6 @@ trigger_server.o: ../../include/deliver_request.h
 trigger_server.o: ../../include/dict.h
 trigger_server.o: ../../include/dsn.h
 trigger_server.o: ../../include/dsn_buf.h
-trigger_server.o: ../../include/dsn_filter.h
 trigger_server.o: ../../include/events.h
 trigger_server.o: ../../include/htable.h
 trigger_server.o: ../../include/iostuff.h

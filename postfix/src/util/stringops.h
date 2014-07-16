@@ -19,6 +19,7 @@
  /*
   * External interface.
   */
+extern int temp_utf8_kludge;
 extern char *printable(char *, int);
 extern char *neuter(char *, const char *, int);
 extern char *lowercase(char *);
@@ -41,7 +42,7 @@ extern int allprint(const char *);
 extern int allspace(const char *);
 extern int allascii(const char *);
 extern const char *split_nameval(char *, char **, char **);
-extern int valid_utf_8(const char *, ssize_t);
+extern int valid_utf8_string(const char *, ssize_t);
 
 /* LICENSE
 /* .ad

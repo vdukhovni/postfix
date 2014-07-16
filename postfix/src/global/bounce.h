@@ -27,11 +27,11 @@
   */
 extern int bounce_append(int, const char *, MSG_STATS *, RECIPIENT *,
 			         const char *, DSN *);
-extern int bounce_flush(int, const char *, const char *, const char *,
+extern int bounce_flush(int, const char *, const char *, const char *, int,
 			        const char *, const char *, int);
-extern int bounce_flush_verp(int, const char *, const char *, const char *,
+extern int bounce_flush_verp(int, const char *, const char *, const char *, int,
 		             const char *, const char *, int, const char *);
-extern int bounce_one(int, const char *, const char *, const char *,
+extern int bounce_one(int, const char *, const char *, const char *, int,
 		              const char *, const char *,
 		              int, MSG_STATS *, RECIPIENT *,
 		              const char *, DSN *);
@@ -79,7 +79,7 @@ extern DSN_FILTER *delivery_status_filter;
 extern int bounce_append_intern(int, const char *, MSG_STATS *, RECIPIENT *,
 				        const char *, DSN *);
 extern int bounce_one_intern(int, const char *, const char *, const char *,
-			             const char *, const char *,
+			             int, const char *, const char *,
 			             int, MSG_STATS *, RECIPIENT *,
 			             const char *, DSN *);
 

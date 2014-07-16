@@ -9,8 +9,9 @@
 /*
 /*	void	smtpd_check_init()
 /*
-/*	int	smtpd_check_addr(address)
+/*	int	smtpd_check_addr(address, smtputf8)
 /*	const char *address;
+/*	int	smtputf8;
 /*
 /*	char	*smtpd_check_rewrite(state)
 /*	SMTPD_STATE *state;
@@ -204,6 +205,8 @@
 #include <myaddrinfo.h>
 #include <inet_proto.h>
 #include <ip_match.h>
+#include <valid_utf8_hostname.h>
+#include <midna.h>
 
 /* DNS library. */
 
@@ -1180,7 +1183,7 @@ static int reject_invalid_hostname(SMTPD_STATE *state, char *name,
     test_name = dup_if_truncate(name);
 
     /*
-     * Validate the hostname.
+     * Validate the HELO/EHLO hostname. Fix 20140706: EAI not allowed here.
      */
     if (!valid_hostname(test_name, DONT_GRIPE)
 	&& !valid_hostaddr(test_name, DONT_GRIPE))	/* XXX back compat */
@@ -1218,9 +1221,11 @@ static int reject_non_fqdn_hostname(SMTPD_STATE *state, char *name,
     test_name = dup_if_truncate(name);
 
     /*
-     * Validate the hostname.
+     * Validate the hostname. For backwards compatibility, permit non-ASCII
+     * names only when the client requested SMTPUTF8 support.
      */
-    if (!valid_hostname(test_name, DONT_GRIPE) || !strchr(test_name, '.'))
+    if (valid_utf8_hostname(state->flags & SMTPD_FLAG_SMTPUTF8,
+		 test_name, DONT_GRIPE) == 0 || strchr(test_name, '.') == 0)
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  var_non_fqdn_code, "5.5.2",
 			 "<%s>: %s rejected: need fully-qualified hostname",
@@ -1843,9 +1848,11 @@ static int reject_non_fqdn_address(SMTPD_STATE *state, char *addr,
     test_dom = dup_if_truncate(domain);
 
     /*
-     * Validate the domain.
+     * Validate the domain. For backwards compatibility, permit non-ASCII
+     * names only when the client requested SMTPUTF8 support.
      */
-    if (!*test_dom || !valid_hostname(test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
+    if (!*test_dom || !valid_utf8_hostname(state->flags & SMTPD_FLAG_SMTPUTF8,
+			    test_dom, DONT_GRIPE) || !strchr(test_dom, '.'))
 	stat = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				  var_non_fqdn_code, "4.5.2",
 			  "<%s>: %s rejected: need fully-qualified address",
@@ -3399,6 +3406,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
     const char *reply_addr;
     const char *byte_codes;
     const char *suffix;
+    const char *adomain;
 
     /*
      * Extract the domain, tack on the RBL domain name and query the DNS for
@@ -3416,10 +3424,25 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
      * the name has an alphanumerical prefix. We play safe, and skip both
      * RHSBL and RHSWL queries for names ending in a numerical suffix.
      */
-    if (domain[0] == 0 || valid_hostname(domain, DONT_GRIPE) == 0)
+    if (domain[0] == 0)
 	return (SMTPD_CHECK_DUNNO);
     suffix = strrchr(domain, '.');
     if (alldig(suffix == 0 ? domain : suffix + 1))
+	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * Fix 20140706: convert domain to ASCII.
+     * 
+     * Caution: early returns must not leak adomain.
+     */
+#ifndef NO_EAI
+    if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", domain, adomain);
+	domain = adomain;
+    }
+#endif
+    if (domain[0] == 0 || valid_hostname(domain, DONT_GRIPE) == 0)
 	return (SMTPD_CHECK_DUNNO);
 
     query = vstring_alloc(100);
@@ -3728,7 +3751,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 				 reply_class, def_acl);
 	nesting_level -= 1;
 	memcpy(ADDROF(smtpd_check_buf), ADDROF(savebuf),
-		sizeof(smtpd_check_buf));
+	       sizeof(smtpd_check_buf));
     } else {
 
 	/*
@@ -4380,10 +4403,11 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 /* smtpd_check_addr - address sanity check */
 
-int     smtpd_check_addr(const char *addr)
+int     smtpd_check_addr(const char *addr, int smtputf8)
 {
     const RESOLVE_REPLY *resolve_reply;
     const char *myname = "smtpd_check_addr";
+    const char *domain;
 
     if (msg_verbose)
 	msg_info("%s: addr=%s", myname, addr);
@@ -4398,6 +4422,18 @@ int     smtpd_check_addr(const char *addr)
     resolve_reply = smtpd_resolve_addr(addr);
     if (resolve_reply->flags & RESOLVE_FLAG_ERROR)
 	return (-1);
+
+    /*
+     * Backwards compatibility: if the client does not request SMTPUTF8
+     * support, then behave like Postfix < 2.12 trivial-rewrite, and don't
+     * allow non-ASCII email domains. Historically, Postfix does not reject
+     * UTF8 etc. in the address localpart.
+     */
+    if (smtputf8 == 0
+	&& (domain = strrchr(STR(resolve_reply->recipient), '@')) != 0
+	&& *(domain += 1) != 0 && !allascii(domain))
+	return (-1);
+
     return (0);
 }
 

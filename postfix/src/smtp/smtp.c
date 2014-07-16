@@ -96,6 +96,8 @@
 /*	RFC 3463 (Enhanced Status Codes)
 /*	RFC 4954 (AUTH command)
 /*	RFC 5321 (SMTP protocol)
+/*	RFC 6531 (Internationalized SMTP)
+/*	RFC 6533 (Internationalized Delivery Status Notifications)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can
@@ -571,6 +573,16 @@
 /*	When SMTP connection caching is enabled, the number of times
 /*	that an SMTP session may be reused before it is closed, or zero (no
 /*	limit).
+/* SMTPUTF8 CONTROLS
+/* .ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/* .IP "\fBsmtputf8_enable (no)\fR"
+/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Enable SMTPUTF8 autodetection for the specified mail origin
+/*	classes.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi

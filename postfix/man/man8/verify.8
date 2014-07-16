@@ -168,6 +168,15 @@ Available in Postfix 2.7 and later:
 .IP "\fBaddress_verify_sender_dependent_default_transport_maps ($sender_dependent_default_transport_maps)\fR"
 Overrides the sender_dependent_default_transport_maps parameter
 setting for address verification probes.
+.SH "SMTPUTF8 CONTROLS"
+.na
+.nf
+.ad
+.fi
+Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+.IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

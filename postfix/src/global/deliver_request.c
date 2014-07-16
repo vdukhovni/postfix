@@ -208,6 +208,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     static VSTRING *dsn_envid;
     static RCPT_BUF *rcpt_buf;
     int     rcpt_count;
+    int     smtputf8;
     int     dsn_ret;
 
     /*
@@ -247,6 +248,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_LONG, MAIL_ATTR_SIZE, &request->data_size,
 		  ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, nexthop,
 		  ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
+		  ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
 		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, address,
 		  ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
 		  ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
@@ -265,7 +267,7 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
 		  ATTR_TYPE_STR, MAIL_ATTR_LOG_IDENT, log_ident,
 		  ATTR_TYPE_STR, MAIL_ATTR_RWR_CONTEXT, rewrite_context,
 		  ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT, &rcpt_count,
-		  ATTR_TYPE_END) != 22) {
+		  ATTR_TYPE_END) != 23) {
 	msg_warn("%s: error receiving common attributes", myname);
 	return (-1);
     }
@@ -281,6 +283,8 @@ static int deliver_request_get(VSTREAM *stream, DELIVER_REQUEST *request)
     request->queue_id = mystrdup(vstring_str(queue_id));
     request->nexthop = mystrdup(vstring_str(nexthop));
     request->encoding = mystrdup(vstring_str(encoding));
+    /* Fix 20140708: dedicated smtputf8 attribute with its own flags. */
+    request->smtputf8 = smtputf8;
     request->sender = mystrdup(vstring_str(address));
     request->client_name = mystrdup(vstring_str(client_name));
     request->client_addr = mystrdup(vstring_str(client_addr));

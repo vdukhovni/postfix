@@ -337,6 +337,9 @@ static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask
 	PSC_EHLO_APPEND(saved_len, psc_temp, "250-8BITMIME\r\n");
     if ((discard_mask & EHLO_MASK_DSN) == 0)
 	PSC_EHLO_APPEND(saved_len, psc_temp, "250-DSN\r\n");
+    /* Fix 20140708: announce SMTPUTF8. */
+    if (var_smtputf8_enable && (discard_mask & EHLO_MASK_SMTPUTF8) == 0)
+	PSC_EHLO_APPEND(saved_len, psc_temp, "250-SMTPUTF8\r\n");
     STR(psc_temp)[saved_len + 3] = ' ';
 }
 

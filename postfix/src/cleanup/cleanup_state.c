@@ -127,6 +127,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->milter_ext_rcpt = 0;
     state->milter_err_text = 0;
     state->free_regions = state->body_regions = state->curr_body_region = 0;
+    state->smtputf8 = 0;
     return (state);
 }
 

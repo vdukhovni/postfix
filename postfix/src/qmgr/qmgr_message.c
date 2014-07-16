@@ -179,6 +179,7 @@ static QMGR_MESSAGE *qmgr_message_create(const char *queue_name,
     message->sender = 0;
     message->dsn_envid = 0;
     message->dsn_ret = 0;
+    message->smtputf8 = 0;
     message->filter_xport = 0;
     message->inspect_xport = 0;
     message->redirect_addr = 0;
@@ -557,10 +558,11 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    continue;
 	if (rec_type == REC_TYPE_SIZE) {
 	    if (message->data_offset == 0) {
-		if ((count = sscanf(start, "%ld %ld %d %d %ld",
+		if ((count = sscanf(start, "%ld %ld %d %d %ld %d",
 				 &message->data_size, &message->data_offset,
 				    &message->rcpt_unread, &message->rflags,
-				    &message->cont_length)) >= 3) {
+				    &message->cont_length,
+				    &message->smtputf8)) >= 3) {
 		    /* Postfix >= 1.0 (a.k.a. 20010228). */
 		    if (message->data_offset <= 0 || message->data_size <= 0) {
 			msg_warn("%s: invalid size record: %.100s",

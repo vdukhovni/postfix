@@ -707,6 +707,7 @@ static int local_deliver(DELIVER_REQUEST *rqst, char *service)
     state.msg_attr.fp = rqst->fp;
     state.msg_attr.offset = rqst->data_offset;
     state.msg_attr.encoding = rqst->encoding;
+    state.msg_attr.smtputf8 = rqst->smtputf8;
     state.msg_attr.sender = rqst->sender;
     state.msg_attr.dsn_envid = rqst->dsn_envid;
     state.msg_attr.dsn_ret = rqst->dsn_ret;

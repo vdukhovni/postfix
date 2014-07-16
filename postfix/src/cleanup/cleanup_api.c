@@ -75,6 +75,11 @@
 /*	to translate the result into human-readable text.
 /*
 /*	cleanup_free() destroys its argument.
+/* .IP CLEANUP_FLAG_SMTPUTF8
+/*	Request SMTPUTF8 support when delivering mail.
+/* .IP CLEANUP_FLAG_AUTOUTF8
+/*	Autodetection: request SMTPUTF8 support if the message
+/*	contains an UTF8 message header, sender, or recipient.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* SEE ALSO
@@ -112,6 +117,7 @@
 #include <mail_stream.h>
 #include <mail_flow.h>
 #include <rec_type.h>
+#include <smtputf8.h>
 
 /* Milter library. */
 
@@ -193,6 +199,8 @@ void    cleanup_control(CLEANUP_STATE *state, int flags)
     } else {
 	state->err_mask = ~0;
     }
+    if (state->flags & CLEANUP_FLAG_SMTPUTF8)
+	state->smtputf8 = SMTPUTF8_FLAG_REQUESTED;
 }
 
 /* cleanup_flush - finish queue file */
