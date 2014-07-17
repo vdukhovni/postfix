@@ -202,18 +202,18 @@ case "$SYSTEM.$RELEASE" in
   FreeBSD.8*)	SYSTYPE=FREEBSD8
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
-		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
-		: ${PLUGIN_LD='gcc -shared'}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
   FreeBSD.9*)	SYSTYPE=FREEBSD9
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
-		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
-		: ${PLUGIN_LD='gcc -shared'}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
  DragonFly.*)	SYSTYPE=DRAGONFLY
 		;;
@@ -261,10 +261,10 @@ case "$SYSTEM.$RELEASE" in
 		SYSLIBS="-lresolv -lsocket -lnsl -ldl"
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
-		: ${SHLIB_LD='gcc -shared -Wl,-h,${LIB}'}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-h,${LIB}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${SHLIB_RPATH='-Wl,-R,${SHLIB_DIR}'}
-		: ${PLUGIN_LD='gcc -shared'}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		# Stock awk breaks with >10 files.
 		test -x /usr/xpg4/bin/awk && AWK=/usr/xpg4/bin/awk
 		# Solaris 2.5 added usleep(), POSIX regexp, POSIX getpwnam/uid_r
@@ -427,10 +427,10 @@ EOF
 		SYSLIBS="$SYSLIBS -ldl"
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
-		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
 		: ${SHLIB_RPATH='-Wl,--enable-new-dtags -Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
-		: ${PLUGIN_LD='gcc -shared'}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
     Linux.3*)	SYSTYPE=LINUX3
 		case "$CCARGS" in
@@ -465,10 +465,10 @@ EOF
 		SYSLIBS="$SYSLIBS -ldl"
 		: ${SHLIB_SUFFIX=.so}
 		: ${SHLIB_CFLAGS=-fPIC}
-		: ${SHLIB_LD='gcc -shared -Wl,-soname,${LIB}'}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
 		: ${SHLIB_RPATH='-Wl,--enable-new-dtags -Wl,-rpath,${SHLIB_DIR}'}
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
-		: ${PLUGIN_LD='gcc -shared'}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
      GNU.0*|GNU/kFreeBSD.[567]*)
 		SYSTYPE=GNU0

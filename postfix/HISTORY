@@ -20246,3 +20246,18 @@ Apologies for any names omitted.
 	Cleanup: shared-library build fixes. Viktor Dukhovni.
 	Files: makedefs, dns/Makefile.in, global/Makefile.in,
 	master/Makefile.in, tls/Makefile.in, util/Makefile.in.
+
+	First general release with SMTPUTF8 support; see RELEASE_NOTES
+	for an initial writeup.  The last pre-SMTPUTF8 release is
+	postfix-2.12-20140713.
+
+20140716
+
+	Paranoia: validate UTF8 before exposing it to libicuuc.
+	File: util/midna.c.
+
+	Typo: Postfix did not warn when smtputf8_enable=yes while
+	UTF-8 support is not compiled in. File: global/mail_params.c.
+
+	Cleanup: hard-coded GCC dependencies. Eray Aslan. File:
+	makedefs.

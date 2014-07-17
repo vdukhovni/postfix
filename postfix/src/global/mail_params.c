@@ -748,7 +748,7 @@ void    mail_params_init()
     /*
      * Report run-time versus compile-time discrepancies.
      */
-#ifdef NO_IDNA
+#ifdef NO_EAI
     if (var_smtputf8_enable)
 	msg_warn("%s is true, but EAI support is not compiled in",
 		 VAR_SMTPUTF8_ENABLE);

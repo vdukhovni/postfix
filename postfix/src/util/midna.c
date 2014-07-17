@@ -54,6 +54,7 @@
 #include <mymalloc.h>
 #include <msg.h>
 #include <ctable.h>
+#include <stringops.h>
 #include <midna.h>
 
  /*
@@ -61,7 +62,7 @@
   */
 #define DEF_MIDNA_CACHE_SIZE	100
 
-int midna_cache_size = DEF_MIDNA_CACHE_SIZE;
+int     midna_cache_size = DEF_MIDNA_CACHE_SIZE;
 
 /* midna_utf8_to_ascii_create - convert UTF8 domain to ASCII */
 
@@ -74,6 +75,14 @@ static void *midna_utf8_to_ascii_create(const char *name, void *unused_context)
     UIDNA  *idna;
     int     anl;
 
+    /*
+     * Paranoia: do not expose uidna_*() to unfiltered network data.
+     */
+    if (valid_utf8_string(name, strlen(name)) == 0) {
+	msg_warn("%s: Problem translating domain \"%s\" to IDNA form: %s",
+		 myname, name, "malformed UTF-8");
+	return (0);
+    }
     idna = uidna_openUTS46(UIDNA_DEFAULT, &error);
     anl = uidna_nameToASCII_UTF8(idna,
 				 name, strlen(name),

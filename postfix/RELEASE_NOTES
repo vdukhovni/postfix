@@ -54,7 +54,7 @@ Major changes with snapshot 20140715
 ====================================
 
 Support for Internationalized Email, also known as EAI or SMTPUTF8,
-defined in RFC 6530..6533. This supports UTF8 in SMTP/LMTP sender
+defined in RFC 6531..6533. This supports UTF-8 in SMTP/LMTP sender
 addresses, recipient addresses, and message header values.  The
 implementation is based on initial work by Arnt Gulbrandsen that
 was funded by CNNIC.
@@ -69,28 +69,27 @@ This text describes:
 Compatibility with pre-SMTPUTF8 environments
 --------------------------------------------
 
-Mailing list friendliness
+Mailing lists with UTF-8 and non-UTF-8 subscribers 
 
-In the future, mailing lists will have a mix of UTF8 and non-UTF8
-subscribers.  With Postfix, there is no need to split the lists
-into UTF8 and non-UTF8 members. Postfix will try to deliver the
-non-UTF8 subscribers over "traditional" non-SMTPUTF8 sessions, as
-long as the message has an ASCII envelope sender address and all
-ASCII header values (the mailing list manager may have to apply RFC
-2047 encoding to satisfy the second condition).
+With Postfix, there is no need to split mailing lists into UTF-8 and
+non-UTF-8 members. Postfix will try to deliver the non-UTF8 subscribers
+over "traditional" non-SMTPUTF8 sessions, as long as the message
+has an ASCII envelope sender address and all-ASCII header values.
+The mailing list manager will have to apply RFC 2047 encoding to
+satisfy that last condition.
 
 Pre-existing non-ASCII mail flows
 
-In pre-SMTPUTF8 environments, mail with UTF8 in address localparts
+In pre-SMTPUTF8 environments, mail with UTF-8 in address localparts
 (and in headers) works just fine because the vast majority of mail
 software including Postfix is perfectly capable of handling such
 mail, even if pre-SMTPUTF8 standards do not support this.
 
 Therefore, when Postfix SMTPUTF8 support is turned on, Postfix must
-not suddenly start to break pre-existing mail flows with UTF8 in
+not suddenly start to break pre-existing mail flows with UTF-8 in
 addres localparts (and in headers).
 
-Thus, Postfix continues to permit UTF8 in address localparts (and
+Thus, Postfix continues to permit UTF-8 in address localparts (and
 in headers) in mail from and to pre-SMTPUTF8 systems.  At least,
 that is the default.
 
@@ -108,7 +107,7 @@ and by issuing the "postfix reload" command.
 
 With SMTPUTF8 support enabled, Postfix changes behavior as follows:
 
-- UTF8 is permitted in the myorigin parameter value. However, the
+- UTF-8 is permitted in the myorigin parameter value. However, the
   myhostname and mydomain parameters must specify ASCII-only domain
   names. This limitation may be removed later.
 
@@ -136,11 +135,11 @@ With SMTPUTF8 support enabled, Postfix changes behavior as follows:
 - The Postfix SMTP client may issue the SMTPUTF8 request in MAIL FROM
   commands.
 
-- UTF8 is supported anywhere in an email address, not just silently
+- UTF-8 is supported anywhere in an email address, not just silently
   permitted in the localpart, but only after the client issues MAIL
   FROM or VRFY as shown above.
 
-- UTF8 was already silently permitted in message header values.
+- UTF-8 was already silently permitted in message header values.
 
 SMTP-based content filters (Amavisd) and LMTP servers (Dovecot)
 will need to be updated to support SMTPUTF8. A notice has been
@@ -152,7 +151,7 @@ Using Postfix SMTPUTF8 support
 - When the Postfix SMTP server receives a message WITHOUT the
   SMTPUTF8 request, Postfix handles the message as it has always
   done (at least that is the default, see autodetection below).
-  Specifically, the Postfix SMTP server does not accept UTF8 in the
+  Specifically, the Postfix SMTP server does not accept UTF-8 in the
   envelope sender domain name or envelope recipient domain name,
   and the Postfix SMTP client does not issue the SMTPUTF8 request
   when delivering that message an SMTP or LMTP server that announces
@@ -166,15 +165,15 @@ Using Postfix SMTPUTF8 support
 - When a message is received with the SMTPUTF8 request, Postfix
   will deliver the message to a non-SMTPUTF8 server ONLY if:
 
-    - No message header value contains UTF8.
+    - No message header value contains UTF-8.
 
-    - The envelope sender address contains no UTF8,
+    - The envelope sender address contains no UTF-8,
 
     - No envelope recipient address for that specific SMTP/LMTP
-      delivery transaction contains UTF8.
+      delivery transaction contains UTF-8.
 
 	  NOTE: Recipients in other mail delivery transactions for
-	  that same message may still contain UTF8.
+	  that same message may still contain UTF-8.
 
    Otherwise, Postfix will return the recipient(s) for that mail
    delivery transaction as undeliverable. The delivery status
@@ -190,7 +189,7 @@ SMTPUTF8 autodetection
 
 By default, Postfix sets the "SMTPUTF8 requested" bit on address
 verification probes and on Postfix sendmail submissions that contain
-UTF8 in the sender address, UTF8 in a recipient address, or UTF8
+UTF-8 in the sender address, UTF-8 in a recipient address, or UTF-8
 in a message header value.
 
     smtputf8_autodetect_classes = sendmail, verify
@@ -204,13 +203,13 @@ client may not be able to deliver it to a non-SMTPUTF8 server.
 
 However, if you have a non-ASCII myorigin or mydomain setting, or
 if you have virtual aliases, canonical mappings, or BCC mappings
-that introduce UTF8 addresses, then you may have to apply SMTPUTF8
+that introduce UTF-8 addresses, then you may have to apply SMTPUTF8
 autodetection to all mail:
 
     smtputf8_autodetect_classes = all
 
 This will, of course, also flag mail that was received without
-SMTPUTF8 request, but that contains UTF8 in a sender address
+SMTPUTF8 request, but that contains UTF-8 in a sender address
 localpart, receiver address localpart, or message header value.
 Such mail was not standards-compliant, but Postfix would have
 delivered it if SMTPUTF8 support was disabled.
@@ -218,16 +217,16 @@ delivered it if SMTPUTF8 support was disabled.
 Limitations of Postfix SMTPUTF8 support
 ---------------------------------------
 
-"Internationalized" domain names can appear in two forms: the UTF8
+"Internationalized" domain names can appear in two forms: the UTF-8
 form, and the ASCII (xn--mumble) form.
 
 No characterset canonicalization for non-ASCII domain names.
 
-Postfix currently does not translate domain names from UTF8 into
-ASCII (or ASCII into UTF8) before looking up the domain name in
+Postfix currently does not translate domain names from UTF-8 into
+ASCII (or ASCII into UTF-8) before looking up the domain name in
 mydestination, relay_domains, access tables, etc., before logging
 the domain name, or before using the domain name in a policy daemon
-or Milter request. You will have to configure both UTF8 and ASCII
+or Milter request. You will have to configure both UTF-8 and ASCII
 forms in Postfix configuration files; and both forms will have to
 be handled by logfile tools, policy daemons and Milters.
 

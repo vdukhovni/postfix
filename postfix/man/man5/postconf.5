@@ -11228,10 +11228,14 @@ Mail received with the \fBqmqpd\fR(8)
 daemon.
 .br
 .IP "\fB forward \fR"
-Local forwarding or aliasing.
+Local forwarding or aliasing.  When
+a message is received with "SMTPUTF8 requested", then the forwarded
+(aliased) message automatically has "SMTPUTF8 requested".
 .br
 .IP "\fB bounce \fR"
 Submission by the \fBbounce\fR(8) daemon.
+When a message is received with "SMTPUTF8 requested", then the
+delivery status notification automatically has "SMTPUTF8 requested".
 .br
 .IP "\fB notify \fR"
 Postmaster notification from the

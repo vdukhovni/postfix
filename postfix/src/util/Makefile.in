@@ -1597,7 +1597,10 @@ midna.o: midna.c
 midna.o: midna.h
 midna.o: msg.h
 midna.o: mymalloc.h
+midna.o: stringops.h
 midna.o: sys_defs.h
+midna.o: vbuf.h
+midna.o: vstring.h
 msg.o: msg.c
 msg.o: msg.h
 msg.o: msg_output.h

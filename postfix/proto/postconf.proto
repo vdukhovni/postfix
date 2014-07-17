@@ -16096,10 +16096,13 @@ daemon. </dd>
 <dt> <b> qmqpd </b> </dt> <dd> Mail received with the qmqpd(8)
 daemon. </dd>
 
-<dt> <b> forward </b> </dt> <dd> Local forwarding or aliasing.
-</dd>
+<dt> <b> forward </b> </dt> <dd> Local forwarding or aliasing.  When
+a message is received with "SMTPUTF8 requested", then the forwarded
+(aliased) message automatically has "SMTPUTF8 requested".  </dd>
 
 <dt> <b> bounce </b> </dt> <dd> Submission by the bounce(8) daemon.
+When a message is received with "SMTPUTF8 requested", then the
+delivery status notification automatically has "SMTPUTF8 requested".
 </dd>
 
 <dt> <b> notify </b> </dt> <dd> Postmaster notification from the
