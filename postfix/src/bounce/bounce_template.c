@@ -117,6 +117,9 @@
 #include <split_at.h>
 #include <stringops.h>
 #include <mymalloc.h>
+#ifndef NO_EAI
+#include <midna.h>
+#endif
 
 /* Global library. */
 
@@ -195,6 +198,21 @@ typedef struct {
 static const BOUNCE_TIME_PARAMETER time_parameter[] = {
     STRING_AND_LEN(VAR_DELAY_WARN_TIME), &var_delay_warn_time,
     STRING_AND_LEN(VAR_MAX_QUEUE_TIME), &var_max_queue_time,
+    0, 0,
+};
+
+ /*
+  * Parameters whose value may have to be converted to UTF-8 for presentation
+  * purposes.
+  */
+typedef struct {
+    const char *param_name;		/* parameter name */
+    char  **value;			/* parameter value */
+} BOUNCE_STR_PARAMETER;
+
+static const BOUNCE_STR_PARAMETER str_parameter[] = {
+    VAR_MYHOSTNAME, &var_myhostname,
+    VAR_MYDOMAIN, &var_mydomain,
     0, 0,
 };
 
@@ -387,8 +405,11 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
     BOUNCE_TEMPLATE *tp = (BOUNCE_TEMPLATE *) context;
     const BOUNCE_TIME_PARAMETER *bp;
     const BOUNCE_TIME_DIVISOR *bd;
+    const BOUNCE_STR_PARAMETER *sp;
     static VSTRING *buf;
     int     result;
+    const char *asc_val;
+    const char *utf8_val;
 
     /*
      * Look for parameter names that can have a time unit suffix, and scale
@@ -426,6 +447,33 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 		      key + bp->param_name_len + 1, key);
 	}
     }
+
+    /*
+     * Look for parameter names that may have to be up-converted for
+     * presentation purposes.
+     */
+#ifndef NO_EAI
+    if (var_smtputf8_enable) {
+	for (sp = str_parameter; sp->param_name; sp++) {
+	    if (strcmp(key, sp->param_name) == 0) {
+		asc_val = sp->value[0];
+		if (!allascii(asc_val)) {
+		    msg_warn("%s: conversion \"%s\" failed: "
+			     "non-ASCII input value: \"%s\"",
+			     tp->origin, key, asc_val);
+		    return (asc_val);
+		} else if ((utf8_val = midna_ascii_to_utf8(asc_val)) == 0) {
+		    msg_warn("%s: conversion \"%s\" failed: "
+			     "input value: \"%s\"",
+			     tp->origin, key, asc_val);
+		    return (asc_val);
+		} else {
+		    return (utf8_val);
+		}
+	    }
+	}
+    }
+#endif
     return (mail_conf_lookup_eval(key));
 }
 
@@ -453,13 +501,12 @@ void    bounce_template_expand(BOUNCE_XP_PUT_FN out_fn, VSTREAM *fp,
     VSTRING *buf = vstring_alloc(100);
     const char **cpp;
     int     stat;
-    const char *filter = "\t !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~";
 
     if (tp->flags & BOUNCE_TMPL_FLAG_NEW_BUFFER)
 	bounce_template_parse_buffer(tp);
 
     for (cpp = tp->message_text; *cpp; cpp++) {
-	stat = mac_expand(buf, *cpp, MAC_EXP_FLAG_NONE, filter,
+	stat = mac_expand(buf, *cpp, MAC_EXP_FLAG_PRINTABLE, (char *) 0,
 			  bounce_template_lookup, (char *) tp);
 	if (stat & MAC_PARSE_ERROR)
 	    msg_fatal("%s: bad $name syntax in %s template: %s",

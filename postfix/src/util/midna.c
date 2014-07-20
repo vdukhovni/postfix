@@ -10,6 +10,9 @@
 /*
 /*	const char *midna_utf8_to_ascii(
 /*	const char *name)
+/*
+/*	const char *midna_ascii_to_utf8(
+/*	const char *name)
 /* DESCRIPTION
 /*	The functions in this module transform domain names from
 /*	or to IDNA form. The result is cached to avoid repeated
@@ -17,6 +20,9 @@
 /*
 /*	midna_utf8_to_ascii() converts an UTF-8 domain name to
 /*	ASCII.  The result is a null pointer in case of error.
+/*
+/*	midna_ascii_to_utf8() converts an ASCII domain name to
+/*	UTF-8.  The result is a null pointer in case of error.
 /*
 /*	midna_cache_size specifies the size of the conversion result
 /*	cache.  This value is used only once, upon the first lookup
@@ -55,6 +61,7 @@
 #include <msg.h>
 #include <ctable.h>
 #include <stringops.h>
+#include <valid_hostname.h>
 #include <midna.h>
 
  /*
@@ -99,9 +106,44 @@ static void *midna_utf8_to_ascii_create(const char *name, void *unused_context)
     }
 }
 
-/* midna_utf8_to_ascii_free - cache element destructor */
+/* midna_ascii_to_utf8_create - convert ASCII domain to UTF8 */
 
-static void midna_utf8_to_ascii_free(void *value, void *unused_context)
+static void *midna_ascii_to_utf8_create(const char *name, void *unused_context)
+{
+    const char myname[] = "midna_ascii_to_utf8_create";
+    char    buf[1024];			/* XXX */
+    UErrorCode error = U_ZERO_ERROR;
+    UIDNAInfo info = UIDNA_INFO_INITIALIZER;
+    UIDNA  *idna;
+    int     anl;
+
+    /*
+     * Paranoia: do not expose uidna_*() to unfiltered network data.
+     */
+    if (valid_hostname(name, DONT_GRIPE) == 0) {
+	msg_warn("%s: Problem translating domain \"%s\" to UTF8 form: %s",
+		 myname, name, "malformed ASCII");
+	return (0);
+    }
+    idna = uidna_openUTS46(UIDNA_DEFAULT, &error);
+    anl = uidna_nameToUnicodeUTF8(idna,
+				  name, strlen(name),
+				  buf, sizeof(buf),
+				  &info,
+				  &error);
+    uidna_close(idna);
+    if (U_SUCCESS(error) && info.errors == 0 && anl > 0) {
+	return (mystrndup(buf, anl));
+    } else {
+	msg_warn("%s: Problem translating domain \"%s\" to IDNA form: %s",
+		 myname, name, u_errorName(error));
+	return (0);
+    }
+}
+
+/* midna_cache_free - cache element destructor */
+
+static void midna_cache_free(void *value, void *unused_context)
 {
     if (value)
 	myfree(value);
@@ -116,9 +158,23 @@ const char *midna_utf8_to_ascii(const char *name)
     if (midna_utf8_to_ascii_cache == 0)
 	midna_utf8_to_ascii_cache = ctable_create(midna_cache_size,
 						  midna_utf8_to_ascii_create,
-						  midna_utf8_to_ascii_free,
+						  midna_cache_free,
 						  (void *) 0);
     return (ctable_locate(midna_utf8_to_ascii_cache, name));
+}
+
+/* midna_ascii_to_utf8 - convert UTF8 hostname to ASCII */
+
+const char *midna_ascii_to_utf8(const char *name)
+{
+    static CTABLE *midna_ascii_to_utf8_cache = 0;
+
+    if (midna_ascii_to_utf8_cache == 0)
+	midna_ascii_to_utf8_cache = ctable_create(midna_cache_size,
+						  midna_ascii_to_utf8_create,
+						  midna_cache_free,
+						  (void *) 0);
+    return (ctable_locate(midna_ascii_to_utf8_cache, name));
 }
 
 #ifdef TEST
@@ -128,6 +184,7 @@ const char *midna_utf8_to_ascii(const char *name)
   * stderr.
   */
 #include <stdlib.h>
+#include <locale.h>
 
 #include <stringops.h>			/* XXX temp_utf8_kludge */
 #include <vstring.h>
@@ -138,17 +195,44 @@ const char *midna_utf8_to_ascii(const char *name)
 int     main(int argc, char **argv)
 {
     VSTRING *buffer = vstring_alloc(1);
-    const char *res;
+    const char *bp;
+    const char *ascii;
+    const char *utf8;
+
+    if (setlocale(LC_ALL, "C") == 0)
+	msg_fatal("setlocale(LC_ALL, C) failed: %m");
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_verbose = 1;
     temp_utf8_kludge = 1;
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
-	msg_info("testing: \"%s\"", vstring_str(buffer));
-	res = midna_utf8_to_ascii(vstring_str(buffer));
-	if (res != 0)
-	    msg_info("result: \"%s\"", res);
+	msg_info("testing: \"%s\"", bp = vstring_str(buffer));
+	if (!allascii(bp)) {
+	    ascii = midna_utf8_to_ascii(bp);
+	    if (ascii != 0) {
+		msg_info("\"%s\" -> \"%s\"", bp, ascii);
+		utf8 = midna_ascii_to_utf8(ascii);
+		if (utf8 != 0) {
+		    msg_info("\"%s\" -> \"%s\" -> \"%s\"",
+			     bp, ascii, utf8);
+		    if (strcmp(utf8, bp) != 0)
+			msg_warn("\"%s\" != \"%s\"", bp, utf8);
+		}
+	    }
+	} else {
+	    utf8 = midna_ascii_to_utf8(bp);
+	    if (utf8 != 0) {
+		msg_info("\"%s\" -> \"%s\"", bp, utf8);
+		ascii = midna_utf8_to_ascii(utf8);
+		if (ascii != 0) {
+		    msg_info("\"%s\" -> \"%s\" -> \"%s\"",
+			     bp, utf8, ascii);
+		    if (strcmp(ascii, bp) != 0)
+			msg_warn("\"%s\" != \"%s\"", bp, ascii);
+		}
+	    }
+	}
     }
     exit(0);
 }

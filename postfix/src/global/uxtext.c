@@ -146,10 +146,10 @@ VSTRING *uxtext_quote(VSTRING *quoted, const char *unquoted, const char *special
 
 VSTRING *uxtext_unquote_append(VSTRING *unquoted, const char *quoted)
 {
-    const char *cp;
+    const unsigned char *cp;
     int     ch;
 
-    for (cp = quoted; (ch = *cp) != 0; cp++) {
+    for (cp = (const unsigned char *) quoted; (ch = *cp) != 0; cp++) {
 	if (ch == '\\' && cp[1] == 'x' && cp[2] == '{') {
 	    cp += 2;
 	    int     unicode = 0;

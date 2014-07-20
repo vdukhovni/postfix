@@ -16097,13 +16097,12 @@ daemon. </dd>
 daemon. </dd>
 
 <dt> <b> forward </b> </dt> <dd> Local forwarding or aliasing.  When
-a message is received with "SMTPUTF8 requested", then the forwarded
-(aliased) message automatically has "SMTPUTF8 requested".  </dd>
+a message is received with "SMTPUTF8 required", then the forwarded
+(aliased) message always has "SMTPUTF8 required".  </dd>
 
 <dt> <b> bounce </b> </dt> <dd> Submission by the bounce(8) daemon.
-When a message is received with "SMTPUTF8 requested", then the
-delivery status notification automatically has "SMTPUTF8 requested".
-</dd>
+When a message is received with "SMTPUTF8 required", then the
+delivery status notification always has "SMTPUTF8 required".  </dd>
 
 <dt> <b> notify </b> </dt> <dd> Postmaster notification from the
 smtp(8) or smtpd(8) daemon. </dd>

@@ -20261,3 +20261,18 @@ Apologies for any names omitted.
 
 	Cleanup: hard-coded GCC dependencies. Eray Aslan. File:
 	makedefs.
+
+20140717
+
+	Safety: manipulate unsigned characters while decoding.
+	Files: global/xtext.c, global/uxtext.c.
+
+	Infrastructure: ACE label to UTF-8 conversion. Files:
+	util/midna.[hc].
+
+	Infrastructure: macro expansion with printable() filter.
+	Files: util/mac_expand.[hc].
+
+	Feature: when expanding myhostname or mydomain in bounce
+	template messages, and smtputf8_enable=yes, convert ACE
+	(xn--mumble) labels into UTF-8.  bounce/bounce_template.c.

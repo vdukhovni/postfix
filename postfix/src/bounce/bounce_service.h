@@ -85,7 +85,6 @@ typedef struct {
     BOUNCE_LOG *log_handle;		/* open logfile */
     char   *mail_name;			/* $mail_name, cooked */
     int     smtputf8;			/* SMTPUTF8 requested */
-    char   *smtputf8_attr;		/* pre-formatted record value */
 } BOUNCE_INFO;
 
  /* */

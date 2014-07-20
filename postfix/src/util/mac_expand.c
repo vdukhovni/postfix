@@ -54,6 +54,8 @@
 /*	string, including macro names in the values of conditional
 /*	expressions.  Do not expand macros, and do not write to the
 /*	result argument.
+/* .IP MAC_EXP_FLAG_PRINTABLE
+/*	Use the printable() function instead of \fIfilter\fR.
 /* .PP
 /*	The constant MAC_EXP_FLAG_NONE specifies a manifest null value.
 /* .RE
@@ -103,6 +105,7 @@
 #include <msg.h>
 #include <vstring.h>
 #include <mymalloc.h>
+#include <stringops.h>
 #include <mac_parse.h>
 #include <mac_expand.h>
 
@@ -197,7 +200,9 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    } else {
 		len = VSTRING_LEN(mc->result);
 		vstring_strcat(mc->result, text);
-		if (mc->filter) {
+		if (mc->flags & MAC_EXP_FLAG_PRINTABLE) {
+		    printable(vstring_str(mc->result) + len, '_');
+		} else if (mc->filter) {
 		    cp = vstring_str(mc->result) + len;
 		    while (*(cp += strspn(cp, mc->filter)))
 			*cp++ = '_';

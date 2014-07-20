@@ -101,10 +101,10 @@ VSTRING *xtext_quote(VSTRING *quoted, const char *unquoted, const char *special)
 
 VSTRING *xtext_unquote_append(VSTRING *unquoted, const char *quoted)
 {
-    const char *cp;
+    const unsigned char *cp;
     int     ch;
 
-    for (cp = quoted; (ch = *cp) != 0; cp++) {
+    for (cp = (const unsigned char *) quoted; (ch = *cp) != 0; cp++) {
 	if (ch == '+') {
 	    if (ISDIGIT(cp[1]))
 		ch = (cp[1] - '0') << 4;

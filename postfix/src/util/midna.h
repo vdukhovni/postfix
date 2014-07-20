@@ -15,6 +15,7 @@
   * External interface.
   */
 extern const char *midna_utf8_to_ascii(const char *);
+extern const char *midna_ascii_to_utf8(const char *);
 
 /* LICENSE
 /* .ad

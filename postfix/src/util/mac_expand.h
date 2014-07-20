@@ -24,6 +24,7 @@
 #define MAC_EXP_FLAG_RECURSE	(1<<0)
 #define MAC_EXP_FLAG_APPEND	(1<<1)
 #define MAC_EXP_FLAG_SCAN	(1<<2)
+#define MAC_EXP_FLAG_PRINTABLE  (1<<3)
 
  /*
   * Real lookup or just a test?

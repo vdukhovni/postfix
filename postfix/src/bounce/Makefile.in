@@ -298,6 +298,7 @@ bounce_template.o: ../../include/mac_parse.h
 bounce_template.o: ../../include/mail_conf.h
 bounce_template.o: ../../include/mail_params.h
 bounce_template.o: ../../include/mail_proto.h
+bounce_template.o: ../../include/midna.h
 bounce_template.o: ../../include/msg.h
 bounce_template.o: ../../include/mymalloc.h
 bounce_template.o: ../../include/split_at.h

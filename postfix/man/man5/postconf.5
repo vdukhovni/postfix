@@ -11229,13 +11229,13 @@ daemon.
 .br
 .IP "\fB forward \fR"
 Local forwarding or aliasing.  When
-a message is received with "SMTPUTF8 requested", then the forwarded
-(aliased) message automatically has "SMTPUTF8 requested".
+a message is received with "SMTPUTF8 required", then the forwarded
+(aliased) message always has "SMTPUTF8 required".
 .br
 .IP "\fB bounce \fR"
 Submission by the \fBbounce\fR(8) daemon.
-When a message is received with "SMTPUTF8 requested", then the
-delivery status notification automatically has "SMTPUTF8 requested".
+When a message is received with "SMTPUTF8 required", then the
+delivery status notification always has "SMTPUTF8 required".
 .br
 .IP "\fB notify \fR"
 Postmaster notification from the

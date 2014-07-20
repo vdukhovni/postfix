@@ -8,6 +8,11 @@ Wish list:
 
 	Things to do after the stable release:
 
+	up-convert myhostname in MIME boundary strings?
+
+	Table-driven case folding and case-insensitive string 
+	comparison specifically for UTF-8.
+
 	When downgrading message/global to 7bit, is quoted-printable
 	the appropriate encoding? Should it be base64?
 

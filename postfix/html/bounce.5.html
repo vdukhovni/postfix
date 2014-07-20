@@ -16,16 +16,16 @@ BOUNCE(5)                                                            BOUNCE(5)
 
 <b>DESCRIPTION</b>
        The  Postfix  <a href="bounce.8.html"><b>bounce</b>(8)</a>  server  produces  delivery status notification
-       (DSN) messages for undeliverable mail, delayed mail, successful  deliv-
+       (DSN) messages for undeliverable mail, delayed mail, successful  deliv‐
        ery or address verification requests.
 
        By  default,  these notifications are generated from built-in templates
        with message headers and message text. Sites can override the  built-in
-       information  by  specifying a bounce template file with the <b><a href="postconf.5.html#bounce_template_file">bounce_tem</a>-</b>
-       <b><a href="postconf.5.html#bounce_template_file">plate_file</a></b> configuration parameter.
+       information  by  specifying a bounce template file with the <b>bounce_tem</b>‐‐
+       <b>plate_file</b> configuration parameter.
 
-       This document describes the general procedure to create a  bounce  tem-
-       plate  file,  followed  by the specific details of bounce template for-
+       This document describes the general procedure to create a  bounce  tem‐
+       plate  file,  followed  by the specific details of bounce template for‐
        mats.
 
 <b>GENERAL PROCEDURE</b>
@@ -44,7 +44,7 @@ BOUNCE(5)                                                            BOUNCE(5)
        expansion of time value parameters that  appear  in  the  delayed  mail
        notification text.
 
-       Once  the result is satisfactory, copy the template to the Postfix con-
+       Once  the result is satisfactory, copy the template to the Postfix con‐
        figuration directory and specify in <a href="postconf.5.html">main.cf</a> something like:
 
        /etc/postfix/<a href="postconf.5.html">main.cf</a>:
@@ -53,13 +53,13 @@ BOUNCE(5)                                                            BOUNCE(5)
 <b>TEMPLATE FILE FORMAT</b>
        The template file can specify templates for failed mail, delayed  mail,
        successful  delivery  or for address verification.  These templates are
-       named  <b>failure_template</b>,  <b>delay_template</b>,  <b>success_template</b>  and   <b>ver-</b>
+       named  <b>failure_template</b>,  <b>delay_template</b>,  <b>success_template</b>  and   <b>ver</b>‐‐
        <b>ify_template</b>,  respectively.   You  can  but do not have to specify all
        four templates in a bounce template file.
 
        Each template starts with "<i>template</i><b>_</b><i>name</i> <b>=</b> &lt;&lt;<b>EOF</b>" and ends with a  line
        that contains the word "<b>EOF</b>" only. You can change the word EOF, but you
-       can't enclose it in quotes  as  with  the  shell  or  with  Perl  (<i>tem-</i>
+       can't enclose it in quotes  as  with  the  shell  or  with  Perl  (<i>tem‐</i>
        <i>plate</i><b>_</b><i>name</i> <b>=</b> &lt;&lt;<b>'EOF'</b>). Here is an example:
 
            # The failure template is used for undeliverable mail.
@@ -83,16 +83,16 @@ BOUNCE(5)                                                            BOUNCE(5)
                               The mail system
            EOF
 
-       The  usage and specification of bounce templates is subject to the fol-
+       The  usage and specification of bounce templates is subject to the fol‐
        lowing restrictions:
 
-       <b>o</b>      No special meaning is given to the  backslash  character  or  to
+       ·      No special meaning is given to the  backslash  character  or  to
               leading whitespace; these are always taken literally.
 
-       <b>o</b>      Inside  the &lt;&lt; context, the "$" character is special. To produce
+       ·      Inside  the &lt;&lt; context, the "$" character is special. To produce
               a "$" character as output, specify "$$".
 
-       <b>o</b>      Outside the &lt;&lt; context, lines beginning with "#" are ignored, as
+       ·      Outside the &lt;&lt; context, lines beginning with "#" are ignored, as
               are empty lines, and lines consisting of whitespace only.
 
        Examples of all templates can be found in the file <b>bounce.cf.default</b> in
@@ -100,7 +100,7 @@ BOUNCE(5)                                                            BOUNCE(5)
 
 <b>TEMPLATE HEADER FORMAT</b>
        The first portion of a bounce template consists  of  optional  template
-       headers.   Some become message headers in the delivery status notifica-
+       headers.   Some become message headers in the delivery status notifica‐
        tion; some control the formatting of  that  notification.  Headers  not
        specified in a template will be left at their default value.
 
@@ -114,26 +114,26 @@ BOUNCE(5)                                                            BOUNCE(5)
               notification.
 
        <b>Subject:</b>
-              The subject in the message header of the delivery status notifi-
+              The subject in the message header of the delivery status notifi‐
               cation that is returned to the sender.
 
        <b>Postmaster-Subject:</b>
-              The subject that will be used in Postmaster copies of undeliver-
+              The subject that will be used in Postmaster copies of undeliver‐
               able  or delayed mail notifications. These copies are sent under
               control of the <a href="postconf.5.html#notify_classes">notify_classes</a> configuration parameter.
 
        The usage and specification of template message headers is  subject  to
        the following restrictions:
 
-       <b>o</b>      Template  message  header  names can be specified in upper case,
+       ·      Template  message  header  names can be specified in upper case,
               lower case or mixed case. Postfix always produces bounce message
               header labels of the form "<b>From:</b>" and "<b>Subject:</b>".
 
-       <b>o</b>      Template message headers must not span multiple lines.
+       ·      Template message headers must not span multiple lines.
 
-       <b>o</b>      Template message headers do not support $parameter expansions.
+       ·      Template message headers do not support $parameter expansions.
 
-       <b>o</b>      Template message headers must contain ASCII characters only, and
+       ·      Template message headers must contain ASCII characters only, and
               must not contain ASCII null characters.
 
 <b>TEMPLATE MESSAGE TEXT FORMAT</b>
@@ -153,16 +153,30 @@ BOUNCE(5)                                                            BOUNCE(5)
               expressed in the time unit specified by <i>suffix</i>.  See above under
               <b><a href="postconf.5.html#delay_warning_time">delay_warning_time</a></b> for possible <i>suffix</i> values.
 
+       <b><a href="postconf.5.html#mydomain">mydomain</a></b>
+              Expands into the value of the <b><a href="postconf.5.html#mydomain">mydomain</a></b>  parameter.   With  "smt‐
+              putf8_enable  = yes", this replaces ACE labels (xn--mumble) with
+              their UTF-8 equivalent.
+
+              This feature is available in Postfix 2.12.
+
+       <b><a href="postconf.5.html#myhostname">myhostname</a></b>
+              Expands into the value of the <b><a href="postconf.5.html#myhostname">myhostname</a></b> parameter.  With  "smt‐
+              putf8_enable  = yes", this replaces ACE labels (xn--mumble) with
+              their UTF-8 equivalent.
+
+              This feature is available in Postfix 2.12.
+
        The usage and specification of template message text is subject to  the
        following restrictions:
 
-       <b>o</b>      The  template  message  text is not sent in Postmaster copies of
+       ·      The  template  message  text is not sent in Postmaster copies of
               delivery status notifications.
 
-       <b>o</b>      If the template  message  text  contains  non-ASCII  characters,
+       ·      If the template  message  text  contains  non-ASCII  characters,
               Postfix  requires  that the <b>Charset:</b> template header is updated.
               Specify an appropriate superset  of  US-ASCII.   A  superset  is
-              needed because Postfix appends ASCII text after the message tem-
+              needed because Postfix appends ASCII text after the message tem‐
               plate when it sends a delivery status notification.
 
 <b>SEE ALSO</b>
