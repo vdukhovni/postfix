@@ -4819,6 +4819,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_audit_template">lmtp_tls_audit_template</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_audit_template">smtp_tls_audit_template</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_block_early_mail_reply">lmtp_tls_block_early_mail_reply</a>
 (default: empty)</b></DT><DD>
 
@@ -4916,6 +4927,17 @@ configuration parameter.  See there for details. </p>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_fallback_level">lmtp_tls_fallback_level</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -6200,6 +6222,27 @@ and <a href="postconf.5.html#body_checks">body_checks</a>.  </p>
 
 </DD>
 
+<DT><b><a name="meta_directory">meta_directory</a>
+(default: see 'postconf -d' output)</b></DT><DD>
+
+<p> The location of non-executable files that are shared among
+multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
+and the multi-instance template files <a href="postconf.5.html">main.cf</a>.proto and <a href="master.5.html">master.cf</a>.proto.
+This directory should contain only Postfix-related files.  Typically,
+the <a href="postconf.5.html#meta_directory">meta_directory</a> parameter has the same default as the <a href="postconf.5.html#config_directory">config_directory</a>
+parameter (/etc/postfix or /usr/local/etc/postfix).  </p>
+
+<p> For backwards compatibility with Postfix versions 2.6..2.11,
+specify "<a href="postconf.5.html#meta_directory">meta_directory</a> = $<a href="postconf.5.html#daemon_directory">daemon_directory</a>" in <a href="postconf.5.html">main.cf</a> before
+installing or upgrading Postfix, or specify "<a href="postconf.5.html#meta_directory">meta_directory</a> =
+/path/name" on the "make makefiles", "make install" or "make upgrade"
+command line.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="milter_command_timeout">milter_command_timeout</a>
 (default: 30s)</b></DT><DD>
 
@@ -7088,19 +7131,6 @@ is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_
 </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
-
-
-</DD>
-
-<DT><b><a name="plugin_directory">plugin_directory</a>
-(default: see 'postconf -d' output)</b></DT><DD>
-
-<p> The location of the Postfix dynamicmaps.cf database plugin
-configuration file, and of database plugins with a relative pathname.
-This is set to "no" when Postfix database plugin support is disabled
-at compile time. </p>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -9553,15 +9583,34 @@ earlier: "<b>/etc/postfix/post-install set-permissions</b>".
 <DT><b><a name="shlib_directory">shlib_directory</a>
 (default: see 'postconf -d' output)</b></DT><DD>
 
-<p> The location of Postfix shared libraries (libpostfix-*.so.*).
-This parameter defaults to "no" when Postfix shared libraries are
-disabled at compile time. </p>
+<p> The location of Postfix shared libraries (libpostfix-*.so),
+and the default location of Postfix database plugins (libpostfix-*.so)
+that have a relative pathname in the dynamicmaps.cf file.  The
+<a href="postconf.5.html#shlib_directory">shlib_directory</a> parameter defaults to "no" when Postfix shared
+libraries and database plugins are disabled at compile time, otherwise
+it typically defaults to /usr/lib/postfix or /usr/local/lib/postfix.
+</p>
 
-<p> NOTE: You can change the location of these files after Postfix
-is built. However, you may have to run ldconfig if you move the
-libpostfix-*.so.* files to a non-system directory.  No ldconfig is
-needed if you keep the libpostfix-*.so.* files in the compiled-in
-default $<a href="postconf.5.html#shlib_directory">shlib_directory</a> location. </p>
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> The directory specified with <a href="postconf.5.html#shlib_directory">shlib_directory</a> should contain
+only Postfix-related files. Postfix shared libraries and database
+plugins should not be installed in a "public" system directory such
+as /usr/lib or /usr/local/lib. Linking Postfix shared-library files
+or database plugins into non-Postfix programs is not supported.
+Postfix shared libraries and database plugins implement a
+Postfix-internal API that changes without maintaining compatibility.
+</p>
+
+<li> <p> You can change the <a href="postconf.5.html#shlib_directory">shlib_directory</a> value after Postfix is
+built. However, you may have to run ldconfig or equivalent to prevent
+Postfix programs from failing because the libpostfix-*.so files are
+not found.  No ldconfig command is needed if you keep the libpostfix-*.so
+files in the compiled-in default $<a href="postconf.5.html#shlib_directory">shlib_directory</a> location. </p>
+
+</ul>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -11180,6 +11229,73 @@ certificates. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tls_audit_template">smtp_tls_audit_template</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional template for tls audit logging at the completion of each
+message data transfer.  If empty (the default setting) no TLS audit log
+entries are generated.  </p>
+
+<p> The following $name expansions are done on <a href="postconf.5.html#smtp_tls_audit_template">smtp_tls_audit_template</a>: </p>
+
+<dl>
+
+<dt><b>$relay</b></dt>
+<dd>The remote SMTP server. </dd>
+
+<dt><b>$level</b></dt>
+<dd>The effective TLS security level after any fallback. </dd>
+
+<dt><b>$policy</b></dt>
+<dd>The desired TLS security level before any fallback, undefined
+if no fallback took place. </dd>
+
+<dt><b>$auth</b></dt>
+<dd>The authentication level of the remote SMTP server.  One of
+"Cleartext", "Anonymous", "Untrusted", "Trusted" or "Verified".
+</dd>
+
+<dt><b>$protocol</b></dt>
+<dd>The TLS protocol version, defined only when TLS is used. </dd>
+
+<dt><b>$cipher</b></dt>
+<dd>The TLS cipher name, defined only when TLS is used. </dd>
+
+<dt><b>$cert_digest</b></dt>
+<dd>The digest of the remote SMTP server's certificate, defined
+only when TLS is used and the remote server presented a certificate.
+The digest algorithm is that specified via <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a>.
+</dd>
+
+<dt><b>$spki_digest</b></dt>
+<dd>The digest of the remote SMTP server's public key (Subject
+Public Key Info or SPKI from X.509), defined only when TLS is used
+and the remote server presented a certificate.  The digest algorithm
+is that specified via <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a>.  </dd>
+
+<dt><b>${name?value}</b></dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is non-empty. </dd>
+
+<dt><b>${name:value}</b></dt>
+
+<dd>Expands to <i>value</i> when <i>$name</i> is empty. </dd>
+
+</dl>
+
+<p> Example: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_tls_audit_template">smtp_tls_audit_template</a> =
+        tlsaudit: relay=${relay}${auth?, auth=${auth}}${level?, level=${level}}${policy?, policy=${policy}}${protocol?, protocol=${protocol}}${cipher?, cipher=${cipher}}
+</pre>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_block_early_mail_reply">smtp_tls_block_early_mail_reply</a>
 (default: no)</b></DT><DD>
 
@@ -11429,6 +11545,62 @@ and "DES-CBC3-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_fallback_level">smtp_tls_fallback_level</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional fallback levels for authenticated TLS levels.  Specify
+a white-space or comma-separate list of
+<b>policy_level</b>=<b>fallback_level</b> pairs.  The <b>policy_level</b>
+must require authentication (be one of dane, dane-only, fingerprint,
+verify, secure).  The <b>fallback_level</b> must be "encrypt" or
+"may".  When an authenticated connection with a policy level equal
+to one of the specified values cannot be established, delivery will
+proceed at the fallback level if possible.  A warning will be logged
+indicating the fallback reason.  You can use <a href="postconf.5.html#smtp_tls_audit_template">smtp_tls_audit_template</a>
+to record the TLS security status for each delivery. </p>
+
+<p> The TLS <a href="TLS_README.html#client_tls_policy">policy</a> table
+can be used to specify a destination-specific fallback strategy via the
+"fallback" policy attribute.  The value of the "fallback" attribute, if
+specified, must be "may", "encrypt" or "none".  If not "none", this
+specifies the fallback level for the destination in question.  If the
+attribute value is "none", fallback is suppressed for the destination
+even if enabled via a global setting of <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a>.  </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # When authentication fails, log a warning and deliver anyway
+    # over an unauthenticated TLS connection.
+    #
+    <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> =
+        dane=encrypt,
+        dane-only=encrypt,
+        fingerprint=encrypt,
+        verify=encrypt,
+        secure=encrypt
+    indexed = ${<a href="postconf.5.html#default_database_type">default_database_type</a>}:${<a href="postconf.5.html#config_directory">config_directory</a>}/
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ${indexed}tls-policy
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/tls-policy:
+    # No fallback for example.com
+    example.com secure fallback=none
+    # For example.net tolerate cleartext fallback
+    example.net dane fallback=may
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -13002,6 +13174,14 @@ Postfix version 2.5).  This feature is available with Postfix version
 parent domains, client IP address, or networks obtained by stripping
 least significant octets. See the <a href="access.5.html">access(5)</a> manual page for details. </dd>
 
+<dt><b><a name="check_client_a_access">check_client_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified <a href="access.5.html">access(5)</a> database for the IP addresses for the
+client hostname, and execute the corresponding action.  Note: a result
+of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
+to exclude specific hosts from blacklists.  This feature is available
+in Postfix 2.12 and later.  </dd>
+
 <dt><b><a name="check_client_mx_access">check_client_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for the
@@ -13027,6 +13207,14 @@ manual page for details.  Note: a result of "OK" is not allowed for
 safety reasons.  Instead, use DUNNO in order to exclude specific
 hosts from blacklists.  This feature is available in Postfix 2.6
 and later.</dd>
+
+<dt><b><a name="check_reverse_client_hostname_a_access">check_reverse_client_hostname_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified <a href="access.5.html">access(5)</a> database for the IP addresses for the
+unverified reverse client hostname, and execute the corresponding
+action.  Note: a result of "OK" is not allowed for safety reasons.
+Instead, use DUNNO in order to exclude specific hosts from blacklists.
+This feature is available in Postfix 2.12 and later.  </dd>
 
 <dt><b><a name="check_reverse_client_hostname_mx_access">check_reverse_client_hostname_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -13786,6 +13974,18 @@ Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required
 restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can
 simply skip <a href="postconf.5.html#check_helo_access">check_helo_access</a> by not sending HELO or EHLO).  </dd>
 
+<dt><b><a name="check_helo_a_access">check_helo_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified <a href="access.5.html">access(5)</a> database for the IP addresses for
+the HELO or EHLO hostname, and execute the corresponding action.
+Note 1: a result of "OK" is not allowed for safety reasons. Instead,
+use DUNNO in order to exclude specific hosts from blacklists.  Note
+2: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully enforce this
+restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a client can
+simply skip check_helo_a_access by not sending HELO or EHLO).  This
+feature is available in Postfix 2.12 and later.
+</dd>
+
 <dt><b><a name="check_helo_mx_access">check_helo_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for
@@ -14030,6 +14230,33 @@ Postfix releases, the behavior is as if this parameter is set to
 
 </DD>
 
+<DT><b><a name="smtpd_policy_service_default_action">smtpd_policy_service_default_action</a>
+(default: 451 4.3.5 Server configuration problem)</b></DT><DD>
+
+<p> The default action when an SMTPD policy service request fails.
+Specify "DUNNO" to behave as if the failed  SMTPD policy service
+request was not sent, and to continue processing other access
+restrictions, if any. </p>
+
+<p> Limitations: </p>
+
+<ul>
+
+<li> <p>  This parameter may specify any value that would be a valid
+SMTPD policy server response (or <a href="access.5.html">access(5)</a> map lookup result).  An
+<a href="access.5.html">access(5)</a> map or policy server in this parameter value may need to
+be declared in advance with a restriction_class setting.  </p>
+
+<li> <p> If the specified action invokes another <a href="postconf.5.html#check_policy_service">check_policy_service</a>
+request, that request will have the built-in default action. </p>
+
+</ul>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_policy_service_max_idle">smtpd_policy_service_max_idle</a>
 (default: 300s)</b></DT><DD>
 
@@ -14060,17 +14287,57 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="smtpd_policy_service_request_limit">smtpd_policy_service_request_limit</a>
+(default: 0)</b></DT><DD>
+
+<p>
+The maximal number of requests per SMTPD policy service connection,
+or zero (no limit). Once a connection reaches this limit, the
+connection is closed and the next request will be sent over a new
+connection. This is a workaround to avoid error-recovery delays
+with policy servers that cannot maintain a persistent connection.
+</p>
+
+<p>
+This feature is available in Postfix 2.12 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_policy_service_retry_delay">smtpd_policy_service_retry_delay</a>
+(default: 1s)</b></DT><DD>
+
+<p> The delay between attempts to resend a failed SMTPD policy
+service request. Specify a value greater than zero. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_policy_service_timeout">smtpd_policy_service_timeout</a>
 (default: 100s)</b></DT><DD>
 
 <p>
-The time limit for connecting to, writing to or receiving from a
+The time limit for connecting to, writing to, or receiving from a
 delegated SMTPD policy server.
 </p>
 
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_policy_service_try_limit">smtpd_policy_service_try_limit</a>
+(default: 2)</b></DT><DD>
+
+<p> The maximal number of attempts to send an SMTPD policy service
+request before giving up. Specify a value greater than zero. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -14250,6 +14517,14 @@ that is received with the RCPT TO command.
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the resolved RCPT
 TO address, domain, parent domains, or localpart@, and execute the
 corresponding action.  </dd>
+
+<dt><b><a name="check_recipient_a_access">check_recipient_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified <a href="access.5.html">access(5)</a> database for the IP addresses for
+the RCPT TO domain, and execute the corresponding action.  Note:
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.12 and later. </dd>
 
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -15027,10 +15302,18 @@ received with the MAIL FROM command.
 address, domain, parent domains, or localpart@, and execute the
 corresponding action. </dd>
 
+<dt><b><a name="check_sender_a_access">check_sender_a_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
+
+<dd>Search the specified <a href="access.5.html">access(5)</a> database for the IP addresses for
+the MAIL FROM domain, and execute the corresponding action.  Note:
+a result of "OK" is not allowed for safety reasons. Instead, use
+DUNNO in order to exclude specific hosts from blacklists.  This
+feature is available in Postfix 2.12 and later. </dd>
+
 <dt><b><a name="check_sender_mx_access">check_sender_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the MX hosts for
-the MAIL FROM address, and execute the corresponding action.  Note:
+the MAIL FROM domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later. </dd>
@@ -15038,7 +15321,7 @@ feature is available in Postfix 2.1 and later. </dd>
 <dt><b><a name="check_sender_ns_access">check_sender_ns_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified <a href="access.5.html">access(5)</a> database for the DNS servers
-for the MAIL FROM address, and execute the corresponding action.
+for the MAIL FROM domain, and execute the corresponding action.
 Note: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.  </dd>
@@ -16236,6 +16519,80 @@ Postfix 2.3 and later use <a href="postconf.5.html#smtpd_tls_security_level">smt
 
 </DD>
 
+<DT><b><a name="smtputf8_autodetect_classes">smtputf8_autodetect_classes</a>
+(default: sendmail, verify)</b></DT><DD>
+
+<p> Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.  This is a workaround to avoid chicken-and-egg
+problems during the initial SMTPUTF8 roll-out in environments with
+pre-existing mail flows that contain UTF8. Those mail flows should
+not break because Postfix suddenly refuses to deliver such mail
+to down-stream MTAs that don't announce SMTPUTF8 support.  </p>
+
+<p> The problem is that Postfix cannot rely solely on the sender's
+declaration that a message requires SMTPUTF8 support, because UTF8
+may be introduced during local processing (for example, the client
+hostname in Postfix's Received: header, adding @$<a href="postconf.5.html#myorigin">myorigin</a> or
+.$<a href="postconf.5.html#mydomain">mydomain</a> to an incomplete address, address rewriting, alias
+expansion, automatic BCC recipients, local forwarding, and changes
+made by header checks or Milter applications). </p>
+
+<p> For now, the default is to enable "SMTPUTF8 required" autodetection
+only for Postfix sendmail command-line submissions and address
+verification probes.  This may change once SMTPUTF8 support achieves
+world domination.  However, sites that add UTF8 content via local
+processing (see above) should autodetect the need for SMTPUTF8
+support for all email.</p>
+
+<p> Specify one or more of the following: </p>
+
+<dl compact>
+
+<dt> <b> sendmail </b> </dt> <dd> Submission with the Postfix
+<a href="sendmail.1.html">sendmail(1)</a> command. </dd>
+
+<dt> <b> smtpd </b> </dt> <dd> Mail received with the <a href="smtpd.8.html">smtpd(8)</a>
+daemon. </dd>
+
+<dt> <b> qmqpd </b> </dt> <dd> Mail received with the <a href="qmqpd.8.html">qmqpd(8)</a>
+daemon. </dd>
+
+<dt> <b> forward </b> </dt> <dd> Local forwarding or aliasing.  When
+a message is received with "SMTPUTF8 required", then the forwarded
+(aliased) message always has "SMTPUTF8 required".  </dd>
+
+<dt> <b> bounce </b> </dt> <dd> Submission by the <a href="bounce.8.html">bounce(8)</a> daemon.
+When a message is received with "SMTPUTF8 required", then the
+delivery status notification always has "SMTPUTF8 required".  </dd>
+
+<dt> <b> notify </b> </dt> <dd> Postmaster notification from the
+<a href="smtp.8.html">smtp(8)</a> or <a href="smtpd.8.html">smtpd(8)</a> daemon. </dd>
+
+<dt> <b> verify </b> </dt> <dd> Address verification probe from the
+<a href="verify.8.html">verify(8)</a> daemon.  </dd>
+
+<dt> <b> all </b> </dt> <dd> Enable SMTPUTF8 autodetection for all
+mail. </dd>
+
+</dl>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtputf8_enable">smtputf8_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable experimental SMTPUTF8 support for the protocols described
+in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support
+these protocols. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="soft_bounce">soft_bounce</a>
 (default: no)</b></DT><DD>
 
@@ -16404,6 +16761,18 @@ from poorly written software.
 By default, the Postfix SMTP server accepts <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> syntax in MAIL
 FROM and RCPT TO addresses.
 </p>
+
+
+</DD>
+
+<DT><b><a name="strict_smtputf8">strict_smtputf8</a>
+(default: no)</b></DT><DD>
+
+<p> Enable stricter enforcement of the SMTPUTF8 protocol. The Postfix
+SMTP server accepts UTF8 sender or recipient addresses only when
+the client requests an SMTPUTF8 mail transaction. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>

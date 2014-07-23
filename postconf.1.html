@@ -253,8 +253,28 @@ POSTCONF(1)                                                        POSTCONF(1)
                      PostgreSQL   database   client.   This  is  described  in
                      <a href="pgsql_table.5.html"><b>pgsql_table</b>(5)</a>.
 
-              <b>proxy</b>  Postfix <a href="proxymap.8.html"><b>proxymap</b>(8)</a> client for shared access  to  Postfix
+              <b>pipemap</b> (read-only)
+                     A    pipeline     of     lookup     tables.      Example:
+                     "<b><a href="DATABASE_README.html#types">pipemap</a>:</b><i>!type</i><b>_</b><i>1:name</i><b>_</b><i>1!    ...   !type</i><b>_</b><i>n:name</i><b>_</b><i>n</i>".   Each
+                     "<a href="DATABASE_README.html#types">pipemap</a>:" query is  given  to  the  first  table.   Each
+                     lookup result becomes the query for the next table in the
+                     pipeline, and the last table produces the  final  result.
+                     When  any  table  lookup produces no result, the pipeline
+                     produces no  result.  The  first  ASCII  character  after
+                     "<a href="DATABASE_README.html#types">pipemap</a>:"  will  be  used  as  the separator between the
+                     lookup tables that follow (do not use space, ",", ":"  or
+                     non-ASCII).
+
+              <b>proxy</b>  Postfix  <a href="proxymap.8.html"><b>proxymap</b>(8)</a>  client for shared access to Postfix
                      databases. The table name syntax is <i>type</i><b>:</b><i>name</i>.
+
+              <b>randmap</b> (read-only)
+                     An in-memory table that performs random selection.  Exam-
+                     ple: "<b><a href="DATABASE_README.html#types">randmap</a>:</b><i>!result</i><b>_</b><i>1! ... !result</i><b>_</b><i>n</i>". Each table query
+                     returns a random choice from the specified  results.  The
+                     first  ASCII  character  after "<a href="DATABASE_README.html#types">randmap</a>:" will be used as
+                     the separator between the results that follow (do not use
+                     space, ",", ":" or non-ASCII).
 
               <b>regexp</b> (read-only)
                      A  lookup  table  based  on regular expressions. The file

@@ -13,7 +13,7 @@ BOUNCE(8)                                                            BOUNCE(8)
        <b>bounce</b> [generic Postfix daemon options]
 
 <b>DESCRIPTION</b>
-       The <a href="bounce.8.html"><b>bounce</b>(8)</a> daemon maintains per-message log files with delivery sta-
+       The <a href="bounce.8.html"><b>bounce</b>(8)</a> daemon maintains per-message log files with delivery sta‐
        tus information. Each log file is named after the queue  file  that  it
        corresponds  to,  and  is  kept in a queue subdirectory named after the
        service name in the <a href="master.5.html"><b>master.cf</b></a> file (either  <b>bounce</b>,  <b>defer</b>  or  <b>trace</b>).
@@ -21,15 +21,15 @@ BOUNCE(8)                                                            BOUNCE(8)
 
        The <a href="bounce.8.html"><b>bounce</b>(8)</a> daemon processes two types of service requests:
 
-       <b>o</b>      Append a recipient (non-)delivery status record to a per-message
+       ·      Append a recipient (non-)delivery status record to a per-message
               log file.
 
-       <b>o</b>      Enqueue a delivery status notification message, with a copy of a
+       ·      Enqueue a delivery status notification message, with a copy of a
               per-message log file and of the corresponding message.  When the
               delivery status notification message is  enqueued  successfully,
               the per-message log file is deleted.
 
-       The  software does a best notification effort. A non-delivery notifica-
+       The  software does a best notification effort. A non-delivery notifica‐
        tion is sent even when the log file or the original message  cannot  be
        read.
 
@@ -46,6 +46,9 @@ BOUNCE(8)                                                            BOUNCE(8)
        <a href="http://tools.ietf.org/html/rfc3464">RFC 3464</a> (Delivery Status Notifications)
        <a href="http://tools.ietf.org/html/rfc3834">RFC 3834</a> (Auto-Submitted: message header)
        <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a> (Internet Message Format)
+       <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a> (Internationalized SMTP)
+       <a href="http://tools.ietf.org/html/rfc6532">RFC 6532</a> (Internationalized Message Format)
+       <a href="http://tools.ietf.org/html/rfc6533">RFC 6533</a> (Internationalized Delivery Status Notifications)
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
@@ -67,8 +70,8 @@ BOUNCE(8)                                                            BOUNCE(8)
               Postfix versions before 2.0.
 
        <b><a href="postconf.5.html#bounce_notice_recipient">bounce_notice_recipient</a> (postmaster)</b>
-              The recipient of postmaster notifications with the message head-
-              ers of mail that Postfix did not deliver and of  SMTP  conversa-
+              The recipient of postmaster notifications with the message head‐
+              ers of mail that Postfix did not deliver and of  SMTP  conversa‐
               tion transcripts of mail that Postfix did not receive.
 
        <b><a href="postconf.5.html#bounce_size_limit">bounce_size_limit</a> (50000)</b>
@@ -79,7 +82,7 @@ BOUNCE(8)                                                            BOUNCE(8)
               Pathname of a configuration file with bounce message  templates.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con‐
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
@@ -87,7 +90,7 @@ BOUNCE(8)                                                            BOUNCE(8)
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_notice_recipient">delay_notice_recipient</a> (postmaster)</b>
-              The recipient of postmaster notifications with the message head-
+              The recipient of postmaster notifications with the message head‐
               ers of mail that cannot be delivered within  $<a href="postconf.5.html#delay_warning_time">delay_warning_time</a>
               time units.
 
@@ -137,8 +140,14 @@ BOUNCE(8)                                                            BOUNCE(8)
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
+              syslog  records,  so  that  "smtpd" becomes, for example, "post‐
               fix/smtpd".
+
+       Available in Postfix 2.12 and later:
+
+       <b><a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> (sendmail, verify)</b>
+              Detect that a message requires SMTPUTF8 support for  the  speci‐
+              fied mail origin classes.
 
 <b>FILES</b>
        /var/spool/postfix/bounce/* non-delivery records

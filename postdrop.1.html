@@ -48,15 +48,15 @@ POSTDROP(1)                                                        POSTDROP(1)
               of set-group ID privileges, a non-standard directory is  allowed
               only if:
 
-              <b>o</b>      The  name is listed in the standard <a href="postconf.5.html"><b>main.cf</b></a> file with the
+              ·      The  name is listed in the standard <a href="postconf.5.html"><b>main.cf</b></a> file with the
                      <b><a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a></b> configuration parameter.
 
-              <b>o</b>      The command is invoked by the super-user.
+              ·      The command is invoked by the super-user.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to  this  pro-
-       gram.   The  text  below  provides  only a parameter summary. See <a href="postconf.5.html"><b>post-</b></a>
-       <a href="postconf.5.html"><b>conf</b>(5)</a> for more details including examples.
+       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to  this  pro‐
+       gram.   The  text  below  provides  only a parameter summary. See <b>post</b>‐‐
+       <b>conf</b>(5) for more details including examples.
 
        <b><a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a> (empty)</b>
               A list of non-default Postfix configuration directories that may
@@ -64,7 +64,7 @@ POSTDROP(1)                                                        POSTDROP(1)
               via the MAIL_CONFIG environment parameter.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con‐
               figuration files.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
@@ -79,7 +79,7 @@ POSTDROP(1)                                                        POSTDROP(1)
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
+              syslog  records,  so  that  "smtpd" becomes, for example, "post‐
               fix/smtpd".
 
        <b><a href="postconf.5.html#trigger_timeout">trigger_timeout</a> (10s)</b>
@@ -89,8 +89,8 @@ POSTDROP(1)                                                        POSTDROP(1)
        Available in Postfix version 2.2 and later:
 
        <b><a href="postconf.5.html#authorized_submit_users">authorized_submit_users</a> (<a href="DATABASE_README.html#types">static</a>:anyone)</b>
-              List  of  users who are authorized to submit mail with the <a href="sendmail.1.html"><b>send-</b></a>
-              <a href="sendmail.1.html"><b>mail</b>(1)</a> command (and with the privileged <a href="postdrop.1.html"><b>postdrop</b>(1)</a> helper com-
+              List  of  users who are authorized to submit mail with the <b>send</b>‐‐
+              <b>mail</b>(1) command (and with the privileged <a href="postdrop.1.html"><b>postdrop</b>(1)</a> helper com‐
               mand).
 
 <b>FILES</b>

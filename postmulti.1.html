@@ -356,9 +356,23 @@ POSTMULTI(1)                                                      POSTMULTI(1)
               syslog  records,  so  that  "smtpd" becomes, for example, "post-
               fix/smtpd".
 
+       Available in Postfix 2.12 and later:
+
+       <b><a href="postconf.5.html#meta_directory">meta_directory</a> (see 'postconf -d' output)</b>
+              The location of non-executable files that are shared among  mul-
+              tiple  Postfix instances, such as postfix-files, dynamicmaps.cf,
+              and the multi-instance template  files  <a href="postconf.5.html">main.cf</a>.proto  and  <a href="master.5.html">mas-
+              ter.cf</a>.proto.
+
+       <b><a href="postconf.5.html#shlib_directory">shlib_directory</a> (see 'postconf -d' output)</b>
+              The  location of Postfix shared libraries (libpostfix-*.so), and
+              the default  location  of  Postfix  database  plugins  (libpost-
+              fix-*.so)  that  have  a relative pathname in the dynamicmaps.cf
+              file.
+
 <b>FILES</b>
-       $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/<a href="postconf.5.html">main.cf</a>, stock configuration file
-       $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/<a href="master.5.html">master.cf</a>, stock configuration file
+       $<a href="postconf.5.html#meta_directory">meta_directory</a>/<a href="postconf.5.html">main.cf</a>.proto, stock configuration file
+       $<a href="postconf.5.html#meta_directory">meta_directory</a>/<a href="master.5.html">master.cf</a>.proto, stock configuration file
        $<a href="postconf.5.html#daemon_directory">daemon_directory</a>/postmulti-script, life-cycle helper program
 
 <b>SEE ALSO</b>
