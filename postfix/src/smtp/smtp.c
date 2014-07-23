@@ -588,8 +588,8 @@
 /*	Enable experimental SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
-/*	Enable SMTPUTF8 autodetection for the specified mail origin
-/*	classes.
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi

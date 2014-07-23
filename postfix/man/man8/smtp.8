@@ -492,6 +492,13 @@ not an alias and its address records lie in an unsigned zone.
 RFC 6698 trust-anchor digest support in the Postfix TLS library.
 .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+.PP
+Available in Postfix version 2.12 and later:
+.IP "\fBsmtp_tls_audit_template (empty)\fR"
+Optional template for tls audit logging at the completion of each
+message data transfer.
+.IP "\fBsmtp_tls_fallback_level (empty)\fR"
+Optional fallback levels for authenticated TLS levels.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf
@@ -617,8 +624,8 @@ Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
 Enable experimental SMTPUTF8 support for the protocols described
 in RFC 6531..6533.
 .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
-Enable SMTPUTF8 autodetection for the specified mail origin
-classes.
+Detect that a message requires SMTPUTF8 support for the specified
+mail origin classes.
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf

@@ -552,6 +552,15 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#tlsmgr_service_name">tlsmgr_service_name</a> (tlsmgr)</b>
               The name of the <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 
+       Available in Postfix version 2.12 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_audit_template">smtp_tls_audit_template</a> (empty)</b>
+              Optional  template  for  tls  audit logging at the completion of
+              each message data transfer.
+
+       <b><a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> (empty)</b>
+              Optional fallback levels for authenticated TLS levels.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
