@@ -813,11 +813,19 @@ static void PRINTFLIKE(4, 5) dane_incompat(SMTP_TLS_POLICY *tls,
      */
     if (tls->level == TLS_LEV_DANE && errtype != TLSA_LOOKUP_ERR) {
 	if (errtype == DANE_UNUSABLE) {
+	    /*
+	     * When TLSA are present, but none are usable, "dane" clients
+	     * are expected to perform mandatory unauthenticated TLS.  If
+	     * the "dane" the fallback level is "may", we enable fallback to
+	     * cleartext (with the appropriate warnings).
+	     */
 	    tls->level = TLS_LEV_ENCRYPT;
 	    if (tls->fallback_level != TLS_LEV_MAY)
 		tls->fallback_level = TLS_LEV_NOTFOUND;
-	} else
+	} else {
 	    tls->level = TLS_LEV_MAY;
+	    tls->fallback_level = TLS_LEV_NOTFOUND;
+	}
 	if (errtype == NONDANE_CONFIG)
 	    vmsg_warn(fmt, ap);
 	else if (msg_verbose)
