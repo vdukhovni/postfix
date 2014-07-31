@@ -975,12 +975,12 @@ authentication information:
 
     The mmmmeennccooddee command is part of the metamail software.
 
-  * Using Perl MMIIMMEE::::BBaassee6644:
+  * Using Perl MMIIMMEE::::BBaassee6644 (from http://www.cpan.org/):
 
         % ppeerrll --MMMMIIMMEE::::BBaassee6644 --ee \\
             ''pprriinntt eennccooddee__bbaassee6644((""\\00uusseerrnnaammee\\00ppaasssswwoorrdd""));;''
 
-    MIME::Base64 is available from http://www.cpan.org/.
+    If the username or password contain "@", you must specify "\@".
 
   * Using the ggeenn--aauutthh script:
 

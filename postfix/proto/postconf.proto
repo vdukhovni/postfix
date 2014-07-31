@@ -926,8 +926,9 @@ by the amount specified in $debug_peer_level.  </p>
 patterns or "type:table" lookup tables. The right-hand side result
 from "type:table" lookups is ignored.  </p>
 
-<p> Pattern matching of domain names is controlled by the
-parent_domain_matches_subdomains parameter.  </p>
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "debug_peer_list" in the parent_domain_matches_subdomains
+parameter value.  </p>
 
 <p>
 Examples:
@@ -1523,6 +1524,10 @@ Continue long lines by starting the next line with whitespace. A
 "/file/name" pattern is replaced by its contents; a "type:table"
 lookup table is matched when the domain or its parent domain appears
 as lookup key.  </p>
+
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "fast_flush_domains" in the parent_domain_matches_subdomains
+parameter value.  </p>
 
 <p>
 Specify "fast_flush_domains =" (i.e., empty) to disable the feature
@@ -3047,7 +3052,11 @@ first match.  Specify "!pattern" to exclude an address or network
 block from the list. The form "!/file/name" is supported only
 in Postfix version 2.4 and later. </p>
 
-<p> Note: IP version 6 address information must be specified inside
+<p> Note 1: Pattern matching of domain names is controlled by the
+or absence of "mynetworks" in the parent_domain_matches_subdomains
+parameter value.  </p>
+
+<p> Note 2: IP version 6 address information must be specified inside
 <tt>[]</tt> in the mynetworks value, and in files specified with
 "/file/name".  IP version 6 addresses contain the ":" character,
 and would otherwise be confused with a "type:table" pattern.  </p>
@@ -3173,12 +3182,49 @@ notify_classes = 2bounce, resource, software
 %PARAM parent_domain_matches_subdomains see "postconf -d" output
 
 <p>
-What Postfix features match subdomains of "domain.tld" automatically,
-instead of requiring an explicit ".domain.tld" pattern.  This is
+A list of Postfix features where the pattern "example.com" also
+matches subdomains of example.com,
+instead of requiring an explicit ".example.com" pattern.  This is
 planned backwards compatibility:  eventually, all Postfix features
-are expected to require explicit ".domain.tld" style patterns when
+are expected to require explicit ".example.com" style patterns when
 you really want to match subdomains.
 </p>
+
+<p> The following Postfix feature names are supported. </p>
+
+<dl>
+
+<dt> Postfix version 1.0 and later</dt> 
+
+<dd>
+debug_peer_list,
+fast_flush_domains,
+mynetworks,
+permit_mx_backup_networks,
+relay_domains,
+transport_maps
+</dd>
+
+<dt> Postfix version 1.1 and later</dt> 
+
+<dd>
+qmqpd_authorized_clients,
+smtpd_access_maps,
+</dd>
+
+<dt> Postfix version 2.8 and later </dt> 
+
+<dd>
+postscreen_access_list
+</dd>
+
+<dt> Postfix version 2.12 and later </dt> 
+
+<dd>
+smtpd_client_event_limit_exceptions
+</dd>
+
+</dl>
 
 %PARAM propagate_unmatched_extensions canonical, virtual
 
@@ -3289,6 +3335,10 @@ reverse the result, precede a pattern with an
 exclamation point (!). The form "!/file/name" is supported only
 in Postfix version 2.4 and later.
 </p>
+
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "qmqpd_authorized_clients" in the
+parent_domain_matches_subdomains parameter value.  </p>
 
 <p>
 Example:
@@ -3592,8 +3642,7 @@ Do not change this unless you have a complete understanding of RFC 5321.
 %PARAM relay_domains $mydestination
 
 <p> What destination domains (and subdomains thereof) this system
-will relay mail to. Subdomain matching is controlled with the
-parent_domain_matches_subdomains parameter. For details about how
+will relay mail to. For details about how
 the relay_domains value is used, see the description of the
 permit_auth_destination and reject_unauth_destination SMTP recipient
 restrictions.  </p>
@@ -3616,6 +3665,10 @@ lookup table is matched when a (parent) domain appears as lookup
 key. Specify "!pattern" to exclude a domain from the list. The form
 "!/file/name" is supported only in Postfix version 2.4 and later.
 </p>
+
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "relay_domains" in the parent_domain_matches_subdomains
+parameter value. </p>
 
 %PARAM relay_domains_reject_code 554
 
@@ -4792,6 +4845,11 @@ dot causes the domain to match any name below it).
 in files specified with "/file/name".  IP version 6 addresses
 contain the ":" character, and would otherwise be confused with a
 "type:table" pattern.  </p>
+
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "smtpd_client_event_limit_exceptions" in the
+parent_domain_matches_subdomains parameter value (postfix 2.12 and
+later).  </p>
 
 <p>
 This feature is available in Postfix 2.2 and later.
@@ -6662,6 +6720,10 @@ until a match is found.  If you use this
 feature with local files, run "<b>postmap /etc/postfix/transport</b>"
 after making a change.  </p>
 
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "transport_maps" in the parent_domain_matches_subdomains
+parameter value.  </p>
+
 <p> For safety reasons, as of Postfix 2.3 this feature does not
 allow $number substitutions in regular expression maps. </p>
 
@@ -7916,6 +7978,10 @@ Restrict the use of the permit_mx_backup SMTP access feature to
 only domains whose primary MX hosts match the listed networks.
 The parameter value syntax is the same as with the mynetworks
 parameter; note, however, that the default value is empty.  </p>
+
+<p> Pattern matching of domain names is controlled by the presence
+or absence of "permit_mx_backup_networks" in the
+parent_domain_matches_subdomains parameter value.  </p>
 
 %PARAM pickup_service_name pickup
 
@@ -13789,7 +13855,9 @@ upon the first command that fires for the client IP address. </p>
 terminate the search if the client IP address matches $mynetworks.
 Do not subject the client to any before/after 220 greeting tests.
 Pass the connection immediately to a Postfix SMTP server process.
-</dd>
+<br> Pattern matching of domain names is controlled by the presence
+or absence of "postscreen_access_list" in the
+parent_domain_matches_subdomains parameter value. </dd>
 
 <dt> <b> type:table </b> </dt> <dd> Query the specified lookup
 table. Each table lookup result is an access list, except that

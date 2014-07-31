@@ -13,6 +13,11 @@ Wish list:
 	Table-driven case folding and case-insensitive string 
 	comparison specifically for UTF-8.
 
+	The postfix-mumble@postfix.org list manager sends list mail
+	with ORCPT=rfc822;postfix-mumble-outgoing.  The local
+	delivery agent drops the ORCPT when the alias has an
+	owner-alias, so what is going on here?
+
 	When downgrading message/global to 7bit, is quoted-printable
 	the appropriate encoding? Should it be base64?
 

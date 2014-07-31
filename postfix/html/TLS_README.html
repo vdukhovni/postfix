@@ -2658,9 +2658,27 @@ the local Postfix system. This requires super-user privileges. </p>
     -x509 -subj "/CN=${fqdn}" -days 3650 -out "${cert}" &&
   postconf -e \
     "<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = ${cert}" \
-    "<a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = ${key}"
+    "<a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = ${key}" \
+    '<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = may' \
+    '<a href="postconf.5.html#smtpd_tls_received_header">smtpd_tls_received_header</a> = yes' \
+    '<a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a> = 1' \
+    '<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may' \
+    '<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> = 1' \
+    '<a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> = <a href="DATABASE_README.html#types">btree</a>:${<a href="postconf.5.html#data_directory">data_directory</a>}/smtp_scache' \
+    '<a href="postconf.5.html#tls_random_source">tls_random_source</a> = dev:/dev/urandom'
 </pre>
 </blockquote>
+
+<p> Note: the last command requires both single (') and double (")
+quotes. </p>
+
+<p> The <a href="postconf.1.html">postconf(1)</a> command above enables opportunistic TLS for
+receiving and sending mail.  It also enables logging of TLS connections
+and recording of TLS use in the "Received" header.  TLS session
+caching is also enabled in the Postfix SMTP client.  With Postfix
+&ge; 2.10, the SMTP server does not need an explicit session cache
+since session reuse is better handled via <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session
+tickets. </p>
 
 <h3><a name="private-ca">Private Certificate Authority</a></h3>
 
@@ -2785,6 +2803,7 @@ but don't require them from all clients. </p>
     <a href="postconf.5.html#smtp_tls_session_cache_database">smtp_tls_session_cache_database</a> =
         <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtp_tls_session_cache
     <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = may
+    <a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> = 1
     <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> = /etc/postfix/cacert.pem
     <a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a> = /etc/postfix/foo-cert.pem
     <a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> = /etc/postfix/foo-key.pem
@@ -2793,6 +2812,7 @@ but don't require them from all clients. </p>
         <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/smtpd_tls_session_cache
     <a href="postconf.5.html#tls_random_source">tls_random_source</a> = dev:/dev/urandom
     <a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a> = may
+    <a href="postconf.5.html#smtpd_tls_loglevel">smtpd_tls_loglevel</a> = 1
 </pre>
 </blockquote>
 

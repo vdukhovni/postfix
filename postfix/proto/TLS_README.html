@@ -2658,9 +2658,27 @@ the local Postfix system. This requires super-user privileges. </p>
     -x509 -subj "/CN=${fqdn}" -days 3650 -out "${cert}" &&
   postconf -e \
     "smtpd_tls_cert_file = ${cert}" \
-    "smtpd_tls_key_file = ${key}"
+    "smtpd_tls_key_file = ${key}" \
+    'smtpd_tls_security_level = may' \
+    'smtpd_tls_received_header = yes' \
+    'smtpd_tls_loglevel = 1' \
+    'smtp_tls_security_level = may' \
+    'smtp_tls_loglevel = 1' \
+    'smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache' \
+    'tls_random_source = dev:/dev/urandom'
 </pre>
 </blockquote>
+
+<p> Note: the last command requires both single (') and double (")
+quotes. </p>
+
+<p> The postconf(1) command above enables opportunistic TLS for
+receiving and sending mail.  It also enables logging of TLS connections
+and recording of TLS use in the "Received" header.  TLS session
+caching is also enabled in the Postfix SMTP client.  With Postfix
+&ge; 2.10, the SMTP server does not need an explicit session cache
+since session reuse is better handled via RFC 5077 TLS session
+tickets. </p>
 
 <h3><a name="private-ca">Private Certificate Authority</a></h3>
 
@@ -2785,6 +2803,7 @@ but don't require them from all clients. </p>
     smtp_tls_session_cache_database =
 	btree:/var/lib/postfix/smtp_tls_session_cache
     smtp_tls_security_level = may
+    smtp_tls_loglevel = 1
     smtpd_tls_CAfile = /etc/postfix/cacert.pem
     smtpd_tls_cert_file = /etc/postfix/foo-cert.pem
     smtpd_tls_key_file = /etc/postfix/foo-key.pem
@@ -2793,6 +2812,7 @@ but don't require them from all clients. </p>
 	btree:/var/lib/postfix/smtpd_tls_session_cache
     tls_random_source = dev:/dev/urandom
     smtpd_tls_security_level = may
+    smtpd_tls_loglevel = 1
 </pre>
 </blockquote>
 

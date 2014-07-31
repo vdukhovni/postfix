@@ -758,8 +758,9 @@
 /*	$smtpd_sender_restrictions, or wait until the ETRN command before
 /*	evaluating $smtpd_client_restrictions and $smtpd_helo_restrictions.
 /* .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
-/*	What Postfix features match subdomains of "domain.tld" automatically,
-/*	instead of requiring an explicit ".domain.tld" pattern.
+/*	A list of Postfix features where the pattern "example.com" also
+/*	matches subdomains of example.com,
+/*	instead of requiring an explicit ".example.com" pattern.
 /* .IP "\fBsmtpd_client_restrictions (empty)\fR"
 /*	Optional restrictions that the Postfix SMTP server applies in the
 /*	context of a client connection request.
@@ -1140,6 +1141,7 @@
 #include <tls_proxy.h>
 #include <verify_sender_addr.h>
 #include <smtputf8.h>
+#include <match_parent_style.h>
 
 /* Single-threaded server skeleton. */
 
@@ -5146,7 +5148,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     verp_clients = namadr_list_init(MATCH_FLAG_RETURN, var_verp_clients);
     xclient_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xclient_hosts);
     xforward_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xforward_hosts);
-    hogger_list = namadr_list_init(MATCH_FLAG_RETURN, var_smtpd_hoggers);
+    hogger_list = namadr_list_init(MATCH_FLAG_RETURN
+				   | match_parent_style(VAR_SMTPD_HOGGERS),
+				   var_smtpd_hoggers);
 
     /*
      * Open maps before dropping privileges so we can read passwords etc.

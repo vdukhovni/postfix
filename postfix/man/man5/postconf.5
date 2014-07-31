@@ -994,8 +994,9 @@ Specify domain names, network/netmask patterns, "/file/name"
 patterns or "type:table" lookup tables. The right-hand side result
 from "type:table" lookups is ignored.
 .PP
-Pattern matching of domain names is controlled by the
-parent_domain_matches_subdomains parameter.
+Pattern matching of domain names is controlled by the presence
+or absence of "debug_peer_list" in the parent_domain_matches_subdomains
+parameter value.
 .PP
 Examples:
 .PP
@@ -1958,6 +1959,10 @@ Continue long lines by starting the next line with whitespace. A
 "/file/name" pattern is replaced by its contents; a "type:table"
 lookup table is matched when the domain or its parent domain appears
 as lookup key.
+.PP
+Pattern matching of domain names is controlled by the presence
+or absence of "fast_flush_domains" in the parent_domain_matches_subdomains
+parameter value.
 .PP
 Specify "fast_flush_domains =" (i.e., empty) to disable the feature
 altogether.
@@ -4071,7 +4076,11 @@ first match.  Specify "!pattern" to exclude an address or network
 block from the list. The form "!/file/name" is supported only
 in Postfix version 2.4 and later.
 .PP
-Note: IP version 6 address information must be specified inside
+Note 1: Pattern matching of domain names is controlled by the
+or absence of "mynetworks" in the parent_domain_matches_subdomains
+parameter value.
+.PP
+Note 2: IP version 6 address information must be specified inside
 [] in the mynetworks value, and in files specified with
 "/file/name".  IP version 6 addresses contain the ":" character,
 and would otherwise be confused with a "type:table" pattern.
@@ -4227,16 +4236,42 @@ address localparts: don't split such addresses when the
 recipient_delimiter is set to "-".  This feature is useful for
 mailing lists.
 .SH parent_domain_matches_subdomains (default: see "postconf -d" output)
-What Postfix features match subdomains of "domain.tld" automatically,
-instead of requiring an explicit ".domain.tld" pattern.  This is
+A list of Postfix features where the pattern "example.com" also
+matches subdomains of example.com,
+instead of requiring an explicit ".example.com" pattern.  This is
 planned backwards compatibility:  eventually, all Postfix features
-are expected to require explicit ".domain.tld" style patterns when
+are expected to require explicit ".example.com" style patterns when
 you really want to match subdomains.
+.PP
+The following Postfix feature names are supported.
+.IP "Postfix version 1.0 and later"
+debug_peer_list,
+fast_flush_domains,
+mynetworks,
+permit_mx_backup_networks,
+relay_domains,
+transport_maps
+.br
+.IP "Postfix version 1.1 and later"
+qmqpd_authorized_clients,
+smtpd_access_maps,
+.br
+.IP "Postfix version 2.8 and later"
+postscreen_access_list
+.br
+.IP "Postfix version 2.12 and later"
+smtpd_client_event_limit_exceptions
+.br
+.br
 .SH permit_mx_backup_networks (default: empty)
 Restrict the use of the permit_mx_backup SMTP access feature to
 only domains whose primary MX hosts match the listed networks.
 The parameter value syntax is the same as with the mynetworks
 parameter; note, however, that the default value is empty.
+.PP
+Pattern matching of domain names is controlled by the presence
+or absence of "permit_mx_backup_networks" in the
+parent_domain_matches_subdomains parameter value.
 .SH pickup_service_name (default: pickup)
 The name of the \fBpickup\fR(8) service. This service picks up local mail
 submissions from the Postfix maildrop queue.
@@ -4283,6 +4318,10 @@ Whitelist the client and
 terminate the search if the client IP address matches $mynetworks.
 Do not subject the client to any before/after 220 greeting tests.
 Pass the connection immediately to a Postfix SMTP server process.
+.br
+Pattern matching of domain names is controlled by the presence
+or absence of "postscreen_access_list" in the
+parent_domain_matches_subdomains parameter value.
 .br
 .IP "\fB type:table \fR"
 Query the specified lookup
@@ -5092,6 +5131,10 @@ reverse the result, precede a pattern with an
 exclamation point (!). The form "!/file/name" is supported only
 in Postfix version 2.4 and later.
 .PP
+Pattern matching of domain names is controlled by the presence
+or absence of "qmqpd_authorized_clients" in the
+parent_domain_matches_subdomains parameter value.
+.PP
 Example:
 .PP
 .nf
@@ -5424,8 +5467,7 @@ into concurrency per recipient.
 This feature is available in Postfix 2.0 and later.
 .SH relay_domains (default: $mydestination)
 What destination domains (and subdomains thereof) this system
-will relay mail to. Subdomain matching is controlled with the
-parent_domain_matches_subdomains parameter. For details about how
+will relay mail to. For details about how
 the relay_domains value is used, see the description of the
 permit_auth_destination and reject_unauth_destination SMTP recipient
 restrictions.
@@ -5447,6 +5489,10 @@ Continue long lines by starting the next line with whitespace. A
 lookup table is matched when a (parent) domain appears as lookup
 key. Specify "!pattern" to exclude a domain from the list. The form
 "!/file/name" is supported only in Postfix version 2.4 and later.
+.PP
+Pattern matching of domain names is controlled by the presence
+or absence of "relay_domains" in the parent_domain_matches_subdomains
+parameter value.
 .SH relay_domains_reject_code (default: 554)
 The numerical Postfix SMTP server response code when a client
 request is rejected by the reject_unauth_destination recipient
@@ -8400,6 +8446,11 @@ Note: IP version 6 address information must be specified inside
 in files specified with "/file/name".  IP version 6 addresses
 contain the ":" character, and would otherwise be confused with a
 "type:table" pattern.
+.PP
+Pattern matching of domain names is controlled by the presence
+or absence of "smtpd_client_event_limit_exceptions" in the
+parent_domain_matches_subdomains parameter value (postfix 2.12 and
+later).
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH smtpd_client_message_rate_limit (default: 0)
@@ -12299,6 +12350,10 @@ whitespace of comma. Tables will be searched in the specified order
 until a match is found.  If you use this
 feature with local files, run "\fBpostmap /etc/postfix/transport\fR"
 after making a change.
+.PP
+Pattern matching of domain names is controlled by the presence
+or absence of "transport_maps" in the parent_domain_matches_subdomains
+parameter value.
 .PP
 For safety reasons, as of Postfix 2.3 this feature does not
 allow $number substitutions in regular expression maps.

@@ -20276,3 +20276,42 @@ Apologies for any names omitted.
 	Feature: when expanding myhostname or mydomain in bounce
 	template messages, and smtputf8_enable=yes, convert ACE
 	(xn--mumble) labels into UTF-8.  bounce/bounce_template.c.
+
+20140720
+
+	Cleanup: charset selection and content-transfer encoding
+	in bounce messages (work in progress). The proper solution
+	requires separate handling of the returned-message MIME
+	properties and of the (boiler-plate text, delivery status)
+	MIME properties.  File: bounce/bounce_notify_util.c.
+
+20140722
+
+	Documentation: the TLS_README example for creating a
+	self-signed certificate was incomplete. Also, added
+	"smtp_tls_loglevel = 1" and "smtpd_tls_loglevel = 1" settings
+	to cookbook recipes, so that TLS handshake results will be
+	logged. Viktor Dukhovni.  File: proto/TLS_README.html.
+
+	Documentation: update Perl MIME::Base64 example.  File:
+	proto/SASL_README.html.
+
+	Documentation: update pointer to Bennett Todd's SMTP proxy.
+	File: proto/SMTPD_PROXY_README.html.
+
+20140725
+
+	Documentation: describe what features are controlled by
+	parent_domain_matches_subdomains, both in the description
+	of the controlled feature, and in the description of
+	parent_domain_matches_subdomains. File: proto/postconf.proto.
+
+	Cleanup: smtpd_client_event_limit_exceptions is now controlled
+	with parent_domain_matches_subdomains, with backwards-compatible
+	default (specify .example.com in order to match subdomains
+	of example.com). Files: smtpd/smtpd.c.
+
+	Documentation: SMTPUTF8_README, an updated version of text
+	that was originally part of the RELEASE_NOTES file. Files:
+	proto/SMTPUTF8_README.html, proto/Makefile.in, html/index.html.
+

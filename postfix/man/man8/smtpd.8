@@ -810,8 +810,9 @@ $smtpd_client_restrictions, $smtpd_helo_restrictions and
 $smtpd_sender_restrictions, or wait until the ETRN command before
 evaluating $smtpd_client_restrictions and $smtpd_helo_restrictions.
 .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
-What Postfix features match subdomains of "domain.tld" automatically,
-instead of requiring an explicit ".domain.tld" pattern.
+A list of Postfix features where the pattern "example.com" also
+matches subdomains of example.com,
+instead of requiring an explicit ".example.com" pattern.
 .IP "\fBsmtpd_client_restrictions (empty)\fR"
 Optional restrictions that the Postfix SMTP server applies in the
 context of a client connection request.

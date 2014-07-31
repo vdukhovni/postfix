@@ -116,8 +116,9 @@ for an incoming connection before terminating voluntarily.
 The maximal number of incoming connections that a Postfix daemon
 process will service before terminating voluntarily.
 .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
-What Postfix features match subdomains of "domain.tld" automatically,
-instead of requiring an explicit ".domain.tld" pattern.
+A list of Postfix features where the pattern "example.com" also
+matches subdomains of example.com,
+instead of requiring an explicit ".example.com" pattern.
 .IP "\fBprocess_id (read-only)\fR"
 The process ID of a Postfix command or daemon process.
 .IP "\fBprocess_name (read-only)\fR"

@@ -191,6 +191,7 @@ smtpd.o: ../../include/mail_stream.h
 smtpd.o: ../../include/mail_version.h
 smtpd.o: ../../include/maps.h
 smtpd.o: ../../include/match_list.h
+smtpd.o: ../../include/match_parent_style.h
 smtpd.o: ../../include/milter.h
 smtpd.o: ../../include/msg.h
 smtpd.o: ../../include/myaddrinfo.h

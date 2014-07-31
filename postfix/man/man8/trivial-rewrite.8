@@ -170,8 +170,9 @@ destinations that do not match $mydestination, $inet_interfaces,
 $proxy_interfaces, $virtual_alias_domains, $virtual_mailbox_domains,
 or $relay_domains.
 .IP "\fBparent_domain_matches_subdomains (see 'postconf -d' output)\fR"
-What Postfix features match subdomains of "domain.tld" automatically,
-instead of requiring an explicit ".domain.tld" pattern.
+A list of Postfix features where the pattern "example.com" also
+matches subdomains of example.com,
+instead of requiring an explicit ".example.com" pattern.
 .IP "\fBrelayhost (empty)\fR"
 The next-hop destination of non-local mail; overrides non-local
 domains in recipient addresses.
