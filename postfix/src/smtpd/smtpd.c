@@ -4597,6 +4597,8 @@ typedef struct SMTPD_CMD {
     char   *name;
     int     (*action) (SMTPD_STATE *, int, SMTPD_TOKEN *);
     int     flags;
+    int     success_count;
+    int     total_count;
 } SMTPD_CMD;
 
 #define SMTPD_CMD_FLAG_LIMIT	(1<<0)	/* limit usage */
@@ -4604,25 +4606,25 @@ typedef struct SMTPD_CMD {
 #define SMTPD_CMD_FLAG_LAST	(1<<2)	/* last in PIPELINING command group */
 
 static SMTPD_CMD smtpd_cmd_table[] = {
-    SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,
-    SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,
+    {SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
+    {SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
+    {SMTPD_CMD_XCLIENT, xclient_cmd,},
+    {SMTPD_CMD_XFORWARD, xforward_cmd,},
 #ifdef USE_TLS
-    SMTPD_CMD_STARTTLS, starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,
+    {SMTPD_CMD_STARTTLS, starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
 #endif
 #ifdef USE_SASL_AUTH
-    SMTPD_CMD_AUTH, smtpd_sasl_auth_cmd, 0,
+    {SMTPD_CMD_AUTH, smtpd_sasl_auth_cmd,},
 #endif
-    SMTPD_CMD_MAIL, mail_cmd, 0,
-    SMTPD_CMD_RCPT, rcpt_cmd, 0,
-    SMTPD_CMD_DATA, data_cmd, SMTPD_CMD_FLAG_LAST,
-    SMTPD_CMD_RSET, rset_cmd, SMTPD_CMD_FLAG_LIMIT,
-    SMTPD_CMD_NOOP, noop_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,
-    SMTPD_CMD_VRFY, vrfy_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_LAST,
-    SMTPD_CMD_ETRN, etrn_cmd, SMTPD_CMD_FLAG_LIMIT,
-    SMTPD_CMD_QUIT, quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,
-    SMTPD_CMD_XCLIENT, xclient_cmd, 0,
-    SMTPD_CMD_XFORWARD, xforward_cmd, 0,
-    0,
+    {SMTPD_CMD_MAIL, mail_cmd,},
+    {SMTPD_CMD_RCPT, rcpt_cmd,},
+    {SMTPD_CMD_DATA, data_cmd, SMTPD_CMD_FLAG_LAST,},
+    {SMTPD_CMD_RSET, rset_cmd, SMTPD_CMD_FLAG_LIMIT,},
+    {SMTPD_CMD_NOOP, noop_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
+    {SMTPD_CMD_VRFY, vrfy_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_LAST,},
+    {SMTPD_CMD_ETRN, etrn_cmd, SMTPD_CMD_FLAG_LIMIT,},
+    {SMTPD_CMD_QUIT, quit_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
+    {0,},
 };
 
 static STRING_LIST *smtpd_noop_cmds;
@@ -4868,6 +4870,18 @@ static void smtpd_proto(SMTPD_STATE *state)
 				var_smtpd_sasl_opts);
 #endif
 
+	/*
+	 * Reset the per-command counters.
+	 */
+	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
+	    cmdp->success_count = cmdp->total_count = 0;
+	    if (cmdp->name == 0)
+		break;
+	}
+
+	/*
+	 * The command read/execute loop.
+	 */
 	for (;;) {
 	    if (state->flags & SMTPD_FLAG_HANGUP)
 		break;
@@ -4912,6 +4926,7 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    for (cmdp = smtpd_cmd_table; cmdp->name != 0; cmdp++)
 		if (strcasecmp(argv[0].strval, cmdp->name) == 0)
 		    break;
+	    cmdp->total_count += 1;
 	    /* Ignore smtpd_forbid_cmds lookup errors. Non-critical feature. */
 	    if (cmdp->name == 0) {
 		state->where = SMTPD_CMD_UNKNOWN;
@@ -4978,6 +4993,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    if (cmdp->action(state, argc, argv) != 0)
 		state->error_count++;
+	    else
+		cmdp->success_count += 1;
 	    if ((cmdp->flags & SMTPD_CMD_FLAG_LIMIT)
 		&& state->junk_cmds++ > var_smtpd_junk_cmd_limit)
 		state->error_count++;
@@ -5046,6 +5063,28 @@ static void smtpd_proto(SMTPD_STATE *state)
     if (smtpd_milters)
 	milter_disc_event(smtpd_milters);
 }
+
+/* smtpd_format_cmd_stats - format per-command statistics */
+
+static char *smtpd_format_cmd_stats(VSTRING *buf)
+{
+    SMTPD_CMD *cmdp;
+
+    VSTRING_RESET(buf);
+    for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
+	if (cmdp->total_count > 0) {
+	    vstring_sprintf_append(buf, " %s=%d",
+				   cmdp->name ? cmdp->name : "unknown",
+				   cmdp->success_count);
+	    if (cmdp->success_count != cmdp->total_count)
+		vstring_sprintf_append(buf, "/%d", cmdp->total_count);
+	}
+	if (cmdp->name == 0)
+	    break;
+    }
+    return (lowercase(STR(buf)));
+}
+
 
 /* smtpd_service - service one client */
 
@@ -5117,7 +5156,8 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
      * After the client has gone away, clean up whatever we have set up at
      * connection time.
      */
-    msg_info("disconnect from %s", state.namaddr);
+    msg_info("disconnect from %s%s", state.namaddr,
+	     smtpd_format_cmd_stats(state.buffer));
     smtpd_state_reset(&state);
     debug_peer_restore();
 }

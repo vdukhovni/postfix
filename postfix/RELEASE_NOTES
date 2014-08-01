@@ -41,6 +41,37 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20140801
+====================================
+
+The Postfix SMTP server now logs at the end of a session how many
+times an SMTP command was successfully invoked, followed by the
+total number of invocations if it is different.
+
+This logging will often be enough to diagnose a problem without
+verbose logging or network sniffer.
+
+    Normal session, no TLS:
+	disconnect from name[addr] ehlo=1 mail=1 rcpt=1 data=1 quit=1
+
+    Normal session. with TLS:
+	disconnect from name[addr] ehlo=2 starttls=1 mail=1 rcpt=1 data=1 quit=1
+
+    All recipients rejected, no ESMTP command pipelining:
+	disconnect from name[addr] ehlo=1 mail=1 rcpt=0/1 quit=1
+
+    All recipients rejected, with ESMTP command pipelining:
+	disconnect from name[addr] ehlo=1 mail=1 rcpt=0/1 data=0/1 rset=1 quit=1
+
+    Password guessing bot, hangs up without QUIT:
+	disconnect from name[addr] ehlo=1 auth=0/1
+
+    Mis-configured client trying to use TLS wrappermode on port 587:
+	disconnect from name[addr] unknown=0/1
+
+Logfile analyzers can trigger on the presence of "/". It indicates
+that Postfix rejected at least one command.
+
 Incompatible changes with snapshot 20140714
 ===========================================
 

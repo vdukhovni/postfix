@@ -20315,3 +20315,10 @@ Apologies for any names omitted.
 	that was originally part of the RELEASE_NOTES file. Files:
 	proto/SMTPUTF8_README.html, proto/Makefile.in, html/index.html.
 
+20140731
+
+	Feature: the Postfix SMTP server now logs at the end of
+	a session how many times each SMTP command was successfully
+	invoked, followed by the total number of invocations if it
+	is different.  File: smtpd/smtpd.c.
+	
