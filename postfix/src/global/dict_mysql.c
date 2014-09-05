@@ -349,9 +349,11 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 	    msg_info("%s: Skipping lookup of '%s'", myname, name);
 	return (0);
     }
-    if (domain_rc < 0)
+    if (domain_rc < 0) {
+	msg_warn("%s:%s 'domain' pattern match failed for '%s'",
+		 dict->type, dict->name, name);
 	DICT_ERR_VAL_RETURN(dict, domain_rc, (char *) 0);
-
+    }
 #define INIT_VSTR(buf, len) do { \
 	if (buf == 0) \
 	    buf = vstring_alloc(len); \

@@ -1372,6 +1372,12 @@ extern bool var_smtp_tls_enforce_peername;
 #define DEF_LMTP_TLS_LEVEL	""
 extern char *var_smtp_tls_level;
 
+#define VAR_SMTP_TLS_FBACK_LEVEL	"smtp_tls_fallback_level"
+#define DEF_SMTP_TLS_FBACK_LEVEL	""
+#define VAR_LMTP_TLS_FBACK_LEVEL	"lmtp_tls_fallback_level"
+#define DEF_LMTP_TLS_FBACK_LEVEL	""
+extern char *var_smtp_tls_fback_level;
+
 #define VAR_SMTP_TLS_SCERT_VD	"smtp_tls_scert_verifydepth"
 #define DEF_SMTP_TLS_SCERT_VD	9
 #define VAR_LMTP_TLS_SCERT_VD	"lmtp_tls_scert_verifydepth"
@@ -1542,6 +1548,12 @@ extern bool var_smtp_tls_blk_early_mail_reply;
 #define VAR_LMTP_TLS_FORCE_TLSA "lmtp_tls_force_insecure_host_tlsa_lookup"
 #define DEF_LMTP_TLS_FORCE_TLSA 0
 extern bool var_smtp_tls_force_tlsa;
+
+#define VAR_SMTP_TLS_AUDIT_TEMPLATE "smtp_tls_audit_template"
+#define DEF_SMTP_TLS_AUDIT_TEMPLATE ""
+#define VAR_LMTP_TLS_AUDIT_TEMPLATE "lmtp_tls_audit_template"
+#define DEF_LMTP_TLS_AUDIT_TEMPLATE ""
+extern char *var_smtp_tls_audit_template;
 
  /*
   * SASL authentication support, SMTP server side.

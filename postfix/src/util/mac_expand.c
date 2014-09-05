@@ -50,7 +50,7 @@
 /* .IP MAC_EXP_FLAG_APPEND
 /*	Append text to the result buffer without truncating it.
 /* .IP MAC_EXP_FLAG_SCAN
-/*	Invoke the call-back function each macro name in the input
+/*	Invoke the call-back function for each macro name in the input
 /*	string, including macro names in the values of conditional
 /*	expressions.  Do not expand macros, and do not write to the
 /*	result argument.
@@ -218,7 +218,6 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
     else if ((mc->flags & MAC_EXP_FLAG_SCAN) == 0) {
 	vstring_strcat(mc->result, vstring_str(buf));
     }
-
     mc->level--;
 
     return (mc->status);

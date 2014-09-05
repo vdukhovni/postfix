@@ -50,10 +50,6 @@ header values. </p>
 
 <h2> <a name="enabling">Enabling Postfix SMTPUTF8 support</a> </h2>
 
-<p> By default, Postfix SMTPUTF8 support is disabled. Thus, Postfix
-should work exactly as it has worked before SMTPUTF8 support was
-implemented. </p>
-
 <p> Before turning on SMTPUTF8 support in Postfix, you need to
 verify that the rest of your email infrastructure can handle UTF-8
 email addresses and message header values, including SMTPUTF8
@@ -65,8 +61,8 @@ parameter in <a href="postconf.5.html">main.cf</a>:</p>
 
 <blockquote>
 <pre>
-# postconf "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes"
-# postfix reload
+# <b>postconf "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes"</b>
+# <b>postfix reload</b>
 </pre>
 </blockquote>
 
@@ -83,7 +79,7 @@ EHLO response. </p>
 
 <pre>
 220 server.example.com ESMTP Postfix
-EHLO client.example.com
+<b>EHLO client.example.com</b>
 250-server.example.com
 250-PIPELINING
 250-SIZE 10240000
@@ -101,22 +97,22 @@ EHLO client.example.com
 MAIL FROM and VRFY commands. </p>
 
 <pre>
-MAIL FROM:&lt;address&gt; SMTPUTF8 ...
+<b>MAIL FROM:&lt;address&gt; SMTPUTF8 ...</b>
 
-VRFY address SMTPUTF8
+<b>VRFY address SMTPUTF8</b>
 </pre>
 
 <li> <p> The Postfix SMTP client may issue the SMTPUTF8 request in
 MAIL FROM commands. </p>
-
-<li> <p> Postfix already permitted UTF-8 in message header values
-and in address localparts. This does not change. </p>
 
 <li> <p> The Postfix SMTP server accepts UTF-8 in email address
 domains, but only after the remote SMTP client client issues the
 SMTPUTF8 request in MAIL FROM or VRFY commands.  </p>
 
 </ul>
+
+<p> Postfix already permitted UTF-8 in message header values
+and in address localparts. This does not change. </p>
 
 <h2> <a name="using">Using Postfix SMTPUTF8 support</a> </h2>
 
@@ -223,7 +219,9 @@ delivered it if SMTPUTF8 support was disabled. </p>
 </h2>
 
 <p> "Internationalized" domain names can appear in two forms: the
-UTF-8 form, and the ASCII (xn--mumble) form. </p>
+UTF-8 form, and the ASCII (xn--mumble) form. The initial Postfix
+SMTPUTF8 implementation performs no automatic conversions on UTF8
+strings beyond what is needed to perform DNS lookups. </p>
 
 <h3> No characterset canonicalization for non-ASCII domain names.
 </h3>
@@ -259,7 +257,7 @@ satisfy that last condition. </p>
 <h3> Pre-existing non-ASCII email flows </h3>
 
 <p> In pre-SMTPUTF8 environments, email with UTF-8 in address
-localparts (and in headers) works just fine because the vast majority
+localparts (and in headers) works just fine. The vast majority
 of email software including Postfix is perfectly capable of handling
 such email, even if pre-SMTPUTF8 standards do not support this. </p>
 
@@ -281,7 +279,7 @@ SMTPUTF8, specify: </p>
 
 <blockquote>
 <pre>
-$ make makefiles -DNO_EAI ...
+$ <b>make makefiles -DNO_EAI ...</b>
 </pre>
 </blockquote>
 

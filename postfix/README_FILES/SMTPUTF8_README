@@ -22,9 +22,6 @@ Topics covered in this document:
 
 EEnnaabblliinngg PPoossttffiixx SSMMTTPPUUTTFF88 ssuuppppoorrtt
 
-By default, Postfix SMTPUTF8 support is disabled. Thus, Postfix should work
-exactly as it has worked before SMTPUTF8 support was implemented.
-
 Before turning on SMTPUTF8 support in Postfix, you need to verify that the rest
 of your email infrastructure can handle UTF-8 email addresses and message
 header values, including SMTPUTF8 protocol support in SMTP-based content
@@ -33,8 +30,8 @@ filters (Amavisd), LMTP servers (Dovecot), and down-stream SMTP servers.
 SMTPUTF8 support is enabled by setting the smtputf8_enable parameter in
 main.cf:
 
-    # postconf "smtputf8_enable = yes"
-    # postfix reload
+    # ppoossttccoonnff ""ssmmttppuuttff88__eennaabbllee == yyeess""
+    # ppoossttffiixx rreellooaadd
 
 With SMTPUTF8 support enabled, Postfix changes behavior as follows:
 
@@ -45,7 +42,7 @@ With SMTPUTF8 support enabled, Postfix changes behavior as follows:
   * The Postfix SMTP server announces SMTPUTF8 support in the EHLO response.
 
     220 server.example.com ESMTP Postfix
-    EHLO client.example.com
+    EEHHLLOO cclliieenntt..eexxaammppllee..ccoomm
     250-server.example.com
     250-PIPELINING
     250-SIZE 10240000
@@ -61,19 +58,19 @@ With SMTPUTF8 support enabled, Postfix changes behavior as follows:
   * The Postfix SMTP server accepts the SMTPUTF8 request in MAIL FROM and VRFY
     commands.
 
-    MAIL FROM:<address> SMTPUTF8 ...
+    MMAAIILL FFRROOMM::<<aaddddrreessss>> SSMMTTPPUUTTFF88 ......
 
-    VRFY address SMTPUTF8
+    VVRRFFYY aaddddrreessss SSMMTTPPUUTTFF88
 
   * The Postfix SMTP client may issue the SMTPUTF8 request in MAIL FROM
     commands.
 
-  * Postfix already permitted UTF-8 in message header values and in address
-    localparts. This does not change.
-
   * The Postfix SMTP server accepts UTF-8 in email address domains, but only
     after the remote SMTP client client issues the SMTPUTF8 request in MAIL
     FROM or VRFY commands.
+
+Postfix already permitted UTF-8 in message header values and in address
+localparts. This does not change.
 
 UUssiinngg PPoossttffiixx SSMMTTPPUUTTFF88 ssuuppppoorrtt
 
@@ -155,7 +152,9 @@ disabled.
 LLiimmiittaattiioonnss ooff tthhee ccuurrrreenntt iimmpplleemmeennttaattiioonn
 
 "Internationalized" domain names can appear in two forms: the UTF-8 form, and
-the ASCII (xn--mumble) form.
+the ASCII (xn--mumble) form. The initial Postfix SMTPUTF8 implementation
+performs no automatic conversions on UTF8 strings beyond what is needed to
+perform DNS lookups.
 
 NNoo cchhaarraacctteerrsseett ccaannoonniiccaalliizzaattiioonn ffoorr nnoonn--AASSCCIIII ddoommaaiinn nnaammeess..
 
@@ -186,9 +185,9 @@ will have to apply RFC 2047 encoding to satisfy that last condition.
 PPrree--eexxiissttiinngg nnoonn--AASSCCIIII eemmaaiill fflloowwss
 
 In pre-SMTPUTF8 environments, email with UTF-8 in address localparts (and in
-headers) works just fine because the vast majority of email software including
-Postfix is perfectly capable of handling such email, even if pre-SMTPUTF8
-standards do not support this.
+headers) works just fine. The vast majority of email software including Postfix
+is perfectly capable of handling such email, even if pre-SMTPUTF8 standards do
+not support this.
 
 Therefore, when Postfix SMTPUTF8 support is turned on, Postfix must not
 suddenly start to break pre-existing email flows with UTF-8 in addres
@@ -204,7 +203,7 @@ Postfix SMTPUTF8 support requires the ICU library. Postfix automatically builds
 with SMTPUTF8 support when the library and its header files are installed. To
 force Postfix to build without SMTPUTF8, specify:
 
-    $ make makefiles -DNO_EAI ...
+    $ mmaakkee mmaakkeeffiilleess --DDNNOO__EEAAII ......
 
 CCrreeddiittss
 

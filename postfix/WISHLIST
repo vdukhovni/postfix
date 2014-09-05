@@ -8,7 +8,23 @@ Wish list:
 
 	Things to do after the stable release:
 
-	up-convert myhostname in MIME boundary strings?
+	up-convert myhostname to UTF-8 in MIME boundary strings?
+
+	Clarify that receive_override_options should not be used
+	with smtpd_proxy_filter.
+
+	Send a "relayed" notification upon delivery after a "delayed"
+	notification was sent.  This requres that the queue manager
+	notices that the delay warning time has been reset, that
+	the queue manager sets the NOTIFY=SUCCESS' flag on all
+	subsequent delivery attempts for that message where SUCCESS'
+	is like standard SUCCESS except instead of propagating it
+	to a down-stream MTA, the Postfix SMTP client sends a
+	"relayed" notice.  Delivery agents will then report a
+	"relayed" or "delivered" status for all successful deliveries.
+
+	Document the relative order of header_checks, address
+	rewriting, milters.
 
 	Table-driven case folding and case-insensitive string 
 	comparison specifically for UTF-8.
@@ -45,8 +61,6 @@ Wish list:
 	independent from the DNS and native routines for host
 	name/address lookup.
 
-	Incorporate 3rd-party code such as dynamic_maps.
-
 	Make been_here flag BH_FLAG_FOLD configurable for masochists.
 
 	Replace some redundant TLS_README sections with pointers
@@ -63,7 +77,8 @@ Wish list:
 	needs to show the unfolded address.
 
 	Per SASL account rate limits. This requires new infrastructure
-	that maintains stats by SASL account.
+	that maintains stats by SASL account instead of client IP
+	address.
 
 	Watchdog timer in postmap/postalias.
 
@@ -102,12 +117,6 @@ Wish list:
 	removed.
 
 	End code revision, after DANE support stabilizes.
-
-	It would be nice if the result from one table lookup could
-	serve as input for another (e.g. virtual aliases before the
-	list of valid recipients). For this to work the magical
-	(bare user, domain only, etc.) lookups need to become a
-	table property, not a property of the client context.
 
 	It would be nice if "bare username" lookup is not hard-coded
 	for domains in the local address class.
@@ -249,12 +258,6 @@ Wish list:
 
 	Investigate viability of Sendmail dns maps.
 
-	Check if FILTER_README has the "postsuper -r" workaround
-
-	Bounces without <> in the plaintext section. Apparently,
-	some software renders the text as HTML (and therefore 
-	does not render addresses and other text inside <> ).
-
 	Make the rules for how to use close-on-exec more explicit.
 
 	Provide separate timeout control for dict_proxy client,
@@ -392,28 +395,6 @@ Wish list:
 	(DKIM), and address verification (BATV).
 
 	Consistency: in postconf.proto make <dt>..</dt> tags bold.
-
-	postscreen(8): listen on multiple IP addresses and enforce
-	that the client contacts the primary MX address first (i.e.
-	punish hosts that contact the secondary before the primary).
-	The downside with any approach that relies on temporary
-	punishment is that it does not scale to configurations
-	with multiple equal-preference MX hosts. Such hosts would
-	have to share the postscreen cache, causing an unacceptable
-	performance bottleneck and a single point of failure.
-
-	According to a paper by Ted Unangst at BSDCON09, kqueue
-	reports state changes, i.e. kqueue indicates when the socket
-	becomes readable. Specifically, he writes when kqueue reports
-	a socket becomes readable but no data is read from that
-	socket, later kqueue calls won't report the socket as
-	readable. That's not what happens on FreeBSD 8.0, where
-	kqueue will keep reporting the socket as readable when
-	nothing is read.  Also, FreeBSD 8.0 kqueue still reports
-	the socket as readable after a read operation does not empty
-	the kernel buffer.  We need a test program for this that 
-	repeats these tests with OpenBSD and NetBSD (and MacOS X
-	once they fix their kqueue implementation).
 
 	Would it help if there were different cleanup_service
 	parameter names for different message paths? smtpd(8) uses
@@ -688,12 +669,6 @@ Wish list:
 	Make null local-part handling configurable: either expand
 	into mailer-daemon (current bahavior) or disallow (strict
 	behavior, currently implemented only in the SMTP server).
-
-	The type of var_message_limit (and other file size/offset
-	configuration parameters or internal protocol attributes)
-	should be changed from int to off_t.  This also requires
-	checking all expressions in which var_message_limit etc.
-	appears: qmqpd, netstring, deliver_request, ...
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.
 

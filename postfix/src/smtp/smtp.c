@@ -462,6 +462,13 @@
 /*	RFC 6698 trust-anchor digest support in the Postfix TLS library.
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtp_tls_audit_template (empty)\fR"
+/*	Optional template for tls audit logging at the completion of each
+/*	message data transfer.
+/* .IP "\fBsmtp_tls_fallback_level (empty)\fR"
+/*	Optional fallback levels for authenticated TLS levels.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -581,8 +588,8 @@
 /*	Enable experimental SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
-/*	Enable SMTPUTF8 autodetection for the specified mail origin
-/*	classes.
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -856,6 +863,7 @@ char   *var_smtp_tls_mand_excl;
 char   *var_smtp_tls_dcert_file;
 char   *var_smtp_tls_dkey_file;
 bool    var_smtp_tls_enforce_peername;
+char   *var_smtp_tls_fback_level;
 char   *var_smtp_tls_key_file;
 char   *var_smtp_tls_loglevel;
 bool    var_smtp_tls_note_starttls_offer;
@@ -872,6 +880,7 @@ char   *var_smtp_tls_eccert_file;
 char   *var_smtp_tls_eckey_file;
 bool    var_smtp_tls_blk_early_mail_reply;
 bool    var_smtp_tls_force_tlsa;
+char   *var_smtp_tls_audit_template;
 
 #endif
 
@@ -1285,6 +1294,8 @@ int     main(int argc, char **argv)
 		       smtp_int_table : lmtp_int_table,
 		       MAIL_SERVER_STR_TABLE, smtp_mode ?
 		       smtp_str_table : lmtp_str_table,
+		       MAIL_SERVER_RAW_TABLE, smtp_mode ?
+		       smtp_raw_table : lmtp_raw_table,
 		       MAIL_SERVER_BOOL_TABLE, smtp_mode ?
 		       smtp_bool_table : lmtp_bool_table,
 		       MAIL_SERVER_PRE_INIT, pre_init,
