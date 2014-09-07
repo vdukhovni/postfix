@@ -336,6 +336,11 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBconfirm_delay_cleared (no)\fR"
+/*	After sending a "your message is delayed" notification, inform
+/*	the sender when the delay clears up.
 /* FILES
 /*	/var/spool/postfix/incoming, incoming queue
 /*	/var/spool/postfix/active, active queue
@@ -445,6 +450,7 @@ int     var_dest_rate_delay;
 char   *var_def_filter_nexthop;
 int     var_qmgr_daemon_timeout;
 int     var_qmgr_ipc_timeout;
+int     var_dsn_delay_cleared;
 
 static QMGR_SCAN *qmgr_scans[2];
 
@@ -723,6 +729,7 @@ int     main(int argc, char **argv)
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
 	VAR_CONC_FDBACK_DEBUG, DEF_CONC_FDBACK_DEBUG, &var_conc_feedback_debug,
+	VAR_DSN_DELAY_CLEARED, DEF_DSN_DELAY_CLEARED, &var_dsn_delay_cleared,
 	0,
     };
 

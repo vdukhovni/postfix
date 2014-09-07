@@ -385,7 +385,8 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * 
      * See also comments in bounce/bounce_notify_util.c.
      */
-    if ((message->tflags & (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD))
+    if ((message->tflags & (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD 
+			    | DEL_REQ_FLAG_REC_SENT))
 	|| (message->rflags & QMGR_READ_FLAG_NOTIFY_SUCCESS)) {
 	atrace_flush(message->tflags,
 		     message->queue_name,

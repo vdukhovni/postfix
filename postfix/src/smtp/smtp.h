@@ -92,8 +92,6 @@ typedef struct SMTP_ITERATOR {
 
 typedef struct SMTP_TLS_POLICY {
     int     level;			/* TLS enforcement level */
-    int     policy_level;		/* TLS desired policy level */
-    int     fallback_level;		/* TLS fallback level */
     char   *protocols;			/* Acceptable SSL protocols */
     char   *grade;			/* Cipher grade: "export", ... */
     VSTRING *exclusions;		/* Excluded SSL ciphers */
@@ -122,13 +120,11 @@ extern void smtp_tls_policy_cache_flush(void);
 	SMTP_TLS_POLICY *_tls_policy_dummy_tmp = (t); \
 	smtp_tls_policy_init(_tls_policy_dummy_tmp, (DSN_BUF *) 0); \
 	_tls_policy_dummy_tmp->level = TLS_LEV_NONE; \
-	_tls_policy_dummy_tmp->policy_level = TLS_LEV_NONE; \
     } while (0)
 
  /* This macro is not part of the module external interface. */
 #define smtp_tls_policy_init(t, w) do { \
 	SMTP_TLS_POLICY *_tls_policy_init_tmp = (t); \
-	_tls_policy_init_tmp->fallback_level = TLS_LEV_NOTFOUND; \
 	_tls_policy_init_tmp->protocols = 0; \
 	_tls_policy_init_tmp->grade = 0; \
 	_tls_policy_init_tmp->exclusions = 0; \
@@ -345,7 +341,6 @@ typedef struct SMTP_SESSION {
     char   *tls_nexthop;		/* Nexthop domain for cert checks */
     int     tls_retry_plain;		/* Try plain when TLS handshake fails */
     SMTP_TLS_POLICY *tls;		/* TEMPORARY */
-    int     tls_level;			/* Actual tls level */
 #endif
 
     SMTP_STATE *state;			/* back link */
@@ -474,16 +469,14 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
 	(session->tls_context == 0 \
-	    && (session->tls->level == TLS_LEV_MAY \
-	        || session->tls->fallback_level == TLS_LEV_MAY) \
+	    && session->tls->level == TLS_LEV_MAY \
 	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE \
 	(session->tls_context != 0 \
 	    && SMTP_RCPT_LEFT(state) > SMTP_RCPT_MARK_COUNT(state) \
-	    && (session->tls->level == TLS_LEV_MAY \
-	        || session->tls->fallback_level == TLS_LEV_MAY) \
+	    && session->tls->level == TLS_LEV_MAY \
 	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
 
@@ -495,16 +488,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 #define RETRY_AS_PLAINTEXT do { \
 	session->tls_retry_plain = 1; \
 	state->misc_flags &= ~SMTP_MISC_FLAG_FINAL_SERVER; \
-	(void) smtp_tls_trouble(state, session->tls_context ? \
-			        STARTTLS_SESSION_FALLBACK : \
-			        STARTTLS_HANDSHAKE_FALLBACK); \
     } while (0)
-
-#define STARTTLS_FEATURE_FALLBACK	1	/* No STARTTLS feature */
-#define STARTTLS_COMMAND_FALLBACK	2	/* Refused STARTTLS command */
-#define STARTTLS_HANDSHAKE_FALLBACK	3	/* Handshake failed */
-#define STARTTLS_VERIFY_FALLBACK	4	/* Peer verification failed */
-#define STARTTLS_SESSION_FALLBACK	5	/* Data transfer failed */
 
  /*
   * smtp_chat.c
@@ -588,11 +572,6 @@ extern void PRINTFLIKE(5, 6) smtp_rcpt_fail(SMTP_STATE *, RECIPIENT *,
 					            const char *,...);
 extern int smtp_stream_except(SMTP_STATE *, int, const char *);
 
-#ifdef USE_TLS
-extern int smtp_tls_trouble(SMTP_STATE *, int);
-
-#endif
-
  /*
   * smtp_unalias.c
   */
@@ -669,11 +648,6 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
 	| COND_SASL_SMTP_KEY_FLAG_NEXTHOP | COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
 	| SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
-
- /*
-  * smtp_tls_audit.c
-  */
-extern void smtp_tls_audit(const char *, SMTP_SESSION *);
 
  /*
   * Silly little macros.

@@ -32,6 +32,7 @@
 /*	The message is a user-requested address expansion probe.
 /*	Update the message delivery record.
 /* .IP DEL_REQ_FLAG_RECORD
+/* .IP DEL_REQ_FLAG_REC_SENT
 /*	This is a normal message with logged delivery. Update the
 /*	the message delivery record.
 /* .RE .IP queue_id
@@ -142,7 +143,7 @@ int     sent(int flags, const char *id, MSG_STATS *stats,
 	if (my_dsn.action == 0 || my_dsn.action[0] == 0)
 	    my_dsn.action = "delivered";
 
-	if (((flags & DEL_REQ_FLAG_RECORD) == 0
+	if (((flags & (DEL_REQ_FLAG_RECORD | DEL_REQ_FLAG_REC_SENT)) == 0
 	  || trace_append(flags, id, stats, recipient, relay, &my_dsn) == 0)
 	    && ((recipient->dsn_notify & DSN_NOTIFY_SUCCESS) == 0
 	|| trace_append(flags, id, stats, recipient, relay, &my_dsn) == 0)) {

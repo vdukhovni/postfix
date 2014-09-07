@@ -13,16 +13,6 @@ Wish list:
 	Clarify that receive_override_options should not be used
 	with smtpd_proxy_filter.
 
-	Send a "relayed" notification upon delivery after a "delayed"
-	notification was sent.  This requres that the queue manager
-	notices that the delay warning time has been reset, that
-	the queue manager sets the NOTIFY=SUCCESS' flag on all
-	subsequent delivery attempts for that message where SUCCESS'
-	is like standard SUCCESS except instead of propagating it
-	to a down-stream MTA, the Postfix SMTP client sends a
-	"relayed" notice.  Delivery agents will then report a
-	"relayed" or "delivered" status for all successful deliveries.
-
 	Document the relative order of header_checks, address
 	rewriting, milters.
 

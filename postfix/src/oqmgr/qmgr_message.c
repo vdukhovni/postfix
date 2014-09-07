@@ -761,6 +761,16 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     }
 
     /*
+     * After sending a "delayed" warning, request sender notification when
+     * message delivery is completed. While "mail delayed" notifications are
+     * bad enough because they multiply the amount of email traffic, "delay
+     * cleared" notifications are even worse because they come in a sudden
+     * burst when the queue drains after a network outage.
+     */
+    if (var_dsn_delay_cleared && message->warn_time < 0)
+	message->tflags |= DEL_REQ_FLAG_REC_SENT;
+
+    /*
      * Avoid clumsiness elsewhere in the program. When sending data across an
      * IPC channel, sending an empty string is more convenient than sending a
      * null pointer.
@@ -826,13 +836,13 @@ void    qmgr_message_update_warn(QMGR_MESSAGE *message)
 {
 
     /*
-     * XXX eventually this should let us schedule multiple warnings, right
-     * now it just allows for one.
+     * After the "mail delayed" warning, optionally send a "delay cleared"
+     * notification.
      */
     if (qmgr_message_open(message)
 	|| vstream_fseek(message->fp, message->warn_offset, SEEK_SET) < 0
 	|| rec_fprintf(message->fp, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-		       REC_TYPE_WARN_ARG(0)) < 0
+		       REC_TYPE_WARN_ARG(-1)) < 0
 	|| vstream_fflush(message->fp))
 	msg_fatal("update queue file %s: %m", VSTREAM_PATH(message->fp));
     qmgr_message_close(message);

@@ -802,6 +802,16 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
     }
 
     /*
+     * After sending a "delayed" warning, request sender notification when
+     * message delivery is completed. While "mail delayed" notifications are
+     * bad enough because they multiply the amount of email traffic, "delay
+     * cleared" notifications are even worse because they come in a sudden
+     * burst when the queue drains after a network outage.
+     */
+    if (var_dsn_delay_cleared && message->warn_time < 0)
+	message->tflags |= DEL_REQ_FLAG_REC_SENT;
+
+    /*
      * Remember when we have read the last recipient batch. Note that we do
      * it here after reading as reading might have used considerable amount
      * of time.
@@ -883,13 +893,13 @@ void    qmgr_message_update_warn(QMGR_MESSAGE *message)
 {
 
     /*
-     * XXX eventually this should let us schedule multiple warnings, right
-     * now it just allows for one.
+     * After the "mail delayed" warning, optionally send a "delay cleared"
+     * notification.
      */
     if (qmgr_message_open(message)
 	|| vstream_fseek(message->fp, message->warn_offset, SEEK_SET) < 0
 	|| rec_fprintf(message->fp, REC_TYPE_WARN, REC_TYPE_WARN_FORMAT,
-		       REC_TYPE_WARN_ARG(0)) < 0
+		       REC_TYPE_WARN_ARG(-1)) < 0
 	|| vstream_fflush(message->fp))
 	msg_fatal("update queue file %s: %m", VSTREAM_PATH(message->fp));
     qmgr_message_close(message);

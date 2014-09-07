@@ -29,7 +29,6 @@
 	VAR_SMTP_TLS_ECCERT_FILE, DEF_SMTP_TLS_ECCERT_FILE, &var_smtp_tls_eccert_file, 0, 0,
 	VAR_SMTP_TLS_ECKEY_FILE, DEF_SMTP_TLS_ECKEY_FILE, &var_smtp_tls_eckey_file, 0, 0,
 	VAR_SMTP_TLS_LOGLEVEL, DEF_SMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
-	VAR_SMTP_TLS_FBACK_LEVEL, DEF_SMTP_TLS_FBACK_LEVEL, &var_smtp_tls_fback_level, 0, 0,
 #endif
 	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,
 	VAR_SMTP_SASL_TYPE, DEF_SMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,
@@ -122,13 +121,5 @@
 	VAR_LMTP_ASSUME_FINAL, DEF_LMTP_ASSUME_FINAL, &var_lmtp_assume_final,
 	VAR_SMTP_REC_DEADLINE, DEF_SMTP_REC_DEADLINE, &var_smtp_rec_deadline,
 	VAR_SMTP_DUMMY_MAIL_AUTH, DEF_SMTP_DUMMY_MAIL_AUTH, &var_smtp_dummy_mail_auth,
-	0,
-    };
-
-    /* Suppress $name expansion upon loading. */
-    static const CONFIG_RAW_TABLE smtp_raw_table[] = {
-#ifdef USE_TLS
-	VAR_SMTP_TLS_AUDIT_TEMPLATE, DEF_SMTP_TLS_AUDIT_TEMPLATE, &var_smtp_tls_audit_template, 0, 0,
-#endif
 	0,
     };

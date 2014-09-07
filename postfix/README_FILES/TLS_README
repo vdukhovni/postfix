@@ -1027,12 +1027,8 @@ default. This is the recommended configuration for early adopters.
   * The "example.com" destination uses DANE, but if TLSA records are not
     present or are unusable, mail is deferred.
 
-  * The "example.org" destination uses DANE if possible, but uses opportunistic
-    TLS if no TLSA records are found. The "fallback" attribute (Postfix >=
-    2.12) overrides the global main.cf smtp_tls_fallback_level parameter to
-    employ unauthenticated mandatory encryption if DANE authentication fails,
-    after logging a warning. See smtp_tls_audit_template for additional control
-    over TLS security logging.
+  * The "example.org" destination uses DANE if possible, but if no TLSA records
+    are found opportunistic TLS is used.
 
     main.cf:
         indexed = ${default_database_type}:${config_directory}/
@@ -1056,8 +1052,6 @@ default. This is the recommended configuration for early adopters.
 
     tls_policy:
         example.com dane-only
-        # Postfix >= 2.12, per-destination smtp_tls_fallback_level override
-        example.org dane fallback=encrypt
 
     master.cf:
         dane       unix  -       -       n       -       -       smtp
@@ -1638,9 +1632,7 @@ ddaannee
     obtained for the remote SMTP server, SSLv2 is automatically disabled (see
     smtp_tls_mandatory_protocols), and the server certificate must match the
     TLSA records. RFC 6698 (DANE) TLS authentication and DNSSEC support is
-    available with Postfix 2.11 and later. The optional "fallback" attribute
-    provides a per-site override of the main.cf smtp_tls_fallback_level
-    parameter (Postfix >= 2.12).
+    available with Postfix 2.11 and later.
 ddaannee--oonnllyy
     Mandatory DANE TLS. The TLS policy for the destination is obtained via TLSA
     records in DNSSEC. If no TLSA records are found, or none are usable, no
@@ -1648,9 +1640,7 @@ ddaannee--oonnllyy
     the remote SMTP server, SSLv2 is automatically disabled (see
     smtp_tls_mandatory_protocols), and the server certificate must match the
     TLSA records. RFC 6698 (DANE) TLS authentication and DNSSEC support is
-    available with Postfix 2.11 and later. The optional "fallback" attribute
-    provides a per-site override of the main.cf smtp_tls_fallback_level
-    parameter (Postfix >= 2.12).
+    available with Postfix 2.11 and later.
 ffiinnggeerrpprriinntt
     Certificate fingerprint verification. Available with Postfix 2.5 and later.
     At this security level, there are no trusted certificate authorities. The
@@ -1663,8 +1653,7 @@ ffiinnggeerrpprriinntt
     combined with a "|" delimiter in a single match attribute, or multiple
     match attributes can be employed. The ":" character is not used as a
     delimiter as it occurs between each pair of fingerprint (hexadecimal)
-    digits. The optional "fallback" attribute provides a per-site override of
-    the main.cf smtp_tls_fallback_level parameter (Postfix >= 2.12).
+    digits.
 vveerriiffyy
     Mandatory server certificate verification. Mail is delivered only if the
     TLS handshake succeeds, if the remote SMTP server certificate can be
@@ -1675,8 +1664,7 @@ vveerriiffyy
     "tafile" attribute optionally modifies trust chain verification in the same
     manner as the "smtp_tls_trust_anchor_file" parameter. The "tafile"
     attribute may be specified multiple times to load multiple trust-anchor
-    files. The optional "fallback" attribute provides a per-site override of
-    the main.cf smtp_tls_fallback_level parameter (Postfix >= 2.12).
+    files.
 sseeccuurree
     Secure certificate verification. Mail is delivered only if the TLS
     handshake succeeds, if the remote SMTP server certificate can be validated
@@ -1686,9 +1674,7 @@ sseeccuurree
     "match" attribute is specified). With Postfix >= 2.11 the "tafile"
     attribute optionally modifies trust chain verification in the same manner
     as the "smtp_tls_trust_anchor_file" parameter. The "tafile" attribute may
-    be specified multiple times to load multiple trust-anchor files. The
-    optional "fallback" attribute provides a per-site override of the main.cf
-    smtp_tls_fallback_level parameter (Postfix >= 2.12).
+    be specified multiple times to load multiple trust-anchor files.
 Notes:
 
   * The "match" attribute is especially useful to verify TLS certificates for
@@ -1722,7 +1708,6 @@ Example:
         smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
         # Postfix 2.5 and later
         smtp_tls_fingerprint_digest = md5
-
     /etc/postfix/tls_policy:
         example.edu             none
         example.mil             may
@@ -1738,8 +1723,6 @@ Example:
         # Postfix 2.6 and later
         example.info            may protocols=!SSLv2 ciphers=medium
     exclude=3DES
-        # Postfix 2.12 and later override of smtp_tls_fallback_level
-        fallback.example        secure fallback=encrypt
 
 NNoottee:: The "hostname" strategy if listed in a non-default setting of
 smtp_tls_secure_cert_match or in the "match" attribute in the policy table can

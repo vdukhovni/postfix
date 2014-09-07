@@ -20332,30 +20332,16 @@ Apologies for any names omitted.
 
 	Logging: the MySQL client now logs a warning when a match
 	against the "domain" list fails due to table lookup error
-	(hte underlying mechanism already logs a warning, but it
+	(the underlying mechanism already logs a warning, but it
 	has less context information).  File: global/dict_mysql.c.
 
-20140905
+20140907
 
-	Feature:  support to fall back to an unauthenticated TLS
-	security level ("may" or "encrypt) when the Postfix SMTP
-	client cannot establish the preferred authenticated TLS
-	security level ("dane", "dane-only", "fingerprint", "verify",
-	or "secure"). The fall-back levels may be specified globally
-	with the smtp_tls_fallback_level parameter or in per-site
-	TLS policies with the "fallback" attribute.  Viktor Dukhovni.
-	Files: mantools/postlink, proto/TLS_README.html,
-	./proto/postconf.proto, global/mail_params.h, smtp/lmtp_params.c,
-	smtp/smtp.c, smtp/smtp.h, smtp/smtp_connect.c, smtp/smtp_params.c,
-	smtp/smtp_proto.c, smtp/smtp_tls_policy.c, smtp/smtp_trouble.c.
+	Feature: with "confirm_delay_cleared = yes", Postfix informs
+	the sender when delayed mail leaves the queue. This can
+	result in a sudden burst of notifications at the end of a
+	prolonged network outage, and is therefore disabled by
+	default. Files: mantools/postlink, proto/postconf.proto,
+	global/deliver_request.h, global/mail_params.h, global/sent.c,
+	*qmgr/qmgr.c, *qmgr/qmgr_active.c, *qmgr/qmgr_message.c.
 
-	Feature TLS audit logging, controlled with the
-	smtp_tls_audit_template parameter. This may be configured
-	to log TLS session properties at the end of each SMTP mail
-	delivery over TLS, for successful and failed deliveries.
-	This logging makes smtp_tls_loglevel=1 handshake logging
-	mostly redundant.  Viktor Dukhovni. Files: mantools/postlink,
-	proto/TLS_README.html, ./proto/postconf.proto,
-	global/mail_params.h, smtp/Makefile.in, smtp/lmtp_params.c,
-	smtp/smtp.c, smtp/smtp.h, smtp/smtp_params.c, smtp/smtp_proto.c,
-	smtp_tls_audit.c, tls/tls.h, util/mac_expand.c.
