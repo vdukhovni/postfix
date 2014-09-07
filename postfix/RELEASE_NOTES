@@ -41,6 +41,30 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20140905
+====================================
+
+Support to fall back to an unauthenticated TLS security level ("may"
+or "encrypt) when the Postfix SMTP client cannot establish the
+preferred authenticated TLS security level ("dane", "dane-only",
+"fingerprint", "verify", or "secure"). The fall-back levels may be
+specified globally with the smtp_tls_fallback_level parameter or
+in per-site TLS policies with the "fallback" attribute.
+
+If the above sounds like opportunistic authenticated TLS, than that
+is pretty-much it. Wietse is not fully convinced that this is a
+good idea, because it creates opportunities for downgrade attacks.
+This said, fallback to unauthenticated TLS is logged, so downgrades
+are "tamper-evident".  Fallback should be used only when testing,
+or briefly when working around a known problem at a remote site.
+
+SMTP client support to log TLS session properties after each mail
+delivery attempt. The content of this optional logfile record is
+configurable with the smtp_tls_audit_template parameter. The names
+of template properties are not yet final; the names of TLS session
+attributes need to be specific enough so that they will not collide
+with future names of non-TLS session attributes.
+
 Major changes with snapshot 20140801
 ====================================
 

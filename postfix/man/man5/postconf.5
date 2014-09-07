@@ -2828,6 +2828,11 @@ The LMTP-specific version of the smtp_tls_CApath
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_audit_template (default: empty)
+The LMTP-specific version of the smtp_tls_audit_template
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH lmtp_tls_block_early_mail_reply (default: empty)
 The LMTP-specific version of the smtp_tls_block_early_mail_reply
 configuration parameter.  See there for details.
@@ -2875,6 +2880,11 @@ The LMTP-specific version of the smtp_tls_exclude_ciphers
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_fallback_level (default: empty)
+The LMTP-specific version of the smtp_tls_fallback_level
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH lmtp_tls_fingerprint_cert_match (default: empty)
 The LMTP-specific version of the smtp_tls_fingerprint_cert_match
 configuration parameter.  See there for details.
@@ -6984,6 +6994,64 @@ smtp_tls_CApath = /etc/postfix/certs
 .ft R
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_tls_audit_template (default: empty)
+Optional template for tls audit logging at the completion of each
+message data transfer.  If empty (the default setting) no TLS audit log
+entries are generated.
+.PP
+The following $name expansions are done on smtp_tls_audit_template:
+.IP "\fB$relay\fR"
+The remote SMTP server \fIname\fR[\fIaddress\fR]:\fIport\fR.
+.br
+.IP "\fB$level\fR"
+The effective TLS security level after any fallback.
+.br
+.IP "\fB$policy\fR"
+The desired TLS security level before any fallback, undefined
+if no fallback took place.
+.br
+.IP "\fB$auth\fR"
+The authentication level of the remote SMTP server.  One of
+"Cleartext", "Anonymous", "Untrusted", "Trusted" or "Verified".
+.br
+.IP "\fB$protocol\fR"
+The TLS protocol version, defined only when TLS is used.
+.br
+.IP "\fB$cipher\fR"
+The TLS cipher name, defined only when TLS is used.
+.br
+.IP "\fB$cert_digest\fR"
+The digest of the remote SMTP server's certificate, defined
+only when TLS is used and the remote server presented a certificate.
+The digest algorithm is that specified via smtp_tls_fingerprint_digest.
+.br
+.IP "\fB$spki_digest\fR"
+The digest of the remote SMTP server's public key (Subject
+Public Key Info or SPKI from X.509), defined only when TLS is used
+and the remote server presented a certificate.  The digest algorithm
+is that specified via smtp_tls_fingerprint_digest.
+.br
+.IP "\fB${name?value}\fR"
+Expands to \fIvalue\fR when \fI$name\fR is non-empty.
+.br
+.IP "\fB${name:value}\fR"
+Expands to \fIvalue\fR when \fI$name\fR is empty.
+.br
+.br
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_tls_audit_template =
+        tlsaudit: relay=${relay}${auth?, auth=${auth}}${level?, level=${level}}${policy?, policy=${policy}}${protocol?, protocol=${protocol}}${cipher?, cipher=${cipher}}
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtp_tls_block_early_mail_reply (default: no)
 Try to detect a mail hijacking attack based on a TLS protocol
 vulnerability (CVE-2009-3555), where an attacker prepends malicious
@@ -7199,6 +7267,64 @@ and "DES-CBC3-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtp_tls_fallback_level (default: empty)
+Optional fallback levels for authenticated TLS levels.  Specify
+a white-space or comma-separated list of
+\fBpolicy_level\fR=\fBfallback_level\fR pairs.  The \fBpolicy_level\fR
+must require authentication (one of dane, dane-only, fingerprint,
+verify, secure).  The \fBfallback_level\fR must be "encrypt" or
+"may".  When an authenticated connection at some desired policy
+level cannot be established, delivery will proceed at the correponding
+fallback level if possible.  A warning will be logged
+indicating the fallback reason.  You can use smtp_tls_audit_template
+to record the TLS security status for each delivery.
+.PP
+The TLS policy table
+can be used to specify a destination-specific fallback strategy via the
+"fallback" policy attribute.  The value of the "fallback" attribute, if
+specified, must be "may", "encrypt" or "none".  If not "none", this
+specifies the fallback level for the destination in question.  If the
+attribute value is "none", fallback is suppressed for the destination
+even if enabled via a global setting of smtp_tls_fallback_level.
+.PP
+Example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # When authentication fails, log a warning and deliver anyway
+    # over an unauthenticated TLS connection.
+    #
+    smtp_tls_fallback_level =
+        dane=encrypt,
+        dane-only=encrypt,
+        fingerprint=encrypt,
+        verify=encrypt,
+        secure=encrypt
+    indexed = ${default_database_type}:${config_directory}/
+    smtp_tls_policy_maps = ${indexed}tls-policy
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/tls-policy:
+    # No fallback for example.com
+    example.com secure fallback=none
+    # For example.net tolerate cleartext fallback
+    example.net dane fallback=may
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtp_tls_fingerprint_cert_match (default: empty)
 List of acceptable remote SMTP server certificate fingerprints for
 the "fingerprint" TLS security level (\fBsmtp_tls_security_level\fR =
