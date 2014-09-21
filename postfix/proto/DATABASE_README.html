@@ -365,14 +365,14 @@ file.  </dd>
 <dt> <b>pipemap</b> (read-only) </dt>
 
 <dd> A pipeline of lookup tables. Example:
-"<b>pipemap:</b><i>!type<sub>1</sub>:name<sub>1</sub>! ...
-!type<sub>n</sub>:name<sub>n</sub></i>".  Each "pipemap:" query is
+"pipemap:{<i>type<sub>1</sub>:name<sub>1</sub>, ...,
+type<sub>n</sub>:name<sub>n</sub></i>}".  Each "pipemap:" query is
 given to the first table.  Each lookup result becomes the query for
 the next table in the pipeline, and the last table produces the
 final result.  When any table lookup produces no result, the pipeline
-produces no result.  The first ASCII character after "pipemap:"
-will be used as the separator between the lookup tables that follow
-(do not use space, ",", ":" or non-ASCII).  </dd>
+produces no result.  The first and last characters of the "pipemap:"
+table name must be "{" and "}". Within these, individual maps are
+separated with comma or whitespace.  </dd>
 
 <dt> <b>pgsql</b> (read-only) </dt>
 
@@ -388,11 +388,11 @@ databases. The lookup table name syntax is "proxy:type:table".
 <dt> <b>randmap</b> (read-only) </dt>
 
 <dd> An in-memory table that performs random selection.  Example:
-"<b>randmap:</b><i>!result<sub>1</sub>! ... !result<sub>n</sub></i>".
+"randmap:{<i>result<sub>1</sub>. ..., result<sub>n</sub></i>}".
 Each table query returns a random choice from the specified results.
-The first ASCII character after "randmap:" will be used as the
-separator between the results that follow (do not use space, ",",
-":" or non-ASCII).  </dd>
+The first and last characters of the "randmap:" table name must be
+"{" and "}".  Within these, individual maps are separated with comma
+or whitespace.  </dd>
 
 <dt> <b>regexp</b> (read-only) </dt>
 

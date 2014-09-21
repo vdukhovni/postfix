@@ -244,7 +244,7 @@ void    dict_test(int, char **);
   * functionality.
   */
 extern int dict_allow_surrogate;
-extern DICT *dict_surrogate(const char *, const char *, int, int, const char *,...);
+extern DICT *PRINTFLIKE(5, 6) dict_surrogate(const char *, const char *, int, int, const char *,...);
 
  /*
   * This name is reserved for matchlist error handling.

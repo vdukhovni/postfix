@@ -288,7 +288,7 @@ extern char *pcf_expand_parameter_value(VSTRING *, int, const char *,
  /*
   * postconf_print.c.
   */
-extern void pcf_print_line(VSTREAM *, int, const char *,...);
+extern void PRINTFLIKE(3, 4) pcf_print_line(VSTREAM *, int, const char *,...);
 
  /*
   * postconf_unused.c.

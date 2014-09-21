@@ -243,13 +243,13 @@ To find out what database types your Postfix system supports, use the "ppooss
         format is described in pcre_table(5). The lookup table name as used in
         "pcre:table" is the name of the regular expression file.
     ppiippeemmaapp (read-only)
-        A pipeline of lookup tables. Example: "ppiippeemmaapp::!type1:name1! ...
-        !typen:namen". Each "pipemap:" query is given to the first table. Each
+        A pipeline of lookup tables. Example: "pipemap:{type1:name1, ...,
+        typen:namen}". Each "pipemap:" query is given to the first table. Each
         lookup result becomes the query for the next table in the pipeline, and
         the last table produces the final result. When any table lookup
-        produces no result, the pipeline produces no result. The first ASCII
-        character after "pipemap:" will be used as the separator between the
-        lookup tables that follow (do not use space, ",", ":" or non-ASCII).
+        produces no result, the pipeline produces no result. The first and last
+        characters of the "pipemap:" table name must be "{" and "}". Within
+        these, individual maps are separated with comma or whitespace.
     ppggssqqll (read-only)
         PostgreSQL database client. Configuration details are given in
         pgsql_table(5).
@@ -257,11 +257,11 @@ To find out what database types your Postfix system supports, use the "ppooss
         Postfix proxymap(8) client for shared access to Postfix databases. The
         lookup table name syntax is "proxy:type:table".
     rraannddmmaapp (read-only)
-        An in-memory table that performs random selection. Example: "rraannddmmaapp::
-        !result1! ... !resultn". Each table query returns a random choice from
-        the specified results. The first ASCII character after "randmap:" will
-        be used as the separator between the results that follow (do not use
-        space, ",", ":" or non-ASCII).
+        An in-memory table that performs random selection. Example: "randmap:
+        {result1. ..., resultn}". Each table query returns a random choice from
+        the specified results. The first and last characters of the "randmap:
+        " table name must be "{" and "}". Within these, individual maps are
+        separated with comma or whitespace.
     rreeggeexxpp (read-only)
         A lookup table based on regular expressions. The file format is
         described in regexp_table(5). The lookup table name as used in "regexp:

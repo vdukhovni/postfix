@@ -151,7 +151,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	     * strings, since we are ging to let sprintf() do the hard work.
 	     * In regular expression notation, we recognize:
 	     * 
-	     * %-?0?([0-9]+|\*)?\.?([0-9]+|\*)?l?[a-zA-Z]
+	     * %-?0?([0-9]+|\*)?\.(?[0-9]+|\*)?l?[a-zA-Z]
 	     * 
 	     * which includes some combinations that do not make sense. Garbage
 	     * in, garbage out.
@@ -178,21 +178,24 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		msg_warn("%s: bad width %d in %.50s", myname, width, format);
 		width = 0;
 	    }
-	    if (*cp == '.')			/* width/precision separator */
+	    if (*cp == '.') {			/* width/precision separator */
 		VSTRING_ADDCH(fmt, *cp++);
-	    if (*cp == '*') {			/* dynamic precision */
-		prec = va_arg(ap, int);
-		VSTRING_ADDNUM(fmt, prec);
-		cp++;
-	    } else {				/* hard-coded precision */
-		for (prec = 0; ch = *cp, ISDIGIT(ch); cp++) {
-		    prec = prec * 10 + ch - '0';
-		    VSTRING_ADDCH(fmt, ch);
+		if (*cp == '*') {		/* dynamic precision */
+		    prec = va_arg(ap, int);
+		    VSTRING_ADDNUM(fmt, prec);
+		    cp++;
+		} else {			/* hard-coded precision */
+		    for (prec = 0; ch = *cp, ISDIGIT(ch); cp++) {
+			prec = prec * 10 + ch - '0';
+			VSTRING_ADDCH(fmt, ch);
+		    }
 		}
-	    }
-	    if (prec < 0) {
-		msg_warn("%s: bad precision %d in %.50s", myname, prec, format);
-		prec = 0;
+		if (prec < 0) {
+		    msg_warn("%s: bad precision %d in %.50s", myname, prec, format);
+		    prec = -1;
+		}
+	    } else {
+		prec = -1;
 	    }
 	    if ((long_flag = (*cp == 'l')) != 0)/* long whatever */
 		VSTRING_ADDCH(fmt, *cp++);
@@ -210,7 +213,7 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    switch (*cp) {
 	    case 's':				/* string-valued argument */
 		s = va_arg(ap, char *);
-		if (prec > 0 || (width > 0 && width > strlen(s))) {
+		if (prec >= 0 || (width > 0 && width > strlen(s))) {
 		    if (VBUF_SPACE(bp, (width > prec ? width : prec) + INT_SPACE))
 			return (bp);
 		    sprintf((char *) bp->ptr, vstring_str(fmt), s);

@@ -20345,3 +20345,68 @@ Apologies for any names omitted.
 	global/deliver_request.h, global/mail_params.h, global/sent.c,
 	*qmgr/qmgr.c, *qmgr/qmgr_active.c, *qmgr/qmgr_message.c.
 
+20140908-14
+
+	Feature: for the first time in 17 years, support for
+	${name?if-nonempty:if-empty} macro expressions, and for
+	logical expressions ${logical-expr?if-true:if-false}. In
+	preparation for configurable message headers and logging.
+	Files: util/mac_expand.c.
+
+20140914
+
+	Bugfix (introduced: 19971026): a zero precision value in
+	%.*s and $.<digits>s was implemented as if no precision
+	value was specified, i.e. print the entire string. This was
+	not harmful, it just looked weird.  File: util/vbuf_print.c.
+
+20120917
+
+	Feature: RFC 7372 enhanced status code for unknown SMTP
+	client hostnames.  File: smtpd/smtpd_check.c
+
+	Bugfix: the accept() calls in test progams escaped attention
+	when Postfix 2.2 was ported to IPv6. Problem found by Mark
+	Martinec. Files: smtpstone/smtp-sink.c, smtpstone/qmqp-sink.c.
+
+20140918
+
+	Cleanup: log a warning when the cleanup server detects too
+	many hops. smtpd(8) does not log any of the CLEANUP_STAT_XXX
+	results. The pickup server logs some because there is no
+	client to send the problem description to. This logic of
+	who logs what needs to be revisited. File:
+	cleanup/cleanup_message.c.
+
+20140919
+
+	Usability: randmap and pipemap syntax, for example,
+	pipemap:{type_1:name_1, ..., type_n:name_n}.  This required
+	small updates to code that parses input into lookup table
+	names. Files: global/data_redirect.c, global/maps.c,
+	global/server_acl.c, postconf/postconf.c, postconf/postconf_dbms.c,
+	postconf/test58.ref, proto/DATABASE_README.html,
+	proxymap/proxymap.c, smtpd/smtpd_check.c, util/argv.h,
+	util/balpar.c, util/dict_pipe.c, util/dict_random.c,
+	util/match_list.c, util/mystrtok.c, util/argv_splitq.c,
+	util/stringops.h.
+
+	Cleanup: added PRINTFLIKE() to enable missing format string
+	checks. Files: bounce/bounce_template.h, global/memcache_proto.h,
+	global/dict_memcache, postconf/postconf.h, util/dict.h,
+	util/msg.h.
+
+20140920
+
+	Bugfix (introduced: 20080212): incorrect client name in
+	reject messages from check_reverse_client_hostname_access
+	and check_reverse_client_hostname_{a,mx,ns}_access.  They
+	replied with the verified client name, instead of the name
+	that was rejected.  Problem reported by Reindl Harald. File:
+	smtpd/smtpd_check.c.
+
+20140921
+
+	Cleanup: postconf code to determine the default mydomain
+	value had not evolved since 1997, while the rest of Postfix
+	changed in 2000.  File: postconf/postconf-dbms.c.

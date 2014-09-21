@@ -580,8 +580,11 @@ static void cleanup_header_callback(void *context, int header_class,
 	if (hdr_opts->type == HDR_RESENT_MESSAGE_ID)
 	    msg_info("%s: resent-message-id=%s", state->queue_id, hdrval);
 	if (hdr_opts->type == HDR_RECEIVED)
-	    if (++state->hop_count >= var_hopcount_limit)
+	    if (++state->hop_count >= var_hopcount_limit) {
+		msg_warn("%s: message rejected: hopcount exceeded",
+			 state->queue_id);
 		state->errs |= CLEANUP_STAT_HOPS;
+	    }
 	if (CLEANUP_OUT_OK(state)) {
 	    if (hdr_opts->flags & HDR_OPT_RR)
 		state->resent = "Resent-";

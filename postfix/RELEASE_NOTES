@@ -41,6 +41,36 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20140921
+====================================
+
+In preparation for configurable mail headers and logging, new main.cf
+support for if-then-else expressions:
+
+    ${name?{text1}:{text2}}
+
+and for logical expressions: 
+
+    ${{text1}=={text2}?{text3}:{text4}}
+    ${{text1}!={text2}?{text3}:{text4}}
+
+Whitespace before and after {text} is ignored. This can help to
+make complex expressions more readable.  See the postconf(5) manpage
+for further details.
+
+The syntax of pipemap and randmap has improved. Postfix now uses
+pipemap:{map1, ..., mapN} and randmap:{result1, ..., resultN}.
+The old syntax was just too ugly.
+
+It is expected that usability can be improved elsewhere in Postfix
+in a similar manner.  For example, 
+
+- Milter clients and policy clients with non-default settings:
+  smtpd_milters = {inet:host:port, timeout=xxx, default_action=yyy}, ...
+
+- Parameter overrides in master.cf with commas and spaces:
+  -o { parameter = value ... }
+
 Major changes with snapshot 20140801
 ====================================
 

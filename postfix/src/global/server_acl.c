@@ -120,7 +120,7 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
      * chroot jail, while access lists are evaluated after entering the
      * chroot jail.
      */
-    while ((acl = mystrtok(&bp, SERVER_ACL_SEPARATORS)) != 0) {
+    while ((acl = mystrtokq(&bp, SERVER_ACL_SEPARATORS, "{}")) != 0) {
 	if (strchr(acl, ':') != 0) {
 	    if (strchr(origin, ':') != 0) {
 		msg_warn("table %s: lookup result \"%s\" is not allowed"

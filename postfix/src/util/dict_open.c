@@ -343,13 +343,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_SOCKMAP, dict_sockmap_open,
     DICT_TYPE_FAIL, dict_fail_open,
     DICT_TYPE_PIPE, dict_pipe_open,
-#ifdef DICT_TYPE_PIPE_LEGACY
-    DICT_TYPE_PIPE_LEGACY, dict_pipe_open,
-#endif
     DICT_TYPE_RANDOM, dict_random_open,
-#ifdef DICT_TYPE_RANDOM_LEGACY
-    DICT_TYPE_RANDOM_LEGACY, dict_random_open,
-#endif
 #ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,
@@ -529,6 +523,9 @@ DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN new_cb)
 }
 
 #ifdef TEST
+
+DEFINE_DICT_LMDB_MAP_SIZE;
+DEFINE_DICT_DB_CACHE_SIZE;
 
  /*
   * Proof-of-concept test program.

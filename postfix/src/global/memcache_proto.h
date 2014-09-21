@@ -16,7 +16,7 @@
   */
 extern int memcache_get(VSTREAM *, VSTRING *, ssize_t);
 extern int memcache_vprintf(VSTREAM *, const char *, va_list);
-extern int memcache_printf(VSTREAM *, const char *fmt,...);
+extern int PRINTFLIKE(2, 3) memcache_printf(VSTREAM *, const char *fmt,...);
 extern int memcache_fread(VSTREAM *, VSTRING *, ssize_t);
 extern int memcache_fwrite(VSTREAM *, const char *, ssize_t);
 

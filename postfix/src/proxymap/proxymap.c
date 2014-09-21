@@ -651,6 +651,7 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 static void post_jail_init(char *service_name, char **unused_argv)
 {
     const char *sep = ", \t\r\n";
+    const char *parens = "{}";
     char   *saved_filter;
     char   *bp;
     char   *type_name;
@@ -679,7 +680,7 @@ static void post_jail_init(char *service_name, char **unused_argv)
     saved_filter = bp = mystrdup(proxy_writer ? var_proxy_write_maps :
 				 var_proxy_read_maps);
     proxy_auth_maps = htable_create(13);
-    while ((type_name = mystrtok(&bp, sep)) != 0) {
+    while ((type_name = mystrtokq(&bp, sep, parens)) != 0) {
 	if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
 	    continue;
 	do {

@@ -200,22 +200,23 @@ static void disconnect(SINK_STATE *state)
 static void connect_event(int unused_event, char *context)
 {
     int     sock = CAST_CHAR_PTR_TO_INT(context);
-    struct sockaddr sa;
-    SOCKADDR_SIZE len = sizeof(sa);
+    struct sockaddr_storage ss;
+    SOCKADDR_SIZE len = sizeof(ss);
+    struct sockaddr *sa = (struct sockaddr *) &ss;
     SINK_STATE *state;
     int     fd;
 
-    if ((fd = accept(sock, &sa, &len)) >= 0) {
+    if ((fd = accept(sock, sa, &len)) >= 0) {
 	if (msg_verbose)
 	    msg_info("connect (%s)",
 #ifdef AF_LOCAL
-		     sa.sa_family == AF_LOCAL ? "AF_LOCAL" :
+		     sa->sa_family == AF_LOCAL ? "AF_LOCAL" :
 #else
-		     sa.sa_family == AF_UNIX ? "AF_UNIX" :
+		     sa->sa_family == AF_UNIX ? "AF_UNIX" :
 #endif
-		     sa.sa_family == AF_INET ? "AF_INET" :
+		     sa->sa_family == AF_INET ? "AF_INET" :
 #ifdef AF_INET6
-		     sa.sa_family == AF_INET6 ? "AF_INET6" :
+		     sa->sa_family == AF_INET6 ? "AF_INET6" :
 #endif
 		     "unknown protocol family");
 	non_blocking(fd, NON_BLOCKING);

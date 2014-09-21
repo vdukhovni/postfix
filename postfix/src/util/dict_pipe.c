@@ -12,7 +12,7 @@
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_pipe_open() opens a pipeline of one or more tables.
-/*	Example: "\fBpipemap:\fI!type_1:name_1! ... !type_n:name_n\fR".
+/*	Example: "\fBpipemap:{\fItype_1:name_1, ... ,type_n:name_n\fR}".
 /*
 /*	Each "pipemap:" query is given to the first table.  Each
 /*	lookup result becomes the query for the next table in the
@@ -20,9 +20,9 @@
 /*	When any table lookup produces no result, the pipeline
 /*	produces no result.
 /*
-/*	The first ASCII character after "pipemap:" will be used as
-/*	the separator between the lookup tables that follow (do not
-/*	use space, ",", ":" or non-ASCII).
+/*	The first and last characters of the "pipemap:" table name
+/*	must be '{' and '}'. Within these, individual maps are
+/*	separated with comma or whitespace.
 /*
 /*	The open_flags and dict_flags arguments are passed on to
 /*	the underlying dictionaries.
@@ -114,7 +114,7 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     DICT   *dict;
     int     match_flags = 0;
     struct DICT_OWNER aggr_owner;
-    char    delim[2];
+    size_t  len;
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.
@@ -135,32 +135,24 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
 					open_flags, dict_flags,
 				  "%s:%s map requires O_RDONLY access mode",
 					DICT_TYPE_PIPE, name));
-    if (name[0] == ':')
-	DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
-					open_flags, dict_flags,
-			       "invalid list delimiter \"%c\" in \"%s:%s\"",
-					name[0], DICT_TYPE_PIPE, name));
-
     /*
-     * Split the table name on the user-specified delimiter.
+     * Split the table name into its constituent parts.
      */
-    delim[0] = name[0];				/* XXX ASCII delimiter */
-    delim[1] = 0;
-    saved_name = mystrdup(name + 1);		/* XXX ASCII delimiter */
-    if (*saved_name == 0)
+    if ((len = balpar(name, "{}")) == 0 || name[len] != 0
+	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0)
 	DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
 					open_flags, dict_flags,
 					"bad syntax: \"%s:%s\"; "
-					"need \"%s:%stype:name%s...\"",
+					"need \"%s:{type:name...}\"",
 					DICT_TYPE_PIPE, name,
-					DICT_TYPE_PIPE, delim, delim));
+					DICT_TYPE_PIPE));
 
     /*
      * The least-trusted table in the pipeline determines the over-all trust
      * level. The first table determines the pattern-matching flags.
      */
     DICT_OWNER_AGGREGATE_INIT(aggr_owner);
-    argv = argv_split(saved_name, delim);
+    argv = argv_splitq(saved_name, ", \t\r\n", "{}");
     for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, dict_type_name);
@@ -168,9 +160,9 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
 	    DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
 					    open_flags, dict_flags,
 					    "bad syntax: \"%s:%s\"; "
-					    "need \"%s:%stype:name%s...\"",
+					    "need \"%s:{type:name...}\"",
 					    DICT_TYPE_PIPE, name,
-					    DICT_TYPE_PIPE, delim, delim));
+					    DICT_TYPE_PIPE));
 	if ((dict = dict_handle(dict_type_name)) == 0)
 	    dict = dict_open(dict_type_name, open_flags, dict_flags);
 	dict_register(dict_type_name, dict);

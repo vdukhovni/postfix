@@ -223,12 +223,11 @@ static const char *pcf_check_mydomainname(void)
 	return (domain);
 
     /*
-     * Use the hostname when it is not a FQDN ("foo"), or when the hostname
-     * actually is a domain name ("foo.com").
+     * Use a default domain when the hostname is not a FQDN ("foo").
      */
     if (var_myhostname == 0)
 	pcf_get_myhostname();
-    if ((dot = strchr(var_myhostname, '.')) == 0 || strchr(dot + 1, '.') == 0)
+    if ((dot = strchr(var_myhostname, '.')) == 0)
 	return (domain = DEF_MYDOMAIN);
     return (domain = mystrdup(dot + 1));
 }

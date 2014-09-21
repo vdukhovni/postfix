@@ -1298,31 +1298,32 @@ static void disconnect(SINK_STATE *state)
 
 static void connect_event(int unused_event, char *unused_context)
 {
-    struct sockaddr sa;
-    SOCKADDR_SIZE len = sizeof(sa);
+    struct sockaddr_storage ss;
+    SOCKADDR_SIZE len = sizeof(ss);
+    struct sockaddr *sa = (struct sockaddr *) &ss;
     SINK_STATE *state;
     int     fd;
 
-    if ((fd = sane_accept(sock, &sa, &len)) >= 0) {
+    if ((fd = sane_accept(sock, sa, &len)) >= 0) {
 	/* Safety: limit the number of open sockets and capture files. */
 	if (++client_count == max_client_count)
 	    event_disable_readwrite(sock);
 	state = (SINK_STATE *) mymalloc(sizeof(*state));
-	if (strchr((char *) proto_info->sa_family_list, sa.sa_family))
-	    SOCKADDR_TO_HOSTADDR(&sa, len, &state->client_addr,
-				 (MAI_SERVPORT_STR *) 0, sa.sa_family);
+	if (strchr((char *) proto_info->sa_family_list, sa->sa_family))
+	    SOCKADDR_TO_HOSTADDR(sa, len, &state->client_addr,
+				 (MAI_SERVPORT_STR *) 0, sa->sa_family);
 	else
 	    strncpy(state->client_addr.buf, "local", sizeof("local"));
 	if (msg_verbose)
 	    msg_info("connect (%s %s)",
 #ifdef AF_LOCAL
-		     sa.sa_family == AF_LOCAL ? "AF_LOCAL" :
+		     sa->sa_family == AF_LOCAL ? "AF_LOCAL" :
 #else
-		     sa.sa_family == AF_UNIX ? "AF_UNIX" :
+		     sa->sa_family == AF_UNIX ? "AF_UNIX" :
 #endif
-		     sa.sa_family == AF_INET ? "AF_INET" :
+		     sa->sa_family == AF_INET ? "AF_INET" :
 #ifdef AF_INET6
-		     sa.sa_family == AF_INET6 ? "AF_INET6" :
+		     sa->sa_family == AF_INET6 ? "AF_INET6" :
 #endif
 		     "unknown protocol family",
 		     state->client_addr.buf);
@@ -1340,7 +1341,7 @@ static void connect_event(int unused_event, char *unused_context)
 	state->delayed_args = 0;
 	/* Initialize file capture attributes. */
 #ifdef AF_INET6
-	if (sa.sa_family == AF_INET6)
+	if (sa->sa_family == AF_INET6)
 	    state->addr_prefix = "ipv6:";
 	else
 #endif

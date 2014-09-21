@@ -38,7 +38,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
-	valid_utf8_hostname.c midna.c
+	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -78,7 +78,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
-	valid_utf8_hostname.o midna.o
+	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -763,6 +763,14 @@ argv_split.o: stringops.h
 argv_split.o: sys_defs.h
 argv_split.o: vbuf.h
 argv_split.o: vstring.h
+argv_splitq.o: argv.h
+argv_splitq.o: argv_splitq.c
+argv_splitq.o: msg.h
+argv_splitq.o: mymalloc.h
+argv_splitq.o: stringops.h
+argv_splitq.o: sys_defs.h
+argv_splitq.o: vbuf.h
+argv_splitq.o: vstring.h
 attr_clnt.o: attr.h
 attr_clnt.o: attr_clnt.c
 attr_clnt.o: attr_clnt.h
@@ -847,6 +855,11 @@ auto_clnt.o: split_at.h
 auto_clnt.o: sys_defs.h
 auto_clnt.o: vbuf.h
 auto_clnt.o: vstream.h
+balpar.o: balpar.c
+balpar.o: stringops.h
+balpar.o: sys_defs.h
+balpar.o: vbuf.h
+balpar.o: vstring.h
 base32_code.o: base32_code.c
 base32_code.o: base32_code.h
 base32_code.o: msg.h
@@ -1156,6 +1169,7 @@ dict_random.o: msg.h
 dict_random.o: myflock.h
 dict_random.o: mymalloc.h
 dict_random.o: myrand.h
+dict_random.o: stringops.h
 dict_random.o: sys_defs.h
 dict_random.o: vbuf.h
 dict_random.o: vstream.h

@@ -21,10 +21,6 @@
   */
 #define DICT_TYPE_RANDOM	"randmap"
 
-#ifdef SNAPSHOT
-#define DICT_TYPE_RANDOM_LEGACY	"random"
-#endif
-
 extern DICT *dict_random_open(const char *, int, int);
 
 /* LICENSE

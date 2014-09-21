@@ -1,0 +1,7 @@
+./postconf: warning: main.cf: missing '}' in parameter value: "randmap:{xx"
+config_directory = .
+mydestination = foo bar pipemap:{ldap:xxx, memcache:yy} randmap:{xx
+xxx_domain = foo
+yy_backup = bbb
+./postconf: warning: ./main.cf: unused parameter: yy_bogus=bbb
+./postconf: warning: ./main.cf: unused parameter: xxx_bogus=foo

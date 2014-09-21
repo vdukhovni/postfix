@@ -43,7 +43,7 @@ extern void msg_error_clear(void);
 extern MSG_CLEANUP_FN msg_cleanup(MSG_CLEANUP_FN);
 
 extern void PRINTFLIKE(4, 5) msg_rate_delay(time_t *, int,
-				          void (*log_fn) (const char *,...),
+		         void PRINTFLIKE(1, 2) (*log_fn) (const char *,...),
 					            const char *,...);
 
 /* LICENSE

@@ -133,7 +133,7 @@ static int dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 {
     VSTREAM *fp;
     int     count;
-    int     data_len = strlen(value);
+    size_t  data_len = strlen(value);
 
     /*
      * Return a permanent error if we can't store this data. This results in
@@ -153,7 +153,8 @@ static int dict_memcache_set(DICT_MC *dict_mc, const char *value, int ttl)
 	if ((fp = auto_clnt_access(dict_mc->clnt)) == 0) {
 	    break;
 	} else if (memcache_printf(fp, "set %s %d %d %ld",
-		STR(dict_mc->key_buf), dict_mc->mc_flags, ttl, data_len) < 0
+				   STR(dict_mc->key_buf), dict_mc->mc_flags,
+				   ttl, (long) data_len) < 0
 		   || memcache_fwrite(fp, value, strlen(value)) < 0
 		   || memcache_get(fp, dict_mc->clnt_buf,
 				   dict_mc->max_line) < 0) {

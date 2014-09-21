@@ -54,10 +54,12 @@
 #include <split_at.h>
 #include <mac_expand.h>
 #include <dict.h>
+#include <msg.h>
 
 /* Global library. */
 
 #include <mail_conf.h>
+#include <mail_params.h>
 #include <dict_proxy.h>
 #include <dict_ldap.h>
 #include <dict_mysql.h>
@@ -142,35 +144,31 @@ static const PCF_DBMS_INFO pcf_dbms_info[] = {
     0,
 };
 
-/* pcf_register_dbms_parameters - look for database_type:prefix_name */
+ /*
+  * Pseudo-databases that wrap around other databases.
+  */
+static const char *pcf_multi_dbms_names[] = {
+    "pipemap", "addr_pipemap", "unionmap", 0,
+};
 
-void    pcf_register_dbms_parameters(const char *param_value,
+/* pcf_register_dbms_helper - parse one possible database type:name */
+
+static void pcf_register_dbms_helper(char *str_value,
          const char *(flag_parameter) (const char *, int, PCF_MASTER_ENT *),
 				             PCF_MASTER_ENT *local_scope)
 {
     const PCF_DBMS_INFO *dp;
-    char   *bufp;
+    size_t  len;
     char   *db_type;
     char   *prefix;
-    static VSTRING *buffer = 0;
     static VSTRING *candidate = 0;
     const char **cpp;
 
     /*
-     * XXX This does not examine both sides of conditional macro expansion,
-     * and may expand the "wrong" conditional macros. This is the best we can
-     * do for legacy database configuration support.
+     * Naive parsing. We don't really know if this substring specifies a
+     * database or some other text.
      */
-    if (buffer == 0)
-	buffer = vstring_alloc(100);
-    bufp = pcf_expand_parameter_value(buffer, PCF_SHOW_EVAL, param_value,
-				      local_scope);
-
-    /*
-     * Naive parsing. We don't really know if the parameter specifies free
-     * text or a list of databases.
-     */
-    while ((db_type = mystrtok(&bufp, " ,\t\r\n")) != 0) {
+    while ((db_type = mystrtokq(&str_value, " ,\t\r\n", "{}")) != 0) {
 
 	/*
 	 * Skip over "proxy:" maptypes, to emulate the proxymap(8) server's
@@ -188,21 +186,62 @@ void    pcf_register_dbms_parameters(const char *param_value,
 	 * local or global namespace.
 	 */
 	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
-	    for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
-		if (strcmp(db_type, dp->db_type) == 0) {
-		    for (cpp = dp->db_suffixes; *cpp; cpp++) {
-			vstring_sprintf(candidate ? candidate :
-					(candidate = vstring_alloc(30)),
-					"%s_%s", prefix, *cpp);
-			flag_parameter(STR(candidate),
-				  PCF_PARAM_FLAG_DBMS | PCF_PARAM_FLAG_USER,
-				       local_scope);
+	    if (*prefix == '{') {
+		if ((len = balpar(prefix, "{}")) > 0) {
+		    prefix[len - 1] = 0;
+		    for (cpp = pcf_multi_dbms_names; *cpp; cpp++) {
+			if (strcmp(db_type, *cpp) == 0) {
+			    pcf_register_dbms_helper(prefix + 1, flag_parameter,
+						     local_scope);
+			    break;
+			}
 		    }
-		    break;
+		} else {
+		    if (local_scope)
+			msg_warn("%s:%s: missing '}' in parameter value: \"%s:%s\"",
+				 MASTER_CONF_FILE, local_scope->name_space);
+		    else
+			msg_warn("%s: missing '}' in parameter value: \"%s:%s\"",
+				 MAIN_CONF_FILE, db_type, prefix);
+		}
+	    } else {
+		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
+		    if (strcmp(db_type, dp->db_type) == 0) {
+			for (cpp = dp->db_suffixes; *cpp; cpp++) {
+			    vstring_sprintf(candidate ? candidate :
+					    (candidate = vstring_alloc(30)),
+					    "%s_%s", prefix, *cpp);
+			    flag_parameter(STR(candidate),
+				  PCF_PARAM_FLAG_DBMS | PCF_PARAM_FLAG_USER,
+					   local_scope);
+			}
+			break;
+		    }
 		}
 	    }
 	}
     }
+}
+
+/* pcf_register_dbms_parameters - look for database_type:prefix_name */
+
+void    pcf_register_dbms_parameters(const char *param_value,
+         const char *(flag_parameter) (const char *, int, PCF_MASTER_ENT *),
+				             PCF_MASTER_ENT *local_scope)
+{
+    char   *bufp;
+    static VSTRING *buffer = 0;
+
+    /*
+     * XXX This does not examine both sides of conditional macro expansion,
+     * and may expand the "wrong" conditional macros. This is the best we can
+     * do for legacy database configuration support.
+     */
+    if (buffer == 0)
+	buffer = vstring_alloc(100);
+    bufp = pcf_expand_parameter_value(buffer, PCF_SHOW_EVAL, param_value,
+				      local_scope);
+    pcf_register_dbms_helper(bufp, flag_parameter, local_scope);
 }
 
 #endif

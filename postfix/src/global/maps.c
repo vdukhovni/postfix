@@ -115,6 +115,7 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
     char   *temp;
     char   *bufp;
     static char sep[] = " \t,\r\n";
+    static char parens[] = "{}";
     MAPS   *maps;
     char   *map_type_name;
     VSTRING *map_type_name_flags;
@@ -138,7 +139,7 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
 
 #define OPEN_FLAGS	O_RDONLY
 
-	while ((map_type_name = mystrtok(&bufp, sep)) != 0) {
+	while ((map_type_name = mystrtokq(&bufp, sep, parens)) != 0) {
 	    vstring_sprintf(map_type_name_flags, "%s(%o,%s)",
 			    map_type_name, OPEN_FLAGS,
 			    dict_flags_str(dict_flags));

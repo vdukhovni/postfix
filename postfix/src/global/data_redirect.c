@@ -227,7 +227,7 @@ int     main(int argc, char **argv)
 	    vstream_fflush(VSTREAM_OUT);
 	    continue;
 	}
-	target = mystrtok(&bufp, " \t");
+	target = mystrtokq(&bufp, " \t");
 	junk = mystrtok(&bufp, " \t");
 	if (strcmp(cmd, "file") == 0 && target && !junk) {
 	    data_redirect_file(result, target);

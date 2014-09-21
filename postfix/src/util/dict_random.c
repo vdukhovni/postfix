@@ -12,14 +12,14 @@
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_random_open() opens an in-memory, read-only, table.
-/*	Example: "\fBrandmap:\fI!result_1! ... !result_n\fR".
+/*	Example: "\fBrandmap:{\fIresult_1, ... ,result_n}\fR".
 /*
 /*	Each table query returns a random choice from the specified
 /*	results. Other table access methods are not supported.
 /*
-/*	The ASCII character after "randmap:" will be used as the
-/*	separator between the results that follow (do not use space,
-/*	",", ":" or non-ASCII).
+/*	The first and last characters of the "randmap:" table name
+/*	must be '{' and '}'. Within these, individual maps are
+/*	separated with comma or whitespace.
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* LICENSE
@@ -43,6 +43,7 @@
 #include <msg.h>
 #include <mymalloc.h>
 #include <myrand.h>
+#include <stringops.h>
 #include <dict_random.h>
 
 /* Application-specific. */
@@ -80,7 +81,7 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_RANDOM *dict_random;
     char   *saved_name = 0;
-    char    delim[2];
+    size_t  len;
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.
@@ -101,17 +102,16 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
 					  DICT_TYPE_RANDOM, name));
 
     /*
-     * Split the name on the user-specified delimiter.
+     * Split the name name into its constituent parts.
      */
-    delim[0] = name[0];				/* XXX ASCII delimiter */
-    delim[1] = 0;
-    saved_name = mystrdup(name + 1);		/* XXX ASCII delimiter */
-    if (*saved_name == 0)
+    if ((len = balpar(name, "{}")) == 0 || name[len] != 0
+	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0)
 	DICT_RANDOM_RETURN(dict_surrogate(DICT_TYPE_RANDOM, name,
 					  open_flags, dict_flags,
-			  "bad syntax: \"%s:%s\"; need \"%s:%svalue%s...\"",
+					  "bad syntax: \"%s:%s\"; "
+					  "need \"%s:{type:name...}\"",
 					  DICT_TYPE_RANDOM, name,
-					  DICT_TYPE_RANDOM, delim, delim));
+					  DICT_TYPE_RANDOM));
 
     /*
      * Bundle up the result.
@@ -121,9 +121,9 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
     dict_random->dict.lookup = dict_random_lookup;
     dict_random->dict.close = dict_random_close;
     dict_random->dict.flags = dict_flags | DICT_FLAG_PATTERN;
-    dict_random->replies = argv_split(saved_name, delim);
+    dict_random->replies = argv_splitq(saved_name, ", \t\r\n", "{}");
     dict_random->dict.owner.status = DICT_OWNER_TRUSTED;
     dict_random->dict.owner.uid = 0;
 
-    DICT_RANDOM_RETURN(DICT_DEBUG(&dict_random->dict));
+    DICT_RANDOM_RETURN(DICT_DEBUG (&dict_random->dict));
 }

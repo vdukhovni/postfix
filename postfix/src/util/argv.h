@@ -35,6 +35,10 @@ extern ARGV *argv_split(const char *, const char *);
 extern ARGV *argv_split_count(const char *, const char *, ssize_t);
 extern ARGV *argv_split_append(ARGV *, const char *, const char *);
 
+extern ARGV *argv_splitq(const char *, const char *, const char *);
+extern ARGV *argv_splitq_count(const char *, const char *, const char *, ssize_t);
+extern ARGV *argv_splitq_append(ARGV *, const char *, const char *, const char *);
+
 #define ARGV_FAKE_BEGIN(fake_argv, arg) { \
 	ARGV fake_argv; \
 	char *__fake_argv_args__[2]; \

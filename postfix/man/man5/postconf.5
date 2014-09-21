@@ -32,18 +32,36 @@ with whitespace continues a logical line.
 A parameter value may refer to other parameters.
 .RS
 .IP \(bu 
-The expressions "$name", "${name}" or "$(name)" are
-recursively replaced by the value of the named parameter.
+The expressions "$name" and "${name}" are recursively replaced with
+the value of the named parameter. An undefined parameter value is
+replaced with the empty value.
 .IP \(bu
-The expression "${name?value}" expands to "value" when
-"$name" is non-empty. This form is supported with Postfix
-version 2.2 and later.
+The expressions "${name?value}" and "${name?{value}}" are replaced
+with "value" when "$name" is non-empty. These forms are supported
+with Postfix versions >= 2.2 and >= 2.12, respectively.
 .IP \(bu
-The expression "${name:value}" expands to "value" when
-"$name" is empty. This form is supported with Postfix
-version 2.2 and later.
+The expressions "${name:value}" and "${name:{value}}" are replaced
+with "value" when "$name" is empty. These forms are supported with
+Postfix versions >= 2.2 and >= 2.12, respectively.
+.IP \(bu
+The expression "${name?{value1}:{value2}}" is replaced with "value1"
+when "$name" is non-empty, and with "value2" when "$name" is empty.
+The "{}" is required for "value1", optional for "value2". This form
+is supported with Postfix versions >= 2.12.
+.IP \(bu
+Instead of a parameter name, the first item inside "${...}" may be
+a logical expression of the form: "{value3} == {value4}" (equality)
+or "{value3} != {value4}" (inequality).  This form is supported
+with Postfix versions >= 2.12.
+.IP \(bu
+Each "value" is subject to recursive named parameter and logical
+expression evaluation, except where noted.
+.IP \(bu
+Whitespace before or after each "{value}" is ignored.
 .IP \(bu
 Specify "$$" to produce a single "$" character.
+.IP \(bu
+The legacy form "$(...)" is equivalent to the preferred form "${...}".
 .RE
 .IP \(bu
 When the same parameter is defined multiple times, only the last

@@ -24,9 +24,6 @@
 #include <dict_lmdb.h>
 #include <dict_db.h>
 
-DEFINE_DICT_LMDB_MAP_SIZE;
-DEFINE_DICT_DB_CACHE_SIZE;
-
 static NORETURN usage(char *myname)
 {
     msg_fatal("usage: %s type:file read|write|create [flags...]", myname);

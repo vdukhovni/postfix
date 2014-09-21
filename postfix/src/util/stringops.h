@@ -28,6 +28,7 @@ extern char *skipblanks(const char *);
 extern char *trimblanks(char *, int);
 extern char *concatenate(const char *,...);
 extern char *mystrtok(char **, const char *);
+extern char *mystrtokq(char **, const char *, const char *);
 extern char *translit(char *, const char *, const char *);
 #ifndef HAVE_BASENAME
 #define basename postfix_basename
@@ -43,6 +44,7 @@ extern int allspace(const char *);
 extern int allascii(const char *);
 extern const char *split_nameval(char *, char **, char **);
 extern int valid_utf8_string(const char *, ssize_t);
+extern size_t balpar(const char *, const char *);
 
 /* LICENSE
 /* .ad

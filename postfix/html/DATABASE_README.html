@@ -365,14 +365,14 @@ file.  </dd>
 <dt> <b>pipemap</b> (read-only) </dt>
 
 <dd> A pipeline of lookup tables. Example:
-"<b><a href="DATABASE_README.html#types">pipemap</a>:</b><i>!type<sub>1</sub>:name<sub>1</sub>! ...
-!type<sub>n</sub>:name<sub>n</sub></i>".  Each "<a href="DATABASE_README.html#types">pipemap</a>:" query is
+"<a href="DATABASE_README.html#types">pipemap</a>:{<i>type<sub>1</sub>:name<sub>1</sub>, ...,
+type<sub>n</sub>:name<sub>n</sub></i>}".  Each "<a href="DATABASE_README.html#types">pipemap</a>:" query is
 given to the first table.  Each lookup result becomes the query for
 the next table in the pipeline, and the last table produces the
 final result.  When any table lookup produces no result, the pipeline
-produces no result.  The first ASCII character after "<a href="DATABASE_README.html#types">pipemap</a>:"
-will be used as the separator between the lookup tables that follow
-(do not use space, ",", ":" or non-ASCII).  </dd>
+produces no result.  The first and last characters of the "<a href="DATABASE_README.html#types">pipemap</a>:"
+table name must be "{" and "}". Within these, individual maps are
+separated with comma or whitespace.  </dd>
 
 <dt> <b>pgsql</b> (read-only) </dt>
 
@@ -388,11 +388,11 @@ databases. The lookup table name syntax is "<a href="proxymap.8.html">proxy</a>:
 <dt> <b>randmap</b> (read-only) </dt>
 
 <dd> An in-memory table that performs random selection.  Example:
-"<b><a href="DATABASE_README.html#types">randmap</a>:</b><i>!result<sub>1</sub>! ... !result<sub>n</sub></i>".
+"<a href="DATABASE_README.html#types">randmap</a>:{<i>result<sub>1</sub>. ..., result<sub>n</sub></i>}".
 Each table query returns a random choice from the specified results.
-The first ASCII character after "<a href="DATABASE_README.html#types">randmap</a>:" will be used as the
-separator between the results that follow (do not use space, ",",
-":" or non-ASCII).  </dd>
+The first and last characters of the "<a href="DATABASE_README.html#types">randmap</a>:" table name must be
+"{" and "}".  Within these, individual maps are separated with comma
+or whitespace.  </dd>
 
 <dt> <b>regexp</b> (read-only) </dt>
 
