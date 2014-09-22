@@ -4537,7 +4537,7 @@ A mechanism to transform commands from remote SMTP clients.
 See smtpd_command_filter for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
-.SH postscreen_command_time_limit (default: ${stress?10}${stress:300}s)
+.SH postscreen_command_time_limit (default: normal: 300s, overload: 10s)
 The time limit to read an entire command line with \fBpostscreen\fR(8)'s
 built-in SMTP protocol engine.
 .PP
@@ -4777,7 +4777,7 @@ one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.8.
-.SH postscreen_greet_wait (default: ${stress?2}${stress:6}s)
+.SH postscreen_greet_wait (default: normal: 6s, overload: 2s)
 The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
 lookup results to arrive (default: up to 2 seconds under stress,

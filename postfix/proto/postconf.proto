@@ -13697,7 +13697,7 @@ seconds. </p>
 
 <p> This feature is available in Postfix 2.8. </p>
 
-%PARAM postscreen_greet_wait ${stress?2}${stress:6}s
+%PARAM postscreen_greet_wait normal: 6s, overload: 2s
 
 <p> The amount of time that postscreen(8) will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
@@ -14250,7 +14250,7 @@ and error commands.  </p>
 
 <p> This feature is available in Postfix 2.8.  </p>
 
-%PARAM postscreen_command_time_limit ${stress?10}${stress:300}s
+%PARAM postscreen_command_time_limit normal: 300s, overload: 10s
 
 <p> The time limit to read an entire command line with postscreen(8)'s
 built-in SMTP protocol engine. </p>

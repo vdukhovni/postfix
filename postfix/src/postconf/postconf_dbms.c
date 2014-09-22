@@ -144,13 +144,6 @@ static const PCF_DBMS_INFO pcf_dbms_info[] = {
     0,
 };
 
- /*
-  * Pseudo-databases that wrap around other databases.
-  */
-static const char *pcf_multi_dbms_names[] = {
-    "pipemap", "addr_pipemap", "unionmap", 0,
-};
-
 /* pcf_register_dbms_helper - parse one possible database type:name */
 
 static void pcf_register_dbms_helper(char *str_value,
@@ -188,18 +181,25 @@ static void pcf_register_dbms_helper(char *str_value,
 	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
 	    if (*prefix == '{') {
 		if ((len = balpar(prefix, "{}")) > 0) {
-		    prefix[len - 1] = 0;
-		    for (cpp = pcf_multi_dbms_names; *cpp; cpp++) {
-			if (strcmp(db_type, *cpp) == 0) {
-			    pcf_register_dbms_helper(prefix + 1, flag_parameter,
-						     local_scope);
-			    break;
-			}
+		    if (prefix[len] != 0) {
+			/* XXX Encapsulate this in pcf_warn() function. */
+			if (local_scope)
+			    msg_warn("%s:%s: syntax error after '}' in \"%s:%s\"",
+				  MASTER_CONF_FILE, local_scope->name_space,
+				     db_type, prefix);
+			else
+			    msg_warn("%s: syntax error after '}' in \"%s:%s\"",
+				     MAIN_CONF_FILE, db_type, prefix);
 		    }
+		    prefix[len - 1] = 0;
+		    pcf_register_dbms_helper(prefix + 1, flag_parameter,
+					     local_scope);
 		} else {
+		    /* XXX Encapsulate this in pcf_warn() function. */
 		    if (local_scope)
 			msg_warn("%s:%s: missing '}' in parameter value: \"%s:%s\"",
-				 MASTER_CONF_FILE, local_scope->name_space);
+				 MASTER_CONF_FILE, local_scope->name_space,
+				 db_type, prefix);
 		    else
 			msg_warn("%s: missing '}' in parameter value: \"%s:%s\"",
 				 MAIN_CONF_FILE, db_type, prefix);

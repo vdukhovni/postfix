@@ -1170,11 +1170,11 @@ extern char *var_smtp_generic_maps;
 extern char *var_smtpd_banner;
 
 #define VAR_SMTPD_TMOUT		"smtpd_timeout"
-#define DEF_SMTPD_TMOUT		"${stress?10}${stress:300}s"
+#define DEF_SMTPD_TMOUT		"${stress?{10}:{300}}s"
 extern int var_smtpd_tmout;
 
 #define VAR_SMTPD_STARTTLS_TMOUT "smtpd_starttls_timeout"
-#define DEF_SMTPD_STARTTLS_TMOUT "${stress?10}${stress:300}s"
+#define DEF_SMTPD_STARTTLS_TMOUT "${stress?{10}:{300}}s"
 extern int var_smtpd_starttls_tmout;
 
 #define VAR_SMTPD_RCPT_LIMIT	"smtpd_recipient_limit"
@@ -1186,7 +1186,7 @@ extern int var_smtpd_rcpt_limit;
 extern int var_smtpd_soft_erlim;
 
 #define VAR_SMTPD_HARD_ERLIM	"smtpd_hard_error_limit"
-#define DEF_SMTPD_HARD_ERLIM	"${stress?1}${stress:20}"
+#define DEF_SMTPD_HARD_ERLIM	"${stress?{1}:{20}}"
 extern int var_smtpd_hard_erlim;
 
 #define VAR_SMTPD_ERR_SLEEP	"smtpd_error_sleep_time"
@@ -1194,7 +1194,7 @@ extern int var_smtpd_hard_erlim;
 extern int var_smtpd_err_sleep;
 
 #define VAR_SMTPD_JUNK_CMD	"smtpd_junk_command_limit"
-#define DEF_SMTPD_JUNK_CMD	"${stress?1}${stress:100}"
+#define DEF_SMTPD_JUNK_CMD	"${stress?{1}:{100}}"
 extern int var_smtpd_junk_cmd_limit;
 
 #define VAR_SMTPD_RCPT_OVERLIM	"smtpd_recipient_overshoot_limit"
@@ -2705,7 +2705,7 @@ extern char *var_verify_sender;
 extern int var_verify_sender_ttl;
 
 #define VAR_VERIFY_POLL_COUNT		"address_verify_poll_count"
-#define DEF_VERIFY_POLL_COUNT		"${stress?1}${stress:3}"
+#define DEF_VERIFY_POLL_COUNT		"${stress?{1}:{3}}"
 extern int var_verify_poll_count;
 
 #define VAR_VERIFY_POLL_DELAY		"address_verify_poll_delay"
@@ -3427,7 +3427,7 @@ extern int var_psc_cache_ret;
 extern int var_psc_cache_scan;
 
 #define VAR_PSC_GREET_WAIT	"postscreen_greet_wait"
-#define DEF_PSC_GREET_WAIT	"${stress?2}${stress:6}s"
+#define DEF_PSC_GREET_WAIT	"${stress?{2}:{6}}s"
 extern int var_psc_greet_wait;
 
 #define VAR_PSC_PREGR_BANNER	"postscreen_greet_banner"
@@ -3734,7 +3734,7 @@ extern char *var_smtpd_rej_footer;
   * Per-record time limit support.
   */
 #define VAR_SMTPD_REC_DEADLINE	"smtpd_per_record_deadline"
-#define DEF_SMTPD_REC_DEADLINE	"${stress?yes}${stress:no}"
+#define DEF_SMTPD_REC_DEADLINE	"${stress?{yes}:{no}}"
 extern bool var_smtpd_rec_deadline;
 
 #define VAR_SMTP_REC_DEADLINE	"smtp_per_record_deadline"

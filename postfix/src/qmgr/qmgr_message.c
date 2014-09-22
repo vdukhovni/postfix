@@ -809,7 +809,7 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
      * burst when the queue drains after a network outage.
      */
     if (var_dsn_delay_cleared && message->warn_time < 0)
-	message->tflags |= DEL_REQ_FLAG_REC_SENT;
+	message->tflags |= DEL_REQ_FLAG_REC_DLY_SENT;
 
     /*
      * Remember when we have read the last recipient batch. Note that we do

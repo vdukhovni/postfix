@@ -12,7 +12,7 @@
 /*	int	dict_flags;
 /* DESCRIPTION
 /*	dict_pipe_open() opens a pipeline of one or more tables.
-/*	Example: "\fBpipemap:{\fItype_1:name_1, ... ,type_n:name_n\fR}".
+/*	Example: "\fBpipemap:{\fItype_1:name_1, ..., type_n:name_n\fR}".
 /*
 /*	Each "pipemap:" query is given to the first table.  Each
 /*	lookup result becomes the query for the next table in the

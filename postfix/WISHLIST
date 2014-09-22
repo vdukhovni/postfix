@@ -11,13 +11,7 @@ Wish list:
 	The pickup daemon logs warnings only when the cleanup daemon
 	dit not provide a "reason" attribute. Is this logic right?
 
-	Make the "relayed after delay" notification conditional on
-	the presence of the DSN_NOTIFY_DELAY flag.
-
 	up-convert myhostname to UTF-8 in MIME boundary strings?
-
-	Update postconf to recursively parse legacy-style mapnames
-	in random:, pipe:, and other multimaps.
 
 	Introduce constants to replace all the ad-hoc ", \t\r\n"
 	etc. for tokenization. That will have to go into an "util"

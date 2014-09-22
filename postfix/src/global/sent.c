@@ -140,10 +140,17 @@ int     sent(int flags, const char *id, MSG_STATS *stats,
      * Normal mail delivery. May also send a delivery record to the user.
      */
     else {
+
+	/* Readability macros: record all deliveries, or the delayed ones. */
+#define REC_ALL_SENT(flags) (flags & DEL_REQ_FLAG_RECORD)
+#define REC_DLY_SENT(flags, rcpt) \
+	((flags & DEL_REQ_FLAG_REC_DLY_SENT) \
+	&& (rcpt->dsn_notify == 0 || (rcpt->dsn_notify & DSN_NOTIFY_DELAY)))
+
 	if (my_dsn.action == 0 || my_dsn.action[0] == 0)
 	    my_dsn.action = "delivered";
 
-	if (((flags & (DEL_REQ_FLAG_RECORD | DEL_REQ_FLAG_REC_SENT)) == 0
+	if (((REC_ALL_SENT(flags) == 0 && REC_DLY_SENT(flags, recipient) == 0)
 	  || trace_append(flags, id, stats, recipient, relay, &my_dsn) == 0)
 	    && ((recipient->dsn_notify & DSN_NOTIFY_SUCCESS) == 0
 	|| trace_append(flags, id, stats, recipient, relay, &my_dsn) == 0)) {

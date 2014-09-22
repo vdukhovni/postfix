@@ -20410,3 +20410,19 @@ Apologies for any names omitted.
 	Cleanup: postconf code to determine the default mydomain
 	value had not evolved since 1997, while the rest of Postfix
 	changed in 2000.  File: postconf/postconf-dbms.c.
+
+20140922
+
+	Cleanup: the confirm_delay_cleared feature now sends no
+	notification when the sender requests NOTIFY options that
+	do not include NOTIFY=DELAY. Files: global/deliver_request,h,
+	global/sent.c, *qmgr/qmgr_active.c, *qmgr/qmgr_message.c.
+
+	Bugfix (introduced: yesterday): missing print arguments.
+	File: postconf/postconf_dbms.c.
+
+	Cleanup: simplified "nested" lookup table checks.
+
+	Cleanup: replace stress-dependent main.cf defaults with the
+	ternary form: "${stress?{x}:{y}}" File: global/mail_params.h,
+	proto/postconf.proto, postscreen/postscreen.c (comments).

@@ -103,7 +103,7 @@
 /*	NOTE: Some \fBpostscreen\fR(8) parameters implement
 /*	stress-dependent behavior.  This is supported only when the
 /*	default parameter value is stress-dependent (that is, it
-/*	looks like ${stress?X}${stress:Y}, or it is the $\fIname\fR
+/*	looks like ${stress?{X}:{Y}}, or it is the $\fIname\fR
 /*	of an smtpd parameter with a stress-dependent default).
 /*	Other parameters always evaluate as if the \fBstress\fR
 /*	parameter value is the empty string.
@@ -206,7 +206,7 @@
 /*	\fBpostscreen\fR(8) sends ahead of the real Postfix SMTP server's "220
 /*	text..." response, in an attempt to confuse bad SMTP clients so
 /*	that they speak before their turn (pre-greet).
-/* .IP "\fBpostscreen_greet_wait (${stress?2}${stress:6}s)\fR"
+/* .IP "\fBpostscreen_greet_wait (normal: 6s, overload: 2s)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will wait for an SMTP
 /*	client to send a command before its turn, and for DNS blocklist
 /*	lookup results to arrive (default: up to 2 seconds under stress,
@@ -300,7 +300,7 @@
 /* .IP "\fBpostscreen_command_count_limit (20)\fR"
 /*	The limit on the total number of commands per SMTP session for
 /*	\fBpostscreen\fR(8)'s built-in SMTP protocol engine.
-/* .IP "\fBpostscreen_command_time_limit (${stress?10}${stress:300}s)\fR"
+/* .IP "\fBpostscreen_command_time_limit (normal: 300s, overload: 10s)\fR"
 /*	The time limit to read an entire command line with \fBpostscreen\fR(8)'s
 /*	built-in SMTP protocol engine.
 /* .IP "\fBpostscreen_post_queue_limit ($default_process_limit)\fR"

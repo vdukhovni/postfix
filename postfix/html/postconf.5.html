@@ -7503,7 +7503,7 @@ See <a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a> for 
 </DD>
 
 <DT><b><a name="postscreen_command_time_limit">postscreen_command_time_limit</a>
-(default: ${stress?10}${stress:300}s)</b></DT><DD>
+(default: normal: 300s, overload: 10s)</b></DT><DD>
 
 <p> The time limit to read an entire command line with <a href="postscreen.8.html">postscreen(8)</a>'s
 built-in SMTP protocol engine. </p>
@@ -7848,7 +7848,7 @@ one-letter suffix that specifies the time unit).  Time units: s
 </DD>
 
 <DT><b><a name="postscreen_greet_wait">postscreen_greet_wait</a>
-(default: ${stress?2}${stress:6}s)</b></DT><DD>
+(default: normal: 6s, overload: 2s)</b></DT><DD>
 
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will wait for an SMTP
 client to send a command before its turn, and for DNS blocklist
