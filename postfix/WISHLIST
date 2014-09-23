@@ -30,8 +30,6 @@ Wish list:
 	lookups for the invidual addresses, converting back and
 	forth between external and internal forms.
 
-	union: map, concatenates results, default separator is ','.
-
 	Include <3htPpS5B6bzbcpM@spike.porcupine.org> example with
 	filter policies for different mail streams. Correction:
 	filter should be content_filter. Posted Wed, 10 Sep 2014

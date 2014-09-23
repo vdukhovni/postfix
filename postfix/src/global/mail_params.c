@@ -325,9 +325,6 @@ char   *var_smtputf8_autoclass;
 
 const char null_format_string[1] = "";
 
-DEFINE_DICT_LMDB_MAP_SIZE;
-DEFINE_DICT_DB_CACHE_SIZE;
-
 /* check_myhostname - lookup hostname and validate */
 
 static const char *check_myhostname(void)

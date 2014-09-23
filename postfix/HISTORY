@@ -20426,3 +20426,12 @@ Apologies for any names omitted.
 	Cleanup: replace stress-dependent main.cf defaults with the
 	ternary form: "${stress?{x}:{y}}" File: global/mail_params.h,
 	proto/postconf.proto, postscreen/postscreen.c (comments).
+
+20140923
+
+	Cleanup: dict_db and dict_lmdb global settings. Files:
+	global/mail_params.c, util/dict_open.c.
+	
+	Feature: unionmap, based on contribution by Roel van Meer.
+	Files: mantools/postlink, postconf/postconf.c (manpage),
+	proto/DATABASE_README.html, util/dict_open.c, util/dict_union.[hc].

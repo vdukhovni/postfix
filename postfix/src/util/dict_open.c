@@ -300,6 +300,7 @@
 #include <dict_fail.h>
 #include <dict_pipe.h>
 #include <dict_random.h>
+#include <dict_union.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -344,6 +345,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_FAIL, dict_fail_open,
     DICT_TYPE_PIPE, dict_pipe_open,
     DICT_TYPE_RANDOM, dict_random_open,
+    DICT_TYPE_UNION, dict_union_open,
 #ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,
@@ -368,6 +370,12 @@ static HTABLE *dict_open_hash;
   */
 static DICT_OPEN_EXTEND_FN dict_open_extend_hook;
 static DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend_hook;
+
+ /*
+  * Workaround.
+  */
+DEFINE_DICT_LMDB_MAP_SIZE;
+DEFINE_DICT_DB_CACHE_SIZE;
 
 /* dict_open_init - one-off initialization */
 
@@ -523,9 +531,6 @@ DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN new_cb)
 }
 
 #ifdef TEST
-
-DEFINE_DICT_LMDB_MAP_SIZE;
-DEFINE_DICT_DB_CACHE_SIZE;
 
  /*
   * Proof-of-concept test program.

@@ -305,43 +305,48 @@ POSTCONF(1)                                                        POSTCONF(1)
                      use the file, and that it does not detect  changes  after
                      the file is read.
 
+              <b>union</b> (read-only)
+                     A  table  that sends each query to multiple lookup tables
+                     and that concatenates all  found  results,  separated  by
+                     comma.  The table name syntax is the same as for <b>pipemap</b>.
+
               <b>unix</b> (read-only)
-                     A  limited  view of the UNIX authentication database. The
+                     A limited view of the UNIX authentication  database.  The
                      following tables are implemented:
 
                      <b>unix:passwd.byname</b>
-                            The table is the UNIX password database.  The  key
-                            is  a  login  name.  The result is a password file
+                            The  table  is the UNIX password database. The key
+                            is a login name.  The result is  a  password  file
                             entry in <b>passwd</b>(5) format.
 
                      <b>unix:group.byname</b>
                             The table is the UNIX group database. The key is a
-                            group  name.   The result is a group file entry in
+                            group name.  The result is a group file  entry  in
                             <b>group</b>(5) format.
 
-              Other table types may exist depending on how Postfix was  built.
+              Other  table types may exist depending on how Postfix was built.
 
-       <b>-M</b>     Show  <a href="master.5.html"><b>master.cf</b></a>  file contents instead of <a href="postconf.5.html"><b>main.cf</b></a> file contents.
+       <b>-M</b>     Show <a href="master.5.html"><b>master.cf</b></a> file contents instead of <a href="postconf.5.html"><b>main.cf</b></a>  file  contents.
               Specify <b>-Mf</b> to fold long lines for human readability.
 
               Specify zero or more arguments, each with a <i>service-name</i> or <i>ser‐</i>
-              <i>vice-name/service-type</i>  pair,  where  <i>service-name</i>  is the first
-              field of a <a href="master.5.html">master.cf</a> entry and <i>service-type</i>  is  one  of  (<b>inet</b>,
+              <i>vice-name/service-type</i> pair, where  <i>service-name</i>  is  the  first
+              field  of  a  <a href="master.5.html">master.cf</a>  entry and <i>service-type</i> is one of (<b>inet</b>,
               <b>unix</b>, <b>fifo</b>, or <b>pass</b>).
 
-              If  <i>service-name</i> or <i>service-name/service-type</i> is specified, only
-              the matching <a href="master.5.html">master.cf</a> entries  will  be  output.  For  example,
-              "<b>postconf  -Mf  smtp</b>" will output all services named "smtp", and
-              "<b>postconf -Mf smtp/inet</b>" will output only the smtp service  that
-              listens  on  the network.  Trailing service type fields that are
+              If <i>service-name</i> or <i>service-name/service-type</i> is specified,  only
+              the  matching  <a href="master.5.html">master.cf</a>  entries  will  be output. For example,
+              "<b>postconf -Mf smtp</b>" will output all services named  "smtp",  and
+              "<b>postconf  -Mf smtp/inet</b>" will output only the smtp service that
+              listens on the network.  Trailing service type fields  that  are
               omitted will be handled as "*" wildcard fields.
 
               This feature is available with Postfix 2.9 and later. The syntax
-              was  changed  from  "<i>name.type</i>" to "<i>name/type</i>", and "*" wildcard
+              was changed from "<i>name.type</i>" to "<i>name/type</i>",  and  "*"  wildcard
               support was added with Postfix 2.11.
 
        <b>-n</b>     Show only configuration parameters that have explicit <i>name=value</i>
-              settings  in  <a href="postconf.5.html"><b>main.cf</b></a>.  Specify <b>-nf</b> to fold long lines for human
+              settings in <a href="postconf.5.html"><b>main.cf</b></a>.  Specify <b>-nf</b> to fold long lines  for  human
               readability (Postfix 2.9 and later).
 
        <b>-o</b> <i>name=value</i>
@@ -353,50 +358,50 @@ POSTCONF(1)                                                        POSTCONF(1)
 
               This feature is available with Postfix 2.11 and later.
 
-       <b>-P</b>     Show <a href="master.5.html"><b>master.cf</b></a> service parameter settings (by default  all  ser‐
+       <b>-P</b>     Show  <a href="master.5.html"><b>master.cf</b></a>  service parameter settings (by default all ser‐
               vices   and   all   parameters).    formatted   as   one   "<i>ser‐</i>
-              <i>vice/type/parameter=value</i>" per line.  Specify <b>-Pf</b> to  fold  long
+              <i>vice/type/parameter=value</i>"  per  line.  Specify <b>-Pf</b> to fold long
               lines.
 
-              Specify  one  or  more "<i>service/type/parameter</i>" instances on the
-              <a href="postconf.1.html"><b>postconf</b>(1)</a> command line to limit the output  to  parameters  of
-              interest.   Trailing  parameter name or service type fields that
+              Specify one or more "<i>service/type/parameter</i>"  instances  on  the
+              <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line  to limit the output to parameters of
+              interest.  Trailing parameter name or service type  fields  that
               are omitted will be handled as "*" wildcard fields.
 
               This feature is available with Postfix 2.11 and later.
 
        <b>-t</b> [<i>template</i><b>_</b><i>file</i>]
-              Display the templates for text that appears at the beginning  of
-              delivery  status  notification (DSN) messages, without expanding
+              Display  the templates for text that appears at the beginning of
+              delivery status notification (DSN) messages,  without  expanding
               $<b>name</b> expressions.
 
               To override the built-in templates, specify a template file name
-              at  the  end  of the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line, or specify a file
+              at the end of the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line, or  specify  a  file
               name in <a href="postconf.5.html"><b>main.cf</b></a> with the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.
 
-              To force selection of the built-in templates, specify  an  empty
-              template  file  name  on  the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line (in shell
+              To  force  selection of the built-in templates, specify an empty
+              template file name on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line  (in  shell
               language: "").
 
               This feature is available with Postfix 2.3 and later.
 
-       <b>-v</b>     Enable verbose  logging  for  debugging  purposes.  Multiple  <b>-v</b>
+       <b>-v</b>     Enable  verbose  logging  for  debugging  purposes.  Multiple <b>-v</b>
               options make the software increasingly verbose.
 
-       <b>-x</b>     Expand  <i>$name</i>  in  <a href="postconf.5.html"><b>main.cf</b></a>  or  <a href="master.5.html"><b>master.cf</b></a>  parameter values. The
+       <b>-x</b>     Expand <i>$name</i> in  <a href="postconf.5.html"><b>main.cf</b></a>  or  <a href="master.5.html"><b>master.cf</b></a>  parameter  values.  The
               expansion is recursive.
 
               This feature is available with Postfix 2.10 and later.
 
-       <b>-X</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove  the  parameters
+       <b>-X</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove the parameters
               named on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.  Specify a list of param‐
               eter names, not "<i>name=value</i>" pairs.
 
-              With <b>-M</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and  remove  one
-              or  more service entries as specified with "<i>service/type</i>" on the
+              With  <b>-M</b>,  edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and remove one
+              or more service entries as specified with "<i>service/type</i>" on  the
               <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
-              With <b>-P</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and  remove  one
+              With  <b>-P</b>,  edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and remove one
               or more service parameter settings (-o parameter=value settings)
               as specied with "<i>service/type/parameter</i>" on the <a href="postconf.1.html"><b>postconf</b>(1)</a> com‐
               mand line.
@@ -405,10 +410,10 @@ POSTCONF(1)                                                        POSTCONF(1)
               into place.  Specify quotes to protect special characters on the
               <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
-              There  is  no  <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse opera‐
+              There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform  the  reverse  opera‐
               tion.
 
-              This feature is available with Postfix 2.10 and later.   Support
+              This  feature is available with Postfix 2.10 and later.  Support
               for -M and -P was added with Postfix 2.11.
 
        <b>-#</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and comment out the parame‐
@@ -416,18 +421,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               eters revert to their default values.  Specify a list of parame‐
               ter names, not "<i>name=value</i>" pairs.
 
-              With <b>-M</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and comment  out
-              one  or more service entries as specified with "<i>service/type</i>" on
+              With  <b>-M</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and comment out
+              one or more service entries as specified with "<i>service/type</i>"  on
               the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
               In all cases the file is copied to a temporary file then renamed
               into place.  Specify quotes to protect special characters on the
               <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
-              There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform  the  reverse  opera‐
+              There  is  no  <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse opera‐
               tion.
 
-              This  feature  is  available with Postfix 2.6 and later. Support
+              This feature is available with Postfix 2.6  and  later.  Support
               for -M was added with Postfix 2.11.
 
 <b>DIAGNOSTICS</b>
@@ -438,18 +443,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to  this  pro‐
+       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to this pro‐
        gram.
 
-       The  text  below provides only a parameter summary. See <a href="postconf.5.html"><b>postconf</b>(5)</a> for
+       The text below provides only a parameter summary. See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for
        more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con‐
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con‐
               figuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname  of a configuration file with bounce message templates.
+              Pathname of a configuration file with bounce message  templates.
 
 <b>FILES</b>
        /etc/postfix/<a href="postconf.5.html">main.cf</a>, Postfix configuration parameters

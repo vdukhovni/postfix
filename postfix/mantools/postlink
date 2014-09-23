@@ -1136,6 +1136,7 @@ while (<>) {
     s/\b(tcp):/<a href="tcp_table.5.html">$1<\/a>:/g;
     s/\b(texthash):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
     #s/\b(unix):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
+    s/\b(unionmap):/<a href="DATABASE_README.html#types">$1<\/a>:/g;
 
     # Do nice links for smtp:host:port etc.
 

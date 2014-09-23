@@ -293,6 +293,10 @@ To find out what database types your Postfix system supports, use the "ppooss
         and that texthash: does not detect changes after the file is read. The
         lookup table name is "texthash:filename", where the file name is taken
         literally; no suffix is appended.
+    uunniioonnmmaapp (read-only)
+        A table that sends each query to multiple lookup tables and that
+        concatenates all found results, separated by comma. The table name
+        syntax is the same as for pipemap tables.
     uunniixx (read-only)
         A limited view of the UNIX authentication database. The following
         tables are implemented:

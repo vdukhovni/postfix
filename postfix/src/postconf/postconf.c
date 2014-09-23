@@ -312,6 +312,10 @@
 /*	don't need to run the \fBpostmap\fR(1) command before you
 /*	can use the file, and that it does not detect changes after
 /*	the file is read.
+/* .IP "\fBunion\fR (read-only)"
+/*	A table that sends each query to multiple lookup tables and
+/*	that concatenates all found results, separated by comma.
+/*	The table name syntax is the same as for \fBpipemap\fR.
 /* .IP "\fBunix\fR (read-only)"
 /*	A limited view of the UNIX authentication database. The
 /*	following tables are implemented:

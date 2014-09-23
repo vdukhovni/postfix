@@ -38,7 +38,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
-	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c
+	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c dict_union.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -78,7 +78,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
-	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o
+	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o dict_union.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -107,7 +107,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
-	valid_utf8_hostname.h midna.h
+	valid_utf8_hostname.h midna.h dict_union.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -1121,6 +1121,7 @@ dict_open.o: dict_sockmap.h
 dict_open.o: dict_static.h
 dict_open.o: dict_tcp.h
 dict_open.o: dict_thash.h
+dict_open.o: dict_union.h
 dict_open.o: dict_unix.h
 dict_open.o: htable.h
 dict_open.o: msg.h
@@ -1289,6 +1290,19 @@ dict_thash.o: vbuf.h
 dict_thash.o: vstream.h
 dict_thash.o: vstring.h
 dict_thash.o: warn_stat.h
+dict_union.o: argv.h
+dict_union.o: dict.h
+dict_union.o: dict_union.c
+dict_union.o: dict_union.h
+dict_union.o: htable.h
+dict_union.o: msg.h
+dict_union.o: myflock.h
+dict_union.o: mymalloc.h
+dict_union.o: stringops.h
+dict_union.o: sys_defs.h
+dict_union.o: vbuf.h
+dict_union.o: vstream.h
+dict_union.o: vstring.h
 dict_unix.o: argv.h
 dict_unix.o: dict.h
 dict_unix.o: dict_unix.c
@@ -1537,6 +1551,8 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
+load_lib.o: load_lib.h
+load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: lowercase.c
 lowercase.o: stringops.h
@@ -1554,6 +1570,7 @@ mac_expand.o: mac_expand.h
 mac_expand.o: mac_parse.h
 mac_expand.o: msg.h
 mac_expand.o: mymalloc.h
+mac_expand.o: name_code.h
 mac_expand.o: stringops.h
 mac_expand.o: sys_defs.h
 mac_expand.o: vbuf.h
