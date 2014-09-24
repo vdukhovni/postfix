@@ -20435,3 +20435,13 @@ Apologies for any names omitted.
 	Feature: unionmap, based on contribution by Roel van Meer.
 	Files: mantools/postlink, postconf/postconf.c (manpage),
 	proto/DATABASE_README.html, util/dict_open.c, util/dict_union.[hc].
+
+20140924
+
+	Bugfix (introduced: 20060117): the escape function didn't
+	correctly convert non-ASCII. File: util/unescape.c.
+
+	Bugfix (introduced: 201407): missing conversions for non-ASCII
+	domain names in permit_mx_backup, check_mumble_{a,mx,ns}_access
+	and reject_unknown_{sender,recipient}_domain. Mark Martinec.
+	File: smtpd/smtpd_check.c.

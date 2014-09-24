@@ -1292,9 +1292,21 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
     const char *myname = "reject_unknown_mailhost";
     int     dns_status;
     DNS_RR *dummy;
+    const char *aname;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
+
+    /*
+     * Fix 20140924: convert domain to ASCII.
+     */
+#ifndef NO_EAI
+    if (!allascii(name) && (aname = midna_utf8_to_ascii(name)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", name, aname);
+	name = aname;
+    }
+#endif
 
 #define MAILHOST_LOOKUP_FLAGS	(DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL)
 
@@ -1704,6 +1716,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     const char *myname = "permit_mx_backup";
     const RESOLVE_REPLY *reply;
     const char *domain;
+    const char *adomain;
     DNS_RR *mx_list;
     DNS_RR *middle;
     DNS_RR *rest;
@@ -1746,6 +1759,17 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      */
     if (domain[0] == '[' && domain[strlen(domain) - 1] == ']')
 	return (SMTPD_CHECK_DUNNO);
+
+    /*
+     * Fix 20140924: convert domain to ASCII.
+     */
+#ifndef NO_EAI
+    if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", domain, adomain);
+	domain = adomain;
+    }
+#endif
 
     /*
      * Look up the list of MX host names for this domain. If no MX host is
@@ -2670,6 +2694,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 {
     const char *myname = "check_server_access";
     const char *domain;
+    const char *adomain;
     int     dns_status;
     DNS_RR *server_list;
     DNS_RR *server;
@@ -2729,6 +2754,17 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	myfree(saved_addr);
 	return (status);
     }
+
+    /*
+     * Fix 20140924: convert domain to ASCII.
+     */
+#ifndef NO_EAI
+    if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", domain, adomain);
+	domain = adomain;
+    }
+#endif
 
     /*
      * If the request is type A or AAAA, fabricate an MX record that points
@@ -3433,8 +3469,6 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
 
     /*
      * Fix 20140706: convert domain to ASCII.
-     * 
-     * Caution: early returns must not leak adomain.
      */
 #ifndef NO_EAI
     if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {

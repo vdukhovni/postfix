@@ -312,7 +312,7 @@
 /*	don't need to run the \fBpostmap\fR(1) command before you
 /*	can use the file, and that it does not detect changes after
 /*	the file is read.
-/* .IP "\fBunion\fR (read-only)"
+/* .IP "\fBunionmap\fR (read-only)"
 /*	A table that sends each query to multiple lookup tables and
 /*	that concatenates all found results, separated by comma.
 /*	The table name syntax is the same as for \fBpipemap\fR.

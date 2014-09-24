@@ -529,6 +529,8 @@ mac_expand_test: mac_expand mac_expand.in mac_expand.ref
 unescape_test: unescape unescape.in unescape.ref
 	$(SHLIB_ENV) ./unescape <unescape.in | od -cb >unescape.tmp
 	diff -b unescape.ref unescape.tmp
+#	$(SHLIB_ENV) ./unescape <unescape.in | $(SHLIB_ENV) ./unescape -e >unescape.tmp
+#	diff unescape.in unescape.tmp
 	rm -f unescape.tmp
 
 hex_quote_test: hex_quote
