@@ -41,6 +41,48 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20140928
+====================================
+
+Support for per-Milter settings that override main.cf parameters.
+For details see the section "Advanced policy client configuration"
+in the SMTPD_POLICY_README document.
+
+Here is an example that uses both old and new syntax:
+
+    smtpd_milters = { inet:127.0.0.1:port1, default_action=accept, ... },
+	inet:127.0.0.1:port2, ...
+
+The per-milter settings are specified as attribute=value pairs
+separated by comma or space; specify { name = value } to allow
+spaces around the "=" or within an attribute value.
+
+The supported attribute names are: command_timeout, connect_timeout,
+content_timeout, default_action, and protocol. These have the same
+names as the corresponding main.cf parameters, without the "milter_"
+prefix.
+
+Support for per-policy service settings that override main.cf
+parameters.  For details see the section "Different settings for
+different Milter applications" in the MILTER_README document.
+
+Here is an example that uses both old and new syntax:
+
+smtpd_recipient_restrictions = ...
+    check_policy_service { inet:127.0.0.1:port3, default_action=DUNNO }
+    check_policy_service inet:127.0.0.1:port4
+    ...
+
+The per-policy service settings are specified as attribute=value pairs
+separated by comma or space; specify { name = value } to allow
+spaces around the "=" or within an attribute value.
+
+The supported attribute names are: default_action, max_idle, max_ttl,
+request_limit, retry_delay, timeout, try_limit. These have the same
+names as the corresponding main.cf parameters, without the
+"smtpd_policy_service_" prefix.
+
+
 Major changes with snapshot 20140921
 ====================================
 

@@ -88,7 +88,8 @@
 /*	position.
 /*
 /*	argv_replace_one() replaces one string at the specified
-/*	position.
+/*	position. The old string is destroyed after the update is
+/*	made.
 /*
 /*	argv_delete() deletes the specified number of elements
 /*	starting at the specified array position. The result is
@@ -291,6 +292,7 @@ void    argv_insert_one(ARGV *argvp, ssize_t where, const char *arg)
 
 void    argv_replace_one(ARGV *argvp, ssize_t where, const char *arg)
 {
+    char   *temp;
 
     /*
      * Sanity check.
@@ -298,8 +300,9 @@ void    argv_replace_one(ARGV *argvp, ssize_t where, const char *arg)
     if (where < 0 || where >= argvp->argc)
 	msg_panic("argv_replace_one bad position: %ld", (long) where);
 
-    myfree(argvp->argv[where]);
+    temp = argvp->argv[where];
     argvp->argv[where] = mystrdup(arg);
+    myfree(temp);
 }
 
 /* argv_delete - remove string(s) from array */

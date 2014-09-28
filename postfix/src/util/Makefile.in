@@ -38,7 +38,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
-	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c dict_union.c
+	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c dict_union.c \
+	extpar.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -78,7 +79,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
-	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o dict_union.o
+	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o dict_union.o \
+	extpar.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -1365,6 +1367,11 @@ exec_command.o: exec_command.c
 exec_command.o: exec_command.h
 exec_command.o: msg.h
 exec_command.o: sys_defs.h
+extpar.o: extpar.c
+extpar.o: stringops.h
+extpar.o: sys_defs.h
+extpar.o: vbuf.h
+extpar.o: vstring.h
 fifo_listen.o: fifo_listen.c
 fifo_listen.o: htable.h
 fifo_listen.o: iostuff.h

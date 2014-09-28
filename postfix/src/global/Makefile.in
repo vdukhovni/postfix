@@ -33,7 +33,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
 	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
-	smtputf8.c
+	smtputf8.c mail_conf_over.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -68,7 +68,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
-	smtputf8.o $(NON_PLUGIN_MAP_OBJ)
+	smtputf8.o attr_override.o $(NON_PLUGIN_MAP_OBJ)
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -100,7 +100,8 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h
+	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
+	attr_override.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -693,6 +694,15 @@ anvil_clnt.o: anvil_clnt.c
 anvil_clnt.o: anvil_clnt.h
 anvil_clnt.o: mail_params.h
 anvil_clnt.o: mail_proto.h
+attr_override.o: ../../include/msg.h
+attr_override.o: ../../include/stringops.h
+attr_override.o: ../../include/sys_defs.h
+attr_override.o: ../../include/vbuf.h
+attr_override.o: ../../include/vstring.h
+attr_override.o: attr_override.c
+attr_override.o: attr_override.h
+attr_override.o: conv_time.h
+attr_override.o: mail_conf.h
 been_here.o: ../../include/htable.h
 been_here.o: ../../include/msg.h
 been_here.o: ../../include/mymalloc.h

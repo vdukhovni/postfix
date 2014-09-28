@@ -142,10 +142,9 @@ Please specify a userid value that isn't used for other applications (not
 CCoonnffiigguurriinngg PPoossttffiixx
 
 Like Sendmail, Postfix has a lot of configuration options that control how it
-talks to Milter applications. With the initial Postfix Milter protocol
-implementation, many options are global, that is, they apply to all Milter
-applications. Future Postfix versions may support per-Milter timeouts, per-
-Milter error handling, etc.
+talks to Milter applications. Besides global options that apply to all Milter
+applications, Postfix 2.12 and later support per-Milter timeouts, per-Milter
+error handling, etc.
 
 Information in this section:
 
@@ -154,6 +153,7 @@ Information in this section:
   * Milter error handling
   * Milter protocol version
   * Milter protocol timeouts
+  * Different settings for different Milter applications
   * Sendmail macro emulation
 
 SSMMTTPP--OOnnllyy MMiilltteerr aapppplliiccaattiioonnss
@@ -263,6 +263,9 @@ the message in the "hold" queue, and is available with Postfix 2.6 or later.
         # or quarantine (Postfix 2.6 or later).
         milter_default_action = tempfail
 
+See "Different settings for different Milter applications" for advanced
+configuration options.
+
 MMiilltteerr pprroottooccooll vveerrssiioonn
 
 As Postfix is not built with the Sendmail libmilter library, you may need to
@@ -298,6 +301,9 @@ The remedy is to lower the Postfix milter_protocol version number. Postfix 2.8
 and later will automatically turn off protocol features that the application's
 libmilter library does not expect.
 
+See "Different settings for different Milter applications" for advanced
+configuration options.
+
 MMiilltteerr pprroottooccooll ttiimmeeoouuttss
 
 Postfix uses different time limits at different Milter protocol stages. The
@@ -318,6 +324,38 @@ Beware: 30s may be too short for Milter applications that do lots of DNS
 lookups. However, if you increase the above timeouts too much, remote SMTP
 clients may hang up and mail may be delivered multiple times. This is an
 inherent problem with before-queue filtering.
+
+See "Different settings for different Milter applications" for advanced
+configuration options.
+
+DDiiffffeerreenntt sseettttiinnggss ffoorr ddiiffffeerreenntt MMiilltteerr aapppplliiccaattiioonnss
+
+The previous sections list a number of Postfix main.cf parameters that control
+time limits and other settings for all Postfix Milter clients. This is
+sufficient for simple configurations. With more complex configurations it
+becomes desirable to have different settings for different Milter clients. This
+is supported with Postfix 2.12 and later.
+
+The following example shows a "non-critical" Milter client with a short connect
+timeout, and with "accept" as default action when the service is unvailable.
+
+    1 /etc/postfix/main.cf:
+    2     smtpd_milters = { inet:host:port,
+    3         connect_timeout=10s, default_action=accept }
+
+Instead of a server endpoint, we now have a list enclosed in {}.
+
+  * Line 2: The first item in the list is the server endpoint. This supports
+    the exact same "inet" and "unix" syntax as described earlier.
+
+  * Line 3: The remainder of the list contains per-Milter settings. These
+    settings override global main.cf parameters, and have the same name as
+    those parameters, without the "milter_" prefix.
+
+Inside the list, syntax is similar to what we already know from main.cf: items
+separated by space or comma. There is one difference: yyoouu mmuusstt eenncclloossee aa
+sseettttiinngg iinn ppaarreenntthheesseess,, aass iinn ""{{ nnaammee == vvaalluuee }}"",, iiff yyoouu wwaanntt ttoo hhaavvee ssppaaccee
+wwiitthhiinn aa vvaalluuee oorr aarroouunndd ""=="".
 
 SSeennddmmaaiill mmaaccrroo eemmuullaattiioonn
 

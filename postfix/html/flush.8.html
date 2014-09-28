@@ -20,12 +20,12 @@ FLUSH(8)                                                              FLUSH(8)
        process manager.
 
        The record is implemented as a per-destination logfile with as contents
-       the queue IDs of deferred mail. A logfile is append-only, and is  trun‐
+       the queue IDs of deferred mail. A logfile is append-only, and is  trun-
        cated  when  delivery is requested for the corresponding destination. A
        destination is the part on the right-hand side of the right-most  <b>@</b>  in
        an email address.
 
-       Per-destination  logfiles of deferred mail are maintained only for eli‐
+       Per-destination  logfiles of deferred mail are maintained only for eli-
        gible destinations. The list of eligible destinations is specified with
        the  <b><a href="postconf.5.html#fast_flush_domains">fast_flush_domains</a></b>  configuration  parameter,  which  defaults  to
        <b>$<a href="postconf.5.html#relay_domains">relay_domains</a></b>.
@@ -37,7 +37,7 @@ FLUSH(8)                                                              FLUSH(8)
               queue ID is queued for the specified destination.
 
        <b>send_site</b> <i>sitename</i>
-              Request delivery of mail that is queued for the specified desti‐
+              Request delivery of mail that is queued for the specified desti-
               nation.
 
        <b>send_file</b> <i>queueid</i>
@@ -67,7 +67,7 @@ FLUSH(8)                                                              FLUSH(8)
        Fast flush logfiles are truncated only after a "send" request, not when
        mail is actually delivered, and therefore can  accumulate  outdated  or
        redundant data. In order to maintain sanity, "refresh" must be executed
-       periodically. This can be automated with a suitable wakeup  timer  set‐
+       periodically. This can be automated with a suitable wakeup  timer  set-
        ting in the <a href="master.5.html"><b>master.cf</b></a> configuration file.
 
        Upon  receipt of a request to deliver mail for an eligible destination,
@@ -86,7 +86,7 @@ FLUSH(8)                                                              FLUSH(8)
        more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con‐
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
@@ -94,7 +94,7 @@ FLUSH(8)                                                              FLUSH(8)
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#fast_flush_domains">fast_flush_domains</a> ($<a href="postconf.5.html#relay_domains">relay_domains</a>)</b>
-              Optional list of destinations that are eligible for per-destina‐
+              Optional list of destinations that are eligible for per-destina-
               tion logfiles with mail that is queued to those destinations.
 
        <b><a href="postconf.5.html#fast_flush_refresh_time">fast_flush_refresh_time</a> (12h)</b>
@@ -102,7 +102,7 @@ FLUSH(8)                                                              FLUSH(8)
               "fast flush" logfile needs to be refreshed.
 
        <b><a href="postconf.5.html#fast_flush_purge_time">fast_flush_purge_time</a> (7d)</b>
-              The  time after which an empty per-destination "fast flush" log‐
+              The  time after which an empty per-destination "fast flush" log-
               file is deleted.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
@@ -136,7 +136,7 @@ FLUSH(8)                                                              FLUSH(8)
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post‐
+              syslog  records,  so  that  "smtpd" becomes, for example, "post-
               fix/smtpd".
 
 <b>FILES</b>

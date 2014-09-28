@@ -55,6 +55,7 @@
 #include <mac_expand.h>
 #include <dict.h>
 #include <msg.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -151,11 +152,11 @@ static void pcf_register_dbms_helper(char *str_value,
 				             PCF_MASTER_ENT *local_scope)
 {
     const PCF_DBMS_INFO *dp;
-    size_t  len;
     char   *db_type;
     char   *prefix;
     static VSTRING *candidate = 0;
     const char **cpp;
+    char   *err;
 
     /*
      * Naive parsing. We don't really know if this substring specifies a
@@ -179,31 +180,19 @@ static void pcf_register_dbms_helper(char *str_value,
 	 * local or global namespace.
 	 */
 	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
-	    if (*prefix == '{') {
-		if ((len = balpar(prefix, "{}")) > 0) {
-		    if (prefix[len] != 0) {
-			/* XXX Encapsulate this in pcf_warn() function. */
-			if (local_scope)
-			    msg_warn("%s:%s: syntax error after '}' in \"%s:%s\"",
-				  MASTER_CONF_FILE, local_scope->name_space,
-				     db_type, prefix);
-			else
-			    msg_warn("%s: syntax error after '}' in \"%s:%s\"",
-				     MAIN_CONF_FILE, db_type, prefix);
-		    }
-		    prefix[len - 1] = 0;
-		    pcf_register_dbms_helper(prefix + 1, flag_parameter,
-					     local_scope);
-		} else {
+	    if (*prefix == '{') {		/* } */
+		if ((err = extpar(&prefix, "{}", EXPAR_FLAG_NONE)) != 0) {
 		    /* XXX Encapsulate this in pcf_warn() function. */
 		    if (local_scope)
-			msg_warn("%s:%s: missing '}' in parameter value: \"%s:%s\"",
+			msg_warn("%s:%s: %s",
 				 MASTER_CONF_FILE, local_scope->name_space,
-				 db_type, prefix);
+				 err);
 		    else
-			msg_warn("%s: missing '}' in parameter value: \"%s:%s\"",
-				 MAIN_CONF_FILE, db_type, prefix);
+			msg_warn("%s: %s", MAIN_CONF_FILE, err);
+		    myfree(err);
 		}
+		pcf_register_dbms_helper(prefix, flag_parameter,
+					 local_scope);
 	    } else {
 		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
 		    if (strcmp(db_type, dp->db_type) == 0) {

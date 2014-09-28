@@ -26,7 +26,8 @@ incoming SMTP connections.
 This document covers the following topics:
 
   * Policy protocol description
-  * Policy client/server configuration
+  * Simple policy client/server configuration
+  * Advanced policy client configuration
   * Example: greylist policy server
   * Greylisting mail from frequently forged domains
   * Greylisting all your mail
@@ -166,7 +167,7 @@ In case of trouble the policy server must not send a reply. Instead the server
 must log a warning and disconnect. Postfix will retry the request at some later
 time.
 
-PPoolliiccyy cclliieenntt//sseerrvveerr ccoonnffiigguurraattiioonn
+SSiimmppllee ppoolliiccyy cclliieenntt//sseerrvveerr ccoonnffiigguurraattiioonn
 
 The Postfix delegated policy client can connect to a TCP socket or to a UNIX-
 domain socket. Examples:
@@ -282,6 +283,52 @@ protocol:
     policy daemon is allowed to run before it is terminated. The transport is
     the service name of the master.cf entry for the policy daemon service. In
     the above examples, the service name is "policy" or "127.0.0.1:9998".
+
+AAddvvaanncceedd ppoolliiccyy cclliieenntt ccoonnffiigguurraattiioonn
+
+The previous section lists a number of Postfix main.cf parameters that control
+time limits and other settings for all policy clients. This is sufficient for
+simple configurations. With more complex configurations it becomes desirable to
+have different settings per policy client. This is supported with Postfix 2.12
+and later.
+
+The following example shows a "non-critical" policy service with a short
+timeout, and with "DUNNO" as default action when the service is unvailable. The
+"DUNNO" action causes Postfix to ignore the result.
+
+    1 /etc/postfix/main.cf:
+    2     smtpd_recipient_restrictions =
+    3         ...
+    4         reject_unauth_destination
+    5         check_policy_service { inet:host:port,
+    6             timeout=10s, default_action=DUNNO }
+    8         ...
+
+Instead of a server endpoint, we now have a list enclosed in {}.
+
+  * Line 5: The first item in the list is the server endpoint. This supports
+    the exact same "inet" and "unix" syntax as described earlier.
+
+  * Line 6: The remainder of the list contains per-client settings. These
+    settings override global main.cf parameters, and have the same name as
+    those parameters, without the "smtpd_policy_service_" prefix.
+
+Inside the list, syntax is similar to what we already know from main.cf: items
+separated by space or comma. There is one difference: yyoouu mmuusstt eenncclloossee aa
+sseettttiinngg iinn ppaarreenntthheesseess,, aass iinn ""{{ nnaammee == vvaalluuee }}"",, iiff yyoouu wwaanntt ttoo hhaavvee ssppaaccee
+wwiitthhiinn aa vvaalluuee oorr aarroouunndd ""=="". This comes in handy when different policy servers
+require different default actions with different SMTP status codes or text:
+
+    1 /etc/postfix/main.cf:
+    2     smtpd_recipient_restrictions =
+    3         ...
+    4         reject_unauth_destination
+    5         check_policy_service {
+    6           inet:host:port1,
+    7           { default_action = 451 4.3.5 See http://www.example.com/
+    support1 }
+    8         }
+    9         ...
 
 EExxaammppllee:: ggrreeyylliisstt ppoolliiccyy sseerrvveerr
 

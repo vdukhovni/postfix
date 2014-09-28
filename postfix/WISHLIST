@@ -13,10 +13,17 @@ Wish list:
 
 	up-convert myhostname to UTF-8 in MIME boundary strings?
 
+	Eliminate code duplication between pcf_print_master_field()
+	and pcf_print_master_entry().
+
 	Introduce constants to replace all the ad-hoc ", \t\r\n"
 	etc. for tokenization. That will have to go into an "util"
 	file because match_strings(3), dict_pipe(3) and dict_random(3)
 	depend on these definitions.
+
+	Error reporting: see if pcf_check_master_entry() and children
+	can return error descriptions instread of terminating with
+	a fatal error.
 
 	Make sure that proxy: can handle random:, pipe:, and other
 	multimaps.

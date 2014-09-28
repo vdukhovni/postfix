@@ -240,6 +240,7 @@
 #include <conv_time.h>
 #include <xtext.h>
 #include <smtp_stream.h>
+#include <attr_override.h>
 
 /* Application-specific. */
 
@@ -455,26 +456,124 @@ typedef struct {
   */
 double  smtpd_space_multf = 1.5;
 
+ /*
+  * SMTPD policy client. Most attributes are ATTR_CLNT attributes.
+  */
+typedef struct {
+    ATTR_CLNT *client;			/* client handle */
+    char   *def_action;			/* default action */
+} SMTPD_POLICY_CLNT;
+
+ /*
+  * Table-driven parsing of main.cf parameter overrides for specific policy
+  * clients. We derive the override names from the corresponding main.cf
+  * parameter names by skipping the redundant "smtpd_policy_service_" prefix.
+  * 
+  * To avoid ugly static allocation of assignment targets, we use stack-based
+  * parallel arrays which is less inelegant.
+  */
+static const ATTR_OVER_TIME time_table[] = {
+    21 + VAR_SMTPD_POLICY_TMOUT, DEF_SMTPD_POLICY_TMOUT, 1, 0,
+    21 + VAR_SMTPD_POLICY_IDLE, DEF_SMTPD_POLICY_IDLE, 1, 0,
+    21 + VAR_SMTPD_POLICY_TTL, DEF_SMTPD_POLICY_TTL, 1, 0,
+    21 + VAR_SMTPD_POLICY_TRY_DELAY, DEF_SMTPD_POLICY_TRY_DELAY, 1, 0,
+    0,
+};
+static const ATTR_OVER_INT int_table[] = {
+    21 + VAR_SMTPD_POLICY_REQ_LIMIT, 0, 0,
+    21 + VAR_SMTPD_POLICY_TRY_LIMIT, 1, 0,
+    0,
+};
+static const ATTR_OVER_STR str_table[] = {
+    21 + VAR_SMTPD_POLICY_DEF_ACTION, 1, 0,
+    0,
+};
+
+#define smtpd_policy_tmout	time_tgts[0]
+#define smtpd_policy_idle	time_tgts[1]
+#define smtpd_policy_ttl	time_tgts[2]
+#define smtpd_policy_try_delay	time_tgts[3]
+
+#define smtpd_policy_req_limit	int_tgts[0]
+#define smtpd_policy_try_limit	int_tgts[1]
+
+#define smtpd_policy_def_action	str_tgts[0]
+
 /* policy_client_register - register policy service endpoint */
 
 static void policy_client_register(const char *name)
 {
-    ATTR_CLNT *client;
+    const char myname[] = "policy_client_register";
+    SMTPD_POLICY_CLNT *policy_client;
+    char   *saved_name = 0;
+    const char *policy_name = 0;
+    char   *cp;
+    const char *sep = ", \t\r\n";
+    const char *parens = "{}";
+    char   *err;
+    int     time_tgts[sizeof(time_table) / sizeof(time_table[0])];
+    int     int_tgts[sizeof(int_table) / sizeof(int_table[0])];
+    const char *str_tgts[sizeof(str_table) / sizeof(str_table[0])];
 
     if (policy_clnt_table == 0)
 	policy_clnt_table = htable_create(1);
 
     if (htable_find(policy_clnt_table, name) == 0) {
-	client = attr_clnt_create(name,
-				  var_smtpd_policy_tmout,
-				  var_smtpd_policy_idle,
-				  var_smtpd_policy_ttl);
-	attr_clnt_control(client,
-			ATTR_CLNT_CTL_REQ_LIMIT, var_smtpd_policy_req_limit,
-			ATTR_CLNT_CTL_TRY_LIMIT, var_smtpd_policy_try_limit,
-			ATTR_CLNT_CTL_TRY_DELAY, var_smtpd_policy_try_delay,
+
+	/*
+	 * Allow per-service overrides for main.cf global settings.
+	 */
+	smtpd_policy_tmout = var_smtpd_policy_tmout;
+	smtpd_policy_idle = var_smtpd_policy_idle;
+	smtpd_policy_ttl = var_smtpd_policy_ttl;
+	smtpd_policy_req_limit = var_smtpd_policy_req_limit;
+	smtpd_policy_try_limit = var_smtpd_policy_try_limit;
+	smtpd_policy_try_delay = var_smtpd_policy_try_delay;
+	smtpd_policy_def_action = var_smtpd_policy_def_action;
+
+	if (*name == '{') {			/* } */
+	    cp = saved_name = mystrdup(name);
+	    if ((err = extpar(&cp, parens, EXPAR_FLAG_NONE)) != 0)
+		msg_fatal("policy service syntax error: %s", cp);
+	    if ((policy_name = mystrtok(&cp, sep)) == 0)
+		msg_fatal("empty policy service: \"%s\"", name);
+	    attr_override(cp, sep, parens,
+			  ATTR_OVER_TIME_TABLE, time_table, time_tgts,
+			  ATTR_OVER_INT_TABLE, int_table, int_tgts,
+			  ATTR_OVER_STR_TABLE, str_table, str_tgts,
+			  0);
+	} else {
+	    policy_name = name;
+	}
+#if 0
+	if (msg_verbose)
+#endif
+	    msg_info("%s: name=\"%s\" default_action=\"%s\" max_idle=%d "
+		     "max_ttl=%d request_limit=%d retry_delay=%d "
+		     "timeout=%d try_limit=%d",
+		     myname, policy_name, smtpd_policy_def_action,
+		     smtpd_policy_idle, smtpd_policy_ttl,
+		     smtpd_policy_req_limit, smtpd_policy_try_delay,
+		     smtpd_policy_tmout, smtpd_policy_try_limit);
+
+	/*
+	 * Create the client.
+	 */
+	policy_client = (SMTPD_POLICY_CLNT *) mymalloc(sizeof(*policy_client));
+	policy_client->client = attr_clnt_create(policy_name,
+						 smtpd_policy_tmout,
+						 smtpd_policy_idle,
+						 smtpd_policy_ttl);
+
+	attr_clnt_control(policy_client->client,
+			  ATTR_CLNT_CTL_REQ_LIMIT, smtpd_policy_req_limit,
+			  ATTR_CLNT_CTL_TRY_LIMIT, smtpd_policy_try_limit,
+			  ATTR_CLNT_CTL_TRY_DELAY, smtpd_policy_try_delay,
 			  ATTR_CLNT_CTL_END);
-	htable_enter(policy_clnt_table, name, (char *) client);
+	policy_client->def_action = mystrdup(smtpd_policy_def_action);
+	htable_enter(policy_clnt_table, name, (char *) policy_client);
+	if (saved_name)
+	    myfree(saved_name);
     }
 }
 
@@ -3660,7 +3759,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 				        const char *def_acl)
 {
     static VSTRING *action = 0;
-    ATTR_CLNT *policy_clnt;
+    SMTPD_POLICY_CLNT *policy_clnt;
 
 #ifdef USE_TLS
     VSTRING *subject_buf;
@@ -3675,7 +3774,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
      * Sanity check.
      */
     if (!policy_clnt_table
-	|| (policy_clnt = (ATTR_CLNT *) htable_find(policy_clnt_table, server)) == 0)
+	|| (policy_clnt = (SMTPD_POLICY_CLNT *)
+	    htable_find(policy_clnt_table, server)) == 0)
 	msg_panic("check_policy_service: no client endpoint for server %s",
 		  server);
 
@@ -3701,7 +3801,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
     ENCODE_CN(issuer, issuer_buf, state->tls_context->issuer_CN);
 #endif
 
-    if (attr_clnt_request(policy_clnt,
+    if (attr_clnt_request(policy_clnt->client,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
 			ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
 			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
@@ -3780,7 +3880,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 	    longjmp(smtpd_check_buf, status);
 	}
 	ret = check_table_result(state, server, nesting_level == 1 ?
-				 var_smtpd_policy_def_action :
+				 policy_clnt->def_action :
 				 DEF_SMTPD_POLICY_DEF_ACTION,
 				 "policy query", reply_name,
 				 reply_class, def_acl);

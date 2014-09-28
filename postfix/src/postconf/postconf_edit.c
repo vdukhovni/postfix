@@ -340,10 +340,12 @@ void    pcf_edit_master(int mode, int argc, char **argv)
 	if (mode & PCF_EDIT_CONF) {
 	    if ((err = split_nameval(cp, &pattern, &req->edit_value)) != 0)
 		msg_fatal("%s: \"%s\"", err, req->raw_text);
+#if 0
 	    if ((mode & PCF_MASTER_PARAM)
 	    && req->edit_value[strcspn(req->edit_value, PCF_MASTER_BLANKS)])
 		msg_fatal("whitespace in parameter value: \"%s\"",
 			  req->raw_text);
+#endif
 	} else if (mode & (PCF_COMMENT_OUT | PCF_EDIT_EXCL)) {
 	    if (strchr(cp, '=') != 0)
 		msg_fatal("-X or -# requires names without value");

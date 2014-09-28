@@ -26,7 +26,7 @@ CONFIG	= access.5.html aliases.5.html canonical.5.html relocated.5.html \
 OTHER	= postfix-manuals.html
 AWK	= awk '{ print; if (NR == 2) print ".pl 99999\n.ll 78" }'
 MAN2HTML = man2html -t "Postfix manual - `IFS=.; set \`echo $@\`; echo \"$$1($$2)\"`"
-NROFF	= GROFF_NO_SGR=1 nroff
+NROFF	= LANG=C GROFF_NO_SGR=1 nroff
 
 update:	$(DAEMONS) $(COMMANDS) $(CONFIG) $(OTHER)
 

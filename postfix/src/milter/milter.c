@@ -244,6 +244,8 @@
 #include <mail_proto.h>
 #include <record.h>
 #include <rec_type.h>
+#include <mail_params.h>
+#include <attr_override.h>
 
 /* Postfix Milter library. */
 
@@ -532,6 +534,33 @@ void    milter_disc_event(MILTERS *milters)
 	m->disc_event(m);
 }
 
+ /*
+  * Table-driven parsing of main.cf parameter overrides for specific Milters.
+  * We derive the override names from the corresponding main.cf parameter
+  * names by skipping the redundant "milter_" prefix.
+  * 
+  * To avoid ugly static allocation of assignment targets, we use stack-based
+  * parallel arrays which is less inelegant.
+  */
+static const ATTR_OVER_TIME time_table[] = {
+    7 + VAR_MILT_CONN_TIME, DEF_MILT_CONN_TIME, 1, 0,
+    7 + VAR_MILT_CMD_TIME, DEF_MILT_CMD_TIME, 1, 0,
+    7 + VAR_MILT_MSG_TIME, DEF_MILT_MSG_TIME, 1, 0,
+    0,
+};
+static const ATTR_OVER_STR str_table[] = {
+    7 + VAR_MILT_PROTOCOL, 1, 0,
+    7 + VAR_MILT_DEF_ACTION, 1, 0,
+    0,
+};
+
+#define conn_timeout_override	time_tgts[0]
+#define cmd_timeout_override	time_tgts[1]
+#define msg_timeout_override	time_tgts[2]
+
+#define	protocol_override	str_tgts[0]
+#define	action_override		str_tgts[1]
+
 /* milter_new - create milter list */
 
 MILTERS *milter_new(const char *names,
@@ -548,19 +577,53 @@ MILTERS *milter_new(const char *names,
     char   *name;
     MILTER *milter;
     const char *sep = ", \t\r\n";
+    const char *parens = "{}";
+    int     time_tgts[sizeof(time_table) / sizeof(time_table[0])];
+    const char *str_tgts[sizeof(str_table) / sizeof(str_table[0])];
 
     /*
      * Parse the milter list.
      */
     milters = (MILTERS *) mymalloc(sizeof(*milters));
-    if (names != 0) {
+    if (names != 0 && *names != 0) {
 	char   *saved_names = mystrdup(names);
 	char   *cp = saved_names;
+	char   *name_override;
+	char   *op;
+	char   *err;
 
-	while ((name = mystrtok(&cp, sep)) != 0) {
-	    milter = milter8_create(name, conn_timeout, cmd_timeout,
-				    msg_timeout, protocol, def_action,
-				    milters);
+	/*
+	 * Instantiate Milters, allowing for per-Milter overrides.
+	 */
+	while ((name = mystrtokq(&cp, sep, parens)) != 0) {
+	    if (name[0] == '{') {		/* } */
+		op = name;
+		if ((err = extpar(&op, parens, EXPAR_FLAG_NONE)) != 0)
+		    msg_fatal("milter service syntax error: %s", err);
+		if ((name_override = mystrtok(&op, sep)) == 0) {
+		    msg_fatal("empty milter definition: \"%s\"", name);
+		} else {
+		    conn_timeout_override = conn_timeout;
+		    cmd_timeout_override = cmd_timeout;
+		    msg_timeout_override = msg_timeout;
+		    protocol_override = protocol;
+		    action_override = def_action;
+		    attr_override(op, sep, parens,
+				  ATTR_OVER_STR_TABLE, str_table, str_tgts,
+				ATTR_OVER_TIME_TABLE, time_table, time_tgts,
+				  0);
+		    milter = milter8_create(name_override,
+					    conn_timeout_override,
+					    cmd_timeout_override,
+					    msg_timeout_override,
+					    protocol_override,
+					    action_override, milters);
+		}
+	    } else {
+		milter = milter8_create(name, conn_timeout, cmd_timeout,
+					msg_timeout, protocol, def_action,
+					milters);
+	    }
 	    if (head == 0) {
 		head = milter;
 	    } else {

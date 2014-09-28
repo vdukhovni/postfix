@@ -20445,3 +20445,64 @@ Apologies for any names omitted.
 	domain names in permit_mx_backup, check_mumble_{a,mx,ns}_access
 	and reject_unknown_{sender,recipient}_domain. Mark Martinec.
 	File: smtpd/smtpd_check.c.
+
+20140925
+
+	Cleanup: support for per-Milter settings, for example:
+	smtpd_milters = {inet:host:port, default_action=accept,
+	...}.  Specify the Milter endpoint address followed by zero
+	or more attribute=value pairs separated by comma or space.
+	The supported attributes are command_timeout, connect_timeout,
+	content_timeout, default_action, and protocol. These have
+	the same names as the corresponding main.cf parameters,
+	minus the "milter_" prefix.  Files: global/mail_conf_over.c,
+	global/mail_conf_str.c, global/mail_conf_time.c,
+	global/mail_conf.h, milter/milters.c.
+
+20140927
+
+	Cleanup: specify { name = value } in per-Milter settings, to support
+	space around the "=" or comma/space within the value. Files:
+	global/attr_over.[hc]. 
+
+	Cleanup: "postconf -n" now only shows config_directory when
+	an override is in effect (environment, -c or -o).
+
+	Cleanup: support for master.cf arguments inside {}, to
+	protect arguments that contain whitespace. File:
+	master/master_ent.c, postconf/postconf_master.c,
+	postconf/test59.ref.
+
+	Cleanup: support for per-policy client settings, for example:
+	check_policy_service {inet:host:port, default_action=dunno,
+	timeout=50s, ...}. Specify the policy server endpoint address
+	followed by zero or more attribute=value pairs separated
+	by comma or space.  Specify { name = value } for attributes
+	that contain whitespace; otherwise, space is not allowed
+	around the "=".  The supported attributes are default_action,
+	max_idle, max_ttl, request_limit, retry_delay, timeout, and
+	try_limit. These have the same names as the corresponding
+	main.cf parameters, minus the "smtpd_policy_service_" prefix.
+	Files: global/mail_conf_int.c, global/mail_conf.h,
+	global/attr_override.[hc], smtpd/smtpd_check.c.
+
+20140928
+
+	Cleanup: extpar.c module to reduce code duplication.  Files:
+	global/attr_override.c, master/master_ent.c, milter/milter.c,
+	postconf/postconf_dbms.c, postconf/postconf_master.c,
+	smtpd/smtpd_check.c, util/extpar.c, util/stringops.h.
+
+	Cleanup: the table-driven code for per-Milter and per-policy
+	overrides now updates stack-based variables, instead of
+	(ugh) statically-allocated variables. Files:
+	global/attr_override.[hc], smtpd/smtpd_check.c, milter/milter.c.
+
+	Documentation: added advanced configuration sections for
+	how to use per-Milter and per-policy settings.  Files:
+	proto/SMTPD_POLICY_README.html, proto/MILTER_README.html.
+
+	Cleanup: force LANG=C to prevent groff from outputting
+	non-ASCII cruft into the HTML-ized manpages.  Files:
+	html/Makefile.in, proto/Makefile.in, many HTML output
+	files.

@@ -11,6 +11,10 @@ format of Postfix PCRE tables
 \fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 
 \fBpostmap -q - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+
+\fBpostmap -hmq - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+
+\fBpostmap -bmq - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -26,8 +30,11 @@ corresponding result is returned and the search is terminated.
 To find out what types of lookup tables your Postfix system
 supports use the "\fBpostconf -m\fR" command.
 
-To test lookup tables, use the "\fBpostmap -q\fR" command as
-described in the SYNOPSIS above.
+To test lookup tables, use the "\fBpostmap -q\fR" command
+as described in the SYNOPSIS above. Use "\fBpostmap -hmq
+-\fR <\fIfile\fR" for header_checks(5) patterns, and
+"\fBpostmap -bmq -\fR <\fIfile\fR" for body_checks(5)
+(Postfix 2.6 and later).
 .SH "COMPATIBILITY"
 .na
 .nf

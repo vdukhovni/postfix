@@ -60,6 +60,9 @@ extern int get_mail_conf_int2(const char *, const char *, int, int, int);
 extern long get_mail_conf_long2(const char *, const char *, long, long, long);
 extern int get_mail_conf_time2(const char *, const char *, int, int, int, int);
 extern int get_mail_conf_nint2(const char *, const char *, int, int, int);
+extern void check_mail_conf_str(const char *, const char *, int, int);
+extern void check_mail_conf_time(const char *, int, int, int);
+extern void check_mail_conf_int(const char *, int, int, int);
 
  /*
   * Lookup with function-call defaults.

@@ -2820,7 +2820,7 @@ static MILTER8 *milter8_alloc(const char *name, int conn_timeout,
     MILTER8 *milter;
 
     /*
-     * Fill in the structure.
+     * Fill in the structure. Note: all strings must be copied.
      */
     milter = (MILTER8 *) mymalloc(sizeof(*milter));
     milter->m.name = mystrdup(name);

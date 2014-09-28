@@ -21,7 +21,10 @@
 #	supports use the "\fBpostconf -m\fR" command.
 #
 #	To test lookup tables, use the "\fBpostmap -q\fR" command
-#	as described in the SYNOPSIS above.
+#	as described in the SYNOPSIS above. Use "\fBpostmap -hmq
+#	-\fR <\fIfile\fR" for header_checks(5) patterns, and
+#	"\fBpostmap -bmq -\fR <\fIfile\fR" for body_checks(5)
+#	(Postfix 2.6 and later).
 # COMPATIBILITY
 # .ad
 # .fi

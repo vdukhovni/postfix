@@ -278,6 +278,7 @@ smtpd_chat.o: smtpd_expand.h
 smtpd_check.o: ../../include/argv.h
 smtpd_check.o: ../../include/attr.h
 smtpd_check.o: ../../include/attr_clnt.h
+smtpd_check.o: ../../include/attr_override.h
 smtpd_check.o: ../../include/cleanup_user.h
 smtpd_check.o: ../../include/conv_time.h
 smtpd_check.o: ../../include/ctable.h

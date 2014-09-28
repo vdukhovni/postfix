@@ -45,6 +45,10 @@ extern int allascii(const char *);
 extern const char *split_nameval(char *, char **, char **);
 extern int valid_utf8_string(const char *, ssize_t);
 extern size_t balpar(const char *, const char *);
+extern char *extpar(char **, const char *, int);
+
+#define EXPAR_FLAG_NONE		(0)
+#define EXPAR_FLAG_STRIP	(1<<0)
 
 /* LICENSE
 /* .ad
