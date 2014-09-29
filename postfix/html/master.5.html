@@ -163,31 +163,35 @@ MASTER(5)                                                            MASTER(5)
               The command to be executed.  Characters that are special to  the
               shell  such  as  "&gt;"  or  "|"  have no special meaning here, and
               quotes cannot be used to  protect  arguments  containing  white-
-              space.
+              space.  To  protect  whitespace,  use  "{"  and "}" as described
+              below.
 
-              The  command  name  is  relative to the Postfix daemon directory
-              (pathname is controlled by  the  <b><a href="postconf.5.html#daemon_directory">daemon_directory</a></b>  configuration
+              The command name is relative to  the  Postfix  daemon  directory
+              (pathname  is  controlled  by the <b><a href="postconf.5.html#daemon_directory">daemon_directory</a></b> configuration
               variable).
 
-              The  command  argument syntax for specific commands is specified
+              The command argument syntax for specific commands  is  specified
               in the respective daemon manual page.
 
-              The following command-line options have the same effect for  all
+              The  following command-line options have the same effect for all
               daemon programs:
 
-              <b>-D</b>     Run  the  daemon  under  control by the command specified
+              <b>-D</b>     Run the daemon under control  by  the  command  specified
                      with the <b><a href="postconf.5.html#debugger_command">debugger_command</a></b> variable in the <a href="postconf.5.html">main.cf</a> config-
                      uration file.  See <a href="DEBUG_README.html">DEBUG_README</a> for hints and tips.
 
-              <b>-o</b> <i>name</i>=<i>value</i>
-                     Override  the  named <a href="postconf.5.html">main.cf</a> configuration parameter. The
-                     parameter value can refer to other  parameters  as  <i>$name</i>
-                     etc.,  just like in <a href="postconf.5.html">main.cf</a>.  See <a href="postconf.5.html"><b>postconf</b>(5)</a> for syntax.
+              <b>-o</b> <i>name</i>=<i>value</i> (short form)
 
-                     NOTE 1: do not specify whitespace around the  "="  or  in
-                     parameter  values. To specify a parameter value that con-
-                     tains whitespace, use commas instead of spaces, or  spec-
-                     ify the value in <a href="postconf.5.html">main.cf</a>. Example:
+              <b>-o {</b> <i>name</i> = <i>value</i> <b>}</b> (Postfix 2.12 and later)
+                     Override the named <a href="postconf.5.html">main.cf</a> configuration  parameter.  The
+                     parameter  value  can  refer to other parameters as <i>$name</i>
+                     etc., just like in <a href="postconf.5.html">main.cf</a>.  See <a href="postconf.5.html"><b>postconf</b>(5)</a> for  syntax.
+
+                     NOTE 1: with the "short form" shown above, do not specify
+                     whitespace around the "="  or  in  parameter  values.  To
+                     specify  a  parameter value that contains whitespace, use
+                     commas  instead  of  spaces,  or  specify  the  value  in
+                     <a href="postconf.5.html">main.cf</a>. Example:
 
                      /etc/postfix/<a href="master.5.html">master.cf</a>:
                          submission inet .... smtpd
@@ -205,6 +209,11 @@ MASTER(5)                                                            MASTER(5)
               <b>-v</b>     Increase  the  verbose logging level. Specify multiple <b>-v</b>
                      options to make a  Postfix  daemon  process  increasingly
                      verbose.
+
+              Other command-line arguments
+                     Specify "{" and "}" around command arguments that contain
+                     whitespace (Postfix 2.12 and later).  Whitespace  immedi-
+                     ately after "{" and before "}" is ignored.
 
 <b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a>, process manager

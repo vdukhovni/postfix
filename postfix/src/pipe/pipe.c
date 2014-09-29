@@ -189,13 +189,17 @@
 /*	The command is executed directly, i.e. without interpretation of
 /*	shell meta characters by a shell command interpreter.
 /* .sp
+/*	Specify "{" and "}" around command arguments that contain
+/*	whitespace (Postfix 2.12 and later). Whitespace immediately
+/*	after "{" and before "}" is ignored.
+/* .sp
 /*	In the command argument vector, the following macros are recognized
 /*	and replaced with corresponding information from the Postfix queue
 /*	manager delivery request.
 /* .sp
 /*	In addition to the form ${\fIname\fR}, the forms $\fIname\fR and
-/*	$(\fIname\fR) are also recognized.  Specify \fB$$\fR where a single
-/*	\fB$\fR is wanted.
+/*	the deprecated form $(\fIname\fR) are also recognized.
+/*	Specify \fB$$\fR where a single \fB$\fR is wanted.
 /* .RS
 /* .IP \fB${client_address}\fR
 /*	This macro expands to the remote client network address.

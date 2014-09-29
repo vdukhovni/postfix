@@ -41,11 +41,11 @@ Topics covered in this document:
 
 HHooww aaddddrreessss vveerriiffiiccaattiioonn wwoorrkkss
 
-A Postfix MTA verifies a sender or recipient address by probing the nearest MTA
-for that address, without actually delivering mail. The nearest MTA could be
-the Postfix MTA itself, or it could be a remote MTA (SMTP interruptus). Probe
-messages are like normal mail, except that they are never delivered, deferred
-or bounced; probe messages are always discarded.
+A Postfix MTA verifies a sender or recipient address by probing the preferred
+MTAs for that address, without actually delivering mail. The preferred MTAs
+could include the Postfix MTA itself, or some remote MTAs (SMTP interruptus).
+Probe messages are like normal mail, except that they are never delivered,
+deferred or bounced; probe messages are always discarded.
 
                                
                                              probe     Postfix
@@ -81,12 +81,11 @@ postconf(5) for details.
 
 LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffiiccaattiioonn
 
-  * When verifying a remote address, Postfix probes the nearest MTA for that
-    address, without actually delivering mail to it. If the nearest MTA accepts
-    the address, then Postfix assumes that the address is deliverable. In
-    reality, mail for a remote address can bounce AFTER the nearest MTA accepts
-    the recipient address, or AFTER the nearest MTA accepts the message
-    content.
+  * When verifying a remote address, Postfix probes the preferred MTAs for that
+    address, without actually delivering mail. If a preferred MTA accepts the
+    address, then Postfix assumes that the address is deliverable. In reality,
+    mail for a remote address can bounce AFTER a preferred MTA accepts the
+    recipient address, or AFTER a preferred MTA accepts the message content.
 
   * Some sites may blacklist you when you are probing them too often (a probe
     is an SMTP session that does not deliver mail), or when you are probing
@@ -101,10 +100,10 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
     to override mail routing and for possible limitations when you have to do
     this.
 
-  * Postfix assumes that an address is undeliverable when the nearest MTA for
+  * Postfix assumes that an address is undeliverable when a preferred MTA for
     the address rejects the probe, regardless of the reason for rejection
     (client rejected, HELO rejected, MAIL FROM rejected, etc.). Thus, Postfix
-    rejects an address when the nearest MTA for that address rejects mail from
+    rejects an address when a preferred MTA for that address rejects mail from
     your machine for any reason. This is not a limitation, but it is mentioned
     here just in case people believe that it is a limitation.
 

@@ -20,6 +20,7 @@ typedef const char *CONST_CHAR_STAR;
 
 typedef struct {
     const char *name;
+    CONST_CHAR_STAR *target;
     int     min;
     int     max;
 } ATTR_OVER_STR;
@@ -27,12 +28,14 @@ typedef struct {
 typedef struct {
     const char *name;
     const char *defval;
+    int    *target;
     int     min;
     int     max;
 } ATTR_OVER_TIME;
 
 typedef struct {
     const char *name;
+    int    *target;
     int     min;
     int     max;
 } ATTR_OVER_INT;

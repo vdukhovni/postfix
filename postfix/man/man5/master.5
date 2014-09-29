@@ -165,7 +165,8 @@ changed.
 The command to be executed.  Characters that are special
 to the shell such as ">" or "|" have no special meaning
 here, and quotes cannot be used to protect arguments
-containing whitespace.
+containing whitespace. To protect whitespace, use "{"
+and "}" as described below.
 .sp
 The command name is relative to the Postfix daemon directory
 (pathname is controlled by the \fBdaemon_directory\fR
@@ -181,13 +182,15 @@ all daemon programs:
 Run the daemon under control by the command specified with
 the \fBdebugger_command\fR variable in the main.cf
 configuration file.  See DEBUG_README for hints and tips.
-.IP "\fB-o \fIname\fR=\fIvalue\fR"
+.IP "\fB-o \fIname\fR=\fIvalue\fR (short form)"
+.IP "\fB-o { \fIname\fR = \fIvalue\fB }\fR (Postfix 2.12 and later)"
 Override the named main.cf configuration parameter. The
 parameter value can refer to other parameters as \fI$name\fR
 etc., just like in main.cf.  See \fBpostconf\fR(5) for
 syntax.
 .sp
-NOTE 1: do not specify whitespace around the "=" or in
+NOTE 1: with the "short form" shown above, do not specify
+whitespace around the "=" or in
 parameter values. To specify a parameter value that contains
 whitespace, use commas instead of spaces, or specify the
 value in main.cf. Example:
@@ -209,6 +212,10 @@ personalities via master.cf.
 .IP \fB-v\fR
 Increase the verbose logging level. Specify multiple \fB-v\fR
 options to make a Postfix daemon process increasingly verbose.
+.IP "Other command-line arguments"
+Specify "{" and "}" around command arguments that contain
+whitespace (Postfix 2.12 and later). Whitespace immediately
+after "{" and before "}" is ignored.
 .SH "SEE ALSO"
 .na
 .nf

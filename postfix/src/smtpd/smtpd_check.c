@@ -468,36 +468,36 @@ typedef struct {
   * Table-driven parsing of main.cf parameter overrides for specific policy
   * clients. We derive the override names from the corresponding main.cf
   * parameter names by skipping the redundant "smtpd_policy_service_" prefix.
-  * 
-  * To avoid ugly static allocation of assignment targets, we use stack-based
-  * parallel arrays which is less inelegant.
   */
-static const ATTR_OVER_TIME time_table[] = {
-    21 + VAR_SMTPD_POLICY_TMOUT, DEF_SMTPD_POLICY_TMOUT, 1, 0,
-    21 + VAR_SMTPD_POLICY_IDLE, DEF_SMTPD_POLICY_IDLE, 1, 0,
-    21 + VAR_SMTPD_POLICY_TTL, DEF_SMTPD_POLICY_TTL, 1, 0,
-    21 + VAR_SMTPD_POLICY_TRY_DELAY, DEF_SMTPD_POLICY_TRY_DELAY, 1, 0,
+static ATTR_OVER_TIME time_table[] = {
+    21 + VAR_SMTPD_POLICY_TMOUT, DEF_SMTPD_POLICY_TMOUT, 0, 1, 0,
+    21 + VAR_SMTPD_POLICY_IDLE, DEF_SMTPD_POLICY_IDLE, 0, 1, 0,
+    21 + VAR_SMTPD_POLICY_TTL, DEF_SMTPD_POLICY_TTL, 0, 1, 0,
+    21 + VAR_SMTPD_POLICY_TRY_DELAY, DEF_SMTPD_POLICY_TRY_DELAY, 0, 1, 0,
     0,
 };
-static const ATTR_OVER_INT int_table[] = {
-    21 + VAR_SMTPD_POLICY_REQ_LIMIT, 0, 0,
-    21 + VAR_SMTPD_POLICY_TRY_LIMIT, 1, 0,
+static ATTR_OVER_INT int_table[] = {
+    21 + VAR_SMTPD_POLICY_REQ_LIMIT, 0, 0, 0,
+    21 + VAR_SMTPD_POLICY_TRY_LIMIT, 0, 1, 0,
     0,
 };
-static const ATTR_OVER_STR str_table[] = {
-    21 + VAR_SMTPD_POLICY_DEF_ACTION, 1, 0,
+static ATTR_OVER_STR str_table[] = {
+    21 + VAR_SMTPD_POLICY_DEF_ACTION, 0, 1, 0,
     0,
 };
 
-#define smtpd_policy_tmout	time_tgts[0]
-#define smtpd_policy_idle	time_tgts[1]
-#define smtpd_policy_ttl	time_tgts[2]
-#define smtpd_policy_try_delay	time_tgts[3]
+#define link_override_table_to_variable(table, var) \
+	do { table[var##_offset].target = &var; } while (0)
 
-#define smtpd_policy_req_limit	int_tgts[0]
-#define smtpd_policy_try_limit	int_tgts[1]
+#define smtpd_policy_tmout_offset	0
+#define smtpd_policy_idle_offset	1
+#define smtpd_policy_ttl_offset		2
+#define smtpd_policy_try_delay_offset	3
 
-#define smtpd_policy_def_action	str_tgts[0]
+#define smtpd_policy_req_limit_offset	0
+#define smtpd_policy_try_limit_offset	1
+
+#define smtpd_policy_def_action_offset	0
 
 /* policy_client_register - register policy service endpoint */
 
@@ -511,9 +511,6 @@ static void policy_client_register(const char *name)
     const char *sep = ", \t\r\n";
     const char *parens = "{}";
     char   *err;
-    int     time_tgts[sizeof(time_table) / sizeof(time_table[0])];
-    int     int_tgts[sizeof(int_table) / sizeof(int_table[0])];
-    const char *str_tgts[sizeof(str_table) / sizeof(str_table[0])];
 
     if (policy_clnt_table == 0)
 	policy_clnt_table = htable_create(1);
@@ -523,13 +520,21 @@ static void policy_client_register(const char *name)
 	/*
 	 * Allow per-service overrides for main.cf global settings.
 	 */
-	smtpd_policy_tmout = var_smtpd_policy_tmout;
-	smtpd_policy_idle = var_smtpd_policy_idle;
-	smtpd_policy_ttl = var_smtpd_policy_ttl;
-	smtpd_policy_req_limit = var_smtpd_policy_req_limit;
-	smtpd_policy_try_limit = var_smtpd_policy_try_limit;
-	smtpd_policy_try_delay = var_smtpd_policy_try_delay;
-	smtpd_policy_def_action = var_smtpd_policy_def_action;
+	int     smtpd_policy_tmout = var_smtpd_policy_tmout;
+	int     smtpd_policy_idle = var_smtpd_policy_idle;
+	int     smtpd_policy_ttl = var_smtpd_policy_ttl;
+	int     smtpd_policy_try_delay = var_smtpd_policy_try_delay;
+	int     smtpd_policy_req_limit = var_smtpd_policy_req_limit;
+	int     smtpd_policy_try_limit = var_smtpd_policy_try_limit;
+	const char *smtpd_policy_def_action = var_smtpd_policy_def_action;
+
+	link_override_table_to_variable(time_table, smtpd_policy_tmout);
+	link_override_table_to_variable(time_table, smtpd_policy_idle);
+	link_override_table_to_variable(time_table, smtpd_policy_ttl);
+	link_override_table_to_variable(time_table, smtpd_policy_try_delay);
+	link_override_table_to_variable(int_table, smtpd_policy_req_limit);
+	link_override_table_to_variable(int_table, smtpd_policy_try_limit);
+	link_override_table_to_variable(str_table, smtpd_policy_def_action);
 
 	if (*name == '{') {			/* } */
 	    cp = saved_name = mystrdup(name);
@@ -538,16 +543,14 @@ static void policy_client_register(const char *name)
 	    if ((policy_name = mystrtok(&cp, sep)) == 0)
 		msg_fatal("empty policy service: \"%s\"", name);
 	    attr_override(cp, sep, parens,
-			  ATTR_OVER_TIME_TABLE, time_table, time_tgts,
-			  ATTR_OVER_INT_TABLE, int_table, int_tgts,
-			  ATTR_OVER_STR_TABLE, str_table, str_tgts,
+			  ATTR_OVER_TIME_TABLE, time_table,
+			  ATTR_OVER_INT_TABLE, int_table,
+			  ATTR_OVER_STR_TABLE, str_table,
 			  0);
 	} else {
 	    policy_name = name;
 	}
-#if 0
 	if (msg_verbose)
-#endif
 	    msg_info("%s: name=\"%s\" default_action=\"%s\" max_idle=%d "
 		     "max_ttl=%d request_limit=%d retry_delay=%d "
 		     "timeout=%d try_limit=%d",

@@ -20506,3 +20506,18 @@ Apologies for any names omitted.
 	non-ASCII cruft into the HTML-ized manpages.  Files:
 	html/Makefile.in, proto/Makefile.in, many HTML output
 	files.
+
+20140929
+
+	Cleanup: the table-driven code for per-Milter and per-policy
+	overrides now updates arbitrary variables, so that it can also
+	be used for, say, TLS policies. Files: global/attr_override.[hc],
+	smtpd/smtpd_check.c, milter/milter.c.
+
+	Documentation: support for "{ argument with whitespace }"
+	in master(5) and pipe(8). Files: proto/master, src/pipe/pipe.c.
+
+	Documentation: in ADDRES_VERIFY_README, replaced "nearest
+	MTA" with "preferred MTA". The SMTP client was changed years
+	ago to try alternate MXes after a 4XX SMTP server response.
+	File: proto/ADDRES_VERIFY_README.html.

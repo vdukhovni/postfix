@@ -28,32 +28,23 @@
 /*	See mystrtok(3) for description. Typical values are
 /*	", \\t\\r\\n" and "{}", respectively.
 /* .PP
-/*	The parens argument is followed by a list of (key, value,
-/*	value) argument triples. Each key may appear only once.
-/*	The list must be terminated with ATTR_OVER_END.  The following
+/*	The parens argument is followed by a list of (key, value)
+/*	argument pairs. Each key may appear only once.  The list
+/*	must be terminated with ATTR_OVER_END.  The following
 /*	describes the keys and the expected values.
-/* .IP "ATTR_OVER_STR_TABLE, const ATTR_OVER_STR *, CONST_CHAR_STAR *"
+/* .IP "ATTR_OVER_STR_TABLE, const ATTR_OVER_STR *
 /*	The second argument specifies a null-terminated table with
-/*	attribute names and their range limits which should be the
-/*	same as for the corresponding main.cf parameters.  The
-/*	third argument specifies a parallel table with assignment
-/*	targets. The result strings are NOT copied.
-/* .IP "ATTR_OVER_TIME_TABLE, const ATTR_OVER_TIME *, int *"
+/*	attribute names, assignment targets, and range limits which
+/*	should be the same as for the corresponding main.cf parameters.
+/* .IP "ATTR_OVER_TIME_TABLE, const ATTR_OVER_TIME *
 /*	The second argument specifies a null-terminated table with
 /*	attribute names, their default time units (leading digits
-/*	are skipped), and their range limits which should be the
-/*	same as for the corresponding main.cf parameters.  The
-/*	third argument specifies a parallel table with assignment
-/*	targets.
-/* .IP "ATTR_OVER_INT_TABLE, const ATTR_OVER_INT *, int *"
+/*	are skipped), assignment targets, and range limits which
+/*	should be the same as for the corresponding main.cf parameters.
+/* .IP "ATTR_OVER_INT_TABLE, const ATTR_OVER_INT *
 /*	The second argument specifies a null-terminated table with
-/*	attribute names and their range limits which should be the
-/*	same as for the corresponding main.cf parameters.  The
-/*	third argument specifies a parallel table with assignment
-/*	targets.
-/* BUGS
-/*	Parallel tables may be inelegant, but the alternative (static
-/*	allocation of target variables) is worse.
+/*	attribute names, assignment targets, and range limits which
+/*	should be the same as for the corresponding main.cf parameters.
 /* SEE ALSO
 /*	mystrtok(3), safe tokenizer
 /*	extpar(3), extract text from parentheses
@@ -106,9 +97,6 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
     const ATTR_OVER_INT *int_table = 0;
     const ATTR_OVER_STR *str_table = 0;
     const ATTR_OVER_TIME *time_table = 0;
-    int    *int_tgts = 0;
-    CONST_CHAR_STAR *str_tgts = 0;
-    int    *time_tgts = 0;
 
     /*
      * Get the lookup tables and assignment targets.
@@ -120,19 +108,16 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
 	    if (int_table)
 		msg_panic("%s: multiple ATTR_OVER_INT_TABLE", myname);
 	    int_table = va_arg(ap, const ATTR_OVER_INT *);
-	    int_tgts = va_arg(ap, int *);
 	    break;
 	case ATTR_OVER_STR_TABLE:
 	    if (str_table)
 		msg_panic("%s: multiple ATTR_OVER_STR_TABLE", myname);
 	    str_table = va_arg(ap, const ATTR_OVER_STR *);
-	    str_tgts = va_arg(ap, CONST_CHAR_STAR *);
 	    break;
 	case ATTR_OVER_TIME_TABLE:
 	    if (time_table)
 		msg_panic("%s: multiple ATTR_OVER_TIME_TABLE", myname);
 	    time_table = va_arg(ap, const ATTR_OVER_TIME *);
-	    time_tgts = va_arg(ap, int *);
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, idx);
@@ -173,7 +158,7 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
 	    if (strcmp(sp->name, key) != 0)
 		continue;
 	    check_mail_conf_str(sp->name, value, sp->min, sp->max);
-	    str_tgts[sp - str_table] = value;
+	    sp->target[0] = value;
 	    found = 1;
 	}
 	for (ip = int_table; ip != 0 && found == 0 && ip->name != 0; ip++) {
@@ -186,7 +171,7 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
 		|| longval != int_val)
 		msg_fatal("bad numerical configuration: %s = %s", key, value);
 	    check_mail_conf_int(key, int_val, ip->min, ip->max);
-	    int_tgts[ip - int_table] = int_val;
+	    ip->target[0] = int_val;
 	    found = 1;
 	}
 	for (tp = time_table; tp != 0 && found == 0 && tp->name != 0; tp++) {
@@ -196,7 +181,7 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
 	    if (conv_time(value, &int_val, def_unit) == 0)
 		msg_fatal("%s: bad time value or unit: %s", key, value);
 	    check_mail_conf_time(key, int_val, tp->min, tp->max);
-	    time_tgts[tp - time_table] = int_val;
+	    tp->target[0] = int_val;
 	    found = 1;
 	}
 	if (found == 0)

@@ -44,6 +44,8 @@ about build options that are not described in the INSTALL instructions.
 Major changes with snapshot 20140928
 ====================================
 
+Per-Milter settings
+-------------------
 Support for per-Milter settings that override main.cf parameters.
 For details see the section "Advanced policy client configuration"
 in the SMTPD_POLICY_README document.
@@ -62,6 +64,8 @@ content_timeout, default_action, and protocol. These have the same
 names as the corresponding main.cf parameters, without the "milter_"
 prefix.
 
+Per-policy service settings
+---------------------------
 Support for per-policy service settings that override main.cf
 parameters.  For details see the section "Different settings for
 different Milter applications" in the MILTER_README document.
@@ -82,6 +86,21 @@ request_limit, retry_delay, timeout, try_limit. These have the same
 names as the corresponding main.cf parameters, without the
 "smtpd_policy_service_" prefix.
 
+Whitespace in master.cf command-line arguments
+----------------------------------------------
+Support for whitespace in daemon command-line arguments. For details, see
+the "Command name + arguments" section in the master(5) manpage.
+Example:
+
+    smtpd -o { parameter = value containing whitespace } ...
+
+The { ... } form is also available for non-option command-line
+arguments in master.cf, for example:
+
+    pipe ... argv=command { argument containing whitespace } ...
+
+In both cases, whitespace immediately after "{" and before "}"
+is ignored.
 
 Major changes with snapshot 20140921
 ====================================
