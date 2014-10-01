@@ -16,13 +16,13 @@ stat=1 result=
 unknown: warning: attribute name syntax error at: "...>>> ${name1} ?name 1 de"
 stat=1 result=
 << ${{$name1} ? {name 1 defined, |$name1|$name2|} : {name 1 undefined, |$name1|$name2|} }
-unknown: warning: "==" or "!=" expected at: "...$name1}>>>? {name 1 defined, |"
+unknown: warning: "==" or "!="" or "<"" or "<="" or ">="" or ">" expected at: "...$name1}>>>? {name 1 defined, |"
 stat=1 result=
 << ${x{$name1} != {}?{name 1 defined, |$name1|$name2|}}
 unknown: warning: attribute name syntax error at: "...x>>>{$name1} != {}?{name"
 stat=1 result=
 << ${{$name1}x?{name 1 defined, |$name1|$name2|}}
-unknown: warning: "==" or "!=" expected at: "...$name1}>>>x?{name 1 defined, |"
+unknown: warning: "==" or "!="" or "<"" or "<="" or ">="" or ">" expected at: "...$name1}>>>x?{name 1 defined, |"
 stat=1 result=
 << ${{$name1} != {}x{name 1 defined, |$name1|$name2|}}
 unknown: warning: "?" or ":" expected at: "...}>>>x{name 1 defined, |$"
@@ -42,13 +42,13 @@ stat=2 result=name 1 defined, |name1-value||
 << ${{$name2} != {}?{name 2 defined, |$name1|$name2|}:x{name 2 undefined, |$name1|$name2|}}
 stat=2 result=x{name 2 undefined, |name1-value||}
 << ${{text}}
-unknown: warning: "==" or "!=" expected at: "...text}>>>"
+unknown: warning: "==" or "!="" or "<"" or "<="" or ">="" or ">" expected at: "...text}>>>"
 stat=1 result=
 << ${{text}?{non-empty}:{empty}}
-unknown: warning: "==" or "!=" expected at: "...text}>>>?{non-empty}:{empty}"
+unknown: warning: "==" or "!="" or "<"" or "<="" or ">="" or ">" expected at: "...text}>>>?{non-empty}:{empty}"
 stat=1 result=
 << ${{text} = {}}
-unknown: warning: "==" or "!=" expected at: "...text}>>>= {}"
+unknown: warning: "==" or "!="" or "<"" or "<="" or ">="" or ">" expected at: "...text}>>>= {}"
 stat=1 result=
 << ${{${ name1}} == {}}
 unknown: warning: attribute name syntax error at: "...>>> name1"
@@ -134,3 +134,46 @@ stat=2 result= name 2 undefined, |name1-value||
 stat=2 result=
 << ${{$name2} == {}}
 stat=2 result=true
+<< 
+
+<< 
+<< ${{1} == {1}}
+stat=0 result=true
+<< ${{1} <  {1}}
+stat=0 result=
+<< ${{1} <= {1}}
+stat=0 result=true
+<< ${{1} >= {1}}
+stat=0 result=true
+<< ${{1} >  {1}}
+stat=0 result=
+<< ${{1} == {2}}
+stat=0 result=
+<< ${{1} <  {2}}
+stat=0 result=true
+<< ${{1} <= {2}}
+stat=0 result=true
+<< ${{1} >= {2}}
+stat=0 result=
+<< ${{1} >  {2}}
+stat=0 result=
+<< ${{a} == {a}}
+stat=0 result=true
+<< ${{a} <  {a}}
+stat=0 result=
+<< ${{a} <= {a}}
+stat=0 result=true
+<< ${{a} >= {a}}
+stat=0 result=true
+<< ${{a} >  {a}}
+stat=0 result=
+<< ${{a} == {b}}
+stat=0 result=
+<< ${{a} <  {b}}
+stat=0 result=true
+<< ${{a} <= {b}}
+stat=0 result=true
+<< ${{a} >= {b}}
+stat=0 result=
+<< ${{a} >  {b}}
+stat=0 result=

@@ -110,7 +110,7 @@
 /* .IP "\fBappend_at_myorigin (yes)\fR"
 /*	With locally submitted mail, append the string "@$myorigin" to mail
 /*	addresses without domain information.
-/* .IP "\fBappend_dot_mydomain (yes)\fR"
+/* .IP "\fBappend_dot_mydomain (Postfix &ge; 2.12: no, Postfix < 2.12: yes)\fR"
 /*	With locally submitted mail, append the string ".$mydomain" to
 /*	addresses that have no ".domain" information.
 /* .IP "\fBrecipient_delimiter (empty)\fR"
@@ -609,7 +609,6 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_SWAP_BANGPATH, DEF_SWAP_BANGPATH, &var_swap_bangpath,
-	VAR_APP_DOT_MYDOMAIN, DEF_APP_DOT_MYDOMAIN, &var_append_dot_mydomain,
 	VAR_APP_AT_MYORIGIN, DEF_APP_AT_MYORIGIN, &var_append_at_myorigin,
 	VAR_PERCENT_HACK, DEF_PERCENT_HACK, &var_percent_hack,
 	VAR_RESOLVE_DEQUOTED, DEF_RESOLVE_DEQUOTED, &var_resolve_dequoted,
@@ -618,6 +617,10 @@ int     main(int argc, char **argv)
 	VAR_RESOLVE_NUM_DOM, DEF_RESOLVE_NUM_DOM, &var_resolve_num_dom,
 	VAR_ALLOW_MIN_USER, DEF_ALLOW_MIN_USER, &var_allow_min_user,
 	0,
+    };
+    static const CONFIG_NBOOL_TABLE nbool_table[] = {
+	VAR_APP_DOT_MYDOMAIN, DEF_APP_DOT_MYDOMAIN, &var_append_dot_mydomain,
+        0,
     };
 
     /*
@@ -628,6 +631,7 @@ int     main(int argc, char **argv)
     multi_server_main(argc, argv, rewrite_service,
 		      MAIL_SERVER_STR_TABLE, str_table,
 		      MAIL_SERVER_BOOL_TABLE, bool_table,
+		      MAIL_SERVER_NBOOL_TABLE, nbool_table,
 		      MAIL_SERVER_PRE_INIT, pre_jail_init,
 		      MAIL_SERVER_POST_INIT, post_jail_init,
 #ifdef CHECK_TABLE_STATS_BEFORE_ACCEPT

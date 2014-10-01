@@ -38,6 +38,18 @@ extern bool var_helpful_warnings;
 extern bool var_show_unk_rcpt_table;
 
  /*
+  * Compatibility level and migration support.
+  */
+#define VAR_COMPAT_LEVEL	"compatibility_level"
+#define DEF_COMPAT_LEVEL	0
+#define CUR_COMPAT_LEVEL	1
+extern int var_compat_level;
+
+extern int warn_compat_break_app_dot_mydomain;
+extern int warn_compat_break_smtputf8_enable;
+extern int warn_compat_break_chroot;
+
+ /*
   * What problem classes should be reported to the postmaster via email.
   * Default is bad problems only. See mail_error(3). Even when mail notices
   * are disabled, problems are still logged to the syslog daemon.
@@ -467,7 +479,7 @@ extern bool var_swap_bangpath;
 extern bool var_append_at_myorigin;
 
 #define VAR_APP_DOT_MYDOMAIN	"append_dot_mydomain"
-#define DEF_APP_DOT_MYDOMAIN	1
+#define DEF_APP_DOT_MYDOMAIN	"${{$compatibility_level} < {1} ? {yes} : {no}}"
 extern bool var_append_dot_mydomain;
 
 #define VAR_PERCENT_HACK	"allow_percent_hack"
@@ -3830,7 +3842,7 @@ extern char *var_meta_dir;
   * SMTPUTF8 support.
   */
 #define VAR_SMTPUTF8_ENABLE		"smtputf8_enable"
-#define DEF_SMTPUTF8_ENABLE		0
+#define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} < {1} ? {no} : {yes}}"
 extern int var_smtputf8_enable;
 
 #define VAR_STRICT_SMTPUTF8		"strict_smtputf8"

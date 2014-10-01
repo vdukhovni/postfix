@@ -515,7 +515,7 @@ remote_header_rewrite_domain parameter specifies a non-empty value.
 .PP
 To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all".
-.SH append_dot_mydomain (default: yes)
+.SH append_dot_mydomain (default: Postfix >= 2.12: no, Postfix < 2.12: yes)
 With locally submitted mail, append the string ".$mydomain" to
 addresses that have no ".domain" information. With remotely submitted
 mail, append the string ".$remote_header_rewrite_domain"
@@ -889,6 +889,26 @@ delivery by the \fBpipe\fR(8) delivery agent.
 .PP
 Note: if you set this time limit to a large value you must update the
 global ipc_timeout parameter as well.
+.SH compatibility_level (default: 0)
+A safety net that forces Postfix to keep running with
+backwards-compatible main.cf and master.cf default settings after
+an upgrade to a newer but incompatible Postfix version.
+.PP
+Depending on the compatibility_level parameter setting, Postfix
+continues to use backwards-compatible default settings, and logs
+the use of those backwards-compatible default settings with messages
+that contain the string "using legacy default setting".  Based on
+this logging the system administrator can determine that a new
+default setting breaks nothing or that a backwards-compatible
+default setting needs to be made permanent in main.cf or master.cf.
+.PP
+After this review is complete, and no more backwards-compatible
+settings need to be made permanent, the administrator should accept
+the remaining Postfix built-in default settings by updating the
+compatibility_level setting in main.cf as recommended in the Postfix
+RELEASE_NOTES.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH config_directory (default: see "postconf -d" output)
 The default location of the Postfix main.cf and master.cf
 configuration files. This can be overruled via the following
@@ -11331,7 +11351,7 @@ mail.
 .br
 .PP
 This feature is available in Postfix 2.12 and later.
-.SH smtputf8_enable (default: no)
+.SH smtputf8_enable (default: yes)
 Enable experimental SMTPUTF8 support for the protocols described
 in RFC 6531..6533. This requires that Postfix is built to support
 these protocols.

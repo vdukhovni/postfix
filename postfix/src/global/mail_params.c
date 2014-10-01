@@ -127,10 +127,15 @@
 /*	int	var_smtputf8_enable
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
+/*	int     var_compat_level;
 /*
 /*	void	mail_params_init()
 /*
 /*	const	char null_format_string[1];
+/*
+/*	int	warn_compat_break_app_dot_mydomain;
+/*	int	warn_compat_break_smtputf8_enable;
+/*	int	warn_compat_break_chroot;
 /* DESCRIPTION
 /*	This module (actually the associated include file) define the names
 /*	and defaults of all mail configuration parameters.
@@ -143,6 +148,9 @@
 /*
 /*	null_format_string is a workaround for gcc compilers that complain
 /*	about empty or null format strings.
+/*
+/*	The warn_compat_XXX variables enable warnings for the use
+/*	of legacy default settings after an incompatible change.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory; null system or domain name.
 /* LICENSE
@@ -322,8 +330,13 @@ char   *var_dsn_filter;
 int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
+int     var_compat_level;
 
 const char null_format_string[1] = "";
+
+int     warn_compat_break_app_dot_mydomain;
+int     warn_compat_break_smtputf8_enable;
+int     warn_compat_break_chroot;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -525,10 +538,52 @@ static char *read_param_from_file(const char *path)
 
 #endif
 
+/* check_legacy_defaults - flag parameters that require safety-net logging */
+
+static void check_legacy_defaults(void)
+{
+
+    /*
+     * Basic idea: when an existing parameter default is changed, or a new
+     * parameter is introduced with incompatible default behavior, force
+     * Postfix to run with backwards-compatible default settings and log a
+     * warning when the backwards-compatible behavior is used.
+     * 
+     * Based on a review of Postfix logging the system administrator can decide
+     * whether or not to make backwards-compatible default settings permanent
+     * in main.cf or master.cf.
+     * 
+     * To turn off further warnings and deploy the new default settings, the
+     * system administrator should update the compatibility_level setting as
+     * recommended in the RELASE_NOTES file.
+     * 
+     * Each incompatible change has its own flag variable, instead of bit in a
+     * shared variable. We don't want to rip up code when we need more flag
+     * bits.
+     */
+
+    /*
+     * Look for specific parameters that were left behind at legacy defaults
+     * when the compatibility level changed for the first time, from 0 to 1.
+     */
+    if (var_compat_level < 1) {
+	/* Should inet_protocols also be listed here? */
+	if (mail_conf_lookup(VAR_APP_DOT_MYDOMAIN) == 0)
+	    warn_compat_break_app_dot_mydomain = 1;
+	if (mail_conf_lookup(VAR_SMTPUTF8_ENABLE) == 0)
+	    warn_compat_break_smtputf8_enable = 1;
+	warn_compat_break_chroot = 1;
+    }
+}
+
 /* mail_params_init - configure built-in parameters */
 
 void    mail_params_init()
 {
+    static const CONFIG_INT_TABLE first_int_defaults[] = {
+	VAR_COMPAT_LEVEL, DEF_COMPAT_LEVEL, &var_compat_level, 0, 0,
+	0,
+    };
     static const CONFIG_STR_TABLE first_str_defaults[] = {
 	/* $mail_version may appear in other parameters. */
 	VAR_MAIL_VERSION, DEF_MAIL_VERSION, &var_mail_version, 1, 0,
@@ -663,12 +718,22 @@ void    mail_params_init()
 	VAR_CYRUS_SASL_AUTHZID, DEF_CYRUS_SASL_AUTHZID, &var_cyrus_sasl_authzid,
 	VAR_MULTI_ENABLE, DEF_MULTI_ENABLE, &var_multi_enable,
 	VAR_LONG_QUEUE_IDS, DEF_LONG_QUEUE_IDS, &var_long_queue_ids,
-	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	VAR_STRICT_SMTPUTF8, DEF_STRICT_SMTPUTF8, &var_strict_smtputf8,
+	0,
+    };
+    static const CONFIG_NBOOL_TABLE nbool_defaults[] = {
+	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
 	0,
     };
     const char *cp;
     INET_PROTO_INFO *proto_info;
+
+    /*
+     * Extract compatibility level first, so that we can determine what
+     * parameters of interest are left at their legacy defaults.
+     */
+    get_mail_conf_int_table(first_int_defaults);
+    check_legacy_defaults();
 
     /*
      * Extract syslog_facility early, so that from here on all errors are
@@ -732,6 +797,7 @@ void    mail_params_init()
     get_mail_conf_int_table(other_int_defaults);
     get_mail_conf_long_table(long_defaults);
     get_mail_conf_bool_table(bool_defaults);
+    get_mail_conf_nbool_table(nbool_defaults);
     get_mail_conf_time_table(time_defaults);
     check_default_privs();
     check_mail_owner();

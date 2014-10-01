@@ -354,8 +354,8 @@ Instead of a server endpoint, we now have a list enclosed in {}.
 
 Inside the list, syntax is similar to what we already know from main.cf: items
 separated by space or comma. There is one difference: yyoouu mmuusstt eenncclloossee aa
-sseettttiinngg iinn ppaarreenntthheesseess,, aass iinn ""{{ nnaammee == vvaalluuee }}"",, iiff yyoouu wwaanntt ttoo hhaavvee ssppaaccee
-wwiitthhiinn aa vvaalluuee oorr aarroouunndd ""=="".
+sseettttiinngg iinn ppaarreenntthheesseess,, aass iinn ""{{ nnaammee == vvaalluuee }}"",, iiff yyoouu wwaanntt ttoo hhaavvee ssppaaccee oorr
+ccoommmmaa wwiitthhiinn aa vvaalluuee oorr aarroouunndd ""=="".
 
 SSeennddmmaaiill mmaaccrroo eemmuullaattiioonn
 

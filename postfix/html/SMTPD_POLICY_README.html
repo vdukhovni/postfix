@@ -425,9 +425,10 @@ and have the same name as those parameters, without the
 <p> Inside the list, syntax is similar to what we already know from
 <a href="postconf.5.html">main.cf</a>: items separated by space or comma. There is one difference:
 <b>you must enclose a setting in parentheses, as in "{ name = value
-}", if you want to have space within a value or around "="</b>.
-This comes in handy when different policy servers require different
-default actions with different SMTP status codes or text: </p>
+}", if you want to have space or comma within a value or around
+"="</b>.  This comes in handy when different policy servers require
+different default actions with different SMTP status codes or text:
+</p>
 
 <blockquote>
 <pre>

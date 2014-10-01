@@ -10,6 +10,25 @@
 # For best results, change no more than 2-3 parameters at a time,
 # and test if Postfix still works after every change.
 
+# COMPATIBILITY
+#
+# The compatibility_level determines what default settings Postfix
+# will use for main.cf and master.cf settings. These defaults will
+# change over time.
+#
+# To avoid breaking things, Postfix will use backwards-compatible
+# default settings and log where it uses those old backwards-compatible
+# default settings, until the system administrator has determined
+# if any backwards-compatible default settings need to be made
+# permanent in main.cf or master.cf.
+#
+# When this review is complete, update the compatibility_level setting
+# below as recommended in the RELEASE_NOTES file.
+#
+# The level below is what should be used with new (not upgrade) installs.
+#
+compatibility_level = 1
+
 # SOFT BOUNCE
 #
 # The soft_bounce parameter provides a limited safety net for

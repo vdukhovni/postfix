@@ -895,7 +895,7 @@ $<a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_cli
 </DD>
 
 <DT><b><a name="append_dot_mydomain">append_dot_mydomain</a>
-(default: yes)</b></DT><DD>
+(default: Postfix &ge; 2.12: no, Postfix &lt; 2.12: yes)</b></DT><DD>
 
 <p>
 With locally submitted mail, append the string ".$<a href="postconf.5.html#mydomain">mydomain</a>" to
@@ -1532,6 +1532,33 @@ delivery by the <a href="pipe.8.html">pipe(8)</a> delivery agent.
 Note: if you set this time limit to a large value you must update the
 global <a href="postconf.5.html#ipc_timeout">ipc_timeout</a> parameter as well.
 </p>
+
+
+</DD>
+
+<DT><b><a name="compatibility_level">compatibility_level</a>
+(default: 0)</b></DT><DD>
+
+<p> A safety net that forces Postfix to keep running with
+backwards-compatible <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> default settings after
+an upgrade to a newer but incompatible Postfix version. </p>
+
+<p> Depending on the <a href="postconf.5.html#compatibility_level">compatibility_level</a> parameter setting, Postfix
+continues to use backwards-compatible default settings, and logs
+the use of those backwards-compatible default settings with messages
+that contain the string "using legacy default setting".  Based on
+this logging the system administrator can determine that a new
+default setting breaks nothing or that a backwards-compatible
+default setting needs to be made permanent in <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a>.
+</p>
+
+<p> After this review is complete, and no more backwards-compatible
+settings need to be made permanent, the administrator should accept
+the remaining Postfix built-in default settings by updating the
+<a href="postconf.5.html#compatibility_level">compatibility_level</a> setting in <a href="postconf.5.html">main.cf</a> as recommended in the Postfix
+RELEASE_NOTES.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -16538,7 +16565,7 @@ mail. </dd>
 </DD>
 
 <DT><b><a name="smtputf8_enable">smtputf8_enable</a>
-(default: no)</b></DT><DD>
+(default: yes)</b></DT><DD>
 
 <p> Enable experimental SMTPUTF8 support for the protocols described
 in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533. This requires that Postfix is built to support

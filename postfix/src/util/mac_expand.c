@@ -123,6 +123,7 @@
 #include <sys_defs.h>
 #include <ctype.h>
 #include <string.h>
+#include <stdlib.h>
 
 /* Utility library. */
 
@@ -173,17 +174,33 @@ typedef struct {
   */
 #define MAC_EXP_OP_STR_EQ	"=="
 #define MAC_EXP_OP_STR_NE	"!="
+#define MAC_EXP_OP_STR_LT	"<"
+#define MAC_EXP_OP_STR_LE	"<="
+#define MAC_EXP_OP_STR_GE	">="
+#define MAC_EXP_OP_STR_GT	">"
 #define MAC_EXP_OP_STR_ANY	"\"" MAC_EXP_OP_STR_EQ \
-				"\" or \"" MAC_EXP_OP_STR_NE "\""
+				"\" or \"" MAC_EXP_OP_STR_NE "\"" \
+				"\" or \"" MAC_EXP_OP_STR_LT "\"" \
+				"\" or \"" MAC_EXP_OP_STR_LE "\"" \
+				"\" or \"" MAC_EXP_OP_STR_GE "\"" \
+				"\" or \"" MAC_EXP_OP_STR_GT "\""
 
 #define MAC_EXP_OP_TOK_NONE	0
 #define MAC_EXP_OP_TOK_EQ	1
 #define MAC_EXP_OP_TOK_NE	2
+#define MAC_EXP_OP_TOK_LT	3
+#define MAC_EXP_OP_TOK_LE	4
+#define MAC_EXP_OP_TOK_GE	5
+#define MAC_EXP_OP_TOK_GT	6
 
 static const NAME_CODE mac_exp_op_table[] =
 {
     MAC_EXP_OP_STR_EQ, MAC_EXP_OP_TOK_EQ,
     MAC_EXP_OP_STR_NE, MAC_EXP_OP_TOK_NE,
+    MAC_EXP_OP_STR_LT, MAC_EXP_OP_TOK_LT,
+    MAC_EXP_OP_STR_LE, MAC_EXP_OP_TOK_LE,
+    MAC_EXP_OP_STR_GE, MAC_EXP_OP_TOK_GE,
+    MAC_EXP_OP_STR_GT, MAC_EXP_OP_TOK_GT,
     0, MAC_EXP_OP_TOK_NONE,
 };
 
@@ -191,6 +208,41 @@ static const NAME_CODE mac_exp_op_table[] =
   * The whitespace separator set.
   */
 #define MAC_EXP_WHITESPACE	" \t\r\n"
+
+/* mac_exp_eval - evaluate binary expression */
+
+static int mac_exp_eval(const char *left, int tok_val,
+			        const char *rite)
+{
+    static const char myname[] = "mac_exp_eval";
+    long    delta;
+
+    /*
+     * Numerical or string comparison.
+     */
+    if (alldig(left) && alldig(rite)) {
+	delta = atol(left) - atol(rite);
+    } else {
+	delta = strcmp(left, rite);
+    }
+    switch (tok_val) {
+    case MAC_EXP_OP_TOK_EQ:
+	return (delta == 0);
+    case MAC_EXP_OP_TOK_NE:
+	return (delta != 0);
+    case MAC_EXP_OP_TOK_LT:
+	return (delta < 0);
+    case MAC_EXP_OP_TOK_LE:
+	return (delta <= 0);
+    case MAC_EXP_OP_TOK_GE:
+	return (delta >= 0);
+    case MAC_EXP_OP_TOK_GT:
+	return (delta > 0);
+    default:
+	msg_panic("%s: unknown operator: %d",
+		  myname, tok_val);
+    }
+}
 
 /* mac_exp_parse_error - report parse error, set error flag, return status */
 
@@ -274,7 +326,6 @@ static char *mac_exp_extract_curly_payload(MAC_EXP_CONTEXT *mc, char **bp)
 static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
 				         char **bp)
 {
-    const char myname[] = "mac_exp_parse_logical";
     char   *cp = *bp;
     VSTRING *left_op_buf;
     VSTRING *rite_op_buf;
@@ -324,8 +375,8 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
     mc->status |=
 	mac_expand(rite_op_buf = vstring_alloc(100), rite_op_strval,
 		   mc->flags, mc->filter, mc->lookup, mc->context);
-    op_result =
-	strcmp(vstring_str(left_op_buf), vstring_str(rite_op_buf));
+    op_result = mac_exp_eval(vstring_str(left_op_buf), op_tokval,
+			     vstring_str(rite_op_buf));
     vstring_free(left_op_buf);
     vstring_free(rite_op_buf);
     if (mc->status & MAC_PARSE_ERROR)
@@ -336,19 +387,7 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
      * for compatibility with the historical code that looks named parameter
      * values.
      */
-    switch (op_tokval) {
-    case MAC_EXP_OP_TOK_EQ:
-	*lookup = op_result == 0 ?
-	    MAC_EXP_BVAL_TRUE : MAC_EXP_BVAL_FALSE;
-	break;
-    case MAC_EXP_OP_TOK_NE:
-	*lookup = op_result != 0 ?
-	    MAC_EXP_BVAL_TRUE : MAC_EXP_BVAL_FALSE;
-	break;
-    default:
-	msg_panic("%s: unknown macro operator code %d",
-		  myname, op_tokval);
-    }
+    *lookup = (op_result ? MAC_EXP_BVAL_TRUE : MAC_EXP_BVAL_FALSE);
     *bp = cp;
     return (0);
 }

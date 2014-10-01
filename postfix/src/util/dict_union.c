@@ -145,7 +145,6 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
     /*
      * Split the table name into its constituent parts.
      */
-    saved_name = mystrdup(name + 1);		/* XXX ASCII delimiter */
     if ((len = balpar(name, "{}")) == 0 || name[len] != 0
 	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0)
 	DICT_UNION_RETURN(dict_surrogate(DICT_TYPE_UNION, name,

@@ -19,6 +19,23 @@ before proceeding.
 Notes for distribution maintainers
 ----------------------------------
 
+* New backwards-compatibility safety net.
+
+Several Postfix default settings have changed with Postfix 2.12.
+To avoid massive breakage, Postfix comes with a safety net that
+forces Postfix to keep running with backwards-compatible main.cf
+and master.cf default settings.
+
+With NEW Postfix installs, you should install a main.cf file with
+the setting "compatibility_level = 1". See the stock main.cf file
+in the conf subdirectory.
+
+With existing Postfix UPGRADES, the main.cf compatibility_level
+setting (if any) MUST be left alone, to enable the backwards-compatibility
+safety net as discussed below.
+
+* New Postfix build system.
+
 The Postfix build/install procedure has changed to support Postfix
 shared libraries and database plugins.
 
@@ -41,6 +58,69 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20141001
+====================================
+
+A new backwards-compatibility safety net forces Postfix to keep
+running with backwards-compatible main.cf and master.cf default
+settings after an upgrade to a newer Postfix version.
+
+The following presents the messages that the backwards-compatibility
+safety net will log, what the messages mean, and what action the
+system adminstrator is expected to take.
+
+1) postfix/master[27664]: /etc/postfix/master.cf: line 72: using
+       legacy default setting chroot=y
+
+   chroot=n is the new default, but that may not always be disirable.
+   Postfix continues to use the backwards-compatible default,
+   chroot=y, until the system administrator has determined whether
+   or not the backwards-compatible chroot=y setting needs to be
+   made permanent in master.cf.
+
+2) postfix/trivial-rewrite[25835]: using legacy default setting
+       append_dot_mydomain=yes to rewrite "foo" to "foo.example.com"
+
+   append_dot_mydomain=no is the new default, but that change may
+   affect email from ancient clients that cannot be updated. Postfix
+   continues to use the backwards-compatible default,
+   append_dot_mydomain=yes, until the system administrator has
+   determined whether or not the backwards-compatible
+   append_dot_mydomain=yes setting needs to be made permanent in
+   main.cf.
+
+3) postfix/smtpd[27560]: using legacy default setting smtputf8_enable=no
+       to accept non-ASCII sender address "??@example.org" from
+       localhost[127.0.0.1]
+
+4) postfix/smtpd[27560]: using legacy default setting smtputf8_enable=no
+       to accept non-ASCII recipient address "??@example.com" from
+       localhost[127.0.0.1]
+
+   smtputf8_enable=yes is the new default, but that would break
+   existing email streams with non-ASCII localparts. Postfix continues
+   to use the backwards-compatible default, smtputf8_enable=no,
+   until the system administrator has determined whether or not the
+   backwards-compatible smtputf8_enable=no setting needs to be made
+   permanent in main.cf.
+
+It may take several weeks until all dependencies on backwards-compatible
+default settings are identified.  After the review is complete, and
+no more backwards-compatible settings need to be made permanent.
+the administrator should accept the remaining Postfix built-in
+default settings by updating the compatibility_level setting in
+main.cf.
+
+For the changes discussed above, the administrator should set:
+
+/etc/postfix/main.cf:
+    compatibility_level = 1
+
+This will stop all the warning messages shown above.
+
+Future incompatible changes will require setting "compatibility_level
+= 2", and so on.
+
 Major changes with snapshot 20140928
 ====================================
 
@@ -53,7 +133,7 @@ in the SMTPD_POLICY_README document.
 Here is an example that uses both old and new syntax:
 
     smtpd_milters = { inet:127.0.0.1:port1, default_action=accept, ... },
-	inet:127.0.0.1:port2, ...
+        inet:127.0.0.1:port2, ...
 
 The per-milter settings are specified as attribute=value pairs
 separated by comma or space; specify { name = value } to allow
@@ -143,22 +223,22 @@ This logging will often be enough to diagnose a problem without
 verbose logging or network sniffer.
 
     Normal session, no TLS:
-	disconnect from name[addr] ehlo=1 mail=1 rcpt=1 data=1 quit=1
+        disconnect from name[addr] ehlo=1 mail=1 rcpt=1 data=1 quit=1
 
     Normal session. with TLS:
-	disconnect from name[addr] ehlo=2 starttls=1 mail=1 rcpt=1 data=1 quit=1
+        disconnect from name[addr] ehlo=2 starttls=1 mail=1 rcpt=1 data=1 quit=1
 
     All recipients rejected, no ESMTP command pipelining:
-	disconnect from name[addr] ehlo=1 mail=1 rcpt=0/1 quit=1
+        disconnect from name[addr] ehlo=1 mail=1 rcpt=0/1 quit=1
 
     All recipients rejected, with ESMTP command pipelining:
-	disconnect from name[addr] ehlo=1 mail=1 rcpt=0/1 data=0/1 rset=1 quit=1
+        disconnect from name[addr] ehlo=1 mail=1 rcpt=0/1 data=0/1 rset=1 quit=1
 
     Password guessing bot, hangs up without QUIT:
-	disconnect from name[addr] ehlo=1 auth=0/1
+        disconnect from name[addr] ehlo=1 auth=0/1
 
     Mis-configured client trying to use TLS wrappermode on port 587:
-	disconnect from name[addr] unknown=0/1
+        disconnect from name[addr] unknown=0/1
 
 Logfile analyzers can trigger on the presence of "/". It indicates
 that Postfix rejected at least one command.
@@ -252,10 +332,10 @@ used to implement load balancing, for example:
 
 /etc/postfix/main.cf:
     transport_maps = 
-	# Deliver my own domain as usual.
-	hash:/etc/postfix/transport 
-	# Deliver other domains via randomly-selected relayhosts
-	randmap:!smtp:smtp0.example.com!smtp:smtp1.example.com
+        # Deliver my own domain as usual.
+        hash:/etc/postfix/transport 
+        # Deliver other domains via randomly-selected relayhosts
+        randmap:!smtp:smtp0.example.com!smtp:smtp1.example.com
 
 A variant of this can randomly select SMTP clients with different
 smtp_bind_address settings.
@@ -280,12 +360,12 @@ a sequence of tables. For example, the following prevents SMTP mail
 to system accounts that have "nologin" as their login shell:
 
     /etc/postfix/main.cf:
-	local_recipient_maps = 
-	    pipemap:!unix:passwd.byname!pcre:/etc/postfix/no-nologin.pcre
-	    alias_maps
+        local_recipient_maps = 
+            pipemap:!unix:passwd.byname!pcre:/etc/postfix/no-nologin.pcre
+            alias_maps
 
     /etc/postfix/no-nologin.pcre:
-	!/nologin/	whatever
+        !/nologin/      whatever
 
 The first ASCII character after "pipemap:" will be used as the
 separator between the lookup tables that follow (do not use space,

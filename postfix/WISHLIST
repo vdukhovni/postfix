@@ -6,7 +6,14 @@ Wish list:
 
 	Remove this file from the stable release.
 
+	Consolidate import_env and export_env parsing code and
+	add support for { name = value with whitespace }.
+
 	Things to do after the stable release:
+
+	use "static const char myname[] ..."
+
+	Add milter_mumble_macros to the list of per-macro features.
 
 	The pickup daemon logs warnings only when the cleanup daemon
 	dit not provide a "reason" attribute. Is this logic right?

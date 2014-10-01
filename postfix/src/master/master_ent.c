@@ -202,6 +202,10 @@ static char *get_str_ent(char **bufp, char *name, char *def_val)
     if (strcmp(value, "-") == 0) {
 	if (def_val == 0)
 	    fatal_with_context("field \"%s\" has no default value", name);
+	if (warn_compat_break_chroot && strcmp(name, "chroot") == 0)
+	    msg_info("%s: line %d: using legacy default setting %s=%s (" 
+		     VAR_COMPAT_LEVEL "<1)", master_path, master_line,
+		     name, def_val);
 	return (def_val);
     } else {
 	return (value);
@@ -469,7 +473,7 @@ MASTER_SERV *get_master_ent()
      * XXX Chroot cannot imply unprivileged service (for example, the pickup
      * service runs chrooted but needs privileges to open files as the user).
      */
-    chroot = get_bool_ent(&bufp, "chroot", "y");
+    chroot = get_bool_ent(&bufp, "chroot", var_compat_level < 1 ? "y" : "n");
 
     /*
      * Wakeup timer. XXX should we require that var_proc_limit == 1? Right

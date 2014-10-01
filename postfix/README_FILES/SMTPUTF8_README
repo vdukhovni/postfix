@@ -22,10 +22,15 @@ Topics covered in this document:
 
 EEnnaabblliinngg PPoossttffiixx SSMMTTPPUUTTFF88 ssuuppppoorrtt
 
-Before turning on SMTPUTF8 support in Postfix, you need to verify that the rest
-of your email infrastructure can handle UTF-8 email addresses and message
-header values, including SMTPUTF8 protocol support in SMTP-based content
-filters (Amavisd), LMTP servers (Dovecot), and down-stream SMTP servers.
+There is more to SMTPUTF8 than just Postfix itself. The rest of your email
+infrastructure also needs to be able to handle UTF-8 email addresses and
+message header values. This includes SMTPUTF8 protocol support in SMTP-based
+content filters (Amavisd), LMTP servers (Dovecot), and down-stream SMTP
+servers.
+
+Postfix SMTPUTF8 support is enabled by default, but it may be disabled as part
+of a backwards-compatibility safety net (see the Postfix 2.12 RELEASE_NOTES
+file).
 
 SMTPUTF8 support is enabled by setting the smtputf8_enable parameter in
 main.cf:
@@ -33,7 +38,8 @@ main.cf:
     # ppoossttccoonnff ""ssmmttppuuttff88__eennaabbllee == yyeess""
     # ppoossttffiixx rreellooaadd
 
-With SMTPUTF8 support enabled, Postfix changes behavior as follows:
+With SMTPUTF8 support enabled, Postfix changes behavior with respect to earlier
+Postfix releases:
 
   * UTF-8 is permitted in the myorigin parameter value. However, the myhostname
     and mydomain parameters must specify ASCII-only domain names. This

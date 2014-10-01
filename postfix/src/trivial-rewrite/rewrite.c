@@ -105,6 +105,7 @@ void    rewrite_tree(RWR_CONTEXT *context, TOK822 *tree)
     TOK822 *domain;
     TOK822 *bang;
     TOK822 *local;
+    VSTRING *vstringval;
 
     /*
      * XXX If you change this module, quote_822_local.c, or tok822_parse.c,
@@ -194,6 +195,12 @@ void    rewrite_tree(RWR_CONTEXT *context, TOK822 *tree)
 	&& domain != tree->tail
 	&& tok822_find_type(domain, TOK822_DOMLIT) == 0
 	&& tok822_find_type(domain, '.') == 0) {
+	if (warn_compat_break_app_dot_mydomain
+	    && (vstringval = domain->next->vstr) != 0)
+	    msg_info("using legacy default setting " VAR_APP_DOT_MYDOMAIN 
+		     "=yes to rewrite \"%s\" to \"%s.%s\" (" VAR_COMPAT_LEVEL 
+		     " < 1)", vstring_str(vstringval),
+		     vstring_str(vstringval), var_mydomain);
 	tok822_sub_append(tree, tok822_alloc('.', (char *) 0));
 	tok822_sub_append(tree, tok822_scan(REW_PARAM_VALUE(context->domain),
 					    (TOK822 **) 0));

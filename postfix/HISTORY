@@ -10766,7 +10766,7 @@ Apologies for any names omitted.
 	As of 20050525, DSN support does not involve new queue file
 	record types, so you can switch back to older Postfix
 	versions. Older non-production releases did introduce queue
-	file incompatibilty.
+	file incompatibility.
 
 	DSN support is selected via the SMTP port by extra parameters
 	to the MAIL FROM and RCPT TO commands, and with the Postfix
@@ -20521,3 +20521,28 @@ Apologies for any names omitted.
 	MTA" with "preferred MTA". The SMTP client was changed years
 	ago to try alternate MXes after a 4XX SMTP server response.
 	File: proto/ADDRES_VERIFY_README.html.
+
+20141001
+
+	Safety: backwards-compatibility safety net that forces Postfix
+	to run with backwards-compatible default settings after an
+	upgrade to a newer Postfix version.  Postfix logs all uses
+	of those backwards-compatible default settings so that the
+	system administator can determine whether or not some
+	backwards-compatible default settings need to be made
+	permanent in main.cf or master.cf.  All this is controlled
+	with a new compatibility_level parameter, default value 0.
+	Files: global/mail_params.[hc], trivial-rewrite/rewrite.c,
+	master/master_ent.c, smtpd/smtpd.c, postfix/postfix.c.
+
+	New defaults for master.cf chroot (n), append_dot_mydomain
+	(no) and smtputf8_enable (yes). File: global/mail_params.h,
+	global/mail_params.c, smtp/smtp.c (manpage), smtpd/smtpd.c
+	(manpage), trivial-rewrite/trivial-rewrite.c.
+
+	Simple relational expression evaluator so that main.cf
+	defaults can be made dependent on comparisons with the
+	compatibility_level parameter value. File: util/mac_expand.c.
+
+	Bugfix: do not reset the mail transaction after receiving
+	a non-ASCII recipient. File: smtpd/smtpd.c.

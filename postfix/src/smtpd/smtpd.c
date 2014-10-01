@@ -476,7 +476,7 @@
 /* .ad
 /* .fi
 /*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
-/* .IP "\fBsmtputf8_enable (no)\fR"
+/* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable experimental SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
 /* .IP "\fBstrict_smtputf8 (no)\fR"
@@ -2483,12 +2483,19 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Changing this would be a compatibility break. That can't happen in the
      * forseeable future.
      */
-    if (var_strict_smtputf8 && (state->flags & SMTPD_FLAG_SMTPUTF8) == 0) {
-	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
-	    mail_reset(state);
-	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
+    if ((var_strict_smtputf8 || warn_compat_break_smtputf8_enable)
+	&& (state->flags & SMTPD_FLAG_SMTPUTF8) == 0
+	&& *STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
+	if (var_strict_smtputf8) {
+	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to "
+			     "send unicode address");
 	    return (-1);
 	}
+	if (warn_compat_break_smtputf8_enable)
+	    msg_info("using legacy default setting " VAR_SMTPUTF8_ENABLE
+		     "=no to accept non-ASCII sender address \"%s\" from "
+		     "%s (" VAR_COMPAT_LEVEL "<1)", STR(state->addr_buf),
+		     state->namaddr);
     }
 
     /*
@@ -2734,12 +2741,19 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Changing this would be a compatibility break. That can't happen in the
      * forseeable future.
      */
-    if (var_strict_smtputf8 && (state->flags & SMTPD_FLAG_SMTPUTF8) == 0) {
-	if (*STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
-	    mail_reset(state);
-	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to send unicode address");
+    if ((var_strict_smtputf8 || warn_compat_break_smtputf8_enable)
+	&& (state->flags & SMTPD_FLAG_SMTPUTF8) == 0
+	&& *STR(state->addr_buf) && !allascii(STR(state->addr_buf))) {
+	if (var_strict_smtputf8) {
+	    smtpd_chat_reply(state, "553 5.6.7 Must declare SMTPUTF8 to "
+			     "send unicode address");
 	    return (-1);
 	}
+	if (warn_compat_break_smtputf8_enable)
+	    msg_info("using legacy default setting " VAR_SMTPUTF8_ENABLE
+		     "=no to accept non-ASCII recipient address \"%s\" from"
+		     " %s (" VAR_COMPAT_LEVEL "<1)", STR(state->addr_buf),
+		     state->namaddr);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
 	const char *verify_sender;
