@@ -11,6 +11,8 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Update smtputf8_enable in postconf(5)
+
 	use "static const char myname[] ..."
 
 	Add milter_mumble_macros to the list of per-macro features.

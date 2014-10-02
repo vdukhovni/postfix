@@ -61,65 +61,17 @@ about build options that are not described in the INSTALL instructions.
 Major changes with snapshot 20141001
 ====================================
 
-A new backwards-compatibility safety net forces Postfix to keep
-running with backwards-compatible main.cf and master.cf default
-settings after an upgrade to a newer Postfix version.
+A new backwards-compatibility safety net forces Postfix to run with
+backwards-compatible main.cf and master.cf default settings after
+an upgrade to a newer but incompatible Postfix version.
 
-The following presents the messages that the backwards-compatibility
-safety net will log, what the messages mean, and what action the
-system adminstrator is expected to take.
+While the backwards-compatible default settings are in effect,
+Postfix logs what services or what email would be affected by the
+incompatible change. Based on this the administrator can make some
+backwards-compatibility settings permanent in main.cf or master.cf,
+before turning off backwards compatibility.
 
-1) postfix/master[27664]: /etc/postfix/master.cf: line 72: using
-       legacy default setting chroot=y
-
-   chroot=n is the new default, but that may not always be disirable.
-   Postfix continues to use the backwards-compatible default,
-   chroot=y, until the system administrator has determined whether
-   or not the backwards-compatible chroot=y setting needs to be
-   made permanent in master.cf.
-
-2) postfix/trivial-rewrite[25835]: using legacy default setting
-       append_dot_mydomain=yes to rewrite "foo" to "foo.example.com"
-
-   append_dot_mydomain=no is the new default, but that change may
-   affect email from ancient clients that cannot be updated. Postfix
-   continues to use the backwards-compatible default,
-   append_dot_mydomain=yes, until the system administrator has
-   determined whether or not the backwards-compatible
-   append_dot_mydomain=yes setting needs to be made permanent in
-   main.cf.
-
-3) postfix/smtpd[27560]: using legacy default setting smtputf8_enable=no
-       to accept non-ASCII sender address "??@example.org" from
-       localhost[127.0.0.1]
-
-4) postfix/smtpd[27560]: using legacy default setting smtputf8_enable=no
-       to accept non-ASCII recipient address "??@example.com" from
-       localhost[127.0.0.1]
-
-   smtputf8_enable=yes is the new default, but that would break
-   existing email streams with non-ASCII localparts. Postfix continues
-   to use the backwards-compatible default, smtputf8_enable=no,
-   until the system administrator has determined whether or not the
-   backwards-compatible smtputf8_enable=no setting needs to be made
-   permanent in main.cf.
-
-It may take several weeks until all dependencies on backwards-compatible
-default settings are identified.  After the review is complete, and
-no more backwards-compatible settings need to be made permanent.
-the administrator should accept the remaining Postfix built-in
-default settings by updating the compatibility_level setting in
-main.cf.
-
-For the changes discussed above, the administrator should set:
-
-/etc/postfix/main.cf:
-    compatibility_level = 1
-
-This will stop all the warning messages shown above.
-
-Future incompatible changes will require setting "compatibility_level
-= 2", and so on.
+See postconf.5.html#compatibility_level for details.
 
 Major changes with snapshot 20140928
 ====================================

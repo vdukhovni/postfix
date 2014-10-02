@@ -39,6 +39,9 @@
 #   * Text between <!-- and --> is stripped out. The <!-- and -->
 #     must appear on separate lines.
 #
+#   * Use <nroffescape .sp> to request an empty line in the middle
+#     of a block of text. This is needed with indented lists.
+#
 #   * Blank lines are special for postconf2man: it replaces them by
 #     a "new paragraph" command. Don't put any blank lines inside
 #     <blockquote> text. Instead, put those blank lines between
@@ -16199,23 +16202,124 @@ mail. </dd>
 
 %PARAM compatibility_level 0
 
-<p> A safety net that forces Postfix to keep running with
-backwards-compatible main.cf and master.cf default settings after
-an upgrade to a newer but incompatible Postfix version. </p>
+<p> A safety net that forces Postfix to run with backwards-compatible
+main.cf and master.cf default settings after an upgrade to a newer
+but incompatible Postfix version. </p>
 
-<p> Depending on the compatibility_level parameter setting, Postfix
-continues to use backwards-compatible default settings, and logs
-the use of those backwards-compatible default settings with messages
-that contain the string "using legacy default setting".  Based on
-this logging the system administrator can determine that a new
-default setting breaks nothing or that a backwards-compatible
-default setting needs to be made permanent in main.cf or master.cf.
+<p> While the backwards-compatible default settings are in effect,
+Postfix logs what services or what email would be affected by
+the incompatible change. </p>
+
+<p> Based on this logging the system administrator can determine
+whether or not a backwards-compatible default setting needs to be
+made permanent in main.cf or master.cf.  </p>
+
+<p> Changes introduced with Postfix 2.12 (compatibility level 1):</p>
+
+<ul>
+
+<li> <p> The master.cf chroot default value has changed from "y"
+(yes) to "n" (no). As long as the backwards-compatible default
+settings are turned on, Postfix logs a warning each time the master
+daemon reads the master.cf file: </p>
+<nroffescape .sp>
+<pre>
+postfix/master[27664]: /etc/postfix/master.cf: line 72: using
+    backwards-compatible default setting chroot=y
+</pre>
+<nroffescape .sp>
+<p> If Postfix logs such messages for a service that should remain
+chrooted, then the system administrator should make the
+backwards-compatible setting "chroot = y" permanent in master.cf.
+For example, to update the chroot setting for the "smtp inet"
+service: </p>
+<nroffescape .sp>
+<pre>
+# <b>postconf -F smtp/inet/chroot=y</b>
+# <b>postfix reload</b>
+</pre>
+
+<li> <p> The append_dot_mydomain default value has changed from
+"yes" to "no". As long as the backwards-compatible default settings
+are turned on, Postfix logs a warning for each email address with
+an incomplete domain: </p>
+<nroffescape .sp>
+<pre>
+postfix/trivial-rewrite[25835]: using backwards-compatible
+    default setting append_dot_mydomain=yes to rewrite "foo" to
+    "foo.example.com"
+</pre>
+<nroffescape .sp>
+<!-- TLDR
+<p> The backwards-compatible settings prevent delivery errors for
+email with an incomplete domain in an email address. If Postfix
+logs the above message for addresses of the form "user@localhost"
+then that is harmless, but the system administrator should verify
+that the mydestination setting does contain "localhost":
 </p>
+<nroffescape .sp>
+<pre>
+# <b>postconf mydestination | tr '[ ,]' '[\12\12]' | grep localhost</b>
+</pre>
+<nroffescape .sp>
+<p> If the output is empty, then the system administrator should
+add "localhost" to the main.cf mydestination setting. </p>
+-->
+<p> The backwards-compatible setting prevents delivery errors for
+email with an incomplete domain in an email address.  If Postfix
+logs the above message for addresses different from "user@localhost",
+and the client cannot be changed to use complete domain names in
+email addresses, then the system administrator should make the
+backwards-compatible setting "append_dot_mydomain = yes" permanent
+in main.cf: </p>
+<nroffescape .sp>
+<pre>
+# <b>postconf append_dot_mydomain=yes</b>
+# <b>postfix reload</b>
+</pre>
 
-<p> After this review is complete, and no more backwards-compatible
-settings need to be made permanent, the administrator should accept
-the remaining Postfix built-in default settings by updating the
-compatibility_level setting in main.cf as recommended in the Postfix
-RELEASE_NOTES.  </p>
+<li> <p> The smtputf8_enable default value has changed from "no"
+to "yes. As long as the backwards-compatible default settings are
+turned on, Postfix logs a warning each time an SMTP command uses a
+non-ASCII address localpart: </p>
+<nroffescape .sp>
+<pre>
+postfix/smtpd[27560]: using backwards-compatible default setting
+    smtputf8_enable=no to accept non-ASCII sender address
+    "??@example.org" from localhost[127.0.0.1]
+</pre>
+<nroffescape .sp>
+<pre>
+postfix/smtpd[27560]: using backwards-compatible default setting
+    smtputf8_enable=no to accept non-ASCII recipient address
+    "??@example.com" from localhost[127.0.0.1]
+</pre>
+<nroffescape .sp>
+<p> The backwards-compatible setting prevents Postfix from rejecting
+non-SMTPUTF8 email from legacy clients that send email with a
+non-ASCII sender or recipient address localpart. If Postfix logs
+the above messages and the client cannot be updated to use SMTPUTF8,
+then the system administrator should make the backwards-compatible
+setting "smtputf8_enable = no" permanent in main.cf:
+<nroffescape .sp>
+<pre>
+# <b>postconf smtputf8_enable=no</b>
+# <b>postfix reload</b>
+</pre>
+
+</ul>
+
+<p> When no more backwards-compatible settings need to be made
+permanent, the administrator should turn off the backwards-compatible
+default settings by updating the compatibility_level setting in
+main.cf. </p>
+
+<pre>
+# <b>postconf compatibility_level=1</b>
+# <b>postfix reload</b>
+</pre>
+
+<p> Future incompatible changes will require setting "compatibility_level
+= 2", and so on. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

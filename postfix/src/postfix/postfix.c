@@ -496,16 +496,16 @@ int     main(int argc, char **argv)
     get_mail_conf_str_table(str_table);
 
     /*
-     * Alert the sysadmin that the backwards-compatible settings are still
-     * in effect.
+     * Alert the sysadmin that the backwards-compatible settings are still in
+     * effect.
      */
     if (var_compat_level < CUR_COMPAT_LEVEL) {
 	msg_warn("Postfix is running with backwards-compatible default "
 		 "settings");
 	msg_warn("See http://www.postfix.org/postconf.5.html#"
 		 VAR_COMPAT_LEVEL " for details");
-	msg_warn("Use \"postconf " VAR_COMPAT_LEVEL "=%d\" to disable "
-		 "the backwards-compatible default settings",
+	msg_warn("To disable backwards compatibility use \"postconf "
+		 VAR_COMPAT_LEVEL "=%d\" and \"postfix reload\"",
 		 CUR_COMPAT_LEVEL);
     }
 

@@ -20546,3 +20546,10 @@ Apologies for any names omitted.
 
 	Bugfix: do not reset the mail transaction after receiving
 	a non-ASCII recipient. File: smtpd/smtpd.c.
+
+20141002
+
+	Cleanup: moved the details of BC safety-net messages from
+	RELEASE_NOTES to postconf(5) manpage, and changed the wording
+	of the BC messages. Files: RELEASE_NOTES, proto/postconf.proto,
+	master/master_ent.c, smtpd/smtpd.c, trivial-rewrite/rewrite.c.

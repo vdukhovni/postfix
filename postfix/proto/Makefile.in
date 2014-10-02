@@ -487,7 +487,8 @@ clobber:
 ../man/man5/postconf.5: postconf.man.prolog postconf.proto postconf.man.epilog \
 	../mantools/xpostconf ../mantools/postconf2html ../mantools/postconf2man
 	(cat postconf.man.prolog; ../mantools/xpostconf postconf.proto | \
-	    $(DETAB) | ../mantools/postconf2html | ../mantools/postconf2man | \
+	    $(DETAB) | ../mantools/postconf2html -n | \
+		../mantools/postconf2man | \
 		sed 's/\\e&/\\\&/'; cat postconf.man.epilog ) > $@
 
 ../html/postconf.5.html: postconf.html.prolog postconf.proto \
