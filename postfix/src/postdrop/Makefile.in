@@ -66,6 +66,7 @@ postdrop.o: ../../include/iostuff.h
 postdrop.o: ../../include/mail_conf.h
 postdrop.o: ../../include/mail_dict.h
 postdrop.o: ../../include/mail_params.h
+postdrop.o: ../../include/mail_parm_split.h
 postdrop.o: ../../include/mail_proto.h
 postdrop.o: ../../include/mail_queue.h
 postdrop.o: ../../include/mail_stream.h

@@ -157,6 +157,7 @@
 #include <mail_params.h>
 #include <mail_server.h>
 #include <mail_conf.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -296,7 +297,7 @@ static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
     /*
      * Execute the command.
      */
-    export_env = argv_split(var_export_environ, ", \t\r\n");
+    export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
     status = spawn_command(SPAWN_CMD_STDIN, vstream_fileno(client_stream),
 			   SPAWN_CMD_STDOUT, vstream_fileno(client_stream),
 			   SPAWN_CMD_STDERR, vstream_fileno(client_stream),

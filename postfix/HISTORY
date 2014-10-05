@@ -20553,3 +20553,23 @@ Apologies for any names omitted.
 	RELEASE_NOTES to postconf(5) manpage, and changed the wording
 	of the BC messages. Files: RELEASE_NOTES, proto/postconf.proto,
 	master/master_ent.c, smtpd/smtpd.c, trivial-rewrite/rewrite.c.
+
+20141003
+
+	Workaround: kludge for multiple paragraphs of text in indented
+	paragraphs.  Files: mantools/postconf2html, mantools/postconf2man,
+	proto/Makefile.in, proto/postconf.proto
+
+20141005
+
+	Cleanup: CHARSET_COMMA_SP, CHARSET_SPACE and CHARSET_BRACE
+	to prepare for the elimination of ad-hoc string constants.
+	File: util/sys_defs.h.
+
+	Cleanup: allow "{ name=value }" to protect whitespace in
+	import_environment and export_environment. Files:
+	proto/postconf.proto, global/mail_parm_split.c, global
+	/mail_parm_split.h, global/mail_stream.c, local/command.c,
+	master/master.c, pipe/pipe.c, postdrop/postdrop.c,
+	postfix/postfix.c, postmulti/postmulti.c, postqueue/postqueue.c,
+	spawn/spawn.c.

@@ -436,6 +436,7 @@
 #include <mail_version.h>
 #include <mail_params.h>
 #include <mail_conf.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -1207,7 +1208,7 @@ static void export_helper_environment(INSTANCE *target, int export_flags)
      * because some shell scripts use environment settings to override
      * main.cf settings.
      */
-    import_env = argv_split(var_import_environ, ", \t\r\n");
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
     clean_env(import_env->argv);
     argv_free(import_env);
 

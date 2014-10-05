@@ -22,9 +22,13 @@
 /* .IP parens
 /*	One matching pair of parentheses, opening parenthesis first.
 /* .IP flags
-/*	EXPAR_FLAG_NONE, or the bitwise OR of one or more flags:
+/*	EXTPAR_FLAG_NONE, or the bitwise OR of one or more flags:
 /* .RS
-/* .IP EXPAR_FLAG_STRIP
+/* .IP EXTPAR_FLAG_EXTRACT
+/*	This flag is intended to instruct expar() callers that
+/*	expar() should be invoked. It has no effect on expar()
+/*	itself.
+/* .IP EXTPAR_FLAG_STRIP
 /*	Skip whitespace after the opening parenthesis, and trim
 /*	whitespace before the closing parenthesis.
 /* .RE
@@ -38,8 +42,8 @@
 /*	be destroyed with myfree(). The following decribes the errors
 /*	and the state of the buffer and buffer pointer.
 /* .IP "missing closing parenthesis"
-/*	The buffer pointer points to text as if the closing parenthesis
-/*	were present.
+/*	The buffer pointer points to text as if a closing parenthesis
+/*	were present at the end of the input.
 /* .IP "text after closing parenthesis"
 /*	The buffer pointer points to text as if the offending text
 /*	were not present.
@@ -70,7 +74,7 @@
 
 /* extpar - extract text from parentheses */
 
-char   *extpar(char **bp, const char *parens, int strip)
+char   *extpar(char **bp, const char *parens, int flags)
 {
     char   *cp = *bp;
     char   *err = 0;
@@ -89,7 +93,7 @@ char   *extpar(char **bp, const char *parens, int strip)
 	cp += 1;
 	cp[len -= 2] = 0;
     }
-    if (strip) {
+    if (flags & EXTPAR_FLAG_STRIP) {
 	trimblanks(cp, len)[0] = 0;
 	while (ISSPACE(*cp))
 	    cp++;

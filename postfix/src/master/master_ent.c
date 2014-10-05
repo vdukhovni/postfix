@@ -557,7 +557,7 @@ MASTER_SERV *get_master_ent()
 	    vstring_str(vstring_sprintf(junk, "%d", serv->listen_fd_count)),
 		 (char *) 0);
     while ((cp = mystrtokq(&bufp, master_blanks, "{}")) != 0) {
-	if (*cp == '{' && (err = extpar(&cp, "{}", EXPAR_FLAG_STRIP)) != 0)
+	if (*cp == '{' && (err = extpar(&cp, "{}", EXTPAR_FLAG_STRIP)) != 0)
 	    msg_fatal("%s: line %d: %s",
 		      VSTREAM_PATH(master_fp), master_line, err);
 	argv_add(serv->args, cp, (char *) 0);

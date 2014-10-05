@@ -49,10 +49,12 @@ when "$name" is non-empty, and with "value2" when "$name" is empty.
 The "{}" is required for "value1", optional for "value2". This form
 is supported with Postfix versions >= 2.12.
 .IP \(bu
-Instead of a parameter name, the first item inside "${...}" may be
-a logical expression of the form: "{value3} == {value4}" (equality)
-or "{value3} != {value4}" (inequality).  This form is supported
-with Postfix versions >= 2.12.
+The first item inside "${...}" may be a logical expression of the
+form: "{value3} == {value4}". Besides the "==" (equality) operator
+Postfix supports "!=" (inequality), "<", "<=", ">=", and ">". The
+comparison is numerical when both operands are all digits, otherwise
+the comparison is lexicographical. These forms are supported with
+Postfix versions >= 2.12.
 .IP \(bu
 Each "value" is subject to recursive named parameter and logical
 expression evaluation, except where noted.

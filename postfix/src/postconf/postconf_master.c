@@ -199,7 +199,7 @@ static void pcf_extract_field(ARGV *argv, int field, const char *parens)
     char   *arg = argv->argv[field];
     char   *err;
 
-    if ((err = extpar(&arg, parens, EXPAR_FLAG_STRIP)) != 0) {
+    if ((err = extpar(&arg, parens, EXTPAR_FLAG_STRIP)) != 0) {
 	msg_warn("%s: %s", MASTER_CONF_FILE, err);
 	myfree(err);
     }

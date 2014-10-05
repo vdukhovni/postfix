@@ -69,6 +69,7 @@ postqueue.o: ../../include/mail_conf.h
 postqueue.o: ../../include/mail_dict.h
 postqueue.o: ../../include/mail_flush.h
 postqueue.o: ../../include/mail_params.h
+postqueue.o: ../../include/mail_parm_split.h
 postqueue.o: ../../include/mail_proto.h
 postqueue.o: ../../include/mail_queue.h
 postqueue.o: ../../include/mail_run.h
@@ -80,6 +81,7 @@ postqueue.o: ../../include/msg_vstream.h
 postqueue.o: ../../include/mymalloc.h
 postqueue.o: ../../include/safe.h
 postqueue.o: ../../include/smtp_stream.h
+postqueue.o: ../../include/stringops.h
 postqueue.o: ../../include/sys_defs.h
 postqueue.o: ../../include/user_acl.h
 postqueue.o: ../../include/valid_hostname.h

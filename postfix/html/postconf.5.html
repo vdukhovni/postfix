@@ -61,10 +61,12 @@ with "value1" when "$name" is non-empty, and with "value2" when
 "value2".  This form is supported with Postfix versions &ge; 2.12.
 </p>
 
-<li> <p> Instead of a parameter name, the first item inside "${...}"
-may be a logical expression of the form: "{value3} == {value4}"
-(equality) or "{value3} != {value4}" (inequality). This form is
-supported with Postfix versions &ge; 2.12.  </p>
+<li> <p> The first item inside "${...}" may be a logical expression
+of the form: "{value3} == {value4}". Besides the "==" (equality)
+operator Postfix supports "!=" (inequality), "&lt;", "&le;", "&ge;",
+and "&gt;". The comparison is numerical when both operands are all
+digits, otherwise the comparison is lexicographical. These forms
+are supported with Postfix versions &ge; 2.12. </p>
 
 <li> <p> Each "value" is subject to recursive named parameter and
 logical expression evaluation, except where noted.  </p>
@@ -1543,13 +1545,22 @@ global <a href="postconf.5.html#ipc_timeout">ipc_timeout</a> parameter as well.
 <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> default settings after an upgrade to a newer
 but incompatible Postfix version. </p>
 
-<p> While the backwards-compatible default settings are in effect,
-Postfix logs what services or what email would be affected by
-the incompatible change. </p>
+<p> While backwards compatibility is in effect, Postfix logs what
+services or what email would be affected by the incompatible change.
+</p>
 
-<p> Based on this logging the system administrator can determine
-whether or not a backwards-compatible default setting needs to be
-made permanent in <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a>.  </p>
+<p> As detailed below, based on this logging the system administrator
+can determine whether or not a backwards-compatible default setting
+needs to be made permanent in <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a>.  </p>
+
+<p> When no more backwards-compatible settings need to be made
+permanent, the administrator should turn off backwards compatibility
+by updating the <a href="postconf.5.html#compatibility_level">compatibility_level</a> setting in <a href="postconf.5.html">main.cf</a>. </p>
+
+<pre>
+# <b>postconf <a href="postconf.5.html#compatibility_level">compatibility_level</a>=1</b>
+# <b>postfix reload</b>
+</pre>
 
 <p> Changes introduced with Postfix 2.12 (compatibility level 1):</p>
 
@@ -1631,19 +1642,6 @@ setting "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = no" per
 </pre>
 
 </ul>
-
-<p> When no more backwards-compatible settings need to be made
-permanent, the administrator should turn off the backwards-compatible
-default settings by updating the <a href="postconf.5.html#compatibility_level">compatibility_level</a> setting in
-<a href="postconf.5.html">main.cf</a>. </p>
-
-<pre>
-# <b>postconf <a href="postconf.5.html#compatibility_level">compatibility_level</a>=1</b>
-# <b>postfix reload</b>
-</pre>
-
-<p> Future incompatible changes will require setting "<a href="postconf.5.html#compatibility_level">compatibility_level</a>
-= 2", and so on. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -3234,9 +3232,11 @@ time keeping on System-V-ish systems.
 
 <p>
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma. The name=value form is supported with
-Postfix version 2.1 and later.
-</p>
+whitespace or comma. Specify "{ name=value }" to protect whitespace
+or comma in parameter values (whitespace after "{" and before "}"
+is ignored). The form name=value is supported with Postfix version
+2.1 and later; the use of {} is supported with Postfix 2.12 and
+later.  </p>
 
 <p>
 Example:
@@ -3762,8 +3762,11 @@ parameters:
 </dl>
 
 <p> Specify a list of names and/or name=value pairs, separated by
-whitespace or comma. The name=value form is supported with
-Postfix version 2.1 and later.  </p>
+whitespace or comma. Specify "{ name=value }" to protect whitespace
+or comma in parameter values (whitespace after "{" and before "}"
+is ignored). The form name=value is supported with Postfix version
+2.1 and later; the use of {} is supported with Postfix 2.12 and
+later.  </p>
 
 
 </DD>

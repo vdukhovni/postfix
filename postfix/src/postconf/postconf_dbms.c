@@ -181,7 +181,7 @@ static void pcf_register_dbms_helper(char *str_value,
 	 */
 	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
 	    if (*prefix == '{') {		/* } */
-		if ((err = extpar(&prefix, "{}", EXPAR_FLAG_NONE)) != 0) {
+		if ((err = extpar(&prefix, "{}", EXTPAR_FLAG_NONE)) != 0) {
 		    /* XXX Encapsulate this in pcf_warn() function. */
 		    if (local_scope)
 			msg_warn("%s:%s: %s",

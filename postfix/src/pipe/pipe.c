@@ -190,7 +190,7 @@
 /*	shell meta characters by a shell command interpreter.
 /* .sp
 /*	Specify "{" and "}" around command arguments that contain
-/*	whitespace (Postfix 2.12 and later). Whitespace immediately
+/*	whitespace (Postfix 2.12 and later). Whitespace
 /*	after "{" and before "}" is ignored.
 /* .sp
 /*	In the command argument vector, the following macros are recognized
@@ -490,6 +490,7 @@
 #include <sys_exits.h>
 #include <delivered_hdr.h>
 #include <fold_addr.h>
+#include <mail_parm_split.h>
 
 /* Single server skeleton. */
 
@@ -1266,7 +1267,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
 	DELIVER_MSG_CLEANUP();
 	return (deliver_status);
     }
-    export_env = argv_split(var_export_environ, ", \t\r\n");
+    export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
 
     command_status = pipe_command(request->fp, why,
 				  PIPE_CMD_UID, attr.uid,

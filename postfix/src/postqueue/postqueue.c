@@ -204,6 +204,7 @@
 #include <user_acl.h>
 #include <valid_mailhost_addr.h>
 #include <mail_dict.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -547,7 +548,7 @@ int     main(int argc, char **argv)
      * directory info when the mail system is down.
      */
     if (geteuid() != 0) {
-	import_env = argv_split(var_import_environ, ", \t\r\n");
+	import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
 	clean_env(import_env->argv);
 	argv_free(import_env);
     }

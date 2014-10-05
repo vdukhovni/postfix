@@ -50,14 +50,15 @@
 /*	named attribute expansion and logical expression evaluation.
 /*	Whitespace before or after {text1} or {text2} is ignored.
 /* .IP "${{text1} == ${text2} ? {text3} : {text4}}"
-/* .IP "${{text1} != ${text2} ? {text3} : {text4}}"
 /*	Logical expression-based substition.  First, the content
 /*	of {text1} and ${text2} is subjected to named attribute and
 /*	logical expression-based substitution.  Next, the logical
 /*	expression is evaluated. If it evaluates to "true", the
 /*	result is the content of {text3}, otherwise it is the content
 /*	of {text4}, after named attribute and logical expression-based
-/*	substitution.
+/*	substitution. In addition to ==, this supports !=, <, <=,
+/*	>=, and >. Comparisons are numerical when both operands are
+/*	all digits, otherwise the comparisons are lexicographical.
 /*
 /*	Arguments:
 /* .IP result
@@ -170,7 +171,7 @@ typedef struct {
 #define MAC_EXP_BVAL_FALSE	""
 
  /*
-  * Relational operator. For now, we test only for (in)equality.
+  * Relational operators.
   */
 #define MAC_EXP_OP_STR_EQ	"=="
 #define MAC_EXP_OP_STR_NE	"!="

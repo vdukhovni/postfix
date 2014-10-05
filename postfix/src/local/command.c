@@ -74,6 +74,7 @@
 #include <pipe_command.h>
 #include <mail_copy.h>
 #include <dsn_util.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -193,7 +194,7 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
      * Evaluate the command execution directory. Defer delivery if expansion
      * fails.
      */
-    export_env = argv_split(var_export_environ, ", \t\r\n");
+    export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
     exec_dir = vstring_alloc(10);
     expand_status = local_expand(exec_dir, var_exec_directory,
 				 &state, &usr_attr, var_exec_exp_filter);

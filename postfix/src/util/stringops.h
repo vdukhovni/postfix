@@ -47,8 +47,16 @@ extern int valid_utf8_string(const char *, ssize_t);
 extern size_t balpar(const char *, const char *);
 extern char *extpar(char **, const char *, int);
 
-#define EXPAR_FLAG_NONE		(0)
-#define EXPAR_FLAG_STRIP	(1<<0)
+#define EXTPAR_FLAG_NONE		(0)
+#define EXTPAR_FLAG_STRIP	(1<<0)	/* "{ text }" -> "text" */
+#define EXTPAR_FLAG_EXTRACT	(1<<1)	/* hint from caller's caller */
+
+ /*
+  * Character sets for parsing.
+  */
+#define CHARS_COMMA_SP	", \t\r\n"	/* list separator */
+#define CHARS_SPACE	" \t\r\n"	/* word separator */
+#define CHARS_BRACE	"{}"		/* grouping */
 
 /* LICENSE
 /* .ad

@@ -49,10 +49,12 @@ when "$name" is non-empty, and with "value2" when "$name" is empty.
 The "{}" is required for "value1", optional for "value2". This form
 is supported with Postfix versions >= 2.12.
 .IP \(bu
-Instead of a parameter name, the first item inside "${...}" may be
-a logical expression of the form: "{value3} == {value4}" (equality)
-or "{value3} != {value4}" (inequality).  This form is supported
-with Postfix versions >= 2.12.
+The first item inside "${...}" may be a logical expression of the
+form: "{value3} == {value4}". Besides the "==" (equality) operator
+Postfix supports "!=" (inequality), "<", "<=", ">=", and ">". The
+comparison is numerical when both operands are all digits, otherwise
+the comparison is lexicographical. These forms are supported with
+Postfix versions >= 2.12.
 .IP \(bu
 Each "value" is subject to recursive named parameter and logical
 expression evaluation, except where noted.
@@ -894,13 +896,25 @@ A safety net that forces Postfix to run with backwards-compatible
 main.cf and master.cf default settings after an upgrade to a newer
 but incompatible Postfix version.
 .PP
-While the backwards-compatible default settings are in effect,
-Postfix logs what services or what email would be affected by
-the incompatible change.
+While backwards compatibility is in effect, Postfix logs what
+services or what email would be affected by the incompatible change.
 .PP
-Based on this logging the system administrator can determine
-whether or not a backwards-compatible default setting needs to be
-made permanent in main.cf or master.cf.
+As detailed below, based on this logging the system administrator
+can determine whether or not a backwards-compatible default setting
+needs to be made permanent in main.cf or master.cf.
+.PP
+When no more backwards-compatible settings need to be made
+permanent, the administrator should turn off backwards compatibility
+by updating the compatibility_level setting in main.cf.
+.PP
+.nf
+.na
+.ft C
+# \fBpostconf compatibility_level=1\fR
+# \fBpostfix reload\fR
+.fi
+.ad
+.ft R
 .PP
 Changes introduced with Postfix 2.12 (compatibility level 1):
 .IP \(bu
@@ -1006,23 +1020,6 @@ setting "smtputf8_enable = no" permanent in main.cf:
 .ad
 .ft R
 .br
-.PP
-When no more backwards-compatible settings need to be made
-permanent, the administrator should turn off the backwards-compatible
-default settings by updating the compatibility_level setting in
-main.cf.
-.PP
-.nf
-.na
-.ft C
-# \fBpostconf compatibility_level=1\fR
-# \fBpostfix reload\fR
-.fi
-.ad
-.ft R
-.PP
-Future incompatible changes will require setting "compatibility_level
-= 2", and so on.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH config_directory (default: see "postconf -d" output)
@@ -2038,8 +2035,11 @@ to non-Postfix processes. The TZ variable is needed for sane
 time keeping on System-V-ish systems.
 .PP
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma. The name=value form is supported with
-Postfix version 2.1 and later.
+whitespace or comma. Specify "{ name=value }" to protect whitespace
+or comma in parameter values (whitespace after "{" and before "}"
+is ignored). The form name=value is supported with Postfix version
+2.1 and later; the use of {} is supported with Postfix 2.12 and
+later.
 .PP
 Example:
 .PP
@@ -2335,8 +2335,11 @@ Needed to make "\fBpostfix -c\fR" work.
 .br
 .PP
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma. The name=value form is supported with
-Postfix version 2.1 and later.
+whitespace or comma. Specify "{ name=value }" to protect whitespace
+or comma in parameter values (whitespace after "{" and before "}"
+is ignored). The form name=value is supported with Postfix version
+2.1 and later; the use of {} is supported with Postfix 2.12 and
+later.
 .SH in_flow_delay (default: 1s)
 Time to pause before accepting a new message, when the message
 arrival rate exceeds the message delivery rate. This feature is

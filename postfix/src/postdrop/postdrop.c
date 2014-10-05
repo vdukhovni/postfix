@@ -138,6 +138,7 @@
 #include <mail_dict.h>
 #include <user_acl.h>
 #include <rec_attr_map.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -329,7 +330,7 @@ int     main(int argc, char **argv)
      * This program is installed with setgid privileges. Strip the process
      * environment so that we don't have to trust the C library.
      */
-    import_env = argv_split(var_import_environ, ", \t\r\n");
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
     clean_env(import_env->argv);
     argv_free(import_env);
 

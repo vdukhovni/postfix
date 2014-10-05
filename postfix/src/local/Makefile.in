@@ -154,6 +154,7 @@ command.o: ../../include/htable.h
 command.o: ../../include/mac_parse.h
 command.o: ../../include/mail_copy.h
 command.o: ../../include/mail_params.h
+command.o: ../../include/mail_parm_split.h
 command.o: ../../include/maps.h
 command.o: ../../include/mbox_conf.h
 command.o: ../../include/msg.h
@@ -163,6 +164,7 @@ command.o: ../../include/pipe_command.h
 command.o: ../../include/recipient_list.h
 command.o: ../../include/resolve_clnt.h
 command.o: ../../include/sent.h
+command.o: ../../include/stringops.h
 command.o: ../../include/sys_defs.h
 command.o: ../../include/tok822.h
 command.o: ../../include/vbuf.h

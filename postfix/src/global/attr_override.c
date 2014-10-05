@@ -102,7 +102,7 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
      * Get the lookup tables and assignment targets.
      */
     va_start(ap, parens);
-    while ((idx = va_arg(ap, int)) != 0) {
+    while ((idx = va_arg(ap, int)) != ATTR_OVER_END) {
 	switch (idx) {
 	case ATTR_OVER_INT_TABLE:
 	    if (int_table)
@@ -146,7 +146,7 @@ void    attr_override(char *cp, const char *sep, const char *parens,...)
 	 */
 	/* { name = value } */
 	if (*nameval == parens[0]
-	    && (err = extpar(&nameval, parens, EXPAR_FLAG_NONE)) != 0)
+	    && (err = extpar(&nameval, parens, EXTPAR_FLAG_NONE)) != 0)
 	    msg_fatal("%s in \"%s\"", err, nameval);
 	if ((err = split_nameval(nameval, &key, &value)) != 0)
 	    msg_fatal("malformed option: %s: \"...%s...\"", err, nameval);

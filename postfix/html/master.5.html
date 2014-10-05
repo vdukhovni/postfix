@@ -124,7 +124,7 @@ MASTER(5)                                                            MASTER(5)
               The  <a href="local.8.html"><b>local</b>(8)</a>, <a href="pipe.8.html"><b>pipe</b>(8)</a>, <a href="spawn.8.html"><b>spawn</b>(8)</a>, and <a href="virtual.8.html"><b>virtual</b>(8)</a> daemons require
               privileges.
 
-       <b>Chroot (default: Postfix</b> &gt;<b>= 2.12: y, Postfix</b> &lt;<b>2.12: n)</b>
+       <b>Chroot (default: Postfix</b> &gt;<b>= 2.12: n, Postfix</b> &lt;<b>2.12: y)</b>
               Whether or not the service  runs  chrooted  to  the  mail  queue
               directory (pathname is controlled by the <b><a href="postconf.5.html#queue_directory">queue_directory</a></b> config-
               uration variable in the <a href="postconf.5.html">main.cf</a> file).
@@ -180,16 +180,19 @@ MASTER(5)                                                            MASTER(5)
                      with the <b><a href="postconf.5.html#debugger_command">debugger_command</a></b> variable in the <a href="postconf.5.html">main.cf</a> config-
                      uration file.  See <a href="DEBUG_README.html">DEBUG_README</a> for hints and tips.
 
-              <b>-o</b> <i>name</i>=<i>value</i> (short form)
+              <b>-o {</b> <i>name</i> = <i>value</i> <b>}</b> (long form, Postfix &gt;= 2.12)
 
-              <b>-o {</b> <i>name</i> = <i>value</i> <b>}</b> (Postfix 2.12 and later)
+              <b>-o</b> <i>name</i>=<i>value</i> (short form)
                      Override the named <a href="postconf.5.html">main.cf</a> configuration  parameter.  The
                      parameter  value  can  refer to other parameters as <i>$name</i>
                      etc., just like in <a href="postconf.5.html">main.cf</a>.  See <a href="postconf.5.html"><b>postconf</b>(5)</a> for  syntax.
 
-                     NOTE 1: with the "short form" shown above, do not specify
-                     whitespace around the "="  or  in  parameter  values.  To
-                     specify  a  parameter value that contains whitespace, use
+                     NOTE  1:  With  the  "long  form" shown above, whitespace
+                     after "{" and before "}" is ignored.
+
+                     NOTE 2: with the "short form" shown above, do not specify
+                     whitespace  around  the  "="  or  in parameter values. To
+                     specify a parameter value that contains  whitespace,  use
                      commas  instead  of  spaces,  or  specify  the  value  in
                      <a href="postconf.5.html">main.cf</a>. Example:
 
@@ -200,20 +203,20 @@ MASTER(5)                                                            MASTER(5)
                      /etc/postfix/<a href="postconf.5.html">main.cf</a>
                          submission_mumble = text with whitespace...
 
-                     NOTE 2: Over-zealous use of parameter overrides makes the
-                     Postfix configuration hard to  understand  and  maintain.
-                     At  a certain point, it might be easier to configure mul-
+                     NOTE 3: Over-zealous use of parameter overrides makes the
+                     Postfix  configuration  hard  to understand and maintain.
+                     At a certain point, it might be easier to configure  mul-
                      tiple instances of Postfix, instead of configuring multi-
                      ple personalities via <a href="master.5.html">master.cf</a>.
 
-              <b>-v</b>     Increase  the  verbose logging level. Specify multiple <b>-v</b>
-                     options to make a  Postfix  daemon  process  increasingly
+              <b>-v</b>     Increase the verbose logging level. Specify  multiple  <b>-v</b>
+                     options  to  make  a  Postfix daemon process increasingly
                      verbose.
 
               Other command-line arguments
                      Specify "{" and "}" around command arguments that contain
-                     whitespace (Postfix 2.12 and later).  Whitespace  immedi-
-                     ately after "{" and before "}" is ignored.
+                     whitespace (Postfix 2.12 and later). Whitespace after "{"
+                     and before "}" is ignored.
 
 <b>SEE ALSO</b>
        <a href="master.8.html">master(8)</a>, process manager

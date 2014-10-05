@@ -67,6 +67,7 @@ postmulti.o: ../../include/clean_env.h
 postmulti.o: ../../include/htable.h
 postmulti.o: ../../include/mail_conf.h
 postmulti.o: ../../include/mail_params.h
+postmulti.o: ../../include/mail_parm_split.h
 postmulti.o: ../../include/mail_version.h
 postmulti.o: ../../include/msg.h
 postmulti.o: ../../include/msg_syslog.h

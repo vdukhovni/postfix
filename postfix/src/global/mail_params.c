@@ -567,9 +567,14 @@ static void check_legacy_defaults(void)
      * when the compatibility level changed for the first time, from 0 to 1.
      */
     if (var_compat_level < 1) {
-	/* Should inet_protocols also be listed here? */
 	if (mail_conf_lookup(VAR_APP_DOT_MYDOMAIN) == 0)
 	    warn_compat_break_app_dot_mydomain = 1;
+
+	/*
+	 * Not: #ifndef NO_EAI. They must configure SMTPUTF8_ENABLE=no if a
+	 * warning message is logged, so that they don't suddenly start to
+	 * lose mail after Postfix is built with EAI support.
+	 */
 	if (mail_conf_lookup(VAR_SMTPUTF8_ENABLE) == 0)
 	    warn_compat_break_smtputf8_enable = 1;
 	warn_compat_break_chroot = 1;

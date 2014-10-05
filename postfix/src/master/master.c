@@ -212,6 +212,7 @@
 #include <mail_conf.h>
 #include <open_lock.h>
 #include <inet_proto.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -428,7 +429,7 @@ int     main(int argc, char **argv)
      * Environment import filter, to enforce consistent behavior whether
      * Postfix is started by hand, or at system boot time.
      */
-    import_env = argv_split(var_import_environ, ", \t\r\n");
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
     clean_env(import_env->argv);
     argv_free(import_env);
 

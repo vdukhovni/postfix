@@ -142,6 +142,7 @@ master.o: ../../include/inet_proto.h
 master.o: ../../include/iostuff.h
 master.o: ../../include/mail_conf.h
 master.o: ../../include/mail_params.h
+master.o: ../../include/mail_parm_split.h
 master.o: ../../include/mail_task.h
 master.o: ../../include/mail_version.h
 master.o: ../../include/msg.h

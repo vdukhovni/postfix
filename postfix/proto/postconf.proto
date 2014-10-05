@@ -1429,9 +1429,11 @@ time keeping on System-V-ish systems.
 
 <p>
 Specify a list of names and/or name=value pairs, separated by
-whitespace or comma. The name=value form is supported with
-Postfix version 2.1 and later.
-</p>
+whitespace or comma. Specify "{ name=value }" to protect whitespace
+or comma in parameter values (whitespace after "{" and before "}"
+is ignored). The form name=value is supported with Postfix version
+2.1 and later; the use of {} is supported with Postfix 2.12 and
+later.  </p>
 
 <p>
 Example:
@@ -1878,8 +1880,11 @@ parameters:
 </dl>
 
 <p> Specify a list of names and/or name=value pairs, separated by
-whitespace or comma. The name=value form is supported with
-Postfix version 2.1 and later.  </p>
+whitespace or comma. Specify "{ name=value }" to protect whitespace
+or comma in parameter values (whitespace after "{" and before "}"
+is ignored). The form name=value is supported with Postfix version
+2.1 and later; the use of {} is supported with Postfix 2.12 and
+later.  </p>
 
 %PARAM in_flow_delay 1s
 
@@ -16206,13 +16211,22 @@ mail. </dd>
 main.cf and master.cf default settings after an upgrade to a newer
 but incompatible Postfix version. </p>
 
-<p> While the backwards-compatible default settings are in effect,
-Postfix logs what services or what email would be affected by
-the incompatible change. </p>
+<p> While backwards compatibility is in effect, Postfix logs what
+services or what email would be affected by the incompatible change.
+</p>
 
-<p> Based on this logging the system administrator can determine
-whether or not a backwards-compatible default setting needs to be
-made permanent in main.cf or master.cf.  </p>
+<p> As detailed below, based on this logging the system administrator
+can determine whether or not a backwards-compatible default setting
+needs to be made permanent in main.cf or master.cf.  </p>
+
+<p> When no more backwards-compatible settings need to be made
+permanent, the administrator should turn off backwards compatibility
+by updating the compatibility_level setting in main.cf. </p>
+
+<pre>
+# <b>postconf compatibility_level=1</b>
+# <b>postfix reload</b>
+</pre>
 
 <p> Changes introduced with Postfix 2.12 (compatibility level 1):</p>
 
@@ -16308,18 +16322,5 @@ setting "smtputf8_enable = no" permanent in main.cf:
 </pre>
 
 </ul>
-
-<p> When no more backwards-compatible settings need to be made
-permanent, the administrator should turn off the backwards-compatible
-default settings by updating the compatibility_level setting in
-main.cf. </p>
-
-<pre>
-# <b>postconf compatibility_level=1</b>
-# <b>postfix reload</b>
-</pre>
-
-<p> Future incompatible changes will require setting "compatibility_level
-= 2", and so on. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

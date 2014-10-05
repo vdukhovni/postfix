@@ -63,6 +63,7 @@ spawn.o: ../../include/argv.h
 spawn.o: ../../include/dict.h
 spawn.o: ../../include/mail_conf.h
 spawn.o: ../../include/mail_params.h
+spawn.o: ../../include/mail_parm_split.h
 spawn.o: ../../include/mail_server.h
 spawn.o: ../../include/mail_version.h
 spawn.o: ../../include/msg.h
@@ -71,6 +72,7 @@ spawn.o: ../../include/mymalloc.h
 spawn.o: ../../include/set_eugid.h
 spawn.o: ../../include/spawn_command.h
 spawn.o: ../../include/split_at.h
+spawn.o: ../../include/stringops.h
 spawn.o: ../../include/sys_defs.h
 spawn.o: ../../include/timed_wait.h
 spawn.o: ../../include/vbuf.h

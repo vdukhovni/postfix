@@ -614,7 +614,7 @@ MILTERS *milter_new(const char *names,
 	    my_def_action = def_action;
 	    if (name[0] == '{') {		/* } */
 		op = name;
-		if ((err = extpar(&op, parens, EXPAR_FLAG_NONE)) != 0)
+		if ((err = extpar(&op, parens, EXTPAR_FLAG_NONE)) != 0)
 		    msg_fatal("milter service syntax error: %s", err);
 		if ((name = mystrtok(&op, sep)) == 0)
 		    msg_fatal("empty milter definition: \"%s\"", names);

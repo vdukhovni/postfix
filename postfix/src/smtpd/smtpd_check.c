@@ -538,7 +538,7 @@ static void policy_client_register(const char *name)
 
 	if (*name == '{') {			/* } */
 	    cp = saved_name = mystrdup(name);
-	    if ((err = extpar(&cp, parens, EXPAR_FLAG_NONE)) != 0)
+	    if ((err = extpar(&cp, parens, EXTPAR_FLAG_NONE)) != 0)
 		msg_fatal("policy service syntax error: %s", cp);
 	    if ((policy_name = mystrtok(&cp, sep)) == 0)
 		msg_fatal("empty policy service: \"%s\"", name);

@@ -126,7 +126,7 @@ main.cf file).
 .sp
 The \fBlocal\fR(8), \fBpipe\fR(8), \fBspawn\fR(8), and
 \fBvirtual\fR(8) daemons require privileges.
-.IP "\fBChroot (default: Postfix >= 2.12: y, Postfix <2.12: n)\fR"
+.IP "\fBChroot (default: Postfix >= 2.12: n, Postfix <2.12: y)\fR"
 Whether or not the service runs chrooted to the mail queue
 directory (pathname is controlled by the \fBqueue_directory\fR
 configuration variable in the main.cf file).
@@ -182,14 +182,17 @@ all daemon programs:
 Run the daemon under control by the command specified with
 the \fBdebugger_command\fR variable in the main.cf
 configuration file.  See DEBUG_README for hints and tips.
+.IP "\fB-o { \fIname\fR = \fIvalue\fB }\fR (long form, Postfix >= 2.12)"
 .IP "\fB-o \fIname\fR=\fIvalue\fR (short form)"
-.IP "\fB-o { \fIname\fR = \fIvalue\fB }\fR (Postfix 2.12 and later)"
 Override the named main.cf configuration parameter. The
 parameter value can refer to other parameters as \fI$name\fR
 etc., just like in main.cf.  See \fBpostconf\fR(5) for
 syntax.
 .sp
-NOTE 1: with the "short form" shown above, do not specify
+NOTE 1: With the "long form" shown above, whitespace
+after "{" and before "}" is ignored.
+.sp
+NOTE 2: with the "short form" shown above, do not specify
 whitespace around the "=" or in
 parameter values. To specify a parameter value that contains
 whitespace, use commas instead of spaces, or specify the
@@ -204,7 +207,7 @@ value in main.cf. Example:
     submission_mumble = text with whitespace...
 .fi
 .sp
-NOTE 2: Over-zealous use of parameter overrides makes the
+NOTE 3: Over-zealous use of parameter overrides makes the
 Postfix configuration hard to understand and maintain.  At
 a certain point, it might be easier to configure multiple
 instances of Postfix, instead of configuring multiple
@@ -214,7 +217,7 @@ Increase the verbose logging level. Specify multiple \fB-v\fR
 options to make a Postfix daemon process increasingly verbose.
 .IP "Other command-line arguments"
 Specify "{" and "}" around command arguments that contain
-whitespace (Postfix 2.12 and later). Whitespace immediately
+whitespace (Postfix 2.12 and later). Whitespace
 after "{" and before "}" is ignored.
 .SH "SEE ALSO"
 .na

@@ -136,6 +136,7 @@
 #include <opened.h>
 #include <mail_params.h>
 #include <mail_stream.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -478,7 +479,7 @@ MAIL_STREAM *mail_stream_command(const char *command)
      * talking a Postfix-internal protocol there is no way we can tell what
      * is being executed except by duplicating a lot of existing code.
      */
-    export_env = argv_split(var_export_environ, ", \t\r\n");
+    export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
     while ((stream = vstream_popen(O_RDWR,
 				   VSTREAM_POPEN_COMMAND, command,
 				   VSTREAM_POPEN_EXPORT, export_env->argv,
