@@ -979,6 +979,26 @@ in main.cf:
 .ad
 .ft R
 .IP \(bu
+Postfix will log a different message when "localhost" (without
+domain suffix) is not listed in mydestination (or virtual_alias_domains,
+virtual_mailbox_domains, or relay_domains).
+.sp
+.nf
+.na
+.ft C
+postfix/trivial-rewrite[14777]: using backwards-compatible
+    default setting append_dot_mydomain=yes to rewrite
+    "localhost" to "localhost.example.com"; please add
+    "localhost" to mydestination or other address class
+.fi
+.ad
+.ft R
+.sp
+The backwards-compatible setting prevents delivery errors for
+email to "user@localhost". If Postfix logs the above message, add
+"localhost" to mydestination (or virtual_alias_domains,
+virtual_mailbox_domains, or relay_domains).
+.IP \(bu
 The smtputf8_enable default value has changed from "no"
 to "yes. As long as the backwards-compatible default settings are
 turned on, Postfix logs a warning each time an SMTP command uses a
@@ -3792,6 +3812,18 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 The default time unit is d (days).
 .PP
 Specify 0 when mail delivery should be tried only once.
+.SH message_drop_headers (default: bcc, content-length, resent-bcc, return-path)
+Names of message headers that the \fBcleanup\fR(8) daemon will remove
+after applying \fBheader_checks\fR(5) and before invoking Milter applications.
+The default setting is compatible with Postfix < 2.12.
+.PP
+Specify a list of header names, separated by comma or space.
+Names are matched in a case-insensitive manner.  The list of supported
+header names is limited to RFC 5321, RFC 5322, MIME RFCs, and some
+historical names.  To remove other headers, use the \fBheader_checks\fR(5)
+IGNORE action.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH message_reject_characters (default: empty)
 The set of characters that Postfix will reject in message
 content.  The usual C-like escape sequences are recognized: \ea

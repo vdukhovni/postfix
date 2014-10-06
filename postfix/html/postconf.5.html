@@ -1598,7 +1598,6 @@ postfix/trivial-rewrite[25835]: using backwards-compatible
     "foo.example.com"
 </pre>
 
-
 <p> The backwards-compatible setting prevents delivery errors for
 email with an incomplete domain in an email address.  If Postfix
 logs the above message for addresses different from "user@localhost",
@@ -1611,6 +1610,23 @@ in <a href="postconf.5.html">main.cf</a>: </p>
 # <b>postconf <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>=yes</b>
 # <b>postfix reload</b>
 </pre>
+
+<li> <p> Postfix will log a different message when "localhost" (without
+domain suffix) is not listed in <a href="postconf.5.html#mydestination">mydestination</a> (or <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,
+<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, or <a href="postconf.5.html#relay_domains">relay_domains</a>).
+</p>
+
+<pre>
+postfix/trivial-rewrite[14777]: using backwards-compatible
+    default setting <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>=yes to rewrite
+    "localhost" to "localhost.example.com"; please add
+    "localhost" to <a href="postconf.5.html#mydestination">mydestination</a> or other address class
+</pre>
+
+<p> The backwards-compatible setting prevents delivery errors for
+email to "user@localhost". If Postfix logs the above message, add
+"localhost" to <a href="postconf.5.html#mydestination">mydestination</a> (or <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,
+<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, or <a href="postconf.5.html#relay_domains">relay_domains</a>).
 
 <li> <p> The <a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> default value has changed from "no"
 to "yes. As long as the backwards-compatible default settings are
@@ -6288,6 +6304,24 @@ The default time unit is d (days).
 <p>
 Specify 0 when mail delivery should be tried only once.
 </p>
+
+
+</DD>
+
+<DT><b><a name="message_drop_headers">message_drop_headers</a>
+(default: bcc, content-length, resent-bcc, return-path)</b></DT><DD>
+
+<p> Names of message headers that the <a href="cleanup.8.html">cleanup(8)</a> daemon will remove
+after applying <a href="header_checks.5.html">header_checks(5)</a> and before invoking Milter applications.
+The default setting is compatible with Postfix &lt; 2.12. </p>
+
+<p> Specify a list of header names, separated by comma or space.
+Names are matched in a case-insensitive manner.  The list of supported
+header names is limited to <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>, <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>, MIME RFCs, and some
+historical names.  To remove other headers, use the <a href="header_checks.5.html">header_checks(5)</a>
+IGNORE action. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>

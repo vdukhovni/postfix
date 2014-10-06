@@ -63,6 +63,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 /* Utility library. */
 
 #include <msg.h>
@@ -187,6 +191,10 @@ void    rewrite_tree(RWR_CONTEXT *context, TOK822 *tree)
      * Append missing .domain, but leave broken forms ending in @ alone. This
      * merely makes diagnostics more accurate by leaving bogus addresses
      * alone.
+     * 
+     * Backwards-compatibility warning: warn for "user@localhost" when there is
+     * no "localhost" in mydestination or in any other address class with an
+     * explicit domain list.
      */
     if (var_append_dot_mydomain != 0
 	&& REW_PARAM_VALUE(context->domain) != 0
@@ -196,12 +204,22 @@ void    rewrite_tree(RWR_CONTEXT *context, TOK822 *tree)
 	&& tok822_find_type(domain, TOK822_DOMLIT) == 0
 	&& tok822_find_type(domain, '.') == 0) {
 	if (warn_compat_break_app_dot_mydomain
-	    && (vstringval = domain->next->vstr) != 0)
-	    msg_info("using backwards-compatible default setting "
-		     VAR_APP_DOT_MYDOMAIN "=yes to rewrite \"%s\" to "
-		     "\"%s.%s\" (" VAR_COMPAT_LEVEL " < 1)",
-		     vstring_str(vstringval), vstring_str(vstringval),
-		     var_mydomain);
+	    && (vstringval = domain->next->vstr) != 0) {
+	    if (strcasecmp(vstring_str(vstringval), "localhost") != 0) {
+		msg_info("using backwards-compatible default setting "
+			 VAR_APP_DOT_MYDOMAIN "=yes to rewrite \"%s\" to "
+			 "\"%s.%s\" (" VAR_COMPAT_LEVEL " < 1)",
+			 vstring_str(vstringval), vstring_str(vstringval),
+			 var_mydomain);
+	    } else if (resolve_class("localhost") == RESOLVE_CLASS_DEFAULT) {
+		msg_info("using backwards-compatible default setting "
+			 VAR_APP_DOT_MYDOMAIN "=yes to rewrite \"%s\" to "
+			 "\"%s.%s\"; please add \"localhost\" to "
+			 "mydestination or other address class",
+			 vstring_str(vstringval), vstring_str(vstringval),
+			 var_mydomain);
+	    }
+	}
 	tok822_sub_append(tree, tok822_alloc('.', (char *) 0));
 	tok822_sub_append(tree, tok822_scan(REW_PARAM_VALUE(context->domain),
 					    (TOK822 **) 0));

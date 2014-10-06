@@ -6,9 +6,6 @@ Wish list:
 
 	Remove this file from the stable release.
 
-	Consolidate import_env and export_env parsing code and
-	add support for { name = value with whitespace }.
-
 	Things to do after the stable release:
 
 	Other things that we might want to break: relay_domains,

@@ -73,6 +73,7 @@ typedef struct {
 
 extern void resolve_init(void);
 extern int resolve_proto(RES_CONTEXT *, VSTREAM *);
+extern int resolve_class(const char *);
 
 /* LICENSE
 /* .ad

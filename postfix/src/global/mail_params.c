@@ -128,6 +128,7 @@
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
 /*	int     var_compat_level;
+/*	char	*var_drop_hdrs;
 /*
 /*	void	mail_params_init()
 /*
@@ -331,6 +332,7 @@ int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
 int     var_compat_level;
+char   *var_drop_hdrs;
 
 const char null_format_string[1] = "";
 
@@ -662,6 +664,7 @@ void    mail_params_init()
 	VAR_MULTI_WRAPPER, DEF_MULTI_WRAPPER, &var_multi_wrapper, 0, 0,
 	VAR_DSN_FILTER, DEF_DSN_FILTER, &var_dsn_filter, 0, 0,
 	VAR_SMTPUTF8_AUTOCLASS, DEF_SMTPUTF8_AUTOCLASS, &var_smtputf8_autoclass, 1, 0,
+	VAR_DROP_HDRS, DEF_DROP_HDRS, &var_drop_hdrs, 0, 0,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults_2[] = {

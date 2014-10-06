@@ -16264,21 +16264,6 @@ postfix/trivial-rewrite[25835]: using backwards-compatible
     "foo.example.com"
 </pre>
 <nroffescape .sp>
-<!-- TLDR
-<p> The backwards-compatible settings prevent delivery errors for
-email with an incomplete domain in an email address. If Postfix
-logs the above message for addresses of the form "user@localhost"
-then that is harmless, but the system administrator should verify
-that the mydestination setting does contain "localhost":
-</p>
-<nroffescape .sp>
-<pre>
-# <b>postconf mydestination | tr '[ ,]' '[\12\12]' | grep localhost</b>
-</pre>
-<nroffescape .sp>
-<p> If the output is empty, then the system administrator should
-add "localhost" to the main.cf mydestination setting. </p>
--->
 <p> The backwards-compatible setting prevents delivery errors for
 email with an incomplete domain in an email address.  If Postfix
 logs the above message for addresses different from "user@localhost",
@@ -16291,6 +16276,23 @@ in main.cf: </p>
 # <b>postconf append_dot_mydomain=yes</b>
 # <b>postfix reload</b>
 </pre>
+
+<li> <p> Postfix will log a different message when "localhost" (without
+domain suffix) is not listed in mydestination (or virtual_alias_domains,
+virtual_mailbox_domains, or relay_domains).
+</p>
+<nroffescape .sp>
+<pre>
+postfix/trivial-rewrite[14777]: using backwards-compatible
+    default setting append_dot_mydomain=yes to rewrite
+    "localhost" to "localhost.example.com"; please add
+    "localhost" to mydestination or other address class
+</pre>
+<nroffescape .sp>
+<p> The backwards-compatible setting prevents delivery errors for
+email to "user@localhost". If Postfix logs the above message, add
+"localhost" to mydestination (or virtual_alias_domains,
+virtual_mailbox_domains, or relay_domains).
 
 <li> <p> The smtputf8_enable default value has changed from "no"
 to "yes. As long as the backwards-compatible default settings are
@@ -16322,5 +16324,19 @@ setting "smtputf8_enable = no" permanent in main.cf:
 </pre>
 
 </ul>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM message_drop_headers bcc, content-length, resent-bcc, return-path
+
+<p> Names of message headers that the cleanup(8) daemon will remove
+after applying header_checks(5) and before invoking Milter applications.
+The default setting is compatible with Postfix &lt; 2.12. </p>
+
+<p> Specify a list of header names, separated by comma or space.
+Names are matched in a case-insensitive manner.  The list of supported
+header names is limited to RFC 5321, RFC 5322, MIME RFCs, and some
+historical names.  To remove other headers, use the header_checks(5)
+IGNORE action. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

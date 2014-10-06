@@ -24,10 +24,6 @@
   */
 extern ARGV *mail_parm_split(const char *, const char *);
 
-#define MAIL_PARM_FLAG_NONE	0
-#define MAIL_PARM_FLAG_EXTRACT	(1<<0)
-#define MAIL_PARM_FLAG_ALL	(1<<0)
-
 /* LICENSE
 /* .ad
 /* .fi

@@ -213,10 +213,10 @@ extern void cleanup_all(void);
 extern void cleanup_sig(int);
 extern void cleanup_pre_jail(char *, char **);
 extern void cleanup_post_jail(char *, char **);
-extern CONFIG_INT_TABLE cleanup_int_table[];
-extern CONFIG_BOOL_TABLE cleanup_bool_table[];
-extern CONFIG_STR_TABLE cleanup_str_table[];
-extern CONFIG_TIME_TABLE cleanup_time_table[];
+extern const CONFIG_INT_TABLE cleanup_int_table[];
+extern const CONFIG_BOOL_TABLE cleanup_bool_table[];
+extern const CONFIG_STR_TABLE cleanup_str_table[];
+extern const CONFIG_TIME_TABLE cleanup_time_table[];
 
 #define CLEANUP_RECORD(s, t, b, l)	((s)->action((s), (t), (b), (l)))
 

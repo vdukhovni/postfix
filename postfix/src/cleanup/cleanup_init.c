@@ -165,7 +165,7 @@ char   *var_milt_head_checks;		/* post-Milter header checks */
 int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 int     var_always_add_hdrs;		/* always add missing headers */
 
-CONFIG_INT_TABLE cleanup_int_table[] = {
+const CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
     VAR_DUP_FILTER_LIMIT, DEF_DUP_FILTER_LIMIT, &var_dup_filter_limit, 0, 0,
     VAR_QATTR_COUNT_LIMIT, DEF_QATTR_COUNT_LIMIT, &var_qattr_count_limit, 1, 0,
@@ -175,7 +175,7 @@ CONFIG_INT_TABLE cleanup_int_table[] = {
     0,
 };
 
-CONFIG_BOOL_TABLE cleanup_bool_table[] = {
+const CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
     VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
     VAR_AUTO_8BIT_ENC_HDR, DEF_AUTO_8BIT_ENC_HDR, &var_auto_8bit_enc_hdr,
@@ -183,7 +183,7 @@ CONFIG_BOOL_TABLE cleanup_bool_table[] = {
     0,
 };
 
-CONFIG_TIME_TABLE cleanup_time_table[] = {
+const CONFIG_TIME_TABLE cleanup_time_table[] = {
     VAR_DELAY_WARN_TIME, DEF_DELAY_WARN_TIME, &var_delay_warn_time, 0, 0,
     VAR_MILT_CONN_TIME, DEF_MILT_CONN_TIME, &var_milt_conn_time, 1, 0,
     VAR_MILT_CMD_TIME, DEF_MILT_CMD_TIME, &var_milt_cmd_time, 1, 0,
@@ -191,7 +191,7 @@ CONFIG_TIME_TABLE cleanup_time_table[] = {
     0,
 };
 
-CONFIG_STR_TABLE cleanup_str_table[] = {
+const CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
     VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,

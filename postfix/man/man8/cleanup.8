@@ -27,6 +27,9 @@ Postfix programs.
 This task is delegated to the \fBtrivial-rewrite\fR(8) daemon.
 .IP \(bu
 Eliminate duplicate envelope recipient addresses.
+.IP \(bu
+Remove message headers: \fBBcc\fR, \fBContent-Length\fR,
+\fBResent-Bcc\fR, \fBReturn-Path\fR.
 .PP
 The following address transformations are optional:
 .IP \(bu
@@ -104,6 +107,11 @@ when not present.
 Available in Postfix version 2.9 and later:
 .IP "\fBenable_long_queue_ids (no)\fR"
 Enable long, non-repeating, queue IDs (queue file names).
+.PP
+Available in Postfix version 2.12 and later:
+.IP "\fBmessage_drop_headers (bcc, content-length, resent-bcc, return-path)\fR"
+Names of message headers that the \fBcleanup\fR(8) daemon will remove
+after applying \fBheader_checks\fR(5) and before invoking Milter applications.
 .SH "BUILT-IN CONTENT FILTERING CONTROLS"
 .na
 .nf

@@ -8,6 +8,9 @@
 /*
 /*	void	resolve_init(void)
 /*
+/*	int	resolve_class(domain)
+/*	const char *domain;
+/*
 /*	void	resolve_proto(context, stream)
 /*	RES_CONTEXT *context;
 /*	VSTREAM	*stream;
@@ -20,6 +23,9 @@
 /*	resolve_init() initializes data structures that are private
 /*	to this module. It should be called once before using the
 /*	actual resolver routines.
+/*
+/*	resolve_class() returns the address class for the specified
+/*	domain, or -1 in case of error.
 /*
 /*	resolve_proto() implements the client-server protocol:
 /*	read one address in FQDN form, reply with a (transport,
@@ -131,6 +137,38 @@ static STRING_LIST *virt_alias_doms;
 static STRING_LIST *virt_mailbox_doms;
 
 static MAPS *relocated_maps;
+
+/* resolve_class - determine domain address class */
+
+int resolve_class(const char *domain)
+{
+    int     ret;
+
+    /*
+     * Same order as in resolve_addr().
+     */
+    if ((ret = resolve_local(domain)) != 0)
+	return (ret > 0 ? RESOLVE_CLASS_LOCAL : -1);
+    if (virt_alias_doms) {
+	if (string_list_match(virt_alias_doms, domain))
+	    return (RESOLVE_CLASS_ALIAS);
+	if (virt_alias_doms->error)
+	    return (-1);
+    }
+    if (virt_mailbox_doms) {
+	if (string_list_match(virt_mailbox_doms, domain))
+	    return (RESOLVE_CLASS_VIRTUAL);
+	if (virt_mailbox_doms->error)
+	    return (-1);
+    }
+    if (relay_domains) {
+	if (string_list_match(relay_domains, domain))
+	    return (RESOLVE_CLASS_RELAY);
+	if (relay_domains->error)
+	    return (-1);
+    }
+    return (RESOLVE_CLASS_DEFAULT);
+}
 
 /* resolve_addr - resolve address according to rule set */
 

@@ -372,6 +372,13 @@ extern char *var_rcpt_witheld;
 extern bool var_always_add_hdrs;
 
  /*
+  * Dropping message headers.
+  */
+#define VAR_DROP_HDRS		"message_drop_headers"
+#define DEF_DROP_HDRS		"bcc, content-length, resent-bcc, return-path"
+extern char *var_drop_hdrs;
+
+ /*
   * Standards violation: allow/permit RFC 822-style addresses in SMTP
   * commands.
   */

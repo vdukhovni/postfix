@@ -20573,3 +20573,17 @@ Apologies for any names omitted.
 	master/master.c, pipe/pipe.c, postdrop/postdrop.c,
 	postfix/postfix.c, postmulti/postmulti.c, postqueue/postqueue.c,
 	spawn/spawn.c.
+
+20141006
+
+	Backwards compatibility: log a helpful message when "localhost"
+	is missing from mydestination. Files: trivial_rewrite/rewrite.c,
+	trivial_rewrite/resolve.c, trivial-rewrite/trivial-rewrite.h,
+	proto/postconf.proto.
+
+	Cleanup: message_drop_header for configurable header dropping
+	(default: bcc, content-length, resent-bcc, return-path).
+	The list of supported header names covers RFC 5321, 5322,
+	MIME RFCs, and some historical names.  File: global/header_opts.c,
+	global/mail_params.[hc], cleanup/cleanup.c (manpage),
+	proto/postconf.proto, mantools/postlink.
