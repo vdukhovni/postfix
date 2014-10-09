@@ -634,7 +634,7 @@ address is local, and $local_recipient_maps specifies a list of
 lookup tables that does not match the recipient.
 .PP
 Parameters concerning known/unknown recipients of relay destinations:
-.IP "\fBrelay_domains ($mydestination)\fR"
+.IP "\fBrelay_domains (Postfix &ge; 2.12: empty, Postfix < 2.12: $mydestination)\fR"
 What destination domains (and subdomains thereof) this system
 will relay mail to.
 .IP "\fBrelay_recipient_maps (empty)\fR"

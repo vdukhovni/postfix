@@ -20,6 +20,11 @@ $HTML2TEXT "$@" | sed '
 	s/ -\n  o/ -o/
 	b top
 }
+/^  \*$/ {
+	N
+	s/\*\n    /* /
+	b top
+}
 ' | awk '
 /^$/ && prev_len == 0 { next }
 		      { print; prev_len = length }

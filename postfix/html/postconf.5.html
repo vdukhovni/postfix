@@ -1541,123 +1541,54 @@ global <a href="postconf.5.html#ipc_timeout">ipc_timeout</a> parameter as well.
 <DT><b><a name="compatibility_level">compatibility_level</a>
 (default: 0)</b></DT><DD>
 
-<p> A safety net that forces Postfix to run with backwards-compatible
-<a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> default settings after an upgrade to a newer
-but incompatible Postfix version. </p>
+<p> A safety net that causes Postfix to run with backwards-compatible
+default settings after an upgrade to a newer Postfix version. </p>
 
-<p> While backwards compatibility is in effect, Postfix logs what
-services or what email would be affected by the incompatible change.
+<p> With backwards compatibility turned on (the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#compatibility_level">compatibility_level</a>
+value is less than the Postfix built-in value), Postfix looks for
+settings that are left at their implicit default value, and logs a
+message when a backwards-compatible default setting is required.
 </p>
 
-<p> As detailed below, based on this logging the system administrator
-can determine whether or not a backwards-compatible default setting
-needs to be made permanent in <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a>.  </p>
+<blockquote>
+<pre>
+using backwards-compatible default setting <i>name=value</i> to [accept a specific client request]
+
+using backwards-compatible default setting <i>name=value</i> to [enable specific Postfix behavior]
+</pre>
+</blockquote>
+
+<p> See <a href="COMPATIBILITY_README.html">COMPATIBILITY_README</a> for specific message details. If such
+a message is logged in the context of a legitimate request, the
+system administrator should make the backwards-compatible setting
+permanent in <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a>, for example: </p>
+
+<blockquote>
+<pre>
+# <b>postconf</b> <i>name=value</i>
+# <b>postfix reload</b>
+</pre>
+</blockquote>
 
 <p> When no more backwards-compatible settings need to be made
 permanent, the administrator should turn off backwards compatibility
-by updating the <a href="postconf.5.html#compatibility_level">compatibility_level</a> setting in <a href="postconf.5.html">main.cf</a>. </p>
+by updating the <a href="postconf.5.html#compatibility_level">compatibility_level</a> setting in <a href="postconf.5.html">main.cf</a>:</p>
 
+<blockquote>
 <pre>
-# <b>postconf <a href="postconf.5.html#compatibility_level">compatibility_level</a>=1</b>
+# <b>postconf <a href="postconf.5.html#compatibility_level">compatibility_level</a>=<i>N</i></b>
 # <b>postfix reload</b>
 </pre>
+</blockquote>
 
-<p> Changes introduced with Postfix 2.12 (compatibility level 1):</p>
+<p> For <i>N</i> specify the number that is logged in your <a href="postfix.1.html">postfix(1)</a>
+warning message: </p>
 
-<ul>
-
-<li> <p> The <a href="master.5.html">master.cf</a> chroot default value has changed from "y"
-(yes) to "n" (no). As long as the backwards-compatible default
-settings are turned on, Postfix logs a warning each time the master
-daemon reads the <a href="master.5.html">master.cf</a> file: </p>
-
+<blockquote>
 <pre>
-postfix/master[27664]: /etc/postfix/<a href="master.5.html">master.cf</a>: line 72: using
-    backwards-compatible default setting chroot=y
+warning: To disable backwards compatibility use "postconf <a href="postconf.5.html#compatibility_level">compatibility_level</a>=<i>N</i>" and "postfix reload"
 </pre>
-
-<p> If Postfix logs such messages for a service that should remain
-chrooted, then the system administrator should make the
-backwards-compatible setting "chroot = y" permanent in <a href="master.5.html">master.cf</a>.
-For example, to update the chroot setting for the "smtp inet"
-service: </p>
-
-<pre>
-# <b>postconf -F smtp/inet/chroot=y</b>
-# <b>postfix reload</b>
-</pre>
-
-<li> <p> The <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a> default value has changed from
-"yes" to "no". As long as the backwards-compatible default settings
-are turned on, Postfix logs a warning for each email address with
-an incomplete domain: </p>
-
-<pre>
-postfix/trivial-rewrite[25835]: using backwards-compatible
-    default setting <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>=yes to rewrite "foo" to
-    "foo.example.com"
-</pre>
-
-<p> The backwards-compatible setting prevents delivery errors for
-email with an incomplete domain in an email address.  If Postfix
-logs the above message for addresses different from "user@localhost",
-and the client cannot be changed to use complete domain names in
-email addresses, then the system administrator should make the
-backwards-compatible setting "<a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a> = yes" permanent
-in <a href="postconf.5.html">main.cf</a>: </p>
-
-<pre>
-# <b>postconf <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>=yes</b>
-# <b>postfix reload</b>
-</pre>
-
-<li> <p> Postfix will log a different message when "localhost" (without
-domain suffix) is not listed in <a href="postconf.5.html#mydestination">mydestination</a> (or <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,
-<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, or <a href="postconf.5.html#relay_domains">relay_domains</a>).
-</p>
-
-<pre>
-postfix/trivial-rewrite[14777]: using backwards-compatible
-    default setting <a href="postconf.5.html#append_dot_mydomain">append_dot_mydomain</a>=yes to rewrite
-    "localhost" to "localhost.example.com"; please add
-    "localhost" to <a href="postconf.5.html#mydestination">mydestination</a> or other address class
-</pre>
-
-<p> The backwards-compatible setting prevents delivery errors for
-email to "user@localhost". If Postfix logs the above message, add
-"localhost" to <a href="postconf.5.html#mydestination">mydestination</a> (or <a href="postconf.5.html#virtual_alias_domains">virtual_alias_domains</a>,
-<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains</a>, or <a href="postconf.5.html#relay_domains">relay_domains</a>).
-
-<li> <p> The <a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> default value has changed from "no"
-to "yes. As long as the backwards-compatible default settings are
-turned on, Postfix logs a warning each time an SMTP command uses a
-non-ASCII address localpart: </p>
-
-<pre>
-postfix/smtpd[27560]: using backwards-compatible default setting
-    <a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a>=no to accept non-ASCII sender address
-    "??@example.org" from localhost[127.0.0.1]
-</pre>
-
-<pre>
-postfix/smtpd[27560]: using backwards-compatible default setting
-    <a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a>=no to accept non-ASCII recipient address
-    "??@example.com" from localhost[127.0.0.1]
-</pre>
-
-<p> The backwards-compatible setting prevents Postfix from rejecting
-non-SMTPUTF8 email from legacy clients that send email with a
-non-ASCII sender or recipient address localpart. If Postfix logs
-the above messages and the client cannot be updated to use SMTPUTF8,
-then the system administrator should make the backwards-compatible
-setting "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = no" permanent in <a href="postconf.5.html">main.cf</a>:
-
-<pre>
-# <b>postconf <a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a>=no</b>
-# <b>postfix reload</b>
-</pre>
-
-</ul>
+</blockquote>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -2118,7 +2049,7 @@ by overriding the first number in the enhanced status code.  </p>
 </blockquote>
 
 <p> Example 2: censor the per-recipient delivery status text so
-that it does not not reveal the destination command or filename
+that it does not reveal the destination command or filename
 when a remote sender requests confirmation of successful delivery.
 </p>
 
@@ -6317,9 +6248,7 @@ The default setting is compatible with Postfix &lt; 2.12. </p>
 
 <p> Specify a list of header names, separated by comma or space.
 Names are matched in a case-insensitive manner.  The list of supported
-header names is limited to <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a>, <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>, MIME RFCs, and some
-historical names.  To remove other headers, use the <a href="header_checks.5.html">header_checks(5)</a>
-IGNORE action. </p>
+header names is limited only by available memory.  </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -7031,7 +6960,7 @@ and would otherwise be confused with a "<a href="DATABASE_README.html">type:tabl
 </DD>
 
 <DT><b><a name="mynetworks_style">mynetworks_style</a>
-(default: subnet)</b></DT><DD>
+(default: Postfix &ge; 2.12: host, Postfix &lt; 2.12: subnet)</b></DT><DD>
 
 <p>
 The method to generate the default value for the <a href="postconf.5.html#mynetworks">mynetworks</a> parameter.
@@ -9156,7 +9085,7 @@ into concurrency per recipient.  </p>
 </DD>
 
 <DT><b><a name="relay_domains">relay_domains</a>
-(default: $<a href="postconf.5.html#mydestination">mydestination</a>)</b></DT><DD>
+(default: Postfix &ge; 2.12: empty, Postfix &lt; 2.12: $<a href="postconf.5.html#mydestination">mydestination</a>)</b></DT><DD>
 
 <p> What destination domains (and subdomains thereof) this system
 will relay mail to. For details about how

@@ -915,6 +915,7 @@ postconf_dbms.o: ../../include/mail_conf.h
 postconf_dbms.o: ../../include/mail_params.h
 postconf_dbms.o: ../../include/msg.h
 postconf_dbms.o: ../../include/myflock.h
+postconf_dbms.o: ../../include/mymalloc.h
 postconf_dbms.o: ../../include/name_code.h
 postconf_dbms.o: ../../include/split_at.h
 postconf_dbms.o: ../../include/stringops.h

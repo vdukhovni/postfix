@@ -249,19 +249,25 @@ static const char *pcf_mynetworks(void)
     if (var_inet_interfaces == 0) {
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS)
 	    || (junk = mail_conf_lookup_eval(VAR_INET_INTERFACES)) == 0)
-	    junk = DEF_INET_INTERFACES;
+	    junk = pcf_expand_parameter_value((VSTRING *) 0, pcf_cmd_mode,
+					      DEF_INET_INTERFACES,
+					      (PCF_MASTER_ENT *) 0);
 	var_inet_interfaces = mystrdup(junk);
     }
     if (var_mynetworks_style == 0) {
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS)
 	    || (junk = mail_conf_lookup_eval(VAR_MYNETWORKS_STYLE)) == 0)
-	    junk = DEF_MYNETWORKS_STYLE;
+	    junk = pcf_expand_parameter_value((VSTRING *) 0, pcf_cmd_mode,
+					      DEF_MYNETWORKS_STYLE,
+					      (PCF_MASTER_ENT *) 0);
 	var_mynetworks_style = mystrdup(junk);
     }
     if (var_inet_protocols == 0) {
 	if ((pcf_cmd_mode & PCF_SHOW_DEFS)
 	    || (junk = mail_conf_lookup_eval(VAR_INET_PROTOCOLS)) == 0)
-	    junk = DEF_INET_PROTOCOLS;
+	    junk = pcf_expand_parameter_value((VSTRING *) 0, pcf_cmd_mode,
+					      DEF_INET_PROTOCOLS,
+					      (PCF_MASTER_ENT *) 0);
 	var_inet_protocols = mystrdup(junk);
 	proto_info = inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
     }
@@ -433,7 +439,7 @@ void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
     pcf_adhoc_procname.defval = mystrdup(procname);
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_procname.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
-			  (char *) &pcf_adhoc_procname, pcf_conv_str_parameter);
+		      (char *) &pcf_adhoc_procname, pcf_conv_str_parameter);
     pcf_adhoc_pid.defval = pid;
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_pid.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,

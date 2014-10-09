@@ -15,6 +15,7 @@
   * External interface.
   */
 extern const char *mynetworks(void);
+extern const char *mynetworks_host(void);
 
 /* LICENSE
 /* .ad

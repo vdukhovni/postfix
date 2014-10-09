@@ -892,154 +892,69 @@ delivery by the \fBpipe\fR(8) delivery agent.
 Note: if you set this time limit to a large value you must update the
 global ipc_timeout parameter as well.
 .SH compatibility_level (default: 0)
-A safety net that forces Postfix to run with backwards-compatible
-main.cf and master.cf default settings after an upgrade to a newer
-but incompatible Postfix version.
+A safety net that causes Postfix to run with backwards-compatible
+default settings after an upgrade to a newer Postfix version.
 .PP
-While backwards compatibility is in effect, Postfix logs what
-services or what email would be affected by the incompatible change.
+With backwards compatibility turned on (the main.cf compatibility_level
+value is less than the Postfix built-in value), Postfix looks for
+settings that are left at their implicit default value, and logs a
+message when a backwards-compatible default setting is required.
+.sp
+.in +4
+.nf
+.na
+.ft C
+using backwards-compatible default setting \fIname=value\fR to [accept a specific client request]
+.sp
+using backwards-compatible default setting \fIname=value\fR to [enable specific Postfix behavior]
+.fi
+.ad
+.ft R
+.in -4
 .PP
-As detailed below, based on this logging the system administrator
-can determine whether or not a backwards-compatible default setting
-needs to be made permanent in main.cf or master.cf.
+See COMPATIBILITY_README for specific message details. If such
+a message is logged in the context of a legitimate request, the
+system administrator should make the backwards-compatible setting
+permanent in main.cf or master.cf, for example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# \fBpostconf\fR \fIname=value\fR
+# \fBpostfix reload\fR
+.fi
+.ad
+.ft R
+.in -4
 .PP
 When no more backwards-compatible settings need to be made
 permanent, the administrator should turn off backwards compatibility
-by updating the compatibility_level setting in main.cf.
+by updating the compatibility_level setting in main.cf:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# \fBpostconf compatibility_level=\fIN\fR\fR
+# \fBpostfix reload\fR
+.fi
+.ad
+.ft R
+.in -4
 .PP
+For \fIN\fR specify the number that is logged in your \fBpostfix\fR(1)
+warning message:
+.sp
+.in +4
 .nf
 .na
 .ft C
-# \fBpostconf compatibility_level=1\fR
-# \fBpostfix reload\fR
+warning: To disable backwards compatibility use "postconf compatibility_level=\fIN\fR" and "postfix reload"
 .fi
 .ad
 .ft R
-.PP
-Changes introduced with Postfix 2.12 (compatibility level 1):
-.IP \(bu
-The master.cf chroot default value has changed from "y"
-(yes) to "n" (no). As long as the backwards-compatible default
-settings are turned on, Postfix logs a warning each time the master
-daemon reads the master.cf file:
-.sp
-.nf
-.na
-.ft C
-postfix/master[27664]: /etc/postfix/master.cf: line 72: using
-    backwards-compatible default setting chroot=y
-.fi
-.ad
-.ft R
-.sp
-If Postfix logs such messages for a service that should remain
-chrooted, then the system administrator should make the
-backwards-compatible setting "chroot = y" permanent in master.cf.
-For example, to update the chroot setting for the "smtp inet"
-service:
-.sp
-.nf
-.na
-.ft C
-# \fBpostconf -F smtp/inet/chroot=y\fR
-# \fBpostfix reload\fR
-.fi
-.ad
-.ft R
-.IP \(bu
-The append_dot_mydomain default value has changed from
-"yes" to "no". As long as the backwards-compatible default settings
-are turned on, Postfix logs a warning for each email address with
-an incomplete domain:
-.sp
-.nf
-.na
-.ft C
-postfix/trivial-rewrite[25835]: using backwards-compatible
-    default setting append_dot_mydomain=yes to rewrite "foo" to
-    "foo.example.com"
-.fi
-.ad
-.ft R
-.sp
-The backwards-compatible setting prevents delivery errors for
-email with an incomplete domain in an email address.  If Postfix
-logs the above message for addresses different from "user@localhost",
-and the client cannot be changed to use complete domain names in
-email addresses, then the system administrator should make the
-backwards-compatible setting "append_dot_mydomain = yes" permanent
-in main.cf:
-.sp
-.nf
-.na
-.ft C
-# \fBpostconf append_dot_mydomain=yes\fR
-# \fBpostfix reload\fR
-.fi
-.ad
-.ft R
-.IP \(bu
-Postfix will log a different message when "localhost" (without
-domain suffix) is not listed in mydestination (or virtual_alias_domains,
-virtual_mailbox_domains, or relay_domains).
-.sp
-.nf
-.na
-.ft C
-postfix/trivial-rewrite[14777]: using backwards-compatible
-    default setting append_dot_mydomain=yes to rewrite
-    "localhost" to "localhost.example.com"; please add
-    "localhost" to mydestination or other address class
-.fi
-.ad
-.ft R
-.sp
-The backwards-compatible setting prevents delivery errors for
-email to "user@localhost". If Postfix logs the above message, add
-"localhost" to mydestination (or virtual_alias_domains,
-virtual_mailbox_domains, or relay_domains).
-.IP \(bu
-The smtputf8_enable default value has changed from "no"
-to "yes. As long as the backwards-compatible default settings are
-turned on, Postfix logs a warning each time an SMTP command uses a
-non-ASCII address localpart:
-.sp
-.nf
-.na
-.ft C
-postfix/smtpd[27560]: using backwards-compatible default setting
-    smtputf8_enable=no to accept non-ASCII sender address
-    "??@example.org" from localhost[127.0.0.1]
-.fi
-.ad
-.ft R
-.sp
-.nf
-.na
-.ft C
-postfix/smtpd[27560]: using backwards-compatible default setting
-    smtputf8_enable=no to accept non-ASCII recipient address
-    "??@example.com" from localhost[127.0.0.1]
-.fi
-.ad
-.ft R
-.sp
-The backwards-compatible setting prevents Postfix from rejecting
-non-SMTPUTF8 email from legacy clients that send email with a
-non-ASCII sender or recipient address localpart. If Postfix logs
-the above messages and the client cannot be updated to use SMTPUTF8,
-then the system administrator should make the backwards-compatible
-setting "smtputf8_enable = no" permanent in main.cf:
-.sp
-.nf
-.na
-.ft C
-# \fBpostconf smtputf8_enable=no\fR
-# \fBpostfix reload\fR
-.fi
-.ad
-.ft R
-.br
+.in -4
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH config_directory (default: see "postconf -d" output)
@@ -1360,7 +1275,7 @@ by overriding the first number in the enhanced status code.
 .in -4
 .PP
 Example 2: censor the per-recipient delivery status text so
-that it does not not reveal the destination command or filename
+that it does not reveal the destination command or filename
 when a remote sender requests confirmation of successful delivery.
 .sp
 .in +4
@@ -3819,9 +3734,7 @@ The default setting is compatible with Postfix < 2.12.
 .PP
 Specify a list of header names, separated by comma or space.
 Names are matched in a case-insensitive manner.  The list of supported
-header names is limited to RFC 5321, RFC 5322, MIME RFCs, and some
-historical names.  To remove other headers, use the \fBheader_checks\fR(5)
-IGNORE action.
+header names is limited only by available memory.
 .PP
 This feature is available in Postfix 2.12 and later.
 .SH message_reject_characters (default: empty)
@@ -4297,7 +4210,7 @@ mynetworks = hash:/etc/postfix/network_table
 .fi
 .ad
 .ft R
-.SH mynetworks_style (default: subnet)
+.SH mynetworks_style (default: Postfix >= 2.12: host, Postfix < 2.12: subnet)
 The method to generate the default value for the mynetworks parameter.
 This is the list of trusted networks for relay access control etc.
 .IP \(bu
@@ -5664,7 +5577,7 @@ relay_destination_concurrency_limit from concurrency per domain
 into concurrency per recipient.
 .PP
 This feature is available in Postfix 2.0 and later.
-.SH relay_domains (default: $mydestination)
+.SH relay_domains (default: Postfix >= 2.12: empty, Postfix < 2.12: $mydestination)
 What destination domains (and subdomains thereof) this system
 will relay mail to. For details about how
 the relay_domains value is used, see the description of the

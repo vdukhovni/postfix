@@ -1236,6 +1236,7 @@ header_body_checks.o: is_header.h
 header_body_checks.o: maps.h
 header_body_checks.o: mime_state.h
 header_body_checks.o: rec_type.h
+header_opts.o: ../../include/argv.h
 header_opts.o: ../../include/htable.h
 header_opts.o: ../../include/msg.h
 header_opts.o: ../../include/stringops.h
@@ -1893,6 +1894,7 @@ mynetworks.o: ../../include/inet_proto.h
 mynetworks.o: ../../include/mask_addr.h
 mynetworks.o: ../../include/msg.h
 mynetworks.o: ../../include/myaddrinfo.h
+mynetworks.o: ../../include/mymalloc.h
 mynetworks.o: ../../include/name_mask.h
 mynetworks.o: ../../include/sock_addr.h
 mynetworks.o: ../../include/sys_defs.h

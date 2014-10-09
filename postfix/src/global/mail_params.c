@@ -137,9 +137,13 @@
 /*	int	warn_compat_break_app_dot_mydomain;
 /*	int	warn_compat_break_smtputf8_enable;
 /*	int	warn_compat_break_chroot;
+/*
+/*	int	warn_compat_break_relay_domains;
+/*	int	warn_compat_break_flush_domains;
+/*	int	warn_compat_break_mynetworks_style;
 /* DESCRIPTION
-/*	This module (actually the associated include file) define the names
-/*	and defaults of all mail configuration parameters.
+/*	This module (actually the associated include file) defines
+/*	the names and defaults of all mail configuration parameters.
 /*
 /*	mail_params_init() initializes the built-in parameters listed above.
 /*	These parameters are relied upon by library routines, so they are
@@ -336,6 +340,16 @@ char   *var_drop_hdrs;
 
 const char null_format_string[1] = "";
 
+ /*
+  * Compatibility level 2.
+  */
+int     warn_compat_break_relay_domains;
+int     warn_compat_break_flush_domains;
+int     warn_compat_break_mynetworks_style;
+
+ /*
+  * Compatibility level 1.
+  */
 int     warn_compat_break_app_dot_mydomain;
 int     warn_compat_break_smtputf8_enable;
 int     warn_compat_break_chroot;
@@ -565,8 +579,23 @@ static void check_legacy_defaults(void)
      */
 
     /*
-     * Look for specific parameters that were left behind at legacy defaults
-     * when the compatibility level changed for the first time, from 0 to 1.
+     * Look for specific parameters whose default changed when the
+     * compatibility level changed to 2.
+     */
+    if (var_compat_level < 2) {
+	if (mail_conf_lookup(VAR_RELAY_DOMAINS) == 0) {
+	    warn_compat_break_relay_domains = 1;
+	    if (mail_conf_lookup(VAR_FFLUSH_DOMAINS) == 0)
+		warn_compat_break_flush_domains = 1;
+	}
+	if (mail_conf_lookup(VAR_MYNETWORKS) == 0
+	    && mail_conf_lookup(VAR_MYNETWORKS_STYLE) == 0)
+	    warn_compat_break_mynetworks_style = 1;
+    }
+
+    /*
+     * Look for specific parameters whose default changed when the
+     * compatibility level changed from 0 to 1.
      */
     if (var_compat_level < 1) {
 	if (mail_conf_lookup(VAR_APP_DOT_MYDOMAIN) == 0)

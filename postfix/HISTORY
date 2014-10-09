@@ -20587,3 +20587,20 @@ Apologies for any names omitted.
 	MIME RFCs, and some historical names.  File: global/header_opts.c,
 	global/mail_params.[hc], cleanup/cleanup.c (manpage),
 	proto/postconf.proto, mantools/postlink.
+
+20141008
+
+	New defaults: "relayhost=" and "mynetworks_style = host",
+	plus a backwards-compatibility safety net that warns when
+	the change in defaults could result in rejection of mail
+	(with mynetworks_style this requires that Postfix evaluates
+	both old and new default values).  Files: proto/postconf.proto,
+	global/flush_clnt.c, global/mail_params.c, global/mail_params.h,
+	global/mynetworks.c, global/mynetworks.h, global/server_acl.c,
+	postconf/postconf_builtin.c, smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20141009
+
+	Documentation: moved the gory details from postconf(5) to
+	a new COMPATIBILITY_README document. Files: proto/postconf.proto,
+	proto/COMPATIBILITY_README.html html/index.html.

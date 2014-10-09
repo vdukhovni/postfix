@@ -38,16 +38,21 @@ extern bool var_helpful_warnings;
 extern bool var_show_unk_rcpt_table;
 
  /*
-  * Compatibility level and migration support.
+  * Compatibility level and migration support. Update postconf(5) and
+  * COMPATIBILITY_README when updating the current compatibility level.
   */
 #define VAR_COMPAT_LEVEL	"compatibility_level"
 #define DEF_COMPAT_LEVEL	0
-#define CUR_COMPAT_LEVEL	1
+#define CUR_COMPAT_LEVEL	2
 extern int var_compat_level;
 
 extern int warn_compat_break_app_dot_mydomain;
 extern int warn_compat_break_smtputf8_enable;
 extern int warn_compat_break_chroot;
+
+extern int warn_compat_break_relay_domains;
+extern int warn_compat_break_flush_domains;
+extern int warn_compat_break_mynetworks_style;
 
  /*
   * What problem classes should be reported to the postmaster via email.
@@ -486,7 +491,8 @@ extern bool var_swap_bangpath;
 extern bool var_append_at_myorigin;
 
 #define VAR_APP_DOT_MYDOMAIN	"append_dot_mydomain"
-#define DEF_APP_DOT_MYDOMAIN	"${{$compatibility_level} < {1} ? {yes} : {no}}"
+#define DEF_APP_DOT_MYDOMAIN	"${{$compatibility_level} < {1} ? " \
+				"{yes} : {no}}"
 extern bool var_append_dot_mydomain;
 
 #define VAR_PERCENT_HACK	"allow_percent_hack"
@@ -1983,7 +1989,9 @@ extern int var_trigger_timeout;
 extern char *var_mynetworks;
 
 #define VAR_MYNETWORKS_STYLE	"mynetworks_style"
-#define DEF_MYNETWORKS_STYLE	MYNETWORKS_STYLE_SUBNET
+#define DEF_MYNETWORKS_STYLE	"${{$compatibility_level} < {2} ? " \
+				"{" MYNETWORKS_STYLE_SUBNET "} : " \
+				"{" MYNETWORKS_STYLE_HOST "}}"
 extern char *var_mynetworks_style;
 
 #define	MYNETWORKS_STYLE_CLASS	"class"
@@ -1991,7 +1999,8 @@ extern char *var_mynetworks_style;
 #define	MYNETWORKS_STYLE_HOST	"host"
 
 #define VAR_RELAY_DOMAINS	"relay_domains"
-#define DEF_RELAY_DOMAINS	"$mydestination"
+#define DEF_RELAY_DOMAINS	"${{$compatibility_level} < {2} ? " \
+				"{$mydestination} : {}}"
 extern char *var_relay_domains;
 
 #define VAR_RELAY_TRANSPORT	"relay_transport"
@@ -2465,7 +2474,7 @@ extern char *var_virt_mailbox_lock;
 #define VAR_SYSLOG_NAME			"syslog_name"
 #if 1
 #define DEF_SYSLOG_NAME			\
-    "${" VAR_MULTI_NAME ":postfix}${" VAR_MULTI_NAME "?$" VAR_MULTI_NAME "}"
+    "${" VAR_MULTI_NAME "?{$" VAR_MULTI_NAME "}:{postfix}}"
 #else
 #define DEF_SYSLOG_NAME			"postfix"
 #endif
@@ -3849,7 +3858,8 @@ extern char *var_meta_dir;
   * SMTPUTF8 support.
   */
 #define VAR_SMTPUTF8_ENABLE		"smtputf8_enable"
-#define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} < {1} ? {no} : {yes}}"
+#define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} < {1} ? " \
+					"{no} : {yes}}"
 extern int var_smtputf8_enable;
 
 #define VAR_STRICT_SMTPUTF8		"strict_smtputf8"

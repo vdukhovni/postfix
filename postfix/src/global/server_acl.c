@@ -82,6 +82,7 @@
 #include <mail_params.h>
 #include <addr_match_list.h>
 #include <match_parent_style.h>
+#include <mynetworks.h>
 #include <server_acl.h>
 
 /* Application-specific. */
@@ -89,6 +90,7 @@
 #define SERVER_ACL_SEPARATORS	", \t\r\n"
 
 static ADDR_MATCH_LIST *server_acl_mynetworks;
+static ADDR_MATCH_LIST *server_acl_mynetworks_host;
 
 #define STR vstring_str
 
@@ -96,11 +98,18 @@ static ADDR_MATCH_LIST *server_acl_mynetworks;
 
 void    server_acl_pre_jail_init(const char *mynetworks, const char *origin)
 {
-    if (server_acl_mynetworks)
+    if (server_acl_mynetworks) {
 	addr_match_list_free(server_acl_mynetworks);
+	if (server_acl_mynetworks_host)
+	    addr_match_list_free(server_acl_mynetworks_host);
+    }
     server_acl_mynetworks =
 	addr_match_list_init(MATCH_FLAG_RETURN | match_parent_style(origin),
 			     mynetworks);
+    if (warn_compat_break_mynetworks_style)
+	server_acl_mynetworks_host =
+	    addr_match_list_init(MATCH_FLAG_RETURN | match_parent_style(origin),
+				 mynetworks_host());
 }
 
 /* server_acl_parse - parse access list */
@@ -167,8 +176,16 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 	} else if (STREQ(acl, SERVER_ACL_NAME_PERMIT)) {
 	    return (SERVER_ACL_ACT_PERMIT);
 	} else if (STREQ(acl, SERVER_ACL_NAME_WL_MYNETWORKS)) {
-	    if (addr_match_list_match(server_acl_mynetworks, client_addr))
+	    if (addr_match_list_match(server_acl_mynetworks, client_addr)) {
+		if (warn_compat_break_mynetworks_style
+		    && !addr_match_list_match(server_acl_mynetworks_host,
+					      client_addr))
+		    msg_info("using backwards-compatible default setting "
+			     VAR_MYNETWORKS_STYLE "=%s to permit "
+			     "request from client \"%s\"",
+			     var_mynetworks_style, client_addr);
 		return (SERVER_ACL_ACT_PERMIT);
+	    }
 	    if (server_acl_mynetworks->error != 0) {
 		msg_warn("%s: %s: mynetworks lookup error -- ignoring the "
 			 "remainder of this access list", origin, acl);

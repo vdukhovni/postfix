@@ -164,7 +164,6 @@ command.o: ../../include/pipe_command.h
 command.o: ../../include/recipient_list.h
 command.o: ../../include/resolve_clnt.h
 command.o: ../../include/sent.h
-command.o: ../../include/stringops.h
 command.o: ../../include/sys_defs.h
 command.o: ../../include/tok822.h
 command.o: ../../include/vbuf.h

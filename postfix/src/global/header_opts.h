@@ -23,6 +23,7 @@ typedef struct {
   * Header types. If we reach 31, we must group the headers we need to
   * remember at the beginning, or we should use fd_set bit sets.
   */
+#define HDR_OTHER			0
 #define HDR_APPARENTLY_TO		1
 #define HDR_BCC				2
 #define HDR_CC				3

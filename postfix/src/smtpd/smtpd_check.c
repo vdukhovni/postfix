@@ -207,6 +207,7 @@
 #include <ip_match.h>
 #include <valid_utf8_hostname.h>
 #include <midna.h>
+#include <mynetworks.h>
 
 /* DNS library. */
 
@@ -306,7 +307,8 @@ static MAPS *smtpd_sender_login_maps;
   * Pre-opened access control lists.
   */
 static DOMAIN_LIST *relay_domains;
-static NAMADR_LIST *mynetworks;
+static NAMADR_LIST *mynetworks_curr;
+static NAMADR_LIST *mynetworks_new;
 static NAMADR_LIST *perm_mx_networks;
 
 #ifdef USE_TLS
@@ -704,9 +706,12 @@ void    smtpd_check_init(void)
     /*
      * Pre-open access control lists before going to jail.
      */
-    mynetworks =
+    mynetworks_curr =
 	namadr_list_init(MATCH_FLAG_RETURN | match_parent_style(VAR_MYNETWORKS),
 			 var_mynetworks);
+    mynetworks_new =
+	namadr_list_init(MATCH_FLAG_RETURN | match_parent_style(VAR_MYNETWORKS),
+			 mynetworks_host());
     relay_domains =
 	domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
 			 var_relay_domains);
@@ -1198,13 +1203,18 @@ static int permit_mynetworks(SMTPD_STATE *state)
     if (msg_verbose)
 	msg_info("%s: %s %s", myname, state->name, state->addr);
 
-    if (namadr_list_match(mynetworks, state->name, state->addr))
+    if (namadr_list_match(mynetworks_curr, state->name, state->addr)) {
+	if (warn_compat_break_mynetworks_style
+	    && !namadr_list_match(mynetworks_new, state->name, state->addr))
+	    msg_info("using backwards-compatible default setting "
+		     VAR_MYNETWORKS_STYLE "=%s to permit request from "
+		     "client \"%s\"", var_mynetworks_style, state->namaddr);
 	/* Permit logging in generic_checks() only. */
 	return (SMTPD_CHECK_OK);
-    else if (mynetworks->error == 0)
+    } else if (mynetworks_curr->error == 0)
 	return (SMTPD_CHECK_DUNNO);
     else
-	return (mynetworks->error);
+	return (mynetworks_curr->error);
 }
 
 /* dup_if_truncate - save hostname and truncate if it ends in dot */
@@ -1514,8 +1524,13 @@ static int check_relay_domains(SMTPD_STATE *state, char *recipient,
     /*
      * Permit if the client matches the relay_domains list.
      */
-    if (domain_list_match(relay_domains, state->name))
+    if (domain_list_match(relay_domains, state->name)) {
+	if (warn_compat_break_relay_domains)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_RELAY_DOMAINS "=$mydestination to permit "
+		     "request from client \"%s\"", state->name);
 	return (SMTPD_CHECK_OK);
+    }
 
     /*
      * Permit authorized destinations.
@@ -1538,6 +1553,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
 {
     const char *myname = "permit_auth_destination";
     const RESOLVE_REPLY *reply;
+    const char *domain;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, recipient);
@@ -1552,8 +1568,9 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
     /*
      * Handle special case that is not supposed to happen.
      */
-    if (strrchr(CONST_STR(reply->recipient), '@') == 0)
+    if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0)
 	return (SMTPD_CHECK_OK);
+    domain += 1;
 
     /*
      * Skip source-routed non-local or virtual mail (uncertain destination).
@@ -1571,8 +1588,13 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
     /*
      * Permit if the destination matches the relay_domains list.
      */
-    if (reply->flags & RESOLVE_CLASS_RELAY)
+    if (reply->flags & RESOLVE_CLASS_RELAY) {
+	if (warn_compat_break_relay_domains)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_RELAY_DOMAINS "=$mydestination to accept mail "
+		     "for domain \"%s\"", domain);
 	return (SMTPD_CHECK_OK);
+    }
 
     /*
      * Skip when not matched
@@ -1850,9 +1872,13 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 	return (SMTPD_CHECK_DUNNO);
     if (reply->flags & RESOLVE_CLASS_FINAL)
 	return (SMTPD_CHECK_OK);
-    if (reply->flags & RESOLVE_CLASS_RELAY)
+    if (reply->flags & RESOLVE_CLASS_RELAY) {
+	if (warn_compat_break_relay_domains)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_RELAY_DOMAINS "=$mydestination to accept mail "
+		     "for domain \"%s\"", domain);
 	return (SMTPD_CHECK_OK);
-
+    }
     if (msg_verbose)
 	msg_info("%s: not local: %s", myname, recipient);
 
@@ -5130,6 +5156,10 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
 				       recipient, reply_class,
 				       var_show_unk_rcpt_table ?
 				       " in relay recipient table" : ""));
+	if (warn_compat_break_relay_domains)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_RELAY_DOMAINS "=$mydestination to accept mail "
+		     "for address \"%s\"", recipient);
 	break;
     }
 

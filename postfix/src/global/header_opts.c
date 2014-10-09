@@ -40,6 +40,7 @@
 #include <vstring.h>
 #include <stringops.h>
 #include <argv.h>
+#include <mymalloc.h>
 
 /* Global library. */
 
@@ -124,17 +125,32 @@ static void header_drop_init(void)
     HTABLE_INFO *ht;
     HEADER_OPTS *hp;
 
+    /*
+     * Having one main.cf parameter for the "drop" header flag does not
+     * generalize to the "sender", "extract", etc., flags. Flags would need
+     * to be grouped by header name, but that would be unwieldy, too:
+     * 
+     * message_header_flags = { apparently-to = recipient }, { bcc = recipient,
+     * extract, drop }, { from = sender }, ...
+     * 
+     * Thus, it is unlikely that all header flags will become configurable.
+     */
     hdr_drop_list = argv_split(var_drop_hdrs, CHARS_COMMA_SP);
     for (cpp = hdr_drop_list->argv; *cpp; cpp++) {
 	lowercase(*cpp);
-	if ((ht = htable_locate(header_hash, *cpp)) == 0)
-	    msg_fatal("%s: unknown header: %s", VAR_DROP_HDRS, *cpp);
-	hp = (HEADER_OPTS *) ht->value;
+	if ((ht = htable_locate(header_hash, *cpp)) == 0) {
+	    hp = (HEADER_OPTS *) mymalloc(sizeof(*hp));
+	    hp->type = HDR_OTHER;
+	    hp->flags = HDR_OPT_DROP;
+	    ht = htable_enter(header_hash, *cpp, (char *) hp);
+	    hp->name = ht->key;
+	} else
+	    hp = (HEADER_OPTS *) ht->value;
 	hp->flags |= HDR_OPT_DROP;
     }
     argv_free(hdr_drop_list);
 }
-	
+
 /* header_opts_find - look up header options */
 
 const HEADER_OPTS *header_opts_find(const char *string)

@@ -315,6 +315,7 @@ smtpd_check.o: ../../include/msg_stats.h
 smtpd_check.o: ../../include/myaddrinfo.h
 smtpd_check.o: ../../include/myflock.h
 smtpd_check.o: ../../include/mymalloc.h
+smtpd_check.o: ../../include/mynetworks.h
 smtpd_check.o: ../../include/namadr_list.h
 smtpd_check.o: ../../include/name_code.h
 smtpd_check.o: ../../include/name_mask.h

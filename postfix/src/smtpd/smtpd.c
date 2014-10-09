@@ -590,7 +590,7 @@
 /*	lookup tables that does not match the recipient.
 /* .PP
 /*	Parameters concerning known/unknown recipients of relay destinations:
-/* .IP "\fBrelay_domains ($mydestination)\fR"
+/* .IP "\fBrelay_domains (Postfix &ge; 2.12: empty, Postfix < 2.12: $mydestination)\fR"
 /*	What destination domains (and subdomains thereof) this system
 /*	will relay mail to.
 /* .IP "\fBrelay_recipient_maps (empty)\fR"
@@ -2500,8 +2500,8 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (warn_compat_break_smtputf8_enable)
 	    msg_info("using backwards-compatible default setting "
 		     VAR_SMTPUTF8_ENABLE "=no to accept non-ASCII sender "
-		     "address \"%s\" from %s (" VAR_COMPAT_LEVEL "<1)",
-		     STR(state->addr_buf), state->namaddr);
+		     "address \"%s\" from %s", STR(state->addr_buf),
+		     state->namaddr);
     }
 
     /*
@@ -2764,8 +2764,8 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (warn_compat_break_smtputf8_enable)
 	    msg_info("using backwards-compatible default setting "
 		     VAR_SMTPUTF8_ENABLE "=no to accept non-ASCII recipient "
-		     "address \"%s\" from %s (" VAR_COMPAT_LEVEL "<1)",
-		     STR(state->addr_buf), state->namaddr);
+		     "address \"%s\" from %s", STR(state->addr_buf),
+		     state->namaddr);
     }
     if (SMTPD_STAND_ALONE(state) == 0) {
 	const char *verify_sender;

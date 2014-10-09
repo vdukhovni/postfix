@@ -8,10 +8,6 @@ Wish list:
 
 	Things to do after the stable release:
 
-	Other things that we might want to break: relay_domains,
-	parent_domain_matches_subdomains. This requires a new
-	compatibility_level.
-
 	Update smtputf8_enable in postconf(5)
 
 	use "static const char myname[] ..."

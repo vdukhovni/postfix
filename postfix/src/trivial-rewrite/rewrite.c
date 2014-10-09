@@ -208,9 +208,8 @@ void    rewrite_tree(RWR_CONTEXT *context, TOK822 *tree)
 	    if (strcasecmp(vstring_str(vstringval), "localhost") != 0) {
 		msg_info("using backwards-compatible default setting "
 			 VAR_APP_DOT_MYDOMAIN "=yes to rewrite \"%s\" to "
-			 "\"%s.%s\" (" VAR_COMPAT_LEVEL " < 1)",
-			 vstring_str(vstringval), vstring_str(vstringval),
-			 var_mydomain);
+			 "\"%s.%s\"", vstring_str(vstringval),
+			 vstring_str(vstringval), var_mydomain);
 	    } else if (resolve_class("localhost") == RESOLVE_CLASS_DEFAULT) {
 		msg_info("using backwards-compatible default setting "
 			 VAR_APP_DOT_MYDOMAIN "=yes to rewrite \"%s\" to "

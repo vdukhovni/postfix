@@ -204,8 +204,7 @@ static char *get_str_ent(char **bufp, char *name, char *def_val)
 	    fatal_with_context("field \"%s\" has no default value", name);
 	if (warn_compat_break_chroot && strcmp(name, "chroot") == 0)
 	    msg_info("%s: line %d: using backwards-compatible default setting "
-		     "%s=%s (" VAR_COMPAT_LEVEL "<1)", master_path, 
-		     master_line, name, def_val);
+		     "%s=%s", master_path, master_line, name, def_val);
 	return (def_val);
     } else {
 	return (value);

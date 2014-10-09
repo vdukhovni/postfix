@@ -72,7 +72,6 @@ spawn.o: ../../include/mymalloc.h
 spawn.o: ../../include/set_eugid.h
 spawn.o: ../../include/spawn_command.h
 spawn.o: ../../include/split_at.h
-spawn.o: ../../include/stringops.h
 spawn.o: ../../include/sys_defs.h
 spawn.o: ../../include/timed_wait.h
 spawn.o: ../../include/vbuf.h
