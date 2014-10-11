@@ -462,6 +462,10 @@
 /*	RFC 6698 trust-anchor digest support in the Postfix TLS library.
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtp_tls_fallback_level (empty)\fR"
+/*	Optional fallback levels for authenticated TLS levels.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -856,6 +860,7 @@ char   *var_smtp_tls_mand_excl;
 char   *var_smtp_tls_dcert_file;
 char   *var_smtp_tls_dkey_file;
 bool    var_smtp_tls_enforce_peername;
+char   *var_smtp_tls_fback_level;
 char   *var_smtp_tls_key_file;
 char   *var_smtp_tls_loglevel;
 bool    var_smtp_tls_note_starttls_offer;
@@ -1037,7 +1042,7 @@ static void post_init(char *unused_name, char **unused_argv)
 	smtp_dns_support =
 	    name_code(dns_support, NAME_CODE_FLAG_NONE, var_smtp_dns_support);
 	if (smtp_dns_support == SMTP_DNS_INVALID)
-	    msg_fatal("invalid %s: \"%s\"", SMTP_X(DNS_SUPPORT),
+	    msg_fatal("invalid %s: \"%s\"", VAR_LMTP_SMTP(DNS_SUPPORT),
 		      var_smtp_dns_support);
 	var_disable_dns = (smtp_dns_support == SMTP_DNS_DISABLED);
     }
@@ -1049,10 +1054,11 @@ static void post_init(char *unused_name, char **unused_argv)
 	smtp_host_lookup_mask = SMTP_HOST_FLAG_NATIVE;
     else
 	smtp_host_lookup_mask =
-	    name_mask(SMTP_X(HOST_LOOKUP), lookup_masks, var_smtp_host_lookup);
+	    name_mask(VAR_LMTP_SMTP(HOST_LOOKUP), lookup_masks,
+		      var_smtp_host_lookup);
     if (msg_verbose)
 	msg_info("host name lookup methods: %s",
-		 str_name_mask(SMTP_X(HOST_LOOKUP), lookup_masks,
+		 str_name_mask(VAR_LMTP_SMTP(HOST_LOOKUP), lookup_masks,
 			       smtp_host_lookup_mask));
 
     /*
@@ -1071,7 +1077,7 @@ static void post_init(char *unused_name, char **unused_argv)
     /*
      * Select DNS query flags.
      */
-    smtp_dns_res_opt = name_mask(SMTP_X(DNS_RES_OPT), dns_res_opt_masks,
+    smtp_dns_res_opt = name_mask(VAR_LMTP_SMTP(DNS_RES_OPT), dns_res_opt_masks,
 				 var_smtp_dns_res_opt);
 }
 
@@ -1100,7 +1106,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 	smtp_sasl_initialize();
 #else
 	msg_warn("%s is true, but SASL support is not compiled in",
-		 SMTP_X(SASL_ENABLE));
+		 VAR_LMTP_SMTP(SASL_ENABLE));
 #endif
 
     if (*var_smtp_tls_level != 0)
@@ -1143,10 +1149,10 @@ static void pre_init(char *unused_name, char **unused_argv)
 	 */
 	smtp_tls_ctx =
 	    TLS_CLIENT_INIT(&props,
-			    log_param = SMTP_X(TLS_LOGLEVEL),
+			    log_param = VAR_LMTP_SMTP(TLS_LOGLEVEL),
 			    log_level = var_smtp_tls_loglevel,
 			    verifydepth = var_smtp_tls_scert_vd,
-			    cache_type = X_SMTP(TLS_MGR_SCACHE),
+			    cache_type = LMTP_SMTP_SUFFIX(TLS_MGR_SCACHE),
 			    cert_file = var_smtp_tls_cert_file,
 			    key_file = var_smtp_tls_key_file,
 			    dcert_file = var_smtp_tls_dcert_file,
@@ -1177,7 +1183,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * EHLO keyword filter.
      */
     if (*var_smtp_ehlo_dis_maps)
-	smtp_ehlo_dis_maps = maps_create(SMTP_X(EHLO_DIS_MAPS),
+	smtp_ehlo_dis_maps = maps_create(VAR_LMTP_SMTP(EHLO_DIS_MAPS),
 					 var_smtp_ehlo_dis_maps,
 					 DICT_FLAG_LOCK);
 
@@ -1185,7 +1191,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      * PIX bug workarounds.
      */
     if (*var_smtp_pix_bug_maps)
-	smtp_pix_bug_maps = maps_create(SMTP_X(PIX_BUG_MAPS),
+	smtp_pix_bug_maps = maps_create(VAR_LMTP_SMTP(PIX_BUG_MAPS),
 					var_smtp_pix_bug_maps,
 					DICT_FLAG_LOCK);
 
@@ -1197,19 +1203,19 @@ static void pre_init(char *unused_name, char **unused_argv)
 	    ext_prop_mask(VAR_PROP_EXTENSION, var_prop_extension);
     if (*var_smtp_generic_maps)
 	smtp_generic_maps =
-	    maps_create(SMTP_X(GENERIC_MAPS), var_smtp_generic_maps,
+	    maps_create(VAR_LMTP_SMTP(GENERIC_MAPS), var_smtp_generic_maps,
 			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
 
     /*
      * Header/body checks.
      */
     smtp_header_checks = hbc_header_checks_create(
-				      SMTP_X(HEAD_CHKS), var_smtp_head_chks,
-				      SMTP_X(MIME_CHKS), var_smtp_mime_chks,
-				      SMTP_X(NEST_CHKS), var_smtp_nest_chks,
+			       VAR_LMTP_SMTP(HEAD_CHKS), var_smtp_head_chks,
+			       VAR_LMTP_SMTP(MIME_CHKS), var_smtp_mime_chks,
+			       VAR_LMTP_SMTP(NEST_CHKS), var_smtp_nest_chks,
 						  smtp_hbc_callbacks);
     smtp_body_checks = hbc_body_checks_create(
-				      SMTP_X(BODY_CHKS), var_smtp_body_chks,
+			       VAR_LMTP_SMTP(BODY_CHKS), var_smtp_body_chks,
 					      smtp_hbc_callbacks);
 
     /*
@@ -1227,7 +1233,8 @@ static void pre_init(char *unused_name, char **unused_argv)
 	smtp_addr_pref = name_code(addr_pref_map, NAME_CODE_FLAG_NONE,
 				   var_smtp_addr_pref);
 	if (smtp_addr_pref < 0)
-	    msg_fatal("bad %s value: %s", SMTP_X(ADDR_PREF), var_smtp_addr_pref);
+	    msg_fatal("bad %s value: %s", VAR_LMTP_SMTP(ADDR_PREF),
+		      var_smtp_addr_pref);
     }
 }
 

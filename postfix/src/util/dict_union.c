@@ -67,7 +67,7 @@ typedef struct {
 
 static const char *dict_union_lookup(DICT *dict, const char *query)
 {
-    const char myname[] = "dict_union_lookup";
+    static const char myname[] = "dict_union_lookup";
     DICT_UNION *dict_union = (DICT_UNION *) dict;
     DICT   *map;
     char  **cpp;
@@ -111,7 +111,7 @@ static void dict_union_close(DICT *dict)
 
 DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
 {
-    const char myname[] = "dict_union_open";
+    static const char myname[] = "dict_union_open";
     DICT_UNION *dict_union;
     char   *saved_name = 0;
     char   *dict_type_name;

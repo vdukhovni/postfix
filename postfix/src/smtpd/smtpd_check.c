@@ -505,7 +505,7 @@ static ATTR_OVER_STR str_table[] = {
 
 static void policy_client_register(const char *name)
 {
-    const char myname[] = "policy_client_register";
+    static const char myname[] = "policy_client_register";
     SMTPD_POLICY_CLNT *policy_client;
     char   *saved_name = 0;
     const char *policy_name = 0;

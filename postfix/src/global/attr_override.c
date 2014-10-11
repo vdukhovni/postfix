@@ -90,7 +90,7 @@
 
 void    attr_override(char *cp, const char *sep, const char *parens,...)
 {
-    const char myname[] = "attr_override";
+    static const char myname[] = "attr_override";
     va_list ap;
     int     idx;
     char   *nameval;

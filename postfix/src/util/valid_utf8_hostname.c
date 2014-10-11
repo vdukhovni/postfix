@@ -50,7 +50,7 @@
 
 int     valid_utf8_hostname(int enable_utf8, const char *name, int gripe)
 {
-    const char myname[] = "valid_utf8_hostname";
+    static const char myname[] = "valid_utf8_hostname";
     const char *aname;
     int     ret;
 

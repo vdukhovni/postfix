@@ -228,7 +228,7 @@ void    smtp_sasl_initialize(void)
 	msg_panic("smtp_sasl_initialize: repeated call");
     if (*var_smtp_sasl_passwd == 0)
 	msg_fatal("specify a password table via the `%s' configuration parameter",
-		  SMTP_X(SASL_PASSWD));
+		  VAR_LMTP_SMTP(SASL_PASSWD));
 
     /*
      * Open the per-host password table and initialize the SASL library. Use
@@ -258,7 +258,7 @@ void    smtp_sasl_initialize(void)
 				      var_smtp_sasl_auth_cache_time);
 #else
 	msg_warn("not compiled with TLS support -- "
-		 "ignoring the %s setting", SMTP_X(SASL_AUTH_CACHE_NAME));
+	    "ignoring the %s setting", VAR_LMTP_SMTP(SASL_AUTH_CACHE_NAME));
 #endif
     }
 }

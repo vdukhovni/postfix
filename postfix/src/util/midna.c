@@ -75,7 +75,7 @@ int     midna_cache_size = DEF_MIDNA_CACHE_SIZE;
 
 static void *midna_utf8_to_ascii_create(const char *name, void *unused_context)
 {
-    const char myname[] = "midna_utf8_to_ascii_create";
+    static const char myname[] = "midna_utf8_to_ascii_create";
     char    buf[1024];			/* XXX */
     UErrorCode error = U_ZERO_ERROR;
     UIDNAInfo info = UIDNA_INFO_INITIALIZER;
@@ -110,7 +110,7 @@ static void *midna_utf8_to_ascii_create(const char *name, void *unused_context)
 
 static void *midna_ascii_to_utf8_create(const char *name, void *unused_context)
 {
-    const char myname[] = "midna_ascii_to_utf8_create";
+    static const char myname[] = "midna_ascii_to_utf8_create";
     char    buf[1024];			/* XXX */
     UErrorCode error = U_ZERO_ERROR;
     UIDNAInfo info = UIDNA_INFO_INITIALIZER;

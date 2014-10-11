@@ -109,6 +109,19 @@
 #include <smtp_reuse.h>
 
  /*
+  * XXX All TLS security level info belongs in session->tls. It should not
+  * pollute the session structure and consequently pollute internal APIs that
+  * don't need access to the session structure. However session->tls is a
+  * pointer into the cache and must therefore not be modified.
+  */
+#ifdef USE_TLS
+#define TLS_SESS_INIT(session, state) do { \
+	session->tls_level = state->tls->level;	/* XXX Pre fallback */ \
+	session->tls = state->tls;		/* TEMPORARY */ \
+    } while (0)
+#endif
+
+ /*
   * Forward declaration.
   */
 static SMTP_SESSION *smtp_connect_sock(int, struct sockaddr *, int,
@@ -207,12 +220,12 @@ static SMTP_SESSION *smtp_connect_addr(SMTP_ITERATOR *iter, DSN_BUF *why,
 #ifdef HAS_IPV6
     if (sa->sa_family == AF_INET6) {
 	bind_addr = var_smtp_bind_addr6;
-	bind_var = SMTP_X(BIND_ADDR6);
+	bind_var = VAR_LMTP_SMTP(BIND_ADDR6);
     } else
 #endif
     if (sa->sa_family == AF_INET) {
 	bind_addr = var_smtp_bind_addr;
-	bind_var = SMTP_X(BIND_ADDR);
+	bind_var = VAR_LMTP_SMTP(BIND_ADDR);
     } else
 	bind_var = bind_addr = "";
     if (*bind_addr) {
@@ -522,7 +535,7 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     if ((state->session = session) != 0) {
 	session->state = state;
 #ifdef USE_TLS
-	session->tls = state->tls;		/* TEMPORARY */
+	TLS_SESS_INIT(session, state);		/* TEMPORARY */
 	session->tls_nexthop = var_myhostname;	/* for TLS_LEV_SECURE */
 	if (session->tls->level == TLS_LEV_MAY) {
 	    msg_warn("%s: opportunistic TLS encryption is not appropriate "
@@ -674,7 +687,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 	    && *addr_list == 0)
 	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 #ifdef USE_TLS
-	session->tls = state->tls;		/* TEMPORARY */
+	TLS_SESS_INIT(session, state);		/* TEMPORARY */
 #endif
 	smtp_xfer(state);
 	smtp_cleanup_session(state);
@@ -734,7 +747,7 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
 		&& next == 0)
 		state->misc_flags |= SMTP_MISC_FLAG_FINAL_SERVER;
 #ifdef USE_TLS
-	    session->tls = state->tls;		/* TEMPORARY */
+	    TLS_SESS_INIT(session, state);	/* TEMPORARY */
 #endif
 	    smtp_xfer(state);
 	    smtp_cleanup_session(state);
@@ -978,7 +991,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    if ((state->session = session) != 0) {
 		session->state = state;
 #ifdef USE_TLS
-		session->tls = state->tls;	/* TEMPORARY */
+		TLS_SESS_INIT(session, state);	/* TEMPORARY */
 		/* XXX: EAI: Convert to A-label here or in TLS library */
 		session->tls_nexthop = domain;	/* for TLS_LEV_SECURE */
 #endif

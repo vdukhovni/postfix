@@ -130,6 +130,13 @@
 
 # Emit system-dependent Makefile macro definitions to standard output.
 
+echo "#----------------------------------------------------------------"
+echo "# Start of summary of user-configurable 'make makefiles' options."
+echo "# CCARGS=$CCARGS"
+echo "# AUXLIBS=$AUXLIBS"
+env | grep '^AUXLIBS_' | sed 's/^/# /'
+echo "# dynamicmaps=$dynamicmaps"
+
 # Defaults for most sane systems
 
 RANLIB=ranlib
@@ -807,6 +814,7 @@ EOF
 
 process_input_parameter()
 {
+    echo "#" $parm_name=$parm_val
     case "$parm_val" in
     *MAIL_VERSION*)
 	cparm_val=`echo "$parm_val" | \
@@ -882,6 +890,9 @@ do
      *) process_input_parameter;;
     esac
 done
+
+echo "# End of summary of user-configurable 'make makefiles' options."
+echo "#--------------------------------------------------------------"
 
 # The following are for non-shared libsasl and libmilter builds.
 

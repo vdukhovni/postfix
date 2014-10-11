@@ -339,6 +339,9 @@ int     smtp_helo(SMTP_STATE *state)
 	/*
 	 * If the policy table specifies a bogus TLS security level, fail
 	 * now.
+	 * 
+	 * XXX: This should be caught in smtp_connect before we even make a
+	 * connection to the host.  Change to msg_panic()?
 	 */
 #ifdef USE_TLS
 	if (session->tls->level == TLS_LEV_INVALID)
@@ -359,10 +362,10 @@ int     smtp_helo(SMTP_STATE *state)
 		&& (pix_bug_words =
 		    maps_find(smtp_pix_bug_maps,
 			      STR(iter->addr), 0)) != 0) {
-		pix_bug_source = SMTP_X(PIX_BUG_MAPS);
+		pix_bug_source = VAR_LMTP_SMTP(PIX_BUG_MAPS);
 	    } else {
 		pix_bug_words = var_smtp_pix_bug_words;
-		pix_bug_source = SMTP_X(PIX_BUG_WORDS);
+		pix_bug_source = VAR_LMTP_SMTP(PIX_BUG_WORDS);
 	    }
 	    if (*pix_bug_words) {
 		pix_bug_mask = name_mask_opt(pix_bug_source, pix_bug_table,
@@ -753,37 +756,38 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (TLS_REQUIRED(session->tls->level))
+	    if (smtp_tls_trouble(state, STARTTLS_COMMAND_FALLBACK))
 		return (smtp_site_fail(state, STR(iter->host), resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
 	    /* Else try to continue in plain-text mode. */
-	}
+	} else {
 
-	/*
-	 * Give up if we must use TLS but can't for various reasons.
-	 * 
-	 * 200412 Be sure to provide the default clause at the bottom of this
-	 * block. When TLS is required we must never, ever, end up in
-	 * plain-text mode.
-	 */
-	if (TLS_REQUIRED(session->tls->level)) {
-	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
-		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, "4.7.4"),
+	    /*
+	     * Give up if we must use TLS but can't for various reasons.
+	     * 
+	     * 200412 Be sure to provide the default clause at the bottom of
+	     * this block. When TLS is required we must never, ever, end up
+	     * in plain-text mode.
+	     */
+	    if (smtp_tls_trouble(state, STARTTLS_FEATURE_FALLBACK)) {
+		if (!(session->features & SMTP_FEATURE_STARTTLS)) {
+		    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "4.7.4"),
 			  "TLS is required, but was not offered by host %s",
-				       session->namaddr));
-	    } else if (smtp_tls_ctx == 0) {
-		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, "4.7.5"),
+					   session->namaddr));
+		} else if (smtp_tls_ctx == 0) {
+		    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "4.7.5"),
 		     "TLS is required, but our TLS engine is unavailable"));
-	    } else {
-		msg_warn("%s: TLS is required but unavailable, don't know why",
-			 myname);
-		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				       SMTP_RESP_FAKE(&fake, "4.7.0"),
+		} else {
+		    msg_warn("%s: TLS is required but unavailable, don't know why",
+			     myname);
+		    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+					   SMTP_RESP_FAKE(&fake, "4.7.0"),
 				       "TLS is required, but unavailable"));
+		}
 	    }
 	}
     }
@@ -807,6 +811,7 @@ static int smtp_start_tls(SMTP_STATE *state)
     TLS_CLIENT_START_PROPS tls_props;
     VSTRING *serverid;
     SMTP_RESP fake;
+    int     tls_level;
 
     /*
      * Turn off SMTP connection caching. When the TLS handshake succeeds, we
@@ -856,6 +861,11 @@ static int smtp_start_tls(SMTP_STATE *state)
      * resulting TLScontext. It is now up to the application to abort the TLS
      * connection if it chooses.
      * 
+     * Consequently, the TLS library need not and does not distinguish between
+     * the "dane" and "dane-only" security levels.  By the time we have TLSA
+     * records in hand, both behave identically modulo application-level
+     * fallback.  We collapse these now equivalent security levels.
+     * 
      * XXX When tls_client_start() fails then we don't know what state the SMTP
      * connection is in, so we give up on this connection even if we are not
      * required to use TLS.
@@ -863,12 +873,14 @@ static int smtp_start_tls(SMTP_STATE *state)
      * Large parameter lists are error-prone, so we emulate a language feature
      * that C does not have natively: named parameter lists.
      */
+    if ((tls_level = session->tls->level) == TLS_LEV_DANE_ONLY)
+	tls_level = TLS_LEV_DANE;
     session->tls_context =
 	TLS_CLIENT_START(&tls_props,
 			 ctx = smtp_tls_ctx,
 			 stream = session->stream,
 			 timeout = var_smtp_starttls_tmout,
-			 tls_level = session->tls->level,
+			 tls_level = tls_level,
 			 nexthop = session->tls_nexthop,
 			 host = STR(iter->host),
 			 namaddr = session->namaddrport,
@@ -913,25 +925,21 @@ static int smtp_start_tls(SMTP_STATE *state)
      * result, abort the delivery here. We have a usable TLS session with the
      * server, so no need to disable I/O, ... we can even be polite and send
      * "QUIT".
-     * 
-     * See src/tls/tls_level.c and src/tls/tls.h. Levels above "encrypt" require
-     * matching.  Levels >= "dane" require CA or DNSSEC trust.
-     * 
-     * When DANE TLSA records specify an end-entity certificate, the trust and
-     * match bits always coincide, but it is fine to report the wrong
-     * end-entity certificate as untrusted rather than unmatched.
      */
-    if (TLS_MUST_TRUST(session->tls->level))
-	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
+    if (TLS_MUST_TRUST(session->tls_level)
+	&& !TLS_CERT_IS_TRUSTED(session->tls_context)) {
+	if (smtp_tls_trouble(state, STARTTLS_VERIFY_FALLBACK))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    if (TLS_MUST_MATCH(session->tls->level))
-	if (!TLS_CERT_IS_MATCHED(session->tls_context))
+    } else if (TLS_MUST_MATCH(session->tls_level)
+	       && !TLS_CERT_IS_MATCHED(session->tls_context)) {
+	/* Peer certificate not matched as it should be */
+	if (smtp_tls_trouble(state, STARTTLS_VERIFY_FALLBACK))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
-
+    }
     /* At this point there must not be any pending plaintext. */
     vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
 
@@ -1442,8 +1450,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    }
 
 	    /*
-	     * Request SMTPUTF8 when the remote SMTP server supports
-	     * SMTPUTF8 and the sender requested SMTPUTF8 support.
+	     * Request SMTPUTF8 when the remote SMTP server supports SMTPUTF8
+	     * and the sender requested SMTPUTF8 support.
 	     * 
 	     * If the sender requested SMTPUTF8 but the remote SMTP server does
 	     * not support SMTPUTF8, then we have already determined earlier
@@ -1766,7 +1774,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 				       "unexpected server message");
 			msg_warn("server %s violates %s policy",
 				 session->namaddr,
-				 SMTP_X(TLS_BLK_EARLY_MAIL_REPLY));
+				 VAR_LMTP_SMTP(TLS_BLK_EARLY_MAIL_REPLY));
 			mail_from_rejected = 1;
 		    }
 #endif

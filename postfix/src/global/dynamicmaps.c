@@ -304,7 +304,7 @@ static void dymap_read_conf(const char *path, const char *path_base)
 
 void    dymap_init(const char *conf_path, const char *plugin_dir)
 {
-    const char myname[] = "dymap_init";
+    static const char myname[] = "dymap_init";
     SCAN_DIR *dir;
     char   *conf_path_d;
     const char *conf_name;

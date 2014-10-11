@@ -21,18 +21,19 @@ Notes for distribution maintainers
 
 * New backwards-compatibility safety net.
 
+With NEW Postfix installs, you MUST install a main.cf file with
+the setting "compatibility_level = 2". See conf/main.cf for an
+example.
+
+With UPGRADES of existing Postfix systems, you MUST NOT change the
+main.cf compatibility_level setting (if any).
+
 Several Postfix default settings have changed with Postfix 2.12.
 To avoid massive breakage, Postfix comes with a safety net that
 forces Postfix to keep running with backwards-compatible main.cf
-and master.cf default settings.
-
-With NEW Postfix installs, you should install a main.cf file with
-the setting "compatibility_level = 1". See the stock main.cf file
-in the conf subdirectory.
-
-With existing Postfix UPGRADES, the main.cf compatibility_level
-setting (if any) MUST be left alone, to enable the backwards-compatibility
-safety net as discussed below.
+and master.cf default settings. This safety net depends on the
+main.cf compatibility_level setting (if any). Details are in
+COMPATIBILITY_README.
 
 * New Postfix build system.
 
@@ -58,12 +59,44 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
-Major changes with snapshot 20141001
+Major changes with snapshot 20141011
 ====================================
+
+Support to fall back to an unauthenticated TLS security level ("may"
+or "encrypt) when the Postfix SMTP client cannot establish the
+preferred authenticated TLS security level ("dane", "dane-only",
+"fingerprint", "verify", or "secure"). The fall-back levels may be
+specified globally with the smtp_tls_fallback_level parameter or
+in per-site TLS policies with the "fallback" attribute.
+
+Fallback to unauthenticated TLS is logged, so that downgrade attacks
+are "tamper-evident".  Fallback should be used only when testing,
+or temporarily when working around a known problem at a remote site.
+
+Incompatible changes with snapshot 20141008
+===========================================
+
+The default settings have changed for relay_domains (new: empty,
+old: $mydestination) and mynetworks_style (new: host, old: subnet).
+However the backwards-compatibility safety net will prevent these
+changes from taking effect, giving the system administrator the
+option to make an old default setting permanent in main.cf or to
+adopt the new default setting, before turning off backwards
+compatibility. See COMPATIBILITY_README for details.
+
+With this the built-in compatibility level changes from 1 to 2.
+
+Incompatible changes with snapshot 20141001
+===========================================
+
+The default settings have changed for append_dot_mydomain (new: no.
+old: yes), master.cf chroot (new: n, old: y), and smtputf8 (new:
+yes, old: no).
 
 A new backwards-compatibility safety net forces Postfix to run with
 backwards-compatible main.cf and master.cf default settings after
-an upgrade to a newer but incompatible Postfix version.
+an upgrade to a newer but incompatible Postfix version. See
+COMPATIBILITY_README for details.
 
 While the backwards-compatible default settings are in effect,
 Postfix logs what services or what email would be affected by the
@@ -72,6 +105,8 @@ backwards-compatibility settings permanent in main.cf or master.cf,
 before turning off backwards compatibility.
 
 See postconf.5.html#compatibility_level for details.
+
+With this the built-in compatibility level changes from 0 to 1.
 
 Major changes with snapshot 20140928
 ====================================

@@ -105,7 +105,7 @@ struct DSN_FILTER {
 
 DSN_FILTER *dsn_filter_create(const char *title, const char *map_names)
 {
-    const char myname[] = "dsn_filter_create";
+    static const char myname[] = "dsn_filter_create";
     DSN_FILTER *fp;
 
     if (msg_verbose)
@@ -121,7 +121,7 @@ DSN_FILTER *dsn_filter_create(const char *title, const char *map_names)
 
 DSN    *dsn_filter_lookup(DSN_FILTER *fp, DSN *dsn)
 {
-    const char myname[] = "dsn_filter_lookup";
+    static const char myname[] = "dsn_filter_lookup";
     const char *result;
     int     ndr_dsn = 0;
 
@@ -182,7 +182,7 @@ DSN    *dsn_filter_lookup(DSN_FILTER *fp, DSN *dsn)
 
 void    dsn_filter_free(DSN_FILTER *fp)
 {
-    const char myname[] = "dsn_filter_free";
+    static const char myname[] = "dsn_filter_free";
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, fp->maps->title);

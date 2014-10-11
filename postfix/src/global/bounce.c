@@ -531,7 +531,7 @@ int     bounce_one_intern(int flags, const char *queue, const char *id,
 
 void    bounce_client_init(const char *title, const char *maps)
 {
-    const char myname[] = "bounce_client_init";
+    static const char myname[] = "bounce_client_init";
 
     if (delivery_status_filter != 0)
 	msg_panic("%s: duplicate initialization", myname);

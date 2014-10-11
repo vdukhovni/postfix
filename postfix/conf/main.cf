@@ -27,7 +27,7 @@
 #
 # The level below is what should be used with new (not upgrade) installs.
 #
-compatibility_level = 1
+compatibility_level = 2
 
 # SOFT BOUNCE
 #

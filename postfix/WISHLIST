@@ -10,8 +10,6 @@ Wish list:
 
 	Update smtputf8_enable in postconf(5)
 
-	use "static const char myname[] ..."
-
 	Add milter_mumble_macros to the list of per-macro features.
 
 	The pickup daemon logs warnings only when the cleanup daemon
@@ -28,7 +26,7 @@ Wish list:
 	depend on these definitions.
 
 	Error reporting: see if pcf_check_master_entry() and children
-	can return error descriptions instread of terminating with
+	can return error descriptions instead of terminating with
 	a fatal error.
 
 	Make sure that proxy: can handle random:, pipe:, and other
@@ -48,14 +46,15 @@ Wish list:
 	filter should be content_filter. Posted Wed, 10 Sep 2014
 	09:53:52 -0400 (EDT).
 
-	Clarify that receive_override_options should not be used
-	with smtpd_proxy_filter.
+	Clarify that receive_override_options have no effect with
+	smtpd_proxy_filter.
 
 	Document the relative order of header_checks, address
 	rewriting, milters.
 
-	Table-driven case folding and case-insensitive string 
-	comparison specifically for UTF-8.
+	NOT: Table-driven case folding and case-insensitive string
+	comparison specifically for UTF-8. Use libicu functions
+	instead.
 
 	The postfix-mumble@postfix.org list manager sends list mail
 	with ORCPT=rfc822;postfix-mumble-outgoing.  The local
@@ -75,12 +74,15 @@ Wish list:
 	Don't accept AUTH or other features that are not announced
 	in the EHLO response.
 
-	Per-Milter error action.
-
 	Suggested at Mailserver conference: Postscreen RDNS-based
 	reputation (but this makes postscreen performance highly
 	unpredicable because it introduces a dependency on random
 	DNS servers).
+
+	Suggested at Mailserver conference: a way to select a
+	specific field in a table, presumably as the result value.
+	This may be done with a filtermap{i,j,...}: table that propagates
+	only the specified field(s).
 
 	Discourage the use of "after 220" tests in POSTSCREEN_README
 	and the documentation of individual parameter settings.
@@ -125,14 +127,6 @@ Wish list:
 	than Postfix's own license). Currently, too many files list
 	Wietse as the original author, and Lutz Jaenicke's license,
 	which is wrong.
-
-	Code clarity: replace obscure macro/function names: for
-	example SMTP_X(XXX) -> VAR_SMTP(XXX), as the purpose is to
-	choose between VAR_SMTP_XXX or VAR_LMTP_XXX; replace
-	digestpl() etc. with names that make clear what operation
-	is being performed (in this case, update a digest with the
-	contents of a buffer with the specified length). Replace r
-	with res_opt, ditto for other 1-letter names.
 
 	We have smtp_host_lookup, smtp_dns_resolver_options, and
 	now smtp_dns_support_level.  Of these, smtp_dns_resolver_options

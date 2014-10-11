@@ -66,7 +66,7 @@
 
 int     smtputf8_autodetect(int class)
 {
-    const char myname[] = "smtputf8_autodetect";
+    static const char myname[] = "smtputf8_autodetect";
     static const NAME_MASK table[] = {
 	MAIL_SRC_NAME_SENDMAIL, MAIL_SRC_MASK_SENDMAIL,
 	MAIL_SRC_NAME_SMTPD, MAIL_SRC_MASK_SMTPD,

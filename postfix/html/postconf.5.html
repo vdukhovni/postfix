@@ -1552,9 +1552,11 @@ message when a backwards-compatible default setting is required.
 
 <blockquote>
 <pre>
-using backwards-compatible default setting <i>name=value</i> to [accept a specific client request]
+using backwards-compatible default setting <i>name=value</i>
+    to [accept a specific client request]
 
-using backwards-compatible default setting <i>name=value</i> to [enable specific Postfix behavior]
+using backwards-compatible default setting <i>name=value</i>
+    to [enable specific Postfix behavior]
 </pre>
 </blockquote>
 
@@ -1586,7 +1588,8 @@ warning message: </p>
 
 <blockquote>
 <pre>
-warning: To disable backwards compatibility use "postconf <a href="postconf.5.html#compatibility_level">compatibility_level</a>=<i>N</i>" and "postfix reload"
+warning: To disable backwards compatibility use "postconf
+    <a href="postconf.5.html#compatibility_level">compatibility_level</a>=<i>N</i>" and "postfix reload"
 </pre>
 </blockquote>
 

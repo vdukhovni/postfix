@@ -68,7 +68,7 @@ typedef struct {
 
 static const char *dict_pipe_lookup(DICT *dict, const char *query)
 {
-    const char myname[] = "dict_pipe_lookup";
+    static const char myname[] = "dict_pipe_lookup";
     DICT_PIPE *dict_pipe = (DICT_PIPE *) dict;
     DICT   *map;
     char  **cpp;
@@ -105,7 +105,7 @@ static void dict_pipe_close(DICT *dict)
 
 DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
 {
-    const char myname[] = "dict_pipe_open";
+    static const char myname[] = "dict_pipe_open";
     DICT_PIPE *dict_pipe;
     char   *saved_name = 0;
     char   *dict_type_name;

@@ -38,8 +38,9 @@ extern bool var_helpful_warnings;
 extern bool var_show_unk_rcpt_table;
 
  /*
-  * Compatibility level and migration support. Update postconf(5) and
-  * COMPATIBILITY_README when updating the current compatibility level.
+  * Compatibility level and migration support. Update postconf(5),
+  * COMPATIBILITY_README, and conf/main.cf when updating the current
+  * compatibility level.
   */
 #define VAR_COMPAT_LEVEL	"compatibility_level"
 #define DEF_COMPAT_LEVEL	0
@@ -1400,6 +1401,12 @@ extern bool var_smtp_tls_enforce_peername;
 #define VAR_LMTP_TLS_LEVEL	"lmtp_tls_security_level"
 #define DEF_LMTP_TLS_LEVEL	""
 extern char *var_smtp_tls_level;
+
+#define VAR_SMTP_TLS_FBACK_LEVEL	"smtp_tls_fallback_level"
+#define DEF_SMTP_TLS_FBACK_LEVEL	""
+#define VAR_LMTP_TLS_FBACK_LEVEL	"lmtp_tls_fallback_level"
+#define DEF_LMTP_TLS_FBACK_LEVEL	""
+extern char *var_smtp_tls_fback_level;
 
 #define VAR_SMTP_TLS_SCERT_VD	"smtp_tls_scert_verifydepth"
 #define DEF_SMTP_TLS_SCERT_VD	9

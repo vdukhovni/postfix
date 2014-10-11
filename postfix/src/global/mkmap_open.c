@@ -147,7 +147,7 @@ static MKMAP_OPEN_EXTEND_FN mkmap_open_extend_hook = 0;
 
 static void mkmap_open_init(void)
 {
-    const char myname[] = "mkmap_open_init";
+    static const char myname[] = "mkmap_open_init";
     const MKMAP_OPEN_INFO *mp;
 
     if (mkmap_open_hash != 0)
@@ -162,7 +162,7 @@ static void mkmap_open_init(void)
 
 void    mkmap_open_register(const char *type, MKMAP_OPEN_FN open_fn)
 {
-    const char myname[] = "mkmap_open_register";
+    static const char myname[] = "mkmap_open_register";
     MKMAP_OPEN_INFO *mp;
     HTABLE_INFO *ht;
 

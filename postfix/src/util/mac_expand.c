@@ -397,7 +397,7 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
 
 static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 {
-    const char myname[] = "mac_expand_callback";
+    static const char myname[] = "mac_expand_callback";
     MAC_EXP_CONTEXT *mc = (MAC_EXP_CONTEXT *) ptr;
     int     lookup_mode;
     const char *lookup;
