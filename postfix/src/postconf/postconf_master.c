@@ -395,7 +395,8 @@ void    pcf_read_master(int fail_on_open_error)
     VSTREAM *fp;
     const char *err;
     int     entry_count = 0;
-    int     line_count = 0;
+    int     line_count;
+    int     last_line = 0;
 
     /*
      * Sanity check.
@@ -425,7 +426,7 @@ void    pcf_read_master(int fail_on_open_error)
 	msg_warn("open %s: %m", path);
     } else {
 	buf = vstring_alloc(100);
-	while (readlline(buf, fp, &line_count) != 0) {
+	while (readllines(buf, fp, &last_line, &line_count) != 0) {
 	    pcf_master_table = (PCF_MASTER_ENT *) myrealloc((char *) pcf_master_table,
 			     (entry_count + 2) * sizeof(*pcf_master_table));
 	    if ((err = pcf_parse_master_entry(pcf_master_table + entry_count,

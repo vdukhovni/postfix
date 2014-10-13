@@ -743,7 +743,8 @@ DICT   *dict_regexp_open(const char *mapname, int open_flags, int dict_flags)
     VSTRING *line_buffer = 0;
     DICT_REGEXP_RULE *rule;
     DICT_REGEXP_RULE *last_rule = 0;
-    int     lineno = 0;
+    int     lineno;
+    int     last_line = 0;
     size_t  max_sub = 0;
     int     nesting = 0;
     char   *p;
@@ -797,7 +798,7 @@ DICT   *dict_regexp_open(const char *mapname, int open_flags, int dict_flags)
     /*
      * Parse the regexp table.
      */
-    while (readlline(line_buffer, map_fp, &lineno)) {
+    while (readllines(line_buffer, map_fp, &last_line, &lineno)) {
 	p = vstring_str(line_buffer);
 	trimblanks(p, 0)[0] = 0;
 	if (*p == 0)

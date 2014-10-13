@@ -5029,6 +5029,17 @@ configuration parameter.  See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_fallback_level">lmtp_tls_fallback_level</a>
+(default: empty)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a>
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_fingerprint_cert_match">lmtp_tls_fingerprint_cert_match</a>
 (default: empty)</b></DT><DD>
 
@@ -11635,6 +11646,61 @@ and "DES-CBC3-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_fallback_level">smtp_tls_fallback_level</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional fallback levels for authenticated TLS levels.  Specify
+a white-space or comma-separated list of
+<b>policy_level</b>=<b>fallback_level</b> pairs.  The <b>policy_level</b>
+must require authentication (one of dane, dane-only, fingerprint,
+verify, secure).  The <b>fallback_level</b> must be "encrypt" or
+"may".  When an authenticated connection at some desired policy
+level cannot be established, delivery will proceed at the correponding
+fallback level if possible.  A warning will be logged
+indicating the fallback reason. </p>
+
+<p> The TLS <a href="TLS_README.html#client_tls_policy">policy</a> table
+can be used to specify a destination-specific fallback strategy via the
+"fallback" policy attribute.  The value of the "fallback" attribute, if
+specified, must be "may", "encrypt" or "none".  If not "none", this
+specifies the fallback level for the destination in question.  If the
+attribute value is "none", fallback is suppressed for the destination
+even if enabled via a global setting of <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a>.  </p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # When authentication fails, log a warning and deliver anyway
+    # over an unauthenticated TLS connection.
+    #
+    <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> =
+        dane=encrypt,
+        dane-only=encrypt,
+        fingerprint=encrypt,
+        verify=encrypt,
+        secure=encrypt
+    indexed = ${<a href="postconf.5.html#default_database_type">default_database_type</a>}:${<a href="postconf.5.html#config_directory">config_directory</a>}/
+    <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = ${indexed}tls-policy
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/tls-policy:
+    # No fallback for example.com
+    example.com secure fallback=none
+    # For example.net tolerate cleartext fallback
+    example.net dane fallback=may
+</pre>
+</blockquote>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>

@@ -332,6 +332,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
     VSTRING *line_buffer;
     MKMAP  *mkmap;
     int     lineno;
+    int     last_line;
     char   *key;
     char   *value;
     struct stat st;
@@ -397,8 +398,8 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 	/*
 	 * Add records to the database.
 	 */
-	lineno = 0;
-	while (readlline(line_buffer, source_fp, &lineno)) {
+	last_line = 0;
+	while (readllines(line_buffer, source_fp, &last_line, &lineno)) {
 
 	    /*
 	     * Split on the first whitespace character, then trim leading and

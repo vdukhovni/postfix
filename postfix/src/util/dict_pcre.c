@@ -812,7 +812,8 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     VSTRING *line_buffer = 0;
     DICT_PCRE_RULE *last_rule = 0;
     DICT_PCRE_RULE *rule;
-    int     lineno = 0;
+    int     last_line = 0;
+    int     lineno;
     int     nesting = 0;
     char   *p;
 
@@ -870,7 +871,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     /*
      * Parse the pcre table.
      */
-    while (readlline(line_buffer, map_fp, &lineno)) {
+    while (readllines(line_buffer, map_fp, &last_line, &lineno)) {
 	p = vstring_str(line_buffer);
 	trimblanks(p, 0)[0] = 0;		/* Trim space at end */
 	if (*p == 0)

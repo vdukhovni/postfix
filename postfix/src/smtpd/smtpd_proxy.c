@@ -233,7 +233,7 @@ static VSTREAM *smtpd_proxy_replay_stream;
   */
 static void smtpd_proxy_fake_server_reply(SMTPD_STATE *, int);
 static int smtpd_proxy_rdwr_error(SMTPD_STATE *, int);
-static int smtpd_proxy_cmd(SMTPD_STATE *, int, const char *,...);
+static int PRINTFLIKE(3, 4) smtpd_proxy_cmd(SMTPD_STATE *, int, const char *,...);
 static int smtpd_proxy_rec_put(VSTREAM *, int, const char *, ssize_t);
 
  /*
@@ -652,7 +652,7 @@ static int smtpd_proxy_replay_send(SMTPD_STATE *state)
 
 /* smtpd_proxy_save_cmd - save SMTP command + expected response to replay log */
 
-static int smtpd_proxy_save_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
+static int PRINTFLIKE(3, 4) smtpd_proxy_save_cmd(SMTPD_STATE *state, int expect, const char *fmt,...)
 {
     va_list ap;
 

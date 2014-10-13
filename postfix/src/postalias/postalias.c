@@ -263,6 +263,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
     VSTRING *line_buffer;
     MKMAP  *mkmap;
     int     lineno;
+    int     last_line;
     VSTRING *key_buffer;
     VSTRING *value_buffer;
     TOK822 *tok_list;
@@ -334,8 +335,8 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	/*
 	 * Add records to the database.
 	 */
-	lineno = 0;
-	while (readlline(line_buffer, source_fp, &lineno)) {
+	last_line = 0;
+	while (readllines(line_buffer, source_fp, &last_line, &lineno)) {
 
 	    /*
 	     * Tokenize the input, so that we do the right thing when a

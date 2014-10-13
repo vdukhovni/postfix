@@ -106,12 +106,10 @@
 static char *master_path;		/* config file name */
 static VSTREAM *master_fp;		/* config file pointer */
 static int master_line;			/* config file line number */
+static int master_line_first;		/* config file line number */
 static ARGV *master_disable;		/* disabled service patterns */
 
 static char master_blanks[] = " \t\r\n";/* field delimiters */
-
-static NORETURN fatal_invalid_field(char *, char *);
-static NORETURN fatal_with_context(char *,...);
 
 /* fset_master_ent - specify configuration file pathname */
 
@@ -167,9 +165,21 @@ void    end_master_ent()
     master_disable = 0;
 }
 
+/* master_conf_context - plot the target range */
+
+static const char *master_conf_context(void)
+{
+    static VSTRING *context_buf = 0;
+
+    if (context_buf == 0)
+	context_buf = vstring_alloc(100);
+    vstring_sprintf(context_buf, "%s: line %d", master_path, master_line_first);
+    return (vstring_str(context_buf));
+}
+
 /* fatal_with_context - print fatal error with file/line context */
 
-static NORETURN fatal_with_context(char *format,...)
+static NORETURN PRINTFLIKE(1, 2) fatal_with_context(char *format,...)
 {
     const char *myname = "fatal_with_context";
     VSTRING *vp = vstring_alloc(100);
@@ -181,7 +191,7 @@ static NORETURN fatal_with_context(char *format,...)
     va_start(ap, format);
     vstring_vsprintf(vp, format, ap);
     va_end(ap);
-    msg_fatal("%s: line %d: %s", master_path, master_line, vstring_str(vp));
+    msg_fatal("%s: %s", master_conf_context(), vstring_str(vp));
 }
 
 /* fatal_invalid_field - report invalid field value */
@@ -203,8 +213,8 @@ static char *get_str_ent(char **bufp, char *name, char *def_val)
 	if (def_val == 0)
 	    fatal_with_context("field \"%s\" has no default value", name);
 	if (warn_compat_break_chroot && strcmp(name, "chroot") == 0)
-	    msg_info("%s: line %d: using backwards-compatible default setting "
-		     "%s=%s", master_path, master_line, name, def_val);
+	    msg_info("%s: using backwards-compatible default setting "
+		     "%s=%s", master_conf_context(), name, def_val);
 	return (def_val);
     } else {
 	return (value);
@@ -288,7 +298,7 @@ MASTER_SERV *get_master_ent()
      * Skip blank lines and comment lines.
      */
     for (;;) {
-	if (readlline(buf, master_fp, &master_line) == 0) {
+	if (readllines(buf, master_fp, &master_line, &master_line_first) == 0) {
 	    vstring_free(buf);
 	    vstring_free(junk);
 	    return (0);
@@ -340,17 +350,14 @@ MASTER_SERV *get_master_ent()
 	serv->type = MASTER_SERV_TYPE_INET;
 	atmp = mystrdup(name);
 	if ((parse_err = host_port(atmp, &host, "", &port, (char *) 0)) != 0)
-	    msg_fatal("%s: line %d: %s in \"%s\"",
-		      VSTREAM_PATH(master_fp), master_line,
-		      parse_err, name);
+	    fatal_with_context("%s in \"%s\"", parse_err, name);
 	if (*host) {
 	    serv->flags |= MASTER_FLAG_INETHOST;/* host:port */
 	    MASTER_INET_ADDRLIST(serv) = (INET_ADDR_LIST *)
 		mymalloc(sizeof(*MASTER_INET_ADDRLIST(serv)));
 	    inet_addr_list_init(MASTER_INET_ADDRLIST(serv));
 	    if (inet_addr_host(MASTER_INET_ADDRLIST(serv), host) == 0)
-		msg_fatal("%s: line %d: bad hostname or network address: %s",
-			  VSTREAM_PATH(master_fp), master_line, name);
+		fatal_with_context("bad hostname or network address: %s", name);
 	    inet_addr_list_uniq(MASTER_INET_ADDRLIST(serv));
 	    serv->listen_fd_count = MASTER_INET_ADDRLIST(serv)->used;
 	} else {
@@ -454,8 +461,7 @@ MASTER_SERV *get_master_ent()
      * sockets is frozen anyway once we build the command-line vector below.
      */
     if (serv->listen_fd_count == 0) {
-	msg_fatal("%s: line %d: no valid IP address found: %s",
-		  VSTREAM_PATH(master_fp), master_line, name);
+	fatal_with_context("no valid IP address found: %s", name);
     }
     serv->listen_fd = (int *) mymalloc(sizeof(int) * serv->listen_fd_count);
     for (n = 0; n < serv->listen_fd_count; n++)
@@ -557,8 +563,7 @@ MASTER_SERV *get_master_ent()
 		 (char *) 0);
     while ((cp = mystrtokq(&bufp, master_blanks, "{}")) != 0) {
 	if (*cp == '{' && (err = extpar(&cp, "{}", EXTPAR_FLAG_STRIP)) != 0)
-	    msg_fatal("%s: line %d: %s",
-		      VSTREAM_PATH(master_fp), master_line, err);
+	    fatal_with_context("%s", err);
 	argv_add(serv->args, cp, (char *) 0);
     }
     argv_terminate(serv->args);

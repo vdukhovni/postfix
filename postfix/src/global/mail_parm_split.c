@@ -7,13 +7,13 @@
 /*	#include <mail_parm_split.h>
 /*
 /*	ARGV	*mail_parm_split(
-/*	cost char *name,
+/*	const char *name,
 /*	const char *value)
 /* DESCRIPTION
 /*	mail_parm_split() splits a parameter list value into its
-/*	elements, and extracts text from inside {}. It uses
-/*	CHARS_COMMA_SP as list element delimiters, and CHARS_BRACE
-/*	for grouping.
+/*	elements, and extracts text from elements that are entirely
+/*	enclosed in {}. It uses CHARS_COMMA_SP as list element
+/*	delimiters, and CHARS_BRACE for grouping.
 /*
 /*	Arguments:
 /* .IP name
@@ -22,7 +22,8 @@
 /* .IP value
 /*	Parameter value.
 /* DIAGNOSTICS
-/*	fatal: syntax error while extracting text from {}.
+/*	fatal: syntax error while extracting text from {}, such as:
+/*	missing closing brace, or text after closing brace.
 /* SEE ALSO
 /*	argv_splitq(3), string array utilities
 /*	extpar(3), extract text from parentheses

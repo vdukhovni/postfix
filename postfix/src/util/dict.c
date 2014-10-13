@@ -476,7 +476,7 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
     char   *member;
     char   *val;
     const char *old;
-    int     old_lineno;
+    int     last_line;
     int     lineno;
     const char *err;
     struct stat st;
@@ -487,16 +487,15 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
      */
     DICT_FIND_FOR_UPDATE(dict, dict_name);
     buf = vstring_alloc(100);
-    old_lineno = lineno = 0;
+    last_line = 0;
 
     if (fstat(vstream_fileno(fp), &st) < 0)
 	msg_fatal("fstat %s: %m", VSTREAM_PATH(fp));
-    for ( /* void */ ; readlline(buf, fp, &lineno); old_lineno = lineno) {
+    while (readllines(buf, fp, &last_line, &lineno)) {
 	if ((err = split_nameval(STR(buf), &member, &val)) != 0)
-	    msg_fatal("%s, line %s: %s: \"%s\"",
+	    msg_fatal("%s, line %d: %s: \"%s\"",
 		      VSTREAM_PATH(fp),
-		      format_line_number((VSTRING *) 0,
-					 old_lineno + 1, lineno),
+		      lineno,
 		      err, STR(buf));
 	if (msg_verbose > 1)
 	    msg_info("%s: %s = %s", myname, member, val);

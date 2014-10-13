@@ -151,6 +151,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
     time_t  after;
     VSTRING *line_buffer = 0;
     int     lineno;
+    int     last_line;
     char   *key;
     char   *value;
     HTABLE *table;
@@ -189,9 +190,9 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	}
 	if (line_buffer == 0)
 	    line_buffer = vstring_alloc(100);
-	lineno = 0;
+	last_line = 0;
 	table = htable_create(13);
-	while (readlline(line_buffer, fp, &lineno)) {
+	while (readllines(line_buffer, fp, &last_line, &lineno)) {
 
 	    /*
 	     * Split on the first whitespace character, then trim leading and

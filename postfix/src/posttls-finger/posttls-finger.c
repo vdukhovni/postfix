@@ -453,7 +453,7 @@ typedef struct {			/* server response */
 
 /* command - send an SMTP command */
 
-static void command(STATE *state, int verbose, char *fmt,...)
+static void PRINTFLIKE(3, 4) command(STATE *state, int verbose, char *fmt,...)
 {
     VSTREAM *stream = state->stream;
     VSTRING *buf;

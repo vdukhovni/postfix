@@ -20,7 +20,9 @@
  /*
   * External interface.
   */
-extern VSTRING *readlline(VSTRING *, VSTREAM *, int *);
+extern VSTRING *readllines(VSTRING *, VSTREAM *, int *, int *);
+
+#define readlline(bp, fp, lp) readllines((bp), (fp), (lp), (int *) 0)
 
 /* LICENSE
 /* .ad
