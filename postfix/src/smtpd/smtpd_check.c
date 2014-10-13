@@ -3844,7 +3844,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 					 SMTPD_NAME_CLIENT, def_acl);
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_ACL, &cpp)) {
 	    status = check_namadr_access(state, *cpp, state->reverse_name, state->addr,
-					 FULL, &found, state->namaddr,
+					 FULL, &found, state->reverse_name,
 					 SMTPD_NAME_REV_CLIENT, def_acl);
 	    forbid_whitelist(state, name, status, state->reverse_name);
 	} else if (strcasecmp(name, REJECT_MAPS_RBL) == 0) {
@@ -3927,14 +3927,14 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_NS_ACL, &cpp)) {
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
-					     T_NS, state->namaddr,
+					     T_NS, state->reverse_name,
 					     SMTPD_NAME_REV_CLIENT, def_acl);
 		forbid_whitelist(state, name, status, state->reverse_name);
 	    }
 	} else if (is_map_command(state, name, CHECK_REVERSE_CLIENT_MX_ACL, &cpp)) {
 	    if (strcasecmp(state->reverse_name, "unknown") != 0) {
 		status = check_server_access(state, *cpp, state->reverse_name,
-					     T_MX, state->namaddr,
+					     T_MX, state->reverse_name,
 					     SMTPD_NAME_REV_CLIENT, def_acl);
 		forbid_whitelist(state, name, status, state->reverse_name);
 	    }
