@@ -18339,3 +18339,41 @@ Apologies for any names omitted.
 20140104
 
 	Bugfix: malformed error message. File: conf/post-install.
+
+20140116
+
+	Workaround: prepend "-I. -I../../include" to CCARGS, to
+	avoid name clashes with non-Postfix header files. File:
+	makedefs.
+
+20140223
+
+	Logging: the TLS client logged that an "Untrusted" TLS
+	connection was established instead of "Anonymous".  Viktor
+	Dukhovni. File: tls/tls_client.c.
+
+20140619
+
+	Bugfix (introduced: 2001): qmqpd null pointer bug when it
+	logs a lost connection while not in a mail transaction.
+	Reported by Michal Adamek. File: qmqpd/qmqpd.c.
+
+20140920
+
+	Bugfix (introduced: 20080212): incorrect client name in
+	reject messages from check_reverse_client_hostname_access
+	and check_reverse_client_hostname_{mx,ns}_access.  They
+	replied with the verified client name, instead of the name
+	that was rejected.  Problem reported by Reindl Harald. File:
+	smtpd/smtpd_check.c.
+
+20141012
+
+	Bugfix (introduced: Postfix 2.3): the PREPEND access/policy
+	action added headers ABOVE Postfix's own Received: header,
+	exposing Postfix's own Received: header to Milters (protocol
+	violation) and hiding the PREPENDed header from Milters.
+	The latter caused problems for DMARC implementations with
+	SPF policy plus DKIM Milter.  PREPENDed headers are now
+	added BELOW Postfix's own Received: header and remain visible
+	to Milters. File: smtpd/smtpd.c.
