@@ -2941,13 +2941,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     }
 
     /*
-     * PREPEND message headers.
-     */
-    if (state->prepend)
-	for (cpp = state->prepend->argv; *cpp; cpp++)
-	    out_fprintf(out_stream, REC_TYPE_NORM, "%s", *cpp);
-
-    /*
      * Suppress our own Received: header in the unlikely case that we are an
      * intermediate proxy.
      */
@@ -3036,6 +3029,18 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\t(envelope-from %s)", STR(state->buffer));
 #endif
     }
+
+    /*
+     * PREPEND message headers below our own Received: header. According
+     * https://www.milter.org/developers/api/smfi_insheader, Milters see only
+     * headers that have been sent by the SMTP client and those header
+     * modifications by earlier filters. Based on this we allow Milters to
+     * see headers added by access map or by policy service.
+     */
+    if (state->prepend)
+	for (cpp = state->prepend->argv; *cpp; cpp++)
+	    out_fprintf(out_stream, REC_TYPE_NORM, "%s", *cpp);
+
     smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
     state->where = SMTPD_AFTER_DATA;
 

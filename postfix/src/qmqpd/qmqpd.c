@@ -706,7 +706,8 @@ static void qmqpd_proto(QMQPD_STATE *state)
      */
     if (state->reason && state->where)
 	msg_info("%s: %s: %s while %s",
-	      state->queue_id, state->namaddr, state->reason, state->where);
+		 state->queue_id ? state->queue_id : "NOQUEUE",
+		 state->namaddr, state->reason, state->where);
 }
 
 /* qmqpd_service - service one client */

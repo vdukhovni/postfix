@@ -1044,7 +1044,9 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     if (log_mask & TLS_LOG_SUMMARY)
 	msg_info("%s TLS connection established to %s: %s with cipher %s "
-	      "(%d/%d bits)", TLS_CERT_IS_MATCHED(TLScontext) ? "Verified" :
+		 "(%d/%d bits)",
+		 !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous" :
+		 TLS_CERT_IS_MATCHED(TLScontext) ? "Verified" :
 		 TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
 	      props->namaddr, TLScontext->protocol, TLScontext->cipher_name,
 		 TLScontext->cipher_usebits, TLScontext->cipher_algbits);
