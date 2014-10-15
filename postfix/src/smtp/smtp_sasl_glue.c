@@ -258,7 +258,7 @@ void    smtp_sasl_initialize(void)
 				      var_smtp_sasl_auth_cache_time);
 #else
 	msg_warn("not compiled with TLS support -- "
-		 "ignoring the %s setting", VAR_LMTP_SMTP(SASL_AUTH_CACHE_NAME));
+	    "ignoring the %s setting", VAR_LMTP_SMTP(SASL_AUTH_CACHE_NAME));
 #endif
     }
 }

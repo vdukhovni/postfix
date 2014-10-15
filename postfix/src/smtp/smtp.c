@@ -462,6 +462,10 @@
 /*	RFC 6698 trust-anchor digest support in the Postfix TLS library.
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtp_tls_fallback_level (empty)\fR"
+/*	Optional fallback levels for authenticated TLS levels.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -856,6 +860,7 @@ char   *var_smtp_tls_mand_excl;
 char   *var_smtp_tls_dcert_file;
 char   *var_smtp_tls_dkey_file;
 bool    var_smtp_tls_enforce_peername;
+char   *var_smtp_tls_fback_level;
 char   *var_smtp_tls_key_file;
 char   *var_smtp_tls_loglevel;
 bool    var_smtp_tls_note_starttls_offer;
