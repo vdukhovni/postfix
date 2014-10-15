@@ -105,8 +105,8 @@
 
 static char *master_path;		/* config file name */
 static VSTREAM *master_fp;		/* config file pointer */
+static int master_line_last;		/* config file line number */
 static int master_line;			/* config file line number */
-static int master_line_first;		/* config file line number */
 static ARGV *master_disable;		/* disabled service patterns */
 
 static char master_blanks[] = " \t\r\n";/* field delimiters */
@@ -133,7 +133,7 @@ void    set_master_ent()
 	msg_panic("%s: no configuration file specified", myname);
     if ((master_fp = vstream_fopen(master_path, O_RDONLY, 0)) == 0)
 	msg_fatal("open %s: %m", master_path);
-    master_line = 0;
+    master_line_last = 0;
     if (master_disable != 0)
 	msg_panic("%s: service disable list still exists", myname);
     if (inet_proto_info()->ai_family_list[0] == 0) {
@@ -173,7 +173,7 @@ static const char *master_conf_context(void)
 
     if (context_buf == 0)
 	context_buf = vstring_alloc(100);
-    vstring_sprintf(context_buf, "%s: line %d", master_path, master_line_first);
+    vstring_sprintf(context_buf, "%s: line %d", master_path, master_line);
     return (vstring_str(context_buf));
 }
 
@@ -298,7 +298,7 @@ MASTER_SERV *get_master_ent()
      * Skip blank lines and comment lines.
      */
     for (;;) {
-	if (readllines(buf, master_fp, &master_line, &master_line_first) == 0) {
+	if (readllines(buf, master_fp, &master_line_last, &master_line) == 0) {
 	    vstring_free(buf);
 	    vstring_free(junk);
 	    return (0);

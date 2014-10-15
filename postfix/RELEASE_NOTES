@@ -63,11 +63,11 @@ Incompatible changes with snapshot 20141013
 ===========================================
 
 Headers prepended with the access/policy PREPEND action are now
-added BELOW Postfix's own Recived: header. This ensures a) that
-Postfix's own Recived: header remains hidden from Milters as required
-by the Milter protocol, and b) that PREPENDed headers become visible
-to Milters, as expected by DMARC implementations based on SPF policy
-plus DKIM milter.
+added BELOW Postfix's own Received: header. This ensures a) that
+Postfix's own Received: header remains hidden from Milters as
+required by the Milter protocol, and b) that PREPENDed headers
+become visible to Milters, as expected by DMARC implementations
+based on SPF policy plus DKIM milter.
 
 Major changes with snapshot 20141011
 ====================================

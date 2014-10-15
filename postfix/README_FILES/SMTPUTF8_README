@@ -12,13 +12,36 @@ and UTF-8 message header values.
 
 Topics covered in this document:
 
+  * Building with/without SMTPUTF8 support
   * Enabling Postfix SMTPUTF8 support
   * Using Postfix SMTPUTF8 support
   * SMTPUTF8 autodetection
   * Limitations of the current implementation
   * Compatibility with pre-SMTPUTF8 environments
-  * Building with/without SMTPUTF8 support
   * Credits
+
+BBuuiillddiinngg PPoossttffiixx wwiitthh//wwiitthhoouutt SSMMTTPPUUTTFF88 ssuuppppoorrtt
+
+Postfix will build with SMTPUTF8 support if the ICU library and header files
+are installed on the system. The package name varies with the OS distribution
+(and version). The table shows package names for a number of platforms at the
+time this text was written.
+
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |OOSS DDiissttrriibbuuttiioonn      |PPaacckkaaggee     |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
+    |FreeBSD, NetBSD, etc.|icu         |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
+    |Centos, Fedora, RHEL |libicu-devel|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
+    |Debian, Ubuntu       |libicu-dev  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ |
+
+To force Postfix to build without SMTPUTF8, specify:
+
+    $ mmaakkee mmaakkeeffiilleess CCCCAARRGGSS==--DDNNOO__EEAAII ......
+
+See the INSTALL document for more "make makefiles" options.
 
 EEnnaabblliinngg PPoossttffiixx SSMMTTPPUUTTFF88 ssuuppppoorrtt
 
@@ -202,14 +225,6 @@ localparts (and in headers).
 Thus, Postfix continues to permit UTF-8 in address localparts (and in headers)
 in email from and to pre-SMTPUTF8 systems. At least, that is the default (see
 autodetection above).
-
-BBuuiillddiinngg wwiitthh//wwiitthhoouutt SSMMTTPPUUTTFF88 ssuuppppoorrtt
-
-Postfix SMTPUTF8 support requires the ICU library. Postfix automatically builds
-with SMTPUTF8 support when the library and its header files are installed. To
-force Postfix to build without SMTPUTF8, specify:
-
-    $ mmaakkee mmaakkeeffiilleess --DDNNOO__EEAAII ......
 
 CCrreeddiittss
 
