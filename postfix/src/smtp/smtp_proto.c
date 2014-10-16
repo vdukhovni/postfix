@@ -344,7 +344,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * connection to the host.  Change to msg_panic()?
 	 */
 #ifdef USE_TLS
-	if (session->tls->level == TLS_LEV_INVALID)
+	if (state->tls->level == TLS_LEV_INVALID)
 	    /* Warning is already logged. */
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.0"),
@@ -709,14 +709,14 @@ int     smtp_helo(SMTP_STATE *state)
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) &&
 	    var_smtp_tls_note_starttls_offer &&
-	    session->tls->level <= TLS_LEV_NONE)
+	    state->tls->level <= TLS_LEV_NONE)
 	    msg_info("Host offered STARTTLS: [%s]", STR(iter->host));
 
 	/*
 	 * Decide whether or not to send STARTTLS.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
-	    && smtp_tls_ctx != 0 && session->tls->level >= TLS_LEV_MAY) {
+	    && smtp_tls_ctx != 0 && state->tls->level >= TLS_LEV_MAY) {
 
 	    /*
 	     * Prepare for disaster.
@@ -762,7 +762,7 @@ int     smtp_helo(SMTP_STATE *state)
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
 	    /* Else try to continue in plain-text mode. */
-	} else if (session->tls->level != TLS_LEV_NONE) {
+	} else if (state->tls->level != TLS_LEV_NONE) {
 
 	    /*
 	     * Give up if we must use TLS but can't for various reasons.
@@ -873,7 +873,7 @@ static int smtp_start_tls(SMTP_STATE *state)
      * Large parameter lists are error-prone, so we emulate a language feature
      * that C does not have natively: named parameter lists.
      */
-    if ((tls_level = session->tls->level) == TLS_LEV_DANE_ONLY)
+    if ((tls_level = state->tls->level) == TLS_LEV_DANE_ONLY)
 	tls_level = TLS_LEV_DANE;
     session->tls_context =
 	TLS_CLIENT_START(&tls_props,
@@ -886,13 +886,13 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 namaddr = session->namaddrport,
 			 serverid = vstring_str(serverid),
 			 helo = session->helo,
-			 protocols = session->tls->protocols,
-			 cipher_grade = session->tls->grade,
+			 protocols = state->tls->protocols,
+			 cipher_grade = state->tls->grade,
 			 cipher_exclusions
-			 = vstring_str(session->tls->exclusions),
-			 matchargv = session->tls->matchargv,
+			 = vstring_str(state->tls->exclusions),
+			 matchargv = state->tls->matchargv,
 			 mdalg = var_smtp_tls_fpt_dgst,
-			 dane = session->tls->dane);
+			 dane = state->tls->dane);
     vstring_free(serverid);
 
     if (session->tls_context == 0) {
@@ -926,13 +926,13 @@ static int smtp_start_tls(SMTP_STATE *state)
      * server, so no need to disable I/O, ... we can even be polite and send
      * "QUIT".
      */
-    if (TLS_MUST_TRUST(session->tls_level)
+    if (TLS_MUST_TRUST(state->tls->level)
 	&& !TLS_CERT_IS_TRUSTED(session->tls_context)) {
 	if (smtp_tls_trouble(state, STARTTLS_VERIFY_FALLBACK))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    } else if (TLS_MUST_MATCH(session->tls_level)
+    } else if (TLS_MUST_MATCH(state->tls->level)
 	       && !TLS_CERT_IS_MATCHED(session->tls_context)) {
 	/* Peer certificate not matched as it should be */
 	if (smtp_tls_trouble(state, STARTTLS_VERIFY_FALLBACK))

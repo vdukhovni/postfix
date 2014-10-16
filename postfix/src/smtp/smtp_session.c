@@ -167,7 +167,6 @@ SMTP_SESSION *smtp_session_alloc(VSTREAM *stream, SMTP_ITERATOR *iter,
     session->tls_context = 0;
     session->tls_retry_plain = 0;
     session->tls_nexthop = 0;
-    session->tls = 0;				/* TEMPORARY */
 #endif
     session->state = 0;
     debug_peer_check(host, addr);

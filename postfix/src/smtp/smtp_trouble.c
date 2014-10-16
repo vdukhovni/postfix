@@ -486,7 +486,7 @@ int     smtp_stream_except(SMTP_STATE *state, int code, const char *description)
 int     smtp_tls_trouble(SMTP_STATE *state, int protocol_stage)
 {
     SMTP_SESSION *session = state->session;
-    SMTP_TLS_POLICY *tls = session->tls;
+    SMTP_TLS_POLICY *tls = state->tls;
 
     /* Sanity check. */
     if (tls->level == TLS_LEV_NONE)
@@ -547,7 +547,7 @@ int     smtp_tls_trouble(SMTP_STATE *state, int protocol_stage)
 	break;
     }
 
-    session->tls_level = tls->fallback_level;
+    tls->level = tls->fallback_level;
     return (0);
 }
 

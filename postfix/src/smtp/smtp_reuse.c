@@ -180,9 +180,6 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     }
     state->session = session;
     session->state = state;
-#ifdef USE_TLS
-    session->tls = state->tls;			/* TEMPORARY */
-#endif
 
     /*
      * Send an RSET probe to verify that the session is still good.
