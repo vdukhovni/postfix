@@ -762,7 +762,7 @@ int     smtp_helo(SMTP_STATE *state)
 				       session->namaddr,
 				       translit(resp->str, "\n", " ")));
 	    /* Else try to continue in plain-text mode. */
-	} else if (state->tls->level != TLS_LEV_NONE) {
+	} else if (state->tls->level >= TLS_LEV_ENCRYPT) {
 
 	    /*
 	     * Give up if we must use TLS but can't for various reasons.

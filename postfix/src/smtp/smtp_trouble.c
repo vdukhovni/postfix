@@ -489,7 +489,7 @@ int     smtp_tls_trouble(SMTP_STATE *state, int protocol_stage)
     SMTP_TLS_POLICY *tls = state->tls;
 
     /* Sanity check. */
-    if (tls->level == TLS_LEV_NONE)
+    if (tls->level <= TLS_LEV_NONE)
 	msg_panic("smtp_tls_trouble: TLS error for non-TLS session");
 
     /* Handle non-recoverable cases */
