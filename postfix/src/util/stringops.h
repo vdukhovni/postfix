@@ -51,13 +51,6 @@ extern char *extpar(char **, const char *, int);
 #define EXTPAR_FLAG_STRIP	(1<<0)	/* "{ text }" -> "text" */
 #define EXTPAR_FLAG_EXTRACT	(1<<1)	/* hint from caller's caller */
 
- /*
-  * Character sets for parsing.
-  */
-#define CHARS_COMMA_SP	", \t\r\n"	/* list separator */
-#define CHARS_SPACE	" \t\r\n"	/* word separator */
-#define CHARS_BRACE	"{}"		/* grouping */
-
 /* LICENSE
 /* .ad
 /* .fi

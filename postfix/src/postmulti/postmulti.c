@@ -863,7 +863,7 @@ static void load_all_instances(void)
      * only comma characters. Count the actual number of elements, before we
      * decide that the list is empty.
      */
-    secondary_names = argv_split(var_multi_conf_dirs, "\t\n\r, ");
+    secondary_names = argv_split(var_multi_conf_dirs, CHARS_COMMA_SP);
 
     /*
      * First, the primary instance.  This is synthesized out of thin air.
@@ -1469,7 +1469,7 @@ static int word_in_list(char *cmdlist, const char *cmd)
     char   *elem;
 
     cp = saved = mystrdup(cmdlist);
-    while ((elem = mystrtok(&cp, "\t\n\r, ")) != 0 && strcmp(elem, cmd) != 0)
+    while ((elem = mystrtok(&cp, CHARS_COMMA_SP)) != 0 && strcmp(elem, cmd) != 0)
 	 /* void */ ;
     myfree(saved);
     return (elem != 0);

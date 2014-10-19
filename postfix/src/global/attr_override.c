@@ -26,7 +26,7 @@
 /*	Pointer to input string. The input is modified.
 /* .IP "delimiters, parens"
 /*	See mystrtok(3) for description. Typical values are
-/*	", \\t\\r\\n" and "{}", respectively.
+/*	CHARS_COMMA_SP and CHARS_BRACE, respectively.
 /* .PP
 /*	The parens argument is followed by a list of (key, value)
 /*	argument pairs. Each key may appear only once.  The list

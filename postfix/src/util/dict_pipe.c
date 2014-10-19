@@ -138,7 +138,7 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
     /*
      * Split the table name into its constituent parts.
      */
-    if ((len = balpar(name, "{}")) == 0 || name[len] != 0
+    if ((len = balpar(name, CHARS_BRACE)) == 0 || name[len] != 0
 	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0)
 	DICT_PIPE_RETURN(dict_surrogate(DICT_TYPE_PIPE, name,
 					open_flags, dict_flags,
@@ -152,7 +152,7 @@ DICT   *dict_pipe_open(const char *name, int open_flags, int dict_flags)
      * level. The first table determines the pattern-matching flags.
      */
     DICT_OWNER_AGGREGATE_INIT(aggr_owner);
-    argv = argv_splitq(saved_name, ", \t\r\n", "{}");
+    argv = argv_splitq(saved_name, CHARS_COMMA_SP, CHARS_BRACE);
     for (cpp = argv->argv; (dict_type_name = *cpp) != 0; cpp++) {
 	if (msg_verbose)
 	    msg_info("%s: %s", myname, dict_type_name);

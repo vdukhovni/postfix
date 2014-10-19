@@ -20666,3 +20666,22 @@ Apologies for any names omitted.
 	with similar code elsewhere. File: master/master_ent.c.
 
 	Backed out SMTP client TLS fallback due to multiple problems.
+
+20141018
+
+	Bugfix (introduced: Postfix 2.3): when a Milter inserted a
+	header ABOVE Postfix's own Received: header, Postfix would
+	expose its own Received: header to Milters (violating
+	protocol) and hide the Milter-inserted header from Milters
+	(wtf).  Files: cleanup/cleanup.h, cleanup/cleanup_message.c,
+	cleanup/cleanup_state.c, milter/milter.[hc], milter/milter8.c.
+
+	Cleanup: revert the workaround that places headers inserted
+	with PREPEND actions or policy requests BELOW Postfix's own
+	Received: message header. File: smtpd/smtpd.c.
+
+20141019
+
+	Cleanup: replace dozens and dozens of ad-hoc string constants
+	with CHARS_SPACE, CHARS_COMMA_SP, and CHARS_BRACE. Files:
+	52, too many files to mention here.

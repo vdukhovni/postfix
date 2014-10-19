@@ -221,8 +221,8 @@ static void update(char *query)
     char   *status_text;
     char   *cp = query;
 
-    if ((addr = mystrtok(&cp, " \t\r\n")) == 0
-	|| (status_text = mystrtok(&cp, " \t\r\n")) == 0) {
+    if ((addr = mystrtok(&cp, CHARS_SPACE)) == 0
+	|| (status_text = mystrtok(&cp, CHARS_SPACE)) == 0) {
 	msg_warn("bad request format");
 	return;
     }
@@ -276,7 +276,7 @@ int     main(int argc, char **argv)
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	cp = STR(buffer);
-	if ((command = mystrtok(&cp, " \t\r\n")) == 0)
+	if ((command = mystrtok(&cp, CHARS_SPACE)) == 0)
 	    continue;
 	if (strcmp(command, "query") == 0)
 	    query(cp, buffer);

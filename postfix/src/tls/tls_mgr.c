@@ -411,7 +411,7 @@ int     main(int unused_ac, char **av)
 	msg_fatal("chdir %s: %m", var_queue_dir);
 
     while (vstring_fgets_nonl(inbuf, VSTREAM_IN)) {
-	argv = argv_split(STR(inbuf), " \t\r\n");
+	argv = argv_split(STR(inbuf), CHARS_SPACE);
 	if (argv->argc == 0) {
 	    argv_free(argv);
 	    continue;

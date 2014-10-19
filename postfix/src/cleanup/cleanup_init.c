@@ -360,7 +360,7 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	    name_mask(VAR_CANON_CLASSES, rcpt_canon_class_table,
 		      var_rcpt_canon_classes);
     if (*var_masq_domains)
-	cleanup_masq_domains = argv_split(var_masq_domains, " ,\t\r\n");
+	cleanup_masq_domains = argv_split(var_masq_domains, CHARS_COMMA_SP);
     if (*var_header_checks)
 	cleanup_header_checks =
 	    maps_create(VAR_HEADER_CHECKS, var_header_checks, DICT_FLAG_LOCK);

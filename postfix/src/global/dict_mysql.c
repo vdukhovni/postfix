@@ -683,7 +683,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
 
     hosts = cfg_get_str(p, "hosts", "", 0, 0);
 
-    dict_mysql->hosts = argv_split(hosts, " ,\t\r\n");
+    dict_mysql->hosts = argv_split(hosts, CHARS_COMMA_SP);
     if (dict_mysql->hosts->argc == 0) {
 	argv_add(dict_mysql->hosts, "localhost", ARGV_END);
 	argv_terminate(dict_mysql->hosts);

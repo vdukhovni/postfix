@@ -127,11 +127,11 @@ int     main(void)
 
     while (vstring_fgets(vp, VSTREAM_IN) && VSTRING_LEN(vp) > 0) {
 	start = vstring_str(vp);
-	if (strchr(start, '{') == 0) {
-	    while ((str = mystrtok(&start, " \t\r\n")) != 0)
+	if (strchr(start, CHARS_BRACE[0]) == 0) {
+	    while ((str = mystrtok(&start, CHARS_SPACE)) != 0)
 		vstream_printf(">%s<\n", str);
 	} else {
-	    while ((str = mystrtokq(&start, " \t\r\n", "{}")) != 0)
+	    while ((str = mystrtokq(&start, CHARS_SPACE, CHARS_BRACE)) != 0)
 		vstream_printf(">%s<\n", str);
 	}
 	vstream_fflush(VSTREAM_OUT);

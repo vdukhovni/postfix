@@ -650,8 +650,8 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 
 static void post_jail_init(char *service_name, char **unused_argv)
 {
-    const char *sep = ", \t\r\n";
-    const char *parens = "{}";
+    const char *sep = CHARS_COMMA_SP;
+    const char *parens = CHARS_BRACE;
     char   *saved_filter;
     char   *bp;
     char   *type_name;

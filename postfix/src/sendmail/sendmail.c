@@ -1395,7 +1395,7 @@ int     main(int argc, char **argv)
 	argv_add(ext_argv, "postalias", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
 	    argv_add(ext_argv, "-v", (char *) 0);
-	argv_split_append(ext_argv, var_alias_db_map, ", \t\r\n");
+	argv_split_append(ext_argv, var_alias_db_map, CHARS_COMMA_SP);
 	argv_terminate(ext_argv);
 	mail_run_replace(var_command_dir, ext_argv->argv);
 	/* NOTREACHED */

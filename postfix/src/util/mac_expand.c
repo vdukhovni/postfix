@@ -208,7 +208,7 @@ static const NAME_CODE mac_exp_op_table[] =
  /*
   * The whitespace separator set.
   */
-#define MAC_EXP_WHITESPACE	" \t\r\n"
+#define MAC_EXP_WHITESPACE	CHARS_SPACE
 
 /* mac_exp_eval - evaluate binary expression */
 
@@ -628,8 +628,8 @@ int     main(int unused_argc, char **unused_argv)
 	    if (VSTRING_LEN(buf) == 0)
 		break;
 	    cp = vstring_str(buf);
-	    name = mystrtok(&cp, " \t\r\n=");
-	    value = mystrtok(&cp, " \t\r\n=");
+	    name = mystrtok(&cp, CHARS_SPACE "=");
+	    value = mystrtok(&cp, CHARS_SPACE "=");
 	    htable_enter(table, name, value ? mystrdup(value) : 0);
 	}
 

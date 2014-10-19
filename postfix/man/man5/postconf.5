@@ -2970,11 +2970,6 @@ The LMTP-specific version of the smtp_tls_exclude_ciphers
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH lmtp_tls_fallback_level (default: empty)
-The LMTP-specific version of the smtp_tls_fallback_level
-configuration parameter.  See there for details.
-.PP
-This feature is available in Postfix 2.12 and later.
 .SH lmtp_tls_fingerprint_cert_match (default: empty)
 The LMTP-specific version of the smtp_tls_fingerprint_cert_match
 configuration parameter.  See there for details.
@@ -7309,63 +7304,6 @@ and "DES-CBC3-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtp_tls_fallback_level (default: empty)
-Optional fallback levels for authenticated TLS levels.  Specify
-a white-space or comma-separated list of
-\fBpolicy_level\fR=\fBfallback_level\fR pairs.  The \fBpolicy_level\fR
-must require authentication (one of dane, dane-only, fingerprint,
-verify, secure).  The \fBfallback_level\fR must be "encrypt" or
-"may".  When an authenticated connection at some desired policy
-level cannot be established, delivery will proceed at the correponding
-fallback level if possible.  A warning will be logged
-indicating the fallback reason.
-.PP
-The TLS policy table
-can be used to specify a destination-specific fallback strategy via the
-"fallback" policy attribute.  The value of the "fallback" attribute, if
-specified, must be "may", "encrypt" or "none".  If not "none", this
-specifies the fallback level for the destination in question.  If the
-attribute value is "none", fallback is suppressed for the destination
-even if enabled via a global setting of smtp_tls_fallback_level.
-.PP
-Example:
-.sp
-.in +4
-.nf
-.na
-.ft C
-/etc/postfix/main.cf:
-    # When authentication fails, log a warning and deliver anyway
-    # over an unauthenticated TLS connection.
-    #
-    smtp_tls_fallback_level =
-        dane=encrypt,
-        dane-only=encrypt,
-        fingerprint=encrypt,
-        verify=encrypt,
-        secure=encrypt
-    indexed = ${default_database_type}:${config_directory}/
-    smtp_tls_policy_maps = ${indexed}tls-policy
-.fi
-.ad
-.ft R
-.in -4
-.sp
-.in +4
-.nf
-.na
-.ft C
-/etc/postfix/tls-policy:
-    # No fallback for example.com
-    example.com secure fallback=none
-    # For example.net tolerate cleartext fallback
-    example.net dane fallback=may
-.fi
-.ad
-.ft R
-.in -4
-.PP
-This feature is available in Postfix 2.12 and later.
 .SH smtp_tls_fingerprint_cert_match (default: empty)
 List of acceptable remote SMTP server certificate fingerprints for
 the "fingerprint" TLS security level (\fBsmtp_tls_security_level\fR =

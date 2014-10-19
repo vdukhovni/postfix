@@ -114,8 +114,8 @@ MAPS   *maps_create(const char *title, const char *map_names, int dict_flags)
     const char *myname = "maps_create";
     char   *temp;
     char   *bufp;
-    static char sep[] = " \t,\r\n";
-    static char parens[] = "{}";
+    static char sep[] = CHARS_COMMA_SP;
+    static char parens[] = CHARS_BRACE;
     MAPS   *maps;
     char   *map_type_name;
     VSTRING *map_type_name_flags;

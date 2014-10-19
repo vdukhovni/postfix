@@ -162,7 +162,7 @@ static void pcf_register_dbms_helper(char *str_value,
      * Naive parsing. We don't really know if this substring specifies a
      * database or some other text.
      */
-    while ((db_type = mystrtokq(&str_value, " ,\t\r\n", "{}")) != 0) {
+    while ((db_type = mystrtokq(&str_value, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 
 	/*
 	 * Skip over "proxy:" maptypes, to emulate the proxymap(8) server's
@@ -180,8 +180,8 @@ static void pcf_register_dbms_helper(char *str_value,
 	 * local or global namespace.
 	 */
 	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
-	    if (*prefix == '{') {		/* } */
-		if ((err = extpar(&prefix, "{}", EXTPAR_FLAG_NONE)) != 0) {
+	    if (*prefix == CHARS_BRACE[0]) {
+		if ((err = extpar(&prefix, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
 		    /* XXX Encapsulate this in pcf_warn() function. */
 		    if (local_scope)
 			msg_warn("%s:%s: %s",

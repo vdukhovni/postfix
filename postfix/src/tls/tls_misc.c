@@ -580,7 +580,7 @@ int     tls_protocol_mask(const char *plist)
     } while (0)
 
     save = cp = mystrdup(plist);
-    while ((tok = mystrtok(&cp, "\t\n\r ,:")) != 0) {
+    while ((tok = mystrtok(&cp, CHARS_COMMA_SP ":")) != 0) {
 	if (*tok == '!')
 	    exclude |= code =
 		name_code(protocol_table, NAME_CODE_FLAG_NONE, ++tok);
@@ -718,7 +718,7 @@ const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
     /*
      * Apply locally-specified exclusions.
      */
-#define CIPHER_SEP "\t\n\r ,:"
+#define CIPHER_SEP CHARS_COMMA_SP ":"
     if (exclusions != 0) {
 	cp = save = mystrdup(exclusions);
 	while ((tok = mystrtok(&cp, CIPHER_SEP)) != 0) {

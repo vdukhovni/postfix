@@ -1718,6 +1718,13 @@ typedef int pid_t;
 #define TOUPPER(c)	(ISLOWER(c) ? toupper((unsigned char)(c)) : (c))
 
  /*
+  * Character sets for parsing.
+  */
+#define CHARS_COMMA_SP	", \t\r\n"	/* list separator */
+#define CHARS_SPACE	" \t\r\n"	/* word separator */
+#define CHARS_BRACE	"{}"		/* grouping */
+
+ /*
   * Scaffolding. I don't want to lose messages while the program is under
   * development.
   */

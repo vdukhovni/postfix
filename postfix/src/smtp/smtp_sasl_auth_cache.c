@@ -114,7 +114,7 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
     /*
      * Sanity checks.
      */
-#define HAS_MULTIPLE_VALUES(s) ((s)[strcspn((s),  ", \t\r\n")] != 0)
+#define HAS_MULTIPLE_VALUES(s) ((s)[strcspn((s),  CHARS_COMMA_SP)] != 0)
 
     if (*map == 0)
 	msg_panic("%s: empty SASL authentication cache name", myname);

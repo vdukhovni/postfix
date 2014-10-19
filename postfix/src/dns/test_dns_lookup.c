@@ -109,7 +109,7 @@ int     main(int argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
     if (argc != 3)
 	msg_fatal("usage: %s types name", argv[0]);
-    types_argv = argv_split(argv[1], ", \t\r\n");
+    types_argv = argv_split(argv[1], CHARS_COMMA_SP);
     types = (unsigned *) mymalloc(sizeof(*types) * (types_argv->argc + 1));
     for (i = 0; i < types_argv->argc; i++)
 	if ((types[i] = dns_type(types_argv->argv[i])) == 0)

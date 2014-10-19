@@ -1373,12 +1373,8 @@ for early adopters. <p>
 <li> <p> The "example.com" destination uses DANE, but if TLSA records
 are not present or are unusable, mail is deferred. </p>
 
-<li> <p> The "example.org" destination uses DANE if possible, but
-uses opportunistic TLS if no TLSA records are found.  The
-"fallback" attribute (Postfix &ge; 2.12) overrides the global
-<a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> parameter to employ unauthenticated
-mandatory encryption if DANE authentication fails, after logging a
-warning.  </p>
+<li> <p> The "example.org" destination uses DANE if possible, but if no TLSA
+records are found opportunistic TLS is used. </p>
 </ul>
 
 <blockquote>
@@ -1398,16 +1394,26 @@ warning.  </p>
     # <a href="postconf.5.html#default_transport">default_transport</a> = smtp, but some destinations are special:
     #
     <a href="postconf.5.html#transport_maps">transport_maps</a> = ${indexed}transport
+</pre>
+</blockquote>
 
+<blockquote>
+<pre>
 transport:
     example.com dane
     example.org dane
+</pre>
+</blockquote>
 
+<blockquote>
+<pre>
 tls_policy:
     example.com dane-only
-    # Postfix &ge; 2.12, per-destination <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> override
-    example.org dane fallback=encrypt
+</pre>
+</blockquote>
 
+<blockquote>
+<pre>
 <a href="master.5.html">master.cf</a>:
     dane       unix  -       -       n       -       -       smtp
       -o <a href="postconf.5.html#smtp_dns_support_level">smtp_dns_support_level</a>=dnssec
@@ -2140,10 +2146,7 @@ href="#client_tls_encrypt">encrypt</a>.  When usable TLSA records
 are obtained for the remote SMTP server, SSLv2 is automatically
 disabled (see <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>), and the server certificate
 must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS authentication
-and DNSSEC support is available with Postfix 2.11 and later.  
-The optional "fallback" attribute provides a per-site override of
-the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> parameter (Postfix &ge; 2.12).
-</dd>
+and DNSSEC support is available with Postfix 2.11 and later.  </dd>
 
 <dt><b>dane-only</b></dt> <dd><a href="#client_tls_dane">Mandatory DANE TLS</a>.
 The TLS policy for the destination is obtained via TLSA records in
@@ -2152,10 +2155,7 @@ connection is made to the server.  When usable TLSA records are
 obtained for the remote SMTP server, SSLv2 is automatically disabled
 (see <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>), and the server certificate must
 match the TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS authentication and
-DNSSEC support is available with Postfix 2.11 and later.  
-The optional "fallback" attribute provides a per-site override of
-the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> parameter (Postfix &ge; 2.12).
-</dd>
+DNSSEC support is available with Postfix 2.11 and later.  </dd>
 
 <dt><b>fingerprint</b></dt> <dd><a href="#client_tls_fprint">Certificate
 fingerprint verification.</a> Available with Postfix 2.5 and
@@ -2164,15 +2164,13 @@ authorities. The certificate trust chain, expiration date, ... are
 not checked. Instead, the optional <b>match</b> attribute, or else
 the <a href="postconf.5.html">main.cf</a> <b><a href="postconf.5.html#smtp_tls_fingerprint_cert_match">smtp_tls_fingerprint_cert_match</a></b> parameter, lists
 the server certificate fingerprints or public key fingerprints
-(Postfix 2.9 and later).  The digest algorithm used to calculate
-fingerprints is selected by the <b><a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a></b>
-parameter. Multiple fingerprints can be combined with a "|" delimiter
-in a single match attribute, or multiple match attributes can be
-employed. The ":" character is not used as a delimiter as it occurs
-between each pair of fingerprint (hexadecimal) digits.
-The optional "fallback" attribute provides a per-site override of
-the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> parameter (Postfix &ge; 2.12).
-</dd>
+(Postfix 2.9 and later).  The
+digest algorithm used to calculate fingerprints is selected by the
+<b><a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a></b> parameter. Multiple fingerprints can
+be combined with a "|" delimiter in a single match attribute, or multiple
+match attributes can be employed. The ":" character is not used as a
+delimiter as it occurs between each pair of fingerprint (hexadecimal)
+digits. </dd>
 
 <dt><b>verify</b></dt> <dd><a href="#client_tls_verify">Mandatory
 server certificate verification</a>.  Mail is delivered only if the
@@ -2183,11 +2181,9 @@ the optional "match" attribute (or the <a href="postconf.5.html">main.cf</a> <a 
 parameter value when no optional "match" attribute is specified).
 With Postfix &ge; 2.11 the "tafile" attribute optionally modifies
 trust chain verification in the same manner as the
-"<a href="postconf.5.html#smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>" parameter.  The "tafile" attribute may
-be specified multiple times to load multiple trust-anchor files.
-The optional "fallback" attribute provides a per-site override of
-the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> parameter (Postfix &ge; 2.12).
-</dd>
+"<a href="postconf.5.html#smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>" parameter.  The "tafile" attribute
+may be specified multiple times to load multiple trust-anchor
+files.  </dd>
 
 <dt><b>secure</b></dt> <dd><a href="#client_tls_secure">Secure certificate
 verification.</a> Mail is delivered only if the TLS handshake succeeds,
@@ -2199,10 +2195,7 @@ server certificate name matches the optional "match" attribute (or the
 attribute optionally modifies trust chain verification in the same manner
 as the "<a href="postconf.5.html#smtp_tls_trust_anchor_file">smtp_tls_trust_anchor_file</a>" parameter.  The "tafile" attribute
 may be specified multiple times to load multiple trust-anchor
-files.  
-The optional "fallback" attribute provides a per-site override of
-the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a> parameter (Postfix &ge; 2.12).
-</dd>
+files.  </dd>
 
 </dl>
 
@@ -2249,7 +2242,6 @@ Example:
     <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> = <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/tls_policy
     # Postfix 2.5 and later
     <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> = md5
-
 /etc/postfix/tls_policy:
     example.edu             none
     example.mil             may
@@ -2264,8 +2256,6 @@ Example:
         match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
     # Postfix 2.6 and later
     example.info            may protocols=!SSLv2 ciphers=medium exclude=3DES
-    # Postfix 2.12 and later override of <a href="postconf.5.html#smtp_tls_fallback_level">smtp_tls_fallback_level</a>
-    fallback.example        secure fallback=encrypt
 </pre>
 </blockquote>
 

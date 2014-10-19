@@ -109,7 +109,7 @@ static int master_line_last;		/* config file line number */
 static int master_line;			/* config file line number */
 static ARGV *master_disable;		/* disabled service patterns */
 
-static char master_blanks[] = " \t\r\n";/* field delimiters */
+static char master_blanks[] = CHARS_SPACE;/* field delimiters */
 
 /* fset_master_ent - specify configuration file pathname */
 
@@ -561,8 +561,9 @@ MASTER_SERV *get_master_ent()
 	argv_add(serv->args, "-s",
 	    vstring_str(vstring_sprintf(junk, "%d", serv->listen_fd_count)),
 		 (char *) 0);
-    while ((cp = mystrtokq(&bufp, master_blanks, "{}")) != 0) {
-	if (*cp == '{' && (err = extpar(&cp, "{}", EXTPAR_FLAG_STRIP)) != 0)
+    while ((cp = mystrtokq(&bufp, master_blanks, CHARS_BRACE)) != 0) {
+	if (*cp == CHARS_BRACE[0]
+	    && (err = extpar(&cp, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0)
 	    fatal_with_context("%s", err);
 	argv_add(serv->args, cp, (char *) 0);
     }

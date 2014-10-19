@@ -276,7 +276,7 @@ WAIT_STATUS_T spawn_command(int key,...)
 	    execvp(args.argv[0], args.argv);
 	    msg_fatal("%s: execvp %s: %m", myname, args.argv[0]);
 	} else if (args.shell && *args.shell) {
-	    argv = argv_split(args.shell, " \t\r\n");
+	    argv = argv_split(args.shell, CHARS_SPACE);
 	    argv_add(argv, args.command, (char *) 0);
 	    argv_terminate(argv);
 	    execvp(argv->argv[0], argv->argv);

@@ -234,7 +234,7 @@ void    pcf_edit_main(int mode, int argc, char **argv)
 	}
 	/* Copy or replace start of logical line. */
 	else {
-	    vstring_strncpy(key, cp, strcspn(cp, " \t\r\n="));
+	    vstring_strncpy(key, cp, strcspn(cp, CHARS_SPACE "="));
 	    cvalue = (struct cvalue *) htable_find(table, STR(key));
 	    if ((interesting = !!cvalue) != 0) {
 		if (cvalue->found++ == 1)

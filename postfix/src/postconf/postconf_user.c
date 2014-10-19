@@ -237,7 +237,7 @@ static void pcf_scan_user_parameter_namespace(const char *dict_name,
      */
     if ((class_list = pcf_lookup_eval(dict_name, VAR_REST_CLASSES)) != 0) {
 	cp = saved_class_list = mystrdup(class_list);
-	while ((param_name = mystrtok(&cp, ", \t\r\n")) != 0) {
+	while ((param_name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	    if (local_scope == 0
 		&& htable_locate(pcf_rest_class_table, param_name) == 0)
 		htable_enter(pcf_rest_class_table, param_name, "");

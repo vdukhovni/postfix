@@ -133,7 +133,7 @@ static void mail_conf_checkdir(const char *config_dir)
 	if (split_nameval(vstring_str(buf), &name, &value) == 0
 	    && (strcmp(name, VAR_CONFIG_DIRS) == 0
 		|| strcmp(name, VAR_MULTI_CONF_DIRS) == 0)) {
-	    while (found == 0 && (cp = mystrtok(&value, ", \t\r\n")) != 0)
+	    while (found == 0 && (cp = mystrtok(&value, CHARS_COMMA_SP)) != 0)
 		if (strcmp(cp, config_dir) == 0)
 		    found = 1;
 	}

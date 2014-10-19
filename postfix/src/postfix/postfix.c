@@ -559,7 +559,7 @@ int     main(int argc, char **argv)
      * Run the management script.
      */
     if (force_single_instance
-	|| argv_split(var_multi_conf_dirs, "\t\r\n, ")->argc == 0) {
+	|| argv_split(var_multi_conf_dirs, CHARS_COMMA_SP)->argc == 0) {
 	script = concatenate(var_daemon_dir, "/postfix-script", (char *) 0);
 	if (optind < 1)
 	    msg_panic("bad optind value");
@@ -575,7 +575,7 @@ int     main(int argc, char **argv)
 	if (*var_multi_wrapper == 0)
 	    msg_fatal("multi-instance support is requested, but %s is empty",
 		      VAR_MULTI_WRAPPER);
-	my_argv = argv_split(var_multi_wrapper, " \t\r\n");
+	my_argv = argv_split(var_multi_wrapper, CHARS_SPACE);
 	do {
 	    argv_add(my_argv, argv[optind], (char *) 0);
 	} while (argv[optind++] != 0);

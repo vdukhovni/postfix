@@ -98,7 +98,7 @@ static void match_service_compat(ARGV *argv)
 
 ARGV   *match_service_init(const char *patterns)
 {
-    const char *delim = " ,\t\r\n";
+    const char *delim = CHARS_COMMA_SP;
     ARGV   *list = argv_alloc(1);
     char   *saved_patterns = mystrdup(patterns);
     char   *bp = saved_patterns;

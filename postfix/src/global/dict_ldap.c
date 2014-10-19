@@ -1683,7 +1683,7 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
 
     url_list = vstring_alloc(32);
     s = server_host;
-    while ((h = mystrtok(&s, " \t\n\r,")) != NULL) {
+    while ((h = mystrtok(&s, CHARS_COMMA_SP)) != NULL) {
 #if defined(LDAP_API_FEATURE_X_OPENLDAP)
 
 	/*
@@ -1815,14 +1815,14 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
 
     /* Order matters, first the terminal attributes: */
     attr = cfg_get_str(dict_ldap->parser, "terminal_result_attribute", "", 0, 0);
-    dict_ldap->result_attributes = argv_split(attr, " ,\t\r\n");
+    dict_ldap->result_attributes = argv_split(attr, CHARS_COMMA_SP);
     dict_ldap->num_terminal = dict_ldap->result_attributes->argc;
     myfree(attr);
 
     /* Order matters, next the leaf-only attributes: */
     attr = cfg_get_str(dict_ldap->parser, "leaf_result_attribute", "", 0, 0);
     if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
+	argv_split_append(dict_ldap->result_attributes, attr, CHARS_COMMA_SP);
     dict_ldap->num_leaf =
 	dict_ldap->result_attributes->argc - dict_ldap->num_terminal;
     myfree(attr);
@@ -1830,14 +1830,14 @@ DICT   *dict_ldap_open(const char *ldapsource, int open_flags, int dict_flags)
     /* Order matters, next the regular attributes: */
     attr = cfg_get_str(dict_ldap->parser, "result_attribute", "maildrop", 0, 0);
     if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
+	argv_split_append(dict_ldap->result_attributes, attr, CHARS_COMMA_SP);
     dict_ldap->num_attributes = dict_ldap->result_attributes->argc;
     myfree(attr);
 
     /* Order matters, finally the special attributes: */
     attr = cfg_get_str(dict_ldap->parser, "special_result_attribute", "", 0, 0);
     if (*attr)
-	argv_split_append(dict_ldap->result_attributes, attr, " ,\t\r\n");
+	argv_split_append(dict_ldap->result_attributes, attr, CHARS_COMMA_SP);
     myfree(attr);
 
     /*

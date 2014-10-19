@@ -531,7 +531,7 @@ int     psc_dnsbl_request(const char *client_addr,
 void    psc_dnsbl_init(void)
 {
     const char *myname = "psc_dnsbl_init";
-    ARGV   *dnsbl_site = argv_split(var_psc_dnsbl_sites, ", \t\r\n");
+    ARGV   *dnsbl_site = argv_split(var_psc_dnsbl_sites, CHARS_COMMA_SP);
     char  **cpp;
 
     /*

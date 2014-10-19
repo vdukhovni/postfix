@@ -406,7 +406,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 	     * trailing whitespace from key and value.
 	     */
 	    key = STR(line_buffer);
-	    value = key + strcspn(key, " \t\r\n");
+	    value = key + strcspn(key, CHARS_SPACE);
 	    if (*value)
 		*value++ = 0;
 	    while (ISSPACE(*value))

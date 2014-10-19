@@ -242,7 +242,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
     }
     saved_policy = policy = mystrdup(lookup);
 
-    if ((tok = mystrtok(&policy, "\t\n\r ,")) == 0) {
+    if ((tok = mystrtok(&policy, CHARS_COMMA_SP)) == 0) {
 	msg_warn("%s: invalid empty policy", WHERE);
 	INVALID_RETURN(tls->why, site_level);
     }
@@ -257,7 +257,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
      * Warn about ignored attributes when TLS is disabled.
      */
     if (*site_level < TLS_LEV_MAY) {
-	while ((tok = mystrtok(&policy, "\t\n\r ,")) != 0)
+	while ((tok = mystrtok(&policy, CHARS_COMMA_SP)) != 0)
 	    msg_warn("%s: ignoring attribute \"%s\" with TLS disabled",
 		     WHERE, tok);
 	FREE_RETURN;
@@ -267,7 +267,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
      * Errors in attributes may have security consequences, don't ignore
      * errors that can degrade security.
      */
-    while ((tok = mystrtok(&policy, "\t\n\r ,")) != 0) {
+    while ((tok = mystrtok(&policy, CHARS_COMMA_SP)) != 0) {
 	if ((err = split_nameval(tok, &name, &val)) != 0) {
 	    msg_warn("%s: malformed attribute/value pair \"%s\": %s",
 		     WHERE, tok, err);
@@ -397,7 +397,7 @@ static int load_tas(TLS_DANE *dane, const char *files)
     char   *file;
 
     do {
-	if ((file = mystrtok(&buf, "\t\n\r ,")) != 0)
+	if ((file = mystrtok(&buf, CHARS_COMMA_SP)) != 0)
 	    ret = tls_dane_load_trustfile(dane, file);
     } while (file && ret);
 
@@ -565,7 +565,7 @@ static void *policy_create(const char *unused_key, void *context)
 	    tls->dane = tls_dane_alloc();
 	if (!TLS_DANE_HASEE(tls->dane)) {
 	    tls_dane_add_ee_digests(tls->dane, var_smtp_tls_fpt_dgst,
-				    var_smtp_tls_fpt_cmatch, "\t\n\r, ");
+				    var_smtp_tls_fpt_cmatch, CHARS_COMMA_SP);
 	    if (!TLS_DANE_HASEE(tls->dane)) {
 		msg_warn("nexthop domain %s: configured at fingerprint "
 		       "security level, but with no fingerprints to match.",
@@ -581,7 +581,7 @@ static void *policy_create(const char *unused_key, void *context)
 	    tls->matchargv =
 		argv_split(tls->level == TLS_LEV_VERIFY ?
 			   var_smtp_tls_vfy_cmatch : var_smtp_tls_sec_cmatch,
-			   "\t\n\r, :");
+			   CHARS_COMMA_SP ":");
 	if (*var_smtp_tls_tafile) {
 	    if (tls->dane == 0)
 		tls->dane = tls_dane_alloc();

@@ -898,11 +898,11 @@ void    mail_params_init()
     /*
      * XXX These should be caught by a proper parameter parsing algorithm.
      */
-    if (var_myorigin[strcspn(var_myorigin, ", \t\r\n")])
+    if (var_myorigin[strcspn(var_myorigin, CHARS_COMMA_SP)])
 	msg_fatal("%s parameter setting must not contain multiple values: %s",
 		  VAR_MYORIGIN, var_myorigin);
 
-    if (var_relayhost[strcspn(var_relayhost, ", \t\r\n")])
+    if (var_relayhost[strcspn(var_relayhost, CHARS_COMMA_SP)])
 	msg_fatal("%s parameter setting must not contain multiple values: %s",
 		  VAR_RELAYHOST, var_relayhost);
 

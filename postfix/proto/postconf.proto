@@ -16205,64 +16205,6 @@ mail. </dd>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
-%PARAM smtp_tls_fallback_level
-
-<p> Optional fallback levels for authenticated TLS levels.  Specify
-a white-space or comma-separated list of
-<b>policy_level</b>=<b>fallback_level</b> pairs.  The <b>policy_level</b>
-must require authentication (one of dane, dane-only, fingerprint,
-verify, secure).  The <b>fallback_level</b> must be "encrypt" or
-"may".  When an authenticated connection at some desired policy
-level cannot be established, delivery will proceed at the correponding
-fallback level if possible.  A warning will be logged
-indicating the fallback reason. </p>
-
-<p> The TLS <a href="TLS_README.html#client_tls_policy">policy</a> table
-can be used to specify a destination-specific fallback strategy via the
-"fallback" policy attribute.  The value of the "fallback" attribute, if
-specified, must be "may", "encrypt" or "none".  If not "none", this
-specifies the fallback level for the destination in question.  If the
-attribute value is "none", fallback is suppressed for the destination
-even if enabled via a global setting of smtp_tls_fallback_level.  </p>
-
-<p> Example: </p>
-
-<blockquote>
-<pre>
-/etc/postfix/main.cf:
-    # When authentication fails, log a warning and deliver anyway
-    # over an unauthenticated TLS connection.
-    #
-    smtp_tls_fallback_level =
-	dane=encrypt,
-	dane-only=encrypt,
-	fingerprint=encrypt,
-	verify=encrypt,
-	secure=encrypt
-    indexed = ${default_database_type}:${config_directory}/
-    smtp_tls_policy_maps = ${indexed}tls-policy
-</pre>
-</blockquote>
-
-<blockquote>
-<pre>
-/etc/postfix/tls-policy:
-    # No fallback for example.com
-    example.com secure fallback=none
-    # For example.net tolerate cleartext fallback
-    example.net dane fallback=may
-</pre>
-</blockquote>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
-
-%PARAM lmtp_tls_fallback_level
-
-<p> The LMTP-specific version of the smtp_tls_fallback_level
-configuration parameter.  See there for details. </p>
-
-<p> This feature is available in Postfix 2.12 and later. </p>
-
 %PARAM compatibility_level 0
 
 <p> A safety net that causes Postfix to run with backwards-compatible

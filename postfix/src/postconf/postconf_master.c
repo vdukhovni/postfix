@@ -261,16 +261,16 @@ static void pcf_normalize_daemon_args(ARGV *argv)
 	    argv_insert_one(argv, field + 1, arg + 2);
 	    arg[2] = 0;				/* XXX argv_replace_one() */
 	    field += 1;
-	    extract_field = (argv->argv[field][0] == '{');
+	    extract_field = (argv->argv[field][0] == CHARS_BRACE[0]);
 	} else if (argv->argv[field + 1] != 0) {
 	    /* Already in "-o" "name=value" form. */
 	    field += 1;
-	    extract_field = (argv->argv[field][0] == '{');
+	    extract_field = (argv->argv[field][0] == CHARS_BRACE[0]);
 	} else
 	    extract_field = 0;
 	/* Extract text inside {}, optionally convert to name=value. */
 	if (extract_field) {
-	    pcf_extract_field(argv, field, "{}");
+	    pcf_extract_field(argv, field, CHARS_BRACE);
 	    if (argv->argv[field - 1][1] == 'o')
 		pcf_normalize_nameval(argv, field);
 	}
@@ -278,8 +278,8 @@ static void pcf_normalize_daemon_args(ARGV *argv)
     /* Normalize non-option arguments. */
     for ( /* void */ ; argv->argv[field] != 0; field++)
 	/* Extract text inside {}. */
-	if (argv->argv[field][0] == '{')	/* } */
-	    pcf_extract_field(argv, field, "{}");
+	if (argv->argv[field][0] == CHARS_BRACE[0])
+	    pcf_extract_field(argv, field, CHARS_BRACE);
 }
 
 /* pcf_fix_fatal - fix multiline text before release */
@@ -370,7 +370,7 @@ const char *pcf_parse_master_entry(PCF_MASTER_ENT *masterp, const char *buf)
      * 
      * XXX Do per-field sanity checks.
      */
-    argv = argv_splitq(buf, PCF_MASTER_BLANKS, "{}");
+    argv = argv_splitq(buf, PCF_MASTER_BLANKS, CHARS_BRACE);
     if (argv->argc < PCF_MASTER_MIN_FIELDS) {
 	argv_free(argv);			/* Coverity 201311 */
 	return ("bad field count");
@@ -829,7 +829,7 @@ void    pcf_edit_master_field(PCF_MASTER_ENT *masterp, int field,
      */
     if (field == PCF_MASTER_FLD_CMD) {
 	argv_truncate(masterp->argv, PCF_MASTER_FLD_CMD);
-	argv_splitq_append(masterp->argv, new_value, PCF_MASTER_BLANKS, "{}");
+	argv_splitq_append(masterp->argv, new_value, PCF_MASTER_BLANKS, CHARS_BRACE);
 	pcf_normalize_daemon_args(masterp->argv);
     }
 

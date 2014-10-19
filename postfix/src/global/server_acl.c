@@ -87,8 +87,6 @@
 
 /* Application-specific. */
 
-#define SERVER_ACL_SEPARATORS	", \t\r\n"
-
 static ADDR_MATCH_LIST *server_acl_mynetworks;
 static ADDR_MATCH_LIST *server_acl_mynetworks_host;
 
@@ -129,7 +127,7 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
      * chroot jail, while access lists are evaluated after entering the
      * chroot jail.
      */
-    while ((acl = mystrtokq(&bp, SERVER_ACL_SEPARATORS, "{}")) != 0) {
+    while ((acl = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	if (strchr(acl, ':') != 0) {
 	    if (strchr(origin, ':') != 0) {
 		msg_warn("table %s: lookup result \"%s\" is not allowed"
@@ -196,7 +194,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 		msg_panic("%s: unexpected dictionary: %s", myname, acl);
 	    if ((dict_val = dict_get(dict, client_addr)) != 0) {
 		/* Fake up an ARGV to avoid lots of mallocs and frees. */
-		if (dict_val[strcspn(dict_val, ":" SERVER_ACL_SEPARATORS)] == 0) {
+		if (dict_val[strcspn(dict_val, ":" CHARS_COMMA_SP)] == 0) {
 		    ARGV_FAKE_BEGIN(fake_argv, dict_val);
 		    ret = server_acl_eval(client_addr, &fake_argv, acl);
 		    ARGV_FAKE_END;

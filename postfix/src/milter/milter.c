@@ -85,10 +85,11 @@
 /*	const char *milter_other_event(milters)
 /*	MILTERS	*milters;
 /*
-/*	const char *milter_message(milters, qfile, data_offset)
+/*	const char *milter_message(milters, qfile, data_offset, auto_hdrs)
 /*	MILTERS	*milters;
 /*	VSTREAM *qfile;
 /*	off_t	data_offset;
+/*	ARGV	*auto_hdrs;
 /*
 /*	const char *milter_abort(milters)
 /*	MILTERS	*milters;
@@ -269,7 +270,7 @@ static ARGV *milter_macro_lookup(MILTERS *milters, const char *macro_names)
     const char *value;
     const char *name;
 
-    while ((name = mystrtok(&cp, ", \t\r\n")) != 0) {
+    while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s: \"%s\"", myname, name);
 	if ((value = milters->mac_lookup(name, milters->mac_context)) != 0) {
@@ -483,7 +484,8 @@ const char *milter_other_event(MILTERS *milters)
 
 /* milter_message - inspect message content */
 
-const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset)
+const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset,
+			           ARGV *auto_hdrs)
 {
     const char *resp;
     MILTER *m;
@@ -497,7 +499,8 @@ const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset)
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
 	any_eoh_macros = MILTER_MACRO_EVAL(global_eoh_macros, m, milters, eoh_macros);
 	any_eod_macros = MILTER_MACRO_EVAL(global_eod_macros, m, milters, eod_macros);
-	resp = m->message(m, fp, data_offset, any_eoh_macros, any_eod_macros);
+	resp = m->message(m, fp, data_offset, any_eoh_macros, any_eod_macros,
+			  auto_hdrs);
 	if (any_eoh_macros != global_eoh_macros)
 	    argv_free(any_eoh_macros);
 	if (any_eod_macros != global_eod_macros)
@@ -576,8 +579,8 @@ MILTERS *milter_new(const char *names,
     MILTER *tail = 0;
     char   *name;
     MILTER *milter;
-    const char *sep = ", \t\r\n";
-    const char *parens = "{}";
+    const char *sep = CHARS_COMMA_SP;
+    const char *parens = CHARS_BRACE;
     int     my_conn_timeout;
     int     my_cmd_timeout;
     int     my_msg_timeout;
@@ -612,7 +615,7 @@ MILTERS *milter_new(const char *names,
 	    my_msg_timeout = msg_timeout;
 	    my_protocol = protocol;
 	    my_def_action = def_action;
-	    if (name[0] == '{') {		/* } */
+	    if (name[0] == parens[0]) {
 		op = name;
 		if ((err = extpar(&op, parens, EXTPAR_FLAG_NONE)) != 0)
 		    msg_fatal("milter service syntax error: %s", err);

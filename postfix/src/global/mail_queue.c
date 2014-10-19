@@ -171,7 +171,7 @@ const char *mail_queue_dir(VSTRING *buf, const char *queue_name,
     }
     if (hash_buf == 0) {
 	hash_buf = vstring_alloc(100);
-	hash_queue_names = argv_split(var_hash_queue_names, " \t\r\n,");
+	hash_queue_names = argv_split(var_hash_queue_names, CHARS_COMMA_SP);
     }
 
     /*

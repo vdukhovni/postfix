@@ -1005,7 +1005,7 @@ static void set_cmds_flags(const char *cmds, int flags)
     char   *cmd;
 
     saved_cmds = cp = mystrdup(cmds);
-    while ((cmd = mystrtok(&cp, " \t\r\n,")) != 0)
+    while ((cmd = mystrtok(&cp, CHARS_COMMA_SP)) != 0)
 	set_cmd_flags(cmd, flags);
     myfree(saved_cmds);
 }

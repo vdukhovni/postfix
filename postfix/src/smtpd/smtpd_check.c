@@ -252,8 +252,6 @@
 #include "smtpd_resolve.h"
 #include "smtpd_expand.h"
 
-#define RESTRICTION_SEPARATORS ", \t\r\n"
-
  /*
   * Eject seat in case of parsing problems.
   */
@@ -510,8 +508,8 @@ static void policy_client_register(const char *name)
     char   *saved_name = 0;
     const char *policy_name = 0;
     char   *cp;
-    const char *sep = ", \t\r\n";
-    const char *parens = "{}";
+    const char *sep = CHARS_COMMA_SP;
+    const char *parens = CHARS_BRACE;
     char   *err;
 
     if (policy_clnt_table == 0)
@@ -538,7 +536,7 @@ static void policy_client_register(const char *name)
 	link_override_table_to_variable(int_table, smtpd_policy_try_limit);
 	link_override_table_to_variable(str_table, smtpd_policy_def_action);
 
-	if (*name == '{') {			/* } */
+	if (*name == parens[0]) {
 	    cp = saved_name = mystrdup(name);
 	    if ((err = extpar(&cp, parens, EXTPAR_FLAG_NONE)) != 0)
 		msg_fatal("policy service syntax error: %s", cp);
@@ -601,7 +599,7 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 #define SMTPD_CHECK_PARSE_MAPS		(1<<1)
 #define SMTPD_CHECK_PARSE_ALL		(~0)
 
-    while ((name = mystrtokq(&bp, RESTRICTION_SEPARATORS, "{}")) != 0) {
+    while ((name = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	argv_add(argv, name, (char *) 0);
 	if ((flags & SMTPD_CHECK_PARSE_POLICY)
 	    && last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
@@ -807,7 +805,7 @@ void    smtpd_check_init(void)
     smtpd_rest_classes = htable_create(1);
     if (*var_rest_classes) {
 	cp = saved_classes = mystrdup(var_rest_classes);
-	while ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) != 0) {
+	while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	    if ((value = mail_conf_lookup_eval(name)) == 0 || *value == 0)
 		msg_fatal("restriction class `%s' needs a definition", name);
 	    /* XXX This store operation should not be case-sensitive. */
@@ -2590,7 +2588,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
      */
 #define ADDROF(x) ((char *) &(x))
 
-    restrictions = argv_splitq(value, RESTRICTION_SEPARATORS, "{}");
+    restrictions = argv_splitq(value, CHARS_COMMA_SP, CHARS_BRACE);
     memcpy(ADDROF(savebuf), ADDROF(smtpd_check_buf), sizeof(savebuf));
     status = setjmp(smtpd_check_buf);
     if (status != 0) {
@@ -3699,7 +3697,7 @@ static int reject_maps_rbl(SMTPD_STATE *state)
 		 "use \"%s domain-name\" instead",
 		 REJECT_MAPS_RBL, var_mail_name, REJECT_RBL_CLIENT);
     }
-    while ((rbl_domain = mystrtok(&bp, RESTRICTION_SEPARATORS)) != 0) {
+    while ((rbl_domain = mystrtok(&bp, CHARS_COMMA_SP)) != 0) {
 	result = reject_rbl_addr(state, rbl_domain, state->addr,
 				 SMTPD_NAME_CLIENT);
 	if (result != SMTPD_CHECK_DUNNO)
@@ -3740,7 +3738,7 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
 	if ((owners = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
 				STR(reply->recipient), (char **) 0)) != 0) {
 	    cp = saved_owners = mystrdup(owners);
-	    while ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) != 0) {
+	    while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 		if (strcasecmp(state->sasl_username, name) == 0) {
 		    found = 1;
 		    break;
@@ -5653,7 +5651,7 @@ static void rest_class(char *class)
     if (smtpd_rest_classes == 0)
 	smtpd_rest_classes = htable_create(1);
 
-    if ((name = mystrtok(&cp, RESTRICTION_SEPARATORS)) == 0)
+    if ((name = mystrtok(&cp, CHARS_COMMA_SP)) == 0)
 	msg_panic("rest_class: null class name");
     if ((entry = htable_locate(smtpd_rest_classes, name)) != 0)
 	argv_free((ARGV *) entry->value);
@@ -5843,7 +5841,7 @@ int     main(int argc, char **argv)
 	    vstream_printf("exit %d\n", system(bp + 1));
 	    continue;
 	}
-	args = argv_split(bp, " \t\r\n");
+	args = argv_split(bp, CHARS_SPACE);
 
 	/*
 	 * Recognize the command.

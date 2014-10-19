@@ -99,7 +99,7 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
     const char *myname = "match_list_parse";
     VSTRING *buf = vstring_alloc(10);
     VSTREAM *fp;
-    const char *delim = " ,\t\r\n";
+    const char *delim = CHARS_COMMA_SP;
     char   *bp = string;
     char   *start;
     char   *item;
@@ -114,7 +114,7 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
      * /filename contents are expanded in-line. To support !/filename we
      * prepend the negation operator to each item from the file.
      */
-    while ((start = mystrtokq(&bp, delim, "{}")) != 0) {
+    while ((start = mystrtokq(&bp, delim, CHARS_BRACE)) != 0) {
 	if (*start == '#') {
 	    msg_warn("%s: comment at end of line is not supported: %s %s",
 		     myname, start, bp);

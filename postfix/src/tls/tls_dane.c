@@ -473,7 +473,7 @@ static void dane_init(void)
 		 VAR_TLS_DANE_AGILITY, var_tls_dane_agility);
     } else if (add_digest(fullmtype, 0)) {
 	save = cp = mystrdup(var_tls_dane_digests);
-	while ((tok = mystrtok(&cp, "\t\n\r ,")) != 0) {
+	while ((tok = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	    if ((d = add_digest(tok, ++digest_pref)) == 0) {
 		signalg = 0;
 		signmd = 0;

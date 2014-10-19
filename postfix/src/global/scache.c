@@ -379,7 +379,7 @@ int     main(int unused_argc, char **unused_argv)
     vstream_fileno(VSTREAM_ERR) = 1;
 
     while (get_buffer(buf, VSTREAM_IN, interactive) != VSTREAM_EOF) {
-	argv = argv_split(STR(buf), " \t\r\n");
+	argv = argv_split(STR(buf), CHARS_SPACE);
 	if (argv->argc > 0 && argv->argv[0][0] != '#') {
 	    msg_verbose = verbose_level;
 	    for (ap = actions; ap->command != 0; ap++) {

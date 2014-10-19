@@ -726,7 +726,7 @@ static int fix_queue_id(const char *actual_path, const char *actual_queue,
 
 static void super(const char **queues, int action)
 {
-    ARGV   *hash_queue_names = argv_split(var_hash_queue_names, " \t\r\n,");
+    ARGV   *hash_queue_names = argv_split(var_hash_queue_names, CHARS_COMMA_SP);
     VSTRING *actual_path = vstring_alloc(10);
     VSTRING *wanted_path = vstring_alloc(10);
     struct stat st;

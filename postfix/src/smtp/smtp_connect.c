@@ -781,7 +781,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
     non_fallback_sites = sites->argc;
     /* When we are lmtp(8) var_fallback_relay is null */
     if (smtp_mode)
-	argv_split_append(sites, var_fallback_relay, ", \t\r\n");
+	argv_split_append(sites, var_fallback_relay, CHARS_COMMA_SP);
 
     /*
      * Don't give up after a hard host lookup error until we have tried the
