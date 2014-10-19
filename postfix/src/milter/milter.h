@@ -40,7 +40,7 @@ typedef struct MILTER {
     const char *(*mail_event) (struct MILTER *, const char **, ARGV *);
     const char *(*rcpt_event) (struct MILTER *, const char **, ARGV *);
     const char *(*data_event) (struct MILTER *, ARGV *);
-    const char *(*message) (struct MILTER *, VSTREAM *, off_t, ARGV *, ARGV *);
+    const char *(*message) (struct MILTER *, VSTREAM *, off_t, ARGV *, ARGV *, ARGV *);
     const char *(*unknown_event) (struct MILTER *, const char *, ARGV *);
     const char *(*other_event) (struct MILTER *);
     void    (*abort) (struct MILTER *);
@@ -136,7 +136,7 @@ extern const char *milter_helo_event(MILTERS *, const char *, int);
 extern const char *milter_mail_event(MILTERS *, const char **);
 extern const char *milter_rcpt_event(MILTERS *, int, const char **);
 extern const char *milter_data_event(MILTERS *);
-extern const char *milter_message(MILTERS *, VSTREAM *, off_t);
+extern const char *milter_message(MILTERS *, VSTREAM *, off_t, ARGV *);
 extern const char *milter_unknown_event(MILTERS *, const char *);
 extern const char *milter_other_event(MILTERS *);
 extern void milter_abort(MILTERS *);
