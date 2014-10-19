@@ -61,6 +61,7 @@ typedef struct CLEANUP_STATE {
     char   *orig_rcpt;			/* original recipient address */
     char   *return_receipt;		/* return-receipt address */
     char   *errors_to;			/* errors-to address */
+    ARGV   *auto_hdrs;			/* MTA's own header(s) */
     int     flags;			/* processing options, status flags */
     int     qmgr_opts;			/* qmgr processing options */
     int     errs;			/* any badness experienced */
