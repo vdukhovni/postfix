@@ -78,6 +78,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->orig_rcpt = 0;
     state->return_receipt = 0;
     state->errors_to = 0;
+    state->auto_hdrs = argv_alloc(1);
     state->flags = 0;
     state->qmgr_opts = 0;
     state->errs = 0;
@@ -151,6 +152,7 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->return_receipt);
     if (state->errors_to)
 	myfree(state->errors_to);
+    argv_free(state->auto_hdrs);
     if (state->queue_name)
 	myfree(state->queue_name);
     if (state->queue_id)

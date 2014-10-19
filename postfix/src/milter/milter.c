@@ -85,10 +85,11 @@
 /*	const char *milter_other_event(milters)
 /*	MILTERS	*milters;
 /*
-/*	const char *milter_message(milters, qfile, data_offset)
+/*	const char *milter_message(milters, qfile, data_offset, auto_hdrs)
 /*	MILTERS	*milters;
 /*	VSTREAM *qfile;
 /*	off_t	data_offset;
+/*	ARGV	*auto_hdrs;
 /*
 /*	const char *milter_abort(milters)
 /*	MILTERS	*milters;
@@ -481,7 +482,8 @@ const char *milter_other_event(MILTERS *milters)
 
 /* milter_message - inspect message content */
 
-const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset)
+const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset,
+			           ARGV *auto_hdrs)
 {
     const char *resp;
     MILTER *m;
@@ -495,7 +497,8 @@ const char *milter_message(MILTERS *milters, VSTREAM *fp, off_t data_offset)
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
 	any_eoh_macros = MILTER_MACRO_EVAL(global_eoh_macros, m, milters, eoh_macros);
 	any_eod_macros = MILTER_MACRO_EVAL(global_eod_macros, m, milters, eod_macros);
-	resp = m->message(m, fp, data_offset, any_eoh_macros, any_eod_macros);
+	resp = m->message(m, fp, data_offset, any_eoh_macros, any_eod_macros,
+			  auto_hdrs);
 	if (any_eoh_macros != global_eoh_macros)
 	    argv_free(any_eoh_macros);
 	if (any_eod_macros != global_eod_macros)

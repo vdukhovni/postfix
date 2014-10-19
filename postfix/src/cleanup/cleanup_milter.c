@@ -2020,7 +2020,7 @@ void    cleanup_milter_inspect(CLEANUP_STATE *state, MILTERS *milters)
      * filter library.
      */
     if ((resp = milter_message(milters, state->handle->stream,
-			       state->data_offset)) != 0)
+			       state->data_offset, state->auto_hdrs)) != 0)
 	cleanup_milter_apply(state, "END-OF-MESSAGE", resp);
 
     /*
