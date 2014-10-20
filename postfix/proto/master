@@ -184,21 +184,22 @@
 #	syntax.
 # .sp
 #	NOTE 1: With the "long form" shown above, whitespace
-#	after "{" and before "}" is ignored.
+#	after "{", around "=", and before "}" is ignored, and
+#	whitespace within the parameter value is preserved.
 # .sp
 #	NOTE 2: with the "short form" shown above, do not specify
 #	whitespace around the "=" or in
 #	parameter values. To specify a parameter value that contains
-#	whitespace, use commas instead of spaces, or specify the
-#	value in main.cf. Example:
+#	whitespace, use the long form described above, or use commas
+#	instead of spaces, or specify the value in main.cf. Example:
 # .sp
 # .nf
 #	/etc/postfix/master.cf:
 #	    submission inet .... smtpd
-#		-o smtpd_mumble=$submission_mumble
+#		-o smtpd_xxx_yyy=$submission_xxx_yyy
 # .sp
 #	/etc/postfix/main.cf
-#	    submission_mumble = text with whitespace...
+#	    submission_xxx_yyy = text with whitespace...
 # .fi
 # .sp
 #	NOTE 3: Over-zealous use of parameter overrides makes the

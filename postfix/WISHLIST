@@ -20,11 +20,6 @@ Wish list:
 	Eliminate code duplication between pcf_print_master_field()
 	and pcf_print_master_entry().
 
-	Introduce constants to replace all the ad-hoc ", \t\r\n"
-	etc. for tokenization. That will have to go into an "util"
-	file because match_strings(3), dict_pipe(3) and dict_random(3)
-	depend on these definitions.
-
 	Error reporting: see if pcf_check_master_entry() and children
 	can return error descriptions instead of terminating with
 	a fatal error.

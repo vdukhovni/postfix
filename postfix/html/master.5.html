@@ -188,29 +188,30 @@ MASTER(5)                                                            MASTER(5)
                      etc., just like in <a href="postconf.5.html">main.cf</a>.  See <a href="postconf.5.html"><b>postconf</b>(5)</a> for  syntax.
 
                      NOTE  1:  With  the  "long  form" shown above, whitespace
-                     after "{" and before "}" is ignored.
+                     after "{", around "=", and before  "}"  is  ignored,  and
+                     whitespace within the parameter value is preserved.
 
                      NOTE 2: with the "short form" shown above, do not specify
-                     whitespace  around  the  "="  or  in parameter values. To
-                     specify a parameter value that contains  whitespace,  use
-                     commas  instead  of  spaces,  or  specify  the  value  in
-                     <a href="postconf.5.html">main.cf</a>. Example:
+                     whitespace around the "="  or  in  parameter  values.  To
+                     specify  a  parameter value that contains whitespace, use
+                     the long form described above, or use commas  instead  of
+                     spaces, or specify the value in <a href="postconf.5.html">main.cf</a>. Example:
 
                      /etc/postfix/<a href="master.5.html">master.cf</a>:
                          submission inet .... smtpd
-                             -o smtpd_mumble=$submission_mumble
+                             -o smtpd_xxx_yyy=$submission_xxx_yyy
 
                      /etc/postfix/<a href="postconf.5.html">main.cf</a>
-                         submission_mumble = text with whitespace...
+                         submission_xxx_yyy = text with whitespace...
 
                      NOTE 3: Over-zealous use of parameter overrides makes the
-                     Postfix  configuration  hard  to understand and maintain.
-                     At a certain point, it might be easier to configure  mul-
+                     Postfix configuration hard to  understand  and  maintain.
+                     At  a certain point, it might be easier to configure mul-
                      tiple instances of Postfix, instead of configuring multi-
                      ple personalities via <a href="master.5.html">master.cf</a>.
 
-              <b>-v</b>     Increase the verbose logging level. Specify  multiple  <b>-v</b>
-                     options  to  make  a  Postfix daemon process increasingly
+              <b>-v</b>     Increase  the  verbose logging level. Specify multiple <b>-v</b>
+                     options to make a  Postfix  daemon  process  increasingly
                      verbose.
 
               Other command-line arguments

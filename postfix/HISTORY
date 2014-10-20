@@ -20685,3 +20685,14 @@ Apologies for any names omitted.
 	Cleanup: replace dozens and dozens of ad-hoc string constants
 	with CHARS_SPACE, CHARS_COMMA_SP, and CHARS_BRACE. Files:
 	52, too many files to mention here.
+
+	Bugfix: the recently-introduced randmap, pipemap, and
+	unionmap did not check for all possible forms of "empty
+	list". Files: util/dict_random.c, util/dict_pipe.c,
+	util/dict_union.c.
+
+	Documentation: word smithing. File: proto/master.
+
+	Cleanup: the last remaining remnants of the withdrawn
+	smtp_tls_fallback_level feature. Files: mantools/postlink,
+	global/mail_params.h.

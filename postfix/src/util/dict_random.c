@@ -81,6 +81,7 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
 {
     DICT_RANDOM *dict_random;
     char   *saved_name = 0;
+    ARGV   *argv;
     size_t  len;
 
     /*
@@ -105,11 +106,13 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
      * Split the name name into its constituent parts.
      */
     if ((len = balpar(name, CHARS_BRACE)) == 0 || name[len] != 0
-	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0)
+	|| *(saved_name = mystrndup(name + 1, len - 2)) == 0
+	|| ((argv = argv_splitq(saved_name, CHARS_COMMA_SP, CHARS_BRACE)),
+	    (argv->argc == 0)))
 	DICT_RANDOM_RETURN(dict_surrogate(DICT_TYPE_RANDOM, name,
 					  open_flags, dict_flags,
 					  "bad syntax: \"%s:%s\"; "
-					  "need \"%s:{type:name...}\"",
+					  "need \"%s:{value...}\"",
 					  DICT_TYPE_RANDOM, name,
 					  DICT_TYPE_RANDOM));
 
@@ -121,7 +124,7 @@ DICT   *dict_random_open(const char *name, int open_flags, int dict_flags)
     dict_random->dict.lookup = dict_random_lookup;
     dict_random->dict.close = dict_random_close;
     dict_random->dict.flags = dict_flags | DICT_FLAG_PATTERN;
-    dict_random->replies = argv_splitq(saved_name, CHARS_COMMA_SP, CHARS_BRACE);
+    dict_random->replies = argv;
     dict_random->dict.owner.status = DICT_OWNER_TRUSTED;
     dict_random->dict.owner.uid = 0;
 
