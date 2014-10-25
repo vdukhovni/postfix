@@ -10,6 +10,8 @@ Wish list:
 
 	Update smtputf8_enable in postconf(5)
 
+	Clobber ORCPT when sender is owner-mumble?
+
 	Add milter_mumble_macros to the list of per-macro features.
 
 	The pickup daemon logs warnings only when the cleanup daemon
@@ -36,11 +38,6 @@ Wish list:
 	lookups for the invidual addresses, converting back and
 	forth between external and internal forms.
 
-	Include <3htPpS5B6bzbcpM@spike.porcupine.org> example with
-	filter policies for different mail streams. Correction:
-	filter should be content_filter. Posted Wed, 10 Sep 2014
-	09:53:52 -0400 (EDT).
-
 	Clarify that receive_override_options have no effect with
 	smtpd_proxy_filter.
 
@@ -51,17 +48,14 @@ Wish list:
 	comparison specifically for UTF-8. Use libicu functions
 	instead.
 
-	The postfix-mumble@postfix.org list manager sends list mail
-	with ORCPT=rfc822;postfix-mumble-outgoing.  The local
-	delivery agent drops the ORCPT when the alias has an
-	owner-alias, so what is going on here?
-
 	When downgrading message/global to 7bit, is quoted-printable
 	the appropriate encoding? Should it be base64?
 
 	Should we encode headers with RFC 2047, when that is the
 	only reason that Postfix cannot deliver to a non-UTF8SMTP
-	server?
+	server? Probably not in the general case. What about 
+	Postfix as a gateway server that converts UTF8SMTP
+	for delivery to non-UTF8SMTP environments?
 
 	Document and test restriction_classes example for 
 	smtpd_policy_service_default_action.
@@ -332,14 +326,6 @@ Wish list:
 	MX connection.  Unfortunately postscreen can't update the
 	whitelisting database before the primary MX connection is
 	closed, because a client may still make a mistake.
-
-	Simplify postscreen logic. Individual "fail" flags help to
-	avoid repeated testing/logging the same mistake.  Individual
-	"pass" flags provide evidence that the client didn't skip
-	tests by hanging up early. The current global "noforward"
-	flag implements the wrong model: instead we need an indicator
-	that a client has passed all tests or that all mistakes
-	were forgiven.
 
 	In the SMTP server, check if the connection is closed before
 	replying to ".", and discard the message if the reply can't

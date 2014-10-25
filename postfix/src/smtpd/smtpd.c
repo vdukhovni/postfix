@@ -455,7 +455,7 @@
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 /* .PP
 /*	Available in Postfix version 2.12 and later:
-/* .IP "\fBtls_session_ticket_cipher (aes-128-cbc)\fR"
+/* .IP "\fBtls_session_ticket_cipher (Postfix &ge; 2.12: aes-256-cbc, postfix &lt 2.12: aes-128-cbc)\fR"
 /*	Algorithm used to encrypt RFC5077 TLS session tickets.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
@@ -4614,6 +4614,22 @@ static void tls_reset(SMTPD_STATE *state)
 
 #endif
 
+/* unimpl_cmd - dummy for functionality that is not compiled in */
+
+static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
+{
+
+    /*
+     * When a connection is closed we want to log the request counts for
+     * unimplemented STARTTLS or AUTH commands separately, instead of logging
+     * those commands as "unknown". By handling unimplemented commands with
+     * this dummy function, we avoid messing up the command processing loop.
+     */
+    state->error_mask |= MAIL_ERROR_PROTOCOL;
+    smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
+    return (-1);
+}
+
  /*
   * The table of all SMTP commands that we know. Set the junk limit flag on
   * any command that can be repeated an arbitrary number of times without
@@ -4638,9 +4654,13 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_XFORWARD, xforward_cmd,},
 #ifdef USE_TLS
     {SMTPD_CMD_STARTTLS, starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
+#else
+    {SMTPD_CMD_STARTTLS, unimpl_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
 #endif
 #ifdef USE_SASL_AUTH
     {SMTPD_CMD_AUTH, smtpd_sasl_auth_cmd,},
+#else
+    {SMTPD_CMD_AUTH, unimpl_cmd,},
 #endif
     {SMTPD_CMD_MAIL, mail_cmd,},
     {SMTPD_CMD_RCPT, rcpt_cmd,},

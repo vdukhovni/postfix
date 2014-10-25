@@ -106,6 +106,8 @@
 /*	Terminate after receiving \fIcount\fR messages.
 /* .IP "\fB-n \fIcount\fR"
 /*	Terminate after \fIcount\fR sessions.
+/* .IP \fB-N\fR
+/*	Do not announce support for DSN.
 /* .IP \fB-p\fR
 /*	Do not announce support for ESMTP command pipelining.
 /* .IP \fB-P\fR
@@ -369,6 +371,7 @@ static int disable_saslauth;
 static int disable_xclient;
 static int disable_xforward;
 static int disable_enh_status;
+static int disable_dsn;
 static int max_client_count = DEF_MAX_CLIENT_COUNT;
 static int client_count;
 static int sock;
@@ -628,6 +631,8 @@ static void ehlo_response(SINK_STATE *state, const char *args)
 	smtp_printf(state->stream, "250-XFORWARD NAME ADDR PROTO HELO");
     if (!disable_enh_status)
 	smtp_printf(state->stream, "250-ENHANCEDSTATUSCODES");
+    if (!disable_dsn)
+	smtp_printf(state->stream, "250-DSN");
     /* RFC 821/2821/5321: Format is replycode<SPACE>optional-text<CRLF> */
     smtp_printf(state->stream, "250 ");
     SMTP_FLUSH(state->stream);
@@ -1422,7 +1427,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:b:B:cCd:D:eEf:Fh:Ln:m:M:pPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:b:B:cCd:D:eEf:Fh:Ln:m:M:NpPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1498,6 +1503,9 @@ int     main(int argc, char **argv)
 	case 'n':
 	    if ((max_quit_count = atoi(optarg)) <= 0)
 		msg_fatal("bad quit count: %s", optarg);
+	    break;
+	case 'N':
+	    disable_dsn = 1;
 	    break;
 	case 'p':
 	    disable_pipelining = 1;

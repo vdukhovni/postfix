@@ -20696,3 +20696,43 @@ Apologies for any names omitted.
 	Cleanup: the last remaining remnants of the withdrawn
 	smtp_tls_fallback_level feature. Files: mantools/postlink,
 	global/mail_params.h.
+
+20141021
+
+	Per IETF TLS WG consensus, the tls_session_ticket_cipher
+	default setting was changed from aes-128-cbc to aes-256-cbc.
+	Take that, you quantum computer attackers! Viktor Dukhovni.
+	Files: proto/postconf.proto, global/mail_params.h.
+
+20141024
+
+	Cleanup: added $smtpd_mumble_restrictions to the proxy_read_maps
+	default setting. File: global/mail_params.h.
+
+	Documentation: different header/body checks for MX service
+	and SMTP submissions. File: proto/BUILTIN_FILTER_README.html.
+
+	Cleanup: don't send "bare" original recipient in SMTP DSN
+	attributes. File: cleanup/cleanup_addr.c.
+
+	Feature: smtp-sink -N option to suppress DSN announcement.
+	File: smtpstone/smtp-sink.c.
+
+20141025
+
+	Bugfix (introduced: Postfix 2,11): core dump when
+	smtp_policy_maps specifies an invalid TLS level. Viktor
+	Dukhovni. File: smtp/smtp_tls_policy.c.
+
+20141103
+
+	Logging: when a connection is closed, log the request counts
+	for unimplemented STARTTLS or AUTH commands separately,
+	instead of logging such commands as "unknown". File:
+	smtpd/smtpd.c.
+
+20141106
+
+	Cleanup: set errno to ETIMEDOUT after postscreen handshake
+	timeout event, so that warnings report the correct error.
+	File: tlsproxy/tlsproxy.c.

@@ -204,6 +204,11 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
 	if (state->flags & CLEANUP_FLAG_AUTOUTF8)
 	    state->smtputf8 |= SMTPUTF8_FLAG_REQUESTED;
     }
+    /* Fix 20141024: Don't fake up a "bare" DSN original rcpt in smtp(8). */
+    if (state->dsn_orcpt == 0 && *STR(clean_addr) != 0)
+	state->dsn_orcpt = concatenate((!allascii(STR(clean_addr))
+			   && (state->smtputf8 & SMTPUTF8_FLAG_REQUESTED)) ?
+		      "utf-8" : "rfc822", ";", STR(clean_addr), (char *) 0);
     cleanup_out_recipient(state, state->dsn_orcpt, state->dsn_notify,
 			  state->orig_rcpt, STR(clean_addr));
     if (state->recip)				/* This can happen */

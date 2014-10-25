@@ -518,9 +518,11 @@ static void *policy_create(const char *unused_key, void *context)
     switch (site_level) {
     default:
 	tls->level = site_level;
+	/* FALLTHROUGH */
     case TLS_LEV_NOTFOUND:
 	break;
     case TLS_LEV_INVALID:
+	tls->level = site_level;
 	return ((void *) tls);
     }
 

@@ -541,7 +541,8 @@ SMTPD(8)                                                              SMTPD(8)
 
        Available in Postfix version 2.12 and later:
 
-       <b><a href="postconf.5.html#tls_session_ticket_cipher">tls_session_ticket_cipher</a> (aes-128-cbc)</b>
+       <b><a href="postconf.5.html#tls_session_ticket_cipher">tls_session_ticket_cipher</a> (Postfix</b> &amp;<b>ge; 2.12: aes-256-cbc, postfix</b>  &amp;<b>lt</b>
+       <b>2.12: aes-128-cbc)</b>
               Algorithm used to encrypt <a href="http://tools.ietf.org/html/rfc5077">RFC5077</a> TLS session tickets.
 
 <b>OBSOLETE STARTTLS CONTROLS</b>

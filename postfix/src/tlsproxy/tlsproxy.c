@@ -192,6 +192,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <errno.h>
 
  /*
   * Utility library.
@@ -732,6 +733,8 @@ static void tlsp_get_fd_event(int event, char *context)
     event_disable_readwrite(plaintext_fd);
     if (event != EVENT_TIME)
 	event_cancel_timer(tlsp_get_fd_event, (char *) state);
+    else
+	errno = ETIMEDOUT;
 
     /*
      * Initialize plaintext-related session state.  Once we have this behind
@@ -796,6 +799,8 @@ static void tlsp_get_request_event(int event, char *context)
      */
     if (event != EVENT_TIME)
 	event_cancel_timer(tlsp_get_request_event, (char *) state);
+    else
+	errno = ETIMEDOUT;
 
     /*
      * We must send some data, after receiving the request attributes and

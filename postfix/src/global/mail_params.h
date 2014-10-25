@@ -2329,7 +2329,12 @@ extern int var_local_rcpt_code;
 				" $" VAR_RCPT_BCC_MAPS \
 				" $" VAR_SMTP_GENERIC_MAPS \
 				" $" VAR_LMTP_GENERIC_MAPS \
-				" $" VAR_ALIAS_MAPS
+				" $" VAR_ALIAS_MAPS \
+				" $" VAR_CLIENT_CHECKS \
+				" $" VAR_HELO_CHECKS \
+				" $" VAR_MAIL_CHECKS \
+				" $" VAR_RELAY_CHECKS \
+				" $" VAR_RCPT_CHECKS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"

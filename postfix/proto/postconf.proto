@@ -15899,13 +15899,13 @@ anchor assertion) TLSA records. </p>
 
 <p> This feature is available in Postfix 2.11 and later. </p>
 
-%PARAM tls_session_ticket_cipher aes-128-cbc
+%PARAM tls_session_ticket_cipher Postfix &ge; 2.12: aes-256-cbc, postfix &lt 2.12: aes-128-cbc
 
 <p> Algorithm used to encrypt RFC5077 TLS session tickets.  This
-algorithm must use CBC mode, have a 128-bit initialization vector
-(IV), and must have a key length between 128 and 256 bits.  The
-default is aes-128-cbc.  Sensible alternatives include aes-192-cbc
-and aes-256-cbc.  </p>
+algorithm must use CBC mode, have a 128-bit block size, and must
+have a key length between 128 and 256 bits.  The default is
+aes-256-cbc.  Overriding the default to choose a different algorithm
+is discouraged.  </p>
 
 <p> Setting this parameter empty disables session ticket support
 in the Postfix SMTP server.  Another way to disable session ticket
