@@ -142,14 +142,16 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
     /*
      * Interpret a numerical name as an address.
      */
-    if (hostaddr_to_sockaddr(host, (char *) 0, 0, &res0) == 0
-     && strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
+    if (hostaddr_to_sockaddr(host, (char *) 0, 0, &res0) == 0) {
+	if (strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
 	if ((addr = dns_sa_to_rr(host, pref, res0->ai_addr)) == 0)
 	    msg_fatal("host %s: conversion error for address family %d: %m",
 		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
 	addr_list = dns_rr_append(addr_list, addr);
 	freeaddrinfo(res0);
 	return (addr_list);
+    }
+	freeaddrinfo(res0);
     }
 
     /*

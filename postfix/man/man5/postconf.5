@@ -326,7 +326,7 @@ alias_database = hash:/etc/mail/aliases
 The alias databases that are used for \fBlocal\fR(8) delivery. See
 \fBaliases\fR(5) for syntax details.
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 .PP
@@ -790,7 +790,7 @@ are documented in \fBcanonical\fR(5). For an overview of Postfix address
 manipulations see the ADDRESS_REWRITING_README document.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 .PP
@@ -3243,7 +3243,7 @@ lists: Postfix needs to know only if a lookup string is found or
 not, but it does not use the result from table lookup.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 If this parameter is non-empty (the default), then the Postfix SMTP
@@ -3507,7 +3507,7 @@ mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .SH mailbox_delivery_lock (default: see "postconf -d" output)
 How to lock a UNIX-style \fBlocal\fR(8) mailbox before attempting delivery.
@@ -3549,7 +3549,7 @@ mailbox_command_maps, mailbox_command, home_mailbox, mail_spool_directory,
 fallback_transport_maps, fallback_transport and luser_relay.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 For safety reasons, this feature does not allow $number
@@ -5162,7 +5162,7 @@ The lookup tables that the \fBproxymap\fR(8) server is allowed to
 access for the read-only service.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma.
+whitespace or comma.
 Table references that don't begin with proxy: are ignored.
 .PP
 This feature is available in Postfix 2.0 and later.
@@ -5379,7 +5379,7 @@ recipient address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 The table search order is as follows:
@@ -5405,8 +5405,8 @@ was specified with NOTIFY=NONE. The sender will not be notified
 when the BCC address is undeliverable, as long as all down-stream
 software implements RFC 3461.
 .PP
-Note: with Postfix 2.2 and earlier the sender will be notified
-when the BCC address is undeliverable.
+Note: with Postfix 2.2 and earlier the sender will unconditionally
+be notified when the BCC address is undeliverable.
 .PP
 Note: automatic BCC recipients are produced only for new mail.
 To avoid mailer loops, automatic BCC recipients are not generated
@@ -5626,7 +5626,7 @@ to know only if a lookup string is found or not, but it does not
 use the result from table lookup.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 If this parameter is non-empty, then the Postfix SMTP server will reject
@@ -5699,7 +5699,7 @@ domains that no longer exist.  The table format and lookups are
 documented in \fBrelocated\fR(5).
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 If you use this feature, run "\fBpostmap /etc/postfix/relocated\fR" to
@@ -5864,7 +5864,7 @@ by sender address.  The BCC address (multiple results are not
 supported) is added when mail enters from outside of Postfix.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 The table search order is as follows:
@@ -5947,7 +5947,7 @@ without overriding the global default_transport parameter setting.
 This information is overruled with the \fBtransport\fR(5) table.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 Note: this overrides default_transport, not transport_maps, and
@@ -5970,7 +5970,7 @@ sender_dependent_default_transport_maps, default_transport and with
 the \fBtransport\fR(5) table.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 For safety reasons, this feature does not allow $number
@@ -6336,7 +6336,7 @@ table is not indexed by hostname for consistency with
 smtpd_discard_ehlo_keyword_address_maps.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 This feature is available in Postfix 2.2 and later.
@@ -6505,7 +6505,7 @@ domain name, but uses something like \fIlocaldomain.local\fR
 instead.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 The table format and lookups are documented in \fBgeneric\fR(5);
@@ -6648,7 +6648,7 @@ is not indexed by hostname for consistency with
 smtp_discard_ehlo_keyword_address_maps.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 This feature is available in Postfix 2.4 and later.
@@ -6901,7 +6901,7 @@ The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .SH smtp_sasl_path (default: empty)
 Implementation-specific information that the Postfix SMTP client
@@ -7782,7 +7782,7 @@ this overrides the obsolete smtp_tls_per_site parameter.  See
 TLS_README for a more detailed discussion of TLS security levels.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 The TLS policy table is indexed by the full next-hop destination,
@@ -9071,7 +9071,7 @@ feature:
 .ft C
     # Work around clients that send RCPT TO:<'user@domain'>.
     # WARNING: do not lose the parameters that follow the address.
-    /^RCPT\es+TO:\es*<'([^[:space:]]+)'>(.*)/     RCPT TO:<$1>$2
+    /^(RCPT\es+TO:\es*<)'([^[:space:]]+)'(>.*)/     $1$2$3
 .fi
 .ad
 .ft R
@@ -9081,7 +9081,7 @@ feature:
 .ft C
     # Append XVERP to MAIL FROM commands to request VERP-style delivery.
     # See VERP_README for more information on how to use Postfix VERP.
-    /^(MAIL FROM:<listname@example\e.com>.*)/   $1 XVERP
+    /^(MAIL FROM:\es*<listname@example\e.com>.*)/   $1 XVERP
 .fi
 .ad
 .ft R
@@ -9091,8 +9091,8 @@ feature:
 .ft C
     # Bounce-never mail sink. Use notify_classes=bounce,resource,software
     # to send bounced mail to the postmaster (with message body removed).
-    /^(RCPT\es+TO:<.*>.*)\es+NOTIFY=\eS+(.*)/ $1 NOTIFY=NEVER$2
-    /^(RCPT\es+TO:.*)/                    $1 NOTIFY=NEVER
+    /^(RCPT\es+TO:\es*<.*>.*)\es+NOTIFY=\eS+(.*)/     $1 NOTIFY=NEVER$2
+    /^(RCPT\es+TO:.*)/                             $1 NOTIFY=NEVER
 .fi
 .ad
 .ft R
@@ -9173,7 +9173,7 @@ remote SMTP client. See smtpd_discard_ehlo_keywords for details.
 The tables are not searched by hostname for robustness reasons.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 This feature is available in Postfix 2.2 and later.
@@ -10266,7 +10266,7 @@ Optional lookup table with the SASL login names that own sender
 (MAIL FROM) addresses.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.  With lookups from
 indexed files such as DB or DBM, or from networked tables such as
 NIS, LDAP or SQL, the following search operations are done with a
@@ -12461,7 +12461,7 @@ Optional lookup tables with mappings from recipient address to
 for details.
 .PP
 Specify zero or more "type:table" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.  If you use this
 feature with local files, run "\fBpostmap /etc/postfix/transport\fR"
 after making a change.
@@ -12797,7 +12797,7 @@ This feature is available in Postfix 2.0 and later. The default
 value is backwards compatible with Postfix version 1.1.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 .PP
@@ -12851,7 +12851,7 @@ It does not apply when mail is delivered with a different mail
 delivery program.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld" to
@@ -12933,7 +12933,7 @@ Optional lookup tables with all valid addresses in the domains that
 match $virtual_mailbox_domains.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld" to
@@ -13000,7 +13000,7 @@ It does not apply when mail is delivered with a different mail
 delivery program.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 .PP
 In a lookup table, specify a left-hand side of "@domain.tld"

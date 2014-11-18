@@ -820,7 +820,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_PCRE_OPEN_RETURN(d) { \
+#define DICT_PCRE_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	if (map_fp != 0) \
 	    vstream_fclose(map_fp); \

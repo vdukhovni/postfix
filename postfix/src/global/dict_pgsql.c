@@ -331,7 +331,6 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     int     domain_rc;
 
     dict_pgsql = (DICT_PGSQL *) dict;
-    pldb = dict_pgsql->pldb;
 
 #define INIT_VSTR(buf, len) do { \
 	if (buf == 0) \

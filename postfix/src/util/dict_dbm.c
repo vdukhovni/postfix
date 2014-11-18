@@ -420,7 +420,7 @@ DICT   *dict_dbm_open(const char *path, int open_flags, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_DBM_OPEN_RETURN(d) { \
+#define DICT_DBM_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	if (dbm_path != 0) \
 	    myfree(dbm_path); \

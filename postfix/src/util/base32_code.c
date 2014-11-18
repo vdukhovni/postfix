@@ -146,7 +146,7 @@ VSTRING *base32_decode(VSTRING *result, const char *in, ssize_t len)
     if (un_b32 == 0) {
 	un_b32 = (unsigned char *) mymalloc(CHARS_PER_BYTE);
 	memset(un_b32, INVALID, CHARS_PER_BYTE);
-	for (cp = to_b32; cp < to_b32 + sizeof(to_b32); cp++)
+	for (cp = to_b32; cp < to_b32 + sizeof(to_b32) - 1; cp++)
 	    un_b32[*cp] = cp - to_b32;
     }
 

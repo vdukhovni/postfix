@@ -547,7 +547,7 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_LMDB_OPEN_RETURN(d) { \
+#define DICT_LMDB_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	myfree(mdb_path); \
 	return (__d); \

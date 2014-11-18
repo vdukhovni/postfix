@@ -180,7 +180,7 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
 	}
 	if (ip->mask_shift > 0) {
 	    /* Allow for bytes > 8. */
-	    memset(ip->mask_bytes, (unsigned char) -1, ip->addr_byte_count);
+	    memset(ip->mask_bytes, ~0U, ip->addr_byte_count);
 	    mask_addr(ip->mask_bytes, ip->addr_byte_count, ip->mask_shift);
 	} else
 	    memset(ip->mask_bytes, 0, ip->addr_byte_count);
@@ -218,7 +218,7 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
 	}
 	ip->mask_shift = ip->addr_bit_count;
 	/* Allow for bytes > 8. */
-	memset(ip->mask_bytes, (unsigned char) -1, ip->addr_byte_count);
+	memset(ip->mask_bytes, ~0U, ip->addr_byte_count);
     }
 
     /*

@@ -160,7 +160,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_THASH_OPEN_RETURN(d) { \
+#define DICT_THASH_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	if (fp != 0) \
 	    vstream_fclose(fp); \

@@ -317,7 +317,7 @@ DICT   *dict_sockmap_open(const char *mapname, int open_flags, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_SOCKMAP_OPEN_RETURN(d) { \
+#define DICT_SOCKMAP_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	if (saved_name != 0) \
 	    myfree(saved_name); \

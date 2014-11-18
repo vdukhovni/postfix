@@ -356,7 +356,7 @@ static int data_read(SINK_STATE *);
 static void disconnect(SINK_STATE *);
 static void read_timeout(int, char *);
 static void read_event(int, char *);
-static int count;
+static int show_count;
 static int sess_count;
 static int quit_count;
 static int mesg_count;
@@ -802,7 +802,7 @@ static void quit_response(SINK_STATE *state, const char *unused_args)
 {
     smtp_printf(state->stream, "221 Bye");
     smtp_flush(state->stream);			/* not: SMTP_FLUSH */
-    if (count)
+    if (show_count)
 	quit_count++;
 }
 
@@ -913,9 +913,9 @@ static int data_read(SINK_STATE *state)
 	    if (state->dump_file)
 		mail_file_finish(state);
 	    mail_cmd_reset(state);
-	    if (count || max_msg_quit_count > 0) {
+	    if (show_count || max_msg_quit_count > 0) {
 		mesg_count++;
-		if (count)
+		if (show_count)
 		    do_stats();
 		if (max_msg_quit_count > 0 && mesg_count >= max_msg_quit_count)
 		    exit(0);
@@ -1279,7 +1279,7 @@ static void disconnect(SINK_STATE *state)
 {
     event_disable_readwrite(vstream_fileno(state->stream));
     event_cancel_timer(read_timeout, (char *) state);
-    if (count) {
+    if (show_count) {
 	sess_count++;
 	do_stats();
     }
@@ -1460,7 +1460,7 @@ int     main(int argc, char **argv)
 		hard_error_resp = optarg;
 	    break;
 	case 'c':
-	    count++;
+	    show_count++;
 	    break;
 	case 'C':
 	    disable_xclient = 1;

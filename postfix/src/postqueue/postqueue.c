@@ -318,6 +318,10 @@ static void show_queue(void)
 	argv_terminate(argv);
 	stat = mail_run_foreground(var_daemon_dir, argv->argv);
 	argv_free(argv);
+	if (stat != 0)
+	    msg_fatal_status(stat < 0 ? EX_OSERR : EX_SOFTWARE,
+			     "Error running %s/%s",
+			     var_daemon_dir, argv->argv[0]);
     }
 
     /*

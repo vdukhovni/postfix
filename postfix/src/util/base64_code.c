@@ -163,7 +163,7 @@ VSTRING *base64_decode_opt(VSTRING *result, const char *in, ssize_t len,
     if (un_b64 == 0) {
 	un_b64 = (unsigned char *) mymalloc(CHARS_PER_BYTE);
 	memset(un_b64, INVALID, CHARS_PER_BYTE);
-	for (cp = to_b64; cp < to_b64 + sizeof(to_b64); cp++)
+	for (cp = to_b64; cp < to_b64 + sizeof(to_b64) - 1; cp++)
 	    un_b64[*cp] = cp - to_b64;
     }
 

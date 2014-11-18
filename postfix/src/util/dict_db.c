@@ -622,6 +622,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 #define LOCK_OPEN_FLAGS(f) ((f) & ~(O_CREAT|O_TRUNC))
 #define FREE_RETURN(e) do { \
 	DICT *_dict = (e); if (db) DICT_DB_CLOSE(db); \
+	if (lock_fd >= 0) (void) close(lock_fd); \
 	if (db_path) myfree(db_path); return (_dict); \
     } while (0)
 
@@ -708,6 +709,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	    msg_fatal("unlock database %s for open: %m", db_path);
 	if (close(lock_fd) < 0)
 	    msg_fatal("close database %s: %m", db_path);
+	lock_fd = -1;
     }
     dict_db = (DICT_DB *) dict_alloc(class, db_path, sizeof(*dict_db));
     dict_db->dict.lookup = dict_db_lookup;

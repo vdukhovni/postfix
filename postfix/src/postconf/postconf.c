@@ -661,7 +661,7 @@ static void pcf_check_exclusive_options(int optval)
 
     for (op = pcf_incompat_options; (oval = *op) != 0; op++) {
 	oval &= optval;
-	for (mask = ~0; (mask & oval) != 0; mask >>= 1) {
+	for (mask = ~0U; (mask & oval) != 0; mask >>= 1) {
 	    if ((mask & oval) != oval)
 		msg_fatal("specify one of %s",
 			  str_name_mask(myname, pcf_compat_names, oval));

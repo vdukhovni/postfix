@@ -186,7 +186,7 @@ static const char *mynetworks_core(const char *style)
 		 * Host only. Do not relay authorize other hosts.
 		 */
 	    case MASK_STYLE_HOST:
-		mask = ~0;
+		mask = ~0UL;
 		shift = 0;
 		break;
 
@@ -226,7 +226,7 @@ static const char *mynetworks_core(const char *style)
 		end = ac + sizeof(SOCK_ADDR_IN6_ADDR(ma));
 		shift = MAI_V6ADDR_BITS;
 		while (ac < end) {
-		    if ((ch = *ac++) == (unsigned char) -1) {
+		    if ((ch = *ac++) == (unsigned char) ~0U) {
 			shift -= CHAR_BIT;
 			continue;
 		    } else {

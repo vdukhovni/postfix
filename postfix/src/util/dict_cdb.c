@@ -185,7 +185,7 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_CDBQ_OPEN_RETURN(d) { \
+#define DICT_CDBQ_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	myfree(cdb_path); \
 	return (__d); \
@@ -342,7 +342,7 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
     /*
      * Let the optimizer worry about eliminating redundant code.
      */
-#define DICT_CDBM_OPEN_RETURN(d) { \
+#define DICT_CDBM_OPEN_RETURN(d) do { \
 	DICT *__d = (d); \
 	if (cdb_path) \
 	    myfree(cdb_path); \

@@ -20736,3 +20736,45 @@ Apologies for any names omitted.
 	Cleanup: set errno to ETIMEDOUT after postscreen handshake
 	timeout event, so that warnings report the correct error.
 	File: tlsproxy/tlsproxy.c.
+
+20141112
+
+	Documentation: 24 identical typos. File: proto/postconf.proto.
+
+	Workaround: support space after "MAIL FROM:" and "RCPT TO:"
+	in smtpd_command_filter examples. Reportedly, cashedge.com's
+	software (used by banks) needs this (source: Claus Assmann).
+	File: proto/postconf.proto.
+
+20141117
+
+	Cleanup: use ~0U instead of (unsigned) -1.  Based on
+	complaints from the BEAM static analyzer.  Files:
+	global/mynetworks.c, postconf/postconf.c, util/cidr_match.c.
+
+	Cleanup: forgot the "do" in "do { stuff } while (0)" macros.
+	Luckily, this had caused no problem. Based on complaints
+	from the BEAM static analyzer. Files: util/dict_cdb.c,
+	util/dict_dbm.c, util/dict_lmdb.c, util/dict_pcre.c,
+	util/dict_regexp.c, util/dict_sockmap.c, util/dict_thash.c.
+
+	Bugfix (introduced: Postfix 2.9):  lockfile descriptor leak
+	after error. Based on complaints from the BEAM static
+	analyzer. File: util/dict_db.c.
+
+	Bugfix (introduced: Postfix 1.1): don't "set" the null byte
+	element in the base64 and base32 decoding maps. Based on
+	complaints from the BEAM static analyzer. Files: util/base64_code,
+	util/base32_code.c.
+
+	Cleanup: don't exit(0) after failing to run showq(8). Based
+	on complaints from the BEAM static analyzer.  File:
+	postqueue/postqueue.c.
+
+	Bugfix: memory leak when getaddrinfo() returns a result
+	that is neither IPv4 nor IPv6.  Based on complaints from
+	the BEAM static analyzer.  File: smtp/smtp_addr.c.
+
+	Cleanup: use more meaningful name for global variable so
+	that it isn't shadowed by a local variable. Based on
+	complaints from the BEAM static analyzer. smtpstone/smtp-sink.c.

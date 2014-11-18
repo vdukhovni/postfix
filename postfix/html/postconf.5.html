@@ -583,7 +583,7 @@ Examples:
 The alias databases that are used for <a href="local.8.html">local(8)</a> delivery. See
 <a href="aliases.5.html">aliases(5)</a> for syntax details.
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 </p>
@@ -1372,7 +1372,7 @@ manipulations see the <a href="ADDRESS_REWRITING_README.html">ADDRESS_REWRITING_
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 </p>
@@ -5468,7 +5468,7 @@ not, but it does not use the result from table lookup.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -5870,7 +5870,7 @@ is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">ma
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -5950,7 +5950,7 @@ is: aliases, .forward files, <a href="postconf.5.html#mailbox_transport_maps">ma
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -8395,7 +8395,7 @@ access for the read-only service.
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma.
+whitespace or comma.
 Table references that don't begin with <a href="proxymap.8.html">proxy</a>: are ignored.
 </p>
 
@@ -8828,7 +8828,7 @@ supported) is added when mail enters from outside of Postfix.
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -8863,8 +8863,8 @@ software implements <a href="http://tools.ietf.org/html/rfc3461">RFC 3461</a>.
 </p>
 
 <p>
-Note: with Postfix 2.2 and earlier the sender will be notified
-when the BCC address is undeliverable.
+Note: with Postfix 2.2 and earlier the sender will unconditionally
+be notified when the BCC address is undeliverable.
 </p>
 
 <p> Note: automatic BCC recipients are produced only for new mail.
@@ -9153,7 +9153,7 @@ use the result from table lookup.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -9266,7 +9266,7 @@ documented in <a href="relocated.5.html">relocated(5)</a>.
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -9503,7 +9503,7 @@ supported) is added when mail enters from outside of Postfix.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -9622,7 +9622,7 @@ This information is overruled with the <a href="transport.5.html">transport(5)</
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -9653,7 +9653,7 @@ the <a href="transport.5.html">transport(5)</a> table. </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -10249,7 +10249,7 @@ table is not indexed by hostname for consistency with
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -10471,7 +10471,7 @@ instead.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -10737,7 +10737,7 @@ is not indexed by hostname for consistency with
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -11088,7 +11088,7 @@ chroot jail, so you can leave the password file in /etc/postfix.
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -12138,7 +12138,7 @@ this overrides the obsolete <a href="postconf.5.html#smtp_tls_per_site">smtp_tls
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -13617,20 +13617,20 @@ feature: </p>
 <pre>
     # Work around clients that send RCPT TO:&lt;'user@domain'&gt;.
     # WARNING: do not lose the parameters that follow the address.
-    /^RCPT\s+TO:\s*&lt;'([^[:space:]]+)'&gt;(.*)/     RCPT TO:&lt;$1&gt;$2
+    /^(RCPT\s+TO:\s*&lt;)'([^[:space:]]+)'(&gt;.*)/     $1$2$3
 </pre>
 
 <pre>
     # Append XVERP to MAIL FROM commands to request VERP-style delivery.
     # See <a href="VERP_README.html">VERP_README</a> for more information on how to use Postfix VERP.
-    /^(MAIL FROM:&lt;listname@example\.com&gt;.*)/   $1 XVERP
+    /^(MAIL FROM:\s*&lt;listname@example\.com&gt;.*)/   $1 XVERP
 </pre>
 
 <pre>
     # Bounce-never mail sink. Use <a href="postconf.5.html#notify_classes">notify_classes</a>=bounce,resource,software
     # to send bounced mail to the postmaster (with message body removed).
-    /^(RCPT\s+TO:&lt;.*&gt;.*)\s+NOTIFY=\S+(.*)/ $1 NOTIFY=NEVER$2
-    /^(RCPT\s+TO:.*)/                    $1 NOTIFY=NEVER
+    /^(RCPT\s+TO:\s*&lt;.*&gt;.*)\s+NOTIFY=\S+(.*)/     $1 NOTIFY=NEVER$2
+    /^(RCPT\s+TO:.*)/                             $1 NOTIFY=NEVER
 </pre>
 
 <p> This feature is available in Postfix 2.7. </p>
@@ -13750,7 +13750,7 @@ The tables are not searched by hostname for robustness reasons.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -15275,7 +15275,7 @@ Optional lookup table with the SASL login names that own sender
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.  With lookups from
 indexed files such as DB or DBM, or from networked tables such as
 NIS, LDAP or SQL, the following search operations are done with a
@@ -18205,7 +18205,7 @@ for details.
 
 <p>
 Specify zero or more "<a href="DATABASE_README.html">type:table</a>" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.  If you use this
 feature with local files, run "<b>postmap /etc/postfix/transport</b>"
 after making a change.  </p>
@@ -18788,7 +18788,7 @@ value is backwards compatible with Postfix version 1.1.
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 Note: these lookups are recursive.
 </p>
@@ -18880,7 +18880,7 @@ delivery program.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -19015,7 +19015,7 @@ match $<a href="postconf.5.html#virtual_mailbox_domains">virtual_mailbox_domains
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
@@ -19128,7 +19128,7 @@ delivery program.  </p>
 
 <p>
 Specify zero or more "type:name" lookup tables, separated by
-whitespace of comma. Tables will be searched in the specified order
+whitespace or comma. Tables will be searched in the specified order
 until a match is found.
 </p>
 
