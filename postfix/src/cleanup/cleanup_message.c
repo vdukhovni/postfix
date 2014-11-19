@@ -425,6 +425,19 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	}
 	return (buf);
     }
+    if (STREQUAL(value, "BCC", command_len)) {
+	if (strchr(optional_text, '@') == 0) {
+	    msg_warn("bad BCC address \"%s\" in %s map -- "
+		     "need user@domain",
+		     optional_text, map_class);
+	} else {
+	    if (state->hbc_rcpt == 0)
+		state->hbc_rcpt = argv_alloc(1);
+	    argv_add(state->hbc_rcpt, optional_text, (char *) 0);
+	    cleanup_act_log(state, "bcc", context, buf, optional_text);
+	}
+	return (buf);
+    }
     /* Allow and ignore optional text after the action. */
 
     if (STREQUAL(value, "IGNORE", command_len))

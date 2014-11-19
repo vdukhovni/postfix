@@ -16,8 +16,6 @@
   */
 extern void attr_override(char *, const char *, const char *,...);
 
-typedef const char *CONST_CHAR_STAR;
-
 typedef struct {
     const char *name;
     CONST_CHAR_STAR *target;

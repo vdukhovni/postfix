@@ -8,6 +8,8 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Make the access map BCC action consistent with header_checks.
+
 	Find a way to show non-default OPT, DEBUG etc. settings at
 	the top of the makedefs.out file.
 

@@ -20778,3 +20778,24 @@ Apologies for any names omitted.
 	Cleanup: use more meaningful name for global variable so
 	that it isn't shadowed by a local variable. Based on
 	complaints from the BEAM static analyzer. smtpstone/smtp-sink.c.
+
+20141119
+
+	Cleanup: base64 test driver. File: base64_code.c.
+
+	Cleanup: make the CONST_CHAR_STAR typedef project-wide.
+	Files: global/attr_override.h, util/sys_defs.h.
+
+	Feature: BCC action in header/body_checks and milter_header_checks.
+	Files: proto/header_checks, cleanup/cleanup.h,
+	cleanup/cleanup_extracted.c, cleanup/cleanup_message.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup_milter.in16a,
+	cleanup/cleanup_milter.ref16a1, cleanup/cleanup_milter.ref16a2,
+	cleanup/cleanup_milter.reg16a, cleanup/cleanup_state.c,
+	cleanup/test-queue-file16, global/attr_override.h,
+	global/cleanup_strflags.c, global/cleanup_user.h,
+	util/sys_defs.h.
+
+	Cleanup: don't write back-to-back queue file pointer records
+	when the "add recipient" action was a NOOP (e.g., because
+	the recipient was a duplicate). File: cleanup/cleanup_milter.c.

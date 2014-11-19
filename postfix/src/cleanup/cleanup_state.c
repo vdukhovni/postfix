@@ -79,6 +79,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->return_receipt = 0;
     state->errors_to = 0;
     state->auto_hdrs = argv_alloc(1);
+    state->hbc_rcpt = 0;
     state->flags = 0;
     state->qmgr_opts = 0;
     state->errs = 0;
@@ -102,7 +103,6 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->append_meta_pt_target = -1;
     state->milter_hbc_checks = 0;
     state->milter_hbc_reply = 0;
-    state->milter_orcpt_buf = 0;
     state->rcpt_count = 0;
     state->reason = 0;
     state->smtp_reply = 0;
@@ -154,6 +154,8 @@ void    cleanup_state_free(CLEANUP_STATE *state)
     if (state->errors_to)
 	myfree(state->errors_to);
     argv_free(state->auto_hdrs);
+    if (state->hbc_rcpt)
+	argv_free(state->hbc_rcpt);
     if (state->queue_name)
 	myfree(state->queue_name);
     if (state->queue_id)
@@ -163,8 +165,6 @@ void    cleanup_state_free(CLEANUP_STATE *state)
 	myfree(state->reason);
     if (state->smtp_reply)
 	myfree(state->smtp_reply);
-    if (state->milter_orcpt_buf)
-	vstring_free(state->milter_orcpt_buf);
     nvtable_free(state->attr);
     if (state->mime_state)
 	mime_state_free(state->mime_state);

@@ -1694,6 +1694,14 @@ typedef int pid_t;
 #define UINT16_SIZE	2
 
  /*
+  * For the sake of clarity.
+  */
+#ifndef HAVE_CONST_CHAR_STAR
+typedef const char *CONST_CHAR_STAR;
+
+#endif
+
+ /*
   * Safety. On some systems, ctype.h misbehaves with non-ASCII or negative
   * characters. More importantly, Postfix uses the ISXXX() macros to ensure
   * protocol compliance, so we have to rule out non-ASCII characters.

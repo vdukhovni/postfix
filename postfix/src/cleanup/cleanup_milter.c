@@ -216,6 +216,7 @@
 /*#define msg_verbose	2*/
 
 static void cleanup_milter_set_error(CLEANUP_STATE *, int);
+static const char *cleanup_add_rcpt_par(void *, const char *, const char *);
 
 #define STR(x)		vstring_str(x)
 #define LEN(x)		VSTRING_LEN(x)
@@ -301,6 +302,18 @@ static char *cleanup_milter_hbc_extend(void *context, const char *command,
     if ((state->flags & CLEANUP_FLAG_FILTER_ALL) == 0)
 	return ((char *) buf);
 
+    if (STREQUAL(command, "BCC", cmd_len)) {
+	if (strchr(optional_text, '@') == 0) {
+	    msg_warn("bad BCC address \"%s\" in %s map -- "
+		     "need user@domain",
+		     optional_text, VAR_MILT_HEAD_CHECKS);
+	} else {
+	    cleanup_milter_hbc_log(context, "bcc", where, buf, optional_text);
+	    /* Caller checks state error flags. */
+	    (void) cleanup_add_rcpt_par(state, optional_text, "");
+	}
+	return ((char *) buf);
+    }
     if (STREQUAL(command, "REJECT", cmd_len)) {
 	const CLEANUP_STAT_DETAIL *detail;
 
@@ -616,14 +629,22 @@ static const char *cleanup_add_header(void *context, const char *name,
 
     /*
      * Return early when Milter header checks request that this header record
-     * be dropped.
+     * be dropped, or that the message is discarded. Note: CLEANUP_OUT_OK()
+     * tests CLEANUP_FLAG_DISCARD. We don't want to report the latter as an
+     * error.
      */
     buf = vstring_alloc(100);
     vstring_sprintf(buf, "%s:%s%s", name, space, value);
-    if (state->milter_hbc_checks
-	&& cleanup_milter_header_checks(state, buf) == 0) {
-	vstring_free(buf);
-	return (0);
+    if (state->milter_hbc_checks) {
+	if (cleanup_milter_header_checks(state, buf) == 0
+	    || (state->flags & CLEANUP_FLAG_DISCARD)) {
+	    vstring_free(buf);
+	    return (0);
+	}
+	if (CLEANUP_OUT_OK(state) == 0) {
+	    vstring_free(buf);
+	    return (cleanup_milter_error(state, 0));
+	}
     }
 
     /*
@@ -1394,7 +1415,7 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
 static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
 					        const char *esmtp_args)
 {
-    const char *myname = "cleanup_add_rcpt";
+    const char *myname = "cleanup_add_rcpt_par";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     off_t   new_rcpt_offset;
     off_t   reverse_ptr_offset;
@@ -1402,6 +1423,7 @@ static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
     TOK822 *tree;
     TOK822 *tp;
     VSTRING *int_rcpt_buf;
+    VSTRING *orcpt_buf = 0;
     ARGV   *esmtp_argv;
     int     dsn_notify = 0;
     const char *dsn_orcpt_info = 0;
@@ -1410,39 +1432,8 @@ static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
     const char *arg;
     const char *arg_val;
 
-    if (esmtp_args[0]) {
-	esmtp_argv = argv_split(esmtp_args, " ");
-	for (i = 0; i < esmtp_argv->argc; ++i) {
-	    arg = esmtp_argv->argv[i];
-	    if (strncasecmp(arg, "NOTIFY=", 7) == 0) {	/* RFC 3461 */
-		if (dsn_notify || (dsn_notify = dsn_notify_mask(arg + 7)) == 0)
-		    msg_warn("%s: Bad NOTIFY parameter from MILTER: \"%.100s\"",
-			     state->queue_id, arg);
-	    } else if (strncasecmp(arg, "ORCPT=", 6) == 0) {	/* RFC 3461 */
-		if (state->milter_orcpt_buf == 0)
-		    state->milter_orcpt_buf = vstring_alloc(100);
-		if (dsn_orcpt_info
-		    || (type_len = strcspn(arg_val = arg + 6, ";")) == 0
-		    || (arg_val)[type_len] != ';'
-		    || xtext_unquote_append(
-				    vstring_sprintf(state->milter_orcpt_buf,
-						    "%.*s;", (int) type_len,
-						    arg_val),
-					    arg_val + type_len + 1) == 0) {
-		    msg_warn("%s: Bad ORCPT parameter from MILTER: \"%.100s\"",
-			     state->queue_id, arg);
-		} else {
-		    dsn_orcpt_info = STR(state->milter_orcpt_buf);
-		}
-	    } else {
-		msg_warn("%s: ignoring ESMTP argument from MILTER: \"%.100s\"",
-			 state->queue_id, arg);
-	    }
-	}
-	argv_free(esmtp_argv);
-    }
     if (msg_verbose)
-	msg_info("%s: \"%s\"", myname, ext_rcpt);
+	msg_info("%s: \"%s\" \"%s\"", myname, ext_rcpt, esmtp_args);
 
     /*
      * To simplify implementation, the cleanup server writes a dummy
@@ -1472,6 +1463,43 @@ static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
     }
 
     /*
+     * Parse ESMTP parameters. XXX UTF8SMTP don't assume ORCPT is xtext.
+     */
+    if (esmtp_args[0]) {
+	esmtp_argv = argv_split(esmtp_args, " ");
+	for (i = 0; i < esmtp_argv->argc; ++i) {
+	    arg = esmtp_argv->argv[i];
+	    if (strncasecmp(arg, "NOTIFY=", 7) == 0) {	/* RFC 3461 */
+		if (dsn_notify || (dsn_notify = dsn_notify_mask(arg + 7)) == 0)
+		    msg_warn("%s: Bad NOTIFY parameter from Milter or "
+			     "header/body_checks: \"%.100s\"",
+			     state->queue_id, arg);
+	    } else if (strncasecmp(arg, "ORCPT=", 6) == 0) {	/* RFC 3461 */
+		if (orcpt_buf == 0)
+		    orcpt_buf = vstring_alloc(100);
+		if (dsn_orcpt_info
+		    || (type_len = strcspn(arg_val = arg + 6, ";")) == 0
+		    || (arg_val)[type_len] != ';'
+		    || xtext_unquote_append(vstring_sprintf(orcpt_buf,
+						    "%.*s;", (int) type_len,
+							    arg_val),
+					    arg_val + type_len + 1) == 0) {
+		    msg_warn("%s: Bad ORCPT parameter from Milter or "
+			     "header/body_checks: \"%.100s\"",
+			     state->queue_id, arg);
+		} else {
+		    dsn_orcpt_info = STR(orcpt_buf);
+		}
+	    } else {
+		msg_warn("%s: ignoring ESMTP argument from Milter or "
+			 "header/body_checks: \"%.100s\"",
+			 state->queue_id, arg);
+	    }
+	}
+	argv_free(esmtp_argv);
+    }
+
+    /*
      * Transform recipient from external form to internal form. This also
      * removes the enclosing <>, if present.
      * 
@@ -1485,21 +1513,35 @@ static const char *cleanup_add_rcpt_par(void *context, const char *ext_rcpt,
 		tok822_internalize(int_rcpt_buf, tp->head, TOK822_STR_DEFL);
 		addr_count += 1;
 	    } else {
-		msg_warn("%s: Milter request to add multi-recipient: \"%s\"",
+		msg_warn("%s: Milter or header/body_checks request to "
+			 "add multi-recipient: \"%s\"",
 			 state->queue_id, ext_rcpt);
 		break;
 	    }
 	}
     }
     tok822_free_tree(tree);
-    cleanup_addr_bcc_dsn(state, STR(int_rcpt_buf), dsn_orcpt_info,
-			 dsn_notify ? dsn_notify : DEF_DSN_NOTIFY);
-    vstring_free(int_rcpt_buf);
-    if (addr_count == 0) {
+    if (addr_count != 0)
+	cleanup_addr_bcc_dsn(state, STR(int_rcpt_buf), dsn_orcpt_info,
+			     dsn_notify ? dsn_notify : DEF_DSN_NOTIFY);
+    else
 	msg_warn("%s: ignoring attempt from Milter to add null recipient",
 		 state->queue_id);
+    vstring_free(int_rcpt_buf);
+    if (orcpt_buf)
+	vstring_free(orcpt_buf);
+
+    /*
+     * Don't update the queue file when we did not write a recipient record
+     * (malformed or duplicate BCC recipient).
+     */
+    if (vstream_ftell(state->dst) == new_rcpt_offset)
 	return (CLEANUP_OUT_OK(state) ? 0 : cleanup_milter_error(state, 0));
-    }
+
+    /*
+     * Follow the recipient with a "reverse" pointer to the old recipient
+     * append target.
+     */
     if ((reverse_ptr_offset = vstream_ftell(state->dst)) < 0) {
 	msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
 	return (cleanup_milter_error(state, errno));
@@ -2431,7 +2473,6 @@ int     main(int unused_argc, char **argv)
 	    msg_info("ignoring: %s %s %s", argv->argv[0],
 		     argv->argc > 1 ? argv->argv[1] : "",
 		     argv->argc > 2 ? argv->argv[2] : "");
-	    continue;
 	} else if (strcmp(argv->argv[0], "add_header") == 0) {
 	    if (argv->argc < 2) {
 		msg_warn("bad add_header argument count: %d", argv->argc);
@@ -2533,6 +2574,8 @@ int     main(int unused_argc, char **argv)
 	    msg_info("errs = %s", cleanup_strerror(state->errs));
     }
     cleanup_state_free(state);
+    if (*var_milt_head_checks)
+	myfree(var_milt_head_checks);
 
     return (0);
 }
