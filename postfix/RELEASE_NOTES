@@ -59,6 +59,30 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20141126
+====================================
+
+Nullmx support (MX records with a null hostname). This change affects
+error messages only.  The Postfix SMTP client already bounced mail
+for such domains, and the Postfix SMTP server already rejected such
+domains with reject_unknown_sender/recipient_domain. This introduces
+a new SMTP server configuration parameter nullmx_reject_code (default:
+556).
+
+Major changes with snapshot 20141119
+====================================
+
+Support for BCC actions in header/body_checks and milter_header_checks.
+There is no limit on the number of BCC actions that may be specified,
+other than the implicit limit due to finite storage. BCC support
+will not be implemented in Postfix delivery agents.
+
+It works in the same way as always_bcc and sender/recipient_bcc_maps:
+there can be only one address per action, recipients are added with
+the NOTIFY=NONE delivery status notification option, and duplicate
+recipients are ignored (with the same delivery status notification
+options).
+
 Major changes with snapshot 20141011
 ====================================
 

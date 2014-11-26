@@ -301,6 +301,7 @@
 #include <dict_pipe.h>
 #include <dict_random.h>
 #include <dict_union.h>
+#include <dict_inline.h>
 #include <stringops.h>
 #include <split_at.h>
 #include <htable.h>
@@ -346,6 +347,7 @@ static const DICT_OPEN_INFO dict_open_info[] = {
     DICT_TYPE_PIPE, dict_pipe_open,
     DICT_TYPE_RANDOM, dict_random_open,
     DICT_TYPE_UNION, dict_union_open,
+    DICT_TYPE_INLINE, dict_inline_open,
 #ifndef USE_DYNAMIC_MAPS
 #ifdef HAS_PCRE
     DICT_TYPE_PCRE, dict_pcre_open,

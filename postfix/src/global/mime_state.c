@@ -1229,6 +1229,7 @@ static void err_print(void *unused_context, int err_flag,
 int     var_header_limit = 2000;
 int     var_mime_maxdepth = 20;
 int     var_mime_bound_len = 2000;
+char   *var_drop_hdrs = DEF_DROP_HDRS;
 
 int     main(int unused_argc, char **argv)
 {

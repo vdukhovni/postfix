@@ -26,7 +26,7 @@ Makefile: Makefile.in
 test:	$(TESTPROG)
 
 tests:	test dns_rr_to_pa_test dns_rr_to_sa_test dns_sa_to_rr_test \
-	dns_rr_eq_sa_test
+	dns_rr_eq_sa_test nullmx_test nxdomain_test mxonly_test
 
 root_tests:
 
@@ -88,6 +88,27 @@ dns_rr_eq_sa_test: dns_rr_eq_sa dns_rr_eq_sa.in dns_rr_eq_sa.ref
 	$(SHLIB_ENV) ./dns_rr_eq_sa `cat dns_rr_eq_sa.in` >dns_rr_eq_sa.tmp
 	diff dns_rr_eq_sa.ref dns_rr_eq_sa.tmp
 	rm -f dns_rr_eq_sa.tmp
+
+nullmx_test: test_dns_lookup nullmx_test.ref
+	(set -e; \
+	$(SHLIB_ENV) ./test_dns_lookup mx,a nullmx.porcupine.org; \
+	) >nullmx_test.tmp 2>&1 || exit 0
+	diff nullmx_test.ref nullmx_test.tmp
+	rm -f nullmx_test.tmp
+
+nxdomain_test: test_dns_lookup nxdomain_test.ref
+	(set -e; \
+	$(SHLIB_ENV) ./test_dns_lookup mx,a nxdomain.porcupine.org; \
+	) >nxdomain_test.tmp 2>&1 || exit 0
+	diff nxdomain_test.ref nxdomain_test.tmp
+	rm -f nxdomain_test.tmp
+
+mxonly_test: test_dns_lookup mxonly_test.ref
+	(set -e; \
+	$(SHLIB_ENV) ./test_dns_lookup mx,a porcupine.org | sort; \
+	) >mxonly_test.tmp 2>&1 || exit 0
+	diff mxonly_test.ref mxonly_test.tmp
+	rm -f mxonly_test.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

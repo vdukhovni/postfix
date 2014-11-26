@@ -8,16 +8,19 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Log command=good/bad statistics in postscreen?
+
+	Implement smtpd_client_auth_rate limit?
+
 	Make the access map BCC action consistent with header_checks.
+
+	smtpd_checks tests either must use a DNS dummy resolver
+	(override the res_search API) or all names must be under
+	porcupine.org (but that does not work for address->name
+	lookups, and cannot simulate some errors).
 
 	Find a way to show non-default OPT, DEBUG etc. settings at
 	the top of the makedefs.out file.
-
-	Inline table for quick tests.  Short form example: inline:{
-	name1=value1, name2=value2 } would instantiate a table with
-	tuples (name1, value1) and (name2, value2). Long form example
-	allows space around =, and space/comma in values: inline:{
-	{ name1 = value1 }, { name2 = value2 } }.
 
 	Update smtputf8_enable in postconf(5)
 

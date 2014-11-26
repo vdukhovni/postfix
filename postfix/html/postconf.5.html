@@ -2703,7 +2703,7 @@ sub-second delay values.  Specify a number in the range 0..6.  </p>
 
 <p> Large delay values are rounded off to an integral number seconds;
 delay values below the <a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> are logged
-as "0", and small delay values are logged with at most two-digit
+as "0", and delay values under 100s are logged with at most two-digit
 precision.  </p>
 
 <p> The format of the "delays=a/b/c/d" logging is as follows: </p>
@@ -7159,6 +7159,20 @@ Examples:
 <a href="postconf.5.html#notify_classes">notify_classes</a> = bounce, delay, policy, protocol, resource, software
 <a href="postconf.5.html#notify_classes">notify_classes</a> = 2bounce, resource, software
 </pre>
+
+
+</DD>
+
+<DT><b><a name="nullmx_reject_code">nullmx_reject_code</a>
+(default: 556)</b></DT><DD>
+
+<p> The numerical reply code when the Postfix SMTP server rejects
+a sender or recipient address because its domain has a nullmx DNS
+record (an MX record with an empty hostname). This is one of the
+possible replies from <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a> and
+<a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>. </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -14678,7 +14692,9 @@ no DNS A
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
-response code for rejected requests (default: 450).  The response
+response code for rejected requests (default: 450). The <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a>
+parameter specifies the response code for domains with a nullmx
+DNS record (default: 556, Postfix 2.12 and later).  The response
 is always 450 in case of a temporary DNS error. <br> The
 <a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> parameter specifies the action
 after a temporary DNS error (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  </dd>
@@ -15422,7 +15438,9 @@ no DNS A
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
-response code for rejected requests (default: 450).  The response
+response code for rejected requests (default: 450). The <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a>
+parameter specifies the response code for domains with a nullmx
+DNS record (default 556, Postfix 2.12 and later).  The response
 is always 450 in case of a temporary DNS error. <br> The
 <a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> parameter specifies the action
 after a temporary DNS error (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). </dd>
@@ -18373,8 +18391,10 @@ specify an empty value to disable this feature.  </p>
 <p>
 The numerical Postfix SMTP server response code when a sender or
 recipient address is rejected by the <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
-or <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a> restriction.  The response is
-always 450 in case of a temporary DNS error.
+or <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a> restriction. The <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a>
+is used for domains with a nullmx DNS record (Postfix 2.12 and
+later).  The response is always 450 in case of a temporary DNS
+error.
 </p>
 
 <p>

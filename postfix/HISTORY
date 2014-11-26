@@ -20799,3 +20799,47 @@ Apologies for any names omitted.
 	Cleanup: don't write back-to-back queue file pointer records
 	when the "add recipient" action was a NOOP (e.g., because
 	the recipient was a duplicate). File: cleanup/cleanup_milter.c.
+
+20141120
+
+	Documentation: COMPATIBILITY_README now has "purpose of
+	this document" section, plus a separate section for turning
+	off the safety net. File: proto/COMPATIBILITY_README.html
+
+20131121
+
+	Cleanup: replace mua_mumble with msa_mumble in master.cf
+	submission and smtps service parameter overrides. File:
+	proto/BUILTIN_FILTER_README.html.
+
+	Feature: "static:{ text with whitespace }".  This could be
+	used as check_mumble_access static:{reject text...} at the
+	end of smtpd_mumble_restrictions. Files: util/dict_static.c,
+	util/Makefile.in, util/dict_static_test.ref,
+	proto/DATABASE_README.html.  postconf/postconf.c (manpage).
+
+20141126
+
+	Feature: "inline:{key=value, { key = text with comma/space}}
+	avoids the need to create a database for just a few entries.
+	Files: util/dict_inline.[hc], mantools/postlink,
+	proto/DATABASE_README.html. postconf/postconf.c (manpage),
+	util/dict_inline.[hc], util/dict_open.c, util/Makefile.in,
+	util/dict_inline_test.ref.
+
+	Cleanup: report nullmx DNS records as "domain does not
+	accept mail", instead of "invalid DNS response".  The Postfix
+	SMTP client already bounced mail for such domains, and the
+	Postfix SMTP server already rejected such domains with
+	reject_unknown_sender/recipient_domain. This introduces a
+	new SMTP server configuration parameter nullmx_reject_code
+	(default: 556).  Files: src/dns/dns_lookup.[hc], dns/Makefile,in,
+	dns/nullmx_test.ref, src/smtp/smtp_addr.c, src/smtpd/smtpd_check.c,
+	smtpd/smtpd_check_nullmx.in, smtpd/smtpd_check_nullmx.ref,
+	mantools/postlink, proto/postconf.proto, smtpd/smtpd.c.
+
+	Cleanup: added some missing libdns tests: dns/Makefile,in,
+	dns/mxonly_test,ref, dns/nxdomain_test.ref
+
+	Cleanup: libglobal "make test" had suffered from bitrot.
+	Files: global/mime_state.c, global/header_body_checks.c.

@@ -1,0 +1,17 @@
+./dict_open: error: empty table: "inline:{ }"; need "inline:{name=value...}"
+owner=trusted (uid=-1)
+./dict_open: error: missing '=' after attribute name: "inline:{ foo = xx }"; need "inline:{name=value...}"
+owner=trusted (uid=-1)
+./dict_open: error: bad syntax: "inline:{ foo=xx }x"; need "inline:{name=value...}"
+owner=trusted (uid=-1)
+./dict_open: error: bad syntax: "inline:{ foo=xx x"; need "inline:{name=value...}"
+owner=trusted (uid=-1)
+./dict_open: error: syntax error after '}' in "{x=y}x": "inline:{ foo=xx {x=y}x}"; need "inline:{name=value...}"
+owner=trusted (uid=-1)
+owner=trusted (uid=-1)
+> get foo
+foo=xx
+> get bar
+bar=lotsa stuff
+> get baz
+baz: not found

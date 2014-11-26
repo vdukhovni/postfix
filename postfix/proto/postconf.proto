@@ -6048,7 +6048,9 @@ no DNS A
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the numerical
-response code for rejected requests (default: 450).  The response
+response code for rejected requests (default: 450). The nullmx_reject_code
+parameter specifies the response code for domains with a nullmx
+DNS record (default: 556, Postfix 2.12 and later).  The response
 is always 450 in case of a temporary DNS error. <br> The
 unknown_address_tempfail_action parameter specifies the action
 after a temporary DNS error (default: defer_if_permit).  </dd>
@@ -6517,7 +6519,9 @@ no DNS A
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 unknown_address_reject_code parameter specifies the numerical
-response code for rejected requests (default: 450).  The response
+response code for rejected requests (default: 450). The nullmx_reject_code
+parameter specifies the response code for domains with a nullmx
+DNS record (default 556, Postfix 2.12 and later).  The response
 is always 450 in case of a temporary DNS error. <br> The
 unknown_address_tempfail_action parameter specifies the action
 after a temporary DNS error (default: defer_if_permit). </dd>
@@ -6775,8 +6779,10 @@ The default time unit is s (seconds).
 <p>
 The numerical Postfix SMTP server response code when a sender or
 recipient address is rejected by the reject_unknown_sender_domain
-or reject_unknown_recipient_domain restriction.  The response is
-always 450 in case of a temporary DNS error.
+or reject_unknown_recipient_domain restriction. The nullmx_reject_code
+is used for domains with a nullmx DNS record (Postfix 2.12 and
+later).  The response is always 450 in case of a temporary DNS
+error.
 </p>
 
 <p>
@@ -10262,7 +10268,7 @@ sub-second delay values.  Specify a number in the range 0..6.  </p>
 
 <p> Large delay values are rounded off to an integral number seconds;
 delay values below the delay_logging_resolution_limit are logged
-as "0", and small delay values are logged with at most two-digit
+as "0", and delay values under 100s are logged with at most two-digit
 precision.  </p>
 
 <p> The format of the "delays=a/b/c/d" logging is as follows: </p>
@@ -16270,5 +16276,15 @@ The default setting is compatible with Postfix &lt; 2.12. </p>
 <p> Specify a list of header names, separated by comma or space.
 Names are matched in a case-insensitive manner.  The list of supported
 header names is limited only by available memory.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM nullmx_reject_code 556
+
+<p> The numerical reply code when the Postfix SMTP server rejects
+a sender or recipient address because its domain has a nullmx DNS
+record (an MX record with an empty hostname). This is one of the
+possible replies from reject_unknown_sender_domain and
+reject_unknown_recipient_domain. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

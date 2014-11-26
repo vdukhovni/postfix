@@ -1377,6 +1377,7 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
     if (dummy)
 	dns_rr_free(dummy);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	/* We don't care about DNS_UNAVAIL. */
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_unk_name_code, "4.7.1",
@@ -1418,7 +1419,8 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
     }
 #endif
 
-#define MAILHOST_LOOKUP_FLAGS	(DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL)
+#define MAILHOST_LOOKUP_FLAGS \
+    (DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL | DNS_REQ_FLAG_STOP_UNAVAIL)
 
     dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
 			      (VSTRING *) 0, MAILHOST_LOOKUP_FLAGS,
@@ -1426,6 +1428,14 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
     if (dummy)
 	dns_rr_free(dummy);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	if (dns_status == DNS_UNAVAIL)
+	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
+				       var_nullmx_rcode,
+			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+				       "4.7.0" : "4.1.0",
+				       "<%s>: %s rejected: "
+				       "Domain %s does not accept mail",
+				       reply_name, reply_class, name));
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_unk_addr_code,
@@ -1669,6 +1679,7 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
      */
     dns_status = dns_lookup_v(host, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0,
 		      DNS_REQ_FLAG_NONE, inet_proto_info()->dns_atype_list);
+    /* DNS_UNAVAIL is not applicable here. */
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
 			 450, "4.4.4",
@@ -1911,6 +1922,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 		SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
 #endif
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	/* We don't care about DNS_UNAVAIL. */
 	if (dns_status == DNS_RETRY)
 	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
 			     450, "4.4.4",
@@ -2914,6 +2926,8 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     } else {
 	dns_status = dns_lookup(domain, type, 0, &server_list,
 				(VSTRING *) 0, (VSTRING *) 0);
+	if (dns_status == DNS_UNAVAIL)
+	    return (SMTPD_CHECK_DUNNO);
 	if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
 	    if (type == T_MX) {
 		server_list = dns_rr_create(domain, domain, type, C_IN, 0, 0,
@@ -5379,6 +5393,7 @@ char   *var_relay_ccerts = "";
 #endif
 char   *var_mynetworks = "";
 char   *var_notify_classes = "";
+char   *var_smtpd_policy_def_action = "";
 
  /*
   * String-valued configuration parameters.
@@ -5539,11 +5554,17 @@ int     var_verify_poll_delay;
 int     var_smtpd_policy_tmout;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
+int     var_smtpd_policy_req_limit;
+int     var_smtpd_policy_try_limit;
+int     var_smtpd_policy_try_delay;
 int     var_smtpd_rej_unl_from;
 int     var_smtpd_rej_unl_rcpt;
 int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
 bool    var_smtpd_client_port_log;
+int     var_nullmx_rcode;
+
+#define int_table test_int_table
 
 static const INT_TABLE int_table[] = {
     "msg_verbose", 0, &msg_verbose,
@@ -5576,6 +5597,7 @@ static const INT_TABLE int_table[] = {
     VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
     VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
     VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
+    VAR_NULLMX_RCODE, DEF_NULLMX_RCODE, &var_nullmx_rcode,
     0,
 };
 
@@ -5908,6 +5930,7 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], VAR_MYDEST) == 0) {
 		UPDATE_STRING(var_mydest, args->argv[1]);
 		resolve_local_init();
+		smtpd_resolve_init(100);
 		resp = 0;
 		break;
 	    }
@@ -5922,6 +5945,7 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_DOMS) == 0) {
 		UPDATE_STRING(var_virt_alias_doms, args->argv[1]);
 		UPDATE_LIST(virt_alias_doms, var_virt_alias_doms);
+		smtpd_resolve_init(100);
 		resp = 0;
 		break;
 	    }
@@ -5936,6 +5960,7 @@ int     main(int argc, char **argv)
 	    if (strcasecmp(args->argv[0], VAR_VIRT_MAILBOX_DOMS) == 0) {
 		UPDATE_STRING(var_virt_mailbox_doms, args->argv[1]);
 		UPDATE_LIST(virt_mailbox_doms, var_virt_mailbox_doms);
+		smtpd_resolve_init(100);
 		resp = 0;
 		break;
 	    }
@@ -5973,11 +5998,12 @@ int     main(int argc, char **argv)
 	    }
 	    if (strcasecmp(args->argv[0], VAR_MYNETWORKS) == 0) {
 		/* NOT: UPDATE_STRING */
-		namadr_list_free(mynetworks);
-		mynetworks =
+		namadr_list_free(mynetworks_curr);
+		mynetworks_curr =
 		    namadr_list_init(MATCH_FLAG_RETURN
 				     | match_parent_style(VAR_MYNETWORKS),
 				     args->argv[1]);
+		smtpd_resolve_init(100);
 		resp = 0;
 		break;
 	    }
@@ -5987,6 +6013,7 @@ int     main(int argc, char **argv)
 		relay_domains =
 		    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
 				     args->argv[1]);
+		smtpd_resolve_init(100);
 		resp = 0;
 		break;
 	    }

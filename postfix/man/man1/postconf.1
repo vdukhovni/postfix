@@ -252,6 +252,14 @@ Postfix error tests.
 .IP \fBhash\fR
 An indexed file type based on hashing.  Available on systems
 with support for Berkeley DB databases.
+.IP "\fBinline\fR (read-only)"
+A non-shared, in-memory lookup table. Example: "\fBinline:{
+\fIkey\fB=\fIvalue\fB, { \fIkey\fB = \fItext with whitespace
+or comma\fB }}\fR". Key-value pairs are separated by
+whitespace or comma; whitespace after "{" and before "}"
+is ignored. Inline tables eliminate the need to create a
+database file for just a few fixed elements.  See also the
+\fIstatic:\fR map type.
 .IP \fBinternal\fR
 A non-shared, in-memory hash table. Its content are lost
 when a process terminates.
@@ -310,7 +318,10 @@ SQLite database. This is described in \fBsqlite_table\fR(5).
 .IP "\fBstatic\fR (read-only)"
 A table that always returns its name as lookup result. For
 example, \fBstatic:foobar\fR always returns the string
-\fBfoobar\fR as lookup result.
+\fBfoobar\fR as lookup result. Specify "\fBstatic:{ \fItext
+with whitespace\fB }\fR" when the result contains whitespace;
+this form ignores whitespace after "{" and before "}". See
+also the \fIinline:\fR map.
 .IP "\fBtcp\fR (read-only)"
 TCP/IP client. The protocol is described in \fBtcp_table\fR(5).
 .IP "\fBtexthash\fR (read-only)"

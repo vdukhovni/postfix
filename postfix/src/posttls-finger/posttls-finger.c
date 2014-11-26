@@ -1105,6 +1105,9 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
     case DNS_INVAL:
 	dsb_status(state->why, "5.4.4");
 	break;
+    case DNS_UNAVAIL:
+	dsb_status(state->why, "5.1.0");
+	break;
     case DNS_FAIL:
 	dsb_status(state->why, "5.4.3");
 	break;

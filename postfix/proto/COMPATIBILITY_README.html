@@ -5,7 +5,7 @@
 
 <head>
 
-<title>Postfix Backwards-Compatibility Support</title>
+<title>Postfix Backwards-Compatibility Safty Net</title>
 
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 
@@ -14,22 +14,43 @@
 <body>
 
 <h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">Postfix
-Backwards-Compatibility Support</h1>
+Backwards-Compatibility Safty Net</h1>
 
 <hr>
 
-<h2>Overview </h2>
+<h2>Purpose of this document </h2>
 
-<p> Postfix 2.12 introduces a safety net that causes Postfix programs
-to run with backwards-compatible default settings after an upgrade
-to a newer Postfix version.  Backwards compatibility is turned on
-when the main.cf compatibility_level value is less than the Postfix
-built-in value. </p>
+<p> Postfix 2.12 introduces a safety net that runs Postfix programs
+with backwards-compatible default settings after an upgrade. The
+safety net will log a warning whenever a "new" default setting could
+have an negative effect on your mail flow. </p>
 
-<p> With backwards compatibility turned on, Postfix looks for
-settings that are left at their implicit default value, and logs a
-message when a backwards-compatible default setting is required for
-continuity of service.  The following messages may be logged: </p>
+<p>This document provides information on the following topics: </p>
+
+<ul>
+
+<li> <p> <a href="#overview">Detailed descriptions</a> of Postfix
+backwards-compatibility warnings.
+
+<li> <p> What backwards-compatible settings you may have to make
+permanent in main.cf or master.cf.  </p>
+
+<li> <p> <a href="#turnoff">How to turn off</a> Postfix
+backwards-compatibility warnings. </p>
+
+</ul>
+
+<h2> <a name="overview"> Overview </a> </h2>
+
+<p>  With backwards compatibility turned on, Postfix logs a message
+whenever a backwards-compatible default setting may be required for
+continuity of service.  Based on this logging the system administrator
+can decide if any backwards-compatible settings need to be made
+permanent in main.cf or master.cf, before <a href="#turnoff">turning
+off the backwards-compatibility safety net</a> as described at the
+end of this document.  </p>
+
+<p> The following messages may be logged: </p>
 
 <ul>
 
@@ -56,27 +77,9 @@ setting permanent in main.cf or master.cf, as detailed in the
 sections that follow. </p>
 
 <p> When no more backwards-compatible settings need to be made
-permanent, the administrator should turn off backwards compatibility
-by updating the compatibility_level setting in main.cf. </p>
-
-<blockquote>
-<pre>
-# <b>postconf compatibility_level=<i>N</i></b>
-# <b>postfix reload</b>
-</pre>
-</blockquote>
-
-<p> For <i>N</i> specify the number that is logged in your postfix(1)
-warning message: </p>
-
-<blockquote>
-<pre>
-warning: To disable backwards compatibility use "postconf compatibility_level=<i>N</i>" and "postfix reload"
-</pre>
-</blockquote>
-
-<p> Sites that don't care about backwards compatibility may set
-"compatibility_level = 9999" at their own risk. </p>
+permanent, the system administrator should <a href="#turnoff">turn
+off the backwards-compatibility safety net</a> as described at the
+end of this document.  </p>
 
 <h2> <a name="append_dot_mydomain"> Using backwards-compatible default
 setting append_dot_mydomain=yes</a> </h2>
@@ -294,6 +297,30 @@ in main.cf:
 # <b>postfix reload</b>
 </pre>
 </blockquote>
+
+<h2> <a name="turnoff">Turning off the backwards-compatibility safety net</a> </h2>
+
+<p> Backwards compatibility is turned off by updating the
+compatibility_level setting in main.cf. </p>
+
+<blockquote>
+<pre>
+# <b>postconf compatibility_level=<i>N</i></b>
+# <b>postfix reload</b>
+</pre>
+</blockquote>
+
+<p> For <i>N</i> specify the number that is logged in your postfix(1)
+warning message: </p>
+
+<blockquote>
+<pre>
+warning: To disable backwards compatibility use "postconf compatibility_level=<i>N</i>" and "postfix reload"
+</pre>
+</blockquote>
+
+<p> Sites that don't care about backwards compatibility may set
+"compatibility_level = 9999" at their own risk. </p>
 
 </body>
 

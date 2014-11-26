@@ -2145,6 +2145,10 @@ extern int var_non_fqdn_code;
 #define DEF_UNK_ADDR_CODE	450
 extern int var_unk_addr_code;
 
+#define VAR_NULLMX_RCODE	"nullmx_reject_code"
+#define DEF_NULLMX_RCODE	556
+extern int var_nullmx_rcode;
+
 #define VAR_UNK_ADDR_TF_ACT	"unknown_address_tempfail_action"
 #define DEF_UNK_ADDR_TF_ACT	"$" VAR_REJECT_TMPF_ACT
 extern char *var_unk_addr_tf_act;

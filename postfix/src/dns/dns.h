@@ -228,12 +228,14 @@ extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
   */
 #define DNS_REQ_FLAG_STOP_OK	(1<<0)
 #define DNS_REQ_FLAG_STOP_INVAL	(1<<1)
+#define DNS_REQ_FLAG_STOP_UNAVAIL (1<<2)
 #define DNS_REQ_FLAG_NONE	(0)
 
  /*
   * Status codes. Failures must have negative codes so they will not collide
   * with valid counts of answer records etc.
   */
+#define DNS_UNAVAIL	(-6)		/* query ok, service unavailable */
 #define DNS_INVAL	(-5)		/* query ok, malformed reply */
 #define DNS_FAIL	(-4)		/* query failed, don't retry */
 #define DNS_NOTFOUND	(-3)		/* query ok, data not found */

@@ -1713,7 +1713,7 @@ sub-second delay values.  Specify a number in the range 0..6.
 .PP
 Large delay values are rounded off to an integral number seconds;
 delay values below the delay_logging_resolution_limit are logged
-as "0", and small delay values are logged with at most two-digit
+as "0", and delay values under 100s are logged with at most two-digit
 precision.
 .PP
 The format of the "delays=a/b/c/d" logging is as follows:
@@ -4345,6 +4345,14 @@ notify_classes = 2bounce, resource, software
 .fi
 .ad
 .ft R
+.SH nullmx_reject_code (default: 556)
+The numerical reply code when the Postfix SMTP server rejects
+a sender or recipient address because its domain has a nullmx DNS
+record (an MX record with an empty hostname). This is one of the
+possible replies from reject_unknown_sender_domain and
+reject_unknown_recipient_domain.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH owner_request_special (default: yes)
 Give special treatment to owner-listname and listname-request
 address localparts: don't split such addresses when the
@@ -9800,7 +9808,9 @@ a zero-length MX hostname (Postfix version 2.3 and later).
 .br
 The
 unknown_address_reject_code parameter specifies the numerical
-response code for rejected requests (default: 450).  The response
+response code for rejected requests (default: 450). The nullmx_reject_code
+parameter specifies the response code for domains with a nullmx
+DNS record (default: 556, Postfix 2.12 and later).  The response
 is always 450 in case of a temporary DNS error.
 .br
 The
@@ -10383,7 +10393,9 @@ a zero-length MX hostname (Postfix version 2.3 and later).
 .br
 The
 unknown_address_reject_code parameter specifies the numerical
-response code for rejected requests (default: 450).  The response
+response code for rejected requests (default: 450). The nullmx_reject_code
+parameter specifies the response code for domains with a nullmx
+DNS record (default 556, Postfix 2.12 and later).  The response
 is always 450 in case of a temporary DNS error.
 .br
 The
@@ -12571,8 +12583,10 @@ undisclosed_recipients_header = To: undisclosed-recipients:;
 .SH unknown_address_reject_code (default: 450)
 The numerical Postfix SMTP server response code when a sender or
 recipient address is rejected by the reject_unknown_sender_domain
-or reject_unknown_recipient_domain restriction.  The response is
-always 450 in case of a temporary DNS error.
+or reject_unknown_recipient_domain restriction. The nullmx_reject_code
+is used for domains with a nullmx DNS record (Postfix 2.12 and
+later).  The response is always 450 in case of a temporary DNS
+error.
 .PP
 Do not change this unless you have a complete understanding of RFC 5321.
 .SH unknown_address_tempfail_action (default: $reject_tempfail_action)

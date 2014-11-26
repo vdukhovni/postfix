@@ -37,6 +37,7 @@
 
 #include "mymalloc.h"
 #include "msg.h"
+#include "stringops.h"
 #include "dict.h"
 #include "dict_static.h"
 
@@ -56,14 +57,42 @@ static void dict_static_close(DICT *dict)
 
 /* dict_static_open - make association with static variable */
 
-DICT   *dict_static_open(const char *name, int unused_flags, int dict_flags)
+DICT   *dict_static_open(const char *name, int open_flags, int dict_flags)
 {
     DICT   *dict;
+    const char *err;
+    char   *cp, *saved_name = 0;
 
+    /*
+     * Let the optimizer worry about eliminating redundant code.
+     */
+#define DICT_STATIC_OPEN_RETURN(d) do { \
+        DICT *__d = (d); \
+        if (saved_name != 0) \
+            myfree(saved_name); \
+        return (__d); \
+    } while (0)
+
+    /*
+     * Optionally strip surrounding braces and whitespace.
+     */
+    if (name[0] == CHARS_BRACE[0]) {
+	saved_name = cp = mystrdup(name);
+	if ((err = extpar(&cp, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0)
+	    DICT_STATIC_OPEN_RETURN(dict_surrogate(DICT_TYPE_STATIC, name,
+						   open_flags, dict_flags,
+						   "bad %s:name syntax: %s",
+						   DICT_TYPE_STATIC, err));
+	name = cp;
+    }
+
+    /*
+     * Bundle up the request.
+     */
     dict = dict_alloc(DICT_TYPE_STATIC, name, sizeof(*dict));
     dict->lookup = dict_static_lookup;
     dict->close = dict_static_close;
     dict->flags = dict_flags | DICT_FLAG_FIXED;
     dict->owner.status = DICT_OWNER_TRUSTED;
-    return (DICT_DEBUG (dict));
+    DICT_STATIC_OPEN_RETURN(DICT_DEBUG (dict));
 }
