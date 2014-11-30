@@ -154,6 +154,11 @@ extern const char *dns_strtype(unsigned);
 extern unsigned dns_type(const char *);
 
  /*
+  * dns_strrecord.c
+  */
+extern char *dns_strrecord(VSTRING *, DNS_RR *);
+
+ /*
   * dns_rr.c
   */
 extern DNS_RR *dns_rr_create(const char *, const char *,
@@ -229,24 +234,59 @@ extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
 #define DNS_REQ_FLAG_STOP_OK	(1<<0)
 #define DNS_REQ_FLAG_STOP_INVAL	(1<<1)
 #define DNS_REQ_FLAG_STOP_UNAVAIL (1<<2)
+#define DNS_REQ_FLAG_STOP_MX_POLICY (1<<3)
 #define DNS_REQ_FLAG_NONE	(0)
 
  /*
   * Status codes. Failures must have negative codes so they will not collide
   * with valid counts of answer records etc.
+  * 
+  * When a function queries multiple record types for one name, it issues one
+  * query for each query record type. Each query returns a (status, rcode,
+  * text). Only one of these (status, rcode, text) will be returned to the
+  * caller. The selection is based on the status code precedence.
+  * 
+  * - Return DNS_OK (and the corresponding rcode) as long as any query returned
+  * DNS_OK. If this is changed, then code needs to be added to prevent memory
+  * leaks.
+  * 
+  * - Return DNS_RETRY (and the corresponding rcode and text) instead of any
+  * hard negative result.
+  * 
+  * - Return DNS_NOTFOUND (and the corresponding rcode and text) only when all
+  * queries returned DNS_NOTFOUND.
+  * 
+  * DNS_POLICY ranks higher than DNS_RETRY because there was a DNS_OK result,
+  * but the reply filter dropped it. This is a very soft error.
+  * 
+  * Below is the precedence order. The order between DNS_RETRY and DNS_NOTFOUND
+  * is arbitrary.
   */
-#define DNS_UNAVAIL	(-6)		/* query ok, service unavailable */
-#define DNS_INVAL	(-5)		/* query ok, malformed reply */
+#define DNS_RECURSE	(-7)		/* internal only: recursion needed */
+#define DNS_NOTFOUND	(-6)		/* query ok, data not found */
+#define DNS_UNAVAIL	(-5)		/* query ok, service unavailable */
 #define DNS_FAIL	(-4)		/* query failed, don't retry */
-#define DNS_NOTFOUND	(-3)		/* query ok, data not found */
+#define DNS_INVAL	(-3)		/* query ok, malformed reply */
 #define DNS_RETRY	(-2)		/* query failed, try again */
-#define DNS_RECURSE	(-1)		/* recursion needed */
+#define DNS_POLICY	(-1)		/* query ok, all records dropped */
 #define DNS_OK		0		/* query succeeded */
 
  /*
   * How long can a DNS name or single text value be?
   */
 #define DNS_NAME_LEN	1024
+
+ /*
+  * dns_rr_filter.c.
+  */
+extern void dns_rr_filter_compile(const char *, const char *);
+
+#ifdef LIBDNS_INTERNAL
+#include <maps.h>
+extern MAPS *dns_rr_filter_maps;
+extern int dns_rr_filter_execute(DNS_RR **);
+
+#endif
 
 /* LICENSE
 /* .ad

@@ -3843,6 +3843,19 @@ extern char *var_virt_dsn_filter;
 extern char *var_local_dsn_filter;
 
  /*
+  * Optional DNS reply filter.
+  */
+#define VAR_SMTP_DNS_RE_FILTER		"smtp_dns_reply_filter"
+#define DEF_SMTP_DNS_RE_FILTER		""
+#define VAR_LMTP_DNS_RE_FILTER		"lmtp_dns_reply_filter"
+#define DEF_LMTP_DNS_RE_FILTER		""
+extern char *var_smtp_dns_re_filter;
+
+#define VAR_SMTPD_DNS_RE_FILTER		"smtpd_dns_reply_filter"
+#define DEF_SMTPD_DNS_RE_FILTER		""
+extern char *var_smtpd_dns_re_filter;
+
+ /*
   * Location of shared-library files.
   * 
   * If the files will be installed into a known directory, such as a directory

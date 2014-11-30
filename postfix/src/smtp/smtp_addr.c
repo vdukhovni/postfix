@@ -179,6 +179,9 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 	case DNS_INVAL:
 	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.4" : "5.4.4");
 	    return (addr_list);
+	case DNS_POLICY:
+	    dsb_status(why, "4.7.0");
+	    return (addr_list);
 	case DNS_NOTFOUND:
 	    dsb_status(why, SMTP_HAS_SOFT_DSN(why) ? "4.4.4" : "5.4.4");
 	    /* maybe native naming service will succeed */
@@ -437,6 +440,9 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 	break;
     case DNS_UNAVAIL:
 	dsb_status(why, "5.1.0");
+	break;
+    case DNS_POLICY:
+	dsb_status(why, "4.7.0");
 	break;
     case DNS_FAIL:
 	dsb_status(why, "5.4.3");

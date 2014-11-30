@@ -16,7 +16,7 @@
 /*	across SMTP sessions (not process life times). Addresses
 /*	are always resolved in local rewriting context.
 /*
-/*	smtpd_resolve_init() initializes the cache and must
+/*	smtpd_resolve_init() initializes the cache and must be
 /*	called before the cache can be used. This function may also
 /*	be called to flush the cache after an address class update.
 /*
@@ -119,7 +119,8 @@ void    smtpd_resolve_init(int cache_size)
 {
 
     /*
-     * Sanity check.
+     * Flush a pre-existing cache. The smtpd_check test program requires this
+     * after an address class change.
      */
     if (smtpd_resolve_cache)
 	ctable_free(smtpd_resolve_cache);

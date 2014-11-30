@@ -260,6 +260,8 @@
 /*	Optional filter for the \fBsmtp\fR(8) delivery agent to change the
 /*	delivery status code or explanatory text of successful or unsuccessful
 /*	deliveries.
+/* .IP "\fBsmtp_dns_reply_filter ($default_dns_reply_filter)\fR"
+/*	Optional filter for Postfix SMTP client DNS lookup results.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -895,6 +897,7 @@ char   *var_smtp_dns_support;
 bool    var_smtp_rec_deadline;
 bool    var_smtp_dummy_mail_auth;
 char   *var_smtp_dsn_filter;
+char   *var_smtp_dns_re_filter;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;
@@ -1231,6 +1234,13 @@ static void pre_init(char *unused_name, char **unused_argv)
 	    msg_fatal("bad %s value: %s", VAR_LMTP_SMTP(ADDR_PREF),
 		      var_smtp_addr_pref);
     }
+
+    /*
+     * DNS reply filter.
+     */
+    if (*var_smtp_dns_re_filter)
+	dns_rr_filter_compile(VAR_LMTP_SMTP(DNS_RE_FILTER),
+			      var_smtp_dns_re_filter);
 }
 
 /* pre_accept - see if tables have changed */

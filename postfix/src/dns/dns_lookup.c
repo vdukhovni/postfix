@@ -112,6 +112,10 @@
 /* .IP DNS_REQ_FLAG_STOP_UNAVAIL
 /*	Invoke dns_lookup() for the resource types in the order as
 /*	specified, and return when dns_lookup() returns DNS_UNAVAIL.
+/* .IP DNS_REQ_FLAG_STOP_MX_POLICY
+/*	Invoke dns_lookup() for the resource types in the order as
+/*	specified, and return when dns_lookup() returns DNS_POLICY
+/*	for an MX query.
 /* .IP DNS_REQ_FLAG_STOP_OK
 /*	Invoke dns_lookup() for the resource types in the order as
 /*	specified, and return when dns_lookup() returns DNS_OK.
@@ -140,6 +144,9 @@
 /*	\fIwhy\fR argument accordingly:
 /* .IP DNS_OK
 /*	The DNS query succeeded.
+/* .IP DNS_POLICY
+/*	The DNS query succeeded, but the answer did not pass the
+/*	policy filter.
 /* .IP DNS_NOTFOUND
 /*	The DNS query succeeded; the requested information was not found.
 /* .IP DNS_UNAVAIL
@@ -198,6 +205,7 @@
 
 /* DNS library. */
 
+#define LIBDNS_INTERNAL
 #include "dns.h"
 
 /* Local stuff. */
@@ -466,7 +474,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	    return (DNS_RETRY);
 	/* Don't even think of returning an invalid hostname to the caller. */
 	if (*temp == 0)
-	    return (DNS_UNAVAIL);	/* XXX TODO: return descriptive text here */
+	    return (DNS_UNAVAIL);		/* TODO: descriptive text */
 	if (!valid_rr_name(temp, "resource data", fixed->type, reply))
 	    return (DNS_INVAL);
 	data_len = strlen(temp) + 1;
@@ -627,7 +635,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 		    rr->dnssec_valid = *maybe_secure ? reply->dnssec_ad : 0;
 		    *rrlist = dns_rr_append(*rrlist, rr);
 		} else if (status == DNS_UNAVAIL) {
-		    CORRUPT(status);		/* XXX TODO: use better name here */
+		    CORRUPT(status);		/* TODO: use better name */
 		} else if (not_found_status != DNS_RETRY)
 		    not_found_status = status;
 	    } else
@@ -723,13 +731,32 @@ int     dns_lookup_r(const char *name, unsigned type, unsigned flags,
 	    return (status);
 	case DNS_UNAVAIL:
 	    if (why)
-		vstring_sprintf(why, type == T_MX ?	/* XXX TODO: move this */
-				"Domain %s does not accept mail (null %s)" : 
+		vstring_sprintf(why, type == T_MX ?	/* TODO: move this */
+				"Domain %s does not accept mail (null %s)" :
 				"Domain %s does not provide %s service",
 				name, dns_strtype(type));
 	    h_errno = NO_DATA;
 	    return (status);
 	case DNS_OK:
+	    if (dns_rr_filter_maps) {
+		if (dns_rr_filter_execute(rrlist) < 0) {
+		    if (why)
+			vstring_sprintf(why,
+					"Error looking up name=%s type=%s: "
+					"Invalid DNS reply filter syntax",
+					name, dns_strtype(type));
+		    dns_rr_free(*rrlist);
+		    *rrlist = 0;
+		    status = DNS_RETRY;
+		} else if (*rrlist == 0) {
+		    if (why)
+			vstring_sprintf(why,
+					"Error looking up name=%s type=%s: "
+					"DNS reply filter drops all results",
+					name, dns_strtype(type));
+		    status = DNS_POLICY;
+		}
+	    }
 	    return (status);
 	case DNS_RECURSE:
 	    if (msg_verbose)
@@ -760,23 +787,44 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 		              int lflags,...)
 {
     va_list ap;
-    unsigned type;
+    unsigned type, next;
     int     status = DNS_NOTFOUND;
+    int     hpref_status = INT_MIN;
+    VSTRING *hpref_rtext = 0;
+    int     hpref_rcode;
     DNS_RR *rr;
-    int     non_err = 0;
-    int     soft_err = 0;
+
+    /* Save intermediate highest-priority result. */
+#define SAVE_HPREF_STATUS() do { \
+	hpref_status = status; \
+	if (rcode) \
+	    hpref_rcode = *rcode; \
+	if (why && status != DNS_OK) \
+	    vstring_strcpy(hpref_rtext ? hpref_rtext : \
+			   vstring_alloc(VSTRING_LEN(why)), \
+			   vstring_str(why)); \
+    } while (0)
+
+    /* Restore intermediate highest-priority result. */
+#define RESTORE_HPREF_STATUS() do { \
+	status = hpref_status; \
+	if (rcode) \
+	    *rcode = hpref_rcode; \
+	if (why && status != DNS_OK) \
+	    vstring_strcpy(why, vstring_str(hpref_rtext)); \
+    } while (0)
 
     if (rrlist)
 	*rrlist = 0;
     va_start(ap, lflags);
-    while ((type = va_arg(ap, unsigned)) != 0) {
+    for (type = va_arg(ap, unsigned); type != 0; type = next) {
+	next = va_arg(ap, unsigned);
 	if (msg_verbose)
 	    msg_info("lookup %s type %s flags %d",
 		     name, dns_strtype(type), flags);
 	status = dns_lookup_r(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
 			      fqdn, why, rcode);
 	if (status == DNS_OK) {
-	    non_err = 1;
 	    if (rrlist)
 		*rrlist = dns_rr_append(*rrlist, rr);
 	    if (lflags & DNS_REQ_FLAG_STOP_OK)
@@ -784,16 +832,25 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 	} else if (status == DNS_INVAL) {
 	    if (lflags & DNS_REQ_FLAG_STOP_INVAL)
 		break;
+	} else if (status == DNS_POLICY) {
+	    if (type == T_MX && (lflags & DNS_REQ_FLAG_STOP_MX_POLICY))
+		break;
 	} else if (status == DNS_UNAVAIL) {
 	    if (lflags & DNS_REQ_FLAG_STOP_UNAVAIL)
 		break;
-	} else if (status == DNS_RETRY) {
-	    soft_err = 1;
 	}
 	/* XXX Stop after NXDOMAIN error. */
+	if (next == 0)
+	    break;
+	if (status >= hpref_status)
+	    SAVE_HPREF_STATUS();			/* save last info */
     }
     va_end(ap);
-    return (non_err ? DNS_OK : soft_err ? DNS_RETRY : status);
+    if (status < hpref_status)
+	RESTORE_HPREF_STATUS();			/* else report last info */
+    if (hpref_rtext)
+	vstring_free(hpref_rtext);
+    return (status);
 }
 
 /* dns_lookup_rv - DNS lookup interface with types vector */
@@ -802,22 +859,23 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
 		              VSTRING *fqdn, VSTRING *why, int *rcode,
 		              int lflags, unsigned *types)
 {
-    unsigned type;
+    unsigned type, next;
     int     status = DNS_NOTFOUND;
+    int     hpref_status = INT_MIN;
+    VSTRING *hpref_rtext = 0;
+    int     hpref_rcode;
     DNS_RR *rr;
-    int     non_err = 0;
-    int     soft_err = 0;
 
     if (rrlist)
 	*rrlist = 0;
-    while ((type = *types++) != 0) {
+    for (type = *types++; type != 0; type = next) {
+	next = *types++;
 	if (msg_verbose)
 	    msg_info("lookup %s type %s flags %d",
 		     name, dns_strtype(type), flags);
 	status = dns_lookup_r(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
 			      fqdn, why, rcode);
 	if (status == DNS_OK) {
-	    non_err = 1;
 	    if (rrlist)
 		*rrlist = dns_rr_append(*rrlist, rr);
 	    if (lflags & DNS_REQ_FLAG_STOP_OK)
@@ -825,13 +883,22 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
 	} else if (status == DNS_INVAL) {
 	    if (lflags & DNS_REQ_FLAG_STOP_INVAL)
 		break;
+	} else if (status == DNS_POLICY) {
+	    if (type == T_MX && (lflags & DNS_REQ_FLAG_STOP_MX_POLICY))
+		break;
 	} else if (status == DNS_UNAVAIL) {
 	    if (lflags & DNS_REQ_FLAG_STOP_UNAVAIL)
 		break;
-	} else if (status == DNS_RETRY) {
-	    soft_err = 1;
 	}
 	/* XXX Stop after NXDOMAIN error. */
+	if (next == 0)
+	    break;
+	if (status >= hpref_status)
+	    SAVE_HPREF_STATUS();			/* save last info */
     }
-    return (non_err ? DNS_OK : soft_err ? DNS_RETRY : status);
+    if (status < hpref_status)
+	RESTORE_HPREF_STATUS();			/* else report last info */
+    if (hpref_rtext)
+	vstring_free(hpref_rtext);
+    return (status);
 }

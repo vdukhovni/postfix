@@ -153,6 +153,10 @@ time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
+.PP
+Available in Postfix version 2.12 and later:
+.IP "\fBsmtpd_dns_reply_filter (empty)\fR"
+Optional filter for Postfix SMTP server DNS lookup results.
 .SH "ADDRESS REWRITING CONTROLS"
 .na
 .nf
@@ -963,9 +967,8 @@ The numerical Postfix SMTP server response code when a client
 request is rejected by the reject_unauth_destination recipient
 restriction.
 .IP "\fBunknown_address_reject_code (450)\fR"
-The numerical Postfix SMTP server response code when a sender or
-recipient address is rejected by the reject_unknown_sender_domain
-or reject_unknown_recipient_domain restriction.
+The numerical response code when the Postfix SMTP rejects a sender
+or recipient address because its domain is unknown.
 .IP "\fBunknown_client_reject_code (450)\fR"
 The numerical Postfix SMTP server response code when a client
 without valid address <=> name mapping is rejected by the

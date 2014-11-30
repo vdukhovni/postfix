@@ -4346,6 +4346,17 @@ discard LHLO keywords selectively. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_dns_reply_filter">lmtp_dns_reply_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional filter for Postfix LMTP client DNS lookup results.
+See <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> for details including an example.  </p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_dns_resolver_options">lmtp_dns_resolver_options</a>
 (default: empty)</b></DT><DD>
 
@@ -7169,8 +7180,8 @@ Examples:
 <p> The numerical reply code when the Postfix SMTP server rejects
 a sender or recipient address because its domain has a nullmx DNS
 record (an MX record with an empty hostname). This is one of the
-possible replies from <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a> and
-<a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>. </p>
+possible replies from the restrictions <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
+and <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>. </p>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
 
@@ -10296,6 +10307,77 @@ discard EHLO keywords selectively. </p>
 
 </DD>
 
+<DT><b><a name="smtp_dns_reply_filter">smtp_dns_reply_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional filter for Postfix SMTP client DNS lookup results.
+Specify zero or more lookup tables.  The lookup tables are searched
+in the given order for a match with the DNS lookup result, converted
+to the following form: </p>
+
+<pre>
+    <i>name ttl class type preference value</i>
+</pre>
+
+<p> The <i>class</i> field is always "IN", the <i>preference</i>
+field exists only for MX records, the names of hosts, domains, etc.
+end in ".", and those names are in ASCII form (xn--mumble form in
+the case of UTF8 names).  </p>
+
+<p> When a match is found, the table lookup result specifies an
+action.  By default, the table query and the action name are
+case-insensitive.  Currently, only the <b>IGNORE</b> action is
+implemented.  </p>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> The <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> and <a href="postconf.5.html#lmtp_dns_reply_filter">lmtp_dns_reply_filter</a> features
+are used only for Postfix SMTP or LMTP client DNS lookups of MX,
+A, and AAAAA records to locate a remote SMTP or LMTP server, including
+lookups that are made to implement the features <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>
+and <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>. </p>
+
+<li> <p> The Postfix SMTP or LMTP client defers mail delivery when
+a filter removes all lookup results from a successful query.  </p>
+
+<li> <p> The <a href="postconf.5.html#smtpd_dns_reply_filter">smtpd_dns_reply_filter</a> feature is used only for Postfix
+SMTP server DNS lookups of MX, A, AAAAA, and TXT records to implement
+the features <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>, <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>,
+<a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>, reject_rbl_*, and reject_rhsbl_*.
+</p>
+
+<li> <p> The Postfix SMTP server logs a warning or defers mail
+delivery when a filter removes all lookup results from a successful
+query.  </p>
+
+<li> <p> Implicit DNS lookups through nsswitch.conf or equivalent
+mechanisms are not filtered.  </p>
+
+</ul>
+
+<p> Example: ignore Google AAAA records in Postfix SMTP client DNS
+lookups, because Google sometimes hard-rejects mail from IPv6 clients
+with valid PTR etc. records. </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/smtp_dns_reply_filter
+</pre>
+
+<pre>
+/etc/postfix/smtp_dns_reply_filter:
+    # /domain ttl IN AAAA address/ action, all case-insensitive.
+    # Note: the domain name ends in ".".
+    /^\S+\.google.com\.\s+\S+\s+\S+\s+AAAA\s+/ IGNORE
+</pre>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_dns_resolver_options">smtp_dns_resolver_options</a>
 (default: empty)</b></DT><DD>
 
@@ -10515,7 +10597,7 @@ that change the delivery time or destination are not available.
 (default: $<a href="postconf.5.html#myhostname">myhostname</a>)</b></DT><DD>
 
 <p>
-The hostname to send in the SMTP EHLO or HELO command.
+The hostname to send in the SMTP HELO or EHLO command.
 </p>
 
 <p>
@@ -13508,7 +13590,7 @@ that improperly uses ESMTP command pipelining in order to speed up
 deliveries.
 <br> With Postfix 2.6 and later, the SMTP server sets a per-session
 flag whenever it detects illegal pipelining, including pipelined
-EHLO or HELO commands. The <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a> feature simply
+HELO or EHLO commands. The <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a> feature simply
 tests whether the flag was set at any point in time during the
 session.
 <br> With older Postfix versions, <a href="postconf.5.html#reject_unauth_pipelining">reject_unauth_pipelining</a> checks
@@ -13794,6 +13876,18 @@ this action from being logged. </p>
 to discard EHLO keywords selectively.  </p>
 
 </ul>
+
+
+</DD>
+
+<DT><b><a name="smtpd_dns_reply_filter">smtpd_dns_reply_filter</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional filter for Postfix SMTP server DNS lookup results.
+See <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> for details including an example.
+</p>
+
+<p> This feature is available in Postfix 2.12 and later. </p>
 
 
 </DD>
@@ -14103,11 +14197,11 @@ and later.  </dd>
 <dt><b><a name="reject_unknown_helo_hostname">reject_unknown_helo_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_hostname)</dt>
 
 <dd>Reject the request when the HELO or EHLO hostname has no DNS A
-or MX record. <br> The <a href="postconf.5.html#unknown_hostname_reject_code">unknown_hostname_reject_code</a> parameter
-specifies the numerical response code for rejected requests (default:
-450). <br> The <a href="postconf.5.html#unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a> parameter
-specifies the action after a temporary DNS error (default:
-<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully
+or MX record. <br> The reply is specified with the
+<a href="postconf.5.html#unknown_hostname_reject_code">unknown_hostname_reject_code</a> parameter (default: 450) or
+<a href="postconf.5.html#unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a> (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).
+See the respective parameter descriptions for details. <br>
+Note: specify "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes" to fully
 enforce this restriction (without "<a href="postconf.5.html#smtpd_helo_required">smtpd_helo_required</a> = yes", a
 client can simply skip <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a> by not sending
 HELO or EHLO). </dd>
@@ -14691,13 +14785,11 @@ the recipient domain, and the RCPT TO domain has 1) no DNS MX and
 no DNS A
 record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
-<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
-response code for rejected requests (default: 450). The <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a>
-parameter specifies the response code for domains with a nullmx
-DNS record (default: 556, Postfix 2.12 and later).  The response
-is always 450 in case of a temporary DNS error. <br> The
-<a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> parameter specifies the action
-after a temporary DNS error (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  </dd>
+reply is specified with the <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter
+(default: 450), <a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> (default:
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>), or <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a> (default 556, Postfix 2.12 and
+later). See the respective parameter descriptions for details.
+</dd>
 
 <dt><b><a name="reject_unlisted_recipient">reject_unlisted_recipient</a></b> (with Postfix version 2.0: check_recipient_maps)</dt>
 
@@ -15437,13 +15529,11 @@ the sender address, and the MAIL FROM domain has 1) no DNS MX and
 no DNS A
 record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
-<a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter specifies the numerical
-response code for rejected requests (default: 450). The <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a>
-parameter specifies the response code for domains with a nullmx
-DNS record (default 556, Postfix 2.12 and later).  The response
-is always 450 in case of a temporary DNS error. <br> The
-<a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> parameter specifies the action
-after a temporary DNS error (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). </dd>
+reply is specified with the <a href="postconf.5.html#unknown_address_reject_code">unknown_address_reject_code</a> parameter
+(default: 450), <a href="postconf.5.html#unknown_address_tempfail_action">unknown_address_tempfail_action</a> (default:
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>), or <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a> (default 556, Postfix 2.12 and
+later). See the respective parameter descriptions for details.
+</dd>
 
 <dt><b><a name="reject_unlisted_sender">reject_unlisted_sender</a></b></dt>
 
@@ -18389,12 +18479,10 @@ specify an empty value to disable this feature.  </p>
 (default: 450)</b></DT><DD>
 
 <p>
-The numerical Postfix SMTP server response code when a sender or
-recipient address is rejected by the <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>
-or <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a> restriction. The <a href="postconf.5.html#nullmx_reject_code">nullmx_reject_code</a>
-is used for domains with a nullmx DNS record (Postfix 2.12 and
-later).  The response is always 450 in case of a temporary DNS
-error.
+The numerical response code when the Postfix SMTP server rejects a
+sender or recipient address because its domain is unknown.  This
+is one of the possible replies from the restrictions
+<a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a> and <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>.
 </p>
 
 <p>

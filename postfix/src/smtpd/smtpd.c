@@ -137,6 +137,10 @@
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtpd_dns_reply_filter (empty)\fR"
+/*	Optional filter for Postfix SMTP server DNS lookup results.
 /* ADDRESS REWRITING CONTROLS
 /* .ad
 /* .fi
@@ -907,9 +911,8 @@
 /*	request is rejected by the reject_unauth_destination recipient
 /*	restriction.
 /* .IP "\fBunknown_address_reject_code (450)\fR"
-/*	The numerical Postfix SMTP server response code when a sender or
-/*	recipient address is rejected by the reject_unknown_sender_domain
-/*	or reject_unknown_recipient_domain restriction.
+/*	The numerical response code when the Postfix SMTP rejects a sender
+/*	or recipient address because its domain is unknown.
 /* .IP "\fBunknown_client_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when a client
 /*	without valid address <=> name mapping is rejected by the
@@ -1290,6 +1293,7 @@ bool    var_smtpd_tls_auth_only;
 char   *var_smtpd_cmd_filter;
 char   *var_smtpd_rej_footer;
 char   *var_smtpd_acl_perm_log;
+char   *var_smtpd_dns_re_filter;
 
 #ifdef USE_TLS
 char   *var_smtpd_relay_ccerts;
@@ -5415,6 +5419,13 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	ehlo_discard_maps = maps_create(VAR_SMTPD_EHLO_DIS_MAPS,
 					var_smtpd_ehlo_dis_maps,
 					DICT_FLAG_LOCK);
+
+    /*
+     * DNS reply filter.
+     */
+    if (*var_smtpd_dns_re_filter)
+	dns_rr_filter_compile(VAR_SMTPD_DNS_RE_FILTER,
+			      var_smtpd_dns_re_filter);
 }
 
 /* post_jail_init - post-jail initialization */
@@ -5689,6 +5700,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log, 0, 0,
 	VAR_SMTPD_UPROXY_PROTO, DEF_SMTPD_UPROXY_PROTO, &var_smtpd_uproxy_proto, 0, 0,
 	VAR_SMTPD_POLICY_DEF_ACTION, DEF_SMTPD_POLICY_DEF_ACTION, &var_smtpd_policy_def_action, 1, 0,
+	VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

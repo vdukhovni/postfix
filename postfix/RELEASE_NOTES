@@ -59,6 +59,40 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20141128
+====================================
+
+Support for DNS server reply filters in the Postfix SMTP client
+and server. This renders the result in standard zone file format:
+
+    name ttl class type preference value
+
+The class field is always "IN", the preference field exists only
+for MX records, the names of hosts, domains, etc. end in ".", and
+those names are in ASCII form (xn--mumble form in the case of UTF8
+names).
+
+When a match is found, the table lookup result specifies an action.
+By default, the table query and the action name are case-insensitive.
+Currently, only the IGNORE action is implemented.
+
+For safety reasons, Postfix logs a warning or defers mail delivery
+when a filter removes all lookup results from a successful query.
+
+The smtp_dns_reply_filter and lmtp_dns_reply_filter features are
+used only for Postfix SMTP client lookups of MX, A, and AAAAA records
+to locate a remote SMTP or LMTP server, including lookups that are
+made to implement the features reject_unverified_sender and
+reject_unverified_recipient.
+
+The smtpd_dns_reply_filter feature is used only for Postfix SMTP
+server lookups of MX, A, AAAAA, and TXT records to implement the
+features reject_unknown_helo_hostname, reject_unknown_sender_domain,
+reject_unknown_recipient_domain, reject_rbl_*, and reject_rhsbl_*.
+
+Implicit DNS lookups through nsswitch.conf or equivalent mechanisms
+are not filtered.
+
 Major changes with snapshot 20141126
 ====================================
 

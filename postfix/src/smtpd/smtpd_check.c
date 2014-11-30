@@ -1376,8 +1376,13 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
 			      RR_ADDR_TYPES, T_MX, 0);
     if (dummy)
 	dns_rr_free(dummy);
-    if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
-	/* We don't care about DNS_UNAVAIL. */
+    /* Allow MTA names to have nullMX records. */
+    if (dns_status != DNS_OK && dns_status != DNS_UNAVAIL) {
+	if (dns_status == DNS_POLICY) {
+	    msg_warn("%s: address or MX lookup error: %s",
+		     name, "DNS reply filter drops all results");
+	    return (SMTPD_CHECK_DUNNO);
+	}
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_unk_name_code, "4.7.1",
@@ -1420,7 +1425,8 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 #endif
 
 #define MAILHOST_LOOKUP_FLAGS \
-    (DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL | DNS_REQ_FLAG_STOP_UNAVAIL)
+    (DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL | \
+	DNS_REQ_FLAG_STOP_UNAVAIL | DNS_REQ_FLAG_STOP_MX_POLICY)
 
     dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
 			      (VSTRING *) 0, MAILHOST_LOOKUP_FLAGS,
@@ -1428,6 +1434,11 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
     if (dummy)
 	dns_rr_free(dummy);
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
+	if (dns_status == DNS_POLICY) {
+	    msg_warn("%s: MX or address lookup error: %s",
+		     name, "DNS reply filter drops all results");
+	    return (SMTPD_CHECK_DUNNO);
+	}
 	if (dns_status == DNS_UNAVAIL)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_nullmx_rcode,
@@ -1681,10 +1692,13 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 		      DNS_REQ_FLAG_NONE, inet_proto_info()->dns_atype_list);
     /* DNS_UNAVAIL is not applicable here. */
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
-	DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
+	DEFER_IF_REJECT4(state, MAIL_ERROR_POLICY,
 			 450, "4.4.4",
-	   "<%s>: %s rejected: Unable to look up host %s as mail exchanger",
-			 reply_name, reply_class, host);
+			 "<%s>: %s rejected: Unable to look up host "
+			 "%s as mail exchanger: %s",
+			 reply_name, reply_class, host,
+			 dns_status == DNS_POLICY ?
+			 "DNS reply filter policy" : dns_strerror(h_errno));
 	return (NOPE);
     }
     for (rr = addr_list; rr != 0; rr = rr->next) {
@@ -1923,11 +1937,13 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 #endif
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	/* We don't care about DNS_UNAVAIL. */
-	if (dns_status == DNS_RETRY)
-	    DEFER_IF_REJECT2(state, MAIL_ERROR_POLICY,
+	if (dns_status == DNS_RETRY || dns_status == DNS_POLICY)
+	    DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
 			     450, "4.4.4",
-			     "<%s>: %s rejected: Unable to look up mail exchanger information",
-			     reply_name, reply_class);
+			     "<%s>: %s rejected: Unable to look up mail "
+			     "exchanger information: %s",
+			 reply_name, reply_class, dns_status == DNS_POLICY ?
+			 "DNS reply filter policy" : dns_strerror(h_errno));
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -2945,7 +2961,8 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	}
 	if (dns_status != DNS_OK) {
 	    msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
-		domain && domain[1] ? domain : name, dns_strerror(h_errno));
+	     domain && domain[1] ? domain : name, dns_status == DNS_POLICY ?
+		     "DNS reply filter policy" : dns_strerror(h_errno));
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -3253,8 +3270,9 @@ static void *rbl_pagein(const char *query, void *unused_context)
 #define RBL_TXT_LIMIT	500
 
     rbl = (SMTPD_RBL_STATE *) mymalloc(sizeof(*rbl));
-    if (dns_lookup(query, T_TXT, 0, &txt_list,
-		   (VSTRING *) 0, (VSTRING *) 0) == DNS_OK) {
+    dns_status = dns_lookup(query, T_TXT, 0, &txt_list,
+			    (VSTRING *) 0, (VSTRING *) 0);
+    if (dns_status == DNS_OK) {
 	buf = vstring_alloc(1);
 	space_left = RBL_TXT_LIMIT;
 	for (rr = txt_list; rr != 0 && space_left > 0; rr = next) {
@@ -3269,8 +3287,12 @@ static void *rbl_pagein(const char *query, void *unused_context)
 	}
 	rbl->txt = vstring_export(buf);
 	dns_rr_free(txt_list);
-    } else
+    } else {
+	if (dns_status == DNS_POLICY)
+	    msg_warn("%s: TXT lookup error: %s",
+		     query, "DNS reply filter drops all results");
 	rbl->txt = 0;
+    }
     rbl->a = addr_list;
     return ((void *) rbl);
 }
@@ -5367,6 +5389,7 @@ char   *smtpd_check_eod(SMTPD_STATE *state)
 
 #include <mail_conf.h>
 #include <rewrite_clnt.h>
+#include <dns.h>
 
 #include <smtpd_chat.h>
 
@@ -5487,6 +5510,7 @@ static const STRING_TABLE string_table[] = {
     VAR_UNV_FROM_TF_ACT, DEF_REJECT_TMPF_ACT, &var_unv_from_tf_act,
     /* XXX Can't use ``$name'' type default values above. */
     VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log,
+    VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter,
     0,
 };
 
@@ -5563,6 +5587,7 @@ int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
 bool    var_smtpd_client_port_log;
 int     var_nullmx_rcode;
+char   *var_smtpd_dns_re_filter;
 
 #define int_table test_int_table
 
@@ -5882,9 +5907,26 @@ int     main(int argc, char **argv)
 	     * Special case: rewrite context.
 	     */
 	case 1:
-	    if (strcasecmp(args->argv[0], "rewrite") == 0)
+	    if (strcasecmp(args->argv[0], "rewrite") == 0) {
 		resp = smtpd_check_rewrite(&state);
-	    break;
+		break;
+	    }
+
+	    /*
+	     * Other parameter-less commands.
+	     */
+	    if (strcasecmp(args->argv[0], "flush_dnsxl_cache") == 0) {
+		if (smtpd_rbl_cache) {
+		    ctable_free(smtpd_rbl_cache);
+		    ctable_free(smtpd_rbl_byte_cache);
+		}
+		smtpd_rbl_cache = ctable_create(100, rbl_pagein,
+						rbl_pageout, (void *) 0);
+		smtpd_rbl_byte_cache = ctable_create(1000, rbl_byte_pagein,
+					      rbl_byte_pageout, (void *) 0);
+		resp = 0;
+		break;
+	    }
 
 	    /*
 	     * Special case: client identity.
@@ -6027,6 +6069,12 @@ int     main(int argc, char **argv)
 		resp = 0;
 		break;
 	    }
+	    if (strcasecmp(args->argv[0], VAR_SMTPD_DNS_RE_FILTER) == 0) {
+		/* NOT: UPDATE_STRING */
+		dns_rr_filter_compile(VAR_SMTPD_DNS_RE_FILTER, args->argv[1]);
+		resp = 0;
+		break;
+	    }
 #ifdef USE_TLS
 	    if (strcasecmp(args->argv[0], VAR_RELAY_CCERTS) == 0) {
 		UPDATE_STRING(var_smtpd_relay_ccerts, args->argv[1]);
@@ -6121,6 +6169,7 @@ int     main(int argc, char **argv)
 		sender_restrictions <restrictions>\n\
 		recipient_restrictions <restrictions>\n\
 		restriction_class name,<restrictions>\n\
+		flush_dnsxl_cache\n\
 		\n\
 		Note: no address rewriting \n";
 	    break;

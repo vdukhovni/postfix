@@ -20834,7 +20834,7 @@ Apologies for any names omitted.
 	reject_unknown_sender/recipient_domain. This introduces a
 	new SMTP server configuration parameter nullmx_reject_code
 	(default: 556).  Files: src/dns/dns_lookup.[hc], dns/Makefile,in,
-	dns/nullmx_test.ref, src/smtp/smtp_addr.c, src/smtpd/smtpd_check.c,
+	dns/nullmx_test.ref, src/smtp/smtp_addr.c, smtpd/smtpd_check.c,
 	smtpd/smtpd_check_nullmx.in, smtpd/smtpd_check_nullmx.ref,
 	mantools/postlink, proto/postconf.proto, smtpd/smtpd.c.
 
@@ -20843,3 +20843,28 @@ Apologies for any names omitted.
 
 	Cleanup: libglobal "make test" had suffered from bitrot.
 	Files: global/mime_state.c, global/header_body_checks.c.
+
+20141127
+
+	Feature: DNS reply filter, configured with smtp_dns_reply_filter,
+	smtpd_dns_reply_filter, and lmtp_dns_reply_filter. Files:
+	mantools/postlink, proto/postconf.proto, dns/dns.h,
+	dns/dns_lookup.c, dns/dns_rr_filter.c, dns/dns_strrecord.c,
+	dns/error.ref, dns/error.reg, dns/mxonly_test.ref, dns/no-a.ref,
+	dns/no-a.reg, dns/no-aaaa.ref, dns/no-aaaa.reg, dns/no-mx.ref,
+	dns/no-mx.reg, dns/nullmx_test.ref, dns/test_dns_lookup.c,
+	global/mail_params.h, smtp/lmtp_params.c, smtp/smtp.c,
+	smtp/smtp_addr.c, smtp/smtp_params.c, smtpd/smtpd.c,
+	smtpd/smtpd_check.c, smtpd/smtpd_dns_filter.{in,ref}.
+
+20141130
+
+	Cleanup: when searching multiple DNS record types for a
+	specific name, and the result status is not DNS_OK, return
+	the rcode and diagnostic text for that status instead of
+	the last rcode and last diagnostic text.
+
+	Cleanup: un-broke several smtpd regression tests (work in
+	progress, with three more to go).  Files: smtpd/smtpd_check.c,
+	smtpd/smtpd_server.{in,ref}, smtpd/smtpd_exp.{in,ref}.
+	smtpd/smtpd_dnswl.{in,ref}.

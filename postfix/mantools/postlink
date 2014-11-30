@@ -480,6 +480,9 @@ while (<>) {
     s;\bsmtp_discard_ehlo_keywords\b;<a href="postconf.5.html#smtp_discard_ehlo_keywords">$&</a>;g;
     s;\bsmtp_dns_resolver_options\b;<a href="postconf.5.html#smtp_dns_resolver_options">$&</a>;g;
     s;\bsmtp_dns_support_level\b;<a href="postconf.5.html#smtp_dns_support_level">$&</a>;g;
+    s;\blmtp_dns_reply_filter\b;<a href="postconf.5.html#lmtp_dns_reply_filter">$&</a>;g;
+    s;\bsmtp_dns_reply_filter\b;<a href="postconf.5.html#smtp_dns_reply_filter">$&</a>;g;
+    s;\bsmtpd_dns_reply_filter\b;<a href="postconf.5.html#smtpd_dns_reply_filter">$&</a>;g;
     s;\bsmtp_helo_name\b;<a href="postconf.5.html#smtp_helo_name">$&</a>;g;
     s;\bsmtp_helo_timeout\b;<a href="postconf.5.html#smtp_helo_timeout">$&</a>;g;
     s;\bsmtp_host_lookup\b;<a href="postconf.5.html#smtp_host_lookup">$&</a>;g;

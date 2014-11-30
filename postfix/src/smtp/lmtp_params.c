@@ -58,6 +58,7 @@
 	VAR_LMTP_ADDR_PREF, DEF_LMTP_ADDR_PREF, &var_smtp_addr_pref, 1, 0,
 	VAR_LMTP_DNS_RES_OPT, DEF_LMTP_DNS_RES_OPT, &var_smtp_dns_res_opt, 0, 0,
 	VAR_LMTP_DSN_FILTER, DEF_LMTP_DSN_FILTER, &var_smtp_dsn_filter, 0, 0,
+	VAR_LMTP_DNS_RE_FILTER, DEF_LMTP_DNS_RE_FILTER, &var_smtp_dns_re_filter, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE lmtp_time_table[] = {

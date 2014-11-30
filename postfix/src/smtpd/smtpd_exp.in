@@ -32,7 +32,7 @@ rcpt rname@rdomain
 #
 # RHSBL sender domain name
 #
-recipient_restrictions reject_rhsbl_sender,dsn.rfc-ignorant.org
+recipient_restrictions reject_rhsbl_sender,rhsbl.porcupine.org
 client spike.porcupine.org 168.100.189.2
 mail sname@example.tld
 rcpt rname@rdomain
@@ -41,14 +41,14 @@ rcpt rname@rdomain
 #
 # RHSBL client domain name
 #
-recipient_restrictions reject_rhsbl_client,dsn.rfc-ignorant.org
+recipient_restrictions reject_rhsbl_client,rhsbl.porcupine.org
 client example.tld 1.2.3.4
 mail sname@sdomain
 rcpt rname@rdomain
 #
 # RHSBL recipient domain name
 #
-recipient_restrictions reject_rhsbl_recipient,dsn.rfc-ignorant.org
+recipient_restrictions reject_rhsbl_recipient,rhsbl.porcupine.org
 client spike.porcupine.org 168.100.189.2
 mail sname@sdomain
 rcpt rname@rdomain
@@ -56,7 +56,7 @@ rcpt rname@example.tld
 #
 # RHSBL helo domain name
 #
-recipient_restrictions reject_rhsbl_helo,abuse.rfc-ignorant.org
+recipient_restrictions reject_rhsbl_helo,rhsbl.porcupine.org
 helo example.tld
 mail sname@sdomain
 rcpt rname@rdomain
