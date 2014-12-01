@@ -16331,27 +16331,27 @@ implemented.  </p>
 
 <ul>
 
-<li> <p> The smtp_dns_reply_filter and lmtp_dns_reply_filter features
-are used only for Postfix SMTP or LMTP client DNS lookups of MX,
-A, and AAAAA records to locate a remote SMTP or LMTP server, including
-lookups that are made to implement the features reject_unverified_sender
-and reject_unverified_recipient. </p>
+<li> <p> Postfix DNS reply filters have no effect on implicit DNS
+lookups through nsswitch.conf or equivalent mechanisms.  </p>
 
-<li> <p> The Postfix SMTP or LMTP client defers mail delivery when
+<li> <p> The Postfix SMTP and LMTP client use smtp_dns_reply_filter
+and lmtp_dns_reply_filter only to locate a remote SMTP or LMTP
+server (record types MX, A, and AAAAA).  These lookups are also
+made to implement the features reject_unverified_sender and
+reject_unverified_recipient.  </p>
+
+<li> <p> The Postfix SMTP and LMTP client defer mail delivery when
 a filter removes all lookup results from a successful query.  </p>
 
-<li> <p> The smtpd_dns_reply_filter feature is used only for Postfix
-SMTP server DNS lookups of MX, A, AAAAA, and TXT records to implement
-the features reject_unknown_helo_hostname, reject_unknown_sender_domain,
+<li> <p> Postfix SMTP server uses smtpd_dns_reply_filter only to
+look up MX, A, AAAAA, and TXT records to implement the features
+reject_unknown_helo_hostname, reject_unknown_sender_domain,
 reject_unknown_recipient_domain, reject_rbl_*, and reject_rhsbl_*.
 </p>
 
 <li> <p> The Postfix SMTP server logs a warning or defers mail
 delivery when a filter removes all lookup results from a successful
 query.  </p>
-
-<li> <p> Implicit DNS lookups through nsswitch.conf or equivalent
-mechanisms are not filtered.  </p>
 
 </ul>
 

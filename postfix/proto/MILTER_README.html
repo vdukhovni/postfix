@@ -428,8 +428,28 @@ commands.  When a non_smtpd_milters application REJECTs or TEMPFAILs
 a recipient, Postfix will report a configuration error, and mail
 will stay in the queue.  </p>
 
-<p> None of this is a problem for mail filters that digitally sign
-mail. </p>
+<h4> Signing internally-generated bounce messages </h4>
+
+<li> <p> Postfix normally does not apply content filters to mail
+that is generated internally such as bounces or Postmaster
+notifications. Filtering internally-generated bounces would result
+in loss of mail when a filter rejects a message, as the resulting
+double-bounce message would almost certainly also be blocked. </p>
+
+<p>  To sign Postfix's own bounce messages, enable filtering of
+internally-generated bounces (line 2 below), and don't reject any
+internally-generated bounces with non_smtpd_milters, header_checks
+or body_checks (lines 3-5 below).  </p>
+
+<blockquote>
+<pre>
+1 /etc/postfix/main.cf:
+2     internal_mail_filter_classes = bounce
+3     non_smtpd_milters = <i>don't reject internally-generated bounces</i>
+4     header_checks = <i>don't reject internally-generated bounces</i>
+5     body_checks = <i>don't reject internally-generated bounces</i>
+</pre>
+</blockquote>
 
 <h3><a name="errors">Milter error handling</a></h3>
 
@@ -884,12 +904,6 @@ with only one exception: non_smtpd_milters must not REJECT or
 TEMPFAIL simulated RCPT TO commands. When this rule is violated,
 Postfix will report a configuration error, and mail will stay in
 the queue.  </p>
-
-<li> <p> Postfix currently does not apply content filters to mail
-that is forwarded or aliased internally, or to mail that is generated
-internally such as bounces or Postmaster notifications. This may
-be a problem when you want to apply a signing Milter to such mail.
-</p>
 
 <li> <p> When you use the before-queue content filter for incoming
 SMTP mail (see SMTPD_PROXY_README), Milter applications have access

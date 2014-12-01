@@ -247,7 +247,22 @@ must not REJECT or TEMPFAIL simulated RCPT TO commands. When a
 non_smtpd_milters application REJECTs or TEMPFAILs a recipient, Postfix will
 report a configuration error, and mail will stay in the queue.
 
-None of this is a problem for mail filters that digitally sign mail.
+SSiiggnniinngg iinntteerrnnaallllyy--ggeenneerraatteedd bboouunnccee mmeessssaaggeess
+
+Postfix normally does not apply content filters to mail that is generated
+internally such as bounces or Postmaster notifications. Filtering internally-
+generated bounces would result in loss of mail when a filter rejects a message,
+as the resulting double-bounce message would almost certainly also be blocked.
+
+To sign Postfix's own bounce messages, enable filtering of internally-generated
+bounces (line 2 below), and don't reject any internally-generated bounces with
+non_smtpd_milters, header_checks or body_checks (lines 3-5 below).
+
+    1 /etc/postfix/main.cf:
+    2     internal_mail_filter_classes = bounce
+    3     non_smtpd_milters = don't reject internally-generated bounces
+    4     header_checks = don't reject internally-generated bounces
+    5     body_checks = don't reject internally-generated bounces
 
 MMiilltteerr eerrrroorr hhaannddlliinngg
 
@@ -589,11 +604,6 @@ the CONTENT_INSPECTION_README document for a discussion.
     exception: non_smtpd_milters must not REJECT or TEMPFAIL simulated RCPT TO
     commands. When this rule is violated, Postfix will report a configuration
     error, and mail will stay in the queue.
-
-  * Postfix currently does not apply content filters to mail that is forwarded
-    or aliased internally, or to mail that is generated internally such as
-    bounces or Postmaster notifications. This may be a problem when you want to
-    apply a signing Milter to such mail.
 
   * When you use the before-queue content filter for incoming SMTP mail (see
     SMTPD_PROXY_README), Milter applications have access only to the SMTP

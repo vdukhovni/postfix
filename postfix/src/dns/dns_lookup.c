@@ -801,7 +801,7 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 	    hpref_rcode = *rcode; \
 	if (why && status != DNS_OK) \
 	    vstring_strcpy(hpref_rtext ? hpref_rtext : \
-			   vstring_alloc(VSTRING_LEN(why)), \
+			   (hpref_rtext = vstring_alloc(VSTRING_LEN(why))), \
 			   vstring_str(why)); \
     } while (0)
 

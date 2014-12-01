@@ -10333,27 +10333,27 @@ implemented.  </p>
 
 <ul>
 
-<li> <p> The <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> and <a href="postconf.5.html#lmtp_dns_reply_filter">lmtp_dns_reply_filter</a> features
-are used only for Postfix SMTP or LMTP client DNS lookups of MX,
-A, and AAAAA records to locate a remote SMTP or LMTP server, including
-lookups that are made to implement the features <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a>
-and <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>. </p>
+<li> <p> Postfix DNS reply filters have no effect on implicit DNS
+lookups through nsswitch.conf or equivalent mechanisms.  </p>
 
-<li> <p> The Postfix SMTP or LMTP client defers mail delivery when
+<li> <p> The Postfix SMTP and LMTP client use <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a>
+and <a href="postconf.5.html#lmtp_dns_reply_filter">lmtp_dns_reply_filter</a> only to locate a remote SMTP or LMTP
+server (record types MX, A, and AAAAA).  These lookups are also
+made to implement the features <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a> and
+<a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>.  </p>
+
+<li> <p> The Postfix SMTP and LMTP client defer mail delivery when
 a filter removes all lookup results from a successful query.  </p>
 
-<li> <p> The <a href="postconf.5.html#smtpd_dns_reply_filter">smtpd_dns_reply_filter</a> feature is used only for Postfix
-SMTP server DNS lookups of MX, A, AAAAA, and TXT records to implement
-the features <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>, <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>,
+<li> <p> Postfix SMTP server uses <a href="postconf.5.html#smtpd_dns_reply_filter">smtpd_dns_reply_filter</a> only to
+look up MX, A, AAAAA, and TXT records to implement the features
+<a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>, <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>,
 <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>, reject_rbl_*, and reject_rhsbl_*.
 </p>
 
 <li> <p> The Postfix SMTP server logs a warning or defers mail
 delivery when a filter removes all lookup results from a successful
 query.  </p>
-
-<li> <p> Implicit DNS lookups through nsswitch.conf or equivalent
-mechanisms are not filtered.  </p>
 
 </ul>
 

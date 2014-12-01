@@ -20860,11 +20860,25 @@ Apologies for any names omitted.
 20141130
 
 	Cleanup: when searching multiple DNS record types for a
-	specific name, and the result status is not DNS_OK, return
-	the rcode and diagnostic text for that status instead of
-	the last rcode and last diagnostic text.
+	specific name, and not all queries return the same result
+	status, do not blindly return the last query's rcode and
+	diagnostic text.  Instead, return rcode and text that is
+	consistent with the aggregate result status.
 
 	Cleanup: un-broke several smtpd regression tests (work in
 	progress, with three more to go).  Files: smtpd/smtpd_check.c,
 	smtpd/smtpd_server.{in,ref}, smtpd/smtpd_exp.{in,ref}.
 	smtpd/smtpd_dnswl.{in,ref}.
+
+	Documentation: added note on Milter-signing bounces.
+
+20141201
+
+	Bugfix (introduced: 20141130): memory leak. File: dns_lookup.c.
+
+	Cleanup: un-broke several dns regression tests by sorting
+	getaddrinfo() results by address family. Files: dns/dns_rr_eq_sa.c,
+	dns/dns_rr_eq_sa.ref, dns/dns_sa_to_rr.c, dns/dns_sa_to_rr.ref.
+
+	Cleanup: missing #ifdef in smtpd_check test driver. File:
+	smtpd/smtpd_check.c.

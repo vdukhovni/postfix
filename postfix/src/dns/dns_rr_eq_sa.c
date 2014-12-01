@@ -77,15 +77,25 @@ int     dns_rr_eq_sa(DNS_RR *rr, struct sockaddr * sa)
   * Stand-alone test program.
   */
 #ifdef TEST
+#include <stdlib.h>
 #include <vstream.h>
 #include <myaddrinfo.h>
 #include <inet_proto.h>
+#include <mymalloc.h>
 
 static const char *myname;
 
 static NORETURN usage(void)
 {
     msg_fatal("usage: %s hostname address", myname);
+}
+
+static int compare_family(const void *a, const void *b)
+{
+    struct addrinfo *resa = *(struct addrinfo **) a;
+    struct addrinfo *resb = *(struct addrinfo **) b;
+
+    return (resa->ai_family - resb->ai_family);
 }
 
 int     main(int argc, char **argv)
@@ -95,6 +105,8 @@ int     main(int argc, char **argv)
     struct addrinfo *res0;
     struct addrinfo *res1;
     struct addrinfo *res;
+    struct addrinfo **resv;
+    size_t  len, n;
     int     aierr;
 
     myname = argv[0];
@@ -116,19 +128,26 @@ int     main(int argc, char **argv)
 
 	if ((aierr = hostname_to_sockaddr(argv[0], (char *) 0, 0, &res0)) != 0)
 	    msg_fatal("host name %s: %s", argv[0], MAI_STRERROR(aierr));
-	for (res = res0; res != 0; res = res->ai_next) {
-	    SOCKADDR_TO_HOSTADDR(res->ai_addr, res->ai_addrlen,
+	       for (len = 0, res = res0; res != 0; res = res->ai_next)
+            len += 1;
+        resv = (struct addrinfo **) mymalloc(len * sizeof(*resv));
+        for (len = 0, res = res0; res != 0; res = res->ai_next)
+            resv[len++] = res;
+        qsort((void *) resv, len, sizeof(*resv), compare_family);
+        for (n = 0; n < len; n++) {
+	    SOCKADDR_TO_HOSTADDR(resv[n]->ai_addr, resv[n]->ai_addrlen,
 				 &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
 	    vstream_printf("%s =?= %s\n", hostaddr.buf, argv[1]);
 	    vstream_printf("tested by function: %s\n",
-			   dns_rr_eq_sa(rr, res->ai_addr) ?
+			   dns_rr_eq_sa(rr, resv[n]->ai_addr) ?
 			   "yes" : "no");
 	    vstream_printf("tested by macro:    %s\n",
-			   DNS_RR_EQ_SA(rr, res->ai_addr) ?
+			   DNS_RR_EQ_SA(rr, resv[n]->ai_addr) ?
 			   "yes" : "no");
 	}
 	dns_rr_free(rr);
 	freeaddrinfo(res0);
+	myfree((void *) resv);
 	vstream_fflush(VSTREAM_OUT);
 	argv += 1;
     }

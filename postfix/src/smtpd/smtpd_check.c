@@ -6183,10 +6183,12 @@ int     main(int argc, char **argv)
 #define FREE_STRING(s) { if (s) myfree(s); }
     FREE_STRING(state.helo_name);
     FREE_STRING(state.sender);
+#ifdef USE_TLS
     if (state.tls_context) {
 	FREE_STRING(state.tls_context->peer_cert_fprint);
 	myfree((char *) state.tls_context);
     }
+#endif
     exit(0);
 }
 

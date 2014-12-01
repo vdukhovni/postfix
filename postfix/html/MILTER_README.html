@@ -428,8 +428,28 @@ commands.  When a <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters<
 a recipient, Postfix will report a configuration error, and mail
 will stay in the queue.  </p>
 
-<p> None of this is a problem for mail filters that digitally sign
-mail. </p>
+<h4> Signing internally-generated bounce messages </h4>
+
+<li> <p> Postfix normally does not apply content filters to mail
+that is generated internally such as bounces or Postmaster
+notifications. Filtering internally-generated bounces would result
+in loss of mail when a filter rejects a message, as the resulting
+double-bounce message would almost certainly also be blocked. </p>
+
+<p>  To sign Postfix's own bounce messages, enable filtering of
+internally-generated bounces (line 2 below), and don't reject any
+internally-generated bounces with <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>, <a href="postconf.5.html#header_checks">header_checks</a>
+or <a href="postconf.5.html#body_checks">body_checks</a> (lines 3-5 below).  </p>
+
+<blockquote>
+<pre>
+1 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
+2     <a href="postconf.5.html#internal_mail_filter_classes">internal_mail_filter_classes</a> = bounce
+3     <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a> = <i>don't reject internally-generated bounces</i>
+4     <a href="postconf.5.html#header_checks">header_checks</a> = <i>don't reject internally-generated bounces</i>
+5     <a href="postconf.5.html#body_checks">body_checks</a> = <i>don't reject internally-generated bounces</i>
+</pre>
+</blockquote>
 
 <h3><a name="errors">Milter error handling</a></h3>
 
@@ -884,12 +904,6 @@ with only one exception: <a href="postconf.5.html#non_smtpd_milters">non_smtpd_m
 TEMPFAIL simulated RCPT TO commands. When this rule is violated,
 Postfix will report a configuration error, and mail will stay in
 the queue.  </p>
-
-<li> <p> Postfix currently does not apply content filters to mail
-that is forwarded or aliased internally, or to mail that is generated
-internally such as bounces or Postmaster notifications. This may
-be a problem when you want to apply a signing Milter to such mail.
-</p>
 
 <li> <p> When you use the before-queue content filter for incoming
 SMTP mail (see <a href="SMTPD_PROXY_README.html">SMTPD_PROXY_README</a>), Milter applications have access
