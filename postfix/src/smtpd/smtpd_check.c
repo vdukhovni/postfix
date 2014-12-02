@@ -1377,7 +1377,7 @@ static int reject_unknown_hostname(SMTPD_STATE *state, char *name,
     if (dummy)
 	dns_rr_free(dummy);
     /* Allow MTA names to have nullMX records. */
-    if (dns_status != DNS_OK && dns_status != DNS_UNAVAIL) {
+    if (dns_status != DNS_OK && dns_status != DNS_NULLMX) {
 	if (dns_status == DNS_POLICY) {
 	    msg_warn("%s: address or MX lookup error: %s",
 		     name, "DNS reply filter drops all results");
@@ -1426,7 +1426,7 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 
 #define MAILHOST_LOOKUP_FLAGS \
     (DNS_REQ_FLAG_STOP_OK | DNS_REQ_FLAG_STOP_INVAL | \
-	DNS_REQ_FLAG_STOP_UNAVAIL | DNS_REQ_FLAG_STOP_MX_POLICY)
+	DNS_REQ_FLAG_STOP_NULLMX | DNS_REQ_FLAG_STOP_MX_POLICY)
 
     dns_status = dns_lookup_l(name, 0, &dummy, (VSTRING *) 0,
 			      (VSTRING *) 0, MAILHOST_LOOKUP_FLAGS,
@@ -1439,13 +1439,13 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 		     name, "DNS reply filter drops all results");
 	    return (SMTPD_CHECK_DUNNO);
 	}
-	if (dns_status == DNS_UNAVAIL)
+	if (dns_status == DNS_NULLMX)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				       var_nullmx_rcode,
 			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
 				       "4.7.0" : "4.1.0",
-				       "<%s>: %s rejected: "
-				       "Domain %s does not accept mail",
+				       "<%s>: %s rejected: Domain %s "
+				       "does not accept mail (nullMX)",
 				       reply_name, reply_class, name));
 	if (dns_status != DNS_RETRY)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
@@ -1690,7 +1690,7 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
      */
     dns_status = dns_lookup_v(host, 0, &addr_list, (VSTRING *) 0, (VSTRING *) 0,
 		      DNS_REQ_FLAG_NONE, inet_proto_info()->dns_atype_list);
-    /* DNS_UNAVAIL is not applicable here. */
+    /* DNS_NULLMX is not applicable here. */
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
 	DEFER_IF_REJECT4(state, MAIL_ERROR_POLICY,
 			 450, "4.4.4",
@@ -1936,7 +1936,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 		SMTPD_CHECK_OK : SMTPD_CHECK_DUNNO);
 #endif
     if (dns_status != DNS_OK) {			/* incl. DNS_INVAL */
-	/* We don't care about DNS_UNAVAIL. */
+	/* We don't special-case DNS_NULLMX. */
 	if (dns_status == DNS_RETRY || dns_status == DNS_POLICY)
 	    DEFER_IF_REJECT3(state, MAIL_ERROR_POLICY,
 			     450, "4.4.4",
@@ -2942,7 +2942,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     } else {
 	dns_status = dns_lookup(domain, type, 0, &server_list,
 				(VSTRING *) 0, (VSTRING *) 0);
-	if (dns_status == DNS_UNAVAIL)
+	if (dns_status == DNS_NULLMX)
 	    return (SMTPD_CHECK_DUNNO);
 	if (dns_status == DNS_NOTFOUND /* Not: h_errno == NO_DATA */ ) {
 	    if (type == T_MX) {

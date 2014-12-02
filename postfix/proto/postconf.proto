@@ -16334,13 +16334,13 @@ implemented.  </p>
 <li> <p> Postfix DNS reply filters have no effect on implicit DNS
 lookups through nsswitch.conf or equivalent mechanisms.  </p>
 
-<li> <p> The Postfix SMTP and LMTP client use smtp_dns_reply_filter
-and lmtp_dns_reply_filter only to locate a remote SMTP or LMTP
-server (record types MX, A, and AAAAA).  These lookups are also
-made to implement the features reject_unverified_sender and
+<li> <p> The Postfix SMTP/LMTP client uses smtp_dns_reply_filter
+and lmtp_dns_reply_filter only to discover a remote SMTP or LMTP
+service (record types MX, A, AAAAA, and TLSA).  These lookups are
+also made to implement the features reject_unverified_sender and
 reject_unverified_recipient.  </p>
 
-<li> <p> The Postfix SMTP and LMTP client defer mail delivery when
+<li> <p> The Postfix SMTP/LMTP client defers mail delivery when
 a filter removes all lookup results from a successful query.  </p>
 
 <li> <p> Postfix SMTP server uses smtpd_dns_reply_filter only to
@@ -16368,7 +16368,7 @@ with valid PTR etc. records. </p>
 /etc/postfix/smtp_dns_reply_filter:
     # /domain ttl IN AAAA address/ action, all case-insensitive.
     # Note: the domain name ends in ".".
-    /^\S+\.google.com\.\s+\S+\s+\S+\s+AAAA\s+/ IGNORE
+    /^\S+\.google\.com\.\s+\S+\s+\S+\s+AAAA\s+/ IGNORE
 </pre>
 
 <p> This feature is available in Postfix 2.12 and later. </p>

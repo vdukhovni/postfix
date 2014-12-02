@@ -79,7 +79,8 @@ char   *dns_strrecord(VSTRING *buf, DNS_RR *rr)
 	    uint8_t mtype = *ip++;
 	    unsigned i;
 
-	    vstring_sprintf_append(buf, "%d %d %d", usage, selector, mtype);
+	    /* /\.example\. \d+ IN TLSA \d+ \d+ \d+ [\da-f]*$/ IGNORE */
+	    vstring_sprintf_append(buf, "%d %d %d ", usage, selector, mtype);
 	    for (i = 3; i < rr->data_len; ++i)
 		vstring_sprintf_append(buf, "%02x", *ip++);
 	} else {

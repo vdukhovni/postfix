@@ -83,8 +83,8 @@ OK
 OK
 >>> # EXPECT reject (nullmx is not filtered).
 >>> mail user@nullmx.porcupine.org
-./smtpd_check: <queue id>: reject: MAIL from localhost[127.0.0.1]: 556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail; from=<user@nullmx.porcupine.org> proto=SMTP helo=<localhost>
-556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail
+./smtpd_check: <queue id>: reject: MAIL from localhost[127.0.0.1]: 556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX); from=<user@nullmx.porcupine.org> proto=SMTP helo=<localhost>
+556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX)
 >>> # EXPECT reject (nxdomain is not filtered).
 >>> mail user@nxdomain.porcupine.org
 ./smtpd_check: <queue id>: reject: MAIL from localhost[127.0.0.1]: 450 4.1.8 <user@nxdomain.porcupine.org>: Sender address rejected: Domain not found; from=<user@nxdomain.porcupine.org> proto=SMTP helo=<localhost>
@@ -114,8 +114,8 @@ OK
 450 4.1.8 <user@xn--1xa.porcupine.org>: Sender address rejected: Domain not found
 >>> # EXPECT reject (nullmx is not filtered).
 >>> mail user@nullmx.porcupine.org
-./smtpd_check: <queue id>: reject: MAIL from localhost[127.0.0.1]: 556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail; from=<user@nullmx.porcupine.org> proto=SMTP helo=<localhost>
-556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail
+./smtpd_check: <queue id>: reject: MAIL from localhost[127.0.0.1]: 556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX); from=<user@nullmx.porcupine.org> proto=SMTP helo=<localhost>
+556 5.7.0 <user@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX)
 >>> # EXPECT reject (nxdomain is not filtered).
 >>> mail user@nxdomain.porcupine.org
 ./smtpd_check: <queue id>: reject: MAIL from localhost[127.0.0.1]: 450 4.1.8 <user@nxdomain.porcupine.org>: Sender address rejected: Domain not found; from=<user@nxdomain.porcupine.org> proto=SMTP helo=<localhost>

@@ -19,6 +19,14 @@ Wish list:
 	porcupine.org (but that does not work for address->name
 	lookups, and cannot simulate some errors).
 
+	Reporting the original Message-ID in a bounce message
+	In-Reply-To: or References: header.  In the cleanup daemon,
+	grab a copy of the Message-ID and export it along with other
+	header-extracted information at the top of the "extracted"
+	queue file segment.  In the queue manager, extract this
+	along with other header-extracted information, and forward
+	the Message-ID in the bounce server notification request.
+
 	Find a way to show non-default OPT, DEBUG etc. settings at
 	the top of the makedefs.out file.
 

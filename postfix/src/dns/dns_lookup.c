@@ -109,9 +109,9 @@
 /* .IP DNS_REQ_FLAG_STOP_INVAL
 /*	Invoke dns_lookup() for the resource types in the order as
 /*	specified, and return when dns_lookup() returns DNS_INVAL.
-/* .IP DNS_REQ_FLAG_STOP_UNAVAIL
+/* .IP DNS_REQ_FLAG_STOP_NULLMX
 /*	Invoke dns_lookup() for the resource types in the order as
-/*	specified, and return when dns_lookup() returns DNS_UNAVAIL.
+/*	specified, and return when dns_lookup() returns DNS_NULLMX.
 /* .IP DNS_REQ_FLAG_STOP_MX_POLICY
 /*	Invoke dns_lookup() for the resource types in the order as
 /*	specified, and return when dns_lookup() returns DNS_POLICY
@@ -149,7 +149,7 @@
 /*	policy filter.
 /* .IP DNS_NOTFOUND
 /*	The DNS query succeeded; the requested information was not found.
-/* .IP DNS_UNAVAIL
+/* .IP DNS_NULLMX
 /*	The DNS query succeeded; the requested service is unavailable.
 /*	This is returned when the list argument is not a null
 /*	pointer, and an MX lookup result contains a null server
@@ -474,7 +474,7 @@ static int dns_get_rr(DNS_RR **list, const char *orig_name, DNS_REPLY *reply,
 	    return (DNS_RETRY);
 	/* Don't even think of returning an invalid hostname to the caller. */
 	if (*temp == 0)
-	    return (DNS_UNAVAIL);		/* TODO: descriptive text */
+	    return (DNS_NULLMX);		/* TODO: descriptive text */
 	if (!valid_rr_name(temp, "resource data", fixed->type, reply))
 	    return (DNS_INVAL);
 	data_len = strlen(temp) + 1;
@@ -634,7 +634,7 @@ static int dns_get_answer(const char *orig_name, DNS_REPLY *reply, int type,
 		    resource_found++;
 		    rr->dnssec_valid = *maybe_secure ? reply->dnssec_ad : 0;
 		    *rrlist = dns_rr_append(*rrlist, rr);
-		} else if (status == DNS_UNAVAIL) {
+		} else if (status == DNS_NULLMX) {
 		    CORRUPT(status);		/* TODO: use better name */
 		} else if (not_found_status != DNS_RETRY)
 		    not_found_status = status;
@@ -729,12 +729,10 @@ int     dns_lookup_r(const char *name, unsigned type, unsigned flags,
 				"Malformed or unexpected name server reply",
 				name, dns_strtype(type));
 	    return (status);
-	case DNS_UNAVAIL:
+	case DNS_NULLMX:
 	    if (why)
-		vstring_sprintf(why, type == T_MX ?	/* TODO: move this */
-				"Domain %s does not accept mail (null %s)" :
-				"Domain %s does not provide %s service",
-				name, dns_strtype(type));
+		vstring_sprintf(why, "Domain %s does not accept mail (nullMX)",
+				name);
 	    h_errno = NO_DATA;
 	    return (status);
 	case DNS_OK:
@@ -835,8 +833,8 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 	} else if (status == DNS_POLICY) {
 	    if (type == T_MX && (lflags & DNS_REQ_FLAG_STOP_MX_POLICY))
 		break;
-	} else if (status == DNS_UNAVAIL) {
-	    if (lflags & DNS_REQ_FLAG_STOP_UNAVAIL)
+	} else if (status == DNS_NULLMX) {
+	    if (lflags & DNS_REQ_FLAG_STOP_NULLMX)
 		break;
 	}
 	/* XXX Stop after NXDOMAIN error. */
@@ -886,8 +884,8 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
 	} else if (status == DNS_POLICY) {
 	    if (type == T_MX && (lflags & DNS_REQ_FLAG_STOP_MX_POLICY))
 		break;
-	} else if (status == DNS_UNAVAIL) {
-	    if (lflags & DNS_REQ_FLAG_STOP_UNAVAIL)
+	} else if (status == DNS_NULLMX) {
+	    if (lflags & DNS_REQ_FLAG_STOP_NULLMX)
 		break;
 	}
 	/* XXX Stop after NXDOMAIN error. */

@@ -340,7 +340,6 @@ typedef struct SMTP_SESSION {
     TLS_SESS_STATE *tls_context;	/* TLS library session state */
     char   *tls_nexthop;		/* Nexthop domain for cert checks */
     int     tls_retry_plain;		/* Try plain when TLS handshake fails */
-    SMTP_TLS_POLICY *tls;		/* TEMPORARY */
 #endif
 
     SMTP_STATE *state;			/* back link */
@@ -469,14 +468,14 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE \
 	(session->tls_context == 0 \
-	    && session->tls->level == TLS_LEV_MAY \
+	    && state->tls->level == TLS_LEV_MAY \
 	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
 
 #define PLAINTEXT_FALLBACK_OK_AFTER_TLS_SESSION_FAILURE \
 	(session->tls_context != 0 \
 	    && SMTP_RCPT_LEFT(state) > SMTP_RCPT_MARK_COUNT(state) \
-	    && session->tls->level == TLS_LEV_MAY \
+	    && state->tls->level == TLS_LEV_MAY \
 	    && PREACTIVE_DELAY >= var_min_backoff_time \
 	    && !HAVE_SASL_CREDENTIALS)
 

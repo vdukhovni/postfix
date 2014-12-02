@@ -20882,3 +20882,24 @@ Apologies for any names omitted.
 
 	Cleanup: missing #ifdef in smtpd_check test driver. File:
 	smtpd/smtpd_check.c.
+
+	Cleanup: fix google.com regexp in smtp_dns_reply_filter
+	example. Viktor Dukhovni. File: proto/postconf.proto.
+
+	Cleanup: in the ASCII form of DNS resource records, add
+	space after the TLSA match-type field. Viktor Dukhovni.
+	File: dns/dns_strrecord.c.
+
+20141202
+
+	Cleanup: to increase clarity. rename DNS result status from
+	DNS_UNAVAIL to DNS_NULLMX. If someone uses the same zero-length
+	name trick with some other resource type, then we will worry
+	about that later.  Files: smtpd/smtpd_check.c, smtp/smtp_addr.c,
+	dns/dns.h, dns/dns_lookup.c.
+
+	Cleanup: eliminate TLS state duplication from state->tls 
+	to session->tls. Viktor Dukhovni. Files: src/smtp/smtp.h,
+	src/smtp/smtp_connect.c, src/smtp/smtp_proto.c,
+	src/smtp/smtp_reuse.c, src/smtp/smtp_session.c.
+

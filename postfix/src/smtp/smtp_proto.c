@@ -341,7 +341,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * now.
 	 */
 #ifdef USE_TLS
-	if (session->tls->level == TLS_LEV_INVALID)
+	if (state->tls->level == TLS_LEV_INVALID)
 	    /* Warning is already logged. */
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.0"),
@@ -706,14 +706,14 @@ int     smtp_helo(SMTP_STATE *state)
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) &&
 	    var_smtp_tls_note_starttls_offer &&
-	    session->tls->level <= TLS_LEV_NONE)
+	    state->tls->level <= TLS_LEV_NONE)
 	    msg_info("Host offered STARTTLS: [%s]", STR(iter->host));
 
 	/*
 	 * Decide whether or not to send STARTTLS.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
-	    && smtp_tls_ctx != 0 && session->tls->level >= TLS_LEV_MAY) {
+	    && smtp_tls_ctx != 0 && state->tls->level >= TLS_LEV_MAY) {
 
 	    /*
 	     * Prepare for disaster.
@@ -753,7 +753,7 @@ int     smtp_helo(SMTP_STATE *state)
 	     * although support for it was announced in the EHLO response.
 	     */
 	    session->features &= ~SMTP_FEATURE_STARTTLS;
-	    if (TLS_REQUIRED(session->tls->level))
+	    if (TLS_REQUIRED(state->tls->level))
 		return (smtp_site_fail(state, STR(iter->host), resp,
 		    "TLS is required, but host %s refused to start TLS: %s",
 				       session->namaddr,
@@ -768,7 +768,7 @@ int     smtp_helo(SMTP_STATE *state)
 	 * block. When TLS is required we must never, ever, end up in
 	 * plain-text mode.
 	 */
-	if (TLS_REQUIRED(session->tls->level)) {
+	if (TLS_REQUIRED(state->tls->level)) {
 	    if (!(session->features & SMTP_FEATURE_STARTTLS)) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
@@ -868,19 +868,19 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 ctx = smtp_tls_ctx,
 			 stream = session->stream,
 			 timeout = var_smtp_starttls_tmout,
-			 tls_level = session->tls->level,
+			 tls_level = state->tls->level,
 			 nexthop = session->tls_nexthop,
 			 host = STR(iter->host),
 			 namaddr = session->namaddrport,
 			 serverid = vstring_str(serverid),
 			 helo = session->helo,
-			 protocols = session->tls->protocols,
-			 cipher_grade = session->tls->grade,
+			 protocols = state->tls->protocols,
+			 cipher_grade = state->tls->grade,
 			 cipher_exclusions
-			 = vstring_str(session->tls->exclusions),
-			 matchargv = session->tls->matchargv,
+			 = vstring_str(state->tls->exclusions),
+			 matchargv = state->tls->matchargv,
 			 mdalg = var_smtp_tls_fpt_dgst,
-			 dane = session->tls->dane);
+			 dane = state->tls->dane);
     vstring_free(serverid);
 
     if (session->tls_context == 0) {
@@ -921,12 +921,12 @@ static int smtp_start_tls(SMTP_STATE *state)
      * match bits always coincide, but it is fine to report the wrong
      * end-entity certificate as untrusted rather than unmatched.
      */
-    if (TLS_MUST_TRUST(session->tls->level))
+    if (TLS_MUST_TRUST(state->tls->level))
 	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not trusted"));
-    if (TLS_MUST_MATCH(session->tls->level))
+    if (TLS_MUST_MATCH(state->tls->level))
 	if (!TLS_CERT_IS_MATCHED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),

@@ -46,8 +46,8 @@ OK
 ./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 450 4.1.8 <sname@nxdomain.porcupine.org>: Sender address rejected: Domain not found; from=<sname@nxdomain.porcupine.org> proto=SMTP helo=<spike.porcupine.org>
 450 4.1.8 <sname@nxdomain.porcupine.org>: Sender address rejected: Domain not found
 >>> mail sname@nullmx.porcupine.org
-./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 556 5.7.0 <sname@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail; from=<sname@nullmx.porcupine.org> proto=SMTP helo=<spike.porcupine.org>
-556 5.7.0 <sname@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail
+./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 556 5.7.0 <sname@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX); from=<sname@nullmx.porcupine.org> proto=SMTP helo=<spike.porcupine.org>
+556 5.7.0 <sname@nullmx.porcupine.org>: Sender address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX)
 >>> mail sname@spike.porcupine.org
 OK
 >>> #
@@ -75,8 +75,8 @@ OK
 >>> relay_domains nullmx.porcupine.org
 OK
 >>> rcpt rname@nullmx.porcupine.org
-./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 556 5.1.0 <rname@nullmx.porcupine.org>: Recipient address rejected: Domain nullmx.porcupine.org does not accept mail; from=<sname@sdomain> to=<rname@nullmx.porcupine.org> proto=SMTP helo=<spike.porcupine.org>
-556 5.1.0 <rname@nullmx.porcupine.org>: Recipient address rejected: Domain nullmx.porcupine.org does not accept mail
+./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 556 5.1.0 <rname@nullmx.porcupine.org>: Recipient address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX); from=<sname@sdomain> to=<rname@nullmx.porcupine.org> proto=SMTP helo=<spike.porcupine.org>
+556 5.1.0 <rname@nullmx.porcupine.org>: Recipient address rejected: Domain nullmx.porcupine.org does not accept mail (nullMX)
 >>> relay_domains spike.porcupine.org
 OK
 >>> rcpt rname@spike.porcupine.org

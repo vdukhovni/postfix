@@ -233,7 +233,7 @@ extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
   */
 #define DNS_REQ_FLAG_STOP_OK	(1<<0)
 #define DNS_REQ_FLAG_STOP_INVAL	(1<<1)
-#define DNS_REQ_FLAG_STOP_UNAVAIL (1<<2)
+#define DNS_REQ_FLAG_STOP_NULLMX (1<<2)
 #define DNS_REQ_FLAG_STOP_MX_POLICY (1<<3)
 #define DNS_REQ_FLAG_NONE	(0)
 
@@ -264,7 +264,7 @@ extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
   */
 #define DNS_RECURSE	(-7)		/* internal only: recursion needed */
 #define DNS_NOTFOUND	(-6)		/* query ok, data not found */
-#define DNS_UNAVAIL	(-5)		/* query ok, service unavailable */
+#define DNS_NULLMX	(-5)		/* query ok, service unavailable */
 #define DNS_FAIL	(-4)		/* query failed, don't retry */
 #define DNS_INVAL	(-3)		/* query ok, malformed reply */
 #define DNS_RETRY	(-2)		/* query failed, try again */

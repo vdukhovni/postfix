@@ -438,7 +438,7 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 	if (var_ign_mx_lookup_err)
 	    addr_list = smtp_host_addr(aname, misc_flags, why);
 	break;
-    case DNS_UNAVAIL:
+    case DNS_NULLMX:
 	dsb_status(why, "5.1.0");
 	break;
     case DNS_POLICY:
