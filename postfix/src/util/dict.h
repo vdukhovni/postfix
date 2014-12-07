@@ -227,8 +227,8 @@ extern DICT_OPEN_EXTEND_FN dict_open_extend(DICT_OPEN_EXTEND_FN);
 #define dict_del(dp, key)	(dp)->delete((dp), (key))
 #define dict_seq(dp, f, key, val) (dp)->sequence((dp), (f), (key), (val))
 #define dict_close(dp)		(dp)->close(dp)
-typedef void (*DICT_WALK_ACTION) (const char *, DICT *, char *);
-extern void dict_walk(DICT_WALK_ACTION, char *);
+typedef void (*DICT_WALK_ACTION) (const char *, DICT *, void *);
+extern void dict_walk(DICT_WALK_ACTION, void *);
 extern int dict_changed(void);
 extern const char *dict_changed_name(void);
 extern const char *dict_flags_str(int);

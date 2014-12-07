@@ -95,12 +95,12 @@ static HTABLE *pcf_rest_class_table;
     _ctx.local_scope = (scope); \
     _ctx.param_class = (class); \
     (void) mac_expand(NO_SCAN_RESULT, (value), MAC_EXP_FLAG_SCAN, \
-	    NO_SCAN_FILTER, pcf_flag_user_parameter_wrapper, (char *) &_ctx); \
+	    NO_SCAN_FILTER, pcf_flag_user_parameter_wrapper, (void *) &_ctx); \
 } while (0)
 
 /* pcf_convert_user_parameter - get user-defined parameter string value */
 
-static const char *pcf_convert_user_parameter(char *unused_ptr)
+static const char *pcf_convert_user_parameter(void *unused_ptr)
 {
     return ("");			/* can't happen */
 }
@@ -192,7 +192,7 @@ static const char *pcf_flag_user_parameter(const char *mac_name,
 
 static const char *pcf_flag_user_parameter_wrapper(const char *mac_name,
 						           int unused_mode,
-						           char *context)
+						           void *context)
 {
     PCF_PARAM_CTX *ctx = (PCF_PARAM_CTX *) context;
 
@@ -322,7 +322,7 @@ static void pcf_scan_default_parameter_values(HTABLE *valid_params,
 	SCAN_USER_PARAMETER_VALUE(param_value, PCF_PARAM_FLAG_USER, local_scope);
 	/* No need to scan default values for legacy DBMS configuration. */
     }
-    myfree((char *) list);
+    myfree((void *) list);
 }
 
 /* pcf_register_user_parameters - add parameters with user-defined names */

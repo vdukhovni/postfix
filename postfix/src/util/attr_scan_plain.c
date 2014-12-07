@@ -320,7 +320,7 @@ int     attr_vscan_plain(VSTREAM *fp, int flags, va_list ap)
 	    } else if (wanted_type == ATTR_TYPE_HASH) {
 		wanted_name = "(any attribute name or list terminator)";
 		hash_table = va_arg(ap, HTABLE *);
-		if (va_arg(ap, int) != ATTR_TYPE_END)
+		if (va_arg(ap, int) !=ATTR_TYPE_END)
 		    msg_panic("%s: ATTR_TYPE_HASH not followed by ATTR_TYPE_END",
 			      myname);
 	    } else if (wanted_type != ATTR_TYPE_FUNC) {
@@ -508,8 +508,8 @@ int     main(int unused_argc, char **used_argv)
 	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));
 	ht_info_list = htable_list(table);
 	for (ht = ht_info_list; *ht; ht++)
-	    vstream_printf("(hash) %s %s\n", ht[0]->key, ht[0]->value);
-	myfree((char *) ht_info_list);
+	    vstream_printf("(hash) %s %s\n", ht[0]->key, (char *) ht[0]->value);
+	myfree((void *) ht_info_list);
     } else {
 	vstream_printf("return: %d\n", ret);
     }
@@ -526,8 +526,8 @@ int     main(int unused_argc, char **used_argv)
 	vstream_printf("%s %s\n", ATTR_NAME_DATA, STR(data_val));
 	ht_info_list = htable_list(table);
 	for (ht = ht_info_list; *ht; ht++)
-	    vstream_printf("(hash) %s %s\n", ht[0]->key, ht[0]->value);
-	myfree((char *) ht_info_list);
+	    vstream_printf("(hash) %s %s\n", ht[0]->key, (char *) ht[0]->value);
+	myfree((void *) ht_info_list);
     } else {
 	vstream_printf("return: %d\n", ret);
     }

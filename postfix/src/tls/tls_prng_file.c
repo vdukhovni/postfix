@@ -148,7 +148,7 @@ int     tls_prng_file_close(TLS_PRNG_SRC *fh)
 	msg_info("%s: close entropy file %s", myname, fh->name);
     err = close(fh->fd);
     myfree(fh->name);
-    myfree((char *) fh);
+    myfree((void *) fh);
     return (err);
 }
 

@@ -57,7 +57,7 @@
 
 /* timed_write - write with deadline */
 
-ssize_t timed_write(int fd, void *buf, size_t len,
+ssize_t timed_write(int fd, const void *buf, size_t len,
 		            int timeout, void *unused_context)
 {
     ssize_t ret;

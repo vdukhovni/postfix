@@ -220,9 +220,9 @@ int     attr_vprint64(VSTREAM *fp, int flags, va_list ap)
 		VSTREAM_PUTC('\n', fp);
 		if (msg_verbose)
 		    msg_info("send attr name %s value %s",
-			     ht[0]->key, ht[0]->value);
+			     ht[0]->key, (char *) ht[0]->value);
 	    }
-	    myfree((char *) ht_info_list);
+	    myfree((void *) ht_info_list);
 	    break;
 	default:
 	    msg_panic("%s: unknown type code: %d", myname, attr_type);

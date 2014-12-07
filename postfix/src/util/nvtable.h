@@ -22,7 +22,7 @@ typedef struct HTABLE_INFO NVTABLE_INFO;
 
 #define nvtable_create(size)		htable_create(size)
 #define nvtable_locate(table, key)	htable_locate((table), (key))
-#define nvtable_walk(table, action, ptr) htable_walk((table), (action), (ptr))
+#define nvtable_walk(table, action, ptr) htable_walk((table), HTABLE_ACTION_FN_CAST(action), (ptr))
 #define nvtable_list(table)		htable_list(table)
 #define nvtable_find(table, key)	htable_find((table), (key))
 #define nvtable_delete(table, key)	htable_delete((table), (key), myfree)

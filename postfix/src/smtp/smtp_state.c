@@ -106,9 +106,9 @@ void    smtp_state_free(SMTP_STATE *state)
     if (state->endp_prop)
 	vstring_free(state->endp_prop);
     if (state->cache_used)
-	htable_free(state->cache_used, (void (*) (char *)) 0);
+	htable_free(state->cache_used, (void (*) (void *)) 0);
     if (state->why)
 	dsb_free(state->why);
 
-    myfree((char *) state);
+    myfree((void *) state);
 }

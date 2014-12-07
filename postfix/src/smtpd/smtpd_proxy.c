@@ -350,7 +350,7 @@ static int smtpd_proxy_connect(SMTPD_STATE *state)
     proxy->service_stream = vstream_fdopen(fd, O_RDWR);
     /* Needed by our DATA-phase record emulation routines. */
     vstream_control(proxy->service_stream, VSTREAM_CTL_CONTEXT,
-		    (char *) state, VSTREAM_CTL_END);
+		    (void *) state, VSTREAM_CTL_END);
     /* Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE. */
     if (connect_fn == inet_connect)
 	vstream_tweak_tcp(proxy->service_stream);
@@ -1000,7 +1000,7 @@ static int smtpd_proxy_replay_setup(SMTPD_STATE *state)
      * Needed by our DATA-phase record emulation routines.
      */
     vstream_control(smtpd_proxy_replay_stream, VSTREAM_CTL_CONTEXT,
-		    (char *) state, VSTREAM_CTL_END);
+		    (void *) state, VSTREAM_CTL_END);
     return (0);
 }
 
@@ -1114,7 +1114,7 @@ void    smtpd_proxy_free(SMTPD_STATE *state)
 	vstring_free(proxy->request);
     if (proxy->reply != 0)
 	vstring_free(proxy->reply);
-    myfree((char *) proxy);
+    myfree((void *) proxy);
     state->proxy = 0;
 
     /*

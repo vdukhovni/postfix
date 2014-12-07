@@ -481,7 +481,7 @@ const char *psc_maps_find(MAPS *, const char *, int);
   */
 extern void psc_dnsbl_init(void);
 extern int psc_dnsbl_retrieve(const char *, const char **, int);
-extern int psc_dnsbl_request(const char *, void (*) (int, char *), char *);
+extern int psc_dnsbl_request(const char *, void (*) (int, void *), void *);
 
  /*
   * postscreen_tests.c
@@ -551,7 +551,7 @@ extern void psc_starttls_open(PSC_STATE *, EVENT_NOTIFY_FN);
   */
 extern VSTRING *psc_expand_filter;
 extern void psc_expand_init(void);
-extern const char *psc_expand_lookup(const char *, int, char *);
+extern const char *psc_expand_lookup(const char *, int, void *);
 
  /*
   * postscreen_endpt.c

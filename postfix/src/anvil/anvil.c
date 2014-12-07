@@ -326,7 +326,7 @@ typedef struct {
 #define ANVIL_REMOTE_FREE(remote) \
     do { \
 	myfree((remote)->ident); \
-	myfree((char *) (remote)); \
+	myfree((void *) (remote)); \
     } while(0)
 
 /* Reset or update rate information for existing (service, client) state. */
@@ -355,7 +355,7 @@ typedef struct {
     do { \
 	ANVIL_REMOTE_INCR_RATE((remote), rate); \
 	if ((remote)->count == 0) \
-	    event_cancel_timer(anvil_remote_expire, (char *) remote); \
+	    event_cancel_timer(anvil_remote_expire, (void *) remote); \
 	(remote)->count++; \
     } while(0)
 
@@ -371,7 +371,7 @@ typedef struct {
     do { \
 	if ((remote) && (remote)->count > 0) { \
 	    if (--(remote)->count == 0) \
-		event_request_timer(anvil_remote_expire, (char *) remote, \
+		event_request_timer(anvil_remote_expire, (void *) remote, \
 			var_anvil_time_unit); \
 	} \
     } while(0)
@@ -486,7 +486,7 @@ static time_t max_cache_time;		/* time of peak size */
 
 /* anvil_remote_expire - purge expired connection state */
 
-static void anvil_remote_expire(int unused_event, char *context)
+static void anvil_remote_expire(int unused_event, void *context)
 {
     ANVIL_REMOTE *anvil_remote = (ANVIL_REMOTE *) context;
     const char *myname = "anvil_remote_expire";
@@ -499,12 +499,12 @@ static void anvil_remote_expire(int unused_event, char *context)
 		  myname, anvil_remote->count);
 
     htable_delete(anvil_remote_map, anvil_remote->ident,
-		  (void (*) (char *)) 0);
+		  (void (*) (void *)) 0);
     ANVIL_REMOTE_FREE(anvil_remote);
 
     if (msg_verbose)
-	msg_info("%s: anvil_remote_map used=%d",
-		 myname, anvil_remote_map->used);
+	msg_info("%s: anvil_remote_map used=%ld",
+		 myname, (long) anvil_remote_map->used);
 }
 
 /* anvil_remote_lookup - dump address status */
@@ -574,7 +574,7 @@ static ANVIL_REMOTE *anvil_remote_conn_update(VSTREAM *client_stream, const char
 	 (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) == 0) {
 	anvil_remote = (ANVIL_REMOTE *) mymalloc(sizeof(*anvil_remote));
 	ANVIL_REMOTE_FIRST_CONN(anvil_remote, ident);
-	htable_enter(anvil_remote_map, ident, (char *) anvil_remote);
+	htable_enter(anvil_remote_map, ident, (void *) anvil_remote);
 	if (max_cache_size < anvil_remote_map->used) {
 	    max_cache_size = anvil_remote_map->used;
 	    max_cache_time = event_time();
@@ -811,7 +811,7 @@ static void anvil_service_done(VSTREAM *client_stream, char *unused_service,
 	    msg_info("%s: anvil_local 0x%lx",
 		     myname, (unsigned long) anvil_local);
 	ANVIL_LOCAL_DROP_ALL(client_stream, anvil_local);
-	myfree((char *) anvil_local);
+	myfree((void *) anvil_local);
     } else if (msg_verbose)
 	msg_info("client socket not found for fd=%d",
 		 vstream_fileno(client_stream));
@@ -836,7 +836,7 @@ static void anvil_status_dump(char *unused_name, char **unused_argv)
 
 /* anvil_status_update - log and reset extreme usage periodically */
 
-static void anvil_status_update(int unused_event, char *context)
+static void anvil_status_update(int unused_event, void *context)
 {
     anvil_status_dump((char *) 0, (char **) 0);
     event_request_timer(anvil_status_update, context, var_anvil_stat_time);
@@ -917,7 +917,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     /*
      * Dump and reset extreme usage every so often.
      */
-    event_request_timer(anvil_status_update, (char *) 0, var_anvil_stat_time);
+    event_request_timer(anvil_status_update, (void *) 0, var_anvil_stat_time);
 
     /*
      * Initial client state tables.

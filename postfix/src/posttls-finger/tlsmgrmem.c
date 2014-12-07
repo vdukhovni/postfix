@@ -50,7 +50,7 @@ static HTABLE *tls_cache;
 static int cache_enabled = 1;
 static int cache_count;
 static int cache_hits;
-typedef void (*free_func) (char *);
+typedef void (*free_func) (void *);
 static free_func free_value = (free_func) vstring_free;
 
 void    tlsmgrmem_disable(void)
@@ -118,7 +118,7 @@ int     tls_mgr_update(const char *unused_type, const char *key,
 
     if ((ent = htable_locate(tls_cache, key)) == 0) {
 	s = vstring_alloc(len);
-	ent = htable_enter(tls_cache, key, (char *) s);
+	ent = htable_enter(tls_cache, key, (void *) s);
     } else {
 	s = (VSTRING *) ent->value;
     }

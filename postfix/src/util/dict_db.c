@@ -760,14 +760,14 @@ DICT   *dict_hash_open(const char *path, int open_flags, int dict_flags)
 #if DB_VERSION_MAJOR < 2
     HASHINFO tweak;
 
-    memset((char *) &tweak, 0, sizeof(tweak));
+    memset((void *) &tweak, 0, sizeof(tweak));
     tweak.nelem = DICT_DB_NELM;
     tweak.cachesize = dict_db_cache_size;
 #endif
 #if DB_VERSION_MAJOR == 2
     DB_INFO tweak;
 
-    memset((char *) &tweak, 0, sizeof(tweak));
+    memset((void *) &tweak, 0, sizeof(tweak));
     tweak.h_nelem = DICT_DB_NELM;
     tweak.db_cachesize = dict_db_cache_size;
 #endif
@@ -787,13 +787,13 @@ DICT   *dict_btree_open(const char *path, int open_flags, int dict_flags)
 #if DB_VERSION_MAJOR < 2
     BTREEINFO tweak;
 
-    memset((char *) &tweak, 0, sizeof(tweak));
+    memset((void *) &tweak, 0, sizeof(tweak));
     tweak.cachesize = dict_db_cache_size;
 #endif
 #if DB_VERSION_MAJOR == 2
     DB_INFO tweak;
 
-    memset((char *) &tweak, 0, sizeof(tweak));
+    memset((void *) &tweak, 0, sizeof(tweak));
     tweak.db_cachesize = dict_db_cache_size;
 #endif
 #if DB_VERSION_MAJOR > 2

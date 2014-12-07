@@ -355,7 +355,7 @@ static TLS_TICKET_KEY *request_scache_key(unsigned char *keyname)
 	|| LEN(keybuf) != sizeof(tmp))
 	return (0);
 
-    memcpy((char *) &tmp, STR(keybuf), sizeof(tmp));
+    memcpy((void *) &tmp, STR(keybuf), sizeof(tmp));
     return (tls_scache_key_rotate(&tmp));
 }
 

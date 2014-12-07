@@ -576,7 +576,7 @@ static void output_header(void *context, int header_class,
 	    tok822_internalize(state->temp, tpp[0]->head, TOK822_STR_DEFL);
 	    argv_add(rcpt, STR(state->temp), (char *) 0);
 	}
-	myfree((char *) addr_list);
+	myfree((void *) addr_list);
 	tok822_free_tree(tree);
     }
 

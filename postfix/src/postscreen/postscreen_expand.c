@@ -88,7 +88,7 @@ void    psc_expand_init(void)
 /* psc_expand_lookup - generic SMTP attribute $name expansion */
 
 const char *psc_expand_lookup(const char *name, int unused_mode,
-				        char *context)
+			              void *context)
 {
     PSC_STATE *state = (PSC_STATE *) context;
     time_t  now;
@@ -124,7 +124,7 @@ const char *psc_expand_lookup(const char *name, int unused_mode,
     } else if (STREQ(name, MAIL_ATTR_ACT_CLIENT_PORT)) {
 	return (state->smtp_client_port);
     } if (STREQ(name, MAIL_ATTR_LOCALTIME)) {
-	if (time(&now) == (time_t) - 1)
+	if (time(&now) == (time_t) -1)
 	    msg_fatal("time lookup failed: %m");
 	lt = localtime(&now);
 	VSTRING_RESET(state->expand_buf);

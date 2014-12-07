@@ -74,7 +74,7 @@ int     msg_stats_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 		  ATTR_TYPE_END);
     if (ret == 1) {
 	if (LEN(buf) == sizeof(*stats)) {
-	    memcpy((char *) stats, STR(buf), sizeof(*stats));
+	    memcpy((void *) stats, STR(buf), sizeof(*stats));
 	} else {
 	    msg_warn("msg_stats_scan: size mis-match: %u != %u",
 		     (unsigned) LEN(buf), (unsigned) sizeof(*stats));

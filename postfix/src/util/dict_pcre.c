@@ -171,7 +171,7 @@ typedef struct {
 
 /* dict_pcre_expand - replace $number with matched text */
 
-static int dict_pcre_expand(int type, VSTRING *buf, char *ptr)
+static int dict_pcre_expand(int type, VSTRING *buf, void *ptr)
 {
     DICT_PCRE_EXPAND_CONTEXT *ctxt = (DICT_PCRE_EXPAND_CONTEXT *) ptr;
     DICT_PCRE_MATCH_RULE *match_rule = ctxt->match_rule;
@@ -195,11 +195,11 @@ static int dict_pcre_expand(int type, VSTRING *buf, char *ptr)
 			dict_pcre->dict.name, match_rule->rule.lineno, ret);
 	}
 	if (*pp == 0) {
-	    myfree((char *) pp);
+	    myfree((void *) pp);
 	    return (MAC_PARSE_UNDEF);
 	}
 	vstring_strcat(dict_pcre->expansion_buf, pp);
-	myfree((char *) pp);
+	myfree((void *) pp);
 	return (MAC_PARSE_OK);
     }
 
@@ -332,7 +332,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
 	    ctxt.lookup_string = lookup_string;
 
 	    if (mac_parse(match_rule->replacement, dict_pcre_expand,
-			  (char *) &ctxt) & MAC_PARSE_ERROR)
+			  (void *) &ctxt) & MAC_PARSE_ERROR)
 		msg_fatal("pcre map %s, line %d: bad replacement syntax",
 			  dict->name, rule->lineno);
 
@@ -396,16 +396,16 @@ static void dict_pcre_close(DICT *dict)
 	case DICT_PCRE_OP_MATCH:
 	    match_rule = (DICT_PCRE_MATCH_RULE *) rule;
 	    if (match_rule->pattern)
-		myfree((char *) match_rule->pattern);
+		myfree((void *) match_rule->pattern);
 	    if (match_rule->hints)
 		DICT_PCRE_FREE_STUDY(match_rule->hints);
 	    if (match_rule->replacement)
-		myfree((char *) match_rule->replacement);
+		myfree((void *) match_rule->replacement);
 	    break;
 	case DICT_PCRE_OP_IF:
 	    if_rule = (DICT_PCRE_IF_RULE *) rule;
 	    if (if_rule->pattern)
-		myfree((char *) if_rule->pattern);
+		myfree((void *) if_rule->pattern);
 	    if (if_rule->hints)
 		DICT_PCRE_FREE_STUDY(if_rule->hints);
 	    break;
@@ -414,7 +414,7 @@ static void dict_pcre_close(DICT *dict)
 	default:
 	    msg_panic("dict_pcre_close: unknown operation %d", rule->op);
 	}
-	myfree((char *) rule);
+	myfree((void *) rule);
     }
     if (dict_pcre->expansion_buf)
 	vstring_free(dict_pcre->expansion_buf);
@@ -516,7 +516,7 @@ static int dict_pcre_get_pattern(const char *mapname, int lineno, char **bufp,
 
 /* dict_pcre_prescan - sanity check $number instances in replacement text */
 
-static int dict_pcre_prescan(int type, VSTRING *buf, char *context)
+static int dict_pcre_prescan(int type, VSTRING *buf, void *context)
 {
     DICT_PCRE_PRESCAN_CONTEXT *ctxt = (DICT_PCRE_PRESCAN_CONTEXT *) context;
     size_t  n;
@@ -573,7 +573,7 @@ static int dict_pcre_compile(const char *mapname, int lineno,
     if (error != 0) {
 	msg_warn("pcre map %s, line %d: error while studying regex: %s",
 		 mapname, lineno, error);
-	myfree((char *) engine->pattern);
+	myfree((void *) engine->pattern);
 	return (0);
     }
     return (1);
@@ -648,7 +648,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	return (rval); \
     } while (0)
 
-	if (mac_parse(p, dict_pcre_prescan, (char *) &prescan_context)
+	if (mac_parse(p, dict_pcre_prescan, (void *) &prescan_context)
 	    & MAC_PARSE_ERROR) {
 	    msg_warn("pcre map %s, line %d: bad replacement syntax: "
 		     "skipping this rule", mapname, lineno);
@@ -686,7 +686,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 		     "skipping this rule", mapname, lineno,
 		     (int) prescan_context.max_sub);
 	    if (engine.pattern)
-		myfree((char *) engine.pattern);
+		myfree((void *) engine.pattern);
 	    if (engine.hints)
 		DICT_PCRE_FREE_STUDY(engine.hints);
 	    CREATE_MATCHOP_ERROR_RETURN(0);

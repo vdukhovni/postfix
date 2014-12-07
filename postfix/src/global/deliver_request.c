@@ -431,7 +431,7 @@ static void deliver_request_free(DELIVER_REQUEST *request)
 	myfree(request->rewrite_context);
     if (request->dsn_envid)
 	myfree(request->dsn_envid);
-    myfree((char *) request);
+    myfree((void *) request);
 }
 
 /* deliver_request_read - create and read delivery request */

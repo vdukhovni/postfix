@@ -294,5 +294,5 @@ void    milter_macros_free(MILTER_MACROS *mp)
     } while (0)
 
     milter_macros_wipe(mp);
-    myfree((char *) mp);
+    myfree((void *) mp);
 }

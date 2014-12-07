@@ -266,7 +266,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     if (dsn_buf)
 	dsb_free(dsn_buf);
     if (dup_filter)
-	htable_free(dup_filter, (void (*) (char *)) 0);
+	htable_free(dup_filter, (void (*) (void *)) 0);
 }
 
 /* showq_reasons - show deferral reasons */
@@ -287,7 +287,7 @@ static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, RCPT_BUF *rcpt_buf,
 	if (var_dup_filter_limit == 0
 	    || dup_filter->used < var_dup_filter_limit)
 	    if (htable_locate(dup_filter, rcpt->address) == 0)
-		htable_enter(dup_filter, rcpt->address, (char *) 0);
+		htable_enter(dup_filter, rcpt->address, (void *) 0);
 
 	/*
 	 * Don't print the reason when the previous recipient had the same

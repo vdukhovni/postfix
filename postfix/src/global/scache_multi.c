@@ -105,7 +105,7 @@ typedef struct {
 
 #define RING_TO_MULTI_DEST(p) RING_TO_APPL((p), SCACHE_MULTI_DEST, ring)
 
-static void scache_multi_expire_dest(int, char *);
+static void scache_multi_expire_dest(int, void *);
 
  /*
   * Storage for an endpoint->session binding. This is an element in a
@@ -120,7 +120,7 @@ typedef struct {
 
 #define RING_TO_MULTI_ENDP(p) RING_TO_APPL((p), SCACHE_MULTI_ENDP, ring)
 
-static void scache_multi_expire_endp(int, char *);
+static void scache_multi_expire_endp(int, void *);
 
  /*
   * When deleting a circular list element, are we deleting the entire
@@ -145,7 +145,7 @@ static void scache_multi_drop_endp(SCACHE_MULTI_ENDP *endp, int direction)
     /*
      * Stop the timer.
      */
-    event_cancel_timer(scache_multi_expire_endp, (char *) endp);
+    event_cancel_timer(scache_multi_expire_endp, (void *) endp);
 
     /*
      * In bottom-up mode, remove the list head from the endpoint hash when
@@ -165,12 +165,12 @@ static void scache_multi_drop_endp(SCACHE_MULTI_ENDP *endp, int direction)
 	msg_warn("%s: close(%d): %m", myname, endp->fd);
     myfree(endp->endp_prop);
 
-    myfree((char *) endp);
+    myfree((void *) endp);
 }
 
 /* scache_multi_expire_endp - event timer call-back */
 
-static void scache_multi_expire_endp(int unused_event, char *context)
+static void scache_multi_expire_endp(int unused_event, void *context)
 {
     SCACHE_MULTI_ENDP *endp = (SCACHE_MULTI_ENDP *) context;
 
@@ -179,7 +179,7 @@ static void scache_multi_expire_endp(int unused_event, char *context)
 
 /* scache_multi_free_endp - hash table destructor call-back */
 
-static void scache_multi_free_endp(char *ptr)
+static void scache_multi_free_endp(void *ptr)
 {
     SCACHE_MULTI_HEAD *head = (SCACHE_MULTI_HEAD *) ptr;
     SCACHE_MULTI_ENDP *endp;
@@ -193,7 +193,7 @@ static void scache_multi_free_endp(char *ptr)
 	endp = RING_TO_MULTI_ENDP(ring);
 	scache_multi_drop_endp(endp, TOP_DOWN);
     }
-    myfree((char *) head);
+    myfree((void *) head);
 }
 
 /* scache_multi_save_endp - save endpoint->session binding */
@@ -218,7 +218,7 @@ static void scache_multi_save_endp(SCACHE *scache, int ttl,
 	head = (SCACHE_MULTI_HEAD *) mymalloc(sizeof(*head));
 	ring_init(head->ring);
 	head->parent_key =
-	    htable_enter(sp->endp_cache, endp_label, (char *) head)->key;
+	    htable_enter(sp->endp_cache, endp_label, (void *) head)->key;
 	head->cache = sp;
     }
 
@@ -236,7 +236,7 @@ static void scache_multi_save_endp(SCACHE *scache, int ttl,
     /*
      * Make sure this binding will go away eventually.
      */
-    event_request_timer(scache_multi_expire_endp, (char *) endp, ttl);
+    event_request_timer(scache_multi_expire_endp, (void *) endp, ttl);
 
     if (msg_verbose)
 	msg_info("%s: endp_label=%s -> endp_prop=%s fd=%d",
@@ -300,7 +300,7 @@ static void scache_multi_drop_dest(SCACHE_MULTI_DEST *dest, int direction)
     /*
      * Stop the timer.
      */
-    event_cancel_timer(scache_multi_expire_dest, (char *) dest);
+    event_cancel_timer(scache_multi_expire_dest, (void *) dest);
 
     /*
      * In bottom-up mode, remove the list head from the destination hash when
@@ -318,12 +318,12 @@ static void scache_multi_drop_dest(SCACHE_MULTI_DEST *dest, int direction)
     myfree(dest->dest_prop);
     myfree(dest->endp_label);
 
-    myfree((char *) dest);
+    myfree((void *) dest);
 }
 
 /* scache_multi_expire_dest - event timer call-back */
 
-static void scache_multi_expire_dest(int unused_event, char *context)
+static void scache_multi_expire_dest(int unused_event, void *context)
 {
     SCACHE_MULTI_DEST *dest = (SCACHE_MULTI_DEST *) context;
 
@@ -332,7 +332,7 @@ static void scache_multi_expire_dest(int unused_event, char *context)
 
 /* scache_multi_free_dest - hash table destructor call-back */
 
-static void scache_multi_free_dest(char *ptr)
+static void scache_multi_free_dest(void *ptr)
 {
     SCACHE_MULTI_HEAD *head = (SCACHE_MULTI_HEAD *) ptr;
     SCACHE_MULTI_DEST *dest;
@@ -346,7 +346,7 @@ static void scache_multi_free_dest(char *ptr)
 	dest = RING_TO_MULTI_DEST(ring);
 	scache_multi_drop_dest(dest, TOP_DOWN);
     }
-    myfree((char *) head);
+    myfree((void *) head);
 }
 
 /* scache_multi_save_dest - save destination->endpoint binding */
@@ -374,7 +374,7 @@ static void scache_multi_save_dest(SCACHE *scache, int ttl,
 	head = (SCACHE_MULTI_HEAD *) mymalloc(sizeof(*head));
 	ring_init(head->ring);
 	head->parent_key =
-	    htable_enter(sp->dest_cache, dest_label, (char *) head)->key;
+	    htable_enter(sp->dest_cache, dest_label, (void *) head)->key;
 	head->cache = sp;
     }
 
@@ -401,7 +401,7 @@ static void scache_multi_save_dest(SCACHE *scache, int ttl,
     /*
      * Make sure this binding will go away eventually.
      */
-    event_request_timer(scache_multi_expire_dest, (char *) dest, ttl);
+    event_request_timer(scache_multi_expire_dest, (void *) dest, ttl);
 
     if (msg_verbose)
 	msg_info("%s: dest_label=%s -> dest_prop=%s endp_label=%s%s",
@@ -469,7 +469,7 @@ static void scache_multi_free(SCACHE *scache)
     htable_free(sp->dest_cache, scache_multi_free_dest);
     htable_free(sp->endp_cache, scache_multi_free_endp);
 
-    myfree((char *) sp);
+    myfree((void *) sp);
 }
 
 /* scache_multi_create - initialize */

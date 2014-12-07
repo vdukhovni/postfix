@@ -59,6 +59,22 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20141207
+====================================
+
+First stage in the cleanup of old crufty C that dates from the days
+of SunOS4, years before void * and size_t became unversally available.
+These cleanups will destroy lots of patches, but after 17 years the
+time has come.
+
+The first-stage cleanup deprecates the use of "char *" for non-text
+purposes such as memory allocation and pointers to application
+context for call-back functions.  
+
+A second-stage cleanup will replace many integer types for counters
+and sizes with size_t or ssize_t equivalents.  This will eliminate
+wasteful 64-32bit conversions on 64-bit systems.
+
 Major changes with snapshot 20141128
 ====================================
 

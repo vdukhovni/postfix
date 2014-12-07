@@ -148,7 +148,7 @@ int     tls_prng_dev_close(TLS_PRNG_SRC *dev)
 	msg_info("%s: close entropy device %s", myname, dev->name);
     err = close(dev->fd);
     myfree(dev->name);
-    myfree((char *) dev);
+    myfree((void *) dev);
     return (err);
 }
 

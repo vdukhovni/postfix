@@ -562,7 +562,7 @@ static int flush_send_path(const char *path, int how)
 			 myname, path, STR(queue_file));
 	}
     }
-    htable_free(dup_filter, (void (*) (char *)) 0);
+    htable_free(dup_filter, (void (*) (void *)) 0);
     vstring_free(queue_file);
     vstring_free(queue_id);
 

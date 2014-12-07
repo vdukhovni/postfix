@@ -74,6 +74,6 @@ TOK822 *tok822_free(TOK822 *tp)
 {
     if (tp->vstr)
 	vstring_free(tp->vstr);
-    myfree((char *) tp);
+    myfree((void *) tp);
     return (0);
 }

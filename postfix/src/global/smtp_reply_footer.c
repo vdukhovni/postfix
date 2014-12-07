@@ -12,8 +12,8 @@
 /*	ssize_t	start;
 /*	char	*template;
 /*	const char *filter;
-/*	const char *(*lookup) (const char *name, char *context);
-/*	char	*context;
+/*	const char *(*lookup) (const char *name, void *context);
+/*	void	*context;
 /* DESCRIPTION
 /*	smtp_reply_footer() expands a reply template, and appends
 /*	the result to an existing reply text.
@@ -37,7 +37,7 @@
 /*	line break followed by a copy of the original SMTP reply
 /*	code and optional enhanced status code.
 /*	The two-character sequence "\c" at the start of the template
-/*	suppresses the line break between the reply text and the 
+/*	suppresses the line break between the reply text and the
 /*	template text.
 /* .IP filter
 /*	The set of characters that are allowed in attribute expansion.
@@ -89,7 +89,7 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
 			          char *template,
 			          const char *filter,
 			          MAC_EXP_LOOKUP_FN lookup,
-			          char *context)
+			          void *context)
 {
     const char *myname = "smtp_reply_footer";
     char   *cp;

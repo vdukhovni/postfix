@@ -584,7 +584,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * chroot jail.
      */
     if (*var_bounce_tmpl)
-	load_file(var_bounce_tmpl, load_helper, (char *) bounce_templates);
+	load_file(var_bounce_tmpl, load_helper, (void *) bounce_templates);
 }
 
 /* post_jail_init - initialize after entering chroot jail */

@@ -323,6 +323,7 @@
 #include <sane_connect.h>
 #include <myaddrinfo.h>
 #include <sock_addr.h>
+#include <midna.h>
 
 #define STR(x)		vstring_str(x)
 
@@ -876,7 +877,7 @@ static VSTREAM *connect_unix(STATE *state, const char *path)
     /*
      * Initialize.
      */
-    memset((char *) &sock_un, 0, sizeof(sock_un));
+    memset((void *) &sock_un, 0, sizeof(sock_un));
     sock_un.sun_family = AF_UNIX;
 #ifdef HAS_SUN_LEN
     sock_un.sun_len = len + 1;
@@ -1090,6 +1091,7 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
     DNS_RR *mx_names;
     DNS_RR *addr_list = 0;
     int     r = 0;			/* Resolver flags */
+    const char *aname;
 
     dsb_reset(state->why);
 
@@ -1097,7 +1099,17 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
     r |= RES_USE_DNSSEC;
 #endif
 
-    switch (dns_lookup(domain, T_MX, r, &mx_names, (VSTRING *) 0,
+    /*
+     * IDNA support.
+     */
+#ifndef NO_EAI
+    if (!allascii(domain) && (aname = midna_utf8_to_ascii(domain)) != 0) {
+	msg_info("%s asciified to %s", domain, aname);
+    } else
+#endif
+	aname = domain;
+
+    switch (dns_lookup(aname, T_MX, r, &mx_names, (VSTRING *) 0,
 		       state->why->reason)) {
     default:
 	dsb_status(state->why, "4.4.3");
@@ -1144,6 +1156,7 @@ static DNS_RR *host_addr(STATE *state, const char *host)
     DSN_BUF *why = state->why;
     DNS_RR *addr_list;
     int     res_opt = 0;
+    const char *ahost;
 
     dsb_reset(why);				/* Paranoia */
 
@@ -1151,8 +1164,18 @@ static DNS_RR *host_addr(STATE *state, const char *host)
     res_opt |= RES_USE_DNSSEC;
 #endif
 
+    /*
+     * IDNA support.
+     */
+#ifndef NO_EAI
+    if (!allascii(host) && (ahost = midna_utf8_to_ascii(host)) != 0) {
+	msg_info("%s asciified to %s", host, ahost);
+    } else
+#endif
+	ahost = host;
+
 #define PREF0	0
-    addr_list = addr_one(state, (DNS_RR *) 0, host, res_opt, PREF0);
+    addr_list = addr_one(state, (DNS_RR *) 0, ahost, res_opt, PREF0);
     if (addr_list && addr_list->next) {
 	addr_list = dns_rr_shuffle(addr_list);
 	if (inet_proto_info()->ai_family_list[1] != 0)
@@ -1576,7 +1599,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
     state->protocols = mystrdup("!SSLv2");
     state->grade = mystrdup("medium");
 #endif
-    memset((char *) &state->options, 0, sizeof(state->options));
+    memset((void *) &state->options, 0, sizeof(state->options));
     state->options.host_lookup = mystrdup("dns");
 
 #define OPTS "a:ch:o:St:T:v"

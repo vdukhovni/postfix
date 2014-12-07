@@ -42,7 +42,7 @@
 /*
 /*	int	dict_walk(action, context)
 /*	void	(*action)(dict_name, dict_handle, context)
-/*	char	*context;
+/*	void	*context;
 /*
 /*	int	dict_error(dict_name)
 /*	const char *dict_name;
@@ -320,7 +320,7 @@ void    dict_register(const char *dict_name, DICT *dict_info)
 	node = (DICT_NODE *) mymalloc(sizeof(*node));
 	node->dict = dict_info;
 	node->refcount = 0;
-	htable_enter(dict_table, dict_name, (char *) node);
+	htable_enter(dict_table, dict_name, (void *) node);
     } else if (dict_info != node->dict)
 	msg_fatal("%s: dictionary name exists: %s", myname, dict_name);
     node->refcount++;
@@ -339,14 +339,14 @@ DICT   *dict_handle(const char *dict_name)
 
 /* dict_node_free - dict_unregister() callback */
 
-static void dict_node_free(char *ptr)
+static void dict_node_free(void *ptr)
 {
     DICT_NODE *node = (DICT_NODE *) ptr;
     DICT   *dict = node->dict;
 
     if (dict->close)
 	dict->close(dict);
-    myfree((char *) node);
+    myfree((void *) node);
 }
 
 /* dict_unregister - break association with named dictionary */
@@ -515,8 +515,9 @@ void    dict_load_fp(const char *dict_name, VSTREAM *fp)
 /* dict_eval_lookup - macro parser call-back routine */
 
 static const char *dict_eval_lookup(const char *key, int unused_type,
-				            char *dict_name)
+				            void *context)
 {
+    char   *dict_name = (char *) context;
     const char *pp = 0;
     DICT   *dict;
 
@@ -551,7 +552,7 @@ const char *dict_eval(const char *dict_name, const char *value, int recursive)
 
     status = mac_expand(buf, value,
 			recursive ? MAC_EXP_FLAG_RECURSE : MAC_EXP_FLAG_NONE,
-			DONT_FILTER, dict_eval_lookup, (char *) dict_name);
+			DONT_FILTER, dict_eval_lookup, (void *) dict_name);
     if (status & MAC_PARSE_ERROR)
 	msg_fatal("dictionary %s: macro processing error", dict_name);
     if (msg_verbose > 1) {
@@ -565,7 +566,7 @@ const char *dict_eval(const char *dict_name, const char *value, int recursive)
 
 /* dict_walk - iterate over all dictionaries in arbitrary order */
 
-void    dict_walk(DICT_WALK_ACTION action, char *ptr)
+void    dict_walk(DICT_WALK_ACTION action, void *ptr)
 {
     HTABLE_INFO **ht_info_list;
     HTABLE_INFO **ht;
@@ -574,7 +575,7 @@ void    dict_walk(DICT_WALK_ACTION action, char *ptr)
     ht_info_list = htable_list(dict_table);
     for (ht = ht_info_list; (h = *ht) != 0; ht++)
 	action(h->key, (DICT *) h->value, ptr);
-    myfree((char *) ht_info_list);
+    myfree((void *) ht_info_list);
 }
 
 /* dict_changed_name - see if any dictionary has changed */
@@ -603,7 +604,7 @@ const char *dict_changed_name(void)
 	    || st.st_nlink == 0)
 	    status = h->key;
     }
-    myfree((char *) ht_info_list);
+    myfree((void *) ht_info_list);
     return (status);
 }
 

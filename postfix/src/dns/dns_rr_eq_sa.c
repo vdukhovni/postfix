@@ -54,7 +54,7 @@
 
 /* dns_rr_eq_sa - compare resource record with socket address */
 
-int     dns_rr_eq_sa(DNS_RR *rr, struct sockaddr * sa)
+int     dns_rr_eq_sa(DNS_RR *rr, struct sockaddr *sa)
 {
     const char *myname = "dns_rr_eq_sa";
 
@@ -64,7 +64,7 @@ int     dns_rr_eq_sa(DNS_RR *rr, struct sockaddr * sa)
 #ifdef HAS_IPV6
     } else if (sa->sa_family == AF_INET6) {
 	return (rr->type == T_AAAA
-		&& memcmp((char *) &SOCK_ADDR_IN6_ADDR(sa),
+		&& memcmp((void *) &SOCK_ADDR_IN6_ADDR(sa),
 			  rr->data, rr->data_len) == 0);
 #endif
     } else {
@@ -128,13 +128,13 @@ int     main(int argc, char **argv)
 
 	if ((aierr = hostname_to_sockaddr(argv[0], (char *) 0, 0, &res0)) != 0)
 	    msg_fatal("host name %s: %s", argv[0], MAI_STRERROR(aierr));
-	       for (len = 0, res = res0; res != 0; res = res->ai_next)
-            len += 1;
-        resv = (struct addrinfo **) mymalloc(len * sizeof(*resv));
-        for (len = 0, res = res0; res != 0; res = res->ai_next)
-            resv[len++] = res;
-        qsort((void *) resv, len, sizeof(*resv), compare_family);
-        for (n = 0; n < len; n++) {
+	for (len = 0, res = res0; res != 0; res = res->ai_next)
+	    len += 1;
+	resv = (struct addrinfo **) mymalloc(len * sizeof(*resv));
+	for (len = 0, res = res0; res != 0; res = res->ai_next)
+	    resv[len++] = res;
+	qsort((void *) resv, len, sizeof(*resv), compare_family);
+	for (n = 0; n < len; n++) {
 	    SOCKADDR_TO_HOSTADDR(resv[n]->ai_addr, resv[n]->ai_addrlen,
 				 &hostaddr, (MAI_SERVPORT_STR *) 0, 0);
 	    vstream_printf("%s =?= %s\n", hostaddr.buf, argv[1]);

@@ -622,7 +622,7 @@ static void policy_delete(void *item, void *unused_context)
 	tls_dane_free(tls->dane);
     dsb_free(tls->why);
 
-    myfree((char *) tls);
+    myfree((void *) tls);
 }
 
 /* smtp_tls_policy_cache_query - cached lookup of TLS policy */

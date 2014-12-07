@@ -66,7 +66,7 @@ struct stream_trigger {
 
 /* stream_trigger_event - disconnect from peer */
 
-static void stream_trigger_event(int event, char *context)
+static void stream_trigger_event(int event, void *context)
 {
     struct stream_trigger *sp = (struct stream_trigger *) context;
     static const char *myname = "stream_trigger_event";
@@ -81,7 +81,7 @@ static void stream_trigger_event(int event, char *context)
     if (close(sp->fd) < 0)
 	msg_warn("%s: close %s: %m", myname, sp->service);
     myfree(sp->service);
-    myfree((char *) sp);
+    myfree((void *) sp);
 }
 
 /* stream_trigger - wakeup stream server */
@@ -124,7 +124,7 @@ int     stream_trigger(const char *service, const char *buf, ssize_t len, int ti
      * Wakeup when the peer disconnects, or when we lose patience.
      */
     if (timeout > 0)
-	event_request_timer(stream_trigger_event, (char *) sp, timeout + 100);
-    event_enable_read(fd, stream_trigger_event, (char *) sp);
+	event_request_timer(stream_trigger_event, (void *) sp, timeout + 100);
+    event_enable_read(fd, stream_trigger_event, (void *) sp);
     return (0);
 }

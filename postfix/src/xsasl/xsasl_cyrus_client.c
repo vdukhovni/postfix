@@ -291,7 +291,7 @@ XSASL_CLIENT_IMPL *xsasl_cyrus_client_init(const char *unused_client_type,
 
 static void xsasl_cyrus_client_done(XSASL_CLIENT_IMPL *impl)
 {
-    myfree((char *) impl);
+    myfree((void *) impl);
     sasl_done();
 }
 
@@ -321,7 +321,7 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
 	    xsasl_cyrus_client_free(&client->xsasl); \
 	} else { \
 	    if (custom_callbacks) \
-		myfree((char *) custom_callbacks); \
+		myfree((void *) custom_callbacks); \
 	    if (sasl_conn) \
 		sasl_dispose(&sasl_conn); \
 	} \
@@ -335,7 +335,7 @@ XSASL_CLIENT *xsasl_cyrus_client_create(XSASL_CLIENT_IMPL *unused_impl,
 #define NULL_SECFLAGS		0
 
     custom_callbacks = (sasl_callback_t *) mymalloc(sizeof(callbacks));
-    memcpy((char *) custom_callbacks, callbacks, sizeof(callbacks));
+    memcpy((void *) custom_callbacks, callbacks, sizeof(callbacks));
 
 #define NULL_SERVER_ADDR	((char *) 0)
 #define NULL_CLIENT_ADDR	((char *) 0)
@@ -572,9 +572,9 @@ void    xsasl_cyrus_client_free(XSASL_CLIENT *xp)
 	myfree(client->password);
     if (client->sasl_conn)
 	sasl_dispose(&client->sasl_conn);
-    myfree((char *) client->callbacks);
+    myfree((void *) client->callbacks);
     vstring_free(client->decoded);
-    myfree((char *) client);
+    myfree((void *) client);
 }
 
 #endif

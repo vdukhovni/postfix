@@ -136,7 +136,7 @@ typedef struct {
 
 static const char *pcf_lookup_parameter_value_wrapper(const char *key,
 						            int unused_type,
-						              char *context)
+						              void *context)
 {
     PCF_EVAL_CTX *cp = (PCF_EVAL_CTX *) context;
 
@@ -177,7 +177,7 @@ char   *pcf_expand_parameter_value(VSTRING *buf, int mode, const char *value,
     eval_ctx.mode = (mode & ~PCF_SHOW_NONDEF);
     eval_ctx.local_scope = local_scope;
     status = mac_expand(buf, value, MAC_EXP_FLAG_RECURSE, DONT_FILTER,
-		    pcf_lookup_parameter_value_wrapper, (char *) &eval_ctx);
+		    pcf_lookup_parameter_value_wrapper, (void *) &eval_ctx);
     if (status & MAC_PARSE_ERROR)
 	msg_fatal("macro processing error");
     if (msg_verbose > 1) {

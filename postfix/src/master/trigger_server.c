@@ -223,7 +223,7 @@ static int use_count;
 static TRIGGER_SERVER_FN trigger_server_service;
 static char *trigger_server_name;
 static char **trigger_server_argv;
-static void (*trigger_server_accept) (int, char *);
+static void (*trigger_server_accept) (int, void *);
 static void (*trigger_server_onexit) (char *, char **);
 static void (*trigger_server_pre_accept) (char *, char **);
 static VSTREAM *trigger_server_lock;
@@ -242,7 +242,7 @@ static NORETURN trigger_server_exit(void)
 
 /* trigger_server_abort - terminate after abnormal master exit */
 
-static void trigger_server_abort(int unused_event, char *unused_context)
+static void trigger_server_abort(int unused_event, void *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
@@ -251,7 +251,7 @@ static void trigger_server_abort(int unused_event, char *unused_context)
 
 /* trigger_server_timeout - idle time exceeded */
 
-static void trigger_server_timeout(int unused_event, char *unused_context)
+static void trigger_server_timeout(int unused_event, void *unused_context)
 {
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
@@ -280,7 +280,7 @@ static void trigger_server_wakeup(int fd)
     if (master_notify(var_pid, trigger_server_generation, MASTER_STAT_AVAIL) < 0)
 	trigger_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
     if (var_idle_limit > 0)
-	event_request_timer(trigger_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(trigger_server_timeout, (void *) 0, var_idle_limit);
     /* Avoid integer wrap-around in a persistent process.  */
     if (use_count < INT_MAX)
 	use_count++;
@@ -288,10 +288,10 @@ static void trigger_server_wakeup(int fd)
 
 /* trigger_server_accept_fifo - accept fifo client request */
 
-static void trigger_server_accept_fifo(int unused_event, char *context)
+static void trigger_server_accept_fifo(int unused_event, void *context)
 {
     const char *myname = "trigger_server_accept_fifo";
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
 
     if (trigger_server_lock != 0
 	&& myflock(vstream_fileno(trigger_server_lock), INTERNAL_LOCK,
@@ -312,10 +312,10 @@ static void trigger_server_accept_fifo(int unused_event, char *context)
 
 /* trigger_server_accept_local - accept socket client request */
 
-static void trigger_server_accept_local(int unused_event, char *context)
+static void trigger_server_accept_local(int unused_event, void *context)
 {
     const char *myname = "trigger_server_accept_local";
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = 0;
     int     fd;
 
@@ -330,7 +330,7 @@ static void trigger_server_accept_local(int unused_event, char *context)
      * the idle timer if this was a false alarm.
      */
     if (var_idle_limit > 0)
-	time_left = event_cancel_timer(trigger_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(trigger_server_timeout, (void *) 0);
 
     if (trigger_server_pre_accept)
 	trigger_server_pre_accept(trigger_server_name, trigger_server_argv);
@@ -343,14 +343,14 @@ static void trigger_server_accept_local(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(trigger_server_timeout, (char *) 0, time_left);
+	    event_request_timer(trigger_server_timeout, (void *) 0, time_left);
 	return;
     }
     close_on_exec(fd, CLOSE_ON_EXEC);
     if (read_wait(fd, 10) == 0)
 	trigger_server_wakeup(fd);
     else if (time_left >= 0)
-	event_request_timer(trigger_server_timeout, (char *) 0, time_left);
+	event_request_timer(trigger_server_timeout, (void *) 0, time_left);
     close(fd);
 }
 
@@ -358,10 +358,10 @@ static void trigger_server_accept_local(int unused_event, char *context)
 
 /* trigger_server_accept_pass - accept descriptor */
 
-static void trigger_server_accept_pass(int unused_event, char *context)
+static void trigger_server_accept_pass(int unused_event, void *context)
 {
     const char *myname = "trigger_server_accept_pass";
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = 0;
     int     fd;
 
@@ -376,7 +376,7 @@ static void trigger_server_accept_pass(int unused_event, char *context)
      * the idle timer if this was a false alarm.
      */
     if (var_idle_limit > 0)
-	time_left = event_cancel_timer(trigger_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(trigger_server_timeout, (void *) 0);
 
     if (trigger_server_pre_accept)
 	trigger_server_pre_accept(trigger_server_name, trigger_server_argv);
@@ -389,14 +389,14 @@ static void trigger_server_accept_pass(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(trigger_server_timeout, (char *) 0, time_left);
+	    event_request_timer(trigger_server_timeout, (void *) 0, time_left);
 	return;
     }
     close_on_exec(fd, CLOSE_ON_EXEC);
     if (read_wait(fd, 10) == 0)
 	trigger_server_wakeup(fd);
     else if (time_left >= 0)
-	event_request_timer(trigger_server_timeout, (char *) 0, time_left);
+	event_request_timer(trigger_server_timeout, (void *) 0, time_left);
     close(fd);
 }
 
@@ -775,17 +775,17 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
      * when the master process terminated abnormally.
      */
     if (var_idle_limit > 0)
-	event_request_timer(trigger_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(trigger_server_timeout, (void *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
-	event_enable_read(fd, trigger_server_accept, CAST_INT_TO_CHAR_PTR(fd));
+	event_enable_read(fd, trigger_server_accept, CAST_INT_TO_VOID_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);
     }
-    event_enable_read(MASTER_STATUS_FD, trigger_server_abort, (char *) 0);
+    event_enable_read(MASTER_STATUS_FD, trigger_server_abort, (void *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
     watchdog = watchdog_create(trigger_server_watchdog,
-			       (WATCHDOG_FN) 0, (char *) 0);
+			       (WATCHDOG_FN) 0, (void *) 0);
 
     /*
      * The event loop, at last.

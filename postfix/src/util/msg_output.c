@@ -128,7 +128,7 @@ void    msg_output(MSG_OUTPUT_FN output_fn)
     if (msg_output_fn_count == 0)
 	msg_output_fn = (MSG_OUTPUT_FN *) mymalloc(sizeof(*msg_output_fn));
     else
-	msg_output_fn = (MSG_OUTPUT_FN *) myrealloc((char *) msg_output_fn,
+	msg_output_fn = (MSG_OUTPUT_FN *) myrealloc((void *) msg_output_fn,
 			(msg_output_fn_count + 1) * sizeof(*msg_output_fn));
     msg_output_fn[msg_output_fn_count++] = output_fn;
 }

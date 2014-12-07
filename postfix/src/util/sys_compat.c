@@ -352,7 +352,7 @@ int     inet_pton(int af, const char *src, void *dst)
 	       && strcmp(src, "255.255.255.255") != 0) {
 	return (0);
     } else {
-	memcpy(dst, (char *) &addr, sizeof(addr));
+	memcpy(dst, (void *) &addr, sizeof(addr));
 	return (1);
     }
 }

@@ -492,7 +492,7 @@ static void scache_status_dump(char *unused_name, char **unused_argv)
 
 /* scache_status_update - log and reset cache statistics periodically */
 
-static void scache_status_update(int unused_event, char *context)
+static void scache_status_update(int unused_event, void *context)
 {
     scache_status_dump((char *) 0, (char **) 0);
     event_request_timer(scache_status_update, context, var_scache_stat_time);
@@ -529,7 +529,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
     /*
      * Dump and reset cache statistics every so often.
      */
-    event_request_timer(scache_status_update, (char *) 0, var_scache_stat_time);
+    event_request_timer(scache_status_update, (void *) 0, var_scache_stat_time);
     scache_start_time = event_time();
 }
 

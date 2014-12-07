@@ -587,7 +587,8 @@ static void psc_drain(char *unused_service, char **unused_argv)
      * XXX Some Berkeley DB versions break with close-after-fork. Every new
      * version is an improvement over its predecessor.
      */
-    if (psc_cache_map != 0 /* XXX && psc_cache_map requires locking */) {
+    if (psc_cache_map != 0			/* XXX && psc_cache_map
+	    requires locking */ ) {
 	dict_cache_close(psc_cache_map);
 	psc_cache_map = 0;
     }
@@ -1012,7 +1013,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 			   DICT_CACHE_CTL_FLAGS, cache_flags,
 			   DICT_CACHE_CTL_INTERVAL, var_psc_cache_scan,
 			   DICT_CACHE_CTL_VALIDATOR, psc_cache_validator,
-			   DICT_CACHE_CTL_CONTEXT, (char *) 0,
+			   DICT_CACHE_CTL_CONTEXT, (void *) 0,
 			   DICT_CACHE_CTL_END);
 
     /*

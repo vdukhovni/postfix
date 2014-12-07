@@ -495,7 +495,7 @@ static HOST *dict_mysql_get_active(DICT_MYSQL *dict_mysql)
 
 /* dict_mysql_event - callback: close idle connections */
 
-static void dict_mysql_event(int unused_event, char *context)
+static void dict_mysql_event(int unused_event, void *context)
 {
     HOST   *host = (HOST *) context;
 
@@ -539,7 +539,7 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
 	    } else {
 		if (msg_verbose)
 		    msg_info("dict_mysql: successful query from host %s", host->hostname);
-		event_request_timer(dict_mysql_event, (char *) host, IDLE_CONN_INTV);
+		event_request_timer(dict_mysql_event, (void *) host, IDLE_CONN_INTV);
 		break;
 	    }
 	} else {
@@ -614,7 +614,7 @@ static void plmysql_down_host(HOST *host)
     host->db = 0;
     host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
     host->stat = STATFAIL;
-    event_cancel_timer(dict_mysql_event, (char *) host);
+    event_cancel_timer(dict_mysql_event, (void *) host);
 }
 
 /* mysql_parse_config - parse mysql configuration file */
@@ -841,16 +841,16 @@ static void plmysql_dealloc(PLMYSQL *PLDB)
     int     i;
 
     for (i = 0; i < PLDB->len_hosts; i++) {
-	event_cancel_timer(dict_mysql_event, (char *) (PLDB->db_hosts[i]));
+	event_cancel_timer(dict_mysql_event, (void *) (PLDB->db_hosts[i]));
 	if (PLDB->db_hosts[i]->db)
 	    mysql_close(PLDB->db_hosts[i]->db);
 	myfree(PLDB->db_hosts[i]->hostname);
 	if (PLDB->db_hosts[i]->name)
 	    myfree(PLDB->db_hosts[i]->name);
-	myfree((char *) PLDB->db_hosts[i]);
+	myfree((void *) PLDB->db_hosts[i]);
     }
-    myfree((char *) PLDB->db_hosts);
-    myfree((char *) (PLDB));
+    myfree((void *) PLDB->db_hosts);
+    myfree((void *) (PLDB));
 }
 
 #endif

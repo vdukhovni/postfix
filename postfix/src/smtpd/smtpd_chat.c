@@ -168,7 +168,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 	&& (*(cp = STR(state->buffer)) == '4' || *cp == '5'))
 	smtp_reply_footer(state->buffer, 0, var_smtpd_rej_footer,
 			  STR(smtpd_expand_filter), smtpd_expand_lookup,
-			  (char *) state);
+			  (void *) state);
 
     /* All 5xx replies must have a 5.xx.xx detail code. */
     for (cp = STR(state->buffer), end = cp + strlen(STR(state->buffer));;) {
@@ -227,7 +227,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 
 /* print_line - line_wrap callback */
 
-static void print_line(const char *str, int len, int indent, char *context)
+static void print_line(const char *str, int len, int indent, void *context)
 {
     VSTREAM *notice = (VSTREAM *) context;
 
@@ -281,7 +281,7 @@ void    smtpd_chat_notify(SMTPD_STATE *state)
     argv_terminate(state->history);
     for (cpp = state->history->argv; *cpp; cpp++)
 	line_wrap(printable(*cpp, '?'), LENGTH, INDENT, print_line,
-		  (char *) notice);
+		  (void *) notice);
     post_mail_fputs(notice, "");
     if (state->reason)
 	post_mail_fprintf(notice, "Session aborted, reason: %s", state->reason);

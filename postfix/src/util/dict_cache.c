@@ -38,7 +38,7 @@
 /*	int	name;
 /*
 /*	typedef int (*DICT_CACHE_VALIDATOR_FN) (const char *cache_key,
-/*		const char *cache_val, char *context);
+/*		const char *cache_val, void *context);
 /*
 /*	const char *dict_cache_name(cache)
 /*	DICT_CACHE	*cache;
@@ -115,7 +115,7 @@
 /*	a cache entry should be kept. The call-back function should
 /*	not make changes to the cache. Specify a null validator or
 /*	interval to stop cache cleanup.
-/* .IP "DICT_CACHE_CTL_CONTEXT (char *context)"
+/* .IP "DICT_CACHE_CTL_CONTEXT (void *context)"
 /*	Application context that is passed to the validator function.
 /* .RE
 /* .PP
@@ -224,7 +224,7 @@ struct DICT_CACHE {
     /* Cleanup support. */
     int     exp_interval;		/* time between cleanup runs */
     DICT_CACHE_VALIDATOR_FN exp_validator;	/* expiration call-back */
-    char   *exp_context;		/* call-back context */
+    void   *exp_context;		/* call-back context */
     int     retained;			/* entries retained in cleanup run */
     int     dropped;			/* entries removed in cleanup run */
 
@@ -460,7 +460,7 @@ static void dict_cache_clean_stat_log_reset(DICT_CACHE *cp,
 
 /* dict_cache_clean_event - examine one cache entry */
 
-static void dict_cache_clean_event(int unused_event, char *cache_context)
+static void dict_cache_clean_event(int unused_event, void *cache_context)
 {
     const char *myname = "dict_cache_clean_event";
     DICT_CACHE *cp = (DICT_CACHE *) cache_context;
@@ -567,7 +567,7 @@ void    dict_cache_control(DICT_CACHE *cp,...)
 	    cp->exp_validator = va_arg(ap, DICT_CACHE_VALIDATOR_FN);
 	    break;
 	case DICT_CACHE_CTL_CONTEXT:
-	    cp->exp_context = va_arg(ap, char *);
+	    cp->exp_context = va_arg(ap, void *);
 	    break;
 	default:
 	    msg_panic("%s: bad command: %d", myname, name);
@@ -601,7 +601,7 @@ void    dict_cache_control(DICT_CACHE *cp,...)
 	if ((cp->user_flags & DICT_CACHE_FLAG_VERBOSE) && next_interval > 0)
 	    msg_info("%s cache cleanup will start after %ds",
 		     cp->name, (int) next_interval);
-	event_request_timer(dict_cache_clean_event, (char *) cp,
+	event_request_timer(dict_cache_clean_event, (void *) cp,
 			    (int) next_interval);
     }
 
@@ -612,7 +612,7 @@ void    dict_cache_control(DICT_CACHE *cp,...)
 	if (cp->retained || cp->dropped)
 	    dict_cache_clean_stat_log_reset(cp, "partial");
 	dict_cache_delete_behind_reset(cp);
-	event_cancel_timer(dict_cache_clean_event, (char *) cp);
+	event_cancel_timer(dict_cache_clean_event, (void *) cp);
     }
 }
 
@@ -666,7 +666,7 @@ void    dict_cache_close(DICT_CACHE *cp)
 	myfree(cp->saved_curr_key);
     if (cp->saved_curr_val)
 	myfree(cp->saved_curr_val);
-    myfree((char *) cp);
+    myfree((void *) cp);
 }
 
 /* dict_cache_name - get the cache name */
@@ -829,7 +829,7 @@ static void reset_requests(DICT_CACHE_TEST *tp)
 static void free_requests(DICT_CACHE_TEST *tp)
 {
     reset_requests(tp);
-    myfree((char *) tp);
+    myfree((void *) tp);
 }
 
 /* run_requests - execute pending requests in interleaved order */

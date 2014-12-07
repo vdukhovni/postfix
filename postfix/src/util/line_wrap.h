@@ -14,8 +14,8 @@
  /*
   * External interface.
   */
-typedef void (*LINE_WRAP_FN) (const char *, int, int, char *);
-extern void line_wrap(const char *, int, int, LINE_WRAP_FN, char *);
+typedef void (*LINE_WRAP_FN) (const char *, int, int, void *);
+extern void line_wrap(const char *, int, int, LINE_WRAP_FN, void *);
 
 /* LICENSE
 /* .ad

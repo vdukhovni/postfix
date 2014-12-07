@@ -318,7 +318,7 @@ static int dns_query(const char *name, int type, int flags,
 	if (reply_header->tc == 0 || reply->buf_len >= MAX_DNS_REPLY_SIZE)
 	    break;
 	reply->buf = (unsigned char *)
-	    myrealloc((char *) reply->buf, 2 * reply->buf_len);
+	    myrealloc((void *) reply->buf, 2 * reply->buf_len);
 	reply->buf_len *= 2;
     }
 
@@ -841,7 +841,7 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 	if (next == 0)
 	    break;
 	if (status >= hpref_status)
-	    SAVE_HPREF_STATUS();			/* save last info */
+	    SAVE_HPREF_STATUS();		/* save last info */
     }
     va_end(ap);
     if (status < hpref_status)
@@ -892,7 +892,7 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
 	if (next == 0)
 	    break;
 	if (status >= hpref_status)
-	    SAVE_HPREF_STATUS();			/* save last info */
+	    SAVE_HPREF_STATUS();		/* save last info */
     }
     if (status < hpref_status)
 	RESTORE_HPREF_STATUS();			/* else report last info */

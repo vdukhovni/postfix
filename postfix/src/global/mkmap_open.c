@@ -155,7 +155,7 @@ static void mkmap_open_init(void)
     mkmap_open_hash = htable_create(10);
 
     for (mp = mkmap_open_info; mp->type; mp++)
-	htable_enter(mkmap_open_hash, mp->type, (char *) mp);
+	htable_enter(mkmap_open_hash, mp->type, (void *) mp);
 }
 
 /* mkmap_open_register - register dictionary type */
@@ -172,7 +172,7 @@ void    mkmap_open_register(const char *type, MKMAP_OPEN_FN open_fn)
 	msg_panic("%s: database type exists: %s", myname, type);
     mp = (MKMAP_OPEN_INFO *) mymalloc(sizeof(*mp));
     mp->before_open = open_fn;
-    ht = htable_enter(mkmap_open_hash, type, (char *) mp);
+    ht = htable_enter(mkmap_open_hash, type, (void *) mp);
     mp->type = ht->key;
 }
 
@@ -228,7 +228,7 @@ void    mkmap_close(MKMAP *mkmap)
     /*
      * Cleanup.
      */
-    myfree((char *) mkmap);
+    myfree((void *) mkmap);
 }
 
 /* mkmap_open - create or truncate database */

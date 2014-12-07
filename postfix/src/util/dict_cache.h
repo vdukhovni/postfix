@@ -20,7 +20,7 @@
   * External interface.
   */
 typedef struct DICT_CACHE DICT_CACHE;
-typedef int (*DICT_CACHE_VALIDATOR_FN) (const char *, const char *, char *);
+typedef int (*DICT_CACHE_VALIDATOR_FN) (const char *, const char *, void *);
 
 extern DICT_CACHE *dict_cache_open(const char *, int, int);
 extern void dict_cache_close(DICT_CACHE *);

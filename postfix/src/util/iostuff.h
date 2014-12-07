@@ -22,7 +22,7 @@ extern void set_file_limit(off_t);
 extern ssize_t peekfd(int);
 extern ssize_t write_buf(int, const char *, ssize_t, int);
 extern ssize_t timed_read(int, void *, size_t, int, void *);
-extern ssize_t timed_write(int, void *, size_t, int, void *);
+extern ssize_t timed_write(int, const void *, size_t, int, void *);
 extern void doze(unsigned);
 extern void rand_sleep(unsigned, unsigned);
 extern int duplex_pipe(int *);

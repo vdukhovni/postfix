@@ -172,12 +172,12 @@ int     attr_vprint_plain(VSTREAM *fp, int flags, va_list ap)
 	case ATTR_TYPE_HASH:
 	    ht_info_list = htable_list(va_arg(ap, HTABLE *));
 	    for (ht = ht_info_list; *ht; ht++) {
-		vstream_fprintf(fp, "%s=%s\n", ht[0]->key, ht[0]->value);
+		vstream_fprintf(fp, "%s=%s\n", ht[0]->key, (char *) ht[0]->value);
 		if (msg_verbose)
 		    msg_info("send attr name %s value %s",
-			     ht[0]->key, ht[0]->value);
+			     ht[0]->key, (char *) ht[0]->value);
 	    }
-	    myfree((char *) ht_info_list);
+	    myfree((void *) ht_info_list);
 	    break;
 	default:
 	    msg_panic("%s: unknown type code: %d", myname, attr_type);

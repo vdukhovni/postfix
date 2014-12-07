@@ -149,7 +149,7 @@ typedef struct {
 
 /* dict_regexp_expand - replace $number with substring from matched text */
 
-static int dict_regexp_expand(int type, VSTRING *buf, char *ptr)
+static int dict_regexp_expand(int type, VSTRING *buf, void *ptr)
 {
     DICT_REGEXP_EXPAND_CONTEXT *ctxt = (DICT_REGEXP_EXPAND_CONTEXT *) ptr;
     DICT_REGEXP_MATCH_RULE *match_rule = ctxt->match_rule;
@@ -287,7 +287,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
 	    expand_context.dict_regexp = dict_regexp;
 
 	    if (mac_parse(match_rule->replacement, dict_regexp_expand,
-			  (char *) &expand_context) & MAC_PARSE_ERROR)
+			  (void *) &expand_context) & MAC_PARSE_ERROR)
 		msg_panic("regexp map %s, line %d: bad replacement syntax",
 			  dict->name, rule->lineno);
 	    VSTRING_TERMINATE(dict_regexp->expansion_buf);
@@ -335,20 +335,20 @@ static void dict_regexp_close(DICT *dict)
 	    match_rule = (DICT_REGEXP_MATCH_RULE *) rule;
 	    if (match_rule->first_exp) {
 		regfree(match_rule->first_exp);
-		myfree((char *) match_rule->first_exp);
+		myfree((void *) match_rule->first_exp);
 	    }
 	    if (match_rule->second_exp) {
 		regfree(match_rule->second_exp);
-		myfree((char *) match_rule->second_exp);
+		myfree((void *) match_rule->second_exp);
 	    }
 	    if (match_rule->replacement)
-		myfree((char *) match_rule->replacement);
+		myfree((void *) match_rule->replacement);
 	    break;
 	case DICT_REGEXP_OP_IF:
 	    if_rule = (DICT_REGEXP_IF_RULE *) rule;
 	    if (if_rule->expr) {
 		regfree(if_rule->expr);
-		myfree((char *) if_rule->expr);
+		myfree((void *) if_rule->expr);
 	    }
 	    break;
 	case DICT_REGEXP_OP_ENDIF:
@@ -356,10 +356,10 @@ static void dict_regexp_close(DICT *dict)
 	default:
 	    msg_panic("dict_regexp_close: unknown operation %d", rule->op);
 	}
-	myfree((char *) rule);
+	myfree((void *) rule);
     }
     if (dict_regexp->pmatch)
-	myfree((char *) dict_regexp->pmatch);
+	myfree((void *) dict_regexp->pmatch);
     if (dict_regexp->expansion_buf)
 	vstring_free(dict_regexp->expansion_buf);
     if (dict->fold_buf)
@@ -477,7 +477,7 @@ static int dict_regexp_get_pats(const char *mapname, int lineno, char **p,
 
 /* dict_regexp_prescan - find largest $number in replacement text */
 
-static int dict_regexp_prescan(int type, VSTRING *buf, char *context)
+static int dict_regexp_prescan(int type, VSTRING *buf, void *context)
 {
     DICT_REGEXP_PRESCAN_CONTEXT *ctxt = (DICT_REGEXP_PRESCAN_CONTEXT *) context;
     size_t  n;
@@ -526,7 +526,7 @@ static regex_t *dict_regexp_compile_pat(const char *mapname, int lineno,
     error = regcomp(expr, pat->regexp, pat->options);
     if (error != 0) {
 	dict_regexp_regerror(mapname, lineno, error, expr);
-	myfree((char *) expr);
+	myfree((void *) expr);
 	return (0);
     }
     return (expr);
@@ -605,14 +605,14 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 #define CREATE_MATCHOP_ERROR_RETURN(rval) do { \
 	if (first_exp) { \
 	    regfree(first_exp); \
-	    myfree((char *) first_exp); \
+	    myfree((void *) first_exp); \
 	} \
 	if (prescan_context.literal) \
 	    myfree(prescan_context.literal); \
 	return (rval); \
     } while (0)
 
-	if (mac_parse(p, dict_regexp_prescan, (char *) &prescan_context)
+	if (mac_parse(p, dict_regexp_prescan, (void *) &prescan_context)
 	    & MAC_PARSE_ERROR) {
 	    msg_warn("regexp map %s, line %d: bad replacement syntax: "
 		     "skipping this rule", mapname, lineno);

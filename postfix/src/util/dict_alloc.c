@@ -164,8 +164,8 @@ void    dict_free(DICT *dict)
     myfree(dict->type);
     myfree(dict->name);
     if (dict->jbuf)
-	myfree((char *) dict->jbuf);
-    myfree((char *) dict);
+	myfree((void *) dict->jbuf);
+    myfree((void *) dict);
 }
 
  /*

@@ -249,7 +249,7 @@ XSASL_SERVER_IMPL *xsasl_cyrus_server_init(const char *unused_server_type,
 
 static void xsasl_cyrus_server_done(XSASL_SERVER_IMPL *impl)
 {
-    myfree((char *) impl);
+    myfree((void *) impl);
     sasl_done();
 }
 
@@ -431,7 +431,7 @@ static void xsasl_cyrus_server_free(XSASL_SERVER *xp)
 	myfree(server->username);
     if (server->mechanism_list)
 	myfree(server->mechanism_list);
-    myfree((char *) server);
+    myfree((void *) server);
 }
 
 /* xsasl_cyrus_server_auth_response - encode server first/next response */

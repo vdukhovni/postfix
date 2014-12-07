@@ -310,7 +310,7 @@ int     bounce_log_close(BOUNCE_LOG *bp)
     vstring_free(bp->buf);
     myfree(bp->compat_status);
     myfree(bp->compat_action);
-    myfree((char *) bp);
+    myfree((void *) bp);
 
     return (ret);
 }

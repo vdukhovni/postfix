@@ -238,9 +238,9 @@ void    bounce_template_free(BOUNCE_TEMPLATE *tp)
 {
     if (tp->buffer) {
 	myfree(tp->buffer);
-	myfree((char *) tp->origin);
+	myfree((void *) tp->origin);
     }
-    myfree((char *) tp);
+    myfree((void *) tp);
 }
 
 /* bounce_template_reset - reset template to default */
@@ -248,7 +248,7 @@ void    bounce_template_free(BOUNCE_TEMPLATE *tp)
 static void bounce_template_reset(BOUNCE_TEMPLATE *tp)
 {
     myfree(tp->buffer);
-    myfree((char *) tp->origin);
+    myfree((void *) tp->origin);
     *tp = *(tp->prototype);
 }
 
@@ -387,7 +387,7 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
     while (cp) {
 	cpp[cpp_used++] = cp;
 	if (cpp_used >= cpp_len) {
-	    cpp = (char **) myrealloc((char *) cpp,
+	    cpp = (char **) myrealloc((void *) cpp,
 				      sizeof(*cpp) * 2 * cpp_len);
 	    cpp_len *= 2;
 	}
@@ -400,7 +400,7 @@ static void bounce_template_parse_buffer(BOUNCE_TEMPLATE *tp)
 /* bounce_template_lookup - lookup $name value */
 
 static const char *bounce_template_lookup(const char *key, int unused_mode,
-					          char *context)
+					          void *context)
 {
     BOUNCE_TEMPLATE *tp = (BOUNCE_TEMPLATE *) context;
     const BOUNCE_TIME_PARAMETER *bp;
@@ -507,7 +507,7 @@ void    bounce_template_expand(BOUNCE_XP_PUT_FN out_fn, VSTREAM *fp,
 
     for (cpp = tp->message_text; *cpp; cpp++) {
 	stat = mac_expand(buf, *cpp, MAC_EXP_FLAG_PRINTABLE, (char *) 0,
-			  bounce_template_lookup, (char *) tp);
+			  bounce_template_lookup, (void *) tp);
 	if (stat & MAC_PARSE_ERROR)
 	    msg_fatal("%s: bad $name syntax in %s template: %s",
 		      tp->origin, tp->class, *cpp);

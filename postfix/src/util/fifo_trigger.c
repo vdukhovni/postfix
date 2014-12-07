@@ -130,7 +130,7 @@ static void handler(int sig)
 
 static void read_event(int unused_event, char *context)
 {
-    int     fd = CAST_CHAR_PTR_TO_INT(context);
+    int     fd = CAST_ANY_PTR_TO_INT(context);
     char    ch;
 
     wakeup_count++;
@@ -145,7 +145,7 @@ int     main(int unused_argc, char **unused_argv)
 
     listen_fd = fifo_listen(TEST_FIFO, 0600, NON_BLOCKING);
     msg_cleanup(cleanup);
-    event_enable_read(listen_fd, read_event, CAST_INT_TO_CHAR_PTR(listen_fd));
+    event_enable_read(listen_fd, read_event, CAST_INT_TO_VOID_PTR(listen_fd));
     signal(SIGINT, handler);
     signal(SIGALRM, handler);
     for (;;) {

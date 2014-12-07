@@ -124,7 +124,7 @@ void    transport_free(TRANSPORT_INFO *tp)
 	vstring_free(tp->wildcard_channel);
     if (tp->wildcard_nexthop)
 	vstring_free(tp->wildcard_nexthop);
-    myfree((char *) tp);
+    myfree((void *) tp);
 }
 
 /* update_entry - update from transport table entry */

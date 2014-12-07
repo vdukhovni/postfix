@@ -32,9 +32,9 @@
 #define MAC_EXP_MODE_TEST	(0)
 #define MAC_EXP_MODE_USE	(1)
 
-typedef const char *(*MAC_EXP_LOOKUP_FN)(const char *, int, char *);
+typedef const char *(*MAC_EXP_LOOKUP_FN) (const char *, int, void *);
 
-extern int mac_expand(VSTRING *, const char *, int, const char *, MAC_EXP_LOOKUP_FN, char *);
+extern int mac_expand(VSTRING *, const char *, int, const char *, MAC_EXP_LOOKUP_FN, void *);
 
 /* LICENSE
 /* .ad

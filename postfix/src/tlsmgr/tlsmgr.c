@@ -315,7 +315,7 @@ static TLSMGR_SCACHE cache_table[] = {
 
 /* tlsmgr_prng_exch_event - update PRNG exchange file */
 
-static void tlsmgr_prng_exch_event(int unused_event, char *dummy)
+static void tlsmgr_prng_exch_event(int unused_event, void *dummy)
 {
     const char *myname = "tlsmgr_prng_exch_event";
     unsigned char randbyte;
@@ -349,7 +349,7 @@ static void tlsmgr_prng_exch_event(int unused_event, char *dummy)
 
 /* tlsmgr_reseed_event - re-seed the internal PRNG pool */
 
-static void tlsmgr_reseed_event(int unused_event, char *dummy)
+static void tlsmgr_reseed_event(int unused_event, void *dummy)
 {
     int     next_period;
     unsigned char randbyte;
@@ -434,7 +434,7 @@ static void tlsmgr_reseed_event(int unused_event, char *dummy)
 
 /* tlsmgr_cache_run_event - start TLS session cache scan */
 
-static void tlsmgr_cache_run_event(int unused_event, char *ctx)
+static void tlsmgr_cache_run_event(int unused_event, void *ctx)
 {
     const char *myname = "tlsmgr_cache_run_event";
     TLSMGR_SCACHE *cache = (TLSMGR_SCACHE *) ctx;
@@ -455,7 +455,7 @@ static void tlsmgr_cache_run_event(int unused_event, char *ctx)
 	    tls_scache_sequence(cache->cache_info, DICT_SEQ_FUN_FIRST,
 				TLS_SCACHE_SEQUENCE_NOTHING);
 
-    event_request_timer(tlsmgr_cache_run_event, (char *) cache,
+    event_request_timer(tlsmgr_cache_run_event, (void *) cache,
 			cache->cache_info->timeout);
 }
 
@@ -938,7 +938,7 @@ static void tlsmgr_pre_init(char *unused_name, char **unused_argv)
 				*ent->cache_timeout);
 	}
     }
-    htable_free(dup_filter, (void (*) (char *)) 0);
+    htable_free(dup_filter, (void (*) (void *)) 0);
 
     /*
      * Clean up and restore privilege.
@@ -991,7 +991,7 @@ static void tlsmgr_post_init(char *unused_name, char **unused_argv)
      */
     for (ent = cache_table; ent->cache_label; ++ent)
 	if (ent->cache_info)
-	    tlsmgr_cache_run_event(NULL_EVENT, (char *) ent);
+	    tlsmgr_cache_run_event(NULL_EVENT, (void *) ent);
 }
 
 /* tlsmgr_before_exit - save PRNG state before exit */

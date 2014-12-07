@@ -235,7 +235,7 @@ void    mbox_release(MBOX *mp)
     if (mp->locked & MBOX_DOT_LOCK)
 	dot_unlockfile(mp->path);
     myfree(mp->path);
-    myfree((char *) mp);
+    myfree((void *) mp);
 }
 
 /* mbox_dsn - map errno value to mailbox-related DSN detail */

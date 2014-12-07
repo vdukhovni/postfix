@@ -911,8 +911,8 @@
 /*	request is rejected by the reject_unauth_destination recipient
 /*	restriction.
 /* .IP "\fBunknown_address_reject_code (450)\fR"
-/*	The numerical response code when the Postfix SMTP rejects a sender
-/*	or recipient address because its domain is unknown.
+/*	The numerical response code when the Postfix SMTP server rejects a
+/*	sender or recipient address because its domain is unknown.
 /* .IP "\fBunknown_client_reject_code (450)\fR"
 /*	The numerical Postfix SMTP server response code when a client
 /*	without valid address <=> name mapping is rejected by the
@@ -2248,7 +2248,7 @@ static const char **milter_argv(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (state->milter_argc < len) {
 	if (state->milter_argc > 0)
 	    state->milter_argv = (const char **)
-		myrealloc((char *) state->milter_argv,
+		myrealloc((void *) state->milter_argv,
 			  sizeof(const char *) * len);
 	else
 	    state->milter_argv = (const char **)
@@ -2629,7 +2629,7 @@ static void mail_reset(SMTPD_STATE *state)
 	state->dsn_envid = 0;
     }
     if (state->milter_argv) {
-	myfree((char *) state->milter_argv);
+	myfree((void *) state->milter_argv);
 	state->milter_argv = 0;
 	state->milter_argc = 0;
     }
@@ -4625,6 +4625,8 @@ static void tls_reset(SMTPD_STATE *state)
 
 #endif
 
+#if !defined(USE_TLS) && !defined(USE_SASL_AUTH)
+
 /* unimpl_cmd - dummy for functionality that is not compiled in */
 
 static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
@@ -4640,6 +4642,8 @@ static int unimpl_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     smtpd_chat_reply(state, "502 5.5.1 Error: command not implemented");
     return (-1);
 }
+
+#endif
 
  /*
   * The table of all SMTP commands that we know. Set the junk limit flag on

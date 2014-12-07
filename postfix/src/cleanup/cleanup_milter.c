@@ -2442,7 +2442,7 @@ int     main(int unused_argc, char **argv)
 	    usage();
 	} else if (strcmp(argv->argv[0], "verbose") == 0) {
 	    if (argv->argc != 2) {
-		msg_warn("bad verbose argument count: %d", argv->argc);
+		msg_warn("bad verbose argument count: %ld", (long) argv->argc);
 	    } else if (strcmp(argv->argv[1], "on") == 0) {
 		msg_verbose = 2;
 	    } else if (strcmp(argv->argv[1], "off") == 0) {
@@ -2456,7 +2456,7 @@ int     main(int unused_argc, char **argv)
 		close_queue_file(state);
 	    }
 	    if (argv->argc != 2) {
-		msg_warn("bad open argument count: %d", argv->argc);
+		msg_warn("bad open argument count: %ld", (long) argv->argc);
 	    } else {
 		open_queue_file(state, argv->argv[1]);
 	    }
@@ -2475,14 +2475,16 @@ int     main(int unused_argc, char **argv)
 		     argv->argc > 2 ? argv->argv[2] : "");
 	} else if (strcmp(argv->argv[0], "add_header") == 0) {
 	    if (argv->argc < 2) {
-		msg_warn("bad add_header argument count: %d", argv->argc);
+		msg_warn("bad add_header argument count: %ld",
+			 (long) argv->argc);
 	    } else {
 		flatten_args(arg_buf, argv->argv + 2);
 		resp = cleanup_add_header(state, argv->argv[1], " ", STR(arg_buf));
 	    }
 	} else if (strcmp(argv->argv[0], "ins_header") == 0) {
 	    if (argv->argc < 3) {
-		msg_warn("bad ins_header argument count: %d", argv->argc);
+		msg_warn("bad ins_header argument count: %ld",
+			 (long) argv->argc);
 	    } else if ((index = atoi(argv->argv[1])) < 1) {
 		msg_warn("bad ins_header index value");
 	    } else {
@@ -2491,7 +2493,8 @@ int     main(int unused_argc, char **argv)
 	    }
 	} else if (strcmp(argv->argv[0], "upd_header") == 0) {
 	    if (argv->argc < 3) {
-		msg_warn("bad upd_header argument count: %d", argv->argc);
+		msg_warn("bad upd_header argument count: %ld",
+			 (long) argv->argc);
 	    } else if ((index = atoi(argv->argv[1])) < 1) {
 		msg_warn("bad upd_header index value");
 	    } else {
@@ -2500,7 +2503,8 @@ int     main(int unused_argc, char **argv)
 	    }
 	} else if (strcmp(argv->argv[0], "del_header") == 0) {
 	    if (argv->argc != 3) {
-		msg_warn("bad del_header argument count: %d", argv->argc);
+		msg_warn("bad del_header argument count: %ld",
+			 (long) argv->argc);
 	    } else if ((index = atoi(argv->argv[1])) < 1) {
 		msg_warn("bad del_header index value");
 	    } else {
@@ -2508,31 +2512,32 @@ int     main(int unused_argc, char **argv)
 	    }
 	} else if (strcmp(argv->argv[0], "chg_from") == 0) {
 	    if (argv->argc != 3) {
-		msg_warn("bad chg_from argument count: %d", argv->argc);
+		msg_warn("bad chg_from argument count: %ld", (long) argv->argc);
 	    } else {
 		cleanup_chg_from(state, argv->argv[1], argv->argv[2]);
 	    }
 	} else if (strcmp(argv->argv[0], "add_rcpt") == 0) {
 	    if (argv->argc != 2) {
-		msg_warn("bad add_rcpt argument count: %d", argv->argc);
+		msg_warn("bad add_rcpt argument count: %ld", (long) argv->argc);
 	    } else {
 		cleanup_add_rcpt(state, argv->argv[1]);
 	    }
 	} else if (strcmp(argv->argv[0], "add_rcpt_par") == 0) {
 	    if (argv->argc != 3) {
-		msg_warn("bad add_rcpt_par argument count: %d", argv->argc);
+		msg_warn("bad add_rcpt_par argument count: %ld",
+			 (long) argv->argc);
 	    } else {
 		cleanup_add_rcpt_par(state, argv->argv[1], argv->argv[2]);
 	    }
 	} else if (strcmp(argv->argv[0], "del_rcpt") == 0) {
 	    if (argv->argc != 2) {
-		msg_warn("bad del_rcpt argument count: %d", argv->argc);
+		msg_warn("bad del_rcpt argument count: %ld", (long) argv->argc);
 	    } else {
 		cleanup_del_rcpt(state, argv->argv[1]);
 	    }
 	} else if (strcmp(argv->argv[0], "replbody") == 0) {
 	    if (argv->argc != 2) {
-		msg_warn("bad replbody argument count: %d", argv->argc);
+		msg_warn("bad replbody argument count: %ld", (long) argv->argc);
 	    } else {
 		VSTREAM *fp;
 		VSTRING *buf;
@@ -2551,7 +2556,8 @@ int     main(int unused_argc, char **argv)
 	    }
 	} else if (strcmp(argv->argv[0], "header_checks") == 0) {
 	    if (argv->argc != 2) {
-		msg_warn("bad header_checks argument count: %d", argv->argc);
+		msg_warn("bad header_checks argument count: %ld",
+			 (long) argv->argc);
 	    } else if (*var_milt_head_checks) {
 		msg_warn("can't change header checks");
 	    } else {

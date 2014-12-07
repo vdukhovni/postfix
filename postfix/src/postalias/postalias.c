@@ -509,7 +509,7 @@ static int postalias_queries(VSTREAM *in, char **maps, const int map_count,
     for (n = 0; n < map_count; n++)
 	if (dicts[n])
 	    dict_close(dicts[n]);
-    myfree((char *) dicts);
+    myfree((void *) dicts);
     vstring_free(keybuf);
 
     return (found);
@@ -591,7 +591,7 @@ static int postalias_deletes(VSTREAM *in, char **maps, const int map_count,
     for (n = 0; n < map_count; n++)
 	if (dicts[n])
 	    dict_close(dicts[n]);
-    myfree((char *) dicts);
+    myfree((void *) dicts);
     vstring_free(keybuf);
 
     return (found);

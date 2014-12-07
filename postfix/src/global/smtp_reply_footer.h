@@ -21,7 +21,7 @@
   * External interface.
   */
 extern int smtp_reply_footer(VSTRING *, ssize_t, char *, const char *,
-			             MAC_EXP_LOOKUP_FN, char *);
+			             MAC_EXP_LOOKUP_FN, void *);
 
 /* LICENSE
 /* .ad

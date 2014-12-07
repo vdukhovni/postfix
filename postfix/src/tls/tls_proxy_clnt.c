@@ -216,7 +216,7 @@ TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *proxy_stream)
     tls_context = (TLS_SESS_STATE *) mymalloc(sizeof(*tls_context));
 
     if (attr_scan(proxy_stream, ATTR_FLAG_STRICT,
-	       ATTR_TYPE_FUNC, tls_proxy_context_scan, (char *) tls_context,
+	       ATTR_TYPE_FUNC, tls_proxy_context_scan, (void *) tls_context,
 		  ATTR_TYPE_END) != 1) {
 	tls_proxy_context_free(tls_context);
 	return (0);
@@ -236,10 +236,10 @@ void    tls_proxy_context_free(TLS_SESS_STATE *tls_context)
     if (tls_context->peer_cert_fprint)
 	myfree(tls_context->peer_cert_fprint);
     if (tls_context->protocol)
-	myfree((char *) tls_context->protocol);
+	myfree((void *) tls_context->protocol);
     if (tls_context->cipher_name)
-	myfree((char *) tls_context->cipher_name);
-    myfree((char *) tls_context);
+	myfree((void *) tls_context->cipher_name);
+    myfree((void *) tls_context);
 }
 
 #endif

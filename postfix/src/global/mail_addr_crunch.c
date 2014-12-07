@@ -101,7 +101,7 @@ ARGV   *mail_addr_crunch(const char *string, const char *extension)
 	argv_add(argv, STR(canon_addr), ARGV_END);
     }
     argv_terminate(argv);
-    myfree((char *) addr_list);
+    myfree((void *) addr_list);
     tok822_free_tree(tree);
     vstring_free(canon_addr);
     vstring_free(extern_addr);

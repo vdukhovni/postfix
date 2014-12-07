@@ -93,8 +93,8 @@ struct VBUF {
 extern int vbuf_get(VBUF *);
 extern int vbuf_put(VBUF *, int);
 extern int vbuf_unget(VBUF *, int);
-extern ssize_t vbuf_read(VBUF *, char *, ssize_t);
-extern ssize_t vbuf_write(VBUF *, const char *, ssize_t);
+extern ssize_t vbuf_read(VBUF *, void *, ssize_t);
+extern ssize_t vbuf_write(VBUF *, const void *, ssize_t);
 
 /* LICENSE
 /* .ad

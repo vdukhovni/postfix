@@ -57,7 +57,7 @@
 
 /* master_status_event - status read event handler */
 
-static void master_status_event(int event, char *context)
+static void master_status_event(int event, void *context)
 {
     const char *myname = "master_status_event";
     MASTER_SERV *serv = (MASTER_SERV *) context;
@@ -78,7 +78,7 @@ static void master_status_event(int event, char *context)
      * We use a global child process status table because when a child dies
      * only its pid is known - we do not know what service it came from.
      */
-    switch (n = read(serv->status_fd[0], (char *) &stat, sizeof(stat))) {
+    switch (n = read(serv->status_fd[0], (void *) &stat, sizeof(stat))) {
 
     case -1:
 	msg_warn("%s: read: %m", myname);
@@ -108,7 +108,7 @@ static void master_status_event(int event, char *context)
      * status update, so this is not an error.
      */
     if ((proc = (MASTER_PROC *) binhash_find(master_child_table,
-					(char *) &pid, sizeof(pid))) == 0) {
+					(void *) &pid, sizeof(pid))) == 0) {
 	if (msg_verbose)
 	    msg_info("%s: process id not found: %d", myname, stat.pid);
 	return;
@@ -169,7 +169,7 @@ void    master_status_init(MASTER_SERV *serv)
     non_blocking(serv->status_fd[0], BLOCKING);
     close_on_exec(serv->status_fd[0], CLOSE_ON_EXEC);
     close_on_exec(serv->status_fd[1], CLOSE_ON_EXEC);
-    event_enable_read(serv->status_fd[0], master_status_event, (char *) serv);
+    event_enable_read(serv->status_fd[0], master_status_event, (void *) serv);
 }
 
 /* master_status_cleanup - stop status event processing for this service */

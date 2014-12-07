@@ -480,7 +480,7 @@ static void mime_state_pop(MIME_STATE *state)
     state->nesting_level -= 1;
     state->stack = stack->next;
     myfree(stack->boundary);
-    myfree((char *) stack);
+    myfree((void *) stack);
 }
 
 /* mime_state_alloc - create MIME state machine */
@@ -528,7 +528,7 @@ MIME_STATE *mime_state_free(MIME_STATE *state)
 	mime_state_pop(state);
     if (state->token_buffer)
 	vstring_free(state->token_buffer);
-    myfree((char *) state);
+    myfree((void *) state);
     return (0);
 }
 
@@ -894,7 +894,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 	if ((state->static_flags & MIME_OPT_DOWNGRADE)
 	    && state->curr_domain != MIME_ENC_7BIT) {
 	    if ((state->curr_ctype == MIME_CTYPE_MESSAGE
-		&& state->curr_stype != MIME_STYPE_GLOBAL)
+		 && state->curr_stype != MIME_STYPE_GLOBAL)
 		|| state->curr_ctype == MIME_CTYPE_MULTIPART)
 		cp = CU_CHAR_PTR("7bit");
 	    else

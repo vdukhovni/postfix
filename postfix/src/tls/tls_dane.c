@@ -561,7 +561,7 @@ static void free_ta_certs(TLS_DANE *d)
     for (head = d->certs; head; head = next) {
 	next = head->next;
 	X509_free(head->cert);
-	myfree((char *) head);
+	myfree((void *) head);
     }
 }
 
@@ -583,7 +583,7 @@ static void free_ta_pkeys(TLS_DANE *d)
     for (head = d->pkeys; head; head = next) {
 	next = head->next;
 	EVP_PKEY_free(head->pkey);
-	myfree((char *) head);
+	myfree((void *) head);
     }
 }
 
@@ -595,7 +595,7 @@ static void tlsa_free(TLS_TLSA *tlsa)
 	argv_free(tlsa->certs);
     if (tlsa->pkeys)
 	argv_free(tlsa->pkeys);
-    myfree((char *) tlsa);
+    myfree((void *) tlsa);
 }
 
 /* tls_dane_free - free a TLS_DANE structure */
@@ -624,7 +624,7 @@ void    tls_dane_free(TLS_DANE *dane)
     if (dane->base_domain)
 	myfree(dane->base_domain);
 
-    myfree((char *) dane);
+    myfree((void *) dane);
 }
 
 /* dane_free - ctable style */
@@ -1640,7 +1640,7 @@ static void wrap_cert(TLS_SESS_STATE *TLScontext, X509 *tacert, int depth)
     cert = d2i_X509(0, (D2I_const unsigned char **) &buf, len);
     if (!cert || (buf - asn1) != len)
 	msg_panic("d2i_X509 failed to decode TA certificate");
-    myfree((char *) asn1);
+    myfree((void *) asn1);
 
     grow_chain(TLScontext, UNTRUSTED, cert);
 
@@ -1939,8 +1939,8 @@ static void add_tlsa(TLS_DANE *dane, char *argv[])
 
     digest = tls_data_fprint((char *) buf, len, *mdname ? mdname : signalg);
     dane_add(dane, u, s, *mdname ? mdname : signalg, digest);
-    myfree((char *) digest);
-    myfree((char *) buf);
+    myfree((void *) digest);
+    myfree((void *) buf);
 }
 
 static x509_stack_t *load_chain(const char *chainfile)

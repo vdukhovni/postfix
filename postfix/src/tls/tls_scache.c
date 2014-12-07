@@ -224,7 +224,7 @@ static VSTRING *tls_scache_encode(TLS_SCACHE *cp, const char *cache_id,
     /*
      * Clean up.
      */
-    myfree((char *) entry);
+    myfree((void *) entry);
 
     return (hex_data);
 }
@@ -531,7 +531,7 @@ void    tls_scache_close(TLS_SCACHE *cp)
     myfree(cp->cache_label);
     if (cp->saved_cursor)
 	myfree(cp->saved_cursor);
-    myfree((char *) cp);
+    myfree((void *) cp);
 }
 
 /* tls_scache_key - find session ticket key for given key name */

@@ -72,7 +72,7 @@ unsigned find_inet_addr(const char *host)
 	    msg_fatal("unexpected address family: %d", hp->h_addrtype);
 	if (hp->h_length != sizeof(addr))
 	    msg_fatal("unexpected address length %d", hp->h_length);
-	memcpy((char *) &addr, hp->h_addr, hp->h_length);
+	memcpy((void *) &addr, hp->h_addr, hp->h_length);
     }
     return (addr.s_addr);
 }

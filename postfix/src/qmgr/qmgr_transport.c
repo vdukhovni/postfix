@@ -165,7 +165,7 @@ struct QMGR_TRANSPORT_ALLOC {
 
 /* qmgr_transport_unthrottle_wrapper - in case (char *) != (struct *) */
 
-static void qmgr_transport_unthrottle_wrapper(int unused_event, char *context)
+static void qmgr_transport_unthrottle_wrapper(int unused_event, void *context)
 {
     qmgr_transport_unthrottle((QMGR_TRANSPORT *) context);
 }
@@ -192,7 +192,7 @@ void    qmgr_transport_unthrottle(QMGR_TRANSPORT *transport)
 	dsn_free(transport->dsn);
 	transport->dsn = 0;
 	event_cancel_timer(qmgr_transport_unthrottle_wrapper,
-			   (char *) transport);
+			   (void *) transport);
     }
 }
 
@@ -217,13 +217,13 @@ void    qmgr_transport_throttle(QMGR_TRANSPORT *transport, DSN *dsn)
 		      myname, transport->name, transport->dsn->reason);
 	transport->dsn = DSN_COPY(dsn);
 	event_request_timer(qmgr_transport_unthrottle_wrapper,
-			    (char *) transport, var_transport_retry_time);
+			    (void *) transport, var_transport_retry_time);
     }
 }
 
 /* qmgr_transport_abort - transport connect watchdog */
 
-static void qmgr_transport_abort(int unused_event, char *context)
+static void qmgr_transport_abort(int unused_event, void *context)
 {
     QMGR_TRANSPORT_ALLOC *alloc = (QMGR_TRANSPORT_ALLOC *) context;
 
@@ -232,7 +232,7 @@ static void qmgr_transport_abort(int unused_event, char *context)
 
 /* qmgr_transport_event - delivery process availability notice */
 
-static void qmgr_transport_event(int unused_event, char *context)
+static void qmgr_transport_event(int unused_event, void *context)
 {
     QMGR_TRANSPORT_ALLOC *alloc = (QMGR_TRANSPORT_ALLOC *) context;
 
@@ -262,7 +262,7 @@ static void qmgr_transport_event(int unused_event, char *context)
      * Notify the requestor.
      */
     alloc->notify(alloc->transport, alloc->stream);
-    myfree((char *) alloc);
+    myfree((void *) alloc);
 }
 
 /* qmgr_transport_select - select transport for allocation */
@@ -346,7 +346,7 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 				      NON_BLOCKING)) == 0) {
 	msg_warn("connect to transport %s/%s: %m",
 		 MAIL_CLASS_PRIVATE, transport->name);
-	event_request_timer(qmgr_transport_event, (char *) alloc, 0);
+	event_request_timer(qmgr_transport_event, (void *) alloc, 0);
 	return;
     }
 #if (EVENTS_STYLE != EVENTS_STYLE_SELECT) && defined(VSTREAM_CTL_DUPFD)
@@ -358,12 +358,12 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 		    VSTREAM_CTL_END);
 #endif
     event_enable_read(vstream_fileno(alloc->stream), qmgr_transport_event,
-		      (char *) alloc);
+		      (void *) alloc);
 
     /*
      * Guard against broken systems.
      */
-    event_request_timer(qmgr_transport_abort, (char *) alloc,
+    event_request_timer(qmgr_transport_abort, (void *) alloc,
 			var_daemon_timeout);
 }
 
@@ -441,7 +441,7 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
 			   var_conc_cohort_limit, 0, 0);
     if (qmgr_transport_byname == 0)
 	qmgr_transport_byname = htable_create(10);
-    htable_enter(qmgr_transport_byname, name, (char *) transport);
+    htable_enter(qmgr_transport_byname, name, (void *) transport);
     QMGR_LIST_PREPEND(qmgr_transport_list, transport, peers);
     if (msg_verbose)
 	msg_info("qmgr_transport_create: %s concurrency %d recipients %d",

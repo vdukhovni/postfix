@@ -110,7 +110,7 @@ void    rcpb_free(RCPT_BUF *rcpt)
     vstring_free(rcpt->dsn_orcpt);
     vstring_free(rcpt->orig_addr);
     vstring_free(rcpt->address);
-    myfree((char *) rcpt);
+    myfree((void *) rcpt);
 }
 
 /* rcpb_scan - receive recipient buffer */

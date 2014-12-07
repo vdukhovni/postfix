@@ -33,8 +33,8 @@
 /*	int	trace_flags;
 /*	int	utf8_flags;
 /*	VSTRING *queue_id;
-/*	void	(*notify)(VSTREAM *stream, char *context);
-/*	char	*context;
+/*	void	(*notify)(VSTREAM *stream, void *context);
+/*	void	*context;
 /*
 /*	int	post_mail_fprintf(stream, format, ...)
 /*	VSTREAM	*stream;
@@ -273,7 +273,7 @@ VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
 
 /* post_mail_open_event - handle asynchronous connection events */
 
-static void post_mail_open_event(int event, char *context)
+static void post_mail_open_event(int event, void *context)
 {
     POST_MAIL_STATE *state = (POST_MAIL_STATE *) context;
     const char *myname = "post_mail_open_event";
@@ -298,7 +298,7 @@ static void post_mail_open_event(int event, char *context)
 	myfree(state->sender);
 	myfree(state->recipient);
 	state->notify(state->stream, state->context);
-	myfree((char *) state);
+	myfree((void *) state);
 	return;
 
 	/*
@@ -316,7 +316,7 @@ static void post_mail_open_event(int event, char *context)
 	myfree(state->sender);
 	myfree(state->recipient);
 	state->notify((VSTREAM *) 0, state->context);
-	myfree((char *) state);
+	myfree((void *) state);
 	return;
 
 	/*
@@ -330,7 +330,7 @@ static void post_mail_open_event(int event, char *context)
 	myfree(state->sender);
 	myfree(state->recipient);
 	state->notify((VSTREAM *) 0, state->context);
-	myfree((char *) state);
+	myfree((void *) state);
 	return;
 
 	/*

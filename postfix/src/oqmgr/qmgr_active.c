@@ -115,12 +115,12 @@
  /*
   * A bunch of call-back routines.
   */
-static void qmgr_active_done_2_bounce_flush(int, char *);
+static void qmgr_active_done_2_bounce_flush(int, void *);
 static void qmgr_active_done_2_generic(QMGR_MESSAGE *);
-static void qmgr_active_done_25_trace_flush(int, char *);
+static void qmgr_active_done_25_trace_flush(int, void *);
 static void qmgr_active_done_25_generic(QMGR_MESSAGE *);
-static void qmgr_active_done_3_defer_flush(int, char *);
-static void qmgr_active_done_3_defer_warn(int, char *);
+static void qmgr_active_done_3_defer_flush(int, void *);
+static void qmgr_active_done_3_defer_warn(int, void *);
 static void qmgr_active_done_3_generic(QMGR_MESSAGE *);
 
 /* qmgr_active_corrupt - move corrupted file out of the way */
@@ -280,7 +280,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
      * 
      * Bounces are sent asynchronously to avoid stalling while the cleanup
      * daemon waits for the qmgr to accept the "new mail" trigger.
-     *
+     * 
      * See also code in cleanup_bounce.c.
      */
     if (stat(mail_queue_path((VSTRING *) 0, MAIL_QUEUE_BOUNCE, message->queue_id), &st) == 0) {
@@ -301,7 +301,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 			      message->dsn_envid,
 			      message->dsn_ret,
 			      qmgr_active_done_2_bounce_flush,
-			      (char *) message);
+			      (void *) message);
 	    else
 		abounce_flush_verp(BOUNCE_FLAG_KEEP,
 				   message->queue_name,
@@ -313,7 +313,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 				   message->dsn_ret,
 				   message->verp_delims,
 				   qmgr_active_done_2_bounce_flush,
-				   (char *) message);
+				   (void *) message);
 	    return;
 	}
     }
@@ -326,7 +326,7 @@ void    qmgr_active_done(QMGR_MESSAGE *message)
 
 /* qmgr_active_done_2_bounce_flush - process abounce_flush() status */
 
-static void qmgr_active_done_2_bounce_flush(int status, char *context)
+static void qmgr_active_done_2_bounce_flush(int status, void *context)
 {
     QMGR_MESSAGE *message = (QMGR_MESSAGE *) context;
 
@@ -385,7 +385,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
      * 
      * See also comments in bounce/bounce_notify_util.c.
      */
-    if ((message->tflags & (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD 
+    if ((message->tflags & (DEL_REQ_FLAG_USR_VRFY | DEL_REQ_FLAG_RECORD
 			    | DEL_REQ_FLAG_REC_DLY_SENT))
 	|| (message->rflags & QMGR_READ_FLAG_NOTIFY_SUCCESS)) {
 	atrace_flush(message->tflags,
@@ -397,7 +397,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 		     message->dsn_envid,
 		     message->dsn_ret,
 		     qmgr_active_done_25_trace_flush,
-		     (char *) message);
+		     (void *) message);
 	return;
     }
 
@@ -409,7 +409,7 @@ static void qmgr_active_done_2_generic(QMGR_MESSAGE *message)
 
 /* qmgr_active_done_25_trace_flush - continue after atrace_flush() completion */
 
-static void qmgr_active_done_25_trace_flush(int status, char *context)
+static void qmgr_active_done_25_trace_flush(int status, void *context)
 {
     QMGR_MESSAGE *message = (QMGR_MESSAGE *) context;
 
@@ -450,7 +450,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 			     message->dsn_envid,
 			     message->dsn_ret,
 			     qmgr_active_done_3_defer_flush,
-			     (char *) message);
+			     (void *) message);
 	    else
 		adefer_flush_verp(BOUNCE_FLAG_KEEP,
 				  message->queue_name,
@@ -462,7 +462,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 				  message->dsn_ret,
 				  message->verp_delims,
 				  qmgr_active_done_3_defer_flush,
-				  (char *) message);
+				  (void *) message);
 	    return;
 	} else if (message->warn_time > 0
 		   && event_time() >= message->warn_time - 1) {
@@ -477,7 +477,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 			message->dsn_envid,
 			message->dsn_ret,
 			qmgr_active_done_3_defer_warn,
-			(char *) message);
+			(void *) message);
 	    return;
 	}
     }
@@ -490,7 +490,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 
 /* qmgr_active_done_3_defer_warn - continue after adefer_warn() completion */
 
-static void qmgr_active_done_3_defer_warn(int status, char *context)
+static void qmgr_active_done_3_defer_warn(int status, void *context)
 {
     QMGR_MESSAGE *message = (QMGR_MESSAGE *) context;
 
@@ -504,7 +504,7 @@ static void qmgr_active_done_3_defer_warn(int status, char *context)
 
 /* qmgr_active_done_3_defer_flush - continue after adefer_flush() completion */
 
-static void qmgr_active_done_3_defer_flush(int status, char *context)
+static void qmgr_active_done_3_defer_flush(int status, void *context)
 {
     QMGR_MESSAGE *message = (QMGR_MESSAGE *) context;
 

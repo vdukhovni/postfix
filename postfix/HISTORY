@@ -20903,3 +20903,108 @@ Apologies for any names omitted.
 	src/smtp/smtp_connect.c, src/smtp/smtp_proto.c,
 	src/smtp/smtp_reuse.c, src/smtp/smtp_session.c.
 
+20141203
+
+	Feature: support to match UTF8 domain names against ASCII
+	names in TLS certificates. Viktor Dukhovni. Files:
+	posttls-finger/posttls-finger.c, tls/tls_client.c.
+
+20141206
+
+	Cleanup: use (char *) only for strings, not for data.  The
+	"void *" type was not fully portable during initial Postfix
+	development, but we no longer have that problem. Also started
+	the migration of data structure sizes/counters to ssize_t/size_t
+	(the IBM Beam analyzer identified lots of unnecessary 64-bit
+	to 32-bit conversions).  The transformation and verification
+	were mostly mechanical with manual supervision.  Files:
+	anvil/anvil.c, bounce/bounce.c, bounce/bounce_notify_util.c,
+	bounce/bounce_template.c, bounce/bounce_templates.c,
+	cleanup/cleanup_message.c, cleanup/cleanup_region.c,
+	cleanup/cleanup_state.c, dns/dns_lookup.c, dns/dns_rr.c,
+	dns/dns_rr_eq_sa.c, dns/dns_rr_to_sa.c, dns/test_dns_lookup.c,
+	flush/flush.c, global/abounce.c, global/abounce.h,
+	global/been_here.c, global/bounce_log.c, global/clnt_stream.c,
+	global/db_common.c, global/deliver_request.c,
+	global/delivered_hdr.c, global/dict_ldap.c, global/dict_mysql.c,
+	global/dict_pgsql.c, global/dsn.c, global/dsn_buf.c,
+	global/dsn_filter.c, global/dynamicmaps.c,
+	global/header_body_checks.c, global/header_opts.c,
+	global/mail_addr_crunch.c, global/mail_stream.c,
+	global/mail_version.c, global/maps.c, global/mbox_open.c,
+	global/mime_state.c, global/mkmap_open.c, global/msg_stats_scan.c,
+	global/mypwd.c, global/post_mail.c, global/rcpt_buf.c,
+	global/recipient_list.c, global/scache_clnt.c,
+	global/scache_multi.c, global/scache_single.c,
+	global/smtp_reply_footer.c, global/smtp_reply_footer.h,
+	global/tok822_node.c, local/biff_notify.c, local/forward.c,
+	local/local_expand.c, local/unknown.c, master/event_server.c,
+	master/master.c, master/master_avail.c, master/master_ent.c,
+	master/master_monitor.c, master/master_proto.c,
+	master/master_sig.c, master/master_spawn.c, master/master_status.c,
+	master/master_vars.c, master/master_wakeup.c,
+	master/multi_server.c, master/single_server.c,
+	master/trigger_server.c, milter/milter.c, milter/milter8.c,
+	milter/milter_macros.c, oqmgr/qmgr.c, oqmgr/qmgr_active.c,
+	oqmgr/qmgr_deliver.c, oqmgr/qmgr_entry.c, oqmgr/qmgr_message.c,
+	oqmgr/qmgr_queue.c, oqmgr/qmgr_transport.c, pipe/pipe.c,
+	postalias/postalias.c, postconf/postconf.h,
+	postconf/postconf_builtin.c, postconf/postconf_edit.c,
+	postconf/postconf_lookup.c, postconf/postconf_main.c,
+	postconf/postconf_master.c, postconf/postconf_node.c,
+	postconf/postconf_service.c, postconf/postconf_user.c,
+	postmap/postmap.c, postmulti/postmulti.c, postscreen/postscreen.c,
+	postscreen/postscreen.h, postscreen/postscreen_dnsbl.c,
+	postscreen/postscreen_early.c, postscreen/postscreen_expand.c,
+	postscreen/postscreen_haproxy.c, postscreen/postscreen_send.c,
+	postscreen/postscreen_smtpd.c, postscreen/postscreen_starttls.c,
+	postscreen/postscreen_state.c, posttls-finger/posttls-finger.c,
+	posttls-finger/tlsmgrmem.c, proxymap/proxymap.c, qmgr/qmgr.c,
+	qmgr/qmgr_active.c, qmgr/qmgr_deliver.c, qmgr/qmgr_entry.c,
+	qmgr/qmgr_job.c, qmgr/qmgr_message.c, qmgr/qmgr_peer.c,
+	qmgr/qmgr_queue.c, qmgr/qmgr_transport.c, qmqpd/qmqpd_peer.c,
+	qmqpd/qmqpd_state.c, scache/scache.c, sendmail/sendmail.c,
+	showq/showq.c, smtp/smtp_chat.c, smtp/smtp_connect.c,
+	smtp/smtp_proto.c, smtp/smtp_reuse.c, smtp/smtp_session.c,
+	smtp/smtp_state.c, smtp/smtp_tls_policy.c, smtpd/smtpd.c,
+	smtpd/smtpd_chat.c, smtpd/smtpd_check.c, smtpd/smtpd_expand.c,
+	smtpd/smtpd_expand.h, smtpd/smtpd_peer.c, smtpd/smtpd_proxy.c,
+	smtpstone/qmqp-sink.c, smtpstone/qmqp-source.c,
+	smtpstone/smtp-sink.c, smtpstone/smtp-source.c, tls/tls_dane.c,
+	tls/tls_mgr.c, tls/tls_misc.c, tls/tls_prng_dev.c,
+	tls/tls_prng_egd.c, tls/tls_prng_exch.c, tls/tls_prng_file.c,
+	tls/tls_proxy_clnt.c, tls/tls_scache.c, tls/tls_server.c,
+	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c, tlsproxy/tlsproxy_state.c,
+	trivial-rewrite/transport.c, trivial-rewrite/trivial-rewrite.c,
+	util/argv.c, util/attr_clnt.c, util/attr_print0.c,
+	util/attr_print64.c, util/attr_print_plain.c, util/attr_scan0.c,
+	util/attr_scan64.c, util/attr_scan_plain.c, util/auto_clnt.c,
+	util/binhash.c, util/binhash.h, util/ctable.c, util/ctable.h,
+	util/dict.c, util/dict.h, util/dict_alloc.c, util/dict_cache.c,
+	util/dict_cache.h, util/dict_cidr.c, util/dict_db.c,
+	util/dict_ht.c, util/dict_open.c, util/dict_pcre.c,
+	util/dict_regexp.c, util/dict_sockmap.c, util/dict_surrogate.c,
+	util/dict_thash.c, util/edit_file.c, util/events.c,
+	util/events.h, util/fifo_trigger.c, util/find_inet.c,
+	util/htable.c, util/htable.h, util/inet_addr_host.c,
+	util/inet_addr_list.c, util/inet_addr_local.c, util/inet_listen.c,
+	util/inet_proto.c, util/inet_trigger.c, util/inet_windowsize.c,
+	util/iostuff.h, util/line_wrap.c, util/line_wrap.h,
+	util/mac_expand.c, util/mac_expand.h, util/mac_parse.c,
+	util/mac_parse.h, util/match_list.c, util/msg_output.c,
+	util/mvect.c, util/myaddrinfo.c, util/myflock.c, util/mymalloc.c,
+	util/mymalloc.h, util/nbbio.c, util/nbbio.h, util/netstring.c,
+	util/nvtable.c, util/nvtable.h, util/pass_trigger.c,
+	util/sane_accept.c, util/sane_connect.c, util/scan_dir.c,
+	util/sock_addr.c, util/stream_trigger.c, util/sys_compat.c,
+	util/sys_defs.h, util/timecmp.c, util/timed_connect.c,
+	util/timed_write.c, util/unix_connect.c, util/unix_listen.c,
+	util/unix_recv_fd.c, util/unix_send_fd.c, util/unix_trigger.c,
+	util/vbuf.c, util/vbuf.h, util/vstream.c, util/vstream_tweak.c,
+	util/vstring.c, util/watchdog.c, verify/verify.c,
+	xsasl/xsasl_cyrus_client.c, xsasl/xsasl_cyrus_server.c,
+	xsasl/xsasl_dovecot_server.c.
+
+	Cleanup: removed unnecessary casts. File: global/cfg_parser.c.
+
+	Cleanup: dont cast away "const". File: global/dict_sqlite.c.

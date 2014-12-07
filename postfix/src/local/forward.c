@@ -225,12 +225,12 @@ int     forward_append(DELIVER_ATTR attr)
      */
     if ((table_snd = (HTABLE *) htable_find(forward_dt, attr.delivered)) == 0) {
 	table_snd = htable_create(0);
-	htable_enter(forward_dt, attr.delivered, (char *) table_snd);
+	htable_enter(forward_dt, attr.delivered, (void *) table_snd);
     }
     if ((info = (FORWARD_INFO *) htable_find(table_snd, attr.sender)) == 0) {
 	if ((info = forward_open(attr.request, attr.sender)) == 0)
 	    return (-1);
-	htable_enter(table_snd, attr.sender, (char *) info);
+	htable_enter(table_snd, attr.sender, (void *) info);
     }
 
     /*
@@ -368,13 +368,13 @@ int     forward_finish(DELIVER_REQUEST *request, DELIVER_ATTR attr, int cancel)
 			 delivered, sender, status);
 	    (void) vstream_fclose(info->cleanup);
 	    myfree(info->queue_id);
-	    myfree((char *) info);
+	    myfree((void *) info);
 	}
-	myfree((char *) sn_list);
-	htable_free(table_snd, (void (*) (char *)) 0);
+	myfree((void *) sn_list);
+	htable_free(table_snd, (void (*) (void *)) 0);
     }
-    myfree((char *) dt_list);
-    htable_free(forward_dt, (void (*) (char *)) 0);
+    myfree((void *) dt_list);
+    htable_free(forward_dt, (void (*) (void *)) 0);
     forward_dt = 0;
     return (status);
 }

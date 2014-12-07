@@ -350,7 +350,7 @@ void    pcf_free_master_entry(PCF_MASTER_ENT *masterp)
 	htable_free(masterp->valid_names, myfree);
     if (masterp->all_params)
 	dict_free(masterp->all_params);
-    myfree((char *) masterp);
+    myfree((void *) masterp);
 }
 
 /* pcf_parse_master_entry - parse one master line */
@@ -427,7 +427,7 @@ void    pcf_read_master(int fail_on_open_error)
     } else {
 	buf = vstring_alloc(100);
 	while (readllines(buf, fp, &last_line, &line_count) != 0) {
-	    pcf_master_table = (PCF_MASTER_ENT *) myrealloc((char *) pcf_master_table,
+	    pcf_master_table = (PCF_MASTER_ENT *) myrealloc((void *) pcf_master_table,
 			     (entry_count + 2) * sizeof(*pcf_master_table));
 	    if ((err = pcf_parse_master_entry(pcf_master_table + entry_count,
 					      STR(buf))) != 0)
@@ -628,7 +628,7 @@ void    pcf_show_master_entries(VSTREAM *fp, int mode, int argc, char **argv)
 		msg_warn("unmatched request: \"%s\"", req->raw_text);
 	    argv_free(req->service_pattern);
 	}
-	myfree((char *) field_reqs);
+	myfree((void *) field_reqs);
     }
 }
 
@@ -814,7 +814,7 @@ void    pcf_show_master_fields(VSTREAM *fp, int mode, int argc, char **argv)
 		msg_warn("unmatched request: \"%s\"", req->raw_text);
 	    argv_free(req->service_pattern);
 	}
-	myfree((char *) field_reqs);
+	myfree((void *) field_reqs);
     }
 }
 
@@ -982,7 +982,7 @@ void    pcf_show_master_params(VSTREAM *fp, int mode, int argc, char **argv)
 		msg_warn("unmatched request: \"%s\"", req->raw_text);
 	    argv_free(req->service_pattern);
 	}
-	myfree((char *) field_reqs);
+	myfree((void *) field_reqs);
     }
 }
 
@@ -1032,7 +1032,7 @@ void    pcf_edit_master_param(PCF_MASTER_ENT *masterp, int mode,
 			aval = concatenate(param_name, "=",
 					   param_value, (char *) 0);
 			argv_replace_one(argv, field + 1, aval);
-			myfree((char *) aval);
+			myfree((void *) aval);
 			if (masterp->all_params)
 			    dict_put(masterp->all_params, param_name, param_value);
 			/* XXX Update parameter "used/defined" status. */
@@ -1073,7 +1073,7 @@ void    pcf_edit_master_param(PCF_MASTER_ENT *masterp, int mode,
 	if (masterp->all_params)
 	    dict_put(masterp->all_params, param_name, param_value);
 	/* XXX May affect parameter "used/defined" status. */
-	myfree((char *) aval);
+	myfree((void *) aval);
 	param_match = 1;
     }
 }

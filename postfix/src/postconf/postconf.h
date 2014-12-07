@@ -54,8 +54,8 @@
   */
 typedef struct {
     int     flags;			/* see below */
-    char   *param_data;			/* mostly, the default value */
-    const char *(*convert_fn) (char *);	/* value to string */
+    void   *param_data;			/* mostly, the default value */
+    const char *(*convert_fn) (void *);	/* value to string */
 } PCF_PARAM_NODE;
 
  /* Values for flags. See the postconf_node module for narrative text. */
@@ -105,7 +105,7 @@ extern PCF_PARAM_TABLE *pcf_param_table;
 	htable_enter((table), (name), (char *) pcf_make_param_node((flags), \
 	    (data), (func)))
 
-extern PCF_PARAM_NODE *pcf_make_param_node(int, char *, const char *(*) (char *));
+extern PCF_PARAM_NODE *pcf_make_param_node(int, void *, const char *(*) (void *));
 extern const char *pcf_convert_param_node(int, const char *, PCF_PARAM_NODE *);
 extern VSTRING *pcf_param_string_buf;
 

@@ -134,7 +134,7 @@ static void dict_thash_close(DICT *dict)
 
     htable_free(dict_thash->table, myfree);
     if (dict_thash->info)
-	myfree((char *) dict_thash->info);
+	myfree((void *) dict_thash->info);
     if (dict->fold_buf)
 	vstring_free(dict->fold_buf);
     dict_free(dict);

@@ -603,7 +603,7 @@ typedef struct {
 
 /* parse_callback - callback for mac_parse() */
 
-static int parse_callback(int type, VSTRING *buf, char *context)
+static int parse_callback(int type, VSTRING *buf, void *context)
 {
     PIPE_STATE *state = (PIPE_STATE *) context;
     struct cmd_flags {
@@ -705,7 +705,7 @@ static ARGV *expand_argv(const char *service, char **argv,
     for (cpp = argv; *cpp; cpp++) {
 	state.service = service;
 	state.expand_flag = 0;
-	if (mac_parse(*cpp, parse_callback, (char *) &state) & MAC_PARSE_ERROR)
+	if (mac_parse(*cpp, parse_callback, (void *) &state) & MAC_PARSE_ERROR)
 	    EARLY_RETURN(0);
 	if (state.expand_flag == 0) {		/* no $recipient etc. */
 	    argv_add(result, dict_eval(PIPE_DICT_TABLE, *cpp, NO), ARGV_END);

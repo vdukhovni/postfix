@@ -235,7 +235,7 @@ static struct ipv4addrinfo *clone_ipv4addrinfo(struct ipv4addrinfo * tp)
 
     ip = (struct ipv4addrinfo *) mymalloc(sizeof(*ip));
     *ip = *tp;
-    ip->info.ai_addr = (struct sockaddr *) & (ip->sin);
+    ip->info.ai_addr = (struct sockaddr *) &(ip->sin);
     return (ip);
 }
 
@@ -248,13 +248,13 @@ static void init_ipv4addrinfo(struct ipv4addrinfo * ip, int socktype)
      * Portability: null pointers aren't necessarily all-zero bits, so we
      * make explicit assignments to all the pointers that we're aware of.
      */
-    memset((char *) ip, 0, sizeof(*ip));
+    memset((void *) ip, 0, sizeof(*ip));
     ip->info.ai_family = PF_INET;
     ip->info.ai_socktype = socktype;
     ip->info.ai_protocol = 0;			/* XXX */
     ip->info.ai_addrlen = sizeof(ip->sin);
     ip->info.ai_canonname = 0;
-    ip->info.ai_addr = (struct sockaddr *) & (ip->sin);
+    ip->info.ai_addr = (struct sockaddr *) &(ip->sin);
     ip->info.ai_next = 0;
     ip->sin.sin_family = AF_INET;
 #ifdef HAS_SA_LEN
@@ -293,8 +293,8 @@ static int find_service(const char *service, int socktype)
 /* hostname_to_sockaddr_pf - hostname to binary address form */
 
 int     hostname_to_sockaddr_pf(const char *hostname, int pf,
-			             const char *service, int socktype,
-			             struct addrinfo ** res)
+				        const char *service, int socktype,
+				        struct addrinfo ** res)
 {
 #ifdef EMULATE_IPV4_ADDRINFO
 
@@ -424,7 +424,7 @@ int     hostname_to_sockaddr_pf(const char *hostname, int pf,
     struct addrinfo hints;
     int     err;
 
-    memset((char *) &hints, 0, sizeof(hints));
+    memset((void *) &hints, 0, sizeof(hints));
     hints.ai_family = (pf != PF_UNSPEC) ? pf : inet_proto_info()->ai_family;
     hints.ai_socktype = service ? socktype : MAI_SOCKTYPE;
     if (!hostname) {
@@ -577,7 +577,7 @@ int     hostaddr_to_sockaddr(const char *hostaddr, const char *service,
 
 /* sockaddr_to_hostaddr - binary address to printable address form */
 
-int     sockaddr_to_hostaddr(const struct sockaddr * sa, SOCKADDR_SIZE salen,
+int     sockaddr_to_hostaddr(const struct sockaddr *sa, SOCKADDR_SIZE salen,
 			             MAI_HOSTADDR_STR *hostaddr,
 			             MAI_SERVPORT_STR *portnum,
 			             int unused_socktype)
@@ -628,7 +628,7 @@ int     sockaddr_to_hostaddr(const struct sockaddr * sa, SOCKADDR_SIZE salen,
 
 /* sockaddr_to_hostname - binary address to printable hostname */
 
-int     sockaddr_to_hostname(const struct sockaddr * sa, SOCKADDR_SIZE salen,
+int     sockaddr_to_hostname(const struct sockaddr *sa, SOCKADDR_SIZE salen,
 			             MAI_HOSTNAME_STR *hostname,
 			             MAI_SERVNAME_STR *service,
 			             int socktype)
@@ -752,7 +752,7 @@ void    freeaddrinfo(struct addrinfo * ai)
 	if (ap->ai_canonname)
 	    myfree(ap->ai_canonname);
 	/* ap->ai_addr is allocated within this memory block */
-	myfree((char *) ap);
+	myfree((void *) ap);
     }
 }
 

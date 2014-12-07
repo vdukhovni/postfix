@@ -149,7 +149,7 @@ SCAN_DIR *scan_dir_pop(SCAN_DIR *scan)
     if (msg_verbose > 1)
 	msg_info("%s: close %s", myname, info->path);
     myfree(info->path);
-    myfree((char *) info);
+    myfree((void *) info);
     scan->current = parent;
     return (parent ? scan : 0);
 }
@@ -198,6 +198,6 @@ SCAN_DIR *scan_dir_close(SCAN_DIR *scan)
 {
     while (scan->current)
 	scan_dir_pop(scan);
-    myfree((char *) scan);
+    myfree((void *) scan);
     return (0);
 }

@@ -140,7 +140,7 @@ static SMTP_SESSION *smtp_connect_unix(SMTP_ITERATOR *iter, DSN_BUF *why,
     /*
      * Initialize.
      */
-    memset((char *) &sock_un, 0, sizeof(sock_un));
+    memset((void *) &sock_un, 0, sizeof(sock_un));
     sock_un.sun_family = AF_UNIX;
 #ifdef HAS_SUN_LEN
     sock_un.sun_len = len + 1;
@@ -440,9 +440,9 @@ static void smtp_cleanup_session(SMTP_STATE *state)
      * engage in a session, spend a lot of time delivering a message, find
      * that it fails, and then connect to an alternate host.
      */
-    memset((char *) &request->msg_stats.conn_setup_done, 0,
+    memset((void *) &request->msg_stats.conn_setup_done, 0,
 	   sizeof(request->msg_stats.conn_setup_done));
-    memset((char *) &request->msg_stats.deliver_done, 0,
+    memset((void *) &request->msg_stats.deliver_done, 0,
 	   sizeof(request->msg_stats.deliver_done));
     request->msg_stats.reuse_count = 0;
 }

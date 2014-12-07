@@ -113,8 +113,8 @@ BH_TABLE *been_here_init(int limit, int flags)
 
 void    been_here_free(BH_TABLE *dup_filter)
 {
-    htable_free(dup_filter->table, (void (*) (char *)) 0);
-    myfree((char *) dup_filter);
+    htable_free(dup_filter->table, (void (*) (void *)) 0);
+    myfree((void *) dup_filter);
 }
 
 /* been_here - duplicate detector with finer control */
@@ -171,7 +171,7 @@ int     been_here_fixed(BH_TABLE *dup_filter, const char *string)
     } else {
 	if (dup_filter->limit <= 0
 	    || dup_filter->limit > dup_filter->table->used)
-	    htable_enter(dup_filter->table, lookup_key, (char *) 0);
+	    htable_enter(dup_filter->table, lookup_key, (void *) 0);
 	status = 0;
     }
     if (msg_verbose)

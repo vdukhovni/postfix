@@ -319,7 +319,6 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     const char *myname = "dict_pgsql_lookup";
     PGSQL_RES *query_res;
     DICT_PGSQL *dict_pgsql;
-    PLPGSQL *pldb;
     static VSTRING *query;
     static VSTRING *result;
     int     i;
@@ -499,7 +498,7 @@ static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname,
 
 /* dict_pgsql_event - callback: close idle connections */
 
-static void dict_pgsql_event(int unused_event, char *context)
+static void dict_pgsql_event(int unused_event, void *context)
 {
     HOST   *host = (HOST *) context;
 
@@ -578,7 +577,7 @@ static PGSQL_RES *plpgsql_query(DICT_PGSQL *dict_pgsql,
 		if (msg_verbose)
 		    msg_info("dict_pgsql: successful query from host %s",
 			     host->hostname);
-		event_request_timer(dict_pgsql_event, (char *) host,
+		event_request_timer(dict_pgsql_event, (void *) host,
 				    IDLE_CONN_INTV);
 		return (res);
 	    case PGRES_FATAL_ERROR:
@@ -671,7 +670,7 @@ static void plpgsql_down_host(HOST *host)
     host->db = 0;
     host->ts = time((time_t *) 0) + RETRY_CONN_INTV;
     host->stat = STATFAIL;
-    event_cancel_timer(dict_pgsql_event, (char *) host);
+    event_cancel_timer(dict_pgsql_event, (void *) host);
 }
 
 /* pgsql_parse_config - parse pgsql configuration file */
@@ -863,15 +862,15 @@ static void plpgsql_dealloc(PLPGSQL *PLDB)
     int     i;
 
     for (i = 0; i < PLDB->len_hosts; i++) {
-	event_cancel_timer(dict_pgsql_event, (char *) (PLDB->db_hosts[i]));
+	event_cancel_timer(dict_pgsql_event, (void *) (PLDB->db_hosts[i]));
 	if (PLDB->db_hosts[i]->db)
 	    PQfinish(PLDB->db_hosts[i]->db);
 	myfree(PLDB->db_hosts[i]->hostname);
 	myfree(PLDB->db_hosts[i]->name);
-	myfree((char *) PLDB->db_hosts[i]);
+	myfree((void *) PLDB->db_hosts[i]);
     }
-    myfree((char *) PLDB->db_hosts);
-    myfree((char *) (PLDB));
+    myfree((void *) PLDB->db_hosts);
+    myfree((void *) (PLDB));
 }
 
 #endif

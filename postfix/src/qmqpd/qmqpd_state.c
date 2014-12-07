@@ -81,7 +81,7 @@ QMQPD_STATE *qmqpd_state_alloc(VSTREAM *stream)
 
 /* qmqpd_state_free - destroy session state */
 
-void qmqpd_state_free(QMQPD_STATE *state)
+void    qmqpd_state_free(QMQPD_STATE *state)
 {
     vstring_free(state->message);
     vstring_free(state->buf);
@@ -95,5 +95,5 @@ void qmqpd_state_free(QMQPD_STATE *state)
     if (state->recipient)
 	myfree(state->recipient);
     vstring_free(state->why_rejected);
-    myfree((char *) state);
+    myfree((void *) state);
 }

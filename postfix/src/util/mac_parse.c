@@ -8,7 +8,7 @@
 /*
 /*	int	mac_parse(string, action, context)
 /*	const char *string;
-/*	int	(*action)(int type, VSTRING *buf, char *context);
+/*	int	(*action)(int type, VSTRING *buf, void *context);
 /* DESCRIPTION
 /*	This module recognizes macro expressions in null-terminated
 /*	strings.  Macro expressions have the form $name, $(text) or
@@ -82,7 +82,7 @@
 
 /* mac_parse - split string into literal text and macro references */
 
-int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
+int     mac_parse(const char *value, MAC_PARSE_FN action, void *context)
 {
     const char *myname = "mac_parse";
     VSTRING *buf = vstring_alloc(1);	/* result buffer */
@@ -166,7 +166,7 @@ int     mac_parse(const char *value, MAC_PARSE_FN action, char *context)
 
 /* mac_parse_print - print parse tree */
 
-static int mac_parse_print(int type, VSTRING *buf, char *unused_context)
+static int mac_parse_print(int type, VSTRING *buf, void *unused_context)
 {
     char   *type_name;
 
@@ -189,7 +189,7 @@ int     main(int unused_argc, char **unused_argv)
     VSTRING *buf = vstring_alloc(1);
 
     while (vstring_fgets_nonl(buf, VSTREAM_IN)) {
-	mac_parse(vstring_str(buf), mac_parse_print, (char *) 0);
+	mac_parse(vstring_str(buf), mac_parse_print, (void *) 0);
 	vstream_fflush(VSTREAM_OUT);
     }
     vstring_free(buf);

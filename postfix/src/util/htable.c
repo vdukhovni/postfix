@@ -9,7 +9,7 @@
 /*	typedef	struct {
 /* .in +4
 /*		char	*key;
-/*		char	*value;
+/*		void	*value;
 /*		/* private fields... */
 /* .in -4
 /*	} HTABLE_INFO;
@@ -20,7 +20,7 @@
 /*	HTABLE_INFO *htable_enter(table, key, value)
 /*	HTABLE	*table;
 /*	const char *key;
-/*	char	*value;
+/*	void	*value;
 /*
 /*	char	*htable_find(table, key)
 /*	HTABLE	*table;
@@ -33,16 +33,16 @@
 /*	void	htable_delete(table, key, free_fn)
 /*	HTABLE	*table;
 /*	const char *key;
-/*	void	(*free_fn)(char *);
+/*	void	(*free_fn)(void *);
 /*
 /*	void	htable_free(table, free_fn)
 /*	HTABLE	*table;
-/*	void	(*free_fn)(char *);
+/*	void	(*free_fn)(void *);
 /*
 /*	void	htable_walk(table, action, ptr)
 /*	HTABLE	*table;
-/*	void	(*action)(HTABLE_INFO *, char *ptr);
-/*	char	*ptr;
+/*	void	(*action)(HTABLE_INFO *, void *ptr);
+/*	void	*ptr;
 /*
 /*	HTABLE_INFO **htable_list(table)
 /*	HTABLE	*table;
@@ -128,10 +128,10 @@
 
 /* htable_hash - hash a string */
 
-static unsigned htable_hash(const char *s, unsigned size)
+static size_t htable_hash(const char *s, size_t size)
 {
-    unsigned long h = 0;
-    unsigned long g;
+    size_t  h = 0;
+    size_t  g;
 
     /*
      * From the "Dragon" book by Aho, Sethi and Ullman.
@@ -160,7 +160,7 @@ static unsigned htable_hash(const char *s, unsigned size)
 
 /* htable_size - allocate and initialize hash table */
 
-static void htable_size(HTABLE *table, unsigned size)
+static void htable_size(HTABLE *table, size_t size)
 {
     HTABLE_INFO **h;
 
@@ -176,7 +176,7 @@ static void htable_size(HTABLE *table, unsigned size)
 
 /* htable_create - create initial hash table */
 
-HTABLE *htable_create(int size)
+HTABLE *htable_create(ssize_t size)
 {
     HTABLE *table;
 
@@ -192,7 +192,7 @@ static void htable_grow(HTABLE *table)
 {
     HTABLE_INFO *ht;
     HTABLE_INFO *next;
-    unsigned old_size = table->size;
+    size_t  old_size = table->size;
     HTABLE_INFO **h = table->data;
     HTABLE_INFO **old_entries = h;
 
@@ -204,12 +204,12 @@ static void htable_grow(HTABLE *table)
 	    htable_link(table, ht);
 	}
     }
-    myfree((char *) old_entries);
+    myfree((void *) old_entries);
 }
 
 /* htable_enter - enter (key, value) pair */
 
-HTABLE_INFO *htable_enter(HTABLE *table, const char *key, char *value)
+HTABLE_INFO *htable_enter(HTABLE *table, const char *key, void *value)
 {
     HTABLE_INFO *ht;
 
@@ -224,7 +224,7 @@ HTABLE_INFO *htable_enter(HTABLE *table, const char *key, char *value)
 
 /* htable_find - lookup value */
 
-char   *htable_find(HTABLE *table, const char *key)
+void   *htable_find(HTABLE *table, const char *key)
 {
     HTABLE_INFO *ht;
 
@@ -254,7 +254,7 @@ HTABLE_INFO *htable_locate(HTABLE *table, const char *key)
 
 /* htable_delete - delete one entry */
 
-void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (char *))
+void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (void *))
 {
     if (table) {
 	HTABLE_INFO *ht;
@@ -274,7 +274,7 @@ void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (char *))
 		myfree(ht->key);
 		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
-		myfree((char *) ht);
+		myfree((void *) ht);
 		return;
 	    }
 	}
@@ -284,10 +284,10 @@ void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (char *))
 
 /* htable_free - destroy hash table */
 
-void    htable_free(HTABLE *table, void (*free_fn) (char *))
+void    htable_free(HTABLE *table, void (*free_fn) (void *))
 {
     if (table) {
-	unsigned i = table->size;
+	size_t  i = table->size;
 	HTABLE_INFO *ht;
 	HTABLE_INFO *next;
 	HTABLE_INFO **h = table->data;
@@ -298,22 +298,22 @@ void    htable_free(HTABLE *table, void (*free_fn) (char *))
 		myfree(ht->key);
 		if (free_fn && ht->value)
 		    (*free_fn) (ht->value);
-		myfree((char *) ht);
+		myfree((void *) ht);
 	    }
 	}
-	myfree((char *) table->data);
+	myfree((void *) table->data);
 	table->data = 0;
 	if (table->seq_bucket)
-	    myfree((char *) table->seq_bucket);
+	    myfree((void *) table->seq_bucket);
 	table->seq_bucket = 0;
-	myfree((char *) table);
+	myfree((void *) table);
     }
 }
 
 /* htable_walk - iterate over hash table */
 
-void    htable_walk(HTABLE *table, void (*action) (HTABLE_INFO *, char *),
-		            char *ptr) {
+void    htable_walk(HTABLE *table, void (*action) (HTABLE_INFO *, void *),
+		            void *ptr) {
     if (table) {
 	unsigned i = table->size;
 	HTABLE_INFO **h = table->data;
@@ -331,8 +331,8 @@ HTABLE_INFO **htable_list(HTABLE *table)
 {
     HTABLE_INFO **list;
     HTABLE_INFO *member;
-    int     count = 0;
-    int     i;
+    ssize_t count = 0;
+    ssize_t i;
 
     if (table != 0) {
 	list = (HTABLE_INFO **) mymalloc(sizeof(*list) * (table->used + 1));
@@ -356,7 +356,7 @@ HTABLE_INFO *htable_sequence(HTABLE *table, int how)
     switch (how) {
     case HTABLE_SEQ_FIRST:			/* start new sequence */
 	if (table->seq_bucket)
-	    myfree((char *) table->seq_bucket);
+	    myfree((void *) table->seq_bucket);
 	table->seq_bucket = htable_list(table);
 	table->seq_element = table->seq_bucket;
 	return (*(table->seq_element)++);
@@ -366,7 +366,7 @@ HTABLE_INFO *htable_sequence(HTABLE *table, int how)
 	/* FALLTHROUGH */
     default:					/* terminate sequence */
 	if (table->seq_bucket) {
-	    myfree((char *) table->seq_bucket);
+	    myfree((void *) table->seq_bucket);
 	    table->seq_bucket = table->seq_element = 0;
 	}
 	return (0);
@@ -377,16 +377,16 @@ HTABLE_INFO *htable_sequence(HTABLE *table, int how)
 #include <vstring_vstream.h>
 #include <myrand.h>
 
-int main(int unused_argc, char **unused_argv)
+int     main(int unused_argc, char **unused_argv)
 {
     VSTRING *buf = vstring_alloc(10);
-    int     count = 0;
+    ssize_t count = 0;
     HTABLE *hash;
     HTABLE_INFO **ht_info;
     HTABLE_INFO **ht;
     HTABLE_INFO *info;
-    int     i;
-    int     r;
+    ssize_t i;
+    ssize_t r;
     int     op;
 
     /*
@@ -394,12 +394,13 @@ int main(int unused_argc, char **unused_argv)
      */
     hash = htable_create(10);
     while (vstring_get(buf, VSTREAM_IN) != VSTREAM_EOF)
-	htable_enter(hash, vstring_str(buf), CAST_INT_TO_CHAR_PTR(count++));
+	htable_enter(hash, vstring_str(buf), CAST_INT_TO_VOID_PTR(count++));
     for (i = 0, op = HTABLE_SEQ_FIRST; htable_sequence(hash, op) != 0;
 	 i++, op = HTABLE_SEQ_NEXT)
 	 /* void */ ;
     if (i != hash->used)
-	msg_panic("%d entries found, but %d entries exist", i, hash->used);
+	msg_panic("%ld entries found, but %lu entries exist",
+		  (long) i, (unsigned long) hash->used);
     ht_info = htable_list(hash);
     for (i = 0; i < hash->used; i++) {
 	r = myrand() % hash->used;
@@ -408,11 +409,11 @@ int main(int unused_argc, char **unused_argv)
 	ht_info[r] = info;
     }
     for (ht = ht_info; *ht; ht++)
-	htable_delete(hash, ht[0]->key, (void (*) (char *)) 0);
+	htable_delete(hash, ht[0]->key, (void (*) (void *)) 0);
     if (hash->used > 0)
-	msg_panic("%d entries not deleted", hash->used);
-    myfree((char *) ht_info);
-    htable_free(hash, (void (*) (char *)) 0);
+	msg_panic("%ld entries not deleted", (long) hash->used);
+    myfree((void *) ht_info);
+    htable_free(hash, (void (*) (void *)) 0);
     vstring_free(buf);
     return (0);
 }

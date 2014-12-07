@@ -10,8 +10,8 @@
 /*	const char *buf;
 /*	int	len;
 /*	int	indent;
-/*	void	(*output_fn)(const char *str, int len, int indent, char *context);
-/*	char	*context;
+/*	void	(*output_fn)(const char *str, int len, int indent, void *context);
+/*	void	*context;
 /* DESCRIPTION
 /*	The \fBline_wrap\fR routine outputs the specified string via
 /*	the specified output function, and attempts to keep output lines
@@ -36,7 +36,7 @@
 /* .sp
 /* .nf
 /* .na
-void print(const char *str, int len, int indent, char *context)
+void print(const char *str, int len, int indent, void *context)
 {
     VSTREAM *fp = (VSTREAM *) context;
 
@@ -74,7 +74,7 @@ void print(const char *str, int len, int indent, char *context)
 /* line_wrap - wrap long lines upon output */
 
 void    line_wrap(const char *str, int len, int indent, LINE_WRAP_FN output_fn,
-		          char *context)
+		          void *context)
 {
     const char *start_line;
     const char *word;

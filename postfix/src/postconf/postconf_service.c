@@ -78,9 +78,9 @@ typedef struct {
 
 /* pcf_convert_service_parameter - get service parameter string value */
 
-static const char *pcf_convert_service_parameter(char *ptr)
+static const char *pcf_convert_service_parameter(void *ptr)
 {
-    return (STR(vstring_sprintf(pcf_param_string_buf, "$%s", ptr)));
+    return (STR(vstring_sprintf(pcf_param_string_buf, "$%s", (char *) ptr)));
 }
 
 /* pcf_register_service_parameter - add service parameter name and default */
@@ -105,7 +105,7 @@ static void pcf_register_service_parameter(const char *service,
 	PCF_PARAM_CLASS_OVERRIDE(node, PCF_PARAM_FLAG_SERVICE);
     } else {
 	PCF_PARAM_TABLE_ENTER(pcf_param_table, name, PCF_PARAM_FLAG_SERVICE,
-			  (char *) defparam, pcf_convert_service_parameter);
+			  (void *) defparam, pcf_convert_service_parameter);
     }
     myfree(name);
 }

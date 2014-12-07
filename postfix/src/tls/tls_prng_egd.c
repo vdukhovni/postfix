@@ -159,7 +159,7 @@ int     tls_prng_egd_close(TLS_PRNG_SRC *egd)
 	msg_info("%s: close EGD server %s", myname, egd->name);
     err = close(egd->fd);
     myfree(egd->name);
-    myfree((char *) egd);
+    myfree((void *) egd);
     return (err);
 }
 

@@ -60,7 +60,7 @@
 int     vstream_tweak_sock(VSTREAM *fp)
 {
     SOCKADDR_STORAGE ss;
-    struct sockaddr *sa = (struct sockaddr *) & ss;
+    struct sockaddr *sa = (struct sockaddr *) &ss;
     SOCKADDR_SIZE sa_length = sizeof(ss);
     int     ret;
 
@@ -106,7 +106,7 @@ int     vstream_tweak_tcp(VSTREAM *fp)
      * getsockopt() bugs we set mss = 0, which is a harmless value.
      */
     if ((err = getsockopt(vstream_fileno(fp), IPPROTO_TCP, TCP_MAXSEG,
-			  (char *) &mss, &mss_len)) < 0
+			  (void *) &mss, &mss_len)) < 0
 	&& errno != ECONNRESET) {
 	msg_warn("%s: getsockopt TCP_MAXSEG: %m", myname);
 	return (err);
@@ -146,7 +146,7 @@ int     vstream_tweak_tcp(VSTREAM *fp)
 	int     nodelay = 1;
 
 	if ((err = setsockopt(vstream_fileno(fp), IPPROTO_TCP, TCP_NODELAY,
-			      (char *) &nodelay, sizeof(nodelay))) < 0
+			      (void *) &nodelay, sizeof(nodelay))) < 0
 	    && errno != ECONNRESET)
 	    msg_warn("%s: setsockopt TCP_NODELAY: %m", myname);
     }

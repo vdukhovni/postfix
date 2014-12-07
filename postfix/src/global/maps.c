@@ -221,7 +221,7 @@ MAPS   *maps_free(MAPS *maps)
     }
     myfree(maps->title);
     argv_free(maps->argv);
-    myfree((char *) maps);
+    myfree((void *) maps);
     return (0);
 }
 

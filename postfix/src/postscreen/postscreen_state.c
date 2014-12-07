@@ -189,9 +189,9 @@ PSC_STATE *psc_new_session_state(VSTREAM *stream,
      * Update the per-client session count.
      */
     if ((ht = htable_locate(psc_client_concurrency, client_addr)) == 0)
-	ht = htable_enter(psc_client_concurrency, client_addr, (char *) 0);
+	ht = htable_enter(psc_client_concurrency, client_addr, (void *) 0);
     ht->value += 1;
-    state->client_concurrency = CAST_CHAR_PTR_TO_INT(ht->value);
+    state->client_concurrency = CAST_ANY_PTR_TO_INT(ht->value);
 
     return (state);
 }
@@ -212,7 +212,7 @@ void    psc_free_session_state(PSC_STATE *state)
 		  myname, state->smtp_client_addr);
     if (--(ht->value) == 0)
 	htable_delete(psc_client_concurrency, state->smtp_client_addr,
-		      (void (*) (char *)) 0);
+		      (void (*) (void *)) 0);
 
     if (state->smtp_client_stream != 0) {
 	event_server_disconnect(state->smtp_client_stream);
@@ -238,7 +238,7 @@ void    psc_free_session_state(PSC_STATE *state)
 	vstring_free(state->cmd_buffer);
     if (state->expand_buf)
 	vstring_free(state->expand_buf);
-    myfree((char *) state);
+    myfree((void *) state);
 
     if (psc_check_queue_length < 0 || psc_post_queue_length < 0)
 	msg_panic("bad queue length: check_queue=%d, post_queue=%d",

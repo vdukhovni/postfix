@@ -138,7 +138,7 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
     if (*var_luser_relay) {
 	state.msg_attr.unmatched = 0;
 	expand_luser = vstring_alloc(100);
-	local_expand(expand_luser, var_luser_relay, &state, &usr_attr, (char *) 0);
+	local_expand(expand_luser, var_luser_relay, &state, &usr_attr, (void *) 0);
 	status = deliver_resolve_addr(state, usr_attr, STR(expand_luser));
 	vstring_free(expand_luser);
 	return (status);

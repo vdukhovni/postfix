@@ -206,7 +206,7 @@ void    smtp_session_free(SMTP_SESSION *session)
 #endif
 
     debug_peer_restore();
-    myfree((char *) session);
+    myfree((void *) session);
 }
 
 /* smtp_session_passivate - passivate an SMTP_SESSION object */

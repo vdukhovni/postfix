@@ -108,6 +108,6 @@ char   *mvect_free(MVECT *vect)
     if (vect->wipe_fn)
 	vect->wipe_fn(vect->ptr, vect->nelm);
     myfree(vect->ptr);
-    myfree((char *) vect);
+    myfree((void *) vect);
     return (0);
 }

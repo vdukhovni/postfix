@@ -354,8 +354,8 @@ static char *hard_error_resp = HARD_ERROR_RESP;
 static int command_read(SINK_STATE *);
 static int data_read(SINK_STATE *);
 static void disconnect(SINK_STATE *);
-static void read_timeout(int, char *);
-static void read_event(int, char *);
+static void read_timeout(int, void *);
+static void read_event(int, void *);
 static int show_count;
 static int sess_count;
 static int quit_count;
@@ -723,7 +723,7 @@ static void rcpt_response(SINK_STATE *state, const char *args)
 
 /* abort_event - delayed abort after DATA command */
 
-static void abort_event(int unused_event, char *context)
+static void abort_event(int unused_event, void *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
@@ -750,8 +750,8 @@ static void data_response(SINK_STATE *state, const char *unused_args)
     } else {
 	/* Stop reading, send premature 550, and disconnect. */
 	event_disable_readwrite(vstream_fileno(state->stream));
-	event_cancel_timer(read_event, (char *) state);
-	event_request_timer(abort_event, (char *) state, abort_delay);
+	event_cancel_timer(read_event, (void *) state);
+	event_request_timer(abort_event, (void *) state, abort_delay);
     }
     if (state->dump_file)
 	mail_file_finish_header(state);
@@ -821,7 +821,7 @@ static void conn_response(SINK_STATE *state, const char *unused_args)
 
 /* delay_event - delayed command response */
 
-static void delay_event(int unused_event, char *context)
+static void delay_event(int unused_event, void *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
@@ -855,8 +855,8 @@ static void delay_event(int unused_event, char *context)
     state->delayed_response = 0;
 
     /* Resume input event handling after the delayed response. */
-    event_enable_read(vstream_fileno(state->stream), read_event, (char *) state);
-    event_request_timer(read_timeout, (char *) state, var_tmout);
+    event_enable_read(vstream_fileno(state->stream), read_event, (void *) state);
+    event_request_timer(read_timeout, (void *) state, var_tmout);
 }
 
 /* data_read - read data from socket */
@@ -1088,8 +1088,8 @@ static int command_resp(SINK_STATE *state, SINK_COMMAND *cmdp,
 		 /* NOP */ ;
 	/* Suspend input event handling while delaying the command response. */
 	event_disable_readwrite(vstream_fileno(state->stream));
-	event_cancel_timer(read_timeout, (char *) state);
-	event_request_timer(delay_event, (char *) state, delay);
+	event_cancel_timer(read_timeout, (void *) state);
+	event_request_timer(delay_event, (void *) state, delay);
 	state->delayed_response = cmdp->response;
 	state->delayed_args = mystrdup(args);
     } else {
@@ -1208,7 +1208,7 @@ static int command_read(SINK_STATE *state)
 
 /* read_timeout - handle timer event */
 
-static void read_timeout(int unused_event, char *context)
+static void read_timeout(int unused_event, void *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
@@ -1223,7 +1223,7 @@ static void read_timeout(int unused_event, char *context)
 
 /* read_event - handle command or data read events */
 
-static void read_event(int unused_event, char *context)
+static void read_event(int unused_event, void *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
@@ -1268,17 +1268,17 @@ static void read_event(int unused_event, char *context)
      * Reset the idle timer. Wait until the next input event, or until the
      * idle timer goes off.
      */
-    event_request_timer(read_timeout, (char *) state, var_tmout);
+    event_request_timer(read_timeout, (void *) state, var_tmout);
 }
 
-static void connect_event(int, char *);
+static void connect_event(int, void *);
 
 /* disconnect - handle disconnection events */
 
 static void disconnect(SINK_STATE *state)
 {
     event_disable_readwrite(vstream_fileno(state->stream));
-    event_cancel_timer(read_timeout, (char *) state);
+    event_cancel_timer(read_timeout, (void *) state);
     if (show_count) {
 	sess_count++;
 	do_stats();
@@ -1292,16 +1292,16 @@ static void disconnect(SINK_STATE *state)
     mail_cmd_reset(state);
     if (state->delayed_args)
 	myfree(state->delayed_args);
-    myfree((char *) state);
+    myfree((void *) state);
     if (max_quit_count > 0 && quit_count >= max_quit_count)
 	exit(0);
     if (client_count-- == max_client_count)
-	event_enable_read(sock, connect_event, (char *) 0);
+	event_enable_read(sock, connect_event, (void *) 0);
 }
 
 /* connect_event - handle connection events */
 
-static void connect_event(int unused_event, char *unused_context)
+static void connect_event(int unused_event, void *unused_context)
 {
     struct sockaddr_storage ss;
     SOCKADDR_SIZE len = sizeof(ss);
@@ -1384,8 +1384,8 @@ static void connect_event(int unused_event, char *unused_context)
 	    if (command_resp(state, command_table, "connect", "") < 0)
 		disconnect(state);
 	    else if (command_table->delay == 0) {
-		event_enable_read(fd, read_event, (char *) state);
-		event_request_timer(read_timeout, (char *) state, var_tmout);
+		event_enable_read(fd, read_event, (void *) state);
+		event_request_timer(read_timeout, (void *) state, var_tmout);
 	    }
 	}
     }
@@ -1597,7 +1597,7 @@ int     main(int argc, char **argv)
     /*
      * Start the event handler.
      */
-    event_enable_read(sock, connect_event, (char *) 0);
+    event_enable_read(sock, connect_event, (void *) 0);
     for (;;)
 	event_loop(-1);
 }

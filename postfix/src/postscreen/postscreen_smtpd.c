@@ -201,8 +201,8 @@ static char *psc_smtpd_421_reply;	/* generic final_reply value */
  /*
   * Forward declaration, needed by PSC_CLEAR_EVENT_REQUEST.
   */
-static void psc_smtpd_time_event(int, char *);
-static void psc_smtpd_read_event(int, char *);
+static void psc_smtpd_time_event(int, void *);
+static void psc_smtpd_read_event(int, void *);
 
  /*
   * Encapsulation. The STARTTLS, EHLO and AUTH command handlers temporarily
@@ -215,14 +215,14 @@ static void psc_smtpd_read_event(int, char *);
 #define PSC_RESUME_SMTP_CMD_EVENTS(state) do { \
 	PSC_READ_EVENT_REQUEST2(vstream_fileno((state)->smtp_client_stream), \
 			       psc_smtpd_read_event, psc_smtpd_time_event, \
-			       (char *) (state), PSC_EFF_CMD_TIME_LIMIT); \
+			       (void *) (state), PSC_EFF_CMD_TIME_LIMIT); \
 	if (!PSC_SMTPD_BUFFER_EMPTY(state)) \
-	    psc_smtpd_read_event(EVENT_READ, (char *) state); \
+	    psc_smtpd_read_event(EVENT_READ, (void *) state); \
     } while (0)
 
 #define PSC_SUSPEND_SMTP_CMD_EVENTS(state) \
     PSC_CLEAR_EVENT_REQUEST(vstream_fileno((state)->smtp_client_stream), \
-			   psc_smtpd_time_event, (char *) (state));
+			   psc_smtpd_time_event, (void *) (state));
 
  /*
   * Make control characters and other non-text visible.
@@ -260,13 +260,13 @@ static DICT *psc_cmd_filter;
   */
 #define PSC_CLEAR_EVENT_DROP_SESSION_STATE(state, event, reply) do { \
 	PSC_CLEAR_EVENT_REQUEST(vstream_fileno((state)->smtp_client_stream), \
-				   (event), (char *) (state)); \
+				   (event), (void *) (state)); \
 	PSC_DROP_SESSION_STATE((state), (reply)); \
     } while (0);
 
 #define PSC_CLEAR_EVENT_HANGUP(state, event) do { \
 	PSC_CLEAR_EVENT_REQUEST(vstream_fileno((state)->smtp_client_stream), \
-				   (event), (char *) (state)); \
+				   (event), (void *) (state)); \
 	psc_hangup_event(state); \
     } while (0);
 
@@ -392,7 +392,7 @@ static int psc_ehlo_cmd(PSC_STATE *state, char *args)
 
 /* psc_starttls_resume - resume the SMTP protocol after tlsproxy activation */
 
-static void psc_starttls_resume(int unused_event, char *context)
+static void psc_starttls_resume(int unused_event, void *context)
 {
     const char *myname = "psc_starttls_resume";
     PSC_STATE *state = (PSC_STATE *) context;
@@ -664,7 +664,7 @@ static int psc_quit_cmd(PSC_STATE *state, char *unused_args)
 
 /* psc_smtpd_time_event - handle per-session time limit */
 
-static void psc_smtpd_time_event(int event, char *context)
+static void psc_smtpd_time_event(int event, void *context)
 {
     const char *myname = "psc_smtpd_time_event";
     PSC_STATE *state = (PSC_STATE *) context;
@@ -718,7 +718,7 @@ static const PSC_SMTPD_COMMAND command_table[] = {
 
 /* psc_smtpd_read_event - pseudo responder */
 
-static void psc_smtpd_read_event(int event, char *context)
+static void psc_smtpd_read_event(int event, void *context)
 {
     const char *myname = "psc_smtpd_read_event";
     PSC_STATE *state = (PSC_STATE *) context;
@@ -1096,7 +1096,7 @@ static void psc_smtpd_read_event(int event, char *context)
 	/*
 	 * Reset the command read timeout before reading the next command.
 	 */
-	event_request_timer(psc_smtpd_time_event, (char *) state,
+	event_request_timer(psc_smtpd_time_event, (void *) state,
 			    PSC_EFF_CMD_TIME_LIMIT);
 
 	/*
@@ -1153,7 +1153,7 @@ void    psc_smtpd_tests(PSC_STATE *state)
      */
     PSC_READ_EVENT_REQUEST2(vstream_fileno(state->smtp_client_stream),
 			    psc_smtpd_read_event, psc_smtpd_time_event,
-			    (char *) state, PSC_EFF_CMD_TIME_LIMIT);
+			    (void *) state, PSC_EFF_CMD_TIME_LIMIT);
 }
 
 /* psc_smtpd_init - per-process deep protocol test initialization */

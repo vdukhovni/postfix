@@ -140,6 +140,7 @@
 #include <stringops.h>
 #include <msg.h>
 #include <iostuff.h>			/* non-blocking */
+#include <midna.h>
 
 /* Global library. */
 
@@ -511,6 +512,7 @@ static int match_servername(const char *certid,
     const char *hname = props->host;
     const char *domain;
     const char *parent;
+    const char *aname;
     int     match_subdomain;
     int     i;
     int     idlen;
@@ -518,6 +520,27 @@ static int match_servername(const char *certid,
 
     if ((cmatch_argv = props->matchargv) == 0)
 	return 0;
+
+#ifndef NO_EAI
+
+    /*
+     * DNS subjectAltNames are required to be ASCII.
+     * 
+     * Per RFC 6125 Section 6.4.4 Matching the CN-ID, follows the same rules
+     * (6.4.1, 6.4.2 and 6.4.3) that apply to subjectAltNames.  In
+     * particular, 6.4.2 says that the reference identifier is coerced to
+     * ASCII, but no conversion is stated or implied for the CN-ID, so it
+     * seems it only matches if it is all ASCII.  Otherwise, it is some other
+     * sort of name.
+     */
+    if (!allascii(certid))
+	return (0);
+    if (!allascii(nexthop) && (aname = midna_utf8_to_ascii(nexthop)) != 0) {
+	if (msg_verbose)
+	    msg_info("%s asciified to %s", nexthop, aname);
+	nexthop = aname;
+    }
+#endif
 
     /*
      * Match the certid against each pattern until we find a match.
@@ -533,10 +556,42 @@ static int match_servername(const char *certid,
 	    match_subdomain = 1;
 	} else {
 	    domain = cmatch_argv->argv[i];
-	    if (*domain == '.' && domain[1] != '\0') {
-		++domain;
-		match_subdomain = 1;
+	    if (*domain == '.') {
+		if (domain[1]) {
+		    ++domain;
+		    match_subdomain = 1;
+		}
 	    }
+#ifndef NO_EAI
+
+	    /*
+	     * IDNA allows labels to be separated by any of the additional
+	     * characters U+3002, U+FF0E, and U+FF61; that are Unicode
+	     * variants. Their UTF-8 encodings are: E38082, EFBC8E and
+	     * EFBDA1.
+	     * 
+	     * It is not clear whether the IDNA to_ASCII conversion allows empty
+	     * leading labels, so we handle these explicitly here.
+	     */
+	    else {
+		unsigned char *cp = (unsigned char *) domain;
+
+		if ((cp[0] == 0xe3 && cp[1] == 0x80 && cp[2] == 0x82)
+		    || (cp[0] == 0xef && cp[1] == 0xbc && cp[2] == 0x8e)
+		    || (cp[0] == 0xef && cp[1] == 0xbd && cp[2] == 0xa1)) {
+		    if (domain[3]) {
+			domain = domain + 3;
+			match_subdomain = 1;
+		    }
+		}
+	    }
+	    if (!allascii(domain)
+		&& (aname = midna_utf8_to_ascii(domain)) != 0) {
+		if (msg_verbose)
+		    msg_info("%s asciified to %s", domain, aname);
+		domain = aname;
+	    }
+#endif
 	}
 
 	/*

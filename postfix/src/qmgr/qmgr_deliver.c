@@ -219,7 +219,7 @@ static int qmgr_deliver_send_request(QMGR_ENTRY *entry, VSTREAM *stream)
 
 /* qmgr_deliver_abort - transport response watchdog */
 
-static void qmgr_deliver_abort(int unused_event, char *context)
+static void qmgr_deliver_abort(int unused_event, void *context)
 {
     QMGR_ENTRY *entry = (QMGR_ENTRY *) context;
     QMGR_QUEUE *queue = entry->queue;
@@ -232,7 +232,7 @@ static void qmgr_deliver_abort(int unused_event, char *context)
 
 /* qmgr_deliver_update - process delivery status report */
 
-static void qmgr_deliver_update(int unused_event, char *context)
+static void qmgr_deliver_update(int unused_event, void *context)
 {
     QMGR_ENTRY *entry = (QMGR_ENTRY *) context;
     QMGR_QUEUE *queue = entry->queue;
@@ -435,10 +435,10 @@ void    qmgr_deliver(QMGR_TRANSPORT *transport, VSTREAM *stream)
     qmgr_deliver_concurrency++;
     entry->stream = stream;
     event_enable_read(vstream_fileno(stream),
-		      qmgr_deliver_update, (char *) entry);
+		      qmgr_deliver_update, (void *) entry);
 
     /*
      * Guard against broken systems.
      */
-    event_request_timer(qmgr_deliver_abort, (char *) entry, var_daemon_timeout);
+    event_request_timer(qmgr_deliver_abort, (void *) entry, var_daemon_timeout);
 }

@@ -109,7 +109,7 @@ static int dict_ht_update(DICT *dict, const char *name, const char *value)
     if ((ht = htable_locate(dict_ht->table, name)) != 0) {
 	myfree(ht->value);
     } else {
-	ht = htable_enter(dict_ht->table, name, (char *) 0);
+	ht = htable_enter(dict_ht->table, name, (void *) 0);
     }
     ht->value = saved_value;
     DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_SUCCESS);

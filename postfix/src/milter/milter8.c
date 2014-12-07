@@ -578,7 +578,7 @@ static int milter8_read_resp(MILTER8 *milter, int event, unsigned char *command,
     /*
      * Receive the packet length.
      */
-    if ((vstream_fread(milter->fp, (char *) &len, UINT32_SIZE))
+    if ((vstream_fread(milter->fp, (void *) &len, UINT32_SIZE))
 	!= UINT32_SIZE) {
 	smfic_name = str_name_code(smfic_table, event);
 	msg_warn("milter %s: can't read %s reply packet header: %m",
@@ -640,7 +640,7 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t *data_len, va_list ap)
 		return (milter8_comm_error(milter));
 	    }
 	    host_long_ptr = va_arg(ap, UINT32_TYPE *);
-	    if (vstream_fread(milter->fp, (char *) &net_long, UINT32_SIZE)
+	    if (vstream_fread(milter->fp, (void *) &net_long, UINT32_SIZE)
 		!= UINT32_SIZE) {
 		msg_warn("milter %s: EOF while reading network long: %m",
 			 milter->m.name);
@@ -661,7 +661,7 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t *data_len, va_list ap)
 	    buf = va_arg(ap, VSTRING *);
 	    VSTRING_RESET(buf);
 	    VSTRING_SPACE(buf, *data_len);
-	    if (vstream_fread(milter->fp, (char *) STR(buf), *data_len)
+	    if (vstream_fread(milter->fp, (void *) STR(buf), *data_len)
 		!= *data_len) {
 		msg_warn("milter %s: EOF while reading data: %m", milter->m.name);
 		return (milter8_comm_error(milter));
@@ -833,7 +833,7 @@ static int vmilter8_write_cmd(MILTER8 *milter, int command, ssize_t data_len,
     if ((pkt_len = 1 + data_len) < 1)
 	msg_panic("%s: bad packet length %d", myname, pkt_len);
     pkt_len = htonl(pkt_len);
-    (void) vstream_fwrite(milter->fp, (char *) &pkt_len, UINT32_SIZE);
+    (void) vstream_fwrite(milter->fp, (void *) &pkt_len, UINT32_SIZE);
     (void) VSTREAM_PUTC(command, milter->fp);
     while ((arg_type = va_arg(ap, int)) > 0) {
 	switch (arg_type) {
@@ -844,7 +844,7 @@ static int vmilter8_write_cmd(MILTER8 *milter, int command, ssize_t data_len,
 	case MILTER8_DATA_HLONG:
 	    host_long = va_arg(ap, UINT32_TYPE);
 	    net_long = htonl(host_long);
-	    (void) vstream_fwrite(milter->fp, (char *) &net_long, UINT32_SIZE);
+	    (void) vstream_fwrite(milter->fp, (void *) &net_long, UINT32_SIZE);
 	    break;
 
 	    /*
@@ -884,7 +884,7 @@ static int vmilter8_write_cmd(MILTER8 *milter, int command, ssize_t data_len,
 	     */
 	case MILTER8_DATA_NSHORT:
 	    net_short = va_arg(ap, unsigned);
-	    (void) vstream_fwrite(milter->fp, (char *) &net_short, UINT16_SIZE);
+	    (void) vstream_fwrite(milter->fp, (void *) &net_short, UINT16_SIZE);
 	    break;
 
 	    /*
@@ -2814,7 +2814,7 @@ static void milter8_free(MILTER *m)
 	myfree(milter->def_reply);
     if (milter->m.macros)
 	milter_macros_free(milter->m.macros);
-    myfree((char *) milter);
+    myfree((void *) milter);
 }
 
 /* milter8_alloc - create MTA-side Sendmail 8 Milter instance */

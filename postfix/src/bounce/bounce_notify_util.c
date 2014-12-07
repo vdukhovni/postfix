@@ -444,8 +444,8 @@ void    bounce_mail_free(BOUNCE_INFO *bounce_info)
     vstring_free(bounce_info->buf);
     vstring_free(bounce_info->sender);
     myfree(bounce_info->mail_name);
-    myfree((char *) bounce_info->mime_boundary);
-    myfree((char *) bounce_info);
+    myfree((void *) bounce_info->mime_boundary);
+    myfree((void *) bounce_info);
 }
 
 /* bounce_header - generate bounce message header */
@@ -532,7 +532,7 @@ int     bounce_boilerplate(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 
 /* bounce_print - line_wrap callback */
 
-static void bounce_print(const char *str, int len, int indent, char *context)
+static void bounce_print(const char *str, int len, int indent, void *context)
 {
     VSTREAM *bounce = (VSTREAM *) context;
 
@@ -553,7 +553,7 @@ static void bounce_print_wrap(VSTREAM *bounce, BOUNCE_INFO *bounce_info,
     vstring_vsprintf(bounce_info->buf, format, ap);
     va_end(ap);
     line_wrap(STR(bounce_info->buf), LENGTH, INDENT,
-	      bounce_print, (char *) bounce);
+	      bounce_print, (void *) bounce);
 }
 
 /* bounce_recipient_log - send one bounce log report entry */

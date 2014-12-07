@@ -1239,6 +1239,7 @@ header_body_checks.o: rec_type.h
 header_opts.o: ../../include/argv.h
 header_opts.o: ../../include/htable.h
 header_opts.o: ../../include/msg.h
+header_opts.o: ../../include/mymalloc.h
 header_opts.o: ../../include/stringops.h
 header_opts.o: ../../include/sys_defs.h
 header_opts.o: ../../include/vbuf.h
@@ -2210,6 +2211,7 @@ server_acl.o: ../../include/vstring.h
 server_acl.o: addr_match_list.h
 server_acl.o: mail_params.h
 server_acl.o: match_parent_style.h
+server_acl.o: mynetworks.h
 server_acl.o: server_acl.c
 server_acl.o: server_acl.h
 smtp_reply_footer.o: ../../include/mac_expand.h

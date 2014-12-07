@@ -755,7 +755,7 @@ TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, int log_mask)
     app_ctx = (TLS_APPL_STATE *) mymalloc(sizeof(*app_ctx));
 
     /* See portability note below with other memset() call. */
-    memset((char *) app_ctx, 0, sizeof(*app_ctx));
+    memset((void *) app_ctx, 0, sizeof(*app_ctx));
     app_ctx->ssl_ctx = ssl_ctx;
     app_ctx->log_mask = log_mask;
 
@@ -784,7 +784,7 @@ void    tls_free_app_context(TLS_APPL_STATE *app_ctx)
 	myfree(app_ctx->cipher_list);
     if (app_ctx->why)
 	vstring_free(app_ctx->why);
-    myfree((char *) app_ctx);
+    myfree((void *) app_ctx);
 }
 
 /* tls_alloc_sess_context - allocate TLS session context */
@@ -803,7 +803,7 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
      * However, it's OK to use memset() to zero integer values.
      */
     TLScontext = (TLS_SESS_STATE *) mymalloc(sizeof(TLS_SESS_STATE));
-    memset((char *) TLScontext, 0, sizeof(*TLScontext));
+    memset((void *) TLScontext, 0, sizeof(*TLScontext));
     TLScontext->con = 0;
     TLScontext->cache_type = 0;
     TLScontext->serverid = 0;
@@ -860,7 +860,7 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
     if (TLScontext->trusted)
 	sk_X509_pop_free(TLScontext->trusted, X509_free);
 
-    myfree((char *) TLScontext);
+    myfree((void *) TLScontext);
 }
 
 /* tls_version_split - Split OpenSSL version number into major, minor, ... */

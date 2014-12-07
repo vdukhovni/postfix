@@ -574,7 +574,7 @@ static void policy_client_register(const char *name)
 			  ATTR_CLNT_CTL_TRY_DELAY, smtpd_policy_try_delay,
 			  ATTR_CLNT_CTL_END);
 	policy_client->def_action = mystrdup(smtpd_policy_def_action);
-	htable_enter(policy_clnt_table, name, (char *) policy_client);
+	htable_enter(policy_clnt_table, name, (void *) policy_client);
 	if (saved_name)
 	    myfree(saved_name);
     }
@@ -810,7 +810,7 @@ void    smtpd_check_init(void)
 		msg_fatal("restriction class `%s' needs a definition", name);
 	    /* XXX This store operation should not be case-sensitive. */
 	    htable_enter(smtpd_rest_classes, name,
-			 (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+			 (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 						    value));
 	}
 	myfree(saved_classes);
@@ -826,7 +826,7 @@ void    smtpd_check_init(void)
 			      "permit_mydomain reject_unauth_destination"));
 #endif
     htable_enter(smtpd_rest_classes, REJECT_SENDER_LOGIN_MISMATCH,
-		 (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+		 (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					    REJECT_AUTH_SENDER_LOGIN_MISMATCH
 				  " " REJECT_UNAUTH_SENDER_LOGIN_MISMATCH));
 
@@ -3308,7 +3308,7 @@ static void rbl_pageout(void *data, void *unused_context)
 	    myfree(rbl->txt);
 	if (rbl->a)
 	    dns_rr_free(rbl->a);
-	myfree((char *) rbl);
+	myfree((void *) rbl);
     }
 }
 
@@ -3339,7 +3339,7 @@ static void rbl_byte_pageout(void *data, void *unused_context)
 /* rbl_expand_lookup - RBL specific $name expansion */
 
 static const char *rbl_expand_lookup(const char *name, int mode,
-				             char *context)
+				             void *context)
 {
     SMTPD_RBL_EXPAND_CONTEXT *rbl_exp = (SMTPD_RBL_EXPAND_CONTEXT *) context;
     SMTPD_STATE *state = rbl_exp->state;
@@ -3369,7 +3369,7 @@ static const char *rbl_expand_lookup(const char *name, int mode,
     } else if (STREQ(name, MAIL_ATTR_RBL_CLASS)) {
 	return (rbl_exp->class);
     } else {
-	return (smtpd_expand_lookup(name, mode, (char *) state));
+	return (smtpd_expand_lookup(name, mode, (void *) state));
     }
 }
 
@@ -3409,7 +3409,7 @@ static int rbl_reject_reply(SMTPD_STATE *state, const SMTPD_RBL_STATE *rbl,
 	    template = var_def_rbl_reply;
 	if (mac_expand(why, template, MAC_EXP_FLAG_NONE,
 		       STR(smtpd_expand_filter), rbl_expand_lookup,
-		       (char *) &rbl_exp) == 0)
+		       (void *) &rbl_exp) == 0)
 	    break;
 	if (template == var_def_rbl_reply)
 	    msg_fatal("%s: bad default rbl reply template: %s",
@@ -5703,8 +5703,8 @@ static void rest_class(char *class)
     if ((entry = htable_locate(smtpd_rest_classes, name)) != 0)
 	argv_free((ARGV *) entry->value);
     else
-	entry = htable_enter(smtpd_rest_classes, name, (char *) 0);
-    entry->value = (char *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL, cp);
+	entry = htable_enter(smtpd_rest_classes, name, (void *) 0);
+    entry->value = (void *) smtpd_check_parse(SMTPD_CHECK_PARSE_ALL, cp);
 }
 
 /* resolve_clnt_init - initialize reply */
@@ -6132,7 +6132,7 @@ int     main(int argc, char **argv)
 		if (state.tls_context == 0) {
 		    state.tls_context =
 			(TLS_SESS_STATE *) mymalloc(sizeof(*state.tls_context));
-		    memset((char *) state.tls_context, 0,
+		    memset((void *) state.tls_context, 0,
 			   sizeof(*state.tls_context));
 		    state.tls_context->peer_cert_fprint =
 			state.tls_context->peer_pkey_fprint = 0;
@@ -6186,7 +6186,7 @@ int     main(int argc, char **argv)
 #ifdef USE_TLS
     if (state.tls_context) {
 	FREE_STRING(state.tls_context->peer_cert_fprint);
-	myfree((char *) state.tls_context);
+	myfree((void *) state.tls_context);
     }
 #endif
     exit(0);

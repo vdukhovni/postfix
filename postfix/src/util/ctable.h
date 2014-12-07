@@ -20,7 +20,7 @@
 typedef void *(*CTABLE_CREATE_FN) (const char *, void *);
 typedef void (*CTABLE_DELETE_FN) (void *, void *);
 
-extern CTABLE *ctable_create(int, CTABLE_CREATE_FN, CTABLE_DELETE_FN, void *);
+extern CTABLE *ctable_create(ssize_t, CTABLE_CREATE_FN, CTABLE_DELETE_FN, void *);
 extern void ctable_free(CTABLE *);
 extern void ctable_walk(CTABLE *, void (*) (const char *, const void *));
 extern const void *ctable_locate(CTABLE *, const char *);

@@ -73,10 +73,10 @@ void    set_inet_windowsize(int sock, int windowsize)
      * Generic implementation: set the send and receive buffer size before
      * listen() or connect().
      */
-    if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (char *) &windowsize,
+    if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (void *) &windowsize,
 		   sizeof(windowsize)) < 0)
 	msg_warn("setsockopt SO_SNDBUF %d: %m", windowsize);
-    if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (char *) &windowsize,
+    if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (void *) &windowsize,
 		   sizeof(windowsize)) < 0)
 	msg_warn("setsockopt SO_RCVBUF %d: %m", windowsize);
 }

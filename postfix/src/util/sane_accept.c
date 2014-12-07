@@ -44,7 +44,7 @@
 
 /* sane_accept - sanitize accept() error returns */
 
-int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
+int     sane_accept(int sock, struct sockaddr *sa, SOCKADDR_SIZE *len)
 {
     static int accept_ok_errors[] = {
 	EAGAIN,
@@ -119,7 +119,7 @@ int     sane_accept(int sock, struct sockaddr * sa, SOCKADDR_SIZE *len)
 	int     on = 1;
 
 	(void) setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE,
-			  (char *) &on, sizeof(on));
+			  (void *) &on, sizeof(on));
     }
     return (fd);
 }

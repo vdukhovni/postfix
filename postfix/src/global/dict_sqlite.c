@@ -231,7 +231,7 @@ static const char *dict_sqlite_lookup(DICT *dict, const char *name)
     while ((status = sqlite3_step(sql_stmt)) != SQLITE_DONE) {
 	if (status == SQLITE_ROW) {
 	    if (db_common_expand(dict_sqlite->ctx, dict_sqlite->result_format,
-				 (char *) sqlite3_column_text(sql_stmt, 0),
+			    (const char *) sqlite3_column_text(sql_stmt, 0),
 				 name, result, 0)
 		&& dict_sqlite->expansion_limit > 0
 		&& ++expansion > dict_sqlite->expansion_limit) {

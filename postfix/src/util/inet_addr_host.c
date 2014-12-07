@@ -122,7 +122,7 @@ int     inet_addr_host(INET_ADDR_LIST *addr_list, const char *hostname)
 	freeaddrinfo(res0);
     }
     if (hname && hname != hostname)
-	myfree((char *) hname);
+	myfree((void *) hname);
 
     return (addr_list->used - initial_count);
 }

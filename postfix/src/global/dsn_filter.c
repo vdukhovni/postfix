@@ -189,5 +189,5 @@ void    dsn_filter_free(DSN_FILTER *fp)
 
     maps_free(fp->maps);
     vstring_free(fp->buffer);
-    myfree((char *) fp);
+    myfree((void *) fp);
 }

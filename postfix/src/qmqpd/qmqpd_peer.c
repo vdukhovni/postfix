@@ -79,7 +79,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
     SOCKADDR_SIZE sa_length;
     INET_PROTO_INFO *proto_info = inet_proto_info();
 
-    sa = (struct sockaddr *) & ss;
+    sa = (struct sockaddr *) &ss;
     sa_length = sizeof(ss);
 
     /*
@@ -188,7 +188,7 @@ void    qmqpd_peer_init(QMQPD_STATE *state)
 		sa_length = res0->ai_addrlen;
 		if (sa_length > sizeof(ss))
 		    sa_length = sizeof(ss);
-		memcpy((char *) sa, res0->ai_addr, sa_length);
+		memcpy((void *) sa, res0->ai_addr, sa_length);
 		freeaddrinfo(res0);
 	    }
 

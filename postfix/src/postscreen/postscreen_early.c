@@ -95,7 +95,7 @@ static void psc_whitelist_non_dnsbl(PSC_STATE *state)
 
 /* psc_early_event - handle pre-greet, EOF, and DNSBL results. */
 
-static void psc_early_event(int event, char *context)
+static void psc_early_event(int event, void *context)
 {
     const char *myname = "psc_early_event";
     PSC_STATE *state = (PSC_STATE *) context;
@@ -285,7 +285,7 @@ static void psc_early_event(int event, char *context)
 
 /* psc_early_dnsbl_event - cancel pregreet timer if waiting for DNS only */
 
-static void psc_early_dnsbl_event(int unused_event, char *context)
+static void psc_early_dnsbl_event(int unused_event, void *context)
 {
     const char *myname = "psc_early_dnsbl_event";
     PSC_STATE *state = (PSC_STATE *) context;
@@ -341,7 +341,7 @@ void    psc_early_tests(PSC_STATE *state)
     if ((state->flags & PSC_STATE_FLAG_DNSBL_TODO) != 0)
 	state->dnsbl_index =
 	    psc_dnsbl_request(state->smtp_client_addr, psc_early_dnsbl_event,
-			      (char *) state);
+			      (void *) state);
     else
 	state->dnsbl_index = -1;
     state->dnsbl_score = NO_DNSBL_SCORE;
@@ -351,9 +351,9 @@ void    psc_early_tests(PSC_STATE *state)
      */
     if ((state->flags & PSC_STATE_FLAG_PREGR_TODO) != 0)
 	PSC_READ_EVENT_REQUEST(vstream_fileno(state->smtp_client_stream),
-		       psc_early_event, (char *) state, PSC_EFF_GREET_WAIT);
+		       psc_early_event, (void *) state, PSC_EFF_GREET_WAIT);
     else
-	event_request_timer(psc_early_event, (char *) state, PSC_EFF_GREET_WAIT);
+	event_request_timer(psc_early_event, (void *) state, PSC_EFF_GREET_WAIT);
 }
 
 /* psc_early_init - initialize early tests */

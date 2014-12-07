@@ -52,7 +52,7 @@
 /*	match_list_free() releases storage allocated by match_list_init().
 /* DIAGNOSTICS
 /*	Fatal error: unable to open or read a match_list file; invalid
-/*	match_list pattern. 
+/*	match_list pattern.
 /* SEE ALSO
 /*	host_match(3) match hosts by name or by address
 /* LICENSE
@@ -234,7 +234,7 @@ void    match_list_free(MATCH_LIST *list)
 {
     /* XXX Should decrement map refcounts. */
     argv_free(list->patterns);
-    myfree((char *) list->match_func);
-    myfree((char *) list->match_args);
-    myfree((char *) list);
+    myfree((void *) list->match_func);
+    myfree((void *) list->match_args);
+    myfree((void *) list);
 }

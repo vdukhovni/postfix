@@ -41,7 +41,7 @@
 
 /* sane_connect - sanitize connect() results */
 
-int     sane_connect(int sock, struct sockaddr * sa, SOCKADDR_SIZE len)
+int     sane_connect(int sock, struct sockaddr *sa, SOCKADDR_SIZE len)
 {
 
     /*
@@ -59,7 +59,7 @@ int     sane_connect(int sock, struct sockaddr * sa, SOCKADDR_SIZE len)
 	int     on = 1;
 
 	(void) setsockopt(sock, SOL_SOCKET, SO_KEEPALIVE,
-			  (char *) &on, sizeof(on));
+			  (void *) &on, sizeof(on));
     }
     return (connect(sock, sa, len));
 }

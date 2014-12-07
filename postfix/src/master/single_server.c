@@ -215,7 +215,7 @@ static int use_count;
 static void (*single_server_service) (VSTREAM *, char *, char **);
 static char *single_server_name;
 static char **single_server_argv;
-static void (*single_server_accept) (int, char *);
+static void (*single_server_accept) (int, void *);
 static void (*single_server_onexit) (char *, char **);
 static void (*single_server_pre_accept) (char *, char **);
 static VSTREAM *single_server_lock;
@@ -233,7 +233,7 @@ static NORETURN single_server_exit(void)
 
 /* single_server_abort - terminate after abnormal master exit */
 
-static void single_server_abort(int unused_event, char *unused_context)
+static void single_server_abort(int unused_event, void *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
@@ -242,7 +242,7 @@ static void single_server_abort(int unused_event, char *unused_context)
 
 /* single_server_timeout - idle time exceeded */
 
-static void single_server_timeout(int unused_event, char *unused_context)
+static void single_server_timeout(int unused_event, void *unused_context)
 {
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
@@ -271,7 +271,7 @@ static void single_server_wakeup(int fd, HTABLE *attr)
     tmp = concatenate(single_server_name, " socket", (char *) 0);
     vstream_control(stream,
 		    VSTREAM_CTL_PATH, tmp,
-		    VSTREAM_CTL_CONTEXT, (char *) attr,
+		    VSTREAM_CTL_CONTEXT, (void *) attr,
 		    VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
@@ -289,16 +289,16 @@ static void single_server_wakeup(int fd, HTABLE *attr)
     if (use_count < INT_MAX)
 	use_count++;
     if (var_idle_limit > 0)
-	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(single_server_timeout, (void *) 0, var_idle_limit);
     if (attr)
 	htable_free(attr, myfree);
 }
 
 /* single_server_accept_local - accept client connection request */
 
-static void single_server_accept_local(int unused_event, char *context)
+static void single_server_accept_local(int unused_event, void *context)
 {
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = -1;
     int     fd;
 
@@ -309,7 +309,7 @@ static void single_server_accept_local(int unused_event, char *context)
      * master process has gone away unexpectedly.
      */
     if (var_idle_limit > 0)
-	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(single_server_timeout, (void *) 0);
 
     if (single_server_pre_accept)
 	single_server_pre_accept(single_server_name, single_server_argv);
@@ -322,7 +322,7 @@ static void single_server_accept_local(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(single_server_timeout, (char *) 0, time_left);
+	    event_request_timer(single_server_timeout, (void *) 0, time_left);
 	return;
     }
     single_server_wakeup(fd, (HTABLE *) 0);
@@ -332,9 +332,9 @@ static void single_server_accept_local(int unused_event, char *context)
 
 /* single_server_accept_pass - accept descriptor */
 
-static void single_server_accept_pass(int unused_event, char *context)
+static void single_server_accept_pass(int unused_event, void *context)
 {
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = -1;
     int     fd;
     HTABLE *attr = 0;
@@ -346,7 +346,7 @@ static void single_server_accept_pass(int unused_event, char *context)
      * master process has gone away unexpectedly.
      */
     if (var_idle_limit > 0)
-	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(single_server_timeout, (void *) 0);
 
     if (single_server_pre_accept)
 	single_server_pre_accept(single_server_name, single_server_argv);
@@ -359,7 +359,7 @@ static void single_server_accept_pass(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(single_server_timeout, (char *) 0, time_left);
+	    event_request_timer(single_server_timeout, (void *) 0, time_left);
 	return;
     }
     single_server_wakeup(fd, attr);
@@ -369,9 +369,9 @@ static void single_server_accept_pass(int unused_event, char *context)
 
 /* single_server_accept_inet - accept client connection request */
 
-static void single_server_accept_inet(int unused_event, char *context)
+static void single_server_accept_inet(int unused_event, void *context)
 {
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = -1;
     int     fd;
 
@@ -382,7 +382,7 @@ static void single_server_accept_inet(int unused_event, char *context)
      * master process has gone away unexpectedly.
      */
     if (var_idle_limit > 0)
-	time_left = event_cancel_timer(single_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(single_server_timeout, (void *) 0);
 
     if (single_server_pre_accept)
 	single_server_pre_accept(single_server_name, single_server_argv);
@@ -395,7 +395,7 @@ static void single_server_accept_inet(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(single_server_timeout, (char *) 0, time_left);
+	    event_request_timer(single_server_timeout, (void *) 0, time_left);
 	return;
     }
     single_server_wakeup(fd, (HTABLE *) 0);
@@ -698,7 +698,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      */
     if (stream == 0 && !alone) {
 	lock_path = concatenate(DEF_PID_DIR, "/", transport,
-				".", service_name, (char *) 0);
+				".", service_name, (void *) 0);
 	why = vstring_alloc(1);
 	if ((single_server_lock = safe_open(lock_path, O_CREAT | O_RDWR, 0600,
 				      (struct stat *) 0, -1, -1, why)) == 0)
@@ -758,16 +758,16 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * when the master process terminated abnormally.
      */
     if (var_idle_limit > 0)
-	event_request_timer(single_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(single_server_timeout, (void *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
-	event_enable_read(fd, single_server_accept, CAST_INT_TO_CHAR_PTR(fd));
+	event_enable_read(fd, single_server_accept, CAST_INT_TO_VOID_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);
     }
-    event_enable_read(MASTER_STATUS_FD, single_server_abort, (char *) 0);
+    event_enable_read(MASTER_STATUS_FD, single_server_abort, (void *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
-    watchdog = watchdog_create(var_daemon_timeout, (WATCHDOG_FN) 0, (char *) 0);
+    watchdog = watchdog_create(var_daemon_timeout, (WATCHDOG_FN) 0, (void *) 0);
 
     /*
      * The event loop, at last.

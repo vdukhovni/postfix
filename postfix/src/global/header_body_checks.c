@@ -185,7 +185,7 @@
   * Something that is guaranteed to be different from a real string result
   * from header/body_checks.
   */
-char hbc_checks_error;
+char    hbc_checks_error;
 const char hbc_checks_unknown;
 
  /*
@@ -414,7 +414,7 @@ void    _hbc_checks_free(HBC_CHECKS *hbc, ssize_t len)
     for (mp = hbc->map_info; mp < hbc->map_info + len; mp++)
 	if (mp->maps)
 	    maps_free(mp->maps);
-    myfree((char *) hbc);
+    myfree((void *) hbc);
 }
 
  /*

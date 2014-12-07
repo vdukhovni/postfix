@@ -102,6 +102,6 @@ int     main(int argc, char **argv)
 	vstring_free(buf);
 	vstream_fflush(VSTREAM_OUT);
     }
-    myfree((char *) types);
+    myfree((void *) types);
     exit(0);
 }

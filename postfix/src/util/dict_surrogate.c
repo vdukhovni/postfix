@@ -123,7 +123,7 @@ static void dict_surrogate_close(DICT *dict)
 {
     DICT_SURROGATE *dp = (DICT_SURROGATE *) dict;
 
-    myfree((char *) dp->reason);
+    myfree((void *) dp->reason);
     dict_free(dict);
 }
 

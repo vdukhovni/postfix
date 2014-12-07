@@ -290,7 +290,7 @@ void    db_common_free_ctx(void *ctxPtr)
 
     if (ctx->domain)
 	string_list_free(ctx->domain);
-    myfree((char *) ctxPtr);
+    myfree((void *) ctxPtr);
 }
 
 /* db_common_expand - expand query and result templates */

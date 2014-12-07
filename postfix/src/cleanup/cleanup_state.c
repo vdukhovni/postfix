@@ -187,5 +187,5 @@ void    cleanup_state_free(CLEANUP_STATE *state)
     if (state->milter_err_text)
 	vstring_free(state->milter_err_text);
     cleanup_region_done(state);
-    myfree((char *) state);
+    myfree((void *) state);
 }

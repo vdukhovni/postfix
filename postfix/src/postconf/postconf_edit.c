@@ -195,7 +195,7 @@ void    pcf_edit_main(int mode, int argc, char **argv)
 	cvalue = (struct cvalue *) mymalloc(sizeof(*cvalue));
 	cvalue->value = edit_value;
 	cvalue->found = 0;
-	htable_enter(table, pattern, (char *) cvalue);
+	htable_enter(table, pattern, (void *) cvalue);
     }
 
     /*
@@ -258,7 +258,7 @@ void    pcf_edit_main(int mode, int argc, char **argv)
 	    if (cvalue->found == 0)
 		vstream_fprintf(dst, "%s = %s\n", ht[0]->key, cvalue->value);
 	}
-	myfree((char *) ht_info);
+	myfree((void *) ht_info);
     }
 
     /*
@@ -574,5 +574,5 @@ void    pcf_edit_master(int mode, int argc, char **argv)
 	argv_free(req->service_pattern);
 	myfree(req->parsed_text);
     }
-    myfree((char *) edit_reqs);
+    myfree((void *) edit_reqs);
 }

@@ -238,7 +238,7 @@ void    qmgr_entry_done(QMGR_ENTRY *entry, int which)
     qmgr_recipient_count -= entry->rcpt_list.len;
     recipient_list_free(&entry->rcpt_list);
 
-    myfree((char *) entry);
+    myfree((void *) entry);
 
     /*
      * Maintain back-to-back delivery status.

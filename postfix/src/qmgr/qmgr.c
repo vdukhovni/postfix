@@ -460,7 +460,7 @@ static QMGR_SCAN *qmgr_scans[2];
 
 /* qmgr_deferred_run_event - queue manager heartbeat */
 
-static void qmgr_deferred_run_event(int unused_event, char *dummy)
+static void qmgr_deferred_run_event(int unused_event, void *dummy)
 {
 
     /*
@@ -677,7 +677,7 @@ static void qmgr_post_init(char *name, char **unused_argv)
     qmgr_scans[QMGR_SCAN_IDX_INCOMING] = qmgr_scan_create(MAIL_QUEUE_INCOMING);
     qmgr_scans[QMGR_SCAN_IDX_DEFERRED] = qmgr_scan_create(MAIL_QUEUE_DEFERRED);
     qmgr_scan_request(qmgr_scans[QMGR_SCAN_IDX_INCOMING], QMGR_SCAN_START);
-    qmgr_deferred_run_event(0, (char *) 0);
+    qmgr_deferred_run_event(0, (void *) 0);
 }
 
 MAIL_VERSION_STAMP_DECLARE;

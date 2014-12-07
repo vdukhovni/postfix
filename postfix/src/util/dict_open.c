@@ -391,7 +391,7 @@ static void dict_open_init(void)
     dict_open_hash = htable_create(10);
 
     for (dp = dict_open_info; dp->type; dp++)
-	htable_enter(dict_open_hash, dp->type, (char *) dp);
+	htable_enter(dict_open_hash, dp->type, (void *) dp);
 }
 
 /* dict_open - open dictionary */
@@ -474,7 +474,7 @@ void    dict_open_register(const char *type, DICT_OPEN_FN open)
 	msg_panic("%s: dictionary type exists: %s", myname, type);
     dp = (DICT_OPEN_INFO *) mymalloc(sizeof(*dp));
     dp->open = open;
-    ht = htable_enter(dict_open_hash, type, (char *) dp);
+    ht = htable_enter(dict_open_hash, type, (void *) dp);
     dp->type = ht->key;
 }
 
@@ -516,7 +516,7 @@ ARGV   *dict_mapnames()
 	(void) dict_mapnames_extend_hook(mapnames);
     qsort((void *) mapnames->argv, mapnames->argc, sizeof(mapnames->argv[0]),
 	  dict_sort_alpha_cpp);
-    myfree((char *) ht_info);
+    myfree((void *) ht_info);
     argv_terminate(mapnames);
     return mapnames;
 }

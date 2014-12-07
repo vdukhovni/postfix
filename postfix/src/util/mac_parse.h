@@ -28,9 +28,9 @@
 #define MAC_PARSE_UNDEF		(1<<1)
 #define MAC_PARSE_USER		2	/* start user definitions */
 
-typedef int (*MAC_PARSE_FN)(int, VSTRING *, char *);
+typedef int (*MAC_PARSE_FN) (int, VSTRING *, void *);
 
-extern int mac_parse(const char *, MAC_PARSE_FN, char *);
+extern int mac_parse(const char *, MAC_PARSE_FN, void *);
 
 /* LICENSE
 /* .ad

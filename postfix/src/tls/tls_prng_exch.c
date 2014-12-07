@@ -136,7 +136,7 @@ void    tls_prng_exch_close(TLS_PRNG_SRC *eh)
     if (msg_verbose)
 	msg_info("%s: closed PRNG exchange file %s", myname, eh->name);
     myfree(eh->name);
-    myfree((char *) eh);
+    myfree((void *) eh);
 }
 
 #endif

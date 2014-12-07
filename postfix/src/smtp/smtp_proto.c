@@ -1101,7 +1101,7 @@ static void smtp_header_rewrite(void *context, int header_class,
 	    vstring_strcat(buf, ": ");
 	    tok822_externalize(buf, tree, TOK822_STR_HEAD);
 	}
-	myfree((char *) addr_list);
+	myfree((void *) addr_list);
 	tok822_free_tree(tree);
     }
 
@@ -1246,7 +1246,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	    DONT_CACHE_THIS_SESSION; \
 	vstring_free(next_command); \
 	if (survivors) \
-	    myfree((char *) survivors); \
+	    myfree((void *) survivors); \
 	if (session->mime_state) \
 	    session->mime_state = mime_state_free(session->mime_state); \
 	return (x); \

@@ -64,12 +64,12 @@
 /*
 /*	ssize_t	vstream_fread(stream, buf, len)
 /*	VSTREAM	*stream;
-/*	char	*buf;
+/*	void	*buf;
 /*	ssize_t	len;
 /*
 /*	ssize_t	vstream_fwrite(stream, buf, len)
 /*	VSTREAM	*stream;
-/*	const char *buf;
+/*	const void *buf;
 /*	ssize_t	len;
 /*
 /*	void	vstream_control(stream, name, ...)
@@ -285,7 +285,7 @@
 /*	This function should return the positive number of bytes transferred,
 /*	and -1 upon error with errno set appropriately. Instead of -1 it may
 /*	also return 0, e.g., upon remote party-initiated protocol shutdown.
-/* .IP "VSTREAM_CTL_CONTEXT (char *)"
+/* .IP "VSTREAM_CTL_CONTEXT (void *)"
 /*	The argument specifies application context that is passed on to
 /*	the application-specified read/write routines. No copy is made.
 /* .IP "VSTREAM_CTL_PATH (char *)"
@@ -631,7 +631,7 @@ static void vstream_buf_alloc(VBUF *bp, ssize_t len)
      * If a buffer already exists, allow for the presence of (output) data.
      */
     bp->data = (unsigned char *)
-	(bp->data ? myrealloc((char *) bp->data, len) : mymalloc(len));
+	(bp->data ? myrealloc((void *) bp->data, len) : mymalloc(len));
     bp->len = len;
     if (bp->flags & VSTREAM_FLAG_READ) {
 	bp->ptr = bp->data + used;
@@ -649,7 +649,7 @@ static void vstream_buf_alloc(VBUF *bp, ssize_t len)
 static void vstream_buf_wipe(VBUF *bp)
 {
     if ((bp->flags & VBUF_FLAG_FIXED) == 0 && bp->data)
-	myfree((char *) bp->data);
+	myfree((void *) bp->data);
     VSTREAM_BUF_ZERO(bp);
     VSTREAM_BUF_ACTIONS(bp, 0, 0, 0);
 }
@@ -662,7 +662,7 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
     VBUF   *bp = &stream->buf;
     ssize_t used;
     ssize_t left_over;
-    char   *data;
+    void   *data;
     ssize_t len;
     ssize_t n;
     int     timeout;
@@ -714,7 +714,7 @@ static int vstream_fflush_some(VSTREAM *stream, ssize_t to_flush)
      * mind that a receiver may not be able to keep up when a sender suddenly
      * floods it with a lot of data as it tries to catch up with a deadline.
      */
-    for (data = (char *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
+    for (data = (void *) bp->data, len = to_flush; len > 0; len -= n, data += n) {
 	if (bp->flags & VSTREAM_FLAG_DEADLINE) {
 	    timeout = stream->time_limit.tv_sec + (stream->time_limit.tv_usec > 0);
 	    if (timeout <= 0) {
@@ -1295,9 +1295,9 @@ int     vstream_fclose(VSTREAM *stream)
     if (stream->path)
 	myfree(stream->path);
     if (stream->jbuf)
-	myfree((char *) stream->jbuf);
+	myfree((void *) stream->jbuf);
     if (!VSTREAM_STATIC(stream))
-	myfree((char *) stream);
+	myfree((void *) stream);
     return (err ? VSTREAM_EOF : 0);
 }
 
@@ -1386,7 +1386,7 @@ void    vstream_control(VSTREAM *stream, int name,...)
 	    stream->write_fn = va_arg(ap, VSTREAM_FN);
 	    break;
 	case VSTREAM_CTL_CONTEXT:
-	    stream->context = va_arg(ap, char *);
+	    stream->context = va_arg(ap, void *);
 	    break;
 	case VSTREAM_CTL_PATH:
 	    if (stream->path)

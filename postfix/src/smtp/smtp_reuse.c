@@ -198,7 +198,7 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     /*
      * Update the list of used cached addresses.
      */
-    htable_enter(state->cache_used, STR(iter->addr), (char *) 0);
+    htable_enter(state->cache_used, STR(iter->addr), (void *) 0);
 
     return (session);
 }

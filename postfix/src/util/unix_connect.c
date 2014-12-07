@@ -68,7 +68,7 @@ int     unix_connect(const char *addr, int block_mode, int timeout)
      */
     if (len >= (int) sizeof(sun.sun_path))
 	msg_fatal("unix-domain name too long: %s", addr);
-    memset((char *) &sun, 0, sizeof(sun));
+    memset((void *) &sun, 0, sizeof(sun));
     sun.sun_family = AF_UNIX;
 #ifdef HAS_SUN_LEN
     sun.sun_len = len + 1;
@@ -86,7 +86,7 @@ int     unix_connect(const char *addr, int block_mode, int timeout)
      */
     if (timeout > 0) {
 	non_blocking(sock, NON_BLOCKING);
-	if (timed_connect(sock, (struct sockaddr *) & sun, sizeof(sun), timeout) < 0) {
+	if (timed_connect(sock, (struct sockaddr *) &sun, sizeof(sun), timeout) < 0) {
 	    close(sock);
 	    return (-1);
 	}
@@ -100,7 +100,7 @@ int     unix_connect(const char *addr, int block_mode, int timeout)
      */
     else {
 	non_blocking(sock, block_mode);
-	if (sane_connect(sock, (struct sockaddr *) & sun, sizeof(sun)) < 0
+	if (sane_connect(sock, (struct sockaddr *) &sun, sizeof(sun)) < 0
 	    && errno != EINPROGRESS) {
 	    close(sock);
 	    return (-1);

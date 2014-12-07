@@ -155,7 +155,7 @@ void    mail_stream_cleanup(MAIL_STREAM *info)
     FREE_AND_WIPE(myfree, info->id);
     FREE_AND_WIPE(myfree, info->class);
     FREE_AND_WIPE(myfree, info->service);
-    myfree((char *) info);
+    myfree((void *) info);
 }
 
 #if defined(HAS_FUTIMES_AT)

@@ -177,7 +177,7 @@ static void cleanup_rewrite_sender(CLEANUP_STATE *state,
 	vstring_strcat(header_buf, ": ");
 	tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
     }
-    myfree((char *) addr_list);
+    myfree((void *) addr_list);
     tok822_free_tree(tree);
     if ((hdr_opts->flags & HDR_OPT_DROP) == 0) {
 	if (did_rewrite)
@@ -234,7 +234,7 @@ static void cleanup_rewrite_recip(CLEANUP_STATE *state,
 	vstring_strcat(header_buf, ": ");
 	tok822_externalize(header_buf, tree, TOK822_STR_HEAD);
     }
-    myfree((char *) addr_list);
+    myfree((void *) addr_list);
     tok822_free_tree(tree);
     if ((hdr_opts->flags & HDR_OPT_DROP) == 0) {
 	if (did_rewrite)
@@ -513,7 +513,7 @@ static void cleanup_header_callback(void *context, int header_class,
 	    } else if (result != header) {
 		vstring_strcpy(header_buf, result);
 		hdr_opts = header_opts_find(result);
-		myfree((char *) result);
+		myfree((void *) result);
 	    }
 	} else if (checks->error) {
 	    msg_warn("%s: %s map lookup problem -- "
@@ -823,7 +823,7 @@ static void cleanup_body_callback(void *context, int type,
 		return;
 	    } else if (result != buf) {
 		cleanup_out(state, type, result, strlen(result));
-		myfree((char *) result);
+		myfree((void *) result);
 		return;
 	    }
 	} else if (cleanup_body_checks->error) {

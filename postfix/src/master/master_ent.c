@@ -109,7 +109,7 @@ static int master_line_last;		/* config file line number */
 static int master_line;			/* config file line number */
 static ARGV *master_disable;		/* disabled service patterns */
 
-static char master_blanks[] = CHARS_SPACE;/* field delimiters */
+static char master_blanks[] = CHARS_SPACE;	/* field delimiters */
 
 /* fset_master_ent - specify configuration file pathname */
 
@@ -619,7 +619,7 @@ void    free_master_ent(MASTER_SERV *serv)
      */
     if (serv->flags & MASTER_FLAG_INETHOST) {
 	inet_addr_list_free(MASTER_INET_ADDRLIST(serv));
-	myfree((char *) MASTER_INET_ADDRLIST(serv));
+	myfree((void *) MASTER_INET_ADDRLIST(serv));
     }
     if (serv->type == MASTER_SERV_TYPE_INET)
 	myfree(MASTER_INET_PORT(serv));
@@ -627,6 +627,6 @@ void    free_master_ent(MASTER_SERV *serv)
     myfree(serv->name);
     myfree(serv->path);
     argv_free(serv->args);
-    myfree((char *) serv->listen_fd);
-    myfree((char *) serv);
+    myfree((void *) serv->listen_fd);
+    myfree((void *) serv);
 }

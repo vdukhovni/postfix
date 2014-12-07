@@ -99,7 +99,7 @@ static void dict_cidr_close(DICT *dict)
     for (entry = dict_cidr->head; entry; entry = next) {
 	next = (DICT_CIDR_ENTRY *) entry->cidr_info.next;
 	myfree(entry->value);
-	myfree((char *) entry);
+	myfree((void *) entry);
     }
     dict_free(dict);
 }

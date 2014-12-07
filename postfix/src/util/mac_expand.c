@@ -11,8 +11,8 @@
 /*	const char *pattern;
 /*	int	flags;
 /*	const char *filter;
-/*	const char *lookup(const char *key, int mode, char *context)
-/*	char	*context;
+/*	const char *lookup(const char *key, int mode, void *context)
+/*	void *context;
 /* DESCRIPTION
 /*	This module implements parameter-less named attribute
 /*	expansions, both conditional and unconditional. As of Postfix
@@ -144,7 +144,7 @@ typedef struct {
     int     flags;			/* features */
     const char *filter;			/* character filter */
     MAC_EXP_LOOKUP_FN lookup;		/* lookup routine */
-    char   *context;			/* caller context */
+    void   *context;			/* caller context */
     int     status;			/* findings */
     int     level;			/* nesting level */
 } MAC_EXP_CONTEXT;
@@ -395,7 +395,7 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
 
 /* mac_expand_callback - callback for mac_parse */
 
-static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
+static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 {
     static const char myname[] = "mac_expand_callback";
     MAC_EXP_CONTEXT *mc = (MAC_EXP_CONTEXT *) ptr;
@@ -499,7 +499,7 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    }
 	    if ((lookup != 0 && *lookup != 0) || (mc->flags & MAC_EXP_FLAG_SCAN))
 		mc->status |= mac_parse(res_iftrue, mac_expand_callback,
-					(char *) mc);
+					(void *) mc);
 	    if (*cp == 0)			/* end of input, OK */
 		break;
 	    if (*cp != ':')			/* garbage */
@@ -517,7 +517,7 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    }
 	    if (lookup == 0 || *lookup == 0 || (mc->flags & MAC_EXP_FLAG_SCAN))
 		mc->status |= mac_parse(res_iffalse, mac_expand_callback,
-					(char *) mc);
+					(void *) mc);
 	    if (*cp != 0)			/* garbage */
 		MAC_EXP_ERR_RETURN(mc, "unexpected input at: "
 				   "\"...%s}>>>%.20s\"", res_iffalse, cp);
@@ -530,7 +530,7 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 	    } else if (mc->flags & MAC_EXP_FLAG_RECURSE) {
 		vstring_strcpy(buf, lookup);
 		mc->status |= mac_parse(vstring_str(buf), mac_expand_callback,
-					(char *) mc);
+					(void *) mc);
 	    } else {
 		res_len = VSTRING_LEN(mc->result);
 		vstring_strcat(mc->result, lookup);
@@ -563,7 +563,7 @@ static int mac_expand_callback(int type, VSTRING *buf, char *ptr)
 
 int     mac_expand(VSTRING *result, const char *pattern, int flags,
 		           const char *filter,
-		           MAC_EXP_LOOKUP_FN lookup, char *context)
+		           MAC_EXP_LOOKUP_FN lookup, void *context)
 {
     MAC_EXP_CONTEXT mc;
     int     status;
@@ -580,7 +580,7 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags,
     mc.level = 0;
     if ((flags & (MAC_EXP_FLAG_APPEND | MAC_EXP_FLAG_SCAN)) == 0)
 	VSTRING_RESET(result);
-    status = mac_parse(pattern, mac_expand_callback, (char *) &mc);
+    status = mac_parse(pattern, mac_expand_callback, (void *) &mc);
     if ((flags & MAC_EXP_FLAG_SCAN) == 0)
 	VSTRING_TERMINATE(result);
 
@@ -598,7 +598,7 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags,
 #include <vstream.h>
 #include <vstring_vstream.h>
 
-static const char *lookup(const char *name, int unused_mode, char *context)
+static const char *lookup(const char *name, int unused_mode, void *context)
 {
     HTABLE *table = (HTABLE *) context;
 
@@ -644,7 +644,7 @@ int     main(int unused_argc, char **unused_argv)
 	    cp = vstring_str(buf);
 	    VSTRING_RESET(result);
 	    stat = mac_expand(result, vstring_str(buf), MAC_EXP_FLAG_NONE,
-			      (char *) 0, lookup, (char *) table);
+			      (char *) 0, lookup, (void *) table);
 	    vstream_printf("stat=%d result=%s\n", stat, vstring_str(result));
 	    vstream_fflush(VSTREAM_OUT);
 	}

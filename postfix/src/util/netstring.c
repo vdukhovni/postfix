@@ -398,7 +398,7 @@ static VSTREAM *child_stream;		/* child stream (full-duplex) */
 
 /* stdin_read_event - line-oriented event handler */
 
-static void stdin_read_event(int event, char *context)
+static void stdin_read_event(int event, void *context)
 {
     int     ch;
 
@@ -431,7 +431,7 @@ static void stdin_read_event(int event, char *context)
 
 /* child_read_event - netstring-oriented event handler */
 
-static void child_read_event(int event, char *context)
+static void child_read_event(int event, void *context)
 {
 
     /*
@@ -483,9 +483,9 @@ int     main(int argc, char **argv)
      * or EOF. If there is activity on stdin, send a netstring to the child
      * when we have read an entire line, or terminate in case of EOF.
      */
-    event_enable_read(vstream_fileno(VSTREAM_IN), stdin_read_event, (char *) 0);
+    event_enable_read(vstream_fileno(VSTREAM_IN), stdin_read_event, (void *) 0);
     event_enable_read(vstream_fileno(child_stream), child_read_event,
-		      (char *) 0);
+		      (void *) 0);
 
     if ((err = vstream_setjmp(child_stream)) == 0) {
 	for (;;)

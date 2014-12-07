@@ -147,7 +147,7 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
 		    fold_addr(cp, info->flags);
 		if (msg_verbose)
 		    msg_info("delivered_hdr_init: %s", cp);
-		htable_enter(info->table, cp, (char *) 0);
+		htable_enter(info->table, cp, (void *) 0);
 	    }
 	} else if (ISSPACE(STR(info->buf)[0])) {
 	    continue;
@@ -181,6 +181,6 @@ int     delivered_hdr_find(DELIVERED_HDR_INFO *info, const char *address)
 void    delivered_hdr_free(DELIVERED_HDR_INFO *info)
 {
     vstring_free(info->buf);
-    htable_free(info->table, (void (*) (char *)) 0);
-    myfree((char *) info);
+    htable_free(info->table, (void (*) (void *)) 0);
+    myfree((void *) info);
 }

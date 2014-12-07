@@ -688,7 +688,7 @@ static void post_jail_init(char *service_name, char **unused_argv)
 	} while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
 	if (strchr(type_name, ':') != 0
 	    && htable_locate(proxy_auth_maps, type_name) == 0)
-	    (void) htable_enter(proxy_auth_maps, type_name, (char *) 0);
+	    (void) htable_enter(proxy_auth_maps, type_name, (void *) 0);
     }
     myfree(saved_filter);
 

@@ -133,8 +133,8 @@ typedef struct PSC_DNSBL_SITE {
 static HTABLE *dnsbl_score_cache;	/* indexed by client address */
 
 typedef struct {
-    void    (*callback) (int, char *);	/* generic call-back routine */
-    char   *context;			/* generic call-back argument */
+    void    (*callback) (int, void *);	/* generic call-back routine */
+    void   *context;			/* generic call-back argument */
 } PSC_CALL_BACK_ENTRY;
 
 typedef struct {
@@ -171,7 +171,7 @@ typedef struct {
 #define PSC_CALL_BACK_EXTEND(hp, sp) do { \
 	if ((sp)->index >= (sp)->limit) { \
 	    int _count_ = ((sp)->limit ? (sp)->limit * 2 : 5); \
-	    (hp)->value = myrealloc((char *) (sp), sizeof(*(sp)) + \
+	    (hp)->value = myrealloc((void *) (sp), sizeof(*(sp)) + \
 				    _count_ * sizeof((sp)->table)); \
 	    (sp) = (PSC_DNSBL_SCORE *) (hp)->value; \
 	    (sp)->limit = _count_; \
@@ -256,7 +256,7 @@ static void psc_dnsbl_add_site(const char *site)
     if ((head = (PSC_DNSBL_HEAD *)
 	 htable_find(dnsbl_site_cache, saved_site)) == 0) {
 	head = (PSC_DNSBL_HEAD *) mymalloc(sizeof(*head));
-	ht = htable_enter(dnsbl_site_cache, saved_site, (char *) head);
+	ht = htable_enter(dnsbl_site_cache, saved_site, (void *) head);
 	/* Translate the DNSBL name into a safe name if available. */
 	if (psc_dnsbl_reply == 0
 	 || (head->safe_dnsbl = dict_get(psc_dnsbl_reply, saved_site)) == 0)
@@ -340,7 +340,7 @@ int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
 
 /* psc_dnsbl_receive - receive DNSBL reply, update blocklist score */
 
-static void psc_dnsbl_receive(int event, char *context)
+static void psc_dnsbl_receive(int event, void *context)
 {
     const char *myname = "psc_dnsbl_receive";
     VSTREAM *stream = (VSTREAM *) context;
@@ -433,8 +433,8 @@ static void psc_dnsbl_receive(int event, char *context)
 /* psc_dnsbl_request  - send dnsbl query, increment reference count */
 
 int     psc_dnsbl_request(const char *client_addr,
-			          void (*callback) (int, char *),
-			          char *context)
+			          void (*callback) (int, void *),
+			          void *context)
 {
     const char *myname = "psc_dnsbl_request";
     int     fd;
@@ -490,7 +490,7 @@ int     psc_dnsbl_request(const char *client_addr,
     score->pending_lookups = 0;
     PSC_CALL_BACK_INIT(score);
     PSC_CALL_BACK_ENTER(score, callback, context);
-    (void) htable_enter(dnsbl_score_cache, client_addr, (char *) score);
+    (void) htable_enter(dnsbl_score_cache, client_addr, (void *) score);
 
     /*
      * Send a query to all DNSBL servers. Later, DNSBL lookup will be done
@@ -520,7 +520,7 @@ int     psc_dnsbl_request(const char *client_addr,
 	    continue;
 	}
 	PSC_READ_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive,
-			       (char *) stream, var_psc_dnsbl_tmout);
+			       (void *) stream, var_psc_dnsbl_tmout);
 	score->pending_lookups += 1;
     }
     return (PSC_CALL_BACK_INDEX_OF_LAST(score));

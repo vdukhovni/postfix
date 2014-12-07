@@ -421,7 +421,7 @@ SMTP_RESP *smtp_chat_resp(SMTP_SESSION *session)
 
 /* print_line - line_wrap callback */
 
-static void print_line(const char *str, int len, int indent, char *context)
+static void print_line(const char *str, int len, int indent, void *context)
 {
     VSTREAM *notice = (VSTREAM *) context;
 
@@ -479,7 +479,7 @@ void    smtp_chat_notify(SMTP_SESSION *session)
     argv_terminate(session->history);
     for (cpp = session->history->argv; *cpp; cpp++)
 	line_wrap(printable(*cpp, '?'), LENGTH, INDENT, print_line,
-		  (char *) notice);
+		  (void *) notice);
     post_mail_fputs(notice, "");
     post_mail_fprintf(notice, "For other details, see the local mail logfile");
     (void) post_mail_fclose(notice);

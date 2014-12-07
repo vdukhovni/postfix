@@ -664,7 +664,7 @@ void    milter_free(MILTERS *milters)
 	next = m->next, m->free(m);
     if (milters->macros)
 	milter_macros_free(milters->macros);
-    myfree((char *) milters);
+    myfree((void *) milters);
 }
 
 /* milter_dummy - send empty milter list */

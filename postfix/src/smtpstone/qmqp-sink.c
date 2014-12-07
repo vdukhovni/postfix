@@ -111,7 +111,7 @@ static void send_reply(SINK_STATE *state)
 
 /* read_data - read over-all netstring data */
 
-static void read_data(int unused_event, char *context)
+static void read_data(int unused_event, void *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
     int     fd = vstream_fileno(state->stream);
@@ -147,7 +147,7 @@ static void read_data(int unused_event, char *context)
 
 /* read_length - read over-all netstring length */
 
-static void read_length(int event, char *context)
+static void read_length(int event, void *context)
 {
     SINK_STATE *state = (SINK_STATE *) context;
 
@@ -192,14 +192,14 @@ static void disconnect(SINK_STATE *state)
 {
     event_disable_readwrite(vstream_fileno(state->stream));
     vstream_fclose(state->stream);
-    myfree((char *) state);
+    myfree((void *) state);
 }
 
 /* connect_event - handle connection events */
 
-static void connect_event(int unused_event, char *context)
+static void connect_event(int unused_event, void *context)
 {
-    int     sock = CAST_CHAR_PTR_TO_INT(context);
+    int     sock = CAST_ANY_PTR_TO_INT(context);
     struct sockaddr_storage ss;
     SOCKADDR_SIZE len = sizeof(ss);
     struct sockaddr *sa = (struct sockaddr *) &ss;
@@ -224,13 +224,13 @@ static void connect_event(int unused_event, char *context)
 	state->stream = vstream_fdopen(fd, O_RDWR);
 	vstream_tweak_sock(state->stream);
 	netstring_setup(state->stream, var_tmout);
-	event_enable_read(fd, read_length, (char *) state);
+	event_enable_read(fd, read_length, (void *) state);
     }
 }
 
 /* terminate - voluntary exit */
 
-static void terminate(int unused_event, char *unused_context)
+static void terminate(int unused_event, void *unused_context)
 {
     exit(0);
 }
@@ -288,7 +288,7 @@ int     main(int argc, char **argv)
 	case 'x':
 	    if ((ttl = atoi(optarg)) <= 0)
 		usage(argv[0]);
-	    event_request_timer(terminate, (char *) 0, ttl);
+	    event_request_timer(terminate, (void *) 0, ttl);
 	    break;
 	default:
 	    usage(argv[0]);
@@ -315,7 +315,7 @@ int     main(int argc, char **argv)
     /*
      * Start the event handler.
      */
-    event_enable_read(sock, connect_event, CAST_INT_TO_CHAR_PTR(sock));
+    event_enable_read(sock, connect_event, CAST_INT_TO_VOID_PTR(sock));
     for (;;)
 	event_loop(-1);
 }

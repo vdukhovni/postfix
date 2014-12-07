@@ -1150,6 +1150,7 @@ dict_open.o: dict_dbm.h
 dict_open.o: dict_env.h
 dict_open.o: dict_fail.h
 dict_open.o: dict_ht.h
+dict_open.o: dict_inline.h
 dict_open.o: dict_lmdb.h
 dict_open.o: dict_ni.h
 dict_open.o: dict_nis.h

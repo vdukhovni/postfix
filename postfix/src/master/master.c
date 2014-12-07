@@ -222,7 +222,7 @@ int     master_detach = 1;
 
 /* master_exit_event - exit for memory leak testing purposes */
 
-static void master_exit_event(int unused_event, char *unused_context)
+static void master_exit_event(int unused_event, void *unused_context)
 {
     msg_info("master exit time has arrived");
     exit(0);
@@ -334,7 +334,7 @@ int     main(int argc, char **argv)
 	    master_detach = 0;
 	    break;
 	case 'e':
-	    event_request_timer(master_exit_event, (char *) 0, atoi(optarg));
+	    event_request_timer(master_exit_event, (void *) 0, atoi(optarg));
 	    break;
 	case 'D':
 	    debug_me = 1;
@@ -520,7 +520,7 @@ int     main(int argc, char **argv)
      */
 #define MASTER_WATCHDOG_TIME	1000
 
-    watchdog = watchdog_create(MASTER_WATCHDOG_TIME, (WATCHDOG_FN) 0, (char *) 0);
+    watchdog = watchdog_create(MASTER_WATCHDOG_TIME, (WATCHDOG_FN) 0, (void *) 0);
     for (;;) {
 #ifdef HAS_VOLATILE_LOCKS
 	if (myflock(vstream_fileno(lock_fp), INTERNAL_LOCK,

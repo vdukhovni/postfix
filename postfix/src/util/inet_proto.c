@@ -169,10 +169,10 @@ static unsigned *make_unsigned_vector(int len,...)
 
 static void inet_proto_free(INET_PROTO_INFO *pf)
 {
-    myfree((char *) pf->ai_family_list);
-    myfree((char *) pf->dns_atype_list);
-    myfree((char *) pf->sa_family_list);
-    myfree((char *) pf);
+    myfree((void *) pf->ai_family_list);
+    myfree((void *) pf->dns_atype_list);
+    myfree((void *) pf->sa_family_list);
+    myfree((void *) pf);
 }
 
 /* inet_proto_init - convert protocol names to library inputs */

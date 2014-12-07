@@ -77,7 +77,7 @@ int     master_notify(int pid, unsigned generation, int status)
     stat.gen = generation;
     stat.avail = status;
 
-    if (write(MASTER_STATUS_FD, (char *) &stat, sizeof(stat)) != sizeof(stat)) {
+    if (write(MASTER_STATUS_FD, (void *) &stat, sizeof(stat)) != sizeof(stat)) {
 	if (msg_verbose)
 	    msg_info("%s: status %d: %m", myname, status);
 	return (-1);

@@ -924,7 +924,7 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
 
 static void qmgr_message_sort(QMGR_MESSAGE *message)
 {
-    qsort((char *) message->rcpt_list.info, message->rcpt_list.len,
+    qsort((void *) message->rcpt_list.info, message->rcpt_list.len,
 	  sizeof(message->rcpt_list.info[0]), qmgr_message_sort_compare);
     if (msg_verbose) {
 	RECIPIENT_LIST list = message->rcpt_list;
@@ -1314,7 +1314,7 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->rewrite_context);
     recipient_list_free(&message->rcpt_list);
     qmgr_message_count--;
-    myfree((char *) message);
+    myfree((void *) message);
 }
 
 /* qmgr_message_alloc - create in-core message structure */

@@ -184,13 +184,13 @@ void    pcf_show_parameters(VSTREAM *fp, int mode, int param_class, char **names
      */
     if (*names == 0) {
 	list = PCF_PARAM_TABLE_LIST(pcf_param_table);
-	qsort((char *) list, pcf_param_table->used, sizeof(*list),
+	qsort((void *) list, pcf_param_table->used, sizeof(*list),
 	      pcf_comp_names);
 	for (ht = list; *ht; ht++)
 	    if (param_class & PCF_PARAM_INFO_NODE(*ht)->flags)
 		pcf_print_parameter(fp, mode, PCF_PARAM_INFO_NAME(*ht),
 				    PCF_PARAM_INFO_NODE(*ht));
-	myfree((char *) list);
+	myfree((void *) list);
 	return;
     }
 

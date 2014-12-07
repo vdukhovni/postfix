@@ -632,7 +632,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 			   DICT_CACHE_CTL_FLAGS, cache_flags,
 			   DICT_CACHE_CTL_INTERVAL, var_verify_scan_cache,
 			   DICT_CACHE_CTL_VALIDATOR, verify_cache_validator,
-			DICT_CACHE_CTL_CONTEXT, (char *) vstring_alloc(100),
+			DICT_CACHE_CTL_CONTEXT, (void *) vstring_alloc(100),
 			   DICT_CACHE_CTL_END);
     }
 }

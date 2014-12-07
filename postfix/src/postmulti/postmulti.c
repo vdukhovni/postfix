@@ -720,7 +720,7 @@ static void free_instance(INSTANCE *ip)
 	myfree(ip->queue_dir);
     if (ip->data_dir)
 	myfree(ip->data_dir);
-    myfree((char *) ip);
+    myfree((void *) ip);
 }
 
 #endif

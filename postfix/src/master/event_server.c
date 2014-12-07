@@ -253,7 +253,7 @@ static int socket_count = 1;
 static void (*event_server_service) (VSTREAM *, char *, char **);
 static char *event_server_name;
 static char **event_server_argv;
-static void (*event_server_accept) (int, char *);
+static void (*event_server_accept) (int, void *);
 static void (*event_server_onexit) (char *, char **);
 static void (*event_server_pre_accept) (char *, char **);
 static VSTREAM *event_server_lock;
@@ -275,7 +275,7 @@ static NORETURN event_server_exit(void)
 
 /* event_server_abort - terminate after abnormal master exit */
 
-static void event_server_abort(int unused_event, char *unused_context)
+static void event_server_abort(int unused_event, void *unused_context)
 {
     if (msg_verbose)
 	msg_info("master disconnect -- exiting");
@@ -288,7 +288,7 @@ static void event_server_abort(int unused_event, char *unused_context)
 
 /* event_server_timeout - idle time exceeded */
 
-static void event_server_timeout(int unused_event, char *unused_context)
+static void event_server_timeout(int unused_event, void *unused_context)
 {
     if (msg_verbose)
 	msg_info("idle timeout -- exiting");
@@ -339,12 +339,12 @@ void    event_server_disconnect(VSTREAM *stream)
     if (use_count < INT_MAX)
 	use_count++;
     if (client_count == 0 && var_idle_limit > 0)
-	event_request_timer(event_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(event_server_timeout, (void *) 0, var_idle_limit);
 }
 
 /* event_server_execute - in case (char *) != (struct *) */
 
-static void event_server_execute(int unused_event, char *context)
+static void event_server_execute(int unused_event, void *context)
 {
     VSTREAM *stream = (VSTREAM *) context;
     HTABLE *attr = (vstream_flags(stream) == event_server_saved_flags ?
@@ -402,23 +402,23 @@ static void event_server_wakeup(int fd, HTABLE *attr)
     tmp = concatenate(event_server_name, " socket", (char *) 0);
     vstream_control(stream,
 		    VSTREAM_CTL_PATH, tmp,
-		    VSTREAM_CTL_CONTEXT, (char *) attr,
+		    VSTREAM_CTL_CONTEXT, (void *) attr,
 		    VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
     event_server_saved_flags = vstream_flags(stream);
     if (event_server_in_flow_delay && mail_flow_get(1) < 0)
-	event_request_timer(event_server_execute, (char *) stream,
+	event_request_timer(event_server_execute, (void *) stream,
 			    var_in_flow_delay);
     else
-	event_server_execute(0, (char *) stream);
+	event_server_execute(0, (void *) stream);
 }
 
 /* event_server_accept_local - accept client connection request */
 
-static void event_server_accept_local(int unused_event, char *context)
+static void event_server_accept_local(int unused_event, void *context)
 {
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = -1;
     int     fd;
 
@@ -430,7 +430,7 @@ static void event_server_accept_local(int unused_event, char *context)
      * minimize confusion.
      */
     if (client_count == 0 && var_idle_limit > 0)
-	time_left = event_cancel_timer(event_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(event_server_timeout, (void *) 0);
 
     if (event_server_pre_accept)
 	event_server_pre_accept(event_server_name, event_server_argv);
@@ -443,7 +443,7 @@ static void event_server_accept_local(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(event_server_timeout, (char *) 0, time_left);
+	    event_request_timer(event_server_timeout, (void *) 0, time_left);
 	return;
     }
     event_server_wakeup(fd, (HTABLE *) 0);
@@ -453,9 +453,9 @@ static void event_server_accept_local(int unused_event, char *context)
 
 /* event_server_accept_pass - accept descriptor */
 
-static void event_server_accept_pass(int unused_event, char *context)
+static void event_server_accept_pass(int unused_event, void *context)
 {
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = -1;
     int     fd;
     HTABLE *attr = 0;
@@ -468,7 +468,7 @@ static void event_server_accept_pass(int unused_event, char *context)
      * minimize confusion.
      */
     if (client_count == 0 && var_idle_limit > 0)
-	time_left = event_cancel_timer(event_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(event_server_timeout, (void *) 0);
 
     if (event_server_pre_accept)
 	event_server_pre_accept(event_server_name, event_server_argv);
@@ -481,7 +481,7 @@ static void event_server_accept_pass(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(event_server_timeout, (char *) 0, time_left);
+	    event_request_timer(event_server_timeout, (void *) 0, time_left);
 	return;
     }
     event_server_wakeup(fd, attr);
@@ -491,9 +491,9 @@ static void event_server_accept_pass(int unused_event, char *context)
 
 /* event_server_accept_inet - accept client connection request */
 
-static void event_server_accept_inet(int unused_event, char *context)
+static void event_server_accept_inet(int unused_event, void *context)
 {
-    int     listen_fd = CAST_CHAR_PTR_TO_INT(context);
+    int     listen_fd = CAST_ANY_PTR_TO_INT(context);
     int     time_left = -1;
     int     fd;
 
@@ -505,7 +505,7 @@ static void event_server_accept_inet(int unused_event, char *context)
      * minimize confusion.
      */
     if (client_count == 0 && var_idle_limit > 0)
-	time_left = event_cancel_timer(event_server_timeout, (char *) 0);
+	time_left = event_cancel_timer(event_server_timeout, (void *) 0);
 
     if (event_server_pre_accept)
 	event_server_pre_accept(event_server_name, event_server_argv);
@@ -518,7 +518,7 @@ static void event_server_accept_inet(int unused_event, char *context)
 	if (errno != EAGAIN)
 	    msg_error("accept connection: %m");
 	if (time_left >= 0)
-	    event_request_timer(event_server_timeout, (char *) 0, time_left);
+	    event_request_timer(event_server_timeout, (void *) 0, time_left);
 	return;
     }
     event_server_wakeup(fd, (HTABLE *) 0);
@@ -900,17 +900,17 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * when the master process terminated abnormally.
      */
     if (var_idle_limit > 0)
-	event_request_timer(event_server_timeout, (char *) 0, var_idle_limit);
+	event_request_timer(event_server_timeout, (void *) 0, var_idle_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
-	event_enable_read(fd, event_server_accept, CAST_INT_TO_CHAR_PTR(fd));
+	event_enable_read(fd, event_server_accept, CAST_INT_TO_VOID_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);
     }
-    event_enable_read(MASTER_STATUS_FD, event_server_abort, (char *) 0);
+    event_enable_read(MASTER_STATUS_FD, event_server_abort, (void *) 0);
     close_on_exec(MASTER_STATUS_FD, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_READ, CLOSE_ON_EXEC);
     close_on_exec(MASTER_FLOW_WRITE, CLOSE_ON_EXEC);
     watchdog = watchdog_create(event_server_watchdog,
-			       (WATCHDOG_FN) 0, (char *) 0);
+			       (WATCHDOG_FN) 0, (void *) 0);
 
     /*
      * The event loop, at last.

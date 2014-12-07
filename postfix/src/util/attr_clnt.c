@@ -116,13 +116,13 @@ struct ATTR_CLNT {
 #define ATTR_CLNT_DEF_REQ_LIMIT	(0)	/* default per-session request limit */
 #define ATTR_CLNT_DEF_TRY_LIMIT	(2)	/* default request (re)try limit */
 #define ATTR_CLNT_DEF_TRY_DELAY	(1)	/* default request (re)try delay */
- 
+
 /* attr_clnt_free - destroy attribute client */
 
 void    attr_clnt_free(ATTR_CLNT *client)
 {
     auto_clnt_free(client->auto_clnt);
-    myfree((char *) client);
+    myfree((void *) client);
 }
 
 /* attr_clnt_create - create attribute client */

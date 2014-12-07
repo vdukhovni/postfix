@@ -139,8 +139,8 @@ ARGV   *argv_free(ARGV *argvp)
 
     for (cpp = argvp->argv; cpp < argvp->argv + argvp->argc; cpp++)
 	myfree(*cpp);
-    myfree((char *) argvp->argv);
-    myfree((char *) argvp);
+    myfree((void *) argvp->argv);
+    myfree((void *) argvp);
     return (0);
 }
 
@@ -188,7 +188,7 @@ static void argv_extend(ARGV *argvp)
 
     new_len = argvp->len * 2;
     argvp->argv = (char **)
-	myrealloc((char *) argvp->argv, (new_len + 1) * sizeof(char *));
+	myrealloc((void *) argvp->argv, (new_len + 1) * sizeof(char *));
     argvp->len = new_len;
 }
 

@@ -69,7 +69,7 @@ typedef struct {
 
 /* psc_endpt_haproxy_event - read or time event */
 
-static void psc_endpt_haproxy_event(int event, char *context)
+static void psc_endpt_haproxy_event(int event, void *context)
 {
     const char *myname = "psc_endpt_haproxy_event";
     PSC_HAPROXY_STATE *state = (PSC_HAPROXY_STATE *) context;
@@ -164,7 +164,7 @@ static void psc_endpt_haproxy_event(int event, char *context)
 		      &smtp_server_addr, &smtp_server_port);
 	/* Note: the stream may be closed at this point. */
 	vstring_free(state->buffer);
-	myfree((char *) state);
+	myfree((void *) state);
     }
 }
 
@@ -190,5 +190,5 @@ void    psc_endpt_haproxy_lookup(VSTREAM *stream,
      * Read the haproxy line.
      */
     PSC_READ_EVENT_REQUEST(vstream_fileno(stream), psc_endpt_haproxy_event,
-			   (char *) state, var_psc_uproxy_tmout);
+			   (void *) state, var_psc_uproxy_tmout);
 }

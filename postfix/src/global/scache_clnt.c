@@ -396,7 +396,7 @@ static void scache_clnt_free(SCACHE *scache)
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
     vstring_free(sp->dummy);
 #endif
-    myfree((char *) sp);
+    myfree((void *) sp);
 }
 
 /* scache_clnt_create - initialize */

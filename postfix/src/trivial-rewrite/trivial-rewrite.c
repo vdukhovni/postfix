@@ -511,7 +511,7 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 #endif
 
-static void check_table_stats(int unused_event, char *unused_context)
+static void check_table_stats(int unused_event, void *unused_context)
 {
     const char *table;
 
@@ -519,7 +519,7 @@ static void check_table_stats(int unused_event, char *unused_context)
 	msg_info("table %s has changed -- restarting", table);
 	exit(0);
     }
-    event_request_timer(check_table_stats, (char *) 0, 10);
+    event_request_timer(check_table_stats, (void *) 0, 10);
 }
 
 /* pre_jail_init - initialize before entering chroot jail */
@@ -571,7 +571,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	transport_post_init(resolve_regular.transport_info);
     if (resolve_verify.transport_info)
 	transport_post_init(resolve_verify.transport_info);
-    check_table_stats(0, (char *) 0);
+    check_table_stats(0, (void *) 0);
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -620,7 +620,7 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
 	VAR_APP_DOT_MYDOMAIN, DEF_APP_DOT_MYDOMAIN, &var_append_dot_mydomain,
-        0,
+	0,
     };
 
     /*

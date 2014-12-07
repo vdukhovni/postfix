@@ -320,7 +320,7 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 
     if (create) {
 	EVP_EncryptInit_ex(ctx, ciph, NOENGINE, key->bits, iv);
-	memcpy((char *) name, (char *) key->name, TLS_TICKET_NAMELEN);
+	memcpy((void *) name, (void *) key->name, TLS_TICKET_NAMELEN);
 	if (TLScontext->log_mask & TLS_LOG_CACHE)
 	    msg_info("%s: Issuing session ticket, key expiration: %ld",
 		     TLScontext->namaddr, (long) key->tout);

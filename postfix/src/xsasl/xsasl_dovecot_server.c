@@ -209,7 +209,7 @@ static void xsasl_dovecot_server_mech_free(XSASL_DCSRV_MECH *mech_list)
     for (mp = mech_list; mp != 0; mp = next) {
 	myfree(mp->mech_name);
 	next = mp->next;
-	myfree((char *) mp);
+	myfree((void *) mp);
     }
 }
 
@@ -407,7 +407,7 @@ static void xsasl_dovecot_server_done(XSASL_SERVER_IMPL *impl)
 
     xsasl_dovecot_server_disconnect(xp);
     myfree(xp->socket_path);
-    myfree((char *) impl);
+    myfree((void *) impl);
 }
 
 /* xsasl_dovecot_server_create - create server instance */
@@ -504,7 +504,7 @@ static void xsasl_dovecot_server_free(XSASL_SERVER *xp)
     myfree(server->service);
     myfree(server->server_addr);
     myfree(server->client_addr);
-    myfree((char *) server);
+    myfree((void *) server);
 }
 
 /* xsasl_dovecot_server_auth_response - encode server first/next response */

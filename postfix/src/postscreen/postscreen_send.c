@@ -117,7 +117,7 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
     if (*var_psc_rej_footer && (*text == '4' || *text == '5'))
 	smtp_reply_footer(state->send_buf, start, var_psc_rej_footer,
 			  STR(psc_expand_filter), psc_expand_lookup,
-			  (char *) state);
+			  (void *) state);
 
     /*
      * Do a best effort sending text, but don't block when the output is
@@ -135,7 +135,7 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
 
 /* psc_send_socket_close_event - file descriptor has arrived or timeout */
 
-static void psc_send_socket_close_event(int event, char *context)
+static void psc_send_socket_close_event(int event, void *context)
 {
     const char *myname = "psc_send_socket_close_event";
     PSC_STATE *state = (PSC_STATE *) context;
@@ -238,7 +238,7 @@ void    psc_send_socket(PSC_STATE *state)
 #endif
 	PSC_ADD_SERVER_STATE(state, server_fd);
 	PSC_READ_EVENT_REQUEST(state->smtp_server_fd, psc_send_socket_close_event,
-			       (char *) state, PSC_SEND_SOCK_NOTIFY_TIMEOUT);
+			       (void *) state, PSC_SEND_SOCK_NOTIFY_TIMEOUT);
 	return;
     }
 }

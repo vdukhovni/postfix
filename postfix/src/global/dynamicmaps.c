@@ -204,7 +204,7 @@ static void dymap_list(ARGV *map_names)
 
     for (ht_list = ht = htable_list(dymap_info); *ht != 0; ht++)
 	argv_add(map_names, ht[0]->key, ARGV_END);
-    myfree((char *) ht_list);
+    myfree((void *) ht_list);
 }
 
 /* dymap_entry_alloc - allocate dynamicmaps.cf entry */
@@ -222,7 +222,7 @@ static DYMAP_INFO *dymap_entry_alloc(char **argv)
 
 /* dymap_entry_free - htable(3) call-back to destroy dynamicmaps.cf entry */
 
-static void dymap_entry_free(char *ptr)
+static void dymap_entry_free(void *ptr)
 {
     DYMAP_INFO *dp = (DYMAP_INFO *) ptr;
 
@@ -230,7 +230,7 @@ static void dymap_entry_free(char *ptr)
     myfree(dp->dict_name);
     if (dp->mkmap_name)
 	myfree(dp->mkmap_name);
-    myfree((char *) dp);
+    myfree((void *) dp);
 }
 
 /* dymap_read_conf - read dynamicmaps.cf-like file */
@@ -278,7 +278,7 @@ static void dymap_read_conf(const char *path, const char *path_base)
 			     path, argv->argv[0]);
 		else
 		    htable_enter(dymap_info, argv->argv[0],
-				 (char *) dymap_entry_alloc(argv->argv + 1));
+				 (void *) dymap_entry_alloc(argv->argv + 1));
 		argv_free(argv);
 	    }
 	    vstring_free(buf);

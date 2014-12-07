@@ -59,11 +59,11 @@
 #define GETTIMEOFDAY(t)	gettimeofday(t,(struct timezone *) 0)
 #define ROOT_PATH	"/bin:/usr/bin:/sbin:/usr/sbin"
 #if (defined(__NetBSD_Version__) && __NetBSD_Version__ > 299000900)
-# define USE_STATVFS
-# define STATVFS_IN_SYS_STATVFS_H
+#define USE_STATVFS
+#define STATVFS_IN_SYS_STATVFS_H
 #else
-# define USE_STATFS
-# define STATFS_IN_SYS_MOUNT_H
+#define USE_STATFS
+#define STATFS_IN_SYS_MOUNT_H
 #endif
 #define HAS_POSIX_REGEXP
 #define HAS_ST_GEN			/* struct stat contains inode
@@ -181,32 +181,32 @@
     || defined(__DragonFly__) \
     || defined(USAGI_LIBINET6)
 #ifndef NO_IPV6
-# define HAS_IPV6
-# define HAVE_GETIFADDRS
+#define HAS_IPV6
+#define HAVE_GETIFADDRS
 #endif
 
 #if (defined(__FreeBSD_version) && __FreeBSD_version >= 300000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 103000000) \
     || (defined(OpenBSD) && OpenBSD >= 199700)	/* OpenBSD 2.0?? */ \
     || defined(__DragonFly__)
-# define USE_SYSV_POLL
+#define USE_SYSV_POLL
 #endif
 
 #ifndef NO_KQUEUE
-# if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
+#if (defined(__FreeBSD_version) && __FreeBSD_version >= 410000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 200000000) \
     || (defined(OpenBSD) && OpenBSD >= 200105)	/* OpenBSD 2.9 */ \
     || defined(__DragonFly__)
-#  define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
-# endif
+#define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
+#endif
 #endif
 
 #ifndef NO_POSIX_GETPW_R
-# if (defined(__FreeBSD_version) && __FreeBSD_version >= 510000) \
+#if (defined(__FreeBSD_version) && __FreeBSD_version >= 510000) \
     || (defined(__NetBSD_Version__) && __NetBSD_Version__ >= 300000000) \
     || (defined(OpenBSD) && OpenBSD >= 200811)	/* OpenBSD 4.4 */
-#  define HAVE_POSIX_GETPW_R
-# endif
+#define HAVE_POSIX_GETPW_R
+#endif
 #endif
 
 #endif
@@ -239,11 +239,11 @@
 #define PRINTFLIKE(x,y)
 #define SCANFLIKE(x,y)
 #ifndef NO_NETINFO
-# define HAS_NETINFO
+#define HAS_NETINFO
 #endif
 #ifndef NO_IPV6
-# define HAS_IPV6
-# define HAVE_GETIFADDRS
+#define HAS_IPV6
+#define HAVE_GETIFADDRS
 #endif
 #define HAS_FUTIMES			/* XXX Guessing */
 #define NATIVE_SENDMAIL_PATH "/usr/sbin/sendmail"
@@ -254,12 +254,12 @@
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
 #ifndef NO_KQUEUE
-# define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
-# define USE_SYSV_POLL_THEN_SELECT
+#define EVENTS_STYLE	EVENTS_STYLE_KQUEUE
+#define USE_SYSV_POLL_THEN_SELECT
 #endif
 #define USE_MAX_FILES_PER_PROC
 #ifndef NO_POSIX_GETPW_R
-# define HAVE_POSIX_GETPW_R
+#define HAVE_POSIX_GETPW_R
 #endif
 #define HAS_DLOPEN
 #endif
@@ -354,7 +354,7 @@ extern int opterr;			/* XXX use <getopt.h> */
 #define BROKEN_WRITE_SELECT_ON_NON_BLOCKING_PIPE
 #define NO_MSGHDR_MSG_CONTROL
 #ifndef NO_IPV6
-# define HAS_IPV6
+#define HAS_IPV6
 #endif
 
 #endif
@@ -436,7 +436,7 @@ extern int opterr;
 #define HAS_NIS
 #ifndef NO_NISPLUS
 #define HAS_NISPLUS
-#endif	/* NO_NISPLUS */
+#endif					/* NO_NISPLUS */
 #endif
 #define USE_SYS_SOCKIO_H		/* Solaris 2.5, changed sys/ioctl.h */
 #define GETTIMEOFDAY(t)	gettimeofday(t)
@@ -457,28 +457,28 @@ extern int opterr;
 #define BROKEN_READ_SELECT_ON_TCP_SOCKET
 #define CANT_WRITE_BEFORE_SENDING_FD
 #ifndef NO_POSIX_REGEXP
-# define HAS_POSIX_REGEXP
+#define HAS_POSIX_REGEXP
 #endif
 #ifndef NO_IPV6
-# define HAS_IPV6
-# define HAS_SIOCGLIF
+#define HAS_IPV6
+#define HAS_SIOCGLIF
 #endif
 #ifndef NO_CLOSEFROM
-# define HAS_CLOSEFROM
+#define HAS_CLOSEFROM
 #endif
 #ifndef NO_DEV_URANDOM
-# define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
 #endif
 #ifndef NO_FUTIMESAT
-# define HAS_FUTIMESAT
+#define HAS_FUTIMESAT
 #endif
 #define USE_SYSV_POLL
 #ifndef NO_DEVPOLL
-# define EVENTS_STYLE	EVENTS_STYLE_DEVPOLL
+#define EVENTS_STYLE	EVENTS_STYLE_DEVPOLL
 #endif
 #ifndef NO_POSIX_GETPW_R
-# define HAVE_POSIX_GETPW_R
-# define GETPW_R_NEEDS_POSIX_PTHREAD_SEMANTICS
+#define HAVE_POSIX_GETPW_R
+#define GETPW_R_NEEDS_POSIX_PTHREAD_SEMANTICS
 #endif
 
 /*
@@ -615,7 +615,7 @@ extern int opterr;
 #define CMSG_LEN(len) (_CMSG_ALIGN(sizeof(struct cmsghdr)) + (len))
 #endif
 #ifndef NO_IPV6
-# define HAS_IPV6
+#define HAS_IPV6
 #endif
 #define BROKEN_AI_PASSIVE_NULL_HOST
 #define BROKEN_AI_NULL_SERVICE
@@ -749,7 +749,7 @@ extern int initgroups(const char *, int);
 
 #if defined(IRIX6)
 #ifndef NO_IPV6
-# define HAS_IPV6
+#define HAS_IPV6
 #endif
 #define HAS_POSIX_REGEXP
 #define PIPES_CANT_FIONREAD
@@ -790,49 +790,49 @@ extern int initgroups(const char *, int);
 #define NATIVE_COMMAND_DIR "/usr/sbin"
 #define NATIVE_DAEMON_DIR "/usr/libexec/postfix"
 #ifdef __GLIBC_PREREQ
-# define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) __GLIBC_PREREQ(maj, min)
+#define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) __GLIBC_PREREQ(maj, min)
 #else
-# define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) \
+#define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) \
     ((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
 #endif
 #if HAVE_GLIBC_API_VERSION_SUPPORT(2, 1)
-# define SOCKADDR_SIZE	socklen_t
-# define SOCKOPT_SIZE	socklen_t
+#define SOCKADDR_SIZE	socklen_t
+#define SOCKOPT_SIZE	socklen_t
 #endif
 #ifndef NO_IPV6
-# define HAS_IPV6
-# if HAVE_GLIBC_API_VERSION_SUPPORT(2, 4)
+#define HAS_IPV6
+#if HAVE_GLIBC_API_VERSION_SUPPORT(2, 4)
 /* Really 2.3.3 or later, but there's no __GLIBC_MICRO version macro. */
-#  define HAVE_GETIFADDRS
-# else
-#  define HAS_PROCNET_IFINET6
-#  define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
-# endif
+#define HAVE_GETIFADDRS
+#else
+#define HAS_PROCNET_IFINET6
+#define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
+#endif
 #endif
 #include <linux/version.h>
-#if !defined(KERNEL_VERSION) 
-# define KERNEL_VERSION(a,b,c) (LINUX_VERSION_CODE + 1)
+#if !defined(KERNEL_VERSION)
+#define KERNEL_VERSION(a,b,c) (LINUX_VERSION_CODE + 1)
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,2,0)) \
 	|| (__GLIBC__ < 2)
-# define CANT_USE_SEND_RECV_MSG
-# define DEF_SMTP_CACHE_DEMAND	0
+#define CANT_USE_SEND_RECV_MSG
+#define DEF_SMTP_CACHE_DEMAND	0
 #else
-# define CANT_WRITE_BEFORE_SENDING_FD
+#define CANT_WRITE_BEFORE_SENDING_FD
 #endif
 #define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"	/* introduced in 1.1 */
 #ifndef NO_EPOLL
-# define EVENTS_STYLE	EVENTS_STYLE_EPOLL	/* introduced in 2.5 */
+#define EVENTS_STYLE	EVENTS_STYLE_EPOLL	/* introduced in 2.5 */
 #endif
 #define USE_SYSV_POLL
 #ifndef NO_POSIX_GETPW_R
-# if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) \
+#if (defined(_POSIX_C_SOURCE) && _POSIX_C_SOURCE >= 1) \
 	|| (defined(_XOPEN_SOURCE) && _XOPEN_SOURCE >= 1) \
 	|| (defined(_BSD_SOURCE) && _BSD_SOURCE >= 1) \
 	|| (defined(_SVID_SOURCE) && _SVID_SOURCE >= 1) \
 	|| (defined(_POSIX_SOURCE) && _POSIX_SOURCE >= 1)
-#  define HAVE_POSIX_GETPW_R
-# endif
+#define HAVE_POSIX_GETPW_R
+#endif
 #endif
 
 #endif
@@ -918,17 +918,17 @@ extern int initgroups(const char *, int);
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
 #ifdef __FreeBSD_kernel__
-# define HAS_DUPLEX_PIPE
-# define HAS_ISSETUGID
+#define HAS_DUPLEX_PIPE
+#define HAS_ISSETUGID
 #endif
 #ifndef NO_IPV6
-# define HAS_IPV6
-# ifdef __FreeBSD_kernel__
-#  define HAVE_GETIFADDRS
-# else
-#  define HAS_PROCNET_IFINET6
-#  define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
-# endif
+#define HAS_IPV6
+#ifdef __FreeBSD_kernel__
+#define HAVE_GETIFADDRS
+#else
+#define HAS_PROCNET_IFINET6
+#define _PATH_PROCNET_IFINET6 "/proc/net/if_inet6"
+#endif
 #endif
 #define CANT_USE_SEND_RECV_MSG
 #define DEF_SMTP_CACHE_DEMAND	0
@@ -1316,8 +1316,8 @@ extern int h_errno;
 #define DEF_DB_TYPE	NATIVE_DB_TYPE
 #endif
 
-#define CAST_CHAR_PTR_TO_INT(cptr)	((int) (long) (cptr))
-#define CAST_INT_TO_CHAR_PTR(ival)	((char *) (long) (ival))
+#define CAST_ANY_PTR_TO_INT(cptr)	((int) (long) (cptr))
+#define CAST_INT_TO_VOID_PTR(ival)	((void *) (long) (ival))
 
 #ifdef DUP2_DUPS_CLOSE_ON_EXEC
 /* dup2_pass_on_exec() can be found in util/sys_compat.c */
@@ -1557,13 +1557,13 @@ typedef int pid_t;
   * doubles.
   */
 #ifndef ALIGN_TYPE
-# if defined(__hpux) && defined(__ia64)
-#  define ALIGN_TYPE	__float80
-# elif defined(__ia64__)
-#  define ALIGN_TYPE	long double
-# else
-#  define ALIGN_TYPE	double
-# endif
+#if defined(__hpux) && defined(__ia64)
+#define ALIGN_TYPE	__float80
+#elif defined(__ia64__)
+#define ALIGN_TYPE	long double
+#else
+#define ALIGN_TYPE	double
+#endif
 #endif
 
  /*

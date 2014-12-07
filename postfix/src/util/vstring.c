@@ -302,7 +302,7 @@ static void vstring_extend(VBUF *bp, ssize_t incr)
     new_len = bp->len + (bp->len > incr ? bp->len : incr);
     if (new_len <= bp->len)
 	msg_fatal("vstring_extend: length overflow");
-    bp->data = (unsigned char *) myrealloc((char *) bp->data, new_len);
+    bp->data = (unsigned char *) myrealloc((void *) bp->data, new_len);
     bp->len = new_len;
     bp->ptr = bp->data + used;
     bp->cnt = bp->len - used;
@@ -363,8 +363,8 @@ VSTRING *vstring_alloc(ssize_t len)
 VSTRING *vstring_free(VSTRING *vp)
 {
     if (vp->vbuf.data)
-	myfree((char *) vp->vbuf.data);
-    myfree((char *) vp);
+	myfree((void *) vp->vbuf.data);
+    myfree((void *) vp);
     return (0);
 }
 
@@ -552,7 +552,7 @@ char   *vstring_export(VSTRING *vp)
 
     cp = (char *) vp->vbuf.data;
     vp->vbuf.data = 0;
-    myfree((char *) vp);
+    myfree((void *) vp);
     return (cp);
 }
 

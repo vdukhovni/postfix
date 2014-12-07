@@ -112,7 +112,7 @@ static void header_opts_init(void)
 	for (cp = hp->name; *cp; cp++)
 	    VSTRING_ADDCH(header_key, TOLOWER(*cp));
 	VSTRING_TERMINATE(header_key);
-	htable_enter(header_hash, vstring_str(header_key), (char *) hp);
+	htable_enter(header_hash, vstring_str(header_key), (void *) hp);
     }
 }
 
@@ -142,7 +142,7 @@ static void header_drop_init(void)
 	    hp = (HEADER_OPTS *) mymalloc(sizeof(*hp));
 	    hp->type = HDR_OTHER;
 	    hp->flags = HDR_OPT_DROP;
-	    ht = htable_enter(header_hash, *cpp, (char *) hp);
+	    ht = htable_enter(header_hash, *cpp, (void *) hp);
 	    hp->name = ht->key;
 	} else
 	    hp = (HEADER_OPTS *) ht->value;

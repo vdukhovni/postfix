@@ -68,7 +68,7 @@ int     timecmp(time_t t1, time_t t2)
 #include <limits.h>
 #define __MAXINT__(T) ((T) (((((T) 1) << ((sizeof(T) * CHAR_BIT) - 1)) ^ ((T) -1))))
 
-int     main()
+int     main(void)
 {
     time_t  now = time((time_t *) 0);
 

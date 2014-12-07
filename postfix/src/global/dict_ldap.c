@@ -973,7 +973,7 @@ static void dict_ldap_conn_find(DICT_LDAP *dict_ldap)
 	conn = (LDAP_CONN *) mymalloc(sizeof(LDAP_CONN));
 	conn->conn_ld = 0;
 	conn->conn_refcount = 0;
-	dict_ldap->ht = binhash_enter(conn_hash, key, len, (char *) conn);
+	dict_ldap->ht = binhash_enter(conn_hash, key, len, (void *) conn);
     }
     ++DICT_LDAP_CONN(dict_ldap)->conn_refcount;
 

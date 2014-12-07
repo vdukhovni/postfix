@@ -196,7 +196,7 @@ void    dsb_free(DSN_BUF *dsb)
     vstring_free(dsb->dtype);
     vstring_free(dsb->dtext);
     vstring_free(dsb->reason);
-    myfree((char *) dsb);
+    myfree((void *) dsb);
 }
 
  /*

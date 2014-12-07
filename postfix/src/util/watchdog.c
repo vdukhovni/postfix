@@ -134,7 +134,7 @@ static int watchdog_pipe[2];
 
 /* watchdog_read - read event pipe */
 
-static void watchdog_read(int unused_event, char *unused_context)
+static void watchdog_read(int unused_event, void *unused_context)
 {
     char    ch;
 
@@ -216,7 +216,7 @@ WATCHDOG *watchdog_create(unsigned timeout, WATCHDOG_FN action, char *context)
 	    msg_fatal("%s: pipe: %m", myname);
 	non_blocking(watchdog_pipe[0], NON_BLOCKING);
 	non_blocking(watchdog_pipe[1], NON_BLOCKING);
-	event_enable_read(watchdog_pipe[0], watchdog_read, (char *) 0);
+	event_enable_read(watchdog_pipe[0], watchdog_read, (void *) 0);
     }
 #endif
     return (watchdog_curr = wp);
@@ -234,7 +234,7 @@ void    watchdog_destroy(WATCHDOG *wp)
 	msg_fatal("%s: sigaction(SIGALRM): %m", myname);
     if (wp->saved_time)
 	alarm(wp->saved_time);
-    myfree((char *) wp);
+    myfree((void *) wp);
 #ifdef USE_WATCHDOG_PIPE
     if (watchdog_curr == 0) {
 	event_disable_readwrite(watchdog_pipe[0]);
@@ -295,7 +295,7 @@ int     main(int unused_argc, char **unused_argv)
 
     msg_verbose = 2;
 
-    wp = watchdog_create(10, (WATCHDOG_FN) 0, (char *) 0);
+    wp = watchdog_create(10, (WATCHDOG_FN) 0, (void *) 0);
     watchdog_start(wp);
     do {
 	watchdog_pat();
