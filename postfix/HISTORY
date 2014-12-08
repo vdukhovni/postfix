@@ -21008,3 +21008,8 @@ Apologies for any names omitted.
 	Cleanup: removed unnecessary casts. File: global/cfg_parser.c.
 
 	Cleanup: dont cast away "const". File: global/dict_sqlite.c.
+
+20141208
+
+	Bugfix (introduced: 20141207): in new #ifdef, && should be ||.
+	File: smtpd.c.

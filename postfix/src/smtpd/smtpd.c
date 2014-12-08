@@ -4625,7 +4625,7 @@ static void tls_reset(SMTPD_STATE *state)
 
 #endif
 
-#if !defined(USE_TLS) && !defined(USE_SASL_AUTH)
+#if !defined(USE_TLS) || !defined(USE_SASL_AUTH)
 
 /* unimpl_cmd - dummy for functionality that is not compiled in */
 
