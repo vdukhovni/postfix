@@ -393,7 +393,7 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
     VSTREAM *cmd_in_stream;
     VSTREAM *cmd_out_stream;
     char    log_buf[VSTREAM_BUFSIZE + 1];
-    int     log_len;
+    ssize_t log_len;
     pid_t   pid;
     int     write_status;
     int     write_errno;

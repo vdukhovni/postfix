@@ -118,6 +118,7 @@ int     main(void)
 	argv_free(argv);
 	vstream_fflush(VSTREAM_OUT);
     }
+    vstring_free(vp);
     return (0);
 }
 

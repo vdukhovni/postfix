@@ -60,13 +60,13 @@ int     unix_connect(const char *addr, int block_mode, int timeout)
 {
 #undef sun
     struct sockaddr_un sun;
-    int     len = strlen(addr);
+    ssize_t len = strlen(addr);
     int     sock;
 
     /*
      * Translate address information to internal form.
      */
-    if (len >= (int) sizeof(sun.sun_path))
+    if (len >= sizeof(sun.sun_path))
 	msg_fatal("unix-domain name too long: %s", addr);
     memset((void *) &sun, 0, sizeof(sun));
     sun.sun_family = AF_UNIX;

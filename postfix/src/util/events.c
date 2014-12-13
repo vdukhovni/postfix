@@ -610,7 +610,11 @@ static void event_extend(int fd)
     int     new_slots = (event_fdslots > fd / 2 ?
 			 2 * old_slots : fd + EVENT_ALLOC_INCR);
     EVENT_FDTABLE *fdp;
+
+#ifdef EVENT_REG_UPD_HANDLE
     int     err;
+
+#endif
 
     if (msg_verbose > 2)
 	msg_info("%s: fd %d", myname, fd);

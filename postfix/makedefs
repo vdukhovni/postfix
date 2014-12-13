@@ -222,6 +222,15 @@ case "$SYSTEM.$RELEASE" in
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
+  FreeBSD.10*)	SYSTYPE=FREEBSD10
+		: ${CC=cc}
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC} -shared"}
+		;;
  DragonFly.*)	SYSTYPE=DRAGONFLY
 		;;
   OpenBSD.2*)	SYSTYPE=OPENBSD2
@@ -555,7 +564,6 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		# Use the native compiler by default
 		: ${CC=cc}
 		CCARGS="$CCARGS"
-		CCWARN='$(WARN)'
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;
@@ -998,7 +1006,7 @@ esac
 # een burned once by a compiler that lies about what warnings it
 # produces, not taking that chance again.
 
-: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
+: ${CC=gcc} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
 ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused -Wno-missing-braces'}
@@ -1056,7 +1064,7 @@ _AR	= $_AR
 ARFL	= $ARFL
 _RANLIB	= $_RANLIB
 SYSLIBS	= $AUXLIBS $SYSLIBS $PLUGIN_AUXLIBS
-CC	= $CC $CCARGS $CCWARN
+CC	= $CC $CCARGS \$(WARN)
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK

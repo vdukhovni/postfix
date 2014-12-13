@@ -796,16 +796,27 @@ char   *gai_strerror(int ecode)
   * A test program that takes some info from the command line and runs it
   * forward and backward through the above conversion routines.
   */
+#include <stdlib.h>
 #include <msg.h>
 #include <vstream.h>
 #include <msg_vstream.h>
+
+static int compare_family(const void *a, const void *b)
+{
+    struct addrinfo *resa = *(struct addrinfo **) a;
+    struct addrinfo *resb = *(struct addrinfo **) b;
+
+    return (resa->ai_family - resb->ai_family);
+}
 
 int     main(int argc, char **argv)
 {
     struct addrinfo *info;
     struct addrinfo *ip;
+    struct addrinfo **resv;
     MAI_HOSTNAME_STR host;
     MAI_HOSTADDR_STR addr;
+    size_t  len, n;
     int     err;
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
@@ -821,7 +832,14 @@ int     main(int argc, char **argv)
 	msg_info("hostname_to_sockaddr(%s): %s",
 	  argv[2], err == EAI_SYSTEM ? strerror(errno) : gai_strerror(err));
     } else {
-	for (ip = info; ip != 0; ip = ip->ai_next) {
+	for (len = 0, ip = info; ip != 0; ip = ip->ai_next)
+	    len += 1;
+	resv = (struct addrinfo **) mymalloc(len * sizeof(*resv));
+	for (len = 0, ip = info; ip != 0; ip = ip->ai_next)
+	    resv[len++] = ip;
+	qsort((void *) resv, len, sizeof(*resv), compare_family);
+	for (n = 0; n < len; n++) {
+	    ip = resv[n];
 	    if ((err = sockaddr_to_hostaddr(ip->ai_addr, ip->ai_addrlen, &addr,
 					 (MAI_SERVPORT_STR *) 0, 0)) != 0) {
 		msg_info("sockaddr_to_hostaddr: %s",
@@ -839,6 +857,7 @@ int     main(int argc, char **argv)
 	    msg_info("%s -> %s", addr.buf, host.buf);
 	}
 	freeaddrinfo(info);
+	myfree((void *) resv);
     }
 
     msg_info("=== host address %s ===", argv[3]);

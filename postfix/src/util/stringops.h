@@ -25,7 +25,7 @@ extern char *neuter(char *, const char *, int);
 extern char *lowercase(char *);
 extern char *uppercase(char *);
 extern char *skipblanks(const char *);
-extern char *trimblanks(char *, int);
+extern char *trimblanks(char *, ssize_t);
 extern char *concatenate(const char *,...);
 extern char *mystrtok(char **, const char *);
 extern char *mystrtokq(char **, const char *, const char *);

@@ -509,7 +509,7 @@ static void pickup_free(PICKUP_INFO *info)
 
 /* pickup_service - service client */
 
-static void pickup_service(char *unused_buf, int unused_len,
+static void pickup_service(char *unused_buf, ssize_t unused_len,
 			           char *unused_service, char **argv)
 {
     SCAN_DIR *scan;

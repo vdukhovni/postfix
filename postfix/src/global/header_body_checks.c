@@ -13,7 +13,7 @@
 /*		void	(*prepend) (void *context, int rec_type,
 /*				const char *buf, ssize_t len, off_t offset);
 /*		char	*(*extend) (void *context, const char *command,
-/*				int cmd_len, const char *cmd_args,
+/*				ssize_t cmd_len, const char *cmd_args,
 /*				const char *where, const char *line,
 /*				ssize_t line_len, off_t offset);
 /*	} HBC_CALL_BACKS;
@@ -228,7 +228,7 @@ static char *hbc_action(void *context, HBC_CALL_BACKS *cb,
 			        ssize_t line_len, off_t offset)
 {
     const char *cmd_args = cmd + strcspn(cmd, " \t");
-    int     cmd_len = cmd_args - cmd;
+    ssize_t cmd_len = cmd_args - cmd;
     char   *ret;
 
     /*

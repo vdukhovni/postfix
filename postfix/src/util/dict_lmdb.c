@@ -131,7 +131,8 @@ static const char *dict_lmdb_lookup(DICT *dict, const char *name)
     MDB_val mdb_key;
     MDB_val mdb_value;
     const char *result = 0;
-    int     status, klen;
+    int     status;
+    ssize_t klen;
 
     dict->error = 0;
     klen = strlen(name);
@@ -305,7 +306,8 @@ static int dict_lmdb_delete(DICT *dict, const char *name)
 {
     DICT_LMDB *dict_lmdb = (DICT_LMDB *) dict;
     MDB_val mdb_key;
-    int     status = 1, klen;
+    int     status = 1;
+    ssize_t klen;
 
     dict->error = 0;
     klen = strlen(name);

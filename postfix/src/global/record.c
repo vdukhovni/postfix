@@ -56,7 +56,7 @@
 /*	int	rec_pad(stream, type, len)
 /*	VSTREAM *stream;
 /*	int	type;
-/*	int	len;
+/*	ssize_t	len;
 /*
 /*	REC_SPACE_NEED(buflen, reclen)
 /*	ssize_t	buflen;
@@ -398,7 +398,7 @@ int     rec_fputs(VSTREAM *stream, int type, const char *str)
 
 /* rec_pad - write padding record */
 
-int     rec_pad(VSTREAM *stream, int type, int len)
+int     rec_pad(VSTREAM *stream, int type, ssize_t len)
 {
     int     width = len - 2;		/* type + length */
 

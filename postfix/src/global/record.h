@@ -38,7 +38,7 @@ extern int rec_put_type(VSTREAM *, int, off_t);
 extern int PRINTFLIKE(3, 4) rec_fprintf(VSTREAM *, int, const char *,...);
 extern int rec_fputs(VSTREAM *, int, const char *);
 extern int rec_goto(VSTREAM *, const char *);
-extern int rec_pad(VSTREAM *, int, int);
+extern int rec_pad(VSTREAM *, int, ssize_t);
 
 #define REC_PUT_BUF(v, t, b) rec_put((v), (t), vstring_str(b), VSTRING_LEN(b))
 

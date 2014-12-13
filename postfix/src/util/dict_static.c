@@ -60,7 +60,7 @@ static void dict_static_close(DICT *dict)
 DICT   *dict_static_open(const char *name, int open_flags, int dict_flags)
 {
     DICT   *dict;
-    const char *err;
+    char   *err = 0;
     char   *cp, *saved_name = 0;
 
     /*
@@ -70,6 +70,8 @@ DICT   *dict_static_open(const char *name, int open_flags, int dict_flags)
         DICT *__d = (d); \
         if (saved_name != 0) \
             myfree(saved_name); \
+        if (err != 0) \
+            myfree(err); \
         return (__d); \
     } while (0)
 

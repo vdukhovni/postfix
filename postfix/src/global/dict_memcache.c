@@ -257,7 +257,7 @@ static int dict_memcache_del(DICT_MC *dict_mc)
 
 /* dict_memcache_prepare_key - prepare lookup key */
 
-static int dict_memcache_prepare_key(DICT_MC *dict_mc, const char *name)
+static ssize_t dict_memcache_prepare_key(DICT_MC *dict_mc, const char *name)
 {
 
     /*

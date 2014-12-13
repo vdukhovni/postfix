@@ -251,7 +251,6 @@ int     main(int argc, char **argv)
     int     ch;
     int     ttl;
     const char *protocols = INET_PROTO_NAME_ALL;
-    INET_PROTO_INFO *proto_info;
 
     /*
      * Fingerprint executables and core dumps.
@@ -302,7 +301,7 @@ int     main(int argc, char **argv)
     /*
      * Initialize.
      */
-    proto_info = inet_proto_init("protocols", protocols);
+    (void) inet_proto_init("protocols", protocols);
     buffer = vstring_alloc(1024);
     if (strncmp(argv[optind], "unix:", 5) == 0) {
 	sock = unix_listen(argv[optind] + 5, backlog, BLOCKING);

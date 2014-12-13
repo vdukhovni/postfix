@@ -237,7 +237,6 @@ static const char *pcf_check_mydomainname(void)
 static const char *pcf_mynetworks(void)
 {
     static const char *networks;
-    INET_PROTO_INFO *proto_info;
     const char *junk;
 
     /*
@@ -269,7 +268,7 @@ static const char *pcf_mynetworks(void)
 					      DEF_INET_PROTOCOLS,
 					      (PCF_MASTER_ENT *) 0);
 	var_inet_protocols = mystrdup(junk);
-	proto_info = inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
+	(void) inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
     }
     return (networks = mystrdup(mynetworks()));
 }

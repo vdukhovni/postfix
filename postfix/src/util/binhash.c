@@ -124,7 +124,7 @@
 
 /* binhash_hash - hash a string */
 
-static unsigned binhash_hash(const void *key, ssize_t len, size_t size)
+static size_t binhash_hash(const void *key, ssize_t len, size_t size)
 {
     size_t  h = 0;
     size_t  g;
@@ -187,7 +187,7 @@ static void binhash_grow(BINHASH *table)
 {
     BINHASH_INFO *ht;
     BINHASH_INFO *next;
-    unsigned old_size = table->size;
+    ssize_t old_size = table->size;
     BINHASH_INFO **h = table->data;
     BINHASH_INFO **old_entries = h;
 
@@ -279,7 +279,7 @@ void    binhash_delete(BINHASH *table, const void *key, ssize_t key_len, void (*
 void    binhash_free(BINHASH *table, void (*free_fn) (void *))
 {
     if (table != 0) {
-	size_t  i = table->size;
+	ssize_t i = table->size;
 	BINHASH_INFO *ht;
 	BINHASH_INFO *next;
 	BINHASH_INFO **h = table->data;
@@ -304,7 +304,7 @@ void    binhash_free(BINHASH *table, void (*free_fn) (void *))
 void    binhash_walk(BINHASH *table, void (*action) (BINHASH_INFO *, void *),
 		             void *ptr) {
     if (table != 0) {
-	size_t  i = table->size;
+	ssize_t i = table->size;
 	BINHASH_INFO **h = table->data;
 	BINHASH_INFO *ht;
 

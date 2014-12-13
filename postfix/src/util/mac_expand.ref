@@ -74,7 +74,7 @@ stat=0 result=Good: Postfix 2.11 compatible
 << ${{${name2::bug}} != {:bug}?{Error: NOT}:{Good:}} Postfix 2.11 compatible
 stat=0 result=Good: Postfix 2.11 compatible
 << ${{xx}==(yy)?{oops}:{phew}}
-unknown: warning: "{expression}" expected at: "...{xx} ??>>>(yy)?{oops}:{phew}"
+unknown: warning: "{expression}" expected at: "...{xx} ==>>>(yy)?{oops}:{phew}"
 stat=1 result=
 << 
 

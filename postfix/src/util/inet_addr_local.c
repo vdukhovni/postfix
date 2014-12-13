@@ -116,6 +116,8 @@
   * -- Dean Strik (dcs)
   */
 
+#ifndef HAVE_GETIFADDRS
+
 /* ial_socket - make socket for ioctl() operations */
 
 static int ial_socket(int af)
@@ -144,6 +146,8 @@ static int ial_socket(int af)
     }
     return (sock);
 }
+
+#endif
 
 #ifdef HAVE_GETIFADDRS
 
@@ -229,9 +233,7 @@ static int ial_getifaddrs(INET_ADDR_LIST *addr_list,
     return (0);
 }
 
-#endif					/* HAVE_GETIFADDRS */
-
-#ifdef HAS_SIOCGLIF
+#elif defined(HAS_SIOCGLIF)		/* HAVE_GETIFADDRS */
 
 /*
  * The SIOCLIF* ioctls are the successors of SIOCGIF* on the Solaris

@@ -151,9 +151,9 @@ VSTRING *uxtext_unquote_append(VSTRING *unquoted, const char *quoted)
 
     for (cp = (const unsigned char *) quoted; (ch = *cp) != 0; cp++) {
 	if (ch == '\\' && cp[1] == 'x' && cp[2] == '{') {
-	    cp += 2;
 	    int     unicode = 0;
 
+	    cp += 2;
 	    while ((ch = *++cp) != '}') {
 		if (ISDIGIT(ch))
 		    unicode = (unicode << 4) + (ch - '0');

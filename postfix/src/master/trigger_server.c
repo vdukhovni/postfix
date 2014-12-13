@@ -263,7 +263,7 @@ static void trigger_server_timeout(int unused_event, void *unused_context)
 static void trigger_server_wakeup(int fd)
 {
     char    buf[TRIGGER_BUF_SIZE];
-    int     len;
+    ssize_t len;
 
     /*
      * Commit suicide when the master process disconnected from us. Don't
@@ -423,7 +423,7 @@ NORETURN trigger_server_main(int argc, char **argv, TRIGGER_SERVER_FN service,..
     MAIL_SERVER_LOOP_FN loop = 0;
     int     key;
     char    buf[TRIGGER_BUF_SIZE];
-    int     len;
+    ssize_t len;
     char   *transport = 0;
     char   *lock_path;
     VSTRING *why;

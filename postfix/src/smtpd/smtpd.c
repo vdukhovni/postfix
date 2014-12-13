@@ -948,12 +948,6 @@
 /*	The Postfix SMTP server's action when reject_unknown_sender_domain
 /*	or reject_unknown_recipient_domain fail due to a temporary error
 /*	condition.
-/* .PP
-/*	Available in Postfix version 2.12 and later:
-/* .IP "\fBnullmx_reject_code (556)\fR"
-/*	The numerical reply code when the Postfix SMTP server rejects
-/*	a sender or recipient address because its domain has a nullmx DNS
-/*	record (an MX record with an empty hostname).
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -1328,7 +1322,6 @@ char   *var_smtpd_tls_eckey_file;
 
 bool    var_smtpd_peername_lookup;
 int     var_plaintext_code;
-int     var_nullmx_rcode;
 bool    var_smtpd_delay_open;
 char   *var_smtpd_milters;
 int     var_milt_conn_time;
@@ -5542,7 +5535,6 @@ int     main(int argc, char **argv)
 	VAR_VIRT_MAILBOX_CODE, DEF_VIRT_MAILBOX_CODE, &var_virt_mailbox_code, 0, 0,
 	VAR_RELAY_RCPT_CODE, DEF_RELAY_RCPT_CODE, &var_relay_rcpt_code, 0, 0,
 	VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code, 0, 0,
-	VAR_NULLMX_RCODE, DEF_NULLMX_RCODE, &var_nullmx_rcode, 0, 0,
 	VAR_SMTPD_CRATE_LIMIT, DEF_SMTPD_CRATE_LIMIT, &var_smtpd_crate_limit, 0, 0,
 	VAR_SMTPD_CCONN_LIMIT, DEF_SMTPD_CCONN_LIMIT, &var_smtpd_cconn_limit, 0, 0,
 	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,

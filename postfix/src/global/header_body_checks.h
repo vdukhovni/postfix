@@ -36,7 +36,7 @@ typedef struct {
 typedef struct {
     void    (*logger) (void *, const char *, const char *, const char *, const char *);
     void    (*prepend) (void *, int, const char *, ssize_t, off_t);
-    char   *(*extend) (void *, const char *, int, const char *, const char *, const char *, ssize_t, off_t);
+    char   *(*extend) (void *, const char *, ssize_t, const char *, const char *, const char *, ssize_t, off_t);
 } HBC_CALL_BACKS;
 
 typedef struct {

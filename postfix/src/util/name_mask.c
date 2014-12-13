@@ -268,7 +268,7 @@ const char *str_name_mask_opt(VSTRING *buf, const char *context,
 {
     const char *myname = "name_mask";
     const NAME_MASK *np;
-    int     len;
+    ssize_t len;
     static VSTRING *my_buf = 0;
     int     delim = (flags & NAME_MASK_COMMA ? ',' :
 		     (flags & NAME_MASK_PIPE ? '|' : ' '));
@@ -382,7 +382,7 @@ const char *str_long_name_mask_opt(VSTRING *buf, const char *context,
 				           long mask, int flags)
 {
     const char *myname = "name_mask";
-    int     len;
+    ssize_t len;
     static VSTRING *my_buf = 0;
     int     delim = (flags & NAME_MASK_COMMA ? ',' :
 		     (flags & NAME_MASK_PIPE ? '|' : ' '));

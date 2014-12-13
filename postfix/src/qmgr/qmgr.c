@@ -473,7 +473,7 @@ static void qmgr_deferred_run_event(int unused_event, void *dummy)
 
 /* qmgr_trigger_event - respond to external trigger(s) */
 
-static void qmgr_trigger_event(char *buf, int len,
+static void qmgr_trigger_event(char *buf, ssize_t len,
 			               char *unused_service, char **argv)
 {
     int     incoming_flag = 0;
@@ -537,7 +537,7 @@ static void qmgr_trigger_event(char *buf, int len,
 static int qmgr_loop(char *unused_name, char **unused_argv)
 {
     char   *path;
-    int     token_count;
+    ssize_t token_count;
     int     feed = 0;
     int     scan_idx;			/* Priority order scan index */
     static int first_scan_idx = QMGR_SCAN_IDX_INCOMING;

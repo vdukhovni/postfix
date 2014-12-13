@@ -61,9 +61,8 @@
 time_t  sane_time(void)
 {
     time_t  now;
-    static time_t last_time,
-            last_real;
-    int     delta;
+    static time_t last_time, last_real;
+    long    delta;
     static int fraction;
     static int warned;
 

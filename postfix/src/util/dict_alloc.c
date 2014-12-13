@@ -151,7 +151,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->mtime = 0;
     dict->fold_buf = 0;
     dict->owner.status = DICT_OWNER_UNKNOWN;
-    dict->owner.uid = ~0;
+    dict->owner.uid = INT_MAX;
     dict->error = DICT_ERR_NONE;
     dict->jbuf = 0;
     return dict;

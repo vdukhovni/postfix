@@ -72,7 +72,7 @@ extern int event_server_drain(void);
  /*
   * trigger_server.c
   */
-typedef void (*TRIGGER_SERVER_FN) (char *, int, char *, char **);
+typedef void (*TRIGGER_SERVER_FN) (char *, ssize_t, char *, char **);
 extern NORETURN trigger_server_main(int, char **, TRIGGER_SERVER_FN,...);
 
 #define TRIGGER_BUF_SIZE	1024

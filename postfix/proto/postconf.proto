@@ -6049,7 +6049,7 @@ record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 reply is specified with the unknown_address_reject_code parameter
 (default: 450), unknown_address_tempfail_action (default:
-defer_if_permit), or nullmx_reject_code (default 556, Postfix 2.12 and
+defer_if_permit), or 556 (nullmx, Postfix 2.12 and
 later). See the respective parameter descriptions for details.
 </dd>
 
@@ -6518,7 +6518,7 @@ record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 reply is specified with the unknown_address_reject_code parameter
 (default: 450), unknown_address_tempfail_action (default:
-defer_if_permit), or nullmx_reject_code (default 556, Postfix 2.12 and
+defer_if_permit), or 550 (nullmx, Postfix 2.12 and
 later). See the respective parameter descriptions for details.
 </dd>
 

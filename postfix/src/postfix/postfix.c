@@ -501,11 +501,11 @@ int     main(int argc, char **argv)
      * effect.
      */
     if (var_compat_level < CUR_COMPAT_LEVEL) {
-	msg_warn("Postfix is running with backwards-compatible default "
+	msg_info("Postfix is running with backwards-compatible default "
 		 "settings");
-	msg_warn("See http://www.postfix.org/COMPATIBILITY_README.html "
+	msg_info("See http://www.postfix.org/COMPATIBILITY_README.html "
 		 "for details");
-	msg_warn("To disable backwards compatibility use \"postconf "
+	msg_info("To disable backwards compatibility use \"postconf "
 		 VAR_COMPAT_LEVEL "=%d\" and \"postfix reload\"",
 		 CUR_COMPAT_LEVEL);
     }

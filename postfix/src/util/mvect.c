@@ -8,14 +8,14 @@
 /*
 /*	char	*mvect_alloc(vector, elsize, nelm, init_fn, wipe_fn)
 /*	MVECT	*vector;
-/*	int	elsize;
-/*	int	nelm;
-/*	void	(*init_fn)(char *ptr, int count);
-/*	void	(*wipe_fn)(char *ptr, int count);
+/*	ssize_t	elsize;
+/*	ssize_t	nelm;
+/*	void	(*init_fn)(char *ptr, ssize_t count);
+/*	void	(*wipe_fn)(char *ptr, ssize_t count);
 /*
 /*	char	*mvect_realloc(vector, nelm)
 /*	MVECT	*vector;
-/*	int	nelm;
+/*	ssize_t	nelm;
 /*
 /*	char	*mvect_free(vector)
 /*	MVECT	*vector;
@@ -67,8 +67,8 @@
 
 /* mvect_alloc - allocate memory vector */
 
-char   *mvect_alloc(MVECT *vect, int elsize, int nelm,
-               void (*init_fn) (char *, int), void (*wipe_fn) (char *, int))
+char   *mvect_alloc(MVECT *vect, ssize_t elsize, ssize_t nelm,
+               void (*init_fn) (char *, ssize_t), void (*wipe_fn) (char *, ssize_t))
 {
     vect->init_fn = init_fn;
     vect->wipe_fn = wipe_fn;
@@ -83,11 +83,11 @@ char   *mvect_alloc(MVECT *vect, int elsize, int nelm,
 
 /* mvect_realloc - adjust memory vector allocation */
 
-char   *mvect_realloc(MVECT *vect, int nelm)
+char   *mvect_realloc(MVECT *vect, ssize_t nelm)
 {
-    int     old_len = vect->nelm;
-    int     incr = nelm - old_len;
-    int     new_nelm;
+    ssize_t old_len = vect->nelm;
+    ssize_t incr = nelm - old_len;
+    ssize_t new_nelm;
 
     if (incr > 0) {
 	if (incr < old_len)

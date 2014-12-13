@@ -143,6 +143,8 @@ extern int mail_queue_id_ok(const char *);
 	unsigned long _us_val; \
 	vstring_strncpy((bp), (zp) - MQID_LG_USEC_PAD, MQID_LG_USEC_PAD); \
 	MQID_LG_DECODE_USEC(STR(bp), _us_val, _error); \
+	if (_error) \
+	    _us_val = 0; \
 	(void) MQID_SH_ENCODE_USEC((bp), _us_val); \
     } while (0)
 

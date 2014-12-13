@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern VSTRING *format_tv(VSTRING *, int, int, int, int);
+extern VSTRING *format_tv(VSTRING *, long, long, int, int);
 
 /* LICENSE
 /* .ad

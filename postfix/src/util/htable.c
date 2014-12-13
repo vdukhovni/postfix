@@ -287,7 +287,7 @@ void    htable_delete(HTABLE *table, const char *key, void (*free_fn) (void *))
 void    htable_free(HTABLE *table, void (*free_fn) (void *))
 {
     if (table) {
-	size_t  i = table->size;
+	ssize_t i = table->size;
 	HTABLE_INFO *ht;
 	HTABLE_INFO *next;
 	HTABLE_INFO **h = table->data;
@@ -315,7 +315,7 @@ void    htable_free(HTABLE *table, void (*free_fn) (void *))
 void    htable_walk(HTABLE *table, void (*action) (HTABLE_INFO *, void *),
 		            void *ptr) {
     if (table) {
-	unsigned i = table->size;
+	ssize_t i = table->size;
 	HTABLE_INFO **h = table->data;
 	HTABLE_INFO *ht;
 

@@ -8,6 +8,10 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Inline support for pcre:{/pattern/=action, ...} and ditto
+	support for regexp: and cidr: tables. Factor out and reuse
+	code that already exists in inline: and other tables.
+
 	Log command=good/bad statistics in postscreen?
 
 	Implement smtpd_client_auth_rate limit?

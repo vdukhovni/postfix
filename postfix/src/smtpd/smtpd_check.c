@@ -1441,9 +1441,10 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
 	}
 	if (dns_status == DNS_NULLMX)
 	    return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
-				       var_nullmx_rcode,
 			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
-				       "4.7.0" : "4.1.0",
+				       550 : 556,
+			       strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+				       "4.7.27" : "4.1.10",
 				       "<%s>: %s rejected: Domain %s "
 				       "does not accept mail (nullMX)",
 				       reply_name, reply_class, name));
@@ -5586,7 +5587,6 @@ int     var_smtpd_rej_unl_rcpt;
 int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
 bool    var_smtpd_client_port_log;
-int     var_nullmx_rcode;
 char   *var_smtpd_dns_re_filter;
 
 #define int_table test_int_table
@@ -5622,7 +5622,6 @@ static const INT_TABLE int_table[] = {
     VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
     VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
     VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
-    VAR_NULLMX_RCODE, DEF_NULLMX_RCODE, &var_nullmx_rcode,
     0,
 };
 

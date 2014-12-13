@@ -21013,3 +21013,77 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20141207): in new #ifdef, && should be ||.
 	File: smtpd.c.
+
+20141210
+
+	Cleanup: the "inline" table now supports case-insensitive
+	search, and an iterator. File: util/dict_inline.c.
+
+	Cleanup: minuscule memory leaks in graceful degradation
+	after lookup table open error.  Files: util/dict_inline.c,
+	util/dict_static.c.
+
+20141211
+
+	Cleanup: memory leaks in unit-test driver programs (i.e.
+	code used only during development). Files:
+	cleanup/cleanup_milter.c, util/base64_code.c.
+
+	Bugfix (introduced 20141001): mac_expand() error message
+	with "??" due to dangling pointer. File: util/mac_expand.c.
+
+	Portability: unit-test driver programs. Files: util/myaddrinfo.c,
+	util/myaddrinfo.ref.
+
+	Portability: Clang support. Files: makedefs, util/sys_defs.h.
+
+	Portability: FreeBSD 10 support. Files: makedefs,
+	util/sys_defs.h.
+
+	Cleanup: in makedefs, the CC and WARN features are now
+	independent. File: makedefs.
+
+	Shut up some Clang format-string nags: util/events.c.
+
+	Cleanup: eliminated unnecessary 64->32bit (and back)
+	conversions on LP64 platforms.  Files: util/htable.c,
+	util/binhash.c util/mvect.[hc], util/name_mask.c,
+	util/sane_time.c, util/unix_listen.c, util/unix_connect.c,
+	util/stringops.h, util/trimblanks.c, and dependent code in
+	smtpd/smtpd_token.c.
+
+	Cleanup: unused inet_proto_init() results. Files:
+	global/mail_params.c, postconf/postconf_builtin.c,
+	smtpstone/qmqp-sink.c, smtpstone/qmqp-source.c,
+	smtpstone/smtp-source.c/
+
+	Shut up some Clang nags about unused functions in network
+	interface API selection.  File: util/inet_addr_local.c.
+
+	Portability: a historical compiler lacks printf-like
+	format-string checks for function pointers. Files: util/msg.h,
+	bounce/bounce_template.h.
+
+20141212
+
+	Shut up some Clang format-string nags: util/line_number.c,
+	sendmail/sendmail.c, smtpd/smtpd_proxy.c, smtp/smtp_sasl_proto.c.
+
+	Cleanup: eliminated unnecessary 64->32bit (and back)
+	conversions on LP64 platforms.  Files: dict_memcache.c,
+	header_body_checks.[hc], log_adhoc.c, pipe_command.c,
+	record.[hc], smtp_reply_footer.c, split_addr.c.
+	cleanup/cleanup_milter.c, master/mail_server.h,
+	src/master/trigger_server.c, oqmgr/qmgr.c, qmgr/qmgr.c,
+	pickup/pickup.c.
+
+	Cleanup: nullmx SMTP reply codes 550 and 556, and enhanced
+	status codes X.1.10 and X.7.27. The nullmx SMTP reply codes
+	are no longer configurable.  Files: global/mail_params.h,
+	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+	Portability: default table owner UID for testing.  Files:
+	util/dict_alloc.c, util/dict_open.c.
+
+	Shut up Clang unused assignment nag: global/mail_queue.h.
+	sendmail/sendmail.c, smtpd/smtpd_proxy.c, smtp/smtp_sasl_proto.c.

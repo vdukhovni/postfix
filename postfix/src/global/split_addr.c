@@ -52,7 +52,7 @@
 
 char   *split_addr(char *localpart, const char *delimiter_set)
 {
-    int     len;
+    ssize_t len;
 
     /*
      * Don't split these, regardless of what the delimiter is.

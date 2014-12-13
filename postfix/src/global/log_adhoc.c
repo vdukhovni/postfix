@@ -76,8 +76,8 @@
   * jumping back.
   */
 typedef struct {
-    int     dt_sec;			/* make sure it's signed */
-    int     dt_usec;			/* make sure it's signed */
+    long    dt_sec;			/* make sure it's signed */
+    long    dt_usec;			/* make sure it's signed */
 } DELTA_TIME;
 
 /* log_adhoc - ad-hoc logging */

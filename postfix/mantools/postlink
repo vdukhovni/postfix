@@ -410,7 +410,6 @@ while (<>) {
     s;\bno_address_mappings\b;<a href="postconf.5.html#no_address_mappings">$&</a>;g;
     s;\bno_header_body_checks\b;<a href="postconf.5.html#no_header_body_checks">$&</a>;g;
     s;\bno_milters\b;<a href="postconf.5.html#no_milters">$&</a>;g;
-    s;\bnullmx_reject_code\b;<a href="postconf.5.html#nullmx_reject_code">$&</a>;g;
     s;\brecip[-</bB>]*\n* *[<bB>]*i[-</bB>]*\n* *[<bB>]*ent_bcc_maps\b;<a href="postconf.5.html#recipient_bcc_maps">$&</a>;g;
     s;\brecip[-</bB>]*\n* *[<bB>]*i[-</bB>]*\n* *[<bB>]*ent_canoni[-</bB>]*\n* *[<bB>]*cal_classes\b;<a href="postconf.5.html#recipient_canonical_classes">$&</a>;g;
     s;\brecip[-</bB>]*\n* *[<bB>]*i[-</bB>]*\n* *[<bB>]*ent_canoni[-</bB>]*\n* *[<bB>]*cal_maps\b;<a href="postconf.5.html#recipient_canonical_maps">$&</a>;g;

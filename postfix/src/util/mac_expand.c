@@ -332,6 +332,7 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
     VSTRING *rite_op_buf;
     const char *left_op_strval;
     const char *rite_op_strval;
+    char   *op_pos;
     char   *op_strval;
     size_t  op_len;
     int     op_tokval;
@@ -348,6 +349,7 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
     /*
      * Operator. Todo: regexp operator.
      */
+    op_pos = cp;
     op_len = strspn(cp, "<>!=?+-*/~&|%");	/* for better diagnostics. */
     op_strval = mystrndup(cp, op_len);
     op_tokval = name_code(mac_exp_op_table, NAME_CODE_FLAG_NONE, op_strval);
@@ -363,7 +365,7 @@ static int mac_exp_parse_logical(MAC_EXP_CONTEXT *mc, const char **lookup,
     if (MAC_EXP_FIND_LEFT_CURLY(tmp_len, cp) == 0)
 	MAC_EXP_ERR_RETURN(mc, "\"{expression}\" expected at: "
 			   "\"...{%s} %.*s>>>%.20s\"",
-			   left_op_strval, (int) op_len, op_strval, cp);
+			   left_op_strval, (int) op_len, op_pos, cp);
     if ((rite_op_strval = mac_exp_extract_curly_payload(mc, &cp)) == 0)
 	return (mc->status);
 

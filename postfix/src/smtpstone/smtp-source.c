@@ -949,7 +949,6 @@ int     main(int argc, char **argv)
     struct addrinfo *res;
     int     aierr;
     const char *protocols = INET_PROTO_NAME_ALL;
-    INET_PROTO_INFO *proto_info;
     char   *message_file = 0;
 
     /*
@@ -1102,7 +1101,7 @@ int     main(int argc, char **argv)
     /*
      * Translate endpoint address to internal form.
      */
-    proto_info = inet_proto_init("protocols", protocols);
+    (void) inet_proto_init("protocols", protocols);
     if (strncmp(argv[optind], "unix:", 5) == 0) {
 	path = argv[optind] + 5;
 	path_len = strlen(path);

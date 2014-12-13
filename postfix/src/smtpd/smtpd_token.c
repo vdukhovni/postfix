@@ -161,7 +161,7 @@ static char *smtp_next_token(char *cp, SMTPD_TOKEN *arg)
 
 /* smtpd_token_init - initialize token structures */
 
-static void smtpd_token_init(char *ptr, int count)
+static void smtpd_token_init(char *ptr, ssize_t count)
 {
     SMTPD_TOKEN *arg;
     int     n;

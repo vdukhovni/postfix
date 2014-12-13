@@ -258,7 +258,7 @@ static void cleanup_milter_header_prepend(void *context, int rec_type,
 /* cleanup_milter_hbc_extend - additional header/body_checks actions */
 
 static char *cleanup_milter_hbc_extend(void *context, const char *command,
-			             int cmd_len, const char *optional_text,
+			         ssize_t cmd_len, const char *optional_text,
 				         const char *where, const char *buf,
 				               ssize_t buf_len, off_t offset)
 {
@@ -2465,6 +2465,7 @@ int     main(int unused_argc, char **argv)
 	} else if (strcmp(argv->argv[0], "close") == 0) {
 	    if (*var_milt_head_checks) {
 		cleanup_milter_hbc_finish(state);
+		myfree(var_milt_head_checks);
 		var_milt_head_checks = "";
 	    }
 	    close_queue_file(state);

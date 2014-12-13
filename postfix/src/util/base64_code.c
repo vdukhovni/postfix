@@ -220,6 +220,8 @@ int     main(int unused_argc, char **unused_argv)
 	if (STR(b2)[n] != test[n])
 	    msg_panic("bad decode value %d != %d",
 		      (unsigned char) STR(b2)[n], (unsigned char) test[n]);
+    vstring_free(b1);
+    vstring_free(b2);
     return (0);
 }
 

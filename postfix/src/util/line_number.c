@@ -63,8 +63,9 @@ char   *format_line_number(VSTRING *result, ssize_t first, ssize_t last)
     /*
      * Print a range only when the numbers differ.
      */
-    vstring_sprintf(result, first == last ? "%ld" : "%ld-%ld",
-		    (long) first, (long) last);
+    vstring_sprintf(result, "%ld", (long) first);
+    if (first != last)
+	vstring_sprintf_append(result, "-%ld", (long) last);
 
     return (vstring_str(result));
 }

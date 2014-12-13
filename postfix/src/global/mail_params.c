@@ -763,7 +763,6 @@ void    mail_params_init()
 	0,
     };
     const char *cp;
-    INET_PROTO_INFO *proto_info;
 
     /*
      * Extract compatibility level first, so that we can determine what
@@ -795,7 +794,7 @@ void    mail_params_init()
      * What protocols should we attempt to support? The result is stored in
      * the global inet_proto_table variable.
      */
-    proto_info = inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
+    (void) inet_proto_init(VAR_INET_PROTOCOLS, var_inet_protocols);
 
     /*
      * Variables whose defaults are determined at runtime. Some sites use

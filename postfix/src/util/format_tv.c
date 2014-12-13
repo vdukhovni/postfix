@@ -8,8 +8,8 @@
 /*
 /*	VSTRING	*format_tv(buffer, sec, usec, sig_dig, max_dig)
 /*	VSTRING	*buffer;
-/*	int	sec;
-/*	int	usec;
+/*	long	sec;
+/*	long	usec;
 /*	int	sig_dig;
 /*	int	max_dig;
 /* DESCRIPTION
@@ -62,7 +62,7 @@
 
 /* format_tv - print time with limited precision */
 
-VSTRING *format_tv(VSTRING *buf, int sec, int usec,
+VSTRING *format_tv(VSTRING *buf, long sec, long usec,
 		           int sig_dig, int max_dig)
 {
     static int pow10[] = {1, 10, 100, 1000, 10000, 100000, 1000000};
@@ -77,7 +77,7 @@ VSTRING *format_tv(VSTRING *buf, int sec, int usec,
     if (max_dig < 0 || max_dig > 6)
 	msg_panic("format_tv: bad maximum decimal count %d", max_dig);
     if (sec < 0 || usec < 0 || usec > MILLION)
-	msg_panic("format_tv: bad time %ds %dus", sec, usec);
+	msg_panic("format_tv: bad time %lds %ldus", sec, usec);
     if (sig_dig < 1 || sig_dig > 6)
 	msg_panic("format_tv: bad significant decimal count %d", sig_dig);
     ures = MILLION / pow10[max_dig];
@@ -111,7 +111,7 @@ VSTRING *format_tv(VSTRING *buf, int sec, int usec,
     /*
      * Format the number. Truncate trailing null and thrash below resolution.
      */
-    vstring_sprintf_append(buf, "%d", sec);
+    vstring_sprintf_append(buf, "%ld", sec);
     if (usec >= ures) {
 	VSTRING_ADDCH(buf, '.');
 	for (rem = usec, n = MILLION / 10; rem >= ures && n > 0; n /= 10) {

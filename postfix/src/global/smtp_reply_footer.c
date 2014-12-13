@@ -97,7 +97,7 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
     char   *end;
     ssize_t dsn_len;
     int     crlf_at_end = 0;
-    int     reply_patch_undo_offs = -1;
+    ssize_t reply_patch_undo_offs = -1;
 
     /*
      * Sanity check.
@@ -158,7 +158,7 @@ int     smtp_reply_footer(VSTRING *buffer, ssize_t start,
 	    /* Append a clone of the optional enhanced status code. */
 	    if (dsn_len > 0) {
 		VSTRING_SPACE(buffer, dsn_len);
-		vstring_strncat(buffer, STR(buffer) + start + 4, (int) dsn_len);
+		vstring_strncat(buffer, STR(buffer) + start + 4, dsn_len);
 		vstring_strcat(buffer, " ");
 	    }
 	    reply_patch_undo_offs = -1;

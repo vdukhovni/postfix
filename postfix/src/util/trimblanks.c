@@ -8,7 +8,7 @@
 /*
 /*	char	*trimblanks(string, len)
 /*	char	*string;
-/*	int	len;
+/*	ssize_t	len;
 /* DESCRIPTION
 /*	trimblanks() returns a pointer to the beginning of the trailing
 /*	whitespace in \fIstring\fR, or a pointer to the string terminator
@@ -34,7 +34,7 @@
 
 #include "stringops.h"
 
-char   *trimblanks(char *string, int len)
+char   *trimblanks(char *string, ssize_t len)
 {
     char   *curr;
 
