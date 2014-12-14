@@ -1626,7 +1626,7 @@ typedef int pid_t;
 #if (__GNUC__ >= 3)			/* XXX Rough estimate */
 #define PRINTFPTRLIKE(x,y) PRINTFLIKE(x,y)
 #elif defined(__clang__) && __has_attribute(__format__)
-#define PRINTFLIKE(x,y)	__attribute__ ((__format__ (__printf__, (x), (y))))
+#define PRINTFPTRLIKE(x,y) __attribute__ ((__format__ (__printf__, (x), (y))))
 #else
 #define PRINTFPTRLIKE(x,y)
 #endif

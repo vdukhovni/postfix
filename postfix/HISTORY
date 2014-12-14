@@ -21087,3 +21087,9 @@ Apologies for any names omitted.
 
 	Shut up Clang unused assignment nag: global/mail_queue.h.
 	sendmail/sendmail.c, smtpd/smtpd_proxy.c, smtp/smtp_sasl_proto.c.
+
+20141214
+
+        Bugfix (introduced: 20141212): typo in Clang function pointer
+        format check, making it a noop. Viktor Dukhovni. File: 
+        util/sys_defs.h.
