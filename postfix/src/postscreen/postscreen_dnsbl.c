@@ -370,10 +370,10 @@ static void psc_dnsbl_receive(int event, void *context)
     if (event == EVENT_READ
 	&& attr_scan(stream,
 		     ATTR_FLAG_STRICT,
-		     ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, reply_dnsbl,
-		     ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, reply_client,
-		     ATTR_TYPE_INT, MAIL_ATTR_LABEL, &request_id,
-		     ATTR_TYPE_STR, MAIL_ATTR_RBL_ADDR, reply_addr,
+		     RECV_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, reply_dnsbl),
+		     RECV_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, reply_client),
+		     RECV_ATTR_INT(MAIL_ATTR_LABEL, &request_id),
+		     RECV_ATTR_STR(MAIL_ATTR_RBL_ADDR, reply_addr),
 		     ATTR_TYPE_END) == 4
 	&& (score = (PSC_DNSBL_SCORE *)
 	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0
@@ -509,9 +509,9 @@ int     psc_dnsbl_request(const char *client_addr,
 			VSTREAM_CTL_CONTEXT, ht[0]->key,
 			VSTREAM_CTL_END);
 	attr_print(stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, ht[0]->key,
-		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, client_addr,
-		   ATTR_TYPE_INT, MAIL_ATTR_LABEL, score->request_id,
+		   SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, ht[0]->key),
+		   SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, client_addr),
+		   SEND_ATTR_INT(MAIL_ATTR_LABEL, score->request_id),
 		   ATTR_TYPE_END);
 	if (vstream_fflush(stream) != 0) {
 	    msg_warn("%s: error sending to %s service: %m",

@@ -361,9 +361,9 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
      * Process the request.
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
-		  ATTR_TYPE_INT, MAIL_ATTR_FUNC, &request_func,
+		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
+		  RECV_ATTR_INT(MAIL_ATTR_FUNC, &request_func),
 		  ATTR_TYPE_END) != 3
 	|| (request_func != DICT_SEQ_FUN_FIRST
 	    && request_func != DICT_SEQ_FUN_NEXT)) {
@@ -391,9 +391,9 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
-	       ATTR_TYPE_STR, MAIL_ATTR_KEY, reply_key,
-	       ATTR_TYPE_STR, MAIL_ATTR_VALUE, reply_value,
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_STR(MAIL_ATTR_KEY, reply_key),
+	       SEND_ATTR_STR(MAIL_ATTR_VALUE, reply_value),
 	       ATTR_TYPE_END);
 }
 
@@ -410,9 +410,9 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
      * Process the request.
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
-		  ATTR_TYPE_STR, MAIL_ATTR_KEY, request_key,
+		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
+		  RECV_ATTR_STR(MAIL_ATTR_KEY, request_key),
 		  ATTR_TYPE_END) != 3) {
 	reply_status = PROXY_STAT_BAD;
 	reply_value = "";
@@ -435,8 +435,8 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
-	       ATTR_TYPE_STR, MAIL_ATTR_VALUE, reply_value,
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_STR(MAIL_ATTR_VALUE, reply_value),
 	       ATTR_TYPE_END);
 }
 
@@ -459,10 +459,10 @@ static void proxymap_update_service(VSTREAM *client_stream)
      * otherwise.
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
-		  ATTR_TYPE_STR, MAIL_ATTR_KEY, request_key,
-		  ATTR_TYPE_STR, MAIL_ATTR_VALUE, request_value,
+		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
+		  RECV_ATTR_STR(MAIL_ATTR_KEY, request_key),
+		  RECV_ATTR_STR(MAIL_ATTR_VALUE, request_value),
 		  ATTR_TYPE_END) != 4) {
 	reply_status = PROXY_STAT_BAD;
     } else if (proxy_writer == 0) {
@@ -490,7 +490,7 @@ static void proxymap_update_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
 	       ATTR_TYPE_END);
 }
 
@@ -510,9 +510,9 @@ static void proxymap_delete_service(VSTREAM *client_stream)
      * that the on-disk data is in a consistent state between updates.
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
-		  ATTR_TYPE_STR, MAIL_ATTR_KEY, request_key,
+		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
+		  RECV_ATTR_STR(MAIL_ATTR_KEY, request_key),
 		  ATTR_TYPE_END) != 3) {
 	reply_status = PROXY_STAT_BAD;
     } else if (proxy_writer == 0) {
@@ -540,7 +540,7 @@ static void proxymap_delete_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
 	       ATTR_TYPE_END);
 }
 
@@ -557,8 +557,8 @@ static void proxymap_open_service(VSTREAM *client_stream)
      * Process the request.
      */
     if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_TABLE, request_map,
-		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &request_flags,
+		  RECV_ATTR_STR(MAIL_ATTR_TABLE, request_map),
+		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &request_flags),
 		  ATTR_TYPE_END) != 2) {
 	reply_status = PROXY_STAT_BAD;
 	reply_flags = 0;
@@ -574,8 +574,8 @@ static void proxymap_open_service(VSTREAM *client_stream)
      * Respond to the client.
      */
     attr_print(client_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, reply_status,
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, reply_flags,
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, reply_status),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, reply_flags),
 	       ATTR_TYPE_END);
 }
 
@@ -609,7 +609,7 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 		    VSTREAM_CTL_END);
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
+		  RECV_ATTR_STR(MAIL_ATTR_REQ, request),
 		  ATTR_TYPE_END) == 1) {
 	if (VSTREQ(request, PROXY_REQ_LOOKUP)) {
 	    proxymap_lookup_service(client_stream);
@@ -624,7 +624,7 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 	} else {
 	    msg_warn("unrecognized request: \"%s\", ignored", STR(request));
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, PROXY_STAT_BAD,
+		       SEND_ATTR_INT(MAIL_ATTR_STATUS, PROXY_STAT_BAD),
 		       ATTR_TYPE_END);
 	}
     }

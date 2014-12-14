@@ -255,7 +255,7 @@ static void abounce_event(int event, void *context)
     ABOUNCE_EVENT_DISABLE(vstream_fileno(ap->fp), abounce_event, context);
     abounce_done(ap, (event != EVENT_TIME
 		      && attr_scan(ap->fp, ATTR_FLAG_STRICT,
-				   ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+				   RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 				   ATTR_TYPE_END) == 1) ? status : -1);
 }
 
@@ -288,16 +288,16 @@ static void abounce_request_verp(const char *class, const char *service,
     ap->fp = mail_connect_wait(class, service);
 
     if (attr_print(ap->fp, ATTR_FLAG_NONE,
-		   ATTR_TYPE_INT, MAIL_ATTR_NREQ, command,
-		   ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
-		   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
-		   ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
-		   ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
-		   ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, smtputf8,
-		   ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-		   ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
-		   ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp,
+		   SEND_ATTR_INT(MAIL_ATTR_NREQ, command),
+		   SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
+		   SEND_ATTR_STR(MAIL_ATTR_QUEUE, queue),
+		   SEND_ATTR_STR(MAIL_ATTR_QUEUEID, id),
+		   SEND_ATTR_STR(MAIL_ATTR_ENCODING, encoding),
+		   SEND_ATTR_INT(MAIL_ATTR_SMTPUTF8, smtputf8),
+		   SEND_ATTR_STR(MAIL_ATTR_SENDER, sender),
+		   SEND_ATTR_STR(MAIL_ATTR_DSN_ENVID, dsn_envid),
+		   SEND_ATTR_INT(MAIL_ATTR_DSN_RET, dsn_ret),
+		   SEND_ATTR_STR(MAIL_ATTR_VERPDL, verp),
 		   ATTR_TYPE_END) == 0
 	&& vstream_fflush(ap->fp) == 0) {
 	ABOUNCE_EVENT_ENABLE(vstream_fileno(ap->fp), abounce_event,
@@ -360,15 +360,15 @@ static void abounce_request(const char *class, const char *service,
     ap->fp = mail_connect_wait(class, service);
 
     if (attr_print(ap->fp, ATTR_FLAG_NONE,
-		   ATTR_TYPE_INT, MAIL_ATTR_NREQ, command,
-		   ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
-		   ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue,
-		   ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id,
-		   ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
-		   ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, smtputf8,
-		   ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-		   ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-		   ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, dsn_ret,
+		   SEND_ATTR_INT(MAIL_ATTR_NREQ, command),
+		   SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
+		   SEND_ATTR_STR(MAIL_ATTR_QUEUE, queue),
+		   SEND_ATTR_STR(MAIL_ATTR_QUEUEID, id),
+		   SEND_ATTR_STR(MAIL_ATTR_ENCODING, encoding),
+		   SEND_ATTR_INT(MAIL_ATTR_SMTPUTF8, smtputf8),
+		   SEND_ATTR_STR(MAIL_ATTR_SENDER, sender),
+		   SEND_ATTR_STR(MAIL_ATTR_DSN_ENVID, dsn_envid),
+		   SEND_ATTR_INT(MAIL_ATTR_DSN_RET, dsn_ret),
 		   ATTR_TYPE_END) == 0
 	&& vstream_fflush(ap->fp) == 0) {
 	ABOUNCE_EVENT_ENABLE(vstream_fileno(ap->fp), abounce_event,

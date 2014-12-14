@@ -525,12 +525,12 @@ static void anvil_remote_lookup(VSTREAM *client_stream, const char *ident)
     if ((anvil_remote =
 	 (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) == 0) {
 	attr_print_plain(client_stream, ATTR_FLAG_NONE,
-			 ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-			 ATTR_TYPE_INT, ANVIL_ATTR_COUNT, 0,
-			 ATTR_TYPE_INT, ANVIL_ATTR_RATE, 0,
-			 ATTR_TYPE_INT, ANVIL_ATTR_MAIL, 0,
-			 ATTR_TYPE_INT, ANVIL_ATTR_RCPT, 0,
-			 ATTR_TYPE_INT, ANVIL_ATTR_NTLS, 0,
+			 SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+			 SEND_ATTR_INT(ANVIL_ATTR_COUNT, 0),
+			 SEND_ATTR_INT(ANVIL_ATTR_RATE, 0),
+			 SEND_ATTR_INT(ANVIL_ATTR_MAIL, 0),
+			 SEND_ATTR_INT(ANVIL_ATTR_RCPT, 0),
+			 SEND_ATTR_INT(ANVIL_ATTR_NTLS, 0),
 			 ATTR_TYPE_END);
     } else {
 
@@ -541,12 +541,12 @@ static void anvil_remote_lookup(VSTREAM *client_stream, const char *ident)
 	    && anvil_remote->start + var_anvil_time_unit < event_time())
 	    ANVIL_REMOTE_RSET_RATE(anvil_remote, 0);
 	attr_print_plain(client_stream, ATTR_FLAG_NONE,
-			 ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-		       ATTR_TYPE_INT, ANVIL_ATTR_COUNT, anvil_remote->count,
-			 ATTR_TYPE_INT, ANVIL_ATTR_RATE, anvil_remote->rate,
-			 ATTR_TYPE_INT, ANVIL_ATTR_MAIL, anvil_remote->mail,
-			 ATTR_TYPE_INT, ANVIL_ATTR_RCPT, anvil_remote->rcpt,
-			 ATTR_TYPE_INT, ANVIL_ATTR_NTLS, anvil_remote->ntls,
+			 SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		       SEND_ATTR_INT(ANVIL_ATTR_COUNT, anvil_remote->count),
+			 SEND_ATTR_INT(ANVIL_ATTR_RATE, anvil_remote->rate),
+			 SEND_ATTR_INT(ANVIL_ATTR_MAIL, anvil_remote->mail),
+			 SEND_ATTR_INT(ANVIL_ATTR_RCPT, anvil_remote->rcpt),
+			 SEND_ATTR_INT(ANVIL_ATTR_NTLS, anvil_remote->ntls),
 			 ATTR_TYPE_END);
     }
 }
@@ -617,9 +617,9 @@ static void anvil_remote_connect(VSTREAM *client_stream, const char *ident)
      * Respond to the local server.
      */
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
-		     ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-		     ATTR_TYPE_INT, ANVIL_ATTR_COUNT, anvil_remote->count,
-		     ATTR_TYPE_INT, ANVIL_ATTR_RATE, anvil_remote->rate,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		     SEND_ATTR_INT(ANVIL_ATTR_COUNT, anvil_remote->count),
+		     SEND_ATTR_INT(ANVIL_ATTR_RATE, anvil_remote->rate),
 		     ATTR_TYPE_END);
 
     /*
@@ -649,8 +649,8 @@ static void anvil_remote_mail(VSTREAM *client_stream, const char *ident)
      */
     ANVIL_REMOTE_INCR_MAIL(anvil_remote);
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
-		     ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-		     ATTR_TYPE_INT, ANVIL_ATTR_RATE, anvil_remote->mail,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		     SEND_ATTR_INT(ANVIL_ATTR_RATE, anvil_remote->mail),
 		     ATTR_TYPE_END);
 
     /*
@@ -678,8 +678,8 @@ static void anvil_remote_rcpt(VSTREAM *client_stream, const char *ident)
      */
     ANVIL_REMOTE_INCR_RCPT(anvil_remote);
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
-		     ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-		     ATTR_TYPE_INT, ANVIL_ATTR_RATE, anvil_remote->rcpt,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		     SEND_ATTR_INT(ANVIL_ATTR_RATE, anvil_remote->rcpt),
 		     ATTR_TYPE_END);
 
     /*
@@ -707,8 +707,8 @@ static void anvil_remote_newtls(VSTREAM *client_stream, const char *ident)
      */
     ANVIL_REMOTE_INCR_NTLS(anvil_remote);
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
-		     ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-		     ATTR_TYPE_INT, ANVIL_ATTR_RATE, anvil_remote->ntls,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		     SEND_ATTR_INT(ANVIL_ATTR_RATE, anvil_remote->ntls),
 		     ATTR_TYPE_END);
 
     /*
@@ -747,8 +747,8 @@ static void anvil_remote_newtls_stat(VSTREAM *client_stream, const char *ident)
      * Respond to local server.
      */
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
-		     ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
-		     ATTR_TYPE_INT, ANVIL_ATTR_RATE, rate,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
+		     SEND_ATTR_INT(ANVIL_ATTR_RATE, rate),
 		     ATTR_TYPE_END);
 }
 
@@ -784,7 +784,7 @@ static void anvil_remote_disconnect(VSTREAM *client_stream, const char *ident)
      * Respond to the local server.
      */
     attr_print_plain(client_stream, ATTR_FLAG_NONE,
-		     ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_OK,
+		     SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_OK),
 		     ATTR_TYPE_END);
 }
 
@@ -884,14 +884,14 @@ static void anvil_service(VSTREAM *client_stream, char *unused_service, char **a
 	msg_info("--- start request ---");
     if (attr_scan_plain(client_stream,
 			ATTR_FLAG_MISSING | ATTR_FLAG_STRICT,
-			ATTR_TYPE_STR, ANVIL_ATTR_REQ, request,
-			ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			RECV_ATTR_STR(ANVIL_ATTR_REQ, request),
+			RECV_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			ATTR_TYPE_END) == 2) {
 	for (rp = request_table; /* see below */ ; rp++) {
 	    if (rp->name == 0) {
 		msg_warn("unrecognized request: \"%s\", ignored", STR(request));
 		attr_print_plain(client_stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, ANVIL_STAT_FAIL,
+			  SEND_ATTR_INT(ANVIL_ATTR_STATUS, ANVIL_STAT_FAIL),
 				 ATTR_TYPE_END);
 		break;
 	    }

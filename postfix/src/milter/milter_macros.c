@@ -77,7 +77,7 @@
 /*	print routine.  milter_macros_print() is meant to be passed
 /*	as a call-back to attr_print*(), thusly:
 /*
-/*	ATTR_TYPE_FUNC, milter_macros_print, (void *) macros,
+/*	SEND_ATTR_FUNC(milter_macros_print, (void *) macros),
 /*
 /*	milter_macros_scan() reads a MILTER_MACROS structure from
 /*	the named stream using the specified attribute scan routine.
@@ -85,7 +85,7 @@
 /*	members.  milter_macros_scan() is meant to be passed as a
 /*	call-back to attr_scan*(), thusly:
 /*
-/*	ATTR_TYPE_FUNC, milter_macros_scan, (void *) macros,
+/*	RECV_ATTR_FUNC(milter_macros_scan, (void *) macros),
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -141,14 +141,14 @@ int     milter_macros_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
      * as in the milter_macros_scan() function.
      */
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_CONN, mp->conn_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_HELO, mp->helo_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_MAIL, mp->mail_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_RCPT, mp->rcpt_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_DATA, mp->data_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_EOH, mp->eoh_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_EOD, mp->eod_macros,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_UNK, mp->unk_macros,
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_CONN, mp->conn_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_HELO, mp->helo_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_MAIL, mp->mail_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_RCPT, mp->rcpt_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_DATA, mp->data_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_EOH, mp->eoh_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_EOD, mp->eod_macros),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_MAC_UNK, mp->unk_macros),
 		   ATTR_TYPE_END);
     return (ret);
 }
@@ -178,14 +178,14 @@ int     milter_macros_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
      * as in the milter_macros_print() function.
      */
     ret = scan_fn(fp, flags | ATTR_FLAG_MORE,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_CONN, conn_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_HELO, helo_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_MAIL, mail_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_RCPT, rcpt_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_DATA, data_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_EOH, eoh_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_EOD, eod_macros,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_MAC_UNK, unk_macros,
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_CONN, conn_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_HELO, helo_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_MAIL, mail_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_RCPT, rcpt_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_DATA, data_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_EOH, eoh_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_EOD, eod_macros),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_MAC_UNK, unk_macros),
 		  ATTR_TYPE_END);
 
     /*

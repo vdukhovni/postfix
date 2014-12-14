@@ -118,7 +118,7 @@ static void psc_starttls_finish(int event, void *context)
      */
     if (event != EVENT_READ
 	|| attr_scan(tlsproxy_stream, ATTR_FLAG_STRICT,
-		     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+		     RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 		     ATTR_TYPE_END) != 1 || status == 0) {
 
 	/*
@@ -226,10 +226,10 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
     vstring_sprintf(remote_endpt, "[%s]:%s", smtp_state->smtp_client_addr,
 		    smtp_state->smtp_client_port);
     attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt),
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER,
-	       ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, psc_normal_cmd_time_limit,
-	       ATTR_TYPE_STR, MAIL_ATTR_SERVER_ID, MAIL_SERVICE_SMTPD,	/* XXX */
+	       SEND_ATTR_STR(MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt)),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER),
+	       SEND_ATTR_INT(MAIL_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
+	       SEND_ATTR_STR(MAIL_ATTR_SERVER_ID, MAIL_SERVICE_SMTPD),	/* XXX */
 	       ATTR_TYPE_END);
     if (vstream_fflush(tlsproxy_stream) != 0) {
 	msg_warn("error sending request to %s service: %m", psc_tlsp_service);

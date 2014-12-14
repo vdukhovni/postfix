@@ -1924,7 +1924,7 @@ static int mail_open_stream(SMTPD_STATE *state)
 					  var_cleanup_service);
 	if (state->dest == 0
 	    || attr_print(state->dest->stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, cleanup_flags,
+			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, cleanup_flags),
 			  ATTR_TYPE_END) != 0)
 	    msg_fatal("unable to connect to the %s %s service",
 		      MAIL_CLASS_PUBLIC, var_cleanup_service);

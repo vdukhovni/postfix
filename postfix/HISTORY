@@ -21090,6 +21090,30 @@ Apologies for any names omitted.
 
 20141214
 
-        Bugfix (introduced: 20141212): typo in Clang function pointer
-        format check, making it a noop. Viktor Dukhovni. File: 
-        util/sys_defs.h.
+	Bugfix (introduced: 20141212): typo in Clang function pointer
+	format check, making it a noop. Viktor Dukhovni. File:
+	util/sys_defs.h.
+
+	Maintainability: argument typechecking for the variadic
+	attribute-value read/write functions. For full typechecking
+	compile with -DVARARGS_ATTR_DEBUG. Files: anvil/anvil.c,
+	bounce/bounce.c, cleanup/cleanup.c, dnsblog/dnsblog.c,
+	flush/flush.c, global/abounce.c, global/anvil_clnt.c,
+	global/bounce.c, global/defer.c, global/deliver_pass.c,
+	global/deliver_request.c, global/dict_proxy.c, global/dsb_scan.c,
+	global/dsn_print.c, global/flush_clnt.c,
+	global/mail_command_client.c, global/mail_stream.c,
+	global/msg_stats_print.c, global/msg_stats_scan.c,
+	global/post_mail.c, global/rcpt_buf.c, global/rcpt_print.c,
+	global/resolve_clnt.c, global/rewrite_clnt.c, global/scache_clnt.c,
+	global/trace.c, global/verify_clnt.c, local/forward.c,
+	milter/milter.c, milter/milter8.c, milter/milter_macros.c,
+	oqmgr/qmgr_deliver.c, pickup/pickup.c, postdrop/postdrop.c,
+	postscreen/postscreen_dnsbl.c, postscreen/postscreen_send.c,
+	postscreen/postscreen_starttls.c, proxymap/proxymap.c,
+	qmgr/qmgr_deliver.c, qmqpd/qmqpd.c, scache/scache.c,
+	smtpd/smtpd.c, smtpd/smtpd_check.c, tls/tls_mgr.c,
+	tls/tls_proxy_clnt.c, tls/tls_proxy_print.c, tls/tls_proxy_scan.c,
+	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c, trivial-rewrite/resolve.c,
+	trivial-rewrite/rewrite.c, trivial-rewrite/trivial-rewrite.c,
+	util/attr.h.

@@ -113,20 +113,20 @@ static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
 	    errno = 0;
 	    count += 1;
 	    if (attr_print(stream, ATTR_FLAG_NONE,
-			 ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_SAVE_ENDP,
-			   ATTR_TYPE_INT, MAIL_ATTR_TTL, endp_ttl,
-			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
-			   ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
+			 SEND_ATTR_STR(MAIL_ATTR_REQ, SCACHE_REQ_SAVE_ENDP),
+			   SEND_ATTR_INT(MAIL_ATTR_TTL, endp_ttl),
+			   SEND_ATTR_STR(MAIL_ATTR_LABEL, endp_label),
+			   SEND_ATTR_STR(MAIL_ATTR_PROP, endp_prop),
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_STR, MAIL_ATTR_DUMMY, sp->dummy,
+			     RECV_ATTR_STR(MAIL_ATTR_DUMMY, sp->dummy),
 			     ATTR_TYPE_END) != 1
 #endif
 		|| LOCAL_SEND_FD(vstream_fileno(stream), fd) < 0
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+			     RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			     ATTR_TYPE_END) != 1) {
 		if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
 		    msg_warn("problem talking to service %s: %m",
@@ -175,13 +175,13 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 	if ((stream = auto_clnt_access(sp->auto_clnt)) != 0) {
 	    errno = 0;
 	    if (attr_print(stream, ATTR_FLAG_NONE,
-			 ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_FIND_ENDP,
-			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
+			 SEND_ATTR_STR(MAIL_ATTR_REQ, SCACHE_REQ_FIND_ENDP),
+			   SEND_ATTR_STR(MAIL_ATTR_LABEL, endp_label),
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
-			     ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
+			     RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
+			     RECV_ATTR_STR(MAIL_ATTR_PROP, endp_prop),
 			     ATTR_TYPE_END) != 2) {
 		if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		    msg_warn("problem talking to service %s: %m",
@@ -194,7 +194,7 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 	    } else if (
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
 		       attr_print(stream, ATTR_FLAG_NONE,
-				  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+				  SEND_ATTR_STR(MAIL_ATTR_DUMMY, ""),
 				  ATTR_TYPE_END) != 0
 		       || vstream_fflush(stream) != 0
 		       || read_wait(vstream_fileno(stream),
@@ -208,7 +208,7 @@ static int scache_clnt_find_endp(SCACHE *scache, const char *endp_label,
 	    } else {
 #ifdef MUST_READ_AFTER_SENDING_FD
 		(void) attr_print(stream, ATTR_FLAG_NONE,
-				  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+				  SEND_ATTR_STR(MAIL_ATTR_DUMMY, ""),
 				  ATTR_TYPE_END);
 		(void) vstream_fflush(stream);
 #endif
@@ -263,15 +263,15 @@ static void scache_clnt_save_dest(SCACHE *scache, int dest_ttl,
 	if ((stream = auto_clnt_access(sp->auto_clnt)) != 0) {
 	    errno = 0;
 	    if (attr_print(stream, ATTR_FLAG_NONE,
-			 ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_SAVE_DEST,
-			   ATTR_TYPE_INT, MAIL_ATTR_TTL, dest_ttl,
-			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, dest_label,
-			   ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
-			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, endp_label,
+			 SEND_ATTR_STR(MAIL_ATTR_REQ, SCACHE_REQ_SAVE_DEST),
+			   SEND_ATTR_INT(MAIL_ATTR_TTL, dest_ttl),
+			   SEND_ATTR_STR(MAIL_ATTR_LABEL, dest_label),
+			   SEND_ATTR_STR(MAIL_ATTR_PROP, dest_prop),
+			   SEND_ATTR_STR(MAIL_ATTR_LABEL, endp_label),
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+			     RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			     ATTR_TYPE_END) != 1) {
 		if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		    msg_warn("problem talking to service %s: %m",
@@ -318,14 +318,14 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 	if ((stream = auto_clnt_access(sp->auto_clnt)) != 0) {
 	    errno = 0;
 	    if (attr_print(stream, ATTR_FLAG_NONE,
-			 ATTR_TYPE_STR, MAIL_ATTR_REQ, SCACHE_REQ_FIND_DEST,
-			   ATTR_TYPE_STR, MAIL_ATTR_LABEL, dest_label,
+			 SEND_ATTR_STR(MAIL_ATTR_REQ, SCACHE_REQ_FIND_DEST),
+			   SEND_ATTR_STR(MAIL_ATTR_LABEL, dest_label),
 			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(stream)
 		|| attr_scan(stream, ATTR_FLAG_STRICT,
-			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
-			     ATTR_TYPE_STR, MAIL_ATTR_PROP, dest_prop,
-			     ATTR_TYPE_STR, MAIL_ATTR_PROP, endp_prop,
+			     RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
+			     RECV_ATTR_STR(MAIL_ATTR_PROP, dest_prop),
+			     RECV_ATTR_STR(MAIL_ATTR_PROP, endp_prop),
 			     ATTR_TYPE_END) != 3) {
 		if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		    msg_warn("problem talking to service %s: %m",
@@ -338,7 +338,7 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 	    } else if (
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
 		       attr_print(stream, ATTR_FLAG_NONE,
-				  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+				  SEND_ATTR_STR(MAIL_ATTR_DUMMY, ""),
 				  ATTR_TYPE_END) != 0
 		       || vstream_fflush(stream) != 0
 		       || read_wait(vstream_fileno(stream),
@@ -352,7 +352,7 @@ static int scache_clnt_find_dest(SCACHE *scache, const char *dest_label,
 	    } else {
 #ifdef MUST_READ_AFTER_SENDING_FD
 		(void) attr_print(stream, ATTR_FLAG_NONE,
-				  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+				  SEND_ATTR_STR(MAIL_ATTR_DUMMY, ""),
 				  ATTR_TYPE_END);
 		(void) vstream_fflush(stream);
 #endif

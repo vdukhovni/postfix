@@ -231,18 +231,18 @@ static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
      */
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, rbl_domain,
-		  ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, addr,
-		  ATTR_TYPE_INT, MAIL_ATTR_LABEL, &request_id,
+		  RECV_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, rbl_domain),
+		  RECV_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, addr),
+		  RECV_ATTR_INT(MAIL_ATTR_LABEL, &request_id),
 		  ATTR_TYPE_END) == 3) {
 	(void) dnsblog_query(result, STR(rbl_domain), STR(addr));
 	if (var_dnsblog_delay > 0)
 	    sleep(var_dnsblog_delay);
 	attr_print(client_stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_STR, MAIL_ATTR_RBL_DOMAIN, STR(rbl_domain),
-		   ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, STR(addr),
-		   ATTR_TYPE_INT, MAIL_ATTR_LABEL, request_id,
-		   ATTR_TYPE_STR, MAIL_ATTR_RBL_ADDR, STR(result),
+		   SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, STR(rbl_domain)),
+		   SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, STR(addr)),
+		   SEND_ATTR_INT(MAIL_ATTR_LABEL, request_id),
+		   SEND_ATTR_STR(MAIL_ATTR_RBL_ADDR, STR(result)),
 		   ATTR_TYPE_END);
 	vstream_fflush(client_stream);
     }

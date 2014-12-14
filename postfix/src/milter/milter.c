@@ -716,8 +716,8 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
      * Send the filter macro name lists.
      */
     (void) attr_print(stream, ATTR_FLAG_MORE,
-		      ATTR_TYPE_FUNC, milter_macros_print,
-		      (void *) milters->macros,
+		      SEND_ATTR_FUNC(milter_macros_print,
+				     (void *) milters->macros),
 		      ATTR_TYPE_END);
 
     /*
@@ -732,7 +732,7 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
      */
     if (status != 0
 	|| attr_scan(stream, ATTR_FLAG_STRICT,
-		     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+		     RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 		     ATTR_TYPE_END) != 1
 	|| status != 0) {
 	msg_warn("cannot send milters to service %s", VSTREAM_PATH(stream));
@@ -779,8 +779,8 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
      */
     milters->macros = milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO);
     if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_FUNC, milter_macros_scan,
-		  (void *) milters->macros,
+		  RECV_ATTR_FUNC(milter_macros_scan,
+				 (void *) milters->macros),
 		  ATTR_TYPE_END) != 1) {
 	milter_free(milters);
 	return (0);
@@ -809,7 +809,7 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
      * Over to you.
      */
     (void) attr_print(stream, ATTR_FLAG_NONE,
-		      ATTR_TYPE_INT, MAIL_ATTR_STATUS, 0,
+		      SEND_ATTR_INT(MAIL_ATTR_STATUS, 0),
 		      ATTR_TYPE_END);
     return (milters);
 }

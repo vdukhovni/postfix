@@ -155,9 +155,9 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
     tlsproxy_stream = vstream_fdopen(fd, O_RDWR);
     vstring_sprintf(remote_endpt, "[%s]:%s", peer_addr, peer_port);
     attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt),
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
-	       ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, timeout,
+	       SEND_ATTR_STR(MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt)),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
+	       SEND_ATTR_INT(MAIL_ATTR_TIMEOUT, timeout),
 	       ATTR_TYPE_END);
     if (vstream_fflush(tlsproxy_stream) != 0) {
 	msg_warn("error sending request to %s service: %m",
@@ -174,7 +174,7 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
      * descriptor. We can't assume UNIX-domain socket semantics here.
      */
     if (attr_scan(tlsproxy_stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+		  RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 		  ATTR_TYPE_END) != 1 || status == 0) {
 
 	/*
@@ -216,7 +216,7 @@ TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *proxy_stream)
     tls_context = (TLS_SESS_STATE *) mymalloc(sizeof(*tls_context));
 
     if (attr_scan(proxy_stream, ATTR_FLAG_STRICT,
-	       ATTR_TYPE_FUNC, tls_proxy_context_scan, (void *) tls_context,
+	       RECV_ATTR_FUNC(tls_proxy_context_scan, (void *) tls_context),
 		  ATTR_TYPE_END) != 1) {
 	tls_proxy_context_free(tls_context);
 	return (0);

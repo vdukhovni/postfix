@@ -707,7 +707,7 @@ static int flush_request_receive(VSTREAM *client_stream, VSTRING *request)
     else {
 	if (attr_scan(client_stream,
 		      ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
-		      ATTR_TYPE_STR, MAIL_ATTR_REQ, request,
+		      RECV_ATTR_STR(MAIL_ATTR_REQ, request),
 		      ATTR_TYPE_END) != 1) {
 	    return (-1);
 	}
@@ -749,50 +749,50 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	    site = vstring_alloc(10);
 	    queue_id = vstring_alloc(10);
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-			  ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
-			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			  RECV_ATTR_STR(MAIL_ATTR_SITE, site),
+			  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 			  ATTR_TYPE_END) == 2
 		&& mail_queue_id_ok(STR(queue_id)))
 		status = flush_add_service(lowercase(STR(site)), STR(queue_id));
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
+		       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 		       ATTR_TYPE_END);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND_SITE)) {
 	    site = vstring_alloc(10);
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-			  ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
+			  RECV_ATTR_STR(MAIL_ATTR_SITE, site),
 			  ATTR_TYPE_END) == 1)
 		status = flush_send_service(lowercase(STR(site)),
 					    UNTHROTTLE_BEFORE);
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
+		       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 		       ATTR_TYPE_END);
 	} else if (STREQ(STR(request), FLUSH_REQ_SEND_FILE)) {
 	    queue_id = vstring_alloc(10);
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
-			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 			  ATTR_TYPE_END) == 1)
 		status = flush_send_file_service(STR(queue_id));
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
+		       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 		       ATTR_TYPE_END);
 	} else if (STREQ(STR(request), FLUSH_REQ_REFRESH)
 		   || STREQ(STR(request), wakeup)) {
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, FLUSH_STAT_OK,
+		       SEND_ATTR_INT(MAIL_ATTR_STATUS, FLUSH_STAT_OK),
 		       ATTR_TYPE_END);
 	    vstream_fflush(client_stream);
 	    (void) flush_refresh_service(var_fflush_refresh);
 	} else if (STREQ(STR(request), FLUSH_REQ_PURGE)) {
 	    attr_print(client_stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_INT, MAIL_ATTR_STATUS, FLUSH_STAT_OK,
+		       SEND_ATTR_INT(MAIL_ATTR_STATUS, FLUSH_STAT_OK),
 		       ATTR_TYPE_END);
 	    vstream_fflush(client_stream);
 	    (void) flush_refresh_service(0);
 	}
     } else
 	attr_print(client_stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
+		   SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 		   ATTR_TYPE_END);
     vstring_free(request);
     if (site)
