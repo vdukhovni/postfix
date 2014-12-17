@@ -63,6 +63,7 @@ pipe.o: ../../include/argv.h
 pipe.o: ../../include/attr.h
 pipe.o: ../../include/bounce.h
 pipe.o: ../../include/canon_addr.h
+pipe.o: ../../include/check_arg.h
 pipe.o: ../../include/defer.h
 pipe.o: ../../include/deliver_completed.h
 pipe.o: ../../include/deliver_request.h
@@ -87,6 +88,7 @@ pipe.o: ../../include/msg.h
 pipe.o: ../../include/msg_stats.h
 pipe.o: ../../include/myflock.h
 pipe.o: ../../include/mymalloc.h
+pipe.o: ../../include/nvtable.h
 pipe.o: ../../include/off_cvt.h
 pipe.o: ../../include/pipe_command.h
 pipe.o: ../../include/quote_822_local.h

@@ -20,6 +20,10 @@
   * Utility library.
   */
 #include <vstream.h>
+#include <vstring.h>
+#include <htable.h>
+#include <nvtable.h>
+#include <check_arg.h>
 
  /*
   * Attribute types. See attr_scan(3) for documentation.
@@ -36,123 +40,38 @@
 
 #define ATTR_HASH_LIMIT		1024	/* Size of hash table */
 
- /*
-  * Optional wrappers to enable type checking on varargs argument lists. Each
-  * non-pointer argument is handled by a want_xxx_val() wrapper (xxx = int,
-  * long or ssize_t), and each pointer argument is handled by a
-  * want_xxx_ptr() wrapper. With VARARGS_ATTR_DEBUG defined, the wrappers
-  * will detect type mis-matches of interest.
-  * 
-  * Note 1: Non-pointer types. With VARARGS_ATTR_DEBUG defined, we don't detect
-  * type mismatches between non-pointer types. Reason: the want_xxx_val()
-  * wrappers cannot force the caller to actually pass an int, long or ssize_t
-  * argument. We do detect type mismatches between pointer/non-pointer types.
-  * Since type mismatches between non-pointers cannot be detected with
-  * VARARGS_ATTR_DEBUG defined, the want_xxx_val() wrappers use a typecast
-  * with VARARGS_ATTR_DEBUG undefined.
-  * 
-  * Note 2: Pointer types. With VARARGS_ATTR_DEBUG defined, we do detect type
-  * mismatches between pointer types. The want_(const_)void_ptr() wrappers
-  * expect char* arguments instead of void*, because the latter would never
-  * complain about pointer type mismatches. If the caller actually passes a
-  * void* argument, then the implicit conversion to char* will be silent, and
-  * that is exactly what we want. We also detect type mismatches between
-  * pointer/non-pointer types. Since all type mismatches of interest can be
-  * detected with VARARGS_ATTR_DEBUG defined, the want_xxx_ptr() wrappers
-  * become NOOPs with VARARGS_ATTR_DEBUG undefined.
-  */
-#ifdef VARARGS_ATTR_DEBUG
-static inline int want_int_val(int v)
-{					/* Note 1 */
-    return (v);
-}
-static inline long want_long_val(long v)
-{					/* Note 1 */
-    return (v);
-}
-static inline ssize_t want_ssize_t_val(ssize_t v)
-{					/* Note 1 */
-    return (v);
-}
-static inline int *want_int_ptr(int *p)
-{
-    return (p);
-}
-static inline const char *want_const_char_ptr(const char *p)
-{
-    return (p);
-}
-static inline char *want_char_ptr(char *p)
-{
-    return (p);
-}
-static inline struct VSTRING *want_vstr_ptr(struct VSTRING *p)
-{
-    return (p);
-}
-static inline const struct HTABLE *want_const_ht_ptr(const struct HTABLE *p)
-{
-    return (p);
-}
-static inline struct HTABLE *want_ht_ptr(struct HTABLE *p)
-{
-    return (p);
-}
-static inline const struct NVTABLE *want_const_nv_ptr(const struct NVTABLE * p)
-{
-    return (p);
-}
-static inline struct NVTABLE *want_nv_ptr(struct NVTABLE * p)
-{
-    return (p);
-}
-static inline long *want_long_ptr(long *p)
-{
-    return (p);
-}
-static inline const char *want_const_void_ptr(const char *p)
-{					/* Note 2 */
-    return (p);
-}
-static inline char *want_void_ptr(char *p)
-{					/* Note 2 */
-    return (p);
-}
+#define SEND_ATTR_INT(name, val)	ATTR_TYPE_INT, CHECK_CONST_PTR(char, name), CHECK_VAL(int, val)
+#define SEND_ATTR_STR(name, val)	ATTR_TYPE_STR, CHECK_CONST_PTR(char, name), CHECK_CONST_PTR(char, val)
+#define SEND_ATTR_HASH(val)		ATTR_TYPE_HASH, CHECK_CONST_PTR(HTABLE, val)
+#define SEND_ATTR_NV(val)		ATTR_TYPE_NV, CHECK_CONST_PTR(NVTABLE, val)
+#define SEND_ATTR_LONG(name, val)	ATTR_TYPE_LONG, CHECK_CONST_PTR(char, name), CHECK_VAL(long, val)
+#define SEND_ATTR_DATA(name, len, val)	ATTR_TYPE_DATA, CHECK_CONST_PTR(char, name), CHECK_VAL(ssize_t, len), CHECK_CONST_PTR(void, val)
+#define SEND_ATTR_FUNC(func, val)	ATTR_TYPE_FUNC, (func), CHECK_CONST_PTR(void, val)
 
-#else
-#define want_int_val(val)	(int) (val)	/* Note 1 */
-#define want_long_val(val)	(long) (val)	/* Note 1 */
-#define want_ssize_t_val(val)	(ssize_t) (val)	/* Note 1 */
-#define want_int_ptr(val)	(val)
-#define want_const_char_ptr(val) (val)
-#define want_char_ptr(val)	(val)
-#define want_vstr_ptr(val)	(val)
-#define want_const_ht_ptr(val)	(val)
-#define want_ht_ptr(val)	(val)
-#define want_const_nv_ptr(val)	(val)
-#define want_nv_ptr(val)	(val)
-#define want_long_ptr(val)	(val)
-#define want_const_void_ptr(val) (val)
-#define want_void_ptr(val)	(val)
-#endif
+#define RECV_ATTR_INT(name, val)	ATTR_TYPE_INT, CHECK_CONST_PTR(char, name), CHECK_PTR(int, val)
+#define RECV_ATTR_STR(name, val)	ATTR_TYPE_STR, CHECK_CONST_PTR(char, name), CHECK_PTR(VSTRING, val)
+#define RECV_ATTR_HASH(val)		ATTR_TYPE_HASH, CHECK_PTR(HTABLE, val)
+#define RECV_ATTR_NV(val)		ATTR_TYPE_NV, CHECK_PTR(NVTABLE, val)
+#define RECV_ATTR_LONG(name, val)	ATTR_TYPE_LONG, CHECK_CONST_PTR(char, name), CHECK_PTR(long, val)
+#define RECV_ATTR_DATA(name, val)	ATTR_TYPE_DATA, CHECK_CONST_PTR(char, name), CHECK_PTR(VSTRING, val)
+#define RECV_ATTR_FUNC(func, val)	ATTR_TYPE_FUNC, (func), CHECK_PTR(void, val)
 
-#define want_name(name)	want_const_char_ptr(name)
+extern int CHECK_VAL_DUMMY(int);
+extern long CHECK_VAL_DUMMY(long);
+extern ssize_t CHECK_VAL_DUMMY(ssize_t);
+extern int *CHECK_PTR_DUMMY(int);
+extern long *CHECK_PTR_DUMMY(long);
+extern void *CHECK_PTR_DUMMY(void);
+extern const char *CHECK_CONST_PTR_DUMMY(char);
+extern const void *CHECK_CONST_PTR_DUMMY(void);
 
-#define SEND_ATTR_INT(name, val)	ATTR_TYPE_INT, want_name(name), want_int_val(val)
-#define SEND_ATTR_STR(name, val)	ATTR_TYPE_STR, want_name(name), want_const_char_ptr(val)
-#define SEND_ATTR_HASH(name, val)	ATTR_TYPE_HASH, want_name(name), want_const_ht_ptr(val)
-#define SEND_ATTR_NV(name, val)		ATTR_TYPE_NV, want_name(name), want_const_nv_ptr(val)
-#define SEND_ATTR_LONG(name, val)	ATTR_TYPE_LONG, want_name(name), want_long_val(val)
-#define SEND_ATTR_DATA(name, len, val)	ATTR_TYPE_DATA, want_name(name), want_ssize_t_val(len), want_const_void_ptr(val)
-#define SEND_ATTR_FUNC(func, val)	ATTR_TYPE_FUNC, (func), want_const_void_ptr(val)
+extern VSTRING *CHECK_PTR_DUMMY(VSTRING);
 
-#define RECV_ATTR_INT(name, val)	ATTR_TYPE_INT, want_name(name), want_int_ptr(val)
-#define RECV_ATTR_STR(name, val)	ATTR_TYPE_STR, want_name(name), want_vstr_ptr(val)
-#define RECV_ATTR_HASH(name, val)	ATTR_TYPE_HASH, want_name(name), want_ht_ptr(val)
-#define RECV_ATTR_NV(name, val)		ATTR_TYPE_NV, want_name(name), want_nv_ptr(val)
-#define RECV_ATTR_LONG(name, val)	ATTR_TYPE_LONG, want_name(name), want_long_ptr(val)
-#define RECV_ATTR_DATA(name, val)	ATTR_TYPE_DATA, want_name(name), want_vstr_ptr(val)
-#define RECV_ATTR_FUNC(func, val)	ATTR_TYPE_FUNC, (func), want_void_ptr(val)
+extern HTABLE *CHECK_PTR_DUMMY(HTABLE);
+extern const HTABLE *CHECK_CONST_PTR_DUMMY(HTABLE);
+
+extern NVTABLE *CHECK_PTR_DUMMY(NVTABLE);
+extern const NVTABLE *CHECK_CONST_PTR_DUMMY(NVTABLE);
 
  /*
   * Flags that control processing. See attr_scan(3) for documentation.

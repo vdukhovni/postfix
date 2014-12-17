@@ -39,7 +39,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
 	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c dict_union.c \
-	extpar.c dict_inline.c
+	extpar.c dict_inline.c attr.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -80,7 +80,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
 	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o dict_union.o \
-	extpar.o dict_inline.o
+	extpar.o dict_inline.o attr.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -109,7 +109,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
-	valid_utf8_hostname.h midna.h dict_union.h dict_inline.h
+	valid_utf8_hostname.h midna.h dict_union.h dict_inline.h check_arg.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -801,24 +801,39 @@ argv_splitq.o: stringops.h
 argv_splitq.o: sys_defs.h
 argv_splitq.o: vbuf.h
 argv_splitq.o: vstring.h
+attr.o: attr.c
+attr.o: attr.h
+attr.o: check_arg.h
+attr.o: htable.h
+attr.o: mymalloc.h
+attr.o: nvtable.h
+attr.o: sys_defs.h
+attr.o: vbuf.h
+attr.o: vstream.h
+attr.o: vstring.h
 attr_clnt.o: attr.h
 attr_clnt.o: attr_clnt.c
 attr_clnt.o: attr_clnt.h
 attr_clnt.o: auto_clnt.h
+attr_clnt.o: check_arg.h
 attr_clnt.o: compat_va_copy.h
 attr_clnt.o: htable.h
 attr_clnt.o: iostuff.h
 attr_clnt.o: msg.h
 attr_clnt.o: mymalloc.h
+attr_clnt.o: nvtable.h
 attr_clnt.o: sys_defs.h
 attr_clnt.o: vbuf.h
 attr_clnt.o: vstream.h
+attr_clnt.o: vstring.h
 attr_print0.o: attr.h
 attr_print0.o: attr_print0.c
 attr_print0.o: base64_code.h
+attr_print0.o: check_arg.h
 attr_print0.o: htable.h
 attr_print0.o: msg.h
 attr_print0.o: mymalloc.h
+attr_print0.o: nvtable.h
 attr_print0.o: sys_defs.h
 attr_print0.o: vbuf.h
 attr_print0.o: vstream.h
@@ -826,9 +841,11 @@ attr_print0.o: vstring.h
 attr_print64.o: attr.h
 attr_print64.o: attr_print64.c
 attr_print64.o: base64_code.h
+attr_print64.o: check_arg.h
 attr_print64.o: htable.h
 attr_print64.o: msg.h
 attr_print64.o: mymalloc.h
+attr_print64.o: nvtable.h
 attr_print64.o: sys_defs.h
 attr_print64.o: vbuf.h
 attr_print64.o: vstream.h
@@ -836,9 +853,11 @@ attr_print64.o: vstring.h
 attr_print_plain.o: attr.h
 attr_print_plain.o: attr_print_plain.c
 attr_print_plain.o: base64_code.h
+attr_print_plain.o: check_arg.h
 attr_print_plain.o: htable.h
 attr_print_plain.o: msg.h
 attr_print_plain.o: mymalloc.h
+attr_print_plain.o: nvtable.h
 attr_print_plain.o: sys_defs.h
 attr_print_plain.o: vbuf.h
 attr_print_plain.o: vstream.h
@@ -846,9 +865,11 @@ attr_print_plain.o: vstring.h
 attr_scan0.o: attr.h
 attr_scan0.o: attr_scan0.c
 attr_scan0.o: base64_code.h
+attr_scan0.o: check_arg.h
 attr_scan0.o: htable.h
 attr_scan0.o: msg.h
 attr_scan0.o: mymalloc.h
+attr_scan0.o: nvtable.h
 attr_scan0.o: sys_defs.h
 attr_scan0.o: vbuf.h
 attr_scan0.o: vstream.h
@@ -857,9 +878,11 @@ attr_scan0.o: vstring_vstream.h
 attr_scan64.o: attr.h
 attr_scan64.o: attr_scan64.c
 attr_scan64.o: base64_code.h
+attr_scan64.o: check_arg.h
 attr_scan64.o: htable.h
 attr_scan64.o: msg.h
 attr_scan64.o: mymalloc.h
+attr_scan64.o: nvtable.h
 attr_scan64.o: sys_defs.h
 attr_scan64.o: vbuf.h
 attr_scan64.o: vstream.h
@@ -867,9 +890,11 @@ attr_scan64.o: vstring.h
 attr_scan_plain.o: attr.h
 attr_scan_plain.o: attr_scan_plain.c
 attr_scan_plain.o: base64_code.h
+attr_scan_plain.o: check_arg.h
 attr_scan_plain.o: htable.h
 attr_scan_plain.o: msg.h
 attr_scan_plain.o: mymalloc.h
+attr_scan_plain.o: nvtable.h
 attr_scan_plain.o: sys_defs.h
 attr_scan_plain.o: vbuf.h
 attr_scan_plain.o: vstream.h
@@ -914,6 +939,8 @@ binhash.o: binhash.h
 binhash.o: msg.h
 binhash.o: mymalloc.h
 binhash.o: sys_defs.h
+check_arg.o: check_arg.c
+check_arg.o: sys_defs.h
 chroot_uid.o: chroot_uid.c
 chroot_uid.o: chroot_uid.h
 chroot_uid.o: msg.h
@@ -1602,8 +1629,6 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
-load_lib.o: load_lib.h
-load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: lowercase.c
 lowercase.o: stringops.h
@@ -1808,14 +1833,18 @@ open_lock.o: vbuf.h
 open_lock.o: vstream.h
 open_lock.o: vstring.h
 pass_accept.o: attr.h
+pass_accept.o: check_arg.h
 pass_accept.o: htable.h
 pass_accept.o: iostuff.h
 pass_accept.o: listen.h
 pass_accept.o: msg.h
+pass_accept.o: mymalloc.h
+pass_accept.o: nvtable.h
 pass_accept.o: pass_accept.c
 pass_accept.o: sys_defs.h
 pass_accept.o: vbuf.h
 pass_accept.o: vstream.h
+pass_accept.o: vstring.h
 pass_trigger.o: connect.h
 pass_trigger.o: events.h
 pass_trigger.o: iostuff.h
@@ -1857,14 +1886,17 @@ readlline.o: vbuf.h
 readlline.o: vstream.h
 readlline.o: vstring.h
 recv_pass_attr.o: attr.h
+recv_pass_attr.o: check_arg.h
 recv_pass_attr.o: htable.h
 recv_pass_attr.o: iostuff.h
 recv_pass_attr.o: listen.h
 recv_pass_attr.o: mymalloc.h
+recv_pass_attr.o: nvtable.h
 recv_pass_attr.o: recv_pass_attr.c
 recv_pass_attr.o: sys_defs.h
 recv_pass_attr.o: vbuf.h
 recv_pass_attr.o: vstream.h
+recv_pass_attr.o: vstring.h
 ring.o: ring.c
 ring.o: ring.h
 safe_getenv.o: safe.h

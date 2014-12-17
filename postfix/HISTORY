@@ -21117,3 +21117,12 @@ Apologies for any names omitted.
 	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c, trivial-rewrite/resolve.c,
 	trivial-rewrite/rewrite.c, trivial-rewrite/trivial-rewrite.c,
 	util/attr.h.
+
+20141217
+
+	Replaced argment typechecking based on inline functions
+	with an implementation based on ternary expressions with
+	unreachable assignments to dummy variables.   This should
+	produce the exact same result as the approach based on
+	inline functions (which were standardized with C99). Files:
+	util/check_arg.h, util/attr.h, util/attr.c.
