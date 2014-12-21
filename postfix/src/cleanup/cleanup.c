@@ -459,10 +459,10 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      * about the whole operation.
      */
     attr_print(src, ATTR_FLAG_NONE,
-	       ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, state->queue_id,
+	       SEND_ATTR_STR(MAIL_ATTR_QUEUEID, state->queue_id),
 	       ATTR_TYPE_END);
     if (attr_scan(src, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &flags,
+		  RECV_ATTR_INT(MAIL_ATTR_FLAGS, &flags),
 		  ATTR_TYPE_END) != 1) {
 	state->errs |= CLEANUP_STAT_BAD;
 	flags = 0;
@@ -521,11 +521,11 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      */
     status = cleanup_flush(state);		/* in case state is modified */
     attr_print(src, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
-	       ATTR_TYPE_STR, MAIL_ATTR_WHY,
-	       (state->flags & CLEANUP_FLAG_SMTP_REPLY)
-	       && state->smtp_reply ? state->smtp_reply :
-	       state->reason ? state->reason : "",
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
+	       SEND_ATTR_STR(MAIL_ATTR_WHY,
+			     (state->flags & CLEANUP_FLAG_SMTP_REPLY)
+			     && state->smtp_reply ? state->smtp_reply :
+			     state->reason ? state->reason : ""),
 	       ATTR_TYPE_END);
     cleanup_free(state);
 

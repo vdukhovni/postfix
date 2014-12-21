@@ -209,11 +209,12 @@ void    psc_send_socket(PSC_STATE *state)
 	(LOCAL_SEND_FD(server_fd,
 		       vstream_fileno(state->smtp_client_stream)) < 0
 	 || (attr_print(fp, ATTR_FLAG_NONE,
-	  ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, state->smtp_client_addr,
-	  ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_PORT, state->smtp_client_port,
-	  ATTR_TYPE_STR, MAIL_ATTR_ACT_SERVER_ADDR, state->smtp_server_addr,
-	  ATTR_TYPE_STR, MAIL_ATTR_ACT_SERVER_PORT, state->smtp_server_port,
+	  SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, state->smtp_client_addr),
+	  SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_PORT, state->smtp_client_port),
+	  SEND_ATTR_STR(MAIL_ATTR_ACT_SERVER_ADDR, state->smtp_server_addr),
+	  SEND_ATTR_STR(MAIL_ATTR_ACT_SERVER_PORT, state->smtp_server_port),
 			ATTR_TYPE_END) || vstream_fflush(fp)));
+    /* XXX Note: no read between attr_print() and vstream_fdclose(). */
     (void) vstream_fdclose(fp);
     if (pass_err != 0) {
 	msg_warn("cannot pass connection to service %s: %m",

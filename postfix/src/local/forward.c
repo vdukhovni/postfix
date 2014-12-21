@@ -138,7 +138,7 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
 	FORWARD_OPEN_RETURN(0);
     close_on_exec(vstream_fileno(cleanup), CLOSE_ON_EXEC);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, buffer,
+		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, buffer),
 		  ATTR_TYPE_END) != 1) {
 	vstream_fclose(cleanup);
 	FORWARD_OPEN_RETURN(0);
@@ -155,7 +155,7 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
 	CLEANUP_FLAG_SMTPUTF8 : 0))
 
     attr_print(cleanup, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS,
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, FORWARD_CLEANUP_FLAGS),
 	       ATTR_TYPE_END);
 
     /*
@@ -305,7 +305,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
     if (status == 0)
 	if (vstream_fflush(info->cleanup)
 	    || attr_scan(info->cleanup, ATTR_FLAG_MISSING,
-			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			 ATTR_TYPE_END) != 1)
 	    status = 1;
 

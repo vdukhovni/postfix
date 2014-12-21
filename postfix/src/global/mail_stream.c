@@ -378,11 +378,11 @@ static int mail_stream_finish_ipc(MAIL_STREAM *info, VSTRING *why)
      * Receive the peer's completion status.
      */
     if ((why && attr_scan(info->stream, ATTR_FLAG_STRICT,
-			  ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+			  RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
+			  RECV_ATTR_STR(MAIL_ATTR_WHY, why),
 			  ATTR_TYPE_END) != 2)
 	|| (!why && attr_scan(info->stream, ATTR_FLAG_MISSING,
-			      ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+			      RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			      ATTR_TYPE_END) != 1))
 	status = CLEANUP_STAT_WRITE;
 
@@ -441,7 +441,7 @@ MAIL_STREAM *mail_stream_service(const char *class, const char *name)
 
     stream = mail_connect_wait(class, name);
     if (attr_scan(stream, ATTR_FLAG_MISSING,
-		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id_buf, 0) != 1) {
+		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id_buf), 0) != 1) {
 	vstream_fclose(stream);
 	return (0);
     } else {
@@ -493,7 +493,7 @@ MAIL_STREAM *mail_stream_command(const char *command)
 		    VSTREAM_CTL_END);
 
     if (attr_scan(stream, ATTR_FLAG_MISSING,
-		  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, id_buf, 0) != 1) {
+		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id_buf), 0) != 1) {
 	if ((status = vstream_pclose(stream)) != 0)
 	    msg_warn("command \"%s\" exited with status %d", command, status);
 	return (0);

@@ -12,6 +12,14 @@ Wish list:
 	support for regexp: and cidr: tables. Factor out and reuse
 	code that already exists in inline: and other tables.
 
+	Solaris poll() does not work as expected. With Solaris10,
+	write_wait() hangs until timeout when invoked after peekfd()
+	has received an ECONNRESET error indication. This happens
+	when a client sends QUIT and closes the connection immediately.
+	Apparently the ECONNRESET error condition is not persistent.
+
+	Fix "postfix-install: daemon_directory: not found' on Solaris.
+
 	Log command=good/bad statistics in postscreen?
 
 	Implement smtpd_client_auth_rate limit?

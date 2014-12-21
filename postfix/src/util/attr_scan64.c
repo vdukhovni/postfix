@@ -513,11 +513,11 @@ int     main(int unused_argc, char **used_argv)
     msg_vstream_init(used_argv[0], VSTREAM_ERR);
     if ((ret = attr_scan64(VSTREAM_IN,
 			   ATTR_FLAG_STRICT,
-			   ATTR_TYPE_INT, ATTR_NAME_INT, &int_val,
-			   ATTR_TYPE_LONG, ATTR_NAME_LONG, &long_val,
-			   ATTR_TYPE_STR, ATTR_NAME_STR, str_val,
-			   ATTR_TYPE_DATA, ATTR_NAME_DATA, data_val,
-			   ATTR_TYPE_HASH, table,
+			   RECV_ATTR_INT(ATTR_NAME_INT, &int_val),
+			   RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val),
+			   RECV_ATTR_STR(ATTR_NAME_STR, str_val),
+			   RECV_ATTR_DATA(ATTR_NAME_DATA, data_val),
+			   RECV_ATTR_HASH(table),
 			   ATTR_TYPE_END)) > 4) {
 	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
@@ -532,10 +532,10 @@ int     main(int unused_argc, char **used_argv)
     }
     if ((ret = attr_scan64(VSTREAM_IN,
 			   ATTR_FLAG_STRICT,
-			   ATTR_TYPE_INT, ATTR_NAME_INT, &int_val,
-			   ATTR_TYPE_LONG, ATTR_NAME_LONG, &long_val,
-			   ATTR_TYPE_STR, ATTR_NAME_STR, str_val,
-			   ATTR_TYPE_DATA, ATTR_NAME_DATA, data_val,
+			   RECV_ATTR_INT(ATTR_NAME_INT, &int_val),
+			   RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val),
+			   RECV_ATTR_STR(ATTR_NAME_STR, str_val),
+			   RECV_ATTR_DATA(ATTR_NAME_DATA, data_val),
 			   ATTR_TYPE_END)) == 4) {
 	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);

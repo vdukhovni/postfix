@@ -112,14 +112,14 @@ int     verify_clnt_query(const char *addr, int *addr_status, VSTRING *why)
 	errno = 0;
 	count += 1;
 	if (attr_print(stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_STR, MAIL_ATTR_REQ, VRFY_REQ_QUERY,
-		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
+		       SEND_ATTR_STR(MAIL_ATTR_REQ, VRFY_REQ_QUERY),
+		       SEND_ATTR_STR(MAIL_ATTR_ADDR, addr),
 		       ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_MISSING,
-			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &request_status,
-			 ATTR_TYPE_INT, MAIL_ATTR_ADDR_STATUS, addr_status,
-			 ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &request_status),
+			 RECV_ATTR_INT(MAIL_ATTR_ADDR_STATUS, addr_status),
+			 RECV_ATTR_STR(MAIL_ATTR_WHY, why),
 			 ATTR_TYPE_END) != 3) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",
@@ -154,13 +154,13 @@ int     verify_clnt_update(const char *addr, int addr_status, const char *why)
 	stream = clnt_stream_access(vrfy_clnt);
 	errno = 0;
 	if (attr_print(stream, ATTR_FLAG_NONE,
-		       ATTR_TYPE_STR, MAIL_ATTR_REQ, VRFY_REQ_UPDATE,
-		       ATTR_TYPE_STR, MAIL_ATTR_ADDR, addr,
-		       ATTR_TYPE_INT, MAIL_ATTR_ADDR_STATUS, addr_status,
-		       ATTR_TYPE_STR, MAIL_ATTR_WHY, why,
+		       SEND_ATTR_STR(MAIL_ATTR_REQ, VRFY_REQ_UPDATE),
+		       SEND_ATTR_STR(MAIL_ATTR_ADDR, addr),
+		       SEND_ATTR_INT(MAIL_ATTR_ADDR_STATUS, addr_status),
+		       SEND_ATTR_STR(MAIL_ATTR_WHY, why),
 		       ATTR_TYPE_END) != 0
 	    || attr_scan(stream, ATTR_FLAG_MISSING,
-			 ATTR_TYPE_INT, MAIL_ATTR_STATUS, &request_status,
+			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &request_status),
 			 ATTR_TYPE_END) != 1) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
 		msg_warn("problem talking to service %s: %m",

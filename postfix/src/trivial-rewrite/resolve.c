@@ -140,7 +140,7 @@ static MAPS *relocated_maps;
 
 /* resolve_class - determine domain address class */
 
-int resolve_class(const char *domain)
+int     resolve_class(const char *domain)
 {
     int     ret;
 
@@ -751,8 +751,8 @@ int     resolve_proto(RES_CONTEXT *context, VSTREAM *stream)
     int     flags;
 
     if (attr_scan(stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, query,
+		  RECV_ATTR_STR(MAIL_ATTR_SENDER, sender),
+		  RECV_ATTR_STR(MAIL_ATTR_ADDR, query),
 		  ATTR_TYPE_END) != 2)
 	return (-1);
 
@@ -765,11 +765,11 @@ int     resolve_proto(RES_CONTEXT *context, VSTREAM *stream)
 		 STR(nexthop), STR(nextrcpt), flags);
 
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, server_flags,
-	       ATTR_TYPE_STR, MAIL_ATTR_TRANSPORT, STR(channel),
-	       ATTR_TYPE_STR, MAIL_ATTR_NEXTHOP, STR(nexthop),
-	       ATTR_TYPE_STR, MAIL_ATTR_RECIP, STR(nextrcpt),
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, flags,
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, server_flags),
+	       SEND_ATTR_STR(MAIL_ATTR_TRANSPORT, STR(channel)),
+	       SEND_ATTR_STR(MAIL_ATTR_NEXTHOP, STR(nexthop)),
+	       SEND_ATTR_STR(MAIL_ATTR_RECIP, STR(nextrcpt)),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 	       ATTR_TYPE_END);
 
     if (vstream_fflush(stream) != 0) {

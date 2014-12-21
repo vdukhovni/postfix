@@ -17,7 +17,7 @@
 /*	msg_stats_print() is meant to be passed as a call-back to
 /*	attr_print(), thusly:
 /*
-/*	... ATTR_TYPE_FUNC, msg_stats_print, (void *) stats, ...
+/*	... SEND_ATTR_FUNC(msg_stats_print, (void *) stats), ...
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
@@ -58,7 +58,7 @@ int     msg_stats_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
      * initialize the unused fields by hand.
      */
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
-		   ATTR_TYPE_DATA, MAIL_ATTR_TIME, sizeof(MSG_STATS), ptr,
+		   SEND_ATTR_DATA(MAIL_ATTR_TIME, sizeof(MSG_STATS), ptr),
 		   ATTR_TYPE_END);
     return (ret);
 }

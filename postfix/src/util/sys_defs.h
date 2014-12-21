@@ -1620,7 +1620,7 @@ typedef int pid_t;
  /*
   * Some gcc implementations don't grok these attributes with pointer to
   * function. Again, wild guess of what is supported. To override, specify
-  * #define PRINTPTRFLIKE  in the system-dependent sections above.
+  * #define PRINTFPTRLIKE  in the system-dependent sections above.
   */
 #ifndef PRINTFPTRLIKE
 #if (__GNUC__ >= 3)			/* XXX Rough estimate */

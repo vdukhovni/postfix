@@ -125,7 +125,7 @@ int     flush_purge(void)
 	status = FLUSH_STAT_DENY;
     else
 	status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
-			      ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_PURGE,
+			      SEND_ATTR_STR(MAIL_ATTR_REQ, FLUSH_REQ_PURGE),
 				     ATTR_TYPE_END);
 
     if (msg_verbose)
@@ -151,7 +151,7 @@ int     flush_refresh(void)
 	status = FLUSH_STAT_DENY;
     else
 	status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
-			    ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_REFRESH,
+			    SEND_ATTR_STR(MAIL_ATTR_REQ, FLUSH_REQ_REFRESH),
 				     ATTR_TYPE_END);
 
     if (msg_verbose)
@@ -182,8 +182,8 @@ int     flush_send_site(const char *site)
 		     VAR_RELAY_DOMAINS "=$mydestination to flush "
 		     "mail for domain \"%s\"", site);
 	status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
-			  ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_SEND_SITE,
-				     ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, FLUSH_REQ_SEND_SITE),
+				     SEND_ATTR_STR(MAIL_ATTR_SITE, site),
 				     ATTR_TYPE_END);
     } else if (flush_domains->error == 0)
 	status = FLUSH_STAT_DENY;
@@ -210,8 +210,8 @@ int     flush_send_file(const char *queue_id)
      * Require that the service is turned on.
      */
     status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
-			  ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_SEND_FILE,
-				 ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, FLUSH_REQ_SEND_FILE),
+				 SEND_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 				 ATTR_TYPE_END);
 
     if (msg_verbose)
@@ -242,9 +242,9 @@ int     flush_add(const char *site, const char *queue_id)
 		     VAR_RELAY_DOMAINS "=$mydestination to update "
 		     "fast-flush logfile for domain \"%s\"", site);
 	status = mail_command_client(MAIL_CLASS_PUBLIC, var_flush_service,
-				ATTR_TYPE_STR, MAIL_ATTR_REQ, FLUSH_REQ_ADD,
-				     ATTR_TYPE_STR, MAIL_ATTR_SITE, site,
-				 ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
+				SEND_ATTR_STR(MAIL_ATTR_REQ, FLUSH_REQ_ADD),
+				     SEND_ATTR_STR(MAIL_ATTR_SITE, site),
+				 SEND_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 				     ATTR_TYPE_END);
     } else if (flush_domains->error == 0)
 	status = FLUSH_STAT_DENY;

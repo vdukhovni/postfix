@@ -62,6 +62,7 @@ depend: $(MAKES)
 anvil.o: ../../include/anvil_clnt.h
 anvil.o: ../../include/attr.h
 anvil.o: ../../include/attr_clnt.h
+anvil.o: ../../include/check_arg.h
 anvil.o: ../../include/events.h
 anvil.o: ../../include/htable.h
 anvil.o: ../../include/iostuff.h
@@ -72,6 +73,7 @@ anvil.o: ../../include/mail_server.h
 anvil.o: ../../include/mail_version.h
 anvil.o: ../../include/msg.h
 anvil.o: ../../include/mymalloc.h
+anvil.o: ../../include/nvtable.h
 anvil.o: ../../include/stringops.h
 anvil.o: ../../include/sys_defs.h
 anvil.o: ../../include/vbuf.h

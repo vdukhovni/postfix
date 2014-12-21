@@ -479,7 +479,7 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
      * handled by the common code in multi_server.c.
      */
     if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_STR, MAIL_ATTR_REQ, command,
+		  RECV_ATTR_STR(MAIL_ATTR_REQ, command),
 		  ATTR_TYPE_END) == 1) {
 	if (strcmp(vstring_str(command), REWRITE_ADDR) == 0) {
 	    status = rewrite_proto(stream);

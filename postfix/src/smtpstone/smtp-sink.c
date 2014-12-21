@@ -95,6 +95,11 @@
 /* .IP "\fB-h\fI hostname\fR"
 /*	Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 /*	and in the EHLO response. The default hostname is "smtp-sink".
+/* .IP "\fB-H\fI delay\fR"
+/*	Delay the first read operation after receiving DATA (time
+/*	in seconds). Combine with a large test message and a small
+/*	TCP window size (see the \fB-T\fR option) to test the Postfix
+/*	client write_wait() implementation.
 /* .IP \fB-L\fR
 /*	Enable LMTP instead of SMTP.
 /* .IP "\fB-m \fIcount\fR (default: 256)"
@@ -376,6 +381,7 @@ static int max_client_count = DEF_MAX_CLIENT_COUNT;
 static int client_count;
 static int sock;
 static int abort_delay = -1;
+static int data_read_delay = 0;
 
 static char *single_template;		/* individual template */
 static char *shared_template;		/* shared template */
@@ -732,6 +738,28 @@ static void abort_event(int unused_event, void *context)
     disconnect(state);
 }
 
+/* delay_read_event - resume input event handling */
+
+static void delay_read_event(int event, void *context)
+{
+    SINK_STATE *state = (SINK_STATE *) context;
+
+    if (event != EVENT_TIME)
+	msg_panic("delay_read_event: non-timer event %d", event);
+
+    event_enable_read(vstream_fileno(state->stream), read_event, (void *) state);
+    event_request_timer(read_timeout, (void *) state, var_tmout);
+}
+
+/* delay_read - temporarily suspend input event handling */
+
+static void delay_read(SINK_STATE *state, int delay)
+{
+    event_disable_readwrite(vstream_fileno(state->stream));
+    event_cancel_timer(read_timeout, (void *) state);
+    event_request_timer(delay_read_event, (void *) state, delay);
+}
+
 /* data_response - respond to DATA command */
 
 static void data_response(SINK_STATE *state, const char *unused_args)
@@ -747,6 +775,9 @@ static void data_response(SINK_STATE *state, const char *unused_args)
     SMTP_FLUSH(state->stream);
     if (abort_delay < 0) {
 	state->read_fn = data_read;
+	/* Todo: move into code that invokes the command response function. */
+	if (data_read_delay > 0)
+	    delay_read(state, data_read_delay);
     } else {
 	/* Stop reading, send premature 550, and disconnect. */
 	event_disable_readwrite(vstream_fileno(state->stream));
@@ -1427,7 +1458,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "468aA:b:B:cCd:D:eEf:Fh:Ln:m:M:NpPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
+    while ((ch = GETOPT(argc, argv, "468aA:b:B:cCd:D:eEf:Fh:H:Ln:m:M:NpPq:Q:r:R:s:S:t:T:u:vw:W:")) > 0) {
 	switch (ch) {
 	case '4':
 	    protocols = INET_PROTO_NAME_IPV4;
@@ -1488,6 +1519,10 @@ int     main(int argc, char **argv)
 	    break;
 	case 'h':
 	    var_myhostname = optarg;
+	    break;
+	case 'H':
+	    if ((data_read_delay = atoi(optarg)) <= 0)
+		msg_fatal("bad data read delay: %s", optarg);
 	    break;
 	case 'L':
 	    enable_lmtp = 1;

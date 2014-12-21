@@ -781,7 +781,9 @@ and <a href="postdrop.1.html">postdrop(1)</a>.
 when not present.  Postfix 2.6 and later add these headers only
 when clients match the <a href="postconf.5.html#local_header_rewrite_clients">local_header_rewrite_clients</a> parameter
 setting.  Earlier Postfix versions always add these headers; this
-may break DKIM signatures that cover non-existent headers. </p>
+may break DKIM signatures that cover non-existent headers.
+The <a href="postconf.5.html#undisclosed_recipients_header">undisclosed_recipients_header</a> parameter setting determines
+whether a To: header will be added. </p>
 
 
 </DD>

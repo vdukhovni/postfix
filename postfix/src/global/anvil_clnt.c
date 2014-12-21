@@ -188,16 +188,16 @@ int     anvil_clnt_lookup(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_LOOKUP,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_LOOKUP),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, ANVIL_ATTR_COUNT, count,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, rate,
-			  ATTR_TYPE_INT, ANVIL_ATTR_MAIL, msgs,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RCPT, rcpts,
-			  ATTR_TYPE_INT, ANVIL_ATTR_NTLS, newtls,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_COUNT, count),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, rate),
+			  RECV_ATTR_INT(ANVIL_ATTR_MAIL, msgs),
+			  RECV_ATTR_INT(ANVIL_ATTR_RCPT, rcpts),
+			  RECV_ATTR_INT(ANVIL_ATTR_NTLS, newtls),
 			  ATTR_TYPE_END) != 6)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -216,13 +216,13 @@ int     anvil_clnt_connect(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_CONN,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_CONN),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, ANVIL_ATTR_COUNT, count,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, rate,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_COUNT, count),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, rate),
 			  ATTR_TYPE_END) != 3)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -241,12 +241,12 @@ int     anvil_clnt_mail(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_MAIL,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_MAIL),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, msgs,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, msgs),
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -265,12 +265,12 @@ int     anvil_clnt_rcpt(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_RCPT,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_RCPT),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, rcpts,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, rcpts),
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -289,12 +289,12 @@ int     anvil_clnt_newtls(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_NTLS,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_NTLS),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, newtls,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, newtls),
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -313,12 +313,12 @@ int     anvil_clnt_newtls_stat(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_NTLS_STAT,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_NTLS_STAT),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
-			  ATTR_TYPE_INT, ANVIL_ATTR_RATE, newtls,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
+			  RECV_ATTR_INT(ANVIL_ATTR_RATE, newtls),
 			  ATTR_TYPE_END) != 2)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)
@@ -337,11 +337,11 @@ int     anvil_clnt_disconnect(ANVIL_CLNT *anvil_clnt, const char *service,
 
     if (attr_clnt_request((ATTR_CLNT *) anvil_clnt,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			  ATTR_TYPE_STR, ANVIL_ATTR_REQ, ANVIL_REQ_DISC,
-			  ATTR_TYPE_STR, ANVIL_ATTR_IDENT, ident,
+			  SEND_ATTR_STR(ANVIL_ATTR_REQ, ANVIL_REQ_DISC),
+			  SEND_ATTR_STR(ANVIL_ATTR_IDENT, ident),
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_INT, ANVIL_ATTR_STATUS, &status,
+			  RECV_ATTR_INT(ANVIL_ATTR_STATUS, &status),
 			  ATTR_TYPE_END) != 1)
 	status = ANVIL_STAT_FAIL;
     else if (status != ANVIL_STAT_OK)

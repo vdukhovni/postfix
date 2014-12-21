@@ -90,6 +90,7 @@ depend: $(MAKES)
 event_server.o: ../../include/argv.h
 event_server.o: ../../include/attr.h
 event_server.o: ../../include/bounce.h
+event_server.o: ../../include/check_arg.h
 event_server.o: ../../include/chroot_uid.h
 event_server.o: ../../include/debug_process.h
 event_server.o: ../../include/deliver_request.h
@@ -111,6 +112,7 @@ event_server.o: ../../include/msg_syslog.h
 event_server.o: ../../include/msg_vstream.h
 event_server.o: ../../include/myflock.h
 event_server.o: ../../include/mymalloc.h
+event_server.o: ../../include/nvtable.h
 event_server.o: ../../include/recipient_list.h
 event_server.o: ../../include/resolve_local.h
 event_server.o: ../../include/safe_open.h
@@ -174,7 +176,9 @@ master_conf.o: master.h
 master_conf.o: master_conf.c
 master_ent.o: ../../include/argv.h
 master_ent.o: ../../include/attr.h
+master_ent.o: ../../include/check_arg.h
 master_ent.o: ../../include/host_port.h
+master_ent.o: ../../include/htable.h
 master_ent.o: ../../include/inet_addr_host.h
 master_ent.o: ../../include/inet_addr_list.h
 master_ent.o: ../../include/inet_proto.h
@@ -186,6 +190,7 @@ master_ent.o: ../../include/match_service.h
 master_ent.o: ../../include/msg.h
 master_ent.o: ../../include/myaddrinfo.h
 master_ent.o: ../../include/mymalloc.h
+master_ent.o: ../../include/nvtable.h
 master_ent.o: ../../include/own_inet_addr.h
 master_ent.o: ../../include/readlline.h
 master_ent.o: ../../include/sock_addr.h
@@ -274,17 +279,22 @@ master_vars.o: ../../include/vstring.h
 master_vars.o: master.h
 master_vars.o: master_vars.c
 master_wakeup.o: ../../include/attr.h
+master_wakeup.o: ../../include/check_arg.h
 master_wakeup.o: ../../include/events.h
+master_wakeup.o: ../../include/htable.h
 master_wakeup.o: ../../include/iostuff.h
 master_wakeup.o: ../../include/mail_params.h
 master_wakeup.o: ../../include/mail_proto.h
 master_wakeup.o: ../../include/msg.h
+master_wakeup.o: ../../include/mymalloc.h
+master_wakeup.o: ../../include/nvtable.h
 master_wakeup.o: ../../include/set_eugid.h
 master_wakeup.o: ../../include/set_ugid.h
 master_wakeup.o: ../../include/sys_defs.h
 master_wakeup.o: ../../include/trigger.h
 master_wakeup.o: ../../include/vbuf.h
 master_wakeup.o: ../../include/vstream.h
+master_wakeup.o: ../../include/vstring.h
 master_wakeup.o: mail_server.h
 master_wakeup.o: master.h
 master_wakeup.o: master_wakeup.c
@@ -296,6 +306,7 @@ master_watch.o: master_watch.c
 multi_server.o: ../../include/argv.h
 multi_server.o: ../../include/attr.h
 multi_server.o: ../../include/bounce.h
+multi_server.o: ../../include/check_arg.h
 multi_server.o: ../../include/chroot_uid.h
 multi_server.o: ../../include/debug_process.h
 multi_server.o: ../../include/deliver_request.h
@@ -317,6 +328,7 @@ multi_server.o: ../../include/msg_syslog.h
 multi_server.o: ../../include/msg_vstream.h
 multi_server.o: ../../include/myflock.h
 multi_server.o: ../../include/mymalloc.h
+multi_server.o: ../../include/nvtable.h
 multi_server.o: ../../include/recipient_list.h
 multi_server.o: ../../include/resolve_local.h
 multi_server.o: ../../include/safe_open.h
@@ -336,6 +348,7 @@ multi_server.o: multi_server.c
 single_server.o: ../../include/argv.h
 single_server.o: ../../include/attr.h
 single_server.o: ../../include/bounce.h
+single_server.o: ../../include/check_arg.h
 single_server.o: ../../include/chroot_uid.h
 single_server.o: ../../include/debug_process.h
 single_server.o: ../../include/deliver_request.h
@@ -357,6 +370,7 @@ single_server.o: ../../include/msg_syslog.h
 single_server.o: ../../include/msg_vstream.h
 single_server.o: ../../include/myflock.h
 single_server.o: ../../include/mymalloc.h
+single_server.o: ../../include/nvtable.h
 single_server.o: ../../include/recipient_list.h
 single_server.o: ../../include/resolve_local.h
 single_server.o: ../../include/safe_open.h
@@ -376,6 +390,7 @@ single_server.o: single_server.c
 trigger_server.o: ../../include/argv.h
 trigger_server.o: ../../include/attr.h
 trigger_server.o: ../../include/bounce.h
+trigger_server.o: ../../include/check_arg.h
 trigger_server.o: ../../include/chroot_uid.h
 trigger_server.o: ../../include/debug_process.h
 trigger_server.o: ../../include/deliver_request.h
@@ -397,6 +412,7 @@ trigger_server.o: ../../include/msg_syslog.h
 trigger_server.o: ../../include/msg_vstream.h
 trigger_server.o: ../../include/myflock.h
 trigger_server.o: ../../include/mymalloc.h
+trigger_server.o: ../../include/nvtable.h
 trigger_server.o: ../../include/recipient_list.h
 trigger_server.o: ../../include/resolve_local.h
 trigger_server.o: ../../include/safe_open.h

@@ -2660,22 +2660,22 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 	vstream_fflush(milter->fp);
 
     if (attr_print(stream, ATTR_FLAG_MORE,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_NAME, milter->m.name,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, milter->version,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_ACTS, milter->rq_mask,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_EVTS, milter->ev_mask,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_NPTS, milter->np_mask,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_STAT, milter->state,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_CONN, milter->conn_timeout,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_CMD, milter->cmd_timeout,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_MSG, milter->msg_timeout,
-		   ATTR_TYPE_STR, MAIL_ATTR_MILT_ACT, milter->def_action,
-		   ATTR_TYPE_INT, MAIL_ATTR_MILT_MAC, milter->m.macros != 0,
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_NAME, milter->m.name),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_VERS, milter->version),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_ACTS, milter->rq_mask),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_EVTS, milter->ev_mask),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_NPTS, milter->np_mask),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_STAT, milter->state),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_CONN, milter->conn_timeout),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_CMD, milter->cmd_timeout),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_MSG, milter->msg_timeout),
+		   SEND_ATTR_STR(MAIL_ATTR_MILT_ACT, milter->def_action),
+		   SEND_ATTR_INT(MAIL_ATTR_MILT_MAC, milter->m.macros != 0),
 		   ATTR_TYPE_END) != 0
 	|| (milter->m.macros != 0
 	    && attr_print(stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_FUNC, milter_macros_print,
-			  (void *) milter->m.macros,
+			  SEND_ATTR_FUNC(milter_macros_print,
+					 (void *) milter->m.macros),
 			  ATTR_TYPE_END) != 0)
 	|| (milter->m.macros == 0
 	    && attr_print(stream, ATTR_FLAG_NONE,
@@ -2684,7 +2684,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 	return (-1);
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
     } else if (attr_scan(stream, ATTR_FLAG_STRICT,
-			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, milter->buf,
+			 RECV_ATTR_STR(MAIL_ATTR_DUMMY, milter->buf),
 			 ATTR_TYPE_END) != 1) {
 	return (-1);
 #endif
@@ -2693,7 +2693,7 @@ static int milter8_send(MILTER *m, VSTREAM *stream)
 	return (-1);
 #ifdef MUST_READ_AFTER_SENDING_FD
     } else if (attr_scan(stream, ATTR_FLAG_STRICT,
-			 ATTR_TYPE_STR, MAIL_ATTR_DUMMY, milter->buf,
+			 RECV_ATTR_STR(MAIL_ATTR_DUMMY, milter->buf),
 			 ATTR_TYPE_END) != 1) {
 	return (-1);
 #endif
@@ -2736,23 +2736,23 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 	act_buf = vstring_alloc(10);
     }
     if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_NAME, name_buf,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_VERS, &version,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_ACTS, &rq_mask,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_EVTS, &ev_mask,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_NPTS, &np_mask,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_STAT, &state,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_CONN, &conn_timeout,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_CMD, &cmd_timeout,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_MSG, &msg_timeout,
-		  ATTR_TYPE_STR, MAIL_ATTR_MILT_ACT, act_buf,
-		  ATTR_TYPE_INT, MAIL_ATTR_MILT_MAC, &has_macros,
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_NAME, name_buf),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_VERS, &version),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_ACTS, &rq_mask),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_EVTS, &ev_mask),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_NPTS, &np_mask),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_STAT, &state),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_CONN, &conn_timeout),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_CMD, &cmd_timeout),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_MSG, &msg_timeout),
+		  RECV_ATTR_STR(MAIL_ATTR_MILT_ACT, act_buf),
+		  RECV_ATTR_INT(MAIL_ATTR_MILT_MAC, &has_macros),
 		  ATTR_TYPE_END) < 10
 	|| (has_macros != 0
 	    && attr_scan(stream, ATTR_FLAG_STRICT,
-			 ATTR_TYPE_FUNC, milter_macros_scan,
-			 (void *) (macros =
-			     milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO)),
+			 RECV_ATTR_FUNC(milter_macros_scan,
+					(void *) (macros =
+			    milter_macros_alloc(MILTER_MACROS_ALLOC_ZERO))),
 			 ATTR_TYPE_END) < 1)
 	|| (has_macros == 0
 	    && attr_scan(stream, ATTR_FLAG_STRICT,
@@ -2760,7 +2760,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 	FREE_MACROS_AND_RETURN(0);
 #ifdef CANT_WRITE_BEFORE_SENDING_FD
     } else if (attr_print(stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			  SEND_ATTR_STR(MAIL_ATTR_DUMMY, ""),
 			  ATTR_TYPE_END) != 0
 	       || vstream_fflush(stream) != 0) {
 	FREE_MACROS_AND_RETURN(0);
@@ -2770,7 +2770,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
     } else {
 #ifdef MUST_READ_AFTER_SENDING_FD
 	(void) attr_print(stream, ATTR_FLAG_NONE,
-			  ATTR_TYPE_STR, MAIL_ATTR_DUMMY, "",
+			  SEND_ATTR_STR(MAIL_ATTR_DUMMY, ""),
 			  ATTR_TYPE_END);
 #endif
 #define NO_PROTOCOL	((char *) 0)

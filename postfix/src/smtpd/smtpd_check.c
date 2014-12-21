@@ -3867,65 +3867,65 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 
     if (attr_clnt_request(policy_clnt->client,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
-			ATTR_TYPE_STR, MAIL_ATTR_REQ, "smtpd_access_policy",
-			  ATTR_TYPE_STR, MAIL_ATTR_PROTO_STATE, state->where,
-		   ATTR_TYPE_STR, MAIL_ATTR_ACT_PROTO_NAME, state->protocol,
-		      ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_ADDR, state->addr,
-		      ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_NAME, state->name,
-		      ATTR_TYPE_STR, MAIL_ATTR_ACT_CLIENT_PORT, state->port,
-			  ATTR_TYPE_STR, MAIL_ATTR_ACT_REVERSE_CLIENT_NAME,
-			  state->reverse_name,
-			  ATTR_TYPE_STR, MAIL_ATTR_ACT_HELO_NAME,
-			  state->helo_name ? state->helo_name : "",
-			  ATTR_TYPE_STR, MAIL_ATTR_SENDER,
-			  state->sender ? state->sender : "",
-			  ATTR_TYPE_STR, MAIL_ATTR_RECIP,
-			  state->recipient ? state->recipient : "",
-			  ATTR_TYPE_INT, MAIL_ATTR_RCPT_COUNT,
-			  ((strcasecmp(state->where, SMTPD_CMD_DATA) == 0) ||
-			 (strcasecmp(state->where, SMTPD_AFTER_DOT) == 0)) ?
-			  state->rcpt_count : 0,
-			  ATTR_TYPE_STR, MAIL_ATTR_QUEUEID,
-			  state->queue_id ? state->queue_id : "",
-			  ATTR_TYPE_STR, MAIL_ATTR_INSTANCE,
-			  STR(state->instance),
-			  ATTR_TYPE_LONG, MAIL_ATTR_SIZE,
-			  (unsigned long) (state->act_size > 0 ?
-					 state->act_size : state->msg_size),
-			  ATTR_TYPE_STR, MAIL_ATTR_ETRN_DOMAIN,
-			  state->etrn_name ? state->etrn_name : "",
-			  ATTR_TYPE_STR, MAIL_ATTR_STRESS, var_stress,
+			SEND_ATTR_STR(MAIL_ATTR_REQ, "smtpd_access_policy"),
+			  SEND_ATTR_STR(MAIL_ATTR_PROTO_STATE, state->where),
+		   SEND_ATTR_STR(MAIL_ATTR_ACT_PROTO_NAME, state->protocol),
+		      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, state->addr),
+		      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_NAME, state->name),
+		      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_PORT, state->port),
+			  SEND_ATTR_STR(MAIL_ATTR_ACT_REVERSE_CLIENT_NAME,
+					state->reverse_name),
+			  SEND_ATTR_STR(MAIL_ATTR_ACT_HELO_NAME,
+				  state->helo_name ? state->helo_name : ""),
+			  SEND_ATTR_STR(MAIL_ATTR_SENDER,
+					state->sender ? state->sender : ""),
+			  SEND_ATTR_STR(MAIL_ATTR_RECIP,
+				  state->recipient ? state->recipient : ""),
+			  SEND_ATTR_INT(MAIL_ATTR_RCPT_COUNT,
+			 ((strcasecmp(state->where, SMTPD_CMD_DATA) == 0) ||
+			  (strcasecmp(state->where, SMTPD_AFTER_DOT) == 0)) ?
+					state->rcpt_count : 0),
+			  SEND_ATTR_STR(MAIL_ATTR_QUEUEID,
+				    state->queue_id ? state->queue_id : ""),
+			  SEND_ATTR_STR(MAIL_ATTR_INSTANCE,
+					STR(state->instance)),
+			  SEND_ATTR_LONG(MAIL_ATTR_SIZE,
+				      (unsigned long) (state->act_size > 0 ?
+					state->act_size : state->msg_size)),
+			  SEND_ATTR_STR(MAIL_ATTR_ETRN_DOMAIN,
+				  state->etrn_name ? state->etrn_name : ""),
+			  SEND_ATTR_STR(MAIL_ATTR_STRESS, var_stress),
 #ifdef USE_SASL_AUTH
-			  ATTR_TYPE_STR, MAIL_ATTR_SASL_METHOD,
-			  state->sasl_method ? state->sasl_method : "",
-			  ATTR_TYPE_STR, MAIL_ATTR_SASL_USERNAME,
-			  state->sasl_username ? state->sasl_username : "",
-			  ATTR_TYPE_STR, MAIL_ATTR_SASL_SENDER,
-			  state->sasl_sender ? state->sasl_sender : "",
+			  SEND_ATTR_STR(MAIL_ATTR_SASL_METHOD,
+			      state->sasl_method ? state->sasl_method : ""),
+			  SEND_ATTR_STR(MAIL_ATTR_SASL_USERNAME,
+			  state->sasl_username ? state->sasl_username : ""),
+			  SEND_ATTR_STR(MAIL_ATTR_SASL_SENDER,
+			      state->sasl_sender ? state->sasl_sender : ""),
 #endif
 #ifdef USE_TLS
 #define IF_ENCRYPTED(x, y) ((state->tls_context && ((x) != 0)) ? (x) : (y))
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_SUBJECT, subject,
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_ISSUER, issuer,
+			  SEND_ATTR_STR(MAIL_ATTR_CCERT_SUBJECT, subject),
+			  SEND_ATTR_STR(MAIL_ATTR_CCERT_ISSUER, issuer),
 
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
      * not trusted.
      */
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_CERT_FPRINT,
-		     IF_ENCRYPTED(state->tls_context->peer_cert_fprint, ""),
-			  ATTR_TYPE_STR, MAIL_ATTR_CCERT_PKEY_FPRINT,
-		     IF_ENCRYPTED(state->tls_context->peer_pkey_fprint, ""),
-			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_PROTOCOL,
-			  IF_ENCRYPTED(state->tls_context->protocol, ""),
-			  ATTR_TYPE_STR, MAIL_ATTR_CRYPTO_CIPHER,
-			  IF_ENCRYPTED(state->tls_context->cipher_name, ""),
-			  ATTR_TYPE_INT, MAIL_ATTR_CRYPTO_KEYSIZE,
-			IF_ENCRYPTED(state->tls_context->cipher_usebits, 0),
+			  SEND_ATTR_STR(MAIL_ATTR_CCERT_CERT_FPRINT,
+		    IF_ENCRYPTED(state->tls_context->peer_cert_fprint, "")),
+			  SEND_ATTR_STR(MAIL_ATTR_CCERT_PKEY_FPRINT,
+		    IF_ENCRYPTED(state->tls_context->peer_pkey_fprint, "")),
+			  SEND_ATTR_STR(MAIL_ATTR_CRYPTO_PROTOCOL,
+			    IF_ENCRYPTED(state->tls_context->protocol, "")),
+			  SEND_ATTR_STR(MAIL_ATTR_CRYPTO_CIPHER,
+			 IF_ENCRYPTED(state->tls_context->cipher_name, "")),
+			  SEND_ATTR_INT(MAIL_ATTR_CRYPTO_KEYSIZE,
+		       IF_ENCRYPTED(state->tls_context->cipher_usebits, 0)),
 #endif
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
-			  ATTR_TYPE_STR, MAIL_ATTR_ACTION, action,
+			  RECV_ATTR_STR(MAIL_ATTR_ACTION, action),
 			  ATTR_TYPE_END) != 1) {
 	NOCLOBBER static int nesting_level = 0;
 	jmp_buf savebuf;

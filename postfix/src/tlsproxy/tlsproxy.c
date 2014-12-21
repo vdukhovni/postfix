@@ -471,8 +471,9 @@ static void tlsp_strategy(TLSP_STATE *state)
 	}
 	if ((state->req_flags & TLS_PROXY_FLAG_SEND_CONTEXT) != 0
 	    && (attr_print(state->plaintext_stream, ATTR_FLAG_NONE,
-			   ATTR_TYPE_FUNC, tls_proxy_context_print,
-			   (void *) state->tls_context, ATTR_TYPE_END) != 0
+			   SEND_ATTR_FUNC(tls_proxy_context_print,
+					  (void *) state->tls_context),
+			   ATTR_TYPE_END) != 0
 		|| vstream_fflush(state->plaintext_stream) != 0)) {
 	    msg_warn("cannot send TLS context: %m");
 	    tlsp_state_free(state);
@@ -809,10 +810,10 @@ static void tlsp_get_request_event(int event, void *context)
      */
     if (event != EVENT_READ
 	|| attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
-		     ATTR_TYPE_STR, MAIL_ATTR_REMOTE_ENDPT, remote_endpt,
-		     ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &req_flags,
-		     ATTR_TYPE_INT, MAIL_ATTR_TIMEOUT, &timeout,
-		     ATTR_TYPE_STR, MAIL_ATTR_SERVER_ID, server_id,
+		     RECV_ATTR_STR(MAIL_ATTR_REMOTE_ENDPT, remote_endpt),
+		     RECV_ATTR_INT(MAIL_ATTR_FLAGS, &req_flags),
+		     RECV_ATTR_INT(MAIL_ATTR_TIMEOUT, &timeout),
+		     RECV_ATTR_STR(MAIL_ATTR_SERVER_ID, server_id),
 		     ATTR_TYPE_END) != 4) {
 	msg_warn("%s: receive request attributes: %m", myname);
 	event_disable_readwrite(plaintext_fd);
@@ -827,7 +828,7 @@ static void tlsp_get_request_event(int event, void *context)
     ready = ((req_flags & TLS_PROXY_FLAG_ROLE_SERVER) != 0
 	     && tlsp_server_ctx != 0);
     if (attr_print(plaintext_stream, ATTR_FLAG_NONE,
-		   ATTR_TYPE_INT, MAIL_ATTR_STATUS, ready,
+		   SEND_ATTR_INT(MAIL_ATTR_STATUS, ready),
 		   ATTR_TYPE_END) != 0
 	|| vstream_fflush(plaintext_stream) != 0
 	|| ready == 0) {

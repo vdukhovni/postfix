@@ -223,10 +223,10 @@ static int bounce_append_proto(char *service_name, VSTREAM *client)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &flags,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-			    ATTR_TYPE_FUNC, rcpb_scan, (void *) rcpt_buf,
-			    ATTR_TYPE_FUNC, dsb_scan, (void *) dsn_buf,
+			    RECV_ATTR_INT(MAIL_ATTR_FLAGS, &flags),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
+			    RECV_ATTR_FUNC(rcpb_scan, (void *) rcpt_buf),
+			    RECV_ATTR_FUNC(dsb_scan, (void *) dsn_buf),
 			    ATTR_TYPE_END) != 4) {
 	msg_warn("malformed request");
 	return (-1);
@@ -295,14 +295,14 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &flags,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
-			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
-			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
+			    RECV_ATTR_INT(MAIL_ATTR_FLAGS, &flags),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUE, queue_name),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
+			    RECV_ATTR_STR(MAIL_ATTR_ENCODING, encoding),
+			    RECV_ATTR_INT(MAIL_ATTR_SMTPUTF8, &smtputf8),
+			    RECV_ATTR_STR(MAIL_ATTR_SENDER, sender),
+			    RECV_ATTR_STR(MAIL_ATTR_DSN_ENVID, dsn_envid),
+			    RECV_ATTR_INT(MAIL_ATTR_DSN_RET, &dsn_ret),
 			    ATTR_TYPE_END) != 8) {
 	msg_warn("malformed request");
 	return (-1);
@@ -355,15 +355,15 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &flags,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
-			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
-			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
-			    ATTR_TYPE_STR, MAIL_ATTR_VERPDL, verp_delims,
+			    RECV_ATTR_INT(MAIL_ATTR_FLAGS, &flags),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUE, queue_name),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
+			    RECV_ATTR_STR(MAIL_ATTR_ENCODING, encoding),
+			    RECV_ATTR_INT(MAIL_ATTR_SMTPUTF8, &smtputf8),
+			    RECV_ATTR_STR(MAIL_ATTR_SENDER, sender),
+			    RECV_ATTR_STR(MAIL_ATTR_DSN_ENVID, dsn_envid),
+			    RECV_ATTR_INT(MAIL_ATTR_DSN_RET, &dsn_ret),
+			    RECV_ATTR_STR(MAIL_ATTR_VERPDL, verp_delims),
 			    ATTR_TYPE_END) != 9) {
 	msg_warn("malformed request");
 	return (-1);
@@ -429,16 +429,16 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
      * Read and validate the client request.
      */
     if (mail_command_server(client,
-			    ATTR_TYPE_INT, MAIL_ATTR_FLAGS, &flags,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUE, queue_name,
-			    ATTR_TYPE_STR, MAIL_ATTR_QUEUEID, queue_id,
-			    ATTR_TYPE_STR, MAIL_ATTR_ENCODING, encoding,
-			    ATTR_TYPE_INT, MAIL_ATTR_SMTPUTF8, &smtputf8,
-			    ATTR_TYPE_STR, MAIL_ATTR_SENDER, sender,
-			    ATTR_TYPE_STR, MAIL_ATTR_DSN_ENVID, dsn_envid,
-			    ATTR_TYPE_INT, MAIL_ATTR_DSN_RET, &dsn_ret,
-			    ATTR_TYPE_FUNC, rcpb_scan, (void *) rcpt_buf,
-			    ATTR_TYPE_FUNC, dsb_scan, (void *) dsn_buf,
+			    RECV_ATTR_INT(MAIL_ATTR_FLAGS, &flags),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUE, queue_name),
+			    RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
+			    RECV_ATTR_STR(MAIL_ATTR_ENCODING, encoding),
+			    RECV_ATTR_INT(MAIL_ATTR_SMTPUTF8, &smtputf8),
+			    RECV_ATTR_STR(MAIL_ATTR_SENDER, sender),
+			    RECV_ATTR_STR(MAIL_ATTR_DSN_ENVID, dsn_envid),
+			    RECV_ATTR_INT(MAIL_ATTR_DSN_RET, &dsn_ret),
+			    RECV_ATTR_FUNC(rcpb_scan, (void *) rcpt_buf),
+			    RECV_ATTR_FUNC(dsb_scan, (void *) dsn_buf),
 			    ATTR_TYPE_END) != 10) {
 	msg_warn("malformed request");
 	return (-1);
@@ -518,7 +518,7 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
      * request-specific protocol routines take care of the remainder.
      */
     if (attr_scan(client, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
-		  ATTR_TYPE_INT, MAIL_ATTR_NREQ, &command, 0) != 1) {
+		  RECV_ATTR_INT(MAIL_ATTR_NREQ, &command), 0) != 1) {
 	msg_warn("malformed request");
 	status = -1;
     } else if (command == BOUNCE_CMD_VERP) {
@@ -546,7 +546,7 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
      * client.
      */
     attr_print(client, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_STATUS, status,
+	       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 	       ATTR_TYPE_END);
     vstream_fflush(client);
 

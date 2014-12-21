@@ -244,8 +244,8 @@ int     rewrite_proto(VSTREAM *stream)
     TOK822 *tree;
 
     if (attr_scan(stream, ATTR_FLAG_STRICT,
-		  ATTR_TYPE_STR, MAIL_ATTR_RULE, ruleset,
-		  ATTR_TYPE_STR, MAIL_ATTR_ADDR, address,
+		  RECV_ATTR_STR(MAIL_ATTR_RULE, ruleset),
+		  RECV_ATTR_STR(MAIL_ATTR_ADDR, address),
 		  ATTR_TYPE_END) != 2)
 	return (-1);
 
@@ -281,8 +281,8 @@ int     rewrite_proto(VSTREAM *stream)
 		 vstring_str(address), vstring_str(result));
 
     attr_print(stream, ATTR_FLAG_NONE,
-	       ATTR_TYPE_INT, MAIL_ATTR_FLAGS, server_flags,
-	       ATTR_TYPE_STR, MAIL_ATTR_ADDR, vstring_str(result),
+	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, server_flags),
+	       SEND_ATTR_STR(MAIL_ATTR_ADDR, vstring_str(result)),
 	       ATTR_TYPE_END);
 
     if (vstream_fflush(stream) != 0) {

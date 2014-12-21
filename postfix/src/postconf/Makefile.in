@@ -857,6 +857,7 @@ postconf.o: postconf.c
 postconf.o: postconf.h
 postconf_builtin.o: ../../include/argv.h
 postconf_builtin.o: ../../include/attr.h
+postconf_builtin.o: ../../include/check_arg.h
 postconf_builtin.o: ../../include/dict.h
 postconf_builtin.o: ../../include/get_hostname.h
 postconf_builtin.o: ../../include/htable.h
@@ -872,6 +873,7 @@ postconf_builtin.o: ../../include/myflock.h
 postconf_builtin.o: ../../include/mymalloc.h
 postconf_builtin.o: ../../include/mynetworks.h
 postconf_builtin.o: ../../include/name_code.h
+postconf_builtin.o: ../../include/nvtable.h
 postconf_builtin.o: ../../include/server_acl.h
 postconf_builtin.o: ../../include/stringops.h
 postconf_builtin.o: ../../include/sys_defs.h
