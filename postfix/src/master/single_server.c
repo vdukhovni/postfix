@@ -36,63 +36,63 @@
 /*	The argv argument specifies command-line arguments left over
 /*	after options processing.
 /* .PP
-/*	Optional arguments are specified as a null-terminated (key, value)
-/*	list. Keys and expected values are:
-/* .IP "MAIL_SERVER_INT_TABLE (CONFIG_INT_TABLE *)"
+/*	Optional arguments are specified as a null-terminated list
+/*	with macros that have zero or more arguments:
+/* .IP "MAIL_SERVER_REQ_INT_TABLE(CONFIG_INT_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_LONG_TABLE (CONFIG_LONG_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_LONG_TABLE(CONFIG_LONG_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_STR_TABLE (CONFIG_STR_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_STR_TABLE(CONFIG_STR_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_BOOL_TABLE (CONFIG_BOOL_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_BOOL_TABLE(CONFIG_BOOL_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_TIME_TABLE (CONFIG_TIME_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_TIME_TABLE(CONFIG_TIME_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_RAW_TABLE (CONFIG_RAW_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_RAW_TABLE(CONFIG_RAW_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed. Raw parameters are not subjected to $name
 /*	evaluation.
-/* .IP "MAIL_SERVER_NINT_TABLE (CONFIG_NINT_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_NINT_TABLE(CONFIG_NINT_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_NBOOL_TABLE (CONFIG_NBOOL_TABLE *)"
+/* .IP "MAIL_SERVER_REQ_NBOOL_TABLE(CONFIG_NBOOL_TABLE *)"
 /*	A table with configurable parameters, to be loaded from the
 /*	global Postfix configuration file. Tables are loaded in the
 /*	order as specified, and multiple instances of the same type
 /*	are allowed.
-/* .IP "MAIL_SERVER_PRE_INIT (void *(char *service_name, char **argv))"
+/* .IP "MAIL_SERVER_REQ_PRE_INIT(void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has read the global configuration file
 /*	and after it has processed command-line arguments, but before
 /*	the skeleton has optionally relinquished the process privileges.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_POST_INIT (void *(char *service_name, char **argv))"
+/* .IP "MAIL_SERVER_REQ_POST_INIT(void *(char *service_name, char **argv))"
 /*	A pointer to a function that is called once
 /*	by the skeleton after it has optionally relinquished the process
 /*	privileges, but before servicing client connection requests.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_LOOP (int *(char *service_name, char **argv))"
+/* .IP "MAIL_SERVER_REQ_LOOP(int *(char *service_name, char **argv))"
 /*	A pointer to function that is executed from
 /*	within the event loop, whenever an I/O or timer event has happened,
 /*	or whenever nothing has happened for a specified amount of time.
@@ -100,25 +100,25 @@
 /*	the next event. Specify -1 to wait for "as long as it takes".
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_EXIT (void *(void))"
+/* .IP "MAIL_SERVER_REQ_EXIT(void *(void))"
 /*	A pointer to function that is executed immediately before normal
 /*	process termination.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_PRE_ACCEPT (void *(char *service_name, char **argv))"
+/* .IP "MAIL_SERVER_REQ_PRE_ACCEPT(void *(char *service_name, char **argv))"
 /*	Function to be executed prior to accepting a new connection.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "MAIL_SERVER_IN_FLOW_DELAY (none)"
+/* .IP "MAIL_SERVER_REQ_IN_FLOW_DELAY(none)"
 /*	Pause $in_flow_delay seconds when no "mail flow control token"
 /*	is available. A token is consumed for each connection request.
-/* .IP MAIL_SERVER_SOLITARY
+/* .IP MAIL_SERVER_REQ_SOLITARY
 /*	This service must be configured with process limit of 1.
-/* .IP MAIL_SERVER_UNLIMITED
+/* .IP MAIL_SERVER_REQ_UNLIMITED
 /*	This service must be configured with process limit of 0.
-/* .IP MAIL_SERVER_PRIVILEGED
+/* .IP MAIL_SERVER_REQ_PRIVILEGED
 /*	This service must be configured as privileged.
-/* .IP "MAIL_SERVER_BOUNCE_INIT (const char *, const char **)"
+/* .IP "MAIL_SERVER_REQ_BOUNCE_INIT(const char *, const char **)"
 /*	Initialize the DSN filter for the bounce/defer service
 /*	clients with the specified map source and map names.
 /* .PP
@@ -270,9 +270,9 @@ static void single_server_wakeup(int fd, HTABLE *attr)
     stream = vstream_fdopen(fd, O_RDWR);
     tmp = concatenate(single_server_name, " socket", (char *) 0);
     vstream_control(stream,
-		    VSTREAM_CTL_PATH, tmp,
-		    VSTREAM_CTL_CONTEXT, (void *) attr,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_PATH(tmp),
+		    VSTREAM_SCTL_CONTEXT((void *) attr),
+		    VSTREAM_SCTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
     if (master_notify(var_pid, single_server_generation, MASTER_STAT_TAKEN) < 0)
@@ -743,9 +743,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      */
     if (stream != 0) {
 	vstream_control(stream,
-			VSTREAM_CTL_DOUBLE,
-			VSTREAM_CTL_WRITE_FD, STDOUT_FILENO,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_DOUBLE,
+			VSTREAM_SCTL_WRITE_FD(STDOUT_FILENO),
+			VSTREAM_SCTL_END);
 	service(stream, single_server_name, single_server_argv);
 	vstream_fflush(stream);
 	single_server_exit();

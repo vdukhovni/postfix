@@ -23,6 +23,11 @@
 #endif
 
  /*
+  * Utility library.
+  */
+#include <check_arg.h>
+
+ /*
   * External interface.
   */
 #ifdef NO_SIGSETJMP
@@ -72,18 +77,33 @@ extern int slmdb_close(SLMDB *);
 #define slmdb_fd(slmdb)			((slmdb)->db_fd)
 #define slmdb_curr_limit(slmdb)		((slmdb)->curr_limit)
 
-#define SLMDB_CTL_END		0
-#define SLMDB_CTL_LONGJMP_FN	1	/* exception handling */
-#define SLMDB_CTL_NOTIFY_FN	2	/* debug logging function */
-#define SLMDB_CTL_CB_CONTEXT	3	/* call-back context */
-#define SLMDB_CTL_HARD_LIMIT	4	/* hard database size limit */
+/* Legacy API: type-unchecked arguments, internal use. */
+#define SLMDB_CTL_END			0
+#define SLMDB_CTL_LONGJMP_FN		1	/* exception handling */
+#define SLMDB_CTL_NOTIFY_FN		2	/* debug logging function */
+#define SLMDB_CTL_CB_CONTEXT		3	/* call-back context */
 #define SLMDB_CTL_API_RETRY_LIMIT	5	/* per slmdb(3) API call */
 #define SLMDB_CTL_BULK_RETRY_LIMIT	6	/* per bulk update */
-#define SLMDB_CTL_ASSERT_FN	7	/* report assertion failure */
+#define SLMDB_CTL_ASSERT_FN		7	/* report assertion failure */
+
+/* Safer API: type-checked arguments, external use. */
+#define SLMDB_SCTL_END			SLMDB_CTL_END
+#define SLMDB_SCTL_LONGJMP_FN(v)	SLMDB_CTL_LONGJMP_FN, CHECK_VAL(SLMDB, SLMDB_LONGJMP_FN, (v))
+#define SLMDB_SCTL_NOTIFY_FN(v)		SLMDB_CTL_NOTIFY_FN, CHECK_VAL(SLMDB, SLMDB_NOTIFY_FN, (v))
+#define SLMDB_SCTL_CB_CONTEXT(v)	SLMDB_CTL_CB_CONTEXT, CHECK_PTR(SLMDB, void, (v))
+#define SLMDB_SCTL_API_RETRY_LIMIT(v)	SLMDB_CTL_API_RETRY_LIMIT, CHECK_VAL(SLMDB, int, (v))
+#define SLMDB_SCTL_BULK_RETRY_LIMIT(v)	SLMDB_CTL_BULK_RETRY_LIMIT, CHECK_VAL(SLMDB, int, (v))
+#define SLMDB_SCTL_ASSERT_FN(v)		SLMDB_CTL_ASSERT_FN, CHECK_VAL(SLMDB, SLMDB_ASSERT_FN, (v))
 
 typedef void (*SLMDB_NOTIFY_FN) (void *, int,...);
 typedef void (*SLMDB_LONGJMP_FN) (void *, int);
 typedef void (*SLMDB_ASSERT_FN) (void *, const char *);
+
+CHECK_VAL_HELPER_DCL(SLMDB, int);
+CHECK_VAL_HELPER_DCL(SLMDB, SLMDB_NOTIFY_FN);
+CHECK_VAL_HELPER_DCL(SLMDB, SLMDB_LONGJMP_FN);
+CHECK_VAL_HELPER_DCL(SLMDB, SLMDB_ASSERT_FN);
+CHECK_PTR_HELPER_DCL(SLMDB, void);
 
 /* LICENSE
 /* .ad

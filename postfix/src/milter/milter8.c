@@ -1723,9 +1723,9 @@ static void milter8_connect(MILTER8 *milter)
     myfree(transport);
     milter->fp = vstream_fdopen(fd, O_RDWR);
     vstream_control(milter->fp,
-		    VSTREAM_CTL_DOUBLE,
-		    VSTREAM_CTL_TIMEOUT, milter->cmd_timeout,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_DOUBLE,
+		    VSTREAM_SCTL_TIMEOUT(milter->cmd_timeout),
+		    VSTREAM_SCTL_END);
     /* Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE. */
     if (connect_fn == inet_connect)
 	vstream_tweak_tcp(milter->fp);
@@ -2567,9 +2567,9 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 	milter->state = MILTER8_STAT_MESSAGE;
 	VSTRING_RESET(milter->body);
 	vstream_control(milter->fp,
-			VSTREAM_CTL_DOUBLE,
-			VSTREAM_CTL_TIMEOUT, milter->msg_timeout,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_DOUBLE,
+			VSTREAM_SCTL_TIMEOUT(milter->msg_timeout),
+			VSTREAM_SCTL_END);
 
 	/*
 	 * XXX When the message (not MIME body part) does not end in CRLF
@@ -2602,9 +2602,9 @@ static const char *milter8_message(MILTER *m, VSTREAM *qfile,
 	vstring_free(buf);
 	if (milter->fp)
 	    vstream_control(milter->fp,
-			    VSTREAM_CTL_DOUBLE,
-			    VSTREAM_CTL_TIMEOUT, milter->cmd_timeout,
-			    VSTREAM_CTL_END);
+			    VSTREAM_SCTL_DOUBLE,
+			    VSTREAM_SCTL_TIMEOUT(milter->cmd_timeout),
+			    VSTREAM_SCTL_END);
 	if (milter->state == MILTER8_STAT_MESSAGE
 	    || milter->state == MILTER8_STAT_ACCEPT_MSG)
 	    milter->state = MILTER8_STAT_ENVELOPE;
@@ -2782,7 +2782,7 @@ MILTER *milter8_receive(VSTREAM *stream, MILTERS *parent)
 			    msg_timeout, NO_PROTOCOL, STR(act_buf), parent);
 	milter->fp = vstream_fdopen(fd, O_RDWR);
 	milter->m.macros = macros;
-	vstream_control(milter->fp, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
+	vstream_control(milter->fp, VSTREAM_SCTL_DOUBLE, VSTREAM_SCTL_END);
 	/* Avoid poor performance when TCP MSS > VSTREAM_BUFSIZE. */
 	vstream_tweak_sock(milter->fp);
 	milter->version = version;

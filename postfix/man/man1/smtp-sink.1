@@ -101,6 +101,11 @@ Disable XFORWARD support.
 .IP "\fB-h\fI hostname\fR"
 Use \fIhostname\fR in the SMTP greeting, in the HELO response,
 and in the EHLO response. The default hostname is "smtp-sink".
+.IP "\fB-H\fI delay\fR"
+Delay the first read operation after receiving DATA (time
+in seconds). Combine with a large test message and a small
+TCP window size (see the \fB-T\fR option) to test the Postfix
+client write_wait() implementation.
 .IP \fB-L\fR
 Enable LMTP instead of SMTP.
 .IP "\fB-m \fIcount\fR (default: 256)"

@@ -304,13 +304,13 @@ int     cleanup_flush(CLEANUP_STATE *state)
 	    state->queue_name = mystrdup(MAIL_QUEUE_HOLD);
 #endif
 	    mail_stream_ctl(state->handle,
-			    MAIL_STREAM_CTL_QUEUE, state->queue_name,
-			    MAIL_STREAM_CTL_CLASS, (char *) 0,
-			    MAIL_STREAM_CTL_SERVICE, (char *) 0,
+			    MAIL_STREAM_SCTL_QUEUE(state->queue_name),
+			    MAIL_STREAM_SCTL_CLASS((char *) 0),
+			    MAIL_STREAM_SCTL_SERVICE((char *) 0),
 #ifdef DELAY_ACTION
-			    MAIL_STREAM_CTL_DELAY, state->defer_delay,
+			    MAIL_STREAM_SCTL_DELAY(state->defer_delay),
 #endif
-			    MAIL_STREAM_CTL_END);
+			    MAIL_STREAM_SCTL_END);
 	    junk = cleanup_path;
 	    cleanup_path = mystrdup(VSTREAM_PATH(state->handle->stream));
 	    myfree(junk);

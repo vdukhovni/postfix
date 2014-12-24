@@ -14,6 +14,8 @@
  /*
   * External interface.
   */
+#include <check_arg.h>
+
 extern void attr_override(char *, const char *, const char *,...);
 
 typedef struct {
@@ -38,10 +40,21 @@ typedef struct {
     int     max;
 } ATTR_OVER_INT;
 
+/* Type-unchecked API, internal use only. */
 #define ATTR_OVER_END		0
 #define ATTR_OVER_STR_TABLE	1
 #define ATTR_OVER_TIME_TABLE	2
 #define ATTR_OVER_INT_TABLE	3
+
+/* Type-checked API, external use only. */
+#define ATTR_OVER_REQ_END		0
+#define ATTR_OVER_REQ_STR_TABLE(v)	ATTR_OVER_STR_TABLE, CHECK_CPTR(ATTR_OVER, ATTR_OVER_STR, (v))
+#define ATTR_OVER_REQ_TIME_TABLE(v)	ATTR_OVER_TIME_TABLE, CHECK_CPTR(ATTR_OVER, ATTR_OVER_TIME, (v))
+#define ATTR_OVER_REQ_INT_TABLE(v)	ATTR_OVER_INT_TABLE, CHECK_CPTR(ATTR_OVER, ATTR_OVER_INT, (v))
+
+CHECK_CPTR_HELPER_DCL(ATTR_OVER, ATTR_OVER_TIME);
+CHECK_CPTR_HELPER_DCL(ATTR_OVER, ATTR_OVER_STR);
+CHECK_CPTR_HELPER_DCL(ATTR_OVER, ATTR_OVER_INT);
 
 /* LICENSE
 /* .ad

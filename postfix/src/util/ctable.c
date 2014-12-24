@@ -296,7 +296,7 @@ int     main(int unused_argc, char **argv)
     data_buf = vstring_alloc(100);
     cache = ctable_create(1, ask, drop, (void *) data_buf);
     msg_verbose = 1;
-    vstream_control(VSTREAM_IN, VSTREAM_CTL_EXCEPT, VSTREAM_CTL_END);
+    vstream_control(VSTREAM_IN, VSTREAM_SCTL_EXCEPT, VSTREAM_SCTL_END);
 
     if (vstream_setjmp(VSTREAM_IN) == 0) {
 	for (;;) {

@@ -14,7 +14,7 @@
   */
 extern void smtpd_chat_reset(SMTPD_STATE *);
 extern void smtpd_chat_query(SMTPD_STATE *);
-extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, const char *, ...);
+extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, const char *,...);
 extern void smtpd_chat_notify(SMTPD_STATE *);
 
 /* LICENSE
@@ -27,4 +27,3 @@ extern void smtpd_chat_notify(SMTPD_STATE *);
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
-

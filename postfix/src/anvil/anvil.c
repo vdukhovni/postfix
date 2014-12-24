@@ -591,8 +591,8 @@ static ANVIL_REMOTE *anvil_remote_conn_update(VSTREAM *client_stream, const char
 	anvil_local = (ANVIL_LOCAL *) mymalloc(sizeof(*anvil_local));
 	ANVIL_LOCAL_INIT(anvil_local);
 	vstream_control(client_stream,
-			VSTREAM_CTL_CONTEXT, (void *) anvil_local,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_CONTEXT((void *) anvil_local),
+			VSTREAM_SCTL_END);
     }
     ANVIL_LOCAL_ADD_ONE(anvil_local, anvil_remote);
     if (msg_verbose)
@@ -954,10 +954,10 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, anvil_service,
-		      MAIL_SERVER_TIME_TABLE, time_table,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_SOLITARY,
-		      MAIL_SERVER_PRE_DISCONN, anvil_service_done,
-		      MAIL_SERVER_EXIT, anvil_status_dump,
+		      MAIL_SERVER_REQ_TIME_TABLE(time_table),
+		      MAIL_SERVER_REQ_POST_INIT(post_jail_init),
+		      MAIL_SERVER_REQ_SOLITARY,
+		      MAIL_SERVER_REQ_PRE_DISCONN(anvil_service_done),
+		      MAIL_SERVER_REQ_EXIT(anvil_status_dump),
 		      0);
 }

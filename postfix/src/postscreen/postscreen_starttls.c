@@ -167,8 +167,8 @@ static void psc_starttls_finish(int event, void *context)
 	 */
 	vstream_fpurge(smtp_state->smtp_client_stream, VSTREAM_PURGE_BOTH);
 	vstream_control(smtp_state->smtp_client_stream,
-			VSTREAM_CTL_SWAP_FD, tlsproxy_stream,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_SWAP_FD(tlsproxy_stream),
+			VSTREAM_SCTL_END);
 	vstream_fclose(tlsproxy_stream);	/* direct-to-client stream! */
 	smtp_state->flags |= PSC_STATE_FLAG_USING_TLS;
     }

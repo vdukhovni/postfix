@@ -30,67 +30,67 @@
 /*	a limited portion of command output, among other free text.
 /* .IP key
 /*	Specifies what value will follow. pipe_command() takes a list
-/*	of (key, value) arguments, terminated by PIPE_CMD_END. The
-/*	following is a listing of key codes together with the expected
-/*	value type.
+/*	of macros with arguments, terminated by PIPE_SCMD_END which
+/*	has no argument. The following is a listing of macros and
+/*	expected argument types.
 /* .RS
-/* .IP "PIPE_CMD_COMMAND (char *)"
+/* .IP "PIPE_SCMD_COMMAND(const char *)"
 /*	Specifies the command to execute as a string. The string is
 /*	passed to the shell when it contains shell meta characters
 /*	or when it appears to be a shell built-in command, otherwise
 /*	the command is executed without invoking a shell.
-/*	One of PIPE_CMD_COMMAND or PIPE_CMD_ARGV must be specified.
-/*	See also the PIPE_CMD_SHELL attribute below.
-/* .IP "PIPE_CMD_ARGV (char **)"
+/*	One of PIPE_SCMD_COMMAND or PIPE_SCMD_ARGV must be specified.
+/*	See also the PIPE_SCMD_SHELL attribute below.
+/* .IP "PIPE_SCMD_ARGV(char **)"
 /*	The command is specified as an argument vector. This vector is
 /*	passed without further inspection to the \fIexecvp\fR() routine.
-/*	One of PIPE_CMD_COMMAND or PIPE_CMD_ARGV must be specified.
-/* .IP "PIPE_CMD_CHROOT (char *)"
+/*	One of PIPE_SCMD_COMMAND or PIPE_SCMD_ARGV must be specified.
+/* .IP "PIPE_SCMD_CHROOT(const char *)"
 /*	Root and working directory for command execution. This takes
-/*	effect before PIPE_CMD_CWD. A null pointer means don't
+/*	effect before PIPE_SCMD_CWD. A null pointer means don't
 /*	change root and working directory anyway. Failure to change
 /*	directory causes mail delivery to be deferred.
-/* .IP "PIPE_CMD_CWD (char *)"
+/* .IP "PIPE_SCMD_CWD(const char *)"
 /*	Working directory for command execution, after changing process
-/*	privileges to PIPE_CMD_UID and PIPE_CMD_GID. A null pointer means
+/*	privileges to PIPE_SCMD_UID and PIPE_SCMD_GID. A null pointer means
 /*	don't change directory anyway. Failure to change directory
 /*	causes mail delivery to be deferred.
-/* .IP "PIPE_CMD_ENV (char **)"
+/* .IP "PIPE_SCMD_ENV(char **)"
 /*	Additional environment information, in the form of a null-terminated
 /*	list of name, value, name, value, ... elements. By default only the
 /*	command search path is initialized to _PATH_DEFPATH.
-/* .IP "PIPE_CMD_EXPORT (char **)"
+/* .IP "PIPE_SCMD_EXPORT(char **)"
 /*	Null-terminated array with names of environment parameters
 /*	that can be exported. By default, everything is exported.
-/* .IP "PIPE_CMD_COPY_FLAGS (int)"
+/* .IP "PIPE_SCMD_COPY_FLAGS(int)"
 /*	Flags that are passed on to the \fImail_copy\fR() routine.
 /*	The default flags value is 0 (zero).
-/* .IP "PIPE_CMD_SENDER (char *)"
+/* .IP "PIPE_SCMD_SENDER(const char *)"
 /*	The envelope sender address, which is passed on to the
 /*	\fImail_copy\fR() routine.
-/* .IP "PIPE_CMD_ORIG_RCPT (char *)"
+/* .IP "PIPE_SCMD_ORIG_RCPT(const char *)"
 /*	The original recipient envelope address, which is passed on
 /*	to the \fImail_copy\fR() routine.
-/* .IP "PIPE_CMD_DELIVERED (char *)"
+/* .IP "PIPE_SCMD_DELIVERED(const char *)"
 /*	The recipient envelope address, which is passed on to the
 /*	\fImail_copy\fR() routine.
-/* .IP "PIPE_CMD_EOL (char *)"
+/* .IP "PIPE_SCMD_EOL(const char *)"
 /*	End-of-line delimiter. The default is to use the newline character.
-/* .IP "PIPE_CMD_UID (uid_t)"
+/* .IP "PIPE_SCMD_UID(uid_t)"
 /*	The user ID to execute the command as. The default is
 /*	the user ID corresponding to the \fIdefault_privs\fR
 /*	configuration parameter. The user ID must be non-zero.
-/* .IP "PIPE_CMD_GID (gid_t)"
+/* .IP "PIPE_SCMD_GID(gid_t)"
 /*	The group ID to execute the command as. The default is
 /*	the group ID corresponding to the \fIdefault_privs\fR
 /*	configuration parameter. The group ID must be non-zero.
-/* .IP "PIPE_CMD_TIME_LIMIT (int)"
+/* .IP "PIPE_SCMD_TIME_LIMIT(int)"
 /*	The amount of time the command is allowed to run before it
-/*	is terminated with SIGKILL. A non-negative PIPE_CMD_TIME_LIMIT
+/*	is terminated with SIGKILL. A non-negative PIPE_SCMD_TIME_LIMIT
 /*	value must be specified.
-/* .IP "PIPE_CMD_SHELL (char *)"
+/* .IP "PIPE_SCMD_SHELL(const char *)"
 /*	The shell to use when executing the command specified with
-/*	PIPE_CMD_COMMAND. This shell is invoked regardless of the
+/*	PIPE_SCMD_COMMAND. This shell is invoked regardless of the
 /*	command content.
 /* .RE
 /* DIAGNOSTICS
@@ -307,7 +307,7 @@ static ssize_t pipe_command_write(int fd, void *buf, size_t len,
 
 /* pipe_command_read - read from command with time limit */
 
-static ssize_t pipe_command_read(int fd, void *buf, ssize_t len,
+static ssize_t pipe_command_read(int fd, void *buf, size_t len,
 				         int unused_timeout,
 				         void *unused_context)
 {
@@ -572,11 +572,11 @@ int     pipe_command(VSTREAM *src, DSN_BUF *why,...)
 	 * timeouts on all I/O from and to it.
 	 */
 	vstream_control(cmd_in_stream,
-			VSTREAM_CTL_WRITE_FN, pipe_command_write,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_WRITE_FN(pipe_command_write),
+			VSTREAM_SCTL_END);
 	vstream_control(cmd_out_stream,
-			VSTREAM_CTL_READ_FN, pipe_command_read,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_READ_FN(pipe_command_read),
+			VSTREAM_SCTL_END);
 	pipe_command_timeout = 0;
 
 	/*

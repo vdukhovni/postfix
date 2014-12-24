@@ -570,14 +570,14 @@ int     main(int argc, char **argv)
      * Pass control to the single-threaded service skeleton.
      */
     single_server_main(argc, argv, cleanup_service,
-		       MAIL_SERVER_INT_TABLE, cleanup_int_table,
-		       MAIL_SERVER_BOOL_TABLE, cleanup_bool_table,
-		       MAIL_SERVER_STR_TABLE, cleanup_str_table,
-		       MAIL_SERVER_TIME_TABLE, cleanup_time_table,
-		       MAIL_SERVER_PRE_INIT, cleanup_pre_jail,
-		       MAIL_SERVER_POST_INIT, cleanup_post_jail,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_IN_FLOW_DELAY,
-		       MAIL_SERVER_UNLIMITED,
+		       MAIL_SERVER_REQ_INT_TABLE(cleanup_int_table),
+		       MAIL_SERVER_REQ_BOOL_TABLE(cleanup_bool_table),
+		       MAIL_SERVER_REQ_STR_TABLE(cleanup_str_table),
+		       MAIL_SERVER_REQ_TIME_TABLE(cleanup_time_table),
+		       MAIL_SERVER_REQ_PRE_INIT(cleanup_pre_jail),
+		       MAIL_SERVER_REQ_POST_INIT(cleanup_post_jail),
+		       MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
+		       MAIL_SERVER_REQ_IN_FLOW_DELAY,
+		       MAIL_SERVER_REQ_UNLIMITED,
 		       0);
 }

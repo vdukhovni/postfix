@@ -95,27 +95,27 @@
 /*
 /*	dict_cache_control() provides control over the built-in
 /*	cache cleanup feature and logging. The arguments are a list
-/*	of (name, value) pairs, terminated with DICT_CACHE_CTL_END.
-/*	The following lists the names and the types of the corresponding
-/*	value arguments.
-/* .IP "DICT_CACHE_FLAGS (int flags)"
+/*	of macros with zero or more arguments, terminated with
+/*	DICT_CACHE_SCTL_END which has none.  The following lists
+/*	the macros and corresponding argument types.
+/* .IP "DICT_CACHE_SCTL_FLAGS(int flags)"
 /*	The arguments to this command are the bit-wise OR of zero
 /*	or more of the following:
 /* .RS
-/* .IP DICT_CACHE_FLAG_VERBOSE
+/* .IP DICT_CACHE_SCTL_FLAG_VERBOSE
 /*	Enable verbose logging of cache activity.
-/* .IP DICT_CACHE_FLAG_EXP_SUMMARY
+/* .IP DICT_CACHE_SCTL_FLAG_EXP_SUMMARY
 /*	Log cache statistics after each cache cleanup run.
 /* .RE
-/* .IP "DICT_CACHE_CTL_INTERVAL (int interval)"
+/* .IP "DICT_CACHE_SCTL_INTERVAL(int interval)"
 /*	The interval between cache cleanup runs.  Specify a null
 /*	validator or interval to stop cache cleanup.
-/* .IP "DICT_CACHE_CTL_VALIDATOR (DICT_CACHE_VALIDATOR_FN validator)"
+/* .IP "DICT_CACHE_SCTL_VALIDATOR(DICT_CACHE_VALIDATOR_FN validator)"
 /*	An application call-back routine that returns non-zero when
 /*	a cache entry should be kept. The call-back function should
 /*	not make changes to the cache. Specify a null validator or
 /*	interval to stop cache cleanup.
-/* .IP "DICT_CACHE_CTL_CONTEXT (void *context)"
+/* .IP "DICT_CACHE_SCTL_CONTEXT(void *context)"
 /*	Application context that is passed to the validator function.
 /* .RE
 /* .PP

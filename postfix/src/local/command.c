@@ -206,20 +206,20 @@ int     deliver_command(LOCAL_STATE state, USER_ATTR usr_attr, const char *comma
 		 VAR_EXEC_DIRECTORY, var_exec_directory);
     } else {
 	cmd_status = pipe_command(state.msg_attr.fp, why,
-				  PIPE_CMD_UID, usr_attr.uid,
-				  PIPE_CMD_GID, usr_attr.gid,
-				  PIPE_CMD_COMMAND, command,
-				  PIPE_CMD_COPY_FLAGS, copy_flags,
-				  PIPE_CMD_SENDER, state.msg_attr.sender,
-			  PIPE_CMD_ORIG_RCPT, state.msg_attr.rcpt.orig_addr,
-			       PIPE_CMD_DELIVERED, state.msg_attr.delivered,
-				  PIPE_CMD_TIME_LIMIT, var_command_maxtime,
-				  PIPE_CMD_ENV, env->argv,
-				  PIPE_CMD_EXPORT, export_env->argv,
-				  PIPE_CMD_SHELL, var_local_cmd_shell,
-				  PIPE_CMD_CWD, *STR(exec_dir) ?
-				  STR(exec_dir) : (char *) 0,
-				  PIPE_CMD_END);
+				  PIPE_SCMD_UID(usr_attr.uid),
+				  PIPE_SCMD_GID(usr_attr.gid),
+				  PIPE_SCMD_COMMAND(command),
+				  PIPE_SCMD_COPY_FLAGS(copy_flags),
+				  PIPE_SCMD_SENDER(state.msg_attr.sender),
+			 PIPE_SCMD_ORIG_RCPT(state.msg_attr.rcpt.orig_addr),
+			      PIPE_SCMD_DELIVERED(state.msg_attr.delivered),
+				  PIPE_SCMD_TIME_LIMIT(var_command_maxtime),
+				  PIPE_SCMD_ENV(env->argv),
+				  PIPE_SCMD_EXPORT(export_env->argv),
+				  PIPE_SCMD_SHELL(var_local_cmd_shell),
+				  PIPE_SCMD_CWD(*STR(exec_dir) ?
+						STR(exec_dir) : (char *) 0),
+				  PIPE_SCMD_END);
     }
     vstring_free(exec_dir);
     argv_free(export_env);

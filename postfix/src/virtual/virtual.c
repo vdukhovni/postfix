@@ -531,15 +531,15 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, local_service,
-		       MAIL_SERVER_INT_TABLE, int_table,
-		       MAIL_SERVER_LONG_TABLE, long_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       MAIL_SERVER_BOOL_TABLE, bool_table,
-		       MAIL_SERVER_PRE_INIT, pre_init,
-		       MAIL_SERVER_POST_INIT, post_init,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_PRIVILEGED,
-		       MAIL_SERVER_BOUNCE_INIT, VAR_VIRT_DSN_FILTER,
-		       &var_virt_dsn_filter,
+		       MAIL_SERVER_REQ_INT_TABLE(int_table),
+		       MAIL_SERVER_REQ_LONG_TABLE(long_table),
+		       MAIL_SERVER_REQ_STR_TABLE(str_table),
+		       MAIL_SERVER_REQ_BOOL_TABLE(bool_table),
+		       MAIL_SERVER_REQ_PRE_INIT(pre_init),
+		       MAIL_SERVER_REQ_POST_INIT(post_init),
+		       MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
+		       MAIL_SERVER_REQ_PRIVILEGED,
+		       MAIL_SERVER_REQ_BOUNCE_INIT(VAR_VIRT_DSN_FILTER,
+						   &var_virt_dsn_filter),
 		       0);
 }

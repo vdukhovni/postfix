@@ -59,6 +59,14 @@ Maintainers may also benefit from the makedefs documentation
 (mantools/srctoman - makedefs | nroff -man | less) with information
 about build options that are not described in the INSTALL instructions.
 
+Major changes with snapshot 20141224
+====================================
+
+Compile-time argument typechecks of non-printf/scanf-like variadic
+function argument lists. This change produces no directly-visible
+result, but it makes Postfix code easier to maintain, and therefore
+makes new functionality easier to add.
+
 Major changes with snapshot 20141207
 ====================================
 

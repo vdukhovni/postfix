@@ -134,10 +134,10 @@ static ssize_t tls_timed_write(int fd, void *buf, size_t len, int timeout,
 void    tls_stream_start(VSTREAM *stream, TLS_SESS_STATE *context)
 {
     vstream_control(stream,
-		    VSTREAM_CTL_READ_FN, tls_timed_read,
-		    VSTREAM_CTL_WRITE_FN, tls_timed_write,
-		    VSTREAM_CTL_CONTEXT, (void *) context,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_READ_FN(tls_timed_read),
+		    VSTREAM_SCTL_WRITE_FN(tls_timed_write),
+		    VSTREAM_SCTL_CONTEXT(context),
+		    VSTREAM_SCTL_END);
 }
 
 /* tls_stream_stop - stop VSTREAM over TLS */
@@ -151,10 +151,10 @@ void    tls_stream_stop(VSTREAM *stream)
      * noise when used.
      */
     vstream_control(stream,
-		    VSTREAM_CTL_READ_FN, dummy_read,
-		    VSTREAM_CTL_WRITE_FN, dummy_write,
-		    VSTREAM_CTL_CONTEXT, (void *) 0,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_READ_FN(dummy_read),
+		    VSTREAM_SCTL_WRITE_FN(dummy_write),
+		    VSTREAM_SCTL_CONTEXT((void *) 0),
+		    VSTREAM_SCTL_END);
 }
 
 #endif

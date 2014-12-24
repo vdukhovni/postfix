@@ -801,8 +801,8 @@ static INSTANCE *load_instance(INSTANCE *ip)
 	     VAR_MULTI_NAME, VAR_MULTI_GROUP, VAR_MULTI_ENABLE,
 	     (char *) 0);
     myfree(name);
-    pipe = vstream_popen(O_RDONLY, VSTREAM_POPEN_ARGV, cmd->argv,
-			 VSTREAM_POPEN_END);
+    pipe = vstream_popen(O_RDONLY, VSTREAM_SPOPEN_ARGV(cmd->argv),
+			 VSTREAM_SPOPEN_END);
     argv_free(cmd);
     if (pipe == 0)
 	msg_fatal("Cannot parse %s/main.cf file: %m", ip->config_dir);

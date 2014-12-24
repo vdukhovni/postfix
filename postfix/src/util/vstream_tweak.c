@@ -120,7 +120,7 @@ int     vstream_tweak_tcp(VSTREAM *fp)
      * changes and IP path MTU discovery is turned on, so we choose a
      * somewhat larger buffer.
      * 
-     * Note: as of 20120527, the VSTREAM_CTL_BUFSIZE request can reduce the
+     * Note: as of 20120527, the VSTREAM_SCTL_BUFSIZE request can reduce the
      * stream buffer size to less than VSTREAM_BUFSIZE, when the request is
      * made before the first stream read or write operation. We don't want to
      * reduce the buffer size.
@@ -128,13 +128,13 @@ int     vstream_tweak_tcp(VSTREAM *fp)
 #define EFF_BUFFER_SIZE(fp) (vstream_req_bufsize(fp) ? \
 		vstream_req_bufsize(fp) : VSTREAM_BUFSIZE)
 
-#ifdef VSTREAM_CTL_BUFSIZE
+#ifdef VSTREAM_SCTL_BUFSIZE
     if (mss > EFF_BUFFER_SIZE(fp) / 2) {
 	if (mss < INT_MAX / 2)
 	    mss *= 2;
 	vstream_control(fp,
-			VSTREAM_CTL_BUFSIZE, (ssize_t) mss,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_BUFSIZE(mss),
+			VSTREAM_SCTL_END);
     }
 
     /*

@@ -76,22 +76,22 @@
 /*	mail_stream_ctl() selectively overrides information that
 /*	was specified with mail_stream_file(); none of the attributes
 /*	are applicable for other mail stream types.  The arguments
-/*	are a list of (operation, value) pairs, terminated with
-/*	MAIL_STREAM_CTL_END.  The following lists the operation
-/*	codes and the types of the corresponding value arguments.
-/* .IP "MAIL_STREAM_CTL_QUEUE (char *)"
+/*	are a list macros with arguments, terminated with
+/*	MAIL_STREAM_SCTL_END which has none.  The following lists
+/*	the macros and the types of the corresponding arguments.
+/* .IP "MAIL_STREAM_SCTL_QUEUE(const char *)"
 /*	The argument specifies an alternate destination queue. The
 /*	queue file is moved to the specified queue before the call
 /*	returns. Failure to rename the queue file results in a fatal
 /*	error.
-/* .IP "MAIL_STREAM_CTL_CLASS (char *)"
+/* .IP "MAIL_STREAM_SCTL_CLASS(const char *)"
 /*	The argument specifies an alternate trigger class.
-/* .IP "MAIL_STREAM_CTL_SERVICE (char *)"
+/* .IP "MAIL_STREAM_SCTL_SERVICE(const char *)"
 /*	The argument specifies an alternate trigger service.
-/* .IP "MAIL_STREAM_CTL_MODE (int)"
+/* .IP "MAIL_STREAM_SCTL_MODE(int)"
 /*	The argument specifies alternate permissions that override
 /*	the permissions specified with mail_stream_file().
-/* .IP "MAIL_STREAM_CTL_DELAY (int)"
+/* .IP "MAIL_STREAM_SCTL_DELAY(int)"
 /*	Attempt to postpone initial delivery by advancing the queue
 /*	file modification time stamp by this amount.  This has
 /*	effect only within the deferred mail queue.
@@ -481,16 +481,16 @@ MAIL_STREAM *mail_stream_command(const char *command)
      */
     export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
     while ((stream = vstream_popen(O_RDWR,
-				   VSTREAM_POPEN_COMMAND, command,
-				   VSTREAM_POPEN_EXPORT, export_env->argv,
-				   VSTREAM_POPEN_END)) == 0) {
+				   VSTREAM_SPOPEN_COMMAND(command),
+				   VSTREAM_SPOPEN_EXPORT(export_env->argv),
+				   VSTREAM_SPOPEN_END)) == 0) {
 	msg_warn("fork: %m");
 	sleep(10);
     }
     argv_free(export_env);
     vstream_control(stream,
-		    VSTREAM_CTL_PATH, command,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_PATH(command),
+		    VSTREAM_SCTL_END);
 
     if (attr_scan(stream, ATTR_FLAG_MISSING,
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id_buf), 0) != 1) {
@@ -599,8 +599,8 @@ void    mail_stream_ctl(MAIL_STREAM *info, int op,...)
 
 	(void) mail_queue_path(new_path, new_queue, info->id);
 	info->queue = mystrdup(new_queue);
-	vstream_control(info->stream, VSTREAM_CTL_PATH, STR(new_path),
-			VSTREAM_CTL_END);
+	vstream_control(info->stream, VSTREAM_SCTL_PATH(STR(new_path)),
+			VSTREAM_SCTL_END);
 
 	if (sane_rename(saved_path, STR(new_path)) == 0
 	    || (mail_queue_mkdirs(STR(new_path)) == 0

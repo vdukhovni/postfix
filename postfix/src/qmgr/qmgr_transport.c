@@ -349,13 +349,13 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
 	event_request_timer(qmgr_transport_event, (void *) alloc, 0);
 	return;
     }
-#if (EVENTS_STYLE != EVENTS_STYLE_SELECT) && defined(VSTREAM_CTL_DUPFD)
+#if (EVENTS_STYLE != EVENTS_STYLE_SELECT) && defined(VSTREAM_SCTL_DUPFD)
 #ifndef THRESHOLD_FD_WORKAROUND
 #define THRESHOLD_FD_WORKAROUND 128
 #endif
     vstream_control(alloc->stream,
-		    VSTREAM_CTL_DUPFD, THRESHOLD_FD_WORKAROUND,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_DUPFD(THRESHOLD_FD_WORKAROUND),
+		    VSTREAM_SCTL_END);
 #endif
     event_enable_read(vstream_fileno(alloc->stream), qmgr_transport_event,
 		      (void *) alloc);

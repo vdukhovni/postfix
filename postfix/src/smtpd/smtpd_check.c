@@ -543,10 +543,10 @@ static void policy_client_register(const char *name)
 	    if ((policy_name = mystrtok(&cp, sep)) == 0)
 		msg_fatal("empty policy service: \"%s\"", name);
 	    attr_override(cp, sep, parens,
-			  ATTR_OVER_TIME_TABLE, time_table,
-			  ATTR_OVER_INT_TABLE, int_table,
-			  ATTR_OVER_STR_TABLE, str_table,
-			  0);
+			  ATTR_OVER_REQ_TIME_TABLE(time_table),
+			  ATTR_OVER_REQ_INT_TABLE(int_table),
+			  ATTR_OVER_REQ_STR_TABLE(str_table),
+			  ATTR_OVER_REQ_END);
 	} else {
 	    policy_name = name;
 	}

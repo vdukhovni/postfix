@@ -551,9 +551,9 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, scache_service,
-		      MAIL_SERVER_TIME_TABLE, time_table,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_EXIT, scache_status_dump,
-		      MAIL_SERVER_SOLITARY,
+		      MAIL_SERVER_REQ_TIME_TABLE(time_table),
+		      MAIL_SERVER_REQ_POST_INIT(post_jail_init),
+		      MAIL_SERVER_REQ_EXIT(scache_status_dump),
+		      MAIL_SERVER_REQ_SOLITARY,
 		      0);
 }

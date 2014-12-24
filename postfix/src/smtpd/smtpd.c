@@ -4313,9 +4313,9 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * develop a usable abstraction that encapsulates this stream plumbing in
      * a library module.
      */
-    vstream_control(state->tlsproxy, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
-    vstream_control(state->client, VSTREAM_CTL_SWAP_FD, state->tlsproxy,
-		    VSTREAM_CTL_END);
+    vstream_control(state->tlsproxy, VSTREAM_SCTL_DOUBLE, VSTREAM_SCTL_END);
+    vstream_control(state->client, VSTREAM_SCTL_SWAP_FD(state->tlsproxy),
+		    VSTREAM_SCTL_END);
     (void) vstream_fclose(state->tlsproxy);	/* direct-to-client stream! */
     state->tlsproxy = 0;
 
@@ -5715,15 +5715,15 @@ int     main(int argc, char **argv)
      * Pass control to the single-threaded service skeleton.
      */
     single_server_main(argc, argv, smtpd_service,
-		       MAIL_SERVER_NINT_TABLE, nint_table,
-		       MAIL_SERVER_INT_TABLE, int_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       MAIL_SERVER_RAW_TABLE, raw_table,
-		       MAIL_SERVER_BOOL_TABLE, bool_table,
-		       MAIL_SERVER_NBOOL_TABLE, nbool_table,
-		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_PRE_INIT, pre_jail_init,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_POST_INIT, post_jail_init,
+		       MAIL_SERVER_REQ_NINT_TABLE(nint_table),
+		       MAIL_SERVER_REQ_INT_TABLE(int_table),
+		       MAIL_SERVER_REQ_STR_TABLE(str_table),
+		       MAIL_SERVER_REQ_RAW_TABLE(raw_table),
+		       MAIL_SERVER_REQ_BOOL_TABLE(bool_table),
+		       MAIL_SERVER_REQ_NBOOL_TABLE(nbool_table),
+		       MAIL_SERVER_REQ_TIME_TABLE(time_table),
+		       MAIL_SERVER_REQ_PRE_INIT(pre_jail_init),
+		       MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
+		       MAIL_SERVER_REQ_POST_INIT(post_jail_init),
 		       0);
 }

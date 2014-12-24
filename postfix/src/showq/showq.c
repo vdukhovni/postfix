@@ -429,7 +429,7 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, showq_service,
-		       MAIL_SERVER_INT_TABLE, int_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
+		       MAIL_SERVER_REQ_INT_TABLE(int_table),
+		       MAIL_SERVER_REQ_STR_TABLE(str_table),
 		       0);
 }

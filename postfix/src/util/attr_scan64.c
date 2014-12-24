@@ -84,23 +84,22 @@
 /* .IP ATTR_FLAG_NONE
 /*	For convenience, this value requests none of the above.
 /* .RE
-/* .IP type
-/*	The type argument determines the arguments that follow.
+/* .IP List of attributes followed by terminator:
 /* .RS
-/* .IP "ATTR_TYPE_INT (char *, int *)"
+/* .IP "RECV_ATTR_INT(const char *name, int *ptr)"
 /*	This argument is followed by an attribute name and an integer pointer.
-/* .IP "ATTR_TYPE_LONG (char *, long *)"
+/* .IP "RECV_ATTR_LONG(const char *name, long *ptr)"
 /*	This argument is followed by an attribute name and a long pointer.
-/* .IP "ATTR_TYPE_STR (char *, VSTRING *)"
+/* .IP "RECV_ATTR_STR(const char *name, VSTRING *vp)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
-/* .IP "ATTR_TYPE_DATA (char *, VSTRING *)"
+/* .IP "RECV_ATTR_DATA(const char *name, VSTRING *vp)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
-/* .IP "ATTR_TYPE_FUNC (ATTR_SCAN_SLAVE_FN, void *)"
+/* .IP "RECV_ATTR_FUNC(ATTR_SCAN_SLAVE_FN, void *data)"
 /*	This argument is followed by a function pointer and a generic data
 /*	pointer. The caller-specified function returns < 0 in case of
 /*	error.
-/* .IP "ATTR_TYPE_HASH (HTABLE *)"
-/* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
+/* .IP "RECV_ATTR_HASH(HTABLE *table)"
+/* .IP "RECV_ATTR_NAMEVAL(NVTABLE *table)"
 /*	All further input attributes are processed as string attributes.
 /*	No specific attribute sequence is enforced.
 /*	All attributes up to the attribute list terminator are read,
@@ -117,7 +116,7 @@
 /*	This argument terminates the requested attribute list.
 /* .RE
 /* BUGS
-/*	ATTR_TYPE_HASH (ATTR_TYPE_NAMEVAL) accepts attributes with arbitrary
+/*	RECV_ATTR_HASH (RECV_ATTR_NAMEVAL) accepts attributes with arbitrary
 /*	names from possibly untrusted sources.
 /*	This is unsafe, unless the resulting table is queried only with
 /*	known to be good attribute names.

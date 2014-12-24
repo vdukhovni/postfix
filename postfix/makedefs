@@ -51,6 +51,10 @@
 #	are known to support it.
 # .IP \fB-DNO_EAI\fR
 #	Do not build with EAI (SMTPUTF8) support.
+# .IP \fB-DNO_INLINE\fR
+#	Do not require support for C99 "inline" functions. Instead,
+#	implement argument typechecks for non-printf/scanf-like
+#	functions with ternary operators and unreachable code.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
@@ -240,6 +244,13 @@ case "$SYSTEM.$RELEASE" in
   OpenBSD.4*)	SYSTYPE=OPENBSD4
 		;;
   OpenBSD.5*)	SYSTYPE=OPENBSD5
+		: ${CC=cc}
+		: ${SHLIB_SUFFIX=.so.1.0}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC} -shared"}
 		;;
   ekkoBSD.1*)	SYSTYPE=EKKOBSD1
 		;;

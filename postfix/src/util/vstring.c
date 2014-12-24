@@ -131,15 +131,15 @@
 /*	is a null-terminated string of length zero.
 /*
 /*	vstring_ctl() gives additional control over VSTRING behavior.
-/*	The function takes a VSTRING pointer and a list of zero
-/*	or more (name,value) pairs. The expected value type
-/*	depends on the specified name. The value name codes are:
-/* .IP "VSTRING_CTL_MAXLEN (ssize_t)"
+/*	The function takes a VSTRING pointer and a list of zero or
+/*	more macros with zer or more arguments, terminated with
+/*	VSTRING_SCTL_END which has none.
+/* .IP "VSTRING_SCTL_MAXLEN(ssize_t len)
 /*	Specifies a hard upper limit on a string's length. When the
 /*	length would be exceeded, the program simulates a memory
 /*	allocation problem (i.e. it terminates through msg_fatal()).
 /*	This fuctionality is currently unimplemented.
-/* .IP "VSTRING_CTL_END (no value)"
+/* .IP "VSTRING_SCTL_END (no argument)"
 /*	Specifies the end of the argument list. Forgetting to terminate
 /*	the argument list may cause the program to crash.
 /* .PP

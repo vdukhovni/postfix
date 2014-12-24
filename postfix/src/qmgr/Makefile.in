@@ -198,6 +198,7 @@ qmgr_deliver.o: ../../include/vstring.h
 qmgr_deliver.o: ../../include/vstring_vstream.h
 qmgr_deliver.o: qmgr.h
 qmgr_deliver.o: qmgr_deliver.c
+qmgr_enable.o: ../../include/check_arg.h
 qmgr_enable.o: ../../include/dsn.h
 qmgr_enable.o: ../../include/msg.h
 qmgr_enable.o: ../../include/recipient_list.h
@@ -226,6 +227,7 @@ qmgr_entry.o: ../../include/vstream.h
 qmgr_entry.o: ../../include/vstring.h
 qmgr_entry.o: qmgr.h
 qmgr_entry.o: qmgr_entry.c
+qmgr_error.o: ../../include/check_arg.h
 qmgr_error.o: ../../include/dsn.h
 qmgr_error.o: ../../include/mymalloc.h
 qmgr_error.o: ../../include/recipient_list.h
@@ -237,6 +239,7 @@ qmgr_error.o: ../../include/vstream.h
 qmgr_error.o: ../../include/vstring.h
 qmgr_error.o: qmgr.h
 qmgr_error.o: qmgr_error.c
+qmgr_feedback.o: ../../include/check_arg.h
 qmgr_feedback.o: ../../include/dsn.h
 qmgr_feedback.o: ../../include/mail_conf.h
 qmgr_feedback.o: ../../include/mail_params.h
@@ -252,6 +255,7 @@ qmgr_feedback.o: ../../include/vstream.h
 qmgr_feedback.o: ../../include/vstring.h
 qmgr_feedback.o: qmgr.h
 qmgr_feedback.o: qmgr_feedback.c
+qmgr_job.o: ../../include/check_arg.h
 qmgr_job.o: ../../include/dsn.h
 qmgr_job.o: ../../include/htable.h
 qmgr_job.o: ../../include/msg.h
@@ -307,6 +311,7 @@ qmgr_message.o: ../../include/vstream.h
 qmgr_message.o: ../../include/vstring.h
 qmgr_message.o: qmgr.h
 qmgr_message.o: qmgr_message.c
+qmgr_move.o: ../../include/check_arg.h
 qmgr_move.o: ../../include/dsn.h
 qmgr_move.o: ../../include/mail_queue.h
 qmgr_move.o: ../../include/mail_scan_dir.h
@@ -319,6 +324,7 @@ qmgr_move.o: ../../include/vstream.h
 qmgr_move.o: ../../include/vstring.h
 qmgr_move.o: qmgr.h
 qmgr_move.o: qmgr_move.c
+qmgr_peer.o: ../../include/check_arg.h
 qmgr_peer.o: ../../include/dsn.h
 qmgr_peer.o: ../../include/htable.h
 qmgr_peer.o: ../../include/msg.h
@@ -349,6 +355,7 @@ qmgr_queue.o: ../../include/vstream.h
 qmgr_queue.o: ../../include/vstring.h
 qmgr_queue.o: qmgr.h
 qmgr_queue.o: qmgr_queue.c
+qmgr_scan.o: ../../include/check_arg.h
 qmgr_scan.o: ../../include/dsn.h
 qmgr_scan.o: ../../include/mail_scan_dir.h
 qmgr_scan.o: ../../include/msg.h

@@ -90,8 +90,10 @@ tlsproxy.o: ../../include/vstring.h
 tlsproxy.o: tlsproxy.c
 tlsproxy.o: tlsproxy.h
 tlsproxy_state.o: ../../include/argv.h
+tlsproxy_state.o: ../../include/check_arg.h
 tlsproxy_state.o: ../../include/dns.h
 tlsproxy_state.o: ../../include/events.h
+tlsproxy_state.o: ../../include/mail_conf.h
 tlsproxy_state.o: ../../include/mail_server.h
 tlsproxy_state.o: ../../include/msg.h
 tlsproxy_state.o: ../../include/myaddrinfo.h

@@ -94,8 +94,8 @@ VSTREAM *mail_connect(const char *class, const char *name, int block_mode)
 	timed_ipc_setup(stream);
 	sock_name = concatenate(path, " socket", (char *) 0);
 	vstream_control(stream,
-			VSTREAM_CTL_PATH, sock_name,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_PATH(sock_name),
+			VSTREAM_SCTL_END);
 	myfree(sock_name);
     }
     myfree(path);

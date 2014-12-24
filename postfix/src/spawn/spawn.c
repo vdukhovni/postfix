@@ -298,15 +298,15 @@ static void spawn_service(VSTREAM *client_stream, char *service, char **argv)
      * Execute the command.
      */
     export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
-    status = spawn_command(SPAWN_CMD_STDIN, vstream_fileno(client_stream),
-			   SPAWN_CMD_STDOUT, vstream_fileno(client_stream),
-			   SPAWN_CMD_STDERR, vstream_fileno(client_stream),
-			   SPAWN_CMD_UID, attr.uid,
-			   SPAWN_CMD_GID, attr.gid,
-			   SPAWN_CMD_ARGV, attr.argv,
-			   SPAWN_CMD_TIME_LIMIT, attr.time_limit,
-			   SPAWN_CMD_EXPORT, export_env->argv,
-			   SPAWN_CMD_END);
+    status = spawn_command(SPAWN_SCMD_STDIN(vstream_fileno(client_stream)),
+			   SPAWN_SCMD_STDOUT(vstream_fileno(client_stream)),
+			   SPAWN_SCMD_STDERR(vstream_fileno(client_stream)),
+			   SPAWN_SCMD_UID(attr.uid),
+			   SPAWN_SCMD_GID(attr.gid),
+			   SPAWN_SCMD_ARGV(attr.argv),
+			   SPAWN_SCMD_TIME_LIMIT(attr.time_limit),
+			   SPAWN_SCMD_EXPORT(export_env->argv),
+			   SPAWN_SCMD_END);
     argv_free(export_env);
 
     /*
@@ -358,9 +358,9 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, spawn_service,
-		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_POST_INIT, drop_privileges,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_PRIVILEGED,
+		       MAIL_SERVER_REQ_TIME_TABLE(time_table),
+		       MAIL_SERVER_REQ_POST_INIT(drop_privileges),
+		       MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
+		       MAIL_SERVER_REQ_PRIVILEGED,
 		       0);
 }

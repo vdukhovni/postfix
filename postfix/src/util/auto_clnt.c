@@ -191,9 +191,9 @@ static void auto_clnt_open(AUTO_CLNT *auto_clnt)
 	    msg_info("%s: connected to %s", myname, auto_clnt->endpoint);
 	auto_clnt->vstream = vstream_fdopen(fd, O_RDWR);
 	vstream_control(auto_clnt->vstream,
-			VSTREAM_CTL_PATH, auto_clnt->endpoint,
-			VSTREAM_CTL_TIMEOUT, auto_clnt->timeout,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_PATH(auto_clnt->endpoint),
+			VSTREAM_SCTL_TIMEOUT(auto_clnt->timeout),
+			VSTREAM_SCTL_END);
     }
 
     if (auto_clnt->vstream != 0) {

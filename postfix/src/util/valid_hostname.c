@@ -29,9 +29,9 @@
 /*	valid_hostname() scrutinizes a hostname: the name should
 /*	be no longer than VALID_HOSTNAME_LEN characters, should
 /*	contain only letters, digits, dots and hyphens, no adjacent
-/*	dots and hyphens, no leading or trailing dots or hyphens,
-/*	no labels longer than VALID_LABEL_LEN characters, and it
-/*	should not be all numeric.
+/*	dots, no leading or trailing dots or hyphens, no labels
+/*	longer than VALID_LABEL_LEN characters, and it should not
+/*	be all numeric.
 /*
 /*	valid_hostaddr() requires that the input is a valid string
 /*	representation of an IPv4 or IPv6 network address as

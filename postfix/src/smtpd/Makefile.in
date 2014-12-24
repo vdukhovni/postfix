@@ -625,6 +625,7 @@ smtpd_state.o: smtpd.h
 smtpd_state.o: smtpd_chat.h
 smtpd_state.o: smtpd_sasl_glue.h
 smtpd_state.o: smtpd_state.c
+smtpd_token.o: ../../include/check_arg.h
 smtpd_token.o: ../../include/mvect.h
 smtpd_token.o: ../../include/mymalloc.h
 smtpd_token.o: ../../include/sys_defs.h

@@ -498,7 +498,7 @@ static RESPONSE *response(STATE *state, int verbose)
      */
     if (rdata.buf == 0) {
 	rdata.buf = vstring_alloc(100);
-	vstring_ctl(rdata.buf, VSTRING_CTL_MAXLEN, (ssize_t) var_line_limit, 0);
+	vstring_ctl(rdata.buf, VSTRING_SCTL_MAXLEN(var_line_limit), 0);
     }
 
     /*
@@ -1413,8 +1413,7 @@ static int finger(STATE *state)
      * never-ending lines of text.
      */
     state->buffer = vstring_alloc(100);
-    vstring_ctl(state->buffer, VSTRING_CTL_MAXLEN,
-		(ssize_t) var_line_limit, 0);
+    vstring_ctl(state->buffer, VSTRING_SCTL_MAXLEN(var_line_limit), 0);
     state->why = dsb_create();
 
     if (!(err = connect_dest(state))) {

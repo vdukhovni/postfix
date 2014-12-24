@@ -282,7 +282,7 @@ Available in Postfix version 2.12 and later:
 Optional filter for the \fBsmtp\fR(8) delivery agent to change the
 delivery status code or explanatory text of successful or unsuccessful
 deliveries.
-.IP "\fBsmtp_dns_reply_filter ($default_dns_reply_filter)\fR"
+.IP "\fBsmtp_dns_reply_filter (empty)\fR"
 Optional filter for Postfix SMTP client DNS lookup results.
 .SH "MIME PROCESSING CONTROLS"
 .na
@@ -702,7 +702,7 @@ should bind to when making an IPv4 connection.
 An optional numerical network address that the Postfix SMTP client
 should bind to when making an IPv6 connection.
 .IP "\fBsmtp_helo_name ($myhostname)\fR"
-The hostname to send in the SMTP EHLO or HELO command.
+The hostname to send in the SMTP HELO or EHLO command.
 .IP "\fBlmtp_lhlo_name ($myhostname)\fR"
 The hostname to send in the LMTP LHLO command.
 .IP "\fBsmtp_host_lookup (dns)\fR"

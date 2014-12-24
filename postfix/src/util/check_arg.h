@@ -9,71 +9,139 @@
 /* SYNOPSIS
 /*	#include <check_arg.h>
 /*
-/*	extern int CHECK_VAL_DUMMY(int);
-/*	extern int CHECK_PTR_DUMMY(int);
-/*	extern int CHECK_CONST_PTR_DUMMY(int);
+/*	/* Example checking infrastructure for int, int *, const int *. */
+/*	CHECK_VAL_HELPER_DCL(tag, int);
+/*	CHECK_PTR_HELPER_DCL(tag, int);
+/*	CHECK_CPTR_HELPER_DCL(tag, int);
 /*
-/*	int val;
-/*	int *p1;
-/*	const int *p2;
+/*	/* Example variables with type int, int *, const int *. */
+/*	int int_val;
+/*	int *int_ptr;
+/*	const int *int_cptr;
 /*
-/*	func(CHECK_VAL(int, val), CHECK_PTR(int, p1), CHECK_CONST_PTR(int, p2));
+/*	/* Example variadic function with type-flag arguments. */
+/*	func(FLAG_INT_VAL, CHECK_VAL(tag, int, int_val),
+/*	     FLAG_INT_PTR, CHECK_PTR(tag, int, int_ptr),
+/*	     FLAG_INT_CPTR, CHECK_CPTR(tag, int, int_cptr)
+/*	     FLAG_END);
 /* DESCRIPTION
-/*      This module implements wrappers for unprototyped function
-/*      arguments, to enable the same type checking, type narrowing,
-/*      and type widening as for prototyped function arguments. The
+/*	This module implements wrappers for unprototyped function
+/*	arguments, to enable the same type checking, type narrowing,
+/*	and type widening as for prototyped function arguments. The
 /*	wrappers may also be useful in other contexts.
 /*
-/*      Each non-pointer argument type is handled by a corresponding
-/*      CHECK_VAL(type, value) wrapper (type = int, long, etc.), and
-/*      each pointer argument type is handled by a corresponding
-/*      CHECK_CONST_PTR(type, ptr) or CHECK_PTR(type, ptr) wrapper.
+/*	Typically, these wrappers are hidden away in a per-module
+/*	header file that is read by the consumers of that module.
+/*	To protect consumers against name collisions between wrappers
+/*	in different header files, wrappers should be called with
+/*	a distinct per-module tag value.  The tag syntax is that
+/*	of a C identifier.
 /*
-/*      A good compiler will report the following problems:
+/*	Use CHECK_VAL(tag, type, argument) for arguments with a
+/*	basic type: int, long, etc., and types defined with "typedef"
+/*	where indirection is built into the type itself (for example,
+/*	the result of "typedef int *foo" or function pointer
+/*	typedefs).
+/*
+/*	Use CHECK_PTR(tag, type, argument) for non-const pointer
+/*	arguments, CHECK_CPTR(tag, type, argument) for const pointer
+/*	arguments, and CHECK_PPTR(tag, type, argument) for pointer-
+/*	to-pointer arguments.
+/*
+/*	Use CHECK_*_HELPER_DCL(tag, type) to provide the
+/*	checking infrastructure for all CHECK_*(tag, type, ...)
+/*	instances with the same *, tag and type. Depending on
+/*	the compilation environment, the infrastructure consists
+/*	of an inline function definition or a dummy assignment
+/*	target declaration.
+/*
+/*	The compiler should report the following problems:
 /* .IP \(bu
-/*      Const pointer argument where a non-const pointer is expected.
+/*	Const pointer argument where a non-const pointer is expected.
 /* .IP \(bu
-/*      Pointer argument where a non-pointer is expected.
+/*	Pointer argument where a non-pointer is expected and
+/*	vice-versa.
 /* .IP \(bu
-/*      Pointer/pointer type mismatches except void/non-void pointers.
-/*      The latter is why all check_arg_xxx_ptr() macros cast their
-/*      result to the desired type.
+/*	Pointer/pointer type mismatches except void/non-void pointers.
+/*	Just like function prototypes, all CHECK_*PTR() wrappers
+/*	cast their result to the desired type.
 /* .IP \(bu
-/*      Non-constant non-pointer argument where a pointer is expected.
+/*	Non-constant non-pointer argument where a pointer is expected.
 /*. PP
-/*      Just like function prototypes, the CHECK_(CONST_)PTR() wrappers
-/*      handle "bare" numeric constants by casting their argument to
-/*      the desired pointer type.
+/*	Just like function prototypes, the CHECK_*PTR() wrappers
+/*	handle "bare" numerical constants by casting their argument
+/*	to the desired pointer type.
 /*
-/*      Just like function prototypes, the CHECK_VAL() wrapper cannot
-/*      force the caller to specify a particular non-pointer type and
-/*      casts its argument to the desired type.
+/*	Just like function prototypes, the CHECK_VAL() wrapper
+/*	cannot force the caller to specify a particular non-pointer
+/*	type and casts its argument value to the desired type which
+/*	may wider or narrower than the argument value.
 /* IMPLEMENTATION
-/* .ad
-/* .fi
-/*      This implementation uses unreachable assignments to dummy
-/*      variables. Even a basic optimizer will eliminate these
-/*      assignments along with any reference to the dummy assignment
-/*      targets. It should be possible to declare these variables as
-/*      extern only, without any actual definition for storage
-/*      allocation.
-/* .na
-/* .nf
 
  /*
-  * Templates for parameter value checks.
+  * Choose between an implementation based on inline functions (standardized
+  * with C99) or conditional assignment (portable to older compilers, with
+  * some caveats as discussed below).
   */
-#define CHECK_VAL(type, v) ((type) (1 ? (v) : (CHECK_VAL_DUMMY(type) = (v))))
-#define CHECK_PTR(type, p) ((type *) (1 ? (p) : (CHECK_PTR_DUMMY(type) = (p))))
-#define CHECK_CONST_PTR(type, p) \
-	((const type *) (1 ? (p) : (CHECK_CONST_PTR_DUMMY(type) = (p))))
+#ifndef NO_INLINE
 
  /*
-  * Templates for dummy assignment targets. These will never be referenced,
+  * Parameter checks expand into inline helper function calls.
+  */
+#define CHECK_VAL(tag, type, v) check_val_##tag##type(v)
+#define CHECK_PTR(tag, type, v) check_ptr_##tag##type(v)
+#define CHECK_CPTR(tag, type, v) check_cptr_##tag##type(v)
+#define CHECK_PPTR(tag, type, v) check_pptr_##tag##type(v)
+
+ /*
+  * Macros to instantiate the inline helper functions.
+  */
+#define CHECK_VAL_HELPER_DCL(tag, type) \
+	static inline type check_val_##tag##type(type v) { return v; }
+#define CHECK_PTR_HELPER_DCL(tag, type) \
+	static inline type *check_ptr_##tag##type(type *v) { return v; }
+#define CHECK_CPTR_HELPER_DCL(tag, type) \
+	static inline const type *check_cptr_##tag##type(const type *v) \
+	    { return v; }
+#define CHECK_PPTR_HELPER_DCL(tag, type) \
+	static inline type **check_pptr_##tag##type(type **v) { return v; }
+
+#else					/* NO_INLINE */
+
+ /*
+  * Parameter checks expand into unreachable conditional assignments.
+  * Inspired by OpenSSL's verified pointer check, our implementation also
+  * detects const/non-const pointer conflicts, and it also supports
+  * non-pointer expressions.
+  */
+#define CHECK_VAL(tag, type, v) ((type) (1 ? (v) : (CHECK_VAL_DUMMY(type) = (v))))
+#define CHECK_PTR(tag, type, v) ((type *) (1 ? (v) : (CHECK_PTR_DUMMY(type) = (v))))
+#define CHECK_CPTR(tag, type, v) \
+	((const type *) (1 ? (v) : (CHECK_CPTR_DUMMY(type) = (v))))
+#define CHECK_PPTR(tag, type, v) ((type **) (1 ? (v) : (CHECK_PPTR_DUMMY(type) = (v))))
+
+ /*
+  * These macros instantiate assignment target declarations. Since the
+  * assignment is made in unreachable code, the compiler "should" not emit
+  * any references to those assignment targets. We use the "extern" class so
+  * that gcc will not complain about unused variables. Using "extern" breaks
+  * when a compiler does emit references unreachable assignment targets.
+  * Hopefully, those cases will be rare.
+  */
+#define CHECK_VAL_HELPER_DCL(tag, type) extern type CHECK_VAL_DUMMY(type)
+#define CHECK_PTR_HELPER_DCL(tag, type) extern type *CHECK_PTR_DUMMY(type)
+#define CHECK_CPTR_HELPER_DCL(tag, type) extern const type *CHECK_CPTR_DUMMY(type)
+#define CHECK_PPTR_HELPER_DCL(tag, type) extern type **CHECK_PPTR_DUMMY(type)
+
+ /*
+  * The actual dummy assignment target names.
   */
 #define CHECK_VAL_DUMMY(type) check_val_dummy_##type
 #define CHECK_PTR_DUMMY(type) check_ptr_dummy_##type
-#define CHECK_CONST_PTR_DUMMY(type) check_const_ptr_dummy_##type
+#define CHECK_CPTR_DUMMY(type) check_cptr_dummy_##type
+#define CHECK_PPTR_DUMMY(type) check_pptr_dummy_##type
+
+#endif					/* NO_INLINE */
 
 /* LICENSE
 /* .ad

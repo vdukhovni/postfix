@@ -596,8 +596,8 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
      */
     if (vstream_fstat(client_stream, VSTREAM_FLAG_DEADLINE) == 0)
 	vstream_control(client_stream,
-			VSTREAM_CTL_TIMEOUT, 1,
-			VSTREAM_CTL_END);
+			VSTREAM_SCTL_TIMEOUT(1),
+			VSTREAM_SCTL_END);
 
     /*
      * This routine runs whenever a client connects to the socket dedicated
@@ -605,8 +605,8 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
      * the common code in multi_server.c.
      */
     vstream_control(client_stream,
-		    VSTREAM_CTL_START_DEADLINE,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_START_DEADLINE,
+		    VSTREAM_SCTL_END);
     if (attr_scan(client_stream,
 		  ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_REQ, request),
@@ -629,8 +629,8 @@ static void proxymap_service(VSTREAM *client_stream, char *unused_service,
 	}
     }
     vstream_control(client_stream,
-		    VSTREAM_CTL_START_DEADLINE,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_START_DEADLINE,
+		    VSTREAM_SCTL_END);
     vstream_fflush(client_stream);
 }
 
@@ -747,9 +747,9 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, proxymap_service,
-		      MAIL_SERVER_STR_TABLE, str_table,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
-    /* XXX MAIL_SERVER_SOLITARY if proxywrite */
+		      MAIL_SERVER_REQ_STR_TABLE(str_table),
+		      MAIL_SERVER_REQ_POST_INIT(post_jail_init),
+		      MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
+    /* XXX MAIL_SERVER_REQ_SOLITARY if proxywrite */
 		      0);
 }

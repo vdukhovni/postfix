@@ -19,7 +19,7 @@ smtpd_dns_reply_filter regexp:../dns/no-a.reg
 mail user@spike.porcupine.org
 helo spike.porcupine.org
 # EXPECT OK + "all A records dropped" warning + no delayed reject.
-helo umbilical.porcupine.org
+helo fist.porcupine.org
 mail user@spike.porcupine.org
 rcpt user@spike.porcupine.org
 smtpd_dns_reply_filter regexp:../dns/error.reg
@@ -52,7 +52,7 @@ smtpd_dns_reply_filter regexp:../dns/no-a.reg
 # EXPECT OK (host has AAAA record).
 mail user@spike.porcupine.org
 # EXPECT OK + "all A records dropped" warning.
-mail user@umbilical.porcupine.org
+mail user@fist.porcupine.org
 smtpd_dns_reply_filter regexp:../dns/error.reg
 # EXPECT OK + "filter config error" warning + delayed reject.
 mail user@xn--1xa.porcupine.org

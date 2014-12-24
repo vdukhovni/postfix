@@ -260,7 +260,7 @@
 /*	Optional filter for the \fBsmtp\fR(8) delivery agent to change the
 /*	delivery status code or explanatory text of successful or unsuccessful
 /*	deliveries.
-/* .IP "\fBsmtp_dns_reply_filter ($default_dns_reply_filter)\fR"
+/* .IP "\fBsmtp_dns_reply_filter (empty)\fR"
 /*	Optional filter for Postfix SMTP client DNS lookup results.
 /* MIME PROCESSING CONTROLS
 /* .ad
@@ -662,7 +662,7 @@
 /*	An optional numerical network address that the Postfix SMTP client
 /*	should bind to when making an IPv6 connection.
 /* .IP "\fBsmtp_helo_name ($myhostname)\fR"
-/*	The hostname to send in the SMTP EHLO or HELO command.
+/*	The hostname to send in the SMTP HELO or EHLO command.
 /* .IP "\fBlmtp_lhlo_name ($myhostname)\fR"
 /*	The hostname to send in the LMTP LHLO command.
 /* .IP "\fBsmtp_host_lookup (dns)\fR"
@@ -1291,18 +1291,18 @@ int     main(int argc, char **argv)
      * Initialize with the LMTP or SMTP parameter name space.
      */
     single_server_main(argc, argv, smtp_service,
-		       MAIL_SERVER_TIME_TABLE, smtp_mode ?
-		       smtp_time_table : lmtp_time_table,
-		       MAIL_SERVER_INT_TABLE, smtp_mode ?
-		       smtp_int_table : lmtp_int_table,
-		       MAIL_SERVER_STR_TABLE, smtp_mode ?
-		       smtp_str_table : lmtp_str_table,
-		       MAIL_SERVER_BOOL_TABLE, smtp_mode ?
-		       smtp_bool_table : lmtp_bool_table,
-		       MAIL_SERVER_PRE_INIT, pre_init,
-		       MAIL_SERVER_POST_INIT, post_init,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_BOUNCE_INIT, VAR_SMTP_DSN_FILTER,
-		       &var_smtp_dsn_filter,
+		       MAIL_SERVER_REQ_TIME_TABLE(smtp_mode ?
+					 smtp_time_table : lmtp_time_table),
+		       MAIL_SERVER_REQ_INT_TABLE(smtp_mode ?
+					   smtp_int_table : lmtp_int_table),
+		       MAIL_SERVER_REQ_STR_TABLE(smtp_mode ?
+					   smtp_str_table : lmtp_str_table),
+		       MAIL_SERVER_REQ_BOOL_TABLE(smtp_mode ?
+					 smtp_bool_table : lmtp_bool_table),
+		       MAIL_SERVER_REQ_PRE_INIT(pre_init),
+		       MAIL_SERVER_REQ_POST_INIT(post_init),
+		       MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
+		       MAIL_SERVER_REQ_BOUNCE_INIT(VAR_SMTP_DSN_FILTER,
+						   &var_smtp_dsn_filter),
 		       0);
 }

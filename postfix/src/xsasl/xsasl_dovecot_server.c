@@ -278,9 +278,9 @@ static int xsasl_dovecot_server_connect(XSASL_DOVECOT_SERVER_IMPL *xp)
     }
     sasl_stream = vstream_fdopen(fd, O_RDWR);
     vstream_control(sasl_stream,
-		    VSTREAM_CTL_PATH, xp->socket_path,
-		    VSTREAM_CTL_TIMEOUT, AUTH_TIMEOUT,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_PATH(xp->socket_path),
+		    VSTREAM_SCTL_TIMEOUT(AUTH_TIMEOUT),
+		    VSTREAM_SCTL_END);
 
     /* XXX Encapsulate for logging. */
     vstream_fprintf(sasl_stream,

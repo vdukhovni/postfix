@@ -16,6 +16,7 @@
   */
 #include <vstream.h>
 #include <vstring.h>
+#include <check_arg.h>
 
  /*
   * Global library.
@@ -24,24 +25,50 @@
 #include <dsn_buf.h>
 
  /*
-  * Request arguments.
+  * Legacy API: type-unchecked arguments, internal use.
   */
 #define PIPE_CMD_END		0	/* terminator */
 #define PIPE_CMD_COMMAND	1	/* command is string */
-#define PIPE_CMD_ARGV		2	/* command is array */
+#define PIPE_CMD_ARGV	2		/* command is array */
 #define PIPE_CMD_COPY_FLAGS	3	/* mail_copy() flags */
-#define PIPE_CMD_SENDER		4	/* mail_copy() sender */
+#define PIPE_CMD_SENDER	4		/* mail_copy() sender */
 #define PIPE_CMD_DELIVERED	5	/* mail_copy() recipient */
 #define PIPE_CMD_UID		6	/* privileges */
 #define PIPE_CMD_GID		7	/* privileges */
 #define PIPE_CMD_TIME_LIMIT	8	/* time limit */
 #define PIPE_CMD_ENV		9	/* extra environment */
-#define PIPE_CMD_SHELL		10	/* alternative shell */
+#define PIPE_CMD_SHELL	10		/* alternative shell */
 #define PIPE_CMD_EOL		11	/* record delimiter */
-#define PIPE_CMD_EXPORT		12	/* exportable environment */
+#define PIPE_CMD_EXPORT	12		/* exportable environment */
 #define PIPE_CMD_ORIG_RCPT	13	/* mail_copy() original recipient */
 #define PIPE_CMD_CWD		14	/* working directory */
-#define PIPE_CMD_CHROOT		15	/* chroot() before exec() */
+#define PIPE_CMD_CHROOT	15		/* chroot() before exec() */
+
+ /*
+  * Safer API: type-checked arguments, external use.
+  */
+#define PIPE_SCMD_END		PIPE_CMD_END
+#define PIPE_SCMD_COMMAND(v)	PIPE_CMD_COMMAND, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_ARGV(v)	PIPE_CMD_ARGV, CHECK_PPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_COPY_FLAGS(v)	PIPE_CMD_COPY_FLAGS, CHECK_VAL(PIPE_SCMD, int, (v))
+#define PIPE_SCMD_SENDER(v)	PIPE_CMD_SENDER, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_DELIVERED(v)	PIPE_CMD_DELIVERED, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_UID(v)	PIPE_CMD_UID, CHECK_VAL(PIPE_SCMD, uid_t, (v))
+#define PIPE_SCMD_GID(v)	PIPE_CMD_GID, CHECK_VAL(PIPE_SCMD, gid_t, (v))
+#define PIPE_SCMD_TIME_LIMIT(v)	PIPE_CMD_TIME_LIMIT, CHECK_VAL(PIPE_SCMD, int, (v))
+#define PIPE_SCMD_ENV(v)	PIPE_CMD_ENV, CHECK_PPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_SHELL(v)	PIPE_CMD_SHELL, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_EOL(v)	PIPE_CMD_EOL, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_EXPORT(v)	PIPE_CMD_EXPORT, CHECK_PPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_ORIG_RCPT(v)	PIPE_CMD_ORIG_RCPT, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_CWD(v)	PIPE_CMD_CWD, CHECK_CPTR(PIPE_SCMD, char, (v))
+#define PIPE_SCMD_CHROOT(v)	PIPE_CMD_CHROOT, CHECK_CPTR(PIPE_SCMD, char, (v))
+
+CHECK_VAL_HELPER_DCL(PIPE_SCMD, uid_t);
+CHECK_VAL_HELPER_DCL(PIPE_SCMD, int);
+CHECK_VAL_HELPER_DCL(PIPE_SCMD, gid_t);
+CHECK_PPTR_HELPER_DCL(PIPE_SCMD, char);
+CHECK_CPTR_HELPER_DCL(PIPE_SCMD, char);
 
  /*
   * Command completion status.

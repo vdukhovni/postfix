@@ -629,13 +629,13 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, rewrite_service,
-		      MAIL_SERVER_STR_TABLE, str_table,
-		      MAIL_SERVER_BOOL_TABLE, bool_table,
-		      MAIL_SERVER_NBOOL_TABLE, nbool_table,
-		      MAIL_SERVER_PRE_INIT, pre_jail_init,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
+		      MAIL_SERVER_REQ_STR_TABLE(str_table),
+		      MAIL_SERVER_REQ_BOOL_TABLE(bool_table),
+		      MAIL_SERVER_REQ_NBOOL_TABLE(nbool_table),
+		      MAIL_SERVER_REQ_PRE_INIT(pre_jail_init),
+		      MAIL_SERVER_REQ_POST_INIT(post_jail_init),
 #ifdef CHECK_TABLE_STATS_BEFORE_ACCEPT
-		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
+		      MAIL_SERVER_REQ_PRE_ACCEPT(pre_accept),
 #endif
 		      0);
 }

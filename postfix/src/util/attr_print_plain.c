@@ -41,25 +41,24 @@
 /*	By default, attr_print_plain() automatically appends an attribute list
 /*	terminator when it has sent the last requested attribute.
 /* .RE
-/* .IP type
-/*	The type determines the arguments that follow.
+/* .IP List of attributes followed by terminator:
 /* .RS
-/* .IP "ATTR_TYPE_INT (char *, int)"
-/*	This argument is followed by an attribute name and an integer.
-/* .IP "ATTR_TYPE_LONG (char *, long)"
-/*	This argument is followed by an attribute name and a long integer.
-/* .IP "ATTR_TYPE_STR (char *, char *)"
-/*	This argument is followed by an attribute name and a null-terminated
+/* .IP "SEND_ATTR_INT(const char *name, int value)"
+/*	The arguments are an attribute name and an integer.
+/* .IP "SEND_ATTR_LONG(const char *name, long value)"
+/*	The arguments are an attribute name and a long integer.
+/* .IP "SEND_ATTR_STR(const char *name, const char *value)"
+/*	The arguments are an attribute name and a null-terminated
 /*	string.
-/* .IP "ATTR_TYPE_DATA (char *, ssize_t, char *)"
-/*	This argument is followed by an attribute name, an attribute value
-/*	length, and a pointer to attribute value.
-/* .IP "ATTR_TYPE_FUNC (ATTR_PRINT_SLAVE_FN, void *)"
-/*	This argument is followed by a function pointer and generic data
+/* .IP "SEND_ATTR_DATA(const char *name, ssize_t len, const void *value)"
+/*	The arguments are an attribute name, an attribute value
+/*	length, and an attribute value pointer.
+/* .IP "SEND_ATTR_FUNC(ATTR_PRINT_SLAVE_FN, const void *value)"
+/*	The arguments are a function pointer and generic data
 /*	pointer. The caller-specified function returns whatever the
 /*	specified attribute printing function returns.
-/* .IP "ATTR_TYPE_HASH (HTABLE *)"
-/* .IP "ATTR_TYPE_NAMEVAL (NVTABLE *)"
+/* .IP "SEND_ATTR_HASH(const HTABLE *table)"
+/* .IP "SEND_ATTR_NAMEVAL(const NVTABLE *table)"
 /*	The content of the table is sent as a sequence of string-valued
 /*	attributes with names equal to the table lookup keys.
 /* .IP ATTR_TYPE_END

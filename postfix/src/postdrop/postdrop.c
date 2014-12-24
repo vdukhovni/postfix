@@ -393,7 +393,7 @@ int     main(int argc, char **argv)
      * Allow attribute records if the attribute specifies the MIME body type
      * (sendmail -B).
      */
-    vstream_control(VSTREAM_IN, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
+    vstream_control(VSTREAM_IN, VSTREAM_SCTL_PATH("stdin"), VSTREAM_SCTL_END);
     buf = vstring_alloc(100);
     expected = segment_info;
     /* Override time information from the untrusted caller. */

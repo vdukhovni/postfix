@@ -192,7 +192,7 @@ const char *mail_queue_dir(VSTRING *buf, const char *queue_name,
 		queue_id = STR(usec_buf);
 	    }
 	    vstring_strcat(buf,
-		       dir_forest(hash_buf, queue_id, var_hash_queue_depth));
+		      dir_forest(hash_buf, queue_id, var_hash_queue_depth));
 	    break;
 	}
     }
@@ -415,7 +415,7 @@ VSTREAM *mail_queue_enter(const char *queue_name, mode_t mode,
     }
 
     stream = vstream_fdopen(fd, O_RDWR);
-    vstream_control(stream, VSTREAM_CTL_PATH, STR(path_buf), VSTREAM_CTL_END);
+    vstream_control(stream, VSTREAM_SCTL_PATH(STR(path_buf)), VSTREAM_SCTL_END);
     return (stream);
 }
 

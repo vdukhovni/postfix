@@ -177,9 +177,9 @@
 void    netstring_setup(VSTREAM *stream, int timeout)
 {
     vstream_control(stream,
-		    VSTREAM_CTL_TIMEOUT, timeout,
-		    VSTREAM_CTL_EXCEPT,
-		    VSTREAM_CTL_END);
+		    VSTREAM_SCTL_TIMEOUT(timeout),
+		    VSTREAM_SCTL_EXCEPT,
+		    VSTREAM_SCTL_END);
 }
 
 /* netstring_except - process netstring stream exception */
@@ -466,9 +466,9 @@ int     main(int argc, char **argv)
      * Run the specified command as a child process with stdin and stdout
      * connected to us.
      */
-    child_stream = vstream_popen(O_RDWR, VSTREAM_POPEN_ARGV, argv + 1,
-				 VSTREAM_POPEN_END);
-    vstream_control(child_stream, VSTREAM_CTL_DOUBLE, VSTREAM_CTL_END);
+    child_stream = vstream_popen(O_RDWR, VSTREAM_SPOPEN_ARGV(argv + 1),
+				 VSTREAM_SPOPEN_END);
+    vstream_control(child_stream, VSTREAM_SCTL_DOUBLE, VSTREAM_SCTL_END);
     netstring_setup(child_stream, 10);
 
     /*

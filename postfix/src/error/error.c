@@ -250,6 +250,6 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, error_service,
-		       MAIL_SERVER_PRE_INIT, pre_init,
+		       MAIL_SERVER_REQ_PRE_INIT(pre_init),
 		       0);
 }
