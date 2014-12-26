@@ -66,10 +66,10 @@ int     recv_pass_attr(int fd, HTABLE **attr, int timeout, ssize_t bufsize)
      */
     fp = vstream_fdopen(fd, O_RDWR);
     vstream_control(fp,
-		    VSTREAM_CTL_BUFSIZE, bufsize,
-		    VSTREAM_CTL_TIMEOUT, timeout,
-		    VSTREAM_CTL_START_DEADLINE,
-		    VSTREAM_CTL_END);
+		    CA_VSTREAM_CTL_BUFSIZE(bufsize),
+		    CA_VSTREAM_CTL_TIMEOUT(timeout),
+		    CA_VSTREAM_CTL_START_DEADLINE,
+		    CA_VSTREAM_CTL_END);
     (void) attr_scan(fp, ATTR_FLAG_NONE,
 		     ATTR_TYPE_HASH, *attr = htable_create(1),
 		     ATTR_TYPE_END);

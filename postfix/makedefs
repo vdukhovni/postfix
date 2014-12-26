@@ -51,6 +51,10 @@
 #	are known to support it.
 # .IP \fB-DNO_EAI\fR
 #	Do not build with EAI (SMTPUTF8) support.
+# .IP \fB-DNO_INLINE\fR
+#	Do not require support for C99 "inline" functions. Instead,
+#	implement argument typechecks for non-printf/scanf-like
+#	functions with ternary operators and unreachable code.
 # .IP \fB-DNO_IPV6\fR
 #	Do not build with IPv6 support.
 #	By default, IPv6 support is compiled in on platforms that
@@ -261,6 +265,20 @@ case "$SYSTEM.$RELEASE" in
    NetBSD.5*)	SYSTYPE=NETBSD5
 		;;
    NetBSD.6*)	SYSTYPE=NETBSD6
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
+               ;;
+   NetBSD.7*)  SYSTYPE=NETBSD7
+		: ${SHLIB_SUFFIX=.so}
+		: ${SHLIB_CFLAGS=-fPIC}
+		: ${SHLIB_LD="${CC-gcc} -shared"' -Wl,-soname,${LIB}'}
+		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
+		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
+		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
    BSD/OS.2*)	SYSTYPE=BSDI2
 		;;

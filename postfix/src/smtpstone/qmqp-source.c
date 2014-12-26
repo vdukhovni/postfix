@@ -2,7 +2,7 @@
 /* NAME
 /*	qmqp-source 1
 /* SUMMARY
-/*	multi-threaded QMQP test generator
+/*	parallelized QMQP test generator
 /* SYNOPSIS
 /* .fi
 /*	\fBqmqp-source\fR [\fIoptions\fR] [\fBinet:\fR]\fIhost\fR[:\fIport\fR]

@@ -27,7 +27,7 @@
 /*	The result value is a null pointer on failure. The peer_stream
 /*	is not closed.  The resulting proxy stream is single-buffered.
 /*
-/*	After this, it is a good idea to use the VSTREAM_CTL_SWAP_FD
+/*	After this, it is a good idea to use the CA_VSTREAM_CTL_SWAP_FD
 /*	request to swap the file descriptors between the plaintext
 /*	peer_stream and the proxy stream from tls_proxy_open().
 /*	This avoids the loss of application-configurable VSTREAM

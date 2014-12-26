@@ -236,7 +236,7 @@ static void postcat(VSTREAM *fp, VSTRING *buffer, int flags)
 		/* Optimization: skip to extracted segment marker. */
 		if (do_print == 0 && (flags & PC_FLAG_PRINT_ENV)
 		    && data_offset >= 0 && data_size >= 0
-		    && vstream_fseek(fp, data_offset + data_size, SEEK_SET) < 0)
+		&& vstream_fseek(fp, data_offset + data_size, SEEK_SET) < 0)
 		    msg_fatal("seek error: %m");
 	    }
 	    /* Optional output happens further down below. */
@@ -492,8 +492,8 @@ int     main(int argc, char **argv)
      */
     if (argc == optind) {
 	vstream_control(VSTREAM_IN,
-			VSTREAM_CTL_PATH, "stdin",
-			VSTREAM_CTL_END);
+			CA_VSTREAM_CTL_PATH("stdin"),
+			CA_VSTREAM_CTL_END);
 	postcat(VSTREAM_IN, buffer, flags);
     }
 

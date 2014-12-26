@@ -105,6 +105,7 @@ postscreen.o: postscreen.c
 postscreen.o: postscreen.h
 postscreen_dict.o: ../../include/addr_match_list.h
 postscreen_dict.o: ../../include/argv.h
+postscreen_dict.o: ../../include/check_arg.h
 postscreen_dict.o: ../../include/dict.h
 postscreen_dict.o: ../../include/dict_cache.h
 postscreen_dict.o: ../../include/events.h
@@ -155,6 +156,7 @@ postscreen_dnsbl.o: postscreen.h
 postscreen_dnsbl.o: postscreen_dnsbl.c
 postscreen_early.o: ../../include/addr_match_list.h
 postscreen_early.o: ../../include/argv.h
+postscreen_early.o: ../../include/check_arg.h
 postscreen_early.o: ../../include/dict.h
 postscreen_early.o: ../../include/dict_cache.h
 postscreen_early.o: ../../include/events.h
@@ -177,6 +179,7 @@ postscreen_early.o: postscreen.h
 postscreen_early.o: postscreen_early.c
 postscreen_endpt.o: ../../include/addr_match_list.h
 postscreen_endpt.o: ../../include/argv.h
+postscreen_endpt.o: ../../include/check_arg.h
 postscreen_endpt.o: ../../include/dict.h
 postscreen_endpt.o: ../../include/dict_cache.h
 postscreen_endpt.o: ../../include/events.h
@@ -227,6 +230,7 @@ postscreen_expand.o: postscreen.h
 postscreen_expand.o: postscreen_expand.c
 postscreen_haproxy.o: ../../include/addr_match_list.h
 postscreen_haproxy.o: ../../include/argv.h
+postscreen_haproxy.o: ../../include/check_arg.h
 postscreen_haproxy.o: ../../include/dict.h
 postscreen_haproxy.o: ../../include/dict_cache.h
 postscreen_haproxy.o: ../../include/events.h
@@ -251,6 +255,7 @@ postscreen_haproxy.o: postscreen_haproxy.c
 postscreen_haproxy.o: postscreen_haproxy.h
 postscreen_misc.o: ../../include/addr_match_list.h
 postscreen_misc.o: ../../include/argv.h
+postscreen_misc.o: ../../include/check_arg.h
 postscreen_misc.o: ../../include/dict.h
 postscreen_misc.o: ../../include/dict_cache.h
 postscreen_misc.o: ../../include/events.h
@@ -379,6 +384,7 @@ postscreen_state.o: ../../include/dict_cache.h
 postscreen_state.o: ../../include/events.h
 postscreen_state.o: ../../include/htable.h
 postscreen_state.o: ../../include/iostuff.h
+postscreen_state.o: ../../include/mail_conf.h
 postscreen_state.o: ../../include/mail_proto.h
 postscreen_state.o: ../../include/mail_server.h
 postscreen_state.o: ../../include/maps.h
@@ -399,6 +405,7 @@ postscreen_state.o: postscreen.h
 postscreen_state.o: postscreen_state.c
 postscreen_tests.o: ../../include/addr_match_list.h
 postscreen_tests.o: ../../include/argv.h
+postscreen_tests.o: ../../include/check_arg.h
 postscreen_tests.o: ../../include/dict.h
 postscreen_tests.o: ../../include/dict_cache.h
 postscreen_tests.o: ../../include/events.h

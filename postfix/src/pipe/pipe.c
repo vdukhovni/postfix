@@ -1270,19 +1270,19 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     export_env = mail_parm_split(VAR_EXPORT_ENVIRON, var_export_environ);
 
     command_status = pipe_command(request->fp, why,
-				  PIPE_CMD_UID, attr.uid,
-				  PIPE_CMD_GID, attr.gid,
-				  PIPE_CMD_SENDER, sender,
-				  PIPE_CMD_COPY_FLAGS, attr.flags,
-				  PIPE_CMD_ARGV, expanded_argv->argv,
-				  PIPE_CMD_TIME_LIMIT, conf.time_limit,
-				  PIPE_CMD_EOL, STR(attr.eol),
-				  PIPE_CMD_EXPORT, export_env->argv,
-				  PIPE_CMD_CWD, attr.exec_dir,
-				  PIPE_CMD_CHROOT, attr.chroot_dir,
-			   PIPE_CMD_ORIG_RCPT, rcpt_list->info[0].orig_addr,
-			     PIPE_CMD_DELIVERED, rcpt_list->info[0].address,
-				  PIPE_CMD_END);
+				  CA_PIPE_CMD_UID(attr.uid),
+				  CA_PIPE_CMD_GID(attr.gid),
+				  CA_PIPE_CMD_SENDER(sender),
+				  CA_PIPE_CMD_COPY_FLAGS(attr.flags),
+				  CA_PIPE_CMD_ARGV(expanded_argv->argv),
+				  CA_PIPE_CMD_TIME_LIMIT(conf.time_limit),
+				  CA_PIPE_CMD_EOL(STR(attr.eol)),
+				  CA_PIPE_CMD_EXPORT(export_env->argv),
+				  CA_PIPE_CMD_CWD(attr.exec_dir),
+				  CA_PIPE_CMD_CHROOT(attr.chroot_dir),
+			CA_PIPE_CMD_ORIG_RCPT(rcpt_list->info[0].orig_addr),
+			  CA_PIPE_CMD_DELIVERED(rcpt_list->info[0].address),
+				  CA_PIPE_CMD_END);
     argv_free(export_env);
 
     deliver_status = eval_command_status(command_status, service, request,
@@ -1364,13 +1364,13 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, pipe_service,
-		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       MAIL_SERVER_PRE_INIT, pre_init,
-		       MAIL_SERVER_POST_INIT, drop_privileges,
-		       MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		       MAIL_SERVER_PRIVILEGED,
-		       MAIL_SERVER_BOUNCE_INIT, VAR_PIPE_DSN_FILTER,
-		       &var_pipe_dsn_filter,
+		       CA_MAIL_SERVER_TIME_TABLE(time_table),
+		       CA_MAIL_SERVER_STR_TABLE(str_table),
+		       CA_MAIL_SERVER_PRE_INIT(pre_init),
+		       CA_MAIL_SERVER_POST_INIT(drop_privileges),
+		       CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),
+		       CA_MAIL_SERVER_PRIVILEGED,
+		       CA_MAIL_SERVER_BOUNCE_INIT(VAR_PIPE_DSN_FILTER,
+						  &var_pipe_dsn_filter),
 		       0);
 }

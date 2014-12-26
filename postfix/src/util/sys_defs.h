@@ -31,6 +31,7 @@
     || defined(OPENBSD5) \
     || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
     || defined(NETBSD4) || defined(NETBSD5) || defined(NETBSD6) \
+    || defined(NETBSD7) \
     || defined(EKKOBSD1) || defined(DRAGONFLY)
 #define SUPPORTED
 #include <sys/types.h>

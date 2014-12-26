@@ -1046,14 +1046,14 @@ int     main(int argc, char **argv)
      * monitoring our service port while this process runs.
      */
     multi_server_main(argc, argv, tlsmgr_service,
-		      MAIL_SERVER_TIME_TABLE, time_table,
-		      MAIL_SERVER_INT_TABLE, int_table,
-		      MAIL_SERVER_STR_TABLE, str_table,
-		      MAIL_SERVER_PRE_INIT, tlsmgr_pre_init,
-		      MAIL_SERVER_POST_INIT, tlsmgr_post_init,
-		      MAIL_SERVER_EXIT, tlsmgr_before_exit,
-		      MAIL_SERVER_LOOP, tlsmgr_loop,
-		      MAIL_SERVER_SOLITARY,
+		      CA_MAIL_SERVER_TIME_TABLE(time_table),
+		      CA_MAIL_SERVER_INT_TABLE(int_table),
+		      CA_MAIL_SERVER_STR_TABLE(str_table),
+		      CA_MAIL_SERVER_PRE_INIT(tlsmgr_pre_init),
+		      CA_MAIL_SERVER_POST_INIT(tlsmgr_post_init),
+		      CA_MAIL_SERVER_EXIT(tlsmgr_before_exit),
+		      CA_MAIL_SERVER_LOOP(tlsmgr_loop),
+		      CA_MAIL_SERVER_SOLITARY,
 		      0);
 }
 

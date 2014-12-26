@@ -622,9 +622,9 @@ MILTERS *milter_new(const char *names,
 		if ((name = mystrtok(&op, sep)) == 0)
 		    msg_fatal("empty milter definition: \"%s\"", names);
 		attr_override(op, sep, parens,
-			      ATTR_OVER_STR_TABLE, str_table,
-			      ATTR_OVER_TIME_TABLE, time_table,
-			      0);
+			      CA_ATTR_OVER_STR_TABLE(str_table),
+			      CA_ATTR_OVER_TIME_TABLE(time_table),
+			      CA_ATTR_OVER_END);
 	    }
 	    milter = milter8_create(name, my_conn_timeout, my_cmd_timeout,
 				    my_msg_timeout, my_protocol,

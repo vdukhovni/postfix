@@ -2,7 +2,7 @@
 /* NAME
 /*	smtp-source 1
 /* SUMMARY
-/*	multi-threaded SMTP/LMTP test generator
+/*	parallelized SMTP/LMTP test generator
 /* SYNOPSIS
 /* .fi
 /*	\fBsmtp-source\fR [\fIoptions\fR] [\fBinet:\fR]\fIhost\fR[:\fIport\fR]
@@ -305,7 +305,7 @@ static RESPONSE *response(VSTREAM *stream, VSTRING *buf)
      */
     if (rdata.buf == 0) {
 	rdata.buf = vstring_alloc(100);
-	vstring_ctl(rdata.buf, VSTRING_CTL_MAXLEN, (ssize_t) var_line_limit, 0);
+	vstring_ctl(rdata.buf, CA_VSTRING_CTL_MAXLEN(var_line_limit), 0);
     }
 
     /*
@@ -1142,7 +1142,7 @@ int     main(int argc, char **argv)
      */
     if (buffer == 0) {
 	buffer = vstring_alloc(100);
-	vstring_ctl(buffer, VSTRING_CTL_MAXLEN, (ssize_t) var_line_limit, 0);
+	vstring_ctl(buffer, CA_VSTRING_CTL_MAXLEN(var_line_limit), 0);
     }
 
     /*

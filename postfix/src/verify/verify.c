@@ -532,7 +532,7 @@ static void verify_query_service(VSTREAM *client_stream)
 /* verify_cache_validator - cache cleanup validator */
 
 static int verify_cache_validator(const char *addr, const char *raw_data,
-				          char *context)
+				          void *context)
 {
     VSTRING *get_buf = (VSTRING *) context;
     int     addr_status;
@@ -591,7 +591,7 @@ static void verify_service(VSTREAM *client_stream, char *unused_service,
 
 /* verify_dump - dump some statistics */
 
-static void verify_dump(void)
+static void verify_dump(char *unused_name, char **unused_argv)
 {
 
     /*
@@ -629,11 +629,11 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	if (msg_verbose)
 	    cache_flags |= DICT_CACHE_FLAG_VERBOSE;
 	dict_cache_control(verify_map,
-			   DICT_CACHE_CTL_FLAGS, cache_flags,
-			   DICT_CACHE_CTL_INTERVAL, var_verify_scan_cache,
-			   DICT_CACHE_CTL_VALIDATOR, verify_cache_validator,
-			DICT_CACHE_CTL_CONTEXT, (void *) vstring_alloc(100),
-			   DICT_CACHE_CTL_END);
+			   CA_DICT_CACHE_CTL_FLAGS(cache_flags),
+			   CA_DICT_CACHE_CTL_INTERVAL(var_verify_scan_cache),
+			CA_DICT_CACHE_CTL_VALIDATOR(verify_cache_validator),
+		     CA_DICT_CACHE_CTL_CONTEXT((void *) vstring_alloc(100)),
+			   CA_DICT_CACHE_CTL_END);
     }
 }
 
@@ -724,11 +724,11 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     multi_server_main(argc, argv, verify_service,
-		      MAIL_SERVER_STR_TABLE, str_table,
-		      MAIL_SERVER_TIME_TABLE, time_table,
-		      MAIL_SERVER_PRE_INIT, pre_jail_init,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_SOLITARY,
-		      MAIL_SERVER_EXIT, verify_dump,
+		      CA_MAIL_SERVER_STR_TABLE(str_table),
+		      CA_MAIL_SERVER_TIME_TABLE(time_table),
+		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
+		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		      CA_MAIL_SERVER_SOLITARY,
+		      CA_MAIL_SERVER_EXIT(verify_dump),
 		      0);
 }

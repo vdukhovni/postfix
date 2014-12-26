@@ -264,11 +264,11 @@
 /*	or error conditions.
 /*
 /*	vstream_control() allows the user to fine tune the behavior of
-/*	the specified stream.  The arguments are a list of (name,
-/*	value) pairs, terminated with VSTREAM_CTL_END.
-/*	The following lists the names and the types of the corresponding
-/*	value arguments.
-/* .IP "VSTREAM_CTL_READ_FN (ssize_t (*)(int, void *, size_t, int, void *))"
+/*	the specified stream.  The arguments are a list of macros with
+/*	zero or more arguments, terminated with CA_VSTREAM_CTL_END
+/*	which has none.  The following lists the names and the types
+/*	of the corresponding value arguments.
+/* .IP "CA_VSTREAM_CTL_READ_FN(ssize_t (*)(int, void *, size_t, int, void *))"
 /*	The argument specifies an alternative for the timed_read(3) function,
 /*	for example, a read function that performs decryption.
 /*	This function receives as arguments a file descriptor, buffer pointer,
@@ -276,7 +276,7 @@
 /*	A timeout value <= 0 disables the time limit.
 /*	This function should return the positive number of bytes transferred,
 /*	0 upon EOF, and -1 upon error with errno set appropriately.
-/* .IP "VSTREAM_CTL_WRITE_FN (ssize_t (*)(int, void *, size_t, int, void *))"
+/* .IP "CA_VSTREAM_CTL_WRITE_FN(ssize_t (*)(int, void *, size_t, int, void *))"
 /*	The argument specifies an alternative for the timed_write(3) function,
 /*	for example, a write function that performs encryption.
 /*	This function receives as arguments a file descriptor, buffer pointer,
@@ -285,45 +285,45 @@
 /*	This function should return the positive number of bytes transferred,
 /*	and -1 upon error with errno set appropriately. Instead of -1 it may
 /*	also return 0, e.g., upon remote party-initiated protocol shutdown.
-/* .IP "VSTREAM_CTL_CONTEXT (void *)"
+/* .IP "CA_VSTREAM_CTL_CONTEXT(void *)"
 /*	The argument specifies application context that is passed on to
 /*	the application-specified read/write routines. No copy is made.
-/* .IP "VSTREAM_CTL_PATH (char *)"
+/* .IP "CA_VSTREAM_CTL_PATH(const char *)"
 /*	Updates the stored pathname of the specified stream. The pathname
 /*	is copied.
-/* .IP "VSTREAM_CTL_DOUBLE (no value)"
+/* .IP "CA_VSTREAM_CTL_DOUBLE (no arguments)"
 /*	Use separate buffers for reading and for writing.  This prevents
 /*	unread input from being discarded upon change of I/O direction.
-/* .IP "VSTREAM_CTL_READ_FD (int)
+/* .IP "CA_VSTREAM_CTL_READ_FD(int)
 /*	The argument specifies the file descriptor to be used for reading.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
-/* .IP "VSTREAM_CTL_WRITE_FD (int)
+/* .IP "CA_VSTREAM_CTL_WRITE_FD(int)
 /*	The argument specifies the file descriptor to be used for writing.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
-/* .IP "VSTREAM_CTL_SWAP_FD (VSTREAM *)"
+/* .IP "CA_VSTREAM_CTL_SWAP_FD(VSTREAM *)"
 /*	The argument specifies a VSTREAM pointer; the request swaps the
 /*	file descriptor members of the two streams. This feature is limited
 /*	to streams that are both double-buffered or both single-buffered.
-/* .IP "VSTREAM_CTL_DUPFD (int)"
+/* .IP "CA_VSTREAM_CTL_DUPFD(int)"
 /*	The argument specifies a minimum file descriptor value. If
 /*	the actual stream's file descriptors are below the minimum,
 /*	reallocate the descriptors to the first free value greater
 /*	than or equal to the minimum. The VSTREAM_CTL_DUPFD macro
 /*	is defined only on systems with fcntl() F_DUPFD support.
-/* .IP "VSTREAM_CTL_WAITPID_FN (int (*)(pid_t, WAIT_STATUS_T *, int))"
+/* .IP "CA_VSTREAM_CTL_WAITPID_FN(int (*)(pid_t, WAIT_STATUS_T *, int))"
 /*	A pointer to function that behaves like waitpid(). This information
 /*	is used by the vstream_pclose() routine.
-/* .IP "VSTREAM_CTL_TIMEOUT (int)
+/* .IP "CA_VSTREAM_CTL_TIMEOUT(int)
 /*	The deadline for a descriptor to become readable in case of a read
 /*	request, or writable in case of a write request. Specify a value
 /*	of 0 to disable deadlines.
-/* .IP "VSTREAM_CTL_EXCEPT (no value)"
+/* .IP "CA_VSTREAM_CTL_EXCEPT (no arguments)"
 /*	Enable exception handling with vstream_setjmp() and vstream_longjmp().
 /*	This involves allocation of additional memory that normally isn't
 /*	used.
-/* .IP "VSTREAM_CTL_BUFSIZE (ssize_t)"
+/* .IP "CA_VSTREAM_CTL_BUFSIZE(ssize_t)"
 /*	Specify a non-default buffer size for the next read(2) or
 /*	write(2) operation, or zero to implement a no-op. Requests
 /*	to reduce the buffer size are silently ignored (i.e. any
@@ -337,16 +337,11 @@
 /*	NOTE: the vstream_*printf() routines may silently expand a
 /*	buffer, so that the result of some %letter specifiers can
 /*	be written to contiguous memory.
-/*
-/*	NOTE: the VSTREAM_CTL_BUFSIZE argument type is ssize_t, not
-/*	int. Use an explicit cast to avoid problems on LP64
-/*	environments and other environments where ssize_t is larger
-/*	than int.
-/* .IP VSTREAM_CTL_START_DEADLINE
+/* .IP CA_VSTREAM_CTL_START_DEADLINE (no arguments)
 /*	Change the VSTREAM_CTL_TIMEOUT behavior, to limit the total
 /*	time for all subsequent file descriptor read or write
 /*	operations, and recharge the deadline timer.
-/* .IP VSTREAM_CTL_STOP_DEADLINE
+/* .IP CA_VSTREAM_CTL_STOP_DEADLINE (no arguments)
 /*	Revert VSTREAM_CTL_TIMEOUT behavior to the default, i.e.
 /*	a time limit for individual file descriptor read or write
 /*	operations.
@@ -497,19 +492,19 @@ VSTREAM vstream_fstd[] = {
 	    0,				/* flags */
 	    0, 0, 0, 0,			/* buffer */
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
-    }, STDIN_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,
+    }, STDIN_FILENO, (VSTREAM_RW_FN) timed_read, (VSTREAM_RW_FN) timed_write,
     0,},
     {{
 	    0,				/* flags */
 	    0, 0, 0, 0,			/* buffer */
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
-    }, STDOUT_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,
+    }, STDOUT_FILENO, (VSTREAM_RW_FN) timed_read, (VSTREAM_RW_FN) timed_write,
     0,},
     {{
 	    VBUF_FLAG_FIXED | VSTREAM_FLAG_WRITE,
 	    vstream_fstd_buf, VSTREAM_BUFSIZE, VSTREAM_BUFSIZE, vstream_fstd_buf,
 	    vstream_buf_get_ready, vstream_buf_put_ready, vstream_buf_space,
-    }, STDERR_FILENO, (VSTREAM_FN) timed_read, (VSTREAM_FN) timed_write,
+    }, STDERR_FILENO, (VSTREAM_RW_FN) timed_read, (VSTREAM_RW_FN) timed_write,
     VSTREAM_BUFSIZE,},
 };
 
@@ -1217,8 +1212,8 @@ VSTREAM *vstream_fdopen(int fd, int flags)
      */
     stream = (VSTREAM *) mymalloc(sizeof(*stream));
     stream->fd = fd;
-    stream->read_fn = VSTREAM_CAN_READ(flags) ? (VSTREAM_FN) timed_read : 0;
-    stream->write_fn = VSTREAM_CAN_WRITE(flags) ? (VSTREAM_FN) timed_write : 0;
+    stream->read_fn = VSTREAM_CAN_READ(flags) ? (VSTREAM_RW_FN) timed_read : 0;
+    stream->write_fn = VSTREAM_CAN_WRITE(flags) ? (VSTREAM_RW_FN) timed_write : 0;
     vstream_buf_init(&stream->buf, flags);
     stream->offset = 0;
     stream->path = 0;
@@ -1380,10 +1375,10 @@ void    vstream_control(VSTREAM *stream, int name,...)
     for (va_start(ap, name); name != VSTREAM_CTL_END; name = va_arg(ap, int)) {
 	switch (name) {
 	case VSTREAM_CTL_READ_FN:
-	    stream->read_fn = va_arg(ap, VSTREAM_FN);
+	    stream->read_fn = va_arg(ap, VSTREAM_RW_FN);
 	    break;
 	case VSTREAM_CTL_WRITE_FN:
-	    stream->write_fn = va_arg(ap, VSTREAM_FN);
+	    stream->write_fn = va_arg(ap, VSTREAM_RW_FN);
 	    break;
 	case VSTREAM_CTL_CONTEXT:
 	    stream->context = va_arg(ap, void *);
@@ -1604,8 +1599,8 @@ static void copy_line(ssize_t bufsize)
 {
     int     c;
 
-    vstream_control(VSTREAM_IN, VSTREAM_CTL_BUFSIZE, bufsize, VSTREAM_CTL_END);
-    vstream_control(VSTREAM_OUT, VSTREAM_CTL_BUFSIZE, bufsize, VSTREAM_CTL_END);
+    vstream_control(VSTREAM_IN, VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
+    vstream_control(VSTREAM_OUT, VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
     while ((c = VSTREAM_GETC(VSTREAM_IN)) != VSTREAM_EOF) {
 	VSTREAM_PUTC(c, VSTREAM_OUT);
 	if (c == '\n')

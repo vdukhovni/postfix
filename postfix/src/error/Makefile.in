@@ -71,6 +71,7 @@ error.o: ../../include/dsn_util.h
 error.o: ../../include/flush_clnt.h
 error.o: ../../include/htable.h
 error.o: ../../include/iostuff.h
+error.o: ../../include/mail_conf.h
 error.o: ../../include/mail_proto.h
 error.o: ../../include/mail_queue.h
 error.o: ../../include/mail_server.h

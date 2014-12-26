@@ -523,6 +523,11 @@ The following is an extensive list of names and values.
 ||-DNO_EAI                     |default, EAI support is compiled in when the  |
 ||                             |"icuuc" library and header files are found.   |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+||                             |Do not require support for C99 "inline"       |
+||-DNO_INLINE                  |functions. Instead, implement argument        |
+||                             |typechecks for non-printf/scanf-like functions|
+||                             |with ternary operators and unreachable code.  |
+|_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                             |Do not build with IPv6 support. By default,   |
 ||                             |IPv6 support is compiled in on platforms that |
 ||-DNO_IPV6                    |are known to have IPv6 support. Note: this    |

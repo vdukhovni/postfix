@@ -345,7 +345,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
     if ((open_flags & O_TRUNC) == 0) {
 	/* Incremental mode. */
 	source_fp = VSTREAM_IN;
-	vstream_control(source_fp, VSTREAM_CTL_PATH, "stdin", VSTREAM_CTL_END);
+	vstream_control(source_fp, CA_VSTREAM_CTL_PATH("stdin"), CA_VSTREAM_CTL_END);
     } else {
 	/* Create database. */
 	if (strcmp(map_type, DICT_TYPE_PROXY) == 0)

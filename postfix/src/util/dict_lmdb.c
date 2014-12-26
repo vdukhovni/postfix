@@ -680,14 +680,14 @@ DICT   *dict_lmdb_open(const char *path, int open_flags, int dict_flags)
      * memory corruption problem.
      */
     if (slmdb_control(&dict_lmdb->slmdb,
-		      SLMDB_CTL_API_RETRY_LIMIT, DICT_LMDB_API_RETRY_LIMIT,
-		      SLMDB_CTL_BULK_RETRY_LIMIT, DICT_LMDB_BULK_RETRY_LIMIT,
-		      SLMDB_CTL_LONGJMP_FN, dict_lmdb_longjmp,
-		      SLMDB_CTL_NOTIFY_FN, msg_verbose ?
-		      dict_lmdb_notify : (SLMDB_NOTIFY_FN) 0,
-		      SLMDB_CTL_ASSERT_FN, dict_lmdb_assert,
-		      SLMDB_CTL_CB_CONTEXT, (void *) dict_lmdb,
-		      SLMDB_CTL_END) != 0)
+		    CA_SLMDB_CTL_API_RETRY_LIMIT(DICT_LMDB_API_RETRY_LIMIT),
+		  CA_SLMDB_CTL_BULK_RETRY_LIMIT(DICT_LMDB_BULK_RETRY_LIMIT),
+		      CA_SLMDB_CTL_LONGJMP_FN(dict_lmdb_longjmp),
+		      CA_SLMDB_CTL_NOTIFY_FN(msg_verbose ?
+				    dict_lmdb_notify : (SLMDB_NOTIFY_FN) 0),
+		      CA_SLMDB_CTL_ASSERT_FN(dict_lmdb_assert),
+		      CA_SLMDB_CTL_CB_CONTEXT((void *) dict_lmdb),
+		      CA_SLMDB_CTL_END) != 0)
 	msg_panic("dict_lmdb_open: slmdb_control: %m");
 
     if (msg_verbose)

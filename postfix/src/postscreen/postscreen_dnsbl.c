@@ -506,8 +506,8 @@ int     psc_dnsbl_request(const char *client_addr,
 	}
 	stream = vstream_fdopen(fd, O_RDWR);
 	vstream_control(stream,
-			VSTREAM_CTL_CONTEXT, ht[0]->key,
-			VSTREAM_CTL_END);
+			CA_VSTREAM_CTL_CONTEXT(ht[0]->key),
+			CA_VSTREAM_CTL_END);
 	attr_print(stream, ATTR_FLAG_NONE,
 		   SEND_ATTR_STR(MAIL_ATTR_RBL_DOMAIN, ht[0]->key),
 		   SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, client_addr),

@@ -15,6 +15,7 @@
   * Utility library.
   */
 #include <dict.h>
+#include <check_arg.h>
 
  /*
   * External interface.
@@ -34,11 +35,23 @@ extern const char *dict_cache_name(DICT_CACHE *);
 #define DICT_CACHE_FLAG_VERBOSE		(1<<0)	/* verbose operation */
 #define DICT_CACHE_FLAG_STATISTICS	(1<<1)	/* log cache statistics */
 
+/* Legacy API: type-unchecked argument, internal use. */
 #define DICT_CACHE_CTL_END		0	/* list terminator */
 #define DICT_CACHE_CTL_FLAGS		1	/* see above */
 #define DICT_CACHE_CTL_INTERVAL		2	/* cleanup interval */
 #define DICT_CACHE_CTL_VALIDATOR	3	/* call-back validator */
 #define DICT_CACHE_CTL_CONTEXT		4	/* call-back context */
+
+/* Safer API: type-checked arguments, external use. */
+#define CA_DICT_CACHE_CTL_END		DICT_CACHE_CTL_END
+#define CA_DICT_CACHE_CTL_FLAGS(v)	DICT_CACHE_CTL_FLAGS, CHECK_VAL(DICT_CACHE, int, (v))
+#define CA_DICT_CACHE_CTL_INTERVAL(v)	DICT_CACHE_CTL_INTERVAL, CHECK_VAL(DICT_CACHE, int, (v))
+#define CA_DICT_CACHE_CTL_VALIDATOR(v)	DICT_CACHE_CTL_VALIDATOR, CHECK_VAL(DICT_CACHE, DICT_CACHE_VALIDATOR_FN, (v))
+#define CA_DICT_CACHE_CTL_CONTEXT(v)	DICT_CACHE_CTL_CONTEXT, CHECK_PTR(DICT_CACHE, void, (v))
+
+CHECK_VAL_HELPER_DCL(DICT_CACHE, int);
+CHECK_VAL_HELPER_DCL(DICT_CACHE, DICT_CACHE_VALIDATOR_FN);
+CHECK_PTR_HELPER_DCL(DICT_CACHE, void);
 
 /* LICENSE
 /* .ad

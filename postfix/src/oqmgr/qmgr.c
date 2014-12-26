@@ -669,15 +669,15 @@ int     main(int argc, char **argv)
      * not talk back to the client.
      */
     trigger_server_main(argc, argv, qmgr_trigger_event,
-			MAIL_SERVER_INT_TABLE, int_table,
-			MAIL_SERVER_STR_TABLE, str_table,
-			MAIL_SERVER_BOOL_TABLE, bool_table,
-			MAIL_SERVER_TIME_TABLE, time_table,
-			MAIL_SERVER_PRE_INIT, qmgr_pre_init,
-			MAIL_SERVER_POST_INIT, qmgr_post_init,
-			MAIL_SERVER_LOOP, qmgr_loop,
-			MAIL_SERVER_PRE_ACCEPT, pre_accept,
-			MAIL_SERVER_SOLITARY,
-			MAIL_SERVER_WATCHDOG, &var_qmgr_daemon_timeout,
+			CA_MAIL_SERVER_INT_TABLE(int_table),
+			CA_MAIL_SERVER_STR_TABLE(str_table),
+			CA_MAIL_SERVER_BOOL_TABLE(bool_table),
+			CA_MAIL_SERVER_TIME_TABLE(time_table),
+			CA_MAIL_SERVER_PRE_INIT(qmgr_pre_init),
+			CA_MAIL_SERVER_POST_INIT(qmgr_post_init),
+			CA_MAIL_SERVER_LOOP(qmgr_loop),
+			CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),
+			CA_MAIL_SERVER_SOLITARY,
+			CA_MAIL_SERVER_WATCHDOG(&var_qmgr_daemon_timeout),
 			0);
 }

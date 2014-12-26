@@ -883,9 +883,9 @@ static void tlsp_service(VSTREAM *plaintext_stream,
      */
     non_blocking(plaintext_fd, NON_BLOCKING);
     vstream_control(plaintext_stream,
-		    VSTREAM_CTL_PATH, "plaintext",
-		    VSTREAM_CTL_TIMEOUT, 5,
-		    VSTREAM_CTL_END);
+		    CA_VSTREAM_CTL_PATH("plaintext"),
+		    CA_VSTREAM_CTL_TIMEOUT(5),
+		    CA_VSTREAM_CTL_END);
 
     /*
      * Receive postscreen's remote SMTP client address/port and socket.
@@ -1108,16 +1108,16 @@ int     main(int argc, char **argv)
      * Pass control to the single-threaded service skeleton.
      */
     event_server_main(argc, argv, tlsp_service,
-		      MAIL_SERVER_INT_TABLE, int_table,
-		      MAIL_SERVER_NINT_TABLE, nint_table,
-		      MAIL_SERVER_STR_TABLE, str_table,
-		      MAIL_SERVER_BOOL_TABLE, bool_table,
-		      MAIL_SERVER_NBOOL_TABLE, nbool_table,
-		      MAIL_SERVER_TIME_TABLE, time_table,
-		      MAIL_SERVER_PRE_INIT, pre_jail_init,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_SLOW_EXIT, tlsp_drain,
-		      MAIL_SERVER_WATCHDOG, &var_tlsp_watchdog,
+		      CA_MAIL_SERVER_INT_TABLE(int_table),
+		      CA_MAIL_SERVER_NINT_TABLE(nint_table),
+		      CA_MAIL_SERVER_STR_TABLE(str_table),
+		      CA_MAIL_SERVER_BOOL_TABLE(bool_table),
+		      CA_MAIL_SERVER_NBOOL_TABLE(nbool_table),
+		      CA_MAIL_SERVER_TIME_TABLE(time_table),
+		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
+		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		      CA_MAIL_SERVER_SLOW_EXIT(tlsp_drain),
+		      CA_MAIL_SERVER_WATCHDOG(&var_tlsp_watchdog),
 		      0);
 }
 

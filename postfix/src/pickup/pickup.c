@@ -605,9 +605,9 @@ int     main(int argc, char **argv)
      * submissions.
      */
     trigger_server_main(argc, argv, pickup_service,
-			MAIL_SERVER_STR_TABLE, str_table,
-			MAIL_SERVER_POST_INIT, post_jail_init,
-			MAIL_SERVER_SOLITARY,
-			MAIL_SERVER_WATCHDOG, &var_daemon_timeout,
+			CA_MAIL_SERVER_STR_TABLE(str_table),
+			CA_MAIL_SERVER_POST_INIT(post_jail_init),
+			CA_MAIL_SERVER_SOLITARY,
+			CA_MAIL_SERVER_WATCHDOG(&var_daemon_timeout),
 			0);
 }

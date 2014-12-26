@@ -69,6 +69,7 @@ discard.o: ../../include/dsn_buf.h
 discard.o: ../../include/dsn_util.h
 discard.o: ../../include/flush_clnt.h
 discard.o: ../../include/htable.h
+discard.o: ../../include/mail_conf.h
 discard.o: ../../include/mail_queue.h
 discard.o: ../../include/mail_server.h
 discard.o: ../../include/mail_version.h

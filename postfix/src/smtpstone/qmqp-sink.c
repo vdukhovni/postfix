@@ -2,7 +2,7 @@
 /* NAME
 /*	qmqp-sink 1
 /* SUMMARY
-/*	multi-threaded QMQP test server
+/*	parallelized QMQP test server
 /* SYNOPSIS
 /* .fi
 /*	\fBqmqp-sink\fR [\fB-46cv\fR] [\fB-x \fItime\fR]

@@ -105,7 +105,7 @@ int     main(int unused_argc, char **unused_argv)
 {
     char   *extension;
     char   *stripped;
-    char*  delim = "+-";
+    char   *delim = "+-";
 
 #define NO_DELIM	""
 

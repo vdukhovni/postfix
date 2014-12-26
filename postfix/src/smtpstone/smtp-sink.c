@@ -2,7 +2,7 @@
 /* NAME
 /*	smtp-sink 1
 /* SUMMARY
-/*	multi-threaded SMTP/LMTP test server
+/*	parallelized SMTP/LMTP test server
 /* SYNOPSIS
 /* .fi
 /*	\fBsmtp-sink\fR [\fIoptions\fR] [\fBinet:\fR][\fIhost\fR]:\fIport\fR

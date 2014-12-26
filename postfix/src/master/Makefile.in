@@ -137,6 +137,7 @@ mail_flow.o: mail_flow.c
 mail_flow.o: mail_flow.h
 mail_flow.o: master_proto.h
 master.o: ../../include/argv.h
+master.o: ../../include/check_arg.h
 master.o: ../../include/clean_env.h
 master.o: ../../include/debug_process.h
 master.o: ../../include/events.h
@@ -209,6 +210,7 @@ master_flow.o: ../../include/sys_defs.h
 master_flow.o: master.h
 master_flow.o: master_flow.c
 master_flow.o: master_proto.h
+master_listen.o: ../../include/check_arg.h
 master_listen.o: ../../include/htable.h
 master_listen.o: ../../include/inet_addr_list.h
 master_listen.o: ../../include/iostuff.h
@@ -250,6 +252,7 @@ master_sig.o: master.h
 master_sig.o: master_sig.c
 master_spawn.o: ../../include/argv.h
 master_spawn.o: ../../include/binhash.h
+master_spawn.o: ../../include/check_arg.h
 master_spawn.o: ../../include/events.h
 master_spawn.o: ../../include/mail_conf.h
 master_spawn.o: ../../include/msg.h
@@ -268,6 +271,7 @@ master_status.o: ../../include/sys_defs.h
 master_status.o: master.h
 master_status.o: master_proto.h
 master_status.o: master_status.c
+master_vars.o: ../../include/check_arg.h
 master_vars.o: ../../include/mail_conf.h
 master_vars.o: ../../include/mail_params.h
 master_vars.o: ../../include/msg.h
@@ -283,6 +287,7 @@ master_wakeup.o: ../../include/check_arg.h
 master_wakeup.o: ../../include/events.h
 master_wakeup.o: ../../include/htable.h
 master_wakeup.o: ../../include/iostuff.h
+master_wakeup.o: ../../include/mail_conf.h
 master_wakeup.o: ../../include/mail_params.h
 master_wakeup.o: ../../include/mail_proto.h
 master_wakeup.o: ../../include/msg.h

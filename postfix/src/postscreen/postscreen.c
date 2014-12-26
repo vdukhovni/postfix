@@ -549,7 +549,7 @@ static void psc_endpt_lookup_done(int, VSTREAM *,
 
 /* psc_dump - dump some statistics before exit */
 
-static void psc_dump(void)
+static void psc_dump(char *unused_service, char **unused_argv)
 {
 
     /*
@@ -821,7 +821,7 @@ static void psc_endpt_lookup_done(int endpt_status,
 
 static int psc_cache_validator(const char *client_addr,
 			               const char *stamp_str,
-			               char *unused_context)
+			               void *unused_context)
 {
     PSC_STATE dummy;
 
@@ -1010,11 +1010,11 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	cache_flags |= DICT_CACHE_FLAG_VERBOSE;
     if (psc_cache_map != 0 && var_psc_cache_scan > 0)
 	dict_cache_control(psc_cache_map,
-			   DICT_CACHE_CTL_FLAGS, cache_flags,
-			   DICT_CACHE_CTL_INTERVAL, var_psc_cache_scan,
-			   DICT_CACHE_CTL_VALIDATOR, psc_cache_validator,
-			   DICT_CACHE_CTL_CONTEXT, (void *) 0,
-			   DICT_CACHE_CTL_END);
+			   CA_DICT_CACHE_CTL_FLAGS(cache_flags),
+			   CA_DICT_CACHE_CTL_INTERVAL(var_psc_cache_scan),
+			   CA_DICT_CACHE_CTL_VALIDATOR(psc_cache_validator),
+			   CA_DICT_CACHE_CTL_CONTEXT((void *) 0),
+			   CA_DICT_CACHE_CTL_END);
 
     /*
      * Pre-compute the minimal and maximal TTL.
@@ -1164,19 +1164,19 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     event_server_main(argc, argv, psc_service,
-		      MAIL_SERVER_STR_TABLE, str_table,
-		      MAIL_SERVER_INT_TABLE, int_table,
-		      MAIL_SERVER_NINT_TABLE, nint_table,
-		      MAIL_SERVER_TIME_TABLE, time_table,
-		      MAIL_SERVER_BOOL_TABLE, bool_table,
-		      MAIL_SERVER_RAW_TABLE, raw_table,
-		      MAIL_SERVER_NBOOL_TABLE, nbool_table,
-		      MAIL_SERVER_PRE_INIT, pre_jail_init,
-		      MAIL_SERVER_POST_INIT, post_jail_init,
-		      MAIL_SERVER_PRE_ACCEPT, pre_accept,
-		      MAIL_SERVER_SOLITARY,
-		      MAIL_SERVER_SLOW_EXIT, psc_drain,
-		      MAIL_SERVER_EXIT, psc_dump,
-		      MAIL_SERVER_WATCHDOG, &var_psc_watchdog,
+		      CA_MAIL_SERVER_STR_TABLE(str_table),
+		      CA_MAIL_SERVER_INT_TABLE(int_table),
+		      CA_MAIL_SERVER_NINT_TABLE(nint_table),
+		      CA_MAIL_SERVER_TIME_TABLE(time_table),
+		      CA_MAIL_SERVER_BOOL_TABLE(bool_table),
+		      CA_MAIL_SERVER_RAW_TABLE(raw_table),
+		      CA_MAIL_SERVER_NBOOL_TABLE(nbool_table),
+		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
+		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		      CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),
+		      CA_MAIL_SERVER_SOLITARY,
+		      CA_MAIL_SERVER_SLOW_EXIT(psc_drain),
+		      CA_MAIL_SERVER_EXIT(psc_dump),
+		      CA_MAIL_SERVER_WATCHDOG(&var_psc_watchdog),
 		      0);
 }

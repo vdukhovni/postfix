@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <attr_override.h>
 /*
-/*	void	attr_override(bp, delimiters, parens, ... ATTR_OVER_END);
+/*	void	attr_override(bp, delimiters, parens, ... CA_ATTR_OVER_END);
 /*	char	*bp;
 /*	const char *delimiters;
 /*	const char *parens;
@@ -28,21 +28,21 @@
 /*	See mystrtok(3) for description. Typical values are
 /*	CHARS_COMMA_SP and CHARS_BRACE, respectively.
 /* .PP
-/*	The parens argument is followed by a list of (key, value)
-/*	argument pairs. Each key may appear only once.  The list
-/*	must be terminated with ATTR_OVER_END.  The following
-/*	describes the keys and the expected values.
-/* .IP "ATTR_OVER_STR_TABLE, const ATTR_OVER_STR *
-/*	The second argument specifies a null-terminated table with
+/*	The parens argument is followed by a list of macros
+/*	with arguments. Each macro may appear only once.  The list
+/*	must be terminated with CA_ATTR_OVER_END which has no argument.
+/*	The following describes the expected values.
+/* .IP "CA_ATTR_OVER_STR_TABLE(const ATTR_OVER_STR *)
+/*	The macro argument specifies a null-terminated table with
 /*	attribute names, assignment targets, and range limits which
 /*	should be the same as for the corresponding main.cf parameters.
-/* .IP "ATTR_OVER_TIME_TABLE, const ATTR_OVER_TIME *
-/*	The second argument specifies a null-terminated table with
+/* .IP "CA_ATTR_OVER_TIME_TABLE(const ATTR_OVER_TIME *)
+/*	The macro argument specifies a null-terminated table with
 /*	attribute names, their default time units (leading digits
 /*	are skipped), assignment targets, and range limits which
 /*	should be the same as for the corresponding main.cf parameters.
-/* .IP "ATTR_OVER_INT_TABLE, const ATTR_OVER_INT *
-/*	The second argument specifies a null-terminated table with
+/* .IP "CA_ATTR_OVER_INT_TABLE(const ATTR_OVER_INT *)
+/*	The macro argument specifies a null-terminated table with
 /*	attribute names, assignment targets, and range limits which
 /*	should be the same as for the corresponding main.cf parameters.
 /* SEE ALSO

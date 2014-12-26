@@ -14,7 +14,7 @@
 /*	DSN_FILTER *fp,
 /*	DSN	*dsn)
 /*
-/*	void	dsn_free(
+/*	void	dsn_filter_free(
 /*	DSN_FILTER *fp)
 /* DESCRIPTION
 /*	This module maps (bounce or defer non-delivery status code
@@ -34,7 +34,8 @@
 /*	overwritten upon each call.  This function must not be
 /*	called with the result from a dsn_filter_lookup() call.
 /*
-/*	dsn_free() destroys the specified delivery status filter.
+/*	dsn_filter_free() destroys the specified delivery status
+/*	filter.
 /*
 /*	Arguments:
 /* .IP title

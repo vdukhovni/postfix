@@ -21094,39 +21094,100 @@ Apologies for any names omitted.
 	format check, making it a noop. Viktor Dukhovni. File:
 	util/sys_defs.h.
 
-	Maintainability: argument typechecking for the variadic
-	attribute-value read/write functions. Files: anvil/anvil.c,
-	bounce/bounce.c, cleanup/cleanup.c, dnsblog/dnsblog.c,
-	flush/flush.c, global/abounce.c, global/anvil_clnt.c,
-	global/bounce.c, global/defer.c, global/deliver_pass.c,
-	global/deliver_request.c, global/dict_proxy.c, global/dsb_scan.c,
-	global/dsn_print.c, global/flush_clnt.c,
-	global/mail_command_client.c, global/mail_stream.c,
-	global/msg_stats_print.c, global/msg_stats_scan.c,
-	global/post_mail.c, global/rcpt_buf.c, global/rcpt_print.c,
-	global/resolve_clnt.c, global/rewrite_clnt.c, global/scache_clnt.c,
-	global/trace.c, global/verify_clnt.c, local/forward.c,
-	milter/milter.c, milter/milter8.c, milter/milter_macros.c,
-	oqmgr/qmgr_deliver.c, pickup/pickup.c, postdrop/postdrop.c,
-	postscreen/postscreen_dnsbl.c, postscreen/postscreen_send.c,
-	postscreen/postscreen_starttls.c, proxymap/proxymap.c,
-	qmgr/qmgr_deliver.c, qmqpd/qmqpd.c, scache/scache.c,
-	smtpd/smtpd.c, smtpd/smtpd_check.c, tls/tls_mgr.c,
-	tls/tls_proxy_clnt.c, tls/tls_proxy_print.c, tls/tls_proxy_scan.c,
-	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c, trivial-rewrite/resolve.c,
-	trivial-rewrite/rewrite.c, trivial-rewrite/trivial-rewrite.c,
-	util/attr.h.
+	Maintainability: compile-time argument typechecking for
+	variadic attribute-value read/write functions. Files:
+	anvil/anvil.c, bounce/bounce.c, cleanup/cleanup.c,
+	dnsblog/dnsblog.c, flush/flush.c, global/abounce.c,
+	global/anvil_clnt.c, global/bounce.c, global/defer.c,
+	global/deliver_pass.c, global/deliver_request.c,
+	global/dict_proxy.c, global/dsb_scan.c, global/dsn_print.c,
+	global/flush_clnt.c, global/mail_command_client.c,
+	global/mail_stream.c, global/msg_stats_print.c,
+	global/msg_stats_scan.c, global/post_mail.c, global/rcpt_buf.c,
+	global/rcpt_print.c, global/resolve_clnt.c, global/rewrite_clnt.c,
+	global/scache_clnt.c, global/trace.c, global/verify_clnt.c,
+	local/forward.c, milter/milter.c, milter/milter8.c,
+	milter/milter_macros.c, oqmgr/qmgr_deliver.c, pickup/pickup.c,
+	postdrop/postdrop.c, postscreen/postscreen_dnsbl.c,
+	postscreen/postscreen_send.c, postscreen/postscreen_starttls.c,
+	proxymap/proxymap.c, qmgr/qmgr_deliver.c, qmqpd/qmqpd.c,
+	scache/scache.c, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	tls/tls_mgr.c, tls/tls_proxy_clnt.c, tls/tls_proxy_print.c,
+	tls/tls_proxy_scan.c, tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c,
+	trivial-rewrite/resolve.c, trivial-rewrite/rewrite.c,
+	trivial-rewrite/trivial-rewrite.c, util/attr.h.
 
 20141217
 
-	Replaced argment typechecking based on inline functions
-	with an implementation based on ternary expressions with
-	unreachable assignments to dummy variables.   This should
-	produce the exact same result as the approach based on
-	inline functions (which were standardized with C99). Files:
-	util/check_arg.h, util/attr.h, util/attr.c.
+	Replaced compile-time argument typechecking based on inline
+	functions with an implementation based on ternary expressions
+	with unreachable assignments to dummy variables.   This
+	should produce the exact same result as the approach based
+	on inline functions (which were standardized with C99).
+	Files: util/check_arg.h, util/attr.h, util/attr.c.
 
 20141221
 
 	Portability: proof-of-concept template for OpenBSD build
 	with shared libpostfix etc. libraries. File: makedefs.
+
+20141223
+
+	Cleanup: compile-time variadic argument type checking for
+	attribute-value APIs of vstream, vstream_popen, vstring,
+	pipe_command, spawn_command, attr_override, and mail_server
+	skeletons.  Based on mostly automatic conversion and checking,
+	with a manual inspection of the remainder.  Files:
+	anvil/anvil.c, bounce/bounce.c, cleanup/cleanup.c,
+	cleanup/cleanup_api.c, discard/discard.c, dnsblog/dnsblog.c,
+	error/error.c, flush/flush.c, global/attr_override.c,
+	global/attr_override.h, global/mail_connect.c, global/mail_queue.c,
+	global/mail_stream.c, global/mail_stream.h, global/pipe_command.c,
+	global/pipe_command.h, global/smtp_stream.c, global/timed_ipc.c,
+	local/command.c, local/local.c, master/event_server.c,
+	master/mail_server.h, master/multi_server.c,
+	master/single_server.c, milter/milter.c, milter/milter8.c,
+	oqmgr/qmgr.c, oqmgr/qmgr_transport.c, pickup/pickup.c,
+	pipe/pipe.c, postalias/postalias.c, postcat/postcat.c,
+	postdrop/postdrop.c, postmap/postmap.c, postscreen/postscreen.c,
+	postscreen/postscreen_dnsbl.c, postscreen/postscreen_haproxy.c,
+	postscreen/postscreen_starttls.c, posttls-finger/posttls-finger.c,
+	proxymap/proxymap.c, qmgr/qmgr.c, qmgr/qmgr_transport.c,
+	qmqpd/qmqpd.c, scache/scache.c, showq/showq.c, smtp/smtp.c,
+	smtpd/smtpd.c, smtpd/smtpd_check.c, smtpd/smtpd_proxy.c,
+	smtpstone/smtp-source.c, spawn/spawn.c, tls/tls_proxy_clnt.c,
+	tls/tls_stream.c, tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c,
+	trivial-rewrite/trivial-rewrite.c, util/auto_clnt.c,
+	util/ctable.c, util/dict_cache.c, util/dict_cache.h,
+	util/dict_lmdb.c, util/dict_tcp.c, util/netstring.c,
+	util/recv_pass_attr.c, util/slmdb.c, util/slmdb.h,
+	util/spawn_command.c, util/spawn_command.h, util/vstream.c,
+	util/vstream.h, util/vstream_popen.c, util/vstream_tweak.c,
+	util/vstring.c, util/vstring.h, verify/verify.c,
+	virtual/virtual.c, xsasl/xsasl_dovecot_server.c.
+
+20141224
+
+	Cleanup: the compile-time argument typechecks for attribute-value
+	APIs are now by default implemented with inline functions.
+	Compile with -DNO_INLINE to implement the argument typechecks
+	with ternary operators and unreachable assignments.  Files:
+	util/check_arg.h and its consumers.
+
+20141226
+
+	NetBSD6/7 dynamic linking support. Viktor Dukhovni.
+
+	Cleanup: instead of making up new names, use a consistent
+	CA_ prefix for macros that implement compile-time argument
+	typechecks for non-protocol attribute-value APIs. This 
+	transformation and its verification are mechanical.
+
+	Bugfix (introduced: Postfix 1.1, but latent before 2.12):
+	"postfix-install: daemon_directory: not found" error with
+	an ancient Solaris shell.  Fixed by ALSO resetting IFS after
+	the end of a ``while IFS=foo command'' loop; counter to
+	expectation, the IFS reset in the loop body executed in a
+	child process.  Background: some shells implement "IFS=foo
+	command" as a permanent IFS change; this was allowed by
+	standards at some point in time.  File: postfix-install.

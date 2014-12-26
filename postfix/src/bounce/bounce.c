@@ -656,11 +656,11 @@ int     main(int argc, char **argv)
      * Pass control to the single-threaded service skeleton.
      */
     single_server_main(argc, argv, bounce_service,
-		       MAIL_SERVER_INT_TABLE, int_table,
-		       MAIL_SERVER_STR_TABLE, str_table,
-		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_PRE_INIT, pre_jail_init,
-		       MAIL_SERVER_POST_INIT, post_jail_init,
-		       MAIL_SERVER_UNLIMITED,
+		       CA_MAIL_SERVER_INT_TABLE(int_table),
+		       CA_MAIL_SERVER_STR_TABLE(str_table),
+		       CA_MAIL_SERVER_TIME_TABLE(time_table),
+		       CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
+		       CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		       CA_MAIL_SERVER_UNLIMITED,
 		       0);
 }

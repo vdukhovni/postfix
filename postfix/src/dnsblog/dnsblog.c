@@ -277,8 +277,8 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     single_server_main(argc, argv, dnsblog_service,
-		       MAIL_SERVER_TIME_TABLE, time_table,
-		       MAIL_SERVER_POST_INIT, post_jail_init,
-		       MAIL_SERVER_UNLIMITED,
+		       CA_MAIL_SERVER_TIME_TABLE(time_table),
+		       CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		       CA_MAIL_SERVER_UNLIMITED,
 		       0);
 }

@@ -21,6 +21,7 @@
   */
 #include <vstream.h>
 #include <vstring.h>
+#include <check_arg.h>
 
  /*
   * External interface.
@@ -45,6 +46,7 @@ struct MAIL_STREAM {
     struct timeval ctime;		/* creation time */
 };
 
+/* Legacy type-unchecked API, internal use. */
 #define MAIL_STREAM_CTL_END	0	/* Terminator */
 #define MAIL_STREAM_CTL_QUEUE	1	/* Change queue */
 #define MAIL_STREAM_CTL_CLASS	2	/* Change notification class */
@@ -53,6 +55,19 @@ struct MAIL_STREAM {
 #ifdef DELAY_ACTION
 #define MAIL_STREAM_CTL_DELAY	5	/* Change final queue file mtime */
 #endif
+
+/* Type-checked API, external use. */
+#define CA_MAIL_STREAM_CTL_END		MAIL_STREAM_CTL_END
+#define CA_MAIL_STREAM_CTL_QUEUE(v)	MAIL_STREAM_CTL_QUEUE, CHECK_CPTR(MAIL_STREAM, char, (v))
+#define CA_MAIL_STREAM_CTL_CLASS(v)	MAIL_STREAM_CTL_CLASS, CHECK_CPTR(MAIL_STREAM, char, (v))
+#define CA_MAIL_STREAM_CTL_SERVICE(v)	MAIL_STREAM_CTL_SERVICE, CHECK_CPTR(MAIL_STREAM, char, (v))
+#define CA_MAIL_STREAM_CTL_MODE(v)	MAIL_STREAM_CTL_MODE, CHECK_VAL(MAIL_STREAM, int, (v))
+#ifdef DELAY_ACTION
+#define CA_MAIL_STREAM_CTL_DELAY(v)	MAIL_STREAM_CTL_DELAY, CHECK_VAL(MAIL_STREAM, int, (v))
+#endif
+
+CHECK_VAL_HELPER_DCL(MAIL_STREAM, int);
+CHECK_CPTR_HELPER_DCL(MAIL_STREAM, char);
 
 extern MAIL_STREAM *mail_stream_file(const char *, const char *, const char *, int);
 extern MAIL_STREAM *mail_stream_service(const char *, const char *);

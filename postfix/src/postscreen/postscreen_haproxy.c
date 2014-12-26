@@ -107,8 +107,8 @@ static void psc_endpt_haproxy_event(int event, void *context)
 	    } else {
 		read_len = 1;
 	    }
-	    vstream_control(state->stream, VSTREAM_CTL_BUFSIZE, read_len,
-			    VSTREAM_CTL_END);
+	    vstream_control(state->stream, CA_VSTREAM_CTL_BUFSIZE(read_len),
+			    CA_VSTREAM_CTL_END);
 	}
 	/* Drain the VSTREAM buffer, otherwise this pseudo-thread will hang. */
 	do {
@@ -157,8 +157,8 @@ static void psc_endpt_haproxy_event(int event, void *context)
 	PSC_CLEAR_EVENT_REQUEST(vstream_fileno(state->stream),
 				psc_endpt_haproxy_event, context);
 	vstream_control(state->stream,
-			VSTREAM_CTL_BUFSIZE, (ssize_t) VSTREAM_BUFSIZE,
-			VSTREAM_CTL_END);
+			CA_VSTREAM_CTL_BUFSIZE(VSTREAM_BUFSIZE),
+			CA_VSTREAM_CTL_END);
 	state->notify(status, state->stream,
 		      &smtp_client_addr, &smtp_client_port,
 		      &smtp_server_addr, &smtp_server_port);

@@ -18,8 +18,6 @@ Wish list:
 	when a client sends QUIT and closes the connection immediately.
 	Apparently the ECONNRESET error condition is not persistent.
 
-	Fix "postfix-install: daemon_directory: not found' on Solaris.
-
 	Log command=good/bad statistics in postscreen?
 
 	Implement smtpd_client_auth_rate limit?

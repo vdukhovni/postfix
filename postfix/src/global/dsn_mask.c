@@ -96,7 +96,7 @@ int     dsn_ret_code(const char *str)
 
 const char *dsn_ret_str(int code)
 {
-    const char *cp ;
+    const char *cp;
 
     if ((cp = str_name_code(dsn_ret_table, code)) == 0)
 	msg_panic("dsn_ret_str: unknown code %d", code);

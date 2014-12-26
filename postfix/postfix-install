@@ -801,6 +801,8 @@ do
     esac
 
 done
+# More (solaris9) shell brain damage!
+IFS="$BACKUP_IFS"
 
 # Save the installation parameters to main.cf even when they haven't
 # changed from their current default. Defaults can change between

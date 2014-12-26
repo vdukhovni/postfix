@@ -50,6 +50,6 @@ void    timed_ipc_setup(VSTREAM *stream)
 	msg_panic("timed_ipc_setup: bad ipc_timeout %d", var_ipc_timeout);
 
     vstream_control(stream,
-		    VSTREAM_CTL_TIMEOUT, var_ipc_timeout,
-		    VSTREAM_CTL_END);
+		    CA_VSTREAM_CTL_TIMEOUT(var_ipc_timeout),
+		    CA_VSTREAM_CTL_END);
 }

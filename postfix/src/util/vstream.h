@@ -25,13 +25,14 @@
   * Utility library.
   */
 #include <vbuf.h>
+#include <check_arg.h>
 
  /*
   * Simple buffered stream. The members of this structure are not part of the
   * official interface and can change without prior notice.
   */
-typedef ssize_t (*VSTREAM_FN) (int, void *, size_t, int, void *);
-typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
+typedef ssize_t (*VSTREAM_RW_FN) (int, void *, size_t, int, void *);
+typedef pid_t(*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 
 #ifdef NO_SIGSETJMP
 #define VSTREAM_JMP_BUF	jmp_buf
@@ -42,8 +43,8 @@ typedef int (*VSTREAM_WAITPID_FN) (pid_t, WAIT_STATUS_T *, int);
 typedef struct VSTREAM {
     VBUF    buf;			/* generic intelligent buffer */
     int     fd;				/* file handle, no 256 limit */
-    VSTREAM_FN read_fn;			/* buffer fill action */
-    VSTREAM_FN write_fn;		/* buffer fill action */
+    VSTREAM_RW_FN read_fn;		/* buffer fill action */
+    VSTREAM_RW_FN write_fn;		/* buffer fill action */
     ssize_t req_bufsize;		/* requested read/write buffer size */
     void   *context;			/* application context */
     off_t   offset;			/* cached seek info */
@@ -130,6 +131,7 @@ extern int vstream_fdclose(VSTREAM *);
 
 extern void vstream_control(VSTREAM *, int,...);
 
+/* Legacy API: type-unchecked arguments, internal use. */
 #define VSTREAM_CTL_END		0
 #define VSTREAM_CTL_READ_FN	1
 #define VSTREAM_CTL_WRITE_FN	2
@@ -146,8 +148,36 @@ extern void vstream_control(VSTREAM *, int,...);
 #endif
 #define VSTREAM_CTL_BUFSIZE	12
 #define VSTREAM_CTL_SWAP_FD	13
-#define VSTREAM_CTL_START_DEADLINE	14
-#define VSTREAM_CTL_STOP_DEADLINE	15
+#define VSTREAM_CTL_START_DEADLINE 14
+#define VSTREAM_CTL_STOP_DEADLINE 15
+
+/* Safer API: type-checked arguments, external use. */
+#define CA_VSTREAM_CTL_END		VSTREAM_CTL_END
+#define CA_VSTREAM_CTL_READ_FN(v)	VSTREAM_CTL_READ_FN, CHECK_VAL(VSTREAM_CTL, VSTREAM_RW_FN, (v))
+#define CA_VSTREAM_CTL_WRITE_FN(v)	VSTREAM_CTL_WRITE_FN, CHECK_VAL(VSTREAM_CTL, VSTREAM_RW_FN, (v))
+#define CA_VSTREAM_CTL_PATH(v)		VSTREAM_CTL_PATH, CHECK_CPTR(VSTREAM_CTL, char, (v))
+#define CA_VSTREAM_CTL_DOUBLE		VSTREAM_CTL_DOUBLE
+#define CA_VSTREAM_CTL_READ_FD(v)	VSTREAM_CTL_READ_FD, CHECK_VAL(VSTREAM_CTL, int, (v))
+#define CA_VSTREAM_CTL_WRITE_FD(v)	VSTREAM_CTL_WRITE_FD, CHECK_VAL(VSTREAM_CTL, int, (v))
+#define CA_VSTREAM_CTL_WAITPID_FN(v)	VSTREAM_CTL_WAITPID_FN, CHECK_VAL(VSTREAM_CTL, VSTREAM_WAITPID_FN, (v))
+#define CA_VSTREAM_CTL_TIMEOUT(v)	VSTREAM_CTL_TIMEOUT, CHECK_VAL(VSTREAM_CTL, int, (v))
+#define CA_VSTREAM_CTL_EXCEPT		VSTREAM_CTL_EXCEPT
+#define CA_VSTREAM_CTL_CONTEXT(v)	VSTREAM_CTL_CONTEXT, CHECK_PTR(VSTREAM_CTL, void, (v))
+#ifdef F_DUPFD
+#define CA_VSTREAM_CTL_DUPFD(v)		VSTREAM_CTL_DUPFD, CHECK_VAL(VSTREAM_CTL, int, (v))
+#endif
+#define CA_VSTREAM_CTL_BUFSIZE(v)	VSTREAM_CTL_BUFSIZE, CHECK_VAL(VSTREAM_CTL, ssize_t, (v))
+#define CA_VSTREAM_CTL_SWAP_FD(v)	VSTREAM_CTL_SWAP_FD, CHECK_PTR(VSTREAM_CTL, VSTREAM, (v))
+#define CA_VSTREAM_CTL_START_DEADLINE	VSTREAM_CTL_START_DEADLINE
+#define CA_VSTREAM_CTL_STOP_DEADLINE	VSTREAM_CTL_STOP_DEADLINE
+
+CHECK_VAL_HELPER_DCL(VSTREAM_CTL, ssize_t);
+CHECK_VAL_HELPER_DCL(VSTREAM_CTL, int);
+CHECK_VAL_HELPER_DCL(VSTREAM_CTL, VSTREAM_WAITPID_FN);
+CHECK_VAL_HELPER_DCL(VSTREAM_CTL, VSTREAM_RW_FN);
+CHECK_PTR_HELPER_DCL(VSTREAM_CTL, void);
+CHECK_PTR_HELPER_DCL(VSTREAM_CTL, VSTREAM);
+CHECK_CPTR_HELPER_DCL(VSTREAM_CTL, char);
 
 extern VSTREAM *PRINTFLIKE(1, 2) vstream_printf(const char *,...);
 extern VSTREAM *PRINTFLIKE(2, 3) vstream_fprintf(VSTREAM *, const char *,...);
@@ -157,6 +187,7 @@ extern int vstream_pclose(VSTREAM *);
 
 #define vstream_ispipe(vp)	((vp)->pid != 0)
 
+/* Legacy API: type-unchecked arguments, internal use. */
 #define VSTREAM_POPEN_END	0	/* terminator */
 #define VSTREAM_POPEN_COMMAND	1	/* command is string */
 #define VSTREAM_POPEN_ARGV	2	/* command is array */
@@ -166,6 +197,23 @@ extern int vstream_pclose(VSTREAM *);
 #define VSTREAM_POPEN_SHELL	6	/* alternative shell */
 #define VSTREAM_POPEN_WAITPID_FN 7	/* child catcher, waitpid() compat. */
 #define VSTREAM_POPEN_EXPORT	8	/* exportable environment */
+
+/* Safer API: type-checked arguments, external use. */
+#define CA_VSTREAM_POPEN_END		VSTREAM_POPEN_END
+#define CA_VSTREAM_POPEN_COMMAND(v)	VSTREAM_POPEN_COMMAND, CHECK_CPTR(VSTREAM_PPN, char, (v))
+#define CA_VSTREAM_POPEN_ARGV(v)	VSTREAM_POPEN_ARGV, CHECK_PPTR(VSTREAM_PPN, char, (v))
+#define CA_VSTREAM_POPEN_UID(v)		VSTREAM_POPEN_UID, CHECK_VAL(VSTREAM_PPN, uid_t, (v))
+#define CA_VSTREAM_POPEN_GID(v)		VSTREAM_POPEN_GID, CHECK_VAL(VSTREAM_PPN, gid_t, (v))
+#define CA_VSTREAM_POPEN_ENV(v)		VSTREAM_POPEN_ENV, CHECK_PPTR(VSTREAM_PPN, char, (v))
+#define CA_VSTREAM_POPEN_SHELL(v)	VSTREAM_POPEN_SHELL, CHECK_CPTR(VSTREAM_PPN, char, (v))
+#define CA_VSTREAM_POPEN_WAITPID_FN(v)	VSTREAM_POPEN_WAITPID_FN, CHECK_VAL(VSTREAM_PPN, VSTREAM_WAITPID_FN, (v))
+#define CA_VSTREAM_POPEN_EXPORT(v)	VSTREAM_POPEN_EXPORT, CHECK_PPTR(VSTREAM_PPN, char, (v))
+
+CHECK_VAL_HELPER_DCL(VSTREAM_PPN, uid_t);
+CHECK_VAL_HELPER_DCL(VSTREAM_PPN, gid_t);
+CHECK_VAL_HELPER_DCL(VSTREAM_PPN, VSTREAM_WAITPID_FN);
+CHECK_PPTR_HELPER_DCL(VSTREAM_PPN, char);
+CHECK_CPTR_HELPER_DCL(VSTREAM_PPN, char);
 
 extern VSTREAM *vstream_vprintf(const char *, va_list);
 extern VSTREAM *vstream_vfprintf(VSTREAM *, const char *, va_list);
