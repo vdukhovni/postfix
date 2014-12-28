@@ -31,114 +31,30 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <string.h>
 
 /* Utility library. */
 
 #include <msg.h>
 #include <mymalloc.h>
-#include <htable.h>
 #include <stringops.h>
 #include <dict.h>
+#include <dict_ht.h>
 #include <dict_inline.h>
 
 /* Application-specific. */
-
-typedef struct {
-    DICT    dict;			/* generic members */
-    HTABLE *table;			/* lookup table */
-    HTABLE_INFO **info;			/* for iterator */
-    HTABLE_INFO **cursor;		/* ditto */
-} DICT_INLINE;
-
-/* dict_inline_lookup - search inline table */
-
-static const char *dict_inline_lookup(DICT *dict, const char *name)
-{
-    DICT_INLINE *dict_inline = (DICT_INLINE *) dict;
-    const char *result = 0;
-
-    /*
-     * Optionally fold the key.
-     */
-    if (dict->flags & DICT_FLAG_FOLD_FIX) {
-	if (dict->fold_buf == 0)
-	    dict->fold_buf = vstring_alloc(10);
-	vstring_strcpy(dict->fold_buf, name);
-	name = lowercase(vstring_str(dict->fold_buf));
-    }
-
-    /*
-     * Look up the value.
-     */
-    result = htable_find(dict_inline->table, name);
-
-    DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, result);
-}
-
-/* dict_inline_sequence - traverse the dictionary */
-
-static int dict_inline_sequence(DICT *dict, int function,
-				        const char **key, const char **value)
-{
-    const char *myname = "dict_inline_sequence";
-    DICT_INLINE *dict_inline = (DICT_INLINE *) dict;
-
-    /*
-     * Determine and execute the seek function.
-     */
-    switch (function) {
-    case DICT_SEQ_FUN_FIRST:
-	if (dict_inline->info == 0)
-	    dict_inline->info = htable_list(dict_inline->table);
-	dict_inline->cursor = dict_inline->info;
-	break;
-    case DICT_SEQ_FUN_NEXT:
-	if (dict_inline->cursor[0])
-	    dict_inline->cursor += 1;
-	break;
-    default:
-	msg_panic("%s: invalid function: %d", myname, function);
-    }
-
-    /*
-     * Return the entry under the cursor.
-     */
-    if (dict_inline->cursor[0]) {
-	*key = dict_inline->cursor[0]->key;
-	*value = dict_inline->cursor[0]->value;
-	DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_SUCCESS);
-    } else {
-	*key = 0;
-	*value = 0;
-	DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
-    }
-}
-
-/* dict_inline_close - disassociate from inline table */
-
-static void dict_inline_close(DICT *dict)
-{
-    DICT_INLINE *dict_inline = (DICT_INLINE *) dict;
-
-    htable_free(dict_inline->table, myfree);
-    if (dict_inline->info)
-	myfree((void *) dict_inline->info);
-    if (dict->fold_buf)
-	vstring_free(dict->fold_buf);
-    dict_free(dict);
-}
 
 /* dict_inline_open - open inline table */
 
 DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
 {
-    DICT_INLINE *dict_inline;
+    DICT   *dict;
     char   *cp, *saved_name = 0;
     size_t  len;
-    HTABLE *table = 0;
     char   *nameval, *vname, *value;
     const char *err = 0;
     char   *xperr = 0;
+    int     count = 0;
 
     /*
      * Clarity first. Let the optimizer worry about redundant code.
@@ -149,8 +65,6 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
 		myfree(saved_name); \
 	    if (xperr != 0) \
 		myfree(xperr); \
-	    if (table != 0) \
-		htable_free(table, myfree); \
 	    return (__d); \
 	} while (0)
 
@@ -164,6 +78,19 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
 					  DICT_TYPE_INLINE, name));
 
     /*
+     * UTF-8 syntax check.
+     */
+    if (DICT_IS_ENABLE_UTF8(dict_flags)
+	&& allascii(name) == 0
+	&& valid_utf8_string(name, strlen(name)) == 0)
+	DICT_INLINE_RETURN(dict_surrogate(DICT_TYPE_INLINE, name,
+					  open_flags, dict_flags,
+					  "bad UTF-8 syntax: \"%s:%s\"; "
+					  "need \"%s:{name=value...}\"",
+					  DICT_TYPE_INLINE, name,
+					  DICT_TYPE_INLINE));
+
+    /*
      * Parse the table into its constituent name=value pairs.
      */
     if ((len = balpar(name, CHARS_BRACE)) == 0 || name[len] != 0
@@ -175,15 +102,23 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
 					  DICT_TYPE_INLINE, name,
 					  DICT_TYPE_INLINE));
 
-    table = htable_create(5);
+    /*
+     * Reuse the "internal" dictionary type.
+     */
+    dict = dict_open3(DICT_TYPE_HT, name, open_flags, dict_flags);
+    dict_type_override(dict, DICT_TYPE_INLINE);
     while ((nameval = mystrtokq(&cp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	if ((nameval[0] != CHARS_BRACE[0]
 	     || (err = xperr = extpar(&nameval, CHARS_BRACE, EXTPAR_FLAG_STRIP)) == 0)
 	    && (err = split_nameval(nameval, &vname, &value)) != 0)
 	    break;
-	(void) htable_enter(table, vname, mystrdup(value));
+
+	/* No duplicate checks. See comments in dict_thash.c. */
+	dict->update(dict, vname, value);
+	count += 1;
     }
-    if (err != 0 || table->used == 0)
+    if (err != 0 || count == 0) {
+	dict->close(dict);
 	DICT_INLINE_RETURN(dict_surrogate(DICT_TYPE_INLINE, name,
 					  open_flags, dict_flags,
 					  "%s: \"%s:%s\"; "
@@ -191,21 +126,8 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
 					  err != 0 ? err : "empty table",
 					  DICT_TYPE_INLINE, name,
 					  DICT_TYPE_INLINE));
+    }
+    dict->owner.status = DICT_OWNER_TRUSTED;
 
-    /*
-     * Bundle up the result.
-     */
-    dict_inline = (DICT_INLINE *)
-	dict_alloc(DICT_TYPE_INLINE, name, sizeof(*dict_inline));
-    dict_inline->dict.lookup = dict_inline_lookup;
-    dict_inline->dict.sequence = dict_inline_sequence;
-    dict_inline->dict.close = dict_inline_close;
-    dict_inline->dict.flags = dict_flags | DICT_FLAG_FIXED;
-    dict_inline->dict.owner.status = DICT_OWNER_TRUSTED;
-    if (dict_flags & DICT_FLAG_FOLD_FIX)
-	dict_inline->dict.fold_buf = vstring_alloc(10);
-    dict_inline->info = 0;
-    dict_inline->table = table;
-    table = 0;
-    DICT_INLINE_RETURN(DICT_DEBUG (&dict_inline->dict));
+    DICT_INLINE_RETURN(DICT_DEBUG (dict));
 }

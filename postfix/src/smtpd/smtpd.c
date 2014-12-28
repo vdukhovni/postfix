@@ -3653,7 +3653,8 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * As an extension to RFC 1985 we also allow an RFC 2821 address literal
      * enclosed in [].
      * 
-     * XXX EAI: Convert to ASCII and use that form internally.
+     * XXX There does not appear to be an ETRN parameter to indicate that the
+     * domain name is UTF-8.
      */
     if (!valid_hostname(argv[1].strval, DONT_GRIPE)
 	&& !valid_mailhost_literal(argv[1].strval, DONT_GRIPE)) {
@@ -4948,6 +4949,14 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    watchdog_pat();
 	    smtpd_chat_query(state);
+	    /* Safety: protect internal interfaces against malformed UTF-8. */
+	    if (var_smtputf8_enable && valid_utf8_string(STR(state->buffer),
+						 LEN(state->buffer)) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "500 5.5.2 Error: bad UTF-8 syntax");
+		state->error_count++;
+		continue;
+	    }
 	    /* Move into smtpd_chat_query() and update session transcript. */
 	    if (smtpd_cmd_filter != 0) {
 		for (cp = STR(state->buffer); *cp && IS_SPACE_TAB(*cp); cp++)

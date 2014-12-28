@@ -21209,3 +21209,113 @@ Apologies for any names omitted.
 	either their result is a valid ASCII domain name or that
 	it converts into a valid ASCII domain name. Files:
 	util/midna.c, util/midna_test.in, util/midna_test.ref.
+
+20141230
+
+	Cleanup: s/midna/midna_domain/ for better specificity,
+	because we also need functions that act only on the domain
+	portion of an email address. Files: bounce/bounce_template.c,
+	global/midna_adomain.c, posttls-finger/posttls-finger.c,
+	smtp/smtp_addr.c, smtpd/smtpd_check.c, tls/tls_client.c,
+	util/midna_domain.[hc], util/valid_utf8_hostname.c.
+
+	Infrastructure: function midna_adomain_to_utf8() (and
+	midna_adomain_to_ascii) to convert the domain portion of
+	an email address before table lookup. Files:
+	global/midna_adomain.[hc].
+
+20141230-20140109
+
+	What is described here is the result of four iterations to
+	deal with malformed UTF-8 without massively contaminating
+	every Postfix program with new error-handling code paths,
+	in particular without triggering fatal errors that didn't
+	happen before.
+
+	Infrastructure: function casefold() to support caseless
+	string comparison, primarily for table lookups. This function
+	supports two modes: case folding a la lowercase() for ASCII
+	byte values, and UTF-8 case folding. As recommended at
+	http://www.w3.org/International/wiki/Case_folding for
+	caseless string comparison, this uses the en_US locale to
+	avoid surprises. The implementatin handles
+        the entire RFC 3629 Unicode range (code points U+0000..U+10FFFF
+        including surrogates) and is chroot(2) safe. Files: casefold.c, stringops.h.
+
+	Infrastructure: revised the midna_domain_to_ascii and
+	midna_domain_to_utf8 domain name conversion functions after
+	careful reading of the UTS #46 specification, and after
+	observing that ICU 4.8 library functions indeed implement
+	this spec, at least with default options. In particular,
+	midna_domain_to_utf8 takes an UTF-8 domain name and verifies
+	that its A-label form will pass the valid_hostname() test.
+	File: util/midna_domain.c.
+
+	Infrastructure: handle UTF-8 errors in lookup table keys
+	or values without massively contaminating every Postfix
+	program with new error-handling code paths, in particular
+	without triggering fatal errors that didn't happen before.
+	The lookup/update/delete functions log a warning and ignore
+	a request with a bad key (it cannot exist); the update
+	functions ignore a request to store a bad value (it cannot
+	exist); and the lookup function reports a bad value as a
+	configuration error (it should not exist, but there it is).
+	Table iterators still report all (key, value) pairs in a
+	table. Files: util/dict.h, util/dict_open.c, util/dict_utf8.c,
+	global/mkmap_open.c.
+
+	Note that with SMTPUTF8 turned on, each table-driven mechanism
+	(access, aliases, etc.) needs to make its own decision
+	whether UTF-8 syntax is required. We cannot blindly require
+	that everything has valid UTF-8 syntax. That would make
+	header/body_checks useless for content inspection, because
+	headers may be malformed and bodies may contain legitimate
+	binary content that isn't UTF-8.
+
+	Note that with SMTPUTF8 turned off, Postfix must remain
+	8-bit clean as it always has been. Table operations must
+	not complain that something violates UTF-8 syntax rules.
+
+	UTF-8 sanitization in the Postfix SMTP server.  With
+	smtputf8_enable=yes, SMTP commands with UTF-8 syntax errors
+	are rejected, table lookup results with invalid UTF-8 syntax
+	are handled as configuration errors, and UTF-8 syntax errors
+	in policy server replies result in execution of the policy
+	server's default action.
+
+20150102
+
+	Cleanup: propagate DICT_ERR_CONFIG through the proxymap
+	protocol. Files: global/dict_proxy.[hc], proxymap/proxymap.c.
+
+20150106
+
+	Robustness: don't segfault due to excessive recursion in
+	tok822_free_tree() after a faulty configuration runs into
+	the virtual_alias_recursion_limit.  File: global/tok822_tree.c.
+
+20150109
+
+	Cleanup: the dict debug module now proxies dict flags.
+	File: util/dict_debug.c.
+
+	With "smtputf8_enable = yes", the postmap and postalias
+	commands now enable UTF-8 by default (use "-u" to disable)
+	with one exception: UTF-8 remains disabled for header/body_checks
+	emulation (use "-U" to enable).  Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+20150110
+
+	Cleanup: the "inline" and "texthash" implementations now
+	reuse the "internal" database instead of reinventing the
+	wheel.  Files: util/dict_inline.c, util/dict_thash.c.
+
+	As a first step, with "smtputf8_enable = yes" all features
+	based on Postfix matchlists enable UTF-8 syntax checks and
+	casefolding support for table queries and results. That
+	includes mynetworks, mydestination, relay_domains,
+	virtual_alias_domains, and virtual_mailbox_domains.
+
+	The next step is to turn on UTF-8 syntax checks and casefolding
+	support for access maps, address rewriting and routing.

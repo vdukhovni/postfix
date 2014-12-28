@@ -37,6 +37,7 @@ extern DICT *dict_proxy_open(const char *, int, int);
 #define PROXY_STAT_RETRY	2	/* try lookup again later */
 #define PROXY_STAT_BAD		3	/* invalid request parameter */
 #define PROXY_STAT_DENY		4	/* table not approved for proxying */
+#define PROXY_STAT_CONFIG	5	/* DICT_ERR_CONFIG error */
 
 /* LICENSE
 /* .ad

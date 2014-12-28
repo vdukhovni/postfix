@@ -235,7 +235,6 @@ static int dict_lmdb_update(DICT *dict, const char *name, const char *value)
 	name = lowercase(vstring_str(dict->fold_buf));
     }
     mdb_key.mv_data = (void *) name;
-
     mdb_value.mv_data = (void *) value;
     mdb_key.mv_size = strlen(name);
     mdb_value.mv_size = strlen(value);
@@ -435,6 +434,8 @@ static int dict_lmdb_sequence(DICT *dict, int function,
 	if (mdb_value.mv_data != 0 && mdb_value.mv_size > 0)
 	    *value = SCOPY(dict_lmdb->val_buf, mdb_value.mv_data,
 			   mdb_value.mv_size);
+	else
+	    *value = "";			/* XXX */
 	break;
 
 	/*

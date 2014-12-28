@@ -382,7 +382,8 @@ static void proxymap_sequence_service(VSTREAM *client_stream)
 	    reply_status = PROXY_STAT_NOKEY;
 	    reply_key = reply_value = "";
 	} else {
-	    reply_status = PROXY_STAT_RETRY;
+	    reply_status = (dict->error == DICT_ERR_RETRY ?
+			    PROXY_STAT_RETRY : PROXY_STAT_CONFIG);
 	    reply_key = reply_value = "";
 	}
     }
@@ -427,7 +428,8 @@ static void proxymap_lookup_service(VSTREAM *client_stream)
 	reply_status = PROXY_STAT_NOKEY;
 	reply_value = "";
     } else {
-	reply_status = PROXY_STAT_RETRY;
+	reply_status = (dict->error == DICT_ERR_RETRY ?
+			PROXY_STAT_RETRY : PROXY_STAT_CONFIG);
 	reply_value = "";
     }
 
@@ -482,7 +484,8 @@ static void proxymap_update_service(VSTREAM *client_stream)
 	} else if (dict->error == 0) {
 	    reply_status = PROXY_STAT_NOKEY;
 	} else {
-	    reply_status = PROXY_STAT_RETRY;
+	    reply_status = (dict->error == DICT_ERR_RETRY ?
+			    PROXY_STAT_RETRY : PROXY_STAT_CONFIG);
 	}
     }
 
@@ -532,7 +535,8 @@ static void proxymap_delete_service(VSTREAM *client_stream)
 	} else if (dict->error == 0) {
 	    reply_status = PROXY_STAT_NOKEY;
 	} else {
-	    reply_status = PROXY_STAT_RETRY;
+	    reply_status = (dict->error == DICT_ERR_RETRY ?
+			    PROXY_STAT_RETRY : PROXY_STAT_CONFIG);
 	}
     }
 

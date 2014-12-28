@@ -15437,8 +15437,8 @@ transport_maps to apply this feature selectively:  </p>
 <blockquote>
 <pre>
 /etc/postfix/transport:
-    smtp-domain_that_verifies_after_data    smtp-data-target:
-    lmtp-domain_that_verifies_after_data    lmtp-data-target:
+    smtp-domain-that-verifies-after-data    smtp-data-target:
+    lmtp-domain-that-verifies-after-data    lmtp-data-target:
 </pre>
 </blockquote>
 

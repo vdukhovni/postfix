@@ -296,6 +296,13 @@ MKMAP  *mkmap_open(const char *type, const char *path,
 	mkmap->after_open(mkmap);
 
     /*
+     * Wrap the dictionary for UTF-8 syntax checks and casefolding.
+     */
+    if ((mkmap->dict->flags & DICT_FLAG_UTF8_PROXY) == 0
+        && DICT_IS_ENABLE_UTF8(dict_flags))
+	mkmap->dict = dict_utf8_encapsulate(mkmap->dict);
+
+    /*
      * Resume signal delivery if multi-writer safe.
      */
     if (mkmap->multi_writer)

@@ -153,6 +153,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->owner.status = DICT_OWNER_UNKNOWN;
     dict->owner.uid = INT_MAX;
     dict->error = DICT_ERR_NONE;
+    dict->size = size;
     dict->jbuf = 0;
     return dict;
 }

@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <stringops.h>
 /*
-/*	int	temp_utf8_kludge;
+/*	int	util_utf8_enable;
 /*
 /*	char	*printable(buffer, replacement)
 /*	char	*buffer;
@@ -15,7 +15,7 @@
 /*	printable() replaces non-printable characters
 /*	in its input with the given replacement.
 /*
-/*	temp_utf8_kludge controls whether UTF8 is considered printable.
+/*	util_utf8_enable controls whether UTF8 is considered printable.
 /*	By default, non-ASCII text is replaced.
 /*
 /*	Arguments:
@@ -44,7 +44,7 @@
 
 #include "stringops.h"
 
-int temp_utf8_kludge = 0;
+int util_utf8_enable = 0;
 
 char   *printable(char *string, int replacement)
 {
@@ -59,7 +59,7 @@ char   *printable(char *string, int replacement)
     while ((ch = *cp) != 0) {
 	if (ISASCII(ch) && ISPRINT(ch)) {
 	    /* ok */
-	} else if (temp_utf8_kludge && ch >= 194 && ch <= 254
+	} else if (util_utf8_enable && ch >= 194 && ch <= 254
 		   && cp[1] >= 128 && cp[1] < 192) {
 	    /* UTF8; skip the rest of the bytes in the character. */
 	    while (cp[1] >= 128 && cp[1] < 192)

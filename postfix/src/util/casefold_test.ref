@@ -1,0 +1,39 @@
+./casefold: > # Ignored when not running as root.
+./casefold: > chroot /tmp
+./casefold: > # Casefold U+0000 .. U+10FFFF excluding surrogates.
+./casefold: > range 0x0 0xD7FF
+./casefold: range completed: 0x0..0xd7ff
+./casefold: > range 0xD800 0xD800
+./casefold: warning: skipping surrogate range
+./casefold: range completed: 0xd800..0xd800
+./casefold: > range 0xDFFF 0xDFFF
+./casefold: warning: skipping surrogate range
+./casefold: range completed: 0xdfff..0xdfff
+./casefold: > range 0xE000 0x10FFFF
+./casefold: range completed: 0xe000..0x10ffff
+./casefold: > # Demonstrate that range is not a noop.
+./casefold: > verbose 1
+./casefold: > range 0xE000 0xE007
+./casefold: U+E000 -> 
+./casefold: U+E001 -> 
+./casefold: U+E002 -> 
+./casefold: U+E003 -> 
+./casefold: U+E004 -> 
+./casefold: U+E005 -> 
+./casefold: U+E006 -> 
+./casefold: U+E007 -> 
+./casefold: range completed: 0xe000..0xe007
+./casefold: > verbose 0
+./casefold: > # Upper-case greek -> lower-case greek.
+./casefold: > fold Δημοσθένους.example.com
+./casefold: "Δημοσθένους.example.com" ->fold "δημοσθένουσ.example.com"
+./casefold: > # Upper-case ASCII -> lower-case ASCII.
+./casefold: > fold HeLlO.ExAmPlE.CoM
+./casefold: "HeLlO.ExAmPlE.CoM" ->fold "hello.example.com"
+./casefold: > # Folding does not change aliases for '.'.
+./casefold: > fold x。example.com
+./casefold: "x。example.com" ->fold "x。example.com"
+./casefold: > fold x．example.com
+./casefold: "x．example.com" ->fold "x．example.com"
+./casefold: > fold x｡example.com
+./casefold: "x｡example.com" ->fold "x｡example.com"

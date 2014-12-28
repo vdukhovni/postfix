@@ -10,7 +10,7 @@ owner=trusted (uid=2147483647)
 owner=trusted (uid=2147483647)
 owner=trusted (uid=2147483647)
 > get foo
-foo=xx
+foo=XX
 > get bar
 bar=lotsa stuff
 > get baz

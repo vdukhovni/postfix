@@ -5,7 +5,7 @@
 /*	Postfix alias database maintenance
 /* SYNOPSIS
 /* .fi
-/*	\fBpostalias\fR [\fB-Nfinoprsvw\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostalias\fR [\fB-Nfinoprsuvw\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
@@ -93,6 +93,10 @@
 /*	as the original input order.
 /*	This feature is available in Postfix version 2.2 and later,
 /*	and is not available for all database types.
+/* .IP \fB-u\fR
+/*	Disable UTF-8 support. UTF-8 support is enabled by default
+/*	when "smtputf8_enable = yes". It requires that keys and
+/*	values are valid UTF-8 strings.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -176,6 +180,9 @@
 /* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
 /*	The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 /*	and \fBpostmap\fR(1) commands.
+/* .IP "\fBsmtputf8_enable (yes)\fR"
+/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
@@ -249,6 +256,7 @@
 /* Application-specific. */
 
 #define STR	vstring_str
+#define LEN	VSTRING_LEN
 
 #define POSTALIAS_FLAG_AS_OWNER	(1<<0)	/* open dest as owner of source */
 #define POSTALIAS_FLAG_SAVE_PERM	(1<<1)	/* copy access permission
@@ -309,7 +317,6 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	&& (st.st_uid != geteuid() || st.st_gid != getegid()))
 	set_eugid(st.st_uid, st.st_gid);
 
-
     /*
      * Open the database, create it when it does not exist, truncate it when
      * it does exist, and lock out any spectators.
@@ -337,6 +344,17 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	 */
 	last_line = 0;
 	while (readllines(line_buffer, source_fp, &last_line, &lineno)) {
+
+	    /*
+	     * First some UTF-8 checks sans casefolding.
+	     */
+	    if (DICT_IS_ENABLE_UTF8(dict_flags)
+		&& !allascii(STR(line_buffer))
+		&& !valid_utf8_string(STR(line_buffer), LEN(line_buffer))) {
+		msg_warn("%s, line %d: non-UTF-8 input \"%s\"",
+			 VSTREAM_PATH(source_fp), lineno, STR(line_buffer));
+		continue;
+	    }
 
 	    /*
 	     * Tokenize the input, so that we do the right thing when a
@@ -655,7 +673,7 @@ static void postalias_seq(const char *map_type, const char *map_name,
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-Nfinoprsvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-Nfinoprsuvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -670,7 +688,8 @@ int     main(int argc, char **argv)
     struct stat st;
     int     postalias_flags = POSTALIAS_FLAG_AS_OWNER | POSTALIAS_FLAG_SAVE_PERM;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
-    int     dict_flags = DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_FIX;
+    int     dict_flags = (DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_FIX
+			  | DICT_FLAG_UTF8_ENABLE);
     char   *query = 0;
     char   *delkey = 0;
     int     sequence = 0;
@@ -720,7 +739,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rsvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "Nc:d:finopq:rsuvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -767,6 +786,9 @@ int     main(int argc, char **argv)
 	    if (query || delkey)
 		msg_fatal("specify only one of -s or -q or -d");
 	    sequence = 1;
+	    break;
+	case 'u':
+	    dict_flags &= ~DICT_FLAG_UTF8_ENABLE;
 	    break;
 	case 'v':
 	    msg_verbose++;

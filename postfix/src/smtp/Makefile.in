@@ -154,7 +154,7 @@ smtp_addr.o: ../../include/inet_proto.h
 smtp_addr.o: ../../include/mail_params.h
 smtp_addr.o: ../../include/maps.h
 smtp_addr.o: ../../include/match_list.h
-smtp_addr.o: ../../include/midna.h
+smtp_addr.o: ../../include/midna_domain.h
 smtp_addr.o: ../../include/mime_state.h
 smtp_addr.o: ../../include/msg.h
 smtp_addr.o: ../../include/msg_stats.h
@@ -380,12 +380,14 @@ smtp_proto.o: ../../include/mail_queue.h
 smtp_proto.o: ../../include/maps.h
 smtp_proto.o: ../../include/mark_corrupt.h
 smtp_proto.o: ../../include/match_list.h
+smtp_proto.o: ../../include/match_parent_style.h
 smtp_proto.o: ../../include/mime_state.h
 smtp_proto.o: ../../include/msg.h
 smtp_proto.o: ../../include/msg_stats.h
 smtp_proto.o: ../../include/myaddrinfo.h
 smtp_proto.o: ../../include/myflock.h
 smtp_proto.o: ../../include/mymalloc.h
+smtp_proto.o: ../../include/namadr_list.h
 smtp_proto.o: ../../include/name_code.h
 smtp_proto.o: ../../include/name_mask.h
 smtp_proto.o: ../../include/nvtable.h

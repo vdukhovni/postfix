@@ -140,7 +140,7 @@ tls_client.o: ../../include/dict.h
 tls_client.o: ../../include/dns.h
 tls_client.o: ../../include/iostuff.h
 tls_client.o: ../../include/mail_params.h
-tls_client.o: ../../include/midna.h
+tls_client.o: ../../include/midna_domain.h
 tls_client.o: ../../include/msg.h
 tls_client.o: ../../include/myaddrinfo.h
 tls_client.o: ../../include/myflock.h

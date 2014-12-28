@@ -8,8 +8,8 @@
 /*
 /*	int	valid_utf8_hostname(
 /*	int	enable_utf8,
-/*	const char *domain, 
-/*	int gripe)
+/*	const char *domain,
+/*	int	gripe)
 /* DESCRIPTION
 /*	valid_utf8_hostname() is a wrapper around valid_hostname().
 /*	If EAI support is compiled in, and enable_utf8 is true, the
@@ -43,7 +43,7 @@
 #include <mymalloc.h>
 #include <stringops.h>
 #include <valid_hostname.h>
-#include <midna.h>
+#include <midna_domain.h>
 #include <valid_utf8_hostname.h>
 
 /* valid_utf8_hostname - validate internationalized domain name */
@@ -51,8 +51,6 @@
 int     valid_utf8_hostname(int enable_utf8, const char *name, int gripe)
 {
     static const char myname[] = "valid_utf8_hostname";
-    const char *aname;
-    int     ret;
 
     /*
      * Trivial cases first.
@@ -64,23 +62,26 @@ int     valid_utf8_hostname(int enable_utf8, const char *name, int gripe)
     }
 
     /*
-     * Convert domain name to ASCII form.
+     * Convert non-ASCII domain name to ASCII and validate the result per
+     * STD3. midna_domain_to_ascii() applies valid_hostname() to the result.
+     * Propagate the gripe parameter for better diagnostics (note that
+     * midna_domain_to_ascii() logs a problem only when the result is not
+     * cached).
      */
 #ifndef NO_EAI
     if (enable_utf8 && !allascii(name)) {
-	if ((aname = midna_to_ascii(name)) == 0) {
+	if (midna_domain_to_ascii(name) == 0) {
 	    if (gripe)
 		msg_warn("%s: malformed UTF-8 domain name", myname);
 	    return (0);
+	} else {
+	    return (1);
 	}
-    } else
+    }
 #endif
-	aname = name;
 
     /*
-     * Validate the name per STD3 (if the IDNA routines didn't already).
+     * Validate ASCII name per STD3.
      */
-    ret = valid_hostname(aname, gripe);
-
-    return (ret);
+    return (valid_hostname(name, gripe));
 }

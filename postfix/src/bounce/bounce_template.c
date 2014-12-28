@@ -118,7 +118,7 @@
 #include <stringops.h>
 #include <mymalloc.h>
 #ifndef NO_EAI
-#include <midna.h>
+#include <midna_domain.h>
 #endif
 
 /* Global library. */
@@ -462,7 +462,7 @@ static const char *bounce_template_lookup(const char *key, int unused_mode,
 			     "non-ASCII input value: \"%s\"",
 			     tp->origin, key, asc_val);
 		    return (asc_val);
-		} else if ((utf8_val = midna_to_utf8(asc_val)) == 0) {
+		} else if ((utf8_val = midna_domain_to_utf8(asc_val)) == 0) {
 		    msg_warn("%s: conversion \"%s\" failed: "
 			     "input value: \"%s\"",
 			     tp->origin, key, asc_val);

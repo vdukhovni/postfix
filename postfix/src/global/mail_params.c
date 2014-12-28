@@ -842,7 +842,6 @@ void    mail_params_init()
     dict_db_cache_size = var_db_read_buf;
     dict_lmdb_map_size = var_lmdb_map_size;
     inet_windowsize = var_inet_windowsize;
-    temp_utf8_kludge = var_smtputf8_enable;
 
     /*
      * Report run-time versus compile-time discrepancies.
@@ -851,7 +850,9 @@ void    mail_params_init()
     if (var_smtputf8_enable)
 	msg_warn("%s is true, but EAI support is not compiled in",
 		 VAR_SMTPUTF8_ENABLE);
+    var_smtputf8_enable = 0;
 #endif
+    util_utf8_enable = var_smtputf8_enable;
 
     /*
      * Variables whose defaults are determined at runtime, after other

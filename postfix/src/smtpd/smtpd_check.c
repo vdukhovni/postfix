@@ -206,7 +206,7 @@
 #include <inet_proto.h>
 #include <ip_match.h>
 #include <valid_utf8_hostname.h>
-#include <midna.h>
+#include <midna_domain.h>
 #include <mynetworks.h>
 
 /* DNS library. */
@@ -1113,12 +1113,30 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 					        char **ext)
 {
     const char *result;
-
+     
     if ((result = mail_addr_find(maps, key, ext)) != 0 || maps->error == 0)
 	return (result);
     if (maps->error == DICT_ERR_RETRY)
+	/* Warning is already logged. */
 	reject_dict_retry(state, reply_name);
     else
+	reject_server_error(state);
+}
+
+/* check_dict_get - reject with temporary failure if dict lookup fails */
+
+static const char *check_dict_get(SMTPD_STATE *state, const char *table,
+				          const char *reply_name,
+				          DICT *dict, const char *key)
+{
+    const char *result;
+
+    if ((result = dict_get(dict, key)) != 0 || dict->error == 0)
+	return (result);
+    if (dict->error == DICT_ERR_RETRY) {
+	msg_warn("%s: table lookup problem", table);
+	reject_dict_retry(state, reply_name);
+    } else
 	reject_server_error(state);
 }
 
@@ -1417,7 +1435,7 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(name) && (aname = midna_to_ascii(name)) != 0) {
+    if (!allascii(name) && (aname = midna_domain_to_ascii(name)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", name, aname);
 	name = aname;
@@ -1916,7 +1934,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_domain_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -2661,23 +2679,13 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	value = "451 4.3.5 Server configuration error";
-	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
-					     reply_name, reply_class,
-					     def_acl), FOUND);
+	reject_server_error(state);
     }
     if (flags == 0 || (flags & dict->flags) != 0) {
-	if ((value = dict_get(dict, name)) != 0)
+	if ((value = check_dict_get(state, table, reply_name, dict, name)) != 0)
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
-	if (dict->error != 0) {
-	    msg_warn("%s: table lookup problem", table);
-	    value = "451 4.3.5 Server configuration error";
-	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
-						 reply_name, reply_class,
-						 def_acl), FOUND);
-	}
     }
     CHK_ACCESS_RETURN(SMTPD_CHECK_DUNNO, MISSED);
 }
@@ -2711,24 +2719,15 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	value = "451 4.3.5 Server configuration error";
-	CHK_DOMAIN_RETURN(check_table_result(state, table, value,
-					     domain, reply_name, reply_class,
-					     def_acl), FOUND);
+	reject_server_error(state);
     }
     for (name = domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = dict_get(dict, name)) != 0)
+	    if ((value = check_dict_get(state, table, reply_name,
+					dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
 						     def_acl), FOUND);
-	    if (dict->error != 0) {
-		msg_warn("%s: table lookup problem", table);
-		value = "451 4.3.5 Server configuration error";
-		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
-					    domain, reply_name, reply_class,
-						     def_acl), FOUND);
-	    }
 	}
 	/* Don't apply subdomain magic to numerical hostnames. */
 	if (maybe_numerical
@@ -2775,24 +2774,15 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	value = "451 4.3.5 Server configuration error";
-	CHK_ADDR_RETURN(check_table_result(state, table, value, address,
-					   reply_name, reply_class,
-					   def_acl), FOUND);
+	reject_server_error(state);
     }
     do {
 	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = dict_get(dict, addr)) != 0)
+	    if ((value = check_dict_get(state, table, reply_name,
+					dict, addr)) != 0)
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
 						   reply_name, reply_class,
 						   def_acl), FOUND);
-	    if (dict->error != 0) {
-		msg_warn("%s: table lookup problem", table);
-		value = "451 4.3.5 Server configuration error";
-		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
-						   reply_name, reply_class,
-						   def_acl), FOUND);
-	    }
 	}
 	flags = PARTIAL;
     } while (split_at_right(addr, delim));
@@ -2914,7 +2904,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_domain_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -3634,7 +3624,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
      * Fix 20140706: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_domain_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -3816,6 +3806,18 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
 
 #endif
 
+/* valid_utf8_action - validate UTF-8 policy server response */
+
+static int valid_utf8_action(const char *server, const char *action)
+{
+    int     retval;
+
+    if ((retval = valid_utf8_string(action, strlen(action))) == 0)
+	msg_warn("malformed UTF-8 in policy server %s response: \"%s\"",
+		 server, action);
+    return (retval);
+}
+
 /* check_policy_service - check delegated policy service */
 
 static int check_policy_service(SMTPD_STATE *state, const char *server,
@@ -3926,7 +3928,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  RECV_ATTR_STR(MAIL_ATTR_ACTION, action),
-			  ATTR_TYPE_END) != 1) {
+			  ATTR_TYPE_END) != 1
+	|| (var_smtputf8_enable && valid_utf8_action(server, STR(action)) == 0)) {
 	NOCLOBBER static int nesting_level = 0;
 	jmp_buf savebuf;
 	int     status;

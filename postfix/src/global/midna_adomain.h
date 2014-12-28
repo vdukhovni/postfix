@@ -1,31 +1,32 @@
-#ifndef _MIDNA_H_INCLUDED_
-#define _MIDNA_H_INCLUDED_
+#ifndef _MIDNA_ADOMAIN_H_INCLUDED_
+#define _MIDNA_ADOMAIN_H_INCLUDED_
 
 /*++
 /* NAME
-/*	mail_idna 3h
+/*	midna_adomain 3h
 /* SUMMARY
 /*	domain name conversion
 /* SYNOPSIS
-/*	#include <mail_idna.h>
+/*	#include <midna_adomain.h>
 /* DESCRIPTION
 /* .nf
 
  /*
+  * Utility library.
+  */
+#include <vstring.h>
+
+ /*
   * External interface.
   */
-extern const char *midna_to_ascii(const char *);
-extern const char *midna_to_utf8(const char *);
-extern const char *midna_suffix_to_ascii(const char *);
-extern const char *midna_suffix_to_utf8(const char *);
+extern char *midna_adomain_to_utf8(VSTRING *, const char *);
+extern char *midna_adomain_to_ascii(VSTRING *, const char *);
 
 /* LICENSE
 /* .ad
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
-/*	Arnt Gulbrandsen
-/*
 /*	Wietse Venema
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704

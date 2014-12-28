@@ -33,7 +33,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
 	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
-	smtputf8.c mail_conf_over.c mail_parm_split.c
+	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -68,40 +68,41 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	smtp_reply_footer.o safe_ultostr.o verify_sender_addr.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
-	smtputf8.o attr_override.o mail_parm_split.o $(NON_PLUGIN_MAP_OBJ)
-# MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
-# When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
-# otherwise it sets the PLUGIN_* macros.
-MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o mkmap_cdb.o \
-	mkmap_lmdb.o mkmap_sdbm.o 
-HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
-	canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
-	conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
-	deliver_completed.h deliver_flock.h deliver_pass.h deliver_request.h \
-	dict_ldap.h dict_mysql.h dict_pgsql.h dict_proxy.h dict_sqlite.h domain_list.h \
-	dot_lockfile.h dot_lockfile_as.h dsb_scan.h dsn.h dsn_buf.h \
-	dsn_mask.h dsn_print.h dsn_util.h ehlo_mask.h ext_prop.h \
-	file_id.h flush_clnt.h header_opts.h header_token.h input_transp.h \
-	int_filt.h is_header.h lex_822.h log_adhoc.h mail_addr.h \
-	mail_addr_crunch.h mail_addr_find.h mail_addr_map.h mail_conf.h \
-	mail_copy.h mail_date.h mail_dict.h mail_error.h mail_flush.h \
-	mail_open_ok.h mail_params.h mail_proto.h mail_queue.h mail_run.h \
-	mail_scan_dir.h mail_stream.h mail_task.h mail_version.h maps.h \
-	mark_corrupt.h match_parent_style.h mbox_conf.h mbox_open.h \
-	mime_state.h mkmap.h msg_stats.h mynetworks.h mypwd.h namadr_list.h \
-	off_cvt.h opened.h own_inet_addr.h pipe_command.h post_mail.h \
-	qmgr_user.h qmqp_proto.h quote_821_local.h quote_822_local.h \
-	quote_flags.h rcpt_buf.h rcpt_print.h rec_attr_map.h rec_streamlf.h \
-	rec_type.h recipient_list.h record.h resolve_clnt.h resolve_local.h \
-	rewrite_clnt.h scache.h sent.h smtp_stream.h split_addr.h \
-	string_list.h strip_addr.h sys_exits.h timed_ipc.h tok822.h \
-	trace.h user_acl.h valid_mailhost_addr.h verify.h verify_clnt.h \
-	verp_sender.h wildcard_inet_addr.h xtext.h delivered_hdr.h \
-	fold_addr.h header_body_checks.h data_redirect.h match_service.h \
-	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
-	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
-	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
-	attr_override.h mail_parm_split.h
+	    smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
+	    $(NON_PLUGIN_MAP_OBJ)
+    # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
+    # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
+    # otherwise it sets the PLUGIN_* macros.
+    MAP_OBJ = dict_ldap.o dict_mysql.o dict_pgsql.o dict_sqlite.o mkmap_cdb.o \
+	    mkmap_lmdb.o mkmap_sdbm.o 
+    HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
+	    canon_addr.h cfg_parser.h cleanup_user.h clnt_stream.h config.h \
+	    conv_time.h db_common.h debug_peer.h debug_process.h defer.h \
+	    deliver_completed.h deliver_flock.h deliver_pass.h deliver_request.h \
+	    dict_ldap.h dict_mysql.h dict_pgsql.h dict_proxy.h dict_sqlite.h domain_list.h \
+	    dot_lockfile.h dot_lockfile_as.h dsb_scan.h dsn.h dsn_buf.h \
+	    dsn_mask.h dsn_print.h dsn_util.h ehlo_mask.h ext_prop.h \
+	    file_id.h flush_clnt.h header_opts.h header_token.h input_transp.h \
+	    int_filt.h is_header.h lex_822.h log_adhoc.h mail_addr.h \
+	    mail_addr_crunch.h mail_addr_find.h mail_addr_map.h mail_conf.h \
+	    mail_copy.h mail_date.h mail_dict.h mail_error.h mail_flush.h \
+	    mail_open_ok.h mail_params.h mail_proto.h mail_queue.h mail_run.h \
+	    mail_scan_dir.h mail_stream.h mail_task.h mail_version.h maps.h \
+	    mark_corrupt.h match_parent_style.h mbox_conf.h mbox_open.h \
+	    mime_state.h mkmap.h msg_stats.h mynetworks.h mypwd.h namadr_list.h \
+	    off_cvt.h opened.h own_inet_addr.h pipe_command.h post_mail.h \
+	    qmgr_user.h qmqp_proto.h quote_821_local.h quote_822_local.h \
+	    quote_flags.h rcpt_buf.h rcpt_print.h rec_attr_map.h rec_streamlf.h \
+	    rec_type.h recipient_list.h record.h resolve_clnt.h resolve_local.h \
+	    rewrite_clnt.h scache.h sent.h smtp_stream.h split_addr.h \
+	    string_list.h strip_addr.h sys_exits.h timed_ipc.h tok822.h \
+	    trace.h user_acl.h valid_mailhost_addr.h verify.h verify_clnt.h \
+	    verp_sender.h wildcard_inet_addr.h xtext.h delivered_hdr.h \
+	    fold_addr.h header_body_checks.h data_redirect.h match_service.h \
+	    addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
+	    verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
+	    haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
+	    attr_override.h mail_parm_split.h midna_adomain.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -1895,6 +1896,14 @@ memcache_proto.o: ../../include/vstring.h
 memcache_proto.o: ../../include/vstring_vstream.h
 memcache_proto.o: memcache_proto.c
 memcache_proto.o: memcache_proto.h
+midna_adomain.o: ../../include/check_arg.h
+midna_adomain.o: ../../include/midna_domain.h
+midna_adomain.o: ../../include/stringops.h
+midna_adomain.o: ../../include/sys_defs.h
+midna_adomain.o: ../../include/vbuf.h
+midna_adomain.o: ../../include/vstring.h
+midna_adomain.o: midna_adomain.c
+midna_adomain.o: midna_adomain.h
 mime_state.o: ../../include/check_arg.h
 mime_state.o: ../../include/msg.h
 mime_state.o: ../../include/mymalloc.h

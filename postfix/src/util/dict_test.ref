@@ -12,7 +12,6 @@ foo=fooval
 > del foo
 foo: deleted
 > put baz bazval
-baz=bazval
 > get baz
 baz=bazval
 > del baz
