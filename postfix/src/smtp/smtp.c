@@ -685,6 +685,11 @@
 /* .IP "\fBsmtp_fallback_relay ($fallback_relay)\fR"
 /*	Optional list of relay hosts for SMTP destinations that can't be
 /*	found or that are unreachable.
+/* .PP
+/*	Available with Postfix 2.12 and later:
+/* .IP "\fBsmtp_address_verify_target (rcpt)\fR"
+/*	In the context of email address verification, the SMTP protocol
+/*	stage that determines whether an email address is deliverable.
 /* SEE ALSO
 /*	generic(5), output address rewriting
 /*	header_checks(5), message header content inspection
@@ -816,6 +821,7 @@ char   *var_smtp_sasl_mechs;
 char   *var_smtp_sasl_type;
 char   *var_smtp_bind_addr;
 char   *var_smtp_bind_addr6;
+char   *var_smtp_vrfy_tgt;
 bool    var_smtp_rand_addr;
 int     var_smtp_pix_thresh;
 int     var_queue_run_delay;
@@ -1077,6 +1083,11 @@ static void post_init(char *unused_name, char **unused_argv)
      */
     smtp_dns_res_opt = name_mask(VAR_LMTP_SMTP(DNS_RES_OPT), dns_res_opt_masks,
 				 var_smtp_dns_res_opt);
+
+    /*
+     * Address verification.
+     */
+    smtp_vrfy_init();
 }
 
 /* pre_init - pre-jail initialization */

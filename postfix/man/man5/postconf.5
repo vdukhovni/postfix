@@ -2472,6 +2472,11 @@ The LMTP-specific version of the smtp_address_preference
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH lmtp_address_verify_target (default: rcpt)
+The LMTP-specific version of the smtp_dns_support_level
+configuration parameter.  See there for details.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH lmtp_assume_final (default: no)
 When a remote LMTP server announces no DSN support, assume that
 the
@@ -6085,6 +6090,56 @@ that affects IPv6 or IPv4, as long as it does not affect both.
 .br
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH smtp_address_verify_target (default: rcpt)
+In the context of email address verification, the SMTP protocol
+stage that determines whether an email address is deliverable.
+Specify one of "rcpt" or "data".  The latter is needed with remote
+SMTP servers that reject recipients after the DATA command. Use
+transport_maps to apply this feature selectively:
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    transport_maps = hash:/etc/postfix/transport
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/transport:
+    smtp-domain_that_verifies_after_data    smtp-data-target:
+    lmtp-domain_that_verifies_after_data    lmtp-data-target:
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/master.cf:
+    smtp-data-target    unix    -    -    n    -    -    smtp
+        -o smtp_address_verify_target=data
+    lmtp-data-target    unix    -    -    n    -    -    lmtp
+        -o lmtp_address_verify_target=data
+.sp
+.in +4
+.nf
+.na
+.ft C
+.PP
+Unselective use of the "data" target does no harm, but will
+result in unnecessary "lost connection after DATA" events at remote
+SMTP/LMTP servers.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtp_always_send_ehlo (default: yes)
 Always send EHLO at the start of an SMTP session.
 .PP

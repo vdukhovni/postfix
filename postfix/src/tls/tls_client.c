@@ -535,7 +535,7 @@ static int match_servername(const char *certid,
      */
     if (!allascii(certid))
 	return (0);
-    if (!allascii(nexthop) && (aname = midna_utf8_to_ascii(nexthop)) != 0) {
+    if (!allascii(nexthop) && (aname = midna_to_ascii(nexthop)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", nexthop, aname);
 	nexthop = aname;
@@ -586,7 +586,7 @@ static int match_servername(const char *certid,
 		}
 	    }
 	    if (!allascii(domain)
-		&& (aname = midna_utf8_to_ascii(domain)) != 0) {
+		&& (aname = midna_to_ascii(domain)) != 0) {
 		if (msg_verbose)
 		    msg_info("%s asciified to %s", domain, aname);
 		domain = aname;

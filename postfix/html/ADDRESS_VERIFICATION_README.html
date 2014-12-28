@@ -198,6 +198,12 @@ details. </p>
 
 <ul>
 
+<li> <p> Postfix assumes that a remote SMTP server will reject
+unknown addresses in reply to the RCPT TO command. However, some
+sites report this in reply to the DATA command. For such sites
+you may configure a workaround with the <a href="postconf.5.html#smtp_address_verify_target">smtp_address_verify_target</a>
+parameter (Postfix 2.12 and later). </p>
+
 <li> <p> When verifying a remote address, Postfix probes the preferred
 MTAs for that address, without actually delivering mail. If
 a preferred MTA accepts the address, then Postfix assumes that the
@@ -227,8 +233,8 @@ MTA for that address rejects mail from your machine for any reason.
 This is not a limitation, but it is mentioned here just in case
 people believe that it is a limitation. </p>
 
-<li> <p> Unfortunately, some sites do not reject
-unknown addresses in reply to the RCPT TO command, but report a
+<li> <p> Unfortunately, some sites do not reject unknown addresses
+in reply to the RCPT TO or DATA command, but instead report a
 delivery failure in response to end of DATA after a message is
 transferred.  Postfix address verification does not work with such
 sites. </p>

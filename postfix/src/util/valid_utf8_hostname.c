@@ -68,7 +68,7 @@ int     valid_utf8_hostname(int enable_utf8, const char *name, int gripe)
      */
 #ifndef NO_EAI
     if (enable_utf8 && !allascii(name)) {
-	if ((aname = midna_utf8_to_ascii(name)) == 0) {
+	if ((aname = midna_to_ascii(name)) == 0) {
 	    if (gripe)
 		msg_warn("%s: malformed UTF-8 domain name", myname);
 	    return (0);

@@ -365,6 +365,7 @@ extern int smtp_connect(SMTP_STATE *);
  /*
   * smtp_proto.c
   */
+extern void smtp_vrfy_init(void);
 extern int smtp_helo(SMTP_STATE *);
 extern int smtp_xfer(SMTP_STATE *);
 extern int smtp_rset(SMTP_STATE *);
@@ -514,6 +515,11 @@ extern void smtp_chat_notify(SMTP_SESSION *);
      (resp))
 
 #define DSN_BY_LOCAL_MTA	((char *) 0)	/* DSN issued by local MTA */
+
+#define SMTP_RESP_SET_DSN(resp, _dsn) do { \
+	vstring_strcpy((resp)->dsn_buf, (_dsn)); \
+	(resp)->dsn = STR((resp)->dsn_buf); \
+    } while (0)
 
  /*
   * These operations implement a redundant mark-and-sweep algorithm that

@@ -1,0 +1,71 @@
+./midna: > # Upper-case greek -> lower-case greek.
+./midna: > Δημοσθένους.example.com
+./midna: ctable_locate: install entry key δημοσθένουσ.example.com
+./midna: ctable_locate: install entry key Δημοσθένους.example.com
+./midna: "Δημοσθένους.example.com" ->utf8 "δημοσθένουσ.example.com"
+./midna: ctable_locate: install entry key Δημοσθένους.example.com
+./midna: "Δημοσθένους.example.com" ->ascii "xn--ixanjetild6aev.example.com"
+./midna: ctable_locate: move existing entry key δημοσθένουσ.example.com
+./midna: ctable_locate: install entry key xn--ixanjetild6aev.example.com
+./midna: "Δημοσθένους.example.com" ->ascii "xn--ixanjetild6aev.example.com" ->utf8 "δημοσθένουσ.example.com"
+./midna: warning: "Δημοσθένους.example.com" != "δημοσθένουσ.example.com"
+./midna: > # Upper-case ASCII -> lower-case ASCII.
+./midna: > Hello.example.com
+./midna: ctable_locate: install entry key Hello.example.com
+./midna: "Hello.example.com" ->ascii "hello.example.com"
+./midna: ctable_locate: install entry key hello.example.com
+./midna: ctable_locate: install entry key Hello.example.com
+./midna: "Hello.example.com" ->utf8 "hello.example.com"
+./midna: ctable_locate: leave existing entry key hello.example.com
+./midna: "Hello.example.com" ->utf8 "hello.example.com" ->ascii "hello.example.com"
+./midna: warning: "Hello.example.com" != "hello.example.com"
+./midna: > # Invalid domain name ('-' at begin or end).
+./midna: > -bad-.example.com
+./midna: warning: midna_to_ascii_create: Problem translating domain "-bad-.example.com" to ASCII form: U_ZERO_ERROR
+./midna: ctable_locate: install entry key -bad-.example.com
+./midna: warning: midna_to_utf8_create: Problem translating domain "-bad-.example.com" to UTF8 form: U_ZERO_ERROR
+./midna: ctable_locate: install entry key -bad-.example.com
+./midna: > # Invalid domain name (label > 62 bytes).
+./midna: > abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456789.example.com
+./midna: warning: midna_to_ascii_create: Problem translating domain "abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456789.example.com" to ASCII form: U_ZERO_ERROR
+./midna: ctable_locate: install entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456789.example.com
+./midna: ctable_locate: leave existing entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456789.example.com
+./midna: ctable_locate: install entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456789.example.com
+./midna: > # Valid domain name.
+./midna: > abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com
+./midna: ctable_locate: install entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com
+./midna: "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com" ->ascii "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com"
+./midna: ctable_locate: leave existing entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com
+./midna: ctable_locate: install entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com
+./midna: "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com" ->utf8 "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com"
+./midna: ctable_locate: leave existing entry key abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com
+./midna: "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com" ->utf8 "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com" ->ascii "abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com"
+./midna: > # Aliases for '.' -> '.'.
+./midna: > x。example.com
+./midna: ctable_locate: install entry key x.example.com
+./midna: ctable_locate: install entry key x。example.com
+./midna: "x。example.com" ->utf8 "x.example.com"
+./midna: ctable_locate: install entry key x。example.com
+./midna: "x。example.com" ->ascii "x.example.com"
+./midna: ctable_locate: move existing entry key x.example.com
+./midna: ctable_locate: install entry key x.example.com
+./midna: "x。example.com" ->ascii "x.example.com" ->utf8 "x.example.com"
+./midna: warning: "x。example.com" != "x.example.com"
+./midna: > x．example.com
+./midna: ctable_locate: leave existing entry key x.example.com
+./midna: ctable_locate: install entry key x．example.com
+./midna: "x．example.com" ->utf8 "x.example.com"
+./midna: ctable_locate: install entry key x．example.com
+./midna: "x．example.com" ->ascii "x.example.com"
+./midna: ctable_locate: move existing entry key x.example.com
+./midna: "x．example.com" ->ascii "x.example.com" ->utf8 "x.example.com"
+./midna: warning: "x．example.com" != "x.example.com"
+./midna: > x｡example.com
+./midna: ctable_locate: move existing entry key x.example.com
+./midna: ctable_locate: install entry key x｡example.com
+./midna: "x｡example.com" ->utf8 "x.example.com"
+./midna: ctable_locate: install entry key x｡example.com
+./midna: "x｡example.com" ->ascii "x.example.com"
+./midna: ctable_locate: move existing entry key x.example.com
+./midna: "x｡example.com" ->ascii "x.example.com" ->utf8 "x.example.com"
+./midna: warning: "x｡example.com" != "x.example.com"

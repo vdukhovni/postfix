@@ -833,6 +833,12 @@ SMTP(8)                                                                SMTP(8)
               Optional list of relay hosts for SMTP destinations that can't be
               found or that are unreachable.
 
+       Available with Postfix 2.12 and later:
+
+       <b><a href="postconf.5.html#smtp_address_verify_target">smtp_address_verify_target</a> (rcpt)</b>
+              In  the context of email address verification, the SMTP protocol
+              stage that determines whether an email address is deliverable.
+
 <b>SEE ALSO</b>
        <a href="generic.5.html">generic(5)</a>, output address rewriting
        <a href="header_checks.5.html">header_checks(5)</a>, message header content inspection

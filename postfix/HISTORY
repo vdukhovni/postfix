@@ -21191,3 +21191,21 @@ Apologies for any names omitted.
 	child process.  Background: some shells implement "IFS=foo
 	command" as a permanent IFS change; this was allowed by
 	standards at some point in time.  File: postfix-install.
+
+20141227
+
+	Feature: smtp_address_verify_target (default: rcpt) that
+	determines what protocol stage decides if a recipient is
+	valid. Specify "data" for servers that reject recipients
+	after the DATA command. Files: mantools/postlink,
+	proto/postconf.proto, proto/ADDRESS_VERIFICATION_README.html,
+	global/mail_params.h, smtp/lmtp_params.c, smtp/smtp.c,
+	smtp/smtp.h, smtp/smtp_params.c, smtp/smtp_proto.c.
+
+20141228
+
+	Cleanup: the IDNA conversion routines now accept both
+	ASCII and UTF8 inputs. The functions als verify that 
+	either their result is a valid ASCII domain name or that
+	it converts into a valid ASCII domain name. Files:
+	util/midna.c, util/midna_test.in, util/midna_test.ref.

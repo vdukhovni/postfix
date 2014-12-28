@@ -15419,6 +15419,52 @@ units are: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 
 <p> This feature is available in Postfix 2.9 and later.  </p>
 
+%PARAM smtp_address_verify_target rcpt
+
+<p> In the context of email address verification, the SMTP protocol
+stage that determines whether an email address is deliverable.
+Specify one of "rcpt" or "data".  The latter is needed with remote
+SMTP servers that reject recipients after the DATA command. Use
+transport_maps to apply this feature selectively:  </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    transport_maps = hash:/etc/postfix/transport
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/transport:
+    smtp-domain_that_verifies_after_data    smtp-data-target:
+    lmtp-domain_that_verifies_after_data    lmtp-data-target:
+</pre>
+</blockquote>
+
+<blockquote>
+<pre>
+/etc/postfix/master.cf:
+    smtp-data-target    unix    -    -    n    -    -    smtp
+        -o smtp_address_verify_target=data
+    lmtp-data-target    unix    -    -    n    -    -    lmtp
+        -o lmtp_address_verify_target=data
+<blockquote>
+<pre>
+
+<p> Unselective use of the "data" target does no harm, but will
+result in unnecessary "lost connection after DATA" events at remote
+SMTP/LMTP servers. </p>
+
+<p> This feature is available in Postfix 2.12 and later.  </p>
+
+%PARAM lmtp_address_verify_target rcpt
+
+<p> The LMTP-specific version of the smtp_dns_support_level
+configuration parameter.  See there for details. </p>
+
+<p> This feature is available in Postfix 2.12 and later.  </p>
+
 %PARAM daemon_table_open_error_is_fatal no
 
 <p> How a Postfix daemon process handles errors while opening lookup

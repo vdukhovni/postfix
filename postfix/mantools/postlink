@@ -89,6 +89,8 @@ while (<>) {
     s;\baddress_verify_service_name\b;<a href="postconf.5.html#address_verify_service_name">$&</a>;g;
     s;\baddress_verify_transport_maps\b;<a href="postconf.5.html#address_verify_transport_maps">$&</a>;g;
     s;\baddress_verify_virtual_transport\b;<a href="postconf.5.html#address_verify_virtual_transport">$&</a>;g;
+    s;\bsmtp_address_verify_target\b;<a href="postconf.5.html#smtp_address_verify_target">$&</a>;g;
+    s;\blmtp_address_verify_target\b;<a href="postconf.5.html#lmtp_address_verify_target">$&</a>;g;
     s;\balias_database\b;<a href="postconf.5.html#alias_database">$&</a>;g;
     s;\balias_maps\b;<a href="postconf.5.html#alias_maps">$&</a>;g;
     s;\ballow_mail_to_com[-</bB>]*\n*[ <bB>]*mands\b;<a href="postconf.5.html#allow_mail_to_commands">$&</a>;g;

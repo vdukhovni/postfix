@@ -725,6 +725,11 @@ Available with Postfix 2.3 and later:
 .IP "\fBsmtp_fallback_relay ($fallback_relay)\fR"
 Optional list of relay hosts for SMTP destinations that can't be
 found or that are unreachable.
+.PP
+Available with Postfix 2.12 and later:
+.IP "\fBsmtp_address_verify_target (rcpt)\fR"
+In the context of email address verification, the SMTP protocol
+stage that determines whether an email address is deliverable.
 .SH "SEE ALSO"
 .na
 .nf

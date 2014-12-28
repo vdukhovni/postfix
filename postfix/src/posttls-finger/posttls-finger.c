@@ -1103,7 +1103,7 @@ static DNS_RR *domain_addr(STATE *state, char *domain)
      * IDNA support.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (aname = midna_utf8_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (aname = midna_to_ascii(domain)) != 0) {
 	msg_info("%s asciified to %s", domain, aname);
     } else
 #endif
@@ -1168,7 +1168,7 @@ static DNS_RR *host_addr(STATE *state, const char *host)
      * IDNA support.
      */
 #ifndef NO_EAI
-    if (!allascii(host) && (ahost = midna_utf8_to_ascii(host)) != 0) {
+    if (!allascii(host) && (ahost = midna_to_ascii(host)) != 0) {
 	msg_info("%s asciified to %s", host, ahost);
     } else
 #endif

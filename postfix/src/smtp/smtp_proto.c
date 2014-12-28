@@ -144,6 +144,8 @@
 #include <tok822.h>
 #include <mail_addr_map.h>
 #include <ext_prop.h>
+#include <namadr_list.h>
+#include <match_parent_style.h>
 #include <lex_822.h>
 #include <dsn_mask.h>
 #include <xtext.h>
@@ -260,6 +262,24 @@ HBC_CALL_BACKS smtp_hbc_callbacks[1] = {
     smtp_hbc_logger,
     smtp_text_out,
 };
+
+static int smtp_vrfy_tgt;
+
+/* smtp_vrfy_init - initialize */
+
+void    smtp_vrfy_init(void)
+{
+    static const NAME_CODE vrfy_init_table[] = {
+	SMTP_VRFY_TGT_RCPT, SMTP_STATE_RCPT,
+	SMTP_VRFY_TGT_DATA, SMTP_STATE_DATA,
+	0,
+    };
+
+    if ((smtp_vrfy_tgt = name_code(vrfy_init_table, NAME_CODE_FLAG_NONE,
+				   var_smtp_vrfy_tgt)) == 0)
+	msg_fatal("bad protocol stage: \"%s = %s\"",
+		  VAR_SMTP_VRFY_TGT, var_smtp_vrfy_tgt);
+}
 
 /* smtp_helo - perform initial handshake with SMTP server */
 
@@ -1541,7 +1561,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 					   dsn_notify_str(rcpt->dsn_notify));
 	    }
 	    if ((next_rcpt = send_rcpt + 1) == SMTP_RCPT_LEFT(state))
-		next_state = DEL_REQ_TRACE_ONLY(request->flags) ?
+		next_state = (DEL_REQ_TRACE_ONLY(request->flags)
+			      && smtp_vrfy_tgt == SMTP_STATE_RCPT) ?
 		    SMTP_STATE_ABORT : SMTP_STATE_DATA;
 	    break;
 
@@ -1808,7 +1829,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 			    }
 			    ++nrcpt;
 			    /* If trace-only, mark the recipient done. */
-			    if (DEL_REQ_TRACE_ONLY(request->flags)) {
+			    if (DEL_REQ_TRACE_ONLY(request->flags)
+				&& smtp_vrfy_tgt == SMTP_STATE_RCPT) {
 				translit(resp->str, "\n", " ");
 				smtp_rcpt_done(state, resp, rcpt);
 			    }
@@ -1822,7 +1844,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    }
 		    /* If trace-only, send RSET instead of DATA. */
 		    if (++recv_rcpt == SMTP_RCPT_LEFT(state))
-			recv_state = DEL_REQ_TRACE_ONLY(request->flags) ?
+			recv_state = (DEL_REQ_TRACE_ONLY(request->flags)
+				      && smtp_vrfy_tgt == SMTP_STATE_RCPT) ?
 			    SMTP_STATE_ABORT : SMTP_STATE_DATA;
 		    /* XXX Also: record if non-delivering session. */
 		    break;
@@ -1833,6 +1856,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		     * receiver can apply a course correction.
 		     */
 		case SMTP_STATE_DATA:
+		    recv_state = SMTP_STATE_DOT;
 		    if (resp->code / 100 != 3) {
 			if (nrcpt > 0)
 			    smtp_mesg_fail(state, STR(iter->host), resp,
@@ -1842,7 +1866,30 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 					   xfer_request[SMTP_STATE_DATA]);
 			nrcpt = -1;
 		    }
-		    recv_state = SMTP_STATE_DOT;
+
+		    /*
+		     * In the case of a successful address probe with target
+		     * equal to DATA, the remote server is now in the DATA
+		     * state, and therefore we must not make any further
+		     * attempt to send or receive on this connection. This
+		     * means that we cannot not reuse the general-purpose
+		     * course-correction logic below which sends RSET (and
+		     * perhaps QUIT). Instead we "jump" straight to the exit
+		     * and force an unceremonious disconnect.
+		     */
+		    else if (DEL_REQ_TRACE_ONLY(request->flags)
+			     && smtp_vrfy_tgt == SMTP_STATE_DATA) {
+			for (nrcpt = 0; nrcpt < recv_rcpt; nrcpt++) {
+			    rcpt = request->rcpt_list.info + nrcpt;
+			    if (!SMTP_RCPT_ISMARKED(rcpt)) {
+				translit(resp->str, "\n", " ");
+				SMTP_RESP_SET_DSN(resp, "2.0.0");
+				smtp_rcpt_done(state, resp, rcpt);
+			    }
+			}
+			DONT_CACHE_THIS_SESSION;
+			send_state = recv_state = SMTP_STATE_LAST;
+		    }
 		    break;
 
 		    /*

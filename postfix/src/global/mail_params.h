@@ -2778,6 +2778,14 @@ extern char *var_vrfy_relay_maps;
 #define DEF_VRFY_XPORT_MAPS		"$" VAR_TRANSPORT_MAPS
 extern char *var_vrfy_xport_maps;
 
+#define SMTP_VRFY_TGT_RCPT		"rcpt"
+#define SMTP_VRFY_TGT_DATA		"data"
+#define VAR_LMTP_VRFY_TGT		"lmtp_address_verify_target"
+#define DEF_LMTP_VRFY_TGT		SMTP_VRFY_TGT_RCPT
+#define VAR_SMTP_VRFY_TGT		"smtp_address_verify_target"
+#define DEF_SMTP_VRFY_TGT		SMTP_VRFY_TGT_RCPT
+extern char *var_smtp_vrfy_tgt;
+
  /*
   * Message delivery trace service.
   */

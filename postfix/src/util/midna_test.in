@@ -1,0 +1,14 @@
+# Upper-case greek -> lower-case greek.
+Δημοσθένους.example.com
+# Upper-case ASCII -> lower-case ASCII.
+Hello.example.com
+# Invalid domain name ('-' at begin or end).
+-bad-.example.com
+# Invalid domain name (label > 62 bytes).
+abcdef01234567890abcdef01234567890abcdef01234567890abcdef0123456789.example.com
+# Valid domain name.
+abcdef01234567890abcdef01234567890abcdef01234567890abcdef012345.example.com
+# Aliases for '.' -> '.'.
+x。example.com
+x．example.com
+x｡example.com

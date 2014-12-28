@@ -34,6 +34,7 @@
 	VAR_SMTP_SASL_TYPE, DEF_SMTP_SASL_TYPE, &var_smtp_sasl_type, 1, 0,
 	VAR_SMTP_BIND_ADDR, DEF_SMTP_BIND_ADDR, &var_smtp_bind_addr, 0, 0,
 	VAR_SMTP_BIND_ADDR6, DEF_SMTP_BIND_ADDR6, &var_smtp_bind_addr6, 0, 0,
+	VAR_SMTP_VRFY_TGT, DEF_SMTP_VRFY_TGT, &var_smtp_vrfy_tgt, 1, 0,
 	VAR_SMTP_HELO_NAME, DEF_SMTP_HELO_NAME, &var_smtp_helo_name, 1, 0,
 	VAR_SMTP_HOST_LOOKUP, DEF_SMTP_HOST_LOOKUP, &var_smtp_host_lookup, 1, 0,
 	VAR_SMTP_DNS_SUPPORT, DEF_SMTP_DNS_SUPPORT, &var_smtp_dns_support, 0, 0,

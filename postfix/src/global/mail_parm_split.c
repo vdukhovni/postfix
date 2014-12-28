@@ -17,7 +17,7 @@
 /*
 /*	Arguments:
 /* .IP name
-/*	Parameter name. This is used to privode context for
+/*	Parameter name. This is used to provide context for
 /*	error messages.
 /* .IP value
 /*	Parameter value.

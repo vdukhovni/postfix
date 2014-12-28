@@ -515,7 +515,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
 	base32_code_test dict_thash_test surrogate_test timecmp_test \
-	dict_static_test dict_inline_test
+	dict_static_test dict_inline_test midna_test
 
 root_tests:
 
@@ -749,6 +749,11 @@ dict_inline_test: dict_open dict_inline.ref
 	) >dict_inline.tmp 2>&1
 	diff dict_inline.ref dict_inline.tmp
 	rm -f dict_inline.tmp
+
+midna_test: midna midna_test.in midna_test.ref
+	$(SHLIB_ENV) ./midna <midna_test.in >midna_test.tmp 2>&1
+	diff midna_test.ref midna_test.tmp
+	rm -f midna_test.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

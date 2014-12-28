@@ -378,7 +378,7 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
      * IDNA support.
      */
 #ifndef NO_EAI
-    if (!allascii(name) && (aname = midna_utf8_to_ascii(name)) != 0) {
+    if (!allascii(name) && (aname = midna_to_ascii(name)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", name, aname);
     } else
@@ -524,7 +524,7 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
      * IDNA support.
      */
 #ifndef NO_EAI
-    if (!allascii(host) && (ahost = midna_utf8_to_ascii(host)) != 0) {
+    if (!allascii(host) && (ahost = midna_to_ascii(host)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", host, ahost);
     } else

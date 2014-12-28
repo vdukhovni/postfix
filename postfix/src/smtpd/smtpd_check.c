@@ -1417,7 +1417,7 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(name) && (aname = midna_utf8_to_ascii(name)) != 0) {
+    if (!allascii(name) && (aname = midna_to_ascii(name)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", name, aname);
 	name = aname;
@@ -1916,7 +1916,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -2914,7 +2914,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -3634,7 +3634,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
      * Fix 20140706: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_utf8_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
