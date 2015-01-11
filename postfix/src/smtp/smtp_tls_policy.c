@@ -132,7 +132,8 @@ void    smtp_tls_list_init(void)
     if (*var_smtp_tls_policy) {
 	tls_policy = maps_create(VAR_LMTP_SMTP(TLS_POLICY),
 				 var_smtp_tls_policy,
-				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				 | DICT_FLAG_UTF8_REQUEST);
 	if (*var_smtp_tls_per_site)
 	    msg_warn("%s ignored when %s is not empty.",
 		     VAR_LMTP_SMTP(TLS_PER_SITE), VAR_LMTP_SMTP(TLS_POLICY));
@@ -141,7 +142,8 @@ void    smtp_tls_list_init(void)
     if (*var_smtp_tls_per_site) {
 	tls_per_site = maps_create(VAR_LMTP_SMTP(TLS_PER_SITE),
 				   var_smtp_tls_per_site,
-				   DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				   DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				   | DICT_FLAG_UTF8_REQUEST);
     }
 }
 

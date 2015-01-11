@@ -865,7 +865,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     }
     alias_maps = maps_create("aliases", var_alias_maps,
 			     DICT_FLAG_LOCK | DICT_FLAG_PARANOID
-			     | DICT_FLAG_FOLD_FIX);
+			     | DICT_FLAG_FOLD_FIX
+			     | DICT_FLAG_UTF8_REQUEST);
 
     flush_init();
 }

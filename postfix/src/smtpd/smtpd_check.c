@@ -607,7 +607,8 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 	else if ((flags & SMTPD_CHECK_PARSE_MAPS)
 		 && strchr(name, ':') && dict_handle(name) == 0) {
 	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK
-					  | DICT_FLAG_FOLD_FIX));
+					  | DICT_FLAG_FOLD_FIX
+					  | DICT_FLAG_UTF8_REQUEST));
 	}
 	last = name;
     }
@@ -726,18 +727,24 @@ void    smtpd_check_init(void)
      * Pre-parse and pre-open the recipient maps.
      */
     local_rcpt_maps = maps_create(VAR_LOCAL_RCPT_MAPS, var_local_rcpt_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
     rcpt_canon_maps = maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
     canonical_maps = maps_create(VAR_CANONICAL_MAPS, var_canonical_maps,
-				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				 | DICT_FLAG_UTF8_REQUEST);
     virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS, var_virt_alias_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
     virt_mailbox_maps = maps_create(VAR_VIRT_MAILBOX_MAPS,
 				    var_virt_mailbox_maps,
-				    DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				    DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				    | DICT_FLAG_UTF8_REQUEST);
     relay_rcpt_maps = maps_create(VAR_RELAY_RCPT_MAPS, var_relay_rcpt_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
 
 #ifdef TEST
     virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
@@ -750,14 +757,16 @@ void    smtpd_check_init(void)
      * Templates for RBL rejection replies.
      */
     rbl_reply_maps = maps_create(VAR_RBL_REPLY_MAPS, var_rbl_reply_maps,
-				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				 | DICT_FLAG_UTF8_REQUEST);
 
     /*
      * Sender to login name mapping.
      */
     smtpd_sender_login_maps = maps_create(VAR_SMTPD_SND_AUTH_MAPS,
 					  var_smtpd_snd_auth_maps,
-				       DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+					  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+					  | DICT_FLAG_UTF8_REQUEST);
 
     /*
      * error_text is used for returning error responses.
@@ -1113,7 +1122,7 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 					        char **ext)
 {
     const char *result;
-     
+
     if ((result = mail_addr_find(maps, key, ext)) != 0 || maps->error == 0)
 	return (result);
     if (maps->error == DICT_ERR_RETRY)
@@ -5982,7 +5991,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_virt_alias_maps, args->argv[1]);
 		UPDATE_MAPS(virt_alias_maps, VAR_VIRT_ALIAS_MAPS,
 			    var_virt_alias_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -5997,7 +6006,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_virt_mailbox_maps, args->argv[1]);
 		UPDATE_MAPS(virt_mailbox_maps, VAR_VIRT_MAILBOX_MAPS,
 			    var_virt_mailbox_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6012,7 +6021,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_local_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(local_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
 			    var_local_rcpt_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6020,7 +6029,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_relay_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(relay_rcpt_maps, VAR_RELAY_RCPT_MAPS,
 			    var_relay_rcpt_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6028,7 +6037,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
 			    var_canonical_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6036,7 +6045,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_rbl_reply_maps, args->argv[1]);
 		UPDATE_MAPS(rbl_reply_maps, VAR_RBL_REPLY_MAPS,
 			    var_rbl_reply_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }

@@ -333,20 +333,24 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
     if (*var_canonical_maps)
 	cleanup_comm_canon_maps =
 	    maps_create(VAR_CANONICAL_MAPS, var_canonical_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_send_canon_maps)
 	cleanup_send_canon_maps =
 	    maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_rcpt_canon_maps)
 	cleanup_rcpt_canon_maps =
 	    maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_virt_alias_maps)
 	cleanup_virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS,
 					      var_virt_alias_maps,
 					      DICT_FLAG_LOCK
-					      | DICT_FLAG_FOLD_FIX);
+					      | DICT_FLAG_FOLD_FIX
+					      | DICT_FLAG_UTF8_REQUEST);
     if (*var_canon_classes)
 	cleanup_comm_canon_flags =
 	    name_mask(VAR_CANON_CLASSES, canon_class_table,
@@ -382,11 +386,13 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
     if (*var_send_bcc_maps)
 	cleanup_send_bcc_maps =
 	    maps_create(VAR_SEND_BCC_MAPS, var_send_bcc_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_rcpt_bcc_maps)
 	cleanup_rcpt_bcc_maps =
 	    maps_create(VAR_RCPT_BCC_MAPS, var_rcpt_bcc_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_cleanup_milters)
 	cleanup_milters = milter_create(var_cleanup_milters,
 					var_milt_conn_time,

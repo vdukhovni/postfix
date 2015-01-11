@@ -9,4 +9,4 @@ awk 'BEGIN {
 	printf "put xxx %c%c%c\n", 128, 128, 128
 	printf "get xxx\n"
 	exit
-}' | ./dict_open internal:whatever write utf8_enable
+}' | ./dict_open internal:whatever write utf8_request

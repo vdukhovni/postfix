@@ -424,7 +424,7 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 	    /*
 	     * First some UTF-8 checks sans casefolding.
 	     */
-	    if (DICT_IS_ENABLE_UTF8(dict_flags)
+	    if ((mkmap->dict->flags & DICT_FLAG_UTF8_ACTIVE)
 		&& !allascii(STR(line_buffer))
 		&& !valid_utf8_string(STR(line_buffer), LEN(line_buffer))) {
 		msg_warn("%s, line %d: non-UTF-8 input \"%s\"",
@@ -816,12 +816,12 @@ int     main(int argc, char **argv)
     int     postmap_flags = POSTMAP_FLAG_AS_OWNER | POSTMAP_FLAG_SAVE_PERM;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = (DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_FIX
-			  | DICT_FLAG_UTF8_ENABLE);
+			  | DICT_FLAG_UTF8_REQUEST);
     char   *query = 0;
     char   *delkey = 0;
     int     sequence = 0;
     int     found;
-    int force_utf8 = 0;
+    int     force_utf8 = 0;
 
     /*
      * Fingerprint executables and core dumps.
@@ -925,7 +925,7 @@ int     main(int argc, char **argv)
 	    sequence = 1;
 	    break;
 	case 'u':
-	    dict_flags &= ~DICT_FLAG_UTF8_ENABLE;
+	    dict_flags &= ~DICT_FLAG_UTF8_REQUEST;
 	    break;
 	case 'U':
 	    force_utf8 = 1;
@@ -950,10 +950,10 @@ int     main(int argc, char **argv)
 	&& (postmap_flags & POSTMAP_FLAG_ANY_KEY)
 	== (postmap_flags & POSTMAP_FLAG_MIME_KEY))
 	msg_warn("ignoring -m option without -b or -h");
-    if ((postmap_flags & (POSTMAP_FLAG_ANY_KEY & ~POSTMAP_FLAG_MIME_KEY)) 
+    if ((postmap_flags & (POSTMAP_FLAG_ANY_KEY & ~POSTMAP_FLAG_MIME_KEY))
 	&& force_utf8 == 0)
 	dict_flags &= ~DICT_FLAG_UTF8_MASK;
-	
+
     /*
      * Use the map type specified by the user, or fall back to a default
      * database type.

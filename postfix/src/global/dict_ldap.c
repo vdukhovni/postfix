@@ -1340,7 +1340,7 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     /*
      * Don't frustrate future attempts to make Postfix UTF-8 transparent.
      */
-    if (DICT_IS_ENABLE_UTF8(dict->flags) == 0
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
 	&& !valid_utf8_string(name, strlen(name))) {
 	if (msg_verbose)
 	    msg_info("%s: %s: Skipping lookup of non-UTF-8 key '%s'",

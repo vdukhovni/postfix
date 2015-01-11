@@ -138,7 +138,8 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
 	    } else {
 		if (dict_handle(acl) == 0)
 		    dict_register(acl, dict_open(acl, O_RDONLY, DICT_FLAG_LOCK
-						 | DICT_FLAG_FOLD_FIX));
+						 | DICT_FLAG_FOLD_FIX
+						 | DICT_FLAG_UTF8_REQUEST));
 	    }
 	}
 	argv_add(intern_acl, acl, (char *) 0);

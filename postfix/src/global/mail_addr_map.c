@@ -175,7 +175,8 @@ int     main(int argc, char **argv)
     msg_verbose = 1;
     if (chdir(var_queue_dir) < 0)
 	msg_fatal("chdir %s: %m", var_queue_dir);
-    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX \
+		       | DICT_FLAGS_UTF8_REQUEST);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	msg_info("=== Address extension on, extension propagation on ===");
 	UPDATE(var_rcpt_delim, "+");

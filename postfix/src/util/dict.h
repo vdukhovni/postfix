@@ -127,10 +127,10 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_OPEN_LOCK	(1<<16)	/* perm lock if not multi-writer safe */
 #define DICT_FLAG_BULK_UPDATE	(1<<17)	/* optimize for bulk updates */
 #define DICT_FLAG_MULTI_WRITER	(1<<18)	/* multi-writer safe map */
-#define DICT_FLAG_UTF8_ENABLE	(1<<19)	/* enable UTF-8 checks */
-#define DICT_FLAG_UTF8_PROXY	(1<<20) /* UTF-8 proxy layer is present */
+#define DICT_FLAG_UTF8_REQUEST	(1<<19)	/* activate UTF-8 if possible */
+#define DICT_FLAG_UTF8_ACTIVE	(1<<20)	/* UTF-8 proxy layer is present */
 
-#define DICT_FLAG_UTF8_MASK	(DICT_FLAG_UTF8_ENABLE)
+#define DICT_FLAG_UTF8_MASK	(DICT_FLAG_UTF8_REQUEST)
 
  /* IMPORTANT: Update the dict_mask[] table when the above changes */
 
@@ -168,10 +168,8 @@ extern DICT *dict_debug(DICT *);
  /*
   * Feature tests.
   */
-extern int util_utf8_enable;
-
-#define DICT_IS_ENABLE_UTF8(flags) \
-	(util_utf8_enable && (flags & DICT_FLAG_UTF8_MASK))
+#define DICT_NEED_UTF8_ACTIVATION(enable, flags) \
+	((enable) && ((flags) & DICT_FLAG_UTF8_MASK))
 
  /*
   * dict->error values. Errors must be negative; smtpd_check depends on this.
@@ -251,7 +249,7 @@ extern void dict_type_override(DICT *, const char *);
  /*
   * Check and convert UTF-8 keys and values.
   */
-extern DICT *dict_utf8_encapsulate(DICT *);
+extern DICT *dict_utf8_activate(DICT *);
 extern char *dict_utf8_check_fold(DICT *, const char *, CONST_CHAR_STAR *);
 extern int dict_utf8_check(const char *, CONST_CHAR_STAR *);
 

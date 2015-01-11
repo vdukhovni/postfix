@@ -2003,6 +2003,7 @@ mkmap_open.o: ../../include/msg.h
 mkmap_open.o: ../../include/myflock.h
 mkmap_open.o: ../../include/mymalloc.h
 mkmap_open.o: ../../include/sigdelay.h
+mkmap_open.o: ../../include/stringops.h
 mkmap_open.o: ../../include/sys_defs.h
 mkmap_open.o: ../../include/vbuf.h
 mkmap_open.o: ../../include/vstream.h

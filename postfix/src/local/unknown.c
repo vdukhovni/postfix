@@ -109,7 +109,8 @@ int     deliver_unknown(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     if (*var_fbck_transp_maps && transp_maps == 0)
 	transp_maps = maps_create(VAR_FBCK_TRANSP_MAPS, var_fbck_transp_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_NO_REGSUB);
+				  DICT_FLAG_LOCK | DICT_FLAG_NO_REGSUB
+				  | DICT_FLAG_UTF8_REQUEST);
     /* The -1 is a hint for the down-stream deliver_completed() function. */
     if (transp_maps
 	&& (map_transport = maps_find(transp_maps, state.msg_attr.user,

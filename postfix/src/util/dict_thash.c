@@ -115,7 +115,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	    /*
 	     * First some UTF-8 checks sans casefolding.
 	     */
-	    if (DICT_IS_ENABLE_UTF8(dict_flags)
+	    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE)
 		&& allascii(STR(line_buffer)) == 0
 		&& valid_utf8_string(STR(line_buffer), LEN(line_buffer)) == 0) {
 		msg_warn("%s, line %d: non-UTF-8 input \"%s\""

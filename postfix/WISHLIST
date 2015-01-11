@@ -8,6 +8,20 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Expose UTF8 flag in server_acl API. Some applications such
+	as postscreen don't need UTF8 support.
+
+	Expose UTF8 flag in match_list API. Some applications
+	such as address lists don't need UTF8 support.
+
+	Implement UTF8 casefolding in match_list for non-table
+	patterns.
+
+	UTF8 DNS[BW]L domain name.
+
+	Consolidate maps flags in mail_params.h instead of having
+	multiple copies scattered across programs.
+
 	Try to allow UTF-8 myhostname/mydomain, at least in bounce
 	template expansion.
 

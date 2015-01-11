@@ -479,9 +479,9 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 		      dict_type, dict_name);
     }
     /* Last step: insert proxy for UTF-8 syntax checks and casefolding. */
-    if ((dict->flags & DICT_FLAG_UTF8_PROXY) == 0
-	&& DICT_IS_ENABLE_UTF8(dict_flags))
-	dict = dict_utf8_encapsulate(dict);
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
+	&& DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags))
+	dict = dict_utf8_activate(dict);
     return (dict);
 }
 
@@ -559,7 +559,7 @@ DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN new_cb)
 
 /* dict_type_override - disguise a dictionary type */
 
-void dict_type_override(DICT *dict, const char *type)
+void    dict_type_override(DICT *dict, const char *type)
 {
     myfree(dict->type);
     dict->type = mystrdup(type);

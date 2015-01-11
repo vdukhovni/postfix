@@ -457,15 +457,18 @@ static void post_init(char *unused_name, char **unused_argv)
      */
     virtual_mailbox_maps =
 	maps_create(VAR_VIRT_MAILBOX_MAPS, var_virt_mailbox_maps,
-		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
+		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID
+		    | DICT_FLAG_UTF8_REQUEST);
 
     virtual_uid_maps =
 	maps_create(VAR_VIRT_UID_MAPS, var_virt_uid_maps,
-		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
+		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID
+		    | DICT_FLAG_UTF8_REQUEST);
 
     virtual_gid_maps =
 	maps_create(VAR_VIRT_GID_MAPS, var_virt_gid_maps,
-		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID);
+		    DICT_FLAG_LOCK | DICT_FLAG_PARANOID
+		    | DICT_FLAG_UTF8_REQUEST);
 
     virtual_mbox_lock_mask = mbox_lock_mask(var_virt_mailbox_lock);
 }

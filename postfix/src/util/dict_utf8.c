@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <dict.h>
 /*
-/*	DICT	*dict_utf8_encapsulate(
+/*	DICT	*dict_utf8_activate(
 /*	DICT	*dict)
 /*
 /*	char	*dict_utf8_check_fold(
@@ -19,17 +19,19 @@
 /*	const char *string,
 /*	CONST_CHAR_STAR *err)
 /* DESCRIPTION
-/*	dict_utf8_encapsulate() wraps a dictionary's lookup/update/delete
+/*	dict_utf8_activate() wraps a dictionary's lookup/update/delete
 /*	methods with code that enforces UTF-8 checks on keys and
 /*	values, and that logs a warning when incorrect UTF-8 is
 /*	encountered. The original dictionary handle becomes invalid.
 /*
 /*	The wrapper code enforces a policy that maximizes application
-/*	robustness.  Attempts to store non-UTF-8 keys or values are
-/*	skipped while reporting success, attempts to look up or
-/*	delete non-UTF-8 keys are skipped while reporting success,
-/*	and attempts to look up a non-UTF-8 value are flagged while
-/*	reporting a configuration error.
+/*	robustness (it avoids the need for new error-handling code
+/*	paths in application code).  Attempts to store non-UTF-8
+/*	keys or values are skipped while reporting a non-error
+/*	status, attempts to look up or delete non-UTF-8 keys are
+/*	skipped while reporting a non-error status, and attempts
+/*	to look up a non-UTF-8 value are flagged while reporting a
+/*	configuration error.
 /*
 /*	The dict_utf8_check* functions may be invoked to perform
 /*	UTF-8 validity checks when util_utf8_enable is non-zero and
@@ -42,6 +44,8 @@
 /*
 /*	dict_utf8_check() checks a string for UTF-8 validity. The
 /*	result is zero in case of error.
+/* BUGS
+/*	dict_utf8_activate() does not nest.
 /* LICENSE
 /* .ad
 /* .fi
@@ -67,6 +71,15 @@
 #include <dict.h>
 #include <mymalloc.h>
 #include <msg.h>
+
+ /*
+  * Backed-up accessor function pointers.
+  */
+typedef struct {
+    const char *(*lookup) (struct DICT *, const char *);
+    int     (*update) (struct DICT *, const char *, const char *);
+    int     (*delete) (struct DICT *, const char *);
+} DICT_UTF8_BACKUP;
 
  /*
   * The goal is to maximize robustness: bad UTF-8 should not appear in keys,
@@ -113,7 +126,7 @@ char   *dict_utf8_check_fold(DICT *dict, const char *string,
     /*
      * Casefold and implicitly validate UTF-8.
      */
-    if (fold_flag != 0 && (fold_flag == (dict->flags & DICT_FLAG_FIXED) ?
+    if (fold_flag != 0 && (fold_flag & (dict->flags & DICT_FLAG_FIXED) ?
 			   DICT_FLAG_FOLD_FIX : DICT_FLAG_FOLD_MUL)) {
 	if (dict->fold_buf == 0)
 	    dict->fold_buf = vstring_alloc(10);
@@ -145,39 +158,40 @@ int     dict_utf8_check(const char *string, CONST_CHAR_STAR *err)
 
 /* dict_utf8_lookup - UTF-8 lookup method wrapper */
 
-static const char *dict_utf8_lookup(DICT *self, const char *key)
+static const char *dict_utf8_lookup(DICT *dict, const char *key)
 {
-    DICT   *dict;
+    DICT_UTF8_BACKUP *backup;
     const char *utf8_err;
     const char *fold_res;
     const char *value;
+    int     saved_flags;
 
     /*
      * Validate and optionally fold the key, and if invalid skip the request.
      */
-    if ((fold_res = dict_utf8_check_fold(self, key, &utf8_err)) == 0) {
+    if ((fold_res = dict_utf8_check_fold(dict, key, &utf8_err)) == 0) {
 	msg_warn("%s:%s: non-UTF-8 key \"%s\": %s",
-		       self->type, self->name, key, utf8_err);
-	self->error = DICT_ERR_NONE;
+		 dict->type, dict->name, key, utf8_err);
+	dict->error = DICT_ERR_NONE;
 	return (0);
     }
 
     /*
-     * Proxy the request.
+     * Proxy the request with casefolding turned off.
      */
-    dict = (void *) self - self->size;
-    dict->flags = self->flags;
-    value = dict->lookup(dict, fold_res);
-    self->flags = dict->flags;
-    self->error = dict->error;
+    saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
+    dict->flags &= ~DICT_FLAG_FOLD_ANY;
+    backup = (void *) dict + dict->size;
+    value = backup->lookup(dict, fold_res);
+    dict->flags |= saved_flags;
 
     /*
      * Validate the result, and if invalid fail the request.
      */
     if (value != 0 && dict_utf8_check(value, &utf8_err) == 0) {
 	msg_warn("%s:%s: key \"%s\": non-UTF-8 value \"%s\": %s",
-		       self->type, self->name, key, value, utf8_err);
-	self->error = DICT_ERR_CONFIG;
+		 dict->type, dict->name, key, value, utf8_err);
+	dict->error = DICT_ERR_CONFIG;
 	return (0);
     } else {
 	return (value);
@@ -186,20 +200,21 @@ static const char *dict_utf8_lookup(DICT *self, const char *key)
 
 /* dict_utf8_update - UTF-8 update method wrapper */
 
-static int dict_utf8_update(DICT *self, const char *key, const char *value)
+static int dict_utf8_update(DICT *dict, const char *key, const char *value)
 {
-    DICT   *dict;
+    DICT_UTF8_BACKUP *backup;
     const char *utf8_err;
     const char *fold_res;
+    int     saved_flags;
     int     status;
 
     /*
      * Validate or fold the key, and if invalid skip the request.
      */
-    if ((fold_res = dict_utf8_check_fold(self, key, &utf8_err)) == 0) {
+    if ((fold_res = dict_utf8_check_fold(dict, key, &utf8_err)) == 0) {
 	msg_warn("%s:%s: non-UTF-8 key \"%s\": %s",
-		       self->type, self->name, key, utf8_err);
-	self->error = DICT_ERR_NONE;
+		 dict->type, dict->name, key, utf8_err);
+	dict->error = DICT_ERR_NONE;
 	return (DICT_STAT_SUCCESS);
     }
 
@@ -208,111 +223,100 @@ static int dict_utf8_update(DICT *self, const char *key, const char *value)
      */
     else if (dict_utf8_check(value, &utf8_err) == 0) {
 	msg_warn("%s:%s: key \"%s\": non-UTF-8 value \"%s\": %s",
-		       self->type, self->name, key, value, utf8_err);
-	self->error = DICT_ERR_NONE;
+		 dict->type, dict->name, key, value, utf8_err);
+	dict->error = DICT_ERR_NONE;
 	return (DICT_STAT_SUCCESS);
     }
 
     /*
-     * Proxy the request.
+     * Proxy the request with casefolding turned off.
      */
     else {
-	dict = (void *) self - self->size;
-	dict->flags = self->flags;
-	status = dict->update(dict, fold_res, value);
-	self->flags = dict->flags;
-	self->error = dict->error;
+	saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
+	dict->flags &= ~DICT_FLAG_FOLD_ANY;
+	backup = (void *) dict + dict->size;
+	status = backup->update(dict, fold_res, value);
+	dict->flags |= saved_flags;
 	return (status);
     }
 }
 
 /* dict_utf8_delete - UTF-8 delete method wrapper */
 
-static int dict_utf8_delete(DICT *self, const char *key)
+static int dict_utf8_delete(DICT *dict, const char *key)
 {
-    DICT   *dict;
+    DICT_UTF8_BACKUP *backup;
     const char *utf8_err;
     const char *fold_res;
+    int     saved_flags;
     int     status;
 
     /*
      * Validate and optionally fold the key, and if invalid skip the request.
      */
-    if ((fold_res = dict_utf8_check_fold(self, key, &utf8_err)) == 0) {
+    if ((fold_res = dict_utf8_check_fold(dict, key, &utf8_err)) == 0) {
 	msg_warn("%s:%s: non-UTF-8 key \"%s\": %s",
-		       self->type, self->name, key, utf8_err);
-	self->error = DICT_ERR_NONE;
+		 dict->type, dict->name, key, utf8_err);
+	dict->error = DICT_ERR_NONE;
 	return (DICT_STAT_SUCCESS);
     }
 
     /*
-     * Proxy the request.
+     * Proxy the request with casefolding turned off.
      */
     else {
-	dict = (void *) self - self->size;
-	dict->flags = self->flags;
-	status = dict->delete(dict, fold_res);
-	self->flags = dict->flags;
-	self->error = dict->error;
+	saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
+	dict->flags &= ~DICT_FLAG_FOLD_ANY;
+	backup = (void *) dict + dict->size;
+	status = backup->delete(dict, fold_res);
+	dict->flags |= saved_flags;
 	return (status);
     }
 }
 
-/* dict_utf8_close - dummy */
+/* dict_utf8_activate - wrap a legacy dict object for UTF-8 processing */
 
-static void dict_utf8_close(DICT *self)
+DICT   *dict_utf8_activate(DICT *dict)
 {
-    DICT   *dict;
-
-    /*
-     * Destroy the dict object that we are appended to, and thereby destroy
-     * ourselves.
-     */
-    dict = (void *) self - self->size;
-    dict->close(dict);
-}
-
-/* dict_utf8_encapsulate - wrap a legacy dict object for UTF-8 processing */
-
-DICT   *dict_utf8_encapsulate(DICT *dict)
-{
-    DICT   *self;
+    DICT_UTF8_BACKUP *backup;
 
     /*
      * Sanity check.
      */
-    if (dict->flags & DICT_FLAG_UTF8_PROXY)
-	msg_panic("dict_utf8_encapsulate: %s:%s is already encapsulated",
+    if (dict->flags & DICT_FLAG_UTF8_ACTIVE)
+	msg_panic("dict_utf8_activate: %s:%s is already encapsulated",
 		  dict->type, dict->name);
 
     /*
-     * Append ourselves to the dict object, so that dict_close(dict) will do
-     * the right thing. dict->size is based on the actual size of the dict
-     * object's subclass, so we don't have to worry about alignment problems.
+     * Unlike dict_debug(3) we do not put a proxy dict object in front of the
+     * encapsulated object, because then we would have to bidirectionally
+     * propagate changes in the data members (errors, flags, jbuf, and so on)
+     * between proxy object and encapsulated object.
      * 
-     * XXX Add dict_flags argument to dict_alloc() so that it can allocate the
-     * right memory amount, and we can avoid having to resize an object.
+     * Instead we append ourselves to the encapsulated dict object itself, and
+     * redirect some function pointers. This approach does not yet generalize
+     * to arbitrary levels of encapsulation. That is, it does not co-exist
+     * with dict_debug(3) which is broken for the reasons stated above.
      */
-    dict = myrealloc(dict, dict->size + sizeof(*self));
-    self = (void *) dict + dict->size;
-    *self = *dict;
+    dict = myrealloc(dict, dict->size + sizeof(*backup));
+    backup = (void *) dict + dict->size;
 
     /*
-     * Interpose on the lookup/update/delete/close methods. In particular we
-     * do not interpose on the iterator. Invalid keys are not stored, and we
-     * want to be able to delete an invalid value.
+     * Interpose on the lookup/update/delete methods. It is a conscious
+     * decision not to tinker with the iterator or destructor.
      */
-    self->lookup = dict_utf8_lookup;
-    self->update = dict_utf8_update;
-    self->delete = dict_utf8_delete;
-    self->close = dict_utf8_close;
+    backup->lookup = dict->lookup;
+    backup->update = dict->update;
+    backup->delete = dict->delete;
+
+    dict->lookup = dict_utf8_lookup;
+    dict->update = dict_utf8_update;
+    dict->delete = dict_utf8_delete;
 
     /*
-     * Finally, disable casefolding in the dict object. It now happens in the
-     * lookup/update/delete wrappers.
+     * Leave our mark. See sanity check above.
      */
-    dict->flags &= ~DICT_FLAG_FOLD_ANY;
-    self->flags |= DICT_FLAG_UTF8_PROXY;
+    dict->flags |= DICT_FLAG_UTF8_ACTIVE;
 
-    return (self);
+    return (dict);
 }

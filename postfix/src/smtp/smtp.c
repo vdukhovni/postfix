@@ -1213,7 +1213,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     if (*var_smtp_generic_maps)
 	smtp_generic_maps =
 	    maps_create(VAR_LMTP_SMTP(GENERIC_MAPS), var_smtp_generic_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
 
     /*
      * Header/body checks.

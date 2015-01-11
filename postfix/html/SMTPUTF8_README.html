@@ -110,8 +110,27 @@ respect to earlier Postfix releases: </p>
 <ul>
 
 <li> <p> UTF-8 is permitted in the <a href="postconf.5.html#myorigin">myorigin</a> parameter value. However,
-the <a href="postconf.5.html#myhostname">myhostname</a> and <a href="postconf.5.html#mydomain">mydomain</a> parameters must specify ASCII-only
-domain names. This limitation may be removed later. </p>
+the <a href="postconf.5.html#myhostname">myhostname</a> and <a href="postconf.5.html#mydomain">mydomain</a> parameters must currently specify
+ASCII-only domain names. This limitation may be removed later. </p>
+
+<li> <p> UTF-8 is the only form of non-ASCII text that Postfix
+supports in access tables, address rewriting tables, and other
+tables that are indexed with an email address, hostname, or domain
+name. </p>
+
+<li> <p> The <a href="postconf.5.html#header_checks">header_checks</a>-like and <a href="postconf.5.html#body_checks">body_checks</a>-like features are
+not UTF-8 enabled, and therefore they do not enforce UTF-8 syntax
+rules on inputs and outputs.  The reason is that non-ASCII text may
+be sent in encodings other than UTF-8, and that real email sometimes
+contains malformed headers.  Instead of skipping non-UTF-8 content,
+Postfix should be able to filter it.  You may try to enable UTF-8
+processing by starting a PCRE pattern with the sequence (*UTF8),
+but this is will result in "message not accepted, try again later"
+errors when the PCRE pattern matcher encounters non-UTF-8 input.
+Other features that are not UTF-8 enabled are <a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a>,
+<a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a>, the *_delivery_status_filter features, and the
+*_dns_reply_filter features (the latter because DNS is by definition
+an ASCII protocol).  </p>
 
 <li> <p> The Postfix SMTP server announces SMTPUTF8 support in the
 EHLO response. </p>
@@ -262,8 +281,7 @@ UTF-8 form, and the ASCII (xn--mumble) form. The initial Postfix
 SMTPUTF8 implementation performs no automatic conversions on UTF8
 strings beyond what is needed to perform DNS lookups. </p>
 
-<h3> No characterset canonicalization for non-ASCII domain names.
-</h3>
+<h3> No automatic conversions between ASCII and UTF-8 domain names. </h3>
 
 <p> Postfix currently does not translate domain names from UTF-8
 into ASCII (or ASCII into UTF-8) before looking up the domain name
@@ -273,13 +291,20 @@ or Milter request. You will have to configure both UTF-8 and ASCII
 forms in Postfix configuration files; and both forms will have to
 be handled by logfile tools, policy daemons and Milters. </p>
 
-<h3> No case canonicalization for non-ASCII characters. </h3>
+<h3> Implemented: case-insensitive table search with non-ASCII text. </h3>
 
-<p> Postfix currently does not case-fold non-ASCII characters when
-looking up an "Internationalized" domain name in <a href="postconf.5.html#mydestination">mydestination</a>,
-<a href="postconf.5.html#relay_domains">relay_domains</a>, access maps, etc. Some non-ASCII scripts do not
-distinguish between upper and lower case, some have different numbers
-of upper and lower case characters. </p>
+<p> Postfix will casefold UTF-8 when searching with an "Internationalized"
+domain name or email address in <a href="postconf.5.html#mydestination">mydestination</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, access
+maps, <a href="postconf.5.html#transport_maps">transport_maps</a>, etc., and when maintaining tables with the
+<a href="postmap.1.html">postmap(1)</a> and <a href="postalias.1.html">postalias(1)</a> commands. </p>
+
+<h3> No case-insensitive matching of non-ASCII string patterns in matchlists. </h3>
+
+<p> Postfix currently does not yet implement case-insensitive string
+comparison for non-ASCII string patterns in list features such as
+<a href="postconf.5.html#mydestination">mydestination</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, etc. For now, use "<a href="DATABASE_README.html#types">inline</a>:{string}"
+instead of "string". This limitation will be removed before the
+stable release.  </p>
 
 <h2> <a name="compatibility">Compatibility with pre-SMTPUTF8
 environments</a> </h2>

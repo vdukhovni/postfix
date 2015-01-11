@@ -810,5 +810,6 @@ void    resolve_init(void)
     if (*var_relocated_maps)
 	relocated_maps =
 	    maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
 }

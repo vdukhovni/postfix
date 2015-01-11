@@ -636,6 +636,11 @@ void    mail_params_init()
 	VAR_DAEMON_OPEN_FATAL, DEF_DAEMON_OPEN_FATAL, &var_daemon_open_fatal,
 	0,
     };
+    static const CONFIG_NBOOL_TABLE first_nbool_defaults[] = {
+	/* read and process the following before opening tables. */
+	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
+	0,
+    };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {
 	VAR_MYHOSTNAME, check_myhostname, &var_myhostname, 1, 0,
 	VAR_MYDOMAIN, check_mydomainname, &var_mydomain, 1, 0,
@@ -758,10 +763,6 @@ void    mail_params_init()
 	VAR_STRICT_SMTPUTF8, DEF_STRICT_SMTPUTF8, &var_strict_smtputf8,
 	0,
     };
-    static const CONFIG_NBOOL_TABLE nbool_defaults[] = {
-	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
-	0,
-    };
     const char *cp;
 
     /*
@@ -789,6 +790,23 @@ void    mail_params_init()
     get_mail_conf_bool_table(first_bool_defaults);
     if (var_daemon_open_fatal)
 	dict_allow_surrogate = 0;
+
+    /*
+     * Should we open tables with UTF8 support, or in the legacy 8-bit clean
+     * mode with ASCII-only casefolding?
+     */
+    get_mail_conf_nbool_table(first_nbool_defaults);
+
+    /*
+     * Report run-time versus compile-time discrepancies.
+     */
+#ifdef NO_EAI
+    if (var_smtputf8_enable)
+	msg_warn("%s is true, but EAI support is not compiled in",
+		 VAR_SMTPUTF8_ENABLE);
+    var_smtputf8_enable = 0;
+#endif
+    util_utf8_enable = var_smtputf8_enable;
 
     /*
      * What protocols should we attempt to support? The result is stored in
@@ -833,7 +851,6 @@ void    mail_params_init()
     get_mail_conf_int_table(other_int_defaults);
     get_mail_conf_long_table(long_defaults);
     get_mail_conf_bool_table(bool_defaults);
-    get_mail_conf_nbool_table(nbool_defaults);
     get_mail_conf_time_table(time_defaults);
     check_default_privs();
     check_mail_owner();
@@ -842,17 +859,6 @@ void    mail_params_init()
     dict_db_cache_size = var_db_read_buf;
     dict_lmdb_map_size = var_lmdb_map_size;
     inet_windowsize = var_inet_windowsize;
-
-    /*
-     * Report run-time versus compile-time discrepancies.
-     */
-#ifdef NO_EAI
-    if (var_smtputf8_enable)
-	msg_warn("%s is true, but EAI support is not compiled in",
-		 VAR_SMTPUTF8_ENABLE);
-    var_smtputf8_enable = 0;
-#endif
-    util_utf8_enable = var_smtputf8_enable;
 
     /*
      * Variables whose defaults are determined at runtime, after other

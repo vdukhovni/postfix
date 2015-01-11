@@ -131,7 +131,7 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
      * dict_proxy module one level down in the build dependency hierachy.
      */
 #define CACHE_DICT_OPEN_FLAGS \
-	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE)
+	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE | DICT_FLAG_UTF8_REQUEST)
 #define PROXY_COLON	DICT_TYPE_PROXY ":"
 #define PROXY_COLON_LEN	(sizeof(PROXY_COLON) - 1)
 

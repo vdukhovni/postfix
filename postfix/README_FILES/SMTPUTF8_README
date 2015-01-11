@@ -65,8 +65,25 @@ With SMTPUTF8 support enabled, Postfix changes behavior with respect to earlier
 Postfix releases:
 
   * UTF-8 is permitted in the myorigin parameter value. However, the myhostname
-    and mydomain parameters must specify ASCII-only domain names. This
-    limitation may be removed later.
+    and mydomain parameters must currently specify ASCII-only domain names.
+    This limitation may be removed later.
+
+  * UTF-8 is the only form of non-ASCII text that Postfix supports in access
+    tables, address rewriting tables, and other tables that are indexed with an
+    email address, hostname, or domain name.
+
+  * The header_checks-like and body_checks-like features are not UTF-8 enabled,
+    and therefore they do not enforce UTF-8 syntax rules on inputs and outputs.
+    The reason is that non-ASCII text may be sent in encodings other than UTF-
+    8, and that real email sometimes contains malformed headers. Instead of
+    skipping non-UTF-8 content, Postfix should be able to filter it. You may
+    try to enable UTF-8 processing by starting a PCRE pattern with the sequence
+    (*UTF8), but this is will result in "message not accepted, try again later"
+    errors when the PCRE pattern matcher encounters non-UTF-8 input. Other
+    features that are not UTF-8 enabled are smtpd_command_filter,
+    smtp_reply_filter, the *_delivery_status_filter features, and the
+    *_dns_reply_filter features (the latter because DNS is by definition an
+    ASCII protocol).
 
   * The Postfix SMTP server announces SMTPUTF8 support in the EHLO response.
 
@@ -185,7 +202,7 @@ the ASCII (xn--mumble) form. The initial Postfix SMTPUTF8 implementation
 performs no automatic conversions on UTF8 strings beyond what is needed to
 perform DNS lookups.
 
-NNoo cchhaarraacctteerrsseett ccaannoonniiccaalliizzaattiioonn ffoorr nnoonn--AASSCCIIII ddoommaaiinn nnaammeess..
+NNoo aauuttoommaattiicc ccoonnvveerrssiioonnss bbeettwweeeenn AASSCCIIII aanndd UUTTFF--88 ddoommaaiinn nnaammeess..
 
 Postfix currently does not translate domain names from UTF-8 into ASCII (or
 ASCII into UTF-8) before looking up the domain name in mydestination,
@@ -194,12 +211,19 @@ using the domain name in a policy daemon or Milter request. You will have to
 configure both UTF-8 and ASCII forms in Postfix configuration files; and both
 forms will have to be handled by logfile tools, policy daemons and Milters.
 
-NNoo ccaassee ccaannoonniiccaalliizzaattiioonn ffoorr nnoonn--AASSCCIIII cchhaarraacctteerrss..
+IImmpplleemmeenntteedd:: ccaassee--iinnsseennssiittiivvee ttaabbllee sseeaarrcchh wwiitthh nnoonn--AASSCCIIII tteexxtt..
 
-Postfix currently does not case-fold non-ASCII characters when looking up an
-"Internationalized" domain name in mydestination, relay_domains, access maps,
-etc. Some non-ASCII scripts do not distinguish between upper and lower case,
-some have different numbers of upper and lower case characters.
+Postfix will casefold UTF-8 when searching with an "Internationalized" domain
+name or email address in mydestination, relay_domains, access maps,
+transport_maps, etc., and when maintaining tables with the postmap(1) and
+postalias(1) commands.
+
+NNoo ccaassee--iinnsseennssiittiivvee mmaattcchhiinngg ooff nnoonn--AASSCCIIII ssttrriinngg ppaatttteerrnnss iinn mmaattcchhlliissttss..
+
+Postfix currently does not yet implement case-insensitive string comparison for
+non-ASCII string patterns in list features such as mydestination,
+relay_domains, etc. For now, use "inline:{string}" instead of "string". This
+limitation will be removed before the stable release.
 
 CCoommppaattiibbiilliittyy wwiitthh pprree--SSMMTTPPUUTTFF88 eennvviirroonnmmeennttss
 

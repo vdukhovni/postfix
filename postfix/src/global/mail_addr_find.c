@@ -202,7 +202,8 @@ int     main(int argc, char **argv)
      * Initialize.
      */
     mail_conf_read();
-    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+    path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX \
+		       | DICT_FLAG_UTF8_REQUEST);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	extent = 0;
 	result = mail_addr_find(path, STR(buffer), &extent);

@@ -108,7 +108,7 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
 
 #define OPEN_FLAGS	O_RDONLY
 #define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX \
-			| DICT_FLAG_UTF8_ENABLE)
+			| DICT_FLAG_UTF8_REQUEST)
 #define STR(x)		vstring_str(x)
 
     /*

@@ -752,6 +752,8 @@ dict_inline_test: dict_open dict_inline.ref
 	$(SHLIB_ENV) ./dict_open inline:'{ foo=xx {x=y}x}' read </dev/null; \
 	(echo get foo; echo get bar; echo get baz) | $(SHLIB_ENV) \
 	    ./dict_open inline:'{ foo=XX, { bAr = lotsa stuff }}' read fold_fix; \
+	(echo get foo; echo get bar; echo get baz) | $(SHLIB_ENV) \
+	    ./dict_open inline:'{ foo=XX, { bAr = lotsa stuff }}' read 'fold_fix,utf8_request'; \
 	) >dict_inline.tmp 2>&1
 	diff dict_inline.ref dict_inline.tmp
 	rm -f dict_inline.tmp

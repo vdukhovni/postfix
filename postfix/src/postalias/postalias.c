@@ -348,7 +348,7 @@ static void postalias(char *map_type, char *path_name, int postalias_flags,
 	    /*
 	     * First some UTF-8 checks sans casefolding.
 	     */
-	    if (DICT_IS_ENABLE_UTF8(dict_flags)
+	    if ((mkmap->dict->flags & DICT_FLAG_UTF8_ACTIVE)
 		&& !allascii(STR(line_buffer))
 		&& !valid_utf8_string(STR(line_buffer), LEN(line_buffer))) {
 		msg_warn("%s, line %d: non-UTF-8 input \"%s\"",
@@ -689,7 +689,7 @@ int     main(int argc, char **argv)
     int     postalias_flags = POSTALIAS_FLAG_AS_OWNER | POSTALIAS_FLAG_SAVE_PERM;
     int     open_flags = O_RDWR | O_CREAT | O_TRUNC;
     int     dict_flags = (DICT_FLAG_DUP_WARN | DICT_FLAG_FOLD_FIX
-			  | DICT_FLAG_UTF8_ENABLE);
+			  | DICT_FLAG_UTF8_REQUEST);
     char   *query = 0;
     char   *delkey = 0;
     int     sequence = 0;
@@ -788,7 +788,7 @@ int     main(int argc, char **argv)
 	    sequence = 1;
 	    break;
 	case 'u':
-	    dict_flags &= ~DICT_FLAG_UTF8_ENABLE;
+	    dict_flags &= ~DICT_FLAG_UTF8_REQUEST;
 	    break;
 	case 'v':
 	    msg_verbose++;

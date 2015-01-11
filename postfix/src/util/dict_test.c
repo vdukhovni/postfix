@@ -76,7 +76,7 @@ void    dict_test(int argc, char **argv)
 	dict_flags |= DICT_FLAG_LOCK;
     if ((dict_flags & (DICT_FLAG_DUP_WARN | DICT_FLAG_DUP_IGNORE)) == 0)
 	dict_flags |= DICT_FLAG_DUP_REPLACE;
-    dict_flags |= DICT_FLAG_UTF8_ENABLE;
+    dict_flags |= DICT_FLAG_UTF8_REQUEST;
     vstream_fflush(VSTREAM_OUT);
     dict_name = argv[optind];
     dict_allow_surrogate = 1;

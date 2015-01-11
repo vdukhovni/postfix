@@ -80,7 +80,7 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
     /*
      * UTF-8 syntax check.
      */
-    if (DICT_IS_ENABLE_UTF8(dict_flags)
+    if (DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags)
 	&& allascii(name) == 0
 	&& valid_utf8_string(name, strlen(name)) == 0)
 	DICT_INLINE_RETURN(dict_surrogate(DICT_TYPE_INLINE, name,

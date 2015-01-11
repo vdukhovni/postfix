@@ -21313,9 +21313,35 @@ Apologies for any names omitted.
 
 	As a first step, with "smtputf8_enable = yes" all features
 	based on Postfix matchlists enable UTF-8 syntax checks and
-	casefolding support for table queries and results. That
-	includes mynetworks, mydestination, relay_domains,
-	virtual_alias_domains, and virtual_mailbox_domains.
+	UTF-8 casefolding for table patterns, but NOT YET for string
+	patterns. The list of features includes authorized_flush_users,
+	authorized_mailq_users, authorized_submit_users, debug_peer_list,
+	fast_flush_domains, mydestination, permit_mx_backup_networks,
+	qmqpd_authorized_clients, smtp_connection_cache_destinations,
+	smtpd_authorized_verp_clients, smtpd_authorized_xclient_hosts,
+	smtpd_authorized_xforward_hosts,
+	smtpd_client_event_limit_exceptions,
+	smtpd_log_access_permit_actions, smtpd_sasl_exceptions_networks,
+	the "domains" feature in ldap_table(5), memcache_table(5)
+	mysql_table(5), pgsql_table(5) and sqlite_table(5),
+	virtual_alias_domains, virtual_mailbox_domains.
 
-	The next step is to turn on UTF-8 syntax checks and casefolding
-	support for access maps, address rewriting and routing.
+20140111
+
+	Cleanup: simplified the interposition layer that adds UTF-8
+	support to Postfix lookup tables. Files: util/dict_utf8.c.
+
+	With "smtputf8_enable = yes", Enable UTF-8 syntax checks
+	and UTF-8 casefolding for SMTP server access maps, alias_maps,
+	canonical_maps, fallback_transport_maps,
+	lmtp_tls_session_cache_database, local_recipient_maps,
+	mailbox_command_maps, mailbox_transport_maps, rbl_reply_maps,
+	recipient_bcc_maps, recipient_canonical_maps, relay_recipient_maps,
+	relocated_maps, sender_bcc_maps, sender_canonical_maps,
+	sender_dependent_relayhost_maps, sender_dependent_transport_maps,
+	smtp_generic_maps, smtp_sasl_auth_cache_name,
+	smtp_sasl_password_maps, smtp_tls_per_site, smtp_tls_policy_maps,
+	smtp_tls_session_cache_database, smtpd_sender_login_maps,
+	smtpd_tls_session_cache_database, transport_maps,
+	virtual_alias_maps, virtual_gid_maps, virtual_mailbox_maps,
+	virtual_uid_maps.
