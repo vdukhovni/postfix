@@ -21326,7 +21326,7 @@ Apologies for any names omitted.
 	mysql_table(5), pgsql_table(5) and sqlite_table(5),
 	virtual_alias_domains, virtual_mailbox_domains.
 
-20140111
+20150111
 
 	Cleanup: simplified the interposition layer that adds UTF-8
 	support to Postfix lookup tables. Files: util/dict_utf8.c.
@@ -21345,3 +21345,14 @@ Apologies for any names omitted.
 	smtpd_tls_session_cache_database, transport_maps,
 	virtual_alias_maps, virtual_gid_maps, virtual_mailbox_maps,
 	virtual_uid_maps.
+
+20150112
+
+	Support for UTF-8 casefolding in match_lists. Instead of
+	using strcasecmp(), casefold all string constant patterns
+	during initialization, and casefold a search string at the
+	beginning of the search, and use strcmp() for comparison.
+	Files: util/casefold.c util/dict.h, util/dict_utf8.c,
+	util/match_list.c, util/match_list.h, util/match_ops.c,
+	util/stringops.h, global/addr_match_list.c, global/domain_list.c,
+	global/namadr_list.c, global/string_list.c.

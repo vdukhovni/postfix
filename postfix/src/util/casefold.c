@@ -7,6 +7,7 @@
 /*	#include <stringops.h>
 /*
 /*	char	*casefold(
+/*	int	utf8_request,
 /*	VSTRING *src,
 /*	const char *src,
 /*	CONST_CHAR_STAR *err)
@@ -29,6 +30,8 @@
 /*	range), not even when running inside an empty chroot jail.
 /*
 /*	Arguments:
+/* .IP utf8_request
+/*	Perform UTF-8 case folding.
 /* .IP src
 /*	Null-terminated input string.
 /* .IP dest
@@ -69,7 +72,8 @@
 
 /* casefold - casefold an UTF-8 string */
 
-char   *casefold(VSTRING *dest, const char *src, CONST_CHAR_STAR *err)
+char   *casefold(int utf8_req, VSTRING *dest, const char *src,
+		         CONST_CHAR_STAR *err)
 {
 #ifdef NO_EAI
 
@@ -91,7 +95,7 @@ char   *casefold(VSTRING *dest, const char *src, CONST_CHAR_STAR *err)
     /*
      * All-ASCII input.
      */
-    if (allascii(src)) {
+    if (utf8_req == 0 || allascii(src)) {
 	vstring_strcpy(dest, src);
 	return (lowercase(STR(dest)));
     }
@@ -183,14 +187,14 @@ int     main(int argc, char **argv)
     char   *conv_res;
     const char *fold_err;
     char   *cmd;
-    int     codepoint, first, last;
+    int     codepoint, first, last, utf8_req;
 
     if (setlocale(LC_ALL, "C") == 0)
 	msg_fatal("setlocale(LC_ALL, C) failed: %m");
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
-    util_utf8_enable = 1;
+    utf8_req = util_utf8_enable = 1;
 
     VSTRING_SPACE(buffer, 256);			/* chroot pathname */
 
@@ -207,7 +211,7 @@ int     main(int argc, char **argv)
 	 * Null-terminated string.
 	 */
 	if (strcmp(cmd, "fold") == 0) {
-	    if ((conv_res = casefold(dest, bp, &fold_err)) != 0)
+	    if ((conv_res = casefold(utf8_req, dest, bp, &fold_err)) != 0)
 		msg_info("\"%s\" ->fold \"%s\"", bp, conv_res);
 	    else
 		msg_warn("cannot casefold \"%s\": %s", bp, fold_err);
@@ -229,7 +233,7 @@ int     main(int argc, char **argv)
 			msg_info("U+%X -> %s", codepoint, STR(buffer));
 		    if (valid_utf8_string(STR(buffer), LEN(buffer)) == 0)
 			msg_fatal("bad utf-8 encoding for U+%X", codepoint);
-		    if (casefold(dest, STR(buffer), &fold_err) == 0)
+		    if (casefold(utf8_req, dest, STR(buffer), &fold_err) == 0)
 			msg_warn("casefold error for U+%X: %s",
 				 codepoint, fold_err);
 		}

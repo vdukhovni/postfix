@@ -218,13 +218,6 @@ name or email address in mydestination, relay_domains, access maps,
 transport_maps, etc., and when maintaining tables with the postmap(1) and
 postalias(1) commands.
 
-NNoo ccaassee--iinnsseennssiittiivvee mmaattcchhiinngg ooff nnoonn--AASSCCIIII ssttrriinngg ppaatttteerrnnss iinn mmaattcchhlliissttss..
-
-Postfix currently does not yet implement case-insensitive string comparison for
-non-ASCII string patterns in list features such as mydestination,
-relay_domains, etc. For now, use "inline:{string}" instead of "string". This
-limitation will be removed before the stable release.
-
 CCoommppaattiibbiilliittyy wwiitthh pprree--SSMMTTPPUUTTFF88 eennvviirroonnmmeennttss
 
 MMaaiilliinngg lliissttss wwiitthh UUTTFF--88 aanndd nnoonn--UUTTFF--88 ssuubbssccrriibbeerrss

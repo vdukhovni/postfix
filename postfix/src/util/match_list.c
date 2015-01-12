@@ -20,7 +20,8 @@
 /*	MATCH_LIST *list;
 /* DESCRIPTION
 /*	This module implements a framework for tests for list membership.
-/*	The actual tests are done by user-supplied functions.
+/*	The actual tests are done by user-supplied functions. With
+/*	util_utf8_enable non-zero, string comparison supports UTF-8.
 /*
 /*	Patterns are separated by whitespace and/or commas. A pattern
 /*	is either a string, a file name (in which case the contents
@@ -94,7 +95,8 @@
 
 /* match_list_parse - parse buffer, destroy buffer */
 
-static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
+static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
+			              char *string, int init_match)
 {
     const char *myname = "match_list_parse";
     VSTRING *buf = vstring_alloc(10);
@@ -105,15 +107,23 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
     char   *item;
     char   *map_type_name_flags;
     int     match;
+    const char *utf8_err;
 
+    /*
+     * No DICT_FLAG_FOLD_FIX here, because we casefold the search string at
+     * the beginning of a search. String constant patterns are casefolded
+     * during match_list initialization.
+     */
 #define OPEN_FLAGS	O_RDONLY
-#define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX \
-			| DICT_FLAG_UTF8_REQUEST)
+#define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_UTF8_REQUEST)
 #define STR(x)		vstring_str(x)
 
     /*
      * /filename contents are expanded in-line. To support !/filename we
      * prepend the negation operator to each item from the file.
+     * 
+     * If there is an error, implement graceful degradation by inserting a
+     * pseudo table whose lookups fail with a warning message.
      */
     while ((start = mystrtokq(&bp, delim, CHARS_BRACE)) != 0) {
 	if (*start == '#') {
@@ -128,17 +138,17 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
 	if (*item == '/') {			/* /file/name */
 	    if ((fp = vstream_fopen(item, O_RDONLY, 0)) == 0) {
 		vstring_sprintf(buf, "%s:%s", DICT_TYPE_NOFILE, item);
-		/* XXX Should increment existing map refcount. */
 		if (dict_handle(STR(buf)) == 0)
 		    dict_register(STR(buf),
 				  dict_surrogate(DICT_TYPE_NOFILE, item,
 						 OPEN_FLAGS, DICT_FLAGS,
 						 "open file %s: %m", item));
-		argv_add(list, STR(buf), (char *) 0);
+		argv_add(pat_list, STR(buf), (char *) 0);
 	    } else {
 		while (vstring_fgets(buf, fp))
 		    if (vstring_str(buf)[0] != '#')
-			list = match_list_parse(list, vstring_str(buf), match);
+			pat_list = match_list_parse(match_list, pat_list,
+						    vstring_str(buf), match);
 		if (vstream_fclose(fp))
 		    msg_fatal("%s: read file %s: %m", myname, item);
 	    }
@@ -146,18 +156,28 @@ static ARGV *match_list_parse(ARGV *list, char *string, int init_match)
 	    vstring_sprintf(buf, "%s%s(%o,%s)", match ? "" : "!",
 			    item, OPEN_FLAGS, dict_flags_str(DICT_FLAGS));
 	    map_type_name_flags = STR(buf) + (match == 0);
-	    /* XXX Should increment existing map refcount. */
 	    if (dict_handle(map_type_name_flags) == 0)
 		dict_register(map_type_name_flags,
 			      dict_open(item, OPEN_FLAGS, DICT_FLAGS));
-	    argv_add(list, STR(buf), (char *) 0);
+	    argv_add(pat_list, STR(buf), (char *) 0);
 	} else {				/* other pattern */
-	    argv_add(list, match ? item :
-		     STR(vstring_sprintf(buf, "!%s", item)), (char *) 0);
+	    if (casefold(util_utf8_enable, match_list->fold_buf, match ?
+			 item : STR(vstring_sprintf(buf, "!%s", item)),
+			 &utf8_err) == 0) {
+		vstring_sprintf(match_list->fold_buf, "%s:%s",
+				DICT_TYPE_NOUTF8, item);
+		if (dict_handle(STR(match_list->fold_buf)) == 0)
+		    dict_register(STR(match_list->fold_buf),
+				  dict_surrogate(DICT_TYPE_NOFILE, item,
+						 OPEN_FLAGS, DICT_FLAGS,
+						 "casefold error: %s",
+						 utf8_err));
+	    }
+	    argv_add(pat_list, STR(match_list->fold_buf), (char *) 0);
 	}
     }
     vstring_free(buf);
-    return (list);
+    return (pat_list);
 }
 
 /* match_list_init - initialize pattern list */
@@ -184,11 +204,13 @@ MATCH_LIST *match_list_init(int flags, const char *patterns, int match_count,...
 	list->match_func[i] = va_arg(ap, MATCH_LIST_FN);
     va_end(ap);
     list->error = 0;
+    list->fold_buf = vstring_alloc(20);
 
 #define DO_MATCH	1
 
     saved_patterns = mystrdup(patterns);
-    list->patterns = match_list_parse(argv_alloc(1), saved_patterns, DO_MATCH);
+    list->patterns = match_list_parse(list, argv_alloc(1), saved_patterns,
+				      DO_MATCH);
     argv_terminate(list->patterns);
     myfree(saved_patterns);
     return (list);
@@ -204,6 +226,7 @@ int     match_list_match(MATCH_LIST *list,...)
     int     match;
     int     i;
     va_list ap;
+    const char *utf8_err;
 
     /*
      * Iterate over all patterns in the list, stop at the first match.
@@ -217,11 +240,18 @@ int     match_list_match(MATCH_LIST *list,...)
     for (cpp = list->patterns->argv; (pat = *cpp) != 0; cpp++) {
 	for (match = 1; *pat == '!'; pat++)
 	    match = !match;
-	for (i = 0; i < list->match_count; i++)
-	    if (list->match_func[i] (list, list->match_args[i], pat))
+	for (i = 0; i < list->match_count; i++) {
+	    if (casefold(util_utf8_enable, list->fold_buf,
+			 list->match_args[i], &utf8_err) == 0) {
+		msg_warn("%s: casefold error for \"%s\": %s",
+			 myname, list->match_args[i], utf8_err);
+		continue;
+	    }
+	    if (list->match_func[i] (list, STR(list->fold_buf), pat))
 		return (match);
 	    else if (list->error != 0)
 		return (0);
+	}
     }
     if (msg_verbose)
 	for (i = 0; i < list->match_count; i++)
@@ -237,5 +267,6 @@ void    match_list_free(MATCH_LIST *list)
     argv_free(list->patterns);
     myfree((void *) list->match_func);
     myfree((void *) list->match_args);
+    vstring_free(list->fold_buf);
     myfree((void *) list);
 }

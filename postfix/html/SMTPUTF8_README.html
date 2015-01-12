@@ -298,14 +298,6 @@ domain name or email address in <a href="postconf.5.html#mydestination">mydestin
 maps, <a href="postconf.5.html#transport_maps">transport_maps</a>, etc., and when maintaining tables with the
 <a href="postmap.1.html">postmap(1)</a> and <a href="postalias.1.html">postalias(1)</a> commands. </p>
 
-<h3> No case-insensitive matching of non-ASCII string patterns in matchlists. </h3>
-
-<p> Postfix currently does not yet implement case-insensitive string
-comparison for non-ASCII string patterns in list features such as
-<a href="postconf.5.html#mydestination">mydestination</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, etc. For now, use "<a href="DATABASE_README.html#types">inline</a>:{string}"
-instead of "string". This limitation will be removed before the
-stable release.  </p>
-
 <h2> <a name="compatibility">Compatibility with pre-SMTPUTF8
 environments</a> </h2>
 

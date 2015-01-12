@@ -269,6 +269,7 @@ extern DICT *PRINTFLIKE(5, 6) dict_surrogate(const char *, const char *, int, in
   * This name is reserved for matchlist error handling.
   */
 #define DICT_TYPE_NOFILE	"non-existent"
+#define DICT_TYPE_NOUTF8	"non-UTF-8"
 
  /*
   * Duplicated from vstream(3). This should probably be abstracted out.

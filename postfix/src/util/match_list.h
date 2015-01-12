@@ -15,6 +15,7 @@
   * Utility library.
   */
 #include <argv.h>
+#include <vstring.h>
 
  /*
   * External interface.
@@ -29,6 +30,7 @@ struct MATCH_LIST {
     int     match_count;		/* match function/argument count */
     MATCH_LIST_FN *match_func;		/* match functions */
     const char **match_args;		/* match arguments */
+    VSTRING *fold_buf;			/* case-folded pattern string */
     int     error;			/* last operation */
 };
 

@@ -34,9 +34,7 @@
 /*	configuration error.
 /*
 /*	The dict_utf8_check* functions may be invoked to perform
-/*	UTF-8 validity checks when util_utf8_enable is non-zero and
-/*	DICT_FLAG_UTF8_ENABLE is set. Otherwise both functions
-/*	always report success.
+/*	UTF-8 validity checks when util_utf8_enable is non-zero.
 /*
 /*	dict_utf8_check_fold() optionally folds a string, and checks
 /*	it for UTF-8 validity. The result is the possibly-folded
@@ -130,7 +128,8 @@ char   *dict_utf8_check_fold(DICT *dict, const char *string,
 			   DICT_FLAG_FOLD_FIX : DICT_FLAG_FOLD_MUL)) {
 	if (dict->fold_buf == 0)
 	    dict->fold_buf = vstring_alloc(10);
-	return (casefold(dict->fold_buf, string, err));
+	return (casefold(dict->flags & DICT_FLAG_UTF8_ACTIVE,
+			 dict->fold_buf, string, err));
     }
 
     /*
@@ -278,14 +277,20 @@ static int dict_utf8_delete(DICT *dict, const char *key)
 
 DICT   *dict_utf8_activate(DICT *dict)
 {
+    const char myname[] = "dict_utf8_activate";
     DICT_UTF8_BACKUP *backup;
 
     /*
      * Sanity check.
      */
+    if (util_utf8_enable == 0)
+	msg_panic("%s: Unicode support is not available", myname);
+    if ((dict->flags & DICT_FLAG_UTF8_REQUEST) == 0)
+	msg_panic("%s: %s:%s does not request Unicode support",
+		  myname, dict->type, dict->name);
     if (dict->flags & DICT_FLAG_UTF8_ACTIVE)
-	msg_panic("dict_utf8_activate: %s:%s is already encapsulated",
-		  dict->type, dict->name);
+	msg_panic("%s: %s:%s Unicode support is already activated",
+		  myname, dict->type, dict->name);
 
     /*
      * Unlike dict_debug(3) we do not put a proxy dict object in front of the

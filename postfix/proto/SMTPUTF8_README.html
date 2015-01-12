@@ -298,14 +298,6 @@ domain name or email address in mydestination, relay_domains, access
 maps, transport_maps, etc., and when maintaining tables with the
 postmap(1) and postalias(1) commands. </p>
 
-<h3> No case-insensitive matching of non-ASCII string patterns in matchlists. </h3>
-
-<p> Postfix currently does not yet implement case-insensitive string
-comparison for non-ASCII string patterns in list features such as
-mydestination, relay_domains, etc. For now, use "inline:{string}"
-instead of "string". This limitation will be removed before the
-stable release.  </p>
-
 <h2> <a name="compatibility">Compatibility with pre-SMTPUTF8
 environments</a> </h2>
 

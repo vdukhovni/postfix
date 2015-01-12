@@ -95,6 +95,7 @@
 #include <vstream.h>
 #include <msg_vstream.h>
 #include <dict.h>
+#include <stringops.h>			/* util_utf8_enable */
 
 static void usage(char *progname)
 {
@@ -122,6 +123,7 @@ int     main(int argc, char **argv)
     if (argc != optind + 3)
 	usage(argv[0]);
     dict_allow_surrogate = 1;
+    util_utf8_enable = 1;
     list = namadr_list_init(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN, argv[optind]);
     host = argv[optind + 1];
     addr = argv[optind + 2];

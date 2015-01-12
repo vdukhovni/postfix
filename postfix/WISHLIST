@@ -8,6 +8,8 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Add context argument for better match_list diagnostics.
+
 	Expose UTF8 flag in server_acl API. Some applications such
 	as postscreen don't need UTF8 support.
 

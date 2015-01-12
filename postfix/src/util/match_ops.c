@@ -132,9 +132,10 @@ int     match_string(MATCH_LIST *list, const char *string, const char *pattern)
     }
 
     /*
-     * Try an exact string match.
+     * Try an exact string match. Note that the string and pattern are
+     * already casefolded.
      */
-    if (strcasecmp(string, pattern) == 0) {
+    if (strcmp(string, pattern) == 0) {
 	return (1);
     }
 
@@ -189,23 +190,25 @@ int     match_hostname(MATCH_LIST *list, const char *name, const char *pattern)
     }
 
     /*
-     * Try an exact match with the host name.
+     * Try an exact match with the host name. Note that the name and the
+     * pattern are already casefolded.
      */
-    if (strcasecmp(name, pattern) == 0) {
+    if (strcmp(name, pattern) == 0) {
 	return (1);
     }
 
     /*
-     * See if the pattern is a parent domain of the hostname.
+     * See if the pattern is a parent domain of the hostname. Note that the
+     * name and the pattern are already casefolded.
      */
     else {
 	if (list->flags & MATCH_FLAG_PARENT) {
 	    pd = name + strlen(name) - strlen(pattern);
-	    if (pd > name && pd[-1] == '.' && strcasecmp(pd, pattern) == 0)
+	    if (pd > name && pd[-1] == '.' && strcmp(pd, pattern) == 0)
 		return (1);
 	} else if (pattern[0] == '.') {
 	    pd = name + strlen(name) - strlen(pattern);
-	    if (pd > name && strcasecmp(pd, pattern) == 0)
+	    if (pd > name && strcmp(pd, pattern) == 0)
 		return (1);
 	}
     }
@@ -247,15 +250,16 @@ int     match_hostaddr(MATCH_LIST *list, const char *addr, const char *pattern)
     }
 
     /*
-     * Try an exact match with the host address.
+     * Try an exact match with the host address. Note that the address and
+     * pattern are already casefolded.
      */
     if (pattern[0] != '[') {
-	if (strcasecmp(addr, pattern) == 0)
+	if (strcmp(addr, pattern) == 0)
 	    return (1);
     } else {
 	size_t  addr_len = strlen(addr);
 
-	if (strncasecmp(addr, pattern + 1, addr_len) == 0
+	if (strncmp(addr, pattern + 1, addr_len) == 0
 	    && strcmp(pattern + 1 + addr_len, "]") == 0)
 	    return (1);
     }
@@ -271,7 +275,7 @@ int     match_hostaddr(MATCH_LIST *list, const char *addr, const char *pattern)
      * - Don't bother unless the pattern is either an IPv6 address or net/mask.
      * 
      * We can safely skip IPv4 address patterns because their form is
-     * unambiguous and they did not match in the strcasecmp() calls above.
+     * unambiguous and they did not match in the strcmp() calls above.
      * 
      * XXX We MUST skip (parent) domain names, which may appear in NAMADR_LIST
      * input, to avoid triggering false cidr_match_parse() errors.
