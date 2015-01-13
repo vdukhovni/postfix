@@ -25,6 +25,7 @@ typedef struct MATCH_LIST MATCH_LIST;
 typedef int (*MATCH_LIST_FN) (MATCH_LIST *, const char *, const char *);
 
 struct MATCH_LIST {
+    char   *pname;			/* used in error messages */
     int     flags;			/* processing options */
     ARGV   *patterns;			/* one pattern each */
     int     match_count;		/* match function/argument count */
@@ -39,7 +40,7 @@ struct MATCH_LIST {
 #define MATCH_FLAG_RETURN	(1<<1)
 #define MATCH_FLAG_ALL		(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN)
 
-extern MATCH_LIST *match_list_init(int, const char *, int,...);
+extern MATCH_LIST *match_list_init(const char *, int, const char *, int,...);
 extern int match_list_match(MATCH_LIST *,...);
 extern void match_list_free(MATCH_LIST *);
 
@@ -63,4 +64,3 @@ extern int match_hostaddr(MATCH_LIST *, const char *, const char *);
 /*--*/
 
 #endif
-

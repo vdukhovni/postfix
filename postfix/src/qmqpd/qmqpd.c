@@ -785,7 +785,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 {
     debug_peer_init();
     qmqpd_clients =
-	namadr_list_init(MATCH_FLAG_RETURN
+	namadr_list_init(VAR_QMQPD_CLIENTS, MATCH_FLAG_RETURN
 			 | match_parent_style(VAR_QMQPD_CLIENTS),
 			 var_qmqpd_clients);
 }

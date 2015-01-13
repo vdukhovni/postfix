@@ -270,7 +270,8 @@ static void show_queue(void)
     uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
-	&& (errstr = check_user_acl_byuid(var_showq_acl, uid)) != 0)
+	&& (errstr = check_user_acl_byuid(VAR_SHOWQ_ACL, var_showq_acl,
+					  uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
 		       "User %s(%ld) is not allowed to view the mail queue",
 			 errstr, (long) uid);
@@ -344,7 +345,8 @@ static void flush_queue(void)
     uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
-	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
+	&& (errstr = check_user_acl_byuid(VAR_FLUSH_ACL, var_flush_acl,
+					  uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
 		      "User %s(%ld) is not allowed to flush the mail queue",
 			 errstr, (long) uid);
@@ -370,7 +372,8 @@ static void flush_site(const char *site)
     uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
-	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
+	&& (errstr = check_user_acl_byuid(VAR_FLUSH_ACL, var_flush_acl,
+					  uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
 		      "User %s(%ld) is not allowed to flush the mail queue",
 			 errstr, (long) uid);
@@ -404,7 +407,8 @@ static void flush_file(const char *queue_id)
     uid_t   uid = getuid();
 
     if (uid != 0 && uid != var_owner_uid
-	&& (errstr = check_user_acl_byuid(var_flush_acl, uid)) != 0)
+	&& (errstr = check_user_acl_byuid(VAR_FLUSH_ACL, var_flush_acl,
+					  uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
 		      "User %s(%ld) is not allowed to flush the mail queue",
 			 errstr, (long) uid);

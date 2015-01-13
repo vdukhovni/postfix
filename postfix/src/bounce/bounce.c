@@ -319,7 +319,9 @@ static int bounce_notify_proto(char *service_name, VSTREAM *client,
 	msg_warn("malformed queue id: %s", printable(STR(queue_id), '?'));
 	return (-1);
     }
-    printable(STR(dsn_envid), '?');
+    VS_NEUTER(encoding);
+    VS_NEUTER(sender);
+    VS_NEUTER(dsn_envid);
     if (msg_verbose)
 	msg_info("%s: flags=0x%x service=%s queue=%s id=%s encoding=%s smtputf8=%d sender=%s envid=%s ret=0x%x",
 		 myname, flags, service_name, STR(queue_name), STR(queue_id),
@@ -380,10 +382,12 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
 	msg_warn("malformed queue id: %s", printable(STR(queue_id), '?'));
 	return (-1);
     }
-    printable(STR(dsn_envid), '?');
+    VS_NEUTER(encoding);
+    VS_NEUTER(sender);
+    VS_NEUTER(dsn_envid);
+    VS_NEUTER(verp_delims);
     if (strlen(STR(verp_delims)) != 2) {
-	msg_warn("malformed verp delimiter string: %s",
-		 printable(STR(verp_delims), '?'));
+	msg_warn("malformed verp delimiter string: %s", STR(verp_delims));
 	return (-1);
     }
     if (msg_verbose)
@@ -460,7 +464,9 @@ static int bounce_one_proto(char *service_name, VSTREAM *client)
 	msg_warn("malformed queue id: %s", printable(STR(queue_id), '?'));
 	return (-1);
     }
-    printable(STR(dsn_envid), '?');
+    VS_NEUTER(encoding);
+    VS_NEUTER(sender);
+    VS_NEUTER(dsn_envid);
     VS_NEUTER(rcpt_buf->address);
     VS_NEUTER(rcpt_buf->orig_addr);
     VS_NEUTER(rcpt_buf->dsn_orcpt);

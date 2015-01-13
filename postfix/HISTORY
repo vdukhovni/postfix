@@ -21348,11 +21348,34 @@ Apologies for any names omitted.
 
 20150112
 
-	Support for UTF-8 casefolding in match_lists. Instead of
-	using strcasecmp(), casefold all string constant patterns
-	during initialization, and casefold a search string at the
-	beginning of the search, and use strcmp() for comparison.
-	Files: util/casefold.c util/dict.h, util/dict_utf8.c,
+	Infrastructure: support for UTF-8 casefolding in match_lists.
+	Instead of using strcasecmp(), casefold all fixed-string
+	patterns during initialization, casefold a search string
+	at the beginning of the search, and use strcmp() for
+	comparison.  Files: util/casefold.c util/dict.h, util/dict_utf8.c,
 	util/match_list.c, util/match_list.h, util/match_ops.c,
 	util/stringops.h, global/addr_match_list.c, global/domain_list.c,
 	global/namadr_list.c, global/string_list.c.
+
+20150113
+
+	Cleanup: show the configuration parameter name in error
+	messages while parsing or searching match_list-based features
+	such as mydestination, relay_domains and a few dozen more.
+	Files: cleanup/cleanup_init.c, flush/flush.c,
+	global/addr_match_list.c, global/debug_peer.c,
+	global/domain_list.c, global/flush_clnt.c,
+	global/match_parent_style.c, global/namadr_list.c,
+	global/resolve_local.c, global/string_list.c, global/user_acl.[hc],
+	postdrop/postdrop.c, postqueue/postqueue.c,
+	postscreen/postscreen.c, qmqpd/qmqpd.c, sendmail/sendmail.c.,
+	smtp/smtp.c, smtp/smtp_sasl_glue.c, smtpd/smtpd.c,
+	smtpd/smtpd_check.c, trivial-rewrite/resolve.c,
+	util/match_list.[hc], util/match_ops.c.
+
+	Cleanup: apply printable() to all bounce(8) service
+	string-valued protocol fields. File: bounce/bounce.c.
+
+	Apparenly the UCI 4.8 ucasemap_utf8FoldCase() function does
+	not complain about UTF-8 syntax errors, so we add our own
+	redundant check. File: util/casefold.c.

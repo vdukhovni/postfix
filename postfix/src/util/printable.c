@@ -16,7 +16,7 @@
 /*	in its input with the given replacement.
 /*
 /*	util_utf8_enable controls whether UTF8 is considered printable.
-/*	By default, non-ASCII text is replaced.
+/*	With util_utf8_enable equal to zero, non-ASCII text is replaced.
 /*
 /*	Arguments:
 /* .IP buffer

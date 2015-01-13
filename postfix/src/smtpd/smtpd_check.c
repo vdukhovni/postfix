@@ -706,16 +706,17 @@ void    smtpd_check_init(void)
      * Pre-open access control lists before going to jail.
      */
     mynetworks_curr =
-	namadr_list_init(MATCH_FLAG_RETURN | match_parent_style(VAR_MYNETWORKS),
-			 var_mynetworks);
+	namadr_list_init(VAR_MYNETWORKS, MATCH_FLAG_RETURN
+		      | match_parent_style(VAR_MYNETWORKS), var_mynetworks);
     mynetworks_new =
-	namadr_list_init(MATCH_FLAG_RETURN | match_parent_style(VAR_MYNETWORKS),
-			 mynetworks_host());
+	namadr_list_init(VAR_MYNETWORKS, MATCH_FLAG_RETURN
+		   | match_parent_style(VAR_MYNETWORKS), mynetworks_host());
     relay_domains =
-	domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+	domain_list_init(VAR_RELAY_DOMAINS,
+			 match_parent_style(VAR_RELAY_DOMAINS),
 			 var_relay_domains);
     perm_mx_networks =
-	namadr_list_init(MATCH_FLAG_RETURN
+	namadr_list_init(VAR_PERM_MX_NETWORKS, MATCH_FLAG_RETURN
 			 | match_parent_style(VAR_PERM_MX_NETWORKS),
 			 var_perm_mx_networks);
 #ifdef USE_TLS
@@ -747,8 +748,10 @@ void    smtpd_check_init(void)
 				  | DICT_FLAG_UTF8_REQUEST);
 
 #ifdef TEST
-    virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
-    virt_mailbox_doms = string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
+    virt_alias_doms = string_list_init(VAR_VIRT_ALIAS_DOMS, MATCH_FLAG_NONE,
+				       var_virt_alias_doms);
+    virt_mailbox_doms = string_list_init(VAR_VIRT_MAILBOX_DOMS, MATCH_FLAG_NONE,
+					 var_virt_mailbox_doms);
 #endif
 
     access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
@@ -889,7 +892,8 @@ void    smtpd_check_init(void)
     /*
      * Optional permit logging.
      */
-    smtpd_acl_perm_log = string_list_init(MATCH_FLAG_RETURN,
+    smtpd_acl_perm_log = string_list_init(VAR_SMTPD_ACL_PERM_LOG,
+					  MATCH_FLAG_RETURN,
 					  var_smtpd_acl_perm_log);
 }
 
@@ -5975,9 +5979,9 @@ int     main(int argc, char **argv)
 #define UPDATE_MAPS(ptr, var, val, lock) \
 	{ if (ptr) maps_free(ptr); ptr = maps_create(var, val, lock); }
 
-#define UPDATE_LIST(ptr, val) \
+#define UPDATE_LIST(ptr, var, val) \
 	{ if (ptr) string_list_free(ptr); \
-	  ptr = string_list_init(MATCH_FLAG_NONE, val); }
+	  ptr = string_list_init(var, MATCH_FLAG_NONE, val); }
 
 	case 2:
 	    if (strcasecmp(args->argv[0], VAR_MYDEST) == 0) {
@@ -5997,7 +6001,8 @@ int     main(int argc, char **argv)
 	    }
 	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_DOMS) == 0) {
 		UPDATE_STRING(var_virt_alias_doms, args->argv[1]);
-		UPDATE_LIST(virt_alias_doms, var_virt_alias_doms);
+		UPDATE_LIST(virt_alias_doms, VAR_VIRT_ALIAS_DOMS,
+			    var_virt_alias_doms);
 		smtpd_resolve_init(100);
 		resp = 0;
 		break;
@@ -6012,7 +6017,8 @@ int     main(int argc, char **argv)
 	    }
 	    if (strcasecmp(args->argv[0], VAR_VIRT_MAILBOX_DOMS) == 0) {
 		UPDATE_STRING(var_virt_mailbox_doms, args->argv[1]);
-		UPDATE_LIST(virt_mailbox_doms, var_virt_mailbox_doms);
+		UPDATE_LIST(virt_mailbox_doms, VAR_VIRT_MAILBOX_DOMS,
+			    var_virt_mailbox_doms);
 		smtpd_resolve_init(100);
 		resp = 0;
 		break;
@@ -6053,7 +6059,7 @@ int     main(int argc, char **argv)
 		/* NOT: UPDATE_STRING */
 		namadr_list_free(mynetworks_curr);
 		mynetworks_curr =
-		    namadr_list_init(MATCH_FLAG_RETURN
+		    namadr_list_init(VAR_MYNETWORKS, MATCH_FLAG_RETURN
 				     | match_parent_style(VAR_MYNETWORKS),
 				     args->argv[1]);
 		smtpd_resolve_init(100);
@@ -6064,7 +6070,8 @@ int     main(int argc, char **argv)
 		/* NOT: UPDATE_STRING */
 		domain_list_free(relay_domains);
 		relay_domains =
-		    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+		    domain_list_init(VAR_RELAY_DOMAINS,
+				     match_parent_style(VAR_RELAY_DOMAINS),
 				     args->argv[1]);
 		smtpd_resolve_init(100);
 		resp = 0;
@@ -6074,7 +6081,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_perm_mx_networks, args->argv[1]);
 		domain_list_free(perm_mx_networks);
 		perm_mx_networks =
-		    namadr_list_init(MATCH_FLAG_RETURN
+		    namadr_list_init(VAR_PERM_MX_NETWORKS, MATCH_FLAG_RETURN
 				 | match_parent_style(VAR_PERM_MX_NETWORKS),
 				     args->argv[1]);
 		resp = 0;

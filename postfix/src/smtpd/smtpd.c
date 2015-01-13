@@ -5246,12 +5246,18 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Initialize blacklist/etc. patterns before entering the chroot jail, in
      * case they specify a filename pattern.
      */
-    smtpd_noop_cmds = string_list_init(MATCH_FLAG_RETURN, var_smtpd_noop_cmds);
-    smtpd_forbid_cmds = string_list_init(MATCH_FLAG_RETURN, var_smtpd_forbid_cmds);
-    verp_clients = namadr_list_init(MATCH_FLAG_RETURN, var_verp_clients);
-    xclient_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xclient_hosts);
-    xforward_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xforward_hosts);
-    hogger_list = namadr_list_init(MATCH_FLAG_RETURN
+    smtpd_noop_cmds = string_list_init(VAR_SMTPD_NOOP_CMDS, MATCH_FLAG_RETURN,
+				       var_smtpd_noop_cmds);
+    smtpd_forbid_cmds = string_list_init(VAR_SMTPD_FORBID_CMDS,
+					 MATCH_FLAG_RETURN,
+					 var_smtpd_forbid_cmds);
+    verp_clients = namadr_list_init(VAR_VERP_CLIENTS, MATCH_FLAG_RETURN,
+				    var_verp_clients);
+    xclient_hosts = namadr_list_init(VAR_XCLIENT_HOSTS, MATCH_FLAG_RETURN,
+				     var_xclient_hosts);
+    xforward_hosts = namadr_list_init(VAR_XFORWARD_HOSTS, MATCH_FLAG_RETURN,
+				      var_xforward_hosts);
+    hogger_list = namadr_list_init(VAR_SMTPD_HOGGERS, MATCH_FLAG_RETURN
 				   | match_parent_style(VAR_SMTPD_HOGGERS),
 				   var_smtpd_hoggers);
 
@@ -5276,7 +5282,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
     if (*var_smtpd_sasl_exceptions_networks)
 	sasl_exceptions_networks =
-	    namadr_list_init(MATCH_FLAG_RETURN,
+	    namadr_list_init(VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS,
+			     MATCH_FLAG_RETURN,
 			     var_smtpd_sasl_exceptions_networks);
 #else
 	msg_warn("%s is true, but SASL support is not compiled in",

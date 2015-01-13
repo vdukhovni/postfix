@@ -31,7 +31,8 @@
 /*
 /*	Arguments:
 /* .IP utf8_request
-/*	Perform UTF-8 case folding.
+/*	Boolean parameter that enables UTF-8 case folding. This is
+/*	ignored when compiled without EAI support.
 /* .IP src
 /*	Null-terminated input string.
 /* .IP dest
@@ -78,7 +79,7 @@ char   *casefold(int utf8_req, VSTRING *dest, const char *src,
 #ifdef NO_EAI
 
     /*
-     * ASCII mode only
+     * ASCII mode only.
      */
     vstring_strcpy(dest, src);
     return (lowercase(STR(dest)));
@@ -93,11 +94,22 @@ char   *casefold(int utf8_req, VSTRING *dest, const char *src,
     int     n;
 
     /*
-     * All-ASCII input.
+     * All-ASCII input, or ASCII mode only.
      */
     if (utf8_req == 0 || allascii(src)) {
 	vstring_strcpy(dest, src);
 	return (lowercase(STR(dest)));
+    }
+
+    /*
+     * ICU 4.8 ucasemap_utf8FoldCase() does not complain about UTF-8 syntax
+     * errors. XXX Is this behavior guaranteed or accidental? We don't know,
+     * therefore must check it here.
+     */
+    if (valid_utf8_string(src, strlen(src)) == 0) {
+	if (err)
+	    *err = "malformed UTF-8 or invalid codepoint";
+	return (0);
     }
 
     /*
@@ -130,7 +142,9 @@ char   *casefold(int utf8_req, VSTRING *dest, const char *src,
     /*
      * Report the result. With ICU 4.8, there are no casefolding errors for
      * the entire RFC 3629 Unicode range (code points U+0000..U+10FFFF
-     * including surrogates).
+     * including surrogates), nor are there casefolding errors for bad UTF-8
+     * input. XXX Is this behavior guaranteed or accidental? We don't know,
+     * therefore we have the UTF-8 syntax check (and range check) above.
      */
     if (U_SUCCESS(error) == 0) {
 	if (err)
@@ -200,7 +214,7 @@ int     main(int argc, char **argv)
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	bp = STR(buffer);
-	msg_info("> %s", bp);
+	vstream_printf("> %s\n", bp);
 	cmd = mystrtok(&bp, CHARS_SPACE);
 	if (cmd == 0 || *cmd == '#')
 	    continue;
@@ -212,9 +226,9 @@ int     main(int argc, char **argv)
 	 */
 	if (strcmp(cmd, "fold") == 0) {
 	    if ((conv_res = casefold(utf8_req, dest, bp, &fold_err)) != 0)
-		msg_info("\"%s\" ->fold \"%s\"", bp, conv_res);
+		vstream_printf("\"%s\" ->fold \"%s\"\n", bp, conv_res);
 	    else
-		msg_warn("cannot casefold \"%s\": %s", bp, fold_err);
+		vstream_printf("cannot casefold \"%s\": %s\n", bp, fold_err);
 	}
 
 	/*
@@ -225,20 +239,20 @@ int     main(int argc, char **argv)
 		 && first <= last) {
 	    for (codepoint = first; codepoint <= last; codepoint++) {
 		if (codepoint >= 0xD800 && codepoint <= 0xDFFF) {
-		    msg_warn("skipping surrogate range");
+		    vstream_printf("skipping surrogate range\n");
 		    codepoint = 0xDFFF;
 		} else {
 		    encode_utf8(buffer, codepoint);
 		    if (msg_verbose)
-			msg_info("U+%X -> %s", codepoint, STR(buffer));
+			vstream_printf("U+%X -> %s\n", codepoint, STR(buffer));
 		    if (valid_utf8_string(STR(buffer), LEN(buffer)) == 0)
-			msg_fatal("bad utf-8 encoding for U+%X", codepoint);
+			msg_fatal("bad utf-8 encoding for U+%X\n", codepoint);
 		    if (casefold(utf8_req, dest, STR(buffer), &fold_err) == 0)
-			msg_warn("casefold error for U+%X: %s",
-				 codepoint, fold_err);
+			vstream_printf("casefold error for U+%X: %s\n",
+				       codepoint, fold_err);
 		}
 	    }
-	    msg_info("range completed: 0x%x..0x%x", first, last);
+	    vstream_printf("range completed: 0x%x..0x%x\n", first, last);
 	}
 
 	/*
@@ -248,10 +262,10 @@ int     main(int argc, char **argv)
 		 && sscanf(bp, "%255s", STR(buffer)) == 1) {
 	    if (geteuid() == 0) {
 		if (chdir(STR(buffer)) < 0)
-		    msg_fatal("chdir(%s): %m", STR(buffer));
+		    msg_fatal("chdir(%s): %m\n", STR(buffer));
 		if (chroot(STR(buffer)) < 0)
-		    msg_fatal("chroot(%s): %m", STR(buffer));
-		msg_info("chroot %s completed", STR(buffer));
+		    msg_fatal("chroot(%s): %m\n", STR(buffer));
+		vstream_printf("chroot %s completed\n", STR(buffer));
 	    }
 	}
 
@@ -267,9 +281,10 @@ int     main(int argc, char **argv)
 	 * Usage
 	 */
 	else {
-	    msg_info("Usage: %s chroot <path> | fold <text> | range <first> <last> | verbose <int>",
-		     argv[0]);
+	    vstream_printf("Usage: %s chroot <path> | fold <text> | range <first> <last> | verbose <int>\n",
+			   argv[0]);
 	}
+	vstream_fflush(VSTREAM_OUT);
     }
     exit(0);
 }

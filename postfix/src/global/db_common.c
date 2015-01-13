@@ -256,7 +256,8 @@ void    db_common_parse_domain(CFG_PARSER *parser, void *ctxPtr)
 
     domainlist = cfg_get_str(parser, "domain", "", 0, 0);
     if (*domainlist) {
-	ctx->domain = string_list_init(MATCH_FLAG_RETURN, domainlist);
+	ctx->domain = string_list_init(parser->name, MATCH_FLAG_RETURN,
+				       domainlist);
 	if (ctx->domain == 0)
 
 	    /*

@@ -8,7 +8,7 @@
 /*
 /*	DICT	*dict_utf8_activate(
 /*	DICT	*dict)
-/*
+/* AUXILIARY FUNCTIONS
 /*	char	*dict_utf8_check_fold(
 /*	DICT	*dict,
 /*	const char *string,
@@ -29,9 +29,9 @@
 /*	paths in application code).  Attempts to store non-UTF-8
 /*	keys or values are skipped while reporting a non-error
 /*	status, attempts to look up or delete non-UTF-8 keys are
-/*	skipped while reporting a non-error status, and attempts
-/*	to look up a non-UTF-8 value are flagged while reporting a
-/*	configuration error.
+/*	skipped while reporting a non-error status, and lookup
+/*	results that contain a non-UTF-8 value are blocked while
+/*	reporting a configuration error.
 /*
 /*	The dict_utf8_check* functions may be invoked to perform
 /*	UTF-8 validity checks when util_utf8_enable is non-zero.

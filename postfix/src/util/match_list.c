@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <match_list.h>
 /*
-/*	MATCH_LIST *match_list_init(flags, pattern_list, count, func,...)
+/*	MATCH_LIST *match_list_init(pname, flags, pattern_list, count, func,...)
+/*	const char *pname;
 /*	int	flags;
 /*	const char *pattern_list;
 /*	int	count;
@@ -19,41 +20,59 @@
 /*	void match_list_free(list)
 /*	MATCH_LIST *list;
 /* DESCRIPTION
-/*	This module implements a framework for tests for list membership.
-/*	The actual tests are done by user-supplied functions. With
-/*	util_utf8_enable non-zero, string comparison supports UTF-8.
+/*	This module implements a framework for tests for list
+/*	membership.  The actual tests are done by user-supplied
+/*	functions.
 /*
 /*	Patterns are separated by whitespace and/or commas. A pattern
 /*	is either a string, a file name (in which case the contents
 /*	of the file are substituted for the file name) or a type:name
-/*	lookup table specification. In order to reverse the result of
-/*	a pattern match, precede a pattern with an exclamation point (!).
+/*	lookup table specification. In order to reverse the result
+/*	of a pattern match, precede a pattern with an exclamation
+/*	point (!).
 /*
-/*	match_list_init() performs initializations. The flags argument
-/*	specifies the bit-wise OR of zero or more of the following:
+/*	match_list_init() performs initializations.  When the global
+/*	util_utf8_enable variable is non-zero, and when the code
+/*	is compiled with EAI support, string comparison will use
+/*	caseless UTF-8 mode.  Otherwise, only ASCII characters will
+/*	be casefolded.
+/*
+/*	match_list_match() matches strings against the specified
+/*	pattern list, passing the first string to the first function
+/*	given to match_list_init(), the second string to the second
+/*	function, and so on.
+/*
+/*	match_list_free() releases storage allocated by match_list_init().
+/*
+/*	Arguments:
+/* .IP pname
+/*	Parameter name or other identiying information that is
+/*	prepended to error messages.
+/* .IP flags
+/*	Specifies the bit-wise OR of zero or more of the following:
 /* .RS
 /* .IP MATCH_FLAG_PARENT
-/*	The hostname pattern foo.com matches any name within the domain
-/*	foo.com. If this flag is cleared, foo.com matches itself
-/*	only, and .foo.com matches any name below the domain foo.com.
+/*	The hostname pattern foo.com matches any name within the
+/*	domain foo.com. If this flag is cleared, foo.com matches
+/*	itself only, and .foo.com matches any name below the domain
+/*	foo.com.
 /* .IP MATCH_FLAG_RETURN
 /*	Request that match_list_match() logs a warning and returns
 /*	zero (with list->error set to a non-zero dictionary error
 /*	code) instead of raising a fatal run-time error.
 /* .RE
 /*	Specify MATCH_FLAG_NONE to request none of the above.
-/*	The pattern_list argument specifies a list of patterns.  The third
-/*	argument specifies how many match functions follow.
-/*
-/*	match_list_match() matches strings against the specified pattern
-/*	list, passing the first string to the first function given to
-/*	match_list_init(), the second string to the second function, and
-/*	so on.
-/*
-/*	match_list_free() releases storage allocated by match_list_init().
+/* .IP pattern_list
+/*	A list of patterns.
+/* .IP count
+/*	Specifies how many match functions follow.
+/* .IP list
+/*	Pattern list produced by match_list_init().
+/* .IP string
+/*	Search string.
 /* DIAGNOSTICS
 /*	Fatal error: unable to open or read a match_list file; invalid
-/*	match_list pattern.
+/*	match_list pattern; casefold error (UTF-8 mode only).
 /* SEE ALSO
 /*	host_match(3) match hosts by name or by address
 /* LICENSE
@@ -110,9 +129,11 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
     const char *utf8_err;
 
     /*
-     * No DICT_FLAG_FOLD_FIX here, because we casefold the search string at
-     * the beginning of a search. String constant patterns are casefolded
-     * during match_list initialization.
+     * We do not use DICT_FLAG_FOLD_FIX, because we casefold the search
+     * string at the beginning of a search, and we use strcmp() for string
+     * comparison. This works because string patterns are casefolded during
+     * match_list initialization, and databases are supposed to fold case
+     * upon creation.
      */
 #define OPEN_FLAGS	O_RDONLY
 #define DICT_FLAGS	(DICT_FLAG_LOCK | DICT_FLAG_UTF8_REQUEST)
@@ -128,15 +149,17 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
     while ((start = mystrtokq(&bp, delim, CHARS_BRACE)) != 0) {
 	if (*start == '#') {
 	    msg_warn("%s: comment at end of line is not supported: %s %s",
-		     myname, start, bp);
+		     match_list->pname, start, bp);
 	    break;
 	}
 	for (match = init_match, item = start; *item == '!'; item++)
 	    match = !match;
 	if (*item == 0)
-	    msg_fatal("%s: no pattern after '!'", myname);
+	    /* No graceful degradation for this... */
+	    msg_fatal("%s: no pattern after '!'", match_list->pname);
 	if (*item == '/') {			/* /file/name */
 	    if ((fp = vstream_fopen(item, O_RDONLY, 0)) == 0) {
+		/* Replace unusable pattern with pseudo table. */
 		vstring_sprintf(buf, "%s:%s", DICT_TYPE_NOFILE, item);
 		if (dict_handle(STR(buf)) == 0)
 		    dict_register(STR(buf),
@@ -164,11 +187,12 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 	    if (casefold(util_utf8_enable, match_list->fold_buf, match ?
 			 item : STR(vstring_sprintf(buf, "!%s", item)),
 			 &utf8_err) == 0) {
+		/* Replace unusable pattern with pseudo table. */
 		vstring_sprintf(match_list->fold_buf, "%s:%s",
 				DICT_TYPE_NOUTF8, item);
 		if (dict_handle(STR(match_list->fold_buf)) == 0)
 		    dict_register(STR(match_list->fold_buf),
-				  dict_surrogate(DICT_TYPE_NOFILE, item,
+				  dict_surrogate(DICT_TYPE_NOUTF8, item,
 						 OPEN_FLAGS, DICT_FLAGS,
 						 "casefold error: %s",
 						 utf8_err));
@@ -182,7 +206,8 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 
 /* match_list_init - initialize pattern list */
 
-MATCH_LIST *match_list_init(int flags, const char *patterns, int match_count,...)
+MATCH_LIST *match_list_init(const char *pname, int flags,
+			          const char *patterns, int match_count,...)
 {
     MATCH_LIST *list;
     char   *saved_patterns;
@@ -193,6 +218,7 @@ MATCH_LIST *match_list_init(int flags, const char *patterns, int match_count,...
 	msg_panic("match_list_init: bad flags 0x%x", flags);
 
     list = (MATCH_LIST *) mymalloc(sizeof(*list));
+    list->pname = mystrdup(pname);
     list->flags = flags;
     list->match_count = match_count;
     list->match_func =
@@ -264,6 +290,7 @@ int     match_list_match(MATCH_LIST *list,...)
 void    match_list_free(MATCH_LIST *list)
 {
     /* XXX Should decrement map refcounts. */
+    myfree(list->pname);
     argv_free(list->patterns);
     myfree((void *) list->match_func);
     myfree((void *) list->match_args);

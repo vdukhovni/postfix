@@ -21,7 +21,8 @@
   */
 #define STRING_LIST	MATCH_LIST
 
-#define string_list_init(f, p)	match_list_init((f), (p), 1, match_string)
+#define string_list_init(o, f, p) \
+				match_list_init((o), (f), (p), 1, match_string)
 #define string_list_match	match_list_match
 #define string_list_free	match_list_free
 

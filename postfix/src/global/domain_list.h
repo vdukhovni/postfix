@@ -21,7 +21,8 @@
   */
 #define DOMAIN_LIST	MATCH_LIST
 
-#define domain_list_init(f, p)	match_list_init((f), (p), 1, match_hostname)
+#define domain_list_init(o, f, p)\
+			match_list_init((o), (f), (p), 1, match_hostname)
 #define domain_list_match	match_list_match
 #define domain_list_free	match_list_free
 

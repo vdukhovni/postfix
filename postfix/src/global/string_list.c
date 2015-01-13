@@ -75,12 +75,13 @@
 
 #ifdef TEST
 
-#include <msg.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <msg.h>
 #include <vstream.h>
 #include <vstring.h>
 #include <msg_vstream.h>
+#include <dict.h>
 #include <stringops.h>			/* util_utf8_enable */
 
 static void usage(char *progname)
@@ -109,7 +110,7 @@ int     main(int argc, char **argv)
 	usage(argv[0]);
     dict_allow_surrogate = 1;
     util_utf8_enable = 1;
-    list = string_list_init(MATCH_FLAG_RETURN, argv[optind]);
+    list = string_list_init("command line", MATCH_FLAG_RETURN, argv[optind]);
     string = argv[optind + 1];
     vstream_printf("%s: %s\n", string, string_list_match(list, string) ?
 		   "YES" : list->error == 0 ? "NO" : "ERROR");

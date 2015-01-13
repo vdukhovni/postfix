@@ -25,7 +25,7 @@
  /*
   * External interface
   */
-extern const char *check_user_acl_byuid(char *, uid_t);
+extern const char *check_user_acl_byuid(const char *, const char *, uid_t);
 
 /* AUTHOR(S)
 /*	Wietse Venema

@@ -246,7 +246,8 @@ void    smtp_sasl_initialize(void)
      * Initialize optional supported mechanism matchlist
      */
     if (*var_smtp_sasl_mechs)
-	smtp_sasl_mechs = string_list_init(MATCH_FLAG_NONE,
+	smtp_sasl_mechs = string_list_init(VAR_SMTP_SASL_MECHS,
+					   MATCH_FLAG_NONE,
 					   var_smtp_sasl_mechs);
 
     /*

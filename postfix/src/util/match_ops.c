@@ -99,9 +99,9 @@ static int match_error(MATCH_LIST *list, const char *fmt,...)
     vstring_vsprintf(buf, fmt, ap);
     va_end(ap);
     if (list->flags & MATCH_FLAG_RETURN) {
-	msg_warn("%s", vstring_str(buf));
+	msg_warn("%s: %s", list->pname, vstring_str(buf));
     } else {
-	msg_fatal("%s", vstring_str(buf));
+	msg_fatal("%s: %s", list->pname, vstring_str(buf));
     }
     vstring_free(buf);
     return (0);
@@ -115,7 +115,7 @@ int     match_string(MATCH_LIST *list, const char *string, const char *pattern)
     DICT   *dict;
 
     if (msg_verbose)
-	msg_info("%s: %s ~? %s", myname, string, pattern);
+	msg_info("%s: %s: %s ~? %s", myname, list->pname, string, pattern);
 
     /*
      * Try dictionary lookup: exact match.
@@ -157,7 +157,7 @@ int     match_hostname(MATCH_LIST *list, const char *name, const char *pattern)
     DICT   *dict;
 
     if (msg_verbose)
-	msg_info("%s: %s ~? %s", myname, name, pattern);
+	msg_info("%s: %s: %s ~? %s", myname, list->pname, name, pattern);
 
     /*
      * Try dictionary lookup: exact match and parent domains.
@@ -172,9 +172,9 @@ int     match_hostname(MATCH_LIST *list, const char *name, const char *pattern)
 	    if (entry == name || (dict->flags & DICT_FLAG_FIXED)) {
 		match = (dict_get(dict, entry) != 0);
 		if (msg_verbose > 1)
-		    msg_info("%s: lookup %s:%s %s: %s",
-			     myname, dict->type, dict->name, entry,
-			     match ? "found" : "notfound");
+		    msg_info("%s: %s: lookup %s:%s %s: %s",
+			     myname, list->pname, dict->type, dict->name,
+			     entry, match ? "found" : "notfound");
 		if (match != 0)
 		    break;
 		if ((list->error = dict->error) != 0)
@@ -227,7 +227,7 @@ int     match_hostaddr(MATCH_LIST *list, const char *addr, const char *pattern)
     int     rc;
 
     if (msg_verbose)
-	msg_info("%s: %s ~? %s", myname, addr, pattern);
+	msg_info("%s: %s: %s ~? %s", myname, list->pname, addr, pattern);
 
 #define V4_ADDR_STRING_CHARS	"01234567890."
 #define V6_ADDR_STRING_CHARS	V4_ADDR_STRING_CHARS "abcdefABCDEF:"

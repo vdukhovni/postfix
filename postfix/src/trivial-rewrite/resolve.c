@@ -795,15 +795,17 @@ void    resolve_init(void)
 
     if (*var_virt_alias_doms)
 	virt_alias_doms =
-	    string_list_init(MATCH_FLAG_RETURN, var_virt_alias_doms);
+	    string_list_init(VAR_VIRT_ALIAS_DOMS, MATCH_FLAG_RETURN,
+			     var_virt_alias_doms);
 
     if (*var_virt_mailbox_doms)
 	virt_mailbox_doms =
-	    string_list_init(MATCH_FLAG_RETURN, var_virt_mailbox_doms);
+	    string_list_init(VAR_VIRT_MAILBOX_DOMS, MATCH_FLAG_RETURN,
+			     var_virt_mailbox_doms);
 
     if (*var_relay_domains)
 	relay_domains =
-	    domain_list_init(MATCH_FLAG_RETURN
+	    domain_list_init(VAR_RELAY_DOMAINS, MATCH_FLAG_RETURN
 			     | match_parent_style(VAR_RELAY_DOMAINS),
 			     var_relay_domains);
 
