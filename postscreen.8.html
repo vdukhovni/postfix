@@ -100,8 +100,8 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
        NOTE:  Some  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> parameters implement stress-dependent behav-
        ior.  This is supported  only  when  the  default  parameter  value  is
-       stress-dependent  (that is, it looks like ${stress?X}${stress:Y}, or it
-       is the $<i>name</i> of an smtpd parameter with  a  stress-dependent  default).
+       stress-dependent  (that  is,  it looks like ${stress?{X}:{Y}}, or it is
+       the $<i>name</i> of an  smtpd  parameter  with  a  stress-dependent  default).
        Other  parameters  always  evaluate as if the <b>stress</b> parameter value is
        the empty string.
 
@@ -211,7 +211,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               text..." response, in an attempt to confuse bad SMTP clients  so
               that they speak before their turn (pre-greet).
 
-       <b><a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> (${stress?2}${stress:6}s)</b>
+       <b><a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> (normal: 6s, overload: 2s)</b>
               The  amount  of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will wait for an SMTP
               client to send a command before its turn, and for DNS  blocklist
               lookup results to arrive (default: up to 2 seconds under stress,
@@ -322,7 +322,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The  limit  on the total number of commands per SMTP session for
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine.
 
-       <b><a href="postconf.5.html#postscreen_command_time_limit">postscreen_command_time_limit</a> (${stress?10}${stress:300}s)</b>
+       <b><a href="postconf.5.html#postscreen_command_time_limit">postscreen_command_time_limit</a> (normal: 300s, overload: 10s)</b>
               The  time  limit  to  read   an   entire   command   line   with
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine.
 

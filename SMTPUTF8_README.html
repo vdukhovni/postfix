@@ -1,0 +1,326 @@
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+
+<html>
+
+<head>
+
+<title>Postfix SMTPUTF8 support</title>
+
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+
+</head>
+
+<body>
+
+<h1><img src="postfix-logo.jpg" width="203" height="98" ALT="">
+Postfix SMTPUTF8 support
+</h1>
+
+<hr>
+
+<h2> Overview </h2>
+
+<p> This document describes Postfix support for Email Address
+Internationalization (EAI) as defined in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a> (SMTPUTF8 extension),
+<a href="http://tools.ietf.org/html/rfc6532">RFC 6532</a> (Internationalized email headers) and <a href="http://tools.ietf.org/html/rfc6533">RFC 6533</a> (Internationalized
+delivery status notifications). Introduced with Postfix version
+2.12, this fully supports UTF-8 email addresses and UTF-8 message
+header values. </p>
+
+<p> Topics covered in this document: </p>
+
+<ul> 
+
+<li><a href="#building">Building with/without SMTPUTF8 support</a>
+
+<li><a href="#enabling">Enabling Postfix SMTPUTF8 support</a>
+
+<li><a href="#using">Using Postfix SMTPUTF8 support</a>
+
+<li><a href="#detecting">SMTPUTF8 autodetection</a>
+
+<li><a href="#limitations">Limitations of the current implementation</a>
+
+<li><a href="#compatibility">Compatibility with pre-SMTPUTF8 environments</a>
+
+<li><a href="#credits">Credits</a>
+
+</ul>
+
+<h2> <a name="building">Building Postfix with/without SMTPUTF8 support</a> </h2>
+
+<p> Postfix will build with SMTPUTF8 support if the ICU library and
+header files are installed on the system. The package name varies
+with the OS distribution (and version). The table shows package
+names for a number of platforms at the time this text was written.
+</p>
+
+<blockquote>
+
+<table border="1">
+
+<tr> <th> OS Distribution </th> <th> Package </th> </tr>
+
+<tr> <td> FreeBSD, NetBSD, etc. </td> <td> icu </td> </tr>
+
+<tr> <td> Centos, Fedora, RHEL </td> <td> libicu-devel </td> </tr>
+
+<tr> <td> Debian, Ubuntu </td> <td> libicu-dev </td> </tr>
+
+</table>
+
+</blockquote>
+
+<p> To force Postfix to build without SMTPUTF8, specify: </p>
+
+<blockquote>
+<pre>
+$ <b>make makefiles CCARGS=-DNO_EAI ...</b>
+</pre>
+</blockquote>
+
+<p> See the <a href="INSTALL.html">INSTALL</a> document for more "make makefiles" options. </p>
+
+<h2> <a name="enabling">Enabling Postfix SMTPUTF8 support</a> </h2>
+
+<p> There is more to SMTPUTF8 than just Postfix itself. The rest
+of your email infrastructure also needs to be able to handle UTF-8
+email addresses and message header values. This includes SMTPUTF8
+protocol support in SMTP-based content filters (Amavisd), LMTP
+servers (Dovecot), and down-stream SMTP servers. </p>
+
+<p> Postfix SMTPUTF8 support is enabled by default, but it may be
+disabled as part of a backwards-compatibility safety net (see the
+Postfix 2.12 RELEASE_NOTES file). </p>
+
+<p> SMTPUTF8 support is enabled by setting the <a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a>
+parameter in <a href="postconf.5.html">main.cf</a>:</p>
+
+<blockquote>
+<pre>
+# <b>postconf "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes"</b>
+# <b>postfix reload</b>
+</pre>
+</blockquote>
+
+<p> With SMTPUTF8 support enabled, Postfix changes behavior with
+respect to earlier Postfix releases: </p>
+
+<ul>
+
+<li> <p> UTF-8 is permitted in the <a href="postconf.5.html#myorigin">myorigin</a> parameter value. However,
+the <a href="postconf.5.html#myhostname">myhostname</a> and <a href="postconf.5.html#mydomain">mydomain</a> parameters must specify ASCII-only
+domain names. This limitation may be removed later. </p>
+
+<li> <p> The Postfix SMTP server announces SMTPUTF8 support in the
+EHLO response. </p>
+
+<pre>
+220 server.example.com ESMTP Postfix
+<b>EHLO client.example.com</b>
+250-server.example.com
+250-PIPELINING
+250-SIZE 10240000
+250-VRFY
+250-ETRN
+250-STARTTLS
+250-AUTH PLAIN LOGIN
+250-ENHANCEDSTATUSCODES
+250-8BITMIME
+250-DSN
+250 SMTPUTF8
+</pre>
+
+<li> <p> The Postfix SMTP server accepts the SMTPUTF8 request in
+MAIL FROM and VRFY commands. </p>
+
+<pre>
+<b>MAIL FROM:&lt;address&gt; SMTPUTF8 ...</b>
+
+<b>VRFY address SMTPUTF8</b>
+</pre>
+
+<li> <p> The Postfix SMTP client may issue the SMTPUTF8 request in
+MAIL FROM commands. </p>
+
+<li> <p> The Postfix SMTP server accepts UTF-8 in email address
+domains, but only after the remote SMTP client client issues the
+SMTPUTF8 request in MAIL FROM or VRFY commands.  </p>
+
+</ul>
+
+<p> Postfix already permitted UTF-8 in message header values
+and in address localparts. This does not change. </p>
+
+<h2> <a name="using">Using Postfix SMTPUTF8 support</a> </h2>
+
+<p> After Postfix SMTPUTF8 support is turned on, Postfix behavior
+will depend on 1) whether a remote SMTP client requests SMTPUTF8
+support, 2) the presence of UTF-8 content in the message envelope
+and headers, and 3) whether a down-stream SMTP (or LMTP) server
+announces SMTPUTF8 support. </p>
+
+<ul>
+
+<li> <p> When the Postfix SMTP server receives a message WITHOUT
+the SMTPUTF8 request, Postfix handles the message as it has always
+done (at least that is the default, see autodetection below).
+Specifically, the Postfix SMTP server does not accept UTF-8 in the
+envelope sender domain name or envelope recipient domain name, and
+the Postfix SMTP client does not issue the SMTPUTF8 request when
+delivering that message an SMTP or LMTP server that announces
+SMTPUTF8 support (again, that is the default). Postfix will accept
+UTF-8 in message header values and in the localpart of envelope
+sender and recipient addresses, because it has always done that.
+</p>
+
+<li> <p>  When the Postfix SMTP server receives a message WITH the
+SMTPUTF8 request, Postfix will issue the SMTPUTF8 request when
+delivering that message to an SMTP or LMTP server that announces
+SMTPUTF8 support. This is not configurable. </p>
+
+<li> <p>  When a message is received with the SMTPUTF8 request,
+Postfix will deliver the message to a non-SMTPUTF8 SMTP or LMTP
+server ONLY if: </p>
+
+    <ul>
+
+    <li> <p>  No message header value contains UTF-8. </p>
+
+    <li> <p>  The envelope sender address contains no UTF-8, </p>
+
+    <li> <p>  No envelope recipient address for that specific
+    SMTP/LMTP delivery transaction contains UTF-8. </p>
+
+        <blockquote> <p> NOTE: Recipients in other email delivery
+        transactions for that same message may still contain UTF-8.
+        </p> </blockquote>
+
+   </ul>
+
+   <p> Otherwise, Postfix will return the recipient(s) for that
+   email delivery transaction as undeliverable. The delivery status
+   notification message will be an SMTPUTF8 message. It will therefore
+   be subject to the same restrictions as email that is received
+   with the SMTPUTF8 request. </p>
+
+<li> <p>  When the Postfix SMTP server receives a message with the
+SMTPUTF8 request, that request also applies after the message is
+forwarded via a virtual or local alias, or $HOME/.forward file.
+</p>
+
+</ul>
+
+<h2> <a name="detecting">SMTPUTF8 autodetection</a> </h2>
+
+<p> This section applies only to systems that have SMTPUTF8 support
+turned on (<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes). </p>
+
+<p> For compatibility with pre-SMTPUTF8 environments, Postfix does
+not automatically set the "SMTPUTF8 requested" flag on messages
+from non-SMTPUTF8 clients that contain an UTF-8 header value or
+UTF-8 address localpart. This would make such messages undeliverable
+to non-SMTPUTF8 servers, and could be a barrier to SMTPUTF8 adoption.
+</p>
+
+<p> By default, Postfix sets the "SMTPUTF8 requested" flag only on
+address verification probes and on Postfix sendmail submissions
+that contain UTF-8 in the sender address, UTF-8 in a recipient
+address, or UTF-8 in a message header value. </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> = sendmail, verify
+</pre>
+</blockquote>
+
+<p> However, if you have a non-ASCII <a href="postconf.5.html#myorigin">myorigin</a> or <a href="postconf.5.html#mydomain">mydomain</a> setting,
+or if you have a configuration that introduces UTF-8 addresses with
+virtual aliases, canonical mappings, or BCC mappings, then you may
+have to apply SMTPUTF8 autodetection to all email: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> = all
+</pre>
+</blockquote>
+
+<p> This will, of course, also flag email that was received without
+SMTPUTF8 request, but that contains UTF-8 in a sender address
+localpart, receiver address localpart, or message header value.
+Such email was not standards-compliant, but Postfix would have
+delivered it if SMTPUTF8 support was disabled. </p>
+
+<h2> <a name="limitations">Limitations of the current implementation</a>
+</h2>
+
+<p> "Internationalized" domain names can appear in two forms: the
+UTF-8 form, and the ASCII (xn--mumble) form. The initial Postfix
+SMTPUTF8 implementation performs no automatic conversions on UTF8
+strings beyond what is needed to perform DNS lookups. </p>
+
+<h3> No characterset canonicalization for non-ASCII domain names.
+</h3>
+
+<p> Postfix currently does not translate domain names from UTF-8
+into ASCII (or ASCII into UTF-8) before looking up the domain name
+in <a href="postconf.5.html#mydestination">mydestination</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, access tables, etc., before logging
+the domain name, or before using the domain name in a policy daemon
+or Milter request. You will have to configure both UTF-8 and ASCII
+forms in Postfix configuration files; and both forms will have to
+be handled by logfile tools, policy daemons and Milters. </p>
+
+<h3> No case canonicalization for non-ASCII characters. </h3>
+
+<p> Postfix currently does not case-fold non-ASCII characters when
+looking up an "Internationalized" domain name in <a href="postconf.5.html#mydestination">mydestination</a>,
+<a href="postconf.5.html#relay_domains">relay_domains</a>, access maps, etc. Some non-ASCII scripts do not
+distinguish between upper and lower case, some have different numbers
+of upper and lower case characters. </p>
+
+<h2> <a name="compatibility">Compatibility with pre-SMTPUTF8
+environments</a> </h2>
+
+<h3> Mailing lists with UTF-8 and non-UTF-8 subscribers </h3>
+
+<p> With Postfix, there is no need to split mailing lists into UTF-8 and
+non-UTF-8 members. Postfix will try to deliver the non-UTF8 subscribers
+over "traditional" non-SMTPUTF8 sessions, as long as the message
+has an ASCII envelope sender address and all-ASCII header values.
+The mailing list manager will have to apply <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a> encoding to
+satisfy that last condition. </p>
+
+<h3> Pre-existing non-ASCII email flows </h3>
+
+<p> In pre-SMTPUTF8 environments, email with UTF-8 in address
+localparts (and in headers) works just fine. The vast majority
+of email software including Postfix is perfectly capable of handling
+such email, even if pre-SMTPUTF8 standards do not support this. </p>
+
+<p> Therefore, when Postfix SMTPUTF8 support is turned on, Postfix
+must not suddenly start to break pre-existing email flows with UTF-8
+in addres localparts (and in headers). </p>
+
+<p> Thus, Postfix continues to permit UTF-8 in address localparts
+(and in headers) in email from and to pre-SMTPUTF8 systems.  At
+least, that is the default (see autodetection above). </p>
+
+<h2> <a name="credits">Credits</a> </h2>
+
+<ul>
+
+<li> <p> Arnt Gulbrandsen posted his patch for Unicode email support
+on May 15, 2014.  This work was sponsored by CNNIC. </p>
+
+<li> <p> Wietse integrated Arnt Gulbrandsen's code and released
+Postfix with SMTPUTF8 support on July 15, 2014. </p>
+
+</ul>
+
+</body>
+
+</html>
+

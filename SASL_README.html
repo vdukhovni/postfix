@@ -34,7 +34,7 @@ mail to remote destinations when the client's IP address is in the
 
 <p> SMTP clients outside the SMTP server's network need a different
 way to get "same network" privileges.  To address this need, Postfix
-supports SASL authentication (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>, formerly RFC 2554).  With
+supports SASL authentication (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>, formerly <a href="http://tools.ietf.org/html/rfc2554">RFC 2554</a>).  With
 this a remote SMTP client can authenticate to the Postfix SMTP
 server, and the Postfix SMTP client can authenticate to a remote
 SMTP server.  Once a client is authenticated, a server can give it
@@ -1564,7 +1564,7 @@ encoded authentication information: </p>
 <p> The <strong>mmencode</strong> command is part of the metamail
 software. </p>
 
-<li> <p> Using Perl <b>MIME::Base64</b>: </p>
+<li> <p> Using Perl <b>MIME::Base64</b> (from <a href="http://www.cpan.org/">http://www.cpan.org/</a>): </p>
 
 <blockquote>
 <pre>
@@ -1573,7 +1573,7 @@ software. </p>
 </pre>
 </blockquote>
 
-<p> MIME::Base64 is available from <a href="http://www.cpan.org/">http://www.cpan.org/</a>. </p>
+<p> If the username or password contain "@", you must specify "\@". </p>
 
 <li> <p> Using the <b>gen-auth</b> script: </p>
 

@@ -28,7 +28,9 @@ REGEXP_TABLE(5)                                                REGEXP_TABLE(5)
        use the "<b>postconf -m</b>" command.
 
        To test lookup tables, use the "<b>postmap -q</b>" command as described in the
-       SYNOPSIS above.
+       SYNOPSIS above. Use "<b>postmap -hmq -</b> &lt;<i>file</i>"  for  <a href="header_checks.5.html">header_checks(5)</a>  pat-
+       terns,  and  "<b>postmap -bmq -</b> &lt;<i>file</i>" for <a href="header_checks.5.html">body_checks(5)</a> (Postfix 2.6 and
+       later).
 
 <b>COMPATIBILITY</b>
        With Postfix version 2.2 and earlier specify "<b>postmap -fq</b>" to  query  a

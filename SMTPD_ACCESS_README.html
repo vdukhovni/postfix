@@ -215,7 +215,7 @@ described in the <a href="postconf.5.html">postconf(5)</a> manual page. </p>
 
 <p> Each restriction list is evaluated from left to right until
 some restriction produces a result of PERMIT, REJECT or DEFER (try
-again later).  The end of the list is equivalent to a PERMIT result.
+again later).  The end of each list is equivalent to a PERMIT result.
 By placing a PERMIT restriction before a REJECT restriction you
 can make exceptions for specific clients or users. This is called
 whitelisting; the fourth example above allows mail from local

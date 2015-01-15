@@ -19,7 +19,7 @@ LOCAL(8)                                                              LOCAL(8)
        to, and one or more recipients.  This program expects to  be  run  from
        the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
-       The  <a href="local.8.html"><b>local</b>(8)</a>  daemon  updates queue files and marks recipients as fin‐
+       The  <a href="local.8.html"><b>local</b>(8)</a>  daemon  updates queue files and marks recipients as fin-
        ished, or it informs the queue manager that delivery  should  be  tried
        again  at  a  later  time.  Delivery  status  reports  are  sent to the
        <a href="bounce.8.html"><b>bounce</b>(8)</a>, <a href="defer.8.html"><b>defer</b>(8)</a> or <a href="trace.8.html"><b>trace</b>(8)</a> daemon as appropriate.
@@ -41,15 +41,15 @@ LOCAL(8)                                                              LOCAL(8)
        Upon delivery, the local delivery agent tries each pathname in the list
        until a file is found.
 
-       Delivery via ~/.<b>forward</b> files is done with the privileges of the recip‐
+       Delivery via ~/.<b>forward</b> files is done with the privileges of the recip-
        ient.  Thus, ~/.<b>forward</b> like files must be readable by  the  recipient,
        and  their  parent directory needs to have "execute" permission for the
        recipient.
 
-       The <b><a href="postconf.5.html#forward_path">forward_path</a></b> parameter is subject to interpolation of <b>$user</b> (recip‐
+       The <b><a href="postconf.5.html#forward_path">forward_path</a></b> parameter is subject to interpolation of <b>$user</b> (recip-
        ient  username),  <b>$home</b>  (recipient  home directory), <b>$shell</b> (recipient
        shell), <b>$recipient</b> (complete recipient address), <b>$extension</b>  (recipient
-       address  extension), <b>$domain</b> (recipient domain), <b>$local</b> (entire recipi‐
+       address  extension), <b>$domain</b> (recipient domain), <b>$local</b> (entire recipi-
        ent   address   localpart)   and   <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>.</b>   The    forms
        <i>${name?value}</i>  and  <i>${name:value}</i>  expand  conditionally  to <i>value</i> when
        <i>$name</i> is (is not) defined.  Characters that may have special meaning to
@@ -57,14 +57,14 @@ LOCAL(8)                                                              LOCAL(8)
        acceptable characters is specified  with  the  <b><a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a></b>
        configuration parameter.
 
-       An  alias  or ~/.<b>forward</b> file may list any combination of external com‐
+       An  alias  or ~/.<b>forward</b> file may list any combination of external com-
        mands, destination file names, <b>:include:</b> directives, or mail addresses.
-       See  <a href="aliases.5.html"><b>aliases</b>(5)</a>  for a precise description. Each line in a user's .<b>for</b>‐‐
+       See  <a href="aliases.5.html"><b>aliases</b>(5)</a>  for a precise description. Each line in a user's .<b>for-</b>
        <b>ward</b> file has the same syntax as the right-hand part of an alias.
 
        When an address is found in its own alias expansion, delivery  is  made
        to the user instead. When a user is listed in the user's own ~/.<b>forward</b>
-       file, delivery is made to the user's mailbox instead.  An empty ~/.<b>for</b>‐‐
+       file, delivery is made to the user's mailbox instead.  An empty ~/.<b>for-</b>
        <b>ward</b> file means do not forward mail.
 
        In  order to prevent the mail system from using up unreasonable amounts
@@ -72,7 +72,7 @@ LOCAL(8)                                                              LOCAL(8)
        are broken up into chunks of length <b><a href="postconf.5.html#line_length_limit">line_length_limit</a></b>.
 
        While  expanding  aliases,  ~/.<b>forward</b>  files,  and  so on, the program
-       attempts to avoid duplicate deliveries. The <b><a href="postconf.5.html#duplicate_filter_limit">duplicate_filter_limit</a></b> con‐
+       attempts to avoid duplicate deliveries. The <b><a href="postconf.5.html#duplicate_filter_limit">duplicate_filter_limit</a></b> con-
        figuration parameter limits the number of remembered recipients.
 
 <b>MAIL FORWARDING</b>
@@ -98,16 +98,16 @@ LOCAL(8)                                                              LOCAL(8)
 
        Mailbox delivery can be delegated to an external command specified with
        the  <b><a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a></b> and <b><a href="postconf.5.html#mailbox_command">mailbox_command</a></b> configuration parameters.
-       The command executes with the privileges of the recipient user  (excep‐
+       The command executes with the privileges of the recipient user  (excep-
        tions:  secondary  groups are not enabled; in case of delivery as root,
        the command executes with the privileges of <b><a href="postconf.5.html#default_privs">default_privs</a></b>).
 
        Mailbox delivery can be delegated  to  alternative  message  transports
-       specified  in the <a href="master.5.html"><b>master.cf</b></a> file.  The <b><a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a></b> and <b>mail</b>‐‐
-       <b>box_transport</b> configuration  parameters  specify  an  optional  message
+       specified  in the <a href="master.5.html"><b>master.cf</b></a> file.  The <b><a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a></b> and <b><a href="postconf.5.html#mailbox_transport">mail</a>-</b>
+       <b><a href="postconf.5.html#mailbox_transport">box_transport</a></b> configuration  parameters  specify  an  optional  message
        transport  that  is  to be used for all local recipients, regardless of
-       whether they  are  found  in  the  UNIX  passwd  database.   The  <b>fall</b>‐‐
-       <b>back_transport_maps</b>   and   <b><a href="postconf.5.html#fallback_transport">fallback_transport</a></b>  parameters  specify  an
+       whether they  are  found  in  the  UNIX  passwd  database.   The  <b><a href="postconf.5.html#fallback_transport_maps">fall</a>-</b>
+       <b><a href="postconf.5.html#fallback_transport_maps">back_transport_maps</a></b>   and   <b><a href="postconf.5.html#fallback_transport">fallback_transport</a></b>  parameters  specify  an
        optional message transport for recipients that are  not  found  in  the
        <a href="aliases.5.html">aliases(5)</a> or UNIX passwd database.
 
@@ -117,7 +117,7 @@ LOCAL(8)                                                              LOCAL(8)
        to Postfix, prepends an optional <b>Delivered-To:</b> header  with  the  final
        envelope  recipient  address,  prepends  a <b>Return-Path:</b> header with the
        envelope sender address, prepends a &gt; character to lines beginning with
-       "<b>From</b>  ",  and appends an empty line.  The mailbox is locked for exclu‐
+       "<b>From</b>  ",  and appends an empty line.  The mailbox is locked for exclu-
        sive access while delivery is in progress.  In  case  of  problems,  an
        attempt is made to truncate the mailbox to its original length.
 
@@ -129,23 +129,23 @@ LOCAL(8)                                                              LOCAL(8)
 
 <b>EXTERNAL COMMAND DELIVERY</b>
        The  <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a></b>  configuration parameter restricts delivery
-       to external commands. The default setting (<b>alias, forward</b>) forbids com‐
+       to external commands. The default setting (<b>alias, forward</b>) forbids com-
        mand destinations in <b>:include:</b> files.
 
-       Optionally, the process working directory is changed to the path speci‐
+       Optionally, the process working directory is changed to the path speci-
        fied with <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a></b> (Postfix 2.2 and later).  Failure
        to change directory causes mail to be deferred.
 
-       The  <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a></b> parameter value is subject to interpo‐
+       The  <b><a href="postconf.5.html#command_execution_directory">command_execution_directory</a></b> parameter value is subject to interpo-
        lation of <b>$user</b> (recipient username), <b>$home</b> (recipient home directory),
        <b>$shell</b>  (recipient  shell),  <b>$recipient</b>  (complete  recipient address),
        <b>$extension</b> (recipient address extension), <b>$domain</b>  (recipient  domain),
        <b>$local</b>  (entire  recipient address localpart) and <b>$<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>.</b>
        The forms <i>${name?value}</i> and <i>${name:value}</i> expand conditionally to <i>value</i>
-       when <i>$name</i> is (is not) defined.  Characters that may have special mean‐
+       when <i>$name</i> is (is not) defined.  Characters that may have special mean-
        ing to the shell or file system are replaced by underscores.  The  list
-       of   acceptable  characters  is  specified  with  the  <b>execution_direc</b>‐‐
-       <b>tory_expansion_filter</b> configuration parameter.
+       of   acceptable  characters  is  specified  with  the  <b><a href="postconf.5.html#execution_directory_expansion_filter">execution_direc</a>-</b>
+       <b><a href="postconf.5.html#execution_directory_expansion_filter">tory_expansion_filter</a></b> configuration parameter.
 
        The command is executed directly  where  possible.  Assistance  by  the
        shell  (<b>/bin/sh</b> on UNIX systems) is used only when the command contains
@@ -154,7 +154,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        A limited amount of command output (standard output and standard error)
        is captured for inclusion with non-delivery status reports.  A  command
-       is   forcibly   terminated   if   it  does  not  complete  within  <b>com</b>‐‐
+       is   forcibly   terminated   if   it  does  not  complete  within  <b>com-</b>
        <b>mand_time_limit</b> seconds.  Command exit status  codes  are  expected  to
        follow  the  conventions  defined in &lt;<b>sysexits.h</b>&gt;.  Exit status 0 means
        normal successful completion.
@@ -164,9 +164,9 @@ LOCAL(8)                                                              LOCAL(8)
        command output begins with an enhanced status code,  this  status  code
        takes precedence over the non-zero exit status.
 
-       A  limited  amount of message context is exported via environment vari‐
+       A  limited  amount of message context is exported via environment vari-
        ables. Characters that may  have  special  meaning  to  the  shell  are
-       replaced  by  underscores.  The list of acceptable characters is speci‐
+       replaced  by  underscores.  The list of acceptable characters is speci-
        fied with the <b><a href="postconf.5.html#command_expansion_filter">command_expansion_filter</a></b> configuration parameter.
 
        <b>SHELL</b>  The recipient user's login shell.
@@ -195,7 +195,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b>SENDER</b> The entire sender address.
 
-       Additional remote client information is made available via the  follow‐
+       Additional remote client information is made available via the  follow-
        ing environment variables:
 
        <b>CLIENT_ADDRESS</b>
@@ -241,7 +241,7 @@ LOCAL(8)                                                              LOCAL(8)
        <b>/</b> for <b>qmail</b>-compatible <b>maildir</b> delivery.
 
        The  <b><a href="postconf.5.html#allow_mail_to_files">allow_mail_to_files</a></b>  configuration parameter restricts delivery to
-       external files. The default setting (<b>alias, forward</b>) forbids file  des‐
+       external files. The default setting (<b>alias, forward</b>) forbids file  des-
        tinations in <b>:include:</b> files.
 
        In  the  case  of  UNIX-style  mailbox  delivery,  the  <a href="local.8.html"><b>local</b>(8)</a> daemon
@@ -266,7 +266,7 @@ LOCAL(8)                                                              LOCAL(8)
        to separate address extensions from local recipient names.
 
        For  example,  with  "<b><a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>  =  +</b>",  mail for <i>name</i>+<i>foo</i> is
-       delivered to the alias <i>name</i>+<i>foo</i> or to the alias <i>name</i>, to  the  destina‐
+       delivered to the alias <i>name</i>+<i>foo</i> or to the alias <i>name</i>, to  the  destina-
        tions listed in ~<i>name</i>/.<b>forward</b>+<i>foo</i> or in ~<i>name</i>/.<b>forward</b>, to the mailbox
        owned by the user <i>name</i>, or it is sent back as undeliverable.
 
@@ -287,13 +287,13 @@ LOCAL(8)                                                              LOCAL(8)
        files are marked so that the queue manager can move them to the <b>corrupt</b>
        queue afterwards.
 
-       Depending  on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the postmas‐
+       Depending  on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the postmas-
        ter is notified of bounces and of other trouble.
 
 <b>SECURITY</b>
        The <a href="local.8.html"><b>local</b>(8)</a> delivery agent needs a dual personality 1) to  access  the
-       private Postfix queue and IPC mechanisms, 2) to impersonate the recipi‐
-       ent and deliver to recipient-specified files or commands. It is  there‐
+       private Postfix queue and IPC mechanisms, 2) to impersonate the recipi-
+       ent and deliver to recipient-specified files or commands. It is  there-
        fore security sensitive.
 
        The  <a href="local.8.html"><b>local</b>(8)</a>  delivery agent disallows regular expression substitution
@@ -307,11 +307,11 @@ LOCAL(8)                                                              LOCAL(8)
 <b>BUGS</b>
        For  security reasons, the message delivery status of external commands
        or of external files is never checkpointed to file. As  a  result,  the
-       program  may occasionally deliver more than once to a command or exter‐
+       program  may occasionally deliver more than once to a command or exter-
        nal file. Better safe than sorry.
 
        Mutually-recursive aliases or ~/.<b>forward</b> files are not detected  early.
-       The  resulting  mail forwarding loop is broken by the use of the <b>Deliv</b>‐‐
+       The  resulting  mail forwarding loop is broken by the use of the <b>Deliv-</b>
        <b>ered-To:</b> message header.
 
 <b>CONFIGURATION PARAMETERS</b>
@@ -333,8 +333,8 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b><a href="postconf.5.html#owner_request_special">owner_request_special</a> (yes)</b>
               Give  special  treatment  to owner-listname and listname-request
-              address localparts: don't split such addresses when the  recipi‐
-              ent_delimiter is set to "-".
+              address localparts: don't split such addresses when the  <a href="postconf.5.html#recipient_delimiter">recipi</a>-
+              <a href="postconf.5.html#recipient_delimiter">ent_delimiter</a> is set to "-".
 
        <b><a href="postconf.5.html#sun_mailtool_compatibility">sun_mailtool_compatibility</a> (no)</b>
               Obsolete SUN mailtool compatibility feature.
@@ -350,7 +350,7 @@ LOCAL(8)                                                              LOCAL(8)
        Available in Postfix version 2.5.3 and later:
 
        <b><a href="postconf.5.html#strict_mailbox_ownership">strict_mailbox_ownership</a> (yes)</b>
-              Defer delivery when a mailbox file is not owned by  its  recipi‐
+              Defer delivery when a mailbox file is not owned by  its  recipi-
               ent.
 
        <b><a href="postconf.5.html#reset_owner_alias">reset_owner_alias</a> (no)</b>
@@ -368,8 +368,8 @@ LOCAL(8)                                                              LOCAL(8)
 <b>DELIVERY METHOD CONTROLS</b>
        The  precedence  of  <a href="local.8.html"><b>local</b>(8)</a>  delivery  methods  from  high to low is:
        aliases,  .forward  files,  <a href="postconf.5.html#mailbox_transport_maps">mailbox_transport_maps</a>,  <a href="postconf.5.html#mailbox_transport">mailbox_transport</a>,
-       <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>,  <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, mail_spool_direc‐
-       tory, <a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a>, and <a href="postconf.5.html#luser_relay">luser_relay</a>.
+       <a href="postconf.5.html#mailbox_command_maps">mailbox_command_maps</a>,  <a href="postconf.5.html#mailbox_command">mailbox_command</a>, <a href="postconf.5.html#home_mailbox">home_mailbox</a>, <a href="postconf.5.html#mail_spool_directory">mail_spool_direc</a>-
+       <a href="postconf.5.html#mail_spool_directory">tory</a>, <a href="postconf.5.html#fallback_transport_maps">fallback_transport_maps</a>, <a href="postconf.5.html#fallback_transport">fallback_transport</a>, and <a href="postconf.5.html#luser_relay">luser_relay</a>.
 
        <b><a href="postconf.5.html#alias_maps">alias_maps</a> (see 'postconf -d' output)</b>
               The alias databases that are used for <a href="local.8.html"><b>local</b>(8)</a> delivery.
@@ -444,16 +444,16 @@ LOCAL(8)                                                              LOCAL(8)
               Time limit for delivery to external commands.
 
        <b><a href="postconf.5.html#duplicate_filter_limit">duplicate_filter_limit</a> (1000)</b>
-              The maximal number of addresses remembered by the address dupli‐
+              The maximal number of addresses remembered by the address dupli-
               cate filter for <a href="aliases.5.html"><b>aliases</b>(5)</a> or <a href="virtual.5.html"><b>virtual</b>(5)</a> alias expansion, or for
               <a href="showq.8.html"><b>showq</b>(8)</a> queue displays.
 
        <b><a href="postconf.5.html#local_destination_concurrency_limit">local_destination_concurrency_limit</a> (2)</b>
               The maximal number of parallel deliveries  via  the  local  mail
-              delivery  transport  to the same recipient (when "local_destina‐
-              tion_recipient_limit = 1") or the  maximal  number  of  parallel
-              deliveries  to  the  same  local  domain  (when  "local_destina‐
-              tion_recipient_limit &gt; 1").
+              delivery  transport  to the same recipient (when "<a href="postconf.5.html#local_destination_recipient_limit">local_destina</a>-
+              <a href="postconf.5.html#local_destination_recipient_limit">tion_recipient_limit</a> = 1") or the  maximal  number  of  parallel
+              deliveries  to  the  same  local  domain  (when  "<a href="postconf.5.html#local_destination_recipient_limit">local_destina</a>-
+              <a href="postconf.5.html#local_destination_recipient_limit">tion_recipient_limit</a> &gt; 1").
 
        <b><a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> (1)</b>
               The maximal number of recipients per message  delivery  via  the
@@ -472,8 +472,8 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b><a href="postconf.5.html#command_expansion_filter">command_expansion_filter</a> (see 'postconf -d' output)</b>
               Restrict the characters that the <a href="local.8.html"><b>local</b>(8)</a> delivery agent  allows
-              in  $name  expansions  of  $<a href="postconf.5.html#mailbox_command">mailbox_command</a>  and $command_execu‐
-              tion_directory.
+              in  $name  expansions  of  $<a href="postconf.5.html#mailbox_command">mailbox_command</a>  and $<a href="postconf.5.html#command_execution_directory">command_execu</a>-
+              <a href="postconf.5.html#command_execution_directory">tion_directory</a>.
 
        <b><a href="postconf.5.html#default_privs">default_privs</a> (nobody)</b>
               The default rights used  by  the  <a href="local.8.html"><b>local</b>(8)</a>  delivery  agent  for
@@ -492,12 +492,12 @@ LOCAL(8)                                                              LOCAL(8)
        Available in Postfix version 2.5.3 and later:
 
        <b><a href="postconf.5.html#strict_mailbox_ownership">strict_mailbox_ownership</a> (yes)</b>
-              Defer  delivery  when a mailbox file is not owned by its recipi‐
+              Defer  delivery  when a mailbox file is not owned by its recipi-
               ent.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con‐
+              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
@@ -505,7 +505,7 @@ LOCAL(8)                                                              LOCAL(8)
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The maximal number of digits after the decimal point  when  log‐
+              The maximal number of digits after the decimal point  when  log-
               ging sub-second delay values.
 
        <b><a href="postconf.5.html#export_environment">export_environment</a> (see 'postconf -d' output)</b>
@@ -517,7 +517,7 @@ LOCAL(8)                                                              LOCAL(8)
               internal communication channel.
 
        <b><a href="postconf.5.html#local_command_shell">local_command_shell</a> (empty)</b>
-              Optional shell program for <a href="local.8.html"><b>local</b>(8)</a> delivery to non-Postfix com‐
+              Optional shell program for <a href="local.8.html"><b>local</b>(8)</a> delivery to non-Postfix com-
               mand.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
@@ -529,7 +529,7 @@ LOCAL(8)                                                              LOCAL(8)
               process will service before terminating voluntarily.
 
        <b><a href="postconf.5.html#prepend_delivered_header">prepend_delivered_header</a> (command, file, forward)</b>
-              The  message delivery contexts where the Postfix <a href="local.8.html"><b>local</b>(8)</a> deliv‐
+              The  message delivery contexts where the Postfix <a href="local.8.html"><b>local</b>(8)</a> deliv-
               ery agent prepends a  Delivered-To:   message  header  with  the
               address that the mail was delivered to.
 
@@ -560,7 +560,7 @@ LOCAL(8)                                                              LOCAL(8)
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post‐
+              syslog records, so that "smtpd"  becomes,  for  example,  "post-
               fix/smtpd".
 
 <b>FILES</b>
