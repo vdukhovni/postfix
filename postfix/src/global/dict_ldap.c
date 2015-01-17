@@ -1340,7 +1340,8 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
     /*
      * Don't frustrate future attempts to make Postfix UTF-8 transparent.
      */
-    if (!valid_utf8_string(name, strlen(name))) {
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
+	&& !valid_utf8_string(name, strlen(name))) {
 	if (msg_verbose)
 	    msg_info("%s: %s: Skipping lookup of non-UTF-8 key '%s'",
 		     myname, dict_ldap->parser->name, name);
@@ -1351,10 +1352,10 @@ static const char *dict_ldap_lookup(DICT *dict, const char *name)
      * Optionally fold the key.
      */
     if (dict->flags & DICT_FLAG_FOLD_FIX) {
-	if (dict->fold_buf == 0)
-	    dict->fold_buf = vstring_alloc(10);
-	vstring_strcpy(dict->fold_buf, name);
-	name = lowercase(vstring_str(dict->fold_buf));
+        if (dict->fold_buf == 0)
+            dict->fold_buf = vstring_alloc(10);
+        vstring_strcpy(dict->fold_buf, name);
+        name = lowercase(vstring_str(dict->fold_buf));
     }
 
     /*

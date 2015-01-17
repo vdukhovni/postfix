@@ -1,4 +1,4 @@
-<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+<doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
@@ -2370,14 +2370,75 @@ the SSL/TLS protocols used with opportunistic TLS. </p>
 
 <h3> <a name="client_smtps">Client-side SMTPS support </a> </h3>
 
-<p> Although the Postfix SMTP client by itself doesn't support TLS
+<p> These sections show how to send mail to a server that does not
+support STARTTLS, but that provides the deprecated SMTPS service
+on TCP port 465.  Depending on the Postfix version, some additional
+tooling may be required. </p>
+
+<h4> Postfix &ge; 2.12 </h4>
+
+<p> The Postfix SMTP client has SMTPS support built-in as of version
+2.12.  Use one of the following examples, to send all remote mail,
+or to send only some remote mail, to an SMTPS server.  </p> </p>
+
+<h5> Postfix &ge; 2.12: Sending all remote mail to an SMTPS server </h5>
+
+<p> The first example will send all remote mail over SMTPS through
+a provider's server called "mail.example.com": </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    # Client-side SMTPS requires "encrypt" or stronger.
+    smtp_tls_security_level = encrypt
+    smtp_tls_wrappermode = yes
+    # The [] suppress MX lookups.
+    relayhost = [mail.example.com]:465
+</pre>
+</blockquote>
+
+<p> Use "postfix reload" to make the change effective. </p>
+
+<p> See SOHO_README for additional information about SASL authentication.
+</p>
+
+<h5> Postfix &ge; 2.12: Sending only mail for a specific destination
+via SMTPS </h5>
+
+<p> The second example will send only mail for "example.com" via
+SMTPS.  This time, Postfix uses a transport map to deliver only
+mail for "example.com" via SMTPS: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    transport_maps = hash:/etc/postfix/transport
+
+/etc/postfix/transport:
+    example.com  relay-smtps:example.com:465
+
+/etc/postfix/master.cf:
+    relay-smtps  unix  -       -       n       -       -       smtp
+	# Client-side SMTPS requires "encrypt" or stronger.
+	-o smtp_tls_security_level=encrypt
+	-o smtp_tls_wrappermode=yes
+</pre>
+</blockquote>
+
+<p> Use "postmap hash:/etc/postfix/transport" and "postfix reload"
+to make the change effective. </p>
+
+<p> See SOHO_README for additional information about SASL
+authentication. </p>
+
+<h4> Postfix &lt; 2.12 </h4>
+
+<p> Although older Postfix SMTP client versions do not support TLS
 wrapper mode, it is relatively easy to forward a connection through
 the stunnel program if Postfix needs to deliver mail to some legacy
-system that doesn't support STARTTLS. Use one of the following two
-examples, to send only some remote mail, or to send all remote mail,
-to an SMTPS server.  </p>
+system that doesn't support STARTTLS. </p>
 
-<h4> Sending all remote mail to an SMTPS server </h4>
+<h5> Postfix &lt; 2.12: Sending all remote mail to an SMTPS server </h5>
 
 <p> The first example uses SMTPS to send all remote mail to a
 provider's mail server called "mail.example.com".  </p>
@@ -2420,7 +2481,10 @@ mail through the local stunnel listener on port 11125: </p>
 
 <p> Use "postfix reload" to make the change effective. </p>
 
-<h4> Sending only mail for a specific destination via SMTPS </h4>
+<p> See SOHO_README for additional information about SASL
+authentication. </p>
+
+<h4> Postfix &lt; 2.12: Sending only mail for a specific destination via SMTPS </h4>
 
 <p> The second example will use SMTPS to send only mail for
 "example.com" via SMTPS. It uses the same stunnel configuration
@@ -2441,6 +2505,9 @@ mail for "example.com" through the tunnel: </p>
 
 <p> Use "postmap hash:/etc/postfix/transport" and "postfix reload"
 to make the change effective. </p>
+
+<p> See SOHO_README for additional information about SASL authentication.
+</p>
 
 <h3> <a name="client_misc"> Miscellaneous client controls </a> </h3>
 

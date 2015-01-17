@@ -66,6 +66,10 @@
 /*	int	dict_longjmp(dict, val)
 /*	DICT	*dict;
 /*	int	val;
+/*
+/*	void	dict_type_override(dict, type)
+/*	DICT	*dict;
+/*	const char *type;
 /* DESCRIPTION
 /*	This module implements a low-level interface to multiple
 /*	physical dictionary types.
@@ -119,11 +123,14 @@
 /*	With databases whose lookup fields are fixed-case strings,
 /*	fold the search string to lower case before accessing the
 /*	database.  This includes hash:, cdb:, dbm:. nis:, ldap:,
-/*	*sql.
+/*	*sql. WARNING: case folding is supported only for ASCII or
+/*	valid UTF-8.
 /* .IP DICT_FLAG_FOLD_MUL
 /*	With databases where one lookup field can match both upper
 /*	and lower case, fold the search key to lower case before
-/*	accessing the database. This includes regexp: and pcre:
+/*	accessing the database. This includes regexp: and pcre:.
+/*	WARNING: case folding is supported only for ASCII or valid
+/*	UTF-8.
 /* .IP DICT_FLAG_FOLD_ANY
 /*	Short-hand for (DICT_FLAG_FOLD_FIX | DICT_FLAG_FOLD_MUL).
 /* .IP DICT_FLAG_SYNC_UPDATE
@@ -149,6 +156,12 @@
 /*	and must trap exceptions from the database client with dict_setjmp().
 /* .IP DICT_FLAG_DEBUG
 /*	Enable additional logging.
+/* .IP DICT_FLAG_UTF8_ENABLE
+/*	With util_utf8_enable != 0, require that lookup/update/delete
+/*	keys and values are valid UTF-8. Skip a lookup/update/delete
+/*	request with a non-UTF-8 key, skip an update request with
+/*	a non-UTF-8 value, and fail a lookup request with a non-UTF-8
+/*	value.
 /* .PP
 /*	Specify DICT_FLAG_NONE for no special processing.
 /*
@@ -178,6 +191,10 @@
 /* .PP
 /*	dict_open3() takes separate arguments for dictionary type and
 /*	name, but otherwise performs the same functions as dict_open().
+/*
+/*	The dict_get(), dict_put(), dict_del(), and dict_seq()
+/*	macros evaluate their first argument multiple times.
+/*	These names should have been in uppercase.
 /*
 /*	dict_get() retrieves the value stored in the named dictionary
 /*	under the given key. A null pointer means the value was not found.
@@ -226,6 +243,10 @@
 /*	NB: non-local jumps such as dict_longjmp() are not safe for
 /*	jumping out of any routine that manipulates DICT data.
 /*	longjmp() like calls are best avoided in signal handlers.
+/*
+/*	dict_type_override() changes the symbolic dictionary type.
+/*	This is used by dictionaries whose internals are based on
+/*	some other dictionary type.
 /* DIAGNOSTICS
 /*	Fatal error: open error, unsupported dictionary type, attempt to
 /*	update non-writable dictionary.
@@ -457,6 +478,10 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 	    msg_fatal("%s:%s: unable to get exclusive lock: %m",
 		      dict_type, dict_name);
     }
+    /* Last step: insert proxy for UTF-8 syntax checks and casefolding. */
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
+	&& DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags))
+	dict = dict_utf8_activate(dict);
     return (dict);
 }
 
@@ -530,6 +555,14 @@ DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend(DICT_MAPNAMES_EXTEND_FN new_cb)
     old_cb = dict_mapnames_extend_hook;
     dict_mapnames_extend_hook = new_cb;
     return (old_cb);
+}
+
+/* dict_type_override - disguise a dictionary type */
+
+void    dict_type_override(DICT *dict, const char *type)
+{
+    myfree(dict->type);
+    dict->type = mystrdup(type);
 }
 
 #ifdef TEST

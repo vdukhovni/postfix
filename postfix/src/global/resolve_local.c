@@ -69,7 +69,8 @@ void    resolve_local_init(void)
     /* Allow on-the-fly update to make testing easier. */
     if (resolve_local_list)
 	string_list_free(resolve_local_list);
-    resolve_local_list = string_list_init(MATCH_FLAG_RETURN, var_mydest);
+    resolve_local_list = string_list_init(VAR_MYDEST, MATCH_FLAG_RETURN,
+					  var_mydest);
 }
 
 /* resolve_local - match domain against list of local destinations */

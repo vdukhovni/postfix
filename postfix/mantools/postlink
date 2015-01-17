@@ -614,6 +614,7 @@ while (<>) {
     s;\bunverified_recipient_reject_reason\b;<a href="postconf.5.html#unverified_recipient_reject_reason">$&</a>;g;
     s;\bunverified_sender_reject_reason\b;<a href="postconf.5.html#unverified_sender_reject_reason">$&</a>;g;
     s;\bverp_delimiter_filter\b;<a href="postconf.5.html#verp_delimiter_filter">$&</a>;g;
+    s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_address_length_limit\b;<a href="postconf.5.html#virtual_alias_address_length_limit">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_domains\b;<a href="postconf.5.html#virtual_alias_domains">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_expansion_limit\b;<a href="postconf.5.html#virtual_alias_expansion_limit">$&</a>;g;
     s;\bvir[-</bB>]*\n*[ <bB>]*tual_alias_maps\b;<a href="postconf.5.html#virtual_alias_maps">$&</a>;g;
@@ -667,6 +668,7 @@ while (<>) {
     s;\bsmtp_tls_session_cache_timeout\b;<a href="postconf.5.html#smtp_tls_session_cache_timeout">$&</a>;g;
     s;\bsmtp_tls_block_early_mail_reply\b;<a href="postconf.5.html#smtp_tls_block_early_mail_reply">$&</a>;g;
     s;\bsmtp_tls_force_insecure_host_tlsa_lookup\b;<a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">$&</a>;g;
+    s;\bsmtp_tls_wrappermode\b;<a href="postconf.5.html#smtp_tls_wrappermode">$&</a>;g;
     s;\bsmtp_use_tls\b;<a href="postconf.5.html#smtp_use_tls">$&</a>;g;
     s;\bsmtp_header_checks\b;<a href="postconf.5.html#smtp_header_checks">$&</a>;g;
     s;\bsmtp_mime_header_checks\b;<a href="postconf.5.html#smtp_mime_header_checks">$&</a>;g;

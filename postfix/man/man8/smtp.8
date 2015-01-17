@@ -494,6 +494,11 @@ not an alias and its address records lie in an unsigned zone.
 RFC 6698 trust-anchor digest support in the Postfix TLS library.
 .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+.PP
+Available in Postfix version 2.12 and later:
+.IP "\fBsmtp_tls_wrappermode (no)\fR"
+Request that the Postfix SMTP client connects using the
+legacy SMTPS protocol instead of using the STARTTLS command.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

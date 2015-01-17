@@ -164,6 +164,7 @@ char   *var_cleanup_milters;		/* non-SMTP mail */
 char   *var_milt_head_checks;		/* post-Milter header checks */
 int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 int     var_always_add_hdrs;		/* always add missing headers */
+int     var_virt_addrlen_limit;		/* stop exponential growth */
 
 const CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -171,6 +172,7 @@ const CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_QATTR_COUNT_LIMIT, DEF_QATTR_COUNT_LIMIT, &var_qattr_count_limit, 1, 0,
     VAR_VIRT_RECUR_LIMIT, DEF_VIRT_RECUR_LIMIT, &var_virt_recur_limit, 1, 0,
     VAR_VIRT_EXPAN_LIMIT, DEF_VIRT_EXPAN_LIMIT, &var_virt_expan_limit, 1, 0,
+    VAR_VIRT_ADDRLEN_LIMIT, DEF_VIRT_ADDRLEN_LIMIT, &var_virt_addrlen_limit, 1, 0,
     VAR_BODY_CHECK_LEN, DEF_BODY_CHECK_LEN, &var_body_check_len, 0, 0,
     0,
 };
@@ -333,20 +335,24 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
     if (*var_canonical_maps)
 	cleanup_comm_canon_maps =
 	    maps_create(VAR_CANONICAL_MAPS, var_canonical_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_send_canon_maps)
 	cleanup_send_canon_maps =
 	    maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_rcpt_canon_maps)
 	cleanup_rcpt_canon_maps =
 	    maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_virt_alias_maps)
 	cleanup_virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS,
 					      var_virt_alias_maps,
 					      DICT_FLAG_LOCK
-					      | DICT_FLAG_FOLD_FIX);
+					      | DICT_FLAG_FOLD_FIX
+					      | DICT_FLAG_UTF8_REQUEST);
     if (*var_canon_classes)
 	cleanup_comm_canon_flags =
 	    name_mask(VAR_CANON_CLASSES, canon_class_table,
@@ -375,18 +381,21 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 	    maps_create(VAR_BODY_CHECKS, var_body_checks, DICT_FLAG_LOCK);
     if (*var_masq_exceptions)
 	cleanup_masq_exceptions =
-	    string_list_init(MATCH_FLAG_RETURN, var_masq_exceptions);
+	    string_list_init(VAR_MASQ_EXCEPTIONS, MATCH_FLAG_RETURN,
+			     var_masq_exceptions);
     if (*var_masq_classes)
 	cleanup_masq_flags = name_mask(VAR_MASQ_CLASSES, masq_class_table,
 				       var_masq_classes);
     if (*var_send_bcc_maps)
 	cleanup_send_bcc_maps =
 	    maps_create(VAR_SEND_BCC_MAPS, var_send_bcc_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_rcpt_bcc_maps)
 	cleanup_rcpt_bcc_maps =
 	    maps_create(VAR_RCPT_BCC_MAPS, var_rcpt_bcc_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
     if (*var_cleanup_milters)
 	cleanup_milters = milter_create(var_cleanup_milters,
 					var_milt_conn_time,

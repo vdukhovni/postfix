@@ -1,3 +1,5 @@
+-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
 PPoossttffiixx TTLLSS SSuuppppoorrtt
 
 -------------------------------------------------------------------------------
@@ -1811,13 +1813,62 @@ Example:
 
 CClliieenntt--ssiiddee SSMMTTPPSS ssuuppppoorrtt
 
-Although the Postfix SMTP client by itself doesn't support TLS wrapper mode, it
+These sections show how to send mail to a server that does not support
+STARTTLS, but that provides the deprecated SMTPS service on TCP port 465.
+Depending on the Postfix version, some additional tooling may be required.
+
+PPoossttffiixx >>== 22..1122
+
+The Postfix SMTP client has SMTPS support built-in as of version 2.12. Use one
+of the following examples, to send all remote mail, or to send only some remote
+mail, to an SMTPS server.
+
+PPoossttffiixx >>== 22..1122:: SSeennddiinngg aallll rreemmoottee mmaaiill ttoo aann SSMMTTPPSS sseerrvveerr
+
+The first example will send all remote mail over SMTPS through a provider's
+server called "mail.example.com":
+
+    /etc/postfix/main.cf:
+        # Client-side SMTPS requires "encrypt" or stronger.
+        smtp_tls_security_level = encrypt
+        smtp_tls_wrappermode = yes
+        # The [] suppress MX lookups.
+        relayhost = [mail.example.com]:465
+
+Use "postfix reload" to make the change effective.
+
+See SOHO_README for additional information about SASL authentication.
+
+PPoossttffiixx >>== 22..1122:: SSeennddiinngg oonnllyy mmaaiill ffoorr aa ssppeecciiffiicc ddeessttiinnaattiioonn vviiaa SSMMTTPPSS
+
+The second example will send only mail for "example.com" via SMTPS. This time,
+Postfix uses a transport map to deliver only mail for "example.com" via SMTPS:
+
+    /etc/postfix/main.cf:
+        transport_maps = hash:/etc/postfix/transport
+
+    /etc/postfix/transport:
+        example.com  relay-smtps:example.com:465
+
+    /etc/postfix/master.cf:
+        relay-smtps  unix  -       -       n       -       -       smtp
+            # Client-side SMTPS requires "encrypt" or stronger.
+            -o smtp_tls_security_level=encrypt
+            -o smtp_tls_wrappermode=yes
+
+Use "postmap hash:/etc/postfix/transport" and "postfix reload" to make the
+change effective.
+
+See SOHO_README for additional information about SASL authentication.
+
+PPoossttffiixx << 22..1122
+
+Although older Postfix SMTP client versions do not support TLS wrapper mode, it
 is relatively easy to forward a connection through the stunnel program if
 Postfix needs to deliver mail to some legacy system that doesn't support
-STARTTLS. Use one of the following two examples, to send only some remote mail,
-or to send all remote mail, to an SMTPS server.
+STARTTLS.
 
-SSeennddiinngg aallll rreemmoottee mmaaiill ttoo aann SSMMTTPPSS sseerrvveerr
+PPoossttffiixx << 22..1122:: SSeennddiinngg aallll rreemmoottee mmaaiill ttoo aann SSMMTTPPSS sseerrvveerr
 
 The first example uses SMTPS to send all remote mail to a provider's mail
 server called "mail.example.com".
@@ -1847,7 +1898,9 @@ local stunnel listener on port 11125:
 
 Use "postfix reload" to make the change effective.
 
-SSeennddiinngg oonnllyy mmaaiill ffoorr aa ssppeecciiffiicc ddeessttiinnaattiioonn vviiaa SSMMTTPPSS
+See SOHO_README for additional information about SASL authentication.
+
+PPoossttffiixx << 22..1122:: SSeennddiinngg oonnllyy mmaaiill ffoorr aa ssppeecciiffiicc ddeessttiinnaattiioonn vviiaa SSMMTTPPSS
 
 The second example will use SMTPS to send only mail for "example.com" via
 SMTPS. It uses the same stunnel configuration file as the first example, so it
@@ -1864,6 +1917,8 @@ This time, the Postfix side uses a transport map to direct only mail for
 
 Use "postmap hash:/etc/postfix/transport" and "postfix reload" to make the
 change effective.
+
+See SOHO_README for additional information about SASL authentication.
 
 MMiisscceellllaanneeoouuss cclliieenntt ccoonnttrroollss
 

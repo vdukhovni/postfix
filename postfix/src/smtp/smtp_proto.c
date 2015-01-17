@@ -325,6 +325,20 @@ int     smtp_helo(SMTP_STATE *state)
     const char *NOCLOBBER where;
 
     /*
+     * Skip the plaintext SMTP handshake when connecting in SMTPS mode.
+     */
+#ifdef USE_TLS
+    if (var_smtp_tls_wrappermode
+	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
+	/* XXX Mix-up of per-session and per-request flags. */
+	state->misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
+	tls_helo_status = smtp_start_tls(state);
+	state->misc_flags &= ~SMTP_MISC_FLAG_IN_STARTTLS;
+	return (tls_helo_status);
+    }
+#endif
+
+    /*
      * Prepare for disaster.
      */
     smtp_stream_setup(state->session->stream, var_smtp_helo_tmout,
@@ -336,7 +350,8 @@ int     smtp_helo(SMTP_STATE *state)
      * If not recursing after STARTTLS, examine the server greeting banner
      * and decide if we are going to send EHLO as the next command.
      */
-    if ((state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
+    if (var_smtp_tls_wrappermode
+	|| (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
 
 	/*
 	 * Read and parse the server's SMTP greeting banner.

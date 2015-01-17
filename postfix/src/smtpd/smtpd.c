@@ -3653,7 +3653,8 @@ static int etrn_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * As an extension to RFC 1985 we also allow an RFC 2821 address literal
      * enclosed in [].
      * 
-     * XXX EAI: Convert to ASCII and use that form internally.
+     * XXX There does not appear to be an ETRN parameter to indicate that the
+     * domain name is UTF-8.
      */
     if (!valid_hostname(argv[1].strval, DONT_GRIPE)
 	&& !valid_mailhost_literal(argv[1].strval, DONT_GRIPE)) {
@@ -4948,6 +4949,14 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    }
 	    watchdog_pat();
 	    smtpd_chat_query(state);
+	    /* Safety: protect internal interfaces against malformed UTF-8. */
+	    if (var_smtputf8_enable && valid_utf8_string(STR(state->buffer),
+						 LEN(state->buffer)) == 0) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		smtpd_chat_reply(state, "500 5.5.2 Error: bad UTF-8 syntax");
+		state->error_count++;
+		continue;
+	    }
 	    /* Move into smtpd_chat_query() and update session transcript. */
 	    if (smtpd_cmd_filter != 0) {
 		for (cp = STR(state->buffer); *cp && IS_SPACE_TAB(*cp); cp++)
@@ -5237,12 +5246,18 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Initialize blacklist/etc. patterns before entering the chroot jail, in
      * case they specify a filename pattern.
      */
-    smtpd_noop_cmds = string_list_init(MATCH_FLAG_RETURN, var_smtpd_noop_cmds);
-    smtpd_forbid_cmds = string_list_init(MATCH_FLAG_RETURN, var_smtpd_forbid_cmds);
-    verp_clients = namadr_list_init(MATCH_FLAG_RETURN, var_verp_clients);
-    xclient_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xclient_hosts);
-    xforward_hosts = namadr_list_init(MATCH_FLAG_RETURN, var_xforward_hosts);
-    hogger_list = namadr_list_init(MATCH_FLAG_RETURN
+    smtpd_noop_cmds = string_list_init(VAR_SMTPD_NOOP_CMDS, MATCH_FLAG_RETURN,
+				       var_smtpd_noop_cmds);
+    smtpd_forbid_cmds = string_list_init(VAR_SMTPD_FORBID_CMDS,
+					 MATCH_FLAG_RETURN,
+					 var_smtpd_forbid_cmds);
+    verp_clients = namadr_list_init(VAR_VERP_CLIENTS, MATCH_FLAG_RETURN,
+				    var_verp_clients);
+    xclient_hosts = namadr_list_init(VAR_XCLIENT_HOSTS, MATCH_FLAG_RETURN,
+				     var_xclient_hosts);
+    xforward_hosts = namadr_list_init(VAR_XFORWARD_HOSTS, MATCH_FLAG_RETURN,
+				      var_xforward_hosts);
+    hogger_list = namadr_list_init(VAR_SMTPD_HOGGERS, MATCH_FLAG_RETURN
 				   | match_parent_style(VAR_SMTPD_HOGGERS),
 				   var_smtpd_hoggers);
 
@@ -5267,7 +5282,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
     if (*var_smtpd_sasl_exceptions_networks)
 	sasl_exceptions_networks =
-	    namadr_list_init(MATCH_FLAG_RETURN,
+	    namadr_list_init(VAR_SMTPD_SASL_EXCEPTIONS_NETWORKS,
+			     MATCH_FLAG_RETURN,
 			     var_smtpd_sasl_exceptions_networks);
 #else
 	msg_warn("%s is true, but SASL support is not compiled in",

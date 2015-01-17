@@ -21209,3 +21209,206 @@ Apologies for any names omitted.
 	either their result is a valid ASCII domain name or that
 	it converts into a valid ASCII domain name. Files:
 	util/midna.c, util/midna_test.in, util/midna_test.ref.
+
+20141230
+
+	Cleanup: s/midna/midna_domain/ for better specificity,
+	because we also need functions that act only on the domain
+	portion of an email address. Files: bounce/bounce_template.c,
+	global/midna_adomain.c, posttls-finger/posttls-finger.c,
+	smtp/smtp_addr.c, smtpd/smtpd_check.c, tls/tls_client.c,
+	util/midna_domain.[hc], util/valid_utf8_hostname.c.
+
+	Infrastructure: function midna_adomain_to_utf8() (and
+	midna_adomain_to_ascii) to convert the domain portion of
+	an email address before table lookup. Files:
+	global/midna_adomain.[hc].
+
+20141230-20140109
+
+	What is described here is the result of four iterations to
+	deal with malformed UTF-8 without massively contaminating
+	every Postfix program with new error-handling code paths,
+	in particular without triggering fatal errors that didn't
+	happen before.
+
+	Infrastructure: function casefold() to support caseless
+	string comparison, primarily for table lookups. This function
+	supports two modes: case folding a la lowercase() for ASCII
+	byte values, and UTF-8 case folding. As recommended at
+	http://www.w3.org/International/wiki/Case_folding for
+	caseless string comparison, this uses the en_US locale to
+	avoid surprises. The implementatin handles
+        the entire RFC 3629 Unicode range (code points U+0000..U+10FFFF
+        including surrogates) and is chroot(2) safe. Files: casefold.c, stringops.h.
+
+	Infrastructure: revised the midna_domain_to_ascii and
+	midna_domain_to_utf8 domain name conversion functions after
+	careful reading of the UTS #46 specification, and after
+	observing that ICU 4.8 library functions indeed implement
+	this spec, at least with default options. In particular,
+	midna_domain_to_utf8 takes an UTF-8 domain name and verifies
+	that its A-label form will pass the valid_hostname() test.
+	File: util/midna_domain.c.
+
+	Infrastructure: handle UTF-8 errors in lookup table keys
+	or values without massively contaminating every Postfix
+	program with new error-handling code paths, in particular
+	without triggering fatal errors that didn't happen before.
+	The lookup/update/delete functions log a warning and ignore
+	a request with a bad key (it cannot exist); the update
+	functions ignore a request to store a bad value (it cannot
+	exist); and the lookup function reports a bad value as a
+	configuration error (it should not exist, but there it is).
+	Table iterators still report all (key, value) pairs in a
+	table. Files: util/dict.h, util/dict_open.c, util/dict_utf8.c,
+	global/mkmap_open.c.
+
+	Note that with SMTPUTF8 turned on, each table-driven mechanism
+	(access, aliases, etc.) needs to make its own decision
+	whether UTF-8 syntax is required. We cannot blindly require
+	that everything has valid UTF-8 syntax. That would make
+	header/body_checks useless for content inspection, because
+	headers may be malformed and bodies may contain legitimate
+	binary content that isn't UTF-8.
+
+	Note that with SMTPUTF8 turned off, Postfix must remain
+	8-bit clean as it always has been. Table operations must
+	not complain that something violates UTF-8 syntax rules.
+
+	UTF-8 sanitization in the Postfix SMTP server.  With
+	smtputf8_enable=yes, SMTP commands with UTF-8 syntax errors
+	are rejected, table lookup results with invalid UTF-8 syntax
+	are handled as configuration errors, and UTF-8 syntax errors
+	in policy server replies result in execution of the policy
+	server's default action.
+
+20150102
+
+	Cleanup: propagate DICT_ERR_CONFIG through the proxymap
+	protocol. Files: global/dict_proxy.[hc], proxymap/proxymap.c.
+
+20150106
+
+	Robustness: don't segfault due to excessive recursion in
+	tok822_free_tree() after a faulty configuration runs into
+	the virtual_alias_recursion_limit.  File: global/tok822_tree.c.
+
+20150109
+
+	Cleanup: the dict debug module now proxies dict flags.
+	File: util/dict_debug.c.
+
+	With "smtputf8_enable = yes", the postmap and postalias
+	commands now enable UTF-8 by default (use "-u" to disable)
+	with one exception: UTF-8 remains disabled for header/body_checks
+	emulation (use "-U" to enable).  Files: postmap/postmap.c,
+	postalias/postalias.c.
+
+20150110
+
+	Cleanup: the "inline" and "texthash" implementations now
+	reuse the "internal" database instead of reinventing the
+	wheel.  Files: util/dict_inline.c, util/dict_thash.c.
+
+	As a first step, with "smtputf8_enable = yes" all features
+	based on Postfix matchlists enable UTF-8 syntax checks and
+	UTF-8 casefolding for table patterns, but NOT YET for string
+	patterns. The list of features includes authorized_flush_users,
+	authorized_mailq_users, authorized_submit_users, debug_peer_list,
+	fast_flush_domains, mydestination, permit_mx_backup_networks,
+	qmqpd_authorized_clients, smtp_connection_cache_destinations,
+	smtpd_authorized_verp_clients, smtpd_authorized_xclient_hosts,
+	smtpd_authorized_xforward_hosts,
+	smtpd_client_event_limit_exceptions,
+	smtpd_log_access_permit_actions, smtpd_sasl_exceptions_networks,
+	the "domains" feature in ldap_table(5), memcache_table(5)
+	mysql_table(5), pgsql_table(5) and sqlite_table(5),
+	virtual_alias_domains, virtual_mailbox_domains.
+
+20150111
+
+	Cleanup: simplified the interposition layer that adds UTF-8
+	support to Postfix lookup tables. Files: util/dict_utf8.c.
+
+	With "smtputf8_enable = yes", Enable UTF-8 syntax checks
+	and UTF-8 casefolding for SMTP server access maps, alias_maps,
+	canonical_maps, fallback_transport_maps,
+	lmtp_tls_session_cache_database, local_recipient_maps,
+	mailbox_command_maps, mailbox_transport_maps, rbl_reply_maps,
+	recipient_bcc_maps, recipient_canonical_maps, relay_recipient_maps,
+	relocated_maps, sender_bcc_maps, sender_canonical_maps,
+	sender_dependent_relayhost_maps, sender_dependent_transport_maps,
+	smtp_generic_maps, smtp_sasl_auth_cache_name,
+	smtp_sasl_password_maps, smtp_tls_per_site, smtp_tls_policy_maps,
+	smtp_tls_session_cache_database, smtpd_sender_login_maps,
+	smtpd_tls_session_cache_database, transport_maps,
+	virtual_alias_maps, virtual_gid_maps, virtual_mailbox_maps,
+	virtual_uid_maps.
+
+20150112
+
+	Infrastructure: support for UTF-8 casefolding in match_lists.
+	Instead of using strcasecmp(), casefold all fixed-string
+	patterns during initialization, casefold a search string
+	at the beginning of the search, and use strcmp() for
+	comparison.  Files: util/casefold.c util/dict.h, util/dict_utf8.c,
+	util/match_list.c, util/match_list.h, util/match_ops.c,
+	util/stringops.h, global/addr_match_list.c, global/domain_list.c,
+	global/namadr_list.c, global/string_list.c.
+
+20150113
+
+	Cleanup: show the configuration parameter name in error
+	messages while parsing or searching match_list-based features
+	such as mydestination, relay_domains and a few dozen more.
+	Files: cleanup/cleanup_init.c, flush/flush.c,
+	global/addr_match_list.c, global/debug_peer.c,
+	global/domain_list.c, global/flush_clnt.c,
+	global/match_parent_style.c, global/namadr_list.c,
+	global/resolve_local.c, global/string_list.c, global/user_acl.[hc],
+	postdrop/postdrop.c, postqueue/postqueue.c,
+	postscreen/postscreen.c, qmqpd/qmqpd.c, sendmail/sendmail.c.,
+	smtp/smtp.c, smtp/smtp_sasl_glue.c, smtpd/smtpd.c,
+	smtpd/smtpd_check.c, trivial-rewrite/resolve.c,
+	util/match_list.[hc], util/match_ops.c.
+
+	Cleanup: apply printable() to all bounce(8) service
+	string-valued protocol fields. File: bounce/bounce.c.
+
+	Apparenly the UCI 4.8 ucasemap_utf8FoldCase() function does
+	not complain about UTF-8 syntax errors, so we add our own
+	redundant check. File: util/casefold.c.
+
+20150115
+
+	Bitrot: prepare for future changes in OpenSSL. Viktor
+	Dukhovni. Files: tls/tls.h, tls/tls_dh.c, tls/tls_misc.c,
+	tls/tls_rsa.c, tls/tls_server.c.
+
+	Documentation: "avoid hash files here, use btree or lmdb
+	instead".  File: proto/ADDRESS_VERIFICATION_README.html.
+
+	Safety: virtual_alias_address_length_limit (default: 1000)
+	to stop aliasing loops that exponentially increase the
+	address length with each iteration. Files: global/mail_params.h,
+	mantools/postlink, proto/postconf.proto, cleanup/cleanup.c,
+	cleanup/cleanup_init.c, cleanup/cleanup_map1n.c.
+
+20150116
+
+	TLS wrappermode in the Postfix smtp(8) client. This introduces
+	a new parameter "smtp_tls_wrappermode" (default: no). Files:
+	global/mail_params.h, mantools/postlink, proto/postconf.proto,
+	smtp/lmtp_params.c, smtp/smtp.[hc], smtp/smtp_connect.c,
+	smtp/smtp_params.c, smtp/smtp_proto.c.
+
+	TLS wrappermode in posttls-finger(1), and some DANE-related
+	cleanups. This introduces a new option "-w". Viktor Dukhovni.
+	Files: posttls-finger/posttls-finger.c, smtp/smtp_tls_policy.c,
+	tls/tls.h, tls/tls_client.c, tls/tls_fprint.c.
+
+20150117
+
+	Cleanup: missing " in \%s\" in postscreen(8) fatal error
+	messages. Iain Hibbert. File: postconf/postconf_master.c.

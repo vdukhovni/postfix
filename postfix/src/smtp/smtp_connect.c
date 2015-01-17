@@ -820,9 +820,11 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * specified, or when DNS lookups are disabled.
 	 */
 	dest_buf = smtp_parse_destination(dest, def_service, &domain, &port);
-	if (var_helpful_warnings && ntohs(port) == 465) {
-	    msg_info("CLIENT wrappermode (port smtps/465) is unimplemented");
-	    msg_info("instead, send to (port submission/587) with STARTTLS");
+	if (var_helpful_warnings && var_smtp_tls_wrappermode == 0
+	    && ntohs(port) == 465) {
+	    msg_info("SMTPS wrappermode (TCP port 465) requires setting "
+		     "\"%s = yes\", and \"%s = encrypt\" (or stronger)",
+		     VAR_LMTP_SMTP(TLS_WRAPPER), VAR_LMTP_SMTP(TLS_LEVEL));
 	}
 #define NO_HOST	""				/* safety */
 #define NO_ADDR	""				/* safety */
@@ -954,6 +956,13 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
 		msg_warn("TLS policy lookup for %s/%s: %s",
 			 STR(iter->dest), STR(iter->host), STR(why->reason));
+		continue;
+		/* XXX Assume there is no code at the end of this loop. */
+	    }
+	    if (var_smtp_tls_wrappermode
+		&& state->tls->level < TLS_LEV_ENCRYPT) {
+		msg_warn("%s requires \"%s = encrypt\" (or stronger)",
+		      VAR_LMTP_SMTP(TLS_WRAPPER), VAR_LMTP_SMTP(TLS_LEVEL));
 		continue;
 		/* XXX Assume there is no code at the end of this loop. */
 	    }

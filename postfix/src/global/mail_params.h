@@ -1396,6 +1396,12 @@ extern bool var_smtp_enforce_tls;
 #define DEF_LMTP_TLS_ENFORCE_PN	1
 extern bool var_smtp_tls_enforce_peername;
 
+#define VAR_SMTP_TLS_WRAPPER	"smtp_tls_wrappermode"
+#define DEF_SMTP_TLS_WRAPPER	0
+#define VAR_LMTP_TLS_WRAPPER	"lmtp_tls_wrappermode"
+#define DEF_LMTP_TLS_WRAPPER	0
+extern bool var_smtp_tls_wrappermode;
+
 #define VAR_SMTP_TLS_LEVEL	"smtp_tls_security_level"
 #define DEF_SMTP_TLS_LEVEL	""
 #define VAR_LMTP_TLS_LEVEL	"lmtp_tls_security_level"
@@ -1873,6 +1879,10 @@ extern int var_virt_recur_limit;
 #define VAR_VIRT_EXPAN_LIMIT	"virtual_alias_expansion_limit"
 #define DEF_VIRT_EXPAN_LIMIT	1000
 extern int var_virt_expan_limit;
+
+#define VAR_VIRT_ADDRLEN_LIMIT	"virtual_alias_address_length_limit"
+#define DEF_VIRT_ADDRLEN_LIMIT	1000
+extern int var_virt_addrlen_limit;
 
  /*
   * Message/queue size limits.

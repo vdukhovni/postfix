@@ -74,7 +74,7 @@ posttls-finger.o: ../../include/iostuff.h
 posttls-finger.o: ../../include/mail_conf.h
 posttls-finger.o: ../../include/mail_params.h
 posttls-finger.o: ../../include/mail_server.h
-posttls-finger.o: ../../include/midna.h
+posttls-finger.o: ../../include/midna_domain.h
 posttls-finger.o: ../../include/msg.h
 posttls-finger.o: ../../include/msg_vstream.h
 posttls-finger.o: ../../include/myaddrinfo.h

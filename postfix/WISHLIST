@@ -8,6 +8,20 @@ Wish list:
 
 	Things to do after the stable release:
 
+	UTF8 DNS[BW]L domain name.
+
+	Consolidate maps flags in mail_params.h instead of having
+	multiple copies scattered across programs.
+
+	Try to allow UTF-8 myhostname/mydomain, at least in bounce
+	template expansion.
+
+	No enhanced status code when rejecting connection before
+	the HELO handshake is completed.
+
+	Maybe don't whitelist a client that has maxed out its
+	per-MTA connection count limit.
+
 	Inline support for pcre:{/pattern/=action, ...} and ditto
 	support for regexp: and cidr: tables. Factor out and reuse
 	code that already exists in inline: and other tables.

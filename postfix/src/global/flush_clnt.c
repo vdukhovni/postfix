@@ -103,7 +103,7 @@ static DOMAIN_LIST *flush_domains;
 
 void    flush_init(void)
 {
-    flush_domains = domain_list_init(MATCH_FLAG_RETURN
+    flush_domains = domain_list_init(VAR_FFLUSH_DOMAINS, MATCH_FLAG_RETURN
 				   | match_parent_style(VAR_FFLUSH_DOMAINS),
 				     var_fflush_domains);
 }

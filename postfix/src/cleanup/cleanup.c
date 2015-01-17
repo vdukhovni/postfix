@@ -320,6 +320,10 @@
 /*	from each original recipient.
 /* .IP "\fBvirtual_alias_recursion_limit (1000)\fR"
 /*	The maximal nesting depth of virtual alias expansion.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBvirtual_alias_address_length_limit (1000)\fR"
+/*	The maximal length of an email address after virtual alias expansion.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi

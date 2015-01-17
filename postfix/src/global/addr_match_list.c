@@ -81,13 +81,15 @@
 
 #ifdef TEST
 
-#include <msg.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <msg.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
 #include <msg_vstream.h>
+#include <dict.h>
+#include <stringops.h>			/* util_utf8_enable */
 
 static void usage(char *progname)
 {
@@ -113,7 +115,10 @@ int     main(int argc, char **argv)
     }
     if (argc != optind + 2)
 	usage(argv[0]);
-    list = addr_match_list_init(MATCH_FLAG_PARENT | MATCH_FLAG_RETURN, argv[optind]);
+    dict_allow_surrogate = 1;
+    util_utf8_enable = 1;
+    list = addr_match_list_init("command line", MATCH_FLAG_PARENT
+				| MATCH_FLAG_RETURN, argv[optind]);
     addr = argv[optind + 1];
     if (strcmp(addr, "-") == 0) {
 	VSTRING *buf = vstring_alloc(100);

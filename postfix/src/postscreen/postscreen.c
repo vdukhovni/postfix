@@ -852,7 +852,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	psc_acl = psc_acl_parse(var_psc_acl, VAR_PSC_ACL);
     /* Ignore smtpd_forbid_cmds lookup errors. Non-critical feature. */
     if (*var_psc_forbid_cmds)
-	psc_forbid_cmds = string_list_init(MATCH_FLAG_RETURN,
+	psc_forbid_cmds = string_list_init(VAR_PSC_FORBID_CMDS,
+					   MATCH_FLAG_RETURN,
 					   var_psc_forbid_cmds);
     if (*var_psc_dnsbl_reply)
 	psc_dnsbl_reply = dict_open(var_psc_dnsbl_reply, O_RDONLY,
@@ -998,7 +999,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 	msg_fatal("bad %s value: %s", VAR_PSC_BARLF_ACTION,
 		  var_psc_barlf_action);
     /* Fail "closed" on error. */
-    psc_wlist_if = addr_match_list_init(MATCH_FLAG_RETURN, var_psc_wlist_if);
+    psc_wlist_if = addr_match_list_init(VAR_PSC_WLIST_IF, MATCH_FLAG_RETURN,
+					var_psc_wlist_if);
 
     /*
      * Start the cache maintenance pseudo thread last. Early cleanup makes

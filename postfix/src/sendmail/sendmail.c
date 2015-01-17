@@ -646,7 +646,8 @@ static void enqueue(const int flags, const char *encoding,
      * Access control is enforced in the postdrop command. The code here
      * merely produces a more user-friendly interface.
      */
-    if ((errstr = check_user_acl_byuid(var_submit_acl, uid)) != 0)
+    if ((errstr = check_user_acl_byuid(VAR_SUBMIT_ACL,
+				       var_submit_acl, uid)) != 0)
 	msg_fatal_status(EX_NOPERM,
 	  "User %s(%ld) is not allowed to submit mail", errstr, (long) uid);
 
@@ -1404,7 +1405,8 @@ int     main(int argc, char **argv)
 	    msg_fatal_status(EX_USAGE,
 			     "stand-alone mode requires no recipient");
 	/* The actual enforcement happens in the postdrop command. */
-	if ((errstr = check_user_acl_byuid(var_submit_acl, uid = getuid())) != 0)
+	if ((errstr = check_user_acl_byuid(VAR_SUBMIT_ACL, var_submit_acl,
+					   uid = getuid())) != 0)
 	    msg_fatal_status(EX_NOPERM,
 			     "User %s(%ld) is not allowed to submit mail",
 			     errstr, (long) uid);

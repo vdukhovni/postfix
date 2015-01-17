@@ -209,6 +209,7 @@ TOK822 *tok822_sub_append(TOK822 *t1, TOK822 *t2)
 	return (t1->tail = tok822_append(t1->tail, t2));
     } else {
 	t1->head = t2;
+	t2->owner = t1;
 	while (t2->next)
 	    (t2 = t2->next)->owner = t1;
 	return (t1->tail = t2);
@@ -227,6 +228,7 @@ TOK822 *tok822_sub_prepend(TOK822 *t1, TOK822 *t2)
 	return (tp);
     } else {
 	t1->head = t2;
+	t2->owner = t1;
 	while (t2->next)
 	    (t2 = t2->next)->owner = t1;
 	return (t1->tail = t2);
@@ -259,11 +261,12 @@ TOK822 *tok822_sub_keep_after(TOK822 *t1, TOK822 *t2)
 
 TOK822 *tok822_free_tree(TOK822 *tp)
 {
-    if (tp) {
-	if (tp->next)
-	    tok822_free_tree(tp->next);
+    TOK822 *next;
+
+    for (/* void */; tp != 0; tp = next) {
 	if (tp->head)
 	    tok822_free_tree(tp->head);
+	next = tp->next;
 	tok822_free(tp);
     }
     return (0);

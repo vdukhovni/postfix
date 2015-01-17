@@ -9891,8 +9891,8 @@ SMTP servers that reject recipients after the DATA command. Use
 <blockquote>
 <pre>
 /etc/postfix/transport:
-    smtp-domain_that_verifies_after_data    smtp-data-target:
-    lmtp-domain_that_verifies_after_data    lmtp-data-target:
+    smtp-domain-that-verifies-after-data    smtp-data-target:
+    lmtp-domain-that-verifies-after-data    lmtp-data-target:
 </pre>
 </blockquote>
 
@@ -12914,6 +12914,35 @@ example.com     verify  match=hostname:nexthop
 </pre>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_wrappermode">smtp_tls_wrappermode</a>
+(default: no)</b></DT><DD>
+
+<p> Request that the Postfix SMTP client connects using the
+legacy SMTPS protocol instead of using the STARTTLS command. </p>
+
+<p> This mode requires "<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = encrypt" or
+stronger. </p>
+
+<p> Example: deliver all remote mail via a provider's server
+"mail.example.com".  </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Client-side SMTPS requires "encrypt" or stronger.
+    <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> = encrypt
+    <a href="postconf.5.html#smtp_tls_wrappermode">smtp_tls_wrappermode</a> = yes
+    # The [] suppress MX lookups.
+    <a href="postconf.5.html#relayhost">relayhost</a> = [mail.example.com]:465
+</pre>
+
+<p> More examples are in <a href="TLS_README.html">TLS_README</a>, including examples for older
+Postfix versions. </p>
+
+<p> This feature is available in Postfix 2.12 and later.  </p>
 
 
 </DD>
@@ -18866,6 +18895,22 @@ Postfix <a href="sendmail.1.html">sendmail(1)</a> command line and in SMTP comma
 
 <p>
 This feature is available in Postfix 1.1 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="virtual_alias_address_length_limit">virtual_alias_address_length_limit</a>
+(default: 1000)</b></DT><DD>
+
+<p>
+The maximal length of an email address after virtual alias expansion.
+This stops virtual aliasing loops that increase the address length
+exponentially.
+</p>
+
+<p>
+This feature is available in Postfix 2.12 and later.
 </p>
 
 

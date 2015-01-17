@@ -99,7 +99,8 @@ TRANSPORT_INFO *transport_pre_init(const char *transport_maps_name,
     tp = (TRANSPORT_INFO *) mymalloc(sizeof(*tp));
     tp->transport_path = maps_create(transport_maps_name, transport_maps,
 				     DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
-				     | DICT_FLAG_NO_REGSUB);
+				     | DICT_FLAG_NO_REGSUB
+				     | DICT_FLAG_UTF8_REQUEST);
     tp->wildcard_channel = tp->wildcard_nexthop = 0;
     tp->wildcard_errno = 0;
     tp->expire = 0;

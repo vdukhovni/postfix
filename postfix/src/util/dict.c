@@ -637,6 +637,8 @@ static const NAME_MASK dict_mask[] = {
     "open_lock", DICT_FLAG_OPEN_LOCK,	/* permanent lock upon open */
     "bulk_update", DICT_FLAG_BULK_UPDATE,	/* bulk update if supported */
     "multi_writer", DICT_FLAG_MULTI_WRITER,	/* multi-writer safe */
+    "utf8_request", DICT_FLAG_UTF8_REQUEST,	/* request UTF-8 activation */
+    "utf8_active", DICT_FLAG_UTF8_ACTIVE,	/* UTF-8 is activated */
     0,
 };
 

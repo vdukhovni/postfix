@@ -15437,8 +15437,8 @@ transport_maps to apply this feature selectively:  </p>
 <blockquote>
 <pre>
 /etc/postfix/transport:
-    smtp-domain_that_verifies_after_data    smtp-data-target:
-    lmtp-domain_that_verifies_after_data    lmtp-data-target:
+    smtp-domain-that-verifies-after-data    smtp-data-target:
+    lmtp-domain-that-verifies-after-data    lmtp-data-target:
 </pre>
 </blockquote>
 
@@ -16420,3 +16420,42 @@ with valid PTR etc. records. </p>
 </pre>
 
 <p> This feature is available in Postfix 2.12 and later. </p>
+
+%PARAM smtp_tls_wrappermode no
+
+<p> Request that the Postfix SMTP client connects using the
+legacy SMTPS protocol instead of using the STARTTLS command. </p>
+
+<p> This mode requires "smtp_tls_security_level = encrypt" or
+stronger. </p>
+
+<p> Example: deliver all remote mail via a provider's server
+"mail.example.com".  </p>
+
+<pre>
+/etc/postfix/main.cf:
+    # Client-side SMTPS requires "encrypt" or stronger.
+    smtp_tls_security_level = encrypt
+    smtp_tls_wrappermode = yes
+    # The [] suppress MX lookups.
+    relayhost = [mail.example.com]:465
+</pre>
+
+<p> More examples are in TLS_README, including examples for older
+Postfix versions. </p>
+
+<p> This feature is available in Postfix 2.12 and later.  </p>
+
+%PARAM virtual_alias_address_length_limit 1000
+
+<p>
+The maximal length of an email address after virtual alias expansion.
+This stops virtual aliasing loops that increase the address length
+exponentially.
+</p>
+
+<p>
+This feature is available in Postfix 2.12 and later.
+</p>
+
+

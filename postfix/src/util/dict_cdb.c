@@ -195,7 +195,7 @@ static DICT *dict_cdbq_open(const char *path, int dict_flags)
 
     if ((fd = open(cdb_path, O_RDONLY)) < 0)
 	DICT_CDBQ_OPEN_RETURN(dict_surrogate(DICT_TYPE_CDB, path,
-					   O_RDONLY, dict_flags,
+					     O_RDONLY, dict_flags,
 					 "open database %s: %m", cdb_path));
 
     dict_cdbq = (DICT_CDBQ *) dict_alloc(DICT_TYPE_CDB,

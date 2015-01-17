@@ -102,12 +102,12 @@ void    server_acl_pre_jail_init(const char *mynetworks, const char *origin)
 	    addr_match_list_free(server_acl_mynetworks_host);
     }
     server_acl_mynetworks =
-	addr_match_list_init(MATCH_FLAG_RETURN | match_parent_style(origin),
-			     mynetworks);
+	addr_match_list_init(origin, MATCH_FLAG_RETURN
+			     | match_parent_style(origin), mynetworks);
     if (warn_compat_break_mynetworks_style)
 	server_acl_mynetworks_host =
-	    addr_match_list_init(MATCH_FLAG_RETURN | match_parent_style(origin),
-				 mynetworks_host());
+	    addr_match_list_init(origin, MATCH_FLAG_RETURN
+				 | match_parent_style(origin), mynetworks_host());
 }
 
 /* server_acl_parse - parse access list */
@@ -138,7 +138,8 @@ SERVER_ACL *server_acl_parse(const char *extern_acl, const char *origin)
 	    } else {
 		if (dict_handle(acl) == 0)
 		    dict_register(acl, dict_open(acl, O_RDONLY, DICT_FLAG_LOCK
-						 | DICT_FLAG_FOLD_FIX));
+						 | DICT_FLAG_FOLD_FIX
+						 | DICT_FLAG_UTF8_REQUEST));
 	    }
 	}
 	argv_add(intern_acl, acl, (char *) 0);
@@ -278,7 +279,7 @@ int     main(void)
 	} else if (STREQ(cmd, VAR_SERVER_ACL)) {
 	    UPDATE_VAR(var_server_acl, value);
 	} else if (STREQ(cmd, "address")) {
-	    server_acl_pre_jail_init(var_mynetworks, VAR_SERVER_ACL);
+	    server_acl_pre_jail_init(var_mynetworks, VAR_MYNETWORKS);
 	    argv = server_acl_parse(var_server_acl, VAR_SERVER_ACL);
 	    ret = server_acl_eval(value, argv, VAR_SERVER_ACL);
 	    argv_free(argv);

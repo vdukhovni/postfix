@@ -156,6 +156,9 @@ static int dict_proxy_sequence(DICT *dict, int function,
 	    case PROXY_STAT_RETRY:
 		*key = *value = 0;
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, DICT_STAT_ERROR);
+	    case PROXY_STAT_CONFIG:
+		*key = *value = 0;
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_CONFIG, DICT_STAT_ERROR);
 	    default:
 		msg_warn("%s sequence failed for table \"%s\" function %d: "
 			 "unexpected reply status %d",
@@ -226,6 +229,8 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, (char *) 0);
 	    case PROXY_STAT_RETRY:
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, (char *) 0);
+	    case PROXY_STAT_CONFIG:
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_CONFIG, (char *) 0);
 	    default:
 		msg_warn("%s lookup failed for table \"%s\" key \"%s\": "
 			 "unexpected reply status %d",
@@ -293,6 +298,8 @@ static int dict_proxy_update(DICT *dict, const char *key, const char *value)
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
 	    case PROXY_STAT_RETRY:
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, DICT_STAT_ERROR);
+	    case PROXY_STAT_CONFIG:
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_CONFIG, DICT_STAT_ERROR);
 	    default:
 		msg_warn("%s update failed for table \"%s\" key \"%s\": "
 			 "unexpected reply status %d",
@@ -360,6 +367,8 @@ static int dict_proxy_delete(DICT *dict, const char *key)
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE, DICT_STAT_FAIL);
 	    case PROXY_STAT_RETRY:
 		DICT_ERR_VAL_RETURN(dict, DICT_ERR_RETRY, DICT_STAT_ERROR);
+	    case PROXY_STAT_CONFIG:
+		DICT_ERR_VAL_RETURN(dict, DICT_ERR_CONFIG, DICT_STAT_ERROR);
 	    default:
 		msg_warn("%s delete failed for table \"%s\" key \"%s\": "
 			 "unexpected reply status %d",

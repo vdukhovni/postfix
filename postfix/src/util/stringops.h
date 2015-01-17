@@ -19,10 +19,11 @@
  /*
   * External interface.
   */
-extern int temp_utf8_kludge;
+extern int util_utf8_enable;
 extern char *printable(char *, int);
 extern char *neuter(char *, const char *, int);
 extern char *lowercase(char *);
+extern char *casefold(int, VSTRING *, const char *, CONST_CHAR_STAR *);
 extern char *uppercase(char *);
 extern char *skipblanks(const char *);
 extern char *trimblanks(char *, ssize_t);

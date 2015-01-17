@@ -91,7 +91,7 @@
 
 #include <msg.h>
 #include <split_at.h>
-#include <stringops.h>			/* XXX temp_utf8_kludge */
+#include <stringops.h>			/* XXX util_utf8_enable */
 #include <valid_utf8_hostname.h>
 
 /* Global library. */
@@ -158,7 +158,7 @@ const char *host_port(char *buf, char **host, char *def_host,
      * network addresses instead of requiring proper [ipaddress] forms.
      */
     if (*host != def_host 
-	&& !valid_utf8_hostname(temp_utf8_kludge, *host, DONT_GRIPE)
+	&& !valid_utf8_hostname(util_utf8_enable, *host, DONT_GRIPE)
 	&& !valid_hostaddr(*host, DONT_GRIPE))
 	return ("valid hostname or network address required");
     if (*port != def_service && ISDIGIT(**port) && !alldig(*port))

@@ -21,8 +21,8 @@
   */
 #define ADDR_MATCH_LIST MATCH_LIST
 
-#define addr_match_list_init(f, p) \
-	match_list_init((f), (p), 1, match_hostaddr)
+#define addr_match_list_init(o, f, p) \
+	match_list_init((o), (f), (p), 1, match_hostaddr)
 #define addr_match_list_match(l, a) \
 	match_list_match((l), (a))
 #define addr_match_list_free	match_list_free

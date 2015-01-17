@@ -92,6 +92,7 @@ typedef struct DICT {
     VSTRING *fold_buf;			/* key folding buffer */
     DICT_OWNER owner;			/* provenance */
     int     error;			/* last operation only */
+    ssize_t size;			/* size of this thing */
     DICT_JMP_BUF *jbuf;			/* exception handling */
 } DICT;
 
@@ -126,6 +127,10 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_OPEN_LOCK	(1<<16)	/* perm lock if not multi-writer safe */
 #define DICT_FLAG_BULK_UPDATE	(1<<17)	/* optimize for bulk updates */
 #define DICT_FLAG_MULTI_WRITER	(1<<18)	/* multi-writer safe map */
+#define DICT_FLAG_UTF8_REQUEST	(1<<19)	/* activate UTF-8 if possible */
+#define DICT_FLAG_UTF8_ACTIVE	(1<<20)	/* UTF-8 proxy layer is present */
+
+#define DICT_FLAG_UTF8_MASK	(DICT_FLAG_UTF8_REQUEST)
 
  /* IMPORTANT: Update the dict_mask[] table when the above changes */
 
@@ -157,8 +162,14 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_RQST_MASK	(DICT_FLAG_FOLD_ANY | DICT_FLAG_LOCK | \
 				DICT_FLAG_DUP_REPLACE | DICT_FLAG_DUP_WARN | \
 				DICT_FLAG_DUP_IGNORE | DICT_FLAG_SYNC_UPDATE | \
-				DICT_FLAG_PARANOID)
+				DICT_FLAG_PARANOID | DICT_FLAG_UTF8_MASK)
 #define DICT_FLAG_INST_MASK	~(DICT_FLAG_IMPL_MASK | DICT_FLAG_RQST_MASK)
+
+ /*
+  * Feature tests.
+  */
+#define DICT_NEED_UTF8_ACTIVATION(enable, flags) \
+	((enable) && ((flags) & DICT_FLAG_UTF8_MASK))
 
  /*
   * dict->error values. Errors must be negative; smtpd_check depends on this.
@@ -233,6 +244,14 @@ extern int dict_changed(void);
 extern const char *dict_changed_name(void);
 extern const char *dict_flags_str(int);
 extern int dict_flags_mask(const char *);
+extern void dict_type_override(DICT *, const char *);
+
+ /*
+  * Check and convert UTF-8 keys and values.
+  */
+extern DICT *dict_utf8_activate(DICT *);
+extern char *dict_utf8_check_fold(DICT *, const char *, CONST_CHAR_STAR *);
+extern int dict_utf8_check(const char *, CONST_CHAR_STAR *);
 
  /*
   * Driver for interactive or scripted tests.
@@ -250,6 +269,7 @@ extern DICT *PRINTFLIKE(5, 6) dict_surrogate(const char *, const char *, int, in
   * This name is reserved for matchlist error handling.
   */
 #define DICT_TYPE_NOFILE	"non-existent"
+#define DICT_TYPE_NOUTF8	"non-UTF-8"
 
  /*
   * Duplicated from vstream(3). This should probably be abstracted out.
@@ -262,13 +282,13 @@ extern DICT *PRINTFLIKE(5, 6) dict_surrogate(const char *, const char *, int, in
   * systems have bugs in their implementation.
   */
 #ifdef NO_SIGSETJMP
-#define dict_setjmp(stream)		setjmp((stream)->jbuf[0])
-#define dict_longjmp(stream, val)	longjmp((stream)->jbuf[0], (val))
+#define dict_setjmp(dict)	setjmp((dict)->jbuf[0])
+#define dict_longjmp(dict, val)	longjmp((dict)->jbuf[0], (val))
 #else
-#define dict_setjmp(stream)		sigsetjmp((stream)->jbuf[0], 1)
-#define dict_longjmp(stream, val)	siglongjmp((stream)->jbuf[0], (val))
+#define dict_setjmp(dict)	sigsetjmp((dict)->jbuf[0], 1)
+#define dict_longjmp(dict, val)	siglongjmp((dict)->jbuf[0], (val))
 #endif
-#define dict_isjmp(stream)		((stream)->jbuf != 0)
+#define dict_isjmp(dict)	((dict)->jbuf != 0)
 
  /*
   * Temporary API. If exception handling proves to be useful,

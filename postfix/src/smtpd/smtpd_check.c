@@ -206,7 +206,7 @@
 #include <inet_proto.h>
 #include <ip_match.h>
 #include <valid_utf8_hostname.h>
-#include <midna.h>
+#include <midna_domain.h>
 #include <mynetworks.h>
 
 /* DNS library. */
@@ -607,7 +607,8 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 	else if ((flags & SMTPD_CHECK_PARSE_MAPS)
 		 && strchr(name, ':') && dict_handle(name) == 0) {
 	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK
-					  | DICT_FLAG_FOLD_FIX));
+					  | DICT_FLAG_FOLD_FIX
+					  | DICT_FLAG_UTF8_REQUEST));
 	}
 	last = name;
     }
@@ -705,16 +706,17 @@ void    smtpd_check_init(void)
      * Pre-open access control lists before going to jail.
      */
     mynetworks_curr =
-	namadr_list_init(MATCH_FLAG_RETURN | match_parent_style(VAR_MYNETWORKS),
-			 var_mynetworks);
+	namadr_list_init(VAR_MYNETWORKS, MATCH_FLAG_RETURN
+		      | match_parent_style(VAR_MYNETWORKS), var_mynetworks);
     mynetworks_new =
-	namadr_list_init(MATCH_FLAG_RETURN | match_parent_style(VAR_MYNETWORKS),
-			 mynetworks_host());
+	namadr_list_init(VAR_MYNETWORKS, MATCH_FLAG_RETURN
+		   | match_parent_style(VAR_MYNETWORKS), mynetworks_host());
     relay_domains =
-	domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+	domain_list_init(VAR_RELAY_DOMAINS,
+			 match_parent_style(VAR_RELAY_DOMAINS),
 			 var_relay_domains);
     perm_mx_networks =
-	namadr_list_init(MATCH_FLAG_RETURN
+	namadr_list_init(VAR_PERM_MX_NETWORKS, MATCH_FLAG_RETURN
 			 | match_parent_style(VAR_PERM_MX_NETWORKS),
 			 var_perm_mx_networks);
 #ifdef USE_TLS
@@ -726,22 +728,30 @@ void    smtpd_check_init(void)
      * Pre-parse and pre-open the recipient maps.
      */
     local_rcpt_maps = maps_create(VAR_LOCAL_RCPT_MAPS, var_local_rcpt_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
     rcpt_canon_maps = maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
     canonical_maps = maps_create(VAR_CANONICAL_MAPS, var_canonical_maps,
-				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				 | DICT_FLAG_UTF8_REQUEST);
     virt_alias_maps = maps_create(VAR_VIRT_ALIAS_MAPS, var_virt_alias_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
     virt_mailbox_maps = maps_create(VAR_VIRT_MAILBOX_MAPS,
 				    var_virt_mailbox_maps,
-				    DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				    DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				    | DICT_FLAG_UTF8_REQUEST);
     relay_rcpt_maps = maps_create(VAR_RELAY_RCPT_MAPS, var_relay_rcpt_maps,
-				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
 
 #ifdef TEST
-    virt_alias_doms = string_list_init(MATCH_FLAG_NONE, var_virt_alias_doms);
-    virt_mailbox_doms = string_list_init(MATCH_FLAG_NONE, var_virt_mailbox_doms);
+    virt_alias_doms = string_list_init(VAR_VIRT_ALIAS_DOMS, MATCH_FLAG_NONE,
+				       var_virt_alias_doms);
+    virt_mailbox_doms = string_list_init(VAR_VIRT_MAILBOX_DOMS, MATCH_FLAG_NONE,
+					 var_virt_mailbox_doms);
 #endif
 
     access_parent_style = match_parent_style(SMTPD_ACCESS_MAPS);
@@ -750,14 +760,16 @@ void    smtpd_check_init(void)
      * Templates for RBL rejection replies.
      */
     rbl_reply_maps = maps_create(VAR_RBL_REPLY_MAPS, var_rbl_reply_maps,
-				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+				 DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				 | DICT_FLAG_UTF8_REQUEST);
 
     /*
      * Sender to login name mapping.
      */
     smtpd_sender_login_maps = maps_create(VAR_SMTPD_SND_AUTH_MAPS,
 					  var_smtpd_snd_auth_maps,
-				       DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+					  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+					  | DICT_FLAG_UTF8_REQUEST);
 
     /*
      * error_text is used for returning error responses.
@@ -880,7 +892,8 @@ void    smtpd_check_init(void)
     /*
      * Optional permit logging.
      */
-    smtpd_acl_perm_log = string_list_init(MATCH_FLAG_RETURN,
+    smtpd_acl_perm_log = string_list_init(VAR_SMTPD_ACL_PERM_LOG,
+					  MATCH_FLAG_RETURN,
 					  var_smtpd_acl_perm_log);
 }
 
@@ -1117,8 +1130,26 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
     if ((result = mail_addr_find(maps, key, ext)) != 0 || maps->error == 0)
 	return (result);
     if (maps->error == DICT_ERR_RETRY)
+	/* Warning is already logged. */
 	reject_dict_retry(state, reply_name);
     else
+	reject_server_error(state);
+}
+
+/* check_dict_get - reject with temporary failure if dict lookup fails */
+
+static const char *check_dict_get(SMTPD_STATE *state, const char *table,
+				          const char *reply_name,
+				          DICT *dict, const char *key)
+{
+    const char *result;
+
+    if ((result = dict_get(dict, key)) != 0 || dict->error == 0)
+	return (result);
+    if (dict->error == DICT_ERR_RETRY) {
+	msg_warn("%s: table lookup problem", table);
+	reject_dict_retry(state, reply_name);
+    } else
 	reject_server_error(state);
 }
 
@@ -1417,7 +1448,7 @@ static int reject_unknown_mailhost(SMTPD_STATE *state, const char *name,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(name) && (aname = midna_to_ascii(name)) != 0) {
+    if (!allascii(name) && (aname = midna_domain_to_ascii(name)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", name, aname);
 	name = aname;
@@ -1916,7 +1947,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_domain_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -2661,23 +2692,13 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	value = "451 4.3.5 Server configuration error";
-	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
-					     reply_name, reply_class,
-					     def_acl), FOUND);
+	reject_server_error(state);
     }
     if (flags == 0 || (flags & dict->flags) != 0) {
-	if ((value = dict_get(dict, name)) != 0)
+	if ((value = check_dict_get(state, table, reply_name, dict, name)) != 0)
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
-	if (dict->error != 0) {
-	    msg_warn("%s: table lookup problem", table);
-	    value = "451 4.3.5 Server configuration error";
-	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
-						 reply_name, reply_class,
-						 def_acl), FOUND);
-	}
     }
     CHK_ACCESS_RETURN(SMTPD_CHECK_DUNNO, MISSED);
 }
@@ -2711,24 +2732,15 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	value = "451 4.3.5 Server configuration error";
-	CHK_DOMAIN_RETURN(check_table_result(state, table, value,
-					     domain, reply_name, reply_class,
-					     def_acl), FOUND);
+	reject_server_error(state);
     }
     for (name = domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = dict_get(dict, name)) != 0)
+	    if ((value = check_dict_get(state, table, reply_name,
+					dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
 						     def_acl), FOUND);
-	    if (dict->error != 0) {
-		msg_warn("%s: table lookup problem", table);
-		value = "451 4.3.5 Server configuration error";
-		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
-					    domain, reply_name, reply_class,
-						     def_acl), FOUND);
-	    }
 	}
 	/* Don't apply subdomain magic to numerical hostnames. */
 	if (maybe_numerical
@@ -2775,24 +2787,15 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	value = "451 4.3.5 Server configuration error";
-	CHK_ADDR_RETURN(check_table_result(state, table, value, address,
-					   reply_name, reply_class,
-					   def_acl), FOUND);
+	reject_server_error(state);
     }
     do {
 	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = dict_get(dict, addr)) != 0)
+	    if ((value = check_dict_get(state, table, reply_name,
+					dict, addr)) != 0)
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
 						   reply_name, reply_class,
 						   def_acl), FOUND);
-	    if (dict->error != 0) {
-		msg_warn("%s: table lookup problem", table);
-		value = "451 4.3.5 Server configuration error";
-		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
-						   reply_name, reply_class,
-						   def_acl), FOUND);
-	    }
 	}
 	flags = PARTIAL;
     } while (split_at_right(addr, delim));
@@ -2914,7 +2917,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
      * Fix 20140924: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_domain_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -3634,7 +3637,7 @@ static const SMTPD_RBL_STATE *find_dnsxl_domain(SMTPD_STATE *state,
      * Fix 20140706: convert domain to ASCII.
      */
 #ifndef NO_EAI
-    if (!allascii(domain) && (adomain = midna_to_ascii(domain)) != 0) {
+    if (!allascii(domain) && (adomain = midna_domain_to_ascii(domain)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", domain, adomain);
 	domain = adomain;
@@ -3816,6 +3819,18 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
 
 #endif
 
+/* valid_utf8_action - validate UTF-8 policy server response */
+
+static int valid_utf8_action(const char *server, const char *action)
+{
+    int     retval;
+
+    if ((retval = valid_utf8_string(action, strlen(action))) == 0)
+	msg_warn("malformed UTF-8 in policy server %s response: \"%s\"",
+		 server, action);
+    return (retval);
+}
+
 /* check_policy_service - check delegated policy service */
 
 static int check_policy_service(SMTPD_STATE *state, const char *server,
@@ -3926,7 +3941,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 			  ATTR_TYPE_END,
 			  ATTR_FLAG_MISSING,	/* Reply attributes. */
 			  RECV_ATTR_STR(MAIL_ATTR_ACTION, action),
-			  ATTR_TYPE_END) != 1) {
+			  ATTR_TYPE_END) != 1
+	|| (var_smtputf8_enable && valid_utf8_action(server, STR(action)) == 0)) {
 	NOCLOBBER static int nesting_level = 0;
 	jmp_buf savebuf;
 	int     status;
@@ -5963,9 +5979,9 @@ int     main(int argc, char **argv)
 #define UPDATE_MAPS(ptr, var, val, lock) \
 	{ if (ptr) maps_free(ptr); ptr = maps_create(var, val, lock); }
 
-#define UPDATE_LIST(ptr, val) \
+#define UPDATE_LIST(ptr, var, val) \
 	{ if (ptr) string_list_free(ptr); \
-	  ptr = string_list_init(MATCH_FLAG_NONE, val); }
+	  ptr = string_list_init(var, MATCH_FLAG_NONE, val); }
 
 	case 2:
 	    if (strcasecmp(args->argv[0], VAR_MYDEST) == 0) {
@@ -5979,13 +5995,14 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_virt_alias_maps, args->argv[1]);
 		UPDATE_MAPS(virt_alias_maps, VAR_VIRT_ALIAS_MAPS,
 			    var_virt_alias_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], VAR_VIRT_ALIAS_DOMS) == 0) {
 		UPDATE_STRING(var_virt_alias_doms, args->argv[1]);
-		UPDATE_LIST(virt_alias_doms, var_virt_alias_doms);
+		UPDATE_LIST(virt_alias_doms, VAR_VIRT_ALIAS_DOMS,
+			    var_virt_alias_doms);
 		smtpd_resolve_init(100);
 		resp = 0;
 		break;
@@ -5994,13 +6011,14 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_virt_mailbox_maps, args->argv[1]);
 		UPDATE_MAPS(virt_mailbox_maps, VAR_VIRT_MAILBOX_MAPS,
 			    var_virt_mailbox_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
 	    if (strcasecmp(args->argv[0], VAR_VIRT_MAILBOX_DOMS) == 0) {
 		UPDATE_STRING(var_virt_mailbox_doms, args->argv[1]);
-		UPDATE_LIST(virt_mailbox_doms, var_virt_mailbox_doms);
+		UPDATE_LIST(virt_mailbox_doms, VAR_VIRT_MAILBOX_DOMS,
+			    var_virt_mailbox_doms);
 		smtpd_resolve_init(100);
 		resp = 0;
 		break;
@@ -6009,7 +6027,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_local_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(local_rcpt_maps, VAR_LOCAL_RCPT_MAPS,
 			    var_local_rcpt_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6017,7 +6035,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_relay_rcpt_maps, args->argv[1]);
 		UPDATE_MAPS(relay_rcpt_maps, VAR_RELAY_RCPT_MAPS,
 			    var_relay_rcpt_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6025,7 +6043,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
 			    var_canonical_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6033,7 +6051,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_rbl_reply_maps, args->argv[1]);
 		UPDATE_MAPS(rbl_reply_maps, VAR_RBL_REPLY_MAPS,
 			    var_rbl_reply_maps, DICT_FLAG_LOCK
-			    | DICT_FLAG_FOLD_FIX);
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;
 	    }
@@ -6041,7 +6059,7 @@ int     main(int argc, char **argv)
 		/* NOT: UPDATE_STRING */
 		namadr_list_free(mynetworks_curr);
 		mynetworks_curr =
-		    namadr_list_init(MATCH_FLAG_RETURN
+		    namadr_list_init(VAR_MYNETWORKS, MATCH_FLAG_RETURN
 				     | match_parent_style(VAR_MYNETWORKS),
 				     args->argv[1]);
 		smtpd_resolve_init(100);
@@ -6052,7 +6070,8 @@ int     main(int argc, char **argv)
 		/* NOT: UPDATE_STRING */
 		domain_list_free(relay_domains);
 		relay_domains =
-		    domain_list_init(match_parent_style(VAR_RELAY_DOMAINS),
+		    domain_list_init(VAR_RELAY_DOMAINS,
+				     match_parent_style(VAR_RELAY_DOMAINS),
 				     args->argv[1]);
 		smtpd_resolve_init(100);
 		resp = 0;
@@ -6062,7 +6081,7 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_perm_mx_networks, args->argv[1]);
 		domain_list_free(perm_mx_networks);
 		perm_mx_networks =
-		    namadr_list_init(MATCH_FLAG_RETURN
+		    namadr_list_init(VAR_PERM_MX_NETWORKS, MATCH_FLAG_RETURN
 				 | match_parent_style(VAR_PERM_MX_NETWORKS),
 				     args->argv[1]);
 		resp = 0;

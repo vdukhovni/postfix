@@ -99,6 +99,7 @@
 #include <dict_fail.h>
 #include <sigdelay.h>
 #include <mymalloc.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -294,6 +295,13 @@ MKMAP  *mkmap_open(const char *type, const char *path,
      */
     if (mkmap->after_open)
 	mkmap->after_open(mkmap);
+
+    /*
+     * Wrap the dictionary for UTF-8 syntax checks and casefolding.
+     */
+    if ((mkmap->dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
+	&& DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags))
+	mkmap->dict = dict_utf8_activate(mkmap->dict);
 
     /*
      * Resume signal delivery if multi-writer safe.

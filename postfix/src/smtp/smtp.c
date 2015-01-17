@@ -464,6 +464,11 @@
 /*	RFC 6698 trust-anchor digest support in the Postfix TLS library.
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 2.12 and later:
+/* .IP "\fBsmtp_tls_wrappermode (no)\fR"
+/*	Request that the Postfix SMTP client connects using the
+/*	legacy SMTPS protocol instead of using the STARTTLS command.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -850,6 +855,7 @@ bool    var_smtp_use_tls;
 bool    var_smtp_enforce_tls;
 char   *var_smtp_tls_per_site;
 char   *var_smtp_tls_policy;
+bool    var_smtp_tls_wrappermode;
 
 #ifdef USE_TLS
 char   *var_smtp_sasl_tls_opts;
@@ -1186,7 +1192,9 @@ static void pre_init(char *unused_name, char **unused_argv)
      * Session cache domain list.
      */
     if (*var_smtp_cache_dest)
-	smtp_cache_dest = string_list_init(MATCH_FLAG_RETURN, var_smtp_cache_dest);
+	smtp_cache_dest = string_list_init(VAR_SMTP_CACHE_DEST,
+					   MATCH_FLAG_RETURN,
+					   var_smtp_cache_dest);
 
     /*
      * EHLO keyword filter.
@@ -1213,7 +1221,8 @@ static void pre_init(char *unused_name, char **unused_argv)
     if (*var_smtp_generic_maps)
 	smtp_generic_maps =
 	    maps_create(VAR_LMTP_SMTP(GENERIC_MAPS), var_smtp_generic_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
 
     /*
      * Header/body checks.

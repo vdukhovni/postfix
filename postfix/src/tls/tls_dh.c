@@ -82,6 +82,7 @@
 
 #define TLS_INTERNAL
 #include <tls.h>
+#include <openssl/dh.h>
 
 /* Application-specific. */
 

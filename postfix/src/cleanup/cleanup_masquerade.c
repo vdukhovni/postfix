@@ -206,7 +206,8 @@ int     main(int argc, char **argv)
 
     var_masq_exceptions = argv[1];
     cleanup_masq_exceptions =
-	string_list_init(MATCH_FLAG_RETURN, var_masq_exceptions);
+	string_list_init(VAR_MASQ_EXCEPTIONS, MATCH_FLAG_RETURN,
+			 var_masq_exceptions);
     masq_domains = argv_split(argv[2], CHARS_COMMA_SP);
     addr = vstring_alloc(1);
     if (strchr(argv[3], '@') == 0)

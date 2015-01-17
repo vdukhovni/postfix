@@ -140,7 +140,7 @@
 #include <stringops.h>
 #include <msg.h>
 #include <iostuff.h>			/* non-blocking */
-#include <midna.h>
+#include <midna_domain.h>
 
 /* Global library. */
 
@@ -535,7 +535,7 @@ static int match_servername(const char *certid,
      */
     if (!allascii(certid))
 	return (0);
-    if (!allascii(nexthop) && (aname = midna_to_ascii(nexthop)) != 0) {
+    if (!allascii(nexthop) && (aname = midna_domain_to_ascii(nexthop)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s asciified to %s", nexthop, aname);
 	nexthop = aname;
@@ -565,13 +565,19 @@ static int match_servername(const char *certid,
 #ifndef NO_EAI
 
 	    /*
-	     * IDNA allows labels to be separated by any of the additional
-	     * characters U+3002, U+FF0E, and U+FF61; that are Unicode
-	     * variants. Their UTF-8 encodings are: E38082, EFBC8E and
-	     * EFBDA1.
+	     * Besides U+002E (full stop) IDNA2003 allows labels to be
+	     * separated by any of the Unicode variants U+3002 (ideographic
+	     * full stop), U+FF0E (fullwidth full stop), and U+FF61
+	     * (halfwidth ideographic full stop). Their respective UTF-8
+	     * encodings are: E38082, EFBC8E and EFBDA1.
 	     * 
-	     * It is not clear whether the IDNA to_ASCII conversion allows empty
-	     * leading labels, so we handle these explicitly here.
+	     * IDNA2008 does not permit (upper) case and other variant
+	     * differences in U-labels. The midna_domain_to_ascii() function,
+	     * based on UTS46, midna_domain_to_ascii() normalizes the
+	     * differences away.
+	     * 
+	     * The IDNA to_ASCII conversion does not allow empty leading labels,
+	     * so we handle these explicitly here.
 	     */
 	    else {
 		unsigned char *cp = (unsigned char *) domain;
@@ -586,7 +592,7 @@ static int match_servername(const char *certid,
 		}
 	    }
 	    if (!allascii(domain)
-		&& (aname = midna_to_ascii(domain)) != 0) {
+		&& (aname = midna_domain_to_ascii(domain)) != 0) {
 		if (msg_verbose)
 		    msg_info("%s asciified to %s", domain, aname);
 		domain = aname;

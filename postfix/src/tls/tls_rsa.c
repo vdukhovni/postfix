@@ -52,6 +52,7 @@
 
 #define TLS_INTERNAL
 #include <tls.h>
+#include <openssl/rsa.h>
 
 /* tls_tmp_rsa_cb - call-back to generate ephemeral RSA key */
 

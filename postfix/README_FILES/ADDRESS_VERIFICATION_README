@@ -204,7 +204,7 @@ verification for specific domains that often appear in forged email.
 
         # Default setting for Postfix 2.7 and later.
         # Note 1: Be sure to read the "Caching" section below!
-        # Note 2: Avoid hash files here. Use btree instead.
+        # Note 2: Avoid hash files here. Use btree or lmdb instead.
         address_verify_map = btree:/var/lib/postfix/verify
 
     /etc/postfix/sender_access:
@@ -245,7 +245,7 @@ be blocked:
 
         # Default setting for Postfix 2.7 and later.
         # Note 1: Be sure to read the "Caching" section below!
-        # Note 2: Avoid hash files here. Use btree instead.
+        # Note 2: Avoid hash files here. Use btree or lmdb instead.
         address_verify_map = btree:/var/lib/postfix/verify
 
 This is also a good way to populate your cache with address verification
@@ -297,7 +297,7 @@ verification results. If you specify an empty value, all address verification
 results are lost after "postfix reload" or "postfix stop".
 
     # Example 1: Default setting for Postfix 2.7 and later.
-    # Note: avoid hash files here. Use btree instead.
+    # Note: avoid hash files here. Use btree or lmdb instead.
     /etc/postfix/main.cf:
         address_verify_map = btree:$data_directory/verify_cache
 

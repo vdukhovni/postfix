@@ -315,7 +315,8 @@ int     main(int argc, char **argv)
      * or in the daemon process?
      */
     mail_dict_init();
-    if ((errstr = check_user_acl_byuid(var_submit_acl, uid)) != 0)
+    if ((errstr = check_user_acl_byuid(VAR_SUBMIT_ACL, var_submit_acl,
+				       uid)) != 0)
 	msg_fatal("User %s(%ld) is not allowed to submit mail",
 		  errstr, (long) uid);
 

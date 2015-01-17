@@ -6113,8 +6113,8 @@ transport_maps to apply this feature selectively:
 .na
 .ft C
 /etc/postfix/transport:
-    smtp-domain_that_verifies_after_data    smtp-data-target:
-    lmtp-domain_that_verifies_after_data    lmtp-data-target:
+    smtp-domain-that-verifies-after-data    smtp-data-target:
+    lmtp-domain-that-verifies-after-data    lmtp-data-target:
 .fi
 .ad
 .ft R
@@ -8538,6 +8538,33 @@ example.com     verify  match=hostname:nexthop
 .ft R
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtp_tls_wrappermode (default: no)
+Request that the Postfix SMTP client connects using the
+legacy SMTPS protocol instead of using the STARTTLS command.
+.PP
+This mode requires "smtp_tls_security_level = encrypt" or
+stronger.
+.PP
+Example: deliver all remote mail via a provider's server
+"mail.example.com".
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # Client-side SMTPS requires "encrypt" or stronger.
+    smtp_tls_security_level = encrypt
+    smtp_tls_wrappermode = yes
+    # The [] suppress MX lookups.
+    relayhost = [mail.example.com]:465
+.fi
+.ad
+.ft R
+.PP
+More examples are in TLS_README, including examples for older
+Postfix versions.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH smtp_use_tls (default: no)
 Opportunistic mode: use TLS when a remote SMTP server announces
 STARTTLS support, otherwise send the mail in the clear. Beware:
@@ -12884,6 +12911,12 @@ The characters Postfix accepts as VERP delimiter characters on the
 Postfix \fBsendmail\fR(1) command line and in SMTP commands.
 .PP
 This feature is available in Postfix 1.1 and later.
+.SH virtual_alias_address_length_limit (default: 1000)
+The maximal length of an email address after virtual alias expansion.
+This stops virtual aliasing loops that increase the address length
+exponentially.
+.PP
+This feature is available in Postfix 2.12 and later.
 .SH virtual_alias_domains (default: $virtual_alias_maps)
 Postfix is final destination for the specified list of virtual
 alias domains, that is, domains for which all addresses are aliased

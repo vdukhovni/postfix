@@ -329,7 +329,7 @@ smtpd_check.o: ../../include/mail_stream.h
 smtpd_check.o: ../../include/maps.h
 smtpd_check.o: ../../include/match_list.h
 smtpd_check.o: ../../include/match_parent_style.h
-smtpd_check.o: ../../include/midna.h
+smtpd_check.o: ../../include/midna_domain.h
 smtpd_check.o: ../../include/milter.h
 smtpd_check.o: ../../include/msg.h
 smtpd_check.o: ../../include/msg_stats.h

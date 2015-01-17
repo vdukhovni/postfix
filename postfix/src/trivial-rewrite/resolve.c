@@ -128,6 +128,7 @@
   */
 
 #define STR	vstring_str
+#define LEN	VSTRING_LEN
 
  /*
   * Some of the lists that define the address domain classes.
@@ -414,11 +415,14 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
      */
     tok822_internalize(nextrcpt, tree, TOK822_STR_DEFL);
     rcpt_domain = strrchr(STR(nextrcpt), '@') + 1;
-    if (rcpt_domain == 0)
+    if (rcpt_domain == (char *) 1)
 	msg_panic("no @ in address: \"%s\"", STR(nextrcpt));
     if (*rcpt_domain == '[') {
 	if (!valid_mailhost_literal(rcpt_domain, DONT_GRIPE))
 	    *flags |= RESOLVE_FLAG_ERROR;
+    } else if (var_smtputf8_enable
+	       && valid_utf8_string(STR(nextrcpt), LEN(nextrcpt)) == 0) {
+	*flags |= RESOLVE_FLAG_ERROR;
     } else if (!valid_utf8_hostname(var_smtputf8_enable, rcpt_domain,
 				    DONT_GRIPE)) {
 	if (var_resolve_num_dom && valid_hostaddr(rcpt_domain, DONT_GRIPE)) {
@@ -791,20 +795,23 @@ void    resolve_init(void)
 
     if (*var_virt_alias_doms)
 	virt_alias_doms =
-	    string_list_init(MATCH_FLAG_RETURN, var_virt_alias_doms);
+	    string_list_init(VAR_VIRT_ALIAS_DOMS, MATCH_FLAG_RETURN,
+			     var_virt_alias_doms);
 
     if (*var_virt_mailbox_doms)
 	virt_mailbox_doms =
-	    string_list_init(MATCH_FLAG_RETURN, var_virt_mailbox_doms);
+	    string_list_init(VAR_VIRT_MAILBOX_DOMS, MATCH_FLAG_RETURN,
+			     var_virt_mailbox_doms);
 
     if (*var_relay_domains)
 	relay_domains =
-	    domain_list_init(MATCH_FLAG_RETURN
+	    domain_list_init(VAR_RELAY_DOMAINS, MATCH_FLAG_RETURN
 			     | match_parent_style(VAR_RELAY_DOMAINS),
 			     var_relay_domains);
 
     if (*var_relocated_maps)
 	relocated_maps =
 	    maps_create(VAR_RELOCATED_MAPS, var_relocated_maps,
-			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+			DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+			| DICT_FLAG_UTF8_REQUEST);
 }

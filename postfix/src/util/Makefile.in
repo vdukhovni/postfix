@@ -38,8 +38,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	dict_fail.c msg_rate_delay.c dict_surrogate.c warn_stat.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
-	valid_utf8_hostname.c midna.c argv_splitq.c balpar.c dict_union.c \
-	extpar.c dict_inline.c
+	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
+	extpar.c dict_inline.c casefold.c dict_utf8.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -79,8 +79,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_fail.o msg_rate_delay.o dict_surrogate.o warn_stat.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
-	valid_utf8_hostname.o midna.o argv_splitq.o balpar.o dict_union.o \
-	extpar.o dict_inline.o
+	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
+	extpar.o dict_inline.o casefold.o dict_utf8.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -109,7 +109,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
-	valid_utf8_hostname.h midna.h dict_union.h dict_inline.h check_arg.h
+	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h check_arg.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -128,7 +128,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
-	vstream timecmp dict_cache midna
+	vstream timecmp dict_cache midna_domain casefold
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -504,7 +504,12 @@ dict_cache: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
-midna: $(LIB)
+midna_domain: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+casefold: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -515,7 +520,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_cidr_test attr_scan_plain_test htable_test hex_code_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
 	base32_code_test dict_thash_test surrogate_test timecmp_test \
-	dict_static_test dict_inline_test midna_test
+	dict_static_test dict_inline_test midna_domain_test casefold_test \
+	dict_utf8_test
 
 root_tests:
 
@@ -705,8 +711,8 @@ base32_code_test: base32_code
 	$(SHLIB_ENV) ./base32_code
 
 dict_thash_test: ../postmap/postmap dict_thash.map
-	$(SHLIB_ENV) ../postmap/postmap -s texthash:dict_thash.map >dict_thash.tmp 2>&1
-	sort dict_thash.tmp | diff -b dict_thash.map -
+	$(SHLIB_ENV) ../postmap/postmap -s texthash:dict_thash.map | sort >dict_thash.tmp 2>&1
+	tr '[A-Z]' '[a-z]' <dict_thash.map | sort | diff -b dict_thash.tmp -
 	rm -f dict_thash.tmp
 
 surrogate_test: dict_open surrogate.ref
@@ -745,15 +751,27 @@ dict_inline_test: dict_open dict_inline.ref
 	$(SHLIB_ENV) ./dict_open inline:'{ foo=xx x' read </dev/null; \
 	$(SHLIB_ENV) ./dict_open inline:'{ foo=xx {x=y}x}' read </dev/null; \
 	(echo get foo; echo get bar; echo get baz) | $(SHLIB_ENV) \
-	    ./dict_open inline:'{ foo=xx, { bar = lotsa stuff }}' read; \
+	    ./dict_open inline:'{ foo=XX, { bAr = lotsa stuff }}' read fold_fix; \
+	(echo get foo; echo get bar; echo get baz) | $(SHLIB_ENV) \
+	    ./dict_open inline:'{ foo=XX, { bAr = lotsa stuff }}' read 'fold_fix,utf8_request'; \
 	) >dict_inline.tmp 2>&1
 	diff dict_inline.ref dict_inline.tmp
 	rm -f dict_inline.tmp
 
-midna_test: midna midna_test.in midna_test.ref
-	$(SHLIB_ENV) ./midna <midna_test.in >midna_test.tmp 2>&1
-	diff midna_test.ref midna_test.tmp
-	rm -f midna_test.tmp
+midna_domain_test: midna_domain midna_domain_test.in midna_domain_test.ref
+	$(SHLIB_ENV) ./midna_domain <midna_domain_test.in >midna_domain_test.tmp 2>&1
+	diff midna_domain_test.ref midna_domain_test.tmp
+	rm -f midna_domain_test.tmp
+
+casefold_test: casefold casefold_test.in casefold_test.ref
+	$(SHLIB_ENV) ./casefold <casefold_test.in >casefold_test.tmp 2>&1
+	diff casefold_test.ref casefold_test.tmp
+	rm -f casefold_test.tmp
+
+dict_utf8_test: dict_open dict_utf8_test.in dict_utf8_test.ref
+	$(SHLIB_ENV) sh dict_utf8_test.in >dict_utf8_test.tmp 2>&1
+	diff dict_utf8_test.ref dict_utf8_test.tmp
+	rm -f dict_utf8_test.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -945,6 +963,13 @@ binhash.o: binhash.h
 binhash.o: msg.h
 binhash.o: mymalloc.h
 binhash.o: sys_defs.h
+casefold.o: casefold.c
+casefold.o: check_arg.h
+casefold.o: msg.h
+casefold.o: stringops.h
+casefold.o: sys_defs.h
+casefold.o: vbuf.h
+casefold.o: vstring.h
 chroot_uid.o: chroot_uid.c
 chroot_uid.o: chroot_uid.h
 chroot_uid.o: msg.h
@@ -1132,6 +1157,7 @@ dict_ht.o: vstring.h
 dict_inline.o: argv.h
 dict_inline.o: check_arg.h
 dict_inline.o: dict.h
+dict_inline.o: dict_ht.h
 dict_inline.o: dict_inline.c
 dict_inline.o: dict_inline.h
 dict_inline.o: htable.h
@@ -1380,20 +1406,19 @@ dict_test.o: vstring_vstream.h
 dict_thash.o: argv.h
 dict_thash.o: check_arg.h
 dict_thash.o: dict.h
+dict_thash.o: dict_ht.h
 dict_thash.o: dict_thash.c
 dict_thash.o: dict_thash.h
 dict_thash.o: htable.h
 dict_thash.o: iostuff.h
 dict_thash.o: msg.h
 dict_thash.o: myflock.h
-dict_thash.o: mymalloc.h
 dict_thash.o: readlline.h
 dict_thash.o: stringops.h
 dict_thash.o: sys_defs.h
 dict_thash.o: vbuf.h
 dict_thash.o: vstream.h
 dict_thash.o: vstring.h
-dict_thash.o: warn_stat.h
 dict_union.o: argv.h
 dict_union.o: check_arg.h
 dict_union.o: dict.h
@@ -1421,6 +1446,18 @@ dict_unix.o: sys_defs.h
 dict_unix.o: vbuf.h
 dict_unix.o: vstream.h
 dict_unix.o: vstring.h
+dict_utf8.o: argv.h
+dict_utf8.o: check_arg.h
+dict_utf8.o: dict.h
+dict_utf8.o: dict_utf8.c
+dict_utf8.o: msg.h
+dict_utf8.o: myflock.h
+dict_utf8.o: mymalloc.h
+dict_utf8.o: stringops.h
+dict_utf8.o: sys_defs.h
+dict_utf8.o: vbuf.h
+dict_utf8.o: vstream.h
+dict_utf8.o: vstring.h
 dir_forest.o: check_arg.h
 dir_forest.o: dir_forest.c
 dir_forest.o: dir_forest.h
@@ -1678,8 +1715,6 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
-load_lib.o: load_lib.h
-load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: check_arg.h
 lowercase.o: lowercase.c
@@ -1755,17 +1790,17 @@ match_ops.o: sys_defs.h
 match_ops.o: vbuf.h
 match_ops.o: vstream.h
 match_ops.o: vstring.h
-midna.o: check_arg.h
-midna.o: ctable.h
-midna.o: midna.c
-midna.o: midna.h
-midna.o: msg.h
-midna.o: mymalloc.h
-midna.o: stringops.h
-midna.o: sys_defs.h
-midna.o: valid_hostname.h
-midna.o: vbuf.h
-midna.o: vstring.h
+midna_domain.o: check_arg.h
+midna_domain.o: ctable.h
+midna_domain.o: midna_domain.c
+midna_domain.o: midna_domain.h
+midna_domain.o: msg.h
+midna_domain.o: mymalloc.h
+midna_domain.o: stringops.h
+midna_domain.o: sys_defs.h
+midna_domain.o: valid_hostname.h
+midna_domain.o: vbuf.h
+midna_domain.o: vstring.h
 msg.o: msg.c
 msg.o: msg.h
 msg.o: msg_output.h
@@ -2223,7 +2258,7 @@ valid_hostname.o: valid_hostname.h
 valid_hostname.o: vbuf.h
 valid_hostname.o: vstring.h
 valid_utf8_hostname.o: check_arg.h
-valid_utf8_hostname.o: midna.h
+valid_utf8_hostname.o: midna_domain.h
 valid_utf8_hostname.o: msg.h
 valid_utf8_hostname.o: mymalloc.h
 valid_utf8_hostname.o: stringops.h
