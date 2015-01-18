@@ -253,10 +253,12 @@ administrator should make the backwards-compatible setting
 
 <blockquote>
 <pre>
-# <b>postconf relay_domains=$mydestination</b>
+# <b>postconf 'relay_domains=$mydestination'</b>
 # <b>postfix reload</b>
 </pre>
 </blockquote>
+
+<p> Note: quotes are required as indicated above. </p>
 
 <p> Instead of $mydestination, it may be better to specify an
 explicit list of domain names. </p>

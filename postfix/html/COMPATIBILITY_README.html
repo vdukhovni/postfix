@@ -253,10 +253,12 @@ administrator should make the backwards-compatible setting
 
 <blockquote>
 <pre>
-# <b>postconf <a href="postconf.5.html#relay_domains">relay_domains</a>=$<a href="postconf.5.html#mydestination">mydestination</a></b>
+# <b>postconf '<a href="postconf.5.html#relay_domains">relay_domains</a>=$<a href="postconf.5.html#mydestination">mydestination</a>'</b>
 # <b>postfix reload</b>
 </pre>
 </blockquote>
+
+<p> Note: quotes are required as indicated above. </p>
 
 <p> Instead of $<a href="postconf.5.html#mydestination">mydestination</a>, it may be better to specify an
 explicit list of domain names. </p>

@@ -151,8 +151,10 @@ provide ETRN service for that domain, then the system administrator should make
 the backwards-compatible setting "relay_domains = $mydestination" permanent in
 main.cf:
 
-    # ppoossttccoonnff rreellaayy__ddoommaaiinnss==$$mmyyddeessttiinnaattiioonn
+    # ppoossttccoonnff ''rreellaayy__ddoommaaiinnss==$$mmyyddeessttiinnaattiioonn''
     # ppoossttffiixx rreellooaadd
+
+Note: quotes are required as indicated above.
 
 Instead of $mydestination, it may be better to specify an explicit list of
 domain names.

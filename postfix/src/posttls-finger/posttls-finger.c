@@ -228,6 +228,12 @@
 /* .IP "\fB-v\fR"
 /*	Enable verose Postfix logging.  Specify more than once to increase
 /*	the level of verbose logging.
+/* .IP "\fB-w\fR"
+/*	Enable outgoing TLS wrapper mode, or SMTPS support.  This is typically
+/*	provided on port 465 by servers that are compatible with the ad-hoc
+/*	SMTP in SSL protocol, rather than the standard STARTTLS protocol.
+/*	The destination \fIdomain\fR:\fIport\fR should of course provide such
+/*	a service.
 /* .IP "[\fBinet:\fR]\fIdomain\fR[:\fIport\fR]"
 /*	Connect via TCP to domain \fIdomain\fR, port \fIport\fR. The default
 /*	port is \fBsmtp\fR (or 24 with LMTP).  With SMTP an MX lookup is
@@ -421,6 +427,7 @@ typedef struct STATE {
     VSTRING *buffer;			/* Response buffer */
     VSTREAM *stream;			/* Open connection */
     int     level;			/* TLS security level */
+    int     wrapper_mode;		/* SMTPS support */
 #ifdef USE_TLS
     char   *mdalg;			/* fingerprint digest algorithm */
     char   *CAfile;			/* Trusted public CAs */
@@ -547,6 +554,33 @@ static char *exception_text(int except)
     }
 }
 
+/* greeting - read server's 220 greeting */
+
+static int greeting(STATE *state)
+{
+    VSTREAM *stream = state->stream;
+    int     except;
+    RESPONSE *resp;
+
+    /*
+     * Prepare for disaster.
+     */
+    smtp_stream_setup(stream, conn_tmout, 1);
+    if ((except = vstream_setjmp(stream)) != 0) {
+	msg_info("%s while reading server greeting", exception_text(except));
+	return (1);
+    }
+
+    /*
+     * Read and parse the server's SMTP greeting banner.
+     */
+    if (((resp = response(state, 1))->code / 100) != 2) {
+	msg_info("SMTP service not available: %d %s", resp->code, resp->str);
+	return (1);
+    }
+    return (0);
+}
+
 /* ehlo - send EHLO/LHLO */
 
 static RESPONSE *ehlo(STATE *state)
@@ -647,26 +681,27 @@ static int starttls(STATE *state)
     VSTREAM *stream = state->stream;
     TLS_CLIENT_START_PROPS tls_props;
 
-    /* SMTP stream with deadline timeouts */
-    smtp_stream_setup(stream, smtp_tmout, 1);
-    if ((except = vstream_setjmp(stream)) != 0) {
-	msg_fatal("%s while sending STARTTLS", exception_text(except));
-	return (1);
+    if (state->wrapper_mode == 0) {
+	/* SMTP stream with deadline timeouts */
+	smtp_stream_setup(stream, smtp_tmout, 1);
+	if ((except = vstream_setjmp(stream)) != 0) {
+	    msg_fatal("%s while sending STARTTLS", exception_text(except));
+	    return (1);
+	}
+	command(state, state->pass == 1, "STARTTLS");
+
+	resp = response(state, state->pass == 1);
+	if (resp->code / 100 != 2) {
+	    msg_info("STARTTLS rejected: %d %s", resp->code, resp->str);
+	    return (1);
+	}
+
+	/*
+	 * Discard any plain-text data that may be piggybacked after the
+	 * server's 220 STARTTLS reply. Should we abort the session instead?
+	 */
+	vstream_fpurge(stream, VSTREAM_PURGE_READ);
     }
-    command(state, state->pass == 1, "STARTTLS");
-
-    resp = response(state, state->pass == 1);
-    if (resp->code / 100 != 2) {
-	msg_info("STARTTLS rejected: %d %s", resp->code, resp->str);
-	return (1);
-    }
-
-    /*
-     * Discard any plain-text data that may be piggybacked after the server's
-     * 220 STARTTLS reply. Should we abort the session instead?
-     */
-    vstream_fpurge(stream, VSTREAM_PURGE_READ);
-
 #define ADD_EXCLUDE(vstr, str) \
     do { \
 	if (*(str)) \
@@ -718,6 +753,9 @@ static int starttls(STATE *state)
 	state->stream = 0;
 	return (1);
     }
+    if (state->wrapper_mode && greeting(state) != 0)
+	return (1);
+
     if (state->pass == 1) {
 	ehlo(state);
 	if (!TLS_CERT_IS_PRESENT(state->tls_context))
@@ -743,42 +781,27 @@ static int doproto(STATE *state)
     int     except;
     int     n;
     char   *lines;
-    char   *words;
+    char   *words = 0;
     char   *word;
 
-    /*
-     * Prepare for disaster.
-     */
-    smtp_stream_setup(stream, conn_tmout, 1);
-    if ((except = vstream_setjmp(stream)) != 0)
-	msg_fatal("%s while reading server greeting", exception_text(except));
+    if (!state->wrapper_mode) {
+	if (greeting(state) != 0)
+	    return (1);
+	if ((resp = ehlo(state)) == 0)
+	    return (1);
 
-    /*
-     * Read and parse the server's SMTP greeting banner.
-     */
-    if (((resp = response(state, 1))->code / 100) != 2) {
-	msg_info("SMTP service not available: %d %s", resp->code, resp->str);
-	return (1);
-    }
-
-    /*
-     * Send the standard greeting with our hostname
-     */
-    if ((resp = ehlo(state)) == 0)
-	return (1);
-
-    lines = resp->str;
-    for (n = 0; (words = mystrtok(&lines, "\n")) != 0; ++n) {
-	if ((word = mystrtok(&words, " \t=")) != 0) {
-	    if (n == 0)
-		state->helo = mystrdup(word);
-	    if (strcasecmp(word, "STARTTLS") == 0)
-		break;
+	lines = resp->str;
+	for (n = 0; (words = mystrtok(&lines, "\n")) != 0; ++n) {
+	    if ((word = mystrtok(&words, " \t=")) != 0) {
+		if (n == 0)
+		    state->helo = mystrdup(word);
+		if (strcasecmp(word, "STARTTLS") == 0)
+		    break;
+	    }
 	}
     }
-
 #ifdef USE_TLS
-    if (words && state->tls_ctx)
+    if ((state->wrapper_mode || words) && state->tls_ctx)
 	if (starttls(state))
 	    return (1);
 #endif
@@ -793,7 +816,6 @@ static int doproto(STATE *state)
     }
     command(state, 1, "QUIT");
     (void) response(state, 1);
-
     return (0);
 }
 
@@ -1191,7 +1213,7 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
     int     level = state->level;
 
 #ifdef USE_TLS
-    if (level == TLS_LEV_DANE) {
+    if (TLS_DANE_BASED(level)) {
 	if (state->mx == 0 || state->mx->dnssec_valid) {
 	    if (state->log_mask & (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE))
 		tls_dane_verbose(1);
@@ -1214,7 +1236,8 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 			   HNAME(addr), ntohs(state->port));
 		level = TLS_LEV_INVALID;
 	    } else if (tls_dane_notfound(state->ddane)
-		       || tls_dane_unusable(state->ddane)) {
+		       || tls_dane_unusable(state->ddane)
+		       || level == TLS_LEV_DANE_ONLY) {
 		if (msg_verbose)
 		    msg_info("no %sTLSA records found, "
 			     "resorting to \"secure\"",
@@ -1223,7 +1246,7 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 		level = TLS_LEV_SECURE;
 	    } else if (!TLS_DANE_HASTA(state->ddane)
 		       && !TLS_DANE_HASEE(state->ddane)) {
-		msg_panic("empty DANE match list");
+		msg_panic("DANE activated with no TLSA records to match");
 	    } else {
 		if (state->match)
 		    argv_free(state->match);
@@ -1531,7 +1554,7 @@ static void usage(void)
 #ifdef USE_TLS
     fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s \\\n\t%s"
 	    " destination [match ...]\n", var_procname,
-	    "[-acCfSv] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
+	    "[-acCfSvw] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
 	 "[-h host_lookup] [-l level] [-d mdalg] [-g grade] [-p protocols]",
 	    "[-A tafile] [-F CAfile.pem] [-P CApath/] [-m count] [-r delay]",
 	    "[-o name=value]");
@@ -1594,6 +1617,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
     state->pass = 1;
     state->reconnect = -1;
     state->max_reconnect = 5;
+    state->wrapper_mode = 0;
 #ifdef USE_TLS
     state->protocols = mystrdup("!SSLv2");
     state->grade = mystrdup("medium");
@@ -1603,7 +1627,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
 
 #define OPTS "a:ch:o:St:T:v"
 #ifdef USE_TLS
-#define TLSOPTS "A:Cd:fF:g:l:L:m:p:P:r:"
+#define TLSOPTS "A:Cd:fF:g:l:L:m:p:P:r:w"
 
     state->mdalg = mystrdup("sha1");
     state->CApath = mystrdup("");
@@ -1692,6 +1716,9 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	case 'r':
 	    state->reconnect = atoi(optarg);
 	    break;
+	case 'w':
+	    state->wrapper_mode = 1;
+	    break;
 #endif
 	}
     }
@@ -1725,10 +1752,9 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	state->level = tls_level_lookup(state->options.level);
 
 	switch (state->level) {
-	case TLS_LEV_DANE_ONLY:
-	    state->level = TLS_LEV_DANE;
-	    break;
 	case TLS_LEV_NONE:
+	    if (state->wrapper_mode)
+		msg_fatal("SSL wrapper mode requires that TLS not be disabled");
 	    return;
 	case TLS_LEV_INVALID:
 	    msg_fatal("Invalid TLS level \"%s\"", state->options.level);
@@ -1741,8 +1767,8 @@ static void parse_options(STATE *state, int argc, char *argv[])
      * required for DANE support.
      */
     tls_init(state);
-    if (state->level == TLS_LEV_DANE && !tls_dane_avail()) {
-	msg_warn("The \"dane\" TLS security level is not available");
+    if (TLS_DANE_BASED(state->level) && !tls_dane_avail()) {
+	msg_warn("DANE TLS support is not available, resorting to \"secure\"");
 	state->level = TLS_LEV_SECURE;
     }
     state->tls_bio = 0;
@@ -1780,6 +1806,7 @@ static void parse_match(STATE *state, int argc, char *argv[])
 				    state->mdalg, *argv++, "");
 	break;
     case TLS_LEV_DANE:
+    case TLS_LEV_DANE_ONLY:
 	state->match = argv_alloc(2);
 	argv_add(state->match, "nexthop", "hostname", ARGV_END);
 	break;

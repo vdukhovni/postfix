@@ -53,6 +53,8 @@
 #define TLS_MUST_MATCH(l)	((l) > TLS_LEV_ENCRYPT)
 #define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_DANE)
 #define TLS_MUST_PKIX(l)	((l) >= TLS_LEV_VERIFY)
+#define TLS_OPPORTUNISTIC(l)	((l) == TLS_LEV_MAY || (l) == TLS_LEV_DANE)
+#define TLS_DANE_BASED(l)	((l) == TLS_LEV_DANE || (l) == TLS_LEV_DANE_ONLY)
 
 extern const NAME_CODE tls_level_table[];
 

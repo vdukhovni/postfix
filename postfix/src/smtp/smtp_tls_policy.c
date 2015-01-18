@@ -437,6 +437,7 @@ static void set_cipher_grade(SMTP_TLS_POLICY *tls)
 	break;
 
     case TLS_LEV_DANE:
+    case TLS_LEV_DANE_ONLY:
     case TLS_LEV_FPRINT:
     case TLS_LEV_VERIFY:
     case TLS_LEV_SECURE:
@@ -534,7 +535,7 @@ static void *policy_create(const char *unused_key, void *context)
      * "dane-only" changes to "dane" once we obtain the requisite TLSA
      * records.
      */
-    if (tls->level == TLS_LEV_DANE || tls->level == TLS_LEV_DANE_ONLY)
+    if (TLS_DANE_BASED(tls->level))
 	dane_init(tls, iter);
     if (tls->level == TLS_LEV_INVALID)
 	return ((void *) tls);
@@ -563,6 +564,7 @@ static void *policy_create(const char *unused_key, void *context)
     case TLS_LEV_MAY:
     case TLS_LEV_ENCRYPT:
     case TLS_LEV_DANE:
+    case TLS_LEV_DANE_ONLY:
 	break;
     case TLS_LEV_FPRINT:
 	if (tls->dane == 0)
@@ -844,7 +846,6 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
     } else if (!TLS_DANE_HASEE(dane))
 	msg_panic("empty DANE match list");
     tls->dane = dane;
-    tls->level = TLS_LEV_DANE;
     return;
 }
 

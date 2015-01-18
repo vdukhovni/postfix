@@ -227,7 +227,7 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
 #if 0
 	digest_dane(props->dane, ee);		/* See above */
 #endif
-	digest_string(props->tls_level == TLS_LEV_DANE ? props->host : "");
+	digest_string(TLS_DANE_BASED(props->tls_level) ? props->host : "");
     }
     checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);

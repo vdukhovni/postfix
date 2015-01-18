@@ -5132,7 +5132,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 static char *smtpd_format_cmd_stats(VSTRING *buf)
 {
     SMTPD_CMD *cmdp;
+    int     all_success = 0;
+    int     all_total = 0;
 
+    /*
+     * Log the statistics. Note that this loop produces no output when no
+     * command was received. We address that after the loop.
+     */
     VSTRING_RESET(buf);
     for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
 	if (cmdp->total_count > 0) {
@@ -5141,10 +5147,22 @@ static char *smtpd_format_cmd_stats(VSTRING *buf)
 				   cmdp->success_count);
 	    if (cmdp->success_count != cmdp->total_count)
 		vstring_sprintf_append(buf, "/%d", cmdp->total_count);
+	    all_success += cmdp->success_count;
+	    all_total += cmdp->total_count;
 	}
 	if (cmdp->name == 0)
 	    break;
     }
+
+    /*
+     * Log total numbers, so that logfile analyzers will see something even
+     * if the above loop produced no output. When no commands were received
+     * log "0/0" to simplify the identification of abnormal sessions: any
+     * statistics with [0-9]/ indicate that there was a problem.
+     */
+    vstring_sprintf_append(buf, " commands=%d", all_success);
+    if (all_success != all_total || all_total == 0)
+	vstring_sprintf_append(buf, "/%d", all_total);
     return (lowercase(STR(buf)));
 }
 

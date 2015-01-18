@@ -11196,7 +11196,7 @@ Apologies for any names omitted.
 	in the anvil server, TLS request rate error message in the
 	smtp server, and documentation, but no changes in code.
 	Files: anvil/anvil.c, smtpd/smtpd.c.
- 
+
 20051013
 
 	Horror: some systems have basename() and dirname() and some
@@ -19583,8 +19583,8 @@ Apologies for any names omitted.
 	smtp/smtp.h, smtp/smtp_rcpt.c.
 
 	Logging: the TLS client logged that an "Untrusted" TLS
-	connection was established instead of "Anonymous".
-	Viktor Dukhovni. File: tls/tls_client.c.
+	connection was established instead of "Anonymous".  Viktor
+	Dukhovni. File: tls/tls_client.c.
 
 	Documentation: new self-signed certificate example and
 	updated private CA example. File: proto/TLS_README.html.
@@ -19662,7 +19662,7 @@ Apologies for any names omitted.
 20140323
 
 	Feature: initial merge of Debian-style dynamic linking.
-	Viktor Dukhovni. 
+	Viktor Dukhovni.
 
 20140406
 
@@ -19755,8 +19755,8 @@ Apologies for any names omitted.
 20140508
 
 	Cleanup: dynamicmaps.cf is now installed into $daemon_directory
-	because the file is shared among Postfix instances just like
-	postfix-files and other files.  Files: conf/dynamicmaps.cf,
+	because the file is shared among Postfix instances just
+	like postfix-files and other files.  Files: conf/dynamicmaps.cf,
 	Makefile.in, conf/postfix-files.
 
 	Cleanup: INSTALL is now plain ASCII instead of README format,
@@ -19807,11 +19807,11 @@ Apologies for any names omitted.
 	Support for "make shared=yes" and "make dynamicmaps=yes".
 	New plugin_directory parameter for the location of the
 	dynamicmaps.cf file and for plugins with a relative pathname.
-	See RELEASE_NOTES and INSTALL for details. Files:
-	postfix.c, mail_params.[hc], dynamicmaps.c, mail_dict.c,
-	makedefs, postfix-files, dynamicmaps.cf, Makefile.in,
-	util/Makefile.in, global/Makefile.in, postlink, postconf.proto.
-	INSTALL.html, RELEASE_NOTES.
+	See RELEASE_NOTES and INSTALL for details. Files: postfix.c,
+	mail_params.[hc], dynamicmaps.c, mail_dict.c, makedefs,
+	postfix-files, dynamicmaps.cf, Makefile.in, util/Makefile.in,
+	global/Makefile.in, postlink, postconf.proto.  INSTALL.html,
+	RELEASE_NOTES.
 
 20140523
 
@@ -20243,9 +20243,9 @@ Apologies for any names omitted.
 	Cleanup: change extract_addr() API to indicate that an
 	address is parsed in SMTPUTF8 context. File: smtpd/smtpd.c.
 
-	Cleanup: shared-library build fixes. Viktor Dukhovni.
-	Files: makedefs, dns/Makefile.in, global/Makefile.in,
-	master/Makefile.in, tls/Makefile.in, util/Makefile.in.
+	Cleanup: shared-library build fixes. Viktor Dukhovni.  Files:
+	makedefs, dns/Makefile.in, global/Makefile.in, master/Makefile.in,
+	tls/Makefile.in, util/Makefile.in.
 
 	First general release with SMTPUTF8 support; see RELEASE_NOTES
 	for an initial writeup.  The last pre-SMTPUTF8 release is
@@ -20317,8 +20317,8 @@ Apologies for any names omitted.
 
 20140731
 
-	Feature: the Postfix SMTP server now logs at the end of
-	a session how many times each SMTP command was successfully
+	Feature: the Postfix SMTP server now logs at the end of a
+	session how many times each SMTP command was successfully
 	invoked, followed by the total number of invocations if it
 	is different.  File: smtpd/smtpd.c.
 
@@ -20431,7 +20431,7 @@ Apologies for any names omitted.
 
 	Cleanup: dict_db and dict_lmdb global settings. Files:
 	global/mail_params.c, util/dict_open.c.
-	
+
 	Feature: unionmap, based on contribution by Roel van Meer.
 	Files: mantools/postlink, postconf/postconf.c (manpage),
 	proto/DATABASE_README.html, util/dict_open.c, util/dict_union.[hc].
@@ -20461,9 +20461,9 @@ Apologies for any names omitted.
 
 20140927
 
-	Cleanup: specify { name = value } in per-Milter settings, to support
-	space around the "=" or comma/space within the value. Files:
-	global/attr_over.[hc]. 
+	Cleanup: specify { name = value } in per-Milter settings,
+	to support space around the "=" or comma/space within the
+	value. Files: global/attr_over.[hc].
 
 	Cleanup: "postconf -n" now only shows config_directory when
 	an override is in effect (environment, -c or -o).
@@ -20504,15 +20504,14 @@ Apologies for any names omitted.
 
 	Cleanup: force LANG=C to prevent groff from outputting
 	non-ASCII cruft into the HTML-ized manpages.  Files:
-	html/Makefile.in, proto/Makefile.in, many HTML output
-	files.
+	html/Makefile.in, proto/Makefile.in, many HTML output files.
 
 20140929
 
 	Cleanup: the table-driven code for per-Milter and per-policy
-	overrides now updates arbitrary variables, so that it can also
-	be used for, say, TLS policies. Files: global/attr_override.[hc],
-	smtpd/smtpd_check.c, milter/milter.c.
+	overrides now updates arbitrary variables, so that it can
+	also be used for, say, TLS policies. Files:
+	global/attr_override.[hc], smtpd/smtpd_check.c, milter/milter.c.
 
 	Documentation: support for "{ argument with whitespace }"
 	in master(5) and pipe(8). Files: proto/master, src/pipe/pipe.c.
@@ -20524,12 +20523,12 @@ Apologies for any names omitted.
 
 20141001
 
-	Safety: backwards-compatibility safety net that forces Postfix
-	to run with backwards-compatible default settings after an
-	upgrade to a newer Postfix version.  Postfix logs all uses
-	of those backwards-compatible default settings so that the
-	system administator can determine whether or not some
-	backwards-compatible default settings need to be made
+	Safety: backwards-compatibility safety net that forces
+	Postfix to run with backwards-compatible default settings
+	after an upgrade to a newer Postfix version.  Postfix logs
+	all uses of those backwards-compatible default settings so
+	that the system administator can determine whether or not
+	some backwards-compatible default settings need to be made
 	permanent in main.cf or master.cf.  All this is controlled
 	with a new compatibility_level parameter, default value 0.
 	Files: global/mail_params.[hc], trivial-rewrite/rewrite.c,
@@ -20556,9 +20555,9 @@ Apologies for any names omitted.
 
 20141003
 
-	Workaround: kludge for multiple paragraphs of text in indented
-	paragraphs.  Files: mantools/postconf2html, mantools/postconf2man,
-	proto/Makefile.in, proto/postconf.proto
+	Workaround: kludge for multiple paragraphs of text in
+	indented paragraphs.  Files: mantools/postconf2html,
+	mantools/postconf2man, proto/Makefile.in, proto/postconf.proto
 
 20141005
 
@@ -20605,8 +20604,9 @@ Apologies for any names omitted.
 	a new COMPATIBILITY_README document. Files: proto/postconf.proto,
 	proto/COMPATIBILITY_README.html html/index.html.
 
-	Documentation: update the conf/main.cf compatibility_level setting 
-	for new Postfix installs, and updated a reminder in mail_params.h.
+	Documentation: update the conf/main.cf compatibility_level
+	setting for new Postfix installs, and updated a reminder
+	in mail_params.h.
 
 20141010
 
@@ -20898,7 +20898,7 @@ Apologies for any names omitted.
 	about that later.  Files: smtpd/smtpd_check.c, smtp/smtp_addr.c,
 	dns/dns.h, dns/dns_lookup.c.
 
-	Cleanup: eliminate TLS state duplication from state->tls 
+	Cleanup: eliminate TLS state duplication from state->tls
 	to session->tls. Viktor Dukhovni. Files: src/smtp/smtp.h,
 	src/smtp/smtp_connect.c, src/smtp/smtp_proto.c,
 	src/smtp/smtp_reuse.c, src/smtp/smtp_session.c.
@@ -21011,8 +21011,8 @@ Apologies for any names omitted.
 
 20141208
 
-	Bugfix (introduced: 20141207): in new #ifdef, && should be ||.
-	File: smtpd.c.
+	Bugfix (introduced: 20141207): in new #ifdef, && should be
+	||.  File: smtpd.c.
 
 20141210
 
@@ -21180,7 +21180,7 @@ Apologies for any names omitted.
 
 	Cleanup: instead of making up new names, use a consistent
 	CA_ prefix for macros that implement compile-time argument
-	typechecks for non-protocol attribute-value APIs. This 
+	typechecks for non-protocol attribute-value APIs. This
 	transformation and its verification are mechanical.
 
 	Bugfix (introduced: Postfix 1.1, but latent before 2.12):
@@ -21204,11 +21204,11 @@ Apologies for any names omitted.
 
 20141228
 
-	Cleanup: the IDNA conversion routines now accept both
-	ASCII and UTF8 inputs. The functions als verify that 
-	either their result is a valid ASCII domain name or that
-	it converts into a valid ASCII domain name. Files:
-	util/midna.c, util/midna_test.in, util/midna_test.ref.
+	Cleanup: the IDNA conversion routines now accept both ASCII
+	and UTF8 inputs. The functions als verify that either their
+	result is a valid ASCII domain name or that it converts
+	into a valid ASCII domain name. Files: util/midna.c,
+	util/midna_test.in, util/midna_test.ref.
 
 20141230
 
@@ -21238,9 +21238,10 @@ Apologies for any names omitted.
 	byte values, and UTF-8 case folding. As recommended at
 	http://www.w3.org/International/wiki/Case_folding for
 	caseless string comparison, this uses the en_US locale to
-	avoid surprises. The implementatin handles
-        the entire RFC 3629 Unicode range (code points U+0000..U+10FFFF
-        including surrogates) and is chroot(2) safe. Files: casefold.c, stringops.h.
+	avoid surprises. The implementatin handles the entire RFC
+	3629 Unicode range (code points U+0000..U+10FFFF including
+	surrogates) and is chroot(2) safe. Files: casefold.c,
+	stringops.h.
 
 	Infrastructure: revised the midna_domain_to_ascii and
 	midna_domain_to_utf8 domain name conversion functions after
@@ -21412,3 +21413,16 @@ Apologies for any names omitted.
 
 	Cleanup: missing " in \%s\" in postscreen(8) fatal error
 	messages. Iain Hibbert. File: postconf/postconf_master.c.
+
+20150118
+
+	Bugfix (introduced: 20140731): when a connection timed out
+	before any command was received, the Postfix SMTP server
+	"disconnect from" logging would show the content of the
+	last SMTP server response (421 4.4.2 $myhostname error:
+	timeout exceeded) instead of per-command statistics, because
+	there were no statistics to report.  The Postfix SMTP server
+	now always logs the total number of commands (commands=x/y)
+	even when the client did not send any. This helps logfile
+	analyzers to recognize sessions without commands.  File:
+	smtpd/smtpd.c.

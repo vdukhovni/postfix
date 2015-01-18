@@ -827,10 +827,10 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /*
      * When certificate verification is required, log trust chain validation
      * errors even when disabled by default for opportunistic sessions. For
-     * "dane" this only applies when using trust-anchor associations.
+     * DANE this only applies when using trust-anchor associations.
      */
     if (TLS_MUST_TRUST(props->tls_level)
-	&& (props->tls_level != TLS_LEV_DANE || TLS_DANE_HASTA(props->dane)))
+      && (!TLS_DANE_BASED(props->tls_level) || TLS_DANE_HASTA(props->dane)))
 	log_mask |= TLS_LOG_UNTRUSTED;
 
     if (log_mask & TLS_LOG_VERBOSE)
@@ -849,8 +849,8 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 		 props->namaddr, props->protocols);
 	return (0);
     }
-    /* The DANE level requires SSLv3 or later, not SSLv2. */
-    if (props->tls_level == TLS_LEV_DANE)
+    /* DANE requires SSLv3 or later, not SSLv2. */
+    if (TLS_DANE_BASED(props->tls_level))
 	protomask |= TLS_PROTOCOL_SSLv2;
 
     /*
@@ -945,7 +945,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	}
     }
 #ifdef TLSEXT_MAXLEN_host_name
-    if (props->tls_level == TLS_LEV_DANE
+    if (TLS_DANE_BASED(props->tls_level)
 	&& strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
 
 	/*
