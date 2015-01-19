@@ -110,8 +110,27 @@ respect to earlier Postfix releases: </p>
 <ul>
 
 <li> <p> UTF-8 is permitted in the <a href="postconf.5.html#myorigin">myorigin</a> parameter value. However,
-the <a href="postconf.5.html#myhostname">myhostname</a> and <a href="postconf.5.html#mydomain">mydomain</a> parameters must specify ASCII-only
-domain names. This limitation may be removed later. </p>
+the <a href="postconf.5.html#myhostname">myhostname</a> and <a href="postconf.5.html#mydomain">mydomain</a> parameters must currently specify
+ASCII-only domain names. This limitation may be removed later. </p>
+
+<li> <p> UTF-8 is the only form of non-ASCII text that Postfix
+supports in access tables, address rewriting tables, and other
+tables that are indexed with an email address, hostname, or domain
+name. </p>
+
+<li> <p> The <a href="postconf.5.html#header_checks">header_checks</a>-like and <a href="postconf.5.html#body_checks">body_checks</a>-like features are
+not UTF-8 enabled, and therefore they do not enforce UTF-8 syntax
+rules on inputs and outputs.  The reason is that non-ASCII text may
+be sent in encodings other than UTF-8, and that real email sometimes
+contains malformed headers.  Instead of skipping non-UTF-8 content,
+Postfix should be able to filter it.  You may try to enable UTF-8
+processing by starting a PCRE pattern with the sequence (*UTF8),
+but this is will result in "message not accepted, try again later"
+errors when the PCRE pattern matcher encounters non-UTF-8 input.
+Other features that are not UTF-8 enabled are <a href="postconf.5.html#smtpd_command_filter">smtpd_command_filter</a>,
+<a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a>, the *_delivery_status_filter features, and the
+*_dns_reply_filter features (the latter because DNS is by definition
+an ASCII protocol).  </p>
 
 <li> <p> The Postfix SMTP server announces SMTPUTF8 support in the
 EHLO response. </p>
@@ -145,7 +164,7 @@ MAIL FROM and VRFY commands. </p>
 MAIL FROM commands. </p>
 
 <li> <p> The Postfix SMTP server accepts UTF-8 in email address
-domains, but only after the remote SMTP client client issues the
+domains, but only after the remote SMTP client issues the
 SMTPUTF8 request in MAIL FROM or VRFY commands.  </p>
 
 </ul>
@@ -257,29 +276,47 @@ delivered it if SMTPUTF8 support was disabled. </p>
 <h2> <a name="limitations">Limitations of the current implementation</a>
 </h2>
 
-<p> "Internationalized" domain names can appear in two forms: the
-UTF-8 form, and the ASCII (xn--mumble) form. The initial Postfix
-SMTPUTF8 implementation performs no automatic conversions on UTF8
-strings beyond what is needed to perform DNS lookups. </p>
+<p> The Postfix implementation is a work in progress; limitations
+are steadily being removed. The text below describes the situation
+at one point in time. </p>
 
-<h3> No characterset canonicalization for non-ASCII domain names.
-</h3>
+<h3> No automatic conversions between ASCII and UTF-8 domain names. </h3>
 
-<p> Postfix currently does not translate domain names from UTF-8
-into ASCII (or ASCII into UTF-8) before looking up the domain name
-in <a href="postconf.5.html#mydestination">mydestination</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, access tables, etc., before logging
-the domain name, or before using the domain name in a policy daemon
-or Milter request. You will have to configure both UTF-8 and ASCII
-forms in Postfix configuration files; and both forms will have to
-be handled by logfile tools, policy daemons and Milters. </p>
+<p> Some background: According to <a href="http://tools.ietf.org/html/rfc6530">RFC 6530</a> and related documents,
+"Internationalized" domain names can appear in two forms: the UTF-8
+form, and the ASCII (xn--mumble) form. "Internationalized" address
+localparts must be encoded in UTF-8; the RFCs do not define an ASCII
+form for the same information. </p>
 
-<h3> No case canonicalization for non-ASCII characters. </h3>
+<p> Postfix currently does not convert internationalized domain
+names from UTF-8 into ASCII (or from ASCII into UTF-8) before using
+domain names in SMTP commands and responses, before looking up 
+domain names in <a href="postconf.5.html#mydestination">mydestination</a>, <a href="postconf.5.html#relay_domains">relay_domains</a>, access tables, etc.,
+before using domain names in a policy daemon or Milter request,
+or before logging domain names. </p>
 
-<p> Postfix currently does not case-fold non-ASCII characters when
-looking up an "Internationalized" domain name in <a href="postconf.5.html#mydestination">mydestination</a>,
-<a href="postconf.5.html#relay_domains">relay_domains</a>, access maps, etc. Some non-ASCII scripts do not
-distinguish between upper and lower case, some have different numbers
-of upper and lower case characters. </p>
+<p> Postfix does, however, casefold domain names and email addresses
+before matching them against a Postfix configuration parameter or
+lookup table. </p>
+
+<ul>
+
+<li> <p> The Postfix parameters <a href="postconf.5.html#myhostname">myhostname</a> and <a href="postconf.5.html#mydomain">mydomain</a> must be in
+ASCII form. One is a substring of the other, and the <a href="postconf.5.html#myhostname">myhostname</a>
+value is used in SMTP commands and responses that require ASCII.
+The parameter <a href="postconf.5.html#myorigin">myorigin</a> (added to local addresses without domain)
+supports UTF-8.  </p>
+
+<li> <p> You need to configure both the ASCII and UTF-8 forms of
+an Internationalized domain name in Postfix parameters such as
+<a href="postconf.5.html#mydestination">mydestination</a> and <a href="postconf.5.html#relay_domains">relay_domains</a>, as well as lookup table search
+keys. </p>
+
+<li> <p> Milters, content filters, policy servers and logfile
+analysis tools need to be able to handle both the ASCII and UTF-8
+forms of Internationalized domain names. </p>
+
+</ul>
 
 <h2> <a name="compatibility">Compatibility with pre-SMTPUTF8
 environments</a> </h2>
@@ -290,33 +327,36 @@ environments</a> </h2>
 non-UTF-8 members. Postfix will try to deliver the non-UTF8 subscribers
 over "traditional" non-SMTPUTF8 sessions, as long as the message
 has an ASCII envelope sender address and all-ASCII header values.
-The mailing list manager will have to apply <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a> encoding to
+The mailing list manager may have to apply <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a> encoding to
 satisfy that last condition. </p>
 
 <h3> Pre-existing non-ASCII email flows </h3>
 
-<p> In pre-SMTPUTF8 environments, email with UTF-8 in address
-localparts (and in headers) works just fine. The vast majority
-of email software including Postfix is perfectly capable of handling
-such email, even if pre-SMTPUTF8 standards do not support this. </p>
+<p> With "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = no", Postfix handles email with non-ASCII
+in address localparts (and in headers) as before.  The vast majority
+of email software is perfectly capable of handling such email, even
+if pre-SMTPUTF8 standards do not support such practice. </p>
 
-<p> Therefore, when Postfix SMTPUTF8 support is turned on, Postfix
-must not suddenly start to break pre-existing email flows with UTF-8
-in addres localparts (and in headers). </p>
-
-<p> Thus, Postfix continues to permit UTF-8 in address localparts
-(and in headers) in email from and to pre-SMTPUTF8 systems.  At
-least, that is the default (see autodetection above). </p>
+<p> However, when you specify "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes", Postfix
+requires that non-ASCII address information is encoded in UTF-8 and
+will reject other encodings such as ISO-8859. It is not practical
+for Postfix to support multiple encodings at the same time.  There
+is no problem with <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a> encodings such as "=?ISO-8859-1?Q?text?=",
+because those use only characters from the ASCII characterset.  </p>
 
 <h2> <a name="credits">Credits</a> </h2>
 
 <ul>
 
-<li> <p> Arnt Gulbrandsen posted his patch for Unicode email support
-on May 15, 2014.  This work was sponsored by CNNIC. </p>
+<li> <p> May 15, 2014: Arnt Gulbrandsen posted his patch for Unicode
+email support.  This work was sponsored by CNNIC. </p>
 
-<li> <p> Wietse integrated Arnt Gulbrandsen's code and released
-Postfix with SMTPUTF8 support on July 15, 2014. </p>
+<li> <p> July 15, 2014: Wietse integrated Arnt Gulbrandsen's code
+and released Postfix with SMTPUTF8 support. </p>
+
+<li> <p> January 2015: Wietse added UTF-8 support for casefolding
+in Postfix lookup tables and caseless string comparison in Postfix
+list-based features. </p>
 
 </ul>
 

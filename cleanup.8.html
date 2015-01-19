@@ -390,29 +390,35 @@ CLEANUP(8)                                                          CLEANUP(8)
        <b><a href="postconf.5.html#virtual_alias_recursion_limit">virtual_alias_recursion_limit</a> (1000)</b>
               The maximal nesting depth of virtual alias expansion.
 
+       Available in Postfix version 2.12 and later:
+
+       <b>virtual_alias_address_length_limit (1000)</b>
+              The maximal length of  an  email  address  after  virtual  alias
+              expansion.
+
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much  time  a  Postfix  daemon process may take to handle a
+              How much time a Postfix daemon process  may  take  to  handle  a
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The maximal number of digits after the decimal point  when  log-
+              The  maximal  number of digits after the decimal point when log-
               ging sub-second delay values.
 
        <b><a href="postconf.5.html#delay_warning_time">delay_warning_time</a> (0h)</b>
-              The  time  after which the sender receives a copy of the message
+              The time after which the sender receives a copy of  the  message
               headers of mail that is still queued.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
-              The time limit for sending  or  receiving  information  over  an
+              The  time  limit  for  sending  or receiving information over an
               internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount of time that an idle Postfix daemon process
+              The maximum amount of time that an idle Postfix  daemon  process
               waits for an incoming connection before terminating voluntarily.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
@@ -423,7 +429,7 @@ CLEANUP(8)                                                          CLEANUP(8)
               The internet hostname of this mail system.
 
        <b><a href="postconf.5.html#myorigin">myorigin</a> ($<a href="postconf.5.html#myhostname">myhostname</a>)</b>
-              The domain name that locally-posted mail appears to  come  from,
+              The  domain  name that locally-posted mail appears to come from,
               and that locally posted mail is delivered to.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -436,15 +442,15 @@ CLEANUP(8)                                                          CLEANUP(8)
               The location of the Postfix top-level queue directory.
 
        <b><a href="postconf.5.html#soft_bounce">soft_bounce</a> (no)</b>
-              Safety  net to keep mail queued that would otherwise be returned
+              Safety net to keep mail queued that would otherwise be  returned
               to the sender.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
+              The  mail  system  name that is prepended to the process name in
+              syslog records, so that "smtpd"  becomes,  for  example,  "post-
               fix/smtpd".
 
        Available in Postfix version 2.1 and later:

@@ -346,7 +346,7 @@ in forged email.  </p>
 
     # Default setting for Postfix 2.7 and later.
     # Note 1: Be sure to read the "<a href="#caching">Caching</a>" section below!
-    # Note 2: Avoid hash files here. Use btree instead.
+    # Note 2: Avoid hash files here. Use btree or lmdb instead.
     <a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/verify
  
 /etc/postfix/sender_access:
@@ -393,7 +393,7 @@ you can see what mail would be blocked: </p>
 
     # Default setting for Postfix 2.7 and later.
     # Note 1: Be sure to read the "<a href="#caching">Caching</a>" section below!
-    # Note 2: Avoid hash files here. Use btree instead.
+    # Note 2: Avoid hash files here. Use btree or lmdb instead.
     <a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:/var/lib/postfix/verify
 </pre>
 </blockquote>
@@ -461,7 +461,7 @@ results are lost after "postfix reload" or "postfix stop". </p>
 <blockquote>
 <pre>
 # Example 1: Default setting for Postfix 2.7 and later.
-# Note: avoid hash files here. Use btree instead.
+# Note: avoid hash files here. Use btree or lmdb instead.
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     <a href="postconf.5.html#address_verify_map">address_verify_map</a> = <a href="DATABASE_README.html#types">btree</a>:$<a href="postconf.5.html#data_directory">data_directory</a>/verify_cache
 
