@@ -134,7 +134,9 @@ static void dict_default_close(DICT *dict)
 
 DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
 {
-    DICT   *dict = (DICT *) mymalloc(size);
+    extern int util_utf8_enable;
+    DICT   *dict = (DICT *) mymalloc(util_utf8_enable ?
+				     size + sizeof(DICT_UTF8_BACKUP) : size);
 
     dict->type = mystrdup(dict_type);
     dict->name = mystrdup(dict_name);

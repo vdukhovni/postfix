@@ -71,15 +71,6 @@
 #include <msg.h>
 
  /*
-  * Backed-up accessor function pointers.
-  */
-typedef struct {
-    const char *(*lookup) (struct DICT *, const char *);
-    int     (*update) (struct DICT *, const char *, const char *);
-    int     (*delete) (struct DICT *, const char *);
-} DICT_UTF8_BACKUP;
-
- /*
   * The goal is to maximize robustness: bad UTF-8 should not appear in keys,
   * because those are derived from controlled inputs, and values should be
   * printable before they are stored. But if we failed to check something
@@ -303,7 +294,6 @@ DICT   *dict_utf8_activate(DICT *dict)
      * to arbitrary levels of encapsulation. That is, it does not co-exist
      * with dict_debug(3) which is broken for the reasons stated above.
      */
-    dict = myrealloc(dict, dict->size + sizeof(*backup));
     backup = (void *) dict + dict->size;
 
     /*

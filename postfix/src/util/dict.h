@@ -249,6 +249,12 @@ extern void dict_type_override(DICT *, const char *);
  /*
   * Check and convert UTF-8 keys and values.
   */
+typedef struct {
+    const char *(*lookup) (struct DICT *, const char *);
+    int     (*update) (struct DICT *, const char *, const char *);
+    int     (*delete) (struct DICT *, const char *);
+} DICT_UTF8_BACKUP;
+
 extern DICT *dict_utf8_activate(DICT *);
 extern char *dict_utf8_check_fold(DICT *, const char *, CONST_CHAR_STAR *);
 extern int dict_utf8_check(const char *, CONST_CHAR_STAR *);

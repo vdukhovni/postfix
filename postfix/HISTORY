@@ -21426,3 +21426,10 @@ Apologies for any names omitted.
 	even when the client did not send any. This helps logfile
 	analyzers to recognize sessions without commands.  File:
 	smtpd/smtpd.c.
+
+20150120
+
+	Bugfix (introduced: 20141230-20140109): do not reallocate
+	a dictionary handle after it is initialized. This breaks
+	CDB. Problem reported by Andreas Schulze. Files: util/dict.h,
+	util/dict_alloc.c, util/dict_utf8.c.
