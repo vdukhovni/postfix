@@ -155,8 +155,8 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->owner.status = DICT_OWNER_UNKNOWN;
     dict->owner.uid = INT_MAX;
     dict->error = DICT_ERR_NONE;
-    dict->size = size;
     dict->jbuf = 0;
+    dict->utf8_backup = 0;
     return dict;
 }
 
@@ -168,6 +168,8 @@ void    dict_free(DICT *dict)
     myfree(dict->name);
     if (dict->jbuf)
 	myfree((void *) dict->jbuf);
+    if (dict->utf8_backup)
+	myfree((void *) dict->utf8_backup);
     myfree((void *) dict);
 }
 

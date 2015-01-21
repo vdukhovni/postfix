@@ -21433,3 +21433,13 @@ Apologies for any names omitted.
 	a dictionary handle after it is initialized. This breaks
 	CDB. Problem reported by Andreas Schulze. Files: util/dict.h,
 	util/dict_alloc.c, util/dict_utf8.c.
+
+	Cleanup: simplified the dict_utf8 wrapper implementation.
+	Files: util/dict.h, util/dict_alloc.c, util/dict_utf8.c.
+
+20150121
+
+	Cleanup: undo changes in check_mumble_access() that replaced
+	error handling with longjmp() calls. This could introduce
+	memory leaks in check_mumble_access() callers. Files:
+	smtpd/smtpd_check.c, smtpd/smtpd_error.ref.

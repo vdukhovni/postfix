@@ -1136,23 +1136,6 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 	reject_server_error(state);
 }
 
-/* check_dict_get - reject with temporary failure if dict lookup fails */
-
-static const char *check_dict_get(SMTPD_STATE *state, const char *table,
-				          const char *reply_name,
-				          DICT *dict, const char *key)
-{
-    const char *result;
-
-    if ((result = dict_get(dict, key)) != 0 || dict->error == 0)
-	return (result);
-    if (dict->error == DICT_ERR_RETRY) {
-	msg_warn("%s: table lookup problem", table);
-	reject_dict_retry(state, reply_name);
-    } else
-	reject_server_error(state);
-}
-
 /* reject_unknown_reverse_name - fail if reverse client hostname is unknown */
 
 static int reject_unknown_reverse_name(SMTPD_STATE *state)
@@ -2692,13 +2675,23 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	reject_server_error(state);
+	value = "451 4.3.5 Server configuration error";
+	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
+					     reply_name, reply_class,
+					     def_acl), FOUND);
     }
     if (flags == 0 || (flags & dict->flags) != 0) {
-	if ((value = check_dict_get(state, table, reply_name, dict, name)) != 0)
+	if ((value = dict_get(dict, name)) != 0)
 	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 						 reply_name, reply_class,
 						 def_acl), FOUND);
+	if (dict->error != 0) {
+	    msg_warn("%s: table lookup problem", table);
+	    value = "451 4.3.5 Server configuration error";
+	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
+						 reply_name, reply_class,
+						 def_acl), FOUND);
+	}
     }
     CHK_ACCESS_RETURN(SMTPD_CHECK_DUNNO, MISSED);
 }
@@ -2732,15 +2725,24 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	reject_server_error(state);
+	value = "451 4.3.5 Server configuration error";
+	CHK_DOMAIN_RETURN(check_table_result(state, table, value,
+					     domain, reply_name, reply_class,
+					     def_acl), FOUND);
     }
     for (name = domain; *name != 0; name = next) {
 	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = check_dict_get(state, table, reply_name,
-					dict, name)) != 0)
+	    if ((value = dict_get(dict, name)) != 0)
 		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
 						     def_acl), FOUND);
+	    if (dict->error != 0) {
+		msg_warn("%s: table lookup problem", table);
+		value = "451 4.3.5 Server configuration error";
+		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
+					    domain, reply_name, reply_class,
+						     def_acl), FOUND);
+	    }
 	}
 	/* Don't apply subdomain magic to numerical hostnames. */
 	if (maybe_numerical
@@ -2787,15 +2789,24 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 
     if ((dict = dict_handle(table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
-	reject_server_error(state);
+	value = "451 4.3.5 Server configuration error";
+	CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+					   reply_name, reply_class,
+					   def_acl), FOUND);
     }
     do {
 	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = check_dict_get(state, table, reply_name,
-					dict, addr)) != 0)
+	    if ((value = dict_get(dict, addr)) != 0)
 		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
 						   reply_name, reply_class,
 						   def_acl), FOUND);
+	    if (dict->error != 0) {
+		msg_warn("%s: table lookup problem", table);
+		value = "451 4.3.5 Server configuration error";
+		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+						   reply_name, reply_class,
+						   def_acl), FOUND);
+	    }
 	}
 	flags = PARTIAL;
     } while (split_at_right(addr, delim));

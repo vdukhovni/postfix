@@ -92,8 +92,8 @@ typedef struct DICT {
     VSTRING *fold_buf;			/* key folding buffer */
     DICT_OWNER owner;			/* provenance */
     int     error;			/* last operation only */
-    ssize_t size;			/* size of this thing */
     DICT_JMP_BUF *jbuf;			/* exception handling */
+    struct DICT_UTF8_BACKUP *utf8_backup;	/* see below */
 } DICT;
 
 extern DICT *dict_alloc(const char *, const char *, ssize_t);
@@ -249,7 +249,7 @@ extern void dict_type_override(DICT *, const char *);
  /*
   * Check and convert UTF-8 keys and values.
   */
-typedef struct {
+typedef struct DICT_UTF8_BACKUP {
     const char *(*lookup) (struct DICT *, const char *);
     int     (*update) (struct DICT *, const char *, const char *);
     int     (*delete) (struct DICT *, const char *);

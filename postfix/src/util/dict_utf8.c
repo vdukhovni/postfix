@@ -171,7 +171,7 @@ static const char *dict_utf8_lookup(DICT *dict, const char *key)
      */
     saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
     dict->flags &= ~DICT_FLAG_FOLD_ANY;
-    backup = (void *) dict + dict->size;
+    backup = dict->utf8_backup;
     value = backup->lookup(dict, fold_res);
     dict->flags |= saved_flags;
 
@@ -224,7 +224,7 @@ static int dict_utf8_update(DICT *dict, const char *key, const char *value)
     else {
 	saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
 	dict->flags &= ~DICT_FLAG_FOLD_ANY;
-	backup = (void *) dict + dict->size;
+	backup = dict->utf8_backup;
 	status = backup->update(dict, fold_res, value);
 	dict->flags |= saved_flags;
 	return (status);
@@ -257,7 +257,7 @@ static int dict_utf8_delete(DICT *dict, const char *key)
     else {
 	saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
 	dict->flags &= ~DICT_FLAG_FOLD_ANY;
-	backup = (void *) dict + dict->size;
+	backup = dict->utf8_backup;
 	status = backup->delete(dict, fold_res);
 	dict->flags |= saved_flags;
 	return (status);
@@ -279,7 +279,7 @@ DICT   *dict_utf8_activate(DICT *dict)
     if ((dict->flags & DICT_FLAG_UTF8_REQUEST) == 0)
 	msg_panic("%s: %s:%s does not request Unicode support",
 		  myname, dict->type, dict->name);
-    if (dict->flags & DICT_FLAG_UTF8_ACTIVE)
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) || dict->utf8_backup != 0)
 	msg_panic("%s: %s:%s Unicode support is already activated",
 		  myname, dict->type, dict->name);
 
@@ -289,12 +289,10 @@ DICT   *dict_utf8_activate(DICT *dict)
      * propagate changes in the data members (errors, flags, jbuf, and so on)
      * between proxy object and encapsulated object.
      * 
-     * Instead we append ourselves to the encapsulated dict object itself, and
-     * redirect some function pointers. This approach does not yet generalize
-     * to arbitrary levels of encapsulation. That is, it does not co-exist
-     * with dict_debug(3) which is broken for the reasons stated above.
+     * Instead we attach ourselves behind the encapsulated dict object, and
+     * redirect some function pointers to ourselves.
      */
-    backup = (void *) dict + dict->size;
+    backup = dict->utf8_backup = (DICT_UTF8_BACKUP *) mymalloc(sizeof(*backup));
 
     /*
      * Interpose on the lookup/update/delete methods. It is a conscious

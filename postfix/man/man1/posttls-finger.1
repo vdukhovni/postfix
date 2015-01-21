@@ -234,6 +234,12 @@ The SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and QUIT.
 .IP "\fB-v\fR"
 Enable verose Postfix logging.  Specify more than once to increase
 the level of verbose logging.
+.IP "\fB-w\fR"
+Enable outgoing TLS wrapper mode, or SMTPS support.  This is typically
+provided on port 465 by servers that are compatible with the ad-hoc
+SMTP in SSL protocol, rather than the standard STARTTLS protocol.
+The destination \fIdomain\fR:\fIport\fR should of course provide such
+a service.
 .IP "[\fBinet:\fR]\fIdomain\fR[:\fIport\fR]"
 Connect via TCP to domain \fIdomain\fR, port \fIport\fR. The default
 port is \fBsmtp\fR (or 24 with LMTP).  With SMTP an MX lookup is

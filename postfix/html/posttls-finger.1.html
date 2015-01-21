@@ -259,6 +259,12 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <b>-v</b>     Enable  verose  Postfix  logging.   Specify  more  than  once to
               increase the level of verbose logging.
 
+       <b>-w</b>     Enable outgoing TLS wrapper mode, or  SMTPS  support.   This  is
+              typically  provided  on  port 465 by servers that are compatible
+              with the ad-hoc SMTP in SSL protocol, rather than  the  standard
+              STARTTLS protocol.  The destination <i>domain</i>:<i>port</i> should of course
+              provide such a service.
+
        [<b>inet:</b>]<i>domain</i>[:<i>port</i>]
               Connect via TCP to domain <i>domain</i>, port <i>port</i>. The default port is
               <b>smtp</b>  (or 24 with LMTP).  With SMTP an MX lookup is performed to
