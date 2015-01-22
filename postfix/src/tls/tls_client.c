@@ -573,8 +573,7 @@ static int match_servername(const char *certid,
 	     * 
 	     * IDNA2008 does not permit (upper) case and other variant
 	     * differences in U-labels. The midna_domain_to_ascii() function,
-	     * based on UTS46, midna_domain_to_ascii() normalizes the
-	     * differences away.
+	     * based on UTS46, normalizes such differences away.
 	     * 
 	     * The IDNA to_ASCII conversion does not allow empty leading labels,
 	     * so we handle these explicitly here.

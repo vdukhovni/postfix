@@ -21443,3 +21443,12 @@ Apologies for any names omitted.
 	error handling with longjmp() calls. This could introduce
 	memory leaks in check_mumble_access() callers. Files:
 	smtpd/smtpd_check.c, smtpd/smtpd_error.ref.
+
+20140122
+
+	Cleanup: miscellaneous cruft, typos, comments, error messages.
+	proto/COMPATIBILITY_README.html, global/addr_match_list.c,
+	global/domain_list.c, global/namadr_list.c, global/string_list.c,
+	global/user_acl.c, postalias/postalias.c, postmap/postmap.c,
+	tls/tls_client.c, util/dict_alloc.c, util/dict_open.c,
+	util/match_list.c.

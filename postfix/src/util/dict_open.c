@@ -156,7 +156,7 @@
 /*	and must trap exceptions from the database client with dict_setjmp().
 /* .IP DICT_FLAG_DEBUG
 /*	Enable additional logging.
-/* .IP DICT_FLAG_UTF8_ENABLE
+/* .IP DICT_FLAG_UTF8_REQUEST
 /*	With util_utf8_enable != 0, require that lookup/update/delete
 /*	keys and values are valid UTF-8. Skip a lookup/update/delete
 /*	request with a non-UTF-8 key, skip an update request with

@@ -8,8 +8,8 @@ Wish list:
 
 	Things to do after the stable release:
 
-	Back out check_dict_get() because the longjmp() calls
-	introduce memory leaks upstream.
+	Update smtpd command count when rejecting input before
+	command-table lookup.
 
 	postconf -P: emit '{ name = value }' when editing/adding a
 	parameter whose new value contains whitespace.

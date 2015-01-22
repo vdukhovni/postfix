@@ -427,7 +427,8 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 	    if ((mkmap->dict->flags & DICT_FLAG_UTF8_ACTIVE)
 		&& !allascii(STR(line_buffer))
 		&& !valid_utf8_string(STR(line_buffer), LEN(line_buffer))) {
-		msg_warn("%s, line %d: non-UTF-8 input \"%s\"",
+		msg_warn("%s, line %d: non-UTF-8 input \"%s\""
+			 " -- ignoring this line",
 			 VSTREAM_PATH(source_fp), lineno, STR(line_buffer));
 		continue;
 	    }

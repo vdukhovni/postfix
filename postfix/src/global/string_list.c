@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <string_list.h>
 /*
-/*	STRING_LIST *string_list_init(flags, pattern_list)
+/*	STRING_LIST *string_list_init(pname, flags, pattern_list)
+/*	const char *pname;
 /*	int	flags;
 /*	const char *pattern_list;
 /*
@@ -31,7 +32,8 @@
 /*	In order to reverse the result, precede a pattern with an
 /*	exclamation point (!).
 /*
-/*	string_list_init() performs initializations. The first argument
+/*	string_list_init() performs initializations. The pname
+/*	argument specifies error reporting context. The flags argument
 /*	is a bit-wise OR of zero or more of following:
 /* .IP MATCH_FLAG_RETURN
 /*	Request that string_list_match() logs a warning and returns
@@ -39,7 +41,7 @@
 /*	code, instead of raising a fatal error.
 /* .PP
 /*	Specify MATCH_FLAG_NONE to request none of the above.
-/*	The second argument specifies a list of string patterns.
+/*	The last argument specifies a list of string patterns.
 /*
 /*	string_list_match() matches the specified string against the
 /*	compiled pattern list.

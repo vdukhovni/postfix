@@ -46,7 +46,7 @@
 /*
 /*	Arguments:
 /* .IP pname
-/*	Parameter name or other identiying information that is
+/*	Parameter name or other identifying information that is
 /*	prepended to error messages.
 /* .IP flags
 /*	Specifies the bit-wise OR of zero or more of the following:

@@ -7,7 +7,7 @@
 /*	#include <user_acl.h>
 /*
 /*	const char *check_user_acl_byuid(pname, acl, uid)
-/*	cobnst char *pname;
+/*	const char *pname;
 /*	const char *acl;
 /*	uid_t	uid;
 /* DESCRIPTION
