@@ -274,7 +274,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
 		info->queue_id, mail_date(info->posting_time.tv_sec));
     if (local_deliver_hdr_mask & DELIVER_HDR_FWD)
 	rec_fprintf(info->cleanup, REC_TYPE_NORM, "Delivered-To: %s",
-		    lowercase(STR(buffer)));
+		    casefold((VSTRING *) 0, (STR(buffer))));
     if ((status = vstream_ferror(info->cleanup)) == 0)
 	if (vstream_fseek(attr.fp, attr.offset, SEEK_SET) < 0)
 	    msg_fatal("%s: seek queue file %s: %m:",

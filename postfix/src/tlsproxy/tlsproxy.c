@@ -194,6 +194,10 @@
 #include <sys_defs.h>
 #include <errno.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
  /*
   * Utility library.
   */

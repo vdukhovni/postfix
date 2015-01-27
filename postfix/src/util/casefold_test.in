@@ -18,5 +18,5 @@ fold xã€‚example.com
 fold xï¼Žexample.com
 fold xï½¡example.com
 # Bad UTF-8
-fold yyy€€€
-fold €€€xxx
+fold YYY€€€
+fold €€€XXX

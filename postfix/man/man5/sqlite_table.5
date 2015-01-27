@@ -8,9 +8,9 @@ Postfix SQLite configuration
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostmap -q "\fIstring\fB" sqlite:/etc/postfix/\fIfilename\fR
+\fBpostmap \-q "\fIstring\fB" sqlite:/etc/postfix/\fIfilename\fR
 
-\fBpostmap -q - sqlite:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+\fBpostmap \-q \- sqlite:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -22,10 +22,10 @@ Alternatively, lookup tables can be specified as SQLite databases.
 In order to use SQLite lookups, define an SQLite source as a lookup
 table in main.cf, for example:
 .nf
-    alias_maps = sqlite:/etc/sqlite-aliases.cf
+    alias_maps = sqlite:/etc/sqlite\-aliases.cf
 .fi
 
-The file /etc/postfix/sqlite-aliases.cf has the same format as
+The file /etc/postfix/sqlite\-aliases.cf has the same format as
 the Postfix main.cf file, and can specify the parameters
 described below.
 .SH "BACKWARDS COMPATIBILITY"
@@ -118,11 +118,11 @@ When the input key is an address of the form user@domain, \fB%d\fR
 is replaced by the SQL quoted domain part of the address.
 Otherwise, the query is suppressed and returns no results.
 .IP "\fB\fB%[SUD]\fR\fR"
-The upper-case equivalents of the above expansions behave in the
-\fBquery\fR parameter identically to their lower-case counter-parts.
+The upper\-case equivalents of the above expansions behave in the
+\fBquery\fR parameter identically to their lower\-case counter\-parts.
 With the \fBresult_format\fR parameter (see below), they expand the
 input key rather than the result value.
-.IP "\fB\fB%[1-9]\fR\fR"
+.IP "\fB\fB%[1\-9]\fR\fR"
 The patterns %1, %2, ... %9 are replaced by the corresponding
 most significant component of the input key's domain. If the
 input key is \fIuser@mail.example.com\fR, then %1 is \fBcom\fR,
@@ -134,8 +134,8 @@ no results.
 .IP
 The \fBdomain\fR parameter described below limits the input
 keys to addresses in matching domains. When the \fBdomain\fR
-parameter is non-empty, SQL queries for unqualified addresses
-or addresses in non-matching domains are suppressed
+parameter is non\-empty, SQL queries for unqualified addresses
+or addresses in non\-matching domains are suppressed
 and return no results.
 
 This parameter is available with Postfix 2.2. In prior releases
@@ -175,8 +175,8 @@ When a result attribute value is an address of the form
 user@domain, \fB%d\fR is replaced by the domain part of
 the attribute value. When the result is unqualified it
 is skipped.
-.IP "\fB\fB%[SUD1-9]\fR\fB"
-The upper-case and decimal digit expansions interpolate
+.IP "\fB\fB%[SUD1\-9]\fR\fB"
+The upper\-case and decimal digit expansions interpolate
 the parts of the input key rather than the result. Their
 behavior is identical to that described with \fBquery\fR,
 and in fact because the input key is known in advance, queries
@@ -201,7 +201,7 @@ NOTE: DO NOT put quotes around the result format!
 .IP "\fBdomain (default: no domain list)\fR"
 This is a list of domain names, paths to files, or
 dictionaries. When specified, only fully qualified search
-keys with a *non-empty* localpart and a matching domain
+keys with a *non\-empty* localpart and a matching domain
 are eligible for lookup: 'user' lookups, bare domain lookups
 and "@domain" lookups are not performed. This can significantly
 reduce the query load on the SQLite server.

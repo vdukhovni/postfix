@@ -41,10 +41,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -122,9 +118,9 @@ int     bounce_append_service(int unused_flags, char *service, char *queue_id,
 			dsn->reason);
     }
     vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_RECIP, *rcpt->address ?
-		  STR(quote_822_local(in_buf, rcpt->address)) : "<>");
+		    STR(quote_822_local(in_buf, rcpt->address)) : "<>");
     if (NOT_NULL_EMPTY(rcpt->orig_addr)
-	&& strcasecmp(rcpt->address, rcpt->orig_addr) != 0)
+	&& strcasecmp_utf8(rcpt->address, rcpt->orig_addr) != 0)
 	vstream_fprintf(log, "%s=%s\n", MAIL_ATTR_ORCPT,
 			STR(quote_822_local(in_buf, rcpt->orig_addr)));
     if (rcpt->offset > 0)

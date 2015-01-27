@@ -34,6 +34,7 @@
 /* Utility library. */
 
 #include <split_at.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -92,7 +93,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC__) == 0) {
 	vstring_sprintf(state->expand_buf, "%s [%s]",
 			state->reverse_name, state->addr);
-	if (strcasecmp(state->name, state->reverse_name) != 0)
+	if (strcasecmp_utf8(state->name, state->reverse_name) != 0)
 	    vstring_strcat(state->expand_buf, " (may be forged)");
 	return (STR(state->expand_buf));
     }

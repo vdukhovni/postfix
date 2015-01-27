@@ -96,6 +96,8 @@
 
 #include "been_here.h"
 
+#define STR(x)	vstring_str(x)
+
 /* been_here_init - initialize duplicate filter */
 
 BH_TABLE *been_here_init(int limit, int flags)
@@ -148,7 +150,7 @@ int     been_here(BH_TABLE *dup_filter, const char *fmt,...)
 
 int     been_here_fixed(BH_TABLE *dup_filter, const char *string)
 {
-    char   *folded_string;
+    VSTRING *folded_string;
     const char *lookup_key;
     int     status;
 
@@ -156,8 +158,8 @@ int     been_here_fixed(BH_TABLE *dup_filter, const char *string)
      * Special processing: case insensitive lookup.
      */
     if (dup_filter->flags & BH_FLAG_FOLD) {
-	folded_string = mystrdup(string);
-	lookup_key = lowercase(folded_string);
+	folded_string = vstring_alloc(100);
+	lookup_key = casefold(folded_string, string);
     } else {
 	folded_string = 0;
 	lookup_key = string;
@@ -181,7 +183,7 @@ int     been_here_fixed(BH_TABLE *dup_filter, const char *string)
      * Cleanup.
      */
     if (folded_string)
-	myfree(folded_string);
+	vstring_free(folded_string);
 
     return (status);
 }
@@ -217,7 +219,7 @@ int     been_here_check(BH_TABLE *dup_filter, const char *fmt,...)
 
 int     been_here_check_fixed(BH_TABLE *dup_filter, const char *string)
 {
-    char   *folded_string;
+    VSTRING *folded_string;
     const char *lookup_key;
     int     status;
 
@@ -225,8 +227,8 @@ int     been_here_check_fixed(BH_TABLE *dup_filter, const char *string)
      * Special processing: case insensitive lookup.
      */
     if (dup_filter->flags & BH_FLAG_FOLD) {
-	folded_string = mystrdup(string);
-	lookup_key = lowercase(folded_string);
+	folded_string = vstring_alloc(100);
+	lookup_key = casefold(folded_string, string);
     } else {
 	folded_string = 0;
 	lookup_key = string;
@@ -243,7 +245,7 @@ int     been_here_check_fixed(BH_TABLE *dup_filter, const char *string)
      * Cleanup.
      */
     if (folded_string)
-	myfree(folded_string);
+	vstring_free(folded_string);
 
     return (status);
 }

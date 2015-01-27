@@ -70,6 +70,10 @@
 #define SHUT_RDWR	2
 #endif
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 /* Utility library. */
 
 #include <msg.h>

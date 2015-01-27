@@ -4,7 +4,7 @@
 .SH NAME
 header_checks
 \-
-Postfix built-in content inspection
+Postfix built\-in content inspection
 .SH "SYNOPSIS"
 .na
 .nf
@@ -21,8 +21,8 @@ Postfix built-in content inspection
 \fBsmtp_nested_header_checks = pcre:/etc/postfix/smtp_nested_header_checks\fR
 \fBsmtp_body_checks = pcre:/etc/postfix/smtp_body_checks\fR
 .sp
-\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
-\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
+\fBpostmap \-q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+\fBpostmap \-q \- pcre:/etc/postfix/\fIfilename\fR <\fIinputfile\fR
 .fi
 .SH DESCRIPTION
 .ad
@@ -55,7 +55,7 @@ FILES section if you need more sophisticated content analysis.
 .nf
 .ad
 .fi
-Postfix implements the following four built-in content
+Postfix implements the following four built\-in content
 inspection classes while receiving mail:
 .IP "\fBheader_checks\fR (default: empty)"
 These are applied to initial message headers (except for
@@ -71,7 +71,7 @@ messages (except for the headers that are processed with
 .sp
 This feature is available in Postfix 2.0 and later.
 .IP \fBbody_checks\fR
-These are applied to all other content, including multi-part
+These are applied to all other content, including multi\-part
 message boundaries.
 .sp
 With Postfix versions before 2.0, all content after the initial
@@ -81,7 +81,7 @@ message headers is treated as body content.
 .nf
 .ad
 .fi
-Postfix supports a subset of the built-in content inspection
+Postfix supports a subset of the built\-in content inspection
 classes after the message is received:
 .IP "\fBmilter_header_checks\fR (default: empty)"
 These are applied to headers that are added with Milter
@@ -106,7 +106,7 @@ These features are available in Postfix 2.5 and later.
 .ad
 .fi
 With Postfix version 2.2 and earlier specify "\fBpostmap
--fq\fR" to query a table that contains case sensitive
+\-fq\fR" to query a table that contains case sensitive
 patterns. By default, regexp: and pcre: patterns are case
 insensitive.
 .SH "TABLE FORMAT"
@@ -120,7 +120,7 @@ best performance is obtained with \fBpcre\fR (Perl Compatible Regular
 Expression) tables. The \fBregexp\fR (POSIX regular
 expressions) tables are usually slower, but more widely
 available.
-Use the command "\fBpostconf -m\fR" to find out what lookup table
+Use the command "\fBpostconf \-m\fR" to find out what lookup table
 types your Postfix system supports.
 
 The general format of Postfix regular expression tables is
@@ -148,10 +148,10 @@ If the input string does not match /\fIpattern\fR/, then
 match that input string against the patterns between \fBif\fR
 and \fBendif\fR. The \fBif\fR..\fBendif\fR can nest.
 .IP "blank lines and comments"
-Empty lines and whitespace-only lines are ignored, as
-are lines whose first non-whitespace character is a `#'.
-.IP "multi-line text"
-A pattern/action line starts with non-whitespace text. A line that
+Empty lines and whitespace\-only lines are ignored, as
+are lines whose first non\-whitespace character is a `#'.
+.IP "multi\-line text"
+A pattern/action line starts with non\-whitespace text. A line that
 starts with whitespace continues a logical line.
 .SH "TABLE SEARCH ORDER"
 .na
@@ -192,7 +192,7 @@ of available storage space.
 
 Note 1: the BCC address is added as if it was specified with
 NOTIFY=NONE. The sender will not be notified when the BCC
-address is undeliverable, as long as all down-stream software
+address is undeliverable, as long as all down\-stream software
 implements RFC 3461.
 
 Note 2: this ignores duplicate addresses (with the same
@@ -226,7 +226,7 @@ This feature is available in Postfix 2.1 and later.
 After the message is queued, send the entire message through
 the specified external content filter. The \fItransport\fR
 name specifies the first field of a mail delivery agent
-definition in master.cf; the syntax of the next-hop
+definition in master.cf; the syntax of the next\-hop
 \fIdestination\fR is described in the manual page of the
 corresponding delivery agent.  More information about
 external content filters is in the Postfix FILTER_README
@@ -243,12 +243,12 @@ one is executed.
 .sp
 Note 3: the purpose of the FILTER command is to override
 message routing.  To override the recipient's \fItransport\fR
-but not the next-hop \fIdestination\fR, specify an empty
+but not the next\-hop \fIdestination\fR, specify an empty
 filter \fIdestination\fR (Postfix 2.7 and later), or specify
 a \fItransport:destination\fR that delivers through a
 different Postfix instance (Postfix 2.6 and earlier). Other
-options are using the recipient-dependent \fBtrans\%port\%_maps\fR
-or the sen\%der-dependent
+options are using the recipient\-dependent \fBtrans\%port\%_maps\fR
+or the sen\%der\-dependent
 \fBsender\%_de\%pen\%dent\%_de\%fault\%_trans\%port\%_maps\fR
 features.
 .sp
@@ -266,9 +266,9 @@ Mail that is placed on hold can be examined with the
 \fBpostcat\fR(1) command, and can be destroyed or released with
 the \fBpostsuper\fR(1) command.
 .sp
-Note: use "\fBpostsuper -r\fR" to release mail that was kept on
+Note: use "\fBpostsuper \-r\fR" to release mail that was kept on
 hold for a significant fraction of \fB$maximal_queue_lifetime\fR
-or \fB$bounce_queue_lifetime\fR, or longer. Use "\fBpostsuper -H\fR"
+or \fB$bounce_queue_lifetime\fR, or longer. Use "\fBpostsuper \-H\fR"
 only for mail that will not expire within a few delivery attempts.
 .sp
 Note: this action affects all recipients of the message.
@@ -303,7 +303,7 @@ missing message headers.
 When prepending text before a message header line, the prepended
 text must begin with a valid message header label.
 .IP \(bu
-This action cannot be used to prepend multi-line text.
+This action cannot be used to prepend multi\-line text.
 .RE
 .IP
 This feature is available in Postfix 2.1 and later.
@@ -362,8 +362,8 @@ before applying more drastic actions.
 .SH BUGS
 .ad
 .fi
-Empty lines never match, because some map types mis-behave
-when given a zero-length search string.  This limitation may
+Empty lines never match, because some map types mis\-behave
+when given a zero\-length search string.  This limitation may
 be removed for regular expression tables in a future release.
 
 Many people overlook the main limitations of header and body_checks
@@ -383,11 +383,11 @@ form.
 .PP
 Message headers added by the \fBcleanup\fR(8) daemon itself
 are excluded from inspection. Examples of such message headers
-are \fBFrom:\fR, \fBTo:\fR, \fBMessage-ID:\fR, \fBDate:\fR.
+are \fBFrom:\fR, \fBTo:\fR, \fBMessage\-ID:\fR, \fBDate:\fR.
 
 Message headers deleted by the \fBcleanup\fR(8) daemon will
 be examined before they are deleted. Examples are: \fBBcc:\fR,
-\fBContent-Length:\fR, \fBReturn-Path:\fR.
+\fBContent\-Length:\fR, \fBReturn\-Path:\fR.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -420,7 +420,7 @@ and that \fBbody_checks\fR is applied to the remainder of the
 message.
 .sp
 Note: when used in this manner, \fBbody_checks\fR will process
-a multi-line message header one line at a time.
+a multi\-line message header one line at a time.
 .SH "EXAMPLES"
 .na
 .nf
@@ -430,7 +430,7 @@ Header pattern to block attachments with bad file name
 extensions.  For convenience, the PCRE /x flag is specified,
 so that there is no need to collapse the pattern into a
 single line of text.  The purpose of the [[:xdigit:]]
-sub-expressions is to recognize Windows CLSID strings.
+sub\-expressions is to recognize Windows CLSID strings.
 
 .na
 .nf
@@ -438,11 +438,11 @@ sub-expressions is to recognize Windows CLSID strings.
     header_checks = pcre:/etc/postfix/header_checks.pcre
 
 /etc/postfix/header_checks.pcre:
-    /^Content-(Disposition|Type).*name\es*=\es*"?(.*(\e.|=2E)(
+    /^Content\-(Disposition|Type).*name\es*=\es*"?(.*(\e.|=2E)(
       ade|adp|asp|bas|bat|chm|cmd|com|cpl|crt|dll|exe|
       hlp|ht[at]|
       inf|ins|isp|jse?|lnk|md[betw]|ms[cipt]|nws|
-      \e{[[:xdigit:]]{8}(?:-[[:xdigit:]]{4}){3}-[[:xdigit:]]{12}\e}|
+      \e{[[:xdigit:]]{8}(?:\-[[:xdigit:]]{4}){3}\-[[:xdigit:]]{12}\e}|
       ops|pcd|pif|prf|reg|sc[frt]|sh[bsm]|swf|
       vb[esx]?|vxd|ws[cfh]))(\e?=)?"?\es*(;|$)/x
         REJECT Attachment name "$2" may not end with ".$4"
@@ -469,8 +469,8 @@ postconf(1), Postfix configuration utility
 postmap(1), Postfix lookup table management
 postsuper(1), Postfix janitor
 postcat(1), show Postfix queue file contents
-RFC 2045, base64 and quoted-printable encoding rules
-RFC 2047, message header encoding for non-ASCII text
+RFC 2045, base64 and quoted\-printable encoding rules
+RFC 2047, message header encoding for non\-ASCII text
 .SH "README FILES"
 .na
 .nf
@@ -482,7 +482,7 @@ Use "\fBpostconf readme_directory\fR" or
 .nf
 DATABASE_README, Postfix lookup table overview
 CONTENT_INSPECTION_README, Postfix content inspection overview
-BUILTIN_FILTER_README, Postfix built-in content inspection
+BUILTIN_FILTER_README, Postfix built\-in content inspection
 BACKSCATTER_README, blocking returned forged mail
 .SH "LICENSE"
 .na

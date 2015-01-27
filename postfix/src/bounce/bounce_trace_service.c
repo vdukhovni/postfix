@@ -58,6 +58,7 @@
 
 #include <msg.h>
 #include <vstream.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -102,7 +103,7 @@ int     bounce_trace_service(int flags, char *service, char *queue_name,
      */
 #define NULL_SENDER		MAIL_ADDR_EMPTY	/* special address */
 
-    if (strcasecmp(recipient, mail_addr_double_bounce()) == 0) {
+    if (strcasecmp_utf8(recipient, mail_addr_double_bounce()) == 0) {
 	msg_info("%s: not sending trace/success notification for "
 		 "double-bounce message", queue_id);
 	return (0);

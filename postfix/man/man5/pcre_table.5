@@ -8,13 +8,13 @@ format of Postfix PCRE tables
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostmap -q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
+\fBpostmap \-q "\fIstring\fB" pcre:/etc/postfix/\fIfilename\fR
 
-\fBpostmap -q - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+\fBpostmap \-q \- pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 
-\fBpostmap -hmq - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+\fBpostmap \-hmq \- pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 
-\fBpostmap -bmq - pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
+\fBpostmap \-bmq \- pcre:/etc/postfix/\fIfilename\fB <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -28,12 +28,12 @@ against a list of patterns. When a match is found, the
 corresponding result is returned and the search is terminated.
 
 To find out what types of lookup tables your Postfix system
-supports use the "\fBpostconf -m\fR" command.
+supports use the "\fBpostconf \-m\fR" command.
 
-To test lookup tables, use the "\fBpostmap -q\fR" command
-as described in the SYNOPSIS above. Use "\fBpostmap -hmq
--\fR <\fIfile\fR" for header_checks(5) patterns, and
-"\fBpostmap -bmq -\fR <\fIfile\fR" for body_checks(5)
+To test lookup tables, use the "\fBpostmap \-q\fR" command
+as described in the SYNOPSIS above. Use "\fBpostmap \-hmq
+\-\fR <\fIfile\fR" for header_checks(5) patterns, and
+"\fBpostmap \-bmq \-\fR <\fIfile\fR" for body_checks(5)
 (Postfix 2.6 and later).
 .SH "COMPATIBILITY"
 .na
@@ -41,7 +41,7 @@ as described in the SYNOPSIS above. Use "\fBpostmap -hmq
 .ad
 .fi
 With Postfix version 2.2 and earlier specify "\fBpostmap
--fq\fR" to query a table that contains case sensitive
+\-fq\fR" to query a table that contains case sensitive
 patterns. Patterns are case insensitive by default.
 .SH "TABLE FORMAT"
 .na
@@ -76,19 +76,19 @@ Note: do not prepend whitespace to patterns inside
 .sp
 This feature is available in Postfix 2.1 and later.
 .IP "blank lines and comments"
-Empty lines and whitespace-only lines are ignored, as
-are lines whose first non-whitespace character is a `#'.
-.IP "multi-line text"
-A logical line starts with non-whitespace text. A line that
+Empty lines and whitespace\-only lines are ignored, as
+are lines whose first non\-whitespace character is a `#'.
+.IP "multi\-line text"
+A logical line starts with non\-whitespace text. A line that
 starts with whitespace continues a logical line.
 .PP
-Each pattern is a perl-like regular expression. The expression
-delimiter can be any non-alphanumerical character, except
+Each pattern is a perl\-like regular expression. The expression
+delimiter can be any non\-alphanumerical character, except
 whitespace or characters
 that have special meaning (traditionally the forward slash is used).
 The regular expression can contain whitespace.
 
-By default, matching is case-insensitive, and newlines are not
+By default, matching is case\-insensitive, and newlines are not
 treated as special characters. The behavior is controlled by flags,
 which are toggled by appending one or more of the following
 characters after the pattern:
@@ -104,7 +104,7 @@ matching at the start and end of the subject string.
 Toggles the PCRE_DOTALL flag. When this flag is on, the \fB.\fR
 metacharacter matches the newline character. With
 Postfix versions prior to 2.0, the flag is off by
-default, which is inconvenient for multi-line message header
+default, which is inconvenient for multi\-line message header
 matching.
 .IP "\fBx\fR (default: off)"
 Toggles the pcre extended flag. When this flag is on, whitespace
@@ -173,13 +173,13 @@ available for negated patterns.
 .na
 .nf
 # Protect your outgoing majordomo exploders
-/^(?!owner-)(.*)-outgoing@(.*)/ 550 Use ${1}@${2} instead
+/^(?!owner\-)(.*)\-outgoing@(.*)/ 550 Use ${1}@${2} instead
 
 # Bounce friend@whatever, except when whatever is our domain (you would
-# be better just bouncing all friend@ mail - this is just an example).
+# be better just bouncing all friend@ mail \- this is just an example).
 /^(friend@(?!my\\.domain$).*)$/  550 Stick this in your pipe $1
 
-# A multi-line entry. The text is sent as one line.
+# A multi\-line entry. The text is sent as one line.
 #
 /^noddy@my\\.domain$/
 \ 550 This user is a funny one. You really don't want to send mail to

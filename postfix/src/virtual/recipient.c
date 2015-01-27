@@ -72,8 +72,8 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     if (state.msg_attr.delivered == 0)
 	state.msg_attr.delivered = state.msg_attr.rcpt.address;
-    state.msg_attr.user = mystrdup(state.msg_attr.rcpt.address);
-    lowercase(state.msg_attr.user);
+    state.msg_attr.user = mystrdup(casefold((VSTRING *) 0,
+					    state.msg_attr.rcpt.address));
 
     /*
      * Deliver

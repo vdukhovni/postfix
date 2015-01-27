@@ -656,20 +656,22 @@ static int parse_callback(int type, VSTRING *buf, void *context)
 
 static void morph_recipient(VSTRING *buf, const char *address, int flags)
 {
+    VSTRING *temp = vstring_alloc(100);
 
     /*
      * Quote the recipient address as appropriate.
      */
     if (flags & PIPE_OPT_QUOTE_LOCAL)
-	quote_822_local(buf, address);
+	quote_822_local(temp, address);
     else
-	vstring_strcpy(buf, address);
+	vstring_strcpy(temp, address);
 
     /*
      * Fold the recipient address as appropriate.
      */
-    if (flags & PIPE_OPT_FOLD_ALL)
-	fold_addr(STR(buf), PIPE_OPT_FOLD_FLAGS(flags));
+    fold_addr(buf, STR(temp), PIPE_OPT_FOLD_FLAGS(flags));
+
+    vstring_free(temp);
 }
 
 /* expand_argv - expand macros in the argument vector */
@@ -1232,8 +1234,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     } else
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, sender);
     if (attr.flags & PIPE_OPT_FOLD_HOST) {
-	vstring_strcpy(buf, request->nexthop);
-	lowercase(STR(buf));
+	casefold(buf, request->nexthop);
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, STR(buf));
     } else
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);

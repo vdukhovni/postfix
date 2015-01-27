@@ -106,6 +106,10 @@ extern const NAME_CODE tls_level_table[];
 #include <vstream.h>
 #include <name_mask.h>
 #include <name_code.h>
+
+ /*
+  * TLS library.
+  */
 #include <dns.h>
 
  /*

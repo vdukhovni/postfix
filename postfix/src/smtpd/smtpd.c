@@ -1154,6 +1154,10 @@
 
 #include <milter.h>
 
+/* DNS library. */
+
+#include <dns.h>
+
 /* Application-specific */
 
 #include <smtpd_token.h>
@@ -1408,8 +1412,12 @@ int     smtpd_input_transp_mask;
 static void helo_reset(SMTPD_STATE *);
 static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
-static void tls_reset(SMTPD_STATE *);
 static void chat_reset(SMTPD_STATE *, int);
+
+#ifdef USE_TLS
+static void tls_reset(SMTPD_STATE *);
+
+#endif
 
  /*
   * This filter is applied after printable().
@@ -3746,7 +3754,11 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     };
     int     got_helo = 0;
     int     got_proto = 0;
+
+#ifdef USE_SASL_AUTH
     int     got_login = 0;
+
+#endif
 
     /*
      * Sanity checks.
@@ -4692,11 +4704,15 @@ static void smtpd_proto(SMTPD_STATE *state)
     int     argc;
     SMTPD_TOKEN *argv;
     SMTPD_CMD *cmdp;
-    int     tls_rate;
     const char *ehlo_words;
     const char *err;
     int     status;
     const char *cp;
+
+#ifdef USE_TLS
+    int     tls_rate;
+
+#endif
 
     /*
      * Print a greeting banner and run the state machine. Read SMTP commands

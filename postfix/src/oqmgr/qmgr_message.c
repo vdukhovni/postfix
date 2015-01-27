@@ -95,10 +95,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -911,13 +907,13 @@ static int qmgr_message_sort_compare(const void *p1, const void *p2)
     if (at1 != 0 && at2 == 0)
 	return (-1);
     if (at1 != 0 && at2 != 0
-	&& (result = strcasecmp(at1, at2)) != 0)
+	&& (result = strcasecmp_utf8(at1, at2)) != 0)
 	return (result);
 
     /*
      * Compare recipient address.
      */
-    return (strcasecmp(rcpt1->address, rcpt2->address));
+    return (strcasecmp_utf8(rcpt1->address, rcpt2->address));
 }
 
 /* qmgr_message_sort - sort message recipient addresses by domain */
@@ -1075,8 +1071,8 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	    at = strrchr(STR(reply.recipient), '@');
 	    len = (at ? (at - STR(reply.recipient))
 		   : strlen(STR(reply.recipient)));
-	    if (strncasecmp(STR(reply.recipient), var_double_bounce_sender,
-			    len) == 0
+	    if (strncasecmp_utf8(STR(reply.recipient),
+				 var_double_bounce_sender, len) == 0
 		&& !var_double_bounce_sender[len]) {
 		status = sent(message->tflags, message->queue_id,
 			      QMGR_MSG_STATS(&stats, message), recipient,

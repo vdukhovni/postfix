@@ -39,11 +39,12 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
 
        If TLS negotiation succeeds, the TLS protocol and  cipher  details  are
        reported.  The  server  certificate is then verified in accordance with
-       the policy at the chosen (or default) security level.  With public  CA-
-       based  trust,  when the <b>-L</b> option includes <b>certmatch</b>, (true by default)
-       name matching is  performed  even  if  the  certificate  chain  is  not
-       trusted.   This logs the names found in the remote SMTP server certifi-
-       cate and which if any would match, were the certificate chain  trusted.
+       the policy at the chosen (or  default)  security  level.   With  public
+       CA-based  trust,  when  the  <b>-L</b>  option  includes  <b>certmatch</b>,  (true by
+       default) name matching is performed even if the  certificate  chain  is
+       not  trusted.  This logs the names found in the remote SMTP server cer-
+       tificate and which if any  would  match,  were  the  certificate  chain
+       trusted.
 
        Note:  <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a> does not perform any table lookups, so the TLS
        policy table and obsolete per-site tables are not consulted.   It  does
@@ -64,8 +65,8 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        5) that can be specified via the <b>-m</b> option.
 
        The  choice  of  SMTP  or LMTP (<b>-S</b> option) determines the syntax of the
-       destination argument. With SMTP, one can specify a service  on  a  non-
-       default  port  as  <i>host</i>:<i>service</i>,  and  disable  MX (mail exchanger) DNS
+       destination argument. With  SMTP,  one  can  specify  a  service  on  a
+       non-default  port  as <i>host</i>:<i>service</i>, and disable MX (mail exchanger) DNS
        lookups with [<i>host</i>] or [<i>host</i>]:<i>port</i>.  The [] form is required  when  you
        specify an IP address instead of a hostname.  An IPv6 address takes the
        form [<b>ipv6:</b><i>address</i>].  The default port  for  SMTP  is  taken  from  the
@@ -162,8 +163,8 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
                      and verbose.
 
               <b>3, ssl-expert</b>
-                     These synonymous values combine debug with ssl-handshake-
-                     packet-dump.  For experts only.
+                     These  synonymous  values  combine  debug  with ssl-hand-
+                     shake-packet-dump.  For experts only.
 
               <b>4, ssl-developer</b>
                      These synonymous values combine ssl-expert with  ssl-ses-
@@ -197,8 +198,8 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               <b>certmatch</b>
                      This  logs remote SMTP server certificate matching, show-
                      ing  the  CN  and  each  subjectAltName  and  which  name
-                     matched.   With DANE, logs matching of TLSA record trust-
-                     anchor and end-entity certificates.
+                     matched.    With  DANE,  logs  matching  of  TLSA  record
+                     trust-anchor and end-entity certificates.
 
               <b>cache</b>  This logs session cache operations, showing whether  ses-
                      sion  caching  is  effective with the remote SMTP server.

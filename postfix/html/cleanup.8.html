@@ -392,9 +392,21 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        Available in Postfix version 2.12 and later:
 
-       <b>virtual_alias_address_length_limit (1000)</b>
+       <b><a href="postconf.5.html#virtual_alias_address_length_limit">virtual_alias_address_length_limit</a> (1000)</b>
               The maximal length of  an  email  address  after  virtual  alias
               expansion.
+
+<b>SMTPUTF8 CONTROLS</b>
+       ,ad
+       Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+
+       <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
+              Enable experimental SMTPUTF8 support for the protocols described
+              in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
+
+       <b><a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> (sendmail, verify)</b>
+              Detect that a message requires SMTPUTF8 support for the speci-
+              fied mail origin classes.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>

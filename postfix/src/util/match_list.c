@@ -126,7 +126,6 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
     char   *item;
     char   *map_type_name_flags;
     int     match;
-    const char *utf8_err;
 
     /*
      * We do not use DICT_FLAG_FOLD_FIX, because we casefold the search
@@ -184,19 +183,8 @@ static ARGV *match_list_parse(MATCH_LIST *match_list, ARGV *pat_list,
 			      dict_open(item, OPEN_FLAGS, DICT_FLAGS));
 	    argv_add(pat_list, STR(buf), (char *) 0);
 	} else {				/* other pattern */
-	    if (casefold(util_utf8_enable, match_list->fold_buf, match ?
-			 item : STR(vstring_sprintf(buf, "!%s", item)),
-			 &utf8_err) == 0) {
-		/* Replace unusable pattern with pseudo table. */
-		vstring_sprintf(match_list->fold_buf, "%s:%s",
-				DICT_TYPE_NOUTF8, item);
-		if (dict_handle(STR(match_list->fold_buf)) == 0)
-		    dict_register(STR(match_list->fold_buf),
-				  dict_surrogate(DICT_TYPE_NOUTF8, item,
-						 OPEN_FLAGS, DICT_FLAGS,
-						 "casefold error: %s",
-						 utf8_err));
-	    }
+	    casefold(match_list->fold_buf, match ?
+		     item : STR(vstring_sprintf(buf, "!%s", item)));
 	    argv_add(pat_list, STR(match_list->fold_buf), (char *) 0);
 	}
     }
@@ -252,7 +240,6 @@ int     match_list_match(MATCH_LIST *list,...)
     int     match;
     int     i;
     va_list ap;
-    const char *utf8_err;
 
     /*
      * Iterate over all patterns in the list, stop at the first match.
@@ -267,12 +254,7 @@ int     match_list_match(MATCH_LIST *list,...)
 	for (match = 1; *pat == '!'; pat++)
 	    match = !match;
 	for (i = 0; i < list->match_count; i++) {
-	    if (casefold(util_utf8_enable, list->fold_buf,
-			 list->match_args[i], &utf8_err) == 0) {
-		msg_warn("%s: casefold error for \"%s\": %s",
-			 myname, list->match_args[i], utf8_err);
-		continue;
-	    }
+	    casefold(list->fold_buf, list->match_args[i]);
 	    if (list->match_func[i] (list, STR(list->fold_buf), pat))
 		return (match);
 	    else if (list->error != 0)

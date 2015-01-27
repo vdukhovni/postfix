@@ -19,7 +19,7 @@
 
 #define FOLD_ADDR_ALL	(FOLD_ADDR_USER | FOLD_ADDR_HOST)
 
-extern char *fold_addr(char *, int);
+extern char *fold_addr(VSTRING *, const char *, int);
 
 /* LICENSE
 /* .ad

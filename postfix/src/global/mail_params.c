@@ -180,10 +180,6 @@
 #include <time.h>
 #include <ctype.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -897,7 +893,7 @@ void    mail_params_init()
     /*
      * I have seen this happen just too often.
      */
-    if (strcasecmp(var_myhostname, var_relayhost) == 0)
+    if (strcasecmp_utf8(var_myhostname, var_relayhost) == 0)
 	msg_fatal("%s and %s parameter settings must not be identical: %s",
 		  VAR_MYHOSTNAME, VAR_RELAYHOST, var_myhostname);
 

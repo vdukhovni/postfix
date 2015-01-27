@@ -67,7 +67,7 @@ must be formatted as [\fBipv6\fR:\fIaddress\fR].
 .fi
 LMTP destinations have the following form:
 .IP \fBunix\fR:\fIpathname\fR
-Connect to the local UNIX-domain server that is bound to the specified
+Connect to the local UNIX\-domain server that is bound to the specified
 \fIpathname\fR. If the process runs chrooted, an absolute pathname
 is interpreted relative to the Postfix queue directory.
 .IP \fBinet\fR:\fIhostname\fR
@@ -86,7 +86,7 @@ An IPv6 address must be formatted as [\fBipv6\fR:\fIaddress\fR].
 .nf
 .ad
 .fi
-The SMTP+LMTP client is moderately security-sensitive. It
+The SMTP+LMTP client is moderately security\-sensitive. It
 talks to SMTP or LMTP servers and to DNS servers on the
 network. The SMTP+LMTP client can be run chrooted at fixed
 low privilege.
@@ -96,7 +96,7 @@ low privilege.
 RFC 821 (SMTP protocol)
 RFC 822 (ARPA Internet Text Messages)
 RFC 1651 (SMTP service extensions)
-RFC 1652 (8bit-MIME transport)
+RFC 1652 (8bit\-MIME transport)
 RFC 1870 (Message Size Declaration)
 RFC 2033 (LMTP protocol)
 RFC 2034 (SMTP Enhanced Error Codes)
@@ -126,7 +126,7 @@ other trouble.
 .ad
 .fi
 SMTP and LMTP connection caching does not work with TLS. The necessary
-support for TLS object passivation and re-activation does not
+support for TLS object passivation and re\-activation does not
 exist without closing the session, which defeats the purpose.
 
 SMTP and LMTP connection caching assumes that SASL credentials
@@ -140,12 +140,12 @@ address and TCP port.
 Before Postfix version 2.3, the LMTP client is a separate
 program that implements only a subset of the functionality
 available with SMTP: there is no support for TLS, and
-connections are cached in-process, making it ineffective
+connections are cached in\-process, making it ineffective
 when the client is used for multiple domains.
 
 Most smtp_\fIxxx\fR configuration parameters have an
 lmtp_\fIxxx\fR "mirror" parameter for the equivalent LMTP
-feature. This document describes only those LMTP-related
+feature. This document describes only those LMTP\-related
 parameters that aren't simply "mirror" parameters.
 
 Changes to \fBmain.cf\fR are picked up automatically, as \fBsmtp\fR(8)
@@ -184,7 +184,7 @@ A list that specifies zero or more workarounds for CISCO PIX
 firewall bugs.
 .IP "\fBsmtp_pix_workaround_maps (empty)\fR"
 Lookup tables, indexed by the remote SMTP server address, with
-per-destination workarounds for CISCO PIX firewall bugs.
+per\-destination workarounds for CISCO PIX firewall bugs.
 .IP "\fBsmtp_quote_rfc821_envelope (yes)\fR"
 Quote addresses in Postfix SMTP client MAIL FROM and RCPT TO commands
 as required
@@ -271,7 +271,7 @@ or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
 .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
 Whether or not to append the "AUTH=<>" option to the MAIL
-FROM command in SASL-authenticated SMTP sessions.
+FROM command in SASL\-authenticated SMTP sessions.
 .PP
 Available in Postfix version 2.11 and later:
 .IP "\fBsmtp_dns_support_level (empty)\fR"
@@ -303,7 +303,7 @@ The maximal recursion level that the MIME processor will handle.
 .fi
 Available in Postfix version 2.1 and later:
 .IP "\fBsmtp_send_xforward_command (no)\fR"
-Send the non-standard XFORWARD command when the Postfix SMTP server
+Send the non\-standard XFORWARD command when the Postfix SMTP server
 EHLO response announces XFORWARD support.
 .SH "SASL AUTHENTICATION CONTROLS"
 .na
@@ -315,7 +315,7 @@ Enable SASL authentication in the Postfix SMTP client.
 .IP "\fBsmtp_sasl_password_maps (empty)\fR"
 Optional Postfix SMTP client lookup tables with one username:password
 entry
-per remote hostname or domain, or sender address when sender-dependent
+per remote hostname or domain, or sender address when sender\-dependent
 authentication is enabled.
 .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 Postfix SMTP client SASL security options; as of Postfix 2.3
@@ -325,22 +325,22 @@ with \fBsmtp_sasl_type\fR.
 .PP
 Available in Postfix version 2.2 and later:
 .IP "\fBsmtp_sasl_mechanism_filter (empty)\fR"
-If non-empty, a Postfix SMTP client filter for the remote SMTP
+If non\-empty, a Postfix SMTP client filter for the remote SMTP
 server's list of offered SASL mechanisms.
 .PP
 Available in Postfix version 2.3 and later:
 .IP "\fBsmtp_sender_dependent_authentication (no)\fR"
-Enable sender-dependent authentication in the Postfix SMTP client; this is
+Enable sender\-dependent authentication in the Postfix SMTP client; this is
 available only with SASL authentication, and disables SMTP connection
 caching to ensure that mail from different senders will use the
 appropriate credentials.
 .IP "\fBsmtp_sasl_path (empty)\fR"
-Implementation-specific information that the Postfix SMTP client
+Implementation\-specific information that the Postfix SMTP client
 passes through to
-the SASL plug-in implementation that is selected with
+the SASL plug\-in implementation that is selected with
 \fBsmtp_sasl_type\fR.
 .IP "\fBsmtp_sasl_type (cyrus)\fR"
-The SASL plug-in type that the Postfix SMTP client should use
+The SASL plug\-in type that the Postfix SMTP client should use
 for authentication.
 .PP
 Available in Postfix version 2.5 and later:
@@ -359,7 +359,7 @@ mail as undeliverable.
 Available in Postfix version 2.9 and later:
 .IP "\fBsmtp_send_dummy_mail_auth (no)\fR"
 Whether or not to append the "AUTH=<>" option to the MAIL
-FROM command in SASL-authenticated SMTP sessions.
+FROM command in SASL\-authenticated SMTP sessions.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf
@@ -369,7 +369,7 @@ Detailed information about STARTTLS configuration may be found
 in the TLS_README document.
 .IP "\fBsmtp_tls_security_level (empty)\fR"
 The default SMTP TLS security level for the Postfix SMTP client;
-when a non-empty value is specified, this overrides the obsolete
+when a non\-empty value is specified, this overrides the obsolete
 parameters smtp_use_tls, smtp_enforce_tls, and smtp_tls_enforce_peername.
 .IP "\fBsmtp_sasl_tls_security_options ($smtp_sasl_security_options)\fR"
 The SASL authentication security options that the Postfix SMTP
@@ -410,14 +410,14 @@ Log the hostname of a remote SMTP server that offers STARTTLS,
 when TLS is not already enabled for that server.
 .IP "\fBsmtp_tls_policy_maps (empty)\fR"
 Optional lookup tables with the Postfix SMTP client TLS security
-policy by next-hop destination; when a non-empty value is specified,
+policy by next\-hop destination; when a non\-empty value is specified,
 this overrides the obsolete smtp_tls_per_site parameter.
 .IP "\fBsmtp_tls_mandatory_protocols (!SSLv2)\fR"
 List of SSL/TLS protocols that the Postfix SMTP client will use with
 mandatory TLS encryption.
 .IP "\fBsmtp_tls_scert_verifydepth (9)\fR"
 The verification depth for remote SMTP server certificates.
-.IP "\fBsmtp_tls_secure_cert_match (nexthop, dot-nexthop)\fR"
+.IP "\fBsmtp_tls_secure_cert_match (nexthop, dot\-nexthop)\fR"
 How the Postfix SMTP client verifies the server certificate
 peername for the "secure" TLS security level.
 .IP "\fBsmtp_tls_session_cache_database (empty)\fR"
@@ -431,7 +431,7 @@ How the Postfix SMTP client verifies the server certificate
 peername for the
 "verify" TLS security level.
 .IP "\fBtls_daemon_random_bytes (32)\fR"
-The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
+The number of pseudo\-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
 process requests from the \fBtlsmgr\fR(8) server in order to seed its
 internal pseudo random number generator (PRNG).
 .IP "\fBtls_high_cipherlist (ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)\fR"
@@ -476,22 +476,22 @@ File with the Postfix SMTP client ECDSA private key in PEM format.
 Available in Postfix version 2.7 and later:
 .IP "\fBsmtp_tls_block_early_mail_reply (no)\fR"
 Try to detect a mail hijacking attack based on a TLS protocol
-vulnerability (CVE-2009-3555), where an attacker prepends malicious
+vulnerability (CVE\-2009\-3555), where an attacker prepends malicious
 HELO, MAIL, RCPT, DATA commands to a Postfix SMTP client TLS session.
 .PP
 Available in Postfix version 2.8 and later:
 .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
-List or bit-mask of OpenSSL bug work-arounds to disable.
+List or bit\-mask of OpenSSL bug work\-arounds to disable.
 .PP
 Available in Postfix version 2.11 and later:
 .IP "\fBsmtp_tls_trust_anchor_file (empty)\fR"
-Zero or more PEM-format files with trust-anchor certificates
+Zero or more PEM\-format files with trust\-anchor certificates
 and/or public keys.
 .IP "\fBsmtp_tls_force_insecure_host_tlsa_lookup (no)\fR"
 Lookup the associated DANE TLSA RRset even when a hostname is
 not an alias and its address records lie in an unsigned zone.
 .IP "\fBtls_dane_trust_anchor_digest_enable (yes)\fR"
-RFC 6698 trust-anchor digest support in the Postfix TLS library.
+RFC 6698 trust\-anchor digest support in the Postfix TLS library.
 .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 .PP
@@ -519,7 +519,7 @@ server hostname matches the information in the remote SMTP server
 certificate.
 .IP "\fBsmtp_tls_per_site (empty)\fR"
 Optional lookup tables with the Postfix SMTP client TLS usage
-policy by next-hop destination and by remote SMTP server hostname.
+policy by next\-hop destination and by remote SMTP server hostname.
 .IP "\fBsmtp_tls_cipherlist (empty)\fR"
 Obsolete Postfix < 2.3 control for the Postfix SMTP client TLS
 cipher list.
@@ -536,7 +536,7 @@ The maximal number of recipients per message for the smtp
 message delivery transport.
 .IP "\fBsmtp_connect_timeout (30s)\fR"
 The Postfix SMTP client time limit for completing a TCP connection, or
-zero (use the operating system built-in time limit).
+zero (use the operating system built\-in time limit).
 .IP "\fBsmtp_helo_timeout (300s)\fR"
 The Postfix SMTP client time limit for sending the HELO or EHLO command,
 and for receiving the initial remote SMTP server response.
@@ -572,7 +572,7 @@ limit).
 .IP "\fBsmtp_mx_session_limit (2)\fR"
 The maximal number of SMTP sessions per delivery request before
 the Postfix SMTP client
-gives up or delivers to a fall-back relay host, or zero (no
+gives up or delivers to a fall\-back relay host, or zero (no
 limit).
 .IP "\fBsmtp_rset_timeout (20s)\fR"
 The Postfix SMTP client time limit for sending the RSET command,
@@ -643,8 +643,8 @@ The recipient of postmaster notifications about mail delivery
 problems that are caused by policy, resource, software or protocol
 errors.
 .IP "\fBinternal_mail_filter_classes (empty)\fR"
-What categories of Postfix-generated mail are subject to
-before-queue content inspection by non_smtpd_milters, header_checks
+What categories of Postfix\-generated mail are subject to
+before\-queue content inspection by non_smtpd_milters, header_checks
 and body_checks.
 .IP "\fBnotify_classes (resource, software)\fR"
 The list of error classes that are reported to the postmaster.
@@ -661,10 +661,10 @@ The default location of the Postfix main.cf and master.cf
 configuration files.
 .IP "\fBdaemon_timeout (18000s)\fR"
 How much time a Postfix daemon process may take to handle a
-request before it is terminated by a built-in watchdog timer.
+request before it is terminated by a built\-in watchdog timer.
 .IP "\fBdelay_logging_resolution_limit (2)\fR"
 The maximal number of digits after the decimal point when logging
-sub-second delay values.
+sub\-second delay values.
 .IP "\fBdisable_dns_lookups (no)\fR"
 Disable DNS lookups in the Postfix SMTP and LMTP clients.
 .IP "\fBinet_interfaces (all)\fR"
@@ -689,9 +689,9 @@ for an incoming connection before terminating voluntarily.
 .IP "\fBmax_use (100)\fR"
 The maximal number of incoming connections that a Postfix daemon
 process will service before terminating voluntarily.
-.IP "\fBprocess_id (read-only)\fR"
+.IP "\fBprocess_id (read\-only)\fR"
 The process ID of a Postfix command or daemon process.
-.IP "\fBprocess_name (read-only)\fR"
+.IP "\fBprocess_name (read\-only)\fR"
 The process name of a Postfix command or daemon process.
 .IP "\fBproxy_interfaces (empty)\fR"
 The network interface addresses that this mail system receives mail
@@ -714,7 +714,7 @@ The hostname to send in the LMTP LHLO command.
 What mechanisms the Postfix SMTP client uses to look up a host's
 IP address.
 .IP "\fBsmtp_randomize_addresses (yes)\fR"
-Randomize the order of equal-preference MX host addresses.
+Randomize the order of equal\-preference MX host addresses.
 .IP "\fBsyslog_facility (mail)\fR"
 The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
@@ -791,8 +791,8 @@ TLS support originally by:
 Lutz Jaenicke
 BTU Cottbus
 Allgemeine Elektrotechnik
-Universitaetsplatz 3-4
-D-03044 Cottbus, Germany
+Universitaetsplatz 3\-4
+D\-03044 Cottbus, Germany
 
 Revised TLS and SMTP connection cache support by:
 Victor Duchovni

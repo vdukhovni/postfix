@@ -172,6 +172,7 @@
 #include <stringops.h>
 #include <safe_open.h>
 #include <warn_stat.h>
+#include <midna_domain.h>
 
 /* Global library. */
 
@@ -257,6 +258,15 @@ static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
     int     ch;
 
     /*
+     * Convert the name to ASCII, so that we don't to end up with non-ASCII
+     * names in the file system. The IDNA library functions fold case.
+     */
+#ifndef NO_EAI
+    if ((site = midna_domain_to_ascii(site)) == 0)
+	return (0);
+#endif
+
+    /*
      * Allocate buffer on the fly; caller still needs to clean up.
      */
     if (path == 0)
@@ -267,7 +277,7 @@ static VSTRING *flush_site_to_path(VSTRING *path, const char *site)
      */
     for (ptr = site; (ch = *(unsigned const char *) ptr) != 0; ptr++)
 	if (ISALNUM(ch))
-	    VSTRING_ADDCH(path, ch);
+	    VSTRING_ADDCH(path, tolower(ch));
 	else
 	    VSTRING_ADDCH(path, '_');
     VSTRING_TERMINATE(path);
@@ -298,7 +308,8 @@ static int flush_add_service(const char *site, const char *queue_id)
     /*
      * Map site to path and update log.
      */
-    site_path = flush_site_to_path((VSTRING *) 0, site);
+    if ((site_path = flush_site_to_path((VSTRING *) 0, site)) == 0)
+	return (FLUSH_STAT_DENY);
     status = flush_add_path(STR(site_path), queue_id);
     vstring_free(site_path);
 
@@ -374,7 +385,8 @@ static int flush_send_service(const char *site, int how)
     /*
      * Map site name to path name and flush the log.
      */
-    site_path = flush_site_to_path((VSTRING *) 0, site);
+    if ((site_path = flush_site_to_path((VSTRING *) 0, site)) == 0)
+	return (FLUSH_STAT_DENY);
     status = flush_send_path(STR(site_path), how);
     vstring_free(site_path);
 
@@ -753,7 +765,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 			  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 			  ATTR_TYPE_END) == 2
 		&& mail_queue_id_ok(STR(queue_id)))
-		status = flush_add_service(lowercase(STR(site)), STR(queue_id));
+		status = flush_add_service(STR(site), STR(queue_id));
 	    attr_print(client_stream, ATTR_FLAG_NONE,
 		       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 		       ATTR_TYPE_END);
@@ -762,8 +774,7 @@ static void flush_service(VSTREAM *client_stream, char *unused_service,
 	    if (attr_scan(client_stream, ATTR_FLAG_STRICT,
 			  RECV_ATTR_STR(MAIL_ATTR_SITE, site),
 			  ATTR_TYPE_END) == 1)
-		status = flush_send_service(lowercase(STR(site)),
-					    UNTHROTTLE_BEFORE);
+		status = flush_send_service(STR(site), UNTHROTTLE_BEFORE);
 	    attr_print(client_stream, ATTR_FLAG_NONE,
 		       SEND_ATTR_INT(MAIL_ATTR_STATUS, status),
 		       ATTR_TYPE_END);

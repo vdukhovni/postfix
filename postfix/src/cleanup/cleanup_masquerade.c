@@ -51,10 +51,6 @@
 #include <sys_defs.h>
 #include <string.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -92,6 +88,7 @@ int     cleanup_masquerade_external(CLEANUP_STATE *state, VSTRING *addr,
 
     /* Stuff for excluded names. */
     char   *name;
+    ssize_t name_len;
     int     excluded;
 
     /*
@@ -99,15 +96,16 @@ int     cleanup_masquerade_external(CLEANUP_STATE *state, VSTRING *addr,
      */
     if ((domain = strrchr(STR(addr), '@')) == 0)
 	return (0);
-    domain += 1;
+    name_len = domain - STR(addr);
+    domain = casefold(state->temp2, domain + 1);
     domain_len = strlen(domain);
 
     /*
      * Don't masquerade excluded names (regardless of domain).
      */
     if (*var_masq_exceptions) {
-	name = mystrndup(STR(addr), domain - 1 - STR(addr));
-	excluded = (string_list_match(cleanup_masq_exceptions, lowercase(name)) != 0);
+	name = mystrndup(STR(addr), name_len);
+	excluded = (string_list_match(cleanup_masq_exceptions, name) != 0);
 	myfree(name);
 	if (cleanup_masq_exceptions->error) {
 	    msg_info("%s: %s map lookup problem -- "
@@ -127,19 +125,20 @@ int     cleanup_masquerade_external(CLEANUP_STATE *state, VSTRING *addr,
     for (masqp = masq_domains->argv; (masq = *masqp) != 0; masqp++) {
 	for (truncate = 1; *masq == '!'; masq++)
 	    truncate = !truncate;
+	masq = casefold(state->temp1, masq);
 	masq_len = strlen(masq);
 	if (masq_len == 0)
 	    continue;
 	if (masq_len == domain_len) {
-	    if (strcasecmp(masq, domain) == 0)
+	    if (strcmp(masq, domain) == 0)
 		break;
 	} else if (masq_len < domain_len) {
 	    parent = domain + domain_len - masq_len;
-	    if (parent[-1] == '.' && strcasecmp(masq, parent) == 0) {
+	    if (parent[-1] == '.' && strcmp(masq, parent) == 0) {
 		if (truncate) {
 		    if (msg_verbose)
 			msg_info("masquerade: %s -> %s", domain, masq);
-		    vstring_truncate(addr, domain - STR(addr));
+		    vstring_truncate(addr, name_len + 1);
 		    vstring_strcat(addr, masq);
 		    did_rewrite = 1;
 		}
@@ -221,12 +220,16 @@ int     main(int argc, char **argv)
 
     state.errs = 0;
     state.queue_id = "NOQUEUE";
+    state.temp1 = vstring_alloc(100);
+    state.temp2 = vstring_alloc(100);
     cleanup_masquerade_external(&state, addr, masq_domains);
 
     vstream_printf("result:     %s\n", STR(addr));
     vstream_printf("errs:       %d\n", state.errs);
     vstream_fflush(VSTREAM_OUT);
 
+    vstring_free(state.temp1);
+    vstring_free(state.temp2);
     vstring_free(addr);
     argv_free(masq_domains);
 

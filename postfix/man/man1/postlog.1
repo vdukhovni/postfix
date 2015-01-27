@@ -4,18 +4,18 @@
 .SH NAME
 postlog
 \-
-Postfix-compatible logging utility
+Postfix\-compatible logging utility
 .SH "SYNOPSIS"
 .na
 .nf
 .fi
 .ad
-\fBpostlog\fR [\fB-iv\fR] [\fB-c \fIconfig_dir\fR]
-[\fB-p \fIpriority\fB] [\fB-t \fItag\fR] [\fItext...\fR]
+\fBpostlog\fR [\fB\-iv\fR] [\fB\-c \fIconfig_dir\fR]
+[\fB\-p \fIpriority\fB] [\fB\-t \fItag\fR] [\fItext...\fR]
 .SH DESCRIPTION
 .ad
 .fi
-The \fBpostlog\fR(1) command implements a Postfix-compatible logging
+The \fBpostlog\fR(1) command implements a Postfix\-compatible logging
 interface for use in, for example, shell scripts.
 
 By default, \fBpostlog\fR(1) logs the \fItext\fR given on the command
@@ -27,20 +27,20 @@ Logging is sent to \fBsyslogd\fR(8); when the standard error stream
 is connected to a terminal, logging is sent there as well.
 
 The following options are implemented:
-.IP "\fB-c \fIconfig_dir\fR"
+.IP "\fB\-c \fIconfig_dir\fR"
 Read the \fBmain.cf\fR configuration file in the named directory
 instead of the default configuration directory.
-.IP \fB-i\fR
+.IP \fB\-i\fR
 Include the process ID in the logging tag.
-.IP "\fB-p \fIpriority\fR"
+.IP "\fB\-p \fIpriority\fR"
 Specifies the logging severity: \fBinfo\fR (default), \fBwarn\fR,
 \fBerror\fR, \fBfatal\fR, or \fBpanic\fR.
-.IP "\fB-t \fItag\fR"
+.IP "\fB\-t \fItag\fR"
 Specifies the logging tag, that is, the identifying name that
 appears at the beginning of each logging record. A default tag
 is used when none is specified.
-.IP \fB-v\fR
-Enable verbose logging for debugging purposes. Multiple \fB-v\fR
+.IP \fB\-v\fR
+Enable verbose logging for debugging purposes. Multiple \fB\-v\fR
 options make the software increasingly verbose.
 .SH "ENVIRONMENT"
 .na

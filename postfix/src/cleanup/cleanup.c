@@ -324,6 +324,16 @@
 /*	Available in Postfix version 2.12 and later:
 /* .IP "\fBvirtual_alias_address_length_limit (1000)\fR"
 /*	The maximal length of an email address after virtual alias expansion.
+/* SMTPUTF8 CONTROLS
+/* ,ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/* .IP "\fBsmtputf8_enable (yes)\fR"
+/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi

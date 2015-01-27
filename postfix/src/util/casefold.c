@@ -7,41 +7,73 @@
 /*	#include <stringops.h>
 /*
 /*	char	*casefold(
-/*	int	utf8_request,
-/*	VSTRING *src,
+/*	VSTRING *dst,
+/*	const char *src)
+/*
+/*	char	*casefold_append(
+/*	VSTRING *dst,
+/*	const char *src)
+/*
+/*	char	*casefold_len(
+/*	VSTRING *dst,
 /*	const char *src,
-/*	CONST_CHAR_STAR *err)
+/*	ssize_t	src_len)
+/* AUXILIARY FUNCTIONS
+/*	char	*casefoldx(
+/*	int	flags,
+/*	VSTRING *dst,
+/*	const char *src,
+/*	ssize_t	src_len)
 /* DESCRIPTION
 /*	casefold() converts text to a form that is suitable for
 /*	caseless comparison, rather than presentation to humans.
 /*
-/*	When compiled without EAI support, casefold() implements
-/*	ASCII case folding, leaving non-ASCII byte values unchanged.
-/*	This mode has no error returns.
+/*	When compiled without EAI support or util_utf8_enable is
+/*	zero, casefold() implements ASCII case folding, leaving
+/*	non-ASCII byte values unchanged.
 /*
-/*	When compiled with EAI support, casefold() implements UTF-8
-/*	case folding using the en_US locale, as recommended when
-/*	the conversion result is not meant to be presented to humans.
-/*	When conversion fails the result is null, and the pointer
-/*	referenced by err is updated.
+/*	When compiled with EAI support and util_utf8_enable is
+/*	non-zero, casefold() implements UTF-8 case folding using
+/*	the en_US locale, as recommended when the conversion result
+/*	is not meant to be presented to humans.
+/*
+/*	casefold_len() implements casefold() with a source length
+/*	argument.
+/*
+/*	casefold_append() implements casefold() without overwriting
+/*	the result.
+/*
+/*	casefoldx() implements a more complex API that implements
+/*	all of the above and more.
+/*
+/*	Arguments:
+/* .IP src
+/*	Null-terminated input string.
+/* .IP dest
+/*	Output buffer, null-terminated. Specify a null pointer to
+/*	use an internal buffer that is overwritten upon each call.
+/* .IP len
+/*	The string length, -1 to determine the length dynamically.
+/* .IP flags
+/*	Bitwise OR of zero or more of the following:
+/* .RS
+/* .IP CASEF_FLAG_UTF8
+/*	Enable UTF-8 support. This flag has no effect when compiled
+/*	without EAI support.
+/* .IP CASEF_FLAG_APPEND
+/*	Append the result to the buffer, instead of overwriting it.
+/* DIAGNOSTICS
+/*	All errors are fatal. There appear to be no input-dependent
+/*	errors.
 /*
 /*	With the ICU 4.8 library, there is no casefold error for
 /*	UTF-8 code points U+0000..U+10FFFF (including surrogate
 /*	range), not even when running inside an empty chroot jail.
-/*
-/*	Arguments:
-/* .IP utf8_request
-/*	Boolean parameter that enables UTF-8 case folding instead
-/*	of folding only ASCII characters. This flag is ignored when
-/*	compiled without EAI support.
-/* .IP src
-/*	Null-terminated input string.
-/* .IP dest
-/*	Output buffer, null-terminated if the function completes
-/*	without reporting an error.
-/* .IP err
-/*	Null pointer, or pointer to "const char *". for descriptive
-/*	text about errors.
+/*	Nor does malformed UTF-8 trigger errors; non-UTF-8 bytes
+/*	are copied verbatim. Based on ICU 4.8 source-code review
+/*	and experimentation(!) we conclude that UTF-8 casefolding
+/*	has no data-dependent error cases, and that it is safe to
+/*	treat all casefolding errors as fatal runtime errors.
 /* LICENSE
 /* .ad
 /* .fi
@@ -72,46 +104,70 @@
 #define STR(x) vstring_str(x)
 #define LEN(x) VSTRING_LEN(x)
 
-/* casefold - casefold an UTF-8 string */
+/* casefoldx - casefold an UTF-8 string */
 
-char   *casefold(int utf8_req, VSTRING *dest, const char *src,
-		         CONST_CHAR_STAR *err)
+char   *casefoldx(int flags, VSTRING *dest, const char *src, ssize_t len)
 {
+    size_t  old_len;
+
 #ifdef NO_EAI
 
     /*
      * ASCII mode only.
      */
-    vstring_strcpy(dest, src);
-    return (lowercase(STR(dest)));
+    if (len < 0)
+	len = strlen(src);
+    if ((flags & CASEF_FLAG_APPEND) == 0)
+	VSTRING_RESET(dest);
+    old_len = VSTRING_LEN(dest);
+    vstring_strncat(dest, src, len);
+    lowercase(STR(dest) + old_len);
+    return (STR(dest));
 #else
 
     /*
      * Unicode mode.
      */
+    const char myname[] = "casefold";
+    static VSTRING *fold_buf = 0;
     static UCaseMap *csm = 0;
     UErrorCode error;
     ssize_t space_needed;
     int     n;
 
     /*
+     * Handle special cases.
+     */
+    if (len < 0)
+	len = strlen(src);
+    if (dest == 0)
+	dest = (fold_buf != 0 ? fold_buf : (fold_buf = vstring_alloc(100)));
+    if ((flags & CASEF_FLAG_APPEND) == 0)
+	VSTRING_RESET(dest);
+    old_len = VSTRING_LEN(dest);
+
+    /*
      * All-ASCII input, or ASCII mode only.
      */
-    if (utf8_req == 0 || allascii(src)) {
-	vstring_strcpy(dest, src);
-	return (lowercase(STR(dest)));
+    if ((flags & CASEF_FLAG_UTF8) == 0 || allascii(src)) {
+	vstring_strncat(dest, src, len);
+	lowercase(STR(dest) + old_len);
+	return (STR(dest));
     }
 
     /*
      * ICU 4.8 ucasemap_utf8FoldCase() does not complain about UTF-8 syntax
-     * errors. XXX Is this behavior guaranteed or accidental? We don't know,
-     * therefore must check it here.
+     * errors. XXX Based on source-code review we conclude that non-UTF-8
+     * bytes are copied verbatim, and experiments confirm this. Given that
+     * this behavior is intentional, we assume that it will stay that way.
      */
-    if (valid_utf8_string(src, strlen(src)) == 0) {
+#if 0
+    if (valid_utf8_string(src, len) == 0) {
 	if (err)
 	    *err = "malformed UTF-8 or invalid codepoint";
 	return (0);
     }
+#endif
 
     /*
      * One-time initialization. With ICU 4.8 this works while chrooted.
@@ -127,14 +183,12 @@ char   *casefold(int utf8_req, VSTRING *dest, const char *src,
      * Fold the input, adjusting the buffer size if needed. Safety: don't
      * loop forever.
      */
-    VSTRING_RESET(dest);
     for (n = 0; n < 3; n++) {
 	error = U_ZERO_ERROR;
-	space_needed =
-	    ucasemap_utf8FoldCase(csm, STR(dest), vstring_avail(dest),
-				  src, strlen(src), &error);
+	space_needed = ucasemap_utf8FoldCase(csm, STR(dest) + old_len,
+				     vstring_avail(dest), src, len, &error);
 	if (error == U_BUFFER_OVERFLOW_ERROR) {
-	    VSTRING_SPACE(dest, space_needed);
+	    VSTRING_SPACE(dest, space_needed + 1);	/* XXX */
 	} else {
 	    break;
 	}
@@ -144,18 +198,14 @@ char   *casefold(int utf8_req, VSTRING *dest, const char *src,
      * Report the result. With ICU 4.8, there are no casefolding errors for
      * the entire RFC 3629 Unicode range (code points U+0000..U+10FFFF
      * including surrogates), nor are there casefolding errors for bad UTF-8
-     * input. XXX Is this behavior guaranteed or accidental? We don't know,
-     * therefore we have the UTF-8 syntax check (and range check) above.
+     * input.
      */
-    if (U_SUCCESS(error) == 0) {
-	if (err)
-	    *err = u_errorName(error);
-	return (0);
-    } else {
-	/* Position the write pointer at the null terminator. */
-	VSTRING_AT_OFFSET(dest, space_needed - 1);
-	return (STR(dest));
-    }
+    if (U_SUCCESS(error) == 0)
+	msg_fatal("%s: conversion error for \"%s\": %s",
+		  myname, src, u_errorName(error));
+    /* Position the write pointer at the null terminator. */
+    VSTRING_AT_OFFSET(dest, old_len + space_needed);
+    return (STR(dest));
 #endif						/* NO_EAI */
 }
 
@@ -200,16 +250,16 @@ int     main(int argc, char **argv)
     VSTRING *dest = vstring_alloc(1);
     char   *bp;
     char   *conv_res;
-    const char *fold_err;
     char   *cmd;
-    int     codepoint, first, last, utf8_req;
+    int     codepoint, first, last;
+    VSTREAM *fp;
 
     if (setlocale(LC_ALL, "C") == 0)
 	msg_fatal("setlocale(LC_ALL, C) failed: %m");
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
-    utf8_req = util_utf8_enable = 1;
+    util_utf8_enable = 1;
 
     VSTRING_SPACE(buffer, 256);			/* chroot pathname */
 
@@ -226,10 +276,8 @@ int     main(int argc, char **argv)
 	 * Null-terminated string.
 	 */
 	if (strcmp(cmd, "fold") == 0) {
-	    if ((conv_res = casefold(utf8_req, dest, bp, &fold_err)) != 0)
-		vstream_printf("\"%s\" ->fold \"%s\"\n", bp, conv_res);
-	    else
-		vstream_printf("cannot casefold \"%s\": %s\n", bp, fold_err);
+	    conv_res = casefold(dest, bp);
+	    vstream_printf("\"%s\" ->fold \"%s\"\n", bp, conv_res);
 	}
 
 	/*
@@ -248,9 +296,7 @@ int     main(int argc, char **argv)
 			vstream_printf("U+%X -> %s\n", codepoint, STR(buffer));
 		    if (valid_utf8_string(STR(buffer), LEN(buffer)) == 0)
 			msg_fatal("bad utf-8 encoding for U+%X\n", codepoint);
-		    if (casefold(utf8_req, dest, STR(buffer), &fold_err) == 0)
-			vstream_printf("casefold error for U+%X: %s\n",
-				       codepoint, fold_err);
+		    casefold(dest, STR(buffer));
 		}
 	    }
 	    vstream_printf("range completed: 0x%x..0x%x\n", first, last);
@@ -263,11 +309,23 @@ int     main(int argc, char **argv)
 		 && sscanf(bp, "%255s", STR(buffer)) == 1) {
 	    if (geteuid() == 0) {
 		if (chdir(STR(buffer)) < 0)
-		    msg_fatal("chdir(%s): %m\n", STR(buffer));
+		    msg_fatal("chdir(%s): %m", STR(buffer));
 		if (chroot(STR(buffer)) < 0)
-		    msg_fatal("chroot(%s): %m\n", STR(buffer));
+		    msg_fatal("chroot(%s): %m", STR(buffer));
 		vstream_printf("chroot %s completed\n", STR(buffer));
 	    }
+	}
+
+	/*
+	 * File.
+	 */
+	else if (strcmp(cmd, "file") == 0
+		 && sscanf(bp, "%255s", STR(buffer)) == 1) {
+	    if ((fp = vstream_fopen(STR(buffer), O_RDONLY, 0)) == 0)
+		msg_fatal("open(%s): %m", STR(buffer));
+	    while (vstring_fgets_nonl(buffer, fp))
+		vstream_printf("%s\n", casefold(dest, STR(buffer)));
+	    vstream_fclose(fp);
 	}
 
 	/*
@@ -287,6 +345,8 @@ int     main(int argc, char **argv)
 	}
 	vstream_fflush(VSTREAM_OUT);
     }
+    vstring_free(buffer);
+    vstring_free(dest);
     exit(0);
 }
 

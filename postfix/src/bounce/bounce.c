@@ -147,10 +147,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -407,7 +403,8 @@ static int bounce_verp_proto(char *service_name, VSTREAM *client)
      * Execute the request. Fall back to traditional notification if a bounce
      * was returned as undeliverable, because we don't want to VERPify those.
      */
-    if (!*STR(sender) || !strcasecmp(STR(sender), mail_addr_double_bounce())) {
+    if (!*STR(sender) || !strcasecmp_utf8(STR(sender),
+					  mail_addr_double_bounce())) {
 	msg_warn("request to send VERP-style notification of bounced mail");
 	return (bounce_notify_service(flags, service_name, STR(queue_name),
 				      STR(queue_id), STR(encoding), smtputf8,
