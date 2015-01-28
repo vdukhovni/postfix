@@ -23,7 +23,7 @@
 /*	closed after $ipc_idle seconds of idle time, or after $ipc_ttl
 /*	seconds of activity.
 /* SECURITY
-/*      The proxy map server is not meant to be a trusted process. Proxy
+/* The proxy map server is not meant to be a trusted process. Proxy
 /*	maps must not be used to look up security sensitive information
 /*	such as user/group IDs, output files, or external commands.
 /* SEE ALSO

@@ -182,29 +182,30 @@ char   *casefoldx(int flags, VSTRING *dest, const char *src, ssize_t len)
     /*
      * Fold the input, adjusting the buffer size if needed. Safety: don't
      * loop forever.
+     * 
+     * Note: the requested amount of space for casemapped output (as reported
+     * with space_needed below) does not include storage for the null
+     * terminator. The terminator is written only when the output buffer is
+     * large enough. This is why we overallocate space when the output does
+     * not fit. But if the output fits exactly, then the ouput will be
+     * unterminated, and we have to terminate the output ourselves.
      */
     for (n = 0; n < 3; n++) {
 	error = U_ZERO_ERROR;
 	space_needed = ucasemap_utf8FoldCase(csm, STR(dest) + old_len,
 				     vstring_avail(dest), src, len, &error);
-	if (error == U_BUFFER_OVERFLOW_ERROR) {
-	    VSTRING_SPACE(dest, space_needed + 1);	/* XXX */
-	} else {
+	if (U_SUCCESS(error)) {
+	    VSTRING_AT_OFFSET(dest, old_len + space_needed);
+	    if (vstring_avail(dest) == 0)	/* exact fit, no terminator */
+		VSTRING_TERMINATE(dest);	/* add terminator */
 	    break;
+	} else if (error == U_BUFFER_OVERFLOW_ERROR) {
+	    VSTRING_SPACE(dest, space_needed + 1);	/* for terminator */
+	} else {
+	    msg_fatal("%s: conversion error for \"%s\": %s",
+		      myname, src, u_errorName(error));
 	}
     }
-
-    /*
-     * Report the result. With ICU 4.8, there are no casefolding errors for
-     * the entire RFC 3629 Unicode range (code points U+0000..U+10FFFF
-     * including surrogates), nor are there casefolding errors for bad UTF-8
-     * input.
-     */
-    if (U_SUCCESS(error) == 0)
-	msg_fatal("%s: conversion error for \"%s\": %s",
-		  myname, src, u_errorName(error));
-    /* Position the write pointer at the null terminator. */
-    VSTRING_AT_OFFSET(dest, old_len + space_needed);
     return (STR(dest));
 #endif						/* NO_EAI */
 }
@@ -261,7 +262,7 @@ int     main(int argc, char **argv)
 
     util_utf8_enable = 1;
 
-    VSTRING_SPACE(buffer, 256);			/* chroot pathname */
+    VSTRING_SPACE(buffer, 256);			/* chroot/file pathname */
 
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	bp = STR(buffer);
@@ -340,7 +341,7 @@ int     main(int argc, char **argv)
 	 * Usage
 	 */
 	else {
-	    vstream_printf("Usage: %s chroot <path> | fold <text> | range <first> <last> | verbose <int>\n",
+	    vstream_printf("Usage: %s chroot <path> | file <path> | fold <text> | range <first> <last> | verbose <int>\n",
 			   argv[0]);
 	}
 	vstream_fflush(VSTREAM_OUT);

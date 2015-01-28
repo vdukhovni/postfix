@@ -95,8 +95,8 @@
 /*	This abstraction is less convenient when an SMTP client
 /*	must be able to deliver left-over recipients to a backup
 /*	host. It might be more natural to have an input list with
-/*      recipients to deliver, and an output list with left-over
-/*      recipients.
+/* recipients to deliver, and an output list with left-over
+/* recipients.
 /* LICENSE
 /* .ad
 /* .fi

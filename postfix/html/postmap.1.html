@@ -62,9 +62,9 @@ POSTMAP(1)                                                          POSTMAP(1)
               By default, the <b>-b</b> option starts generating lookup keys  at  the
               first  non-header line, and stops when the end of the message is
               reached.  To simulate  <a href="header_checks.5.html"><b>body_checks</b>(5)</a>  processing,  enable  MIME
-              parsing  with  <b>-m</b>.  With  this, the <b>-b</b> option generates no body-
-              style lookup keys for attachment MIME headers and  for  attached
-              message/* headers.
+              parsing   with  <b>-m</b>.  With  this,  the  <b>-b</b>  option  generates  no
+              body-style lookup keys  for  attachment  MIME  headers  and  for
+              attached message/* headers.
 
               NOTE:  with  "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a>  = yes", the <b>-b</b> option option dis-
               ables UTF-8 syntax checks on  query  keys  and  lookup  results.
@@ -245,7 +245,7 @@ POSTMAP(1)                                                          POSTMAP(1)
               and <a href="postmap.1.html"><b>postmap</b>(1)</a> commands.
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
-              Enable experimental SMTPUTF8 support for the protocols described
+              Enable  preliminary SMTPUTF8 support for the protocols described
               in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>

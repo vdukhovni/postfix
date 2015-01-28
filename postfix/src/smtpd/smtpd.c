@@ -481,7 +481,7 @@
 /* .fi
 /*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
-/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	Enable preliminary SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
 /* .IP "\fBstrict_smtputf8 (no)\fR"
 /*	Enable stricter enforcement of the SMTPUTF8 protocol.
@@ -4019,6 +4019,15 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 #ifdef USE_SASL_AUTH
     if (got_login == 0)
 	smtpd_sasl_auth_reset(state);
+    if (smtpd_sasl_is_active(state)) {
+	smtpd_sasl_deactivate(state);
+	if (state->tls_context == 0)		/* TLS from XCLIENT proxy? */
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
+				var_smtpd_sasl_opts);
+	else
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
+				var_smtpd_sasl_tls_opts);
+    }
 #endif
     chat_reset(state, 0);
     mail_reset(state);

@@ -40,8 +40,8 @@
 /*	valid_ipv4_hostaddr() and valid_ipv6_hostaddr() implement
 /*	protocol-specific address syntax checks. A valid IPv4
 /*	address is in dotted-quad decimal form. A valid IPv6 address
-/*      has 16-bit hexadecimal fields separated by ":", and does not
-/*      include the RFC 2821 style "IPv6:" prefix.
+/* has 16-bit hexadecimal fields separated by ":", and does not
+/* include the RFC 2821 style "IPv6:" prefix.
 /*
 /*	These routines operate silently unless the gripe parameter
 /*	specifies a non-zero value. The macros DO_GRIPE and DONT_GRIPE

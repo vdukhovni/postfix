@@ -23,12 +23,12 @@
 /*	\fB$remote_header_rewrite_domain\fR to incomplete
 /*	addresses. Otherwise the result is identical to that of
 /*	the \fBlocal\fR address rewriting context. This prevents
-/*      Postfix from appending the local domain to spam from poorly
+/* Postfix from appending the local domain to spam from poorly
 /*	written remote clients.
 /* .RE
 /* .IP "\fBresolve \fIsender\fR \fIaddress\fR"
 /*	Resolve the address to a (\fItransport\fR, \fInexthop\fR,
-/*      \fIrecipient\fR, \fIflags\fR) quadruple. The meaning of
+/*	\fIrecipient\fR, \fIflags\fR) quadruple. The meaning of
 /*	the results is as follows:
 /* .RS
 /* .IP \fItransport\fR

@@ -16181,7 +16181,7 @@ service request. Specify a value greater than zero. </p>
 
 %PARAM smtputf8_enable yes
 
-<p> Enable experimental SMTPUTF8 support for the protocols described
+<p> Enable preliminary SMTPUTF8 support for the protocols described
 in RFC 6531..6533. This requires that Postfix is built to support
 these protocols. </p>
 

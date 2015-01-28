@@ -18,8 +18,8 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        The <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon always performs the following transformations:
 
-       <b>o</b>      Insert missing message headers: (<b>Resent-</b>) <b>From:</b>,  <b>To:</b>,  <b>Message-</b>
-              <b>Id:</b>, and <b>Date:</b>.
+       <b>o</b>      Insert missing  message  headers:  (<b>Resent-</b>)  <b>From:</b>,  <b>To:</b>,  <b>Mes-</b>
+              <b>sage-Id:</b>, and <b>Date:</b>.
 
        <b>o</b>      Transform   envelope   and  header  addresses  to  the  standard
               <i>user@fully-qualified-domain</i> form that is expected by other Post-
@@ -28,8 +28,8 @@ CLEANUP(8)                                                          CLEANUP(8)
 
        <b>o</b>      Eliminate duplicate envelope recipient addresses.
 
-       <b>o</b>      Remove message headers: <b>Bcc</b>, <b>Content-Length</b>, <b>Resent-Bcc</b>, <b>Return-</b>
-              <b>Path</b>.
+       <b>o</b>      Remove  message  headers:   <b>Bcc</b>,   <b>Content-Length</b>,   <b>Resent-Bcc</b>,
+              <b>Return-Path</b>.
 
        The following address transformations are optional:
 
@@ -116,9 +116,9 @@ CLEANUP(8)                                                          CLEANUP(8)
               the <a href="header_checks.5.html"><b>body_checks</b>(5)</a> manual page.
 
        <b><a href="postconf.5.html#header_checks">header_checks</a> (empty)</b>
-              Optional  lookup  tables  for content inspection of primary non-
-              MIME message headers, as specified in the <a href="header_checks.5.html"><b>header_checks</b>(5)</a>  man-
-              ual page.
+              Optional   lookup  tables  for  content  inspection  of  primary
+              non-MIME message headers, as specified in  the  <a href="header_checks.5.html"><b>header_checks</b>(5)</a>
+              manual page.
 
        Available in Postfix version 2.0 and later:
 
@@ -397,15 +397,14 @@ CLEANUP(8)                                                          CLEANUP(8)
               expansion.
 
 <b>SMTPUTF8 CONTROLS</b>
-       ,ad
        Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
-              Enable experimental SMTPUTF8 support for the protocols described
+              Enable  preliminary SMTPUTF8 support for the protocols described
               in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
 
        <b><a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> (sendmail, verify)</b>
-              Detect that a message requires SMTPUTF8 support for the speci-
+              Detect that a message requires SMTPUTF8 support for  the  speci-
               fied mail origin classes.
 
 <b>MISCELLANEOUS CONTROLS</b>

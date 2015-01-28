@@ -32,9 +32,9 @@
 /*	EAI support or when util_utf8_enable is zero.
 /*
 /*	strncasecmp_utf8() implements caseless string comparison
-/*	with an API similar to strncasecmp(). Only ASCII characters
-/*	are casefolded when the code is compiled without EAI support
-/*	or when util_utf8_enable is zero.
+/*	for UTF-8 text, with an API similar to strncasecmp(). Only
+/*	ASCII characters are casefolded when the code is compiled
+/*	without EAI support or when util_utf8_enable is zero.
 /*
 /*	strcasecmp_utf8x() and strncasecmp_utf8x() implement a more
 /*	complex API that provides the above functionality and more.
@@ -80,8 +80,6 @@
 
 static VSTRING *f1;			/* casefold result for s1 */
 static VSTRING *f2;			/* casefold result for s2 */
-static VSTRING *t1;			/* truncated inputs */
-static VSTRING *t2;			/* truncated inputs */
 
 /* strcasecmp_utf8_init - initialize */
 
@@ -89,8 +87,6 @@ static void strcasecmp_utf8_init(void)
 {
     f1 = vstring_alloc(100);
     f2 = vstring_alloc(100);
-    t1 = vstring_alloc(100);
-    t2 = vstring_alloc(100);
 }
 
 /* strcasecmp_utf8x - caseless string comparison */
@@ -137,10 +133,10 @@ int     strncasecmp_utf8x(int flags, const char *s1, const char *s2,
      * of strcasecmp(). XXX We could avoid the vstring_strncpy() if
      * allascii() had a length argument.
      */
-    vstring_strncpy(t1, s1, len);
-    vstring_strncpy(t2, s2, len);
-    if (allascii(STR(t1)) && allascii(STR(t2)))
-	return (strncasecmp(STR(t1), STR(t2), len));
+    vstring_strncpy(f1, s1, len);
+    vstring_strncpy(f2, s2, len);
+    if (allascii(STR(f1)) && allascii(STR(f2)))
+	return (strncasecmp(STR(f1), STR(f2), len));
 
     /*
      * Caution: casefolding may change the number of bytes. See comments
@@ -193,7 +189,7 @@ int     main(int argc, char **argv)
 	 * Compare two substrings.
 	 */
 	else if (strcmp(args[0], "compare-len") == 0 && cmd->argc == 4
-		 && (len = atoi(args[3])) != 0) {
+		 && (len = atoi(args[3])) > 0) {
 	    res = strncasecmp_utf8x(flags, args[1], args[2], len);
 	    vstream_printf("\"%.*s\" %s \"%.*s\"\n",
 			   len, args[1],

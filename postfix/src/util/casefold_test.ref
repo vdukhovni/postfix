@@ -27,6 +27,9 @@ range completed: 0xe000..0xe007
 > # Upper-case greek -> lower-case greek.
 > fold Δημοσθένους.example.com
 "Δημοσθένους.example.com" ->fold "δημοσθένουσ.example.com"
+> # Exact-fit null termination test.
+> fold Δημοσθένους.exxample.com
+"Δημοσθένους.exxample.com" ->fold "δημοσθένουσ.exxample.com"
 > # Upper-case ASCII -> lower-case ASCII.
 > fold HeLlO.ExAmPlE.CoM
 "HeLlO.ExAmPlE.CoM" ->fold "hello.example.com"

@@ -27,8 +27,8 @@
 /* DESCRIPTION
 /*	These routines add/delete/manipulate per-job peers.
 /*	Each peer corresponds to a specific job and destination.
-/*      It is similar to per-transport queue structure, but groups
-/*      only the entries of the given job.
+/* It is similar to per-transport queue structure, but groups
+/* only the entries of the given job.
 /*
 /*	qmgr_peer_create() creates an empty peer structure for the named
 /*	job and destination. It is an error to call this function

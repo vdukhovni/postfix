@@ -62,7 +62,7 @@
 /*
 /*	\fBManaging other configuration:\fR
 /*
-/*      \fBpostconf\fR \fB-a\fR|\fB-A\fR|\fB-l\fR|\fB-m\fR [\fB-v\fR]
+/*	\fBpostconf\fR \fB-a\fR|\fB-A\fR|\fB-l\fR|\fB-m\fR [\fB-v\fR]
 /*	[\fB-c \fIconfig_dir\fR]
 /* DESCRIPTION
 /*	By default, the \fBpostconf\fR(1) command displays the

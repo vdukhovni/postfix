@@ -57,7 +57,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        after  the  specified delay, and <a href="posttls-finger.1.html"><b>posttls-finger</b>(1)</a> then reports whether
        the cached TLS session was re-used.
 
-       When the destination is a load-balancer, it may  be  distributing  load
+       When the destination is a load balancer, it may  be  distributing  load
        between  multiple  server  caches.  Typically,  each server returns its
        unique name in its EHLO response. If, upon reconnecting with <b>-r</b>, a  new
        server  name is detected, another session is cached for the new server,
@@ -217,7 +217,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <b>-m</b> <i>count</i> (default: <b>5</b>)
               When the <b>-r</b> <i>delay</i> option is specified, the <b>-m</b> option  determines
               the  maximum  number  of reconnect attempts to use with a server
-              behind a load-balacer, to  see  whether  connection  caching  is
+              behind a load balancer, to see  whether  connection  caching  is
               likely  to  be  effective for this destination.  Some MTAs don't
               expose the underlying server identity in  their  EHLO  response;
               with  these servers there will never be more than 1 reconnection
@@ -239,7 +239,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               ath is used and no public CAs are trusted.
 
        <b>-r</b> <i>delay</i>
-              With a cachable TLS  session,  disconnect  and  reconnect  after
+              With a cacheable TLS session,  disconnect  and  reconnect  after
               <i>delay</i> seconds. Report whether the session is re-used. Retry if a
               new server is encountered, up to 5 times or  as  specified  with
               the  <b>-m</b>  option.  By default reconnection is disabled, specify a
@@ -257,7 +257,7 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <b>-T</b> <i>timeout</i> (default: <b>30</b>)
               The SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and  QUIT.
 
-       <b>-v</b>     Enable  verose  Postfix  logging.   Specify  more  than  once to
+       <b>-v</b>     Enable  verbose  Postfix  logging.   Specify  more  than once to
               increase the level of verbose logging.
 
        <b>-w</b>     Enable outgoing TLS wrapper mode, or  SMTPS  support.   This  is

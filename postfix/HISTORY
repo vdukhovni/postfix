@@ -21463,8 +21463,8 @@ Apologies for any names omitted.
 
 20150524
 
-	Cleanup: UTF-8 support in masquerade_masquerade_domains.
-	File: cleanup/cleanup_masquerade.c.
+	Cleanup: UTF-8 support in masquerade_domains.  File:
+	cleanup/cleanup_masquerade.c.
 
 20150525
 
@@ -21503,8 +21503,37 @@ Apologies for any names omitted.
 20150127
 
 	Cleanup: simplified the 20150525 and 20150126 APIs, replacing
-	the most common use cases with convenience macros that have
-	fewer arguments.
+	the most-common use cases with convenience macros that have
+	fewer arguments. Files: anything that implements or invokes
+	casefold*() or str*casecmp().
 
 	Documentation: missing words and typos. Matthew Selsky. Files:
 	proto/SMTPUTF8_README.html, util/dict_open.c, util/vstream.c.
+
+20150128
+
+	Bugfix: the ICU casemapping API can report success, while
+	producing output that is not null-terminated. But we can
+	deal with that. File: util/casefold.c.
+
+	Cleanup: unnecessary buffers. File: util/strcasecmp_utf8.c.
+
+	Cleanup: whitespace in source-code documentation has gotten
+	damaged through the years. Files: util/iostuff.h,
+	util/msg_vstream.h, util/msg_syslog.h, util/msg_output.h,
+	util/msg.h, util/inet_proto.c, trivial-rewrite/trivial-rewrite.c,
+	tls/tls.h, postconf/postconf.c, master/multi_server.c,
+	master/event_server.c, global/memcache_proto.h,
+	global/dict_mysql.c, global/dict_ldap.c, discard/discard.c,
+	error/error.c, global/dict_proxy.c, global/mail_conf_int.c,
+	global/match_parent_style.c, global/scache.c, global/scache.h,
+	qmgr/qmgr_entry.c, qmgr/qmgr_peer.c, smtp/smtp_rcpt.c,
+	smtpd/smtpd_peer.c, tls/tls_mgr.c, util/attr_scan0.c,
+	util/dict_tcp.c, util/hex_code.c, util/valid_hostname.c.
+
+	Cleanup: typos. Files: proto/socketmap_table, proto/mysql_table,
+	global/dict_mysql.c, proto/lmdb_table, smtpstone/smtp-sink.c,
+	posttls-finger/posttls-finger.c.
+
+	Bugfix: restart the SASL client after XCLIENT may have
+	changed the client IP address. Matthew Via. File: smtpd/smtpd.c.

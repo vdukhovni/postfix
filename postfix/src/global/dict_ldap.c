@@ -116,9 +116,9 @@
 /*	At this time, STARTTLS and LDAP SSL are only available if the
 /*	LDAP client library used is OpenLDAP.  Default is \fIno\fR.
 /* .IP tls_ca_cert_file
-/* 	File containing certificates for all of the X509 Certificate
-/* 	Authorities the client will recognize.  Takes precedence over
-/* 	tls_ca_cert_dir.
+/*	File containing certificates for all of the X509 Certificate
+/*	Authorities the client will recognize.  Takes precedence over
+/*	tls_ca_cert_dir.
 /* .IP tls_ca_cert_dir
 /*	Directory containing X509 Certificate Authority certificates
 /*	in separate individual files.

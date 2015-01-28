@@ -63,7 +63,7 @@ CHECK_VAL_HELPER_DCL(VSTRING_CTL, ssize_t);
  /*
   * Macros. Unsafe macros have UPPERCASE names.
   */
-#define VSTRING_SPACE(vp, len)	((vp)->vbuf.space(&(vp)->vbuf, len))
+#define VSTRING_SPACE(vp, len)	((vp)->vbuf.space(&(vp)->vbuf, (len)))
 #define vstring_str(vp)		((char *) (vp)->vbuf.data)
 #define VSTRING_LEN(vp)		((ssize_t) ((vp)->vbuf.ptr - (vp)->vbuf.data))
 #define vstring_end(vp)		((char *) (vp)->vbuf.ptr)

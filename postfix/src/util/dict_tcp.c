@@ -42,7 +42,7 @@
 /* REPLY FORMAT
 /* .ad
 /* .fi
-/*      Replies must be no longer than 4096 characters including the
+/* Replies must be no longer than 4096 characters including the
 /*	newline terminator, and must have the following form:
 /* .IP "500 SPACE text NEWLINE"
 /*	In case of a lookup request, the requested data does not exist.

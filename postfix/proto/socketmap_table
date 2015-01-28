@@ -17,7 +17,7 @@
 #
 #	The Postfix socketmap client expects TCP endpoint names of
 #	the form \fBinet:\fIhost\fB:\fIport\fB:\fIname\fR, or
-#	UNIX-domain endponts of the form \fBunix:\fIpathname\fB:\fIname\fR.
+#	UNIX-domain endpoints of the form \fBunix:\fIpathname\fB:\fIname\fR.
 #	In both cases, \fIname\fR specifies the name field in a
 #	socketmap client request (see "REQUEST FORMAT" below).
 # PROTOCOL

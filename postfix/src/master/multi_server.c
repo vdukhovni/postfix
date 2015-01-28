@@ -277,7 +277,7 @@ static void multi_server_timeout(int unused_event, void *unused_context)
     multi_server_exit();
 }
 
-/*  multi_server_drain - stop accepting new clients */
+/* multi_server_drain - stop accepting new clients */
 
 int     multi_server_drain(void)
 {

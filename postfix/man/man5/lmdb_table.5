@@ -59,7 +59,7 @@ LMDB's copy\-on\-write architecture provides safe updates,
 at the cost of using more space than some other flat\-file
 databases.  Read operations are memory\-mapped for speed.
 Write operations are not memory\-mapped to avoid silent
-curruption due to stray pointer bugs.
+corruption due to stray pointer bugs.
 
 Multiple processes can safely update an LMDB database without
 serializing requests through the proxymap(8) service.  This

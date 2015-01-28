@@ -67,7 +67,7 @@
 /*	identical to get_mail_conf_int().
 /*
 /*	check_mail_conf_int() exits with a fatal run-time error
-/*      when the integer value does not meet its requirements.
+/* when the integer value does not meet its requirements.
 /* DIAGNOSTICS
 /*	Fatal errors: malformed numerical value.
 /* SEE ALSO

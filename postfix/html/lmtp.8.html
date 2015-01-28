@@ -705,7 +705,7 @@ SMTP(8)                                                                SMTP(8)
        Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
 
        <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
-              Enable experimental SMTPUTF8 support for the protocols described
+              Enable  preliminary SMTPUTF8 support for the protocols described
               in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
 
        <b><a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> (sendmail, verify)</b>
@@ -728,9 +728,9 @@ SMTP(8)                                                                SMTP(8)
               col errors.
 
        <b><a href="postconf.5.html#internal_mail_filter_classes">internal_mail_filter_classes</a> (empty)</b>
-              What categories of Postfix-generated mail are subject to before-
-              queue content inspection by <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>, <a href="postconf.5.html#header_checks">header_checks</a> and
-              <a href="postconf.5.html#body_checks">body_checks</a>.
+              What  categories  of  Postfix-generated  mail  are  subject   to
+              before-queue    content    inspection    by   <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a>,
+              <a href="postconf.5.html#header_checks">header_checks</a> and <a href="postconf.5.html#body_checks">body_checks</a>.
 
        <b><a href="postconf.5.html#notify_classes">notify_classes</a> (resource, software)</b>
               The list of error classes that are reported to the postmaster.

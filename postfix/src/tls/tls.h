@@ -3,11 +3,11 @@
 
 /*++
 /* NAME
-/*      tls 3h
+/*	tls 3h
 /* SUMMARY
-/*      libtls internal interfaces
+/*	libtls internal interfaces
 /* SYNOPSIS
-/*      #include <tls.h>
+/*	#include <tls.h>
 /* DESCRIPTION
 /* .nf
 
@@ -635,12 +635,12 @@ extern int tls_ext_seed(int);
 /* LICENSE
 /* .ad
 /* .fi
-/*      The Secure Mailer license must be distributed with this software.
+/*	The Secure Mailer license must be distributed with this software.
 /* AUTHOR(S)
-/*      Wietse Venema
-/*      IBM T.J. Watson Research
-/*      P.O. Box 704
-/*      Yorktown Heights, NY 10598, USA
+/*	Wietse Venema
+/*	IBM T.J. Watson Research
+/*	P.O. Box 704
+/*	Yorktown Heights, NY 10598, USA
 /*
 /*	Victor Duchovni
 /*	Morgan Stanley

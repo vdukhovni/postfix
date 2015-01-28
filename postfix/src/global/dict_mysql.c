@@ -48,26 +48,26 @@
 /* .PP
 /*	Configuration parameters:
 /* .IP user
-/* 	Username for connecting to the database.
+/*	Username for connecting to the database.
 /* .IP password
 /*	Password for the above.
 /* .IP dbname
 /*	Name of the database.
 /* .IP domain
-/*      List of domains the queries should be restricted to.  If
-/*      specified, only FQDN addresses whose domain parts matching this
-/*      list will be queried against the SQL database.  Lookups for
-/*      partial addresses are also supressed.  This can significantly
-/*      reduce the query load on the server.
+/*	List of domains the queries should be restricted to.  If
+/*	specified, only FQDN addresses whose domain parts matching this
+/*	list will be queried against the SQL database.  Lookups for
+/*	partial addresses are also supressed.  This can significantly
+/*	reduce the query load on the server.
 /* .IP query
-/*      Query template, before the query is actually issued, variable
+/*	Query template, before the query is actually issued, variable
 /*	substitutions are performed. See mysql_table(5) for details. If
 /*	No query is specified, the legacy variables \fItable\fR,
 /*	\fIselect_field\fR, \fIwhere_field\fR and \fIadditional_conditions\fR
 /*	are used to construct the query template.
 /* .IP result_format
-/*      The format used to expand results from queries.  Substitutions
-/*      are performed as described in mysql_table(5). Defaults to returning
+/*	The format used to expand results from queries.  Substitutions
+/*	are performed as described in mysql_table(5). Defaults to returning
 /*	the lookup result unchanged.
 /* .IP expansion_limit
 /*	Limit (if any) on the total number of lookup result values. Lookups which
@@ -92,24 +92,24 @@
 /* .IP hosts
 /*	List of hosts to connect to.
 /* .IP option_file
-/*      Read options from the given file instead of the default my.cnf
-/*      location.
+/*	Read options from the given file instead of the default my.cnf
+/*	location.
 /* .IP option_group
-/*      Read options from the given group.
+/*	Read options from the given group.
 /* .IP tls_cert_file
-/*      File containing client's X509 certificate.
+/*	File containing client's X509 certificate.
 /* .IP tls_key_file
-/*      File containing the private key corresponding to \fItls_cert_file\fR.
+/*	File containing the private key corresponding to \fItls_cert_file\fR.
 /* .IP tls_CAfile
-/*      File containing certificates for all of the X509 Certificate
-/*      Authorities the client will recognize.  Takes precedence over
-/*      \fItls_CApath\fR.
+/*	File containing certificates for all of the X509 Certificate
+/*	Authorities the client will recognize.  Takes precedence over
+/*	\fItls_CApath\fR.
 /* .IP tls_CApath
-/*      Directory containing X509 Certificate Authority certificates
-/*      in separate individual files.
+/*	Directory containing X509 Certificate Authority certificates
+/*	in separate individual files.
 /* .IP tls_verify_cert
-/*      Verify that the server's name matches the common name of the
-/*      certficate.
+/*	Verify that the server's name matches the common name of the
+/*	certificate.
 /* .PP
 /*	For example, if you want the map to reference databases of
 /*	the name "your_db" and execute a query like this: select
@@ -133,7 +133,7 @@
 /* .br
 /*	hosts = host1.some.domain\fR \fBhost2.some.domain
 /* .IP additional_conditions
-/*      Backward compatibility when \fIquery\fR is not set, additional
+/*	Backward compatibility when \fIquery\fR is not set, additional
 /*	conditions to the WHERE clause.
 /* .IP hosts
 /*	List of hosts to connect to.
