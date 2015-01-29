@@ -20249,7 +20249,7 @@ Apologies for any names omitted.
 
 	First general release with SMTPUTF8 support; see RELEASE_NOTES
 	for an initial writeup.  The last pre-SMTPUTF8 release is
-	postfix-2.12-20140713.
+	snapshot 20140713.
 
 20140716
 
@@ -21183,7 +21183,7 @@ Apologies for any names omitted.
 	typechecks for non-protocol attribute-value APIs. This
 	transformation and its verification are mechanical.
 
-	Bugfix (introduced: Postfix 1.1, but latent before 2.12):
+	Bugfix (introduced: Postfix 1.1, but latent before 3.0):
 	"postfix-install: daemon_directory: not found" error with
 	an ancient Solaris shell.  Fixed by ALSO resetting IFS after
 	the end of a ``while IFS=foo command'' loop; counter to
@@ -21444,7 +21444,7 @@ Apologies for any names omitted.
 	memory leaks in check_mumble_access() callers. Files:
 	smtpd/smtpd_check.c, smtpd/smtpd_error.ref.
 
-20140122
+20150122
 
 	Cleanup: miscellaneous cruft, typos, comments, error messages.
 	proto/COMPATIBILITY_README.html, global/addr_match_list.c,
@@ -21452,3 +21452,115 @@ Apologies for any names omitted.
 	global/user_acl.c, postalias/postalias.c, postmap/postmap.c,
 	tls/tls_client.c, util/dict_alloc.c, util/dict_open.c,
 	util/match_list.c.
+
+20150214
+
+	Workaround: nroff has been improved so that "-" comes out as
+	some non-ASCII character, unlike HTML where it comes out
+	as itself.  Andreas Schulze. This requires jumping a few
+	hops to generate HTML and nroff input from the same source
+	text.  Files; mantools/srctoman, mantools/postconf2man.
+
+20150524
+
+	Cleanup: UTF-8 support in masquerade_domains.  File:
+	cleanup/cleanup_masquerade.c.
+
+20150525
+
+	Cleanup: simplified the casefold() API: no input-dependent
+	failure modes. Files: cleanup/cleanup_masquerade.c,
+	util/casefold.c, util/dict_utf8.c, util/match_list.c,
+	util/strcasecmp_utf8.c, util/stringops.h.
+
+	Cleanup: replaced str*casecmp() calls with UTF8-enabled
+	versions. Files: bounce/bounce.c, bounce/bounce_append_service.c,
+	bounce/bounce_notify_service.c, bounce/bounce_notify_verp.c,
+	bounce/bounce_one_service.c, bounce/bounce_trace_service.c,
+	bounce/bounce_warn_service.c, cleanup/cleanup_addr.c,
+	cleanup/cleanup_map11.c, cleanup/cleanup_map1n.c,
+	global/log_adhoc.c, global/mail_addr_find.c, global/mail_params.c,
+	global/split_addr.c, global/verify.c, global/verify_sender_addr.c,
+	local/alias.c, local/recipient.c, oqmgr/qmgr_message.c,
+	qmgr/qmgr_message.c, smtp/smtp_tls_policy.c, smtpd/smtpd_check.c,
+	smtpd/smtpd_milter.c, trivial-rewrite/resolve.c,
+	util/strcasecmp_utf8.c, util/stringops.h.
+
+20150126
+
+	Portability: added missing #ifdef STRCASECMP_IN_STRINGS_H
+	for platforms that require it. Files: dns/dns_rr_filter.c,
+	milter/milter8.c, posttls-finger/posttls-finger.c,
+	tls/tls_dane.c, tlsproxy/tlsproxy.c, util/dict_test.c.
+
+	Cleanup: replaced lowercase() calls with UTF-8-enabled
+	versions. Files: flush/flush.c, global/been_here.c,
+	global/delivered_hdr.c, global/fold_addr.c, global/fold_addr.h,
+	local/forward.c, local/recipient.c, pipe/pipe.c,
+	smtpd/smtpd_resolve.c, util/casefold.c, util/stringops.h,
+	virtual/recipient.c.
+
+20150127
+
+	Cleanup: simplified the 20150525 and 20150126 APIs, replacing
+	the most-common use cases with convenience macros that have
+	fewer arguments. Files: anything that implements or invokes
+	casefold*() or str*casecmp().
+
+	Documentation: missing words and typos. Matthew Selsky. Files:
+	proto/SMTPUTF8_README.html, util/dict_open.c, util/vstream.c.
+
+20150128
+
+	Bugfix: the ICU casemapping API can report success, while
+	producing output that is not null-terminated. But we can
+	deal with that. File: util/casefold.c.
+
+	Cleanup: unnecessary buffers. File: util/strcasecmp_utf8.c.
+
+	Cleanup: whitespace in source-code documentation has gotten
+	damaged through the years. Files: util/iostuff.h,
+	util/msg_vstream.h, util/msg_syslog.h, util/msg_output.h,
+	util/msg.h, util/inet_proto.c, trivial-rewrite/trivial-rewrite.c,
+	tls/tls.h, postconf/postconf.c, master/multi_server.c,
+	master/event_server.c, global/memcache_proto.h,
+	global/dict_mysql.c, global/dict_ldap.c, discard/discard.c,
+	error/error.c, global/dict_proxy.c, global/mail_conf_int.c,
+	global/match_parent_style.c, global/scache.c, global/scache.h,
+	qmgr/qmgr_entry.c, qmgr/qmgr_peer.c, smtp/smtp_rcpt.c,
+	smtpd/smtpd_peer.c, tls/tls_mgr.c, util/attr_scan0.c,
+	util/dict_tcp.c, util/hex_code.c, util/valid_hostname.c.
+
+	Cleanup: typos. Files: proto/socketmap_table, proto/mysql_table,
+	global/dict_mysql.c, proto/lmdb_table, smtpstone/smtp-sink.c,
+	posttls-finger/posttls-finger.c.
+
+	Bugfix: restart the Postfix SMTP server SASL client after
+	XCLIENT may have changed the client IP address. Matthew
+	Via. File: smtpd/smtpd.c.
+
+20150129
+
+	More whitespace in source-code comment regressions. Viktor
+	(mostly) and Wietse.  smtpd/smtpd_proxy.c, util/format_tv.c,
+	util/line_wrap.c, util/slmdb.c, qmgr/qmgr_peer.c,
+	smtp/smtp_rcpt.c, smtpd/smtpd_peer.c, tls/tls_mgr.c,
+	trivial-rewrite/trivial-rewrite.c, util/attr_scan0.c,
+	util/dict_tcp.c, util/hex_code.c, util/valid_hostname.c,
+	discard/discard.c, error/error.c, global/dict_proxy.c,
+	global/mail_conf_int.c, global/match_parent_style.c,
+	global/scache.c, qmgr/qmgr_entry.c, global/dict_ldap.c,
+	global/dict_mysql.c, posttls-finger/posttls-finger.c,
+	smtp/smtp.c, tls/tls_certkey.c.
+
+	Cleanup: avoid hidden buffer allocation in casefold().
+	Files: local/forward.c, local/recipient.c, virtual/recipient.c.
+
+	Cleanup: HTML validator errors. Files: proto/postconf.proto,
+	proto/TLS_README.html, proto/MILTER_README.html.
+
+	Great rename from 2.12 to 3.0. Lots of files, 99% mechanical.
+
+	Cleanup: HTML entities in *roff manpage source. File:
+	mantools/fixman, proto/postconf.proto, smtpd/smtpd.c,
+	trivial-rewrite/trivial-rewrite.c.

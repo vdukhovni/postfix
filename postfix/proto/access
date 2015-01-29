@@ -351,7 +351,7 @@
 #	with client information and if available, with helo, sender,
 #	recipient and protocol information.
 # .sp
-#	This feature is available in Postfix 2.12 and later.
+#	This feature is available in Postfix 3.0 and later.
 # .IP "\fBWARN \fIoptional text...\fR
 #	Log a warning with the optional text, together with client information
 #	and if available, with helo, sender, recipient and protocol information.

@@ -8,9 +8,9 @@ Postfix NIS+ client
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostmap -q "\fIstring\fB" "nisplus:[\fIname\fB=%s];\fIname.name.\fB"\fR
+\fBpostmap \-q "\fIstring\fB" "nisplus:[\fIname\fB=%s];\fIname.name.\fB"\fR
 
-\fBpostmap -q - "nisplus:[\fIname\fB=%s];\fIname.name.\fB" <\fIinputfile\fR
+\fBpostmap \-q \- "nisplus:[\fIname\fB=%s];\fIname.name.\fB" <\fIinputfile\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -20,9 +20,9 @@ Alternatively, lookup tables can be specified as NIS+
 databases.
 
 To find out what types of lookup tables your Postfix system
-supports use the "\fBpostconf -m\fR" command.
+supports use the "\fBpostconf \-m\fR" command.
 
-To test Postfix NIS+ lookup tables, use the "\fBpostmap -q\fR"
+To test Postfix NIS+ lookup tables, use the "\fBpostmap \-q\fR"
 command as described in the SYNOPSIS above.
 .SH "QUERY SYNTAX"
 .na
@@ -89,7 +89,7 @@ The Secure Mailer license must be distributed with this software.
 .na
 .nf
 Geoff Gibbs
-UK-HGMP-RC
+UK\-HGMP\-RC
 Hinxton
 Cambridge
 CB10 1SB, UK

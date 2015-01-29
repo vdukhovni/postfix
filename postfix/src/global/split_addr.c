@@ -41,6 +41,7 @@
 /* Utility library. */
 
 #include <split_at.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -61,7 +62,7 @@ char   *split_addr(char *localpart, const char *delimiter_set)
 	return (0);
     if (strcasecmp(localpart, MAIL_ADDR_MAIL_DAEMON) == 0)
 	return (0);
-    if (strcasecmp(localpart, var_double_bounce_sender) == 0)
+    if (strcasecmp_utf8(localpart, var_double_bounce_sender) == 0)
 	return (0);
 
     /*

@@ -169,13 +169,13 @@
 #	With "smtputf8_enable = yes", this replaces ACE labels
 #	(xn--mumble) with their UTF-8 equivalent.
 # .sp
-#	This feature is available in Postfix 2.12.
+#	This feature is available in Postfix 3.0.
 # .IP \fBmyhostname\fR
 #	Expands into the value of the \fBmyhostname\fR parameter.
 #	With "smtputf8_enable = yes", this replaces ACE labels
 #	(xn--mumble) with their UTF-8 equivalent.
 # .sp
-#	This feature is available in Postfix 2.12.
+#	This feature is available in Postfix 3.0.
 # .PP
 #	The usage and specification of template message text is
 #	subject to the following restrictions:

@@ -79,7 +79,7 @@
 #define TLS_INTERNAL
 #include <tls.h>
 
-/* tls_set_ca_certificate_info - load certificate authority certificates */
+/* tls_set_ca_certificate_info - load Certification Authority certificates */
 
 int     tls_set_ca_certificate_info(SSL_CTX *ctx, const char *CAfile,
 				            const char *CApath)
@@ -90,7 +90,7 @@ int     tls_set_ca_certificate_info(SSL_CTX *ctx, const char *CAfile,
 	CApath = 0;
     if (CAfile || CApath) {
 	if (!SSL_CTX_load_verify_locations(ctx, CAfile, CApath)) {
-	    msg_info("cannot load Certificate Authority data: "
+	    msg_info("cannot load Certification Authority data: "
 		     "disabling TLS support");
 	    tls_print_errors();
 	    return (-1);

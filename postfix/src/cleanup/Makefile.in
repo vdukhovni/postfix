@@ -92,6 +92,8 @@ root_tests:
 cleanup_masquerade_test: cleanup_masquerade cleanup_masq.ref
 	rm -f cleanup_masq.tmp
 	$(SHLIB_ENV) ./cleanup_masquerade '' a.b.c,b.c xxx@aa.a.b.c    >>cleanup_masq.tmp
+	$(SHLIB_ENV) ./cleanup_masquerade '' A.B.C,B.C xxx@aa.a.b.c    >>cleanup_masq.tmp
+	$(SHLIB_ENV) ./cleanup_masquerade '' a.b.c,b.c xxx@AA.A.B.C    >>cleanup_masq.tmp
 	$(SHLIB_ENV) ./cleanup_masquerade 'xxx' a.b.c,b.c xxx@aa.a.b.c >>cleanup_masq.tmp
 	$(SHLIB_ENV) ./cleanup_masquerade 'yyy' a.b.c,b.c xxx@aa.a.b.c >>cleanup_masq.tmp
 	$(SHLIB_ENV) ./cleanup_masquerade '' !a.b.c,b.c xxx@aa.a.b.c   >>cleanup_masq.tmp
@@ -922,6 +924,7 @@ cleanup_map11.o: ../../include/quote_822_local.h
 cleanup_map11.o: ../../include/quote_flags.h
 cleanup_map11.o: ../../include/resolve_clnt.h
 cleanup_map11.o: ../../include/string_list.h
+cleanup_map11.o: ../../include/stringops.h
 cleanup_map11.o: ../../include/sys_defs.h
 cleanup_map11.o: ../../include/tok822.h
 cleanup_map11.o: ../../include/vbuf.h
@@ -955,6 +958,7 @@ cleanup_map1n.o: ../../include/quote_822_local.h
 cleanup_map1n.o: ../../include/quote_flags.h
 cleanup_map1n.o: ../../include/resolve_clnt.h
 cleanup_map1n.o: ../../include/string_list.h
+cleanup_map1n.o: ../../include/stringops.h
 cleanup_map1n.o: ../../include/sys_defs.h
 cleanup_map1n.o: ../../include/tok822.h
 cleanup_map1n.o: ../../include/vbuf.h

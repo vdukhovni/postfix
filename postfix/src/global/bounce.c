@@ -236,7 +236,7 @@ int     bounce_append(int flags, const char *id, MSG_STATS *stats,
     }
 
     /*
-     * DSN filter (Postfix 2.12).
+     * DSN filter (Postfix 3.0).
      */
     if (delivery_status_filter != 0
     && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {
@@ -427,7 +427,7 @@ int     bounce_one(int flags, const char *queue, const char *id,
     }
 
     /*
-     * DSN filter (Postfix 2.12).
+     * DSN filter (Postfix 3.0).
      */
     if (delivery_status_filter != 0
     && (dsn_res = dsn_filter_lookup(delivery_status_filter, &my_dsn)) != 0) {

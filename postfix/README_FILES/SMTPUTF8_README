@@ -7,7 +7,7 @@ OOvveerrvviieeww
 This document describes Postfix support for Email Address Internationalization
 (EAI) as defined in RFC 6531 (SMTPUTF8 extension), RFC 6532 (Internationalized
 email headers) and RFC 6533 (Internationalized delivery status notifications).
-Introduced with Postfix version 2.12, this fully supports UTF-8 email addresses
+Introduced with Postfix version 3.0, this fully supports UTF-8 email addresses
 and UTF-8 message header values.
 
 Topics covered in this document:
@@ -52,7 +52,7 @@ content filters (Amavisd), LMTP servers (Dovecot), and down-stream SMTP
 servers.
 
 Postfix SMTPUTF8 support is enabled by default, but it may be disabled as part
-of a backwards-compatibility safety net (see the Postfix 2.12 RELEASE_NOTES
+of a backwards-compatibility safety net (see the Postfix 3.0 RELEASE_NOTES
 file).
 
 SMTPUTF8 support is enabled by setting the smtputf8_enable parameter in
@@ -130,8 +130,8 @@ SMTP (or LMTP) server announces SMTPUTF8 support.
     is the default, see autodetection below). Specifically, the Postfix SMTP
     server does not accept UTF-8 in the envelope sender domain name or envelope
     recipient domain name, and the Postfix SMTP client does not issue the
-    SMTPUTF8 request when delivering that message an SMTP or LMTP server that
-    announces SMTPUTF8 support (again, that is the default). Postfix will
+    SMTPUTF8 request when delivering that message to an SMTP or LMTP server
+    that announces SMTPUTF8 support (again, that is the default). Postfix will
     accept UTF-8 in message header values and in the localpart of envelope
     sender and recipient addresses, because it has always done that.
 
@@ -202,20 +202,22 @@ being removed. The text below describes the situation at one point in time.
 
 NNoo aauuttoommaattiicc ccoonnvveerrssiioonnss bbeettwweeeenn AASSCCIIII aanndd UUTTFF--88 ddoommaaiinn nnaammeess..
 
-Some background: According to RFC 6530 and related documents,
-"Internationalized" domain names can appear in two forms: the UTF-8 form, and
-the ASCII (xn--mumble) form. "Internationalized" address localparts must be
-encoded in UTF-8; the RFCs do not define an ASCII form for the same
-information.
+Some background: According to RFC 6530 and related documents, an
+internationalized domain name can appear in two forms: the UTF-8 form, and the
+ASCII (xn--mumble) form. An internationalized address localpart must be encoded
+in UTF-8; the RFCs do not define an ASCII alternative form.
 
 Postfix currently does not convert internationalized domain names from UTF-
 8 into ASCII (or from ASCII into UTF-8) before using domain names in SMTP
-commands and responses, before looking up domain names in mydestination,
-relay_domains, access tables, etc., before using domain names in a policy
-daemon or Milter request, or before logging domain names.
+commands and responses, before looking up domain names in lists such as
+mydestination, relay_domains or in lookup tables such as access tables, etc.,
+before using domain names in a policy daemon or Milter request, or before
+logging events.
 
 Postfix does, however, casefold domain names and email addresses before
 matching them against a Postfix configuration parameter or lookup table.
+
+In order to use Postfix SMTPUTF8 support:
 
   * The Postfix parameters myhostname and mydomain must be in ASCII form. One
     is a substring of the other, and the myhostname value is used in SMTP

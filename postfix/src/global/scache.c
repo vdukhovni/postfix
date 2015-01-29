@@ -85,8 +85,8 @@
 /*	How long the session should be cached.  When information
 /*	expires it is purged automatically.
 /* .IP endp_label
-/*      The transport name and the physical endpoint name under
-/*      which the session is stored and looked up.
+/*	The transport name and the physical endpoint name under
+/*	which the session is stored and looked up.
 /*
 /*	In the case of SMTP, the physical endpoint includes the numerical
 /*	IP address, address family information, and the numerical TCP port.

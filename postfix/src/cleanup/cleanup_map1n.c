@@ -46,10 +46,6 @@
 #include <sys_defs.h>
 #include <string.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <mymalloc.h>
@@ -57,6 +53,7 @@
 #include <argv.h>
 #include <vstring.h>
 #include <dict.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -142,7 +139,7 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, const char *addr,
 		    if (strlen(lookup->argv[i]) > var_virt_addrlen_limit) {
 			msg_warn("%s: unreasonable %s result %.300s... -- "
 				 "message not accepted, try again later",
-				 state->queue_id, maps->title, lookup->argv[i]);
+			     state->queue_id, maps->title, lookup->argv[i]);
 			state->errs |= CLEANUP_STAT_DEFER;
 			UPDATE(state->reason, "4.6.0 Alias expansion error");
 			UNEXPAND(argv, addr);
@@ -159,7 +156,7 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, const char *addr,
 		    /*
 		     * Allow an address to expand into itself once.
 		     */
-		    if (strcasecmp(saved_lhs, STR(state->temp1)) == 0)
+		    if (strcasecmp_utf8(saved_lhs, STR(state->temp1)) == 0)
 			been_here_fixed(been_here, saved_lhs);
 		}
 		myfree(saved_lhs);

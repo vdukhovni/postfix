@@ -17,7 +17,7 @@
 /*	ssize_t	len;
 /* DESCRIPTION
 /*	hex_encode() takes a block of len bytes and encodes it as one
-/*      upper-case null-terminated string.  The result value is
+/*	upper-case null-terminated string.  The result value is
 /*	the result argument.
 /*
 /*	hex_decode() performs the opposite transformation on

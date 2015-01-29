@@ -39,7 +39,7 @@
 /*	Specify a number in the range 0..6.
 /* LICENSE
 /* .ad 
-/* fi
+/* .fi
 /*	The Secure Mailer license must be distributed with this
 /*	software.
 /* AUTHOR(S)

@@ -77,6 +77,7 @@ static void *resolve_pagein(const char *addr, void *unused_context)
 {
     static VSTRING *query;
     RESOLVE_REPLY *reply;
+    char   *tmp;
 
     /*
      * Initialize on the fly.
@@ -95,7 +96,9 @@ static void *resolve_pagein(const char *addr, void *unused_context)
      */
     rewrite_clnt_internal(MAIL_ATTR_RWR_LOCAL, addr, query);
     resolve_clnt_query(STR(query), reply);
-    lowercase(STR(reply->recipient));		/* XXX */
+    tmp = mystrdup(STR(reply->recipient));
+    casefold(reply->recipient, tmp);		/* XXX */
+    myfree(tmp);
 
     /*
      * Save the result.

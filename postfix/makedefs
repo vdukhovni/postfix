@@ -94,7 +94,7 @@
 #	Enable (disable) Postfix builds with shared libraries
 #	typically named $shlib_directory/libpostfix-*.so.*.
 #
-#	This feature was introduced with Postfix 2.12.
+#	This feature was introduced with Postfix 3.0.
 # .IP \fBdynamicmaps=yes\fR
 # .IP \fBdynamicmaps=no\fR
 #	Enable (disable) Postfix builds with the configuration file
@@ -102,7 +102,7 @@
 #	database plugins typically named postfix-*.so.*.  The setting
 #	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
 #
-#	This feature was introduced with Postfix 2.12.
+#	This feature was introduced with Postfix 3.0.
 # .IP \fIinstallation_parameter\fB=\fIvalue\fR...
 #	Override the compiled-in default value of the specified
 #	installation parameter(s). The following parameters are
@@ -117,7 +117,7 @@
 #	See the postconf(5) manpage for a description of these
 #	parameters.
 #
-#	This feature was introduced with Postfix 2.12.
+#	This feature was introduced with Postfix 3.0.
 # .IP \fBWARN=\fIwarning_flags\fR
 #	Specifies non-default gcc compiler warning options for use when
 #	"make" is invoked in a source subdirectory only.

@@ -404,7 +404,7 @@
 /*	vstream_setjmp() saves processing context and makes that context
 /*	available for use with vstream_longjmp().  Normally, vstream_setjmp()
 /*	returns zero.  A non-zero result means that vstream_setjmp() returned
-/*	through a vstream_longjmp() call; the result is the \fIval\fR argment
+/*	through a vstream_longjmp() call; the result is the \fIval\fR argument
 /*	given to vstream_longjmp().
 /*
 /*	NB: non-local jumps such as vstream_longjmp() are not safe

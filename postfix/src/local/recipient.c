@@ -65,10 +65,6 @@
 #include <string.h>
 #include <errno.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -166,7 +162,7 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
      * recipient domain is local, so we only have to compare local parts.
      */
     if (state.msg_attr.owner != 0
-	&& strcasecmp(state.msg_attr.owner, state.msg_attr.user) != 0)
+	&& strcasecmp_utf8(state.msg_attr.owner, state.msg_attr.user) != 0)
 	return (deliver_indirect(state));
 
     /*
@@ -210,6 +206,7 @@ static int deliver_switch(LOCAL_STATE state, USER_ATTR usr_attr)
 int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
 {
     const char *myname = "deliver_recipient";
+    VSTRING *folded;
     int     rcpt_stat;
 
     /*
@@ -255,8 +252,8 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
      */
     if (state.msg_attr.delivered == 0)
 	state.msg_attr.delivered = state.msg_attr.rcpt.address;
-    state.msg_attr.local = mystrdup(state.msg_attr.rcpt.address);
-    lowercase(state.msg_attr.local);
+    folded = vstring_alloc(100);
+    state.msg_attr.local = casefold(folded, state.msg_attr.rcpt.address);
     if ((state.msg_attr.domain = split_at_right(state.msg_attr.local, '@')) == 0)
 	msg_warn("no @ in recipient address: %s", state.msg_attr.local);
 
@@ -303,7 +300,7 @@ int     deliver_recipient(LOCAL_STATE state, USER_ATTR usr_attr)
     /*
      * Clean up.
      */
-    myfree(state.msg_attr.local);
+    vstring_free(folded);
     myfree(state.msg_attr.user);
 
     return (rcpt_stat);

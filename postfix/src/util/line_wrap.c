@@ -19,7 +19,7 @@
 /*	break long words that do not fit on a single line. Upon output,
 /*	trailing whitespace is stripped.
 /*
-/* Arguments
+/*	Arguments
 /* .IP string
 /*	The input, which cannot contain any newline characters.
 /* .IP len

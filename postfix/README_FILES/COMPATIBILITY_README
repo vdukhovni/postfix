@@ -4,7 +4,7 @@ PPoossttffiixx BBaacckkwwaarrddss--CCoommppaattiibbiil
 
 PPuurrppoossee ooff tthhiiss ddooccuummeenntt
 
-Postfix 2.12 introduces a safety net that runs Postfix programs with backwards-
+Postfix 3.0 introduces a safety net that runs Postfix programs with backwards-
 compatible default settings after an upgrade. The safety net will log a warning
 whenever a "new" default setting could have an negative effect on your mail
 flow.

@@ -13,7 +13,7 @@
 /*		unsigned *dns_atype_list;/* TAAAA and/or TA */
 /*		unsigned char *sa_family_list;/* AF_INET6 and/or AF_INET */
 /* .in -4
-/* } INET_PROTO_INFO;
+/*	} INET_PROTO_INFO;
 /*
 /*	INET_PROTO_INFO *inet_proto_init(context, protocols)
 /*

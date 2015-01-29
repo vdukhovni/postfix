@@ -54,8 +54,8 @@ Alternatively, for the D.J.B. version of CDB:
     byte.a"
     % make
 
-Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_CDB. With Postfix
-2.12 and later, the old AUXLIBS variable still supports building a statically-
+Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_CDB. With Postfix
+3.0 and later, the old AUXLIBS variable still supports building a statically-
 loaded CDB database client, but only the new AUXLIBS_CDB variable supports
 building a dynamically-loaded or statically-loaded CDB database client.
 

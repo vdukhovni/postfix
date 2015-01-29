@@ -353,7 +353,7 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
-/*	Available in Postfix 2.12 and later:
+/*	Available in Postfix 3.0 and later:
 /* .IP "\fBmeta_directory (see 'postconf -d' output)\fR"
 /*	The location of non-executable files that are shared among
 /*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,

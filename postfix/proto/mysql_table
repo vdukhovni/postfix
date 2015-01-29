@@ -262,19 +262,19 @@
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
 # .IP "\fBtls_CAfile\fR"
-#	File containing certificates for all of the X509 Certificate
+#	File containing certificates for all of the X509 Certification
 #	Authorities the client will recognize.  Takes precedence over
 #	\fBtls_CApath\fR.
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
 # .IP "\fBtls_CApath\fR"
-#	Directory containing X509 Certificate Authority certificates
+#	Directory containing X509 Certification Authority certificates
 #	in separate individual files.
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
 # .IP "\fBtls_verify_cert (default: no)\fR"
 #	Verify that the server's name matches the common name in the
-#	certficate.
+#	certificate.
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
 # OBSOLETE QUERY INTERFACE

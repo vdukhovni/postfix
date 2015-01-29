@@ -190,7 +190,7 @@
 /*	shell meta characters by a shell command interpreter.
 /* .sp
 /*	Specify "{" and "}" around command arguments that contain
-/*	whitespace (Postfix 2.12 and later). Whitespace
+/*	whitespace (Postfix 3.0 and later). Whitespace
 /*	after "{" and before "}" is ignored.
 /* .sp
 /*	In the command argument vector, the following macros are recognized
@@ -327,7 +327,7 @@
 /*
 /*	After successful delivery (zero exit status) a limited
 /*	amount of command output is logged, and reported in "success"
-/*	delivery status notifications (Postfix 2.12 and later).
+/*	delivery status notifications (Postfix 3.0 and later).
 /*	This command output is not examined for the presence of an
 /*	enhanced status code.
 /*
@@ -413,7 +413,7 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBpipe_delivery_status_filter ($default_delivery_status_filter)\fR"
 /*	Optional filter for the \fBpipe\fR(8) delivery agent to change the
 /*	delivery status code or explanatory text of successful or unsuccessful
@@ -656,20 +656,22 @@ static int parse_callback(int type, VSTRING *buf, void *context)
 
 static void morph_recipient(VSTRING *buf, const char *address, int flags)
 {
+    VSTRING *temp = vstring_alloc(100);
 
     /*
      * Quote the recipient address as appropriate.
      */
     if (flags & PIPE_OPT_QUOTE_LOCAL)
-	quote_822_local(buf, address);
+	quote_822_local(temp, address);
     else
-	vstring_strcpy(buf, address);
+	vstring_strcpy(temp, address);
 
     /*
      * Fold the recipient address as appropriate.
      */
-    if (flags & PIPE_OPT_FOLD_ALL)
-	fold_addr(STR(buf), PIPE_OPT_FOLD_FLAGS(flags));
+    fold_addr(buf, STR(temp), PIPE_OPT_FOLD_FLAGS(flags));
+
+    vstring_free(temp);
 }
 
 /* expand_argv - expand macros in the argument vector */
@@ -1232,8 +1234,7 @@ static int deliver_message(DELIVER_REQUEST *request, char *service, char **argv)
     } else
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_SENDER, sender);
     if (attr.flags & PIPE_OPT_FOLD_HOST) {
-	vstring_strcpy(buf, request->nexthop);
-	lowercase(STR(buf));
+	casefold(buf, request->nexthop);
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, STR(buf));
     } else
 	dict_update(PIPE_DICT_TABLE, PIPE_DICT_NEXTHOP, request->nexthop);

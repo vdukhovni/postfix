@@ -8,7 +8,7 @@ Postfix configuration parameters
 .nf
 \fBpostconf\fR \fIparameter\fR ...
 
-\fBpostconf -e\fR "\fIparameter=value\fR" ...
+\fBpostconf \-e\fR "\fIparameter=value\fR" ...
 .SH DESCRIPTION
 .ad
 .fi
@@ -38,23 +38,23 @@ replaced with the empty value.
 .IP \(bu
 The expressions "${name?value}" and "${name?{value}}" are replaced
 with "value" when "$name" is non-empty. These forms are supported
-with Postfix versions >= 2.2 and >= 2.12, respectively.
+with Postfix versions >= 2.2 and >= 3.0, respectively.
 .IP \(bu
 The expressions "${name:value}" and "${name:{value}}" are replaced
 with "value" when "$name" is empty. These forms are supported with
-Postfix versions >= 2.2 and >= 2.12, respectively.
+Postfix versions >= 2.2 and >= 3.0, respectively.
 .IP \(bu
 The expression "${name?{value1}:{value2}}" is replaced with "value1"
 when "$name" is non-empty, and with "value2" when "$name" is empty.
 The "{}" is required for "value1", optional for "value2". This form
-is supported with Postfix versions >= 2.12.
+is supported with Postfix versions >= 3.0.
 .IP \(bu
 The first item inside "${...}" may be a logical expression of the
 form: "{value3} == {value4}". Besides the "==" (equality) operator
 Postfix supports "!=" (inequality), "<", "<=", ">=", and ">". The
 comparison is numerical when both operands are all digits, otherwise
 the comparison is lexicographical. These forms are supported with
-Postfix versions >= 2.12.
+Postfix versions >= 3.0.
 .IP \(bu
 Each "value" is subject to recursive named parameter and logical
 expression evaluation, except where noted.
@@ -74,7 +74,7 @@ Otherwise, the order of main.cf parameter definitions does not matter.
 The remainder of this document is a description of all Postfix
 configuration parameters. Default values are shown after the 
 parameter name in parentheses, and can be looked up with the
-"\fBpostconf -d\fR" command. 
+"\fBpostconf \-d\fR" command. 
 .PP
 Note: this is not an invitation to make changes to Postfix
 configuration parameters. Unnecessary changes can impair the

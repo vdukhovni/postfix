@@ -42,8 +42,8 @@ library to AUXLIBS_PCRE, for example:
         "CCARGS=-DHAS_PCRE `pcre-config --cflags`" \
         "AUXLIBS_PCRE=`pcre-config --libs`"
 
-Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_PCRE. With Postfix
-2.12 and later, the old AUXLIBS variable still supports building a statically-
+Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_PCRE. With Postfix
+3.0 and later, the old AUXLIBS variable still supports building a statically-
 loaded PCRE database client, but only the new AUXLIBS_PCRE variable supports
 building a dynamically-loaded or statically-loaded PCRE database client.
 

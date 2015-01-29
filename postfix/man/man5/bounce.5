@@ -10,7 +10,7 @@ Postfix bounce message template format
 .nf
 \fBbounce_template_file = /etc/postfix/bounce.cf\fR
 
-\fBpostconf -b\fR [\fItemplate_file\fR]
+\fBpostconf \-b\fR [\fItemplate_file\fR]
 .SH DESCRIPTION
 .ad
 .fi
@@ -18,9 +18,9 @@ The Postfix \fBbounce\fR(8) server produces delivery status
 notification (DSN) messages for undeliverable mail, delayed
 mail, successful delivery or address verification requests.
 
-By default, these notifications are generated from built-in
+By default, these notifications are generated from built\-in
 templates with message headers and message text. Sites can
-override the built-in information by specifying a bounce
+override the built\-in information by specifying a bounce
 template file with the \fBbounce_template_file\fR configuration
 parameter.
 
@@ -41,7 +41,7 @@ To preview the results of $\fIname\fR expansions in the
 template text, use the command
 
 .nf
-    \fBpostconf -b\fR \fItemporary_file\fR
+    \fBpostconf \-b\fR \fItemporary_file\fR
 .fi
 
 Errors in the template will be reported to the standard
@@ -82,10 +82,10 @@ it in quotes as with the shell or with Perl (\fItemplate_name\fB
     # The failure template is used for undeliverable mail.
 
     failure_template = <<EOF
-    Charset: us-ascii
-    From: MAILER-DAEMON (Mail Delivery System)
+    Charset: us\-ascii
+    From: MAILER\-DAEMON (Mail Delivery System)
     Subject: Undelivered Mail Returned to Sender
-    Postmaster-Subject: Postmaster Copy: Undelivered Mail
+    Postmaster\-Subject: Postmaster Copy: Undelivered Mail
 
     This is the mail system at host $myhostname.
 
@@ -137,7 +137,7 @@ status notification.
 .IP \fBSubject:\fR
 The subject in the message header of the delivery status
 notification that is returned to the sender.
-.IP \fBPostmaster-Subject:\fR
+.IP \fBPostmaster\-Subject:\fR
 The subject that will be used in Postmaster copies of
 undeliverable or delayed mail notifications. These copies
 are sent under control of the notify_classes configuration
@@ -181,15 +181,15 @@ possible \fIsuffix\fR values.
 .IP \fBmydomain\fR
 Expands into the value of the \fBmydomain\fR parameter.
 With "smtputf8_enable = yes", this replaces ACE labels
-(xn--mumble) with their UTF-8 equivalent.
+(xn\-\-mumble) with their UTF\-8 equivalent.
 .sp
-This feature is available in Postfix 2.12.
+This feature is available in Postfix 3.0.
 .IP \fBmyhostname\fR
 Expands into the value of the \fBmyhostname\fR parameter.
 With "smtputf8_enable = yes", this replaces ACE labels
-(xn--mumble) with their UTF-8 equivalent.
+(xn\-\-mumble) with their UTF\-8 equivalent.
 .sp
-This feature is available in Postfix 2.12.
+This feature is available in Postfix 3.0.
 .PP
 The usage and specification of template message text is
 subject to the following restrictions:
@@ -197,9 +197,9 @@ subject to the following restrictions:
 The template message text is not sent in Postmaster copies
 of delivery status notifications.
 .IP \(bu
-If the template message text contains non-ASCII characters,
+If the template message text contains non\-ASCII characters,
 Postfix requires that the \fBCharset:\fR template header
-is updated.  Specify an appropriate superset of US-ASCII.
+is updated.  Specify an appropriate superset of US\-ASCII.
 A superset is needed because Postfix appends ASCII text
 after the message template when it sends a delivery status
 notification.

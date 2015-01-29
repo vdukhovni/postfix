@@ -3790,7 +3790,7 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
 				STR(reply->recipient), (char **) 0)) != 0) {
 	    cp = saved_owners = mystrdup(owners);
 	    while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
-		if (strcasecmp(state->sasl_username, name) == 0) {
+		if (strcasecmp_utf8(state->sasl_username, name) == 0) {
 		    found = 1;
 		    break;
 		}
@@ -4651,7 +4651,7 @@ int     smtpd_check_addr(const char *addr, int smtputf8)
 
     /*
      * Backwards compatibility: if the client does not request SMTPUTF8
-     * support, then behave like Postfix < 2.12 trivial-rewrite, and don't
+     * support, then behave like Postfix < 3.0 trivial-rewrite, and don't
      * allow non-ASCII email domains. Historically, Postfix does not reject
      * UTF8 etc. in the address localpart.
      */
@@ -5158,7 +5158,8 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
      * local delivery, because the virtual delivery agent requires
      * user@domain style addresses in its user database.
      */
-#define MATCH_LEFT(l, r, n) (strncasecmp((l), (r), (n)) == 0 && (r)[n] == '@')
+#define MATCH_LEFT(l, r, n) \
+	(strncasecmp_utf8((l), (r), (n)) == 0 && (r)[n] == '@')
 
     switch (reply->flags & RESOLVE_CLASS_MASK) {
 

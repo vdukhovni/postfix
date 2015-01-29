@@ -52,7 +52,7 @@
 /*	and re-opened after the specified delay, and \fBposttls-finger\fR(1)
 /*	then reports whether the cached TLS session was re-used.
 /*
-/*	When the destination is a load-balancer, it may be distributing
+/*	When the destination is a load balancer, it may be distributing
 /*	load between multiple server caches. Typically, each server returns
 /*	its unique name in its EHLO response. If, upon reconnecting with
 /*	\fB-r\fR, a new server name is detected, another session is cached
@@ -166,7 +166,7 @@
 /* .IP "\fBuntrusted\fR"
 /*	Logs trust chain verification problems.  This is turned on
 /*	automatically at security levels that use peer names signed
-/*	by certificate authorities to validate certificates.  So while
+/*	by Certification Authorities to validate certificates.  So while
 /*	this setting is recognized, you should never need to set it
 /*	explicitly.
 /* .IP "\fBpeercert\fR"
@@ -192,7 +192,7 @@
 /* .IP "\fB-m \fIcount\fR (default: \fB5\fR)"
 /*	When the \fB-r \fIdelay\fR option is specified, the \fB-m\fR option
 /*	determines the maximum number of reconnect attempts to use with
-/*	a server behind a load-balacer, to see whether connection caching
+/*	a server behind a load balancer, to see whether connection caching
 /*	is likely to be effective for this destination.  Some MTAs
 /*	don't expose the underlying server identity in their EHLO
 /*	response; with these servers there will never be more than
@@ -210,7 +210,7 @@
 /*	SMTP server certificate verification.  By default no CApath is used
 /*	and no public CAs are trusted.
 /* .IP "\fB-r \fIdelay\fR"
-/*	With a cachable TLS session, disconnect and reconnect after \fIdelay\fR
+/*	With a cacheable TLS session, disconnect and reconnect after \fIdelay\fR
 /*	seconds. Report whether the session is re-used. Retry if a new server
 /*	is encountered, up to 5 times or as specified with the \fB-m\fR option.
 /*	By default reconnection is disabled, specify a positive delay to
@@ -226,7 +226,7 @@
 /* .IP "\fB-T \fItimeout\fR (default: \fB30\fR)"
 /*	The SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and QUIT.
 /* .IP "\fB-v\fR"
-/*	Enable verose Postfix logging.  Specify more than once to increase
+/*	Enable verbose Postfix logging.  Specify more than once to increase
 /*	the level of verbose logging.
 /* .IP "\fB-w\fR"
 /*	Enable outgoing TLS wrapper mode, or SMTPS support.  This is typically
@@ -307,6 +307,10 @@
 #include <sys/un.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
 
  /*
   * Utility library.

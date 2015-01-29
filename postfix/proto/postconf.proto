@@ -1432,7 +1432,7 @@ Specify a list of names and/or name=value pairs, separated by
 whitespace or comma. Specify "{ name=value }" to protect whitespace
 or comma in parameter values (whitespace after "{" and before "}"
 is ignored). The form name=value is supported with Postfix version
-2.1 and later; the use of {} is supported with Postfix 2.12 and
+2.1 and later; the use of {} is supported with Postfix 3.0 and
 later.  </p>
 
 <p>
@@ -1883,7 +1883,7 @@ parameters:
 whitespace or comma. Specify "{ name=value }" to protect whitespace
 or comma in parameter values (whitespace after "{" and before "}"
 is ignored). The form name=value is supported with Postfix version
-2.1 and later; the use of {} is supported with Postfix 2.12 and
+2.1 and later; the use of {} is supported with Postfix 3.0 and
 later.  </p>
 
 %PARAM in_flow_delay 1s
@@ -3226,7 +3226,7 @@ smtpd_access_maps,
 postscreen_access_list
 </dd>
 
-<dt> Postfix version 2.12 and later </dt> 
+<dt> Postfix version 3.0 and later </dt> 
 
 <dd>
 smtpd_client_event_limit_exceptions
@@ -3647,7 +3647,7 @@ client request is rejected by the "reject" restriction.
 Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
-%PARAM relay_domains Postfix &ge; 2.12: empty, Postfix &lt; 2.12: $mydestination
+%PARAM relay_domains Postfix &ge; 3.0: empty, Postfix &lt; 3.0: $mydestination
 
 <p> What destination domains (and subdomains thereof) this system
 will relay mail to. For details about how
@@ -4856,7 +4856,7 @@ contain the ":" character, and would otherwise be confused with a
 
 <p> Pattern matching of domain names is controlled by the presence
 or absence of "smtpd_client_event_limit_exceptions" in the
-parent_domain_matches_subdomains parameter value (postfix 2.12 and
+parent_domain_matches_subdomains parameter value (postfix 3.0 and
 later).  </p>
 
 <p>
@@ -5054,7 +5054,7 @@ least significant octets. See the access(5) manual page for details. </dd>
 client hostname, and execute the corresponding action.  Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
 to exclude specific hosts from blacklists.  This feature is available
-in Postfix 2.12 and later.  </dd>
+in Postfix 3.0 and later.  </dd>
 
 <dt><b><a name="check_client_mx_access">check_client_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -5088,7 +5088,7 @@ and later.</dd>
 unverified reverse client hostname, and execute the corresponding
 action.  Note: a result of "OK" is not allowed for safety reasons.
 Instead, use DUNNO in order to exclude specific hosts from blacklists.
-This feature is available in Postfix 2.12 and later.  </dd>
+This feature is available in Postfix 3.0 and later.  </dd>
 
 <dt><b><a name="check_reverse_client_hostname_mx_access">check_reverse_client_hostname_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -5645,7 +5645,7 @@ use DUNNO in order to exclude specific hosts from blacklists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
 restriction (without "smtpd_helo_required = yes", a client can
 simply skip check_helo_a_access by not sending HELO or EHLO).  This
-feature is available in Postfix 2.12 and later.
+feature is available in Postfix 3.0 and later.
 </dd>
 
 <dt><b><a name="check_helo_mx_access">check_helo_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
@@ -5933,7 +5933,7 @@ corresponding action.  </dd>
 the RCPT TO domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
-feature is available in Postfix 2.12 and later. </dd>
+feature is available in Postfix 3.0 and later. </dd>
 
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -6049,7 +6049,7 @@ record or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 reply is specified with the unknown_address_reject_code parameter
 (default: 450), unknown_address_tempfail_action (default:
-defer_if_permit), or 556 (nullmx, Postfix 2.12 and
+defer_if_permit), or 556 (nullmx, Postfix 3.0 and
 later). See the respective parameter descriptions for details.
 </dd>
 
@@ -6442,7 +6442,7 @@ corresponding action. </dd>
 the MAIL FROM domain, and execute the corresponding action.  Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
-feature is available in Postfix 2.12 and later. </dd>
+feature is available in Postfix 3.0 and later. </dd>
 
 <dt><b><a name="check_sender_mx_access">check_sender_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -6518,7 +6518,7 @@ record, or 2) a malformed MX record such as a record with
 a zero-length MX hostname (Postfix version 2.3 and later). <br> The
 reply is specified with the unknown_address_reject_code parameter
 (default: 450), unknown_address_tempfail_action (default:
-defer_if_permit), or 550 (nullmx, Postfix 2.12 and
+defer_if_permit), or 550 (nullmx, Postfix 3.0 and
 later). See the respective parameter descriptions for details.
 </dd>
 
@@ -7118,7 +7118,7 @@ remote_header_rewrite_domain parameter specifies a non-empty value.
 <p> To get the behavior before Postfix version 2.2, specify
 "local_header_rewrite_clients = static:all". </p>
 
-%PARAM append_dot_mydomain Postfix &ge; 2.12: no, Postfix &lt; 2.12: yes
+%PARAM append_dot_mydomain Postfix &ge; 3.0: no, Postfix &lt; 3.0: yes
 
 <p>
 With locally submitted mail, append the string ".$mydomain" to
@@ -7541,7 +7541,7 @@ and is therefore disabled by default. </p>
 
 <p> See also: delay_warning_time. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM disable_dns_lookups no
 
@@ -7928,7 +7928,7 @@ Postfix refuses mail that is nested deeper than the specified limit.
 This feature is available in Postfix 2.0 and later.
 </p>
 
-%PARAM mynetworks_style Postfix &ge; 2.12: host, Postfix &lt; 2.12: subnet
+%PARAM mynetworks_style Postfix &ge; 3.0: host, Postfix &lt; 3.0: subnet
 
 <p>
 The method to generate the default value for the mynetworks parameter.
@@ -8440,7 +8440,7 @@ with policy servers that cannot maintain a persistent connection.
 </p>
 
 <p>
-This feature is available in Postfix 2.12 and later.
+This feature is available in Postfix 3.0 and later.
 </p>
 
 %PARAM smtpd_reject_unlisted_recipient yes
@@ -9302,7 +9302,7 @@ but it is best to include all the required certificates directly in the
 server certificate file. </p>
 
 <p> Specify "smtpd_tls_CAfile = /path/to/system_CA_file" to use ONLY
-the system-supplied default certificate authority certificates.
+the system-supplied default Certification Authority certificates.
 </p>
 
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
@@ -9311,10 +9311,10 @@ certificates. </p>
 
 <p> By default (see smtpd_tls_ask_ccert), client certificates are not
 requested, and smtpd_tls_CAfile should remain empty. If you do make use
-of client certificates, the distinguished names (DNs) of the certificate
-authorities listed in smtpd_tls_CAfile are sent to the remote SMTP client
+of client certificates, the distinguished names (DNs) of the Certification
+Authorities listed in smtpd_tls_CAfile are sent to the remote SMTP client
 in the client certificate request message. MUAs with multiple client
-certificates may use the list of preferred certificate authorities
+certificates may use the list of preferred Certification Authorities
 to select the correct client certificate.  You may want to put your
 "preferred" CA or CAs in this file, and install other trusted CAs in
 $smtpd_tls_CApath. </p>
@@ -9337,7 +9337,7 @@ smtpd_tls_CApath in chroot mode, this directory (or a copy) must be
 inside the chroot jail. </p>
 
 <p> Specify "smtpd_tls_CApath = /path/to/system_CA_directory" to
-use ONLY the system-supplied default certificate authority certificates.
+use ONLY the system-supplied default Certification Authority certificates.
 </p>
 
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
@@ -9346,10 +9346,10 @@ certificates. </p>
 
 <p> By default (see smtpd_tls_ask_ccert), client certificates are
 not requested, and smtpd_tls_CApath should remain empty. In contrast
-to smtpd_tls_CAfile, DNs of certificate authorities installed
+to smtpd_tls_CAfile, DNs of Certification Authorities installed
 in $smtpd_tls_CApath are not included in the client certificate
 request message. MUAs with multiple client certificates may use the
-list of preferred certificate authorities to select the correct
+list of preferred Certification Authorities to select the correct
 client certificate.  You may want to put your "preferred" CA or
 CAs in $smtpd_tls_CAfile, and install the remaining trusted CAs in
 $smtpd_tls_CApath. </p>
@@ -9742,7 +9742,7 @@ but it is best to include all the required certificates directly in
 $smtp_tls_cert_file. </p>
 
 <p> Specify "smtp_tls_CAfile = /path/to/system_CA_file" to use 
-ONLY the system-supplied default certificate authority certificates.
+ONLY the system-supplied default Certification Authority certificates.
 </p>
 
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
@@ -9759,7 +9759,7 @@ smtp_tls_CAfile = /etc/postfix/CAcert.pem
 
 %PARAM smtp_tls_CApath
 
-<p> Directory with PEM format certificate authority certificates
+<p> Directory with PEM format Certification Authority certificates
 that the Postfix SMTP client uses to verify a remote SMTP server
 certificate.  Don't forget to create the necessary "hash" links
 with, for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs".
@@ -9769,7 +9769,7 @@ with, for example, "$OPENSSL_HOME/bin/c_rehash /etc/postfix/certs".
 must be inside the chroot jail. </p>
 
 <p> Specify "smtp_tls_CApath = /path/to/system_CA_directory" to
-use ONLY the system-supplied default certificate authority certificates.
+use ONLY the system-supplied default Certification Authority certificates.
 </p>
 
 <p> Specify "tls_append_default_CA = no" to prevent Postfix from
@@ -10075,7 +10075,7 @@ smtp_tls_dcert_file = /etc/postfix/client-dsa.pem
 
 %PARAM tls_append_default_CA no
 
-<p> Append the system-supplied default certificate authority
+<p> Append the system-supplied default Certification Authority
 certificates to the ones specified with *_tls_CApath or *_tls_CAfile.
 The default is "no"; this prevents Postfix from trusting third-party
 certificates and giving them relay permission with
@@ -10974,7 +10974,7 @@ and later.  </dd>
 <dt><b><a href="TLS_README.html#client_tls_fingerprint">fingerprint</a></b></dt>
 <dd>Certificate fingerprint
 verification. Available with Postfix 2.5 and later. At this security
-level, there are no trusted certificate authorities. The certificate
+level, there are no trusted Certification Authorities. The certificate
 trust chain, expiration date, ... are not checked. Instead,
 the optional <b>match</b> attribute, or else the main.cf
 <b>smtp_tls_fingerprint_cert_match</b> parameter, lists the certificate
@@ -11378,7 +11378,7 @@ TLSA authentication is required.  There is no fallback to "may" or
 
 <dt><b><a href="TLS_README.html#client_tls_fingerprint">fingerprint</a></b></dt>
 <dd>Certificate fingerprint verification.
-At this security level, there are no trusted certificate authorities.
+At this security level, there are no trusted Certification Authorities.
 The certificate trust chain, expiration date, etc., are
 not checked. Instead, the <b>smtp_tls_fingerprint_cert_match</b>
 parameter lists the certificate fingerprint or public key fingerprint
@@ -12202,7 +12202,7 @@ to Postfix 2.9.6 or later. </p>
 
 <p> List of acceptable remote SMTP server certificate fingerprints for
 the "fingerprint" TLS security level (<b>smtp_tls_security_level</b> =
-fingerprint). At this security level, certificate authorities are not
+fingerprint). At this security level, Certification Authorities are not
 used, and certificate expiration times are ignored. Instead, server
 certificates are verified directly via their certificate fingerprint
 or public key fingerprint (Postfix 2.9 and later). The fingerprint
@@ -14463,7 +14463,7 @@ the file is read). </p>
 the timeouts in the dnsblog(8) daemon which are defined by system
 resolver(3) routines. </p>
 
-<p> This feature is available in Postfix 2.12.  </p>
+<p> This feature is available in Postfix 3.0.  </p>
 %PARAM postscreen_bare_newline_action ignore
 
 <p> The action that postscreen(8) takes when a remote SMTP client sends
@@ -15449,21 +15449,21 @@ transport_maps to apply this feature selectively:  </p>
         -o smtp_address_verify_target=data
     lmtp-data-target    unix    -    -    n    -    -    lmtp
         -o lmtp_address_verify_target=data
-<blockquote>
-<pre>
+</pre>
+</blockquote>
 
 <p> Unselective use of the "data" target does no harm, but will
 result in unnecessary "lost connection after DATA" events at remote
 SMTP/LMTP servers. </p>
 
-<p> This feature is available in Postfix 2.12 and later.  </p>
+<p> This feature is available in Postfix 3.0 and later.  </p>
 
 %PARAM lmtp_address_verify_target rcpt
 
 <p> The LMTP-specific version of the smtp_dns_support_level
 configuration parameter.  See there for details. </p>
 
-<p> This feature is available in Postfix 2.12 and later.  </p>
+<p> This feature is available in Postfix 3.0 and later.  </p>
 
 %PARAM daemon_table_open_error_is_fatal no
 
@@ -15947,7 +15947,7 @@ anchor assertion) TLSA records. </p>
 
 <p> This feature is available in Postfix 2.11 and later. </p>
 
-%PARAM tls_session_ticket_cipher Postfix &ge; 2.12: aes-256-cbc, postfix &lt 2.12: aes-128-cbc
+%PARAM tls_session_ticket_cipher Postfix &ge; 3.0: aes-256-cbc, Postfix &lt; 3.0: aes-128-cbc
 
 <p> Algorithm used to encrypt RFC5077 TLS session tickets.  This
 algorithm must use CBC mode, have a 128-bit block size, and must
@@ -15959,7 +15959,7 @@ is discouraged.  </p>
 in the Postfix SMTP server.  Another way to disable session ticket
 support is via the tls_ssl_options parameter.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM default_delivery_status_filter
 
@@ -16048,7 +16048,7 @@ sender in delivery confirmation or non-delivery notifications.
 
 </ul>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtp_delivery_status_filter $default_delivery_status_filter
 
@@ -16066,7 +16066,7 @@ remote SMTP server responses only.  </p>
 <p> The LMTP-specific version of the smtp_delivery_status_filter
 configuration parameter.  See there for details. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM pipe_delivery_status_filter $default_delivery_status_filter
 
@@ -16074,7 +16074,7 @@ configuration parameter.  See there for details. </p>
 delivery status code or explanatory text of successful or unsuccessful
 deliveries.  See default_delivery_status_filter for details.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM virtual_delivery_status_filter $default_delivery_status_filter
 
@@ -16082,7 +16082,7 @@ deliveries.  See default_delivery_status_filter for details.  </p>
 delivery status code or explanatory text of successful or unsuccessful
 deliveries.  See default_delivery_status_filter for details.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM local_delivery_status_filter $default_delivery_status_filter
 
@@ -16090,7 +16090,7 @@ deliveries.  See default_delivery_status_filter for details.  </p>
 status code or explanatory text of successful or unsuccessful
 deliveries.  See default_delivery_status_filter for details.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM shlib_directory see 'postconf -d' output
 
@@ -16123,7 +16123,7 @@ files in the compiled-in default $shlib_directory location. </p>
 
 </ul>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM meta_directory see 'postconf -d' output
 
@@ -16140,7 +16140,7 @@ installing or upgrading Postfix, or specify "meta_directory =
 /path/name" on the "make makefiles", "make install" or "make upgrade"
 command line.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtpd_policy_service_default_action 451 4.3.5 Server configuration problem
 
@@ -16163,29 +16163,29 @@ request, that request will have the built-in default action. </p>
 
 </ul>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtpd_policy_service_try_limit 2
 
 <p> The maximal number of attempts to send an SMTPD policy service
 request before giving up. Specify a value greater than zero. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtpd_policy_service_retry_delay 1s
 
 <p> The delay between attempts to resend a failed SMTPD policy
 service request. Specify a value greater than zero. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtputf8_enable yes
 
-<p> Enable experimental SMTPUTF8 support for the protocols described
+<p> Enable preliminary SMTPUTF8 support for the protocols described
 in RFC 6531..6533. This requires that Postfix is built to support
 these protocols. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM strict_smtputf8 no
 
@@ -16193,7 +16193,7 @@ these protocols. </p>
 SMTP server accepts UTF8 sender or recipient addresses only when
 the client requests an SMTPUTF8 mail transaction. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtputf8_autodetect_classes sendmail, verify
 
@@ -16251,7 +16251,7 @@ mail. </dd>
 
 </dl>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM compatibility_level 0
 
@@ -16307,19 +16307,19 @@ warning: To disable backwards compatibility use "postconf
 </pre>
 </blockquote>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM message_drop_headers bcc, content-length, resent-bcc, return-path
 
 <p> Names of message headers that the cleanup(8) daemon will remove
 after applying header_checks(5) and before invoking Milter applications.
-The default setting is compatible with Postfix &lt; 2.12. </p>
+The default setting is compatible with Postfix &lt; 3.0. </p>
 
 <p> Specify a list of header names, separated by comma or space.
 Names are matched in a case-insensitive manner.  The list of supported
 header names is limited only by available memory.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM nullmx_reject_code 556
 
@@ -16329,7 +16329,7 @@ record (an MX record with an empty hostname). This is one of the
 possible replies from the restrictions reject_unknown_sender_domain
 and reject_unknown_recipient_domain. </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtpd_dns_reply_filter
 
@@ -16337,14 +16337,14 @@ and reject_unknown_recipient_domain. </p>
 See smtp_dns_reply_filter for details including an example.
 </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM lmtp_dns_reply_filter
 
 <p> Optional filter for Postfix LMTP client DNS lookup results.
 See smtp_dns_reply_filter for details including an example.  </p>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 #%PARAM postscreen_dns_reply_filter
 #
@@ -16352,7 +16352,7 @@ See smtp_dns_reply_filter for details including an example.  </p>
 #See smtp_dns_reply_filter for details including an example.
 #</p>
 #
-#<p> This feature is available in Postfix 2.12 and later. </p>
+#<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtp_dns_reply_filter
 
@@ -16419,7 +16419,7 @@ with valid PTR etc. records. </p>
     /^\S+\.google\.com\.\s+\S+\s+\S+\s+AAAA\s+/ IGNORE
 </pre>
 
-<p> This feature is available in Postfix 2.12 and later. </p>
+<p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM smtp_tls_wrappermode no
 
@@ -16444,7 +16444,7 @@ stronger. </p>
 <p> More examples are in TLS_README, including examples for older
 Postfix versions. </p>
 
-<p> This feature is available in Postfix 2.12 and later.  </p>
+<p> This feature is available in Postfix 3.0 and later.  </p>
 
 %PARAM virtual_alias_address_length_limit 1000
 
@@ -16455,7 +16455,7 @@ exponentially.
 </p>
 
 <p>
-This feature is available in Postfix 2.12 and later.
+This feature is available in Postfix 3.0 and later.
 </p>
 
 

@@ -286,7 +286,7 @@ applications (not "postfix", not "www", etc.). </p>
 
 <p> Like Sendmail, Postfix has a lot of configuration options that
 control how it talks to Milter applications. Besides global options
-that apply to all Milter applications, Postfix 2.12 and later
+that apply to all Milter applications, Postfix 3.0 and later
 support per-Milter timeouts, per-Milter error handling, etc. </p>
 
 <p> Information in this section: </p>
@@ -430,7 +430,7 @@ will stay in the queue.  </p>
 
 <h4> Signing internally-generated bounce messages </h4>
 
-<li> <p> Postfix normally does not apply content filters to mail
+<p> Postfix normally does not apply content filters to mail
 that is generated internally such as bounces or Postmaster
 notifications. Filtering internally-generated bounces would result
 in loss of mail when a filter rejects a message, as the resulting
@@ -571,7 +571,7 @@ that control time limits and other settings for all Postfix Milter
 clients. This is sufficient for simple configurations. With more
 complex configurations it becomes desirable to have different
 settings for different Milter clients. This is supported with Postfix
-2.12 and later. </p>
+3.0 and later. </p>
 
 <p> The following example shows a "non-critical" Milter client with
 a short connect timeout, and with "accept" as default action when

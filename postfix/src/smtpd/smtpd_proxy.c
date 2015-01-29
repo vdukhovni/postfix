@@ -112,7 +112,7 @@
 /*	with the state->error_mask, state->err and proxy-buffer
 /*	fields given appropriate values.
 /*
-/* Arguments:
+/*	Arguments:
 /* .IP flags
 /*	Zero, or SMTPD_PROXY_FLAG_SPEED_ADJUST to buffer up the entire
 /*	message before contacting a before-queue content filter.

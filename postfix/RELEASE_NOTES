@@ -1,4 +1,4 @@
-This is the Postfix 2.12 (experimental) release.
+This is the Postfix 3.0 (experimental) release.
 
 The stable Postfix release is called postfix-2.11.x where 2=major
 release number, 11=minor release number, x=patchlevel.  The stable
@@ -6,7 +6,7 @@ release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-2.12-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-3.0-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day).  Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
@@ -28,7 +28,7 @@ example.
 With UPGRADES of existing Postfix systems, you MUST NOT change the
 main.cf compatibility_level setting (if any).
 
-Several Postfix default settings have changed with Postfix 2.12.
+Several Postfix default settings have changed with Postfix 3.0.
 To avoid massive breakage, Postfix comes with a safety net that
 forces Postfix to keep running with backwards-compatible main.cf
 and master.cf default settings. This safety net depends on the
@@ -451,9 +451,9 @@ to load the list of lookup tables, one per line, from a textfile.
 Incompatible changes with snapshot 20140530
 ===========================================
 
-The Postfix 2.12 build procedure expects that you specify database
+The Postfix 3.0 build procedure expects that you specify database
 library dependencies with variables named AUXLIBS_CDB, AUXLIBS_LDAP,
-etc.  With Postfix 2.12 and later, the old AUXLIBS variable still
+etc.  With Postfix 3.0 and later, the old AUXLIBS variable still
 supports building a statically-loaded CDB etc. database client, but
 only the new AUXLIBS_CDB etc. variables support building a
 dynamically-loaded or statically-loaded CDB etc. database client.
@@ -471,7 +471,7 @@ Support to build Postfix with Postfix shared libraries, and with
 dynamically-loadable database clients. Postfix shared libraries
 introduce minor runtime overhead and result in smaller Postfix
 executable files. Dynamically-loadable database clients are useful
-when you distribute or install pre-compiled packages.  Postfix 2.12
+when you distribute or install pre-compiled packages.  Postfix 3.0
 supports dynamic loading for CDB, LDAP, LMDB, MYSQL, PCRE, PGSQL,
 SDBM, and SQLITE database clients.
 
@@ -504,12 +504,12 @@ database clients (files named postfix-*.so), use:
 % make makefiles dynamicmaps=yes ...other arguments...
 
 This implicitly enables support for Postfix shared libraries. Postfix
-2.12 supports dynamic loading for CDB, LDAP, LMDB, MYSQL, PCRE,
+3.0 supports dynamic loading for CDB, LDAP, LMDB, MYSQL, PCRE,
 PGSQL, SDBM, and SQLITE database clients.
 
-NOTE: The Postfix 2.12 build procedure expects that you specify
+NOTE: The Postfix 3.0 build procedure expects that you specify
 database library dependencies with variables named AUXLIBS_CDB,
-AUXLIBS_LDAP, etc.  With Postfix 2.12 and later, the old AUXLIBS
+AUXLIBS_LDAP, etc.  With Postfix 3.0 and later, the old AUXLIBS
 variable still supports building a statically-loaded database client,
 but only the new AUXLIBS_CDB etc. variables support building a
 dynamically-loaded or statically-loaded CDB etc. database client.

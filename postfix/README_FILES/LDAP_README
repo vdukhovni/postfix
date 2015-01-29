@@ -54,8 +54,8 @@ this in the top level of your Postfix source tree should work:
     % make makefiles CCARGS="-I/usr/local/include -DHAS_LDAP" \
         AUXLIBS_LDAP="-L/usr/local/lib -lldap -L/usr/local/lib -llber"
 
-Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_LDAP. With Postfix
-2.12 and later, the old AUXLIBS variable still supports building a statically-
+Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_LDAP. With Postfix
+3.0 and later, the old AUXLIBS variable still supports building a statically-
 loaded LDAP database client, but only the new AUXLIBS_LDAP variable supports
 building a dynamically-loaded or statically-loaded LDAP database client.
 

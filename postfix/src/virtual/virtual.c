@@ -246,7 +246,7 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBvirtual_delivery_status_filter ($default_delivery_status_filter)\fR"
 /*	Optional filter for the \fBvirtual\fR(8) delivery agent to change the
 /*	delivery status code or explanatory text of successful or unsuccessful

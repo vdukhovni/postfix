@@ -95,7 +95,7 @@
 /*	slmdb_control() specifies optional features. The result is
 /*	an LMDB status code (zero in case of success).
 /*
-/* Arguments:
+/*	Arguments:
 /* .IP slmdb
 /*	Pointer to caller-provided storage.
 /* .IP curr_limit

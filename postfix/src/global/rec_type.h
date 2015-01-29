@@ -130,7 +130,7 @@
 #define REC_TYPE_SIZE_CAST3	long	/* Postfix 1.0 recipient count */
 #define REC_TYPE_SIZE_CAST4	long	/* Postfix 2.1 qmgr flags */
 #define REC_TYPE_SIZE_CAST5	long	/* Postfix 2.4 content length */
-#define REC_TYPE_SIZE_CAST6	long	/* Postfix 2.12 smtputf8 flags */
+#define REC_TYPE_SIZE_CAST6	long	/* Postfix 3.0 smtputf8 flags */
 
  /*
   * The warn record specifies when the next warning that the message was

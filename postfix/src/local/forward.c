@@ -258,6 +258,7 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
 {
     const char *myname = "forward_send";
     VSTRING *buffer = vstring_alloc(100);
+    VSTRING *folded;
     int     status;
     int     rec_type = 0;
 
@@ -272,9 +273,12 @@ static int forward_send(FORWARD_INFO *info, DELIVER_REQUEST *request,
 		var_myhostname, var_mail_name);
     rec_fprintf(info->cleanup, REC_TYPE_NORM, "\tid %s; %s",
 		info->queue_id, mail_date(info->posting_time.tv_sec));
-    if (local_deliver_hdr_mask & DELIVER_HDR_FWD)
+    if (local_deliver_hdr_mask & DELIVER_HDR_FWD) {
+	folded = vstring_alloc(100);
 	rec_fprintf(info->cleanup, REC_TYPE_NORM, "Delivered-To: %s",
-		    lowercase(STR(buffer)));
+		    casefold(folded, (STR(buffer))));
+	vstring_free(folded);
+    }
     if ((status = vstream_ferror(info->cleanup)) == 0)
 	if (vstream_fseek(attr.fp, attr.offset, SEEK_SET) < 0)
 	    msg_fatal("%s: seek queue file %s: %m:",

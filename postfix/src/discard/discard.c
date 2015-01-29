@@ -21,7 +21,7 @@
 /*	queue file, and either marks recipients as finished or informs the
 /*	queue manager that delivery should be tried again at a later time.
 /*
-/*      Delivery status reports are sent to the \fBtrace\fR(8)
+/*	Delivery status reports are sent to the \fBtrace\fR(8)
 /*	daemon as appropriate.
 /* SECURITY
 /* .ad
@@ -39,8 +39,8 @@
 /* .ad
 /* .fi
 /*	Changes to \fBmain.cf\fR are picked up automatically as \fBdiscard\fR(8)
-/*      processes run for only a limited amount of time. Use the command
-/*      "\fBpostfix reload\fR" to speed up a change.
+/*	processes run for only a limited amount of time. Use the command
+/*	"\fBpostfix reload\fR" to speed up a change.
 /*
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.
@@ -89,7 +89,7 @@
 /* .fi
 /*	The Secure Mailer license must be distributed with this software.
 /* HISTORY
-/*      This service was introduced with Postfix version 2.2.
+/*	This service was introduced with Postfix version 2.2.
 /* AUTHOR(S)
 /*	Victor Duchovni
 /*	Morgan Stanley

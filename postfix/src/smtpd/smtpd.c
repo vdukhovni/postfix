@@ -138,7 +138,7 @@
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtpd_dns_reply_filter (empty)\fR"
 /*	Optional filter for Postfix SMTP server DNS lookup results.
 /* ADDRESS REWRITING CONTROLS
@@ -458,8 +458,8 @@
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 /* .PP
-/*	Available in Postfix version 2.12 and later:
-/* .IP "\fBtls_session_ticket_cipher (Postfix &ge; 2.12: aes-256-cbc, postfix &lt 2.12: aes-128-cbc)\fR"
+/*	Available in Postfix version 3.0 and later:
+/* .IP "\fBtls_session_ticket_cipher (Postfix >= 3.0: aes-256-cbc, Postfix < 3.0: aes-128-cbc)\fR"
 /*	Algorithm used to encrypt RFC5077 TLS session tickets.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
@@ -479,9 +479,9 @@
 /* SMTPUTF8 CONTROLS
 /* .ad
 /* .fi
-/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
-/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	Enable preliminary SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
 /* .IP "\fBstrict_smtputf8 (no)\fR"
 /*	Enable stricter enforcement of the SMTPUTF8 protocol.
@@ -594,7 +594,7 @@
 /*	lookup tables that does not match the recipient.
 /* .PP
 /*	Parameters concerning known/unknown recipients of relay destinations:
-/* .IP "\fBrelay_domains (Postfix &ge; 2.12: empty, Postfix < 2.12: $mydestination)\fR"
+/* .IP "\fBrelay_domains (Postfix >= 3.0: empty, Postfix < 3.0: $mydestination)\fR"
 /*	What destination domains (and subdomains thereof) this system
 /*	will relay mail to.
 /* .IP "\fBrelay_recipient_maps (empty)\fR"
@@ -739,7 +739,7 @@
 /*	The time limit for connecting to, writing to, or receiving from a
 /*	delegated SMTPD policy server.
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtpd_policy_service_default_action (451 4.3.5 Server configuration problem)\fR"
 /*	The default action when an SMTPD policy service request fails.
 /* .IP "\fBsmtpd_policy_service_request_limit (0)\fR"
@@ -1154,6 +1154,10 @@
 
 #include <milter.h>
 
+/* DNS library. */
+
+#include <dns.h>
+
 /* Application-specific */
 
 #include <smtpd_token.h>
@@ -1408,8 +1412,12 @@ int     smtpd_input_transp_mask;
 static void helo_reset(SMTPD_STATE *);
 static void mail_reset(SMTPD_STATE *);
 static void rcpt_reset(SMTPD_STATE *);
-static void tls_reset(SMTPD_STATE *);
 static void chat_reset(SMTPD_STATE *, int);
+
+#ifdef USE_TLS
+static void tls_reset(SMTPD_STATE *);
+
+#endif
 
  /*
   * This filter is applied after printable().
@@ -3746,7 +3754,12 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     };
     int     got_helo = 0;
     int     got_proto = 0;
+
+#ifdef USE_SASL_AUTH
     int     got_login = 0;
+    char   *saved_username;
+
+#endif
 
     /*
      * Sanity checks.
@@ -4007,6 +4020,21 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 #ifdef USE_SASL_AUTH
     if (got_login == 0)
 	smtpd_sasl_auth_reset(state);
+    else
+	saved_username = mystrdup(state->sasl_username);
+    if (smtpd_sasl_is_active(state)) {
+	smtpd_sasl_deactivate(state);
+	if (state->tls_context == 0)		/* TLS from XCLIENT proxy? */
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
+				var_smtpd_sasl_opts);
+	else
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
+				var_smtpd_sasl_tls_opts);
+    }
+    if (got_login) {
+	smtpd_sasl_auth_extern(state, saved_username, XCLIENT_CMD);
+	myfree(saved_username);
+    }
 #endif
     chat_reset(state, 0);
     mail_reset(state);
@@ -4692,11 +4720,15 @@ static void smtpd_proto(SMTPD_STATE *state)
     int     argc;
     SMTPD_TOKEN *argv;
     SMTPD_CMD *cmdp;
-    int     tls_rate;
     const char *ehlo_words;
     const char *err;
     int     status;
     const char *cp;
+
+#ifdef USE_TLS
+    int     tls_rate;
+
+#endif
 
     /*
      * Print a greeting banner and run the state machine. Read SMTP commands

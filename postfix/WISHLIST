@@ -8,20 +8,16 @@ Wish list:
 
 	Things to do after the stable release:
 
+	MAINTAINER_README (with shared lib build guidance)
+
 	Update smtpd command count when rejecting input before
 	command-table lookup.
 
-	postconf -P: emit '{ name = value }' when editing/adding a
-	parameter whose new value contains whitespace.
-
-	Fix the ad-hoc lowercase() calls that silently assume an
-	adress or localpart is ASCII: smtpd/smtpd_resolve.c,
-	local/forward.c, local/recipient.c, ... Are we supposed to
-	throw an error when casefold() fails? How do we know that
-	an error is permanent or just a shortage of resources?
-
 	In release-notes add commands=x/y logging to the command
 	statistics.
+
+	Automatically do the equivalent of syslog_name=postfix/mumble
+	when basename(mumble) differs from basename(program file).
 
 	UTF8 DNS[BW]L domain name.
 

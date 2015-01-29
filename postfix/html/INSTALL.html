@@ -230,7 +230,7 @@ $ make
 <p> and so on. In some cases, optimization is turned off automatically. </p>
 
 <h3>4.3 - Building with Postfix shared libraries and database plugins
-(Postfix &ge; 2.12) </h3>
+(Postfix &ge; 3.0) </h3>
 
 <p> Postfix shared-library and database plugin support exists for
 recent versions of Linux, FreeBSD and MacOS X. Shared-library builds
@@ -298,7 +298,7 @@ database-plugin support </a></h4>
 
 <p> Additionally, Postfix can be built to support dynamic loading
 of Postfix database clients (database plugins) with the Debian-style
-dynamicmaps feature. Postfix 2.12 supports dynamic loading of <a href="CDB_README.html">cdb</a>:,
+dynamicmaps feature. Postfix 3.0 supports dynamic loading of <a href="CDB_README.html">cdb</a>:,
 <a href="ldap_table.5.html">ldap</a>:, <a href="lmdb_table.5.html">lmdb</a>:, <a href="mysql_table.5.html">mysql</a>:, <a href="pcre_table.5.html">pcre</a>:, <a href="pgsql_table.5.html">pgsql</a>:, <a href="DATABASE_README.html#types">sdbm</a>:, and <a href="sqlite_table.5.html">sqlite</a>: database
 clients.  Dynamic loading is useful when you distribute or install
 pre-compiled Postfix packages. </p>
@@ -327,9 +327,9 @@ such as "cdb" or "ldap". </p>
 
 <blockquote>
 
-<p> NOTE: The Postfix 2.12 build procedure expects that you specify
+<p> NOTE: The Postfix 3.0 build procedure expects that you specify
 database library dependencies with variables named <a href="CDB_README.html">AUXLIBS_CDB</a>,
-<a href="LDAP_README.html">AUXLIBS_LDAP</a>, etc.  With Postfix 2.12 and later, the old AUXLIBS
+<a href="LDAP_README.html">AUXLIBS_LDAP</a>, etc.  With Postfix 3.0 and later, the old AUXLIBS
 variable still supports building a statically-loaded database client,
 but only the new <a href="CDB_README.html">AUXLIBS_CDB</a> etc. variables support building a
 dynamically-loaded or statically-loaded CDB etc. database client.
@@ -545,7 +545,7 @@ systems that have IPv6 support. See the <a href="IPV6_README.html">IPV6_README</
 
 <h3>4.5 - Overriding built-in parameter default settings</h3>
 
-<h4>4.5.1 - Postfix 2.12 and later </h4>
+<h4>4.5.1 - Postfix 3.0 and later </h4>
 
 <p> All Postfix configuration parameters can be changed by editing
 a Postfix configuration file, except for one: the parameter that
@@ -701,7 +701,7 @@ $ make
 <tr> <th colspan="2"> Name/Value </th> <th> Description </th> </tr>
 
 <tr> <td colspan="2"> AUXLIBS="object_library..."</td> <td> Specifies
-one or more non-default object libraries. Postfix 2.12 and later
+one or more non-default object libraries. Postfix 3.0 and later
 specify some of their database library dependencies with <a href="CDB_README.html">AUXLIBS_CDB</a>,
 <a href="LDAP_README.html">AUXLIBS_LDAP</a>, <a href="LMDB_README.html">AUXLIBS_LMDB</a>, <a href="MYSQL_README.html">AUXLIBS_MYSQL</a>, <a href="PCRE_README.html">AUXLIBS_PCRE</a>, <a href="PGSQL_README.html">AUXLIBS_PGSQL</a>,
 <a href="SDBM_README.html">AUXLIBS_SDBM</a>, and <a href="SQLITE_README.html">AUXLIBS_SQLITE</a>, respectively. </td> </tr>

@@ -57,15 +57,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
 #include <vstream.h>
 #include <name_mask.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -149,7 +146,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
      * every delivery agent must recognize the double-bounce sender address
      * and substitute something else so mail does not come back at us.
      */
-    if (strcasecmp(recipient, mail_addr_double_bounce()) == 0) {
+    if (strcasecmp_utf8(recipient, mail_addr_double_bounce()) == 0) {
 	msg_warn("%s: undeliverable postmaster notification discarded",
 		 queue_id);
 	bounce_status = 0;
@@ -247,7 +244,7 @@ int     bounce_warn_service(int unused_flags, char *service, char *queue_name,
 	 * retransmit the bounce that we just generated, just log a warning.
 	 */
 	if (bounce_status == 0 && SEND_POSTMASTER_DELAY_NOTICE
-	    && strcasecmp(recipient, mail_addr_double_bounce()) != 0) {
+	    && strcasecmp_utf8(recipient, mail_addr_double_bounce()) != 0) {
 
 	    /*
 	     * Send the text with reason for the bounce, and the headers of

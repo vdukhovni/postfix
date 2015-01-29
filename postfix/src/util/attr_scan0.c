@@ -45,7 +45,7 @@
 /*	characters including the terminator.
 /*	These formatting rules favor implementations in C.
 /*
-/*      Normally, attributes must be received in the sequence as specified with
+/*	Normally, attributes must be received in the sequence as specified with
 /*	the attr_scan0() argument list.  The input stream may contain additional
 /*	attributes at any point in the input stream, including additional
 /*	instances of requested attributes.

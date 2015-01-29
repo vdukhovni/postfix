@@ -496,7 +496,7 @@ static void *policy_create(const char *unused_key, void *context)
     } else if (tls_per_site) {
 	tls_site_lookup(tls, &site_level, dest, "next-hop destination");
 	if (site_level != TLS_LEV_INVALID
-	    && strcasecmp(dest, host) != 0)
+	    && strcasecmp_utf8(dest, host) != 0)
 	    tls_site_lookup(tls, &site_level, host, "server hostname");
 
 	/*

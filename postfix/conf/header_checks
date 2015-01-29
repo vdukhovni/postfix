@@ -190,8 +190,7 @@
 #               Note 2: this ignores duplicate addresses (with  the
 #               same delivery status notification options).
 # 
-#               This  feature  is  available  in  Postfix  2.12 and
-#               later.
+#               This feature is available in Postfix 3.0 and later.
 # 
 #               This feature is not supported with smtp header/body
 #               checks.
@@ -314,8 +313,8 @@
 #                      line,  the  prepended text must begin with a
 #                      valid message header label.
 # 
-#               o      This action cannot be used to prepend multi-
-#                      line text.
+#               o      This  action  cannot  be  used  to   prepend
+#                      multi-line text.
 # 
 #               This feature is available in Postfix 2.1 and later.
 # 

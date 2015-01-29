@@ -31,8 +31,8 @@ support, use something like:
         AUXLIBS_LMDB="-L/usr/local/lib -llmdb"
     % make
 
-Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_LMDB. With Postfix
-2.12 and later, the old AUXLIBS variable still supports building a statically-
+Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_LMDB. With Postfix
+3.0 and later, the old AUXLIBS variable still supports building a statically-
 loaded LMDB database client, but only the new AUXLIBS_LMDB variable supports
 building a dynamically-loaded or statically-loaded LMDB database client.
 

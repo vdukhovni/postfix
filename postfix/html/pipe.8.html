@@ -17,9 +17,9 @@ PIPE(8)                                                                PIPE(8)
        deliver messages to external commands.  This program expects to be  run
        from the <a href="master.8.html"><b>master</b>(8)</a> process manager.
 
-       Message  attributes such as sender address, recipient address and next-
-       hop host name can be specified as command-line macros that are expanded
-       before the external command is executed.
+       Message  attributes  such  as  sender  address,  recipient  address and
+       next-hop host name can be specified as  command-line  macros  that  are
+       expanded before the external command is executed.
 
        The  <a href="pipe.8.html"><b>pipe</b>(8)</a>  daemon  updates  queue files and marks recipients as fin-
        ished, or it informs the queue manager that delivery  should  be  tried
@@ -28,9 +28,9 @@ PIPE(8)                                                                PIPE(8)
 
 <b>SINGLE-RECIPIENT DELIVERY</b>
        Some destinations cannot handle more than one  recipient  per  delivery
-       request.  Examples  are  pagers  or  fax machines.  In addition, multi-
-       recipient delivery is undesirable when prepending a <b>Delivered-to:</b> or <b>X-</b>
-       <b>Original-To:</b> message header.
+       request.   Examples   are   pagers   or  fax  machines.   In  addition,
+       multi-recipient delivery is undesirable when prepending a <b>Delivered-to:</b>
+       or <b>X-Original-To:</b> message header.
 
        To  prevent  Postfix  from  sending  multiple  recipients  per delivery
        request, specify
@@ -192,7 +192,7 @@ PIPE(8)                                                                PIPE(8)
               interpreter.
 
               Specify "{" and "}" around command arguments that contain white-
-              space (Postfix 2.12 and later). Whitespace after "{" and  before
+              space (Postfix 3.0 and later). Whitespace after "{"  and  before
               "}" is ignored.
 
               In  the command argument vector, the following macros are recog-
@@ -358,8 +358,8 @@ PIPE(8)                                                                PIPE(8)
 
        After successful delivery (zero exit status) a limited amount  of  com-
        mand  output is logged, and reported in "success" delivery status noti-
-       fications (Postfix 2.12 and later).  This command output is  not  exam-
-       ined for the presence of an enhanced status code.
+       fications (Postfix 3.0 and later).  This command output is not examined
+       for the presence of an enhanced status code.
 
        Problems  and transactions are logged to <b>syslogd</b>(8).  Corrupted message
        files are marked so that the queue manager can move them to the <b>corrupt</b>
@@ -457,7 +457,7 @@ PIPE(8)                                                                PIPE(8)
               syslog records, so that "smtpd"  becomes,  for  example,  "post-
               fix/smtpd".
 
-       Available in Postfix version 2.12 and later:
+       Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#pipe_delivery_status_filter">pipe_delivery_status_filter</a> ($<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b>
               Optional  filter  for  the  <a href="pipe.8.html"><b>pipe</b>(8)</a> delivery agent to change the

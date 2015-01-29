@@ -337,7 +337,7 @@
 /*	The mail system name that is prepended to the process name in syslog
 /*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBconfirm_delay_cleared (no)\fR"
 /*	After sending a "your message is delayed" notification, inform
 /*	the sender when the delay clears up.

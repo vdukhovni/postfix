@@ -39,8 +39,8 @@ mysqlclient library (and libm) to AUXLIBS_MYSQL, for example:
         'CCARGS=-DHAS_MYSQL -I/usr/local/mysql/include' \
         'AUXLIBS_MYSQL=-L/usr/local/mysql/lib -lmysqlclient -lz -lm'
 
-Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_MYSQL. With Postfix
-2.12 and later, the old AUXLIBS variable still supports building a statically-
+Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_MYSQL. With Postfix
+3.0 and later, the old AUXLIBS variable still supports building a statically-
 loaded MySQL database client, but only the new AUXLIBS_MYSQL variable supports
 building a dynamically-loaded or statically-loaded MySQL database client.
 

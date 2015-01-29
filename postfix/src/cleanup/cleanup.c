@@ -92,7 +92,7 @@
 /* .IP "\fBenable_long_queue_ids (no)\fR"
 /*	Enable long, non-repeating, queue IDs (queue file names).
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBmessage_drop_headers (bcc, content-length, resent-bcc, return-path)\fR"
 /*	Names of message headers that the \fBcleanup\fR(8) daemon will remove
 /*	after applying \fBheader_checks\fR(5) and before invoking Milter applications.
@@ -321,9 +321,19 @@
 /* .IP "\fBvirtual_alias_recursion_limit (1000)\fR"
 /*	The maximal nesting depth of virtual alias expansion.
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBvirtual_alias_address_length_limit (1000)\fR"
 /*	The maximal length of an email address after virtual alias expansion.
+/* SMTPUTF8 CONTROLS
+/* .ad
+/* .fi
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
+/* .IP "\fBsmtputf8_enable (yes)\fR"
+/*	Enable preliminary SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
+/* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
+/*	Detect that a message requires SMTPUTF8 support for the specified
+/*	mail origin classes.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi

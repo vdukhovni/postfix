@@ -120,7 +120,7 @@
 # .sp
 #	The \fBlocal\fR(8), \fBpipe\fR(8), \fBspawn\fR(8), and
 #	\fBvirtual\fR(8) daemons require privileges.
-# .IP "\fBChroot (default: Postfix >= 2.12: n, Postfix <2.12: y)\fR"
+# .IP "\fBChroot (default: Postfix >= 3.0: n, Postfix <3.0: y)\fR"
 #	Whether or not the service runs chrooted to the mail queue
 #	directory (pathname is controlled by the \fBqueue_directory\fR
 #	configuration variable in the main.cf file).
@@ -176,7 +176,7 @@
 #	Run the daemon under control by the command specified with
 #	the \fBdebugger_command\fR variable in the main.cf
 #	configuration file.  See DEBUG_README for hints and tips.
-# .IP "\fB-o { \fIname\fR = \fIvalue\fB }\fR (long form, Postfix >= 2.12)"
+# .IP "\fB-o { \fIname\fR = \fIvalue\fB }\fR (long form, Postfix >= 3.0)"
 # .IP "\fB-o \fIname\fR=\fIvalue\fR (short form)"
 #	Override the named main.cf configuration parameter. The
 #	parameter value can refer to other parameters as \fI$name\fR
@@ -212,7 +212,7 @@
 #	options to make a Postfix daemon process increasingly verbose.
 # .IP "Other command-line arguments"
 #	Specify "{" and "}" around command arguments that contain
-#	whitespace (Postfix 2.12 and later). Whitespace
+#	whitespace (Postfix 3.0 and later). Whitespace
 #	after "{" and before "}" is ignored.
 # SEE ALSO
 #	master(8), process manager

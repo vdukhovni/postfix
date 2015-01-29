@@ -236,7 +236,7 @@
 /*	available for use with dict_longjmp().  Normally, dict_setjmp()
 /*	returns zero.  A non-zero result means that dict_setjmp()
 /*	returned through a dict_longjmp() call; the result is the
-/*	\fIval\fR argment given to dict_longjmp(). dict_isjmp()
+/*	\fIval\fR argument given to dict_longjmp(). dict_isjmp()
 /*	returns non-zero when dict_setjmp() and dict_longjmp()
 /*	are enabled for a given dictionary.
 /*
@@ -289,10 +289,6 @@
 #include <sys_defs.h>
 #include <string.h>
 #include <stdlib.h>
-
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
 
 /* Utility library. */
 

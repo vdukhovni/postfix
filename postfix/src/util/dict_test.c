@@ -12,6 +12,10 @@
 #include <signal.h>
 #include <string.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 /* Utility library. */
 
 #include <msg.h>

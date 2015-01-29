@@ -157,7 +157,7 @@
 /*	An optional string that is prepended to each message that is
 /*	written to a dump file (see the dump file format description
 /*	below). The following C escape sequences are supported: \ea
-/*	(bell), \eb (backslace), \ef (formfeed), \en (newline), \er
+/*	(bell), \eb (backspace), \ef (formfeed), \en (newline), \er
 /*	(carriage return), \et (horizontal tab), \ev (vertical tab),
 /*	\e\fIddd\fR (up to three octal digits) and \e\e (the backslash
 /*	character).

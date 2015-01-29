@@ -162,6 +162,10 @@
 #include <sys_defs.h>
 #include <ctype.h>
 
+#ifdef STRCASECMP_IN_STRINGS_H
+#include <strings.h>
+#endif
+
 #ifdef USE_TLS
 #include <string.h>
 

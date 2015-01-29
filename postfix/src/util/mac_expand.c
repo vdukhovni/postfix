@@ -16,7 +16,7 @@
 /* DESCRIPTION
 /*	This module implements parameter-less named attribute
 /*	expansions, both conditional and unconditional. As of Postfix
-/*	2.12 this code supports logical expression evaluation.
+/*	3.0 this code supports logical expression evaluation.
 /*
 /*	In this text, an attribute is considered "undefined" when its value
 /*	is a null pointer.  Otherwise, the attribute is considered "defined"
@@ -265,7 +265,7 @@ static int PRINTFLIKE(2, 3) mac_exp_parse_error(MAC_EXP_CONTEXT *mc,
     } while (0)
 
  /*
-  * Postfix 2.12 introduces support for {text} operands. Only with these do
+  * Postfix 3.0 introduces support for {text} operands. Only with these do
   * we support the ternary ?: operator and logical operators.
   * 
   * We cannot support operators in random text, because that would break Postfix

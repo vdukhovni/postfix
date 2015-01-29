@@ -498,7 +498,7 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 			     rcpt_domain, VAR_VIRT_ALIAS_DOMS,
 			     VAR_RELAY_DOMAINS);
 #if 0
-		if (strcasecmp(rcpt_domain, var_myorigin) == 0)
+		if (strcasecmp_utf8(rcpt_domain, var_myorigin) == 0)
 		    msg_warn("do not list $%s (%s) in %s",
 			   VAR_MYORIGIN, var_myorigin, VAR_VIRT_ALIAS_DOMS);
 #endif

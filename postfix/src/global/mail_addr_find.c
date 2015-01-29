@@ -67,10 +67,6 @@
 #include <sys_defs.h>
 #include <string.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -134,7 +130,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp)
      */
     if (result == 0 && path->error == 0
 	&& (ratsign = strrchr(full_key, '@')) != 0
-	&& (strcasecmp(ratsign + 1, var_myorigin) == 0
+	&& (strcasecmp_utf8(ratsign + 1, var_myorigin) == 0
 	    || (rc = resolve_local(ratsign + 1)) > 0)) {
 	*ratsign = 0;
 	result = maps_find(path, full_key, PARTIAL);
@@ -203,7 +199,7 @@ int     main(int argc, char **argv)
      */
     mail_conf_read();
     path = maps_create(argv[0], argv[1], DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX \
-		       | DICT_FLAG_UTF8_REQUEST);
+		       |DICT_FLAG_UTF8_REQUEST);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	extent = 0;
 	result = mail_addr_find(path, STR(buffer), &extent);

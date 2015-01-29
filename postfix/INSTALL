@@ -149,7 +149,7 @@ compiler. Here are a few examples:
 and so on. In some cases, optimization is turned off automatically.
 
 4.3 - Building with Postfix shared libraries and database plugins (Postfix >=
-2.12)
+3.0)
 
 Postfix shared-library and database plugin support exists for recent versions
 of Linux, FreeBSD and MacOS X. Shared-library builds may become the default at
@@ -197,7 +197,7 @@ support to upgrade a running mail system safely.
 
 Additionally, Postfix can be built to support dynamic loading of Postfix
 database clients (database plugins) with the Debian-style dynamicmaps feature.
-Postfix 2.12 supports dynamic loading of cdb:, ldap:, lmdb:, mysql:, pcre:,
+Postfix 3.0 supports dynamic loading of cdb:, ldap:, lmdb:, mysql:, pcre:,
 pgsql:, sdbm:, and sqlite: database clients. Dynamic loading is useful when you
 distribute or install pre-compiled Postfix packages.
 
@@ -217,9 +217,9 @@ postfix), and installs database plugins in $shlib_directory (see above).
 Database plugins are named postfix-type.so where the type is a database type
 such as "cdb" or "ldap".
 
-    NOTE: The Postfix 2.12 build procedure expects that you specify database
+    NOTE: The Postfix 3.0 build procedure expects that you specify database
     library dependencies with variables named AUXLIBS_CDB, AUXLIBS_LDAP, etc.
-    With Postfix 2.12 and later, the old AUXLIBS variable still supports
+    With Postfix 3.0 and later, the old AUXLIBS variable still supports
     building a statically-loaded database client, but only the new AUXLIBS_CDB
     etc. variables support building a dynamically-loaded or statically-loaded
     CDB etc. database client. See CDB_README, LDAP_README, etc. for details.
@@ -373,7 +373,7 @@ have IPv6 support. See the IPV6_README file for details.
 
 4.5 - Overriding built-in parameter default settings
 
-4.5.1 - Postfix 2.12 and later
+4.5.1 - Postfix 3.0 and later
 
 All Postfix configuration parameters can be changed by editing a Postfix
 configuration file, except for one: the parameter that specifies the location
@@ -487,7 +487,7 @@ The following is an extensive list of names and values.
 |Name/Value		       |Description				      |
 |______________________________|______________________________________________|
 |			       |Specifies one or more non-default object      |
-|			       |libraries. Postfix 2.12 and later specify some|
+|			       |libraries. Postfix 3.0 and later specify some |
 |			       |of their database library dependencies with   |
 |AUXLIBS="object_library..."   |AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,      |
 |			       |AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL,   |

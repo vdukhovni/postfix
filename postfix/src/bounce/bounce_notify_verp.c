@@ -58,15 +58,12 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
 #include <vstream.h>
 #include <name_mask.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -111,7 +108,7 @@ int     bounce_notify_verp(int flags, char *service, char *queue_name,
      */
     if (*recipient == 0)
 	msg_panic("%s: attempt to bounce a single bounce", myname);
-    if (strcasecmp(recipient, mail_addr_double_bounce()) == 0)
+    if (strcasecmp_utf8(recipient, mail_addr_double_bounce()) == 0)
 	msg_panic("%s: attempt to bounce a double bounce", myname);
 
     /*

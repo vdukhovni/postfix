@@ -11,6 +11,8 @@ range 0xE000 0xE007
 verbose 0
 # Upper-case greek -> lower-case greek.
 fold Δημοσθένους.example.com
+# Exact-fit null termination test.
+fold Δημοσθένους.exxample.com
 # Upper-case ASCII -> lower-case ASCII.
 fold HeLlO.ExAmPlE.CoM
 # Folding does not change aliases for '.'.
@@ -18,5 +20,5 @@ fold x。example.com
 fold x．example.com
 fold x｡example.com
 # Bad UTF-8
-fold yyy���
-fold ���xxx
+fold YYY���
+fold ���XXX

@@ -56,15 +56,19 @@ QMQPD(8)                                                              QMQPD(8)
               ing, or address mapping.
 
 <b>SMTPUTF8 CONTROLS</b>
-       Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+       Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
+
+       <b><a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> (yes)</b>
+              Enable preliminary SMTPUTF8 support for the protocols  described
+              in <a href="http://tools.ietf.org/html/rfc6531">RFC 6531</a>..6533.
 
        <b><a href="postconf.5.html#smtputf8_autodetect_classes">smtputf8_autodetect_classes</a> (sendmail, verify)</b>
-              Detect that a message requires SMTPUTF8 support for  the  speci-
+              Detect  that  a message requires SMTPUTF8 support for the speci-
               fied mail origin classes.
 
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#line_length_limit">line_length_limit</a> (2048)</b>
-              Upon  input,  long  lines  are chopped up into pieces of at most
+              Upon input, long lines are chopped up into  pieces  of  at  most
               this length; upon delivery, long lines are reconstructed.
 
        <b><a href="postconf.5.html#hopcount_limit">hopcount_limit</a> (50)</b>
@@ -72,47 +76,47 @@ QMQPD(8)                                                              QMQPD(8)
               in the primary message headers.
 
        <b><a href="postconf.5.html#message_size_limit">message_size_limit</a> (10240000)</b>
-              The  maximal  size  in  bytes  of  a message, including envelope
+              The maximal size in  bytes  of  a  message,  including  envelope
               information.
 
        <b><a href="postconf.5.html#qmqpd_timeout">qmqpd_timeout</a> (300s)</b>
-              The time limit for sending or  receiving  information  over  the
+              The  time  limit  for  sending or receiving information over the
               network.
 
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>
-              The  increment  in verbose logging level when a remote client or
+              The increment in verbose logging level when a remote  client  or
               server matches a pattern in the <a href="postconf.5.html#debug_peer_list">debug_peer_list</a> parameter.
 
        <b><a href="postconf.5.html#debug_peer_list">debug_peer_list</a> (empty)</b>
-              Optional list of remote client or  server  hostname  or  network
+              Optional  list  of  remote  client or server hostname or network
               address  patterns  that  cause  the  verbose  logging  level  to
               increase by the amount specified in $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.
 
        <b><a href="postconf.5.html#soft_bounce">soft_bounce</a> (no)</b>
-              Safety net to keep mail queued that would otherwise be  returned
+              Safety  net to keep mail queued that would otherwise be returned
               to the sender.
 
 <b>TARPIT CONTROLS</b>
        <b><a href="postconf.5.html#qmqpd_error_delay">qmqpd_error_delay</a> (1s)</b>
-              How  long  the  Postfix  QMQP server will pause before sending a
+              How long the Postfix QMQP server will  pause  before  sending  a
               negative reply to the remote QMQP client.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How  much  time  a  Postfix  daemon process may take to handle a
+              How much time a Postfix daemon process  may  take  to  handle  a
               request before it is terminated by a built-in watchdog timer.
 
        <b><a href="postconf.5.html#ipc_timeout">ipc_timeout</a> (3600s)</b>
-              The time limit for sending  or  receiving  information  over  an
+              The  time  limit  for  sending  or receiving information over an
               internal communication channel.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount of time that an idle Postfix daemon process
+              The maximum amount of time that an idle Postfix  daemon  process
               waits for an incoming connection before terminating voluntarily.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
@@ -126,7 +130,7 @@ QMQPD(8)                                                              QMQPD(8)
               The process name of a Postfix command or daemon process.
 
        <b><a href="postconf.5.html#qmqpd_authorized_clients">qmqpd_authorized_clients</a> (empty)</b>
-              What remote QMQP clients are allowed to connect to  the  Postfix
+              What  remote  QMQP clients are allowed to connect to the Postfix
               QMQP server port.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
@@ -136,12 +140,12 @@ QMQPD(8)                                                              QMQPD(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
+              The mail system name that is prepended to the  process  name  in
+              syslog  records,  so  that  "smtpd" becomes, for example, "post-
               fix/smtpd".
 
        <b><a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> (-=+)</b>
-              The  characters  Postfix accepts as VERP delimiter characters on
+              The characters Postfix accepts as VERP delimiter  characters  on
               the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command line and in SMTP commands.
 
        Available in Postfix version 2.5 and later:

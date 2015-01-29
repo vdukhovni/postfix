@@ -176,7 +176,7 @@
 #	Note 2: this ignores duplicate addresses (with the same
 #	delivery status notification options).
 # .sp
-#	This feature is available in Postfix 2.12 and later.
+#	This feature is available in Postfix 3.0 and later.
 # .sp
 #	This feature is not supported with smtp header/body checks.
 # \" .IP "\fBDELAY \fItime\fR"

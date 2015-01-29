@@ -65,10 +65,6 @@
 #include <fcntl.h>
 #include <errno.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -144,7 +140,7 @@ int     deliver_alias(LOCAL_STATE state, USER_ATTR usr_attr,
      * a possible alias loop.
      */
     if (state.msg_attr.exp_from != 0
-	&& strcasecmp(state.msg_attr.exp_from, name) == 0)
+	&& strcasecmp_utf8(state.msg_attr.exp_from, name) == 0)
 	return (NO);
     if (state.level > 100) {
 	msg_warn("alias database loop for %s", name);

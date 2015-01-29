@@ -7,7 +7,7 @@
 /*	#include "qmgr.h"
 /*
 /*	QMGR_ENTRY *qmgr_entry_create(peer, message)
-/*      QMGR_PEER *peer;
+/*	QMGR_PEER *peer;
 /*	QMGR_MESSAGE *message;
 /*
 /*	void	qmgr_entry_done(entry, which)
@@ -29,7 +29,7 @@
 /*	delivery requests.
 /*
 /*	qmgr_entry_create() creates an entry for the named peer and message,
-/*      and appends the entry to the peer's list and its queue's todo list.
+/*	and appends the entry to the peer's list and its queue's todo list.
 /*	Filling in and cleaning up the recipients is the responsibility
 /*	of the caller.
 /*
@@ -41,7 +41,7 @@
 /*	for actual delivery).
 /*
 /*	qmgr_entry_done() discards its peer structure when the peer
-/*      is not referenced anymore.
+/*	is not referenced anymore.
 /*
 /*	qmgr_entry_done() triggers cleanup of the per-site queue when
 /*	the site has no pending deliveries, and the site is either

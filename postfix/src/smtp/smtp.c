@@ -255,7 +255,7 @@
 /* .IP "\fBsmtp_dns_support_level (empty)\fR"
 /*	Level of DNS support in the Postfix SMTP client.
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtp_delivery_status_filter ($default_delivery_status_filter)\fR"
 /*	Optional filter for the \fBsmtp\fR(8) delivery agent to change the
 /*	delivery status code or explanatory text of successful or unsuccessful
@@ -351,7 +351,7 @@
 /*	A file containing CA certificates of root CAs trusted to sign
 /*	either remote SMTP server certificates or intermediate CA certificates.
 /* .IP "\fBsmtp_tls_CApath (empty)\fR"
-/*	Directory with PEM format certificate authority certificates
+/*	Directory with PEM format Certification Authority certificates
 /*	that the Postfix SMTP client uses to verify a remote SMTP server
 /*	certificate.
 /* .IP "\fBsmtp_tls_cert_file (empty)\fR"
@@ -465,7 +465,7 @@
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBsmtp_tls_wrappermode (no)\fR"
 /*	Request that the Postfix SMTP client connects using the
 /*	legacy SMTPS protocol instead of using the STARTTLS command.
@@ -583,9 +583,9 @@
 /* SMTPUTF8 CONTROLS
 /* .ad
 /* .fi
-/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
-/*	Enable experimental SMTPUTF8 support for the protocols described
+/*	Enable preliminary SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
 /*	Detect that a message requires SMTPUTF8 support for the specified
@@ -691,7 +691,7 @@
 /*	Optional list of relay hosts for SMTP destinations that can't be
 /*	found or that are unreachable.
 /* .PP
-/*	Available with Postfix 2.12 and later:
+/*	Available with Postfix 3.0 and later:
 /* .IP "\fBsmtp_address_verify_target (rcpt)\fR"
 /*	In the context of email address verification, the SMTP protocol
 /*	stage that determines whether an email address is deliverable.

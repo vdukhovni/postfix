@@ -295,7 +295,7 @@ static void event_server_timeout(int unused_event, void *unused_context)
     event_server_exit();
 }
 
-/*  event_server_drain - stop accepting new clients */
+/* event_server_drain - stop accepting new clients */
 
 int     event_server_drain(void)
 {

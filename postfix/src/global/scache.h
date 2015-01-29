@@ -3,11 +3,11 @@
 
 /*++
 /* NAME
-/*      scache 3h
+/*	scache 3h
 /* SUMMARY
-/*      generic session cache API
+/*	generic session cache API
 /* SYNOPSIS
-/*      #include <scache.h>
+/*	#include <scache.h>
 /* DESCRIPTION
 /* .nf
 

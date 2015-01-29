@@ -102,6 +102,7 @@
 struct DELIVERED_HDR_INFO {
     int     flags;
     VSTRING *buf;
+    VSTRING *fold;
     HTABLE *table;
 };
 
@@ -121,6 +122,7 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
     info = (DELIVERED_HDR_INFO *) mymalloc(sizeof(*info));
     info->flags = flags;
     info->buf = vstring_alloc(10);
+    info->fold = vstring_alloc(10);
     info->table = htable_create(0);
 
     if (vstream_fseek(fp, offset, SEEK_SET) < 0)
@@ -143,8 +145,7 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
 		cp = STR(info->buf) + strlen(hdr->name) + 1;
 		while (ISSPACE(*cp))
 		    cp++;
-		if (info->flags & FOLD_ADDR_ALL)
-		    fold_addr(cp, info->flags);
+		cp = fold_addr(info->fold, cp, info->flags);
 		if (msg_verbose)
 		    msg_info("delivered_hdr_init: %s", cp);
 		htable_enter(info->table, cp, (void *) 0);
@@ -163,6 +164,7 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
 int     delivered_hdr_find(DELIVERED_HDR_INFO *info, const char *address)
 {
     HTABLE_INFO *ht;
+    const char *addr_key;
 
     /*
      * mail_copy() uses quote_822_local() when writing the Delivered-To:
@@ -170,9 +172,8 @@ int     delivered_hdr_find(DELIVERED_HDR_INFO *info, const char *address)
      * up the recipient. Lowercase the delivered-to address for consistency.
      */
     quote_822_local(info->buf, address);
-    if (info->flags & FOLD_ADDR_ALL)
-	fold_addr(STR(info->buf), info->flags);
-    ht = htable_locate(info->table, STR(info->buf));
+    addr_key = fold_addr(info->fold, STR(info->buf), info->flags);
+    ht = htable_locate(info->table, addr_key);
     return (ht != 0);
 }
 
@@ -181,6 +182,7 @@ int     delivered_hdr_find(DELIVERED_HDR_INFO *info, const char *address)
 void    delivered_hdr_free(DELIVERED_HDR_INFO *info)
 {
     vstring_free(info->buf);
+    vstring_free(info->fold);
     htable_free(info->table, (void (*) (void *)) 0);
     myfree((void *) info);
 }

@@ -86,15 +86,15 @@
 /* DIAGNOSTICS
 /*	All client functions return one of the following status codes:
 /* .IP TLS_MGR_STAT_OK
-/*      The request completed, and the requested operation was
+/*	The request completed, and the requested operation was
 /*	successful (for example, the requested session was found,
 /*	or the specified session was saved or removed).
 /* .IP TLS_MGR_STAT_ERR
-/*      The request completed, but the requested operation failed
+/*	The request completed, but the requested operation failed
 /*	(for example, the requested object was not found or the
 /*	specified session was not saved or removed).
 /* .IP TLS_MGR_STAT_FAIL
-/*      The request could not complete (the client could not
+/*	The request could not complete (the client could not
 /*	communicate with the tlsmgr(8) server).
 /* SEE ALSO
 /*	tlsmgr(8) TLS session and PRNG management

@@ -84,7 +84,7 @@ LLiimmiittaattiioonnss ooff aaddddrreessss vveerriiffi
   * Postfix assumes that a remote SMTP server will reject unknown addresses in
     reply to the RCPT TO command. However, some sites report this in reply to
     the DATA command. For such sites you may configure a workaround with the
-    smtp_address_verify_target parameter (Postfix 2.12 and later).
+    smtp_address_verify_target parameter (Postfix 3.0 and later).
 
   * When verifying a remote address, Postfix probes the preferred MTAs for that
     address, without actually delivering mail. If a preferred MTA accepts the

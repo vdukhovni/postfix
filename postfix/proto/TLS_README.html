@@ -1,4 +1,4 @@
-<doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
+<!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 
 <html>
@@ -321,8 +321,8 @@ anonymous-cipher capable clients: </p>
 </blockquote>
 
 <p> To verify a remote SMTP client certificate, the Postfix SMTP
-server needs to trust the certificates of the issuing certification
-authorities. These certificates in "PEM" format can be stored in a
+server needs to trust the certificates of the issuing Certification
+Authorities. These certificates in "PEM" format can be stored in a
 single $smtpd_tls_CAfile or in multiple files, one CA per file in
 the $smtpd_tls_CApath directory. If you use a directory, don't forget
 to create the necessary "hash" links with: </p>
@@ -345,8 +345,8 @@ is needed. Thus, the $smtpd_tls_CApath directory needs to be
 accessible inside the optional chroot jail. </p>
 
 <p> When you configure the Postfix SMTP server to request <a
-href="#server_vrfy_client">client certificates</a>, the DNs of certificate
-authorities in $smtpd_tls_CAfile are sent to the client, in order to allow
+href="#server_vrfy_client">client certificates</a>, the DNs of Certification
+Authorities in $smtpd_tls_CAfile are sent to the client, in order to allow
 it to choose an identity signed by a CA you trust. If no $smtpd_tls_CAfile
 is specified, no preferred CA list is sent, and the client is free to
 choose an identity signed by any CA. Many clients use a fixed identity
@@ -1423,8 +1423,8 @@ master.cf:
 
 <h4><a name="client_tls_fprint"> Certificate fingerprint verification </a> </h4>
 
-<p> At the <i>fingerprint</i> security level, no trusted certificate
-authorities are used or required.  The certificate trust chain,
+<p> At the <i>fingerprint</i> security level, no trusted Certification
+Authorities are used or required.  The certificate trust chain,
 expiration date, etc., are not checked. Instead, the
 smtp_tls_fingerprint_cert_match parameter or the "match" attribute
 in the <a href="#client_tls_policy">policy</a> table lists the
@@ -1531,7 +1531,7 @@ to Postfix 2.9.6 or later. </p>
 <p> At the <i>verify</i> TLS security level, messages are sent only over
 TLS encrypted sessions if the remote SMTP server certificate is
 valid (not
-expired or revoked, and signed by a trusted certificate authority)
+expired or revoked, and signed by a trusted Certification Authority)
 and where the server certificate name matches a known pattern.
 Mandatory
 server certificate verification can be configured by setting
@@ -1568,7 +1568,7 @@ attacks, mandatory certificate trust chain and subject name verification
 is not viable as a default Internet mail delivery policy.  Most MX hosts
 do not support TLS at all, and a significant portion of TLS enabled
 MTAs use self-signed certificates, or certificates that are signed by
-a private certificate authority. On a machine that delivers mail to
+a private Certification Authority. On a machine that delivers mail to
 the Internet, you should not configure mandatory server certificate
 verification as a default policy. </p>
 
@@ -1642,7 +1642,7 @@ attacks, mandatory secure server certificate verification is not
 viable as a default Internet mail delivery policy.  Most MX hosts
 do not support TLS at all, and a significant portion of TLS enabled
 MTAs use self-signed certificates, or certificates that are signed
-by a private certificate authority. On a machine that delivers mail
+by a private Certification Authority. On a machine that delivers mail
 to the Internet, you should not configure secure TLS verification
 as a default policy. </p>
 
@@ -1887,8 +1887,8 @@ $smtp_tls_CAfile or install it in the $smtp_tls_CApath directory. </p>
 </blockquote>
 
 <p> To verify a remote SMTP server certificate, the Postfix SMTP
-client needs to trust the certificates of the issuing certification
-authorities. These certificates in "pem" format can be stored in a
+client needs to trust the certificates of the issuing Certification
+Authorities. These certificates in "pem" format can be stored in a
 single $smtp_tls_CAfile or in multiple files, one CA per file in
 the $smtp_tls_CApath directory. If you use a directory, don't forget
 to create the necessary "hash" links with: </p>
@@ -2159,8 +2159,8 @@ DNSSEC support is available with Postfix 2.11 and later.  </dd>
 
 <dt><b>fingerprint</b></dt> <dd><a href="#client_tls_fprint">Certificate
 fingerprint verification.</a> Available with Postfix 2.5 and
-later. At this security level, there are no trusted certificate
-authorities. The certificate trust chain, expiration date, ... are
+later. At this security level, there are no trusted Certification
+Authorities. The certificate trust chain, expiration date, ... are
 not checked. Instead, the optional <b>match</b> attribute, or else
 the main.cf <b>smtp_tls_fingerprint_cert_match</b> parameter, lists
 the server certificate fingerprints or public key fingerprints
@@ -2176,7 +2176,7 @@ digits. </dd>
 server certificate verification</a>.  Mail is delivered only if the
 TLS handshake succeeds, if the remote SMTP server certificate can
 be validated (not expired or revoked, and signed by a trusted
-certificate authority), and if the server certificate name matches
+Certification Authority), and if the server certificate name matches
 the optional "match" attribute (or the main.cf smtp_tls_verify_cert_match
 parameter value when no optional "match" attribute is specified).
 With Postfix &ge; 2.11 the "tafile" attribute optionally modifies
@@ -2188,7 +2188,7 @@ files.  </dd>
 <dt><b>secure</b></dt> <dd><a href="#client_tls_secure">Secure certificate
 verification.</a> Mail is delivered only if the TLS handshake succeeds,
 if the remote SMTP server certificate can be validated (not expired
-or revoked, and signed by a trusted certificate authority), and if the
+or revoked, and signed by a trusted Certification Authority), and if the
 server certificate name matches the optional "match" attribute (or the
 main.cf smtp_tls_secure_cert_match parameter value when no optional
 "match" attribute is specified).  With Postfix &ge; 2.11 the "tafile"
@@ -2375,13 +2375,13 @@ support STARTTLS, but that provides the deprecated SMTPS service
 on TCP port 465.  Depending on the Postfix version, some additional
 tooling may be required. </p>
 
-<h4> Postfix &ge; 2.12 </h4>
+<h4> Postfix &ge; 3.0 </h4>
 
 <p> The Postfix SMTP client has SMTPS support built-in as of version
-2.12.  Use one of the following examples, to send all remote mail,
-or to send only some remote mail, to an SMTPS server.  </p> </p>
+3.0.  Use one of the following examples, to send all remote mail,
+or to send only some remote mail, to an SMTPS server.  </p>
 
-<h5> Postfix &ge; 2.12: Sending all remote mail to an SMTPS server </h5>
+<h5> Postfix &ge; 3.0: Sending all remote mail to an SMTPS server </h5>
 
 <p> The first example will send all remote mail over SMTPS through
 a provider's server called "mail.example.com": </p>
@@ -2402,7 +2402,7 @@ a provider's server called "mail.example.com": </p>
 <p> See SOHO_README for additional information about SASL authentication.
 </p>
 
-<h5> Postfix &ge; 2.12: Sending only mail for a specific destination
+<h5> Postfix &ge; 3.0: Sending only mail for a specific destination
 via SMTPS </h5>
 
 <p> The second example will send only mail for "example.com" via
@@ -2431,14 +2431,14 @@ to make the change effective. </p>
 <p> See SOHO_README for additional information about SASL
 authentication. </p>
 
-<h4> Postfix &lt; 2.12 </h4>
+<h4> Postfix &lt; 3.0 </h4>
 
 <p> Although older Postfix SMTP client versions do not support TLS
 wrapper mode, it is relatively easy to forward a connection through
 the stunnel program if Postfix needs to deliver mail to some legacy
 system that doesn't support STARTTLS. </p>
 
-<h5> Postfix &lt; 2.12: Sending all remote mail to an SMTPS server </h5>
+<h5> Postfix &lt; 3.0: Sending all remote mail to an SMTPS server </h5>
 
 <p> The first example uses SMTPS to send all remote mail to a
 provider's mail server called "mail.example.com".  </p>
@@ -2484,7 +2484,7 @@ mail through the local stunnel listener on port 11125: </p>
 <p> See SOHO_README for additional information about SASL
 authentication. </p>
 
-<h4> Postfix &lt; 2.12: Sending only mail for a specific destination via SMTPS </h4>
+<h4> Postfix &lt; 3.0: Sending only mail for a specific destination via SMTPS </h4>
 
 <p> The second example will use SMTPS to send only mail for
 "example.com" via SMTPS. It uses the same stunnel configuration
@@ -2690,9 +2690,9 @@ sign your own Postfix public key certificate, you get TLS encryption
 but no TLS authentication.  This is sufficient for testing, and
 for exchanging email with sites that you have no trust relationship
 with.  For real authentication, your Postfix public key certificate
-needs to be signed by a recognized Certificate Authority, and
+needs to be signed by a recognized Certification Authority, and
 Postfix needs to be configured with a list of public key certificates
-of Certificate Authorities, so that Postfix can verify the public key
+of Certification Authorities, so that Postfix can verify the public key
 certificates of remote hosts. </p>
 
 <p> In the examples below, user input is shown in <b><tt>bold</tt></b>
@@ -2702,7 +2702,7 @@ font, and a "<tt>#</tt>" prompt indicates a super-user shell. </p>
 
 <li> <p> <a name="#self-signed">Self-signed server certificate</a>.</p>
 
-<li> <p> <a name="#private-ca">Private Certificate Authority</a>. </p>
+<li> <p> <a name="#private-ca">Private Certification Authority</a>. </p>
 
 </ul>
 
@@ -2747,11 +2747,11 @@ caching is also enabled in the Postfix SMTP client.  With Postfix
 since session reuse is better handled via RFC 5077 TLS session
 tickets. </p>
 
-<h3><a name="private-ca">Private Certificate Authority</a></h3>
+<h3><a name="private-ca">Private Certification Authority</a></h3>
 
 <ul>
 
-<li> <p> Become your own Certificate Authority, so that you can
+<li> <p> Become your own Certification Authority, so that you can
 sign your own certificates, and so that your own systems can
 authenticate certificates from your own CA. This example uses the
 CA.pl script that ships with OpenSSL.  On some systems, OpenSSL

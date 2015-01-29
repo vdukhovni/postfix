@@ -386,7 +386,7 @@
 /*	attribute, when delivering mail to a child alias that does not have
 /*	its own owner alias.
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBlocal_delivery_status_filter ($default_delivery_status_filter)\fR"
 /*	Optional filter for the \fBlocal\fR(8) delivery agent to change the
 /*	status code or explanatory text of successful or unsuccessful

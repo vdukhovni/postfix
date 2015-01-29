@@ -57,7 +57,7 @@ installation parameters on the command line:
 With Postfix versions before 2.2 you must invoke the post-install script
 directly (% sshh ppoosstt--iinnssttaallll --nnoonn--iinntteerraaccttiivvee iinnssttaallll__rroooott......).
 
-With Postfix 2.12 and later, the command "make package name=value ..." will
+With Postfix 3.0 and later, the command "make package name=value ..." will
 replace the string MAIL_VERSION in a configuration parameter value with the
 Postfix release version. Do not try to specify something like $mail_version on
 this command line. This produces inconsistent results with different versions

@@ -178,7 +178,7 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               Note 2: this ignores duplicate addresses (with the same delivery
               status notification options).
 
-              This feature is available in Postfix 2.12 and later.
+              This feature is available in Postfix 3.0 and later.
 
               This feature is not supported with smtp header/body checks.
 
@@ -362,12 +362,12 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               rules need to be specified for the encoded form.
 
        Message headers added by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon itself are excluded from
-       inspection.  Examples  of such message headers are <b>From:</b>, <b>To:</b>, <b>Message-</b>
-       <b>ID:</b>, <b>Date:</b>.
+       inspection.  Examples  of  such  message  headers  are <b>From:</b>, <b>To:</b>, <b>Mes-</b>
+       <b>sage-ID:</b>, <b>Date:</b>.
 
        Message headers deleted by  the  <a href="cleanup.8.html"><b>cleanup</b>(8)</a>  daemon  will  be  examined
-       before  they  are deleted. Examples are: <b>Bcc:</b>, <b>Content-Length:</b>, <b>Return-</b>
-       <b>Path:</b>.
+       before   they   are   deleted.  Examples  are:  <b>Bcc:</b>,  <b>Content-Length:</b>,
+       <b>Return-Path:</b>.
 
 <b>CONFIGURATION PARAMETERS</b>
        <b><a href="postconf.5.html#body_checks">body_checks</a></b>

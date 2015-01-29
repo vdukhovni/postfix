@@ -26,11 +26,11 @@ For example:
          'CCARGS=-DHAS_SQLITE -I/usr/local/include' \
          'AUXLIBS_SQLITE=-L/usr/local/lib -lsqlite3 -lpthread'
 
-Postfix versions before 2.12 use AUXLIBS instead of AUXLIBS_SQLITE. With
-Postfix 2.12 and later, the old AUXLIBS variable still supports building a
-statically-loaded SQLite database client, but only the new AUXLIBS_SQLITE
-variable supports building a dynamically-loaded or statically-loaded SQLite
-database client.
+Postfix versions before 3.0 use AUXLIBS instead of AUXLIBS_SQLITE. With Postfix
+3.0 and later, the old AUXLIBS variable still supports building a statically-
+loaded SQLite database client, but only the new AUXLIBS_SQLITE variable
+supports building a dynamically-loaded or statically-loaded SQLite database
+client.
 
     Failure to use the AUXLIBS_SQLITE variable will defeat the purpose of
     dynamic database client loading. Every Postfix executable file will have

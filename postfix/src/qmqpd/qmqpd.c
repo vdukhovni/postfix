@@ -53,7 +53,10 @@
 /* SMTPUTF8 CONTROLS
 /* .ad
 /* .fi
-/*	Preliminary SMTPUTF8 support is introduced with Postfix 2.12.
+/*	Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
+/* .IP "\fBsmtputf8_enable (yes)\fR"
+/*	Enable preliminary SMTPUTF8 support for the protocols described
+/*	in RFC 6531..6533.
 /* .IP "\fBsmtputf8_autodetect_classes (sendmail, verify)\fR"
 /*	Detect that a message requires SMTPUTF8 support for the specified
 /*	mail origin classes.

@@ -70,10 +70,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef STRCASECMP_IN_STRINGS_H
-#include <strings.h>
-#endif
-
 /* Utility library. */
 
 #include <msg.h>
@@ -121,10 +117,10 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
      * bounced mail traffic more robustly.
      */
     cleanup_rewrite_internal(MAIL_ATTR_RWR_LOCAL, clean_addr, buf);
-    if (strncasecmp(STR(clean_addr), MAIL_ADDR_MAIL_DAEMON "@",
-		    sizeof(MAIL_ADDR_MAIL_DAEMON)) == 0) {
+    if (strncasecmp_utf8(STR(clean_addr), MAIL_ADDR_MAIL_DAEMON "@",
+			 sizeof(MAIL_ADDR_MAIL_DAEMON)) == 0) {
 	canon_addr_internal(state->temp1, MAIL_ADDR_MAIL_DAEMON);
-	if (strcasecmp(STR(clean_addr), STR(state->temp1)) == 0)
+	if (strcasecmp_utf8(STR(clean_addr), STR(state->temp1)) == 0)
 	    vstring_strcpy(clean_addr, "");
     }
     if (state->flags & CLEANUP_FLAG_MAP_OK) {

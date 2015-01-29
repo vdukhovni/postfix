@@ -154,7 +154,7 @@
 /*	The directory with Postfix-writable data files (for example:
 /*	caches, pseudo-random numbers).
 /* .PP
-/*	Available in Postfix version 2.12 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBmeta_directory (see 'postconf -d' output)\fR"
 /*	The location of non-executable files that are shared among
 /*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,

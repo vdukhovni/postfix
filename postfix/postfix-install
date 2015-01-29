@@ -60,14 +60,14 @@
 #	the postfix-install command line. This mode will replace
 #	the string MAIL_VERSION at the end of a configuration
 #	parameter value with the Postfix release version (Postfix
-#	2.12 and later).
+#	3.0 and later).
 # .IP "process environment"
 #	Parameter settings can be given as name=value environment
 #	variables. Environment parameters can also be specified on
 #	the make(1) command line as "make install name=value ...".
 #	This mode will replace the string MAIL_VERSION at the end
 #	of a configuration parameter value with the Postfix release
-#	version (Postfix 2.12 and later).
+#	version (Postfix 3.0 and later).
 # .IP "installed configuration files"
 #	If a parameter is not specified via the command line or via the
 #	process environment, postfix-install will attempt to extract its

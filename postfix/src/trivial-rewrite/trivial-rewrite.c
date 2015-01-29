@@ -23,12 +23,12 @@
 /*	\fB$remote_header_rewrite_domain\fR to incomplete
 /*	addresses. Otherwise the result is identical to that of
 /*	the \fBlocal\fR address rewriting context. This prevents
-/*      Postfix from appending the local domain to spam from poorly
+/*	Postfix from appending the local domain to spam from poorly
 /*	written remote clients.
 /* .RE
 /* .IP "\fBresolve \fIsender\fR \fIaddress\fR"
 /*	Resolve the address to a (\fItransport\fR, \fInexthop\fR,
-/*      \fIrecipient\fR, \fIflags\fR) quadruple. The meaning of
+/*	\fIrecipient\fR, \fIflags\fR) quadruple. The meaning of
 /*	the results is as follows:
 /* .RS
 /* .IP \fItransport\fR
@@ -110,7 +110,7 @@
 /* .IP "\fBappend_at_myorigin (yes)\fR"
 /*	With locally submitted mail, append the string "@$myorigin" to mail
 /*	addresses without domain information.
-/* .IP "\fBappend_dot_mydomain (Postfix &ge; 2.12: no, Postfix < 2.12: yes)\fR"
+/* .IP "\fBappend_dot_mydomain (Postfix >= 3.0: no, Postfix < 3.0: yes)\fR"
 /*	With locally submitted mail, append the string ".$mydomain" to
 /*	addresses that have no ".domain" information.
 /* .IP "\fBrecipient_delimiter (empty)\fR"

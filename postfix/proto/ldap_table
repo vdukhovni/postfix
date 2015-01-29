@@ -594,7 +594,7 @@
 #	server.  Don't set this with LDAP SSL (the SSL session is setup
 #	automatically when the TCP connection is opened).
 # .IP "\fBtls_ca_cert_dir (No default; set either this or tls_ca_cert_file)\fR"
-#	Directory containing X509 Certificate Authority certificates
+#	Directory containing X509 Certification Authority certificates
 #	in PEM format which are to be recognized by the client in
 #	SSL/TLS connections. The files each contain one CA certificate.
 #	The files are looked up by the CA subject name hash value,
@@ -606,7 +606,7 @@
 #	utility (from the OpenSSL distribution) to create the
 #	necessary links.
 # .IP "\fBtls_ca_cert_file (No default; set either this or tls_ca_cert_dir)\fR"
-#	File containing the X509 Certificate Authority certificates
+#	File containing the X509 Certification Authority certificates
 #	in PEM format which are to be recognized by the client in
 #	SSL/TLS connections. This setting takes precedence over
 #	tls_ca_cert_dir.

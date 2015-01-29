@@ -46,7 +46,7 @@
 /* .IP namaddr
 /*	String of the form: "name[addr]:port".
 /* .IP rfc_addr
-/*      String of the form "ipv4addr" or "ipv6:ipv6addr" for use
+/*	String of the form "ipv4addr" or "ipv6:ipv6addr" for use
 /*	in Received: message headers.
 /* .IP dest_addr
 /*	Server address, used by the Dovecot authentication server.
