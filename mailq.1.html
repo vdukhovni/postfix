@@ -156,11 +156,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               Backwards compatibility.
 
        <b>-N</b> <i>dsn</i> (default: 'delay, failure')
-              Delivery  status  notification  control. Specify either a comma-
-              separated list with one or more of  <b>failure</b>  (send  notification
-              when  delivery fails), <b>delay</b> (send notification when delivery is
-              delayed), or <b>success</b> (send  notification  when  the  message  is
-              delivered);  or  specify  <b>never</b> (don't send any notifications at
+              Delivery   status   notification   control.   Specify  either  a
+              comma-separated list with one or more of <b>failure</b> (send notifica-
+              tion  when delivery fails), <b>delay</b> (send notification when deliv-
+              ery is delayed), or <b>success</b> (send notification when the  message
+              is delivered); or specify <b>never</b> (don't send any notifications at
               all).
 
               This feature is available in Postfix 2.3 and later.
@@ -255,10 +255,10 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               of the form <i>owner-listname</i>@<i>origin</i>,  each  recipient  <i>user</i>@<i>domain</i>
               receives mail with a personalized envelope sender address.
 
-              By  default,  the personalized envelope sender address is <i>owner-</i>
-              <i>listname</i><b>+</b><i>user</i><b>=</b><i>domain</i>@<i>origin</i>. The default <b>+</b> and <b>=</b> characters  are
-              configurable   with  the  <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b>  configuration
-              parameter.
+              By   default,   the  personalized  envelope  sender  address  is
+              <i>owner-listname</i><b>+</b><i>user</i><b>=</b><i>domain</i>@<i>origin</i>. The default <b>+</b> and  <b>=</b>  charac-
+              ters  are configurable with the <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a></b> configu-
+              ration parameter.
 
        <b>-XV</b><i>xy</i> (Postfix 2.2 and earlier: <b>-V</b><i>xy</i>)
               As <b>-XV</b>, but uses <i>x</i> and  <i>y</i>  as  the  VERP  delimiter  characters,

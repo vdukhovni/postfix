@@ -135,8 +135,8 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
                      pressed and returns no results.
 
               The <b>domain</b> parameter described below limits the  input  keys  to
-              addresses in matching domains. When the <b>domain</b> parameter is non-
-              empty, SQL queries for unqualified  addresses  or  addresses  in
+              addresses  in  matching  domains.  When  the <b>domain</b> parameter is
+              non-empty, SQL queries for unqualified addresses or addresses in
               non-matching domains are suppressed and return no results.
 
               This  parameter is available with Postfix 2.2. In prior releases
@@ -201,11 +201,11 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
 
        <b>domain (default: no domain list)</b>
               This is a list of domain names, paths to files, or dictionaries.
-              When  specified,  only  fully qualified search keys with a *non-
-              empty* localpart and a matching domain are eligible for  lookup:
-              'user'  lookups,  bare  domain lookups and "@domain" lookups are
-              not performed. This can significantly reduce the query  load  on
-              the MySQL server.
+              When   specified,  only  fully  qualified  search  keys  with  a
+              *non-empty* localpart and a matching  domain  are  eligible  for
+              lookup:  'user'  lookups,  bare  domain  lookups  and  "@domain"
+              lookups are not performed. This  can  significantly  reduce  the
+              query load on the MySQL server.
                   domain = postfix.org, <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/searchdomains
 
               It  is best not to use SQL to store the domains eligible for SQL
@@ -245,21 +245,21 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
               This parameter is available with Postfix 2.11 and later.
 
        <b>tls_CAfile</b>
-              File  containing  certificates  for  all of the X509 Certificate
+              File  containing  certificates for all of the X509 Certification
               Authorities the client will recognize.   Takes  precedence  over
               <b>tls_CApath</b>.
 
               This parameter is available with Postfix 2.11 and later.
 
        <b>tls_CApath</b>
-              Directory  containing X509 Certificate Authority certificates in
-              separate individual files.
+              Directory  containing  X509 Certification Authority certificates
+              in separate individual files.
 
               This parameter is available with Postfix 2.11 and later.
 
        <b>tls_verify_cert (default: no)</b>
               Verify that the server's name matches the  common  name  in  the
-              certficate.
+              certificate.
 
               This parameter is available with Postfix 2.11 and later.
 

@@ -106,7 +106,7 @@ etrn_domain=
 stress=
 <b>Postfix version 2.9 and later:</b>
 ccert_pubkey_fingerprint=68:B3:29:DA:98:93:E3:40:99:C7:D8:AD:5C:B9:C9:40
-<b>Postfix version 2.12 and later:</b>
+<b>Postfix version 3.0 and later:</b>
 client_port=1234
 [empty line]
 </pre>
@@ -341,7 +341,7 @@ policy delegation protocol: </p>
 
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_default_action">smtpd_policy_service_default_action</a> (default: 451 4.3.5
 Server configuration problem): The default action when an SMTPD
-policy service request fails.  Available with Postfix 2.12 and
+policy service request fails.  Available with Postfix 3.0 and
 later. </p>
 
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_max_idle">smtpd_policy_service_max_idle</a> (default: 300s): The amount
@@ -354,18 +354,18 @@ client connection. </p>
 
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_request_limit">smtpd_policy_service_request_limit</a> (default: 0): The maximal
 number of requests per policy connection, or zero (no limit).
-Available with Postfix 2.12 and later. </p>
+Available with Postfix 3.0 and later. </p>
 
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_timeout">smtpd_policy_service_timeout</a> (default: 100s): The time
 limit to connect to, send to or receive from a policy server. </p>
 
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_try_limit">smtpd_policy_service_try_limit</a> (default: 2): The maximal
 number of attempts to send an SMTPD policy service request before
-giving up.  Available with Postfix 2.12 and later.  </p>
+giving up.  Available with Postfix 3.0 and later.  </p>
 
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_retry_delay">smtpd_policy_service_retry_delay</a> (default: 1s): The delay
 between attempts to resend a failed SMTPD policy service request.
-Available with Postfix 2.12 and later.  </p>
+Available with Postfix 3.0 and later.  </p>
 
 </ul>
 
@@ -388,7 +388,7 @@ examples, the service name is "policy" or "127.0.0.1:9998". </p>
 that control time limits and other settings for all policy clients.
 This is sufficient for simple configurations. With more complex
 configurations it becomes desirable to have different settings per
-policy client. This is supported with Postfix 2.12 and later. </p>
+policy client. This is supported with Postfix 3.0 and later. </p>
 
 <p> The following example shows a "non-critical" policy service
 with a short timeout, and with "DUNNO" as default action when the

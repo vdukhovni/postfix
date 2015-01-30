@@ -70,8 +70,8 @@ POSTFIX(1)                                                          POSTFIX(1)
               Postfix system.
 
               This feature is available in Postfix 2.1 and later.  With  Post-
-              fix  2.0  and  earlier, use "<b>$<a href="postconf.5.html#config_directory">config_directory</a>/post-install set-</b>
-              <b>permissions</b>".
+              fix   2.0   and   earlier,  use  "<b>$<a href="postconf.5.html#config_directory">config_directory</a>/post-install</b>
+              <b>set-permissions</b>".
 
        <b>upgrade-configuration [</b><i>name</i>=<i>value ...</i><b>]</b>
               Update the <a href="postconf.5.html"><b>main.cf</b></a> and <a href="master.5.html"><b>master.cf</b></a>  files  with  information  that
@@ -168,8 +168,8 @@ POSTFIX(1)                                                          POSTFIX(1)
               the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command.
 
        <b><a href="postconf.5.html#setgid_group">setgid_group</a> (postdrop)</b>
-              The group ownership of set-gid Postfix commands  and  of  group-
-              writable Postfix directories.
+              The  group  ownership  of  set-gid  Postfix  commands   and   of
+              group-writable Postfix directories.
 
        Available in Postfix version 2.5 and later:
 
@@ -177,7 +177,7 @@ POSTFIX(1)                                                          POSTFIX(1)
               The  directory  with  Postfix-writable  data files (for example:
               caches, pseudo-random numbers).
 
-       Available in Postfix version 2.12 and later:
+       Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#meta_directory">meta_directory</a> (see 'postconf -d' output)</b>
               The location of non-executable files that are shared among  mul-
