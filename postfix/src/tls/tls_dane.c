@@ -387,7 +387,7 @@ static dane_digest *add_digest(char *mdalg, int pref)
 	&& ((md = EVP_get_digestbyname(dane_mdalg)) == 0
 	    || (mdlen = EVP_MD_size(md)) <= 0
 	    || mdlen > EVP_MAX_MD_SIZE)) {
-	msg_warn("Unimplemented digest algoritm in %s: %s%s%s",
+	msg_warn("Unimplemented digest algorithm in %s: %s%s%s",
 		 VAR_TLS_DANE_DIGESTS, mdalg,
 		 value ? "=" : "", value ? value : "");
 	return (0);

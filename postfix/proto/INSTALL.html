@@ -229,49 +229,51 @@ $ make
 
 <p> and so on. In some cases, optimization is turned off automatically. </p>
 
-<h3>4.3 - Building with Postfix shared libraries and database plugins
-(Postfix &ge; 3.0) </h3>
+<h3>4.3 - Building with Postfix dynamically-linked libraries and
+database plugins (Postfix &ge; 3.0) </h3>
 
-<p> Postfix shared-library and database plugin support exists for
-recent versions of Linux, FreeBSD and MacOS X. Shared-library builds
-may become the default at some point in the future. </p>
+<p> Postfix dynamically-linked library and database plugin support
+exists for recent versions of Linux, FreeBSD and MacOS X.
+Dynamically-linked library builds may become the default at some
+point in the future. </p>
 
 <p> Overview of topics: </p>
 
 <ul>
 
-<li><a href="#shared_enable">4.3.1 Turning on Postfix shared-library
-support</a>
+<li><a href="#shared_enable">4.3.1 Turning on Postfix dynamically-linked
+library support</a>
 
 <li><a href="#dynamicmaps_enable">4.3.2 Turning on Postfix database-plugin
 support</a>
 
-<li><a href="#shared_custom">4.3.3 Customizing Postfix shared
+<li><a href="#shared_custom">4.3.3 Customizing Postfix dynamically-linked
 libraries and database plugins</a>
 
 <li><a href="#shared_tips">4.4.4 Tips for distribution maintainers</a>
 
 </ul>
 
-<p> Note: directories with Postfix shared libraries or database
-plugins should contain only postfix-related files.  Postfix shared
-libraries and database plugins should not be installed in a "public"
-system directory such as /usr/lib or /usr/local/lib.  Linking Postfix
-shared-library or database-plugin files into non-Postfix programs
-is not supported. Postfix shared libraries and database plugins
-implement a Postfix-internal API that changes without maintaining
-compatibility. </p>
+<p> Note: directories with Postfix dynamically-linked  libraries
+or database plugins should contain only postfix-related files.
+Postfix dynamically-linked libraries and database plugins should
+not be installed in a "public" system directory such as /usr/lib
+or /usr/local/lib.  Linking Postfix dynamically-linked library or
+database-plugin files into non-Postfix programs is not supported.
+Postfix dynamically-linked libraries and database plugins implement
+a Postfix-internal API that changes without maintaining compatibility.
+</p>
 
-<h4><a name="shared_enable"> 4.3.1 Turning on Postfix shared-library
-support </a></h4>
+<h4><a name="shared_enable"> 4.3.1 Turning on Postfix dynamically-linked
+library support </a></h4>
 
-<p> Postfix can be built with Postfix shared libraries (files
-typically named <tt>libpostfix-*.so</tt>). Postfix shared libraries
-add minor run-time overhead and result in significantly-smaller
-Postfix executable files. </p>
+<p> Postfix can be built with Postfix dynamically-linked libraries
+(files typically named <tt>libpostfix-*.so</tt>). Postfix
+dynamically-linked libraries add minor run-time overhead and result
+in significantly-smaller Postfix executable files. </p>
 
 <p> Specify "shared=yes" on the "make makefiles" command line to
-build Postfix with shared-library support. </p>
+build Postfix with dynamically-linked library support. </p>
 
 <blockquote>
 <pre>
@@ -281,17 +283,17 @@ $ make
 </blockquote>
 
 <p> (Specify "make makefiles shared=no" to explicitly disable Postfix
-shared-library support). </p>
+dynamically-linked library support). </p>
 
-<p> This installs shared libraries in $shlib_directory, typically
-/usr/lib/postfix or /usr/local/lib/postfix, with file names
-libpostfix-<i>name</i>.so, where the <i>name</i> is a source-code
+<p> This installs dynamically-linked libraries in $shlib_directory,
+typically /usr/lib/postfix or /usr/local/lib/postfix, with file
+names libpostfix-<i>name</i>.so, where the <i>name</i> is a source-code
 directory name such as "util" or "global".  </p>
 
-<p> See section 4.3.3 "Customizing Postfix shared libraries and
-database plugins" below for how to customize the Postfix shared-library
-location, including support to upgrade a running mail system safely.
-</p>
+<p> See section 4.3.3 "Customizing Postfix dynamically-linked
+libraries and database plugins" below for how to customize the
+Postfix dynamically-linked library location, including support to
+upgrade a running mail system safely.  </p>
 
 <h4><a name="dynamicmaps_enable"> 4.3.2 Turning on Postfix
 database-plugin support </a></h4>
@@ -318,12 +320,12 @@ $ make
 <p> (Specify "make makefiles dynamicmaps=no" to explicitly disable
 Postfix database-plugin support). </p>
 
-<p> This implicitly enables shared-library support, installs the
-configuration file dynamicmaps.cf in $meta_directory (usually,
-/etc/postfix or /usr/local/etc/postfix), and installs database
-plugins in $shlib_directory (see above).  Database plugins are named
-postfix-<i>type</i>.so where the <i>type</i> is a database type
-such as "cdb" or "ldap". </p>
+<p> This implicitly enables dynamically-linked library support,
+installs the configuration file dynamicmaps.cf in $meta_directory
+(usually, /etc/postfix or /usr/local/etc/postfix), and installs
+database plugins in $shlib_directory (see above).  Database plugins
+are named postfix-<i>type</i>.so where the <i>type</i> is a database
+type such as "cdb" or "ldap". </p>
 
 <blockquote>
 
@@ -346,18 +348,19 @@ database client loading was meant to avoid. </p>
 version of Postfix database plugins and the location of the file
 dynamicmaps.cf.  </p>
 
-<h4><a name="shared_custom"> 4.3.3 Customizing Postfix shared
+<h4><a name="shared_custom"> 4.3.3 Customizing Postfix dynamically-linked
 libraries and database plugins </a></h4>
 
-<h5> Customizing the location of Postfix shared libraries and
-database plugins </h5>
+<h5> Customizing the location of Postfix dynamically-linked libraries
+and database plugins </h5>
 
-<p> As a reminder, the directories with Postfix shared libraries
-or database plugins should contain only Postfix-related files.
-Linking these files into other programs is not supported. </p>
+<p> As a reminder, the directories with Postfix dynamically-linked
+libraries or database plugins should contain only Postfix-related
+files.  Linking these files into other programs is not supported.
+</p>
 
-<p> To override the default location of Postfix shared libraries
-and database plugins specify, for example: </p>
+<p> To override the default location of Postfix dynamically-linked
+libraries and database plugins specify, for example: </p>
 
 <blockquote>
 <pre>
@@ -368,8 +371,8 @@ $ make makefiles shared=yes shlib_directory=/usr/local/lib/postfix ...
 <p> If you intend to upgrade Postfix without stopping the mail
 system, then you should append the Postfix release version to the
 shlib_directory pathname, to eliminate the possibility that programs
-will link with shared libraries or database plugins from the wrong
-Postfix version.  For example: </p>
+will link with dynamically-linked libraries or database plugins
+from the wrong Postfix version.  For example: </p>
 
 <blockquote>
 <pre>
@@ -481,7 +484,7 @@ or deinstall a database plugin package without having to edit
 postfix-files or dynamicmaps.cf. Instead, you give that plugin its
 own configuration files dynamicmaps.cf.d and postfix-files.d, and
 you add or remove those configuration files along with the database
-plugin shared object.  </p>
+plugin dynamically-linked object.  </p>
 
 <li> <p> Each configuration file under the directory dynamicmaps.cf.d
 must have the same format as the configuration file dynamicmaps.cf.

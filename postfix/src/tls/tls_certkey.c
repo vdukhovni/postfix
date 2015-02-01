@@ -88,16 +88,25 @@ int     tls_set_ca_certificate_info(SSL_CTX *ctx, const char *CAfile,
 	CAfile = 0;
     if (*CApath == 0)
 	CApath = 0;
+
+#define CA_PATH_FMT "%s%s%s"
+#define CA_PATH_ARGS(var, nextvar) \
+	var ? #var "=\"" : "", \
+	var ? var : "", \
+	var ? (nextvar ? "\", " : "\"") : ""
+
     if (CAfile || CApath) {
 	if (!SSL_CTX_load_verify_locations(ctx, CAfile, CApath)) {
-	    msg_info("cannot load Certification Authority data: "
-		     "disabling TLS support");
+	    msg_info("cannot load Certification Authority data, "
+		     CA_PATH_FMT CA_PATH_FMT ": disabling TLS support",
+		     CA_PATH_ARGS(CAfile, CApath),
+		     CA_PATH_ARGS(CApath, 0));
 	    tls_print_errors();
 	    return (-1);
 	}
 	if (var_tls_append_def_CA && !SSL_CTX_set_default_verify_paths(ctx)) {
-	    msg_info("cannot set certificate verification paths: "
-		     "disabling TLS support");
+	    msg_info("cannot set default OpenSSL certificate verification "
+		     "paths: disabling TLS support");
 	    tls_print_errors();
 	    return (-1);
 	}
@@ -120,13 +129,13 @@ static int set_cert_stuff(SSL_CTX *ctx, const char *cert_type,
      */
     ERR_clear_error();
     if (SSL_CTX_use_certificate_chain_file(ctx, cert_file) <= 0) {
-	msg_warn("cannot get %s certificate from file %s: "
+	msg_warn("cannot get %s certificate from file \"%s\": "
 		 "disabling TLS support", cert_type, cert_file);
 	tls_print_errors();
 	return (0);
     }
     if (SSL_CTX_use_PrivateKey_file(ctx, key_file, SSL_FILETYPE_PEM) <= 0) {
-	msg_warn("cannot get %s private key from file %s: "
+	msg_warn("cannot get %s private key from file \"%s\": "
 		 "disabling TLS support", cert_type, key_file);
 	tls_print_errors();
 	return (0);
