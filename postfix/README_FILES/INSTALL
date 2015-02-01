@@ -148,50 +148,50 @@ compiler. Here are a few examples:
 
 and so on. In some cases, optimization is turned off automatically.
 
-44..33 -- BBuuiillddiinngg wwiitthh PPoossttffiixx sshhaarreedd lliibbrraarriieess aanndd ddaattaabbaassee pplluuggiinnss ((PPoossttffiixx >>==
-33..00))
+44..33 -- BBuuiillddiinngg wwiitthh PPoossttffiixx ddyynnaammiiccaallllyy--lliinnkkeedd lliibbrraarriieess aanndd ddaattaabbaassee pplluuggiinnss
+((PPoossttffiixx >>== 33..00))
 
-Postfix shared-library and database plugin support exists for recent versions
-of Linux, FreeBSD and MacOS X. Shared-library builds may become the default at
-some point in the future.
+Postfix dynamically-linked library and database plugin support exists for
+recent versions of Linux, FreeBSD and MacOS X. Dynamically-linked library
+builds may become the default at some point in the future.
 
 Overview of topics:
 
-  * 4.3.1 Turning on Postfix shared-library support
+  * 4.3.1 Turning on Postfix dynamically-linked library support
   * 4.3.2 Turning on Postfix database-plugin support
-  * 4.3.3 Customizing Postfix shared libraries and database plugins
+  * 4.3.3 Customizing Postfix dynamically-linked libraries and database plugins
   * 4.4.4 Tips for distribution maintainers
 
-Note: directories with Postfix shared libraries or database plugins should
-contain only postfix-related files. Postfix shared libraries and database
-plugins should not be installed in a "public" system directory such as /usr/lib
-or /usr/local/lib. Linking Postfix shared-library or database-plugin files into
-non-Postfix programs is not supported. Postfix shared libraries and database
-plugins implement a Postfix-internal API that changes without maintaining
-compatibility.
+Note: directories with Postfix dynamically-linked libraries or database plugins
+should contain only postfix-related files. Postfix dynamically-linked libraries
+and database plugins should not be installed in a "public" system directory
+such as /usr/lib or /usr/local/lib. Linking Postfix dynamically-linked library
+or database-plugin files into non-Postfix programs is not supported. Postfix
+dynamically-linked libraries and database plugins implement a Postfix-internal
+API that changes without maintaining compatibility.
 
-44..33..11 TTuurrnniinngg oonn PPoossttffiixx sshhaarreedd--lliibbrraarryy ssuuppppoorrtt
+44..33..11 TTuurrnniinngg oonn PPoossttffiixx ddyynnaammiiccaallllyy--lliinnkkeedd lliibbrraarryy ssuuppppoorrtt
 
-Postfix can be built with Postfix shared libraries (files typically named
-libpostfix-*.so). Postfix shared libraries add minor run-time overhead and
-result in significantly-smaller Postfix executable files.
+Postfix can be built with Postfix dynamically-linked libraries (files typically
+named libpostfix-*.so). Postfix dynamically-linked libraries add minor run-time
+overhead and result in significantly-smaller Postfix executable files.
 
 Specify "shared=yes" on the "make makefiles" command line to build Postfix with
-shared-library support.
+dynamically-linked library support.
 
     $ make makefiles shared=yes ...other arguments...
     $ make
 
-(Specify "make makefiles shared=no" to explicitly disable Postfix shared-
-library support).
+(Specify "make makefiles shared=no" to explicitly disable Postfix dynamically-
+linked library support).
 
-This installs shared libraries in $shlib_directory, typically /usr/lib/postfix
-or /usr/local/lib/postfix, with file names libpostfix-name.so, where the name
-is a source-code directory name such as "util" or "global".
+This installs dynamically-linked libraries in $shlib_directory, typically /usr/
+lib/postfix or /usr/local/lib/postfix, with file names libpostfix-name.so,
+where the name is a source-code directory name such as "util" or "global".
 
-See section 4.3.3 "Customizing Postfix shared libraries and database plugins"
-below for how to customize the Postfix shared-library location, including
-support to upgrade a running mail system safely.
+See section 4.3.3 "Customizing Postfix dynamically-linked libraries and
+database plugins" below for how to customize the Postfix dynamically-linked
+library location, including support to upgrade a running mail system safely.
 
 44..33..22 TTuurrnniinngg oonn PPoossttffiixx ddaattaabbaassee--pplluuggiinn ssuuppppoorrtt
 
@@ -211,11 +211,11 @@ dynamicmaps feature.
 (Specify "make makefiles dynamicmaps=no" to explicitly disable Postfix
 database-plugin support).
 
-This implicitly enables shared-library support, installs the configuration file
-dynamicmaps.cf in $meta_directory (usually, /etc/postfix or /usr/local/etc/
-postfix), and installs database plugins in $shlib_directory (see above).
-Database plugins are named postfix-type.so where the type is a database type
-such as "cdb" or "ldap".
+This implicitly enables dynamically-linked library support, installs the
+configuration file dynamicmaps.cf in $meta_directory (usually, /etc/postfix or
+/usr/local/etc/postfix), and installs database plugins in $shlib_directory (see
+above). Database plugins are named postfix-type.so where the type is a database
+type such as "cdb" or "ldap".
 
     NOTE: The Postfix 3.0 build procedure expects that you specify database
     library dependencies with variables named AUXLIBS_CDB, AUXLIBS_LDAP, etc.
@@ -232,23 +232,24 @@ such as "cdb" or "ldap".
 See the next section for how to customize the location and version of Postfix
 database plugins and the location of the file dynamicmaps.cf.
 
-44..33..33 CCuussttoommiizziinngg PPoossttffiixx sshhaarreedd lliibbrraarriieess aanndd ddaattaabbaassee pplluuggiinnss
+44..33..33 CCuussttoommiizziinngg PPoossttffiixx ddyynnaammiiccaallllyy--lliinnkkeedd lliibbrraarriieess aanndd ddaattaabbaassee pplluuggiinnss
 
-CCuussttoommiizziinngg tthhee llooccaattiioonn ooff PPoossttffiixx sshhaarreedd lliibbrraarriieess aanndd ddaattaabbaassee pplluuggiinnss
+CCuussttoommiizziinngg tthhee llooccaattiioonn ooff PPoossttffiixx ddyynnaammiiccaallllyy--lliinnkkeedd lliibbrraarriieess aanndd ddaattaabbaassee
+pplluuggiinnss
 
-As a reminder, the directories with Postfix shared libraries or database
-plugins should contain only Postfix-related files. Linking these files into
-other programs is not supported.
+As a reminder, the directories with Postfix dynamically-linked libraries or
+database plugins should contain only Postfix-related files. Linking these files
+into other programs is not supported.
 
-To override the default location of Postfix shared libraries and database
-plugins specify, for example:
+To override the default location of Postfix dynamically-linked libraries and
+database plugins specify, for example:
 
     $ make makefiles shared=yes shlib_directory=/usr/local/lib/postfix ...
 
 If you intend to upgrade Postfix without stopping the mail system, then you
 should append the Postfix release version to the shlib_directory pathname, to
-eliminate the possibility that programs will link with shared libraries or
-database plugins from the wrong Postfix version. For example:
+eliminate the possibility that programs will link with dynamically-linked
+libraries or database plugins from the wrong Postfix version. For example:
 
     $ make makefiles shared=yes \
         shlib_directory=/usr/local/lib/postfix/MAIL_VERSION ...
@@ -329,7 +330,7 @@ inconsistent results with different versions of the make(1) command.
     package without having to edit postfix-files or dynamicmaps.cf. Instead,
     you give that plugin its own configuration files dynamicmaps.cf.d and
     postfix-files.d, and you add or remove those configuration files along with
-    the database plugin shared object.
+    the database plugin dynamically-linked object.
 
   * Each configuration file under the directory dynamicmaps.cf.d must have the
     same format as the configuration file dynamicmaps.cf. There is no

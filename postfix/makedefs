@@ -50,7 +50,9 @@
 #	By default, EPOLL support is compiled in on platforms that
 #	are known to support it.
 # .IP \fB-DNO_EAI\fR
-#	Do not build with EAI (SMTPUTF8) support.
+#	Do not build with EAI (SMTPUTF8) support. By default, EAI
+#	support is compiled in when the "icuuc" library and header
+#	files are found.
 # .IP \fB-DNO_INLINE\fR
 #	Do not require support for C99 "inline" functions. Instead,
 #	implement argument typechecks for non-printf/scanf-like

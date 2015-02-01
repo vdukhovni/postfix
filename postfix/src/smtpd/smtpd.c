@@ -4018,11 +4018,12 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->protocol = mystrdup(MAIL_PROTO_SMTP);
     }
 #ifdef USE_SASL_AUTH
+    /* XXX What if they send the parameters via multiple commands? */
     if (got_login == 0)
 	smtpd_sasl_auth_reset(state);
-    else
-	saved_username = mystrdup(state->sasl_username);
     if (smtpd_sasl_is_active(state)) {
+	if (got_login)
+	    saved_username = mystrdup(state->sasl_username);
 	smtpd_sasl_deactivate(state);
 	if (state->tls_context == 0)		/* TLS from XCLIENT proxy? */
 	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
@@ -4030,10 +4031,10 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	else
 	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
 				var_smtpd_sasl_tls_opts);
-    }
-    if (got_login) {
-	smtpd_sasl_auth_extern(state, saved_username, XCLIENT_CMD);
-	myfree(saved_username);
+	if (got_login) {
+	    smtpd_sasl_auth_extern(state, saved_username, XCLIENT_CMD);
+	    myfree(saved_username);
+	}
     }
 #endif
     chat_reset(state, 0);

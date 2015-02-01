@@ -115,6 +115,11 @@
 /* .IP "\fB-h \fIhost_lookup\fR (default: \fBdns\fR)"
 /*	The hostname lookup methods used for the connection.  See the
 /*	documentation of smtp_host_lookup for syntax and semantics.
+/* .IP "\fB-k \fIcertfile\fR (default: none)\fR)"
+/*	File with PEM-encoded TLS client certificate chain.
+/* .IP "\fB-K \fIkeyfile\fR (default: \fIcertfile\fR)\fR)"
+/*	File with corresponding PEM-encoded TLS client private key,
+/*	by default same as \fIcertfile\fR if one is specified.
 /* .IP "\fB-l \fIlevel\fR (default: \fBdane\fR or \fBsecure\fR)"
 /*	The security level for the connection, default \fBdane\fR or
 /*	\fBsecure\fR depending on whether DNSSEC is available.  For syntax
@@ -436,6 +441,8 @@ typedef struct STATE {
     char   *mdalg;			/* fingerprint digest algorithm */
     char   *CAfile;			/* Trusted public CAs */
     char   *CApath;			/* Trusted public CAs */
+    char   *certfile;			/* TLS client certificate file */
+    char   *keyfile;			/* TLS client key file */
     ARGV   *match;			/* match arguments */
     int     print_trust;		/* -C option */
     BIO    *tls_bio;			/* BIO wrapper for stdout */
@@ -1528,6 +1535,8 @@ static void cleanup(STATE *state)
     myfree(state->mdalg);
     myfree(state->CApath);
     myfree(state->CAfile);
+    myfree(state->certfile);
+    myfree(state->keyfile);
     if (state->options.level)
 	myfree(state->options.level);
     myfree(state->options.logopts);
@@ -1560,7 +1569,8 @@ static void usage(void)
 	    " destination [match ...]\n", var_procname,
 	    "[-acCfSvw] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
 	 "[-h host_lookup] [-l level] [-d mdalg] [-g grade] [-p protocols]",
-	    "[-A tafile] [-F CAfile.pem] [-P CApath/] [-m count] [-r delay]",
+	    "[-A tafile] [-F CAfile.pem] [-P CApath/] "
+	    "[-k certfile [-K keyfile]] [-m count] [-r delay]",
 	    "[-o name=value]");
 #else
     fprintf(stderr, "usage: %s [-acStTv] [-h host_lookup] [-o name=value] destination\n",
@@ -1585,8 +1595,8 @@ static void tls_init(STATE *state)
 			log_level = state->options.logopts,
 			verifydepth = DEF_SMTP_TLS_SCERT_VD,
 			cache_type = "memory",
-			cert_file = "",
-			key_file = "",
+			cert_file = state->certfile,
+			key_file = state->keyfile,
 			dcert_file = "",
 			dkey_file = "",
 			eccert_file = "",
@@ -1631,11 +1641,13 @@ static void parse_options(STATE *state, int argc, char *argv[])
 
 #define OPTS "a:ch:o:St:T:v"
 #ifdef USE_TLS
-#define TLSOPTS "A:Cd:fF:g:l:L:m:p:P:r:w"
+#define TLSOPTS "A:Cd:fF:g:k:K:l:L:m:p:P:r:w"
 
     state->mdalg = mystrdup("sha1");
     state->CApath = mystrdup("");
     state->CAfile = mystrdup("");
+    state->certfile = mystrdup("");
+    state->keyfile = mystrdup("");
     state->options.tas = argv_alloc(1);
     state->options.logopts = 0;
     state->level = TLS_LEV_DANE;
@@ -1695,6 +1707,22 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	case 'g':
 	    myfree(state->grade);
 	    state->grade = mystrdup(optarg);
+	    break;
+	case 'k':
+	    myfree(state->certfile);
+	    state->certfile = mystrdup(optarg);
+	    if (!*state->keyfile) {
+		myfree(state->keyfile);
+		state->keyfile = mystrdup(optarg);
+	    }
+	    break;
+	case 'K':
+	    myfree(state->keyfile);
+	    state->keyfile = mystrdup(optarg);
+	    if (!*state->certfile) {
+		myfree(state->certfile);
+		state->certfile = mystrdup(optarg);
+	    }
 	    break;
 	case 'l':
 	    if (state->options.level)

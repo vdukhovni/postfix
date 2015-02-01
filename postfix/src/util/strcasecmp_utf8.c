@@ -149,6 +149,7 @@ int     strncasecmp_utf8x(int flags, const char *s1, const char *s2,
 }
 
 #ifdef TEST
+#include <stdio.h>
 #include <stdlib.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
@@ -189,7 +190,7 @@ int     main(int argc, char **argv)
 	 * Compare two substrings.
 	 */
 	else if (strcmp(args[0], "compare-len") == 0 && cmd->argc == 4
-		 && (len = atoi(args[3])) > 0) {
+		 && sscanf(args[3], "%d", &len) == 1 && len >= 0) {
 	    res = strncasecmp_utf8x(flags, args[1], args[2], len);
 	    vstream_printf("\"%.*s\" %s \"%.*s\"\n",
 			   len, args[1],

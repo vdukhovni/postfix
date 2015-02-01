@@ -19672,7 +19672,7 @@ Apologies for any names omitted.
 	posttls-finger/posttls-finger.c.
 
 	Feature: configurable TLS session-ticket cipher (default:
-	tls_sesion_ticket_cipher = aes-128-cbc). Viktor Dukhovni
+	tls_session_ticket_cipher = aes-128-cbc). Viktor Dukhovni
 	and Wietse. Files: mantools/postlink, smtpd/smtpd.c,
 	proto/postconf.proto, global/mail_params.h, tls/tls_misc.c,
 	tls/tls_scache.h, tls/tls_server.c.
@@ -19693,7 +19693,7 @@ Apologies for any names omitted.
 
 20140501
 
-	Cleanup: postcreen_dnsbl_timeout parameter. Files:
+	Cleanup: postscreen_dnsbl_timeout parameter. Files:
 	mantools/postlink, proto/postconf.proto, global/mail_params.h,
 	postscreen/postscreen.c, postscreen/postscreen_dnsbl.c.
 
@@ -20820,7 +20820,7 @@ Apologies for any names omitted.
 
 20141126
 
-	Feature: "inline:{key=value, { key = text with comma/space}}
+	Feature: "inline:{key=value, { key = text with comma/space}}"
 	avoids the need to create a database for just a few entries.
 	Files: util/dict_inline.[hc], mantools/postlink,
 	proto/DATABASE_README.html. postconf/postconf.c (manpage),
@@ -21564,3 +21564,10 @@ Apologies for any names omitted.
 	Cleanup: HTML entities in *roff manpage source. File:
 	mantools/fixman, proto/postconf.proto, smtpd/smtpd.c,
 	trivial-rewrite/trivial-rewrite.c.
+
+20150201
+
+	Usability: in error messages, print the CAfile and CApath
+	value in double quotes, to clue in people who specify quoted
+	pathnames in main.cf. Viktor Dukhovni. Files: tls/tls_certkey.c
+	and testing code in posttls-finger/posttls-finger.c.

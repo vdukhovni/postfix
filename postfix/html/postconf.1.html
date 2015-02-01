@@ -229,7 +229,7 @@ POSTCONF(1)                                                        POSTCONF(1)
                      A  non-shared, in-memory lookup table. Example: "<b><a href="DATABASE_README.html#types">inline</a>:{</b>
                      <i>key</i><b>=</b><i>value</i><b>, {</b> <i>key</i> <b>=</b> <i>text with  whitespace  or  comma</i>  <b>}}</b>".
                      Key-value  pairs  are  separated  by whitespace or comma;
-                     whitespace after "{" and before "}"  is  ignored.  Inline
+                     whitespace after "<b>{</b>" and before "<b>}</b>"  is  ignored.  Inline
                      tables  eliminate  the need to create a database file for
                      just a few fixed elements.   See  also  the  <i><a href="DATABASE_README.html#types">static</a>:</i>  map
                      type.
@@ -305,7 +305,7 @@ POSTCONF(1)                                                        POSTCONF(1)
                      For example, <b><a href="DATABASE_README.html#types">static</a>:foobar</b> always returns the string <b>foo-</b>
                      <b>bar</b>  as lookup result. Specify "<b><a href="DATABASE_README.html#types">static</a>:{</b> <i>text with white-</i>
                      <i>space</i> <b>}</b>" when the result contains whitespace;  this  form
-                     ignores whitespace after "{" and before "}". See also the
+                     ignores whitespace after "<b>{</b>" and before "<b>}</b>". See also the
                      <i><a href="DATABASE_README.html#types">inline</a>:</i> map.
 
               <b>tcp</b> (read-only)
