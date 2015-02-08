@@ -40,6 +40,10 @@
 
 #define ATTR_HASH_LIMIT		1024	/* Size of hash table */
 
+ /*
+  * Typechecking support for variadic function arguments. See check_arg(3h)
+  * for documentation.
+  */
 #define SEND_ATTR_INT(name, val)	ATTR_TYPE_INT, CHECK_CPTR(ATTR, char, (name)), CHECK_VAL(ATTR, int, (val))
 #define SEND_ATTR_STR(name, val)	ATTR_TYPE_STR, CHECK_CPTR(ATTR, char, (name)), CHECK_CPTR(ATTR, char, (val))
 #define SEND_ATTR_HASH(val)		ATTR_TYPE_HASH, CHECK_CPTR(ATTR, HTABLE, (val))

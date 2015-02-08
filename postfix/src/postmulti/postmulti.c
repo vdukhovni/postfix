@@ -359,9 +359,10 @@
 /*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
 /*	and the multi-instance template files main.cf.proto and master.cf.proto.
 /* .IP "\fBshlib_directory (see 'postconf -d' output)\fR"
-/*	The location of Postfix shared libraries (libpostfix-*.so),
-/*	and the default location of Postfix database plugins (libpostfix-*.so)
-/*	that have a relative pathname in the dynamicmaps.cf file.
+/*	The location of Postfix dynamically-linked libraries
+/*	(libpostfix-*.so), and the default location of Postfix database
+/*	plugins (postfix-*.so) that have a relative pathname in the
+/*	dynamicmaps.cf file.
 /* FILES
 /*	$meta_directory/main.cf.proto, stock configuration file
 /*	$meta_directory/master.cf.proto, stock configuration file

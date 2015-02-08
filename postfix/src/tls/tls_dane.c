@@ -2056,6 +2056,10 @@ static int match_servername(const char *certid, ARGV *margv)
     int     domlen;
 
     /*
+     * XXX EAI support.
+     */
+
+    /*
      * Match the certid against each pattern until we find a match.
      */
     for (i = 0; i < margv->argc; ++i) {

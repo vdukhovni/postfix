@@ -91,10 +91,25 @@
 # .IP \fBOPT=\fIoptimization_level\fR
 #	Specifies a non-default optimization level. The default is \fB-O\fR.
 #	Specify \fBOPT=\fR to turn off optimization.
+# .IP \fBSHLIB_CFLAGS=\fIflags\fR
+#	Override the compiler flags (typically, "-fPIC") for Postfix
+#	dynamically-linked libraries and database plugins.
+#
+#	This feature was introduced with Postfix 3.0.
+# .IP \fBSHLIB_RPATH=\fIrpath\fR
+#	Override the runpath (typically, "'-Wl,-rpath,${SHLIB_DIR}'")
+#	for Postfix dynamically-linked libraries.
+#
+#	This feature was introduced with Postfix 3.0.
+# .IP \fBSHLIB_SUFFIX=\fIsuffix\fR
+#	Override the filename suffix (typically, ".so") for Postfix
+#	dynamically-linked libraries and database plugins.
+#
+#	This feature was introduced with Postfix 3.0.
 # .IP \fBshared=yes\fR
 # .IP \fBshared=no\fR
-#	Enable (disable) Postfix builds with shared libraries
-#	typically named $shlib_directory/libpostfix-*.so.*.
+#	Enable (disable) Postfix builds with dynamically-linked
+#	libraries typically named $shlib_directory/libpostfix-*.so.*.
 #
 #	This feature was introduced with Postfix 3.0.
 # .IP \fBdynamicmaps=yes\fR
@@ -102,7 +117,15 @@
 #	Enable (disable) Postfix builds with the configuration file
 #	$meta_directory/dynamicmaps.cf and dynamically-loadable
 #	database plugins typically named postfix-*.so.*.  The setting
-#	"dynamicmaps=yes" implicitly enables Postfix shared libraries.
+#	"dynamicmaps=yes" implicitly enables Postfix dynamically-linked
+#	libraries.
+#
+#	This feature was introduced with Postfix 3.0.
+# .IP \fBpie=yes\fR
+# .IP \fBpie=no\fR
+#
+#	Enable (disable) Postfix builds with position-independent
+#	executables, on platforms where this is supported.
 #
 #	This feature was introduced with Postfix 3.0.
 # .IP \fIinstallation_parameter\fB=\fIvalue\fR...
@@ -141,7 +164,9 @@ echo "# Start of summary of user-configurable 'make makefiles' options."
 echo "# CCARGS=$CCARGS"
 echo "# AUXLIBS=$AUXLIBS"
 env | grep '^AUXLIBS_' | sed 's/^/# /'
+echo "# shared=$shared"
 echo "# dynamicmaps=$dynamicmaps"
+echo "# pie=$pie"
 
 # Defaults for most sane systems
 
@@ -931,7 +956,7 @@ echo "#--------------------------------------------------------------"
 _AR=$AR
 _RANLIB=$RANLIB
 
-# Choose between shared and non-shared library builds.
+# Choose between dynamic and static library builds.
 
 case "$dynamicmaps" in
   yes) shared=yes;;
@@ -966,7 +991,8 @@ yes)
 	 ;;
     esac
 
-    # Determine the shared-library and plugin installation directory.
+    # Determine the dynamically-linked library and plugin installation
+    # directory.
 
     parm_name=shlib_directory
     eval parm_val=\"\$$parm_name\"
@@ -1082,6 +1108,21 @@ yes) SHLIB_SYSLIBS=`${AWK} '
      '`
 esac
 
+# Choose between PIE and non-PIE builds.
+
+case "$pie" in
+  yes) case "$shared" in
+        yes) CCARGS_PIE="-fPIC";;
+          *) CCARGS_PIE="-fPIE";;
+       esac
+       case " $CCARGS " in
+         *" $CCARGS_PIE "*) CCARGS_PIE=;;
+       esac
+       SYSLIBS_PIE="-pie";;
+""|no) ;;
+    *) error "Specify \"pie=yes\" or \"pie=no\"";;
+esac
+
 # Finally...
 
 sed 's/   */ /g' <<EOF
@@ -1090,8 +1131,8 @@ SYSTYPE	= $SYSTYPE
 _AR	= $_AR
 ARFL	= $ARFL
 _RANLIB	= $_RANLIB
-SYSLIBS	= $AUXLIBS $SYSLIBS $PLUGIN_AUXLIBS
-CC	= $CC $CCARGS \$(WARN)
+SYSLIBS	= $SYSLIBS_PIE $AUXLIBS $SYSLIBS $PLUGIN_AUXLIBS
+CC	= $CC $CCARGS_PIE $CCARGS \$(WARN)
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK
@@ -1100,7 +1141,7 @@ EXPORT	= CCARGS='$CCARGS' OPT='$OPT' DEBUG='$DEBUG'
 WARN	= $WARN
 DEFINED_MAP_TYPES = $DEFINED_MAP_TYPES
 MAKE_FIX = $MAKE_FIX
-# Switch between Postfix static and shared libraries.
+# Switch between Postfix static and dynamically-linked libraries.
 AR	= $AR
 RANLIB	= $RANLIB
 LIB_PREFIX = $LIB_PREFIX

@@ -21571,3 +21571,27 @@ Apologies for any names omitted.
 	value in double quotes, to clue in people who specify quoted
 	pathnames in main.cf. Viktor Dukhovni. Files: tls/tls_certkey.c
 	and testing code in posttls-finger/posttls-finger.c.
+
+20150202
+
+	Cleanup: make posttls-finger -k/-K documentation consistent
+	with behavior. File: posttls-finger/posttls-finger.c.
+
+20150203
+
+	Cleanup: API minimization, by making some functions static.
+	Files: util/dict.h, util/dict_utf8.c.
+
+20150205
+
+	Preliminary feature: support for building position-independent
+	executables (PIE), tested on Fedora Core 20, Ubuntu 14.04,
+	FreeBSD 9 and 10, and NetBSD 6. See INSTALL section 4.3 for
+	details and limitations. Files: makedefs, proto/INSTALL.html,
+	RELEASE_NOTES-3.0.
+
+20150208
+
+	Cleanup: after many years, the access(5) map BCC action is
+	part of the stable release. Files: smtpd/smtpd_check.c,
+	proto/acces.

@@ -4,17 +4,14 @@ Wish list:
 
 	Spell-check, double-word check, and HTML validator check.
 
+	Disable -DSNAPSHOT and -DNONPROD in makedefs.
+
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
 
-	MAINTAINER_README (with shared lib build guidance)
-
 	Update smtpd command count when rejecting input before
 	command-table lookup.
-
-	In release-notes add commands=x/y logging to the command
-	statistics.
 
 	Automatically do the equivalent of syslog_name=postfix/mumble
 	when basename(mumble) differs from basename(program file).

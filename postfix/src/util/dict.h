@@ -256,8 +256,6 @@ typedef struct DICT_UTF8_BACKUP {
 } DICT_UTF8_BACKUP;
 
 extern DICT *dict_utf8_activate(DICT *);
-extern char *dict_utf8_check_fold(DICT *, const char *, CONST_CHAR_STAR *);
-extern int dict_utf8_check(const char *, CONST_CHAR_STAR *);
 
  /*
   * Driver for interactive or scripted tests.

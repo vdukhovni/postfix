@@ -16094,26 +16094,26 @@ deliveries.  See default_delivery_status_filter for details.  </p>
 
 %PARAM shlib_directory see 'postconf -d' output
 
-<p> The location of Postfix shared libraries (libpostfix-*.so),
-and the default location of Postfix database plugins (libpostfix-*.so)
-that have a relative pathname in the dynamicmaps.cf file.  The
-shlib_directory parameter defaults to "no" when Postfix shared
-libraries and database plugins are disabled at compile time, otherwise
-it typically defaults to /usr/lib/postfix or /usr/local/lib/postfix.
-</p>
+<p> The location of Postfix dynamically-linked libraries
+(libpostfix-*.so), and the default location of Postfix database
+plugins (postfix-*.so) that have a relative pathname in the
+dynamicmaps.cf file.  The shlib_directory parameter defaults to
+"no" when Postfix dynamically-linked libraries and database plugins
+are disabled at compile time, otherwise it typically defaults to
+/usr/lib/postfix or /usr/local/lib/postfix.  </p>
 
 <p> Notes: </p>
 
 <ul>
 
 <li> <p> The directory specified with shlib_directory should contain
-only Postfix-related files. Postfix shared libraries and database
-plugins should not be installed in a "public" system directory such
-as /usr/lib or /usr/local/lib. Linking Postfix shared-library files
-or database plugins into non-Postfix programs is not supported.
-Postfix shared libraries and database plugins implement a
-Postfix-internal API that changes without maintaining compatibility.
-</p>
+only Postfix-related files. Postfix dynamically-linked libraries
+and database plugins should not be installed in a "public" system
+directory such as /usr/lib or /usr/local/lib. Linking Postfix
+dynamically-linked library files or database plugins into non-Postfix
+programs is not supported.  Postfix dynamically-linked libraries
+and database plugins implement a Postfix-internal API that changes
+without maintaining compatibility.  </p>
 
 <li> <p> You can change the shlib_directory value after Postfix is
 built. However, you may have to run ldconfig or equivalent to prevent
