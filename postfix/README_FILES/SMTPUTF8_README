@@ -39,7 +39,7 @@ time this text was written.
 
 To force Postfix to build without SMTPUTF8, specify:
 
-    $ mmaakkee mmaakkeeffiilleess CCCCAARRGGSS==--DDNNOO__EEAAII ......
+    $ mmaakkee mmaakkeeffiilleess CCCCAARRGGSS==""--DDNNOO__EEAAII ......""
 
 See the INSTALL document for more "make makefiles" options.
 

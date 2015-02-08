@@ -265,8 +265,7 @@
 #               same  SMTP  MAIL  transaction, only the last action
 #               will be used.
 # 
-#               This feature is not  part  of  the  stable  Postfix
-#               release.
+#               This feature is available in Postfix 3.0 and later.
 # 
 #        DISCARD optional text...
 #               Claim  successful delivery and silently discard the

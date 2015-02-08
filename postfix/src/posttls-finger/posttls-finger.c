@@ -115,11 +115,12 @@
 /* .IP "\fB-h \fIhost_lookup\fR (default: \fBdns\fR)"
 /*	The hostname lookup methods used for the connection.  See the
 /*	documentation of smtp_host_lookup for syntax and semantics.
-/* .IP "\fB-k \fIcertfile\fR (default: none)\fR)"
-/*	File with PEM-encoded TLS client certificate chain.
-/* .IP "\fB-K \fIkeyfile\fR (default: \fIcertfile\fR)\fR)"
-/*	File with corresponding PEM-encoded TLS client private key,
-/*	by default same as \fIcertfile\fR if one is specified.
+/* .IP "\fB-k \fIcertfile\fR (default: \fIkeyfile\fR)\fR"
+/*	File with PEM-encoded TLS client certificate chain. This
+/*	defaults to \fIkeyfile\fR if one is specified.
+/* .IP "\fB-K \fIkeyfile\fR (default: \fIcertfile\fR)"
+/*	File with PEM-encoded TLS client private key.
+/*	This defaults to \fIcertfile\fR if one is specified.
 /* .IP "\fB-l \fIlevel\fR (default: \fBdane\fR or \fBsecure\fR)"
 /*	The security level for the connection, default \fBdane\fR or
 /*	\fBsecure\fR depending on whether DNSSEC is available.  For syntax

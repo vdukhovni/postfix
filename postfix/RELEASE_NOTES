@@ -1,6 +1,6 @@
 This is the Postfix 3.0 (stable) release.
 
-The stable Postfix release is called postfix-3.0.x where 2=major
+The stable Postfix release is called postfix-3.0.x where 3=major
 release number, 0=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
@@ -58,7 +58,7 @@ Major changes - critical
 [Incompat 20140714] After upgrading Postfix, "postfix reload" (or
 start/stop) is required. Several Postfix-internal protocols have
 been extended to support SMTPUTF8. Failure to reload or restart
-will result in mail staying queued and the logile will contain
+will result in mail staying queued, while Postfix daemons log
 warning messages about unexpected attributes.
 
 Major changes - default settings
@@ -189,8 +189,8 @@ A future version may support pipemap:/path/to/file to load a list
 of lookup tables from file.
 
 [Feature 20140924] Support for unionmap, with the same syntax as
-pipemap.  This sends a query to all tables, and non-empty results
-are concatenated, separated by comma.
+pipemap.  This sends a query to all tables, and concatenates non-empty
+results, separated by comma.
 
 [Feature 20131121] The "static" lookup table now supports whitespace
 when invoked as "static:{ text with whitespace }", so that it can
@@ -509,6 +509,20 @@ limit the number of requests per Postfix SMTP server policy connection.
 This is a workaround to avoid error-recovery delays with policy
 servers that cannot maintain a persistent connection.
 
+Major changes - position-independent executables
+------------------------------------------------
+
+[Feature 20150205] Preliminary support for building position-independent
+executables (PIE), tested on Fedora Core 20, Ubuntu 14.04, FreeBSD
+9 and 10, and NetBSD 6. Specify:
+
+$ make makefiles pie=yes ...other arguments...
+
+On some systems, PIE is used by the ASLR exploit mitigation technique
+(ASLR = Address-Space Layout Randomization). Whether specifying
+"pie=yes" has any effect at all depends on the compiler.  Reportedly,
+some compilers always produce PIE executables.
+
 Major changes - postscreen
 --------------------------
 
@@ -572,7 +586,7 @@ n, old: y), and smtputf8 (new: yes, old: no).
 [Incompat 20140714] After upgrading Postfix, "postfix reload" (or
 start/stop) is required. Several Postfix-internal protocols have
 been extended to support SMTPUTF8. Failure to reload or restart
-will result in mail staying queued and the logile will contain
+will result in mail staying queued, while Postfix daemons log
 warning messages about unexpected attributes.
 
 [Feature 20140715] Support for Email Address Internationalization

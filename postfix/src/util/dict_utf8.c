@@ -8,16 +8,6 @@
 /*
 /*	DICT	*dict_utf8_activate(
 /*	DICT	*dict)
-/* AUXILIARY FUNCTIONS
-/*	char	*dict_utf8_check_fold(
-/*	DICT	*dict,
-/*	const char *string,
-/*	CONST_CHAR_STAR *err,
-/*	int	fold_flag)
-/*
-/*	int	dict_utf8_check(
-/*	const char *string,
-/*	CONST_CHAR_STAR *err)
 /* DESCRIPTION
 /*	dict_utf8_activate() wraps a dictionary's lookup/update/delete
 /*	methods with code that enforces UTF-8 checks on keys and
@@ -32,16 +22,6 @@
 /*	skipped while reporting a non-error status, and lookup
 /*	results that contain a non-UTF-8 value are blocked while
 /*	reporting a configuration error.
-/*
-/*	The dict_utf8_check* functions may be invoked to perform
-/*	UTF-8 validity checks when util_utf8_enable is non-zero.
-/*
-/*	dict_utf8_check_fold() optionally folds a string, and checks
-/*	it for UTF-8 validity. The result is the possibly-folded
-/*	string, or a null pointer in case of error.
-/*
-/*	dict_utf8_check() checks a string for UTF-8 validity. The
-/*	result is zero in case of error.
 /* BUGS
 /*	dict_utf8_activate() does not nest.
 /* LICENSE
@@ -107,8 +87,8 @@
 
 /* dict_utf8_check_fold - casefold or validate string */
 
-char   *dict_utf8_check_fold(DICT *dict, const char *string,
-			             CONST_CHAR_STAR *err)
+static char *dict_utf8_check_fold(DICT *dict, const char *string,
+				          CONST_CHAR_STAR *err)
 {
     int     fold_flag = (dict->flags & DICT_FLAG_FOLD_ANY);
 
@@ -135,7 +115,7 @@ char   *dict_utf8_check_fold(DICT *dict, const char *string,
 
 /* dict_utf8_check validate UTF-8 string */
 
-int     dict_utf8_check(const char *string, CONST_CHAR_STAR *err)
+static int dict_utf8_check(const char *string, CONST_CHAR_STAR *err)
 {
     if (!allascii(string) && valid_utf8_string(string, strlen(string)) == 0) {
 	if (err)

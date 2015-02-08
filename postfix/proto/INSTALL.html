@@ -135,6 +135,19 @@ mantools directory. </p>
 
 <h2> <a name="4">4 - Building on a supported system</a> </h2>
 
+<p> Postfix development happens on FreeBSD and MacOS X, with regular
+tests on Linux (Fedora, Ubuntu) and Solaris. Support for other
+systems relies on feedback from their users, and may not always be
+up-to-date. </p>
+
+<p> OpenBSD is partially supported. The libc resolver does not
+implement the documented "internal resolver options which are [...]
+set by changing fields in the _res structure" (documented in the
+OpenBSD 5.6 resolver(3) manpage). This results in too many DNS
+queries, and false positives for queries that should fail. </p>
+
+<!--
+
 <p> At some point in time, a version of Postfix was supported on: </p>
 
 <blockquote>
@@ -163,18 +176,47 @@ Ultrix 4.x (well, that was long ago) <br>
 
 <p> or something closely resemblant. </p>
 
-<h3>4.1 - Getting started</h3>
+-->
 
-<p> On Solaris, the "make" command and other utilities for software
-development are in /usr/ccs/bin, so you MUST have /usr/ccs/bin in
-your command search path. If these files do not exist, install the
-development packages first. See the Solaris FAQ item "<a
-href="http://www.science.uva.nl/pub/solaris/solaris2.html#q6.2">Which
-packages do I need to install to support a C compiler?</a>". </p>
+<p> Overview of topics: </p>
 
-<p> If you need to build Postfix for multiple architectures, use the
-"lndir" command to build a shadow tree with symbolic links to the
-source files. "lndir" is part of X11R6. </p>
+<ul>
+
+<li><a href="#build_first">4.1 - Getting started</a> 
+
+<li><a href="#build_cc">4.2 - What compiler to use</a>
+
+<li><a href="#build_pie">4.3 - Building with Postfix position-independent
+executables (Postfix &ge; 3.0)</a> 
+
+<li><a href="#build_dll">4.4 - Building with Postfix dynamically-linked
+libraries and database plugins (Postfix &ge; 3.0)</a> 
+
+<li><a href="#build_opt">4.5 - Building with optional features</a>
+
+<li><a href="#build_over">4.6 - Overriding built-in parameter default
+settings</a>
+
+<li><a href="#build_other">4.7 - Overriding other compile-time
+features</a>
+
+<li><a href="#build_proc">4.8 - Support for thousands of processes</a>
+
+<li><a href="#build_final">4.9 - Compiling Postfix, at last</a>
+
+</ul>
+
+
+<h3><a name="build_first">4.1 - Getting started</a> </h3>
+
+<p> On Solaris, the "make" command and other development utilities
+are in /usr/ccs/bin, so you MUST have /usr/ccs/bin in your command
+search path. If these files do not exist, you need to install the
+development packages first. </p>
+
+<p> If you need to build Postfix for multiple architectures from a
+single source-code tree, use the "lndir" command to build a shadow
+tree with symbolic links to the source files. </p>
 
 <p> If at any time in the build process you get messages like: "make:
 don't know how to ..." you should be able to recover by running
@@ -199,7 +241,7 @@ $ make tidy
 <p> This will get rid of any system dependencies left over from
 compiling the software elsewhere. </p>
 
-<h3>4.2 - What compiler to use</h3>
+<h3><a name="build_cc">4.2 - What compiler to use</a></h3>
 
 <p> To build with GCC, or with the native compiler if people told me
 that is better for your system, just cd into the top-level Postfix
@@ -227,10 +269,35 @@ $ make
 </pre>
 </blockquote>
 
-<p> and so on. In some cases, optimization is turned off automatically. </p>
+<p> and so on. In some cases, optimization will be turned off
+automatically. </p>
 
-<h3>4.3 - Building with Postfix dynamically-linked libraries and
-database plugins (Postfix &ge; 3.0) </h3>
+<h3><a name="build_pie">4.3 - Building with Postfix position-independent
+executables (Postfix &ge; 3.0)</a> </h3>
+
+<p> On some systems Postfix can be built with Position-Independent
+Executables. PIE is used by the ASLR exploit mitigation technique
+(ASLR = Address-Space Layout Randomization): </p>
+
+<blockquote>
+<pre>
+$ make makefiles pie=yes ...other arguments...
+</pre>
+</blockquote>
+
+<p> (Specify "make makefiles pie=no" to explicitly disable Postfix
+position-independent executable support). </p>
+
+<p> Postfix PIE support appears to work on Fedora Core 20, Ubuntu
+14.04, FreeBSD 9 and 10, and NetBSD 6 (all with the default system
+compilers). </p>
+
+<p> Whether the "pie=yes" above has any effect depends on the
+compiler.  Some compilers always produce PIE executables, and some
+may even complain that the Postfix build option is redundant. </p>
+
+<h3><a name="build_dll">4.4 - Building with Postfix dynamically-linked
+libraries and database plugins (Postfix &ge; 3.0)</a> </h3>
 
 <p> Postfix dynamically-linked library and database plugin support
 exists for recent versions of Linux, FreeBSD and MacOS X.
@@ -241,13 +308,13 @@ point in the future. </p>
 
 <ul>
 
-<li><a href="#shared_enable">4.3.1 Turning on Postfix dynamically-linked
+<li><a href="#shared_enable">4.4.1 Turning on Postfix dynamically-linked
 library support</a>
 
-<li><a href="#dynamicmaps_enable">4.3.2 Turning on Postfix database-plugin
+<li><a href="#dynamicmaps_enable">4.4.2 Turning on Postfix database-plugin
 support</a>
 
-<li><a href="#shared_custom">4.3.3 Customizing Postfix dynamically-linked
+<li><a href="#shared_custom">4.4.3 Customizing Postfix dynamically-linked
 libraries and database plugins</a>
 
 <li><a href="#shared_tips">4.4.4 Tips for distribution maintainers</a>
@@ -264,7 +331,7 @@ Postfix dynamically-linked libraries and database plugins implement
 a Postfix-internal API that changes without maintaining compatibility.
 </p>
 
-<h4><a name="shared_enable"> 4.3.1 Turning on Postfix dynamically-linked
+<h4><a name="shared_enable"> 4.4.1 Turning on Postfix dynamically-linked
 library support </a></h4>
 
 <p> Postfix can be built with Postfix dynamically-linked libraries
@@ -290,12 +357,12 @@ typically /usr/lib/postfix or /usr/local/lib/postfix, with file
 names libpostfix-<i>name</i>.so, where the <i>name</i> is a source-code
 directory name such as "util" or "global".  </p>
 
-<p> See section 4.3.3 "Customizing Postfix dynamically-linked
-libraries and database plugins" below for how to customize the
-Postfix dynamically-linked library location, including support to
-upgrade a running mail system safely.  </p>
+<p> See section 4.4.3 "<a href="#shared_custom">Customizing Postfix
+dynamically-linked libraries and database plugins</a>" below for
+how to customize the Postfix dynamically-linked library location,
+including support to upgrade a running mail system safely.  </p>
 
-<h4><a name="dynamicmaps_enable"> 4.3.2 Turning on Postfix
+<h4><a name="dynamicmaps_enable"> 4.4.2 Turning on Postfix
 database-plugin support </a></h4>
 
 <p> Additionally, Postfix can be built to support dynamic loading
@@ -348,8 +415,25 @@ database client loading was meant to avoid. </p>
 version of Postfix database plugins and the location of the file
 dynamicmaps.cf.  </p>
 
-<h4><a name="shared_custom"> 4.3.3 Customizing Postfix dynamically-linked
+<h4><a name="shared_custom"> 4.4.3 Customizing Postfix dynamically-linked
 libraries and database plugins </a></h4>
+
+<h5> Customizing build-time and run-time options for Postfix
+dynamically-linked libraries and database plugins </h5>
+
+<p> The build-time environment variables SHLIB_CFLAGS, SHLIB_RPATH,
+and SHLIB_SUFFIX provide control over how Postfix libraries and
+plugins are compiled, linked, and named.
+
+<blockquote>
+<pre>
+$ make makefiles SHLIB_CFLAGS=flags SHLIB_RPATH=rpath SHLIB_SUFFIX=suffix ...other arguments...
+$ make
+</pre>
+</blockquote>
+
+<p> See section 4.7 "<a href="#build_other">Overriding other
+compile-time features</a>" below for details. </p>
 
 <h5> Customizing the location of Postfix dynamically-linked libraries
 and database plugins </h5>
@@ -498,7 +582,7 @@ specific format.  </p>
 
 </ul>
 
-<h3>4.4 - Building with optional features</h3>
+<h3><a name="build_opt">4.5 - Building with optional features</a></h3>
 
 By default, Postfix builds as a mail system with relatively few
 bells and whistles. Support for third-party databases etc.
@@ -546,9 +630,10 @@ Postfix 2.2 </td> </tr>
 systems that have IPv6 support. See the IPV6_README file for details.
 </p>
 
-<h3>4.5 - Overriding built-in parameter default settings</h3>
+<h3><a name="build_over">4.6 - Overriding built-in parameter default
+settings</a></h3>
 
-<h4>4.5.1 - Postfix 3.0 and later </h4>
+<h4>4.6.1 - Postfix 3.0 and later </h4>
 
 <p> All Postfix configuration parameters can be changed by editing
 a Postfix configuration file, except for one: the parameter that
@@ -613,7 +698,7 @@ listed below. See the postconf(5) manpage for a description
 
 </blockquote>
 
-<h4>4.5.2 - All Postfix versions </h4>
+<h4>4.6.2 - All Postfix versions </h4>
 
 <p> All Postfix configuration parameters can be changed by editing
 a Postfix configuration file, except for one: the parameter that
@@ -685,7 +770,8 @@ default</th> </tr>
 <p> Note: the data_directory parameter (for caches and pseudo-random
 numbers) was introduced with Postfix version 2.5. </p>
 
-<h3>4.6 - Overriding other compile-time features</h3>
+<h3><a name="build_other">4.7 - Overriding other compile-time
+features</a></h3>
 
 <p> The general method to override Postfix compile-time features
 is as follows: </p>
@@ -722,7 +808,7 @@ off Postfix features at compile time:</td> </tr>
 DB support. By default, Berkeley DB support is compiled in on
 platforms that are known to support this feature. If you override
 this, then you probably should also override DEF_DB_TYPE as described
-in section 4.5.  </td> </tr>
+in section 4.6.  </td> </tr>
 
 <tr> <td> </td> <td> -DNO_DEVPOLL </td> <td> Do not build with
 Solaris <tt>/dev/poll</tt> support. By default, <tt>/dev/poll</tt>
@@ -775,21 +861,35 @@ By default, Postfix uses <tt>sigsetjmp()/siglongjmp()</tt> when
 they are known to be available. </td> </tr>
 
 <tr> <td colspan="2"> DEBUG=debug_level </td> <td> Specifies a
-non-default compiler debugging level. The default is <tt>-g</tt>.
+non-default compiler debugging level. The default is "<tt>-g</tt>".
 Specify DEBUG= to turn off debugging. </td> </tr>
 
 <tr> <td colspan="2"> OPT=optimization_level </td> <td> Specifies
-a non-default optimization level. The default is -O.  Specify OPT=
-to turn off optimization. </td> </tr>
+a non-default optimization level. The default is "<tt>-O</tt>".
+Specify OPT= to turn off optimization. </td> </tr>
+
+<tr> <td colspan="2"> SHLIB_CFLAGS=flags </td> <td> Specifies
+non-default compiler options for building Postfix dynamically-linked
+libraries and database plugins. The typical default is "-fPIC".
+</td> </tr>
+
+<tr> <td colspan="2"> SHLIB_RPATH=rpath </td> <td> Specifies
+a non-default runpath for Postfix dynamically-linked libraries. The
+typical default is "'-Wl,-rpath,${SHLIB_DIR}'". </td> </tr>
+
+<tr> <td colspan="2"> SHLIB_SUFFIX=suffix </td> <td> Specifies
+a non-default suffix for Postfix dynamically-linked libraries and
+database plugins.  The typical default is "<tt>.so</tt>". </td>
+</tr>
 
 <tr> <td colspan="2"> WARN="warning_flags..." </td> <td> Specifies
-non-default <tt>gcc</tt> compiler warning options for use when
-"<tt>make</tt>" is invoked in a source subdirectory only. </td>
+non-default compiler warning options for use when "<tt>make</tt>"
+is invoked in a source subdirectory only. </td>
 </tr>
 
 </table>
 
-<h3>4.7 - Support for thousands of processes</h3>
+<h3><a name="build_proc">4.8 - Support for thousands of processes</a></h3>
 
 <p> The number of connections that Postfix can manage simultaneously
 is limited by the number of processes that it can run.  This number
@@ -837,7 +937,7 @@ operating system is configured to handle thousands of connections.
 See the TUNING_README guide for examples of how to increase the
 number of open sockets or files. </p>
 
-<h3>4.8 - Compiling Postfix, at last</h3>
+<h3><a name="build_final">4.9 - Compiling Postfix, at last</a></h3>
 
 <p> If the command </p>
 
