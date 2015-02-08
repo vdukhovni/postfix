@@ -139,6 +139,15 @@ ARGV   *cleanup_map1n_internal(CLEANUP_STATE *state, const char *addr,
 	    if ((lookup = mail_addr_map(maps, STR(state->temp1), propagate)) != 0) {
 		saved_lhs = mystrdup(argv->argv[arg]);
 		for (i = 0; i < lookup->argc; i++) {
+		    if (strlen(lookup->argv[i]) > var_line_limit) {
+			msg_warn("%s: unreasonable %s result %.300s... -- "
+				 "message not accepted, try again later",
+			     state->queue_id, maps->title, lookup->argv[i]);
+			state->errs |= CLEANUP_STAT_DEFER;
+			UPDATE(state->reason, "4.6.0 Alias expansion error");
+			UNEXPAND(argv, addr);
+			RETURN(argv);
+		    }
 		    unquote_822_local(state->temp1, lookup->argv[i]);
 		    if (i == 0) {
 			UPDATE(argv->argv[arg], STR(state->temp1));
