@@ -12,6 +12,8 @@
 "hellp" > "HeLlO"
 > compare-len HeLlO hellp 4
 "HeLl" == "hell"
+> compare-len HeLO help 4
+"HeLO" < "help"
 > compare abcde abcdf 
 "abcde" < "abcdf"
 > compare YYY€€€XXX yyy€€€xxx

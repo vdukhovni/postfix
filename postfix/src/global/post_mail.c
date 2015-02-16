@@ -268,6 +268,9 @@ VSTREAM *post_mail_fopen_nowait(const char *sender, const char *recipient,
 			       BLOCKING)) != 0)
 	post_mail_init(stream, sender, recipient, source_class, trace_flags,
 		       utf8_flags, queue_id);
+    else
+	msg_warn("connect to %s/%s: %m",
+		 MAIL_CLASS_PUBLIC, var_cleanup_service);
     return (stream);
 }
 

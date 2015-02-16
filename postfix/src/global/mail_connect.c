@@ -22,6 +22,7 @@
 /*
 /*	mail_connect() attempts to connect to the UNIX-domain socket of
 /*	the named subsystem. The result is a null pointer in case of failure.
+/*	By default this function provides no errno logging.
 /*
 /*	mail_connect_wait() is like mail_connect(), but keeps trying until
 /*	the connection succeeds. However, mail_connect_wait() terminates

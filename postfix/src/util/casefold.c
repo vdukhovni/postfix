@@ -52,7 +52,7 @@
 /* .IP dest
 /*	Output buffer, null-terminated. Specify a null pointer to
 /*	use an internal buffer that is overwritten upon each call.
-/* .IP len
+/* .IP src_len
 /*	The string length, -1 to determine the length dynamically.
 /* .IP flags
 /*	Bitwise OR of zero or more of the following:

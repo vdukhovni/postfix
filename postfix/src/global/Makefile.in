@@ -1451,6 +1451,7 @@ mail_command_client.o: ../../include/attr.h
 mail_command_client.o: ../../include/check_arg.h
 mail_command_client.o: ../../include/htable.h
 mail_command_client.o: ../../include/iostuff.h
+mail_command_client.o: ../../include/msg.h
 mail_command_client.o: ../../include/mymalloc.h
 mail_command_client.o: ../../include/nvtable.h
 mail_command_client.o: ../../include/sys_defs.h

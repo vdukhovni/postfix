@@ -21453,7 +21453,7 @@ Apologies for any names omitted.
 	tls/tls_client.c, util/dict_alloc.c, util/dict_open.c,
 	util/match_list.c.
 
-20150214
+20150124
 
 	Workaround: nroff has been improved so that "-" comes out as
 	some non-ASCII character, unlike HTML where it comes out
@@ -21461,12 +21461,10 @@ Apologies for any names omitted.
 	hops to generate HTML and nroff input from the same source
 	text.  Files; mantools/srctoman, mantools/postconf2man.
 
-20150524
-
 	Cleanup: UTF-8 support in masquerade_domains.  File:
 	cleanup/cleanup_masquerade.c.
 
-20150525
+20150125
 
 	Cleanup: simplified the casefold() API: no input-dependent
 	failure modes. Files: cleanup/cleanup_masquerade.c,
@@ -21502,7 +21500,7 @@ Apologies for any names omitted.
 
 20150127
 
-	Cleanup: simplified the 20150525 and 20150126 APIs, replacing
+	Cleanup: simplified the 20150125 and 20150126 APIs, replacing
 	the most-common use cases with convenience macros that have
 	fewer arguments. Files: anything that implements or invokes
 	casefold*() or str*casecmp().
@@ -21595,3 +21593,41 @@ Apologies for any names omitted.
 	Cleanup: after many years, the access(5) map BCC action is
 	part of the stable release. Files: smtpd/smtpd_check.c,
 	proto/acces.
+
+20150210
+
+	Cleanup: socketmap documentation. File: proto/socketmap_table.
+
+20150211
+
+	Cleanup: strncasecmp_utf8() streamlining. Files: util/stringops.h,
+	util/allascii.c, util/strcasecmp_utf8.c.
+
+20150212
+
+	Cleanup: in code after reading main.cf, removed bogus guard
+	before re-evaluating the mail_task() syslog prefix.  File:
+	postlog/postlog.c.
+
+20150214
+
+	Bugfix: missing #ifdef USE_TLS inside #ifdef USE_SASL_AUTH
+	broke the build. Viktor Dukhovni. File: smtpd/smtpd.c.
+
+	Cleanup: missing errno logging in bounce daemon clients.
+	This made troubleshooting significantly more difficult.
+	File: global/mail_command_client.c.
+
+20150216
+
+	Cleanup: documented that mail_connect() produces no errno
+	logging.  The functions that call it should log the error
+	(and the majority does). File: global/mail_connect.c.
+
+	Cleanup: added errno logging after mail_connect() failure.
+	Files: global/post_mail.c, local/forward.c.
+
+	Cleanup: in code after reading main.cf, removed bogus guard
+	before re-evaluating the mail_task() syslog prefix. Files:
+	postalias/postalias.c, postdrop/postdrop.c, postmap/postmap.c,
+	postqueue/postqueue.c, postsuper/postsuper.c, sendmail/sendmail.c.

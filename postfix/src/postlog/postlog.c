@@ -170,7 +170,6 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
     struct stat st;
-    char   *slash;
     int     fd;
     int     ch;
     const char *tag;
@@ -200,10 +199,7 @@ int     main(int argc, char **argv)
     /*
      * Set up diagnostics.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
-	tag = mail_task(slash + 1);
-    else
-	tag = mail_task(argv[0]);
+    tag = mail_task(argv[0]);
     if (isatty(STDERR_FILENO))
 	msg_vstream_init(tag, VSTREAM_ERR);
     msg_syslog_init(tag, LOG_PID, LOG_FACILITY);
@@ -216,10 +212,11 @@ int     main(int argc, char **argv)
     /*
      * Parse switches.
      */
+    tag = 0;
     while ((ch = GETOPT(argc, argv, "c:ip:t:v")) > 0) {
 	switch (ch) {
 	default:
-	    msg_fatal("usage: %s [-c config_dir] [-i] [-p priority] [-t tag] [-v] [text]", tag);
+	    msg_fatal("usage: %s [-c config_dir] [-i] [-p priority] [-t tag] [-v] [text]", argv[0]);
 	    break;
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -241,26 +238,20 @@ int     main(int argc, char **argv)
     }
 
     /*
-     * Process the main.cf file. This overrides any logging facility that was
-     * specified with msg_syslog_init();
+     * Process the main.cf file. This may change the syslog_name setting and
+     * may require that mail_task() be re-evaluated.
      */
     mail_conf_read();
-    if (tag == 0 && strcmp(var_syslog_name, DEF_SYSLOG_NAME) != 0) {
-	if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
-	    tag = mail_task(slash + 1);
-	else
-	    tag = mail_task(argv[0]);
-    }
+    if (tag == 0)
+	tag = mail_task(argv[0]);
 
     /*
      * Re-initialize the logging, this time with the tag specified in main.cf
      * or on the command line.
      */
-    if (tag != 0) {
-	if (isatty(STDERR_FILENO))
-	    msg_vstream_init(tag, VSTREAM_ERR);
-	msg_syslog_init(tag, LOG_PID, LOG_FACILITY);
-    }
+    if (isatty(STDERR_FILENO))
+	msg_vstream_init(tag, VSTREAM_ERR);
+    msg_syslog_init(tag, LOG_PID, LOG_FACILITY);
 
     /*
      * Log the command line or log lines from standard input.

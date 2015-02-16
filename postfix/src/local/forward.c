@@ -134,8 +134,11 @@ static FORWARD_INFO *forward_open(DELIVER_REQUEST *request, const char *sender)
      * ourselves is that we don't really know who the recipients are.
      */
     cleanup = mail_connect(MAIL_CLASS_PUBLIC, var_cleanup_service, BLOCKING);
-    if (cleanup == 0)
+    if (cleanup == 0) {
+	msg_warn("connect to %s/%s: %m",
+		 MAIL_CLASS_PUBLIC, var_cleanup_service);
 	FORWARD_OPEN_RETURN(0);
+    }
     close_on_exec(vstream_fileno(cleanup), CLOSE_ON_EXEC);
     if (attr_scan(cleanup, ATTR_FLAG_STRICT,
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, buffer),

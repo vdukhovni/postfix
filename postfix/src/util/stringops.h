@@ -44,7 +44,7 @@ extern VSTRING *escape(VSTRING *, const char *, ssize_t);
 extern int alldig(const char *);
 extern int allprint(const char *);
 extern int allspace(const char *);
-extern int allascii(const char *);
+extern int allascii_len(const char *, ssize_t);
 extern const char *split_nameval(char *, char **, char **);
 extern int valid_utf8_string(const char *, ssize_t);
 extern size_t balpar(const char *, const char *);
@@ -62,6 +62,7 @@ extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
  /*
   * Convenience wrappers for most-common use cases.
   */
+#define allascii(s)	allascii_len((s), -1)
 #define casefold(dst, src) \
     casefoldx(util_utf8_enable ? CASEF_FLAG_UTF8 : 0, (dst), (src), -1)
 #define casefold_len(dst, src, len) \

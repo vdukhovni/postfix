@@ -30,15 +30,17 @@
 # .ad
 # .fi
 #	The socketmap protocol supports only the lookup request.
+#	The request has the following form:
 #
+# .IP "\fB\fIname\fB <space> \fIkey\fR"
+#	Search the named socketmap for the specified key. 
+# .PP
 #	Postfix will not generate partial search keys such as domain
 #	names without one or more subdomains, network addresses
 #	without one or more least-significant octets, or email
 #	addresses without the localpart, address extension or domain
 #	portion. This behavior is also found with cidr:, pcre:, and
 #	regexp: tables.
-# .IP "\fB\fIname\fB <space> \fIkey\fR"
-#	Search the named socketmap for the specified key. 
 # REPLY FORMAT
 # .ad
 # .fi

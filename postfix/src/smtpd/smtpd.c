@@ -4025,12 +4025,14 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	if (got_login)
 	    saved_username = mystrdup(state->sasl_username);
 	smtpd_sasl_deactivate(state);
-	if (state->tls_context == 0)		/* TLS from XCLIENT proxy? */
-	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
-				var_smtpd_sasl_opts);
-	else
+#ifdef USE_TLS
+	if (state->tls_context != 0)		/* TLS from XCLIENT proxy? */
 	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_TLS_OPTS,
 				var_smtpd_sasl_tls_opts);
+	else
+#endif
+	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
+				var_smtpd_sasl_opts);
 	if (got_login) {
 	    smtpd_sasl_auth_extern(state, saved_username, XCLIENT_CMD);
 	    myfree(saved_username);
