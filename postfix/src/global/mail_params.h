@@ -3237,7 +3237,7 @@ extern char *var_milt_conn_macros;
 
 #define VAR_MILT_HELO_MACROS		"milter_helo_macros"
 #define DEF_MILT_HELO_MACROS		"{tls_version} {cipher} {cipher_bits}" \
-					" {cert_subject} {cert_issuer}"
+					" {cert_subject} {cert_issuer} {client_helo}"
 extern char *var_milt_helo_macros;
 
 #define VAR_MILT_MAIL_MACROS		"milter_mail_macros"

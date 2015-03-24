@@ -139,6 +139,13 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_CERT_ISSUER) == 0)
 	return (IF_TRUSTED(state->tls_context->issuer_CN));
 #endif
+    if (strcmp(name, S8_MAC_CLIENT_HELO) == 0) {
+	if (state->helo_name == 0)
+	    return (0);
+	if (state->helo_name[0] == 0)
+	    return ("");
+	return (state->helo_name);
+    }
 
     /*
      * MAIL FROM macros.

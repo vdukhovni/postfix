@@ -170,6 +170,7 @@ extern void milter_free(MILTERS *);
 #define S8_MAC_CLIENT_PORT	"{client_port}"
 #define S8_MAC_CLIENT_PTR	"{client_ptr}"
 #define S8_MAC_CLIENT_RES	"{client_resolve}"
+#define S8_MAC_CLIENT_HELO	"{client_helo}"
 
 #define S8_MAC_TLS_VERSION	"{tls_version}"
 #define S8_MAC_CIPHER		"{cipher}"
