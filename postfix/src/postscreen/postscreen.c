@@ -30,11 +30,11 @@
 /*	process. This minimizes the overhead for legitimate mail.
 /*
 /*	By default, \fBpostscreen\fR(8) logs statistics and hands
-/*	off every connection to a Postfix SMTP server process, while
+/*	off each connection to a Postfix SMTP server process, while
 /*	excluding clients in mynetworks from all tests (primarily,
 /*	to avoid problems with non-standard SMTP implementations
-/*	in network appliances).  This mode is useful for non-destructive
-/*	testing.
+/*	in network appliances).  This default mode blocks no clients,
+/*	and is useful for non-destructive testing.
 /*
 /*	In a typical production setting, \fBpostscreen\fR(8) is
 /*	configured to reject mail from clients that fail one or
@@ -221,7 +221,7 @@
 /*	greeting" protocol tests, based on its combined DNSBL score as
 /*	defined with the postscreen_dnsbl_sites parameter.
 /* .PP
-/*	Available in Postfix version 2.11 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBpostscreen_dnsbl_timeout (10s)\fR"
 /*	The time limit for DNSBL or DNSWL lookups.
 /* AFTER 220 GREETING TESTS

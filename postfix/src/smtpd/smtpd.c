@@ -4341,7 +4341,7 @@ static void smtpd_start_tls(SMTPD_STATE *state)
      * VSTREAMS, so that we don't lose all the user-configurable
      * state->client attributes (such as longjump buffers or timeouts).
      * 
-     * As we implement tlsproy support in the Postfix SMTP client we should
+     * As we implement tlsproxy support in the Postfix SMTP client we should
      * develop a usable abstraction that encapsulates this stream plumbing in
      * a library module.
      */

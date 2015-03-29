@@ -473,6 +473,13 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
     DSN_BUF *why = state->why;
 
     /*
+     * Do not silently ignore an unused setting.
+     */
+    if (*var_fallback_relay)
+	msg_warn("ignoring \"%s = %s\" setting for non-TCP connections",
+		 VAR_LMTP_FALLBACK, var_fallback_relay);
+
+    /*
      * It's too painful to weave this code into the SMTP connection
      * management routine.
      * 
@@ -761,20 +768,15 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
     }
 
     /*
-     * First try to deliver to the indicated destination, then try to deliver
-     * to the optional fall-back relays.
-     * 
-     * Future proofing: do a null destination sanity check in case we allow the
-     * primary destination to be a list (it could be just separators).
+     * Future proofing: do a null destination sanity check in case we allow
+     * the primary destination to be a list (it could be just separators).
      */
     sites = argv_alloc(1);
     argv_add(sites, nexthop, (char *) 0);
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", nexthop);
     non_fallback_sites = sites->argc;
-    /* When we are lmtp(8) var_fallback_relay is null */
-    if (smtp_mode)
-	argv_split_append(sites, var_fallback_relay, CHARS_COMMA_SP);
+    argv_split_append(sites, var_fallback_relay, CHARS_COMMA_SP);
 
     /*
      * Don't give up after a hard host lookup error until we have tried the
@@ -815,9 +817,8 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    state->misc_flags |= SMTP_MISC_FLAG_FINAL_NEXTHOP;
 
 	/*
-	 * Parse the destination. Default is to use the SMTP port. Look up
-	 * the address instead of the mail exchanger when a quoted host is
-	 * specified, or when DNS lookups are disabled.
+	 * Parse the destination. If no TCP port is specified, use the port
+	 * that is reserved for the protocol (SMTP or LMTP).
 	 */
 	dest_buf = smtp_parse_destination(dest, def_service, &domain, &port);
 	if (var_helpful_warnings && var_smtp_tls_wrappermode == 0
@@ -832,8 +833,9 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	SMTP_ITER_INIT(iter, dest, NO_HOST, NO_ADDR, port, state);
 
 	/*
-	 * Resolve an SMTP server. Skip mail exchanger lookups when a quoted
-	 * host is specified, or when DNS lookups are disabled.
+	 * Resolve an SMTP or LMTP server. In the case of SMTP, skip mail
+	 * exchanger lookups when a quoted host is specified or when DNS
+	 * lookups are disabled.
 	 */
 	if (msg_verbose)
 	    msg_info("connecting to %s port %d", domain, ntohs(port));
@@ -1072,7 +1074,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	 * Pay attention to what could be configuration problems, and pretend
 	 * that these are recoverable rather than bouncing the mail.
 	 */
-	else if (!SMTP_HAS_SOFT_DSN(why) && smtp_mode) {
+	else if (!SMTP_HAS_SOFT_DSN(why)) {
 
 	    /*
 	     * The fall-back destination did not resolve as expected, or it
@@ -1087,8 +1089,13 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    /*
 	     * The next-hop relayhost did not resolve as expected, or it is
 	     * refusing to talk to us, or mail for it loops back to us.
+	     * 
+	     * XXX There is no equivalent safety net for mis-configured
+	     * sender-dependent relay hosts. The trivial-rewrite resolver
+	     * would have to flag the result, and the queue manager would
+	     * have to provide that information to delivery agents.
 	     */
-	    else if (strcmp(sites->argv[0], var_relayhost) == 0) {
+	    else if (smtp_mode && strcmp(sites->argv[0], var_relayhost) == 0) {
 		msg_warn("%s configuration problem", VAR_RELAYHOST);
 		vstring_strcpy(why->status, "4.3.5");
 		/* XXX Keep the diagnostic code and MTA. */
@@ -1098,7 +1105,7 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	     * Mail for the next-hop destination loops back to myself. Pass
 	     * the mail to the best_mx_transport or bounce it.
 	     */
-	    else if (SMTP_HAS_LOOP_DSN(why) && *var_bestmx_transp) {
+	    else if (smtp_mode && SMTP_HAS_LOOP_DSN(why) && *var_bestmx_transp) {
 		dsb_reset(why);			/* XXX */
 		state->status = deliver_pass_all(MAIL_CLASS_PRIVATE,
 						 var_bestmx_transp,
@@ -1151,9 +1158,6 @@ int     smtp_connect(SMTP_STATE *state)
     }
 
     /*
-     * With SMTP we can have indirection via MX host lookup, as well as an
-     * optional fall-back relayhost that we must avoid when we are MX host.
-     * 
      * XXX We don't add support for "unix:" or "inet:" prefixes in SMTP
      * destinations, because that would break compatibility with existing
      * Postfix configurations that have a host with such a name.

@@ -1509,6 +1509,25 @@ as the right-hand side for backup or primary MX domain entries.
 for destinations that it is MX host for.
 </p>
 
+%PARAM lmtp_fallback_relay
+
+<p> Optional list of relay hosts for LMTP destinations that can't be
+found or that are unreachable.  In main.cf elements are separated by
+whitespace or commas.  </p>
+
+<p> By default, mail is returned to the sender when a destination is not
+found, and delivery is deferred when a destination is unreachable.  </p>
+
+<p> The fallback relays must be TCP destinations, specified without
+a leading "inet:" prefix.  Specify a host or host:port.  Since MX
+lookups do not apply with LMTP, there is no need to use the "[host]" or
+"[host]:port" forms.  If you specify multiple LMTP destinations, Postfix
+will try them in the specified order.  </p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
+
 %PARAM fast_flush_domains $relay_domains
 
 <p>
@@ -4493,11 +4512,10 @@ smtp_sasl_auth_enable = yes
 
 <p>
 Optional Postfix SMTP client lookup tables with one username:password
-entry
-per remote hostname or domain, or sender address when sender-dependent
-authentication is enabled.  If no username:password entry is found,
-then the Postfix SMTP client will not
-attempt to authenticate to the remote host.
+entry per sender, remote hostname or next-hop domain. Per-sender
+lookup is done only when sender-dependent authentication is enabled.
+If no username:password entry is found, then the Postfix SMTP client
+will not attempt to authenticate to the remote host.
 </p>
 
 <p>

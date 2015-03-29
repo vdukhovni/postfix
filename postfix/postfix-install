@@ -592,6 +592,17 @@ do
    esac
 done
 
+# Don't allow whitespace in parameter settings.
+
+for name in $CONFIG_PARAMS sample_directory
+do
+    eval junk=\$$name
+    case "$junk" in
+*"	"*|*" "*) echo $0: Error: $name value contains whitespace: "'$junk'" 1>&2
+		  exit 1;;
+    esac
+done
+
 test -d $tempdir || mkdir -p $tempdir || exit 1
 
 trap "rm -f $tempdir/junk" 0 1 2 3 15

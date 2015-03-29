@@ -10,11 +10,25 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Generalize the daemon '-S' stand-alone mode, so that it can
+	be used with custom configuration files for request/reply
+	regression testing.
+
+	replace str*casecmp() calls with _utf8() equivalents
+	for trivial-rewrite lookups.
+
 	Update smtpd command count when rejecting input before
 	command-table lookup.
 
+	What is the best place to detect spaces in pathnames during
+	installation/upgrade/packaging? postfix-install for early
+	warning, and post-install as a safety net?
+
 	Automatically do the equivalent of syslog_name=postfix/mumble
 	when basename(mumble) differs from basename(program file).
+	This is especially desirable for mail delivery transports
+	(smtp versus relay) as it identifies what scheduler parameters
+	are in effect.
 
 	UTF8 DNS[BW]L domain name.
 

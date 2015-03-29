@@ -267,10 +267,15 @@ explicit list of domain names. </p>
 setting smtputf8_enable=no</a> </h2>
 
 <p> The smtputf8_enable default value has changed from "no" to "yes.
-As long as the smtputf8_enable parameter is left at its implicit
+With the new "yes" setting, the Postfix SMTP server rejects non-ASCII
+addresses from clients that don't request SMTPUTF8 support. With
+the old "no" setting, Postfix will accept such addresses, even if
+such addresses are not permitted by traditional SMTP standards. </p>
+
+<p> As long as the smtputf8_enable parameter is left at its implicit
 default value, and the backwards-compatible default setting is
 turned on, Postfix logs a warning each time an SMTP command uses a
-non-ASCII address localpart: </p>
+non-ASCII address localpart without requesting SMTPUTF8 support: </p>
 
 <blockquote>
 <pre>

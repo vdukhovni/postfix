@@ -52,8 +52,7 @@ content filters (Amavisd), LMTP servers (Dovecot), and down-stream SMTP
 servers.
 
 Postfix SMTPUTF8 support is enabled by default, but it may be disabled as part
-of a backwards-compatibility safety net (see the Postfix 3.0 RELEASE_NOTES
-file).
+of a backwards-compatibility safety net (see the COMPATIBILITY_README file).
 
 SMTPUTF8 support is enabled by setting the smtputf8_enable parameter in
 main.cf:

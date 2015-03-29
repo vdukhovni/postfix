@@ -1,6 +1,6 @@
 /*++
 /* NAME
-/*	dns_strtype 3
+/*	dns_strrecord 3
 /* SUMMARY
 /*	name service resource record printable forms
 /* SYNOPSIS
@@ -65,8 +65,10 @@ char   *dns_strrecord(VSTRING *buf, DNS_RR *rr)
     case T_MR:
     case T_NS:
     case T_PTR:
-    case T_TXT:
 	vstring_sprintf_append(buf, "%s.", rr->data);
+	break;
+    case T_TXT:
+	vstring_sprintf_append(buf, "%s", rr->data);
 	break;
     case T_MX:
 	vstring_sprintf_append(buf, "%u %s.", rr->pref, rr->data);

@@ -591,15 +591,20 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 		if (*relay == 0) {
 		    msg_warn("%s: ignoring null lookup result for %s",
 			     rp->snd_relay_maps_name, sender_key);
-		    relay = "DUNNO";
-		}
-		vstring_strcpy(nexthop, strcasecmp(relay, "DUNNO") == 0 ?
-			       rcpt_domain : relay);
+		    relay = 0;
+		} else if (strcasecmp_utf8(relay, "DUNNO") == 0)
+		    relay = 0;
 	    } else if (rp->snd_relay_info
 		       && rp->snd_relay_info->error != 0) {
 		msg_warn("%s lookup failure", rp->snd_relay_maps_name);
 		*flags |= RESOLVE_FLAG_FAIL;
 		FREE_MEMORY_AND_RETURN;
+	    } else {
+		relay = 0;
+	    }
+	    /* Enforce all the relayhost precedences in one place. */
+	    if (relay != 0) {
+		vstring_strcpy(nexthop, relay);
 	    } else if (*RES_PARAM_VALUE(rp->relayhost))
 		vstring_strcpy(nexthop, RES_PARAM_VALUE(rp->relayhost));
 	    else

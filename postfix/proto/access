@@ -340,10 +340,11 @@
 #	This feature is available in Postfix 2.1 and later.
 # .IP "\fBREDIRECT \fIuser@domain\fR"
 #	After the message is queued, send the message to the specified
-#	address instead of the intended recipient(s).
+#	address instead of the intended recipient(s).  When multiple
+#	\fBREDIRECT\fR actions fire, only the last one takes effect.
 # .sp
-#	Note: this action overrides the FILTER action, and currently affects
-#	all recipients of the message.
+#	Note: this action overrides the FILTER action, and currently
+#	overrides all recipients of the message.
 # .sp
 #	This feature is available in Postfix 2.1 and later.
 # .IP "\fBINFO \fIoptional text...\fR

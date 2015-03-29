@@ -633,6 +633,7 @@ while (<>) {
 
     s;\bsmtp_enforce_tls\b;<a href="postconf.5.html#smtp_enforce_tls">$&</a>;g;
     s;\bsmtp_fallback_relay\b;<a href="postconf.5.html#smtp_fallback_relay">$&</a>;g;
+    s;\blmtp_fallback_relay\b;<a href="postconf.5.html#lmtp_fallback_relay">$&</a>;g;
     s;\bsmtp_[-</Bb>]*\n* *[<Bb>]*sasl_[-</Bb>]*\n* *[<Bb>]*tls_[-</Bb>]*\n* *[<Bb>]*secu[-</Bb>]*\n* *[<Bb>]*rity_options\b;<a href="postconf.5.html#smtp_sasl_tls_security_options">$&</a>;g;
     s;\bsmtp_sasl_tls_verified_secu[-</Bb>]*\n* *[<Bb>]*rity_options\b;<a href="postconf.5.html#smtp_sasl_tls_verified_security_options">$&</a>;g;
     s;\bsmtp_sasl_type\b;<a href="postconf.5.html#smtp_sasl_type">$&</a>;g;

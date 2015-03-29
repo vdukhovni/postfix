@@ -17919,7 +17919,7 @@ Apologies for any names omitted.
 
 20120824
 
-	Feature: support for "sendmail -R hdrs|full". Jan Kundrát.
+	Feature: support for "sendmail -R hdrs|full". Jan Kundr?t.
 	File: sendmail/sendmail.c.
 
 20120902
@@ -21631,3 +21631,65 @@ Apologies for any names omitted.
 	before re-evaluating the mail_task() syslog prefix. Files:
 	postalias/postalias.c, postdrop/postdrop.c, postmap/postmap.c,
 	postqueue/postqueue.c, postsuper/postsuper.c, sendmail/sendmail.c.
+
+20150218
+
+	Documentation: header/body_checks additional text about
+	whether an action stops processing of the input stream.
+	actions stops further inspection of the input stream.  File:
+	proto/header_checks.
+
+	Robustness: reject installation pathnames with whitespace.
+	File: postfix-install.
+
+20150217
+
+	Cleanup: missing <string.h> include. File: util/allascii.c.
+
+20150221
+
+	Bugfix: don't append '.' to the DNS resource record value,
+	when converting TXT records to the string form that is used
+	used by xxx_dns_reply_filter.  File: dns/dns_strrecord.c.
+
+20150313
+
+	Documentation: incorrect Postfix version number for
+	postscreen_dnsbl_timeout. Quanah Gibson-Mount. File:
+	postscreen/postscreen.c.
+
+20150320
+
+	Cleanup: better sorting order for the default tls_*_cipherlist
+	settings. OpenSSL does not order "ALL" quite right: some
+	MEDIUM ciphers (SEED and IDEA) sneak up above some 128-bit
+	HIGH ciphers.  Also previously, when we prefer "aNULL" we
+	moved MEDIUM with aNULL above same bit-length HIGH but not
+	aNULL.  Viktor Dukhovni.  File: global/mail_params.h.
+
+20150324
+
+	Bugfix (introduced: Postfix 2.6): sender_dependent_relayhost_maps
+	ignored the relayhost setting in the case of a DUNNO lookup
+	result.  It would use the recipient domain instead.  Viktor
+	Dukhovni. Wietse took the pieces of code that enforce the
+	precedence of a sender-dependent relayhost, the global
+	relayhost, and the recipient domain, and put that code
+	together in once place so that it is easier to maintain.
+	File: trivial-rewrite/resolve.c.
+
+20150326
+
+	Feature: lmtp_fallback_relay, limited to TCP destinations
+	only.  Viktor Dukhovni. Wietse updated the postlink, smtp.c,
+	and smtp-only files, and added a warning when lmtp_fallback_relay
+	is specified for a non-TCP destination. Files: mantools/postlink,
+	smtp/smtp.c, smtp/smtp-only, smtp/smtp_connect.c,
+	smtp/smtp_params.c, global/mail_params.h, proto/postconf.proto.
+
+20150328
+
+	Bugfix (introduced: Postfix 1.1.0): post-install expanded
+	macros in parameter values when trying to detect parameter
+	overrides. Julian Reich, Viktor Dukhovni, and Wietse.  File:
+	conf/post-install.

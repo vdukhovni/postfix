@@ -2673,6 +2673,21 @@ The LMTP\-specific version of the smtp_enforce_tls configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_fallback_relay (default: empty)
+Optional list of relay hosts for LMTP destinations that can't be
+found or that are unreachable.  In main.cf elements are separated by
+whitespace or commas.
+.PP
+By default, mail is returned to the sender when a destination is not
+found, and delivery is deferred when a destination is unreachable.
+.PP
+The fallback relays must be TCP destinations, specified without
+a leading "inet:" prefix.  Specify a host or host:port.  Since MX
+lookups do not apply with LMTP, there is no need to use the "[host]" or
+"[host]:port" forms.  If you specify multiple LMTP destinations, Postfix
+will try them in the specified order.
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH lmtp_generic_maps (default: empty)
 The LMTP\-specific version of the smtp_generic_maps configuration
 parameter.  See there for details.
@@ -7035,11 +7050,10 @@ smtp_sasl_mechanism_filter = !gssapi, !login, static:rest
 .ft R
 .SH smtp_sasl_password_maps (default: empty)
 Optional Postfix SMTP client lookup tables with one username:password
-entry
-per remote hostname or domain, or sender address when sender\-dependent
-authentication is enabled.  If no username:password entry is found,
-then the Postfix SMTP client will not
-attempt to authenticate to the remote host.
+entry per sender, remote hostname or next\-hop domain. Per\-sender
+lookup is done only when sender\-dependent authentication is enabled.
+If no username:password entry is found, then the Postfix SMTP client
+will not attempt to authenticate to the remote host.
 .PP
 The Postfix SMTP client opens the lookup table before going to
 chroot jail, so you can leave the password file in /etc/postfix.

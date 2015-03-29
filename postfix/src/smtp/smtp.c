@@ -286,9 +286,7 @@
 /*	Enable SASL authentication in the Postfix SMTP client.
 /* .IP "\fBsmtp_sasl_password_maps (empty)\fR"
 /*	Optional Postfix SMTP client lookup tables with one username:password
-/*	entry
-/*	per remote hostname or domain, or sender address when sender-dependent
-/*	authentication is enabled.
+/*	entry per sender, remote hostname or next-hop domain.
 /* .IP "\fBsmtp_sasl_security_options (noplaintext, noanonymous)\fR"
 /*	Postfix SMTP client SASL security options; as of Postfix 2.3
 /*	the list of available
@@ -695,6 +693,11 @@
 /* .IP "\fBsmtp_address_verify_target (rcpt)\fR"
 /*	In the context of email address verification, the SMTP protocol
 /*	stage that determines whether an email address is deliverable.
+/* .PP
+/*	Available with Postfix 3.1 and later:
+/* .IP "\fBlmtp_fallback_relay (empty)\fR"
+/*	Optional list of relay hosts for LMTP destinations that can't be
+/*	found or that are unreachable.
 /* SEE ALSO
 /*	generic(5), output address rewriting
 /*	header_checks(5), message header content inspection

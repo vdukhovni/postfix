@@ -34,11 +34,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        Postfix SMTP server process. This minimizes the overhead for legitimate
        mail.
 
-       By default, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> logs statistics and hands off  every  connec-
-       tion  to  a  Postfix  SMTP  server  process, while excluding clients in
-       <a href="postconf.5.html#mynetworks">mynetworks</a> from all tests (primarily, to avoid problems with  non-stan-
-       dard  SMTP implementations in network appliances).  This mode is useful
-       for non-destructive testing.
+       By default, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> logs statistics and hands off each connection
+       to a Postfix SMTP server process, while excluding clients in <a href="postconf.5.html#mynetworks">mynetworks</a>
+       from all tests (primarily, to avoid  problems  with  non-standard  SMTP
+       implementations  in  network  appliances).  This default mode blocks no
+       clients, and is useful for non-destructive testing.
 
        In a typical production setting, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> is configured to  reject
        mail  from  clients  that  fail  one  or more tests. <a href="postscreen.8.html"><b>postscreen</b>(8)</a> logs
@@ -228,7 +228,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               greeting" protocol tests, based on its combined DNSBL  score  as
               defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.
 
-       Available in Postfix version 2.11 and later:
+       Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#postscreen_dnsbl_timeout">postscreen_dnsbl_timeout</a> (10s)</b>
               The time limit for DNSBL or DNSWL lookups.

@@ -216,7 +216,8 @@ extern char *var_null_relay_maps_key;
 
 #define VAR_SMTP_FALLBACK	"smtp_fallback_relay"
 #define DEF_SMTP_FALLBACK	"$fallback_relay"
-#define VAR_LMTP_FALLBACK	"smtp_fallback_relay"
+#define VAR_LMTP_FALLBACK	"lmtp_fallback_relay"
+#define DEF_LMTP_FALLBACK	""
 #define DEF_FALLBACK_RELAY	""
 extern char *var_fallback_relay;
 
@@ -3127,19 +3128,19 @@ extern bool var_smtp_cname_overr;
 #endif
 
 #define VAR_TLS_HIGH_CLIST	"tls_high_cipherlist"
-#define DEF_TLS_HIGH_CLIST	PREFER_aNULL "ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH"
+#define DEF_TLS_HIGH_CLIST	PREFER_aNULL "HIGH:@STRENGTH"
 extern char *var_tls_high_clist;
 
 #define VAR_TLS_MEDIUM_CLIST	"tls_medium_cipherlist"
-#define DEF_TLS_MEDIUM_CLIST	PREFER_aNULL "ALL:!EXPORT:!LOW:+RC4:@STRENGTH"
+#define DEF_TLS_MEDIUM_CLIST	PREFER_aNULL "HIGH:MEDIUM:+RC4:@STRENGTH"
 extern char *var_tls_medium_clist;
 
 #define VAR_TLS_LOW_CLIST	"tls_low_cipherlist"
-#define DEF_TLS_LOW_CLIST	PREFER_aNULL "ALL:!EXPORT:+RC4:@STRENGTH"
+#define DEF_TLS_LOW_CLIST	PREFER_aNULL "HIGH:MEDIUM:LOW:+RC4:@STRENGTH"
 extern char *var_tls_low_clist;
 
 #define VAR_TLS_EXPORT_CLIST	"tls_export_cipherlist"
-#define DEF_TLS_EXPORT_CLIST	PREFER_aNULL "ALL:+RC4:@STRENGTH"
+#define DEF_TLS_EXPORT_CLIST	PREFER_aNULL "HIGH:MEDIUM:LOW:EXPORT:+RC4:@STRENGTH"
 extern char *var_tls_export_clist;
 
 #define VAR_TLS_NULL_CLIST	"tls_null_cipherlist"

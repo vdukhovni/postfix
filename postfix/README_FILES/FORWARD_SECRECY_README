@@ -407,8 +407,8 @@ peer certificate with expected public-key or certificate fingerprint)
 
     PPoossttffiixx SSMMTTPP sseerrvveerr:: The status is never "Verified", because the Postfix
     SMTP server never verifies the remote SMTP client name against the names in
-    the client certificate, and because the Postfix SMTP does not expect a
-    specific fingerprint in the client public key or certificate.
+    the client certificate, and because the Postfix SMTP server does not expect
+    a specific fingerprint in the client public key or certificate.
 
 CCrreeddiittss
 

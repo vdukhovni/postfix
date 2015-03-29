@@ -165,10 +165,10 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
        consistency with other Postfix documentation.
 
        <b>BCC</b> <i>user@domain</i>
-              Add the specified address as a BCC recipient. The  address  must
-              have  a  local part and domain part. The number of BCC addresses
-              that can be added is limited only by  the  amount  of  available
-              storage space.
+              Add the specified address as a BCC recipient,  and  inspect  the
+              next  input  line. The address must have a local part and domain
+              part. The number of BCC addresses that can be added  is  limited
+              only by the amount of available storage space.
 
               Note  1:  the  BCC  address is added as if it was specified with
               NOTIFY=NONE. The sender  will  not  be  notified  when  the  BCC
@@ -183,8 +183,9 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               This feature is not supported with smtp header/body checks.
 
        <b>DISCARD</b> <i>optional text...</i>
-              Claim successful delivery and silently discard the message.  Log
-              the optional text if specified, otherwise log a generic message.
+              Claim  successful delivery and silently discard the message.  Do
+              not inspect  the  remainder  of  the  input  message.   Log  the
+              optional text if specified, otherwise log a generic message.
 
               Note: this action disables further header or <a href="postconf.5.html#body_checks">body_checks</a> inspec-
               tion of the current message and affects all recipients.  To dis-
@@ -206,30 +207,31 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               This feature is available in Postfix 2.1 and later.
 
        <b>FILTER</b> <i>transport:destination</i>
-              After the message is queued, send the entire message through the
-              specified  external content filter. The <i>transport</i> name specifies
-              the first field of a mail  delivery  agent  definition  in  <a href="master.5.html">mas-
-              ter.cf</a>;  the  syntax of the next-hop <i>destination</i> is described in
-              the manual page  of  the  corresponding  delivery  agent.   More
-              information  about  external  content  filters is in the Postfix
-              <a href="FILTER_README.html">FILTER_README</a> file.
+              Override the <a href="postconf.5.html#content_filter">content_filter</a> parameter setting, and  inspect  the
+              next  input  line.  After the message is queued, send the entire
+              message through  the  specified  external  content  filter.  The
+              <i>transport</i>  name  specifies  the  first  field of a mail delivery
+              agent definition in <a href="master.5.html">master.cf</a>; the syntax of the next-hop <i>desti-</i>
+              <i>nation</i>  is  described  in  the  manual page of the corresponding
+              delivery agent.  More information about external content filters
+              is in the Postfix <a href="FILTER_README.html">FILTER_README</a> file.
 
-              Note 1: do not use $<i>number</i> regular expression substitutions  for
-              <i>transport</i>  or  <i>destination</i>  unless you know that the information
+              Note  1: do not use $<i>number</i> regular expression substitutions for
+              <i>transport</i> or <i>destination</i> unless you know  that  the  information
               has a trusted origin.
 
-              Note 2: this action overrides the  <a href="postconf.5.html">main.cf</a>  <b><a href="postconf.5.html#content_filter">content_filter</a></b>  set-
-              ting,  and  affects  all  recipients of the message. In the case
-              that multiple <b>FILTER</b> actions fire, only the  last  one  is  exe-
+              Note  2:  this  action overrides the <a href="postconf.5.html">main.cf</a> <b><a href="postconf.5.html#content_filter">content_filter</a></b> set-
+              ting, and affects all recipients of the  message.  In  the  case
+              that  multiple  <b>FILTER</b>  actions  fire, only the last one is exe-
               cuted.
 
               Note 3: the purpose of the FILTER command is to override message
-              routing.  To override the  recipient's  <i>transport</i>  but  not  the
+              routing.   To  override  the  recipient's  <i>transport</i> but not the
               next-hop <i>destination</i>, specify an empty filter <i>destination</i> (Post-
-              fix 2.7 and later),  or  specify  a  <i>transport:destination</i>  that
-              delivers  through  a different Postfix instance (Postfix 2.6 and
+              fix  2.7  and  later),  or  specify a <i>transport:destination</i> that
+              delivers through a different Postfix instance (Postfix  2.6  and
               earlier). Other options are using the recipient-dependent <b><a href="postconf.5.html#transport_maps">trans</a>-</b>
-              <b><a href="postconf.5.html#transport_maps">port_maps</a></b>   or  the  sender-dependent  <b><a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default-</b>
+              <b><a href="postconf.5.html#transport_maps">port_maps</a></b>  or  the  sender-dependent   <b><a href="postconf.5.html#sender_dependent_default_transport_maps">sender_dependent_default-</b>
               <b>_transport_maps</a></b> features.
 
               This feature is available in Postfix 2.0 and later.
@@ -237,18 +239,18 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               This feature is not supported with smtp header/body checks.
 
        <b>HOLD</b> <i>optional text...</i>
-              Arrange for the message to be placed  on  the  <b>hold</b>  queue,  and
-              inspect  the next input line.  The message remains on <b>hold</b> until
-              someone either deletes it or releases it for delivery.  Log  the
+              Arrange  for  the  message  to  be placed on the <b>hold</b> queue, and
+              inspect the next input line.  The message remains on <b>hold</b>  until
+              someone  either deletes it or releases it for delivery.  Log the
               optional text if specified, otherwise log a generic message.
 
-              Mail  that is placed on hold can be examined with the <a href="postcat.1.html"><b>postcat</b>(1)</a>
-              command, and can be destroyed or released with the  <a href="postsuper.1.html"><b>postsuper</b>(1)</a>
+              Mail that is placed on hold can be examined with the  <a href="postcat.1.html"><b>postcat</b>(1)</a>
+              command,  and can be destroyed or released with the <a href="postsuper.1.html"><b>postsuper</b>(1)</a>
               command.
 
-              Note:  use  "<b>postsuper -r</b>" to release mail that was kept on hold
-              for  a  significant  fraction  of   <b>$<a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a></b>   or
-              <b>$<a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a></b>,  or  longer. Use "<b>postsuper -H</b>" only for
+              Note: use "<b>postsuper -r</b>" to release mail that was kept  on  hold
+              for   a   significant  fraction  of  <b>$<a href="postconf.5.html#maximal_queue_lifetime">maximal_queue_lifetime</a></b>  or
+              <b>$<a href="postconf.5.html#bounce_queue_lifetime">bounce_queue_lifetime</a></b>, or longer. Use "<b>postsuper -H</b>"  only  for
               mail that will not expire within a few delivery attempts.
 
               Note: this action affects all recipients of the message.
@@ -257,32 +259,32 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
 
               This feature is not supported with smtp header/body checks.
 
-       <b>IGNORE</b> Delete the current line from the input,  and  inspect  the  next
+       <b>IGNORE</b> Delete  the  current  line  from the input, and inspect the next
               input line.
 
        <b>INFO</b> <i>optional text...</i>
-              Log  an  "info:"  record  with  the  <i>optional  text...</i> (or log a
-              generic text), and inspect the next input line. This  action  is
+              Log an "info:" record  with  the  <i>optional  text...</i>  (or  log  a
+              generic  text),  and inspect the next input line. This action is
               useful for routine logging or for debugging.
 
               This feature is available in Postfix 2.8 and later.
 
        <b>PREPEND</b> <i>text...</i>
-              Prepend  one  line with the specified text, and inspect the next
+              Prepend one line with the specified text, and inspect  the  next
               input line.
 
               Notes:
 
-              <b>o</b>      The prepended text is output on a separate line,  immedi-
+              <b>o</b>      The  prepended text is output on a separate line, immedi-
                      ately before the input that triggered the <b>PREPEND</b> action.
 
-              <b>o</b>      The prepended text is not considered part  of  the  input
-                     stream:  it  is  not  subject  to  header/body  checks or
-                     address rewriting, and it does not affect  the  way  that
+              <b>o</b>      The  prepended  text  is not considered part of the input
+                     stream: it  is  not  subject  to  header/body  checks  or
+                     address  rewriting,  and  it does not affect the way that
                      Postfix adds missing message headers.
 
-              <b>o</b>      When  prepending  text  before a message header line, the
-                     prepended text must begin with  a  valid  message  header
+              <b>o</b>      When prepending text before a message  header  line,  the
+                     prepended  text  must  begin  with a valid message header
                      label.
 
               <b>o</b>      This action cannot be used to prepend multi-line text.
@@ -292,13 +294,13 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               This feature is not supported with <a href="postconf.5.html#milter_header_checks">milter_header_checks</a>.
 
        <b>REDIRECT</b> <i>user@domain</i>
-              Write  a  message  redirection  request  to  the queue file, and
-              inspect the next input line. After the  message  is  queued,  it
-              will  be  sent  to the specified address instead of the intended
+              Write a message redirection  request  to  the  queue  file,  and
+              inspect  the  next  input  line. After the message is queued, it
+              will be sent to the specified address instead  of  the  intended
               recipient(s).
 
-              Note: this action overrides the <b>FILTER</b> action, and  affects  all
-              recipients  of  the  message. If multiple <b>REDIRECT</b> actions fire,
+              Note:  this  action overrides the <b>FILTER</b> action, and affects all
+              recipients of the message. If multiple  <b>REDIRECT</b>  actions  fire,
               only the last one is executed.
 
               This feature is available in Postfix 2.1 and later.
@@ -306,7 +308,7 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
               This feature is not supported with smtp header/body checks.
 
        <b>REPLACE</b> <i>text...</i>
-              Replace the current line with the specified  text,  and  inspect
+              Replace  the  current  line with the specified text, and inspect
               the next input line.
 
               This feature is available in Postfix 2.2 and later. The descrip-
@@ -314,19 +316,19 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
 
               Notes:
 
-              <b>o</b>      When replacing a message  header  line,  the  replacement
+              <b>o</b>      When  replacing  a  message  header line, the replacement
                      text must begin with a valid header label.
 
-              <b>o</b>      The  replaced  text  remains  part  of  the input stream.
-                     Unlike the result from the  <b>PREPEND</b>  action,  a  replaced
-                     message  header  may  be subject to address rewriting and
-                     may affect the way  that  Postfix  adds  missing  message
+              <b>o</b>      The replaced text  remains  part  of  the  input  stream.
+                     Unlike  the  result  from  the <b>PREPEND</b> action, a replaced
+                     message header may be subject to  address  rewriting  and
+                     may  affect  the  way  that  Postfix adds missing message
                      headers.
 
        <b>REJECT</b> <i>optional text...</i>
-              Reject  the entire message. Reply with <i>optional text...</i> when the
-              optional text is specified, otherwise reply with a generic error
-              message.
+              Reject the entire message. Do not inspect the remainder  of  the
+              input  message.   Reply  with <i>optional text...</i> when the optional
+              text is specified, otherwise reply with a generic error message.
 
               Note: this action disables further header or <a href="postconf.5.html#body_checks">body_checks</a> inspec-
               tion of the current message and affects all recipients.

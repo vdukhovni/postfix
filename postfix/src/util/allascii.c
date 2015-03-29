@@ -9,7 +9,7 @@
 /*	int	allascii(buffer)
 /*	const char *buffer;
 /*
-/*	int	allascii_len(buffer len)
+/*	int	allascii_len(buffer, len)
 /*	const char *buffer;
 /*	ssize_t	len;
 /* DESCRIPTION
@@ -35,6 +35,7 @@
 
 #include <sys_defs.h>
 #include <ctype.h>
+#include <string.h>
 
 /* Utility library. */
 
