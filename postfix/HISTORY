@@ -21634,9 +21634,8 @@ Apologies for any names omitted.
 
 20150218
 
-	Documentation: header/body_checks additional text about
-	whether an action stops processing of the input stream.
-	actions stops further inspection of the input stream.  File:
+	Documentation: header/body_checks additional text about whether
+	an action stops further inspection of the input stream.  File:
 	proto/header_checks.
 
 	Robustness: reject installation pathnames with whitespace.
@@ -21693,3 +21692,13 @@ Apologies for any names omitted.
 	macros in parameter values when trying to detect parameter
 	overrides. Julian Reich, Viktor Dukhovni, and Wietse.  File:
 	conf/post-install.
+
+20150330
+
+	Bitrot: prepare for future changes in OpenSSL. Viktor
+	Dukhovni. File: tlstls_dane.c.
+
+	Safety: instead of bouncing mail, report a soft error when
+	SASL infrastucture breaks.  Viktor Dukhovni, Emmanuel Fuste.
+	Files: smtpd/smtpd_sasl_glue.c, xsasl/xsasl.h,
+	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_dovecot_server.c.

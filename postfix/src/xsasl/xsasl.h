@@ -121,6 +121,7 @@ extern ARGV *xsasl_client_types(void);
 #define XSASL_AUTH_DONE	3		/* Authentication completed */
 #define XSASL_AUTH_FORM	4		/* Cannot decode response */
 #define XSASL_AUTH_FAIL	5		/* Error */
+#define XSASL_AUTH_TEMP	6		/* Temporary error condition */
 
 /* LICENSE
 /* .ad

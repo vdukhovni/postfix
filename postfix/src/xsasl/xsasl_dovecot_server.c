@@ -598,7 +598,7 @@ static int xsasl_dovecot_handle_reply(XSASL_DOVECOT_SERVER *server,
     }
 
     vstring_strcpy(reply, "Connection lost to authentication server");
-    return XSASL_AUTH_FAIL;
+    return XSASL_AUTH_TEMP;
 }
 
 /* is_valid_base64 - input sanitized */
@@ -655,7 +655,7 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
     for (i = 0; i < 2; i++) {
 	if (!server->impl->sasl_stream) {
 	    if (xsasl_dovecot_server_connect(server->impl) < 0)
-		return (0);
+		return XSASL_AUTH_TEMP;
 	}
 	/* send the request */
 	server->last_request_id = ++server->impl->request_id_counter;
@@ -686,7 +686,7 @@ int     xsasl_dovecot_server_first(XSASL_SERVER *xp, const char *sasl_method,
 
 	if (i == 1) {
 	    vstring_strcpy(reply, "Can't connect to authentication server");
-	    return XSASL_AUTH_FAIL;
+	    return XSASL_AUTH_TEMP;
 	}
 
 	/*
@@ -714,7 +714,7 @@ static int xsasl_dovecot_server_next(XSASL_SERVER *xp, const char *request,
 		    "CONT\t%u\t%s\n", server->last_request_id, request);
     if (vstream_fflush(server->impl->sasl_stream) == VSTREAM_EOF) {
 	vstring_strcpy(reply, "Connection lost to authentication server");
-	return XSASL_AUTH_FAIL;
+	return XSASL_AUTH_TEMP;
     }
     return xsasl_dovecot_handle_reply(server, reply);
 }
