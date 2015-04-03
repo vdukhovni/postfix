@@ -158,15 +158,18 @@ default with Postfix 2.6 and later. </p>
 
 <blockquote>
 <pre>
-1 <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> = ${stress?10}${stress:300}s
-2 <a href="postconf.5.html#smtpd_hard_error_limit">smtpd_hard_error_limit</a> = ${stress?1}${stress:20}
-3 <a href="postconf.5.html#smtpd_junk_command_limit">smtpd_junk_command_limit</a> = ${stress?1}${stress:100}
+1 <a href="postconf.5.html#smtpd_timeout">smtpd_timeout</a> = ${stress?{10}:{300}}s
+2 <a href="postconf.5.html#smtpd_hard_error_limit">smtpd_hard_error_limit</a> = ${stress?{1}:{20}}
+3 <a href="postconf.5.html#smtpd_junk_command_limit">smtpd_junk_command_limit</a> = ${stress?{1}:{100}}
 4 # Parameters added after Postfix 2.6:
-5 <a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a> = ${stress?yes}${stress:no}
-6 <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a> = ${stress?10}${stress:300}s
-7 <a href="postconf.5.html#address_verify_poll_count">address_verify_poll_count</a> = ${stress?1}${stress:3}
+5 <a href="postconf.5.html#smtpd_per_record_deadline">smtpd_per_record_deadline</a> = ${stress?{yes}:{no}}
+6 <a href="postconf.5.html#smtpd_starttls_timeout">smtpd_starttls_timeout</a> = ${stress?{10}:{300}}s
+7 <a href="postconf.5.html#address_verify_poll_count">address_verify_poll_count</a> = ${stress?{1}:{3}}
 </pre>
 </blockquote>
+
+<p> With Postfix versions before 3.0, replace ${stress?{x}:{y}}
+with ${stress?x}${stress:y}. </p>
 
 <p> Translation: <p>
 

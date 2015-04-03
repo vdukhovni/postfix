@@ -31,20 +31,21 @@ SOCKETMAP_TABLE(5)                                          SOCKETMAP_TABLE(5)
        string object.
 
 <b>REQUEST FORMAT</b>
-       The socketmap protocol supports only the lookup request.
-
-       Postfix  will  not  generate  partial  search keys such as domain names
-       without one or more subdomains, network addresses without one  or  more
-       least-significant  octets,  or  email  addresses without the localpart,
-       address extension or domain portion. This behavior is also  found  with
-       <a href="cidr_table.5.html">cidr</a>:, <a href="pcre_table.5.html">pcre</a>:, and <a href="regexp_table.5.html">regexp</a>: tables.
+       The  socketmap  protocol supports only the lookup request.  The request
+       has the following form:
 
        <i>name</i> &lt;<b>space</b>&gt; <i>key</i>
               Search the named socketmap for the specified key.
 
+       Postfix will not generate partial search  keys  such  as  domain  names
+       without  one  or more subdomains, network addresses without one or more
+       least-significant octets, or email  addresses  without  the  localpart,
+       address  extension  or domain portion. This behavior is also found with
+       <a href="cidr_table.5.html">cidr</a>:, <a href="pcre_table.5.html">pcre</a>:, and <a href="regexp_table.5.html">regexp</a>: tables.
+
 <b>REPLY FORMAT</b>
-       The  Postfix socketmap client requires that replies are not longer than
-       100000 characters (not including the netstring encapsulation).  Replies
+       The Postfix socketmap client requires that replies are not longer  than
+       100000  characters (not including the netstring encapsulation). Replies
        must have the following form:
 
        <b>OK</b> &lt;<b>space</b>&gt; <i>data</i>
@@ -58,7 +59,7 @@ SOCKETMAP_TABLE(5)                                          SOCKETMAP_TABLE(5)
        <b>TIMEOUT</b> &lt;<b>space</b>&gt; <i>reason</i>
 
        <b>PERM</b> &lt;<b>space</b>&gt; <i>reason</i>
-              The  request  failed.  The  reason, if non-empty, is descriptive
+              The request failed. The reason,  if  non-empty,  is  descriptive
               text.
 
 <b>SECURITY</b>

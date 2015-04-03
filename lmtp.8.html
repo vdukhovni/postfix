@@ -327,8 +327,8 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a> (empty)</b>
               Optional Postfix  SMTP  client  lookup  tables  with  one  user-
-              name:password  entry  per  remote  hostname or domain, or sender
-              address when sender-dependent authentication is enabled.
+              name:password  entry  per  sender,  remote  hostname or next-hop
+              domain.
 
        <b><a href="postconf.5.html#smtp_sasl_security_options">smtp_sasl_security_options</a> (noplaintext, noanonymous)</b>
               Postfix SMTP client SASL security options; as of Postfix 2.3 the
@@ -844,6 +844,12 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_address_verify_target">smtp_address_verify_target</a> (rcpt)</b>
               In the context of email address verification, the SMTP  protocol
               stage that determines whether an email address is deliverable.
+
+       Available with Postfix 3.1 and later:
+
+       <b><a href="postconf.5.html#lmtp_fallback_relay">lmtp_fallback_relay</a> (empty)</b>
+              Optional list of relay hosts for LMTP destinations that can't be
+              found or that are unreachable.
 
 <b>SEE ALSO</b>
        <a href="generic.5.html">generic(5)</a>, output address rewriting
