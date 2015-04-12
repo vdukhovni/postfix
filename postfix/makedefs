@@ -155,6 +155,9 @@ case "$SYSTEM.$RELEASE" in
 		;;
   FreeBSD.9*)	SYSTYPE=FREEBSD9
 		;;
+  FreeBSD.10*)	SYSTYPE=FREEBSD10
+		: ${CC=cc}
+		;;
   OpenBSD.2*)	SYSTYPE=OPENBSD2
 		;;
   OpenBSD.3*)	SYSTYPE=OPENBSD3
@@ -454,7 +457,6 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
     Darwin.*)   SYSTYPE=MACOSX
 		# Use the native compiler by default
 		: ${CC=cc}
-		CCARGS="$CCARGS \$(WARN)"
 		# Darwin > 1.3 uses awk and flat_namespace
 		case $RELEASE in
 		 1.[0-3]) AWK=gawk;;
@@ -656,7 +658,7 @@ esac
 # een burned once by a compiler that lies about what warnings it
 # produces, not taking that chance again.
 
-: ${CC='gcc $(WARN)'} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
+: ${CC=gcc} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
 ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
 	-Wunused -Wno-missing-braces'}
@@ -679,7 +681,7 @@ AR	= $AR
 ARFL	= $ARFL
 RANLIB	= $RANLIB
 SYSLIBS	= $AUXLIBS $SYSLIBS
-CC	= $CC $CCARGS
+CC	= $CC $CCARGS \$(WARN)
 OPT	= $OPT
 DEBUG	= $DEBUG
 AWK	= $AWK
