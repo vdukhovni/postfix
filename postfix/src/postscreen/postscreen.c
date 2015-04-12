@@ -221,7 +221,7 @@
 /*	greeting" protocol tests, based on its combined DNSBL score as
 /*	defined with the postscreen_dnsbl_sites parameter.
 /* .PP
-/*	Available in Postfix version 2.11 and later:
+/*	Available in Postfix version 3.0 and later:
 /* .IP "\fBpostscreen_dnsbl_timeout (10s)\fR"
 /*	The time limit for DNSBL or DNSWL lookups.
 /* AFTER 220 GREETING TESTS

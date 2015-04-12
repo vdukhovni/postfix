@@ -17919,7 +17919,7 @@ Apologies for any names omitted.
 
 20120824
 
-	Feature: support for "sendmail -R hdrs|full". Jan Kundrát.
+	Feature: support for "sendmail -R hdrs|full". Jan Kundr?t.
 	File: sendmail/sendmail.c.
 
 20120902
@@ -21453,7 +21453,7 @@ Apologies for any names omitted.
 	tls/tls_client.c, util/dict_alloc.c, util/dict_open.c,
 	util/match_list.c.
 
-20150214
+20150124
 
 	Workaround: nroff has been improved so that "-" comes out as
 	some non-ASCII character, unlike HTML where it comes out
@@ -21461,12 +21461,10 @@ Apologies for any names omitted.
 	hops to generate HTML and nroff input from the same source
 	text.  Files; mantools/srctoman, mantools/postconf2man.
 
-20150524
-
 	Cleanup: UTF-8 support in masquerade_domains.  File:
 	cleanup/cleanup_masquerade.c.
 
-20150525
+20150125
 
 	Cleanup: simplified the casefold() API: no input-dependent
 	failure modes. Files: cleanup/cleanup_masquerade.c,
@@ -21502,7 +21500,7 @@ Apologies for any names omitted.
 
 20150127
 
-	Cleanup: simplified the 20150525 and 20150126 APIs, replacing
+	Cleanup: simplified the 20150125 and 20150126 APIs, replacing
 	the most-common use cases with convenience macros that have
 	fewer arguments. Files: anything that implements or invokes
 	casefold*() or str*casecmp().
@@ -21595,3 +21593,55 @@ Apologies for any names omitted.
 	Cleanup: after many years, the access(5) map BCC action is
 	part of the stable release. Files: smtpd/smtpd_check.c,
 	proto/acces.
+
+20150211
+
+	Cleanup: strncasecmp_utf8() streamlining. Files: util/stringops.h,
+	util/allascii.c, util/strcasecmp_utf8.c.
+
+20150214
+
+	Bugfix (introduced: Postfix 3.0): missing #ifdef USE_TLS
+	inside #ifdef USE_SASL_AUTH.  Viktor Dukhovni. File:
+	smtpd/smtpd.c.
+
+20150217
+
+	Cleanup: missing <string.h> include. File: util/allascii.c.
+
+20150221
+
+	Bugfix (introduced: Postfix 3.0): don't append '.' to the
+	DNS resource record value, when converting TXT records to
+	the string form that is used used by xxx_dns_reply_filter.
+	File: dns/dns_strrecord.c.
+
+20150313
+
+	Documentation: incorrect Postfix version number for
+	postscreen_dnsbl_timeout. Quanah Gibson-Mount. File:
+	postscreen/postscreen.c.
+
+20150324
+
+	Bugfix (introduced: Postfix 2.6): sender_dependent_relayhost_maps
+	ignored the relayhost setting in the case of a DUNNO lookup
+	result.  It would use the recipient domain instead.  Viktor
+	Dukhovni. Wietse took the pieces of code that enforce the
+	precedence of a sender-dependent relayhost, the global
+	relayhost, and the recipient domain, and put that code
+	together in once place so that it is easier to maintain.
+	File: trivial-rewrite/resolve.c.
+
+20150328
+
+	Bugfix (introduced: Postfix 1.1.0): post-install expanded
+	macros in parameter values when trying to detect parameter
+	overrides, causing unnecessary main.cf updates during Postfix
+	start-up. Julian Reich, Viktor Dukhovni, and Wietse.  File:
+	conf/post-install.
+
+20150330
+
+	Bitrot: prepare for future changes in OpenSSL API. Viktor
+	Dukhovni. File: tls_dane.c.

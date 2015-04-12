@@ -447,10 +447,14 @@ do
     esac
 done
 
+# XXX Maybe update main.cf only with first install, upgrade, set
+# permissions, and what else? Should there be a warning otherwise?
+
 override=
 for name in $MOST_PARAMETERS
 do
-    eval test \"\$$name\" = \"`$POSTCONF -c $config_directory -h $name`\" || {
+    eval junk=\"\$$name\"
+    test "$junk" = "`$POSTCONF -c $config_directory -h $name`" || {
 	override=1
 	break
     }

@@ -130,17 +130,14 @@ int     strncasecmp_utf8x(int flags, const char *s1, const char *s2,
     /*
      * Short-circuit optimization for ASCII-only text. This may be slower
      * than using a cache for all results. See comments above for limitations
-     * of strcasecmp(). XXX We could avoid the vstring_strncpy() if
-     * allascii() had a length argument.
+     * of strcasecmp().
      */
-    vstring_strncpy(f1, s1, len);
-    vstring_strncpy(f2, s2, len);
-    if (allascii(STR(f1)) && allascii(STR(f2)))
-	return (strncasecmp(STR(f1), STR(f2), len));
+    if (allascii_len(s1, len) && allascii_len(s2, len))
+	return (strncasecmp(s1, s2, len));
 
     /*
      * Caution: casefolding may change the number of bytes. See comments
-     * above for concerns about strcpy().
+     * above for concerns about strcmp().
      */
     flags &= CASEF_FLAG_UTF8;
     casefoldx(flags, f1, s1, len);
