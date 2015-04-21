@@ -153,8 +153,8 @@ mail_owner = postfix
 # compatible delivery agent that lookups all recipients in /etc/passwd
 # and /etc/aliases or their equivalent.
 #
-# The default is $myhostname + localhost.$mydomain.  On a mail domain
-# gateway, you should also include $mydomain.
+# The default is $myhostname + localhost.$mydomain + localhost.  On
+# a mail domain gateway, you should also include $mydomain.
 #
 # Do not specify the names of virtual domains - those domains are
 # specified elsewhere (see VIRTUAL_README).

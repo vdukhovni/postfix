@@ -14186,8 +14186,11 @@ destination with each content_filter value or FILTER action. </p>
 <p> The address type ("ipv6", "ipv4" or "any") that the Postfix
 SMTP client will try first, when a destination has IPv6 and IPv4
 addresses with equal MX preference. This feature has no effect
-unless the inet_protocols setting enables both IPv4 and IPv6.
-With Postfix 2.8 the default is "ipv6".  </p>
+unless the inet_protocols setting enables both IPv4 and IPv6. </p>
+
+<p> Postfix SMTP client address preference has evolved. With Postfix
+2.8 the default is "ipv6"; earlier implementations are hard-coded
+to prefer IPv6 over IPv4. </p>
 
 <p> Notes for mail delivery between sites that have both IPv4 and
 IPv6 connectivity: </p>

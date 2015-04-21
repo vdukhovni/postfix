@@ -731,9 +731,11 @@ esac
 # Look for the ICU library and enable unicode email if available.
 #
 case "$CCARGS" in
- *-DNO_EAI*) ;;
-          *) trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
-             cat >makedefs.test.c <<'EOF'
+*-DNO_EAI*) ;;
+	 *) icu_cppflags=`(icu-config --cppflags) 2>/dev/null` && {
+		icu_ldflags=`(icu-config --ldflags) 2>/dev/null` && {
+		    trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
+		    cat >makedefs.test.c <<'EOF'
 #include <unicode/uidna.h>
 #include <stdlib.h>
 
@@ -753,14 +755,17 @@ int main(int argc, char **argv)
 				  &error) != 14);
 }
 EOF
-             ${CC-gcc} -o makedefs.test makedefs.test.c -I/usr/local/include \
-		-L/usr/local/lib -licuuc >/dev/null 2>&1
-             if ./makedefs.test 2>/dev/null ; then
-                 SYSLIBS="$SYSLIBS -L/usr/local/lib -licuuc"
-             else
-                 CCARGS="$CCARGS -DNO_EAI"
-             fi
-             rm -f makedefs.test makedefs.test.[co]
+		    ${CC-gcc} -o makedefs.test makedefs.test.c $icu_cppflags \
+			$icu_ldflags >/dev/null 2>&1
+		    if ./makedefs.test 2>/dev/null ; then
+			CCARGS="$CCARGS $icu_cppflags"
+			SYSLIBS="$SYSLIBS $icu_ldflags"
+		    else
+			CCARGS="$CCARGS -DNO_EAI"
+		    fi
+		    rm -f makedefs.test makedefs.test.[co]
+		}
+	    } || CCARGS="$CCARGS -DNO_EAI"
 esac
 
 #

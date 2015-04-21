@@ -137,7 +137,7 @@ int     strncasecmp_utf8x(int flags, const char *s1, const char *s2,
 
     /*
      * Caution: casefolding may change the number of bytes. See comments
-     * above for concerns about strcpy().
+     * above for concerns about strcmp().
      */
     flags &= CASEF_FLAG_UTF8;
     casefoldx(flags, f1, s1, len);

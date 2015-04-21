@@ -24,11 +24,17 @@ Wish list:
 	installation/upgrade/packaging? postfix-install for early
 	warning, and post-install as a safety net?
 
-	Automatically do the equivalent of syslog_name=postfix/mumble
-	when basename(mumble) differs from basename(program file).
-	This is especially desirable for mail delivery transports
-	(smtp versus relay) as it identifies what scheduler parameters
-	are in effect.
+	When the service basename differs from the program file
+	basename, either prepend the service name to the syslogname (as
+	if syslog_name=postfix/service/program), or prepend the service
+	name to the process name (perhaps too confusing).  The service
+	indication is desirable for mail delivery transports (smtp
+	versus relay) as it identifies what scheduler parameters are
+	in effect, but it is also desirable for mail receiving services
+	(smtp versus submission verus smtps as configured in the stock
+	master.cf file). This requires exceptions for some program names
+	(exclude smtpd to avoid logging postfix/smtp/smtpd which could
+	result in more confusion, and maybe other program names).
 
 	UTF8 DNS[BW]L domain name.
 
@@ -38,8 +44,8 @@ Wish list:
 	Try to allow UTF-8 myhostname/mydomain, at least in bounce
 	template expansion.
 
-	No enhanced status code when rejecting connection before
-	the HELO handshake is completed.
+	In the SMTP server, do not issue an enhanced status code when
+	rejecting a connection before the HELO handshake is completed.
 
 	Maybe don't whitelist a client that has maxed out its
 	per-MTA connection count limit.

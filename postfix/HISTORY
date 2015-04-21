@@ -21611,8 +21611,9 @@ Apologies for any names omitted.
 
 20150214
 
-	Bugfix: missing #ifdef USE_TLS inside #ifdef USE_SASL_AUTH
-	broke the build. Viktor Dukhovni. File: smtpd/smtpd.c.
+	Bugfix (introduced: Postfix 3.0): missing #ifdef USE_TLS
+	inside #ifdef USE_SASL_AUTH broke the build. Viktor Dukhovni.
+	File: smtpd/smtpd.c.
 
 	Cleanup: missing errno logging in bounce daemon clients.
 	This made troubleshooting significantly more difficult.
@@ -21647,9 +21648,10 @@ Apologies for any names omitted.
 
 20150221
 
-	Bugfix: don't append '.' to the DNS resource record value,
-	when converting TXT records to the string form that is used
-	used by xxx_dns_reply_filter.  File: dns/dns_strrecord.c.
+	Bugfix (introduced: Postfix 3.0): don't append '.' to the
+	DNS resource record value, when converting TXT records to
+	the string form that is used used by xxx_dns_reply_filter.
+	File: dns/dns_strrecord.c.
 
 20150313
 
@@ -21690,15 +21692,38 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 1.1.0): post-install expanded
 	macros in parameter values when trying to detect parameter
-	overrides. Julian Reich, Viktor Dukhovni, and Wietse.  File:
+	overrides, causing unnecessary main.cf updates during Postfix
+	start-up. Julian Reich, Viktor Dukhovni, and Wietse.  File:
 	conf/post-install.
 
 20150330
 
-	Bitrot: prepare for future changes in OpenSSL. Viktor
-	Dukhovni. File: tlstls_dane.c.
+	Bitrot: prepare for future changes in OpenSSL API. Viktor
+	Dukhovni. File: tls_dane.c.
 
 	Safety: instead of bouncing mail, report a soft error when
 	SASL infrastucture breaks.  Viktor Dukhovni, Emmanuel Fuste.
 	Files: smtpd/smtpd_sasl_glue.c, xsasl/xsasl.h,
 	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_dovecot_server.c.
+
+20150401
+
+	Documentation: update the mydestination default value in
+	the stock main.cf file.  File: conf/main.cf.
+
+20150404
+
+	Documentation: add "postconf -m" output to problem reports. File:
+	proto/DEBUG_README.html.
+
+20150418
+
+	Portability: use the icu-config utility to locate the ICU
+	include and library files. With this, Postfix builds out
+	of the box on MacOS X. File: makedefs.
+
+20150421
+
+	Bugfix (introduced: 19970309): reset errno before calling
+	readdir(), in order to distinguish between end-of-directory and
+	an error condition. File: scandir,c,
