@@ -19728,3 +19728,25 @@ Apologies for any names omitted.
 	propagate error reports from xtext_unquote_append(), causing
 	the decoder to return partial ouput, instead of rejecting
 	malformed input. Fix by Krzysztof Wojta.  File: global/xtext.c.
+
+20160310
+
+	Bugfix (introduced: Postfix 2.6): the Milter SMFIR_CHGFROM
+	(replace sender) request lost the sender_bcc_maps address.
+	Fixed by moving some record keeping to the sender output
+	function.  Files: cleanup/cleanup_envelope.c,
+	cleanup/cleanup_addr.c, cleanup/cleanup_milter.c,
+	cleanup/cleanup.h, regression tests.
+
+20160410
+
+	Bugfix (introduced: Postfix 2.6): the "bad filetype"
+	header_checks pattern falsely rejected Content-Mumble headers
+	with ``name="example"; x-apple-part-url="example.com"''.
+	Fixed by respecting the ";" separator between content
+	attribute values.  Reported by Cedric Knight.  File:
+	proto/header_checks.
+
+20160515
+
+	Portability: OpenBSD 6.0. Files: makedefs, util/sys_defs.h.

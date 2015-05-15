@@ -1304,6 +1304,7 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
     const char *myname = "cleanup_chg_from";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
     off_t   new_sender_offset;
+    off_t   after_sender_offs;
     int     addr_count;
     TOK822 *tree;
     TOK822 *tp;
@@ -1367,10 +1368,11 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
 	}
     }
     tok822_free_tree(tree);
-    cleanup_addr_sender(state, STR(int_sender_buf));
+    after_sender_offs = cleanup_addr_sender(state, STR(int_sender_buf));
     vstring_free(int_sender_buf);
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
 		       (long) state->sender_pt_target);
+    state->sender_pt_target = after_sender_offs;
 
     /*
      * Overwrite the original sender record with the pointer to the new
@@ -2516,6 +2518,19 @@ int     main(int unused_argc, char **argv)
 	    } else {
 		var_milt_head_checks = mystrdup(argv->argv[1]);
 		cleanup_milter_header_checks_init(state);
+	    }
+	} else if (strcmp(argv->argv[0], "sender_bcc_maps") == 0) {
+	    if (argv->argc != 2) {
+		msg_warn("bad sender_bcc_maps argument count: %ld",
+			 (long) argv->argc);
+	    } else {
+		if (cleanup_send_bcc_maps)
+		    maps_free(cleanup_send_bcc_maps);
+		cleanup_send_bcc_maps =
+		    maps_create("sender_bcc_maps", argv->argv[1],
+				DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+		state->flags |= CLEANUP_FLAG_BCC_OK;
+		var_rcpt_delim = "";
 	    }
 	} else {
 	    msg_warn("bad command: %s", argv->argv[0]);

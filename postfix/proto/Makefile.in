@@ -98,7 +98,7 @@ AWK	= awk '{ print; if (NR == 1) print ".pl 9999\n.ll 65" }'
 SRCTOMAN= ../mantools/srctoman
 POSTLINK= ../mantools/postlink
 DETAB	= pr -tre
-NROFF	= GROFF_NO_SGR=1 nroff
+NROFF	= LANG=C GROFF_NO_SGR=1 nroff
 HT2READ	= ../mantools/html2readme
 MAKEAAA	= ../mantools/makereadme
 MAKESOHO= ../mantools/make_soho_readme
