@@ -283,7 +283,7 @@ extern void cleanup_out_recipient(CLEANUP_STATE *, const char *, int, const char
  /*
   * cleanup_addr.c.
   */
-extern void cleanup_addr_sender(CLEANUP_STATE *, const char *);
+extern off_t cleanup_addr_sender(CLEANUP_STATE *, const char *);
 extern void cleanup_addr_recipient(CLEANUP_STATE *, const char *);
 extern void cleanup_addr_bcc_dsn(CLEANUP_STATE *, const char *, const char *, int);
 

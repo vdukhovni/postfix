@@ -394,7 +394,7 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
        are <b>From:</b>, <b>To:</b>, <b>Message-ID:</b>, <b>Date:</b>.
 
        Message headers deleted by the <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemon  will  be
-       examined before they are deleted. Examples are: <b>Bcc:, Con-</b>
+       examined before they are deleted. Examples are: <b>Bcc:</b>, <b>Con-</b>
        <b>tent-Length:</b>, <b>Return-Path:</b>.
 
 <b>CONFIGURATION PARAMETERS</b>
@@ -451,7 +451,7 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
            <a href="postconf.5.html#header_checks">header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/header_checks.pcre
 
        /etc/postfix/header_checks.<a href="pcre_table.5.html">pcre</a>:
-           /^Content-(Disposition|Type).*name\s*=\s*"?(.*(\.|=2E)(
+           /^Content-(Disposition|Type).*name\s*=\s*"?([^;]*(\.|=2E)(
              ade|adp|asp|bas|bat|chm|cmd|com|cpl|crt|dll|exe|
              hlp|ht[at]|
              inf|ins|isp|jse?|lnk|md[betw]|ms[cipt]|nws|
