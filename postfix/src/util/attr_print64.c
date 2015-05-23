@@ -211,6 +211,8 @@ int     attr_vprint64(VSTREAM *fp, int flags, va_list ap)
 	    print_fn(attr_print64, fp, flags | ATTR_FLAG_MORE, print_arg);
 	    break;
 	case ATTR_TYPE_HASH:
+	    attr_print64_str(fp, ATTR_NAME_OPEN, sizeof(ATTR_NAME_OPEN) - 1);
+	    VSTREAM_PUTC('\n', fp);
 	    ht_info_list = htable_list(va_arg(ap, HTABLE *));
 	    for (ht = ht_info_list; *ht; ht++) {
 		attr_print64_str(fp, ht[0]->key, strlen(ht[0]->key));
@@ -222,6 +224,8 @@ int     attr_vprint64(VSTREAM *fp, int flags, va_list ap)
 			     ht[0]->key, (char *) ht[0]->value);
 	    }
 	    myfree((void *) ht_info_list);
+	    attr_print64_str(fp, ATTR_NAME_CLOSE, sizeof(ATTR_NAME_CLOSE) - 1);
+	    VSTREAM_PUTC('\n', fp);
 	    break;
 	default:
 	    msg_panic("%s: unknown type code: %d", myname, attr_type);
@@ -265,6 +269,7 @@ int     main(int unused_argc, char **argv)
 		 SEND_ATTR_STR(ATTR_NAME_STR, "whoopee"),
 	       SEND_ATTR_DATA(ATTR_NAME_DATA, strlen("whoopee"), "whoopee"),
 		 SEND_ATTR_HASH(table),
+		 SEND_ATTR_LONG(ATTR_NAME_LONG, 4321L),
 		 ATTR_TYPE_END);
     attr_print64(VSTREAM_OUT, ATTR_FLAG_NONE,
 		 SEND_ATTR_INT(ATTR_NAME_INT, 4711),

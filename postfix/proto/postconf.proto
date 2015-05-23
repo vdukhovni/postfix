@@ -11678,6 +11678,20 @@ meanings.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
+%PARAM milter_macro_defaults
+
+<p> Optional list of <i>name=value</i> pairs that specify default
+values for arbitrary macros that Postfix may send to Milter
+applications.  These defaults are used when there is no corresponding
+information from the message delivery context. </p>
+
+<p> Specify <i>name=value</i> or <i>{name}=value</i> pairs separated
+by comma or whitespace.  Enclose a pair in "{}" when a value contains
+comma or whitespace (this form ignores whitespace after the enclosing
+"{", around the "=", and before the enclosing "}"). </p>
+
+<p> This feature is available in Postfix 3.1 and later.  </p>
+
 %PARAM milter_macro_v $mail_name $mail_version
 
 <p> The {v} macro value for Milter (mail filter) applications.

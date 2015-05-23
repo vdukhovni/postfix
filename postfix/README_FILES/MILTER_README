@@ -12,11 +12,9 @@ is queued.
 
 The reason for adding Milter support to Postfix is that there exists a large
 collection of applications, not only to block unwanted mail, but also to verify
-authenticity (examples: OpenDKIM, DomainKeys Identified Mail (DKIM),
-SenderID+SPF and DomainKeys) or to digitally sign mail (examples: OpenDKIM,
-DomainKeys Identified Mail (DKIM), DomainKeys). Having yet another Postfix-
-specific version of all that software is a poor use of human and system
-resources.
+authenticity (examples: OpenDKIM and DMARC) or to digitally sign mail (example:
+OpenDKIM). Having yet another Postfix-specific version of all that software is
+a poor use of human and system resources.
 
 The Milter protocol has evolved over time, and different Postfix versions
 implement different feature sets. See the workarounds and limitations sections
@@ -89,51 +87,26 @@ deals with C applications only. For these, you need an object library that
 implements the Sendmail 8 Milter protocol. Postfix currently does not provide
 such a library, but Sendmail does.
 
-  * The first option is to use a pre-compiled library. Some systems install the
-    Sendmail libmilter library by default. With other systems, libmilter may be
-    provided by a package (called "sendmail-devel" on some Linux systems).
+Some systems install the Sendmail libmilter library by default. With other
+systems, libmilter may be provided by a package (called "sendmail-devel" on
+some Linux systems).
 
-    Once libmilter is installed, applications such as OpenDKIM, dkim-milter and
-    sid-milter build out of the box without requiring any tinkering:
+Once libmilter is installed, applications such as OpenDKIM and OpenDMARC build
+out of the box without requiring any tinkering:
 
-        $ ggzzccaatt ooppeennddkkiimm--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
-        $ ccdd ooppeennddkkiimm--xx..yy..zz
-        $ ..//ccoonnffiigguurree ......ooppttiioonnss......
-        $ mmaakkee
-        [...lots of output omitted...]
-        $ mmaakkee iinnssttaallll
-
-        $ ggzzccaatt ddkkiimm--mmiilltteerr--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
-        $ ccdd ddkkiimm--mmiilltteerr--xx..yy..zz
-        $ mmaakkee
-        [...lots of output omitted...]
-
-  * The other option is to build the libmilter library from Sendmail source
-    code:
-
-        $ ggzzccaatt sseennddmmaaiill--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
-        $ ccdd sseennddmmaaiill--xx..yy..zz//lliibbmmiilltteerr
-        $ mmaakkee
-        [...lots of output omitted...]
-
-    After building your own libmilter library, follow the installation
-    instructions in the Milter application source distribution to specify the
-    location of the libmilter include files and object library. Typically,
-    these settings are configured in a file named sid-filter/Makefile.m4 or
-    similar:
-
-        APPENDDEF(`confINCDIRS', `-I/some/where/sendmail-x.y.z/include')
-        APPENDDEF(`confLIBDIRS', `-L/some/where/sendmail-x.y.z/obj.systemtype/
-        libmilter')
-
-    Then build the Milter application.
+    $ ggzzccaatt ooppeennddkkiimm--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
+    $ ccdd ooppeennddkkiimm--xx..yy..zz
+    $ ..//ccoonnffiigguurree ......ooppttiioonnss......
+    $ mmaakkee
+    [...lots of output omitted...]
+    $ mmaakkee iinnssttaallll
 
 RRuunnnniinngg MMiilltteerr aapppplliiccaattiioonnss
 
 To run a Milter application, see the documentation of the filter for options. A
 typical command looks like this:
 
-    # //ssoommee//wwhheerree//ddkkiimm--ffiilltteerr --uu uusseerriidd --pp iinneett::ppoorrttnnuummbbeerr@@llooccaallhhoosstt ......ootthheerr
+    # //ssoommee//wwhheerree//ooppeennddkkiimm --ll --uu uusseerriidd --pp iinneett::ppoorrttnnuummbbeerr@@llooccaallhhoosstt ......ootthheerr
     ooppttiioonnss......
 
 Please specify a userid value that isn't used for other applications (not
@@ -155,6 +128,7 @@ Information in this section:
   * Milter protocol timeouts
   * Different settings for different Milter applications
   * Sendmail macro emulation
+  * What macros will Postfix send to Milters?
 
 SSMMTTPP--OOnnllyy MMiilltteerr aapppplliiccaattiioonnss
 
@@ -164,10 +138,11 @@ mail from authorized SMTP clients. Mail that arrives via the Postfix smtpd(8)
 server is not filtered by the non-SMTP filters that are described in the next
 section.
 
-NOTE: Do not use the header_checks(5) IGNORE action to remove Postfix's own
-Received: message header. This causes problems with mail signing filters.
-Instead, keep Postfix's own Received: message header and use the header_checks
-(5) REPLACE action to sanitize information.
+    NOTE for Postfix versions that have a mail_release_date before 20141018: do
+    not use the header_checks(5) IGNORE action to remove Postfix's own
+    Received: message header. This causes problems with mail signing filters.
+    Instead, keep Postfix's own Received: message header and use the
+    header_checks(5) REPLACE action to sanitize information.
 
 You specify SMTP-only Milter applications (there can be more than one) with the
 smtpd_milters parameter. Each Milter application is identified by the name of
@@ -365,7 +340,9 @@ Instead of a server endpoint, we now have a list enclosed in {}.
 
   * Line 3: The remainder of the list contains per-Milter settings. These
     settings override global main.cf parameters, and have the same name as
-    those parameters, without the "milter_" prefix.
+    those parameters, without the "milter_" prefix. The per-Milter settings
+    that are supported as of Postfix 3.0 are command_timeout, connect_timeout,
+    content_timeout, default_action, and protocol.
 
 Inside the list, syntax is similar to what we already know from main.cf: items
 separated by space or comma. There is one difference: yyoouu mmuusstt eenncclloossee aa
@@ -462,10 +439,12 @@ Sendmail. See the workarounds section below for solutions.
     |v                   |Always                   |value of milter_macro_v   |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
+WWhhaatt mmaaccrrooss wwiillll PPoossttffiixx sseenndd ttoo MMiilltteerrss??
+
 Postfix sends specific sets of macros at different Milter protocol stages. The
-sets are configured with the parameters as described in the table (EOH = end of
-headers; EOM = end of message). The protocol version is a number that Postfix
-sends at the beginning of the Milter protocol handshake.
+sets are configured with the parameters as shown in the table below (EOH = end
+of headers; EOM = end of message). The protocol version is a number that
+Postfix sends at the beginning of the Milter protocol handshake.
 
 As of Sendmail 8.14.0, Milter applications can specify what macros they want to
 receive at different Milter protocol stages. An application-specified list
@@ -491,6 +470,16 @@ takes precedence over a Postfix-specified list.
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_unknown_command_macros|3 or higher    |unknown command      |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+
+By default, Postfix will send only macros whose values have been updated with
+information from main.cf or master.cf, from an SMTP session (for example; SASL
+login, or TLS certificates) or from a Mail delivery transaction (for example;
+queue ID, sender, or recipient).
+
+To force a macro to be sent even when its value has not been updated, you may
+specify macro default values with the milter_macro_defaults parameter. Specify
+zero or more name=value pairs separated by comma or whitespace; you may even
+specify macro names that Postfix does know about!
 
 WWoorrkkaarroouunnddss
 

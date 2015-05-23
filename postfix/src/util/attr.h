@@ -38,6 +38,14 @@
 #define ATTR_TYPE_DATA		5	/* Binary data */
 #define ATTR_TYPE_FUNC		6	/* Function pointer */
 
+ /*
+  * Optional sender-specified grouping for hash or nameval tables.
+  */
+#define ATTR_TYPE_OPEN		'{'
+#define ATTR_TYPE_CLOSE		'}'
+#define ATTR_NAME_OPEN		"{"
+#define ATTR_NAME_CLOSE		"}"
+
 #define ATTR_HASH_LIMIT		1024	/* Size of hash table */
 
  /*

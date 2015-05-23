@@ -21727,3 +21727,33 @@ Apologies for any names omitted.
 	Bugfix (introduced: 19970309): reset errno before calling
 	readdir(), in order to distinguish between end-of-directory and
 	an error condition. File: scandir,c,
+
+20150426
+
+	Cleanup: when transmitting an attribute-value sequence
+	between Postfix processes, a hash table may now appear at
+	any position instead of only at the end.  Files:
+	util/attr_scan{0,64,plain}.c, util/attr_print{0,64,plain}.c,
+	util/attr_scan{0,64,plain}.ref.
+
+	Feature: milter_macro_defaults, an optional list of macro
+	name=value pairs that specify default values for Milter
+	macros.  When a macro is to be sent to a Milter application,
+	Postfix will send its default value when no value is available
+	from the mail delivery context. For example, with
+	"milter_macro_defaults = auth_type=TLS", Postfix will send
+	an auth_type of "TLS" unless a remote client authenticates
+	with SASL. Files: mantools/postlink, proto/MILTER_README.html,
+	proto/postconf.proto, cleanup/cleanup.c, cleanup/cleanup_init.c,
+	cleanup/cleanup_milter.c, global/mail_params.h, milter/milter.c,
+	milter/milter.h, smtpd/smtpd.c, smtpd/smtpd_milter.c.
+
+20150501
+
+	Support for Linux 4.*, and some simplification for future
+	makedefs files. Files: makedefs, util/sys_defs.h.
+
+20150502
+
+	Cleanup: updated the examples in MILTER_README.  File:
+	proto/MILTER_README.html

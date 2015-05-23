@@ -29,7 +29,9 @@
 /*	(item1 | item2) stands for choice:
 /*
 /* .in +5
-/*	attr-list :== simple-attr* null
+/*	attr-list :== (simple-attr | multi-attr)* null
+/* .br
+/*	multi-attr :== "{" null simple-attr* "}" null
 /* .br
 /*	simple-attr :== attr-name null attr-value null
 /* .br
@@ -98,10 +100,7 @@
 /*	error.
 /* .IP "RECV_ATTR_HASH(HTABLE *table)"
 /* .IP "RECV_ATTR_NAMEVAL(NVTABLE *table)"
-/*	All further input attributes are processed as string attributes.
-/*	No specific attribute sequence is enforced.
-/*	All attributes up to the attribute list terminator are read,
-/*	but only the first instance of each attribute is stored.
+/*	Receive a sequence of attribute names and string values.
 /*	There can be no more than 1024 attributes in a hash table.
 /* .sp
 /*	The attribute string values are stored in the hash table under
@@ -109,7 +108,15 @@
 /*	Values from the input stream are added to the hash table. Existing
 /*	hash table entries are not replaced.
 /* .sp
-/*	N.B. This construct must be followed by an ATTR_TYPE_END argument.
+/*	Note: the SEND_ATTR_HASH or SEND_ATTR_NAMEVAL requests
+/*	format their payload as a multi-attr sequence (see syntax
+/*	above). When the receiver's input does not start with a
+/*	multi-attr delimiter (i.e. the sender did not request
+/*	SEND_ATTR_HASH or SEND_ATTR_NAMEVAL), the receiver will
+/*	store all attribute names and values up to the attribute
+/*	list terminator. In terms of code, this means that the
+/*	RECV_ATTR_HASH or RECV_ATTR_NAMEVAL request must be followed
+/*	by ATTR_TYPE_END.
 /* .IP ATTR_TYPE_END
 /*	This argument terminates the requested attribute list.
 /* .RE
@@ -294,7 +301,8 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	 * from the input stream instead. This is secure only when the
 	 * resulting table is queried with known to be good attribute names.
 	 */
-	if (wanted_type != ATTR_TYPE_HASH) {
+	if (wanted_type != ATTR_TYPE_HASH
+	    && wanted_type != ATTR_TYPE_CLOSE) {
 	    wanted_type = va_arg(ap, int);
 	    if (wanted_type == ATTR_TYPE_END) {
 		if ((flags & ATTR_FLAG_MORE) != 0)
@@ -303,9 +311,6 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	    } else if (wanted_type == ATTR_TYPE_HASH) {
 		wanted_name = "(any attribute name or list terminator)";
 		hash_table = va_arg(ap, HTABLE *);
-		if (va_arg(ap, int) !=ATTR_TYPE_END)
-		    msg_panic("%s: ATTR_TYPE_HASH not followed by ATTR_TYPE_END",
-			      myname);
 	    } else if (wanted_type != ATTR_TYPE_FUNC) {
 		wanted_name = va_arg(ap, char *);
 	    }
@@ -340,7 +345,20 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	    /*
 	     * See if the caller asks for this attribute.
 	     */
+	    if (wanted_type == ATTR_TYPE_HASH 
+		&& strcmp(ATTR_NAME_OPEN, STR(name_buf)) == 0) {
+		wanted_type = ATTR_TYPE_CLOSE;
+		wanted_name = "(any attribute name or '}')";
+		/* Advance in the input stream. */
+		continue;
+	    } else if (wanted_type == ATTR_TYPE_CLOSE
+		&& strcmp(ATTR_NAME_CLOSE, STR(name_buf)) == 0) {
+		/* Advance in the argument list. */
+		wanted_type = -1;
+		break;
+	    }
 	    if (wanted_type == ATTR_TYPE_HASH
+		|| wanted_type == ATTR_TYPE_CLOSE
 		|| (wanted_type != ATTR_TYPE_END
 		    && strcmp(wanted_name, STR(name_buf)) == 0))
 		break;
@@ -391,6 +409,7 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 		return (-1);
 	    break;
 	case ATTR_TYPE_HASH:
+	case ATTR_TYPE_CLOSE:
 	    if ((ch = attr_scan0_string(fp, str_buf,
 					"input attribute value")) < 0)
 		return (-1);
@@ -408,6 +427,9 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 		htable_enter(hash_table, STR(name_buf),
 			     mystrdup(STR(str_buf)));
 	    }
+	    break;
+	case -1:
+	    conversions -= 1;
 	    break;
 	default:
 	    msg_panic("%s: unknown type code: %d", myname, wanted_type);
@@ -447,6 +469,7 @@ int     main(int unused_argc, char **used_argv)
     HTABLE_INFO **ht;
     int     int_val;
     long    long_val;
+    long    long_val2;
     int     ret;
 
     msg_verbose = 1;
@@ -458,6 +481,7 @@ int     main(int unused_argc, char **used_argv)
 			  RECV_ATTR_STR(ATTR_NAME_STR, str_val),
 			  RECV_ATTR_DATA(ATTR_NAME_DATA, data_val),
 			  RECV_ATTR_HASH(table),
+			  RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val2),
 			  ATTR_TYPE_END)) > 4) {
 	vstream_printf("%s %d\n", ATTR_NAME_INT, int_val);
 	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val);
@@ -467,6 +491,7 @@ int     main(int unused_argc, char **used_argv)
 	for (ht = ht_info_list; *ht; ht++)
 	    vstream_printf("(hash) %s %s\n", ht[0]->key, (char *) ht[0]->value);
 	myfree((void *) ht_info_list);
+	vstream_printf("%s %ld\n", ATTR_NAME_LONG, long_val2);
     } else {
 	vstream_printf("return: %d\n", ret);
     }

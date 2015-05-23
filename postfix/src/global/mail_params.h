@@ -3300,6 +3300,10 @@ extern char *var_milt_v;
 #define DEF_MILT_HEAD_CHECKS		""
 extern char *var_milt_head_checks;
 
+#define VAR_MILT_MACRO_DEFLTS		"milter_macro_defaults"
+#define DEF_MILT_MACRO_DEFLTS		""
+extern char *var_milt_macro_deflts;
+
  /*
   * What internal mail do we inspect/stamp/etc.? This is not yet safe enough
   * to enable world-wide.

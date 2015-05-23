@@ -3959,6 +3959,18 @@ See MILTER_README for a list of available macro names and their
 meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH milter_macro_defaults (default: empty)
+Optional list of \fIname=value\fR pairs that specify default
+values for arbitrary macros that Postfix may send to Milter
+applications.  These defaults are used when there is no corresponding
+information from the message delivery context.
+.PP
+Specify \fIname=value\fR or \fI{name}=value\fR pairs separated
+by comma or whitespace.  Enclose a pair in "{}" when a value contains
+comma or whitespace (this form ignores whitespace after the enclosing
+"{", around the "=", and before the enclosing "}").
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH milter_macro_v (default: $mail_name $mail_version)
 The {v} macro value for Milter (mail filter) applications.
 See MILTER_README for a list of available macro names and their

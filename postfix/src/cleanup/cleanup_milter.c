@@ -1802,14 +1802,6 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
      */
 
     /*
-     * Canonicalize the name.
-     */
-    if (*name != '{') {				/* } */
-	vstring_sprintf(state->temp1, "{%s}", name);
-	name = STR(state->temp1);
-    }
-
-    /*
      * System macros.
      */
     if (strcmp(name, S8_MAC_DAEMON_NAME) == 0)

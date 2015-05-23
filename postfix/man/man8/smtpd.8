@@ -277,6 +277,12 @@ after the end of the message header.
 .IP "\fBmilter_end_of_data_macros (see 'postconf -d' output)\fR"
 The macros that are sent to Milter (mail filter) applications
 after the message end\-of\-data.
+.PP
+Available in Postfix version 3.1 and later:
+.IP "\fBmilter_macro_defaults (empty)\fR"
+Optional list of \fIname=value\fR pairs that specify default
+values for arbitrary macros that Postfix may send to Milter
+applications.
 .SH "GENERAL CONTENT INSPECTION CONTROLS"
 .na
 .nf

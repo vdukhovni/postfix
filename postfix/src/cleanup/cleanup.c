@@ -189,6 +189,12 @@
 /* .IP "\fBmilter_header_checks (empty)\fR"
 /*	Optional lookup tables for content inspection of message headers
 /*	that are produced by Milter applications.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBmilter_macro_defaults (empty)\fR"
+/*	Optional list of \fIname=value\fR pairs that specify default
+/*	values for arbitrary macros that Postfix may send to Milter
+/*	applications.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

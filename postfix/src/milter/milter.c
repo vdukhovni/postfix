@@ -11,7 +11,8 @@
 /*					conn_macros, helo_macros,
 /*					mail_macros, rcpt_macros,
 /*					data_macros, eoh_macros,
-/*					eod_macros, unk_macros)
+/*					eod_macros, unk_macros,
+/*					macro_deflts)
 /*	const char *milter_names;
 /*	int	conn_timeout;
 /*	int	cmd_timeout;
@@ -26,6 +27,7 @@
 /*	const char *eoh_macros;
 /*	const char *eod_macros;
 /*	const char *unk_macros;
+/*	const char *macro_deflts;
 /*
 /*	void	milter_free(milters)
 /*	MILTERS	*milters;
@@ -119,7 +121,9 @@
 /*	milter_create() instantiates the milter clients specified
 /*	with the milter_names argument.  The conn_macros etc.
 /*	arguments specify the names of macros that are sent to the
-/*	mail filter applications upon a connect etc. event. This
+/*	mail filter applications upon a connect etc. event, and the
+/*	macro_deflts argument specifies macro defaults that will be used
+/*	only if the application's lookup call-back returns null. This
 /*	function should be called during process initialization,
 /*	before entering a chroot jail. The timeout parameters specify
 /*	time limits for the completion of the specified request
@@ -239,6 +243,7 @@
 #include <stringops.h>
 #include <argv.h>
 #include <attr.h>
+#include <htable.h>
 
 /* Global library. */
 
@@ -259,6 +264,59 @@
   */
 #define STR(x)	vstring_str(x)
 
+/* milter_macro_defaults_create - parse default macro entries */
+
+HTABLE *milter_macro_defaults_create(const char *macro_defaults)
+{
+    const char myname[] = "milter_macro_defaults_create";
+    char   *saved_defaults = mystrdup(macro_defaults);
+    char   *cp = saved_defaults;
+    HTABLE *table = 0;
+    VSTRING *canon_buf = 0;
+    char   *nameval;
+
+    while ((nameval = mystrtokq(&cp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+	const char *err;
+	char   *name;
+	char   *value;
+
+	/*
+	 * Split the input into (name, value) pairs. Allow the forms
+	 * name=value and  { name = value }, where the last form ignores
+	 * whitespace after the opening "{", around the "=", and before the
+	 * closing "}". A name may also be specified as {name}.
+	 * 
+	 * Use the form {name} for table lookups, because that is the form of
+	 * the S8_MAC_* macro names.
+	 */
+	if (*nameval == CHARS_BRACE[0]
+	    && nameval[balpar(nameval, CHARS_BRACE)] != '='
+	    && (err = extpar(&nameval, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0)
+	    msg_fatal("malformed default macro entry: %s in \"%s\"",
+		      err, macro_defaults);
+	if ((err = split_nameval(nameval, &name, &value)) != 0)
+	    msg_fatal("malformed default macro entry: %s in \"%s\"",
+		      err, macro_defaults);
+	if (*name != '{')			/* } */
+	    name = STR(vstring_sprintf(canon_buf ? canon_buf :
+			    (canon_buf = vstring_alloc(20)), "{%s}", name));
+	if (table == 0)
+	    table = htable_create(1);
+	if (htable_find(table, name) != 0) {
+	    msg_warn("ignoring multiple default macro entries for %s in \"%s\"",
+		     name, macro_defaults);
+	} else {
+	    (void) htable_enter(table, name, mystrdup(value));
+	    if (msg_verbose)
+		msg_info("%s: add name=%s default=%s", myname, name, value);
+	}
+    }
+    myfree(saved_defaults);
+    if (canon_buf)
+	vstring_free(canon_buf);
+    return (table);
+}
+
 /* milter_macro_lookup - look up macros */
 
 static ARGV *milter_macro_lookup(MILTERS *milters, const char *macro_names)
@@ -267,19 +325,28 @@ static ARGV *milter_macro_lookup(MILTERS *milters, const char *macro_names)
     char   *saved_names = mystrdup(macro_names);
     char   *cp = saved_names;
     ARGV   *argv = argv_alloc(10);
+    VSTRING *canon_buf = vstring_alloc(20);
     const char *value;
     const char *name;
 
     while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s: \"%s\"", myname, name);
+	if (*name != '{')			/* } */
+	    name = STR(vstring_sprintf(canon_buf, "{%s}", name));
 	if ((value = milters->mac_lookup(name, milters->mac_context)) != 0) {
 	    if (msg_verbose)
 		msg_info("%s: result \"%s\"", myname, value);
 	    argv_add(argv, name, value, (char *) 0);
+	} else if (milters->macro_defaults != 0
+	     && (value = htable_find(milters->macro_defaults, name)) != 0) {
+	    if (msg_verbose)
+		msg_info("%s: using default \"%s\"", myname, value);
+	    argv_add(argv, name, value, (char *) 0);
 	}
     }
     myfree(saved_names);
+    vstring_free(canon_buf);
     return (argv);
 }
 
@@ -572,7 +639,8 @@ MILTERS *milter_new(const char *names,
 		            int msg_timeout,
 		            const char *protocol,
 		            const char *def_action,
-		            MILTER_MACROS *macros)
+		            MILTER_MACROS *macros,
+		            HTABLE *macro_defaults)
 {
     MILTERS *milters;
     MILTER *head = 0;
@@ -642,6 +710,7 @@ MILTERS *milter_new(const char *names,
     milters->mac_lookup = 0;
     milters->mac_context = 0;
     milters->macros = macros;
+    milters->macro_defaults = macro_defaults;
     milters->add_header = 0;
     milters->upd_header = milters->ins_header = 0;
     milters->del_header = 0;
@@ -664,6 +733,8 @@ void    milter_free(MILTERS *milters)
 	next = m->next, m->free(m);
     if (milters->macros)
 	milter_macros_free(milters->macros);
+    if (milters->macro_defaults)
+	htable_free(milters->macro_defaults, myfree);
     myfree((void *) milters);
 }
 
@@ -721,6 +792,18 @@ int     milter_send(MILTERS *milters, VSTREAM *stream)
 		      ATTR_TYPE_END);
 
     /*
+     * Send the filter macro defaults.
+     */
+    count = milters->macro_defaults ? milters->macro_defaults->used : 0;
+    (void) attr_print(stream, ATTR_FLAG_MORE,
+		      SEND_ATTR_INT(MAIL_ATTR_SIZE, count),
+		      ATTR_TYPE_END);
+    if (count > 0)
+	(void) attr_print(stream, ATTR_FLAG_MORE,
+			  SEND_ATTR_HASH(milters->macro_defaults),
+			  ATTR_TYPE_END);
+
+    /*
      * Send the filter instances.
      */
     for (m = milters->milter_list; m != 0; m = m->next)
@@ -749,6 +832,7 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
     MILTER *head = 0;
     MILTER *tail = 0;
     MILTER *milter = 0;
+    int     macro_default_count;
 
     if (msg_verbose)
 	msg_info("receive %d milters", count);
@@ -763,9 +847,10 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 #define NO_PROTOCOL	((char *) 0)
 #define NO_ACTION	((char *) 0)
 #define NO_MACROS	((MILTER_MACROS *) 0)
+#define NO_MACRO_DEFLTS	((HTABLE *) 0)
 
     milters = milter_new(NO_MILTERS, NO_TIMEOUTS, NO_PROTOCOL, NO_ACTION,
-			 NO_MACROS);
+			 NO_MACROS, NO_MACRO_DEFLTS);
 
     /*
      * XXX Optimization: don't send or receive further information when there
@@ -782,6 +867,21 @@ MILTERS *milter_receive(VSTREAM *stream, int count)
 		  RECV_ATTR_FUNC(milter_macros_scan,
 				 (void *) milters->macros),
 		  ATTR_TYPE_END) != 1) {
+	milter_free(milters);
+	return (0);
+    }
+
+    /*
+     * Receive the filter macro defaults.
+     */
+    if (attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
+		  RECV_ATTR_INT(MAIL_ATTR_SIZE, &macro_default_count),
+		  ATTR_TYPE_END) != 1
+	|| (macro_default_count > 0
+	    && attr_scan(stream, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
+			 RECV_ATTR_HASH(milters->macro_defaults
+					= htable_create(1)),
+			 ATTR_TYPE_END) != macro_default_count)) {
 	milter_free(milters);
 	return (0);
     }
@@ -872,6 +972,7 @@ int     main(int argc, char **argv)
     MILTERS *milters = 0;
     char   *conn_macros, *helo_macros, *mail_macros, *rcpt_macros;
     char   *data_macros, *eoh_macros, *eod_macros, *unk_macros;
+    char   *macro_deflts;
     VSTRING *inbuf = vstring_alloc(100);
     char   *bufp;
     char   *cmd;
@@ -879,7 +980,7 @@ int     main(int argc, char **argv)
     int     istty = isatty(vstream_fileno(VSTREAM_IN));
 
     conn_macros = helo_macros = mail_macros = rcpt_macros = data_macros
-	= eoh_macros = eod_macros = unk_macros = "";
+	= eoh_macros = eod_macros = unk_macros = macro_deflts = "";
 
     msg_vstream_init(argv[0], VSTREAM_ERR);
     while ((ch = GETOPT(argc, argv, "V:v")) > 0) {
@@ -934,7 +1035,7 @@ int     main(int argc, char **argv)
 				    var_milt_protocol, var_milt_def_action,
 				    conn_macros, helo_macros, mail_macros,
 				    rcpt_macros, data_macros, eoh_macros,
-				    eod_macros, unk_macros);
+				    eod_macros, unk_macros, macro_deflts);
 	} else if (strcmp(cmd, "free") == 0 && argv->argc == 0) {
 	    if (milters == 0) {
 		msg_warn("no milters");

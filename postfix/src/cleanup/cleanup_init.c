@@ -162,6 +162,7 @@ char   *var_milt_eod_macros;		/* end-of-data macros */
 char   *var_milt_unk_macros;		/* unknown command macros */
 char   *var_cleanup_milters;		/* non-SMTP mail */
 char   *var_milt_head_checks;		/* post-Milter header checks */
+char   *var_milt_macro_deflts;		/* default macro settings */
 int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 int     var_always_add_hdrs;		/* always add missing headers */
 int     var_virt_addrlen_limit;		/* stop exponential growth */
@@ -231,6 +232,7 @@ const CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_MILT_UNK_MACROS, DEF_MILT_UNK_MACROS, &var_milt_unk_macros, 0, 0,
     VAR_CLEANUP_MILTERS, DEF_CLEANUP_MILTERS, &var_cleanup_milters, 0, 0,
     VAR_MILT_HEAD_CHECKS, DEF_MILT_HEAD_CHECKS, &var_milt_head_checks, 0, 0,
+    VAR_MILT_MACRO_DEFLTS, DEF_MILT_MACRO_DEFLTS, &var_milt_macro_deflts, 0, 0,
     0,
 };
 
@@ -410,7 +412,8 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 					var_milt_data_macros,
 					var_milt_eoh_macros,
 					var_milt_eod_macros,
-					var_milt_unk_macros);
+					var_milt_unk_macros,
+					var_milt_macro_deflts);
 
     flush_init();
 }

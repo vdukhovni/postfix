@@ -251,6 +251,12 @@
 /* .IP "\fBmilter_end_of_data_macros (see 'postconf -d' output)\fR"
 /*	The macros that are sent to Milter (mail filter) applications
 /*	after the message end-of-data.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBmilter_macro_defaults (empty)\fR"
+/*	Optional list of \fIname=value\fR pairs that specify default
+/*	values for arbitrary macros that Postfix may send to Milter
+/*	applications.
 /* GENERAL CONTENT INSPECTION CONTROLS
 /* .ad
 /* .fi
@@ -1343,6 +1349,7 @@ char   *var_milt_data_macros;
 char   *var_milt_eoh_macros;
 char   *var_milt_eod_macros;
 char   *var_milt_unk_macros;
+char   *var_milt_macro_deflts;
 bool    var_smtpd_client_port_log;
 char   *var_stress;
 
@@ -5538,7 +5545,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 					  var_milt_data_macros,
 					  var_milt_eoh_macros,
 					  var_milt_eod_macros,
-					  var_milt_unk_macros);
+					  var_milt_unk_macros,
+					  var_milt_macro_deflts);
 	else
 	    smtpd_input_transp_mask |= INPUT_TRANSP_MILTER;
     }
@@ -5750,6 +5758,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_DEF_ACTION, DEF_MILT_DEF_ACTION, &var_milt_def_action, 1, 0,
 	VAR_MILT_DAEMON_NAME, DEF_MILT_DAEMON_NAME, &var_milt_daemon_name, 1, 0,
 	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
+	VAR_MILT_MACRO_DEFLTS, DEF_MILT_MACRO_DEFLTS, &var_milt_macro_deflts, 0, 0,
 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
 	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
 	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,

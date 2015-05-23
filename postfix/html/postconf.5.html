@@ -6576,6 +6576,24 @@ meanings.  </p>
 
 </DD>
 
+<DT><b><a name="milter_macro_defaults">milter_macro_defaults</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional list of <i>name=value</i> pairs that specify default
+values for arbitrary macros that Postfix may send to Milter
+applications.  These defaults are used when there is no corresponding
+information from the message delivery context. </p>
+
+<p> Specify <i>name=value</i> or <i>{name}=value</i> pairs separated
+by comma or whitespace.  Enclose a pair in "{}" when a value contains
+comma or whitespace (this form ignores whitespace after the enclosing
+"{", around the "=", and before the enclosing "}"). </p>
+
+<p> This feature is available in Postfix 3.1 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="milter_macro_v">milter_macro_v</a>
 (default: $<a href="postconf.5.html#mail_name">mail_name</a> $<a href="postconf.5.html#mail_version">mail_version</a>)</b></DT><DD>
 
