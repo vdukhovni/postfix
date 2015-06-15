@@ -30,7 +30,33 @@ test:	$(TESTPROG)
 
 tests:	test dns_rr_to_pa_test dns_rr_to_sa_test dns_sa_to_rr_test \
 	dns_rr_eq_sa_test no-a-test no-aaaa-test no-mx-test \
-	error-filter-test nullmx_test nxdomain_test mxonly_test
+	error-filter-test nullmx_test nxdomain_test mxonly_test \
+	dnsbl_tests
+
+dnsbl_tests: \
+	dnsbl_ttl_127.0.0.2_bind_plain_test \
+	dnsbl_ttl_127.0.0.2_bind_ncache_test \
+	dnsbl_ttl_127.0.0.2_priv_plain_test \
+	dnsbl_ttl_127.0.0.2_priv_ncache_test \
+	dnsbl_ttl_127.0.0.1_bind_plain_test \
+	dnsbl_ttl_127.0.0.1_bind_ncache_test \
+	dnsbl_ttl_127.0.0.1_priv_plain_test \
+	dnsbl_ttl_127.0.0.1_priv_ncache_test
+
+DNSBL_NEXIST_REPLY_FIX = \
+	sed -e 's/ [0-9][0-9]* IN SOA / TTL IN SOA /' \
+		-e 's/len=[0-9][0-9]* /len=LEN /' \
+		-e 's/nscount=[1-9][0-9]*/nscount=N/' \
+		-e 's/ [0-9]* [0-9]* [0-9]* [0-9]* [0-9]*/ D D D D D/'
+
+DNSBL_EXIST_REPLY_FIX = \
+	sed -e 's/ [0-9][0-9]* IN A / TTL IN A /' \
+	    -e 's/len=[0-9][0-9]* /len=LEN /' \
+	    -e 's/ancount=[1-9][0-9]*/ancount=N/' \
+	    -e 's/nscount=[1-9][0-9]*/nscount=N/' \
+	    -e 's/ [0-9]* [0-9]* [0-9]* [0-9]* [0-9]*/ D D D D D/' \
+	    -e 's/127.0.0.[0-9]*$$/127.0.0.D/' \
+	    | uniq 
 
 root_tests:
 
@@ -133,6 +159,94 @@ mxonly_test: test_dns_lookup mxonly_test.ref
 	) >mxonly_test.tmp 2>&1 || exit 0
 	diff mxonly_test.ref mxonly_test.tmp
 	rm -f mxonly_test.tmp
+
+# Non-existent record, libbind API, RFC 2308 disabled.
+
+dnsbl_ttl_127.0.0.1_bind_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_plain.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup a 1.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup a 1.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup a 1.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_bind_plain.tmp
+	diff dnsbl_ttl_127.0.0.1_bind_plain.ref dnsbl_ttl_127.0.0.1_bind_plain.tmp
+	rm -f dnsbl_ttl_127.0.0.1_bind_plain.tmp
+
+# Non-existent record, private API, RFC 2308 disabled.
+
+dnsbl_ttl_127.0.0.1_priv_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_plain.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup -p a 1.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -p a 1.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -p a 1.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_priv_plain.tmp
+	diff dnsbl_ttl_127.0.0.1_bind_plain.ref dnsbl_ttl_127.0.0.1_priv_plain.tmp
+	rm -f dnsbl_ttl_127.0.0.1_priv_plain.tmp
+
+# Non-existent record, libbind API, RFC 2308 enabled.
+
+dnsbl_ttl_127.0.0.1_bind_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_ncache.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup -n a 1.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n a 1.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n a 1.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_bind_ncache.tmp
+	diff dnsbl_ttl_127.0.0.1_bind_ncache.ref dnsbl_ttl_127.0.0.1_bind_ncache.tmp
+	rm -f dnsbl_ttl_127.0.0.1_bind_ncache.tmp
+
+# Non-existent record, private API, RFC 2308 enabled.
+
+dnsbl_ttl_127.0.0.1_priv_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_ncache.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup -n -p a 1.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n -p a 1.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n -p a 1.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_priv_ncache.tmp
+	diff dnsbl_ttl_127.0.0.1_bind_ncache.ref dnsbl_ttl_127.0.0.1_priv_ncache.tmp
+	rm -f dnsbl_ttl_127.0.0.1_priv_ncache.tmp
+
+# Existing record, libbind API, RFC 2308 disabled.
+
+dnsbl_ttl_127.0.0.2_bind_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup a 2.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup a 2.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup a 2.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_bind_plain.tmp
+	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_bind_plain.tmp
+	rm -f dnsbl_ttl_127.0.0.2_bind_plain.tmp
+
+# Existing record, private API, RFC 2308 disabled.
+
+dnsbl_ttl_127.0.0.2_priv_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup -p a 2.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -p a 2.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -p a 2.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_priv_plain.tmp
+	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_priv_plain.tmp
+	rm -f dnsbl_ttl_127.0.0.2_priv_plain.tmp
+
+# Existing record, libbind API, RFC 2308 enabled.
+
+dnsbl_ttl_127.0.0.2_bind_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup -n a 2.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n a 2.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n a 2.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_bind_ncache.tmp
+	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_bind_ncache.tmp
+	rm -f dnsbl_ttl_127.0.0.2_bind_ncache.tmp
+
+# Existing record, private API, RFC 2308 enabled.
+
+dnsbl_ttl_127.0.0.2_priv_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
+	(set -e; \
+        $(SHLIB_ENV) ./test_dns_lookup -n -p a 2.0.0.127.zen.spamhaus.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n -p a 2.0.0.127.b.barracudacentral.org; \
+        $(SHLIB_ENV) ./test_dns_lookup -n -p a 2.0.0.127.bl.spamcop.net; \
+	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_priv_ncache.tmp
+	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_priv_ncache.tmp
+	rm -f dnsbl_ttl_127.0.0.2_priv_ncache.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

@@ -58,6 +58,11 @@ static void psc_whitelist_non_dnsbl(PSC_STATE *state)
     time_t  now;
     int     tindx;
 
+#define PSC_EFF_DNSBL_TTL(state) \
+	(var_psc_dnsbl_max_ttl < (state)->dnsbl_ttl ? var_psc_dnsbl_max_ttl : \
+	 var_psc_dnsbl_min_ttl > (state)->dnsbl_ttl ? var_psc_dnsbl_min_ttl : \
+	 (state)->dnsbl_ttl)
+
     /*
      * If no tests failed (we can't undo those), and if the whitelist
      * threshold is met, flag non-dnsbl tests that are pending or disabled as
@@ -87,8 +92,8 @@ static void psc_whitelist_non_dnsbl(PSC_STATE *state)
 		state->flags |= PSC_STATE_FLAG_BYTINDX_PASS(tindx);
 	    }
 	    /* Update expiration even if the test was completed or disabled. */
-	    if (state->expire_time[tindx] < now + var_psc_dnsbl_ttl)
-		state->expire_time[tindx] = now + var_psc_dnsbl_ttl;
+	    if (state->expire_time[tindx] < now + PSC_EFF_DNSBL_TTL(state))
+		state->expire_time[tindx] = now + PSC_EFF_DNSBL_TTL(state);
 	}
     }
 }
@@ -164,12 +169,13 @@ static void psc_early_event(int event, void *context)
 		state->dnsbl_score =
 		    psc_dnsbl_retrieve(state->smtp_client_addr,
 				       &state->dnsbl_name,
-				       state->dnsbl_index);
+				       state->dnsbl_index,
+				       &state->dnsbl_ttl);
 		if (var_psc_dnsbl_wthresh < 0)
 		    psc_whitelist_non_dnsbl(state);
 	    }
 	    if (state->dnsbl_score < var_psc_dnsbl_thresh) {
-		state->dnsbl_stamp = event_time() + var_psc_dnsbl_ttl;
+		state->dnsbl_stamp = event_time() + PSC_EFF_DNSBL_TTL(state);
 		PSC_PASS_SESSION_STATE(state, "dnsbl test",
 				       PSC_STATE_FLAG_DNSBL_PASS);
 	    } else {
@@ -228,7 +234,8 @@ static void psc_early_event(int event, void *context)
 		&& (state->flags & PSC_STATE_FLAG_DNSBL_TODO))
 		(void) psc_dnsbl_retrieve(state->smtp_client_addr,
 					  &state->dnsbl_name,
-					  state->dnsbl_index);
+					  state->dnsbl_index,
+					  &state->dnsbl_ttl);
 	    /* XXX Wait for DNS replies to come in. */
 	    psc_hangup_event(state);
 	    return;
@@ -246,7 +253,8 @@ static void psc_early_event(int event, void *context)
 		&& (state->flags & PSC_STATE_FLAG_DNSBL_TODO))
 		(void) psc_dnsbl_retrieve(state->smtp_client_addr,
 					  &state->dnsbl_name,
-					  state->dnsbl_index);
+					  state->dnsbl_index,
+					  &state->dnsbl_ttl);
 	    PSC_DROP_SESSION_STATE(state, "521 5.5.1 Protocol error\r\n");
 	    return;
 	case PSC_ACT_ENFORCE:
@@ -298,7 +306,7 @@ static void psc_early_dnsbl_event(int unused_event, void *context)
      */
     state->dnsbl_score =
 	psc_dnsbl_retrieve(state->smtp_client_addr, &state->dnsbl_name,
-			   state->dnsbl_index);
+			   state->dnsbl_index, &state->dnsbl_ttl);
     if (var_psc_dnsbl_wthresh < 0)
 	psc_whitelist_non_dnsbl(state);
 

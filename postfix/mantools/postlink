@@ -1004,6 +1004,8 @@ while (<>) {
     s;\bpostscreen_dnsbl_thresh[-</bB>]*\n* *[<bB>]*old\b;<a href="postconf.5.html#postscreen_dnsbl_threshold">$&</a>;g;
     s;\bpostscreen_dnsbl_whitelist_thresh[-</bB>]*\n* *[<bB>]*old\b;<a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">$&</a>;g;
     s;\bpostscreen_dnsbl_action\b;<a href="postconf.5.html#postscreen_dnsbl_action">$&</a>;g;
+    s;\bpostscreen_dnsbl_max_ttl\b;<a href="postconf.5.html#postscreen_dnsbl_max_ttl">$&</a>;g;
+    s;\bpostscreen_dnsbl_min_ttl\b;<a href="postconf.5.html#postscreen_dnsbl_min_ttl">$&</a>;g;
     s;\bpostscreen_dnsbl_ttl\b;<a href="postconf.5.html#postscreen_dnsbl_ttl">$&</a>;g;
     s;\bpostscreen_dnsbl_timeout\b;<a href="postconf.5.html#postscreen_dnsbl_timeout">$&</a>;g;
     s;\bpostscreen_for[-</bB>]*\n*[ <bB>]*bid[-</bB>]*\n* *[<bB>]*den_commands\b;<a href="postconf.5.html#postscreen_forbidden_commands">$&</a>;g;

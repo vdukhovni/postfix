@@ -29,6 +29,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <string.h>			/* memcpy */
 
 /* Utility library. */
 
@@ -45,6 +46,7 @@ char   *dns_strrecord(VSTRING *buf, DNS_RR *rr)
 {
     const char myname[] = "dns_strrecord";
     MAI_HOSTADDR_STR host;
+    UINT32_TYPE soa_buf[5];
 
     vstring_sprintf(buf, "%s. %u IN %s ",
 		    rr->rname, rr->ttl, dns_strtype(rr->type));
@@ -88,6 +90,19 @@ char   *dns_strrecord(VSTRING *buf, DNS_RR *rr)
 	} else {
 	    vstring_sprintf_append(buf, "[truncated record]");
 	}
+
+	/*
+	 * We use the SOA record TTL to determine the negative reply TTL. We
+	 * save the time fields in the SOA record for debugging, but for now
+	 * we don't bother saving the source host and mailbox information, as
+	 * that would require changes to the DNS_RR structure. See also code
+	 * in dns_get_rr().
+	 */
+    case T_SOA:
+	memcpy(soa_buf, rr->data, sizeof(soa_buf));
+	vstring_sprintf_append(buf, "- - %u %u %u %u %u",
+			       soa_buf[0], soa_buf[1], soa_buf[2],
+			       soa_buf[3], soa_buf[4]);
 	break;
     default:
 	msg_fatal("%s: don't know how to print type %s",

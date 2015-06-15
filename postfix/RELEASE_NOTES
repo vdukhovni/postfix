@@ -15,3 +15,29 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 2.11 or earlier, read RELEASE_NOTES-3.0
 before proceeding.
+
+Major change with snaphot 20106XX
+
+postscreen support for the TTL of DNS lookup results, including
+TTLs of "not found" results (as described in RFC 2308).
+
+Historically, the default setting "postscreen_dnsbl_ttl = 1h" assumes
+that a "not found" result from a DNSBL server will be valid for one hour.
+This may have been adequate five years ago, but nowadays, this will
+result in missed opportunities to block spambots.
+
+Support for DNS reply TTL values is controlled by two parameters:
+
+postscreen_dnsbl_ttl_minimum (default: 1 minute).
+
+    This parameter specifies a minimum for the amount of time that a
+    result will be cached in the postscreen_cache_map. This prevents an
+    excessive number of postscreen cache updates when a DNSBNL or DNSWL
+    server specifies a very small reply TTL.
+
+The postscreen_dnsbl_ttl (default: 1 hour)
+
+    This parameter already exists.  It now specifies an upper bound
+    for for the amount of time that a result will be cached in the
+    postscreen_cache_map.  This prevents cache pollution when a DNSBNL or
+    DNSWL server specifies a very large replt TTL.

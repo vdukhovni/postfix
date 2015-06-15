@@ -78,6 +78,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <limits.h>
 
 /* Utility library. */
 
@@ -128,7 +129,8 @@ static VSTRING *result;
 
 /* static void dnsblog_query - query DNSBL for client address */
 
-static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
+static VSTRING *dnsblog_query(VSTRING *result, int *result_ttl,
+			              const char *dnsbl_domain,
 			              const char *addr)
 {
     const char *myname = "dnsblog_query";
@@ -183,8 +185,10 @@ static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
      * Tack on the RBL domain name and query the DNS for an A record.
      */
     vstring_strcat(query, dnsbl_domain);
-    dns_status = dns_lookup(STR(query), T_A, 0, &addr_list, (VSTRING *) 0, why);
+    dns_status = dns_lookup_x(STR(query), T_A, 0, &addr_list, (VSTRING *) 0,
+			      why, (int *) 0, DNS_REQ_FLAG_NCACHE_TTL);
     VSTRING_RESET(result);
+    *result_ttl = INT_MAX;
     if (dns_status == DNS_OK) {
 	for (rr = addr_list; rr != 0; rr = rr->next) {
 	    if (dns_rr_to_pa(rr, &hostaddr) == 0) {
@@ -196,6 +200,9 @@ static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
 		if (LEN(result) > 0)
 		    vstring_strcat(result, " ");
 		vstring_strcat(result, hostaddr.buf);
+		/* Grab the positive reply TTL. */
+		if (*result_ttl > rr->ttl)
+		    *result_ttl = rr->ttl;
 	    }
 	}
 	dns_rr_free(addr_list);
@@ -203,6 +210,12 @@ static VSTRING *dnsblog_query(VSTRING *result, const char *dnsbl_domain,
 	if (msg_verbose)
 	    msg_info("%s: addr %s not listed by domain %s",
 		     myname, addr, dnsbl_domain);
+	/* Grab the negative reply TTL. */
+	for (rr = addr_list; rr != 0; rr = rr->next) {
+	    if (rr->type == T_SOA && *result_ttl > rr->ttl)
+		*result_ttl = rr->ttl;
+	}
+	dns_rr_free(addr_list);
     } else {
 	msg_warn("%s: lookup error for DNS query %s: %s",
 		 myname, STR(query), STR(why));
@@ -217,6 +230,7 @@ static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
 			            char **argv)
 {
     int     request_id;
+    int     result_ttl;
 
     /*
      * Sanity check. This service takes no command-line arguments.
@@ -235,7 +249,7 @@ static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
 		  RECV_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, addr),
 		  RECV_ATTR_INT(MAIL_ATTR_LABEL, &request_id),
 		  ATTR_TYPE_END) == 3) {
-	(void) dnsblog_query(result, STR(rbl_domain), STR(addr));
+	(void) dnsblog_query(result, &result_ttl, STR(rbl_domain), STR(addr));
 	if (var_dnsblog_delay > 0)
 	    sleep(var_dnsblog_delay);
 	attr_print(client_stream, ATTR_FLAG_NONE,
@@ -243,6 +257,7 @@ static void dnsblog_service(VSTREAM *client_stream, char *unused_service,
 		   SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, STR(addr)),
 		   SEND_ATTR_INT(MAIL_ATTR_LABEL, request_id),
 		   SEND_ATTR_STR(MAIL_ATTR_RBL_ADDR, STR(result)),
+		   SEND_ATTR_INT(MAIL_ATTR_TTL, result_ttl),
 		   ATTR_TYPE_END);
 	vstream_fflush(client_stream);
     }

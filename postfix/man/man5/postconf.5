@@ -4719,6 +4719,31 @@ this test the next time the client connects.
 .br
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_max_ttl (default: ${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1h}})
+The maximum amount of time that \fBpostscreen\fR(8) will use the
+result from a successful DNS blocklist or whitelist test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a shorter TTL value, that value will be used unless
+it would be smaller than postscreen_dnsbl_min_ttl.
+.PP
+Specify a non\-zero time value (an integral value plus an optional
+one\-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 3.1. The default setting
+is backwards\-compatible with older Postfix versions.
+.SH postscreen_dnsbl_min_ttl (default: 100s)
+The minimum amount of time that \fBpostscreen\fR(8) will use the
+result from a successful DNS blocklist or whitelist test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a larger TTL value, that value will be used unless
+it would be larger than postscreen_dnsbl_max_ttl.
+.PP
+Specify a non\-zero time value (an integral value plus an optional
+one\-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 3.1.
 .SH postscreen_dnsbl_reply_map (default: empty)
 A mapping from actual DNSBL domain name which includes a secret
 password, to the DNSBL domain name that postscreen will reply with
@@ -4825,15 +4850,15 @@ the timeouts in the \fBdnsblog\fR(8) daemon which are defined by system
 This feature is available in Postfix 3.0.
 .SH postscreen_dnsbl_ttl (default: 1h)
 The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful DNS blocklist test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because a
-good client can immediately talk to a real Postfix SMTP server.
+a successful DNS blocklist or whitelist lookup before a client
+IP address is required to pass that test again.
 .PP
 Specify a non\-zero time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
-This feature is available in Postfix 2.8.
+This feature is available in Postfix 2.8\-3.0. It was
+replaced by postscreen_dnsbl_max_ttl in Postfix 3.1.
 .SH postscreen_dnsbl_whitelist_threshold (default: 0)
 Allow a remote SMTP client to skip "before" and "after 220
 greeting" protocol tests, based on its combined DNSBL score as

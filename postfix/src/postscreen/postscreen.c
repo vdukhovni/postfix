@@ -275,9 +275,14 @@
 /* .IP "\fBpostscreen_bare_newline_ttl (30d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will use the result from
 /*	a successful "bare newline" SMTP protocol test.
-/* .IP "\fBpostscreen_dnsbl_ttl (1h)\fR"
-/*	The amount of time that \fBpostscreen\fR(8) will use the result from
-/*	a successful DNS blocklist test.
+/* .IP "\fBpostscreen_dnsbl_max_ttl (${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1h}})\fR"
+/*	The maximum amount of time that \fBpostscreen\fR(8) will use the
+/*	result from a successful DNS blocklist or whitelist test before a
+/*	client IP address is required to pass that test again.
+/* .IP "\fBpostscreen_dnsbl_min_ttl (100s)\fR"
+/*	The minimum amount of time that \fBpostscreen\fR(8) will use the
+/*	result from a successful DNS blocklist or whitelist test before a
+/*	client IP address is required to pass that test again.
 /* .IP "\fBpostscreen_greet_ttl (1d)\fR"
 /*	The amount of time that \fBpostscreen\fR(8) will use the result from
 /*	a successful PREGREET test.
@@ -476,7 +481,8 @@ char   *var_psc_dnsbl_reply;
 int     var_psc_dnsbl_thresh;
 int     var_psc_dnsbl_wthresh;
 char   *var_psc_dnsbl_action;
-int     var_psc_dnsbl_ttl;
+int     var_psc_dnsbl_min_ttl;
+int     var_psc_dnsbl_max_ttl;
 int     var_psc_dnsbl_tmout;
 
 bool    var_psc_pipel_enable;
@@ -524,7 +530,6 @@ int     psc_pipel_action;		/* PSC_ACT_DROP/ENFORCE/etc */
 int     psc_nsmtp_action;		/* PSC_ACT_DROP/ENFORCE/etc */
 int     psc_barlf_action;		/* PSC_ACT_DROP/ENFORCE/etc */
 int     psc_min_ttl;			/* Update with new tests! */
-int     psc_max_ttl;			/* Update with new tests! */
 STRING_LIST *psc_forbid_cmds;		/* CONNECT GET POST */
 int     psc_stress_greet_wait;		/* stressed greet wait */
 int     psc_normal_greet_wait;		/* stressed greet wait */
@@ -1022,12 +1027,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Pre-compute the minimal and maximal TTL.
      */
     psc_min_ttl =
-	PSC_MIN(PSC_MIN(var_psc_pregr_ttl, var_psc_dnsbl_ttl),
+	PSC_MIN(PSC_MIN(var_psc_pregr_ttl, var_psc_dnsbl_min_ttl),
 		PSC_MIN(PSC_MIN(var_psc_pipel_ttl, var_psc_nsmtp_ttl),
-			var_psc_barlf_ttl));
-    psc_max_ttl =
-	PSC_MAX(PSC_MAX(var_psc_pregr_ttl, var_psc_dnsbl_ttl),
-		PSC_MAX(PSC_MAX(var_psc_pipel_ttl, var_psc_nsmtp_ttl),
 			var_psc_barlf_ttl));
 
     /*
@@ -1122,7 +1123,8 @@ int     main(int argc, char **argv)
     static const CONFIG_TIME_TABLE time_table[] = {
 	VAR_PSC_GREET_WAIT, DEF_PSC_GREET_WAIT, &var_psc_greet_wait, 1, 0,
 	VAR_PSC_PREGR_TTL, DEF_PSC_PREGR_TTL, &var_psc_pregr_ttl, 1, 0,
-	VAR_PSC_DNSBL_TTL, DEF_PSC_DNSBL_TTL, &var_psc_dnsbl_ttl, 1, 0,
+	VAR_PSC_DNSBL_MIN_TTL, DEF_PSC_DNSBL_MIN_TTL, &var_psc_dnsbl_min_ttl, 1, 0,
+	VAR_PSC_DNSBL_MAX_TTL, DEF_PSC_DNSBL_MAX_TTL, &var_psc_dnsbl_max_ttl, 1, 0,
 	VAR_PSC_PIPEL_TTL, DEF_PSC_PIPEL_TTL, &var_psc_pipel_ttl, 1, 0,
 	VAR_PSC_NSMTP_TTL, DEF_PSC_NSMTP_TTL, &var_psc_nsmtp_ttl, 1, 0,
 	VAR_PSC_BARLF_TTL, DEF_PSC_BARLF_TTL, &var_psc_barlf_ttl, 1, 0,

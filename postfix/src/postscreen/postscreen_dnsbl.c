@@ -13,10 +13,12 @@
 /*	void	(*callback)(int, char *);
 /*	char	*context;
 /*
-/*	int	psc_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index)
+/*	int	psc_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index,
+/*					dnsbl_ttl)
 /*	char	*client_addr;
 /*	const char **dnsbl_name;
 /*	int	dnsbl_index;
+/*	int	*dnsbl_ttl;
 /* DESCRIPTION
 /*	This module implements preliminary support for DNSBL lookups.
 /*	Multiple requests for the same information are handled with
@@ -37,9 +39,10 @@
 /*	The result value is the index for the psc_dnsbl_retrieve()
 /*	call.
 /*
-/*	psc_dnsbl_retrieve() retrieves the result score requested with
-/*	psc_dnsbl_request() and decrements the reference count. It
-/*	is an error to retrieve a score without requesting it first.
+/*	psc_dnsbl_retrieve() retrieves the result score and reply
+/*	TTL requested with psc_dnsbl_request(), and decrements the
+/*	reference count. It is an error to retrieve a score without
+/*	requesting it first.
 /* LICENSE
 /* .ad
 /* .fi
@@ -58,6 +61,7 @@
 #include <netinet/in.h>			/* inet_pton() */
 #include <arpa/inet.h>			/* inet_pton() */
 #include <stdio.h>			/* sscanf */
+#include <limits.h>
 
 /* Utility library. */
 
@@ -141,6 +145,7 @@ typedef struct {
     const char *dnsbl_name;		/* DNSBL with largest contribution */
     int     dnsbl_weight;		/* weight of largest contribution */
     int     total;			/* combined blocklist score */
+    int     dnsbl_ttl;			/* DNS reply ttl */
     int     refcount;			/* score reference count */
     int     pending_lookups;		/* nr of DNS requests in flight */
     int     request_id;			/* duplicate suppression */
@@ -306,7 +311,7 @@ static int psc_dnsbl_match(const char *filter, ARGV *reply)
 /* psc_dnsbl_retrieve - retrieve blocklist score, decrement reference count */
 
 int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
-			           int dnsbl_index)
+			           int dnsbl_index, int *dnsbl_ttl)
 {
     const char *myname = "psc_dnsbl_retrieve";
     PSC_DNSBL_SCORE *score;
@@ -329,6 +334,7 @@ int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
      */
     result_score = score->total;
     *dnsbl_name = score->dnsbl_name;
+    *dnsbl_ttl = score->dnsbl_ttl;
     score->refcount -= 1;
     if (score->refcount < 1) {
 	if (msg_verbose > 1)
@@ -349,6 +355,7 @@ static void psc_dnsbl_receive(int event, void *context)
     PSC_DNSBL_SITE *site;
     ARGV   *reply_argv;
     int     request_id;
+    int     dnsbl_ttl;
 
     PSC_CLEAR_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive, context);
 
@@ -374,7 +381,8 @@ static void psc_dnsbl_receive(int event, void *context)
 		     RECV_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, reply_client),
 		     RECV_ATTR_INT(MAIL_ATTR_LABEL, &request_id),
 		     RECV_ATTR_STR(MAIL_ATTR_RBL_ADDR, reply_addr),
-		     ATTR_TYPE_END) == 4
+		     RECV_ATTR_INT(MAIL_ATTR_TTL, &dnsbl_ttl),
+		     ATTR_TYPE_END) == 5
 	&& (score = (PSC_DNSBL_SCORE *)
 	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0
 	&& score->request_id == request_id) {
@@ -387,9 +395,9 @@ static void psc_dnsbl_receive(int event, void *context)
 	 * server may be messed up.
 	 */
 	if (msg_verbose > 1)
-	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%s\"",
+	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%d %s\"",
 		     myname, STR(reply_client), score->total,
-		     STR(reply_dnsbl), STR(reply_addr));
+		     STR(reply_dnsbl), dnsbl_ttl, STR(reply_addr));
 	if (*STR(reply_addr) != 0) {
 	    head = (PSC_DNSBL_HEAD *)
 		htable_find(dnsbl_site_cache, STR(reply_dnsbl));
@@ -413,6 +421,14 @@ static void psc_dnsbl_receive(int event, void *context)
 	    if (reply_argv != 0)
 		argv_free(reply_argv);
 	}
+
+	/*
+	 * For now, don't try to be clever, and play safe: use the smallest
+	 * TTL even if that particular DNS reply would not change the final
+	 * decision.
+	 */
+	if (score->dnsbl_ttl > dnsbl_ttl)
+	    score->dnsbl_ttl = dnsbl_ttl;
 
 	/*
 	 * Notify the requestor(s) that the result is ready to be picked up.
@@ -485,6 +501,7 @@ int     psc_dnsbl_request(const char *client_addr,
     score->request_id = request_count++;
     score->dnsbl_name = 0;
     score->dnsbl_weight = 0;
+    score->dnsbl_ttl = INT_MAX;
     score->total = 0;
     score->refcount = 1;
     score->pending_lookups = 0;

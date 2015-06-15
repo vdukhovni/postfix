@@ -307,9 +307,14 @@ temporary whitelist entry before it is removed.
 .IP "\fBpostscreen_bare_newline_ttl (30d)\fR"
 The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful "bare newline" SMTP protocol test.
-.IP "\fBpostscreen_dnsbl_ttl (1h)\fR"
-The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful DNS blocklist test.
+.IP "\fBpostscreen_dnsbl_max_ttl (${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1h}})\fR"
+The maximum amount of time that \fBpostscreen\fR(8) will use the
+result from a successful DNS blocklist or whitelist test before a
+client IP address is required to pass that test again.
+.IP "\fBpostscreen_dnsbl_min_ttl (100s)\fR"
+The minimum amount of time that \fBpostscreen\fR(8) will use the
+result from a successful DNS blocklist or whitelist test before a
+client IP address is required to pass that test again.
 .IP "\fBpostscreen_greet_ttl (1d)\fR"
 The amount of time that \fBpostscreen\fR(8) will use the result from
 a successful PREGREET test.

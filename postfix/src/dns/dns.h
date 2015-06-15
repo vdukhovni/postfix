@@ -212,15 +212,20 @@ extern int dns_rr_eq_sa(DNS_RR *, struct sockaddr *);
  /*
   * dns_lookup.c
   */
-extern int dns_lookup_r(const char *, unsigned, unsigned, DNS_RR **,
-			        VSTRING *, VSTRING *, int *);
+extern int dns_lookup_x(const char *, unsigned, unsigned, DNS_RR **,
+			        VSTRING *, VSTRING *, int *, unsigned);
 extern int dns_lookup_rl(const char *, unsigned, DNS_RR **, VSTRING *,
 			         VSTRING *, int *, int,...);
 extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
 			         VSTRING *, int *, int, unsigned *);
+extern int dns_ncache_ttl_fix_enable;
 
 #define dns_lookup(name, type, rflags, list, fqdn, why) \
-    dns_lookup_r((name), (type), (rflags), (list), (fqdn), (why), (int *) 0)
+    dns_lookup_x((name), (type), (rflags), (list), (fqdn), (why), (int *) 0, \
+	(unsigned) 0)
+#define dns_lookup_r(name, type, rflags, list, fqdn, why, rcode) \
+    dns_lookup_x((name), (type), (rflags), (list), (fqdn), (why), (rcode), \
+	(unsigned) 0)
 #define dns_lookup_l(name, rflags, list, fqdn, why, lflags, ...) \
     dns_lookup_rl((name), (rflags), (list), (fqdn), (why), (int *) 0, \
 	(lflags), __VA_ARGS__)
@@ -235,6 +240,7 @@ extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
 #define DNS_REQ_FLAG_STOP_INVAL	(1<<1)
 #define DNS_REQ_FLAG_STOP_NULLMX (1<<2)
 #define DNS_REQ_FLAG_STOP_MX_POLICY (1<<3)
+#define DNS_REQ_FLAG_NCACHE_TTL	(1<<4)
 #define DNS_REQ_FLAG_NONE	(0)
 
  /*

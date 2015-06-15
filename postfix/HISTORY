@@ -21757,3 +21757,28 @@ Apologies for any names omitted.
 
 	Cleanup: updated the examples in MILTER_README.  File:
 	proto/MILTER_README.html
+
+20150529
+
+	Support for DNS reply TTL values in dnsblog and postscreen.
+	Files: dbsblog/dnsblog.c, postscreen/postscreen_early.c,
+	postscreen/postscreen_dnsbl.c.
+
+20150607
+
+	Support for DNS reply TTL values for "not found" responses
+	(negative reply caching).  The postscreen daemon needs this to
+	accurately whitelist an SMTP client that is not found on any
+	DNSBL. Files: dns/dns_lookup.c, dns/dns_strrecord.c, dns/dns.h,
+	dns/test_dns_lookup.c.
+
+20150615
+
+	Two new parameters to limit how long a DNSBL or DNSWL lookup
+	result remains valid: postscreen_dnsbl_max_ttl is an upper
+	limit for the TTL from a DNS query, and postscreen_dnsbl_min_ttl
+	is a lower limit. The old postscreen_dnsbl_ttl provides a
+	backwards-compatible default for postscreen_dnsbl_max_ttl.
+	Files: global/mail_params.h, postscreen/postscreen.c,
+	postscreen/postscreen_early.c, mantools/postlink,
+	proto/postconf.proto.

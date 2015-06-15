@@ -3523,9 +3523,13 @@ extern char *var_psc_dnsbl_enable;
 #define DEF_PSC_DNSBL_ACTION	"ignore"
 extern char *var_psc_dnsbl_action;
 
-#define VAR_PSC_DNSBL_TTL	"postscreen_dnsbl_ttl"
-#define DEF_PSC_DNSBL_TTL	"1h"
-extern int var_psc_dnsbl_ttl;
+#define VAR_PSC_DNSBL_MIN_TTL	"postscreen_dnsbl_min_ttl"
+#define DEF_PSC_DNSBL_MIN_TTL	"100s"
+extern int var_psc_dnsbl_min_ttl;
+
+#define VAR_PSC_DNSBL_MAX_TTL	"postscreen_dnsbl_max_ttl"
+#define DEF_PSC_DNSBL_MAX_TTL	"${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1h}}"
+extern int var_psc_dnsbl_max_ttl;
 
 #define	VAR_PSC_DNSBL_REPLY	"postscreen_dnsbl_reply_map"
 #define	DEF_PSC_DNSBL_REPLY	""
