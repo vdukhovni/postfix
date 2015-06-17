@@ -144,8 +144,9 @@ typedef struct {
 typedef struct {
     const char *dnsbl_name;		/* DNSBL with largest contribution */
     int     dnsbl_weight;		/* weight of largest contribution */
-    int     total;			/* combined blocklist score */
-    int     dnsbl_ttl;			/* DNS reply ttl */
+    int     total;			/* combined white+blocklist score */
+    int     fail_ttl;			/* combined reply TTL */
+    int     pass_ttl;			/* combined reply TTL */
     int     refcount;			/* score reference count */
     int     pending_lookups;		/* nr of DNS requests in flight */
     int     request_id;			/* duplicate suppression */
@@ -334,7 +335,7 @@ int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
      */
     result_score = score->total;
     *dnsbl_name = score->dnsbl_name;
-    *dnsbl_ttl = score->dnsbl_ttl;
+    *dnsbl_ttl = (result_score > 0) ? score->fail_ttl : score->pass_ttl;
     score->refcount -= 1;
     if (score->refcount < 1) {
 	if (msg_verbose > 1)
@@ -398,10 +399,10 @@ static void psc_dnsbl_receive(int event, void *context)
 	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%d %s\"",
 		     myname, STR(reply_client), score->total,
 		     STR(reply_dnsbl), dnsbl_ttl, STR(reply_addr));
+	head = (PSC_DNSBL_HEAD *)
+	    htable_find(dnsbl_site_cache, STR(reply_dnsbl));
+	site = (head ? head->first : (PSC_DNSBL_SITE *) 0);
 	if (*STR(reply_addr) != 0) {
-	    head = (PSC_DNSBL_HEAD *)
-		htable_find(dnsbl_site_cache, STR(reply_dnsbl));
-	    site = (head ? head->first : (PSC_DNSBL_SITE *) 0);
 	    for (reply_argv = 0; site != 0; site = site->next) {
 		if (site->byte_codes == 0
 		    || psc_dnsbl_match(site->byte_codes, reply_argv ? reply_argv :
@@ -416,19 +417,30 @@ static void psc_dnsbl_receive(int event, void *context)
 			msg_info("%s: filter=\"%s\" weight=%d score=%d",
 			       myname, site->filter ? site->filter : "null",
 				 site->weight, score->total);
+		    /* Combine TTLs from sites that agree. */
+		    if (site->weight > 0) {
+			if (score->fail_ttl > dnsbl_ttl)
+			    score->fail_ttl = dnsbl_ttl;
+		    } else {
+			if (score->pass_ttl > dnsbl_ttl)
+			    score->pass_ttl = dnsbl_ttl;
+		    }
 		}
 	    }
 	    if (reply_argv != 0)
 		argv_free(reply_argv);
+	} else {
+	    for (/* void */; site != 0; site = site->next) {
+		/* Combine TTLs from sites that agree. */
+		if (site->weight > 0) {
+		    if (score->pass_ttl > dnsbl_ttl)
+			score->pass_ttl = dnsbl_ttl;
+		} else {
+		    if (score->fail_ttl > dnsbl_ttl)
+			score->fail_ttl = dnsbl_ttl;
+		}
+	    }
 	}
-
-	/*
-	 * For now, don't try to be clever, and play safe: use the smallest
-	 * TTL even if that particular DNS reply would not change the final
-	 * decision.
-	 */
-	if (score->dnsbl_ttl > dnsbl_ttl)
-	    score->dnsbl_ttl = dnsbl_ttl;
 
 	/*
 	 * Notify the requestor(s) that the result is ready to be picked up.
@@ -501,7 +513,8 @@ int     psc_dnsbl_request(const char *client_addr,
     score->request_id = request_count++;
     score->dnsbl_name = 0;
     score->dnsbl_weight = 0;
-    score->dnsbl_ttl = INT_MAX;
+    score->pass_ttl = INT_MAX;
+    score->fail_ttl = INT_MAX;
     score->total = 0;
     score->refcount = 1;
     score->pending_lookups = 0;

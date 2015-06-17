@@ -21782,3 +21782,11 @@ Apologies for any names omitted.
 	Files: global/mail_params.h, postscreen/postscreen.c,
 	postscreen/postscreen_early.c, mantools/postlink,
 	proto/postconf.proto.
+
+20150616
+
+	Refinement: the postscreen daemon now combines the TTLs from
+	DNS replies that agree whether a remote SMTP client should be
+	blocked or not. This more conservative than simply combining
+	all the TTLs from all the "found" and "not found" DNSBL and
+	DNSWL responses.  File: postscreen/postscreen_dnsbl.c.
