@@ -337,6 +337,14 @@ deliveries to the same destination; the resulting behavior depends
 on the value of the corresponding per\-destination recipient limit.
 .IP "\fItransport\fB_destination_rate_delay $default_destination_rate_delay
 Idem, for delivery via the named message \fItransport\fR.
+.PP
+Available in Postfix version 3.1 and later:
+.IP "\fBdefault_transport_rate_delay (0s)\fR"
+The default amount of delay that is inserted between individual
+deliveries over the same message delivery transport, regardless of
+destination.
+.IP "\fItransport\fB_transport_rate_delay $default_transport_rate_delay
+Idem, for delivery via the named message \fItransport\fR.
 .SH "SAFETY CONTROLS"
 .na
 .nf

@@ -3396,6 +3396,11 @@ extern bool var_conc_feedback_debug;
 #define DEF_DEST_RATE_DELAY	"0s"
 extern int var_dest_rate_delay;
 
+#define VAR_XPORT_RATE_DELAY	"default_transport_rate_delay"
+#define _XPORT_RATE_DELAY	"_transport_rate_delay"
+#define DEF_XPORT_RATE_DELAY	"0s"
+extern int var_xport_rate_delay;
+
  /*
   * Stress handling.
   */
@@ -3523,9 +3528,13 @@ extern char *var_psc_dnsbl_enable;
 #define DEF_PSC_DNSBL_ACTION	"ignore"
 extern char *var_psc_dnsbl_action;
 
-#define VAR_PSC_DNSBL_TTL	"postscreen_dnsbl_ttl"
-#define DEF_PSC_DNSBL_TTL	"1h"
-extern int var_psc_dnsbl_ttl;
+#define VAR_PSC_DNSBL_MIN_TTL	"postscreen_dnsbl_min_ttl"
+#define DEF_PSC_DNSBL_MIN_TTL	"60s"
+extern int var_psc_dnsbl_min_ttl;
+
+#define VAR_PSC_DNSBL_MAX_TTL	"postscreen_dnsbl_max_ttl"
+#define DEF_PSC_DNSBL_MAX_TTL	"${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1}}h"
+extern int var_psc_dnsbl_max_ttl;
 
 #define	VAR_PSC_DNSBL_REPLY	"postscreen_dnsbl_reply_map"
 #define	DEF_PSC_DNSBL_REPLY	""

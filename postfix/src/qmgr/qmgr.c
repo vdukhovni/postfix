@@ -301,6 +301,14 @@
 /*	on the value of the corresponding per-destination recipient limit.
 /* .IP "\fItransport\fB_destination_rate_delay $default_destination_rate_delay
 /*	Idem, for delivery via the named message \fItransport\fR.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBdefault_transport_rate_delay (0s)\fR"
+/*	The default amount of delay that is inserted between individual
+/*	deliveries over the same message delivery transport, regardless of
+/*	destination.
+/* .IP "\fItransport\fB_transport_rate_delay $default_transport_rate_delay
+/*	Idem, for delivery via the named message \fItransport\fR.
 /* SAFETY CONTROLS
 /* .ad
 /* .fi
@@ -446,6 +454,7 @@ char   *var_conc_pos_feedback;
 char   *var_conc_neg_feedback;
 int     var_conc_cohort_limit;
 int     var_conc_feedback_debug;
+int     var_xport_rate_delay;
 int     var_dest_rate_delay;
 char   *var_def_filter_nexthop;
 int     var_qmgr_daemon_timeout;
@@ -702,6 +711,7 @@ int     main(int argc, char **argv)
 	VAR_XPORT_RETRY_TIME, DEF_XPORT_RETRY_TIME, &var_transport_retry_time, 1, 0,
 	VAR_QMGR_CLOG_WARN_TIME, DEF_QMGR_CLOG_WARN_TIME, &var_qmgr_clog_warn_time, 0, 0,
 	VAR_XPORT_REFILL_DELAY, DEF_XPORT_REFILL_DELAY, &var_xport_refill_delay, 1, 0,
+	VAR_XPORT_RATE_DELAY, DEF_XPORT_RATE_DELAY, &var_xport_rate_delay, 0, 0,
 	VAR_DEST_RATE_DELAY, DEF_DEST_RATE_DELAY, &var_dest_rate_delay, 0, 0,
 	VAR_QMGR_DAEMON_TIMEOUT, DEF_QMGR_DAEMON_TIMEOUT, &var_qmgr_daemon_timeout, 1, 0,
 	VAR_QMGR_IPC_TIMEOUT, DEF_QMGR_IPC_TIMEOUT, &var_qmgr_ipc_timeout, 1, 0,

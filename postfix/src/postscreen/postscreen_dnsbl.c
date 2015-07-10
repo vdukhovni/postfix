@@ -13,10 +13,12 @@
 /*	void	(*callback)(int, char *);
 /*	char	*context;
 /*
-/*	int	psc_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index)
+/*	int	psc_dnsbl_retrieve(client_addr, dnsbl_name, dnsbl_index,
+/*					dnsbl_ttl)
 /*	char	*client_addr;
 /*	const char **dnsbl_name;
 /*	int	dnsbl_index;
+/*	int	*dnsbl_ttl;
 /* DESCRIPTION
 /*	This module implements preliminary support for DNSBL lookups.
 /*	Multiple requests for the same information are handled with
@@ -37,8 +39,10 @@
 /*	The result value is the index for the psc_dnsbl_retrieve()
 /*	call.
 /*
-/*	psc_dnsbl_retrieve() retrieves the result score requested with
-/*	psc_dnsbl_request() and decrements the reference count. It
+/*	psc_dnsbl_retrieve() retrieves the result score and reply
+/*	TTL requested with psc_dnsbl_request(), and decrements the
+/*	reference count. The reply TTL value is clamped to
+/*	postscreen_dnsbl_min_ttl and postscreen_dnsbl_max_ttl.  It
 /*	is an error to retrieve a score without requesting it first.
 /* LICENSE
 /* .ad
@@ -58,6 +62,7 @@
 #include <netinet/in.h>			/* inet_pton() */
 #include <arpa/inet.h>			/* inet_pton() */
 #include <stdio.h>			/* sscanf */
+#include <limits.h>
 
 /* Utility library. */
 
@@ -140,7 +145,9 @@ typedef struct {
 typedef struct {
     const char *dnsbl_name;		/* DNSBL with largest contribution */
     int     dnsbl_weight;		/* weight of largest contribution */
-    int     total;			/* combined blocklist score */
+    int     total;			/* combined white+blocklist score */
+    int     fail_ttl;			/* combined reply TTL */
+    int     pass_ttl;			/* combined reply TTL */
     int     refcount;			/* score reference count */
     int     pending_lookups;		/* nr of DNS requests in flight */
     int     request_id;			/* duplicate suppression */
@@ -306,11 +313,12 @@ static int psc_dnsbl_match(const char *filter, ARGV *reply)
 /* psc_dnsbl_retrieve - retrieve blocklist score, decrement reference count */
 
 int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
-			           int dnsbl_index)
+			           int dnsbl_index, int *dnsbl_ttl)
 {
     const char *myname = "psc_dnsbl_retrieve";
     PSC_DNSBL_SCORE *score;
     int     result_score;
+    int     result_ttl;
 
     /*
      * Sanity check.
@@ -329,6 +337,16 @@ int     psc_dnsbl_retrieve(const char *client_addr, const char **dnsbl_name,
      */
     result_score = score->total;
     *dnsbl_name = score->dnsbl_name;
+    result_ttl = (result_score > 0) ? score->fail_ttl : score->pass_ttl;
+    /* As with dnsblog(8), a value < 0 means no reply TTL. */
+    if (result_ttl < var_psc_dnsbl_min_ttl)
+	result_ttl = var_psc_dnsbl_min_ttl;
+    if (result_ttl > var_psc_dnsbl_max_ttl)
+	result_ttl = var_psc_dnsbl_max_ttl;
+    *dnsbl_ttl = result_ttl;
+    if (msg_verbose)
+	msg_info("%s: addr=%s score=%d ttl=%d",
+		 myname, client_addr, result_score, result_ttl);
     score->refcount -= 1;
     if (score->refcount < 1) {
 	if (msg_verbose > 1)
@@ -349,6 +367,7 @@ static void psc_dnsbl_receive(int event, void *context)
     PSC_DNSBL_SITE *site;
     ARGV   *reply_argv;
     int     request_id;
+    int     dnsbl_ttl;
 
     PSC_CLEAR_EVENT_REQUEST(vstream_fileno(stream), psc_dnsbl_receive, context);
 
@@ -374,7 +393,8 @@ static void psc_dnsbl_receive(int event, void *context)
 		     RECV_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, reply_client),
 		     RECV_ATTR_INT(MAIL_ATTR_LABEL, &request_id),
 		     RECV_ATTR_STR(MAIL_ATTR_RBL_ADDR, reply_addr),
-		     ATTR_TYPE_END) == 4
+		     RECV_ATTR_INT(MAIL_ATTR_TTL, &dnsbl_ttl),
+		     ATTR_TYPE_END) == 5
 	&& (score = (PSC_DNSBL_SCORE *)
 	    htable_find(dnsbl_score_cache, STR(reply_client))) != 0
 	&& score->request_id == request_id) {
@@ -387,14 +407,17 @@ static void psc_dnsbl_receive(int event, void *context)
 	 * server may be messed up.
 	 */
 	if (msg_verbose > 1)
-	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%s\"",
+	    msg_info("%s: client=\"%s\" score=%d domain=\"%s\" reply=\"%d %s\"",
 		     myname, STR(reply_client), score->total,
-		     STR(reply_dnsbl), STR(reply_addr));
-	if (*STR(reply_addr) != 0) {
-	    head = (PSC_DNSBL_HEAD *)
-		htable_find(dnsbl_site_cache, STR(reply_dnsbl));
-	    site = (head ? head->first : (PSC_DNSBL_SITE *) 0);
-	    for (reply_argv = 0; site != 0; site = site->next) {
+		     STR(reply_dnsbl), dnsbl_ttl, STR(reply_addr));
+	head = (PSC_DNSBL_HEAD *)
+	    htable_find(dnsbl_site_cache, STR(reply_dnsbl));
+	if (head == 0) {
+	    /* Bogus domain. Do nothing. */
+	} else if (*STR(reply_addr) != 0) {
+	    /* DNS reputation record(s) found. */
+	    reply_argv = 0;
+	    for (site = head->first; site != 0; site = site->next) {
 		if (site->byte_codes == 0
 		    || psc_dnsbl_match(site->byte_codes, reply_argv ? reply_argv :
 			 (reply_argv = argv_split(STR(reply_addr), " ")))) {
@@ -409,9 +432,29 @@ static void psc_dnsbl_receive(int event, void *context)
 			       myname, site->filter ? site->filter : "null",
 				 site->weight, score->total);
 		}
+		/* As with dnsblog(8), a value < 0 means no reply TTL. */
+		if (site->weight > 0) {
+		    if (score->fail_ttl < 0 || score->fail_ttl > dnsbl_ttl)
+			score->fail_ttl = dnsbl_ttl;
+		} else {
+		    if (score->pass_ttl < 0 || score->pass_ttl > dnsbl_ttl)
+			score->pass_ttl = dnsbl_ttl;
+		}
 	    }
 	    if (reply_argv != 0)
 		argv_free(reply_argv);
+	} else {
+	    /* No DNS reputation record found. */
+	    for (site = head->first; site != 0; site = site->next) {
+		/* As with dnsblog(8), a value < 0 means no reply TTL. */
+		if (site->weight > 0) {
+		    if (score->pass_ttl < 0 || score->pass_ttl > dnsbl_ttl)
+			score->pass_ttl = dnsbl_ttl;
+		} else {
+		    if (score->fail_ttl < 0 || score->fail_ttl > dnsbl_ttl)
+			score->fail_ttl = dnsbl_ttl;
+		}
+	    }
 	}
 
 	/*
@@ -485,6 +528,9 @@ int     psc_dnsbl_request(const char *client_addr,
     score->request_id = request_count++;
     score->dnsbl_name = 0;
     score->dnsbl_weight = 0;
+    /* As with dnsblog(8), a value < 0 means no reply TTL. */
+    score->pass_ttl = -1;
+    score->fail_ttl = -1;
     score->total = 0;
     score->refcount = 1;
     score->pending_lookups = 0;

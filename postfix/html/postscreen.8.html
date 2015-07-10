@@ -292,9 +292,16 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
               successful "bare newline" SMTP protocol test.
 
-       <b><a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a> (1h)</b>
-              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
-              successful DNS blocklist test.
+       <b><a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a></b>
+       <b>(${<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>?{$<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>}:{1}}h)</b>
+              The  maximum  amount  of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the
+              result from a successful  DNS-based  reputation  test  before  a
+              client IP address is required to pass that test again.
+
+       <b><a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a> (60s)</b>
+              The  minimum  amount  of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the
+              result from a successful  DNS-based  reputation  test  before  a
+              client IP address is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_greet_ttl">postscreen_greet_ttl</a> (1d)</b>
               The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the result from a
@@ -310,34 +317,34 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>RESOURCE CONTROLS</b>
        <b><a href="postconf.5.html#line_length_limit">line_length_limit</a> (2048)</b>
-              Upon  input,  long  lines  are chopped up into pieces of at most
+              Upon input, long lines are chopped up into  pieces  of  at  most
               this length; upon delivery, long lines are reconstructed.
 
        <b><a href="postconf.5.html#postscreen_client_connection_count_limit">postscreen_client_connection_count_limit</a>         ($<a href="postconf.5.html#smtpd_client_connection_count_limit">smtpd_client_connec</a>-</b>
        <b><a href="postconf.5.html#smtpd_client_connection_count_limit">tion_count_limit</a>)</b>
-              How many simultaneous connections  any  remote  SMTP  client  is
+              How  many  simultaneous  connections  any  remote SMTP client is
               allowed to have with the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> daemon.
 
        <b><a href="postconf.5.html#postscreen_command_count_limit">postscreen_command_count_limit</a> (20)</b>
-              The  limit  on the total number of commands per SMTP session for
+              The limit on the total number of commands per SMTP  session  for
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine.
 
        <b><a href="postconf.5.html#postscreen_command_time_limit">postscreen_command_time_limit</a> (normal: 300s, overload: 10s)</b>
-              The  time  limit  to  read   an   entire   command   line   with
+              The   time   limit   to   read   an  entire  command  line  with
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine.
 
        <b><a href="postconf.5.html#postscreen_post_queue_limit">postscreen_post_queue_limit</a> ($<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
-              The  number  of  clients  that can be waiting for service from a
+              The number of clients that can be waiting  for  service  from  a
               real Postfix SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_pre_queue_limit">postscreen_pre_queue_limit</a> ($<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
-              The number of non-whitelisted clients that can be waiting for  a
-              decision  whether  they will receive service from a real Postfix
+              The  number of non-whitelisted clients that can be waiting for a
+              decision whether they will receive service from a  real  Postfix
               SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_watchdog_timeout">postscreen_watchdog_timeout</a> (10s)</b>
-              How much time a <a href="postscreen.8.html"><b>postscreen</b>(8)</a> process may take to respond  to  a
-              remote  SMTP  client  command  or  to  perform a cache operation
+              How  much  time a <a href="postscreen.8.html"><b>postscreen</b>(8)</a> process may take to respond to a
+              remote SMTP client command  or  to  perform  a  cache  operation
               before it is terminated by a built-in watchdog timer.
 
 <b>STARTTLS CONTROLS</b>
@@ -350,11 +357,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The name of the <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 
 <b>OBSOLETE STARTTLS SUPPORT CONTROLS</b>
-       These parameters are supported for compatibility with  <a href="smtpd.8.html"><b>smtpd</b>(8)</a>  legacy
+       These  parameters  are supported for compatibility with <a href="smtpd.8.html"><b>smtpd</b>(8)</a> legacy
        parameters.
 
        <b><a href="postconf.5.html#postscreen_use_tls">postscreen_use_tls</a> ($<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a>)</b>
-              Opportunistic  TLS:  announce  STARTTLS  support  to remote SMTP
+              Opportunistic TLS: announce  STARTTLS  support  to  remote  SMTP
               clients, but do not require that clients use TLS encryption.
 
        <b><a href="postconf.5.html#postscreen_enforce_tls">postscreen_enforce_tls</a> ($<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>)</b>
@@ -363,18 +370,18 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
+              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
               figuration files.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The maximal number of digits after the decimal point  when  log-
+              The  maximal  number of digits after the decimal point when log-
               ging sub-second delay values.
 
        <b><a href="postconf.5.html#command_directory">command_directory</a> (see 'postconf -d' output)</b>
               The location of all postfix administrative commands.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount of time that an idle Postfix daemon process
+              The maximum amount of time that an idle Postfix  daemon  process
               waits for an incoming connection before terminating voluntarily.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -387,8 +394,8 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
+              The mail system name that is prepended to the  process  name  in
+              syslog  records,  so  that  "smtpd" becomes, for example, "post-
               fix/smtpd".
 
 <b>SEE ALSO</b>
@@ -406,7 +413,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 <b>HISTORY</b>
        This service was introduced with Postfix version 2.8.
 
-       Many ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier  work  by  Michael
+       Many  ideas  in  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier work by Michael
        Tokarev, in OpenBSD spamd, and in MailChannels Traffic Control.
 
 <b>AUTHOR(S)</b>

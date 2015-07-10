@@ -2629,6 +2629,40 @@ Example:
 
 </DD>
 
+<DT><b><a name="default_transport_rate_delay">default_transport_rate_delay</a>
+(default: 0s)</b></DT><DD>
+
+<p> The default amount of delay that is inserted between individual
+deliveries over the same message delivery transport, regardless of
+destination. If non-zero, all deliveries over the same message
+delivery transport will happen one at a time. </p>
+
+<p>Use <a href="postconf.5.html#transport_transport_rate_delay"><i>transport</i>_transport_rate_delay</a> to specify a
+transport-specific override, where the initial <i>transport</i> is
+the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
+
+<p> Example: throttle outbound SMTP mail to at most 3 deliveries
+per minute. </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    smtp_transport_rate_delay = 20s
+</pre>
+
+<p> To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit). </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds). </p>
+
+<p> NOTE: the delay is enforced by the queue manager. </p>
+
+<p> This feature is available in Postfix 3.1 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="default_verp_delimiters">default_verp_delimiters</a>
 (default: +=)</b></DT><DD>
 
@@ -7748,6 +7782,43 @@ this test the next time the client connects. </dd>
 
 </DD>
 
+<DT><b><a name="postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a>
+(default: ${<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>?{$<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>}:{1}}h)</b></DT><DD>
+
+<p> The maximum amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the
+result from a successful DNS-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a shorter TTL value, that value will be used unless
+it would be smaller than <a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.1. The default setting
+is backwards-compatible with older Postfix versions. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>
+(default: 60s)</b></DT><DD>
+
+<p> The minimum amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the
+result from a successful DNS-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a larger TTL value, that value will be used unless
+it would be larger than <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a>.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.1. </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a>
 (default: empty)</b></DT><DD>
 
@@ -7869,16 +7940,15 @@ resolver(3) routines. </p>
 (default: 1h)</b></DT><DD>
 
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful DNS blocklist test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because a
-good client can immediately talk to a real Postfix SMTP server.
-</p>
+a successful DNS-based reputation test before a client
+IP address is required to pass that test again.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
-<p> This feature is available in Postfix 2.8.  </p>
+<p> This feature is available in Postfix 2.8-3.0. It was
+replaced by <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a> in Postfix 3.1.  </p>
 
 
 </DD>
@@ -18561,6 +18631,16 @@ in "postconf" command output before Postfix version 2.9.  This
 limitation applies to many parameters whose name is a combination
 of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in this case:
 "_time_limit"). </p>
+
+
+</DD>
+
+<DT><b><a name="transport_transport_rate_delay">transport_transport_rate_delay</a>
+(default: $<a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a>
+parameter value, where the initial <i>transport</i> in the parameter
+name is the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
 
 
 </DD>

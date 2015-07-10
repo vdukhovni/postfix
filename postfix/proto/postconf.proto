@@ -13153,6 +13153,42 @@ this case: "_recipient_refill_delay").  </p>
 
 <p> This feature is available in Postfix 2.4 and later. </p>
 
+%PARAM default_transport_rate_delay 0s
+
+<p> The default amount of delay that is inserted between individual
+deliveries over the same message delivery transport, regardless of
+destination. If non-zero, all deliveries over the same message
+delivery transport will happen one at a time. </p>
+
+<p>Use <i>transport</i>_transport_rate_delay to specify a
+transport-specific override, where the initial <i>transport</i> is
+the master.cf name of the message delivery transport. </p>
+
+<p> Example: throttle outbound SMTP mail to at most 3 deliveries
+per minute. </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtp_transport_rate_delay = 20s
+</pre>
+
+<p> To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit). </p>
+ 
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds). </p>
+
+<p> NOTE: the delay is enforced by the queue manager. </p>
+
+<p> This feature is available in Postfix 3.1 and later. </p>
+
+%PARAM transport_transport_rate_delay $default_transport_rate_delay
+
+<p> A transport-specific override for the default_transport_rate_delay
+parameter value, where the initial <i>transport</i> in the parameter
+name is the master.cf name of the message delivery transport. </p>
+
 %PARAM default_destination_rate_delay 0s
 
 <p> The default amount of delay that is inserted between individual
@@ -14305,16 +14341,44 @@ built-in SMTP protocol engine. </p>
 %PARAM postscreen_dnsbl_ttl 1h
 
 <p> The amount of time that postscreen(8) will use the result from
-a successful DNS blocklist test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because a
-good client can immediately talk to a real Postfix SMTP server.
-</p>
+a successful DNS-based reputation test before a client
+IP address is required to pass that test again.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
-<p> This feature is available in Postfix 2.8.  </p>
+<p> This feature is available in Postfix 2.8-3.0. It was 
+replaced by postscreen_dnsbl_max_ttl in Postfix 3.1.  </p>
+
+%PARAM postscreen_dnsbl_min_ttl 60s
+
+<p> The minimum amount of time that postscreen(8) will use the
+result from a successful DNS-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a larger TTL value, that value will be used unless
+it would be larger than postscreen_dnsbl_max_ttl.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.1. </p>
+
+%PARAM postscreen_dnsbl_max_ttl ${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1}}h
+
+<p> The maximum amount of time that postscreen(8) will use the
+result from a successful DNS-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a shorter TTL value, that value will be used unless
+it would be smaller than postscreen_dnsbl_min_ttl.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.1. The default setting
+is backwards-compatible with older Postfix versions. </p>
 
 %PARAM postscreen_pipelining_action enforce
 

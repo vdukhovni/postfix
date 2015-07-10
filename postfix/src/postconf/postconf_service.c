@@ -134,6 +134,7 @@ void    pcf_register_service_parameters(void)
 	_CONC_NEG_FDBACK, VAR_CONC_NEG_FDBACK,
 	_CONC_COHORT_LIM, VAR_CONC_COHORT_LIM,
 	_DEST_RATE_DELAY, VAR_DEST_RATE_DELAY,
+	_XPORT_RATE_DELAY, VAR_XPORT_RATE_DELAY,
 	0,
     };
     static const PCF_STRING_NV spawn_params[] = {

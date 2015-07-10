@@ -15,3 +15,54 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 2.11 or earlier, read RELEASE_NOTES-3.0
 before proceeding.
+
+Major changes with snaphot 20150710
+===================================
+
+postscreen support for the TTL of DNSBL and DNSWL lookup results
+----------------------------------------------------------------
+
+Historically, the default setting "postscreen_dnsbl_ttl = 1h" assumes
+that a "not found" result from a DNSBL server will be valid for one
+hour.  This may have been adequate five years ago when postscreen
+was first implemented, but nowadays, that one hour can result in
+missed opportunities to block new spambots.
+
+To address this, postscreen now respects the TTL of DNSBL "not
+found" replies, as well as the TTL of DNSWL replies (both "found"
+and "not found").  The TTL for a "not found" reply is determined
+according to RFC 2308 (the TTL of an SOA record in the reply).
+
+Support for DNSBL or DNSWL reply TTL values is controlled by two
+configuration parameters:
+
+postscreen_dnsbl_min_ttl (default: 60 seconds).
+
+    This parameter specifies a minimum for the amount of time that
+    a DNSBL or DNSWL result will be cached in the postscreen_cache_map.
+    This prevents an excessive number of postscreen cache updates
+    when a DNSBL or DNSWL server specifies a very small reply TTL.
+
+postscreen_dnsbl_max_ttl (default: $postscreen_dnsbl_ttl or 1 hour)
+
+    This parameter specifies a maximum for the amount of time that
+    a DNSBL or DNSWL result will be cached in the postscreen_cache_map.
+    This prevents cache pollution when a DNSBL or DNSWL server
+    specifies a very large reply TTL.
+
+The postscreen_dnsbl_ttl parameter is now obsolete, and has become
+a default value for the new postscreen_dnsbl_max_ttl parameter.
+
+Destination-independent delivery rate delay
+-------------------------------------------
+
+Support to enforce a destination-independent delay between meail
+deliveries.  The following example inserts 20 seconds of delay
+between deliveries with the SMTP transport, limiting the delivery
+rate to at most three messages per minute.
+
+/etc/postfix/main.cf:
+    smtp_transport_rate_delay = 20s
+
+For details, see the description of default_transport_rate_delay
+and transport_transport_rate_delay in the postconf(5) manpage.

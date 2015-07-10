@@ -204,10 +204,12 @@ struct QMGR_TRANSPORT {
     QMGR_FEEDBACK pos_feedback;		/* positive feedback control */
     QMGR_FEEDBACK neg_feedback;		/* negative feedback control */
     int     fail_cohort_limit;		/* flow shutdown control */
+    int     xport_rate_delay;		/* suspend per delivery */
     int     rate_delay;			/* suspend per delivery */
 };
 
 #define QMGR_TRANSPORT_STAT_DEAD	(1<<1)
+#define QMGR_TRANSPORT_STAT_RATE_LOCK	(1<<2)
 
 typedef void (*QMGR_TRANSPORT_ALLOC_NOTIFY) (QMGR_TRANSPORT *, VSTREAM *);
 extern QMGR_TRANSPORT *qmgr_transport_select(void);

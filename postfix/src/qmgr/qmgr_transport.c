@@ -163,6 +163,14 @@ struct QMGR_TRANSPORT_ALLOC {
 #define QMGR_TRANSPORT_MAX_PEND	2
 #endif
 
+ /*
+  * Important note on the _transport_rate_delay implementation: after
+  * qmgr_transport_alloc() sets the QMGR_TRANSPORT_STAT_RATE_LOCK flag, all
+  * code paths must directly or indirectly invoke qmgr_transport_unthrottle()
+  * or qmgr_transport_throttle(). Otherwise, transports with non-zero
+  * _transport_rate_delay will become stuck.
+  */
+
 /* qmgr_transport_unthrottle_wrapper - in case (char *) != (struct *) */
 
 static void qmgr_transport_unthrottle_wrapper(int unused_event, void *context)
@@ -180,7 +188,7 @@ void    qmgr_transport_unthrottle(QMGR_TRANSPORT *transport)
      * This routine runs after expiration of the timer set by
      * qmgr_transport_throttle(), or whenever a delivery transport has been
      * used without malfunction. In either case, we enable delivery again if
-     * the transport was blocked, otherwise the request is ignored.
+     * the transport was throttled. We always reset the transport rate lock.
      */
     if ((transport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0) {
 	if (msg_verbose)
@@ -194,6 +202,8 @@ void    qmgr_transport_unthrottle(QMGR_TRANSPORT *transport)
 	event_cancel_timer(qmgr_transport_unthrottle_wrapper,
 			   (void *) transport);
     }
+    if (transport->flags & QMGR_TRANSPORT_STAT_RATE_LOCK)
+	transport->flags &= ~QMGR_TRANSPORT_STAT_RATE_LOCK;
 }
 
 /* qmgr_transport_throttle - disable delivery process allocation */
@@ -230,6 +240,16 @@ static void qmgr_transport_abort(int unused_event, void *context)
     msg_fatal("timeout connecting to transport: %s", alloc->transport->name);
 }
 
+/* qmgr_transport_rate_event - delivery process availability notice */
+
+static void qmgr_transport_rate_event(int unused_event, void *context)
+{
+    QMGR_TRANSPORT_ALLOC *alloc = (QMGR_TRANSPORT_ALLOC *) context;
+
+    alloc->notify(alloc->transport, alloc->stream);
+    myfree((void *) alloc);
+}
+
 /* qmgr_transport_event - delivery process availability notice */
 
 static void qmgr_transport_event(int unused_event, void *context)
@@ -261,8 +281,16 @@ static void qmgr_transport_event(int unused_event, void *context)
     /*
      * Notify the requestor.
      */
-    alloc->notify(alloc->transport, alloc->stream);
-    myfree((void *) alloc);
+    if (alloc->transport->xport_rate_delay > 0) {
+	if ((alloc->transport->flags & QMGR_TRANSPORT_STAT_RATE_LOCK) == 0)
+	    msg_panic("transport_event: missing rate lock for transport %s",
+		      alloc->transport->name);
+	event_request_timer(qmgr_transport_rate_event, (void *) alloc,
+			    alloc->transport->xport_rate_delay);
+    } else {
+	alloc->notify(alloc->transport, alloc->stream);
+	myfree((void *) alloc);
+    }
 }
 
 /* qmgr_transport_select - select transport for allocation */
@@ -287,6 +315,7 @@ QMGR_TRANSPORT *qmgr_transport_select(void)
 
     for (xport = qmgr_transport_list.next; xport; xport = xport->peers.next) {
 	if ((xport->flags & QMGR_TRANSPORT_STAT_DEAD) != 0
+	    || (xport->flags & QMGR_TRANSPORT_STAT_RATE_LOCK) != 0
 	    || xport->pending >= QMGR_TRANSPORT_MAX_PEND)
 	    continue;
 	need = xport->pending + 1;
@@ -316,8 +345,17 @@ void    qmgr_transport_alloc(QMGR_TRANSPORT *transport, QMGR_TRANSPORT_ALLOC_NOT
      */
     if (transport->flags & QMGR_TRANSPORT_STAT_DEAD)
 	msg_panic("qmgr_transport: dead transport: %s", transport->name);
+    if (transport->flags & QMGR_TRANSPORT_STAT_RATE_LOCK)
+	msg_panic("qmgr_transport: rate-locked transport: %s", transport->name);
     if (transport->pending >= QMGR_TRANSPORT_MAX_PEND)
 	msg_panic("qmgr_transport: excess allocation: %s", transport->name);
+
+    /*
+     * When this message delivery transport is rate-limited, do not select it
+     * again before the end of a message delivery transaction.
+     */
+    if (transport->xport_rate_delay > 0)
+	transport->flags |= QMGR_TRANSPORT_STAT_RATE_LOCK;
 
     /*
      * Connect to the well-known port for this delivery service, and wake up
@@ -392,6 +430,9 @@ QMGR_TRANSPORT *qmgr_transport_create(const char *name)
     transport->init_dest_concurrency =
 	get_mail_conf_int2(name, _INIT_DEST_CON,
 			   var_init_dest_concurrency, 1, 0);
+    transport->xport_rate_delay = get_mail_conf_time2(name, _XPORT_RATE_DELAY,
+						      var_xport_rate_delay,
+						      's', 0, 0);
     transport->rate_delay = get_mail_conf_time2(name, _DEST_RATE_DELAY,
 						var_dest_rate_delay,
 						's', 0, 0);

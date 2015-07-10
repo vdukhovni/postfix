@@ -148,7 +148,7 @@ OK
 OK
 >>> # EXPECT reject + A record, "all TXT results dropped" warning.
 >>> client localhost 127.0.0.2
-./smtpd_check: ignoring DNS RR: 2.0.0.127.dnsbltest.porcupine.org. TTL IN TXT DNS blocklist test.
+./smtpd_check: ignoring DNS RR: 2.0.0.127.dnsbltest.porcupine.org. TTL IN TXT DNS blocklist test
 ./smtpd_check: warning: 2.0.0.127.dnsbltest.porcupine.org: TXT lookup error: DNS reply filter drops all results
 ./smtpd_check: <queue id>: reject: CONNECT from localhost[127.0.0.2]: 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org; from=<user@nxdomain.porcupine.org> proto=SMTP helo=<localhost>
 554 5.7.1 Service unavailable; Client host [127.0.0.2] blocked using dnsbltest.porcupine.org

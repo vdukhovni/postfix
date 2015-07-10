@@ -10,6 +10,8 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Make the dns_res_query() workaround on/off configurable.
+
 	TLS certificate provenance: indicate whether a subject
 	name/issuer are verified or not (for example, change the
 	attribute name to unverified_ccert_subject etc.).  This is

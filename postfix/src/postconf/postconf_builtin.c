@@ -136,6 +136,7 @@ static const CONFIG_STR_TABLE pcf_legacy_str_table[] = {
     {"fallback_relay", ""},
     {"authorized_verp_clients", ""},
     {"smtpd_client_connection_limit_exceptions", ""},
+    {"postscreen_dnsbl_ttl", ""},
     0,
 };
 

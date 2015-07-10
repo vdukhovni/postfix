@@ -51,7 +51,7 @@ OK
 ./smtpd_check: <queue id>: reject: HELO from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <www.porcupine.org>: Helo command rejected: Access denied; from=<foo@postfix.org> proto=SMTP helo=<www.porcupine.org>
 554 5.7.1 <www.porcupine.org>: Helo command rejected: Access denied
 >>> helo example.tld
-./smtpd_check: warning: Unable to look up NS host for example.tld: Host not found
+./smtpd_check: warning: Unable to look up NS host for tld: Host not found
 OK
 >>> helo foo@postfix.org
 OK
@@ -61,7 +61,7 @@ OK
 ./smtpd_check: <queue id>: reject: MAIL from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@www.porcupine.org>: Sender address rejected: Access denied; from=<foo@www.porcupine.org> proto=SMTP helo=<foo@postfix.org>
 554 5.7.1 <foo@www.porcupine.org>: Sender address rejected: Access denied
 >>> mail example.tld
-./smtpd_check: warning: Unable to look up NS host for example.tld: Host not found
+./smtpd_check: warning: Unable to look up NS host for tld: Host not found
 OK
 >>> mail foo@postfix.org
 OK
@@ -71,7 +71,7 @@ OK
 ./smtpd_check: <queue id>: reject: RCPT from spike.porcupine.org[168.100.189.2]: 554 5.7.1 <foo@www.porcupine.org>: Recipient address rejected: Access denied; from=<foo@postfix.org> to=<foo@www.porcupine.org> proto=SMTP helo=<foo@postfix.org>
 554 5.7.1 <foo@www.porcupine.org>: Recipient address rejected: Access denied
 >>> rcpt foo@example.tld
-./smtpd_check: warning: Unable to look up NS host for example.tld: Host not found
+./smtpd_check: warning: Unable to look up NS host for tld: Host not found
 OK
 >>> rcpt foo@postfix.org
 OK

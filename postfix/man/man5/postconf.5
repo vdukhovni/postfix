@@ -1676,6 +1676,38 @@ default_transport = uucp:relayhostname
 .fi
 .ad
 .ft R
+.SH default_transport_rate_delay (default: 0s)
+The default amount of delay that is inserted between individual
+deliveries over the same message delivery transport, regardless of
+destination. If non\-zero, all deliveries over the same message
+delivery transport will happen one at a time.
+.PP
+Use \fItransport\fR_transport_rate_delay to specify a
+transport\-specific override, where the initial \fItransport\fR is
+the master.cf name of the message delivery transport.
+.PP
+Example: throttle outbound SMTP mail to at most 3 deliveries
+per minute.
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_transport_rate_delay = 20s
+.fi
+.ad
+.ft R
+.PP
+To enable the delay, specify a non\-zero time value (an integral
+value plus an optional one\-letter suffix that specifies the time
+unit).
+.PP
+Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds).
+.PP
+NOTE: the delay is enforced by the queue manager.
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH default_verp_delimiters (default: +=)
 The two default VERP delimiter characters. These are used when
 no explicit delimiters are specified with the SMTP XVERP command
@@ -4719,6 +4751,31 @@ this test the next time the client connects.
 .br
 .PP
 This feature is available in Postfix 2.8.
+.SH postscreen_dnsbl_max_ttl (default: ${postscreen_dnsbl_ttl?{$postscreen_dnsbl_ttl}:{1}}h)
+The maximum amount of time that \fBpostscreen\fR(8) will use the
+result from a successful DNS\-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a shorter TTL value, that value will be used unless
+it would be smaller than postscreen_dnsbl_min_ttl.
+.PP
+Specify a non\-zero time value (an integral value plus an optional
+one\-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 3.1. The default setting
+is backwards\-compatible with older Postfix versions.
+.SH postscreen_dnsbl_min_ttl (default: 60s)
+The minimum amount of time that \fBpostscreen\fR(8) will use the
+result from a successful DNS\-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a larger TTL value, that value will be used unless
+it would be larger than postscreen_dnsbl_max_ttl.
+.PP
+Specify a non\-zero time value (an integral value plus an optional
+one\-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 3.1.
 .SH postscreen_dnsbl_reply_map (default: empty)
 A mapping from actual DNSBL domain name which includes a secret
 password, to the DNSBL domain name that postscreen will reply with
@@ -4825,15 +4882,15 @@ the timeouts in the \fBdnsblog\fR(8) daemon which are defined by system
 This feature is available in Postfix 3.0.
 .SH postscreen_dnsbl_ttl (default: 1h)
 The amount of time that \fBpostscreen\fR(8) will use the result from
-a successful DNS blocklist test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because a
-good client can immediately talk to a real Postfix SMTP server.
+a successful DNS\-based reputation test before a client
+IP address is required to pass that test again.
 .PP
 Specify a non\-zero time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
-This feature is available in Postfix 2.8.
+This feature is available in Postfix 2.8\-3.0. It was
+replaced by postscreen_dnsbl_max_ttl in Postfix 3.1.
 .SH postscreen_dnsbl_whitelist_threshold (default: 0)
 Allow a remote SMTP client to skip "before" and "after 220
 greeting" protocol tests, based on its combined DNSBL score as
@@ -12741,6 +12798,10 @@ in "postconf" command output before Postfix version 2.9.  This
 limitation applies to many parameters whose name is a combination
 of a master.cf service name and a built\-in suffix (in this case:
 "_time_limit").
+.SH transport_transport_rate_delay (default: $default_transport_rate_delay)
+A transport\-specific override for the default_transport_rate_delay
+parameter value, where the initial \fItransport\fR in the parameter
+name is the master.cf name of the message delivery transport.
 .SH trigger_timeout (default: 10s)
 The time limit for sending a trigger to a Postfix daemon (for
 example, the \fBpickup\fR(8) or \fBqmgr\fR(8) daemon). This time limit prevents

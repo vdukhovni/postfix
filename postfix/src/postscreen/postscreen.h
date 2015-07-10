@@ -75,6 +75,7 @@ typedef struct {
     time_t  expire_time[PSC_TINDX_COUNT];	/* per-test expiration */
     VSTRING *dnsbl_reply;		/* dnsbl reject text */
     int     dnsbl_score;		/* saved DNSBL score */
+    int     dnsbl_ttl;			/* saved DNSBL TTL */
     const char *dnsbl_name;		/* DNSBL name with largest weight */
     int     dnsbl_index;		/* dnsbl request index */
     const char *rcpt_reply;		/* how to reject recipients */
@@ -372,7 +373,6 @@ extern int psc_pipel_action;		/* PSC_ACT_DROP etc. */
 extern int psc_nsmtp_action;		/* PSC_ACT_DROP etc. */
 extern int psc_barlf_action;		/* PSC_ACT_DROP etc. */
 extern int psc_min_ttl;			/* Update with new tests! */
-extern int psc_max_ttl;			/* Update with new tests! */
 extern STRING_LIST *psc_forbid_cmds;	/* CONNECT GET POST */
 extern int psc_stress_greet_wait;	/* stressed greet wait */
 extern int psc_normal_greet_wait;	/* stressed greet wait */
@@ -480,7 +480,7 @@ const char *psc_maps_find(MAPS *, const char *, int);
   * postscreen_dnsbl.c
   */
 extern void psc_dnsbl_init(void);
-extern int psc_dnsbl_retrieve(const char *, const char **, int);
+extern int psc_dnsbl_retrieve(const char *, const char **, int, int *);
 extern int psc_dnsbl_request(const char *, void (*) (int, void *), void *);
 
  /*
