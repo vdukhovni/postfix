@@ -21761,7 +21761,7 @@ Apologies for any names omitted.
 20150529
 
 	Support for DNS reply TTL values in dnsblog and postscreen.
-	Files: dbsblog/dnsblog.c, postscreen/postscreen_early.c,
+	Files: dnsblog/dnsblog.c, postscreen/postscreen_early.c,
 	postscreen/postscreen_dnsbl.c.
 
 20150607
@@ -21806,3 +21806,9 @@ Apologies for any names omitted.
 	Workaround: some DNS servers reply with NXDOMAIN for type
 	NS queries with names that actually have an A record. This
 	broke check_mumble_ns_access.  File: smtpd/smtpd_check.c.
+
+20150711
+
+	Workaround: conditional time default value can result in
+	multiple time unit suffixes. Files: global/conv_time.c
+	global/mail_conf_time.c.

@@ -133,9 +133,11 @@ static int get_def_time_unit(const char *name, const char *defval)
 	    msg_panic("parameter %s: missing time unit in default value: %s",
 		      name, defval);
 	if (ISALPHA(*cp)) {
+#if 0
 	    if (cp[1] != 0)
 		msg_panic("parameter %s: bad time unit in default value: %s",
 			  name, defval);
+#endif
 	    return (*cp);
 	}
     }

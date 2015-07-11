@@ -56,7 +56,7 @@ a default value for the new postscreen_dnsbl_max_ttl parameter.
 Destination-independent delivery rate delay
 -------------------------------------------
 
-Support to enforce a destination-independent delay between meail
+Support to enforce a destination-independent delay between email
 deliveries.  The following example inserts 20 seconds of delay
 between deliveries with the SMTP transport, limiting the delivery
 rate to at most three messages per minute.
