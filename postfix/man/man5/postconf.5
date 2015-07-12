@@ -1844,6 +1844,13 @@ disable_vrfy_command = no
 .fi
 .ad
 .ft R
+.SH dns_ncache_ttl_fix_enable (default: no)
+Enable a workaround for future libc incompatibility. The Postfix
+implementation of RFC 2308 negative reply caching relies on the
+promise that res_query() and res_search() invoke res_send(), which
+returns the server response in an application buffer even if the
+requested record does not exist. If this promise is broken, specify
+"yes" to enable a  workaround for DNS reputation lookups.
 .SH dnsblog_reply_delay (default: 0s)
 A debugging aid to artificially delay DNS responses.
 .PP

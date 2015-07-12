@@ -134,6 +134,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
     struct addrinfo *res0;
     struct addrinfo *res;
     INET_PROTO_INFO *proto_info = inet_proto_info();
+    unsigned char *proto_family_list = proto_info->sa_family_list;
     int     found;
 
     if (msg_verbose)
@@ -143,14 +144,14 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
      * Interpret a numerical name as an address.
      */
     if (hostaddr_to_sockaddr(host, (char *) 0, 0, &res0) == 0) {
-	if (strchr((char *) proto_info->sa_family_list, res0->ai_family) != 0) {
-	if ((addr = dns_sa_to_rr(host, pref, res0->ai_addr)) == 0)
-	    msg_fatal("host %s: conversion error for address family %d: %m",
-		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
-	addr_list = dns_rr_append(addr_list, addr);
-	freeaddrinfo(res0);
-	return (addr_list);
-    }
+	if (strchr((char *) proto_family_list, res0->ai_family) != 0) {
+	    if ((addr = dns_sa_to_rr(host, pref, res0->ai_addr)) == 0)
+		msg_fatal("host %s: conversion error for address family "
+			  "%d: %m", host, res0->ai_addr->sa_family);
+	    addr_list = dns_rr_append(addr_list, addr);
+	    freeaddrinfo(res0);
+	    return (addr_list);
+	}
 	freeaddrinfo(res0);
     }
 
@@ -214,15 +215,15 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		       host, MAI_STRERROR(aierr));
 	} else {
 	    for (found = 0, res = res0; res != 0; res = res->ai_next) {
-		if (strchr((char *) proto_info->sa_family_list, res->ai_family) == 0) {
+		if (strchr((char *) proto_family_list, res->ai_family) == 0) {
 		    msg_info("skipping address family %d for host %s",
 			     res->ai_family, host);
 		    continue;
 		}
 		found++;
 		if ((addr = dns_sa_to_rr(host, pref, res->ai_addr)) == 0)
-		    msg_fatal("host %s: conversion error for address family %d: %m",
-		    host, ((struct sockaddr *) (res0->ai_addr))->sa_family);
+		    msg_fatal("host %s: conversion error for address family "
+			      "%d: %m", host, res0->ai_addr->sa_family);
 		addr_list = dns_rr_append(addr_list, addr);
 	    }
 	    freeaddrinfo(res0);

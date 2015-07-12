@@ -121,6 +121,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               auth, etc.) that the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server will not send  in  the
               EHLO response to a remote SMTP client.
 
+       Available in Postfix version 3.1 and later:
+
+       <b><a href="postconf.5.html#dns_ncache_ttl_fix_enable">dns_ncache_ttl_fix_enable</a> (no)</b>
+              Enable a workaround for future libc incompatibility.
+
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#postscreen_expansion_filter">postscreen_expansion_filter</a> (see 'postconf -d' output)</b>
               List     of     characters     that     are     permitted     in
@@ -421,6 +426,11 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
                                                                  POSTSCREEN(8)
 </pre> </body> </html>

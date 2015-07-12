@@ -386,6 +386,11 @@
 /*	Patrik Rak
 /*	Modra 6
 /*	155 00, Prague, Czech Republic
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */

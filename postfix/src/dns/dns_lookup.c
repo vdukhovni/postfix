@@ -32,7 +32,7 @@
 /*	int	lflags;
 /*	unsigned *ltype;
 /* AUXILIARY FUNCTIONS
-/*	int	dns_ncache_ttl_fix_enable;
+/*	extern int var_dns_ncache_ttl_fix;
 /*
 /*	int	dns_lookup_r(name, type, rflags, list, fqdn, why, rcode)
 /*	const char *name;
@@ -89,7 +89,7 @@
 /*	dns_lookup_x, dns_lookup_r(), dns_lookup_rl() and dns_lookup_rv()
 /*	accept or return additional information.
 /*
-/*	The dns_ncache_ttl_fix_enable variable controls a workaround
+/*	The var_dns_ncache_ttl_fix variable controls a workaround
 /*	for res_search(3) implementations that break the
 /*	DNS_REQ_FLAG_NCACHE_TTL feature. The workaround does not
 /*	support EDNS0 or DNSSEC, but it should be sufficient for
@@ -212,6 +212,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -228,6 +233,10 @@
 #include <msg.h>
 #include <valid_hostname.h>
 #include <stringops.h>
+
+/* Global library. */
+
+#include <mail_params.h>
 
 /* DNS library. */
 
@@ -280,23 +289,22 @@ typedef struct DNS_REPLY {
   * Unfortunately, the res_search() and res_query() API gets in the way. These
   * functions overload their result value, the server reply length, and
   * return -1 when the requested record does not exist. With libbind-based
-  * res_search() implementations, the server response is still available in a
-  * caller-supplied buffer, thanks to a promise made by res_send() and the
-  * functions that depend on it. With some creativity we can still use the
-  * server response.
+  * implementations, the server response is still available in an application
+  * buffer, thanks to the promise that res_query() and res_search() invoke
+  * res_send(), which returns the full server response even if the requested
+  * record does not exist.
   * 
-  * If this should stop working (for example, res_search() does not call
+  * If this promise is broken (for example, res_search() does not call
   * res_send(), but some non-libbind implementation that updates the
-  * caller-supplied buffer only when the requested record exists), then we
-  * have a way out by setting the dns_ncache_ttl_fix_enable variable. This
-  * enables a limited res_query() clone that should be sufficient for DNSBL /
-  * DNSWL lookups.
+  * application buffer only when the requested record exists), then we have a
+  * way out by setting the var_dns_ncache_ttl_fix variable. This enables a
+  * limited res_query() clone that should be sufficient for DNSBL / DNSWL
+  * lookups.
   * 
   * The libunbound API does not comingle the reply length and reply status
   * information, but that will have to wait until it is safe to make
   * libunbound a mandatory dependency for Postfix.
   */
-int     dns_ncache_ttl_fix_enable = 0;
 
 /* dns_res_query - a res_query() clone that can return negative replies */
 
@@ -457,7 +465,7 @@ static int dns_query(const char *name, int type, unsigned flags,
     for (;;) {
 	_res.options &= ~saved_options;
 	_res.options |= flags;
-	if (keep_notfound && dns_ncache_ttl_fix_enable) {
+	if (keep_notfound && var_dns_ncache_ttl_fix) {
 	    len = dns_res_query((char *) name, C_IN, type, reply->buf,
 				reply->buf_len);
 	} else {

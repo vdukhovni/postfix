@@ -2946,6 +2946,19 @@ Example:
 
 </DD>
 
+<DT><b><a name="dns_ncache_ttl_fix_enable">dns_ncache_ttl_fix_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable a workaround for future libc incompatibility. The Postfix
+implementation of <a href="http://tools.ietf.org/html/rfc2308">RFC 2308</a> negative reply caching relies on the
+promise that res_query() and res_search() invoke res_send(), which
+returns the server response in an application buffer even if the
+requested record does not exist. If this promise is broken, specify
+"yes" to enable a  workaround for DNS reputation lookups. </p>
+
+
+</DD>
+
 <DT><b><a name="dnsblog_reply_delay">dnsblog_reply_delay</a>
 (default: 0s)</b></DT><DD>
 

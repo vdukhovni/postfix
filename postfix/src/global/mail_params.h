@@ -3922,6 +3922,18 @@ extern int var_strict_smtputf8;
 					MAIL_SRC_NAME_VERIFY
 extern char *var_smtputf8_autoclass;
 
+ /*
+  * Workaround for future incompatibility. Our implementation of RFC 2308
+  * negative reply caching relies on the promise that res_query() and
+  * res_search() invoke res_send(), which returns the server response in an
+  * application buffer even if the requested record does not exist. If this
+  * promise is broken, we have a workaround that is good enough for DNS
+  * reputation lookups.
+  */
+#define VAR_DNS_NCACHE_TTL_FIX		"dns_ncache_ttl_fix_enable"
+#define DEF_DNS_NCACHE_TTL_FIX		0
+extern bool var_dns_ncache_ttl_fix;
+
 /* LICENSE
 /* .ad
 /* .fi

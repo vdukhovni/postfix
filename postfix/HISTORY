@@ -21812,3 +21812,14 @@ Apologies for any names omitted.
 	Workaround: conditional time default value can result in
 	multiple time unit suffixes. Files: global/conv_time.c
 	global/mail_conf_time.c.
+
+20150712
+
+	Cleanup: code indentation. Viktor Dukhovni. File:
+	smtp/smtp_addr.c.
+
+	Workaround: With Solaris10, write_wait() hangs in poll()
+	until timeout, when invoked after peekfd() has received an
+	ECONNRESET error indication. This happens when a client
+	sends QUIT and closes the connection immediately. File:
+	util/peekfd.c.

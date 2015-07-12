@@ -327,6 +327,7 @@ char   *var_multi_name;
 bool    var_multi_enable;
 bool    var_long_queue_ids;
 bool    var_daemon_open_fatal;
+bool    var_dns_ncache_ttl_fix;
 char   *var_dsn_filter;
 int     var_smtputf8_enable;
 int     var_strict_smtputf8;
@@ -630,6 +631,7 @@ void    mail_params_init()
     static const CONFIG_BOOL_TABLE first_bool_defaults[] = {
 	/* read and process the following before opening tables. */
 	VAR_DAEMON_OPEN_FATAL, DEF_DAEMON_OPEN_FATAL, &var_daemon_open_fatal,
+	VAR_DNS_NCACHE_TTL_FIX, DEF_DNS_NCACHE_TTL_FIX, &var_dns_ncache_ttl_fix,
 	0,
     };
     static const CONFIG_NBOOL_TABLE first_nbool_defaults[] = {

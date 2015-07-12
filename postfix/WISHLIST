@@ -10,8 +10,6 @@ Wish list:
 
 	Things to do after the stable release:
 
-	Make the dns_res_query() workaround on/off configurable.
-
 	TLS certificate provenance: indicate whether a subject
 	name/issuer are verified or not (for example, change the
 	attribute name to unverified_ccert_subject etc.).  This is
@@ -27,9 +25,6 @@ Wish list:
 
 	Update the list of Sendmail macros that Postfix can send
 	to Milters (auth_ssf and TLS-related).
-
-	replace str*casecmp() calls with _utf8() equivalents
-	for trivial-rewrite lookups.
 
 	Update smtpd command count when rejecting input before
 	command-table lookup.
@@ -67,12 +62,6 @@ Wish list:
 	Inline support for pcre:{/pattern/=action, ...} and ditto
 	support for regexp: and cidr: tables. Factor out and reuse
 	code that already exists in inline: and other tables.
-
-	Solaris poll() does not work as expected. With Solaris10,
-	write_wait() hangs until timeout when invoked after peekfd()
-	has received an ECONNRESET error indication. This happens
-	when a client sends QUIT and closes the connection immediately.
-	Apparently the ECONNRESET error condition is not persistent.
 
 	Log command=good/bad statistics in postscreen?
 

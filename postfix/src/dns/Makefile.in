@@ -278,6 +278,7 @@ depend: $(MAKES)
 dns_lookup.o: ../../include/argv.h
 dns_lookup.o: ../../include/check_arg.h
 dns_lookup.o: ../../include/dict.h
+dns_lookup.o: ../../include/mail_params.h
 dns_lookup.o: ../../include/maps.h
 dns_lookup.o: ../../include/msg.h
 dns_lookup.o: ../../include/myaddrinfo.h

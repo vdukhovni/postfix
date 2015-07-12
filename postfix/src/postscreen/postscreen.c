@@ -121,6 +121,10 @@
 /*	A case insensitive list of EHLO keywords (pipelining, starttls,
 /*	auth, etc.) that the \fBpostscreen\fR(8) server will not send in the EHLO
 /*	response to a remote SMTP client.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBdns_ncache_ttl_fix_enable (no)\fR"
+/*	Enable a workaround for future libc incompatibility.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -393,6 +397,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
