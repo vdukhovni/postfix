@@ -21823,3 +21823,22 @@ Apologies for any names omitted.
 	ECONNRESET error indication. This happens when a client
 	sends QUIT and closes the connection immediately. File:
 	util/peekfd.c.
+
+20150715
+
+	Fixes from Viktor, to be documented.
+
+20150718
+
+	Security: opportunistic TLS by default uses "medium" or
+	stronger ciphers instead of "export" or stronger. See the
+	RELEASE_NOTES file for how to get the old settings back.
+	Files: global/mail_params.h, proto/TLS_README.html,
+	proto/postconf.proto, and files derived from those.
+
+20150719
+
+	Security: Postfix TLS support by default no longer uses
+	SSLv2 or SSLv3.  See the RELEASE_NOTES file for how to get
+	the old settings back. Files: global/mail_params.h,
+	proto/postconf.proto, and files derived from those.

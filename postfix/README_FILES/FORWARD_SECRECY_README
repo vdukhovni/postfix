@@ -124,7 +124,8 @@ EEDDHH SSeerrvveerr ssuuppppoorrtt
 Postfix >= 2.2 support 1024-bit-prime EDH out of the box, with no additional
 configuration, but you may want to override the default prime to be 2048 bits
 long, and you may want to regenerate your primes periodically. See the quick-
-start section for details.
+start section for details. With Postfix >= 3.1 the out of the box (compiled-in)
+EDH prime size is 2048 bits.
 
 With prime-field EDH, OpenSSL wants the server to provide two explicitly-
 selected (prime, generator) combinations. One for the now long-obsolete
@@ -135,7 +136,12 @@ configured overrides.
   * The "export" EDH parameters are used only with the obsolete "export"
     ciphers. To use a non-default prime, generate a 512-bit DH parameter file
     and set smtpd_tls_dh512_param_file to the filename (see the quick-start
-    section for details).
+    section for details). With Postfix >= 3.1 the default value of the SMTP
+    server cipher grade ("smtpd_tls_ciphers) is "medium". Servers that use the
+    "export" cipher grade are vulnerable to man in the middle attacks even
+    against clients that don't support "export" ciphers. Do not set
+    "smtpd_tls_ciphers = export" except on servers dedicated to supporting
+    obsolete clients that support nothing else.
 
   * The non-export EDH parameters are used for all other EDH cipher suites. To
     use a non-default prime, generate a 1024-bit or 2048-bit DH parameter file
@@ -143,9 +149,11 @@ configured overrides.
     is simply the non-export parameter file and the prime need not actually be
     1024 bits long (see the quick-start section for details).
 
-It turns out that (inadvisably-patched in some Debian releases) Exim SMTP
-clients require a >= 2048-bit length for the non-export prime. See the quick-
-start section for the recommended configuration to work around this issue.
+Note, as of mid-2015, SMTP clients are starting to reject TLS handshakes with
+primes smaller than 2048-bits. Use of 1024-bit primes is not recommended. Each
+site needs to determine which prime size works best for the majority of its
+clients. See the quick-start section for the recommended configuration to work
+around this issue.
 
 EEEECCDDHH SSeerrvveerr ssuuppppoorrtt
 
@@ -192,12 +200,16 @@ term authentication keys are later compromised.
 The default Postfix SMTP client cipher lists are correctly ordered to prefer
 EECDH and EDH cipher suites ahead of similar cipher suites that don't implement
 forward secrecy. Administrators are strongly discouraged from changing the
-cipher list definitions. It is likely safe to set "smtp_tls_ciphers = medium"
-if you wish to disable the obsolete "export" and "low" grade ciphers even with
-opportunistic TLS. Setting a minimum strength does not change the preference
-order. Note that strengths higher than "medium" exclude Exchange 2003 and
-likely other widely used MTAs, thus "high" grade ciphers should only be used on
-a case-by-case basis via the TLS policy table.
+cipher list definitions.
+
+If the Postfix SMTP client cipher grade (smtp_tls_ciphers) does not default to
+"medium" in the Postfix release you're using, you should set it explicitly to
+"medium" in main.cf so as to disable the obsolete "export" and "low" grade
+ciphers even with opportunistic TLS (this is the default starting with Postfix
+3.1). Setting the minimum grade does not change the preference order. Note that
+grades higher than "medium" exclude Exchange 2003 and likely other widely used
+MTAs, thus setting the cipher grade to "high" should only be done on a case-by-
+case basis via the TLS policy table.
 
 GGeettttiinngg ssttaarrtteedd,, qquuiicckk aanndd ddiirrttyy
 
@@ -256,7 +268,10 @@ the submission entry in master.cf accordingly:
     /etc/postfix/master.cf:
         submission inet n       -       n       -       -       smtpd
             # Some submission clients may not yet do 2048-bit EDH, if such
-            # clients use your MSA, configure 1024-bit EDH instead:
+            # clients use your MSA, configure 1024-bit EDH instead.  However,
+            # as of mid-2015, many submission clients no longer accept primes
+            # with less than 2048-bits.  Each site needs to determine which
+            # type of client is more important to support.
             -o smtpd_tls_dh1024_param_file=${config_directory}/dh1024.pem
             -o smtpd_tls_security_level=encrypt
             -o smtpd_sasl_auth_enable=yes

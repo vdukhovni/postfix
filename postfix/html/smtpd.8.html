@@ -81,7 +81,7 @@ SMTPD(8)                                                              SMTPD(8)
        undesirable use.
 
        <b><a href="postconf.5.html#broken_sasl_auth_clients">broken_sasl_auth_clients</a> (no)</b>
-              Enable inter-operability with remote SMTP clients that implement
+              Enable  interoperability with remote SMTP clients that implement
               an obsolete version of the AUTH command (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>).
 
        <b><a href="postconf.5.html#disable_vrfy_command">disable_vrfy_command</a> (no)</b>
@@ -323,7 +323,7 @@ SMTPD(8)                                                              SMTPD(8)
        details.
 
        <b><a href="postconf.5.html#broken_sasl_auth_clients">broken_sasl_auth_clients</a> (no)</b>
-              Enable inter-operability with remote SMTP clients that implement
+              Enable  interoperability with remote SMTP clients that implement
               an obsolete version of the AUTH command (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>).
 
        <b><a href="postconf.5.html#smtpd_sasl_auth_enable">smtpd_sasl_auth_enable</a> (no)</b>
@@ -460,7 +460,7 @@ SMTPD(8)                                                              SMTPD(8)
               Postfix SMTP server cipher list at mandatory TLS  security  lev-
               els.
 
-       <b><a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> (!SSLv2)</b>
+       <b><a href="postconf.5.html#smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a> (!SSLv2, !SSLv3)</b>
               The  SSL/TLS  protocols accepted by the Postfix SMTP server with
               mandatory TLS encryption.
 
@@ -483,17 +483,17 @@ SMTPD(8)                                                              SMTPD(8)
               process  requests from the <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a> server in order to seed its
               internal pseudo random number generator (PRNG).
 
-       <b><a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> (ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "HIGH" grade ciphers.
+       <b><a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "high" grade ciphers.
 
-       <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (ALL:!EXPORT:!LOW:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "MEDIUM" or higher grade ciphers.
+       <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "medium" or higher grade ciphers.
 
-       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (ALL:!EXPORT:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "LOW" or higher grade ciphers.
+       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "low" or higher grade ciphers.
 
-       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (ALL:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
+       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "export" or higher grade ciphers.
 
        <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (eNULL:!aNULL)</b>
               The OpenSSL cipherlist for "NULL"  grade  ciphers  that  provide
@@ -509,11 +509,11 @@ SMTPD(8)                                                              SMTPD(8)
 
        Available in Postfix version 2.6 and later:
 
-       <b><a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> (empty)</b>
+       <b><a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> (!SSLv2, !SSLv3)</b>
               List of TLS protocols that the Postfix SMTP server will  exclude
               or include with opportunistic TLS encryption.
 
-       <b><a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> (export)</b>
+       <b><a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> (medium)</b>
               The  minimum  TLS cipher grade that the Postfix SMTP server will
               use with opportunistic TLS encryption.
 

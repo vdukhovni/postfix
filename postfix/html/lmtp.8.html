@@ -445,7 +445,7 @@ SMTP(8)                                                                SMTP(8)
               policy by next-hop destination; when a non-empty value is speci-
               fied, this overrides the obsolete <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> parameter.
 
-       <b><a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> (!SSLv2)</b>
+       <b><a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> (!SSLv2, !SSLv3)</b>
               List of SSL/TLS protocols that the Postfix SMTP client will  use
               with mandatory TLS encryption.
 
@@ -473,17 +473,17 @@ SMTP(8)                                                                SMTP(8)
               process requests from the <a href="tlsmgr.8.html"><b>tlsmgr</b>(8)</a> server in order to seed  its
               internal pseudo random number generator (PRNG).
 
-       <b><a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> (ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "HIGH" grade ciphers.
+       <b><a href="postconf.5.html#tls_high_cipherlist">tls_high_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "high" grade ciphers.
 
-       <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (ALL:!EXPORT:!LOW:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "MEDIUM" or higher grade ciphers.
+       <b><a href="postconf.5.html#tls_medium_cipherlist">tls_medium_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "medium" or higher grade ciphers.
 
-       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (ALL:!EXPORT:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "LOW" or higher grade ciphers.
+       <b><a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "low" or higher grade ciphers.
 
-       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (ALL:+RC4:@STRENGTH)</b>
-              The OpenSSL cipherlist for "EXPORT" or higher grade ciphers.
+       <b><a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> (see 'postconf -d' output)</b>
+              The OpenSSL cipherlist for "export" or higher grade ciphers.
 
        <b><a href="postconf.5.html#tls_null_cipherlist">tls_null_cipherlist</a> (eNULL:!aNULL)</b>
               The  OpenSSL  cipherlist  for  "NULL" grade ciphers that provide
@@ -510,11 +510,11 @@ SMTP(8)                                                                SMTP(8)
 
        Available in Postfix version 2.6 and later:
 
-       <b><a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> (!SSLv2)</b>
+       <b><a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> (!SSLv2, !SSLv3)</b>
               List  of TLS protocols that the Postfix SMTP client will exclude
               or include with opportunistic TLS encryption.
 
-       <b><a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> (export)</b>
+       <b><a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> (medium)</b>
               The minimum TLS cipher grade that the Postfix SMTP  client  will
               use with opportunistic TLS encryption.
 

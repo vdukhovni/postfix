@@ -568,7 +568,7 @@ static void check_legacy_defaults(void)
      * 
      * To turn off further warnings and deploy the new default settings, the
      * system administrator should update the compatibility_level setting as
-     * recommended in the RELASE_NOTES file.
+     * recommended in the RELEASE_NOTES file.
      * 
      * Each incompatible change has its own flag variable, instead of bit in a
      * shared variable. We don't want to rip up code when we need more flag
