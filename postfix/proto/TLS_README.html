@@ -1157,7 +1157,7 @@ table</a>, specify the "encrypt" security level.
 <p> In the example below, traffic to <i>example.com</i> and its sub-domains
 via the corresponding MX hosts always uses TLS. The SSLv2 protocol
 will be disabled (the default setting of smtp_tls_mandatory_protocols
-excludes "SSLv2"). Only high- or medium-strength (i.e. 128 bit or
+excludes SSLv2+3). Only high- or medium-strength (i.e. 128 bit or
 better) ciphers will be used by default for all "encrypt" security
 level sessions. </p>
 
@@ -2137,7 +2137,7 @@ DNSSEC.  If no TLSA records are found, the effective security level
 used is <a href="#client_tls_may">may</a>.  If TLSA records are
 found, but none are usable, the effective security level is <a
 href="#client_tls_encrypt">encrypt</a>.  When usable TLSA records
-are obtained for the remote SMTP server, SSLv2 is automatically
+are obtained for the remote SMTP server, SSLv2+3 are automatically
 disabled (see smtp_tls_mandatory_protocols), and the server certificate
 must match the TLSA records.  RFC 6698 (DANE) TLS authentication
 and DNSSEC support is available with Postfix 2.11 and later.  </dd>
@@ -2146,7 +2146,7 @@ and DNSSEC support is available with Postfix 2.11 and later.  </dd>
 The TLS policy for the destination is obtained via TLSA records in
 DNSSEC.  If no TLSA records are found, or none are usable, no
 connection is made to the server.  When usable TLSA records are
-obtained for the remote SMTP server, SSLv2 is automatically disabled
+obtained for the remote SMTP server, SSLv2+3 are automatically disabled
 (see smtp_tls_mandatory_protocols), and the server certificate must
 match the TLSA records.  RFC 6698 (DANE) TLS authentication and
 DNSSEC support is available with Postfix 2.11 and later.  </dd>
@@ -2339,9 +2339,9 @@ for Postfix releases after the middle of 2015, and "export" for
 older releases.  With Postfix &lt; 2.6, the minimum opportunistic
 TLS cipher grade is always "export".  </p>
 
-<p> With mandatory TLS encryption, the Postfix SMTP client will by
-default disable SSLv2. SSLv2 is used only when TLS encryption
-is optional. The mandatory TLS protocol list is specified via the
+<p> With mandatory and opportunistic TLS encryption, the Postfix
+SMTP client will by default disable SSLv2 and SSLv3. The mandatory
+TLS protocol list is specified via the
 smtp_tls_mandatory_protocols configuration parameter.  The corresponding
 smtp_tls_protocols parameter (Postfix &ge; 2.6) controls
 the SSL/TLS protocols used with opportunistic TLS. </p>
