@@ -106,6 +106,8 @@ case $# in
  # Officially supported usage.
  0) SYSTEM=`(uname -s) 2>/dev/null`
     RELEASE=`(uname -r) 2>/dev/null`
+    # No ${x%%y} support in Solaris 11 /bin/sh
+    RELEASE_MAJOR=`expr "$RELEASE" : '\([0-9]*\)'` || exit 1
     VERSION=`(uname -v) 2>/dev/null`
     case "$VERSION" in
      dcosx*) SYSTEM=$VERSION;;
@@ -350,7 +352,7 @@ EOF
 		       fi;;
 		esac
 		;;
-    Linux.3*)	SYSTYPE=LINUX3
+  Linux.[34].*)	SYSTYPE=LINUX$RELEASE_MAJOR
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
 		 *) if [ -f /usr/include/db.h ]
