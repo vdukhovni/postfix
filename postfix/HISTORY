@@ -21790,6 +21790,7 @@ Apologies for any names omitted.
 	should be blocked, and one combined TTL for replies that the
 	client should be allowed. This is more conservative than
 	simply combining all reply TTLs into one number.  File:
+	postscreen/postscreen_dnsbl.c.
 
 20150621
 
@@ -21798,8 +21799,6 @@ Apologies for any names omitted.
 	independent rate limit on deliveries.  Files: mantools/postlink,
 	proto/postconf.proto, *qmgr/qmgr.h, *qmgr/qmgr_transport.c,
 	*qmgr/qmgr_deliver.c, *qmgr/qmgr.c.
-
-	postscreen/postscreen_dnsbl.c.
 
 20150707
 
@@ -21815,6 +21814,14 @@ Apologies for any names omitted.
 
 20150712
 
+	Cleanup: configurable workaround (dns_ncache_ttl_fix_enable)
+	in case some future libc change breaks a promise made by
+	current resolver(3) documentation. Files: global/mail_params.[hc].
+
+	Cleanup: removed unused libdns dependencies. No-one remembers
+	why they were introduced. Files: postscreen/Makefile.in,
+	qmqpd/Makefile.in, smtpd/Makefile.in, tlsmgr/Makefile.in.
+
 	Cleanup: code indentation. Viktor Dukhovni. File:
 	smtp/smtp_addr.c.
 
@@ -21823,3 +21830,25 @@ Apologies for any names omitted.
 	ECONNRESET error indication. This happens when a client
 	sends QUIT and closes the connection immediately. File:
 	util/peekfd.c.
+
+20150715
+
+	Security: updated default Diffie-Hellman export (512 bit)
+	primes and non-export (from 1024 to 2048 bit) primes, and
+	updated text on non-export DH primes. Viktor Dukhovni.
+	Files: tls/tls_dh.c, proto/FORWARD_SECRECY_README.html.
+
+20150718
+
+	Security: opportunistic TLS by default uses "medium" or
+	stronger ciphers instead of "export" or stronger. See the
+	RELEASE_NOTES file for how to get the old settings back.
+	Files: global/mail_params.h, proto/TLS_README.html,
+	proto/postconf.proto, and files derived from those.
+
+20150719
+
+	Security: Postfix TLS support by default no longer uses
+	SSLv2 or SSLv3.  See the RELEASE_NOTES file for how to get
+	the old settings back. Files: global/mail_params.h,
+	proto/postconf.proto, and files derived from those.

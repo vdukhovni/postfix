@@ -26,8 +26,10 @@ Wish list:
 	Update the list of Sendmail macros that Postfix can send
 	to Milters (auth_ssf and TLS-related).
 
-	Update smtpd command count when rejecting input before
-	command-table lookup.
+	Update smtpd command count when rejecting or skipping input
+	before command-table lookup. But then we need to count
+	commands that are rejected (malformed UTF-8, tokenizer
+	error, forbidden command), or skipped (noop).
 
 	What is the best place to detect spaces in pathnames during
 	installation/upgrade/packaging? postfix-install for early
