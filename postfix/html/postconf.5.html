@@ -16765,6 +16765,13 @@ opening this file. The file should now be stored under the Postfix-owned
 under a non-Postfix directory is redirected to the Postfix-owned
 <a href="postconf.5.html#data_directory">data_directory</a>, and a warning is logged. </p>
 
+<p> As of Postfix 2.11 the preferred mechanism for session resumption
+is <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
+storage.  Consequently, for Postfix &ge; 2.11 this parameter should
+generally be left empty.  TLS session tickets require an OpenSSL
+library (at least version 0.9.8h) that provides full support for
+this TLS extension.  See also <a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a>. </p>
+
 <p> Example: </p>
 
 <pre>
@@ -17790,7 +17797,7 @@ is discouraged.  </p>
 
 <p> Setting this parameter empty disables session ticket support
 in the Postfix SMTP server.  Another way to disable session ticket
-support is via the tls_ssl_options parameter.  </p>
+support is via the <a href="postconf.5.html#tls_ssl_options">tls_ssl_options</a> parameter.  </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
 
@@ -17812,7 +17819,7 @@ the bugs.  </p>
 
 <p> Other options are off by default, and typically enable or disable
 features rather than bug work-arounds.  These may be turned on (with
-care) via the tls_ssl_options parameter.  The value is a white-space
+care) via the <a href="postconf.5.html#tls_ssl_options">tls_ssl_options</a> parameter.  The value is a white-space
 or comma separated list of named options chosen from the list below.
 The names are not case-sensitive, you can use lower-case if you
 prefer.  The upper case values below match the corresponding macro

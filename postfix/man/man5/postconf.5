@@ -11527,6 +11527,13 @@ data_directory. As a migration aid, an attempt to open the file
 under a non\-Postfix directory is redirected to the Postfix\-owned
 data_directory, and a warning is logged.
 .PP
+As of Postfix 2.11 the preferred mechanism for session resumption
+is RFC 5077 TLS session tickets, which don't require server\-side
+storage.  Consequently, for Postfix >= 2.11 this parameter should
+generally be left empty.  TLS session tickets require an OpenSSL
+library (at least version 0.9.8h) that provides full support for
+this TLS extension.  See also smtpd_tls_session_cache_timeout.
+.PP
 Example:
 .PP
 .nf

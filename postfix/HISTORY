@@ -21852,3 +21852,27 @@ Apologies for any names omitted.
 	SSLv2 or SSLv3.  See the RELEASE_NOTES file for how to get
 	the old settings back. Files: global/mail_params.h,
 	proto/postconf.proto, and files derived from those.
+
+20150722
+
+	Cleanup: the COMPATIBILITY_README* files were not installed.
+	File: conf/postfix-files.
+
+20150726
+
+	Cleanup: some lost edits for the SASL_README file. File:
+	proto/SASL_README.html.
+
+20150816
+
+	Workaround: updated the 20150707 fix for DNS servers that
+	reply with NXDOMAIN for type NS queries instead of (NOERROR,
+	zero answers).  File: smtpd/smtpd_check.c.
+
+20150829
+
+	Documentation: TLS session tickets are preferred over the
+	local server-side smtpd_tls_session_cache_database storage.
+	TLS session tickets are supported as of OpenSSL 0.9.8h (May
+	2008).  Files: mantools/postlink, proto/TLS_README.html,
+	proto/postconf.proto.

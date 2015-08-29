@@ -429,9 +429,11 @@ also supports RFC 5077. The session is encrypted by the server in a session
 ticket returned to client for storage. When a client sends a valid session
 ticket, the server decrypts it and resumes the session, provided neither the
 ticket nor the session have expired. This makes it possible to resume cached
-sessions without allocating space for a shared database on the server. This
-feature can be disabled by setting the session cache timeout to zero, otherwise
-the timeout must be at least 2 minutes and at most 100 days.
+sessions without allocating space for a shared database on the server.
+Consequently, for Postfix >= 2.11 the smtpd_tls_session_cache_database
+parameter should generally be left empty. Session caching can be disabled by
+setting the session cache timeout to zero, otherwise the timeout must be at
+least 2 minutes and at most 100 days.
 
 Note, session tickets can only be negotiated if the client disables SSLv2 and
 does not use the legacy SSLv2 compatible HELLO message. This is true by default

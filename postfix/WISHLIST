@@ -10,6 +10,12 @@ Wish list:
 
 	Things to do after the stable release:
 
+	Postfix 3.0: In the DNS client, save/restore h_errno in the
+	multi-query functions.
+
+	Type-checking wrappers for htable(3), ctable(3) and other
+	modules that take and return a void* pointer.
+
 	TLS certificate provenance: indicate whether a subject
 	name/issuer are verified or not (for example, change the
 	attribute name to unverified_ccert_subject etc.).  This is

@@ -2970,7 +2970,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 		    domain += 1;
 		    dns_status = dns_lookup(domain, type, 0, &server_list,
 					    (VSTRING *) 0, (VSTRING *) 0);
-		    if (dns_status != DNS_NOTFOUND || h_errno != NO_DATA)
+		    if (dns_status != DNS_NOTFOUND /* || h_errno != NO_DATA */)
 			break;
 		}
 	    }
