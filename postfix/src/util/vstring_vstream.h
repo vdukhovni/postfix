@@ -19,12 +19,12 @@
  /*
   * External interface.
   */
-extern int vstring_get(VSTRING *, VSTREAM *);
-extern int vstring_get_nonl(VSTRING *, VSTREAM *);
-extern int vstring_get_null(VSTRING *, VSTREAM *);
-extern int vstring_get_bound(VSTRING *, VSTREAM *, ssize_t);
-extern int vstring_get_nonl_bound(VSTRING *, VSTREAM *, ssize_t);
-extern int vstring_get_null_bound(VSTRING *, VSTREAM *, ssize_t);
+extern int WARN_UNUSED_RESULT vstring_get(VSTRING *, VSTREAM *);
+extern int WARN_UNUSED_RESULT vstring_get_nonl(VSTRING *, VSTREAM *);
+extern int WARN_UNUSED_RESULT vstring_get_null(VSTRING *, VSTREAM *);
+extern int WARN_UNUSED_RESULT vstring_get_bound(VSTRING *, VSTREAM *, ssize_t);
+extern int WARN_UNUSED_RESULT vstring_get_nonl_bound(VSTRING *, VSTREAM *, ssize_t);
+extern int WARN_UNUSED_RESULT vstring_get_null_bound(VSTRING *, VSTREAM *, ssize_t);
 
  /*
   * Backwards compatibility for code that still uses the vstring_fgets()

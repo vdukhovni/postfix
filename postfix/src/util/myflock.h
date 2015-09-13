@@ -14,7 +14,7 @@
  /*
   * External interface.
   */
-extern int myflock(int, int, int);
+extern int WARN_UNUSED_RESULT myflock(int, int, int);
 
  /*
   * Lock styles.

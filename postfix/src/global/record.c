@@ -177,6 +177,7 @@ int     rec_put_type(VSTREAM *stream, int type, off_t offset)
 
     if (vstream_fseek(stream, offset, SEEK_SET) < 0
 	|| VSTREAM_PUTC(type, stream) != type) {
+	msg_warn("%s: seek or write error", VSTREAM_PATH(stream));
 	return (REC_TYPE_ERROR);
     } else {
 	return (type);
@@ -304,8 +305,12 @@ int     rec_get_raw(VSTREAM *stream, VSTRING *buf, ssize_t maxsize, int flags)
 	    continue;
 	if (type == REC_TYPE_DTXT && (flags & REC_FLAG_SKIP_DTXT) != 0)
 	    continue;
-	if (type == REC_TYPE_END && (flags & REC_FLAG_SEEK_END) != 0)
-	    (void) vstream_fseek(stream, (off_t) 0, SEEK_END);
+	if (type == REC_TYPE_END && (flags & REC_FLAG_SEEK_END) != 0
+	    && vstream_fseek(stream, (off_t) 0, SEEK_END) < 0) {
+	    msg_warn("%s: seek error after reading END record: %m",
+		     VSTREAM_PATH(stream));
+	    return (REC_TYPE_ERROR);
+	}
 	break;
     }
     return (type);

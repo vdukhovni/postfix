@@ -13,8 +13,8 @@
 
  /* External interface. */
 
-extern int sane_rename(const char *, const char *);
-extern int sane_link(const char *, const char *);
+extern int WARN_UNUSED_RESULT sane_rename(const char *, const char *);
+extern int WARN_UNUSED_RESULT sane_link(const char *, const char *);
 
 /* LICENSE
 /* .ad

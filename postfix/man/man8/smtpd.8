@@ -807,6 +807,13 @@ request before giving up.
 .IP "\fBsmtpd_policy_service_retry_delay (1s)\fR"
 The delay between attempts to resend a failed SMTPD policy
 service request.
+.PP
+Available in Postfix version 3.1 and later:
+.IP "\fBsmtpd_policy_service_policy_context (empty)\fR"
+Optional information that the Postfix SMTP server specifies in
+the "policy_context" attribute of a policy service request (originally,
+to share the same service endpoint among multiple check_policy_service
+clients).
 .SH "ACCESS CONTROLS"
 .na
 .nf

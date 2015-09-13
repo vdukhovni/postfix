@@ -13,7 +13,7 @@
 
  /* External interface. */
 
-extern int sane_socketpair(int, int, int, int *);
+extern int WARN_UNUSED_RESULT sane_socketpair(int, int, int, int *);
 
 /* LICENSE
 /* .ad

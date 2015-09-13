@@ -21876,3 +21876,48 @@ Apologies for any names omitted.
 	TLS session tickets are supported as of OpenSSL 0.9.8h (May
 	2008).  Files: mantools/postlink, proto/TLS_README.html,
 	proto/postconf.proto.
+
+20150831
+
+	Cleanup: obsolete comments in Makefile.init.
+
+20150903
+
+	Workaround: disable DNSSEC support for AIX 7x and earlier.
+	The AIX 6/7 resolver(5) API defines RES_USE_DNSSEC without
+	defining the "ad" bit.  Viktor Dukhovni.  Files: makedefs,
+	proto/INSTALL.html, dns/dns.h.
+
+20150912
+
+	Future-proofing and code cleanup: exploit GCC and Clang
+	"warn_unused_result" feature to flag missing error checks.
+	Files: util/sys_defs.h, util/attr.h, util/edit_file.h,
+	util/listen.h, util/lstat_as.h, util/mac_expand.h,
+	util/mac_parse.h, util/myaddrinfo.h, util/myflock.h,
+	util/sane_fsops.h, util/sane_socketpair.h, util/stat_as.h,
+	util/base32_code.h, util/base64_code.h, util/hex_code.h,
+	util/timed_wait.h, util/vstream.h, src/util/vstring_vstream.h.
+
+	Cleanup: incomplete error check. Found with WARN_UNUSED_RESULT
+	check. File: util/recv_pass_attr.c.
+
+	Future-proofing: added type mis-match detection for
+	ATTR_TYPE_FUNC function-pointer arguments. File: util/attr.h.
+
+	Cleanup: don't ignore seek-to-end-of-file errors.  File:
+	global/record.c.
+
+	Cleanup: use vstream_fpurge() to purge VSTREAM buffers,
+	instead of calling vstream_fseek() and ignoring ESPIPE
+	errors.  File: smtpstone/qmqp-sink.c.
+
+20150913
+
+	Feature: SMTPD policy service "policy_context" attribute
+	and smtpd_policy_service_policy_context main.cf parameter.
+	Originally, to share the same SMTPD service endpoint among
+	multiple check_policy_service clients. Markus Benning.
+	Files: mantools/postlink, proto/SMTPD_POLICY_README.html,
+	proto/postconf.proto, global/mail_params.h, global/mail_proto.h,
+	smtpd/smtpd.c, smtpd/smtpd_check.c.

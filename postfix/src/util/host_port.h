@@ -13,7 +13,8 @@
 
  /* External interface. */
 
-extern const char *host_port(char *, char **, char *, char **, char *);
+extern const char *WARN_UNUSED_RESULT host_port(char *, char **, char *,
+						        char **, char *);
 
 /* LICENSE
 /* .ad

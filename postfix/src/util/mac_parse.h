@@ -30,7 +30,7 @@
 
 typedef int (*MAC_PARSE_FN) (int, VSTRING *, void *);
 
-extern int mac_parse(const char *, MAC_PARSE_FN, void *);
+extern int WARN_UNUSED_RESULT mac_parse(const char *, MAC_PARSE_FN, void *);
 
 /* LICENSE
 /* .ad

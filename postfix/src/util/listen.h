@@ -29,7 +29,7 @@ extern int inet_accept(int);
 extern int unix_accept(int);
 extern int stream_accept(int);
 
-extern int recv_pass_attr(int, HTABLE **, int, ssize_t);
+extern int WARN_UNUSED_RESULT recv_pass_attr(int, HTABLE **, int, ssize_t);
 extern int pass_accept(int);
 extern int pass_accept_attr(int, HTABLE **);
 

@@ -14,7 +14,7 @@
 
  /* External interface. */
 
-extern int lstat_as(const char *, struct stat *, uid_t, gid_t);
+extern int WARN_UNUSED_RESULT lstat_as(const char *, struct stat *, uid_t, gid_t);
 
 /* LICENSE
 /* .ad

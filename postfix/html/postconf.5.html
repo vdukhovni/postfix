@@ -2956,6 +2956,10 @@ returns the server response in an application buffer even if the
 requested record does not exist. If this promise is broken, specify
 "yes" to enable a  workaround for DNS reputation lookups. </p>
 
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
+
 
 </DD>
 
@@ -14630,6 +14634,21 @@ closed.
 
 <p>
 This feature is available in Postfix 2.1 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_policy_service_policy_context">smtpd_policy_service_policy_context</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional information that the Postfix SMTP server specifies in
+the "policy_context" attribute of a policy service request (originally,
+to share the same service endpoint among multiple <a href="postconf.5.html#check_policy_service">check_policy_service</a>
+clients).  </p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
 </p>
 
 

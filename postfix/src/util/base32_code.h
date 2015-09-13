@@ -20,7 +20,7 @@
   * External interface.
   */
 extern VSTRING *base32_encode(VSTRING *, const char *, ssize_t);
-extern VSTRING *base32_decode(VSTRING *, const char *, ssize_t);
+extern VSTRING *WARN_UNUSED_RESULT base32_decode(VSTRING *, const char *, ssize_t);
 
 /* LICENSE
 /* .ad

@@ -2967,6 +2967,10 @@ extern int var_smtpd_policy_try_delay;
 #define DEF_SMTPD_POLICY_DEF_ACTION	"451 4.3.5 Server configuration problem"
 extern char *var_smtpd_policy_def_action;
 
+#define VAR_SMTPD_POLICY_CONTEXT	"smtpd_policy_service_policy_context"
+#define DEF_SMTPD_POLICY_CONTEXT	""
+extern char *var_smtpd_policy_context;
+
 #define CHECK_POLICY_SERVICE		"check_policy_service"
 
  /*

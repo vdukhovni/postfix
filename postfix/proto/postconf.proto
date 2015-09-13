@@ -16550,3 +16550,18 @@ promise that res_query() and res_search() invoke res_send(), which
 returns the server response in an application buffer even if the
 requested record does not exist. If this promise is broken, specify
 "yes" to enable a  workaround for DNS reputation lookups. </p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
+
+%PARAM smtpd_policy_service_policy_context
+
+<p> Optional information that the Postfix SMTP server specifies in
+the "policy_context" attribute of a policy service request (originally,
+to share the same service endpoint among multiple check_policy_service
+clients).  </p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>

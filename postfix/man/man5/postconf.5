@@ -1851,6 +1851,8 @@ promise that res_query() and res_search() invoke res_send(), which
 returns the server response in an application buffer even if the
 requested record does not exist. If this promise is broken, specify
 "yes" to enable a  workaround for DNS reputation lookups.
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH dnsblog_reply_delay (default: 0s)
 A debugging aid to artificially delay DNS responses.
 .PP
@@ -9808,6 +9810,13 @@ The time after which an active SMTPD policy service connection is
 closed.
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH smtpd_policy_service_policy_context (default: empty)
+Optional information that the Postfix SMTP server specifies in
+the "policy_context" attribute of a policy service request (originally,
+to share the same service endpoint among multiple check_policy_service
+clients).
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH smtpd_policy_service_request_limit (default: 0)
 The maximal number of requests per SMTPD policy service connection,
 or zero (no limit). Once a connection reaches this limit, the

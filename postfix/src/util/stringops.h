@@ -45,10 +45,10 @@ extern int alldig(const char *);
 extern int allprint(const char *);
 extern int allspace(const char *);
 extern int allascii_len(const char *, ssize_t);
-extern const char *split_nameval(char *, char **, char **);
+extern const char *WARN_UNUSED_RESULT split_nameval(char *, char **, char **);
 extern int valid_utf8_string(const char *, ssize_t);
 extern size_t balpar(const char *, const char *);
-extern char *extpar(char **, const char *, int);
+extern char *WARN_UNUSED_RESULT extpar(char **, const char *, int);
 extern int strcasecmp_utf8x(int, const char *, const char *);
 extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 

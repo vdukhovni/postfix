@@ -154,14 +154,14 @@ typedef struct {
     char    buf[MAI_SERVPORT_STRSIZE];
 } MAI_SERVPORT_STR;
 
-extern int hostname_to_sockaddr_pf(const char *, int, const char *, int,
-				           struct addrinfo **);
-extern int hostaddr_to_sockaddr(const char *, const char *, int,
-				        struct addrinfo **);
-extern int sockaddr_to_hostaddr(const struct sockaddr *, SOCKADDR_SIZE,
-		               MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *, int);
-extern int sockaddr_to_hostname(const struct sockaddr *, SOCKADDR_SIZE,
-		               MAI_HOSTNAME_STR *, MAI_SERVNAME_STR *, int);
+extern int WARN_UNUSED_RESULT hostname_to_sockaddr_pf(const char *,
+			        int, const char *, int, struct addrinfo **);
+extern int WARN_UNUSED_RESULT hostaddr_to_sockaddr(const char *,
+			             const char *, int, struct addrinfo **);
+extern int WARN_UNUSED_RESULT sockaddr_to_hostaddr(const struct sockaddr *,
+	        SOCKADDR_SIZE, MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *, int);
+extern int WARN_UNUSED_RESULT sockaddr_to_hostname(const struct sockaddr *,
+	        SOCKADDR_SIZE, MAI_HOSTNAME_STR *, MAI_SERVNAME_STR *, int);
 extern void myaddrinfo_control(int,...);
 
 #define MAI_CTL_END	0		/* list terminator */

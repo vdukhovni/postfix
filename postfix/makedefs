@@ -45,6 +45,9 @@
 #	Do not build with Solaris /dev/poll support.
 #	By default, /dev/poll support is compiled in on platforms that
 #	are known to support it.
+# .IP \fB-DNO_DNSSEC\fR
+#	Do not build with DNSSEC support, even if the resolver
+#	library appears to support it.
 # .IP \fB-DNO_EPOLL\fR
 #	Do not build with Linux EPOLL support.
 #	By default, EPOLL support is compiled in on platforms that
@@ -387,18 +390,21 @@ case "$SYSTEM.$RELEASE" in
 		;;
        AIX.*)	case "`uname -v`" in
 		6)	SYSTYPE=AIX6
+			CCARGS="$CCARGS -DNO_DNSSEC"
 			case "$CC" in
 			cc|*/cc|xlc|*/xlc) CCARGS="$CCARGS -w -blibpath:/usr/lib:/lib:/usr/local/lib";;
 			esac
 			CCARGS="$CCARGS -D_ALL_SOURCE -DHAS_POSIX_REGEXP"
 			;;
 		5)	SYSTYPE=AIX5
+			CCARGS="$CCARGS -DNO_DNSSEC"
 			case "$CC" in
 			cc|*/cc|xlc|*/xlc) CCARGS="$CCARGS -w -blibpath:/usr/lib:/lib:/usr/local/lib";;
 			esac
 			CCARGS="$CCARGS -D_ALL_SOURCE -DHAS_POSIX_REGEXP"
 			;;
 		4)	SYSTYPE=AIX4
+			CCARGS="$CCARGS -DNO_DNSSEC"
 			# How embarrassing...
 			case "$CC" in
 			cc|*/cc|xlc|*/xlc) OPT=; CCARGS="$CCARGS -w -blibpath:/usr/lib:/lib:/usr/local/lib";;
@@ -406,6 +412,7 @@ case "$SYSTEM.$RELEASE" in
 			CCARGS="$CCARGS -D_ALL_SOURCE -DHAS_POSIX_REGEXP"
 			;;
 		3)	SYSTYPE=AIX3
+			CCARGS="$CCARGS -DNO_DNSSEC"
 			# How embarrassing...
 			case "$CC" in
 			cc|*/cc|xlc|*/xlc) OPT=; CCARGS="$CCARGS -w";;

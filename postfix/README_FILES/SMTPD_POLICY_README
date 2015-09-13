@@ -76,6 +76,8 @@ a delegated SMTPD access policy request:
     ccert_pubkey_fingerprint=68:B3:29:DA:98:93:E3:40:99:C7:D8:AD:5C:B9:C9:40
     PPoossttffiixx vveerrssiioonn 33..00 aanndd llaatteerr::
     client_port=1234
+    PPoossttffiixx vveerrssiioonn 33..11 aanndd llaatteerr::
+    policy_context=submission
     [empty line]
 
 Notes:
@@ -144,6 +146,9 @@ Notes:
 
   * The "stress" attribute is either empty or "yes". See the STRESS_README
     document for further information.
+
+  * The "policy_context" attribute provides a way to pass information that is
+    not available via other attributes (Postfix version 3.1 and later).
 
 The following is specific to SMTPD delegated policy requests:
 
@@ -275,6 +280,12 @@ protocol:
   * smtpd_policy_service_retry_delay (default: 1s): The delay between attempts
     to resend a failed SMTPD policy service request. Available with Postfix 3.0
     and later.
+
+  * smtpd_policy_service_policy_context (default: empty): Optional information
+    that is passed in the "policy_context" attribute of an SMTPD policy service
+    request (originally, to share the same SMTPD service endpoint among
+    multiple check_policy_service clients). Available with Postfix 3.1 and
+    later.
 
 Configuration parameters that control the server side of the policy delegation
 protocol:

@@ -135,7 +135,7 @@ static void read_data(int unused_event, void *context)
 	    send_reply(state);
 	    return;
 	}
-	vstream_fseek(state->stream, 0L, 0);
+	vstream_fpurge(state->stream, VSTREAM_PURGE_BOTH);
     }
 
     /*

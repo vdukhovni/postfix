@@ -1648,6 +1648,28 @@ typedef int pid_t;
 #endif
 
  /*
+  * Warn about ignored function result values that must never be ignored.
+  * Typically, this is for error results from "read" functions that normally
+  * write to output parameters (for example, stat- or scanf-like functions)
+  * or from functions that have other useful side effects (for example,
+  * fseek- or rename-like functions).
+  * 
+  * DO NOT use this for functions that write to a stream; it is entirely
+  * legitimate to detect write errors with fflush() or fclose() only. On the
+  * other hand most (but not all) functions that read from a stream must
+  * never ignore result values.
+  * 
+  * XXX Prepending "(void)" won't shut up GCC. Clang behaves as expected.
+  */
+#if ((__GNUC__ == 3 && __GNUC_MINOR__ >= 4) || __GNUC__ > 3)
+#define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#elif defined(__clang__) && __has_attribute(warn_unused_result)
+#define WARN_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+#define WARN_UNUSED_RESULT
+#endif
+
+ /*
   * ISO C says that the "volatile" qualifier protects against optimizations
   * that cause longjmp() to clobber local variables.
   */

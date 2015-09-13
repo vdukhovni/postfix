@@ -108,6 +108,8 @@ stress=
 ccert_pubkey_fingerprint=68:B3:29:DA:98:93:E3:40:99:C7:D8:AD:5C:B9:C9:40
 <b>Postfix version 3.0 and later:</b>
 client_port=1234
+<b>Postfix version 3.1 and later:</b>
+policy_context=submission
 [empty line]
 </pre>
 </blockquote>
@@ -194,6 +196,10 @@ client_port=1234
 
     <li> <p> The "stress" attribute is either empty or "yes".  See
     the STRESS_README document for further information. </p>
+
+    <li> <p> The "policy_context" attribute provides a way to pass
+    information that is not available via other attributes (Postfix
+    version 3.1 and later). </p>
 
 </ul>
 
@@ -366,6 +372,12 @@ giving up.  Available with Postfix 3.0 and later.  </p>
 <li> <p> smtpd_policy_service_retry_delay (default: 1s): The delay
 between attempts to resend a failed SMTPD policy service request.
 Available with Postfix 3.0 and later.  </p>
+
+<li> <p> smtpd_policy_service_policy_context (default: empty):
+Optional information that is passed in the "policy_context" attribute
+of an SMTPD policy service request (originally, to share the same
+SMTPD service endpoint among multiple check_policy_service clients).
+Available with Postfix 3.1 and later.  </p>
 
 </ul>
 

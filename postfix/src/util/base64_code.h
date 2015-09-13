@@ -20,7 +20,7 @@
   * External interface.
   */
 extern VSTRING *base64_encode_opt(VSTRING *, const char *, ssize_t, int);
-extern VSTRING *base64_decode_opt(VSTRING *, const char *, ssize_t, int);
+extern VSTRING *WARN_UNUSED_RESULT base64_decode_opt(VSTRING *, const char *, ssize_t, int);
 
 #define BASE64_FLAG_NONE	0
 #define BASE64_FLAG_APPEND	(1<<0)

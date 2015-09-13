@@ -14,7 +14,7 @@
  /*
   * External interface.
   */
-extern int timed_waitpid(pid_t, WAIT_STATUS_T *, int, int);
+extern int WARN_UNUSED_RESULT timed_waitpid(pid_t, WAIT_STATUS_T *, int, int);
 
 /* LICENSE
 /* .ad

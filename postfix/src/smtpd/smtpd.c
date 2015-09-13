@@ -757,6 +757,13 @@
 /* .IP "\fBsmtpd_policy_service_retry_delay (1s)\fR"
 /*	The delay between attempts to resend a failed SMTPD policy
 /*	service request.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBsmtpd_policy_service_policy_context (empty)\fR"
+/*	Optional information that the Postfix SMTP server specifies in
+/*	the "policy_context" attribute of a policy service request (originally,
+/*	to share the same service endpoint among multiple check_policy_service
+/*	clients).
 /* ACCESS CONTROLS
 /* .ad
 /* .fi
@@ -1272,6 +1279,7 @@ int     var_smtpd_policy_req_limit;
 int     var_smtpd_policy_try_limit;
 int     var_smtpd_policy_try_delay;
 char   *var_smtpd_policy_def_action;
+char   *var_smtpd_policy_context;
 int     var_smtpd_policy_idle;
 int     var_smtpd_policy_ttl;
 char   *var_xclient_hosts;
@@ -5774,6 +5782,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log, 0, 0,
 	VAR_SMTPD_UPROXY_PROTO, DEF_SMTPD_UPROXY_PROTO, &var_smtpd_uproxy_proto, 0, 0,
 	VAR_SMTPD_POLICY_DEF_ACTION, DEF_SMTPD_POLICY_DEF_ACTION, &var_smtpd_policy_def_action, 1, 0,
+	VAR_SMTPD_POLICY_CONTEXT, DEF_SMTPD_POLICY_CONTEXT, &var_smtpd_policy_context, 0, 0,
 	VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter, 0, 0,
 	0,
     };

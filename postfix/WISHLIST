@@ -13,6 +13,12 @@ Wish list:
 	Postfix 3.0: In the DNS client, save/restore h_errno in the
 	multi-query functions.
 
+	Specify WARN_UNUSED_RESULT for all library functions that
+	pass, deliver, bounce or defer a delivery request.
+
+	Specify WARN_UNUSED_RESULT for mac_expand(), after making
+	smtp_reply_footer() undoable.
+
 	Type-checking wrappers for htable(3), ctable(3) and other
 	modules that take and return a void* pointer.
 
@@ -21,9 +27,6 @@ Wish list:
 	attribute name to unverified_ccert_subject etc.).  This is
 	relevant only for fingerprint-based authentication including
 	DANE, and affects logging, SMTPD policy, and Milters.
-
-	Exploit GCC 3.4+ __attribute__((warn_unused_result)) to
-	warn about unused function result values.
 
 	Generalize the daemon '-S' stand-alone mode, so that it can
 	be used with custom configuration files for request/reply
