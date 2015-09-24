@@ -21916,8 +21916,31 @@ Apologies for any names omitted.
 
 	Feature: SMTPD policy service "policy_context" attribute
 	and smtpd_policy_service_policy_context main.cf parameter.
-	Originally, to share the same SMTPD service endpoint among
-	multiple check_policy_service clients. Markus Benning.
+	Originally, to share the same SMTPD policy service endpoint
+	among multiple check_policy_service clients. Markus Benning.
 	Files: mantools/postlink, proto/SMTPD_POLICY_README.html,
 	proto/postconf.proto, global/mail_params.h, global/mail_proto.h,
 	smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20150923
+
+	Bugfix: the Postfix SMTP server used a larger-than-1 buffer
+	to read the HaProxy connection hand-off information. This
+	broke TLS wrappermode, as the TLS helo packet would end up
+	in the plaintext VSTREAM buffer. Reported by Lukas Erlacher.
+	File: smtpd/smtpd_haproxy.c.
+
+20150924
+
+	Cleanup: eliminated a harmless warning message "seek error
+	after reading END record: Illegal seek" from the cleanup
+	server after a check_sender_access DISCARD action.  File:
+	cleanup/cleanup.c.
+
+	Bugfix: incorrect postmulti error message. Reported by
+	Patrik Koetter. Fix by Viktor Dukhovni. File:
+	postmulti/postmulti.c.
+
+	Workaround: don't create a new instance when the template
+	main.cf and master.cf files are missing, as happens on
+	Debian-like systems. Viktor Dukhovni. File: conf/postmulti-script.

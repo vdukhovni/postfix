@@ -142,6 +142,11 @@ create|import)
 		fatal "'$config_directory' lacks a master.cf file"
 	}
 
+	test -f $meta_directory/main.cf.proto ||
+	    fatal "Missing main.cf prototype: $meta_directory/main.cf.proto"
+	test -f $meta_directory/master.cf.proto ||
+	    fatal "Missing master.cf prototype: $meta_directory/master.cf.proto"
+
 	# Create instance-specific directories
 	#
 	test -d $config_directory ||

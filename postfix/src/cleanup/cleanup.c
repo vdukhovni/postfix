@@ -518,7 +518,7 @@ static void cleanup_service(VSTREAM *src, char *unused_service, char **argv)
      */
     if (CLEANUP_OUT_OK(state) == 0 && type > 0) {
 	while (type != REC_TYPE_END
-	       && (type = rec_get(src, buf, 0)) > 0) {
+	       && (type = rec_get_raw(src, buf, 0, REC_FLAG_NONE)) > 0) {
 	    if (type == REC_TYPE_MILT_COUNT) {
 		int     milter_count = atoi(vstring_str(buf));
 
