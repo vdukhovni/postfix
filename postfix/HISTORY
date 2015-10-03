@@ -21726,7 +21726,7 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 19970309): reset errno before calling
 	readdir(), in order to distinguish between end-of-directory and
-	an error condition. File: scandir,c,
+	an error condition. File: scandir.c.
 
 20150426
 
@@ -21924,23 +21924,46 @@ Apologies for any names omitted.
 
 20150923
 
-	Bugfix: the Postfix SMTP server used a larger-than-1 buffer
-	to read the HaProxy connection hand-off information. This
-	broke TLS wrappermode, as the TLS helo packet would end up
-	in the plaintext VSTREAM buffer. Reported by Lukas Erlacher.
-	File: smtpd/smtpd_haproxy.c.
+	Bugfix (introduced: 20120531-617): the Postfix SMTP server
+	used a larger-than-1 VSTREAM buffer to read the HAProxy
+	connection hand-off information. This broke TLS wrappermode,
+	as the TLS helo packet would end up in the plaintext VSTREAM
+	buffer. Reported by Lukas Erlacher.  File: smtpd/smtpd_haproxy.c.
 
 20150924
 
-	Cleanup: eliminated a harmless warning message "seek error
-	after reading END record: Illegal seek" from the cleanup
-	server after a check_sender_access DISCARD action.  File:
-	cleanup/cleanup.c.
+	Cleanup (introduced: 20060510): eliminated a harmless
+	warning message "seek error after reading END record: Illegal
+	seek" from the cleanup server after a check_sender_access
+	DISCARD action.  File: cleanup/cleanup.c.
 
-	Bugfix: incorrect postmulti error message. Reported by
-	Patrik Koetter. Fix by Viktor Dukhovni. File:
-	postmulti/postmulti.c.
+	Bugfix (introduced: 20090216-24): incorrect postmulti error
+	message. Reported by Patrik Koetter. Fix by Viktor Dukhovni.
+	File: postmulti/postmulti.c.
 
 	Workaround: don't create a new instance when the template
 	main.cf and master.cf files are missing, as happens on
 	Debian-like systems. Viktor Dukhovni. File: conf/postmulti-script.
+
+20150930
+
+	Bugfix (introduced: 20040124): Milter client panic while
+	adding a header, because the PREPEND action used the same
+	output function for header_checks and body_checks.  Viktor
+	Dukhovni and Wietse. File: cleanup/cleanup_message.c.
+
+	Bugfix (introduced: 20031128): xtext_unquote() did not
+	propagate error reports from xtext_unquote_append(), causing
+	the decoder to return partial ouput, instead of rejecting
+	malformed input. Fix by Krzysztof Wojta.  File: global/xtext.c.
+
+20151003
+
+	Bugfix (copied from xtext): uxtext_unquote() did not propagate
+	error reports from uxtext_unquote_append(), causing the
+	decoder to return partial output, instead of rejecting
+	malformed input.  Found by searching the code for similar
+	error patterns as with xtext_unquote().  File: global/uxtext.c.
+
+	Cleanup: added missing "negative" unit tests. Files:
+	global/xtext.c, global/uxtext.c.

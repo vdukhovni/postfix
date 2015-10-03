@@ -214,8 +214,7 @@ VSTRING *uxtext_unquote_append(VSTRING *unquoted, const char *quoted)
 VSTRING *uxtext_unquote(VSTRING *unquoted, const char *quoted)
 {
     VSTRING_RESET(unquoted);
-    uxtext_unquote_append(unquoted, quoted);
-    return (unquoted);
+    return (uxtext_unquote_append(unquoted, quoted) ? unquoted : 0);
 }
 
 #ifdef TEST
@@ -244,6 +243,19 @@ int     main(int unused_argc, char **unused_argv)
     VSTRING *quoted = vstring_alloc(100);
     ssize_t len;
 
+    /*
+     * Negative tests.
+     */
+    if (uxtext_unquote(unquoted, "\\x{x1}") != 0)
+	msg_warn("undetected error pattern 1");
+    if (uxtext_unquote(unquoted, "\\x{2x}") != 0)
+	msg_warn("undetected error pattern 2");
+    if (uxtext_unquote(unquoted, "\\x{33") != 0)
+	msg_warn("undetected error pattern 3");
+
+    /*
+     * Positive tests.
+     */
     while ((len = read_buf(VSTREAM_IN, unquoted)) > 0) {
 	uxtext_quote(quoted, STR(unquoted), "+=");
 	if (uxtext_unquote(unquoted, STR(quoted)) == 0)

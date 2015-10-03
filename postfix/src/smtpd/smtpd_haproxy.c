@@ -96,7 +96,7 @@ int     smtpd_peer_from_haproxy(SMTPD_STATE *state)
     VSTRING *escape_buf;
 
     /*
-     * While reading HaProxy handshake information, don't buffer input beyond
+     * While reading HAProxy handshake information, don't buffer input beyond
      * the end-of-line. That would break the TLS wrappermode handshake.
      */
     vstream_control(state->client,

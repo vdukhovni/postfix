@@ -10,9 +10,6 @@ Wish list:
 
 	Things to do after the stable release:
 
-	Postfix 3.0: In the DNS client, save/restore h_errno in the
-	multi-query functions.
-
 	Specify WARN_UNUSED_RESULT for all library functions that
 	pass, deliver, bounce or defer a delivery request.
 
@@ -29,8 +26,11 @@ Wish list:
 	DANE, and affects logging, SMTPD policy, and Milters.
 
 	Generalize the daemon '-S' stand-alone mode, so that it can
-	be used with custom configuration files for request/reply
-	regression testing.
+	be used with custom configuration settings for request/reply
+	regression testing. This would use the existing "-o name=value"
+	support to override parameters. For example, queue_directory
+	would point to a directory with sockets for fake versions of
+	Postfix-internal services.
 
 	Update the list of Sendmail macros that Postfix can send
 	to Milters (auth_ssf and TLS-related).

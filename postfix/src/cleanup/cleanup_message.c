@@ -385,11 +385,19 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
     if (STREQUAL(value, "PREPEND", command_len)) {
 	if (*optional_text == 0) {
 	    msg_warn("PREPEND action without text in %s map", map_class);
-	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0
-		   && !is_header(optional_text)) {
-	    msg_warn("bad PREPEND header text \"%s\" in %s map -- "
-		     "need \"headername: headervalue\"",
-		     optional_text, map_class);
+	} else if (strcmp(context, CLEANUP_ACT_CTXT_HEADER) == 0) {
+	    if (!is_header(optional_text)) {
+		msg_warn("bad PREPEND header text \"%s\" in %s map -- "
+			 "need \"headername: headervalue\"",
+			 optional_text, map_class);
+	    } else {
+		VSTRING *temp;		/* XXX Impedance mismatch. */
+
+		cleanup_act_log(state, "prepend", context, buf, optional_text);
+		temp = vstring_import(mystrdup(optional_text));
+		cleanup_out_header(state, temp);
+		vstring_free(temp);
+	    }
 	} else {
 	    cleanup_act_log(state, "prepend", context, buf, optional_text);
 	    cleanup_out_string(state, REC_TYPE_NORM, optional_text);
