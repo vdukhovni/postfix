@@ -127,6 +127,11 @@ create|import)
 		fatal "'$config_directory' lacks a master.cf file"
 	}
 
+	test -f $daemon_directory/main.cf ||
+	    fatal "Missing main.cf prototype: $daemon_directory/main.cf"
+	test -f $daemon_directory/master.cf ||
+	    fatal "Missing master.cf prototype: $daemon_directory/master.cf"
+
 	# Create instance-specific directories
 	#
 	test -d $config_directory ||
