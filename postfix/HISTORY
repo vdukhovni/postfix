@@ -21665,3 +21665,65 @@ Apologies for any names omitted.
 	SSLv2 or SSLv3.  See the RELEASE_NOTES file for how to get
 	the old settings back. Files: global/mail_params.h,
 	proto/postconf.proto, and files derived from those.
+
+20150722
+
+	The COMPATIBILITY_README text and HTML files were not
+	installed.  File: conf/postfix-files.
+
+20150903
+
+	Workaround: disable DNSSEC support for AIX 7x and earlier.
+	The AIX 6/7 resolver(5) API defines RES_USE_DNSSEC without
+	defining the "ad" bit.  Viktor Dukhovni.  Files: makedefs,
+	proto/INSTALL.html, dns/dns.h.
+
+20150923
+
+	Bugfix (introduced: 20120531-617): the Postfix SMTP server
+	used a larger-than-1 VSTREAM buffer to read the HAProxy
+	connection hand-off information. This broke TLS wrappermode,
+	as the TLS helo packet would end up in the plaintext VSTREAM
+	buffer. Reported by Lukas Erlacher.  File: smtpd/smtpd_haproxy.c.
+
+20150924
+
+	Bugfix (introduced: 20090216-24): incorrect postmulti error
+	message. Reported by Patrik Koetter. Fix by Viktor Dukhovni.
+	File: postmulti/postmulti.c.
+
+	Workaround: don't create a new instance when the template
+	main.cf and master.cf files are missing, as happens on
+	Debian-like systems. Viktor Dukhovni. File: conf/postmulti-script.
+
+20150925
+
+	Bugfix (introduced: 19970309, fixed 20150421 in development
+	release): reset errno before calling readdir(), in order
+	to distinguish between an end-of-directory and an error
+	condition. File: scandir.c.
+
+20150930
+
+	Bugfix (introduced: 20040124): Milter client panic while
+	adding a header, because the PREPEND action used the same
+	output function for header_checks and body_checks.  Viktor
+	Dukhovni and Wietse. File: cleanup/cleanup_message.c.
+
+	Bugfix (introduced: 20031128): xtext_unquote() did not
+	propagate error reports from xtext_unquote_append(), causing
+	the decoder to return partial ouput, instead of rejecting
+	malformed input. Fix by Krzysztof Wojta.  File: global/xtext.c.
+
+20151003
+
+	Bugfix (copied from xtext): uxtext_unquote() did not propagate
+	error reports from uxtext_unquote_append(), causing the
+	decoder to return partial output, instead of rejecting
+	malformed input.  Found by searching the code for similar
+	error patterns as with xtext_unquote().  File: global/uxtext.c.
+
+	Bugfix (introduced: 20141130, fixed around 20150607 in
+	development release): the DNS multi-query clients forgot
+	to save and restore h_errno when evaluating the aggregate
+	result. File: dns/dns_lookup.c.

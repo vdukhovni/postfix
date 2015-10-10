@@ -134,8 +134,7 @@ VSTRING *xtext_unquote_append(VSTRING *unquoted, const char *quoted)
 VSTRING *xtext_unquote(VSTRING *unquoted, const char *quoted)
 {
     VSTRING_RESET(unquoted);
-    xtext_unquote_append(unquoted, quoted);
-    return (unquoted);
+    return (xtext_unquote_append(unquoted, quoted) ? unquoted : 0);
 }
 
 #ifdef TEST

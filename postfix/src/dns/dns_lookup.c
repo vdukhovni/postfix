@@ -790,6 +790,7 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
     int     hpref_status = INT_MIN;
     VSTRING *hpref_rtext = 0;
     int     hpref_rcode;
+    int     hpref_h_errno;
     DNS_RR *rr;
 
     /* Save intermediate highest-priority result. */
@@ -801,6 +802,7 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 	    vstring_strcpy(hpref_rtext ? hpref_rtext : \
 			   (hpref_rtext = vstring_alloc(VSTRING_LEN(why))), \
 			   vstring_str(why)); \
+	hpref_h_errno = h_errno; \
     } while (0)
 
     /* Restore intermediate highest-priority result. */
@@ -810,6 +812,7 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
 	    *rcode = hpref_rcode; \
 	if (why && status != DNS_OK) \
 	    vstring_strcpy(why, vstring_str(hpref_rtext)); \
+	SET_H_ERRNO(hpref_h_errno); \
     } while (0)
 
     if (rrlist)
@@ -862,6 +865,7 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
     int     hpref_status = INT_MIN;
     VSTRING *hpref_rtext = 0;
     int     hpref_rcode;
+    int     hpref_h_errno;
     DNS_RR *rr;
 
     if (rrlist)
