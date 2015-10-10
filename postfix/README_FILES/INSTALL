@@ -255,6 +255,9 @@ The following is an extensive list of names and values.
 ||                             |probably should also override DEF_DB_TYPE as  |
 ||                             |described in section 4.4.                     |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+||-DNO_DNSSEC                  |Do not build with DNSSEC support, even if the |
+||                             |resolver library appears to support it.       |
+|_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 ||                             |Do not build with Solaris /dev/poll support.  |
 ||-DNO_DEVPOLL                 |By default, /dev/poll support is compiled in  |
 ||                             |on Solaris versions that are known to support |
