@@ -1685,7 +1685,7 @@ int     main(int argc, char **argv)
 	case 'e':
 	    if ((code = EDIT_CMD_CODE(optarg)) < 0)
 		msg_fatal("Invalid '-e' edit action '%s'. Specify '%s', "
-			  "'%s', '%s', '%s', '%s', '%s', '%s', '%s' or '%s'",
+			  "'%s', '%s', '%s', '%s', '%s', '%s' or '%s'",
 			  optarg,
 			  EDIT_CMD_STR(EDIT_CMD_CREATE),
 			  EDIT_CMD_STR(EDIT_CMD_DESTROY),
@@ -1694,8 +1694,7 @@ int     main(int argc, char **argv)
 			  EDIT_CMD_STR(EDIT_CMD_ENABLE),
 			  EDIT_CMD_STR(EDIT_CMD_DISABLE),
 			  EDIT_CMD_STR(EDIT_CMD_ASSIGN),
-			  EDIT_CMD_STR(EDIT_CMD_INIT),
-			  optarg);
+			  EDIT_CMD_STR(EDIT_CMD_INIT));
 	    if (cmd_mode != code)
 		command_mode_count++;
 	    cmd_mode = code;
