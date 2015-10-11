@@ -57,7 +57,7 @@
 /*
  * Disable DNSSEC at compile-time even if RES_USE_DNSSEC is available
  */
-#ifdef DISABLE_DNSSEC
+#ifdef NO_DNSSEC
 #undef RES_USE_DNSSEC
 #endif
 

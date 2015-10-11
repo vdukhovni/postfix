@@ -21932,10 +21932,10 @@ Apologies for any names omitted.
 
 20150924
 
-	Cleanup (introduced: 20060510): eliminated a harmless
-	warning message "seek error after reading END record: Illegal
-	seek" from the cleanup server after a check_sender_access
-	DISCARD action.  File: cleanup/cleanup.c.
+	Cleanup (introduced: 20060510, exposed 20150912): eliminated
+	a harmless warning message "seek error after reading END
+	record: Illegal seek" from the cleanup server after a
+	check_sender_access DISCARD action.  File: cleanup/cleanup.c.
 
 	Bugfix (introduced: 20090216-24): incorrect postmulti error
 	message. Reported by Patrik Koetter. Fix by Viktor Dukhovni.
@@ -21954,7 +21954,7 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20031128): xtext_unquote() did not
 	propagate error reports from xtext_unquote_append(), causing
-	the decoder to return partial ouput, instead of rejecting
+	the decoder to return partial output, instead of rejecting
 	malformed input. Fix by Krzysztof Wojta.  File: global/xtext.c.
 
 20151003
@@ -21967,3 +21967,25 @@ Apologies for any names omitted.
 
 	Cleanup: added missing "negative" unit tests. Files:
 	global/xtext.c, global/uxtext.c.
+
+20151004
+
+	Future proofing: use a real VSTRING in the 20150930 header
+	PREPEND fix. File: cleanup/cleanup_message.c.
+
+	Future proofing: make vstring_import() consistent with
+	vstring_alloc(). The alternative would be to remove the
+	function as it is unused and exists only for symmetry with
+	vstring_export(). File: usr/vstring.c.
+
+20151010
+
+	Cleanup: the 20150903 workaround for AIX DNSSEC used the
+	wrong name in #ifdef. File: dns/dns.h.
+
+20151011
+
+	Cleanup: in the PCRE client, turn fatal lookup errors into
+	warnings, and skip the failing pattern as in dict_regexp.c.
+	Also, fixed the error text when running into the matcher's
+	backtracking limit. File: util/dict_pcre.c.

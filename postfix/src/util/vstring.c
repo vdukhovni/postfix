@@ -565,9 +565,14 @@ VSTRING *vstring_import(char *str)
 
     vp = (VSTRING *) mymalloc(sizeof(*vp));
     len = strlen(str);
+    vp->vbuf.flags = 0;
+    vp->vbuf.len = 0;
     vp->vbuf.data = (unsigned char *) str;
     vp->vbuf.len = len + 1;
     VSTRING_AT_OFFSET(vp, len);
+    vp->vbuf.get_ready = vstring_buf_get_ready;
+    vp->vbuf.put_ready = vstring_buf_put_ready;
+    vp->vbuf.space = vstring_buf_space;
     vp->maxlen = 0;
     return (vp);
 }

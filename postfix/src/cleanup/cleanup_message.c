@@ -390,11 +390,18 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 		msg_warn("bad PREPEND header text \"%s\" in %s map -- "
 			 "need \"headername: headervalue\"",
 			 optional_text, map_class);
-	    } else {
-		VSTRING *temp;		/* XXX Impedance mismatch. */
+	    }
+
+	    /*
+	     * By design, cleanup_out_header() may modify content. Play safe
+	     * and prepare for future developments.
+	     */
+	    else {
+		VSTRING *temp;
 
 		cleanup_act_log(state, "prepend", context, buf, optional_text);
-		temp = vstring_import(mystrdup(optional_text));
+		temp = vstring_strcpy(vstring_alloc(strlen(optional_text)),
+						    optional_text);
 		cleanup_out_header(state, temp);
 		vstring_free(temp);
 	    }

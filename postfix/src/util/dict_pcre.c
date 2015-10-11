@@ -223,35 +223,42 @@ static void dict_pcre_exec_error(const char *mapname, int lineno, int errval)
 	return;
     case PCRE_ERROR_NULL:
     case PCRE_ERROR_BADOPTION:
-	msg_fatal("pcre map %s, line %d: bad args to re_exec",
-		  mapname, lineno);
+	msg_warn("pcre map %s, line %d: bad args to re_exec",
+		 mapname, lineno);
+	return;
     case PCRE_ERROR_BADMAGIC:
     case PCRE_ERROR_UNKNOWN_NODE:
-	msg_fatal("pcre map %s, line %d: corrupt compiled regexp",
-		  mapname, lineno);
+	msg_warn("pcre map %s, line %d: corrupt compiled regexp",
+		 mapname, lineno);
+	return;
 #ifdef PCRE_ERROR_NOMEMORY
     case PCRE_ERROR_NOMEMORY:
-	msg_fatal("pcre map %s, line %d: out of memory",
-		  mapname, lineno);
+	msg_warn("pcre map %s, line %d: out of memory",
+		 mapname, lineno);
+	return;
 #endif
 #ifdef PCRE_ERROR_MATCHLIMIT
     case PCRE_ERROR_MATCHLIMIT:
-	msg_fatal("pcre map %s, line %d: matched text exceeds buffer limit",
-		  mapname, lineno);
+	msg_warn("pcre map %s, line %d: backtracking limit exceeded",
+		 mapname, lineno);
+	return;
 #endif
 #ifdef PCRE_ERROR_BADUTF8
     case PCRE_ERROR_BADUTF8:
-	msg_fatal("pcre map %s, line %d: bad UTF-8 sequence in search string",
-		  mapname, lineno);
+	msg_warn("pcre map %s, line %d: bad UTF-8 sequence in search string",
+		 mapname, lineno);
+	return;
 #endif
 #ifdef PCRE_ERROR_BADUTF8_OFFSET
     case PCRE_ERROR_BADUTF8_OFFSET:
-	msg_fatal("pcre map %s, line %d: bad UTF-8 start offset in search string",
-		  mapname, lineno);
+	msg_warn("pcre map %s, line %d: bad UTF-8 start offset in search string",
+		 mapname, lineno);
+	return;
 #endif
     default:
-	msg_fatal("pcre map %s, line %d: unknown re_exec error: %d",
-		  mapname, lineno, errval);
+	msg_warn("pcre map %s, line %d: unknown re_exec error: %d",
+		 mapname, lineno, errval);
+	return;
     }
 }
 

@@ -212,7 +212,7 @@ To find out what database types your Postfix system supports, use the "ppooss
         are created with the postmap(1) or postalias(1) command, and private
         databases are maintained by Postfix daemons. The database name as used
         in "hash:table" is the database file name without the ".db" suffix.
-    inline (read-only)
+    iinnlliinnee (read-only)
         A non-shared, in-memory lookup table. Example: "inline:{ key=value,
         { key = text with whitespace or comma }}". Key-value pairs are
         separated by whitespace or comma; whitespace after "{" and before "}"
