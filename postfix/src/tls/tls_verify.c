@@ -138,7 +138,7 @@ static void update_error_state(TLS_SESS_STATE *TLScontext, int depth,
     if (TLScontext->errorcert != 0)
 	X509_free(TLScontext->errorcert);
     if (errorcert != 0)
-	CRYPTO_add(&errorcert->references, 1, CRYPTO_LOCK_X509);
+	X509_up_ref(errorcert);
     TLScontext->errorcert = errorcert;
     TLScontext->errorcode = errorcode;
     TLScontext->errordepth = depth;

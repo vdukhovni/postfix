@@ -77,7 +77,6 @@ extern const NAME_CODE tls_level_table[];
 
  /* Appease indent(1) */
 #define x509_stack_t STACK_OF(X509)
-#define x509_extension_stack_t STACK_OF(X509_EXTENSION)
 #define general_name_stack_t STACK_OF(GENERAL_NAME)
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
