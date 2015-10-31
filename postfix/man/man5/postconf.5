@@ -8764,6 +8764,21 @@ smtpd_banner = $myhostname ESMTP $mail_name ($mail_version)
 .fi
 .ad
 .ft R
+.SH smtpd_client_auth_rate_limit (default: 0)
+The maximal number of AUTH commands that any client is allowed to
+send to this service per time unit, regardless of whether or not
+Postfix actually accepts those commands.  The time unit is specified
+with the anvil_rate_time_unit configuration parameter.
+.PP
+By default, there is no limit on the number AUTH commands that a
+client may send.
+.PP
+To disable this feature, specify a limit of 0.
+.PP
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH smtpd_client_connection_count_limit (default: 50)
 How many simultaneous connections any client is allowed to
 make to this service.  By default, the limit is set to half

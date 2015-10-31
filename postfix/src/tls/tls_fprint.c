@@ -188,7 +188,7 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
 	msg_panic("digest algorithm \"%s\" not found", mdalg);
 
     /* Salt the session lookup key with the OpenSSL runtime version. */
-    sslversion = SSLeay();
+    sslversion = OpenSSL_version_num();
 
     mdctx = EVP_MD_CTX_create();
     checkok(EVP_DigestInit_ex(mdctx, md, NULL));

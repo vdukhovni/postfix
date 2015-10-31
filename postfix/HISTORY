@@ -21989,3 +21989,24 @@ Apologies for any names omitted.
 	warnings, and skip the failing pattern as in dict_regexp.c.
 	Also, fixed the error text when running into the matcher's
 	backtracking limit. File: util/dict_pcre.c.
+
+20151017
+
+	Feature: smtpd_client_auth_rate_limit enforces a rate
+	limit on the number of AUTH commands per client IP address.
+	mantools/postlink, proto/postconf.proto, anvil/anvil.c,
+	global/anvil_clnt.c, global/anvil_clnt.h, global/mail_params.h,
+	smtpd/smtpd.c.
+
+20151018
+
+	Added RFC 7672 (SMTP security via opportunistic DANE TLS)
+	and RFC 7505 ("Null MX" No Service Resource Record) to the
+	lists of supported RFCs in manpages. Viktor Dukhovni. Files:
+	smtp/smtp.c, smtpd/smtpd.c.
+
+20151031
+
+	Bitrot: OpenSSL API cleanups. Viktor Dukhovni. Files:
+	.indent.pro, tls/tls.h, tls/tls_dane.c, tls/tls_fprint.c,
+	tls/tls_misc.c, tls/tls_server.c, tls/tls_verify.c.

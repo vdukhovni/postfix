@@ -98,6 +98,7 @@
 /*	RFC 5321 (SMTP protocol)
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
+/*	RFC 7672 (SMTP security via opportunistic DANE TLS)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*	Corrupted message files are marked so that the queue manager can

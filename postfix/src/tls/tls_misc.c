@@ -935,7 +935,7 @@ void    tls_check_version(void)
     TLS_VINFO lib_info;
 
     tls_version_split(OPENSSL_VERSION_NUMBER, &hdr_info);
-    tls_version_split(SSLeay(), &lib_info);
+    tls_version_split(OpenSSL_version_num(), &lib_info);
 
     if (lib_info.major != hdr_info.major
 	|| lib_info.minor != hdr_info.minor
@@ -954,7 +954,7 @@ long    tls_bug_bits(void)
 
 #if OPENSSL_VERSION_NUMBER >= 0x00908000L && \
 	OPENSSL_VERSION_NUMBER < 0x10000000L
-    long    lib_version = SSLeay();
+    long    lib_version = OpenSSL_version_num();
 
     /*
      * In OpenSSL 0.9.8[ab], enabling zlib compression breaks the padding bug

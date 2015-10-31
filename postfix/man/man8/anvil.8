@@ -144,6 +144,27 @@ combination specified with \fBident\fR:
     \fBstatus=0\fR
     \fBrate=\fInumber\fR
 .fi
+.SH "AUTH RATE CONTROL"
+.na
+.nf
+.ad
+.fi
+To register an AUTH request send the following request
+to the \fBanvil\fR(8) server:
+
+.nf
+    \fBrequest=auth\fR
+    \fBident=\fIstring\fR
+.fi
+
+The \fBanvil\fR(8) server answers with the number of auth
+requests per unit time for the (service, client) combination
+specified with \fBident\fR:
+
+.nf
+    \fBstatus=0\fR
+    \fBrate=\fInumber\fR
+.fi
 .SH "SECURITY"
 .na
 .nf

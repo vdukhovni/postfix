@@ -73,17 +73,27 @@ extern const NAME_CODE tls_level_table[];
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/rand.h>
+#include <openssl/crypto.h>		/* Legacy SSLEAY_VERSION_NUMBER */
+#include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/ssl.h>
 
  /* Appease indent(1) */
 #define x509_stack_t STACK_OF(X509)
-#define x509_extension_stack_t STACK_OF(X509_EXTENSION)
 #define general_name_stack_t STACK_OF(GENERAL_NAME)
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
 
 #if (OPENSSL_VERSION_NUMBER < 0x00090700f)
 #error "need OpenSSL version 0.9.7 or later"
+#endif
+
+ /* Backwards compatibility with OpenSSL < 1.1.0 */
+#ifdef SSLEAY_VERSION_NUMBER
+#define OpenSSL_version_num SSLeay
+#endif
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define X509_up_ref(x) CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
 #endif
 
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */

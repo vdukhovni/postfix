@@ -65,6 +65,7 @@ RFC 4954 (AUTH command)
 RFC 5321 (SMTP protocol)
 RFC 6531 (Internationalized SMTP)
 RFC 6533 (Internationalized Delivery Status Notifications)
+RFC 7505 ("Null MX" No Service Resource Record)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -329,7 +330,7 @@ the list of available
 features depends on the SASL server implementation that is selected
 with \fBsmtpd_sasl_type\fR.
 .IP "\fBsmtpd_sender_login_maps (empty)\fR"
-Optional lookup table with the SASL login names that own sender
+Optional lookup table with the SASL login names that own the sender
 (MAIL FROM) addresses.
 .PP
 Available in Postfix version 2.1 and later:
@@ -745,6 +746,12 @@ time limits, from a
 time limit per read or write system call, to a time limit to send
 or receive a complete record (an SMTP command line, SMTP response
 line, SMTP message content line, or TLS protocol message).
+.PP
+Available in Postfix version 3.1 and later:
+.IP "\fBsmtpd_client_auth_rate_limit (0)\fR"
+The maximal number of AUTH commands that any client is allowed to
+send to this service per time unit, regardless of whether or not
+Postfix actually accepts those commands.
 .SH "TARPIT CONTROLS"
 .na
 .nf

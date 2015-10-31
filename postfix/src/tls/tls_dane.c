@@ -551,7 +551,7 @@ static void ta_cert_insert(TLS_DANE *d, X509 *x)
 {
     TLS_CERTS *new = (TLS_CERTS *) mymalloc(sizeof(*new));
 
-    CRYPTO_add(&x->references, 1, CRYPTO_LOCK_X509);
+    X509_up_ref(x);
     new->cert = x;
     new->next = d->certs;
     d->certs = new;
@@ -1406,12 +1406,8 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
 
 static int push_ext(X509 *cert, X509_EXTENSION *ext)
 {
-    x509_extension_stack_t *exts;
-
     if (ext) {
-	if ((exts = cert->cert_info->extensions) == 0)
-	    exts = cert->cert_info->extensions = sk_X509_EXTENSION_new_null();
-	if (exts && sk_X509_EXTENSION_push(exts, ext))
+	if (X509_add_ext(cert, ext, -1))
 	    return 1;
 	X509_EXTENSION_free(ext);
     }
@@ -1542,7 +1538,7 @@ static void grow_chain(TLS_SESS_STATE *TLScontext, int trusted, X509 *cert)
     if (cert) {
 	if (trusted && !X509_add1_trust_object(cert, serverAuth))
 	    msg_fatal("out of memory");
-	CRYPTO_add(&cert->references, 1, CRYPTO_LOCK_X509);
+	X509_up_ref(cert);
 	if (!sk_X509_push(*xs, cert))
 	    msg_fatal("out of memory");
     }

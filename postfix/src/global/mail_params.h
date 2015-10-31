@@ -2996,6 +2996,10 @@ extern int var_smtpd_crcpt_limit;
 #define DEF_SMTPD_CNTLS_LIMIT		0
 extern int var_smtpd_cntls_limit;
 
+#define VAR_SMTPD_CAUTH_LIMIT		"smtpd_client_auth_rate_limit"
+#define DEF_SMTPD_CAUTH_LIMIT		0
+extern int var_smtpd_cauth_limit;
+
 #define VAR_SMTPD_HOGGERS		"smtpd_client_event_limit_exceptions"
 #define DEF_SMTPD_HOGGERS		"${smtpd_client_connection_limit_exceptions:$" VAR_MYNETWORKS "}"
 extern char *var_smtpd_hoggers;

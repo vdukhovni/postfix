@@ -521,6 +521,7 @@ while (<>) {
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_xclient_hosts\b;<a href="postconf.5.html#smtpd_authorized_xclient_hosts">$&</a>;g;
     s;\bsmtpd_autho[-</bB>]*\n*[ <bB>]*rized_xforward_hosts\b;<a href="postconf.5.html#smtpd_authorized_xforward_hosts">$&</a>;g;
     s;\bsmtpd_ban[-</bB>]*\n*[ <bB>]*ner\b;<a href="postconf.5.html#smtpd_banner">$&</a>;g;
+    s;\bsmtpd_client_auth_rate_limit\b;<a href="postconf.5.html#smtpd_client_auth_rate_limit">$&</a>;g;
     s;\bsmtpd_client_connec[-</bB>]*\n*[ <bB>]*tion_count_limit\b;<a href="postconf.5.html#smtpd_client_connection_count_limit">$&</a>;g;
     s;\bsmtpd_client_event_limit_exceptions\b;<a href="postconf.5.html#smtpd_client_event_limit_exceptions">$&</a>;g;
     s;\bsmtpd_client_connec[-</bB>]*\n*[ <bB>]*tion_rate_limit\b;<a href="postconf.5.html#smtpd_client_connection_rate_limit">$&</a>;g;

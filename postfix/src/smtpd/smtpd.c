@@ -55,6 +55,7 @@
 /*	RFC 5321 (SMTP protocol)
 /*	RFC 6531 (Internationalized SMTP)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
+/*	RFC 7505 ("Null MX" No Service Resource Record)
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /*
@@ -297,7 +298,7 @@
 /*	features depends on the SASL server implementation that is selected
 /*	with \fBsmtpd_sasl_type\fR.
 /* .IP "\fBsmtpd_sender_login_maps (empty)\fR"
-/*	Optional lookup table with the SASL login names that own sender
+/*	Optional lookup table with the SASL login names that own the sender
 /*	(MAIL FROM) addresses.
 /* .PP
 /*	Available in Postfix version 2.1 and later:
@@ -699,6 +700,12 @@
 /*	time limit per read or write system call, to a time limit to send
 /*	or receive a complete record (an SMTP command line, SMTP response
 /*	line, SMTP message content line, or TLS protocol message).
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBsmtpd_client_auth_rate_limit (0)\fR"
+/*	The maximal number of AUTH commands that any client is allowed to
+/*	send to this service per time unit, regardless of whether or not
+/*	Postfix actually accepts those commands.
 /* TARPIT CONTROLS
 /* .ad
 /* .fi
@@ -1292,6 +1299,7 @@ int     var_smtpd_cconn_limit;
 int     var_smtpd_cmail_limit;
 int     var_smtpd_crcpt_limit;
 int     var_smtpd_cntls_limit;
+int     var_smtpd_cauth_limit;
 char   *var_smtpd_hoggers;
 char   *var_local_rwr_clients;
 char   *var_smtpd_ehlo_dis_words;
@@ -1895,6 +1903,32 @@ static void helo_reset(SMTPD_STATE *state)
 	vstring_free(state->ehlo_buf);
 	state->ehlo_buf = 0;
     }
+}
+
+/* smtpd_sasl_auth_cmd_wrapper - smtpd_sasl_auth_cmd front-end */
+
+static int smtpd_sasl_auth_cmd_wrapper(SMTPD_STATE *state, int argc,
+				               SMTPD_TOKEN *argv)
+{
+    int     rate;
+
+    if (SMTPD_STAND_ALONE(state) == 0
+	&& !xclient_allowed
+	&& anvil_clnt
+	&& var_smtpd_cauth_limit > 0
+	&& !namadr_list_match(hogger_list, state->name, state->addr)
+	&& anvil_clnt_auth(anvil_clnt, state->service, state->addr,
+			   &rate) == ANVIL_STAT_OK
+	&& rate > var_smtpd_cauth_limit) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	msg_warn("AUTH command rate limit exceeded: %d from %s for service %s",
+		 rate, state->namaddr, state->service);
+	smtpd_chat_reply(state,
+			 "450 4.7.1 Error: too many AUTH commands from %s",
+			 state->addr);
+	return (-1);
+    }
+    return (smtpd_sasl_auth_cmd(state, argc, argv));
 }
 
 /* mail_open_stream - open mail queue file or IPC stream */
@@ -4713,7 +4747,7 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_STARTTLS, unimpl_cmd, SMTPD_CMD_FLAG_PRE_TLS,},
 #endif
 #ifdef USE_SASL_AUTH
-    {SMTPD_CMD_AUTH, smtpd_sasl_auth_cmd,},
+    {SMTPD_CMD_AUTH, smtpd_sasl_auth_cmd_wrapper,},
 #else
     {SMTPD_CMD_AUTH, unimpl_cmd,},
 #endif
@@ -5577,7 +5611,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      */
     if (var_smtpd_crate_limit || var_smtpd_cconn_limit
 	|| var_smtpd_cmail_limit || var_smtpd_crcpt_limit
-	|| var_smtpd_cntls_limit)
+	|| var_smtpd_cntls_limit || var_smtpd_cauth_limit)
 	anvil_clnt = anvil_clnt_create();
 }
 
@@ -5625,6 +5659,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_CMAIL_LIMIT, DEF_SMTPD_CMAIL_LIMIT, &var_smtpd_cmail_limit, 0, 0,
 	VAR_SMTPD_CRCPT_LIMIT, DEF_SMTPD_CRCPT_LIMIT, &var_smtpd_crcpt_limit, 0, 0,
 	VAR_SMTPD_CNTLS_LIMIT, DEF_SMTPD_CNTLS_LIMIT, &var_smtpd_cntls_limit, 0, 0,
+	VAR_SMTPD_CAUTH_LIMIT, DEF_SMTPD_CAUTH_LIMIT, &var_smtpd_cauth_limit, 0, 0,
 #ifdef USE_TLS
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
 #endif
