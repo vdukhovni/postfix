@@ -193,7 +193,7 @@ static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
 	buf = vstring_alloc(2 * (len + strlen(service))); \
 	hex_encode(buf, (char *) (id), (len)); \
 	vstring_sprintf_append(buf, "&s=%s", (service)); \
-	vstring_sprintf_append(buf, "&l=%ld", (long) SSLeay()); \
+	vstring_sprintf_append(buf, "&l=%ld", (long) OpenSSL_version_num()); \
     } while (0)
 
 
