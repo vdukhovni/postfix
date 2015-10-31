@@ -85,6 +85,12 @@ extern const NAME_CODE tls_level_table[];
 #error "need OpenSSL version 0.9.7 or later"
 #endif
 
+ /* Backwards compatibility with OpenSSL < 1.1.0 */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define X509_up_ref(x) CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
+#define OpenSSL_version_num SSLeay
+#endif
+
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */
 #if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
 #define SSL_CIPHER_const const
