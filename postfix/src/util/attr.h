@@ -110,6 +110,7 @@ CHECK_VAL_HELPER_DCL(ATTR, ATTR_SCAN_SLAVE_FN);
 #define attr_vprint	attr_vprint0
 #define attr_scan	attr_scan0
 #define attr_vscan	attr_vscan0
+#define attr_scan_more	attr_scan_more0
 
  /*
   * attr_print64.c.
@@ -122,6 +123,7 @@ extern int attr_vprint64(VSTREAM *, int, va_list);
   */
 extern int WARN_UNUSED_RESULT attr_scan64(VSTREAM *, int,...);
 extern int WARN_UNUSED_RESULT attr_vscan64(VSTREAM *, int, va_list);
+extern int WARN_UNUSED_RESULT attr_scan_more64(VSTREAM *);
 
  /*
   * attr_print0.c.
@@ -134,19 +136,20 @@ extern int attr_vprint0(VSTREAM *, int, va_list);
   */
 extern int WARN_UNUSED_RESULT attr_scan0(VSTREAM *, int,...);
 extern int WARN_UNUSED_RESULT attr_vscan0(VSTREAM *, int, va_list);
+extern int WARN_UNUSED_RESULT attr_scan_more0(VSTREAM *);
 
  /*
   * attr_scan_plain.c.
   */
 extern int attr_print_plain(VSTREAM *, int,...);
 extern int attr_vprint_plain(VSTREAM *, int, va_list);
+extern int attr_scan_more_plain(VSTREAM *);
 
  /*
   * attr_print_plain.c.
   */
 extern int WARN_UNUSED_RESULT attr_scan_plain(VSTREAM *, int,...);
 extern int WARN_UNUSED_RESULT attr_vscan_plain(VSTREAM *, int, va_list);
-
 
  /*
   * Attribute names for testing the compatibility of the read and write

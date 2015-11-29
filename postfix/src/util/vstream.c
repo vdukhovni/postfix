@@ -399,7 +399,8 @@
 /*	This is an alias for vstream_bufstat(stream, VSTREAM_BST_IN_PEND).
 /*
 /*	vstream_peek_data() returns a pointer to the unread bytes
-/*	that exist according to vstream_peek().
+/*	that exist according to vstream_peek(), or null if no unread
+/*	bytes are available.
 /*
 /*	vstream_setjmp() saves processing context and makes that context
 /*	available for use with vstream_longjmp().  Normally, vstream_setjmp()

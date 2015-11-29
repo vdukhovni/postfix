@@ -7,15 +7,18 @@
 /*	#include <attr.h>
 /*
 /*	int	attr_scan64(fp, flags, type, name, ..., ATTR_TYPE_END)
-/*	VSTREAM	fp;
+/*	VSTREAM	*fp;
 /*	int	flags;
 /*	int	type;
 /*	char	*name;
 /*
 /*	int	attr_vscan64(fp, flags, ap)
-/*	VSTREAM	fp;
+/*	VSTREAM	*fp;
 /*	int	flags;
 /*	va_list	ap;
+/*
+/*	int	attr_scan_more64(fp)
+/*	VSTREAM	*fp;
 /* DESCRIPTION
 /*	attr_scan64() takes zero or more (name, value) request attributes
 /*	and recovers the attribute values from the byte stream that was
@@ -23,6 +26,11 @@
 /*
 /*	attr_vscan64() provides an alternative interface that is convenient
 /*	for calling from within a variadic function.
+/*
+/*	attr_scan_more64() returns 0 when a terminator is found
+/*	(and consumes that terminator), returns 1 when more input
+/*	is expected (without consuming input), and returns -1
+/*	otherwise (error).
 /*
 /*	The input stream is formatted as follows, where (item)* stands
 /*	for zero or more instances of the specified item, and where
@@ -146,6 +154,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -348,14 +361,14 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 	    /*
 	     * See if the caller asks for this attribute.
 	     */
-	    if (wanted_type == ATTR_TYPE_HASH 
-		&& ch == '\n' && strcmp(ATTR_NAME_OPEN, STR(name_buf)) == 0) {
+	    if (wanted_type == ATTR_TYPE_HASH
+	      && ch == '\n' && strcmp(ATTR_NAME_OPEN, STR(name_buf)) == 0) {
 		wanted_type = ATTR_TYPE_CLOSE;
 		wanted_name = "(any attribute name or '}')";
 		/* Advance in the input stream. */
 		continue;
 	    } else if (wanted_type == ATTR_TYPE_CLOSE
-		&& ch == '\n' && strcmp(ATTR_NAME_CLOSE, STR(name_buf)) == 0) {
+	     && ch == '\n' && strcmp(ATTR_NAME_CLOSE, STR(name_buf)) == 0) {
 		/* Advance in the argument list. */
 		wanted_type = -1;
 		break;
@@ -507,6 +520,30 @@ int     attr_scan64(VSTREAM *fp, int flags,...)
     ret = attr_vscan64(fp, flags, ap);
     va_end(ap);
     return (ret);
+}
+
+/* attr_scan_more64 - look ahead for more */
+
+int     attr_scan_more64(VSTREAM *fp)
+{
+    int     ch;
+
+    switch (ch = VSTREAM_GETC(fp)) {
+    case '\n':
+	if (msg_verbose)
+	    msg_info("%s: terminator (consumed)", VSTREAM_PATH(fp));
+	return (0);
+    case VSTREAM_EOF:
+	if (msg_verbose)
+	    msg_info("%s: EOF", VSTREAM_PATH(fp));
+	return (-1);
+    default:
+	if (msg_verbose)
+	    msg_info("%s: non-terminator '%c' (lookahead)",
+		     VSTREAM_PATH(fp), ch);
+	(void) vstream_ungetc(fp, ch);
+	return (1);
+    }
 }
 
 #ifdef TEST

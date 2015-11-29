@@ -7,7 +7,8 @@
 /*	\fBshowq\fR [generic Postfix daemon options]
 /* DESCRIPTION
 /*	The \fBshowq\fR(8) daemon reports the Postfix mail queue status.
-/*	It is the program that emulates the sendmail `mailq' command.
+/*	The output is meant to be formatted by the postqueue(1) command,
+/*	as it emulates the Sendmail `mailq' command.
 /*
 /*	The \fBshowq\fR(8) daemon can also be run in stand-alone mode
 /*	by the superuser. This mode of operation is used to emulate
@@ -89,6 +90,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -140,18 +146,6 @@
 int     var_dup_filter_limit;
 char   *var_empty_addr;
 
-#define S_STRING_FORMAT	"%-10s %8s %-20s %s\n"
-#define S_SENDER_FORMAT	"%-11s %7ld %20.20s %s\n"
-#define S_DROP_FORMAT	"%-10s%c %7ld %20.20s (maildrop queue, sender UID %u)\n"
-#define S_HEADINGS	"-Queue ID-", "--Size--", \
-			    "----Arrival Time----", "-Sender/Recipient-------"
-
-#define L_STRING_FORMAT	"%-17s %8s %-19s %s\n"
-#define L_SENDER_FORMAT	"%-17s %8ld %19.19s %s\n"
-#define L_DROP_FORMAT	"%-16s%c %8ld %19.19s (maildrop queue, sender UID %u)\n"
-#define L_HEADINGS	"----Queue ID-----", "--Size--", \
-			    "---Arrival Time----", "--Sender/Recipient------"
-
 static void showq_reasons(VSTREAM *, BOUNCE_LOG *, RCPT_BUF *, DSN_BUF *,
 			          HTABLE *);
 
@@ -167,14 +161,29 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
     int     rec_type;
     time_t  arrival_time = 0;
     char   *start;
-    long    msg_size = 0;
+    long    msg_size = size;
     BOUNCE_LOG *logfile;
     HTABLE *dup_filter = 0;
     RCPT_BUF *rcpt_buf = 0;
     DSN_BUF *dsn_buf = 0;
-    char    status = (strcmp(queue, MAIL_QUEUE_ACTIVE) == 0 ? '*' :
-		      strcmp(queue, MAIL_QUEUE_HOLD) == 0 ? '!' : ' ');
+    int     sender_seen = 0;
     int     msg_size_ok = 0;
+
+    /*
+     * Let the optimizer worry about eliminating duplicate code.
+     */
+#define SHOWQ_CLEANUP_AND_RETURN { \
+	if (sender_seen > 0) \
+	    attr_print(client, ATTR_FLAG_NONE, ATTR_TYPE_END); \
+	vstring_free(buf); \
+	vstring_free(printable_quoted_addr); \
+	if (rcpt_buf) \
+	    rcpb_free(rcpt_buf); \
+	if (dsn_buf) \
+	    dsb_free(dsn_buf); \
+	if (dup_filter) \
+	    htable_free(dup_filter, (void (*) (void *)) 0); \
+    }
 
     /*
      * XXX addresses in defer logfiles are in printable quoted form, while
@@ -192,12 +201,16 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    msg_info("record %c %s", rec_type, printable(start, '?'));
 	switch (rec_type) {
 	case REC_TYPE_TIME:
-	    arrival_time = atol(start);
+	    /* TODO: parse seconds and microseconds. */
+	    if (arrival_time == 0)
+		arrival_time = atol(start);
 	    break;
 	case REC_TYPE_SIZE:
-	    if (msg_size == 0) {
-		if ((msg_size_ok = ((msg_size = atol(start)) > 0)) == 0) {
-		    msg_warn("%s: malformed size record: %.100s",
+	    if (msg_size_ok == 0) {
+		msg_size_ok = (alldig(start) && (msg_size = atol(start)) >= 0);
+		if (msg_size_ok == 0) {
+		    msg_warn("%s: malformed size record: %.100s "
+			     "-- using file size instead",
 			     id, printable(start, '?'));
 		    msg_size = size;
 		}
@@ -208,25 +221,40 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 		start = var_empty_addr;
 	    quote_822_local(printable_quoted_addr, start);
 	    printable(STR(printable_quoted_addr), '?');
-	    /* quote_822_local() saves buf, so we can reuse its space. */
-	    vstring_sprintf(buf, "%s%c", id, status);
-	    vstream_fprintf(client, var_long_queue_ids ?
-			    L_SENDER_FORMAT : S_SENDER_FORMAT, STR(buf),
-			  msg_size > 0 ? msg_size : size, arrival_time > 0 ?
-			    asctime(localtime(&arrival_time)) :
-			    asctime(localtime(&mtime)),
-			    STR(printable_quoted_addr));
+	    if (sender_seen++ > 0) {
+		msg_warn("%s: duplicate sender address: %s "
+			 "-- skipping remainder of this file",
+			 id, STR(printable_quoted_addr));
+		SHOWQ_CLEANUP_AND_RETURN;
+	    }
+	    attr_print(client, ATTR_FLAG_MORE,
+		       SEND_ATTR_STR(MAIL_ATTR_QUEUE, queue),
+		       SEND_ATTR_STR(MAIL_ATTR_QUEUEID, id),
+		       SEND_ATTR_LONG(MAIL_ATTR_TIME, arrival_time > 0 ?
+				      arrival_time : mtime),
+		       SEND_ATTR_LONG(MAIL_ATTR_SIZE, msg_size),
+		       SEND_ATTR_STR(MAIL_ATTR_SENDER,
+				     STR(printable_quoted_addr)),
+		       ATTR_TYPE_END);
 	    break;
 	case REC_TYPE_RCPT:
+	    if (sender_seen == 0) {
+		msg_warn("%s: missing sender address: %s "
+			 "-- skipping remainder of this file",
+			 id, STR(printable_quoted_addr));
+		SHOWQ_CLEANUP_AND_RETURN;
+	    }
 	    if (*start == 0)			/* can't happen? */
 		start = var_empty_addr;
 	    quote_822_local(printable_quoted_addr, start);
 	    printable(STR(printable_quoted_addr), '?');
 	    if (dup_filter == 0
 	      || htable_locate(dup_filter, STR(printable_quoted_addr)) == 0)
-		vstream_fprintf(client, var_long_queue_ids ?
-				L_STRING_FORMAT : S_STRING_FORMAT,
-				"", "", "", STR(printable_quoted_addr));
+		attr_print(client, ATTR_FLAG_MORE,
+			   SEND_ATTR_STR(MAIL_ATTR_RECIP,
+					 STR(printable_quoted_addr)),
+			   SEND_ATTR_STR(MAIL_ATTR_WHY, ""),
+			   ATTR_TYPE_END);
 	    break;
 	case REC_TYPE_MESG:
 	    if (msg_size_ok && vstream_fseek(qfile, msg_size, SEEK_CUR) < 0)
@@ -237,18 +265,22 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	}
 
 	/*
-	 * With the heading printed, see if there is a defer logfile. The
-	 * defer logfile is not necessarily complete: delivery may be
+	 * Before listing any recipients from the queue file, try to list
+	 * recipients from the corresponding defer logfile with per-recipient
+	 * descriptions why delivery was deferred.
+	 * 
+	 * The defer logfile is not necessarily complete: delivery may be
 	 * interrupted (postfix stop or reload) before all recipients have
 	 * been tried.
 	 * 
 	 * Therefore we keep a record of recipients found in the defer logfile,
 	 * and try to avoid listing those recipients again when processing
-	 * the remainder of the queue file.
+	 * recipients from the queue file.
 	 */
 	if (rec_type == REC_TYPE_FROM
-	    && dup_filter == 0
 	    && (logfile = bounce_log_open(MAIL_QUEUE_DEFER, id, O_RDONLY, 0)) != 0) {
+	    if (dup_filter != 0)
+		msg_panic("showq_report: attempt to reuse duplicate filter");
 	    dup_filter = htable_create(var_dup_filter_limit);
 	    if (rcpt_buf == 0)
 		rcpt_buf = rcpb_create();
@@ -259,14 +291,7 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 		msg_warn("close %s %s: %m", MAIL_QUEUE_DEFER, id);
 	}
     }
-    vstring_free(buf);
-    vstring_free(printable_quoted_addr);
-    if (rcpt_buf)
-	rcpb_free(rcpt_buf);
-    if (dsn_buf)
-	dsb_free(dsn_buf);
-    if (dup_filter)
-	htable_free(dup_filter, (void (*) (void *)) 0);
+    SHOWQ_CLEANUP_AND_RETURN;
 }
 
 /* showq_reasons - show deferral reasons */
@@ -274,8 +299,6 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, RCPT_BUF *rcpt_buf,
 			          DSN_BUF *dsn_buf, HTABLE *dup_filter)
 {
-    char   *saved_reason = 0;
-    int     padding;
     RECIPIENT *rcpt = &rcpt_buf->rcpt;
     DSN    *dsn = &dsn_buf->dsn;
 
@@ -289,23 +312,11 @@ static void showq_reasons(VSTREAM *client, BOUNCE_LOG *bp, RCPT_BUF *rcpt_buf,
 	    if (htable_locate(dup_filter, rcpt->address) == 0)
 		htable_enter(dup_filter, rcpt->address, (void *) 0);
 
-	/*
-	 * Don't print the reason when the previous recipient had the same
-	 * problem.
-	 */
-	if (saved_reason == 0 || strcmp(saved_reason, dsn->reason) != 0) {
-	    if (saved_reason)
-		myfree(saved_reason);
-	    saved_reason = mystrdup(dsn->reason);
-	    if ((padding = 76 - strlen(saved_reason)) < 0)
-		padding = 0;
-	    vstream_fprintf(client, "%*s(%s)\n", padding, "", saved_reason);
-	}
-	vstream_fprintf(client, var_long_queue_ids ? L_STRING_FORMAT :
-			S_STRING_FORMAT, "", "", "", rcpt->address);
+	attr_print(client, ATTR_FLAG_MORE,
+		   SEND_ATTR_STR(MAIL_ATTR_RECIP, rcpt->address),
+		   SEND_ATTR_STR(MAIL_ATTR_WHY, dsn->reason),
+		   ATTR_TYPE_END);
     }
-    if (saved_reason)
-	myfree(saved_reason);
 }
 
 
@@ -318,7 +329,6 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
     int     status;
     char   *id;
     int     file_count;
-    unsigned long queue_size = 0;
     struct stat st;
     struct queue_info {
 	char   *name;			/* queue name */
@@ -368,30 +378,14 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	    saved_id = mystrdup(id);
 	    status = mail_open_ok(qp->name, id, &st, &path);
 	    if (status == MAIL_OPEN_YES) {
-		if (file_count == 0) {
-		    if (var_long_queue_ids)
-			vstream_fprintf(client, L_STRING_FORMAT, L_HEADINGS);
-		    else
-			vstream_fprintf(client, S_STRING_FORMAT, S_HEADINGS);
-		} else
-		    vstream_fprintf(client, "\n");
 		if ((qfile = mail_queue_open(qp->name, id, O_RDONLY, 0)) != 0) {
-		    queue_size += st.st_size;
 		    showq_report(client, qp->name, id, qfile, (long) st.st_size,
 				 st.st_mtime);
 		    if (vstream_fclose(qfile))
 			msg_warn("close file %s %s: %m", qp->name, id);
-		} else if (strcmp(qp->name, MAIL_QUEUE_MAILDROP) == 0) {
-		    queue_size += st.st_size;
-		    vstream_fprintf(client, var_long_queue_ids ?
-				    L_DROP_FORMAT : S_DROP_FORMAT, id, ' ',
-				    (long) st.st_size,
-				    asctime(localtime(&st.st_mtime)),
-				    (unsigned) st.st_uid);
-		} else if (errno != ENOENT)
-		    msg_fatal("open %s %s: %m", qp->name, id);
-		file_count++;
-		vstream_fflush(client);
+		} else if (errno != ENOENT) {
+		    msg_warn("open %s %s: %m", qp->name, id);
+		}
 	    }
 	    vstream_fflush(client);
 	}
@@ -399,13 +393,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	    myfree(saved_id);
 	scan_dir_close(scan);
     }
-    if (file_count == 0)
-	vstream_fprintf(client, "Mail queue is empty\n");
-    else {
-	vstream_fprintf(client, "\n-- %lu Kbytes in %d Request%s.\n",
-			queue_size / 1024, file_count,
-			file_count == 1 ? "" : "s");
-    }
+    attr_print(client, ATTR_FLAG_NONE, ATTR_TYPE_END);
 }
 
 MAIL_VERSION_STAMP_DECLARE;

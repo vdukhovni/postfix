@@ -168,8 +168,8 @@ default with Postfix 2.6 and later. </p>
 </pre>
 </blockquote>
 
-<p> With Postfix versions before 3.0, replace ${stress?{x}:{y}}
-with ${stress?x}${stress:y}. </p>
+<p> Postfix versions before 3.0 use the older form ${stress?x}${stress:y}
+instead of the newer form ${stress?{x}:{y}}. </p>
 
 <p> Translation: <p>
 
@@ -219,8 +219,9 @@ as this measure is used only temporarily.  </p>
 
 </ul>
 
-<p> The syntax of ${name?value} and ${name:value} is explained at
-the beginning of the <a href="postconf.5.html">postconf(5)</a> manual page. </p>
+<p> The syntax of ${name?{value}:{value}}, ${name?value} and
+${name:value} is explained at the beginning of the <a href="postconf.5.html">postconf(5)</a>
+manual page. </p>
 
 <p> NOTE: Please keep in mind that the stress-adaptive feature is
 a fairly desperate measure to keep <b>some</b> legitimate mail

@@ -4,13 +4,19 @@
 /* SUMMARY
 /*	Postfix queue control
 /* SYNOPSIS
+/*	\fBTo flush the mail queue\fR:
+/*
 /*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-f\fR
-/* .br
+/*
 /*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-i \fIqueue_id\fR
-/* .br
-/*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-p\fR
-/* .br
+/*
 /*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
+/*
+/*	\fBTo list the mail queue\fR:
+/*
+/*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-j\fR
+/*
+/*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-p\fR
 /* DESCRIPTION
 /*	The \fBpostqueue\fR(1) command implements the Postfix user interface
 /*	for queue management. It implements operations that are
@@ -40,6 +46,48 @@
 /*	command, by contacting the \fBflush\fR(8) server.
 /*
 /*	This feature is available with Postfix version 2.4 and later.
+/* .IP "\fB-j\fR"
+/*	Produce a queue listing in JSON format, based on output
+/*	from the showq(8) daemon.  The result is a stream of zero
+/*	or more JSON objects, one per queue file.  Each object is
+/*	followed by a newline character to support simple streaming
+/*	parsers.
+/* .sp
+/*	Object members have string values unless indicated otherwise.
+/*	Programs should ignore object members that are not listed
+/*	here; the list of members is expected to grow over time.
+/* .RS
+/* .IP \fBqueue_name\fB
+/*	The name of the queue where the message was found.  Note
+/*	that the contents of the mail queue may change while it is
+/*	being listed; some messages may appear more than once, and
+/*	some messages may be missed.
+/* .IP \fBqueue_id\fB
+/*	The queue file name. The name may be reused unless
+/*	"enable_long_queue_ids = true".
+/* .IP \fBarrival_time\fB
+/*	The number of seconds since the start of the UNIX epoch.
+/* .IP \fBmessage_size\fB
+/*	The number of bytes in the message header and body. This
+/*	number does not include message envelope information. It
+/*	is approximately equal to the number of bytes that would
+/*	be transmitted via SMTP including the <CR><LF> line endings.
+/* .IP \fBsender\fB
+/*	The envelope sender address.
+/* .IP \fBrecipients\fB
+/*	An array containing zero or more objects with members:
+/* .RS
+/* .IP \fBaddress\fB
+/*	One recipient address.
+/* .IP \fBdelay_reason\fB
+/*	If present, the reason for delayed delivery.  Some delayed
+/*	recipients have no delay reason, for example, when delivery
+/*	is in progress or when the system was stopped before it
+/*	could record the reason.
+/*  .RE
+/* .RE
+/* .IP
+/*	This feature is available in Postfix 3.1 and later.
 /* .IP \fB-p\fR
 /*	Produce a traditional sendmail-style queue listing.
 /*	This option implements the traditional \fBmailq\fR command,
@@ -77,6 +125,8 @@
 /* .fi
 /*	This program is designed to run with set-group ID privileges, so
 /*	that it can connect to Postfix daemon processes.
+/* STANDARDS
+/*	RFC 7159 (JSON notation)
 /* DIAGNOSTICS
 /*	Problems are logged to \fBsyslogd\fR(8) and to the standard error
 /*	stream.
@@ -161,6 +211,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -188,6 +243,7 @@
 #include <valid_hostname.h>
 #include <warn_stat.h>
 #include <events.h>
+#include <stringops.h>
 
 /* Global library. */
 
@@ -207,6 +263,8 @@
 #include <mail_parm_split.h>
 
 /* Application-specific. */
+
+#include <postqueue.h>
 
  /*
   * WARNING WARNING WARNING
@@ -241,6 +299,7 @@
 #define PQ_MODE_FLUSH_QUEUE	2	/* flush queue */
 #define PQ_MODE_FLUSH_SITE	3	/* flush site */
 #define PQ_MODE_FLUSH_FILE	4	/* flush message */
+#define PQ_MODE_JSON_LIST	5	/* JSON-format queue listing */
 
  /*
   * Silly little macros (SLMs).
@@ -261,10 +320,9 @@ static const CONFIG_STR_TABLE str_table[] = {
 
 /* show_queue - show queue status */
 
-static void show_queue(void)
+static void show_queue(int mode)
 {
     const char *errstr;
-    char    buf[VSTREAM_BUFSIZE];
     VSTREAM *showq;
     int     n;
     uid_t   uid = getuid();
@@ -277,19 +335,20 @@ static void show_queue(void)
 			 errstr, (long) uid);
 
     /*
-     * Connect to the show queue service. Terminate silently when piping into
-     * a program that terminates early.
+     * Connect to the show queue service.
      */
     if ((showq = mail_connect(MAIL_CLASS_PUBLIC, var_showq_service, BLOCKING)) != 0) {
-	while ((n = vstream_fread(showq, buf, sizeof(buf))) > 0) {
-	    if (vstream_fwrite(VSTREAM_OUT, buf, n) != n
-		|| vstream_fflush(VSTREAM_OUT) != 0) {
-		if (errno == EPIPE)
-		    break;
-		msg_fatal("write error: %m");
-	    }
+	switch (mode) {
+	case PQ_MODE_MAILQ_LIST:
+	    showq_compat(showq);
+	    break;
+	case PQ_MODE_JSON_LIST:
+	    showq_json(showq);
+	    break;
+	default:
+	    msg_panic("show_queue: unknown mode %d", mode);
 	}
-	if (vstream_fclose(showq) && errno != EPIPE)
+	if (vstream_fclose(showq))
 	    msg_warn("close: %m");
     }
 
@@ -308,21 +367,40 @@ static void show_queue(void)
      * directly. Just run the showq program in stand-alone mode.
      */
     else if (geteuid() == 0) {
+	char   *showq_path;
 	ARGV   *argv;
 	int     stat;
 
 	msg_warn("Mail system is down -- accessing queue directly");
+	showq_path = concatenate(var_daemon_dir, "/", var_showq_service,
+				 (char *) 0);
 	argv = argv_alloc(6);
-	argv_add(argv, var_showq_service, "-u", "-S", (char *) 0);
+	argv_add(argv, showq_path, "-u", "-S", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
 	    argv_add(argv, "-v", (char *) 0);
 	argv_terminate(argv);
-	stat = mail_run_foreground(var_daemon_dir, argv->argv);
+	if ((showq = vstream_popen(O_RDONLY,
+				   CA_VSTREAM_POPEN_ARGV(argv->argv),
+				   CA_VSTREAM_POPEN_END)) == 0) {
+	    stat = -1;
+	} else {
+	    switch (mode) {
+	    case PQ_MODE_MAILQ_LIST:
+		showq_compat(showq);
+		break;
+	    case PQ_MODE_JSON_LIST:
+		showq_json(showq);
+		break;
+	    default:
+		msg_panic("show_queue: unknown mode %d", mode);
+	    }
+	    stat = vstream_pclose(showq);
+	}
 	argv_free(argv);
 	if (stat != 0)
 	    msg_fatal_status(stat < 0 ? EX_OSERR : EX_SOFTWARE,
-			     "Error running %s/%s",
-			     var_daemon_dir, argv->argv[0]);
+			     "Error running %s", showq_path);
+	myfree(showq_path);
     }
 
     /*
@@ -500,7 +578,7 @@ int     main(int argc, char **argv)
      * mail configuration read routine. Don't do complex things until we have
      * completed initializations.
      */
-    while ((c = GETOPT(argc, argv, "c:fi:ps:v")) > 0) {
+    while ((c = GETOPT(argc, argv, "c:fi:jps:v")) > 0) {
 	switch (c) {
 	case 'c':				/* non-default configuration */
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -516,6 +594,11 @@ int     main(int argc, char **argv)
 		usage();
 	    mode = PQ_MODE_FLUSH_FILE;
 	    id_to_flush = optarg;
+	    break;
+	case 'j':
+	    if (mode != PQ_MODE_DEFAULT)
+		usage();
+	    mode = PQ_MODE_JSON_LIST;
 	    break;
 	case 'p':				/* traditional mailq */
 	    if (mode != PQ_MODE_DEFAULT)
@@ -597,7 +680,8 @@ int     main(int argc, char **argv)
 	msg_panic("unknown operation mode: %d", mode);
 	/* NOTREACHED */
     case PQ_MODE_MAILQ_LIST:
-	show_queue();
+    case PQ_MODE_JSON_LIST:
+	show_queue(mode);
 	exit(0);
 	break;
     case PQ_MODE_FLUSH_SITE:

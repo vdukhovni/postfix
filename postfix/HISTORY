@@ -22010,3 +22010,18 @@ Apologies for any names omitted.
 	Bitrot: OpenSSL API cleanups. Viktor Dukhovni. Files:
 	.indent.pro, tls/tls.h, tls/tls_dane.c, tls/tls_fprint.c,
 	tls/tls_misc.c, tls/tls_server.c, tls/tls_verify.c.
+
+20151124
+
+	Bugfix (introduced: Postfix 3.0): don't throttle a destination
+	after opportunistic TLS failure. Viktor Dukhovni and Wietse.
+	Files: smtp/smtp_proto.c, smtp/smtp.h, smtp/smtp_trouble.c.
+
+20151128
+
+	Feature: JSON-formatted queue listing with "postqueue -j".
+	Output is a stream of JSON objects, one per queue file.  To
+	simplify stream-mode parsing, each JSON object is followed by
+	a newline character. Files: postqueue/postqueue.c,
+	postqueue/postqueue.h, postqueue/showq_compat.c,
+	postqueue/showq_json.c, showq/showq.c.

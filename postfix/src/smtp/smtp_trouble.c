@@ -32,6 +32,13 @@
 /*	SMTP_STATE *state;
 /*	int	exception;
 /*	const char *description;
+/* AUXILIARY FUNCTIONS
+/*	int	smtp_misc_fail(state, throttle, mta_name, resp, format, ...)
+/*	SMTP_STATE *state;
+/*	int	throttle;
+/*	const char *mta_name;
+/*	SMTP_RESP *resp;
+/*	const char *format;
 /* DESCRIPTION
 /*	This module handles all non-fatal errors that can happen while
 /*	attempting to deliver mail via SMTP, and implements the policy
@@ -81,6 +88,13 @@
 /*	defer delivery of all remaining recipients; hard error: bounce all
 /*	remaining recipients.
 /*	The result is non-zero.
+/*
+/*	smtp_misc_fail() provides a more detailed interface than
+/*	smtp_site_fail() and smtp_mesg_fail(), which are convenience
+/*	wrappers around smtp_misc_fail(). The throttle argument
+/*	is either SMTP_THROTTLE or SMTP_NOTHROTTLE; it is used only
+/*	in the "soft error, final server" policy, and determines
+/*	whether a destination will be marked as problematic.
 /*
 /*	smtp_rcpt_fail() handles the case where a recipient is not
 /*	accepted by the server for reasons other than that the server
@@ -161,9 +175,6 @@
 
 #include "smtp.h"
 #include "smtp_sasl.h"
-
-#define SMTP_THROTTLE	1
-#define SMTP_NOTHROTTLE	0
 
 /* smtp_check_code - check response code */
 
@@ -310,10 +321,10 @@ static void vsmtp_fill_dsn(SMTP_STATE *state, const char *mta_name,
 	       reply ? DSB_DTYPE_SMTP : DSB_DTYPE_NONE, reply);
 }
 
-/* smtp_site_fail - throttle this queue; skip, defer or bounce all recipients */
+/* smtp_misc_fail - maybe throttle queue; skip/defer/bounce all recipients */
 
-int     smtp_site_fail(SMTP_STATE *state, const char *mta_name, SMTP_RESP *resp,
-		               const char *format,...)
+int     smtp_misc_fail(SMTP_STATE *state, int throttle, const char *mta_name, 
+				SMTP_RESP *resp, const char *format,...)
 {
     va_list ap;
 
@@ -330,30 +341,7 @@ int     smtp_site_fail(SMTP_STATE *state, const char *mta_name, SMTP_RESP *resp,
     /*
      * Skip, defer or bounce recipients, and throttle this queue.
      */
-    return (smtp_bulk_fail(state, SMTP_THROTTLE));
-}
-
-/* smtp_mesg_fail - skip, defer or bounce all recipients; no queue throttle */
-
-int     smtp_mesg_fail(SMTP_STATE *state, const char *mta_name, SMTP_RESP *resp,
-		               const char *format,...)
-{
-    va_list ap;
-
-    /*
-     * Initialize.
-     */
-    va_start(ap, format);
-    vsmtp_fill_dsn(state, mta_name, resp->dsn, resp->str, format, ap);
-    va_end(ap);
-
-    if (state->session && mta_name)
-	smtp_check_code(state->session, resp->code);
-
-    /*
-     * Skip, defer or bounce recipients, but don't throttle this queue.
-     */
-    return (smtp_bulk_fail(state, SMTP_NOTHROTTLE));
+    return (smtp_bulk_fail(state, throttle));
 }
 
 /* smtp_rcpt_fail - skip, defer, or bounce recipient */

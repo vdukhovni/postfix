@@ -105,8 +105,8 @@ later.
     6 smtpd_starttls_timeout = ${stress?{10}:{300}}s
     7 address_verify_poll_count = ${stress?{1}:{3}}
 
-With Postfix versions before 3.0, replace ${stress?{x}:{y}} with ${stress?x}$
-{stress:y}.
+Postfix versions before 3.0 use the older form ${stress?x}${stress:y} instead
+of the newer form ${stress?{x}:{y}}.
 
 Translation:
 
@@ -149,8 +149,8 @@ Translation:
     $unverified_sender_tempfail_action. No mail should be lost, as long as this
     measure is used only temporarily.
 
-The syntax of ${name?value} and ${name:value} is explained at the beginning of
-the postconf(5) manual page.
+The syntax of ${name?{value}:{value}}, ${name?value} and ${name:value} is
+explained at the beginning of the postconf(5) manual page.
 
 NOTE: Please keep in mind that the stress-adaptive feature is a fairly
 desperate measure to keep ssoommee legitimate mail flowing under overload

@@ -8,13 +8,19 @@ Postfix queue control
 .SH "SYNOPSIS"
 .na
 .nf
+\fBTo flush the mail queue\fR:
+
 \fBpostqueue\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-f\fR
-.br
+
 \fBpostqueue\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-i \fIqueue_id\fR
-.br
-\fBpostqueue\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-p\fR
-.br
+
 \fBpostqueue\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-s \fIsite\fR
+
+\fBTo list the mail queue\fR:
+
+\fBpostqueue\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-j\fR
+
+\fBpostqueue\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-p\fR
 .SH DESCRIPTION
 .ad
 .fi
@@ -46,6 +52,48 @@ This option implements the traditional \fBsendmail \-qI\fR
 command, by contacting the \fBflush\fR(8) server.
 
 This feature is available with Postfix version 2.4 and later.
+.IP "\fB\-j\fR"
+Produce a queue listing in JSON format, based on output
+from the showq(8) daemon.  The result is a stream of zero
+or more JSON objects, one per queue file.  Each object is
+followed by a newline character to support simple streaming
+parsers.
+.sp
+Object members have string values unless indicated otherwise.
+Programs should ignore object members that are not listed
+here; the list of members is expected to grow over time.
+.RS
+.IP \fBqueue_name\fB
+The name of the queue where the message was found.  Note
+that the contents of the mail queue may change while it is
+being listed; some messages may appear more than once, and
+some messages may be missed.
+.IP \fBqueue_id\fB
+The queue file name. The name may be reused unless
+"enable_long_queue_ids = true".
+.IP \fBarrival_time\fB
+The number of seconds since the start of the UNIX epoch.
+.IP \fBmessage_size\fB
+The number of bytes in the message header and body. This
+number does not include message envelope information. It
+is approximately equal to the number of bytes that would
+be transmitted via SMTP including the <CR><LF> line endings.
+.IP \fBsender\fB
+The envelope sender address.
+.IP \fBrecipients\fB
+An array containing zero or more objects with members:
+.RS
+.IP \fBaddress\fB
+One recipient address.
+.IP \fBdelay_reason\fB
+If present, the reason for delayed delivery.  Some delayed
+recipients have no delay reason, for example, when delivery
+is in progress or when the system was stopped before it
+could record the reason.
+.RE
+.RE
+.IP
+This feature is available in Postfix 3.1 and later.
 .IP \fB\-p\fR
 Produce a traditional sendmail\-style queue listing.
 This option implements the traditional \fBmailq\fR command,
@@ -85,6 +133,10 @@ this option is available for the super\-user only.
 .fi
 This program is designed to run with set\-group ID privileges, so
 that it can connect to Postfix daemon processes.
+.SH "STANDARDS"
+.na
+.nf
+RFC 7159 (JSON notation)
 .SH DIAGNOSTICS
 .ad
 .fi
@@ -187,3 +239,8 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
+
+Wietse Venema
+Google, Inc.
+111 8th Avenue
+New York, NY 10011, USA

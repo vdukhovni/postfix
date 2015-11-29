@@ -10,10 +10,19 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
        postqueue - Postfix queue control
 
 <b>SYNOPSIS</b>
+       <b>To flush the mail queue</b>:
+
        <b>postqueue</b> [<b>-v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-f</b>
+
        <b>postqueue</b> [<b>-v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-i</b> <i>queue</i><b>_</b><i>id</i>
-       <b>postqueue</b> [<b>-v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-p</b>
+
        <b>postqueue</b> [<b>-v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-s</b> <i>site</i>
+
+       <b>To list the mail queue</b>:
+
+       <b>postqueue</b> [<b>-v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-j</b>
+
+       <b>postqueue</b> [<b>-v</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] <b>-p</b>
 
 <b>DESCRIPTION</b>
        The  <a href="postqueue.1.html"><b>postqueue</b>(1)</a>  command  implements  the  Postfix user interface for
@@ -45,6 +54,51 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
               contacting the <a href="flush.8.html"><b>flush</b>(8)</a> server.
 
               This feature is available with Postfix version 2.4 and later.
+
+       <b>-j</b>     Produce a queue listing in JSON format, based on output from the
+              <a href="showq.8.html">showq(8)</a> daemon.  The result is a stream of zero  or  more  JSON
+              objects,  one per queue file.  Each object is followed by a new-
+              line character to support simple streaming parsers.
+
+              Object members have string values  unless  indicated  otherwise.
+              Programs  should ignore object members that are not listed here;
+              the list of members is expected to grow over time.
+
+              <b>queue_name</b>
+                     The name of the queue where the message was found.   Note
+                     that  the  contents of the mail queue may change while it
+                     is being listed; some messages may appear more than once,
+                     and some messages may be missed.
+
+              <b>queue_id</b>
+                     The  queue  file  name.  The  name  may  be reused unless
+                     "<a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a> = true".
+
+              <b>arrival_time</b>
+                     The number of seconds since the start of the UNIX  epoch.
+
+              <b>message_size</b>
+                     The  number of bytes in the message header and body. This
+                     number does not include message envelope information.  It
+                     is  approximately equal to the number of bytes that would
+                     be transmitted via SMTP including the &lt;CR&gt;&lt;LF&gt; line  end-
+                     ings.
+
+              <b>sender</b> The envelope sender address.
+
+              <b>recipients</b>
+                     An array containing zero or more objects with members:
+
+                     <b>address</b>
+                            One recipient address.
+
+                     <b>delay_reason</b>
+                            If present, the reason for delayed delivery.  Some
+                            delayed recipients have no delay reason, for exam-
+                            ple, when delivery is in progress or when the sys-
+                            tem was stopped before it could record the reason.
+
+              This feature is available in Postfix 3.1 and later.
 
        <b>-p</b>     Produce a traditional sendmail-style queue listing.  This option
               implements the traditional  <b>mailq</b>  command,  by  contacting  the
@@ -81,6 +135,9 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
 <b>SECURITY</b>
        This program is designed to run with set-group ID privileges,  so  that
        it can connect to Postfix daemon processes.
+
+<b>STANDARDS</b>
+       <a href="http://tools.ietf.org/html/rfc7159">RFC 7159</a> (JSON notation)
 
 <b>DIAGNOSTICS</b>
        Problems are logged to <b>syslogd</b>(8) and to the standard error stream.
@@ -168,6 +225,11 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
                                                                   POSTQUEUE(1)
 </pre> </body> </html>

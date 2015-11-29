@@ -935,10 +935,17 @@ static int smtp_start_tls(SMTP_STATE *state)
 	 * authentication. If the server doesn't announce SASL support over
 	 * plaintext connections, then we don't want delivery to fail with
 	 * "relay access denied".
+	 * 
+	 * If TLS is opportunistic, don't throttle the destination, otherwise if
+	 * the mail is volume is high enough we may have difficulty ever
+	 * draining even the deferred mail, as new mail provides a constant
+	 * stream of negative feedback.
 	 */
 	if (PLAINTEXT_FALLBACK_OK_AFTER_STARTTLS_FAILURE)
 	    RETRY_AS_PLAINTEXT;
-	return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
+	return (smtp_misc_fail(state, state->tls->level == TLS_LEV_MAY ?
+			       SMTP_NOTHROTTLE : SMTP_THROTTLE,
+			       DSN_BY_LOCAL_MTA,
 			       SMTP_RESP_FAKE(&fake, "4.7.5"),
 			       "Cannot start TLS: handshake failure"));
     }
