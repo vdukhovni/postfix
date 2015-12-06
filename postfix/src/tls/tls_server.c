@@ -561,11 +561,16 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     }
 
     /*
+     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    /*
      * According to OpenSSL documentation, a temporary RSA key is needed when
      * export ciphers are in use, because the certified key cannot be
      * directly used.
      */
     SSL_CTX_set_tmp_rsa_callback(server_ctx, tls_tmp_rsa_cb);
+#endif
 
     /*
      * Diffie-Hellman key generation parameters can either be loaded from

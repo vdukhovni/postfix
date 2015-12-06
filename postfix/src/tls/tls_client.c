@@ -423,11 +423,16 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     }
 
     /*
+     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    /*
      * According to the OpenSSL documentation, temporary RSA key is needed
      * export ciphers are in use. We have to provide one, so well, we just do
      * it.
      */
     SSL_CTX_set_tmp_rsa_callback(client_ctx, tls_tmp_rsa_cb);
+#endif
 
     /*
      * Finally, the setup for the server certificate checking, done "by the
