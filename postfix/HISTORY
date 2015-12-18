@@ -22025,3 +22025,8 @@ Apologies for any names omitted.
 	a newline character. Files: postqueue/postqueue.c,
 	postqueue/postqueue.h, postqueue/showq_compat.c,
 	postqueue/showq_json.c, showq/showq.c.
+
+20151216
+
+	Bugfix (introduced: 20151128) bogus queue file parsing error.
+	File: showq/showq.c.

@@ -207,7 +207,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 	    break;
 	case REC_TYPE_SIZE:
 	    if (msg_size_ok == 0) {
-		msg_size_ok = (alldig(start) && (msg_size = atol(start)) >= 0);
+		msg_size_ok = (start[strspn(start, "0123456789 ")] == 0
+			       && (msg_size = atol(start)) >= 0);
 		if (msg_size_ok == 0) {
 		    msg_warn("%s: malformed size record: %.100s "
 			     "-- using file size instead",
@@ -328,7 +329,6 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
     const char *path;
     int     status;
     char   *id;
-    int     file_count;
     struct stat st;
     struct queue_info {
 	char   *name;			/* queue name */
@@ -356,7 +356,6 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
      * existing file, assume the system is out of resources or that it is
      * mis-configured, and force backoff by raising a fatal error.
      */
-    file_count = 0;
     for (qp = queue_info; qp->name != 0; qp++) {
 	SCAN_DIR *scan = scan_dir_open(qp->name);
 	char   *saved_id = 0;
