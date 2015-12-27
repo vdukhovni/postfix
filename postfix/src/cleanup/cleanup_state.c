@@ -81,6 +81,7 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->auto_hdrs = argv_alloc(1);
     state->hbc_rcpt = 0;
     state->flags = 0;
+    state->tflags = 0;
     state->qmgr_opts = 0;
     state->errs = 0;
     state->err_mask = 0;

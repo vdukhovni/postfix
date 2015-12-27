@@ -28,7 +28,7 @@
  /*
   * External interface.
   */
-typedef void (*POST_MAIL_NOTIFY)(VSTREAM *, void *);
+typedef void (*POST_MAIL_NOTIFY) (VSTREAM *, void *);
 extern VSTREAM *post_mail_fopen(const char *, const char *, int, int, int, VSTRING *);
 extern VSTREAM *post_mail_fopen_nowait(const char *, const char *, int, int, int, VSTRING *);
 extern void post_mail_fopen_async(const char *, const char *, int, int, int, VSTRING *, POST_MAIL_NOTIFY, void *);
@@ -36,6 +36,8 @@ extern int PRINTFLIKE(2, 3) post_mail_fprintf(VSTREAM *, const char *,...);
 extern int post_mail_fputs(VSTREAM *, const char *);
 extern int post_mail_buffer(VSTREAM *, const char *, int);
 extern int post_mail_fclose(VSTREAM *);
+typedef void (*POST_MAIL_FCLOSE_NOTIFY) (int, void *);
+extern void post_mail_fclose_async(VSTREAM *, POST_MAIL_FCLOSE_NOTIFY, void *);
 
 #define POST_MAIL_BUFFER(v, b) \
 	post_mail_buffer((v), vstring_str(b), VSTRING_LEN(b))

@@ -2,6 +2,12 @@ Wish list:
 
 	Things to do before the stable release:
 
+	Viktor's bitrot patches. 
+
+	Not: SMTPUTF8 auto-conversion of lookups/matches.
+
+	---------------------end of Postfix 3.1.0 todo list
+
 	Spell-check, double-word check, and HTML validator check.
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
@@ -17,7 +23,8 @@ Wish list:
 	smtp_reply_footer() undoable.
 
 	Type-checking wrappers for htable(3), ctable(3) and other
-	modules that take and return a void* pointer.
+	modules that take and return a void* pointer. This is
+	the next best thing to C++ style HTABLE<payload_type>.
 
 	TLS certificate provenance: indicate whether a subject
 	name/issuer are verified or not (for example, change the
@@ -76,9 +83,8 @@ Wish list:
 
 	Log command=good/bad statistics in postscreen?
 
-	Implement smtpd_client_auth_rate limit?
-
-	Make the access map BCC action consistent with header_checks.
+	Remember multiple access map BCC actions, for consistency
+	with header_checks.
 
 	smtpd_checks tests either must use a DNS dummy resolver
 	(override the res_search API) or all names must be under
@@ -92,11 +98,6 @@ Wish list:
 	queue file segment.  In the queue manager, extract this
 	along with other header-extracted information, and forward
 	the Message-ID in the bounce server notification request.
-
-	Find a way to show non-default OPT, DEBUG etc. settings at
-	the top of the makedefs.out file.
-
-	Update smtputf8_enable in postconf(5)
 
 	Clobber ORCPT when sender is owner-mumble?
 
@@ -113,9 +114,6 @@ Wish list:
 	Error reporting: see if pcf_check_master_entry() and children
 	can return error descriptions instead of terminating with
 	a fatal error.
-
-	Make sure that proxy: can handle random:, pipe:, and other
-	multimaps.
 
 	Add a switch to consider postscreen deep protocol tests as
 	"completed" when receiving "RSET" after "RCPT TO" and the

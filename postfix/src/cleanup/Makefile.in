@@ -760,7 +760,9 @@ cleanup_envelope.o: ../../include/attr.h
 cleanup_envelope.o: ../../include/been_here.h
 cleanup_envelope.o: ../../include/check_arg.h
 cleanup_envelope.o: ../../include/cleanup_user.h
+cleanup_envelope.o: ../../include/deliver_request.h
 cleanup_envelope.o: ../../include/dict.h
+cleanup_envelope.o: ../../include/dsn.h
 cleanup_envelope.o: ../../include/dsn_mask.h
 cleanup_envelope.o: ../../include/header_body_checks.h
 cleanup_envelope.o: ../../include/header_opts.h
@@ -775,6 +777,7 @@ cleanup_envelope.o: ../../include/match_list.h
 cleanup_envelope.o: ../../include/milter.h
 cleanup_envelope.o: ../../include/mime_state.h
 cleanup_envelope.o: ../../include/msg.h
+cleanup_envelope.o: ../../include/msg_stats.h
 cleanup_envelope.o: ../../include/myflock.h
 cleanup_envelope.o: ../../include/mymalloc.h
 cleanup_envelope.o: ../../include/nvtable.h
@@ -1161,6 +1164,7 @@ cleanup_out_recipient.o: ../../include/sys_defs.h
 cleanup_out_recipient.o: ../../include/tok822.h
 cleanup_out_recipient.o: ../../include/trace.h
 cleanup_out_recipient.o: ../../include/vbuf.h
+cleanup_out_recipient.o: ../../include/verify.h
 cleanup_out_recipient.o: ../../include/vstream.h
 cleanup_out_recipient.o: ../../include/vstring.h
 cleanup_out_recipient.o: cleanup.h

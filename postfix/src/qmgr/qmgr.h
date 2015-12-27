@@ -380,6 +380,7 @@ struct QMGR_MESSAGE {
 
 extern int qmgr_message_count;
 extern int qmgr_recipient_count;
+extern int qmgr_vrfy_pend_count;
 
 extern void qmgr_message_free(QMGR_MESSAGE *);
 extern void qmgr_message_update_warn(QMGR_MESSAGE *);

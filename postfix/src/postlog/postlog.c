@@ -26,9 +26,12 @@
 /*	instead of the default configuration directory.
 /* .IP \fB-i\fR
 /*	Include the process ID in the logging tag.
-/* .IP "\fB-p \fIpriority\fR"
-/*	Specifies the logging severity: \fBinfo\fR (default), \fBwarn\fR,
-/*	\fBerror\fR, \fBfatal\fR, or \fBpanic\fR.
+/* .IP "\fB-p \fIpriority\fR (default: \fBinfo\fR)"
+/*	Specifies the logging severity: \fBinfo\fR, \fBwarn\fR,
+/*	\fBerror\fR, \fBfatal\fR, or \fBpanic\fR. With Postfix 3.1
+/*	and later, the program will pause for 1 second after reporting
+/*	a \fBfatal\fR or \fBpanic\fR condition, just like other
+/*	Postfix programs.
 /* .IP "\fB-t \fItag\fR"
 /*	Specifies the logging tag, that is, the identifying name that
 /*	appears at the beginning of each logging record. A default tag
@@ -261,5 +264,11 @@ int     main(int argc, char **argv)
     } else {
 	log_stream(level, VSTREAM_IN);
     }
+
+    /*
+     * Consistency with msg(3) functions.
+     */
+    if (level >= MSG_FATAL)
+	sleep(1);
     exit(0);
 }

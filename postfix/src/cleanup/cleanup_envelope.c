@@ -68,6 +68,7 @@
 #include <dsn_mask.h>
 #include <rec_attr_map.h>
 #include <smtputf8.h>
+#include <deliver_request.h>
 
 /* Application-specific. */
 
@@ -487,6 +488,16 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		state->errs |= CLEANUP_STAT_BAD;
 		return;
 	    }
+	}
+	if (strcmp(attr_name, MAIL_ATTR_TRACE_FLAGS) == 0) {
+	    if (!alldig(attr_value)) {
+		msg_warn("%s: message rejected: bad TFLAG record <%.200s>",
+			 state->queue_id, buf);
+		state->errs |= CLEANUP_STAT_BAD;
+		return;
+	    }
+	    if (state->tflags == 0)
+		state->tflags = DEL_REQ_TRACE_FLAGS(atoi(attr_value));
 	}
 	nvtable_update(state->attr, attr_name, attr_value);
 	cleanup_out(state, type, buf, len);

@@ -2706,6 +2706,10 @@ extern int var_scache_ttl_lim;
 #define DEF_SCACHE_STAT_TIME		"600s"
 extern int var_scache_stat_time;
 
+#define VAR_VRFY_PEND_LIMIT		"address_verify_pending_request_limit"
+#define DEF_VRFY_PEND_LIMIT		(DEF_QMGR_ACT_LIMIT / 4)
+extern int var_vrfy_pend_limit;
+
  /*
   * Address verification service.
   */

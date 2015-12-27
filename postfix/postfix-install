@@ -216,10 +216,11 @@ USAGE="Usage: $0 [name=value] [option]
 for arg
 do
     case $arg in
-      *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
--non-int*) non_interactive=1;;
- -package) need_install_root=install_root;;
-        *) echo "$0: Error: $USAGE" 1>&2; exit 1;;
+*[" 	"]*) echo "$0: Error: argument contains whitespace: '$arg'"; exit 1;;
+	*=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
+  -non-int*) non_interactive=1;;
+   -package) need_install_root=install_root;;
+	  *) echo "$0: Error: $USAGE" 1>&2; exit 1;;
     esac
     shift
 done
@@ -597,14 +598,14 @@ do
    esac
 done
 
-# Don't allow whitespace in parameter settings.
+# Don't allow space or tab in parameter settings.
 
 for name in $CONFIG_PARAMS sample_directory
 do
     eval junk=\$$name
     case "$junk" in
-*"	"*|*" "*) echo $0: Error: $name value contains whitespace: "'$junk'" 1>&2
-		  exit 1;;
+*"[ 	]"*) echo "$0: Error: $name value contains whitespace: '$junk'" 1>&2
+	     exit 1;;
     esac
 done
 

@@ -234,6 +234,8 @@ obsolete=; keep_list=;
 for arg
 do
     case $arg in
+	*[" 	"]*) echo $0: "Error: argument contains whitespace: '$arg'"
+		     exit 1;;
                 *=*) IFS= eval $arg; IFS="$BACKUP_IFS";;
      create-missing) create=1;;
 	  set-perm*) create=1; set_perms=1;;

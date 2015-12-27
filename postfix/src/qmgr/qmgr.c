@@ -318,6 +318,11 @@
 /* .IP "\fBqmgr_ipc_timeout (60s)\fR"
 /*	The time limit for the queue manager to send or receive information
 /*	over an internal communication channel.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBaddress_verify_pending_request_limit (see 'postconf -d' output)\fR"
+/*	A safety limit that prevents address verification requests
+/*	from overwhelming the Postfix queue.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
@@ -465,6 +470,7 @@ char   *var_def_filter_nexthop;
 int     var_qmgr_daemon_timeout;
 int     var_qmgr_ipc_timeout;
 int     var_dsn_delay_cleared;
+int     var_vrfy_pend_limit;
 
 static QMGR_SCAN *qmgr_scans[2];
 
@@ -739,6 +745,7 @@ int     main(int argc, char **argv)
 	VAR_LOCAL_RCPT_LIMIT, DEF_LOCAL_RCPT_LIMIT, &var_local_rcpt_lim, 0, 0,
 	VAR_LOCAL_CON_LIMIT, DEF_LOCAL_CON_LIMIT, &var_local_con_lim, 0, 0,
 	VAR_CONC_COHORT_LIM, DEF_CONC_COHORT_LIM, &var_conc_cohort_limit, 0, 0,
+	VAR_VRFY_PEND_LIMIT, DEF_VRFY_PEND_LIMIT, &var_vrfy_pend_limit, 1, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE bool_table[] = {

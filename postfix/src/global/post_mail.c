@@ -54,6 +54,11 @@
 /*
 /*	int	post_mail_fclose(stream)
 /*	VSTREAM	*STREAM;
+/*
+/*	void	post_mail_fclose_async(stream, notify, context)
+/*	VSTREAM	*stream;
+/*	void	(*notify)(int status, void *context);
+/*	void	*context;
 /* DESCRIPTION
 /*	This module provides a convenient interface for the most
 /*	common case of sending one message to one recipient. It
@@ -90,6 +95,11 @@
 /*	evaluates its buffer argument more than once.
 /*
 /*	post_mail_fclose() completes the posting of a message.
+/*
+/*	post_mail_fclose_async() completes the posting of a message
+/*	and upon completion invokes the caller-specified notify
+/*	routine, with the cleanup status and caller-specified context
+/*	as arguments.
 /*
 /*	Arguments:
 /* .IP sender
@@ -187,6 +197,16 @@ typedef struct {
     VSTRING *queue_id;
 } POST_MAIL_STATE;
 
+ /*
+  * Call-back state for asynchronous close requests.
+  */
+typedef struct {
+    int     status;
+    VSTREAM *stream;
+    POST_MAIL_FCLOSE_NOTIFY notify;
+    void   *context;
+} POST_MAIL_FCLOSE_STATE;
+
 /* post_mail_init - initial negotiations */
 
 static void post_mail_init(VSTREAM *stream, const char *sender,
@@ -204,6 +224,13 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
 
     GETTIMEOFDAY(&now);
     date = mail_date(now.tv_sec);
+
+    /*
+     * XXX Don't flush buffers while sending the initial message records.
+     * That would cause deadlock between verify(8) and cleanup(8) servers.
+     */
+    vstream_control(stream, VSTREAM_CTL_BUFSIZE, 2 * VSTREAM_BUFSIZE,
+		    VSTREAM_CTL_END);
 
     /*
      * Negotiate with the cleanup service. Give up if we can't agree.
@@ -434,4 +461,95 @@ int     post_mail_fclose(VSTREAM *cleanup)
     }
     (void) vstream_fclose(cleanup);
     return (status);
+}
+
+/* post_mail_fclose_event - event handler */
+
+static void post_mail_fclose_event(int event, void *context)
+{
+    POST_MAIL_FCLOSE_STATE *state = (POST_MAIL_FCLOSE_STATE *) context;
+    int     status = state->status;
+
+    switch (event) {
+
+	/*
+	 * Final server reply. Pick up the completion status.
+	 */
+    case EVENT_READ:
+	if (status == 0) {
+	    if (vstream_ferror(state->stream) != 0
+		|| attr_scan(state->stream, ATTR_FLAG_MISSING,
+			     ATTR_TYPE_INT, MAIL_ATTR_STATUS, &status,
+			     ATTR_TYPE_END) != 1)
+		status = CLEANUP_STAT_WRITE;
+	}
+	break;
+
+	/*
+	 * No response or error.
+	 */
+    default:
+	msg_warn("error talking to service: %s", var_cleanup_service);
+	status = CLEANUP_STAT_WRITE;
+	break;
+    }
+
+    /*
+     * Stop the watchdog timer, and disable further read events that end up
+     * calling this function.
+     */
+    event_cancel_timer(post_mail_fclose_event, context);
+    event_disable_readwrite(vstream_fileno(state->stream));
+
+    /*
+     * Notify the requestor and clean up.
+     */
+    state->notify(status, state->context);
+    (void) vstream_fclose(state->stream);
+    myfree((void *) state);
+}
+
+/* post_mail_fclose_async - finish posting of message */
+
+void    post_mail_fclose_async(VSTREAM *stream,
+			         void (*notify) (int status, void *context),
+			               void *context)
+{
+    POST_MAIL_FCLOSE_STATE *state;
+    int     status = 0;
+
+
+    /*
+     * Send the message end marker only when there were no errors.
+     */
+    if (vstream_ferror(stream) != 0) {
+	status = CLEANUP_STAT_WRITE;
+    } else {
+	rec_fputs(stream, REC_TYPE_XTRA, "");
+	rec_fputs(stream, REC_TYPE_END, "");
+	if (vstream_fflush(stream))
+	    status = CLEANUP_STAT_WRITE;
+    }
+
+    /*
+     * Bundle up the suspended state.
+     */
+    state = (POST_MAIL_FCLOSE_STATE *) mymalloc(sizeof(*state));
+    state->status = status;
+    state->stream = stream;
+    state->notify = notify;
+    state->context = context;
+
+    /*
+     * To keep interfaces as simple as possible we report all errors via the
+     * same interface as all successes.
+     */
+    if (status == 0) {
+	event_enable_read(vstream_fileno(stream), post_mail_fclose_event,
+			  (void *) state);
+	event_request_timer(post_mail_fclose_event, (void *) state,
+			    var_daemon_timeout);
+    } else {
+	event_request_timer(post_mail_fclose_event, (void *) state, 0);
+    }
 }

@@ -64,6 +64,7 @@ typedef struct CLEANUP_STATE {
     ARGV   *auto_hdrs;			/* MTA's own header(s) */
     ARGV   *hbc_rcpt;			/* header/body checks BCC addresses */
     int     flags;			/* processing options, status flags */
+    int     tflags;			/* User- or MTA-requested tracing */
     int     qmgr_opts;			/* qmgr processing options */
     int     errs;			/* any badness experienced */
     int     err_mask;			/* allowed badness */

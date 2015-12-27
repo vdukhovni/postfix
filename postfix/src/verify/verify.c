@@ -400,9 +400,17 @@ static void verify_update_service(VSTREAM *client_stream)
     vstring_free(text);
 }
 
+/* verify_post_mail_fclose_action - callback */
+
+static void verify_post_mail_fclose_action(int unused_status,
+					           void *unused_context)
+{
+    /* no code here, we just need to avoid blocking in post_mail_fclose() */
+}
+
 /* verify_post_mail_action - callback */
 
-static void verify_post_mail_action(VSTREAM *stream, void *unused_context)
+static void verify_post_mail_action(VSTREAM *stream, void *context)
 {
 
     /*
@@ -410,7 +418,7 @@ static void verify_post_mail_action(VSTREAM *stream, void *unused_context)
      * deferred, or bounced.
      */
     if (stream != 0)
-	post_mail_fclose(stream);
+	post_mail_fclose_async(stream, verify_post_mail_fclose_action, context);
 }
 
 /* verify_query_service - query address status */
@@ -500,8 +508,8 @@ static void verify_query_service(VSTREAM *client_stream)
     (addr_status != DEL_RCPT_STAT_OK && updated + var_verify_neg_try < now)
 
 	if (now - probed > PROBE_TTL
-	    && (POSITIVE_REFRESH_NEEDED(addr_status, updated)
-		|| NEGATIVE_REFRESH_NEEDED(addr_status, updated))) {
+	       && (POSITIVE_REFRESH_NEEDED(addr_status, updated)
+		   || NEGATIVE_REFRESH_NEEDED(addr_status, updated))) {
 	    if (msg_verbose)
 		msg_info("PROBE %s status=%d probed=%ld updated=%ld",
 			 STR(addr), addr_status, now, updated);

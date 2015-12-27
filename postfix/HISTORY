@@ -22030,3 +22030,32 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20151128) bogus queue file parsing error.
 	File: showq/showq.c.
+
+20151226
+
+	Cleanup: postlog(1) now pauses for 1s after reporting a
+	fatal or panic error. This makes behavior of scripts such
+	as postfix-script consistent with built-in error messages.
+	File: postlog/postlog.c.
+
+20151227
+
+	Robustness: don't allow for whitespace in command-line
+	arguments.  Files; postfix-install, conf/post-install.
+
+	Robustness: added a comment to discourage people who keep
+	adding code that calls gethostbyname() to determine the
+	default myhostname setting.  This is a mistake: all Postfix
+	programs will hang when the DNS is unavailable.  File:
+	global/mail_params.c.
+
+	Safety: a limit on the number of address verification probes
+	in the active queue (address_verify_pending_request_limit),
+	by default 1/4 of the active queue maximum size. The queue
+	manager tempfails probe messages that exceed the limit.
+	Files: mantools/postlink, proto/postconf.proto, cleanup/cleanup.h,
+	cleanup/cleanup_envelope.c, cleanup/cleanup_out_recipient.c,
+	cleanup/cleanup_state.c, global/mail_params.h, global/post_mail.c,
+	global/post_mail.h, global/verify.c, oqmgr/qmgr.c, oqmgr/qmgr.h,
+	oqmgr/qmgr_message.c, qmgr/qmgr.c, qmgr/qmgr.h,
+	qmgr/qmgr_message.c, verify/verify.c.

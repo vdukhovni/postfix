@@ -8,6 +8,7 @@
 /*
 /*	int	qmgr_message_count;
 /*	int	qmgr_recipient_count;
+/*	int	qmgr_vrfy_pend_count;
 /*
 /*	QMGR_MESSAGE *qmgr_message_alloc(class, name, qflags, mode)
 /*	const char *class;
@@ -37,6 +38,13 @@
 /*	qmgr_recipient_count is a global counter for the total number
 /*	of in-core recipient structures (i.e. the sum of all recipients
 /*	in all in-core message structures).
+/*
+/*	qmgr_vrfy_pend_count is a global counter for the total
+/*	number of in-core message structures that are associated
+/*	with an address verification request. Requests that exceed
+/*	the address_verify_pending_limit are deferred immediately.
+/*	This is a backup mechanism for a more refined enforcement
+/*	mechanism in the verify(8) daemon.
 /*
 /*	qmgr_message_alloc() creates an in-core message structure
 /*	with sender and recipient information taken from the named queue
@@ -145,6 +153,7 @@
 
 int     qmgr_message_count;
 int     qmgr_recipient_count;
+int     qmgr_vrfy_pend_count;
 
 /* qmgr_message_create - create in-core message structure */
 
@@ -746,11 +755,15 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	     * after the logfile is deleted.
 	     */
 	    else if (strcmp(name, MAIL_ATTR_TRACE_FLAGS) == 0) {
-		message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
-		if (message->tflags == DEL_REQ_FLAG_RECORD)
-		    message->tflags_offset = curr_offset;
-		else
-		    message->tflags_offset = 0;
+		if (message->tflags == 0) {
+		    message->tflags = DEL_REQ_TRACE_FLAGS(atoi(value));
+		    if (message->tflags == DEL_REQ_FLAG_RECORD)
+			message->tflags_offset = curr_offset;
+		    else
+			message->tflags_offset = 0;
+		    if ((message->tflags & DEL_REQ_FLAG_MTA_VRFY) != 0)
+			qmgr_vrfy_pend_count++;
+		}
 	    }
 	    continue;
 	}
@@ -1167,6 +1180,14 @@ static void qmgr_message_resolve(QMGR_MESSAGE *message)
 	}
 
 	/*
+	 * Safety: defer excess address verification requests.
+	 */
+	if ((message->tflags & DEL_REQ_FLAG_MTA_VRFY) != 0
+	    && qmgr_vrfy_pend_count > var_vrfy_pend_limit)
+	    QMGR_REDIRECT(&reply, MAIL_SERVICE_RETRY,
+			  "4.3.2 Too many address verification requests");
+
+	/*
 	 * Look up or instantiate the proper transport.
 	 */
 	if (transport == 0 || !STREQ(transport->name, STR(reply.transport))) {
@@ -1431,6 +1452,8 @@ void    qmgr_message_free(QMGR_MESSAGE *message)
 	myfree(message->rewrite_context);
     recipient_list_free(&message->rcpt_list);
     qmgr_message_count--;
+    if ((message->tflags & DEL_REQ_FLAG_MTA_VRFY) != 0)
+	qmgr_vrfy_pend_count--;
     myfree((void *) message);
 }
 

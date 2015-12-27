@@ -356,6 +356,11 @@ a request before it is terminated by a built\-in watchdog timer.
 .IP "\fBqmgr_ipc_timeout (60s)\fR"
 The time limit for the queue manager to send or receive information
 over an internal communication channel.
+.PP
+Available in Postfix version 3.1 and later:
+.IP "\fBaddress_verify_pending_request_limit (see 'postconf -d' output)\fR"
+A safety limit that prevents address verification requests
+from overwhelming the Postfix queue.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

@@ -368,13 +368,21 @@ static const char *check_myhostname(void)
     /*
      * If the local machine name is not in FQDN form, try to append the
      * contents of $mydomain. Use a default domain as a final workaround.
+     * 
+     * DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - IT MAKES EVERY POSTFIX
+     * PROGRAM HANG WHEN DNS SERVICE IS UNAVAILABLE. IF YOU DON'T LIKE THE
+     * DEFAULT, THEN EDIT MAIN.CF.
      */
     name = get_hostname();
+    /* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
     if ((dot = strchr(name, '.')) == 0) {
+	/* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
 	if ((domain = mail_conf_lookup_eval(VAR_MYDOMAIN)) == 0)
 	    domain = DEF_MYDOMAIN;
+	/* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
 	name = concatenate(name, ".", domain, (char *) 0);
     }
+    /* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
     return (name);
 }
 
@@ -386,9 +394,16 @@ static const char *check_mydomainname(void)
 
     /*
      * Use a default domain when the hostname is not a FQDN ("foo").
+     * 
+     * DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - IT MAKES EVERY POSTFIX
+     * PROGRAM HANG WHEN DNS SERVICE IS UNAVAILABLE. IF YOU DON'T LIKE THE
+     * DEFAULT, THEN EDIT MAIN.CF.
      */
+    /* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
     if ((dot = strchr(var_myhostname, '.')) == 0)
+	/* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
 	return (DEF_MYDOMAIN);
+    /* DO NOT CALL GETHOSTBYNAME OR GETNAMEINFO HERE - EDIT MAIN.CF */
     return (dot + 1);
 }
 

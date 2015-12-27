@@ -296,6 +296,23 @@ This feature is available in Postfix 2.1 and later.
 
 </DD>
 
+<DT><b><a name="address_verify_pending_request_limit">address_verify_pending_request_limit</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> A safety limit that prevents address verification requests from
+overwhelming the Postfix queue. By default, the number of pending
+requests is limited to 1/4 of the <a href="QSHAPE_README.html#active_queue">active queue</a> maximum size
+(<a href="postconf.5.html#qmgr_message_active_limit">qmgr_message_active_limit</a>). The queue manager enforces the limit
+by tempfailing requests that exceed the limit. This affects only
+unknown addresses and inactive addresses that have expired, because
+the <a href="verify.8.html">verify(8)</a> daemon automatically refreshes an active address
+before it expires. </p>
+
+<p> This feature is available in Postfix 3.1 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="address_verify_poll_count">address_verify_poll_count</a>
 (default: normal: 3, overload: 1)</b></DT><DD>
 

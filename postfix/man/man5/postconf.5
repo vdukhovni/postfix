@@ -177,6 +177,17 @@ be refreshed.
 Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
 This feature is available in Postfix 2.1 and later.
+.SH address_verify_pending_request_limit (default: see "postconf \-d" output)
+A safety limit that prevents address verification requests from
+overwhelming the Postfix queue. By default, the number of pending
+requests is limited to 1/4 of the active queue maximum size
+(qmgr_message_active_limit). The queue manager enforces the limit
+by tempfailing requests that exceed the limit. This affects only
+unknown addresses and inactive addresses that have expired, because
+the \fBverify\fR(8) daemon automatically refreshes an active address
+before it expires.
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH address_verify_poll_count (default: normal: 3, overload: 1)
 How many times to query the \fBverify\fR(8) service for the completion
 of an address verification request in progress.
