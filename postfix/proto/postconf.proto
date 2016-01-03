@@ -16593,6 +16593,41 @@ clients).  </p>
 This feature is available in Postfix 3.1 and later.
 </p>
 
+%PARAM smtp_tls_dane_insecure_mx_policy dane
+
+<p> The TLS policy for MX hosts with "secure" TLSA records when the
+nexthop destination security level is <b>dane</b>, but the MX
+record was found via an "insecure" MX lookup.  The choices are:
+</p>
+
+<dl>
+<dt><b>may</b></dt>
+<dd> The TLSA records will be ignored and TLS will be optional.  If
+the MX host does not appear to support STARTTLS, or the STARTTLS
+handshake fails, mail may be sent in the clear. </dd>
+<dt><b>encrypt</b></dt>
+<dd> The TLSA records will signal a requirement to use TLS.  While
+TLS encryption will be required, authentication will not be performed.
+</dd>
+<dt><b>dane</b> (default)</dt>
+<dd>The TLSA records will be used just as with "secure" MX records.
+TLS encryption will be required, and, if at least one of the TLSA
+records is "usable", authentication will be required.  When
+authentication succeeds, it will be logged only as "Trusted", not
+"Verified", because the MX host name could have been forged.  </dd>
+</dl>
+
+<p> Though with "insecure" MX records an active attacker can
+compromise SMTP transport security by returning forged MX records,
+such attacks are "tamper-evident" since any forged MX hostnames
+will be recorded in the mail logs.  Attackers who place a high value
+staying hidden may be deterred from forging MX records. </p>
+
+<p>
+This feature is available in Postfix 3.1 and later. The <b>may</b>
+policy is backwards-compatible with earlier Postfix versions.
+</p>
+
 %PARAM address_verify_pending_request_limit see "postconf -d" output
 
 <p> A safety limit that prevents address verification requests from

@@ -231,31 +231,37 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               with  these servers there will never be more than 1 reconnection
               attempt.
 
+       <b>-M</b> <i>insecure</i><b>_</b><i>mx</i><b>_</b><i>policy</i> (default: <b>dane</b>)
+              The TLS policy for MX hosts with "secure" TLSA records when  the
+              nexthop  destination  security  level is <b>dane</b>, but the MX record
+              was found via an "insecure" MX lookup.  See the <a href="postconf.5.html">main.cf</a> documen-
+              tation for smtp_tls_insecure_mx_policy for details.
+
        <b>-o</b> <i>name=value</i>
-              Specify zero or more times to override the value of the  <a href="postconf.5.html">main.cf</a>
-              parameter  <i>name</i> with <i>value</i>.  Possible use-cases include overrid-
-              ing the values of TLS library  parameters,  or  "<a href="postconf.5.html#myhostname">myhostname</a>"  to
+              Specify  zero or more times to override the value of the <a href="postconf.5.html">main.cf</a>
+              parameter <i>name</i> with <i>value</i>.  Possible use-cases include  overrid-
+              ing  the  values  of  TLS library parameters, or "<a href="postconf.5.html#myhostname">myhostname</a>" to
               configure the SMTP EHLO name sent to the remote server.
 
        <b>-p</b> <i>protocols</i> (default: !SSLv2)
-              List  of  TLS  protocols  that  posttls-finger  will  exclude or
+              List of  TLS  protocols  that  posttls-finger  will  exclude  or
               include.  See <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> for details.
 
        <b>-P</b> <i>CApath/</i> (default: none)
-              The OpenSSL CApath/  directory  (indexed  via  c_rehash(1))  for
+              The  OpenSSL  CApath/  directory  (indexed  via c_rehash(1)) for
               remote SMTP server certificate verification.  By default no CAp-
               ath is used and no public CAs are trusted.
 
        <b>-r</b> <i>delay</i>
-              With a cacheable TLS session,  disconnect  and  reconnect  after
+              With  a  cacheable  TLS  session, disconnect and reconnect after
               <i>delay</i> seconds. Report whether the session is re-used. Retry if a
-              new server is encountered, up to 5 times or  as  specified  with
-              the  <b>-m</b>  option.  By default reconnection is disabled, specify a
+              new  server  is  encountered, up to 5 times or as specified with
+              the <b>-m</b> option.  By default reconnection is disabled,  specify  a
               positive delay to enable this behavior.
 
-       <b>-S</b>     Disable SMTP; that is, connect to an LMTP  server.  The  default
-              port  for  LMTP over TCP is 24.  Alternative ports can specified
-              by appending "<i>:servicename</i>" or ":<i>portnumber</i>" to the  destination
+       <b>-S</b>     Disable  SMTP;  that  is, connect to an LMTP server. The default
+              port for LMTP over TCP is 24.  Alternative ports  can  specified
+              by  appending "<i>:servicename</i>" or ":<i>portnumber</i>" to the destination
               argument.
 
        <b>-t</b> <i>timeout</i> (default: <b>30</b>)
@@ -263,28 +269,28 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               reading the remote server's 220 banner.
 
        <b>-T</b> <i>timeout</i> (default: <b>30</b>)
-              The SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and  QUIT.
+              The  SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and QUIT.
 
-       <b>-v</b>     Enable  verbose  Postfix  logging.   Specify  more  than once to
+       <b>-v</b>     Enable verbose Postfix  logging.   Specify  more  than  once  to
               increase the level of verbose logging.
 
-       <b>-w</b>     Enable outgoing TLS wrapper mode, or  SMTPS  support.   This  is
-              typically  provided  on  port 465 by servers that are compatible
-              with the ad-hoc SMTP in SSL protocol, rather than  the  standard
+       <b>-w</b>     Enable  outgoing  TLS  wrapper  mode, or SMTPS support.  This is
+              typically provided on port 465 by servers  that  are  compatible
+              with  the  ad-hoc SMTP in SSL protocol, rather than the standard
               STARTTLS protocol.  The destination <i>domain</i>:<i>port</i> should of course
               provide such a service.
 
        [<b>inet:</b>]<i>domain</i>[:<i>port</i>]
               Connect via TCP to domain <i>domain</i>, port <i>port</i>. The default port is
-              <b>smtp</b>  (or 24 with LMTP).  With SMTP an MX lookup is performed to
-              resolve the domain to a host, unless the domain is  enclosed  in
-              <b>[]</b>.   If you want to connect to a specific MX host, for instance
-              <i>mx1.example.com</i>, specify [<i>mx1.example.com</i>]  as  the  destination
+              <b>smtp</b> (or 24 with LMTP).  With SMTP an MX lookup is performed  to
+              resolve  the  domain to a host, unless the domain is enclosed in
+              <b>[]</b>.  If you want to connect to a specific MX host, for  instance
+              <i>mx1.example.com</i>,  specify  [<i>mx1.example.com</i>]  as the destination
               and <i>example.com</i> as a <b>match</b> argument.  When using DNS, the desti-
-              nation domain is assumed fully qualified and no  default  domain
-              or  search  suffixes  are  applied; you must use fully-qualified
-              names or also enable <b>native</b> host lookups  (these  don't  support
-              <b>dane</b>  or <b>dane-only</b> as no DNSSEC validation information is avail-
+              nation  domain  is assumed fully qualified and no <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a>
+              or search suffixes are applied;  you  must  use  fully-qualified
+              names  or  also  enable <b>native</b> host lookups (these don't support
+              <b>dane</b> or <b>dane-only</b> as no DNSSEC validation information is  avail-
               able via <b>native</b> lookups).
 
        <b>unix:</b><i>pathname</i>
@@ -293,8 +299,8 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <b>match ...</b>
               With no match arguments specified, certificate peername matching
               uses the compiled-in default strategies for each security level.
-              If you specify one or more arguments, these will be used as  the
-              list  of certificate or public-key digests to match for the <b>fin-</b>
+              If  you specify one or more arguments, these will be used as the
+              list of certificate or public-key digests to match for the  <b>fin-</b>
               <b>gerprint</b> level, or as the list of DNS names to match in the cer-
               tificate at the <b>verify</b> and <b>secure</b> levels.  If the security level
               is <b>dane</b>, or <b>dane-only</b> the match names are ignored, and <b>hostname,</b>

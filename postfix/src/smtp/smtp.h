@@ -290,6 +290,7 @@ extern unsigned smtp_dns_res_opt;	/* DNS query flags */
 #ifdef USE_TLS
 
 extern TLS_APPL_STATE *smtp_tls_ctx;	/* client-side TLS engine */
+extern int smtp_tls_insecure_mx_policy;	/* DANE post insecure MX? */
 
 #endif
 

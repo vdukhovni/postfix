@@ -209,6 +209,11 @@ is likely to be effective for this destination.  Some MTAs
 don't expose the underlying server identity in their EHLO
 response; with these servers there will never be more than
 1 reconnection attempt.
+.IP "\fB\-M \fIinsecure_mx_policy\fR (default: \fBdane\fR)"
+The TLS policy for MX hosts with "secure" TLSA records when the
+nexthop destination security level is \fBdane\fR, but the MX
+record was found via an "insecure" MX lookup.  See the main.cf
+documentation for smtp_tls_insecure_mx_policy for details.
 .IP "\fB\-o \fIname=value\fR"
 Specify zero or more times to override the value of the main.cf
 parameter \fIname\fR with \fIvalue\fR.  Possible use\-cases include

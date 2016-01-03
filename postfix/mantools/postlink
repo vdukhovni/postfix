@@ -672,6 +672,7 @@ while (<>) {
     s;\bsmtp_tls_session_cache_database\b;<a href="postconf.5.html#smtp_tls_session_cache_database">$&</a>;g;
     s;\bsmtp_tls_session_cache_timeout\b;<a href="postconf.5.html#smtp_tls_session_cache_timeout">$&</a>;g;
     s;\bsmtp_tls_block_early_mail_reply\b;<a href="postconf.5.html#smtp_tls_block_early_mail_reply">$&</a>;g;
+    s;\bsmtp_tls_dane_insecure_mx_policy\b;<a href="postconf.5.html#smtp_tls_dane_insecure_mx_policy">$&</a>;g;
     s;\bsmtp_tls_force_insecure_host_tlsa_lookup\b;<a href="postconf.5.html#smtp_tls_force_insecure_host_tlsa_lookup">$&</a>;g;
     s;\bsmtp_tls_wrappermode\b;<a href="postconf.5.html#smtp_tls_wrappermode">$&</a>;g;
     s;\bsmtp_use_tls\b;<a href="postconf.5.html#smtp_use_tls">$&</a>;g;

@@ -468,6 +468,12 @@
 /* .IP "\fBsmtp_tls_wrappermode (no)\fR"
 /*	Request that the Postfix SMTP client connects using the
 /*	legacy SMTPS protocol instead of using the STARTTLS command.
+/* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBsmtp_tls_dane_insecure_mx_policy (dane)\fR"
+/*	The TLS policy for MX hosts with "secure" TLSA records when the
+/*	nexthop destination security level is \fBdane\fR, but the MX
+/*	record was found via an "insecure" MX lookup.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -890,6 +896,7 @@ char   *var_smtp_tls_eccert_file;
 char   *var_smtp_tls_eckey_file;
 bool    var_smtp_tls_blk_early_mail_reply;
 bool    var_smtp_tls_force_tlsa;
+char   *var_smtp_tls_insecure_mx_policy;
 
 #endif
 
@@ -942,6 +949,7 @@ HBC_CHECKS *smtp_body_checks;		/* limited body checks */
   * OpenSSL client state (opaque handle)
   */
 TLS_APPL_STATE *smtp_tls_ctx;
+int     smtp_tls_insecure_mx_policy;
 
 #endif
 
@@ -1060,6 +1068,22 @@ static void post_init(char *unused_name, char **unused_argv)
 		      var_smtp_dns_support);
 	var_disable_dns = (smtp_dns_support == SMTP_DNS_DISABLED);
     }
+
+#ifdef USE_TLS
+    if (smtp_mode) {
+	smtp_tls_insecure_mx_policy =
+	    tls_level_lookup(var_smtp_tls_insecure_mx_policy);
+	switch (smtp_tls_insecure_mx_policy) {
+	case TLS_LEV_MAY:
+	case TLS_LEV_ENCRYPT:
+	case TLS_LEV_DANE:
+	    break;
+	default:
+	    msg_fatal("invalid %s: \"%s\"", VAR_SMTP_TLS_INSECURE_MX_POLICY,
+		      var_smtp_tls_insecure_mx_policy);
+	}
+    }
+#endif
 
     /*
      * Select hostname lookup mechanisms.

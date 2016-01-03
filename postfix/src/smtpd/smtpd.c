@@ -1905,6 +1905,8 @@ static void helo_reset(SMTPD_STATE *state)
     }
 }
 
+#ifdef USE_SASL_AUTH
+
 /* smtpd_sasl_auth_cmd_wrapper - smtpd_sasl_auth_cmd front-end */
 
 static int smtpd_sasl_auth_cmd_wrapper(SMTPD_STATE *state, int argc,
@@ -1930,6 +1932,8 @@ static int smtpd_sasl_auth_cmd_wrapper(SMTPD_STATE *state, int argc,
     }
     return (smtpd_sasl_auth_cmd(state, argc, argv));
 }
+
+#endif
 
 /* mail_open_stream - open mail queue file or IPC stream */
 

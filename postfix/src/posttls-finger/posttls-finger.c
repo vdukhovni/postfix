@@ -203,6 +203,11 @@
 /*	don't expose the underlying server identity in their EHLO
 /*	response; with these servers there will never be more than
 /*	1 reconnection attempt.
+/* .IP "\fB-M \fIinsecure_mx_policy\fR (default: \fBdane\fR)"
+/*	The TLS policy for MX hosts with "secure" TLSA records when the
+/*	nexthop destination security level is \fBdane\fR, but the MX
+/*	record was found via an "insecure" MX lookup.  See the main.cf
+/*	documentation for smtp_tls_insecure_mx_policy for details.
 /* .IP "\fB-o \fIname=value\fR"
 /*	Specify zero or more times to override the value of the main.cf
 /*	parameter \fIname\fR with \fIvalue\fR.  Possible use-cases include
@@ -453,6 +458,7 @@ typedef struct STATE {
     TLS_DANE *ddane;			/* DANE TLSA from DNS */
     char   *grade;			/* Minimum cipher grade */
     char   *protocols;			/* Protocol inclusion/exclusion */
+    int     mxinsec_level;		/* DANE for insecure MX RRs? */
 #endif
     OPTIONS options;			/* JCL */
 } STATE;
@@ -1107,7 +1113,14 @@ static DNS_RR *mx_addr_list(STATE *state, DNS_RR *mx_names)
     static const char *myname = "mx_addr_list";
     DNS_RR *addr_list = 0;
     DNS_RR *rr;
-    int     res_opt = mx_names->dnssec_valid ? RES_USE_DNSSEC : 0;
+    int     res_opt = 0;
+
+    if (mx_names->dnssec_valid)
+	res_opt = RES_USE_DNSSEC;
+#ifdef USE_TLS
+    else if (state->mxinsec_level > TLS_LEV_MAY)
+	res_opt = RES_USE_DNSSEC;
+#endif
 
     for (rr = mx_names; rr; rr = rr->next) {
 	if (rr->type != T_MX)
@@ -1226,7 +1239,8 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 
 #ifdef USE_TLS
     if (TLS_DANE_BASED(level)) {
-	if (state->mx == 0 || state->mx->dnssec_valid) {
+	if (state->mx == 0 || state->mx->dnssec_valid ||
+	    state->mxinsec_level > TLS_LEV_MAY) {
 	    if (state->log_mask & (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE))
 		tls_dane_verbose(1);
 	    else
@@ -1259,12 +1273,22 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 	    } else if (!TLS_DANE_HASTA(state->ddane)
 		       && !TLS_DANE_HASEE(state->ddane)) {
 		msg_panic("DANE activated with no TLSA records to match");
+	    } else if (state->mx && !state->mx->dnssec_valid &&
+		       state->mxinsec_level == TLS_LEV_ENCRYPT) {
+		msg_info("TLSA RRs found, MX RRset insecure: just encrypt");
+		tls_dane_free(state->ddane);
+		state->ddane = 0;
+		level = TLS_LEV_ENCRYPT;
 	    } else {
 		if (state->match)
 		    argv_free(state->match);
 		argv_add(state->match = argv_alloc(2),
 			 state->ddane->base_domain, ARGV_END);
 		if (state->mx) {
+		    if (!state->mx->dnssec_valid) {
+			msg_info("MX RRset insecure: log verified as trusted");
+			state->ddane->flags |= TLS_DANE_FLAG_MXINSEC;
+		    }
 		    if (strcmp(state->mx->qname, state->mx->rname) == 0)
 			argv_add(state->match, state->mx->qname, ARGV_END);
 		    else
@@ -1272,6 +1296,10 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 				 state->mx->qname, ARGV_END);
 		}
 	    }
+	} else if (state->mx && !state->mx->dnssec_valid &&
+		   state->mxinsec_level == TLS_LEV_MAY) {
+	    msg_info("MX RRset is insecure: try to encrypt");
+	    level = TLS_LEV_MAY;
 	} else {
 	    level = TLS_LEV_SECURE;
 	}
@@ -1642,7 +1670,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
 
 #define OPTS "a:ch:o:St:T:v"
 #ifdef USE_TLS
-#define TLSOPTS "A:Cd:fF:g:k:K:l:L:m:p:P:r:w"
+#define TLSOPTS "A:Cd:fF:g:k:K:l:L:m:M:p:P:r:w"
 
     state->mdalg = mystrdup("sha1");
     state->CApath = mystrdup("");
@@ -1652,6 +1680,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
     state->options.tas = argv_alloc(1);
     state->options.logopts = 0;
     state->level = TLS_LEV_DANE;
+    state->mxinsec_level = TLS_LEV_DANE;
 #else
 #define TLSOPTS ""
     state->level = TLS_LEV_NONE;
@@ -1737,6 +1766,16 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	    break;
 	case 'm':
 	    state->max_reconnect = atoi(optarg);
+	    break;
+	case 'M':
+	    switch (state->mxinsec_level = tls_level_lookup(optarg)) {
+	    case TLS_LEV_MAY:
+	    case TLS_LEV_ENCRYPT:
+	    case TLS_LEV_DANE:
+		break;
+	    default:
+		msg_fatal("bad '-M' option value: %s", optarg);
+	    }
 	    break;
 	case 'p':
 	    myfree(state->protocols);

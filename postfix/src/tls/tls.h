@@ -141,6 +141,7 @@ extern const NAME_CODE tls_level_table[];
 #define TLS_DANE_FLAG_NORRS	(1<<0)	/* Nothing found in DNS */
 #define TLS_DANE_FLAG_EMPTY	(1<<1)	/* Nothing usable found in DNS */
 #define TLS_DANE_FLAG_ERROR	(1<<2)	/* TLSA record lookup error */
+#define TLS_DANE_FLAG_MXINSEC	(1<<3)	/* Insecure MX record */
 
 #define tls_dane_unusable(dane)	((dane)->flags & TLS_DANE_FLAG_EMPTY)
 #define tls_dane_notfound(dane)	((dane)->flags & TLS_DANE_FLAG_NORRS)
@@ -181,7 +182,7 @@ typedef struct TLS_DANE {
     TLS_CERTS *certs;			/* Full trust-anchor certificates */
     TLS_PKEYS *pkeys;			/* Full trust-anchor public keys */
     char   *base_domain;		/* Base domain of TLSA RRset */
-    int     flags;			/* Conflate cert and pkey digests */
+    int     flags;			/* Lookup status */
     time_t  expires;			/* Expiration time of this record */
     int     refs;			/* Reference count */
 } TLS_DANE;

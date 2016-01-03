@@ -347,7 +347,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * we want to be as compatible as possible, so we will start off with a
      * SSLv2 greeting allowing the best we can offer: TLSv1. We can restrict
      * this with the options setting later, anyhow.
-     *
+     * 
      * OpenSSL 1.1.0-dev deprecates SSLv23_client_method() in favour of
      * TLS_client_method(), with the change in question signalled via a new
      * TLS_ANY_VERSION macro.
@@ -432,11 +432,17 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     }
 
     /*
+     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+    /*
      * According to the OpenSSL documentation, temporary RSA key is needed
      * export ciphers are in use. We have to provide one, so well, we just do
      * it.
      */
     SSL_CTX_set_tmp_rsa_callback(client_ctx, tls_tmp_rsa_cb);
+#endif
 
     /*
      * Finally, the setup for the server certificate checking, done "by the
@@ -1108,6 +1114,14 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * functions and make the TLScontext available to those functions.
      */
     tls_stream_start(props->stream, TLScontext);
+
+    /*
+     * Can't really be DANE verified if the MX RRset was insecure
+     */
+    if (TLS_DANE_BASED(props->tls_level)
+	&& (props->dane->flags & TLS_DANE_FLAG_MXINSEC) != 0) {
+	TLScontext->peer_status &= ~TLS_CERT_FLAG_MATCHED;
+    }
 
     /*
      * All the key facts in a single log entry.

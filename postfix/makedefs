@@ -664,7 +664,9 @@ ReliantUNIX-?.5.43) SYSTYPE=ReliantUnix543
 		: ${SHLIB_SUFFIX=.dylib}
 		: ${SHLIB_LD='cc -shared -Wl,-flat_namespace -Wl,-undefined,dynamic_lookup -Wl,-install_name,@rpath/${LIB}'}
 		: ${SHLIB_RPATH='-Wl,-rpath,${SHLIB_DIR}'}
-		: ${SHLIB_ENV="DYLD_LIBRARY_PATH=`pwd`/lib"}
+                # In MacOS/X 10.11.x /bin/sh unsets DYLD_LIBRARY_PATH, so we
+                # have export it into postfix-install indirectly!
+		: ${SHLIB_ENV="DYLD_LIBRARY_PATH=`pwd`/lib SHLIB_ENV_VAR=DYLD_LIBRARY_PATH SHLIB_ENV_VAL=`pwd`/lib"}
 		: ${PLUGIN_LD='cc -shared -Wl,-flat_namespace -Wl,-undefined,dynamic_lookup'}
 		;;
     dcosx.1*)	SYSTYPE=DCOSX1

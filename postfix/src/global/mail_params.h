@@ -1580,6 +1580,11 @@ extern bool var_smtp_tls_blk_early_mail_reply;
 #define DEF_LMTP_TLS_FORCE_TLSA 0
 extern bool var_smtp_tls_force_tlsa;
 
+ /* SMTP only */
+#define VAR_SMTP_TLS_INSECURE_MX_POLICY "smtp_tls_dane_insecure_mx_policy"
+#define DEF_SMTP_TLS_INSECURE_MX_POLICY "dane"
+extern char *var_smtp_tls_insecure_mx_policy;
+
  /*
   * SASL authentication support, SMTP server side.
   */

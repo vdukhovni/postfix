@@ -22059,3 +22059,40 @@ Apologies for any names omitted.
 	global/post_mail.h, global/verify.c, oqmgr/qmgr.c, oqmgr/qmgr.h,
 	oqmgr/qmgr_message.c, qmgr/qmgr.c, qmgr/qmgr.h,
 	qmgr/qmgr_message.c, verify/verify.c.
+
+20160102
+
+	Workaround: MacOS/X 10.11.x /bin/sh unsets DYLD_LIBRARY_PATH,
+	which breaks the build and install.  Viktor Dukhovni and
+	Wietse.  Files: makedefs, postfix-install, Makefile.in.
+
+	Bitrot: OpenSSL 1.1.0-dev drops support for EXPORT ciphers
+	and ephemeral RSA.  Viktor Dukhovni. Files: tls/tls_client.c,
+	tls/tls_rsa.c, tls/tls_server.c.
+
+	Bugfix: memory leak in tls_set_eecdh_curve(). Viktor Dukhovni.
+	File: tls/tls_dh.c.
+
+	Bugfix (introduced 20150326): when lmtp_fallback_relay
+	support was added, the code that generates lmtp_mumble
+	parameters from smtp_mumble parameters wasn't updated. File:
+	smtp/smtp-only.
+
+	Bugfix (introduced 20151017): the smtpd_client_auth_rate_limit
+	implementation was not guarded with #ifdef USE_SASL_AUTH.
+	File: smtpd/smtpd.c.
+
+20160103
+
+	Feature: enable DANE policies when an MX host has a secure
+	TLSA DNS record, even if the MX DNS record was obtained
+	with insecure lookups. The existence of a secure TLSA record
+	implies that the host wants to talk TLS and not plaintext.
+	This behavior is controlled with smtp_tls_dane_insecure_mx_policy
+	(default: "dane", other settings: "encrypt" and "may"; the
+	latter is backwards-compatible with earlier Postfix releases).
+	Viktor Dukhovni.  Files: mantools/postlink, proto/postconf.proto,
+	src/global/mail_params.h, src/posttls-finger/posttls-finger.c,
+	src/smtp/smtp-only, src/smtp/smtp.c, src/smtp/smtp.h,
+	src/smtp/smtp_addr.c, src/smtp/smtp_params.c,
+	src/smtp/smtp_tls_policy.c, src/tls/tls.h, src/tls/tls_client.c.

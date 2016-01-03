@@ -7437,6 +7437,35 @@ ciphers on a per\-destination basis.
 This feature is available in Postfix 2.6 and later. With earlier Postfix
 releases only the smtp_tls_mandatory_ciphers parameter is implemented,
 and opportunistic TLS always uses "export" or better (i.e. all) ciphers.
+.SH smtp_tls_dane_insecure_mx_policy (default: dane)
+The TLS policy for MX hosts with "secure" TLSA records when the
+nexthop destination security level is \fBdane\fR, but the MX
+record was found via an "insecure" MX lookup.  The choices are:
+.IP "\fBmay\fR"
+The TLSA records will be ignored and TLS will be optional.  If
+the MX host does not appear to support STARTTLS, or the STARTTLS
+handshake fails, mail may be sent in the clear.
+.br
+.IP "\fBencrypt\fR"
+The TLSA records will signal a requirement to use TLS.  While
+TLS encryption will be required, authentication will not be performed.
+.br
+.IP "\fBdane\fR (default)"
+The TLSA records will be used just as with "secure" MX records.
+TLS encryption will be required, and, if at least one of the TLSA
+records is "usable", authentication will be required.  When
+authentication succeeds, it will be logged only as "Trusted", not
+"Verified", because the MX host name could have been forged.
+.br
+.br
+Though with "insecure" MX records an active attacker can
+compromise SMTP transport security by returning forged MX records,
+such attacks are "tamper\-evident" since any forged MX hostnames
+will be recorded in the mail logs.  Attackers who place a high value
+staying hidden may be deterred from forging MX records.
+.PP
+This feature is available in Postfix 3.1 and later. The \fBmay\fR
+policy is backwards\-compatible with earlier Postfix versions.
 .SH smtp_tls_dcert_file (default: empty)
 File with the Postfix SMTP client DSA certificate in PEM format.
 This file may also contain the Postfix SMTP client private DSA key.

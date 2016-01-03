@@ -88,13 +88,14 @@
 
  /*
   * Compiled-in DH parameters.  Used when no parameters are explicitly loaded
-  * from a site-specific file.  Using an ASN.1 DER encoding avoids the need to
-  * explicitly manipulate the internal represenation of DH parameter objects.
-  *
+  * from a site-specific file.  Using an ASN.1 DER encoding avoids the need
+  * to explicitly manipulate the internal representation of DH parameter
+  * objects.
+  * 
   * 512-bit parameters are used for export ciphers, and 2048-bit parameters are
-  * used for non-export ciphers.  The non-export group is now 2048-bit, as 1024
-  * bits is increasingly considered to weak by clients.  When greater security
-  * is required, use EECDH.
+  * used for non-export ciphers.  The non-export group is now 2048-bit, as
+  * 1024 bits is increasingly considered to weak by clients.  When greater
+  * security is required, use EECDH.
   */
 
  /*-
@@ -173,14 +174,13 @@ void    tls_set_dh_from_file(const char *path, int bits)
     }
 
     /*
-     * This function is the first to set the DH parameters, but free any prior
-     * value just in case the call sequence changes some day.
+     * This function is the first to set the DH parameters, but free any
+     * prior value just in case the call sequence changes some day.
      */
     if (*dhPtr) {
 	DH_free(*dhPtr);
 	*dhPtr = 0;
     }
-
     if ((paramfile = fopen(path, "r")) != 0) {
 	if ((*dhPtr = PEM_read_DHparams(paramfile, 0, 0, 0)) == 0) {
 	    msg_warn("cannot load %d-bit DH parameters from file %s"
@@ -279,10 +279,12 @@ int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
     ERR_clear_error();
     if ((ecdh = EC_KEY_new_by_curve_name(nid)) == 0
 	|| SSL_CTX_set_tmp_ecdh(server_ctx, ecdh) == 0) {
+	EC_KEY_free(ecdh);			/* OK if NULL */
 	msg_warn("unable to use curve \"%s\": disabling EECDH support", curve);
 	tls_print_errors();
 	return (0);
     }
+    EC_KEY_free(ecdh);
 #endif
     return (1);
 }

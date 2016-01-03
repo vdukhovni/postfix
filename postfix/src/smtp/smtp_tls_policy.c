@@ -714,7 +714,7 @@ static int global_tls_level(void)
 
 #define NONDANE_CONFIG	0		/* Administrator's fault */
 #define NONDANE_DEST	1		/* Remote server's fault */
-#define DANE_UNUSABLE	2		/* Remote server's fault */
+#define DANE_CANTAUTH	2		/* Remote server's fault */
 
 static void PRINTFLIKE(4, 5) dane_incompat(SMTP_TLS_POLICY *tls,
 					           SMTP_ITERATOR *iter,
@@ -725,7 +725,7 @@ static void PRINTFLIKE(4, 5) dane_incompat(SMTP_TLS_POLICY *tls,
 
     va_start(ap, fmt);
     if (tls->level == TLS_LEV_DANE) {
-	tls->level = (errtype == DANE_UNUSABLE) ? TLS_LEV_ENCRYPT : TLS_LEV_MAY;
+	tls->level = (errtype == DANE_CANTAUTH) ? TLS_LEV_ENCRYPT : TLS_LEV_MAY;
 	if (errtype == NONDANE_CONFIG)
 	    vmsg_warn(fmt, ap);
 	else if (msg_verbose)
@@ -792,8 +792,9 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 		      STR(iter->dest), policy_name(tls->level));
 	return;
     }
-    /* When the MX name is present and insecure, DANE does not apply. */
-    if (iter->mx && !iter->mx->dnssec_valid) {
+    /* When the MX name is present and insecure, DANE may not apply. */
+    if (iter->mx && !iter->mx->dnssec_valid
+	&& smtp_tls_insecure_mx_policy <= TLS_LEV_MAY) {
 	dane_incompat(tls, iter, NONDANE_DEST, "non DNSSEC destination");
 	return;
     }
@@ -825,9 +826,23 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
      * given verifier some of the CAs are surely not trustworthy).
      */
     if (tls_dane_unusable(dane)) {
-	dane_incompat(tls, iter, DANE_UNUSABLE, "TLSA records unusable");
+	dane_incompat(tls, iter, DANE_CANTAUTH, "TLSA records unusable");
 	tls_dane_free(dane);
 	return;
+    }
+
+    /*
+     * Perhaps downgrade to "encrypt" if MX is insecure.
+     */
+    if (iter->mx && !iter->mx->dnssec_valid) {
+	if (smtp_tls_insecure_mx_policy == TLS_LEV_ENCRYPT) {
+	    dane_incompat(tls, iter, DANE_CANTAUTH,
+			  "Verification not possible, MX RRset is insecure");
+	    tls_dane_free(dane);
+	    return;
+	}
+	/* For correct logging in tls_client_start() */
+	dane->flags |= TLS_DANE_FLAG_MXINSEC;
     }
 
     /*

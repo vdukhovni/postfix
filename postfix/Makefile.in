@@ -117,19 +117,23 @@ printfck: update
 # shared=yes<->shared=no.
 
 install: update
+	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
 		postfix-install
 
 package: update
+	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
 		postfix-install -package
 
 upgrade: update
+	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
 		postfix-install -non-interactive
 	
 
 non-interactive-package: update
+	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
 		postfix-install -non-interactive -package
 
