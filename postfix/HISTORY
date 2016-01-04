@@ -22096,3 +22096,10 @@ Apologies for any names omitted.
 	src/smtp/smtp-only, src/smtp/smtp.c, src/smtp/smtp.h,
 	src/smtp/smtp_addr.c, src/smtp/smtp_params.c,
 	src/smtp/smtp_tls_policy.c, src/tls/tls.h, src/tls/tls_client.c.
+
+20160104
+
+	Cleanup: distinct TLS levels for "full" DANE and for DANE
+	with insecure MX records.  Viktor Dukhovni. Files:
+	posttls-finger/posttls-finger.c, smtp/smtp_tls_policy.c,
+	tls/tls.h, tls/tls_client.c, tls/tls_level.c.

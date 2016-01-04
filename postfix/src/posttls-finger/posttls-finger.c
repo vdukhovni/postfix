@@ -1262,9 +1262,8 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 			   HNAME(addr), ntohs(state->port));
 		level = TLS_LEV_INVALID;
 	    } else if (tls_dane_notfound(state->ddane)
-		       || tls_dane_unusable(state->ddane)
-		       || level == TLS_LEV_DANE_ONLY) {
-		if (msg_verbose)
+		       || tls_dane_unusable(state->ddane)) {
+		if (msg_verbose || level == TLS_LEV_DANE_ONLY)
 		    msg_info("no %sTLSA records found, "
 			     "resorting to \"secure\"",
 			     tls_dane_unusable(state->ddane) ?
@@ -1287,7 +1286,7 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 		if (state->mx) {
 		    if (!state->mx->dnssec_valid) {
 			msg_info("MX RRset insecure: log verified as trusted");
-			state->ddane->flags |= TLS_DANE_FLAG_MXINSEC;
+			level = TLS_LEV_HALF_DANE;
 		    }
 		    if (strcmp(state->mx->qname, state->mx->rname) == 0)
 			argv_add(state->match, state->mx->qname, ARGV_END);

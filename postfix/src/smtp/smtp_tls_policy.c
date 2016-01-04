@@ -436,6 +436,7 @@ static void set_cipher_grade(SMTP_TLS_POLICY *tls)
 	also_exclude = "eNULL";
 	break;
 
+    case TLS_LEV_HALF_DANE:
     case TLS_LEV_DANE:
     case TLS_LEV_DANE_ONLY:
     case TLS_LEV_FPRINT:
@@ -563,6 +564,7 @@ static void *policy_create(const char *unused_key, void *context)
     case TLS_LEV_NONE:
     case TLS_LEV_MAY:
     case TLS_LEV_ENCRYPT:
+    case TLS_LEV_HALF_DANE:
     case TLS_LEV_DANE:
     case TLS_LEV_DANE_ONLY:
 	break;
@@ -792,9 +794,15 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 		      STR(iter->dest), policy_name(tls->level));
 	return;
     }
-    /* When the MX name is present and insecure, DANE may not apply. */
+
+    /*
+     * When the MX name is present and insecure, DANE may not apply, we then
+     * either fail if DANE is mandatory or use regular opportunistic TLS if
+     * the insecure MX level is "may".
+     */
     if (iter->mx && !iter->mx->dnssec_valid
-	&& smtp_tls_insecure_mx_policy <= TLS_LEV_MAY) {
+	&& (tls->level == TLS_LEV_DANE_ONLY ||
+	    smtp_tls_insecure_mx_policy <= TLS_LEV_MAY)) {
 	dane_incompat(tls, iter, NONDANE_DEST, "non DNSSEC destination");
 	return;
     }
@@ -841,8 +849,12 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 	    tls_dane_free(dane);
 	    return;
 	}
+	if (tls->level != TLS_LEV_DANE
+	    || smtp_tls_insecure_mx_policy != TLS_LEV_DANE)
+	    msg_panic("wrong state for insecure MX host DANE policy");
+
 	/* For correct logging in tls_client_start() */
-	dane->flags |= TLS_DANE_FLAG_MXINSEC;
+	tls->level = TLS_LEV_HALF_DANE;
     }
 
     /*

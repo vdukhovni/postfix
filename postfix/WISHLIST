@@ -2,12 +2,6 @@ Wish list:
 
 	Things to do before the stable release:
 
-	Viktor's bitrot patches. 
-
-	Not: SMTPUTF8 auto-conversion of lookups/matches.
-
-	---------------------end of Postfix 3.1.0 todo list
-
 	Spell-check, double-word check, and HTML validator check.
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.

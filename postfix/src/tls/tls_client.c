@@ -83,8 +83,8 @@
 /* .IP TLScontext->peer_status
 /*	A bitmask field that records the status of the peer certificate
 /*	verification. This consists of one or more of
-/*	TLS_CERT_FLAG_PRESENT, TLS_CERT_FLAG_ALTNAME, TLS_CERT_FLAG_TRUSTED
-/*	and TLS_CERT_FLAG_MATCHED.
+/*	TLS_CERT_FLAG_PRESENT, TLS_CERT_FLAG_ALTNAME, TLS_CERT_FLAG_TRUSTED,
+/*	TLS_CERT_FLAG_MATCHED and TLS_CERT_FLAG_SECURED.
 /* .IP TLScontext->peer_CN
 /*	Extracted CommonName of the peer, or zero-length string if the
 /*	information could not be extracted.
@@ -1116,12 +1116,16 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     tls_stream_start(props->stream, TLScontext);
 
     /*
-     * Can't really be DANE verified if the MX RRset was insecure
+     * Fully secured only if trusted, matched and not insecure like halfdane.
+     * Should perhaps also exclude "verify" (as opposed to "secure") here,
+     * because that can be subject to insecure MX indirection, but that's
+     * rather incompatible.  Users have been warned.
      */
-    if (TLS_DANE_BASED(props->tls_level)
-	&& (props->dane->flags & TLS_DANE_FLAG_MXINSEC) != 0) {
-	TLScontext->peer_status &= ~TLS_CERT_FLAG_MATCHED;
-    }
+    if (TLS_CERT_IS_PRESENT(TLScontext)
+	&& TLS_CERT_IS_TRUSTED(TLScontext)
+	&& TLS_CERT_IS_MATCHED(TLScontext)
+	&& !TLS_NEVER_SECURED(props->tls_level))
+	TLScontext->peer_status |= TLS_CERT_FLAG_SECURED;
 
     /*
      * All the key facts in a single log entry.
@@ -1130,7 +1134,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	msg_info("%s TLS connection established to %s: %s with cipher %s "
 		 "(%d/%d bits)",
 		 !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous" :
-		 TLS_CERT_IS_MATCHED(TLScontext) ? "Verified" :
+		 TLS_CERT_IS_SECURED(TLScontext) ? "Verified" :
 		 TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
 	      props->namaddr, TLScontext->protocol, TLScontext->cipher_name,
 		 TLScontext->cipher_usebits, TLScontext->cipher_algbits);

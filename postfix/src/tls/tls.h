@@ -44,22 +44,23 @@
 #define TLS_LEV_MAY		1	/* wildcard */
 #define TLS_LEV_ENCRYPT		2	/* encrypted connection */
 #define TLS_LEV_FPRINT		3	/* "peer" CA-less verification */
-#define TLS_LEV_DANE		4	/* Opportunistic TLSA policy */
-#define TLS_LEV_DANE_ONLY	5	/* Required TLSA policy */
-#define TLS_LEV_VERIFY		6	/* certificate verified */
-#define TLS_LEV_SECURE		7	/* "secure" verification */
+#define TLS_LEV_HALF_DANE	4	/* DANE TLSA MX host, insecure MX RR */
+#define TLS_LEV_DANE		5	/* Opportunistic TLSA policy */
+#define TLS_LEV_DANE_ONLY	6	/* Required TLSA policy */
+#define TLS_LEV_VERIFY		7	/* certificate verified */
+#define TLS_LEV_SECURE		8	/* "secure" verification */
 
 #define TLS_REQUIRED(l)		((l) > TLS_LEV_MAY)
 #define TLS_MUST_MATCH(l)	((l) > TLS_LEV_ENCRYPT)
-#define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_DANE)
+#define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_HALF_DANE)
 #define TLS_MUST_PKIX(l)	((l) >= TLS_LEV_VERIFY)
 #define TLS_OPPORTUNISTIC(l)	((l) == TLS_LEV_MAY || (l) == TLS_LEV_DANE)
-#define TLS_DANE_BASED(l)	((l) == TLS_LEV_DANE || (l) == TLS_LEV_DANE_ONLY)
+#define TLS_DANE_BASED(l)	\
+	((l) >= TLS_LEV_HALF_DANE && (l) <= TLS_LEV_DANE_ONLY)
+#define TLS_NEVER_SECURED(l)	((l) == TLS_LEV_HALF_DANE)
 
-extern const NAME_CODE tls_level_table[];
-
-#define tls_level_lookup(s) name_code(tls_level_table, NAME_CODE_FLAG_NONE, (s))
-#define str_tls_level(l) str_name_code(tls_level_table, (l))
+extern int tls_level_lookup(const char *);
+extern const char *str_tls_level(int);
 
 #ifdef USE_TLS
 
@@ -141,7 +142,6 @@ extern const NAME_CODE tls_level_table[];
 #define TLS_DANE_FLAG_NORRS	(1<<0)	/* Nothing found in DNS */
 #define TLS_DANE_FLAG_EMPTY	(1<<1)	/* Nothing usable found in DNS */
 #define TLS_DANE_FLAG_ERROR	(1<<2)	/* TLSA record lookup error */
-#define TLS_DANE_FLAG_MXINSEC	(1<<3)	/* Insecure MX record */
 
 #define tls_dane_unusable(dane)	((dane)->flags & TLS_DANE_FLAG_EMPTY)
 #define tls_dane_notfound(dane)	((dane)->flags & TLS_DANE_FLAG_NORRS)
@@ -252,11 +252,13 @@ typedef struct {
 #define TLS_CERT_FLAG_ALTNAME		(1<<1)
 #define TLS_CERT_FLAG_TRUSTED		(1<<2)
 #define TLS_CERT_FLAG_MATCHED		(1<<3)
+#define TLS_CERT_FLAG_SECURED		(1<<4)
 
 #define TLS_CERT_IS_PRESENT(c) ((c) && ((c)->peer_status&TLS_CERT_FLAG_PRESENT))
 #define TLS_CERT_IS_ALTNAME(c) ((c) && ((c)->peer_status&TLS_CERT_FLAG_ALTNAME))
 #define TLS_CERT_IS_TRUSTED(c) ((c) && ((c)->peer_status&TLS_CERT_FLAG_TRUSTED))
 #define TLS_CERT_IS_MATCHED(c) ((c) && ((c)->peer_status&TLS_CERT_FLAG_MATCHED))
+#define TLS_CERT_IS_SECURED(c) ((c) && ((c)->peer_status&TLS_CERT_FLAG_SECURED))
 
  /*
   * Opaque client context handle.
