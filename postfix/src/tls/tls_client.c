@@ -848,7 +848,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * Finally, salt the session key with the OpenSSL library version,
      * (run-time, rather than compile-time, just in case that matters).
      */
-    vstring_sprintf_append(myserverid, "&l=%ld", (long) SSLeay());
+    vstring_sprintf_append(myserverid, "&l=%ld", (long) OpenSSL_version_num());
 
     /*
      * Allocate a new TLScontext for the new connection and get an SSL
