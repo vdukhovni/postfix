@@ -56,6 +56,11 @@ extern const NAME_CODE tls_level_table[];
 #error "need OpenSSL version 0.9.5 or later"
 #endif
 
+ /* Backwards compatibility with OpenSSL < 1.1.0 */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define OpenSSL_version_num SSLeay
+#endif
+
  /*
   * Utility library.
   */
