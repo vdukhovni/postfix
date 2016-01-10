@@ -403,7 +403,7 @@ static const char *tls_exclude_missing(SSL_CTX *ctx, VSTRING *buf)
     SSL    *s = 0;
 
     STACK_OF(SSL_CIPHER) * ciphers;
-    SSL_CIPHER *c;
+    const SSL_CIPHER *c;
     const cipher_probe_t *probe;
     int     alg_bits;
     int     num;
