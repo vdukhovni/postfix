@@ -48,6 +48,11 @@
 #define TLS_INTERNAL
 #include <tls.h>
 
+ /*
+  * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+  */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
 /* tls_tmp_rsa_cb - call-back to generate ephemeral RSA key */
 
 RSA *tls_tmp_rsa_cb(SSL *unused_ssl, int unused_export, int keylength)
@@ -60,15 +65,23 @@ RSA *tls_tmp_rsa_cb(SSL *unused_ssl, int unused_export, int keylength)
 	rsa_tmp = RSA_generate_key(keylength, RSA_F4, NULL, NULL);
     return (rsa_tmp);
 }
+#endif /* OPENSSL_VERSION_NUMBER */
 
 #ifdef TEST
 
 int main(int unused_argc, char **unused_argv)
 {
-    tls_tmp_rsa_cb(0, 1, 512);
-    tls_tmp_rsa_cb(0, 1, 1024);
-    tls_tmp_rsa_cb(0, 1, 2048);
-    tls_tmp_rsa_cb(0, 0, 512);
+    int     ok = 1;
+    /*
+     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+    ok = ok && tls_tmp_rsa_cb(0, 1, 512) != 0;
+    ok = ok && tls_tmp_rsa_cb(0, 0, 1024) != 0;
+    ok = ok && tls_tmp_rsa_cb(0, 0, 2048) != 0;
+#endif
+
+    return ok ? 0 : 1;
 }
 
 #endif
