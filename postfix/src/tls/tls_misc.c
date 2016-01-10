@@ -927,17 +927,14 @@ void    tls_print_errors(void)
     const char *data;
     int     line;
     int     flags;
-    unsigned long thread;
 
-    thread = CRYPTO_thread_id();
     while ((err = ERR_get_error_line_data(&file, &line, &data, &flags)) != 0) {
 	ERR_error_string_n(err, buffer, sizeof(buffer));
 	if (flags & ERR_TXT_STRING)
-	    msg_warn("TLS library problem: %lu:%s:%s:%d:%s:",
-		     thread, buffer, file, line, data);
+	    msg_warn("TLS library problem: %s:%s:%d:%s:",
+		     buffer, file, line, data);
 	else
-	    msg_warn("TLS library problem: %lu:%s:%s:%d:",
-		     thread, buffer, file, line);
+	    msg_warn("TLS library problem: %s:%s:%d:", buffer, file, line);
     }
 }
 
