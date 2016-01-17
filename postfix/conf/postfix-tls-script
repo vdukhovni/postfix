@@ -1,0 +1,392 @@
+#!/bin/sh
+
+#++
+# NAME
+#	postfix-tls-script 1
+# SUMMARY
+#	Postfix TLS support management
+# SYNOPSIS
+#	\fBpostfix-tls-script\fR \fIcommand\fR
+# DESCRIPTION
+#	The \fBpostfix-tls-script\fR script enables support for opportunistic
+#	TLS in the Postfix SMTP client and/or server.  It generates or updates
+#	TLS private keys and and self-signed certificates.  It executes in an
+#	environment that is set up by the \fBpostfix\fR(1) command.
+# SEE ALSO
+#	master(8) Postfix master program
+#	postfix(1) Postfix administrative interface
+# LICENSE
+# .ad
+# .fi
+#	The Secure Mailer license must be distributed with this software.
+# AUTHOR(S)
+#	Viktor Dukhovni
+#--
+
+case $daemon_directory in
+"") echo This script must be run by the postfix command. 1>&2
+    echo Do not run directly. 1>&2
+    exit 1
+esac
+
+umask 022
+SHELL=/bin/sh
+
+#
+# Can't do much without these in place.
+#
+cd $command_directory || {
+    # Let's hope there's a "postlog" somewhere else on the PATH
+    FATAL="postlog -p fatal -t $MAIL_LOGTAG/postfix-tls-script"
+    msg="no Postfix command directory '${command_directory}'"
+    $FATAL "$msg" || { echo "$msg" >&2; sleep 1; }
+    exit 1
+}
+
+postconf=$command_directory/postconf
+LOGGER="$command_directory/postlog -t $MAIL_LOGTAG/postfix-tls-script"
+INFO="$LOGGER -p info"
+WARN="$LOGGER -p warn"
+FATAL="$LOGGER -p fatal"
+
+# Make this our *last* "cd", so all the key/cert generation runs in the
+# configuration directory.
+#
+cd $config_directory || {
+    $FATAL no Postfix configuration directory $config_directory!
+    exit 1
+}
+
+#$postconf -d | grep '^smtpd_tls_cert_file =' >/dev/null || {
+#    mail_version=`$postconf -dh mail_version`
+#    $FATAL "Postfix $mail_version is not compiled with TLS support"
+#    exit 1
+#}
+
+# No need to set the location of the OpenSSL command in each Postfix instance,
+# the value from the default instance is used for all instances.
+#
+default_config_directory=`$postconf -dh config_directory`
+openssl=`$postconf -c $default_config_directory -xh openssl_path`
+"$openssl" version >/dev/null 2>&1 || {
+    $FATAL "No working openssl(1) command found with 'openssl_path = $openssl'"
+    exit 1
+}
+
+hex_sha256() {
+    $openssl dgst -binary -sha256 | od -An -vtx1 | tr -d ' \012'
+}
+
+# We require SHA2-256 support from openssl(1)
+#
+null256=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+tmp=`hex_sha256 </dev/null 2>/dev/null`
+if [ "$tmp" != "$null256" ]; then
+    cat <<EOF >&2
+Your $openssl does not support the SHA2-256 digest algorithm. To enable
+'postfix tls', install an OpenSSL that does. Install its openssl(1) command
+at /usr/local/bin/openssl or other suitable location, and set the
+'openssl_path' parameter in $default_config_directory/main.cf accordingly.
+EOF
+    $FATAL "No 'postfix tls' support when openssl(1) is obsolete"
+    exit 1
+fi
+
+if [ -r /dev/stdin ]; then
+    stdin=/dev/stdin
+elif [ -r /dev/fd/0 ]; then
+    stdin=/dev/fd/0
+else
+    $FATAL No /dev/fd/0 or /dev/stdin found
+    exit 1
+fi
+
+read_key() {
+    [ -n "$1" -a -f "$1" ] || return 1
+
+    # Old OpenSSL versions return success even for unsupported sub-commands!
+    # So we inspect the output instead.  Don't prompt if the key is password
+    # protected.
+    #
+    for cmd in pkey rsa; do
+        $openssl $cmd -passin "pass:umask 077" -in "$1" |
+            grep . && return 0
+    done 2>/dev/null
+    return 1
+}
+
+pubkey_dgst() {
+    [ -n "$1" -a -f "$1" ] || return 1
+
+    # Old OpenSSL versions return success even for unsupported sub-commands!
+    # So we inspect the output instead.
+    #
+    for cmd in pkey rsa; do
+        $openssl $cmd -passin "pass:umask 077" -in "$1" -pubout |
+        $openssl $cmd -pubin -outform DER |
+        hex_sha256 | egrep -v "$null256" && return 0
+    done 2>/dev/null
+    return 1
+}
+
+set_fqdn() {
+    if [ -n "$1" ]; then fqdn=$1; return 0; fi
+    fqdn=`$postconf -xh myhostname` || return 1
+    case $fqdn in /*) fqdn=`cat "${fqdn}"` || return 1;; esac
+}
+
+set_key() {
+    # Re-use any original private key
+    #
+    key=$1
+    if [ -z "$key" ]
+    then
+        key=`$postconf -nxh smtpd_tls_key_file`
+        if [ -z "$key" ]; then
+            $FATAL "no private key configured"
+            return 1
+        fi
+    fi
+    read_key "${key}" >/dev/null && return 0
+    $FATAL "no private key found in file: $key"
+    return 1
+}
+
+new_cert() {
+    set_fqdn
+    stamp=`date +%Y%m%d-%H%M%S`
+
+    newcert="cert-${stamp}.pem"
+    conf_cert_file="\${config_directory}/${newcert}"
+    if [ -r "${newcert}" ]; then
+	$FATAL "New certificate file already exists: ${newcert}"
+	return 1
+    fi
+
+    newkey="key-${stamp}.pem"
+    conf_key_file="\${config_directory}/${newkey}"
+    if [ -r "${newkey}" ]; then
+	$FATAL "New key file already exists: ${newkey}"
+	return 1
+    fi
+
+    if [ $# -gt 0 ]; then
+        (umask 077; read_key "$1" > "${newkey}") ||
+            { rm "${newkey}"; return 1; }
+    fi
+
+    # Re-use any existing key
+    #
+    _newkey=
+    if [ ! -f "${newkey}" ]; then
+	_err=`umask 077; $openssl genrsa -out "${newkey}" 2048 2>&1` || {
+	    echo "$_err" | $WARN
+	    $FATAL "error generating new private key"
+	    rm -f "${newkey}"
+	    return 1
+	}
+        _newkey="${newkey}"
+    fi
+
+    # Generate a new self-signed (~100 year) certificate
+    #
+    printf "[req]\n%s\n%s\n[dn]\n%s\n[ext]\n%s\n%s\n%s\n[alt]\n%s\n" \
+            "default_md = sha256" "distinguished_name = dn" "CN_default=" \
+	    "basicConstraints = CA:false" \
+	    "extendedKeyUsage = serverAuth" \
+	    "subjectAltName = @alt" "DNS=${fqdn}" |
+    $openssl req -x509 -sha256 -new -key "${newkey}" -config $stdin \
+        -extensions ext -subj "/CN=${fqdn}" -days 36525 -out "${newcert}" || {
+        rm -f "${newcert}"
+        if [ -n "${_newkey}" ]; then rm -f "${_newkey}"; fi
+        $FATAL "error generating self-signed SSL certificate"
+        return 1
+    }
+}
+
+init_random_source() {
+    rnd=`$postconf -xh tls_random_source`
+    if [ -n "$rnd" ]
+    then
+        return 0
+    fi
+    if [ -r /dev/urandom ]
+    then
+        echo "Setting tls_random_source to dev:/dev/urandom"
+        $postconf -e 'tls_random_source = dev:/dev/urandom' || exit 1
+    else
+        $FATAL no default TLS random source defined and no /dev/urandom
+        return 1
+    fi
+}
+
+show_dane_info() {
+    echo "If you publish DANE TLSA records, see https://tools.ietf.org/html/rfc7671#section-8.1"
+}
+
+all_default() {
+    prefix=$1; shift
+    for var in "$@"
+    do
+        val=`$postconf -nh "${prefix}${var}"`
+        if [ -n "$val" ]; then return 1; fi
+    done
+    return 0
+}
+
+# Select read-write database type for TLS session caches.
+#
+cache_dbtype() {
+    var=$1; shift
+    prio=0
+    ret=1
+    dbtype=
+    for _dbtype in `$postconf -m`
+    do
+        _prio=0
+        case $_dbtype in
+         lmdb) _prio=2;;
+        btree) _prio=1;;
+        esac
+        if [ "$_prio" -gt "$prio" ]
+        then
+            eval "$var=\$_dbtype"
+            prio=$_prio
+            ret=0
+        fi
+    done
+    return $ret
+}
+
+enable_client() {
+    init_random_source || return 1
+    if all_default smtp_ \
+        use_tls enforce_tls tls_enforce_peername tls_security_level tls_cert_file
+    then
+        echo "Enabling opportunistic TLS in the Postfix SMTP client"
+        if cache_dbtype dbtype
+        then
+            $postconf -e \
+                "smtp_tls_security_level = may" \
+                "smtp_tls_loglevel = 1" \
+                "smtp_tls_session_cache_database = ${dbtype}:${data_directory}/smtp_scache"
+        else
+            $postconf -e \
+                "smtp_tls_security_level = may" \
+                "smtp_tls_loglevel = 1"
+        fi
+    else
+        echo "*** Non-default SMTP client TLS settings detected."
+        echo "To enable opportunistic TLS in the Postfix SMTP client: "
+        echo "Set smtp_tls_security_level = may"
+        echo "and smtp_tls_loglevel = 1"
+        if cache_dbtype dbtype
+        then
+            echo "and smtp_tls_session_cache_database = ${dbtype}:${data_directory}/smtp_scache"
+        fi
+    fi | $INFO
+}
+
+enable_server() {
+    init_random_source || exit 1
+    if all_default smtpd_ \
+        use_tls enforce_tls tls_security_level tls_cert_file
+    then
+        new_cert || exit 1
+        echo "Enabling opportunistic TLS in the Postfix SMTP server"
+        $postconf -e \
+            "smtpd_tls_cert_file = ${conf_cert_file}" \
+            "smtpd_tls_key_file = ${conf_key_file}" \
+            "smtpd_tls_security_level = may" \
+            "smtpd_tls_received_header = yes" \
+            "smtpd_tls_loglevel = 1"
+    else
+        echo "*** Non-default SMTP server TLS settings detected."
+        echo "Enable TLS manually as appropriate."
+        echo "Run \"postfix tls replace-cert\" to change your certificate"
+        echo "or \"postfix tls replace-key\" to also change the private key."
+        show_dane_info
+    fi | $INFO
+}
+
+create_key() {
+    # Prepare, but don't deploy, a new key.
+    #
+    new_cert || exit 1
+    (echo "To use the new certificate in the Postfix SMTP server"
+    echo "set smtpd_tls_key_file = ${conf_key_file}"
+    echo "and smtpd_tls_cert_file = ${conf_cert_file}"
+    show_dane_info) | $INFO
+}
+
+replace_key() {
+    # Prepare *and* deploy a new key and certificate.
+    #
+    new_cert || exit 1
+    $postconf -e \
+        "smtpd_tls_key_file = ${conf_key_file}" \
+        "smtpd_tls_cert_file = ${conf_cert_file}"
+    $INFO "New TLS private key and certificate configured"
+}
+
+create_cert() {
+    # Prepare, but don't deploy, a new cert,
+    # re-use a private key if applicable
+    #
+    key=`$postconf -nxh smtpd_tls_key_file`
+    new_cert ${key} || exit 1
+    (echo "To use the new certificate in the Postfix SMTP server"
+    echo "set smtpd_tls_key_file = ${conf_key_file}"
+    echo "and smtpd_tls_cert_file = ${conf_cert_file}"
+    show_dane_info) | $INFO
+}
+
+replace_cert() {
+    # Prepare and deploy a new cert,
+    # re-use a private key if applicable
+    #
+    key=`$postconf -nxh smtpd_tls_key_file`
+    new_cert ${key} || exit 1
+    $postconf -e \
+        "smtpd_tls_key_file = ${conf_key_file}" \
+        "smtpd_tls_cert_file = ${conf_cert_file}" || exit 1
+    $INFO "New TLS private key and certificate configured"
+}
+
+gen_csr() {
+    set_fqdn "$1" || return 1
+    set_key "$2" || return 1
+    $openssl req -new -sha256 -key "$key" -subj "/CN=$fqdn"
+}
+
+gen_tlsa() {
+    set_fqdn "$1" || exit 1
+    set_key "$2" || exit 1
+    data=`pubkey_dgst "$key"`
+    if [ -z "$data" ]
+    then
+        $FATAL error computing SHA2-256 SPKI digest of "$key"
+        return 1
+    fi
+    echo "_25._tcp.$fqdn. IN TLSA 3 1 1 $data"
+}
+
+#
+# Parse JCL
+#
+case $1 in
+
+enable-client) enable_client || exit 1;;
+enable-server) enable_server || exit 1;;
+   create-key) create_key || exit 1;;
+  create-cert) create_cert || exit 1;;
+  replace-key) replace_key || exit 1;;
+ replace-cert) replace_cert || exit 1;;
+      gen-csr) shift; gen_csr "$@" || exit 1;;
+     gen-tlsa) shift; gen_tlsa "$@" || exit 1;;
+            *)
+    $ERROR "unknown tls command: '$1'"
+    $FATAL "usage: postfix tls enable-client (or enable-server, create-key, create-cert, replace-key, replace-cert, gen-csr, gen-tlsa)"
+    exit 1;;
+
+esac

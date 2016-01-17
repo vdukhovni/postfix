@@ -4444,6 +4444,31 @@ possible replies from the restrictions reject_unknown_sender_domain
 and reject_unknown_recipient_domain.
 .PP
 This feature is available in Postfix 3.0 and later.
+.SH openssl_path (default: openssl)
+The location of the OpenSSL command line program \fBopenssl\fR(1).  This
+is used by the "\fBpostfix tls\fR" command to create private keys,
+certificate signing requests, self\-signed certificates, and to
+compute public key digests for DANE TLSA records.  In multi\-instance
+environments, this parameter is always determined from the configuration
+of the default Postfix instance.
+.PP
+Example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # NetBSD pkgsrc:
+    openssl_path = /usr/pkg/bin/openssl
+    # Local build:
+    openssl_path = /usr/local/bin/openssl
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 3.1 and later.
 .SH owner_request_special (default: yes)
 Give special treatment to owner\-listname and listname\-request
 address localparts: don't split such addresses when the
@@ -13346,3 +13371,10 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
+.sp
+Wietse Venema
+Google, Inc.
+111 8th Avenue
+New York, NY 10011, USA
+.sp
+Viktor Dukhovni

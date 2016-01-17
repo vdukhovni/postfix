@@ -260,6 +260,7 @@
 #define HAVE_POSIX_GETPW_R
 #endif
 #define HAS_DLOPEN
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
 #endif
 
  /*

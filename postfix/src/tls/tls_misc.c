@@ -24,6 +24,7 @@
 /*	bool	var_tls_multi_wildcard;
 /*	char	*var_tls_mgr_service;
 /*	char	*var_tls_tkt_cipher;
+/*	char	*var_openssl_path;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -177,6 +178,11 @@
 /*
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -233,6 +239,7 @@ bool    var_tls_dane_taa_dgst;
 bool    var_tls_multi_wildcard;
 char   *var_tls_mgr_service;
 char   *var_tls_tkt_cipher;
+char   *var_openssl_path;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -461,7 +468,7 @@ static const char *tls_exclude_missing(SSL_CTX *ctx, VSTRING *buf)
     static ARGV *exclude;		/* Cached */
     SSL    *s = 0;
     ssl_cipher_stack_t *ciphers;
-    SSL_CIPHER *c;
+    const SSL_CIPHER *c;
     const cipher_probe_t *probe;
     int     alg_bits;
     int     num;
@@ -617,6 +624,7 @@ void    tls_param_init(void)
 	VAR_TLS_DANE_DIGESTS, DEF_TLS_DANE_DIGESTS, &var_tls_dane_digests, 1, 0,
 	VAR_TLS_MGR_SERVICE, DEF_TLS_MGR_SERVICE, &var_tls_mgr_service, 1, 0,
 	VAR_TLS_TKT_CIPHER, DEF_TLS_TKT_CIPHER, &var_tls_tkt_cipher, 0, 0,
+	VAR_OPENSSL_PATH, DEF_OPENSSL_PATH, &var_openssl_path, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

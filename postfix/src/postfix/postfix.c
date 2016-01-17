@@ -66,6 +66,12 @@
 /*	This feature is available in Postfix 2.1 and later.  With
 /*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
+/* .IP "\fBtls\fR \fIsubcommand...\fB\fR
+/*	Enable opportunistic TLS in the Postfix SMTP client or server,
+/*	or generate or replace Postfix SMTP server TLS private keys
+/*	and certificates.  See the section "TLS SUBCOMMANDS" below.
+/* .sp
+/*	This feature is available in Postfix 3.1 and later.
 /* .IP "\fBupgrade-configuration\fR \fB[\fIname\fR=\fIvalue ...\fB]\fR
 /*	Update the \fBmain.cf\fR and \fBmaster.cf\fR files with information
 /*	that Postfix needs in order to run: add or update services, and add
@@ -95,6 +101,84 @@
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
+/* TLS SUBCOMMANDS
+/* .ad
+/* .fi
+/*	The "\fBpostfix tls \fIsubcommand...\fR" feature implements the
+/*	following subcommands:
+/* .IP "\fBenable-client\fR"
+/*	Enable opportunistic TLS in the Postfix SMTP client, if all SMTP
+/*	client TLS settings are at their default values. Otherwise,
+/*	suggest parameter settings without making any changes.
+/* .IP "\fBenable-server\fR"
+/*	Create a new private key and self-signed server certificate.
+/*	Enable opportunistic TLS in the Postfix SMTP server, if all
+/*	SMTP server TLS settings are at their default values. Otherwise,
+/*	suggest parameter settings without making any changes.
+/* .IP "\fBcreate-key\fR"
+/*	Create a new 2048-bit RSA private key and self-signed server
+/*	certificate, but do not deploy them. Log and display suggested
+/*	main.cf settings to deploy the new key and certificate in
+/*	the Postfix SMTP server.
+/* .sp
+/*	Before deploying the new key and certificate with DANE, use the
+/*	command "\fBpostfix tls gen-tlsa \fIhostname keyfile\fR"
+/*	to write recommended TLSA records to stdout.
+/*	Update the DNS with new DANE TLSA records, then wait for
+/*	secondary nameservers to update, and wait for stale records in
+/*	remote DNS caches to expire.
+/* .sp
+/*	Before deploying the new key and certificate with PKI in
+/*	the Postfix SMTP server, use the command "\fBpostfix tls
+/*	gen-csr\fR" to obtain a certificate signing request (CSR)
+/*	for the new key, and replace the self-signed certificate
+/*	with a CA-issued one before deployment.
+/* .IP
+/*	After taking zero or more of the above step(s), deploy the
+/*	new key and certificate using the suggested main.cf settings
+/*	mentioned above.
+/* .IP "\fBcreate-cert\fR"
+/*	This is just like \fBcreate-key\fR except that, rather than
+/*	generating a new private key, any currently deployed private
+/*	key is copied to the new key file.  Thus if you're publishing
+/*	DANE TLSA "3 1 1" records, there is no need to update DNS records.
+/* .sp
+/*	This command is rarely needed, because the certificates generated
+/*	have a 100-year nominal expiration time.  The RSA algorithm may
+/*	well be obsoleted by quantum computers long
+/*	before then.
+/* .sp
+/*	The most plausible reason for using this command is when
+/*	system hostname changes, and you'd like the name in the
+/*	certificate to match the new hostname (not required for
+/*	DANE "3 1 1", but some needlessly picky non-DANE opportunistic
+/*	TLS clients may log warnings or even refuse to communicate).
+/* .IP "\fBreplace-key\fR"
+/*	This is like \fBcreate-key\fR, but immediately deploys
+/*	the new private key and self-signed server certificate.
+/*	Obsolete keys and certificates may be removed by hand. Files
+/*	created with "\fBpostfix tls\fR" commands are named
+/*	key-\fIyyyymmdd-hhmmss\fR.pem and cert-\fIyyyymmdd-hhmmss\fR.pem,
+/*	where \fIyyyymmdd\fR is the calendar date and \fIhhmmss\fR
+/*	is the time of day.
+/* .IP "\fBreplace-cert\fR"
+/*	This is like \fBreplace-key\fR, but copies any currently
+/*	deployed private key if one exists, and immediately deploys
+/*	the key and the new self-signed server certificate.  This
+/*	is safe with DANE TLSA "3 1 1" records.  As noted before,
+/*	replacement of just the certificate is rarely needed.
+/* .IP "\fBgen-csr [\fIhostname\fB] [\fIkeyfile\fB]\fR"
+/*	Write to stdout a certificate signing request (CSR) for the
+/*	specified \fIhostname\fR (by default, the value of the
+/*	\fBmyhostname\fR main.cf parameter) and private key file
+/*	\fIkeyfile\fR (by default, the value of the
+/*	\fBsmtpd_tls_key_file\fR main.cf parameter).
+/* .IP "\fBgen-tlsa [\fIhostname\fB] [\fIkeyfile\fB]\fR"
+/*	Write to stdout a DANE TLSA record suitable for a port 25
+/*	SMTP server on host \fIhostname\fR (default: the value of
+/*	the \fBmyhostname\fR main.cf parameter) with private key
+/*	file \fIkeyfile\fR (default: the value of the
+/*	\fBsmtpd_tls_key_file\fR main.cf parameter).
 /* ENVIRONMENT
 /* .ad
 /* .fi

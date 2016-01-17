@@ -2608,6 +2608,11 @@ extern int var_fault_inj_code;
 #define DEF_NEWALIAS_PATH		"/usr/bin/newaliases"
 #endif
 
+#define VAR_OPENSSL_PATH		"openssl_path"
+#ifndef DEF_OPENSSL_PATH
+#define DEF_OPENSSL_PATH		"openssl"
+#endif
+
 #define VAR_MANPAGE_DIR			"manpage_directory"
 #ifndef DEF_MANPAGE_DIR
 #define DEF_MANPAGE_DIR			"/usr/local/man"

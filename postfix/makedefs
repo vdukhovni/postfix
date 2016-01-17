@@ -140,7 +140,7 @@
 #	data_directory default_database_type html_directory
 #	mail_spool_directory mailq_path manpage_directory meta_directory
 #	newaliases_path queue_directory readme_directory sendmail_path
-#	shlib_directory
+#	shlib_directory openssl_path
 #
 #	See the postconf(5) manpage for a description of these
 #	parameters.
@@ -831,7 +831,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
+CCARGS="$CCARGS -DNONPROD"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"
@@ -925,13 +925,15 @@ newaliases_path_macro=DEF_NEWALIAS_PATH
 queue_directory_macro=DEF_QUEUE_DIR
 sendmail_path_macro=DEF_SENDMAIL_PATH
 shlib_directory_macro=DEF_SHLIB_DIR
+openssl_path_macro=DEF_OPENSSL_PATH
 
 # shlib_directory is checked here because "no" is not a good answer.
 # Instead, build with "dynamicmaps=no" and "shared=no" as appropriate.
 
 for parm_name in command_directory config_directory daemon_directory \
 	data_directory mail_spool_directory mailq_path meta_directory \
-	newaliases_path queue_directory sendmail_path shlib_directory
+	newaliases_path queue_directory sendmail_path shlib_directory \
+	openssl_path
 do
     eval parm_val=\"\$$parm_name\"
     eval parm_macro=\"\$${parm_name}_macro\"

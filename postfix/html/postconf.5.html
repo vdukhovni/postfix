@@ -7310,6 +7310,37 @@ and <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_rec
 
 </DD>
 
+<DT><b><a name="openssl_path">openssl_path</a>
+(default: openssl)</b></DT><DD>
+
+<p>
+The location of the OpenSSL command line program openssl(1).  This
+is used by the "<b>postfix tls</b>" command to create private keys,
+certificate signing requests, self-signed certificates, and to
+compute public key digests for DANE TLSA records.  In multi-instance
+environments, this parameter is always determined from the configuration
+of the default Postfix instance.
+</p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # NetBSD pkgsrc:
+    openssl_path = /usr/pkg/bin/openssl
+    # Local build:
+    openssl_path = /usr/local/bin/openssl
+</pre>
+</blockquote>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="owner_request_special">owner_request_special</a>
 (default: yes)</b></DT><DD>
 

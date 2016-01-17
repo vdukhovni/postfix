@@ -448,6 +448,8 @@ postconf.5 | less").
     |_____________________|____________________|
     |newaliases_path	  |/usr/bin/newaliases |
     |_____________________|____________________|
+    |openssl_path	  |openssl	       |
+    |_____________________|____________________|
     |queue_directory	  |/var/spool/postfix  |
     |_____________________|____________________|
     |readme_directory	  |no		       |

@@ -11,7 +11,7 @@ Postfix configuration utility
 .fi
 \fBManaging main.cf:\fR
 
-\fBpostconf\fR [\fB\-dfhnopvx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR [\fB\-dfhHnopvx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fB\-C \fIclass,...\fR] [\fIparameter ...\fR]
 
 \fBpostconf\fR [\fB\-epv\fR] [\fB\-c \fIconfig_dir\fR]
@@ -39,7 +39,7 @@ Postfix configuration utility
 
 \fBManaging master.cf service fields:\fR
 
-\fBpostconf\fR \fB\-F\fR [\fB\-fovx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-F\fR [\fB\-fhHovx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 
 \fBpostconf\fR \fB\-F\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -47,7 +47,7 @@ Postfix configuration utility
 
 \fBManaging master.cf service parameters:\fR
 
-\fBpostconf\fR \fB\-P\fR [\fB\-fovx\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostconf\fR \fB\-P\fR [\fB\-fhHovx\fR] [\fB\-c \fIconfig_dir\fR]
 [\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 
 \fBpostconf\fR \fB\-P\fR [\fB\-ev\fR] [\fB\-c \fIconfig_dir\fR]
@@ -203,6 +203,11 @@ This feature is available with Postfix 2.11 and later.
 .IP \fB\-h\fR
 Show parameter or attribute values without the "\fIname\fR
 = " label that normally precedes the value.
+.IP \fB\-H\fR
+Show parameter or attribute names without the " = \fIvalue\fR"
+that normally follows the name.
+
+This feature is available with Postfix 3.1 and later.
 .IP \fB\-l\fR
 List the names of all supported mailbox locking methods.
 Postfix supports the following methods:
@@ -527,3 +532,8 @@ Wietse Venema
 IBM T.J. Watson Research
 P.O. Box 704
 Yorktown Heights, NY 10598, USA
+
+Wietse Venema
+Google, Inc.
+111 8th Avenue
+New York, NY 10011, USA

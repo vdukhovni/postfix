@@ -13,7 +13,7 @@ DIRS	= src/util src/global src/dns src/tls src/xsasl src/master src/milter \
 	src/posttls-finger
 MANDIRS	= proto man html
 LIBEXEC	= libexec/post-install libexec/postfix-script libexec/postfix-wrapper \
-	libexec/postmulti-script libexec/post-install
+	libexec/postmulti-script libexec/postfix-tls-script
 PLUGINS	= meta/dynamicmaps.cf
 META	= meta/main.cf.proto meta/master.cf.proto meta/postfix-files \
 	meta/makedefs.out $(PLUGINS)
@@ -82,6 +82,9 @@ meta/postfix-files: conf/postfix-files conf/makedefs.out Makefile
 	esac > $@
 
 libexec/postfix-script: conf/postfix-script
+	rm -f $@ && ln -f $? $@
+
+libexec/postfix-tls-script: conf/postfix-tls-script
 	rm -f $@ && ln -f $? $@
 
 libexec/postfix-wrapper: conf/postfix-wrapper

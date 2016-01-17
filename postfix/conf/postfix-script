@@ -356,6 +356,11 @@ post-install)
 	$daemon_directory/post-install "$@"
 	;;
 
+tls)
+	shift
+	$daemon_directory/postfix-tls-script "$@"
+	;;
+
 /*)
 	# Currently not part of the public interface.
 	"$@"

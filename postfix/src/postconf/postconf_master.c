@@ -132,6 +132,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -659,20 +664,24 @@ static void pcf_print_master_field(VSTREAM *fp, int mode,
 	ADD_TEXT(argv[1], strlen(argv[1]));
 	ADD_CHAR(PCF_NAMESP_SEP_STR);
 	ADD_TEXT(pcf_str_field_pattern(field), strlen(pcf_str_field_pattern(field)));
+    }
+    if ((mode & (PCF_HIDE_NAME | PCF_HIDE_VALUE)) == 0) {
 	ADD_TEXT(" = ", 3);
-	if (line_len + strlen(argv[field]) > PCF_LINE_LIMIT) {
+    }
+    if ((mode & PCF_HIDE_VALUE) == 0) {
+	if (line_len > 0 && line_len + strlen(argv[field]) > PCF_LINE_LIMIT) {
 	    vstream_fputs("\n" PCF_INDENT_TEXT, fp);
 	    line_len = PCF_INDENT_LEN;
 	}
+	ADD_TEXT(argv[field], strlen(argv[field]));
     }
-    ADD_TEXT(argv[field], strlen(argv[field]));
 
     /*
      * Format the daemon command-line options and non-option arguments. Here,
      * we have no data-dependent preference for column positions, but we do
      * have argument grouping preferences.
      */
-    if (field == PCF_MASTER_FLD_CMD) {
+    if (field == PCF_MASTER_FLD_CMD && (mode & PCF_HIDE_VALUE) == 0) {
 	in_daemon_options = 1;
 	for (field += 1; (arg = argv[field]) != 0; field++) {
 	    arg_len = strlen(arg);
@@ -853,15 +862,21 @@ static void pcf_print_master_param(VSTREAM *fp, int mode,
 				           const char *param_name,
 				           const char *param_value)
 {
-    if ((mode & PCF_SHOW_EVAL) != 0)
-	param_value = pcf_expand_parameter_value((VSTRING *) 0, mode,
-						 param_value, masterp);
-    if ((mode & PCF_HIDE_NAME) == 0) {
-	pcf_print_line(fp, mode, "%s%c%s = %s\n",
+    if (mode & PCF_HIDE_VALUE) {
+	pcf_print_line(fp, mode, "%s%c%s\n",
 		       masterp->name_space, PCF_NAMESP_SEP_CH,
-		       param_name, param_value);
+		       param_name);
     } else {
-	pcf_print_line(fp, mode, "%s\n", param_value);
+	if ((mode & PCF_SHOW_EVAL) != 0)
+	    param_value = pcf_expand_parameter_value((VSTRING *) 0, mode,
+						     param_value, masterp);
+	if ((mode & PCF_HIDE_NAME) == 0) {
+	    pcf_print_line(fp, mode, "%s%c%s = %s\n",
+			   masterp->name_space, PCF_NAMESP_SEP_CH,
+			   param_name, param_value);
+	} else {
+	    pcf_print_line(fp, mode, "%s\n", param_value);
+	}
     }
     if (msg_verbose)
 	vstream_fflush(fp);

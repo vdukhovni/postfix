@@ -49,7 +49,8 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test22 test23 test24 test25 test26 test27 test28 test29 test30 test4b \
 	test31 test32 test33 test34 test35 test36 test37 test39 test40 test41 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
-	test52 test53 test54 test55 test56 test57 test58 test59
+	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
+	test62 test63
 
 root_tests:
 
@@ -804,6 +805,46 @@ test59: $(PROG) test59.ref
 	$(SHLIB_ENV) ./$(PROG) -Mfc. >test59.tmp 2>&1 || true
 	diff test59.ref test59.tmp
 	rm -f main.cf master.cf test59.tmp
+
+test60: $(PROG) test60.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o always_bcc=bar' >> master.cf
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) ./$(PROG) -Fhc. >test60.tmp 2>&1 || true
+	diff test60.ref test60.tmp
+	rm -f main.cf master.cf test60.tmp
+
+test61: $(PROG) test61.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o always_bcc=bar' >> master.cf
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) ./$(PROG) -Phc. >test61.tmp 2>&1 || true
+	diff test61.ref test61.tmp
+	rm -f main.cf master.cf test61.tmp
+
+test62: $(PROG) test62.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o always_bcc=bar' >> master.cf
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) ./$(PROG) -FHc. >test62.tmp 2>&1 || true
+	diff test62.ref test62.tmp
+	rm -f main.cf master.cf test62.tmp
+
+test63: $(PROG) test63.ref
+	rm -f main.cf master.cf
+	touch main.cf master.cf
+	echo foo unix - n n - 0 other >> master.cf
+	echo ' -o always_bcc=bar' >> master.cf
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) ./$(PROG) -PHc. >test63.tmp 2>&1 || true
+	diff test63.ref test63.tmp
+	rm -f main.cf master.cf test63.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
