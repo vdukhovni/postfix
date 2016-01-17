@@ -22103,3 +22103,28 @@ Apologies for any names omitted.
 	with insecure MX records.  Viktor Dukhovni. Files:
 	posttls-finger/posttls-finger.c, smtp/smtp_tls_policy.c,
 	tls/tls.h, tls/tls_client.c, tls/tls_level.c.
+
+20160108
+
+	Cleanup: smtp_reply_footer() now restores state in case of
+	input error; unit tests that cover most if not all error
+	and non-error cases.  Files: global/smtp_reply_footer.c,
+	global/smtp_reply_footer.ref.
+
+20160110
+
+	Bitrot: const-ification for OpenSSL 1.1.0. Viktor Dukhovni.
+	File: tls/tls_misc.c.
+
+20160116
+
+	"postconf -H" support (show names without the =value).
+	Initial use case: mass reversal of TLS-related main.cf
+	parameters (postconf -nH | grep _tls_ | xargs postconf -X).
+	This flag also works with "postconf -F" and "postconf -P".
+	Added missing documentation that -h works with "postconf
+	-F" and "postconf -P".  Files: postconf.c, postconf.h,
+	postconf_master.c, postconf_main.c.
+
+	Robustness: force html2text to produce ASCII output.  File:
+	mantools/html2readme.

@@ -7,7 +7,7 @@
 /* .fi
 /*	\fBManaging main.cf:\fR
 /*
-/*	\fBpostconf\fR [\fB-dfhnopvx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR [\fB-dfhHnopvx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-C \fIclass,...\fR] [\fIparameter ...\fR]
 /*
 /*	\fBpostconf\fR [\fB-epv\fR] [\fB-c \fIconfig_dir\fR]
@@ -35,7 +35,7 @@
 /*
 /*	\fBManaging master.cf service fields:\fR
 /*
-/*	\fBpostconf\fR \fB-F\fR [\fB-fovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-F\fR [\fB-fhHovx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIfield\fR]]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-F\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -43,7 +43,7 @@
 /*
 /*	\fBManaging master.cf service parameters:\fR
 /*
-/*	\fBpostconf\fR \fB-P\fR [\fB-fovx\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostconf\fR \fB-P\fR [\fB-fhHovx\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fIservice\fR[\fB/\fItype\fR[\fB/\fIparameter\fR]]\fI ...\fR]
 /*
 /*	\fBpostconf\fR \fB-P\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
@@ -197,6 +197,11 @@
 /* .IP \fB-h\fR
 /*	Show parameter or attribute values without the "\fIname\fR
 /*	= " label that normally precedes the value.
+/* .IP \fB-H\fR
+/*	Show parameter or attribute names without the " = \fIvalue\fR"
+/*	that normally follows the name.
+/*
+/*	This feature is available with Postfix 3.1 and later.
 /* .IP \fB-l\fR
 /*	List the names of all supported mailbox locking methods.
 /*	Postfix supports the following methods:
@@ -505,6 +510,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -572,7 +582,8 @@ static const int pcf_incompat_options[] = {
     PCF_SHOW_EVAL | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
     PCF_MAIN_OVER | PCF_SHOW_DEFS | PCF_EDIT_CONF | PCF_COMMENT_OUT \
     |PCF_EDIT_EXCL,
-    PCF_HIDE_NAME | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL,
+    PCF_HIDE_NAME | PCF_EDIT_CONF | PCF_COMMENT_OUT | PCF_EDIT_EXCL \
+    |PCF_HIDE_VALUE,
     0,
 };
 
@@ -592,13 +603,14 @@ static const int pcf_compat_options[][2] = {
     {PCF_MAIN_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT \
 		      |PCF_FOLD_LINE | PCF_HIDE_NAME | PCF_PARAM_CLASS \
 		      |PCF_SHOW_EVAL | PCF_SHOW_DEFS | PCF_SHOW_NONDEF \
-		      |PCF_MAIN_OVER)},
+		      |PCF_MAIN_OVER | PCF_HIDE_VALUE)},
     {PCF_MASTER_ENTRY, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_COMMENT_OUT \
 			|PCF_FOLD_LINE | PCF_MAIN_OVER | PCF_SHOW_EVAL)},
     {PCF_MASTER_FLD, (PCF_EDIT_CONF | PCF_FOLD_LINE | PCF_HIDE_NAME \
-		      |PCF_MAIN_OVER | PCF_SHOW_EVAL)},
+		      |PCF_MAIN_OVER | PCF_SHOW_EVAL | PCF_HIDE_VALUE)},
     {PCF_MASTER_PARAM, (PCF_EDIT_CONF | PCF_EDIT_EXCL | PCF_FOLD_LINE \
-			|PCF_HIDE_NAME | PCF_MAIN_OVER | PCF_SHOW_EVAL)},
+			|PCF_HIDE_NAME | PCF_MAIN_OVER | PCF_SHOW_EVAL \
+			|PCF_HIDE_VALUE)},
     /* Modifiers. */
     {PCF_PARAM_CLASS, (PCF_MAIN_PARAM | PCF_SHOW_DEFS | PCF_SHOW_NONDEF)},
     0,
@@ -617,6 +629,7 @@ static const NAME_MASK pcf_compat_names[] = {
     "-f", PCF_FOLD_LINE,
     "-F", PCF_MASTER_FLD,
     "-h", PCF_HIDE_NAME,
+    "-H", PCF_HIDE_VALUE,
     "-l", PCF_SHOW_LOCKS,
     "-m", PCF_SHOW_MAPS,
     "-M", PCF_MASTER_ENTRY,
@@ -646,6 +659,7 @@ static void usage(const char *progname)
 	      " [-f (fold lines)]"
 	      " [-F (master.cf fields)]"
 	      " [-h (no names)]"
+	      " [-H (no values)]"
 	      " [-l (lock types)]"
 	      " [-m (map types)]"
 	      " [-M (master.cf)]"
@@ -749,7 +763,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhlmMno:pPtvxX#")) > 0) {
+    while ((ch = GETOPT(argc, argv, "aAbc:C:deEfFhHlmMno:pPtvxX#")) > 0) {
 	switch (ch) {
 	case 'a':
 	    pcf_cmd_mode |= PCF_SHOW_SASL_SERV;
@@ -789,6 +803,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'h':
 	    pcf_cmd_mode |= PCF_HIDE_NAME;
+	    break;
+	case 'H':
+	    pcf_cmd_mode |= PCF_HIDE_VALUE;
 	    break;
 	case 'l':
 	    pcf_cmd_mode |= PCF_SHOW_LOCKS;

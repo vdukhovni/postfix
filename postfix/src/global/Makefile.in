@@ -117,7 +117,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
-	fold_addr
+	fold_addr smtp_reply_footer
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -373,11 +373,15 @@ mail_parm_split: mail_parm_split.c $(LIB) $(LIBS)
 fold_addr: fold_addr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+smtp_reply_footer: smtp_reply_footer.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
 	mail_version_test server_acl_test resolve_local_test maps_test \
-	safe_ultostr_test mail_parm_split_test fold_addr_test
+	safe_ultostr_test mail_parm_split_test fold_addr_test \
+	smtp_reply_footer_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -646,6 +650,11 @@ fold_addr_test: fold_addr fold_addr_test.in fold_addr_test.ref
 	$(SHLIB_ENV) ./fold_addr <fold_addr_test.in >fold_addr_test.tmp 2>&1
 	diff fold_addr_test.ref fold_addr_test.tmp
 	rm -f fold_addr_test.tmp
+
+smtp_reply_footer_test: smtp_reply_footer smtp_reply_footer.ref
+	$(SHLIB_ENV) ./smtp_reply_footer >smtp_reply_footer.tmp 2>&1
+	diff smtp_reply_footer.ref smtp_reply_footer.tmp
+	rm -f smtp_reply_footer.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

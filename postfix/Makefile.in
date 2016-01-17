@@ -13,7 +13,7 @@ DIRS	= src/util src/global src/dns src/tls src/xsasl src/master src/milter \
 	src/posttls-finger
 MANDIRS	= proto man html
 LIBEXEC	= libexec/post-install libexec/postfix-script libexec/postfix-wrapper \
-	libexec/postmulti-script libexec/post-install
+	libexec/postmulti-script
 PLUGINS	= meta/dynamicmaps.cf
 META	= meta/main.cf.proto meta/master.cf.proto meta/postfix-files \
 	meta/makedefs.out $(PLUGINS)

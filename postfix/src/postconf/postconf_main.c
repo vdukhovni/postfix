@@ -63,6 +63,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -146,13 +151,17 @@ static void pcf_print_parameter(VSTREAM *fp, int mode, const char *name,
      * or without the name= prefix.
      */
     if (value != 0) {
-	if ((mode & PCF_SHOW_EVAL) != 0 && PCF_RAW_PARAMETER(node) == 0)
-	    value = pcf_expand_parameter_value((VSTRING *) 0, mode, value,
-					       (PCF_MASTER_ENT *) 0);
-	if ((mode & PCF_HIDE_NAME) == 0) {
-	    pcf_print_line(fp, mode, "%s = %s\n", name, value);
+	if (mode & PCF_HIDE_VALUE) {
+	    pcf_print_line(fp, mode, "%s\n", name);
 	} else {
-	    pcf_print_line(fp, mode, "%s\n", value);
+	    if ((mode & PCF_SHOW_EVAL) != 0 && PCF_RAW_PARAMETER(node) == 0)
+		value = pcf_expand_parameter_value((VSTRING *) 0, mode, value,
+						   (PCF_MASTER_ENT *) 0);
+	    if ((mode & PCF_HIDE_NAME) == 0) {
+		pcf_print_line(fp, mode, "%s = %s\n", name, value);
+	    } else {
+		pcf_print_line(fp, mode, "%s\n", value);
+	    }
 	}
 	if (msg_verbose)
 	    vstream_fflush(fp);

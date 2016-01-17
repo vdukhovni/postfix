@@ -461,7 +461,7 @@ static const char *tls_exclude_missing(SSL_CTX *ctx, VSTRING *buf)
     static ARGV *exclude;		/* Cached */
     SSL    *s = 0;
     ssl_cipher_stack_t *ciphers;
-    SSL_CIPHER *c;
+    const SSL_CIPHER *c;
     const cipher_probe_t *probe;
     int     alg_bits;
     int     num;

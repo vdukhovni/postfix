@@ -20,7 +20,7 @@
  /*
   * External interface.
   */
-extern int smtp_reply_footer(VSTRING *, ssize_t, char *, const char *,
+extern int smtp_reply_footer(VSTRING *, ssize_t, const char *, const char *,
 			             MAC_EXP_LOOKUP_FN, void *);
 
 /* LICENSE
@@ -32,6 +32,11 @@ extern int smtp_reply_footer(VSTRING *, ssize_t, char *, const char *,
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif
