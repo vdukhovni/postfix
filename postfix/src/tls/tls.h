@@ -87,8 +87,11 @@ extern const NAME_CODE tls_level_table[];
 
  /* Backwards compatibility with OpenSSL < 1.1.0 */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define X509_up_ref(x) CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
 #define OpenSSL_version_num SSLeay
+#define X509_up_ref(x) \
+	CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
+#define EVP_PKEY_up_ref(k) \
+	CRYPTO_add(&((k)->references), 1, CRYPTO_LOCK_EVP_PKEY)
 #endif
 
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */

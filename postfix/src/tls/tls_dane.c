@@ -573,7 +573,7 @@ static void ta_pkey_insert(TLS_DANE *d, EVP_PKEY *k)
 {
     TLS_PKEYS *new = (TLS_PKEYS *) mymalloc(sizeof(*new));
 
-    CRYPTO_add(&k->references, 1, CRYPTO_LOCK_EVP_PKEY);
+    EVP_PKEY_up_ref(k);
     new->pkey = k;
     new->next = d->pkeys;
     d->pkeys = new;
