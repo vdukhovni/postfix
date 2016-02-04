@@ -173,9 +173,16 @@ static const char server_session_id_context[] = "Postfix/TLS";
 
 #endif					/* OPENSSL_VERSION_NUMBER */
 
+ /* OpenSSL 1.1.0 bitrot */
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+typedef const unsigned char *session_id_t;
+#else
+typedef unsigned char *session_id_t;
+#endif
+
 /* get_server_session_cb - callback to retrieve session from server cache */
 
-static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
+static SSL_SESSION *get_server_session_cb(SSL *ssl, session_id_t session_id,
 					          int session_id_length,
 					          int *unused_copy)
 {
