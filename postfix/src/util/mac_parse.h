@@ -8,8 +8,8 @@
 /*	locate macro references in string
 /* SYNOPSIS
 /*	#include <mac_parse.h>
- DESCRIPTION
- .nf
+/* DESCRIPTION
+/* .nf
 
  /*
   * Utility library.

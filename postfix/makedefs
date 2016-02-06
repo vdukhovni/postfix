@@ -799,6 +799,11 @@ esac
 #esac
 
 #
+# We don't know all systems that have /dev/urandom, so we probe.
+#
+test -r /dev/urandom && CCARGS="$CCARGS -DHAS_DEV_URANDOM"
+
+#
 # PCRE 3.x has a pcre-config utility so we don't have to guess.
 #
 case "$CCARGS" in

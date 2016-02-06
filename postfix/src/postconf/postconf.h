@@ -45,6 +45,7 @@
 #define PCF_DUMP_DSN_TEMPL	(1<<18)	/* show bounce templates */
 #define PCF_MASTER_PARAM	(1<<19)	/* manage master.cf -o name=value */
 #define PCF_HIDE_VALUE		(1<<20)	/* hide main.cf/master.cf =value */
+#define PCF_SHOW_TLS		(1<<21)	/* TLS support introspection */
 
 #define PCF_DEF_MODE	0
 
@@ -303,6 +304,7 @@ extern void pcf_flag_unused_master_parameters(void);
 extern void pcf_show_maps(void);
 extern void pcf_show_locks(void);
 extern void pcf_show_sasl(int);
+extern void pcf_show_tls(const char *);
 
 /* LICENSE
 /* .ad

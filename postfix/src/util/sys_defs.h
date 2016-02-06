@@ -1378,6 +1378,14 @@ extern int inet_pton(int, const char *, void *);
 #endif
 
  /*
+  * If we don't have defined a preferred random device above, but the system
+  * has /dev/urandom, then we use that.
+  */
+#if !defined(PREFERRED_RAND_SOURCE) && defined(HAS_DEV_URANDOM)
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
+#endif
+
+ /*
   * Defaults for systems without kqueue, /dev/poll or epoll support.
   * master/multi-server.c and *qmgr/qmgr_transport.c depend on this.
   */

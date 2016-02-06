@@ -361,6 +361,7 @@ while (<>) {
     s;\bnewaliases_path\b;<a href="postconf.5.html#newaliases_path">$&</a>;g;
     s;\bnon_fqdn_reject_code\b;<a href="postconf.5.html#non_fqdn_reject_code">$&</a>;g;
     s;\bnotify_classes\b;<a href="postconf.5.html#notify_classes">$&</a>;g;
+    s;\bopenssl_path\b;<a href="postconf.5.html#openssl_path">$&</a>;g;
     s;\bowner_request_special\b;<a href="postconf.5.html#owner_request_special">$&</a>;g;
     s;\bpar[-</bB>]*\n* *[<bB>]*ent_domain_matches_subdomains\b;<a href="postconf.5.html#parent_domain_matches_subdomains">$&</a>;g;
     s;\bpermit_mx_backup_networks\b;<a href="postconf.5.html#permit_mx_backup_networks">$&</a>;g;
@@ -815,6 +816,7 @@ while (<>) {
     s/[<bB>]*post[-<\/bB>]*\n*[ <bB>]*conf[<\/bB>]*\(1\)/<a href="postconf.1.html">$&<\/a>/g;
     s/[<bB>]*postdrop[<\/bB>]*\(1\)/<a href="postdrop.1.html">$&<\/a>/g;
     s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix[<\/bB>]*\(1\)/<a href="postfix.1.html">$&<\/a>/g;
+    s/[<bB>]*post[-<\/bB>]*\n* *[<bB>]*fix-tls[<\/bB>]*\(1\)/<a href="postfix-tls.1.html">$&<\/a>/g;
     s/[<bB>]*postkick[<\/bB>]*\(1\)/<a href="postkick.1.html">$&<\/a>/g;
     s/[<bB>]*postlock[<\/bB>]*\(1\)/<a href="postlock.1.html">$&<\/a>/g;
     s/[<bB>]*postlog[<\/bB>]*\(1\)/<a href="postlog.1.html">$&<\/a>/g;

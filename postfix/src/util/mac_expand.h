@@ -8,8 +8,8 @@
 /*	expand macro references in string
 /* SYNOPSIS
 /*	#include <mac_expand.h>
- DESCRIPTION
- .nf
+/* DESCRIPTION
+/* .nf
 
  /*
   * Utility library.

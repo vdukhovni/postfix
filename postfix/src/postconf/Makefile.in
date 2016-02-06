@@ -22,6 +22,8 @@ PROG	= postconf
 SAMPLES	= ../../conf/main.cf.default
 INC_DIR	= ../../include
 LIBS	= ../../lib/libxsasl.a \
+	../../lib/lib$(LIB_PREFIX)tls$(LIB_SUFFIX) \
+	../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 
@@ -1095,11 +1097,16 @@ postconf_node.o: postconf_node.c
 postconf_other.o: ../../include/argv.h
 postconf_other.o: ../../include/check_arg.h
 postconf_other.o: ../../include/dict.h
+postconf_other.o: ../../include/dns.h
 postconf_other.o: ../../include/htable.h
 postconf_other.o: ../../include/mbox_conf.h
+postconf_other.o: ../../include/myaddrinfo.h
 postconf_other.o: ../../include/myflock.h
 postconf_other.o: ../../include/name_code.h
+postconf_other.o: ../../include/name_mask.h
+postconf_other.o: ../../include/sock_addr.h
 postconf_other.o: ../../include/sys_defs.h
+postconf_other.o: ../../include/tls.h
 postconf_other.o: ../../include/vbuf.h
 postconf_other.o: ../../include/vstream.h
 postconf_other.o: ../../include/vstring.h

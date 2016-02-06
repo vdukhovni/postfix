@@ -89,11 +89,10 @@ extern const char *str_tls_level(int);
 #endif
 
  /* Backwards compatibility with OpenSSL < 1.1.0 */
-#ifdef SSLEAY_VERSION_NUMBER
-#define OpenSSL_version_num SSLeay
-#endif
-
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
+#define OpenSSL_version_num SSLeay
+#define OpenSSL_version SSLeay_version
+#define OPENSSL_VERSION SSLEAY_VERSION
 #define X509_up_ref(x) CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
 #endif
 
@@ -308,7 +307,6 @@ extern void tls_free_app_context(TLS_APPL_STATE *);
  /*
   * tls_misc.c
   */
-
 extern void tls_param_init(void);
 
  /*
@@ -534,6 +532,13 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
   * tls_session.c
   */
 extern void tls_session_stop(TLS_APPL_STATE *, VSTREAM *, int, int, TLS_SESS_STATE *);
+
+ /*
+  * tls_misc.c
+  */
+extern const char *tls_compile_version(void);
+extern const char *tls_run_version(void);
+extern const char **tls_pkey_algorithms(void);
 
 #ifdef TLS_INTERNAL
 

@@ -4094,7 +4094,7 @@ configuration parameter.  See there for details. </p>
 <DT><b><a name="lmtp_address_verify_target">lmtp_address_verify_target</a>
 (default: rcpt)</b></DT><DD>
 
-<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_dns_support_level">smtp_dns_support_level</a>
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_address_verify_target">smtp_address_verify_target</a>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 3.0 and later.  </p>
@@ -7328,9 +7328,9 @@ of the default Postfix instance.
 <pre>
 /etc/postfix/<a href="postconf.5.html">main.cf</a>:
     # NetBSD pkgsrc:
-    openssl_path = /usr/pkg/bin/openssl
+    <a href="postconf.5.html#openssl_path">openssl_path</a> = /usr/pkg/bin/openssl
     # Local build:
-    openssl_path = /usr/local/bin/openssl
+    <a href="postconf.5.html#openssl_path">openssl_path</a> = /usr/local/bin/openssl
 </pre>
 </blockquote>
 
