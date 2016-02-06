@@ -233,7 +233,7 @@ struct test_case {
 #define BAD_SMTP	(-1)
 #define BAD_MACRO	(-2)
 
-static struct test_case test_cases[] = {
+static const struct test_case test_cases[] = {
     {"missing reply", "", NO_TEMPLATE, NO_FILTER, BAD_SMTP, 0},
     {"long smtp_code", "1234 foo", NO_TEMPLATE, NO_FILTER, BAD_SMTP, 0},
     {"short smtp_code", "12 foo", NO_TEMPLATE, NO_FILTER, BAD_SMTP, 0},

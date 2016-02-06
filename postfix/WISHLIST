@@ -6,6 +6,11 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Fix bold "[" and "]" in manpages; these are not part of the
+	command line.
+
+	Add Google credits to manpages.
+
 	Remove this file from the stable release.
 
 	Things to do after the stable release:
@@ -13,12 +18,9 @@ Wish list:
 	Specify WARN_UNUSED_RESULT for all library functions that
 	pass, deliver, bounce or defer a delivery request.
 
-	Specify WARN_UNUSED_RESULT for mac_expand(), after making
-	smtp_reply_footer() undoable.
-
-	Type-checking wrappers for htable(3), ctable(3) and other
-	modules that take and return a void* pointer. This is
-	the next best thing to C++ style HTABLE<payload_type>.
+	Invent some kind of type-checking wrappers for htable(3),
+	ctable(3) and other modules that take and return a void*
+	pointer. We already did that for variadic functions.
 
 	TLS certificate provenance: indicate whether a subject
 	name/issuer are verified or not (for example, change the

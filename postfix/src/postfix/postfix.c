@@ -54,7 +54,7 @@
 /*	earliest convenience.
 /* .IP \fBstatus\fR
 /*	Indicate if the Postfix mail system is currently running.
-/* .IP "\fBset-permissions\fR \fB[\fIname\fR=\fIvalue ...\fB]\fR
+/* .IP "\fBset-permissions\fR [\fIname\fR=\fIvalue ...\fR]
 /*	Set the ownership and permissions of Postfix related files and
 /*	directories, as specified in the \fBpostfix-files\fR file.
 /* .sp
@@ -66,7 +66,7 @@
 /*	This feature is available in Postfix 2.1 and later.  With
 /*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
-/* .IP "\fBupgrade-configuration\fR \fB[\fIname\fR=\fIvalue ...\fB]\fR
+/* .IP "\fBupgrade-configuration\fR [\fIname\fR=\fIvalue ...\fR]
 /*	Update the \fBmain.cf\fR and \fBmaster.cf\fR files with information
 /*	that Postfix needs in order to run: add or update services, and add
 /*	or update configuration parameter settings.
@@ -312,6 +312,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*
 /*	TLS support by:
 /*	Lutz Jaenicke

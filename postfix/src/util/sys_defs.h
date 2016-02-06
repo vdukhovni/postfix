@@ -260,6 +260,7 @@
 #define HAVE_POSIX_GETPW_R
 #endif
 #define HAS_DLOPEN
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
 #endif
 
  /*
@@ -1374,6 +1375,14 @@ extern int inet_pton(int, const char *, void *);
   */
 #ifndef NO_WATCHDOG_PIPE
 #define USE_WATCHDOG_PIPE
+#endif
+
+ /*
+  * If we don't have defined a preferred random device above, but the system
+  * has /dev/urandom, then we use that.
+  */
+#if !defined(PREFERRED_RAND_SOURCE) && defined(HAS_DEV_URANDOM)
+#define PREFERRED_RAND_SOURCE	"dev:/dev/urandom"
 #endif
 
  /*

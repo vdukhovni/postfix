@@ -60,7 +60,7 @@ POSTFIX(1)                                                          POSTFIX(1)
 
        <b>status</b> Indicate if the Postfix mail system is currently running.
 
-       <b>set-permissions [</b><i>name</i>=<i>value ...</i><b>]</b>
+       <b>set-permissions</b> [<i>name</i>=<i>value ...</i>]
               Set the ownership and permissions of Postfix related  files  and
               directories, as specified in the <b>postfix-files</b> file.
 
@@ -73,7 +73,7 @@ POSTFIX(1)                                                          POSTFIX(1)
               fix   2.0   and   earlier,  use  "<b>$<a href="postconf.5.html#config_directory">config_directory</a>/post-install</b>
               <b>set-permissions</b>".
 
-       <b>upgrade-configuration [</b><i>name</i>=<i>value ...</i><b>]</b>
+       <b>upgrade-configuration</b> [<i>name</i>=<i>value ...</i>]
               Update the <a href="postconf.5.html"><b>main.cf</b></a> and <a href="master.5.html"><b>master.cf</b></a>  files  with  information  that
               Postfix  needs  in order to run: add or update services, and add
               or update configuration parameter settings.
@@ -338,6 +338,11 @@ POSTFIX(1)                                                          POSTFIX(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
        TLS support by:
        Lutz Jaenicke

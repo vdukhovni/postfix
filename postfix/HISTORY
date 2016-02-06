@@ -22128,3 +22128,21 @@ Apologies for any names omitted.
 
 	Robustness: force html2text to produce ASCII output.  File:
 	mantools/html2readme.
+
+20150118
+
+	Bitrot: OpenSSL 1.1.0-dev (aka the "master" branch) has new
+	security levels ranging from 0 to 5. Level "0" is backwards
+	compatible, and other levels are increasingly restrictive.
+	Viktor Dukhovni. Files: tls/tls_server.c, tls/tls_client.c.
+
+20161205
+
+	Portability: Postfix TLS support uses /dev/urandom if
+	available and no system-specific setting exists in sys_defs.h.
+	Files: makedefs, util/sys_defs.h.
+
+20161206
+
+	Portability: added a tls_random_source default setting for
+	MacOS X. Viktor Dukhovni. File: util/sys_defs.h.
