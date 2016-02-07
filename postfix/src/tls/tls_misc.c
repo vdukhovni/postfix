@@ -24,6 +24,7 @@
 /*	bool	var_tls_multi_wildcard;
 /*	char	*var_tls_mgr_service;
 /*	char	*var_tls_tkt_cipher;
+/*	char	*var_openssl_path;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -81,10 +82,16 @@
 /*
 /*	void	 tls_update_app_logmask(app_ctx, log_mask)
 /*	TLS_APPL_STATE *app_ctx;
-/*	int      log_mask;
+/*	int	log_mask;
 /*
 /*	int	tls_validate_digest(dgst)
 /*	const char *dgst;
+/*
+/*	const char *tls_compile_version(void)
+/*
+/*	const char *tls_run_version(void)
+/*
+/*	const char **tls_pkey_algorithms(void)
 /* DESCRIPTION
 /*	This module implements routines that support the TLS client
 /*	and server internals.
@@ -155,6 +162,16 @@
 /*
 /*	tls_validate_digest() returns non-zero if the named digest
 /*	is usable and zero otherwise.
+/*
+/*	tls_compile_version() returns a text string description of
+/*	the compile-time TLS library.
+/*
+/*	tls_run_version() is just tls_compile_version() but with the runtime
+/*	version instead of the compile-time version.
+/*
+/*	tls_pkey_algorithms() returns a pointer to null-terminated
+/*	array of string constants with the names of the supported
+/*	public-key algorithms.
 /* LICENSE
 /* .ad
 /* .fi
@@ -177,6 +194,11 @@
 /*
 /*	Victor Duchovni
 /*	Morgan Stanley
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -233,6 +255,7 @@ bool    var_tls_dane_taa_dgst;
 bool    var_tls_multi_wildcard;
 char   *var_tls_mgr_service;
 char   *var_tls_tkt_cipher;
+char   *var_openssl_path;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -617,6 +640,7 @@ void    tls_param_init(void)
 	VAR_TLS_DANE_DIGESTS, DEF_TLS_DANE_DIGESTS, &var_tls_dane_digests, 1, 0,
 	VAR_TLS_MGR_SERVICE, DEF_TLS_MGR_SERVICE, &var_tls_mgr_service, 1, 0,
 	VAR_TLS_TKT_CIPHER, DEF_TLS_TKT_CIPHER, &var_tls_tkt_cipher, 0, 0,
+	VAR_OPENSSL_PATH, DEF_OPENSSL_PATH, &var_openssl_path, 1, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {
@@ -862,7 +886,7 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 
 /* tls_version_split - Split OpenSSL version number into major, minor, ... */
 
-static void tls_version_split(long version, TLS_VINFO *info)
+static void tls_version_split(unsigned long version, TLS_VINFO *info)
 {
 
     /*
@@ -944,6 +968,43 @@ void    tls_check_version(void)
 	     "OpenSSL %d.%d.%d may not be compatible with OpenSSL %d.%d.%d",
 		 lib_info.major, lib_info.minor, lib_info.micro,
 		 hdr_info.major, hdr_info.minor, hdr_info.micro);
+}
+
+/* tls_compile_version - compile-time OpenSSL version */
+
+const char *tls_compile_version(void)
+{
+    return (OPENSSL_VERSION_TEXT);
+}
+
+/* tls_run_version - run-time version "major.minor.micro" */
+
+const char *tls_run_version(void)
+{
+    return (OpenSSL_version(OPENSSL_VERSION));
+}
+
+const char **tls_pkey_algorithms(void)
+{
+
+    /*
+     * Return an array, not string, so that the result can be inspected
+     * without parsing. Sort the result alphabetically, not chronologically.
+     */
+    static const char *algs[] = {
+#ifndef OPENSSL_NO_DSA
+	"dsa",
+#endif
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDSA)
+	"ecdsa",
+#endif
+#ifndef OPENSSL_NO_RSA
+	"rsa",
+#endif
+	0,
+    };
+
+    return (algs);
 }
 
 /* tls_bug_bits - SSL bug compatibility bits for this OpenSSL version */

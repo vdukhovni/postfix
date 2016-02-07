@@ -64,6 +64,10 @@ Postfix configuration utility
 \fBpostconf\fR \fB\-t\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR]
 [\fItemplate_file\fR]
 
+\fBManaging TLS features:\fR
+
+\fBpostconf\fR [\fB\-v\fR] [\fB\-c \fIconfig_dir\fR] \fB\-T \fImode\fR
+
 \fBManaging other configuration:\fR
 
 \fBpostconf\fR \fB\-a\fR|\fB\-A\fR|\fB\-l\fR|\fB\-m\fR [\fB\-v\fR]
@@ -417,6 +421,25 @@ empty template file name on the \fBpostconf\fR(1) command
 line (in shell language: "").
 
 This feature is available with Postfix 2.3 and later.
+.IP "\fB\-T \fImode\fB"
+If Postfix is compiled without TLS support, the \fB\-T\fR option
+produces no output.  Otherwise, if an invalid \fImode\fR is specified,
+the \fB\-T\fR option reports an error and exits with a non\-zero status
+code. The valid modes are:
+.RS
+.IP \fBcompile\-version\fR
+Output the OpenSSL version that Postfix was compiled with
+(i.e. the OpenSSL version in a header file). The output
+format is the same as with the command "\fBopenssl version\fR".
+.IP \fBrun\-version\fR
+Output the OpenSSL version that Postfix is linked with at
+runtime (i.e. the OpenSSL version in a shared library).
+.IP \fBpublic\-key\-algorithms\fR
+Output the lower\-case names of the supported public\-key
+algorithms, one per\-line.
+.RE
+.IP
+This feature is available with Postfix 3.1 and later.
 .IP \fB\-v\fR
 Enable verbose logging for debugging purposes. Multiple
 \fB\-v\fR options make the software increasingly verbose.

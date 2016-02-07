@@ -22129,6 +22129,17 @@ Apologies for any names omitted.
 	Robustness: force html2text to produce ASCII output.  File:
 	mantools/html2readme.
 
+	Feature: "postfix tls" commands to enable opportunistic TLS
+	in the Postfix SMTP client or server, or generate or replace
+	Postfix SMTP server TLS private keys and server certificates.
+	Viktor Dukhovni, Wietse. Files: conf/postfix-files,
+	conf/postfix-script, conf/postfix-tls-script, makedefs,
+	proto/INSTALL.html, proto/postconf.proto, global/mail_params.h,
+	postfix/postfix.c, tls/tls_misc.c.
+
+	Portability: added a tls_random_source default setting for
+	MacOS X. Viktor Dukhovni. File: util/sys_defs.h.
+
 20150118
 
 	Bitrot: OpenSSL 1.1.0-dev (aka the "master" branch) has new
@@ -22141,8 +22152,3 @@ Apologies for any names omitted.
 	Portability: Postfix TLS support uses /dev/urandom if
 	available and no system-specific setting exists in sys_defs.h.
 	Files: makedefs, util/sys_defs.h.
-
-20161206
-
-	Portability: added a tls_random_source default setting for
-	MacOS X. Viktor Dukhovni. File: util/sys_defs.h.

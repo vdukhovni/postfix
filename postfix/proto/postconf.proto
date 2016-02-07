@@ -16628,6 +16628,33 @@ This feature is available in Postfix 3.1 and later. The <b>may</b>
 policy is backwards-compatible with earlier Postfix versions.
 </p>
 
+%PARAM openssl_path openssl
+
+<p>
+The location of the OpenSSL command line program openssl(1).  This
+is used by the "<b>postfix tls</b>" command to create private keys,
+certificate signing requests, self-signed certificates, and to
+compute public key digests for DANE TLSA records.  In multi-instance
+environments, this parameter is always determined from the configuration
+of the default Postfix instance.
+</p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    # NetBSD pkgsrc:
+    openssl_path = /usr/pkg/bin/openssl
+    # Local build:
+    openssl_path = /usr/local/bin/openssl
+</pre>
+</blockquote>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
+
 %PARAM address_verify_pending_request_limit see "postconf -d" output
 
 <p> A safety limit that prevents address verification requests from

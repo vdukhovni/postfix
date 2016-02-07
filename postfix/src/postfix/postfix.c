@@ -66,6 +66,12 @@
 /*	This feature is available in Postfix 2.1 and later.  With
 /*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
+/* .IP "\fBtls\fR \fIsubcommand\fB ...\fR
+/*	Enable opportunistic TLS in the Postfix SMTP client or
+/*	server, and manage Postfix SMTP server TLS private keys and
+/*	certificates.  See postfix-tls(1) for documentation.
+/* .sp
+/*	This feature is available in Postfix 3.1 and later.
 /* .IP "\fBupgrade-configuration\fR [\fIname\fR=\fIvalue ...\fR]
 /*	Update the \fBmain.cf\fR and \fBmaster.cf\fR files with information
 /*	that Postfix needs in order to run: add or update services, and add
@@ -165,6 +171,10 @@
 /*	plugins (postfix-*.so) that have a relative pathname in the
 /*	dynamicmaps.cf file.
 /* .PP
+/*	Available in Postfix version 3.1 and later:
+/* .IP "\fBopenssl_path (openssl)\fR"
+/*	The location of the OpenSSL command line program \fBopenssl\fR(1).
+/* .PP
 /*	Other configuration parameters:
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
 /*	The list of environment parameters that a Postfix process will
@@ -219,6 +229,7 @@
 /*	postcat(1), examine Postfix queue file
 /*	postconf(1), Postfix configuration utility
 /*	postfix(1), Postfix control program
+/*	postfix-tls(1), Postfix TLS management
 /*	postkick(1), trigger Postfix daemon
 /*	postlock(1), Postfix-compatible locking
 /*	postlog(1), Postfix-compatible logging

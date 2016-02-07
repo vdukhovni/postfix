@@ -533,6 +533,13 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
   */
 extern void tls_session_stop(TLS_APPL_STATE *, VSTREAM *, int, int, TLS_SESS_STATE *);
 
+ /*
+  * tls_misc.c
+  */
+extern const char *tls_compile_version(void);
+extern const char *tls_run_version(void);
+extern const char **tls_pkey_algorithms(void);
+
 #ifdef TLS_INTERNAL
 
 #include <vstring.h>

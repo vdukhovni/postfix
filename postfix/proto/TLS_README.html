@@ -2687,22 +2687,121 @@ proper place for information that is modified by Postfix.  </p>
 sign your own Postfix public key certificate, you get TLS encryption
 but no TLS authentication.  This is sufficient for testing, and
 for exchanging email with sites that you have no trust relationship
-with.  For real authentication, your Postfix public key certificate
-needs to be signed by a recognized Certification Authority, and
-Postfix needs to be configured with a list of public key certificates
-of Certification Authorities, so that Postfix can verify the public key
-certificates of remote hosts. </p>
+with.  For real authentication you need also enable DNSSEC record
+signing for your domain and publish TLSA records and/or your Postfix
+public key certificate needs to be signed by a recognized Certification
+Authority.  To authenticate the certificates of remote host you
+need a DNSSEC-validating local resolver and to enable <a
+href="#client_tls_dane">DANE</a> authentication and/or configure
+the Postfix SMTP client with a list of public key certificates of
+Certification Authorities, but make sure to read about the <a
+href="#client_tls_limits">limitations</a> of the latter approach.
+</p>
 
 <p> In the examples below, user input is shown in <b><tt>bold</tt></b>
 font, and a "<tt>#</tt>" prompt indicates a super-user shell. </p>
 
 <ul>
 
-<li> <p> <a name="#self-signed">Self-signed server certificate</a>.</p>
+<li> <p> <a href="#built-in">Quick-start TLS with Postfix &ge; 3.1</a>.</p>
 
-<li> <p> <a name="#private-ca">Private Certification Authority</a>. </p>
+<li> <p> <a href="#self-signed">Self-signed server certificate</a>.</p>
+
+<li> <p> <a href="#private-ca">Private Certification Authority</a>. </p>
 
 </ul>
+
+<h3><a name="built-in">Quick-start TLS with Postfix &ge; 3.1</a></h3>
+
+<p> Postfix 3.1 provides built-in support for enabling TLS in the
+SMTP client and server and for ongoing certificate and DANE TLSA
+record management.
+
+<ul>
+<li> <p> <a href="#quick-client">Quick-start TLS in the Postfix &ge; 3.1 SMTP client</a>. </p>
+<li> <p> <a href="#quick-server">Quick-start TLS in the Postfix &ge; 3.1 SMTP server</a>. </p>
+</ul>
+
+<h4> <a name="quick-client">Quick-start TLS in the Postfix &ge; 3.1 SMTP client</a>. </h4>
+
+<p> If you are using Postfix 3.1 or later, and your SMTP client TLS
+settings are in their default state, you can enable <a
+href="#client_tls_may">opportunistic</a> TLS in the SMTP client as
+follows: </p>
+
+<blockquote>
+<pre>
+# postfix tls enable-client
+# postfix reload
+</pre>
+</blockquote>
+
+<p> If some of the Postfix SMTP client TLS settings are not in their
+default state, this will not make any changes, but will instead
+suggest the minimal required settings for SMTP client TLS.  The
+"postfix reload" command is optional, it is only needed if you want
+the settings to take effect right away.  Note, this does not enable
+trust in any public certification authorities, and does not configure
+client TLS certificates as these are largely pointless with <a
+href="#client_tls_may">opportunistic</a> TLS.  </p>
+
+<p> There is not yet a turn-key command for enabling <a
+href="#client_tls_dane">DANE</a> authentication.  This is because
+DANE requires changes to your <b>resolv.conf</b> file and a
+corresponding DNSSEC-validating resolver local to the Postfix host,
+these changes are difficult to automate in a portable way. </p>
+
+<p> If you're willing to revert your settings to the defaults and
+switch to a "stock" opportunistic TLS configuration, then you can:
+erase all the SMTP client TLS settings and then enable client TLS: </p>
+
+<blockquote>
+<pre>
+# postconf -X `postconf -nH | egrep '^smtp(_|_enforce_|_use_)tls'`
+# postfix tls enable-client
+# postfix reload
+</pre>
+</blockquote>
+
+<h4><a name="quick-server">Quick-start TLS in the Postfix &ge; 3.1 SMTP server</a>.</h4>
+
+<p> If you are using Postfix 3.1 or later, and your SMTP server TLS
+settings are in their default state, you can enable
+opportunistic TLS in the SMTP server as follows: </p>
+
+<blockquote>
+<pre>
+# postfix tls enable-server
+# postfix reload
+</pre>
+</blockquote>
+
+<p> If some of the Postfix SMTP client TLS settings are not in their
+default state, this will not make any changes, but will instead
+suggest the minimal required settings for SMTP client TLS.  The
+"postfix reload" command is optional, it is only needed if you want
+the settings to take effect right away.  This will generate a
+self-signed private key and certificate and enable TLS in the Postfix
+SMTP server. </p>
+
+<p> If you're willing to revert your settings to the defaults and
+switch to a "stock" server TLS configuration, then you can: erase
+all the SMTP server TLS settings and then enable server TLS: </p>
+
+<blockquote>
+<pre>
+# postconf -X `postconf -nH | egrep '^smtpd(_|_enforce_|_use_)tls'`
+# postfix tls enable-server
+# postfix reload
+</pre>
+</blockquote>
+
+<p> Postfix &ge; 3.1 provides additional built-in support for ongoing
+management of TLS in the SMTP server, via additional "postfix tls"
+sub-commands.  These make it easy to generate certificate signing
+requests, create and deploy new keys and certificates, and generate
+DANE TLSA records.  See the postfix-tls(1) documentation for details.
+</p>
 
 <h3><a name="self-signed">Self-signed server certificate</a></h3>
 

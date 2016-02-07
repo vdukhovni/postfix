@@ -106,6 +106,7 @@ $daemon_directory/post-install:f:root:-:755
 #$daemon_directory/postfix-files:f:root:-:644:o
 #$daemon_directory/postfix-files.d:d:root:-:755:o
 $daemon_directory/postfix-script:f:root:-:755
+$daemon_directory/postfix-tls-script:f:root:-:755
 $daemon_directory/postfix-wrapper:f:root:-:755
 $daemon_directory/postmulti-script:f:root:-:755
 $daemon_directory/postscreen:f:root:-:755
@@ -170,6 +171,7 @@ $manpage_directory/man1/postcat.1:f:root:-:644
 $manpage_directory/man1/postconf.1:f:root:-:644
 $manpage_directory/man1/postdrop.1:f:root:-:644
 $manpage_directory/man1/postfix.1:f:root:-:644
+$manpage_directory/man1/postfix-tls.1:f:root:-:644
 $manpage_directory/man1/postkick.1:f:root:-:644
 $manpage_directory/man1/postlock.1:f:root:-:644
 $manpage_directory/man1/postlog.1:f:root:-:644
