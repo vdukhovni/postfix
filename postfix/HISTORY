@@ -22152,3 +22152,8 @@ Apologies for any names omitted.
 	Portability: Postfix TLS support uses /dev/urandom if
 	available and no system-specific setting exists in sys_defs.h.
 	Files: makedefs, util/sys_defs.h.
+
+20160208
+
+	Cleanup: building the INSTALL file had failed, added
+	hyperlinks for "postfix tls". Files: mantools/postlink.

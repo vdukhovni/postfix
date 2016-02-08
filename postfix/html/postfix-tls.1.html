@@ -4,16 +4,16 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - postfix-tls(1) </title>
 </head> <body> <pre>
-POSTFIX-TLS(1)                                                  POSTFIX-TLS(1)
+POSTFIX-TLS(1)              General Commands Manual             POSTFIX-TLS(1)
 
 <b>NAME</b>
        postfix-tls - Postfix TLS management
 
 <b>SYNOPSIS</b>
-       <b>postfix tls</b> <i>subcommand</i> <b>...</b>
+       <b><a href="postfix-tls.1.html">postfix tls</a></b> <i>subcommand</i> <b>...</b>
 
 <b>DESCRIPTION</b>
-       The  "<b>postfix  tls</b> <i>subcommand</i> <b>...</b>" feature enables opportunistic TLS in
+       The  "<b><a href="postfix-tls.1.html">postfix  tls</a></b> <i>subcommand</i> <b>...</b>" feature enables opportunistic TLS in
        the Postfix SMTP client or server, and manages Postfix SMTP server pri-
        vate keys and certificates.
 
@@ -142,7 +142,7 @@ POSTFIX-TLS(1)                                                  POSTFIX-TLS(1)
               rithms <b>rsa</b> and <b>ecdsa</b>.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The "<b>postfix tls</b> <i>subcommand</i> <b>...</b>" feature reads or updates the following
+       The "<b><a href="postfix-tls.1.html">postfix tls</a></b> <i>subcommand</i> <b>...</b>" feature reads or updates the following
        configuration parameters.
 
        <b><a href="postconf.5.html#command_directory">command_directory</a> (see 'postconf -d' output)</b>
@@ -172,11 +172,11 @@ POSTFIX-TLS(1)                                                  POSTFIX-TLS(1)
               File with the Postfix SMTP server RSA certificate in PEM format.
 
        <b><a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a> (empty)</b>
-              File  with the Postfix SMTP server ECDSA certificate in PEM for-
+              File with the Postfix SMTP server ECDSA certificate in PEM  for-
               mat.
 
        <b><a href="postconf.5.html#smtpd_tls_eckey_file">smtpd_tls_eckey_file</a> ($<a href="postconf.5.html#smtpd_tls_eccert_file">smtpd_tls_eccert_file</a>)</b>
-              File with the Postfix SMTP server ECDSA private key in PEM  for-
+              File  with the Postfix SMTP server ECDSA private key in PEM for-
               mat.
 
        <b><a href="postconf.5.html#smtpd_tls_key_file">smtpd_tls_key_file</a> ($<a href="postconf.5.html#smtpd_tls_cert_file">smtpd_tls_cert_file</a>)</b>
@@ -208,7 +208,7 @@ POSTFIX-TLS(1)                                                  POSTFIX-TLS(1)
        The Secure Mailer license must be distributed with this software.
 
 <b>HISTORY</b>
-       The "<b>postfix tls</b>" command was introduced with Postfix version 3.1.
+       The "<b><a href="postfix-tls.1.html">postfix tls</a></b>" command was introduced with Postfix version 3.1.
 
 <b>AUTHOR(S)</b>
        Viktor Dukhovni

@@ -2731,7 +2731,7 @@ follows: </p>
 
 <blockquote>
 <pre>
-# postfix tls enable-client
+# <a href="postfix-tls.1.html">postfix tls</a> enable-client
 # postfix reload
 </pre>
 </blockquote>
@@ -2758,7 +2758,7 @@ erase all the SMTP client TLS settings and then enable client TLS: </p>
 <blockquote>
 <pre>
 # postconf -X `postconf -nH | egrep '^smtp(_|_enforce_|_use_)tls'`
-# postfix tls enable-client
+# <a href="postfix-tls.1.html">postfix tls</a> enable-client
 # postfix reload
 </pre>
 </blockquote>
@@ -2771,7 +2771,7 @@ opportunistic TLS in the SMTP server as follows: </p>
 
 <blockquote>
 <pre>
-# postfix tls enable-server
+# <a href="postfix-tls.1.html">postfix tls</a> enable-server
 # postfix reload
 </pre>
 </blockquote>
@@ -2791,13 +2791,13 @@ all the SMTP server TLS settings and then enable server TLS: </p>
 <blockquote>
 <pre>
 # postconf -X `postconf -nH | egrep '^smtpd(_|_enforce_|_use_)tls'`
-# postfix tls enable-server
+# <a href="postfix-tls.1.html">postfix tls</a> enable-server
 # postfix reload
 </pre>
 </blockquote>
 
 <p> Postfix &ge; 3.1 provides additional built-in support for ongoing
-management of TLS in the SMTP server, via additional "postfix tls"
+management of TLS in the SMTP server, via additional "<a href="postfix-tls.1.html">postfix tls</a>"
 sub-commands.  These make it easy to generate certificate signing
 requests, create and deploy new keys and certificates, and generate
 DANE TLSA records.  See the <a href="postfix-tls.1.html">postfix-tls(1)</a> documentation for details.
