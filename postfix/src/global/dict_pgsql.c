@@ -115,7 +115,7 @@
 /* .br
 /*	where_field = alias
 /* .br
-/*	hosts = host1.some.domain\fR \fBhost2.some.domain
+/*	hosts = host1.some.domain host2.some.domain
 /* .PP
 /* SEE ALSO
 /*	dict(3) generic dictionary manager

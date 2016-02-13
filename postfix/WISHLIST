@@ -11,8 +11,6 @@ Wish list:
 	Fix bold "[" and "]" in manpages; these are not part of the
 	command line.
 
-	Add Google credits to manpages.
-
 	Remove this file from the stable release.
 
 	Things to do after the stable release:

@@ -184,7 +184,7 @@ static void format_json(VSTREAM *showq_stream)
 	vstream_printf("\"address\": \"%s\"",
 		       json_quote(quote_buf, STR(addr)));
 	if (LEN(why) > 0)
-	    vstream_printf(",\"delay_reason\": \"%s\",",
+	    vstream_printf(",\"delay_reason\": \"%s\"",
 			   json_quote(quote_buf, STR(why)));
 	vstream_printf("}");
     }

@@ -5,7 +5,7 @@
 /*	lock mail folder and execute command
 /* SYNOPSIS
 /* .fi
-/*	\fBpostlock\fR [\fB-c \fIconfig_dir\fB] [\fB-l \fIlock_style\fB]
+/*	\fBpostlock\fR [\fB-c \fIconfig_dir\fR] [\fB-l \fIlock_style\fR]
 /*		[\fB-v\fR] \fIfile command...\fR
 /* DESCRIPTION
 /*	The \fBpostlock\fR(1) command locks \fIfile\fR for exclusive
@@ -89,6 +89,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */

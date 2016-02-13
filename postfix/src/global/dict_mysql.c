@@ -131,7 +131,7 @@
 /* .br
 /*	where_field = alias
 /* .br
-/*	hosts = host1.some.domain\fR \fBhost2.some.domain
+/*	hosts = host1.some.domain host2.some.domain
 /* .IP additional_conditions
 /*	Backward compatibility when \fIquery\fR is not set, additional
 /*	conditions to the WHERE clause.
@@ -158,7 +158,7 @@
 /* .br
 /*	where_field = alias
 /* .br
-/*	hosts = host1.some.domain\fR \fBhost2.some.domain
+/*	hosts = host1.some.domain host2.some.domain
 /* .PP
 /* SEE ALSO
 /*	dict(3) generic dictionary manager

@@ -233,7 +233,7 @@
 /*	software. This three-line header marks the end of the headers
 /*	provided by \fBsmtp-sink\fR, and is formatted as follows:
 /* .RS
-/* .IP "\fBfrom \fIhelo\fB ([\fIaddr\fB])\fR"
+/* .IP "\fBfrom \fIhelo\fR ([\fIaddr\fR])"
 /*	The HELO or EHLO command argument and client IP address.
 /*	If the client did not send HELO or EHLO, the client IP
 /*	address is used instead.
@@ -255,6 +255,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */

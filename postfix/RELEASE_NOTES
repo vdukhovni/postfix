@@ -17,6 +17,15 @@ If you upgrade from Postfix 2.11 or earlier, read RELEASE_NOTES-3.0
 before proceeding.
 
 
+Major changes with snaphot 20160207
+===================================
+
+A new "postfix tls" command to quickly enable opportunistic TLS in
+the Postfix SMTP client or server, and to manage SMTP server keys
+and certificates, including certificate signing requests and TLSA
+DNS records for DANE. See the postfix-tls(1) manpage for a detailed
+description.
+
 Major changes with snaphot 20151227
 ===================================
 
@@ -25,13 +34,13 @@ probes in the active queue (address_verify_pending_request_limit),
 by default 1/4 of the active queue maximum size. The queue manager
 enforces the limit by tempfailing probe messages that exceed the
 limit. The design avoids dependency on global counters that may get
-out of sync after a process crashes.
+out of sync after process crash.
 
 Tempfailing requests in this manner is not as bad as one might
 think.  The Postfix verify cache proactively updates active addresses
 well before they expire. The address_verify_pending_request_limit
 affects only unknown addresses and inactive addresses that have
-expired (by default, after 31 days).
+expired from the address verify cache (by default, after 31 days).
 
 Incompatible change with Postfix snapshot 20150721
 --------------------------------------------------

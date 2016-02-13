@@ -36,7 +36,7 @@
 /*
 /*	\fIdb_common_parse\fR parses query and result substitution templates.
 /*	It must be called for each template before any calls to
-/*	\fIdb_common_expand\fR. The \fIctx\fB argument must be initialized to
+/*	\fIdb_common_expand\fR. The \fIctx\fR argument must be initialized to
 /*	a reference to a (void *)0 before the first template is parsed, this
 /*	causes memory for the context to be allocated and the new pointer is
 /*	stored in *ctx. When the dictionary is closed, this memory must be

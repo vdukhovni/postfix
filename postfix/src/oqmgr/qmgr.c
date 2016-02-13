@@ -253,7 +253,7 @@
 /*	The default amount of delay that is inserted between individual
 /*	deliveries to the same destination; the resulting behavior depends
 /*	on the value of the corresponding per-destination recipient limit.
-/* .IP "\fItransport\fB_destination_rate_delay $default_destination_rate_delay
+/* .IP "\fItransport\fB_destination_rate_delay $default_destination_rate_delay\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
 /* .PP
 /*	Available in Postfix version 3.1 and later:
@@ -261,7 +261,7 @@
 /*	The default amount of delay that is inserted between individual
 /*	deliveries over the same message delivery transport, regardless of
 /*	destination.
-/* .IP "\fItransport\fB_transport_rate_delay $default_transport_rate_delay
+/* .IP "\fItransport\fB_transport_rate_delay $default_transport_rate_delay\fR"
 /*	Idem, for delivery via the named message \fItransport\fR.
 /* SAFETY CONTROLS
 /* .ad
@@ -275,8 +275,8 @@
 /* .PP
 /*	Available in Postfix version 3.1 and later:
 /* .IP "\fBaddress_verify_pending_request_limit (see 'postconf -d' output)\fR"
-/*	A safety limit that prevents address verification requests
-/*	from overwhelming the Postfix queue.
+/*	A safety limit that prevents address verification requests from
+/*	overwhelming the Postfix queue.
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi

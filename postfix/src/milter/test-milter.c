@@ -22,7 +22,7 @@
 /* .IP "\fB-A address\fR"
 /*	Add the specified recipient address (specify ESMTP parameters
 /*	separated by space). Multiple -A options are supported.
-/* .IP "\fB-b pathname
+/* .IP "\fB-b pathname\fR"
 /*	Replace the message body by the content of the specified file.
 /* .IP "\fB-c connect|helo|mail|rcpt|data|header|eoh|body|eom|unknown|close|abort\fR"
 /*	When to send the non-default reply specified with \fB-a\fR.

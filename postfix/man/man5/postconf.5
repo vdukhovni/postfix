@@ -4318,7 +4318,7 @@ specified with the "ifconfig" command.
 .IP \(bu
 Specify "mynetworks_style = class" when Postfix should
 "trust" remote SMTP clients in the same IP class A/B/C networks as the
-local machine.  Don't do this with a dialup site \- it would cause
+local machine.  Caution: this may cause
 Postfix to "trust" your entire provider's network.  Instead, specify
 an explicit mynetworks list by hand, as described with the mynetworks
 configuration parameter.

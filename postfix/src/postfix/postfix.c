@@ -66,7 +66,7 @@
 /*	This feature is available in Postfix 2.1 and later.  With
 /*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
-/* .IP "\fBtls\fR \fIsubcommand\fB ...\fR
+/* .IP "\fBtls\fR \fIsubcommand\fR
 /*	Enable opportunistic TLS in the Postfix SMTP client or
 /*	server, and manage Postfix SMTP server TLS private keys and
 /*	certificates.  See postfix-tls(1) for documentation.

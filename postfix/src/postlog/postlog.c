@@ -7,7 +7,7 @@
 /* .fi
 /* .ad
 /*	\fBpostlog\fR [\fB-iv\fR] [\fB-c \fIconfig_dir\fR]
-/*	[\fB-p \fIpriority\fB] [\fB-t \fItag\fR] [\fItext...\fR]
+/*	[\fB-p \fIpriority\fR] [\fB-t \fItag\fR] [\fItext...\fR]
 /* DESCRIPTION
 /*	The \fBpostlog\fR(1) command implements a Postfix-compatible logging
 /*	interface for use in, for example, shell scripts.

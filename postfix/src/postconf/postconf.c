@@ -415,7 +415,7 @@
 /*	line (in shell language: "").
 /*
 /*	This feature is available with Postfix 2.3 and later.
-/* .IP "\fB-T \fImode\fB"
+/* .IP "\fB-T \fImode\fR"
 /*	If Postfix is compiled without TLS support, the \fB-T\fR option
 /*	produces no output.  Otherwise, if an invalid \fImode\fR is specified,
 /*	the \fB-T\fR option reports an error and exits with a non-zero status

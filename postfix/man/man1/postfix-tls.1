@@ -8,11 +8,11 @@ Postfix TLS management
 .SH "SYNOPSIS"
 .na
 .nf
-\fBpostfix tls\fR \fIsubcommand\fB ...\fR
+\fBpostfix tls\fR \fIsubcommand\fR
 .SH DESCRIPTION
 .ad
 .fi
-The "\fBpostfix tls \fIsubcommand\fB ...\fR" feature enables
+The "\fBpostfix tls \fIsubcommand\fR" feature enables
 opportunistic TLS in the Postfix SMTP client or server, and
 manages Postfix SMTP server private keys and certificates.
 
@@ -27,7 +27,9 @@ Specify \fIrandsource\fR to update the value of the
 \fBtls_random_source\fR configuration parameter (typically,
 /dev/urandom).  Prepend \fBdev:\fR to device paths or
 \fBegd:\fR to EGD socket paths.
-.IP "\fBenable\-server\fR [\fB\-r \fIrandsource\fR] [\fB\-a \fIalgorithm\fR] [\fB\-b \fIbits\fR] [\fIhostname\fB ...\fR]"
+.sp
+See also the \fBall\-default\-client\fR subcommand.
+.IP "\fBenable\-server\fR [\fB\-r \fIrandsource\fR] [\fB\-a \fIalgorithm\fR] [\fB\-b \fIbits\fR] [\fIhostname\fB...\fR]"
 Create a new private key and self\-signed server certificate
 and enable opportunistic TLS in the Postfix SMTP server,
 if all SMTP server TLS settings are at their default values.
@@ -37,7 +39,9 @@ changes.
 The \fIrandsource\fR parameter is as with \fBenable\-client\fR
 above, and the remaining options are as with \fBnew\-server\-key\fR
 below.
-.IP "\fBnew\-server\-key\fR [\fB\-a \fIalgorithm\fR] [\fB\-b \fIbits\fR] [\fIhostname\fB ...\fR]"
+.sp
+See also the \fBall\-default\-server\fR subcommand.
+.IP "\fBnew\-server\-key\fR [\fB\-a \fIalgorithm\fR] [\fB\-b \fIbits\fR] [\fIhostname\fB...\fR]"
 Create a new private key and self\-signed server certificate,
 but do not deploy them. Log and display commands to deploy
 the new key and corresponding certificate.  Also log and
@@ -89,12 +93,12 @@ the certificate chain file.  The server certificate must
 be the first certificate in the chain file.  Overwrite and
 deploy the file with the original self\-signed certificate
 that was generated together with the key.
-.IP "\fBnew\-server\-cert\fR [\fB\-a \fIalgorithm\fR] [\fB\-b \fIbits\fR] [\fIhostname\fB ...\fR]"
+.IP "\fBnew\-server\-cert\fR [\fB\-a \fIalgorithm\fR] [\fB\-b \fIbits\fR] [\fIhostname\fB...\fR]"
 This is just like \fBnew\-server\-key\fR except that, rather
 than generating a new private key, any currently deployed
 private key is copied to the new key file.  Thus if you're
 publishing DANE TLSA "3 1 1" or "3 1 2" records, there is
-no need to update DNS records.  The \fIalgorithm\fB and
+no need to update DNS records.  The \fIalgorithm\fR and
 \fIbits\fR arguments are used only if no key of the same
 algorithm is already configured.
 .sp
@@ -117,8 +121,7 @@ and certificate).  After the new certificate and key are
 deployed any obsolete keys and certificates may be removed
 by hand.   The \fIkeyfile\fR and \fIcertfile\fR filenames
 are relative to the Postfix configuration directory.
-.IP "\fBoutput\-server\-csr\fR [\fB\-k \fIkeyfile\fR] [\fIhostname\fB
-...\fR]"
+.IP "\fBoutput\-server\-csr\fR [\fB\-k \fIkeyfile\fR] [\fIhostname\fB...\fR]"
 Write to stdout a certificate signing request (CSR) for the
 specified \fIkeyfile\fR.
 .sp
@@ -131,7 +134,7 @@ The default \fIkeyfile\fR value is \fBrsa\fR.
 Zero or more \fIhostname\fR values can be specified.  The
 default \fIhostname\fR is the value of \fBmyhostname\fR
 main.cf parameter.
-.IP "\fBoutput\-server\-tlsa\fR [\fB\-h \fIhostname\fR] [\fIkeyfile\fB ...\fR]"
+.IP "\fBoutput\-server\-tlsa\fR [\fB\-h \fIhostname\fR] [\fIkeyfile\fB...\fR]"
 Write to stdout a DANE TLSA RRset suitable for a port 25
 SMTP server on host \fIhostname\fR with keys from any of
 the specified \fIkeyfile\fR values.  The default \fIhostname\fR
@@ -147,12 +150,29 @@ is output for that algorithm.
 .sp
 The default \fIkeyfile\fR list consists of the two supported
 algorithms \fBrsa\fR and \fBecdsa\fR.
+.SH "AUXILIARY COMMANDS"
+.na
+.nf
+.IP "\fBall\-default\-client\fR"
+Exit with status 0 (success) if all SMTP client TLS settings are
+at their default values.  Otherwise, exit with a non\-zero status.
+This is typically used as follows:
+.sp
+\fBpostfix tls all\-default\-client &&
+        postfix tls enable\-tls\-client\fR
+.IP "\fBall\-default\-server\fR"
+Exit with status 0 (success) if all SMTP server TLS settings are
+at their default values.  Otherwise, exit with a non\-zero status.
+This is typically used as follows:
+.sp
+\fBpostfix tls all\-default\-server &&
+        postfix tls enable\-tls\-server\fR
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
 .ad
 .fi
-The "\fBpostfix tls \fIsubcommand\fB ...\fR" feature reads
+The "\fBpostfix tls \fIsubcommand\fR" feature reads
 or updates the following configuration parameters.
 .IP "\fBcommand_directory (see 'postconf -d' output)\fR"
 The location of all postfix administrative commands.
@@ -197,6 +217,16 @@ random number generator (PRNG) pool.
 .nf
 master(8) Postfix master program
 postfix(1) Postfix administrative interface
+.SH "README FILES"
+.na
+.nf
+.ad
+.fi
+Use "\fBpostconf readme_directory\fR" or
+"\fBpostconf html_directory\fR" to locate this information.
+.na
+.nf
+TLS_README, Postfix TLS configuration and operation
 .SH "LICENSE"
 .na
 .nf

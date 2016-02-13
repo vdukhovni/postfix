@@ -22157,3 +22157,20 @@ Apologies for any names omitted.
 
 	Cleanup: building the INSTALL file had failed, added
 	hyperlinks for "postfix tls". Files: mantools/postlink.
+
+20160210
+
+	Feature: all-default-client and all-default-server subcommands.
+	Eray Aslan. File: conf/postfix-tls-script.
+
+	Bugfix: the postqueue(1) JSON formatter wrote a spurious
+	comma after the delay reason. Reported by Christian Roessner.
+	File: postqueue/showq_json.c.
+
+20160212
+
+	Cleanup: Bold/Italic cleanup in manpages.
+
+20160213
+
+	Google credits in manpages.
