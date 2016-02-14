@@ -32,16 +32,16 @@
 /*	with arguments. Each macro may appear only once.  The list
 /*	must be terminated with CA_ATTR_OVER_END which has no argument.
 /*	The following describes the expected values.
-/* .IP "CA_ATTR_OVER_STR_TABLE(const ATTR_OVER_STR *)
+/* .IP "CA_ATTR_OVER_STR_TABLE(const ATTR_OVER_STR *)"
 /*	The macro argument specifies a null-terminated table with
 /*	attribute names, assignment targets, and range limits which
 /*	should be the same as for the corresponding main.cf parameters.
-/* .IP "CA_ATTR_OVER_TIME_TABLE(const ATTR_OVER_TIME *)
+/* .IP "CA_ATTR_OVER_TIME_TABLE(const ATTR_OVER_TIME *)"
 /*	The macro argument specifies a null-terminated table with
 /*	attribute names, their default time units (leading digits
 /*	are skipped), assignment targets, and range limits which
 /*	should be the same as for the corresponding main.cf parameters.
-/* .IP "CA_ATTR_OVER_INT_TABLE(const ATTR_OVER_INT *)
+/* .IP "CA_ATTR_OVER_INT_TABLE(const ATTR_OVER_INT *)"
 /*	The macro argument specifies a null-terminated table with
 /*	attribute names, assignment targets, and range limits which
 /*	should be the same as for the corresponding main.cf parameters.

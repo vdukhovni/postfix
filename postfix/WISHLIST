@@ -6,11 +6,6 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Add "postfix tls" and other new stuff to RELEASE_NOTES.
-
-	Fix bold "[" and "]" in manpages; these are not part of the
-	command line.
-
 	Remove this file from the stable release.
 
 	Things to do after the stable release:

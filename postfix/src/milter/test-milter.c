@@ -34,7 +34,7 @@
 /* .IP "\fB-D\fI address\fR"
 /*	Delete the specified recipient address. Multiple -D options
 /*	are supported.
-/* .IP "\fB-f \fIsender\fR
+/* .IP "\fB-f \fIsender\fR"
 /*	Replace the sender by the specified address.
 /* .IP "\fB-h \fI'index header-label header-value'\fR"
 /*	Replace the message header at the specified position.

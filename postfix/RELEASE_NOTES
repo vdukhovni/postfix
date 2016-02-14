@@ -29,21 +29,47 @@ description.
 Major changes with snaphot 20151227
 ===================================
 
-This introduces a safety limit on the number of address verification
-probes in the active queue (address_verify_pending_request_limit),
-by default 1/4 of the active queue maximum size. The queue manager
-enforces the limit by tempfailing probe messages that exceed the
-limit. The design avoids dependency on global counters that may get
-out of sync after process crash.
+The new address_verify_pending_request_limit parameter introduces
+a safety limit for the number of address verification probes in the
+active queue.  The default limit is 1/4 of the active queue maximum
+size. The queue manager enforces the limit by tempfailing probe
+messages that exceed the limit. This design avoids dependencies on
+global counters that get out of sync after a process or system crash.
 
-Tempfailing requests in this manner is not as bad as one might
-think.  The Postfix verify cache proactively updates active addresses
-well before they expire. The address_verify_pending_request_limit
-affects only unknown addresses and inactive addresses that have
-expired from the address verify cache (by default, after 31 days).
+Tempfailing verify requests is not as bad as one might think.  The
+Postfix verify cache proactively updates active addresses weeks
+before they expire. The address_verify_pending_request_limit affects
+only unknown addresses, and inactive addresses that have expired
+from the address verify cache (by default, after 31 days).
+
+Major changes with snaphot 20151129
+===================================
+
+Machine-readable, JSON-formatted queue listing with "postqueue -j"
+(no "mailq" equivalent).  The output is a stream of JSON objects,
+one per queue file.  To simplify parsing, each JSON object is
+formatted as one text line followed by one newline character. See
+the postqueue(1) manpage for a detailed description of the output
+format.
+
+Major changes with Postfix snapshot 20151031
+============================================
+
+New "smtpd_client_auth_rate_limit" feature, to enforce an optional
+rate limit on the number of AUTH commands per client IP address.
+Similar to other smtpd_client_*rate_limit features, this enforces
+a limit on the number of requests per $anvil_rate_time_unit.
+
+Major changes with Postfix snapshot 20150913
+============================================
+
+New SMTPD policy service attribute "policy_context", with a
+corresponding "smtpd_policy_service_policy_context" configuration
+parameter.  Originally, this was implemented to share the same SMTPD
+policy service endpoint among multiple check_policy_service clients.
 
 Incompatible change with Postfix snapshot 20150721
---------------------------------------------------
+==================================================
 
 As of the middle of 2015, all supported Postfix releases no longer
 enable "export" grade ciphers for opportunistic TLS, and no longer
@@ -118,7 +144,7 @@ Destination-independent delivery rate delay
 
 Support to enforce a destination-independent delay between email
 deliveries.  The following example inserts 20 seconds of delay
-between deliveries with the SMTP transport, limiting the delivery
+between all deliveries with the SMTP transport, limiting the delivery
 rate to at most three messages per minute.
 
 /etc/postfix/main.cf:
@@ -126,3 +152,18 @@ rate to at most three messages per minute.
 
 For details, see the description of default_transport_rate_delay
 and transport_transport_rate_delay in the postconf(5) manpage.
+
+Major changes with snaphot 20150523
+===================================
+
+The milter_macro_defaults feature provides an optional list of macro
+name=value pairs. These specify default values for Milter macros
+when no value is available from the SMTP session context.
+
+For example, with "milter_macro_defaults = auth_type=TLS", the
+Postfix SMTP server will send an auth_type of "TLS" to a Milter,
+unless the remote client authenticates with SASL.
+
+This feature was originally implemented for a submission service
+that may authenticate clients with a TLS certificate, without having
+to make changes to the code that implements TLS support.

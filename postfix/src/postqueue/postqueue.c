@@ -4,6 +4,7 @@
 /* SUMMARY
 /*	Postfix queue control
 /* SYNOPSIS
+/* .ti -4
 /*	\fBTo flush the mail queue\fR:
 /*
 /*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-f\fR
@@ -12,6 +13,7 @@
 /*
 /*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-s \fIsite\fR
 /*
+/* .ti -4
 /*	\fBTo list the mail queue\fR:
 /*
 /*	\fBpostqueue\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-j\fR
@@ -51,42 +53,8 @@
 /*	from the showq(8) daemon.  The result is a stream of zero
 /*	or more JSON objects, one per queue file.  Each object is
 /*	followed by a newline character to support simple streaming
-/*	parsers.
-/* .sp
-/*	Object members have string values unless indicated otherwise.
-/*	Programs should ignore object members that are not listed
-/*	here; the list of members is expected to grow over time.
-/* .RS
-/* .IP \fBqueue_name\fR
-/*	The name of the queue where the message was found.  Note
-/*	that the contents of the mail queue may change while it is
-/*	being listed; some messages may appear more than once, and
-/*	some messages may be missed.
-/* .IP \fBqueue_id\fR
-/*	The queue file name. The name may be reused unless
-/*	"enable_long_queue_ids = true".
-/* .IP \fBarrival_time\fR
-/*	The number of seconds since the start of the UNIX epoch.
-/* .IP \fBmessage_size\fR
-/*	The number of bytes in the message header and body. This
-/*	number does not include message envelope information. It
-/*	is approximately equal to the number of bytes that would
-/*	be transmitted via SMTP including the <CR><LF> line endings.
-/* .IP \fBsender\fR
-/*	The envelope sender address.
-/* .IP \fBrecipients\fR
-/*	An array containing zero or more objects with members:
-/* .RS
-/* .IP \fBaddress\fR
-/*	One recipient address.
-/* .IP \fBdelay_reason\fR
-/*	If present, the reason for delayed delivery.  Some delayed
-/*	recipients have no delay reason, for example, when delivery
-/*	is in progress or when the system was stopped before it
-/*	could record the reason.
-/*  .RE
-/* .RE
-/* .IP
+/*	parsers. See "\fBJSON OBJECT FORMAT\fR" below for details.
+/*
 /*	This feature is available in Postfix 3.1 and later.
 /* .IP \fB-p\fR
 /*	Produce a traditional sendmail-style queue listing.
@@ -120,6 +88,47 @@
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose. As of Postfix 2.3,
 /*	this option is available for the super-user only.
+/* JSON OBJECT FORMAT
+/* .ad
+/* .fi
+/*	Each JSON object represents one queue file; it is emitted
+/*	as a single text line followed by a newline character.
+/*
+/*	Object members have string values unless indicated otherwise.
+/*	Programs should ignore object members that are not listed
+/*	here; the list of members is expected to grow over time.
+/* .IP \fBqueue_name\fR
+/*	The name of the queue where the message was found.  Note
+/*	that the contents of the mail queue may change while it is
+/*	being listed; some messages may appear more than once, and
+/*	some messages may be missed.
+/* .IP \fBqueue_id\fR
+/*	The queue file name. The queue_id may be reused within a
+/*	Postfix instance unless "enable_long_queue_ids = true" and
+/*	time is monotonic.  Even then, the queue_id is not expected
+/*	to be unique between different Postfix instances.  Management
+/*	tools that require a unique name should combine the queue_id
+/*	with the myhostname setting of the Postfix instance.
+/* .IP \fBarrival_time\fR
+/*	The number of seconds since the start of the UNIX epoch.
+/* .IP \fBmessage_size\fR
+/*	The number of bytes in the message header and body. This
+/*	number does not include message envelope information. It
+/*	is approximately equal to the number of bytes that would
+/*	be transmitted via SMTP including the <CR><LF> line endings.
+/* .IP \fBsender\fR
+/*	The envelope sender address.
+/* .IP \fBrecipients\fR
+/*	An array containing zero or more objects with members:
+/* .RS
+/* .IP \fBaddress\fR
+/*	One recipient address.
+/* .IP \fBdelay_reason\fR
+/*	If present, the reason for delayed delivery.  Delayed
+/*	recipients may have no delay reason, for example, while
+/*	delivery is in progress, or after the system was stopped
+/*	before it could record the reason.
+/* .RE
 /* SECURITY
 /* .ad
 /* .fi
@@ -516,7 +525,7 @@ static void unavailable(void)
 
 static NORETURN usage(void)
 {
-    msg_fatal_status(EX_USAGE, "usage: postqueue -f | postqueue -i queueid | postqueue -p | postqueue -s site");
+    msg_fatal_status(EX_USAGE, "usage: postqueue -f | postqueue -i queueid | postqueue -j | postqueue -p | postqueue -s site");
 }
 
 MAIL_VERSION_STAMP_DECLARE;

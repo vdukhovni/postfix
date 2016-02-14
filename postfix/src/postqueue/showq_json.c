@@ -157,13 +157,13 @@ static void format_json(VSTREAM *showq_stream)
 		  ATTR_TYPE_END) != 5)
 	msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
     vstream_printf("{");
-    vstream_printf("\"queue_name\": \"%s\",",
+    vstream_printf("\"queue_name\": \"%s\", ",
 		   json_quote(quote_buf, STR(queue_name)));
-    vstream_printf("\"queue_id\": \"%s\",",
+    vstream_printf("\"queue_id\": \"%s\", ",
 		   json_quote(quote_buf, STR(queue_id)));
-    vstream_printf("\"arrival_time\": %ld,", arrival_time);
-    vstream_printf("\"message_size\": %ld,", message_size);
-    vstream_printf("\"sender\": \"%s\",",
+    vstream_printf("\"arrival_time\": %ld, ", arrival_time);
+    vstream_printf("\"message_size\": %ld, ", message_size);
+    vstream_printf("\"sender\": \"%s\", ",
 		   json_quote(quote_buf, STR(addr)));
 
     /*
@@ -174,7 +174,7 @@ static void format_json(VSTREAM *showq_stream)
     vstream_printf("\"recipients\": [");
     for (rcpt_count = 0; (showq_status = attr_scan_more(showq_stream)) > 0; rcpt_count++) {
 	if (rcpt_count > 0)
-	    vstream_printf(",");
+	    vstream_printf(", ");
 	vstream_printf("{");
 	if (attr_scan(showq_stream, ATTR_FLAG_MORE | ATTR_FLAG_STRICT,
 		      RECV_ATTR_STR(MAIL_ATTR_RECIP, addr),
@@ -184,7 +184,7 @@ static void format_json(VSTREAM *showq_stream)
 	vstream_printf("\"address\": \"%s\"",
 		       json_quote(quote_buf, STR(addr)));
 	if (LEN(why) > 0)
-	    vstream_printf(",\"delay_reason\": \"%s\"",
+	    vstream_printf(", \"delay_reason\": \"%s\"",
 			   json_quote(quote_buf, STR(why)));
 	vstream_printf("}");
     }

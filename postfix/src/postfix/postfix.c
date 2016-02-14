@@ -54,7 +54,7 @@
 /*	earliest convenience.
 /* .IP \fBstatus\fR
 /*	Indicate if the Postfix mail system is currently running.
-/* .IP "\fBset-permissions\fR [\fIname\fR=\fIvalue ...\fR]
+/* .IP "\fBset-permissions\fR [\fIname\fR=\fIvalue ...\fR]"
 /*	Set the ownership and permissions of Postfix related files and
 /*	directories, as specified in the \fBpostfix-files\fR file.
 /* .sp
@@ -66,13 +66,13 @@
 /*	This feature is available in Postfix 2.1 and later.  With
 /*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
-/* .IP "\fBtls\fR \fIsubcommand\fR
+/* .IP "\fBtls\fR \fIsubcommand\fR"
 /*	Enable opportunistic TLS in the Postfix SMTP client or
 /*	server, and manage Postfix SMTP server TLS private keys and
 /*	certificates.  See postfix-tls(1) for documentation.
 /* .sp
 /*	This feature is available in Postfix 3.1 and later.
-/* .IP "\fBupgrade-configuration\fR [\fIname\fR=\fIvalue ...\fR]
+/* .IP "\fBupgrade-configuration\fR [\fIname\fR=\fIvalue ...\fR]"
 /*	Update the \fBmain.cf\fR and \fBmaster.cf\fR files with information
 /*	that Postfix needs in order to run: add or update services, and add
 /*	or update configuration parameter settings.

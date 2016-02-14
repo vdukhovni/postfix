@@ -294,11 +294,11 @@
 /* .IP "CA_VSTREAM_CTL_DOUBLE (no arguments)"
 /*	Use separate buffers for reading and for writing.  This prevents
 /*	unread input from being discarded upon change of I/O direction.
-/* .IP "CA_VSTREAM_CTL_READ_FD(int)
+/* .IP "CA_VSTREAM_CTL_READ_FD(int)"
 /*	The argument specifies the file descriptor to be used for reading.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
-/* .IP "CA_VSTREAM_CTL_WRITE_FD(int)
+/* .IP "CA_VSTREAM_CTL_WRITE_FD(int)"
 /*	The argument specifies the file descriptor to be used for writing.
 /*	This feature is limited to double-buffered streams, and makes the
 /*	stream non-seekable.
@@ -315,7 +315,7 @@
 /* .IP "CA_VSTREAM_CTL_WAITPID_FN(int (*)(pid_t, WAIT_STATUS_T *, int))"
 /*	A pointer to function that behaves like waitpid(). This information
 /*	is used by the vstream_pclose() routine.
-/* .IP "CA_VSTREAM_CTL_TIMEOUT(int)
+/* .IP "CA_VSTREAM_CTL_TIMEOUT(int)"
 /*	The deadline for a descriptor to become readable in case of a read
 /*	request, or writable in case of a write request. Specify a value
 /*	of 0 to disable deadlines.

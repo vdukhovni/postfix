@@ -5,11 +5,13 @@
 /*	Postfix multi-instance manager
 /* SYNOPSIS
 /* .fi
-/*	\fBENABLING MULTI-INSTANCE MANAGEMENT:\fR
+/* .ti -4
+/*	\fBEnabling multi-instance management:\fR
 /*
 /*	\fBpostmulti\fR \fB-e init\fR [\fB-v\fR]
 /*
-/*	\fBITERATOR MODE:\fR
+/* .ti -4
+/*	\fBIterator mode:\fR
 /*
 /*	\fBpostmulti\fR \fB-l\fR [\fB-aRv\fR] [\fB-g \fIgroup\fR]
 /*	[\fB-i \fIname\fR]
@@ -20,7 +22,8 @@
 /*	\fBpostmulti\fR \fB-x\fR [\fB-aRv\fR] [\fB-g \fIgroup\fR]
 /*	[\fB-i \fIname\fR] \fIcommand...\fR
 /*
-/*	\fBLIFE-CYCLE MANAGEMENT:\fR
+/* .ti -4
+/*	\fBLife-cycle management:\fR
 /*
 /*	\fBpostmulti\fR \fB-e create\fR [\fB-av\fR]
 /*	[\fB-g \fIgroup\fR] [\fB-i \fIname\fR] [\fB-G \fIgroup\fR]

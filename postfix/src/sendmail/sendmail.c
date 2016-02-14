@@ -110,7 +110,7 @@
 /*	With all Postfix versions, you can specify a directory pathname
 /*	with the MAIL_CONFIG environment variable to override the
 /*	location of configuration files.
-/* .IP "\fB-F \fIfull_name\fR
+/* .IP "\fB-F \fIfull_name\fR"
 /*	Set the sender full name. This overrides the NAME environment
 /*	variable, and is used only with messages that
 /*	have no \fBFrom:\fR message header.

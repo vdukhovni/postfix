@@ -122,7 +122,7 @@
 /*	by the event_server_disconnect() function (see below).
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
-/* .IP "CA_MAIL_SERVER_IN_FLOW_DELAY
+/* .IP CA_MAIL_SERVER_IN_FLOW_DELAY
 /*	Pause $in_flow_delay seconds when no "mail flow control token"
 /*	is available. A token is consumed for each connection request.
 /* .IP CA_MAIL_SERVER_SOLITARY

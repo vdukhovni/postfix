@@ -5,6 +5,7 @@
 /*	Postfix configuration utility
 /* SYNOPSIS
 /* .fi
+/* .ti -4
 /*	\fBManaging main.cf:\fR
 /*
 /*	\fBpostconf\fR [\fB-dfhHnopvx\fR] [\fB-c \fIconfig_dir\fR]
@@ -19,6 +20,7 @@
 /*	\fBpostconf\fR \fB-X\fR [\fB-pv\fR] [\fB-c \fIconfig_dir\fR]
 /*	\fIparameter ...\fR
 /*
+/* .ti -4
 /*	\fBManaging master.cf service entries:\fR
 /*
 /*	\fBpostconf\fR \fB-M\fR [\fB-fovx\fR] [\fB-c \fIconfig_dir\fR]
@@ -33,6 +35,7 @@
 /*	\fBpostconf\fR \fB-MX\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR]
 /*	\fIservice\fB/\fItype ...\fR
 /*
+/* .ti -4
 /*	\fBManaging master.cf service fields:\fR
 /*
 /*	\fBpostconf\fR \fB-F\fR [\fB-fhHovx\fR] [\fB-c \fIconfig_dir\fR]
@@ -41,6 +44,7 @@
 /*	\fBpostconf\fR \fB-F\fR [\fB-ev\fR] [\fB-c \fIconfig_dir\fR]
 /*	\fIservice\fB/\fItype\fB/\fIfield\fB=\fIvalue ...\fR
 /*
+/* .ti -4
 /*	\fBManaging master.cf service parameters:\fR
 /*
 /*	\fBpostconf\fR \fB-P\fR [\fB-fhHovx\fR] [\fB-c \fIconfig_dir\fR]
@@ -52,6 +56,7 @@
 /*	\fBpostconf\fR \fB-PX\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR]
 /*	\fIservice\fB/\fItype\fB/\fIparameter ...\fR
 /*
+/* .ti -4
 /*	\fBManaging bounce message templates:\fR
 /*
 /*	\fBpostconf\fR \fB-b\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR]
@@ -60,10 +65,12 @@
 /*	\fBpostconf\fR \fB-t\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fItemplate_file\fR]
 /*
+/* .ti -4
 /*	\fBManaging TLS features:\fR
 /*
-/*	\fBpostconf\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR] \fB-T \fImode\fR
+/*	\fBpostconf\fR \fB-T \fImode\fR [\fB-v\fR] [\fB-c \fIconfig_dir\fR]
 /*
+/* .ti -4
 /*	\fBManaging other configuration:\fR
 /*
 /*	\fBpostconf\fR \fB-a\fR|\fB-A\fR|\fB-l\fR|\fB-m\fR [\fB-v\fR]
@@ -187,9 +194,9 @@
 /*	This feature is available with Postfix 2.9 and later.
 /* .IP \fB-F\fR
 /*	Show \fBmaster.cf\fR per-entry field settings (by default
-/*	all services and all fields), formatted as one
-/*	"\fIservice/type/field=value\fR" per line. Specify \fB-Ff\fR
-/*	to fold long lines.
+/*	all services and all fields), formatted as
+/*	"\fIservice/type/field=value\fR", one per line. Specify
+/*	\fB-Ff\fR to fold long lines.
 /*
 /*	Specify one or more "\fIservice/type/field\fR" instances
 /*	on the \fBpostconf\fR(1) command line to limit the output
@@ -389,8 +396,8 @@
 /*	This feature is available with Postfix 2.11 and later.
 /* .IP \fB-P\fR
 /*	Show \fBmaster.cf\fR service parameter settings (by default
-/*	all services and all parameters).  formatted as one
-/*	"\fIservice/type/parameter=value\fR" per line.  Specify
+/*	all services and all parameters), formatted as
+/*	"\fIservice/type/parameter=value\fR", one per line.  Specify
 /*	\fB-Pf\fR to fold long lines.
 /*
 /*	Specify one or more "\fIservice/type/parameter\fR" instances

@@ -134,7 +134,7 @@
 /*	The function takes a VSTRING pointer and a list of zero or
 /*	more macros with zer or more arguments, terminated with
 /*	CA_VSTRING_CTL_END which has none.
-/* .IP "CA_VSTRING_CTL_MAXLEN(ssize_t len)
+/* .IP "CA_VSTRING_CTL_MAXLEN(ssize_t len)"
 /*	Specifies a hard upper limit on a string's length. When the
 /*	length would be exceeded, the program simulates a memory
 /*	allocation problem (i.e. it terminates through msg_fatal()).

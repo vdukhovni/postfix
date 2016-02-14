@@ -36,7 +36,7 @@
 /* .IP \fB-v\fR
 /*	Increase verbosity. Specify \fB-v -v\fR to see some of the QMQP
 /*	conversation.
-/* .IP "\fB-x \fItime\fR
+/* .IP "\fB-x \fItime\fR"
 /*	Terminate after \fItime\fR seconds. This is to facilitate memory
 /*	leak testing.
 /* SEE ALSO

@@ -19,10 +19,10 @@
 /* .IP "canonical (EXT_PROP_CANONICAL)"
 /*	Propagate unmatched address extensions to the right-hand side
 /*	of canonical table entries (not: regular expressions).
-/* .IP "virtual (EXT_PROP_VIRTUAL)
+/* .IP "virtual (EXT_PROP_VIRTUAL)"
 /*	Propagate unmatched address extensions to the right-hand side
 /*	of virtual table entries (not: regular expressions).
-/* .IP "alias (EXT_PROP_ALIAS)
+/* .IP "alias (EXT_PROP_ALIAS)"
 /*	Propagate unmatched address extensions to the right-hand side
 /*	of alias database entries.
 /* .IP "forward (EXT_PROP_FORWARD)"

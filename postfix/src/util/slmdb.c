@@ -149,7 +149,7 @@
 /*	CA_SLMDB_CTL_END.  The following text enumerates the symbolic
 /*	request names and the corresponding argument types.
 /* .RS
-/* .IP "CA_SLMDB_CTL_LONGJMP_FN(void (*)(void *, int))
+/* .IP "CA_SLMDB_CTL_LONGJMP_FN(void (*)(void *, int))"
 /*	Call-back function pointer. The function is called to repeat
 /*	a failed bulk-mode transaction from the start. The arguments
 /*	are the application context and the setjmp() or sigsetjmp()
