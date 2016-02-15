@@ -2163,8 +2163,10 @@ static SSL_CTX *ctx_init(const char *CAfile)
     tls_param_init();
     tls_check_version();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     SSL_load_error_strings();
     SSL_library_init();
+#endif
 
     if (!tls_validate_digest(LN_sha1))
 	msg_fatal("%s digest algorithm not available", LN_sha1);
