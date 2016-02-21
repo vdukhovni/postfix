@@ -41,6 +41,10 @@
 #include <mymalloc.h>
 #include <argv.h>
 
+/* Global library. */
+
+#include <mail_params.h>
+
 /* Application-specific. */
 
 #include "dns.h"
@@ -86,7 +90,7 @@ int     main(int argc, char **argv)
 	    lflags |= DNS_REQ_FLAG_NCACHE_TTL;
 	    break;
 	case 'p':
-	    dns_ncache_ttl_fix_enable = 1;
+	    var_dns_ncache_ttl_fix = 1;
 	    break;
 	default:
 	    usage(argv);

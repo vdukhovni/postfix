@@ -381,6 +381,7 @@ dns_strtype.o: dns.h
 dns_strtype.o: dns_strtype.c
 test_dns_lookup.o: ../../include/argv.h
 test_dns_lookup.o: ../../include/check_arg.h
+test_dns_lookup.o: ../../include/mail_params.h
 test_dns_lookup.o: ../../include/msg.h
 test_dns_lookup.o: ../../include/msg_vstream.h
 test_dns_lookup.o: ../../include/myaddrinfo.h

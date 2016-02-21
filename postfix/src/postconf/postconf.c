@@ -310,8 +310,9 @@
 /*	"\fBrandmap:{\fIresult_1, ..., result_n\fB}\fR". Each table query
 /*	returns a random choice from the specified results. The first
 /*	and last characters of the "randmap:" table name must be
-/*	"\fB{\fR" and "\fB}\fR".  Within these, individual maps are
-/*	separated with comma or whitespace.
+/*	"\fB{\fR" and "\fB}\fR".  Within these, individual results
+/*	are separated with comma or whitespace. To give a specific
+/*	result more weight, specify it multiple times.
 /* .IP "\fBregexp\fR (read-only)"
 /*	A lookup table based on regular expressions. The file format
 /*	is described in \fBregexp_table\fR(5).

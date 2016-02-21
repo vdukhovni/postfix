@@ -225,7 +225,6 @@ extern int dns_lookup_rl(const char *, unsigned, DNS_RR **, VSTRING *,
 			         VSTRING *, int *, int,...);
 extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
 			         VSTRING *, int *, int, unsigned *);
-extern int dns_ncache_ttl_fix_enable;
 
 #define dns_lookup(name, type, rflags, list, fqdn, why) \
     dns_lookup_x((name), (type), (rflags), (list), (fqdn), (why), (int *) 0, \

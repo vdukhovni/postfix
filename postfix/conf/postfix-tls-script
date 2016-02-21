@@ -317,10 +317,7 @@ openssl=`$postconf -c $default_config_directory -xh openssl_path`
 
 # ----- END OpenSSL-specific -----
 
-# Make this our *last* "cd", so all the key/cert generation runs in the
-# configuration directory.
-#
-test -n "$config_directory" && cd $config_directory || {
+test -n "$config_directory" -a -d "$config_directory" || {
     $FATAL no Postfix configuration directory $config_directory!
     exit 1
 }
@@ -566,7 +563,8 @@ info_enable_client() {
 
 info_client_deployed() {
 	cat <<-EOM
-	Enabled opportunistic TLS in the Postfix SMTP client, run:
+	Enabled opportunistic TLS in the Postfix SMTP client.
+	Run the command:
 	  # postfix reload
 	if you want the new settings to take effect immediately.
 	EOM
@@ -603,7 +601,8 @@ info_server_deployed() {
 	    echo "Enabled opportunistic TLS in the Postfix SMTP server"
 	fi
 	cat <<-EOM
-	New TLS private key and certificate deployed, run:
+	New TLS private key and certificate deployed.
+	Run the command:
 	  # postfix reload
 	if you want the new settings to take effect immediately.
 	EOM
@@ -616,9 +615,9 @@ info_csr() {
 	  # postfix tls output-server-csr -k $2 [<hostname> ...]
 	EOM
 	if [ -z "$3" ]; then
-	    echo "Save the signed certificate chain in ${config_directory}/$1, and deploy as above."
+	    echo "Save the signed certificate chain in $1, and deploy as above."
 	else
-	    echo "Save the signed certificate chain in ${config_directory}/$1."
+	    echo "Save the signed certificate chain in $1."
 	fi
 }
 
@@ -659,9 +658,24 @@ set_fqdn() {
 set_keyfile() {
     keyfile=$1
     case $keyfile in
-	"") : empty ok;;
-      $rsa) keyfile=`$postconf -nxh smtpd_tls_key_file`;;
-    $ecdsa) keyfile=`$postconf -nxh smtpd_tls_eckey_file`;;
+       rsa) if [ -n "${rsa}" ]; then
+		keyfile=`$postconf -nxh smtpd_tls_key_file`
+	    else
+		keyfile=
+	    fi
+	    ;;
+     ecdsa) if [ -n "${ecdsa}" ]; then
+		keyfile=`$postconf -nxh smtpd_tls_eckey_file`
+	    else
+		keyfile=
+	    fi
+	    ;;
+        "") : empty ok;;
+      none) : see below;;
+        /*) ;;
+         *) # User-specified key pathnames are relative to the configuration
+	    # directory
+	    keyfile="${config_directory}/${keyfile}";;
     esac
     if [ "${keyfile}" = "none" ]; then keyfile= ; fi
 }
@@ -681,8 +695,10 @@ ensure_key() {
 
     case $_algo in
 	"") $FATAL "Internal error: empty algorithm "; return 1;;
-      $rsa) keyfile="key-${stamp}.pem";   certfile="cert-${stamp}.pem";;
-    $ecdsa) keyfile="eckey-${stamp}.pem"; certfile="eccert-${stamp}.pem";;
+      $rsa) keyfile="${config_directory}/key-${stamp}.pem"
+	    certfile="${config_directory}/cert-${stamp}.pem";;
+    $ecdsa) keyfile="${config_directory}/eckey-${stamp}.pem"
+	    certfile="${config_directory}/eccert-${stamp}.pem";;
 	 *) $FATAL "Internal error: bad algorithm '${_algo}'"
 	    return 1;;
     esac
@@ -1003,8 +1019,21 @@ deploy-server-cert)
 	    exit 1
 	fi
 	shift
-	deploy_server_cert "$@" || exit 1
-	info_server_deployed "$1" "$2" "deploy" | $INFO
+
+	# User-specified key and cert pathnames are relative to the
+	# configuration directory
+	#
+	case "${1}" in
+	/*) certfile="${1}" ;;
+	 *) certfile="${config_directory}/${1}" ;;
+	esac
+	case "${2}" in
+	/*) certfile="${2}" ;;
+	 *) certfile="${config_directory}/${2}" ;;
+	esac
+
+	deploy_server_cert "${certfile}" "${keyfile}" || exit 1
+	info_server_deployed "${certfile}" "${keyfile}" "deploy" | $INFO
 	;;
 
 output-server-csr)
