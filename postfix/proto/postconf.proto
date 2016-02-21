@@ -15432,7 +15432,7 @@ SMTP/LMTP servers. </p>
 
 %PARAM lmtp_address_verify_target rcpt
 
-<p> The LMTP-specific version of the smtp_dns_support_level
+<p> The LMTP-specific version of the smtp_address_verify_target
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 3.0 and later.  </p>

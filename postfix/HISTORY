@@ -21727,3 +21727,15 @@ Apologies for any names omitted.
 	development release): the DNS multi-query clients forgot
 	to save and restore h_errno when evaluating the aggregate
 	result. File: dns/dns_lookup.c.
+
+20151124
+
+	Bugfix (introduced: Postfix 3.0): don't throttle a destination
+	after opportunistic TLS failure. Viktor Dukhovni. File:
+	smtp/smtp_proto.c.
+
+20160204
+
+	Documentation (introduced: Postfix 3.0): wrong paramester
+	name in lmtp_address_verify_target description. File:
+	proto/posconf.proto
