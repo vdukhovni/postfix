@@ -6,6 +6,8 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Fix "make test" bitrot.
+
 	Remove this file from the stable release.
 
 	Things to do after the stable release:

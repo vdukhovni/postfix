@@ -934,6 +934,7 @@ static int PRINTFLIKE(5, 6) smtpd_acl_permit(SMTPD_STATE *state,
 					             const char *reply_name,
 					             const char *format,...)
 {
+    const char myname[] = "smtpd_acl_permit";
     va_list ap;
     const char *whatsup;
 
@@ -946,6 +947,9 @@ static int PRINTFLIKE(5, 6) smtpd_acl_permit(SMTPD_STATE *state,
     /*
      * First, find out if (and how) this permit action should be logged.
      */
+    if (msg_verbose)
+	msg_info("%s: checking %s settings", myname, VAR_SMTPD_ACL_PERM_LOG);
+
     if (state->defer_if_permit.active) {
 	/* This action is overruled. Do not log. */
 	whatsup = 0;
@@ -966,6 +970,9 @@ static int PRINTFLIKE(5, 6) smtpd_acl_permit(SMTPD_STATE *state,
 	    va_end(ap);
 	}
 	log_whatsup(state, whatsup, STR(error_text));
+    } else {
+	if (msg_verbose)
+	    msg_info("%s: %s: no match", myname, VAR_SMTPD_ACL_PERM_LOG);
     }
     return (SMTPD_CHECK_OK);
 }

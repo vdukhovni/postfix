@@ -22178,3 +22178,11 @@ Apologies for any names omitted.
 20160214
 
 	More manpage cleanups. Viktor, Wietse.
+
+20160215
+
+	Cleanup: "match_list_match: permit_mynetworks: no match" after
+	a SUCCESSFUL permit_mynetworks match of a client IP address was
+	complicating troubleshooting.  The fix is to log additional
+	context to clarify that this "no match" condition is for
+	smtpd_log_access_permit_actions. File: smtpd/smtpd_check.c.
