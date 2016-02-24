@@ -22186,3 +22186,10 @@ Apologies for any names omitted.
 	complicating troubleshooting.  The fix is to log additional
 	context to clarify that this "no match" condition is for
 	smtpd_log_access_permit_actions. File: smtpd/smtpd_check.c.
+
+20150709
+
+	Cleanup: un-break some DNS unit tests by replacing non-portable
+	numerical flags with portable symbolic names in the verbose
+	command output.  Files: dns/dns_str_resflags.c, dns/dns_lookup.c,
+	dns/Makefile.in, many *.ref files.

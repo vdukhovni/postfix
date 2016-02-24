@@ -300,6 +300,11 @@ extern int dns_rr_filter_execute(DNS_RR **);
 
 #endif
 
+ /*
+  * dns_str_resflags.c
+  */
+const char *dns_str_resflags(unsigned long);
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -8,7 +8,7 @@
 ./test_dns_lookup: ignoring DNS RR: porcupine.org. 3600 IN MX 10 spike.porcupine.org.
 ./test_dns_lookup: ignoring DNS RR: porcupine.org. 3600 IN MX 20 fist.porcupine.org.
 ./test_dns_lookup: ignoring DNS RR: porcupine.org. 3600 IN MX 30 m1.porcupine.org.
-./test_dns_lookup: lookup porcupine.org type MX flags 2097152
+./test_dns_lookup: lookup porcupine.org type MX flags RES_USE_DNSSEC
 ./test_dns_lookup: maps_find: DNS reply filter: regexp:no-mx.reg(0,lock|fold_fix): porcupine.org. 3600 IN MX 10 spike.porcupine.org. = ignore
 ./test_dns_lookup: maps_find: DNS reply filter: regexp:no-mx.reg(0,lock|fold_fix): porcupine.org. 3600 IN MX 20 fist.porcupine.org. = ignore
 ./test_dns_lookup: maps_find: DNS reply filter: regexp:no-mx.reg(0,lock|fold_fix): porcupine.org. 3600 IN MX 30 m1.porcupine.org. = ignore

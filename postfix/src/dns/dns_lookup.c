@@ -1084,8 +1084,8 @@ int     dns_lookup_rl(const char *name, unsigned flags, DNS_RR **rrlist,
     for (type = va_arg(ap, unsigned); type != 0; type = next) {
 	next = va_arg(ap, unsigned);
 	if (msg_verbose)
-	    msg_info("lookup %s type %s flags %d",
-		     name, dns_strtype(type), flags);
+	    msg_info("lookup %s type %s flags %s",
+		     name, dns_strtype(type), dns_str_resflags(flags));
 	status = dns_lookup_x(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
 			      fqdn, why, rcode, lflags);
 	if (rrlist && rr)
@@ -1136,8 +1136,8 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
     for (type = *types++; type != 0; type = next) {
 	next = *types++;
 	if (msg_verbose)
-	    msg_info("lookup %s type %s flags %d",
-		     name, dns_strtype(type), flags);
+	    msg_info("lookup %s type %s flags %s",
+		     name, dns_strtype(type), dns_str_resflags(flags));
 	status = dns_lookup_x(name, type, flags, rrlist ? &rr : (DNS_RR **) 0,
 			      fqdn, why, rcode, lflags);
 	if (rrlist && rr)
