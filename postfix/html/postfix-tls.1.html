@@ -115,31 +115,33 @@ POSTFIX-TLS(1)                                                  POSTFIX-TLS(1)
               to  deploy  the  generated  key and certificate).  After the new
               certificate and key are deployed any obsolete keys and  certifi-
               cates  may  be removed by hand.   The <i>keyfile</i> and <i>certfile</i> file-
-              names are relative to the Postfix configuration directory.
+              names may be relative to the Postfix configuration directory.
 
        <b>output-server-csr</b> [<b>-k</b> <i>keyfile</i>] [<i>hostname</i><b>...</b>]
               Write to stdout a certificate  signing  request  (CSR)  for  the
               specified <i>keyfile</i>.
 
-              Instead  of a filename, <i>keyfile</i> may specify one of the supported
-              key algorithm names (see "<b>postconf  -T  public-key-algorithms</b>").
-              In  that case, the corresponding setting from <a href="postconf.5.html">main.cf</a> is used to
+              Instead  of an absolute pathname or a pathname relative to $<a href="postconf.5.html#config_directory">con</a>-
+              <a href="postconf.5.html#config_directory">fig_directory</a>, <i>keyfile</i> may specify  one  of  the  supported  key
+              algorithm  names  (see  "<b>postconf -T public-key-algorithms</b>"). In
+              that case, the corresponding setting from  <a href="postconf.5.html">main.cf</a>  is  used  to
               locate the <i>keyfile</i>.  The default <i>keyfile</i> value is <b>rsa</b>.
 
-              Zero or more <i>hostname</i> values  can  be  specified.   The  default
+              Zero  or  more  <i>hostname</i>  values  can be specified.  The default
               <i>hostname</i> is the value of <b><a href="postconf.5.html#myhostname">myhostname</a></b> <a href="postconf.5.html">main.cf</a> parameter.
 
        <b>output-server-tlsa</b> [<b>-h</b> <i>hostname</i>] [<i>keyfile</i><b>...</b>]
-              Write  to  stdout  a DANE TLSA RRset suitable for a port 25 SMTP
+              Write to stdout a DANE TLSA RRset suitable for a  port  25  SMTP
               server on host <i>hostname</i> with keys from any of the specified <i>key-</i>
-              <i>file</i>  values.   The default <i>hostname</i> is the value of the <b>myhost-</b>
+              <i>file</i> values.  The default <i>hostname</i> is the value of  the  <b>myhost-</b>
               <b>name</b> <a href="postconf.5.html">main.cf</a> parameter.
 
-              Instead of filenames, the <i>keyfile</i> list may specify names of sup-
-              ported  public key algorithms (see "<b>postconf -T public-key-algo-</b>
-              <b>rithms</b>").  In that case, the actual <i>keyfile</i> list uses the values
-              of the corresponding Postfix server TLS key file parameters.  If
-              a parameter value is empty or equal to <b>none</b>, then no TLSA record
+              Instead  of  absolute  pathnames  or pathnames relative to $<a href="postconf.5.html#config_directory">con</a>-
+              <a href="postconf.5.html#config_directory">fig_directory</a>, the <i>keyfile</i> list may specify names  of  supported
+              public key algorithms (see "<b>postconf -T public-key-algorithms</b>").
+              In that case, the actual <i>keyfile</i> list uses  the  values  of  the
+              corresponding  Postfix  server  TLS  key  file parameters.  If a
+              parameter value is empty or equal to <b>none</b>, then no  TLSA  record
               is output for that algorithm.
 
               The  default  <i>keyfile</i>  list  consists of the two supported algo-

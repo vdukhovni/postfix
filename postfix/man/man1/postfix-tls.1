@@ -120,12 +120,13 @@ display the full command needed to deploy the generated key
 and certificate).  After the new certificate and key are
 deployed any obsolete keys and certificates may be removed
 by hand.   The \fIkeyfile\fR and \fIcertfile\fR filenames
-are relative to the Postfix configuration directory.
+may be relative to the Postfix configuration directory.
 .IP "\fBoutput\-server\-csr\fR [\fB\-k \fIkeyfile\fR] [\fIhostname\fB...\fR]"
 Write to stdout a certificate signing request (CSR) for the
 specified \fIkeyfile\fR.
 .sp
-Instead of a filename, \fIkeyfile\fR may specify one of the
+Instead of an absolute pathname or a pathname relative to
+$config_directory, \fIkeyfile\fR may specify one of the
 supported key algorithm names (see "\fBpostconf \-T
 public\-key\-algorithms\fR"). In that case, the corresponding
 setting from main.cf is used to locate the \fIkeyfile\fR.
@@ -140,7 +141,8 @@ SMTP server on host \fIhostname\fR with keys from any of
 the specified \fIkeyfile\fR values.  The default \fIhostname\fR
 is the value of the \fBmyhostname\fR main.cf parameter.
 .sp
-Instead of filenames, the \fIkeyfile\fR list may specify
+Instead of absolute pathnames or pathnames relative to
+$config_directory, the \fIkeyfile\fR list may specify
 names of supported public key algorithms (see "\fBpostconf
 \-T public\-key\-algorithms\fR").  In that case, the actual
 \fIkeyfile\fR list uses the values of the corresponding
