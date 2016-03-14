@@ -18,7 +18,7 @@ POSTMULTI(1)                                                      POSTMULTI(1)
 
        <b>postmulti -l</b> [<b>-aRv</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>]
 
-       <b>postmulti -p</b> [<b>-av</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>command...</i>
+       <b>postmulti -p</b> [<b>-av</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>postfix-command...</i>
 
        <b>postmulti -x</b> [<b>-aRv</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>command...</i>
 
@@ -100,7 +100,8 @@ POSTMULTI(1)                                                      POSTMULTI(1)
               name, enable/disable status and configuration directory.
 
 <b>Postfix-wrapper mode</b>
-       <b>-p</b>     Invoke <a href="postfix.1.html"><b>postfix(1)</a></b> to execute the specified <i>command</i>.  This option
+       <b>-p</b> <i>postfix-command</i>
+              Invoke  <a href="postfix.1.html"><b>postfix(1)</a></b>  to  execute  <i>postfix-command</i>.   This  option
               implements the <a href="postfix-wrapper.5.html"><b>postfix-wrapper</b>(5)</a> interface.
 
               <b>o</b>      With "start"-like commands, "postfix check"  is  executed
@@ -130,7 +131,8 @@ POSTMULTI(1)                                                      POSTMULTI(1)
                      # postmulti -g msa -p start
 
 <b>Command mode</b>
-       <b>-x</b>     Execute the specified <i>command</i> for all  Postfix  instances.   The
+       <b>-x</b> <i>command</i>
+              Execute the specified <i>command</i> for all  Postfix  instances.   The
               command runs with appropriate environment settings for MAIL_CON-
               FIG,  <a href="postconf.5.html#command_directory">command_directory</a>,   <a href="postconf.5.html#daemon_directory">daemon_directory</a>,   <a href="postconf.5.html#config_directory">config_directory</a>,
               <a href="postconf.5.html#queue_directory">queue_directory</a>,       <a href="postconf.5.html#data_directory">data_directory</a>,      <a href="postconf.5.html#multi_instance_name">multi_instance_name</a>,

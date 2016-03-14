@@ -17,7 +17,7 @@
 /*	[\fB-i \fIname\fR]
 /*
 /*	\fBpostmulti\fR \fB-p\fR [\fB-av\fR] [\fB-g \fIgroup\fR]
-/*	[\fB-i \fIname\fR] \fIcommand...\fR
+/*	[\fB-i \fIname\fR] \fIpostfix-command...\fR
 /*
 /*	\fBpostmulti\fR \fB-x\fR [\fB-aRv\fR] [\fB-g \fIgroup\fR]
 /*	[\fB-i \fIname\fR] \fIcommand...\fR
@@ -105,8 +105,8 @@
 /*	List Postfix instances with their instance name, instance
 /*	group name, enable/disable status and configuration directory.
 /* .SH "Postfix-wrapper mode"
-/* .IP \fB-p\fR
-/*	Invoke \fBpostfix(1)\fR to execute the specified \fIcommand\fR.
+/* .IP "\fB-p \fIpostfix-command\fR"
+/*	Invoke \fBpostfix(1)\fR to execute \fIpostfix-command\fR.
 /*	This option implements the \fBpostfix-wrapper\fR(5) interface.
 /* .RS
 /* .IP \(bu
@@ -136,7 +136,7 @@
 /*	# postmulti -g msa -p start
 /* .RE
 /* .SH "Command mode"
-/* .IP \fB-x\fR
+/* .IP "\fB-x \fIcommand\fR"
 /*	Execute the specified \fIcommand\fR for all Postfix instances.
 /*	The command runs with appropriate environment settings for
 /*	MAIL_CONFIG, command_directory, daemon_directory,

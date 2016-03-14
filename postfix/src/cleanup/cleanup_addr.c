@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <cleanup.h>
 /*
-/*	void	cleanup_addr_sender(state, addr)
+/*	off_t	cleanup_addr_sender(state, addr)
 /*	CLEANUP_STATE *state;
 /*	const char *addr;
 /*
@@ -29,7 +29,8 @@
 /*	sender/recipient auto bcc address generation.
 /*
 /*	cleanup_addr_sender() processes sender envelope information and updates
-/*	state->sender.
+/*	state->sender. The result value is the offset of the record that
+/*	follows the sender record if milters are enabled, otherwise zero.
 /*
 /*	cleanup_addr_recipient() processes recipient envelope information
 /*	and updates state->recip.
@@ -81,6 +82,7 @@
 /* Global library. */
 
 #include <rec_type.h>
+#include <record.h>
 #include <cleanup_user.h>
 #include <mail_params.h>
 #include <ext_prop.h>
@@ -101,10 +103,13 @@
 
 /* cleanup_addr_sender - process envelope sender record */
 
-void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
+off_t   cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
 {
+    const char myname[] = "cleanup_addr_sender";
     VSTRING *clean_addr = vstring_alloc(100);
+    off_t   after_sender_offs = 0;
     const char *bcc;
+    size_t  len;
 
     /*
      * Note: an unqualified envelope address is for all practical purposes
@@ -148,6 +153,15 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     if (state->sender)				/* XXX Can't happen */
 	myfree(state->sender);
     state->sender = mystrdup(STR(clean_addr));	/* Used by Milter client */
+    /* Fix 20160310: Moved from cleanup_envelope.c. */
+    if (state->milters || cleanup_milters) {
+	/* Make room to replace sender. */
+	if ((len = strlen(state->sender)) < REC_TYPE_PTR_PAYL_SIZE)
+	    rec_pad(state->dst, REC_TYPE_PTR, REC_TYPE_PTR_PAYL_SIZE - len);
+	/* Remember the after-sender record offset. */
+	if ((after_sender_offs = vstream_ftell(state->dst)) < 0)
+	    msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
+    }
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_send_bcc_maps) {
@@ -162,6 +176,7 @@ void    cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
 	}
     }
     vstring_free(clean_addr);
+    return after_sender_offs;
 }
 
 /* cleanup_addr_recipient - process envelope recipient */

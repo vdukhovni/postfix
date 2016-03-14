@@ -253,7 +253,8 @@ Apply the named UCE restriction(s) (\fBpermit\fR, \fBreject\fR,
 Send one copy of the message to the specified recipient.
 .sp
 If multiple BCC actions are specified within the same SMTP
-MAIL transaction, only the last action will be used.
+MAIL transaction, with Postfix 3.0 only the last action
+will be used.
 .sp
 This feature is available in Postfix 3.0 and later.
 .IP "\fBDISCARD \fIoptional text...\fR

@@ -219,13 +219,17 @@ void    myfree(void *ptr)
 
 char   *mystrdup(const char *str)
 {
+    size_t  len;
+
     if (str == 0)
 	msg_panic("mystrdup: null pointer argument");
 #ifndef NO_SHARED_EMPTY_STRINGS
     if (*str == 0)
 	return ((char *) empty_string);
 #endif
-    return (strcpy(mymalloc(strlen(str) + 1), str));
+    if ((len = strlen(str) + 1) > SSIZE_T_MAX)
+	msg_panic("mystrdup: string length >= SSIZE_T_MAX");
+    return (strcpy(mymalloc(len), str));
 }
 
 /* mystrndup - save substring to heap */

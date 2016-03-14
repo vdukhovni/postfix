@@ -262,8 +262,8 @@
 #               recipient.
 # 
 #               If multiple BCC actions are  specified  within  the
-#               same  SMTP  MAIL  transaction, only the last action
-#               will be used.
+#               same  SMTP  MAIL transaction, with Postfix 3.0 only
+#               the last action will be used.
 # 
 #               This feature is available in Postfix 3.0 and later.
 # 

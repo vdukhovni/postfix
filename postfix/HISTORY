@@ -22187,9 +22187,51 @@ Apologies for any names omitted.
 	context to clarify that this "no match" condition is for
 	smtpd_log_access_permit_actions. File: smtpd/smtpd_check.c.
 
-20150709
+20160224
 
 	Cleanup: un-break some DNS unit tests by replacing non-portable
 	numerical flags with portable symbolic names in the verbose
 	command output.  Files: dns/dns_str_resflags.c, dns/dns_lookup.c,
 	dns/Makefile.in, many *.ref files.
+
+20160227
+
+	Cleanup: remember multiple BCC actions in access maps.
+	Files: smtpd/smtpd.h, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	smtpd/smtpd_state.c, proto/access.
+
+20160228
+
+	Documentation: STRESS_README. File: proto/STRESS_README.html.
+
+20160229
+
+	Documentation: postmulti manpage. File: postmulti/postmulti.c.
+
+20160305
+
+	Future-proofing: detect integer overflow before it happens.
+	After-the-fact detection relies on assumptions about
+	undefined behavior that are invalidated by compilers.  Files:
+	util/mymalloc.c, util/vstring.c.
+
+20160310
+
+	Bugfix (introduced: Postfix 2.6): the Milter SMFIR_CHGFROM
+	(replace sender) request lost the sender_bcc_maps address.
+	Fixed by moving some record keeping to the sender output function.
+	Files: cleanup/cleanup_envelope.c, cleanup/cleanuop_addr.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup.h, regression tests.
+
+20160314
+
+	Future-proofing: detect integer overflow before it happens.
+	After-the-fact detection relies on assumptions about
+	undefined behavior that are invalidated by compilers. Files:
+	global/off_cvt.c.
+
+	Cleanup: include <sys/types.h> once, instead of making it
+	system-dependent. File: util/sys_defs.h.
+
+	Cleanup: make sorting in "make depend" locale-independent.
+	Files: */Makefile.in.

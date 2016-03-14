@@ -109,10 +109,6 @@ typedef struct {
   * We do not expose these details to the Postfix user interface. The purpose of
   * Postfix is to solve problems, not punt them to the user.
   */
-#ifndef SSIZE_T_MAX			/* The maximum map size */
-#define SSIZE_T_MAX __MAXINT__(ssize_t)	/* XXX Assumes two's complement */
-#endif
-
 #define DICT_LMDB_SIZE_INCR	2	/* Increase size by 1 bit on retry */
 #define DICT_LMDB_SIZE_MAX	SSIZE_T_MAX
 

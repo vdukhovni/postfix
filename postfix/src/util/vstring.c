@@ -263,6 +263,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System libraries. */
@@ -296,12 +301,12 @@ static void vstring_extend(VBUF *bp, ssize_t incr)
      * 
      * The length overflow tests here and in vstring_alloc() should protect us
      * against all length overflow problems within vstring library routines.
-     * (The tests are redundant as long as mymalloc() and myrealloc() reject
-     * negative length parameters).
      */
-    new_len = bp->len + (bp->len > incr ? bp->len : incr);
-    if (new_len <= bp->len)
+    if (bp->len > incr)
+	incr = bp->len;
+    if (bp->len > SSIZE_T_MAX - incr)
 	msg_fatal("vstring_extend: length overflow");
+    new_len = bp->len + incr;
     bp->data = (unsigned char *) myrealloc((void *) bp->data, new_len);
     bp->len = new_len;
     bp->ptr = bp->data + used;

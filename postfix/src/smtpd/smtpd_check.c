@@ -2510,7 +2510,9 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "bcc", STR(error_text));
 #ifndef TEST
-	    UPDATE_STRING(state->saved_bcc, cmd_text);
+	    if (state->saved_bcc == 0) 
+		state->saved_bcc = argv_alloc(1);
+	    argv_add(state->saved_bcc, cmd_text, (char *) 0);
 #endif
 	    return (SMTPD_CHECK_DUNNO);
 	}

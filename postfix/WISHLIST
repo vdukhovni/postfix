@@ -6,6 +6,9 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Maintainability: replace lengthy libmilter-API argument lists
+	with named parameters, as with the libtls API.
+
 	Fix "make test" bitrot.
 
 	Document dns_ncache_ttl_fix_enable use case in POSTSCREEN_README
