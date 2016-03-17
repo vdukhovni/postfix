@@ -1484,7 +1484,7 @@ static int finger(STATE *state)
     return (0);
 }
 
-#ifdef USE_TLS
+#if defined(USE_TLS) && OPENSSL_VERSION_NUMBER < 0x10100000L
 
 /* ssl_cleanup - free memory allocated in the OpenSSL library */
 
@@ -1502,7 +1502,7 @@ static void ssl_cleanup(void)
     CRYPTO_cleanup_all_ex_data();
 }
 
-#endif
+#endif /* USE_TLS && OPENSSL_VERSION_NUMBER < 0x10100000L */
 
 /* run - do what we were asked to do. */
 
@@ -1917,7 +1917,9 @@ int     main(int argc, char *argv[])
 
     /* Be valgrind friendly and clean-up */
     cleanup(&state);
-#ifdef USE_TLS
+
+    /* OpenSSL 1.1.0 and later (de)initialization is implicit */
+#if defined(USE_TLS) && OPENSSL_VERSION_NUMBER < 0x10100000L
     ssl_cleanup();
 #endif
 
