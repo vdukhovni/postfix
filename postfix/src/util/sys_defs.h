@@ -234,9 +234,6 @@
 #define USE_STATFS
 #define STATFS_IN_SYS_MOUNT_H
 #define HAS_POSIX_REGEXP
-#define NORETURN	void
-#define PRINTFLIKE(x,y)
-#define SCANFLIKE(x,y)
 #ifndef NO_NETINFO
 # define HAS_NETINFO
 #endif
@@ -1160,9 +1157,6 @@ typedef unsigned short mode_t;
 #define O_NONBLOCK	O_NDELAY
 #define WEXITSTATUS(x)	((x).w_retcode)
 #define WTERMSIG(x)	((x).w_termsig)
-#define NORETURN			/* the native compiler */
-#define PRINTFLIKE(x,y)
-#define SCANFLIKE(x,y)
 #endif
 
 #ifdef ReliantUnix543
@@ -1560,6 +1554,17 @@ typedef int pid_t;
 #endif
 
  /*
+  * Clang-style attribute tests.
+  * 
+  * XXX Without the unconditional test below, gcc 4.6 will barf on ``elif
+  * defined(__clang__) && __has_attribute(__whatever__)'' with error message
+  * ``missing binary operator before token "("''.
+  */
+#ifndef __has_attribute
+#define __has_attribute(x) 0
+#endif					/* __has_attribute */
+
+ /*
   * Need to specify what functions never return, so that the compiler can
   * warn for missing initializations and other trouble. However, OPENSTEP4
   * gcc 2.7.x cannot handle this so we define this only if NORETURN isn't
@@ -1571,12 +1576,12 @@ typedef int pid_t;
 #ifndef NORETURN
 #if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ >= 3
 #define NORETURN	void __attribute__((__noreturn__))
-#endif
-#endif
-
-#ifndef NORETURN
+#elif defined(__clang__) && __has_attribute(__noreturn__)
+#define NORETURN	void __attribute__((__noreturn__))
+#else
 #define NORETURN	void
 #endif
+#endif					/* NORETURN */
 
  /*
   * Turn on format string argument checking. This is more accurate than
@@ -1588,18 +1593,22 @@ typedef int pid_t;
 #ifndef PRINTFLIKE
 #if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ >= 3
 #define PRINTFLIKE(x,y) __attribute__ ((format (printf, (x), (y))))
+#elif defined(__clang__) && __has_attribute(__format__)
+#define PRINTFLIKE(x,y)	__attribute__ ((__format__ (__printf__, (x), (y))))
 #else
 #define PRINTFLIKE(x,y)
 #endif
-#endif
+#endif					/* PRINTFLIKE */
 
 #ifndef SCANFLIKE
 #if (__GNUC__ == 2 && __GNUC_MINOR__ >= 7) || __GNUC__ >= 3
 #define SCANFLIKE(x,y) __attribute__ ((format (scanf, (x), (y))))
+#elif defined(__clang__) && __has_attribute(__format__)
+#define SCANFLIKE(x,y) __attribute__ ((__format__ (__scanf__, (x), (y))))
 #else
 #define SCANFLIKE(x,y)
 #endif
-#endif
+#endif					/* SCANFLIKE */
 
  /*
   * Some gcc implementations don't grok these attributes with pointer to
@@ -1609,6 +1618,8 @@ typedef int pid_t;
 #ifndef PRINTFPTRLIKE
 #if (__GNUC__ >= 3)			/* XXX Rough estimate */
 #define PRINTFPTRLIKE(x,y) PRINTFLIKE(x,y)
+#elif defined(__clang__) && __has_attribute(__format__)
+#define PRINTFLIKE(x,y)	__attribute__ ((__format__ (__printf__, (x), (y))))
 #else
 #define PRINTFPTRLIKE(x,y)
 #endif
