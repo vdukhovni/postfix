@@ -906,7 +906,7 @@ static void enqueue(const int flags, const char *encoding,
     if (rcpt_count == 0)
 	msg_fatal_status(EX_USAGE, (flags & SM_FLAG_XRCPT) ?
 		 "%s(%ld): No recipient addresses found in message header" :
-			 "Recipient addresses must be specified on"
+			 "%s(%ld): Recipient addresses must be specified on"
 			 " the command line or via the -t option",
 			 saved_sender, (long) uid);
 
