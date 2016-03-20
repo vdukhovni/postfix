@@ -9,6 +9,11 @@ Wish list:
 	Maintainability: replace lengthy libmilter-API argument lists
 	with named parameters, as with the libtls API.
 
+	Wat's up with all the lowercase() calls in dict*c when
+	casefolding he search key?
+	
+	Fix buflen integer overflow detection in dict*sql.c.
+
 	Fix "make test" bitrot.
 
 	Document dns_ncache_ttl_fix_enable use case in POSTSCREEN_README

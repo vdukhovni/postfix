@@ -22235,3 +22235,24 @@ Apologies for any names omitted.
 
 	Cleanup: make sorting in "make depend" locale-independent.
 	Files: */Makefile.in.
+
+	Cleanup: postmulti manpage. File: postmulti/postmulti.c.
+
+20160319
+
+	Cleanup: format-string width/precision integer overflow
+	handling in vbuf_print(), plus some tests to ensure that
+	format-string widths and precisions are parsed correctly,
+	and that output buffers are sized correctly. Files:
+	util/vbuf_print.c, util/vbuf_print_test.in,
+	util/vbuf_print_test.ref.
+
+20160320
+
+	Testing: exact-size VSTRING allocation. Files: util/vstring.[hc].
+
+	Cleanup: switch to snprintf() for redundancy, keeping
+	existing code in place to censor unnecessary format-string
+	features. Specify "make makefiles CCARGS=-DNO_SNPRINTF" for
+	ancient systems.  File: vbuf_print.c, makedefs, util/sys_defs.h,
+	proto/INSTALL.html.

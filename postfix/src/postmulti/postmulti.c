@@ -20,7 +20,7 @@
 /*	[\fB-i \fIname\fR] \fIpostfix-command...\fR
 /*
 /*	\fBpostmulti\fR \fB-x\fR [\fB-aRv\fR] [\fB-g \fIgroup\fR]
-/*	[\fB-i \fIname\fR] \fIcommand...\fR
+/*	[\fB-i \fIname\fR] \fIunix-command...\fR
 /*
 /* .ti -4
 /*	\fBLife-cycle management:\fR
@@ -136,8 +136,8 @@
 /*	# postmulti -g msa -p start
 /* .RE
 /* .SH "Command mode"
-/* .IP "\fB-x \fIcommand\fR"
-/*	Execute the specified \fIcommand\fR for all Postfix instances.
+/* .IP "\fB-x \fIunix-command\fR"
+/*	Execute the specified \fIunix-command\fR for all Postfix instances.
 /*	The command runs with appropriate environment settings for
 /*	MAIL_CONFIG, command_directory, daemon_directory,
 /*	config_directory, queue_directory, data_directory,

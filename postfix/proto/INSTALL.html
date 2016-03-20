@@ -866,6 +866,10 @@ these where they are known to be available. </td> </tr>
 By default, Postfix uses <tt>sigsetjmp()/siglongjmp()</tt> when
 they are known to be available. </td> </tr>
 
+<tr> <td> </td> <td> -DNO_SNPRINTF </td> <td> Use <tt>sprintf()</tt>
+instead of <tt>snprintf()</tt>.  By default, Postfix uses
+<tt>snprintf()</tt> except on ancient systems. </td> </tr>
+
 <tr> <td colspan="2"> DEBUG=debug_level </td> <td> Specifies a
 non-default compiler debugging level. The default is "<tt>-g</tt>".
 Specify DEBUG= to turn off debugging. </td> </tr>

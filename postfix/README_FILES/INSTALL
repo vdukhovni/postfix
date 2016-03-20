@@ -595,6 +595,10 @@ The following is an extensive list of names and values.
 ||                             |sigsetjmp()/siglongjmp() when they are known  |
 ||                             |to be available.                              |
 |_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+||                             |Use sprintf() instead of snprintf(). By       |
+||-DNO_SNPRINTF                |default, Postfix uses snprintf() except on    |
+||                             |ancient systems.                              |
+|_|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 |                              |Specifies a non-default compiler debugging    |
 |DEBUG=debug_level             |level. The default is "-g". Specify DEBUG= to |
 |                              |turn off debugging.                           |
