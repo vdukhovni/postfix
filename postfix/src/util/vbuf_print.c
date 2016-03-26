@@ -195,11 +195,13 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		cp++;
 	    } else {				/* hard-coded field width */
 		for (width = 0; ch = *cp, ISDIGIT(ch); cp++) {
+		    int     digit = ch - '0';
+
 		    if (width > INT_MAX / 10
-			|| (width *= 10) > INT_MAX - ch + '0')
+			|| (width *= 10) > INT_MAX - digit)
 			msg_panic("%s: bad width %d... in %.50s",
 				  myname, width, format);
-		    width += ch - '0';
+		    width += digit;
 		    VSTRING_ADDCH(fmt, ch);
 		}
 	    }
@@ -211,11 +213,13 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		    cp++;
 		} else {			/* hard-coded precision */
 		    for (prec = 0; ch = *cp, ISDIGIT(ch); cp++) {
+			int     digit = ch - '0';
+
 			if (prec > INT_MAX / 10
-			    || (prec *= 10) > INT_MAX - ch + '0')
+			    || (prec *= 10) > INT_MAX - digit)
 			    msg_panic("%s: bad precision %d... in %.50s",
 				      myname, prec, format);
-			prec += ch - '0';
+			prec += digit;
 			VSTRING_ADDCH(fmt, ch);
 		    }
 		}
@@ -237,6 +241,8 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	     */
 	    switch (*cp) {
 	    case 's':				/* string-valued argument */
+		if (long_flag)
+		    msg_panic("%s: %%l%c is not supported", myname, *cp);
 		s = va_arg(ap, char *);
 		if (prec >= 0 || (width > 0 && width > strlen(s))) {
 		    VBUF_SNPRINTF(bp, (width > prec ? width : prec) + INT_SPACE,
@@ -246,6 +252,9 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		}
 		break;
 	    case 'c':				/* integral-valued argument */
+		if (long_flag)
+		    msg_panic("%s: %%l%c is not supported", myname, *cp);
+		/* FALLTHROUGH */
 	    case 'd':
 	    case 'u':
 	    case 'o':
@@ -261,13 +270,17 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 	    case 'e':				/* float-valued argument */
 	    case 'f':
 	    case 'g':
+		/* C99 *printf ignore the 'l' modifier. */
 		VBUF_SNPRINTF(bp, (width > prec ? width : prec) + DBL_SPACE,
 			      vstring_str(fmt), va_arg(ap, double));
 		break;
 	    case 'm':
+		/* Ignore the 'l' modifier, width and precision. */
 		VBUF_STRCAT(bp, strerror(saved_errno));
 		break;
 	    case 'p':
+		if (long_flag)
+		    msg_panic("%s: %%l%c is not supported", myname, *cp);
 		VBUF_SNPRINTF(bp, (width > prec ? width : prec) + PTR_SPACE,
 			      vstring_str(fmt), va_arg(ap, char *));
 		break;

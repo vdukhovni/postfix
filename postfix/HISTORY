@@ -22225,10 +22225,10 @@ Apologies for any names omitted.
 
 20160314
 
-	Future-proofing: detect integer overflow before it happens.
-	After-the-fact detection relies on assumptions about
-	undefined behavior that are invalidated by compilers. Files:
-	global/off_cvt.c.
+	Future-proofing: revised off_t integer conversion (detect off_t
+	overflow before it happens).  After-the-fact detection relies
+	on assumptions about undefined behavior that are invalidated by
+	compilers. Files: global/off_cvt.c.
 
 	Cleanup: include <sys/types.h> once, instead of making it
 	system-dependent. File: util/sys_defs.h.
@@ -22240,11 +22240,11 @@ Apologies for any names omitted.
 
 20160319
 
-	Cleanup: format-string width/precision integer overflow
-	handling in vbuf_print(), plus some tests to ensure that
-	format-string widths and precisions are parsed correctly,
-	and that output buffers are sized correctly. Files:
-	util/vbuf_print.c, util/vbuf_print_test.in,
+	Future-proofing: revised format-string width or precision integer
+	conversion (detect integer overflow before it happens), plus
+	some tests to ensure that format-string widths and precisions
+	are parsed correctly, and that output buffers are sized
+	correctly. Files: util/vbuf_print.c, util/vbuf_print_test.in,
 	util/vbuf_print_test.ref.
 
 20160320
@@ -22256,3 +22256,12 @@ Apologies for any names omitted.
 	features. Specify "make makefiles CCARGS=-DNO_SNPRINTF" for
 	ancient systems.  File: vbuf_print.c, makedefs, util/sys_defs.h,
 	proto/INSTALL.html.
+
+20160324
+
+	Future-proofing: revised netstring length integer conversion
+	(detect integer overflow before it happens).  File:
+	util/netstring.c.
+
+	Cleanup: report unsupported usage of the '%l' format modifier.
+	File: util/vbuf_print.c.

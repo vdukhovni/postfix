@@ -82,11 +82,9 @@ off_t   off_cvt_string(const char *str)
     for (result = 0; (ch = *(unsigned char *) str) != 0; str++) {
 	if (!ISDIGIT(ch))
 	    return (-1);
-	if (result > OFF_T_MAX / 10)
-	    return (-1);
-	result *= 10;
 	digit_value = ch - '0';
-	if (result > OFF_T_MAX - digit_value)
+	if (result > OFF_T_MAX / 10
+	    || (result *= 10) > OFF_T_MAX - digit_value)
 	    return (-1);
 	result += digit_value;
     }

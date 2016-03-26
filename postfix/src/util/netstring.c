@@ -196,6 +196,7 @@ ssize_t netstring_get_length(VSTREAM *stream)
     const char *myname = "netstring_get_length";
     ssize_t len = 0;
     int     ch;
+    int     digit;
 
     for (;;) {
 	switch (ch = VSTREAM_GETC(stream)) {
@@ -209,10 +210,11 @@ ssize_t netstring_get_length(VSTREAM *stream)
 	default:
 	    if (!ISDIGIT(ch))
 		netstring_except(stream, NETSTRING_ERR_FORMAT);
-	    len = len * 10 + ch - '0';
-	    /* vstream_fread() would read zero bytes. Reject input anyway. */
-	    if (len < 0)
+	    digit = ch - '0';
+	    if (len > SSIZE_T_MAX / 10
+		|| (len *= 10) > SSIZE_T_MAX - digit)
 		netstring_except(stream, NETSTRING_ERR_SIZE);
+	    len += digit;
 	    break;
 	}
     }
