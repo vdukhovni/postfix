@@ -128,7 +128,8 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	unix_recv_fd unix_send_fd stream_recv_fd stream_send_fd hex_code \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
-	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8
+	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
+	vbuf_print
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -519,6 +520,11 @@ strcasecmp_utf8: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+vbuf_print: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
@@ -526,7 +532,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
 	base32_code_test dict_thash_test surrogate_test timecmp_test \
 	dict_static_test dict_inline_test midna_domain_test casefold_test \
-	dict_utf8_test strcasecmp_utf8_test
+	dict_utf8_test strcasecmp_utf8_test vbuf_print_test
 
 root_tests:
 
@@ -783,6 +789,11 @@ strcasecmp_utf8_test: strcasecmp_utf8 strcasecmp_utf8_test.in \
 	$(SHLIB_ENV) ./strcasecmp_utf8 <strcasecmp_utf8_test.in >strcasecmp_utf8_test.tmp 2>&1
 	diff strcasecmp_utf8_test.ref strcasecmp_utf8_test.tmp
 	rm -f strcasecmp_utf8_test.tmp
+
+vbuf_print_test: vbuf_print vbuf_print_test.in vbuf_print_test.ref
+	$(SHLIB_ENV) ./vbuf_print <vbuf_print_test.in >vbuf_print_test.tmp 2>&1
+	diff vbuf_print_test.ref vbuf_print_test.tmp
+	rm -f vbuf_print_test.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

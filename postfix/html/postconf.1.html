@@ -61,48 +61,46 @@ POSTCONF(1)                                                        POSTCONF(1)
 <b>DESCRIPTION</b>
        By default, the <a href="postconf.1.html"><b>postconf</b>(1)</a> command displays the values of <a href="postconf.5.html"><b>main.cf</b></a> con-
        figuration  parameters,  and  warns  about possible mis-typed parameter
-       names (Postfix 2.9 and later).  It can also change  <a href="postconf.5.html"><b>main.cf</b></a>  configura-
-       tion parameter values, or display other configuration information about
-       the Postfix mail system.
+       names (Postfix 2.9 and later).  The command  can  also  change  <a href="postconf.5.html"><b>main.cf</b></a>
+       configuration parameter values, or display other configuration informa-
+       tion about the Postfix mail system.
 
        Options:
 
-       <b>-a</b>     List the available SASL server plug-in types.  The SASL  plug-in
-              type  is selected with the <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b> configuration parame-
-              ter by specifying one of the names listed below.
+       <b>-a</b>     List the available SASL  plug-in  types  for  the  Postfix  SMTP
+              server.  The  plug-in  type is selected with the <b><a href="postconf.5.html#smtpd_sasl_type">smtpd_sasl_type</a></b>
+              configuration parameter by specifying one of  the  names  listed
+              below.
 
-              <b>cyrus</b>  This server plug-in is available when  Postfix  is  built
+              <b>cyrus</b>  This  server  plug-in  is available when Postfix is built
                      with Cyrus SASL support.
 
               <b>dovecot</b>
                      This  server  plug-in  uses  the  Dovecot  authentication
-                     server, and is available when Postfix is built  with  any
+                     server,  and  is available when Postfix is built with any
                      form of SASL support.
 
               This feature is available with Postfix 2.3 and later.
 
-       <b>-A</b>     List  the available SASL client plug-in types.  The SASL plug-in
-              type is selected with the <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b> or <b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b>  con-
-              figuration  parameters  by  specifying  one  of the names listed
-              below.
+       <b>-A</b>     List the available SASL  plug-in  types  for  the  Postfix  SMTP
+              client.  The plug-in type is selected with the <b><a href="postconf.5.html#smtp_sasl_type">smtp_sasl_type</a></b> or
+              <b><a href="postconf.5.html#lmtp_sasl_type">lmtp_sasl_type</a></b> configuration parameters by specifying one of the
+              names listed below.
 
-              <b>cyrus</b>  This client plug-in is available when  Postfix  is  built
+              <b>cyrus</b>  This  client  plug-in  is available when Postfix is built
                      with Cyrus SASL support.
 
               This feature is available with Postfix 2.3 and later.
 
        <b>-b</b> [<i>template</i><b>_</b><i>file</i>]
               Display the message text that appears at the beginning of deliv-
-              ery status notification (DSN) messages, replacing $<b>name</b>  expres-
+              ery  status notification (DSN) messages, expanding $<b>name</b> expres-
               sions with actual values as described in <a href="bounce.5.html"><b>bounce</b>(5)</a>.
 
-              To override the built-in templates, specify a template file name
-              at the end of the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line, or  specify  a  file
-              name in <a href="postconf.5.html"><b>main.cf</b></a> with the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.
-
-              To  force  selection of the built-in templates, specify an empty
-              template file name on the <a href="postconf.1.html"><b>postconf</b>(1)</a>  command  line  (in  shell
-              language: "").
+              To override the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter setting,  specify
+              a  template  file  name  at the end of the "<b>postconf -b</b>" command
+              line. Specify an empty file name to display  built-in  templates
+              (in shell language: "").
 
               This feature is available with Postfix 2.3 and later.
 
@@ -396,25 +394,22 @@ POSTCONF(1)                                                        POSTCONF(1)
               delivery  status  notification (DSN) messages, without expanding
               $<b>name</b> expressions.
 
-              To override the built-in templates, specify a template file name
-              at  the  end  of the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line, or specify a file
-              name in <a href="postconf.5.html"><b>main.cf</b></a> with the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter.
-
-              To force selection of the built-in templates, specify  an  empty
-              template  file  name  on  the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line (in shell
-              language: "").
+              To override the <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a></b> parameter setting,  specify
+              a  template  file  name  at the end of the "<b>postconf -t</b>" command
+              line. Specify an empty file name to display  built-in  templates
+              (in shell language: "").
 
               This feature is available with Postfix 2.3 and later.
 
        <b>-T</b> <i>mode</i>
-              If Postfix is compiled without TLS support, the <b>-T</b>  option  pro-
-              duces  no  output.   Otherwise, if an invalid <i>mode</i> is specified,
-              the <b>-T</b> option reports an error and exits with a non-zero  status
+              If  Postfix  is compiled without TLS support, the <b>-T</b> option pro-
+              duces no output.  Otherwise, if an invalid  <i>mode</i>  is  specified,
+              the  <b>-T</b> option reports an error and exits with a non-zero status
               code. The valid modes are:
 
               <b>compile-version</b>
                      Output the OpenSSL version that Postfix was compiled with
-                     (i.e. the OpenSSL version in a header file).  The  output
+                     (i.e.  the  OpenSSL version in a header file). The output
                      format is the same as with the command "<b>openssl version</b>".
 
               <b>run-version</b>
@@ -422,28 +417,28 @@ POSTCONF(1)                                                        POSTCONF(1)
                      runtime (i.e. the OpenSSL version in a shared library).
 
               <b>public-key-algorithms</b>
-                     Output  the  lower-case names of the supported public-key
+                     Output the lower-case names of the  supported  public-key
                      algorithms, one per-line.
 
               This feature is available with Postfix 3.1 and later.
 
-       <b>-v</b>     Enable verbose  logging  for  debugging  purposes.  Multiple  <b>-v</b>
+       <b>-v</b>     Enable  verbose  logging  for  debugging  purposes.  Multiple <b>-v</b>
               options make the software increasingly verbose.
 
-       <b>-x</b>     Expand  <i>$name</i>  in  <a href="postconf.5.html"><b>main.cf</b></a>  or  <a href="master.5.html"><b>master.cf</b></a>  parameter values. The
+       <b>-x</b>     Expand <i>$name</i> in  <a href="postconf.5.html"><b>main.cf</b></a>  or  <a href="master.5.html"><b>master.cf</b></a>  parameter  values.  The
               expansion is recursive.
 
               This feature is available with Postfix 2.10 and later.
 
-       <b>-X</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove  the  parameters
+       <b>-X</b>     Edit  the  <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and remove the parameters
               named on the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.  Specify a list of param-
               eter names, not "<i>name=value</i>" pairs.
 
-              With <b>-M</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and  remove  one
-              or  more service entries as specified with "<i>service/type</i>" on the
+              With  <b>-M</b>,  edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and remove one
+              or more service entries as specified with "<i>service/type</i>" on  the
               <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
-              With <b>-P</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and  remove  one
+              With  <b>-P</b>,  edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and remove one
               or more service parameter settings (-o parameter=value settings)
               as specied with "<i>service/type/parameter</i>" on the <a href="postconf.1.html"><b>postconf</b>(1)</a> com-
               mand line.
@@ -452,10 +447,10 @@ POSTCONF(1)                                                        POSTCONF(1)
               into place.  Specify quotes to protect special characters on the
               <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
-              There  is  no  <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse opera-
+              There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform  the  reverse  opera-
               tion.
 
-              This feature is available with Postfix 2.10 and later.   Support
+              This  feature is available with Postfix 2.10 and later.  Support
               for -M and -P was added with Postfix 2.11.
 
        <b>-#</b>     Edit the <a href="postconf.5.html"><b>main.cf</b></a> configuration file, and comment out the parame-
@@ -463,18 +458,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               eters revert to their default values.  Specify a list of parame-
               ter names, not "<i>name=value</i>" pairs.
 
-              With <b>-M</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and comment  out
-              one  or more service entries as specified with "<i>service/type</i>" on
+              With  <b>-M</b>, edit the <a href="master.5.html"><b>master.cf</b></a> configuration file, and comment out
+              one or more service entries as specified with "<i>service/type</i>"  on
               the <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
               In all cases the file is copied to a temporary file then renamed
               into place.  Specify quotes to protect special characters on the
               <a href="postconf.1.html"><b>postconf</b>(1)</a> command line.
 
-              There is no <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform  the  reverse  opera-
+              There  is  no  <a href="postconf.1.html"><b>postconf</b>(1)</a> command to perform the reverse opera-
               tion.
 
-              This  feature  is  available with Postfix 2.6 and later. Support
+              This feature is available with Postfix 2.6  and  later.  Support
               for -M was added with Postfix 2.11.
 
 <b>DIAGNOSTICS</b>
@@ -485,18 +480,18 @@ POSTCONF(1)                                                        POSTCONF(1)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to  this  pro-
+       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to this pro-
        gram.
 
-       The  text  below provides only a parameter summary. See <a href="postconf.5.html"><b>postconf</b>(5)</a> for
+       The text below provides only a parameter summary. See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for
        more details including examples.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#bounce_template_file">bounce_template_file</a> (empty)</b>
-              Pathname  of a configuration file with bounce message templates.
+              Pathname of a configuration file with bounce message  templates.
 
 <b>FILES</b>
        /etc/postfix/<a href="postconf.5.html">main.cf</a>, Postfix configuration parameters

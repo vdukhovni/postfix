@@ -79,14 +79,14 @@
 /*	By default, the \fBpostconf\fR(1) command displays the
 /*	values of \fBmain.cf\fR configuration parameters, and warns
 /*	about possible mis-typed parameter names (Postfix 2.9 and later).
-/*	It can also change \fBmain.cf\fR configuration
+/*	The command can also change \fBmain.cf\fR configuration
 /*	parameter values, or display other configuration information
 /*	about the Postfix mail system.
 /*
 /*	Options:
 /* .IP \fB-a\fR
-/*	List the available SASL server plug-in types.  The SASL
-/*	plug-in type is selected with the \fBsmtpd_sasl_type\fR
+/*	List the available SASL plug-in types for the Postfix SMTP
+/*	server. The plug-in type is selected with the \fBsmtpd_sasl_type\fR
 /*	configuration parameter by specifying one of the names
 /*	listed below.
 /* .RS
@@ -101,9 +101,9 @@
 /* .IP
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP \fB-A\fR
-/*	List the available SASL client plug-in types.  The SASL
-/*	plug-in type is selected with the \fBsmtp_sasl_type\fR or
-/*	\fBlmtp_sasl_type\fR configuration parameters by specifying
+/*	List the available SASL plug-in types for the Postfix SMTP
+/*	client.  The plug-in type is selected with the \fBsmtp_sasl_type\fR
+/*	or \fBlmtp_sasl_type\fR configuration parameters by specifying
 /*	one of the names listed below.
 /* .RS
 /* .IP \fBcyrus\fR
@@ -114,18 +114,14 @@
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-b\fR [\fItemplate_file\fR]"
 /*	Display the message text that appears at the beginning of
-/*	delivery status notification (DSN) messages, replacing
+/*	delivery status notification (DSN) messages, expanding
 /*	$\fBname\fR expressions with actual values as described in
 /*	\fBbounce\fR(5).
 /*
-/*	To override the built-in templates, specify a template file
-/*	name at the end of the \fBpostconf\fR(1) command line, or
-/*	specify a file name in \fBmain.cf\fR with the
-/*	\fBbounce_template_file\fR parameter.
-/*
-/*	To force selection of the built-in templates, specify an
-/*	empty template file name on the \fBpostconf\fR(1) command
-/*	line (in shell language: "").
+/*	To override the \fBbounce_template_file\fR parameter setting,
+/*	specify a template file name at the end of the "\fBpostconf
+/*	-b\fR" command line. Specify an empty file name to display
+/*	built-in templates (in shell language: "").
 /*
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-c \fIconfig_dir\fR"
@@ -413,14 +409,10 @@
 /*	of delivery status notification (DSN) messages, without
 /*	expanding $\fBname\fR expressions.
 /*
-/*	To override the built-in templates, specify a template file
-/*	name at the end of the \fBpostconf\fR(1) command line, or
-/*	specify a file name in \fBmain.cf\fR with the
-/*	\fBbounce_template_file\fR parameter.
-/*
-/*	To force selection of the built-in templates, specify an
-/*	empty template file name on the \fBpostconf\fR(1) command
-/*	line (in shell language: "").
+/*	To override the \fBbounce_template_file\fR parameter setting,
+/*	specify a template file name at the end of the "\fBpostconf
+/*	-t\fR" command line. Specify an empty file name to display
+/*	built-in templates (in shell language: "").
 /*
 /*	This feature is available with Postfix 2.3 and later.
 /* .IP "\fB-T \fImode\fR"

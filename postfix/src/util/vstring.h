@@ -52,13 +52,17 @@ extern VSTRING *vstring_import(char *);
 
 /* Legacy API: constant plus type-unchecked argument. */
 #define VSTRING_CTL_MAXLEN	1
+#define VSTRING_CTL_EXACT	2
 #define VSTRING_CTL_END		0
 
 /* Safer API: type-checked arguments. */
 #define CA_VSTRING_CTL_END		VSTRING_CTL_END
+#define CA_VSTRING_CTL_EXACT		VSTRING_CTL_EXACT
 #define CA_VSTRING_CTL_MAXLEN(val)	VSTRING_CTL_MAXLEN, CHECK_VAL(VSTRING_CTL, ssize_t, (val))
 
 CHECK_VAL_HELPER_DCL(VSTRING_CTL, ssize_t);
+
+#define VSTRING_FLAG_EXACT	(1<<8)	/* exact allocation for tests */
 
  /*
   * Macros. Unsafe macros have UPPERCASE names.
@@ -111,6 +115,11 @@ extern VSTRING *vstring_vsprintf_append(VSTRING *, const char *, va_list);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

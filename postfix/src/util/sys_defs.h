@@ -404,6 +404,7 @@ extern int opterr;
 #define size_t	unsigned
 #define ssize_t	int
 #define getsid	getpgrp
+#define NO_SNPRINTF
 #endif
 
  /*
@@ -785,6 +786,8 @@ extern int initgroups(const char *, int);
 #if HAVE_GLIBC_API_VERSION_SUPPORT(2, 1)
 #define SOCKADDR_SIZE	socklen_t
 #define SOCKOPT_SIZE	socklen_t
+#else
+#define NO_SNPRINTF
 #endif
 #ifndef NO_IPV6
 #define HAS_IPV6

@@ -6,8 +6,20 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	In-memory file, so that we can say pcre:{name=value, ...},
+	pcre:{name=value, ...} without having to open a file.  This
+	would not work for lmdb:, hash:, btree: etc., but it should
+	make texthash: equivalent to inline:. This would not be a
+	great example of user-friendliness, but it wouuld simplify
+	regression tests.
+
 	Maintainability: replace lengthy libmilter-API argument lists
 	with named parameters, as with the libtls API.
+
+	Wat's up with all the lowercase() calls in dict*c when
+	casefolding he search key?
+	
+	Fix buflen integer overflow detection in dict*sql.c.
 
 	Fix "make test" bitrot.
 

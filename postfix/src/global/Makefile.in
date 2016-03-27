@@ -381,7 +381,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
 	mail_version_test server_acl_test resolve_local_test maps_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
-	smtp_reply_footer_test
+	smtp_reply_footer_test off_cvt_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -655,6 +655,11 @@ smtp_reply_footer_test: smtp_reply_footer smtp_reply_footer.ref
 	$(SHLIB_ENV) ./smtp_reply_footer >smtp_reply_footer.tmp 2>&1
 	diff smtp_reply_footer.ref smtp_reply_footer.tmp
 	rm -f smtp_reply_footer.tmp
+
+off_cvt_test: off_cvt off_cvt.in off_cvt.ref
+	$(SHLIB_ENV) ./off_cvt <off_cvt.in >off_cvt.tmp 2>&1
+	diff off_cvt.ref off_cvt.tmp
+	rm -f off_cvt.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

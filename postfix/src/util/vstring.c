@@ -139,6 +139,9 @@
 /*	length would be exceeded, the program simulates a memory
 /*	allocation problem (i.e. it terminates through msg_fatal()).
 /*	This fuctionality is currently unimplemented.
+/* .IP "CA_VSTRING_CTL_EXACT (no argument)"
+/*	Allocate the requested amounts, instead of rounding up.
+/*	This should be used for tests only.
 /* .IP "CA_VSTRING_CTL_END (no argument)"
 /*	Specifies the end of the argument list. Forgetting to terminate
 /*	the argument list may cause the program to crash.
@@ -302,7 +305,7 @@ static void vstring_extend(VBUF *bp, ssize_t incr)
      * The length overflow tests here and in vstring_alloc() should protect us
      * against all length overflow problems within vstring library routines.
      */
-    if (bp->len > incr)
+    if ((bp->flags & VSTRING_FLAG_EXACT) == 0 && bp->len > incr)
 	incr = bp->len;
     if (bp->len > SSIZE_T_MAX - incr)
 	msg_fatal("vstring_extend: length overflow");
@@ -389,6 +392,9 @@ void    vstring_ctl(VSTRING *vp,...)
 	    vp->maxlen = va_arg(ap, ssize_t);
 	    if (vp->maxlen < 0)
 		msg_panic("vstring_ctl: bad max length %ld", (long) vp->maxlen);
+	    break;
+	case VSTRING_CTL_EXACT:
+	    vp->vbuf.flags |= VSTRING_FLAG_EXACT;
 	    break;
 	}
     }
