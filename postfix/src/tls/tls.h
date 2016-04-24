@@ -92,6 +92,10 @@ extern const NAME_CODE tls_level_table[];
 	CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
 #define EVP_PKEY_up_ref(k) \
 	CRYPTO_add(&((k)->references), 1, CRYPTO_LOCK_EVP_PKEY)
+#define X509_STORE_CTX_get0_cert(ctx) ((ctx)->cert)
+#define X509_STORE_CTX_get0_untrusted(ctx) ((ctx)->untrusted)
+#define X509_STORE_CTX_set0_untrusted X509_STORE_CTX_set_chain
+#define X509_STORE_CTX_set0_trusted_stack X509_STORE_CTX_trusted_stack
 #endif
 
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */

@@ -1720,8 +1720,8 @@ static void set_trust(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx)
     int     depth = 0;
     EVP_PKEY *takey;
     X509   *ca;
-    X509   *cert = ctx->cert;		/* XXX: Accessor? */
-    x509_stack_t *in = ctx->untrusted;	/* XXX: Accessor? */
+    X509   *cert = X509_STORE_CTX_get0_cert(ctx);
+    x509_stack_t *in = X509_STORE_CTX_get0_untrusted(ctx);
 
     /* shallow copy */
     if ((in = sk_X509_dup(in)) == 0)
@@ -1802,7 +1802,7 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
 {
     const char *myname = "dane_cb";
     TLS_SESS_STATE *TLScontext = (TLS_SESS_STATE *) app_ctx;
-    X509   *cert = ctx->cert;		/* XXX: accessor? */
+    X509   *cert = X509_STORE_CTX_get0_cert(ctx);
 
     /*
      * Degenerate case: depth 0 self-signed cert.
@@ -1832,9 +1832,9 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
      * Check that setting the untrusted chain updates the expected structure
      * member at the expected offset.
      */
-    X509_STORE_CTX_trusted_stack(ctx, TLScontext->trusted);
-    X509_STORE_CTX_set_chain(ctx, TLScontext->untrusted);
-    if (ctx->untrusted != TLScontext->untrusted)
+    X509_STORE_CTX_set0_trusted_stack(ctx, TLScontext->trusted);
+    X509_STORE_CTX_set0_untrusted(ctx, TLScontext->untrusted);
+    if (X509_STORE_CTX_get0_untrusted(ctx) != TLScontext->untrusted)
 	msg_panic("%s: OpenSSL ABI change", myname);
 
     return X509_verify_cert(ctx);
