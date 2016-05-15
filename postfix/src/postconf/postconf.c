@@ -520,9 +520,9 @@
 /*	/etc/postfix/main.cf, Postfix configuration parameters
 /*	/etc/postfix/master.cf, Postfix master daemon configuration
 /* SEE ALSO
-/*	bounce(5), bounce template file format master(5), master.cf
-/*	configuration file syntax postconf(5), main.cf configuration
-/*	file syntax
+/*	bounce(5), bounce template file format
+/*	master(5), master.cf configuration file syntax
+/*	postconf(5), main.cf configuration file syntax
 /* README FILES
 /* .ad
 /* .fi
