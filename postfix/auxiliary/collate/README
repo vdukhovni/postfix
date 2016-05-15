@@ -1,0 +1,11 @@
+This script, by Viktor Dukhovni, untangles a Postfix logfile and
+groups the records one "session" at a time based on queue ID and
+process ID information.
+
+Records from different sessions are separated by an empty line.
+Such text is easy to process with $/="" in perl, or RS="" in awk.
+
+Usage:
+    perl collate.pl file...
+
+It reads standard input when no file is specified.

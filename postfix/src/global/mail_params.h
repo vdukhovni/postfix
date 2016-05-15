@@ -3931,8 +3931,10 @@ extern char *var_meta_dir;
   * SMTPUTF8 support.
   */
 #define VAR_SMTPUTF8_ENABLE		"smtputf8_enable"
+#ifndef DEF_SMTPUTF8_ENABLE
 #define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} < {1} ? " \
 					"{no} : {yes}}"
+#endif
 extern int var_smtputf8_enable;
 
 #define VAR_STRICT_SMTPUTF8		"strict_smtputf8"

@@ -156,7 +156,7 @@ off_t   cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     /* Fix 20160310: Moved from cleanup_envelope.c. */
     if (state->milters || cleanup_milters) {
 	/* Make room to replace sender. */
-	if ((len = strlen(state->sender)) < REC_TYPE_PTR_PAYL_SIZE)
+	if ((len = LEN(clean_addr)) < REC_TYPE_PTR_PAYL_SIZE)
 	    rec_pad(state->dst, REC_TYPE_PTR, REC_TYPE_PTR_PAYL_SIZE - len);
 	/* Remember the after-sender record offset. */
 	if ((after_sender_offs = vstream_ftell(state->dst)) < 0)

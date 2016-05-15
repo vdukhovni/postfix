@@ -22,9 +22,9 @@ delays the onset of server overload conditions.
 
 This program should not be used on SMTP ports that receive
 mail from end\-user clients (MUAs). In a typical deployment,
-\fBpostscreen\fR(8) handles the MX service on TCP port 25,
-while MUA clients submit mail via the \fBsubmission\fR
-service on TCP port 587 which requires client authentication.
+\fBpostscreen\fR(8) handles the MX service on TCP port 25, and
+\fBsmtpd\fR(8) receives mail from MUAs on the \fBsubmission\fR
+service (TCP port 587) which requires client authentication.
 Alternatively, a site could set up a dedicated, non\-postscreen,
 "port 25" server that provides \fBsubmission\fR service and
 client authentication, but no MX service.
@@ -87,22 +87,14 @@ currently does not announce support for AUTH, XCLIENT or
 XFORWARD.
 If you need to make these services available
 on port 25, then do not enable the optional "after 220
-server greeting" tests, and do not use DNSBLs that reject
-traffic from dial\-up and residential networks.
+server greeting" tests.
 
-The optional "after 220 server greeting" tests involve
-\fBpostscreen\fR(8)'s built\-in SMTP protocol engine. When
-these tests succeed, \fBpostscreen\fR(8) adds the client
-to the temporary whitelist, but it cannot not hand off the
-"live" connection to a Postfix SMTP server process in the
-middle of a session.  Instead, \fBpostscreen\fR(8) defers
-attempts to deliver mail with a 4XX status, and waits for
-the client to disconnect.  When the client connects again,
-\fBpostscreen\fR(8) will allow the client to talk to a
-Postfix SMTP server process (provided that the whitelist
-status has not expired).  \fBpostscreen\fR(8) mitigates
-the impact of this limitation by giving the "after 220
-server greeting" tests a long expiration time.
+The optional "after 220 server greeting" tests may result in
+unexpected delivery delays from senders that retry email delivery
+from a different IP address.  Reason: after passing these tests a
+new client must disconnect, and reconnect from the same IP
+address before it can deliver mail. See POSTSCREEN_README, section
+"Tests after the 220 SMTP server greeting", for a discussion.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -430,9 +422,9 @@ POSTSCREEN_README, Postfix Postscreen Howto
 .ad
 .fi
 The Secure Mailer license must be distributed with this software.
-.SH "HISTORY"
-.na
-.nf
+.SH HISTORY
+.ad
+.fi
 .ad
 .fi
 This service was introduced with Postfix version 2.8.

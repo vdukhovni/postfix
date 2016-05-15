@@ -989,10 +989,11 @@ static int smtpd_check_reject(SMTPD_STATE *state, int error_class,
 
     /*
      * Do not reject mail if we were asked to warn only. However,
-     * configuration errors cannot be converted into warnings.
+     * configuration/software/data errors cannot be converted into warnings.
      */
     if (state->warn_if_reject && error_class != MAIL_ERROR_SOFTWARE
-	&& error_class != MAIL_ERROR_RESOURCE) {
+	&& error_class != MAIL_ERROR_RESOURCE
+	&& error_class != MAIL_ERROR_DATA) {
 	warn_if_reject = 1;
 	whatsup = "reject_warning";
     } else {

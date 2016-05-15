@@ -442,7 +442,7 @@
 #	    header_checks = pcre:/etc/postfix/header_checks.pcre
 #
 #	/etc/postfix/header_checks.pcre:
-#	    /^Content-(Disposition|Type).*name\es*=\es*"?(.*(\e.|=2E)(
+#	    /^Content-(Disposition|Type).*name\es*=\es*"?([^;]*(\e.|=2E)(
 #	      ade|adp|asp|bas|bat|chm|cmd|com|cpl|crt|dll|exe|
 #	      hlp|ht[at]|
 #	      inf|ins|isp|jse?|lnk|md[betw]|ms[cipt]|nws|

@@ -21,7 +21,7 @@
 /*	does not exist, and so on.
 /* .IP "2bounce (MAIL_ERROR_2BOUNCE)"
 /*	A bounce message could not be delivered.
-/* .IP "dat (MAIL_ERROR_DATA)"
+/* .IP "data (MAIL_ERROR_DATA)"
 /*	A message could not be delivered because a critical data
 /*	file was unavailable.
 /* .IP "policy (MAIL_ERROR_POLICY)"

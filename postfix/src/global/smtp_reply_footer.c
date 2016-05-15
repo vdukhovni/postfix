@@ -257,7 +257,7 @@ static const char *lookup(const char *name, int unused_mode, void *context)
 
 int     main(int argc, char **argv)
 {
-    struct test_case *tp;
+    const struct test_case *tp;
     int     status;
     VSTRING *buf = vstring_alloc(10);
     void   *context = 0;

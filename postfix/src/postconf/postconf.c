@@ -241,9 +241,13 @@
 /* .IP \fBcdb\fR
 /*	A read-optimized structure with no support for incremental
 /*	updates.  Available on systems with support for CDB databases.
+/*
+/*	This feature is available with Postfix 2.2 and later.
 /* .IP \fBcidr\fR
 /*	A table that associates values with Classless Inter-Domain
 /*	Routing (CIDR) patterns. This is described in \fBcidr_table\fR(5).
+/*
+/*	This feature is available with Postfix 2.2 and later.
 /* .IP \fBdbm\fR
 /*	An indexed file type based on hashing.  Available on systems
 /*	with support for DBM databases.
@@ -255,6 +259,8 @@
 /*	A table that reliably fails all requests. The lookup table
 /*	name is used for logging. This table exists to simplify
 /*	Postfix error tests.
+/*
+/*	This feature is available with Postfix 2.9 and later.
 /* .IP \fBhash\fR
 /*	An indexed file type based on hashing.  Available on systems
 /*	with support for Berkeley DB databases.
@@ -266,6 +272,8 @@
 /*	is ignored. Inline tables eliminate the need to create a
 /*	database file for just a few fixed elements.  See also the
 /*	\fIstatic:\fR map type.
+/*
+/*	This feature is available with Postfix 3.0 and later.
 /* .IP \fBinternal\fR
 /*	A non-shared, in-memory hash table. Its content are lost
 /*	when a process terminates.
@@ -273,11 +281,15 @@
 /*	OpenLDAP LMDB database (a memory-mapped, persistent file).
 /*	Available on systems with support for LMDB databases.  This
 /*	is described in \fBlmdb_table\fR(5).
+/*
+/*	This feature is available with Postfix 2.11 and later.
 /* .IP "\fBldap\fR (read-only)"
 /*	LDAP database client. This is described in \fBldap_table\fR(5).
 /* .IP "\fBmemcache\fR"
 /*	Memcache database client. This is described in
 /*	\fBmemcache_table\fR(5).
+/*
+/*	This feature is available with Postfix 2.9 and later.
 /* .IP "\fBmysql\fR (read-only)"
 /*	MySQL database client.  Available on systems with support
 /*	for MySQL databases.  This is described in \fBmysql_table\fR(5).
@@ -287,6 +299,8 @@
 /* .IP "\fBpgsql\fR (read-only)"
 /*	PostgreSQL database client. This is described in
 /*	\fBpgsql_table\fR(5).
+/*
+/*	This feature is available with Postfix 2.1 and later.
 /* .IP "\fBpipemap\fR (read-only)"
 /*	A lookup table that constructs a pipeline of tables.  Example:
 /*	"\fBpipemap:{\fItype_1:name_1,  ..., type_n:name_n\fB}\fR".
@@ -298,9 +312,13 @@
 /*	"pipemap:" table name must be "\fB{\fR" and "\fB}\fR".
 /*	Within these, individual maps are separated with comma or
 /*	whitespace.
+/*
+/*	This feature is available with Postfix 3.0 and later.
 /* .IP "\fBproxy\fR"
 /*	Postfix \fBproxymap\fR(8) client for shared access to Postfix
 /*	databases. The table name syntax is \fItype\fB:\fIname\fR.
+/*
+/*	This feature is available with Postfix 2.0 and later.
 /* .IP "\fBrandmap\fR (read-only)"
 /*	An in-memory table that performs random selection. Example:
 /*	"\fBrandmap:{\fIresult_1, ..., result_n\fB}\fR". Each table query
@@ -309,19 +327,27 @@
 /*	"\fB{\fR" and "\fB}\fR".  Within these, individual results
 /*	are separated with comma or whitespace. To give a specific
 /*	result more weight, specify it multiple times.
+/*
+/*	This feature is available with Postfix 3.0 and later.
 /* .IP "\fBregexp\fR (read-only)"
 /*	A lookup table based on regular expressions. The file format
 /*	is described in \fBregexp_table\fR(5).
 /* .IP \fBsdbm\fR
 /*	An indexed file type based on hashing.  Available on systems
 /*	with support for SDBM databases.
+/*
+/*	This feature is available with Postfix 2.2 and later.
 /* .IP "\fBsocketmap\fR (read-only)"
 /*	Sendmail-style socketmap client. The table name is
 /*	\fBinet\fR:\fIhost\fR:\fIport\fR:\fIname\fR for a TCP/IP
 /*	server, or \fBunix\fR:\fIpathname\fR:\fIname\fR for a
 /*	UNIX-domain server. This is described in \fBsocketmap_table\fR(5).
+/*
+/*	This feature is available with Postfix 2.10 and later.
 /* .IP "\fBsqlite\fR (read-only)"
 /*	SQLite database. This is described in \fBsqlite_table\fR(5).
+/*
+/*	This feature is available with Postfix 2.8 and later.
 /* .IP "\fBstatic\fR (read-only)"
 /*	A table that always returns its name as lookup result. For
 /*	example, \fBstatic:foobar\fR always returns the string
@@ -329,6 +355,9 @@
 /*	with whitespace\fB }\fR" when the result contains whitespace;
 /*	this form ignores whitespace after "\fB{\fR" and before
 /*	"\fB}\fR". See also the \fIinline:\fR map.
+/*
+/*	The form "\fBstatic:{\fItext\fB}\fR is available with Postfix
+/*	3.0 and later.
 /* .IP "\fBtcp\fR (read-only)"
 /*	TCP/IP client. The protocol is described in \fBtcp_table\fR(5).
 /* .IP "\fBtexthash\fR (read-only)"
@@ -336,10 +365,14 @@
 /*	don't need to run the \fBpostmap\fR(1) command before you
 /*	can use the file, and that it does not detect changes after
 /*	the file is read.
+/*
+/*	This feature is available with Postfix 2.8 and later.
 /* .IP "\fBunionmap\fR (read-only)"
 /*	A table that sends each query to multiple lookup tables and
 /*	that concatenates all found results, separated by comma.
 /*	The table name syntax is the same as for \fBpipemap\fR.
+/*
+/*	This feature is available with Postfix 3.0 and later.
 /* .IP "\fBunix\fR (read-only)"
 /*	A limited view of the UNIX authentication database. The
 /*	following tables are implemented:
@@ -512,9 +545,9 @@
 /*	/etc/postfix/main.cf, Postfix configuration parameters
 /*	/etc/postfix/master.cf, Postfix master daemon configuration
 /* SEE ALSO
-/*	bounce(5), bounce template file format master(5), master.cf
-/*	configuration file syntax postconf(5), main.cf configuration
-/*	file syntax
+/*	bounce(5), bounce template file format
+/*	master(5), master.cf configuration file syntax
+/*	postconf(5), main.cf configuration file syntax
 /* README FILES
 /* .ad
 /* .fi

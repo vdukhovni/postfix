@@ -480,6 +480,8 @@ static int xsasl_cyrus_server_auth_response(int sasl_status,
 	    sasl_status = SASL_BADAUTH;
 	vstring_strcpy(reply, xsasl_cyrus_strerror(sasl_status));
 	switch (sasl_status) {
+	case SASL_FAIL:
+	case SASL_NOMEM:
 	case SASL_TRYAGAIN:
 	case SASL_UNAVAIL:
 	    return XSASL_AUTH_TEMP;

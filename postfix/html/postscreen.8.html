@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - postscreen(8) </title>
 </head> <body> <pre>
-POSTSCREEN(8)                                                    POSTSCREEN(8)
+POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 
 <b>NAME</b>
        postscreen - Postfix zombie blocker
@@ -22,8 +22,8 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
        This program should not be used on SMTP ports that  receive  mail  from
        end-user clients (MUAs). In a typical deployment, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> handles
-       the MX service on TCP port 25, while MUA clients submit  mail  via  the
-       <b>submission</b>  service  on  TCP port 587 which requires client authentica-
+       the MX service on TCP port 25, and <a href="smtpd.8.html"><b>smtpd</b>(8)</a> receives mail from MUAs  on
+       the <b>submission</b> service (TCP port 587) which requires client authentica-
        tion.  Alternatively, a site could set up a dedicated,  non-postscreen,
        "port  25" server that provides <b>submission</b> service and client authenti-
        cation, but no MX service.
@@ -76,33 +76,28 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  built-in  SMTP  protocol  engine currently does not
        announce support for AUTH, XCLIENT or XFORWARD.  If you  need  to  make
        these  services  available  on port 25, then do not enable the optional
-       "after 220 server greeting" tests, and do not use  DNSBLs  that  reject
-       traffic from dial-up and residential networks.
+       "after 220 server greeting" tests.
 
-       The  optional "after 220 server greeting" tests involve <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s
-       built-in SMTP protocol engine. When these tests succeed,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
-       adds  the client to the temporary whitelist, but it cannot not hand off
-       the "live" connection to a Postfix SMTP server process in the middle of
-       a session.  Instead, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> defers attempts to deliver mail with
-       a 4XX status, and waits for the client to disconnect.  When the  client
-       connects  again, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will allow the client to talk to a Post-
-       fix SMTP server process (provided that the  whitelist  status  has  not
-       expired).   <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  mitigates  the  impact of this limitation by
-       giving the "after 220 server greeting" tests a long expiration time.
+       The optional "after 220 server greeting" tests may result in unexpected
+       delivery delays from senders that retry email delivery from a different
+       IP address.  Reason: after passing these tests a new client  must  dis-
+       connect,  and  reconnect from the same IP address before it can deliver
+       mail. See <a href="POSTSCREEN_README.html">POSTSCREEN_README</a>, section "Tests after the 220  SMTP  server
+       greeting", for a discussion.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Changes to <a href="postconf.5.html">main.cf</a> are not picked up  automatically,  as  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
-       processes  may run for several hours.  Use the command "postfix reload"
+       Changes  to  <a href="postconf.5.html">main.cf</a>  are not picked up automatically, as <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
+       processes may run for several hours.  Use the command "postfix  reload"
        after a configuration change.
 
-       The text below provides only a parameter summary. See  <a href="postconf.5.html"><b>postconf</b>(5)</a>  for
+       The  text  below provides only a parameter summary. See <a href="postconf.5.html"><b>postconf</b>(5)</a> for
        more details including examples.
 
-       NOTE:  Some  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> parameters implement stress-dependent behav-
-       ior.  This is supported  only  when  the  default  parameter  value  is
-       stress-dependent  (that  is,  it looks like ${stress?{X}:{Y}}, or it is
-       the $<i>name</i> of an  smtpd  parameter  with  a  stress-dependent  default).
-       Other  parameters  always  evaluate as if the <b>stress</b> parameter value is
+       NOTE: Some <a href="postscreen.8.html"><b>postscreen</b>(8)</a> parameters implement  stress-dependent  behav-
+       ior.   This  is  supported  only  when  the  default parameter value is
+       stress-dependent (that is, it looks like ${stress?{X}:{Y}},  or  it  is
+       the  $<i>name</i>  of  an  smtpd  parameter  with a stress-dependent default).
+       Other parameters always evaluate as if the <b>stress</b>  parameter  value  is
        the empty string.
 
 <b>COMPATIBILITY CONTROLS</b>
@@ -299,13 +294,13 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
        <b><a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a></b>
        <b>(${<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>?{$<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>}:{1}}h)</b>
-              The  maximum  amount  of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the
-              result from a successful  DNS-based  reputation  test  before  a
+              The maximum amount of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  use  the
+              result  from  a  successful  DNS-based  reputation test before a
               client IP address is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a> (60s)</b>
-              The  minimum  amount  of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will use the
-              result from a successful  DNS-based  reputation  test  before  a
+              The minimum amount of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  use  the
+              result  from  a  successful  DNS-based  reputation test before a
               client IP address is required to pass that test again.
 
        <b><a href="postconf.5.html#postscreen_greet_ttl">postscreen_greet_ttl</a> (1d)</b>
@@ -322,7 +317,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>RESOURCE CONTROLS</b>
        <b><a href="postconf.5.html#line_length_limit">line_length_limit</a> (2048)</b>
-              Upon input, long lines are chopped up into  pieces  of  at  most
+              Upon  input,  long  lines  are chopped up into pieces of at most
               this length; upon delivery, long lines are reconstructed.
 
        <b><a href="postconf.5.html#postscreen_client_connection_count_limit">postscreen_client_connection_count_limit</a>         ($<a href="postconf.5.html#smtpd_client_connection_count_limit">smtpd_client_connec</a>-</b>
@@ -399,8 +394,8 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
+              The  mail  system  name that is prepended to the process name in
+              syslog records, so that "smtpd"  becomes,  for  example,  "post-
               fix/smtpd".
 
 <b>SEE ALSO</b>
@@ -418,7 +413,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 <b>HISTORY</b>
        This service was introduced with Postfix version 2.8.
 
-       Many  ideas  in  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier work by Michael
+       Many ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier  work  by  Michael
        Tokarev, in OpenBSD spamd, and in MailChannels Traffic Control.
 
 <b>AUTHOR(S)</b>

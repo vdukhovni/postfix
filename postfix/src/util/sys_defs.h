@@ -29,7 +29,7 @@
     || defined(FREEBSD8) || defined(FREEBSD9) || defined(FREEBSD10) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
-    || defined(OPENBSD5) \
+    || defined(OPENBSD5) || defined(OPENBSD6) \
     || defined(NETBSD1) || defined(NETBSD2) || defined(NETBSD3) \
     || defined(NETBSD4) || defined(NETBSD5) || defined(NETBSD6) \
     || defined(NETBSD7) \
