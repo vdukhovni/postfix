@@ -81,10 +81,10 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 
        The  optional "after 220 server greeting" tests involve <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s
        built-in SMTP protocol engine. When these tests succeed,  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
-       adds  the client to the temporary whitelist, but it cannot not hand off
-       the "live" connection to a Postfix SMTP server process in the middle of
-       a session.  Instead, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> defers attempts to deliver mail with
-       a 4XX status, and waits for the client to disconnect.  When the  client
+       adds  the client to the temporary whitelist, but it cannot hand off the
+       "live" connection to a Postfix SMTP server process in the middle  of  a
+       session.  Instead, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> defers attempts to deliver mail with a
+       4XX status, and waits for the client to disconnect.   When  the  client
        connects  again, <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will allow the client to talk to a Post-
        fix SMTP server process (provided that the  whitelist  status  has  not
        expired).   <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  mitigates  the  impact of this limitation by

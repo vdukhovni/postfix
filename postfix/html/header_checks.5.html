@@ -415,7 +415,7 @@ HEADER_CHECKS(5)                                              HEADER_CHECKS(5)
            <a href="postconf.5.html#header_checks">header_checks</a> = <a href="pcre_table.5.html">pcre</a>:/etc/postfix/header_checks.pcre
 
        /etc/postfix/header_checks.<a href="pcre_table.5.html">pcre</a>:
-           /^Content-(Disposition|Type).*name\s*=\s*"?(.*(\.|=2E)(
+           /^Content-(Disposition|Type).*name\s*=\s*"?([^;]*(\.|=2E)(
              ade|adp|asp|bas|bat|chm|cmd|com|cpl|crt|dll|exe|
              hlp|ht[at]|
              inf|ins|isp|jse?|lnk|md[betw]|ms[cipt]|nws|

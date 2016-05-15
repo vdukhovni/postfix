@@ -379,6 +379,8 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (type == REC_TYPE_FROM) {
+	off_t after_sender_offs;
+
 	/* Allow only one instance. */
 	if (state->sender != 0) {
 	    msg_warn("%s: message rejected: multiple envelope sender records",
@@ -391,14 +393,10 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	    if ((state->sender_pt_offset = vstream_ftell(state->dst)) < 0)
 		msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
 	}
-	cleanup_addr_sender(state, buf);
+	after_sender_offs = cleanup_addr_sender(state, buf);
 	if (state->milters || cleanup_milters) {
-	    /* Make room to replace sender. */
-	    if ((len = strlen(state->sender)) < REC_TYPE_PTR_PAYL_SIZE)
-		rec_pad(state->dst, REC_TYPE_PTR, REC_TYPE_PTR_PAYL_SIZE - len);
 	    /* Remember the after-sender record offset. */
-	    if ((state->sender_pt_target = vstream_ftell(state->dst)) < 0)
-		msg_fatal("%s: vstream_ftell %s: %m:", myname, cleanup_path);
+	    state->sender_pt_target = after_sender_offs;
 	}
 	if (cleanup_milters != 0
 	    && state->milters == 0

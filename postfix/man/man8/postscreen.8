@@ -93,7 +93,7 @@ traffic from dial\-up and residential networks.
 The optional "after 220 server greeting" tests involve
 \fBpostscreen\fR(8)'s built\-in SMTP protocol engine. When
 these tests succeed, \fBpostscreen\fR(8) adds the client
-to the temporary whitelist, but it cannot not hand off the
+to the temporary whitelist, but it cannot hand off the
 "live" connection to a Postfix SMTP server process in the
 middle of a session.  Instead, \fBpostscreen\fR(8) defers
 attempts to deliver mail with a 4XX status, and waits for
