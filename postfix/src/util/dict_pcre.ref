@@ -6,6 +6,10 @@
 ./dict_open: warning: pcre map dict_pcre.map, line 10: out of range replacement index "5": skipping this rule
 ./dict_open: warning: pcre map dict_pcre.map, line 17: $number found in negative match replacement text: skipping this rule
 ./dict_open: warning: pcre map dict_pcre.map, line 22: no regexp: skipping this rule
+./dict_open: warning: pcre map dict_pcre.map, line 23: ignoring ENDIF without matching IF
+./dict_open: warning: pcre map dict_pcre.map, line 24: ignoring ENDIF without matching IF
+./dict_open: warning: pcre map dict_pcre.map, line 26: IF has no matching ENDIF
+./dict_open: warning: pcre map dict_pcre.map, line 25: IF has no matching ENDIF
 owner=untrusted (uid=USER)
 > get true
 true: not found

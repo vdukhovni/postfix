@@ -22306,3 +22306,13 @@ Apologies for any names omitted.
 
 	Portability: OpenBSD 6.0. Files: makedefs, util/sys_defs.h,
 	dns/dns_str_resflags.c.
+
+20160521
+
+	Bugfix (introduced: Postfix beta): the never-used function
+	mvect_free() attempted to free memory that it has not
+	allocated.  File: util/mvect.c.
+
+	Cleanup: existing if/endif support for pcre and regexp
+	tables, in preparation for new if/endif support for cidr
+	tables. Files: util/dict_regexp.c, util/dict_pcre.c.

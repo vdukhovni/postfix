@@ -5,6 +5,11 @@
 ./dict_open: warning: regexp map dict_regexp.map, line 10: out of range replacement index "5": skipping this rule
 ./dict_open: warning: regexp map dict_regexp.map, line 17: $number found in negative match replacement text: skipping this rule
 ./dict_open: warning: regexp map dict_regexp.map, line 22: no regexp: skipping this rule
+./dict_open: warning: regexp map dict_regexp.map, line 24: ignoring ENDIF without matching IF
+./dict_open: warning: regexp map dict_regexp.map, line 25: ignoring ENDIF without matching IF
+./dict_open: warning: regexp map dict_regexp.map, line 27: IF has no matching ENDIF
+./dict_open: warning: regexp map dict_regexp.map, line 26: IF has no matching ENDIF
+owner=untrusted (uid=USER)
 > get true
 true: not found
 > get true1
