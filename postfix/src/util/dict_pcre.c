@@ -27,6 +27,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #include "sys_defs.h"
@@ -614,8 +619,8 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	while (*p && ISSPACE(*p))
 	    ++p;
 	if (!*p)
-	    msg_warn("%s, line %d: no replacement text: using empty string",
-		     mapname, lineno);
+	    msg_warn("pcre map %s, line %d: no replacement text: "
+		     "using empty string", mapname, lineno);
 
 	/*
 	 * Sanity check the $number instances in the replacement text.
@@ -882,6 +887,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
 	    DICT_PCRE_IF_RULE *if_rule;
 
 	    if (nesting-- <= 0)
+		/* Already handled in dict_pcre_parse_rule(). */
 		msg_panic("%s: ENDIF without IF", myname);
 	    if (rule_stack[nesting]->op != DICT_PCRE_OP_IF)
 		msg_panic("%s: unexpected rule stack element type %d",

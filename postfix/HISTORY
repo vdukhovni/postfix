@@ -22316,3 +22316,14 @@ Apologies for any names omitted.
 	Cleanup: existing if/endif support for pcre and regexp
 	tables, in preparation for new if/endif support for cidr
 	tables. Files: util/dict_regexp.c, util/dict_pcre.c.
+
+20160526
+
+	Feature: cidr tables now support if/endif and negation (by
+	prepending "!" to a pattern), just like regexp and pcre
+	tables. The primarily purpose is to improve readability of
+	complex tables. Files: util/cidr_match.[hc], util/dict_cidr.c,
+	proto/cidr_table.
+
+	Cleanup: make regexp: and pcre: parser warning messages more
+	similar.  Files: dict_regexp.c, dict_pcre.c.

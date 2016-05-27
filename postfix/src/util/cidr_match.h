@@ -38,6 +38,8 @@
   * Each parsed CIDR pattern can be member of a linked list.
   */
 typedef struct CIDR_MATCH {
+    int     op;				/* operation, match or control flow */
+    int     match;			/* positive or negative match */
     unsigned char net_bytes[CIDR_MATCH_ABYTES];	/* network portion */
     unsigned char mask_bytes[CIDR_MATCH_ABYTES];	/* network mask */
     unsigned char addr_family;		/* AF_XXX */
@@ -45,9 +47,17 @@ typedef struct CIDR_MATCH {
     unsigned char addr_bit_count;	/* optimization */
     unsigned char mask_shift;		/* optimization */
     struct CIDR_MATCH *next;		/* next entry */
+    struct CIDR_MATCH *block_end;	/* block terminator */
 } CIDR_MATCH;
 
+#define CIDR_MATCH_OP_MATCH	1	/* Match this pattern */
+#define CIDR_MATCH_OP_IF	2	/* Increase if/endif nesting on match */
+#define CIDR_MATCH_OP_ENDIF	3	/* Decrease if/endif nesting on match */
+
 extern VSTRING *cidr_match_parse(CIDR_MATCH *, char *, VSTRING *);
+extern VSTRING *cidr_match_parse_if(CIDR_MATCH *, char *, VSTRING *);
+extern void cidr_match_endif(CIDR_MATCH *);
+
 extern CIDR_MATCH *cidr_match_execute(CIDR_MATCH *, const char *);
 
 /* LICENSE
@@ -59,6 +69,11 @@ extern CIDR_MATCH *cidr_match_execute(CIDR_MATCH *, const char *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

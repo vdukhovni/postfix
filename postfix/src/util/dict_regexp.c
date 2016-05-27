@@ -31,6 +31,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -575,8 +580,8 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 	while (*p && ISSPACE(*p))
 	    ++p;
 	if (!*p) {
-	    msg_warn("regexp map %s, line %d: using empty replacement string",
-		     mapname, lineno);
+	    msg_warn("regexp map %s, line %d: no replacement text: "
+		     "using empty string", mapname, lineno);
 	}
 
 	/*
@@ -819,6 +824,7 @@ DICT   *dict_regexp_open(const char *mapname, int open_flags, int dict_flags)
 	    DICT_REGEXP_IF_RULE *if_rule;
 
 	    if (nesting-- <= 0)
+		/* Already handled in dict_regexp_parseline(). */
 		msg_panic("%s: ENDIF without IF", myname);
 	    if (rule_stack[nesting]->op != DICT_REGEXP_OP_IF)
 		msg_panic("%s: unexpected rule stack element type %d",

@@ -15,3 +15,12 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
+
+Major changes with snapshot 20160527
+====================================
+
+Postfix cidr tables now support if..endif, and pattern negation
+with "!", just like regexp and pcre tables. The if..endif can speed
+up lookups by skipping over irrelevant patterns, and can make rule
+maintenance easier because rules for a network can now be placed
+inside if..endif.  See the cidr_table(5) manpage for syntax details.
