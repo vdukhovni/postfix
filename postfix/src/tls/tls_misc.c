@@ -307,6 +307,18 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
 };
 
  /*
+  * Once these have been a NOOP long enough, they might some day be removed
+  * from OpenSSL.  The defines below will avoid bitrot issues if/when that
+  * happens.
+  */
+#ifndef SSL_OP_SINGLE_DH_USE
+#define SSL_OP_SINGLE_DH_USE 0
+#endif
+#ifndef SSL_OP_SINGLE_ECDH_USE
+#define SSL_OP_SINGLE_ECDH_USE 0
+#endif
+
+ /*
   * Ciphersuite name <=> code conversion.
   */
 const NAME_CODE tls_cipher_grade_table[] = {
@@ -910,6 +922,14 @@ long    tls_bug_bits(void)
 	bits &= ~SSL_OP_SAFARI_ECDHE_ECDSA_BUG;
 #endif
     }
+
+    /*
+     * We unconditionally avoid re-use of ephemeral keys, note that we set DH
+     * keys via a callback, so reuse was never possible, but the ECDH key is
+     * set statically, so that is potentially subject to reuse.  Set both
+     * options just in case.
+     */
+    bits |= SSL_OP_SINGLE_ECDH_USE | SSL_OP_SINGLE_DH_USE;
     return (bits);
 }
 
