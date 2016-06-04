@@ -294,7 +294,8 @@ int     match_hostaddr(MATCH_LIST *list, const char *addr, const char *pattern)
      * everything into to binary form, and to do the comparison there.
      */
     saved_patt = mystrdup(pattern);
-    err = cidr_match_parse(&match_info, saved_patt, (VSTRING *) 0);
+    err = cidr_match_parse(&match_info, saved_patt, CIDR_MATCH_TRUE,
+			   (VSTRING *) 0);
     myfree(saved_patt);
     if (err != 0) {
 	list->error = DICT_ERR_RETRY;

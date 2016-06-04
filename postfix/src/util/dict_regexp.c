@@ -380,16 +380,13 @@ static int dict_regexp_get_pat(const char *mapname, int lineno, char **bufp,
      * Process negation operators.
      */
     pat->match = 1;
-    while (*p == '!') {
-	pat->match = !pat->match;
+    for (;;) {
+	if (*p == '!')
+	    pat->match = !pat->match;
+	else if (!ISSPACE(*p))
+	    break;
 	p++;
     }
-
-    /*
-     * Grr...aceful handling of whitespace after '!'.
-     */
-    while (*p && ISSPACE(*p))
-	p++;
     if (*p == 0) {
 	msg_warn("regexp map %s, line %d: no regexp: skipping this rule",
 		 mapname, lineno);

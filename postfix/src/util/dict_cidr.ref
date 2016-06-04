@@ -10,8 +10,8 @@
 ./dict_open: warning: cidr map dict_cidr.map, line 44: bad net/mask pattern: "172.16.1.3/3x": skipping this rule
 ./dict_open: warning: cidr map dict_cidr.map, line 45: ENDIF without IF: skipping this rule
 ./dict_open: warning: cidr map dict_cidr.map, line 46: ENDIF without IF: skipping this rule
-./dict_open: warning: cidr map dict_cidr.map, line 49: no pattern: skipping this rule
-./dict_open: warning: cidr map dict_cidr.map, line 50: no pattern: skipping this rule
+./dict_open: warning: cidr map dict_cidr.map, line 49: no address pattern: skipping this rule
+./dict_open: warning: cidr map dict_cidr.map, line 50: no address pattern: skipping this rule
 ./dict_open: warning: cidr map dict_cidr.map, line 48: IF has no matching ENDIF
 ./dict_open: warning: cidr map dict_cidr.map, line 47: IF has no matching ENDIF
 owner=untrusted (uid=USER)

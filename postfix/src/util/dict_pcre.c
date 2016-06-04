@@ -429,16 +429,13 @@ static int dict_pcre_get_pattern(const char *mapname, int lineno, char **bufp,
      * Process negation operators.
      */
     pattern->match = 1;
-    while (*p == '!') {
-	pattern->match = !pattern->match;
+    for (;;) {
+	if (*p == '!')
+	    pattern->match = !pattern->match;
+	else if (!ISSPACE(*p))
+	    break;
 	p++;
     }
-
-    /*
-     * Grr...aceful handling of whitespace after '!'.
-     */
-    while (*p && ISSPACE(*p))
-	p++;
     if (*p == 0) {
 	msg_warn("pcre map %s, line %d: no regexp: skipping this rule",
 		 mapname, lineno);

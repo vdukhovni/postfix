@@ -17,6 +17,8 @@ Wish list:
 
 	Fix "make test" bitrot.
 
+	Move DNS-based tests from porcupine.org to postfix.org.
+
 	Document dns_ncache_ttl_fix_enable use case in POSTSCREEN_README
 	and RELEASE_NOTES.
 

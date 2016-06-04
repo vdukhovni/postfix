@@ -22327,3 +22327,15 @@ Apologies for any names omitted.
 
 	Cleanup: make regexp: and pcre: parser warning messages more
 	similar.  Files: dict_regexp.c, dict_pcre.c.
+
+20160601
+
+	Cleanup: moved parsing of '!' operators from cidr_match.c
+	to dict_cidr.c. Files: util/cidr_match.[hc], util/dict_cidr.c,
+	util/match_ops.c.
+
+20160604
+
+	Cleanup: made parsing of '!' operators in regexp and pcre
+	tables consistent with cidr tables. Files: util/dict_regexp.c,
+	util/dict_pcre.c.

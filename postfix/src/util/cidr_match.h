@@ -54,8 +54,11 @@ typedef struct CIDR_MATCH {
 #define CIDR_MATCH_OP_IF	2	/* Increase if/endif nesting on match */
 #define CIDR_MATCH_OP_ENDIF	3	/* Decrease if/endif nesting on match */
 
-extern VSTRING *cidr_match_parse(CIDR_MATCH *, char *, VSTRING *);
-extern VSTRING *cidr_match_parse_if(CIDR_MATCH *, char *, VSTRING *);
+#define CIDR_MATCH_TRUE		1	/* Request positive match */
+#define CIDR_MATCH_FALSE	0	/* Request negative match */
+
+extern VSTRING *cidr_match_parse(CIDR_MATCH *, char *, int, VSTRING *);
+extern VSTRING *cidr_match_parse_if(CIDR_MATCH *, char *, int, VSTRING *);
 extern void cidr_match_endif(CIDR_MATCH *);
 
 extern CIDR_MATCH *cidr_match_execute(CIDR_MATCH *, const char *);

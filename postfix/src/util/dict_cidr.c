@@ -121,20 +121,26 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(char *p, int lineno, int nesting,
     char   *value;
     CIDR_MATCH cidr_info;
     MAI_HOSTADDR_STR hostaddr;
+    int     match = 1;
 
     /*
      * IF must be followed by a pattern.
      */
     if (strncasecmp(p, "IF", 2) == 0 && !ISALNUM(p[2])) {
 	p += 2;
-	while (*p && ISSPACE(*p))		/* Skip whitespace */
+	for (;;) {
+	    if (*p == '!')
+		match = !match;
+	    else if (!ISSPACE(*p))
+		break;
 	    p++;
+	}
 	if (*p == 0) {
 	    vstring_sprintf(why, "no address pattern");
 	    return (0);
 	}
 	trimblanks(p, 0)[0] = 0;		/* Trim trailing blanks */
-	if (cidr_match_parse_if(&cidr_info, p, why) != 0)
+	if (cidr_match_parse_if(&cidr_info, p, match, why) != 0)
 	    return (0);
 	value = "";
     }
@@ -164,6 +170,17 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(char *p, int lineno, int nesting,
     else {
 
 	/*
+	 * Process negation operators.
+	 */
+	for (;;) {
+	    if (*p == '!')
+		match = !match;
+	    else if (!ISSPACE(*p))
+		break;
+	    p++;
+	}
+
+	/*
 	 * Split the rule into key and value. We already eliminated leading
 	 * whitespace, comments, empty lines or lines with whitespace only.
 	 * This means a null key can't happen but we will handle this anyway.
@@ -185,7 +202,7 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(char *p, int lineno, int nesting,
 	/*
 	 * Parse the pattern, destroying it in the process.
 	 */
-	if (cidr_match_parse(&cidr_info, pattern, why) != 0)
+	if (cidr_match_parse(&cidr_info, pattern, match, why) != 0)
 	    return (0);
 
 	if (*value == 0) {

@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <cidr_match.h>
 /*
-/*	VSTRING *cidr_match_parse(info, pattern, why)
+/*	VSTRING *cidr_match_parse(info, pattern, match, why)
 /*	CIDR_MATCH *info;
 /*	char	*pattern;
 /*	VSTRING	*why;
@@ -15,9 +15,9 @@
 /*	CIDR_MATCH *info;
 /*	const char *address;
 /* AUXILIARY FUNCTIONS
-/*	VSTRING *cidr_match_parse_if(info, address, why)
+/*	VSTRING *cidr_match_parse_if(info, pattern, match, why)
 /*	CIDR_MATCH *info;
-/*	char	*address;
+/*	char	*pattern;
 /*	VSTRING	*why;
 /*
 /*	void	cidr_match_endif(info)
@@ -32,6 +32,9 @@
 /*
 /*	cidr_match_parse() parses an address or address/mask
 /*	expression and stores the result into the info argument.
+/*	A non-zero (or zero) match argument requests a positive (or
+/*	negative) match. The symbolic constants CIDR_MATCH_TRUE and
+/*	CIDR_MATCH_FALSE may help to improve code readability.
 /*	The result is non-zero in case of problems: either the
 /*	value of the why argument, or a newly allocated VSTRING
 /*	(the caller should give the latter to vstring_free()).
@@ -39,6 +42,7 @@
 /*
 /*	cidr_match_parse_if() parses the address that follows an IF
 /*	token, and stores the result into the info argument.
+/*	The arguments are the same as for cidr_match_parse().
 /*
 /*	cidr_match_endif() handles the occurrence of an ENDIF token,
 /*	and updates the info argument.
@@ -179,7 +183,8 @@ CIDR_MATCH *cidr_match_execute(CIDR_MATCH *list, const char *addr)
 
 /* cidr_match_parse - parse CIDR pattern */
 
-VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
+VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, int match,
+			          VSTRING *why)
 {
     const char *myname = "cidr_match_parse";
     char   *mask_search;
@@ -187,23 +192,6 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
     MAI_HOSTADDR_STR hostaddr;
     unsigned char *np;
     unsigned char *mp;
-
-    /*
-     * Process negation operators. XXX unlike dict_regexp_get_pat() and
-     * dict_pcre_get_pattern(), dict_cidr_parse_rule() does not allow space
-     * between ! and the remainder of a pattern. However, those spaces are
-     * not documented, they were more a helpful thing.
-     */
-    ip->match = 1;
-    while (*pattern == '!') {
-	ip->match = !ip->match;
-	pattern++;
-    }
-
-    if (*pattern == 0) {
-	vstring_sprintf(why ? why : (why = vstring_alloc(20)), "no pattern");
-	return (why);
-    }
 
     /*
      * Strip [] from [addr/len] or [addr]/len, destroying the pattern. CIDR
@@ -289,6 +277,7 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
      * Wrap up the result.
      */
     ip->op = CIDR_MATCH_OP_MATCH;
+    ip->match = match;
     ip->next = 0;
     ip->block_end = 0;
 
@@ -297,11 +286,12 @@ VSTRING *cidr_match_parse(CIDR_MATCH *ip, char *pattern, VSTRING *why)
 
 /* cidr_match_parse_if - parse CIDR pattern after IF */
 
-VSTRING *cidr_match_parse_if(CIDR_MATCH *ip, char *pattern, VSTRING *why)
+VSTRING *cidr_match_parse_if(CIDR_MATCH *ip, char *pattern, int match,
+			             VSTRING *why)
 {
     VSTRING *ret;
 
-    if ((ret = cidr_match_parse(ip, pattern, why)) == 0)
+    if ((ret = cidr_match_parse(ip, pattern, match, why)) == 0)
 	ip->op = CIDR_MATCH_OP_IF;
     return (ret);
 }
