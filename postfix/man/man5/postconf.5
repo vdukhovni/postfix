@@ -12920,6 +12920,21 @@ reject_unknown_client_hostname restriction. The SMTP server always replies
 with 450 when the mapping failed due to a temporary error condition.
 .PP
 Do not change this unless you have a complete understanding of RFC 5321.
+.SH unknown_client_reject_reason (default: empty)
+The Postfix SMTP server's reply when rejecting mail with
+reject_unknown_client_hostname. Do not include the numeric SMTP reply
+code or the enhanced status code. By default, the response includes
+actual address verification details.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+unknown_client_reject_reason = Unknown client (See http://example.org/fix-dns.html)
+.fi
+.ad
+.ft R
 .SH unknown_helo_hostname_tempfail_action (default: $reject_tempfail_action)
 The Postfix SMTP server's action when reject_unknown_helo_hostname
 fails due to an temporary error condition. Specify "defer" to defer

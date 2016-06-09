@@ -1164,8 +1164,8 @@ static int reject_unknown_reverse_name(SMTPD_STATE *state)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 			state->reverse_name_status == SMTPD_PEER_CODE_PERM ?
 				   var_unk_client_code : 450, "4.7.1",
-	    "Client host rejected: cannot find your reverse hostname, [%s]",
-				   state->addr));
+	    "Client host rejected: cannot find your reverse hostname, [%s] %s",
+				   state->addr, var_unk_client_why));
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -1183,8 +1183,8 @@ static int reject_unknown_client(SMTPD_STATE *state)
 	return (smtpd_check_reject(state, MAIL_ERROR_POLICY,
 				state->name_status >= SMTPD_PEER_CODE_PERM ?
 				   var_unk_client_code : 450, "4.7.25",
-		    "Client host rejected: cannot find your hostname, [%s]",
-				   state->addr));
+		    "Client host rejected: cannot find your hostname, [%s] %s",
+				   state->addr, var_unk_client_why));
     return (SMTPD_CHECK_DUNNO);
 }
 
@@ -5499,6 +5499,7 @@ char   *var_verify_sender;
 char   *var_smtpd_sasl_opts;
 char   *var_local_rwr_clients;
 char   *var_smtpd_relay_ccerts;
+char   *var_unk_client_why;
 char   *var_unv_from_why;
 char   *var_unv_rcpt_why;
 char   *var_stress;
@@ -5550,6 +5551,7 @@ static const STRING_TABLE string_table[] = {
     VAR_SMTPD_SASL_OPTS, DEF_SMTPD_SASL_OPTS, &var_smtpd_sasl_opts,
     VAR_LOC_RWR_CLIENTS, DEF_LOC_RWR_CLIENTS, &var_local_rwr_clients,
     VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_smtpd_relay_ccerts,
+    VAR_UNK_CLIENT_WHY, DEF_UNK_CLIENT_WHY, &var_unk_client_why,
     VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why,
     VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why,
     VAR_STRESS, DEF_STRESS, &var_stress,

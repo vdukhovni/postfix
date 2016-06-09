@@ -993,6 +993,9 @@ sender or recipient address because its domain is unknown.
 The numerical Postfix SMTP server response code when a client
 without valid address <=> name mapping is rejected by the
 reject_unknown_client_hostname restriction.
+.IP "\fBunknown_client_reject_reason (empty)\fR"
+The Postfix SMTP server's reply when rejecting mail with
+reject_unknown_client_hostname.
 .IP "\fBunknown_hostname_reject_code (450)\fR"
 The numerical Postfix SMTP server response code when the hostname
 specified with the HELO or EHLO command is rejected by the

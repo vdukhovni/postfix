@@ -1219,6 +1219,7 @@ char   *var_etrn_checks;
 char   *var_data_checks;
 char   *var_eod_checks;
 int     var_unk_client_code;
+char   *var_unk_client_why;
 int     var_bad_name_code;
 int     var_unk_name_code;
 int     var_unk_addr_code;
@@ -5816,6 +5817,7 @@ int     main(int argc, char **argv)
 	VAR_MILT_V, DEF_MILT_V, &var_milt_v, 1, 0,
 	VAR_MILT_MACRO_DEFLTS, DEF_MILT_MACRO_DEFLTS, &var_milt_macro_deflts, 0, 0,
 	VAR_STRESS, DEF_STRESS, &var_stress, 0, 0,
+	VAR_UNK_CLIENT_WHY, DEF_UNK_CLIENT_WHY, &var_unk_client_why, 0, 0,
 	VAR_UNV_FROM_WHY, DEF_UNV_FROM_WHY, &var_unv_from_why, 0, 0,
 	VAR_UNV_RCPT_WHY, DEF_UNV_RCPT_WHY, &var_unv_rcpt_why, 0, 0,
 	VAR_REJECT_TMPF_ACT, DEF_REJECT_TMPF_ACT, &var_reject_tmpf_act, 1, 0,

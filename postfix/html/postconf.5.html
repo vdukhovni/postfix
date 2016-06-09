@@ -18867,6 +18867,23 @@ Do not change this unless you have a complete understanding of <a href="http://t
 
 </DD>
 
+<DT><b><a name="unknown_client_reject_reason">unknown_client_reject_reason</a>
+(default: empty)</b></DT><DD>
+
+<p> The Postfix SMTP server's reply when rejecting mail with
+<a href="postconf.5.html#reject_unknown_client_hostname">reject_unknown_client_hostname</a>. Do not include the numeric SMTP reply
+code or the enhanced status code. By default, the response includes
+actual address verification details.
+
+<p> Example: </p>
+
+<pre>
+<a href="postconf.5.html#unknown_client_reject_reason">unknown_client_reject_reason</a> = Unknown client (see http://example.org/fix-dns.html)
+</pre>
+
+
+</DD>
+
 <DT><b><a name="unknown_helo_hostname_tempfail_action">unknown_helo_hostname_tempfail_action</a>
 (default: $<a href="postconf.5.html#reject_tempfail_action">reject_tempfail_action</a>)</b></DT><DD>
 

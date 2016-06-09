@@ -604,6 +604,7 @@ while (<>) {
     s;\bunknown_address_reject_code\b;<a href="postconf.5.html#unknown_address_reject_code">$&</a>;g;
     s;\bunknown_address_tempfail_action\b;<a href="postconf.5.html#unknown_address_tempfail_action">$&</a>;g;
     s;\bunknown_client_reject_code\b;<a href="postconf.5.html#unknown_client_reject_code">$&</a>;g;
+    s;\bunknown_client_reject_reason\b;<a href="postconf.5.html#unknown_client_reject_reason">$&</a>;g;
     s;\bunknown_hostname_reject_code\b;<a href="postconf.5.html#unknown_hostname_reject_code">$&</a>;g;
     s;\bunknown_helo_hostname_tempfail_action\b;<a href="postconf.5.html#unknown_helo_hostname_tempfail_action">$&</a>;g;
     s;\bunknown_local_recip[-</bB>]*\n* *[<bB>]*ient_reject_code\b;<a href="postconf.5.html#unknown_local_recipient_reject_code">$&</a>;g;

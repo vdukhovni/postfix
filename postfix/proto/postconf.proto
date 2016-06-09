@@ -6841,6 +6841,19 @@ with 450 when the mapping failed due to a temporary error condition.
 Do not change this unless you have a complete understanding of RFC 5321.
 </p>
 
+%PARAM unknown_client_reject_reason
+
+<p> The Postfix SMTP server's reply when rejecting mail with
+reject_unknown_client_hostname. Do not include the numeric SMTP reply
+code or the enhanced status code. By default, the response includes
+actual address verification details.
+
+<p> Example: </p>
+
+<pre>
+unknown_client_reject_reason = Unknown client (See http://example.org/fix-dns.html)
+</pre>
+
 %PARAM unknown_hostname_reject_code 450
 
 <p>

@@ -2120,6 +2120,10 @@ extern int var_plaintext_code;
 #define DEF_UNK_CLIENT_CODE	450
 extern int var_unk_client_code;
 
+#define VAR_UNK_CLIENT_WHY	"unknown_client_reject_reason"
+#define DEF_UNK_CLIENT_WHY	""
+extern char *var_unk_client_why;
+
 #define PERMIT_INET_INTERFACES	"permit_inet_interfaces"
 
 #define PERMIT_MYNETWORKS	"permit_mynetworks"
