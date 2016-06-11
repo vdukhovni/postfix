@@ -78,6 +78,9 @@ a delegated SMTPD access policy request:
     client_port=1234
     PPoossttffiixx vveerrssiioonn 33..11 aanndd llaatteerr::
     policy_context=submission
+    PPoossttffiixx vveerrssiioonn 33..22 aanndd llaatteerr::
+    server_address=10.3.2.1
+    server_port=54321
     [empty line]
 
 Notes:
@@ -103,8 +106,11 @@ Notes:
     the "DATA" and "END-OF-MESSAGE" stages. It specifies the number of
     recipients that Postfix accepted for the current message.
 
-  * The client address is an IPv4 dotted quad in the form 1.2.3.4 or it is an
-    IPv6 address in the form 1:2:3::4:5:6.
+  * The remote client or local server IP address is an IPv4 dotted quad in the
+    form 1.2.3.4 or it is an IPv6 address in the form 1:2:3::4:5:6.
+
+  * The remote client or local server port is a decimal number in the range 0-
+    65535.
 
   * For a discussion of the differences between reverse and verified
     client_name information, see the reject_unknown_client_hostname discussion

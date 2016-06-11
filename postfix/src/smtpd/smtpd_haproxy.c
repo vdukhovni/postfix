@@ -23,8 +23,8 @@
 /*	both IPv6 and IPv4 support are enabled with main.cf:inet_protocols.
 /* .IP \(bu
 /*	Update the following session context fields: addr, port,
-/*	rfc_addr, addr_family, dest_addr. The addr_family field
-/*	applies to the client address.
+/*	rfc_addr, addr_family, dest_addr, dest_port. The addr_family
+/*	field applies to the client address.
 /* .IP \(bu
 /*	Dynamically allocate storage for string information with
 /*	mystrdup(). In case of error, leave unassigned string fields
@@ -52,6 +52,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -147,9 +152,10 @@ int     smtpd_peer_from_haproxy(SMTPD_STATE *state)
 	state->port = mystrdup(smtp_client_port.buf);
 
 	/*
-	 * Avoid surprises in the Dovecot authentication server.
+	 * The Dovecot authentication server needs the server IP address.
 	 */
 	state->dest_addr = mystrdup(smtp_server_addr.buf);
+	state->dest_port = mystrdup(smtp_server_port.buf);
 
 	/*
 	 * Enable normal buffering.

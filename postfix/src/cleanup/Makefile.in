@@ -1087,6 +1087,7 @@ cleanup_milter.o: ../../include/dsn_util.h
 cleanup_milter.o: ../../include/header_body_checks.h
 cleanup_milter.o: ../../include/header_opts.h
 cleanup_milter.o: ../../include/htable.h
+cleanup_milter.o: ../../include/inet_proto.h
 cleanup_milter.o: ../../include/iostuff.h
 cleanup_milter.o: ../../include/is_header.h
 cleanup_milter.o: ../../include/lex_822.h

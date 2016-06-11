@@ -113,6 +113,11 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 		state->name_status == SMTPD_PEER_CODE_FORGED ? "FORGED" :
 	      state->name_status == SMTPD_PEER_CODE_TEMP ? "TEMP" : "FAIL");
 
+    if (strcmp(name, S8_MAC_DAEMON_ADDR) == 0)
+	return (state->dest_addr);
+    if (strcmp(name, S8_MAC_DAEMON_PORT) == 0)
+	return (state->dest_port);
+
     /*
      * HELO macros.
      */

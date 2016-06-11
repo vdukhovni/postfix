@@ -186,6 +186,7 @@
 #include <syslog.h>
 #include <time.h>
 #include <mysql.h>
+#include <limits.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -288,14 +289,15 @@ static void dict_mysql_quote(DICT *dict, const char *name, VSTRING *result)
 {
     DICT_MYSQL *dict_mysql = (DICT_MYSQL *) dict;
     int     len = strlen(name);
-    int     buflen = 2 * len + 1;
+    int     buflen;
 
     /*
      * We won't get integer overflows in 2*len + 1, because Postfix input
      * keys have reasonable size limits, better safe than sorry.
      */
-    if (buflen < len)
+    if (len > (INT_MAX - 1) / 2)
 	msg_panic("dict_mysql_quote: integer overflow in 2*%d+1", len);
+    buflen = 2 * len + 1;
     VSTRING_SPACE(result, buflen);
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000

@@ -22339,3 +22339,31 @@ Apologies for any names omitted.
 	Cleanup: made parsing of '!' operators in regexp and pcre
 	tables consistent with cidr tables. Files: util/dict_regexp.c,
 	util/dict_pcre.c.
+
+20160605
+
+	Cleanup: integer wrap-around detection in the MySQL and
+	PostgreSQL clients. This is totally non-critical because
+	Postfix strings are size-limited by design. Files:
+	global/dict_mysqql.c, global/dict_pgsql.c.
+
+20160607
+
+	Documentation: dnsblog.
+
+20160609
+
+	Documentation: postsuper(1) manpage text for multiple -[dhH]
+	options.  File: postsuper/postsuper.c.
+
+20160611
+
+	Cleanup: Postfix SMTP server local IP address and port
+	attributes in the policy delegation protocol (attribute
+	names: server_address, server_port), in the Milter protocol
+	(macro names: {daemon_addr}, {daemon_port}) and in the
+	XCLIENT protocol (attribute names: DESTADDR, DESTPORT).
+	Files: proto/MILTER_README.html, proto/SMTPD_POLICY_README.html,
+	cleanup/cleanup.h, cleanup/cleanup_milter.c, global/mail_proto.h,
+	milter/milter.h, smtpd/smtpd.c, smtpd/smtpd.h, smtpd/smtpd_check.c,
+	smtpd/smtpd_haproxy.c, smtpd/smtpd_milter.c, smtpd/smtpd_peer.c.

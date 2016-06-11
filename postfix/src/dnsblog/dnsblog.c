@@ -20,8 +20,9 @@
 /*	query arguments plus an address list with the resulting IP
 /*	addresses, separated by whitespace, and the reply TTL.
 /*	Otherwise it replies with the query arguments plus an empty
-/*	address list and the reply TTL (-1 if unavailable).  Finally,
-/*	The \fBdnsblog\fR(8) server closes the connection.
+/*	address list and the reply TTL; the reply TTL is -1 if no
+/*	reply is received, or a negative reply without SOA record.
+/*	Finally, The \fBdnsblog\fR(8) server closes the connection.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* CONFIGURATION PARAMETERS

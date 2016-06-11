@@ -164,7 +164,7 @@ extern void milter_free(MILTERS *);
  /*
   * Sendmail 8 macro names. We support forms with and without the {}.
   */
-#define S8_MAC__		"{_}"	/* sender resolve */
+#define S8_MAC__		"{_}"	/* sender host, see client_resolve */
 #define S8_MAC_J		"{j}"	/* myhostname */
 #define S8_MAC_V		"{v}"	/* mail_name + mail_version */
 
@@ -178,6 +178,9 @@ extern void milter_free(MILTERS *);
 #define S8_MAC_CLIENT_PORT	"{client_port}"
 #define S8_MAC_CLIENT_PTR	"{client_ptr}"
 #define S8_MAC_CLIENT_RES	"{client_resolve}"
+
+#define S8_MAC_DAEMON_ADDR	"{daemon_addr}"
+#define S8_MAC_DAEMON_PORT	"{daemon_port}"
 
 #define S8_MAC_TLS_VERSION	"{tls_version}"
 #define S8_MAC_CIPHER		"{cipher}"

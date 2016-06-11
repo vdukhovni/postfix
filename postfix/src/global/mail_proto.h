@@ -242,6 +242,8 @@ extern char *mail_pathname(const char *, const char *);
 #define XCLIENT_PROTO		"PROTO"	/* client protocol */
 #define XCLIENT_HELO		"HELO"	/* client helo */
 #define XCLIENT_LOGIN		"LOGIN"	/* SASL login name */
+#define XCLIENT_DESTADDR	"DESTADDR"	/* server address */
+#define XCLIENT_DESTPORT	"DESTPORT"	/* server port */
 
 #define XCLIENT_UNAVAILABLE	"[UNAVAILABLE]"	/* permanently unavailable */
 #define XCLIENT_TEMPORARY	"[TEMPUNAVAIL]"	/* temporarily unavailable */
@@ -307,6 +309,11 @@ extern char *mail_pathname(const char *, const char *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

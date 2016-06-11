@@ -79,7 +79,8 @@ typedef struct {
     char   *namaddr;			/* name[address]:port */
     char   *rfc_addr;			/* address for RFC 2821 */
     int     addr_family;		/* address family */
-    char   *dest_addr;			/* for Dovecot AUTH */
+    char   *dest_addr;			/* Dovecot AUTH, Milter {daemon_addr} */
+    char   *dest_port;			/* Milter {daemon_port} */
     struct sockaddr_storage sockaddr;	/* binary client endpoint */
     SOCKADDR_SIZE sockaddr_len;		/* binary client endpoint */
     int     name_status;		/* 2=ok 4=soft 5=hard 6=forged */
@@ -279,6 +280,11 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define CLIENT_DOMAIN_UNKNOWN	0
 #define CLIENT_LOGIN_UNKNOWN	0
 
+#define SERVER_ATTR_UNKNOWN	"unknown"
+
+#define SERVER_ADDR_UNKNOWN	SERVER_ATTR_UNKNOWN
+#define SERVER_PORT_UNKNOWN	SERVER_ATTR_UNKNOWN
+
 #define IS_AVAIL_CLIENT_ATTR(v)	((v) && strcmp((v), CLIENT_ATTR_UNKNOWN))
 
 #define IS_AVAIL_CLIENT_NAME(v)	IS_AVAIL_CLIENT_ATTR(v)
@@ -396,6 +402,11 @@ extern double smtpd_space_multf;
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*
 /*	TLS support originally by:
 /*	Lutz Jaenicke

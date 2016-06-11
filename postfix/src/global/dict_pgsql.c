@@ -241,7 +241,7 @@ static void dict_pgsql_quote(DICT *dict, const char *name, VSTRING *result)
     HOST   *active_host = dict_pgsql->active_host;
     char   *myname = "dict_pgsql_quote";
     size_t  len = strlen(name);
-    size_t  buflen = 2 * len + 1;
+    size_t  buflen;
     int     err = 1;
 
     if (active_host == 0)
@@ -251,9 +251,11 @@ static void dict_pgsql_quote(DICT *dict, const char *name, VSTRING *result)
      * We won't get arithmetic overflows in 2*len + 1, because Postfix input
      * keys have reasonable size limits, better safe than sorry.
      */
-    if (buflen <= len)
-	msg_panic("%s: arithmetic overflow in 2*%lu+1",
-		  myname, (unsigned long) len);
+    if (len > (SSIZE_T_MAX - VSTRING_LEN(result) - 1) / 2)
+	msg_panic("%s: arithmetic overflow in %lu+2*%lu+1",
+		  myname, (unsigned long) VSTRING_LEN(result),
+		  (unsigned long) len);
+    buflen = 2 * len + 1;
 
     /*
      * XXX Workaround: stop further processing when PQescapeStringConn()

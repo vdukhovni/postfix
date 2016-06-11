@@ -125,6 +125,8 @@ CLEANUP_STATE *cleanup_state_alloc(VSTREAM *src)
     state->client_addr = 0;
     state->client_af = 0;
     state->client_port = 0;
+    state->server_addr = 0;
+    state->server_port = 0;
     state->milter_ext_from = 0;
     state->milter_ext_rcpt = 0;
     state->milter_err_text = 0;

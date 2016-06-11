@@ -160,6 +160,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
 /*	TLS support originally by:
 /*	Lutz Jaenicke
 /*	BTU Cottbus
@@ -3919,6 +3924,10 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 		      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_PORT, state->port),
 			  SEND_ATTR_STR(MAIL_ATTR_ACT_REVERSE_CLIENT_NAME,
 					state->reverse_name),
+			  SEND_ATTR_STR(MAIL_ATTR_ACT_SERVER_ADDR,
+					state->dest_addr),
+			  SEND_ATTR_STR(MAIL_ATTR_ACT_SERVER_PORT,
+					state->dest_port),
 			  SEND_ATTR_STR(MAIL_ATTR_ACT_HELO_NAME,
 				  state->helo_name ? state->helo_name : ""),
 			  SEND_ATTR_STR(MAIL_ATTR_SENDER,

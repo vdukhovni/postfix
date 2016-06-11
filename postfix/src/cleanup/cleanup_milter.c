@@ -96,6 +96,7 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <stringops.h>
+#include <inet_proto.h>
 
 /* Global library. */
 
@@ -1821,6 +1822,7 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
      */
 #ifndef CLIENT_ATTR_UNKNOWN
 #define CLIENT_ATTR_UNKNOWN "unknown"
+#define SERVER_ATTR_UNKNOWN "unknown"
 #endif
 
     if (strcmp(name, S8_MAC__) == 0) {
@@ -1842,6 +1844,13 @@ static const char *cleanup_milter_eval(const char *name, void *ptr)
 		state->client_port : "0");
     if (strcmp(name, S8_MAC_CLIENT_PTR) == 0)
 	return (state->reverse_name);
+    /* XXX S8_MAC_CLIENT_RES needs SMTPD_PEER_CODE_XXX from smtpd. */
+    if (strcmp(name, S8_MAC_DAEMON_ADDR) == 0)
+	return (state->server_addr);
+    if (strcmp(name, S8_MAC_DAEMON_PORT) == 0)
+	return (state->server_port
+		&& strcmp(state->server_port, SERVER_ATTR_UNKNOWN) ?
+		state->server_port : "0");
 
     /*
      * MAIL FROM macros.
@@ -2005,6 +2014,7 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 
 static void cleanup_milter_client_init(CLEANUP_STATE *state)
 {
+    static INET_PROTO_INFO *proto_info;
     const char *proto_attr;
 
     /*
@@ -2019,19 +2029,34 @@ static void cleanup_milter_client_init(CLEANUP_STATE *state)
     state->client_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_ADDR);
     state->client_port = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_PORT);
     proto_attr = nvtable_find(state->attr, MAIL_ATTR_ACT_CLIENT_AF);
+    state->server_addr = nvtable_find(state->attr, MAIL_ATTR_ACT_SERVER_ADDR);
+    state->server_port = nvtable_find(state->attr, MAIL_ATTR_ACT_SERVER_PORT);
 
     if (state->client_name == 0 || state->client_addr == 0 || proto_attr == 0
 	|| !alldig(proto_attr)) {
 	state->client_name = "localhost";
-	state->client_addr = "127.0.0.1";
-	state->client_af = AF_INET;
+#ifdef AF_INET6
+	if (proto_info == 0)
+	    proto_info = inet_proto_info();
+	if (proto_info->sa_family_list[0] == PF_INET6) {
+	    state->client_addr = "::1";
+	    state->client_af = AF_INET6;
+	} else
+#endif
+	{
+	    state->client_addr = "127.0.0.1";
+	    state->client_af = AF_INET;
+	}
+	state->server_addr = state->client_addr;
     } else
 	state->client_af = atoi(proto_attr);
     if (state->reverse_name == 0)
 	state->reverse_name = state->client_name;
     /* Compatibility with pre-2.5 queue files. */
-    if (state->client_port == 0)
+    if (state->client_port == 0) {
 	state->client_port = NO_CLIENT_PORT;
+	state->server_port = state->client_port;
+    }
 }
 
 /* cleanup_milter_inspect - run message through mail filter */

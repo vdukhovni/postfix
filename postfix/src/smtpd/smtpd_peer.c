@@ -49,7 +49,12 @@
 /*	String of the form "ipv4addr" or "ipv6:ipv6addr" for use
 /*	in Received: message headers.
 /* .IP dest_addr
-/*	Server address, used by the Dovecot authentication server.
+/*	Server address, used by the Dovecot authentication server,
+/*	available as Milter {daemon_addr} macro, and as server_address
+/*	policy delegation attribute.
+/* .IP dest_port
+/*	Server port, available as Milter {daemon_port} macro, and
+/*	as server_port policy delegation attribute.
 /* .IP name_status
 /*	The name_status result field specifies how the name
 /*	information should be interpreted:
@@ -97,6 +102,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -135,14 +145,6 @@
 static INET_PROTO_INFO *proto_info;
 
  /*
-  * XXX If we make local endpoint (getsockname) information available to
-  * Milter applications as {if_name} and {if_addr}, then we also must be able
-  * to provide this via the XCLIENT command for Milter testing.
-  * 
-  * XXX If we make local port information available to policy servers or Milter
-  * applications, then we must also make this testable with the XCLIENT
-  * command, otherwise there will be confusion.
-  * 
   * XXX If we make local port information available via logging, then we must
   * also support these attributes with the XFORWARD command.
   * 
@@ -412,6 +414,9 @@ static void smtpd_peer_not_inet(SMTPD_STATE *state)
     state->name_status = SMTPD_PEER_CODE_OK;
     state->reverse_name_status = SMTPD_PEER_CODE_OK;
     state->port = mystrdup("0");		/* XXX bogus. */
+
+    state->dest_addr = mystrdup(state->addr);	/* XXX bogus. */
+    state->dest_port = mystrdup(state->port);	/* XXX bogus. */
 }
 
 /* smtpd_peer_no_client - peer went away, or peer info unavailable */
@@ -427,6 +432,9 @@ static void smtpd_peer_no_client(SMTPD_STATE *state)
     state->name_status = SMTPD_PEER_CODE_PERM;
     state->reverse_name_status = SMTPD_PEER_CODE_PERM;
     state->port = mystrdup(CLIENT_PORT_UNKNOWN);
+
+    state->dest_addr = mystrdup(SERVER_ADDR_UNKNOWN);
+    state->dest_port = mystrdup(SERVER_PORT_UNKNOWN);
 }
 
 /* smtpd_peer_from_pass_attr - initialize from attribute hash */
@@ -461,13 +469,19 @@ static void smtpd_peer_from_pass_attr(SMTPD_STATE *state)
     state->port = mystrdup(cp);
 
     /*
-     * Avoid surprises in the Dovecot authentication server.
+     * The Dovecot authentication server needs the server IP address.
      */
     if ((cp = htable_find(attr, MAIL_ATTR_ACT_SERVER_ADDR)) == 0)
 	msg_fatal("missing server address from proxy");
     if (valid_hostaddr(cp, DO_GRIPE) == 0)
-	msg_fatal("bad IPv6 client address syntax from proxy: %s", cp);
+	msg_fatal("bad IPv6 server address syntax from proxy: %s", cp);
     state->dest_addr = mystrdup(cp);
+
+    if ((cp = htable_find(attr, MAIL_ATTR_ACT_SERVER_PORT)) == 0)
+	msg_fatal("missing server port from proxy");
+    if (valid_hostport(cp, DO_GRIPE) == 0)
+	msg_fatal("bad TCP server port number syntax from proxy: %s", cp);
+    state->dest_port = mystrdup(cp);
 
     /*
      * Convert the client address from string to binary form.
@@ -556,6 +570,7 @@ void    smtpd_peer_init(SMTPD_STATE *state)
     state->rfc_addr = 0;
     state->port = 0;
     state->dest_addr = 0;
+    state->dest_port = 0;
 
     /*
      * Determine the remote SMTP client address and port.
@@ -608,4 +623,6 @@ void    smtpd_peer_reset(SMTPD_STATE *state)
 	myfree(state->port);
     if (state->dest_addr)
 	myfree(state->dest_addr);
+    if (state->dest_port)
+	myfree(state->dest_port);
 }

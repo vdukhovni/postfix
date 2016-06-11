@@ -32,8 +32,9 @@
 /*	mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
 /*	\fBdeferred\fR).
 /*
-/*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
-/*	queue IDs from standard input. For example, to delete all mail
+/*	To delete multiple files, specify the \fB-d\fR option multiple
+/*	times, or specify a \fIqueue_id\fR of \fB-\fR to read queue IDs
+/*	from standard input. For example, to delete all mail
 /*	with exactly one recipient \fBuser@example.com\fR:
 /* .sp
 /* .nf
@@ -77,8 +78,9 @@
 /*	mail queue(s) (default: \fBincoming\fR, \fBactive\fR and
 /*	\fBdeferred\fR) to the \fBhold\fR queue.
 /*
-/*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
-/*	queue IDs from standard input.
+/*	To hold multiple files, specify the \fB-h\fR option multiple
+/*	times, or specify a \fIqueue_id\fR of \fB-\fR to read queue IDs
+/*	from standard input.
 /* .sp
 /*	Specify "\fB-h ALL\fR" to hold all messages; for example, specify
 /*	"\fB-h ALL deferred\fR" to hold all mail in the \fBdeferred\fR queue.
@@ -96,8 +98,9 @@
 /*	Move one message with the named queue ID from the named
 /*	mail queue(s) (default: \fBhold\fR) to the \fBdeferred\fR queue.
 /*
-/*	If a \fIqueue_id\fR of \fB-\fR is specified, the program reads
-/*	queue IDs from standard input.
+/*	To release multiple files, specify the \fB-H\fR option multiple
+/*	times, or specify a \fIqueue_id\fR of \fB-\fR to read queue IDs
+/*	from standard input.
 /* .sp
 /*	Note: specify "\fBpostsuper -r\fR" to release mail that was kept on
 /*	hold for a significant fraction of \fB$maximal_queue_lifetime\fR
@@ -115,11 +118,10 @@
 /*	Requeue the message with the named queue ID from the named
 /*	mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
 /*	\fBdeferred\fR).
-/*	To requeue multiple messages, specify multiple \fB-r\fR
-/*	command-line options.
 /*
-/*	Alternatively, if a \fIqueue_id\fR of \fB-\fR is specified,
-/*	the program reads queue IDs from standard input.
+/*	To requeue multiple files, specify the \fB-r\fR option multiple
+/*	times, or specify a \fIqueue_id\fR of \fB-\fR to read queue IDs
+/*	from standard input.
 /* .sp
 /*	Specify "\fB-r ALL\fR" to requeue all messages. As a safety
 /*	measure, the word \fBALL\fR must be specified in upper case.

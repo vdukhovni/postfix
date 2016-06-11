@@ -601,19 +601,19 @@ sender </td> </tr>
 <tr> <td> {auth_type} </td> <td> MAIL, DATA, EOH, EOM </td> <td> SASL
 login method </td> </tr>
 
-<tr> <td> {client_addr} </td> <td> Always </td> <td> Client IP
-address </td> </tr>
+<tr> <td> {client_addr} </td> <td> Always </td> <td> Remote client
+IP address </td> </tr>
 
 <tr> <td> {client_connections} </td> <td> CONNECT </td> <td>
 Connection concurrency for this client (zero if the client is
 excluded from all smtpd_client_* limits). </td> </tr>
 
-<tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname
-<br> When address &rarr; name lookup or name &rarr; address
+<tr> <td> {client_name} </td> <td> Always </td> <td> Remote client
+hostname <br> When address &rarr; name lookup or name &rarr; address
 verification fails: "unknown" </td> </tr>
 
 <tr> <td> {client_port} </td> <td> Always (Postfix &ge;2.5) </td>
-<td> Client TCP port </td> </tr>
+<td> Remote client TCP port </td> </tr>
 
 <tr> <td> {client_ptr} </td> <td> CONNECT, HELO, MAIL, DATA </td>
 <td> Client name from address &rarr; name lookup <br> When address
@@ -631,8 +631,14 @@ TLS session key size </td> </tr>
 <tr> <td> {cipher} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td> TLS
 cipher </td> </tr>
 
+<tr> <td> {daemon_addr} </td> <td> Always (Postfix &ge;3.2) </td>
+<td> Local server IP address </td> </tr>
+
 <tr> <td> {daemon_name} </td> <td> Always </td> <td> value of
 <a href="postconf.5.html#milter_macro_daemon_name">milter_macro_daemon_name</a> </td> </tr>
+
+<tr> <td> {daemon_port} </td> <td> Always (Postfix &ge;3.2) </td>
+<td> Local server TCP port </td> </tr>
 
 <tr> <td> {mail_addr} </td> <td> MAIL </td> <td> Sender address
 </td> </tr>
@@ -748,7 +754,8 @@ example. </p>
 
 <li> <p> Some Milter applications use the "<tt>{if_addr}</tt>" macro
 to recognize local mail; this macro does not exist in Postfix.
-Workaround: use the "<tt>{client_addr}</tt>" macro instead. </p>
+Workaround: use the "<tt>{daemon_addr}</tt>" (Postfix &ge 3.2) or
+"<tt>{client_addr}</tt>" macro instead. </p>
 
 <li> <p> Some Milter applications log a warning that looks like
 this: </p>

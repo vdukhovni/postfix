@@ -6,9 +6,24 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Propagate SMTPD_PEER_CODE_XXX from smtpd(8) to cleanup(8),
+	so that {client_resolve} and {_} produce consistent results.
+
 	Modeline support in config files to enable/disable trailing
 	#comment, and to give hints about how to handle an LHS or
 	RHS.
+
+	The cleanup daemon searches canonical_maps and virtual_alias_maps
+	with quoted address forms. The address local part should
+	be in unquoted form before it is split into name and
+	extension. Note, however, that although quoting is done
+	over the entire localpart, unquoting is not simply a matter
+	of removing the outer quotes. The fix will require careful
+	consideration of the responsibilities of mail_addr_map(),
+	mail_addr_find(), and mail_addr_crunch(), and making sure
+	that the callers can handle quoted results. For example,
+	sender_bcc_maps and recipient_bcc_maps invoke mail_addr_find()
+	with unquoted forms and expects an unquoted result, and so on.
 
 	Maintainability: replace lengthy libmilter-API argument lists
 	with named parameters, as with the libtls API.

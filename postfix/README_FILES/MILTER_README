@@ -375,7 +375,7 @@ Sendmail. See the workarounds section below for solutions.
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |{auth_type}         |MAIL, DATA, EOH, EOM     |SASL login method         |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |{client_addr}       |Always                   |Client IP address         |
+    |{client_addr}       |Always                   |Remote client IP address  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |                    |                         |Connection concurrency for|
     |                    |                         |this client (zero if the  |
@@ -383,13 +383,13 @@ Sendmail. See the workarounds section below for solutions.
     |                    |                         |all smtpd_client_*        |
     |                    |                         |limits).                  |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |                    |                         |Client hostname           |
+    |                    |                         |Remote client hostname    |
     |                    |                         |When address -> name      |
     |{client_name}       |Always                   |lookup or name -> address |
     |                    |                         |verification fails:       |
     |                    |                         |"unknown"                 |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
-    |{client_port}       |Always (Postfix >=2.5)   |Client TCP port           |
+    |{client_port}       |Always (Postfix >=2.5)   |Remote client TCP port    |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |                    |                         |Client name from address -|
     |{client_ptr}        |CONNECT, HELO, MAIL, DATA|> name lookup             |
@@ -408,8 +408,12 @@ Sendmail. See the workarounds section below for solutions.
     |{cipher}            |HELO, MAIL, DATA, EOH,   |TLS cipher                |
     |                    |EOM                      |                          |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{daemon_addr}       |Always (Postfix >=3.2)   |Local server IP address   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |{daemon_name}       |Always                   |value of                  |
     |                    |                         |milter_macro_daemon_name  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{daemon_port}       |Always (Postfix >=3.2)   |Local server TCP port     |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |{mail_addr}         |MAIL                     |Sender address            |
     |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
@@ -499,8 +503,8 @@ WWoorrkkaarroouunnddss
             -o smtp_generic_maps=
 
   * Some Milter applications use the "{if_addr}" macro to recognize local mail;
-    this macro does not exist in Postfix. Workaround: use the "{client_addr}"
-    macro instead.
+    this macro does not exist in Postfix. Workaround: use the "{daemon_addr}"
+    (Postfix >= 3.2) or "{client_addr}" macro instead.
 
   * Some Milter applications log a warning that looks like this:
 

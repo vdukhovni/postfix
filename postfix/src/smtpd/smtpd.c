@@ -1850,7 +1850,9 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 			" " XCLIENT_NAME " " XCLIENT_ADDR
 			" " XCLIENT_PROTO " " XCLIENT_HELO
 			" " XCLIENT_REVERSE_NAME " " XCLIENT_PORT
-			XCLIENT_LOGIN_KLUDGE);
+			XCLIENT_LOGIN_KLUDGE
+			" " XCLIENT_DESTADDR
+			" " XCLIENT_DESTPORT);
 	else if (xclient_hosts && xclient_hosts->error)
 	    cant_announce_feature(state, XCLIENT_CMD);
     }
@@ -2131,6 +2133,10 @@ static int mail_open_stream(SMTPD_STATE *state)
 			MAIL_ATTR_ACT_CLIENT_ADDR, state->addr);
 	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			MAIL_ATTR_ACT_CLIENT_PORT, state->port);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_ACT_SERVER_ADDR, state->dest_addr);
+	    rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
+			MAIL_ATTR_ACT_SERVER_PORT, state->dest_port);
 	    if (state->helo_name)
 		rec_fprintf(state->cleanup, REC_TYPE_ATTR, "%s=%s",
 			    MAIL_ATTR_ACT_HELO_NAME, state->helo_name);
@@ -4031,6 +4037,43 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    }
 	}
 #endif
+
+	/*
+	 * DESTADDR=substitute SMTP server network address.
+	 */
+	else if (STREQ(attr_name, XCLIENT_DESTADDR)) {
+	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
+		attr_value = SERVER_ADDR_UNKNOWN;
+		bare_value = attr_value;
+	    } else {
+		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
+				     XCLIENT_DESTADDR, attr_value);
+		    return (-1);
+		}
+	    }
+	    UPDATE_STR(state->dest_addr, bare_value);
+	    /* XXX Require same address family as client address. */
+	}
+
+	/*
+	 * DESTPORT=substitute SMTP server port number.
+	 */
+	else if (STREQ(attr_name, XCLIENT_DESTPORT)) {
+	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
+		attr_value = SERVER_PORT_UNKNOWN;
+	    } else {
+		if (!alldig(attr_value)
+		    || strlen(attr_value) > sizeof("65535") - 1) {
+		    state->error_mask |= MAIL_ERROR_PROTOCOL;
+		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
+				     XCLIENT_DESTPORT, attr_value);
+		    return (-1);
+		}
+	    }
+	    UPDATE_STR(state->dest_port, attr_value);
+	}
 
 	/*
 	 * Unknown attribute name. Complain.

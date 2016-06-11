@@ -112,6 +112,8 @@ typedef struct CLEANUP_STATE {
     const char *client_addr;		/* real or ersatz client */
     int     client_af;			/* real or ersatz client */
     const char *client_port;		/* real or ersatz client */
+    const char *server_addr;		/* real or ersatz server */
+    const char *server_port;		/* real or ersatz server */
     VSTRING *milter_ext_from;		/* externalized sender */
     VSTRING *milter_ext_rcpt;		/* externalized recipient */
     VSTRING *milter_err_text;		/* milter call-back reply */
@@ -355,4 +357,9 @@ extern void cleanup_body_edit_free(CLEANUP_STATE *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/

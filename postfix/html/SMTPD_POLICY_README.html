@@ -110,6 +110,9 @@ ccert_pubkey_fingerprint=68:B3:29:DA:98:93:E3:40:99:C7:D8:AD:5C:B9:C9:40
 client_port=1234
 <b>Postfix version 3.1 and later:</b>
 policy_context=submission
+<b>Postfix version 3.2 and later:</b>
+server_address=10.3.2.1
+server_port=54321
 [empty line]
 </pre>
 </blockquote>
@@ -144,9 +147,12 @@ policy_context=submission
     specifies the number of recipients that Postfix accepted for
     the current message.  </p>
 
-    <li> <p> The client address is an IPv4 dotted quad in the form
-    1.2.3.4 or it is an IPv6 address in the form 1:2:3::4:5:6.
-    </p>
+    <li> <p> The remote client or local server IP address is an
+    IPv4 dotted quad in the form 1.2.3.4 or it is an IPv6 address
+    in the form 1:2:3::4:5:6.  </p>
+
+    <li> <p> The remote client or local server port is a decimal
+    number in the range 0-65535.  </p>
 
     <li> <p> For a discussion of the differences between reverse
     and verified client_name information, see the
