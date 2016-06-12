@@ -175,6 +175,8 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 	) {
 	MAI_HOSTADDR_STR client_addr;
 	MAI_SERVPORT_STR client_port;
+	MAI_HOSTADDR_STR server_addr;
+	MAI_SERVPORT_STR server_port;
 	int     aierr;
 	char   *colonp;
 
@@ -276,6 +278,21 @@ static int smtpd_peer_sockaddr_to_hostaddr(SMTPD_STATE *state)
 	    state->rfc_addr = mystrdup(client_addr.buf);
 	    state->addr_family = sa->sa_family;
 	}
+
+	/*
+	 * Convert the server address/port to printable form.
+	 */
+	if ((aierr = sockaddr_to_hostaddr((struct sockaddr *)
+					  &state->dest_sockaddr,
+					  state->dest_sockaddr_len,
+					  &server_addr,
+					  &server_port, 0)) != 0)
+	    msg_fatal("%s: cannot convert server address/port to string: %s",
+		      myname, MAI_STRERROR(aierr));
+	/* TODO: convert IPv4-in-IPv6 to IPv4 form. */
+	state->dest_addr = mystrdup(server_addr.buf);
+	state->dest_port = mystrdup(server_port.buf);
+
 	return (0);
     }
 
@@ -493,8 +510,6 @@ static void smtpd_peer_from_pass_attr(SMTPD_STATE *state)
 
 static void smtpd_peer_from_default(SMTPD_STATE *state)
 {
-    SOCKADDR_SIZE sa_length = sizeof(state->sockaddr);
-    struct sockaddr *sa = (struct sockaddr *) &(state->sockaddr);
 
     /*
      * The "no client" routine provides surrogate information so that the
@@ -502,13 +517,19 @@ static void smtpd_peer_from_default(SMTPD_STATE *state)
      * before the server wakes up. The "not inet" routine provides surrogate
      * state for (presumably) local IPC channels.
      */
-    if (getpeername(vstream_fileno(state->client), sa, &sa_length) < 0) {
+    state->sockaddr_len = sizeof(state->sockaddr);
+    state->dest_sockaddr_len = sizeof(state->dest_sockaddr);
+    if (getpeername(vstream_fileno(state->client),
+		    (struct sockaddr *) &state->sockaddr,
+		    &state->sockaddr_len) <0
+	|| getsockname(vstream_fileno(state->client),
+		       (struct sockaddr *) &state->dest_sockaddr,
+		       &state->dest_sockaddr_len) < 0) {
 	if (errno == ENOTSOCK)
 	    smtpd_peer_not_inet(state);
 	else
 	    smtpd_peer_no_client(state);
     } else {
-	state->sockaddr_len = sa_length;
 	if (smtpd_peer_sockaddr_to_hostaddr(state) < 0)
 	    smtpd_peer_not_inet(state);
     }

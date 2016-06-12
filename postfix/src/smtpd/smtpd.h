@@ -83,6 +83,8 @@ typedef struct {
     char   *dest_port;			/* Milter {daemon_port} */
     struct sockaddr_storage sockaddr;	/* binary client endpoint */
     SOCKADDR_SIZE sockaddr_len;		/* binary client endpoint */
+    struct sockaddr_storage dest_sockaddr;	/* binary local endpoint */
+    SOCKADDR_SIZE dest_sockaddr_len;	/* binary local endpoint */
     int     name_status;		/* 2=ok 4=soft 5=hard 6=forged */
     int     reverse_name_status;	/* 2=ok 4=soft 5=hard */
     int     conn_count;			/* connections from this client */

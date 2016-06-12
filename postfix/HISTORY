@@ -22367,3 +22367,8 @@ Apologies for any names omitted.
 	cleanup/cleanup.h, cleanup/cleanup_milter.c, global/mail_proto.h,
 	milter/milter.h, smtpd/smtpd.c, smtpd/smtpd.h, smtpd/smtpd_check.c,
 	smtpd/smtpd_haproxy.c, smtpd/smtpd_milter.c, smtpd/smtpd_peer.c.
+
+20140612
+
+	Bugfix: missing server address/port conversion. File:
+	smtpd/smtpd_peer.c.
