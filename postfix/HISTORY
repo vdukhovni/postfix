@@ -1,4 +1,8 @@
 In addition to the names listed below, the following people provided
+
+20160618
+
+	Bugfix: 
 useful inputs on many occasions: Paul D. Robertson, Simon J. Mudd.
 Apologies for any names omitted.
 
@@ -22370,5 +22374,40 @@ Apologies for any names omitted.
 
 20140612
 
-	Bugfix: missing server address/port conversion. File:
+	Bugfix (introduced: 20090211): missing server address
+	conversion for non-proxy, non-postscreen connections.  File:
 	smtpd/smtpd_peer.c.
+
+	Bugfix (introduced: 20160611) missing server port conversion
+	for non-proxy, non-postscreen connections, because there was
+	no server address conversion.  File: smtpd/smtpd_peer.c.
+
+20160618
+
+	Bugfix(introduced: 20091121): with the introduction of
+	sender_dependent_default_transport_maps, the SMTP daemon
+	was not updated. This resulted in false rejects with
+	sender-dependent "error" transports. Based on a fix by
+	Russell Yanofsky.  Files: global/resolve_clnt.c,
+	global/resolve_clnt.h, smtpd/smtpd_check.c, smtpd/smtpd_check.h,
+	smtpd/smtpd_milter.c, smtpd/smtpd_resolve.c, smtpd/smtpd_resolve.h.
+
+20160619
+
+	Refinements to the 20160618 fix. For more consistent results
+	with sender address validation, use the recipient address
+	(if available) as the sender-dependent address resolver
+	context.  For better caching, pass sender context with all
+	attempts to resolve an email address.  File: smtpd/smtpd.c,
+	smtpd/smtpd_check.c, smtpd/smtpd_milter.c.
+
+20160625
+
+	Cleanup: the Postfix SMTP server now passes network address
+	and port information to the Cyrus SASL library. Build with
+	``make makefiles "CCARGS=$CCARGS -DNO_IP_CYRUS_SASL_AUTH"''
+	for backwards compatibility. Files: makedefs,
+	smtpd/smtpd_sasl_glue.c, xsasl/xsasl.h, xsasl/xsasl_cyrus_server.c,
+	xsasl/xsasl_server.c.
+
+	Cleanup: dnsblog manpage. File: dnsblog/dnsblog.c.

@@ -295,8 +295,9 @@ static void dict_mysql_quote(DICT *dict, const char *name, VSTRING *result)
      * We won't get integer overflows in 2*len + 1, because Postfix input
      * keys have reasonable size limits, better safe than sorry.
      */
-    if (len > (INT_MAX - 1) / 2)
-	msg_panic("dict_mysql_quote: integer overflow in 2*%d+1", len);
+    if (len > (INT_MAX - VSTRING_LEN(result) - 1) / 2)
+	msg_panic("dict_mysql_quote: integer overflow in %lu+2*%d+1",
+		  (unsigned long) VSTRING_LEN(result), len);
     buflen = 2 * len + 1;
     VSTRING_SPACE(result, buflen);
 

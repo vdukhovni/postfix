@@ -126,11 +126,15 @@
 /*	after successful authentication.
 /*
 /*	Arguments:
+/* .IP addr_family
+/*	The network address family: AF_INET6 or AF_INET.
 /* .IP auth_method
 /*	AUTH command authentication method.
 /* .IP client_addr
 /*	IPv4 or IPv6 address (no surrounding [] or ipv6: prefix),
 /*	or zero-length string if unavailable.
+/* .IP client_port
+/*	TCP port or zero-length string if unavailable.
 /* .IP init_resp
 /*	AUTH command initial response or null pointer.
 /* .IP implementation
@@ -148,6 +152,8 @@
 /* .IP server_addr
 /*	IPv4 or IPv6 address (no surrounding [] or ipv6: prefix),
 /*	or zero-length string if unavailable.
+/* .IP server_port
+/*	TCP port or zero-length string if unavailable.
 /* .IP server_reply
 /*	BASE64 encoded server non-error reply (without SMTP reply
 /*	code or enhanced status code), or ASCII error description.

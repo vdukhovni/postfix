@@ -162,7 +162,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	    return (0);
 	if (state->sender[0] == 0)
 	    return ("");
-	reply = smtpd_resolve_addr(state->sender);
+	reply = smtpd_resolve_addr(state->recipient, state->sender);
 	/* Sendmail 8.13 does not externalize the null string. */
 	if (STR(reply->recipient)[0])
 	    quote_821_local(state->expand_buf, STR(reply->recipient));
@@ -173,13 +173,13 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
     if (strcmp(name, S8_MAC_MAIL_HOST) == 0) {
 	if (state->sender == 0)
 	    return (0);
-	reply = smtpd_resolve_addr(state->sender);
+	reply = smtpd_resolve_addr(state->recipient, state->sender);
 	return (STR(reply->nexthop));
     }
     if (strcmp(name, S8_MAC_MAIL_MAILER) == 0) {
 	if (state->sender == 0)
 	    return (0);
-	reply = smtpd_resolve_addr(state->sender);
+	reply = smtpd_resolve_addr(state->recipient, state->sender);
 	return (STR(reply->transport));
     }
 
@@ -197,7 +197,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	    cp = split_at(STR(state->expand_buf), ' ');
 	    return (cp ? split_at(cp, ' ') : cp);
 	}
-	reply = smtpd_resolve_addr(state->recipient);
+	reply = smtpd_resolve_addr(state->sender, state->recipient);
 	/* Sendmail 8.13 does not externalize the null string. */
 	if (STR(reply->recipient)[0])
 	    quote_821_local(state->expand_buf, STR(reply->recipient));
@@ -214,7 +214,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	    (void) split_at(STR(state->expand_buf), ' ');
 	    return (STR(state->expand_buf));
 	}
-	reply = smtpd_resolve_addr(state->recipient);
+	reply = smtpd_resolve_addr(state->sender, state->recipient);
 	return (STR(reply->nexthop));
     }
     if (strcmp(name, S8_MAC_RCPT_MAILER) == 0) {
@@ -222,7 +222,7 @@ const char *smtpd_milter_eval(const char *name, void *ptr)
 	    return (0);
 	if (state->milter_reject_text)
 	    return (S8_RCPT_MAILER_ERROR);
-	reply = smtpd_resolve_addr(state->recipient);
+	reply = smtpd_resolve_addr(state->sender, state->recipient);
 	return (STR(reply->transport));
     }
     return (0);

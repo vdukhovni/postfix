@@ -29,8 +29,8 @@ query arguments plus an address list with the resulting IP
 addresses, separated by whitespace, and the reply TTL.
 Otherwise it replies with the query arguments plus an empty
 address list and the reply TTL; the reply TTL is \-1 if there
-is no reply, or if a negative reply contains no SOA record.
-Finally, The \fBdnsblog\fR(8) server closes the connection.
+is no reply, or a negative reply that contains no SOA record.
+Finally, the \fBdnsblog\fR(8) server closes the connection.
 .SH DIAGNOSTICS
 .ad
 .fi

@@ -53,11 +53,6 @@ extern void resolve_clnt_free(RESOLVE_REPLY *);
 
 #define RESOLVE_NULL_FROM	""
 
-#define resolve_clnt_query(a, r) \
-	resolve_clnt(RESOLVE_REGULAR, RESOLVE_NULL_FROM, (a), (r))
-#define resolve_clnt_verify(a, r) \
-	resolve_clnt(RESOLVE_VERIFY, RESOLVE_NULL_FROM, (a), (r))
-
 #define resolve_clnt_query_from(f, a, r) \
 	resolve_clnt(RESOLVE_REGULAR, (f), (a), (r))
 #define resolve_clnt_verify_from(f, a, r) \

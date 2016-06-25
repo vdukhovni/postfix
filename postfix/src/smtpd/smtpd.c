@@ -2286,7 +2286,9 @@ static int extract_addr(SMTPD_STATE *state, SMTPD_TOKEN *arg,
 	if ((STR(state->addr_buf)[0] == 0 && !allow_empty_addr)
 	    || (strict_rfc821 && STR(state->addr_buf)[0] == '@')
 	    || (SMTPD_STAND_ALONE(state) == 0
-		&& smtpd_check_addr(STR(state->addr_buf), smtputf8) != 0)) {
+	     && smtpd_check_addr(strcmp(state->where, SMTPD_CMD_MAIL) == 0 ?
+				 state->recipient : state->sender,
+				 STR(state->addr_buf), smtputf8) != 0)) {
 	    msg_warn("Illegal address syntax from %s in %s command: %s",
 		     state->namaddr, state->where,
 		     printable(STR(arg->vstrval), '?'));

@@ -9,6 +9,8 @@ Wish list:
 	Propagate SMTPD_PEER_CODE_XXX from smtpd(8) to cleanup(8),
 	so that {client_resolve} and {_} produce consistent results.
 
+	NO_IP_CYRUS_SASL_AUTH should be a main.cf parameter.
+
 	Modeline support in config files to enable/disable trailing
 	#comment, and to give hints about how to handle an LHS or
 	RHS.

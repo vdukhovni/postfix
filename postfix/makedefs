@@ -67,6 +67,10 @@
 #
 #	Note: this directive is for debugging and testing only. It
 #	is not guaranteed to work on all platforms.
+# .IP \fB-DNO_IP_CYRUS_SASL_AUTH\fR
+#	Don't pass remote SMTP client and Postfix SMTP server IP
+#	address and port information to the Cyrus SASL library.
+#	This is compatible with Postfix < 3.2.
 # .IP \fB-DNO_KQUEUE\fR
 #	Do not build with FreeBSD/NetBSD/OpenBSD/MacOSX KQUEUE support.
 #	By default, KQUEUE support is compiled in on platforms that
