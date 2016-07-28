@@ -11886,8 +11886,8 @@ process initialization will be logged with the default facility.
 Examples are errors while parsing the command line arguments, and
 errors while accessing the Postfix main.cf configuration file.
 .SH syslog_name (default: see "postconf \-d" output)
-The mail system name that is prepended to the process name in syslog
-records, so that "smtpd" becomes, for example, "postfix/smtpd".
+A prefix that is prepended to the process name in syslog
+records, so that, for example, "smtpd" becomes "prefix/smtpd".
 .PP
 Warning: a non\-default syslog_name setting takes effect only after
 a Postfix process has completed initialization. Errors during

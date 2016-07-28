@@ -1,8 +1,4 @@
 In addition to the names listed below, the following people provided
-
-20160618
-
-	Bugfix: 
 useful inputs on many occasions: Paul D. Robertson, Simon J. Mudd.
 Apologies for any names omitted.
 
@@ -22384,7 +22380,7 @@ Apologies for any names omitted.
 
 20160618
 
-	Bugfix(introduced: 20091121): with the introduction of
+	Bugfix (introduced: 20091121): with the introduction of
 	sender_dependent_default_transport_maps, the SMTP daemon
 	was not updated. This resulted in false rejects with
 	sender-dependent "error" transports. Based on a fix by
@@ -22411,3 +22407,15 @@ Apologies for any names omitted.
 	xsasl/xsasl_server.c.
 
 	Cleanup: dnsblog manpage. File: dnsblog/dnsblog.c.
+
+20160728
+
+	Bugfix (introduced: 20090614): with concurrent connections
+	from the same client IP address, and after-220 tests enabled,
+	postscreen could overwrite the cached "all tests completed"
+	result of one connection that completed the after-220 tests,
+	with the "some tests not completed" result of a concurrent
+	connection where the client hung up before completing the
+	after-220 tests.  Files: postscreen_misc.c, postscreen_state.c,
+	postscreen.h, postscreen_tests.c, postscreen.c, postscreen_smtpd.c,
+	postscreen_early.c.

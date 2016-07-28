@@ -6746,8 +6746,8 @@ errors while accessing the Postfix main.cf configuration file.
 %PARAM syslog_name see "postconf -d" output
 
 <p>
-The mail system name that is prepended to the process name in syslog
-records, so that "smtpd" becomes, for example, "postfix/smtpd".
+A prefix that is prepended to the process name in syslog
+records, so that, for example, "smtpd" becomes "prefix/smtpd".
 </p>
 
 <p>

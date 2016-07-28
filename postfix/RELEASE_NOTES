@@ -16,6 +16,29 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+Major changes with snapshot 20160625
+====================================
+
+Support in the Postfix SMTP server for propagating the local SMTP
+server IP address and port. This affects the following Postfix
+interfaces:
+
+- Policy delegation. The server address and port are available as
+"server_address" and "server_port". See SMTPD_POLICY_README for an
+overview of available attributes.
+
+- Milter applications. The server address and port are available
+as "{daemon_addr}" and "{daemon_port}". See MILTER_README for a
+table of available attributes.
+
+- Cyrus SASL. The server address and port are now passed to the
+sasl_server_new() function as "ipaddress;port".
+
+- XCLIENT protocol. The server address and port can be specified
+as "DESTADDR" and "DESTPORT". See XCLIENT_README for a description
+of the attribute syntax. The new attributes may be of interest for
+nxginx.
+
 Major changes with snapshot 20160527
 ====================================
 

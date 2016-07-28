@@ -6,6 +6,9 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Why does postqueue show UTC time, even if TZ is set in
+	the import_environment setting?
+
 	Propagate SMTPD_PEER_CODE_XXX from smtpd(8) to cleanup(8),
 	so that {client_resolve} and {_} produce consistent results.
 
@@ -13,7 +16,8 @@ Wish list:
 
 	Modeline support in config files to enable/disable trailing
 	#comment, and to give hints about how to handle an LHS or
-	RHS.
+	RHS. This will not preserve trailing comments in lines that
+	are modified with "postconf -e" and the like.
 
 	The cleanup daemon searches canonical_maps and virtual_alias_maps
 	with quoted address forms. The address local part should

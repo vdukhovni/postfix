@@ -105,7 +105,8 @@ void    psc_conclude(PSC_STATE *state)
     if ((state->flags & PSC_STATE_MASK_ANY_PASS) != 0
 	&& (state->flags & PSC_STATE_MASK_ANY_PASS) ==
 	PSC_STATE_FLAGS_TODO_TO_PASS(state->flags & PSC_STATE_MASK_ANY_TODO))
-	msg_info("PASS %s [%s]:%s", (state->flags & PSC_STATE_FLAG_NEW) == 0 ?
+	msg_info("PASS %s [%s]:%s", (state->flags & PSC_STATE_FLAG_NEW) == 0
+		 || state->client_info->pass_new_count++ > 0 ?
 		 "OLD" : "NEW", PSC_CLIENT_ADDR_PORT(state));
 
     /*
@@ -114,7 +115,7 @@ void    psc_conclude(PSC_STATE *state)
      * that client does not "fail" any test.
      */
     if ((state->flags & PSC_STATE_MASK_ANY_UPDATE) != 0
-	&& psc_cache_map != 0) {
+	&& psc_cache_map != 0 && state->client_info->pass_new_count <= 1) {
 	psc_print_tests(psc_temp, state);
 	psc_cache_update(psc_cache_map, state->smtp_client_addr, STR(psc_temp));
     }

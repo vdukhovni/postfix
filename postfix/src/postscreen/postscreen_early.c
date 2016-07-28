@@ -92,8 +92,8 @@ static void psc_whitelist_non_dnsbl(PSC_STATE *state)
 		state->flags |= PSC_STATE_FLAG_BYTINDX_PASS(tindx);
 	    }
 	    /* Update expiration even if the test was completed or disabled. */
-	    if (state->expire_time[tindx] < now + state->dnsbl_ttl)
-		state->expire_time[tindx] = now + state->dnsbl_ttl;
+	    if (state->client_info->expire_time[tindx] < now + state->dnsbl_ttl)
+		state->client_info->expire_time[tindx] = now + state->dnsbl_ttl;
 	}
     }
 }
