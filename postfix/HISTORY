@@ -22419,3 +22419,13 @@ Apologies for any names omitted.
 	after-220 tests.  Files: postscreen_misc.c, postscreen_state.c,
 	postscreen.h, postscreen_tests.c, postscreen.c, postscreen_smtpd.c,
 	postscreen_early.c.
+
+20160730
+
+	Cleanup: don't try to optimize away postscreen cache updates.
+	File: postscreen_misc.c.
+
+	Cleanup: removed compatibility crutches that emulated a
+	historical data organization from four years ago. Files:
+	postscreen/postscreen.[hc], postscreen/postscreen_early.c,
+	postscreen/postscreen_smtpd.c, postscreen/postscreen_tests.c.

@@ -722,6 +722,7 @@ static void psc_smtpd_read_event(int event, void *context)
 {
     const char *myname = "psc_smtpd_read_event";
     PSC_STATE *state = (PSC_STATE *) context;
+    time_t *expire_time = state->client_info->expire_time;
     int     ch;
     struct cmd_trans {
 	int     state;
@@ -835,7 +836,7 @@ static void psc_smtpd_read_event(int event, void *context)
 			     PSC_CLIENT_ADDR_PORT(state), STR(psc_temp));
 		    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_BARLF_FAIL);
 		    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_BARLF_PASS);
-		    state->barlf_stamp = PSC_TIME_STAMP_DISABLED;	/* XXX */
+		    expire_time[PSC_TINDX_BARLF] = PSC_TIME_STAMP_DISABLED;	/* XXX */
 		    /* Skip this test for the remainder of this session. */
 		    PSC_SKIP_SESSION_STATE(state, "bare newline test",
 					   PSC_STATE_FLAG_BARLF_SKIP);
@@ -855,7 +856,7 @@ static void psc_smtpd_read_event(int event, void *context)
 			/* Temporarily whitelist until something expires. */
 			PSC_PASS_SESSION_STATE(state, "bare newline test",
 					       PSC_STATE_FLAG_BARLF_PASS);
-			state->barlf_stamp = event_time() + psc_min_ttl;
+			expire_time[PSC_TINDX_BARLF] = event_time() + psc_min_ttl;
 			break;
 		    default:
 			msg_panic("%s: unknown bare_newline action value %d",
@@ -960,7 +961,7 @@ static void psc_smtpd_read_event(int event, void *context)
 		     command, STR(psc_temp));
 	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_FAIL);
 	    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_NSMTP_PASS);
-	    state->nsmtp_stamp = PSC_TIME_STAMP_DISABLED;	/* XXX */
+	    expire_time[PSC_TINDX_NSMTP] = PSC_TIME_STAMP_DISABLED;	/* XXX */
 	    /* Skip this test for the remainder of this SMTP session. */
 	    PSC_SKIP_SESSION_STATE(state, "non-smtp test",
 				   PSC_STATE_FLAG_NSMTP_SKIP);
@@ -980,7 +981,7 @@ static void psc_smtpd_read_event(int event, void *context)
 		/* Temporarily whitelist until something else expires. */
 		PSC_PASS_SESSION_STATE(state, "non-smtp test",
 				       PSC_STATE_FLAG_NSMTP_PASS);
-		state->nsmtp_stamp = event_time() + psc_min_ttl;
+		expire_time[PSC_TINDX_NSMTP] = event_time() + psc_min_ttl;
 		break;
 	    default:
 		msg_panic("%s: unknown non_smtp_command action value %d",
@@ -997,7 +998,7 @@ static void psc_smtpd_read_event(int event, void *context)
 		     PSC_CLIENT_ADDR_PORT(state), command, STR(psc_temp));
 	    PSC_FAIL_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_FAIL);
 	    PSC_UNPASS_SESSION_STATE(state, PSC_STATE_FLAG_PIPEL_PASS);
-	    state->pipel_stamp = PSC_TIME_STAMP_DISABLED;	/* XXX */
+	    expire_time[PSC_TINDX_PIPEL] = PSC_TIME_STAMP_DISABLED;	/* XXX */
 	    /* Skip this test for the remainder of this SMTP session. */
 	    PSC_SKIP_SESSION_STATE(state, "pipelining test",
 				   PSC_STATE_FLAG_PIPEL_SKIP);
@@ -1017,7 +1018,7 @@ static void psc_smtpd_read_event(int event, void *context)
 		/* Temporarily whitelist until something else expires. */
 		PSC_PASS_SESSION_STATE(state, "pipelining test",
 				       PSC_STATE_FLAG_PIPEL_PASS);
-		state->pipel_stamp = event_time() + psc_min_ttl;
+		expire_time[PSC_TINDX_PIPEL] = event_time() + psc_min_ttl;
 		break;
 	    default:
 		msg_panic("%s: unknown pipelining action value %d",
@@ -1036,21 +1037,21 @@ static void psc_smtpd_read_event(int event, void *context)
 		PSC_PASS_SESSION_STATE(state, "bare newline test",
 				       PSC_STATE_FLAG_BARLF_PASS);
 		/* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
-		state->barlf_stamp = event_time() + var_psc_barlf_ttl;
+		expire_time[PSC_TINDX_BARLF] = event_time() + var_psc_barlf_ttl;
 	    }
 	    if ((state->flags & PSC_STATE_MASK_NSMTP_TODO_PASS_FAIL)
 		== PSC_STATE_FLAG_NSMTP_TODO) {
 		PSC_PASS_SESSION_STATE(state, "non-smtp test",
 				       PSC_STATE_FLAG_NSMTP_PASS);
 		/* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
-		state->nsmtp_stamp = event_time() + var_psc_nsmtp_ttl;
+		expire_time[PSC_TINDX_NSMTP] = event_time() + var_psc_nsmtp_ttl;
 	    }
 	    if ((state->flags & PSC_STATE_MASK_PIPEL_TODO_PASS_FAIL)
 		== PSC_STATE_FLAG_PIPEL_TODO) {
 		PSC_PASS_SESSION_STATE(state, "pipelining test",
 				       PSC_STATE_FLAG_PIPEL_PASS);
 		/* XXX Reset to PSC_TIME_STAMP_DISABLED on failure. */
-		state->pipel_stamp = event_time() + var_psc_pipel_ttl;
+		expire_time[PSC_TINDX_PIPEL] = event_time() + var_psc_pipel_ttl;
 	    }
 	}
 	/* Command COUNT limit test. */

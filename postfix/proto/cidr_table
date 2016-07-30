@@ -84,10 +84,12 @@
 #
 #	An IPv4 network address is a sequence of four decimal octets
 #	separated by ".", and an IPv6 network address is a sequence
-#	of three to eight hexadecimal octets or octet pairs separated by
-#	":".  The pattern 0.0.0.0/0 matches every IPv4 address, and ::/0
-#	matches every IPv6 address.  IPv6 support is available in
-#	Postfix 2.2 and later.
+#	of three to eight hexadecimal octet pairs separated by ":"
+#	or "::", where the latter is short-hand for a sequence of
+#	one or more all-zero octet pairs. The pattern 0.0.0.0/0
+#	matches every IPv4 address, and ::/0 matches every IPv6
+#	address.  IPv6 support is available in Postfix 2.2 and
+#	later.
 #
 #	Before comparisons are made, lookup keys and table entries
 #	are converted from string to binary. Therefore, IPv6 patterns
@@ -106,6 +108,8 @@
 #	    # before more general blacklist entries.
 #	    192.168.1.1             OK
 #	    192.168.0.0/16          REJECT
+#	    2001:db8::1             OK
+#	    2001:db8::/32           REJECT
 # .fi
 # SEE ALSO
 #	postmap(1), Postfix lookup table manager

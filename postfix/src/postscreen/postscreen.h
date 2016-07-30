@@ -100,19 +100,6 @@ typedef struct {
 } PSC_STATE;
 
  /*
-  * Emulate legacy ad-hoc variables on top of indexable time stamps. This
-  * avoids massive scar tissue during initial feature development.
-  */
-#define pregr_stamp	client_info->expire_time[PSC_TINDX_PREGR]
-#define dnsbl_stamp	client_info->expire_time[PSC_TINDX_DNSBL]
-#define pipel_stamp	client_info->expire_time[PSC_TINDX_PIPEL]
-#define nsmtp_stamp	client_info->expire_time[PSC_TINDX_NSMTP]
-#define barlf_stamp	client_info->expire_time[PSC_TINDX_BARLF]
-
- /* Minize the patch size for stable releases. */
-#define client_concurrency client_info->concurrency
-
- /*
   * Special expiration time values.
   */
 #define PSC_TIME_STAMP_NEW		(0)	/* test was never passed */

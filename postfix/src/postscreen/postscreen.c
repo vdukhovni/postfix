@@ -357,8 +357,8 @@
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
-/*	The mail system name that is prepended to the process name in syslog
-/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/*	A prefix that is prepended to the process name in syslog
+/*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
 /* SEE ALSO
 /*	smtpd(8), Postfix SMTP server
 /*	tlsproxy(8), Postfix TLS proxy server
@@ -691,7 +691,7 @@ static void psc_endpt_lookup_done(int endpt_status,
      * Reply with 421 when the client has too many open connections.
      */
     if (var_psc_cconn_limit > 0
-	&& state->client_concurrency > var_psc_cconn_limit) {
+	&& state->client_info->concurrency > var_psc_cconn_limit) {
 	msg_info("NOQUEUE: reject: CONNECT from [%s]:%s: too many connections",
 		 state->smtp_client_addr, state->smtp_client_port);
 	PSC_DROP_SESSION_STATE(state,
@@ -840,7 +840,7 @@ static int psc_cache_validator(const char *client_addr,
 			               const char *stamp_str,
 			               void *unused_context)
 {
-    PSC_STATE dummy;
+    PSC_STATE dummy_state;
     PSC_CLIENT_INFO dummy_client_info;
 
     /*
@@ -851,9 +851,9 @@ static int psc_cache_validator(const char *client_addr,
      * silly logging we remove the cache entry only after all tests have
      * expired longer ago than the cache retention time.
      */
-    dummy.client_info = &dummy_client_info;
-    psc_parse_tests(&dummy, stamp_str, event_time() - var_psc_cache_ret);
-    return ((dummy.flags & PSC_STATE_MASK_ANY_TODO) == 0);
+    dummy_state.client_info = &dummy_client_info;
+    psc_parse_tests(&dummy_state, stamp_str, event_time() - var_psc_cache_ret);
+    return ((dummy_state.flags & PSC_STATE_MASK_ANY_TODO) == 0);
 }
 
 /* pre_jail_init - pre-jail initialization */

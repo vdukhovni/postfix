@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - postscreen(8) </title>
 </head> <body> <pre>
-POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
+POSTSCREEN(8)                                                    POSTSCREEN(8)
 
 <b>NAME</b>
        postscreen - Postfix zombie blocker
@@ -106,14 +106,14 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 
        <b><a href="postconf.5.html#postscreen_discard_ehlo_keyword_address_maps">postscreen_discard_ehlo_keyword_address_maps</a>  ($<a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">smtpd_discard_ehlo_key</a>-</b>
        <b><a href="postconf.5.html#smtpd_discard_ehlo_keyword_address_maps">word_address_maps</a>)</b>
-              Lookup tables, indexed by the remote SMTP client  address,  with
-              case  insensitive  lists of EHLO keywords (pipelining, starttls,
-              auth, etc.) that the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server will not send  in  the
+              Lookup  tables,  indexed by the remote SMTP client address, with
+              case insensitive lists of EHLO keywords  (pipelining,  starttls,
+              auth,  etc.)  that the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server will not send in the
               EHLO response to a remote SMTP client.
 
        <b><a href="postconf.5.html#postscreen_discard_ehlo_keywords">postscreen_discard_ehlo_keywords</a> ($<a href="postconf.5.html#smtpd_discard_ehlo_keywords">smtpd_discard_ehlo_keywords</a>)</b>
-              A  case insensitive list of EHLO keywords (pipelining, starttls,
-              auth, etc.) that the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server will not send  in  the
+              A case insensitive list of EHLO keywords (pipelining,  starttls,
+              auth,  etc.)  that the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server will not send in the
               EHLO response to a remote SMTP client.
 
        Available in Postfix version 3.1 and later:
@@ -127,27 +127,27 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
               <a href="postconf.5.html#postscreen_reject_footer">postscreen_reject_footer</a> attribute expansions.
 
        <b><a href="postconf.5.html#postscreen_reject_footer">postscreen_reject_footer</a> ($<a href="postconf.5.html#smtpd_reject_footer">smtpd_reject_footer</a>)</b>
-              Optional information  that  is  appended  after  a  4XX  or  5XX
+              Optional  information  that  is  appended  after  a  4XX  or 5XX
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server response.
 
        <b><a href="postconf.5.html#soft_bounce">soft_bounce</a> (no)</b>
-              Safety  net to keep mail queued that would otherwise be returned
+              Safety net to keep mail queued that would otherwise be  returned
               to the sender.
 
 <b>BEFORE-POSTSCREEN PROXY AGENT</b>
        Available in Postfix version 2.10 and later:
 
        <b><a href="postconf.5.html#postscreen_upstream_proxy_protocol">postscreen_upstream_proxy_protocol</a> (empty)</b>
-              The  name  of  the  proxy   protocol   used   by   an   optional
+              The   name   of   the   proxy   protocol  used  by  an  optional
               before-postscreen proxy agent.
 
        <b><a href="postconf.5.html#postscreen_upstream_proxy_timeout">postscreen_upstream_proxy_timeout</a> (5s)</b>
-              The  time  limit  for  the  proxy  protocol  specified  with the
+              The time  limit  for  the  proxy  protocol  specified  with  the
               <a href="postconf.5.html#postscreen_upstream_proxy_protocol">postscreen_upstream_proxy_protocol</a> parameter.
 
 <b>PERMANENT WHITE/BLACKLIST TEST</b>
-       This test is executed immediately after a remote SMTP client  connects.
-       If  a  client is permanently whitelisted, the client will be handed off
+       This  test is executed immediately after a remote SMTP client connects.
+       If a client is permanently whitelisted, the client will be  handed  off
        immediately to a Postfix SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> (<a href="postconf.5.html#permit_mynetworks">permit_mynetworks</a>)</b>
@@ -155,40 +155,40 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 
        <b><a href="postconf.5.html#postscreen_blacklist_action">postscreen_blacklist_action</a> (ignore)</b>
               The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP client is
-              permanently  blacklisted with the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a> parame-
+              permanently blacklisted with the <a href="postconf.5.html#postscreen_access_list">postscreen_access_list</a>  parame-
               ter.
 
 <b>MAIL EXCHANGER POLICY TESTS</b>
-       When <a href="postscreen.8.html"><b>postscreen</b>(8)</a> is configured to monitor all primary and  backup  MX
-       addresses,  it can refuse to whitelist clients that connect to a backup
+       When  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  is configured to monitor all primary and backup MX
+       addresses, it can refuse to whitelist clients that connect to a  backup
        MX address only. For small sites, this requires configuring primary and
-       backup  MX  addresses on the same MTA. Larger sites would have to share
-       the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> cache between primary and backup  MTAs,  which  would
+       backup MX addresses on the same MTA. Larger sites would have  to  share
+       the  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  cache  between primary and backup MTAs, which would
        introduce a common point of failure.
 
        <b><a href="postconf.5.html#postscreen_whitelist_interfaces">postscreen_whitelist_interfaces</a> (<a href="DATABASE_README.html#types">static</a>:all)</b>
-              A  list  of  local  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  server  IP  addresses where a
-              non-whitelisted remote SMTP client  can  obtain  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s
+              A list of  local  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  server  IP  addresses  where  a
+              non-whitelisted  remote  SMTP  client can obtain <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s
               temporary whitelist status.
 
 <b>BEFORE 220 GREETING TESTS</b>
-       These  tests  are  executed  before the remote SMTP client receives the
+       These tests are executed before the remote  SMTP  client  receives  the
        "220 servername" greeting. If no tests remain after the successful com-
-       pletion  of  this phase, the client will be handed off immediately to a
+       pletion of this phase, the client will be handed off immediately  to  a
        Postfix SMTP server process.
 
        <b><a href="postconf.5.html#dnsblog_service_name">dnsblog_service_name</a> (dnsblog)</b>
               The name of the <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_action">postscreen_dnsbl_action</a> (ignore)</b>
-              The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP  client's
+              The  action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP client's
               combined DNSBL score is equal to or greater than a threshold (as
-              defined      with      the      <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>       and
+              defined       with      the      <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a>      and
               <a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> parameters).
 
        <b><a href="postconf.5.html#postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a> (empty)</b>
-              A  mapping from actual DNSBL domain name which includes a secret
-              password, to the DNSBL domain name that  postscreen  will  reply
+              A mapping from actual DNSBL domain name which includes a  secret
+              password,  to  the  DNSBL domain name that postscreen will reply
               with when it rejects mail.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> (empty)</b>
@@ -196,36 +196,36 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
               factors.
 
        <b><a href="postconf.5.html#postscreen_dnsbl_threshold">postscreen_dnsbl_threshold</a> (1)</b>
-              The inclusive lower bound for blocking  a  remote  SMTP  client,
-              based   on   its  combined  DNSBL  score  as  defined  with  the
+              The  inclusive  lower  bound  for blocking a remote SMTP client,
+              based  on  its  combined  DNSBL  score  as  defined   with   the
               <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.
 
        <b><a href="postconf.5.html#postscreen_greet_action">postscreen_greet_action</a> (ignore)</b>
-              The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a  remote  SMTP  client
-              speaks  before  its  turn  within  the  time  specified with the
+              The  action  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP client
+              speaks before its  turn  within  the  time  specified  with  the
               <a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> parameter.
 
        <b><a href="postconf.5.html#postscreen_greet_banner">postscreen_greet_banner</a> ($<a href="postconf.5.html#smtpd_banner">smtpd_banner</a>)</b>
-              The <i>text</i> in the  optional  "220-<i>text</i>..."  server  response  that
+              The  <i>text</i>  in  the  optional  "220-<i>text</i>..." server response that
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a> sends ahead of the real Postfix SMTP server's "220
-              text..." response, in an attempt to confuse bad SMTP clients  so
+              text..."  response, in an attempt to confuse bad SMTP clients so
               that they speak before their turn (pre-greet).
 
        <b><a href="postconf.5.html#postscreen_greet_wait">postscreen_greet_wait</a> (normal: 6s, overload: 2s)</b>
-              The  amount  of  time  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> will wait for an SMTP
-              client to send a command before its turn, and for DNS  blocklist
+              The amount of time that <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  will  wait  for  an  SMTP
+              client  to send a command before its turn, and for DNS blocklist
               lookup results to arrive (default: up to 2 seconds under stress,
               up to 6 seconds otherwise).
 
        <b><a href="postconf.5.html#smtpd_service_name">smtpd_service_name</a> (smtpd)</b>
-              The internal service that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> hands off  allowed  con-
+              The  internal  service that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> hands off allowed con-
               nections to.
 
        Available in Postfix version 2.11 and later:
 
        <b><a href="postconf.5.html#postscreen_dnsbl_whitelist_threshold">postscreen_dnsbl_whitelist_threshold</a> (0)</b>
-              Allow  a  remote  SMTP  client  to  skip "before" and "after 220
-              greeting" protocol tests, based on its combined DNSBL  score  as
+              Allow a remote SMTP client  to  skip  "before"  and  "after  220
+              greeting"  protocol  tests, based on its combined DNSBL score as
               defined with the <a href="postconf.5.html#postscreen_dnsbl_sites">postscreen_dnsbl_sites</a> parameter.
 
        Available in Postfix version 3.0 and later:
@@ -235,18 +235,18 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 
 <b>AFTER 220 GREETING TESTS</b>
        These tests are executed after the remote SMTP client receives the "220
-       servername" greeting. If a client passes all tests during  this  phase,
-       it  will  receive  a  4XX  response  to all RCPT TO commands. After the
-       client reconnects, it will be allowed to talk  directly  to  a  Postfix
+       servername"  greeting.  If a client passes all tests during this phase,
+       it will receive a 4XX response to  all  RCPT  TO  commands.  After  the
+       client  reconnects,  it  will  be allowed to talk directly to a Postfix
        SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_bare_newline_action">postscreen_bare_newline_action</a> (ignore)</b>
-              The  action  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP client
-              sends a bare newline character, that is, a newline not  preceded
+              The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a  remote  SMTP  client
+              sends  a bare newline character, that is, a newline not preceded
               by carriage return.
 
        <b><a href="postconf.5.html#postscreen_bare_newline_enable">postscreen_bare_newline_enable</a> (no)</b>
-              Enable  "bare  newline" SMTP protocol tests in the <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
+              Enable "bare newline" SMTP protocol tests in  the  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
               server.
 
        <b><a href="postconf.5.html#postscreen_disable_vrfy_command">postscreen_disable_vrfy_command</a> ($<a href="postconf.5.html#disable_vrfy_command">disable_vrfy_command</a>)</b>
@@ -261,7 +261,7 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
               mencing a MAIL transaction.
 
        <b><a href="postconf.5.html#postscreen_non_smtp_command_action">postscreen_non_smtp_command_action</a> (drop)</b>
-              The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a  remote  SMTP  client
+              The  action  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP client
               sends non-SMTP commands as specified with the <a href="postconf.5.html#postscreen_forbidden_commands">postscreen_forbid</a>-
               <a href="postconf.5.html#postscreen_forbidden_commands">den_commands</a> parameter.
 
@@ -269,12 +269,12 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
               Enable "non-SMTP command" tests in the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> server.
 
        <b><a href="postconf.5.html#postscreen_pipelining_action">postscreen_pipelining_action</a> (enforce)</b>
-              The action that <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a  remote  SMTP  client
+              The  action  that  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> takes when a remote SMTP client
               sends multiple commands instead of sending one command and wait-
               ing for the server to respond.
 
        <b><a href="postconf.5.html#postscreen_pipelining_enable">postscreen_pipelining_enable</a> (no)</b>
-              Enable "pipelining" SMTP protocol  tests  in  the  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
+              Enable  "pipelining"  SMTP  protocol  tests in the <a href="postscreen.8.html"><b>postscreen</b>(8)</a>
               server.
 
 <b>CACHE CONTROLS</b>
@@ -322,29 +322,29 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 
        <b><a href="postconf.5.html#postscreen_client_connection_count_limit">postscreen_client_connection_count_limit</a>         ($<a href="postconf.5.html#smtpd_client_connection_count_limit">smtpd_client_connec</a>-</b>
        <b><a href="postconf.5.html#smtpd_client_connection_count_limit">tion_count_limit</a>)</b>
-              How  many  simultaneous  connections  any  remote SMTP client is
+              How many simultaneous connections  any  remote  SMTP  client  is
               allowed to have with the <a href="postscreen.8.html"><b>postscreen</b>(8)</a> daemon.
 
        <b><a href="postconf.5.html#postscreen_command_count_limit">postscreen_command_count_limit</a> (20)</b>
-              The limit on the total number of commands per SMTP  session  for
+              The  limit  on the total number of commands per SMTP session for
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine.
 
        <b><a href="postconf.5.html#postscreen_command_time_limit">postscreen_command_time_limit</a> (normal: 300s, overload: 10s)</b>
-              The   time   limit   to   read   an  entire  command  line  with
+              The  time  limit  to  read   an   entire   command   line   with
               <a href="postscreen.8.html"><b>postscreen</b>(8)</a>'s built-in SMTP protocol engine.
 
        <b><a href="postconf.5.html#postscreen_post_queue_limit">postscreen_post_queue_limit</a> ($<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
-              The number of clients that can be waiting  for  service  from  a
+              The  number  of  clients  that can be waiting for service from a
               real Postfix SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_pre_queue_limit">postscreen_pre_queue_limit</a> ($<a href="postconf.5.html#default_process_limit">default_process_limit</a>)</b>
-              The  number of non-whitelisted clients that can be waiting for a
-              decision whether they will receive service from a  real  Postfix
+              The number of non-whitelisted clients that can be waiting for  a
+              decision  whether  they will receive service from a real Postfix
               SMTP server process.
 
        <b><a href="postconf.5.html#postscreen_watchdog_timeout">postscreen_watchdog_timeout</a> (10s)</b>
-              How  much  time a <a href="postscreen.8.html"><b>postscreen</b>(8)</a> process may take to respond to a
-              remote SMTP client command  or  to  perform  a  cache  operation
+              How much time a <a href="postscreen.8.html"><b>postscreen</b>(8)</a> process may take to respond  to  a
+              remote  SMTP  client  command  or  to  perform a cache operation
               before it is terminated by a built-in watchdog timer.
 
 <b>STARTTLS CONTROLS</b>
@@ -357,11 +357,11 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
               The name of the <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 
 <b>OBSOLETE STARTTLS SUPPORT CONTROLS</b>
-       These  parameters  are supported for compatibility with <a href="smtpd.8.html"><b>smtpd</b>(8)</a> legacy
+       These parameters are supported for compatibility with  <a href="smtpd.8.html"><b>smtpd</b>(8)</a>  legacy
        parameters.
 
        <b><a href="postconf.5.html#postscreen_use_tls">postscreen_use_tls</a> ($<a href="postconf.5.html#smtpd_use_tls">smtpd_use_tls</a>)</b>
-              Opportunistic TLS: announce  STARTTLS  support  to  remote  SMTP
+              Opportunistic  TLS:  announce  STARTTLS  support  to remote SMTP
               clients, but do not require that clients use TLS encryption.
 
        <b><a href="postconf.5.html#postscreen_enforce_tls">postscreen_enforce_tls</a> ($<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>)</b>
@@ -370,18 +370,18 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The  maximal  number of digits after the decimal point when log-
+              The maximal number of digits after the decimal point  when  log-
               ging sub-second delay values.
 
        <b><a href="postconf.5.html#command_directory">command_directory</a> (see 'postconf -d' output)</b>
               The location of all postfix administrative commands.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The maximum amount of time that an idle Postfix  daemon  process
+              The  maximum  amount of time that an idle Postfix daemon process
               waits for an incoming connection before terminating voluntarily.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -394,9 +394,8 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
-              fix/smtpd".
+              A  prefix  that  is  prepended  to  the  process  name in syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
 <b>SEE ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
@@ -413,7 +412,7 @@ POSTSCREEN(8)               System Manager's Manual              POSTSCREEN(8)
 <b>HISTORY</b>
        This service was introduced with Postfix version 2.8.
 
-       Many ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier  work  by  Michael
+       Many  ideas  in  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier work by Michael
        Tokarev, in OpenBSD spamd, and in MailChannels Traffic Control.
 
 <b>AUTHOR(S)</b>

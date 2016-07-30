@@ -85,16 +85,17 @@ CIDR_TABLE(5)                                                    CIDR_TABLE(5)
 
        An  IPv4 network address is a sequence of four decimal octets separated
        by ".", and an IPv6 network address is a sequence  of  three  to  eight
-       hexadecimal  octets  or  octet  pairs  separated  by  ":".  The pattern
-       0.0.0.0/0 matches every IPv4  address,  and  ::/0  matches  every  IPv6
+       hexadecimal  octet  pairs separated by ":" or "::", where the latter is
+       short-hand for a sequence of one or more all-zero octet pairs. The pat-
+       tern  0.0.0.0/0 matches every IPv4 address, and ::/0 matches every IPv6
        address.  IPv6 support is available in Postfix 2.2 and later.
 
-       Before  comparisons  are  made,  lookup keys and table entries are con-
-       verted from string to binary. Therefore, IPv6 patterns will be  matched
-       regardless  of  leading  zeros (a leading zero in an IPv4 address octet
+       Before comparisons are made, lookup keys and  table  entries  are  con-
+       verted  from string to binary. Therefore, IPv6 patterns will be matched
+       regardless of leading zeros (a leading zero in an  IPv4  address  octet
        indicates octal notation).
 
-       Note: address information may be enclosed inside "[]" but this form  is
+       Note:  address information may be enclosed inside "[]" but this form is
        not required.
 
 <b>EXAMPLE SMTPD ACCESS MAP</b>
@@ -106,6 +107,8 @@ CIDR_TABLE(5)                                                    CIDR_TABLE(5)
            # before more general blacklist entries.
            192.168.1.1             OK
            192.168.0.0/16          REJECT
+           2001:db8::1             OK
+           2001:db8::/32           REJECT
 
 <b>SEE ALSO</b>
        <a href="postmap.1.html">postmap(1)</a>, Postfix lookup table manager
