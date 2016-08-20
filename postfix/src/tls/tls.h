@@ -59,6 +59,7 @@ extern const NAME_CODE tls_level_table[];
  /* Backwards compatibility with OpenSSL < 1.1.0 */
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 #define OpenSSL_version_num SSLeay
++#define ASN1_STRING_get0_data ASN1_STRING_data
 #endif
 
  /*
