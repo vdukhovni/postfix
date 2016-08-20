@@ -94,6 +94,9 @@ extern const NAME_CODE tls_level_table[];
 #define X509_STORE_CTX_get0_untrusted(ctx) ((ctx)->untrusted)
 #define X509_STORE_CTX_set0_untrusted X509_STORE_CTX_set_chain
 #define X509_STORE_CTX_set0_trusted_stack X509_STORE_CTX_trusted_stack
+#define ASN1_STRING_get0_data ASN1_STRING_data
+#define X509_getm_notBefore X509_get_notBefore
+#define X509_getm_notAfter X509_get_notAfter
 #endif
 
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */
