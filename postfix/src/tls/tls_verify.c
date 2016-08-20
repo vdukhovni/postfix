@@ -245,8 +245,7 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
 	 * provided, but not found in CAfile/CApath. Either way, we don't
 	 * trust it.
 	 */
-	X509_NAME_oneline(X509_get_issuer_name(ctx->current_cert),
-			  buf, sizeof(buf));
+	X509_NAME_oneline(X509_get_issuer_name(cert), buf, sizeof(buf));
 	msg_info("certificate verification failed for %s: untrusted issuer %s",
 		 TLScontext->namaddr, printable(buf, '?'));
 	break;
