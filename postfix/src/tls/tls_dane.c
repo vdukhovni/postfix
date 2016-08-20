@@ -1465,7 +1465,7 @@ static int add_akid(X509 *cert, AUTHORITY_KEYID *akid)
      * self-signature checks!
      */
     id = ((akid && akid->keyid) ? akid->keyid : 0);
-    if (id && ASN1_STRING_length(id) == 1 && *ASN1_STRING_data(id) == c)
+    if (id && ASN1_STRING_length(id) == 1 && *ASN1_STRING_get0_data(id) == c)
 	c = 1;
 
     if ((akid = AUTHORITY_KEYID_new()) != 0
@@ -1583,10 +1583,10 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
      */
     if (!X509_set_version(cert, 2)
 	|| !set_serial(cert, akid, subject)
-	|| !X509_set_subject_name(cert, name)
 	|| !set_issuer_name(cert, akid)
-	|| !X509_gmtime_adj(X509_get_notBefore(cert), -30 * 86400L)
-	|| !X509_gmtime_adj(X509_get_notAfter(cert), 30 * 86400L)
+	|| !X509_gmtime_adj(X509_getm_notBefore(cert), -30 * 86400L)
+	|| !X509_gmtime_adj(X509_getm_notAfter(cert), 30 * 86400L)
+	|| !X509_set_subject_name(cert, name)
 	|| !X509_set_pubkey(cert, key ? key : signkey)
 	|| !add_ext(0, cert, NID_basic_constraints, "CA:TRUE")
 	|| (key && !add_akid(cert, akid))
