@@ -22408,6 +22408,11 @@ Apologies for any names omitted.
 
 	Cleanup: dnsblog manpage. File: dnsblog/dnsblog.c.
 
+20160717
+
+	Bugfix (introduced: Postfix 1.1): the virtual(8) delivery
+	agent discarded the error result from vstream_fseek().
+
 20160728
 
 	Bugfix (introduced: 20090614): with concurrent connections
@@ -22429,3 +22434,21 @@ Apologies for any names omitted.
 	historical data organization from four years ago. Files:
 	postscreen/postscreen.[hc], postscreen/postscreen_early.c,
 	postscreen/postscreen_smtpd.c, postscreen/postscreen_tests.c.
+
+20160808
+
+	Cleanup: preserve the new file mtimes when installing Postfix.
+	Ondřej Lysoněk. File: postfix-install.
+
+20160819
+
+	Bugfix (introduced: Postfix 3.0): the makedefs script ignored
+	readme_directory=pathname overrides. Fix by Todd C. Olson.
+	File: makedefs.
+
+20160821
+
+	Cleanup: the tls_session_ticket_cipher documentation says
+	aes-256-cbc, but the implementation was still using
+	aes-128-cbc (note that Postfix SMTP server and client
+	processes have a limited life time).
