@@ -173,9 +173,18 @@ static const char server_session_id_context[] = "Postfix/TLS";
 
 #endif					/* OPENSSL_VERSION_NUMBER */
 
+ /* OpenSSL 1.1.0 bitrot */
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+typedef const unsigned char *session_id_t;
+
+#else
+typedef unsigned char *session_id_t;
+
+#endif
+
 /* get_server_session_cb - callback to retrieve session from server cache */
 
-static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
+static SSL_SESSION *get_server_session_cb(SSL *ssl, session_id_t session_id,
 					          int session_id_length,
 					          int *unused_copy)
 {
@@ -368,6 +377,8 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     tls_check_version();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
     /*
      * Initialize the OpenSSL library by the book! To start with, we must
      * initialize the algorithms. We want cleartext error messages instead of
@@ -375,6 +386,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
+#endif
 
     /*
      * First validate the protocols. If these are invalid, we can't continue.
@@ -445,7 +457,6 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	tls_print_errors();
 	return (0);
     }
-
 #ifdef SSL_SECOP_PEER
     /* Backwards compatible security as a base for opportunistic TLS. */
     SSL_CTX_set_security_level(server_ctx, 0);
@@ -758,7 +769,6 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
-
 #ifdef SSL_SECOP_PEER
     /* When authenticating the peer, use 80-bit plus OpenSSL security level */
     if (props->requirecert)
@@ -896,10 +906,10 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	X509_free(peer);
 
 	/*
-	 * Give them a clue. Problems with trust chain verification are logged
-	 * when the session is first negotiated, before the session is stored
-	 * into the cache. We don't want mystery failures, so log the fact the
-	 * real problem is to be found in the past.
+	 * Give them a clue. Problems with trust chain verification are
+	 * logged when the session is first negotiated, before the session is
+	 * stored into the cache. We don't want mystery failures, so log the
+	 * fact the real problem is to be found in the past.
 	 */
 	if (!TLS_CERT_IS_TRUSTED(TLScontext)
 	    && (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {

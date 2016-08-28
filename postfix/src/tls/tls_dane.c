@@ -573,7 +573,7 @@ static void ta_pkey_insert(TLS_DANE *d, EVP_PKEY *k)
 {
     TLS_PKEYS *new = (TLS_PKEYS *) mymalloc(sizeof(*new));
 
-    CRYPTO_add(&k->references, 1, CRYPTO_LOCK_EVP_PKEY);
+    EVP_PKEY_up_ref(k);
     new->pkey = k;
     new->next = d->pkeys;
     d->pkeys = new;
@@ -1465,7 +1465,7 @@ static int add_akid(X509 *cert, AUTHORITY_KEYID *akid)
      * self-signature checks!
      */
     id = ((akid && akid->keyid) ? akid->keyid : 0);
-    if (id && ASN1_STRING_length(id) == 1 && *ASN1_STRING_data(id) == c)
+    if (id && ASN1_STRING_length(id) == 1 && *ASN1_STRING_get0_data(id) == c)
 	c = 1;
 
     if ((akid = AUTHORITY_KEYID_new()) != 0
@@ -1583,10 +1583,10 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
      */
     if (!X509_set_version(cert, 2)
 	|| !set_serial(cert, akid, subject)
-	|| !X509_set_subject_name(cert, name)
 	|| !set_issuer_name(cert, akid)
-	|| !X509_gmtime_adj(X509_get_notBefore(cert), -30 * 86400L)
-	|| !X509_gmtime_adj(X509_get_notAfter(cert), 30 * 86400L)
+	|| !X509_gmtime_adj(X509_getm_notBefore(cert), -30 * 86400L)
+	|| !X509_gmtime_adj(X509_getm_notAfter(cert), 30 * 86400L)
+	|| !X509_set_subject_name(cert, name)
 	|| !X509_set_pubkey(cert, key ? key : signkey)
 	|| !add_ext(0, cert, NID_basic_constraints, "CA:TRUE")
 	|| (key && !add_akid(cert, akid))
@@ -1720,8 +1720,8 @@ static void set_trust(TLS_SESS_STATE *TLScontext, X509_STORE_CTX *ctx)
     int     depth = 0;
     EVP_PKEY *takey;
     X509   *ca;
-    X509   *cert = ctx->cert;		/* XXX: Accessor? */
-    x509_stack_t *in = ctx->untrusted;	/* XXX: Accessor? */
+    X509   *cert = X509_STORE_CTX_get0_cert(ctx);
+    x509_stack_t *in = X509_STORE_CTX_get0_untrusted(ctx);
 
     /* shallow copy */
     if ((in = sk_X509_dup(in)) == 0)
@@ -1802,7 +1802,7 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
 {
     const char *myname = "dane_cb";
     TLS_SESS_STATE *TLScontext = (TLS_SESS_STATE *) app_ctx;
-    X509   *cert = ctx->cert;		/* XXX: accessor? */
+    X509   *cert = X509_STORE_CTX_get0_cert(ctx);
 
     /*
      * Degenerate case: depth 0 self-signed cert.
@@ -1832,9 +1832,9 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
      * Check that setting the untrusted chain updates the expected structure
      * member at the expected offset.
      */
-    X509_STORE_CTX_trusted_stack(ctx, TLScontext->trusted);
-    X509_STORE_CTX_set_chain(ctx, TLScontext->untrusted);
-    if (ctx->untrusted != TLScontext->untrusted)
+    X509_STORE_CTX_set0_trusted_stack(ctx, TLScontext->trusted);
+    X509_STORE_CTX_set0_untrusted(ctx, TLScontext->untrusted);
+    if (X509_STORE_CTX_get0_untrusted(ctx) != TLScontext->untrusted)
 	msg_panic("%s: OpenSSL ABI change", myname);
 
     return X509_verify_cert(ctx);
@@ -2163,8 +2163,10 @@ static SSL_CTX *ctx_init(const char *CAfile)
     tls_param_init();
     tls_check_version();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
     SSL_load_error_strings();
     SSL_library_init();
+#endif
 
     if (!tls_validate_digest(LN_sha1))
 	msg_fatal("%s digest algorithm not available", LN_sha1);
