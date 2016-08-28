@@ -304,7 +304,8 @@ compare_or_replace() {
     (cmp $src $dst >/dev/null 2>&1 && echo Skipping $dst...) || {
 	echo Updating $dst...
 	rm -f $tempdir/junk || exit 1
-	cp -p $src $tempdir/junk || exit 1
+	# Not: "cp -p" which preserves ownership.
+	cp $src $tempdir/junk || exit 1
 	mv -f $tempdir/junk $dst || exit 1
 	test -z "$owner" || chown $owner $dst || exit 1
 	test -z "$group" || chgrp $group $dst || exit 1

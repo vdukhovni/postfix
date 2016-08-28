@@ -22439,6 +22439,7 @@ Apologies for any names omitted.
 
 	Cleanup: preserve the new file mtimes when installing Postfix.
 	Ondřej Lysoněk. File: postfix-install.
+	REVERTED 20160828.
 
 20160819
 
@@ -22448,7 +22449,17 @@ Apologies for any names omitted.
 
 20160821
 
-	Cleanup: the tls_session_ticket_cipher documentation says
-	aes-256-cbc, but the implementation was still using
-	aes-128-cbc (note that Postfix SMTP server and client
+	Bugfix (introduced: Postfix 3.0): the tls_session_ticket_cipher
+	documentation says aes-256-cbc, but the implementation was
+	using aes-128-cbc (note that Postfix SMTP server and client
 	processes have a limited life time).
+
+20160828
+
+	Bitrot: fixes for incompatible OpenSSL 1.1.0 API changes.
+	Viktor Dukhovni. Files: posttls-finger/posttls-finger.c,
+	tls/tls.h, tls/tls_dane.c, tls/tls_verify.c, tls/tls_server.c,
+	tls/tls_client.c.
+
+	Cleanup: disable reuse of ECDH ephemeral keys. Viktor
+	Dukhovni.  File: tls/tls_misc.h.

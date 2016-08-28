@@ -440,7 +440,7 @@ const char *tls_dns_name(const GENERAL_NAME * gn,
     /*
      * Safe to treat as an ASCII string possibly holding a DNS name
      */
-    dnsname = (char *) ASN1_STRING_data(gn->d.ia5);
+    dnsname = (const char *) ASN1_STRING_get0_data(gn->d.ia5);
     len = ASN1_STRING_length(gn->d.ia5);
     TRIM0(dnsname, len);
 
