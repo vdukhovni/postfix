@@ -942,7 +942,7 @@ html_directory_macro=DEF_HTML_DIR
 manpage_directory_macro=DEF_MANPAGE_DIR
 readme_directory_macro=DEF_README_DIR
 
-for parm_name in html_directory manpage_directory
+for parm_name in html_directory manpage_directory readme_directory
 do
     eval parm_val=\"\$$parm_name\"
     eval parm_macro=\"\$${parm_name}_macro\"

@@ -3183,7 +3183,7 @@ extern char *var_tls_bug_tweaks;
 extern char *var_tls_ssl_options;
 
 #define VAR_TLS_TKT_CIPHER	"tls_session_ticket_cipher"
-#define DEF_TLS_TKT_CIPHER	"aes-128-cbc"
+#define DEF_TLS_TKT_CIPHER	"aes-256-cbc"
 extern char *var_tls_tkt_cipher;
 
 #define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
