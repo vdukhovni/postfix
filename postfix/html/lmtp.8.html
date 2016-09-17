@@ -831,9 +831,8 @@ SMTP(8)                                                                SMTP(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
-              fix/smtpd".
+              A prefix that  is  prepended  to  the  process  name  in  syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available with Postfix 2.2 and earlier:
 
@@ -850,7 +849,7 @@ SMTP(8)                                                                SMTP(8)
        Available with Postfix 3.0 and later:
 
        <b><a href="postconf.5.html#smtp_address_verify_target">smtp_address_verify_target</a> (rcpt)</b>
-              In the context of email address verification, the SMTP  protocol
+              In  the context of email address verification, the SMTP protocol
               stage that determines whether an email address is deliverable.
 
        Available with Postfix 3.1 and later:

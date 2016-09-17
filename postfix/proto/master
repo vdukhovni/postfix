@@ -61,8 +61,8 @@
 #	The service name is specified as \fIhost:port\fR, denoting
 #	the host and port on which new connections should be
 #	accepted. The host part (and colon) may be omitted.  Either
-#	host or port may be given in symbolic form (host or service
-#	name) or in numeric form (IP address or port number).
+#	host or port may be given in symbolic form (see \fBhosts\fR(5) or
+#	\fBservices\fR(5)) or in numeric form (IP address or port number).
 #	Host information may be enclosed inside "[]"; this form
 #	is necessary only with IPv6 addresses.
 # .sp

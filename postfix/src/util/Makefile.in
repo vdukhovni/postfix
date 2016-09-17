@@ -532,7 +532,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	myaddrinfo_test format_tv_test ip_match_test name_mask_tests \
 	base32_code_test dict_thash_test surrogate_test timecmp_test \
 	dict_static_test dict_inline_test midna_domain_test casefold_test \
-	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test
+	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test \
+	dict_union_test dict_pipe_test
 
 root_tests:
 
@@ -794,6 +795,16 @@ vbuf_print_test: vbuf_print vbuf_print_test.in vbuf_print_test.ref
 	$(SHLIB_ENV) ./vbuf_print <vbuf_print_test.in >vbuf_print_test.tmp 2>&1
 	diff vbuf_print_test.ref vbuf_print_test.tmp
 	rm -f vbuf_print_test.tmp
+
+dict_union_test: dict_open dict_union_test.in dict_union_test.ref
+	 $(SHLIB_ENV) sh -x dict_union_test.in >dict_union_test.tmp 2>&1
+	diff dict_union_test.ref dict_union_test.tmp
+	rm -f dict_union_test.tmp
+
+dict_pipe_test: dict_open dict_pipe_test.in dict_pipe_test.ref
+	 $(SHLIB_ENV) sh -x dict_pipe_test.in >dict_pipe_test.tmp 2>&1
+	diff dict_pipe_test.ref dict_pipe_test.tmp
+	rm -f dict_pipe_test.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

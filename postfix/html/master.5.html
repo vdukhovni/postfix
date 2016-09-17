@@ -65,10 +65,10 @@ MASTER(5)                                                            MASTER(5)
                      The service name is specified as <i>host:port</i>, denoting  the
                      host   and  port  on  which  new  connections  should  be
                      accepted. The host  part  (and  colon)  may  be  omitted.
-                     Either  host  or port may be given in symbolic form (host
-                     or service name) or in numeric form (IP address  or  port
-                     number).   Host  information may be enclosed inside "[]";
-                     this form is necessary only with IPv6 addresses.
+                     Either  host  or  port may be given in symbolic form (see
+                     <b>hosts</b>(5) or <b>services</b>(5)) or in numeric form  (IP  address
+                     or port number).  Host information may be enclosed inside
+                     "[]"; this form is necessary only with IPv6 addresses.
 
                      Examples: a  service  named  <b>127.0.0.1:smtp</b>  or  <b>::1:smtp</b>
                      receives mail via the loopback interface only; and a ser-

@@ -453,14 +453,13 @@ PIPE(8)                                                                PIPE(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
-              fix/smtpd".
+              A  prefix  that  is  prepended  to  the  process  name in syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#pipe_delivery_status_filter">pipe_delivery_status_filter</a> ($<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b>
-              Optional  filter  for  the  <a href="pipe.8.html"><b>pipe</b>(8)</a> delivery agent to change the
+              Optional filter for the <a href="pipe.8.html"><b>pipe</b>(8)</a> delivery  agent  to  change  the
               delivery status code or explanatory text of successful or unsuc-
               cessful deliveries.
 

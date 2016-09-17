@@ -213,22 +213,21 @@ POSTFIX(1)                                                          POSTFIX(1)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
-              fix/smtpd".
+              A  prefix  that  is  prepended  to  the  process  name in syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 2.6 and later:
 
        <b><a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> (empty)</b>
-              An  optional  list of non-default Postfix configuration directo-
-              ries; these directories belong to additional  Postfix  instances
-              that  share  the Postfix executable files and documentation with
-              the default Postfix instance, and  that  are  started,  stopped,
+              An optional list of non-default Postfix  configuration  directo-
+              ries;  these  directories belong to additional Postfix instances
+              that share the Postfix executable files and  documentation  with
+              the  default  Postfix  instance,  and that are started, stopped,
               etc., together with the default Postfix instance.
 
        <b><a href="postconf.5.html#multi_instance_wrapper">multi_instance_wrapper</a> (empty)</b>
-              The  pathname of a multi-instance manager command that the <a href="postfix.1.html"><b>post-</b></a>
-              <a href="postfix.1.html"><b>fix</b>(1)</a>  command  invokes  when  the   <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>
+              The pathname of a multi-instance manager command that the  <a href="postfix.1.html"><b>post-</b></a>
+              <a href="postfix.1.html"><b>fix</b>(1)</a>   command  invokes  when  the  <a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a>
               parameter value is non-empty.
 
        <b><a href="postconf.5.html#multi_instance_group">multi_instance_group</a> (empty)</b>
@@ -238,15 +237,15 @@ POSTFIX(1)                                                          POSTFIX(1)
               The optional instance name of this Postfix instance.
 
        <b><a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a> (no)</b>
-              Allow  this  Postfix instance to be started, stopped, etc., by a
+              Allow this Postfix instance to be started, stopped, etc.,  by  a
               multi-instance manager.
 
 <b>FILES</b>
-       Prior to Postfix version 2.6, all of the following files were in  <b>$<a href="postconf.5.html#config_directory">con</a>-</b>
+       Prior  to Postfix version 2.6, all of the following files were in <b>$<a href="postconf.5.html#config_directory">con</a>-</b>
        <b><a href="postconf.5.html#config_directory">fig_directory</a></b>. Some files are now in <b>$<a href="postconf.5.html#daemon_directory">daemon_directory</a></b> so that they can
        be shared among multiple instances that run the same Postfix version.
 
-       Use the command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" or "<b>postconf  <a href="postconf.5.html#daemon_directory">daemon_direc</a>-</b>
+       Use  the command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" or "<b>postconf <a href="postconf.5.html#daemon_directory">daemon_direc</a>-</b>
        <b><a href="postconf.5.html#daemon_directory">tory</a></b>" to expand the names into their actual values.
 
        $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="postconf.5.html">main.cf</a>, Postfix configuration parameters

@@ -82,47 +82,52 @@
 # 
 # TABLE SEARCH ORDER
 #        With lookups from indexed files such as DB or DBM, or from
-#        networked  tables  such  as NIS, LDAP or SQL, patterns are
-#        tried in the order as listed below:
+#        networked   tables   such   as  NIS,  LDAP  or  SQL,  each
+#        user@domain query produces a sequence of query patterns as
+#        described below.
+# 
+#        Each  query pattern is sent to each specified lookup table
+#        before trying the next query pattern,  until  a  match  is
+#        found.
 # 
 #        user@domain address
-#               Replace user@domain by address. This form  has  the
+#               Replace  user@domain  by address. This form has the
 #               highest precedence.
 # 
-#               This  is  useful  to clean up addresses produced by
-#               legacy mail systems.  It can also be used  to  pro-
-#               duce  Firstname.Lastname  style  addresses, but see
+#               This is useful to clean up  addresses  produced  by
+#               legacy  mail  systems.  It can also be used to pro-
+#               duce Firstname.Lastname style  addresses,  but  see
 #               below for a simpler solution.
 # 
 #        user address
-#               Replace user@site by address when site is equal  to
-#               $myorigin,  when  site is listed in $mydestination,
-#               or  when  it  is  listed  in  $inet_interfaces   or
+#               Replace  user@site by address when site is equal to
+#               $myorigin, when site is listed  in  $mydestination,
+#               or   when  it  is  listed  in  $inet_interfaces  or
 #               $proxy_interfaces.
 # 
-#               This  form  is  useful for replacing login names by
+#               This form is useful for replacing  login  names  by
 #               Firstname.Lastname.
 # 
 #        @domain address
 #               Replace other addresses in domain by address.  This
 #               form has the lowest precedence.
 # 
-#               Note:  @domain  is  a  wild-card. When this form is
-#               applied to recipient addresses,  the  Postfix  SMTP
-#               server  accepts  mail  for any recipient in domain,
-#               regardless of whether that recipient exists.   This
+#               Note: @domain is a wild-card.  When  this  form  is
+#               applied  to  recipient  addresses, the Postfix SMTP
+#               server accepts mail for any  recipient  in  domain,
+#               regardless  of whether that recipient exists.  This
 #               may  turn  your  mail  system  into  a  backscatter
 #               source: Postfix first accepts mail for non-existent
-#               recipients  and  then  tries to return that mail as
+#               recipients and then tries to return  that  mail  as
 #               "undeliverable" to the often forged sender address.
 # 
 # RESULT ADDRESS REWRITING
 #        The lookup result is subject to address rewriting:
 # 
-#        o      When  the  result  has  the  form @otherdomain, the
+#        o      When the result  has  the  form  @otherdomain,  the
 #               result becomes the same user in otherdomain.
 # 
-#        o      When "append_at_myorigin=yes", append  "@$myorigin"
+#        o      When  "append_at_myorigin=yes", append "@$myorigin"
 #               to addresses without "@domain".
 # 
 #        o      When "append_dot_mydomain=yes", append ".$mydomain"
@@ -130,58 +135,58 @@
 # 
 # ADDRESS EXTENSION
 #        When a mail address localpart contains the optional recip-
-#        ient  delimiter  (e.g., user+foo@domain), the lookup order
+#        ient delimiter (e.g., user+foo@domain), the  lookup  order
 #        becomes: user+foo@domain, user@domain, user+foo, user, and
 #        @domain.
 # 
-#        The   propagate_unmatched_extensions   parameter  controls
-#        whether an unmatched address extension  (+foo)  is  propa-
+#        The  propagate_unmatched_extensions   parameter   controls
+#        whether  an  unmatched  address extension (+foo) is propa-
 #        gated to the result of table lookup.
 # 
 # REGULAR EXPRESSION TABLES
-#        This  section  describes how the table lookups change when
+#        This section describes how the table lookups  change  when
 #        the table is given in the form of regular expressions. For
-#        a  description  of regular expression lookup table syntax,
+#        a description of regular expression lookup  table  syntax,
 #        see regexp_table(5) or pcre_table(5).
 # 
-#        Each pattern is a regular expression that  is  applied  to
+#        Each  pattern  is  a regular expression that is applied to
 #        the entire address being looked up. Thus, user@domain mail
-#        addresses are not broken up into their  user  and  @domain
+#        addresses  are  not  broken up into their user and @domain
 #        constituent parts, nor is user+foo broken up into user and
 #        foo.
 # 
-#        Patterns are applied in the order as specified in the  ta-
-#        ble,  until  a  pattern  is  found that matches the search
+#        Patterns  are applied in the order as specified in the ta-
+#        ble, until a pattern is  found  that  matches  the  search
 #        string.
 # 
-#        Results are the same as with indexed  file  lookups,  with
-#        the  additional feature that parenthesized substrings from
+#        Results  are  the  same as with indexed file lookups, with
+#        the additional feature that parenthesized substrings  from
 #        the pattern can be interpolated as $1, $2 and so on.
 # 
 # TCP-BASED TABLES
-#        This section describes how the table lookups  change  when
+#        This  section  describes how the table lookups change when
 #        lookups are directed to a TCP-based server. For a descrip-
 #        tion of the TCP client/server lookup protocol, see tcp_ta-
 #        ble(5).  This feature is not available up to and including
 #        Postfix version 2.4.
 # 
 #        Each lookup operation uses the entire address once.  Thus,
-#        user@domain  mail  addresses  are not broken up into their
+#        user@domain mail addresses are not broken  up  into  their
 #        user and @domain constituent parts, nor is user+foo broken
 #        up into user and foo.
 # 
 #        Results are the same as with indexed file lookups.
 # 
 # BUGS
-#        The  table format does not understand quoting conventions.
+#        The table format does not understand quoting  conventions.
 # 
 # CONFIGURATION PARAMETERS
-#        The following main.cf parameters are especially  relevant.
-#        The  text  below  provides  only  a parameter summary. See
+#        The  following main.cf parameters are especially relevant.
+#        The text below provides  only  a  parameter  summary.  See
 #        postconf(5) for more details including examples.
 # 
 #        canonical_classes
-#               What addresses are  subject  to  canonical  address
+#               What  addresses  are  subject  to canonical address
 #               mapping.
 # 
 #        canonical_maps
@@ -196,26 +201,26 @@
 #               header sender addresses.
 # 
 #        propagate_unmatched_extensions
-#               A  list  of  address rewriting or forwarding mecha-
-#               nisms that propagate an address extension from  the
-#               original  address  to  the result.  Specify zero or
-#               more  of  canonical,   virtual,   alias,   forward,
+#               A list of address rewriting  or  forwarding  mecha-
+#               nisms  that propagate an address extension from the
+#               original address to the result.   Specify  zero  or
+#               more   of   canonical,   virtual,  alias,  forward,
 #               include, or generic.
 # 
 #        Other parameters of interest:
 # 
 #        inet_interfaces
-#               The  network  interface  addresses that this system
+#               The network interface addresses  that  this  system
 #               receives mail on.  You need to stop and start Post-
 #               fix when this parameter changes.
 # 
 #        local_header_rewrite_clients
 #               Rewrite message header addresses in mail from these
-#               clients and update incomplete  addresses  with  the
+#               clients  and  update  incomplete addresses with the
 #               domain name in $myorigin or $mydomain; either don't
-#               rewrite message headers from other clients at  all,
-#               or  rewrite  message  headers and update incomplete
-#               addresses  with  the  domain   specified   in   the
+#               rewrite  message headers from other clients at all,
+#               or rewrite message headers  and  update  incomplete
+#               addresses   with   the   domain  specified  in  the
 #               remote_header_rewrite_domain parameter.
 # 
 #        proxy_interfaces
@@ -224,20 +229,20 @@
 #               tor.
 # 
 #        masquerade_classes
-#               List  of  address  classes subject to masquerading:
-#               zero or more of  envelope_sender,  envelope_recipi-
+#               List of address classes  subject  to  masquerading:
+#               zero  or  more of envelope_sender, envelope_recipi-
 #               ent, header_sender, header_recipient.
 # 
 #        masquerade_domains
-#               List  of  domains  that hide their subdomain struc-
+#               List of domains that hide  their  subdomain  struc-
 #               ture.
 # 
 #        masquerade_exceptions
-#               List of user names that are not subject to  address
+#               List  of user names that are not subject to address
 #               masquerading.
 # 
 #        mydestination
-#               List  of  domains  that  this mail system considers
+#               List of domains that  this  mail  system  considers
 #               local.
 # 
 #        myorigin
@@ -248,9 +253,9 @@
 #               addresses.
 # 
 #        remote_header_rewrite_domain
-#               Don't rewrite message headers from  remote  clients
+#               Don't  rewrite  message headers from remote clients
 #               at all when this parameter is empty; otherwise, re-
-#               write message  headers  and  append  the  specified
+#               write  message  headers  and  append  the specified
 #               domain name to incomplete addresses.
 # 
 # SEE ALSO
@@ -260,13 +265,13 @@
 #        virtual(5), virtual aliasing
 # 
 # README FILES
-#        Use  "postconf  readme_directory" or "postconf html_direc-
+#        Use "postconf readme_directory" or  "postconf  html_direc-
 #        tory" to locate this information.
 #        DATABASE_README, Postfix lookup table overview
 #        ADDRESS_REWRITING_README, address rewriting guide
 # 
 # LICENSE
-#        The Secure Mailer license must be  distributed  with  this
+#        The  Secure  Mailer  license must be distributed with this
 #        software.
 # 
 # AUTHOR(S)

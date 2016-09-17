@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
 <title> Postfix manual - posttls-finger(1) </title>
 </head> <body> <pre>
-POSTTLS-FINGER(1)           General Commands Manual          POSTTLS-FINGER(1)
+POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
 
 <b>NAME</b>
        posttls-finger - Probe the TLS properties of an ESMTP or LMTP server.
@@ -269,28 +269,28 @@ POSTTLS-FINGER(1)           General Commands Manual          POSTTLS-FINGER(1)
               reading the remote server's 220 banner.
 
        <b>-T</b> <i>timeout</i> (default: <b>30</b>)
-              The SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and QUIT.
+              The  SMTP/LMTP command timeout for EHLO/LHLO, STARTTLS and QUIT.
 
-       <b>-v</b>     Enable  verbose  Postfix  logging.   Specify  more  than once to
+       <b>-v</b>     Enable verbose Postfix  logging.   Specify  more  than  once  to
               increase the level of verbose logging.
 
-       <b>-w</b>     Enable outgoing TLS wrapper mode, or  SMTPS  support.   This  is
-              typically  provided  on  port 465 by servers that are compatible
-              with the ad-hoc SMTP in SSL protocol, rather than  the  standard
+       <b>-w</b>     Enable  outgoing  TLS  wrapper  mode, or SMTPS support.  This is
+              typically provided on port 465 by servers  that  are  compatible
+              with  the  ad-hoc SMTP in SSL protocol, rather than the standard
               STARTTLS protocol.  The destination <i>domain</i>:<i>port</i> should of course
               provide such a service.
 
        [<b>inet:</b>]<i>domain</i>[:<i>port</i>]
               Connect via TCP to domain <i>domain</i>, port <i>port</i>. The default port is
-              <b>smtp</b>  (or 24 with LMTP).  With SMTP an MX lookup is performed to
-              resolve the domain to a host, unless the domain is  enclosed  in
-              <b>[]</b>.   If you want to connect to a specific MX host, for instance
-              <i>mx1.example.com</i>, specify [<i>mx1.example.com</i>]  as  the  destination
+              <b>smtp</b> (or 24 with LMTP).  With SMTP an MX lookup is performed  to
+              resolve  the  domain to a host, unless the domain is enclosed in
+              <b>[]</b>.  If you want to connect to a specific MX host, for  instance
+              <i>mx1.example.com</i>,  specify  [<i>mx1.example.com</i>]  as the destination
               and <i>example.com</i> as a <b>match</b> argument.  When using DNS, the desti-
-              nation domain is assumed fully qualified and no  default  domain
-              or  search  suffixes  are  applied; you must use fully-qualified
-              names or also enable <b>native</b> host lookups  (these  don't  support
-              <b>dane</b>  or <b>dane-only</b> as no DNSSEC validation information is avail-
+              nation  domain  is assumed fully qualified and no <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a>
+              or search suffixes are applied;  you  must  use  fully-qualified
+              names  or  also  enable <b>native</b> host lookups (these don't support
+              <b>dane</b> or <b>dane-only</b> as no DNSSEC validation information is  avail-
               able via <b>native</b> lookups).
 
        <b>unix:</b><i>pathname</i>
@@ -299,8 +299,8 @@ POSTTLS-FINGER(1)           General Commands Manual          POSTTLS-FINGER(1)
        <b>match ...</b>
               With no match arguments specified, certificate peername matching
               uses the compiled-in default strategies for each security level.
-              If you specify one or more arguments, these will be used as  the
-              list  of certificate or public-key digests to match for the <b>fin-</b>
+              If  you specify one or more arguments, these will be used as the
+              list of certificate or public-key digests to match for the  <b>fin-</b>
               <b>gerprint</b> level, or as the list of DNS names to match in the cer-
               tificate at the <b>verify</b> and <b>secure</b> levels.  If the security level
               is <b>dane</b>, or <b>dane-only</b> the match names are ignored, and <b>hostname,</b>

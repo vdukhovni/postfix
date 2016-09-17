@@ -257,14 +257,13 @@ VIRTUAL(8)                                                          VIRTUAL(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
-              fix/smtpd".
+              A prefix that  is  prepended  to  the  process  name  in  syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#virtual_delivery_status_filter">virtual_delivery_status_filter</a> ($<a href="postconf.5.html#default_delivery_status_filter">default_delivery_status_filter</a>)</b>
-              Optional filter for the <a href="virtual.8.html"><b>virtual</b>(8)</a> delivery agent to change  the
+              Optional  filter for the <a href="virtual.8.html"><b>virtual</b>(8)</a> delivery agent to change the
               delivery status code or explanatory text of successful or unsuc-
               cessful deliveries.
 
@@ -283,15 +282,15 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        The Secure Mailer license must be distributed with this software.
 
 <b>HISTORY</b>
-       This delivery agent was originally based on the Postfix local  delivery
-       agent.  Modifications mainly consisted of removing code that either was
+       This  delivery agent was originally based on the Postfix local delivery
+       agent. Modifications mainly consisted of removing code that either  was
        not  applicable  or  that  was  not  safe  in  this  context:  aliases,
        ~user/.forward files, delivery to "|command" or to /file/name.
 
-       The  <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by Daniel
+       The <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by  Daniel
        Bernstein.
 
-       The <b>maildir</b> structure appears in the <b>qmail</b> system by Daniel  Bernstein.
+       The  <b>maildir</b> structure appears in the <b>qmail</b> system by Daniel Bernstein.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

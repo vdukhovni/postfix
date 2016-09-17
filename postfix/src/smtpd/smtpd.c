@@ -1021,8 +1021,8 @@
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
-/*	The mail system name that is prepended to the process name in syslog
-/*	records, so that "smtpd" becomes, for example, "postfix/smtpd".
+/*	A prefix that is prepended to the process name in syslog
+/*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
 /* .PP
 /*	Available in Postfix version 2.2 and later:
 /* .IP "\fBsmtpd_forbidden_commands (CONNECT, GET, POST)\fR"
@@ -4897,6 +4897,15 @@ static void smtpd_proto(SMTPD_STATE *state)
     case 0:
 
 	/*
+	 * Reset the per-command counters.
+	 */
+	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
+	    cmdp->success_count = cmdp->total_count = 0;
+	    if (cmdp->name == 0)
+		break;
+	}
+
+	/*
 	 * In TLS wrapper mode, turn on TLS using code that is shared with
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
@@ -5066,15 +5075,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
 				var_smtpd_sasl_opts);
 #endif
-
-	/*
-	 * Reset the per-command counters.
-	 */
-	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
-	    cmdp->success_count = cmdp->total_count = 0;
-	    if (cmdp->name == 0)
-		break;
-	}
 
 	/*
 	 * The command read/execute loop.

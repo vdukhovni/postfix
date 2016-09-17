@@ -22451,8 +22451,9 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 3.0): the tls_session_ticket_cipher
 	documentation says aes-256-cbc, but the implementation was
-	using aes-128-cbc (note that Postfix SMTP server and client
-	processes have a limited life time).
+	using aes-128-cbc (note that Postfix session ticket keys
+	are rotated after 1/2 hour, to limit the impact of attacks
+	on session ticket keys).
 
 20160828
 
@@ -22463,3 +22464,34 @@ Apologies for any names omitted.
 
 	Cleanup: disable reuse of ECDH ephemeral keys. Viktor
 	Dukhovni.  File: tls/tls_misc.h.
+
+20160908
+
+	Documentation: add a pointer to hosts(5) and services(5)
+	for symbolic host and port syntax. File: proto/master.
+
+20160911
+
+	Bugfix (introduced: Postfix 3.0): the SMTP daemon did not
+	reset a previous session's command counts before rejecting
+	a client that exceeds request or concurrency rates. File:
+	smtpd/smtpd.c.
+
+20160912
+
+	Feature: preserve the new file mtimes when installing
+	Postfix.  Ondřej Lysoněk. Wietse made this conditional on
+	the presence of a new -keep-new-mtime flag. File: postfix-install.
+
+20160917
+
+	Bugfix: unionmap did not propagate table lookup errors.
+	Based on patch by Roel van Meer. Files: util/dict_union.c,
+	util/dict_union_test.*.
+
+	Cleanup: added unit test for pipemap. Files: util/dict_pipe.c,
+	util/dict_pipe_test.*.
+
+	Documentation: added a note about the order of search
+	patterns and table lookup order. Files: proto/canonical,
+	proto/generic, proto/virtual.
