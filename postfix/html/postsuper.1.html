@@ -41,11 +41,11 @@ POSTSUPER(1)                                                      POSTSUPER(1)
               input. For example, to delete all mail with exactly one  recipi-
               ent <b>user@example.com</b>:
 
-              mailq | tail +2 | grep -v '^ *(' | awk  'BEGIN { RS = "" }
+              mailq | tail -n +2 | grep -v '^ *(' | awk  'BEGIN { RS = "" }
                   # $7=sender, $8=recipient1, $9=recipient2
                   { if ($8 == "user@example.com" &amp;&amp; $9 == "")
                         print $1 }
-              ' | tr -d '*!' | postsuper -d -
+               ' | tr -d '*!' | postsuper -d -
 
               Specify  "<b>-d  ALL</b>"  to remove all messages; for example, specify
               "<b>-d ALL deferred</b>" to delete all mail in the <b>deferred</b> queue.   As

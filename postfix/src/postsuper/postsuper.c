@@ -38,11 +38,11 @@
 /*	with exactly one recipient \fBuser@example.com\fR:
 /* .sp
 /* .nf
-/*	mailq | tail +2 | grep -v '^ *(' | awk  \'BEGIN { RS = "" }
+/*	mailq | tail -n +2 | grep -v '^ *(' | awk  'BEGIN { RS = "" }
 /*	    # $7=sender, $8=recipient1, $9=recipient2
 /*	    { if ($8 == "user@example.com" && $9 == "")
 /*	          print $1 }
-/*	\' | tr -d '*!' | postsuper -d -
+/*	 ' | tr -d '*!' | postsuper -d -
 /* .fi
 /* .sp
 /*	Specify "\fB-d ALL\fR" to remove all messages; for example, specify

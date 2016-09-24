@@ -1531,6 +1531,11 @@ static const char *smtpd_whatsup(SMTPD_STATE *state)
 	vstring_sprintf_append(buf, " proto=%s", state->protocol);
     if (state->helo_name)
 	vstring_sprintf_append(buf, " helo=<%s>", state->helo_name);
+#ifdef USE_SASL_AUTH
+    if (state->sasl_username)
+	vstring_sprintf_append(buf, " sasl_username=<%s>",
+			       state->sasl_username);
+#endif
     return (STR(buf));
 }
 

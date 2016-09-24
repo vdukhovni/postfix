@@ -22485,9 +22485,9 @@ Apologies for any names omitted.
 
 20160917
 
-	Bugfix: unionmap did not propagate table lookup errors.
-	Based on patch by Roel van Meer. Files: util/dict_union.c,
-	util/dict_union_test.*.
+	Bugfix (introduced: Postfix 3.0): the unionmap did not
+	propagate table lookup errors.  Based on patch by Roel van
+	Meer.  Files: util/dict_union.c, util/dict_union_test.*.
 
 	Cleanup: added unit test for pipemap. Files: util/dict_pipe.c,
 	util/dict_pipe_test.*.
@@ -22495,3 +22495,16 @@ Apologies for any names omitted.
 	Documentation: added a note about the order of search
 	patterns and table lookup order. Files: proto/canonical,
 	proto/generic, proto/virtual.
+
+	Documentation: bitrot in postsuper(1) example. Different
+	groff versions produce different results; some systems no
+	longer support historical "tail -number" command syntax.
+	Fix by Geert Stappers. File: postsuper/postsuper.c.
+
+20160918
+
+	Logging: the Postfix SMTP server logs the sasl_username
+	after rejected SMTP commands.  As before, the SMTP server
+	does not forward SASL login information to other Postfix
+	subsystems, and it does not receive SASL login information
+	in XFORWARD commands. File/smtpd/smtpd.c.
