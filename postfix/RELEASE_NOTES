@@ -16,6 +16,16 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+Incompatible changes with snapshot 20160925
+===========================================
+
+In the Postfix MySQL database client, the default option_group value
+has changed to "client", to enable reading of "client" option group
+settings in the MySQL options file. This fixes a "not found" problem
+with Postfix queries that contain UTF8-encoded non-ASCII text.
+Specify an empty option_group value (option_group =) to get
+backwards-compatible behavior.
+
 Major changes with snapshot 20160625
 ====================================
 

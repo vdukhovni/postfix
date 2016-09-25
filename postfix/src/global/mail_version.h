@@ -16,11 +16,11 @@
   * snapshots are called a.b-yyyymmdd, where a=major release number, b=minor
   * release number, c=patchlevel, and yyyymmdd is the release date:
   * yyyy=year, mm=month, dd=day.
-  *
+  * 
   * Patches change both the patchlevel and the release date. Snapshots have no
   * patchlevel; they change the release date only.
   */
-#define MAIL_RELEASE_DATE	"20160924"
+#define MAIL_RELEASE_DATE	"20160925"
 #define MAIL_VERSION_NUMBER	"3.2"
 
 #ifdef SNAPSHOT

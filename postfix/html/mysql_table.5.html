@@ -225,12 +225,24 @@ MYSQL_TABLE(5)                                                  MYSQL_TABLE(5)
 
        <b>option_file</b>
               Read  options  from the given file instead of the default my.cnf
-              location.
+              location. This reads options from  the  <b>[client]</b>  option  group,
+              optionally  followed  by  options  from  the  group  given  with
+              <b>option_group</b>.
 
               This parameter is available with Postfix 2.11 and later.
 
-       <b>option_group</b>
-              Read options from the given group.
+       <b>option_group (Postfix</b> &gt;<b>=3.2: client; Postfix</b> &lt;<b>=3.1: empty)</b>
+              Read options from the given group of  the  mysql  options  file,
+              after reading options from the <b>[client]</b> group.
+
+              Postfix  3.2  and  later  read <b>[client]</b> option group settings by
+              default. To disable this  specify  no  <b>option_file</b>  and  specify
+              "<b>option_group =</b>" (i.e. an empty value).
+
+              Postfix  3.1  and  earlier don't read <b>[client]</b> option group set-
+              tings unless a non-empty <b>option_file</b> or <b>option_group</b>  value  are
+              specified. To enable this, specify, for example, "<b>option_group =</b>
+              <b>client</b>".
 
               This parameter is available with Postfix 2.11 and later.
 

@@ -258,11 +258,23 @@ limit to 1 ensures that lookups do not return multiple
 values.
 .IP "\fBoption_file\fR"
 Read options from the given file instead of the default my.cnf
-location.
+location. This reads options from the \fB[client]\fR option
+group, optionally followed by options from the group given
+with \fBoption_group\fR.
 .sp
 This parameter is available with Postfix 2.11 and later.
-.IP "\fBoption_group\fR"
-Read options from the given group.
+.IP "\fBoption_group (Postfix >=3.2: client; Postfix <=3.1: empty)\fR"
+Read options from the given group of the mysql options file,
+after reading options from the \fB[client]\fR group.
+.sp
+Postfix 3.2 and later read \fB[client]\fR option group
+settings by default. To disable this specify no \fBoption_file\fR
+and specify "\fBoption_group =\fR" (i.e. an empty value).
+.sp
+Postfix 3.1 and earlier don't read \fB[client]\fR option
+group settings unless a non\-empty \fBoption_file\fR or
+\fBoption_group\fR value are specified. To enable this,
+specify, for example, "\fBoption_group = client\fR".
 .sp
 This parameter is available with Postfix 2.11 and later.
 .IP "\fBtls_cert_file\fR"

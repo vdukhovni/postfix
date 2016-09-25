@@ -22508,3 +22508,14 @@ Apologies for any names omitted.
 	does not forward SASL login information to other Postfix
 	subsystems, and it does not receive SASL login information
 	in XFORWARD commands. File/smtpd/smtpd.c.
+
+20160925
+
+	Bugfix (introduced: Postfix 2.11): changed the default MySQL
+	option_group value to "client" to enable the reading of
+	"client" option group settings in the MySQL option file.
+	Specify an empty option_group value to get backwards-compatible
+	behavior.  This fixes a "not found" problem with Postfix
+	queries that contain UTF8-encoded non-ASCII text.  Based
+	on a fix by John Fawcett.  Files: global/dict_mysql.c,
+	proto/mysql_table.

@@ -565,7 +565,7 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 	msg_fatal("dict_mysql: insufficient memory");
     if (dict_mysql->option_file)
 	mysql_options(host->db, MYSQL_READ_DEFAULT_FILE, dict_mysql->option_file);
-    if (dict_mysql->option_group)
+    if (dict_mysql->option_group && dict_mysql->option_group[0])
 	mysql_options(host->db, MYSQL_READ_DEFAULT_GROUP, dict_mysql->option_group);
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     if (dict_mysql->tls_key_file || dict_mysql->tls_cert_file ||
@@ -634,7 +634,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->dbname = cfg_get_str(p, "dbname", "", 1, 0);
     dict_mysql->result_format = cfg_get_str(p, "result_format", "%s", 1, 0);
     dict_mysql->option_file = cfg_get_str(p, "option_file", NULL, 0, 0);
-    dict_mysql->option_group = cfg_get_str(p, "option_group", NULL, 0, 0);
+    dict_mysql->option_group = cfg_get_str(p, "option_group", "client", 0, 0);
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
     dict_mysql->tls_key_file = cfg_get_str(p, "tls_key_file", NULL, 0, 0);
     dict_mysql->tls_cert_file = cfg_get_str(p, "tls_cert_file", NULL, 0, 0);
