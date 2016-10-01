@@ -81,11 +81,13 @@ static const char *dict_union_lookup(DICT *dict, const char *query)
     for (cpp = dict_union->map_union->argv; (dict_type_name = *cpp) != 0; cpp++) {
 	if ((map = dict_handle(dict_type_name)) == 0)
 	    msg_panic("%s: dictionary \"%s\" not found", myname, dict_type_name);
-	if ((result = dict_get(map, query)) == 0)
-	    continue;
-	if (VSTRING_LEN(dict_union->re_buf) > 0)
-	    VSTRING_ADDCH(dict_union->re_buf, ',');
-	vstring_strcat(dict_union->re_buf, result);
+	if ((result = dict_get(map, query)) != 0) {
+	    if (VSTRING_LEN(dict_union->re_buf) > 0)
+		VSTRING_ADDCH(dict_union->re_buf, ',');
+	    vstring_strcat(dict_union->re_buf, result);
+	} else if (map->error != 0) {
+	    DICT_ERR_VAL_RETURN(dict, map->error, 0);
+	}
     }
     DICT_ERR_VAL_RETURN(dict, DICT_ERR_NONE,
 			VSTRING_LEN(dict_union->re_buf) > 0 ?

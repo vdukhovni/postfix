@@ -94,7 +94,19 @@ where_field = alias
 # Don't forget the leading "AND"!
 additional_conditions = AND status = 'paid'
 
+# This is necessary to make UTF8 queries work for Postfix 2.11 .. 3.1,
+# and is the default setting as of Postfix 3.2,
+option_group = client
+
 AAddddiittiioonnaall nnootteess
+
+Postfix 3.2 and later read [[cclliieenntt]] option group settings by default. To
+disable this, specify no ooppttiioonn__ffiillee and specify "ooppttiioonn__ggrroouupp ==" (i.e. an
+empty value).
+
+Postfix 3.1 and earlier don't read [[cclliieenntt]] option group settings unless a non-
+empty ooppttiioonn__ffiillee or ooppttiioonn__ggrroouupp value are specified. To enable this, specify,
+for example "ooppttiioonn__ggrroouupp == cclliieenntt".
 
 The MySQL configuration interface setup allows for multiple mysql databases:
 you can use one for a virtual table, one for an access table, and one for an

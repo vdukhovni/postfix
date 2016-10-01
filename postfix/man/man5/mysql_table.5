@@ -264,6 +264,11 @@ This parameter is available with Postfix 2.11 and later.
 .IP "\fBoption_group\fR"
 Read options from the given group.
 .sp
+Postfix 3.1 and earlier don't read \fB[client]\fR option
+group settings unless a non\-empty \fBoption_file\fR or
+\fBoption_group\fR value are specified. To enable this,
+specify, for example, "\fBoption_group = client\fR".
+.sp
 This parameter is available with Postfix 2.11 and later.
 .IP "\fBtls_cert_file\fR"
 File containing client's X509 certificate.
