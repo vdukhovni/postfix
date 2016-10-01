@@ -16,6 +16,14 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 2.11 or earlier, read RELEASE_NOTES-3.0
 before proceeding.
 
+Workaround - UTF8 support in Postfix MySQL queries
+--------------------------------------------------
+
+Someone reported false "not found" errors with MySQL map queries
+that contain UTF8-encoded text. To avoid such errors, specify
+"option_group = client" in Postfix MySQL configuration files.  This
+will be the default setting with Postfix 3.2 and later.
+
 Major changes - address verification safety
 -------------------------------------------
 

@@ -4848,6 +4848,15 @@ static void smtpd_proto(SMTPD_STATE *state)
     case 0:
 
 	/*
+	 * Reset the per-command counters.
+	 */
+	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
+	    cmdp->success_count = cmdp->total_count = 0;
+	    if (cmdp->name == 0)
+		break;
+	}
+
+	/*
 	 * In TLS wrapper mode, turn on TLS using code that is shared with
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
@@ -5017,15 +5026,6 @@ static void smtpd_proto(SMTPD_STATE *state)
 	    smtpd_sasl_activate(state, VAR_SMTPD_SASL_OPTS,
 				var_smtpd_sasl_opts);
 #endif
-
-	/*
-	 * Reset the per-command counters.
-	 */
-	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
-	    cmdp->success_count = cmdp->total_count = 0;
-	    if (cmdp->name == 0)
-		break;
-	}
 
 	/*
 	 * The command read/execute loop.
