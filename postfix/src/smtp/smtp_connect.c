@@ -1140,8 +1140,6 @@ int     smtp_connect(SMTP_STATE *state)
      * destination to address list, and whether to stop before we reach the
      * end of that list.
      */
-#define DEF_LMTP_SERVICE	var_lmtp_tcp_port
-#define DEF_SMTP_SERVICE	"smtp"
 
     /*
      * With LMTP we have direct-to-host delivery only. The destination may
@@ -1153,7 +1151,7 @@ int     smtp_connect(SMTP_STATE *state)
 	} else {
 	    if (strncmp(destination, "inet:", 5) == 0)
 		destination += 5;
-	    smtp_connect_inet(state, destination, DEF_LMTP_SERVICE);
+	    smtp_connect_inet(state, destination, var_smtp_tcp_port);
 	}
     }
 
@@ -1163,7 +1161,7 @@ int     smtp_connect(SMTP_STATE *state)
      * Postfix configurations that have a host with such a name.
      */
     else {
-	smtp_connect_inet(state, destination, DEF_SMTP_SERVICE);
+	smtp_connect_inet(state, destination, var_smtp_tcp_port);
     }
 
     /*

@@ -388,7 +388,8 @@ mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 
 header_body_checks_tests: header_body_checks_null_test \
 	header_body_checks_warn_test header_body_checks_prepend_test \
-	header_body_checks_ignore_test header_body_checks_replace_test
+	header_body_checks_ignore_test header_body_checks_replace_test \
+	header_body_checks_strip_test
 
 root_tests: rewrite_clnt_test resolve_clnt_test verify_sender_addr_test
 
@@ -640,6 +641,17 @@ header_body_checks_replace_test: header_body_checks header_body_checks_replace.r
 		<mime_test.in >header_body_checks_replace.tmp 2>&1
 	cmp header_body_checks_replace.ref header_body_checks_replace.tmp
 	rm -f header_body_checks_replace.tmp header_body_checks_head header_body_checks_mime header_body_checks_nest header_body_checks_body
+
+header_body_checks_strip_test: header_body_checks header_body_checks_strip.ref
+	echo /./ strip header line >header_body_checks_head
+	echo /./ strip mime header line >header_body_checks_mime
+	echo /./ strip nested header >header_body_checks_nest
+	echo /./ strip body line >header_body_checks_body
+	$(SHLIB_ENV) ./header_body_checks regexp:header_body_checks_head regexp:header_body_checks_mime \
+		regexp:header_body_checks_nest regexp:header_body_checks_body \
+		<mime_test.in >header_body_checks_strip.tmp 2>&1
+	cmp header_body_checks_strip.ref header_body_checks_strip.tmp
+	rm -f header_body_checks_strip.tmp header_body_checks_head header_body_checks_mime header_body_checks_nest header_body_checks_body
 
 mail_parm_split_test: mail_parm_split mail_parm_split.in mail_parm_split.ref
 	$(SHLIB_ENV) ./mail_parm_split <mail_parm_split.in >mail_parm_split.tmp 2>&1

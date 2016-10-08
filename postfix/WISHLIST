@@ -9,6 +9,9 @@ Wish list:
 	Why does postqueue show UTC time, even if TZ is set in
 	the import_environment setting?
 
+	Add a header_body_checks extension callback in smtp_proto.c
+	that implements the PASS action.
+
 	Propagate SMTPD_PEER_CODE_XXX from smtpd(8) to cleanup(8),
 	so that {client_resolve} and {_} produce consistent results.
 

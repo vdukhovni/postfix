@@ -345,6 +345,11 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	}
 	return (buf);
     }
+    if (STREQUAL(value, "PASS", command_len)) {
+        cleanup_act_log(state, "pass", context, buf, optional_text);
+        state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
+        return (buf);
+    }
     if (STREQUAL(value, "DISCARD", command_len)) {
 	cleanup_act_log(state, "discard", context, buf, optional_text);
 	state->flags |= CLEANUP_FLAG_DISCARD;
@@ -452,6 +457,10 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	    cleanup_act_log(state, "bcc", context, buf, optional_text);
 	}
 	return (buf);
+    }
+    if (STREQUAL(value, "STRIP", command_len)) {
+	cleanup_act_log(state, "strip", context, buf, optional_text);
+	return (CLEANUP_ACT_DROP);
     }
     /* Allow and ignore optional text after the action. */
 

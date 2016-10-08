@@ -1339,10 +1339,11 @@ extern int dup2_pass_on_exec(int oldd, int newd);
   * Defaults for systems that pre-date IPv6 support.
   */
 #ifndef HAS_IPV6
+#include <sys/socket.h>
 #define EMULATE_IPV4_ADDRINFO
 #define MISSING_INET_PTON
 #define MISSING_INET_NTOP
-extern const char *inet_ntop(int, const void *, char *, size_t);
+extern const char *inet_ntop(int, const void *, char *, SOCKADDR_SIZE);
 extern int inet_pton(int, const char *, void *);
 
 #endif

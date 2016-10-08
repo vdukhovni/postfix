@@ -251,7 +251,7 @@
 #	with \fBoption_group\fR.
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
-# .IP "\fBoption_group (Postfix >=3.2: client; Postfix <=3.1: empty)\fR"
+# .IP "\fBoption_group (default: Postfix >=3.2: client, <= 3.1: empty)\fR"
 #	Read options from the given group of the mysql options file,
 #	after reading options from the \fB[client]\fR group.
 # .sp

@@ -104,6 +104,10 @@ parameter in main.cf:</p>
 </pre>
 </blockquote>
 
+<p> (With Postfix &le; 3.1, you may also need to specify "<b>option_group
+= client</b>" in Postfix MySQL client files, to enable UTF8 support
+in MySQL queries. This setting is the default as of Postfix 3.2.) </p>
+
 <p> With SMTPUTF8 support enabled, Postfix changes behavior with
 respect to earlier Postfix releases: </p>
 

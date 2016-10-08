@@ -131,7 +131,8 @@ where_field = alias
 # Don't forget the leading "AND"!
 additional_conditions = AND status = 'paid'
 
-# For Postfix 2.11 .. 3.1. This is the default as of Postfix 3.2.
+# This is necessary to make UTF8 queries work for Postfix 2.11 .. 3.1,
+# and is the default setting as of Postfix 3.2.
 option_group = client
 </pre>
 

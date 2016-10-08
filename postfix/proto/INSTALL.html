@@ -837,7 +837,9 @@ unreachable code. </td> </tr>
 <tr> <td> </td> <td> -DNO_IPV6 </td> <td> Do not build with IPv6
 support. By default, IPv6 support is compiled in on platforms that
 are known to have IPv6 support. Note: this directive is for debugging
-and testing only. It is not guaranteed to work on all platforms.
+And testing only. It is not guaranteed to work on all platforms.
+If you don't want IPv6 support, set "inet_protocols = ipv4" in
+main.cf.
 </td> </tr>
 
 <tr> <td> </td> <td> -DNO_KQUEUE </td> <td> Do not build with FreeBSD

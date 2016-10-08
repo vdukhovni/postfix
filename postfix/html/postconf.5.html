@@ -5016,6 +5016,7 @@ parameter.  See there for details. </p>
 
 <p>
 The default TCP port that the Postfix LMTP client connects to.
+Specify a symbolic name (see services(5)) or a numeric port.
 </p>
 
 
@@ -11649,6 +11650,17 @@ Do not wait for the response to the SMTP QUIT command.
 during TLS startup and shutdown handshake procedures. </p>
 
 <p> This feature is available in Postfix 2.2 and later.  </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tcp_port">smtp_tcp_port</a>
+(default: smtp)</b></DT><DD>
+
+<p>
+The default TCP port that the Postfix SMTP client connects to.
+Specify a symbolic name (see services(5)) or a numeric port.
+</p>
 
 
 </DD>

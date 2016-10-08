@@ -22514,8 +22514,26 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix 2.11): changed the default MySQL
 	option_group value to "client" to enable the reading of
 	"client" option group settings in the MySQL option file.
+	This fixes false "not found" errors with Postfix queries
+	that contain UTF8-encoded text.  Fix by John Fawcett.
 	Specify an empty option_group value to get backwards-compatible
-	behavior.  This fixes a "not found" problem with Postfix
-	queries that contain UTF8-encoded non-ASCII text.  Based
-	on a fix by John Fawcett.  Files: global/dict_mysql.c,
-	proto/mysql_table.
+	behavior. Files: global/dict_mysql.c, proto/mysql_table.
+
+20161007
+
+	Bitrot: API for the ersatz inet_ntop() function, when
+	compiling with -DNO_IPV6 (which exists only for debugging).
+	Files: util/sys_defs.h, util/sys_compat.c.
+
+20161008
+
+	Feature: smtp_tcp_port, similar to the existing lmtp_tcp_port.
+	Files: mantools/postlink, proto/postconf.proto,
+	global/mail_params.h, smtp/smtp.c, smtp/smtp_connect.c,
+	smtp/smtp_params.c.
+
+	Feature: "PASS" and "STRIP" actions in header/body_checks.
+	"STRIP" is similar to "IGNORE" but also logs the action,
+	and "PASS" disables header, body, and Milter inspection for
+	the remainder of the message content.  Contributed by Hobbit.
+	Files: cleanup/cleanup_message.c, global/header_body_checks.c.

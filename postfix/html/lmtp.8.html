@@ -858,6 +858,11 @@ SMTP(8)                                                                SMTP(8)
               Optional list of relay hosts for LMTP destinations that can't be
               found or that are unreachable.
 
+       Available with Postfix 3.2 and later:
+
+       <b><a href="postconf.5.html#smtp_tcp_port">smtp_tcp_port</a> (smtp)</b>
+              The default TCP port that the Postfix SMTP client connects to.
+
 <b>SEE ALSO</b>
        <a href="generic.5.html">generic(5)</a>, output address rewriting
        <a href="header_checks.5.html">header_checks(5)</a>, message header content inspection

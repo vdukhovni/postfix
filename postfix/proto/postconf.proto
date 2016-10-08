@@ -7858,6 +7858,14 @@ lmtp_sasl_security_options = noplaintext
 
 <p>
 The default TCP port that the Postfix LMTP client connects to.
+Specify a symbolic name (see services(5)) or a numeric port.
+</p>
+
+%PARAM smtp_tcp_port smtp
+
+<p>
+The default TCP port that the Postfix SMTP client connects to.
+Specify a symbolic name (see services(5)) or a numeric port.
 </p>
 
 %PARAM mail_release_date see "postconf -d" output

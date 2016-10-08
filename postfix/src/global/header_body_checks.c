@@ -281,12 +281,16 @@ static char *hbc_action(void *context, HBC_CALL_BACKS *cb,
 	}
 	return ((char *) line);
     }
+    if (STREQUAL(cmd, "STRIP", cmd_len)) {
+	cb->logger(context, "strip", where, line, cmd_args);
+	return (HBC_CHECKS_STAT_IGNORE);
+    }
     /* Allow and ignore optional text after the action. */
 
     if (STREQUAL(cmd, "IGNORE", cmd_len))
 	/* XXX Not logged for compatibility with cleanup(8). */
 	return (HBC_CHECKS_STAT_IGNORE);
-
+ 
     if (STREQUAL(cmd, "DUNNO", cmd_len)		/* preferred */
 	||STREQUAL(cmd, "OK", cmd_len))		/* compatibility */
 	return ((char *) line);

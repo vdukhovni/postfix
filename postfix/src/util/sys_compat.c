@@ -40,7 +40,7 @@
 /*	int	af;
 /*	const void *src;
 /*	char	*dst;
-/*	size_t	size;
+/*	SOCKADDR_SIZE size;
 /*
 /*	int	inet_pton(af, src, dst)
 /*	int	af;
@@ -293,7 +293,7 @@ int     closefrom(int lowfd)
 
 /* inet_ntop - convert binary address to printable address */
 
-const char *inet_ntop(int af, const void *src, char *dst, size_t size)
+const char *inet_ntop(int af, const void *src, char *dst, SOCKADDR_SIZE size)
 {
     const unsigned char *addr;
     char    buffer[sizeof("255.255.255.255")];

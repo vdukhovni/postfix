@@ -60,6 +60,10 @@ main.cf:
     # ppoossttccoonnff ""ssmmttppuuttff88__eennaabbllee == yyeess""
     # ppoossttffiixx rreellooaadd
 
+(With Postfix <= 3.1, you may also need to specify "ooppttiioonn__ggrroouupp == cclliieenntt" in
+Postfix MySQL client files, to enable UTF8 support in MySQL queries. This
+setting is the default as of Postfix 3.2.)
+
 With SMTPUTF8 support enabled, Postfix changes behavior with respect to earlier
 Postfix releases:
 

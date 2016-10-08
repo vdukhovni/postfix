@@ -705,6 +705,10 @@
 /* .IP "\fBlmtp_fallback_relay (empty)\fR"
 /*	Optional list of relay hosts for LMTP destinations that can't be
 /*	found or that are unreachable.
+/* .PP
+/*	Available with Postfix 3.2 and later:
+/* .IP "\fBsmtp_tcp_port (smtp)\fR"
+/*	The default TCP port that the Postfix SMTP client connects to.
 /* SEE ALSO
 /*	generic(5), output address rewriting
 /*	header_checks(5), message header content inspection
@@ -908,7 +912,7 @@ char   *var_smtp_tls_insecure_mx_policy;
 char   *var_smtp_generic_maps;
 char   *var_prop_extension;
 bool    var_smtp_sender_auth;
-char   *var_lmtp_tcp_port;
+char   *var_smtp_tcp_port;
 int     var_scache_proto_tmout;
 bool    var_smtp_cname_overr;
 char   *var_smtp_pix_bug_words;

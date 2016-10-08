@@ -2992,6 +2992,7 @@ parameter.  See there for details.
 This feature is available in Postfix 2.3 and later.
 .SH lmtp_tcp_port (default: 24)
 The default TCP port that the Postfix LMTP client connects to.
+Specify a symbolic name (see \fBservices\fR(5)) or a numeric port.
 .SH lmtp_tls_CAfile (default: empty)
 The LMTP\-specific version of the smtp_tls_CAfile
 configuration parameter.  See there for details.
@@ -7308,6 +7309,9 @@ Time limit for Postfix SMTP client write and read operations
 during TLS startup and shutdown handshake procedures.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_tcp_port (default: smtp)
+The default TCP port that the Postfix SMTP client connects to.
+Specify a symbolic name (see \fBservices\fR(5)) or a numeric port.
 .SH smtp_tls_CAfile (default: empty)
 A file containing CA certificates of root CAs trusted to sign
 either remote SMTP server certificates or intermediate CA certificates.

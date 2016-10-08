@@ -1796,6 +1796,10 @@ extern char *var_smtp_sasl_auth_cache_name;
 #define DEF_LMTP_SASL_AUTH_CACHE_TIME	"90d"
 extern int var_smtp_sasl_auth_cache_time;
 
+#define VAR_SMTP_TCP_PORT	"smtp_tcp_port"
+#define DEF_SMTP_TCP_PORT	"smtp"
+extern char *var_smtp_tcp_port;
+
  /*
   * LMTP client. Timeouts inspired by RFC 1123. The LMTP recipient limit
   * determines how many recipient addresses the LMTP client sends along with
