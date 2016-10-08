@@ -163,7 +163,7 @@ int     smtpd_sasl_auth_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	smtpd_chat_reply(state, "503 5.5.1 Error: MAIL transaction in progress");
 	return (-1);
     }
-    if (smtpd_milters != 0 && (err = milter_other_event(smtpd_milters)) != 0) {
+    if (state->milters != 0 && (err = milter_other_event(state->milters)) != 0) {
 	if (err[0] == '5') {
 	    state->error_mask |= MAIL_ERROR_POLICY;
 	    smtpd_chat_reply(state, "%s", err);

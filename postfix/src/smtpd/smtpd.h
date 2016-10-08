@@ -182,6 +182,7 @@ typedef struct {
     const char **milter_argv;		/* SMTP command vector */
     ssize_t milter_argc;		/* SMTP command vector */
     const char *milter_reject_text;	/* input to call-back from Milter */
+    MILTERS *milters;			/* Milter initialization status.*/
 
     /*
      * EHLO temporary space.

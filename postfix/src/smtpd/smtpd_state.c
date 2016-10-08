@@ -159,6 +159,7 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
 
     state->milter_argv = 0;
     state->milter_argc = 0;
+    state->milters = 0;
 
     /*
      * Initialize peer information.

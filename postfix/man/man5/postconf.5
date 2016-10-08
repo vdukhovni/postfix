@@ -9827,6 +9827,41 @@ Examples:
 .ft R
 .PP
 This feature is available in Postfix 2.10 and later.
+.SH smtpd_milter_maps (default: empty)
+Lookup tables with Milter settings per remote SMTP client IP
+address.  The lookup result overrides the smtpd_milters setting,
+and has the same syntax.
+.PP
+Note: lookup tables cannot return empty responses. Specify a
+lookup result of DISABLE (case does not matter) to indicate that
+Milter support should be disabled.
+.PP
+Example to disable Milters for local clients:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtpd_milter_maps = cidr:/etc/postfix/smtpd_milter_map
+    smtpd_milters = inet:host:port, { inet:host:port, ... }, ...
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/smtpd_milter_map:
+    # Disable Milters for local clients.
+    127.0.0.0/8    DISABLE
+    192.168.0.0/16 DISABLE
+    ::/64          DISABLE
+    2001:db8::/32  DISABLE
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.2 and later.
 .SH smtpd_milters (default: empty)
 A list of Milter (mail filter) applications for new mail that
 arrives via the Postfix \fBsmtpd\fR(8) server. Specify space or comma as
