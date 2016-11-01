@@ -22537,3 +22537,11 @@ Apologies for any names omitted.
 	and "PASS" disables header, body, and Milter inspection for
 	the remainder of the message content.  Contributed by Hobbit.
 	Files: cleanup/cleanup_message.c, global/header_body_checks.c.
+
+20161024
+
+	Feature: smtpd_milter_maps, per-client Milter configuration
+	that overrides smtpd_milters, and that has the same syntax.
+	Files: mantools/postlink, proto/MILTER_README.html,
+	proto/postconf.proto, global/mail_params.h, smtpd/smtpd.c,
+	smtpd/smtpd.h, smtpd/smtpd_sasl_proto.c, smtpd/smtpd_state.c.

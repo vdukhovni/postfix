@@ -3250,6 +3250,11 @@ extern bool var_tls_dane_taa_dgst;
 #define DEF_SMTPD_MILTERS		""
 extern char *var_smtpd_milters;
 
+#define VAR_SMTPD_MILTER_MAPS		"smtpd_milter_maps"
+#define DEF_SMTPD_MILTER_MAPS		""
+extern char *var_smtpd_milter_maps;
+#define SMTPD_MILTERS_DISABLE		"DISABLE"
+
 #define VAR_CLEANUP_MILTERS		"non_smtpd_milters"
 #define DEF_CLEANUP_MILTERS		""
 extern char *var_cleanup_milters;

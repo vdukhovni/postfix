@@ -16675,3 +16675,32 @@ the verify(8) daemon automatically refreshes an active address
 before it expires. </p>
 
 <p> This feature is available in Postfix 3.1 and later.  </p>
+
+%PARAM smtpd_milter_maps
+
+<p> Lookup tables with Milter settings per remote SMTP client IP
+address.  The lookup result overrides the smtpd_milters setting,
+and has the same syntax. </p>
+
+<p> Note: lookup tables cannot return empty responses. Specify a
+lookup result of DISABLE (case does not matter) to indicate that
+Milter support should be disabled. </p>
+
+<p> Example to disable Milters for local clients: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtpd_milter_maps = cidr:/etc/postfix/smtpd_milter_map
+    smtpd_milters = inet:host:port, { inet:host:port, ... }, ...
+</pre>
+
+<pre>
+/etc/postfix/smtpd_milter_map:
+    # Disable Milters for local clients.
+    127.0.0.0/8    DISABLE
+    192.168.0.0/16 DISABLE
+    ::/64          DISABLE
+    2001:db8::/32  DISABLE
+</pre>
+
+<p> This feature is available in Postfix 3.2 and later.  </p>

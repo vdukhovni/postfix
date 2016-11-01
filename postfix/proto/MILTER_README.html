@@ -259,6 +259,9 @@ support per-Milter timeouts, per-Milter error handling, etc. </p>
 <li><a href="#per-milter">Different settings for different Milter
 applications </a>
 
+<li><a href="#per-client">Different settings for different SMTP
+clients </a>
+
 <li><a href="#macros">Sendmail macro emulation</a>
 
 <li><a href="#send-macros">What macros will Postfix send to Milters?</a>
@@ -319,6 +322,11 @@ form <b>inet:</b><i>port</i><b>@</b><i>host</i>. </p>  </dd>
 </dl>
 
 </blockquote>
+
+<p> For advanced configuration see "<a href="#per-client">Different
+settings for different SMTP clients</a>" and "<a
+href="#per-milter">Different settings for different Milter
+applications</a>". </p>
 
 <h3> <a name="non-smtp-milters">Non-SMTP Milter applications </a> </h3>
 
@@ -563,6 +571,29 @@ main.cf: items separated by space or comma. There is one difference:
 <b>you must enclose a setting in parentheses, as in "{ name = value
 }", if you want to have space or comma within a value or around
 "="</b>.  </p>
+
+<h3><a name="per-client">Different settings for different SMTP
+clients </a></h3>
+
+<p> The smtpd_milter_maps feature supports different Milter settings
+for different client IP addresses. Lookup results override the the
+global smtpd_milters setting, and have the same syntax. For example,
+to disable Milter settings for local address ranges: </p>
+
+<pre>
+/etc/postfix/main.cf:
+    smtpd_milter_maps = cidr:/etc/postfix/smtpd_milter_map
+    smtpd_milters = inet:host:port, { inet:host:port, ... }, ...
+
+/etc/postfix/smtpd_milter_map:
+    # Disable Milters for local clients.
+    127.0.0.0/8    DISABLE
+    192.168.0.0/16 DISABLE
+    ::/64          DISABLE
+    2001:db8::/32  DISABLE
+</pre>
+
+<p> This feature is available with Postfix 3.2 and later. </p>
 
 <h3><a name="macros">Sendmail macro emulation</a></h3>
 

@@ -550,6 +550,7 @@ while (<>) {
     s;\bsmtpd_history_flush_threshold\b;<a href="postconf.5.html#smtpd_history_flush_threshold">$&</a>;g;
     s;\bsmtpd_junk_command_limit\b;<a href="postconf.5.html#smtpd_junk_command_limit">$&</a>;g;
     s;\bsmtpd_milters\b;<a href="postconf.5.html#smtpd_milters">$&</a>;g;
+    s;\bsmtpd_milter_maps\b;<a href="postconf.5.html#smtpd_milter_maps">$&</a>;g;
     s;\bsmtpd_noop_commands\b;<a href="postconf.5.html#smtpd_noop_commands">$&</a>;g;
     s;\bsmtpd_null_access_lookup_key\b;<a href="postconf.5.html#smtpd_null_access_lookup_key">$&</a>;g;
     s;\bsmtpd_recipient_overshoot_limit\b;<a href="postconf.5.html#smtpd_recipient_overshoot_limit">$&</a>;g;

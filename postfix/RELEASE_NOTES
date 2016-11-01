@@ -16,6 +16,13 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+Major changes with snapshot 20161031
+====================================
+
+The smtpd_milter_maps feature supports per-client Milter configuration.
+This overrides the global smtpd_milters setting and has the same syntax. A
+lookup result of "DISABLE" turns off Milter support.
+
 Incompatible changes with snapshot 20160925
 ===========================================
 
