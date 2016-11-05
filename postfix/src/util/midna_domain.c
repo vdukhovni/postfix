@@ -7,6 +7,7 @@
 /*	#include <midna_domain.h>
 /*
 /*	int midna_domain_cache_size;
+/*	int midna_domain_transitional;
 /*
 /*	const char *midna_domain_to_ascii(
 /*	const char *name)
@@ -47,8 +48,10 @@
 /*
 /*	midna_domain_cache_size specifies the size of the conversion
 /*	result cache.  This value is used only once, upon the first
-/*	lookup
-/*	request.
+/*	lookup request.
+/*
+/*	midna_domain_transitional enables transitional conversion
+/*	between UTF8 and ASCII labels.
 /* SEE ALSO
 /*	http://unicode.org/reports/tr46/ Unicode IDNA Compatibility processing
 /*	msg(3) diagnostics interface
@@ -66,6 +69,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
  /*
@@ -86,6 +94,7 @@
 #include <ctable.h>
 #include <stringops.h>
 #include <valid_hostname.h>
+#include <name_mask.h>
 #include <midna_domain.h>
 
  /*
@@ -94,9 +103,72 @@
 #define DEF_MIDNA_CACHE_SIZE	256
 
 int     midna_domain_cache_size = DEF_MIDNA_CACHE_SIZE;
+int     midna_domain_transitional = 0;
 static VSTRING *midna_domain_buf;	/* x.suffix */
 
 #define STR(x)	vstring_str(x)
+
+/* midna_domain_strerror - pick one for error reporting */
+
+static const char *midna_domain_strerror(UErrorCode error, int info_errors)
+{
+    static LONG_NAME_MASK uidna_errors[] = {
+#ifdef UIDNA_ERROR_EMPTY_LABEL
+	"UIDNA_ERROR_EMPTY_LABEL", UIDNA_ERROR_EMPTY_LABEL,
+#endif
+#ifdef UIDNA_ERROR_LABEL_TOO_LONG
+	"UIDNA_ERROR_LABEL_TOO_LONG", UIDNA_ERROR_LABEL_TOO_LONG,
+#endif
+#ifdef UIDNA_ERROR_DOMAIN_NAME_TOO_LONG
+	"UIDNA_ERROR_DOMAIN_NAME_TOO_LONG", UIDNA_ERROR_DOMAIN_NAME_TOO_LONG,
+#endif
+#ifdef UIDNA_ERROR_LEADING_HYPHEN
+	"UIDNA_ERROR_LEADING_HYPHEN", UIDNA_ERROR_LEADING_HYPHEN,
+#endif
+#ifdef UIDNA_ERROR_TRAILING_HYPHEN
+	"UIDNA_ERROR_TRAILING_HYPHEN", UIDNA_ERROR_TRAILING_HYPHEN,
+#endif
+#ifdef UIDNA_ERROR_HYPHEN_3_4
+	"UIDNA_ERROR_HYPHEN_3_4", UIDNA_ERROR_HYPHEN_3_4,
+#endif
+#ifdef UIDNA_ERROR_LEADING_COMBINING_MARK
+	"UIDNA_ERROR_LEADING_COMBINING_MARK", UIDNA_ERROR_LEADING_COMBINING_MARK,
+#endif
+#ifdef UIDNA_ERROR_DISALLOWED
+	"UIDNA_ERROR_DISALLOWED", UIDNA_ERROR_DISALLOWED,
+#endif
+#ifdef UIDNA_ERROR_PUNYCODE
+	"UIDNA_ERROR_PUNYCODE", UIDNA_ERROR_PUNYCODE,
+#endif
+#ifdef UIDNA_ERROR_LABEL_HAS_DOT
+	"UIDNA_ERROR_LABEL_HAS_DOT", UIDNA_ERROR_LABEL_HAS_DOT,
+#endif
+#ifdef UIDNA_ERROR_INVALID_ACE_LABEL
+	"UIDNA_ERROR_INVALID_ACE_LABEL", UIDNA_ERROR_INVALID_ACE_LABEL,
+#endif
+#ifdef UIDNA_ERROR_BIDI
+	"UIDNA_ERROR_BIDI", UIDNA_ERROR_BIDI,
+#endif
+#ifdef UIDNA_ERROR_CONTEXTJ
+	"UIDNA_ERROR_CONTEXTJ", UIDNA_ERROR_CONTEXTJ,
+#endif
+#ifdef UIDNA_ERROR_CONTEXTO_PUNCTUATION
+	"UIDNA_ERROR_CONTEXTO_PUNCTUATION", UIDNA_ERROR_CONTEXTO_PUNCTUATION,
+#endif
+#ifdef UIDNA_ERROR_CONTEXTO_DIGITS
+	"UIDNA_ERROR_CONTEXTO_DIGITS", UIDNA_ERROR_CONTEXTO_DIGITS,
+#endif
+	0,
+    };
+
+    if (info_errors) {
+	return (str_long_name_mask_opt((VSTRING *) 0, "idna error",
+				       uidna_errors, info_errors,
+				       NAME_MASK_NUMBER | NAME_MASK_COMMA));
+    } else {
+	return u_errorName(error);
+    }
+}
 
 /* midna_domain_to_ascii_create - convert domain to ASCII */
 
@@ -121,7 +193,8 @@ static void *midna_domain_to_ascii_create(const char *name, void *unused_context
     /*
      * Perform the requested conversion.
      */
-    idna = uidna_openUTS46(UIDNA_DEFAULT, &error);/* XXX check error */
+    idna = uidna_openUTS46(midna_domain_transitional ? UIDNA_DEFAULT
+			   : UIDNA_NONTRANSITIONAL_TO_ASCII, &error);
     anl = uidna_nameToASCII_UTF8(idna,
 				 name, strlen(name),
 				 buf, sizeof(buf) - 1,
@@ -146,7 +219,7 @@ static void *midna_domain_to_ascii_create(const char *name, void *unused_context
 	return (mystrndup(buf, anl));
     } else {
 	msg_warn("%s: Problem translating domain \"%.100s\" to ASCII form: %s",
-		 myname, name, u_errorName(info.errors));
+		 myname, name, midna_domain_strerror(error, info.errors));
 	return (0);
     }
 }
@@ -174,7 +247,8 @@ static void *midna_domain_to_utf8_create(const char *name, void *unused_context)
     /*
      * Perform the requested conversion.
      */
-    idna = uidna_openUTS46(UIDNA_DEFAULT, &error);/* XXX check error */
+    idna = uidna_openUTS46(midna_domain_transitional ? UIDNA_DEFAULT
+			   : UIDNA_NONTRANSITIONAL_TO_UNICODE, &error);
     anl = uidna_nameToUnicodeUTF8(idna,
 				  name, strlen(name),
 				  buf, sizeof(buf) - 1,
@@ -195,7 +269,7 @@ static void *midna_domain_to_utf8_create(const char *name, void *unused_context)
 	return (mystrndup(buf, anl));
     } else {
 	msg_warn("%s: Problem translating domain \"%.100s\" to UTF8 form: %s",
-		 myname, name, u_errorName(info.errors));
+		 myname, name, midna_domain_strerror(error, info.errors));
 	return (0);
     }
 }

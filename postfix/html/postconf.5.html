@@ -3081,6 +3081,22 @@ with older Postfix versions).  </p>
 
 </DD>
 
+<DT><b><a name="enable_idna2003_compatibility">enable_idna2003_compatibility</a>
+(default: no)</b></DT><DD>
+
+<p> Enable 'transitional' compatibility between IDNA2003 and IDNA2008,
+when converting UTF-8 domain names to/from the ASCII form that is
+used for DNS lookups. Specify "yes" for compatibility with Postfix
+&le; 3.1 (not recommended). This affects the conversion of domain
+names that contain for example the German sz and the Greek zeta.
+See <a href="http://unicode.org/cldr/utility/idna.jsp">http://unicode.org/cldr/utility/idna.jsp</a> for more examples.
+</p>
+
+<p> This feature is available in Postfix 3.2 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="enable_long_queue_ids">enable_long_queue_ids</a>
 (default: no)</b></DT><DD>
 

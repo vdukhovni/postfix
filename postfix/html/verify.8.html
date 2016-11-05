@@ -169,6 +169,13 @@ VERIFY(8)                                                            VERIFY(8)
               Detect  that  a message requires SMTPUTF8 support for the speci-
               fied mail origin classes.
 
+       Available in Postfix version 3.2 and later:
+
+       <b><a href="postconf.5.html#enable_idna2003_compatibility">enable_idna2003_compatibility</a> (no)</b>
+              Enable  'transitional'  compatibility   between   IDNA2003   and
+              IDNA2008,  when  converting UTF-8 domain names to/from the ASCII
+              form that is used for DNS lookups.
+
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-

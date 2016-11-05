@@ -720,6 +720,13 @@ SMTP(8)                                                                SMTP(8)
               Detect that a message requires SMTPUTF8 support for  the  speci-
               fied mail origin classes.
 
+       Available in Postfix version 3.2 and later:
+
+       <b><a href="postconf.5.html#enable_idna2003_compatibility">enable_idna2003_compatibility</a> (no)</b>
+              Enable   'transitional'   compatibility   between  IDNA2003  and
+              IDNA2008, when converting UTF-8 domain names to/from  the  ASCII
+              form that is used for DNS lookups.
+
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>
               The  increment  in verbose logging level when a remote client or

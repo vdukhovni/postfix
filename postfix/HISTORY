@@ -22545,3 +22545,17 @@ Apologies for any names omitted.
 	Files: mantools/postlink, proto/MILTER_README.html,
 	proto/postconf.proto, global/mail_params.h, smtpd/smtpd.c,
 	smtpd/smtpd.h, smtpd/smtpd_sasl_proto.c, smtpd/smtpd_state.c.
+
+20161103
+
+	Cleanup: error reporting for IDNA (non-ASCII domain name)
+	conversion errors. File: util/midna_domain.c.
+
+	Cleanup: non-transitional conversion of UTF8 to/from ASCII
+	domain name labels used in DNS queries. This disables
+	'transitional' compatibility between IDNA2003 and IDNA2008,
+	and affects some corner cases such as German sz and Greek
+	zeta. Specify "enable_idna2003_compatibility = yes" to
+	restore historical behavior. Files: util/midna_domain.[hc],
+	mantools/postlink, global/mail_params.[hc], proto/postconf.proto,
+	proto/SMTPUTF8_README.html.

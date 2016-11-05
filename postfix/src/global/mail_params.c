@@ -167,6 +167,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -196,6 +201,7 @@
 #include <inet_proto.h>
 #include <vstring_vstream.h>
 #include <iostuff.h>
+#include <midna_domain.h>
 
 /* Global library. */
 
@@ -652,6 +658,7 @@ void    mail_params_init()
     static const CONFIG_NBOOL_TABLE first_nbool_defaults[] = {
 	/* read and process the following before opening tables. */
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
+	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &midna_domain_transitional,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {

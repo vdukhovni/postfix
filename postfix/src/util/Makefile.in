@@ -1110,6 +1110,7 @@ dict_cidr.o: dict.h
 dict_cidr.o: dict_cidr.c
 dict_cidr.o: dict_cidr.h
 dict_cidr.o: msg.h
+dict_cidr.o: mvect.h
 dict_cidr.o: myaddrinfo.h
 dict_cidr.o: myflock.h
 dict_cidr.o: mymalloc.h
@@ -1750,6 +1751,8 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
+load_lib.o: load_lib.h
+load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: check_arg.h
 lowercase.o: lowercase.c
@@ -1831,6 +1834,7 @@ midna_domain.o: midna_domain.c
 midna_domain.o: midna_domain.h
 midna_domain.o: msg.h
 midna_domain.o: mymalloc.h
+midna_domain.o: name_mask.h
 midna_domain.o: stringops.h
 midna_domain.o: sys_defs.h
 midna_domain.o: valid_hostname.h

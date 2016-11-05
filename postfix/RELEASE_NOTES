@@ -16,6 +16,20 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+Incompatible changes with snapshot 20161103
+===========================================
+
+Postfix 3.2 by default disables the 'transitional' compatibility
+between IDNA2003 and IDNA2008, when converting UTF-8 domain names
+to/from the ASCII form that is used in DNS lookups.  This makes
+Postfix behavior consistent with current versions of the Firefox
+and Chrome web browsers. Specify "enable_idna2003_compatibility =
+yes" for historical behavior.
+
+This affects the conversion of, for example, the German sz and the
+Greek zeta. See http://unicode.org/cldr/utility/idna.jsp for more
+examples.
+
 Major changes with snapshot 20161031
 ====================================
 

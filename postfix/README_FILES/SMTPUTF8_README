@@ -18,6 +18,7 @@ Topics covered in this document:
   * SMTPUTF8 autodetection
   * Limitations of the current implementation
   * Compatibility with pre-SMTPUTF8 environments
+  * Compatibility with IDNA2003
   * Credits
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh//wwiitthhoouutt SSMMTTPPUUTTFF88 ssuuppppoorrtt
@@ -258,6 +259,18 @@ such as ISO-8859. It is not practical for Postfix to support multiple encodings
 at the same time. There is no problem with RFC 2047 encodings such as "=?ISO-
 8859-1?Q?text?=", because those use only characters from the ASCII
 characterset.
+
+CCoommppaattiibbiilliittyy wwiitthh IIDDNNAA22000033
+
+Postfix >= 3.2 by default disables the 'transitional' compatibility between
+IDNA2003 and IDNA2008, when converting UTF-8 domain names to/from the ASCII
+form that is used in DNS lookups. This makes Postfix behavior consistent with
+current versions of the Firefox and Chrome web browsers. Specify
+"enable_idna2003_compatibility = yes" to get the historical behavior.
+
+This affects the conversion of domain names that contain for example the German
+sz (ß) and the Greek zeta (ς). See http://unicode.org/cldr/utility/idna.jsp
+for more examples.
 
 CCrreeddiittss
 

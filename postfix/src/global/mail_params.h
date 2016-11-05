@@ -3955,6 +3955,9 @@ extern int var_strict_smtputf8;
 					MAIL_SRC_NAME_VERIFY
 extern char *var_smtputf8_autoclass;
 
+#define VAR_IDNA2003_COMPAT		"enable_idna2003_compatibility"
+#define DEF_IDNA2003_COMPAT		"no"
+
  /*
   * Workaround for future incompatibility. Our implementation of RFC 2308
   * negative reply caching relies on the promise that res_query() and
@@ -3976,6 +3979,11 @@ extern bool var_dns_ncache_ttl_fix;
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif
