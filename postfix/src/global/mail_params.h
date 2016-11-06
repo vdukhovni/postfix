@@ -3957,6 +3957,7 @@ extern char *var_smtputf8_autoclass;
 
 #define VAR_IDNA2003_COMPAT		"enable_idna2003_compatibility"
 #define DEF_IDNA2003_COMPAT		"no"
+extern int var_idna2003_compat;
 
  /*
   * Workaround for future incompatibility. Our implementation of RFC 2308

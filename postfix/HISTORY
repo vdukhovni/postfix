@@ -22559,3 +22559,13 @@ Apologies for any names omitted.
 	restore historical behavior. Files: util/midna_domain.[hc],
 	mantools/postlink, global/mail_params.[hc], proto/postconf.proto,
 	proto/SMTPUTF8_README.html.
+
+20161105
+
+	Bugfix (introduced: Postfix 1.1): the postsuper command did
+	not count a successful rename operation after error recovery.
+	Problem reported by Markus Schönhaber. File: postsuper/postsuper.c.
+
+	Cleanup: error reporting for IDNA (non-ASCII domain name)
+	conversion errors, and enable_idna2003_compatibility
+	configuration. File: util/midna_domain.c.

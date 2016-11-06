@@ -127,6 +127,7 @@
 /*	int	var_smtputf8_enable
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
+/*	int     var_idna2003_compat;
 /*	int     var_compat_level;
 /*	char	*var_drop_hdrs;
 /*
@@ -338,6 +339,7 @@ char   *var_dsn_filter;
 int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
+int     var_idna2003_compat;
 int     var_compat_level;
 char   *var_drop_hdrs;
 
@@ -658,7 +660,7 @@ void    mail_params_init()
     static const CONFIG_NBOOL_TABLE first_nbool_defaults[] = {
 	/* read and process the following before opening tables. */
 	VAR_SMTPUTF8_ENABLE, DEF_SMTPUTF8_ENABLE, &var_smtputf8_enable,
-	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &midna_domain_transitional,
+	VAR_IDNA2003_COMPAT, DEF_IDNA2003_COMPAT, &var_idna2003_compat,
 	0,
     };
     static const CONFIG_STR_FN_TABLE function_str_defaults[] = {
@@ -825,6 +827,8 @@ void    mail_params_init()
 	msg_warn("%s is true, but EAI support is not compiled in",
 		 VAR_SMTPUTF8_ENABLE);
     var_smtputf8_enable = 0;
+#else
+    midna_domain_transitional = var_idna2003_compat;
 #endif
     util_utf8_enable = var_smtputf8_enable;
 

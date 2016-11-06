@@ -437,7 +437,7 @@ static int postrename(const char *old, const char *new)
     if ((ret = sane_rename(old, new)) < 0) {
 	if (errno != ENOENT
 	    || mail_queue_mkdirs(new) < 0
-	    || sane_rename(old, new) < 0)
+	    || (ret = sane_rename(old, new)) < 0)
 	    if (errno != ENOENT)
 		msg_fatal("rename file %s as %s: %m", old, new);
     } else {
