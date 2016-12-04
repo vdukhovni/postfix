@@ -140,7 +140,7 @@ extern const char *str_tls_level(int);
 #define TLS_MGR_SCACHE_LMTP	"lmtp"
 
  /*
-  * RFC 6698 DANE
+  * RFC 6698, 7671, 7672 DANE
   */
 #define TLS_DANE_TA	0		/* Match trust-anchor digests */
 #define TLS_DANE_EE	1		/* Match end-entity digests */
@@ -243,7 +243,7 @@ typedef struct {
     const char *mdalg;			/* default message digest algorithm */
     /* Built-in vs external SSL_accept/read/write/shutdown support. */
     VSTREAM *stream;			/* Blocking-mode SMTP session */
-    /* RFC 6698 DANE trust input and verification state */
+    /* DANE TLSA trust input and verification state */
     const TLS_DANE *dane;		/* DANE TLSA digests */
     int     errordepth;			/* Chain depth of error cert */
     int     tadepth;			/* Chain depth of trust anchor */
@@ -457,7 +457,7 @@ typedef struct {
     const char *cipher_exclusions;	/* Ciphers to exclude */
     const ARGV *matchargv;		/* Cert match patterns */
     const char *mdalg;			/* default message digest algorithm */
-    const TLS_DANE *dane;		/* RFC 6698 verification */
+    const TLS_DANE *dane;		/* DANE TLSA verification */
 } TLS_CLIENT_START_PROPS;
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);

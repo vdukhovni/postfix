@@ -22482,6 +22482,7 @@ Apologies for any names omitted.
 	Feature: preserve the new file mtimes when installing
 	Postfix.  Ondřej Lysoněk. Wietse made this conditional on
 	the presence of a new -keep-new-mtime flag. File: postfix-install.
+	[this flag was renamed to "-keep-build-mtime" on 20161126]
 
 20160917
 
@@ -22569,3 +22570,78 @@ Apologies for any names omitted.
 	Cleanup: error reporting for IDNA (non-ASCII domain name)
 	conversion errors, and enable_idna2003_compatibility
 	configuration. File: util/midna_domain.c.
+
+20161106
+
+	Documentation: specify the minimum ICU library version (4.6).
+	File: proto/SMTPUTF8_README.html.
+
+20161109
+
+	Portability: force LC_ALL=C in dict_utf8 test. This should
+	probably be in every shell script.
+
+20161120
+
+	Documentation: clarified the syntax of $name and ${name...}
+	in parameter values, and some wordsmithing. Files:
+	proto/postconf.html.prolog, proto/postconf.man.prolog.
+
+20161123
+
+	Documentation: clarified reject_non_fqdn_{sender,recipient}.
+	The syntax check applies only for domains that are actually
+	specified, not for missing domains. File: proto/postconf.proto.
+
+20161126
+
+	Cleanup: the postfix-install option "-keep-new-mtime" was
+	renamed to "-keep-build-mtime". File: postfix-install.
+
+	Feature: "make makefiles POSTFIX_INSTALL_OPTS=-keep-build-mtime"
+	to set the installed file mtimes to their build time instead
+	of their installation time. Based on code by Ondřej Lysoněk.
+	Wietse added a guard to prevent POSTFIX_INSTALL_OPTS from
+	passing arbitrary options.  Files: makedefs, Makefile.in,
+	proto/INSTALL.html.
+
+20121201
+
+	Documentation: add 'smtpd_tls_auth_only=yes' to the master.cf
+	submission service example. File: conf/master.cf.
+
+20161202
+
+	Documentation: typos in postconf(1) manpage. File:
+	postconf/postconf.c.
+
+20121204
+
+	Cleanup: properly report numerical conversion errors in
+	${{number} relational-operator ${number}}, and wordsmithing.
+	File: util/mac_expand.c.
+
+	Updated auxiliary/collate/collate.pl with Viktor's suggestion
+	in <98D25E24-EAB1-42BB-82FD-794F5DDD4E7F@dukhovni.org> for
+	better tracking of message flows.
+
+	Cleanup: remove tentative features that were implemented
+	before the DANE spec was finalized: support for certificate
+	usage PKIX-EE(1), the ability to disable digest agility
+	(Postfix now behaves as if "tls_dane_digest_agility = on"),
+	and the ability to disable support for "TLSA 2 [01] [12]"
+	records that specify the digest of a trust anchor (Postfix
+	now behaves as if "tls_dane_trust_anchor_digest_enable =
+	yes).  Viktor Dukhovni.  Files: mantools/postlink,
+	proto/postconf.proto, proto/TLS_README.html, tls/tls.h,
+	tls/tls_dane.c, smtp/smtp.c.
+
+	Bugfix (introduced: Postfix 3.1): cut-and-paste error in
+	the "postfix tls deploy-server-cert" command, causing the
+	wrong certfile and keyfile to be used. Viktor Dukhovni.
+	File: conf/postfix-tls-script.
+
+	Robustness: create a new keyfile when "postfix tls
+	new-server-cert" is invoked, and main.cf specifies a
+	non-existent keyfile. Viktor Dukhovni.  File:
+	conf/postfix-tls-script.

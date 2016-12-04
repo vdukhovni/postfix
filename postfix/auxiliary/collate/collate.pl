@@ -10,7 +10,9 @@ my $instre = qr{(?x)
 	\A			# Absolute line start
 	(?:\S+ \s+){3} 		# Timestamp, adjust for other time formats
 	\S+ \s+ 		# Hostname
-	(postfix(?:-\S+)?)/	# postfix instance
+	(postfix(?:-[^/\s]+)?)	# Capture instance name stopping before first '/'
+	(?:/\S+)*		# Optional non-captured '/'-delimited qualifiers
+	/			# Final '/' before the daemon program name
 	};
 
 my $cmdpidre = qr{(?x)

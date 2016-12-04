@@ -1,6 +1,6 @@
 #!/bin/sh
 
-awk 'BEGIN {
+LC_ALL=C awk 'BEGIN {
 	print "flags"
 	print "verbose"
 	printf "get foo\n"

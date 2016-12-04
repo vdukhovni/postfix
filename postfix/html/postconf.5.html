@@ -43,25 +43,30 @@ that starts with whitespace continues a logical line. </p>
 <ul>
 
 <li> <p> The expressions "$name" and "${name}" are recursively
-replaced with the value of the named parameter, except where noted.
+replaced with the value of the named parameter. The parameter name
+must contain only characters from the set [a-zA-Z0-9_].
 An undefined parameter value is replaced with the empty value.  </p>
 
 <li> <p> The expressions "${name?value}" and "${name?{value}}" are
-replaced with "value" when "$name" is non-empty. These forms are
+replaced with "value" when "$name" is non-empty. The parameter name
+must contain only characters from the set [a-zA-Z0-9_]. These forms are
 supported with Postfix versions &ge; 2.2 and &ge; 3.0, respectively.
 </p>
 
-<li> <p> The expressions "${name:value}" and "${name?{value}}" are
-replaced with "value" when "$name" is empty. These forms are supported
-with Postfix versions &ge; 2.2 and &ge; 3.0, respectively.  </p>
+<li> <p> The expressions "${name:value}" and "${name:{value}}" are
+replaced with "value" when "$name" is empty. The parameter name must
+contain only characters from the set [a-zA-Z0-9_]. These forms are
+supported with Postfix versions &ge; 2.2 and &ge; 3.0, respectively.
+</p>
 
 <li> <p> The expression "${name?{value1}:{value2}}" is replaced
 with "value1" when "$name" is non-empty, and with "value2" when
 "$name" is empty.  The "{}" is required for "value1", optional for
-"value2".  This form is supported with Postfix versions &ge; 3.0.
-</p>
+"value2".  The parameter name must contain only characters from the
+set [a-zA-Z0-9_].  This form is supported with Postfix versions
+&ge; 3.0.  </p>
 
-<li> <p> The first item inside "${...}" may be a logical expression
+<li> <p> The first item inside "${...}" may be a relational expression
 of the form: "{value3} == {value4}". Besides the "==" (equality)
 operator Postfix supports "!=" (inequality), "&lt;", "&le;", "&ge;",
 and "&gt;". The comparison is numerical when both operands are all
@@ -69,7 +74,7 @@ digits, otherwise the comparison is lexicographical. These forms
 are supported with Postfix versions &ge; 3.0. </p>
 
 <li> <p> Each "value" is subject to recursive named parameter and
-logical expression evaluation, except where noted.  </p>
+relational expression evaluation, except where noted.  </p>
 
 <li> <p> Whitespace before or after each "{value}" is ignored. </p>
 
@@ -10725,7 +10730,7 @@ itself is not configured to use DNSSEC. </p>
 
 <p> When using Postfix DANE support the "<a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a>" parameter
 should include "dns", as <a
-href="https://tools.ietf.org/html/rfc6698">DANE</a> is not applicable
+href="https://tools.ietf.org/html/rfc7672">DANE</a> is not applicable
 to hosts resolved via "native" lookups.  </p>
 
 <p> As mentioned above, Postfix is not a validating <a
@@ -12587,7 +12592,7 @@ href="TLS_README.html#client_tls_may">may</a>.  If TLSA records are
 found, but none are usable, the effective security level is <a
 href="TLS_README.html#client_tls_encrypt">encrypt</a>.  When usable
 TLSA records are obtained for the remote SMTP server, the
-server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE)
+server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication and DNSSEC support is available with Postfix
 2.11 and later.  </dd>
 
@@ -12596,7 +12601,7 @@ TLS authentication and DNSSEC support is available with Postfix
 obtained via TLSA records in DNSSEC.  If no TLSA records are found,
 or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
-server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS
+server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
 and later.  </dd>
 
@@ -12846,7 +12851,7 @@ in effect, the destination domain's containing DNS zone must be
 signed and the Postfix SMTP client's operating system must be
 configured to send its DNS queries to a recursive DNS nameserver
 that is able to validate the signed records.  Each MX host's DNS
-zone should also be signed, and should publish DANE TLSA (<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>)
+zone should also be signed, and should publish DANE TLSA (<a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>)
 records that specify how that MX host's TLS certificate is to be
 verified.  TLSA records do not preempt the normal SMTP MX host
 selection algorithm, if some MX hosts support TLSA and others do
@@ -12861,13 +12866,13 @@ purposes of protocol and cipher selection, the "dane" security level
 is treated like a "mandatory" TLS security level, and weak ciphers
 and protocols are disabled.  Since DANE authenticates server
 certificates the "aNULL" cipher-suites are transparently excluded
-at this level, no need to configure this manually.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE)
+at this level, no need to configure this manually.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication is available with Postfix 2.11 and later.  </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
 <dd>Mandatory DANE TLS.  This is just like "dane" above, but DANE
 TLSA authentication is required.  There is no fallback to "may" or
-"encrypt" when TLSA records are missing or unusable.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>
+"encrypt" when TLSA records are missing or unusable.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>
 (DANE) TLS authentication is available with Postfix 2.11 and later.
 </dd>
 
@@ -13053,9 +13058,9 @@ trust-anchor files are used at all, they will be specified on a
 per-destination basis via the "tafile" attribute of the "verify"
 and "secure" levels in <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  </p>
 
-<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA),
-which defines mechanisms for a client to securely determine server
-TLS certificates via DNS.  </p>
+<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE TLSA),
+which defines mechanisms for an SMTP client MTA to securely determine
+server TLS certificates via DNS.  </p>
 
 <p> If you want your trust anchors to be public keys, with OpenSSL
 you can extract a single PEM public key from a PEM X.509 file
@@ -15132,7 +15137,8 @@ lookup problem with Postfix prior to version 2.0.
 
 <dt><b><a name="reject_non_fqdn_recipient">reject_non_fqdn_recipient</a></b></dt>
 
-<dd>Reject the request when the RCPT TO address is not in
+<dd>Reject the request when the RCPT TO address specifies a
+domain that is not in
 fully-qualified domain form, as required by the RFC. <br> The
 <a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504). </dd>
@@ -15886,8 +15892,9 @@ feature is available in Postfix version 2.11 and later. </dd>
 
 <dt><b><a name="reject_non_fqdn_sender">reject_non_fqdn_sender</a></b></dt>
 
-<dd>Reject the request when the MAIL FROM address is not in
-fully-qualified domain form, as required by the RFC. <br> The
+<dd>Reject the request when the MAIL FROM address specifies a
+domain that is not in
+fully-qualified domain form as required by the RFC. <br> The
 <a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504). </dd>
 
@@ -17483,63 +17490,14 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 <DT><b><a name="tls_dane_digest_agility">tls_dane_digest_agility</a>
 (default: on)</b></DT><DD>
 
-<p> Configure DANE TLSA digest algorithm agility.  When digest
-algorithm agility is enabled, and the server and client support a
-common strong digest algorithm, TLSA records with weaker digest
-algorithms are ignored.  </p>
+<p> Configure <a href="http://tools.ietf.org/html/rfc7671">RFC7671</a> DANE TLSA digest algorithm agility.
+Do not change this setting from its default value. </p>
 
-<p> Specify one of the following: </p>
+<p> See Section 8 of <a href="http://tools.ietf.org/html/rfc7671">RFC7671</a> for correct key rotation procedures.  </p>
 
-<dl>
-
-<dt><b>off</b></dt>
-<dd> DANE verification examines each well-formed record in the TLSA
-RRset whose matching type is either "0" (no hash used) or is one of
-the digest algorithms listed in $<a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a>.  This setting
-is not recommended.  </dd>
-
-<dt><b>on</b></dt>
-<dd> From each group of well-formed TLSA RRs a non-zero digest
-matching type with the same certificate usage and selector, DANE
-verification examines only those records whose matching type has
-the highest precedence (appear earliest in $<a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a>).
-</dd>
-
-<dt><b>maybe</b></dt>
-<dd> For compatibility with digest algorithm agility, each certificate
-or public key whose digest is included in a DANE TLSA RRset, SHOULD
-be published with the same set of digest matching type values as
-any other with the same usage and selector.  Therefore, compatible
-TLSA RRsets will contain an identical count of well-formed RRs with
-each non-zero digest matching type for any fixed combination of
-usage and selector.  When this constraint is violated, or any of
-the digest records are malformed, digest algorithm agility will
-disabled.  Otherwise, digest algorithm agility is enabled.   </dd>
-
-</dl>
-
-<p> Digest algorithm agility ensures that the strongest digest
-supported by both the Postfix SMTP client and the remote server is
-used, and weaker digests are ignored.  This supports non-disruptive
-deprecation of outdated digest algorithms. </p>
-
-<p> To ensure compatibility with digest algorithm agility during
-key rotation, when a certificate or public key is being replaced
-with another, and both are published during the transition, both
-the old and the new certificate MUST be specified with the same set
-of digests.  One can change the list of digest algorithms later,
-once old keys are retired.  At any given time, change either the
-list of digests without changing the list of certificates or public
-keys or the list of certificates or public keys without changing
-the list of digests.  Full value matching type "0" records are not
-subject to this constraint, but are discouraged due to the size of
-the resulting DNS records.  </p>
-
-<p> It is expected that this algorithm agility mechanism will be
-published in a standards track RFC for SMTP with DANE, and also in
-an eventual update to <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>. </p>
-
-<p> This feature is available in Postfix 2.11 and later. </p>
+<p> This feature is available in Postfix 2.11 through 3.1.  Postfix
+3.2 and later ignore this configuration parameter and behave as
+though it were set to "on".  </p>
 
 
 </DD>
@@ -17547,10 +17505,11 @@ an eventual update to <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>.
 <DT><b><a name="tls_dane_digests">tls_dane_digests</a>
 (default: sha512 sha256)</b></DT><DD>
 
-<p> <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> TLSA resource-record "matching type" digest algorithms
-in descending preference order.  All the specified algorithms must
-be supported by the underlying OpenSSL library, otherwise the Postfix
-SMTP client will not support DANE TLSA security.  </p>
+<p> DANE TLSA (<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>, <a href="http://tools.ietf.org/html/rfc7671">RFC 7671</a>, <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>) resource-record "matching
+type" digest algorithms in descending preference order.  All the
+specified algorithms must be supported by the underlying OpenSSL
+library, otherwise the Postfix SMTP client will not support DANE
+TLSA security.  </p>
 
 <p> Specify a list of digest names separated by commas and/or
 whitespace.  Each digest name may be followed by an optional
@@ -17575,16 +17534,6 @@ seriously compromised and servers have had ample time to update their
 TLSA records you should not omit any standard digests, just arrange
 them in order from strongest to weakest.  </p>
 
-<p> When for a particular combination of "certificate usage" and
-"selector" the TLSA RRset contains records with more than one digest
-matching type, the tls_dane_digest_agility parameter determines
-whether all the RRs are used, or only those with the most preferred
-digest matching type.  </p>
-
-<p> The <a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a> parameter controls
-whether any digest TLSA records are acceptable in usage "2" (trust
-anchor assertion) TLSA records. </p>
-
 <p> This feature is available in Postfix 2.11 and later. </p>
 
 
@@ -17593,31 +17542,15 @@ anchor assertion) TLSA records. </p>
 <DT><b><a name="tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>
 (default: yes)</b></DT><DD>
 
-<p> <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> trust-anchor digest support in the Postfix TLS library.
-Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
-digests of trust-anchors with certificate usage "2".  In this case
-the certificate usage logically requires the server administrator
-to configure the server to include the trust-anchor certificate in
-the server's SSL certificate chain.  If enough domains mess this
-up, you can disable support for these TLSA records, but you'll no
-longer have secure connections that get it right and only publish
-trust anchor records.  </p>
+<p> Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
+digests of trust-anchors with certificate usage "2".  Do not change
+this setting from its default value.  </p>
 
-<p> At the <a href="TLS_README.html#client_tls_dane">dane</a>
-security level, when a TLSA RRset includes only unusable associations,
-the Postfix SMTP client will automatically switch the connection
-to the <a href="TLS_README.html#client_tls_encrypt">encrypt</a>
-security level.  At the <a
-href="TLS_README.html#client_tls_dane">dane-only</a> security level,
-the server in question is skipped and delivery is deferred if no
-secure servers are found.  </p>
-
-<p> The <a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a> parameter controls the list of digest
-algorithms that are supported in TLSA records.  The tls_dane_digest_agility
-parameter controls digest algorithm downgrade attack resistance.
-</p>
-
-<p> This feature is available in Postfix 2.11 and later.  </p>
+<p> This feature is available in Postfix 2.11 through 3.1.  It has
+been withdrawn in Postfix 3.2, as trust-anchor TLSA records are now
+widely used and have proved sufficiently reliable.  Postfix 3.2 and
+later ignore this configuration parameter and behaves as though it
+were set to "yes".  </p>
 
 
 </DD>

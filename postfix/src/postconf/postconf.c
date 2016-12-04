@@ -163,7 +163,7 @@
 /*
 /*	With \fB-F\fR, edit the \fBmaster.cf\fR configuration file,
 /*	and replace one or more service fields with new values as
-/*	specied with "\fIservice/type/field=value\fR" on the
+/*	specified with "\fIservice/type/field=value\fR" on the
 /*	\fBpostconf\fR(1) command line. Currently, the "command"
 /*	field contains the command name and command arguments.  this
 /*	may change in the near future, so that the "command" field
@@ -172,7 +172,7 @@
 /*
 /*	With \fB-P\fR, edit the \fBmaster.cf\fR configuration file,
 /*	and add or update one or more service parameter settings
-/*	(-o parameter=value settings) with new values as specied
+/*	(-o parameter=value settings) with new values as specified
 /*	with "\fIservice/type/parameter=value\fR" on the \fBpostconf\fR(1)
 /*	command line.
 /*
@@ -487,7 +487,7 @@
 /*
 /*	With \fB-P\fR, edit the \fBmaster.cf\fR configuration file,
 /*	and remove one or more service parameter settings (-o
-/*	parameter=value settings) as specied with
+/*	parameter=value settings) as specified with
 /*	"\fIservice/type/parameter\fR" on the \fBpostconf\fR(1)
 /*	command line.
 /*

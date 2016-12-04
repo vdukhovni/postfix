@@ -2,7 +2,7 @@
 /* NAME
 /*	tls_dane 3
 /* SUMMARY
-/*	Support for RFC 6698 (DANE) certificate matching
+/*	Support for RFC 6698, 7671, 7672 (DANE) certificate matching
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
@@ -273,18 +273,6 @@ typedef struct dane_digest {
 
 #define MAXDIGESTS 256			/* RFC limit */
 static dane_digest *digest_list;
-static int digest_agility = -1;
-
-#define AGILITY_OFF	0
-#define AGILITY_ON	1
-#define AGILITY_MAYBE	2
-
-static NAME_CODE agility[] = {
-    {TLS_DANE_AGILITY_OFF, AGILITY_OFF},
-    {TLS_DANE_AGILITY_ON, AGILITY_ON},
-    {TLS_DANE_AGILITY_MAYBE, AGILITY_MAYBE},
-    {0, -1}
-};
 
 /*
  * This is not intended to be a long-term cache of pre-parsed TLSA data,
@@ -472,10 +460,7 @@ static void dane_init(void)
      * The most preferred digest will be used for cert signing and hashing full
      * values for comparison.
      */
-    if ((digest_agility = name_code(agility, 0, var_tls_dane_agility)) < 0) {
-	msg_warn("Invalid %s syntax: %s. DANE support disabled.",
-		 VAR_TLS_DANE_AGILITY, var_tls_dane_agility);
-    } else if (add_digest(fullmtype, 0)) {
+    if (add_digest(fullmtype, 0)) {
 	save = cp = mystrdup(var_tls_dane_digests);
 	while ((tok = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	    if ((d = add_digest(tok, ++digest_pref)) == 0) {
@@ -726,7 +711,6 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
     case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
 	certusage = TLS_DANE_TA;
 	break;
-    case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
     case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
 	certusage = TLS_DANE_EE;		/* Collapse 1/3 -> 3 */
 	break;
@@ -755,9 +739,8 @@ static void dane_add(TLS_DANE *dane, int certusage, int selector,
 }
 
 #define FILTER_CTX_AGILITY_OK		(1<<0)
-#define FILTER_CTX_CHECK_AGILITY	(1<<1)
-#define FILTER_CTX_APPLY_AGILITY	(1<<2)
-#define FILTER_CTX_PARSE_DATA		(1<<3)
+#define FILTER_CTX_APPLY_AGILITY	(1<<1)
+#define FILTER_CTX_PARSE_DATA		(1<<2)
 
 #define FILTER_RR_DROP			0
 #define FILTER_RR_KEEP			1
@@ -884,31 +867,14 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 		ctx->count = 0;			/* disable drop */
 	    return (FILTER_RR_DROP);
 	}
-	if ((ctx->flags & FILTER_CTX_CHECK_AGILITY)
-	    && (ctx->flags & FILTER_CTX_AGILITY_OK)) {
-	    ++ctx->count;
-	    if (change) {
-		/*-
-		 * Count changed from last mtype for same usage/selector?
-		 * Yes, disable agility.
-		 * Else, set or (on usage/selector change) reset target.
-		 */
-		if (ctx->target && ctx->target != ctx->count)
-		    ctx->flags &= ~FILTER_CTX_AGILITY_OK;
-		else
-		    ctx->target = (change & 0xffff00) ? 0 : ctx->count;
-		ctx->count = 0;
-	    }
-	}
     }
+
     /*-
      * Drop unsupported usages.
-     * Note: NO SUPPORT for usage 0 which does not apply to SMTP.
-     * Note: Best-effort support for usage 1, which simply maps to 3.
+     * Note: NO SUPPORT for usages 0/1 which do not apply to SMTP.
      */
     switch (usage) {
     case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
-    case DNS_TLSA_USAGE_SERVICE_CERTIFICATE_CONSTRAINT:
     case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
 	break;
     default:
@@ -947,13 +913,6 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 		     d->mdalg, (unsigned long) dlen,
 		     q, a, r, usage, selector, mtype);
 	    ctx->flags &= ~FILTER_CTX_AGILITY_OK;
-	    return (FILTER_RR_DROP);
-	}
-	if (!var_tls_dane_taa_dgst
-	    && usage == DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION) {
-	    msg_warn("trust-anchor digests disabled, ignoring RR: "
-		     "%s%s%s IN TLSA %u %u %u ...", q, a, r,
-		     usage, selector, mtype);
 	    return (FILTER_RR_DROP);
 	}
 	/* New digest mtype next? Prepare to drop following RRs */
@@ -1055,30 +1014,10 @@ static DNS_RR *process_rrs(TLS_DANE *dane, DNS_RR *rrset)
 
     ctx.dane = dane;
     ctx.count = ctx.target = 0;
-    ctx.flags = 0;
-
-    switch (digest_agility) {
-    case AGILITY_ON:
-	ctx.flags |= FILTER_CTX_APPLY_AGILITY | FILTER_CTX_PARSE_DATA;
-	break;
-    case AGILITY_OFF:
-	ctx.flags |= FILTER_CTX_PARSE_DATA;
-	break;
-    case AGILITY_MAYBE:
-	ctx.flags |= FILTER_CTX_CHECK_AGILITY | FILTER_CTX_AGILITY_OK;
-	break;
-    }
+    ctx.flags = FILTER_CTX_APPLY_AGILITY | FILTER_CTX_PARSE_DATA;
 
     rrset = tlsa_apply(rrset, parse_tlsa_rr, &ctx);
 
-    if (digest_agility == AGILITY_MAYBE) {
-	/* Two-pass algorithm */
-	if (ctx.flags & FILTER_CTX_AGILITY_OK)
-	    ctx.flags = FILTER_CTX_APPLY_AGILITY | FILTER_CTX_PARSE_DATA;
-	else
-	    ctx.flags = FILTER_CTX_PARSE_DATA;
-	rrset = tlsa_apply(rrset, parse_tlsa_rr, &ctx);
-    }
     if (dane->ta == 0 && dane->ee == 0)
 	dane->flags |= TLS_DANE_FLAG_EMPTY;
 
@@ -1859,38 +1798,39 @@ void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 #include <mail_conf.h>
 #include <msg_vstream.h>
 
-/* Cut/paste from OpenSSL 1.0.1: ssl/ssl_cert.c */
-
-static int ssl_verify_cert_chain(SSL *s, x509_stack_t *sk)
+static int verify_chain(SSL *ssl, x509_stack_t *chain, TLS_SESS_STATE *tctx)
 {
-    X509   *x;
-    int     i;
-    X509_STORE_CTX ctx;
+    int ret;
+    X509 *cert;
+    X509_STORE_CTX *store_ctx;
+    SSL_CTX *ssl_ctx = SSL_get_SSL_CTX(ssl);
+    X509_STORE *store = SSL_CTX_get_cert_store(ssl_ctx);
+    int store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
 
-    if ((sk == NULL) || (sk_X509_num(sk) == 0))
-	return (0);
-
-    x = sk_X509_value(sk, 0);
-    if (!X509_STORE_CTX_init(&ctx, s->ctx->cert_store, x, sk)) {
-	SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_X509_LIB);
-	return (0);
+    cert = sk_X509_value(chain, 0);
+    if ((store_ctx = X509_STORE_CTX_new()) == NULL) {
+        SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_MALLOC_FAILURE);
+        return 0;
     }
-    X509_STORE_CTX_set_ex_data(&ctx, SSL_get_ex_data_X509_STORE_CTX_idx(), s);
-    X509_STORE_CTX_set_default(&ctx, s->server ? "ssl_client" : "ssl_server");
-    X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(&ctx), s->param);
+    if (!X509_STORE_CTX_init(store_ctx, store, cert, chain)) {
+        X509_STORE_CTX_free(store_ctx);
+        return 0;
+    }
+    X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx, ssl);
 
-    if (s->verify_callback)
-	X509_STORE_CTX_set_verify_cb(&ctx, s->verify_callback);
+    X509_STORE_CTX_set_default(store_ctx, "ssl_server");
+    X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(store_ctx),
+                           SSL_get0_param(ssl));
 
-    if (s->ctx->app_verify_callback != NULL)
-	i = s->ctx->app_verify_callback(&ctx, s->ctx->app_verify_arg);
-    else
-	i = X509_verify_cert(&ctx);
+    if (SSL_get_verify_callback(ssl))
+        X509_STORE_CTX_set_verify_cb(store_ctx, SSL_get_verify_callback(ssl));
 
-    s->verify_result = ctx.error;
-    X509_STORE_CTX_cleanup(&ctx);
+    ret = dane_cb(store_ctx, tctx);
 
-    return (i);
+    SSL_set_verify_result(ssl, X509_STORE_CTX_get_error(store_ctx));
+    X509_STORE_CTX_free(store_ctx);
+
+    return (ret);
 }
 
 static void add_tlsa(TLS_DANE *dane, char *argv[])
@@ -1905,6 +1845,28 @@ static void add_tlsa(TLS_DANE *dane, char *argv[])
     uint8_t s = atoi(argv[2]);
     const char *mdname = argv[3];
     EVP_PKEY *pkey;
+
+    /* Unsupported usages are fatal */
+    switch (u) {
+    case DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION:
+    case DNS_TLSA_USAGE_DOMAIN_ISSUED_CERTIFICATE:
+	break;
+    default:
+	msg_fatal("unsupported certificate usage %u", u);
+    }
+
+    /* Unsupported selectors are fatal */
+    switch (s) {
+    case DNS_TLSA_SELECTOR_FULL_CERTIFICATE:
+    case DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO:
+	break;
+    default:
+	msg_fatal("unsupported selector %u", s);
+    }
+
+    /* Unsupported digests are fatal */
+    if (*mdname && !tls_validate_digest(mdname))
+	msg_fatal("unsupported digest algorithm: %s", mdname);
 
     if ((bp = BIO_new_file(argv[4], "r")) == NULL)
 	msg_fatal("error opening %s: %m", argv[4]);
@@ -2222,7 +2184,7 @@ int     main(int argc, char *argv[])
 
     /* Verify saved server chain */
     chain = load_chain(argv[6]);
-    ssl_verify_cert_chain(tctx->con, chain);
+    verify_chain(tctx->con, chain, tctx);
     check_peer(tctx, sk_X509_value(chain, 0), argc - 7, argv + 7);
     tls_print_errors();
 

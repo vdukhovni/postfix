@@ -122,23 +122,23 @@ printfck: update
 install: update
 	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
-		postfix-install
+		postfix-install $(POSTFIX_INSTALL_OPTS)
 
 package: update
 	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
-		postfix-install -package
+		postfix-install -package $(POSTFIX_INSTALL_OPTS)
 
 upgrade: update
 	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
-		postfix-install -non-interactive
+		postfix-install -non-interactive $(POSTFIX_INSTALL_OPTS)
 	
 
 non-interactive-package: update
 	SHLIB_ENV_VAR= SHLIB_ENV_VAL= \
 	$(SHLIB_ENV) shlib_directory=$(SHLIB_DIR_OVERRIDE) $(SHELL) \
-		postfix-install -non-interactive -package
+		postfix-install -non-interactive -package $(POSTFIX_INSTALL_OPTS)
 
 depend clean:
 	set -e; for i in $(DIRS); do \

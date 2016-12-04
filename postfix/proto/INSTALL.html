@@ -880,6 +880,11 @@ Specify DEBUG= to turn off debugging. </td> </tr>
 a non-default optimization level. The default is "<tt>-O</tt>".
 Specify OPT= to turn off optimization. </td> </tr>
 
+<tr> <td colspan="2"> POSTFIX_INSTALL_OPTS=-option... </td> <td>
+Specifies options for the <tt>postfix-install</tt> command, separated
+by whitespace. Currently, the only supported option is
+"<tt>-keep-new-mtime</tt>". </td> </tr>
+
 <tr> <td colspan="2"> SHLIB_CFLAGS=flags </td> <td> Specifies
 non-default compiler options for building Postfix dynamically-linked
 libraries and database plugins. The typical default is "-fPIC".

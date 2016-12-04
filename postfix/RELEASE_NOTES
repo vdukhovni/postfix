@@ -16,6 +16,21 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+Incompatible changes with snapshot 20161204
+===========================================
+
+Postfix 3.2 removes tentative features that were implemented
+before the DANE spec was finalized:
+
+- Support for certificate usage PKIX-EE(1), 
+
+- The ability to disable digest agility. Postfix 3.2 always behaves
+  as if "tls_dane_digest_agility = on.
+
+- The ability to disable support for "TLSA 2 [01] [12]" records
+  that specify the digest of a trust anchor. Postfix 3.2 always
+  behaves as if "tls_dane_trust_anchor_digest_enable = yes".
+
 Incompatible changes with snapshot 20161103
 ===========================================
 

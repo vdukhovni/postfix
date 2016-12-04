@@ -112,6 +112,11 @@ static VSTRING *midna_domain_buf;	/* x.suffix */
 
 static const char *midna_domain_strerror(UErrorCode error, int info_errors)
 {
+
+    /*
+     * XXX The UIDNA_ERROR_EMPTY_LABEL etc. names are defined in an ENUM, so
+     * we can't use #ifdef to dynamically determine which names exist.
+     */
     static LONG_NAME_MASK uidna_errors[] = {
 	"UIDNA_ERROR_EMPTY_LABEL", UIDNA_ERROR_EMPTY_LABEL,
 	"UIDNA_ERROR_LABEL_TOO_LONG", UIDNA_ERROR_LABEL_TOO_LONG,
@@ -126,6 +131,7 @@ static const char *midna_domain_strerror(UErrorCode error, int info_errors)
 	"UIDNA_ERROR_INVALID_ACE_LABEL", UIDNA_ERROR_INVALID_ACE_LABEL,
 	"UIDNA_ERROR_BIDI", UIDNA_ERROR_BIDI,
 	"UIDNA_ERROR_CONTEXTJ", UIDNA_ERROR_CONTEXTJ,
+	/* The above errors are defined with ICU 46 and later. */
 	0,
     };
 

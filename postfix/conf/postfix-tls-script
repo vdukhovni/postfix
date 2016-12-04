@@ -1011,6 +1011,11 @@ new-server-cert)
 	# Existing keyfile or empty
 	set_keyfile "${algo}"
 
+	if [ -n "${keyfile}" -a ! -f "${keyfile}" ]; then
+	    echo "Key file: ${keyfile} not found, creating new keys" | $WARN
+	    keyfile=
+	fi
+
 	# Try to re-use (copy) existing key.
 	new_server_cert "${algo}" "${bits}" "${keyfile}" "" "$@" || exit 1
 	;;
@@ -1030,8 +1035,8 @@ deploy-server-cert)
 	 *) certfile="${config_directory}/${1}" ;;
 	esac
 	case "${2}" in
-	/*) certfile="${2}" ;;
-	 *) certfile="${config_directory}/${2}" ;;
+	/*) keyfile="${2}" ;;
+	 *) keyfile="${config_directory}/${2}" ;;
 	esac
 
 	deploy_server_cert "${certfile}" "${keyfile}" || exit 1

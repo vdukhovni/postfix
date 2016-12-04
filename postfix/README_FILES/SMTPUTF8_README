@@ -23,9 +23,9 @@ Topics covered in this document:
 
 BBuuiillddiinngg PPoossttffiixx wwiitthh//wwiitthhoouutt SSMMTTPPUUTTFF88 ssuuppppoorrtt
 
-Postfix will build with SMTPUTF8 support if the ICU library and header files
-are installed on the system. The package name varies with the OS distribution
-(and version). The table shows package names for a number of platforms at the
+Postfix will build with SMTPUTF8 support if the ICU version >= 46 library and
+header files are installed on the system. The package name varies with the OS
+distribution. The table shows package names for a number of platforms at the
 time this text was written.
 
      _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 

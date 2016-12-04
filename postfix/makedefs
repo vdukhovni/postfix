@@ -102,6 +102,10 @@
 # .IP \fBOPT=\fIoptimization_level\fR
 #	Specifies a non-default optimization level. The default is \fB-O\fR.
 #	Specify \fBOPT=\fR to turn off optimization.
+# .IP \fBPOSTFIX_INSTALL_OPTS=\fI-option...\fR
+#	Specifies options for the postfix-install command, separated
+#	by whitespace. Currently, the only supported option is
+#	\fB-keep-build-mtime\fR.
 # .IP \fBSHLIB_CFLAGS=\fIflags\fR
 #	Override the compiler flags (typically, "-fPIC") for Postfix
 #	dynamically-linked libraries and database plugins.
@@ -1173,6 +1177,16 @@ case "$pie" in
     *) error "Specify \"pie=yes\" or \"pie=no\"";;
 esac
 
+# Don't permit random overrides.
+allowed_user_install_opts="-keep-build-mtime"
+for opt in $POSTFIX_INSTALL_OPTS
+do
+    (for allowed in -keep-build-mtime
+    do
+	test "$opt" = "$allowed" && exit 0
+    done; exit 1) || error "invalid option '$opt' in POSTFIX_INSTALL_OPTS"
+done
+
 # Finally...
 
 sed 's/   */ /g' <<EOF
@@ -1209,5 +1223,6 @@ PLUGIN_MAP_OBJ_UPDATE = $PLUGIN_MAP_OBJ_UPDATE
 PLUGIN_MAP_SO_MAKE = $PLUGIN_MAP_SO_MAKE
 PLUGIN_MAP_SO_UPDATE = $PLUGIN_MAP_SO_UPDATE
 PLUGIN_LD = $PLUGIN_LD
+POSTFIX_INSTALL_OPTS = $POSTFIX_INSTALL_OPTS
 # Application-specific rules.
 EOF
