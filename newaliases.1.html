@@ -416,9 +416,8 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
-              fix/smtpd".
+              A  prefix  that  is  prepended  to  the  process  name in syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
 <b>FILES</b>
        /var/spool/postfix, mail queue
@@ -437,7 +436,7 @@ SENDMAIL(1)                                                        SENDMAIL(1)
        syslogd(8), system logging
 
 <b>README_FILES</b>
-       Use  "<b>postconf <a href="postconf.5.html#readme_directory">readme_directory</a></b>" or "<b>postconf <a href="postconf.5.html#html_directory">html_directory</a></b>" to locate
+       Use "<b>postconf <a href="postconf.5.html#readme_directory">readme_directory</a></b>" or "<b>postconf <a href="postconf.5.html#html_directory">html_directory</a></b>" to  locate
        this information.
        <a href="DEBUG_README.html">DEBUG_README</a>, Postfix debugging howto
        <a href="ETRN_README.html">ETRN_README</a>, Postfix ETRN howto
@@ -451,6 +450,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
                                                                    SENDMAIL(1)
 </pre> </body> </html>

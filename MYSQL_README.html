@@ -130,9 +130,22 @@ table = mxaliases
 where_field = alias
 # Don't forget the leading "AND"!
 additional_conditions = AND status = 'paid'
+
+# This is necessary to make UTF8 queries work for Postfix 2.11 .. 3.1,
+# and is the default setting as of Postfix 3.2.
+option_group = client
 </pre>
 
 <h2>Additional notes</h2>
+
+<p> Postfix 3.2 and later read <b>[client]</b> option group settings
+by default. To disable this, specify no <b>option_file</b> and
+specify "<b>option_group =</b>" (i.e. an empty value).  </p>
+
+<p> Postfix 3.1 and earlier don't read <b>[client]</b> option group
+settings unless a non-empty <b>option_file</b> or <b>option_group</b>
+value are specified. To enable this, specify, for example
+"<b>option_group = client</b>".  </p>
 
 <p> The MySQL configuration interface setup allows for multiple
 mysql databases: you can use one for a virtual table, one for an

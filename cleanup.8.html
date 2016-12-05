@@ -224,6 +224,13 @@ CLEANUP(8)                                                          CLEANUP(8)
               Optional lookup tables for content inspection of message headers
               that are produced by Milter applications.
 
+       Available in Postfix version 3.1 and later:
+
+       <b><a href="postconf.5.html#milter_macro_defaults">milter_macro_defaults</a> (empty)</b>
+              Optional  list  of  <i>name=value</i> pairs that specify default values
+              for arbitrary macros that Postfix may send  to  Milter  applica-
+              tions.
+
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
 
@@ -407,6 +414,13 @@ CLEANUP(8)                                                          CLEANUP(8)
               Detect that a message requires SMTPUTF8 support for  the  speci-
               fied mail origin classes.
 
+       Available in Postfix version 3.2 and later:
+
+       <b><a href="postconf.5.html#enable_idna2003_compatibility">enable_idna2003_compatibility</a> (no)</b>
+              Enable   'transitional'   compatibility   between  IDNA2003  and
+              IDNA2008, when converting UTF-8 domain names to/from  the  ASCII
+              form that is used for DNS lookups.
+
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
               The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
@@ -460,9 +474,8 @@ CLEANUP(8)                                                          CLEANUP(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
-              fix/smtpd".
+              A  prefix  that  is  prepended  to  the  process  name in syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 2.1 and later:
 
@@ -497,6 +510,11 @@ CLEANUP(8)                                                          CLEANUP(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
                                                                     CLEANUP(8)
 </pre> </body> </html>

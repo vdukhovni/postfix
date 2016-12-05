@@ -43,25 +43,30 @@ that starts with whitespace continues a logical line. </p>
 <ul>
 
 <li> <p> The expressions "$name" and "${name}" are recursively
-replaced with the value of the named parameter, except where noted.
+replaced with the value of the named parameter. The parameter name
+must contain only characters from the set [a-zA-Z0-9_].
 An undefined parameter value is replaced with the empty value.  </p>
 
 <li> <p> The expressions "${name?value}" and "${name?{value}}" are
-replaced with "value" when "$name" is non-empty. These forms are
+replaced with "value" when "$name" is non-empty. The parameter name
+must contain only characters from the set [a-zA-Z0-9_]. These forms are
 supported with Postfix versions &ge; 2.2 and &ge; 3.0, respectively.
 </p>
 
-<li> <p> The expressions "${name:value}" and "${name?{value}}" are
-replaced with "value" when "$name" is empty. These forms are supported
-with Postfix versions &ge; 2.2 and &ge; 3.0, respectively.  </p>
+<li> <p> The expressions "${name:value}" and "${name:{value}}" are
+replaced with "value" when "$name" is empty. The parameter name must
+contain only characters from the set [a-zA-Z0-9_]. These forms are
+supported with Postfix versions &ge; 2.2 and &ge; 3.0, respectively.
+</p>
 
 <li> <p> The expression "${name?{value1}:{value2}}" is replaced
 with "value1" when "$name" is non-empty, and with "value2" when
 "$name" is empty.  The "{}" is required for "value1", optional for
-"value2".  This form is supported with Postfix versions &ge; 3.0.
-</p>
+"value2".  The parameter name must contain only characters from the
+set [a-zA-Z0-9_].  This form is supported with Postfix versions
+&ge; 3.0.  </p>
 
-<li> <p> The first item inside "${...}" may be a logical expression
+<li> <p> The first item inside "${...}" may be a relational expression
 of the form: "{value3} == {value4}". Besides the "==" (equality)
 operator Postfix supports "!=" (inequality), "&lt;", "&le;", "&ge;",
 and "&gt;". The comparison is numerical when both operands are all
@@ -69,7 +74,7 @@ digits, otherwise the comparison is lexicographical. These forms
 are supported with Postfix versions &ge; 3.0. </p>
 
 <li> <p> Each "value" is subject to recursive named parameter and
-logical expression evaluation, except where noted.  </p>
+relational expression evaluation, except where noted.  </p>
 
 <li> <p> Whitespace before or after each "{value}" is ignored. </p>
 
@@ -292,6 +297,23 @@ Time units: s (seconds), m (minutes), h (hours), d (days), w (weeks).
 <p>
 This feature is available in Postfix 2.1 and later.
 </p>
+
+
+</DD>
+
+<DT><b><a name="address_verify_pending_request_limit">address_verify_pending_request_limit</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> A safety limit that prevents address verification requests from
+overwhelming the Postfix queue. By default, the number of pending
+requests is limited to 1/4 of the <a href="QSHAPE_README.html#active_queue">active queue</a> maximum size
+(<a href="postconf.5.html#qmgr_message_active_limit">qmgr_message_active_limit</a>). The queue manager enforces the limit
+by tempfailing requests that exceed the limit. This affects only
+unknown addresses and inactive addresses that have expired, because
+the <a href="verify.8.html">verify(8)</a> daemon automatically refreshes an active address
+before it expires. </p>
+
+<p> This feature is available in Postfix 3.1 and later.  </p>
 
 
 </DD>
@@ -1328,7 +1350,7 @@ is placed into the Postfix configuration directory.  </p>
 (default: no)</b></DT><DD>
 
 <p>
-Enable inter-operability with remote SMTP clients that implement an obsolete
+Enable interoperability with remote SMTP clients that implement an obsolete
 version of the AUTH command (<a href="http://tools.ietf.org/html/rfc4954">RFC 4954</a>). Examples of such clients
 are MicroSoft Outlook Express version 4 and MicroSoft Exchange
 version 5.0.
@@ -2629,6 +2651,40 @@ Example:
 
 </DD>
 
+<DT><b><a name="default_transport_rate_delay">default_transport_rate_delay</a>
+(default: 0s)</b></DT><DD>
+
+<p> The default amount of delay that is inserted between individual
+deliveries over the same message delivery transport, regardless of
+destination. If non-zero, all deliveries over the same message
+delivery transport will happen one at a time. </p>
+
+<p>Use <a href="postconf.5.html#transport_transport_rate_delay"><i>transport</i>_transport_rate_delay</a> to specify a
+transport-specific override, where the initial <i>transport</i> is
+the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
+
+<p> Example: throttle outbound SMTP mail to at most 3 deliveries
+per minute. </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    smtp_transport_rate_delay = 20s
+</pre>
+
+<p> To enable the delay, specify a non-zero time value (an integral
+value plus an optional one-letter suffix that specifies the time
+unit). </p>
+
+<p> Time units: s (seconds), m (minutes), h (hours), d (days), w
+(weeks). The default time unit is s (seconds). </p>
+
+<p> NOTE: the delay is enforced by the queue manager. </p>
+
+<p> This feature is available in Postfix 3.1 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="default_verp_delimiters">default_verp_delimiters</a>
 (default: +=)</b></DT><DD>
 
@@ -2912,6 +2968,23 @@ Example:
 
 </DD>
 
+<DT><b><a name="dns_ncache_ttl_fix_enable">dns_ncache_ttl_fix_enable</a>
+(default: no)</b></DT><DD>
+
+<p> Enable a workaround for future libc incompatibility. The Postfix
+implementation of <a href="http://tools.ietf.org/html/rfc2308">RFC 2308</a> negative reply caching relies on the
+promise that res_query() and res_search() invoke res_send(), which
+returns the server response in an application buffer even if the
+requested record does not exist. If this promise is broken, specify
+"yes" to enable a  workaround for DNS reputation lookups. </p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
+
+
+</DD>
+
 <DT><b><a name="dnsblog_reply_delay">dnsblog_reply_delay</a>
 (default: 0s)</b></DT><DD>
 
@@ -3009,6 +3082,22 @@ non-standard Errors-To: message header, instead of the envelope
 sender address (this feature is removed with Postfix version 2.2, is
 turned off by default with Postfix version 2.1, and is always turned on
 with older Postfix versions).  </p>
+
+
+</DD>
+
+<DT><b><a name="enable_idna2003_compatibility">enable_idna2003_compatibility</a>
+(default: no)</b></DT><DD>
+
+<p> Enable 'transitional' compatibility between IDNA2003 and IDNA2008,
+when converting UTF-8 domain names to/from the ASCII form that is
+used for DNS lookups. Specify "yes" for compatibility with Postfix
+&le; 3.1 (not recommended). This affects the conversion of domain
+names that contain for example the German sz and the Greek zeta.
+See <a href="http://unicode.org/cldr/utility/idna.jsp">http://unicode.org/cldr/utility/idna.jsp</a> for more examples.
+</p>
+
+<p> This feature is available in Postfix 3.2 and later.  </p>
 
 
 </DD>
@@ -4026,7 +4115,7 @@ configuration parameter.  See there for details. </p>
 <DT><b><a name="lmtp_address_verify_target">lmtp_address_verify_target</a>
 (default: rcpt)</b></DT><DD>
 
-<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_dns_support_level">smtp_dns_support_level</a>
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_address_verify_target">smtp_address_verify_target</a>
 configuration parameter.  See there for details. </p>
 
 <p> This feature is available in Postfix 3.0 and later.  </p>
@@ -4948,6 +5037,7 @@ parameter.  See there for details. </p>
 
 <p>
 The default TCP port that the Postfix LMTP client connects to.
+Specify a symbolic name (see services(5)) or a numeric port.
 </p>
 
 
@@ -4998,7 +5088,7 @@ configuration parameter.  See there for details. </p>
 </DD>
 
 <DT><b><a name="lmtp_tls_ciphers">lmtp_tls_ciphers</a>
-(default: export)</b></DT><DD>
+(default: medium)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> configuration
 parameter. See there for details. </p>
@@ -5132,7 +5222,7 @@ configuration parameter.  See there for details. </p>
 </DD>
 
 <DT><b><a name="lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>
-(default: empty)</b></DT><DD>
+(default: medium)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>
 configuration parameter.  See there for details. </p>
@@ -5154,7 +5244,7 @@ configuration parameter.  See there for details. </p>
 </DD>
 
 <DT><b><a name="lmtp_tls_mandatory_protocols">lmtp_tls_mandatory_protocols</a>
-(default: !SSLv2)</b></DT><DD>
+(default: !SSLv2, !SSLv3)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>
 configuration parameter. See there for details. </p>
@@ -5198,7 +5288,7 @@ configuration parameter. See there for details. </p>
 </DD>
 
 <DT><b><a name="lmtp_tls_protocols">lmtp_tls_protocols</a>
-(default: empty)</b></DT><DD>
+(default: !SSLv2, !SSLv3)</b></DT><DD>
 
 <p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> configuration
 parameter. See there for details. </p>
@@ -6576,6 +6666,24 @@ meanings.  </p>
 
 </DD>
 
+<DT><b><a name="milter_macro_defaults">milter_macro_defaults</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional list of <i>name=value</i> pairs that specify default
+values for arbitrary macros that Postfix may send to Milter
+applications.  These defaults are used when there is no corresponding
+information from the message delivery context. </p>
+
+<p> Specify <i>name=value</i> or <i>{name}=value</i> pairs separated
+by comma or whitespace.  Enclose a pair in "{}" when a value contains
+comma or whitespace (this form ignores whitespace after the enclosing
+"{", around the "=", and before the enclosing "}"). </p>
+
+<p> This feature is available in Postfix 3.1 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="milter_macro_v">milter_macro_v</a>
 (default: $<a href="postconf.5.html#mail_name">mail_name</a> $<a href="postconf.5.html#mail_version">mail_version</a>)</b></DT><DD>
 
@@ -7029,7 +7137,7 @@ specified with the "ifconfig" command. </p>
 
 <li><p>Specify "<a href="postconf.5.html#mynetworks_style">mynetworks_style</a> = class" when Postfix should
 "trust" remote SMTP clients in the same IP class A/B/C networks as the
-local machine.  Don't do this with a dialup site - it would cause
+local machine.  Caution: this may cause
 Postfix to "trust" your entire provider's network.  Instead, specify
 an explicit <a href="postconf.5.html#mynetworks">mynetworks</a> list by hand, as described with the <a href="postconf.5.html#mynetworks">mynetworks</a>
 configuration parameter. </p>
@@ -7220,6 +7328,37 @@ possible replies from the restrictions <a href="postconf.5.html#reject_unknown_s
 and <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>. </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="openssl_path">openssl_path</a>
+(default: openssl)</b></DT><DD>
+
+<p>
+The location of the OpenSSL command line program openssl(1).  This
+is used by the "<b><a href="postfix-tls.1.html">postfix tls</a></b>" command to create private keys,
+certificate signing requests, self-signed certificates, and to
+compute public key digests for DANE TLSA records.  In multi-instance
+environments, this parameter is always determined from the configuration
+of the default Postfix instance.
+</p>
+
+<p> Example: </p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # NetBSD pkgsrc:
+    <a href="postconf.5.html#openssl_path">openssl_path</a> = /usr/pkg/bin/openssl
+    # Local build:
+    <a href="postconf.5.html#openssl_path">openssl_path</a> = /usr/local/bin/openssl
+</pre>
+</blockquote>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
 
 
 </DD>
@@ -7730,6 +7869,43 @@ this test the next time the client connects. </dd>
 
 </DD>
 
+<DT><b><a name="postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a>
+(default: ${<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>?{$<a href="postconf.5.html#postscreen_dnsbl_ttl">postscreen_dnsbl_ttl</a>}:{1}}h)</b></DT><DD>
+
+<p> The maximum amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the
+result from a successful DNS-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a shorter TTL value, that value will be used unless
+it would be smaller than <a href="postconf.5.html#postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.1. The default setting
+is backwards-compatible with older Postfix versions. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_dnsbl_min_ttl">postscreen_dnsbl_min_ttl</a>
+(default: 60s)</b></DT><DD>
+
+<p> The minimum amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the
+result from a successful DNS-based reputation test before a
+client IP address is required to pass that test again. If the DNS
+reply specifies a larger TTL value, that value will be used unless
+it would be larger than <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a>.  </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.1. </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_dnsbl_reply_map">postscreen_dnsbl_reply_map</a>
 (default: empty)</b></DT><DD>
 
@@ -7851,16 +8027,15 @@ resolver(3) routines. </p>
 (default: 1h)</b></DT><DD>
 
 <p> The amount of time that <a href="postscreen.8.html">postscreen(8)</a> will use the result from
-a successful DNS blocklist test. During this time, the client IP address
-is excluded from this test. The default is relatively short, because a
-good client can immediately talk to a real Postfix SMTP server.
-</p>
+a successful DNS-based reputation test before a client
+IP address is required to pass that test again.  </p>
 
 <p> Specify a non-zero time value (an integral value plus an optional
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
-<p> This feature is available in Postfix 2.8.  </p>
+<p> This feature is available in Postfix 2.8-3.0. It was
+replaced by <a href="postconf.5.html#postscreen_dnsbl_max_ttl">postscreen_dnsbl_max_ttl</a> in Postfix 3.1.  </p>
 
 
 </DD>
@@ -9536,7 +9711,7 @@ only the SASL authentiCation ID (authcid) plus the authcid's password.
 
 <p> The non-default setting "yes" enables the behavior of older
 Postfix versions.  These always send a SASL authzid that is equal
-to the SASL authcid, but this causes inter-operability problems
+to the SASL authcid, but this causes interoperability problems
 with some SMTP servers. </p>
 
 <p> This feature is available in Postfix 2.4.4 and later. </p>
@@ -9872,8 +10047,11 @@ This feature is available in Postfix 2.0 and later.
 <p> The address type ("ipv6", "ipv4" or "any") that the Postfix
 SMTP client will try first, when a destination has IPv6 and IPv4
 addresses with equal MX preference. This feature has no effect
-unless the <a href="postconf.5.html#inet_protocols">inet_protocols</a> setting enables both IPv4 and IPv6.
-With Postfix 2.8 the default is "ipv6".  </p>
+unless the <a href="postconf.5.html#inet_protocols">inet_protocols</a> setting enables both IPv4 and IPv6. </p>
+
+<p> Postfix SMTP client address preference has evolved. With Postfix
+2.8 the default is "ipv6"; earlier implementations are hard-coded
+to prefer IPv6 over IPv4. </p>
 
 <p> Notes for mail delivery between sites that have both IPv4 and
 IPv6 connectivity: </p>
@@ -10552,7 +10730,7 @@ itself is not configured to use DNSSEC. </p>
 
 <p> When using Postfix DANE support the "<a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a>" parameter
 should include "dns", as <a
-href="https://tools.ietf.org/html/rfc6698">DANE</a> is not applicable
+href="https://tools.ietf.org/html/rfc7672">DANE</a> is not applicable
 to hosts resolved via "native" lookups.  </p>
 
 <p> As mentioned above, Postfix is not a validating <a
@@ -11054,7 +11232,7 @@ The default time unit is s (seconds).
 
 <p> A mechanism to transform replies from remote SMTP servers one
 line at a time.  This is a last-resort tool to work around server
-replies that break inter-operability with the Postfix SMTP client.
+replies that break interoperability with the Postfix SMTP client.
 Other uses involve fault injection to test Postfix's handling of
 invalid responses. </p>
 
@@ -11497,6 +11675,17 @@ during TLS startup and shutdown handshake procedures. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tcp_port">smtp_tcp_port</a>
+(default: smtp)</b></DT><DD>
+
+<p>
+The default TCP port that the Postfix SMTP client connects to.
+Specify a symbolic name (see services(5)) or a numeric port.
+</p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_CAfile">smtp_tls_CAfile</a>
 (default: empty)</b></DT><DD>
 
@@ -11637,7 +11826,7 @@ and hence pass the "openssl verify -purpose sslclient ..." test. </p>
 
 <p> Obsolete Postfix &lt; 2.3 control for the Postfix SMTP client TLS
 cipher list. As this feature applies to all TLS security levels, it is easy
-to create inter-operability problems by choosing a non-default cipher
+to create interoperability problems by choosing a non-default cipher
 list. Do not use a non-default TLS cipher list on hosts that deliver email
 to the public Internet: you will be unable to send email to servers that
 only support the ciphers you exclude. Using a restricted cipher list
@@ -11653,29 +11842,62 @@ Postfix 2.3 and later; use <a href="postconf.5.html#smtp_tls_mandatory_ciphers">
 </DD>
 
 <DT><b><a name="smtp_tls_ciphers">smtp_tls_ciphers</a>
-(default: export)</b></DT><DD>
+(default: medium)</b></DT><DD>
 
 <p> The minimum TLS cipher grade that the Postfix SMTP client
 will use with opportunistic TLS encryption. Cipher types listed in
 <a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a> are excluded from the base definition of
-the selected cipher grade. The default value "export" ensures maximum
-inter-operability. Because encryption is optional, stronger controls
-are not appropriate, and this setting SHOULD NOT be changed unless the
-change is essential. </p>
+the selected cipher grade.   The default value is "medium" for
+Postfix releases after the middle of 2015, "export" for older
+releases.  </p>
 
 <p> When TLS is mandatory the cipher grade is chosen via the
 <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> configuration parameter, see there for syntax
 details. See <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> for information on how to configure
 ciphers on a per-destination basis. </p>
 
-<p> Example: </p>
-<pre>
-<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> = export
-</pre>
-
 <p> This feature is available in Postfix 2.6 and later. With earlier Postfix
 releases only the <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter is implemented,
 and opportunistic TLS always uses "export" or better (i.e. all) ciphers. </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_tls_dane_insecure_mx_policy">smtp_tls_dane_insecure_mx_policy</a>
+(default: dane)</b></DT><DD>
+
+<p> The TLS policy for MX hosts with "secure" TLSA records when the
+nexthop destination security level is <b>dane</b>, but the MX
+record was found via an "insecure" MX lookup.  The choices are:
+</p>
+
+<dl>
+<dt><b>may</b></dt>
+<dd> The TLSA records will be ignored and TLS will be optional.  If
+the MX host does not appear to support STARTTLS, or the STARTTLS
+handshake fails, mail may be sent in the clear. </dd>
+<dt><b>encrypt</b></dt>
+<dd> The TLSA records will signal a requirement to use TLS.  While
+TLS encryption will be required, authentication will not be performed.
+</dd>
+<dt><b>dane</b> (default)</dt>
+<dd>The TLSA records will be used just as with "secure" MX records.
+TLS encryption will be required, and, if at least one of the TLSA
+records is "usable", authentication will be required.  When
+authentication succeeds, it will be logged only as "Trusted", not
+"Verified", because the MX host name could have been forged.  </dd>
+</dl>
+
+<p> Though with "insecure" MX records an active attacker can
+compromise SMTP transport security by returning forged MX records,
+such attacks are "tamper-evident" since any forged MX hostnames
+will be recorded in the mail logs.  Attackers who place a high value
+staying hidden may be deterred from forging MX records. </p>
+
+<p>
+This feature is available in Postfix 3.1 and later. The <b>may</b>
+policy is backwards-compatible with earlier Postfix versions.
+</p>
 
 
 </DD>
@@ -12061,18 +12283,16 @@ on a per-destination basis. </p>
 
 <dl>
 <dt><b>export</b></dt>
-<dd> Enable "EXPORT" grade or better OpenSSL
-ciphers.  This is the default for opportunistic encryption. It is
-not recommended for mandatory encryption unless you must enforce TLS
-with "crippled" peers. The underlying cipherlist is specified via the
-<a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> configuration parameter, which you are strongly
-encouraged to not change. </dd>
+<dd> Enable "EXPORT" grade or better OpenSSL ciphers.  The underlying
+cipherlist is specified via the <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> configuration
+parameter, which you are strongly encouraged to not change.  This
+choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>low</b></dt>
-<dd> Enable "LOW" grade or better OpenSSL ciphers.  This
-setting is only appropriate for internal mail servers.  The underlying
+<dd> Enable "LOW" grade or better OpenSSL ciphers.  The underlying
 cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> configuration
-parameter, which you are strongly encouraged to not change. </dd>
+parameter, which you are strongly encouraged to not change.  This
+choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>medium</b></dt>
 <dd> Enable "MEDIUM" grade or better OpenSSL ciphers.
@@ -12133,14 +12353,16 @@ attribute. See <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_ma
 </DD>
 
 <DT><b><a name="smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a>
-(default: !SSLv2)</b></DT><DD>
+(default: !SSLv2, !SSLv3)</b></DT><DD>
 
 <p> List of SSL/TLS protocols that the Postfix SMTP client will use with
 mandatory TLS encryption.  In <a href="postconf.5.html">main.cf</a> the values are separated by
 whitespace, commas or colons. In the policy table "protocols" attribute
 (see <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>) the only valid separator is colon. An
 empty value means allow all protocols. The valid protocol names, (see
-<b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3" and "TLSv1". </p>
+<b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3" and "TLSv1". The
+default value is "!SSLv2, !SSLv3" for Postfix releases after the
+middle of 2015, "!SSLv2" for older releases. </p>
 
 <p> With Postfix &ge; 2.5 the parameter syntax was expanded to support
 protocol exclusions. One can explicitly exclude "SSLv2" by setting
@@ -12182,11 +12404,6 @@ later, the Postfix SMTP client must disable "SSLv2" and "SSLv3" when
 SNI is required.  If you use "dane" or "dane-only" do not disable
 TLSv1, except perhaps via the policy table for destinations which
 you are sure will support "TLSv1.1" or "TLSv1.2".  </p>
-
-<p> Since SSL version 2 has known protocol weaknesses and is now
-deprecated, the default setting excludes "SSLv2".  This means that by
-default, SSL version 2 will not be used at the "encrypt" security level
-and higher. </p>
 
 <p> See the documentation of the <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> parameter and
 <a href="TLS_README.html">TLS_README</a> for more information about security levels. </p>
@@ -12349,7 +12566,7 @@ security are: </p>
 <dt><b><a href="TLS_README.html#client_tls_may">may</a></b></dt>
 <dd>Opportunistic TLS. Since sending in the clear is acceptable,
 demanding stronger than default TLS security merely reduces
-inter-operability. The optional "ciphers", "exclude" and "protocols"
+interoperability. The optional "ciphers", "exclude" and "protocols"
 attributes (available for opportunistic TLS with Postfix &ge; 2.6)
 override the "<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>" and
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>" configuration parameters. When opportunistic TLS
@@ -12375,7 +12592,7 @@ href="TLS_README.html#client_tls_may">may</a>.  If TLSA records are
 found, but none are usable, the effective security level is <a
 href="TLS_README.html#client_tls_encrypt">encrypt</a>.  When usable
 TLSA records are obtained for the remote SMTP server, the
-server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE)
+server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication and DNSSEC support is available with Postfix
 2.11 and later.  </dd>
 
@@ -12384,7 +12601,7 @@ TLS authentication and DNSSEC support is available with Postfix
 obtained via TLSA records in DNSSEC.  If no TLSA records are found,
 or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
-server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE) TLS
+server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
 and later.  </dd>
 
@@ -12472,12 +12689,13 @@ configurations in environments where DNS security is not assured. </p>
 </DD>
 
 <DT><b><a name="smtp_tls_protocols">smtp_tls_protocols</a>
-(default: !SSLv2)</b></DT><DD>
+(default: !SSLv2, !SSLv3)</b></DT><DD>
 
 <p> List of TLS protocols that the Postfix SMTP client will exclude or
-include with opportunistic TLS encryption. Starting with Postfix 2.6,
-the Postfix SMTP client will by default not use the obsolete SSLv2
-protocol. </p>
+include with opportunistic TLS encryption. The default value is
+"!SSLv2, !SSLv3" for Postfix releases after the middle of 2015,
+"!SSLv2" for older releases. Before Postfix 2.6, the Postfix SMTP
+client would use all protocols with opportunistic TLS. </p>
 
 <p> In <a href="postconf.5.html">main.cf</a> the values are separated by whitespace, commas or
 colons. In the policy table (see <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>) the only valid
@@ -12503,7 +12721,7 @@ versions of Postfix &ge; 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2"</p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
-with a "!" character. To exclude SSLv2 even for opportunistic TLS set
+with a "!" character. To exclude SSLv2 for opportunistic TLS set
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
 "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2, !SSLv3". Explicitly listing the protocols to
 include, rather than protocols to exclude, is supported, but not
@@ -12606,7 +12824,7 @@ destinations via <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_
 <dd> Opportunistic TLS. Use TLS if this is supported by the remote
 SMTP server, otherwise use plaintext. Since
 sending in the clear is acceptable, demanding stronger than default TLS
-security merely reduces inter-operability.
+security merely reduces interoperability.
 The "<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>" and "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>" (Postfix &ge; 2.6)
 configuration parameters provide control over the protocols and
 cipher grade used with opportunistic TLS.  With earlier releases the
@@ -12633,7 +12851,7 @@ in effect, the destination domain's containing DNS zone must be
 signed and the Postfix SMTP client's operating system must be
 configured to send its DNS queries to a recursive DNS nameserver
 that is able to validate the signed records.  Each MX host's DNS
-zone should also be signed, and should publish DANE TLSA (<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>)
+zone should also be signed, and should publish DANE TLSA (<a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>)
 records that specify how that MX host's TLS certificate is to be
 verified.  TLSA records do not preempt the normal SMTP MX host
 selection algorithm, if some MX hosts support TLSA and others do
@@ -12648,13 +12866,13 @@ purposes of protocol and cipher selection, the "dane" security level
 is treated like a "mandatory" TLS security level, and weak ciphers
 and protocols are disabled.  Since DANE authenticates server
 certificates the "aNULL" cipher-suites are transparently excluded
-at this level, no need to configure this manually.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE)
+at this level, no need to configure this manually.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication is available with Postfix 2.11 and later.  </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
 <dd>Mandatory DANE TLS.  This is just like "dane" above, but DANE
 TLSA authentication is required.  There is no fallback to "may" or
-"encrypt" when TLSA records are missing or unusable.  <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>
+"encrypt" when TLSA records are missing or unusable.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>
 (DANE) TLS authentication is available with Postfix 2.11 and later.
 </dd>
 
@@ -12710,7 +12928,7 @@ Examples:
 # can be mitigated by disabling a particular protocol or raising the
 # cipher grade from "export" to "low" or "medium").
 <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a> = export
-<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2
+<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a> = !SSLv2, !SSLv3
 </pre>
 
 <pre>
@@ -12840,9 +13058,9 @@ trust-anchor files are used at all, they will be specified on a
 per-destination basis via the "tafile" attribute of the "verify"
 and "secure" levels in <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>.  </p>
 
-<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA),
-which defines mechanisms for a client to securely determine server
-TLS certificates via DNS.  </p>
+<p> The underlying mechanism is in support of <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE TLSA),
+which defines mechanisms for an SMTP client MTA to securely determine
+server TLS certificates via DNS.  </p>
 
 <p> If you want your trust anchors to be public keys, with OpenSSL
 you can extract a single PEM public key from a PEM X.509 file
@@ -13140,6 +13358,37 @@ Example:
 <pre>
 <a href="postconf.5.html#smtpd_banner">smtpd_banner</a> = $<a href="postconf.5.html#myhostname">myhostname</a> ESMTP $<a href="postconf.5.html#mail_name">mail_name</a> ($<a href="postconf.5.html#mail_version">mail_version</a>)
 </pre>
+
+
+</DD>
+
+<DT><b><a name="smtpd_client_auth_rate_limit">smtpd_client_auth_rate_limit</a>
+(default: 0)</b></DT><DD>
+
+<p>
+The maximal number of AUTH commands that any client is allowed to
+send to this service per time unit, regardless of whether or not
+Postfix actually accepts those commands.  The time unit is specified
+with the <a href="postconf.5.html#anvil_rate_time_unit">anvil_rate_time_unit</a> configuration parameter.
+</p>
+
+<p>
+By default, there is no limit on the number AUTH commands that a
+client may send.
+</p>
+
+<p>
+To disable this feature, specify a limit of 0.
+</p>
+
+<p>
+WARNING: The purpose of this feature is to limit abuse. It must
+not be used to regulate legitimate mail traffic.
+</p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
+</p>
 
 
 </DD>
@@ -13769,7 +14018,7 @@ Example:
 
 <p> A mechanism to transform commands from remote SMTP clients.
 This is a last-resort tool to work around client commands that break
-inter-operability with the Postfix SMTP server.  Other uses involve
+interoperability with the Postfix SMTP server.  Other uses involve
 fault injection to test Postfix's handling of invalid commands.
 </p>
 
@@ -14411,6 +14660,39 @@ from the list. </p>
 
 </DD>
 
+<DT><b><a name="smtpd_milter_maps">smtpd_milter_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Lookup tables with Milter settings per remote SMTP client IP
+address.  The lookup result overrides the <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> setting,
+and has the same syntax. </p>
+
+<p> Note: lookup tables cannot return empty responses. Specify a
+lookup result of DISABLE (case does not matter) to indicate that
+Milter support should be disabled. </p>
+
+<p> Example to disable Milters for local clients: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtpd_milter_maps">smtpd_milter_maps</a> = <a href="cidr_table.5.html">cidr</a>:/etc/postfix/smtpd_milter_map
+    <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> = inet:host:port, { inet:host:port, ... }, ...
+</pre>
+
+<pre>
+/etc/postfix/smtpd_milter_map:
+    # Disable Milters for local clients.
+    127.0.0.0/8    DISABLE
+    192.168.0.0/16 DISABLE
+    ::/64          DISABLE
+    2001:db8::/32  DISABLE
+</pre>
+
+<p> This feature is available in Postfix 3.2 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_milters">smtpd_milters</a>
 (default: empty)</b></DT><DD>
 
@@ -14536,6 +14818,21 @@ closed.
 
 <p>
 This feature is available in Postfix 2.1 and later.
+</p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_policy_service_policy_context">smtpd_policy_service_policy_context</a>
+(default: empty)</b></DT><DD>
+
+<p> Optional information that the Postfix SMTP server specifies in
+the "policy_context" attribute of a policy service request (originally,
+to share the same service endpoint among multiple <a href="postconf.5.html#check_policy_service">check_policy_service</a>
+clients).  </p>
+
+<p>
+This feature is available in Postfix 3.1 and later.
 </p>
 
 
@@ -14840,7 +15137,8 @@ lookup problem with Postfix prior to version 2.0.
 
 <dt><b><a name="reject_non_fqdn_recipient">reject_non_fqdn_recipient</a></b></dt>
 
-<dd>Reject the request when the RCPT TO address is not in
+<dd>Reject the request when the RCPT TO address specifies a
+domain that is not in
 fully-qualified domain form, as required by the RFC. <br> The
 <a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504). </dd>
@@ -15484,7 +15782,7 @@ for authentication. The available types are listed with the
 (default: empty)</b></DT><DD>
 
 <p>
-Optional lookup table with the SASL login names that own sender
+Optional lookup table with the SASL login names that own the sender
 (MAIL FROM) addresses.
 </p>
 
@@ -15594,8 +15892,9 @@ feature is available in Postfix version 2.11 and later. </dd>
 
 <dt><b><a name="reject_non_fqdn_sender">reject_non_fqdn_sender</a></b></dt>
 
-<dd>Reject the request when the MAIL FROM address is not in
-fully-qualified domain form, as required by the RFC. <br> The
+<dd>Reject the request when the MAIL FROM address specifies a
+domain that is not in
+fully-qualified domain form as required by the RFC. <br> The
 <a href="postconf.5.html#non_fqdn_reject_code">non_fqdn_reject_code</a> parameter specifies the response code for
 rejected requests (default: 504). </dd>
 
@@ -15993,7 +16292,7 @@ and hence pass the "openssl verify -purpose sslserver ..." test. </p>
 (default: empty)</b></DT><DD>
 
 <p> Obsolete Postfix &lt; 2.3 control for the Postfix SMTP server TLS
-cipher list. It is easy to create inter-operability problems by choosing
+cipher list. It is easy to create interoperability problems by choosing
 a non-default cipher list. Do not use a non-default TLS cipherlist for
 MX hosts on the public Internet. Clients that begin the TLS handshake,
 but are unable to agree on a common cipher, may not be able to send any
@@ -16011,24 +16310,18 @@ Postfix 2.3 and later; use <a href="postconf.5.html#smtpd_tls_mandatory_ciphers"
 </DD>
 
 <DT><b><a name="smtpd_tls_ciphers">smtpd_tls_ciphers</a>
-(default: export)</b></DT><DD>
+(default: medium)</b></DT><DD>
 
 <p> The minimum TLS cipher grade that the Postfix SMTP server
 will use with opportunistic TLS encryption. Cipher types listed in
 <a href="postconf.5.html#smtpd_tls_exclude_ciphers">smtpd_tls_exclude_ciphers</a> are excluded from the base definition of
-the selected cipher grade. The default value "export" ensures maximum
-inter-operability. Because encryption is optional, stronger controls
-are not appropriate, and this setting SHOULD NOT be changed unless the
-change is essential. </p>
+the selected cipher grade.  The default value is "medium" for Postfix
+releases after the middle of 2015, "export" for older releases.
+</p>
 
 <p> When TLS is mandatory the cipher grade is chosen via the
 <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> configuration parameter, see there for syntax
 details. </p>
-
-<p> Example: </p>
-<pre>
-<a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a> = export
-</pre>
 
 <p> This feature is available in Postfix 2.6 and later. With earlier Postfix
 releases only the <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a> parameter is implemented,
@@ -16104,7 +16397,10 @@ Postfix uses ciphers with forward secrecy.  </p>
 (default: empty)</b></DT><DD>
 
 <p> File with DH parameters that the Postfix SMTP server should
-use with export-grade EDH ciphers. </p>
+use with export-grade EDH ciphers.  The default SMTP server cipher
+grade is "medium" with Postfix releases after the middle of 2015,
+and as a result export-grade cipher suites are by default not used.
+</p>
 
 <p> See also the discussion under the <a href="postconf.5.html#smtpd_tls_dh1024_param_file">smtpd_tls_dh1024_param_file</a>
 configuration parameter.  </p>
@@ -16430,17 +16726,16 @@ one "medium" or "high" grade cipher. </p>
 
 <dl>
 <dt><b>export</b></dt>
-<dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.
-This is the most appropriate setting for public MX hosts, and is always
-used with opportunistic TLS encryption. The underlying cipherlist
-is specified via the <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a> configuration parameter,
-which you are strongly encouraged to not change. </dd>
+<dd> Enable "EXPORT" grade or stronger OpenSSL ciphers.  The
+underlying cipherlist is specified via the <a href="postconf.5.html#tls_export_cipherlist">tls_export_cipherlist</a>
+configuration parameter, which you are strongly encouraged to not
+change.  This choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>low</b></dt>
-<dd> Enable "LOW" grade or stronger OpenSSL ciphers. The
-underlying cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a>
-configuration parameter, which you are strongly encouraged to
-not change. </dd>
+<dd> Enable "LOW" grade or stronger OpenSSL ciphers. The underlying
+cipherlist is specified via the <a href="postconf.5.html#tls_low_cipherlist">tls_low_cipherlist</a> configuration
+parameter, which you are strongly encouraged to not change.  This
+choice is insecure and SHOULD NOT be used.  </dd>
 
 <dt><b>medium</b></dt>
 <dd> Enable "MEDIUM" grade or stronger OpenSSL ciphers. These use 128-bit
@@ -16500,14 +16795,16 @@ works in addition to the exclusions listed with <a href="postconf.5.html#smtpd_t
 </DD>
 
 <DT><b><a name="smtpd_tls_mandatory_protocols">smtpd_tls_mandatory_protocols</a>
-(default: !SSLv2)</b></DT><DD>
+(default: !SSLv2, !SSLv3)</b></DT><DD>
 
 <p> The SSL/TLS protocols accepted by the Postfix SMTP server with
 mandatory TLS encryption. If the list is empty, the server supports
 all available SSL/TLS protocol versions.  A non-empty value is a
 list of protocol names separated by whitespace, commas or colons.
 The supported protocol names are "SSLv2", "SSLv3" and "TLSv1", and
-are not case sensitive. </p>
+are not case sensitive. The default value is "!SSLv2, !SSLv3" for
+Postfix releases after the middle of 2015, "!SSLv2" for older
+releases. </p>
 
 <p> With Postfix &ge; 2.5 the parameter syntax was expanded to support
 protocol exclusions. One can explicitly exclude "SSLv2" by setting
@@ -16524,11 +16821,6 @@ disabled.  The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2". </p>
 
-<p> Since SSL version 2 has known protocol weaknesses and is now
-deprecated, the default setting excludes "SSLv2".  This means that
-by default, SSL version 2 will not be used at the "encrypt" security
-level. </p>
-
 <p> Example: </p>
 
 <pre>
@@ -16544,11 +16836,12 @@ level. </p>
 </DD>
 
 <DT><b><a name="smtpd_tls_protocols">smtpd_tls_protocols</a>
-(default: empty)</b></DT><DD>
+(default: !SSLv2, !SSLv3)</b></DT><DD>
 
 <p> List of TLS protocols that the Postfix SMTP server will exclude
-or include with opportunistic TLS encryption. This parameter SHOULD
-be left at its default empty value, allowing all protocols to be
+or include with opportunistic TLS encryption. The default value is
+"!SSLv2, !SSLv3" for Postfix releases after the middle of 2015,
+empty for older releases allowing all protocols to be
 used with opportunistic TLS.  A non-empty value is a list of protocol
 names separated by whitespace, commas or colons.  The supported
 protocol names are "SSLv2", "SSLv3" and "TLSv1", and are not case
@@ -16560,7 +16853,7 @@ versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2". </p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
-with a "!" character. To exclude SSLv2 even for opportunistic TLS set
+with a "!" character. To exclude SSLv2 for opportunistic TLS set
 "<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
 "<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2, !SSLv3". Explicitly listing the protocols to
 include, rather than protocols to exclude, is supported, but not
@@ -16569,7 +16862,7 @@ OpenSSL interface semantics. </p>
 
 <p> Example: </p>
 <pre>
-<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2
+<a href="postconf.5.html#smtpd_tls_protocols">smtpd_tls_protocols</a> = !SSLv2, !SSLv3
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
@@ -16676,6 +16969,13 @@ opening this file. The file should now be stored under the Postfix-owned
 <a href="postconf.5.html#data_directory">data_directory</a>. As a migration aid, an attempt to open the file
 under a non-Postfix directory is redirected to the Postfix-owned
 <a href="postconf.5.html#data_directory">data_directory</a>, and a warning is logged. </p>
+
+<p> As of Postfix 2.11 the preferred mechanism for session resumption
+is <a href="http://tools.ietf.org/html/rfc5077">RFC 5077</a> TLS session tickets, which don't require server-side
+storage.  Consequently, for Postfix &ge; 2.11 this parameter should
+generally be left empty.  TLS session tickets require an OpenSSL
+library (at least version 0.9.8h) that provides full support for
+this TLS extension.  See also <a href="postconf.5.html#smtpd_tls_session_cache_timeout">smtpd_tls_session_cache_timeout</a>. </p>
 
 <p> Example: </p>
 
@@ -17103,8 +17403,8 @@ errors while accessing the Postfix <a href="postconf.5.html">main.cf</a> configu
 (default: see "postconf -d" output)</b></DT><DD>
 
 <p>
-The mail system name that is prepended to the process name in syslog
-records, so that "smtpd" becomes, for example, "postfix/smtpd".
+A prefix that is prepended to the process name in syslog
+records, so that, for example, "smtpd" becomes "prefix/smtpd".
 </p>
 
 <p>
@@ -17190,63 +17490,14 @@ bytes (equivalent to 256 bits) is sufficient to generate a 128bit
 <DT><b><a name="tls_dane_digest_agility">tls_dane_digest_agility</a>
 (default: on)</b></DT><DD>
 
-<p> Configure DANE TLSA digest algorithm agility.  When digest
-algorithm agility is enabled, and the server and client support a
-common strong digest algorithm, TLSA records with weaker digest
-algorithms are ignored.  </p>
+<p> Configure <a href="http://tools.ietf.org/html/rfc7671">RFC7671</a> DANE TLSA digest algorithm agility.
+Do not change this setting from its default value. </p>
 
-<p> Specify one of the following: </p>
+<p> See Section 8 of <a href="http://tools.ietf.org/html/rfc7671">RFC7671</a> for correct key rotation procedures.  </p>
 
-<dl>
-
-<dt><b>off</b></dt>
-<dd> DANE verification examines each well-formed record in the TLSA
-RRset whose matching type is either "0" (no hash used) or is one of
-the digest algorithms listed in $<a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a>.  This setting
-is not recommended.  </dd>
-
-<dt><b>on</b></dt>
-<dd> From each group of well-formed TLSA RRs a non-zero digest
-matching type with the same certificate usage and selector, DANE
-verification examines only those records whose matching type has
-the highest precedence (appear earliest in $<a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a>).
-</dd>
-
-<dt><b>maybe</b></dt>
-<dd> For compatibility with digest algorithm agility, each certificate
-or public key whose digest is included in a DANE TLSA RRset, SHOULD
-be published with the same set of digest matching type values as
-any other with the same usage and selector.  Therefore, compatible
-TLSA RRsets will contain an identical count of well-formed RRs with
-each non-zero digest matching type for any fixed combination of
-usage and selector.  When this constraint is violated, or any of
-the digest records are malformed, digest algorithm agility will
-disabled.  Otherwise, digest algorithm agility is enabled.   </dd>
-
-</dl>
-
-<p> Digest algorithm agility ensures that the strongest digest
-supported by both the Postfix SMTP client and the remote server is
-used, and weaker digests are ignored.  This supports non-disruptive
-deprecation of outdated digest algorithms. </p>
-
-<p> To ensure compatibility with digest algorithm agility during
-key rotation, when a certificate or public key is being replaced
-with another, and both are published during the transition, both
-the old and the new certificate MUST be specified with the same set
-of digests.  One can change the list of digest algorithms later,
-once old keys are retired.  At any given time, change either the
-list of digests without changing the list of certificates or public
-keys or the list of certificates or public keys without changing
-the list of digests.  Full value matching type "0" records are not
-subject to this constraint, but are discouraged due to the size of
-the resulting DNS records.  </p>
-
-<p> It is expected that this algorithm agility mechanism will be
-published in a standards track RFC for SMTP with DANE, and also in
-an eventual update to <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>. </p>
-
-<p> This feature is available in Postfix 2.11 and later. </p>
+<p> This feature is available in Postfix 2.11 through 3.1.  Postfix
+3.2 and later ignore this configuration parameter and behave as
+though it were set to "on".  </p>
 
 
 </DD>
@@ -17254,10 +17505,11 @@ an eventual update to <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>.
 <DT><b><a name="tls_dane_digests">tls_dane_digests</a>
 (default: sha512 sha256)</b></DT><DD>
 
-<p> <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> TLSA resource-record "matching type" digest algorithms
-in descending preference order.  All the specified algorithms must
-be supported by the underlying OpenSSL library, otherwise the Postfix
-SMTP client will not support DANE TLSA security.  </p>
+<p> DANE TLSA (<a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a>, <a href="http://tools.ietf.org/html/rfc7671">RFC 7671</a>, <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a>) resource-record "matching
+type" digest algorithms in descending preference order.  All the
+specified algorithms must be supported by the underlying OpenSSL
+library, otherwise the Postfix SMTP client will not support DANE
+TLSA security.  </p>
 
 <p> Specify a list of digest names separated by commas and/or
 whitespace.  Each digest name may be followed by an optional
@@ -17282,16 +17534,6 @@ seriously compromised and servers have had ample time to update their
 TLSA records you should not omit any standard digests, just arrange
 them in order from strongest to weakest.  </p>
 
-<p> When for a particular combination of "certificate usage" and
-"selector" the TLSA RRset contains records with more than one digest
-matching type, the tls_dane_digest_agility parameter determines
-whether all the RRs are used, or only those with the most preferred
-digest matching type.  </p>
-
-<p> The <a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a> parameter controls
-whether any digest TLSA records are acceptable in usage "2" (trust
-anchor assertion) TLSA records. </p>
-
 <p> This feature is available in Postfix 2.11 and later. </p>
 
 
@@ -17300,31 +17542,15 @@ anchor assertion) TLSA records. </p>
 <DT><b><a name="tls_dane_trust_anchor_digest_enable">tls_dane_trust_anchor_digest_enable</a>
 (default: yes)</b></DT><DD>
 
-<p> <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> trust-anchor digest support in the Postfix TLS library.
-Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
-digests of trust-anchors with certificate usage "2".  In this case
-the certificate usage logically requires the server administrator
-to configure the server to include the trust-anchor certificate in
-the server's SSL certificate chain.  If enough domains mess this
-up, you can disable support for these TLSA records, but you'll no
-longer have secure connections that get it right and only publish
-trust anchor records.  </p>
+<p> Enable support for <a href="http://tools.ietf.org/html/rfc6698">RFC 6698</a> (DANE TLSA) DNS records that contain
+digests of trust-anchors with certificate usage "2".  Do not change
+this setting from its default value.  </p>
 
-<p> At the <a href="TLS_README.html#client_tls_dane">dane</a>
-security level, when a TLSA RRset includes only unusable associations,
-the Postfix SMTP client will automatically switch the connection
-to the <a href="TLS_README.html#client_tls_encrypt">encrypt</a>
-security level.  At the <a
-href="TLS_README.html#client_tls_dane">dane-only</a> security level,
-the server in question is skipped and delivery is deferred if no
-secure servers are found.  </p>
-
-<p> The <a href="postconf.5.html#tls_dane_digests">tls_dane_digests</a> parameter controls the list of digest
-algorithms that are supported in TLSA records.  The tls_dane_digest_agility
-parameter controls digest algorithm downgrade attack resistance.
-</p>
-
-<p> This feature is available in Postfix 2.11 and later.  </p>
+<p> This feature is available in Postfix 2.11 through 3.1.  It has
+been withdrawn in Postfix 3.2, as trust-anchor TLSA records are now
+widely used and have proved sufficiently reliable.  Postfix 3.2 and
+later ignore this configuration parameter and behaves as though it
+were set to "yes".  </p>
 
 
 </DD>
@@ -17490,18 +17716,16 @@ EC algorithms have not been disabled by the vendor. </p>
 </DD>
 
 <DT><b><a name="tls_export_cipherlist">tls_export_cipherlist</a>
-(default: ALL:+RC4:@STRENGTH)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
-<p> The OpenSSL cipherlist for "EXPORT" or higher grade ciphers. This
-defines the meaning of the "export" setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>,
-<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. This is
-the cipherlist for the opportunistic ("may") TLS client security
-level and is the default cipherlist for the SMTP server. You are
-strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
-later the cipherlist may start with an "aNULL:" prefix, which restores
-the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
-list when they are enabled. This prefix is not needed with previous
-OpenSSL releases. </p>
+<p> The OpenSSL cipherlist for "export" or higher grade ciphers. This
+defines the meaning of the "export" setting in <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>,
+<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>,
+<a href="postconf.5.html#lmtp_tls_ciphers">lmtp_tls_ciphers</a>, and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>.  With Postfix
+releases before the middle of 2015 this is the default cipherlist
+for the opportunistic ("may") TLS client security level and also
+the default cipherlist for the SMTP server. You are strongly
+encouraged to not change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -17509,16 +17733,13 @@ OpenSSL releases. </p>
 </DD>
 
 <DT><b><a name="tls_high_cipherlist">tls_high_cipherlist</a>
-(default: ALL:!EXPORT:!LOW:!MEDIUM:+RC4:@STRENGTH)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
-<p> The OpenSSL cipherlist for "HIGH" grade ciphers. This defines
-the meaning of the "high" setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>,
-<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are
-strongly encouraged to not change this setting. With OpenSSL 1.0.0 and
-later the cipherlist may start with an "aNULL:" prefix, which restores
-the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
-list when they are enabled. This prefix is not needed with previous
-OpenSSL releases. </p>
+<p> The OpenSSL cipherlist for "high" grade ciphers. This defines
+the meaning of the "high" setting in <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>,
+<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>,
+<a href="postconf.5.html#lmtp_tls_ciphers">lmtp_tls_ciphers</a>, and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are strongly
+encouraged to not change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -17545,16 +17766,13 @@ certificate public-key fingerprints, see <a href="TLS_README.html">TLS_README</a
 </DD>
 
 <DT><b><a name="tls_low_cipherlist">tls_low_cipherlist</a>
-(default: ALL:!EXPORT:+RC4:@STRENGTH)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
-<p> The OpenSSL cipherlist for "LOW" or higher grade ciphers. This defines
-the meaning of the "low" setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>,
-<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are
-strongly encouraged to not change this setting.  With OpenSSL 1.0.0 and
-later the cipherlist may start with an "aNULL:" prefix, which restores
-the 0.9.8-compatible ordering of the aNULL ciphers to the top of the
-list when they are enabled. This prefix is not needed with previous
-OpenSSL releases. </p>
+<p> The OpenSSL cipherlist for "low" or higher grade ciphers. This defines
+the meaning of the "low" setting in <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>,
+<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>,
+<a href="postconf.5.html#lmtp_tls_ciphers">lmtp_tls_ciphers</a>, and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. You are strongly
+encouraged to not change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -17562,18 +17780,17 @@ OpenSSL releases. </p>
 </DD>
 
 <DT><b><a name="tls_medium_cipherlist">tls_medium_cipherlist</a>
-(default: ALL:!EXPORT:!LOW:+RC4:@STRENGTH)</b></DT><DD>
+(default: see "postconf -d" output)</b></DT><DD>
 
-<p> The OpenSSL cipherlist for "MEDIUM" or higher grade ciphers. This
-defines the meaning of the "medium" setting in <a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>,
-<a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>. This is
-the default cipherlist for mandatory TLS encryption in the TLS
-client (with anonymous ciphers disabled when verifying server
-certificates). You are strongly encouraged to not change this
-setting.  With OpenSSL 1.0.0 and later the cipherlist may start with an
-"aNULL:" prefix, which restores the 0.9.8-compatible ordering of the
-aNULL ciphers to the top of the list when they are enabled. This prefix
-is not needed with previous OpenSSL releases. </p>
+<p> The OpenSSL cipherlist for "medium" or higher grade ciphers. This
+defines the meaning of the "medium" setting in <a href="postconf.5.html#smtpd_tls_ciphers">smtpd_tls_ciphers</a>,
+<a href="postconf.5.html#smtpd_tls_mandatory_ciphers">smtpd_tls_mandatory_ciphers</a>, <a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>, <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a>,
+<a href="postconf.5.html#lmtp_tls_ciphers">lmtp_tls_ciphers</a>, and <a href="postconf.5.html#lmtp_tls_mandatory_ciphers">lmtp_tls_mandatory_ciphers</a>.  This is the
+default cipherlist for mandatory TLS encryption in the TLS client
+(with anonymous ciphers disabled when verifying server certificates).
+This is the default cipherlist for opportunistic TLS with Postfix
+releases after the middle of 2015.  You are strongly encouraged to
+not change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
@@ -17711,7 +17928,7 @@ is discouraged.  </p>
 
 <p> Setting this parameter empty disables session ticket support
 in the Postfix SMTP server.  Another way to disable session ticket
-support is via the tls_ssl_options parameter.  </p>
+support is via the <a href="postconf.5.html#tls_ssl_options">tls_ssl_options</a> parameter.  </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
 
@@ -17733,7 +17950,7 @@ the bugs.  </p>
 
 <p> Other options are off by default, and typically enable or disable
 features rather than bug work-arounds.  These may be turned on (with
-care) via the tls_ssl_options parameter.  The value is a white-space
+care) via the <a href="postconf.5.html#tls_ssl_options">tls_ssl_options</a> parameter.  The value is a white-space
 or comma separated list of named options chosen from the list below.
 The names are not case-sensitive, you can use lower-case if you
 prefer.  The upper case values below match the corresponding macro
@@ -17969,7 +18186,9 @@ for further details. </p>
 
 <p> File with DH parameters that the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> server
 should use with export-grade EDH ciphers. See <a href="postconf.5.html#smtpd_tls_dh512_param_file">smtpd_tls_dh512_param_file</a>
-for further details.  </p>
+for further details.  The default SMTP server cipher grade is
+"medium" with Postfix releases after the middle of 2015, and as a
+result export-grade cipher suites are by default not used.  </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
 
@@ -18540,6 +18759,16 @@ in "postconf" command output before Postfix version 2.9.  This
 limitation applies to many parameters whose name is a combination
 of a <a href="master.5.html">master.cf</a> service name and a built-in suffix (in this case:
 "_time_limit"). </p>
+
+
+</DD>
+
+<DT><b><a name="transport_transport_rate_delay">transport_transport_rate_delay</a>
+(default: $<a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a>)</b></DT><DD>
+
+<p> A transport-specific override for the <a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a>
+parameter value, where the initial <i>transport</i> in the parameter
+name is the <a href="master.5.html">master.cf</a> name of the message delivery transport. </p>
 
 
 </DD>

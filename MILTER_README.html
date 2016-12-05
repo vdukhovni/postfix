@@ -28,16 +28,10 @@ SMTP commands (HELO, MAIL FROM, etc.) as well as mail content
 <p> The reason for adding Milter support to Postfix is that there
 exists a large collection of applications, not only to block unwanted
 mail, but also to verify authenticity (examples: <a
-href="http://www.opendkim.org/">OpenDKIM</a>, <a
-href="http://sourceforge.net/projects/dkim-milter/">DomainKeys
-Identified Mail (DKIM)</a>, <a
-href="http://sourceforge.net/projects/sid-milter/">SenderID+SPF</a> and
-<a href="http://sourceforge.net/projects/dk-milter/">DomainKeys</a>)
-or to digitally sign mail (examples: <a
-href="http://www.opendkim.org/">OpenDKIM</a>, <a
-href="http://sourceforge.net/projects/dkim-milter/">DomainKeys
-Identified Mail (DKIM)</a>, <a
-href="http://sourceforge.net/projects/dk-milter/">DomainKeys</a>).
+href="http://www.opendkim.org/">OpenDKIM</a> and <a
+href="http://www.trusteddomain.org/opendmarc/">DMARC </a>)
+or to digitally sign mail (example: <a
+href="http://www.opendkim.org/">OpenDKIM</a>).
 Having yet another Postfix-specific version of all that software
 is a poor use of human and system resources. </p>
 
@@ -206,17 +200,14 @@ an object library that implements the Sendmail 8 Milter protocol.
 Postfix currently does not provide such a library, but Sendmail
 does. </p>
 
-<ul>
-
-<li> <p> The first option is to use a pre-compiled library. Some
+<p> Some
 systems install the Sendmail libmilter library by default.  With
 other systems, libmilter may be provided by a package (called
 "sendmail-devel" on some Linux systems).  </p>
 
 <p> Once libmilter is installed, applications such as <a
-href="http://www.opendkim.org/">OpenDKIM</a>, <a
-href="http://sourceforge.net/projects/dkim-milter/">dkim-milter</a> and
-<a href="http://sourceforge.net/projects/sid-milter/">sid-milter</a>
+href="http://www.opendkim.org/">OpenDKIM</a> and
+<a href="http://www.trusteddomain.org/opendmarc/">OpenDMARC</a>
 build out of the box without requiring any tinkering:</p>
 
 <blockquote>
@@ -230,44 +221,6 @@ $ <b>make install</b>
 </pre>
 </blockquote>
 
-<blockquote>
-<pre>
-$ <b>gzcat dkim-milter-<i>x.y.z</i>.tar.gz | tar xf -</b>
-$ <b>cd dkim-milter-<i>x.y.z</i></b>
-$ <b>make</b>
-[...<i>lots of output omitted</i>...]
-</pre>
-</blockquote>
-
-<li> <p> The other option is to build the libmilter library from
-Sendmail source code: </p>
-
-<blockquote>
-<pre>
-$ <b>gzcat sendmail-<i>x.y.z</i>.tar.gz | tar xf -</b>
-$ <b>cd sendmail-<i>x.y.z</i>/libmilter</b>
-$ <b>make</b>
-[...<i>lots of output omitted</i>...]
-</pre>
-</blockquote>
-
-<p> After building your own libmilter library, follow the installation
-instructions in the Milter application source distribution to specify
-the location of the libmilter include files and object library.
-Typically, these settings are configured in a file named
-<tt>sid-filter/Makefile.m4</tt> or similar:
-
-<blockquote>
-<pre>
-APPENDDEF(`confINCDIRS', `-I/some/where/sendmail-x.y.z/include')
-APPENDDEF(`confLIBDIRS', `-L/some/where/sendmail-x.y.z/obj.<i>systemtype</i>/libmilter')
-</pre>
-</blockquote>
-
-<p>Then build the Milter application. </p>
-
-</ul>
-
 <h2><a name="running">Running Milter applications</a></h2>
 
 <p> To run a Milter application, see the documentation of the filter
@@ -275,7 +228,7 @@ for options.  A typical command looks like this:</p>
 
 <blockquote>
 <pre>
-# <b>/some/where/dkim-filter -u <i>userid</i> -p inet:<i>portnumber</i>@localhost ...<i>other options</i>...</b>
+# <b>/some/where/opendkim -l -u <i>userid</i> -p inet:<i>portnumber</i>@localhost ...<i>other options</i>...</b>
 </pre>
 </blockquote>
 
@@ -306,7 +259,12 @@ support per-Milter timeouts, per-Milter error handling, etc. </p>
 <li><a href="#per-milter">Different settings for different Milter
 applications </a>
 
+<li><a href="#per-client">Different settings for different SMTP
+clients </a>
+
 <li><a href="#macros">Sendmail macro emulation</a>
+
+<li><a href="#send-macros">What macros will Postfix send to Milters?</a>
 
 </ul>
 
@@ -318,11 +276,12 @@ unwanted mail, and to sign mail from authorized SMTP clients.  Mail
 that arrives via the Postfix <a href="smtpd.8.html">smtpd(8)</a> server is not filtered by the
 non-SMTP filters that are described in the next section. </p>
 
-<p> NOTE: Do not use the <a href="header_checks.5.html">header_checks(5)</a> IGNORE action to remove
+<blockquote> NOTE for Postfix versions that have a <a href="postconf.5.html#mail_release_date">mail_release_date</a>
+before 20141018: do not use the <a href="header_checks.5.html">header_checks(5)</a> IGNORE action to remove
 Postfix's own Received: message header. This causes problems with
 mail signing filters. Instead, keep Postfix's own Received: message
 header and use the <a href="header_checks.5.html">header_checks(5)</a> REPLACE action to sanitize
-information. </p>
+information. </blockquote>
 
 <p> You specify SMTP-only Milter applications (there can be more
 than one) with the <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> parameter.  Each Milter application
@@ -363,6 +322,11 @@ form <b>inet:</b><i>port</i><b>@</b><i>host</i>. </p>  </dd>
 </dl>
 
 </blockquote>
+
+<p> For advanced configuration see "<a href="#per-client">Different
+settings for different SMTP clients</a>" and "<a
+href="#per-milter">Different settings for different Milter
+applications</a>". </p>
 
 <h3> <a name="non-smtp-milters">Non-SMTP Milter applications </a> </h3>
 
@@ -596,7 +560,9 @@ earlier. </p>
 <li> <p> Line 3: The remainder of the list contains per-Milter
 settings. These settings override global <a href="postconf.5.html">main.cf</a> parameters, and
 have the same name as those parameters, without the "milter_" prefix.
-</p>
+The per-Milter settings that are supported as of Postfix 3.0 are
+command_timeout, connect_timeout, content_timeout, default_action,
+and protocol.  </p>
 
 </ul>
 
@@ -605,6 +571,29 @@ have the same name as those parameters, without the "milter_" prefix.
 <b>you must enclose a setting in parentheses, as in "{ name = value
 }", if you want to have space or comma within a value or around
 "="</b>.  </p>
+
+<h3><a name="per-client">Different settings for different SMTP
+clients </a></h3>
+
+<p> The <a href="postconf.5.html#smtpd_milter_maps">smtpd_milter_maps</a> feature supports different Milter settings
+for different client IP addresses. Lookup results override the the
+global <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> setting, and have the same syntax. For example,
+to disable Milter settings for local address ranges: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtpd_milter_maps">smtpd_milter_maps</a> = <a href="cidr_table.5.html">cidr</a>:/etc/postfix/smtpd_milter_map
+    <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> = inet:host:port, { inet:host:port, ... }, ...
+
+/etc/postfix/smtpd_milter_map:
+    # Disable Milters for local clients.
+    127.0.0.0/8    DISABLE
+    192.168.0.0/16 DISABLE
+    ::/64          DISABLE
+    2001:db8::/32  DISABLE
+</pre>
+
+<p> This feature is available with Postfix 3.2 and later. </p>
 
 <h3><a name="macros">Sendmail macro emulation</a></h3>
 
@@ -643,19 +632,19 @@ sender </td> </tr>
 <tr> <td> {auth_type} </td> <td> MAIL, DATA, EOH, EOM </td> <td> SASL
 login method </td> </tr>
 
-<tr> <td> {client_addr} </td> <td> Always </td> <td> Client IP
-address </td> </tr>
+<tr> <td> {client_addr} </td> <td> Always </td> <td> Remote client
+IP address </td> </tr>
 
 <tr> <td> {client_connections} </td> <td> CONNECT </td> <td>
 Connection concurrency for this client (zero if the client is
 excluded from all smtpd_client_* limits). </td> </tr>
 
-<tr> <td> {client_name} </td> <td> Always </td> <td> Client hostname
-<br> When address &rarr; name lookup or name &rarr; address
+<tr> <td> {client_name} </td> <td> Always </td> <td> Remote client
+hostname <br> When address &rarr; name lookup or name &rarr; address
 verification fails: "unknown" </td> </tr>
 
 <tr> <td> {client_port} </td> <td> Always (Postfix &ge;2.5) </td>
-<td> Client TCP port </td> </tr>
+<td> Remote client TCP port </td> </tr>
 
 <tr> <td> {client_ptr} </td> <td> CONNECT, HELO, MAIL, DATA </td>
 <td> Client name from address &rarr; name lookup <br> When address
@@ -673,8 +662,14 @@ TLS session key size </td> </tr>
 <tr> <td> {cipher} </td> <td> HELO, MAIL, DATA, EOH, EOM </td> <td> TLS
 cipher </td> </tr>
 
+<tr> <td> {daemon_addr} </td> <td> Always (Postfix &ge;3.2) </td>
+<td> Local server IP address </td> </tr>
+
 <tr> <td> {daemon_name} </td> <td> Always </td> <td> value of
 <a href="postconf.5.html#milter_macro_daemon_name">milter_macro_daemon_name</a> </td> </tr>
+
+<tr> <td> {daemon_port} </td> <td> Always (Postfix &ge;3.2) </td>
+<td> Local server TCP port </td> </tr>
 
 <tr> <td> {mail_addr} </td> <td> MAIL </td> <td> Sender address
 </td> </tr>
@@ -706,9 +701,11 @@ With rejected recipient: "error" </td> </tr>
 
 </blockquote>
 
+<h3><a name="send-macros">What macros will Postfix send to Milters?</a></h3>
+
 <p> Postfix sends specific sets of macros at different Milter protocol
-stages.  The sets are configured with the parameters as described
-in the table (EOH = end of headers; EOM = end of message). The
+stages.  The sets are configured with the parameters as shown in the
+table below (EOH = end of headers; EOM = end of message). The
 protocol version is a number that Postfix sends at the beginning
 of the Milter protocol handshake. </p>
 
@@ -752,6 +749,17 @@ TO </td> </tr>
 
 </blockquote>
 
+<p> By default, Postfix will send only macros whose values have been
+updated with information from <a href="postconf.5.html">main.cf</a> or <a href="master.5.html">master.cf</a>, from an SMTP session
+(for example; SASL login, or TLS certificates) or from a Mail delivery
+transaction (for example; queue ID, sender, or recipient). </p>
+
+<p> To force a macro to be sent even when its value has not been updated,
+you may specify macro default values with the <a href="postconf.5.html#milter_macro_defaults">milter_macro_defaults</a>
+parameter. Specify zero or more <i>name=value</i> pairs separated by
+comma or whitespace; you may even specify macro names that Postfix does
+know about! </p>
+
 <h2><a name="workarounds">Workarounds</a></h2>
 
 <ul>
@@ -777,7 +785,8 @@ example. </p>
 
 <li> <p> Some Milter applications use the "<tt>{if_addr}</tt>" macro
 to recognize local mail; this macro does not exist in Postfix.
-Workaround: use the "<tt>{client_addr}</tt>" macro instead. </p>
+Workaround: use the "<tt>{daemon_addr}</tt>" (Postfix &ge 3.2) or
+"<tt>{client_addr}</tt>" macro instead. </p>
 
 <li> <p> Some Milter applications log a warning that looks like
 this: </p>

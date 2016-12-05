@@ -10,7 +10,7 @@ POSTLOG(1)                                                          POSTLOG(1)
        postlog - Postfix-compatible logging utility
 
 <b>SYNOPSIS</b>
-       <b>postlog</b> [<b>-iv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-p</b> <i>priority</i><b>] [-t</b> <i>tag</i>] [<i>text...</i>]
+       <b>postlog</b> [<b>-iv</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-p</b> <i>priority</i>] [<b>-t</b> <i>tag</i>] [<i>text...</i>]
 
 <b>DESCRIPTION</b>
        The  <a href="postlog.1.html"><b>postlog</b>(1)</a>  command implements a Postfix-compatible logging inter-
@@ -31,9 +31,11 @@ POSTLOG(1)                                                          POSTLOG(1)
 
        <b>-i</b>     Include the process ID in the logging tag.
 
-       <b>-p</b> <i>priority</i>
-              Specifies the logging severity:  <b>info</b>  (default),  <b>warn</b>,  <b>error</b>,
-              <b>fatal</b>, or <b>panic</b>.
+       <b>-p</b> <i>priority</i> (default: <b>info</b>)
+              Specifies the logging severity: <b>info</b>,  <b>warn</b>,  <b>error</b>,  <b>fatal</b>,  or
+              <b>panic</b>.  With Postfix 3.1 and later, the program will pause for 1
+              second after reporting a <b>fatal</b> or  <b>panic</b>  condition,  just  like
+              other Postfix programs.
 
        <b>-t</b> <i>tag</i> Specifies  the  logging  tag, that is, the identifying name that
               appears at the beginning of each logging record. A  default  tag
@@ -61,9 +63,8 @@ POSTLOG(1)                                                          POSTLOG(1)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The  mail  system  name that is prepended to the process name in
-              syslog records, so that "smtpd"  becomes,  for  example,  "post-
-              fix/smtpd".
+              A  prefix  that  is  prepended  to  the  process  name in syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
 <b>SEE ALSO</b>
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
@@ -77,6 +78,11 @@ POSTLOG(1)                                                          POSTLOG(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
                                                                     POSTLOG(1)
 </pre> </body> </html>

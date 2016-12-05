@@ -10,19 +10,19 @@ POSTMULTI(1)                                                      POSTMULTI(1)
        postmulti - Postfix multi-instance manager
 
 <b>SYNOPSIS</b>
-       <b>ENABLING MULTI-INSTANCE MANAGEMENT:</b>
+   <b>Enabling multi-instance management:</b>
 
        <b>postmulti -e init</b> [<b>-v</b>]
 
-       <b>ITERATOR MODE:</b>
+   <b>Iterator mode:</b>
 
        <b>postmulti -l</b> [<b>-aRv</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>]
 
-       <b>postmulti -p</b> [<b>-av</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>command...</i>
+       <b>postmulti -p</b> [<b>-av</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>postfix-command...</i>
 
-       <b>postmulti -x</b> [<b>-aRv</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>command...</i>
+       <b>postmulti -x</b> [<b>-aRv</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] <i>unix-command...</i>
 
-       <b>LIFE-CYCLE MANAGEMENT:</b>
+   <b>Life-cycle management:</b>
 
        <b>postmulti -e create</b> [<b>-av</b>] [<b>-g</b> <i>group</i>] [<b>-i</b> <i>name</i>] [<b>-G</b> <i>group</i>] [<b>-I</b> <i>name</i>]
        [<i>param=value</i> ...]
@@ -100,7 +100,8 @@ POSTMULTI(1)                                                      POSTMULTI(1)
               name, enable/disable status and configuration directory.
 
 <b>Postfix-wrapper mode</b>
-       <b>-p</b>     Invoke <a href="postfix.1.html"><b>postfix(1)</a></b> to execute the specified <i>command</i>.  This option
+       <b>-p</b> <i>postfix-command</i>
+              Invoke  <a href="postfix.1.html"><b>postfix(1)</a></b>  to  execute  <i>postfix-command</i>.   This  option
               implements the <a href="postfix-wrapper.5.html"><b>postfix-wrapper</b>(5)</a> interface.
 
               <b>o</b>      With "start"-like commands, "postfix check"  is  executed
@@ -130,10 +131,11 @@ POSTMULTI(1)                                                      POSTMULTI(1)
                      # postmulti -g msa -p start
 
 <b>Command mode</b>
-       <b>-x</b>     Execute the specified <i>command</i> for all  Postfix  instances.   The
-              command runs with appropriate environment settings for MAIL_CON-
-              FIG,  <a href="postconf.5.html#command_directory">command_directory</a>,   <a href="postconf.5.html#daemon_directory">daemon_directory</a>,   <a href="postconf.5.html#config_directory">config_directory</a>,
-              <a href="postconf.5.html#queue_directory">queue_directory</a>,       <a href="postconf.5.html#data_directory">data_directory</a>,      <a href="postconf.5.html#multi_instance_name">multi_instance_name</a>,
+       <b>-x</b> <i>unix-command</i>
+              Execute the specified <i>unix-command</i> for  all  Postfix  instances.
+              The  command  runs  with  appropriate  environment  settings for
+              MAIL_CONFIG, <a href="postconf.5.html#command_directory">command_directory</a>, <a href="postconf.5.html#daemon_directory">daemon_directory</a>,  <a href="postconf.5.html#config_directory">config_direc</a>-
+              <a href="postconf.5.html#config_directory">tory</a>,   <a href="postconf.5.html#queue_directory">queue_directory</a>,   <a href="postconf.5.html#data_directory">data_directory</a>,  <a href="postconf.5.html#multi_instance_name">multi_instance_name</a>,
               <a href="postconf.5.html#multi_instance_group">multi_instance_group</a> and <a href="postconf.5.html#multi_instance_enable">multi_instance_enable</a>.
 
 <b>Other options</b>
@@ -352,22 +354,21 @@ POSTMULTI(1)                                                      POSTMULTI(1)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
-              fix/smtpd".
+              A prefix that  is  prepended  to  the  process  name  in  syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix 3.0 and later:
 
        <b><a href="postconf.5.html#meta_directory">meta_directory</a> (see 'postconf -d' output)</b>
-              The location of non-executable files that are shared among  mul-
-              tiple  Postfix instances, such as postfix-files, dynamicmaps.cf,
-              and the multi-instance template  files  <a href="postconf.5.html">main.cf</a>.proto  and  <a href="master.5.html">mas-
+              The  location of non-executable files that are shared among mul-
+              tiple Postfix instances, such as postfix-files,  dynamicmaps.cf,
+              and  the  multi-instance  template  files <a href="postconf.5.html">main.cf</a>.proto and <a href="master.5.html">mas-
               ter.cf</a>.proto.
 
        <b><a href="postconf.5.html#shlib_directory">shlib_directory</a> (see 'postconf -d' output)</b>
-              The  location  of Postfix dynamically-linked libraries (libpost-
-              fix-*.so), and the default location of Postfix database  plugins
-              (postfix-*.so)  that  have  a  relative  pathname  in the dynam-
+              The location of Postfix dynamically-linked  libraries  (libpost-
+              fix-*.so),  and the default location of Postfix database plugins
+              (postfix-*.so) that have  a  relative  pathname  in  the  dynam-
               icmaps.cf file.
 
 <b>FILES</b>

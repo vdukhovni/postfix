@@ -108,6 +108,11 @@ stress=
 ccert_pubkey_fingerprint=68:B3:29:DA:98:93:E3:40:99:C7:D8:AD:5C:B9:C9:40
 <b>Postfix version 3.0 and later:</b>
 client_port=1234
+<b>Postfix version 3.1 and later:</b>
+policy_context=submission
+<b>Postfix version 3.2 and later:</b>
+server_address=10.3.2.1
+server_port=54321
 [empty line]
 </pre>
 </blockquote>
@@ -142,9 +147,12 @@ client_port=1234
     specifies the number of recipients that Postfix accepted for
     the current message.  </p>
 
-    <li> <p> The client address is an IPv4 dotted quad in the form
-    1.2.3.4 or it is an IPv6 address in the form 1:2:3::4:5:6.
-    </p>
+    <li> <p> The remote client or local server IP address is an
+    IPv4 dotted quad in the form 1.2.3.4 or it is an IPv6 address
+    in the form 1:2:3::4:5:6.  </p>
+
+    <li> <p> The remote client or local server port is a decimal
+    number in the range 0-65535.  </p>
 
     <li> <p> For a discussion of the differences between reverse
     and verified client_name information, see the
@@ -194,6 +202,10 @@ client_port=1234
 
     <li> <p> The "stress" attribute is either empty or "yes".  See
     the <a href="STRESS_README.html">STRESS_README</a> document for further information. </p>
+
+    <li> <p> The "policy_context" attribute provides a way to pass
+    information that is not available via other attributes (Postfix
+    version 3.1 and later). </p>
 
 </ul>
 
@@ -366,6 +378,12 @@ giving up.  Available with Postfix 3.0 and later.  </p>
 <li> <p> <a href="postconf.5.html#smtpd_policy_service_retry_delay">smtpd_policy_service_retry_delay</a> (default: 1s): The delay
 between attempts to resend a failed SMTPD policy service request.
 Available with Postfix 3.0 and later.  </p>
+
+<li> <p> <a href="postconf.5.html#smtpd_policy_service_policy_context">smtpd_policy_service_policy_context</a> (default: empty):
+Optional information that is passed in the "policy_context" attribute
+of an SMTPD policy service request (originally, to share the same
+SMTPD service endpoint among multiple <a href="postconf.5.html#check_policy_service">check_policy_service</a> clients).
+Available with Postfix 3.1 and later.  </p>
 
 </ul>
 

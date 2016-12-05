@@ -22,9 +22,11 @@ DNSBLOG(8)                                                          DNSBLOG(8)
        list domain name, an IP address, and an  ID.   If  the  IP  address  is
        listed  under  the  DNS white/blacklist, the <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> server logs the
        match and replies with the query arguments plus an  address  list  with
-       the  resulting  IP  addresses  separated  by  whitespace.  Otherwise it
-       replies with the query arguments plus an empty address list.   Finally,
-       The <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> server closes the connection.
+       the resulting IP addresses, separated by whitespace, and the reply TTL.
+       Otherwise it replies with the query arguments  plus  an  empty  address
+       list  and the reply TTL; the reply TTL is -1 if there is no reply, or a
+       negative reply that contains no SOA record.   Finally,  the  <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a>
+       server closes the connection.
 
 <b>DIAGNOSTICS</b>
        Problems and transactions are logged to <b>syslogd</b>(8).
@@ -66,9 +68,8 @@ DNSBLOG(8)                                                          DNSBLOG(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              The mail system name that is prepended to the  process  name  in
-              syslog  records,  so  that  "smtpd" becomes, for example, "post-
-              fix/smtpd".
+              A prefix that  is  prepended  to  the  process  name  in  syslog
+              records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
 <b>SEE ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
@@ -86,6 +87,11 @@ DNSBLOG(8)                                                          DNSBLOG(8)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
                                                                     DNSBLOG(8)
 </pre> </body> </html>
