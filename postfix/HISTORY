@@ -22645,3 +22645,34 @@ Apologies for any names omitted.
 	new-server-cert" is invoked, and main.cf specifies a
 	non-existent keyfile. Viktor Dukhovni.  File:
 	conf/postfix-tls-script.
+
+20161205
+
+	Cleanup: log the sender address when rejecting a too large
+	message size in a "MAIL FROM:<sender> SIZE=nnn" command.
+	File: smtpd/smtpd.c.
+
+20161206
+
+	Bugfix (introduced: Postfix 3.0): when receiving a MAIL
+	FROM...SMTPUTF8 command while smtpd_delay_reject=no, enable
+	SMTPUTF8 support before processing smtpd_sender_restrictions.
+	Problem reported by Viktor Dukhovni. File: smtpd/smtpd.c.
+
+	Bugfix (introduced: Postfix 3.0): when receiving a
+	VRFY...SMTPUTF8 command, enable SMTPUTF8 support while
+	processing smtpd_recipient_restrictions. File: smtpd/smtpd.c.
+
+20161220
+
+	Bugfix (introduced: Postfix 2.1.0): the Postfix SMTP daemon
+	did not query sender_canonical_maps when rejecting unknown
+	senders with "smtpd_reject_unlisted_recipient = yes" or
+	with reject_unlisted_sender.  Stephen R. van den Berg (Mr.
+	procmail). Files: smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20161223
+
+	Bugfix (introduced: Postfix 3.2 snapshots): the makedefs
+	script produced a garbled CCARGS setting when no suitable
+	ICU library was found. File: makedefs.

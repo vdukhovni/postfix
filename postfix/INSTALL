@@ -357,7 +357,7 @@ inconsistent results with different versions of the make(1) command.
     postfix-files will automatically include files under the directory postfix-
     files.d. Thanks to this, you can install or deinstall a database plugin
     package without having to edit postfix-files or dynamicmaps.cf. Instead,
-    you give that plugin its own configuration files dynamicmaps.cf.d and
+    you give that plugin its own configuration files under dynamicmaps.cf.d and
     postfix-files.d, and you add or remove those configuration files along with
     the database plugin dynamically-linked object.
 

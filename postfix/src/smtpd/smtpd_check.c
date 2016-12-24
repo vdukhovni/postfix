@@ -286,6 +286,7 @@ static CTABLE *smtpd_rbl_byte_cache;
   * trivial-rewrite resolver.
   */
 static MAPS *local_rcpt_maps;
+static MAPS *send_canon_maps;
 static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virt_alias_maps;
@@ -744,6 +745,9 @@ void    smtpd_check_init(void)
      * Pre-parse and pre-open the recipient maps.
      */
     local_rcpt_maps = maps_create(VAR_LOCAL_RCPT_MAPS, var_local_rcpt_maps,
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
+    send_canon_maps = maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps,
 				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
 				  | DICT_FLAG_UTF8_REQUEST);
     rcpt_canon_maps = maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
@@ -5124,7 +5128,7 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *sender,
     DSN_SPLIT dp;
 
     if (msg_verbose)
-	msg_info(">>> CHECKING RECIPIENT MAPS <<<");
+	msg_info(">>> CHECKING %s VALIDATION MAPS <<<", reply_class);
 
     /*
      * Resolve the address.
@@ -5150,6 +5154,8 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *sender,
      * domains.
      */
     if (MATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
+	|| (strcmp(reply_class, SMTPD_NAME_SENDER) == 0
+	    && MATCH(send_canon_maps, CONST_STR(reply->recipient)))
 	|| MATCH(canonical_maps, CONST_STR(reply->recipient))
 	|| MATCH(virt_alias_maps, CONST_STR(reply->recipient)))
 	return (0);
@@ -5497,6 +5503,7 @@ char   *var_proxy_interfaces;
 char   *var_rcpt_delim;
 char   *var_rest_classes;
 char   *var_alias_maps;
+char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;
 char   *var_canonical_maps;
 char   *var_virt_alias_maps;
@@ -5547,6 +5554,7 @@ static const STRING_TABLE string_table[] = {
     VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim,
     VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes,
     VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps,
+    VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps,
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps,
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps,
     VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps,
@@ -5954,7 +5962,7 @@ int     main(int argc, char **argv)
 	    vstream_printf("exit %d\n", system(bp + 1));
 	    continue;
 	}
-	args = argv_split(bp, CHARS_SPACE);
+	args = argv_splitq(bp, CHARS_SPACE, CHARS_BRACE);
 
 	/*
 	 * Recognize the command.
@@ -6094,6 +6102,22 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
 			    var_canonical_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_SEND_CANON_MAPS) == 0) {
+		UPDATE_STRING(var_send_canon_maps, args->argv[1]);
+		UPDATE_MAPS(send_canon_maps, VAR_SEND_CANON_MAPS,
+			    var_send_canon_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_RCPT_CANON_MAPS) == 0) {
+		UPDATE_STRING(var_rcpt_canon_maps, args->argv[1]);
+		UPDATE_MAPS(rcpt_canon_maps, VAR_RCPT_CANON_MAPS,
+			    var_rcpt_canon_maps, DICT_FLAG_LOCK
 			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;

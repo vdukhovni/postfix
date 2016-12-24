@@ -8,8 +8,8 @@
 /*	memory management wrappers
 /* SYNOPSIS
 /*	#include "mymalloc.h"
- DESCRIPTION
- .nf
+/* DESCRIPTION
+/* .nf
 
  /*
   * External interface.

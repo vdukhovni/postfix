@@ -9,14 +9,8 @@ Wish list:
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
 
-	In the smtpd daemon, log the sender when rejecting SIZE.
-
 	Adopt John Fawcett's stored-procedure support, and look
 	at Joel Linn's follow-up dated 22 Nov 2016 01:35:03 +0100.
-
-	Adopt Russell Yanofsky's patch to account for
-	sender_dependent_transport_maps (e.g. if it resolves to the
-	error: delivery agent, then it should be rejected).
 
 	Why does postqueue show UTC time, even if TZ is set in
 	the import_environment setting? Because postqueue is set-gid?
