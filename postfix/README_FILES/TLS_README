@@ -70,6 +70,7 @@ SSMMTTPP SSeerrvveerr ssppeecciiffiicc sseettttiinnggs
 Topics covered in this section:
 
   * Server-side certificate and private key configuration
+  * Server-side forward-secrecy configuration
   * Server-side TLS activity logging
   * Enabling TLS in the Postfix SMTP server
   * Client certificate verification
@@ -240,6 +241,14 @@ Example:
     /etc/postfix/main.cf:
         smtpd_tls_CAfile = /etc/postfix/CAcert.pem
         smtpd_tls_CApath = /etc/postfix/certs
+
+SSeerrvveerr--ssiiddee ffoorrwwaarrdd--sseeccrreeccyy ccoonnffiigguurraattiioonn
+
+If you want to take maximal advantage of ciphers that offer forward secrecy see
+the Getting started section of FORWARD_SECRECY_README. The full document
+conveniently presents all information about Postfix forward secrecy support in
+one place: what forward secrecy is, how to tweak settings, and what you can
+expect to see when Postfix uses ciphers with forward secrecy.
 
 SSeerrvveerr--ssiiddee TTLLSS aaccttiivviittyy llooggggiinngg
 
@@ -623,9 +632,9 @@ ciphers:
 
 If you want to take maximal advantage of ciphers that offer forward secrecy see
 the Getting started section of FORWARD_SECRECY_README. The full document
-conveniently presents all information about Postfix "perfect" forward secrecy
-support in one place: what forward secrecy is, how to tweak settings, and what
-you can expect to see when Postfix uses ciphers with forward secrecy.
+conveniently presents all information about Postfix forward secrecy support in
+one place: what forward secrecy is, how to tweak settings, and what you can
+expect to see when Postfix uses ciphers with forward secrecy.
 
 Postfix 2.8 and later, in combination with OpenSSL 0.9.7 and later allows TLS
 servers to preempt the TLS client's cipher-suite preference list. This is

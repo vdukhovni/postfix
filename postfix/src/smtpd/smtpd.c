@@ -473,6 +473,11 @@
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBtls_session_ticket_cipher (Postfix >= 3.0: aes-256-cbc, Postfix < 3.0: aes-128-cbc)\fR"
 /*	Algorithm used to encrypt RFC5077 TLS session tickets.
+/* .PP
+/*	Available in Postfix version 3.2 and later:
+/* .IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
+/*	The prioritized list of elliptic curves supported by the Postfix
+/*	SMTP client and server.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -588,6 +593,9 @@
 /* .IP "\fBrecipient_canonical_maps (empty)\fR"
 /*	Optional address mapping lookup tables for envelope and header
 /*	recipient addresses.
+/* .IP "\fBsender_canonical_maps (empty)\fR"
+/*	Optional address mapping lookup tables for envelope and header
+/*	sender addresses.
 /* .PP
 /*	Parameters concerning known/unknown local recipients:
 /* .IP "\fBmydestination ($myhostname, localhost.$mydomain, localhost)\fR"
@@ -1250,6 +1258,7 @@ char   *var_rest_classes;
 int     var_strict_rfc821_env;
 bool    var_disable_vrfy_cmd;
 char   *var_canonical_maps;
+char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;
 char   *var_virt_alias_maps;
 char   *var_virt_mailbox_maps;
@@ -2355,7 +2364,6 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     char   *verp_delims = 0;
     int     rate;
     int     dsn_envid = 0;
-    int     smtputf8 = 0;
 
     state->flags &= ~SMTPD_FLAG_SMTPUTF8;
     state->encoding = 0;
@@ -2422,13 +2430,15 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	for (narg = 3; narg < argc; narg++) {
 	    arg = argv[narg].strval;
 	    if (strcasecmp(arg, "SMTPUTF8") == 0) {	/* RFC 6531 */
-		smtputf8 = 1;
+		/* Fix 20161206: allow UTF8 in smtpd_sender_restrictions. */
+		state->flags |= SMTPD_FLAG_SMTPUTF8;
 		break;
 	    }
 	}
     }
     if (extract_addr(state, argv + 2, PERMIT_EMPTY_ADDR,
-		     var_strict_rfc821_env, smtputf8) != 0) {
+		     var_strict_rfc821_env,
+		     state->flags & SMTPD_FLAG_SMTPUTF8) != 0) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "501 5.1.7 Bad sender address syntax");
 	return (-1);
@@ -2513,7 +2523,11 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    return (-1);
 	}
     }
-    if ((err = smtpd_check_size(state, state->msg_size)) != 0) {
+    /* Fix 20161205: show the envelope sender in reject logging. */
+    PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
+    err = smtpd_check_size(state, state->msg_size);
+    POP_STRING(saved_sender, state->sender);
+    if (err != 0) {
 	smtpd_chat_reply(state, "%s", err);
 	return (-1);
     }
@@ -2627,8 +2641,6 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->verp_delims = mystrdup(verp_delims);
     if (dsn_envid)
 	state->dsn_envid = mystrdup(STR(state->dsn_buf));
-    if (smtputf8)
-	state->flags |= SMTPD_FLAG_SMTPUTF8;
     if (USE_SMTPD_PROXY(state))
 	state->proxy_mail = mystrdup(STR(state->buffer));
     if (var_smtpd_delay_open == 0 && mail_open_stream(state) < 0) {
@@ -3604,6 +3616,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     const char *err = 0;
     int     rate;
     int     smtputf8 = 0;
+    int     saved_flags;
 
     /*
      * The SMTP standard (RFC 821) disallows unquoted special characters in
@@ -3690,10 +3703,17 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     /* Use state->addr_buf, with the unquoted result from extract_addr() */
-    if (SMTPD_STAND_ALONE(state) == 0
-	&& (err = smtpd_check_rcpt(state, STR(state->addr_buf))) != 0) {
-	smtpd_chat_reply(state, "%s", err);
-	return (-1);
+    if (SMTPD_STAND_ALONE(state) == 0) {
+	/* Fix 20161206: allow UTF8 in smtpd_recipient_restrictions. */
+	saved_flags = state->flags;
+	if (smtputf8)
+	    state->flags |= SMTPD_FLAG_SMTPUTF8;
+	err = smtpd_check_rcpt(state, STR(state->addr_buf));
+	state->flags = saved_flags;
+	if (err != 0) {
+	    smtpd_chat_reply(state, "%s", err);
+	    return (-1);
+	}
     }
 
     /*
@@ -5846,6 +5866,7 @@ int     main(int argc, char **argv)
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
+	VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,

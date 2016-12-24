@@ -135,6 +135,8 @@ align="center" bgcolor="#f0f0ff"> smtp<br> session<br> key cache
 <li><a href="#server_cert_key">Server-side certificate and private
 key configuration </a>
 
+<li><a href="#server_pfs">Server-side forward-secrecy configuration </a>
+
 <li><a href="#server_logging"> Server-side TLS activity logging
 </a>
 
@@ -369,6 +371,18 @@ the TLS handshake when client certificates are requested. </p>
     smtpd_tls_CApath = /etc/postfix/certs
 </pre>
 </blockquote>
+
+<h3><a name="server_pfs"> Server-side forward-secrecy configuration </a> </h3>
+
+<p> If you want to take maximal advantage of ciphers that offer <a
+href="FORWARD_SECRECY_README.html#dfn_fs">forward secrecy</a> see
+the <a href="FORWARD_SECRECY_README.html#quick-start">Getting
+started</a> section of <a
+href="FORWARD_SECRECY_README.html">FORWARD_SECRECY_README</a>.  The
+full document conveniently presents all information about Postfix
+forward secrecy support in one place: what forward secrecy is, how
+to tweak settings, and what you can expect to see when Postfix uses
+ciphers with forward secrecy.  </p>
 
 <h3><a name="server_logging"> Server-side TLS activity logging </a> </h3>
 
@@ -876,9 +890,9 @@ the <a href="FORWARD_SECRECY_README.html#quick-start">Getting
 started</a> section of <a
 href="FORWARD_SECRECY_README.html">FORWARD_SECRECY_README</a>.  The
 full document conveniently presents all information about Postfix
-"perfect" forward secrecy support in one place: what forward secrecy
-is, how to tweak settings, and what you can expect to see when
-Postfix uses ciphers with forward secrecy.  </p>
+forward secrecy support in one place: what forward secrecy is, how
+to tweak settings, and what you can expect to see when Postfix uses
+ciphers with forward secrecy.  </p>
 
 <p> Postfix 2.8 and later, in combination with OpenSSL 0.9.7 and later
 allows TLS servers to preempt the TLS client's cipher-suite preference list.

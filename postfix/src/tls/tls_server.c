@@ -616,7 +616,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      * Enable EECDH if available, errors are not fatal, we just keep going
      * with any remaining key-exchange algorithms.
      */
-    (void) tls_set_eecdh_curve(server_ctx, props->eecdh_grade);
+    tls_set_eecdh_curve(server_ctx, props->eecdh_grade);
 
     /*
      * If we want to check client certificates, we have to indicate it in

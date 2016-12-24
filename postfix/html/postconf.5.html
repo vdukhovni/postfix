@@ -16497,6 +16497,11 @@ as 128 bit strength ECC. Barring significant progress in attacks on
 elliptic curve crypto-systems, the "strong" curve is sufficient for most
 users. </dd>
 
+<dt><b>auto</b></dt> <dd> Use the most preferred curve that is
+supported by both the client and the server.  This setting requires
+Postfix &ge; 3.2 compiled and linked with OpenSSL &ge; 1.0.2.  This
+is the default setting under the above conditions.  </dd>
+
 </dl>
 
 <p> If you want to take maximal advantage of ciphers that offer <a
@@ -17637,6 +17642,36 @@ OpenSSL 1.0.0.</dd>
 
 </DD>
 
+<DT><b><a name="tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The prioritized list of elliptic curves supported by the Postfix
+SMTP client and server.  These curves are used by the Postfix SMTP
+server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves
+must be implemented by OpenSSL and be standardized for use in TLS
+(<a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a> or its imminent successor).  It is unwise to list only
+"bleeding-edge" curves supported by a small subset of clients.  The
+default list is suitable for most users. </p>
+
+<p> Curve names that are unknown to OpenSSL are potential typographical
+errors, when these are encountered, the whole list is ignored with
+a warning.  If, however, a curve name is known, but ECDH with that
+curve is not yet implemented in OpenSSL, the curve in question will
+be silently skipped.  This makes it possible to "anticipate" support
+for curves that should be used once they become available.  In
+particular, in some OpenSSL versions, the new <a href="http://tools.ietf.org/html/rfc8031">RFC 8031</a> curves
+"X25519" and "X448" may be known by name, but ECDH support for
+either or both may be missing.  These curves may appear in the
+default value of this parameter, even though they'll only be usable
+with later versions of OpenSSL.  </p>
+
+<p> This feature is available in Postfix 3.2 and later, when it is
+compiled and linked with OpenSSL 1.0.2 or later on platforms where
+EC algorithms have not been disabled by the vendor. </p>
+
+
+</DD>
+
 <DT><b><a name="tls_eecdh_strong_curve">tls_eecdh_strong_curve</a>
 (default: prime256v1)</b></DT><DD>
 
@@ -17650,8 +17685,8 @@ reported by ecparam(1) with the "-list_curves" option) and be one
 of the curves listed in Section 5.1.1 of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not
 generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
-is unwise to choose an "exotic" curve supported by only a small subset
-of clients.  </p>
+is unwise to choose an "bleeding-edge" curve supported by only a
+small subset of clients.  </p>
 
 <p> The default "strong" curve is rated in NSA <a
 href="http://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite

@@ -301,6 +301,40 @@ Verify that the server's name matches the common name in the
 certificate.
 .sp
 This parameter is available with Postfix 2.11 and later.
+.SH "USING MYSQL STORED PROCEDURES"
+.na
+.nf
+.ad
+.fi
+Postfix 3.2 and later support calling a stored procedure
+in the query, e.g.:
+
+.nf
+\fBquery\fR = CALL lookup('%s')
+.fi
+
+The prevously described '%' expansions can be used in the
+parameter(s) to the stored procedure.
+
+The stored procedure must return data with a single result
+set. Multiple result sets are not supported and will cause
+the query to return an error. Stored procedures in mysql
+produce an additional result set without data which indicates
+the final status of the stored procedure. If this final status
+is not successful, then the query will return an error.
+
+The following is an example of a stored procedure returning
+data with a single result set:
+
+.nf
+CREATE [DEFINER=`user`@`host`] PROCEDURE
+`lookup`(IN `param` VARCHAR(255))
+READS SQL DATA
+SQL SECURITY INVOKER
+BEGIN
+select goto from alias where address=param;
+END
+.fi
 .SH "OBSOLETE QUERY INTERFACE"
 .na
 .nf
@@ -387,3 +421,5 @@ Liviu Daia
 Institute of Mathematics of the Romanian Academy
 P.O. BOX 1\-764
 RO\-014700 Bucharest, ROMANIA
+
+Stored\-procedure support by John Fawcett.

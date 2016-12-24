@@ -187,6 +187,7 @@
 #include <time.h>
 #include <mysql.h>
 #include <limits.h>
+#include <errno.h>
 
 #ifdef STRCASECMP_IN_STRINGS_H
 #include <strings.h>
@@ -536,13 +537,86 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
 #endif
 
 	if (!(mysql_query(host->db, vstring_str(query)))) {
-	    if ((res = mysql_store_result(host->db)) == 0) {
-		msg_warn("mysql query failed: %s", mysql_error(host->db));
+	    int     next_result_status;
+	    int     sp_error = 0;
+	    int     num_rs = 0;
+
+	    res = 0;
+
+	    /*
+	     * Iterate over the result sets. For every error, the code in
+	     * this loop must set sp_error and log a warning.
+	     */
+	    do {
+		MYSQL_RES *temp_res = mysql_store_result(host->db);
+
+		/*
+		 * Did the query return a(nother) result set?
+		 */
+		if (temp_res) {
+		    num_rs++;
+		    if (num_rs > 1) {
+			sp_error = 1;
+			msg_warn("mysql query failed: multiple result sets "
+				 "returning data are not supported");
+			mysql_free_result(temp_res);
+		    } else {
+			res = temp_res;
+		    }
+		}
+
+		/*
+		 * No data; check if this was the expected outcome. XXX How
+		 * do we know if this was the outcome from a stored-procedure
+		 * or old-style query?
+		 */
+		else {
+		    if (mysql_field_count(host->db) == 0) {
+			if (num_rs == 0) {
+			    sp_error = 1;
+			    msg_warn("mysql query failed: no result set "
+				     "containing data");
+			} else {
+			    if (msg_verbose)
+				msg_info("dict_mysql: successful final result");
+			}
+		    }
+
+		    /*
+		     * This could be an old-style query, so don't complain
+		     * about stored procedures.
+		     */
+		    else {
+			sp_error = 1;
+			msg_warn("mysql query failed: %s",
+				 mysql_error(host->db));
+		    }
+		}
+		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
+		if ((next_result_status = mysql_next_result(host->db)) > 0) {
+		    sp_error = 1;
+		    msg_warn("mysql query failed (mysql_next_result): %s",
+			     mysql_error(host->db));
+		}
+	    } while (next_result_status == 0);
+
+	    /*
+	     * See what we got. We know that all errors set sp_error and log
+	     * why the query failed.
+	     */
+	    if (sp_error) {
 		plmysql_down_host(host);
+		errno = ENOTSUP;
+		if (res) {
+		    mysql_free_result(res);
+		    res = 0;
+		}
 	    } else {
 		if (msg_verbose)
-		    msg_info("dict_mysql: successful query from host %s", host->hostname);
-		event_request_timer(dict_mysql_event, (void *) host, IDLE_CONN_INTV);
+		    msg_info("dict_mysql: successful query result from host %s",
+			     host->hostname);
+		event_request_timer(dict_mysql_event, (void *) host,
+				    IDLE_CONN_INTV);
 		break;
 	    }
 	} else {
@@ -587,7 +661,7 @@ static void plmysql_connect_single(DICT_MYSQL *dict_mysql, HOST *host)
 			   dict_mysql->dbname,
 			   host->port,
 			   (host->type == TYPEUNIX ? host->name : 0),
-			   0)) {
+			   CLIENT_MULTI_RESULTS)) {
 	if (msg_verbose)
 	    msg_info("dict_mysql: successful connection to host %s",
 		     host->hostname);

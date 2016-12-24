@@ -452,6 +452,13 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 #endif
 
     /*
+     * With OpenSSL 1.0.2 and later the client EECDH curve list becomes
+     * configurable with the preferred curve negotiated via the supported
+     * curves extension.
+     */
+    tls_auto_eecdh_curves(client_ctx);
+
+    /*
      * Finally, the setup for the server certificate checking, done "by the
      * book".
      */

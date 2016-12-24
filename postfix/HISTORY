@@ -22645,3 +22645,56 @@ Apologies for any names omitted.
 	new-server-cert" is invoked, and main.cf specifies a
 	non-existent keyfile. Viktor Dukhovni.  File:
 	conf/postfix-tls-script.
+
+20161205
+
+	Cleanup: log the sender address when rejecting a too large
+	message size in a "MAIL FROM:<sender> SIZE=nnn" command.
+	File: smtpd/smtpd.c.
+
+20161206
+
+	Bugfix (introduced: Postfix 3.0): when receiving a MAIL
+	FROM...SMTPUTF8 command while smtpd_delay_reject=no, enable
+	SMTPUTF8 support before processing smtpd_sender_restrictions.
+	Problem reported by Viktor Dukhovni. File: smtpd/smtpd.c.
+
+	Bugfix (introduced: Postfix 3.0): when receiving a
+	VRFY...SMTPUTF8 command, enable SMTPUTF8 support while
+	processing smtpd_recipient_restrictions. File: smtpd/smtpd.c.
+
+20161220
+
+	Bugfix (introduced: Postfix 2.1.0): the Postfix SMTP daemon
+	did not query sender_canonical_maps when rejecting unknown
+	senders with "smtpd_reject_unlisted_recipient = yes" or
+	with reject_unlisted_sender.  Stephen R. van den Berg (Mr.
+	procmail). Files: smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20161217
+
+	Enable elliptic curve negotiation with OpenSSL >= 1.0.2.
+	This changes the default smtpd_tls_eecdh_grade setting to
+	"auto", and introduces a new parameter tls_eecdh_auto_curves
+	with the names of curves that may be negotiated.  The default
+	tls_eecdh_auto_curves setting is determined at compile time,
+	and depends on the Postfix and OpenSSL versions.  At runtime,
+	Postfix will silently eliminate curve names that are known
+	to both Postfix and the OpenSSL API, but that aren't actually
+	supported by the OpenSSL library.  But if tls_eecdh_auto_curves
+	names any curve that Postfix doesn't know about, it will
+	use the default tls_eecdh_auto_curves setting instead.
+	Viktor Dukhovni.  Files: mantools/postlink,
+	proto/FORWARD_SECRECY_README.html, proto/TLS_README.html,
+	proto/postconf.proto, global/mail_params.h, smtpd/smtpd.c,
+	tls/tls.h, tls/tls_client.c, tls/tls_dh.c, tls/tls_misc.c,
+	tls/tls_server.c.
+
+	Feature: stored-procedure support for MySQL databases.
+	John Fawcett. Files: global/dict_mysql.c, proto/mysql_table.
+
+20161223
+
+	Bugfix (introduced: Postfix 3.2 snapshots): the makedefs
+	script produced a garbled CCARGS setting when no suitable
+	ICU library was found. File: makedefs.
