@@ -292,34 +292,48 @@
 # USING MYSQL STORED PROCEDURES
 # .ad
 # .fi
-#      Postfix 3.2 and later support calling a stored procedure
-#      in the query, e.g.:
+#	Postfix 3.2 and later support calling a stored procedure
+#	instead of using a SELECT statement in the query, e.g.
 #
 # .nf
-#          \fBquery\fR = CALL lookup('%s')
+#	    \fBquery\fR = CALL lookup('%s')
 # .fi
 #
-#      The prevously described '%' expansions can be used in the
-#      parameter(s) to the stored procedure.
+#	The previously described '%' expansions can be used in the
+#	parameter(s) to the stored procedure.
 #
-#      The stored procedure must return data with a single result
-#      set. Multiple result sets are not supported and will cause
-#      the query to return an error. Stored procedures in mysql
-#      produce an additional result set without data which indicates
-#      the final status of the stored procedure. If this final status
-#      is not successful, then the query will return an error.
-#
-#      The following is an example of a stored procedure returning
-#      data with a single result set:
+#	The stored procedure must return data with a single result
+#	set, that is the stored procedure must execute exactly one
+#	SELECT statement on every code path. If you have complex
+#	logic and for some paths you want to return no result you
+#	will need to include a SELECT statement that returns no
+#	rows. One example of a query that returns no rows is
 #
 # .nf
-#      CREATE [DEFINER=`user`@`host`] PROCEDURE
-#      `lookup`(IN `param` VARCHAR(255))
-#          READS SQL DATA
-#          SQL SECURITY INVOKER
-#          BEGIN
-#              select goto from alias where address=param;
-#          END
+#	    SELECT 1 FROM DUAL WHERE FALSE
+# .fi
+#
+#	but you may use your own query.
+#
+#	Stored procedures that return multiple result sets containing
+#	data, that is stored procedures that execute multiple SELECT
+#	statements, are not supported.  Stored procedures in mysql
+#	produce an additional result set without data which indicates
+#	the final status of the stored procedure. If this final
+#	status is an error then any previous returned data will not
+#	be used.
+#
+#	The following is an example of a stored procedure returning
+#	a single result set containing data:
+#
+# .nf
+#	CREATE [DEFINER=`user`@`host`] PROCEDURE
+#	`lookup`(IN `param` VARCHAR(255))
+#	    READS SQL DATA
+#	    SQL SECURITY INVOKER
+#	    BEGIN
+#	        select goto from alias where address=param;
+#	    END
 # .fi
 # OBSOLETE QUERY INTERFACE
 # .ad

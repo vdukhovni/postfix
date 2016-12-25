@@ -276,9 +276,9 @@ void    tls_auto_eecdh_curves(SSL_CTX *ctx)
 	if (nid == NID_undef)
 	    nid = OBJ_ln2nid(curve);
 	if (nid == NID_undef) {
-	    msg_warn("unknown \"auto\" ECDHE curve \"%s\", using default list",
+	    msg_warn("ignoring unknown \"auto\" ECDHE curve \"%s\"",
 		     curve);
-	    RETURN;
+	    continue;
 	}
 
 	/*

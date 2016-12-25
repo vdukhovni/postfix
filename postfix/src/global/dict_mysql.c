@@ -521,7 +521,20 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
     HOST   *host;
     MYSQL_RES *res = 0;
 
+    /*
+     * Helper to avoid spamming the log with warnings.
+     */
+#define SET_ERROR_AND_WARN_ONCE(err, ...) \
+    do { \
+	if (err == 0) { \
+	    err = 1; \
+	    msg_warn(__VA_ARGS__); \
+	} \
+    } while (0)
+
     while ((host = dict_mysql_get_active(dict_mysql)) != NULL) {
+	int     query_error = 0;
+
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
 
 	/*
@@ -536,92 +549,77 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
 	dict_mysql->active_host = 0;
 #endif
 
-	if (!(mysql_query(host->db, vstring_str(query)))) {
-	    int     next_result_status;
-	    int     sp_error = 0;
-	    int     num_rs = 0;
+	/*
+	 * The query must complete.
+	 */
+	if (mysql_query(host->db, vstring_str(query)) != 0) {
+	    query_error = 1;
+	    msg_warn("mysql query failed: %s", mysql_error(host->db));
+	}
 
-	    res = 0;
+	/*
+	 * The query must return at least one result.
+	 */
+	else if ((res = mysql_store_result(host->db)) == 0) {
+	    query_error = 1;
+	    msg_warn("mysql query failed: no result set containing data");
+	}
 
-	    /*
-	     * Iterate over the result sets. For every error, the code in
-	     * this loop must set sp_error and log a warning.
-	     */
-	    do {
-		MYSQL_RES *temp_res = mysql_store_result(host->db);
+	/*
+	 * Are there more results? -1 = no, 0 = yes, > 0 = error. We must
+	 * collect all results to avoid synchronization errors.
+	 */
+	else {
+	    int     next_res_status;
+	    MYSQL_RES *temp_res;
 
-		/*
-		 * Did the query return a(nother) result set?
-		 */
-		if (temp_res) {
-		    num_rs++;
-		    if (num_rs > 1) {
-			sp_error = 1;
-			msg_warn("mysql query failed: multiple result sets "
-				 "returning data are not supported");
-			mysql_free_result(temp_res);
-		    } else {
-			res = temp_res;
-		    }
+	    while ((next_res_status = mysql_next_result(host->db)) >= 0) {
+		if (next_res_status > 0) {
+		    SET_ERROR_AND_WARN_ONCE(query_error,
+			       "mysql query failed (mysql_next_result): %s",
+					    mysql_error(host->db));
 		}
 
 		/*
-		 * No data; check if this was the expected outcome. XXX How
-		 * do we know if this was the outcome from a stored-procedure
-		 * or old-style query?
+		 * The result must not contain data.
 		 */
-		else {
-		    if (mysql_field_count(host->db) == 0) {
-			if (num_rs == 0) {
-			    sp_error = 1;
-			    msg_warn("mysql query failed: no result set "
-				     "containing data");
-			} else {
-			    if (msg_verbose)
-				msg_info("dict_mysql: successful final result");
-			}
-		    }
-
-		    /*
-		     * This could be an old-style query, so don't complain
-		     * about stored procedures.
-		     */
-		    else {
-			sp_error = 1;
-			msg_warn("mysql query failed: %s",
-				 mysql_error(host->db));
-		    }
+		else if ((temp_res = mysql_store_result(host->db)) != 0) {
+		    SET_ERROR_AND_WARN_ONCE(query_error,
+				 "mysql query failed: multiple result sets "
+					"returning data are not supported");
+		    mysql_free_result(temp_res);
 		}
-		/* more results? -1 = no, >0 = error, 0 = yes (keep looping) */
-		if ((next_result_status = mysql_next_result(host->db)) > 0) {
-		    sp_error = 1;
-		    msg_warn("mysql query failed (mysql_next_result): %s",
-			     mysql_error(host->db));
-		}
-	    } while (next_result_status == 0);
 
-	    /*
-	     * See what we got. We know that all errors set sp_error and log
-	     * why the query failed.
-	     */
-	    if (sp_error) {
-		plmysql_down_host(host);
+		/*
+		 * There must be no errors: mysql_field_count() must return 0
+		 * to indicate that the "no data" result was expected.
+		 */
+		else if (mysql_field_count(host->db) != 0) {
+		    SET_ERROR_AND_WARN_ONCE(query_error,
+			       "mysql query failed (mysql_field_count): %s",
+					    mysql_error(host->db));
+		}
+	    }
+	}
+
+	/*
+	 * See what we got.
+	 */
+	if (query_error) {
+	    plmysql_down_host(host);
+	    if (errno == 0)
 		errno = ENOTSUP;
-		if (res) {
-		    mysql_free_result(res);
-		    res = 0;
-		}
-	    } else {
-		if (msg_verbose)
-		    msg_info("dict_mysql: successful query result from host %s",
-			     host->hostname);
-		event_request_timer(dict_mysql_event, (void *) host,
-				    IDLE_CONN_INTV);
-		break;
+	    if (res) {
+		mysql_free_result(res);
+		res = 0;
 	    }
 	} else {
-	    msg_warn("mysql query failed: %s", mysql_error(host->db));
-	    plmysql_down_host(host);
+	    if (msg_verbose)
+		msg_info("dict_mysql: successful query result from host %s",
+			 host->hostname);
+	    event_request_timer(dict_mysql_event, (void *) host,
+				IDLE_CONN_INTV);
+	    break;
 	}
     }
 

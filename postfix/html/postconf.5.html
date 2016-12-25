@@ -17653,17 +17653,14 @@ must be implemented by OpenSSL and be standardized for use in TLS
 "bleeding-edge" curves supported by a small subset of clients.  The
 default list is suitable for most users. </p>
 
-<p> Curve names that are unknown to OpenSSL are potential typographical
-errors, when these are encountered, the whole list is ignored with
-a warning.  If, however, a curve name is known, but ECDH with that
-curve is not yet implemented in OpenSSL, the curve in question will
-be silently skipped.  This makes it possible to "anticipate" support
-for curves that should be used once they become available.  In
-particular, in some OpenSSL versions, the new <a href="http://tools.ietf.org/html/rfc8031">RFC 8031</a> curves
-"X25519" and "X448" may be known by name, but ECDH support for
-either or both may be missing.  These curves may appear in the
-default value of this parameter, even though they'll only be usable
-with later versions of OpenSSL.  </p>
+<p> Postfix skips curve names that are unknown to OpenSSL, or that
+are known but not yet implemented.  This makes it possible to
+"anticipate" support for curves that should be used once they become
+available.  In particular, in some OpenSSL versions, the new <a href="http://tools.ietf.org/html/rfc8031">RFC</a>
+<a href="http://tools.ietf.org/html/rfc8031">8031</a> curves "X25519" and "X448" may be known by name, but ECDH
+support for either or both may be missing.  These curves may appear
+in the default value of this parameter, even though they'll only
+be usable with later versions of OpenSSL.  </p>
 
 <p> This feature is available in Postfix 3.2 and later, when it is
 compiled and linked with OpenSSL 1.0.2 or later on platforms where
