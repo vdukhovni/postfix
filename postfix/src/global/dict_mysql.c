@@ -96,6 +96,8 @@
 /*	location.
 /* .IP option_group
 /*	Read options from the given group.
+/* .IP require_result_set
+/*	Require that every query produces a result set.
 /* .IP tls_cert_file
 /*	File containing client's X509 certificate.
 /* .IP tls_key_file
@@ -132,44 +134,25 @@
 /*	where_field = alias
 /* .br
 /*	hosts = host1.some.domain host2.some.domain
-/* .IP additional_conditions
-/*	Backward compatibility when \fIquery\fR is not set, additional
-/*	conditions to the WHERE clause.
-/* .IP hosts
-/*	List of hosts to connect to.
-/* .PP
-/*	For example, if you want the map to reference databases of
-/*	the name "your_db" and execute a query like this: select
-/*	forw_addr from aliases where alias like '<some username>'
-/*	against any database called "vmailer_info" located on hosts
-/*	host1.some.domain and host2.some.domain, logging in as user
-/*	"vmailer" and password "passwd" then the configuration file
-/*	should read:
-/* .PP
-/*	user = vmailer
-/* .br
-/*	password = passwd
-/* .br
-/*	dbname = vmailer_info
-/* .br
-/*	table = aliases
-/* .br
-/*	select_field = forw_addr
-/* .br
-/*	where_field = alias
-/* .br
-/*	hosts = host1.some.domain host2.some.domain
 /* .PP
 /* SEE ALSO
 /*	dict(3) generic dictionary manager
 /* AUTHOR(S)
-/*	Scott Cotton
+/*	Scott Cotton, Joshua Marcus
 /*	IC Group, Inc.
 /*	scott@icgroup.com
 /*
-/*	Joshua Marcus
-/*	IC Group, Inc.
-/*	josh@icgroup.com
+/*	Liviu Daia
+/*	Institute of Mathematics of the Romanian Academy
+/*	P.O. BOX 1-764
+/*	RO-014700 Bucharest, ROMANIA
+/*
+/*	John Fawcett
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -258,6 +241,7 @@ typedef struct {
     int     tls_verify_cert;
 #endif
 #endif
+    int     require_result_set;
 } DICT_MYSQL;
 
 #define STATACTIVE			(1<<0)
@@ -273,7 +257,7 @@ typedef struct {
 
 /* internal function declarations */
 static PLMYSQL *plmysql_init(ARGV *);
-static MYSQL_RES *plmysql_query(DICT_MYSQL *, const char *, VSTRING *);
+static int plmysql_query(DICT_MYSQL *, const char *, VSTRING *, MYSQL_RES **);
 static void plmysql_dealloc(PLMYSQL *);
 static void plmysql_close_host(HOST *);
 static void plmysql_down_host(HOST *);
@@ -383,10 +367,12 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
 	return (0);
 
     /* do the query - set dict->error & cleanup if there's an error */
-    if ((query_res = plmysql_query(dict_mysql, name, query)) == 0) {
+    if (plmysql_query(dict_mysql, name, query, &query_res) == 0) {
 	dict->error = DICT_ERR_RETRY;
 	return (0);
     }
+    if (query_res == 0)
+	return (0);
     numrows = mysql_num_rows(query_res);
     if (msg_verbose)
 	msg_info("%s: retrieved %d rows", myname, numrows);
@@ -508,18 +494,20 @@ static void dict_mysql_event(int unused_event, void *context)
 }
 
 /*
- * plmysql_query - process a MySQL query.  Return MYSQL_RES* on success.
+ * plmysql_query - process a MySQL query.  Return 'true' on success.
  *			On failure, log failure and try other db instances.
- *			on failure of all db instances, return 0;
+ *			on failure of all db instances, return 'false';
  *			close unnecessary active connections
  */
 
-static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
-				        const char *name,
-				        VSTRING *query)
+static int plmysql_query(DICT_MYSQL *dict_mysql,
+			         const char *name,
+			         VSTRING *query,
+			         MYSQL_RES **result)
 {
     HOST   *host;
-    MYSQL_RES *res = 0;
+    MYSQL_RES *first_result = 0;
+    int     query_error;
 
     /*
      * Helper to avoid spamming the log with warnings.
@@ -533,7 +521,6 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
     } while (0)
 
     while ((host = dict_mysql_get_active(dict_mysql)) != NULL) {
-	int     query_error = 0;
 
 #if defined(MYSQL_VERSION_ID) && MYSQL_VERSION_ID >= 40000
 
@@ -549,56 +536,77 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
 	dict_mysql->active_host = 0;
 #endif
 
+	query_error = 0;
+	errno = 0;
+
 	/*
 	 * The query must complete.
 	 */
 	if (mysql_query(host->db, vstring_str(query)) != 0) {
 	    query_error = 1;
-	    msg_warn("mysql query failed: %s", mysql_error(host->db));
+	    msg_warn("%s:%s: query failed: %s",
+		     dict_mysql->dict.type, dict_mysql->dict.name,
+		     mysql_error(host->db));
 	}
 
 	/*
-	 * The query must return at least one result.
-	 */
-	else if ((res = mysql_store_result(host->db)) == 0) {
-	    query_error = 1;
-	    msg_warn("mysql query failed: no result set containing data");
-	}
-
-	/*
-	 * Are there more results? -1 = no, 0 = yes, > 0 = error. We must
-	 * collect all results to avoid synchronization errors.
+	 * Collect all result sets to avoid synchronization errors.
 	 */
 	else {
 	    int     next_res_status;
-	    MYSQL_RES *temp_res;
 
-	    while ((next_res_status = mysql_next_result(host->db)) >= 0) {
-		if (next_res_status > 0) {
-		    SET_ERROR_AND_WARN_ONCE(query_error,
-			       "mysql query failed (mysql_next_result): %s",
-					    mysql_error(host->db));
-		}
+	    do {
+		MYSQL_RES *temp_result;
 
 		/*
-		 * The result must not contain data.
+		 * Keep the first result set. Reject multiple result sets.
 		 */
-		else if ((temp_res = mysql_store_result(host->db)) != 0) {
-		    SET_ERROR_AND_WARN_ONCE(query_error,
-				 "mysql query failed: multiple result sets "
-					"returning data are not supported");
-		    mysql_free_result(temp_res);
+		if ((temp_result = mysql_store_result(host->db)) != 0) {
+		    if (first_result == 0) {
+			first_result = temp_result;
+		    } else {
+			SET_ERROR_AND_WARN_ONCE(query_error,
+				"%s:%s: query failed: multiple result sets "
+					 "returning data are not supported",
+						dict_mysql->dict.type,
+						dict_mysql->dict.name);
+			mysql_free_result(temp_result);
+		    }
 		}
 
 		/*
-		 * There must be no errors: mysql_field_count() must return 0
-		 * to indicate that the "no data" result was expected.
+		 * No result: the mysql_field_count() function must return 0
+		 * to indicate that mysql_store_result() completed normally.
 		 */
 		else if (mysql_field_count(host->db) != 0) {
 		    SET_ERROR_AND_WARN_ONCE(query_error,
-			       "mysql query failed (mysql_field_count): %s",
+			     "%s:%s: query failed (mysql_store_result): %s",
+					    dict_mysql->dict.type,
+					    dict_mysql->dict.name,
 					    mysql_error(host->db));
 		}
+
+		/*
+		 * Are there more results? -1 = no, 0 = yes, > 0 = error.
+		 */
+		if ((next_res_status = mysql_next_result(host->db)) > 0) {
+		    SET_ERROR_AND_WARN_ONCE(query_error,
+			      "%s:%s: query failed (mysql_next_result): %s",
+					    dict_mysql->dict.type,
+					    dict_mysql->dict.name,
+					    mysql_error(host->db));
+		}
+	    } while (next_res_status == 0);
+
+	    /*
+	     * Enforce the require_result_set setting.
+	     */
+	    if (first_result == 0 && dict_mysql->require_result_set) {
+		SET_ERROR_AND_WARN_ONCE(query_error,
+			 "%s:%s: query failed: query returned no result set"
+					"(require_result_set = yes)",
+					dict_mysql->dict.type,
+					dict_mysql->dict.name);
 	    }
 	}
 
@@ -609,13 +617,14 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
 	    plmysql_down_host(host);
 	    if (errno == 0)
 		errno = ENOTSUP;
-	    if (res) {
-		mysql_free_result(res);
-		res = 0;
+	    if (first_result) {
+		mysql_free_result(first_result);
+		first_result = 0;
 	    }
 	} else {
 	    if (msg_verbose)
-		msg_info("dict_mysql: successful query result from host %s",
+		msg_info("%s:%s: successful query result from host %s",
+			 dict_mysql->dict.type, dict_mysql->dict.name,
 			 host->hostname);
 	    event_request_timer(dict_mysql_event, (void *) host,
 				IDLE_CONN_INTV);
@@ -623,7 +632,8 @@ static MYSQL_RES *plmysql_query(DICT_MYSQL *dict_mysql,
 	}
     }
 
-    return res;
+    *result = first_result;
+    return (query_error == 0);
 }
 
 /*
@@ -717,6 +727,7 @@ static void mysql_parse_config(DICT_MYSQL *dict_mysql, const char *mysqlcf)
     dict_mysql->tls_verify_cert = cfg_get_bool(p, "tls_verify_cert", -1);
 #endif
 #endif
+    dict_mysql->require_result_set = cfg_get_bool(p, "require_result_set", 1);
 
     /*
      * XXX: The default should be non-zero for safety, but that is not

@@ -22702,3 +22702,11 @@ Apologies for any names omitted.
 
 	Cleanup: simplified code structure in the MySQL client
 	support for stored procedures. File: global/dict_mysql.c.
+
+20161226
+
+	Cleanup: more MySQL client code simplification, better error
+	messages, new per-database "require_result_set" parameter
+	(default: yes) which can be set to "no" to avoid the need
+	for dummy SELECT statements in stored procedures.  Files:
+	global/dict_mysql.c, proto/mysql_table, postconf/postconf_dbms.c.
