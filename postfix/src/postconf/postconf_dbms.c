@@ -100,8 +100,8 @@ static const char *pcf_ldap_suffixes[] = {
 
 static const char *pcf_mysql_suffixes[] = {
     "additional_conditions", "dbname", "domain", "expansion_limit",
-    "hosts", "password", "query", "result_format", "select_field",
-    "table", "user", "where_field", 0,
+    "hosts", "password", "query", "result_format", "require_result_set",
+    "select_field", "table", "user", "where_field", 0,
 };
 
 /* See pgsql_table(5). */

@@ -9,9 +9,6 @@ Wish list:
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
 
-	Adopt John Fawcett's stored-procedure support, and look
-	at Joel Linn's follow-up dated 22 Nov 2016 01:35:03 +0100.
-
 	Why does postqueue show UTC time, even if TZ is set in
 	the import_environment setting? Because postqueue is set-gid?
 

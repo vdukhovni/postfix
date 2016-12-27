@@ -507,6 +507,11 @@ The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 Available in Postfix version 3.0 and later:
 .IP "\fBtls_session_ticket_cipher (Postfix >= 3.0: aes\-256\-cbc, Postfix < 3.0: aes\-128\-cbc)\fR"
 Algorithm used to encrypt RFC5077 TLS session tickets.
+.PP
+Available in Postfix version 3.2 and later:
+.IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
+The prioritized list of elliptic curves supported by the Postfix
+SMTP client and server.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

@@ -107,6 +107,11 @@
 /*	parent directory. This information is ignored with Postfix
 /*	versions before 2.3.
 /*
+/*	With Postfix version 3.2 and later, a non-default directory
+/*	must be authorized in the default \fBmain.cf\fR file, through
+/*	the alternate_config_directories or multi_instance_directories
+/*	parameters.
+/*
 /*	With all Postfix versions, you can specify a directory pathname
 /*	with the MAIL_CONFIG environment variable to override the
 /*	location of configuration files.
@@ -374,6 +379,18 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	A prefix that is prepended to the process name in syslog
 /*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
+/* .PP
+/*	Postfix 3.2 and later:
+/* .IP "\fBalternate_config_directories (empty)\fR"
+/*	A list of non-default Postfix configuration directories that may
+/*	be specified with "-c config_directory" on the command line, or
+/*	via the MAIL_CONFIG environment parameter.
+/* .IP "\fBmulti_instance_directories (empty)\fR"
+/*	An optional list of non-default Postfix configuration directories;
+/*	these directories belong to additional Postfix instances that share
+/*	the Postfix executable files and documentation with the default
+/*	Postfix instance, and that are started, stopped, etc., together
+/*	with the default Postfix instance.
 /* FILES
 /*	/var/spool/postfix, mail queue
 /*	/etc/postfix, configuration files
@@ -1068,10 +1085,13 @@ int     main(int argc, char **argv)
 	    break;
 	if (c == 'C') {
 	    VSTRING *buf = vstring_alloc(1);
+	    char   *dir;
 
-	    if (setenv(CONF_ENV_PATH,
-		   strcmp(sane_basename(buf, optarg), MAIN_CONF_FILE) == 0 ?
-		       sane_dirname(buf, optarg) : optarg, 1) < 0)
+	    dir = strcmp(sane_basename(buf, optarg), MAIN_CONF_FILE) == 0 ?
+		sane_dirname(buf, optarg) : optarg;
+	    if (strcmp(dir, DEF_CONFIG_DIR) != 0 && geteuid() != 0)
+		mail_conf_checkdir(dir);
+	    if (setenv(CONF_ENV_PATH, dir, 1) < 0)
 		msg_fatal_status(EX_UNAVAILABLE, "out of memory");
 	    vstring_free(buf);
 	}

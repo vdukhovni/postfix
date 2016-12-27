@@ -16,6 +16,11 @@
   */
 typedef int bool;
 
+#ifdef USE_TLS
+#include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
+#include <openssl/objects.h>		/* SN_* and NID_* macros */
+#endif
+
  /*
   * Name used when this mail system announces itself.
   */
@@ -1345,7 +1350,11 @@ extern char *var_smtpd_tls_dh512_param_file;
 extern char *var_smtpd_tls_dh1024_param_file;
 
 #define VAR_SMTPD_TLS_EECDH	"smtpd_tls_eecdh_grade"
+#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
+#define DEF_SMTPD_TLS_EECDH	"auto"
+#else
 #define DEF_SMTPD_TLS_EECDH	"strong"
+#endif
 extern char *var_smtpd_tls_eecdh;
 
 #define VAR_SMTPD_TLS_LOGLEVEL	"smtpd_tls_loglevel"
@@ -3143,8 +3152,7 @@ extern bool var_smtp_cname_overr;
   * TLS cipherlists
   */
 #ifdef USE_TLS
-#include <openssl/opensslv.h>
-#if OPENSSL_VERSION_NUMBER >= 0x1000000fL
+#if OPENSSL_VERSION_NUMBER >= 0x1000000fUL
 #define PREFER_aNULL "aNULL:-aNULL:"
 #else
 #define PREFER_aNULL ""
@@ -3173,6 +3181,40 @@ extern char *var_tls_export_clist;
 #define DEF_TLS_NULL_CLIST	"eNULL:!aNULL"
 extern char *var_tls_null_clist;
 
+#if defined(SN_X25519) && defined(NID_X25519)
+#define DEF_TLS_EECDH_AUTO_1 SN_X25519 " "
+#else
+#define DEF_TLS_EECDH_AUTO_1 ""
+#endif
+#if defined(SN_X448) && defined(NID_X448)
+#define DEF_TLS_EECDH_AUTO_2 SN_X448 " "
+#else
+#define DEF_TLS_EECDH_AUTO_2 ""
+#endif
+#if defined(SN_X9_62_prime256v1) && defined(NID_X9_62_prime256v1)
+#define DEF_TLS_EECDH_AUTO_3 SN_X9_62_prime256v1 " "
+#else
+#define DEF_TLS_EECDH_AUTO_3 ""
+#endif
+#if defined(SN_secp521r1) && defined(NID_secp521r1)
+#define DEF_TLS_EECDH_AUTO_4 SN_secp521r1 " "
+#else
+#define DEF_TLS_EECDH_AUTO_4 ""
+#endif
+#if defined(SN_secp384r1) && defined(NID_secp384r1)
+#define DEF_TLS_EECDH_AUTO_5 SN_secp384r1
+#else
+#define DEF_TLS_EECDH_AUTO_5 ""
+#endif
+
+#define VAR_TLS_EECDH_AUTO	"tls_eecdh_auto_curves"
+#define DEF_TLS_EECDH_AUTO      DEF_TLS_EECDH_AUTO_1 \
+                                DEF_TLS_EECDH_AUTO_2 \
+                                DEF_TLS_EECDH_AUTO_3 \
+                                DEF_TLS_EECDH_AUTO_4 \
+                                DEF_TLS_EECDH_AUTO_5
+extern char *var_tls_eecdh_auto;
+
 #define VAR_TLS_EECDH_STRONG	"tls_eecdh_strong_curve"
 #define DEF_TLS_EECDH_STRONG	"prime256v1"
 extern char *var_tls_eecdh_strong;
@@ -3191,8 +3233,8 @@ extern bool var_tls_multi_wildcard;
 
  /* The tweak for CVE-2010-4180 is needed in some versions prior to 1.0.1 */
  /* The tweak for CVE-2005-2969 is needed in some versions prior to 1.0.0 */
-#if defined(USE_TLS) && (OPENSSL_VERSION_NUMBER < 0x1000100fL)
-#if (OPENSSL_VERSION_NUMBER < 0x1000000fL)
+#if defined(USE_TLS) && (OPENSSL_VERSION_NUMBER < 0x1000100fUL)
+#if (OPENSSL_VERSION_NUMBER < 0x1000000fUL)
 #define TLS_BUG_TWEAKS		"CVE-2005-2969 CVE-2010-4180"
 #else
 #define TLS_BUG_TWEAKS		"CVE-2010-4180"

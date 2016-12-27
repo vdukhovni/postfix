@@ -11236,6 +11236,12 @@ as 128 bit strength ECC. Barring significant progress in attacks on
 elliptic curve crypto\-systems, the "strong" curve is sufficient for most
 users.
 .br
+.IP "\fBauto\fR"
+Use the most preferred curve that is
+supported by both the client and the server.  This setting requires
+Postfix >= 3.2 compiled and linked with OpenSSL >= 1.0.2.  This
+is the default setting under the above conditions.
+.br
 .br
 .PP
 If you want to take maximal advantage of ciphers that offer forward secrecy see
@@ -12143,6 +12149,27 @@ OpenSSL 1.0.0.
 .br
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH tls_eecdh_auto_curves (default: see "postconf \-d" output)
+The prioritized list of elliptic curves supported by the Postfix
+SMTP client and server.  These curves are used by the Postfix SMTP
+server when "smtpd_tls_eecdh_grade = auto".  The selected curves
+must be implemented by OpenSSL and be standardized for use in TLS
+(RFC 4492 or its imminent successor).  It is unwise to list only
+"bleeding\-edge" curves supported by a small subset of clients.  The
+default list is suitable for most users.
+.PP
+Postfix skips curve names that are unknown to OpenSSL, or that
+are known but not yet implemented.  This makes it possible to
+"anticipate" support for curves that should be used once they become
+available.  In particular, in some OpenSSL versions, the new RFC
+8031 curves "X25519" and "X448" may be known by name, but ECDH
+support for either or both may be missing.  These curves may appear
+in the default value of this parameter, even though they'll only
+be usable with later versions of OpenSSL.
+.PP
+This feature is available in Postfix 3.2 and later, when it is
+compiled and linked with OpenSSL 1.0.2 or later on platforms where
+EC algorithms have not been disabled by the vendor.
 .SH tls_eecdh_strong_curve (default: prime256v1)
 The elliptic curve used by the Postfix SMTP server for sensibly
 strong
@@ -12154,8 +12181,8 @@ reported by \fBecparam\fR(1) with the "\-list_curves" option) and be one
 of the curves listed in Section 5.1.1 of RFC 4492. You should not
 generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
-is unwise to choose an "exotic" curve supported by only a small subset
-of clients.
+is unwise to choose an "bleeding\-edge" curve supported by only a
+small subset of clients.
 .PP
 The default "strong" curve is rated in NSA Suite
 B for information classified up to SECRET.

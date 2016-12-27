@@ -11,7 +11,10 @@
 /*	const char *path;
 /*	int	bits;
 /*
-/*	int	tls_set_eecdh_curve(server_ctx, grade)
+/*	void	tls_auto_eecdh_curves(SSL_CTX *ctx)
+/*	SSL_CTX	*ctx;
+/*
+/*	void	tls_set_eecdh_curve(server_ctx, grade)
 /*	SSL_CTX	*server_ctx;
 /*	const char *grade;
 /*
@@ -30,6 +33,10 @@
 /*	is as expected by the PEM_read_DHparams() routine. The
 /*	"bits" argument must be 512 or 1024.
 /*
+/*	tls_auto_eecdh_curves() enables negotiation of the most preferred curve
+/*	among the curves specified by the tls_eecdh_auto_curves configuration
+/*	parameter.
+/*
 /*	tls_set_eecdh_curve() enables ephemeral Elliptic-Curve DH
 /*	key exchange algorithms by instantiating in the server SSL
 /*	context a suitable curve (corresponding to the specified
@@ -37,7 +44,9 @@
 /*	4492 Section 5.1.1. Errors generate warnings, but do not
 /*	disable TLS, rather we continue without EECDH. A zero
 /*	result indicates that the grade is invalid or the corresponding
-/*	curve could not be used.
+/*	curve could not be used.  The "auto" grade enables multiple
+/*	curves, with the actual curve chosen as the most preferred
+/*	among those supported by both the server and the client.
 /* DIAGNOSTICS
 /*	In case of error, tls_set_dh_from_file() logs a warning and
 /*	ignores the request.
@@ -72,6 +81,8 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <mymalloc.h>
+#include <stringops.h>
 
  /*
   * Global library
@@ -83,6 +94,9 @@
 #define TLS_INTERNAL
 #include <tls.h>
 #include <openssl/dh.h>
+#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL && !defined(OPENSSL_NO_ECDH)
+#include <openssl/ec.h>
+#endif
 
 /* Application-specific. */
 
@@ -228,9 +242,92 @@ DH     *tls_tmp_dh_cb(SSL *unused_ssl, int export, int keylength)
     return (dh_tmp);
 }
 
-int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
+void    tls_auto_eecdh_curves(SSL_CTX *ctx)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x1000000fL && !defined(OPENSSL_NO_ECDH)
+#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL && !defined(OPENSSL_NO_ECDH)
+    SSL_CTX *tmpctx;
+    int    *nids;
+    int     space = 5;
+    int     n = 0;
+    int     unknown = 0;
+    char   *save;
+    char   *curves;
+    char   *curve;
+
+    if ((tmpctx = SSL_CTX_new(TLS_method())) == 0) {
+	msg_warn("cannot allocate temp SSL_CTX, using default ECDHE curves");
+	tls_print_errors();
+	return;
+    }
+    nids = mymalloc(space * sizeof(int));
+    curves = save = mystrdup(var_tls_eecdh_auto);
+#define RETURN do { \
+	myfree(save); \
+	myfree(nids); \
+	SSL_CTX_free(tmpctx); \
+	return; \
+    } while (0)
+
+    while ((curve = mystrtok(&curves, CHARS_COMMA_SP)) != 0) {
+	int     nid = EC_curve_nist2nid(curve);
+
+	if (nid == NID_undef)
+	    nid = OBJ_sn2nid(curve);
+	if (nid == NID_undef)
+	    nid = OBJ_ln2nid(curve);
+	if (nid == NID_undef) {
+	    msg_warn("ignoring unknown \"auto\" ECDHE curve \"%s\"",
+		     curve);
+	    continue;
+	}
+
+	/*
+	 * Validate the NID by trying it as the sole EC curve for a
+	 * throw-away SSL context.  Silently skip unsupported code points.
+	 * This way, we can list X25519 and X448 as soon as the nids are
+	 * assigned, and before the supporting code is implemented.  They'll
+	 * be silently skipped when not yet supported.
+	 */
+	if (SSL_CTX_set1_curves(tmpctx, &nid, 1) <= 0) {
+	    ++unknown;
+	    continue;
+	}
+	if (++n > space) {
+	    space *= 2;
+	    nids = myrealloc(nids, space * sizeof(int));
+	}
+	nids[n - 1] = nid;
+    }
+
+    if (n == 0) {
+	if (unknown > 0)
+	    msg_warn("none of the \"auto\" ECDHE curves are supported");
+	RETURN;
+    }
+    if (SSL_CTX_set1_curves(ctx, nids, n) <= 0) {
+	msg_warn("failed to configure \"auto\" ECDHE curves");
+	tls_print_errors();
+	RETURN;
+    }
+
+    /*
+     * This is a NOP in OpenSSL 1.1.0 and later, where curves are always
+     * auto-negotiated.
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000UL
+    if (SSL_CTX_set_ecdh_auto(ctx, 1) <= 0) {
+	msg_warn("failed to enable automatic ECDHE curve selection");
+	tls_print_errors();
+	RETURN;
+    }
+#endif
+    RETURN;
+#endif
+}
+
+void    tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
+{
+#if OPENSSL_VERSION_NUMBER >= 0x1000000fUL && !defined(OPENSSL_NO_ECDH)
     int     nid;
     EC_KEY *ecdh;
     const char *curve;
@@ -240,10 +337,16 @@ int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
 #define TLS_EECDH_NONE		1
 #define TLS_EECDH_STRONG	2
 #define TLS_EECDH_ULTRA		3
+#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
+#define TLS_EECDH_AUTO		4
+#endif
     static NAME_CODE eecdh_table[] = {
 	"none", TLS_EECDH_NONE,
 	"strong", TLS_EECDH_STRONG,
 	"ultra", TLS_EECDH_ULTRA,
+#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
+	"auto", TLS_EECDH_AUTO,
+#endif
 	0, TLS_EECDH_INVALID,
     };
 
@@ -252,15 +355,20 @@ int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
 	msg_panic("Invalid eecdh grade code: %d", g);
     case TLS_EECDH_INVALID:
 	msg_warn("Invalid TLS eecdh grade \"%s\": EECDH disabled", grade);
-	return (0);
+	return;
     case TLS_EECDH_NONE:
-	return (1);
+	return;
     case TLS_EECDH_STRONG:
 	curve = var_tls_eecdh_strong;
 	break;
     case TLS_EECDH_ULTRA:
 	curve = var_tls_eecdh_ultra;
 	break;
+#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
+    case TLS_EECDH_AUTO:
+	tls_auto_eecdh_curves(server_ctx);
+	return;
+#endif
     }
 
     /*
@@ -274,7 +382,7 @@ int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
 
     if ((nid = OBJ_sn2nid(curve)) == NID_undef) {
 	msg_warn("unknown curve \"%s\": disabling EECDH support", curve);
-	return (0);
+	return;
     }
     ERR_clear_error();
     if ((ecdh = EC_KEY_new_by_curve_name(nid)) == 0
@@ -282,11 +390,11 @@ int     tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
 	EC_KEY_free(ecdh);			/* OK if NULL */
 	msg_warn("unable to use curve \"%s\": disabling EECDH support", curve);
 	tls_print_errors();
-	return (0);
+	return;
     }
     EC_KEY_free(ecdh);
 #endif
-    return (1);
+    return;
 }
 
 #ifdef TEST

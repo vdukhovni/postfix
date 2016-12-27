@@ -16,6 +16,32 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+Incompatible changes with snapshot 20161227
+===========================================
+
+For safety reasons, the sendmail -C option must specify an authorized
+directory: the default configuration directory, a directory that
+is listed in the default main.cf file with alternate_config_directories
+or multi_instance_directories, or the command must be invoked with
+root privileges.  This mitigates a problem with the PHP mail()
+function.
+
+Major changes with snapshot 20161227
+====================================
+
+Support to negotiate Elliptic curves with OpenSSL 1.0.2 or later
+(on platforms where EC algorithms have not been disabled by the
+vendor).  See TLS_README for details. In summary, this changes the
+default smtpd_tls_eecdh_grade setting to "auto", and introduces a
+new parameter tls_eecdh_auto_curves with the names of curves that
+may be negotiated.  The default tls_eecdh_auto_curves setting is
+determined at compile time, and depends on the Postfix and OpenSSL
+versions.  At runtime, Postfix will skip curve names that aren't
+supported by the OpenSSL library.
+
+The MySQL client now has support for stored procedures. See the
+mysql_table(5) manpage for details.
+
 Incompatible changes with snapshot 20161204
 ===========================================
 

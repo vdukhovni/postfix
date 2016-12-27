@@ -596,7 +596,8 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
   */
 extern void tls_set_dh_from_file(const char *, int);
 extern DH *tls_tmp_dh_cb(SSL *, int, int);
-extern int tls_set_eecdh_curve(SSL_CTX *, const char *);
+extern void tls_set_eecdh_curve(SSL_CTX *, const char *);
+extern void tls_auto_eecdh_curves(SSL_CTX *);
 
  /*
   * tls_rsa.c

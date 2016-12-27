@@ -14,7 +14,7 @@ is easily subverted by a state-funded adversary.
 OOvveerrvviieeww
 
 Postfix supports forward secrecy of TLS network communication since version
-2.2. This support was adopted from Lutz Jänicke's "Postfix TLS patch" for
+2.2. This support was adopted from Lutz Ja"nicke's "Postfix TLS patch" for
 earlier Postfix versions. This document will focus on TLS Forward Secrecy in
 the Postfix SMTP client and server. See TLS_README for a general description of
 Postfix TLS support.
@@ -160,27 +160,29 @@ forward secrecy just works.
     Note: With Postfix 2.6 and 2.7, enable EECDH by setting the main.cf
     parameter smtpd_tls_eecdh_grade to "strong".
 
-The elliptic curve situation is evolving, with new curves being introduced to
-augment or replace the NIST curves tarnished by the Snowden revelations.
-Fortunately, TLS clients advertise the list of supported curves to the server
-so that servers can in principle choose newer stronger curves when mutually
-supported. The OpenSSL code for making this possible is not yet released as of
-late 2013 (it is available only in OpenSSL development snapshots).
+The elliptic curve standards are evolving, with new curves introduced in RFC
+8031 to augment or replace the NIST curves tarnished by the Snowden
+revelations. Fortunately, TLS clients advertise their list of supported curves
+to the server so that servers can choose newer stronger curves when mutually
+supported. OpenSSL 1.0.2 released in January 2015 was the first release to
+implement negotiation of supported curves in TLS servers. In older OpenSSL
+releases, the server is limited to selecting a single widely supported curve.
 
-At some point Postfix will need to adjust to the new API for setting the
-elliptic-curve options. Fortunately, when EECDH support was added to Postfix,
-it introduced a layer of indirection:
+With Postfix prior to 3.2 or OpenSSL prior to 1.0.2, only a single server-side
+curve can be configured, by specifying a suitable EECDH "grade":
 
         smtpd_tls_eecdh_grade = strong | ultra
-        tls_eecdh_strong_curve = prime256v1
-        tls_eecdh_ultra_curve = secp384r1
+        # Underlying curves, best not changed:
+        # tls_eecdh_strong_curve = prime256v1
+        # tls_eecdh_ultra_curve = secp384r1
 
-When it becomes possible in OpenSSL to support a "menu" of curves, we will
-likely extend "tls_eecdh_strong_curve" to be an ordered list of curves and
-likewise with the "ultra" version, where the two might now overlap, and differ
-mostly in the preference order. As a result most existing configurations will
-then support more curves at the desired security level without any changes to
-main.cf.
+Postfix >= 3.2 supports the curve negotiation API of OpenSSL >= 1.0.2. When
+using this software combination, the default setting of "smtpd_tls_eecdh_grade"
+changes to "auto", which selects a curve that is supported by both the server
+and client. The list of candidate curves can be configured via
+"tls_eecdh_auto_curves", which can be used to configure a prioritized list of
+supported curves (most preferred first) on both the server and client. The
+default list is suitable for most users.
 
 FFoorrwwaarrdd SSeeccrreeccyy iinn tthhee PPoossttffiixx SSMMTTPP CClliieenntt
 
@@ -192,6 +194,12 @@ Linux). If the remote SMTP server supports cipher suites with forward secrecy
 (and does not override the SMTP client's cipher preference), then the traffic
 between the server and client will resist decryption even if the server's long-
 term authentication keys are later compromised.
+
+Postfix >= 3.2 supports the curve negotitation API of OpenSSL >= 1.0.2. The
+list of candidate curves can be changed via the "tls_eecdh_auto_curves"
+configuration parameter, which can be used to select a prioritized list of
+supported curves (most preferred first) on both the Postfix SMTP server and
+SMTP client. The default list is suitable for most users.
 
 The default Postfix SMTP client cipher lists are correctly ordered to prefer
 EECDH and EDH cipher suites ahead of similar cipher suites that don't implement
@@ -209,7 +217,13 @@ GGeettttiinngg ssttaarrtteedd,, qquuiicckk aanndd ddiir
 
 EEEECCDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22 wwiitthh OOppeennSSSSLL >>== 11..00..00))
 
-This works "out of the box" without additional configuration.
+This works "out of the box" with no need for additional configuration.
+
+Postfix >= 3.2 supports the curve negotitation API of OpenSSL >= 1.0.2. The
+list of candidate curves can be changed via the "tls_eecdh_auto_curves"
+configuration parameter, which can be used to select a prioritized list of
+supported curves (most preferred first) on both the Postfix SMTP server and
+SMTP client. The default list is suitable for most users.
 
 EEEECCDDHH SSeerrvveerr ssuuppppoorrtt ((PPoossttffiixx >>== 22..66 wwiitthh OOppeennSSSSLL >>== 11..00..00))
 
@@ -219,7 +233,8 @@ curve support may be disabled by the vendor, as in some versions of RedHat
 Linux.
 
     /etc/postfix/main.cf:
-        # Postfix 2.6 or 2.7 only. This is default with Postfix 2.8 and later.
+        # Postfix 2.6 & 2.7 only. EECDH is on by default with Postfix >= 2.8.
+        # The default grade is "auto" with Postfix >= 3.2.
         smtpd_tls_eecdh_grade = strong
 
 EEDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiixx >>== 22..22,, aallll ssuuppppoorrtteedd OOppeennSSSSLL vveerrssiioonnss))
@@ -421,8 +436,8 @@ peer certificate with expected public-key or certificate fingerprint)
 
 CCrreeddiittss
 
-  * TLS support for Postfix was originally developed by Lutz Jänicke at Cottbus
-    Technical University.
+  * TLS support for Postfix was originally developed by Lutz Ja"nicke at
+    Cottbus Technical University.
   * Wietse Venema adopted and restructured the code and documentation.
   * Viktor Dukhovni implemented support for many subsequent TLS features,
     including EECDH, and authored the initial version of this document.

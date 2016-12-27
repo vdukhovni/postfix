@@ -113,6 +113,11 @@ The path name of the Postfix \fBmain.cf\fR file, or of its
 parent directory. This information is ignored with Postfix
 versions before 2.3.
 
+With Postfix version 3.2 and later, a non\-default directory
+must be authorized in the default \fBmain.cf\fR file, through
+the alternate_config_directories or multi_instance_directories
+parameters.
+
 With all Postfix versions, you can specify a directory pathname
 with the MAIL_CONFIG environment variable to override the
 location of configuration files.
@@ -402,6 +407,18 @@ The syslog facility of Postfix logging.
 .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 A prefix that is prepended to the process name in syslog
 records, so that, for example, "smtpd" becomes "prefix/smtpd".
+.PP
+Postfix 3.2 and later:
+.IP "\fBalternate_config_directories (empty)\fR"
+A list of non\-default Postfix configuration directories that may
+be specified with "\-c config_directory" on the command line, or
+via the MAIL_CONFIG environment parameter.
+.IP "\fBmulti_instance_directories (empty)\fR"
+An optional list of non\-default Postfix configuration directories;
+these directories belong to additional Postfix instances that share
+the Postfix executable files and documentation with the default
+Postfix instance, and that are started, stopped, etc., together
+with the default Postfix instance.
 .SH "FILES"
 .na
 .nf

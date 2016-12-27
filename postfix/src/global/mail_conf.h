@@ -36,6 +36,7 @@
 extern void mail_conf_read(void);
 extern void mail_conf_suck(void);
 extern void mail_conf_flush(void);
+extern void mail_conf_checkdir(const char *);
 
 extern void mail_conf_update(const char *, const char *);
 extern const char *mail_conf_lookup(const char *);

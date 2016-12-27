@@ -12,6 +12,9 @@
 /*
 /*	void	mail_conf_flush()
 /*
+/*	void	mail_conf_checkdir(config_dir)
+/*	const char *config_dir;
+/*
 /*	void	mail_conf_update(name, value)
 /*	const char *name;
 /*	const char *value;
@@ -37,6 +40,10 @@
 /*	mail_conf_flush() discards the global configuration dictionary.
 /*	This is needed in programs that read main.cf multiple times, to
 /*	ensure that deleted parameter settings are handled properly.
+/*
+/*	mail_conf_checkdir() verifies that configuration directory
+/*	is authorized through settings in the default main.cf file,
+/*	and terminates the program if it is not.
 /*
 /*	The following routines are wrappers around the generic dictionary
 /*	access routines.
@@ -109,7 +116,7 @@
 
 /* mail_conf_checkdir - authorize non-default directory */
 
-static void mail_conf_checkdir(const char *config_dir)
+void mail_conf_checkdir(const char *config_dir)
 {
     VSTRING *buf;
     VSTREAM *fp;
@@ -143,9 +150,10 @@ static void mail_conf_checkdir(const char *config_dir)
     vstring_free(buf);
 
     if (found == 0) {
-	msg_error("untrusted configuration directory name: %s", config_dir);
-	msg_fatal("specify \"%s = %s\" in %s",
-		  VAR_CONFIG_DIRS, config_dir, path);
+	msg_error("unauthorized configuration directory name: %s", config_dir);
+	msg_fatal("specify \"%s = %s\" or \"%s = %s\" in %s",
+		  VAR_CONFIG_DIRS, config_dir,
+		  VAR_MULTI_CONF_DIRS, config_dir, path);
     }
     myfree(path);
 }

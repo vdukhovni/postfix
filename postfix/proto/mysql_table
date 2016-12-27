@@ -120,6 +120,11 @@
 #	    query = SELECT replacement FROM aliases WHERE mailbox = '%s'
 # .fi
 #
+#	By default, every query must return a result set (instead
+#	of storing its results in a table); with "\fBrequire_result_set
+#	= no\fR" (Postfix 3.2 and later), the absence of a result
+#	set is treated as "not found".
+#
 #	This parameter supports the following '%' expansions:
 # .RS
 # .IP "\fB%%\fR"
@@ -265,6 +270,12 @@
 #	specify, for example, "\fBoption_group = client\fR".
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
+# .IP "\fBrequire_result_set (default: yes)\fR"
+#	If "\fByes\fR", require that every query returns a result
+#	set.  If "\fBno\fR", treat the absence of a result set as
+#	"not found".
+# .sp
+#	This parameter is available with Postfix 3.2 and later.
 # .IP "\fBtls_cert_file\fR"
 #	File containing client's X509 certificate.
 # .sp
@@ -289,12 +300,48 @@
 #	certificate.
 # .sp
 #	This parameter is available with Postfix 2.11 and later.
+# USING MYSQL STORED PROCEDURES
+# .ad
+# .fi
+#	Postfix 3.2 and later support calling a stored procedure
+#	instead of using a SELECT statement in the query, e.g.
+#
+# .nf
+#	    \fBquery\fR = CALL lookup('%s')
+# .fi
+#
+#	The previously described '%' expansions can be used in the
+#	parameter(s) to the stored procedure.
+#
+#	By default, every stored procedure call must return a result
+#	set, i.e. every code path must execute a SELECT statement
+#	that returns a result set (instead of storing its results
+#	in a table). With "\fBrequire_result_set = no\fR", the
+#	absence of a result set is treated as "not found".
+#
+#	A stored procedure must not return multiple result sets.
+#	That is, there must be no code path that executes multiple
+#	SELECT statements that return a result (instead of storing
+#	their results in a table).
+#
+#	The following is an example of a stored procedure returning
+#	a single result set:
+#
+# .nf
+#	CREATE [DEFINER=`user`@`host`] PROCEDURE
+#	`lookup`(IN `param` VARCHAR(255))
+#	    READS SQL DATA
+#	    SQL SECURITY INVOKER
+#	    BEGIN
+#	        select goto from alias where address=param;
+#	    END
+# .fi
 # OBSOLETE QUERY INTERFACE
 # .ad
 # .fi
 #	This section describes an interface that is deprecated as
 #	of Postfix 2.2. It is replaced by the more general \fBquery\fR
-#	interface described above.  If the \fBquery\fR parameter
+#	interface described above. If the \fBquery\fR parameter
 #	is defined, the legacy parameters described here ignored.
 #	Please migrate to the new interface as the legacy interface
 #	may be removed in a future release.
@@ -363,4 +410,11 @@
 #	Institute of Mathematics of the Romanian Academy
 #	P.O. BOX 1-764
 #	RO-014700 Bucharest, ROMANIA
+#
+#	Stored-procedure support by John Fawcett.
+#
+#	Wietse Venema
+#	Google, Inc.
+#	111 8th Avenue
+#	New York, NY 10011, USA
 #--
