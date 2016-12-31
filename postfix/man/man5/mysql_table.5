@@ -28,43 +28,6 @@ table in main.cf, for example:
 The file /etc/postfix/mysql\-aliases.cf has the same format as
 the Postfix main.cf file, and can specify the parameters
 described below.
-.SH "BACKWARDS COMPATIBILITY"
-.na
-.nf
-.ad
-.fi
-For compatibility with other Postfix lookup tables, MySQL
-parameters can also be defined in main.cf.  In order to do that,
-specify as MySQL source a name that doesn't begin with a slash
-or a dot.  The MySQL parameters will then be accessible as the
-name you've given the source in its definition, an underscore,
-and the name of the parameter.  For example, if the map is
-specified as "mysql:\fImysqlname\fR", the parameter "hosts"
-below would be defined in main.cf as "\fImysqlname\fR_hosts".
-
-Note: with this form, the passwords for the MySQL sources are
-written in main.cf, which is normally world\-readable.  Support
-for this form will be removed in a future Postfix version.
-
-Normally, the SQL query is specified via a single \fBquery\fR
-parameter (described in more detail below).  When this
-parameter is not specified in the map definition, Postfix
-reverts to an older interface, with the SQL query constructed
-from the \fBselect_field\fR, \fBtable\fR, \fBwhere_field\fR
-and \fBadditional_conditions\fR parameters.  The old interface
-will be gradually phased out. To migrate to the new interface
-set:
-
-.nf
-    \fBquery\fR = SELECT [\fIselect_field\fR]
-        FROM [\fItable\fR]
-        WHERE [\fIwhere_field\fR] = '%s'
-            [\fIadditional_conditions\fR]
-.fi
-
-Insert the value, not the name, of each legacy parameter. Note
-that the \fBadditional_conditions\fR parameter is optional
-and if not empty, will always start with \fBAND\fR.
 .SH "LIST MEMBERSHIP"
 .na
 .nf
@@ -350,6 +313,23 @@ CREATE [DEFINER=`user`@`host`] PROCEDURE
         select goto from alias where address=param;
     END
 .fi
+.SH "OBSOLETE MAIN.CF PARAMETERS"
+.na
+.nf
+.ad
+.fi
+For compatibility with other Postfix lookup tables, MySQL
+parameters can also be defined in main.cf.  In order to do that,
+specify as MySQL source a name that doesn't begin with a slash
+or a dot.  The MySQL parameters will then be accessible as the
+name you've given the source in its definition, an underscore,
+and the name of the parameter.  For example, if the map is
+specified as "mysql:\fImysqlname\fR", the parameter "hosts"
+would be defined in main.cf as "\fImysqlname\fR_hosts".
+
+Note: with this form, the passwords for the MySQL sources are
+written in main.cf, which is normally world\-readable.  Support
+for this form will be removed in a future Postfix version.
 .SH "OBSOLETE QUERY INTERFACE"
 .na
 .nf

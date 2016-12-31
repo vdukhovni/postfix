@@ -22724,3 +22724,16 @@ Apologies for any names omitted.
 	or the command must be invoked with root priveleges.  This
 	mitigates a problem with the PHP mail() function.  Files:
 	global/mail_conf.[hc], sendmail/sendmail.c.
+
+20161228
+
+	Documentation: moved the "BACKWARDS COMPATIBILITY" sections
+	to the end of ldap_table, mysql_table, pgsql_table, and
+	sqlite_table, renamed to "OBSOLETE MAIN.CF PARAMETERS".
+
+20161231
+
+	Bugfix (introduced: 20160521): segfault (null pointer) in
+	cidr, pcre, and regexp table when an input does not match
+	an ENDIF-less IF operator.  Found during code maintenance.
+	File: util/cidr_map.c, util/dict_regexp.c, util/dict_pcre.c.

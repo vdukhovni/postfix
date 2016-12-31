@@ -533,7 +533,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	base32_code_test dict_thash_test surrogate_test timecmp_test \
 	dict_static_test dict_inline_test midna_domain_test casefold_test \
 	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test \
-	dict_union_test dict_pipe_test
+	dict_union_test dict_pipe_test miss_endif_cidr_test \
+	miss_endif_pcre_test miss_endif_regexp_test
 
 root_tests:
 
@@ -614,6 +615,21 @@ dict_cidr_test: dict_open dict_cidr.in dict_cidr.map dict_cidr.ref
 	$(SHLIB_ENV) ./dict_open cidr:dict_cidr.map read <dict_cidr.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_cidr.tmp
 	diff dict_cidr.ref dict_cidr.tmp
 	rm -f dict_cidr.tmp
+
+miss_endif_cidr_test: dict_open miss_endif_cidr.map miss_endif_cidr.ref
+	echo get 1.2.3.5 | $(SHLIB_ENV) ./dict_open cidr:miss_endif_cidr.map read 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_cidr.tmp
+	diff miss_endif_cidr.ref dict_cidr.tmp
+	rm -f dict_cidr.tmp
+
+miss_endif_pcre_test: dict_open miss_endif_re.map miss_endif_pcre.ref
+	echo get 1.2.3.5 | $(SHLIB_ENV) ./dict_open pcre:miss_endif_re.map read 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_pcre.tmp
+	diff miss_endif_pcre.ref dict_pcre.tmp
+	rm -f dict_pcre.tmp
+
+miss_endif_regexp_test: dict_open miss_endif_re.map miss_endif_regexp.ref
+	echo get 1.2.3.5 | $(SHLIB_ENV) ./dict_open regexp:miss_endif_re.map read 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_regexp.tmp
+	diff miss_endif_regexp.ref dict_regexp.tmp
+	rm -f dict_regexp.tmp
 
 dict_seq_test: dict_open testdb dict_seq.in dict_seq.ref
 	rm -f testdb.db testdb.dir testdb.pag

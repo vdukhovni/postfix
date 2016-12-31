@@ -358,7 +358,7 @@ static const char *dict_pcre_lookup(DICT *dict, const char *lookup_string)
 		continue;
 	    /* An IF without matching ENDIF has no "endif" rule. */
 	    if ((rule = if_rule->endif_rule) == 0)
-		break;
+		return (0);
 	    /* FALLTHROUGH */
 
 	    /*
@@ -743,6 +743,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	if_rule->match = regexp.match;
 	if_rule->pattern = engine.pattern;
 	if_rule->hints = engine.hints;
+	if_rule->endif_rule = 0;
 	return ((DICT_PCRE_RULE *) if_rule);
     }
 

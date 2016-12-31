@@ -303,7 +303,7 @@ static const char *dict_regexp_lookup(DICT *dict, const char *lookup_string)
 		continue;
 	    /* An IF without matching ENDIF has no "endif" rule. */
 	    if ((rule = if_rule->endif_rule) == 0)
-		break;
+		return (0);
 	    /* FALLTHROUGH */
 
 	    /*
@@ -693,6 +693,7 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 				   sizeof(DICT_REGEXP_IF_RULE));
 	if_rule->expr = expr;
 	if_rule->match = pattern.match;
+	if_rule->endif_rule = 0;
 	return ((DICT_REGEXP_RULE *) if_rule);
     }
 

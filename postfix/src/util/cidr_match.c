@@ -171,7 +171,7 @@ CIDR_MATCH *cidr_match_execute(CIDR_MATCH *list, const char *addr)
 		    continue;
 	    /* An IF without matching ENDIF has no end-of block entry. */
 	    if ((entry = entry->block_end) == 0)
-		break;
+		return (0);
 	    /* FALLTHROUGH */
 
 	case CIDR_MATCH_OP_ENDIF:
