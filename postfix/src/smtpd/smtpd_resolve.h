@@ -17,7 +17,7 @@
   * External interface.
   */
 extern void smtpd_resolve_init(int);
-extern const RESOLVE_REPLY *smtpd_resolve_addr(const char *);
+extern const RESOLVE_REPLY *smtpd_resolve_addr(const char*, const char *);
 
 /* LICENSE
 /* .ad

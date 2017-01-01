@@ -22217,6 +22217,32 @@ Apologies for any names omitted.
 
 	Portability: OpenBSD 6.0. Files: makedefs, util/sys_defs.h.
 
+20160619
+
+	Bugfix (introduced: 20091121): with the introduction of
+	sender_dependent_default_transport_maps, the SMTP daemon
+	was not updated. This resulted in false rejects with
+	sender-dependent "error" transports. Based on a fix by
+	Russell Yanofsky.  Files: global/resolve_clnt.c,
+	global/resolve_clnt.h, smtpd/smtpd_check.c, smtpd/smtpd_check.h,
+	smtpd/smtpd_milter.c, smtpd/smtpd_resolve.c, smtpd/smtpd_resolve.h.
+
+20160717
+
+	Bugfix (introduced: Postfix 1.1): the virtual(8) delivery
+	agent discarded the error result from vstream_fseek().
+	File: virtual/mailbox.c.
+
+20160730
+
+	Bugfix (introduced: 20090614): with concurrent connections
+	from the same client IP address, and after-220 tests enabled,
+	postscreen could overwrite the cached "all tests completed"
+	result of one connection that completed the after-220 tests,
+	with the "some tests not completed" result of a concurrent
+	connection where the client hung up later, without completing
+	the after-220 tests.
+
 20160819
 
 	Bugfix (introduced: Postfix 3.0): the makedefs script ignored
@@ -22258,3 +22284,36 @@ Apologies for any names omitted.
 	UTF8-encoded text, specify "option_group = client" in Postfix
 	MySQL configuration files.  This will be the default setting
 	with Postfix 3.2 and later.
+
+20161105
+
+	Bugfix (introduced: Postfix 1.1): the postsuper command did
+	not count a successful rename operation after error recovery.
+	Problem reported by Markus Schönhaber. File: postsuper/postsuper.c.
+
+20161204
+
+	Bugfix (introduced: Postfix 3.1): cut-and-paste error in
+	the "postfix tls deploy-server-cert" command, causing the
+	wrong certfile and keyfile to be used. Viktor Dukhovni.
+	File: conf/postfix-tls-script.
+
+	Robustness: create a new keyfile when "postfix tls
+	new-server-cert" is invoked and main.cf specifies a
+	non-existent keyfile. Viktor Dukhovni.  File:
+	conf/postfix-tls-script.
+
+20161206
+
+	Bugfix (introduced: Postfix 3.0): when receiving a MAIL
+	FROM...SMTPUTF8 command while smtpd_delay_reject=no, enable
+	SMTPUTF8 support before processing smtpd_sender_restrictions.
+	Problem reported by Viktor Dukhovni. File: smtpd/smtpd.c.
+
+20161220
+
+	Bugfix (introduced: Postfix 2.1.0): the Postfix SMTP daemon
+	did not query sender_canonical_maps when rejecting unknown
+	senders with "smtpd_reject_unlisted_recipient = yes" or
+	with reject_unlisted_sender.  Stephen R. van den Berg (Mr.
+	procmail).  Files: smtpd/smtpd.c, smtpd/smtpd_check.c.
