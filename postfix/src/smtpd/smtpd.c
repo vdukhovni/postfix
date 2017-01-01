@@ -1172,6 +1172,7 @@ char   *var_rest_classes;
 int     var_strict_rfc821_env;
 bool    var_disable_vrfy_cmd;
 char   *var_canonical_maps;
+char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;
 char   *var_virt_alias_maps;
 char   *var_virt_mailbox_maps;
@@ -5382,6 +5383,7 @@ int     main(int argc, char **argv)
 	VAR_ERROR_RCPT, DEF_ERROR_RCPT, &var_error_rcpt, 1, 0,
 	VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes, 0, 0,
 	VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps, 0, 0,
+	VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps, 0, 0,
 	VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps, 0, 0,
 	VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps, 0, 0,
 	VAR_VIRT_MAILBOX_MAPS, DEF_VIRT_MAILBOX_MAPS, &var_virt_mailbox_maps, 0, 0,
