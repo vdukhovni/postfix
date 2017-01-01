@@ -760,6 +760,7 @@ static void psc_endpt_lookup_done(int endpt_status,
      * valid.
      */
     if ((state->flags & PSC_STATE_MASK_ANY_FAIL) == 0
+	&& state->client_info->concurrency == 1
 	&& psc_cache_map != 0
 	&& (stamp_str = psc_cache_lookup(psc_cache_map, state->smtp_client_addr)) != 0) {
 	saved_flags = state->flags;
@@ -773,6 +774,13 @@ static void psc_endpt_lookup_done(int endpt_status,
 	    psc_conclude(state);
 	    return;
 	}
+    } else if (state->client_info->concurrency > 1) {
+	saved_flags = state->flags;
+	psc_todo_tests(state, event_time());
+	state->flags |= saved_flags;
+	if (msg_verbose)
+	    msg_info("%s: new + recent flags: %s",
+		     myname, psc_print_state_flags(state->flags, myname));
     } else {
 	saved_flags = state->flags;
 	psc_new_tests(state);
@@ -824,6 +832,7 @@ static int psc_cache_validator(const char *client_addr,
 			               void *unused_context)
 {
     PSC_STATE dummy;
+    PSC_CLIENT_INFO dummy_client_info;
 
     /*
      * This function is called by the cache cleanup pseudo thread.
@@ -833,6 +842,7 @@ static int psc_cache_validator(const char *client_addr,
      * silly logging we remove the cache entry only after all tests have
      * expired longer ago than the cache retention time.
      */
+    dummy.client_info = &dummy_client_info;
     psc_parse_tests(&dummy, stamp_str, event_time() - var_psc_cache_ret);
     return ((dummy.flags & PSC_STATE_MASK_ANY_TODO) == 0);
 }

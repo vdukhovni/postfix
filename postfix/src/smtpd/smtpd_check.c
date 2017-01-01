@@ -9,7 +9,8 @@
 /*
 /*	void	smtpd_check_init()
 /*
-/*	int	smtpd_check_addr(address, smtputf8)
+/*	int	smtpd_check_addr(sender, address, smtputf8)
+/*	const char *sender;
 /*	const char *address;
 /*	int	smtputf8;
 /*
@@ -57,7 +58,9 @@
 /*	once during the process life time.
 /*
 /*	smtpd_check_addr() sanity checks an email address and returns
-/*	non-zero in case of badness.
+/*	non-zero in case of badness. The sender argument provides sender
+/*	context for address resolution and caching, or a null pointer
+/*	if information is unavailable.
 /*
 /*	smtpd_check_rewrite() should be called before opening a queue
 /*	file or proxy connection, in order to establish the proper
@@ -278,6 +281,7 @@ static CTABLE *smtpd_rbl_byte_cache;
   * trivial-rewrite resolver.
   */
 static MAPS *local_rcpt_maps;
+static MAPS *send_canon_maps;
 static MAPS *rcpt_canon_maps;
 static MAPS *canonical_maps;
 static MAPS *virt_alias_maps;
@@ -346,7 +350,8 @@ static int generic_checks(SMTPD_STATE *, ARGV *, const char *, const char *, con
   */
 static int check_sender_rcpt_maps(SMTPD_STATE *, const char *);
 static int check_recipient_rcpt_maps(SMTPD_STATE *, const char *);
-static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *);
+static int check_rcpt_maps(SMTPD_STATE *, const char *, const char *,
+			           const char *);
 
  /*
   * Tempfail actions;
@@ -728,6 +733,9 @@ void    smtpd_check_init(void)
      * Pre-parse and pre-open the recipient maps.
      */
     local_rcpt_maps = maps_create(VAR_LOCAL_RCPT_MAPS, var_local_rcpt_maps,
+				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
+				  | DICT_FLAG_UTF8_REQUEST);
+    send_canon_maps = maps_create(VAR_SEND_CANON_MAPS, var_send_canon_maps,
 				  DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX
 				  | DICT_FLAG_UTF8_REQUEST);
     rcpt_canon_maps = maps_create(VAR_RCPT_CANON_MAPS, var_rcpt_canon_maps,
@@ -1595,7 +1603,7 @@ static int permit_auth_destination(SMTPD_STATE *state, char *recipient)
     /*
      * Resolve the address.
      */
-    reply = smtpd_resolve_addr(recipient);
+    reply = smtpd_resolve_addr(state->sender, recipient);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, recipient);
 
@@ -1890,7 +1898,7 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
     /*
      * Resolve the address.
      */
-    reply = smtpd_resolve_addr(recipient);
+    reply = smtpd_resolve_addr(state->sender, recipient);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, recipient);
 
@@ -2078,7 +2086,8 @@ static int reject_unknown_address(SMTPD_STATE *state, const char *addr,
     /*
      * Resolve the address.
      */
-    reply = smtpd_resolve_addr(addr);
+    reply = smtpd_resolve_addr(strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+			       state->recipient : state->sender, addr);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, addr);
 
@@ -3130,7 +3139,8 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     /*
      * Resolve the address.
      */
-    reply = smtpd_resolve_addr(addr);
+    reply = smtpd_resolve_addr(strcmp(reply_class, SMTPD_NAME_SENDER) == 0 ?
+			       state->recipient : state->sender, addr);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, addr);
 
@@ -3781,7 +3791,7 @@ static int reject_auth_sender_login_mismatch(SMTPD_STATE *state, const char *sen
      * Reject if the client is logged in and does not own the sender address.
      */
     if (smtpd_sender_login_maps && state->sasl_username) {
-	reply = smtpd_resolve_addr(sender);
+	reply = smtpd_resolve_addr(state->recipient, sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
 	if ((owners = check_mail_addr_find(state, sender, smtpd_sender_login_maps,
@@ -3815,7 +3825,7 @@ static int reject_unauth_sender_login_mismatch(SMTPD_STATE *state, const char *s
      * owner.
      */
     if (smtpd_sender_login_maps && !state->sasl_username) {
-	reply = smtpd_resolve_addr(sender);
+	reply = smtpd_resolve_addr(state->recipient, sender);
 	if (reply->flags & RESOLVE_FLAG_FAIL)
 	    reject_dict_retry(state, sender);
 	if (check_mail_addr_find(state, sender, smtpd_sender_login_maps,
@@ -4627,7 +4637,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 
 /* smtpd_check_addr - address sanity check */
 
-int     smtpd_check_addr(const char *addr, int smtputf8)
+int     smtpd_check_addr(const char *sender, const char *addr, int smtputf8)
 {
     const RESOLVE_REPLY *resolve_reply;
     const char *myname = "smtpd_check_addr";
@@ -4643,7 +4653,7 @@ int     smtpd_check_addr(const char *addr, int smtputf8)
      */
     if (addr == 0 || *addr == 0)
 	return (0);
-    resolve_reply = smtpd_resolve_addr(addr);
+    resolve_reply = smtpd_resolve_addr(sender, addr);
     if (resolve_reply->flags & RESOLVE_FLAG_ERROR)
 	return (-1);
 
@@ -5053,7 +5063,8 @@ static int check_recipient_rcpt_maps(SMTPD_STATE *state, const char *recipient)
     if (state->warn_if_reject == 0)
 	/* We really validate the recipient address. */
 	state->recipient_rcptmap_checked = 1;
-    return (check_rcpt_maps(state, recipient, SMTPD_NAME_RECIPIENT));
+    return (check_rcpt_maps(state, state->sender, recipient,
+			    SMTPD_NAME_RECIPIENT));
 }
 
 /* check_sender_rcpt_maps - generic_checks() sender table check */
@@ -5072,24 +5083,26 @@ static int check_sender_rcpt_maps(SMTPD_STATE *state, const char *sender)
     if (state->warn_if_reject == 0)
 	/* We really validate the sender address. */
 	state->sender_rcptmap_checked = 1;
-    return (check_rcpt_maps(state, sender, SMTPD_NAME_SENDER));
+    return (check_rcpt_maps(state, state->recipient, sender,
+			    SMTPD_NAME_SENDER));
 }
 
 /* check_rcpt_maps - generic_checks() interface for recipient table check */
 
-static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
+static int check_rcpt_maps(SMTPD_STATE *state, const char *sender,
+			           const char *recipient,
 			           const char *reply_class)
 {
     const RESOLVE_REPLY *reply;
     DSN_SPLIT dp;
 
     if (msg_verbose)
-	msg_info(">>> CHECKING RECIPIENT MAPS <<<");
+	msg_info(">>> CHECKING %s VALIDATION MAPS <<<", reply_class);
 
     /*
      * Resolve the address.
      */
-    reply = smtpd_resolve_addr(recipient);
+    reply = smtpd_resolve_addr(sender, recipient);
     if (reply->flags & RESOLVE_FLAG_FAIL)
 	reject_dict_retry(state, recipient);
 
@@ -5110,6 +5123,8 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *recipient,
      * domains.
      */
     if (MATCH(rcpt_canon_maps, CONST_STR(reply->recipient))
+	|| (strcmp(reply_class, SMTPD_NAME_SENDER) == 0
+	    && MATCH(send_canon_maps, CONST_STR(reply->recipient)))
 	|| MATCH(canonical_maps, CONST_STR(reply->recipient))
 	|| MATCH(virt_alias_maps, CONST_STR(reply->recipient)))
 	return (0);
@@ -5456,6 +5471,7 @@ char   *var_proxy_interfaces;
 char   *var_rcpt_delim;
 char   *var_rest_classes;
 char   *var_alias_maps;
+char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;
 char   *var_canonical_maps;
 char   *var_virt_alias_maps;
@@ -5506,6 +5522,7 @@ static const STRING_TABLE string_table[] = {
     VAR_RCPT_DELIM, DEF_RCPT_DELIM, &var_rcpt_delim,
     VAR_REST_CLASSES, DEF_REST_CLASSES, &var_rest_classes,
     VAR_ALIAS_MAPS, DEF_ALIAS_MAPS, &var_alias_maps,
+    VAR_SEND_CANON_MAPS, DEF_SEND_CANON_MAPS, &var_send_canon_maps,
     VAR_RCPT_CANON_MAPS, DEF_RCPT_CANON_MAPS, &var_rcpt_canon_maps,
     VAR_CANONICAL_MAPS, DEF_CANONICAL_MAPS, &var_canonical_maps,
     VAR_VIRT_ALIAS_MAPS, DEF_VIRT_ALIAS_MAPS, &var_virt_alias_maps,
@@ -6053,6 +6070,22 @@ int     main(int argc, char **argv)
 		UPDATE_STRING(var_canonical_maps, args->argv[1]);
 		UPDATE_MAPS(canonical_maps, VAR_CANONICAL_MAPS,
 			    var_canonical_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_SEND_CANON_MAPS) == 0) {
+		UPDATE_STRING(var_send_canon_maps, args->argv[1]);
+		UPDATE_MAPS(send_canon_maps, VAR_SEND_CANON_MAPS,
+			    var_send_canon_maps, DICT_FLAG_LOCK
+			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
+		resp = 0;
+		break;
+	    }
+	    if (strcasecmp(args->argv[0], VAR_RCPT_CANON_MAPS) == 0) {
+		UPDATE_STRING(var_rcpt_canon_maps, args->argv[1]);
+		UPDATE_MAPS(rcpt_canon_maps, VAR_RCPT_CANON_MAPS,
+			    var_rcpt_canon_maps, DICT_FLAG_LOCK
 			    | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 		resp = 0;
 		break;

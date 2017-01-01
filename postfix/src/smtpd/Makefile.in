@@ -533,6 +533,7 @@ smtpd_resolve.o: ../../include/mymalloc.h
 smtpd_resolve.o: ../../include/nvtable.h
 smtpd_resolve.o: ../../include/resolve_clnt.h
 smtpd_resolve.o: ../../include/rewrite_clnt.h
+smtpd_resolve.o: ../../include/split_at.h
 smtpd_resolve.o: ../../include/stringops.h
 smtpd_resolve.o: ../../include/sys_defs.h
 smtpd_resolve.o: ../../include/vbuf.h
