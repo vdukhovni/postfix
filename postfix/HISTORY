@@ -20360,7 +20360,7 @@ Apologies for any names omitted.
 	value was specified, i.e. print the entire string. This was
 	not harmful, it just looked weird.  File: util/vbuf_print.c.
 
-20120917
+20140917
 
 	Feature: RFC 7372 enhanced status code for unknown SMTP
 	client hostnames.  File: smtpd/smtpd_check.c
@@ -22140,14 +22140,14 @@ Apologies for any names omitted.
 	Portability: added a tls_random_source default setting for
 	MacOS X. Viktor Dukhovni. File: util/sys_defs.h.
 
-20150118
+20160118
 
 	Bitrot: OpenSSL 1.1.0-dev (aka the "master" branch) has new
 	security levels ranging from 0 to 5. Level "0" is backwards
 	compatible, and other levels are increasingly restrictive.
 	Viktor Dukhovni. Files: tls/tls_server.c, tls/tls_client.c.
 
-20161205
+20160205
 
 	Portability: Postfix TLS support uses /dev/urandom if
 	available and no system-specific setting exists in sys_defs.h.
@@ -22368,7 +22368,7 @@ Apologies for any names omitted.
 	milter/milter.h, smtpd/smtpd.c, smtpd/smtpd.h, smtpd/smtpd_check.c,
 	smtpd/smtpd_haproxy.c, smtpd/smtpd_milter.c, smtpd/smtpd_peer.c.
 
-20140612
+20160612
 
 	Bugfix (introduced: 20090211): missing server address
 	conversion for non-proxy, non-postscreen connections.  File:
@@ -22605,7 +22605,7 @@ Apologies for any names omitted.
 	passing arbitrary options.  Files: makedefs, Makefile.in,
 	proto/INSTALL.html.
 
-20121201
+20161201
 
 	Documentation: add 'smtpd_tls_auth_only=yes' to the master.cf
 	submission service example. File: conf/master.cf.
@@ -22615,7 +22615,7 @@ Apologies for any names omitted.
 	Documentation: typos in postconf(1) manpage. File:
 	postconf/postconf.c.
 
-20121204
+20161204
 
 	Cleanup: properly report numerical conversion errors in
 	${{number} relational-operator ${number}}, and wordsmithing.
@@ -22737,3 +22737,15 @@ Apologies for any names omitted.
 	cidr, pcre, and regexp table when an input does not match
 	an ENDIF-less IF operator.  Found during code maintenance.
 	File: util/cidr_map.c, util/dict_regexp.c, util/dict_pcre.c.
+
+20170101
+
+	Portability; SunOS5 builds broke after moving the sys/types.h
+	include statement to the top of sys_defs.h.
+
+	Portability: declaration after code is GNU dialect. File:
+	util/vbuf_print.c.
+
+	Portability: compatibility macros for SSLv23_client_method()
+	etc.  deprecation. Files: tls/tls.h, tls/tls_client.c,
+	tls/tls_dane.c, tls_server.c.

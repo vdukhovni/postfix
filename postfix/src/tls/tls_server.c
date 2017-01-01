@@ -441,17 +441,9 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      * SSLv2), so we need to have the SSLv23 server here. If we want to limit
      * the protocol level, we can add an option to not use SSLv2/v3/TLSv1
      * later.
-     * 
-     * OpenSSL 1.1.0-dev deprecates SSLv23_server_method() in favour of
-     * TLS_client_method(), with the change in question signalled via a new
-     * TLS_ANY_VERSION macro.
      */
     ERR_clear_error();
-#if OPENSSL_VERSION_NUMBER >= 0x10100000L && defined(TLS_ANY_VERSION)
     server_ctx = SSL_CTX_new(TLS_server_method());
-#else
-    server_ctx = SSL_CTX_new(SSLv23_server_method());
-#endif
     if (server_ctx == 0) {
 	msg_warn("cannot allocate server SSL_CTX: disabling TLS support");
 	tls_print_errors();

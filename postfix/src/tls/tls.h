@@ -104,6 +104,9 @@ extern const char *str_tls_level(int);
 #define ASN1_STRING_get0_data ASN1_STRING_data
 #define X509_getm_notBefore X509_get_notBefore
 #define X509_getm_notAfter X509_get_notAfter
+#define TLS_method SSLv23_method
+#define TLS_client_method SSLv23_client_method
+#define TLS_server_method SSLv23_server_method
 #endif
 
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */

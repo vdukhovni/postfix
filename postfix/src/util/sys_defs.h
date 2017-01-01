@@ -19,6 +19,9 @@
   * directory. Adding support for a new system type means updating the
   * makedefs script, and adding a section below for the new system.
   */
+#ifdef SUNOS5
+#define _SVID_GETTOD			/* Solaris 2.5, XSH4.2 versus SVID */
+#endif
 #include <sys/types.h>
 
  /*
@@ -412,7 +415,6 @@ extern int opterr;
   */
 #ifdef SUNOS5
 #define SUPPORTED
-#define _SVID_GETTOD			/* Solaris 2.5, XSH4.2 versus SVID */
 #define UINT32_TYPE	unsigned int
 #define UINT16_TYPE	unsigned short
 #define MISSING_SETENV

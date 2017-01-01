@@ -2138,7 +2138,7 @@ static SSL_CTX *ctx_init(const char *CAfile)
 	    msg_fatal("Cannot allocate SSL application data index");
 
     ERR_clear_error();
-    if ((client_ctx = SSL_CTX_new(SSLv23_client_method())) == 0)
+    if ((client_ctx = SSL_CTX_new(TLS_client_method())) == 0)
 	msg_fatal("cannot allocate client SSL_CTX");
     SSL_CTX_set_verify_depth(client_ctx, 5);
 
