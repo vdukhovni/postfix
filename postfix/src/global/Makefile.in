@@ -33,7 +33,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	smtp_reply_footer.c safe_ultostr.c verify_sender_addr.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
 	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
-	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c
+	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
+	mail_addr_form.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -69,7 +70,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
-	$(NON_PLUGIN_MAP_OBJ)
+	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -102,7 +103,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
 	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
-	attr_override.h mail_parm_split.h midna_adomain.h
+	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -117,7 +118,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
-	fold_addr smtp_reply_footer
+	fold_addr smtp_reply_footer mail_addr_map_tester
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -248,10 +249,8 @@ off_cvt: $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-mail_addr_map: $(LIB) $(LIBS)
-	mv $@.o junk
+mail_addr_map_tester: mail_addr_map_tester.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
-	mv junk $@.o
 
 mail_addr_find: $(LIB) $(LIBS)
 	mv $@.o junk
@@ -381,7 +380,8 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
 	mail_version_test server_acl_test resolve_local_test maps_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
-	smtp_reply_footer_test off_cvt_test
+	smtp_reply_footer_test off_cvt_test mail_addr_crunch_test \
+	mail_addr_find_test mail_addr_map_test quote_822_local_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -578,7 +578,7 @@ ehlo_mask_test: ehlo_mask ehlo_mask.in ehlo_mask.ref
 	rm -f ehlo_mask.tmp
 
 namadr_list_test: namadr_list namadr_list.in namadr_list.ref
-	-sh namadr_list.in >namadr_list.tmp 2>&1
+	-$(SHLIB_ENV) sh namadr_list.in >namadr_list.tmp 2>&1
 	diff namadr_list.ref namadr_list.tmp
 	rm -f namadr_list.tmp
 
@@ -672,6 +672,27 @@ off_cvt_test: off_cvt off_cvt.in off_cvt.ref
 	$(SHLIB_ENV) ./off_cvt <off_cvt.in >off_cvt.tmp 2>&1
 	diff off_cvt.ref off_cvt.tmp
 	rm -f off_cvt.tmp
+
+mail_addr_crunch_test: mail_addr_crunch mail_addr_crunch.in mail_addr_crunch.ref
+	-$(SHLIB_ENV) sh mail_addr_crunch.in >mail_addr_crunch.tmp 2>&1
+	diff mail_addr_crunch.ref mail_addr_crunch.tmp
+	rm -f mail_addr_crunch.tmp
+
+mail_addr_find_test: mail_addr_find mail_addr_find.in mail_addr_find.ref
+	-$(SHLIB_ENV) sh mail_addr_find.in >mail_addr_find.tmp 2>&1
+	diff mail_addr_find.ref mail_addr_find.tmp
+	rm -f mail_addr_find.tmp
+
+mail_addr_map_test: update mail_addr_map_tester mail_addr_map.ref
+	-$(SHLIB_ENV) ./mail_addr_map_tester pass_tests
+	-$(SHLIB_ENV) ./mail_addr_map_tester fail_tests >mail_addr_map.tmp 2>&1
+	diff mail_addr_map.ref mail_addr_map.tmp
+	rm -f mail_addr_map.tmp
+
+quote_822_local_test: update quote_822_local quote_822_local.in quote_822_local.ref
+	-$(SHLIB_ENV) ./quote_822_local < quote_822_local.in >quote_822_local.tmp 2>&1
+	diff quote_822_local.ref quote_822_local.tmp
+	rm -f quote_822_local.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
@@ -1458,6 +1479,9 @@ mail_addr_crunch.o: ../../include/vstring.h
 mail_addr_crunch.o: canon_addr.h
 mail_addr_crunch.o: mail_addr_crunch.c
 mail_addr_crunch.o: mail_addr_crunch.h
+mail_addr_crunch.o: mail_addr_form.h
+mail_addr_crunch.o: quote_822_local.h
+mail_addr_crunch.o: quote_flags.h
 mail_addr_crunch.o: resolve_clnt.h
 mail_addr_crunch.o: tok822.h
 mail_addr_find.o: ../../include/argv.h
@@ -1473,10 +1497,17 @@ mail_addr_find.o: ../../include/vstream.h
 mail_addr_find.o: ../../include/vstring.h
 mail_addr_find.o: mail_addr_find.c
 mail_addr_find.o: mail_addr_find.h
+mail_addr_find.o: mail_addr_form.h
 mail_addr_find.o: mail_params.h
 mail_addr_find.o: maps.h
+mail_addr_find.o: quote_822_local.h
+mail_addr_find.o: quote_flags.h
 mail_addr_find.o: resolve_local.h
 mail_addr_find.o: strip_addr.h
+mail_addr_form.o: ../../include/name_code.h
+mail_addr_form.o: ../../include/sys_defs.h
+mail_addr_form.o: mail_addr_form.c
+mail_addr_form.o: mail_addr_form.h
 mail_addr_map.o: ../../include/argv.h
 mail_addr_map.o: ../../include/check_arg.h
 mail_addr_map.o: ../../include/dict.h
@@ -1489,9 +1520,32 @@ mail_addr_map.o: ../../include/vstream.h
 mail_addr_map.o: ../../include/vstring.h
 mail_addr_map.o: mail_addr_crunch.h
 mail_addr_map.o: mail_addr_find.h
+mail_addr_map.o: mail_addr_form.h
 mail_addr_map.o: mail_addr_map.c
 mail_addr_map.o: mail_addr_map.h
 mail_addr_map.o: maps.h
+mail_addr_map.o: quote_822_local.h
+mail_addr_map.o: quote_flags.h
+mail_addr_map_tester.o: ../../include/argv.h
+mail_addr_map_tester.o: ../../include/check_arg.h
+mail_addr_map_tester.o: ../../include/dict.h
+mail_addr_map_tester.o: ../../include/msg.h
+mail_addr_map_tester.o: ../../include/myflock.h
+mail_addr_map_tester.o: ../../include/mymalloc.h
+mail_addr_map_tester.o: ../../include/readlline.h
+mail_addr_map_tester.o: ../../include/stringops.h
+mail_addr_map_tester.o: ../../include/sys_defs.h
+mail_addr_map_tester.o: ../../include/vbuf.h
+mail_addr_map_tester.o: ../../include/vstream.h
+mail_addr_map_tester.o: ../../include/vstring.h
+mail_addr_map_tester.o: ../../include/vstring_vstream.h
+mail_addr_map_tester.o: canon_addr.h
+mail_addr_map_tester.o: mail_addr_form.h
+mail_addr_map_tester.o: mail_addr_map.h
+mail_addr_map_tester.o: mail_addr_map_tester.c
+mail_addr_map_tester.o: mail_conf.h
+mail_addr_map_tester.o: mail_params.h
+mail_addr_map_tester.o: maps.h
 mail_command_client.o: ../../include/attr.h
 mail_command_client.o: ../../include/check_arg.h
 mail_command_client.o: ../../include/htable.h
@@ -2575,8 +2629,13 @@ string_list.o: ../../include/vbuf.h
 string_list.o: ../../include/vstring.h
 string_list.o: string_list.c
 string_list.o: string_list.h
+strip_addr.o: ../../include/check_arg.h
 strip_addr.o: ../../include/mymalloc.h
 strip_addr.o: ../../include/sys_defs.h
+strip_addr.o: ../../include/vbuf.h
+strip_addr.o: ../../include/vstring.h
+strip_addr.o: quote_822_local.h
+strip_addr.o: quote_flags.h
 strip_addr.o: split_addr.h
 strip_addr.o: strip_addr.c
 strip_addr.o: strip_addr.h

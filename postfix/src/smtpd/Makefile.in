@@ -324,6 +324,7 @@ smtpd_check.o: ../../include/mac_expand.h
 smtpd_check.o: ../../include/mac_parse.h
 smtpd_check.o: ../../include/mail_addr.h
 smtpd_check.o: ../../include/mail_addr_find.h
+smtpd_check.o: ../../include/mail_addr_form.h
 smtpd_check.o: ../../include/mail_conf.h
 smtpd_check.o: ../../include/mail_error.h
 smtpd_check.o: ../../include/mail_params.h

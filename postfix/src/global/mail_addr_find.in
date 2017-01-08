@@ -1,0 +1,26 @@
+#!/bin/sh
+
+# Format: input form:output form:query:expected result:expected extension
+# The last fields are optional.
+
+echo ==== no search string extension
+$VALGRIND ./mail_addr_find 'inline:{plain1@1.example=plain2@2.example,{"aa bb"@cc.example="dd ee"@dd.example}}' <<'EOF'
+internal:external:plain1@1.example:plain2@2.example
+internal:external:aa bb@cc.example:"dd ee"@dd.example
+external:external:"aa bb"@cc.example:"dd ee"@dd.example
+external:internal:"aa bb"@cc.example:dd ee@dd.example
+noconv:noconv:plain1@1.example:plain2@2.example
+noconv:noconv:aa bb@cc.example
+noconv:noconv:"aa bb"@cc.example:"dd ee"@dd.example
+EOF
+
+echo ==== with search string extension
+$VALGRIND ./mail_addr_find 'inline:{plain1@1.example=plain2@2.example,{"aa bb"@cc.example="dd ee"@dd.example}}' <<'EOF'
+internal:external:plain1+ext@1.example:plain2@2.example:+ext
+internal:external:aa bb+ax bx@cc.example:"dd ee"@dd.example:+ax bx
+external:external:"aa bb+ax bx"@cc.example:"dd ee"@dd.example:+ax bx
+external:internal:"aa bb+ax bx"@cc.example:dd ee@dd.example:+ax bx
+noconv:noconv:plain1+ext@1.example:plain2@2.example:+ext
+noconv:noconv:"aa bb+ax bx"@cc.example
+noconv:noconv:"aa bb"+ax bx@cc.example:"dd ee"@dd.example:+ax bx
+EOF

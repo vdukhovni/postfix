@@ -80,7 +80,8 @@ int     smtp_map11_external(VSTRING *addr, MAPS *maps, int propagate)
     ARGV   *new_addr;
     const char *result;
 
-    if ((new_addr = mail_addr_map(maps, STR(addr), propagate)) != 0) {
+    if ((new_addr = mail_addr_map(maps, STR(addr), propagate,
+		  MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL)) != 0) {
 	if (new_addr->argc > 1)
 	    msg_warn("multi-valued %s result for %s", maps->title, STR(addr));
 	result = new_addr->argv[0];
@@ -151,6 +152,8 @@ int     main(int argc, char **argv)
     argv += 1;
 
     msg_verbose = 1;
+    myfree(var_rcpt_delim);
+    var_rcpt_delim = mystrdup("+");
     while (--argc && *++argv) {
 	msg_info("-- start %s --", *argv);
 	smtp_map11_external(vstring_strcpy(buf, *argv), maps, 1);

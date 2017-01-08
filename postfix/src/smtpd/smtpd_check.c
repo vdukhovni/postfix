@@ -1155,7 +1155,8 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 {
     const char *result;
 
-    if ((result = mail_addr_find(maps, key, ext)) != 0 || maps->error == 0)
+    if ((result = mail_addr_find_noconv(maps, key, ext)) != 0
+	|| maps->error == 0)
 	return (result);
     if (maps->error == DICT_ERR_RETRY)
 	/* Warning is already logged. */
@@ -2525,7 +2526,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "bcc", STR(error_text));
 #ifndef TEST
-	    if (state->saved_bcc == 0) 
+	    if (state->saved_bcc == 0)
 		state->saved_bcc = argv_alloc(1);
 	    argv_add(state->saved_bcc, cmd_text, (char *) 0);
 #endif
@@ -3001,7 +3002,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 		    domain += 1;
 		    dns_status = dns_lookup(domain, type, 0, &server_list,
 					    (VSTRING *) 0, (VSTRING *) 0);
-		    if (dns_status != DNS_NOTFOUND /* || h_errno != NO_DATA */)
+		    if (dns_status != DNS_NOTFOUND /* || h_errno != NO_DATA */ )
 			break;
 		}
 	    }
@@ -3186,7 +3187,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     if (*var_rcpt_delim == 0) {
 	bare_addr = 0;
     } else {
-	bare_addr = strip_addr(addr, (char **) 0, var_rcpt_delim);
+	bare_addr = strip_addr_internal(addr, (char **) 0, var_rcpt_delim);
     }
 
 #define CHECK_MAIL_ACCESS_RETURN(x) \

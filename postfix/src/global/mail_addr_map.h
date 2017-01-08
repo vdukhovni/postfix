@@ -19,12 +19,18 @@
  /*
   * Global library.
   */
+#include <mail_addr_form.h>
 #include <maps.h>
 
  /*
   * External interface.
   */
-extern ARGV *mail_addr_map(MAPS *, const char *, int);
+extern ARGV *mail_addr_map(MAPS *, const char *, int, int, int);
+
+ /* The least-overhead form. */
+#define mail_addr_map_internal(path, address, propagate) \
+	mail_addr_map((path), (address), (propagate), \
+		  MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_INTERNAL)
 
 /* LICENSE
 /* .ad

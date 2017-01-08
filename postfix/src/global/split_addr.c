@@ -6,13 +6,14 @@
 /* SYNOPSIS
 /*	#include <split_addr.h>
 /*
-/*	char	*split_addr(localpart, delimiter_set)
+/*	char	*split_addr_internal(localpart, delimiter_set)
 /*	char	*localpart;
 /*	const char *delimiter_set;
 /* DESCRIPTION
-/*	split_addr() null-terminates \fIlocalpart\fR at the first
-/*	occurrence of the \fIdelimiter\fR character(s) found, and
-/*	returns a pointer to the remainder.
+/*	split_addr_internal() null-terminates \fIlocalpart\fR at
+/*	the first occurrence of the \fIdelimiter\fR character(s)
+/*	found, and returns a pointer to the remainder. The address
+/*	must be in internal (unquoted) form.
 /*
 /*	Reserved addresses are not split: postmaster, mailer-daemon,
 /*	double-bounce. Addresses that begin with owner-, or addresses
@@ -49,9 +50,9 @@
 #include <mail_addr.h>
 #include <split_addr.h>
 
-/* split_addr - split address with extreme prejudice */
+/* split_addr_internal - split address with extreme prejudice */
 
-char   *split_addr(char *localpart, const char *delimiter_set)
+char   *split_addr_internal(char *localpart, const char *delimiter_set)
 {
     ssize_t len;
 

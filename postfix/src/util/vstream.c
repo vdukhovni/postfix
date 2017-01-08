@@ -1600,8 +1600,8 @@ static void copy_line(ssize_t bufsize)
 {
     int     c;
 
-    vstream_control(VSTREAM_IN, VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
-    vstream_control(VSTREAM_OUT, VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
+    vstream_control(VSTREAM_IN, CA_VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
+    vstream_control(VSTREAM_OUT, CA_VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
     while ((c = VSTREAM_GETC(VSTREAM_IN)) != VSTREAM_EOF) {
 	VSTREAM_PUTC(c, VSTREAM_OUT);
 	if (c == '\n')

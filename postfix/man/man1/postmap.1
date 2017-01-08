@@ -54,6 +54,14 @@ surrounding white space is stripped off. Unlike with Postfix alias
 databases, quotes cannot be used to protect lookup keys that contain
 special characters such as `#' or whitespace.
 
+When the \fIkey\fR specifies email address information, the
+localpart needs to be enclosed with double quotes if required
+by RFC 5322 and if the \fIkey\fR is used in virtual_alias_maps,
+*canonical_maps, or smtp_generic maps. For example, an
+address localpart that contains space or ';' characters
+needs to be quoted.  The \fBpostmap\fR(1) command supports
+spaces in the \fIkey\fR as of Postfix version 3.2.
+
 By default the lookup key is mapped to lowercase to make
 the lookups case insensitive; as of Postfix 2.3 this case
 folding happens only with tables whose lookup keys are

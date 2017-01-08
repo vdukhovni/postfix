@@ -22749,3 +22749,39 @@ Apologies for any names omitted.
 	Portability: compatibility macros for SSLv23_client_method()
 	etc.  deprecation. Files: tls/tls.h, tls/tls_client.c,
 	tls/tls_dane.c, tls_server.c.
+
+201606-20170108
+
+	Cleanup: handling of address extensions with email addresses
+	that contain spaces. The virtual_alias_maps, canonical_maps,
+	and smtp_generic_maps features now correctly propagate an
+	address extension from "aa bb+ext"@example.com to "cc
+	dd+ext"@other.example, instead of producing broken output.
+
+	Files updated to support conversion between unquoted and
+	quoted address forms, as required for addresses that contain
+	spaces: global/mail_addr_map.*, global/mail_addr_find.* and
+	global/mail_addr_crunch.*.
+
+	Files updated to enable these address conversions to correctly
+	propagate address extensions: cleanup/cleanup_map11.c
+	(canonical_maps), cleanup/cleanup_map1n.c (virtual_alias_maps),
+	and smtp/smtp_generic.c (smtp_generic_maps).
+
+	Files updated to rename functions to better reflect their
+	input and output forms: global/split_addr.*, global/strip_addr.*.
+
+	Files updated to support quoted lookup keys: util/dict_inline.c,
+	util/dict_thash.c, postmap/postmap.c.
+
+	Files updated to invoke a backwards-compatible mail_addr_find()
+	version that disables quoted/unquoted address conversions:
+	smtp/smtp/smtp_sasl_glue.c (smtp_sasl_password_maps),
+	smtpd/smtpd_check.c (SMTP server address validation),
+	cleanup/cleanup_addr.c (sender_bcc_maps and recipient_bcc_maps),
+	virtual/mailbox.c (user-related table lookups),
+	trivial-rewrite/transport.c (transport_maps),
+	trivial-rewrite/resolve.c (sender_dependent_mumble_maps,
+	relocated_maps). These features may be migrated later to
+	enable quoted-form address lookup keys, for consistency
+	with other Postfix features.

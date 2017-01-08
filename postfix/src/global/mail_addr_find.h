@@ -14,12 +14,23 @@
  /*
   * Global library.
   */
+#include <mail_addr_form.h>
 #include <maps.h>
 
  /*
   * External interface.
   */
-extern const char *mail_addr_find(MAPS *, const char *, char **);
+extern const char *mail_addr_find(MAPS *, const char *, char **, int, int);
+
+ /* The least-overhead form. */
+#define mail_addr_find_int_to_ext(maps, address, extension) \
+	mail_addr_find((maps), (address), (extension), \
+	    MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_EXTERNAL)
+
+ /* The legacy form. */
+#define mail_addr_find_noconv(maps, address, extension) \
+	mail_addr_find((maps), (address), (extension), \
+	    MAIL_ADDR_FORM_NOCONV, MAIL_ADDR_FORM_NOCONV)
 
 /* LICENSE
 /* .ad

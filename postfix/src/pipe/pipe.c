@@ -754,7 +754,7 @@ static ARGV *expand_argv(const char *service, char **argv,
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
 		    if (*var_rcpt_delim)
-			split_addr(STR(buf), var_rcpt_delim);
+			split_addr_internal(STR(buf), var_rcpt_delim);
 		    if (*STR(buf) == 0)
 			continue;
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_USER, STR(buf));
@@ -772,7 +772,8 @@ static ARGV *expand_argv(const char *service, char **argv,
 			msg_warn("no @ in recipient address: %s",
 				 rcpt_list->info[i].address);
 		    if (*var_rcpt_delim == 0
-			|| (ext = split_addr(STR(buf), var_rcpt_delim)) == 0)
+			|| (ext = split_addr_internal(STR(buf),
+						      var_rcpt_delim)) == 0)
 			ext = "";		/* insert null arg */
 		    dict_update(PIPE_DICT_TABLE, PIPE_DICT_EXTENSION, ext);
 		}

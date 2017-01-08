@@ -178,10 +178,13 @@ VSTRING *quote_822_local_flags(VSTRING *dst, const char *mbox, int flags)
 VSTRING *unquote_822_local(VSTRING *dst, const char *mbox)
 {
     const char *start;			/* first byte of localpart */
-    const char *end;			/* first byte after localpart */
     const char *colon;
     const char *cp;
+    int     in_quote = 0;
+    const char *bare_at_src;
+    int     bare_at_dst_pos = -1;
 
+    /* Don't unquote a routing prefix. Is this still possible? */
     if (mbox[0] == '@' && (colon = strchr(mbox, ':')) != 0) {
 	start = colon + 1;
 	vstring_strncpy(dst, mbox, start - mbox);
@@ -189,21 +192,28 @@ VSTRING *unquote_822_local(VSTRING *dst, const char *mbox)
 	start = mbox;
 	VSTRING_RESET(dst);
     }
-    if ((end = strrchr(start, '@')) == 0)
-	end = start + strlen(start);
-    for (cp = start; cp < end; cp++) {
-	if (*cp == '"')
+    /* Locate the last unquoted '@'. */
+    for (cp = start; *cp; cp++) {
+	if (*cp == '"') {
+	    in_quote = !in_quote;
 	    continue;
-	if (*cp == '\\') {
+	} else if (*cp == '@') {
+	    if (!in_quote) {
+		bare_at_dst_pos = VSTRING_LEN(dst);
+		bare_at_src = cp;
+	    }
+	} else if (*cp == '\\') {
 	    if (cp[1] == 0)
 		continue;
 	    cp++;
 	}
 	VSTRING_ADDCH(dst, *cp);
     }
-    if (*end)
-	vstring_strcat(dst, end);
-    else
+    /* Don't unquote text after the last unquoted '@'. */
+    if (bare_at_dst_pos >= 0) {
+	vstring_truncate(dst, bare_at_dst_pos);
+	vstring_strcat(dst, bare_at_src);
+    } else
 	VSTRING_TERMINATE(dst);
     return (dst);
 }
@@ -214,6 +224,11 @@ VSTRING *unquote_822_local(VSTRING *dst, const char *mbox)
   * Proof-of-concept test program. Read an unquoted address from stdin, and
   * show the quoted and unquoted results.
   */
+#include <ctype.h>
+#include <string.h>
+
+#include <msg.h>
+#include <stringops.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
 
@@ -221,20 +236,32 @@ VSTRING *unquote_822_local(VSTRING *dst, const char *mbox)
 
 int     main(int unused_argc, char **unused_argv)
 {
-    VSTRING *raw = vstring_alloc(100);
-    VSTRING *quoted = vstring_alloc(100);
-    VSTRING *unquoted = vstring_alloc(100);
+    VSTRING *in = vstring_alloc(100);
+    VSTRING *out = vstring_alloc(100);
+    char   *cmd;
+    char   *bp;
 
-    while (vstring_fgets_nonl(raw, VSTREAM_IN)) {
-	quote_822_local(quoted, STR(raw));
-	vstream_printf("quoted:		%s\n", STR(quoted));
-	unquote_822_local(unquoted, STR(quoted));
-	vstream_printf("unquoted:	%s\n", STR(unquoted));
-	vstream_fflush(VSTREAM_OUT);
+    while (vstring_fgets_nonl(in, VSTREAM_IN)) {
+	bp = STR(in);
+	if ((cmd = mystrtok(&bp, CHARS_SPACE)) != 0) {
+	    while (ISSPACE(*bp))
+		bp++;
+	    if (*bp == 0) {
+		msg_warn("missing argument");
+	    } else if (strcmp(cmd, "quote") == 0) {
+		quote_822_local(out, bp);
+		vstream_printf("'%s' quoted '%s'\n", bp, STR(out));
+	    } else if (strcmp(cmd, "unquote") == 0) {
+		unquote_822_local(out, bp);
+		vstream_printf("'%s' unquoted '%s'\n", bp, STR(out));
+	    } else {
+		msg_warn("unknown command: %s", cmd);
+	    }
+	    vstream_fflush(VSTREAM_OUT);
+	}
     }
-    vstring_free(unquoted);
-    vstring_free(quoted);
-    vstring_free(raw);
+    vstring_free(in);
+    vstring_free(out);
     return (0);
 }
 

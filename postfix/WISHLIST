@@ -6,6 +6,8 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Document RFC5321 localpart quoting in DATABASE_README.
+
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
 

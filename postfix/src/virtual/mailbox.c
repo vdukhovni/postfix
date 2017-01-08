@@ -193,8 +193,9 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
      */
 #define IGNORE_EXTENSION ((char **) 0)
 
-    mailbox_res = mail_addr_find(virtual_mailbox_maps, state.msg_attr.user,
-				 IGNORE_EXTENSION);
+    mailbox_res = mail_addr_find_noconv(virtual_mailbox_maps,
+					state.msg_attr.user,
+					IGNORE_EXTENSION);
     if (mailbox_res == 0) {
 	if (virtual_mailbox_maps->error == 0)
 	    return (NO);
@@ -213,8 +214,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Look up the mailbox owner rights. Defer in case of trouble.
      */
-    uid_res = mail_addr_find(virtual_uid_maps, state.msg_attr.user,
-			     IGNORE_EXTENSION);
+    uid_res = mail_addr_find_noconv(virtual_uid_maps, state.msg_attr.user,
+				    IGNORE_EXTENSION);
     if (uid_res == 0) {
 	msg_warn("recipient %s: not found in %s",
 		 state.msg_attr.user, virtual_uid_maps->title);
@@ -236,8 +237,8 @@ int     deliver_mailbox(LOCAL_STATE state, USER_ATTR usr_attr, int *statusp)
     /*
      * Look up the mailbox group rights. Defer in case of trouble.
      */
-    gid_res = mail_addr_find(virtual_gid_maps, state.msg_attr.user,
-			     IGNORE_EXTENSION);
+    gid_res = mail_addr_find_noconv(virtual_gid_maps, state.msg_attr.user,
+				    IGNORE_EXTENSION);
     if (gid_res == 0) {
 	msg_warn("recipient %s: not found in %s",
 		 state.msg_attr.user, virtual_gid_maps->title);

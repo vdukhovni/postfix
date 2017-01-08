@@ -13,7 +13,7 @@
 
  /* External interface. */
 
-extern char *split_addr(char *, const char *);
+extern char *split_addr_internal(char *, const char *);
 
 /* LICENSE
 /* .ad

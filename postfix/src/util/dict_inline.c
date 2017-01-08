@@ -110,7 +110,7 @@ DICT   *dict_inline_open(const char *name, int open_flags, int dict_flags)
     while ((nameval = mystrtokq(&cp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	if ((nameval[0] != CHARS_BRACE[0]
 	     || (err = xperr = extpar(&nameval, CHARS_BRACE, EXTPAR_FLAG_STRIP)) == 0)
-	    && (err = split_nameval(nameval, &vname, &value)) != 0)
+	    && (err = split_qnameval(nameval, &vname, &value)) != 0)
 	    break;
 
 	/* No duplicate checks. See comments in dict_thash.c. */
