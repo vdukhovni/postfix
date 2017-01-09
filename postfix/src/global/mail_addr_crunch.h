@@ -20,21 +20,24 @@
   * Global library.
   */
 #include <mail_addr_form.h>
-#include <argv.h>
 
  /*
   * External interface.
   */
-extern ARGV *mail_addr_crunch(const char *, const char *, int, int);
+extern ARGV *mail_addr_crunch_opt(const char *, const char *, int, int);
 
- /* The least-overhead form. */
+ /*
+  * The least-overhead form.
+  */
 #define mail_addr_crunch_ext_to_int(string, extension) \
-	mail_addr_crunch((string), (extension), MAIL_ADDR_FORM_EXTERNAL, \
+	mail_addr_crunch_opt((string), (extension), MAIL_ADDR_FORM_EXTERNAL, \
 			MAIL_ADDR_FORM_INTERNAL)
 
- /* The legacy form. */
-#define mail_addr_crunch_noconv(string, extension) \
-	mail_addr_crunch((string), (extension), MAIL_ADDR_FORM_NOCONV, \
+ /*
+  * The legacy form.
+  */
+#define mail_addr_crunch(string, extension) \
+	mail_addr_crunch_opt((string), (extension), MAIL_ADDR_FORM_NOCONV, \
 			MAIL_ADDR_FORM_NOCONV)
 
 /* LICENSE

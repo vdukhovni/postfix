@@ -11,10 +11,11 @@
 /* DESCRIPTION
 /* .nf
 
- /*
-  * External interface.
-  */
-extern char * strip_addr_internal(const char *, char **, const char *);
+ /* External interface. */
+
+extern char *strip_addr_internal(const char *, char **, const char *);
+
+#define strip_addr	strip_addr_internal
 
 /* LICENSE
 /* .ad

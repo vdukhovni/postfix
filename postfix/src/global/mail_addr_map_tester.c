@@ -73,8 +73,8 @@ typedef struct {
 #define PLUS_RECIPIENT_DELIMITER		"+"
 
  /*
-  * All these tests must pass, so that we know that mail_addr_map() works as
-  * intended.
+  * All these tests must pass, so that we know that mail_addr_map_opt() works
+  * as intended.
   */
 static MAIL_ADDR_MAP_TEST pass_tests[] = {
     {
@@ -284,8 +284,8 @@ int     main(int argc, char **argv)
 			     | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 
 	UPDATE(var_rcpt_delim, test->delimiter);
-	result = mail_addr_map(maps, test->address, test->propagate,
-			       test->in_form, test->out_form);
+	result = mail_addr_map_opt(maps, test->address, test->propagate,
+				   test->in_form, test->out_form);
 	if (compare(test->testname, test->expect_argv, test->expect_argc,
 	       result ? result->argv : 0, result ? result->argc : 0) != 0) {
 	    msg_info("database = %s", test->database);

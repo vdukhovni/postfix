@@ -11,14 +11,15 @@
 /*	const char *address;
 /*	char	**extension;
 /*
-/*	const char *mail_addr_find(maps, address, extension, in_form, out_form)
+/*	const char *mail_addr_find_opt(maps, address, extension,
+/*					in_form, out_form)
 /*	MAPS	*maps;
 /*	const char *address;
 /*	char	**extension;
 /*	int	in_form;
 /*	int	out_form;
 /* LEGACY SUPPORT
-/*	const char *mail_addr_find_noconv(maps, address, extension)
+/*	const char *mail_addr_find(maps, address, extension)
 /*	MAPS	*maps;
 /*	const char *address;
 /*	char	**extension;
@@ -38,20 +39,20 @@
 /*	(unquoted/quoted) conversions of the query, extension, or
 /*	result.
 /*
-/*	mail_addr_find() gives more control, at the cost of
+/*	mail_addr_find_opt() gives more control, at the cost of
 /*	additional conversions between internal and external forms.
 /*	In particular, the output conversion to internal form assumes
 /*	that the lookup result is an email address.
 /*
-/*	mail_addr_find_noconv() is used by legacy code that is not
+/*	mail_addr_find() is used by legacy code that is not
 /*	yet aware of internal versus external addres formats.
 /*
 /*	mail_addr_find_trans() implements transitional functionality.
-/*	It behaves like mail_addr_find(...INTERNAL, ...NOCONV) and
+/*	It behaves like mail_addr_find_opt(...INTERNAL, ...NOCONV) and
 /*	searches a table with the quoted form of the address, but
 /*	if the lookup produces no result, and the quoted address
 /*	differs from the unquoted form, it also tries
-/*	mail_addr_find(...NOCONV, ...NOCONV).
+/*	mail_addr_find_opt(...NOCONV, ...NOCONV).
 /*
 /*	An address that is in the form \fIuser\fR matches itself.
 /*
@@ -137,18 +138,18 @@ const char *mail_addr_find_trans(MAPS *path, const char *address, char **extp)
     static VSTRING *quoted_addr;
 
     /*
-     * First, let mail_addr_find() search with the address converted to
+     * First, let mail_addr_find_opt() search with the address converted to
      * external form. Fall back to a search with the address in internal
      * (unconverted) form, if no match was found and the internal and
      * external forms differ.
      */
-    if ((result = mail_addr_find(path, address, extp,
+    if ((result = mail_addr_find_opt(path, address, extp,
 		    MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_NOCONV)) == 0) {
 	if (quoted_addr == 0)
 	    quoted_addr = vstring_alloc(100);
 	quote_822_local(quoted_addr, address);
 	if (strcmp(STR(quoted_addr), address) != 0)
-	    result = mail_addr_find(path, address, extp,
+	    result = mail_addr_find_opt(path, address, extp,
 			      MAIL_ADDR_FORM_NOCONV, MAIL_ADDR_FORM_NOCONV);
     }
     return (result);
@@ -168,8 +169,8 @@ static const char *find_addr(MAPS *path, const char *address, int flags,
 
 /* mail_addr_find - map a canonical address */
 
-const char *mail_addr_find(MAPS *path, const char *address, char **extp,
-			           int in_form, int out_form)
+const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
+			               int in_form, int out_form)
 {
     const char *myname = "mail_addr_find";
     VSTRING *ext_addr_buf = 0;
@@ -205,7 +206,7 @@ const char *mail_addr_find(MAPS *path, const char *address, char **extp,
 	int_bare_key = saved_ext = 0;
     } else {
 	int_bare_key =
-	    strip_addr_internal(int_full_key, &saved_ext, var_rcpt_delim);
+	    strip_addr(int_full_key, &saved_ext, var_rcpt_delim);
     }
 
     /*
@@ -364,7 +365,7 @@ int     main(int argc, char **argv)
 	expect_res = mystrtok(&bp, ":");
 	expect_ext = mystrtok(&bp, ":");
 	extent = 0;
-	result = mail_addr_find(path, key_field, &extent, in_form, out_form);
+	result = mail_addr_find_opt(path, key_field, &extent, in_form, out_form);
 	vstream_printf("%s:%s -> %s:%s (%s)\n",
 		       in_field, key_field, out_field, result ? result :
 		       path->error ? "(try again)" :

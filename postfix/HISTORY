@@ -22785,3 +22785,10 @@ Apologies for any names omitted.
 	relocated_maps). These features may be migrated later to
 	enable quoted-form address lookup keys, for consistency
 	with other Postfix features.
+
+20170109
+
+	Cleanup: reduce the number of modified files, to make a
+	back-port more feasible. This renames foo() to foo_opt(),
+	and renames the backwards_compatibility foo_noconv() to
+	their old name foo().

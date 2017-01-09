@@ -11,7 +11,7 @@
 /*	const char *address;
 /*	int	propagate;
 /*
-/*	ARGV	*mail_addr_map(path, address, propagate, in_form, out_form)
+/*	ARGV	*mail_addr_map_opt(path, address, propagate, in_form, out_form)
 /*	MAPS	*path;
 /*	const char *address;
 /*	int	propagate;
@@ -21,7 +21,7 @@
 /*	named address, or a null pointer if none is found.  The
 /*	search address and results are in internal (unquoted) form.
 /*
-/*	mail_addr_map() gives more control, at the cost of additional
+/*	mail_addr_map_opt() gives more control, at the cost of additional
 /*	conversions between internal and external forms.
 /*
 /*	When the \fBpropagate\fR argument is non-zero,
@@ -34,7 +34,7 @@
 /*	the original user in
 /*	\fIotherdomain\fR.
 /*
-/*	mail_addr_map() gives additional control over whether the
+/*	mail_addr_map_opt() gives additional control over whether the
 /*	input is in internal (unquoted) or external (quoted) form.
 /*	to internal form and invokes mail_addr_map_int_to_ext().
 /*	This may introduce additional unqoute822_local() and
@@ -96,8 +96,8 @@
 
 /* mail_addr_map - map a canonical address */
 
-ARGV   *mail_addr_map(MAPS *path, const char *address, int propagate,
-		              int in_form, int out_form)
+ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
+			          int in_form, int out_form)
 {
     VSTRING *buffer = 0;
     const char *myname = "mail_addr_map";
@@ -116,9 +116,10 @@ ARGV   *mail_addr_map(MAPS *path, const char *address, int propagate,
 
     /*
      * Optionally convert input from external form. We prefer internal-form
-     * input to avoid an unnecessary input conversion in mail_addr_find().
-     * But the consequence is that we have to convert the internal-form
-     * input's localpart to external form when mapping @domain -> @domain.
+     * input to avoid an unnecessary input conversion in
+     * mail_addr_find_opt(). But the consequence is that we have to convert
+     * the internal-form input's localpart to external form when mapping
+     * @domain -> @domain.
      */
     if (in_form == MAIL_ADDR_FORM_EXTERNAL) {
 	int_address = vstring_alloc(100);
@@ -132,11 +133,11 @@ ARGV   *mail_addr_map(MAPS *path, const char *address, int propagate,
     /*
      * Look up the full address; if no match is found, look up the address
      * with the extension stripped off, and remember the unmatched extension.
-     * We explicitly call the mail_addr_find() variant that does not convert
-     * the lookup result.
+     * We explicitly call the mail_addr_find_opt() variant that does not
+     * convert the lookup result.
      */
-    if ((string = mail_addr_find(path, int_addr, &extension,
-				 in_form, mid_form)) != 0) {
+    if ((string = mail_addr_find_opt(path, int_addr, &extension,
+				     in_form, mid_form)) != 0) {
 
 	/*
 	 * Prepend the original user to @otherdomain, but do not propagate
@@ -160,8 +161,8 @@ ARGV   *mail_addr_map(MAPS *path, const char *address, int propagate,
 	 * Canonicalize the result, and propagate the unmatched extension to
 	 * each address found.
 	 */
-	argv = mail_addr_crunch(string, propagate ? extension : 0,
-				mid_form, out_form);
+	argv = mail_addr_crunch_opt(string, propagate ? extension : 0,
+				    mid_form, out_form);
 	if (buffer)
 	    vstring_free(buffer);
 	if (ext_address)

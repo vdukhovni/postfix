@@ -184,7 +184,7 @@ int     smtp_sasl_passwd_lookup(SMTP_SESSION *session)
     smtp_sasl_passwd_map->error = 0;
     if ((smtp_mode
 	 && var_smtp_sender_auth && state->request->sender[0]
-	 && (value = mail_addr_find_noconv(smtp_sasl_passwd_map,
+	 && (value = mail_addr_find(smtp_sasl_passwd_map,
 				 state->request->sender, (char **) 0)) != 0)
 	|| (smtp_sasl_passwd_map->error == 0
 	    && (value = maps_find(smtp_sasl_passwd_map,

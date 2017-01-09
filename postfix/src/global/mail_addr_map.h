@@ -25,11 +25,11 @@
  /*
   * External interface.
   */
-extern ARGV *mail_addr_map(MAPS *, const char *, int, int, int);
+extern ARGV *mail_addr_map_opt(MAPS *, const char *, int, int, int);
 
  /* The least-overhead form. */
 #define mail_addr_map_internal(path, address, propagate) \
-	mail_addr_map((path), (address), (propagate), \
+	mail_addr_map_opt((path), (address), (propagate), \
 		  MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_INTERNAL)
 
 /* LICENSE

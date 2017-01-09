@@ -165,9 +165,8 @@ off_t   cleanup_addr_sender(CLEANUP_STATE *state, const char *buf)
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_send_bcc_maps) {
-	if ((bcc = mail_addr_find_noconv(cleanup_send_bcc_maps,
-					 STR(clean_addr),
-					 IGNORE_EXTENSION)) != 0) {
+	if ((bcc = mail_addr_find(cleanup_send_bcc_maps, STR(clean_addr),
+				  IGNORE_EXTENSION)) != 0) {
 	    cleanup_addr_bcc(state, bcc);
 	} else if (cleanup_send_bcc_maps->error) {
 	    msg_warn("%s: %s map lookup problem -- "
@@ -229,9 +228,8 @@ void    cleanup_addr_recipient(CLEANUP_STATE *state, const char *buf)
     if ((state->flags & CLEANUP_FLAG_BCC_OK)
 	&& *STR(clean_addr)
 	&& cleanup_rcpt_bcc_maps) {
-	if ((bcc = mail_addr_find_noconv(cleanup_rcpt_bcc_maps,
-					 STR(clean_addr),
-					 IGNORE_EXTENSION)) != 0) {
+	if ((bcc = mail_addr_find(cleanup_rcpt_bcc_maps, STR(clean_addr),
+				  IGNORE_EXTENSION)) != 0) {
 	    cleanup_addr_bcc(state, bcc);
 	} else if (cleanup_rcpt_bcc_maps->error) {
 	    msg_warn("%s: %s map lookup problem -- "

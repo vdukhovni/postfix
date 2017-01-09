@@ -560,10 +560,10 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	     */
 	    else {
 		if (rp->snd_def_xp_info
-		    && (xport = mail_addr_find_noconv(rp->snd_def_xp_info,
+		    && (xport = mail_addr_find(rp->snd_def_xp_info,
 					    sender_key = (*sender ? sender :
 					       var_null_def_xport_maps_key),
-						      (char **) 0)) != 0) {
+					       (char **) 0)) != 0) {
 		    if (*xport == 0) {
 			msg_warn("%s: ignoring null lookup result for %s",
 				 rp->snd_def_xp_maps_name, sender_key);
@@ -589,10 +589,10 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
 	     * override the recipient domain.
 	     */
 	    if (rp->snd_relay_info
-		&& (relay = mail_addr_find_noconv(rp->snd_relay_info,
-					    sender_key = (*sender ? sender :
+		&& (relay = mail_addr_find(rp->snd_relay_info,
+					   sender_key = (*sender ? sender :
 						   var_null_relay_maps_key),
-						  (char **) 0)) != 0) {
+					   (char **) 0)) != 0) {
 		if (*relay == 0) {
 		    msg_warn("%s: ignoring null lookup result for %s",
 			     rp->snd_relay_maps_name, sender_key);
@@ -716,8 +716,8 @@ static void resolve_addr(RES_CONTEXT *rp, char *sender, char *addr,
     if (relocated_maps != 0) {
 	const char *newloc;
 
-	if ((newloc = mail_addr_find_noconv(relocated_maps, STR(nextrcpt),
-					    IGNORE_ADDR_EXTENSION)) != 0) {
+	if ((newloc = mail_addr_find(relocated_maps, STR(nextrcpt),
+				     IGNORE_ADDR_EXTENSION)) != 0) {
 	    vstring_strcpy(channel, MAIL_SERVICE_ERROR);
 	    /* 5.1.6 is the closest match, but not perfect. */
 	    vstring_sprintf(nexthop, "5.1.6 User has moved to %s", newloc);

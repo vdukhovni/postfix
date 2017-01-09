@@ -17,6 +17,9 @@
 /*	The caller is expected to pass the copy to myfree().
 /*	The input and result are in internal form.
 /*
+/*	strip_addr() is a backwards-compatible form for legacy code.
+/*	It is an alias for strip_addr_internal().
+/*
 /*	Arguments:
 /* .IP address
 /*	Address localpart or user@domain form in internal form.
@@ -78,7 +81,7 @@ char   *strip_addr_internal(const char *full, char **extension,
 	stripped = mystrdup(full);
 	if ((ratsign = strrchr(stripped, '@')) != 0)
 	    *ratsign = 0;
-	if ((extent = split_addr_internal(stripped, delimiter_set)) != 0) {
+	if ((extent = split_addr(stripped, delimiter_set)) != 0) {
 	    extent -= 1;
 	    if (extension) {
 		*extent = full[strlen(stripped)];

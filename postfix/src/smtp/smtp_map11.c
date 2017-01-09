@@ -80,7 +80,7 @@ int     smtp_map11_external(VSTRING *addr, MAPS *maps, int propagate)
     ARGV   *new_addr;
     const char *result;
 
-    if ((new_addr = mail_addr_map(maps, STR(addr), propagate,
+    if ((new_addr = mail_addr_map_opt(maps, STR(addr), propagate,
 		  MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL)) != 0) {
 	if (new_addr->argc > 1)
 	    msg_warn("multi-valued %s result for %s", maps->title, STR(addr));

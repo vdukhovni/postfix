@@ -15,6 +15,9 @@
 /*	found, and returns a pointer to the remainder. The address
 /*	must be in internal (unquoted) form.
 /*
+/*	split_addr() is a backwards-compatible form for legacy code.
+/*	It is an alias for split_addr_internal().
+/*
 /*	Reserved addresses are not split: postmaster, mailer-daemon,
 /*	double-bounce. Addresses that begin with owner-, or addresses
 /*	that end in -request are not split when the owner_request_special

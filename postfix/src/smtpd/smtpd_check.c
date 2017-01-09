@@ -1155,8 +1155,7 @@ static const char *check_mail_addr_find(SMTPD_STATE *state,
 {
     const char *result;
 
-    if ((result = mail_addr_find_noconv(maps, key, ext)) != 0
-	|| maps->error == 0)
+    if ((result = mail_addr_find(maps, key, ext)) != 0 || maps->error == 0)
 	return (result);
     if (maps->error == DICT_ERR_RETRY)
 	/* Warning is already logged. */
@@ -3187,7 +3186,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     if (*var_rcpt_delim == 0) {
 	bare_addr = 0;
     } else {
-	bare_addr = strip_addr_internal(addr, (char **) 0, var_rcpt_delim);
+	bare_addr = strip_addr(addr, (char **) 0, var_rcpt_delim);
     }
 
 #define CHECK_MAIL_ACCESS_RETURN(x) \
@@ -5196,8 +5195,8 @@ static int check_rcpt_maps(SMTPD_STATE *state, const char *sender,
      * Search the recipient lookup tables of the respective address class.
      * 
      * XXX Use the less expensive maps_find() (built-in case folding) instead of
-     * the baroque mail_addr_find(). But then we have to strip the domain and
-     * deal with address extensions ourselves.
+     * the baroque mail_addr_find(). But then we have to strip the domain
+     * and deal with address extensions ourselves.
      * 
      * XXX But that would break sites that use the virtual delivery agent for
      * local delivery, because the virtual delivery agent requires

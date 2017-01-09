@@ -10,13 +10,13 @@
 /*	const char *string;
 /*	const char *extension;
 /*
-/*	ARGV	*mail_addr_crunch(string, extension, in_form, out_form)
+/*	ARGV	*mail_addr_crunch_opt(string, extension, in_form, out_form)
 /*	const char *string;
 /*	const char *extension;
 /*	int	in_form;
 /*	int	out_form;
 /* LEGACY SUPPORT
-/*	ARGV	*mail_addr_crunch_noconv(string, extension)
+/*	ARGV	*mail_addr_crunch(string, extension)
 /*	const char *string;
 /*	const char *extension;
 /* DESCRIPTION
@@ -28,10 +28,10 @@
 /*	between internal and external forms. The caller is expected
 /*	to pass the result to argv_free().
 /*
-/*	mail_addr_crunch() gives more control, at the cost of
+/*	mail_addr_crunch_opt() gives more control, at the cost of
 /*	additional conversions between internal and external forms.
 /*
-/*	mail_addr_crunch_noconv() is used by legacy code and performs
+/*	mail_addr_crunch() is used by legacy code and performs
 /*	no conversion between internal and external forms.
 /*
 /*	Arguments:
@@ -82,7 +82,7 @@
 
 /* mail_addr_crunch - break string into addresses, optionally add extension */
 
-ARGV   *mail_addr_crunch(const char *string, const char *extension,
+ARGV   *mail_addr_crunch_opt(const char *string, const char *extension,
 			         int in_form, int out_form)
 {
     VSTRING *intern_addr = vstring_alloc(100);
@@ -216,7 +216,7 @@ int     main(int unused_argc, char **unused_argv)
 	vstream_fflush(VSTREAM_OUT);
     }
     while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF) {
-	argv = mail_addr_crunch(STR(buf), (VSTRING_LEN(extension) ?
+	argv = mail_addr_crunch_opt(STR(buf), (VSTRING_LEN(extension) ?
 					   STR(extension) : 0),
 				in_form, out_form);
 	for (cpp = argv->argv; *cpp; cpp++)

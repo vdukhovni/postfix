@@ -6,7 +6,11 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Document RFC5321 localpart quoting in DATABASE_README.
+	Document RFC5322 localpart quoting in DATABASE_README.
+
+	Add quote_822_local() flag to indicate if an address
+	is complete or localpart only. This avoids incorrect
+	results when a localpart-only input contains '@'.
 
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
