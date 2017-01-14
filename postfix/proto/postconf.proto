@@ -16043,6 +16043,12 @@ text of successful or unsuccessful deliveries.  This does not allow
 the replacement of a successful status code (2.X.X) with an
 unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
 
+<p> Note: the (smtp|lmtp)_delivery_status_filter is applied only
+once per recipient: when delivery is successful, when delivery is
+rejected with 5XX, or when there are no more alternate MX or A
+destinations. Use smtp_reply_filter or lmtp_reply_filter to inspect
+responses for all delivery attempts. </p>
+
 <p> The following parameters can be used to implement a filter for
 specific delivery agents: lmtp_delivery_status_filter,
 local_delivery_status_filter, pipe_delivery_status_filter,

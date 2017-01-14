@@ -1,0 +1,19 @@
+==== no search string extension
+internal:plain1@1.example -> external:plain2@2.example (null extension)
+internal:aa bb@cc.example -> external:"dd ee"@dd.example (null extension)
+external:"aa bb"@cc.example -> external:"dd ee"@dd.example (null extension)
+external:"aa bb"@cc.example -> internal:dd ee@dd.example (null extension)
+noconv:plain1@1.example -> noconv:plain2@2.example (null extension)
+noconv:aa bb@cc.example -> noconv:(not found) (null extension)
+noconv:"aa bb"@cc.example -> noconv:"dd ee"@dd.example (null extension)
+==== with search string extension
+internal:plain1+ext@1.example -> external:plain2@2.example (+ext)
+internal:aa bb+ax bx@cc.example -> external:"dd ee"@dd.example (+ax bx)
+external:"aa bb+ax bx"@cc.example -> external:"dd ee"@dd.example (+ax bx)
+external:"aa bb+ax bx"@cc.example -> internal:dd ee@dd.example (+ax bx)
+noconv:plain1+ext@1.example -> noconv:plain2@2.example (+ext)
+noconv:"aa bb+ax bx"@cc.example -> noconv:(not found) (null extension)
+noconv:"aa bb"+ax bx@cc.example -> noconv:"dd ee"@dd.example (+ax bx)
+==== at in localpart
+external:"a@b"@localhost.localdomain -> external:foo@example (null extension)
+external:"a.b."@localhost.localdomain -> external:bar@example (null extension)

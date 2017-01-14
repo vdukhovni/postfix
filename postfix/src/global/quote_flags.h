@@ -9,11 +9,22 @@
 /* .nf
 
  /*
+  * Utility library.
+ */
+#include <vstring.h>
+
+ /*
   * External interface.
   */
 #define QUOTE_FLAG_8BITCLEAN	(1<<0)	/* be 8-bit clean */
 #define QUOTE_FLAG_EXPOSE_AT	(1<<1)	/* @ is ordinary text */
 #define QUOTE_FLAG_APPEND	(1<<2)	/* append, not overwrite */
+#define QUOTE_FLAG_BARE_LOCALPART (1<<3)/* all localpart, no @domain */
+
+#define QUOTE_FLAG_DEFAULT	QUOTE_FLAG_8BITCLEAN
+
+extern int quote_flags_from_string(const char *);
+extern const char *quote_flags_to_string(VSTRING *, int);
 
 /* LICENSE
 /* .ad

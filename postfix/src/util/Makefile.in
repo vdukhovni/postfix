@@ -39,7 +39,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	dict_sockmap.c line_number.c recv_pass_attr.c pass_accept.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
 	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
-	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c
+	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
+	split_qnameval.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -80,7 +81,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	dict_sockmap.o line_number.o recv_pass_attr.o pass_accept.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
 	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
-	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o
+	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
+	split_qnameval.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -129,7 +131,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
-	vbuf_print
+	vbuf_print split_qnameval
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -525,6 +527,11 @@ vbuf_print: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+split_qnameval: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	hex_quote_test ctable_test inet_addr_list_test base64_code_test \
 	attr_scan64_test attr_scan0_test dict_pcre_test host_port_test \
@@ -534,7 +541,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_static_test dict_inline_test midna_domain_test casefold_test \
 	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test \
 	dict_union_test dict_pipe_test miss_endif_cidr_test \
-	miss_endif_pcre_test miss_endif_regexp_test
+	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test
 
 root_tests:
 
@@ -630,6 +637,9 @@ miss_endif_regexp_test: dict_open miss_endif_re.map miss_endif_regexp.ref
 	echo get 1.2.3.5 | $(SHLIB_ENV) ./dict_open regexp:miss_endif_re.map read 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_regexp.tmp
 	diff miss_endif_regexp.ref dict_regexp.tmp
 	rm -f dict_regexp.tmp
+
+split_qnameval_test: split_qnameval update
+	$(SHLIB_ENV) ./split_qnameval
 
 dict_seq_test: dict_open testdb dict_seq.in dict_seq.ref
 	rm -f testdb.db testdb.dir testdb.pag
@@ -738,9 +748,11 @@ name_mask_test9: name_mask name_mask.in name_mask.ref9
 base32_code_test: base32_code
 	$(SHLIB_ENV) ./base32_code
 
-dict_thash_test: ../postmap/postmap dict_thash.map
-	$(SHLIB_ENV) ../postmap/postmap -s texthash:dict_thash.map | sort >dict_thash.tmp 2>&1
-	tr '[A-Z]' '[a-z]' <dict_thash.map | sort | diff -b dict_thash.tmp -
+dict_thash_test: ../postmap/postmap dict_thash.map dict_thash.in dict_thash.ref
+	$(SHLIB_ENV) ../postmap/postmap -fs texthash:dict_thash.map 2>&1 | \
+	    LANG=C sort | diff dict_thash.map -
+	$(SHLIB_ENV) ../postmap/postmap -fs texthash:dict_thash.in >dict_thash.tmp 2>&1
+	diff dict_thash.ref dict_thash.tmp
 	rm -f dict_thash.tmp
 
 surrogate_test: dict_open surrogate.ref
@@ -2167,6 +2179,13 @@ split_nameval.o: stringops.h
 split_nameval.o: sys_defs.h
 split_nameval.o: vbuf.h
 split_nameval.o: vstring.h
+split_qnameval.o: check_arg.h
+split_qnameval.o: msg.h
+split_qnameval.o: split_qnameval.c
+split_qnameval.o: stringops.h
+split_qnameval.o: sys_defs.h
+split_qnameval.o: vbuf.h
+split_qnameval.o: vstring.h
 stat_as.o: msg.h
 stat_as.o: set_eugid.h
 stat_as.o: stat_as.c
@@ -2219,6 +2238,7 @@ stream_trigger.o: mymalloc.h
 stream_trigger.o: stream_trigger.c
 stream_trigger.o: sys_defs.h
 stream_trigger.o: trigger.h
+sys_compat.o: iostuff.h
 sys_compat.o: sys_compat.c
 sys_compat.o: sys_defs.h
 timecmp.o: timecmp.c

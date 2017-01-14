@@ -6,6 +6,10 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Quoting: Document RFC5322 localpart quoting in DATABASE_README.
+
+	Quoting: in smtp_map11, don't convert to external.
+
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
 

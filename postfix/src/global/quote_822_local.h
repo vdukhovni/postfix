@@ -27,7 +27,7 @@
 extern VSTRING *quote_822_local_flags(VSTRING *, const char *, int);
 extern VSTRING *unquote_822_local(VSTRING *, const char *);
 #define quote_822_local(dst, src) \
-	quote_822_local_flags((dst), (src), QUOTE_FLAG_8BITCLEAN)
+	quote_822_local_flags((dst), (src), QUOTE_FLAG_DEFAULT)
 
 /* LICENSE
 /* .ad

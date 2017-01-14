@@ -6,15 +6,25 @@
 /* SYNOPSIS
 /*	#include <strip_addr.h>
 /*
+/*	char	*strip_addr_internal(address, extension, delimiter_set)
+/*	const char *address;
+/*	char	**extension;
+/*	const char *delimiter_set;
+/* LEGACY SUPPORT
 /*	char	*strip_addr(address, extension, delimiter_set)
 /*	const char *address;
 /*	char	**extension;
 /*	const char *delimiter_set;
 /* DESCRIPTION
-/*	strip_addr() takes an address and either returns a null
+/*	strip_addr*() takes an address and either returns a null
 /*	pointer when the address contains no address extension,
 /*	or returns a copy of the address without address extension.
 /*	The caller is expected to pass the copy to myfree().
+/*
+/*	With strip_addr_internal(), the input and result are in
+/*	internal form.
+/*
+/*	strip_addr() is a backwards-compatible form for legacy code.
 /*
 /*	Arguments:
 /* .IP address
@@ -56,7 +66,8 @@
 
 /* strip_addr - strip extension from address */
 
-char   *strip_addr(const char *full, char **extension, const char *delimiter_set)
+char   *strip_addr_internal(const char *full, char **extension,
+			            const char *delimiter_set)
 {
     char   *ratsign;
     char   *extent;
@@ -113,64 +124,64 @@ int     main(int unused_argc, char **unused_argv)
      * Incredible. This function takes only three arguments, and the tests
      * already take more lines of code than the code being tested.
      */
-    stripped = strip_addr("foo", (char **) 0, NO_DELIM);
+    stripped = strip_addr_internal("foo", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 1");
 
-    stripped = strip_addr("foo", &extension, NO_DELIM);
+    stripped = strip_addr_internal("foo", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 2");
     if (extension != 0)
 	msg_panic("strip_addr botch 3");
 
-    stripped = strip_addr("foo", (char **) 0, delim);
+    stripped = strip_addr_internal("foo", (char **) 0, delim);
     if (stripped != 0)
 	msg_panic("strip_addr botch 4");
 
-    stripped = strip_addr("foo", &extension, delim);
+    stripped = strip_addr_internal("foo", &extension, delim);
     if (stripped != 0)
 	msg_panic("strip_addr botch 5");
     if (extension != 0)
 	msg_panic("strip_addr botch 6");
 
-    stripped = strip_addr("foo@bar", (char **) 0, NO_DELIM);
+    stripped = strip_addr_internal("foo@bar", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 7");
 
-    stripped = strip_addr("foo@bar", &extension, NO_DELIM);
+    stripped = strip_addr_internal("foo@bar", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 8");
     if (extension != 0)
 	msg_panic("strip_addr botch 9");
 
-    stripped = strip_addr("foo@bar", (char **) 0, delim);
+    stripped = strip_addr_internal("foo@bar", (char **) 0, delim);
     if (stripped != 0)
 	msg_panic("strip_addr botch 10");
 
-    stripped = strip_addr("foo@bar", &extension, delim);
+    stripped = strip_addr_internal("foo@bar", &extension, delim);
     if (stripped != 0)
 	msg_panic("strip_addr botch 11");
     if (extension != 0)
 	msg_panic("strip_addr botch 12");
 
-    stripped = strip_addr("foo-ext", (char **) 0, NO_DELIM);
+    stripped = strip_addr_internal("foo-ext", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 13");
 
-    stripped = strip_addr("foo-ext", &extension, NO_DELIM);
+    stripped = strip_addr_internal("foo-ext", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 14");
     if (extension != 0)
 	msg_panic("strip_addr botch 15");
 
-    stripped = strip_addr("foo-ext", (char **) 0, delim);
+    stripped = strip_addr_internal("foo-ext", (char **) 0, delim);
     if (stripped == 0)
 	msg_panic("strip_addr botch 16");
     msg_info("wanted:    foo-ext -> %s", "foo");
     msg_info("strip_addr foo-ext -> %s", stripped);
     myfree(stripped);
 
-    stripped = strip_addr("foo-ext", &extension, delim);
+    stripped = strip_addr_internal("foo-ext", &extension, delim);
     if (stripped == 0)
 	msg_panic("strip_addr botch 17");
     if (extension == 0)
@@ -180,24 +191,24 @@ int     main(int unused_argc, char **unused_argv)
     myfree(stripped);
     myfree(extension);
 
-    stripped = strip_addr("foo-ext@bar", (char **) 0, NO_DELIM);
+    stripped = strip_addr_internal("foo-ext@bar", (char **) 0, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 19");
 
-    stripped = strip_addr("foo-ext@bar", &extension, NO_DELIM);
+    stripped = strip_addr_internal("foo-ext@bar", &extension, NO_DELIM);
     if (stripped != 0)
 	msg_panic("strip_addr botch 20");
     if (extension != 0)
 	msg_panic("strip_addr botch 21");
 
-    stripped = strip_addr("foo-ext@bar", (char **) 0, delim);
+    stripped = strip_addr_internal("foo-ext@bar", (char **) 0, delim);
     if (stripped == 0)
 	msg_panic("strip_addr botch 22");
     msg_info("wanted:    foo-ext@bar -> %s", "foo@bar");
     msg_info("strip_addr foo-ext@bar -> %s", stripped);
     myfree(stripped);
 
-    stripped = strip_addr("foo-ext@bar", &extension, delim);
+    stripped = strip_addr_internal("foo-ext@bar", &extension, delim);
     if (stripped == 0)
 	msg_panic("strip_addr botch 23");
     if (extension == 0)
@@ -207,13 +218,23 @@ int     main(int unused_argc, char **unused_argv)
     myfree(stripped);
     myfree(extension);
 
-    stripped = strip_addr("foo+ext@bar", &extension, delim);
+    stripped = strip_addr_internal("foo+ext@bar", &extension, delim);
     if (stripped == 0)
 	msg_panic("strip_addr botch 25");
     if (extension == 0)
 	msg_panic("strip_addr botch 26");
     msg_info("wanted:    foo+ext@bar -> %s %s", "foo@bar", "+ext");
     msg_info("strip_addr foo+ext@bar -> %s %s", stripped, extension);
+    myfree(stripped);
+    myfree(extension);
+
+    stripped = strip_addr_internal("foo bar+ext", &extension, delim);
+    if (stripped == 0)
+	msg_panic("strip_addr botch 27");
+    if (extension == 0)
+	msg_panic("strip_addr botch 28");
+    msg_info("wanted:    foo bar+ext -> %s %s", "foo bar", "+ext");
+    msg_info("strip_addr foo bar+ext -> %s %s", stripped, extension);
     myfree(stripped);
     myfree(extension);
 

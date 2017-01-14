@@ -13,7 +13,9 @@
 
  /* External interface. */
 
-extern char *strip_addr(const char *, char **, const char *);
+extern char *strip_addr_internal(const char *, char **, const char *);
+
+#define strip_addr	strip_addr_internal
 
 /* LICENSE
 /* .ad

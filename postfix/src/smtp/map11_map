@@ -1,3 +1,4 @@
 foo@example.com	bar@com.example
 bar@example.com	bar
 baz@example.com	@com.example
+splitme@example.com "split me"@com.example

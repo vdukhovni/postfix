@@ -642,6 +642,7 @@ cleanup_addr.o: ../../include/htable.h
 cleanup_addr.o: ../../include/iostuff.h
 cleanup_addr.o: ../../include/mail_addr.h
 cleanup_addr.o: ../../include/mail_addr_find.h
+cleanup_addr.o: ../../include/mail_addr_form.h
 cleanup_addr.o: ../../include/mail_conf.h
 cleanup_addr.o: ../../include/mail_params.h
 cleanup_addr.o: ../../include/mail_proto.h
@@ -941,6 +942,7 @@ cleanup_map11.o: ../../include/dsn_mask.h
 cleanup_map11.o: ../../include/header_body_checks.h
 cleanup_map11.o: ../../include/header_opts.h
 cleanup_map11.o: ../../include/htable.h
+cleanup_map11.o: ../../include/mail_addr_form.h
 cleanup_map11.o: ../../include/mail_addr_map.h
 cleanup_map11.o: ../../include/mail_conf.h
 cleanup_map11.o: ../../include/mail_stream.h
@@ -974,6 +976,7 @@ cleanup_map1n.o: ../../include/dsn_mask.h
 cleanup_map1n.o: ../../include/header_body_checks.h
 cleanup_map1n.o: ../../include/header_opts.h
 cleanup_map1n.o: ../../include/htable.h
+cleanup_map1n.o: ../../include/mail_addr_form.h
 cleanup_map1n.o: ../../include/mail_addr_map.h
 cleanup_map1n.o: ../../include/mail_conf.h
 cleanup_map1n.o: ../../include/mail_params.h
