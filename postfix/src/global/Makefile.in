@@ -673,12 +673,12 @@ off_cvt_test: off_cvt off_cvt.in off_cvt.ref
 	diff off_cvt.ref off_cvt.tmp
 	rm -f off_cvt.tmp
 
-mail_addr_crunch_test: mail_addr_crunch mail_addr_crunch.in mail_addr_crunch.ref
+mail_addr_crunch_test: update mail_addr_crunch mail_addr_crunch.in mail_addr_crunch.ref
 	-$(SHLIB_ENV) sh mail_addr_crunch.in >mail_addr_crunch.tmp 2>&1
 	diff mail_addr_crunch.ref mail_addr_crunch.tmp
 	rm -f mail_addr_crunch.tmp
 
-mail_addr_find_test: mail_addr_find mail_addr_find.in mail_addr_find.ref
+mail_addr_find_test: update mail_addr_find mail_addr_find.in mail_addr_find.ref
 	-$(SHLIB_ENV) sh mail_addr_find.in >mail_addr_find.tmp 2>&1
 	diff mail_addr_find.ref mail_addr_find.tmp
 	rm -f mail_addr_find.tmp

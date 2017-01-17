@@ -6,9 +6,17 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Quoting: Document RFC5322 localpart quoting in DATABASE_README.
+	Enable external-form lookups for smtpd access maps.
+
+	Enable caching in quote_822_local.
 
 	Quoting: in smtp_map11, don't convert to external.
+
+	Make the address substring generation ("strategy") suitable
+	for dict-based applications such as access(5) maps or local
+	aliases.  Either that, or do some serious surgery on the
+	dict-based mechanisms. For access(5) maps this requires a
+	localpart[+ext]@ query that comes after the domain queries.
 
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.

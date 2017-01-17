@@ -22814,3 +22814,34 @@ Apologies for any names omitted.
 
 	Cleanup: minimize the patch size of the quoting fixes, and
 	a preliminary back-port to Postfix 3.1.4.
+
+20170115
+
+	Cleanup: enable "externalized" address lookup by default,
+	with legacy-style "internalized" lookup for backwards
+	compatibility, for sender_bcc_maps, recipient_bcc_maps,
+	smtp_sasl_passwd_maps, smtpd_sender_login_maps, relocated_maps,
+	sender_dependent_mumble_maps, virtual_{mailbox,uid,gid}_maps.
+	File: global/mail_addr_find.c.
+
+	Cleanup: enable "externalized" address lookup by default,
+	with legacy-style "internalized" lookup for backwards
+	compatibility, for transport_maps. Files: global/mail_addr_find.*,
+	trivial-rewrite/transport.*.
+
+	Cleanup: mail_addr_find_() now has a configurable strategy
+	for full and partial address lookup, so that it may also
+	be used for localpart lookup in access maps.
+
+20170116:
+
+	Cleanup: parent domain matching is now implemented in the
+	mail_addr_find() engine. Simplified the transport_maps
+	lookup to just one mail_addr_find_() call. Files:
+	global/mail_addr_find.*, trivial-rewrite/transport.*.
+
+	Cleanup: enabled "externalized" address lookup by default,
+	with legacy-style "internalized" lookup for backwards
+	compatibility, for check_sender_access and check_recipient_access.
+	This now uses 'user@' lookup support in the mail_addr_find()
+	engine.  File: global/mail_addr_find.*, smtpd/smtpd_check.c.

@@ -138,7 +138,8 @@ ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
      * convert the lookup result.
      */
     if ((string = mail_addr_find_opt(path, int_addr, &extension,
-				     in_form, mid_form)) != 0) {
+				     in_form, mid_form,
+				     MAIL_ADDR_FIND_DEFAULT)) != 0) {
 
 	/*
 	 * Prepend the original user to @otherdomain, but do not propagate

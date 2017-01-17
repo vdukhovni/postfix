@@ -41,16 +41,12 @@ POSTMAP(1)                                                          POSTMAP(1)
               starts with whitespace continues a logical line.
 
        The <i>key</i> and <i>value</i> are processed as is, except  that  surrounding  white
-       space is stripped off. Unlike with Postfix alias databases, quotes can-
-       not be used to protect lookup keys that contain special characters such
-       as `#' or whitespace.
+       space  is  stripped  off.  Whitespace in lookup keys is supported as of
+       Postfix 3.2.
 
-       When  the  <i>key</i> specifies email address information, the localpart needs
-       to be enclosed with double quotes if required by <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>  and  if  the
-       <i>key</i>  is  used  in  <a href="postconf.5.html#virtual_alias_maps">virtual_alias_maps</a>, *<a href="postconf.5.html#canonical_maps">canonical_maps</a>, or smtp_generic
-       maps. For example, an address localpart  that  contains  space  or  ';'
-       characters  needs to be quoted.  The <a href="postmap.1.html"><b>postmap</b>(1)</a> command supports spaces
-       in the <i>key</i> as of Postfix version 3.2.
+       When the <i>key</i> specifies email address information, the localpart  should
+       be enclosed with double quotes if required by <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>. For example, an
+       address localpart that contains
 
        By default the lookup key is mapped to lowercase to  make  the  lookups
        case insensitive; as of Postfix 2.3 this case folding happens only with

@@ -42,17 +42,13 @@
 /*	starts with whitespace continues a logical line.
 /* .PP
 /*	The \fIkey\fR and \fIvalue\fR are processed as is, except that
-/*	surrounding white space is stripped off. Unlike with Postfix alias
-/*	databases, quotes cannot be used to protect lookup keys that contain
-/*	special characters such as `#' or whitespace.
+/*	surrounding white space is stripped off. Whitespace in lookup
+/*	keys is supported as of Postfix 3.2.
 /*
 /*	When the \fIkey\fR specifies email address information, the
-/*	localpart needs to be enclosed with double quotes if required
-/*	by RFC 5322 and if the \fIkey\fR is used in virtual_alias_maps,
-/*	*canonical_maps, or smtp_generic maps. For example, an
-/*	address localpart that contains space or ';' characters
-/*	needs to be quoted.  The \fBpostmap\fR(1) command supports
-/*	spaces in the \fIkey\fR as of Postfix version 3.2.
+/*	localpart should be enclosed with double quotes if required
+/*	by RFC 5322. For example, an address localpart that contains
+/*	';' or that ends on '.'.
 /*
 /*	By default the lookup key is mapped to lowercase to make
 /*	the lookups case insensitive; as of Postfix 2.3 this case

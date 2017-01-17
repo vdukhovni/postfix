@@ -5,28 +5,77 @@
 
 echo ==== no search string extension
 $VALGRIND ./mail_addr_find 'inline:{plain1@1.example=plain2@2.example,{"aa bb"@cc.example="dd ee"@dd.example}}' <<'EOF'
-internal:external:plain1@1.example:plain2@2.example
-internal:external:aa bb@cc.example:"dd ee"@dd.example
-external:external:"aa bb"@cc.example:"dd ee"@dd.example
-external:internal:"aa bb"@cc.example:dd ee@dd.example
-noconv:noconv:plain1@1.example:plain2@2.example
-noconv:noconv:aa bb@cc.example
-noconv:noconv:"aa bb"@cc.example:"dd ee"@dd.example
+internal:external:default:plain1@1.example:plain2@2.example
+internal:external:default:aa bb@cc.example:"dd ee"@dd.example
+external:external:default:"aa bb"@cc.example:"dd ee"@dd.example
+external:internal:default:"aa bb"@cc.example:dd ee@dd.example
+noconv:noconv:default:plain1@1.example:plain2@2.example
+noconv:noconv:default:aa bb@cc.example
+noconv:noconv:default:"aa bb"@cc.example:"dd ee"@dd.example
 EOF
 
 echo ==== with search string extension
 $VALGRIND ./mail_addr_find 'inline:{plain1@1.example=plain2@2.example,{"aa bb"@cc.example="dd ee"@dd.example}}' <<'EOF'
-internal:external:plain1+ext@1.example:plain2@2.example:+ext
-internal:external:aa bb+ax bx@cc.example:"dd ee"@dd.example:+ax bx
-external:external:"aa bb+ax bx"@cc.example:"dd ee"@dd.example:+ax bx
-external:internal:"aa bb+ax bx"@cc.example:dd ee@dd.example:+ax bx
-noconv:noconv:plain1+ext@1.example:plain2@2.example:+ext
-noconv:noconv:"aa bb+ax bx"@cc.example
-noconv:noconv:"aa bb"+ax bx@cc.example:"dd ee"@dd.example:+ax bx
+internal:external:default:plain1+ext@1.example:plain2@2.example:+ext
+internal:external:default:aa bb+ax bx@cc.example:"dd ee"@dd.example:+ax bx
+external:external:default:"aa bb+ax bx"@cc.example:"dd ee"@dd.example:+ax bx
+external:internal:default:"aa bb+ax bx"@cc.example:dd ee@dd.example:+ax bx
+noconv:noconv:default:plain1+ext@1.example:plain2@2.example:+ext
+noconv:noconv:default:"aa bb+ax bx"@cc.example
+noconv:noconv:default:"aa bb"+ax bx@cc.example:"dd ee"@dd.example:+ax bx
 EOF
 
-echo ==== 'at' in localpart
+echo ==== at in localpart
 $VALGRIND ./mail_addr_find 'inline:{"a@b"=foo@example,"a.b."=bar@example}'  <<'EOF'
-external:external:"a@b"@localhost.localdomain:foo@example
-external:external:"a.b."@localhost.localdomain:bar@example
+external:external:default:"a@b"@localhost.localdomain:foo@example
+external:external:default:"a@b+ext"@localhost.localdomain:foo@example:+ext
+external:external:default:"a.b."@localhost.localdomain:bar@example
+EOF
+
+echo ==== legacy support
+$VALGRIND ./mail_addr_find 'inline:{"a@b"=extern-1@example,a@b=intern-1@example,a.b.=intern-2@example}'  <<'EOF'
+compat:compat:default:a@b@localhost.localdomain:extern-1@example
+compat:compat:default:a.b.@localhost.localdomain:intern-2@example
+EOF
+
+echo ==== atdomain test
+$VALGRIND ./mail_addr_find 'inline:{plain1@1.example=plain2@2.example,@3.example=plain4@4.example,plain5@3.example=plain6@6.example}'  <<'EOF'
+external:external:default:plain1+ext@1.example:plain2@2.example:+ext
+external:external:default:plain2@2.example:
+external:external:default:plain3@3.example:plain4@4.example
+external:external:default:plain5@3.example:plain6@6.example
+EOF
+
+echo ==== domain test
+$VALGRIND ./mail_addr_find 'inline:{plain1@1.example=plain2@2.example,3.example=plain4@4.example,plain5@3.example=plain6@6.example}'  <<'EOF'
+external:external:full|noext|domain:plain1+ext@1.example:plain2@2.example:+ext
+external:external:full|noext|domain:plain2@2.example:
+external:external:full|noext|domain:plain3@3.example:plain4@4.example
+external:external:full|noext|domain:plain5@3.example:plain6@6.example
+EOF
+
+echo ==== atdomain for local domain
+$VALGRIND ./mail_addr_find 'inline:{ab=foo@example,@localhost.localdomain=@bar.example}' <<'EOF'
+external:external:default:ab@localhost.localdomain:foo@example:
+external:external:default:cd@localhost.localdomain:@bar.example
+EOF
+
+echo ==== localat and domain test
+$VALGRIND ./mail_addr_find 'inline:{ab@=foo@example,localhost.localdomain=@bar.example}' <<'EOF'
+internal:external:localpart_at_if_local|domain:ab@localhost.localdomain:foo@example:
+internal:external:localpart_at_if_local|noext|domain:ab+ext@localhost.localdomain:foo@example:+ext
+internal:external:localpart_at_if_local|domain:cd@localhost.localdomain:@bar.example
+EOF
+
+echo ==== domain and subdomain test
+$VALGRIND ./mail_addr_find 'inline:{example=example-result,.example=dot-example-result}'  <<'EOF'
+external:external:domain:plain1+ext@1.example
+external:external:domain:foo@sub.example
+external:external:domain:foo@example:example-result
+external:external:domain|pms:foo@example:example-result
+external:external:domain|pms:foo@sub.example:example-result
+external:external:domain|pms:foo@sub.sub.example:example-result
+external:external:domain|pmds:foo@example:example-result
+external:external:domain|pmds:foo@sub.example:dot-example-result
+external:external:domain|pmds:foo@sub.sub.example:dot-example-result
 EOF

@@ -342,6 +342,7 @@ static ARGV *eod_restrictions;
 
 static HTABLE *smtpd_rest_classes;
 static HTABLE *policy_clnt_table;
+static HTABLE *map_command_table;
 
 static ARGV *local_rewrite_clients;
 
@@ -597,6 +598,23 @@ static void policy_client_register(const char *name)
     }
 }
 
+/* command_map_register - register access table for maps lookup */
+
+static void command_map_register(const char *name)
+{
+    MAPS   *maps;
+
+    if (map_command_table == 0)
+	map_command_table = htable_create(1);
+
+    if (htable_find(map_command_table, name) == 0) {
+	maps = maps_create(name, name, DICT_FLAG_LOCK
+			   | DICT_FLAG_FOLD_FIX
+			   | DICT_FLAG_UTF8_REQUEST);
+	(void) htable_enter(map_command_table, name, (void *) maps);
+    }
+}
+
 /* smtpd_check_parse - pre-parse restrictions */
 
 static ARGV *smtpd_check_parse(int flags, const char *checks)
@@ -621,11 +639,8 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
 	if ((flags & SMTPD_CHECK_PARSE_POLICY)
 	    && last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
 	    policy_client_register(name);
-	else if ((flags & SMTPD_CHECK_PARSE_MAPS)
-		 && strchr(name, ':') && dict_handle(name) == 0) {
-	    dict_register(name, dict_open(name, O_RDONLY, DICT_FLAG_LOCK
-					  | DICT_FLAG_FOLD_FIX
-					  | DICT_FLAG_UTF8_REQUEST));
+	else if ((flags & SMTPD_CHECK_PARSE_MAPS) && strchr(name, ':') != 0) {
+	    command_map_register(name);
 	}
 	last = name;
     }
@@ -2525,7 +2540,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 			    reply_name, reply_class, cmd_text);
 	    log_whatsup(state, "bcc", STR(error_text));
 #ifndef TEST
-	    if (state->saved_bcc == 0) 
+	    if (state->saved_bcc == 0)
 		state->saved_bcc = argv_alloc(1);
 	    argv_add(state->saved_bcc, cmd_text, (char *) 0);
 #endif
@@ -2690,7 +2705,7 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
 {
     const char *myname = "check_access";
     const char *value;
-    DICT   *dict;
+    MAPS   *maps;
 
 #define CHK_ACCESS_RETURN(x,y) \
 	{ *found = y; return(x); }
@@ -2702,25 +2717,23 @@ static int check_access(SMTPD_STATE *state, const char *table, const char *name,
     if (msg_verbose)
 	msg_info("%s: %s", myname, name);
 
-    if ((dict = dict_handle(table)) == 0) {
+    if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
 	value = "451 4.3.5 Server configuration error";
 	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
 					     reply_name, reply_class,
 					     def_acl), FOUND);
     }
-    if (flags == 0 || (flags & dict->flags) != 0) {
-	if ((value = dict_get(dict, name)) != 0)
-	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
-						 reply_name, reply_class,
-						 def_acl), FOUND);
-	if (dict->error != 0) {
-	    msg_warn("%s: table lookup problem", table);
-	    value = "451 4.3.5 Server configuration error";
-	    CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
-						 reply_name, reply_class,
-						 def_acl), FOUND);
-	}
+    if ((value = maps_find(maps, name, flags)) != 0)
+	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
+					     reply_name, reply_class,
+					     def_acl), FOUND);
+    if (maps->error != 0) {
+	/* Warning is already logged. */
+	value = "451 4.3.5 Server configuration error";
+	CHK_ACCESS_RETURN(check_table_result(state, table, value, name,
+					     reply_name, reply_class,
+					     def_acl), FOUND);
     }
     CHK_ACCESS_RETURN(SMTPD_CHECK_DUNNO, MISSED);
 }
@@ -2737,7 +2750,7 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
     const char *name;
     const char *next;
     const char *value;
-    DICT   *dict;
+    MAPS   *maps;
     int     maybe_numerical = 1;
 
     if (msg_verbose)
@@ -2749,10 +2762,12 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
      * Helo names can end in ".". The test below avoids lookups of the empty
      * key, because Berkeley DB cannot deal with it. [Victor Duchovni, Morgan
      * Stanley].
+     * 
+     * TODO(wietse) move to mail_domain_find library module.
      */
 #define CHK_DOMAIN_RETURN(x,y) { *found = y; return(x); }
 
-    if ((dict = dict_handle(table)) == 0) {
+    if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
 	value = "451 4.3.5 Server configuration error";
 	CHK_DOMAIN_RETURN(check_table_result(state, table, value,
@@ -2760,18 +2775,16 @@ static int check_domain_access(SMTPD_STATE *state, const char *table,
 					     def_acl), FOUND);
     }
     for (name = domain; *name != 0; name = next) {
-	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = dict_get(dict, name)) != 0)
-		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
+	if ((value = maps_find(maps, name, flags)) != 0)
+	    CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
-						     def_acl), FOUND);
-	    if (dict->error != 0) {
-		msg_warn("%s: table lookup problem", table);
-		value = "451 4.3.5 Server configuration error";
-		CHK_DOMAIN_RETURN(check_table_result(state, table, value,
+						 def_acl), FOUND);
+	if (maps->error != 0) {
+	    /* Warning is already logged. */
+	    value = "451 4.3.5 Server configuration error";
+	    CHK_DOMAIN_RETURN(check_table_result(state, table, value,
 					    domain, reply_name, reply_class,
-						     def_acl), FOUND);
-	    }
+						 def_acl), FOUND);
 	}
 	/* Don't apply subdomain magic to numerical hostnames. */
 	if (maybe_numerical
@@ -2797,7 +2810,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
     const char *myname = "check_addr_access";
     char   *addr;
     const char *value;
-    DICT   *dict;
+    MAPS   *maps;
     int     delim;
 
     if (msg_verbose)
@@ -2805,6 +2818,8 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 
     /*
      * Try the address and its parent networks.
+     * 
+     * TODO(wietse) move to mail_ipaddr_find library module.
      */
 #define CHK_ADDR_RETURN(x,y) { *found = y; return(x); }
 
@@ -2816,7 +2831,7 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 #endif
 	delim = '.';
 
-    if ((dict = dict_handle(table)) == 0) {
+    if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
 	value = "451 4.3.5 Server configuration error";
 	CHK_ADDR_RETURN(check_table_result(state, table, value, address,
@@ -2824,18 +2839,16 @@ static int check_addr_access(SMTPD_STATE *state, const char *table,
 					   def_acl), FOUND);
     }
     do {
-	if (flags == 0 || (flags & dict->flags) != 0) {
-	    if ((value = dict_get(dict, addr)) != 0)
-		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
-						   reply_name, reply_class,
-						   def_acl), FOUND);
-	    if (dict->error != 0) {
-		msg_warn("%s: table lookup problem", table);
-		value = "451 4.3.5 Server configuration error";
-		CHK_ADDR_RETURN(check_table_result(state, table, value, address,
-						   reply_name, reply_class,
-						   def_acl), FOUND);
-	    }
+	if ((value = maps_find(maps, addr, flags)) != 0)
+	    CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+					       reply_name, reply_class,
+					       def_acl), FOUND);
+	if (maps->error != 0) {
+	    /* Warning is already logged. */
+	    value = "451 4.3.5 Server configuration error";
+	    CHK_ADDR_RETURN(check_table_result(state, table, value, address,
+					       reply_name, reply_class,
+					       def_acl), FOUND);
 	}
 	flags = PARTIAL;
     } while (split_at_right(addr, delim));
@@ -3001,7 +3014,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 		    domain += 1;
 		    dns_status = dns_lookup(domain, type, 0, &server_list,
 					    (VSTRING *) 0, (VSTRING *) 0);
-		    if (dns_status != DNS_NOTFOUND /* || h_errno != NO_DATA */)
+		    if (dns_status != DNS_NOTFOUND /* || h_errno != NO_DATA */ )
 			break;
 		}
 	    }
@@ -3152,11 +3165,9 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 {
     const char *myname = "check_mail_access";
     const RESOLVE_REPLY *reply;
-    const char *domain;
+    const char *value;
     int     status;
-    char   *local_at;
-    char   *bare_addr;
-    char   *bare_at;
+    MAPS   *maps;
 
     if (msg_verbose)
 	msg_info("%s: %s", myname, addr);
@@ -3173,24 +3184,11 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Garbage in, garbage out. Every address from rewrite_clnt_internal()
      * and from resolve_clnt_query() must be fully qualified.
      */
-    if ((domain = strrchr(CONST_STR(reply->recipient), '@')) == 0) {
+    if (strrchr(CONST_STR(reply->recipient), '@') == 0) {
 	msg_warn("%s: no @domain in address: %s", myname,
 		 CONST_STR(reply->recipient));
 	return (0);
     }
-    domain += 1;
-
-    /*
-     * In case of address extensions.
-     */
-    if (*var_rcpt_delim == 0) {
-	bare_addr = 0;
-    } else {
-	bare_addr = strip_addr(addr, (char **) 0, var_rcpt_delim);
-    }
-
-#define CHECK_MAIL_ACCESS_RETURN(x) \
-	{ if (bare_addr) myfree(bare_addr); return(x); }
 
     /*
      * Source-routed (non-local or virtual) recipient addresses are too
@@ -3207,68 +3205,39 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Look up user+foo@domain if the address has an extension, user@domain
      * otherwise.
      */
-    if ((status = check_access(state, table, CONST_STR(reply->recipient), FULL,
-			       found, reply_name, reply_class, def_acl)) != 0
-	|| *found)
-	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-				 && SUSPICIOUS(reply, reply_class) ?
-				 SMTPD_CHECK_DUNNO : status);
+#define LOOKUP_STRATEGY (MAIL_ADDR_FIND_FULL | MAIL_ADDR_FIND_NOEXT \
+			 | MAIL_ADDR_FIND_DOMAIN | MAIL_ADDR_FIND_PMS \
+			 | MAIL_ADDR_FIND_LOCALPART_AT)
 
-    /*
-     * Try user@domain if the address has an extension.
-     */
-    if (bare_addr)
-	if ((status = check_access(state, table, bare_addr, PARTIAL,
-			      found, reply_name, reply_class, def_acl)) != 0
-	    || *found)
-	    CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-				     && SUSPICIOUS(reply, reply_class) ?
-				     SMTPD_CHECK_DUNNO : status);
-
-    /*
-     * Look up the domain name, or parent domains thereof.
-     */
-    if ((status = check_domain_access(state, table, domain, PARTIAL,
-			      found, reply_name, reply_class, def_acl)) != 0
-	|| *found)
-	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-				 && SUSPICIOUS(reply, reply_class) ?
-				 SMTPD_CHECK_DUNNO : status);
-
-    /*
-     * Look up user+foo@ if the address has an extension, user@ otherwise.
-     * XXX This leaks a little memory if map lookup is aborted.
-     */
-    local_at = mystrndup(CONST_STR(reply->recipient),
-			 domain - CONST_STR(reply->recipient));
-    status = check_access(state, table, local_at, PARTIAL, found,
-			  reply_name, reply_class, def_acl);
-    myfree(local_at);
-    if (status != 0 || *found)
-	CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-				 && SUSPICIOUS(reply, reply_class) ?
-				 SMTPD_CHECK_DUNNO : status);
-
-    /*
-     * Look up user@ if the address has an extension. XXX Same problem here.
-     */
-    if (bare_addr) {
-	bare_at = strrchr(bare_addr, '@');
-	local_at = (bare_at ? mystrndup(bare_addr, bare_at + 1 - bare_addr) :
-		    mystrdup(bare_addr));
-	status = check_access(state, table, local_at, PARTIAL, found,
-			      reply_name, reply_class, def_acl);
-	myfree(local_at);
-	if (status != 0 || *found)
-	    CHECK_MAIL_ACCESS_RETURN(status == SMTPD_CHECK_OK
-				     && SUSPICIOUS(reply, reply_class) ?
-				     SMTPD_CHECK_DUNNO : status);
+    if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
+	msg_warn("%s: unexpected dictionary: %s", myname, table);
+	value = "451 4.3.5 Server configuration error";
+	return (check_table_result(state, table, value,
+				   CONST_STR(reply->recipient),
+				   reply_name, reply_class,
+				   def_acl));
+    }
+    if ((value = mail_addr_find_strategy(maps, CONST_STR(reply->recipient),
+				      (char **) 0, LOOKUP_STRATEGY)) != 0) {
+	*found = 1;
+	status = check_table_result(state, table, value,
+				    CONST_STR(reply->recipient),
+				    reply_name, reply_class, def_acl);
+	return (status == SMTPD_CHECK_OK && SUSPICIOUS(reply, reply_class) ?
+		SMTPD_CHECK_DUNNO : status);
+    } else if (maps->error != 0) {
+	/* Warning is already logged. */
+	value = "451 4.3.5 Server configuration error";
+	return (check_table_result(state, table, value,
+				   CONST_STR(reply->recipient),
+				   reply_name, reply_class,
+				   def_acl));
     }
 
     /*
      * Undecided when no match found.
      */
-    CHECK_MAIL_ACCESS_RETURN(SMTPD_CHECK_DUNNO);
+    return (SMTPD_CHECK_DUNNO);
 }
 
 /* Support for different DNSXL lookup results. */
@@ -4709,7 +4678,7 @@ char   *smtpd_check_rewrite(SMTPD_STATE *state)
     const char *myname = "smtpd_check_rewrite";
     int     status;
     char  **cpp;
-    DICT   *dict;
+    MAPS   *maps;
     char   *name;
 
     /*
@@ -4729,13 +4698,13 @@ char   *smtpd_check_rewrite(SMTPD_STATE *state)
 	} else if (strcasecmp(name, PERMIT_MYNETWORKS) == 0) {
 	    status = permit_mynetworks(state);
 	} else if (is_map_command(state, name, CHECK_ADDR_MAP, &cpp)) {
-	    if ((dict = dict_handle(*cpp)) == 0)
+	    if ((maps = (MAPS *) htable_find(map_command_table, *cpp)) == 0)
 		msg_panic("%s: dictionary not found: %s", myname, *cpp);
-	    if (dict_get(dict, state->addr) != 0)
+	    if (maps_find(maps, state->addr, 0) != 0)
 		status = SMTPD_CHECK_OK;
-	    else if (dict->error != 0) {
-		msg_warn("%s: %s: lookup error", VAR_LOC_RWR_CLIENTS, *cpp);
-		status = dict->error;
+	    else if (maps->error != 0) {
+		/* Warning is already logged. */
+		status = maps->error;
 	    }
 	} else if (strcasecmp(name, PERMIT_SASL_AUTH) == 0) {
 #ifdef USE_SASL_AUTH
