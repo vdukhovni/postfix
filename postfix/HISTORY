@@ -22845,3 +22845,21 @@ Apologies for any names omitted.
 	compatibility, for check_sender_access and check_recipient_access.
 	This now uses 'user@' lookup support in the mail_addr_find()
 	engine.  File: global/mail_addr_find.*, smtpd/smtpd_check.c.
+
+20170122
+
+	Cleanup: separated the database query form from the address
+	form that is input to mail_addr_find_() or mail_addr_map*(),
+	in attempt to make code more obviously correct. Files:
+	global/mail_addr_find.c, global/mail_addr_map.c.
+
+	Abandoned an experiment that used internal-form queries for
+	all maps, because it would be very difficult to test. The
+	tests inputs would have to compensate for multiple levels
+	of unquoting by postmap, C compilers, or shell interpreters.
+
+	Cleanup: moved the backwards-compatibility lookup strategy
+	(try the external address form first, then the internal
+	address form if it is different) inside the loop that
+	iterates over full and partial address forms. File:
+	global/mail_addr_find.c.

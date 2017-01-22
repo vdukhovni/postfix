@@ -653,6 +653,8 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
     return (argv);
 }
 
+#ifndef TEST
+
 /* has_required - make sure required restriction is present */
 
 static int has_required(ARGV *restrictions, const char **required)
@@ -711,6 +713,8 @@ static void fail_required(const char *name, const char **required)
 	      name, STR(example));
 }
 
+#endif
+
 /* smtpd_check_init - initialize once during process lifetime */
 
 void    smtpd_check_init(void)
@@ -719,6 +723,7 @@ void    smtpd_check_init(void)
     const char *name;
     const char *value;
     char   *cp;
+#ifndef TEST
     static const char *rcpt_required[] = {
 	REJECT_UNAUTH_DEST,
 	DEFER_UNAUTH_DEST,
@@ -728,6 +733,7 @@ void    smtpd_check_init(void)
 	CHECK_RELAY_DOMAINS,
 	0,
     };
+#endif
     static NAME_CODE tempfail_actions[] = {
 	DEFER_ALL, DEFER_ALL_ACT,
 	DEFER_IF_PERMIT, DEFER_IF_PERMIT_ACT,
@@ -3205,9 +3211,9 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Look up user+foo@domain if the address has an extension, user@domain
      * otherwise.
      */
-#define LOOKUP_STRATEGY (MAIL_ADDR_FIND_FULL | MAIL_ADDR_FIND_NOEXT \
-			 | MAIL_ADDR_FIND_DOMAIN | MAIL_ADDR_FIND_PMS \
-			 | MAIL_ADDR_FIND_LOCALPART_AT)
+#define LOOKUP_STRATEGY (MAF_STRATEGY_FULL | MAF_STRATEGY_NOEXT \
+			 | MAF_STRATEGY_DOMAIN | MAF_STRATEGY_PMS \
+			 | MAF_STRATEGY_LOCALPART_AT)
 
     if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
@@ -5893,7 +5899,6 @@ int     main(int argc, char **argv)
     char   *bp;
     char   *resp;
     char   *addr;
-    INET_PROTO_INFO *proto_info;
 
     /*
      * Initialization. Use dummies for client information.
@@ -5905,7 +5910,7 @@ int     main(int argc, char **argv)
     int_init();
     smtpd_check_init();
     smtpd_expand_init();
-    proto_info = inet_proto_init(argv[0], INET_PROTO_NAME_IPV4);
+    (void) inet_proto_init(argv[0], INET_PROTO_NAME_IPV4);
     smtpd_state_init(&state, VSTREAM_IN, "smtpd");
     state.queue_id = "<queue id>";
 

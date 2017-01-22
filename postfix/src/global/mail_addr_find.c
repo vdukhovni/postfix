@@ -11,16 +11,22 @@
 /*	const char *address;
 /*	char	**extension;
 /*
-/*	const char *mail_addr_find_opt(maps, address, extension,
-/*					in_form, out_form, strategy)
+/*	const char *mail_addr_find_opt(maps, address, extension, in_form,
+/*					query_form, out_form, strategy)
 /*	MAPS	*maps;
 /*	const char *address;
 /*	char	**extension;
+/*	int	in_form;
 /*	int	in_form;
 /*	int	out_form;
 /*	int	strategy;
 /* LEGACY SUPPORT
 /*	const char *mail_addr_find(maps, address, extension)
+/*	MAPS	*maps;
+/*	const char *address;
+/*	char	**extension;
+/*
+/*	const char *mail_addr_find_to_internal(maps, address, extension)
 /*	MAPS	*maps;
 /*	const char *address;
 /*	char	**extension;
@@ -37,33 +43,37 @@
 /*	preferences when it opens the maps.
 /*	The result is overwritten upon each call.
 /*
-/*	The table key and value are expected to be in external
-/*	(quoted) form. Override these assumptions with the in_form
+/*	In the lookup table, the key is expected to be in external
+/*	form (as produced with the postmap command) and the value is
+/*	expected to be in external (quoted) form if it is an email
+/*	address. Override these assumptions with the query_form
 /*	and out_form arguments.
 /*
 /*	With mail_addr_find_int_to_ext(), the specified address is in
-/*	internal (unquoted) form.  The result is in the form found
-/*	in the table (it is not necessarily an email address). This
-/*	version minimizes internal/external (unquoted/quoted)
-/*	conversions of the query, extension, or result.
+/*	internal (unquoted) form, the query is made in external (quoted)
+/*	form, and the result is in the form found in the table (it is
+/*	not necessarily an email address). This version minimizes
+/*	internal/external (unquoted/quoted) conversions of the input,
+/*	query, extension, or result.
 /*
 /*	mail_addr_find_opt() gives more control, at the cost of
 /*	additional conversions between internal and external forms.
-/*	In particular, the output conversion to internal form assumes
+/*	In particular, output conversion to internal form assumes
 /*	that the lookup result is an email address.
 /*
-/*	mail_addr_find() is used by legacy code that historically
-/*	searched with internal-form keys.  The lookup strategy is
-/*	to first look up with (in_form, out_form) of (INTERNAL,
-/*	NOCONV), which converts the key to external form.  If no
-/*	result is found, and the internal and external key forms
-/*	differ, there is a backwards-compatibility lookup with
-/*	(in_form, out_form) of (NOCONV, NOCONV).
+/*	mail_addr_find() is used by legacy code that historically searched
+/*	with internal-form queries. The input is in internal form. It
+/*	searches with external-form queries first, and falls back to
+/*	internal-form queries if no result was found and the external
+/*	and internal forms differ. The result is external form (i.e. no
+/*	conversion).
 /*
-/*	mail_addr_find_strategy() overrides the default search
-/*	strategy for full and partial addresses.
+/*	mail_addr_find_to_internal() is like mail_addr_find() but assumes
+/*	that the lookup result is one external-form email address,
+/*	and converts it to internal form.
 /*
-/*	An address that is in the form \fIuser\fR matches itself.
+/*	mail_addr_find_strategy() is like mail_addr_find() but overrides
+/*	the default search strategy for full and partial addresses.
 /*
 /*	Arguments:
 /* .IP maps
@@ -77,48 +87,54 @@
 /*	The copy includes the recipient address delimiter.
 /*	The copy is in internal (unquoted) form.
 /*	The caller is expected to pass the copy to myfree().
+/* .IP query_form
+/*	The address form to use for database queries: one of
+/*	MAIL_ADDR_FORM_INTERNAL (unquoted form), MAIL_ADDR_FORM_EXTERNAL
+/*	(quoted form), or MAIL_ADDR_FORM_EXTERNAL_FIRST (external form,
+/*	then internal form if the external and internal forms differ).
 /* .IP in_form
 /* .IP out_form
-/*	Input and output address forms, either MAIL_ADDR_FORM_INTERNAL
-/*	(unquoted form), MAIL_ADDR_FORM_EXTERNAL (quoted form), or
-/*	MAIL_ADDR_FORM_NOCONV (don't convert between unquoted and
-/*	quoted form).
+/*	Input and output address forms, one of MAIL_ADDR_FORM_INTERNAL
+/*	(unquoted form), or MAIL_ADDR_FORM_EXTERNAL (quoted form).
 /* .IP strategy
 /*	The lookup strategy for full and partial addresses, specified
-/*	as the binary OR of one or more of the following. These
-/*	lookups are implemented in the order as listed below.
+/*	as the binary OR of one or more of the following. These lookups
+/*	are implemented in the order as listed below.
 /* .RS
-/* .IP MAIL_ADDR_FIND_FULL
+/* .IP MAF_STRATEGY_DEFAULT
+/*	A convenience alias for (MAF_STRATEGY_FULL | MAF_STRATEGY_NOEXT |
+/*	MAF_STRATEGY_LOCALPART_IF_LOCAL | MAF_STRATEGY_AT_DOMAIN).
+/* .IP MAF_STRATEGY_FULL
 /*	Look up the full email address.
-/* .IP MAIL_ADDR_FIND_NOEXT
-/*	If no match was found, and the address has an extension,
-/*	look up the address after removing the address extension.
-/* .IP MAIL_ADDR_FIND_LOCALPART_IF_LOCAL
+/* .IP MAF_STRATEGY_NOEXT
+/*	If no match was found, and the address has a localpart extension,
+/*	look up the address after removing the extension.
+/* .IP MAF_STRATEGY_LOCALPART_IF_LOCAL
 /*	If no match was found, and the domain matches myorigin,
-/*	mydestination, or any proxy_interfaces IP address, look up
-/*	the localpart.  If no match was found, and the address has
-/*	an extension, repeat the same query after removing the
-/*	address extension unless MAIL_ADDR_FIND_NOEXT is specified.
-/* .IP MAIL_ADDR_FIND_LOCALPART_AT_IF_LOCAL
+/*	mydestination, or any inet_interfaces or proxy_interfaces IP
+/*	address, look up the localpart.  If no match was found, and the
+/*	address has a localpart extension, repeat the same query after
+/*	removing the extension unless MAF_STRATEGY_NOEXT is specified.
+/* .IP MAF_STRATEGY_LOCALPART_AT_IF_LOCAL
 /*	As above, but using the localpart@ instead.
-/* .IP MAIL_ADDR_FIND_ATDOMAIN
+/* .IP MAF_STRATEGY_AT_DOMAIN
 /*	If no match was found, look up the @domain without localpart.
-/* .IP MAIL_ADDR_FIND_DOMAIN
+/* .IP MAF_STRATEGY_DOMAIN
 /*	If no match was found, look up the domain without localpart.
-/* .IP MAIL_ADDR_FIND_PMS
-/*	When used with MAIL_ADDR_FIND_DOMAIN, also matches subdomains.
-/* .IP MAIL_ADDR_FIND_PMDS
-/*	When used with MAIL_ADDR_FIND_DOMAIN, also matches dot-subdomains.
-/* .IP MAIL_ADDR_FIND_LOCALPART_AT
-/*	If no match was found, look up the localpart@, regardless
-/*	of the domain content.
+/* .IP MAF_STRATEGY_PMS
+/*	When used with MAF_STRATEGY_DOMAIN, also matches subdomains.
+/* .IP MAF_STRATEGY_PMDS
+/*	When used with MAF_STRATEGY_DOMAIN, also matches dot-subdomains.
+/* .IP MAF_STRATEGY_LOCALPART_AT
+/*	If no match was found, look up the localpart@, regardless of
+/*	the domain content.
 /* .RE
 /* DIAGNOSTICS
-/*	The maps->error value is non-zero when the lookup
-/*	should be tried again.
+/*	The maps->error value is non-zero when the lookup should be
+/*	tried again.
 /* SEE ALSO
-/*	maps(3), multi-dictionary search
-/*	resolve_local(3), recognize local system
+/*	maps(3), multi-dictionary search resolve_local(3), recognize
+/*	local system
 /* LICENSE
 /* .ad
 /* .fi
@@ -156,26 +172,21 @@
 
 #define STR	vstring_str
 
+#ifdef TEST
+
 static const NAME_MASK strategy_table[] = {
-    "full", MAIL_ADDR_FIND_FULL,
-    "noext", MAIL_ADDR_FIND_NOEXT,
-    "localpart_if_local", MAIL_ADDR_FIND_LOCALPART_IF_LOCAL,
-    "localpart_at_if_local", MAIL_ADDR_FIND_LOCALPART_AT_IF_LOCAL,
-    "atdomain", MAIL_ADDR_FIND_ATDOMAIN,
-    "domain", MAIL_ADDR_FIND_DOMAIN,
-    "pms", MAIL_ADDR_FIND_PMS,
-    "pmds", MAIL_ADDR_FIND_PMDS,
-    "localpartat", MAIL_ADDR_FIND_LOCALPART_AT,
-    "default", MAIL_ADDR_FIND_DEFAULT,
+    "full", MAF_STRATEGY_FULL,
+    "noext", MAF_STRATEGY_NOEXT,
+    "localpart_if_local", MAF_STRATEGY_LOCALPART_IF_LOCAL,
+    "localpart_at_if_local", MAF_STRATEGY_LOCALPART_AT_IF_LOCAL,
+    "atdomain", MAF_STRATEGY_AT_DOMAIN,
+    "domain", MAF_STRATEGY_DOMAIN,
+    "pms", MAF_STRATEGY_PMS,
+    "pmds", MAF_STRATEGY_PMDS,
+    "localpart_at", MAF_STRATEGY_LOCALPART_AT,
+    "default", MAF_STRATEGY_DEFAULT,
     0, -1,
 };
-
- /*
-  * Specify what keys are partial or full, to avoid matching partial
-  * addresses with regular expressions.
-  */
-#define FULL	0
-#define PARTIAL	DICT_FLAG_FIXED
 
 /* strategy_from_string - symbolic strategy flags to internal form */
 
@@ -199,29 +210,63 @@ static const char *strategy_to_string(VSTRING *res_buf, int strategy_mask)
 			      NAME_MASK_WARN | NAME_MASK_PIPE));
 }
 
-/* find_addr - helper to search map with external-form address */
+#endif
+
+ /*
+  * Specify what keys are partial or full, to avoid matching partial
+  * addresses with regular expressions.
+  */
+#define FULL	0
+#define PARTIAL	DICT_FLAG_FIXED
+
+/* find_addr - helper to search maps with the right query form */
 
 static const char *find_addr(MAPS *path, const char *address, int flags,
-	              int with_domain, int find_form, VSTRING *ext_addr_buf)
+	             int with_domain, int query_form, VSTRING *ext_addr_buf)
 {
+    const char *result;
 
 #define SANS_DOMAIN	0
 #define WITH_DOMAIN	1
 
-    if (find_form == MAIL_ADDR_FORM_INTERNAL) {
+    switch (query_form) {
+
+	/*
+	 * Query with external-form (quoted) address.
+	 */
+    case MAIL_ADDR_FORM_EXTERNAL:
+    case MAIL_ADDR_FORM_EXTERNAL_FIRST:
 	quote_822_local_flags(ext_addr_buf, address,
 			      with_domain ? QUOTE_FLAG_DEFAULT :
 			    QUOTE_FLAG_DEFAULT | QUOTE_FLAG_BARE_LOCALPART);
-	address = STR(ext_addr_buf);
+	result = maps_find(path, STR(ext_addr_buf), flags);
+	if (result != 0 || path->error != 0
+	    || query_form == MAIL_ADDR_FORM_EXTERNAL
+	    || strcmp(address, STR(ext_addr_buf)) == 0)
+	    break;
+	/* FALLTHROUGH */
+
+	/*
+	 * Query with internal-form (unquoted) address.
+	 */
+    case MAIL_ADDR_FORM_INTERNAL:
+	result = maps_find(path, address, flags);
+	break;
+
+	/*
+	 * Can't happen.
+	 */
+    default:
+	msg_panic("mail_addr_find: bad query_form: %d", query_form);
     }
-    return (maps_find(path, address, flags));
+    return (result);
 }
 
 /* find_local - search on localpart info */
 
 static const char *find_local(MAPS *path, char *ratsign, int rats_offs,
 			              char *int_full_key, char *int_bare_key,
-		               int find_form, char **extp, char **saved_ext,
+		              int query_form, char **extp, char **saved_ext,
 			              VSTRING *ext_addr_buf)
 {
     const char *myname = "mail_addr_find";
@@ -230,15 +275,15 @@ static const char *find_local(MAPS *path, char *ratsign, int rats_offs,
     int     saved_ch;
 
     /*
-     * This was ripped from the middle of a function so it can be reused,
-     * that's why the interface makes no sense.
+     * This code was ripped from the middle of a function so that it can be
+     * reused multiple times, that's why the interface makes little sense.
      */
     with_domain = rats_offs ? WITH_DOMAIN : SANS_DOMAIN;
 
     saved_ch = *(unsigned char *) (ratsign + rats_offs);
     *(ratsign + rats_offs) = 0;
     result = find_addr(path, int_full_key, PARTIAL, with_domain,
-		       find_form, ext_addr_buf);
+		       query_form, ext_addr_buf);
     *(ratsign + rats_offs) = saved_ch;
     if (result == 0 && path->error == 0 && int_bare_key != 0) {
 	if ((ratsign = strrchr(int_bare_key, '@')) == 0)
@@ -246,7 +291,7 @@ static const char *find_local(MAPS *path, char *ratsign, int rats_offs,
 	saved_ch = *(unsigned char *) (ratsign + rats_offs);
 	*(ratsign + rats_offs) = 0;
 	if ((result = find_addr(path, int_bare_key, PARTIAL, with_domain,
-				find_form, ext_addr_buf)) != 0
+				query_form, ext_addr_buf)) != 0
 	    && extp != 0) {
 	    *extp = *saved_ext;
 	    *saved_ext = 0;
@@ -259,11 +304,11 @@ static const char *find_local(MAPS *path, char *ratsign, int rats_offs,
 /* mail_addr_find_opt - map a canonical address */
 
 const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
-			            int in_form, int out_form, int strategy)
+			               int in_form, int query_form,
+			               int out_form, int strategy)
 {
     const char *myname = "mail_addr_find";
     VSTRING *ext_addr_buf = 0;
-    int     find_form;
     VSTRING *int_addr_buf = 0;
     const char *int_addr;
     static VSTRING *int_result = 0;
@@ -275,27 +320,27 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     int     rc = 0;
 
     /*
-     * Optionally convert input from external form.
+     * Optionally convert the address from external form.
      */
     if (in_form == MAIL_ADDR_FORM_EXTERNAL) {
 	int_addr_buf = vstring_alloc(100);
 	unquote_822_local(int_addr_buf, address);
 	int_addr = STR(int_addr_buf);
-	find_form = MAIL_ADDR_FORM_INTERNAL;
     } else {
 	int_addr = address;
-	find_form = in_form;
     }
-    if (find_form == MAIL_ADDR_FORM_INTERNAL)
+    if (query_form == MAIL_ADDR_FORM_EXTERNAL_FIRST
+	|| query_form == MAIL_ADDR_FORM_EXTERNAL)
 	ext_addr_buf = vstring_alloc(100);
 
     /*
      * Initialize.
      */
     int_full_key = mystrdup(int_addr);
-    if (*var_rcpt_delim == 0 || (strategy & MAIL_ADDR_FIND_NOEXT) == 0) {
+    if (*var_rcpt_delim == 0 || (strategy & MAF_STRATEGY_NOEXT) == 0) {
 	int_bare_key = saved_ext = 0;
     } else {
+	/* XXX This could be done after user+foo@domain fails. */
 	int_bare_key =
 	    strip_addr_internal(int_full_key, &saved_ext, var_rcpt_delim);
     }
@@ -303,9 +348,9 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     /*
      * Try user+foo@domain and user@domain.
      */
-    if ((strategy & MAIL_ADDR_FIND_FULL) != 0) {
+    if ((strategy & MAF_STRATEGY_FULL) != 0) {
 	result = find_addr(path, int_full_key, FULL, WITH_DOMAIN,
-			   find_form, ext_addr_buf);
+			   query_form, ext_addr_buf);
     } else {
 	result = 0;
 	path->error = 0;
@@ -313,31 +358,31 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
 
     if (result == 0 && path->error == 0 && int_bare_key != 0
 	&& (result = find_addr(path, int_bare_key, PARTIAL, WITH_DOMAIN,
-			       find_form, ext_addr_buf)) != 0
+			       query_form, ext_addr_buf)) != 0
 	&& extp != 0) {
 	*extp = saved_ext;
 	saved_ext = 0;
     }
 
     /*
-     * Try user+foo, if the domain matches user+foo@$myorigin,
+     * Try user+foo if the domain matches user+foo@$myorigin,
      * user+foo@$mydestination or user+foo@[${proxy,inet}_interfaces]. Then
      * try with +foo stripped off.
      */
     if (result == 0 && path->error == 0
 	&& (ratsign = strrchr(int_full_key, '@')) != 0
-	&& (strategy & (MAIL_ADDR_FIND_LOCALPART_IF_LOCAL
-			| MAIL_ADDR_FIND_LOCALPART_AT_IF_LOCAL)) != 0) {
+	&& (strategy & (MAF_STRATEGY_LOCALPART_IF_LOCAL
+			| MAF_STRATEGY_LOCALPART_AT_IF_LOCAL)) != 0) {
 	if (strcasecmp_utf8(ratsign + 1, var_myorigin) == 0
 	    || (rc = resolve_local(ratsign + 1)) > 0) {
-	    if ((strategy & MAIL_ADDR_FIND_LOCALPART_IF_LOCAL) != 0)
+	    if ((strategy & MAF_STRATEGY_LOCALPART_IF_LOCAL) != 0)
 		result = find_local(path, ratsign, 0, int_full_key,
-				  int_bare_key, find_form, extp, &saved_ext,
+				 int_bare_key, query_form, extp, &saved_ext,
 				    ext_addr_buf);
 	    if (result == 0 && path->error == 0
-		&& (strategy & MAIL_ADDR_FIND_LOCALPART_AT_IF_LOCAL) != 0)
+		&& (strategy & MAF_STRATEGY_LOCALPART_AT_IF_LOCAL) != 0)
 		result = find_local(path, ratsign, 1, int_full_key,
-				  int_bare_key, find_form, extp, &saved_ext,
+				 int_bare_key, query_form, extp, &saved_ext,
 				    ext_addr_buf);
 	} else if (rc < 0)
 	    path->error = rc;
@@ -347,40 +392,40 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
      * Try @domain.
      */
     if (result == 0 && path->error == 0 && ratsign != 0
-	&& (strategy & MAIL_ADDR_FIND_ATDOMAIN) != 0)
+	&& (strategy & MAF_STRATEGY_AT_DOMAIN) != 0)
 	result = maps_find(path, ratsign, PARTIAL);
 
     /*
      * Try domain (optionally, subdomains).
      */
     if (result == 0 && path->error == 0 && ratsign != 0
-	&& (strategy & MAIL_ADDR_FIND_DOMAIN) != 0) {
+	&& (strategy & MAF_STRATEGY_DOMAIN) != 0) {
 	const char *name;
 	const char *next;
 
 	for (name = ratsign + 1; *name != 0; name = next) {
 	    if ((result = maps_find(path, name, PARTIAL)) != 0
 		|| path->error != 0
-	     || (strategy & (MAIL_ADDR_FIND_PMS | MAIL_ADDR_FIND_PMDS)) == 0
+		|| (strategy & (MAF_STRATEGY_PMS | MAF_STRATEGY_PMDS)) == 0
 		|| (next = strchr(name + 1, '.')) == 0)
 		break;
-	    if ((strategy & MAIL_ADDR_FIND_PMDS) == 0)
+	    if ((strategy & MAF_STRATEGY_PMDS) == 0)
 		next++;
 	}
     }
 
     /*
-     * Try localpart@ even if not local.
+     * Try localpart@ even if the domain is not local.
      */
-    if ((strategy & MAIL_ADDR_FIND_LOCALPART_AT) != 0 \
+    if ((strategy & MAF_STRATEGY_LOCALPART_AT) != 0 \
 	&&result == 0 && path->error == 0)
 	result = find_local(path, ratsign, 1, int_full_key,
-			    int_bare_key, find_form, extp, &saved_ext,
+			    int_bare_key, query_form, extp, &saved_ext,
 			    ext_addr_buf);
 
     /*
      * Optionally convert the result to internal form. The lookup result is
-     * supposed to be in external form.
+     * supposed to be one external-form email address.
      */
     if (result != 0 && out_form == MAIL_ADDR_FORM_INTERNAL) {
 	if (int_result == 0)
@@ -409,40 +454,6 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     return (result);
 }
 
-/* mail_addr_find_strategy - map a canonical address */
-
-const char *mail_addr_find_strategy(MAPS *path, const char *address,
-				            char **extp, int strategy)
-{
-    static VSTRING *ext_addr_buf;
-    const char *result;
-
-    /*
-     * The future: look up with MAIL_ADDR_FORM_INTERNAL, which converts keys
-     * to external form.
-     */
-    if ((result = mail_addr_find_opt(path, address, extp,
-				     MAIL_ADDR_FORM_INTERNAL,
-				     MAIL_ADDR_FORM_NOCONV,
-				     strategy)) != 0
-	|| path->error != 0)
-	return (result);
-
-    /*
-     * The past: look up with MAIL_ADDR_FORM_NOCONV, which leaves keys in
-     * internal form.
-     */
-    if (ext_addr_buf == 0)
-	ext_addr_buf = vstring_alloc(100);
-    quote_822_local(ext_addr_buf, address);
-    if (strcmp(STR(ext_addr_buf), address) != 0)
-	result = mail_addr_find_opt(path, address, extp,
-				    MAIL_ADDR_FORM_NOCONV,
-				    MAIL_ADDR_FORM_NOCONV,
-				    strategy);
-    return (result);
-}
-
 #ifdef TEST
 
  /*
@@ -455,23 +466,25 @@ const char *mail_addr_find_strategy(MAPS *path, const char *address,
 
 static NORETURN usage(const char *progname)
 {
-    msg_fatal("usage: %s [-v] database", progname);
+    msg_fatal("usage: %s [-v]", progname);
 }
 
 int     main(int argc, char **argv)
 {
     VSTRING *buffer = vstring_alloc(100);
     char   *bp;
-    MAPS   *path;
+    MAPS   *path = 0;
     const char *result;
     char   *extent;
     char   *in_field;
+    char   *query_field;
     char   *out_field;
     char   *strategy_field;
     char   *key_field;
     char   *expect_res;
     char   *expect_ext;
     int     in_form;
+    int     query_form;
     int     out_form;
     int     strategy_flags;
     int     ch;
@@ -489,7 +502,7 @@ int     main(int argc, char **argv)
 	    usage(argv[0]);
 	}
     }
-    if (argc != optind + 1)
+    if (argc != optind)
 	usage(argv[0]);
 
     /*
@@ -502,26 +515,38 @@ int     main(int argc, char **argv)
     UPDATE(var_mydomain, "localdomain");
     UPDATE(var_myorigin, "localdomain");
     UPDATE(var_mydest, "localhost.localdomain");
-    path = maps_create(argv[0], argv[optind], DICT_FLAG_LOCK
-		       | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
     while (vstring_fgets_nonl(buffer, VSTREAM_IN)) {
 	bp = STR(buffer);
+	if (msg_verbose)
+	    msg_info("> %s", bp);
+
+	/*
+	 * Quick and dirty.
+	 */
+	if (path == 0) {
+	    path = maps_create(argv[0], bp, DICT_FLAG_LOCK
+			     | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
+	    vstream_printf("%s\n", bp);
+	    continue;
+	}
 
 	/*
 	 * Parse the input and expectations.
 	 */
-	/* internal, external, noconv, or compat. */
+	/* internal, external. */
 	if ((in_field = mystrtok(&bp, ":")) == 0)
 	    msg_fatal("no input form");
-	if ((in_form = mail_addr_form_from_string(in_field)) < 0
-	    && strcmp(in_field, "compat") != 0)
+	if ((in_form = mail_addr_form_from_string(in_field)) < 0)
 	    msg_fatal("bad input form: '%s'", in_field);
+	if ((query_field = mystrtok(&bp, ":")) == 0)
+	    msg_fatal("no query form");
+	/* internal, external, external-first. */
+	if ((query_form = mail_addr_form_from_string(query_field)) < 0)
+	    msg_fatal("bad query form: '%s'", query_field);
 	if ((out_field = mystrtok(&bp, ":")) == 0)
 	    msg_fatal("no output form");
-	/* internal, external, noconv, or compat, depending on in_form. */
-	if (((out_form = mail_addr_form_from_string(out_field)) < 0
-	     && strcmp(out_field, "compat") != 0)
-	    || ((in_form >= 0) != (out_form >= 0)))
+	/* internal, external. */
+	if ((out_form = mail_addr_form_from_string(out_field)) < 0)
 	    msg_fatal("bad output form: '%s'", out_field);
 	if ((strategy_field = mystrtok(&bp, ":")) == 0)
 	    msg_fatal("no strategy field");
@@ -538,18 +563,11 @@ int     main(int argc, char **argv)
 	 * Lookups.
 	 */
 	extent = 0;
-	if (in_form >= 0 && out_form >= 0) {
-	    /* It's the future. */
-	    result = mail_addr_find_opt(path, key_field, &extent,
-					in_form, out_form,
-					strategy_flags);
-	} else {
-	    /* Backwards compatibility. */
-	    result = mail_addr_find_strategy(path, key_field, &extent,
-					     strategy_flags);
-	}
-	vstream_printf("%s:%s -> %s:%s (%s)\n",
-		       in_field, key_field, out_field, result ? result :
+	result = mail_addr_find_opt(path, key_field, &extent,
+				    in_form, query_form, out_form,
+				    strategy_flags);
+	vstream_printf("%s:%s -%s-> %s:%s (%s)\n",
+	      in_field, key_field, query_field, out_field, result ? result :
 		       path->error ? "(try again)" :
 		       "(not found)", extent ? extent : "null extension");
 	vstream_fflush(VSTREAM_OUT);

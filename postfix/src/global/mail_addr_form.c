@@ -11,9 +11,9 @@
 /*	const char *mail_addr_form_to_string(int addr_form)
 /* DESCRIPTION
 /*	mail_addr_form_from_string() converts a symbolic mail address
-/*	form name ("internal", "external", "noconv") into the
-/*	corresponding internal code. The result is -1 if an
-/*	unrecognized name was specified.
+/*	form name ("internal", "external", "internal-first") into the
+/*	corresponding internal code. The result is -1 if an unrecognized
+/*	name was specified.
 /*
 /*	mail_addr_form_to_string() converts from internal code
 /*	to the corresponding symbolic name. The result is null if
@@ -47,7 +47,7 @@
 static const NAME_CODE addr_form_table[] = {
     "external", MAIL_ADDR_FORM_EXTERNAL,
     "internal", MAIL_ADDR_FORM_INTERNAL,
-    "noconv", MAIL_ADDR_FORM_NOCONV,
+    "external-first", MAIL_ADDR_FORM_EXTERNAL_FIRST,
     0, -1,
 };
 

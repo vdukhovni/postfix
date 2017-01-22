@@ -118,7 +118,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	valid_mailhost_addr own_inet_addr header_body_checks \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
-	fold_addr smtp_reply_footer mail_addr_map_tester
+	fold_addr smtp_reply_footer mail_addr_map
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -249,8 +249,10 @@ off_cvt: $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
 
-mail_addr_map_tester: mail_addr_map_tester.c $(LIB) $(LIBS)
+mail_addr_map: mail_addr_map.c $(LIB) $(LIBS)
+	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
 
 mail_addr_find: $(LIB) $(LIBS)
 	mv $@.o junk
@@ -683,9 +685,9 @@ mail_addr_find_test: update mail_addr_find mail_addr_find.in mail_addr_find.ref
 	diff mail_addr_find.ref mail_addr_find.tmp
 	rm -f mail_addr_find.tmp
 
-mail_addr_map_test: update mail_addr_map_tester mail_addr_map.ref
-	-$(SHLIB_ENV) $(VALGRIND) ./mail_addr_map_tester pass_tests
-	-$(SHLIB_ENV) $(VALGRIND) ./mail_addr_map_tester fail_tests >mail_addr_map.tmp 2>&1
+mail_addr_map_test: update mail_addr_map mail_addr_map.ref
+	-$(SHLIB_ENV) $(VALGRIND) ./mail_addr_map pass_tests
+	-$(SHLIB_ENV) $(VALGRIND) ./mail_addr_map fail_tests >mail_addr_map.tmp 2>&1
 	diff mail_addr_map.ref mail_addr_map.tmp
 	rm -f mail_addr_map.tmp
 
@@ -1490,6 +1492,7 @@ mail_addr_find.o: ../../include/dict.h
 mail_addr_find.o: ../../include/msg.h
 mail_addr_find.o: ../../include/myflock.h
 mail_addr_find.o: ../../include/mymalloc.h
+mail_addr_find.o: ../../include/name_mask.h
 mail_addr_find.o: ../../include/stringops.h
 mail_addr_find.o: ../../include/sys_defs.h
 mail_addr_find.o: ../../include/vbuf.h
@@ -1526,23 +1529,6 @@ mail_addr_map.o: mail_addr_map.h
 mail_addr_map.o: maps.h
 mail_addr_map.o: quote_822_local.h
 mail_addr_map.o: quote_flags.h
-mail_addr_map_tester.o: ../../include/argv.h
-mail_addr_map_tester.o: ../../include/check_arg.h
-mail_addr_map_tester.o: ../../include/dict.h
-mail_addr_map_tester.o: ../../include/msg.h
-mail_addr_map_tester.o: ../../include/myflock.h
-mail_addr_map_tester.o: ../../include/mymalloc.h
-mail_addr_map_tester.o: ../../include/sys_defs.h
-mail_addr_map_tester.o: ../../include/vbuf.h
-mail_addr_map_tester.o: ../../include/vstream.h
-mail_addr_map_tester.o: ../../include/vstring.h
-mail_addr_map_tester.o: canon_addr.h
-mail_addr_map_tester.o: mail_addr_form.h
-mail_addr_map_tester.o: mail_addr_map.h
-mail_addr_map_tester.o: mail_addr_map_tester.c
-mail_addr_map_tester.o: mail_conf.h
-mail_addr_map_tester.o: mail_params.h
-mail_addr_map_tester.o: maps.h
 mail_command_client.o: ../../include/attr.h
 mail_command_client.o: ../../include/check_arg.h
 mail_command_client.o: ../../include/htable.h

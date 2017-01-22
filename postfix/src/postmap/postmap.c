@@ -48,7 +48,7 @@
 /*	When the \fIkey\fR specifies email address information, the
 /*	localpart should be enclosed with double quotes if required
 /*	by RFC 5322. For example, an address localpart that contains
-/*	';' or that ends on '.'.
+/*	";", or a localpart that starts or ends with ".".
 /*
 /*	By default the lookup key is mapped to lowercase to make
 /*	the lookups case insensitive; as of Postfix 2.3 this case
@@ -64,7 +64,7 @@
 /* .IP \fB-b\fR
 /*	Enable message body query mode. When reading lookup keys
 /*	from standard input with "\fB-q -\fR", process the input
-/*	as if it is an email message in RFC 2822 format.  Each line
+/*	as if it is an email message in RFC 5322 format.  Each line
 /*	of body content becomes one lookup key.
 /* .sp
 /*	By default, the \fB-b\fR option starts generating lookup
@@ -101,7 +101,7 @@
 /* .IP \fB-h\fR
 /*	Enable message header query mode. When reading lookup keys
 /*	from standard input with "\fB-q -\fR", process the input
-/*	as if it is an email message in RFC 2822 format.  Each
+/*	as if it is an email message in RFC 5322 format.  Each
 /*	logical header line becomes one lookup key. A multi-line
 /*	header becomes one lookup key with one or more embedded
 /*	newline characters.

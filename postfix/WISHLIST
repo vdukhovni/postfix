@@ -8,15 +8,11 @@ Wish list:
 
 	Enable external-form lookups for smtpd access maps.
 
-	Enable caching in quote_822_local.
-
-	Quoting: in smtp_map11, don't convert to external.
-
-	Make the address substring generation ("strategy") suitable
-	for dict-based applications such as access(5) maps or local
-	aliases.  Either that, or do some serious surgery on the
-	dict-based mechanisms. For access(5) maps this requires a
-	localpart[+ext]@ query that comes after the domain queries.
+	Convert postalias(1) to store external-form keys, and convert
+	aliases(5) to perform external-first lookup with fallback to
+	internal form, to make it consistent with the rest of Postfix.
+	In several years we may remove the internal-form fallbacks
+	with a compatibility_level safety net.
 
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
@@ -36,18 +32,6 @@ Wish list:
 	#comment, and to give hints about how to handle an LHS or
 	RHS. This will not preserve trailing comments in lines that
 	are modified with "postconf -e" and the like.
-
-	The cleanup daemon searches canonical_maps and virtual_alias_maps
-	with quoted address forms. The address local part should
-	be in unquoted form before it is split into name and
-	extension. Note, however, that although quoting is done
-	over the entire localpart, unquoting is not simply a matter
-	of removing the outer quotes. The fix will require careful
-	consideration of the responsibilities of mail_addr_map(),
-	mail_addr_find(), and mail_addr_crunch(), and making sure
-	that the callers can handle quoted results. For example,
-	sender_bcc_maps and recipient_bcc_maps invoke mail_addr_find()
-	with unquoted forms and expects an unquoted result, and so on.
 
 	Maintainability: replace lengthy libmilter-API argument lists
 	with named parameters, as with the libtls API.

@@ -261,9 +261,9 @@ int     transport_lookup(TRANSPORT_INFO *tp, const char *addr,
      * internal form.
      */
 #define LOOKUP_STRATEGY \
-	(MAIL_ADDR_FIND_FULL | MAIL_ADDR_FIND_NOEXT | MAIL_ADDR_FIND_DOMAIN | \
+	(MAF_STRATEGY_FULL | MAF_STRATEGY_NOEXT | MAF_STRATEGY_DOMAIN | \
 	(transport_match_parent_style == MATCH_FLAG_PARENT ? \
-		MAIL_ADDR_FIND_PMS : MAIL_ADDR_FIND_PMDS))
+		MAF_STRATEGY_PMS : MAF_STRATEGY_PMDS))
 
     if ((ratsign = strrchr(addr, '@')) == 0 || ratsign[1] == 0)
 	msg_panic("transport_lookup: bad address: \"%s\"", addr);
@@ -427,7 +427,7 @@ int     main(int argc, char **argv)
     vstring_free(nexthop);
     vstring_free(channel);
     vstring_free(buffer);
-    exit(0);
+    exit(errs != 0);
 }
 
 #endif
