@@ -1100,6 +1100,7 @@ postconf_other.o: ../../include/dict.h
 postconf_other.o: ../../include/dns.h
 postconf_other.o: ../../include/htable.h
 postconf_other.o: ../../include/mbox_conf.h
+postconf_other.o: ../../include/msg.h
 postconf_other.o: ../../include/myaddrinfo.h
 postconf_other.o: ../../include/myflock.h
 postconf_other.o: ../../include/name_code.h

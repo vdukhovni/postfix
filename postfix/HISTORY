@@ -22863,3 +22863,22 @@ Apologies for any names omitted.
 	address form if it is different) inside the loop that
 	iterates over full and partial address forms. File:
 	global/mail_addr_find.c.
+
+20170125
+
+	Cleanup: mail_addr_find test scripting. Allow all tests to
+	run in one process, without main.cf dependencies.  Files:
+	global/mail_addr_find.*
+
+20170127
+
+	Cleanup: mail_addr_find and mail_addr_form named constants.
+	Files: global/mail_addr_form.h, mail_addr_find.h, and
+	dependents.
+
+20170128
+
+	Cleanup: smtp_generic_maps implementation. Reduced the
+	number of internal<->external form address conversions,
+	added more rigorous tests, and removed main.cf and
+	trivial-rewrite dependencies.  Files: smtp_map11.*.

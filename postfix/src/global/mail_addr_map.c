@@ -32,7 +32,7 @@
 /*	When the \fBpropagate\fR argument is non-zero,
 /*	address extensions that aren't explicitly matched in the lookup
 /*	table are propagated to the result addresses. The caller is
-/*	expected to pass the result to argv_free().
+/*	expected to pass the lookup result to argv_free().
 /*
 /*	Lookups are performed by mail_addr_find_*(). When the result has the
 /*	form \fI@otherdomain\fR, the result is the original user in
@@ -45,19 +45,20 @@
 /*	The address to be looked up in external (quoted) form, or
 /*	in the form specified with the in_form argument.
 /* .IP query_form
-/*	Database query address forms, either MAIL_ADDR_FORM_INTERNAL
-/*	(unquoted form), MAIL_ADDR_FORM_EXTERNAL_FIRST (external, then
-/*	internal if the forms differ) or MAIL_ADDR_FORM_EXTERNAL
-/*	(quoted form).
+/*	Database query address forms, either MA_FORM_INTERNAL (unquoted
+/*	form), MA_FORM_EXTERNAL (quoted form), MA_FORM_EXTERNAL_FIRST
+/*	(external, then internal if the forms differ), or
+/*	MA_FORM_INTERNAL_FIRST (internal, then external if the forms
+/*	differ).
 /* .IP in_form
 /* .IP out_form
-/*	Input and output address forms, either MAIL_ADDR_FORM_INTERNAL
-/*	(unquoted form) or MAIL_ADDR_FORM_EXTERNAL (quoted form).
+/*	Input and output address forms, either MA_FORM_INTERNAL (unquoted
+/*	form) or MA_FORM_EXTERNAL (quoted form).
 /* DIAGNOSTICS
 /*	Warnings: map lookup returns a non-address result.
 /*
 /*	The path->error value is non-zero when the lookup
-/*	should be tried again.
+/*	failed with a non-permanent error.
 /* SEE ALSO
 /*	mail_addr_find(3), mail address matching
 /*	mail_addr_crunch(3), mail address parsing and rewriting
@@ -117,11 +118,11 @@ ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
      * Optionally convert input from external form. We prefer internal-form
      * input to avoid unnecessary input conversion in mail_addr_find_opt().
      */
-    if (in_form == MAIL_ADDR_FORM_EXTERNAL) {
+    if (in_form == MA_FORM_EXTERNAL) {
 	int_address = vstring_alloc(100);
 	unquote_822_local(int_address, address);
 	int_addr = STR(int_address);
-	in_form = MAIL_ADDR_FORM_INTERNAL;
+	in_form = MA_FORM_INTERNAL;
     } else {
 	int_addr = address;
     }
@@ -132,8 +133,8 @@ ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
      */
     if ((string = mail_addr_find_opt(path, int_addr, &extension,
 				     in_form, query_form,
-				     MAIL_ADDR_FORM_EXTERNAL,
-				     MAF_STRATEGY_DEFAULT)) != 0) {
+				     MA_FORM_EXTERNAL,
+				     MA_FIND_DEFAULT)) != 0) {
 
 	/*
 	 * Prepend the original user to @otherdomain, but do not propagate
@@ -159,7 +160,7 @@ ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
 	 * each address found.
 	 */
 	argv = mail_addr_crunch_opt(string, propagate ? extension : 0,
-				    MAIL_ADDR_FORM_EXTERNAL, out_form);
+				    MA_FORM_EXTERNAL, out_form);
 	if (buffer)
 	    vstring_free(buffer);
 	if (ext_address)
@@ -232,7 +233,6 @@ ARGV   *mail_addr_map_opt(MAPS *path, const char *address, int propagate,
 
 #include <canon_addr.h>
 #include <mail_addr_map.h>
-#include <mail_conf.h>			/* XXX eliminate main.cf dependency */
 #include <mail_params.h>
 
 /* Application-specific. */
@@ -268,8 +268,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"1 external -external-> external, no extension",
 	"inline:{ aa@example.com=bb@example.com }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"aa@example.com",
 	{"bb@example.com"}, 1,
     },
@@ -277,8 +276,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"2 external -external-> external, extension, propagation",
 	"inline:{ aa@example.com=bb@example.com }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"aa+ext@example.com",
 	{"bb+ext@example.com"}, 1,
     },
@@ -286,8 +284,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"3 external -external-> external, extension, no propagation, no match",
 	"inline:{ aa@example.com=bb@example.com }",
 	DONT_PROPAGATE_UNMATCHED_EXTENSION, NO_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"aa+ext@example.com",
 	{0}, 0,
     },
@@ -295,8 +292,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"4 external -external-> external, extension, full match",
 	"inline:{{cc+ext@example.com=dd@example.com,ee@example.com}}",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"cc+ext@example.com",
 	{"dd@example.com", "ee@example.com"}, 2,
     },
@@ -304,8 +300,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"5 external -external-> external, no extension, quoted",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"\"a a\"@example.com",
 	{"\"b b\"@example.com"}, 1,
     },
@@ -313,8 +308,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"6 external -external-> external, extension, propagation, quoted",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"\"a a+ext\"@example.com",
 	{"\"b b+ext\"@example.com"}, 1,
     },
@@ -322,8 +316,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"7 internal -external-> internal, no extension, propagation, embedded space",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_INTERNAL,
+	MA_FORM_INTERNAL, MA_FORM_EXTERNAL, MA_FORM_INTERNAL,
 	"a a@example.com",
 	{"b b@example.com"}, 1,
     },
@@ -331,8 +324,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"8 internal -external-> internal, extension, propagation, embedded space",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_INTERNAL,
+	MA_FORM_INTERNAL, MA_FORM_EXTERNAL, MA_FORM_INTERNAL,
 	"a a+ext@example.com",
 	{"b b+ext@example.com"}, 1,
     },
@@ -340,8 +332,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"9 internal -external-> internal, no extension, propagation, embedded space",
 	"inline:{ {a_a@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_INTERNAL,
+	MA_FORM_INTERNAL, MA_FORM_EXTERNAL, MA_FORM_INTERNAL,
 	"a_a@example.com",
 	{"b b@example.com"}, 1,
     },
@@ -349,8 +340,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"10 internal -external-> internal, extension, propagation, embedded space",
 	"inline:{ {a_a@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_INTERNAL,
+	MA_FORM_INTERNAL, MA_FORM_EXTERNAL, MA_FORM_INTERNAL,
 	"a_a+ext@example.com",
 	{"b b+ext@example.com"}, 1,
     },
@@ -358,8 +348,7 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	"11 internal -external-> internal, no extension, @domain",
 	"inline:{ {@example.com=@example.net} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_INTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_INTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"a@a@example.com",
 	{"\"a@a\"@example.net"}, 1,
     },
@@ -374,8 +363,7 @@ static MAIL_ADDR_MAP_TEST fail_tests[] = {
 	"selftest 1 external -external-> external, no extension, quoted",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"\"a a\"@example.com",
 	{"\"bXb\"@example.com"}, 1,
     },
@@ -383,8 +371,7 @@ static MAIL_ADDR_MAP_TEST fail_tests[] = {
 	"selftest 2 external -external-> external, no extension, quoted",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"\"aXa\"@example.com",
 	{"\"b b\"@example.com"}, 1,
     },
@@ -392,8 +379,7 @@ static MAIL_ADDR_MAP_TEST fail_tests[] = {
 	"selftest 3 external -external-> external, no extension, quoted",
 	"inline:{ {\"a a\"@example.com=\"b b\"@example.com} }",
 	DO_PROPAGATE_UNMATCHED_EXTENSION, PLUS_RECIPIENT_DELIMITER,
-	MAIL_ADDR_FORM_EXTERNAL, MAIL_ADDR_FORM_EXTERNAL,
-	MAIL_ADDR_FORM_EXTERNAL,
+	MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"\"a a\"@example.com",
 	{0}, 0,
     },
@@ -467,7 +453,7 @@ int     main(int argc, char **argv)
     /*
      * Initialize.
      */
-    mail_conf_read();				/* XXX eliminate */
+    mail_params_init();
 
     /*
      * A read-eval-print loop, because specifying C strings with quotes and

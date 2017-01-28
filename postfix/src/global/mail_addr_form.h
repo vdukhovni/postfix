@@ -14,9 +14,10 @@
  /*
   * External interface.
   */
-#define MAIL_ADDR_FORM_INTERNAL	1	/* unquoted form */
-#define MAIL_ADDR_FORM_EXTERNAL	2	/* quoted form */
-#define MAIL_ADDR_FORM_EXTERNAL_FIRST 3	/* quoted form, then unquoted */
+#define MA_FORM_INTERNAL	1	/* unquoted form */
+#define MA_FORM_EXTERNAL	2	/* quoted form */
+#define MA_FORM_EXTERNAL_FIRST 3	/* quoted form, then unquoted */
+#define MA_FORM_INTERNAL_FIRST 4	/* unquoted form, then quoted */
 
 extern int mail_addr_form_from_string(const char *);
 extern const char *mail_addr_form_to_string(int);

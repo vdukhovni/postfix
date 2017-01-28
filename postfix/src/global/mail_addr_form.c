@@ -45,9 +45,10 @@
 #include <mail_addr_form.h>
 
 static const NAME_CODE addr_form_table[] = {
-    "external", MAIL_ADDR_FORM_EXTERNAL,
-    "internal", MAIL_ADDR_FORM_INTERNAL,
-    "external-first", MAIL_ADDR_FORM_EXTERNAL_FIRST,
+    "external", MA_FORM_EXTERNAL,
+    "internal", MA_FORM_INTERNAL,
+    "external-first", MA_FORM_EXTERNAL_FIRST,
+    "internal-first", MA_FORM_INTERNAL_FIRST,
     0, -1,
 };
 

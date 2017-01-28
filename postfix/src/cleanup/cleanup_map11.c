@@ -105,9 +105,8 @@ int     cleanup_map11_external(CLEANUP_STATE *state, VSTRING *addr,
      */
     for (count = 0; count < MAX_RECURSION; count++) {
 	if ((new_addr = mail_addr_map_opt(maps, STR(addr), propagate,
-					  MAIL_ADDR_FORM_EXTERNAL,
-					  MAIL_ADDR_FORM_EXTERNAL,
-					  MAIL_ADDR_FORM_EXTERNAL)) != 0) {
+					  MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
+					  MA_FORM_EXTERNAL)) != 0) {
 	    if (new_addr->argc > 1)
 		msg_warn("%s: multi-valued %s entry for %s",
 			 state->queue_id, maps->title, STR(addr));

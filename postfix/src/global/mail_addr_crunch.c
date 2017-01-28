@@ -38,8 +38,8 @@
 /*	This is in internal (unquoted) form.
 /* .IP in_form
 /* .IP out_form
-/*	Input and output address forms, either MAIL_ADDR_FORM_INTERNAL
-/*	(unquoted form) or MAIL_ADDR_FORM_EXTERNAL (quoted form).
+/*	Input and output address forms, either MA_FORM_INTERNAL
+/*	(unquoted form) or MA_FORM_EXTERNAL (quoted form).
 /* DIAGNOSTICS
 /*	Fatal error: out of memory.
 /* SEE ALSO
@@ -77,7 +77,7 @@
 /* mail_addr_crunch - break string into addresses, optionally add extension */
 
 ARGV   *mail_addr_crunch_opt(const char *string, const char *extension,
-			         int in_form, int out_form)
+			             int in_form, int out_form)
 {
     VSTRING *intern_addr = vstring_alloc(100);
     VSTRING *extern_addr = vstring_alloc(100);
@@ -97,7 +97,7 @@ ARGV   *mail_addr_crunch_opt(const char *string, const char *extension,
     /*
      * Optionally convert input from internal form.
      */
-    if (in_form == MAIL_ADDR_FORM_INTERNAL) {
+    if (in_form == MA_FORM_INTERNAL) {
 	quote_822_local(extern_addr, string);
 	string = STR(extern_addr);
     }
@@ -131,7 +131,7 @@ ARGV   *mail_addr_crunch_opt(const char *string, const char *extension,
 	    }
 	}
 	/* Optionally convert output to external form. */
-	if (out_form == MAIL_ADDR_FORM_EXTERNAL) {
+	if (out_form == MA_FORM_EXTERNAL) {
 	    quote_822_local(extern_addr, STR(intern_addr));
 	    argv_add(argv, STR(extern_addr), ARGV_END);
 	} else {
@@ -211,8 +211,8 @@ int     main(int unused_argc, char **unused_argv)
     }
     while (vstring_get_nonl(buf, VSTREAM_IN) != VSTREAM_EOF) {
 	argv = mail_addr_crunch_opt(STR(buf), (VSTRING_LEN(extension) ?
-					   STR(extension) : 0),
-				in_form, out_form);
+					       STR(extension) : 0),
+				    in_form, out_form);
 	for (cpp = argv->argv; *cpp; cpp++)
 	    vstream_printf("|%s|\n", *cpp);
 	vstream_fflush(VSTREAM_OUT);

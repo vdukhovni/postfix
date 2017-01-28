@@ -33,9 +33,9 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:
+tests: smtp_map11_test
 
-root_tests:	smtp_map11_test
+root_tests:
 
 update: ../../libexec/$(PROG)
 
@@ -71,15 +71,10 @@ smtp_unalias: smtp_unalias.c $(LIBS)
 smtp_map11: smtp_map11.c $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIBS) $(SYSLIBS)
 
-# This needs trivial-rewrite service and myorigin==mydomain
-smtp_map11_test: smtp_map11 map11_map smtp_map11.ref
-	$(SHLIB_ENV) ../postmap/postmap map11_map
-	$(SHLIB_ENV) ./smtp_map11 hash:map11_map foo@example.com bar@example.com \
-	    baz@example.com foo@example.net splitme@example.com splitme+ext@example.com >smtp_map11.tmp 2>&1
-	sed -e "s/MYDOMAIN/`postconf -h mydomain`/" \
-	    -e "s/MYHOSTNAME/`postconf -h myhostname`/" smtp_map11.ref | \
-	    diff - smtp_map11.tmp
-	rm -f smtp_map11.tmp map11_map.db
+smtp_map11_test: smtp_map11 smtp_map11.ref
+	$(SHLIB_ENV) $(VALGRIND) ./smtp_map11 <smtp_map11.in >smtp_map11.tmp 2>&1
+	diff smtp_map11.ref smtp_map11.tmp
+	rm -f smtp_map11.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \
@@ -374,6 +369,8 @@ smtp_proto.o: ../../include/header_opts.h
 smtp_proto.o: ../../include/htable.h
 smtp_proto.o: ../../include/iostuff.h
 smtp_proto.o: ../../include/lex_822.h
+smtp_proto.o: ../../include/mail_addr_form.h
+smtp_proto.o: ../../include/mail_addr_map.h
 smtp_proto.o: ../../include/mail_params.h
 smtp_proto.o: ../../include/mail_proto.h
 smtp_proto.o: ../../include/mail_queue.h

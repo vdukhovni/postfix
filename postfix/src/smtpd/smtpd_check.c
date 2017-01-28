@@ -723,6 +723,7 @@ void    smtpd_check_init(void)
     const char *name;
     const char *value;
     char   *cp;
+
 #ifndef TEST
     static const char *rcpt_required[] = {
 	REJECT_UNAUTH_DEST,
@@ -733,6 +734,7 @@ void    smtpd_check_init(void)
 	CHECK_RELAY_DOMAINS,
 	0,
     };
+
 #endif
     static NAME_CODE tempfail_actions[] = {
 	DEFER_ALL, DEFER_ALL_ACT,
@@ -3211,9 +3213,8 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Look up user+foo@domain if the address has an extension, user@domain
      * otherwise.
      */
-#define LOOKUP_STRATEGY (MAF_STRATEGY_FULL | MAF_STRATEGY_NOEXT \
-			 | MAF_STRATEGY_DOMAIN | MAF_STRATEGY_PMS \
-			 | MAF_STRATEGY_LOCALPART_AT)
+#define LOOKUP_STRATEGY (MA_FIND_FULL | MA_FIND_NOEXT | MA_FIND_DOMAIN \
+			 | MA_FIND_PDMS | MA_FIND_LOCALPART_AT)
 
     if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);

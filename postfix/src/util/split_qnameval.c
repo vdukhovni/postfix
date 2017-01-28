@@ -88,9 +88,9 @@ const char *split_qnameval(char *buf, char **pkey, char **pvalue)
     if (*value != '=')
 	return ("missing '=' after attribute name");
     *key_end = 0;
-    *value++ = 0;
-    while (ISSPACE(*value))
+    do {
 	value++;
+    } while (ISSPACE(*value));
     trimblanks(value, 0)[0] = 0;
     *pkey = key;
     *pvalue = value;

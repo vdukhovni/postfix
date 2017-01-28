@@ -89,49 +89,52 @@
 /*	The caller is expected to pass the copy to myfree().
 /* .IP query_form
 /*	The address form to use for database queries: one of
-/*	MAIL_ADDR_FORM_INTERNAL (unquoted form), MAIL_ADDR_FORM_EXTERNAL
-/*	(quoted form), or MAIL_ADDR_FORM_EXTERNAL_FIRST (external form,
-/*	then internal form if the external and internal forms differ).
-/* .IP in_form
-/* .IP out_form
-/*	Input and output address forms, one of MAIL_ADDR_FORM_INTERNAL
-/*	(unquoted form), or MAIL_ADDR_FORM_EXTERNAL (quoted form).
+/*	MA_FORM_INTERNAL (unquoted form), MA_FORM_EXTERNAL (quoted form),
+/*	MA_FORM_EXTERNAL_FIRST (external form, then internal form if the
+/*	external and internal forms differ), or MA_FORM_INTERNAL_FIRST
+/*	(internal form, then external form if the internal and external
+/*	forms differ).
+/* .IP in_form .IP out_form
+/*	Input and output address forms, one of MA_FORM_INTERNAL (unquoted
+/*	form), or MA_FORM_EXTERNAL (quoted form).
 /* .IP strategy
 /*	The lookup strategy for full and partial addresses, specified
 /*	as the binary OR of one or more of the following. These lookups
 /*	are implemented in the order as listed below.
 /* .RS
-/* .IP MAF_STRATEGY_DEFAULT
-/*	A convenience alias for (MAF_STRATEGY_FULL | MAF_STRATEGY_NOEXT |
-/*	MAF_STRATEGY_LOCALPART_IF_LOCAL | MAF_STRATEGY_AT_DOMAIN).
-/* .IP MAF_STRATEGY_FULL
+/* .IP MA_FIND_DEFAULT
+/*	A convenience alias for (MA_FIND_FULL |
+/*	MA_FIND_NOEXT | MA_FIND_LOCALPART_IF_LOCAL |
+/*	MA_FIND_AT_DOMAIN).
+/* .IP MA_FIND_FULL
 /*	Look up the full email address.
-/* .IP MAF_STRATEGY_NOEXT
+/* .IP MA_FIND_NOEXT
 /*	If no match was found, and the address has a localpart extension,
 /*	look up the address after removing the extension.
-/* .IP MAF_STRATEGY_LOCALPART_IF_LOCAL
+/* .IP MA_FIND_LOCALPART_IF_LOCAL
 /*	If no match was found, and the domain matches myorigin,
 /*	mydestination, or any inet_interfaces or proxy_interfaces IP
 /*	address, look up the localpart.  If no match was found, and the
 /*	address has a localpart extension, repeat the same query after
-/*	removing the extension unless MAF_STRATEGY_NOEXT is specified.
-/* .IP MAF_STRATEGY_LOCALPART_AT_IF_LOCAL
+/*	removing the extension unless MA_FIND_NOEXT is specified.
+/* .IP MA_FIND_LOCALPART_AT_IF_LOCAL
 /*	As above, but using the localpart@ instead.
-/* .IP MAF_STRATEGY_AT_DOMAIN
+/* .IP MA_FIND_AT_DOMAIN
 /*	If no match was found, look up the @domain without localpart.
-/* .IP MAF_STRATEGY_DOMAIN
+/* .IP MA_FIND_DOMAIN
 /*	If no match was found, look up the domain without localpart.
-/* .IP MAF_STRATEGY_PMS
-/*	When used with MAF_STRATEGY_DOMAIN, also matches subdomains.
-/* .IP MAF_STRATEGY_PMDS
-/*	When used with MAF_STRATEGY_DOMAIN, also matches dot-subdomains.
-/* .IP MAF_STRATEGY_LOCALPART_AT
+/* .IP MA_FIND_PDMS
+/*	When used with MA_FIND_DOMAIN, the domain also matches subdomains.
+/* .IP MA_FIND_PDDMDS
+/*	When used with MA_FIND_DOMAIN, dot-domain also matches
+/*	dot-subdomains.
+/* .IP MA_FIND_LOCALPART_AT
 /*	If no match was found, look up the localpart@, regardless of
 /*	the domain content.
 /* .RE
 /* DIAGNOSTICS
-/*	The maps->error value is non-zero when the lookup should be
-/*	tried again.
+/*	The maps->error value is non-zero when the lookup failed due to
+/*	a non-permanent error.
 /* SEE ALSO
 /*	maps(3), multi-dictionary search resolve_local(3), recognize
 /*	local system
@@ -175,16 +178,16 @@
 #ifdef TEST
 
 static const NAME_MASK strategy_table[] = {
-    "full", MAF_STRATEGY_FULL,
-    "noext", MAF_STRATEGY_NOEXT,
-    "localpart_if_local", MAF_STRATEGY_LOCALPART_IF_LOCAL,
-    "localpart_at_if_local", MAF_STRATEGY_LOCALPART_AT_IF_LOCAL,
-    "atdomain", MAF_STRATEGY_AT_DOMAIN,
-    "domain", MAF_STRATEGY_DOMAIN,
-    "pms", MAF_STRATEGY_PMS,
-    "pmds", MAF_STRATEGY_PMDS,
-    "localpart_at", MAF_STRATEGY_LOCALPART_AT,
-    "default", MAF_STRATEGY_DEFAULT,
+    "full", MA_FIND_FULL,
+    "noext", MA_FIND_NOEXT,
+    "localpart_if_local", MA_FIND_LOCALPART_IF_LOCAL,
+    "localpart_at_if_local", MA_FIND_LOCALPART_AT_IF_LOCAL,
+    "at_domain", MA_FIND_AT_DOMAIN,
+    "domain", MA_FIND_DOMAIN,
+    "pdms", MA_FIND_PDMS,
+    "pddms", MA_FIND_PDDMDS,
+    "localpart_at", MA_FIND_LOCALPART_AT,
+    "default", MA_FIND_DEFAULT,
     0, -1,
 };
 
@@ -232,25 +235,38 @@ static const char *find_addr(MAPS *path, const char *address, int flags,
     switch (query_form) {
 
 	/*
-	 * Query with external-form (quoted) address.
+	 * Query with external-form (quoted) address. The code looks a bit
+	 * unusual to emphasize the symmetry with the other cases.
 	 */
-    case MAIL_ADDR_FORM_EXTERNAL:
-    case MAIL_ADDR_FORM_EXTERNAL_FIRST:
+    case MA_FORM_EXTERNAL:
+    case MA_FORM_EXTERNAL_FIRST:
 	quote_822_local_flags(ext_addr_buf, address,
 			      with_domain ? QUOTE_FLAG_DEFAULT :
 			    QUOTE_FLAG_DEFAULT | QUOTE_FLAG_BARE_LOCALPART);
 	result = maps_find(path, STR(ext_addr_buf), flags);
 	if (result != 0 || path->error != 0
-	    || query_form == MAIL_ADDR_FORM_EXTERNAL
+	    || query_form != MA_FORM_EXTERNAL_FIRST
 	    || strcmp(address, STR(ext_addr_buf)) == 0)
 	    break;
-	/* FALLTHROUGH */
+	result = maps_find(path, address, flags);
+	break;
 
 	/*
-	 * Query with internal-form (unquoted) address.
+	 * Query with internal-form (unquoted) address. The code looks a bit
+	 * unusual to emphasize the symmetry with the other cases.
 	 */
-    case MAIL_ADDR_FORM_INTERNAL:
+    case MA_FORM_INTERNAL:
+    case MA_FORM_INTERNAL_FIRST:
 	result = maps_find(path, address, flags);
+	if (result != 0 || path->error != 0
+	    || query_form != MA_FORM_INTERNAL_FIRST)
+	    break;
+	quote_822_local_flags(ext_addr_buf, address,
+			      with_domain ? QUOTE_FLAG_DEFAULT :
+			    QUOTE_FLAG_DEFAULT | QUOTE_FLAG_BARE_LOCALPART);
+	if (strcmp(address, STR(ext_addr_buf)) == 0)
+	    break;
+	result = maps_find(path, STR(ext_addr_buf), flags);
 	break;
 
 	/*
@@ -322,22 +338,22 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     /*
      * Optionally convert the address from external form.
      */
-    if (in_form == MAIL_ADDR_FORM_EXTERNAL) {
+    if (in_form == MA_FORM_EXTERNAL) {
 	int_addr_buf = vstring_alloc(100);
 	unquote_822_local(int_addr_buf, address);
 	int_addr = STR(int_addr_buf);
     } else {
 	int_addr = address;
     }
-    if (query_form == MAIL_ADDR_FORM_EXTERNAL_FIRST
-	|| query_form == MAIL_ADDR_FORM_EXTERNAL)
+    if (query_form == MA_FORM_EXTERNAL_FIRST
+	|| query_form == MA_FORM_EXTERNAL)
 	ext_addr_buf = vstring_alloc(100);
 
     /*
      * Initialize.
      */
     int_full_key = mystrdup(int_addr);
-    if (*var_rcpt_delim == 0 || (strategy & MAF_STRATEGY_NOEXT) == 0) {
+    if (*var_rcpt_delim == 0 || (strategy & MA_FIND_NOEXT) == 0) {
 	int_bare_key = saved_ext = 0;
     } else {
 	/* XXX This could be done after user+foo@domain fails. */
@@ -348,7 +364,7 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     /*
      * Try user+foo@domain and user@domain.
      */
-    if ((strategy & MAF_STRATEGY_FULL) != 0) {
+    if ((strategy & MA_FIND_FULL) != 0) {
 	result = find_addr(path, int_full_key, FULL, WITH_DOMAIN,
 			   query_form, ext_addr_buf);
     } else {
@@ -371,16 +387,16 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
      */
     if (result == 0 && path->error == 0
 	&& (ratsign = strrchr(int_full_key, '@')) != 0
-	&& (strategy & (MAF_STRATEGY_LOCALPART_IF_LOCAL
-			| MAF_STRATEGY_LOCALPART_AT_IF_LOCAL)) != 0) {
+	&& (strategy & (MA_FIND_LOCALPART_IF_LOCAL
+			| MA_FIND_LOCALPART_AT_IF_LOCAL)) != 0) {
 	if (strcasecmp_utf8(ratsign + 1, var_myorigin) == 0
 	    || (rc = resolve_local(ratsign + 1)) > 0) {
-	    if ((strategy & MAF_STRATEGY_LOCALPART_IF_LOCAL) != 0)
+	    if ((strategy & MA_FIND_LOCALPART_IF_LOCAL) != 0)
 		result = find_local(path, ratsign, 0, int_full_key,
 				 int_bare_key, query_form, extp, &saved_ext,
 				    ext_addr_buf);
 	    if (result == 0 && path->error == 0
-		&& (strategy & MAF_STRATEGY_LOCALPART_AT_IF_LOCAL) != 0)
+		&& (strategy & MA_FIND_LOCALPART_AT_IF_LOCAL) != 0)
 		result = find_local(path, ratsign, 1, int_full_key,
 				 int_bare_key, query_form, extp, &saved_ext,
 				    ext_addr_buf);
@@ -392,24 +408,24 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
      * Try @domain.
      */
     if (result == 0 && path->error == 0 && ratsign != 0
-	&& (strategy & MAF_STRATEGY_AT_DOMAIN) != 0)
+	&& (strategy & MA_FIND_AT_DOMAIN) != 0)
 	result = maps_find(path, ratsign, PARTIAL);
 
     /*
      * Try domain (optionally, subdomains).
      */
     if (result == 0 && path->error == 0 && ratsign != 0
-	&& (strategy & MAF_STRATEGY_DOMAIN) != 0) {
+	&& (strategy & MA_FIND_DOMAIN) != 0) {
 	const char *name;
 	const char *next;
 
 	for (name = ratsign + 1; *name != 0; name = next) {
 	    if ((result = maps_find(path, name, PARTIAL)) != 0
 		|| path->error != 0
-		|| (strategy & (MAF_STRATEGY_PMS | MAF_STRATEGY_PMDS)) == 0
+		|| (strategy & (MA_FIND_PDMS | MA_FIND_PDDMDS)) == 0
 		|| (next = strchr(name + 1, '.')) == 0)
 		break;
-	    if ((strategy & MAF_STRATEGY_PMDS) == 0)
+	    if ((strategy & MA_FIND_PDDMDS) == 0)
 		next++;
 	}
     }
@@ -417,7 +433,7 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
     /*
      * Try localpart@ even if the domain is not local.
      */
-    if ((strategy & MAF_STRATEGY_LOCALPART_AT) != 0 \
+    if ((strategy & MA_FIND_LOCALPART_AT) != 0 \
 	&&result == 0 && path->error == 0)
 	result = find_local(path, ratsign, 1, int_full_key,
 			    int_bare_key, query_form, extp, &saved_ext,
@@ -427,7 +443,7 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
      * Optionally convert the result to internal form. The lookup result is
      * supposed to be one external-form email address.
      */
-    if (result != 0 && out_form == MAIL_ADDR_FORM_INTERNAL) {
+    if (result != 0 && out_form == MA_FORM_INTERNAL) {
 	if (int_result == 0)
 	    int_result = vstring_alloc(100);
 	unquote_822_local(int_result, result);
@@ -460,9 +476,12 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
   * Proof-of-concept test program. Read an address and expected results from
   * stdin, and warn about any discrepancies.
   */
+#include <ctype.h>
+#include <stdlib.h>
+
 #include <vstream.h>
 #include <vstring_vstream.h>
-#include <mail_conf.h>
+#include <mail_params.h>
 
 static NORETURN usage(const char *progname)
 {
@@ -476,6 +495,7 @@ int     main(int argc, char **argv)
     MAPS   *path = 0;
     const char *result;
     char   *extent;
+    char   *cmd;
     char   *in_field;
     char   *query_field;
     char   *out_field;
@@ -510,7 +530,11 @@ int     main(int argc, char **argv)
      */
 #define UPDATE(var, val) do { myfree(var); var = mystrdup(val); } while (0)
 
-    mail_conf_read();				/* XXX eliminate dependency. */
+    mail_params_init();
+
+    /*
+     * TODO: move these assignments into the read/eval loop.
+     */
     UPDATE(var_rcpt_delim, "+");
     UPDATE(var_mydomain, "localdomain");
     UPDATE(var_myorigin, "localdomain");
@@ -519,11 +543,24 @@ int     main(int argc, char **argv)
 	bp = STR(buffer);
 	if (msg_verbose)
 	    msg_info("> %s", bp);
+	if ((cmd = mystrtok(&bp, CHARS_SPACE)) == 0 || *cmd == '#')
+	    continue;
+	while (ISSPACE(*bp))
+	    bp++;
 
 	/*
-	 * Quick and dirty.
+	 * Visible comment.
 	 */
-	if (path == 0) {
+	if (strcmp(cmd, "echo") == 0) {
+	    vstream_printf("%s\n", bp);
+	}
+
+	/*
+	 * Open maps.
+	 */
+	else if (strcmp(cmd, "maps") == 0) {
+	    if (path)
+		maps_free(path);
 	    path = maps_create(argv[0], bp, DICT_FLAG_LOCK
 			     | DICT_FLAG_FOLD_FIX | DICT_FLAG_UTF8_REQUEST);
 	    vstream_printf("%s\n", bp);
@@ -531,77 +568,90 @@ int     main(int argc, char **argv)
 	}
 
 	/*
-	 * Parse the input and expectations.
+	 * Lookup and verify.
 	 */
-	/* internal, external. */
-	if ((in_field = mystrtok(&bp, ":")) == 0)
-	    msg_fatal("no input form");
-	if ((in_form = mail_addr_form_from_string(in_field)) < 0)
-	    msg_fatal("bad input form: '%s'", in_field);
-	if ((query_field = mystrtok(&bp, ":")) == 0)
-	    msg_fatal("no query form");
-	/* internal, external, external-first. */
-	if ((query_form = mail_addr_form_from_string(query_field)) < 0)
-	    msg_fatal("bad query form: '%s'", query_field);
-	if ((out_field = mystrtok(&bp, ":")) == 0)
-	    msg_fatal("no output form");
-	/* internal, external. */
-	if ((out_form = mail_addr_form_from_string(out_field)) < 0)
-	    msg_fatal("bad output form: '%s'", out_field);
-	if ((strategy_field = mystrtok(&bp, ":")) == 0)
-	    msg_fatal("no strategy field");
-	if ((strategy_flags = strategy_from_string(strategy_field)) < 0)
-	    msg_fatal("bad strategy field: '%s'", strategy_field);
-	if ((key_field = mystrtok(&bp, ":")) == 0)
-	    msg_fatal("no search key");
-	expect_res = mystrtok(&bp, ":");
-	expect_ext = mystrtok(&bp, ":");
-	if (mystrtok(&bp, ":") != 0)
-	    msg_fatal("garbage after extension field");
+	else if (path && strcmp(cmd, "test") == 0) {
 
-	/*
-	 * Lookups.
-	 */
-	extent = 0;
-	result = mail_addr_find_opt(path, key_field, &extent,
-				    in_form, query_form, out_form,
-				    strategy_flags);
-	vstream_printf("%s:%s -%s-> %s:%s (%s)\n",
+	    /*
+	     * Parse the input and expectations.
+	     */
+	    /* internal, external. */
+	    if ((in_field = mystrtok(&bp, ":")) == 0)
+		msg_fatal("no input form");
+	    if ((in_form = mail_addr_form_from_string(in_field)) < 0)
+		msg_fatal("bad input form: '%s'", in_field);
+	    if ((query_field = mystrtok(&bp, ":")) == 0)
+		msg_fatal("no query form");
+	    /* internal, external, external-first. */
+	    if ((query_form = mail_addr_form_from_string(query_field)) < 0)
+		msg_fatal("bad query form: '%s'", query_field);
+	    if ((out_field = mystrtok(&bp, ":")) == 0)
+		msg_fatal("no output form");
+	    /* internal, external. */
+	    if ((out_form = mail_addr_form_from_string(out_field)) < 0)
+		msg_fatal("bad output form: '%s'", out_field);
+	    if ((strategy_field = mystrtok(&bp, ":")) == 0)
+		msg_fatal("no strategy field");
+	    if ((strategy_flags = strategy_from_string(strategy_field)) < 0)
+		msg_fatal("bad strategy field: '%s'", strategy_field);
+	    if ((key_field = mystrtok(&bp, ":")) == 0)
+		msg_fatal("no search key");
+	    expect_res = mystrtok(&bp, ":");
+	    expect_ext = mystrtok(&bp, ":");
+	    if (mystrtok(&bp, ":") != 0)
+		msg_fatal("garbage after extension field");
+
+	    /*
+	     * Lookups.
+	     */
+	    extent = 0;
+	    result = mail_addr_find_opt(path, key_field, &extent,
+					in_form, query_form, out_form,
+					strategy_flags);
+	    vstream_printf("%s:%s -%s-> %s:%s (%s)\n",
 	      in_field, key_field, query_field, out_field, result ? result :
-		       path->error ? "(try again)" :
-		       "(not found)", extent ? extent : "null extension");
-	vstream_fflush(VSTREAM_OUT);
+			   path->error ? "(try again)" :
+			 "(not found)", extent ? extent : "null extension");
+	    vstream_fflush(VSTREAM_OUT);
+
+	    /*
+	     * Enforce expectations.
+	     */
+	    if (expect_res && result) {
+		if (strcmp(expect_res, result) != 0) {
+		    msg_warn("expect result '%s' but got '%s'", expect_res, result);
+		    errs = 1;
+		    if (expect_ext && extent) {
+			if (strcmp(expect_ext, extent) != 0)
+			    msg_warn("expect extension '%s' but got '%s'",
+				     expect_ext, extent);
+			errs = 1;
+		    } else if (expect_ext && !extent) {
+			msg_warn("expect extension '%s' but got none", expect_ext);
+			errs = 1;
+		    } else if (!expect_ext && extent) {
+			msg_warn("expect no extension but got '%s'", extent);
+			errs = 1;
+		    }
+		}
+	    } else if (expect_res && !result) {
+		msg_warn("expect result '%s' but got none", expect_res);
+		errs = 1;
+	    } else if (!expect_res && result) {
+		msg_warn("expected no result but got '%s'", result);
+		errs = 1;
+	    }
+	    vstream_fflush(VSTREAM_OUT);
+	    if (extent)
+		myfree(extent);
+	}
 
 	/*
-	 * Enforce expectations.
+	 * Unknown request.
 	 */
-	if (expect_res && result) {
-	    if (strcmp(expect_res, result) != 0) {
-		msg_warn("expect result '%s' but got '%s'", expect_res, result);
-		errs = 1;
-		if (expect_ext && extent) {
-		    if (strcmp(expect_ext, extent) != 0)
-			msg_warn("expect extension '%s' but got '%s'",
-				 expect_ext, extent);
-		    errs = 1;
-		} else if (expect_ext && !extent) {
-		    msg_warn("expect extension '%s' but got none", expect_ext);
-		    errs = 1;
-		} else if (!expect_ext && extent) {
-		    msg_warn("expect no extension but got '%s'", extent);
-		    errs = 1;
-		}
-	    }
-	} else if (expect_res && !result) {
-	    msg_warn("expect result '%s' but got none", expect_res);
-	    errs = 1;
-	} else if (!expect_res && result) {
-	    msg_warn("expected no result but got '%s'", result);
-	    errs = 1;
+	else {
+	    msg_warn("bad request: %s", cmd);
 	}
-	vstream_fflush(VSTREAM_OUT);
-	if (extent)
-	    myfree(extent);
     }
     vstring_free(buffer);
 

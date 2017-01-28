@@ -112,8 +112,6 @@ postmap.o: ../../include/msg_syslog.h
 postmap.o: ../../include/msg_vstream.h
 postmap.o: ../../include/myflock.h
 postmap.o: ../../include/mymalloc.h
-postmap.o: ../../include/quote_822_local.h
-postmap.o: ../../include/quote_flags.h
 postmap.o: ../../include/readlline.h
 postmap.o: ../../include/rec_type.h
 postmap.o: ../../include/set_eugid.h

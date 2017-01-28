@@ -30,8 +30,8 @@ extern ARGV *mail_addr_crunch_opt(const char *, const char *, int, int);
   * The least-overhead form.
   */
 #define mail_addr_crunch_ext_to_int(string, extension) \
-	mail_addr_crunch_opt((string), (extension), MAIL_ADDR_FORM_EXTERNAL, \
-			MAIL_ADDR_FORM_INTERNAL)
+	mail_addr_crunch_opt((string), (extension), MA_FORM_EXTERNAL, \
+			MA_FORM_INTERNAL)
 
 /* LICENSE
 /* .ad

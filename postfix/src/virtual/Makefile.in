@@ -94,6 +94,7 @@ mailbox.o: ../../include/dsn_buf.h
 mailbox.o: ../../include/dsn_util.h
 mailbox.o: ../../include/htable.h
 mailbox.o: ../../include/mail_addr_find.h
+mailbox.o: ../../include/mail_addr_form.h
 mailbox.o: ../../include/mail_copy.h
 mailbox.o: ../../include/mail_params.h
 mailbox.o: ../../include/maps.h
@@ -210,6 +211,7 @@ virtual.o: ../../include/flush_clnt.h
 virtual.o: ../../include/htable.h
 virtual.o: ../../include/iostuff.h
 virtual.o: ../../include/mail_addr_find.h
+virtual.o: ../../include/mail_addr_form.h
 virtual.o: ../../include/mail_conf.h
 virtual.o: ../../include/mail_params.h
 virtual.o: ../../include/mail_queue.h
