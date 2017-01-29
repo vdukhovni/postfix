@@ -146,8 +146,11 @@ int     smtp_map11_external(VSTRING *addr, MAPS *maps, int propagate)
 
 VSTRING *canon_addr_external(VSTRING *result, const char *addr)
 {
+    char   *at;
+
     vstring_strcpy(result, addr);
-    if (strchr(addr, '@') == 0)
+    if ((at = strrchr(addr, '@')) == 0
+	|| (at + 1)[strcspn(at + 1, "\"\\")] != 0)
 	vstring_sprintf_append(result, "@%s", var_myorigin);
     return (result);
 }
@@ -249,6 +252,9 @@ int     main(int argc, char **argv)
 	    if (mystrtok(&bp, ":") != 0)
 		msg_fatal("garbage after result field");
 
+	    /*
+	     * Perform the mapping.
+	     */
 	    if (strcmp(cmd, "external") == 0) {
 		vstring_strcpy(addr_buf, addr_field);
 		have_result = smtp_map11_external(addr_buf, maps, 1);
@@ -260,9 +266,6 @@ int     main(int argc, char **argv)
 		TOK822 **addr_list;
 		TOK822 **tpp;
 
-		/*
-		 * Parse the input and expectations.
-		 */
 		tree = tok822_parse(addr_field);
 		addr_list = tok822_grep(tree, TOK822_ADDR);
 		for (tpp = addr_list; *tpp; tpp++)

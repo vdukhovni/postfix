@@ -168,13 +168,18 @@ static void msg_syslog_print(int level, const char *text)
 void    msg_syslog_init(const char *name, int logopt, int facility)
 {
     static int first_call = 1;
+    extern char **environ;
 
     /*
      * XXX If this program is set-gid, then TZ must not be trusted. This
      * scrubbing code is in the wrong place.
      */
     if (unsafe())
-	putenv("TZ=UTC");
+	while (getenv("TZ"))			/* There may be multiple. */
+	    if (unsetenv("TZ") < 0) {		/* Desperate measures. */
+		environ[0] = 0;
+		msg_fatal("unsetenv: %m");
+	    }
     tzset();
     openlog(name, LOG_NDELAY | logopt, facility);
     if (first_call) {

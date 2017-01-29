@@ -162,8 +162,9 @@
 /*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
-/*	be specified with "-c config_directory" on the command line, or
-/*	via the MAIL_CONFIG environment parameter.
+/*	be specified with "-c config_directory" on the command line (in the
+/*	case of \fBsendmail\fR(1), with "-C config_directory"), or via the MAIL_CONFIG
+/*	environment parameter.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
@@ -642,16 +643,13 @@ int     main(int argc, char **argv)
 
     /*
      * This program is designed to be set-gid, which makes it a potential
-     * target for attack. If not running as root, strip the environment so we
-     * don't have to trust the C library. If running as root, don't strip the
-     * environment so that showq can receive non-default configuration
-     * directory info when the mail system is down.
+     * target for attack. Strip and optionally override the process
+     * environment so that we don't have to trust the C library.
      */
-    if (geteuid() != 0) {
-	import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
-	clean_env(import_env->argv);
-	argv_free(import_env);
-    }
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    clean_env(import_env->argv);
+    argv_free(import_env);
+
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
 

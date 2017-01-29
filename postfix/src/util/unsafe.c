@@ -16,12 +16,22 @@
 /*	On UNIX systems, the result is true when any of the following
 /*	conditions is true:
 /* .IP \(bu
+/*	The real UID is non-zero.
+/* .IP \(bu
+/*	The effective UID is non-zero.
+/* .PP
+/*	Additionally, any of the following conditions must be true:
+/* .IP \(bu
 /*	The issetuid kernel flag is non-zero (on systems that support
 /*	this concept).
 /* .IP \(bu
 /*	The real and effective user id differ.
 /* .IP \(bu
 /*	The real and effective group id differ.
+/* .PP
+/*	Thus, when a process runs as the super-user, it is excluded
+/*	from privilege-escalation concerns, but only if both real
+/*	UID and effective UID are zero.
 /* LICENSE
 /* .ad
 /* .fi
@@ -46,9 +56,10 @@
 
 int     unsafe(void)
 {
-    return (geteuid() != getuid()
+    return ((getuid() || geteuid())
+	    && (geteuid() != getuid()
 #ifdef HAS_ISSETUGID
-	    || issetugid()
+		|| issetugid()
 #endif
-	    || getgid() != getegid());
+		|| getgid() != getegid()));
 }

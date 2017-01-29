@@ -6,8 +6,6 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Enable external-form lookups for smtpd access maps.
-
 	Convert postalias(1) to store external-form keys, and convert
 	aliases(5) to perform external-first lookup with fallback to
 	internal form, to make it consistent with the rest of Postfix.
@@ -16,9 +14,6 @@ Wish list:
 
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
-
-	Why does postqueue show UTC time, even if TZ is set in
-	the import_environment setting? Because postqueue is set-gid?
 
 	Add a header_body_checks extension callback in smtp_proto.c
 	that implements the PASS action.
