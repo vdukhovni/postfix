@@ -1872,17 +1872,18 @@ mis-delivery of mail.
 
 %PARAM import_environment see "postconf -d" output
 
-<p>
-The list of environment parameters that a Postfix process will
-import from a non-Postfix parent process. Examples of relevant
-parameters:
-</p>
+<p> The list of environment parameters that a privileged Postfix
+process will import from a non-Postfix parent process, or name=value
+environment overrides.  Unprivileged utilities will enforce the
+name=value overrides, but otherwise will not change their process
+environment.  Examples of relevant parameters: </p>
 
 <dl>
 
 <dt><b>TZ</b></dt>
 
-<dd>Needed for sane time keeping on most System-V-ish systems. </dd>
+<dd>May be needed for sane time keeping on most System-V-ish systems.
+</dd>
 
 <dt><b>DISPLAY</b></dt>
 

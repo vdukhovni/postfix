@@ -383,7 +383,11 @@ case "$SYSTEM.$RELEASE" in
 		case $RELEASE in
 		    5.[0-8]|5.[0-8].*) CCARGS="$CCARGS -DNO_CLOSEFROM -DNO_DEV_URANDOM -DNO_FUTIMESAT -DSTREAM_CONNECTIONS";;
 		esac
-		# Somewhere NISPLUS went away.
+		# Solaris 10 added setenv(), unsetenv().
+		case $RELEASE in
+		    5.[0-9]|5.[0-9].*) CCARGS="$CCARGS -DMISSING_SETENV";;
+		esac
+		# NISPLUS was removed after Solaris 10.
 		case $RELEASE in
 		    5.[0-9][0-9]*) CCARGS="$CCARGS -DNO_NISPLUS";;
 		esac

@@ -65,6 +65,7 @@ depend: $(MAKES)
 posttls-finger.o: ../../include/argv.h
 posttls-finger.o: ../../include/check_arg.h
 posttls-finger.o: ../../include/chroot_uid.h
+posttls-finger.o: ../../include/clean_env.h
 posttls-finger.o: ../../include/dns.h
 posttls-finger.o: ../../include/dsn.h
 posttls-finger.o: ../../include/dsn_buf.h
@@ -73,6 +74,7 @@ posttls-finger.o: ../../include/inet_proto.h
 posttls-finger.o: ../../include/iostuff.h
 posttls-finger.o: ../../include/mail_conf.h
 posttls-finger.o: ../../include/mail_params.h
+posttls-finger.o: ../../include/mail_parm_split.h
 posttls-finger.o: ../../include/mail_server.h
 posttls-finger.o: ../../include/midna_domain.h
 posttls-finger.o: ../../include/msg.h

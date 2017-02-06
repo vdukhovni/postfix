@@ -174,6 +174,16 @@ void    mail_conf_suck(void)
     char   *path;
 
     /*
+     * The code below requires that all configuration directory override
+     * mechanisms set the CONF_ENV_PATH environment variable, even if the
+     * override was specified via the command line. This reduces the number
+     * of pathways that need to be checked for possible security attacks.
+     * 
+     * Note: this code necessarily runs before cleanenv() can enforce the
+     * import_environment scrubbing policy.
+     */
+
+    /*
      * Permit references to unknown configuration variable names. We rely on
      * a separate configuration checking tool to spot misspelled names and
      * other kinds of trouble. Enter the configuration directory into the
@@ -191,8 +201,7 @@ void    mail_conf_suck(void)
      * domain, require that it is listed in the default main.cf file.
      */
     if (strcmp(var_config_dir, DEF_CONFIG_DIR) != 0	/* non-default */
-	&& safe_getenv(CONF_ENV_PATH) == 0	/* non-default */
-	&& geteuid() != 0)			/* untrusted */
+	&& unsafe())				/* untrusted env and cli */
 	mail_conf_checkdir(var_config_dir);
     path = concatenate(var_config_dir, "/", "main.cf", (char *) 0);
     if (dict_load_file_xt(CONFIG_DICT, path) == 0)

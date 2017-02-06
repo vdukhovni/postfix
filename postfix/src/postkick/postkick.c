@@ -53,6 +53,10 @@
 /* .IP "\fBapplication_event_drain_time (100s)\fR"
 /*	How long the \fBpostkick\fR(1) command waits for a request to enter the
 /*	Postfix daemon process input buffer before giving up.
+/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* FILES
@@ -97,6 +101,7 @@
 #include <safe.h>
 #include <events.h>
 #include <warn_stat.h>
+#include <clean_env.h>
 
 /* Global library. */
 
@@ -104,6 +109,7 @@
 #include <mail_params.h>
 #include <mail_version.h>
 #include <mail_conf.h>
+#include <mail_parm_split.h>
 
 static NORETURN usage(char *myname)
 {
@@ -121,6 +127,7 @@ int     main(int argc, char **argv)
     struct stat st;
     char   *slash;
     int     c;
+    ARGV   *import_env;
 
     /*
      * Fingerprint executables and core dumps.
@@ -178,6 +185,10 @@ int     main(int argc, char **argv)
      * Finish initializations.
      */
     mail_conf_read();
+    /* Enforce consistent operation of different Postfix parts. */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    update_env(import_env->argv);
+    argv_free(import_env);
     if (chdir(var_queue_dir))
 	msg_fatal("chdir %s: %m", var_queue_dir);
 

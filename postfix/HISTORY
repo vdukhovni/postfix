@@ -22885,9 +22885,44 @@ Apologies for any names omitted.
 
 20170129
 
-	Cleanup: environment settings for root and non-root users
-	in set-gid programs. File: postqueue/postqueue.c (enforce
-	import_environment name=value overrides for root users),
-	util/msg_syslog_init.c (don't override non-existent TZ
-	settings), util/unsafe.c (exclude root from privilege
-	escalation concerns).
+	Cleanup: bogus UTC timezone setting for postqueue/mailq
+	command output, and other environment settings for root and
+	non-root users in set-gid programs. File: postqueue/postqueue.c
+	(enforce import_environment name=value overrides for root
+	users), util/msg_syslog_init.c (don't override non-existent
+	TZ settings with UTC), util/unsafe.c (exclude uid==0, euid==0
+	super-user from privilege escalation concerns).
+
+20170131
+
+	Cleanup: more complete VALGRIND coverage for test build targets
+	and scripts. Files: postalias/fail_test.in, postmap/fail_test.in,
+	postmap/quote_test.in, util/dict_pipe_test.in,
+	util/dict_union_test.in, util/dict_utf8_test.in.
+
+
+20170201
+
+	Portability: unsetenv() for ancient platforms. File:
+	makedefs, util/sys_compat.c.
+
+20170205
+
+	Cleanup: security checks for config_directory overrides.
+	File: global/mail_conf.c.
+
+	Cleanup: enforce import_environment name=value settings in
+	command-line utilities, for consistency with Postfix daemons (but
+	without removing environment variables).  This is not enforced
+	in the postconf command which must be able to process main.cf
+	files with incomplete settings. Files: postalias/postalias.c,
+	postcat/postcat.c, postkick/postkick.c, postlock/postlock.c,
+	postlog/postlog.c, postmap/postmap.c, postsuper/postsuper.c,
+	posttls-finger/posttls-finger.c, sendmail/sendmail.c,
+	util/clean_env.[hc].
+
+20170206
+
+	Bugfix (introduced: Postfix 2.2): check_mumble_a_access
+	did not handle [ipaddress], unlike check_mumble_mx_access. 
+	Reported by James (postfix_tracker). File: smtpd/smtpd_check.c.

@@ -192,6 +192,10 @@ hash or btree tables.
 .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
 The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 and \fBpostmap\fR(1) commands.
+.IP "\fBimport_environment (see 'postconf -d' output)\fR"
+The list of environment parameters that a privileged Postfix
+process will import from a non\-Postfix parent process, or name=value
+environment overrides.
 .IP "\fBsmtputf8_enable (yes)\fR"
 Enable preliminary SMTPUTF8 support for the protocols described
 in RFC 6531..6533.

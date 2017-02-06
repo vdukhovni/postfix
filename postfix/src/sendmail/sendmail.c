@@ -365,6 +365,10 @@
 /* .IP "\fBdelay_warning_time (0h)\fR"
 /*	The time after which the sender receives a copy of the message
 /*	headers of mail that is still queued.
+/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBmail_owner (postfix)\fR"
 /*	The UNIX system account that owns the Postfix queue and most Postfix
 /*	daemon processes.
@@ -384,7 +388,7 @@
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
 /*	be specified with "-c config_directory" on the command line (in the
-/*	case of \fBsendmail\fR(1), with -C config_directory"), or via the MAIL_CONFIG
+/*	case of \fBsendmail\fR(1), with "-C config_directory"), or via the MAIL_CONFIG
 /*	environment parameter.
 /* .IP "\fBmulti_instance_directories (empty)\fR"
 /*	An optional list of non-default Postfix configuration directories;
@@ -468,6 +472,7 @@
 #include <split_at.h>
 #include <name_code.h>
 #include <warn_stat.h>
+#include <clean_env.h>
 
 /* Global library. */
 
@@ -492,6 +497,7 @@
 #include <header_opts.h>
 #include <user_acl.h>
 #include <dsn_mask.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -1001,6 +1007,7 @@ int     main(int argc, char **argv)
     int     dsn_ret = 0;
     const char *dsn_envid = 0;
     int     saved_optind;
+    ARGV   *import_env;
 
     /*
      * Fingerprint executables and core dumps.
@@ -1099,6 +1106,10 @@ int     main(int argc, char **argv)
     }
     optind = saved_optind;
     mail_conf_read();
+    /* Enforce consistent operation of different Postfix parts.	 */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    update_env(import_env->argv);
+    argv_free(import_env);
     /* Re-evaluate mail_task() after reading main.cf. */
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     get_mail_conf_str_table(str_table);

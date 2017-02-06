@@ -253,8 +253,8 @@
 /*	with support for DBM databases.
 /* .IP \fBenviron\fR
 /*	The UNIX process environment array. The lookup key is the
-/*	variable name. Originally implemented for testing, someone
-/*	may find this useful someday.
+/*	environment variable name; the table name is ignored.  Originally
+/*	implemented for testing, someone may find this useful someday.
 /* .IP \fBfail\fR
 /*	A table that reliably fails all requests. The lookup table
 /*	name is used for logging. This table exists to simplify
@@ -918,6 +918,20 @@ int     main(int argc, char **argv)
 	    usage(argv[0]);
 	}
     }
+
+    /*
+     * We don't enforce import_environment consistency in this program.
+     * 
+     * We don't extract import_environment from main.cf, because the postconf
+     * command must be able to extract parameter settings from main.cf before
+     * all installation parameters such as mail_owner or setgid_group have a
+     * legitimate value.
+     * 
+     * We would need the functionality of mail_params_init() including all the
+     * side effects of populating the CONFIG_DICT with default values so that
+     * $name expansion works correctly, but excluding all the parameter value
+     * sanity checks so that it would not abort at installation time.
+     */
 
     /*
      * Make all options explicit, before checking their compatibility.

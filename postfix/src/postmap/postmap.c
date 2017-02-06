@@ -250,6 +250,10 @@
 /* .IP "\fBdefault_database_type (see 'postconf -d' output)\fR"
 /*	The default database type for use in \fBnewaliases\fR(1), \fBpostalias\fR(1)
 /*	and \fBpostmap\fR(1) commands.
+/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBsmtputf8_enable (yes)\fR"
 /*	Enable preliminary SMTPUTF8 support for the protocols described
 /*	in RFC 6531..6533.
@@ -311,6 +315,7 @@
 #include <vstring_vstream.h>
 #include <set_eugid.h>
 #include <warn_stat.h>
+#include <clean_env.h>
 
 /* Global library. */
 
@@ -323,6 +328,7 @@
 #include <dict_proxy.h>
 #include <mime_state.h>
 #include <rec_type.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -857,6 +863,7 @@ int     main(int argc, char **argv)
     int     sequence = 0;
     int     found;
     int     force_utf8 = 0;
+    ARGV   *import_env;
 
     /*
      * Fingerprint executables and core dumps.
@@ -975,6 +982,10 @@ int     main(int argc, char **argv)
 	}
     }
     mail_conf_read();
+    /* Enforce consistent operation of different Postfix parts. */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    update_env(import_env->argv);
+    argv_free(import_env);
     /* Re-evaluate mail_task() after reading main.cf. */
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
     mail_dict_init();

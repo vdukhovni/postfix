@@ -2329,11 +2329,13 @@ Specify "ignore_mx_lookup_error = yes" to force a DNS A record
 lookup instead. This violates the SMTP standard and can result in
 mis\-delivery of mail.
 .SH import_environment (default: see "postconf \-d" output)
-The list of environment parameters that a Postfix process will
-import from a non\-Postfix parent process. Examples of relevant
-parameters:
+The list of environment parameters that a privileged Postfix
+process will import from a non\-Postfix parent process, or name=value
+environment overrides.  Unprivileged utilities will enforce the
+name=value overrides, but otherwise will not change their process
+environment.  Examples of relevant parameters:
 .IP "\fBTZ\fR"
-Needed for sane time keeping on most System\-V\-ish systems.
+May be needed for sane time keeping on most System\-V\-ish systems.
 .br
 .IP "\fBDISPLAY\fR"
 Needed for debugging Postfix daemons with an X\-windows debugger.

@@ -345,6 +345,7 @@
 #include <myaddrinfo.h>
 #include <sock_addr.h>
 #include <midna_domain.h>
+#include <clean_env.h>
 
 #define STR(x)		vstring_str(x)
 
@@ -355,6 +356,7 @@
 #include <mail_conf.h>
 #include <smtp_stream.h>
 #include <dsn_buf.h>
+#include <mail_parm_split.h>
 
 /* DNS library. */
 
@@ -1919,6 +1921,7 @@ int     main(int argc, char *argv[])
     static STATE state;
     char   *loopenv = getenv("VALGRINDLOOP");
     int     loop = loopenv ? atoi(loopenv) : 1;
+    ARGV   *import_env;
 
     /* Don't die when a peer goes away unexpectedly. */
     signal(SIGPIPE, SIG_IGN);
@@ -1936,6 +1939,11 @@ int     main(int argc, char *argv[])
     parse_options(&state, argc, argv);
     mail_params_init();
     parse_tas(&state);
+
+    /* Enforce consistent operation of different Postfix parts. */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    update_env(import_env->argv);
+    argv_free(import_env);
 
     argc -= optind;
     argv += optind;

@@ -56,14 +56,6 @@
 #include <mail_params.h>
 #include <mail_parm_split.h>
 
- /*
-  * While testing, do not terminate the program after a syntax error.
-  */
-#ifdef TEST
-#undef msg_fatal
-#define msg_fatal msg_warn
-#endif
-
 /* mail_parm_split - split list, extract {text}, errors are fatal */
 
 ARGV   *mail_parm_split(const char *name, const char *value)
@@ -72,7 +64,7 @@ ARGV   *mail_parm_split(const char *name, const char *value)
     char   *saved_string = mystrdup(value);
     char   *bp = saved_string;
     char   *arg;
-    const char *err;
+    char   *err;
 
     /*
      * The code that detects the error shall either signal or handle the
@@ -81,8 +73,14 @@ ARGV   *mail_parm_split(const char *name, const char *value)
      */
     while ((arg = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	if (*arg == CHARS_BRACE[0]
-	    && (err = extpar(&arg, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0)
+	    && (err = extpar(&arg, CHARS_BRACE, EXTPAR_FLAG_STRIP)) != 0) {
+#ifndef TEST
 	    msg_fatal("%s: %s", name, err);
+#else
+	    msg_warn("%s: %s", name, err);
+	    myfree(err);
+#endif
+	}
 	argv_add(argvp, arg, (char *) 0);
     }
     argv_terminate(argvp);

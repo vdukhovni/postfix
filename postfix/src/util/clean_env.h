@@ -15,6 +15,7 @@
   * External interface.
   */
 extern void clean_env(char **);
+extern void update_env(char **);
 
 /* LICENSE
 /* .ad

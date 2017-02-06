@@ -61,6 +61,7 @@ depend: $(MAKES)
 sendmail.o: ../../include/argv.h
 sendmail.o: ../../include/attr.h
 sendmail.o: ../../include/check_arg.h
+sendmail.o: ../../include/clean_env.h
 sendmail.o: ../../include/cleanup_user.h
 sendmail.o: ../../include/connect.h
 sendmail.o: ../../include/debug_process.h
@@ -74,6 +75,7 @@ sendmail.o: ../../include/iostuff.h
 sendmail.o: ../../include/mail_conf.h
 sendmail.o: ../../include/mail_flush.h
 sendmail.o: ../../include/mail_params.h
+sendmail.o: ../../include/mail_parm_split.h
 sendmail.o: ../../include/mail_proto.h
 sendmail.o: ../../include/mail_queue.h
 sendmail.o: ../../include/mail_run.h

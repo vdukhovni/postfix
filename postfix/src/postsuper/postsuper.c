@@ -230,6 +230,10 @@
 /* .IP "\fBhash_queue_names (deferred, defer)\fR"
 /*	The names of queue directories that are split across multiple
 /*	subdirectory levels.
+/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBsyslog_facility (mail)\fR"
@@ -288,6 +292,7 @@
 #include <sane_fsops.h>
 #include <myrand.h>
 #include <warn_stat.h>
+#include <clean_env.h>
 
 /* Global library. */
 
@@ -299,6 +304,7 @@
 #include <mail_queue.h>
 #include <mail_open_ok.h>
 #include <file_id.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -1080,6 +1086,7 @@ int     main(int argc, char **argv)
     ARGV   *hold_names = 0;
     ARGV   *release_names = 0;
     char  **cpp;
+    ARGV   *import_env;
 
     /*
      * Defaults. The structural checks must fix the directory levels of "log
@@ -1230,6 +1237,10 @@ int     main(int argc, char **argv)
      * configuration directory location.
      */
     mail_conf_read();
+    /* Enforce consistent operation of different Postfix parts. */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    clean_env(import_env->argv);
+    argv_free(import_env);
     /* Re-evaluate mail_task() after reading main.cf. */
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
     if (chdir(var_queue_dir))

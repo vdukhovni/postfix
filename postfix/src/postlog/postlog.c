@@ -55,6 +55,10 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
+/* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
@@ -103,6 +107,7 @@
 #include <msg_vstream.h>
 #include <msg_syslog.h>
 #include <warn_stat.h>
+#include <clean_env.h>
 
 /* Global library. */
 
@@ -110,6 +115,7 @@
 #include <mail_version.h>
 #include <mail_conf.h>
 #include <mail_task.h>
+#include <mail_parm_split.h>
 
 /* Application-specific. */
 
@@ -183,6 +189,7 @@ int     main(int argc, char **argv)
     const char *tag;
     int     log_flags = 0;
     int     level = MSG_INFO;
+    ARGV   *import_env;
 
     /*
      * Fingerprint executables and core dumps.
@@ -250,6 +257,10 @@ int     main(int argc, char **argv)
      * may require that mail_task() be re-evaluated.
      */
     mail_conf_read();
+    /* Enforce consistent operation of different Postfix parts. */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    update_env(import_env->argv);
+    argv_free(import_env);
     if (tag == 0)
 	tag = mail_task(argv[0]);
 

@@ -2957,7 +2957,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	const char *bare_addr;
 	ssize_t len;
 
-	if (type != T_MX)
+	if (type != T_A && type != T_MX)
 	    return (SMTPD_CHECK_DUNNO);
 	len = strlen(domain);
 	if (domain[len - 1] != ']')
