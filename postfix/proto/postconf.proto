@@ -7126,14 +7126,19 @@ probes, and generates probes on request by other Postfix processes.
 <p>
 A list of non-default Postfix configuration directories that may
 be specified with "-c config_directory" on the command line (in the
-case of sendmail(1), with "-C config_directory"), or via the MAIL_CONFIG
+case of sendmail(1), with the "-C" option), or via the MAIL_CONFIG
 environment parameter.
 </p>
 
 <p>
-This list must be specified in the default Postfix configuration
-directory, and is used by set-gid Postfix commands such as postqueue(1)
+This list must be specified in the default Postfix main.cf file,
+and will be used by set-gid Postfix commands such as postqueue(1)
 and postdrop(1).
+</p>
+
+<p>
+Specify absolute pathnames, separated by comma or space. Note: $name
+expansion is not supported.
 </p>
 
 %PARAM append_at_myorigin yes

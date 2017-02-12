@@ -8,19 +8,20 @@
 /*
 /*	int	unsafe()
 /* DESCRIPTION
-/*	The \fBunsafe()\fR routine attempts to determine if the process runs
-/*	with any privileges that do not belong to the user. The purpose is
-/*	to make it easy to taint any user-provided data such as the current
-/*	working directory, the process environment, etcetera.
+/*	The \fBunsafe()\fR routine attempts to determine if the process
+/*	(runs with privileges or has access to information) that the
+/*	controlling user has no access to. The purpose is to prevent
+/*	misuse of privileges, including access to protected information.
 /*
-/*	On UNIX systems, the result is true when any of the following
-/*	conditions is true:
+/*	The result is always false when both of the following conditions
+/*	are true:
 /* .IP \(bu
-/*	The real UID is non-zero.
+/*	The real UID is zero.
 /* .IP \(bu
-/*	The effective UID is non-zero.
+/*	The effective UID is zero.
 /* .PP
-/*	Additionally, any of the following conditions must be true:
+/*	Otherwise, the result is true if any of the following conditions
+/*	is true:
 /* .IP \(bu
 /*	The issetuid kernel flag is non-zero (on systems that support
 /*	this concept).
@@ -28,10 +29,6 @@
 /*	The real and effective user id differ.
 /* .IP \(bu
 /*	The real and effective group id differ.
-/* .PP
-/*	Thus, when a process runs as the super-user, it is excluded
-/*	from privilege-escalation concerns, but only if both real
-/*	UID and effective UID are zero.
 /* LICENSE
 /* .ad
 /* .fi
@@ -56,10 +53,20 @@
 
 int     unsafe(void)
 {
-    return ((getuid() || geteuid())
-	    && (geteuid() != getuid()
+
+    /*
+     * The super-user is trusted.
+     */
+    if (getuid() == 0 && geteuid() == 0)
+	return (0);
+
+    /*
+     * Danger: don't trust inherited process attributes, and don't leak
+     * privileged info that the parent has no access to.
+     */
+    return (geteuid() != getuid()
 #ifdef HAS_ISSETUGID
-		|| issetugid()
+	    || issetugid()
 #endif
-		|| getgid() != getegid()));
+	    || getgid() != getegid());
 }
