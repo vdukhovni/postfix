@@ -1,121 +1,17 @@
-This is the Postfix 3.2 (experimental) release.
+This is the Postfix 3.3 (experimental) release.
 
-The stable Postfix release is called postfix-3.1.x where 3=major
-release number, 1=minor release number, x=patchlevel.  The stable
+The stable Postfix release is called postfix-3.2.x where 3=major
+release number, 2=minor release number, x=patchlevel.  The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
-postfix-3.2-yyyymmdd where yyyymmdd is the release date (yyyy=year,
+postfix-3.3-yyyymmdd where yyyymmdd is the release date (yyyy=year,
 mm=month, dd=day).  Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
 The mail_release_date configuration parameter (format: yyyymmdd)
 specifies the release date of a stable release or snapshot release.
 
-If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
+If you upgrade from Postfix 3.1 or earlier, read RELEASE_NOTES-3.2
 before proceeding.
-
-Incompatible changes with snapshot 20161227
-===========================================
-
-For safety reasons, the sendmail -C option must specify an authorized
-directory: the default configuration directory, a directory that
-is listed in the default main.cf file with alternate_config_directories
-or multi_instance_directories, or the command must be invoked with
-root privileges.  This mitigates a problem with the PHP mail()
-function.
-
-Major changes with snapshot 20161227
-====================================
-
-Support to negotiate Elliptic curves with OpenSSL 1.0.2 or later
-(on platforms where EC algorithms have not been disabled by the
-vendor).  See TLS_README for details. In summary, this changes the
-default smtpd_tls_eecdh_grade setting to "auto", and introduces a
-new parameter tls_eecdh_auto_curves with the names of curves that
-may be negotiated.  The default tls_eecdh_auto_curves setting is
-determined at compile time, and depends on the Postfix and OpenSSL
-versions.  At runtime, Postfix will skip curve names that aren't
-supported by the OpenSSL library.
-
-The MySQL client now has support for stored procedures. See the
-mysql_table(5) manpage for details.
-
-Incompatible changes with snapshot 20161204
-===========================================
-
-Postfix 3.2 removes tentative features that were implemented
-before the DANE spec was finalized:
-
-- Support for certificate usage PKIX-EE(1), 
-
-- The ability to disable digest agility. Postfix 3.2 always behaves
-  as if "tls_dane_digest_agility = on.
-
-- The ability to disable support for "TLSA 2 [01] [12]" records
-  that specify the digest of a trust anchor. Postfix 3.2 always
-  behaves as if "tls_dane_trust_anchor_digest_enable = yes".
-
-Incompatible changes with snapshot 20161103
-===========================================
-
-Postfix 3.2 by default disables the 'transitional' compatibility
-between IDNA2003 and IDNA2008, when converting UTF-8 domain names
-to/from the ASCII form that is used in DNS lookups.  This makes
-Postfix behavior consistent with current versions of the Firefox
-and Chrome web browsers. Specify "enable_idna2003_compatibility =
-yes" for historical behavior.
-
-This affects the conversion of, for example, the German sz and the
-Greek zeta. See http://unicode.org/cldr/utility/idna.jsp for more
-examples.
-
-Major changes with snapshot 20161031
-====================================
-
-The smtpd_milter_maps feature supports per-client Milter configuration.
-This overrides the global smtpd_milters setting and has the same syntax. A
-lookup result of "DISABLE" turns off Milter support.
-
-Incompatible changes with snapshot 20160925
-===========================================
-
-In the Postfix MySQL database client, the default option_group value
-has changed to "client", to enable reading of "client" option group
-settings in the MySQL options file. This fixes a "not found" problem
-with Postfix queries that contain UTF8-encoded non-ASCII text.
-Specify an empty option_group value (option_group =) to get
-backwards-compatible behavior.
-
-Major changes with snapshot 20160625
-====================================
-
-Support in the Postfix SMTP server for propagating the local SMTP
-server IP address and port. This affects the following Postfix
-interfaces:
-
-- Policy delegation. The server address and port are available as
-"server_address" and "server_port". See SMTPD_POLICY_README for an
-overview of available attributes.
-
-- Milter applications. The server address and port are available
-as "{daemon_addr}" and "{daemon_port}". See MILTER_README for a
-table of available attributes.
-
-- Cyrus SASL. The server address and port are now passed to the
-sasl_server_new() function as "ipaddress;port".
-
-- XCLIENT protocol. The server address and port can be specified
-as "DESTADDR" and "DESTPORT". See XCLIENT_README for a description
-of the attribute syntax. The new attributes may be of interest for
-nxginx.
-
-Major changes with snapshot 20160527
-====================================
-
-Postfix cidr tables now support if..endif, and pattern negation
-with "!", just like regexp and pcre tables. The if..endif can speed
-up lookups by skipping over irrelevant patterns, and can make rule
-maintenance easier because rules for a network can now be placed
-inside if..endif.  See the cidr_table(5) manpage for syntax details.

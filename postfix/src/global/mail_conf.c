@@ -31,8 +31,18 @@
 /*	const char *mail_conf_lookup_eval(name)
 /*	const char *name;
 /* DESCRIPTION
-/*	mail_conf_suck() reads the global Postfix configuration file, and
-/*	stores its values into a global configuration dictionary.
+/*	mail_conf_suck() reads the global Postfix configuration
+/*	file, and stores its values into a global configuration
+/*	dictionary. When the configuration directory name is not
+/*	trusted, this function requires that the directory name is
+/*	authorized with the alternate_config_directories setting
+/*	in the default main.cf file.
+/*
+/*	This function requires that all configuration directory
+/*	override mechanisms set the MAIL_CONFIG environment variable,
+/*	even if the override was specified via the command line.
+/*	This reduces the number of pathways that need to be checked
+/*	for possible security attacks.
 /*
 /*	mail_conf_read() invokes mail_conf_suck() and assigns the values
 /*	to global variables by calling mail_params_init().
@@ -197,8 +207,8 @@ void    mail_conf_suck(void)
     set_mail_conf_str(VAR_CONFIG_DIR, var_config_dir);
 
     /*
-     * If the configuration directory name comes from a different trust
-     * domain, require that it is listed in the default main.cf file.
+     * If the configuration directory name comes from an untrusted source,
+     * require that it is listed in the default main.cf file.
      */
     if (strcmp(var_config_dir, DEF_CONFIG_DIR) != 0	/* non-default */
 	&& unsafe())				/* untrusted env and cli */

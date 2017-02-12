@@ -22923,6 +22923,18 @@ Apologies for any names omitted.
 
 20170206
 
-	Bugfix (introduced: Postfix 2.2): check_mumble_a_access
-	did not handle [ipaddress], unlike check_mumble_mx_access. 
-	Reported by James (postfix_tracker). File: smtpd/smtpd_check.c.
+	Bugfix (introduced: Postfix 3.0): when check_mumble_a_access
+	did not handle [ipaddress], unlike check_mumble_mx_access.
+	When check_mumble_a_access was introduced, some condition
+	was not updated.  Reported by James (postfix_tracker). File:
+	smtpd/smtpd_check.c.
+
+20170207
+
+	Cleanup: rephrased the precondition paranoia. File:
+	global/mail_conf.c.
+
+20170211
+
+	Cleanup: rephrased the precondition for paranoia. File:
+	util/unsafe.c.

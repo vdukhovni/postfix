@@ -1239,7 +1239,7 @@ int     main(int argc, char **argv)
     mail_conf_read();
     /* Enforce consistent operation of different Postfix parts. */
     import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
-    clean_env(import_env->argv);
+    update_env(import_env->argv);
     argv_free(import_env);
     /* Re-evaluate mail_task() after reading main.cf. */
     msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);

@@ -784,14 +784,19 @@ cannot match Postfix access tables, because the address is ambiguous.
 <p>
 A list of non-default Postfix configuration directories that may
 be specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line (in the
-case of <a href="sendmail.1.html">sendmail(1)</a>, with "-C <a href="postconf.5.html#config_directory">config_directory</a>"), or via the MAIL_CONFIG
+case of <a href="sendmail.1.html">sendmail(1)</a>, with the "-C" option), or via the MAIL_CONFIG
 environment parameter.
 </p>
 
 <p>
-This list must be specified in the default Postfix configuration
-directory, and is used by set-gid Postfix commands such as <a href="postqueue.1.html">postqueue(1)</a>
+This list must be specified in the default Postfix <a href="postconf.5.html">main.cf</a> file,
+and will be used by set-gid Postfix commands such as <a href="postqueue.1.html">postqueue(1)</a>
 and <a href="postdrop.1.html">postdrop(1)</a>.
+</p>
+
+<p>
+Specify absolute pathnames, separated by comma or space. Note: $name
+expansion is not supported.
 </p>
 
 
