@@ -18354,7 +18354,7 @@ Apologies for any names omitted.
 
 	Portability: on MacOS X, use kqueue() for event handling
 	but use select() instead of poll() for read/write timeouts
-	(with a workaround to handle file decriptors >=FD_SETSIZE).
+	(with a workaround to handle file descriptors >=FD_SETSIZE).
 	Files: util/sys_defs.h, util/readable.c, util/writable.c,
 	util/read_wait.c, util/write_wait.c.
 
