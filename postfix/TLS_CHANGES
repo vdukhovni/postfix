@@ -1706,7 +1706,7 @@
     OpenSSL >= 0.9.5!!!
   - Ported server side session cache routines to the client side; works.
   - Analyzed structure of "qmgr" to understand consequences for the planned
-    "tlsmgr" daemon. Transferred the sceleton.
+    "tlsmgr" daemon. Transferred the skeleton.
   - Received word from sendmail, a (at least preliminary) TLS enabled test
     address is "bounce@esmtp.org".
 
