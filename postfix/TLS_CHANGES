@@ -1108,7 +1108,7 @@
     actual versions of Postfix/TLS, we are far beyond OpenSSL 0.9.2: Updated.
 
 2000/09/22
-  - Wietse releases snapshot-20000922. The source directory hierarchie has
+  - Wietse releases snapshot-20000922. The source directory hierarchy has
     changed, so the patch needs to be adjusted at several places.
   - Run tests against OpenSSL 0.9.6-beta3: problems occur!
     * Certificates are no longer verified, since an informationa flag about the
@@ -1788,7 +1788,7 @@
     decided on the first step, yet :-)
 
 2000/02/21	== RELEASED 0.5.4 ==
-  - Important: Another directoy is created in /var/spool/postfix, so don't
+  - Important: Another directory is created in /var/spool/postfix, so don't
     forget to install the new versions of conf/postfix-script-*sgid.
 
 2000/02/21
