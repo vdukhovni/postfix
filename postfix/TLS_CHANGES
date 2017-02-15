@@ -778,7 +778,7 @@
 2001/04/05
   - Hint from Bodo Moeller <moeller@cdc.informatik.tu-darmstadt.de>:
     the "Known Bugs" section in doc/test.html actually contains bugs
-    of clients and/or interoperatbility problems. Better name it
+    of clients and/or interoperability problems. Better name it
     "Known interoperability problems" and rename the entries
     "Postfix/TLS server" and "Postfix/TLS client" to improve clarity.
 
