@@ -600,7 +600,7 @@
 2001/09/04	== Released 0.7.9 ==
 
 2001/09/04
-  - Due to unititialized variable in smtpd_state.c, AUTH may not be offered
+  - Due to uninitialized variable in smtpd_state.c, AUTH may not be offered
     without TLS even though smtpd_tls_auth_only was not enabled.
     (Patch from Nick Simicich <njs@scifi.squawk.com>.)
 
