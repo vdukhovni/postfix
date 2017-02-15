@@ -7559,7 +7559,7 @@ Apologies for any names omitted.
 	rewrite broken user@ or user@. address forms into even more
 	broken forms. bother. File: trivial-rewrite/rewrite.c.
 
-	Cleanup: the address resolver code now treates forms ending
+	Cleanup: the address resolver code now treats forms ending
 	in @ in a more rational manner (because the address rewriting
 	code no longer messes up by appending .my.domain).
 
