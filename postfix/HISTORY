@@ -15168,7 +15168,7 @@ Apologies for any names omitted.
 	smtpd/smtpd_resolve.c.
 
 	Feature: support to report rejected recipients to Milters
-	(SMFIP_RCPT_REJ). Postfix reports the event as decribed in
+	(SMFIP_RCPT_REJ). Postfix reports the event as described in
 	Sendmail 8.14.0 documentation: {rcpt_mailer} = "error",
 	{rcpt_host} = enhanced status code (e.g., "5.7.1"), and
 	{rcpt_addr} = reason to reject (e.g., "Relay access denied").
