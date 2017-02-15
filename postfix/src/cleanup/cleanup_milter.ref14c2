@@ -24,6 +24,6 @@
       604 pointer_record:               0
       621 *** HEADER EXTRACTED test-queue-file14c.tmp ***
       623 pointer_record:             677
-      677 redirect_to: foo@examle.com
+      677 redirect_to: foo@example.com
       693 pointer_record:             640
       640 *** MESSAGE FILE END test-queue-file14c.tmp ***
