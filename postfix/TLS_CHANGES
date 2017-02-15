@@ -1008,7 +1008,7 @@
     the peer's name is checked against the CommonName in its certificate.
     New configuration variable "smtp_tls_enforce_peername" (default=yes)
     can now be used to accept peername!=CommonName. The server's certificate
-    must still pass the verifcation process against a trusted CA!
+    must still pass the verification process against a trusted CA!
     In tls_per_site, the according key is MUST_NOPEERMATCH.
     (Added on demand.)
 
@@ -1241,7 +1241,7 @@
     (and Postfix/TLS will also close the TCP connection).
   - Following the sample in the OpenSSL-apps, the verification chain depth
     was the only property triggering this effect, so this stood hidden until
-    now. Obviously, users having longer chains did set the verifcation
+    now. Obviously, users having longer chains did set the verification
     depth accordingly or they gave up, since this was never reported...
   - Changed the behaviour of verify_callback() to never return "0", such that
     we can deal with the verification result later in a more consistent manner.
@@ -1762,7 +1762,7 @@
     * The bug with Win32 Netscape not commencing after certificate storage
       unlocking should be fixed. (I will leave the not in however, as long
       as I have not positively checked it myself. Reproducibility...)
-    * The bug, that the certificate verifiation result is not stored in the
+    * The bug, that the certificate verification result is not stored in the
       session cache (discovered for Postfix/TLS 0.4.4) is fixed. I will leave
       the Postfix/TLS workaround in as long as it will run with older versions
       of OpenSSL.
