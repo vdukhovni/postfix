@@ -21702,7 +21702,7 @@ Apologies for any names omitted.
 	Dukhovni. File: tls_dane.c.
 
 	Safety: instead of bouncing mail, report a soft error when
-	SASL infrastucture breaks.  Viktor Dukhovni, Emmanuel Fuste.
+	SASL infrastructure breaks.  Viktor Dukhovni, Emmanuel Fuste.
 	Files: smtpd/smtpd_sasl_glue.c, xsasl/xsasl.h,
 	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_dovecot_server.c.
 
