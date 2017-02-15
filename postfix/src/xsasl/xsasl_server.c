@@ -63,7 +63,7 @@
 /*
 /*	xsasl_server_init() is called once during process initialization.
 /*	It selects a SASL implementation by name, specifies the
-/*	location of a configuration file or rendez-vous point, and
+/*	location of a configuration file or rendezvous point, and
 /*	returns an implementation handle that can be used to generate
 /*	SASL server instances. This function is typically used to
 /*	initialize the underlying implementation.
@@ -142,7 +142,7 @@
 /* .IP path_info
 /*	The value of the smtpd_sasl_path parameter or equivalent.
 /*	This specifies the implementation-dependent location of a
-/*	configuration file, rendez-vous point, etc., and is passed
+/*	configuration file, rendezvous point, etc., and is passed
 /*	unchanged to the plug-in.
 /* .IP security_options
 /*	The value of the smtpd_security_options parameter or
