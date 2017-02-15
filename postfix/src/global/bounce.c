@@ -372,7 +372,7 @@ int     bounce_flush(int flags, const char *queue, const char *id,
     }
 }
 
-/* bounce_flush_verp - verpified notification */
+/* bounce_flush_verp - verified notification */
 
 int     bounce_flush_verp(int flags, const char *queue, const char *id,
 			          const char *encoding, int smtputf8,
