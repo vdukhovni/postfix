@@ -1411,7 +1411,7 @@
     successfully handling the SMTP session!!
     * It seems that the SSL_free() and BIO_free() functions interact.
       SSL_free() releases the underlying BIO and it will bomb out when
-      it is then explicitely BIO_free()'ed again and vice versa.
+      it is then explicitly BIO_free()'ed again and vice versa.
     * It did not bomb out on HP-UX, but such things happen. I however want to
       know, why the example program does not fail...
     * With respect to the behavior as is, SSL_free(TLScontext->con);
@@ -1958,7 +1958,7 @@
   - Read in the "openssl-users" mailing list, that SSL_CTX_add_session()
     is only intended for servers. On the client side, SSL_set_session()
     is sufficient.
-    Additionally, the session should be explicitely freed, since
+    Additionally, the session should be explicitly freed, since
     SSL_set_session() will increment the usage count for the session.
     Explained by Bodo Moeller.
 
