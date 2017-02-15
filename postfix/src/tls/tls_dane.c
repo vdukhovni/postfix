@@ -54,7 +54,7 @@
 /*	are present in OpenSSL's libcrypto and in libresolv.  Since OpenSSL's
 /*	libcrypto is not initialized until we call tls_client_init(), calls
 /*	to tls_dane_avail() must be deferred until this initialization is
-/*	completed successufully.
+/*	completed successfully.
 /*
 /*	tls_dane_flush() flushes all entries from the cache, and deletes
 /*	the cache.
