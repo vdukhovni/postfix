@@ -144,7 +144,7 @@
     Patchkit for 2.0.13 applies cleanly.
     Patchkit for 2.0.13-20030607 requires several adaptations (patch conflicts,
     no functional changes).
-  - Slightly modified SASL interface code (smpt[d]_sasl_glue layer) to
+  - Slightly modified SASL interface code (smtp[d]_sasl_glue layer) to
     allow setting the security policy during session setup instead of
     process start. This allows to actually choose SASL mechanisms available
     depending on the availability of TLS encryption and authentication.
@@ -850,7 +850,7 @@
 
 2001/01/07
   - Since now the checks at handshake stage (in pfixtls.c) are more strict,
-    some of the checks in smptd.c and smtp_proto.c could be removed.
+    some of the checks in smtpd.c and smtp_proto.c could be removed.
     At a later point I can probably move even more checks into pfixtls.c...
 
 2001/01/05
@@ -1072,7 +1072,7 @@
     (Linux on s390, found by Carsten Hoeger <choeger@suse.de>)
     -> Worked out a more precise (even though not looking elegant) solution
     that checks out all acceptable characters.
-  - Sent new smptd.c to Carsten Hoeger for testing, will wait with new
+  - Sent new smtpd.c to Carsten Hoeger for testing, will wait with new
     Postfix/TLS release.
 
 2000/10/06	== Released 0.6.22 ==
