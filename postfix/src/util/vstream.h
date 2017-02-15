@@ -55,7 +55,7 @@ typedef struct VSTREAM {
     VBUF    write_buf;			/* write buffer (double-buffered) */
     pid_t   pid;			/* vstream_popen/close() */
     VSTREAM_WAITPID_FN waitpid_fn;	/* vstream_popen/close() */
-    int     timeout;			/* read/write timout */
+    int     timeout;			/* read/write timeout */
     VSTREAM_JMP_BUF *jbuf;		/* exception handling */
     struct timeval iotime;		/* time of last fill/flush */
     struct timeval time_limit;		/* read/write time limit */
