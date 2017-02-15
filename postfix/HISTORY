@@ -7276,7 +7276,7 @@ Apologies for any names omitted.
 
 	Added optimistic caching to the verify daemon, so that one
 	failed probe will not clobber a known to be good address.
-	As long as some probes succeeed, a good address will stay
+	As long as some probes succeed, a good address will stay
 	cached as OK.
 
 	Cleaning up of the bounce daemon's code for bounce, delayed

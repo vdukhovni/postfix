@@ -55,7 +55,7 @@
 /*	pathname into the place of the original file. When any of
 /*	these operations fails, edit_file_close() behaves as if
 /*	edit_file_cleanup() was called. Regardless of whether these
-/*	operations suceed, edit_file_close() releases the exclusive
+/*	operations succeed, edit_file_close() releases the exclusive
 /*	lock, closes the output file, and frees up memory that was
 /*	allocated by edit_file_open().
 /*
