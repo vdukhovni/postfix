@@ -111,7 +111,7 @@ exit
 #	file name is constructed by appending the specified \fIbackup\fR 
 #	string to the original file name. 
 #	This option is ignored when the \fI-t\fR
-#	option is specifid.
+#	option is specified.
 # .TP
 # -t
 #	Makes the program act as a preprocessor
