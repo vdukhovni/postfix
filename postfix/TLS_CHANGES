@@ -2104,7 +2104,7 @@
     functions can easily be reused. Postfix is an excellent peace of
     software engineering and there is no line of C++ or other "object
     oriented modern junk" in it. It should be recommended as an example
-    to computer sience students.
+    to computer science students.
 
 1999/09/28
   - I cannot use the mod_ssl way for session caching and I don´t want to
