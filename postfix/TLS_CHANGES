@@ -125,7 +125,7 @@
     feature including instructions on how to reproduce.
     (Did receive an earlier report on 2003/07/09, that however indicated other
     setup problems, so that the actual problem was not visible.)
-  - Analysis: when introducing the new smtpd_proxy feature, different mechnisms
+  - Analysis: when introducing the new smtpd_proxy feature, different mechanisms
     where introduced to either write to the cleanup daemon (as before) or to
     the smtpd_proxy connection. Functions and streams are now expressed in
     out_fprintf() function pointers etc. being assigned accordingly.
