@@ -940,7 +940,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 
 	/*
 	 * Find out if the next body starts with its own message headers. In
-	 * agressive mode, examine headers of partial and external-body
+	 * aggressive mode, examine headers of partial and external-body
 	 * messages. Otherwise, treat such headers as part of the "body". Set
 	 * the proper encoding information for the multipart prolog.
 	 * 
@@ -1043,7 +1043,7 @@ int     mime_state_update(MIME_STATE *state, int rec_type,
 
 	/*
 	 * Body text. Look for message boundaries, and recover from missing
-	 * boundary strings. Missing boundaries can happen in agressive mode
+	 * boundary strings. Missing boundaries can happen in aggressive mode
 	 * with text/rfc822-headers or with message/partial. Ignore non-space
 	 * cruft after --boundary or --boundary--, because some MUAs do, and
 	 * because only perverse software would take advantage of this to

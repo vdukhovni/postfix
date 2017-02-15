@@ -7647,7 +7647,7 @@ Apologies for any names omitted.
 
 	Cleanup: multiservers such as trivial-rewrite and the new
 	proxymap server now enforce the max_use total client number
-	limit more agressively, by not accepting new connections
+	limit more aggressively, by not accepting new connections
 	after the limit is reached.  Based on a patch by Victor
 	Duchovni, Morgan Stanley. File:  master/multi_server.c.
 
@@ -10437,7 +10437,7 @@ Apologies for any names omitted.
 	session" call-back routines. Found by Victor Duchovni.
 	Files: tls/tls_client.c, tls/tls_server.c.
 
-	Workaround: OpenSSL is overly agressive when purging a
+	Workaround: OpenSSL is overly aggressive when purging a
 	not-yet expired entry from a full in-memory cache: it also
 	purges the entry from the on-disk server session cache.
 	Workaround is to let only the tlsmgr purge entries from the
@@ -12829,7 +12829,7 @@ Apologies for any names omitted.
 	*qmgr/qmgr_deliver.c, *qmgr/qmgr_message.c.
 
 	Performance: refined recipient and job grouping, and more
-	agressive early refill of in-memory recipients to prevent
+	aggressive early refill of in-memory recipients to prevent
 	a worst-case scenario where the queue manager became starved
 	until after the last batch of slow in-memory recipients of
 	jumbo multi-recipient mail. Code by Patrik Rak.  Files:
@@ -13549,7 +13549,7 @@ Apologies for any names omitted.
 20070520
 
 	Bugfix (problem introduced Postfix 2.3): when DSN support
-	was introduced it broke "agressive" recipient duplicate
+	was introduced it broke "aggressive" recipient duplicate
 	elimination with "enable_original_recipient = no".  File:
 	cleanup/cleanup_out_recipient.c.
 
