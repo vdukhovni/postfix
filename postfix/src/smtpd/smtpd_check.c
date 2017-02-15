@@ -5946,7 +5946,7 @@ int     main(int argc, char **argv)
 	switch (args->argc) {
 
 	    /*
-	     * Emtpy line.
+	     * Empty line.
 	     */
 	case 0:
 	    argv_free(args);
