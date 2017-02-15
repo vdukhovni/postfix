@@ -21238,7 +21238,7 @@ Apologies for any names omitted.
 	byte values, and UTF-8 case folding. As recommended at
 	http://www.w3.org/International/wiki/Case_folding for
 	caseless string comparison, this uses the en_US locale to
-	avoid surprises. The implementatin handles the entire RFC
+	avoid surprises. The implementation handles the entire RFC
 	3629 Unicode range (code points U+0000..U+10FFFF including
 	surrogates) and is chroot(2) safe. Files: casefold.c,
 	stringops.h.
