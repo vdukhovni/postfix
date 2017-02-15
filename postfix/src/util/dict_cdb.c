@@ -273,7 +273,7 @@ static int dict_cdbm_update(DICT *dict, const char *name, const char *value)
      */
 #ifdef TINYCDB_VERSION
 #ifndef CDB_PUT_ADD
-#error please upgrate tinycdb to at least 0.5 version
+#error please upgrade tinycdb to at least 0.5 version
 #endif
     if (dict->flags & DICT_FLAG_DUP_IGNORE)
 	r = CDB_PUT_ADD;
