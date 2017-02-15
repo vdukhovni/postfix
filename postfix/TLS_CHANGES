@@ -458,7 +458,7 @@
     helped out with this small adjustment. As a side effect of Carsten's
     complete pfixtls.diff, which I compared after applying Tuomo's adjustment,
     I found that pfixtls.c contained several wrong "'" characters: on the
-    german keyboard there is an accent looking like the apostroph but producing
+    german keyboard there is an accent looking like the apostrophe but producing
     a different binary code. Obviously on Carsten's machine the code was
     changed which became obvious during the comparison.
     (Conclusion: I wrote the comments affected on my SuSE-Linux PC at home with
