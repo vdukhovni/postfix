@@ -5691,7 +5691,7 @@ Apologies for any names omitted.
 	an owner but the client is not (SASL) logged in as the MAIL
 	FROM address owner, or when a client is (SASL) logged in
 	but the client login name does not own the MAIL FROM address
-	according to $smtpd_sender_login_maps.  File: smtpd/smpd_check.c.
+	according to $smtpd_sender_login_maps.  File: smtpd/smtpd_check.c.
 
 	Documentation: added some redundancy to the LMTP_README
 	file so people can keep track of the difference between
