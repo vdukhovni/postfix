@@ -189,7 +189,7 @@ exit
 #	Indent may complain in case of syntax errors. These show
 #	up as comments in the resulting program text.
 # BUGS
-#	The programs seems to beave even when fed ANSI C or even C++
+#	The programs seems to behave even when fed ANSI C or even C++
 #	code; this has not been tested thoroughly, however.
 #
 #	Will produce useless files when fed with anything that is
