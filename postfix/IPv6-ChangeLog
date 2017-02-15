@@ -437,7 +437,7 @@ Version 1.4	Postfix version 1.1.11-20020822 - 1.1.11-20020917
 	Alpha as well now. Thanks to Sten Spans for providing me
 	access to an Alpha running FreeBSD4.
 
-	Fixed an old bug in smtpd memory alloation if you compiled
+	Fixed an old bug in smtpd memory allocation if you compiled
 	without IPv6 support (the wrong buffer size was used. This
 	was harmless for IPv6-enabled compiles since the sizes were
 	equal then).
