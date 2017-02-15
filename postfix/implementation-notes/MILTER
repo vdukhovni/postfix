@@ -251,4 +251,4 @@ of record relocation and dummy records.
 
 In Postfix 2.4 we fixed this by adding padding to short message
 header records so that we can always write a pointer record over a
-message header.  This immensly simplifies the code.
+message header.  This immensely simplifies the code.
