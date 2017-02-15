@@ -634,7 +634,7 @@
 2001/08/22	== Released 0.7.7 ==
 
 2001/08/22
-  - Found one more bug: erronously called SSL_get_ex_new_index() instead
+  - Found one more bug: erroneously called SSL_get_ex_new_index() instead
     of SSL_SESSION_get_ex_new_index() (note the _SESSION missing). This
     could be responsible for the failure at the locations found during
     debugging. Works fine on HP-UX (did also before), must cross check
@@ -1170,7 +1170,7 @@
   - More important, he reports a segmentation fault immediately after this
     problem.
   - Bug: when not using session caching and an error occurs during the TLS
-    handshake, pfixtls_start_clienttls() tried to remove the erronous
+    handshake, pfixtls_start_clienttls() tried to remove the erroneous
     session from a non-existant session cache.
     Fix: check the existence of the session cache before trying to access it.
     Comment: at all other places in the code this condition was already
