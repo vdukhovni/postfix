@@ -85,7 +85,7 @@ int     fifo_listen(const char *path, int permissions, int block_mode)
 	    if (msg_verbose)
 		msg_info("open O_RDWR makes fifo readable - trying O_RDONLY");
 	    (void) close(fd);
-	    /* FALLTRHOUGH */
+	    /* FALLTHROUGH */
 	}
     default:
 	if ((fd = open(path, open_mode, 0)) < 0)

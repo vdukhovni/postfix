@@ -77,7 +77,7 @@ int     memcache_get(VSTREAM *stream, VSTRING *vp, ssize_t bound)
     case '\r':
 	if ((next_char = VSTREAM_GETC(stream)) == '\n') {
 	    VSTRING_ADDCH(vp, '\n');
-	    /* FALLTRHOUGH */
+	    /* FALLTHROUGH */
 	} else {
 	    if (next_char != VSTREAM_EOF)
 		vstream_ungetc(stream, next_char);

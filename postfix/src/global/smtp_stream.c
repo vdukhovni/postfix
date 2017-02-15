@@ -330,7 +330,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
 	if ((next_char = VSTREAM_GETC(stream)) == '\n') {
 	    VSTRING_ADDCH(vp, '\n');
 	    last_char = '\n';
-	    /* FALLTRHOUGH */
+	    /* FALLTHROUGH */
 	} else {
 	    if (next_char != VSTREAM_EOF)
 		vstream_ungetc(stream, next_char);
@@ -348,7 +348,7 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
 	while (VSTRING_LEN(vp) > 0 && vstring_end(vp)[-1] == '\r')
 	    vstring_truncate(vp, VSTRING_LEN(vp) - 1);
 	VSTRING_TERMINATE(vp);
-	/* FALLTRHOUGH */
+	/* FALLTHROUGH */
 
 	/*
 	 * Partial line: just read the remainder later. If we ran into EOF,
