@@ -612,7 +612,7 @@
 
 2001/08/27
   - Received bugreport about issuer_CN imprints consisting of long strings
-    of nonsense. This only appeard with certificates issued from a certain
+    of nonsense. This only appeared with certificates issued from a certain
     CA (RSA Data Security Inc., Secure Server Certification Authority).
     (Will Day <wd@hpgx.net>)
   - The problem: the issuer data of this certificate is:
