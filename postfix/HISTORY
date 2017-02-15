@@ -8217,7 +8217,7 @@ Apologies for any names omitted.
 	configuration parameters enable one to set limits on
 	recursive nesting, result expansion and the server response
 	"entry" count. Implemented by Victor Duchovni, Morgan
-	Stanley, further enanced by Lamont Jones, HP. Files:
+	Stanley, further enhanced by Lamont Jones, HP. Files:
 	src/util/dict_ldap.c, conf/sample-ldap.cf,
 	README_FILES/LDAP_README.
 
