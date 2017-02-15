@@ -412,7 +412,7 @@ static int digest_pref_byid(uint8_t dane_id)
     return (d ? (d->pref) : (MAXDIGESTS + dane_id));
 }
 
-/* gencakey - generate interal DANE root CA key */
+/* gencakey - generate internal DANE root CA key */
 
 static EVP_PKEY *gencakey(void)
 {
