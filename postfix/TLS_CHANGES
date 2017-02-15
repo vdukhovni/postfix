@@ -1784,7 +1784,7 @@
   - Wietse considers including Postfix/TLS into the main release. A discussion
     about security relevant features, especially the session cache inside
     the chroot jail takes place.
-    The discussion will definetely lead to some changes; I have however not
+    The discussion will definitely lead to some changes; I have however not
     decided on the first step, yet :-)
 
 2000/02/21	== RELEASED 0.5.4 ==
