@@ -597,7 +597,7 @@ See SMTPUTF8_README for a description of Postfix SMTPUTF8 support.
 
 [Feature 20150112] UTF-8 Casefolding support for Postfix lookup
 tables and matchlists (mydestination, relay_domains, etc.).  This
-is enabled only with "smtpuf8 = yes".
+is enabled only with "smtputf8 = yes".
 
 [Feature 20150112] With smtputf8_enable=yes, SMTP commands with
 UTF-8 syntax errors are rejected, table lookup results with invalid
