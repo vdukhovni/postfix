@@ -57,7 +57,7 @@
 /*	List of domains the queries should be restricted to.  If
 /*	specified, only FQDN addresses whose domain parts matching this
 /*	list will be queried against the SQL database.  Lookups for
-/*	partial addresses are also supressed.  This can significantly
+/*	partial addresses are also suppressed.  This can significantly
 /*	reduce the query load on the server.
 /* .IP query
 /*	Query template, before the query is actually issued, variable

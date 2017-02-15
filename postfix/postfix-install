@@ -376,7 +376,7 @@ check_parent() {
     done
 }
 
-# How to supress newlines in echo.
+# How to suppress newlines in echo.
 
 case `echo -n` in
 "") n=-n; c=;;
