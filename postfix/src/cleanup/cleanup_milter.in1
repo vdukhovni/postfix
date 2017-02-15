@@ -33,7 +33,7 @@ del_header 1 X2
 ins_header 3 X2 test header value 3
 
 # Update the multiply broken, multi-line, header X. This tests if
-# we correcly link the new header to the header that comes after the
+# we correctly link the new header to the header that comes after the
 # modified header.
 
 upd_header 1 X X-replaced-header replacement header text

@@ -573,7 +573,7 @@
 
 2001/10/14
   - Bug fix (client mode): when the peername is checked against the CommonName
-    in the certificate, the comparison does not correclty ignore the case
+    in the certificate, the comparison does not correctly ignore the case
     (the peername as returned by DNS query or set in the transport map
     is not transformed to lower case). This bug was introduced in 0.7.5.
 
