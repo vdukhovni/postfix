@@ -19387,7 +19387,7 @@ Apologies for any names omitted.
 	Future proofing: Tolerate disappearance of named bug-workaround
 	bits without invalidating user configurations.  When support
 	for a bug workaround is removed from OpenSSL, the corresponding
-	bit is defined as zero (i.e. NOOP) intstead of causing
+	bit is defined as zero (i.e. NOOP) instead of causing
 	programs to break. Viktor Dukhovni.  File: tls/tls_misc.c.
 
 20131217
