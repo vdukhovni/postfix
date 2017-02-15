@@ -105,7 +105,7 @@ Apologies for any names omitted.
 	in main.cf (this will eventually be done by the system
 	installation/configuration procedure). Should the config
 	language support backticks so one can say `domainname`?
-	What about $name stuff between the backtics?
+	What about $name stuff between the backticks?
 
 	Security: the master now creates FIFOs and UNIX-domain
 	sockets as the mail owner instead of as root, for better
