@@ -646,7 +646,7 @@
     week in production before release). But malloc() and stack strategies
     are different between platforms.
   - Can reproduce the failure on my Linux PC at home :-(.
-  - Found one bug in new_session_cb(): on successfull external caching,
+  - Found one bug in new_session_cb(): on successful external caching,
     success is reported by a return value of 1. This however must be another
     bug, as it has nothing to do with the locations of the failure, when
     analyzing the core dumps/running under debugger.
@@ -1029,7 +1029,7 @@
 2000/11/22
   - Installed on my own servers and changed configuration to use the new
     "permit_tls_clientcerts" option name. Patchkit will be released after
-    some hours of successfull operation.
+    some hours of successful operation.
 
 2000/11/21
   - New snapshot-20001121 is being released. The patch applies without any
