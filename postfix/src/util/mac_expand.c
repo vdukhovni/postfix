@@ -492,7 +492,7 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 
 	    /*
 	     * Look up the named parameter. Todo: allow the lookup function
-	     * to specify if the result is safe for $name expanson.
+	     * to specify if the result is safe for $name expansion.
 	     */
 	    lookup = mc->lookup(vstring_str(buf), lookup_mode, mc->context);
 	}
