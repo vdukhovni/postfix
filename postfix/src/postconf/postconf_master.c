@@ -905,7 +905,7 @@ static void pcf_show_master_any_param(VSTREAM *fp, int mode,
 
     /*
      * Print parameters in sorted order. The number of parameters per
-     * master.cf entry is small, so we optmiize for code simplicity and don't
+     * master.cf entry is small, so we optimize for code simplicity and don't
      * worry about the cost of double lookup.
      */
 
