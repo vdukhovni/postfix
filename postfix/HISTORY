@@ -20145,7 +20145,7 @@ Apologies for any names omitted.
 	UTF8-encoded name with non-ASCII characters, or an IDNA-encoded
 	(xn--mumble) name with ASCII-only characters. This means
 	that access policies, mydestination, virtual_*_domains and
-	relay_domans will have to understand both forms in order
+	relay_domains will have to understand both forms in order
 	to provide complete coverage.  For now, SMTPUTF8 support
 	must not be enabled except for testing.
 
