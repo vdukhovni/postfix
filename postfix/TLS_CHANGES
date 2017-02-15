@@ -1414,7 +1414,7 @@
       it is then explicitely BIO_free()'ed again and vice versa.
     * It did not bomb out on HP-UX, but such things happen. I however want to
       know, why the example program does not fail...
-    * With respect to the bevaviour as is, SSL_free(TLScontext->con);
+    * With respect to the behavior as is, SSL_free(TLScontext->con);
       BIO_free(TLScontext->network_bio) and not touching
       TLScontext->internal_bio works.
   - Introduced special timeout values for the TLS negotiation stage, as the

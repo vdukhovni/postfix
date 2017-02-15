@@ -178,7 +178,7 @@ DICT   *dict_thash_open(const char *path, int open_flags, int dict_flags)
 	     * Store the value under the key. Handle duplicates
 	     * appropriately. XXX Move this into dict_ht, but 1) that map
 	     * ignores duplicates by default and we would have to check that
-	     * we won't break existing code that depends on such benavior; 2)
+	     * we won't break existing code that depends on such behavior; 2)
 	     * by inlining the checks here we can degrade gracefully instead
 	     * of terminating with a fatal error. See comment in
 	     * dict_inline.c.
