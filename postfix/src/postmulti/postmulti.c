@@ -763,7 +763,7 @@ static INSTANCE *create_primary_instance(void)
     INSTANCE *ip = alloc_instance(var_config_dir);
 
     /*
-     * There is no need to load primary instance paramater settings from
+     * There is no need to load primary instance parameter settings from
      * file. We already have the main.cf parameters of interest in memory.
      */
 #define SAVE_INSTANCE_NAME(val) (*(val) ? mystrdup(val) : 0)

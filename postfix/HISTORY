@@ -4601,7 +4601,7 @@ Apologies for any names omitted.
 
 20001210
 
-	Bugfix: the local_destination_concurrency_limit paramater
+	Bugfix: the local_destination_concurrency_limit parameter
 	no longer worked as per-user concurrency limit but instead
 	worked as per-domain limit, so that the limit of "2" in
 	the default main.cf files resulted in poor local delivery

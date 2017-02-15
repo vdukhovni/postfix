@@ -1895,7 +1895,7 @@
   - Don't forget to check the return value when calling
     SSL_CTX_set_cipherlist().
   - Add code to load DH-parameters from disk.
-  - Add configuration information for the new functionality: DH paramter
+  - Add configuration information for the new functionality: DH parameter
     support, possibility to influence the cipherlist.
   - Moved up prerelease 0.5.0pre01 to the download site.
 

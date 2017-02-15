@@ -3496,7 +3496,7 @@ extern bool var_strict_mbox_owner;
 extern int var_inet_windowsize;
 
  /*
-  * Plug-in multi-instance support. Only the first two paramaters are used by
+  * Plug-in multi-instance support. Only the first two parameters are used by
   * Postfix itself; the other ones are reserved for the instance manager.
   */
 #define VAR_MULTI_CONF_DIRS	"multi_instance_directories"
