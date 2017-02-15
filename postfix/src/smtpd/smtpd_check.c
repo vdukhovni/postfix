@@ -331,13 +331,13 @@ static int access_parent_style;
  /*
   * Pre-parsed restriction lists.
   */
-static ARGV *client_restrctions;
-static ARGV *helo_restrctions;
-static ARGV *mail_restrctions;
-static ARGV *relay_restrctions;
-static ARGV *rcpt_restrctions;
-static ARGV *etrn_restrctions;
-static ARGV *data_restrctions;
+static ARGV *client_restrictions;
+static ARGV *helo_restrictions;
+static ARGV *mail_restrictions;
+static ARGV *relay_restrictions;
+static ARGV *rcpt_restrictions;
+static ARGV *etrn_restrictions;
+static ARGV *data_restrictions;
 static ARGV *eod_restrictions;
 
 static HTABLE *smtpd_rest_classes;
@@ -837,19 +837,19 @@ void    smtpd_check_init(void)
      * Pre-parse the restriction lists. At the same time, pre-open tables
      * before going to jail.
      */
-    client_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    client_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					   var_client_checks);
-    helo_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    helo_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_helo_checks);
-    mail_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    mail_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_mail_checks);
-    relay_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    relay_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					  var_relay_checks);
-    rcpt_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    rcpt_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_rcpt_checks);
-    etrn_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    etrn_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_etrn_checks);
-    data_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+    data_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_data_checks);
     eod_restrictions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_eod_checks);
@@ -892,8 +892,8 @@ void    smtpd_check_init(void)
      * compatibility.
      */
 #ifndef TEST
-    if (!has_required(rcpt_restrctions, rcpt_required)
-	&& !has_required(relay_restrctions, rcpt_required))
+    if (!has_required(rcpt_restrictions, rcpt_required)
+	&& !has_required(relay_restrictions, rcpt_required))
 	fail_required(VAR_RELAY_CHECKS " or " VAR_RCPT_CHECKS, rcpt_required);
 #endif
 
@@ -4778,8 +4778,8 @@ char   *smtpd_check_client(SMTPD_STATE *state)
      */
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && client_restrctions->argc)
-	status = generic_checks(state, client_restrctions, state->namaddr,
+    if (status == 0 && client_restrictions->argc)
+	status = generic_checks(state, client_restrictions, state->namaddr,
 				SMTPD_NAME_CLIENT, CHECK_CLIENT_ACL);
     state->defer_if_permit_client = state->defer_if_permit.active;
 
@@ -4832,8 +4832,8 @@ char   *smtpd_check_helo(SMTPD_STATE *state, char *helohost)
      */
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && helo_restrctions->argc)
-	status = generic_checks(state, helo_restrctions, state->helo_name,
+    if (status == 0 && helo_restrictions->argc)
+	status = generic_checks(state, helo_restrictions, state->helo_name,
 				SMTPD_NAME_HELO, CHECK_HELO_ACL);
     state->defer_if_permit_helo = state->defer_if_permit.active;
 
@@ -4878,8 +4878,8 @@ char   *smtpd_check_mail(SMTPD_STATE *state, char *sender)
      */
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && mail_restrctions->argc)
-	status = generic_checks(state, mail_restrctions, sender,
+    if (status == 0 && mail_restrictions->argc)
+	status = generic_checks(state, mail_restrictions, sender,
 				SMTPD_NAME_SENDER, CHECK_SENDER_ACL);
     state->defer_if_permit_sender = state->defer_if_permit.active;
 
@@ -4902,7 +4902,7 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
     int     status;
     char   *saved_recipient;
     char   *err;
-    ARGV   *restrctions[2];
+    ARGV   *restrictions[2];
     int     n;
 
     /*
@@ -4957,12 +4957,12 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * compatibility.
      */
     SMTPD_CHECK_RESET();
-    restrctions[0] = relay_restrctions;
-    restrctions[1] = rcpt_restrctions;
+    restrictions[0] = relay_restrictions;
+    restrictions[1] = rcpt_restrictions;
     for (n = 0; n < 2; n++) {
 	status = setjmp(smtpd_check_buf);
-	if (status == 0 && restrctions[n]->argc)
-	    status = generic_checks(state, restrctions[n],
+	if (status == 0 && restrictions[n]->argc)
+	    status = generic_checks(state, restrictions[n],
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
 	if (status == SMTPD_CHECK_REJECT)
 	    break;
@@ -5037,8 +5037,8 @@ char   *smtpd_check_etrn(SMTPD_STATE *state, char *domain)
      */
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && etrn_restrctions->argc)
-	status = generic_checks(state, etrn_restrctions, domain,
+    if (status == 0 && etrn_restrictions->argc)
+	status = generic_checks(state, etrn_restrictions, domain,
 				SMTPD_NAME_ETRN, CHECK_ETRN_ACL);
 
     /*
@@ -5352,8 +5352,8 @@ char   *smtpd_check_data(SMTPD_STATE *state)
      */
     SMTPD_CHECK_RESET();
     status = setjmp(smtpd_check_buf);
-    if (status == 0 && data_restrctions->argc)
-	status = generic_checks(state, data_restrctions,
+    if (status == 0 && data_restrictions->argc)
+	status = generic_checks(state, data_restrictions,
 				SMTPD_CMD_DATA, SMTPD_NAME_DATA, NO_DEF_ACL);
 
     /*
@@ -5712,12 +5712,12 @@ typedef struct {
 } REST_TABLE;
 
 static const REST_TABLE rest_table[] = {
-    "client_restrictions", &client_restrctions,
-    "helo_restrictions", &helo_restrctions,
-    "sender_restrictions", &mail_restrctions,
-    "relay_restrictions", &relay_restrctions,
-    "recipient_restrictions", &rcpt_restrctions,
-    "etrn_restrictions", &etrn_restrctions,
+    "client_restrictions", &client_restrictions,
+    "helo_restrictions", &helo_restrictions,
+    "sender_restrictions", &mail_restrictions,
+    "relay_restrictions", &relay_restrictions,
+    "recipient_restrictions", &rcpt_restrictions,
+    "etrn_restrictions", &etrn_restrictions,
     0,
 };
 
