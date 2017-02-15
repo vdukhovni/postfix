@@ -639,7 +639,7 @@ static void tlsp_ciphertext_event(int event, void *context)
     TLSP_STATE *state = (TLSP_STATE *) context;
 
     /*
-     * Without a TLS quivalent of the NBBIO layer, we must decode the events
+     * Without a TLS equivalent of the NBBIO layer, we must decode the events
      * ourselves and do the ciphertext I/O. Then, we can decide if we want to
      * read or write more ciphertext.
      */
