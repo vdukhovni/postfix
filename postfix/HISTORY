@@ -11119,7 +11119,7 @@ Apologies for any names omitted.
 	Cleanup: removed the legacy "tls_info" structure, factored
 	out common code for peer_CN and issuer_CN lookup, and added
 	sanity check to not verify subject common names that contain
-	nulls or that are execessively long. Patch by Victor Duchovni.
+	nulls or that are excessively long. Patch by Victor Duchovni.
 	Files: tls_client.c, tls_server.c, tls_session.c, tls_misc.c,
 	tls_verify.c.
 	
