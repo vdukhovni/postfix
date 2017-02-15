@@ -1279,7 +1279,7 @@ Apologies for any names omitted.
 	order to avoid deadlock. The number of instances needed is
 	one per smtp/pickup process, and an indeterminate number
 	per local delivery agent. Thanks, Thanks, David Miller and
-	Terry Lorrah for cleueing me in.
+	Terry Lorrah for clueing me in.
 
 	Bugfix: "sendmail -t" extracted recipients weren't subjected
 	to virtual mapping. Daniel Eisenbud strikes again.
