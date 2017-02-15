@@ -945,7 +945,7 @@
     stored in the session data to be cached and reused.
   - This bug was found during the development of Postfix/TLS around one
     year ago, the bug in the library was however only fixed for the server
-    side. At that time I also tested the server side behaviour but ommitted
+    side. At that time I also tested the server side behaviour but omitted
     to check the client side, too.
   - Versions before Postfix/TLS 0.4.4 experienced this problem for both
     server and client side. Before 0.6.0 a workaround was active for both
