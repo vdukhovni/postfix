@@ -1423,7 +1423,7 @@
     special treatment into the pfixtls.c sourcecode.
 
 2000/05/19
-  - Systematicly implemented a generalized layer handling:
+  - Systematically implemented a generalized layer handling:
     * do_tls_operation() is the generic handler for all SSL_*() input/output
       functions. It deals with the non-blocking behaviour of this functions,
       requiring appropriate retrys.
