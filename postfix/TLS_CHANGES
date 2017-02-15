@@ -70,7 +70,7 @@
 
 2003/12/16
   - Postfix-2.0.16-20031215 is released. Resolved patch conflicts.
-  - src/global/pfixtls.c: changed occurance of "ssize_t" to "size_t"
+  - src/global/pfixtls.c: changed occurrence of "ssize_t" to "size_t"
     as some quite old operating systems do no have ssize_t
     (Reported by Klaus Jaehne <kj@uue.org> for SunOS 4.1.4).
   - src/global/pfixtls.c: both the client and the server engine did
