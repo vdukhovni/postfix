@@ -2157,7 +2157,7 @@
     with Netscape 4.61 client. The first connection is fine, the next
     one hangs after the server fails with errors while reading the
     SSLv3 client hello C. (Found by Michael Stroeder <x_mst@propack-data.de>)
-    Reproducable with OpenSSL 0.9.3a, 0.9.4 and SNAPSHOT 19990915, so
+    Reproducible with OpenSSL 0.9.3a, 0.9.4 and SNAPSHOT 19990915, so
     the problem seems to be persistent. I will try to figure out the
     problem myself before reporting it to the developers. If I don't find
     it, maybe they do :-)
