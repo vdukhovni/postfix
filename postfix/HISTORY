@@ -16443,7 +16443,7 @@ Apologies for any names omitted.
 20110113
 
 	Cleanup: ps_cache and psc_cache are now postscreen_cache.
-	There is no need for obscure name abbrevations. File:
+	There is no need for obscure name abbreviations. File:
 	src/global/mail_params.h.
 
 20110115
