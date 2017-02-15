@@ -125,7 +125,7 @@ static int dict_sockmap_max_ttl = DICT_SOCKMAP_DEF_MAX_TTL;
 
  /*
   * The client handle is shared between socketmap instances that have the
-  * same inet:host:port or unix:pathame information. This could be factored
+  * same inet:host:port or unix:pathname information. This could be factored
   * out as a general module for reference-counted handles of any kind.
   */
 static HTABLE *dict_sockmap_handles;	/* shared handles */
