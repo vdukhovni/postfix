@@ -17861,7 +17861,7 @@ Apologies for any names omitted.
 20120627
 
 	Bugfix (introduced: 20120531-617): in the postscreen module
-	for HAproxy sypport, a VSTREAM buffer size request was not
+	for HAproxy support, a VSTREAM buffer size request was not
 	LP64-clean.  File: postscreen/postscreen_haproxy.c.
 
 	Cleanup: avoid single-character reads in the postscreen
