@@ -14135,7 +14135,7 @@ Apologies for any names omitted.
 	File: milter/milter8.c.
 
 	Cleanup: when a cleanup milter reports a problem don't log
-	generic "4.3.0 Sevice unavailable", but log the text for
+	generic "4.3.0 Service unavailable", but log the text for
 	the actual error. File: cleanup/cleanup_milter.c.
 
 20080102-nonprod
