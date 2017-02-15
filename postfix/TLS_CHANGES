@@ -2064,7 +2064,7 @@
   - Implemented immediate removal of session cache files with expired sessions
     when these are called. No need to first load and then discard them.
   - Implemented the requirement from RFC2246 to remove sessions, when
-    connection failures occure (well actually, when TLS layer failures
+    connection failures occur (well actually, when TLS layer failures
     occur, but I cannot seperate this from another) for the server side.
     the client side is under work.
 
