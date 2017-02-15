@@ -330,7 +330,7 @@ Version 1.10	Postfix snapshots 1.1.12-200212{19,21}
 	is enabled.
 	File: util/inet_addr_local.c
 
-	Bugfix: If unable to create a socket for a specific adress
+	Bugfix: If unable to create a socket for a specific address
 	in the SMTP client (e.g., when trying to create an IPv6
 	connection while the local host has no configured IPv6
 	addresses), then stop the attempt.

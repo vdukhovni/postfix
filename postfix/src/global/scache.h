@@ -92,7 +92,7 @@ typedef int (*SCACHE_FIND_DEST_FN) (SCACHE *, const char *, VSTRING *, VSTRING *
   */
 struct SCACHE_SIZE {
     int     dest_count;			/* Nr of destination names */
-    int     endp_count;			/* Nr of endpoint adresses */
+    int     endp_count;			/* Nr of endpoint addresses */
     int     sess_count;			/* Nr of cached sessions */
 };
 

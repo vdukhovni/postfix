@@ -12281,7 +12281,7 @@ Apologies for any names omitted.
 20060606
 
 	Safety: mail receiving daemons (smtpd, qmqpd) now pass
-	actual client name/addres/helo attributes in addition to
+	actual client name/address/helo attributes in addition to
 	the attributes used for logging (xforward). This prevents
 	Milter applications from treating qmqpd mail as if it
 	originated locally, and prevents incorrect Milter decisions
@@ -13424,7 +13424,7 @@ Apologies for any names omitted.
 
 20070414
 
-	Cleanup: expire cached results from addres rewriting, address
+	Cleanup: expire cached results from address rewriting, address
 	resolution, and from transport map lookups.  Results expire
 	after 30 seconds; short enough that it doesn't freak out
 	people who run the same test repeatedly, and long enough
@@ -18499,7 +18499,7 @@ Apologies for any names omitted.
 	endpoint label; better reuse of SASL-authenticated connections
 	over UNIX-domains sockets, however unlikely these may be;
 	a first step towards refinement of connection cache lookup
-	by IP addres for plaintext or SASL-unauthenticated connections.
+	by IP address for plaintext or SASL-unauthenticated connections.
 	Files: smtp/smtp.h smtp/smtp_connect.c, smtp/smtp_reuse.c,
 	smtp/smtp_key.c, smtp/smtp_tls_sess.s.
 

@@ -295,7 +295,7 @@ int     main(int argc, char **argv)
     verify_time = time((time_t *) 0);
 
     /*
-     * Compute the current probe sender addres.
+     * Compute the current probe sender address.
      */
     verify_sender = make_verify_sender_addr();
 

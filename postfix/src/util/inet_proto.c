@@ -214,7 +214,7 @@ INET_PROTO_INFO *inet_proto_init(const char *context, const char *protocols)
     }
 
     /*
-     * Store addess family etc. info as null-terminated vectors. If that
+     * Store address family etc. info as null-terminated vectors. If that
      * breaks because we must be able to store nulls, we'll deal with the
      * additional complexity.
      * 
