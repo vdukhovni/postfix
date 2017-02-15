@@ -16531,7 +16531,7 @@ Apologies for any names omitted.
 	Cleaned up and finalized read/write deadline support. Once
 	this code has been fielded it can go into Postfix 2.8.1,
 	and made available as optional patch for earlier releases.
-	Further refinements have only dimishing returns and can
+	Further refinements have only diminishing returns and can
 	evolve in the 2.9 release cycle.  File: util/vstream.c.
 
 20110128
