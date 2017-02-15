@@ -1814,7 +1814,7 @@ int     main(int argc, char **argv)
     }
 
     /*
-     * Proces main.cf parameters.
+     * Process main.cf parameters.
      */
     mail_conf_read();
     get_mail_conf_str_table(str_table);
