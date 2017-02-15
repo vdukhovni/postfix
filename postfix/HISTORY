@@ -7269,7 +7269,7 @@ Apologies for any names omitted.
 20021119
 
 	New address_verification_negative_cache = yes/no parameter
-	controls whether Postfix stores the result of negatieve
+	controls whether Postfix stores the result of negative
 	address verification probes. This reduces cache pollution
 	but causes Postfix to send a probe for each address
 	verification service query. File: verify/verify.c.
