@@ -6947,7 +6947,7 @@ Apologies for any names omitted.
 
 200209010
 
-	Bugfix: the SMTP client produced suprious warnings about
+	Bugfix: the SMTP client produced spurious warnings about
 	trouble with fallback_relay hosts. File:  smtp/smtp_connect.c.
 
 	Robustness: don't wait with detecting broken SMTP connections
