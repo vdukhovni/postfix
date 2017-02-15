@@ -11,7 +11,7 @@
 
 2004/06/21
   - Postfix 2.1.3 has been released. Shortlived 2.1.2 did bring an
-    incompatibel change (patch conflict) which has been resolved.
+    incompatible change (patch conflict) which has been resolved.
   - Fixed some typos in the tlsmgr.8 manual page (Chris Pepper
     <pepper@reppep.com>).
 
