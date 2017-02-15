@@ -251,9 +251,9 @@ Wish list:
 	Make errno white/blacklist for getpwnam_r etc. and mailbox
 	write errors.
 
-	smtpd_muble_restrictions rule names are case-insensitive.
+	smtpd_mumble_restrictions rule names are case-insensitive.
 	restriction_classes values are case-sensitive but should
-	be case-insensitive for consistency with smtpd_muble_restrictions.
+	be case-insensitive for consistency with smtpd_mumble_restrictions.
 
 	Make "rename" the default when postmapping a DB file
 	(later: use copy+rename for postmap -i, postmap -d).
