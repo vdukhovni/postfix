@@ -187,7 +187,7 @@ char   *casefoldx(int flags, VSTRING *dest, const char *src, ssize_t len)
      * with space_needed below) does not include storage for the null
      * terminator. The terminator is written only when the output buffer is
      * large enough. This is why we overallocate space when the output does
-     * not fit. But if the output fits exactly, then the ouput will be
+     * not fit. But if the output fits exactly, then the output will be
      * unterminated, and we have to terminate the output ourselves.
      */
     for (n = 0; n < 3; n++) {
