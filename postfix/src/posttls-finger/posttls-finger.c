@@ -1233,7 +1233,7 @@ static DNS_RR *host_addr(STATE *state, const char *host)
     return (addr_list);
 }
 
-/* dane_host_level - canidate host "dane" or degraded security level */
+/* dane_host_level - candidate host "dane" or degraded security level */
 
 static int dane_host_level(STATE *state, DNS_RR *addr)
 {
