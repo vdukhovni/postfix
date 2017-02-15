@@ -2034,7 +2034,7 @@
 
 1999/10/17
   - Added another half a ton of comments (this time for the client side),
-    yielding one ton alltogether...
+    yielding one ton altogether...
 
 1999/10/16
   - Rearranged some of the TLS-engine initialization to improve readability.
