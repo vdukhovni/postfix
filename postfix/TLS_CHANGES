@@ -1004,7 +1004,7 @@
     allow finer control, so if e.g. an employee leaves, he could still
     relay. Postfix/TLS does not (yet) allow CRL (certificate revocation lists).
     (Added on popular demand.)
-  - Make the client behaviour more configurabe: when enforcing TLS connections,
+  - Make the client behaviour more configurable: when enforcing TLS connections,
     the peer's name is checked against the CommonName in its certificate.
     New configuration variable "smtp_tls_enforce_peername" (default=yes)
     can now be used to accept peername!=CommonName. The server's certificate
