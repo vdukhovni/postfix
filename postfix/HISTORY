@@ -12923,7 +12923,7 @@ Apologies for any names omitted.
 
 20061206
 
-	Robustness: low-cost re-entrancy guard that allows daemons
+	Robustness: low-cost reentrancy guard that allows daemons
 	to safely call msg_fatal() etc. from a signal handler,
 	without risking memory corruption, or deadlock on Redhat
 	Linux.  This works provided that the signal handler terminates

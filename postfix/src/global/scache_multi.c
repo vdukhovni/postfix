@@ -125,7 +125,7 @@ static void scache_multi_expire_endp(int, void *);
  /*
   * When deleting a circular list element, are we deleting the entire
   * circular list, or are we removing a single list element. We need this
-  * distinction to avoid a re-entrancy problem between htable_delete() and
+  * distinction to avoid a reentrancy problem between htable_delete() and
   * htable_free().
   */
 #define BOTTOM_UP	1		/* one item */

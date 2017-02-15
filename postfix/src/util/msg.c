@@ -123,7 +123,7 @@
 /*	terminating signal handler, or is called exclusively by the
 /*	msg(3) module.
 /* .PP
-/*	When re-entrancy is detected, the requested output and
+/*	When reentrancy is detected, the requested output and
 /*	optional cleanup operations are skipped. Skipping the output
 /*	operations prevents memory corruption of VSTREAM_ERR data
 /*	structures, and prevents deadlock on Linux releases that
