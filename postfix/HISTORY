@@ -20527,7 +20527,7 @@ Apologies for any names omitted.
 	Postfix to run with backwards-compatible default settings
 	after an upgrade to a newer Postfix version.  Postfix logs
 	all uses of those backwards-compatible default settings so
-	that the system administator can determine whether or not
+	that the system administrator can determine whether or not
 	some backwards-compatible default settings need to be made
 	permanent in main.cf or master.cf.  All this is controlled
 	with a new compatibility_level parameter, default value 0.
