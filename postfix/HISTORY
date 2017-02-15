@@ -18177,7 +18177,7 @@ Apologies for any names omitted.
 20121224
 
 	Feature: "postconf -Mn" support to print only master.cf
-	entries that have "-o name=value" parameter setttings.
+	entries that have "-o name=value" parameter settings.
 	Files: postconf/postconf_master.c.
 
 20121226
