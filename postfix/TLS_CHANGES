@@ -1350,7 +1350,7 @@
     0.6.10 choke on the data. Now going back up through the functions very
     fast reveals the problem:
     * The certificate supplied triggers the "RSA-padding" error in any case.
-      Since the certificate authencity is not enforced on OpenSSL-library level
+      Since the certificate authenticity is not enforced on OpenSSL-library level
       but inside postfix later, the error is not enforced.
       The error messages generated stay however in the error queue.
       - For blocking sockets, the SSL_accept()/connect() calls return
