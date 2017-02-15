@@ -544,7 +544,7 @@ Wish list:
 	in the queue manager?  When a recipient bounces during
 	(transport, nexthop, address) resolution, it is redirected
 	to the error or retry mailer; and bounce-after-delivery is
-	asynchrounous so it can't block the queue manager, either.
+	asynchronous so it can't block the queue manager, either.
 
 	How to ensure that proxy_read_maps is processed after all
 	its dependencies are initialized, or just bite the bullet
