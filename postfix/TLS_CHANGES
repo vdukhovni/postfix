@@ -1019,7 +1019,7 @@
     -> add according msg_info() in smtpd/smtpd.c:startls_cmd().
   - If TLS is not enforced, it does not make sense for a server to require a
     client certificate. If no STARTTLS is issued, the SMTP would continue
-    anyway, so why shut down when TLS is activated without verifyable client
+    anyway, so why shut down when TLS is activated without verifiable client
     certificate?
     -> ignore smtpd_tls_req_ccert=yes, if TLS is not enforced and only treat
        like smtpd_tls_ask_ccert = yes with an according information logged.
