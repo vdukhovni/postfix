@@ -19113,7 +19113,7 @@ Apologies for any names omitted.
 	dict_sockmap.c, dict_regexp.c, dict_pcre.c, dict_lmdb.c,
 	dict_dbm.c, dict_cidr.c, dict_cdb.c.
 
-	Cleanup: warning message after canonical/virtal/etc.
+	Cleanup: warning message after canonical/virtual/etc.
 	table lookup error. Files: cleanup/cleanup_addr.c,
 	cleanup/cleanup_map11.c, cleanup/cleanup_map1n.c,
 	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c,
