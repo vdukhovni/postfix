@@ -23,7 +23,7 @@ postlink	quick script to hyperlink HTML text
 See the proto/README file for the following tools that generate
 HTML and ASCII forms of README documents and of some manual pages.
 
-fixman		quick hack to patch postconf.proto text into C sorce
+fixman		quick hack to patch postconf.proto text into C source
 
 makereadme	create README_FILES table of contents (AAAREADME)
 
