@@ -40,7 +40,7 @@
 2004/02/01
   - Reports about server side SMTP failure with Carsten's patch can be
     found on postfix-users.
-    'Luca Berra' <bluca@comedia.it> informs, that he discoverd another
+    'Luca Berra' <bluca@comedia.it> informs, that he discovered another
     failure of the GNU patch program with a misplaced patch hunk in
     smtpd.c
 
