@@ -18984,7 +18984,7 @@ Apologies for any names omitted.
 
 20131009
 
-	Documentation: inet_protols description was not updated
+	Documentation: inet_protocols description was not updated
 	when smtp_address_preference was added. File: proto/postconf.proto
 
 20131013
