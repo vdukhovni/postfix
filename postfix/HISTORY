@@ -15883,7 +15883,7 @@ Apologies for any names omitted.
 	This code was started in Postfix 2.1, but it was never
 	finished due to time constraints.  Files: smtpd/smtpd.[hc]
 	smtpd/smtpd_proxy.c, smtpd/smtpd_sasl_proto.c,
-	*qmgr/qmgr_messsage.c, *qmgr/qmgr_deliver.c,
+	*qmgr/qmgr_message.c, *qmgr/qmgr_deliver.c,
 	global/deliver_request.[hc], global/mail_proto.h,
 	global/deliver_pass.c, smtp/smtp_proto.c.
 
