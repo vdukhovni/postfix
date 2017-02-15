@@ -177,7 +177,7 @@
 #	The directory for the Postfix README files.
 # .IP shlib_directory
 #	The directory for the Postfix shared-library files, and for
-#	the Postfix dabatase plugin files with a relative pathname
+#	the Postfix database plugin files with a relative pathname
 #	in the file dynamicmaps.cf.
 # .IP meta_directory
 #	The directory for non-executable files that are shared
