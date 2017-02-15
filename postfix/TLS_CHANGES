@@ -1438,7 +1438,7 @@
     state information.
 
 2000/05/17	== Released 0.6.9 ==
-  - Important: the seperator in the relay-fingerprints is now ':'!!!
+  - Important: the separator in the relay-fingerprints is now ':'!!!
     Don't forget to change your relay_clientcerts databases.
 
 2000/05/16
