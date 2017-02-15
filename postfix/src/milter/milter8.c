@@ -696,7 +696,7 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t *data_len, va_list ap)
 		    break;
 		VSTRING_ADDCH(buf, ch);
 		if (*data_len <= 0) {
-		    msg_warn("%s: milter %s: missing string null termimator",
+		    msg_warn("%s: milter %s: missing string null terminator",
 			     myname, milter->m.name);
 		    return (milter8_comm_error(milter));
 		}
