@@ -31,7 +31,7 @@
 /*	ssize_t	len;
 /* DESCRIPTION
 /*	This module implements the low-level memcache protocol.
-/*	All functions return -1 on error and 0 on succcess.
+/*	All functions return -1 on error and 0 on success.
 /* SEE ALSO
 /*	smtp_proto(3) SMTP low-level protocol.
 /* AUTHOR(S)
