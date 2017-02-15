@@ -953,7 +953,7 @@
     was gone (I only tested the server side, which was fixed).
   - Fixed that bug in OpenSSL also for the client side (I can do this myelf
     now that I have been invited to join the OpenSSL developers team :-).
-    The fix is availabe as of today and will be part of the 0.9.7 release
+    The fix is available as of today and will be part of the 0.9.7 release
     of OpenSSL (or 0.9.6a, if this release will be published).
   - Included a workaround inside Postfix/TLS for OpenSSL library versions
     before 0.9.6a or 0.9.7, respectively.
