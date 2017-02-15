@@ -1777,7 +1777,7 @@ int     main(int argc, char **argv)
      * Report missing arguments, or wrong arguments in the wrong context.
      */
     if (instance_select_count > 1)
-	msg_fatal("Specity no more than one of '-a', '-g', '-i'");
+	msg_fatal("Specify no more than one of '-a', '-g', '-i'");
 
     if (command_mode_count != 1)
 	msg_fatal("Specify exactly one of '-e', '-l', '-p', '-x'");
