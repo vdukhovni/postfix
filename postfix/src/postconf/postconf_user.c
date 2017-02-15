@@ -390,7 +390,7 @@ void    pcf_register_user_parameters(void)
     /*
      * Scan parameter values that are left at their defaults in the global
      * name space. Some defaults contain the $name of an obsolete parameter
-     * for backwards compatilility purposes. We might warn that an explicit
+     * for backwards compatibility purposes. We might warn that an explicit
      * name=value is obsolete, but we must not warn that the parameter is
      * unused.
      */

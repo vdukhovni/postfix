@@ -658,7 +658,7 @@
   - Following "popular demand" implemented new feature and configuration option
     "smtpd_tls_auth_only": Only allow authentication using the AUTH protocol,
     when the TLS encryption layer is active. Default is "no" in order to
-    keep compatiblity to postfix without TLS patch.
+    keep compatibility to postfix without TLS patch.
     This option does not distinguish between different AUTH mechanisms.
 
 2001/08/16	== Released 0.7.5 ==
