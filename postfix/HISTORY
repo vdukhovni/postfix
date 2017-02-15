@@ -15681,7 +15681,7 @@ Apologies for any names omitted.
 
 20100128
 
-	Documentation: streamlined the decriptions of protocol and
+	Documentation: streamlined the descriptions of protocol and
 	cipher tweaks. Victor Duchovni. Files: proto/TLS_README,
 	proto/postconf.proto.
 
