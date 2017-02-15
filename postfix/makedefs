@@ -882,7 +882,7 @@ CCARGS="-I. -I../../include $CCARGS"
 # Unfortunately, gmake performs macro expansion on values in name=value
 # command-line arguments. In the specific example above, gmake would
 # eat up the "$" and "m" before it even invokes makedefs, and it
-# ould replace "'${mail_version}'" and "'$(mail_version)'" with
+# could replace "'${mail_version}'" and "'$(mail_version)'" with
 # nothing.
 #
 # Requiring people to specify $$ is not a good option. Instead we
