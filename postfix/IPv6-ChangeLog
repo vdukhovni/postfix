@@ -148,7 +148,7 @@ Version 1.18	Postfix releases 2.0.14 - 2.0.15
 		Postfix snapshot 2.0.14-20030812
 
 	Bugfix: Perform actual hostname verification in the SMTP
-	and QMTP servers. This was never supported in the IPv6
+	and QMQP servers. This was never supported in the IPv6
 	patch. Reported by Wolfgang S. Rupprecht.
 	Files: smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c
 
