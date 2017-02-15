@@ -1981,7 +1981,7 @@ extern int var_mailtool_compat;
 
  /*
   * How long a daemon command may take to receive or deliver a message etc.
-  * before we assume it is wegded (should never happen).
+  * before we assume it is wedged (should never happen).
   */
 #define VAR_DAEMON_TIMEOUT	"daemon_timeout"
 #define DEF_DAEMON_TIMEOUT	"18000s"
