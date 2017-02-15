@@ -13163,7 +13163,7 @@ Apologies for any names omitted.
 
 	Assorted code cleanup, portability fixes/workarounds, and
 	minor updates: global/dict_ldap.c, mantools/postlink,
-	tlsmgs/tlsmgr.c, conf/master.cf. LaMont Jones.
+	tlsmgr/tlsmgr.c, conf/master.cf. LaMont Jones.
 
 20070101
 
