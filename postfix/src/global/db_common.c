@@ -316,7 +316,7 @@ int     db_common_expand(void *ctxArg, const char *format, const char *value,
     if (value == 0)
 	return (0);
 
-    /* Don't silenty skip empty query string or empty lookup results. */
+    /* Don't silently skip empty query string or empty lookup results. */
     if (*value == 0) {
 	if (key)
 	    msg_warn("table \"%s:%s\": empty lookup result for: \"%s\""
