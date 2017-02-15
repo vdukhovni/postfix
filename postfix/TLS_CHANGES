@@ -1093,7 +1093,7 @@
 
 2000/09/25/
   - snapshot-20000924 is available; only small adjustments.
-  - Wietse seems to release new snaphots on a daily basis, it doesn't make
+  - Wietse seems to release new snapshots on a daily basis, it doesn't make
     sense to follow with a new Postfix/TLS release every day.
 
 2000/09/23	== Released 0.6.20 ==
@@ -1488,7 +1488,7 @@
   - No time to install the SASL kit, so this part stays untested as of now.
 
 2000/05/09
-  - Downloaded snaphot and apply the patchkit.
+  - Downloaded snapshot and apply the patchkit.
   - Straightened out the rejected parts of the patch.
   - Due to the new layering with timed_read() and timed_write() functions
     the integration of the TLS layer needed special adjustment.
