@@ -960,7 +960,7 @@ static void check_shared_dir_status(void)
 
     /*
      * XXX Avoid false conflicts with meta_directory. This usually overlaps
-     * with other directories, typcally config_directory, shlib_directory or
+     * with other directories, typically config_directory, shlib_directory or
      * daemon_directory.
      */
     for (sp = shared_dir_table; sp->param_name; ++sp) {
