@@ -223,7 +223,7 @@
 #define SMTPD_PROXY_XFORWARD_PORT  (1<<6)	/* client port */
 
  /*
-  * Spead-matching: we use an unlinked file for transient storage.
+  * Speed-matching: we use an unlinked file for transient storage.
   */
 static VSTREAM *smtpd_proxy_replay_stream;
 
