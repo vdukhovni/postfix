@@ -15648,7 +15648,7 @@ Apologies for any names omitted.
 
 20100115
 
-	Bugfix: the valid_hostname() fuction did not set the
+	Bugfix: the valid_hostname() function did not set the
 	"non-numeric" flag after encountering the '-' character.
 	Reported by Jan Schampera.  File: util/valid_hostname.c.
 
