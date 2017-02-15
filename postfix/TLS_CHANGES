@@ -1701,7 +1701,7 @@
     the postfix library version before the timestamp. If a session does
     not match exactly the version numbers, it is immediately discarded
     and deleted to avoid harm.
-  - Removed the seperate storage of the peer's certificate verify_result,
+  - Removed the separate storage of the peer's certificate verify_result,
     so starting from this moment, Postfix/TLS will only work safely with
     OpenSSL >= 0.9.5!!!
   - Ported server side session cache routines to the client side; works.
@@ -1739,7 +1739,7 @@
     to do server _and_ client side TLS. Updated documentation accordingly.
     When testing, Postfix client to Zmailer server failed, because
     Zmailer announces with "ESMTP+IDENT" and Postfix does not recognize
-    the ESMTP token (must be seperate), so only HELO is used and STARTTLS
+    the ESMTP token (must be separate), so only HELO is used and STARTTLS
     is not offered by the Zmailer server. Informed Matti accordingly,
     will wait until the problem is resolved before actually publishing
     the update.
@@ -2065,7 +2065,7 @@
     when these are called. No need to first load and then discard them.
   - Implemented the requirement from RFC2246 to remove sessions, when
     connection failures occur (well actually, when TLS layer failures
-    occur, but I cannot seperate this from another) for the server side.
+    occur, but I cannot separate this from another) for the server side.
     the client side is under work.
 
 1999/10/09
