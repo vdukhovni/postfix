@@ -860,7 +860,7 @@
     (This is what smtp does when enforcing the peername of the server it
     is connecting to.)
     The final result was, that the check can already been done inside the
-    verifiy_callback() routine even before the handshake is completed.
+    verify_callback() routine even before the handshake is completed.
     The positive side effect is, that since the session is never completely
     established, it is also not cached on either client or server.
   - Since this is a good idea, I have extended the verify_callback in
