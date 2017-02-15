@@ -20365,7 +20365,7 @@ Apologies for any names omitted.
 	Feature: RFC 7372 enhanced status code for unknown SMTP
 	client hostnames.  File: smtpd/smtpd_check.c
 
-	Bugfix: the accept() calls in test progams escaped attention
+	Bugfix: the accept() calls in test programs escaped attention
 	when Postfix 2.2 was ported to IPv6. Problem found by Mark
 	Martinec. Files: smtpstone/smtp-sink.c, smtpstone/qmqp-sink.c.
 
