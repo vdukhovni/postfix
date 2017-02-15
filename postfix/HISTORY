@@ -19734,7 +19734,7 @@ Apologies for any names omitted.
 	libglobal or dynamicmaps maps.  File: postdrop/postdrop.c.
 
 	Cleanup: moved dynamicmaps initialization from parameter
-	inititialization (mail_conf_suck()) to dictionary initialization
+	initialization (mail_conf_suck()) to dictionary initialization
 	(mail_dict_init()).  A benefit of this is that dynamicmaps.cf
 	is no longer read by programs that don't use Postfix lookup
 	tables.  Files: global/mail_conf.[hc], global/mail_dict.c.

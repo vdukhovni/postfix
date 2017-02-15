@@ -672,7 +672,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
      */
 
     /*
-     * Perform the before-handshake portion of the per-session initalization.
+     * Perform the before-handshake portion of the per-session initialization.
      * Pass a null VSTREAM to indicate that this program, will do the
      * ciphertext I/O, not libtls.
      * 

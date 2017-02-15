@@ -1303,7 +1303,7 @@
 2000/07/19	== Released 0.6.13 ==
 
 2000/07/19
-  - Changed the library-initializaton call to new naming scheme
+  - Changed the library-initialization call to new naming scheme
     (SSLeay_add_ssl_algorithms() to OpenSSL_add_ssl_algorithms() :-).
   - Updated documentation to reflect the use of chain certificates with
     CAfile and smtp[d]_tls_cert_file (see 2000/07/06).

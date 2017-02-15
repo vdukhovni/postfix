@@ -490,7 +490,7 @@ static void dane_init(void)
 	tls_print_errors();
 	dane_tlsa_support = ta_support = 0;
     } else if (signmd == 0) {
-	msg_warn("digest algorithm initializaton failed, no DANE support");
+	msg_warn("digest algorithm initialization failed, no DANE support");
 	tls_print_errors();
 	dane_tlsa_support = 0;
     }
