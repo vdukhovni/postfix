@@ -589,7 +589,7 @@ static int psc_data_cmd(PSC_STATE *state, char *args)
 
     /*
      * We really would like to hang up the connection as early as possible,
-     * so that we dont't have to deal with broken zombies that fall silent at
+     * so that we don't have to deal with broken zombies that fall silent at
      * the first reject response. For now we rely on stress-dependent command
      * read timeouts.
      * 

@@ -558,7 +558,7 @@ Wish list:
 	lookup, then terminates further recursion when the result
 	exceeds the expansion limit. This behavior achieves the
 	original goal that all things shall have a finite size (even
-	though but we don'really care how large they are) but may
+	though but we don't really care how large they are) but may
 	result in surprises when recipients are listed in virtual
 	alias domains or need expansion for other reasons.  In a
 	phone call with Victor, a reasonable way out is to set the
