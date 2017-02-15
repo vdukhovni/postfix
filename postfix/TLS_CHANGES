@@ -1677,7 +1677,7 @@
     when compiled with an older version of postfix.
   - The session cache is now enabled, when a database filename is given.
     smtp[d]_tls_use_session_cache configuration parameters removed,
-    updated documenation accordingly.
+    updated documentation accordingly.
   - Moved the PRNG handling to tlsmgr, applying the new model. tlsmgr will
     query external sources at startup and will then feed a PRNG exchange
     file with random data in intervals of configurable (but random driven)
@@ -1736,7 +1736,7 @@
 
 2000/03/03
   - Received update from Matti Aarnio (Zmailer) is now for some time able
-    to do server _and_ client side TLS. Updated documenation accordingly.
+    to do server _and_ client side TLS. Updated documentation accordingly.
     When testing, Postfix client to Zmailer server failed, because
     Zmailer announces with "ESMTP+IDENT" and Postfix does not recognize
     the ESMTP token (must be seperate), so only HELO is used and STARTTLS
@@ -1771,7 +1771,7 @@
       with high quality random data :-)
     * The support of 56bit ciphers has lost its importance since 128bit
       versions of Netscape etc are now easily available...
-  - This version does not feature source code changes but updated documenation
+  - This version does not feature source code changes but updated documentation
     when compared with 0.5.4:
     * List examples on how to generate good entropy for the PRNG seed in
       /etc/postfix/random_file.
@@ -2326,7 +2326,7 @@
 1999/05/04	== Released 0.2.1 ==
 
 1999/05/04
-  - Stuffed up the documenation to reflect the actual status. No change
+  - Stuffed up the documentation to reflect the actual status. No change
     in functionality.
 
 1999/04/30	== Released 0.2.0 ==
@@ -2334,7 +2334,7 @@
 1999/04/30
   - Adjusted the changes in smtp*.c to Wietse's indentation style.
   - Sorry, the documentation about the client side has by now to be
-    taken from sample-tls.conf. The documenation has to be rearranged
+    taken from sample-tls.conf. The documentation has to be rearranged
     in a larger scale.
 
 1999/04/29
