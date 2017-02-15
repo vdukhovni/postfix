@@ -19381,7 +19381,7 @@ Apologies for any names omitted.
 	posttls-finger/posttls-finger.c, tls/tls_misc.c, tls/tls_rsa.c.
 
 	Cleanup: DANE support: Reduce #ifdef clutter to improve
-	redability and maintainability. Viktor Dukhovni.  File:
+	readability and maintainability. Viktor Dukhovni.  File:
 	tls/tls_dane.c.
 
 	Future proofing: Tolerate disappearance of named bug-workaround
