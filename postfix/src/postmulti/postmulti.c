@@ -609,7 +609,7 @@ typedef struct {
   * To detect conflicts, each instance name and each shared or private
   * pathname is registered in one place, with its owner. Everyone must
   * register their claims when they join, and will be rejected in case of
-  * conlict.
+  * conflict.
   * 
   * Each claim value involves a parameter value (either a directory name or an
   * instance name). Each claim owner is the config_directory pathname plus
