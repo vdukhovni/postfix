@@ -132,7 +132,7 @@
 /*	The certificate depth for logging.
 /* .IP ssl_ctx
 /*	The global SSL_CTX structure used to initialize child SSL
-/*	conenctions.
+/*	connections.
 /* .IP mdalg
 /*	Name of a message digest algorithm suitable for computing secure
 /*	(1st pre-image resistant) message digests of certificates. For now,
