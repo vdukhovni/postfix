@@ -1111,7 +1111,7 @@
   - Wietse releases snapshot-20000922. The source directory hierarchy has
     changed, so the patch needs to be adjusted at several places.
   - Run tests against OpenSSL 0.9.6-beta3: problems occur!
-    * Certificates are no longer verified, since an informationa flag about the
+    * Certificates are no longer verified, since an informational flag about the
       CA certificate search process is written into the error storage and
       thus misinterpreted as verification failure.
     * Changed Postfix/TLS source to maintain its own error storage based on
