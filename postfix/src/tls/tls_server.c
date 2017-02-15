@@ -822,7 +822,7 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
      * Start TLS negotiations. This process is a black box that invokes our
      * call-backs for session caching and certificate verification.
      * 
-     * Error handling: If the SSL handhake fails, we print out an error message
+     * Error handling: If the SSL handshake fails, we print out an error message
      * and remove all TLS state concerning this session.
      */
     sts = tls_bio_accept(vstream_fileno(props->stream), props->timeout,

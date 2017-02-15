@@ -11554,7 +11554,7 @@ Apologies for any names omitted.
 	code cleanup broke sessions with backup servers, causing the
 	client to get out of step with the backup server.  This in
 	turn exposed a one-year old missing exception handling
-	context in the EHLO handstake after sending STARTTLS. Victim
+	context in the EHLO handshake after sending STARTTLS. Victim
 	was Ralf Hildebrandt, detectives Victor Duchovni and Wietse.
 	File: smtp/smtp_proto.c.
 
