@@ -16605,7 +16605,7 @@ Apologies for any names omitted.
 	checking code now logs "hostname X does not resolve to
 	address Y", when a "reverse hostname" lookup result does
 	not resolve to the client IP address.  Files: smtpd/smtpd_peer.c,
-	qmqpr/qmqpd_peer.c.
+	qmqpd/qmqpd_peer.c.
 
 20110216
 
