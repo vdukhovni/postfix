@@ -365,7 +365,7 @@
 /*	vstream_feof() returns non-zero when a previous operation on the
 /*	specified stream caused an end-of-file condition.
 /*	Although further read requests after EOF may complete
-/*	succesfully, vstream_feof() will keep returning non-zero
+/*	successfully, vstream_feof() will keep returning non-zero
 /*	until vstream_clearerr() is called for that stream.
 /*
 /*	vstream_ferror() returns non-zero when a previous operation on the

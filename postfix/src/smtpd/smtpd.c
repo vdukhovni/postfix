@@ -2589,7 +2589,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * Historically, Postfix does not forbid 8-bit envelope localparts.
      * Changing this would be a compatibility break. That can't happen in the
-     * forseeable future.
+     * foreseeable future.
      */
     if ((var_strict_smtputf8 || warn_compat_break_smtputf8_enable)
 	&& (state->flags & SMTPD_FLAG_SMTPUTF8) == 0
@@ -2851,7 +2851,7 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * Historically, Postfix does not forbid 8-bit envelope localparts.
      * Changing this would be a compatibility break. That can't happen in the
-     * forseeable future.
+     * foreseeable future.
      */
     if ((var_strict_smtputf8 || warn_compat_break_smtputf8_enable)
 	&& (state->flags & SMTPD_FLAG_SMTPUTF8) == 0
@@ -3621,7 +3621,7 @@ static int vrfy_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     /*
      * The SMTP standard (RFC 821) disallows unquoted special characters in
      * the VRFY argument. Common practice violates the standard, however.
-     * Postfix accomodates common practice where it violates the standard.
+     * Postfix accommodates common practice where it violates the standard.
      * 
      * XXX Impedance mismatch! The SMTP command tokenizer preserves quoting,
      * whereas the recipient restrictions checks expect unquoted (internal)

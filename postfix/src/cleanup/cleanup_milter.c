@@ -1896,7 +1896,7 @@ void    cleanup_milter_receive(CLEANUP_STATE *state, int count)
 			 cleanup_repl_body, (void *) state);
 }
 
-/* cleanup_milter_apply - apply Milter reponse, non-zero if rejecting */
+/* cleanup_milter_apply - apply Milter response, non-zero if rejecting */
 
 static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 					        const char *resp)

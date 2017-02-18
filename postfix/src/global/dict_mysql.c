@@ -57,7 +57,7 @@
 /*	List of domains the queries should be restricted to.  If
 /*	specified, only FQDN addresses whose domain parts matching this
 /*	list will be queried against the SQL database.  Lookups for
-/*	partial addresses are also supressed.  This can significantly
+/*	partial addresses are also suppressed.  This can significantly
 /*	reduce the query load on the server.
 /* .IP query
 /*	Query template, before the query is actually issued, variable
@@ -814,13 +814,13 @@ DICT   *dict_mysql_open(const char *name, int open_flags, int dict_flags)
 #endif
     dict_mysql->pldb = plmysql_init(dict_mysql->hosts);
     if (dict_mysql->pldb == NULL)
-	msg_fatal("couldn't intialize pldb!\n");
+	msg_fatal("couldn't initialize pldb!\n");
     dict_mysql->dict.owner = cfg_get_owner(dict_mysql->parser);
     return (DICT_DEBUG (&dict_mysql->dict));
 }
 
 /*
- * plmysql_init - initalize a MYSQL database.
+ * plmysql_init - initialize a MYSQL database.
  *		    Return NULL on failure, or a PLMYSQL * on success.
  */
 static PLMYSQL *plmysql_init(ARGV *hosts)

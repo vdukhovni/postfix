@@ -22,7 +22,7 @@
 /*
 /*	qmgr_error_queue() looks up an error queue for the specified
 /*	service and problem. The result is null if the queue is not
-/*	availabe.
+/*	available.
 /*
 /*	qmgr_error_nexthop() computes the next-hop information for
 /*	the specified problem. The result must be passed to myfree().

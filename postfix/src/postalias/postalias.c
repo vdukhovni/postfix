@@ -505,7 +505,7 @@ static int postalias_queries(VSTREAM *in, char **maps, const int map_count,
 	dicts[n] = 0;
 
     /*
-     * Perform all queries. Open maps on the fly, to avoid opening unecessary
+     * Perform all queries. Open maps on the fly, to avoid opening unnecessary
      * maps.
      */
     while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {

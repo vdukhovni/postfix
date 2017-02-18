@@ -92,7 +92,7 @@ extern int mail_queue_id_ok(const char *);
   * - the inode number (base 51 encoded so that it contains no 'z').
   */
 #define MQID_LG_SEC_BASE	52	/* seconds safe alphabet base */
-#define MQID_LG_SEC_PAD	6	/* seconds minumum field width */
+#define MQID_LG_SEC_PAD	6	/* seconds minimum field width */
 #define MQID_LG_USEC_BASE	52	/* microseconds safe alphabet base */
 #define MQID_LG_USEC_PAD	4	/* microseconds exact field width */
 #define MQID_LG_TIME_PAD	(MQID_LG_SEC_PAD + MQID_LG_USEC_PAD)

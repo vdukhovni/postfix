@@ -14,7 +14,7 @@
 /*	myflock() locks or unlocks an entire open file.
 /*
 /*	In the case of a blocking request, a call that fails due to
-/*	forseeable transient problems is retried once per second.
+/*	foreseeable transient problems is retried once per second.
 /*
 /*	Arguments:
 /* .IP fd

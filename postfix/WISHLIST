@@ -773,7 +773,7 @@ Wish list:
 	with a badness indicator and then filter down-stream.
 
 	Make null local-part handling configurable: either expand
-	into mailer-daemon (current bahavior) or disallow (strict
+	into mailer-daemon (current behavior) or disallow (strict
 	behavior, currently implemented only in the SMTP server).
 
 	Add M flag (enable multi-recipient delivery) to pipe daemon.

@@ -395,7 +395,7 @@ extern HBC_CALL_BACKS smtp_hbc_callbacks[];
   * at completely different times.
   * 
   * We "freeze" the choice in the sender loop, just before we generate "." or
-  * "RSET". The reader loop leaves the connection cachable even if the timer
+  * "RSET". The reader loop leaves the connection cacheable even if the timer
   * expires by the time the response arrives. The connection cleanup code
   * will call smtp_quit() for connections with an expired cache expiration
   * timer.

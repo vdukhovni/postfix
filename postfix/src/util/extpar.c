@@ -39,7 +39,7 @@
 /*	In case of error the result value is a dynamically-allocated
 /*	string with a description of the problem that includes a
 /*	copy of the offending input.  A non-null result value should
-/*	be destroyed with myfree(). The following decribes the errors
+/*	be destroyed with myfree(). The following describes the errors
 /*	and the state of the buffer and buffer pointer.
 /* .IP "missing closing parenthesis"
 /*	The buffer pointer points to text as if a closing parenthesis

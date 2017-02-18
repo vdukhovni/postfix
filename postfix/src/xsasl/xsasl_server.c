@@ -92,7 +92,7 @@
 /*	It destroys a SASL server instance, and disables further
 /*	read/write operations if encryption was turned on.
 /*
-/*	xsasl_server_first() produces the server reponse for the
+/*	xsasl_server_first() produces the server response for the
 /*	client AUTH command. The client input are an authentication
 /*	method, and an optional initial response or null pointer.
 /*	The initial response and server non-error replies are BASE64

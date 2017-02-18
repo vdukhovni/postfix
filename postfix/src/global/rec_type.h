@@ -135,7 +135,7 @@
  /*
   * The warn record specifies when the next warning that the message was
   * deferred should be sent.  It is updated in place by qmgr, so changing
-  * this value when there are deferred mesages in the queue is dangerous!
+  * this value when there are deferred messages in the queue is dangerous!
   */
 #define REC_TYPE_WARN_FORMAT	"%15ld"	/* warning time format */
 #define REC_TYPE_WARN_ARG(tv)	((long) (tv))

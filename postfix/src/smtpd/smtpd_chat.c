@@ -28,7 +28,7 @@
 /*
 /*	smtpd_chat_reply() formats a server reply, sends it to the
 /*	client, and appends a copy to the SMTP transaction log.
-/*	When soft_bounce is enabled, all 5xx (reject) reponses are
+/*	When soft_bounce is enabled, all 5xx (reject) responses are
 /*	replaced by 4xx (try again). In case of a 421 reply the
 /*	SMTPD_FLAG_HANGUP flag is set for orderly disconnect.
 /*

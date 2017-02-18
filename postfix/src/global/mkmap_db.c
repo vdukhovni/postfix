@@ -113,7 +113,7 @@ static MKMAP *mkmap_db_before_open(const char *path,
      * files performance degrades rapidly unless the memory pool is O(file
      * size).
      * 
-     * For "btree" files peformance is good with sorted input even for small
+     * For "btree" files performance is good with sorted input even for small
      * memory pools, but with random input degrades rapidly unless the memory
      * pool is O(file size).
      * 
