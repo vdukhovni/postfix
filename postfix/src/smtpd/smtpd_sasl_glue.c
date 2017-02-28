@@ -309,7 +309,7 @@ int     smtpd_sasl_authenticate(SMTPD_STATE *state,
 	/*
 	 * Receive the client response. "*" means that the client gives up.
 	 * XXX For now we ignore the fact that an excessively long response
-	 * will be chopped into multiple reponses. To handle such responses,
+	 * will be chopped into multiple responses. To handle such responses,
 	 * we need to change smtpd_chat_query() so that it returns an error
 	 * indication.
 	 */

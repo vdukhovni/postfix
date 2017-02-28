@@ -1099,7 +1099,7 @@ output-server-tlsa)
 	done
 	set_fqdn "${hostname}"
 
-	# Here positional arguments are keyfiles for which we ouput "3 1 1"
+	# Here positional arguments are keyfiles for which we output "3 1 1"
 	# TLSA RRs, as many keyfiles as the user wants.  By default the live
 	# RSA and/or ECDSA keys.
 	shift `expr $OPTIND - 1`

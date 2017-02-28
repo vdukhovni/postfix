@@ -110,7 +110,7 @@ int     cleanup_body_edit_start(CLEANUP_STATE *state)
     cleanup_region_return(state, state->body_regions);
 
     /*
-     * Select the first region. XXX This will usally be the original body
+     * Select the first region. XXX This will usually be the original body
      * segment, but we must not count on that. Region assignments may change
      * when header editing also uses queue file regions. XXX We don't really
      * know if the first region will be large enough to hold the first body

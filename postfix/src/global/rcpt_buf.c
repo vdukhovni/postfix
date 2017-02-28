@@ -58,7 +58,7 @@
 /*	Yorktown Heights, NY 10598, USA
 /*--*/
 
-/* Syste, library. */
+/* System library. */
 
 #include <sys_defs.h>
 

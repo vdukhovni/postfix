@@ -128,7 +128,7 @@ SMTP_SASL_AUTH_CACHE *smtp_sasl_auth_cache_init(const char *map, int ttl)
      * XXX To avoid multiple writers the map needs to be maintained by the
      * proxywrite service. We would like to have a DICT_FLAG_REQ_PROXY flag
      * so that the library can enforce this, but that requires moving the
-     * dict_proxy module one level down in the build dependency hierachy.
+     * dict_proxy module one level down in the build dependency hierarchy.
      */
 #define CACHE_DICT_OPEN_FLAGS \
 	(DICT_FLAG_DUP_REPLACE | DICT_FLAG_SYNC_UPDATE | DICT_FLAG_UTF8_REQUEST)

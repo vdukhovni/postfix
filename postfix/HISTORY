@@ -22931,10 +22931,14 @@ Apologies for any names omitted.
 
 20170207
 
-	Cleanup: rephrased the precondition paranoia. File:
-	global/mail_conf.c.
+	Cleanup: rephrased paranoia precondition. File: global/mail_conf.c.
 
 20170211
 
-	Cleanup: rephrased the precondition for paranoia. File:
-	util/unsafe.c.
+	Cleanup: rephrased paranoia precondition. File: util/unsafe.c.
+
+20170218
+
+	Cleanup: typofixes from klemens. The only change in compiled
+	code is in one identical mysql error message that also
+	appears in the pgsql client.  Files: about 50.

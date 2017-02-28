@@ -38,7 +38,7 @@
 /*	queue file is complete.
 /*
 /*	cleanup_region_open() opens an existing region or creates
-/*	a new region that can accomodate at least the specified
+/*	a new region that can accommodate at least the specified
 /*	amount of space. A new region is an open-ended region at
 /*	the end of the file; it must be closed (see next) before
 /*	unrelated data can be appended to the same file.

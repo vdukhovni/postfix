@@ -90,7 +90,7 @@
 /* .IP verbose
 /*	Do verbose logging of cache operations? (zero == no)
 /* .IP timeout
-/*	The time after wich a session cache entry is considered too old.
+/*	The time after which a session cache entry is considered too old.
 /* .IP first_next
 /*	One of DICT_SEQ_FUN_FIRST (first cache element) or DICT_SEQ_FUN_NEXT
 /*	(next cache element).

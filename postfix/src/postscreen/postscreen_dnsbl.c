@@ -214,7 +214,7 @@ typedef struct {
   */
 static VSTRING *reply_client;		/* client address in DNSBLOG reply */
 static VSTRING *reply_dnsbl;		/* domain in DNSBLOG reply */
-static VSTRING *reply_addr;		/* adress list in DNSBLOG reply */
+static VSTRING *reply_addr;		/* address list in DNSBLOG reply */
 
 /* psc_dnsbl_add_site - add DNSBL site information */
 
