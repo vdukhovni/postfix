@@ -1461,6 +1461,7 @@ static NAMADR_LIST *hogger_list;
   * Other application-specific globals.
   */
 int     smtpd_input_transp_mask;
+static int smtpd_input_transp_mask_saved;
 
  /*
   * Forward declarations.
@@ -5386,6 +5387,8 @@ static void setup_milters(SMTPD_STATE *state)
      */
     if (state->milters == 0)
 	smtpd_input_transp_mask |= INPUT_TRANSP_MILTER;
+    else
+	smtpd_input_transp_mask = smtpd_input_transp_mask_saved;
 }
 
 /* teardown_milters - release resources */
@@ -5714,7 +5717,7 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * Initialize the receive transparency options: do we want unknown
      * recipient checks, address mapping, header_body_checks?.
      */
-    smtpd_input_transp_mask =
+    smtpd_input_transp_mask_saved = smtpd_input_transp_mask =
     input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 
     /*
