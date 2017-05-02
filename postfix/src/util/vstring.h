@@ -72,8 +72,6 @@ CHECK_VAL_HELPER_DCL(VSTRING_CTL, ssize_t);
 #define VSTRING_LEN(vp)		((ssize_t) ((vp)->vbuf.ptr - (vp)->vbuf.data))
 #define vstring_end(vp)		((char *) (vp)->vbuf.ptr)
 #define VSTRING_TERMINATE(vp)	do { \
-				    if ((vp)->vbuf.cnt <= 0) \
-					VSTRING_SPACE((vp),1); \
 				    *(vp)->vbuf.ptr = 0; \
 				} while (0)
 #define VSTRING_RESET(vp)	do { \

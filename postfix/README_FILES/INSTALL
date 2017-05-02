@@ -612,7 +612,7 @@ The following is an extensive list of names and values.
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 |                               |Specifies options for the postfix-install    |
 |POSTFIX_INSTALL_OPTS=-option...|command, separated by whitespace. Currently, |
-|                               |the only supported option is "-keep-new-     |
+|                               |the only supported option is "-keep-build-   |
 |                               |mtime".                                      |
 |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 |                               |Specifies non-default compiler options for   |

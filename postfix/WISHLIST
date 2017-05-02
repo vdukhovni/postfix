@@ -6,6 +6,10 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Merge in the code to relax smtp_mx_address_limit if 'strict'
+	enforcement would result in the elimination of one IP address
+	family.
+
 	Convert postalias(1) to store external-form keys, and convert
 	aliases(5) to perform external-first lookup with fallback to
 	internal form, to make it consistent with the rest of Postfix.
@@ -14,6 +18,9 @@ Wish list:
 
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
+
+	Merge in the code to check database client configuration
+	files for unknown or duplicate settings.
 
 	Add a header_body_checks extension callback in smtp_proto.c
 	that implements the PASS action.

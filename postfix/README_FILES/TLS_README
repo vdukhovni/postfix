@@ -2,25 +2,17 @@ PPoossttffiixx TTLLSS SSuuppppoorrtt
 
 -------------------------------------------------------------------------------
 
-WWAARRNNIINNGG
-
-By turning on TLS support in Postfix, you not only get the ability to encrypt
-mail and to authenticate remote SMTP clients or servers. You also turn on
-thousands and thousands of lines of OpenSSL library code. Assuming that OpenSSL
-is written as carefully as Wietse's own code, every 1000 lines introduce one
-additional bug into Postfix.
-
 WWhhaatt PPoossttffiixx TTLLSS ssuuppppoorrtt ddooeess ffoorr yyoouu
 
 Transport Layer Security (TLS, formerly called SSL) provides certificate-based
 authentication and encrypted sessions. An encrypted session protects the
 information that is transmitted with SMTP mail or with SASL authentication.
 
-      NOTE: This document describes a TLS user interface that was introduced
-    with Postfix version 2.3. Support for an older user interface is documented
-    in TLS_LEGACY_README, which also describes the differences between Postfix
-    and the third-party patch on which Postfix version 2.2 TLS support was
-    based.
+NOTE: By turning on TLS support in Postfix, you not only get the ability to
+encrypt mail and to authenticate remote SMTP clients or servers. You also turn
+on hundreds of thousands of lines of OpenSSL library code. Assuming that
+OpenSSL is written as carefully as Wietse's own code, every 1000 lines
+introduce one additional bug into Postfix.
 
 Topics covered in this document:
 

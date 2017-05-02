@@ -541,7 +541,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_static_test dict_inline_test midna_domain_test casefold_test \
 	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test \
 	dict_union_test dict_pipe_test miss_endif_cidr_test \
-	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test
+	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test \
+	vstring_test
 
 root_tests:
 
@@ -833,6 +834,11 @@ dict_pipe_test: dict_open dict_pipe_test.in dict_pipe_test.ref
 	 $(SHLIB_ENV) sh -x dict_pipe_test.in >dict_pipe_test.tmp 2>&1
 	diff dict_pipe_test.ref dict_pipe_test.tmp
 	rm -f dict_pipe_test.tmp
+
+vstring_test: dict_open vstring vstring_test.ref
+	 $(SHLIB_ENV) ./vstring one two three >vstring_test.tmp 2>&1
+	diff vstring_test.ref vstring_test.tmp
+	rm -f vstring_test.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

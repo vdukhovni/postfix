@@ -326,8 +326,9 @@
 /* .IP "\fBdaemon_directory (see 'postconf -d' output)\fR"
 /*	The directory with Postfix support programs and daemon programs.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a Postfix process will
-/*	import from a non-Postfix parent process.
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBmulti_instance_directories (empty)\fR"
 /*	An optional list of non-default Postfix configuration directories;
 /*	these directories belong to additional Postfix instances that share

@@ -5396,6 +5396,8 @@ static void teardown_milters(SMTPD_STATE *state)
 	milter_free(state->milters);
 	state->milters = 0;
     }
+    smtpd_input_transp_mask =
+	input_transp_mask(VAR_INPUT_TRANSP, var_input_transp);
 }
 
 
