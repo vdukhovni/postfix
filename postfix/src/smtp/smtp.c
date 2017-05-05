@@ -263,6 +263,12 @@
 /*	deliveries.
 /* .IP "\fBsmtp_dns_reply_filter (empty)\fR"
 /*	Optional filter for Postfix SMTP client DNS lookup results.
+/* .PP
+/*	Available in Postfix version 3.3 and later:
+/* .IP "\fBsmtp_balance_inet_protocols (yes)\fR"
+/*	When a remote destination resolves to a combination of IPv4 and
+/*	IPv6 addresses, ensure that the Postfix SMTP client can try both
+/*	address types before it runs into the smtp_mx_address_limit.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
@@ -934,6 +940,7 @@ bool    var_smtp_rec_deadline;
 bool    var_smtp_dummy_mail_auth;
 char   *var_smtp_dsn_filter;
 char   *var_smtp_dns_re_filter;
+bool    var_smtp_balance_inet_proto;
 
  /* Special handling of 535 AUTH errors. */
 char   *var_smtp_sasl_auth_cache_name;

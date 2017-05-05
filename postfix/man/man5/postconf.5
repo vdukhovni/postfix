@@ -2561,6 +2561,11 @@ server performs final delivery, and send "delivered" delivery status
 notifications instead of "relayed". The default setting is backwards
 compatible to avoid the infinitesimal possibility of breaking
 existing LMTP\-based content filters.
+.SH lmtp_balance_inet_protocols (default: yes)
+The LMTP\-specific version of the smtp_balance_inet_protocols
+configuration parameter. See there for details.
+.PP
+This feature is available in Postfix 3.3 and later.
 .SH lmtp_bind_address (default: empty)
 The LMTP\-specific version of the smtp_bind_address configuration
 parameter.  See there for details.
@@ -6306,6 +6311,17 @@ With "smtp_always_send_ehlo = no", the Postfix SMTP client sends
 EHLO only when
 the word "ESMTP" appears in the server greeting banner (example:
 220 spike.porcupine.org ESMTP Postfix).
+.SH smtp_balance_inet_protocols (default: yes)
+When a remote destination resolves to a combination of IPv4 and
+IPv6 addresses, ensure that the Postfix SMTP client can try both
+address types before it runs into the smtp_mx_address_limit.
+.PP
+This avoids an interoperability problem when a destination resolves
+to primarily IPv6 addresses, the smtp_address_limit feature eliminates
+most or all IPv4 addresses, and the destination is not reachable over
+IPv6.
+.PP
+This feature is available in Postfix 3.3 and later.
 .SH smtp_bind_address (default: empty)
 An optional numerical network address that the Postfix SMTP client
 should bind to when making an IPv4 connection.

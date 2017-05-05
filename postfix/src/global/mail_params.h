@@ -1704,6 +1704,12 @@ extern char *var_smtp_sasl_tlsv_opts;
 #define DEF_SMTP_DUMMY_MAIL_AUTH	0
 extern bool var_smtp_dummy_mail_auth;
 
+#define VAR_LMTP_BALANCE_INET_PROTO "lmtp_balance_inet_protocols"
+#define DEF_LMTP_BALANCE_INET_PROTO DEF_SMTP_BALANCE_INET_PROTO
+#define VAR_SMTP_BALANCE_INET_PROTO "smtp_balance_inet_protocols"
+#define DEF_SMTP_BALANCE_INET_PROTO 1
+extern bool var_smtp_balance_inet_proto;
+
  /*
   * LMTP server. The soft error limit determines how many errors an LMTP
   * client may make before we start to slow down; the hard error limit

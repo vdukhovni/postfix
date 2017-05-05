@@ -4149,6 +4149,17 @@ existing LMTP-based content filters. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_balance_inet_protocols">lmtp_balance_inet_protocols</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_balance_inet_protocols">smtp_balance_inet_protocols</a>
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.3 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_bind_address">lmtp_bind_address</a>
 (default: empty)</b></DT><DD>
 
@@ -10142,6 +10153,23 @@ EHLO only when
 the word "ESMTP" appears in the server greeting banner (example:
 220 spike.porcupine.org ESMTP Postfix).
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_balance_inet_protocols">smtp_balance_inet_protocols</a>
+(default: yes)</b></DT><DD>
+
+<p> When a remote destination resolves to a combination of IPv4 and
+IPv6 addresses, ensure that the Postfix SMTP client can try both
+address types before it runs into the <a href="postconf.5.html#smtp_mx_address_limit">smtp_mx_address_limit</a>. </p>
+
+<p> This avoids an interoperability problem when a destination resolves
+to primarily IPv6 addresses, the smtp_address_limit feature eliminates
+most or all IPv4 addresses, and the destination is not reachable over
+IPv6. </p>
+
+<p> This feature is available in Postfix 3.3 and later. </p>
 
 
 </DD>

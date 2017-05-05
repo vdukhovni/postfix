@@ -22969,3 +22969,14 @@ Apologies for any names omitted.
 	Safety net: append a null byte to vstring buffers, so that
 	C-style string operations won't scribble past the end. File:
 	vstring.[hc].
+
+20170505
+
+	Workaround for a current problem where some destination
+	announces primarily IPv6 MX addresses, the smtp_address_limit
+	eliminates most or all IPv4 addresses, and the destination
+	is not reachable over IPv6. This workaround is enabled with
+	"smtp_balance_mx_inet_protocols = yes", which is the default.
+	Files: smtp/smtp.c, smtp/smtp_params.c, smtp/smtp_addr.c,
+	global/mail_params.h, proto/postconf.proto.
+

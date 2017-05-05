@@ -121,5 +121,6 @@
 	VAR_LMTP_ASSUME_FINAL, DEF_LMTP_ASSUME_FINAL, &var_lmtp_assume_final,
 	VAR_LMTP_REC_DEADLINE, DEF_LMTP_REC_DEADLINE, &var_smtp_rec_deadline,
 	VAR_LMTP_DUMMY_MAIL_AUTH, DEF_LMTP_DUMMY_MAIL_AUTH, &var_smtp_dummy_mail_auth,
+	VAR_LMTP_BALANCE_INET_PROTO, DEF_LMTP_BALANCE_INET_PROTO, &var_smtp_balance_inet_proto,
 	0,
     };

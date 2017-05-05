@@ -354,6 +354,119 @@ static DNS_RR *smtp_truncate_self(DNS_RR *addr_list, unsigned pref)
     return (addr_list);
 }
 
+/* smtp_balance_inet_proto - balance IPv4/6 protocols within address limit */
+
+static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
+				               int addr_limit)
+{
+    const char myname[] = "smtp_balance_inet_proto";
+    DNS_RR *rr;
+    DNS_RR *result_list;
+    DNS_RR *next;
+    int     v6_count;
+    int     v4_count;
+    int     v6_target, v4_target;
+    int    *p;
+
+    /*
+     * Precondition: the input is sorted by MX preference (not necessarily IP
+     * address family preference), and addresses with the same or worse
+     * preference than 'myself' have been eliminated. Postcondition: the
+     * relative list order is unchanged, but some elements are removed.
+     */
+
+    /*
+     * Count the number of IPv6 and IPv4 addresses.
+     */
+    for (v4_count = v6_count = 0, rr = addr_list; rr != 0; rr = rr->next) {
+	if (rr->type == T_A) {
+	    v4_count++;
+	} else if (rr->type == T_AAAA) {
+	    v6_count++;
+	} else {
+	    msg_panic("%s: unexpected record type: %s",
+		      myname, dns_strtype(rr->type));
+	}
+    }
+
+    /*
+     * Ensure that one address type will not out-crowd the other, while
+     * enforcing the address count limit. This works around a current problem
+     * where some destination announces primarily IPv6 MX addresses, the
+     * smtp_address_limit eliminates most or all IPv4 addresses, and the
+     * destination is not reachable over IPv6.
+     * 
+     * Maybe: do all smtp_mx_address_limit enforcement here, and remove
+     * pre-existing enforcement elsewhere. That would obsolete the
+     * smtp_balance_inet_protocols configuration parameter.
+     */
+    if (v4_count > 0 && v6_count > 0 && v4_count + v6_count > addr_limit) {
+
+	/*-
+         * Decide how many IPv6 and IPv4 addresses to keep. The code below
+         * has three branches, corresponding to the regions R1, R2 and R3
+         * in the figure.
+         *
+         *  L = addr_limit
+         *  X = excluded by condition (v4_count + v6_count > addr_limit)
+         *
+         * v4_count
+         *     ^
+         *     |
+         *  L  \  R1
+         *     |X\     |
+         *     |XXX\   |
+         *     |XXXXX\ | R2
+         * L/2 +-------\-------
+         *     |XXXXXXX|X\
+         *     |XXXXXXX|XXX\  R3
+         *     |XXXXXXX|XXXXX\
+         *   0 +-------+-------\--> v6_count
+         *     0      L/2      L
+         */
+	if (v6_count <= addr_limit / 2) {	/* Region R1 */
+	    v6_target = v6_count;
+	    v4_target = addr_limit - v6_target;
+	} else if (v4_count <= addr_limit / 2) {/* Region R3 */
+	    v4_target = v4_count;
+	    v6_target = addr_limit - v4_target;
+	} else {				/* Region R2 */
+	    /* v4_count > addr_limit / 2 && v6_count > addr_limit / 2 */
+	    v4_target = (addr_limit + (addr_list->type == T_A)) / 2;
+	    v6_target = addr_limit - v4_target;
+	}
+	if (msg_verbose)
+	    msg_info("v6_target=%d, v4_target=%d", v6_target, v4_target);
+
+	/* Enforce the address count targets. */
+	result_list = 0;
+	for (rr = addr_list; rr != 0; rr = next) {
+	    next = rr->next;
+	    rr->next = 0;
+	    if (rr->type == T_A) {
+		p = &v4_target;
+	    } else if (rr->type == T_AAAA) {
+		p = &v6_target;
+	    } else {
+		msg_panic("%s: unexpected record type: %s",
+			  myname, dns_strtype(rr->type));
+	    }
+	    if (*p > 0) {
+		result_list = dns_rr_append(result_list, rr);
+		*p -= 1;
+	    } else {
+		dns_rr_free(rr);
+	    }
+	}
+	if (v4_target > 0 || v6_target > 0)
+	    msg_panic("%s: bad target count: v4_target=%d, v6_target=%d",
+		      myname, v4_target, v6_target);
+	if (msg_verbose)
+	    smtp_print_addr("smtp_balance_inet_proto result", result_list);
+    }
+    return (result_list);
+}
+
 /* smtp_domain_addr - mail exchanger address lookup */
 
 DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
@@ -498,9 +611,13 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 	 ((flags) & SMTP_MISC_FLAG_PREF_IPV4) ? dns_rr_compare_pref_ipv4 : \
 	 dns_rr_compare_pref_any)
 
-	if (addr_list && addr_list->next && var_smtp_rand_addr) {
-	    addr_list = dns_rr_shuffle(addr_list);
+	if (addr_list && addr_list->next) {
+	    if (var_smtp_rand_addr)
+		addr_list = dns_rr_shuffle(addr_list);
 	    addr_list = dns_rr_sort(addr_list, SMTP_COMPARE_ADDR(misc_flags));
+	    if (var_smtp_balance_inet_proto)
+		addr_list = smtp_balance_inet_proto(addr_list, misc_flags,
+						    var_smtp_mxaddr_limit);
 	}
 	break;
     case DNS_NOTFOUND:
@@ -558,6 +675,9 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
 	/* The following changes the order of equal-preference hosts. */
 	if (inet_proto_info()->ai_family_list[1] != 0)
 	    addr_list = dns_rr_sort(addr_list, SMTP_COMPARE_ADDR(misc_flags));
+	if (var_smtp_balance_inet_proto)
+	    addr_list = smtp_balance_inet_proto(addr_list, misc_flags,
+						var_smtp_mxaddr_limit);
     }
     if (msg_verbose)
 	smtp_print_addr(host, addr_list);
