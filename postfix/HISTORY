@@ -22980,3 +22980,7 @@ Apologies for any names omitted.
 	Files: smtp/smtp.c, smtp/smtp_params.c, smtp/smtp_addr.c,
 	global/mail_params.h, proto/postconf.proto.
 
+20170506
+
+	A last-minute cosmetic fix had introduced a bug in
+	smtp/smtp_addr.c.

@@ -361,11 +361,12 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
 {
     const char myname[] = "smtp_balance_inet_proto";
     DNS_RR *rr;
-    DNS_RR *result_list;
+    DNS_RR *stripped_list;
     DNS_RR *next;
     int     v6_count;
     int     v4_count;
-    int     v6_target, v4_target;
+    int     v6_target,
+            v4_target;
     int    *p;
 
     /*
@@ -439,7 +440,7 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
 	    msg_info("v6_target=%d, v4_target=%d", v6_target, v4_target);
 
 	/* Enforce the address count targets. */
-	result_list = 0;
+	stripped_list = 0;
 	for (rr = addr_list; rr != 0; rr = next) {
 	    next = rr->next;
 	    rr->next = 0;
@@ -452,7 +453,7 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
 			  myname, dns_strtype(rr->type));
 	    }
 	    if (*p > 0) {
-		result_list = dns_rr_append(result_list, rr);
+		stripped_list = dns_rr_append(stripped_list, rr);
 		*p -= 1;
 	    } else {
 		dns_rr_free(rr);
@@ -462,9 +463,11 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
 	    msg_panic("%s: bad target count: v4_target=%d, v6_target=%d",
 		      myname, v4_target, v6_target);
 	if (msg_verbose)
-	    smtp_print_addr("smtp_balance_inet_proto result", result_list);
+	    smtp_print_addr("smtp_balance_inet_proto result", stripped_list);
+	return (stripped_list);
+    } else {
+	return (addr_list);
     }
-    return (result_list);
 }
 
 /* smtp_domain_addr - mail exchanger address lookup */
