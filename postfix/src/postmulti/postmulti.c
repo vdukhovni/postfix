@@ -610,7 +610,7 @@ typedef struct {
   * To detect conflicts, each instance name and each shared or private
   * pathname is registered in one place, with its owner. Everyone must
   * register their claims when they join, and will be rejected in case of
-  * conlict.
+  * conflict.
   * 
   * Each claim value involves a parameter value (either a directory name or an
   * instance name). Each claim owner is the config_directory pathname plus
@@ -961,7 +961,7 @@ static void check_shared_dir_status(void)
 
     /*
      * XXX Avoid false conflicts with meta_directory. This usually overlaps
-     * with other directories, typcally config_directory, shlib_directory or
+     * with other directories, typically config_directory, shlib_directory or
      * daemon_directory.
      */
     for (sp = shared_dir_table; sp->param_name; ++sp) {
@@ -1778,7 +1778,7 @@ int     main(int argc, char **argv)
      * Report missing arguments, or wrong arguments in the wrong context.
      */
     if (instance_select_count > 1)
-	msg_fatal("Specity no more than one of '-a', '-g', '-i'");
+	msg_fatal("Specify no more than one of '-a', '-g', '-i'");
 
     if (command_mode_count != 1)
 	msg_fatal("Specify exactly one of '-e', '-l', '-p', '-x'");

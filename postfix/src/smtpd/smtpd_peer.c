@@ -318,7 +318,7 @@ static void smtpd_peer_sockaddr_to_hostname(SMTPD_STATE *state)
      * 
      * It is unsafe to allow numeric hostnames, especially because there exists
      * pressure to turn off the name->addr double check. In that case an
-     * attacker could trivally bypass access restrictions.
+     * attacker could trivially bypass access restrictions.
      * 
      * sockaddr_to_hostname() already rejects malformed or numeric names.
      */

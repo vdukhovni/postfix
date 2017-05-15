@@ -824,8 +824,8 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
     static const CONFIG_TIME_TABLE time_table[] = {
-	VAR_QMTPD_TMOUT, DEF_QMTPD_TMOUT, &var_qmqpd_timeout, 1, 0,
-	VAR_QMTPD_ERR_SLEEP, DEF_QMTPD_ERR_SLEEP, &var_qmqpd_err_sleep, 0, 0,
+	VAR_QMQPD_TMOUT, DEF_QMQPD_TMOUT, &var_qmqpd_timeout, 1, 0,
+	VAR_QMQPD_ERR_SLEEP, DEF_QMQPD_ERR_SLEEP, &var_qmqpd_err_sleep, 0, 0,
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {

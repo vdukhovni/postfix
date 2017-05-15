@@ -63,7 +63,7 @@
 /*	by a terminating signal handler, or it must be called
 /*	exclusively by functions in the msg_output(3) module.
 /* .PP
-/*	When re-entrancy is detected, the requested output operation
+/*	When reentrancy is detected, the requested output operation
 /*	is skipped. This prevents memory corruption of VSTREAM_ERR
 /*	data structures, and prevents deadlock on Linux releases
 /*	that use mutexes within system library routines such as

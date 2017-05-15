@@ -273,7 +273,7 @@ static int dict_cdbm_update(DICT *dict, const char *name, const char *value)
      */
 #ifdef TINYCDB_VERSION
 #ifndef CDB_PUT_ADD
-#error please upgrate tinycdb to at least 0.5 version
+#error please upgrade tinycdb to at least 0.5 version
 #endif
     if (dict->flags & DICT_FLAG_DUP_IGNORE)
 	r = CDB_PUT_ADD;
@@ -387,7 +387,7 @@ static DICT *dict_cdbm_open(const char *path, int dict_flags)
 	if (st0.st_ino == st1.st_ino && st0.st_dev == st1.st_dev
 	    && st0.st_rdev == st1.st_rdev && st0.st_nlink == st1.st_nlink
 	    && st0.st_nlink > 0)
-	    break;				/* successefully opened */
+	    break;				/* successfully opened */
 
 	close(fd);
 

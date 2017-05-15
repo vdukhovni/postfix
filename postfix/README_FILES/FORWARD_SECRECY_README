@@ -195,7 +195,7 @@ Linux). If the remote SMTP server supports cipher suites with forward secrecy
 between the server and client will resist decryption even if the server's long-
 term authentication keys are later compromised.
 
-Postfix >= 3.2 supports the curve negotitation API of OpenSSL >= 1.0.2. The
+Postfix >= 3.2 supports the curve negotiation API of OpenSSL >= 1.0.2. The
 list of candidate curves can be changed via the "tls_eecdh_auto_curves"
 configuration parameter, which can be used to select a prioritized list of
 supported curves (most preferred first) on both the Postfix SMTP server and
@@ -219,7 +219,7 @@ EEEECCDDHH CClliieenntt ssuuppppoorrtt ((PPoossttffiix
 
 This works "out of the box" with no need for additional configuration.
 
-Postfix >= 3.2 supports the curve negotitation API of OpenSSL >= 1.0.2. The
+Postfix >= 3.2 supports the curve negotiation API of OpenSSL >= 1.0.2. The
 list of candidate curves can be changed via the "tls_eecdh_auto_curves"
 configuration parameter, which can be used to select a prioritized list of
 supported curves (most preferred first) on both the Postfix SMTP server and

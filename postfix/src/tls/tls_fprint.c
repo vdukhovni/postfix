@@ -271,7 +271,7 @@ char   *tls_digest_encode(const unsigned char *md_buf, int md_len)
     if (md_len > EVP_MAX_MD_SIZE || md_len >= INT_MAX / 3)
 	msg_panic("unexpectedly large message digest size: %u", md_len);
 
-    /* No risk of overrunes, len is bounded by OpenSSL digest length */
+    /* No risk of overruns, len is bounded by OpenSSL digest length */
     for (i = 0; i < md_len; i++) {
 	result[i * 3] = hexcodes[(md_buf[i] & 0xf0) >> 4U];
 	result[(i * 3) + 1] = hexcodes[(md_buf[i] & 0x0f)];

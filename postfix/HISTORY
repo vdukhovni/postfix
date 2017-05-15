@@ -105,7 +105,7 @@ Apologies for any names omitted.
 	in main.cf (this will eventually be done by the system
 	installation/configuration procedure). Should the config
 	language support backticks so one can say `domainname`?
-	What about $name stuff between the backtics?
+	What about $name stuff between the backticks?
 
 	Security: the master now creates FIFOs and UNIX-domain
 	sockets as the mail owner instead of as root, for better
@@ -1279,7 +1279,7 @@ Apologies for any names omitted.
 	order to avoid deadlock. The number of instances needed is
 	one per smtp/pickup process, and an indeterminate number
 	per local delivery agent. Thanks, Thanks, David Miller and
-	Terry Lorrah for cleueing me in.
+	Terry Lorrah for clueing me in.
 
 	Bugfix: "sendmail -t" extracted recipients weren't subjected
 	to virtual mapping. Daniel Eisenbud strikes again.
@@ -4601,7 +4601,7 @@ Apologies for any names omitted.
 
 20001210
 
-	Bugfix: the local_destination_concurrency_limit paramater
+	Bugfix: the local_destination_concurrency_limit parameter
 	no longer worked as per-user concurrency limit but instead
 	worked as per-domain limit, so that the limit of "2" in
 	the default main.cf files resulted in poor local delivery
@@ -5691,7 +5691,7 @@ Apologies for any names omitted.
 	an owner but the client is not (SASL) logged in as the MAIL
 	FROM address owner, or when a client is (SASL) logged in
 	but the client login name does not own the MAIL FROM address
-	according to $smtpd_sender_login_maps.  File: smtpd/smpd_check.c.
+	according to $smtpd_sender_login_maps.  File: smtpd/smtpd_check.c.
 
 	Documentation: added some redundancy to the LMTP_README
 	file so people can keep track of the difference between
@@ -6947,7 +6947,7 @@ Apologies for any names omitted.
 
 200209010
 
-	Bugfix: the SMTP client produced suprious warnings about
+	Bugfix: the SMTP client produced spurious warnings about
 	trouble with fallback_relay hosts. File:  smtp/smtp_connect.c.
 
 	Robustness: don't wait with detecting broken SMTP connections
@@ -7269,14 +7269,14 @@ Apologies for any names omitted.
 20021119
 
 	New address_verification_negative_cache = yes/no parameter
-	controls whether Postfix stores the result of negatieve
+	controls whether Postfix stores the result of negative
 	address verification probes. This reduces cache pollution
 	but causes Postfix to send a probe for each address
 	verification service query. File: verify/verify.c.
 
 	Added optimistic caching to the verify daemon, so that one
 	failed probe will not clobber a known to be good address.
-	As long as some probes succeeed, a good address will stay
+	As long as some probes succeed, a good address will stay
 	cached as OK.
 
 	Cleaning up of the bounce daemon's code for bounce, delayed
@@ -7559,7 +7559,7 @@ Apologies for any names omitted.
 	rewrite broken user@ or user@. address forms into even more
 	broken forms. bother. File: trivial-rewrite/rewrite.c.
 
-	Cleanup: the address resolver code now treates forms ending
+	Cleanup: the address resolver code now treats forms ending
 	in @ in a more rational manner (because the address rewriting
 	code no longer messes up by appending .my.domain).
 
@@ -7647,7 +7647,7 @@ Apologies for any names omitted.
 
 	Cleanup: multiservers such as trivial-rewrite and the new
 	proxymap server now enforce the max_use total client number
-	limit more agressively, by not accepting new connections
+	limit more aggressively, by not accepting new connections
 	after the limit is reached.  Based on a patch by Victor
 	Duchovni, Morgan Stanley. File:  master/multi_server.c.
 
@@ -8217,7 +8217,7 @@ Apologies for any names omitted.
 	configuration parameters enable one to set limits on
 	recursive nesting, result expansion and the server response
 	"entry" count. Implemented by Victor Duchovni, Morgan
-	Stanley, further enanced by Lamont Jones, HP. Files:
+	Stanley, further enhanced by Lamont Jones, HP. Files:
 	src/util/dict_ldap.c, conf/sample-ldap.cf,
 	README_FILES/LDAP_README.
 
@@ -8611,7 +8611,7 @@ Apologies for any names omitted.
 	libraries support just SPACE, others SPACE and ",". Postfix
 	now normalizes the host list into a space separated format.
 	This is less surprising to Postfix users used to the full
-	range of delimeters in other contexts. Implemented by Liviu
+	range of delimiters in other contexts. Implemented by Liviu
 	Daia. File: util/dict_ldap.c
 
 	Bugfix: after returning too old mail, the bounce daemon
@@ -8968,7 +8968,7 @@ Apologies for any names omitted.
 20040104
 
 	Workaround: MacOSX dumps core on the 20030913 TZ censoring
-	code. We explictly set TZ=UTC, which will produce incorrect
+	code. We explicitly set TZ=UTC, which will produce incorrect
 	results when "mailq" formatting is moved from the showq
 	daemon to the postqueue command.   File: msg_syslog.c.
 
@@ -10437,7 +10437,7 @@ Apologies for any names omitted.
 	session" call-back routines. Found by Victor Duchovni.
 	Files: tls/tls_client.c, tls/tls_server.c.
 
-	Workaround: OpenSSL is overly agressive when purging a
+	Workaround: OpenSSL is overly aggressive when purging a
 	not-yet expired entry from a full in-memory cache: it also
 	purges the entry from the on-disk server session cache.
 	Workaround is to let only the tlsmgr purge entries from the
@@ -11119,7 +11119,7 @@ Apologies for any names omitted.
 	Cleanup: removed the legacy "tls_info" structure, factored
 	out common code for peer_CN and issuer_CN lookup, and added
 	sanity check to not verify subject common names that contain
-	nulls or that are execessively long. Patch by Victor Duchovni.
+	nulls or that are excessively long. Patch by Victor Duchovni.
 	Files: tls_client.c, tls_server.c, tls_session.c, tls_misc.c,
 	tls_verify.c.
 	
@@ -11554,7 +11554,7 @@ Apologies for any names omitted.
 	code cleanup broke sessions with backup servers, causing the
 	client to get out of step with the backup server.  This in
 	turn exposed a one-year old missing exception handling
-	context in the EHLO handstake after sending STARTTLS. Victim
+	context in the EHLO handshake after sending STARTTLS. Victim
 	was Ralf Hildebrandt, detectives Victor Duchovni and Wietse.
 	File: smtp/smtp_proto.c.
 
@@ -12281,7 +12281,7 @@ Apologies for any names omitted.
 20060606
 
 	Safety: mail receiving daemons (smtpd, qmqpd) now pass
-	actual client name/addres/helo attributes in addition to
+	actual client name/address/helo attributes in addition to
 	the attributes used for logging (xforward). This prevents
 	Milter applications from treating qmqpd mail as if it
 	originated locally, and prevents incorrect Milter decisions
@@ -12829,7 +12829,7 @@ Apologies for any names omitted.
 	*qmgr/qmgr_deliver.c, *qmgr/qmgr_message.c.
 
 	Performance: refined recipient and job grouping, and more
-	agressive early refill of in-memory recipients to prevent
+	aggressive early refill of in-memory recipients to prevent
 	a worst-case scenario where the queue manager became starved
 	until after the last batch of slow in-memory recipients of
 	jumbo multi-recipient mail. Code by Patrik Rak.  Files:
@@ -12923,7 +12923,7 @@ Apologies for any names omitted.
 
 20061206
 
-	Robustness: low-cost re-entrancy guard that allows daemons
+	Robustness: low-cost reentrancy guard that allows daemons
 	to safely call msg_fatal() etc. from a signal handler,
 	without risking memory corruption, or deadlock on Redhat
 	Linux.  This works provided that the signal handler terminates
@@ -13163,7 +13163,7 @@ Apologies for any names omitted.
 
 	Assorted code cleanup, portability fixes/workarounds, and
 	minor updates: global/dict_ldap.c, mantools/postlink,
-	tlsmgs/tlsmgr.c, conf/master.cf. LaMont Jones.
+	tlsmgr/tlsmgr.c, conf/master.cf. LaMont Jones.
 
 20070101
 
@@ -13424,7 +13424,7 @@ Apologies for any names omitted.
 
 20070414
 
-	Cleanup: expire cached results from addres rewriting, address
+	Cleanup: expire cached results from address rewriting, address
 	resolution, and from transport map lookups.  Results expire
 	after 30 seconds; short enough that it doesn't freak out
 	people who run the same test repeatedly, and long enough
@@ -13549,7 +13549,7 @@ Apologies for any names omitted.
 20070520
 
 	Bugfix (problem introduced Postfix 2.3): when DSN support
-	was introduced it broke "agressive" recipient duplicate
+	was introduced it broke "aggressive" recipient duplicate
 	elimination with "enable_original_recipient = no".  File:
 	cleanup/cleanup_out_recipient.c.
 
@@ -14135,7 +14135,7 @@ Apologies for any names omitted.
 	File: milter/milter8.c.
 
 	Cleanup: when a cleanup milter reports a problem don't log
-	generic "4.3.0 Sevice unavailable", but log the text for
+	generic "4.3.0 Service unavailable", but log the text for
 	the actual error. File: cleanup/cleanup_milter.c.
 
 20080102-nonprod
@@ -15168,7 +15168,7 @@ Apologies for any names omitted.
 	smtpd/smtpd_resolve.c.
 
 	Feature: support to report rejected recipients to Milters
-	(SMFIP_RCPT_REJ). Postfix reports the event as decribed in
+	(SMFIP_RCPT_REJ). Postfix reports the event as described in
 	Sendmail 8.14.0 documentation: {rcpt_mailer} = "error",
 	{rcpt_host} = enhanced status code (e.g., "5.7.1"), and
 	{rcpt_addr} = reason to reject (e.g., "Relay access denied").
@@ -15648,7 +15648,7 @@ Apologies for any names omitted.
 
 20100115
 
-	Bugfix: the valid_hostname() fuction did not set the
+	Bugfix: the valid_hostname() function did not set the
 	"non-numeric" flag after encountering the '-' character.
 	Reported by Jan Schampera.  File: util/valid_hostname.c.
 
@@ -15681,7 +15681,7 @@ Apologies for any names omitted.
 
 20100128
 
-	Documentation: streamlined the decriptions of protocol and
+	Documentation: streamlined the descriptions of protocol and
 	cipher tweaks. Victor Duchovni. Files: proto/TLS_README,
 	proto/postconf.proto.
 
@@ -15883,7 +15883,7 @@ Apologies for any names omitted.
 	This code was started in Postfix 2.1, but it was never
 	finished due to time constraints.  Files: smtpd/smtpd.[hc]
 	smtpd/smtpd_proxy.c, smtpd/smtpd_sasl_proto.c,
-	*qmgr/qmgr_messsage.c, *qmgr/qmgr_deliver.c,
+	*qmgr/qmgr_message.c, *qmgr/qmgr_deliver.c,
 	global/deliver_request.[hc], global/mail_proto.h,
 	global/deliver_pass.c, smtp/smtp_proto.c.
 
@@ -16443,7 +16443,7 @@ Apologies for any names omitted.
 20110113
 
 	Cleanup: ps_cache and psc_cache are now postscreen_cache.
-	There is no need for obscure name abbrevations. File:
+	There is no need for obscure name abbreviations. File:
 	src/global/mail_params.h.
 
 20110115
@@ -16531,7 +16531,7 @@ Apologies for any names omitted.
 	Cleaned up and finalized read/write deadline support. Once
 	this code has been fielded it can go into Postfix 2.8.1,
 	and made available as optional patch for earlier releases.
-	Further refinements have only dimishing returns and can
+	Further refinements have only diminishing returns and can
 	evolve in the 2.9 release cycle.  File: util/vstream.c.
 
 20110128
@@ -16605,7 +16605,7 @@ Apologies for any names omitted.
 	checking code now logs "hostname X does not resolve to
 	address Y", when a "reverse hostname" lookup result does
 	not resolve to the client IP address.  Files: smtpd/smtpd_peer.c,
-	qmqpr/qmqpd_peer.c.
+	qmqpd/qmqpd_peer.c.
 
 20110216
 
@@ -17861,7 +17861,7 @@ Apologies for any names omitted.
 20120627
 
 	Bugfix (introduced: 20120531-617): in the postscreen module
-	for HAproxy sypport, a VSTREAM buffer size request was not
+	for HAproxy support, a VSTREAM buffer size request was not
 	LP64-clean.  File: postscreen/postscreen_haproxy.c.
 
 	Cleanup: avoid single-character reads in the postscreen
@@ -18177,7 +18177,7 @@ Apologies for any names omitted.
 20121224
 
 	Feature: "postconf -Mn" support to print only master.cf
-	entries that have "-o name=value" parameter setttings.
+	entries that have "-o name=value" parameter settings.
 	Files: postconf/postconf_master.c.
 
 20121226
@@ -18354,7 +18354,7 @@ Apologies for any names omitted.
 
 	Portability: on MacOS X, use kqueue() for event handling
 	but use select() instead of poll() for read/write timeouts
-	(with a workaround to handle file decriptors >=FD_SETSIZE).
+	(with a workaround to handle file descriptors >=FD_SETSIZE).
 	Files: util/sys_defs.h, util/readable.c, util/writable.c,
 	util/read_wait.c, util/write_wait.c.
 
@@ -18499,7 +18499,7 @@ Apologies for any names omitted.
 	endpoint label; better reuse of SASL-authenticated connections
 	over UNIX-domains sockets, however unlikely these may be;
 	a first step towards refinement of connection cache lookup
-	by IP addres for plaintext or SASL-unauthenticated connections.
+	by IP address for plaintext or SASL-unauthenticated connections.
 	Files: smtp/smtp.h smtp/smtp_connect.c, smtp/smtp_reuse.c,
 	smtp/smtp_key.c, smtp/smtp_tls_sess.s.
 
@@ -18984,7 +18984,7 @@ Apologies for any names omitted.
 
 20131009
 
-	Documentation: inet_protols description was not updated
+	Documentation: inet_protocols description was not updated
 	when smtp_address_preference was added. File: proto/postconf.proto
 
 20131013
@@ -19113,7 +19113,7 @@ Apologies for any names omitted.
 	dict_sockmap.c, dict_regexp.c, dict_pcre.c, dict_lmdb.c,
 	dict_dbm.c, dict_cidr.c, dict_cdb.c.
 
-	Cleanup: warning message after canonical/virtal/etc.
+	Cleanup: warning message after canonical/virtual/etc.
 	table lookup error. Files: cleanup/cleanup_addr.c,
 	cleanup/cleanup_map11.c, cleanup/cleanup_map1n.c,
 	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c,
@@ -19381,13 +19381,13 @@ Apologies for any names omitted.
 	posttls-finger/posttls-finger.c, tls/tls_misc.c, tls/tls_rsa.c.
 
 	Cleanup: DANE support: Reduce #ifdef clutter to improve
-	redability and maintability. Viktor Dukhovni.  File:
+	readability and maintainability. Viktor Dukhovni.  File:
 	tls/tls_dane.c.
 
 	Future proofing: Tolerate disappearance of named bug-workaround
 	bits without invalidating user configurations.  When support
 	for a bug workaround is removed from OpenSSL, the corresponding
-	bit is defined as zero (i.e. NOOP) intstead of causing
+	bit is defined as zero (i.e. NOOP) instead of causing
 	programs to break. Viktor Dukhovni.  File: tls/tls_misc.c.
 
 20131217
@@ -19734,7 +19734,7 @@ Apologies for any names omitted.
 	libglobal or dynamicmaps maps.  File: postdrop/postdrop.c.
 
 	Cleanup: moved dynamicmaps initialization from parameter
-	inititialization (mail_conf_suck()) to dictionary initialization
+	initialization (mail_conf_suck()) to dictionary initialization
 	(mail_dict_init()).  A benefit of this is that dynamicmaps.cf
 	is no longer read by programs that don't use Postfix lookup
 	tables.  Files: global/mail_conf.[hc], global/mail_dict.c.
@@ -20142,10 +20142,10 @@ Apologies for any names omitted.
 	This implements the syntax of SMTP commands and DSN delivery
 	status notifications. It does not address the problem that
 	the same domain name may show up in different forms: an
-	UTF8-encoded name with non-ASCII charaters, or an IDNA-encoded
+	UTF8-encoded name with non-ASCII characters, or an IDNA-encoded
 	(xn--mumble) name with ASCII-only characters. This means
 	that access policies, mydestination, virtual_*_domains and
-	relay_domans will have to understand both forms in order
+	relay_domains will have to understand both forms in order
 	to provide complete coverage.  For now, SMTPUTF8 support
 	must not be enabled except for testing.
 
@@ -20365,7 +20365,7 @@ Apologies for any names omitted.
 	Feature: RFC 7372 enhanced status code for unknown SMTP
 	client hostnames.  File: smtpd/smtpd_check.c
 
-	Bugfix: the accept() calls in test progams escaped attention
+	Bugfix: the accept() calls in test programs escaped attention
 	when Postfix 2.2 was ported to IPv6. Problem found by Mark
 	Martinec. Files: smtpstone/smtp-sink.c, smtpstone/qmqp-sink.c.
 
@@ -20527,7 +20527,7 @@ Apologies for any names omitted.
 	Postfix to run with backwards-compatible default settings
 	after an upgrade to a newer Postfix version.  Postfix logs
 	all uses of those backwards-compatible default settings so
-	that the system administator can determine whether or not
+	that the system administrator can determine whether or not
 	some backwards-compatible default settings need to be made
 	permanent in main.cf or master.cf.  All this is controlled
 	with a new compatibility_level parameter, default value 0.
@@ -21238,7 +21238,7 @@ Apologies for any names omitted.
 	byte values, and UTF-8 case folding. As recommended at
 	http://www.w3.org/International/wiki/Case_folding for
 	caseless string comparison, this uses the en_US locale to
-	avoid surprises. The implementatin handles the entire RFC
+	avoid surprises. The implementation handles the entire RFC
 	3629 Unicode range (code points U+0000..U+10FFFF including
 	surrogates) and is chroot(2) safe. Files: casefold.c,
 	stringops.h.
@@ -21377,7 +21377,7 @@ Apologies for any names omitted.
 	Cleanup: apply printable() to all bounce(8) service
 	string-valued protocol fields. File: bounce/bounce.c.
 
-	Apparenly the UCI 4.8 ucasemap_utf8FoldCase() function does
+	Apparently the UCI 4.8 ucasemap_utf8FoldCase() function does
 	not complain about UTF-8 syntax errors, so we add our own
 	redundant check. File: util/casefold.c.
 
@@ -21702,7 +21702,7 @@ Apologies for any names omitted.
 	Dukhovni. File: tls_dane.c.
 
 	Safety: instead of bouncing mail, report a soft error when
-	SASL infrastucture breaks.  Viktor Dukhovni, Emmanuel Fuste.
+	SASL infrastructure breaks.  Viktor Dukhovni, Emmanuel Fuste.
 	Files: smtpd/smtpd_sasl_glue.c, xsasl/xsasl.h,
 	xsasl/xsasl_cyrus_server.c, xsasl/xsasl_dovecot_server.c.
 

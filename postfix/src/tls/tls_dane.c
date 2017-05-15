@@ -54,7 +54,7 @@
 /*	are present in OpenSSL's libcrypto and in libresolv.  Since OpenSSL's
 /*	libcrypto is not initialized until we call tls_client_init(), calls
 /*	to tls_dane_avail() must be deferred until this initialization is
-/*	completed successufully.
+/*	completed successfully.
 /*
 /*	tls_dane_flush() flushes all entries from the cache, and deletes
 /*	the cache.
@@ -132,7 +132,7 @@
 /*	The certificate depth for logging.
 /* .IP ssl_ctx
 /*	The global SSL_CTX structure used to initialize child SSL
-/*	conenctions.
+/*	connections.
 /* .IP mdalg
 /*	Name of a message digest algorithm suitable for computing secure
 /*	(1st pre-image resistant) message digests of certificates. For now,
@@ -412,7 +412,7 @@ static int digest_pref_byid(uint8_t dane_id)
     return (d ? (d->pref) : (MAXDIGESTS + dane_id));
 }
 
-/* gencakey - generate interal DANE root CA key */
+/* gencakey - generate internal DANE root CA key */
 
 static EVP_PKEY *gencakey(void)
 {
@@ -490,7 +490,7 @@ static void dane_init(void)
 	tls_print_errors();
 	dane_tlsa_support = ta_support = 0;
     } else if (signmd == 0) {
-	msg_warn("digest algorithm initializaton failed, no DANE support");
+	msg_warn("digest algorithm initialization failed, no DANE support");
 	tls_print_errors();
 	dane_tlsa_support = 0;
     }

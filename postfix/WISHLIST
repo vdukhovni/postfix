@@ -150,7 +150,7 @@ Wish list:
 	like QUIT except perhaps that it does not hang up.
 
 	apipe: map, splits results into address lists and performs
-	lookups for the invidual addresses, converting back and
+	lookups for the individual addresses, converting back and
 	forth between external and internal forms.
 
 	Clarify that receive_override_options have no effect with
@@ -258,9 +258,9 @@ Wish list:
 	Make errno white/blacklist for getpwnam_r etc. and mailbox
 	write errors.
 
-	smtpd_muble_restrictions rule names are case-insensitive.
+	smtpd_mumble_restrictions rule names are case-insensitive.
 	restriction_classes values are case-sensitive but should
-	be case-insensitive for consistency with smtpd_muble_restrictions.
+	be case-insensitive for consistency with smtpd_mumble_restrictions.
 
 	Make "rename" the default when postmapping a DB file
 	(later: use copy+rename for postmap -i, postmap -d).
@@ -551,7 +551,7 @@ Wish list:
 	in the queue manager?  When a recipient bounces during
 	(transport, nexthop, address) resolution, it is redirected
 	to the error or retry mailer; and bounce-after-delivery is
-	asynchrounous so it can't block the queue manager, either.
+	asynchronous so it can't block the queue manager, either.
 
 	How to ensure that proxy_read_maps is processed after all
 	its dependencies are initialized, or just bite the bullet
@@ -565,7 +565,7 @@ Wish list:
 	lookup, then terminates further recursion when the result
 	exceeds the expansion limit. This behavior achieves the
 	original goal that all things shall have a finite size (even
-	though but we don'really care how large they are) but may
+	though but we don't really care how large they are) but may
 	result in surprises when recipients are listed in virtual
 	alias domains or need expansion for other reasons.  In a
 	phone call with Victor, a reasonable way out is to set the

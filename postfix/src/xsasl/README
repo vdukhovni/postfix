@@ -35,7 +35,7 @@ following restrictions are imposed by the main.cf file parser:
 
 The _path parameter value is passed only once during process
 initialization (i.e. it is a class variable). The path typically
-specifies the location of a configuration file or rendez-vous point.
+specifies the location of a configuration file or rendezvous point.
 The _security_options parameter value is passed each time SASL is
 turned on for a connection (i.e. it is an instance variable).  The
 options may depend on whether or not TLS encryption is turned on.

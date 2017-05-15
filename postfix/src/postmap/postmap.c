@@ -614,7 +614,7 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 	dicts[n] = 0;
 
     /*
-     * Perform all queries. Open maps on the fly, to avoid opening unecessary
+     * Perform all queries. Open maps on the fly, to avoid opening unnecessary
      * maps.
      */
     if ((postmap_flags & POSTMAP_FLAG_HB_KEY) == 0) {

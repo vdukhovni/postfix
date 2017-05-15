@@ -670,7 +670,7 @@ static void cleanup_header_done_callback(void *context)
     /*
      * Future proofing: the Milter client's header suppression algorithm
      * assumes that the MTA prepends its own Received: header. This
-     * assupmtion may be violated after some source-code update. The
+     * assumption may be violated after some source-code update. The
      * following check ensures consistency, at least for local submission.
      */
     if (state->hop_count < 1) {

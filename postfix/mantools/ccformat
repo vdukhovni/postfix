@@ -111,7 +111,7 @@ exit
 #	file name is constructed by appending the specified \fIbackup\fR 
 #	string to the original file name. 
 #	This option is ignored when the \fI-t\fR
-#	option is specifid.
+#	option is specified.
 # .TP
 # -t
 #	Makes the program act as a preprocessor
@@ -189,7 +189,7 @@ exit
 #	Indent may complain in case of syntax errors. These show
 #	up as comments in the resulting program text.
 # BUGS
-#	The programs seems to beave even when fed ANSI C or even C++
+#	The programs seems to behave even when fed ANSI C or even C++
 #	code; this has not been tested thoroughly, however.
 #
 #	Will produce useless files when fed with anything that is

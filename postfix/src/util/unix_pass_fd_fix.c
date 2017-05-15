@@ -13,7 +13,7 @@
 /*	for sending or receiving file descriptors over UNIX-domain
 /*	sockets.
 /*
-/*	set_unix_pass_fd_fix() takes a list of workarouds in external
+/*	set_unix_pass_fd_fix() takes a list of workarounds in external
 /*	form, and stores their internal representation. The result
 /*	is used by unix_send_fd() and unix_recv_fd().
 /*

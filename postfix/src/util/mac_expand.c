@@ -30,29 +30,29 @@
 /*
 /*	The following substitutions are supported:
 /* .IP "$name, ${name}"
-/*	Unconditional attribute-based substition. The result is the
+/*	Unconditional attribute-based substitution. The result is the
 /*	named attribute value (empty if the attribute is not defined)
 /*	after optional further named attribute substitution.
 /* .IP "${name?text}, ${name?{text}}"
-/*	Conditional attribute-based substition. If the named attribute
+/*	Conditional attribute-based substitution. If the named attribute
 /*	value is non-empty, the result is the given text, after
 /*	named attribute expansion and relational expression evaluation.
 /*	Otherwise, the result is empty.  Whitespace before or after
 /*	{text} is ignored.
 /* .IP "${name:text}, ${name:{text}}"
-/*	Conditional attribute-based substition. If the attribute
+/*	Conditional attribute-based substitution. If the attribute
 /*	value is empty or undefined, the expansion is the given
 /*	text, after named attribute expansion and relational expression
 /*	evaluation.  Otherwise, the result is empty.  Whitespace
 /*	before or after {text} is ignored.
 /* .IP "${name?{text1}:{text2}}, ${name?{text1}:text2}"
-/*	Conditional attribute-based substition. If the named attribute
+/*	Conditional attribute-based substitution. If the named attribute
 /*	value is non-empty, the result is text1.  Otherwise, the
 /*	result is text2. In both cases the result is subject to
 /*	named attribute expansion and relational expression evaluation.
 /*	Whitespace before or after {text1} or {text2} is ignored.
 /* .IP "${{text1} == ${text2} ? {text3} : {text4}}"
-/*	Relational expression-based substition.  First, the content
+/*	Relational expression-based substitution.  First, the content
 /*	of {text1} and ${text2} is subjected to named attribute and
 /*	relational expression-based substitution.  Next, the relational
 /*	expression is evaluated. If it evaluates to "true", the
@@ -492,7 +492,7 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 
 	    /*
 	     * Look up the named parameter. Todo: allow the lookup function
-	     * to specify if the result is safe for $name expanson.
+	     * to specify if the result is safe for $name expansion.
 	     */
 	    lookup = mc->lookup(vstring_str(buf), lookup_mode, mc->context);
 	}

@@ -23,7 +23,7 @@
 /*	provides multiple variants.
 /* .IP path_info
 /*	Implementation-specific information to specify the location
-/*	of a configuration file, rendez-vous point, etc. This
+/*	of a configuration file, rendezvous point, etc. This
 /*	information is ignored by the Cyrus SASL client plug-in.
 /* DIAGNOSTICS
 /*	Fatal: out of memory.

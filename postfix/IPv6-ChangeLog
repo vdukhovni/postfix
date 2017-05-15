@@ -148,7 +148,7 @@ Version 1.18	Postfix releases 2.0.14 - 2.0.15
 		Postfix snapshot 2.0.14-20030812
 
 	Bugfix: Perform actual hostname verification in the SMTP
-	and QMTP servers. This was never supported in the IPv6
+	and QMQP servers. This was never supported in the IPv6
 	patch. Reported by Wolfgang S. Rupprecht.
 	Files: smtpd/smtpd_peer.c, qmqpd/qmqpd_peer.c
 
@@ -330,7 +330,7 @@ Version 1.10	Postfix snapshots 1.1.12-200212{19,21}
 	is enabled.
 	File: util/inet_addr_local.c
 
-	Bugfix: If unable to create a socket for a specific adress
+	Bugfix: If unable to create a socket for a specific address
 	in the SMTP client (e.g., when trying to create an IPv6
 	connection while the local host has no configured IPv6
 	addresses), then stop the attempt.
@@ -437,7 +437,7 @@ Version 1.4	Postfix version 1.1.11-20020822 - 1.1.11-20020917
 	Alpha as well now. Thanks to Sten Spans for providing me
 	access to an Alpha running FreeBSD4.
 
-	Fixed an old bug in smtpd memory alloation if you compiled
+	Fixed an old bug in smtpd memory allocation if you compiled
 	without IPv6 support (the wrong buffer size was used. This
 	was harmless for IPv6-enabled compiles since the sizes were
 	equal then).

@@ -434,7 +434,7 @@ TOK822 *tok822_scan_limit(const char *str, TOK822 **tailp, int tok_count_limit)
 
     /*
      * XXX 2822 new feature: Section 4.1 allows "." to appear in a phrase (to
-     * allow for forms such as: Johnny B. Goode <johhny@domain.org>. I cannot
+     * allow for forms such as: Johnny B. Goode <johnny@domain.org>. I cannot
      * handle that at the tokenizer level - it is not context sensitive. And
      * to fix this at the parser level requires radical changes to preserve
      * white space as part of the token stream. Thanks a lot, people.

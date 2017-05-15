@@ -221,7 +221,7 @@
 /*	SMTP server certificate verification.  By default no CApath is used
 /*	and no public CAs are trusted.
 /* .IP "\fB-r \fIdelay\fR"
-/*	With a cacheable TLS session, disconnect and reconnect after \fIdelay\fR
+/*	With a cachable TLS session, disconnect and reconnect after \fIdelay\fR
 /*	seconds. Report whether the session is re-used. Retry if a new server
 /*	is encountered, up to 5 times or as specified with the \fB-m\fR option.
 /*	By default reconnection is disabled, specify a positive delay to
@@ -1233,7 +1233,7 @@ static DNS_RR *host_addr(STATE *state, const char *host)
     return (addr_list);
 }
 
-/* dane_host_level - canidate host "dane" or degraded security level */
+/* dane_host_level - candidate host "dane" or degraded security level */
 
 static int dane_host_level(STATE *state, DNS_RR *addr)
 {

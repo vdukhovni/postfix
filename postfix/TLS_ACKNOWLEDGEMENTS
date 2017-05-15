@@ -30,7 +30,7 @@
     whether a client certificate was not requested or not presented.
     He also reminded me that the session cache must be cleared when
     experimenting with the setup and certificates, what is not explained
-    in the documenation.
+    in the documentation.
     -> fixed in 0.4.4
 
 - Claus Assmann <ca+tls@esmtp.org>

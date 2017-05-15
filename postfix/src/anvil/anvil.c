@@ -600,7 +600,7 @@ static ANVIL_REMOTE *anvil_remote_conn_update(VSTREAM *client_stream, const char
      * Look up remote connection count information. Update remote connection
      * rate information. Simply reset the counter every var_anvil_time_unit
      * seconds. This is easier than maintaining a moving average and it gives
-     * a quicker response to tresspassers.
+     * a quicker response to trespassers.
      */
     if ((anvil_remote =
 	 (ANVIL_REMOTE *) htable_find(anvil_remote_map, ident)) == 0) {

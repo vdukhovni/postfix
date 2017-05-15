@@ -1987,7 +1987,7 @@ extern int var_mailtool_compat;
 
  /*
   * How long a daemon command may take to receive or deliver a message etc.
-  * before we assume it is wegded (should never happen).
+  * before we assume it is wedged (should never happen).
   */
 #define VAR_DAEMON_TIMEOUT	"daemon_timeout"
 #define DEF_DAEMON_TIMEOUT	"18000s"
@@ -2528,12 +2528,12 @@ extern char *var_syslog_name;
 #define DEF_QMQPD_CLIENTS		""
 extern char *var_qmqpd_clients;
 
-#define VAR_QMTPD_TMOUT			"qmqpd_timeout"
-#define DEF_QMTPD_TMOUT			"300s"
+#define VAR_QMQPD_TMOUT			"qmqpd_timeout"
+#define DEF_QMQPD_TMOUT			"300s"
 extern int var_qmqpd_timeout;
 
-#define VAR_QMTPD_ERR_SLEEP		"qmqpd_error_delay"
-#define DEF_QMTPD_ERR_SLEEP		"1s"
+#define VAR_QMQPD_ERR_SLEEP		"qmqpd_error_delay"
+#define DEF_QMQPD_ERR_SLEEP		"1s"
 extern int var_qmqpd_err_sleep;
 
  /*

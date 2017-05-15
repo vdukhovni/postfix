@@ -200,7 +200,7 @@ static void get_spawn_args(struct spawn_args * args, int init_key, va_list ap)
 
 WAIT_STATUS_T spawn_command(int key,...)
 {
-    const char *myname = "spawn_comand";
+    const char *myname = "spawn_command";
     va_list ap;
     pid_t   pid;
     WAIT_STATUS_T wait_status;

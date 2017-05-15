@@ -31,7 +31,7 @@
 /*	ssize_t	len;
 /* DESCRIPTION
 /*	This module implements the low-level memcache protocol.
-/*	All functions return -1 on error and 0 on succcess.
+/*	All functions return -1 on error and 0 on success.
 /* SEE ALSO
 /*	smtp_proto(3) SMTP low-level protocol.
 /* AUTHOR(S)
@@ -77,7 +77,7 @@ int     memcache_get(VSTREAM *stream, VSTRING *vp, ssize_t bound)
     case '\r':
 	if ((next_char = VSTREAM_GETC(stream)) == '\n') {
 	    VSTRING_ADDCH(vp, '\n');
-	    /* FALLTRHOUGH */
+	    /* FALLTHROUGH */
 	} else {
 	    if (next_char != VSTREAM_EOF)
 		vstream_ungetc(stream, next_char);

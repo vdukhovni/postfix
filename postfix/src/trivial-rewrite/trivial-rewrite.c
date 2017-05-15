@@ -465,7 +465,7 @@ static void rewrite_service(VSTREAM *stream, char *unused_service, char **argv)
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
-     * Client connections are long-lived. Be sure to refesh timely.
+     * Client connections are long-lived. Be sure to refresh timely.
      */
 #ifdef DETACH_AND_ASK_CLIENTS_TO_RECONNECT
     if (server_flags == 0 && (now = event_time()) - last > 10) {

@@ -72,7 +72,7 @@
 /*	comma and/or whitespace characters. The "long_" version returns
 /*	a "long int" bitmask, rather than an "int" bitmask.
 /*
-/*	str_name_mask() translates a mask into its equlvalent names.
+/*	str_name_mask() translates a mask into its equivalent names.
 /*	The result is written to a static buffer that is overwritten
 /*	upon each call. The "long_" version converts a "long int"
 /*	bitmask, rather than an "int" bitmask.

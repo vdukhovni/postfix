@@ -875,14 +875,14 @@ CCARGS="-I. -I../../include $CCARGS"
 #
 # In an ideal world we would be able to provide the option to say
 # "make makefiles shlib_directory=/some/where/'$mail_version'".  This
-# would allow a running system to be upggraded without worries about
-# tempororary program-library ABI incompatibilities (the Postfix
+# would allow a running system to be upgraded without worries about
+# temporary program-library ABI incompatibilities (the Postfix
 # library API changes incompatibly from one version to the next).
 #
 # Unfortunately, gmake performs macro expansion on values in name=value
 # command-line arguments. In the specific example above, gmake would
 # eat up the "$" and "m" before it even invokes makedefs, and it
-# ould replace "'${mail_version}'" and "'$(mail_version)'" with
+# could replace "'${mail_version}'" and "'$(mail_version)'" with
 # nothing.
 #
 # Requiring people to specify $$ is not a good option. Instead we
