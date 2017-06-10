@@ -22984,3 +22984,37 @@ Apologies for any names omitted.
 
 	A last-minute cosmetic fix had introduced a bug in
 	smtp/smtp_addr.c.
+
+20170512
+
+	Bugfix (introduced: Postfix 2.0): the MIME nesting level
+	counter was not initialized (i.e. left at the memory fill
+	pattern 0xffffffff which equals -1). This broke unit tests
+	with a different memory allocator. Changing the value to
+	zero would break backwards compatibility (reject mail that
+	was previously not rejected). Files: global/mime_state.c.
+
+20170531
+
+	Bugfix (introduced: Postfix 3.2): after the table lookup
+	overhaul, the check_sender_access and check_recipient_access
+	features ignored the parent_domain_matches_subdomains
+	setting. Reported by Henrik Larsson. File: smtpd/smtpd_check.c.
+
+	Workaround (introduced: Postfix 3.2): mail_addr_find() logs
+	a warning that it does not support both parent-domain and
+	dot-parent-domain style lookups in the same call.  File:
+	global/mail_addr_find.c
+
+20170610
+
+	Workaround (introduced: Postfix 3.0 20140718): prevent MIME
+	downgrade of Postfix-generated message/delivery-status.
+	It's supposed to be 7bit, therefore quoted-printable encoding
+	is not expected. Problem reported by Griff. File:
+	bounce/bounce_notify_util.c.
+
+	Documentation: indicate that the transport_mumble parameters
+	are implemented by the queue manager, not by delivery agents.
+	Files: mantools/postlink, local/local.c, pipe/pipe.c,
+	*qmgr/qmgr.c, smtp/smtp.c, virtual/virtual.c.

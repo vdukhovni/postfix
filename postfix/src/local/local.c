@@ -460,6 +460,11 @@
 /*	The maximal number of addresses remembered by the address
 /*	duplicate filter for \fBaliases\fR(5) or \fBvirtual\fR(5) alias expansion, or
 /*	for \fBshowq\fR(8) queue displays.
+/* .IP "\fBmailbox_size_limit (51200000)\fR"
+/*	The maximal size of any \fBlocal\fR(8) individual mailbox or maildir
+/*	file, or zero (no limit).
+/* .PP
+/*	Implemented in the qmgr(8) daemon:
 /* .IP "\fBlocal_destination_concurrency_limit (2)\fR"
 /*	The maximal number of parallel deliveries via the local mail
 /*	delivery transport to the same recipient (when
@@ -469,9 +474,6 @@
 /* .IP "\fBlocal_destination_recipient_limit (1)\fR"
 /*	The maximal number of recipients per message delivery via the
 /*	local mail delivery transport.
-/* .IP "\fBmailbox_size_limit (51200000)\fR"
-/*	The maximal size of any \fBlocal\fR(8) individual mailbox or maildir
-/*	file, or zero (no limit).
 /* SECURITY CONTROLS
 /* .ad
 /* .fi

@@ -507,6 +507,7 @@ MIME_STATE *mime_state_alloc(int flags,
     state->prev_rec_type = 0;
     state->stack = 0;
     state->token_buffer = vstring_alloc(1);
+    state->nesting_level = -1;			/* BC Fix 20170512 */
 
     /* Static members. */
     state->static_flags = flags;

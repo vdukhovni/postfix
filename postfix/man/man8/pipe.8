@@ -374,22 +374,22 @@ The text below provides only a parameter summary. See
 .fi
 In the text below, \fItransport\fR is the first field in a
 \fBmaster.cf\fR entry.
-.IP "\fItransport\fB_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
-Limit the number of parallel deliveries to the same destination,
-for delivery via the named \fItransport\fR.
-The limit is enforced by the Postfix queue manager.
-.IP "\fItransport\fB_destination_recipient_limit ($default_destination_recipient_limit)\fR"
-Limit the number of recipients per message delivery, for delivery
-via the named \fItransport\fR.
-The limit is enforced by the Postfix queue manager.
-.IP "\fItransport\fB_time_limit ($command_time_limit)\fR"
-Limit the time for delivery to external command, for delivery via
-the named \fItransport\fR.
-The limit is enforced by the pipe delivery agent.
-
-Postfix 2.4 and later support a suffix that specifies the
-time unit: s (seconds), m (minutes), h (hours), d (days),
-w (weeks). The default time unit is seconds.
+.IP "\fBtransport_time_limit ($command_time_limit)\fR"
+A transport\-specific override for the command_time_limit parameter
+value, where \fItransport\fR is the master.cf name of the message
+delivery transport.
+.PP
+Implemented in the qmgr(8) daemon:
+.IP "\fBtransport_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
+A transport\-specific override for the
+default_destination_concurrency_limit parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
+.IP "\fBtransport_destination_recipient_limit ($default_destination_recipient_limit)\fR"
+A transport\-specific override for the
+default_destination_recipient_limit parameter value, where
+\fItransport\fR is the master.cf name of the message delivery
+transport.
 .SH "MISCELLANEOUS CONTROLS"
 .na
 .nf

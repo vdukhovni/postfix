@@ -601,15 +601,6 @@ SMTP(8)                                                                SMTP(8)
               cipher list.
 
 <b>RESOURCE AND RATE CONTROLS</b>
-       <b><a href="postconf.5.html#smtp_destination_concurrency_limit">smtp_destination_concurrency_limit</a>        ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concur</a>-</b>
-       <b><a href="postconf.5.html#default_destination_concurrency_limit">rency_limit</a>)</b>
-              The maximal number of parallel deliveries to the  same  destina-
-              tion via the smtp message delivery transport.
-
-       <b><a href="postconf.5.html#smtp_destination_recipient_limit">smtp_destination_recipient_limit</a> ($<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a>)</b>
-              The  maximal  number of recipients per message for the smtp mes-
-              sage delivery transport.
-
        <b><a href="postconf.5.html#smtp_connect_timeout">smtp_connect_timeout</a> (30s)</b>
               The Postfix SMTP client time limit for completing a TCP  connec-
               tion, or zero (use the operating system built-in time limit).
@@ -712,6 +703,20 @@ SMTP(8)                                                                SMTP(8)
               When SMTP connection caching is enabled,  the  number  of  times
               that  an SMTP session may be reused before it is closed, or zero
               (no limit).
+
+       Implemented in the <a href="qmgr.8.html">qmgr(8)</a> daemon:
+
+       <b>transport_destination_concurrency_limit   ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concur</a>-</b>
+       <b><a href="postconf.5.html#default_destination_concurrency_limit">rency_limit</a>)</b>
+              A transport-specific override for  the  default_destination_con-
+              currency_limit parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+              name of the message delivery transport.
+
+       <b>transport_destination_recipient_limit     ($<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipi</a>-</b>
+       <b><a href="postconf.5.html#default_destination_recipient_limit">ent_limit</a>)</b>
+              A transport-specific override for the <a href="postconf.5.html#default_destination_recipient_limit">default_destination_recip</a>-
+              <a href="postconf.5.html#default_destination_recipient_limit">ient_limit</a>  parameter  value,  where  <i>transport</i> is the <a href="master.5.html">master.cf</a>
+              name of the message delivery transport.
 
 <b>SMTPUTF8 CONTROLS</b>
        Preliminary SMTPUTF8 support is introduced with Postfix 3.0.

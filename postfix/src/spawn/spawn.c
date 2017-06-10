@@ -66,13 +66,10 @@
 /* RESOURCE AND RATE CONTROL
 /* .ad
 /* .fi
-/* .IP "\fItransport\fB_time_limit ($command_time_limit)\fR"
-/*	The amount of time the command is allowed to run before it is
-/*	terminated.
-/*
-/*	Postfix 2.4 and later support a suffix that specifies the
-/*	time unit: s (seconds), m (minutes), h (hours), d (days),
-/*	w (weeks). The default time unit is seconds.
+/* .IP "\fBtransport_time_limit ($command_time_limit)\fR"
+/*	A transport-specific override for the command_time_limit parameter
+/*	value, where \fItransport\fR is the master.cf name of the message
+/*	delivery transport.
 /* MISCELLANEOUS
 /* .ad
 /* .fi

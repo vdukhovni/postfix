@@ -503,12 +503,6 @@
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
-/* .IP "\fBsmtp_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
-/*	The maximal number of parallel deliveries to the same destination
-/*	via the smtp message delivery transport.
-/* .IP "\fBsmtp_destination_recipient_limit ($default_destination_recipient_limit)\fR"
-/*	The maximal number of recipients per message for the smtp
-/*	message delivery transport.
 /* .IP "\fBsmtp_connect_timeout (30s)\fR"
 /*	The Postfix SMTP client time limit for completing a TCP connection, or
 /*	zero (use the operating system built-in time limit).
@@ -589,6 +583,18 @@
 /*	When SMTP connection caching is enabled, the number of times
 /*	that an SMTP session may be reused before it is closed, or zero (no
 /*	limit).
+/* .PP
+/*	Implemented in the qmgr(8) daemon:
+/* .IP "\fBtransport_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
+/*	A transport-specific override for the
+/*	default_destination_concurrency_limit parameter value, where
+/*	\fItransport\fR is the master.cf name of the message delivery
+/*	transport.
+/* .IP "\fBtransport_destination_recipient_limit ($default_destination_recipient_limit)\fR"
+/*	A transport-specific override for the
+/*	default_destination_recipient_limit parameter value, where
+/*	\fItransport\fR is the master.cf name of the message delivery
+/*	transport.
 /* SMTPUTF8 CONTROLS
 /* .ad
 /* .fi

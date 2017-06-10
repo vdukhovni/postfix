@@ -448,20 +448,22 @@ LOCAL(8)                                                              LOCAL(8)
               cate filter for <a href="aliases.5.html"><b>aliases</b>(5)</a> or <a href="virtual.5.html"><b>virtual</b>(5)</a> alias expansion, or for
               <a href="showq.8.html"><b>showq</b>(8)</a> queue displays.
 
+       <b><a href="postconf.5.html#mailbox_size_limit">mailbox_size_limit</a> (51200000)</b>
+              The maximal size of any <a href="local.8.html"><b>local</b>(8)</a> individual mailbox  or  maildir
+              file, or zero (no limit).
+
+       Implemented in the <a href="qmgr.8.html">qmgr(8)</a> daemon:
+
        <b><a href="postconf.5.html#local_destination_concurrency_limit">local_destination_concurrency_limit</a> (2)</b>
-              The maximal number of parallel deliveries  via  the  local  mail
-              delivery  transport  to the same recipient (when "<a href="postconf.5.html#local_destination_recipient_limit">local_destina</a>-
-              <a href="postconf.5.html#local_destination_recipient_limit">tion_recipient_limit</a> = 1") or the  maximal  number  of  parallel
+              The  maximal  number  of  parallel deliveries via the local mail
+              delivery transport to the same recipient  (when  "<a href="postconf.5.html#local_destination_recipient_limit">local_destina</a>-
+              <a href="postconf.5.html#local_destination_recipient_limit">tion_recipient_limit</a>  =  1")  or  the maximal number of parallel
               deliveries  to  the  same  local  domain  (when  "<a href="postconf.5.html#local_destination_recipient_limit">local_destina</a>-
               <a href="postconf.5.html#local_destination_recipient_limit">tion_recipient_limit</a> &gt; 1").
 
        <b><a href="postconf.5.html#local_destination_recipient_limit">local_destination_recipient_limit</a> (1)</b>
-              The maximal number of recipients per message  delivery  via  the
+              The  maximal  number  of recipients per message delivery via the
               local mail delivery transport.
-
-       <b><a href="postconf.5.html#mailbox_size_limit">mailbox_size_limit</a> (51200000)</b>
-              The  maximal  size of any <a href="local.8.html"><b>local</b>(8)</a> individual mailbox or maildir
-              file, or zero (no limit).
 
 <b>SECURITY CONTROLS</b>
        <b><a href="postconf.5.html#allow_mail_to_commands">allow_mail_to_commands</a> (alias, forward)</b>

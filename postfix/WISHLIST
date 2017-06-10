@@ -6,10 +6,6 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
-	Merge in the code to relax smtp_mx_address_limit if 'strict'
-	enforcement would result in the elimination of one IP address
-	family.
-
 	Convert postalias(1) to store external-form keys, and convert
 	aliases(5) to perform external-first lookup with fallback to
 	internal form, to make it consistent with the rest of Postfix.

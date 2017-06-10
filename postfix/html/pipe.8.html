@@ -381,26 +381,24 @@ PIPE(8)                                                                PIPE(8)
 <b>RESOURCE AND RATE CONTROLS</b>
        In the text below, <i>transport</i> is the first field in a <a href="master.5.html"><b>master.cf</b></a> entry.
 
-       <b><a href="postconf.5.html#transport_destination_concurrency_limit"><i>transport</i>_destination_concurrency_limit</a>   ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concur</a>-</b>
+       <b>transport_time_limit ($<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b>
+              A transport-specific override for the <a href="postconf.5.html#command_time_limit">command_time_limit</a> parame-
+              ter  value, where <i>transport</i> is the <a href="master.5.html">master.cf</a> name of the message
+              delivery transport.
+
+       Implemented in the <a href="qmgr.8.html">qmgr(8)</a> daemon:
+
+       <b>transport_destination_concurrency_limit   ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concur</a>-</b>
        <b><a href="postconf.5.html#default_destination_concurrency_limit">rency_limit</a>)</b>
-              Limit the number of parallel deliveries to the same destination,
-              for  delivery via the named <i>transport</i>.  The limit is enforced by
-              the Postfix queue manager.
+              A transport-specific override for  the  default_destination_con-
+              currency_limit parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+              name of the message delivery transport.
 
-       <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a>     ($<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipi</a>-</b>
+       <b>transport_destination_recipient_limit     ($<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipi</a>-</b>
        <b><a href="postconf.5.html#default_destination_recipient_limit">ent_limit</a>)</b>
-              Limit the number of recipients per message delivery, for  deliv-
-              ery via the named <i>transport</i>.  The limit is enforced by the Post-
-              fix queue manager.
-
-       <b><a href="postconf.5.html#transport_time_limit"><i>transport</i>_time_limit</a> ($<a href="postconf.5.html#command_time_limit">command_time_limit</a>)</b>
-              Limit the time for delivery to external  command,  for  delivery
-              via  the  named  <i>transport</i>.   The  limit is enforced by the pipe
-              delivery agent.
-
-              Postfix 2.4 and later support a suffix that specifies  the  time
-              unit:  s (seconds), m (minutes), h (hours), d (days), w (weeks).
-              The default time unit is seconds.
+              A transport-specific override for the <a href="postconf.5.html#default_destination_recipient_limit">default_destination_recip</a>-
+              <a href="postconf.5.html#default_destination_recipient_limit">ient_limit</a>  parameter  value,  where  <i>transport</i> is the <a href="master.5.html">master.cf</a>
+              name of the message delivery transport.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>

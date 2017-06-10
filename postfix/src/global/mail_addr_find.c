@@ -419,6 +419,9 @@ const char *mail_addr_find_opt(MAPS *path, const char *address, char **extp,
 	const char *name;
 	const char *next;
 
+	if ((strategy & MA_FIND_PDMS) && (strategy & MA_FIND_PDDMDS))
+	    msg_warn("mail_addr_find_opt: do not specify both "
+		     "MA_FIND_PDMS and MA_FIND_PDDMDS");
 	for (name = ratsign + 1; *name != 0; name = next) {
 	    if ((result = maps_find(path, name, PARTIAL)) != 0
 		|| path->error != 0

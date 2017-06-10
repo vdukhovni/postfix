@@ -204,15 +204,17 @@
 /* RESOURCE AND RATE CONTROLS
 /* .ad
 /* .fi
+/* .IP "\fBvirtual_mailbox_limit (51200000)\fR"
+/*	The maximal size in bytes of an individual \fBvirtual\fR(8) mailbox or
+/*	maildir file, or zero (no limit).
+/* .PP
+/*	Implemented in the qmgr(8) daemon:
 /* .IP "\fBvirtual_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
 /*	The maximal number of parallel deliveries to the same destination
 /*	via the virtual message delivery transport.
 /* .IP "\fBvirtual_destination_recipient_limit ($default_destination_recipient_limit)\fR"
 /*	The maximal number of recipients per message for the virtual
 /*	message delivery transport.
-/* .IP "\fBvirtual_mailbox_limit (51200000)\fR"
-/*	The maximal size in bytes of an individual \fBvirtual\fR(8) mailbox or
-/*	maildir file, or zero (no limit).
 /* MISCELLANEOUS CONTROLS
 /* .ad
 /* .fi
