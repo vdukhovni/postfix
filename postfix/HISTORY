@@ -22923,7 +22923,7 @@ Apologies for any names omitted.
 
 20170206
 
-	Bugfix (introduced: Postfix 3.0): when check_mumble_a_access
+	Bugfix (introduced: Postfix 3.0): check_mumble_a_access
 	did not handle [ipaddress], unlike check_mumble_mx_access.
 	When check_mumble_a_access was introduced, some condition
 	was not updated.  Reported by James (postfix_tracker). File:
@@ -22940,5 +22940,42 @@ Apologies for any names omitted.
 20170218
 
 	Cleanup: typofixes from klemens. The only change in compiled
-	code is in one identical mysql error message that also
-	appears in the pgsql client.  Files: about 50.
+	code is in one mysql error message that also appears in the
+	pgsql client. Files: about 50.
+
+20170221
+
+	Compatibility fix (introduced: Postfix 3.1): some Milter
+	applications do not recognize macros sent as {name} when
+	macros have single-character names. Postfix now sends such
+	macros without {} as it has done historically. Viktor
+	Dukhovni. File: milter/milter.c.
+
+20170402
+
+	Bugfix (introduced: Postfix 3.2): restore the SMTP server
+	receive override options at the end of an SMTP session,
+	after the options may have been modified by an smtpd_milter_maps
+	setting of "DISABLE". Problem report by Christian Rößner,
+	root cause analysis by Viktor Dukhovni. File: smtpd/smtpd.c.
+
+20170430
+
+	Safety net: append a null byte to vstring buffers, so that
+	C-style string operations won't scribble past the end. File:
+	vstring.c.
+
+20170531
+
+	Bugfix (introduced: Postfix 3.2): after the table lookup
+	overhaul, the check_sender_access and check_recipient_access
+	features ignored the parent_domain_matches_subdomains
+	setting. Reported by Henrik Larsson. File: smtpd/smtpd_check.c.
+
+20170610
+
+	Workaround (introduced: Postfix 3.0 20140718): prevent MIME
+	downgrade of Postfix-generated message/delivery status.
+	It's supposed to be 7bit, therefore quoted-printable encoding
+	is not expected. Problem reported by Griff. File:
+	bounce/bounce_notify_util.c.

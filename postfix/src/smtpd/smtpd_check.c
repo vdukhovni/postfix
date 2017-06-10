@@ -3174,6 +3174,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
     const char *myname = "check_mail_access";
     const RESOLVE_REPLY *reply;
     const char *value;
+    int     lookup_strategy;
     int     status;
     MAPS   *maps;
 
@@ -3213,8 +3214,10 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
      * Look up user+foo@domain if the address has an extension, user@domain
      * otherwise.
      */
-#define LOOKUP_STRATEGY (MA_FIND_FULL | MA_FIND_NOEXT | MA_FIND_DOMAIN \
-			 | MA_FIND_PDMS | MA_FIND_LOCALPART_AT)
+    lookup_strategy = MA_FIND_FULL | MA_FIND_NOEXT | MA_FIND_DOMAIN
+	| MA_FIND_LOCALPART_AT
+	| (access_parent_style == MATCH_FLAG_PARENT ?
+	   MA_FIND_PDMS : MA_FIND_PDDMDS);
 
     if ((maps = (MAPS *) htable_find(map_command_table, table)) == 0) {
 	msg_warn("%s: unexpected dictionary: %s", myname, table);
@@ -3225,7 +3228,7 @@ static int check_mail_access(SMTPD_STATE *state, const char *table,
 				   def_acl));
     }
     if ((value = mail_addr_find_strategy(maps, CONST_STR(reply->recipient),
-				      (char **) 0, LOOKUP_STRATEGY)) != 0) {
+				      (char **) 0, lookup_strategy)) != 0) {
 	*found = 1;
 	status = check_table_result(state, table, value,
 				    CONST_STR(reply->recipient),
