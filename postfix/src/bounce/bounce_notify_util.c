@@ -637,7 +637,9 @@ int     bounce_header_dsn(VSTREAM *bounce, BOUNCE_INFO *bounce_info)
 		      (bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED) ?
 		      "global-" : "");
     /* Fix 20140709: addresses may be 8bit. */
-    if (NOT_7BIT_MIME(bounce_info))
+    if (NOT_7BIT_MIME(bounce_info)
+    /* BC Fix 20170610: prevent MIME downgrade of message/delivery-status. */
+	&& (bounce_info->smtputf8 & SMTPUTF8_FLAG_REQUESTED))
 	post_mail_fprintf(bounce, "Content-Transfer-Encoding: %s",
 			  bounce_info->mime_encoding);
 
