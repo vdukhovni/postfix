@@ -22317,3 +22317,25 @@ Apologies for any names omitted.
 	senders with "smtpd_reject_unlisted_recipient = yes" or
 	with reject_unlisted_sender.  Stephen R. van den Berg (Mr.
 	procmail).  Files: smtpd/smtpd.c, smtpd/smtpd_check.c.
+
+20170221
+
+	Compatibility fix (introduced: Postfix 3.1): some Milter
+	applications do not recognize macros sent as {name} when
+	macros have single-character names. Postfix now sends such
+	macros without {} as it has done historically. Viktor
+	Dukhovni. File: milter/milter.c.
+
+20170430
+
+	Safety net: append a null byte to vstring buffers, so that
+	C-style string operations won't scribble past the end. File:
+	vstring.c.
+
+20170610
+
+	Workaround (introduced: Postfix 3.0 20140718): prevent MIME
+	downgrade of Postfix-generated message/delivery status.
+	It's supposed to be 7bit, therefore quoted-printable encoding
+	is not expected. Problem reported by Griff. File:
+	bounce/bounce_notify_util.c.

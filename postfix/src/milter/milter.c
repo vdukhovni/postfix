@@ -333,18 +333,21 @@ static ARGV *milter_macro_lookup(MILTERS *milters, const char *macro_names)
     VSTRING *canon_buf = vstring_alloc(20);
     const char *value;
     const char *name;
+    const char *cname;
 
     while ((name = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	if (msg_verbose)
 	    msg_info("%s: \"%s\"", myname, name);
 	if (*name != '{')			/* } */
-	    name = STR(vstring_sprintf(canon_buf, "{%s}", name));
-	if ((value = milters->mac_lookup(name, milters->mac_context)) != 0) {
+	    cname = STR(vstring_sprintf(canon_buf, "{%s}", name));
+	else
+	    cname = name;
+	if ((value = milters->mac_lookup(cname, milters->mac_context)) != 0) {
 	    if (msg_verbose)
 		msg_info("%s: result \"%s\"", myname, value);
 	    argv_add(argv, name, value, (char *) 0);
 	} else if (milters->macro_defaults != 0
-	     && (value = htable_find(milters->macro_defaults, name)) != 0) {
+	    && (value = htable_find(milters->macro_defaults, cname)) != 0) {
 	    if (msg_verbose)
 		msg_info("%s: using default \"%s\"", myname, value);
 	    argv_add(argv, name, value, (char *) 0);
