@@ -23018,3 +23018,18 @@ Apologies for any names omitted.
 	are implemented by the queue manager, not by delivery agents.
 	Files: mantools/postlink, local/local.c, pipe/pipe.c,
 	*qmgr/qmgr.c, smtp/smtp.c, virtual/virtual.c.
+
+20170611
+
+	Security: Berkeley DB 2 and later have an undocumented
+	feature that tries to read instructions from a file DB_CONFIG
+	in the current directory. This may expose Postfix set-gid
+	programs (postdrop, postqueue) to attacks before they chdir
+	to the Postfix queue directory, and the postmap and postalias
+	commands depending on whether the user's current directory
+	is writable by other users. This fix does not change Postfix
+	behavior for Berkeley DB < 3. It makes the berkeley_db_buffer_size
+	and berkeley_db_create_buffer_size parameters obsolete for
+	Berkeley DB 3 and later, because they appear to have no API
+	to find out the maximal cache size they would accept. Postmap
+	create operations will be about 3x slower. File: util/dict_db.c.

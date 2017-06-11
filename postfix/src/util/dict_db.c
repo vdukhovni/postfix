@@ -122,6 +122,9 @@
 typedef struct {
     DICT    dict;			/* generic members */
     DB     *db;				/* open db file */
+#if DB_VERSION_MAJOR > 2
+    DB_ENV *dbenv;
+#endif
 #if DB_VERSION_MAJOR > 1
     DBC    *cursor;			/* dict_db_sequence() */
 #endif
@@ -553,6 +556,9 @@ static void dict_db_close(DICT *dict)
     if (DICT_DB_CLOSE(dict_db->db) < 0)
 	msg_info("close database %s: %m (possible Berkeley DB bug)",
 		 dict_db->dict.name);
+#if DB_VERSION_MAJOR > 2
+    dict_db->dbenv->close(dict_db->dbenv, 0);
+#endif
     if (dict_db->key_buf)
 	vstring_free(dict_db->key_buf);
     if (dict_db->val_buf)
@@ -576,6 +582,11 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 
 #if DB_VERSION_MAJOR > 1
     int     db_flags;
+
+#endif
+#if DB_VERSION_MAJOR > 2
+    DB_ENV *dbenv;
+    VSTRING *dirname_buf;
 
 #endif
 
@@ -681,12 +692,18 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	db_flags |= DB_CREATE;
     if (open_flags & O_TRUNC)
 	db_flags |= DB_TRUNCATE;
-    if ((errno = db_create(&db, 0, 0)) != 0)
+    /* Fix 20170611 workaround for undocumented ./DB_CONFIG read. */
+    if ((errno = db_env_create(&dbenv, 0)) != 0)
+	msg_fatal("create DB environment: %m");
+    dirname_buf = vstring_alloc(100);
+    if ((errno = dbenv->open(dbenv, sane_dirname(dirname_buf, db_path),
+			   DB_INIT_MPOOL | DB_CREATE | DB_PRIVATE, 0)) != 0)
+	msg_fatal("open DB environment: %m");
+    vstring_free(dirname_buf);
+    if ((errno = db_create(&db, dbenv, 0)) != 0)
 	msg_fatal("create DB database: %m");
     if (db == 0)
 	msg_panic("db_create null result");
-    if ((errno = db->set_cachesize(db, 0, dict_db_cache_size, 0)) != 0)
-	msg_fatal("set DB cache size %d: %m", dict_db_cache_size);
     if (type == DB_HASH && db->set_h_nelem(db, DICT_DB_NELM) != 0)
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
 #if DB_VERSION_MAJOR == 6 || DB_VERSION_MAJOR == 5 || \
@@ -743,6 +760,9 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     if (dict_flags & DICT_FLAG_FOLD_FIX)
 	dict_db->dict.fold_buf = vstring_alloc(10);
     dict_db->db = db;
+#if DB_VERSION_MAJOR > 2
+    dict_db->dbenv = dbenv;
+#endif
 #if DB_VERSION_MAJOR > 1
     dict_db->cursor = 0;
 #endif
