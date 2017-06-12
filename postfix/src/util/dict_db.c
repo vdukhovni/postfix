@@ -7,6 +7,7 @@
 /*	#include <dict_db.h>
 /*
 /*	extern int dict_db_cache_size;
+/*	extern char *dict_db_home;
 /*
 /*	DEFINE_DICT_DB_CACHE_SIZE;
 /*
@@ -32,6 +33,9 @@
 /*	This variable cannot be exported via the dict(3) API and
 /*	must therefore be defined in the calling program by invoking
 /*	the DEFINE_DICT_DB_CACHE_SIZE macro at the global level.
+/*
+/*	dict_db_home specifies the default location of the DB_CONFIG
+/*	file with configuration overrides.
 /*
 /*	Arguments:
 /* .IP path
@@ -586,7 +590,9 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 #endif
 #if DB_VERSION_MAJOR > 2
     DB_ENV *dbenv;
-    VSTRING *dirname_buf;
+    u_int32_t cache_size_gbytes;
+    u_int32_t cache_size_bytes;
+    int     ncache;
 
 #endif
 
@@ -692,14 +698,28 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	db_flags |= DB_CREATE;
     if (open_flags & O_TRUNC)
 	db_flags |= DB_TRUNCATE;
-    /* Fix 20170611 workaround for undocumented ./DB_CONFIG read. */
+    /* Begin fix 20170611 workaround for undocumented ./DB_CONFIG read. */
     if ((errno = db_env_create(&dbenv, 0)) != 0)
 	msg_fatal("create DB environment: %m");
-    dirname_buf = vstring_alloc(100);
-    if ((errno = dbenv->open(dbenv, sane_dirname(dirname_buf, db_path),
+#if DB_VERSION_MAJOR > 4 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR >= 7)
+    /* Begin fix 20170612 workaround for invisible cache size limit. */
+    if ((errno = dbenv->get_cachesize(dbenv, &cache_size_gbytes,
+				      &cache_size_bytes, &ncache)) != 0)
+	msg_fatal("get DB cache size: %m");
+    if (cache_size_gbytes == 0 && cache_size_bytes < dict_db_cache_size) {
+	if ((errno = dbenv->set_cache_max(dbenv, cache_size_gbytes,
+					  dict_db_cache_size)) != 0)
+	    msg_fatal("set DB max cache size %d: %m", dict_db_cache_size);
+	if ((errno = dbenv->set_cachesize(dbenv, cache_size_gbytes,
+					  dict_db_cache_size, ncache)) != 0)
+	    msg_fatal("set DB cache size %d: %m", dict_db_cache_size);
+    }
+    /* End fix 20170612 workaround for invisible cache size limit. */
+#endif
+    if ((errno = dbenv->open(dbenv, dict_db_home,
 			   DB_INIT_MPOOL | DB_CREATE | DB_PRIVATE, 0)) != 0)
 	msg_fatal("open DB environment: %m");
-    vstring_free(dirname_buf);
+    /* End fix 20170611 workaround for undocumented ./DB_CONFIG read. */
     if ((errno = db_create(&db, dbenv, 0)) != 0)
 	msg_fatal("create DB database: %m");
     if (db == 0)

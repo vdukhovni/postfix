@@ -881,6 +881,7 @@ void    mail_params_init()
     check_sgid_group();
     check_overlap();
     dict_db_cache_size = var_db_read_buf;
+    dict_db_home = mystrdup(var_config_dir);
     dict_lmdb_map_size = var_lmdb_map_size;
     inet_windowsize = var_inet_windowsize;
 
