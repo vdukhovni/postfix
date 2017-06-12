@@ -395,7 +395,6 @@ static DICT_MAPNAMES_EXTEND_FN dict_mapnames_extend_hook;
   */
 DEFINE_DICT_LMDB_MAP_SIZE;
 DEFINE_DICT_DB_CACHE_SIZE;
-DEFINE_DICT_DB_HOME;
 
 /* dict_open_init - one-off initialization */
 

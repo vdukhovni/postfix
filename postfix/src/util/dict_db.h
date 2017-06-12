@@ -33,10 +33,8 @@ extern DICT *dict_btree_open(const char *, int, int);
   * set a larger memory pool for database (re)builds.
   */
 extern int dict_db_cache_size;
-extern char *dict_db_home;
 
 #define DEFINE_DICT_DB_CACHE_SIZE int dict_db_cache_size = (128 * 1024)
-#define DEFINE_DICT_DB_HOME char *dict_db_home = "/"
 
 /* LICENSE
 /* .ad
