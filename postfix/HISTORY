@@ -22979,3 +22979,16 @@ Apologies for any names omitted.
 	It's supposed to be 7bit, therefore quoted-printable encoding
 	is not expected. Problem reported by Griff. File:
 	bounce/bounce_notify_util.c.
+
+20170611
+
+	Security: Berkeley DB 2 and later try to read settings from
+	a file DB_CONFIG in the current directory.  This undocumented
+	feature may introduce undisclosed vulnerabilities resulting
+	in privilege escalation with Postfix set-gid programs
+	(postdrop, postqueue) before they chdir to the Postfix queue
+	directory, and with the postmap and postalias commands
+	depending on whether the user's current directory is writable
+	by other users. This fix does not change Postfix behavior
+	for Berkeley DB < 3, but reduces file create performance
+	for Berkeley DB 3 .. 4.6.  File: util/dict_db.c.
