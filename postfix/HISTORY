@@ -23023,10 +23023,40 @@ Apologies for any names omitted.
 
 	Security: Berkeley DB 2 and later try to read settings from
 	a file DB_CONFIG in the current directory.  This undocumented
-	feature may introduce undisclosed vulnerabilities resulting in
-	privilege escalation with Postfix set-gid programs (postdrop,
-	postqueue) before they chdir to the Postfix queue directory,
-	and with the postmap and postalias commands depending on whether
-	the user's current directory is writable by other users. This
-	fix does not change Postfix behavior for Berkeley DB < 3.
-	File: util/dict_db.c.
+	feature may introduce undisclosed vulnerabilities resulting
+	in privilege escalation with Postfix set-gid programs
+	(postdrop, postqueue) before they chdir to the Postfix queue
+	directory, and with the postmap and postalias commands
+	depending on whether the user's current directory is writable
+	by other users. This fix does not change Postfix behavior
+	for Berkeley DB < 3, but reduces file create performance
+	for Berkeley DB 3 .. 4.6.  File: util/dict_db.c.
+
+20170617
+
+	Cleanup: the postconf command warns about unknown parameter
+	names in a database configuration file, specified as an
+	absolute pathname (for example, ldap:/path/to/file). This
+	code was mostly written in January 2017, and it still is a
+	partial implementation.  Files: postconf/postconf_dbms.c,
+	postconf/Makefile.in, postconf/test66.ref.
+
+20170618 
+
+	Cleanup: added missing "defined(__GLIBC__)" guards for
+	GLIBC version tests. File: util/sys_defs.h.
+
+20170620
+
+	Bugfix (introduced: Postfix 3.2) extension propagation was
+	broken with "recipient_delimiter = .", because of code that
+	was too clever by half. Files: global/mail_adr_crunch.c,
+	global/mail_addr_crunch.ref.
+
+20170704
+
+	Typos (introduced: Postfix 2.10): in comments about
+	IPv4-in-IPv6 addresses, replace :ffff::1.2.3.4 with the
+	correct form :ffff::1.2.3.4. Incorrect or misleading comments
+	are worse than no comments. Files: smtpd/smtpd_haproxy.c,
+	postscreen/postscreen_haproxy.c.

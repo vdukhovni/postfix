@@ -111,7 +111,7 @@ int     smtpd_peer_from_haproxy(SMTPD_STATE *state)
     /*
      * Note: the haproxy_srvr_parse() routine performs address protocol
      * checks, address and port syntax checks, and converts IPv4-in-IPv6
-     * address string syntax (:ffff::1.2.3.4) to IPv4 syntax where permitted
+     * address string syntax (::ffff:1.2.3.4) to IPv4 syntax where permitted
      * by the main.cf:inet_protocols setting, but logs no warnings.
      */
 #define ENABLE_DEADLINE	1

@@ -782,7 +782,8 @@ extern int initgroups(const char *, int);
 #define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) __GLIBC_PREREQ(maj, min)
 #else
 #define HAVE_GLIBC_API_VERSION_SUPPORT(maj, min) \
-    ((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min))
+    (defined(__GLIBC__) && \
+	((__GLIBC__ << 16) + __GLIBC_MINOR__ >= ((maj) << 16) + (min)))
 #endif
 #if HAVE_GLIBC_API_VERSION_SUPPORT(2, 1)
 #define SOCKADDR_SIZE	socklen_t
@@ -805,7 +806,7 @@ extern int initgroups(const char *, int);
 #define KERNEL_VERSION(a,b,c) (LINUX_VERSION_CODE + 1)
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,2,0)) \
-	|| (__GLIBC__ < 2)
+	|| (defined(__GLIBC__) && __GLIBC__ < 2)
 #define CANT_USE_SEND_RECV_MSG
 #define DEF_SMTP_CACHE_DEMAND	0
 #else

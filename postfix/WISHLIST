@@ -6,6 +6,20 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Add postwhite as a postscreen-related project.
+	https://github.com/stevejenkins/postwhite/blob/master/README.md
+
+	Decide whether to deprecate database configuration pathnames
+	that start with ".", for example, ldap:./file/name. These forms
+	are documented for ldap:, memcache:, mysql:, pgsql:, and sqlite:
+	maps. Postfix daemon processes will look up files relative to the
+	queue directory, but with postmap command-line processes it would
+	be more natural to interpret relative pathnames relative to the
+	current directory of the calling process (it would be a surprise
+	if "postmap hash:./foo" would access "/var/spool/postfix/foo",
+	or if "postmap hash:foo" and or "postmap hash:./foo" would access
+	different files).
+
 	Convert postalias(1) to store external-form keys, and convert
 	aliases(5) to perform external-first lookup with fallback to
 	internal form, to make it consistent with the rest of Postfix.

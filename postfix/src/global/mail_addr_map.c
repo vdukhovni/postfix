@@ -256,6 +256,7 @@ typedef struct {
 #define DO_PROPAGATE_UNMATCHED_EXTENSION	1
 #define NO_RECIPIENT_DELIMITER			""
 #define PLUS_RECIPIENT_DELIMITER		"+"
+#define DOT_RECIPIENT_DELIMITER			"."
 
  /*
   * All these tests must pass, so that we know that mail_addr_map_opt() works
@@ -351,6 +352,14 @@ static MAIL_ADDR_MAP_TEST pass_tests[] = {
 	MA_FORM_INTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
 	"a@a@example.com",
 	{"\"a@a\"@example.net"}, 1,
+    },
+    {
+        "12 external -external-> external, extension, propagation",
+        "inline:{ aa@example.com=bb@example.com }",
+        DO_PROPAGATE_UNMATCHED_EXTENSION, DOT_RECIPIENT_DELIMITER,
+        MA_FORM_EXTERNAL, MA_FORM_EXTERNAL, MA_FORM_EXTERNAL,
+        "aa.ext@example.com",
+        {"bb.ext@example.com"}, 1,
     },
     0,
 };

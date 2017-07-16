@@ -120,7 +120,7 @@ ARGV   *mail_addr_crunch_opt(const char *string, const char *extension,
 	tok822_externalize(extern_addr, tpp[0]->head, TOK822_STR_DEFL);
 	canon_addr_external(canon_addr, STR(extern_addr));
 	unquote_822_local(intern_addr, STR(canon_addr));
-	if (extension && strchr(STR(intern_addr), *extension) == 0) {
+	if (extension) {
 	    VSTRING_SPACE(intern_addr, extlen + 1);
 	    if ((ratsign = strrchr(STR(intern_addr), '@')) == 0) {
 		vstring_strcat(intern_addr, extension);

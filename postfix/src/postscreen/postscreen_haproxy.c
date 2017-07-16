@@ -133,7 +133,7 @@ static void psc_endpt_haproxy_event(int event, void *context)
     /*
      * Parse the haproxy line. Note: the haproxy_srvr_parse() routine
      * performs address protocol checks, address and port syntax checks, and
-     * converts IPv4-in-IPv6 address string syntax (:ffff::1.2.3.4) to IPv4
+     * converts IPv4-in-IPv6 address string syntax (::ffff:1.2.3.4) to IPv4
      * syntax where permitted by the main.cf:inet_protocols setting.
      */
     if (status == 0 && last_char == '\n') {

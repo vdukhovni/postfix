@@ -22,7 +22,9 @@
 /*	When a database type is found that supports legacy-style
 /*	configuration, the table name is combined with each of the
 /*	database-defined suffixes to generate candidate parameter
-/*	names for that database type.
+/*	names for that database type; if the table name specifies
+/*	a client configuration file, that file is scanned for unused
+/*	parameter settings.
 /* .IP flag_parameter
 /*	A function that takes as arguments a candidate parameter
 /*	name, parameter flags, and a PCF_MASTER_ENT pointer.  The
@@ -46,6 +48,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <errno.h>
 #include <string.h>
 
 /* Utility library. */
@@ -61,6 +64,7 @@
 
 #include <mail_conf.h>
 #include <mail_params.h>
+#include <dict_ht.h>
 #include <dict_proxy.h>
 #include <dict_ldap.h>
 #include <dict_mysql.h>
@@ -145,6 +149,64 @@ static const PCF_DBMS_INFO pcf_dbms_info[] = {
     0,
 };
 
+/* pcf_check_dbms_client - look for unused names in client configuration */
+
+static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
+{
+    DICT   *dict;
+    VSTREAM *fp;
+    const char **cpp;
+    const char *name;
+    const char *value;
+    char   *dict_spec;
+    int     dir;
+
+    /*
+     * We read each database client configuration file into its own
+     * dictionary, and nag only the first time that a file is visited.
+     */
+    dict_spec = concatenate(dp->db_type, ":", cf_file, (char *) 0);
+    if ((dict = dict_handle(dict_spec)) == 0) {
+
+	/*
+	 * Populate the dictionary with settings in this database client
+	 * configuration file. Don't die if a file can't be opened - some
+	 * files may contain passwords and should not be world-readable.
+	 * Note: dict_load_fp() nags about duplicate pameter settings.
+	 */
+	dict = dict_ht_open(dict_spec, O_CREAT | O_RDWR, 0);
+	dict_register(dict_spec, dict);
+	if ((fp = vstream_fopen(cf_file, O_RDONLY, 0)) == 0
+	    && errno != EACCES) {
+	    msg_warn("open \"%s\" configuration \"%s\": %m",
+		     dp->db_type, cf_file);
+	    myfree(dict_spec);
+	    return;
+	}
+	dict_load_fp(dict_spec, fp);
+	if (vstream_fclose(fp)) {
+	    msg_warn("read \"%s\" configuration \"%s\": %m",
+		     dp->db_type, cf_file);
+	    myfree(dict_spec);
+	    return;
+	}
+
+	/*
+	 * Remove all known database client parameters from this dictionary,
+	 * then report the remaining ones as "unused". We use ad-hoc logging
+	 * code, because a database client parameter namespace is unlike the
+	 * parameter namespaces in main.cf or master.cf.
+	 */
+	for (cpp = dp->db_suffixes; *cpp; cpp++)
+	    (void) dict_del(dict, *cpp);
+	for (dir = DICT_SEQ_FUN_FIRST;
+	     dict->sequence(dict, dir, &name, &value) == DICT_STAT_SUCCESS;
+	     dir = DICT_SEQ_FUN_NEXT)
+	    msg_warn("%s: unused parameter: %s=%s", dict_spec, name, value);
+    }
+    myfree(dict_spec);
+}
+
 /* pcf_register_dbms_helper - parse one possible database type:name */
 
 static void pcf_register_dbms_helper(char *str_value,
@@ -172,6 +234,28 @@ static void pcf_register_dbms_helper(char *str_value,
 	       && strcmp(db_type, DICT_TYPE_PROXY) == 0)
 	    db_type = prefix;
 
+	if (prefix == 0)
+	    continue;
+
+	/*
+	 * Look for database:prefix where the prefix is an absolute pathname.
+	 * Then, report unknown database client configuration parameters.
+	 * 
+	 * XXX What about a pathname beginning with '.'? This supposedly is
+	 * relative to the queue directory, which is the default directory
+	 * for all Postfix daemon processes. This would also have to handle
+	 * the case that the queue is not yet created.
+	 */
+	if (*prefix == '/') {
+	    for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
+		if (strcmp(db_type, dp->db_type) == 0) {
+		    pcf_check_dbms_client(dp, prefix);
+		    break;
+		}
+	    }
+	    continue;
+	}
+
 	/*
 	 * Look for database:prefix where the prefix is not a pathname and
 	 * the database is a known type. Synthesize candidate parameter names
@@ -179,7 +263,7 @@ static void pcf_register_dbms_helper(char *str_value,
 	 * list, and see if those parameters have a "name=value" entry in the
 	 * local or global namespace.
 	 */
-	if (prefix != 0 && *prefix != '/' && *prefix != '.') {
+	if (*prefix != '.') {
 	    if (*prefix == CHARS_BRACE[0]) {
 		if ((err = extpar(&prefix, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
 		    /* XXX Encapsulate this in pcf_warn() function. */
