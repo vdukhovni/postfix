@@ -403,6 +403,10 @@ int     smtp_helo(SMTP_STATE *state)
 		pix_bug_mask = name_mask_opt(pix_bug_source, pix_bug_table,
 					     pix_bug_words,
 				     NAME_MASK_ANY_CASE | NAME_MASK_IGNORE);
+		if ((pix_bug_mask & SMTP_FEATURE_PIX_DELAY_DOTCRLF)
+		    && request->msg_stats.incoming_arrival.tv_sec
+		    > vstream_ftime(state->session->stream) - var_smtp_pix_thresh)
+		    pix_bug_mask &= ~SMTP_FEATURE_PIX_DELAY_DOTCRLF;
 		msg_info("%s: enabling PIX workarounds: %s for %s",
 			 request->queue_id,
 			 str_name_mask("pix workaround bitmask",
@@ -2147,9 +2151,7 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		    }
 		} else if (prev_type == REC_TYPE_CONT)	/* missing newline */
 		    smtp_fputs("", 0, session->stream);
-		if ((session->features & SMTP_FEATURE_PIX_DELAY_DOTCRLF) != 0
-		    && request->msg_stats.incoming_arrival.tv_sec
-		  <= vstream_ftime(session->stream) - var_smtp_pix_thresh) {
+		if (session->features & SMTP_FEATURE_PIX_DELAY_DOTCRLF) {
 		    smtp_flush(session->stream);/* hurts performance */
 		    sleep(var_smtp_pix_delay);	/* not to mention this */
 		}

@@ -29,9 +29,6 @@ Wish list:
 	In the bounce daemon, set util_utf8_enable if returning an
 	SMTPUTF8 message.
 
-	Merge in the code to check database client configuration
-	files for unknown or duplicate settings.
-
 	Add a header_body_checks extension callback in smtp_proto.c
 	that implements the PASS action.
 
@@ -52,7 +49,9 @@ Wish list:
 
 	Fix "make test" bitrot.
 
-	Move DNS-based tests from porcupine.org to postfix.org.
+	Move DNS-based tests from porcupine.org to postfix.org, or use
+	a mock DNS library (a library that presents the same API as the
+	real library, but that produces canned responses).
 
 	Document dns_ncache_ttl_fix_enable use case in POSTSCREEN_README
 	and RELEASE_NOTES.

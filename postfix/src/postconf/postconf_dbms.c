@@ -94,10 +94,13 @@ static const char *pcf_ldap_suffixes[] = {
     "bind", "bind_dn", "bind_pw", "cache", "cache_expiry", "cache_size",
     "chase_referrals", "debuglevel", "dereference", "domain",
     "expansion_limit", "leaf_result_attribute", "query_filter",
-    "recursion_limit", "result_attribute", "result_format", "scope",
-    "search_base", "server_host", "server_port", "size_limit",
-    "special_result_attribute", "terminal_result_attribute",
-    "timeout", "version", 0,
+    "recursion_limit", "result_attribute", "result_format",
+    "sasl_authz_id", "sasl_mechs", "sasl_minssf", "sasl_realm",
+    "scope", "search_base", "server_host", "server_port", "size_limit",
+    "special_result_attribute", "start_tls", "terminal_result_attribute",
+    "timeout", "tls_ca_cert_dir", "tls_ca_cert_file", "tls_cert",
+    "tls_cipher_suite", "tls_key", "tls_random_file", "tls_require_cert",
+    "version", 0,
 };
 
 /* See mysql_table(5). */

@@ -23060,3 +23060,15 @@ Apologies for any names omitted.
 	correct form :ffff::1.2.3.4. Incorrect or misleading comments
 	are worse than no comments. Files: smtpd/smtpd_haproxy.c,
 	postscreen/postscreen_haproxy.c.
+
+20170721
+
+	Bitrot: updated postconf LDAP database configuration check with
+	SASL and TLS-related parameters. Reported by Ralf Hildebrandt.
+	File: postconf/postconf_dbms.c.
+
+20170722
+
+	Cleanup: don't log the 'delay_dotcrlf' workaround for CISCO
+	PIX bugs before the smtp_pix_workaround_threshold_time has
+	passed. Reported by Ralf Hildebrandt. File: smtp/smtp_proto.c.
