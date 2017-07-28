@@ -15,7 +15,9 @@ TESTPROG=
 MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h \
 	nint_table.h nint_vars.h nbool_table.h nbool_vars.h long_table.h \
-	long_vars.h str_fn_table.h str_fn_vars.h
+	long_vars.h str_fn_table.h str_fn_vars.h 
+DB_MAKES= pcf_ldap_suffixes.h pcf_memcache_suffixes.h pcf_mysql_suffixes.h \
+	pcf_pgsql_suffixes.h pcf_sqlite_suffixes.h
 TEST_TMP= main.cf master.cf test*.tmp
 DUMMIES	= makes_dummy # for "make -j"
 PROG	= postconf
@@ -67,6 +69,22 @@ makes_dummy: $(INC_DIR)/mail_params.h ../global/mail_params.c extract.awk Makefi
 	$(AWK) -f extract.awk ../*/*.c | $(SHELL)
 	touch makes_dummy
 
+$(DB_MAKES): extract_cfg.sh Makefile.in 
+
+pcf_ldap_suffixes.h: ../global/dict_ldap.c 
+	sh extract_cfg.sh -d ../global/dict_ldap.c > $@
+
+pcf_memcache_suffixes.h: ../global/dict_memcache.c 
+	sh extract_cfg.sh -d ../global/dict_memcache.c > $@
+
+pcf_mysql_suffixes.h: ../global/dict_mysql.c 
+	sh extract_cfg.sh -d -s ../global/dict_mysql.c > $@
+
+pcf_pgsql_suffixes.h: ../global/dict_pgsql.c 
+	sh extract_cfg.sh -d -s ../global/dict_pgsql.c > $@
+
+pcf_sqlite_suffixes.h: ../global/dict_sqlite.c
+	sh extract_cfg.sh -d -s ../global/dict_sqlite.c > $@
 
 # Define two parameters with smtpd_restriction_classes. One will be ignored.
 
@@ -899,7 +917,7 @@ lint:
 
 clean:
 	rm -f *.o *core $(PROG) $(TESTPROG) junk $(MAKES) $(AUTOS) $(DUMMIES) \
-	$(TEST_TMP)
+	$(TEST_TMP) $(DB_MAKES)
 	rm -rf printfck
 
 tidy:	clean
@@ -1009,8 +1027,13 @@ postconf_dbms.o: ../../include/sys_defs.h
 postconf_dbms.o: ../../include/vbuf.h
 postconf_dbms.o: ../../include/vstream.h
 postconf_dbms.o: ../../include/vstring.h
-postconf_dbms.o: postconf.h
+postconf_dbms.o: pcf_ldap_suffixes.h
+postconf_dbms.o: pcf_memcache_suffixes.h
+postconf_dbms.o: pcf_mysql_suffixes.h
+postconf_dbms.o: pcf_pgsql_suffixes.h
 postconf_dbms.o: postconf_dbms.c
+postconf_dbms.o: postconf.h
+postconf_dbms.o: pcf_sqlite_suffixes.h
 postconf_edit.o: ../../include/argv.h
 postconf_edit.o: ../../include/check_arg.h
 postconf_edit.o: ../../include/dict.h
@@ -1029,8 +1052,8 @@ postconf_edit.o: ../../include/vbuf.h
 postconf_edit.o: ../../include/vstream.h
 postconf_edit.o: ../../include/vstring.h
 postconf_edit.o: ../../include/vstring_vstream.h
-postconf_edit.o: postconf.h
 postconf_edit.o: postconf_edit.c
+postconf_edit.o: postconf.h
 postconf_lookup.o: ../../include/argv.h
 postconf_lookup.o: ../../include/check_arg.h
 postconf_lookup.o: ../../include/dict.h

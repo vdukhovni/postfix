@@ -23072,3 +23072,26 @@ Apologies for any names omitted.
 	Cleanup: don't log the 'delay_dotcrlf' workaround for CISCO
 	PIX bugs before the smtp_pix_workaround_threshold_time has
 	passed. Reported by Ralf Hildebrandt. File: smtp/smtp_proto.c.
+
+20170727
+
+	Cleanup: the postconf command now uses mechanically-generated
+	lists of DBMS parameter names. This eliminates false positives
+	with mysql databases. Files: postconf/Makefile.in,
+	postconf/extract_cfg.sh, postconf/postconf_dbms.c.
+
+	Cleanup: removed `#if 0/#endif' dead code from dict_ldap.c,
+	to avoid spurious output from the extract_cfg.sh parameter name
+	extraction tool.
+
+20170728
+
+	Documentation: added warnings that "enable_original_recipient
+	= no" prevents Postfix from saving the address verification
+	result under the original probe destination address, if it
+	is changed by aliasing or canonical mapping.  Files:
+	proto/ADDRESS_VERIFICATION_README.html, proto/postconf.proto.
+
+	Cleanup: don't store an empty address in the verify cache
+	(this could happen with "enable_original_recipient = no").
+	File: global/verify.c.

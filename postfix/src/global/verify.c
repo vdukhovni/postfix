@@ -100,12 +100,12 @@ int     verify_append(const char *queue_id, MSG_STATS *stats,
      * XXX vrfy_stat is competely redundant because of dsn.
      */
     if (var_verify_neg_cache || vrfy_stat == DEL_RCPT_STAT_OK) {
-	req_stat = verify_clnt_update(recipient->orig_addr, vrfy_stat,
+	req_stat = verify_clnt_update(recipient->address, vrfy_stat,
 				      my_dsn.reason);
 	/* Two verify updates for one verify request! */
-	if (req_stat == VRFY_STAT_OK
+	if (req_stat == VRFY_STAT_OK && recipient->orig_addr[0]
 	  && strcasecmp_utf8(recipient->address, recipient->orig_addr) != 0)
-	    req_stat = verify_clnt_update(recipient->address, vrfy_stat,
+	    req_stat = verify_clnt_update(recipient->orig_addr, vrfy_stat,
 					  my_dsn.reason);
     } else {
 	my_dsn.action = "undeliverable-but-not-cached";

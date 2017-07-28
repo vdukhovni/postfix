@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# To view the formatted manual page of this file, type:
+#       POSTFIXSOURCE/mantools/srctoman - makedefs | nroff -man
+
 #++
 # NAME
 #	makedefs 1

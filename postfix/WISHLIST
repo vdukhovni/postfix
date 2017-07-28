@@ -27,7 +27,8 @@ Wish list:
 	with a compatibility_level safety net.
 
 	In the bounce daemon, set util_utf8_enable if returning an
-	SMTPUTF8 message.
+	SMTPUTF8 message. This is wrong; if SMTPUTF8 is disabled,
+	then Postfix must not turn it on.
 
 	Add a header_body_checks extension callback in smtp_proto.c
 	that implements the PASS action.

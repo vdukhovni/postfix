@@ -91,48 +91,36 @@
 /* See ldap_table(5). */
 
 static const char *pcf_ldap_suffixes[] = {
-    "bind", "bind_dn", "bind_pw", "cache", "cache_expiry", "cache_size",
-    "chase_referrals", "debuglevel", "dereference", "domain",
-    "expansion_limit", "leaf_result_attribute", "query_filter",
-    "recursion_limit", "result_attribute", "result_format",
-    "sasl_authz_id", "sasl_mechs", "sasl_minssf", "sasl_realm",
-    "scope", "search_base", "server_host", "server_port", "size_limit",
-    "special_result_attribute", "start_tls", "terminal_result_attribute",
-    "timeout", "tls_ca_cert_dir", "tls_ca_cert_file", "tls_cert",
-    "tls_cipher_suite", "tls_key", "tls_random_file", "tls_require_cert",
-    "version", 0,
+#include "pcf_ldap_suffixes.h"
+    0,
 };
 
 /* See mysql_table(5). */
 
 static const char *pcf_mysql_suffixes[] = {
-    "additional_conditions", "dbname", "domain", "expansion_limit",
-    "hosts", "password", "query", "result_format", "require_result_set",
-    "select_field", "table", "user", "where_field", 0,
+#include "pcf_mysql_suffixes.h"
+    0,
 };
 
 /* See pgsql_table(5). */
 
 static const char *pcf_pgsql_suffixes[] = {
-    "additional_conditions", "dbname", "domain", "expansion_limit",
-    "hosts", "password", "query", "result_format", "select_field",
-    "select_function", "table", "user", "where_field", 0,
+#include "pcf_pgsql_suffixes.h"
+    0,
 };
 
 /* See sqlite_table(5). */
 
 static const char *pcf_sqlite_suffixes[] = {
-    "additional_conditions", "dbpath", "domain", "expansion_limit",
-    "query", "result_format", "select_field", "table", "where_field",
+#include "pcf_sqlite_suffixes.h"
     0,
 };
 
 /* See memcache_table(5). */
 
 static const char *pcf_memcache_suffixes[] = {
-    "backup", "data_size_limit", "domain", "flags", "key_format",
-    "line_size_limit", "max_try", "memcache", "retry_pause",
-    "timeout", "ttl", 0,
+#include "pcf_memcache_suffixes.h"
+    0,
 };
 
  /*
