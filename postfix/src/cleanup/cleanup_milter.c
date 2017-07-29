@@ -2244,7 +2244,6 @@ int     cleanup_send_canon_flags;
 MAPS   *cleanup_send_canon_maps;
 int     var_dup_filter_limit = DEF_DUP_FILTER_LIMIT;
 char   *var_empty_addr = DEF_EMPTY_ADDR;
-int     var_enable_orcpt = DEF_ENABLE_ORCPT;
 MAPS   *cleanup_virt_alias_maps;
 char   *var_milt_daemon_name = "host.example.com";
 char   *var_milt_v = DEF_MILT_V;
@@ -2439,6 +2438,7 @@ int     main(int unused_argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
     var_line_limit = DEF_LINE_LIMIT;
     var_header_limit = DEF_HEADER_LIMIT;
+    var_enable_orcpt = DEF_ENABLE_ORCPT;
 
     for (;;) {
 	ARGV   *argv;

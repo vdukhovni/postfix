@@ -550,6 +550,12 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	A prefix that is prepended to the process name in syslog
 /*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
+/* .PP
+/*	Available in Postfix version 3.3 and later:
+/* .IP "\fBenable_original_recipient (yes)\fR"
+/*	Enable support for the original recipient address after an
+/*	address is rewritten to a different address (for example with
+/*	aliasing or with canonical mapping).
 /* FILES
 /*	The following are examples; details differ between systems.
 /*	$HOME/.forward, per-user aliasing

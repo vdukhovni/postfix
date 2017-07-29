@@ -133,7 +133,6 @@ char   *var_mimehdr_checks;		/* mime header checks */
 char   *var_nesthdr_checks;		/* nested header checks */
 char   *var_body_checks;		/* any body checks */
 int     var_dup_filter_limit;		/* recipient dup filter */
-bool    var_enable_orcpt;		/* Include orcpt in dup filter? */
 char   *var_empty_addr;			/* destination of bounced bounces */
 int     var_delay_warn_time;		/* delay that triggers warning */
 char   *var_prop_extension;		/* propagate unmatched extension */
@@ -184,7 +183,6 @@ const CONFIG_INT_TABLE cleanup_int_table[] = {
 };
 
 const CONFIG_BOOL_TABLE cleanup_bool_table[] = {
-    VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
     VAR_VERP_BOUNCE_OFF, DEF_VERP_BOUNCE_OFF, &var_verp_bounce_off,
     VAR_AUTO_8BIT_ENC_HDR, DEF_AUTO_8BIT_ENC_HDR, &var_auto_8bit_enc_hdr,
     VAR_ALWAYS_ADD_HDRS, DEF_ALWAYS_ADD_HDRS, &var_always_add_hdrs,

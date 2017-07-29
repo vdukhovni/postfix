@@ -269,6 +269,13 @@ VIRTUAL(8)                                                          VIRTUAL(8)
               delivery status code or explanatory text of successful or unsuc-
               cessful deliveries.
 
+       Available in Postfix version 3.3 and later:
+
+       <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
+              Enable  support  for  the  original  recipient  address after an
+              address is rewritten to a different address  (for  example  with
+              aliasing or with canonical mapping).
+
 <b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="bounce.8.html">bounce(8)</a>, delivery status reports

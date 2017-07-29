@@ -130,6 +130,7 @@
 /*	int     var_idna2003_compat;
 /*	int     var_compat_level;
 /*	char	*var_drop_hdrs;
+/*	bool	var_enable_orcpt;
 /*
 /*	void	mail_params_init()
 /*
@@ -342,6 +343,7 @@ char   *var_smtputf8_autoclass;
 int     var_idna2003_compat;
 int     var_compat_level;
 char   *var_drop_hdrs;
+bool    var_enable_orcpt;
 
 const char null_format_string[1] = "";
 
@@ -783,6 +785,7 @@ void    mail_params_init()
 	VAR_MULTI_ENABLE, DEF_MULTI_ENABLE, &var_multi_enable,
 	VAR_LONG_QUEUE_IDS, DEF_LONG_QUEUE_IDS, &var_long_queue_ids,
 	VAR_STRICT_SMTPUTF8, DEF_STRICT_SMTPUTF8, &var_strict_smtputf8,
+	VAR_ENABLE_ORCPT, DEF_ENABLE_ORCPT, &var_enable_orcpt,
 	0,
     };
     const char *cp;

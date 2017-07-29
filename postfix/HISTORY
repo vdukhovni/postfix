@@ -23087,11 +23087,26 @@ Apologies for any names omitted.
 20170728
 
 	Documentation: added warnings that "enable_original_recipient
-	= no" prevents Postfix from saving the address verification
-	result under the original probe destination address, if it
-	is changed by aliasing or canonical mapping.  Files:
-	proto/ADDRESS_VERIFICATION_README.html, proto/postconf.proto.
+	= no" prevents Postfix <= 3.2 from saving the address
+	verification result under the original probe destination
+	address, if it is changed by aliasing or canonical mapping.
+	Files: proto/ADDRESS_VERIFICATION_README.html,
+	proto/postconf.proto.
 
 	Cleanup: don't store an empty address in the verify cache
 	(this could happen with "enable_original_recipient = no").
 	File: global/verify.c.
+
+20170729
+
+	Cleanup: the setting "enable_original_recipient = no" no
+	longer breaks address verification for aliased addresses.
+	This does not change the behavior of the X-Original-To
+	header and of recipient deduplication. The fix is to always
+	store the original recipient in queue files. Some other
+	changes were needed to move ownership of the var_enable_orcpt
+	parameter from the cleanup daemon to the global library.
+	Files: cleanup/cleanup_init.c, cleanup/cleanup_milter.c,
+	cleanup_out_recipient.c, global/mail_params.c, global/mail_copy.c,
+	proto/postconf.proto proto/ADDRESS_VERIFICATION_README.html,
+	local/local.c, virtual/virtual.c, pipe/pipe.c.

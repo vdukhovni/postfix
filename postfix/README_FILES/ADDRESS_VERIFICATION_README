@@ -164,6 +164,7 @@ same address repeatedly.
         # Postfix 2.6 and later privacy feature.
         # unverified_recipient_reject_reason = Address lookup failed
 
+        # Postfix 3.2 and earlier workaround.
         # Do not set enable_original_recipient=no. This prevents Postfix
         # from saving the recipient address verification result under
         # the original address, when the address verification probe
@@ -209,6 +210,7 @@ verification for specific domains that often appear in forged email.
         # Note 2: Avoid hash files here. Use btree or lmdb instead.
         address_verify_map = btree:/var/lib/postfix/verify
 
+        # Postfix 3.2 and earlier workaround.
         # Do not set enable_original_recipient=no. This prevents Postfix
         # from saving the sender address verification result under the
         # original address, when the address verification probe message

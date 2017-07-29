@@ -418,6 +418,12 @@
 /*	Optional filter for the \fBpipe\fR(8) delivery agent to change the
 /*	delivery status code or explanatory text of successful or unsuccessful
 /*	deliveries.
+/* .PP
+/*	Available in Postfix version 3.3 and later:
+/* .IP "\fBenable_original_recipient (yes)\fR"
+/*	Enable support for the original recipient address after an
+/*	address is rewritten to a different address (for example with
+/*	aliasing or with canonical mapping).
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports

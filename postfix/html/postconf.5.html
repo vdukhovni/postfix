@@ -3203,32 +3203,34 @@ name changes. </p>
 <DT><b><a name="enable_original_recipient">enable_original_recipient</a>
 (default: yes)</b></DT><DD>
 
-<p> Enable support to save the original address if a recipient address
-is rewritten to a different address (for example with an alias or with
-canonical mapping). </p>
+<p> Enable support for the original recipient address after an
+address is rewritten to a different address (for example with
+aliasing or with canonical mapping). </p>
 
 <p> The original recipient address is used as follows: </p>
 
 <dl>
 
-<dt> X-Original-To message header </dt> <dd> When this parameter
-is set to <b>yes</b>, the original recipient address is stored in
-the X-Original-To message header. This header is needed to distinguish
-between different recipients that share the same mailbox. </dd>
+<dt> Final delivery </dt> <dd> With "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> =
+yes", the original recipient address is stored in the <b>X-Original-To</b>
+message header. This header may be used to distinguish between
+different recipients that share the same mailbox.  </dd>
 
-<dt> Recipient deduplication </dt> <dd> When this parameter is set
-to <b>yes</b>, the <a href="cleanup.8.html">cleanup(8)</a> daemon performs duplicate elimination
-on distinct pairs of (original recipient, rewritten recipient), and
-generates non-empty original recipient queue file records. When
-this parameter is set to <b>no</b>, the <a href="cleanup.8.html">cleanup(8)</a> daemon performs
-duplicate elimination on the rewritten recipient address only, and
-generates empty original recipient queue file records. </dd>
+<dt> Recipient deduplication </dt> <dd> With "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a>
+= yes", the <a href="cleanup.8.html">cleanup(8)</a> daemon performs duplicate recipient elimination
+based on the content of (original recipient, maybe-rewritten
+recipient) pairs.  Otherwise, the <a href="cleanup.8.html">cleanup(8)</a> daemon performs duplicate
+recipient elimination based only on the maybe-rewritten recipient
+address.  </dd>
 
-<dt>Address verification </dt> <dd> When this parameter is set to
-<b>yes</b>, an addres verification result is stored under both the
-original and the final recipient address. When this parameter is
-set to <b>no</b>, an address verification result is stored only
-under the final recipient address. </dd>
+</dl>
+
+<p> Note: with Postfix &le; 3.2 the "setting <a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a>
+= <b>no</b>" breaks address verification for addresses that are
+aliased or otherwise rewritten (Postfix is unable to store the
+addres verification result under the original probe destination
+address; instead, it can store the result only under the rewritten
+address).  </p>
 
 </ul>
 
@@ -15276,8 +15278,8 @@ temporary problem (default: 450). <br> The
 <a href="postconf.5.html#unverified_recipient_tempfail_action">unverified_recipient_tempfail_action</a> parameter specifies the action
 after address probe failure due to a temporary problem (default:
 <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). <br> This feature breaks for aliased addresses
-when <a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> is set to "no". <br> This feature
-is available in Postfix 2.1 and later.  </dd>
+with "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> = no" (Postfix &le; 3.2). <br>
+This feature is available in Postfix 2.1 and later. </dd>
 
 </dl>
 
@@ -16021,8 +16023,9 @@ code when an address probe failed due to a temporary problem
 (default: 450).  <br> The <a href="postconf.5.html#unverified_sender_tempfail_action">unverified_sender_tempfail_action</a> parameter
 specifies the action after address probe failure due to a temporary
 problem (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br> This feature breaks for
-aliased addresses when <a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> is set to "no".
-<br> This feature is avaiable in Postfix 2.1 and later.  </dd>
+aliased addresses with "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> = no" (Postfix
+&le; 3.2).  <br> This feature is avaiable in Postfix 2.1 and later.
+</dd>
 
 </dl>
 
