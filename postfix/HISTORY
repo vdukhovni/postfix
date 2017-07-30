@@ -23110,3 +23110,10 @@ Apologies for any names omitted.
 	cleanup_out_recipient.c, global/mail_params.c, global/mail_copy.c,
 	proto/postconf.proto proto/ADDRESS_VERIFICATION_README.html,
 	local/local.c, virtual/virtual.c, pipe/pipe.c.
+
+20170730
+
+	Bugfix (introduced: yesterday): revert global/verify.c code
+	to always store the verify result under the original address,
+	and to conditionally store it under the rewritten address.
+	File: global/verify.c.
