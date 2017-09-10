@@ -23057,7 +23057,7 @@ Apologies for any names omitted.
 
 	Typos (introduced: Postfix 2.10): in comments about
 	IPv4-in-IPv6 addresses, replace :ffff::1.2.3.4 with the
-	correct form :ffff::1.2.3.4. Incorrect or misleading comments
+	correct form ::ffff:1.2.3.4. Incorrect or misleading comments
 	are worse than no comments. Files: smtpd/smtpd_haproxy.c,
 	postscreen/postscreen_haproxy.c.
 
@@ -23117,3 +23117,37 @@ Apologies for any names omitted.
 	to always store the verify result under the original address,
 	and to conditionally store it under the rewritten address.
 	File: global/verify.c.
+
+20170827
+
+	Safety: in vstream_buf_space(), add a sanity check to reject
+	negative request sizes, instead of letting the program fail
+	later. File: util/vstream.c
+
+	Bugfix: in tests that enable the VSTRING_FLAG_EXACT flag,
+	vstring_buf_put_ready() could fail to extend the buffer,
+	causing infinite recursion in VBUF_PUT(). File: util/vstring.c.
+
+20170830
+
+	Bugfix: in vbuf_print(), save the parser-produced format
+	string before calling msg_panic(), so that the panic message
+	will not display its own format string. File: util/vbuf_print.c.
+
+20170831
+
+	Portability (introduced Postfix 1.0): possible cause for
+	panic in postqueue when listing the deferred queue. This
+	assigned the result from unsigned integer subtraction to a
+	signed integer, followed by a safety check to ensure that
+	the result was non-negative. This assignment relied on
+	undefined behavior, meaning that a compiler may eliminate
+	the safety check, causing the program to fail later. File:
+	postqueue/showq_compat.c.
+
+20170910
+
+	Safety: restore sanity checks for dynamically-specified
+	width and precision in format strings (%*, %.*, and %*.*).
+	These checks were lost with the Postfix 3.2.2 rewrite of
+	the vbuf_print formatter. File: vbuf_print.c.

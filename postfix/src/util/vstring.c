@@ -331,7 +331,7 @@ static int vstring_buf_get_ready(VBUF *unused_buf)
 
 static int vstring_buf_put_ready(VBUF *bp)
 {
-    vstring_extend(bp, 0);
+    vstring_extend(bp, 1);
     return (0);
 }
 

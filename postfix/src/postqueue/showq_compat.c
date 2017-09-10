@@ -154,7 +154,7 @@ static unsigned long showq_message(VSTREAM *showq_stream)
 	    myfree(saved_reason);
 	    saved_reason = mystrdup(STR(why));
 	    show_reason = *saved_reason ? saved_reason : "reason unavailable";
-	    if ((padding = 76 - strlen(show_reason)) < 0)
+	    if ((padding = 76 - (int) strlen(show_reason)) < 0)
 		padding = 0;
 	    vstream_printf("%*s(%s)\n", padding, "", show_reason);
 	}

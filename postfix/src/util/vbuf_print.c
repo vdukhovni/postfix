@@ -64,6 +64,7 @@
 /* Application-specific. */
 
 #include "msg.h"
+#include "mymalloc.h"
 #include "vbuf.h"
 #include "vstring.h"
 #include "vbuf_print.h"
@@ -109,10 +110,10 @@
 	VBUF_SPACE((bp), (sz)); \
 	_ret = snprintf((char *) (bp)->ptr, (bp)->cnt, (fmt), (arg)); \
 	if (_ret < 0) \
-	    msg_panic("%s: output error for '%s'", myname, (fmt)); \
+	    msg_panic("%s: output error for '%s'", myname, mystrdup(fmt)); \
 	if (_ret >= (bp)->cnt) \
 	    msg_panic("%s: output for '%s' exceeds space %ld", \
-		      myname, fmt, (long) (bp)->cnt); \
+		      myname, mystrdup(fmt), (long) (bp)->cnt); \
 	VBUF_SKIP(bp); \
     } while (0)
 #else
@@ -192,7 +193,12 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		VSTRING_ADDCH(fmt, *cp++);
 	    if (*cp == '*') {			/* dynamic field width */
 		width = va_arg(ap, int);
-		VSTRING_ADDNUM(fmt, width);
+		if (width < 0) {
+		    msg_warn("%s: bad width %d in %.50s",
+			     myname, width, format);
+		    width = 0;
+		} else
+		    VSTRING_ADDNUM(fmt, width);
 		cp++;
 	    } else {				/* hard-coded field width */
 		for (width = 0; ch = *cp, ISDIGIT(ch); cp++) {
@@ -210,7 +216,12 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		VSTRING_ADDCH(fmt, *cp++);
 		if (*cp == '*') {		/* dynamic precision */
 		    prec = va_arg(ap, int);
-		    VSTRING_ADDNUM(fmt, prec);
+		    if (prec < 0) {
+			msg_warn("%s: bad precision %d in %.50s",
+				 myname, prec, format);
+			prec = -1;
+		    } else
+			VSTRING_ADDNUM(fmt, prec);
 		    cp++;
 		} else {			/* hard-coded precision */
 		    for (prec = 0; ch = *cp, ISDIGIT(ch); cp++) {

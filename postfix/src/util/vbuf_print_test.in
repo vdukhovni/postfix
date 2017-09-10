@@ -24,3 +24,10 @@
 %.100f 1e308
 %g 1e308
 %.309g 1e308
+
+%s foo
+%0s foo
+%.0s foo
+%10s foo
+%+10s foo
+%-10s foo
