@@ -106,7 +106,8 @@
 #ifndef NO_SNPRINTF
 #define VBUF_SNPRINTF(bp, sz, fmt, arg) do { \
 	ssize_t _ret; \
-	VBUF_SPACE((bp), (sz)); \
+	if (VBUF_SPACE((bp), (sz)) != 0) \
+	    return (bp); \
 	_ret = snprintf((char *) (bp)->ptr, (bp)->cnt, (fmt), (arg)); \
 	if (_ret < 0) \
 	    msg_panic("%s: output error for '%s'", myname, (fmt)); \
@@ -117,7 +118,8 @@
     } while (0)
 #else
 #define VBUF_SNPRINTF(bp, sz, fmt, arg) do { \
-	VBUF_SPACE((bp), (sz)); \
+	if (VBUF_SPACE((bp), (sz)) != 0) \
+	    return (bp); \
 	sprintf((char *) (bp)->ptr, (fmt), (arg)); \
 	VBUF_SKIP(bp); \
     } while (0)
@@ -192,7 +194,12 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		VSTRING_ADDCH(fmt, *cp++);
 	    if (*cp == '*') {			/* dynamic field width */
 		width = va_arg(ap, int);
-		VSTRING_ADDNUM(fmt, width);
+		if (width < 0) {
+		    msg_warn("%s: bad width %d in %.50s",
+			     myname, width, format);
+		    width = 0;
+		} else
+		    VSTRING_ADDNUM(fmt, width);
 		cp++;
 	    } else {				/* hard-coded field width */
 		for (width = 0; ch = *cp, ISDIGIT(ch); cp++) {
@@ -210,7 +217,12 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		VSTRING_ADDCH(fmt, *cp++);
 		if (*cp == '*') {		/* dynamic precision */
 		    prec = va_arg(ap, int);
-		    VSTRING_ADDNUM(fmt, prec);
+		    if (prec < 0) {
+			msg_warn("%s: bad precision %d in %.50s",
+				 myname, prec, format);
+			prec = -1;
+		    } else
+			VSTRING_ADDNUM(fmt, prec);
 		    cp++;
 		} else {			/* hard-coded precision */
 		    for (prec = 0; ch = *cp, ISDIGIT(ch); cp++) {

@@ -22992,3 +22992,25 @@ Apologies for any names omitted.
 	by other users. This fix does not change Postfix behavior
 	for Berkeley DB < 3, but reduces file create performance
 	for Berkeley DB 3 .. 4.6.  File: util/dict_db.c.
+
+20170620
+
+	Bugfix (introduced: Postfix 3.2) extension propagation was
+	broken with "recipient_delimiter = .". This change reverts
+	a change that was trying to be too clever. Files:
+	global/mail_adr_crunch.c, global/mail_addr_crunch.ref.
+
+20170910
+
+	Safety: restore sanity checks for dynamically-specified
+	width and precision in format strings (%*, %.*, and %*.*).
+	These checks were lost with the Postfix 3.2.2 rewrite of
+	the vbuf_print formatter. File: vbuf_print.c.
+
+20170923
+
+	Bugfix (introduced: Postfix 3.2): panic in the postqueue
+	command after output write error while listing the queue.
+	This change restores a write error check that was lost with
+	the Postfix 3.2.2 rewrite of the vbuf_print formatter.
+	Problem reported by Andreas Schulze. File: util/vbuf_print.c.
