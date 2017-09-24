@@ -107,7 +107,8 @@
 #ifndef NO_SNPRINTF
 #define VBUF_SNPRINTF(bp, sz, fmt, arg) do { \
 	ssize_t _ret; \
-	VBUF_SPACE((bp), (sz)); \
+	if (VBUF_SPACE((bp), (sz)) != 0) \
+	    return (bp); \
 	_ret = snprintf((char *) (bp)->ptr, (bp)->cnt, (fmt), (arg)); \
 	if (_ret < 0) \
 	    msg_panic("%s: output error for '%s'", myname, mystrdup(fmt)); \
@@ -118,7 +119,8 @@
     } while (0)
 #else
 #define VBUF_SNPRINTF(bp, sz, fmt, arg) do { \
-	VBUF_SPACE((bp), (sz)); \
+	if (VBUF_SPACE((bp), (sz)) != 0) \
+	    return (bp); \
 	sprintf((char *) (bp)->ptr, (fmt), (arg)); \
 	VBUF_SKIP(bp); \
     } while (0)

@@ -367,8 +367,7 @@ tls)
 	;;
 
 *)
-	$ERROR "unknown command: '$1'"
-	$FATAL "usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration)"
+	$FATAL "unknown command: '$1'. Usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration)"
 	exit 1
 	;;
 

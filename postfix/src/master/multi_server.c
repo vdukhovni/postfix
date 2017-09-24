@@ -671,7 +671,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    zerolimit = 1;
 	    break;
 	default:
-	    msg_fatal("invalid option: %c", c);
+	    msg_fatal("invalid option: %c", optopt);
 	    break;
 	}
     }
