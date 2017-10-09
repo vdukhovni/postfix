@@ -163,7 +163,7 @@
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
 /*	be specified with "-c config_directory" on the command line (in the
-/*	case of \fBsendmail\fR(1), with "-C config_directory"), or via the MAIL_CONFIG
+/*	case of \fBsendmail\fR(1), with the "-C" option), or via the MAIL_CONFIG
 /*	environment parameter.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
@@ -174,8 +174,9 @@
 /*	Optional list of destinations that are eligible for per-destination
 /*	logfiles with mail that is queued to those destinations.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a Postfix process will
-/*	import from a non-Postfix parent process.
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBsyslog_facility (mail)\fR"

@@ -23144,7 +23144,7 @@ Apologies for any names omitted.
 
 	Safety: restore sanity checks for dynamically-specified
 	width and precision in format strings (%*, %.*, and %*.*).
-	These checks were lost with the Postfix 3.2.2 rewrite of
+	These checks were lost with the Postfix 3.2 rewrite of
 	the vbuf_print formatter. File: vbuf_print.c.
 
 	Bugfix (introduced: postfix-alpha): improve the 'fatal:
@@ -23156,5 +23156,18 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix 3.2): panic in the postqueue
 	command after output write error while listing the queue.
 	This change restores a write error check that was lost with
-	the Postfix 3.2.2 rewrite of the vbuf_print formatter.
+	the Postfix 3.2 rewrite of the vbuf_print formatter.
 	Problem reported by Andreas Schulze. File: util/vbuf_print.c.
+
+20170924
+
+	Cleanup: terminate early after output write error. Files:
+	showq/show_compat.c, showq/show_json.c.
+
+20171009
+
+	Bugfix (introduced: Postfix 3.1): DANE support. Postfix
+	builds with OpenSSL 1.0.0 or 1.0.1 failed to send email to
+	some sites with "TLSA 2 X X" records associated with an
+	intermediate CA certificate. Problem report and initial
+	fix by Erwan Legrand. File: src/tls/tls_dane.c.

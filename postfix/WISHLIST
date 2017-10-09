@@ -6,8 +6,14 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	After I/O error, store errno in VSTREAM object before errno
+	may be overwritten.
+
 	Add postwhite as a postscreen-related project.
 	https://github.com/stevejenkins/postwhite/blob/master/README.md
+
+	Document postsrsd and postforward for srs-ifying. Would
+	more fine-grained smtp_generic_maps support help?
 
 	Decide whether to deprecate database configuration pathnames
 	that start with ".", for example, ldap:./file/name. These forms

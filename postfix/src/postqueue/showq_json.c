@@ -34,6 +34,7 @@
 #include <string.h>
 #include <sysexits.h>
 #include <ctype.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -167,7 +168,7 @@ static void format_json(VSTREAM *showq_stream)
 		   json_quote(quote_buf, STR(addr)));
 
     /*
-     Read zero or more (recipient, reason) pair(s) until attr_scan_more()
+     * Read zero or more (recipient, reason) pair(s) until attr_scan_more()
      * consumes a terminator. If the showq daemon messes up, don't try to
      * resynchronize.
      */
@@ -192,7 +193,8 @@ static void format_json(VSTREAM *showq_stream)
     if (showq_status < 0)
 	msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
     vstream_printf("}\n");
-    vstream_fflush(VSTREAM_OUT);
+    if (vstream_fflush(VSTREAM_OUT) && errno != EPIPE)
+	msg_fatal_status(EX_IOERR, "output write error: %m");
 }
 
 /* showq_json - streaming JSON-format output adapter */
@@ -202,10 +204,11 @@ void    showq_json(VSTREAM *showq_stream)
     int     showq_status;
 
     /*
-     * Emit zero or more queue file objects until attr_scan_more()
-     * consumes a terminator.
+     * Emit zero or more queue file objects until attr_scan_more() consumes a
+     * terminator.
      */
-    while ((showq_status = attr_scan_more(showq_stream)) > 0) {
+    while ((showq_status = attr_scan_more(showq_stream)) > 0
+	   && vstream_ferror(VSTREAM_OUT) == 0) {
 	format_json(showq_stream);
     }
     if (showq_status < 0)

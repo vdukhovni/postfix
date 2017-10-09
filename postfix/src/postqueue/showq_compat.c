@@ -36,6 +36,7 @@
 #include <time.h>
 #include <string.h>
 #include <sysexits.h>
+#include <errno.h>
 
 /* Utility library. */
 
@@ -190,7 +191,11 @@ void    showq_compat(VSTREAM *showq_stream)
 	}
 	queue_size += showq_message(showq_stream);
 	file_count++;
-	vstream_fflush(VSTREAM_OUT);
+	if (vstream_fflush(VSTREAM_OUT)) {
+	    if (errno != EPIPE)
+		msg_fatal_status(EX_IOERR, "output write error: %m");
+	    return;
+	}
     }
     if (showq_status < 0)
 	msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
@@ -205,5 +210,6 @@ void    showq_compat(VSTREAM *showq_stream)
 		       queue_size / 1024, file_count,
 		       file_count == 1 ? "" : "s");
     }
-    vstream_fflush(VSTREAM_OUT);
+    if (vstream_fflush(VSTREAM_OUT) && errno != EPIPE)
+	msg_fatal_status(EX_IOERR, "output write error: %m");
 }
