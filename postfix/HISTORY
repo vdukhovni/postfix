@@ -22352,3 +22352,17 @@ Apologies for any names omitted.
 	by other users. This fix does not change Postfix behavior
 	for Berkeley DB < 3, but reduces file create performance
 	for Berkeley DB 3 .. 4.6.  File: util/dict_db.c.
+
+20171009
+
+	Bugfix (introduced: Postfix 3.1): DANE support. Postfix
+	builds with OpenSSL 1.0.0 or 1.0.1 failed to send email to
+	some sites with "TLSA 2 X X" records associated with an
+	intermediate CA certificate. Problem report and initial
+	fix by Erwan Legrand. File: src/tls/tls_dane.c.
+
+20171024
+
+	Bugfix (introduced: Postfix 3.0) missing dynamicmaps support
+	in the Postfix sendmail command broke authorized_submit_users
+	with a dynamically-loaded map type. File: sendmail/sendmail.c.

@@ -472,6 +472,7 @@
 #include <deliver_request.h>
 #include <mime_state.h>
 #include <header_opts.h>
+#include <mail_dict.h>
 #include <user_acl.h>
 #include <dsn_mask.h>
 
@@ -1081,6 +1082,8 @@ int     main(int argc, char **argv)
     /* Re-evaluate mail_task() after reading main.cf. */
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     get_mail_conf_str_table(str_table);
+
+    mail_dict_init();
 
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
