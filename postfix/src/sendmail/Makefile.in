@@ -73,6 +73,7 @@ sendmail.o: ../../include/header_opts.h
 sendmail.o: ../../include/htable.h
 sendmail.o: ../../include/iostuff.h
 sendmail.o: ../../include/mail_conf.h
+sendmail.o: ../../include/mail_dict.h
 sendmail.o: ../../include/mail_flush.h
 sendmail.o: ../../include/mail_params.h
 sendmail.o: ../../include/mail_parm_split.h

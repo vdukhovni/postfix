@@ -1450,7 +1450,7 @@ static X509_NAME *akid_issuer_name(AUTHORITY_KEYID *akid)
 
 /* set_issuer - set issuer DN to match akid if specified */
 
-static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid)
+static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid, X509_NAME *subj)
 {
     X509_NAME *name = akid_issuer_name(akid);
 
@@ -1460,7 +1460,7 @@ static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid)
      */
     if (name)
 	return (X509_set_issuer_name(cert, name));
-    return (X509_set_issuer_name(cert, X509_get_subject_name(cert)));
+    return (X509_set_issuer_name(cert, subj));
 }
 
 /* grow_chain - add certificate to trusted or untrusted chain */
@@ -1522,7 +1522,7 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
      */
     if (!X509_set_version(cert, 2)
 	|| !set_serial(cert, akid, subject)
-	|| !set_issuer_name(cert, akid)
+	|| !set_issuer_name(cert, akid, name)
 	|| !X509_gmtime_adj(X509_getm_notBefore(cert), -30 * 86400L)
 	|| !X509_gmtime_adj(X509_getm_notAfter(cert), 30 * 86400L)
 	|| !X509_set_subject_name(cert, name)
@@ -1797,6 +1797,10 @@ void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <msg_vstream.h>
+
+#if OPENSSL_VERSION_NUMBER < 0x10002000L
+#define SSL_get0_param(s) ((s)->param)
+#endif
 
 static int verify_chain(SSL *ssl, x509_stack_t *chain, TLS_SESS_STATE *tctx)
 {
