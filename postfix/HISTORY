@@ -23171,3 +23171,9 @@ Apologies for any names omitted.
 	some sites with "TLSA 2 X X" records associated with an
 	intermediate CA certificate. Problem report and initial
 	fix by Erwan Legrand. File: src/tls/tls_dane.c.
+
+20171024
+
+	Bugfix (introduced: Postfix 3.0) missing dynamicmaps support
+	in the Postfix sendmail command broke authorized_submit_users
+	with a dynamically-loaded map type. File: sendmail/sendmail.c.

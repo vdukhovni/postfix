@@ -388,7 +388,7 @@
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
 /*	be specified with "-c config_directory" on the command line (in the
-/*	case of \fBsendmail\fR(1), with "-C config_directory"), or via the MAIL_CONFIG
+/*	case of \fBsendmail\fR(1), with the "-C" option), or via the MAIL_CONFIG
 /*	environment parameter.
 /* .IP "\fBmulti_instance_directories (empty)\fR"
 /*	An optional list of non-default Postfix configuration directories;
@@ -495,6 +495,7 @@
 #include <deliver_request.h>
 #include <mime_state.h>
 #include <header_opts.h>
+#include <mail_dict.h>
 #include <user_acl.h>
 #include <dsn_mask.h>
 #include <mail_parm_split.h>
@@ -1113,6 +1114,8 @@ int     main(int argc, char **argv)
     /* Re-evaluate mail_task() after reading main.cf. */
     msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
     get_mail_conf_str_table(str_table);
+
+    mail_dict_init();
 
     if (chdir(var_queue_dir))
 	msg_fatal_status(EX_UNAVAILABLE, "chdir %s: %m", var_queue_dir);
