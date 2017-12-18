@@ -23177,3 +23177,30 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix 3.0) missing dynamicmaps support
 	in the Postfix sendmail command broke authorized_submit_users
 	with a dynamically-loaded map type. File: sendmail/sendmail.c.
+
+20171116
+
+	Bugfix (introduced: Postfix 2.1): don't log warnings 
+	that some restriction returns OK, when the access map
+	DISCARD feature is in effect. File: smtpd/smtpd_check.c.
+
+20171209
+
+	Documentation: the effects of owner_request_special and
+	reset_owner_alias on alias expansion. Files: proto/aliases,
+	proto/postconf.proto.
+
+20171215
+
+	Bugfix (introduced: 20170611): the DB_CONFIG bugfix broke
+	Berkeley DB configurations with a relative pathname.  File:
+	util/dict_db.c.
+
+20171218
+
+	Workaround: reportedly, FreeBSD 11.1 res_query(3) can return
+	-1 while h_errno==0. The DNS client now logs a warning and
+	sets h_errno to TRY_AGAIN. File: dns/dns_lookup.c.
+
+	Cleanup: allow XCLIENT before STARTTLS, when TLS is required.
+	File: smtpd/smtpd.c.

@@ -314,7 +314,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		     state->queue_id, buf);
 	else
 	    state->qmgr_opts |=
-		QMGR_READ_FLAG_FROM_DSN(state->dsn_notify = junk);
+			QMGR_READ_FLAG_FROM_DSN(state->dsn_notify = junk);
 	return;
     }
     if (type == REC_TYPE_ORCP) {

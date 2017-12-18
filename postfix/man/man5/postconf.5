@@ -2057,10 +2057,11 @@ outside the allowed set are replaced by underscores.
 .PP
 This feature is available in Postfix 2.2 and later.
 .SH expand_owner_alias (default: no)
-When delivering to an alias "aliasname" that has an "owner\-aliasname"
-companion alias, set the envelope sender address to the expansion
-of the "owner\-aliasname" alias. Normally, Postfix sets the envelope
-sender address to the name of the "owner\-aliasname" alias.
+When delivering to an alias "\fIaliasname\fR" that has an
+"owner\-\fIaliasname\fR" companion alias, set the envelope sender
+address to the expansion of the "owner\-\fIaliasname\fR" alias.
+Normally, Postfix sets the envelope sender address to the name of
+the "owner\-\fIaliasname\fR" alias.
 .SH export_environment (default: see "postconf \-d" output)
 The list of environment variables that a Postfix process will export
 to non\-Postfix processes. The TZ variable is needed for sane
@@ -4518,10 +4519,10 @@ Example:
 .PP
 This feature is available in Postfix 3.1 and later.
 .SH owner_request_special (default: yes)
-Give special treatment to owner\-listname and listname\-request
-address localparts: don't split such addresses when the
-recipient_delimiter is set to "\-".  This feature is useful for
-mailing lists.
+Enable special treatment for owner\-\fIlistname\fR entries in the
+\fBaliases\fR(5) file, and don't split owner\-\fIlistname\fR and
+\fIlistname\fR\-request address localparts when the recipient_delimiter
+is set to "\-".  This feature is useful for mailing lists.
 .SH parent_domain_matches_subdomains (default: see "postconf \-d" output)
 A list of Postfix features where the pattern "example.com" also
 matches subdomains of example.com,
@@ -5963,7 +5964,8 @@ Postfix releases, the behavior is as if this parameter is set to
 "yes".
 .PP
 As documented in \fBaliases\fR(5), when an alias \fIname\fR has a
-companion alias named owner\-\fIname\fR, delivery errors will be
+companion alias named owner\-\fIname\fR, this will replace the
+envelope sender address, so that delivery errors will be
 reported to the owner alias instead of the sender. This configuration
 is recommended for mailing lists.
 .PP
@@ -5993,7 +5995,9 @@ to other mailing list members.
 .PP
 Unfortunately, older Postfix releases reset the owner\-alias
 attribute when delivering mail to a child alias that does not have
-its own owner alias.  The \fBlocal\fR(8) delivery agent then attempts to
+its own owner alias. To be precise, this resets only the decision
+to create a new queue file, not the decision to override the envelope
+sender address. The \fBlocal\fR(8) delivery agent then attempts to
 deliver local addresses as soon as they come out of child alias
 expansion.  If delivery to any address from child alias expansion
 fails with a temporary error condition, the entire mailing list may

@@ -4835,7 +4835,7 @@ typedef struct SMTPD_CMD {
 static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_HELO, helo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
     {SMTPD_CMD_EHLO, ehlo_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
-    {SMTPD_CMD_XCLIENT, xclient_cmd,},
+    {SMTPD_CMD_XCLIENT, xclient_cmd, SMTPD_CMD_FLAG_PRE_TLS},
     {SMTPD_CMD_XFORWARD, xforward_cmd,},
 #ifdef USE_TLS
     {SMTPD_CMD_STARTTLS, starttls_cmd, SMTPD_CMD_FLAG_PRE_TLS,},

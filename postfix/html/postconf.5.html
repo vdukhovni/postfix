@@ -3284,10 +3284,11 @@ outside the allowed set are replaced by underscores.  </p>
 (default: no)</b></DT><DD>
 
 <p>
-When delivering to an alias "aliasname" that has an "owner-aliasname"
-companion alias, set the envelope sender address to the expansion
-of the "owner-aliasname" alias. Normally, Postfix sets the envelope
-sender address to the name of the "owner-aliasname" alias.
+When delivering to an alias "<i>aliasname</i>" that has an
+"owner-<i>aliasname</i>" companion alias, set the envelope sender
+address to the expansion of the "owner-<i>aliasname</i>" alias.
+Normally, Postfix sets the envelope sender address to the name of
+the "owner-<i>aliasname</i>" alias.
 </p>
 
 
@@ -7410,10 +7411,10 @@ This feature is available in Postfix 3.1 and later.
 (default: yes)</b></DT><DD>
 
 <p>
-Give special treatment to owner-listname and listname-request
-address localparts: don't split such addresses when the
-<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> is set to "-".  This feature is useful for
-mailing lists.
+Enable special treatment for owner-<i>listname</i> entries in the
+<a href="aliases.5.html">aliases(5)</a> file, and don't split owner-<i>listname</i> and
+<i>listname</i>-request address localparts when the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>
+is set to "-".  This feature is useful for mailing lists.
 </p>
 
 
@@ -9625,7 +9626,8 @@ Postfix releases, the behavior is as if this parameter is set to
 "yes". </p>
 
 <p> As documented in <a href="aliases.5.html">aliases(5)</a>, when an alias <i>name</i> has a
-companion alias named owner-<i>name</i>, delivery errors will be
+companion alias named owner-<i>name</i>, this will replace the
+envelope sender address, so that delivery errors will be
 reported to the owner alias instead of the sender. This configuration
 is recommended for mailing lists. <p>
 
@@ -9655,7 +9657,9 @@ to other mailing list members. </p>
 
 <p> Unfortunately, older Postfix releases reset the owner-alias
 attribute when delivering mail to a child alias that does not have
-its own owner alias.  The <a href="local.8.html">local(8)</a> delivery agent then attempts to
+its own owner alias. To be precise, this resets only the decision
+to create a new queue file, not the decision to override the envelope
+sender address. The <a href="local.8.html">local(8)</a> delivery agent then attempts to
 deliver local addresses as soon as they come out of child alias
 expansion.  If delivery to any address from child alias expansion
 fails with a temporary error condition, the entire mailing list may

@@ -7722,10 +7722,11 @@ This feature is available in Postfix 2.0 and later.
 %PARAM expand_owner_alias no
 
 <p>
-When delivering to an alias "aliasname" that has an "owner-aliasname"
-companion alias, set the envelope sender address to the expansion
-of the "owner-aliasname" alias. Normally, Postfix sets the envelope
-sender address to the name of the "owner-aliasname" alias.
+When delivering to an alias "<i>aliasname</i>" that has an
+"owner-<i>aliasname</i>" companion alias, set the envelope sender
+address to the expansion of the "owner-<i>aliasname</i>" alias.
+Normally, Postfix sets the envelope sender address to the name of
+the "owner-<i>aliasname</i>" alias.
 </p>
 
 %PARAM fallback_transport 
@@ -8069,10 +8070,10 @@ or reject_non_fqdn_recipient restriction.
 %PARAM owner_request_special yes
 
 <p>
-Give special treatment to owner-listname and listname-request
-address localparts: don't split such addresses when the
-recipient_delimiter is set to "-".  This feature is useful for
-mailing lists.
+Enable special treatment for owner-<i>listname</i> entries in the
+aliases(5) file, and don't split owner-<i>listname</i> and
+<i>listname</i>-request address localparts when the recipient_delimiter
+is set to "-".  This feature is useful for mailing lists.
 </p>
 
 %PARAM permit_mx_backup_networks 
@@ -14725,7 +14726,8 @@ Postfix releases, the behavior is as if this parameter is set to
 "yes". </p>
 
 <p> As documented in aliases(5), when an alias <i>name</i> has a
-companion alias named owner-<i>name</i>, delivery errors will be
+companion alias named owner-<i>name</i>, this will replace the
+envelope sender address, so that delivery errors will be
 reported to the owner alias instead of the sender. This configuration
 is recommended for mailing lists. <p>
 
@@ -14755,7 +14757,9 @@ to other mailing list members. </p>
 
 <p> Unfortunately, older Postfix releases reset the owner-alias
 attribute when delivering mail to a child alias that does not have
-its own owner alias.  The local(8) delivery agent then attempts to
+its own owner alias. To be precise, this resets only the decision
+to create a new queue file, not the decision to override the envelope
+sender address. The local(8) delivery agent then attempts to
 deliver local addresses as soon as they come out of child alias
 expansion.  If delivery to any address from child alias expansion
 fails with a temporary error condition, the entire mailing list may
