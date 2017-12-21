@@ -31,6 +31,11 @@
 /* .IP \fBstart\fR
 /*	Start the Postfix mail system. This also runs the configuration
 /*	check described above.
+/* .IP \fBstart-fg\fR
+/*	Like \fBstart\fR, but keep the master daemon running in the
+/*	foreground. This requires that multi-instance support is
+/*	disabled (i.e. the multi_instance_directories parameter
+/*	value is empty).
 /* .IP \fBstop\fR
 /*	Stop the Postfix mail system in an orderly fashion. If
 /*	possible, running processes are allowed to terminate at
@@ -177,8 +182,9 @@
 /* .PP
 /*	Other configuration parameters:
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a Postfix process will
-/*	import from a non-Postfix parent process.
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBsyslog_facility (mail)\fR"
 /*	The syslog facility of Postfix logging.
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"

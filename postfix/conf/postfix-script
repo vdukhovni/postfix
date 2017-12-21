@@ -117,7 +117,7 @@ stop_msg)
 	echo "Stop postfix"
 	;;
 
-start)
+start|start-fg)
 
 	$daemon_directory/master -t 2>/dev/null || {
 		$FATAL the Postfix mail system is already running
@@ -135,11 +135,28 @@ start)
 		$daemon_directory/postfix-script check-warn
 	fi
 	$INFO starting the Postfix mail system
-	# NOTE: wait in foreground process to get the initialization status.
-	$daemon_directory/master -w || {
-	    $FATAL "mail system startup failed"
-	    exit 1
-	}
+	case $1 in
+	start)
+	    # NOTE: wait in foreground process to get the initialization status.
+	    $daemon_directory/master -w || {
+		$FATAL "mail system startup failed"
+		exit 1
+	    }
+	    ;;
+	start-fg)
+	    # Foreground start-up is incompatible with multi-instance mode.
+	    # We can't use "exec $daemon_directory/master" here: that would
+	    # break process group management, and "postfix stop" would kill
+	    # too many processes.
+	    case $instances in
+	    "") $daemon_directory/master
+		;;
+	     *) $FATAL "start-fg does not support multi_instance_directories"
+		exit 1
+		;;
+	    esac
+	    ;;
+	esac
 	;;
 
 drain)

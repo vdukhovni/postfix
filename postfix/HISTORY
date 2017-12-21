@@ -23198,9 +23198,16 @@ Apologies for any names omitted.
 
 20171218
 
-	Workaround: reportedly, FreeBSD 11.1 res_query(3) can return
-	-1 while h_errno==0. The DNS client now logs a warning and
-	sets h_errno to TRY_AGAIN. File: dns/dns_lookup.c.
+	Workaround: reportedly, some res_query(3) implementation
+	can return -1 with h_errno==0. Instead of terminating with
+	a panic, the DNS client now logs a warning and sets h_errno
+	to TRY_AGAIN. File: dns/dns_lookup.c.
 
 	Cleanup: allow XCLIENT before STARTTLS, when TLS is required.
 	File: smtpd/smtpd.c.
+
+20171219
+
+	Feature: preliminary support to run Postfix in the foreground.
+	This requires that multi-instance support is disabled.
+	Files: conf/postfix-script, postfix/postfix.c.
