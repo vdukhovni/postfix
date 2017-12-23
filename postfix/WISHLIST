@@ -9,14 +9,12 @@ Wish list:
 	After I/O error, store errno in VSTREAM object before errno
 	may be overwritten.
 
-	Is it possible for the Milter client to 'chgfrom' the sender's
-	DSN attributes?  That is, keep existing ones or set new ones?
-
 	Add $smtpd_sender_login_maps to proxy_read_maps.
 
 	Add some tips for logging from container:
 	https://www.projectatomic.io/blog/2016/10/playing-with-docker-logging/;
-	syslog_name = $myhostname/postfix; mkdir + postfix check
+	syslog_name = $myhostname/postfix; mkdir queue and data
+	dir; postfix check to create queue subdirectories.
 
 	Add postwhite as a postscreen-related project.
 	https://github.com/stevejenkins/postwhite/blob/master/README.md

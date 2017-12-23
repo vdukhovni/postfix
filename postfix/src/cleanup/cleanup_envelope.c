@@ -314,7 +314,7 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 		     state->queue_id, buf);
 	else
 	    state->qmgr_opts |=
-			QMGR_READ_FLAG_FROM_DSN(state->dsn_notify = junk);
+		QMGR_READ_FLAG_FROM_DSN(state->dsn_notify = junk);
 	return;
     }
     if (type == REC_TYPE_ORCP) {
@@ -406,31 +406,21 @@ static void cleanup_envelope_process(CLEANUP_STATE *state, int type,
 	return;
     }
     if (mapped_type == REC_TYPE_DSN_ENVID) {
-	/* Allow only one instance. */
-	if (state->dsn_envid != 0) {
-	    msg_warn("%s: message rejected: multiple DSN envelope ID records",
-		     state->queue_id);
-	    state->errs |= CLEANUP_STAT_BAD;
-	    return;
-	}
+	/* Don't break "postsuper -r" after Milter overrides ENVID. */
 	if (!allprint(mapped_buf)) {
 	    msg_warn("%s: message rejected: bad DSN envelope ID record",
 		     state->queue_id);
 	    state->errs |= CLEANUP_STAT_BAD;
 	    return;
 	}
+	if (state->dsn_envid != 0)
+	    myfree(state->dsn_envid);
 	state->dsn_envid = mystrdup(mapped_buf);
 	cleanup_out(state, type, buf, len);
 	return;
     }
     if (mapped_type == REC_TYPE_DSN_RET) {
-	/* Allow only one instance. */
-	if (state->dsn_ret != 0) {
-	    msg_warn("%s: message rejected: multiple DSN RET records",
-		     state->queue_id);
-	    state->errs |= CLEANUP_STAT_BAD;
-	    return;
-	}
+	/* Don't break "postsuper -r" after Milter overrides RET. */
 	if (!alldig(mapped_buf) || (junk = atoi(mapped_buf)) == 0
 	    || DSN_RET_OK(junk) == 0) {
 	    msg_warn("%s: message rejected: bad DSN RET record <%.200s>",

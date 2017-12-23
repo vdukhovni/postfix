@@ -4,7 +4,9 @@
       100 create_time: Sun Jan 21 13:33:08 2007
       124 named_attribute: rewrite_context=local
       147 sender_fullname: Wietse Venema
-      162 pointer_record:             691
+      162 pointer_record:             573
+      573 pointer_record:             657
+      657 pointer_record:             691
       691 sender: o@porcupine.org
       708 pointer_record:             674
       674 pointer_record:             590

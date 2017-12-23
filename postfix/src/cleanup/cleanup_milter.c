@@ -1330,22 +1330,61 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
 {
     const char *myname = "cleanup_chg_from";
     CLEANUP_STATE *state = (CLEANUP_STATE *) context;
+    off_t   new_offset;
     off_t   new_sender_offset;
     off_t   after_sender_offs;
     int     addr_count;
     TOK822 *tree;
     TOK822 *tp;
     VSTRING *int_sender_buf;
+    int     dsn_envid = 0;
+    int     dsn_ret = 0;
 
     if (msg_verbose)
 	msg_info("%s: \"%s\" \"%s\"", myname, ext_from, esmtp_args);
 
-    if (esmtp_args[0])
-	msg_warn("%s: %s: ignoring ESMTP arguments \"%.100s\"",
-		 state->queue_id, myname, esmtp_args);
+    /*
+     * ESMTP support is limited to RET and ENVID, i.e. things that are stored
+     * together with the sender queue file record.
+     */
+    if (esmtp_args[0]) {
+	ARGV   *esmtp_argv;
+	int     i;
+	const char *arg;
+
+	esmtp_argv = argv_split(esmtp_args, " ");
+	for (i = 0; i < esmtp_argv->argc; ++i) {
+	    arg = esmtp_argv->argv[i];
+	    if (strncasecmp(arg, "RET=", 4) == 0) {
+		if ((dsn_ret = dsn_ret_code(arg + 4)) == 0) {
+		    msg_warn("Ignoring bad ESMTP parameter \"%s\" in "
+			     "SMFI_CHGFROM request", arg);
+		} else {
+		    state->dsn_ret = dsn_ret;
+		}
+	    } else if (strncasecmp(arg, "ENVID=", 6) == 0) {
+		if (state->milter_dsn_buf == 0)
+		    state->milter_dsn_buf = vstring_alloc(20);
+		dsn_envid = (xtext_unquote(state->milter_dsn_buf, arg + 6)
+			     && allprint(STR(state->milter_dsn_buf)));
+		if (!dsn_envid) {
+		    msg_warn("Ignoring bad ESMTP parameter \"%s\" in "
+			     "SMFI_CHGFROM request", arg);
+		} else {
+		    if (state->dsn_envid)
+			myfree(state->dsn_envid);
+		    state->dsn_envid = mystrdup(STR(state->milter_dsn_buf));
+		}
+	    } else {
+		msg_warn("Ignoring bad ESMTP parameter \"%s\" in "
+			 "SMFI_CHGFROM request", arg);
+	    }
+	}
+	argv_free(esmtp_argv);
+    }
 
     /*
-     * The cleanup server remembers the location of the the original sender
+     * The cleanup server remembers the file offset of the current sender
      * address record (offset in sender_pt_offset) and the file offset of the
      * record that follows the sender address (offset in sender_pt_target).
      * Short original sender records are padded, so that they can safely be
@@ -1357,20 +1396,34 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
 	msg_panic("%s: no post-sender record offset", myname);
 
     /*
-     * Allocate space after the end of the queue file, and write the new
-     * sender record, followed by a reverse pointer record that points to the
-     * record that follows the original sender address record. No padding is
-     * needed for a "new" short sender record, since the record is not meant
-     * to be overwritten. When the "new" sender is replaced, we allocate a
-     * new record at the end of the queue file.
+     * Allocate space after the end of the queue file, and write the new {DSN
+     * envid, DSN ret, sender address, sender BCC} records, followed by a
+     * reverse pointer record that points to the record that follows the
+     * original sender record.
      * 
      * We update the queue file in a safe manner: save the new sender after the
      * end of the queue file, write the reverse pointer, and only then
      * overwrite the old sender record with the forward pointer to the new
      * sender.
      */
-    if ((new_sender_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
+    if ((new_offset = vstream_fseek(state->dst, (off_t) 0, SEEK_END)) < 0) {
 	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
+	return (cleanup_milter_error(state, errno));
+    }
+
+    /*
+     * Sender DSN attribute records precede the sender record.
+     */
+    if (dsn_envid)
+	rec_fprintf(state->dst, REC_TYPE_ATTR, "%s=%s",
+		    MAIL_ATTR_DSN_ENVID, STR(state->milter_dsn_buf));
+    if (dsn_ret)
+	rec_fprintf(state->dst, REC_TYPE_ATTR, "%s=%d",
+		    MAIL_ATTR_DSN_RET, dsn_ret);
+    if (dsn_envid == 0 && dsn_ret == 0) {
+	new_sender_offset = new_offset;
+    } else if ((new_sender_offset = vstream_ftell(state->dst)) < 0) {
+	msg_warn("%s: vstream_ftell file %s: %m", myname, cleanup_path);
 	return (cleanup_milter_error(state, errno));
     }
 
@@ -1402,15 +1455,20 @@ static const char *cleanup_chg_from(void *context, const char *ext_from,
     state->sender_pt_target = after_sender_offs;
 
     /*
-     * Overwrite the original sender record with the pointer to the new
-     * sender address record.
+     * Overwrite the current sender record with the pointer to the new {DSN
+     * envid, DSN ret, sender address, sender BCC} records.
      */
     if (vstream_fseek(state->dst, state->sender_pt_offset, SEEK_SET) < 0) {
 	msg_warn("%s: seek file %s: %m", myname, cleanup_path);
 	return (cleanup_milter_error(state, errno));
     }
     cleanup_out_format(state, REC_TYPE_PTR, REC_TYPE_PTR_FORMAT,
-		       (long) new_sender_offset);
+		       (long) new_offset);
+
+    /*
+     * Remember the location of the new current sender record.
+     */
+    state->sender_pt_offset = new_sender_offset;
 
     /*
      * In case of error while doing record output.
@@ -2427,6 +2485,7 @@ int     main(int unused_argc, char **argv)
     char   *bufp;
     int     istty = isatty(vstream_fileno(VSTREAM_IN));
     CLEANUP_STATE *state = cleanup_state_alloc((VSTREAM *) 0);
+    const char *parens = "{}";
 
     state->queue_id = mystrdup("NOQUEUE");
     state->sender = mystrdup("sender");
@@ -2459,7 +2518,7 @@ int     main(int unused_argc, char **argv)
 	}
 	if (*bufp == '#' || *bufp == 0 || allspace(bufp))
 	    continue;
-	argv = argv_split(bufp, " ");
+	argv = argv_splitq(bufp, " ", parens);
 	if (argv->argc == 0) {
 	    msg_warn("missing command");
 	} else if (strcmp(argv->argv[0], "?") == 0) {
@@ -2539,7 +2598,15 @@ int     main(int unused_argc, char **argv)
 	    if (argv->argc != 3) {
 		msg_warn("bad chg_from argument count: %ld", (long) argv->argc);
 	    } else {
-		cleanup_chg_from(state, argv->argv[1], argv->argv[2]);
+		char   *arg = argv->argv[2];
+		const char *err;
+
+		if (*arg == parens[0]
+		    && (err = extpar(&arg, parens, EXTPAR_FLAG_NONE)) != 0) {
+		    msg_warn("%s in \"%s\"", err, arg);
+		} else {
+		    cleanup_chg_from(state, argv->argv[1], arg);
+		}
 	    }
 	} else if (strcmp(argv->argv[0], "add_rcpt") == 0) {
 	    if (argv->argc != 2) {

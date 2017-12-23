@@ -23211,3 +23211,16 @@ Apologies for any names omitted.
 	Feature: preliminary support to run Postfix in the foreground.
 	This requires that multi-instance support is disabled.
 	Files: conf/postfix-script, postfix/postfix.c.
+
+20171223
+
+	Feature: Milters can now send RET and ENVID arguments in
+	SMFI_CHGFROM requests. Files: cleanup/Makefile.in,
+	cleanup/cleanup.h, cleanup/cleanup_envelope.c,
+	cleanup/cleanup_milter.c, cleanup/cleanup_milter.in13h,
+	cleanup/cleanup_milter.in13i, cleanup/cleanup_milter.ref13c,
+	cleanup/cleanup_milter.ref13d, cleanup/cleanup_milter.ref13f,
+	cleanup/cleanup_milter.ref13g, cleanup/cleanup_milter.ref13h,
+	cleanup/cleanup_milter.ref13i, cleanup/cleanup_state.c,
+	cleanup/test-queue-file13h, cleanup/test-queue-file13i,
+	oqmgr/qmgr_message.c, qmgr/qmgr_message.c.

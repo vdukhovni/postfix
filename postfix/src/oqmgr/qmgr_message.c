@@ -600,17 +600,18 @@ static int qmgr_message_read(QMGR_MESSAGE *message)
 	    continue;
 	}
 	if (rec_type == REC_TYPE_DSN_ENVID) {
-	    if (message->dsn_envid == 0)
-		message->dsn_envid = mystrdup(start);
+	    /* Allow Milter override. */
+	    if (message->dsn_envid != 0)
+		myfree(message->dsn_envid);
+	    message->dsn_envid = mystrdup(start);
 	}
 	if (rec_type == REC_TYPE_DSN_RET) {
-	    if (message->dsn_ret == 0) {
-		if (!alldig(start) || (n = atoi(start)) == 0 || !DSN_RET_OK(n))
-		    msg_warn("%s: ignoring malformed DSN RET flags in queue file record:%.100s",
-			     message->queue_id, start);
-		else
-		    message->dsn_ret = n;
-	    }
+	    /* Allow Milter override. */
+	    if (!alldig(start) || (n = atoi(start)) == 0 || !DSN_RET_OK(n))
+		msg_warn("%s: ignoring malformed DSN RET flags in queue file record:%.100s",
+			 message->queue_id, start);
+	    else
+		message->dsn_ret = n;
 	}
 	if (rec_type == REC_TYPE_ATTR) {
 	    /* Allow extra segment to override envelope segment info. */
