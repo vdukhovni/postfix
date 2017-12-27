@@ -1,8 +1,8 @@
-Postfix before-queue Milter support
+PPoossttffiixx bbeeffoorree--qquueeuuee MMiilltteerr ssuuppppoorrtt
 
 -------------------------------------------------------------------------------
 
-Introduction
+IInnttrroodduuccttiioonn
 
 Postfix implements support for the Sendmail version 8 Milter (mail filter)
 protocol. This protocol is used by applications that run outside the MTA to
@@ -30,7 +30,7 @@ This document provides information on the following topics:
   * Workarounds
   * Limitations
 
-How Milter applications plug into Postfix
+HHooww MMiilltteerr aapppplliiccaattiioonnss pplluugg iinnttoo PPoossttffiixx
 
 The Postfix Milter implementation uses two different lists of mail filters: one
 list of filters for SMTP mail only, and one list of filters for non-SMTP mail.
@@ -80,7 +80,7 @@ Postfix architecture).
 
     Local   -> sendmail(1)
 
-Building Milter applications
+BBuuiillddiinngg MMiilltteerr aapppplliiccaattiioonnss
 
 Milter applications have been written in C, JAVA and Perl, but this document
 deals with C applications only. For these, you need an object library that
@@ -94,25 +94,25 @@ some Linux systems).
 Once libmilter is installed, applications such as OpenDKIM and OpenDMARC build
 out of the box without requiring any tinkering:
 
-    $ gzcat opendkim-x.y.z.tar.gz | tar xf -
-    $ cd opendkim-x.y.z
-    $ ./configure ...options...
-    $ make
+    $ ggzzccaatt ooppeennddkkiimm--xx..yy..zz..ttaarr..ggzz || ttaarr xxff --
+    $ ccdd ooppeennddkkiimm--xx..yy..zz
+    $ ..//ccoonnffiigguurree ......ooppttiioonnss......
+    $ mmaakkee
     [...lots of output omitted...]
-    $ make install
+    $ mmaakkee iinnssttaallll
 
-Running Milter applications
+RRuunnnniinngg MMiilltteerr aapppplliiccaattiioonnss
 
 To run a Milter application, see the documentation of the filter for options. A
 typical command looks like this:
 
-    # /some/where/opendkim -l -u userid -p inet:portnumber@localhost ...other
-    options...
+    # //ssoommee//wwhheerree//ooppeennddkkiimm --ll --uu uusseerriidd --pp iinneett::ppoorrttnnuummbbeerr@@llooccaallhhoosstt ......ootthheerr
+    ooppttiioonnss......
 
 Please specify a userid value that isn't used for other applications (not
 "postfix", not "www", etc.).
 
-Configuring Postfix
+CCoonnffiigguurriinngg PPoossttffiixx
 
 Like Sendmail, Postfix has a lot of configuration options that control how it
 talks to Milter applications. Besides global options that apply to all Milter
@@ -131,7 +131,7 @@ Information in this section:
   * Sendmail macro emulation
   * What macros will Postfix send to Milters?
 
-SMTP-Only Milter applications
+SSMMTTPP--OOnnllyy MMiilltteerr aapppplliiccaattiioonnss
 
 The SMTP-only Milter applications handle mail that arrives via the Postfix
 smtpd(8) server. They are typically used to filter unwanted mail, and to sign
@@ -159,23 +159,23 @@ from other Milter applications.
 
 The general syntax for listening sockets is as follows:
 
-    unix:pathname
+    uunniixx::pathname
         Connect to the local UNIX-domain server that is bound to the specified
         pathname. If the smtpd(8) or cleanup(8) process runs chrooted, an
         absolute pathname is interpreted relative to the Postfix queue
         directory.
 
-    inet:host:port
+    iinneett::host::port
         Connect to the specified TCP port on the specified local or remote
         host. The host and port can be specified in numeric or symbolic form.
 
         NOTE: Postfix syntax differs from Milter syntax which has the form
-        inet:port@host.
+        iinneett::port@@host.
 
 For advanced configuration see "Different settings for different SMTP clients"
 and "Different settings for different Milter applications".
 
-Non-SMTP Milter applications
+NNoonn--SSMMTTPP MMiilltteerr aapppplliiccaattiioonnss
 
 The non-SMTP Milter applications handle mail that arrives via the Postfix
 sendmail(1) command-line or via the Postfix qmqpd(8) server. They are typically
@@ -226,7 +226,7 @@ must not REJECT or TEMPFAIL simulated RCPT TO commands. When a
 non_smtpd_milters application REJECTs or TEMPFAILs a recipient, Postfix will
 report a configuration error, and mail will stay in the queue.
 
-Signing internally-generated bounce messages
+SSiiggnniinngg iinntteerrnnaallllyy--ggeenneerraatteedd bboouunnccee mmeessssaaggeess
 
 Postfix normally does not apply content filters to mail that is generated
 internally such as bounces or Postmaster notifications. Filtering internally-
@@ -243,7 +243,7 @@ non_smtpd_milters, header_checks or body_checks (lines 3-5 below).
     4     header_checks = don't reject internally-generated bounces
     5     body_checks = don't reject internally-generated bounces
 
-Milter error handling
+MMiilltteerr eerrrroorr hhaannddlliinngg
 
 The milter_default_action parameter specifies how Postfix handles Milter
 application errors. The default action is to respond with a temporary error
@@ -260,16 +260,16 @@ the message in the "hold" queue, and is available with Postfix 2.6 or later.
 See "Different settings for different Milter applications" for advanced
 configuration options.
 
-Milter protocol version
+MMiilltteerr pprroottooccooll vveerrssiioonn
 
 As Postfix is not built with the Sendmail libmilter library, you may need to
 configure the Milter protocol version that Postfix should use. The default
 version is 6 (before Postfix 2.6 the default version is 2).
 
     /etc/postfix/main.cf:
-        # Postfix ≥ 2.6
+        # Postfix >= 2.6
         milter_protocol = 6
-        # 2.3 ≤ Postfix ≤ 2.5
+        # 2.3 <= Postfix <= 2.5
         milter_protocol = 2
 
 If the Postfix milter_protocol setting specifies a too low version, the
@@ -298,21 +298,21 @@ libmilter library does not expect.
 See "Different settings for different Milter applications" for advanced
 configuration options.
 
-Milter protocol timeouts
+MMiilltteerr pprroottooccooll ttiimmeeoouuttss
 
 Postfix uses different time limits at different Milter protocol stages. The
 table shows the timeout settings and the corresponding protocol stages (EOH =
 end of headers; EOM = end of message).
 
-     _________________________________________________________________
-    |Postfix parameter     |Time limit|Milter protocol stage          |
-    |______________________|__________|_______________________________|
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |PPoossttffiixx ppaarraammeetteerr     |TTiimmee lliimmiitt|MMiilltteerr pprroottooccooll ssttaaggee          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_connect_timeout|30s       |CONNECT                        |
-    |______________________|__________|_______________________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_command_timeout|30s       |HELO, MAIL, RCPT, DATA, UNKNOWN|
-    |______________________|__________|_______________________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_content_timeout|300s      |HEADER, EOH, BODY, EOM         |
-    |______________________|__________|_______________________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 Beware: 30s may be too short for Milter applications that do lots of DNS
 lookups. However, if you increase the above timeouts too much, remote SMTP
@@ -322,7 +322,7 @@ inherent problem with before-queue filtering.
 See "Different settings for different Milter applications" for advanced
 configuration options.
 
-Different settings for different Milter applications
+DDiiffffeerreenntt sseettttiinnggss ffoorr ddiiffffeerreenntt MMiilltteerr aapppplliiccaattiioonnss
 
 The previous sections list a number of Postfix main.cf parameters that control
 time limits and other settings for all Postfix Milter clients. This is
@@ -349,11 +349,11 @@ Instead of a server endpoint, we now have a list enclosed in {}.
     content_timeout, default_action, and protocol.
 
 Inside the list, syntax is similar to what we already know from main.cf: items
-separated by space or comma. There is one difference: you must enclose a
-setting in parentheses, as in "{ name = value }", if you want to have space or
-comma within a value or around "=".
+separated by space or comma. There is one difference: yyoouu mmuusstt eenncclloossee aa
+sseettttiinngg iinn ppaarreenntthheesseess,, aass iinn ""{{ nnaammee == vvaalluuee }}"",, iiff yyoouu wwaanntt ttoo hhaavvee ssppaaccee oorr
+ccoommmmaa wwiitthhiinn aa vvaalluuee oorr aarroouunndd ""=="".
 
-Different settings for different SMTP clients
+DDiiffffeerreenntt sseettttiinnggss ffoorr ddiiffffeerreenntt SSMMTTPP cclliieennttss
 
 The smtpd_milter_maps feature supports different Milter settings for different
 client IP addresses. Lookup results override the the global smtpd_milters
@@ -373,7 +373,7 @@ local address ranges:
 
 This feature is available with Postfix 3.2 and later.
 
-Sendmail macro emulation
+SSeennddmmaaiill mmaaccrroo eemmuullaattiioonn
 
 Postfix emulates a limited number of Sendmail macros, as shown in the table.
 Some macro values depend on whether a recipient is rejected (rejected
@@ -382,70 +382,92 @@ macros are available at different Milter protocol stages (EOH = end-of-header,
 EOM = end-of-message); their availability is not always the same as in
 Sendmail. See the workarounds section below for solutions.
 
-     _________________________________________________________________________________________________________________________________________
-    |Sendmail macro      |Milter protocol stage                          |Description                                                         |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |i                   |DATA, EOH, EOM                                 |Queue ID, also Postfix queue file name                              |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |j                   |Always                                         |Value of myhostname                                                 |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |_                   |Always                                         |The validated client name and address                               |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{auth_authen}       |MAIL, DATA, EOH, EOM                           |SASL login name                                                     |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{auth_author}       |MAIL, DATA, EOH, EOM                           |SASL sender                                                         |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{auth_type}         |MAIL, DATA, EOH, EOM                           |SASL login method                                                   |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{client_addr}       |Always                                         |Remote client IP address                                            |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{client_connections}|CONNECT                                        |Connection concurrency for this client (zero if the client is       |
-    |                    |                                               |excluded from all smtpd_client_* limits).                           |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |                    |                                               |Remote client hostname                                              |
-    |{client_name}       |Always                                         |When address → name lookup or name → address verification fails:|
-    |                    |                                               |"unknown"                                                           |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{client_port}       |Always (Postfix ≥2.5)                        |Remote client TCP port                                              |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{client_ptr}        |CONNECT, HELO, MAIL, DATA                      |Client name from address → name lookup                            |
-    |                    |                                               |When address → name lookup fails: "unknown"                       |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{cert_issuer}       |HELO, MAIL, DATA, EOH, EOM                     |TLS client certificate issuer                                       |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{cert_subject}      |HELO, MAIL, DATA, EOH, EOM                     |TLS client certificate subject                                      |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{cipher_bits}       |HELO, MAIL, DATA, EOH, EOM                     |TLS session key size                                                |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{cipher}            |HELO, MAIL, DATA, EOH, EOM                     |TLS cipher                                                          |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{daemon_addr}       |Always (Postfix ≥3.2)                        |Local server IP address                                             |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{daemon_name}       |Always                                         |value of milter_macro_daemon_name                                   |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{daemon_port}       |Always (Postfix ≥3.2)                        |Local server TCP port                                               |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{mail_addr}         |MAIL                                           |Sender address                                                      |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{mail_host}         |MAIL (Postfix ≥ 2.6, only with smtpd_milters)|Sender next-hop destination                                         |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{mail_mailer}       |MAIL (Postfix ≥ 2.6, only with smtpd_milters)|Sender mail delivery transport                                      |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{rcpt_addr}         |RCPT                                           |Recipient address                                                   |
-    |                    |                                               |With rejected recipient: descriptive text                           |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{rcpt_host}         |RCPT (Postfix ≥ 2.6, only with smtpd_milters)|Recipient next-hop destination                                      |
-    |                    |                                               |With rejected recipient: enhanced status code                       |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{rcpt_mailer}       |RCPT (Postfix ≥ 2.6, only with smtpd_milters)|Recipient mail delivery transport                                   |
-    |                    |                                               |With rejected recipient: "error"                                    |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |{tls_version}       |HELO, MAIL, DATA, EOH, EOM                     |TLS protocol version                                                |
-    |____________________|_______________________________________________|____________________________________________________________________|
-    |v                   |Always                                         |value of milter_macro_v                                             |
-    |____________________|_______________________________________________|____________________________________________________________________|
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |SSeennddmmaaiill mmaaccrroo      |MMiilltteerr pprroottooccooll ssttaaggee    |DDeessccrriippttiioonn               |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |i                   |DATA, EOH, EOM           |Queue ID, also Postfix    |
+    |                    |                         |queue file name           |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |j                   |Always                   |Value of myhostname       |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |_                   |Always                   |The validated client name |
+    |                    |                         |and address               |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{auth_authen}       |MAIL, DATA, EOH, EOM     |SASL login name           |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{auth_author}       |MAIL, DATA, EOH, EOM     |SASL sender               |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{auth_type}         |MAIL, DATA, EOH, EOM     |SASL login method         |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{client_addr}       |Always                   |Remote client IP address  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                    |                         |Connection concurrency for|
+    |                    |                         |this client (zero if the  |
+    |{client_connections}|CONNECT                  |client is excluded from   |
+    |                    |                         |all smtpd_client_*        |
+    |                    |                         |limits).                  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                    |                         |Remote client hostname    |
+    |                    |                         |When address -> name      |
+    |{client_name}       |Always                   |lookup or name -> address |
+    |                    |                         |verification fails:       |
+    |                    |                         |"unknown"                 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{client_port}       |Always (Postfix >=2.5)   |Remote client TCP port    |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                    |                         |Client name from address -|
+    |{client_ptr}        |CONNECT, HELO, MAIL, DATA|> name lookup             |
+    |                    |                         |When address -> name      |
+    |                    |                         |lookup fails: "unknown"   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{cert_issuer}       |HELO, MAIL, DATA, EOH,   |TLS client certificate    |
+    |                    |EOM                      |issuer                    |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{cert_subject}      |HELO, MAIL, DATA, EOH,   |TLS client certificate    |
+    |                    |EOM                      |subject                   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{cipher_bits}       |HELO, MAIL, DATA, EOH,   |TLS session key size      |
+    |                    |EOM                      |                          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{cipher}            |HELO, MAIL, DATA, EOH,   |TLS cipher                |
+    |                    |EOM                      |                          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{daemon_addr}       |Always (Postfix >=3.2)   |Local server IP address   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{daemon_name}       |Always                   |value of                  |
+    |                    |                         |milter_macro_daemon_name  |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{daemon_port}       |Always (Postfix >=3.2)   |Local server TCP port     |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{mail_addr}         |MAIL                     |Sender address            |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{mail_host}         |MAIL (Postfix >= 2.6,    |Sender next-hop           |
+    |                    |only with smtpd_milters) |destination               |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{mail_mailer}       |MAIL (Postfix >= 2.6,    |Sender mail delivery      |
+    |                    |only with smtpd_milters) |transport                 |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                    |                         |Recipient address         |
+    |{rcpt_addr}         |RCPT                     |With rejected recipient:  |
+    |                    |                         |descriptive text          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                    |                         |Recipient next-hop        |
+    |{rcpt_host}         |RCPT (Postfix >= 2.6,    |destination               |
+    |                    |only with smtpd_milters) |With rejected recipient:  |
+    |                    |                         |enhanced status code      |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |                    |                         |Recipient mail delivery   |
+    |{rcpt_mailer}       |RCPT (Postfix >= 2.6,    |transport                 |
+    |                    |only with smtpd_milters) |With rejected recipient:  |
+    |                    |                         |"error"                   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |{tls_version}       |HELO, MAIL, DATA, EOH,   |TLS protocol version      |
+    |                    |EOM                      |                          |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
+    |v                   |Always                   |value of milter_macro_v   |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
-What macros will Postfix send to Milters?
+WWhhaatt mmaaccrrooss wwiillll PPoossttffiixx sseenndd ttoo MMiilltteerrss??
 
 Postfix sends specific sets of macros at different Milter protocol stages. The
 sets are configured with the parameters as shown in the table below (EOH = end
@@ -456,26 +478,26 @@ As of Sendmail 8.14.0, Milter applications can specify what macros they want to
 receive at different Milter protocol stages. An application-specified list
 takes precedence over a Postfix-specified list.
 
-     ___________________________________________________________________
-    |Postfix parameter            |Milter protocol|Milter protocol stage|
-    |                             |version        |                     |
-    |_____________________________|_______________|_____________________|
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |PPoossttffiixx ppaarraammeetteerr            |MMiilltteerr pprroottooccooll|MMiilltteerr pprroottooccooll ssttaaggee|
+    |                             |vveerrssiioonn        |                     |
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_connect_macros        |2 or higher    |CONNECT              |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_helo_macros           |2 or higher    |HELO/EHLO            |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_mail_macros           |2 or higher    |MAIL FROM            |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_rcpt_macros           |2 or higher    |RCPT TO              |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_data_macros           |4 or higher    |DATA                 |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_end_of_header_macros  |6 or higher    |EOH                  |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_end_of_data_macros    |2 or higher    |EOM                  |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |milter_unknown_command_macros|3 or higher    |unknown command      |
-    |_____________________________|_______________|_____________________|
+    |_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
 By default, Postfix will send only macros whose values have been updated with
 information from main.cf or master.cf, from an SMTP session (for example; SASL
@@ -487,7 +509,7 @@ specify macro default values with the milter_macro_defaults parameter. Specify
 zero or more name=value pairs separated by comma or whitespace; you may even
 specify macro names that Postfix does know about!
 
-Workarounds
+WWoorrkkaarroouunnddss
 
   * To avoid breaking DKIM etc. signatures with an SMTP-based content filter,
     update the before-filter SMTP client in master.cf, and add a line with "-
@@ -506,7 +528,7 @@ Workarounds
 
   * Some Milter applications use the "{if_addr}" macro to recognize local mail;
     this macro does not exist in Postfix. Workaround: use the "{daemon_addr}"
-    (Postfix ≥ 3.2) or "{client_addr}" macro instead.
+    (Postfix >= 3.2) or "{client_addr}" macro instead.
 
   * Some Milter applications log a warning that looks like this:
 
@@ -535,19 +557,19 @@ Workarounds
       o Edit the filter source file (typically named xxx-filter/xxx-filter.c or
         similar).
 
-      o Look up the mlfi_eom() function and add code near the top shown as bold
+      o Look up the mlfi_eom() function and add code near the top shown as bboolldd
         text below:
 
         dfc = cc->cctx_msg;
         assert(dfc != NULL);
 
-        /* Determine the job ID for logging. */
-        if (dfc->mctx_jobid == 0 || strcmp(dfc->mctx_jobid, JOBIDUNKNOWN) == 0)
-        {
-                char *jobid = smfi_getsymval(ctx, "i");
-                if (jobid != 0)
-                        dfc->mctx_jobid = jobid;
-        }
+        //** DDeetteerrmmiinnee tthhee jjoobb IIDD ffoorr llooggggiinngg.. **//
+        iiff ((ddffcc-->>mmccttxx__jjoobbiidd ==== 00 |||| ssttrrccmmpp((ddffcc-->>mmccttxx__jjoobbiidd,, JJOOBBIIDDUUNNKKNNOOWWNN)) ==== 00))
+        {{
+                cchhaarr **jjoobbiidd == ssmmffii__ggeettssyymmvvaall((ccttxx,, ""ii""));;
+                iiff ((jjoobbiidd !!== 00))
+                        ddffcc-->>mmccttxx__jjoobbiidd == jjoobbiidd;;
+        }}
 
     NOTES:
 
@@ -559,7 +581,7 @@ Workarounds
       o This change fixes only the ugly message header, but not the WARNING
         message. Fortunately, many Milters log that message only once.
 
-Limitations
+LLiimmiittaattiioonnss
 
 This section lists limitations of the Postfix Milter implementation. Some
 limitations will be removed as the implementation is extended over time. Of
@@ -569,22 +591,22 @@ the CONTENT_INSPECTION_README document for a discussion.
   * The Milter protocol has evolved over time. Therefore, different Postfix
     versions implement different feature sets.
 
-     ________________________________________________________________________
-    |Postfix|Supported Milter requests                                       |
-    |_______|________________________________________________________________|
+     _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+    |PPoossttffiixx|SSuuppppoorrtteedd MMiilltteerr rreeqquueessttss                                       |
+    |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |   2.6 |All Milter requests of Sendmail 8.14.0 (see notes below).       |
-    |_______|________________________________________________________________|
+    |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |       |All Milter requests of Sendmail 8.14.0, except:                 |
     |       |SMFIP_RCPT_REJ (report rejected recipients to the mail filter), |
     |   2.5 |SMFIR_CHGFROM (replace sender, with optional ESMTP parameters), |
     |       |SMFIR_ADDRCPT_PAR (add recipient, with optional ESMTP           |
     |       |parameters).                                                    |
-    |_______|________________________________________________________________|
+    |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |   2.4 |All Milter requests of Sendmail 8.13.0.                         |
-    |_______|________________________________________________________________|
+    |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
     |   2.3 |All Milter requests of Sendmail 8.13.0, except:                 |
     |       |SMFIR_REPLBODY (replace message body).                          |
-    |_______|________________________________________________________________|
+    |_ _ _ _ _ _ _ _|_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ |
 
   * For Milter applications that are written in C, you need to use the Sendmail
     libmilter library.

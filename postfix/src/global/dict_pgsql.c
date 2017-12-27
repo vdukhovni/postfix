@@ -160,7 +160,6 @@
 #include "argv.h"
 #include "vstring.h"
 #include "split_at.h"
-#include "find_inet.h"
 #include "myrand.h"
 #include "events.h"
 #include "stringops.h"
@@ -180,6 +179,7 @@
 
 #define TYPEUNIX			(1<<0)
 #define TYPEINET			(1<<1)
+#define TYPECONNSTRING			(1<<2)
 
 #define RETRY_CONN_MAX			100
 #define RETRY_CONN_INTV			60	/* 1 minute */
@@ -190,7 +190,7 @@ typedef struct {
     char   *hostname;
     char   *name;
     char   *port;
-    unsigned type;			/* TYPEUNIX | TYPEINET */
+    unsigned type;			/* TYPEUNIX | TYPEINET | TYPECONNSTRING*/
     unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection */
 } HOST;
@@ -469,7 +469,8 @@ static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname,
 
     /* try the active connections first; prefer the ones to UNIX sockets */
     if ((host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEUNIX)) != NULL ||
-	(host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEINET)) != NULL) {
+	(host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPEINET)) != NULL ||
+	(host = dict_pgsql_find_host(PLDB, STATACTIVE, TYPECONNSTRING)) != NULL) {
 	if (msg_verbose)
 	    msg_info("%s: found active connection to host %s", myname,
 		     host->hostname);
@@ -485,7 +486,9 @@ static HOST *dict_pgsql_get_active(PLPGSQL *PLDB, char *dbname,
 	   ((host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
 					 TYPEUNIX)) != NULL ||
 	    (host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
-					 TYPEINET)) != NULL)) {
+					 TYPEINET)) != NULL ||
+	    (host = dict_pgsql_find_host(PLDB, STATUNTRIED | STATFAIL,
+					 TYPECONNSTRING)) != NULL)) {
 	if (msg_verbose)
 	    msg_info("%s: attempting to connect to host %s", myname,
 		     host->hostname);
@@ -624,9 +627,13 @@ static PGSQL_RES *plpgsql_query(DICT_PGSQL *dict_pgsql,
  */
 static void plpgsql_connect_single(HOST *host, char *dbname, char *username, char *password)
 {
-    if ((host->db = PQsetdbLogin(host->name, host->port, NULL, NULL,
-				 dbname, username, password)) == NULL
-	|| PQstatus(host->db) != CONNECTION_OK) {
+    if (host->type == TYPECONNSTRING) {
+	host->db = PQconnectdb(host->name);
+    } else {
+	host->db = PQsetdbLogin(host->name, host->port, NULL, NULL,
+				dbname, username, password);
+    }
+    if (host->db == NULL || PQstatus(host->db) != CONNECTION_OK) {
 	msg_warn("connect to pgsql server %s: %s",
 		 host->hostname, PQerrorMessage(host->db));
 	plpgsql_down_host(host);
@@ -814,24 +821,37 @@ static HOST *host_init(const char *hostname)
     host->ts = 0;
 
     /*
-     * Ad-hoc parsing code. Expect "unix:pathname" or "inet:host:port", where
-     * both "inet:" and ":port" are optional.
+     * Modern syntax: "postgresql://connection-info".
      */
-    if (strncmp(d, "unix:", 5) == 0 || strncmp(d, "inet:", 5) == 0)
-	d += 5;
-    host->name = mystrdup(d);
-    host->port = split_at_right(host->name, ':');
+    if (strncmp(d, "postgresql:", 11) == 0) {
+	host->type = TYPECONNSTRING;
+	host->name = mystrdup(d);
+	host->port = 0;
+    }
 
-    /* This is how PgSQL distinguishes between UNIX and INET: */
-    if (host->name[0] && host->name[0] != '/')
-	host->type = TYPEINET;
-    else
-	host->type = TYPEUNIX;
-
+    /*
+     * Historical syntax: "unix:/pathname" and "inet:host:port". Strip the
+     * "unix:" and "inet:" prefixes. Look at the first character, which is
+     * how PgSQL historically distinguishes between UNIX and INET.
+     */
+    else {
+	if (strncmp(d, "unix:", 5) == 0 || strncmp(d, "inet:", 5) == 0)
+	    d += 5;
+	host->name = mystrdup(d);
+	if (host->name[0] && host->name[0] != '/') {
+	    host->type = TYPEINET;
+	    host->port = split_at_right(host->name, ':');
+	} else {
+	    host->type = TYPEUNIX;
+	    host->port = 0;
+	}
+    }
     if (msg_verbose > 1)
 	msg_info("%s: host=%s, port=%s, type=%s", myname, host->name,
 		 host->port ? host->port : "",
-		 host->type == TYPEUNIX ? "unix" : "inet");
+		 host->type == TYPEUNIX ? "unix" :
+		 host->type == TYPEINET ? "inet" :
+		 "uri");
     return host;
 }
 
