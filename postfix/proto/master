@@ -133,7 +133,7 @@
 #	place.
 # .sp
 #	The files in the examples/chroot-setup subdirectory of the
-#	Postfix source archive show set up a Postfix chroot environment
+#	Postfix source show how to set up a Postfix chroot environment
 #	on a variety of systems. See also BASIC_CONFIGURATION_README
 #	for issues related to running daemons chrooted.
 # .IP "\fBWake up time (default: 0)\fR"

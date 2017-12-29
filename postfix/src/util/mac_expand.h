@@ -45,6 +45,11 @@ extern int mac_expand(VSTRING *, const char *, int, const char *, MAC_EXP_LOOKUP
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

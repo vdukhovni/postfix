@@ -182,6 +182,11 @@ extern int mail_queue_id_ok(const char *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif					/* _MAIL_QUEUE_H_INCLUDED_ */

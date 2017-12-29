@@ -25,6 +25,11 @@ extern int WARN_UNUSED_RESULT lstat_as(const char *, struct stat *, uid_t, gid_t
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

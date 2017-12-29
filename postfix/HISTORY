@@ -23235,3 +23235,6 @@ Apologies for any names omitted.
 
 	Feature: postgresql:// URI support by Magosányi Árpád.
 	Files: global/dict_pgsql.c, proto/pgsql_table.
+
+	Cleanup: added employer attributions for non-trivial changes
+	after Wietse changed employers.

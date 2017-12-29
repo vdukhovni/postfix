@@ -9,6 +9,10 @@ Wish list:
 	After I/O error, store errno in VSTREAM object before errno
 	may be overwritten.
 
+	Make the service name (daemon -n option) available as a
+	main.cf style parameter.  This may allow simpler configuration
+	in master.cf, e.g., syslog_name=postfix/$name/smtpd.
+
 	Add $smtpd_sender_login_maps to proxy_read_maps.
 
 	Add some tips for logging from container:
