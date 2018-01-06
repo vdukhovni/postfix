@@ -335,6 +335,7 @@ static ARGV *client_restrctions;
 static ARGV *helo_restrctions;
 static ARGV *mail_restrctions;
 static ARGV *relay_restrctions;
+static ARGV *fake_relay_restrctions;
 static ARGV *rcpt_restrctions;
 static ARGV *etrn_restrctions;
 static ARGV *data_restrctions;
@@ -845,6 +846,9 @@ void    smtpd_check_init(void)
 					 var_mail_checks);
     relay_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					  var_relay_checks);
+    if (warn_compat_break_relay_restrictions)
+	fake_relay_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
+						   FAKE_RELAY_CHECKS);
     rcpt_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
 					 var_rcpt_checks);
     etrn_restrctions = smtpd_check_parse(SMTPD_CHECK_PARSE_ALL,
@@ -4958,15 +4962,31 @@ char   *smtpd_check_rcpt(SMTPD_STATE *state, char *recipient)
      * Apply restrictions in the order as specified. We allow relay
      * restrictions to be empty, for sites that require backwards
      * compatibility.
+     * 
+     * If compatibility_level < 1 and smtpd_relay_restrictions is left at its
+     * default value, find out if the new smtpd_relay_restrictions default
+     * value would block the request, without logging REJECT messages.
+     * Approach: evaluate fake relay restrictions (permit_mynetworks,
+     * permit_sasl_authenticated, permit_auth_destination) and log a warning
+     * if the result is DUNNO instead of OK, i.e. a reject_unauth_destinatin
+     * at the end would have blocked the request.
      */
     SMTPD_CHECK_RESET();
-    restrctions[0] = relay_restrctions;
-    restrctions[1] = rcpt_restrctions;
+    restrctions[0] = rcpt_restrctions;
+    restrctions[1] = warn_compat_break_relay_restrictions ?
+	fake_relay_restrctions : relay_restrctions;
     for (n = 0; n < 2; n++) {
 	status = setjmp(smtpd_check_buf);
 	if (status == 0 && restrctions[n]->argc)
 	    status = generic_checks(state, restrctions[n],
 			  recipient, SMTPD_NAME_RECIPIENT, CHECK_RECIP_ACL);
+	if (n == 1 && warn_compat_break_relay_restrictions
+	    && status == SMTPD_CHECK_DUNNO) {
+	    msg_info("using backwards-compatible default setting \""
+		     VAR_RELAY_CHECKS " = (empty)\" to avoid \"Relay "
+		     "access denied\" error for recipient \"%s\" from "
+		     "client \"%s\"", state->recipient, state->namaddr);
+	}
 	if (status == SMTPD_CHECK_REJECT)
 	    break;
     }

@@ -139,6 +139,7 @@
 /*	int	warn_compat_break_app_dot_mydomain;
 /*	int	warn_compat_break_smtputf8_enable;
 /*	int	warn_compat_break_chroot;
+/*	int	warn_compat_break_relay_restrictions;
 /*
 /*	int	warn_compat_break_relay_domains;
 /*	int	warn_compat_break_flush_domains;
@@ -360,6 +361,7 @@ int     warn_compat_break_mynetworks_style;
 int     warn_compat_break_app_dot_mydomain;
 int     warn_compat_break_smtputf8_enable;
 int     warn_compat_break_chroot;
+int     warn_compat_break_relay_restrictions;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -613,6 +615,10 @@ static void check_legacy_defaults(void)
 	if (mail_conf_lookup(VAR_MYNETWORKS) == 0
 	    && mail_conf_lookup(VAR_MYNETWORKS_STYLE) == 0)
 	    warn_compat_break_mynetworks_style = 1;
+    } else {					/* for 'postfix reload' */
+	warn_compat_break_relay_domains = 0;
+	warn_compat_break_flush_domains = 0;
+	warn_compat_break_mynetworks_style = 0;
     }
 
     /*
@@ -631,6 +637,17 @@ static void check_legacy_defaults(void)
 	if (mail_conf_lookup(VAR_SMTPUTF8_ENABLE) == 0)
 	    warn_compat_break_smtputf8_enable = 1;
 	warn_compat_break_chroot = 1;
+
+	/*
+	 * Grandfathered in to help sites migrating from Postfix <2.10.
+	 */
+	if (mail_conf_lookup(VAR_RELAY_CHECKS) == 0)
+	    warn_compat_break_relay_restrictions = 1;
+    } else {					/* for 'postfix reload' */
+	warn_compat_break_app_dot_mydomain = 0;
+	warn_compat_break_smtputf8_enable = 0;
+	warn_compat_break_chroot = 0;
+	warn_compat_break_relay_restrictions = 0;
     }
 }
 

@@ -23200,8 +23200,8 @@ Apologies for any names omitted.
 
 	Workaround: reportedly, some res_query(3) implementation
 	can return -1 with h_errno==0. Instead of terminating with
-	a panic, the DNS client now logs a warning and sets h_errno
-	to TRY_AGAIN. File: dns/dns_lookup.c.
+	a panic, the Postfix DNS client now logs a warning and sets
+	h_errno to TRY_AGAIN. File: dns/dns_lookup.c.
 
 	Cleanup: allow XCLIENT before STARTTLS, when TLS is required.
 	File: smtpd/smtpd.c.
@@ -23238,3 +23238,23 @@ Apologies for any names omitted.
 
 	Cleanup: added employer attributions for non-trivial changes
 	after Wietse changed employers.
+
+20180106
+
+	Compatibility: with compatibility_level < 1, the SMTP server
+	now warns for mail that would be blocked by the Postfix
+	2.10 smtpd_relay_restrictions feature. This extends the
+	safety net for sites that upgrade from earlier Postfix
+	versions (questions on the postfix-users list show a steady
+	trickle). Files: proto/COMPATIBILITY_README.html,
+	global/mail_params[hc], smtpd/smtpd_check.c.
+
+	Cleanup: reset compatibility_level warnings after 'postfix
+	reload'. This is relevant primarily for the master daemon.
+	File: global/mail_params.c.
+
+	Cleanup: missing mailbox seek-to-end error check in the
+	local(8) delivery agent. File: local/mailbox.c.
+
+	Cleanup: incorrect mailbox seek-to-end error message in the
+	virtual(8) delivery agent. File: virtual/mailbox.c.

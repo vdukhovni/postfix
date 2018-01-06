@@ -55,6 +55,7 @@ extern int var_compat_level;
 extern int warn_compat_break_app_dot_mydomain;
 extern int warn_compat_break_smtputf8_enable;
 extern int warn_compat_break_chroot;
+extern int warn_compat_break_relay_restrictions;	/* Postfix 2.10. */
 
 extern int warn_compat_break_relay_domains;
 extern int warn_compat_break_flush_domains;
@@ -2072,10 +2073,19 @@ extern char *var_helo_checks;
 extern char *var_mail_checks;
 
 #define VAR_RELAY_CHECKS	"smtpd_relay_restrictions"
-#define DEF_RELAY_CHECKS	PERMIT_MYNETWORKS ", " \
+#define DEF_RELAY_CHECKS	"${{$compatibility_level} < {1} ? " \
+				"{} : {" PERMIT_MYNETWORKS ", " \
 				PERMIT_SASL_AUTH ", " \
-				DEFER_UNAUTH_DEST
+				DEFER_UNAUTH_DEST "}}"
 extern char *var_relay_checks;
+
+ /*
+  * For warn_compat_break_relay_domains check. Same as DEF_RELAY_CHECKS
+  * except that it evaluates to DUNNO instead of REJECT.
+  */
+#define FAKE_RELAY_CHECKS	PERMIT_MYNETWORKS ", " \
+				PERMIT_SASL_AUTH ", " \
+				PERMIT_AUTH_DEST
 
 #define VAR_RCPT_CHECKS		"smtpd_recipient_restrictions"
 #define DEF_RCPT_CHECKS		""
@@ -3301,6 +3311,7 @@ extern char *var_smtpd_milters;
 #define VAR_SMTPD_MILTER_MAPS		"smtpd_milter_maps"
 #define DEF_SMTPD_MILTER_MAPS		""
 extern char *var_smtpd_milter_maps;
+
 #define SMTPD_MILTERS_DISABLE		"DISABLE"
 
 #define VAR_CLEANUP_MILTERS		"non_smtpd_milters"
