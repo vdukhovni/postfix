@@ -2304,6 +2304,42 @@ The limit is enforced by the \fBcleanup\fR(8) server.
 .SH header_checks (default: empty)
 Optional lookup tables for content inspection of primary non\-MIME
 message headers, as specified in the \fBheader_checks\fR(5) manual page.
+.SH header_from_format (default: standard)
+The format of the Postfix\-generated \fBFrom:\fR header. This
+setting affects the appearance of 'full name' information when a
+local program such as /bin/mail submits a message without From:
+header through the Postfix \fBsendmail\fR(1) command.
+.PP
+Specify one of the following:
+.IP "\fBstandard\fR (default)"
+Produce a header formatted
+as "\fBFrom:\fR \fIname\fR\fB <\fR\fIaddress\fR\fB>\fR".
+This is the default as of Postfix 3.3.
+.br
+.IP "\fBobsolete\fR"
+Produce a header formatted as "\fBFrom:\fR
+\fIaddress\fR \fB(\fR\fIname\fR\fB)\fR". This is the behavior
+prior to Postfix 3.3.
+.br
+.br
+.PP
+Notes:
+.IP \(bu
+Postfix generates the format "\fBFrom:\fR \fIaddress\fR"
+when \fIname\fR information is unavailable or the envelope sender
+address is empty. This is the same behavior as prior to Postfix
+3.3.
+.IP \(bu
+In the \fBstandard\fR form, the \fIname\fR will be quoted
+if it contains \fBspecials\fR as defined in RFC 5322, or the "!%"
+address operators.
+.IP \(bu
+The Postfix \fBsendmail\fR(1) command gets \fIname\fR information
+from the \fB\-F\fR command\-line option, from the \fBNAME\fR
+environment variable, or from the UNIX password file.
+.br
+.PP
+This feature is available in Postfix 3.3 and later.
 .SH header_size_limit (default: 102400)
 The maximal amount of memory in bytes for storing a message header.
 If a header is larger, the excess is discarded.  The limit is

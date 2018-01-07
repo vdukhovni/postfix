@@ -938,6 +938,7 @@ cleanup_init.o: ../../include/mime_state.h
 cleanup_init.o: ../../include/msg.h
 cleanup_init.o: ../../include/myflock.h
 cleanup_init.o: ../../include/mymalloc.h
+cleanup_init.o: ../../include/name_code.h
 cleanup_init.o: ../../include/name_mask.h
 cleanup_init.o: ../../include/nvtable.h
 cleanup_init.o: ../../include/resolve_clnt.h

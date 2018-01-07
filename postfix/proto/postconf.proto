@@ -16731,3 +16731,45 @@ IPv6. </p>
 configuration parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 3.3 and later.  </p>
+
+%PARAM header_from_format standard
+
+<p> The format of the Postfix-generated <b>From:</b> header. This
+setting affects the appearance of 'full name' information when a
+local program such as /bin/mail submits a message without From:
+header through the Postfix sendmail(1) command. </p>
+
+<p> Specify one of the following: </p>
+
+<dl>
+
+<dt><b>standard</b> (default)</dt> <dd> Produce a header formatted
+as "<b>From:</b> <i>name</i><b> &lt;</b><i>address</i><b>&gt;</b>".
+This is the default as of Postfix 3.3.</dd>
+
+<dt><b>obsolete</b></dt> <dd>Produce a header formatted as "<b>From:</b>
+<i>address</i> <b>(</b><i>name</i><b>)</b>". This is the behavior
+prior to Postfix 3.3. </dd>
+
+</dl>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Postfix generates the format "<b>From:</b> <i>address</i>"
+when <i>name</i> information is unavailable or the envelope sender
+address is empty. This is the same behavior as prior to Postfix
+3.3. </p>
+
+<li> <p> In the <b>standard</b> form, the <i>name</i> will be quoted
+if it contains <b>specials</b> as defined in RFC 5322, or the "!%"
+address operators. </p>
+
+<li> <p> The Postfix sendmail(1) command gets <i>name</i> information
+from the <b>-F</b> command-line option, from the <b>NAME</b>
+environment variable, or from the UNIX password file. </p>
+
+</ul>
+
+<p> This feature is available in Postfix 3.3 and later. </p>

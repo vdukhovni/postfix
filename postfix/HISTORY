@@ -23258,3 +23258,12 @@ Apologies for any names omitted.
 
 	Cleanup: incorrect mailbox seek-to-end error message in the
 	virtual(8) delivery agent. File: virtual/mailbox.c.
+
+20180107
+
+	Cleanup: Postfix-generated From: headers with 'full name'
+	information are now formatted as "From: name <address>" by
+	default. Specify "header_from_format = obsolete" for the
+	earlier form "From: address (name)". Files: proto/postconf.proto,
+	cleanup/cleanup.h, cleanup_init.c, cleanup_message.c,
+	mail_params.h.

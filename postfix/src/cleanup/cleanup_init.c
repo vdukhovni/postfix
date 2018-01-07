@@ -88,6 +88,7 @@
 
 #include <msg.h>
 #include <iostuff.h>
+#include <name_code.h>
 #include <name_mask.h>
 #include <stringops.h>
 
@@ -170,6 +171,7 @@ char   *var_milt_macro_deflts;		/* default macro settings */
 int     var_auto_8bit_enc_hdr;		/* auto-detect 8bit encoding header */
 int     var_always_add_hdrs;		/* always add missing headers */
 int     var_virt_addrlen_limit;		/* stop exponential growth */
+char   *var_hfrom_format;		/* header_from_format */
 
 const CONFIG_INT_TABLE cleanup_int_table[] = {
     VAR_HOPCOUNT_LIMIT, DEF_HOPCOUNT_LIMIT, &var_hopcount_limit, 1, 0,
@@ -236,6 +238,7 @@ const CONFIG_STR_TABLE cleanup_str_table[] = {
     VAR_CLEANUP_MILTERS, DEF_CLEANUP_MILTERS, &var_cleanup_milters, 0, 0,
     VAR_MILT_HEAD_CHECKS, DEF_MILT_HEAD_CHECKS, &var_milt_head_checks, 0, 0,
     VAR_MILT_MACRO_DEFLTS, DEF_MILT_MACRO_DEFLTS, &var_milt_macro_deflts, 0, 0,
+    VAR_HFROM_FORMAT, DEF_HFROM_FORMAT, &var_hfrom_format, 1, 0,
     0,
 };
 
@@ -274,6 +277,11 @@ int     cleanup_ext_prop_mask;
   * Milter support.
   */
 MILTERS *cleanup_milters;
+
+ /*
+  * From: header format.
+  */
+int     hfrom_format_code;
 
 /* cleanup_all - callback for the runtime error handler */
 
@@ -425,6 +433,11 @@ void    cleanup_pre_jail(char *unused_name, char **unused_argv)
 
 void    cleanup_post_jail(char *unused_name, char **unused_argv)
 {
+    static const NAME_CODE hfrom_format_table[] = {
+	HFROM_FORMAT_NAME_STD, HFROM_FORMAT_CODE_STD,
+	HFROM_FORMAT_NAME_OBS, HFROM_FORMAT_CODE_OBS,
+	0, -1,
+    };
 
     /*
      * Optionally set the file size resource limit. XXX This limits the
@@ -454,4 +467,12 @@ void    cleanup_post_jail(char *unused_name, char **unused_argv)
 	cleanup_strip_chars = vstring_alloc(strlen(var_msg_strip_chars));
 	unescape(cleanup_strip_chars, var_msg_strip_chars);
     }
+
+    /*
+     * From: header formatting.
+     */
+    if ((hfrom_format_code = name_code(hfrom_format_table,
+				NAME_CODE_FLAG_NONE, var_hfrom_format)) < 0)
+	msg_fatal("invalid setting: %s = %s",
+		  VAR_HFROM_FORMAT, var_hfrom_format);
 }

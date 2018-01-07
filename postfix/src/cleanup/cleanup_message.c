@@ -75,6 +75,7 @@
 #include <rec_type.h>
 #include <cleanup_user.h>
 #include <tok822.h>
+#include <lex_822.h>
 #include <header_opts.h>
 #include <quote_822_local.h>
 #include <mail_params.h>
@@ -351,9 +352,9 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 	return (buf);
     }
     if (STREQUAL(value, "PASS", command_len)) {
-        cleanup_act_log(state, "pass", context, buf, optional_text);
-        state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
-        return (buf);
+	cleanup_act_log(state, "pass", context, buf, optional_text);
+	state->flags &= ~CLEANUP_FLAG_FILTER_ALL;
+	return (buf);
     }
     if (STREQUAL(value, "DISCARD", command_len)) {
 	cleanup_act_log(state, "discard", context, buf, optional_text);
@@ -411,7 +412,7 @@ static const char *cleanup_act(CLEANUP_STATE *state, char *context,
 
 		cleanup_act_log(state, "prepend", context, buf, optional_text);
 		temp = vstring_strcpy(vstring_alloc(strlen(optional_text)),
-						    optional_text);
+				      optional_text);
 		cleanup_out_header(state, temp);
 		vstring_free(temp);
 	    }
@@ -660,6 +661,7 @@ static void cleanup_header_done_callback(void *context)
     char    time_stamp[1024];		/* XXX locale dependent? */
     struct tm *tp;
     TOK822 *token;
+    TOK822 *dummy_token;
     time_t  tv;
 
     /*
@@ -747,14 +749,60 @@ static void cleanup_header_done_callback(void *context)
 				       HDR_RESENT_FROM : HDR_FROM))) == 0) {
 	quote_822_local(state->temp1, *state->sender ?
 			state->sender : MAIL_ADDR_MAIL_DAEMON);
-	vstring_sprintf(state->temp2, "%sFrom: %s",
-			state->resent, vstring_str(state->temp1));
 	if (*state->sender && state->fullname && *state->fullname) {
-	    vstring_sprintf(state->temp1, "(%s)", state->fullname);
-	    token = tok822_parse(vstring_str(state->temp1));
-	    vstring_strcat(state->temp2, " ");
-	    tok822_externalize(state->temp2, token, TOK822_STR_NONE);
-	    tok822_free_tree(token);
+	    char   *cp;
+
+	    /* Enforce some sanity on full name content. */
+	    while ((cp = strchr(state->fullname, '\r')) != 0
+		   || (cp = strchr(state->fullname, '\n')) != 0)
+		*cp = ' ';
+
+	    switch (hfrom_format_code) {
+
+		/*
+		 * "From: phrase <route-addr>". Quote the phrase if it
+		 * contains specials or the "%!" legacy address operators.
+		 */
+	    case HFROM_FORMAT_CODE_STD:
+		vstring_sprintf(state->temp2, "%sFrom: ", state->resent);
+		if (state->fullname[strcspn(state->fullname,
+					    "%!" LEX_822_SPECIALS)] == 0) {
+		    /* Normalize whitespace. */
+		    token = tok822_scan_limit(state->fullname, &dummy_token,
+					      var_token_limit);
+		} else {
+		    token = tok822_alloc(TOK822_QSTRING, state->fullname);
+		}
+		tok822_externalize(state->temp2, token, TOK822_STR_NONE);
+		tok822_free(token);
+		vstring_sprintf_append(state->temp2, " <%s>",
+				       vstring_str(state->temp1));
+		break;
+
+		/*
+		 * "From: addr-spec (ctext)". This is the obsolete form.
+		 */
+	    case HFROM_FORMAT_CODE_OBS:
+		vstring_sprintf(state->temp2, "%sFrom: %s ",
+				state->resent, vstring_str(state->temp1));
+		vstring_sprintf(state->temp1, "(%s)", state->fullname);
+		token = tok822_parse(vstring_str(state->temp1));
+		tok822_externalize(state->temp2, token, TOK822_STR_NONE);
+		tok822_free_tree(token);
+		break;
+	    default:
+		msg_panic("%s: unknown header format %d",
+			  myname, hfrom_format_code);
+	    }
+	}
+
+	/*
+	 * "From: addr-spec". This is the form in the absence of full name
+	 * information, also used for mail from mailer-daemon.
+	 */
+	else {
+	    vstring_sprintf(state->temp2, "%sFrom: %s",
+			    state->resent, vstring_str(state->temp1));
 	}
 	CLEANUP_OUT_BUF(state, REC_TYPE_NORM, state->temp2);
     }

@@ -349,6 +349,13 @@ extern int cleanup_body_edit_write(CLEANUP_STATE *, int, VSTRING *);
 extern int cleanup_body_edit_finish(CLEANUP_STATE *);
 extern void cleanup_body_edit_free(CLEANUP_STATE *);
 
+ /*
+  * From: header formatting.
+  */
+#define HFROM_FORMAT_CODE_STD	0
+#define HFROM_FORMAT_CODE_OBS	1
+extern int hfrom_format_code;
+
 /* LICENSE
 /* .ad
 /* .fi

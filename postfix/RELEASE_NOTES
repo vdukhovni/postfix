@@ -15,3 +15,15 @@ specifies the release date of a stable release or snapshot release.
 
 If you upgrade from Postfix 3.1 or earlier, read RELEASE_NOTES-3.2
 before proceeding.
+
+Incompatible changes with snapshot 201800107
+--------------------------------------------
+
+This release changes the format of 'full name' information in
+Postfix-generated From: headers, when a local program such as
+/bin/mail submits a message without From: header.
+
+Postfix-generated From: headers with 'full name' information are
+now formatted as "From: name <address>" by default. Specify
+"header_from_format = obsolete" to get the earlier form "From:
+address (name)". See the postconf(5) manpage for more details.

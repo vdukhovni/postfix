@@ -392,6 +392,16 @@ extern bool var_always_add_hdrs;
 extern char *var_drop_hdrs;
 
  /*
+  * From: header format: we provide canned versions only, no Sendmail-style
+  * macro expansions.
+  */
+#define HFROM_FORMAT_NAME_STD	"standard"	/* From: name <address> */
+#define HFROM_FORMAT_NAME_OBS	"obsolete"	/* From: address (name) */
+#define VAR_HFROM_FORMAT	"header_from_format"
+#define DEF_HFROM_FORMAT	HFROM_FORMAT_NAME_STD
+extern char *var_hfrom_format;
+
+ /*
   * Standards violation: allow/permit RFC 822-style addresses in SMTP
   * commands.
   */
