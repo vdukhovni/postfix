@@ -36,6 +36,7 @@
 /*	int	var_event_drain;
 /*	int	var_bundle_rcpt;
 /*	char	*var_procname;
+/*	char	*var_servname;
 /*	int	var_pid;
 /*	int	var_ipc_timeout;
 /*	char	*var_pid_dir;
@@ -249,6 +250,7 @@ int     var_event_drain;
 int     var_idle_limit;
 int     var_bundle_rcpt;
 char   *var_procname;
+char   *var_servname;
 int     var_pid;
 int     var_ipc_timeout;
 char   *var_pid_dir;

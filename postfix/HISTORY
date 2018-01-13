@@ -23267,3 +23267,22 @@ Apologies for any names omitted.
 	earlier form "From: address (name)". Files: proto/postconf.proto,
 	cleanup/cleanup.h, cleanup_init.c, cleanup_message.c,
 	mail_params.h.
+
+20180113
+
+	Bugfix: "postconf -M" commands did not warn about unused
+	name=value settings in master.cf. File: postconf/postconf.c.
+
+	Bugfix: "postconf -xM" now expands $process_name using the
+	daemon file name in master.cf, instead of the "postconf"
+	command process name. Files: postconf/postconf.h,
+	postconf/postconf_lookup.c, postconf/postconf_master.c.
+
+	Feature: read-only service_name parameter that contains the
+	master.cf service name. This allows, for example, setting
+	the syslog_name with "-o syslog_name=postfix/$service_name"
+	for the "submission" and "smtps" services. Files:
+	proto/postconf.proto global/mail_params.h, global/mail_params.c,
+	master/single_server.c, master/multi_server.c,
+	master/trigger_server.c, master/event_server.c,
+	postconf/postconf_master.c, postconf/postconf_builtin.c.

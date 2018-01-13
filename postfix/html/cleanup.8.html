@@ -480,7 +480,15 @@ CLEANUP(8)                                                          CLEANUP(8)
        Available in Postfix version 2.1 and later:
 
        <b><a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> (yes)</b>
-              Enable support for the X-Original-To message header.
+              Enable support for  the  original  recipient  address  after  an
+              address  is  rewritten  to a different address (for example with
+              aliasing or with canonical mapping).
+
+       Available in Postfix 3.3 and later:
+
+       <b>service_name (read-only)</b>
+              The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process,  or  the
+              process name of a non-daemon process.
 
 <b>FILES</b>
        /etc/postfix/canonical*, canonical mapping table

@@ -328,6 +328,11 @@
 /* .IP "\fBconfirm_delay_cleared (no)\fR"
 /*	After sending a "your message is delayed" notification, inform
 /*	the sender when the delay clears up.
+/* .PP
+/*	Available in Postfix 3.3 and later:
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* FILES
 /*	/var/spool/postfix/incoming, incoming queue
 /*	/var/spool/postfix/active, active queue

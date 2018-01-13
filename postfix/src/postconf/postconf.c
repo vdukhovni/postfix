@@ -1000,7 +1000,8 @@ int     main(int argc, char **argv)
 	pcf_read_parameters();
 	if (override_params)
 	    pcf_set_parameters(override_params->argv);
-	pcf_register_builtin_parameters(basename(argv[0]), getpid());
+	pcf_register_builtin_parameters(basename(argv[0]), basename(argv[0]),
+					getpid());
 	pcf_register_service_parameters();
 	pcf_register_user_parameters();
 	if (pcf_cmd_mode & PCF_MASTER_FLD)
@@ -1012,6 +1013,7 @@ int     main(int argc, char **argv)
 	else
 	    pcf_show_master_entries(VSTREAM_OUT, pcf_cmd_mode, argc - optind,
 				    argv + optind);
+	pcf_flag_unused_master_parameters();
     }
 
     /*
@@ -1052,7 +1054,8 @@ int     main(int argc, char **argv)
 	    if (override_params)
 		pcf_set_parameters(override_params->argv);
 	}
-	pcf_register_builtin_parameters(basename(argv[0]), getpid());
+	pcf_register_builtin_parameters(basename(argv[0]), basename(argv[0]),
+					getpid());
 
 	/*
 	 * Add service-dependent parameters (service names from master.cf)

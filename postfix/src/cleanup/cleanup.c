@@ -392,7 +392,14 @@
 /* .PP
 /*	Available in Postfix version 2.1 and later:
 /* .IP "\fBenable_original_recipient (yes)\fR"
-/*	Enable support for the X-Original-To message header.
+/*	Enable support for the original recipient address after an
+/*	address is rewritten to a different address (for example with
+/*	aliasing or with canonical mapping).
+/* .PP
+/*	Available in Postfix 3.3 and later:
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* FILES
 /*	/etc/postfix/canonical*, canonical mapping table
 /*	/etc/postfix/virtual*, virtual mapping table

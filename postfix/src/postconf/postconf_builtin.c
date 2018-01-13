@@ -6,8 +6,9 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
-/*	void	pcf_register_builtin_parameters(procname, pid)
+/*	void	pcf_register_builtin_parameters(procname, servname, pid)
 /*	const char *procname;
+/*	const char *servname;
 /*	pid_t	pid;
 /* DESCRIPTION
 /*	pcf_register_builtin_parameters() initializes the global
@@ -17,6 +18,8 @@
 /*	Arguments:
 /*.IP procname
 /*	Provides the default value for the "process_name" parameter.
+/*.IP servname
+/*	Provides the default value for the "service_name" parameter.
 /*.IP pid
 /*	Provides the default value for the "process_id" parameter.
 /* DIAGNOSTICS
@@ -173,6 +176,7 @@ static const CONFIG_STR_FN_TABLE pcf_str_fn_table[] = {
   * effects, then those side effects must happen only once.
   */
 static CONFIG_STR_TABLE pcf_adhoc_procname = {VAR_PROCNAME};
+static CONFIG_STR_TABLE pcf_adhoc_servname = {VAR_SERVNAME};
 static CONFIG_INT_TABLE pcf_adhoc_pid = {VAR_PID};
 
 #define STR(x) vstring_str(x)
@@ -362,7 +366,8 @@ static const char *pcf_conv_long_parameter(void *ptr)
 
 /* pcf_register_builtin_parameters - add built-ins to the global name space */
 
-void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
+void    pcf_register_builtin_parameters(const char *procname,
+				            const char *servname, pid_t pid)
 {
     const char *myname = "pcf_register_builtin_parameters";
     const CONFIG_TIME_TABLE *ctt;
@@ -445,6 +450,10 @@ void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_procname.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
 		      (void *) &pcf_adhoc_procname, pcf_conv_str_parameter);
+    pcf_adhoc_servname.defval = mystrdup(servname);
+    PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_servname.name,
+			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
+		      (void *) &pcf_adhoc_servname, pcf_conv_str_parameter);
     pcf_adhoc_pid.defval = pid;
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_pid.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,

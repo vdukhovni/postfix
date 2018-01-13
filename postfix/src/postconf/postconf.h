@@ -118,6 +118,7 @@ typedef struct {
     char   *name_space;			/* service/type, parameter name space */
     ARGV   *argv;			/* null, or master.cf fields */
     DICT   *all_params;			/* null, or all name=value entries */
+    DICT   *ro_params;			/* read-only name=value entries */
     HTABLE *valid_names;		/* null, or "valid" parameter names */
 } PCF_MASTER_ENT;
 
@@ -250,7 +251,7 @@ extern NAME_CODE pcf_field_name_offset[];
  /*
   * postconf_builtin.c.
   */
-extern void pcf_register_builtin_parameters(const char *, pid_t);
+extern void pcf_register_builtin_parameters(const char *, const char *, pid_t);
 
  /*
   * postconf_service.c.

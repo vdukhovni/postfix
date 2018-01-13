@@ -194,6 +194,12 @@ TLSPROXY(8)                                                        TLSPROXY(8)
               A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
+       Available in Postfix 3.3 and later:
+
+       <b>service_name (read-only)</b>
+              The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process,  or  the
+              process name of a non-daemon process.
+
 <b>SEE ALSO</b>
        <a href="postscreen.8.html">postscreen(8)</a>, Postfix zombie blocker
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server

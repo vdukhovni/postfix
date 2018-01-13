@@ -1052,6 +1052,11 @@
 /* .IP "\fBsmtpd_client_port_logging (no)\fR"
 /*	Enable logging of the remote SMTP client port in addition to
 /*	the hostname and IP address.
+/* .PP
+/*	Available in Postfix 3.3 and later:
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* SEE ALSO
 /*	anvil(8), connection/rate limiting
 /*	cleanup(8), message canonicalization

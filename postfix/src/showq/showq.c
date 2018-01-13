@@ -72,6 +72,11 @@
 /*	Available in Postfix version 2.9 and later:
 /* .IP "\fBenable_long_queue_ids (no)\fR"
 /*	Enable long, non-repeating, queue IDs (queue file names).
+/* .PP
+/*	Available in Postfix 3.3 and later:
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* FILES
 /*	/var/spool/postfix, queue directories
 /* SEE ALSO

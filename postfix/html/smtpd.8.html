@@ -1279,6 +1279,12 @@ SMTPD(8)                                                              SMTPD(8)
               Enable logging of the remote SMTP client port in addition to the
               hostname and IP address.
 
+       Available in Postfix 3.3 and later:
+
+       <b>service_name (read-only)</b>
+              The  <a href="master.5.html">master.cf</a>  service name of a Postfix daemon process, or the
+              process name of a non-daemon process.
+
 <b>SEE ALSO</b>
        <a href="anvil.8.html">anvil(8)</a>, connection/rate limiting
        <a href="cleanup.8.html">cleanup(8)</a>, message canonicalization

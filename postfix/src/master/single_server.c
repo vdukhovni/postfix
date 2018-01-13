@@ -558,6 +558,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    break;
 	}
     }
+    set_mail_conf_str(VAR_SERVNAME, service_name);
 
     /*
      * Initialize generic parameters.

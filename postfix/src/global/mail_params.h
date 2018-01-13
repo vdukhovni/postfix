@@ -2413,6 +2413,9 @@ extern char *var_proxy_write_acl;
 #define VAR_PROCNAME		"process_name"
 extern char *var_procname;
 
+#define VAR_SERVNAME		"service_name"
+extern char *var_servname;
+
 #define VAR_PID			"process_id"
 extern int var_pid;
 

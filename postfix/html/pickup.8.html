@@ -92,6 +92,12 @@ PICKUP(8)                                                            PICKUP(8)
               A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
+       Available in Postfix 3.3 and later:
+
+       <b>service_name (read-only)</b>
+              The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process,  or  the
+              process name of a non-daemon process.
+
 <b>SEE ALSO</b>
        <a href="cleanup.8.html">cleanup(8)</a>, message canonicalization
        <a href="sendmail.1.html">sendmail(1)</a>, Sendmail-compatible interface

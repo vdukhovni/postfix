@@ -143,11 +143,12 @@ MASTER(8)                                                            MASTER(8)
               or accepting connections.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
-              The list of environment parameters that a Postfix  process  will
-              import from a non-Postfix parent process.
+              The list of environment parameters  that  a  privileged  Postfix
+              process  will  import  from  a  non-Postfix  parent  process, or
+              name=value environment overrides.
 
        <b><a href="postconf.5.html#mail_owner">mail_owner</a> (postfix)</b>
-              The  UNIX  system  account  that owns the Postfix queue and most
+              The UNIX system account that owns the  Postfix  queue  and  most
               Postfix daemon processes.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -163,8 +164,14 @@ MASTER(8)                                                            MASTER(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A prefix that  is  prepended  to  the  process  name  in  syslog
+              A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
+
+       Available in Postfix 3.3 and later:
+
+       <b>service_name (read-only)</b>
+              The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process,  or  the
+              process name of a non-daemon process.
 
 <b>FILES</b>
        To  expand  the directory names below into their actual values, use the

@@ -54,7 +54,7 @@ tests: test1 test2 test3 test4 test5 test6 test7 test8 test9 test10 test11 \
 	test31 test32 test33 test34 test35 test36 test37 test39 test40 test41 \
 	test42 test43 test44 test45 test46 test47 test48 test49 test50 test51 \
 	test52 test53 test54 test55 test56 test57 test58 test59 test60 test61 \
-	test62 test63 test64 test65 test66
+	test62 test63 test64 test65 test66 test67
 
 root_tests:
 
@@ -903,6 +903,22 @@ test66: $(PROG) test66.ref
 	$(SHLIB_ENV) ./$(PROG) -c. 2>test66.tmp >/dev/null
 	sed "s;PWD;`pwd`;" test66.ref | diff - test66.tmp
 	rm -f main.cf master.cf test66.tmp test66.cf
+
+# expand process name and service name in master.cf.
+
+test67: $(PROG) test67.ref
+	rm -f main.cf master.cf
+	touch master.cf
+	echo 'smtp inet n - n - - smtpd' >>master.cf
+	echo ' -o test1_process_name=$$process_name' >> master.cf
+	echo ' -o test1_service_name=$$service_name' >> master.cf
+	echo 'smtp unix n - n - - smtp' >>master.cf
+	echo ' -o test2_process_name=$$process_name' >> master.cf
+	echo ' -o test2_service_name=$$service_name' >> master.cf
+	touch -t 197101010000 main.cf
+	$(SHLIB_ENV) ./$(PROG) -xMfc. >test67.tmp 2>&1
+	diff test67.ref test67.tmp
+	rm -f main.cf master.cf test67.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

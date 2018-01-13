@@ -148,6 +148,12 @@ BOUNCE(8)                                                            BOUNCE(8)
               Detect  that  a message requires SMTPUTF8 support for the speci-
               fied mail origin classes.
 
+       Available in Postfix 3.3 and later:
+
+       <b>service_name (read-only)</b>
+              The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process,  or  the
+              process name of a non-daemon process.
+
 <b>FILES</b>
        /var/spool/postfix/bounce/* non-delivery records
        /var/spool/postfix/defer/* non-delivery records

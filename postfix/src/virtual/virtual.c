@@ -259,6 +259,9 @@
 /*	Enable support for the original recipient address after an
 /*	address is rewritten to a different address (for example with
 /*	aliasing or with canonical mapping).
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports

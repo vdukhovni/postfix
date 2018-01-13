@@ -128,8 +128,9 @@
 /*	The Internet protocols Postfix will attempt to use when making
 /*	or accepting connections.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a Postfix process will
-/*	import from a non-Postfix parent process.
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBmail_owner (postfix)\fR"
 /*	The UNIX system account that owns the Postfix queue and most Postfix
 /*	daemon processes.
@@ -144,6 +145,11 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	A prefix that is prepended to the process name in syslog
 /*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
+/* .PP
+/*	Available in Postfix 3.3 and later:
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* FILES
 /* .ad
 /* .fi

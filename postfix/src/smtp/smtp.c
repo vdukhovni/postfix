@@ -725,6 +725,11 @@
 /*	Available with Postfix 3.2 and later:
 /* .IP "\fBsmtp_tcp_port (smtp)\fR"
 /*	The default TCP port that the Postfix SMTP client connects to.
+/* .PP
+/*	Available in Postfix 3.3 and later:
+/* .IP "\fBservice_name (read-only)\fR"
+/*	The master.cf service name of a Postfix daemon process, or the
+/*	process name of a non-daemon process.
 /* SEE ALSO
 /*	generic(5), output address rewriting
 /*	header_checks(5), message header content inspection
