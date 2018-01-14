@@ -391,6 +391,7 @@ while (<>) {
     s;\bqmgr_daemon_timeout\b;<a href="postconf.5.html#qmgr_daemon_timeout">$&</a>;g;
     s;\bqmgr_ipc_timeout\b;<a href="postconf.5.html#qmgr_ipc_timeout">$&</a>;g;
     s;\bqmqpd_authorized_clients\b;<a href="postconf.5.html#qmqpd_authorized_clients">$&</a>;g;
+    s;\bservice_name\b;<a href="postconf.5.html#service_name">$&</a>;g;
 
     s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_concur[-</Bb>]*\n* *[<Bb>]*rency_negative_feedback\b;<a href="postconf.5.html#default_destination_concurrency_negative_feedback">$&</a>;g;
     s;\bdefault_desti[-</Bb>]*\n* *[<Bb>]*na[-</Bb>]*\n* *[<Bb>]*tion_concur[-</Bb>]*\n* *[<Bb>]*rency_positive_feedback\b;<a href="postconf.5.html#default_destination_concurrency_positive_feedback">$&</a>;g;

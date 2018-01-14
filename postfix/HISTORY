@@ -23285,4 +23285,15 @@ Apologies for any names omitted.
 	proto/postconf.proto global/mail_params.h, global/mail_params.c,
 	master/single_server.c, master/multi_server.c,
 	master/trigger_server.c, master/event_server.c,
-	postconf/postconf_master.c, postconf/postconf_builtin.c.
+	postconf/postconf_master.c, postconf/postconf_builtin.c,
+	and daemon manpages.
+
+20180114
+
+	Paranoia: censor the postqueue process name, similar to the
+	set-gid postdrop program. File: postqueue/postqueue.c.
+
+	Cleanup: the new "service_name" parameter is applicable
+	only to Postfix daemons configured in master.cf; hyperlink
+	the parameter name in documentation.  Files: proto/postconf.proto,
+	mantools/postlink, daemon manpages.

@@ -570,9 +570,9 @@ int     main(int argc, char **argv)
      * Initialize. Set up logging, read the global configuration file and
      * extract configuration information. Set up signal handlers so that we
      * can clean up incomplete output.
+     * Censor the process name: it is provided by the user.
      */
-    if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
-	argv[0] = slash + 1;
+    argv[0] = "postqueue";
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_cleanup(unavailable);
     msg_syslog_init(mail_task("postqueue"), LOG_PID, LOG_FACILITY);

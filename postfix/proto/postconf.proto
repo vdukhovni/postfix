@@ -8134,8 +8134,7 @@ The process name of a Postfix command or daemon process.
 %PARAM service_name read-only
 
 <p>
-The master.cf service name of a Postfix daemon process, or the
-process name of a non-daemon process.
+The master.cf service name of a Postfix daemon process.
 </p>
 
 %PARAM process_id read-only

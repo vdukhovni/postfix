@@ -135,8 +135,7 @@
 /* .PP
 /*	Available in Postfix 3.3 and later:
 /* .IP "\fBservice_name (read-only)\fR"
-/*	The master.cf service name of a Postfix daemon process, or the
-/*	process name of a non-daemon process.
+/*	The master.cf service name of a Postfix daemon process.
 /* SEE ALSO
 /*	smtp(8), Postfix SMTP client
 /*	smtpd(8), Postfix SMTP server
