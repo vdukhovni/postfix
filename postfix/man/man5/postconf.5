@@ -6240,7 +6240,35 @@ A Sendmail compatibility feature that specifies the location of
 the Postfix \fBsendmail\fR(1) command. This command can be used to
 submit mail into the Postfix queue.
 .SH service_name (read\-only)
-The master.cf service name of a Postfix daemon process.
+The master.cf service name of a Postfix daemon process. This
+can be used to distinguish the logging from different services that
+use the same program name.
+.PP
+Example master.cf entries:
+.PP
+.nf
+.na
+.ft C
+# Distinguish inbound MTA logging from submission and smtps logging.
+smtp      inet  n       \-       n       \-       \-       smtpd
+submission inet n       \-       n       \-       \-       smtpd
+    \-o syslog_name=postfix/$service_name
+smtps     inet  n       \-       n       \-       \-       smtpd
+    \-o syslog_name=postfix/$service_name
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+# Distinguish outbound MTA logging from inbound relay logging.
+smtp      unix  \-       \-       n       \-       \-       smtp
+relay     unix  \-       \-       n       \-       \-       smtp
+    \-o syslog_name=postfix/$service_name
+.fi
+.ad
+.ft R
 .SH service_throttle_time (default: 60s)
 How long the Postfix \fBmaster\fR(8) waits before forking a server that
 appears to be malfunctioning.

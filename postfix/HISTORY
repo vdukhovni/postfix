@@ -23297,3 +23297,16 @@ Apologies for any names omitted.
 	only to Postfix daemons configured in master.cf; hyperlink
 	the parameter name in documentation.  Files: proto/postconf.proto,
 	mantools/postlink, daemon manpages.
+
+	Cleanup: allow whitespace between $[{(], parameter name,
+	and [:?)}]. This allows making complex expressions more
+	readable with line breaks. File: util/mac_expand.c.
+
+	Cleanup: don't initialize the service_name parameter with
+	the process_name value.  Files: postconf/postconf.[hc],
+	postconf/postconf_builtin.c.
+
+20180121
+
+	Bugfix (introduced: 20180106): too many arguments for format
+	string. File: local/mailbox.c.

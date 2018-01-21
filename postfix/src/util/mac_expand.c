@@ -472,21 +472,26 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 	 * Named parameter.
 	 */
 	else {
+	    char   *start;
 
 	    /*
 	     * Look for the ? or : operator. In case of a syntax error,
 	     * return without doing damage, and issue a warning instead.
 	     */
+	    start = (cp += strspn(cp, MAC_EXP_WHITESPACE));
 	    for ( /* void */ ; /* void */ ; cp++) {
-		if ((ch = *cp) == 0) {
+		if ((ch = cp[tmp_len = strspn(cp, MAC_EXP_WHITESPACE)]) == 0) {
+		    *cp = 0;
 		    lookup_mode = MAC_EXP_MODE_USE;
 		    break;
 		}
 		if (ch == '?' || ch == ':') {
 		    *cp++ = 0;
+		    cp += tmp_len;
 		    lookup_mode = MAC_EXP_MODE_TEST;
 		    break;
 		}
+		ch = *cp;
 		if (!ISALNUM(ch) && ch != '_') {
 		    MAC_EXP_ERR_RETURN(mc, "attribute name syntax error at: "
 				       "\"...%.*s>>>%.20s\"",
@@ -499,7 +504,7 @@ static int mac_expand_callback(int type, VSTRING *buf, void *ptr)
 	     * Look up the named parameter. Todo: allow the lookup function
 	     * to specify if the result is safe for $name expanson.
 	     */
-	    lookup = mc->lookup(vstring_str(buf), lookup_mode, mc->context);
+	    lookup = mc->lookup(start, lookup_mode, mc->context);
 	}
 
 	/*

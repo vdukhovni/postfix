@@ -10040,9 +10040,27 @@ submit mail into the Postfix queue.
 <DT><b><a name="service_name">service_name</a>
 (read-only)</b></DT><DD>
 
-<p>
-The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
-</p>
+<p> The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process. This
+can be used to distinguish the logging from different services that
+use the same program name. </p>
+
+<p> Example <a href="master.5.html">master.cf</a> entries: </p>
+
+<pre>
+# Distinguish inbound MTA logging from submission and smtps logging.
+smtp      inet  n       -       n       -       -       smtpd
+submission inet n       -       n       -       -       smtpd
+    -o <a href="postconf.5.html#syslog_name">syslog_name</a>=postfix/$<a href="postconf.5.html#service_name">service_name</a>
+smtps     inet  n       -       n       -       -       smtpd
+    -o <a href="postconf.5.html#syslog_name">syslog_name</a>=postfix/$<a href="postconf.5.html#service_name">service_name</a>
+</pre>
+
+<pre>
+# Distinguish outbound MTA logging from inbound relay logging.
+smtp      unix  -       -       n       -       -       smtp
+relay     unix  -       -       n       -       -       smtp
+    -o <a href="postconf.5.html#syslog_name">syslog_name</a>=postfix/$<a href="postconf.5.html#service_name">service_name</a>
+</pre>
 
 
 </DD>

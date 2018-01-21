@@ -6,9 +6,8 @@
 /* SYNOPSIS
 /*	#include <postconf.h>
 /*
-/*	void	pcf_register_builtin_parameters(procname, servname, pid)
+/*	void	pcf_register_builtin_parameters(procname, pid)
 /*	const char *procname;
-/*	const char *servname;
 /*	pid_t	pid;
 /* DESCRIPTION
 /*	pcf_register_builtin_parameters() initializes the global
@@ -18,8 +17,6 @@
 /*	Arguments:
 /*.IP procname
 /*	Provides the default value for the "process_name" parameter.
-/*.IP servname
-/*	Provides the default value for the "service_name" parameter.
 /*.IP pid
 /*	Provides the default value for the "process_id" parameter.
 /* DIAGNOSTICS
@@ -366,8 +363,7 @@ static const char *pcf_conv_long_parameter(void *ptr)
 
 /* pcf_register_builtin_parameters - add built-ins to the global name space */
 
-void    pcf_register_builtin_parameters(const char *procname,
-				            const char *servname, pid_t pid)
+void    pcf_register_builtin_parameters(const char *procname, pid_t pid)
 {
     const char *myname = "pcf_register_builtin_parameters";
     const CONFIG_TIME_TABLE *ctt;
@@ -450,7 +446,7 @@ void    pcf_register_builtin_parameters(const char *procname,
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_procname.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
 		      (void *) &pcf_adhoc_procname, pcf_conv_str_parameter);
-    pcf_adhoc_servname.defval = mystrdup(servname);
+    pcf_adhoc_servname.defval = mystrdup("");
     PCF_PARAM_TABLE_ENTER(pcf_param_table, pcf_adhoc_servname.name,
 			  PCF_PARAM_FLAG_BUILTIN | PCF_PARAM_FLAG_READONLY,
 		      (void *) &pcf_adhoc_servname, pcf_conv_str_parameter);

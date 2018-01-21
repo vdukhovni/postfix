@@ -97,7 +97,7 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
     int     deliver_status;
     int     copy_flags;
     VSTRING *biff;
-    off_t    end;
+    off_t   end;
     struct stat st;
     uid_t   spool_uid;
     gid_t   spool_gid;
@@ -202,8 +202,8 @@ static int deliver_mailbox_file(LOCAL_STATE state, USER_ATTR usr_attr)
 	    msg_warn("specify \"%s = no\" to ignore mailbox ownership mismatch",
 		     VAR_STRICT_MBOX_OWNER);
 	} else {
-	    if ((end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END)) < 0) 
-		msg_fatal("seek mailbox file %s: %m", myname, mailbox);
+	    if ((end = vstream_fseek(mp->fp, (off_t) 0, SEEK_END)) < 0)
+		msg_fatal("seek mailbox file %s: %m", mailbox);
 	    mail_copy_status = mail_copy(COPY_ATTR(state.msg_attr), mp->fp,
 					 copy_flags, "\n", why);
 	}

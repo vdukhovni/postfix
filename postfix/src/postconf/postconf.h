@@ -251,7 +251,7 @@ extern NAME_CODE pcf_field_name_offset[];
  /*
   * postconf_builtin.c.
   */
-extern void pcf_register_builtin_parameters(const char *, const char *, pid_t);
+extern void pcf_register_builtin_parameters(const char *, pid_t);
 
  /*
   * postconf_service.c.
