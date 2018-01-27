@@ -397,6 +397,14 @@ static int dns_res_search(const char *name, int class, int type,
 	/* Prepare for returning a null-padded server reply. */
 	memset(answer, 0, anslen);
     len = res_query(name, class, type, answer, anslen);
+    /* Begin API creep workaround. */
+    if (len < 0 && h_errno == 0) {
+	SET_H_ERRNO(TRY_AGAIN);
+	msg_warn("res_query(\"%s\", %d, %d, %p, %d) returns %d with h_errno==0"
+		 " -- setting h_errno=TRY_AGAIN",
+		 name, class, type, answer, anslen, len);
+    }
+    /* End API creep workaround. */
     if (len > 0) {
 	SET_H_ERRNO(0);
     } else if (keep_notfound && NOT_FOUND_H_ERRNO(h_errno)) {
