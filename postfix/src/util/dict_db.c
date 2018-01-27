@@ -620,6 +620,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
     struct stat st;
     DB     *db = 0;
     char   *db_path = 0;
+    VSTRING *db_base_buf = 0;
     int     lock_fd = -1;
     int     dbfd;
 
@@ -675,6 +676,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 #define LOCK_OPEN_FLAGS(f) ((f) & ~(O_CREAT|O_TRUNC))
 #define FREE_RETURN(e) do { \
 	DICT *_dict = (e); if (db) DICT_DB_CLOSE(db); \
+	if (db_base_buf) vstring_free(db_base_buf); \
 	if (db_path) myfree(db_path); return (_dict); \
     } while (0)
 
@@ -739,17 +741,21 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 	msg_panic("db_create null result");
     if (type == DB_HASH && db->set_h_nelem(db, DICT_DB_NELM) != 0)
 	msg_fatal("set DB hash element count %d: %m", DICT_DB_NELM);
+    db_base_buf = vstring_alloc(100);
 #if DB_VERSION_MAJOR == 5 || (DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0)
-    if ((errno = db->open(db, 0, db_path, 0, type, db_flags, 0644)) != 0)
+    if ((errno = db->open(db, 0, sane_basename(db_base_buf, db_path),
+			  0, type, db_flags, 0644)) != 0)
 	FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
 				   "open database %s: %m", db_path));
 #elif (DB_VERSION_MAJOR == 3 || DB_VERSION_MAJOR == 4)
-    if ((errno = db->open(db, db_path, 0, type, db_flags, 0644)) != 0)
+    if ((errno = db->open(db, sane_basename(db_base_buf, db_path), 0,
+			  type, db_flags, 0644)) != 0)
 	FREE_RETURN(dict_surrogate(class, path, open_flags, dict_flags,
 				   "open database %s: %m", db_path));
 #else
 #error "Unsupported Berkeley DB version"
 #endif
+    vstring_free(db_base_buf);
     if ((errno = db->fd(db, &dbfd)) != 0)
 	msg_fatal("get database file descriptor: %m");
 #endif

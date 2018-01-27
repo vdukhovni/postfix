@@ -3707,7 +3707,7 @@ static int is_map_command(SMTPD_STATE *state, const char *name,
 static void forbid_whitelist(SMTPD_STATE *state, const char *name,
 			             int status, const char *target)
 {
-    if (status == SMTPD_CHECK_OK) {
+    if (state->discard == 0 && status == SMTPD_CHECK_OK) {
 	msg_warn("restriction %s returns OK for %s", name, target);
 	msg_warn("this is not allowed for security reasons");
 	msg_warn("use DUNNO instead of OK if you want to make an exception");
