@@ -16,6 +16,16 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+License change with Postfix 3.2.5
+---------------------------------
+
+Starting with Postfix 3.2.5, this software is distributed with a
+dual license: in addition to the historical IBM Public License 1.0,
+it is now also distributed with the more recent Eclipse Public
+License 2.0. Recipients can choose to take the software under the
+license of their choice. Those who are more comfortable with the
+IPL can continue with that license.
+
 Invisible changes
 -----------------
 
