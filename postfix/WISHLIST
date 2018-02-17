@@ -2,11 +2,10 @@ Wish list:
 
 	Things to do before the stable release:
 
-	Spell-check, double-word check, and HTML validator check.
+	Spell-check, double-word check, HTML validator check,
+	mantools/missing-proxy-read-maps check.
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
-
-	Add $smtpd_sender_login_maps to proxy_read_maps.
 
 	After I/O error, store errno in VSTREAM object before errno
 	may be overwritten.

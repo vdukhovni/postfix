@@ -3228,11 +3228,9 @@ address.  </dd>
 <p> Note: with Postfix &le; 3.2 the "setting <a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a>
 = <b>no</b>" breaks address verification for addresses that are
 aliased or otherwise rewritten (Postfix is unable to store the
-addres verification result under the original probe destination
+address verification result under the original probe destination
 address; instead, it can store the result only under the rewritten
 address).  </p>
-
-</ul>
 
 <p> This feature is available in Postfix 2.1 and later. Postfix
 version 2.0 behaves as if this parameter is always set to <b>yes</b>.
@@ -16102,7 +16100,7 @@ code when an address probe failed due to a temporary problem
 specifies the action after address probe failure due to a temporary
 problem (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br> This feature breaks for
 aliased addresses with "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> = no" (Postfix
-&le; 3.2).  <br> This feature is avaiable in Postfix 2.1 and later.
+&le; 3.2).  <br> This feature is available in Postfix 2.1 and later.
 </dd>
 
 </dl>

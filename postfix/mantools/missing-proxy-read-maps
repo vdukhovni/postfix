@@ -1,0 +1,41 @@
+#!/usr/bin/perl
+
+# Compares the list of parameter names that end in _maps in
+# proxy_read_maps, against the list of all parameter names that end
+# in _maps, and outputs the missing mail_params.h lines.
+
+$command = "bin/postconf -dh proxy_read_maps | tr ' ' '\12'";
+open(PROXY_READ_MAPS, "$command|")
+	|| die "can't execute $command: !$\n";
+while (<PROXY_READ_MAPS>) {
+    chomp;
+    next unless /\$(.+_maps)$/;
+    $proxy_read_maps{$1} = 1;
+}
+close(PROXY_READ_MAPS) || die "close $command: $!\n";
+
+$mail_params_h = "src/global/mail_params.h";
+open(MAIL_PARAMS, "<$mail_params_h")
+    || die "Open $mail_params_h";
+while ($line = <MAIL_PARAMS>) {
+    chomp;
+    if ($line =~ /^#define\s+(\S+)\s+"(\S+)"/) {
+	$mail_params{$2} = $1;
+    } elsif ($line =~/^#define\s+(\S+)\s+"address_verify_" VAR_SND_DEF_XPORT_MAPS/) {
+	$mail_params{"address_verify_sender_dependent_default_transport_maps"} = $1;
+    }
+}
+close(MAIL_PARAMS) || die "close $mail_params_h: !$\n";
+
+$command = "bin/postconf -H";
+open(ALL_PARAM_NAMES, "$command|")
+         || die "can't execute $command: !$\n";  
+while ($param_name = <ALL_PARAM_NAMES>) { 
+    chomp($param_name);
+    next unless ($param_name =~ /_maps$/);
+    next if ($param_name =~ /^(proxy_read|proxy_write)_maps$/);
+    next if defined($proxy_read_maps{$param_name});
+    die "unknown parameter: $param_name\n"
+	unless defined($mail_params{$param_name});
+    print "\t\t\t\t\" \$\" $mail_params{$param_name} \\\n";
+}

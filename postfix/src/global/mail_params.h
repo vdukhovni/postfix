@@ -489,11 +489,11 @@ extern char *var_transport_maps;
 #define DEF_DEF_TRANSPORT	MAIL_SERVICE_SMTP
 extern char *var_def_transport;
 
-#define VAR_SND_DEF_XPORT_MAPS	"sender_dependent_" VAR_DEF_TRANSPORT "_maps"
+#define VAR_SND_DEF_XPORT_MAPS	"sender_dependent_default_transport_maps"
 #define DEF_SND_DEF_XPORT_MAPS	""
 extern char *var_snd_def_xport_maps;
 
-#define VAR_NULL_DEF_XPORT_MAPS_KEY	"empty_address_" VAR_DEF_TRANSPORT "_maps_lookup_key"
+#define VAR_NULL_DEF_XPORT_MAPS_KEY	"empty_address_default_transport_maps_lookup_key"
 #define DEF_NULL_DEF_XPORT_MAPS_KEY	"<>"
 extern char *var_null_def_xport_maps_key;
 
@@ -2389,7 +2389,29 @@ extern int var_local_rcpt_code;
 				" $" VAR_HELO_CHECKS \
 				" $" VAR_MAIL_CHECKS \
 				" $" VAR_RELAY_CHECKS \
-				" $" VAR_RCPT_CHECKS
+				" $" VAR_RCPT_CHECKS \
+				" $" VAR_VRFY_SND_DEF_XPORT_MAPS \
+				" $" VAR_VRFY_RELAY_MAPS \
+				" $" VAR_VRFY_XPORT_MAPS \
+				" $" VAR_FBCK_TRANSP_MAPS \
+				" $" VAR_LMTP_EHLO_DIS_MAPS \
+				" $" VAR_LMTP_PIX_BUG_MAPS \
+				" $" VAR_LMTP_SASL_PASSWD \
+				" $" VAR_LMTP_TLS_POLICY \
+				" $" VAR_MAILBOX_CMD_MAPS \
+				" $" VAR_MBOX_TRANSP_MAPS \
+				" $" VAR_PSC_EHLO_DIS_MAPS \
+				" $" VAR_RBL_REPLY_MAPS \
+				" $" VAR_SND_RELAY_MAPS \
+				" $" VAR_SMTP_EHLO_DIS_MAPS \
+				" $" VAR_SMTP_PIX_BUG_MAPS \
+				" $" VAR_SMTP_SASL_PASSWD \
+				" $" VAR_SMTP_TLS_POLICY \
+				" $" VAR_SMTPD_EHLO_DIS_MAPS \
+				" $" VAR_SMTPD_MILTER_MAPS \
+				" $" VAR_VIRT_GID_MAPS \
+				" $" VAR_VIRT_UID_MAPS \
+				" $" VAR_SND_DEF_XPORT_MAPS
 extern char *var_proxy_read_maps;
 
 #define VAR_PROXY_WRITE_MAPS	"proxy_write_maps"
