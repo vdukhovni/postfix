@@ -1,0 +1,2 @@
+./postconf: warning: ldap:/home/wietse/postfix-3.4-20180217/src/postconf/test69.cf: unused parameter: junk=junk
+config_directory = .

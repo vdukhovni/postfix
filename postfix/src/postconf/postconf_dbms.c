@@ -53,6 +53,7 @@
 /* System library. */
 
 #include <sys_defs.h>
+#include <sys/stat.h>
 #include <errno.h>
 #include <string.h>
 
@@ -163,6 +164,7 @@ static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
      */
     dict_spec = concatenate(dp->db_type, ":", cf_file, (char *) 0);
     if ((dict = dict_handle(dict_spec)) == 0) {
+	struct stat st;
 
 	/*
 	 * Populate the dictionary with settings in this database client
@@ -177,6 +179,13 @@ static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
 	    msg_warn("open \"%s\" configuration \"%s\": %m",
 		     dp->db_type, cf_file);
 	    myfree(dict_spec);
+	    return;
+	}
+	if (fstat(vstream_fileno(fp), &st) == 0 && !S_ISREG(st.st_mode)) {
+	    msg_warn("open \"%s\" configuration \"%s\": not a regular file",
+		     dp->db_type, cf_file);
+	    myfree(dict_spec);
+	    (void) vstream_fclose(fp);
 	    return;
 	}
 	dict_load_fp(dict_spec, fp);

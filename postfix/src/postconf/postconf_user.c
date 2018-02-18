@@ -290,8 +290,16 @@ static void pcf_scan_user_parameter_namespace(const char *dict_name,
 	}
 	SCAN_USER_PARAMETER_VALUE(cparam_value, PCF_PARAM_FLAG_USER, local_scope);
 #ifdef LEGACY_DBMS_SUPPORT
-	pcf_register_dbms_parameters(cparam_value, pcf_flag_user_parameter,
-				     local_scope);
+
+	/*
+	 * Scan only parameters that are built-in or service-defined (when
+	 * node == 0, the parameter doesn't exist in the global namespace and
+	 * therefore can't be built-in or service-defined).
+	 */
+	if (node != 0
+	    && (PCF_BUILTIN_PARAMETER(node) || PCF_SERVICE_PARAMETER(node)))
+	    pcf_register_dbms_parameters(cparam_value, pcf_flag_user_parameter,
+					 local_scope);
 #endif
     }
 }
