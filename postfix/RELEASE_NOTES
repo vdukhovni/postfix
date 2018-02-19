@@ -1,13 +1,13 @@
 This is the Postfix 3.3 (stable) release.
 
 The stable Postfix release is called postfix-3.3.x where 3=major
-release number, 3=minor release number, x=patchlevel.  The stable
+release number, 3=minor release number, x=patchlevel. The stable
 release never changes except for patches that address bugs or
 emergencies. Patches change the patchlevel and the release date.
 
 New features are developed in snapshot releases. These are called
 postfix-3.4-yyyymmdd where yyyymmdd is the release date (yyyy=year,
-mm=month, dd=day).  Patches are never issued for snapshot releases;
+mm=month, dd=day). Patches are never issued for snapshot releases;
 instead, a new snapshot is released.
 
 The mail_release_date configuration parameter (format: yyyymmdd)
@@ -33,7 +33,7 @@ now warns for mail that would be blocked by the Postfix 2.10
 smtpd_relay_restrictions feature, without blocking that mail. This
 extends the compatibility safety net for sites that upgrade from
 earlier Postfix versions (questions on the postfix-users list show
-there is a steady trickle).  See COMPATIBILITY_README for details.
+there is a steady trickle). See COMPATIBILITY_README for details.
 
 Major changes - configuration
 -----------------------------
@@ -44,7 +44,7 @@ parameter names, these warnings can help to find typos early.
 
 [20180113] New read-only service_name parameter that contains the
 master.cf service name of a Postfix daemon process (it that is empty
-in a non-daemon process).  This can make Postfix SMTP server logging
+in a non-daemon process). This can make Postfix SMTP server logging
 logging distinct by setting the syslog_name in master.cf with "-o
 syslog_name=postfix/$service_name" for the "submission" and "smtps"
 services, and can make Postfix SMTP client distinct by setting "-o
@@ -56,9 +56,11 @@ Major changes - container support
 [20171218] Preliminary support to run Postfix in the foreground,
 with "postfix start-fg". This requires that Postfix multi-instance
 support is disabled. To receive Postfix syslog information on the
-container's host, mount the host's /dev/log socket into the container,
-for example, "docker run -v /dev/log:/dev/log ...". Postfix does
-not log systemd events.
+container's host, mount the host's /dev/log socket inside the
+container (example: "docker run -v /dev/log:/dev/log ..."), and
+specify a distinct Postfix "syslog_name" prefix that identifies the
+logging from the Postfix instance. Postfix does not log systemd
+events.
 
 Major changes - database support
 ---------------------------------
@@ -100,16 +102,17 @@ in SMFIR_CHGFROM (change envelope sender) requests.
 Major changes - mixed IPv6/IPv4 support
 ---------------------------------------
 
-[20170505] Workaround for mail delivery problems with destinations
-that announce multiple primary IPv6 MX addresses but that are
-unreachable over IPv6. This can happen when the smtp_address_limit
-eliminates most or all IPv4 addresses, or when Postfix IPv6 support
-is turned on but the local machine has no IPv6 connectivity.
+[20170505] Workaround for mail delivery problems when 1) both Postfix
+IPv6 and IPv4 support are enabled, 2) some destination announces
+more primary IPv6 MX addresses than primary IPv4 MX addresses, 3)
+the destination is unreachable over IPv6, and 4) Postfix runs into
+the smtp_mx_address_limit before it can try to deliver over IPv4.
 
 When both Postfix IPv6 and IPv4 support are enabled, the Postfix
-SMTP client will now attempt to schedule similar numbers of IPv4
-and IPv6 addresses, so that an IPv6 connectivity problem will not
-prevent mail from being delivered. Specify "smtp_balance_mx_inet_protocols
+SMTP client will now relax MX preferences so that it can schedule
+similar numbers of IPv4 and IPv6 destination addresses. This ensures
+that an IPv6 connectivity problem will not prevent mail from being
+delivered over IPv4 (and vice versa). Specify "smtp_balance_inet_protocols
 = no" to disable this workaround.
 
 Major changes - xclient
