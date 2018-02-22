@@ -35,6 +35,11 @@
 /*	name spaces for user-defined parameters and flags parameters
 /*	as "valid" in the global name space (pcf_param_table) or
 /*	in the per-service name space (valid_params).
+/*
+/*	This function also invokes pcf_register_dbms_parameters() to
+/*	to instantiate legacy per-dbms parameters, and to examine
+/*	per-dbms configuration files. This is limited to the content
+/*	of global and local, built-in and per-service, parameters.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream.
 /* LICENSE
@@ -46,6 +51,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -292,9 +302,9 @@ static void pcf_scan_user_parameter_namespace(const char *dict_name,
 #ifdef LEGACY_DBMS_SUPPORT
 
 	/*
-	 * Scan only parameters that are built-in or service-defined (when
-	 * node == 0, the parameter doesn't exist in the global namespace and
-	 * therefore can't be built-in or service-defined).
+	 * Scan global or local parameters that are built-in or per-service
+	 * (when node == 0, the parameter doesn't exist in the global
+	 * namespace and therefore it can't be built-in or per-service).
 	 */
 	if (node != 0
 	    && (PCF_BUILTIN_PARAMETER(node) || PCF_SERVICE_PARAMETER(node)))

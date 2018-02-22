@@ -23327,7 +23327,7 @@ Apologies for any names omitted.
 
 20180217
 
-	Cleanup: added missing *_maps parameters to the default
+	Cleanup: added 22 missing *_maps parameters to the default
 	proxy_read_maps setting. Files: global/mail_params.h,
 	mantools/missing-proxy-read-maps.
 
@@ -23338,7 +23338,7 @@ Apologies for any names omitted.
 	of the 20180217 changes in mail_params.h that are no longer
 	needed.
 
-	Bugfix: postconf should scan only built-in or service-defined
-	parameters for ldap, *sql, etc. database names. Files:
+	Bugfix (introduced: 20120117): postconf should scan only
+	built-in or service-defined parameters for ldap, *sql, etc.
+	database names. Problem reported by Christian Rößner. Files:
 	postconf/postconf_user.c.
-
