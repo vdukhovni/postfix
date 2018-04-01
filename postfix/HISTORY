@@ -23342,3 +23342,24 @@ Apologies for any names omitted.
 	built-in or service-defined parameters for ldap, *sql, etc.
 	database names. Problem reported by Christian Rößner. Files:
 	postconf/postconf_user.c.
+
+20180224
+
+	Workaround: postconf build did not abort if the m4 command
+	is not installed (on a system that does have the make command,
+	the awk command, the perl command, and the C compiler?!).
+	File: postconf/extract_cfg.sh.
+
+20180303
+
+	Portability: slight differences between MySQL and MariaDB.
+	Olli Hauer. File: global/dict_mysql.c.
+
+20180306
+
+	Bugfix (introduced: 19990302): when luser_relay specifies
+	a non-existent local address, the luser_relay feature becomes
+	a black hole. Reported by Jørgen Thomsen. File: local/unknown.c.
+
+	Portability: FreeBSD 11 is supported. Files: makedefs,
+	util/sys_defs.h.
