@@ -210,6 +210,8 @@ static void master_sigdeath(int sig)
 	msg_fatal("%s: sigaction: %m", myname);
     if (kill(pid, sig) < 0)
 	msg_fatal("%s: kill myself: %m", myname);
+    if (kill(pid, SIGKILL) < 0)
+	msg_fatal("%s: kill myself: %m", myname);
 }
 
 /* master_sigsetup - set up signal handlers */

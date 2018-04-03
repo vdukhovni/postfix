@@ -150,11 +150,16 @@ start|start-fg)
 	    ;;
 	start-fg)
 	    # Foreground start-up is incompatible with multi-instance mode.
-	    # We can't use "exec $daemon_directory/master" here: that would
-	    # break process group management, and "postfix stop" would kill
-	    # too many processes.
+	    # Use "exec $daemon_directory/master -i" only if PID == 1.
+	    # Otherwise, doing so would break process group management,
+	    # and "postfix stop" would kill too many processes.
 	    case $instances in
-	    "") $daemon_directory/master
+	    "") case $$ in
+		 1) exec $daemon_directory/master -i
+		    $FATAL "cannot start-fg the master daemon"
+		    exit 1;;
+		 *) $daemon_directory/master;;
+		esac
 		;;
 	     *) $FATAL "start-fg does not support multi_instance_directories"
 		exit 1

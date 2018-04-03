@@ -23363,3 +23363,11 @@ Apologies for any names omitted.
 
 	Portability: FreeBSD 11 is supported. Files: makedefs,
 	util/sys_defs.h.
+
+20180403
+
+	Containers: "postfix start-fg" will now attempt to run the
+	master daemon as PID 1, and "postfix stop" will use a
+	stronger signal if the master does not stop. Files:
+	conf/postfix-script, master/master.c, master/master_sig.c,
+	postfix/postfix.c.

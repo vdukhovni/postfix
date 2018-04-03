@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	Postfix master process
 /* SYNOPSIS
-/*	\fBmaster\fR [\fB-Ddtvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
+/*	\fBmaster\fR [\fB-Dditvw\fR] [\fB-c \fIconfig_dir\fR] [\fB-e \fIexit_time\fR]
 /* DESCRIPTION
 /*	The \fBmaster\fR(8) daemon is the resident process that runs Postfix
 /*	daemons on demand: daemons to send or receive messages via the
@@ -37,6 +37,10 @@
 /* .IP "\fB-e \fIexit_time\fR"
 /*	Terminate the master process after \fIexit_time\fR seconds. Child
 /*	processes terminate at their convenience.
+/* .IP \fB-i\fR
+/*	Enable \fBinit\fR mode: do not attempt to become a session
+/*	or process group leader. This mode is allowed only if the
+/*	process ID equals 1.
 /* .IP \fB-t\fR
 /*	Test mode. Return a zero exit status when the \fBmaster.pid\fR lock
 /*	file does not exist or when that file is not locked.  This is evidence
@@ -266,6 +270,7 @@ int     main(int argc, char **argv)
     ARGV   *import_env;
     int     wait_flag = 0;
     int     monitor_fd = -1;
+    int     init_mode = 0;
 
     /*
      * Fingerprint executables and core dumps.
@@ -334,7 +339,7 @@ int     main(int argc, char **argv)
     /*
      * Process JCL.
      */
-    while ((ch = GETOPT(argc, argv, "c:Dde:tvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "c:Dde:itvw")) > 0) {
 	switch (ch) {
 	case 'c':
 	    if (setenv(CONF_ENV_PATH, optarg, 1) < 0)
@@ -345,6 +350,11 @@ int     main(int argc, char **argv)
 	    break;
 	case 'e':
 	    event_request_timer(master_exit_event, (void *) 0, atoi(optarg));
+	    break;
+	case 'i':
+	    if (getpid() != 1)
+		msg_fatal("-i is allowed with for PID 1 process");
+	    init_mode = 1;
 	    break;
 	case 'D':
 	    debug_me = 1;
@@ -375,6 +385,8 @@ int     main(int argc, char **argv)
      */
     if (test_lock && wait_flag)
 	msg_fatal("the -t and -w options cannot be used together");
+    if (init_mode + debug_me + !master_detach + wait_flag > 1)
+	msg_fatal("specify one of -i, -D, -d, or -w");
 
     /*
      * Run a foreground monitor process that returns an exit status of 0 when
@@ -403,7 +415,8 @@ int     main(int argc, char **argv)
      * all MTA processes cleanly. Give up if we can't separate from our
      * parent process. We're not supposed to blow away the parent.
      */
-    if (debug_me == 0 && master_detach != 0 && setsid() == -1 && getsid(0) != getpid())
+    if (init_mode == 0 && debug_me == 0 && master_detach != 0
+	&& setsid() == -1 && getsid(0) != getpid())
 	msg_fatal("unable to set session and process group ID: %m");
 
     /*
