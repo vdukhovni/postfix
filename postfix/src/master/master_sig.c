@@ -200,6 +200,13 @@ static void master_sigdeath(int sig)
     msg_info("terminating on signal %d", sig);
 
     /*
+     * Linux kill(1, sig) does not terminate, but returns no error.
+     */
+    if (init_mode)
+	/* Don't call exit() from a signal handler. */
+	_exit(0);
+
+    /*
      * Deliver the signal to ourselves and clean up. XXX We're running as a
      * signal handler and really should not be doing complicated things...
      */
@@ -209,8 +216,6 @@ static void master_sigdeath(int sig)
     if (sigaction(sig, &action, (struct sigaction *) 0) < 0)
 	msg_fatal("%s: sigaction: %m", myname);
     if (kill(pid, sig) < 0)
-	msg_fatal("%s: kill myself: %m", myname);
-    if (kill(pid, SIGKILL) < 0)
 	msg_fatal("%s: kill myself: %m", myname);
 }
 

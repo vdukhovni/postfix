@@ -23371,3 +23371,10 @@ Apologies for any names omitted.
 	stronger signal if the master does not stop. Files:
 	conf/postfix-script, master/master.c, master/master_sig.c,
 	postfix/postfix.c.
+
+20180404
+
+	Containers: "postfix start-fg" running as PID=1 will now 
+	properly terminate after "postfix stop". With assistance
+	from Andreas Schulze and Eray Aslan. Files: master/master.c,
+	master/master.h, master/master_sig.c.

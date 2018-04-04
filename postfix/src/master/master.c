@@ -233,6 +233,7 @@
 #include "master.h"
 
 int     master_detach = 1;
+int     init_mode = 0;
 
 /* master_exit_event - exit for memory leak testing purposes */
 
@@ -270,7 +271,6 @@ int     main(int argc, char **argv)
     ARGV   *import_env;
     int     wait_flag = 0;
     int     monitor_fd = -1;
-    int     init_mode = 0;
 
     /*
      * Fingerprint executables and core dumps.
