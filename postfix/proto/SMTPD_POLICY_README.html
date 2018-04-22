@@ -65,11 +65,14 @@ multiple times, for up to $max_use incoming SMTP connections. </p>
 
 <h2><a name="protocol">Protocol description</a></h2>
 
-<p> The Postfix policy delegation protocol is really simple. The
-client request is a sequence of name=value attributes separated by
-newline, and is terminated by an empty line. The server reply is
-one name=value attribute and it, too, is terminated by an empty
-line. </p>
+<p> The Postfix policy delegation protocol is really simple. The client
+sends a request and the server sends a response. Unless there was an
+error, the server must not close the connection, so that the same
+connection can be used multiple times. </p>
+
+<p> The client request is a sequence of name=value attributes separated
+by newline, and is terminated by an empty line. The server reply is one
+name=value attribute and it, too, is terminated by an empty line. </p>
 
 <p> Here is an example of all the attributes that the Postfix SMTP
 server sends in a delegated SMTPD access policy request: </p>

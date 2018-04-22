@@ -23378,3 +23378,21 @@ Apologies for any names omitted.
 	properly terminate after "postfix stop". With assistance
 	from Andreas Schulze and Eray Aslan. Files: master/master.c,
 	master/master.h, master/master_sig.c.
+
+20180421
+
+	Documentation: in the protocol description mention early
+	on that a policy server must not close the connection unless
+	there is an error. File: proto/SMTPD_POLICY_README.html.
+
+20180422
+
+	Undocumented: when running in PID=1 mode on Linux, a signal
+	won't be delivered unless the process specifies a handler.
+	Conveniently, _exit() can be used directly as a signal
+	handler. This changes the wait status that a parent would
+	see, but in the case of PID=1 mode on Linux, no-one would
+	care. Viktor Dukhovni. File: util/killme_after.c.
+
+	Bugfix: missing error tls_server_start() error handling in
+	tlsproxy(8).  File: tlsproxy/tlsproxy.c.

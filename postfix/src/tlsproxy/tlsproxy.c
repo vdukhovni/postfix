@@ -663,7 +663,7 @@ static void tlsp_ciphertext_event(int event, void *context)
 
 /* tlsp_start_tls - turn on TLS or force disconnect */
 
-static void tlsp_start_tls(TLSP_STATE *state)
+static int tlsp_start_tls(TLSP_STATE *state)
 {
     TLS_SERVER_START_PROPS props;
     static char *cipher_grade;
@@ -716,7 +716,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
 
     if (state->tls_context == 0) {
 	tlsp_state_free(state);
-	return;
+	return (-1);
     }
 
     /*
@@ -729,6 +729,7 @@ static void tlsp_start_tls(TLSP_STATE *state)
      * XXX Do we care about certificate verification results? Not as long as
      * postscreen(8) doesn't actually receive email.
      */
+    return (0);
 }
 
 /* tlsp_get_fd_event - receive final postscreen(8) hand-off information */
@@ -776,7 +777,8 @@ static void tlsp_get_fd_event(int event, void *context)
      * Perform the TLS layer before-handshake initialization. We perform the
      * remainder after the TLS handshake completes.
      */
-    tlsp_start_tls(state);
+    if (tlsp_start_tls(state) < 0)
+	return;
 
     /*
      * Trigger the initial proxy server I/Os.

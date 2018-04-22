@@ -235,6 +235,8 @@ void    tls_proxy_context_free(TLS_SESS_STATE *tls_context)
 	myfree(tls_context->issuer_CN);
     if (tls_context->peer_cert_fprint)
 	myfree(tls_context->peer_cert_fprint);
+    if (tls_context->peer_pkey_fprint)
+	myfree(tls_context->peer_pkey_fprint);
     if (tls_context->protocol)
 	myfree((void *) tls_context->protocol);
     if (tls_context->cipher_name)
