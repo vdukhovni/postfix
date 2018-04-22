@@ -747,6 +747,7 @@ static int starttls(STATE *state)
 	TLS_CLIENT_START(&tls_props,
 			 ctx = state->tls_ctx,
 			 stream = stream,
+			 fd = -1,
 			 timeout = smtp_tmout,
 			 tls_level = state->level,
 			 nexthop = state->nexthop,

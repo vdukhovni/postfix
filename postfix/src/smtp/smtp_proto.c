@@ -757,7 +757,10 @@ int     smtp_helo(SMTP_STATE *state)
 	 * Decide whether or not to send STARTTLS.
 	 */
 	if ((session->features & SMTP_FEATURE_STARTTLS) != 0
-	    && smtp_tls_ctx != 0 && state->tls->level >= TLS_LEV_MAY) {
+#ifndef USE_TLSPROXY
+	    && smtp_tls_ctx != 0
+#endif
+	    && state->tls->level >= TLS_LEV_MAY) {
 
 	    /*
 	     * Prepare for disaster.
@@ -818,10 +821,12 @@ int     smtp_helo(SMTP_STATE *state)
 				       SMTP_RESP_FAKE(&fake, "4.7.4"),
 			  "TLS is required, but was not offered by host %s",
 				       session->namaddr));
+#ifndef USE_TLSPROXY
 	    } else if (smtp_tls_ctx == 0) {
 		return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				       SMTP_RESP_FAKE(&fake, "4.7.5"),
 		     "TLS is required, but our TLS engine is unavailable"));
+#endif
 	    } else {
 		msg_warn("%s: TLS is required but unavailable, don't know why",
 			 myname);
@@ -848,9 +853,16 @@ static int smtp_start_tls(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
     SMTP_ITERATOR *iter = state->iterator;
-    TLS_CLIENT_START_PROPS tls_props;
+    TLS_CLIENT_START_PROPS start_props;
     VSTRING *serverid;
     SMTP_RESP fake;
+
+#ifdef USE_TLSPROXY
+    TLS_CLIENT_INIT_PROPS init_props;
+    VSTREAM *tlsproxy;
+
+#endif
+
 
     /*
      * Turn off SMTP connection caching. When the TLS handshake succeeds, we
@@ -861,7 +873,9 @@ static int smtp_start_tls(SMTP_STATE *state)
      * SMTP connection either, because the conversation is in an unknown
      * state.
      */
+#ifndef USE_TLSPROXY
     DONT_CACHE_THIS_SESSION;
+#endif
 
     /*
      * The following assumes sites that use TLS in a perverse configuration:
@@ -894,6 +908,80 @@ static int smtp_start_tls(SMTP_STATE *state)
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_ADDR);
 
+#ifdef USE_TLSPROXY
+
+    /*
+     * Send all our wishes in one big request.
+     */
+    TLS_PROXY_CLIENT_INIT_PROPS(&init_props,
+				log_param = VAR_LMTP_SMTP(TLS_LOGLEVEL),
+				log_level = var_smtp_tls_loglevel,
+				verifydepth = var_smtp_tls_scert_vd,
+			      cache_type = LMTP_SMTP_SUFFIX(TLS_MGR_SCACHE),
+				cert_file = var_smtp_tls_cert_file,
+				key_file = var_smtp_tls_key_file,
+				dcert_file = var_smtp_tls_dcert_file,
+				dkey_file = var_smtp_tls_dkey_file,
+				eccert_file = var_smtp_tls_eccert_file,
+				eckey_file = var_smtp_tls_eckey_file,
+				CAfile = var_smtp_tls_CAfile,
+				CApath = var_smtp_tls_CApath,
+				mdalg = var_smtp_tls_fpt_dgst);
+    TLS_PROXY_CLIENT_START_PROPS(&start_props,
+				 timeout = var_smtp_starttls_tmout,
+				 tls_level = state->tls->level,
+				 nexthop = session->tls_nexthop,
+				 host = STR(iter->host),
+				 namaddr = session->namaddrport,
+				 serverid = vstring_str(serverid),
+				 helo = session->helo,
+				 protocols = state->tls->protocols,
+				 cipher_grade = state->tls->grade,
+				 cipher_exclusions
+				 = vstring_str(state->tls->exclusions),
+				 matchargv = state->tls->matchargv,
+				 mdalg = var_smtp_tls_fpt_dgst);
+
+#define PROXY_OPEN_FLAGS \
+        (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_SEND_CONTEXT)
+
+    tlsproxy =
+	tls_proxy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
+		       session->stream, STR(iter->host),
+		       "25" /* TODO */ , var_smtp_starttls_tmout,
+		       "smtp" /* TODO */ , &init_props, &start_props);
+
+    /*
+     * To insert tlsproxy(8) between this process and the remote SMTP server,
+     * we swap the file descriptors between the tlsproxy and session->stream
+     * VSTREAMS, so that we don't lose all the user-configurable
+     * session->stream attributes (such as longjump buffers or timeouts).
+     * 
+     * TODO: the tlsproxy RPCs should return more error detail than a "NO"
+     * result.
+     */
+    if (tlsproxy == 0) {
+	session->tls_context = 0;
+    } else {
+	vstream_control(tlsproxy,
+			CA_VSTREAM_CTL_DOUBLE,
+			CA_VSTREAM_CTL_END);
+	vstream_control(session->stream,
+			CA_VSTREAM_CTL_SWAP_FD(tlsproxy),
+			CA_VSTREAM_CTL_END);
+	(void) vstream_fclose(tlsproxy);	/* direct-to-server stream! */
+
+	/*
+	 * After plumbing the plaintext stream, receive the TLS context
+	 * object. For this we must use the same VSTREAM buffer that we also
+	 * use to receive subsequent SMTP commands. The attribute protocol is
+	 * robust enough that an adversary cannot inject their own bogus TLS
+	 * context attributes into the stream.
+	 */
+	session->tls_context = tls_proxy_context_receive(session->stream);
+    }
+#else						/* USE_TLS_PROXY */
+
     /*
      * As of Postfix 2.5, tls_client_start() tries hard to always complete
      * the TLS handshake. It records the verification and match status in the
@@ -908,9 +996,10 @@ static int smtp_start_tls(SMTP_STATE *state)
      * that C does not have natively: named parameter lists.
      */
     session->tls_context =
-	TLS_CLIENT_START(&tls_props,
+	TLS_CLIENT_START(&start_props,
 			 ctx = smtp_tls_ctx,
 			 stream = session->stream,
+			 fd = -1,
 			 timeout = var_smtp_starttls_tmout,
 			 tls_level = state->tls->level,
 			 nexthop = session->tls_nexthop,
@@ -925,6 +1014,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 			 matchargv = state->tls->matchargv,
 			 mdalg = var_smtp_tls_fpt_dgst,
 			 dane = state->tls->dane);
+#endif						/* USE_TLS_PROXY */
     vstring_free(serverid);
 
     if (session->tls_context == 0) {

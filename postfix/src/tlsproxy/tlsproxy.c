@@ -310,6 +310,17 @@ static TLS_APPL_STATE *tlsp_server_ctx;
 static int ask_client_cert;
 
  /*
+  * TLS per-client status.
+  */
+static HTABLE *tlsp_client_app_cache;
+
+ /*
+  * Internal status API.
+  */
+#define TLSP_STAT_OK	0
+#define TLSP_STAT_ERR	(-1)
+
+ /*
   * SLMs.
   */
 #define STR(x)	vstring_str(x)
@@ -406,7 +417,7 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 				state->timeout);
 	    state->ssl_last_err = SSL_ERROR_NONE;
 	}
-	return (0);
+	return (TLSP_STAT_OK);
 
 	/*
 	 * The TLS engine wants to write to the network. Turn on
@@ -422,7 +433,7 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	}
 	event_request_timer(tlsp_ciphertext_event, (void *) state,
 			    state->timeout);
-	return (0);
+	return (TLSP_STAT_OK);
 
 	/*
 	 * The TLS engine wants to read from the network. Turn on
@@ -438,7 +449,7 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	}
 	event_request_timer(tlsp_ciphertext_event, (void *) state,
 			    state->timeout);
-	return (0);
+	return (TLSP_STAT_OK);
 
 	/*
 	 * Some error. Self-destruct. This automagically cleans up all
@@ -450,7 +461,7 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	/* FALLTHROUGH */
     default:
 	tlsp_state_free(state);
-	return (-1);
+	return (TLSP_STAT_ERR);
     }
 }
 
@@ -471,14 +482,22 @@ static void tlsp_strategy(TLSP_STATE *state)
      * pending read/write and timeout event requests.
      */
     if (state->flags & TLSP_FLAG_DO_HANDSHAKE) {
-	ssl_stat = SSL_accept(tls_context->con);
+	if (state->is_server_role)
+	    ssl_stat = SSL_accept(tls_context->con);
+	else
+	    ssl_stat = SSL_connect(tls_context->con);
 	if (ssl_stat != 1) {
 	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
 	    tlsp_eval_tls_error(state, handshake_err);
 	    /* At this point, state could be a dangling pointer. */
 	    return;
 	}
-	if ((state->tls_context = tls_server_post_accept(tls_context)) == 0) {
+	if (state->is_server_role)
+	    state->tls_context = tls_server_post_accept(tls_context);
+	else
+	    state->tls_context = tls_client_post_connect(tls_context,
+						 state->client_start_props);
+	if (state->tls_context == 0) {
 	    tlsp_state_free(state);
 	    return;
 	}
@@ -661,9 +680,46 @@ static void tlsp_ciphertext_event(int event, void *context)
     }
 }
 
-/* tlsp_start_tls - turn on TLS or force disconnect */
+/* tlsp_start_client_pre_handshake - turn on TLS or force disconnect */
 
-static int tlsp_start_tls(TLSP_STATE *state)
+static int tlsp_start_client_pre_handshake(TLSP_STATE *state)
+{
+    VSTRING *buf;
+    char   *key;
+
+    /*
+     * Share a TLS_APPL_STATE object among multiple requests that specify the
+     * same TLS_CLIENT_INIT_PROPS. TLS_APPL_STATE owns an SSL_CTX which is
+     * expensive.
+     */
+    buf = vstring_alloc(100);
+    key = tls_proxy_client_init_to_string(buf, state->client_init_props);
+    if ((state->appl_state = (TLS_APPL_STATE *)
+	 htable_find(tlsp_client_app_cache, key)) == 0
+	&& (state->appl_state =
+	    tls_client_init(state->client_init_props)) != 0)
+	(void) htable_enter(tlsp_client_app_cache, key,
+			    (void *) state->appl_state);
+    vstring_free(buf);
+
+    if (state->appl_state != 0) {
+	state->client_start_props->ctx = state->appl_state;
+	state->client_start_props->fd = state->ciphertext_fd;
+	state->tls_context = tls_client_start(state->client_start_props);
+	if (state->tls_context != 0)
+	    return (TLSP_STAT_OK);
+    }
+
+    /*
+     * TLS client initialization failed.
+     */
+    tlsp_state_free(state);
+    return (TLSP_STAT_ERR);
+}
+
+/* tlsp_start_server_pre_handshake - turn on TLS or force disconnect */
+
+static int tlsp_start_server_pre_handshake(TLSP_STATE *state)
 {
     TLS_SERVER_START_PROPS props;
     static char *cipher_grade;
@@ -676,8 +732,8 @@ static int tlsp_start_tls(TLSP_STATE *state)
      */
 
     /*
-     * Perform the before-handshake portion of the per-session initialization.
-     * Pass a null VSTREAM to indicate that this program, will do the
+     * Perform the before-handshake portion of per-session initialization.
+     * Pass a null VSTREAM to indicate that this program will do the
      * ciphertext I/O, not libtls.
      * 
      * The cipher grade and exclusions don't change between sessions. Compute
@@ -716,7 +772,7 @@ static int tlsp_start_tls(TLSP_STATE *state)
 
     if (state->tls_context == 0) {
 	tlsp_state_free(state);
-	return (-1);
+	return (TLSP_STAT_ERR);
     }
 
     /*
@@ -729,16 +785,17 @@ static int tlsp_start_tls(TLSP_STATE *state)
      * XXX Do we care about certificate verification results? Not as long as
      * postscreen(8) doesn't actually receive email.
      */
-    return (0);
+    return (TLSP_STAT_OK);
 }
 
-/* tlsp_get_fd_event - receive final postscreen(8) hand-off information */
+/* tlsp_get_fd_event - receive final connection hand-off information */
 
 static void tlsp_get_fd_event(int event, void *context)
 {
     const char *myname = "tlsp_get_fd_event";
     TLSP_STATE *state = (TLSP_STATE *) context;
     int     plaintext_fd = vstream_fileno(state->plaintext_stream);
+    int     status;
 
     /*
      * At this point we still manually manage plaintext read/write/timeout
@@ -751,6 +808,25 @@ static void tlsp_get_fd_event(int event, void *context)
     else
 	errno = ETIMEDOUT;
 
+    if (event != EVENT_READ
+	|| (state->ciphertext_fd = LOCAL_RECV_FD(plaintext_fd)) < 0) {
+	msg_warn("%s: receive remote SMTP peer file descriptor: %m", myname);
+	tlsp_state_free(state);
+	return;
+    }
+
+    /*
+     * Perform the TLS layer before-handshake initialization. We perform the
+     * remainder after the actual TLS handshake completes. If this fails then
+     * state is a dangling pointer.
+     */
+    if (state->is_server_role)
+	status = tlsp_start_server_pre_handshake(state);
+    else
+	status = tlsp_start_client_pre_handshake(state);
+    if (status != TLSP_STAT_OK)
+	return;
+
     /*
      * Initialize plaintext-related session state.  Once we have this behind
      * us, the TLSP_STATE destructor will automagically clean up requests for
@@ -760,25 +836,12 @@ static void tlsp_get_fd_event(int event, void *context)
      * destructor. Insert the NBBIO event-driven I/O layer between the
      * postscreen(8) server and the TLS engine.
      */
-    if (event != EVENT_READ
-	|| (state->ciphertext_fd = LOCAL_RECV_FD(plaintext_fd)) < 0) {
-	msg_warn("%s: receive SMTP client file descriptor: %m", myname);
-	tlsp_state_free(state);
-	return;
-    }
     non_blocking(state->ciphertext_fd, NON_BLOCKING);
     state->ciphertext_timer = tlsp_ciphertext_event;
     state->plaintext_buf = nbbio_create(plaintext_fd,
-					VSTREAM_BUFSIZE, "postscreen",
+					VSTREAM_BUFSIZE, state->server_id,
 					tlsp_plaintext_event,
 					(void *) state);
-
-    /*
-     * Perform the TLS layer before-handshake initialization. We perform the
-     * remainder after the TLS handshake completes.
-     */
-    if (tlsp_start_tls(state) < 0)
-	return;
 
     /*
      * Trigger the initial proxy server I/Os.
@@ -786,7 +849,19 @@ static void tlsp_get_fd_event(int event, void *context)
     tlsp_strategy(state);
 }
 
-/* tlsp_get_request_event - receive initial postscreen(8) hand-off info */
+/* tlsp_close_event - handle plaintext-client close event */
+
+static void tlsp_close_event(int event, void *context)
+{
+    TLSP_STATE *state = (TLSP_STATE *) context;
+    int     plaintext_fd = vstream_fileno(state->plaintext_stream);
+
+    event_cancel_timer(tlsp_close_event, (void *) state);
+    event_disable_readwrite(plaintext_fd);
+    tlsp_state_free(state);
+}
+
+/* tlsp_get_request_event - receive initial hand-off info */
 
 static void tlsp_get_request_event(int event, void *context)
 {
@@ -798,7 +873,7 @@ static void tlsp_get_request_event(int event, void *context)
     static VSTRING *server_id;
     int     req_flags;
     int     timeout;
-    int     ready;
+    int     ready = 0;
 
     /*
      * One-time initialization.
@@ -825,29 +900,12 @@ static void tlsp_get_request_event(int event, void *context)
      */
     if (event != EVENT_READ
 	|| attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
-		     RECV_ATTR_STR(MAIL_ATTR_REMOTE_ENDPT, remote_endpt),
-		     RECV_ATTR_INT(MAIL_ATTR_FLAGS, &req_flags),
-		     RECV_ATTR_INT(MAIL_ATTR_TIMEOUT, &timeout),
-		     RECV_ATTR_STR(MAIL_ATTR_SERVER_ID, server_id),
+		     RECV_ATTR_STR(TLS_ATTR_REMOTE_ENDPT, remote_endpt),
+		     RECV_ATTR_INT(TLS_ATTR_FLAGS, &req_flags),
+		     RECV_ATTR_INT(TLS_ATTR_TIMEOUT, &timeout),
+		     RECV_ATTR_STR(TLS_ATTR_SERVERID, server_id),
 		     ATTR_TYPE_END) != 4) {
 	msg_warn("%s: receive request attributes: %m", myname);
-	event_disable_readwrite(plaintext_fd);
-	tlsp_state_free(state);
-	return;
-    }
-
-    /*
-     * If the requested TLS engine is unavailable, hang up after making sure
-     * that the plaintext peer has received our "sorry" indication.
-     */
-    ready = ((req_flags & TLS_PROXY_FLAG_ROLE_SERVER) != 0
-	     && tlsp_server_ctx != 0);
-    if (attr_print(plaintext_stream, ATTR_FLAG_NONE,
-		   SEND_ATTR_INT(MAIL_ATTR_STATUS, ready),
-		   ATTR_TYPE_END) != 0
-	|| vstream_fflush(plaintext_stream) != 0
-	|| ready == 0) {
-	read_wait(plaintext_fd, TLSP_INIT_TIMEOUT);	/* XXX */
 	event_disable_readwrite(plaintext_fd);
 	tlsp_state_free(state);
 	return;
@@ -859,15 +917,60 @@ static void tlsp_get_request_event(int event, void *context)
      * safety feature; the real timeout will be enforced by our plaintext
      * peer.
      */
-    else {
-	state->remote_endpt = mystrdup(STR(remote_endpt));
-	state->server_id = mystrdup(STR(server_id));
-	msg_info("CONNECT %s %s",
-		 (req_flags & TLS_PROXY_FLAG_ROLE_SERVER) ? "from" :
-		 (req_flags & TLS_PROXY_FLAG_ROLE_CLIENT) ? "to" :
-		 "(bogus_direction)", state->remote_endpt);
-	state->req_flags = req_flags;
-	state->timeout = timeout + 10;		/* XXX */
+    state->remote_endpt = mystrdup(STR(remote_endpt));
+    state->server_id = mystrdup(STR(server_id));
+    msg_info("CONNECT %s %s",
+	     (req_flags & TLS_PROXY_FLAG_ROLE_SERVER) ? "from" :
+	     (req_flags & TLS_PROXY_FLAG_ROLE_CLIENT) ? "to" :
+	     "(bogus_direction)", state->remote_endpt);
+    state->req_flags = req_flags;
+    /* state->is_server_role is set below. */
+    state->timeout = timeout + 10;		/* XXX */
+
+    /*
+     * Receive the TLS preferences now, to reduce the number of protocol
+     * roundtrips. To call the pre-handshake tls_*_start() before receiving
+     * the ciphertext FD, pass in the FD through some other interface.
+     */
+    switch (req_flags & (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_ROLE_SERVER)) {
+    case TLS_PROXY_FLAG_ROLE_CLIENT:
+	state->is_server_role = 0;
+	if (attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
+		      RECV_ATTR_FUNC(tls_proxy_client_init_scan,
+				     (void *) &state->client_init_props),
+		      RECV_ATTR_FUNC(tls_proxy_client_start_scan,
+				     (void *) &state->client_start_props),
+		      ATTR_TYPE_END) != 2) {
+	    msg_warn("%s: receive client TLS settings: %m", myname);
+	    event_disable_readwrite(plaintext_fd);
+	    tlsp_state_free(state);
+	    return;
+	}
+	ready = 1;
+	break;
+    case TLS_PROXY_FLAG_ROLE_SERVER:
+	state->is_server_role = 1;
+	ready = (tlsp_server_ctx != 0);
+	break;
+    default:
+	state->is_server_role = 0;
+	msg_warn("%s: bad request flags: 0x%x", myname, req_flags);
+	ready = 0;
+    }
+
+    /*
+     * If the requested TLS engine is unavailable, hang up after making sure
+     * that the plaintext peer has received our "sorry" indication.
+     */
+    if (attr_print(plaintext_stream, ATTR_FLAG_NONE,
+		   SEND_ATTR_INT(MAIL_ATTR_STATUS, ready),
+		   ATTR_TYPE_END) != 0
+	|| vstream_fflush(plaintext_stream) != 0
+	|| ready == 0) {
+	event_enable_read(plaintext_fd, tlsp_close_event, (void *) state);
+	event_request_timer(tlsp_close_event, (void *) state, TLSP_INIT_TIMEOUT);
+	return;
+    } else {
 	event_enable_read(plaintext_fd, tlsp_get_fd_event, (void *) state);
 	event_request_timer(tlsp_get_fd_event, (void *) state,
 			    TLSP_INIT_TIMEOUT);
@@ -1033,7 +1136,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 
 static void post_jail_init(char *unused_name, char **unused_argv)
 {
-     /* void */ ;
+    tlsp_client_app_cache = htable_create(10);
 }
 
 MAIL_VERSION_STAMP_DECLARE;

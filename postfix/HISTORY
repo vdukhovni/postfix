@@ -23396,3 +23396,35 @@ Apologies for any names omitted.
 
 	Bugfix: missing error tls_server_start() error handling in
 	tlsproxy(8).  File: tlsproxy/tlsproxy.c.
+
+	Connection reuse for TLS-encrypted SMTP sessions. This is
+	work-in-progress, #ifdef USE_TLSPROXY, to avoid contamination
+	of existing code.
+
+	The idea is to have smtp(8) talk plaintext while tlsproxy(8)
+	converts between local plaintext and remote ciphertext.
+	Then, smtp(8) can save plaintext connections to the cache,
+	and scache(8) holds the handles to the tlsproxy(8) processes.
+
+	This preliminary implementation does not yet support proxying
+	of DANE attributes from smtp(8) to tlsproxy(8). tlsproxy(8)
+	does not have permissions to read private key files that
+	smtp(8) can read. And the name of a connection cache entry
+	does not yet depend on whether the cached connection uses
+	TLS, nor does it depend on DANE information.
+
+	Files: global/mail_proto.h, postscreen/postscreen_starttls.c,
+	posttls-finger/posttls-finger.c, smtp/smtp.c, smtp/smtp.h,
+	smtp/smtp_params.c, smtp/smtp_proto.c, smtp/smtp_session.c,
+	smtpd/smtpd.c, tls/tls.h, tls/tls_client.c, tls/tls_proxy.h,
+	tls/tls_proxy_client_init_print.c,
+	tls/tls_proxy_client_init_scan.c,
+	tls/tls_proxy_client_start_print.c,
+	tls/tls_proxy_client_start_scan.c, tls/tls_proxy_clnt.c,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_proxy_server_init_print.c,
+	tls/tls_proxy_server_init_scan.c,
+	tls/tls_proxy_server_start_print.c,
+	tls/tls_proxy_server_start_scan.c, tlsproxy/tlsproxy.c,
+	tlsproxy/tlsproxy.h, tlsproxy/tlsproxy_state.c, util/argv_attr.h,
+	util/argv_attr_print.c, util/argv_attr_scan.c.

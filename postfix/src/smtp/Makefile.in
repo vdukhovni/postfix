@@ -101,8 +101,10 @@ smtp.o: ../../include/flush_clnt.h
 smtp.o: ../../include/header_body_checks.h
 smtp.o: ../../include/header_opts.h
 smtp.o: ../../include/htable.h
+smtp.o: ../../include/iostuff.h
 smtp.o: ../../include/mail_conf.h
 smtp.o: ../../include/mail_params.h
+smtp.o: ../../include/mail_proto.h
 smtp.o: ../../include/mail_server.h
 smtp.o: ../../include/mail_version.h
 smtp.o: ../../include/maps.h
@@ -124,6 +126,7 @@ smtp.o: ../../include/string_list.h
 smtp.o: ../../include/stringops.h
 smtp.o: ../../include/sys_defs.h
 smtp.o: ../../include/tls.h
+smtp.o: ../../include/tls_proxy.h
 smtp.o: ../../include/tok822.h
 smtp.o: ../../include/vbuf.h
 smtp.o: ../../include/vstream.h
@@ -168,6 +171,7 @@ smtp_addr.o: ../../include/string_list.h
 smtp_addr.o: ../../include/stringops.h
 smtp_addr.o: ../../include/sys_defs.h
 smtp_addr.o: ../../include/tls.h
+smtp_addr.o: ../../include/tls_proxy.h
 smtp_addr.o: ../../include/tok822.h
 smtp_addr.o: ../../include/vbuf.h
 smtp_addr.o: ../../include/vstream.h
@@ -217,6 +221,7 @@ smtp_chat.o: ../../include/string_list.h
 smtp_chat.o: ../../include/stringops.h
 smtp_chat.o: ../../include/sys_defs.h
 smtp_chat.o: ../../include/tls.h
+smtp_chat.o: ../../include/tls_proxy.h
 smtp_chat.o: ../../include/tok822.h
 smtp_chat.o: ../../include/vbuf.h
 smtp_chat.o: ../../include/vstream.h
@@ -266,6 +271,7 @@ smtp_connect.o: ../../include/stringops.h
 smtp_connect.o: ../../include/sys_defs.h
 smtp_connect.o: ../../include/timed_connect.h
 smtp_connect.o: ../../include/tls.h
+smtp_connect.o: ../../include/tls_proxy.h
 smtp_connect.o: ../../include/tok822.h
 smtp_connect.o: ../../include/vbuf.h
 smtp_connect.o: ../../include/vstream.h
@@ -305,6 +311,7 @@ smtp_key.o: ../../include/sock_addr.h
 smtp_key.o: ../../include/string_list.h
 smtp_key.o: ../../include/sys_defs.h
 smtp_key.o: ../../include/tls.h
+smtp_key.o: ../../include/tls_proxy.h
 smtp_key.o: ../../include/tok822.h
 smtp_key.o: ../../include/vbuf.h
 smtp_key.o: ../../include/vstream.h
@@ -344,6 +351,7 @@ smtp_map11.o: ../../include/sock_addr.h
 smtp_map11.o: ../../include/string_list.h
 smtp_map11.o: ../../include/sys_defs.h
 smtp_map11.o: ../../include/tls.h
+smtp_map11.o: ../../include/tls_proxy.h
 smtp_map11.o: ../../include/tok822.h
 smtp_map11.o: ../../include/vbuf.h
 smtp_map11.o: ../../include/vstream.h
@@ -405,6 +413,7 @@ smtp_proto.o: ../../include/string_list.h
 smtp_proto.o: ../../include/stringops.h
 smtp_proto.o: ../../include/sys_defs.h
 smtp_proto.o: ../../include/tls.h
+smtp_proto.o: ../../include/tls_proxy.h
 smtp_proto.o: ../../include/tok822.h
 smtp_proto.o: ../../include/uxtext.h
 smtp_proto.o: ../../include/vbuf.h
@@ -450,6 +459,7 @@ smtp_rcpt.o: ../../include/string_list.h
 smtp_rcpt.o: ../../include/stringops.h
 smtp_rcpt.o: ../../include/sys_defs.h
 smtp_rcpt.o: ../../include/tls.h
+smtp_rcpt.o: ../../include/tls_proxy.h
 smtp_rcpt.o: ../../include/tok822.h
 smtp_rcpt.o: ../../include/vbuf.h
 smtp_rcpt.o: ../../include/vstream.h
@@ -487,6 +497,7 @@ smtp_reuse.o: ../../include/string_list.h
 smtp_reuse.o: ../../include/stringops.h
 smtp_reuse.o: ../../include/sys_defs.h
 smtp_reuse.o: ../../include/tls.h
+smtp_reuse.o: ../../include/tls_proxy.h
 smtp_reuse.o: ../../include/tok822.h
 smtp_reuse.o: ../../include/vbuf.h
 smtp_reuse.o: ../../include/vstream.h
@@ -527,6 +538,7 @@ smtp_sasl_auth_cache.o: ../../include/string_list.h
 smtp_sasl_auth_cache.o: ../../include/stringops.h
 smtp_sasl_auth_cache.o: ../../include/sys_defs.h
 smtp_sasl_auth_cache.o: ../../include/tls.h
+smtp_sasl_auth_cache.o: ../../include/tls_proxy.h
 smtp_sasl_auth_cache.o: ../../include/tok822.h
 smtp_sasl_auth_cache.o: ../../include/vbuf.h
 smtp_sasl_auth_cache.o: ../../include/vstream.h
@@ -569,6 +581,7 @@ smtp_sasl_glue.o: ../../include/string_list.h
 smtp_sasl_glue.o: ../../include/stringops.h
 smtp_sasl_glue.o: ../../include/sys_defs.h
 smtp_sasl_glue.o: ../../include/tls.h
+smtp_sasl_glue.o: ../../include/tls_proxy.h
 smtp_sasl_glue.o: ../../include/tok822.h
 smtp_sasl_glue.o: ../../include/vbuf.h
 smtp_sasl_glue.o: ../../include/vstream.h
@@ -609,6 +622,7 @@ smtp_sasl_proto.o: ../../include/string_list.h
 smtp_sasl_proto.o: ../../include/stringops.h
 smtp_sasl_proto.o: ../../include/sys_defs.h
 smtp_sasl_proto.o: ../../include/tls.h
+smtp_sasl_proto.o: ../../include/tls_proxy.h
 smtp_sasl_proto.o: ../../include/tok822.h
 smtp_sasl_proto.o: ../../include/vbuf.h
 smtp_sasl_proto.o: ../../include/vstream.h
@@ -648,6 +662,7 @@ smtp_session.o: ../../include/string_list.h
 smtp_session.o: ../../include/stringops.h
 smtp_session.o: ../../include/sys_defs.h
 smtp_session.o: ../../include/tls.h
+smtp_session.o: ../../include/tls_proxy.h
 smtp_session.o: ../../include/tok822.h
 smtp_session.o: ../../include/vbuf.h
 smtp_session.o: ../../include/vstream.h
@@ -685,6 +700,7 @@ smtp_state.o: ../../include/sock_addr.h
 smtp_state.o: ../../include/string_list.h
 smtp_state.o: ../../include/sys_defs.h
 smtp_state.o: ../../include/tls.h
+smtp_state.o: ../../include/tls_proxy.h
 smtp_state.o: ../../include/tok822.h
 smtp_state.o: ../../include/vbuf.h
 smtp_state.o: ../../include/vstream.h
@@ -724,6 +740,7 @@ smtp_tls_policy.o: ../../include/string_list.h
 smtp_tls_policy.o: ../../include/stringops.h
 smtp_tls_policy.o: ../../include/sys_defs.h
 smtp_tls_policy.o: ../../include/tls.h
+smtp_tls_policy.o: ../../include/tls_proxy.h
 smtp_tls_policy.o: ../../include/tok822.h
 smtp_tls_policy.o: ../../include/valid_hostname.h
 smtp_tls_policy.o: ../../include/valid_utf8_hostname.h
@@ -768,6 +785,7 @@ smtp_trouble.o: ../../include/string_list.h
 smtp_trouble.o: ../../include/stringops.h
 smtp_trouble.o: ../../include/sys_defs.h
 smtp_trouble.o: ../../include/tls.h
+smtp_trouble.o: ../../include/tls_proxy.h
 smtp_trouble.o: ../../include/tok822.h
 smtp_trouble.o: ../../include/vbuf.h
 smtp_trouble.o: ../../include/vstream.h
@@ -804,6 +822,7 @@ smtp_unalias.o: ../../include/sock_addr.h
 smtp_unalias.o: ../../include/string_list.h
 smtp_unalias.o: ../../include/sys_defs.h
 smtp_unalias.o: ../../include/tls.h
+smtp_unalias.o: ../../include/tls_proxy.h
 smtp_unalias.o: ../../include/tok822.h
 smtp_unalias.o: ../../include/vbuf.h
 smtp_unalias.o: ../../include/vstream.h

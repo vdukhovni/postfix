@@ -810,6 +810,7 @@
 /* Global library. */
 
 #include <deliver_request.h>
+#include <mail_proto.h>
 #include <mail_params.h>
 #include <mail_version.h>
 #include <mail_conf.h>
@@ -895,6 +896,7 @@ bool    var_smtp_enforce_tls;
 char   *var_smtp_tls_per_site;
 char   *var_smtp_tls_policy;
 bool    var_smtp_tls_wrappermode;
+char   *var_tlsproxy_service;
 
 #ifdef USE_TLS
 char   *var_smtp_sasl_tls_opts;
@@ -978,7 +980,10 @@ HBC_CHECKS *smtp_body_checks;		/* limited body checks */
  /*
   * OpenSSL client state (opaque handle)
   */
+#ifndef USE_TLSPROXY
 TLS_APPL_STATE *smtp_tls_ctx;
+
+#endif
 int     smtp_tls_insecure_mx_policy;
 
 #endif
@@ -1211,6 +1216,7 @@ static void pre_init(char *unused_name, char **unused_argv)
      */
     if (use_tls || var_smtp_tls_per_site[0] || var_smtp_tls_policy[0]) {
 #ifdef USE_TLS
+#ifndef USE_TLSPROXY
 	TLS_CLIENT_INIT_PROPS props;
 
 	/*
@@ -1235,6 +1241,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    CAfile = var_smtp_tls_CAfile,
 			    CApath = var_smtp_tls_CApath,
 			    mdalg = var_smtp_tls_fpt_dgst);
+#endif						/* USE_TLSPROXY */
 	smtp_tls_list_init();
 #else
 	msg_warn("TLS has been selected, but TLS support is not compiled in");

@@ -40,7 +40,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
 	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
-	split_qnameval.c
+	split_qnameval.c argv_attr_print.c argv_attr_scan.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -82,7 +82,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
 	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
-	split_qnameval.o
+	split_qnameval.o argv_attr_print.o argv_attr_scan.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -111,7 +111,8 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	edit_file.h dict_cache.h dict_thash.h ip_match.h nbbio.h base32_code.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
-	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h check_arg.h
+	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
+	check_arg.h argv_attr.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -879,6 +880,31 @@ argv.o: argv.h
 argv.o: msg.h
 argv.o: mymalloc.h
 argv.o: sys_defs.h
+argv_attr_print.o: argv.h
+argv_attr_print.o: argv_attr.h
+argv_attr_print.o: argv_attr_print.c
+argv_attr_print.o: attr.h
+argv_attr_print.o: check_arg.h
+argv_attr_print.o: htable.h
+argv_attr_print.o: mymalloc.h
+argv_attr_print.o: nvtable.h
+argv_attr_print.o: sys_defs.h
+argv_attr_print.o: vbuf.h
+argv_attr_print.o: vstream.h
+argv_attr_print.o: vstring.h
+argv_attr_scan.o: argv.h
+argv_attr_scan.o: argv_attr.h
+argv_attr_scan.o: argv_attr_scan.c
+argv_attr_scan.o: attr.h
+argv_attr_scan.o: check_arg.h
+argv_attr_scan.o: htable.h
+argv_attr_scan.o: msg.h
+argv_attr_scan.o: mymalloc.h
+argv_attr_scan.o: nvtable.h
+argv_attr_scan.o: sys_defs.h
+argv_attr_scan.o: vbuf.h
+argv_attr_scan.o: vstream.h
+argv_attr_scan.o: vstring.h
 argv_split.o: argv.h
 argv_split.o: argv_split.c
 argv_split.o: check_arg.h
@@ -1785,6 +1811,8 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
+load_lib.o: load_lib.h
+load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: check_arg.h
 lowercase.o: lowercase.c
@@ -2363,6 +2391,7 @@ vbuf.o: vbuf.c
 vbuf.o: vbuf.h
 vbuf_print.o: check_arg.h
 vbuf_print.o: msg.h
+vbuf_print.o: mymalloc.h
 vbuf_print.o: sys_defs.h
 vbuf_print.o: vbuf.h
 vbuf_print.o: vbuf_print.c

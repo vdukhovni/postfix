@@ -84,6 +84,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
 /*	Viktor Dukhovni
 /*--*/
 
@@ -176,9 +181,14 @@ void    smtp_session_free(SMTP_SESSION *session)
 #ifdef USE_TLS
     if (session->stream) {
 	vstream_fflush(session->stream);
-	if (session->tls_context)
-	    tls_client_stop(smtp_tls_ctx, session->stream,
-			  var_smtp_starttls_tmout, 0, session->tls_context);
+    }
+    if (session->tls_context) {
+#ifdef USE_TLSPROXY
+	tls_proxy_context_free(session->tls_context);
+#else						/* USE_TLSPROXY */
+	tls_client_stop(smtp_tls_ctx, session->stream,
+			var_smtp_starttls_tmout, 0, session->tls_context);
+#endif						/* USE_TLSPROXY */
     }
 #endif
     if (session->stream)

@@ -448,6 +448,7 @@ typedef struct {
 typedef struct {
     TLS_APPL_STATE *ctx;
     VSTREAM *stream;
+    int     fd;				/* Event-driven file descriptor */
     int     timeout;
     int     tls_level;			/* Security level */
     const char *nexthop;		/* destination domain */
@@ -465,6 +466,8 @@ typedef struct {
 
 extern TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *);
 extern TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *);
+extern TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *,
+				            const TLS_CLIENT_START_PROPS *);
 
 #define tls_client_stop(ctx, stream, timeout, failure, TLScontext) \
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
@@ -477,11 +480,12 @@ extern TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *);
     ((props)->a12), ((props)->a13), (props)))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, a15) \
+    a10, a11, a12, a13, a14, a15, a16) \
     tls_client_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), (props)))
+    ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
+    ((props)->a16), (props)))
 
  /*
   * tls_server.c

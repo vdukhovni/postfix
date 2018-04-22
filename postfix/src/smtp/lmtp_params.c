@@ -61,6 +61,7 @@
 	VAR_LMTP_DNS_RES_OPT, DEF_LMTP_DNS_RES_OPT, &var_smtp_dns_res_opt, 0, 0,
 	VAR_LMTP_DSN_FILTER, DEF_LMTP_DSN_FILTER, &var_smtp_dsn_filter, 0, 0,
 	VAR_LMTP_DNS_RE_FILTER, DEF_LMTP_DNS_RE_FILTER, &var_smtp_dns_re_filter, 0, 0,
+	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE lmtp_time_table[] = {

@@ -60,6 +60,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
  /*
@@ -85,6 +90,7 @@
 #ifdef USE_TLS
 #define TLS_INTERNAL			/* XXX */
 #include <tls.h>
+#include <tls_proxy.h>
 
  /*
   * Application-specific.
@@ -108,6 +114,10 @@ TLSP_STATE *tlsp_state_create(const char *service,
     state->remote_endpt = 0;
     state->server_id = 0;
     state->tls_context = 0;
+    state->server_init_props = 0;
+    state->server_start_props = 0;
+    state->client_init_props = 0;
+    state->client_start_props = 0;
 
     return (state);
 }
@@ -134,6 +144,14 @@ void    tlsp_state_free(TLSP_STATE *state)
 	myfree(state->server_id);
     if (state->tls_context)
 	tls_free_context(state->tls_context);
+    if (state->server_init_props)
+	tls_proxy_server_init_free(state->server_init_props);
+    if (state->server_start_props)
+	tls_proxy_server_start_free(state->server_start_props);
+    if (state->client_init_props)
+	tls_proxy_client_init_free(state->client_init_props);
+    if (state->client_start_props)
+	tls_proxy_client_start_free(state->client_start_props);
     myfree((void *) state);
 }
 
