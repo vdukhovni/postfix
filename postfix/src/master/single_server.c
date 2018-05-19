@@ -121,16 +121,24 @@
 /* .IP "CA_MAIL_SERVER_BOUNCE_INIT(const char *, const char **)"
 /*	Initialize the DSN filter for the bounce/defer service
 /*	clients with the specified map source and map names.
+/* .IP "CA_MAIL_SERVER_RETIRE_ME"
+/*	Terminate voluntarily when idle after (max_use * max_idle)
+/*	seconds. This setting prevents a process from being reused
+/*	indefinitely when var_use_limit is set to zero.
 /* .PP
 /*	The var_use_limit variable limits the number of clients that
 /*	a server can service before it commits suicide.
+/*	Do not change this setting before calling single_server_main().
 /*	This value is taken from the global \fBmain.cf\fR configuration
-/*	file. Setting \fBvar_idle_limit\fR to zero disables the client limit.
+/*	file. Setting \fBvar_use_limit\fR to zero disables the client limit.
+/*	Specify CA_MAIL_SERVER_RETIRE_ME (see above) to limit the total
+/*	process lifetime.
 /*
 /*	The var_idle_limit variable limits the time that a service
 /*	receives no client connection requests before it commits suicide.
+/*	Do not change this setting before calling single_server_main().
 /*	This value is taken from the global \fBmain.cf\fR configuration
-/*	file. Setting \fBvar_use_limit\fR to zero disables the idle limit.
+/*	file. Setting \fBvar_idle_limit\fR to zero disables the idle limit.
 /* DIAGNOSTICS
 /*	Problems and transactions are logged to \fBsyslogd\fR(8).
 /* BUGS
@@ -234,6 +242,15 @@ static NORETURN single_server_exit(void)
     if (single_server_onexit)
 	single_server_onexit(single_server_name, single_server_argv);
     exit(0);
+}
+
+/* single_server_retire - retire when idle */
+
+static NORETURN single_server_retire(int unused_event, void *unused_context)
+{
+    if (msg_verbose)
+        msg_info("time to retire -- exiting");
+    single_server_exit();
 }
 
 /* single_server_abort - terminate after abnormal master exit */
@@ -441,6 +458,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     int     redo_syslog_init = 0;
     const char *dsn_filter_title;
     const char **dsn_filter_maps;
+    int     retire_me = 0;
 
     /*
      * Process environment options as early as we can.
@@ -649,6 +667,9 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    dsn_filter_maps = va_arg(ap, const char **);
 	    bounce_client_init(dsn_filter_title, *dsn_filter_maps);
 	    break;
+	case MAIL_SERVER_RETIRE_ME:
+	    retire_me = 1;
+	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
 	}
@@ -765,6 +786,10 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      */
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (void *) 0, var_idle_limit);
+    if (retire_me)
+	event_request_timer(single_server_retire, (void *) 0,
+			    var_idle_limit > INT_MAX / var_use_limit ?
+			    INT_MAX : var_idle_limit * var_use_limit);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
 	event_enable_read(fd, single_server_accept, CAST_INT_TO_VOID_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);

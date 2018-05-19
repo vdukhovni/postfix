@@ -23394,5 +23394,36 @@ Apologies for any names omitted.
 	see, but in the case of PID=1 mode on Linux, no-one would
 	care. Viktor Dukhovni. File: util/killme_after.c.
 
-	Bugfix: missing error tls_server_start() error handling in
-	tlsproxy(8).  File: tlsproxy/tlsproxy.c.
+	Bugfix (introduced: Postfix 2.8): missing tls_server_start()
+	error propagation in tlsproxy(8) resulting in segfault after
+	TLS handshake error. Found during code maintenance. File:
+	tlsproxy/tlsproxy.c.
+
+20180425
+
+	Cleanup: dnsblog proccesses now retire voluntarily after 
+	max_use*max_idle seconds. Files: master/mail_server.h,
+	master/single_server.c, dnsblog/dnsblog.c.
+
+20180429
+
+	Documentation: smtpd_relay_restrictions was incorrectly
+	listed before smtpd_recipient_restrictions. File:
+	proto/SMTPD_ACCESS_README.html.
+
+20180509
+
+	Bugfix (introduced: 20170617): postconf(1) command segfault
+	if unable to open a Postfix database configuration file due
+	to a file permission error. Report by Andreas Hasenack, fix
+	by Viktor Dukhovni.  File: postconf/postconf_dbms.c.
+
+20180519
+
+	Documentation: updated descriptions of PID 1 mode in manpages
+	and source-code comments. Files: postfix/postfix.c,
+	master/master.c, master/master_sig.c, util/killme_after.c.
+
+	Documentation: document non-iterative lookup behavior
+	in postmap and postalias manpages. Files: postmap/postmap.c,
+	postalias/postalias.c.

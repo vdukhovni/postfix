@@ -200,7 +200,9 @@ static void master_sigdeath(int sig)
     msg_info("terminating on signal %d", sig);
 
     /*
-     * Linux kill(1, sig) does not terminate, but returns no error.
+     * Undocumented: when a process runs with PID 1, Linux won't deliver a
+     * signal unless the process specifies a handler (i.e. SIG_DFL is treated
+     * as SIG_IGN).
      */
     if (init_mode)
 	/* Don't call exit() from a signal handler. */

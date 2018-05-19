@@ -79,6 +79,10 @@
 /*	found to the standard output stream. The exit status is zero
 /*	when the requested information was found.
 /*
+/*	Note: this performs a single query with the key as specified, 
+/*	and does not make iterative queries with substrings of the 
+/*	key as described in the aliases(5) manual page.
+/*
 /*	If a key value of \fB-\fR is specified, the program reads key
 /*	values from the standard input stream and writes one line of
 /*	\fIkey: value\fR output for each key that was found. The exit

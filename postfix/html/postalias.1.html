@@ -81,6 +81,10 @@ POSTALIAS(1)                                                      POSTALIAS(1)
               found to the standard output stream. The  exit  status  is  zero
               when the requested information was found.
 
+              Note:  this  performs  a single query with the key as specified,
+              and does not make iterative queries with substrings of  the  key
+              as described in the <a href="aliases.5.html">aliases(5)</a> manual page.
+
               If  a  key value of <b>-</b> is specified, the program reads key values
               from the standard input stream and writes one line of <i>key: value</i>
               output for each key that was found. The exit status is zero when

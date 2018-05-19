@@ -47,11 +47,11 @@ void    killme_after(unsigned int seconds)
      * even if we are being called from a signal handler and SIGALRM delivery
      * is blocked.
      * 
-     * Undocumented: when running in "init" mode on Linux, the signal won't be
-     * delivered unless the process specifies a handler. Conveniently,
-     * _exit() can be used directly as a signal handler. This changes the
-     * wait status that a parent would see, but in the case of "init" mode on
-     * Linux, no-one would care.
+     * Undocumented: when running in "init" mode on Linux, a signal won't be
+     * delivered unless the process specifies a handler (i.e. SIG_DFL is
+     * treated as SIG_IGN). Conveniently, _exit() can be used directly as a
+     * signal handler. This changes the wait status that a parent would see,
+     * but in the case of "init" mode on Linux, no-one would care.
      */
     alarm(0);
     sigemptyset(&sig_action.sa_mask);

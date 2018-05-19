@@ -39,8 +39,10 @@
 /*	processes terminate at their convenience.
 /* .IP \fB-i\fR
 /*	Enable \fBinit\fR mode: do not attempt to become a session
-/*	or process group leader. This mode is allowed only if the
-/*	process ID equals 1.
+/*	or process group leader; and to force termination, set an
+/*	explicit signal handler instead of relying on the default
+/*	signal action. This mode is allowed only if the process ID
+/*	equals 1.
 /* .IP \fB-t\fR
 /*	Test mode. Return a zero exit status when the \fBmaster.pid\fR lock
 /*	file does not exist or when that file is not locked.  This is evidence
@@ -353,7 +355,7 @@ int     main(int argc, char **argv)
 	    break;
 	case 'i':
 	    if (getpid() != 1)
-		msg_fatal("-i is allowed with for PID 1 process");
+		msg_fatal("-i is allowed only for PID 1 process");
 	    init_mode = 1;
 	    break;
 	case 'D':

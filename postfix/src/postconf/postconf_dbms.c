@@ -174,10 +174,10 @@ static void pcf_check_dbms_client(const PCF_DBMS_INFO *dp, const char *cf_file)
 	 */
 	dict = dict_ht_open(dict_spec, O_CREAT | O_RDWR, 0);
 	dict_register(dict_spec, dict);
-	if ((fp = vstream_fopen(cf_file, O_RDONLY, 0)) == 0
-	    && errno != EACCES) {
-	    msg_warn("open \"%s\" configuration \"%s\": %m",
-		     dp->db_type, cf_file);
+	if ((fp = vstream_fopen(cf_file, O_RDONLY, 0)) == 0) {
+	    if (errno != EACCES)
+		msg_warn("open \"%s\" configuration \"%s\": %m",
+			 dp->db_type, cf_file);
 	    myfree(dict_spec);
 	    return;
 	}

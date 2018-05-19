@@ -312,5 +312,6 @@ int     main(int argc, char **argv)
 		       CA_MAIL_SERVER_TIME_TABLE(time_table),
 		       CA_MAIL_SERVER_POST_INIT(post_jail_init),
 		       CA_MAIL_SERVER_UNLIMITED,
+		       CA_MAIL_SERVER_RETIRE_ME,
 		       0);
 }
