@@ -109,6 +109,7 @@ typedef struct MASTER_PROC {
   * master.c
   */
 extern int master_detach;
+extern int init_mode;
 
  /*
   * master_ent.c

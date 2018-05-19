@@ -38,8 +38,10 @@ and create missing directories.
 Start the Postfix mail system. This also runs the configuration
 check described above.
 .IP \fBstart\-fg\fR
-Like \fBstart\fR, but keep the master daemon running in the
-foreground. This requires that multi\-instance support is
+Like \fBstart\fR, but keep the \fBmaster\fR(8) daemon running
+in the foreground, and enable \fBmaster\fR(8) "init" mode
+when running as PID 1.
+This command requires that multi\-instance support is
 disabled (i.e. the multi_instance_directories parameter
 value must be empty). When running Postfix inside a container,
 mount the container host's /dev/log socket inside the
