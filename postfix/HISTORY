@@ -22398,3 +22398,25 @@ Apologies for any names omitted.
 
 	Cleanup: incorrect mailbox seek-to-end error message in the
 	virtual(8) delivery agent. File: virtual/mailbox.c.
+
+20180218
+
+	Cleanup: added 21 missing *_maps parameters to the default
+	proxy_read_maps setting. Files: global/mail_params.h.
+
+	Bugfix (introduced: 20120117): postconf should scan only
+	built-in or service-defined parameters for ldap, *sql, etc.
+	database names. Files: postconf/postconf_user.c.
+
+20180306
+
+	Bugfix (introduced: 19990302): when luser_relay specifies
+	a non-existent local address, the luser_relay feature becomes
+	a black hole. Reported by Jørgen Thomsen. File: local/unknown.c.
+
+20180422
+
+	Bugfix (introduced: Postfix 2.8): missing tls_server_start()
+	error propagation in tlsproxy(8) resulting in segfault after
+	TLS handshake error. Found during code maintenance. File:
+	tlsproxy/tlsproxy.c.

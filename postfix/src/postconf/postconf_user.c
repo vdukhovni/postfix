@@ -290,8 +290,13 @@ static void pcf_scan_user_parameter_namespace(const char *dict_name,
 	}
 	SCAN_USER_PARAMETER_VALUE(cparam_value, PCF_PARAM_FLAG_USER, local_scope);
 #ifdef LEGACY_DBMS_SUPPORT
-	pcf_register_dbms_parameters(cparam_value, pcf_flag_user_parameter,
-				     local_scope);
+#define PCF_BUILTIN_PARAMETER(node) ((node)->flags & PCF_PARAM_FLAG_BUILTIN)
+#define PCF_SERVICE_PARAMETER(node) ((node)->flags & PCF_PARAM_FLAG_SERVICE)
+
+	if (node != 0
+	    && (PCF_BUILTIN_PARAMETER(node) || PCF_SERVICE_PARAMETER(node)))
+	    pcf_register_dbms_parameters(cparam_value, pcf_flag_user_parameter,
+					 local_scope);
 #endif
     }
 }
