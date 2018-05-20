@@ -668,7 +668,11 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    bounce_client_init(dsn_filter_title, *dsn_filter_maps);
 	    break;
 	case MAIL_SERVER_RETIRE_ME:
-	    retire_me = 1;
+	    if (var_idle_limit == 0 || var_use_limit == 0 
+		|| var_idle_limit > 86400 / var_use_limit)
+		retire_me = 86400;
+	    else
+		retire_me = var_idle_limit * var_use_limit;
 	    break;
 	default:
 	    msg_panic("%s: unknown argument type: %d", myname, key);
@@ -787,9 +791,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     if (var_idle_limit > 0)
 	event_request_timer(single_server_timeout, (void *) 0, var_idle_limit);
     if (retire_me)
-	event_request_timer(single_server_retire, (void *) 0,
-			    var_idle_limit > INT_MAX / var_use_limit ?
-			    INT_MAX : var_idle_limit * var_use_limit);
+	event_request_timer(single_server_retire, (void *) 0, retire_me);
     for (fd = MASTER_LISTEN_FD; fd < MASTER_LISTEN_FD + socket_count; fd++) {
 	event_enable_read(fd, single_server_accept, CAST_INT_TO_VOID_PTR(fd));
 	close_on_exec(fd, CLOSE_ON_EXEC);

@@ -387,8 +387,8 @@ int     main(int argc, char **argv)
      */
     if (test_lock && wait_flag)
 	msg_fatal("the -t and -w options cannot be used together");
-    if (init_mode + debug_me + !master_detach + wait_flag > 1)
-	msg_fatal("specify one of -i, -D, -d, or -w");
+    if (init_mode && (debug_me || !master_detach || wait_flag))
+	msg_fatal("the -i option cannot be used with -D, -d, or -w");
 
     /*
      * Run a foreground monitor process that returns an exit status of 0 when

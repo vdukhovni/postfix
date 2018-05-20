@@ -23425,5 +23425,17 @@ Apologies for any names omitted.
 	master/master.c, master/master_sig.c, util/killme_after.c.
 
 	Documentation: document non-iterative lookup behavior
-	in postmap and postalias manpages. Files: postmap/postmap.c,
+	in postmap(1) and postalias(1) manpages. Files: postmap/postmap.c,
 	postalias/postalias.c.
+
+	Cleanup: the init-mode change should not forbid the combined
+	use of -D, -d and -w. File: master/master.c.
+
+20180520
+
+	Documentation: add backscatter remediation to the virtual(5)
+	and canonical(5) manpages. Files: proto/virtual, proto/canonical.
+
+	Bugfix (introduced: 20180425): broken implementation of
+	voluntary dnsblog retirement after max_use*max_idle seconds.
+	File: master/single_server.c.
