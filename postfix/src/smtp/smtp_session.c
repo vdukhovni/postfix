@@ -84,6 +84,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
 /*	Viktor Dukhovni
 /*--*/
 
@@ -176,7 +181,11 @@ void    smtp_session_free(SMTP_SESSION *session)
 #ifdef USE_TLS
     if (session->stream) {
 	vstream_fflush(session->stream);
-	if (session->tls_context)
+    }
+    if (session->tls_context) {
+	if (var_smtp_use_tlsproxy)
+	    tls_proxy_context_free(session->tls_context);
+	else
 	    tls_client_stop(smtp_tls_ctx, session->stream,
 			  var_smtp_starttls_tmout, 0, session->tls_context);
     }
@@ -223,9 +232,11 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * serialize the properties with attr_print() instead of using ad-hoc,
      * non-reusable, code and hard-coded format strings.
      * 
+     * TODO(tlsproxy): save TLS_SESS_STATE information so that we can 
+     * restore TLS session properties.
+     * 
      * TODO: save SASL username and password information so that we can
      * correctly save a reused authenticated connection.
-     * 
      */
     vstring_sprintf(dest_prop, "%s\n%s\n%s\n%u",
 		    STR(iter->dest), STR(iter->host), STR(iter->addr),

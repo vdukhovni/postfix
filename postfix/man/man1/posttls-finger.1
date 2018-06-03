@@ -251,6 +251,9 @@ provided on port 465 by servers that are compatible with the ad\-hoc
 SMTP in SSL protocol, rather than the standard STARTTLS protocol.
 The destination \fIdomain\fR:\fIport\fR should of course provide such
 a service.
+.IP "\fB\-X\fR"
+Enable \fBtlsproxy\fR(8) mode. This is an unsupported mode,
+for program development only.
 .IP "[\fBinet:\fR]\fIdomain\fR[:\fIport\fR]"
 Connect via TCP to domain \fIdomain\fR, port \fIport\fR. The default
 port is \fBsmtp\fR (or 24 with LMTP).  With SMTP an MX lookup is

@@ -12,6 +12,10 @@
 /*	TLS_SESS_STATE *tls_client_start(start_props)
 /*	const TLS_CLIENT_START_PROPS *start_props;
 /*
+/*	TLS_SESS_STATE *tls_client_post_connect(TLScontext, start_props)
+/*	TLS_SESS_STATE *TLScontext;
+/*	const TLS_CLIENT_START_PROPS *start_props;
+/*
 /*	void	tls_client_stop(app_ctx, stream, failure, TLScontext)
 /*	TLS_APPL_STATE *app_ctx;
 /*	VSTREAM	*stream;
@@ -96,6 +100,31 @@
 /*	the fingerprint of the certificate.
 /* .PP
 /*	If no peer certificate is presented the peer_status is set to 0.
+/* EVENT_DRIVEN APPLICATIONS
+/* .ad
+/* .fi
+/*	Event-driven programs manage multiple I/O channels.  Such
+/*	programs cannot use the synchronous VSTREAM-over-TLS
+/*	implementation that the current TLS library provides,
+/*	including tls_client_stop() and the underlying tls_stream(3)
+/*	and tls_bio_ops(3) routines.
+/*
+/*	With the current TLS library implementation, this means
+/*	that an event-driven application is responsible for calling
+/*	and retrying SSL_connect(), SSL_read(), SSL_write() and
+/*	SSL_shutdown().
+/*
+/*	To maintain control over TLS I/O, an event-driven client
+/*	invokes tls_client_start() with a null VSTREAM argument and
+/*	with an fd argument that specifies the I/O file descriptor.
+/*	Then, tls_client_start() performs all the necessary
+/*	preparations before the TLS handshake and returns a partially
+/*	populated TLS context. The event-driven application is then
+/*	responsible for invoking SSL_connect(), and if successful,
+/*	for invoking tls_client_post_connect() to finish the work
+/*	that was started by tls_client_start(). In case of unrecoverable
+/*	failure, tls_client_post_connect() destroys the TLS context
+/*	and returns a null pointer value.
 /* LICENSE
 /* .ad
 /* .fi
@@ -837,8 +866,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     int     protomask;
     const char *cipher_list;
     SSL_SESSION *session = 0;
-    SSL_CIPHER_const SSL_CIPHER *cipher;
-    X509   *peercert;
     TLS_SESS_STATE *TLScontext;
     TLS_APPL_STATE *app_ctx = props->ctx;
     char   *myserverid;
@@ -1018,19 +1045,14 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /*
      * Connect the SSL connection with the network socket.
      */
-    if (SSL_set_fd(TLScontext->con, vstream_fileno(props->stream)) != 1) {
+    if (SSL_set_fd(TLScontext->con, props->stream == 0 ? props->fd :
+		   vstream_fileno(props->stream)) != 1) {
 	msg_info("SSL_set_fd error to %s", props->namaddr);
 	tls_print_errors();
 	uncache_session(app_ctx->ssl_ctx, TLScontext);
 	tls_free_context(TLScontext);
 	return (0);
     }
-
-    /*
-     * Turn on non-blocking I/O so that we can enforce timeouts on network
-     * I/O.
-     */
-    non_blocking(vstream_fileno(props->stream), NON_BLOCKING);
 
     /*
      * If the debug level selected is high enough, all of the data is dumped:
@@ -1045,6 +1067,19 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
 
     tls_dane_set_callback(app_ctx->ssl_ctx, TLScontext);
+
+    /*
+     * If we don't trigger the handshake in the library, leave control over
+     * SSL_connect/read/write/etc with the application.
+     */
+    if (props->stream == 0)
+	return (TLScontext);
+
+    /*
+     * Turn on non-blocking I/O so that we can enforce timeouts on network
+     * I/O.
+     */
+    non_blocking(vstream_fileno(props->stream), NON_BLOCKING);
 
     /*
      * Start TLS negotiations. This process is a black box that invokes our
@@ -1069,8 +1104,19 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
+    return (tls_client_post_connect(TLScontext, props));
+}
+
+/* tls_client_post_connect - post-handshake processing */
+
+TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
+				        const TLS_CLIENT_START_PROPS *props)
+{
+    SSL_CIPHER_const SSL_CIPHER *cipher;
+    X509   *peercert;
+
     /* Turn off packet dump if only dumping the handshake */
-    if ((log_mask & TLS_LOG_ALLPKTS) == 0)
+    if ((TLScontext->log_mask & TLS_LOG_ALLPKTS) == 0)
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), 0);
 
     /*
@@ -1078,7 +1124,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * session was negotiated.
      */
     TLScontext->session_reused = SSL_session_reused(TLScontext->con);
-    if ((log_mask & TLS_LOG_CACHE) && TLScontext->session_reused)
+    if ((TLScontext->log_mask & TLS_LOG_CACHE) && TLScontext->session_reused)
 	msg_info("%s: Reusing old session", TLScontext->namaddr);
 
     /*
@@ -1125,7 +1171,8 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * The TLS engine is active. Switch to the tls_timed_read/write()
      * functions and make the TLScontext available to those functions.
      */
-    tls_stream_start(props->stream, TLScontext);
+    if (TLScontext->stream != 0)
+	tls_stream_start(props->stream, TLScontext);
 
     /*
      * Fully secured only if trusted, matched and not insecure like halfdane.
@@ -1142,7 +1189,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /*
      * All the key facts in a single log entry.
      */
-    if (log_mask & TLS_LOG_SUMMARY)
+    if (TLScontext->log_mask & TLS_LOG_SUMMARY)
 	msg_info("%s TLS connection established to %s: %s with cipher %s "
 		 "(%d/%d bits)",
 		 !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous" :

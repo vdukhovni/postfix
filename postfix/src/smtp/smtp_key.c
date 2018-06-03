@@ -76,6 +76,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
  /*
@@ -191,7 +196,13 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
     if (flags & SMTP_KEY_FLAG_PORT)
 	smtp_key_append_uint(buffer, ntohs(iter->port), delim_na);
 
-    /* Similarly, provide unique TLS fingerprint when applicable. */
+    /*
+     * Requested TLS level, if applicable. TODO(tlsproxy) should the lookup
+     * engine also try the requested TLS level and 'stronger', in case a
+     * server hosts multiple domains with different TLS requirements?
+     */
+    if (flags & SMTP_KEY_FLAG_TLS_LEVEL)
+	smtp_key_append_uint(buffer, state->tls->level, delim_na);
 
     VSTRING_TERMINATE(buffer);
 

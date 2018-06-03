@@ -810,6 +810,7 @@
 /* Global library. */
 
 #include <deliver_request.h>
+#include <mail_proto.h>
 #include <mail_params.h>
 #include <mail_version.h>
 #include <mail_conf.h>
@@ -895,6 +896,8 @@ bool    var_smtp_enforce_tls;
 char   *var_smtp_tls_per_site;
 char   *var_smtp_tls_policy;
 bool    var_smtp_tls_wrappermode;
+bool    var_smtp_use_tlsproxy;
+char   *var_tlsproxy_service;
 
 #ifdef USE_TLS
 char   *var_smtp_sasl_tls_opts;
@@ -1219,6 +1222,9 @@ static void pre_init(char *unused_name, char **unused_argv)
 	 * 
 	 * Large parameter lists are error-prone, so we emulate a language
 	 * feature that C does not have natively: named parameter lists.
+	 * 
+	 * With tlsproxy(8) turned on, this is still needed for DANE-related
+	 * initializations.
 	 */
 	smtp_tls_ctx =
 	    TLS_CLIENT_INIT(&props,

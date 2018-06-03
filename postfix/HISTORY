@@ -23399,6 +23399,38 @@ Apologies for any names omitted.
 	TLS handshake error. Found during code maintenance. File:
 	tlsproxy/tlsproxy.c.
 
+	Connection reuse for TLS-encrypted SMTP sessions. This is
+	work-in-progress, #ifdef USE_TLSPROXY, to avoid contamination
+	of existing code.
+
+	The idea is to have smtp(8) talk plaintext while tlsproxy(8)
+	converts between local plaintext and remote ciphertext.
+	Then, smtp(8) can save plaintext connections to the cache,
+	and scache(8) holds the handles to the tlsproxy(8) processes.
+
+	This preliminary implementation does not yet support proxying
+	of DANE attributes from smtp(8) to tlsproxy(8). tlsproxy(8)
+	does not have permissions to read private key files that
+	smtp(8) can read. And the name of a connection cache entry
+	does not yet depend on whether the cached connection uses
+	TLS, nor does it depend on DANE information.
+
+	Files: global/mail_proto.h, postscreen/postscreen_starttls.c,
+	posttls-finger/posttls-finger.c, smtp/smtp.c, smtp/smtp.h,
+	smtp/smtp_params.c, smtp/smtp_proto.c, smtp/smtp_session.c,
+	smtpd/smtpd.c, tls/tls.h, tls/tls_client.c, tls/tls_proxy.h,
+	tls/tls_proxy_client_init_print.c,
+	tls/tls_proxy_client_init_scan.c,
+	tls/tls_proxy_client_start_print.c,
+	tls/tls_proxy_client_start_scan.c, tls/tls_proxy_clnt.c,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_proxy_server_init_print.c,
+	tls/tls_proxy_server_init_scan.c,
+	tls/tls_proxy_server_start_print.c,
+	tls/tls_proxy_server_start_scan.c, tlsproxy/tlsproxy.c,
+	tlsproxy/tlsproxy.h, tlsproxy/tlsproxy_state.c, util/argv_attr.h,
+	util/argv_attr_print.c, util/argv_attr_scan.c.
+
 20180425
 
 	Cleanup: dnsblog proccesses now retire voluntarily after 
@@ -23445,3 +23477,26 @@ Apologies for any names omitted.
 	Documentation: bash syntax to eliminate or view default
 	settings in "postconf -n" output. File: postconf/postconf.c.
 	Contributed by various postfix-users list members.
+
+20180603
+
+	TLS reuse: serializer/deserializer support for TLS_DANE and
+	related data structures. Files: tls/tls_proxy_client_print.c,
+	tls/tls_proxy_client_scan.c, tls/tls_proxy.h, util/argv_attr.h,
+	util/argv_attr_print.c, util/argv_attr_scan.c.
+
+	TLS reuse: posttls-finger -X test flag for quick tests.
+	File: posttls-finger/posttls-finger.c.
+
+	TLS reuse: smtp_use_tlsproxy boolean parameter. This is a
+	preliminary implementation that should support override via
+	smtp_tls_policy_maps. Files: smtp.c, smtp_connect.c,
+	smtp_params.c, smtp_proto.c, smtp_session.c.
+
+	TLS reuse: the SMTP client now includes the requested TLS
+	security level in the scache(8) key.
+
+	TLS reuse: address-based reuse is allowed only for TLS
+	levels that require no certificate checks. Perhaps it still
+	makes sense to save such sessions for reuse by less sensitive
+	deliveries. Files: smtp/smtp.h smtp/smtp_reuse.c.

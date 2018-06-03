@@ -1,5 +1,9 @@
 Wish list:
 
+	With smtpd_reject_footer=$foo in master.cf, and foo defined
+	in main.cf, postconf complains about an unuse setting in main.cf.
+	Note that "postconf -Px" will expand the macro.
+
 	Things to do before the stable release:
 
 	Spell-check, double-word check, HTML validator check,

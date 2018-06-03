@@ -1496,9 +1496,11 @@ static void tls_reset(SMTPD_STATE *);
  /*
   * TLS initialization status.
   */
+#ifndef USE_TLSPROXY
 static TLS_APPL_STATE *smtpd_tls_ctx;
 static int ask_client_cert;
 
+#endif					/* USE_TLSPROXY */
 #endif
 
  /*
@@ -4704,9 +4706,11 @@ static int starttls_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 #define PROXY_OPEN_FLAGS \
 	(TLS_PROXY_FLAG_ROLE_SERVER | TLS_PROXY_FLAG_SEND_CONTEXT)
 
-    state->tlsproxy = tls_proxy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
-				     state->client, state->addr,
-				     state->port, var_smtpd_tmout);
+    state->tlsproxy =
+	tls_proxy_legacy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
+			      state->client, state->addr,
+			      state->port, var_smtpd_tmout,
+			      state->service);
     if (state->tlsproxy == 0) {
 	state->error_mask |= MAIL_ERROR_SOFTWARE;
 	/* RFC 3207 Section 4. */
@@ -4963,10 +4967,12 @@ static void smtpd_proto(SMTPD_STATE *state)
 	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
 #ifdef USE_TLSPROXY
 	    /* We garbage-collect the VSTREAM in smtpd_state_reset() */
-	    state->tlsproxy = tls_proxy_open(var_tlsproxy_service,
-					     PROXY_OPEN_FLAGS,
-					     state->client, state->addr,
-					     state->port, var_smtpd_tmout);
+	    state->tlsproxy =
+		tls_proxy_legacy_open(var_tlsproxy_service,
+				      PROXY_OPEN_FLAGS,
+				      state->client, state->addr,
+				      state->port, var_smtpd_tmout,
+				      state->service);
 	    if (state->tlsproxy == 0) {
 		msg_warn("Wrapper-mode request dropped from %s for service %s."
 		       " TLS context initialization failed. For details see"

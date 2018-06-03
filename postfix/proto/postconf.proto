@@ -16582,6 +16582,22 @@ Postfix versions. </p>
 
 <p> This feature is available in Postfix 3.0 and later.  </p>
 
+%PARAM smtp_use_tlsproxy no
+
+<p> Try to use a TLS session multiple times, without reconnecting.
+This uses the tlsproxy(8) service to make an outbound SMTP-over-TLS
+connection, and uses the sache(8) service to save that connection.
+</p>
+
+<p> This feature is available in Postfix 3.4 and later.  </p>
+
+%PARAM smtp_use_tlsproxy no
+
+<p> The LMTP-specific version of the smtp_use_tlsproxy configuration
+parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
 %PARAM virtual_alias_address_length_limit 1000
 
 <p>

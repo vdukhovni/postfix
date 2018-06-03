@@ -8853,6 +8853,11 @@ is a concern for you, use the smtp_tls_per_site feature instead.
 .PP
 This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use smtp_tls_security_level instead.
+.SH smtp_use_tlsproxy (default: no)
+The LMTP\-specific version of the smtp_use_tlsproxy configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH smtp_xforward_timeout (default: 300s)
 The Postfix SMTP client time limit for sending the XFORWARD command,
 and for receiving the remote SMTP server response.
