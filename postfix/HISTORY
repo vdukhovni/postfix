@@ -23439,3 +23439,9 @@ Apologies for any names omitted.
 	Bugfix (introduced: 20180425): broken implementation of
 	voluntary dnsblog retirement after max_use*max_idle seconds.
 	File: master/single_server.c.
+
+20180531
+
+	Documentation: bash syntax to eliminate or view default
+	settings in "postconf -n" output. File: postconf/postconf.c.
+	Contributed by various postfix-users list members.

@@ -401,7 +401,11 @@ POSTCONF(1)                                                        POSTCONF(1)
 
        <b>-n</b>     Show only configuration parameters that have explicit <i>name=value</i>
               settings in <a href="postconf.5.html"><b>main.cf</b></a>.  Specify <b>-nf</b> to fold long lines  for  human
-              readability (Postfix 2.9 and later).
+              readability  (Postfix 2.9 and later). To show settings that dif-
+              fer from built-in defaults only, use the following bash syntax:
+                  comm -23 &lt;(postconf -n) &lt;(postconf -d)
+              Replace  "-23"  with  "-12"  to  show  settings  that  duplicate
+              built-in defaults.
 
        <b>-o</b> <i>name=value</i>
               Override <a href="postconf.5.html"><b>main.cf</b></a> parameter settings.

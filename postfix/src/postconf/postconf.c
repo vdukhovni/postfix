@@ -415,7 +415,13 @@
 /*	Show only configuration parameters that have explicit
 /*	\fIname=value\fR settings in \fBmain.cf\fR.  Specify \fB-nf\fR
 /*	to fold long lines for human readability (Postfix 2.9 and
-/*	later).
+/*	later). To show settings that differ from built-in defaults
+/*	only, use the following bash syntax:
+/* .nf
+/*	    comm -23 <(postconf -n) <(postconf -d)
+/* .fi
+/*	Replace "-23" with "-12" to show settings that duplicate
+/*	built-in defaults.
 /* .IP "\fB-o \fIname=value\fR"
 /*	Override \fBmain.cf\fR parameter settings.
 /*
