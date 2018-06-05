@@ -5186,6 +5186,17 @@ parameter. See there for details. </p>
 
 </DD>
 
+<DT><b><a name="lmtp_tls_connection_reuse">lmtp_tls_connection_reuse</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> configuration
+parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="lmtp_tls_dcert_file">lmtp_tls_dcert_file</a>
 (default: empty)</b></DT><DD>
 
@@ -11999,6 +12010,22 @@ and opportunistic TLS always uses "export" or better (i.e. all) ciphers. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>
+(default: no)</b></DT><DD>
+
+<p> Try to make multiple deliveries per TLS connection. This uses
+the <a href="tlsproxy.8.html">tlsproxy(8)</a> service to make an outbound SMTP-over-TLS connection,
+uses the <a href="scache.8.html">scache(8)</a> service to save that connection, and relies on
+hints from the <a href="qmgr.8.html">qmgr(8)</a> daemon. </p>
+
+<p> See "<a href="TLS_README.html#client_tls_reuse">Client-side
+TLS connection reuse</a>" for background details. </p>
+
+<p> This feature is available in Postfix 3.4 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_dane_insecure_mx_policy">smtp_tls_dane_insecure_mx_policy</a>
 (default: dane)</b></DT><DD>
 
@@ -12702,11 +12729,13 @@ security are: </p>
 <dt><b><a href="TLS_README.html#client_tls_may">may</a></b></dt>
 <dd>Opportunistic TLS. Since sending in the clear is acceptable,
 demanding stronger than default TLS security merely reduces
-interoperability. The optional "ciphers", "exclude" and "protocols"
+interoperability. The optional "ciphers", "exclude", and "protocols"
 attributes (available for opportunistic TLS with Postfix &ge; 2.6)
-override the "<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>" and
-"<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>" configuration parameters. When opportunistic TLS
-handshakes fail, Postfix retries the connection with TLS disabled.
+and "connection_reuse" attribute (Postfix &ge; 3.4) override the
+"<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>", "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>",
+and
+"<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>" configuration parameters. When opportunistic
+TLS handshakes fail, Postfix retries the connection with TLS disabled.
 This allows mail delivery to sites with non-interoperable TLS
 implementations.</dd>
 
@@ -12714,9 +12743,11 @@ implementations.</dd>
 <dd>Mandatory TLS encryption. At this level
 and higher, the optional "protocols" attribute overrides the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> parameter, the optional "ciphers" attribute
-overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter, and the
+overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter, the
 optional "exclude" attribute (Postfix &ge; 2.6) overrides the <a href="postconf.5.html">main.cf</a>
-<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> parameter. In the policy table,
+<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> parameter, and the optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the
+<a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. In the policy table,
 multiple protocols or excluded ciphers must be separated by colons,
 as attribute values may not contain whitespace or commas. </dd>
 
@@ -12730,7 +12761,9 @@ href="TLS_README.html#client_tls_encrypt">encrypt</a>.  When usable
 TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication and DNSSEC support is available with Postfix
-2.11 and later.  </dd>
+2.11 and later. The optional "connection_reuse" attribute (Postfix
+&ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
+</dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
 <dd>Mandatory DANE TLS.  The TLS policy for the destination is
@@ -12739,7 +12772,9 @@ or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
-and later.  </dd>
+and later. The optional "connection_reuse" attribute (Postfix &ge;
+3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
+</dd>
 
 <dt><b><a href="TLS_README.html#client_tls_fprint">fingerprint</a></b></dt>
 <dd>Certificate fingerprint
@@ -12755,7 +12790,8 @@ algorithm used to calculate the fingerprint is selected by the
 be combined with a "|" delimiter in a single match attribute, or multiple
 match attributes can be employed. The ":" character is not used as a
 delimiter as it occurs between each pair of fingerprint (hexadecimal)
-digits. </dd>
+digits. The optional "connection_reuse" attribute (Postfix &ge; 3.4)
+overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_verify">verify</a></b></dt>
 <dd>Mandatory TLS verification.  At this security
@@ -12765,7 +12801,9 @@ unauthenticated DNS MX lookups.  The optional "match" attribute overrides
 the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_verify_cert_match">smtp_tls_verify_cert_match</a> parameter. In the policy table,
 multiple match patterns and strategies must be separated by colons.
 In practice explicit control over matching is more common with the
-"secure" policy, described below. </dd>
+"secure" policy, described below. The optional "connection_reuse"
+attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
+<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_secure">secure</a></b></dt>
 <dd>Secure-channel TLS. At this security level, DNS
@@ -12783,7 +12821,9 @@ routing the secondary domains to the primary nexthop also allow secure
 verification, they risk delivery to the wrong destination when domains
 change hands or are re-assigned to new gateways. With the "match"
 attribute approach, routing is not perturbed, and mail is deferred if
-verification of a new MX host fails. </dd>
+verification of a new MX host fails. The optional "connection_reuse"
+attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
+<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 </dl>
 
@@ -13335,17 +13375,6 @@ is a concern for you, use the <a href="postconf.5.html#smtp_tls_per_site">smtp_t
 
 <p> This feature is available in Postfix 2.2 and later. With
 Postfix 2.3 and later use <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> instead. </p>
-
-
-</DD>
-
-<DT><b><a name="smtp_use_tlsproxy">smtp_use_tlsproxy</a>
-(default: no)</b></DT><DD>
-
-<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_use_tlsproxy">smtp_use_tlsproxy</a> configuration
-parameter. See there for details. </p>
-
-<p> This feature is available in Postfix 3.4 and later. </p>
 
 
 </DD>

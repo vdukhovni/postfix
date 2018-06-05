@@ -672,14 +672,11 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
      * for connection-cache lookup by request nexthop only.
      */
 #ifdef USE_TLS
-    if (var_smtp_use_tlsproxy) {
-	if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
-	    msg_warn("TLS policy lookup error for %s/%s: %s",
-		     STR(iter->dest), STR(iter->host), STR(why->reason));
-	    return (0);				/* XXX */
-	}
-    } else
-	smtp_tls_policy_dummy(state->tls);
+    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
+	msg_warn("TLS policy lookup error for %s/%s: %s",
+		 STR(iter->dest), STR(iter->host), STR(why->reason));
+	return (0);				/* XXX */
+    }
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0

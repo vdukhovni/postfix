@@ -23500,3 +23500,16 @@ Apologies for any names omitted.
 	levels that require no certificate checks. Perhaps it still
 	makes sense to save such sessions for reuse by less sensitive
 	deliveries. Files: smtp/smtp.h smtp/smtp_reuse.c.
+
+20180604
+
+	TLS reuse: smtp_tls_connection_reuse boolean parameter, and
+	corresponding override with "connection_reuse" boolean
+	attribute in smtp_policy_maps. Files: global/mail_params.h,
+	smtp.c, smtp.h, smtp_params.c, smtp_proto.c, smtp_session.c,
+	smtp_tls_policy.c. proto/postconf.proto. mantools/postlink.
+
+20180605
+
+	TLS reuse: updated TLS_README and CONNECTION_CACHE_README,
+	added comments in tlsproxy.c to explain why it works.

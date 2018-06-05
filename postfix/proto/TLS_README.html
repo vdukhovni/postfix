@@ -992,6 +992,8 @@ solution.  </p>
 <li><a href="#client_cert_key">Client-side certificate and private
 key configuration </a>
 
+<li><a href="#client_tls_reuse">Client-side TLS connection reuse</a>
+
 <li><a href="#client_tls_cache">Client-side TLS session cache</a>
 
 <li><a href="#client_tls_limits"> Client TLS limitations </a>
@@ -1907,6 +1909,49 @@ when the certificate is needed.  </p>
     smtp_tls_CApath = /etc/postfix/certs
 </pre>
 </blockquote>
+
+<h3><a name="client_tls_reuse">Client-side TLS connection reuse</a> </h3>
+
+<p> Historically, the Postfix SMTP client has supported multiple
+deliveries per connection only for plaintext connections. Postfix
+3.4 introduces the ability to make multiple deliveries per TLS-encrypted
+connection. This is primarily to improve mail delivery performance
+for destinations that throttle clients when they don't combine
+deliveries. </p>
+
+<p> To enable multiple deliveries per TLS connection, specify:</p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtp_tls_connection_reuse = yes
+</pre>
+</blockquote>
+
+<p> Alternatively, specify the attribute "connection_reuse=yes" in
+an smtp_tls_policy_maps entry. </p>
+
+<p> The implementation of TLS connection reuse relies on the same
+scache(8) service as used for delivering plaintext SMTP mail, the
+same tlsproxy(8) daemon as used by the postscreen(8) service, and
+relies on the same hints from the qmgr(8) daemon.
+
+See "<a href="CONNECTION_CACHE_README.html">Postfix Connection
+Cache</a>" for a description of the underlying connection reuse
+infrastructure.  </p>
+
+<p> Initial SMTP handshake:</p>
+<pre>    smtp(8) -&gt; remote SMTP server</pre>
+
+<p> Reused SMTP/TLS connection, or new SMTP/TLS connection: </p>
+<pre>    smtp(8) -&gt; tlsproxy(8) -&gt; remote SMTP server </pre>
+
+<p> Cached SMTP/TLS connection:</p>
+<pre>    scache(8) -&gt; tlsproxy(8) -&gt; remote SMTP server</pre>
+
+<p> As of Postfix 3.4, TLS connection reuse is disabled by default.
+This may change once the impact on over-all performance is undestood.
+</p>
 
 <h3><a name="client_tls_cache">Client-side TLS session cache</a> </h3>
 

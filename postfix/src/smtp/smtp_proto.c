@@ -864,7 +864,7 @@ static int smtp_start_tls(SMTP_STATE *state)
      * SMTP connection either, because the conversation is in an unknown
      * state.
      */
-    if (var_smtp_use_tlsproxy == 0)
+    if (state->tls->conn_reuse == 0)
 	DONT_CACHE_THIS_SESSION;
 
     /*
@@ -898,7 +898,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_ADDR);
 
-    if (var_smtp_use_tlsproxy) {
+    if (state->tls->conn_reuse) {
 
 	/*
 	 * Send all our wishes in one big request.
@@ -978,7 +978,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 	     */
 	    session->tls_context = tls_proxy_context_receive(session->stream);
 	}
-    } else {					/* var_smtp_tls_proxy */
+    } else {					/* state->tls->conn_reuse */
 
 	/*
 	 * As of Postfix 2.5, tls_client_start() tries hard to always
@@ -1012,7 +1012,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 			     matchargv = state->tls->matchargv,
 			     mdalg = var_smtp_tls_fpt_dgst,
 			     dane = state->tls->dane);
-    }						/* var_smtp_use_tlsproxy */
+    }						/* state->tls->conn_reuse */
 
     vstring_free(serverid);
 

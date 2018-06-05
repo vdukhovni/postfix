@@ -6,11 +6,12 @@
 /* SYNOPSIS
 /*	\fBtlsproxy\fR [generic Postfix daemon options]
 /* DESCRIPTION
-/*	The \fBtlsproxy\fR(8) server implements a server-side TLS
-/*	proxy. It is used by \fBpostscreen\fR(8) to talk SMTP-over-TLS
+/*	The \fBtlsproxy\fR(8) server implements a two-way TLS proxy. It
+/*	is used by the \fBpostscreen\fR(8) server to talk SMTP-over-TLS
 /*	with remote SMTP clients that are not whitelisted (including
-/*	clients whose whitelist status has expired),
-/*	but it should also work for non-SMTP protocols.
+/*	clients whose whitelist status has expired), and by the
+/*	\fBsmtp\fR(8) client to support TLS connection reuse, but it
+/*	should also work for non-SMTP protocols.
 /*
 /*	Although one \fBtlsproxy\fR(8) process can serve multiple
 /*	sessions at the same time, it is a good idea to allow the
@@ -364,7 +365,7 @@ static HTABLE *tlsp_client_app_cache;
   * become part of the TLS library.
   * 
   * Later in the life cycle, tlsproxy(8) has also become an enabler for TLS
-  * session reuse across different SMTP client processes.
+  * connection reuse across different SMTP client processes.
   */
 
 static void tlsp_ciphertext_event(int, void *);
@@ -484,8 +485,8 @@ static int tlsp_post_handshake(TLSP_STATE *state)
 {
 
     /*
-     * Currently, tls_server_post_accept() and tls_client_post_connect()
-     * always succeed.
+     * Do not assume that tls_server_post_accept() and
+     * tls_client_post_connect() will always succeed.
      */
     if (state->is_server_role)
 	state->tls_context = tls_server_post_accept(state->tls_context);
@@ -560,6 +561,7 @@ static void tlsp_strategy(TLSP_STATE *state)
 	}
 	state->flags &= ~TLSP_FLAG_DO_HANDSHAKE;
 	if (tlsp_post_handshake(state) != TLSP_STAT_OK) {
+	    /* At this point, state is a dangling pointer. */
 	    return;
 	}
     }
@@ -650,6 +652,7 @@ static void tlsp_strategy(TLSP_STATE *state)
      */
     if (tlsp_eval_tls_error(state, ssl_write_err != SSL_ERROR_NONE ?
 			    ssl_write_err : ssl_read_err) < 0)
+	/* At this point, state is a dangling pointer. */
 	return;
 
     /*
@@ -705,6 +708,7 @@ static void tlsp_plaintext_event(int event, void *context)
      * want to read or write more plaintext.
      */
     tlsp_strategy(state);
+    /* At this point, state could be a dangling pointer. */
 }
 
 /* tlsp_ciphertext_event - ciphertext is ready to read/write */
@@ -720,6 +724,7 @@ static void tlsp_ciphertext_event(int event, void *context)
      */
     if (event == EVENT_READ || event == EVENT_WRITE) {
 	tlsp_strategy(state);
+	/* At this point, state could be a dangling pointer. */
     } else {
 	if (event == EVENT_TIME && state->ssl_last_err == SSL_ERROR_NONE)
 	    msg_warn("deadlock on plaintext stream for %s",
@@ -837,7 +842,7 @@ static void tlsp_accept_event(int event, EVENT_NOTIFY_FN handler,
 	event_cancel_timer(handler, context);
     else
 	errno = ETIMEDOUT;
-    /* tlsp_state_free() disables pre-handshake I/O events. */
+    /* tlsp_state_free() disables pre-handshake plaintext I/O events. */
 }
 
 /* tlsp_get_fd_event - receive final connection hand-off information */
@@ -850,8 +855,10 @@ static void tlsp_get_fd_event(int event, void *context)
     int     status;
 
     /*
-     * Disable I/O events on the plaintext stream until the TLS handshake is
-     * completed.
+     * At this point we still manually manage plaintext read/write/timeout
+     * events. Disable I/O events on the plaintext stream until the TLS
+     * handshake is completed. Every code path must either destroy state, or
+     * request the next event, otherwise we have a file and memory leak.
      */
     tlsp_accept_event(event, tlsp_get_fd_event, (void *) state);
     event_disable_readwrite(plaintext_fd);
@@ -879,12 +886,14 @@ static void tlsp_get_fd_event(int event, void *context)
     else
 	status = tlsp_client_start_pre_handshake(state);
     if (status != TLSP_STAT_OK)
+	/* At this point, state is a dangling pointer. */
 	return;
 
     /*
      * Trigger the initial proxy server I/Os.
      */
     tlsp_strategy(state);
+    /* At this point, state could be a dangling pointer. */
 }
 
  /*
@@ -909,9 +918,22 @@ static int tlsp_client_init_no_tlsp_state_free(TLSP_STATE *state)
     if ((state->appl_state = (TLS_APPL_STATE *)
 	 htable_find(tlsp_client_app_cache, key)) == 0
 	&& (state->appl_state =
-	    tls_client_init(state->client_init_props)) != 0)
+	    tls_client_init(state->client_init_props)) != 0) {
 	(void) htable_enter(tlsp_client_app_cache, key,
 			    (void *) state->appl_state);
+
+	/*
+	 * To maintain sanity, allow partial SSL_write() operations, and
+	 * allow SSL_write() buffer pointers to change after a WANT_READ or
+	 * WANT_WRITE result. This is based on OpenSSL developers talking on
+	 * a mailing list, but is not supported by documentation. If this
+	 * code stops working then no-one can be held responsible.
+	 */
+	if (state->appl_state)
+	    SSL_CTX_set_mode(state->appl_state->ssl_ctx,
+			     SSL_MODE_ENABLE_PARTIAL_WRITE
+			     | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
+    }
     vstring_free(buf);
     return (state->appl_state != 0);
 }
@@ -942,7 +964,9 @@ static void tlsp_get_request_event(int event, void *context)
 
     /*
      * At this point we still manually manage plaintext read/write/timeout
-     * events.
+     * events. Every code path must either destroy state or request the next
+     * event, otherwise this pseudo-thread is idle until the client goes
+     * away.
      */
     tlsp_accept_event(event, tlsp_get_request_event, (void *) state);
 
@@ -955,9 +979,8 @@ static void tlsp_get_request_event(int event, void *context)
     }
 
     /*
-     * We must send some data, after receiving the request attributes and
-     * before receiving the remote file descriptor. We can't assume
-     * UNIX-domain socket semantics here.
+     * Receive the initial request attributes. Receive the remainder after we
+     * figure out what role we are expected to play.
      */
     if (event != EVENT_READ
 	|| attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
@@ -975,7 +998,8 @@ static void tlsp_get_request_event(int event, void *context)
      * XXX We use the same fixed timeout throughout the entire session for
      * both plaintext and ciphertext communication. This timeout is just a
      * safety feature; the real timeout will be enforced by our plaintext
-     * peer.
+     * peer (except during TLS the handshake, when we intentionally disable
+     * plaintext I/O).
      */
     state->remote_endpt = mystrdup(STR(remote_endpt));
     state->server_id = mystrdup(STR(server_id));
@@ -989,8 +1013,7 @@ static void tlsp_get_request_event(int event, void *context)
 
     /*
      * Receive the TLS preferences now, to reduce the number of protocol
-     * roundtrips. To call the pre-handshake tls_*_start() before receiving
-     * the ciphertext FD, pass in the FD through some other interface.
+     * roundtrips.
      */
     switch (req_flags & (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_ROLE_SERVER)) {
     case TLS_PROXY_FLAG_ROLE_CLIENT:
@@ -1018,6 +1041,9 @@ static void tlsp_get_request_event(int event, void *context)
     }
 
     /*
+     * For portability we must send some data, after receiving the request
+     * attributes and before receiving the remote file descriptor.
+     * 
      * If the requested TLS engine is unavailable, hang up after making sure
      * that the plaintext peer has received our "sorry" indication.
      */
@@ -1280,7 +1306,7 @@ int     main(int argc, char **argv)
     MAIL_VERSION_STAMP_ALLOCATE;
 
     /*
-     * Pass control to the single-threaded service skeleton.
+     * Pass control to the event-driven service skeleton.
      */
     event_server_main(argc, argv, tlsp_service,
 		      CA_MAIL_SERVER_INT_TABLE(int_table),

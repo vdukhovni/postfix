@@ -573,6 +573,11 @@ SMTP(8)                                                                SMTP(8)
               nexthop destination security level is <b>dane</b>, but  the  MX  record
               was found via an "insecure" MX lookup.
 
+       Available in Postfix version 3.4 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> (no)</b>
+              Try to make multiple deliveries per TLS connection.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
@@ -703,6 +708,11 @@ SMTP(8)                                                                SMTP(8)
               When SMTP connection caching is enabled,  the  number  of  times
               that  an SMTP session may be reused before it is closed, or zero
               (no limit).
+
+       Available in Postfix version 3.4 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> (no)</b>
+              Try to make multiple deliveries per TLS connection.
 
        Implemented in the <a href="qmgr.8.html">qmgr(8)</a> daemon:
 

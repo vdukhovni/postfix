@@ -19,8 +19,7 @@
 /*	tlsp_state_create() initializes session context.
 /*
 /*	tlsp_state_free() destroys session context. If the handshake
-/*	was in progress, it sends a 'handshake failed' message to the
-/*	plaintext peer.
+/*	was in progress, it logs a 'handshake failed' message.
 /*
 /*	Arguments:
 /* .IP service

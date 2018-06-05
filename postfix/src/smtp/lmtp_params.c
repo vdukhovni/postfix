@@ -109,7 +109,7 @@
 	VAR_LMTP_CACHE_DEMAND, DEF_LMTP_CACHE_DEMAND, &var_smtp_cache_demand,
 	VAR_LMTP_USE_TLS, DEF_LMTP_USE_TLS, &var_smtp_use_tls,
 	VAR_LMTP_ENFORCE_TLS, DEF_LMTP_ENFORCE_TLS, &var_smtp_enforce_tls,
-	VAR_LMTP_USE_TLSPROXY, DEF_LMTP_USE_TLSPROXY, &var_smtp_use_tlsproxy,
+	VAR_LMTP_TLS_CONN_REUSE, DEF_LMTP_TLS_CONN_REUSE, &var_smtp_tls_conn_reuse,
 #ifdef USE_TLS
 	VAR_LMTP_TLS_ENFORCE_PN, DEF_LMTP_TLS_ENFORCE_PN, &var_smtp_tls_enforce_peername,
 	VAR_LMTP_TLS_NOTEOFFER, DEF_LMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,

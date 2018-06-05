@@ -183,7 +183,7 @@ void    smtp_session_free(SMTP_SESSION *session)
 	vstream_fflush(session->stream);
     }
     if (session->tls_context) {
-	if (var_smtp_use_tlsproxy)
+	if (session->state->tls->conn_reuse)
 	    tls_proxy_context_free(session->tls_context);
 	else
 	    tls_client_stop(smtp_tls_ctx, session->stream,

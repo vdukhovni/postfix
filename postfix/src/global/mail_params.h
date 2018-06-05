@@ -4011,11 +4011,11 @@ extern char *var_smtpd_dns_re_filter;
  /*
   * Share TLS sessions through tlproxy(8).
   */
-#define VAR_SMTP_USE_TLSPROXY		"smtp_use_tlsproxy"
-#define DEF_SMTP_USE_TLSPROXY		0
-#define VAR_LMTP_USE_TLSPROXY		"lmtp_use_tlsproxy"
-#define DEF_LMTP_USE_TLSPROXY		0
-extern bool var_smtp_use_tlsproxy;
+#define VAR_SMTP_TLS_CONN_REUSE		"smtp_tls_connection_reuse"
+#define DEF_SMTP_TLS_CONN_REUSE		0
+#define VAR_LMTP_TLS_CONN_REUSE		"lmtp_tls_connection_reuse"
+#define DEF_LMTP_TLS_CONN_REUSE		0
+extern bool var_smtp_tls_conn_reuse;
 
  /*
   * Location of shared-library files.
