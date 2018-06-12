@@ -1346,26 +1346,20 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
     return (matched);
 }
 
-/* push_ext - push extension onto certificate's stack, else free it */
-
-static int push_ext(X509 *cert, X509_EXTENSION *ext)
-{
-    if (ext) {
-	if (X509_add_ext(cert, ext, -1))
-	    return 1;
-	X509_EXTENSION_free(ext);
-    }
-    return 0;
-}
-
 /* add_ext - add simple extension (no config section references) */
 
 static int add_ext(X509 *issuer, X509 *subject, int ext_nid, char *ext_val)
 {
+    int ret = 0;
     X509V3_CTX v3ctx;
+    X509_EXTENSION *ext;
 
     X509V3_set_ctx(&v3ctx, issuer, subject, 0, 0, 0);
-    return push_ext(subject, X509V3_EXT_conf_nid(0, &v3ctx, ext_nid, ext_val));
+    if ((ext = X509V3_EXT_conf_nid(0, &v3ctx, ext_nid, ext_val)) != 0) {
+	ret = X509_add_ext(subject, ext, -1);
+	X509_EXTENSION_free(ext);
+    }
+    return ret;
 }
 
 /* set_serial - set serial number to match akid or use subject's plus 1 */
