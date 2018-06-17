@@ -39,6 +39,11 @@
 #include <tls.h>
 
  /*
+  * tlsproxy client.
+  */
+#include <tls_proxy.h>
+
+ /*
   * Global iterator support. This is updated by the connection-management
   * loop, and contains dynamic context that appears in lookup keys for SASL
   * passwords, TLS policy, cached SMTP connections, and cached TLS session
@@ -98,6 +103,7 @@ typedef struct SMTP_TLS_POLICY {
     ARGV   *matchargv;			/* Cert match patterns */
     DSN_BUF *why;			/* Lookup error status */
     TLS_DANE *dane;			/* DANE TLSA digests */
+    int     conn_reuse;			/* enable connection reuse */
 } SMTP_TLS_POLICY;
 
  /*
@@ -131,6 +137,7 @@ extern void smtp_tls_policy_cache_flush(void);
 	_tls_policy_init_tmp->matchargv = 0; \
 	_tls_policy_init_tmp->why = (w); \
 	_tls_policy_init_tmp->dane = 0; \
+	_tls_policy_init_tmp->conn_reuse = 0; \
     } while (0)
 
 #endif
@@ -614,12 +621,13 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_HOSTNAME		(1<<4)	/* remote host name */
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
+#define SMTP_KEY_FLAG_TLS_LEVEL		(1<<7)	/* requested TLS level */
 
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
 	SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
-	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
+	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
   * Conditional lookup-key flags for cached connections that may be
@@ -647,7 +655,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
-	| SMTP_KEY_FLAG_REQ_NEXTHOP)
+	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
   * Connection-cache endpoint lookup key. The SENDER, NEXTHOP, and HOSTNAME
@@ -658,7 +666,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_MASK_SCACHE_ENDP_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
 	| COND_SASL_SMTP_KEY_FLAG_NEXTHOP | COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
-	| SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT)
+	| SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
   * Silly little macros.
@@ -680,6 +688,11 @@ extern int smtp_mode;
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*
 /*	Wietse Venema
 /*	Google, Inc.

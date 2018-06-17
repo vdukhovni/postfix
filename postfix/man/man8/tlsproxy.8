@@ -12,11 +12,12 @@ Postfix TLS proxy
 .SH DESCRIPTION
 .ad
 .fi
-The \fBtlsproxy\fR(8) server implements a server\-side TLS
-proxy. It is used by \fBpostscreen\fR(8) to talk SMTP\-over\-TLS
+The \fBtlsproxy\fR(8) server implements a two\-way TLS proxy. It
+is used by the \fBpostscreen\fR(8) server to talk SMTP\-over\-TLS
 with remote SMTP clients that are not whitelisted (including
-clients whose whitelist status has expired),
-but it should also work for non\-SMTP protocols.
+clients whose whitelist status has expired), and by the
+\fBsmtp\fR(8) client to support TLS connection reuse, but it
+should also work for non\-SMTP protocols.
 
 Although one \fBtlsproxy\fR(8) process can serve multiple
 sessions at the same time, it is a good idea to allow the

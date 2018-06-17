@@ -25,16 +25,24 @@
 typedef struct {
     int     flags;			/* see below */
     int     req_flags;			/* request flags, see tls_proxy.h */
+    int     is_server_role;		/* avoid clumsy handler code */
     char   *service;			/* argv[0] */
     VSTREAM *plaintext_stream;		/* local peer: postscreen(8), etc. */
     NBBIO  *plaintext_buf;		/* plaintext buffer */
     int     ciphertext_fd;		/* remote peer */
     EVENT_NOTIFY_FN ciphertext_timer;	/* kludge */
     int     timeout;			/* read/write time limit */
+    int     handshake_timeout;		/* in-handshake time limit */
+    int     session_timeout;		/* post-handshake time limit */
     char   *remote_endpt;		/* printable remote endpoint */
     char   *server_id;			/* cache management */
-    TLS_SESS_STATE *tls_context;	/* llibtls state */
+    TLS_APPL_STATE *appl_state;		/* libtls state */
+    TLS_SESS_STATE *tls_context;	/* libtls state */
     int     ssl_last_err;		/* TLS I/O state */
+    TLS_SERVER_INIT_PROPS *server_init_props;
+    TLS_SERVER_START_PROPS *server_start_props;
+    TLS_CLIENT_INIT_PROPS *client_init_props;
+    TLS_CLIENT_START_PROPS *client_start_props;
 } TLSP_STATE;
 
 #define TLSP_FLAG_DO_HANDSHAKE	(1<<0)
@@ -51,4 +59,9 @@ extern void tlsp_state_free(TLSP_STATE *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/

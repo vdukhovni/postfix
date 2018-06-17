@@ -41,6 +41,8 @@
 /*	The restored session information does not include the "best
 /*	MX" bit, and does not override the iterator dest, host and
 /*	addr fields.
+/*	This function is a NOOP for TLS levels stronger than "encrypt",
+/*	because stronger levels require certificate checks,
 /*	The result is null in case of failure.
 /*
 /*	Arguments:
@@ -64,6 +66,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -159,10 +166,9 @@ static SMTP_SESSION *smtp_reuse_common(SMTP_STATE *state, int fd,
     SMTP_SESSION *session;
 
     /*
-     * Can't happen. Both smtp_reuse_nexthop() and smtp_reuse_addr() decline
-     * the request when the TLS policy is not TLS_LEV_NONE.
+     * Obsolete.
      */
-#ifdef USE_TLS
+#ifdef notdef
     if (state->tls->level > TLS_LEV_NONE)
 	msg_panic("%s: unexpected plain-text cached session to %s",
 		  myname, label);
@@ -211,10 +217,10 @@ SMTP_SESSION *smtp_reuse_nexthop(SMTP_STATE *state, int name_key_flags)
     int     fd;
 
     /*
-     * Don't look up an existing plaintext connection when a new connection
-     * would (try to) use TLS.
+     * Obsolete: the TLS level and nexthop are part of the connection cache
+     * key. TODO(tlsproxy) is the port included in the nexthop?
      */
-#ifdef USE_TLS
+#ifdef notdef
     if (state->tls->level > TLS_LEV_NONE)
 	return (0);
 #endif
@@ -244,11 +250,11 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
     int     fd;
 
     /*
-     * Don't look up an existing plaintext connection when a new connection
-     * would (try to) use TLS.
+     * Allow address-based reuse only for security levels that don't require
+     * certificate checks.
      */
 #ifdef USE_TLS
-    if (state->tls->level > TLS_LEV_NONE)
+    if (state->tls->level > TLS_LEV_ENCRYPT)
 	return (0);
 #endif
 

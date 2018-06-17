@@ -277,25 +277,6 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_SMTPUTF8	"smtputf8"	/* RFC6531 support */
 
  /*
-  * TLSPROXY support.
-  */
-#define MAIL_ATTR_REMOTE_ENDPT	"remote_endpoint"	/* name[addr]:port */
-#define MAIL_ATTR_ROLE		"role"	/* requested role */
-#define MAIL_ATTR_ROLE_SERVER	"server"
-#define MAIL_ATTR_ROLE_CLIENT	"client"
-#define MAIL_ATTR_TIMEOUT	"timeout"
-#define MAIL_ATTR_PEER_CN	"peer_CN"
-#define MAIL_ATTR_ISSUER_CN	"issuer_CN"
-#define MAIL_ATTR_PEER_CERT_FPT	"peer_fingerprint"
-#define MAIL_ATTR_PEER_PKEY_FPT	"peer_pubkey_fingerprint"
-#define MAIL_ATTR_PEER_STATUS	"peer_status"
-#define MAIL_ATTR_CIPHER_PROTOCOL "cipher_protocol"
-#define MAIL_ATTR_CIPHER_NAME	"cipher_name"
-#define MAIL_ATTR_CIPHER_USEBITS "cipher_usebits"
-#define MAIL_ATTR_CIPHER_ALGBITS "cipher_algbits"
-#define MAIL_ATTR_SERVER_ID	"server_id"
-
- /*
   * SMTP reply footer support.
   */
 #define MAIL_ATTR_SERVER_NAME	"server_name"

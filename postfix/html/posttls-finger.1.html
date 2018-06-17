@@ -280,17 +280,20 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               STARTTLS protocol.  The destination <i>domain</i>:<i>port</i> should of course
               provide such a service.
 
+       <b>-X</b>     Enable  <a href="tlsproxy.8.html"><b>tlsproxy</b>(8)</a>  mode. This is an unsupported mode, for pro-
+              gram development only.
+
        [<b>inet:</b>]<i>domain</i>[:<i>port</i>]
               Connect via TCP to domain <i>domain</i>, port <i>port</i>. The default port is
-              <b>smtp</b> (or 24 with LMTP).  With SMTP an MX lookup is performed  to
-              resolve  the  domain to a host, unless the domain is enclosed in
-              <b>[]</b>.  If you want to connect to a specific MX host, for  instance
-              <i>mx1.example.com</i>,  specify  [<i>mx1.example.com</i>]  as the destination
+              <b>smtp</b>  (or 24 with LMTP).  With SMTP an MX lookup is performed to
+              resolve the domain to a host, unless the domain is  enclosed  in
+              <b>[]</b>.   If you want to connect to a specific MX host, for instance
+              <i>mx1.example.com</i>, specify [<i>mx1.example.com</i>]  as  the  destination
               and <i>example.com</i> as a <b>match</b> argument.  When using DNS, the desti-
-              nation  domain  is assumed fully qualified and no <a href="ADDRESS_CLASS_README.html#default_domain_class">default domain</a>
-              or search suffixes are applied;  you  must  use  fully-qualified
-              names  or  also  enable <b>native</b> host lookups (these don't support
-              <b>dane</b> or <b>dane-only</b> as no DNSSEC validation information is  avail-
+              nation domain is assumed fully qualified and no  default  domain
+              or  search  suffixes  are  applied; you must use fully-qualified
+              names or also enable <b>native</b> host lookups  (these  don't  support
+              <b>dane</b>  or <b>dane-only</b> as no DNSSEC validation information is avail-
               able via <b>native</b> lookups).
 
        <b>unix:</b><i>pathname</i>
@@ -299,8 +302,8 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        <b>match ...</b>
               With no match arguments specified, certificate peername matching
               uses the compiled-in default strategies for each security level.
-              If  you specify one or more arguments, these will be used as the
-              list of certificate or public-key digests to match for the  <b>fin-</b>
+              If you specify one or more arguments, these will be used as  the
+              list  of certificate or public-key digests to match for the <b>fin-</b>
               <b>gerprint</b> level, or as the list of DNS names to match in the cer-
               tificate at the <b>verify</b> and <b>secure</b> levels.  If the security level
               is <b>dane</b>, or <b>dane-only</b> the match names are ignored, and <b>hostname,</b>
@@ -328,6 +331,11 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
        IBM T.J. Watson Research
        P.O. Box 704
        Yorktown Heights, NY 10598, USA
+
+       Wietse Venema
+       Google, Inc.
+       111 8th Avenue
+       New York, NY 10011, USA
 
        Viktor Dukhovni
 

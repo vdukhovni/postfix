@@ -1,8 +1,8 @@
 /*++
 /* NAME
-/*	tls_proxy_print
+/*	tls_proxy_context_print
 /* SUMMARY
-/*	write DSN structure to stream
+/*	write TLS_ATTR_STATE structure to stream
 /* SYNOPSIS
 /*	#include <tls_proxy.h>
 /*
@@ -12,10 +12,10 @@
 /*	int     flags;
 /*	void    *ptr;
 /* DESCRIPTION
-/*	tls_proxy_context_print() writes a TLS_SESS_STATE structure
-/*	to the named stream using the specified attribute print
-/*	routine. TLS_SESS_STATE() is meant to be passed as a call-back
-/*	to attr_print(), thusly:
+/*	tls_proxy_context_print() writes the public members of a
+/*	TLS_ATTR_STATE structure to the named stream using the
+/*	specified attribute print routine. tls_proxy_context_print()
+/*	is meant to be passed as a call-back to attr_print(), thusly:
 /*
 /*	... SEND_ATTR_FUNC(tls_proxy_context_print, (void *) tls_context), ...
 /* DIAGNOSTICS
@@ -29,6 +29,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #ifdef USE_TLS
@@ -40,10 +45,6 @@
 /* Utility library */
 
 #include <attr.h>
-
-/* Global library. */
-
-#include <mail_proto.h>
 
 /* TLS library. */
 
@@ -61,25 +62,26 @@ int     tls_proxy_context_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 #define STRING_OR_EMPTY(s) ((s) ? (s) : "")
 
     ret = print_fn(fp, flags | ATTR_FLAG_MORE,
-		   SEND_ATTR_STR(MAIL_ATTR_PEER_CN,
+		   SEND_ATTR_STR(TLS_ATTR_PEER_CN,
 				 STRING_OR_EMPTY(tp->peer_CN)),
-		   SEND_ATTR_STR(MAIL_ATTR_ISSUER_CN,
+		   SEND_ATTR_STR(TLS_ATTR_ISSUER_CN,
 				 STRING_OR_EMPTY(tp->issuer_CN)),
-		   SEND_ATTR_STR(MAIL_ATTR_PEER_CERT_FPT,
+		   SEND_ATTR_STR(TLS_ATTR_PEER_CERT_FPT,
 				 STRING_OR_EMPTY(tp->peer_cert_fprint)),
-		   SEND_ATTR_STR(MAIL_ATTR_PEER_PKEY_FPT,
+		   SEND_ATTR_STR(TLS_ATTR_PEER_PKEY_FPT,
 				 STRING_OR_EMPTY(tp->peer_pkey_fprint)),
-		   SEND_ATTR_INT(MAIL_ATTR_PEER_STATUS,
+		   SEND_ATTR_INT(TLS_ATTR_PEER_STATUS,
 				 tp->peer_status),
-		   SEND_ATTR_STR(MAIL_ATTR_CIPHER_PROTOCOL,
+		   SEND_ATTR_STR(TLS_ATTR_CIPHER_PROTOCOL,
 				 STRING_OR_EMPTY(tp->protocol)),
-		   SEND_ATTR_STR(MAIL_ATTR_CIPHER_NAME,
+		   SEND_ATTR_STR(TLS_ATTR_CIPHER_NAME,
 				 STRING_OR_EMPTY(tp->cipher_name)),
-		   SEND_ATTR_INT(MAIL_ATTR_CIPHER_USEBITS,
+		   SEND_ATTR_INT(TLS_ATTR_CIPHER_USEBITS,
 				 tp->cipher_usebits),
-		   SEND_ATTR_INT(MAIL_ATTR_CIPHER_ALGBITS,
+		   SEND_ATTR_INT(TLS_ATTR_CIPHER_ALGBITS,
 				 tp->cipher_algbits),
 		   ATTR_TYPE_END);
+    /* Do not flush the stream. */
     return (ret);
 }
 

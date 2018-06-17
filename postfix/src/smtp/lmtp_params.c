@@ -61,6 +61,7 @@
 	VAR_LMTP_DNS_RES_OPT, DEF_LMTP_DNS_RES_OPT, &var_smtp_dns_res_opt, 0, 0,
 	VAR_LMTP_DSN_FILTER, DEF_LMTP_DSN_FILTER, &var_smtp_dsn_filter, 0, 0,
 	VAR_LMTP_DNS_RE_FILTER, DEF_LMTP_DNS_RE_FILTER, &var_smtp_dns_re_filter, 0, 0,
+	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE lmtp_time_table[] = {
@@ -108,6 +109,7 @@
 	VAR_LMTP_CACHE_DEMAND, DEF_LMTP_CACHE_DEMAND, &var_smtp_cache_demand,
 	VAR_LMTP_USE_TLS, DEF_LMTP_USE_TLS, &var_smtp_use_tls,
 	VAR_LMTP_ENFORCE_TLS, DEF_LMTP_ENFORCE_TLS, &var_smtp_enforce_tls,
+	VAR_LMTP_TLS_CONN_REUSE, DEF_LMTP_TLS_CONN_REUSE, &var_smtp_tls_conn_reuse,
 #ifdef USE_TLS
 	VAR_LMTP_TLS_ENFORCE_PN, DEF_LMTP_TLS_ENFORCE_PN, &var_smtp_tls_enforce_peername,
 	VAR_LMTP_TLS_NOTEOFFER, DEF_LMTP_TLS_NOTEOFFER, &var_smtp_tls_note_starttls_offer,

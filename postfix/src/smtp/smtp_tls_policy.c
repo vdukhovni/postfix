@@ -74,6 +74,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
 /*	Viktor Dukhovni
 /*--*/
 
@@ -356,6 +361,18 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    }
 	    continue;
 	}
+	/* Last one wins. */
+	if (!strcasecmp(name, "connection_reuse")) {
+	    if (strcasecmp(val, "yes") == 0) {
+		tls->conn_reuse = 1;
+	    } else if (strcasecmp(val, "no") == 0) {
+		tls->conn_reuse = 0;
+	    } else {
+		msg_warn("%s: attribute \"%s\" has bad value: \"%s\"",
+			WHERE, name, val);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	}
 	msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
 	INVALID_RETURN(tls->why, site_level);
     }
@@ -483,6 +500,7 @@ static void *policy_create(const char *unused_key, void *context)
     SMTP_TLS_POLICY *tls = (SMTP_TLS_POLICY *) mymalloc(sizeof(*tls));
 
     smtp_tls_policy_init(tls, dsb_create());
+    tls->conn_reuse = var_smtp_tls_conn_reuse;
 
     /*
      * Compute the per-site TLS enforcement level. For compatibility with the

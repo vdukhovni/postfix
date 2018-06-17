@@ -667,13 +667,16 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
      * and restore it here, so that subsequent connections will use the
      * proper nexthop information.
      * 
-     * We request a dummy "TLS disabled" policy for connection-cache lookup by
-     * request nexthop only. If we find a saved connection, then we know that
-     * plaintext was permitted, because we never save a connection after
-     * turning on TLS.
+     * If TLS is proxied, lookup the TLS policy now so that we reuse only
+     * matching sessions. Otherwise, request a dummy "TLS disabled" policy
+     * for connection-cache lookup by request nexthop only.
      */
 #ifdef USE_TLS
-    smtp_tls_policy_dummy(state->tls);
+    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
+	msg_warn("TLS policy lookup error for %s/%s: %s",
+		 STR(iter->dest), STR(iter->host), STR(why->reason));
+	return (0);				/* XXX */
+    }
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0

@@ -3101,6 +3101,11 @@ The LMTP\-specific version of the smtp_tls_ciphers configuration
 parameter. See there for details.
 .PP
 This feature is available in Postfix 2.6 and later.
+.SH lmtp_tls_connection_reuse (default: no)
+The LMTP\-specific version of the smtp_tls_connection_reuse configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH lmtp_tls_dcert_file (default: empty)
 The LMTP\-specific version of the smtp_tls_dcert_file
 configuration parameter.  See there for details.
@@ -7593,6 +7598,16 @@ ciphers on a per\-destination basis.
 This feature is available in Postfix 2.6 and later. With earlier Postfix
 releases only the smtp_tls_mandatory_ciphers parameter is implemented,
 and opportunistic TLS always uses "export" or better (i.e. all) ciphers.
+.SH smtp_tls_connection_reuse (default: no)
+Try to make multiple deliveries per TLS\-encrypted connection.
+This uses the \fBtlsproxy\fR(8) service to encrypt an SMTP connection,
+uses the \fBscache\fR(8) service to save that connection, and relies on
+hints from the \fBqmgr\fR(8) daemon.
+.PP
+See "Client\-side
+TLS connection reuse" for background details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH smtp_tls_dane_insecure_mx_policy (default: dane)
 The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is \fBdane\fR, but the MX
@@ -8235,11 +8250,13 @@ No TLS. No additional attributes are supported at this level.
 .IP "\fBmay\fR"
 Opportunistic TLS. Since sending in the clear is acceptable,
 demanding stronger than default TLS security merely reduces
-interoperability. The optional "ciphers", "exclude" and "protocols"
+interoperability. The optional "ciphers", "exclude", and "protocols"
 attributes (available for opportunistic TLS with Postfix >= 2.6)
-override the "smtp_tls_ciphers", "smtp_tls_exclude_ciphers" and
-"smtp_tls_protocols" configuration parameters. When opportunistic TLS
-handshakes fail, Postfix retries the connection with TLS disabled.
+and "connection_reuse" attribute (Postfix >= 3.4) override the
+"smtp_tls_ciphers", "smtp_tls_exclude_ciphers", "smtp_tls_protocols",
+and
+"smtp_tls_connection_reuse" configuration parameters. When opportunistic
+TLS handshakes fail, Postfix retries the connection with TLS disabled.
 This allows mail delivery to sites with non\-interoperable TLS
 implementations.
 .br
@@ -8247,9 +8264,11 @@ implementations.
 Mandatory TLS encryption. At this level
 and higher, the optional "protocols" attribute overrides the main.cf
 smtp_tls_mandatory_protocols parameter, the optional "ciphers" attribute
-overrides the main.cf smtp_tls_mandatory_ciphers parameter, and the
+overrides the main.cf smtp_tls_mandatory_ciphers parameter, the
 optional "exclude" attribute (Postfix >= 2.6) overrides the main.cf
-smtp_tls_mandatory_exclude_ciphers parameter. In the policy table,
+smtp_tls_mandatory_exclude_ciphers parameter, and the optional
+"connection_reuse" attribute (Postfix >= 3.4) overrides the
+main.cf smtp_tls_connection_reuse parameter. In the policy table,
 multiple protocols or excluded ciphers must be separated by colons,
 as attribute values may not contain whitespace or commas.
 .br
@@ -8261,7 +8280,8 @@ found, but none are usable, the effective security level is encrypt.  When usabl
 TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  RFC 7672 (DANE)
 TLS authentication and DNSSEC support is available with Postfix
-2.11 and later.
+2.11 and later. The optional "connection_reuse" attribute (Postfix
+>= 3.4) overrides the main.cf smtp_tls_connection_reuse parameter.
 .br
 .IP "\fBdane\-only\fR"
 Mandatory DANE TLS.  The TLS policy for the destination is
@@ -8270,7 +8290,8 @@ or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  RFC 7672 (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
-and later.
+and later. The optional "connection_reuse" attribute (Postfix >=
+3.4) overrides the main.cf smtp_tls_connection_reuse parameter.
 .br
 .IP "\fBfingerprint\fR"
 Certificate fingerprint
@@ -8286,7 +8307,8 @@ algorithm used to calculate the fingerprint is selected by the
 be combined with a "|" delimiter in a single match attribute, or multiple
 match attributes can be employed. The ":" character is not used as a
 delimiter as it occurs between each pair of fingerprint (hexadecimal)
-digits.
+digits. The optional "connection_reuse" attribute (Postfix >= 3.4)
+overrides the main.cf smtp_tls_connection_reuse parameter.
 .br
 .IP "\fBverify\fR"
 Mandatory TLS verification.  At this security
@@ -8296,7 +8318,9 @@ unauthenticated DNS MX lookups.  The optional "match" attribute overrides
 the main.cf smtp_tls_verify_cert_match parameter. In the policy table,
 multiple match patterns and strategies must be separated by colons.
 In practice explicit control over matching is more common with the
-"secure" policy, described below.
+"secure" policy, described below. The optional "connection_reuse"
+attribute (Postfix >= 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter.
 .br
 .IP "\fBsecure\fR"
 Secure\-channel TLS. At this security level, DNS
@@ -8314,7 +8338,9 @@ routing the secondary domains to the primary nexthop also allow secure
 verification, they risk delivery to the wrong destination when domains
 change hands or are re\-assigned to new gateways. With the "match"
 attribute approach, routing is not perturbed, and mail is deferred if
-verification of a new MX host fails.
+verification of a new MX host fails. The optional "connection_reuse"
+attribute (Postfix >= 3.4) overrides the main.cf
+smtp_tls_connection_reuse parameter.
 .br
 .br
 .PP

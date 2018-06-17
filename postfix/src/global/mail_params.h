@@ -4009,6 +4009,15 @@ extern char *var_smtp_dns_re_filter;
 extern char *var_smtpd_dns_re_filter;
 
  /*
+  * Share TLS sessions through tlproxy(8).
+  */
+#define VAR_SMTP_TLS_CONN_REUSE		"smtp_tls_connection_reuse"
+#define DEF_SMTP_TLS_CONN_REUSE		0
+#define VAR_LMTP_TLS_CONN_REUSE		"lmtp_tls_connection_reuse"
+#define DEF_LMTP_TLS_CONN_REUSE		0
+extern bool var_smtp_tls_conn_reuse;
+
+ /*
   * Location of shared-library files.
   * 
   * If the files will be installed into a known directory, such as a directory

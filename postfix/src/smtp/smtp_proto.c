@@ -848,20 +848,29 @@ static int smtp_start_tls(SMTP_STATE *state)
 {
     SMTP_SESSION *session = state->session;
     SMTP_ITERATOR *iter = state->iterator;
-    TLS_CLIENT_START_PROPS tls_props;
+    TLS_CLIENT_START_PROPS start_props;
     VSTRING *serverid;
     SMTP_RESP fake;
+    TLS_CLIENT_INIT_PROPS init_props;
+    VSTREAM *tlsproxy;
+    VSTRING *port_buf;
 
     /*
-     * Turn off SMTP connection caching. When the TLS handshake succeeds, we
-     * can't reuse the SMTP connection. Reason: we can't turn off TLS in one
-     * process, save the connection to the cache which is shared with all
-     * SMTP clients, migrate the connection to another SMTP client, and
-     * resume TLS there. When the TLS handshake fails, we can't reuse the
-     * SMTP connection either, because the conversation is in an unknown
-     * state.
+     * When the TLS handshake succeeds, we can reuse a connection only if TLS
+     * remains turned on for the lifetime of that connection. This requires
+     * that the TLS library state is maintained in some proxy process, for
+     * example, in tlsproxy(8). We then store the proxy file handle in the
+     * connection cache, and reuse that file handle.
+     * 
+     * Otherwise, we must turn off connection caching. We can't turn off TLS in
+     * one SMTP client process, save the open connection to a cache which is
+     * shared with all SMTP clients, migrate the connection to another SMTP
+     * client, and resume TLS there. When the TLS handshake fails, we can't
+     * reuse the SMTP connection either, because the conversation is in an
+     * unknown state.
      */
-    DONT_CACHE_THIS_SESSION;
+    if (state->tls->conn_reuse == 0)
+	DONT_CACHE_THIS_SESSION;
 
     /*
      * The following assumes sites that use TLS in a perverse configuration:
@@ -894,37 +903,164 @@ static int smtp_start_tls(SMTP_STATE *state)
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_ADDR);
 
-    /*
-     * As of Postfix 2.5, tls_client_start() tries hard to always complete
-     * the TLS handshake. It records the verification and match status in the
-     * resulting TLScontext. It is now up to the application to abort the TLS
-     * connection if it chooses.
-     * 
-     * XXX When tls_client_start() fails then we don't know what state the SMTP
-     * connection is in, so we give up on this connection even if we are not
-     * required to use TLS.
-     * 
-     * Large parameter lists are error-prone, so we emulate a language feature
-     * that C does not have natively: named parameter lists.
-     */
-    session->tls_context =
-	TLS_CLIENT_START(&tls_props,
-			 ctx = smtp_tls_ctx,
-			 stream = session->stream,
-			 timeout = var_smtp_starttls_tmout,
-			 tls_level = state->tls->level,
-			 nexthop = session->tls_nexthop,
-			 host = STR(iter->host),
-			 namaddr = session->namaddrport,
-			 serverid = vstring_str(serverid),
-			 helo = session->helo,
-			 protocols = state->tls->protocols,
-			 cipher_grade = state->tls->grade,
-			 cipher_exclusions
-			 = vstring_str(state->tls->exclusions),
-			 matchargv = state->tls->matchargv,
-			 mdalg = var_smtp_tls_fpt_dgst,
-			 dane = state->tls->dane);
+    if (state->tls->conn_reuse) {
+
+	/*
+	 * Send all our wishes in one big request.
+	 */
+	TLS_PROXY_CLIENT_INIT_PROPS(&init_props,
+				    log_param = VAR_LMTP_SMTP(TLS_LOGLEVEL),
+				    log_level = var_smtp_tls_loglevel,
+				    verifydepth = var_smtp_tls_scert_vd,
+				    cache_type
+				    = LMTP_SMTP_SUFFIX(TLS_MGR_SCACHE),
+				    cert_file = var_smtp_tls_cert_file,
+				    key_file = var_smtp_tls_key_file,
+				    dcert_file = var_smtp_tls_dcert_file,
+				    dkey_file = var_smtp_tls_dkey_file,
+				    eccert_file = var_smtp_tls_eccert_file,
+				    eckey_file = var_smtp_tls_eckey_file,
+				    CAfile = var_smtp_tls_CAfile,
+				    CApath = var_smtp_tls_CApath,
+				    mdalg = var_smtp_tls_fpt_dgst);
+	TLS_PROXY_CLIENT_START_PROPS(&start_props,
+				     timeout = var_smtp_starttls_tmout,
+				     tls_level = state->tls->level,
+				     nexthop = session->tls_nexthop,
+				     host = STR(iter->host),
+				     namaddr = session->namaddrport,
+				     serverid = vstring_str(serverid),
+				     helo = session->helo,
+				     protocols = state->tls->protocols,
+				     cipher_grade = state->tls->grade,
+				     cipher_exclusions
+				     = vstring_str(state->tls->exclusions),
+				     matchargv = state->tls->matchargv,
+				     mdalg = var_smtp_tls_fpt_dgst,
+				     dane = state->tls->dane);
+
+	/*
+	 * The tlsproxy(8) server enforces timeouts that are larger than
+	 * those specified by the tlsproxy(8) client. These timeouts are a
+	 * safety net for the case that the tlsproxy(8) client fails to
+	 * enforce time limits. Normally, the tlsproxy(8) client would time
+	 * out and trigger a plaintext event in the tlsproxy(8) server, and
+	 * cause it to tear down the session.
+	 * 
+	 * However, the tlsproxy(8) server has no insight into the SMTP
+	 * protocol, and therefore it cannot by itself support different
+	 * timeouts at different SMTP protocol stages. Instead, we specify
+	 * the largest timeout (end-of-data) and rely on the SMTP client to
+	 * time out first, which normally results in a plaintext event in the
+	 * tlsproxy(8) server. Unfortunately, we cannot permit plaintext
+	 * events during the TLS handshake, so we specify a separate timeout
+	 * for that stage (the end-of-data timeout would be unreasonably
+	 * large anyway).
+	 */
+#define PROXY_OPEN_FLAGS \
+        (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_SEND_CONTEXT)
+
+	port_buf = vstring_alloc(100);		/* minimize fragmentation */
+	vstring_sprintf(port_buf, "%d", ntohs(iter->port));
+	tlsproxy =
+	    tls_proxy_open(var_tlsproxy_service, PROXY_OPEN_FLAGS,
+			   session->stream, STR(iter->addr),
+			   STR(port_buf), var_smtp_starttls_tmout,
+			   var_smtp_data2_tmout, state->service,
+			   &init_props, &start_props);
+	vstring_free(port_buf);
+
+	/*
+	 * To insert tlsproxy(8) between this process and the remote SMTP
+	 * server, we swap the file descriptors between the tlsproxy and
+	 * session->stream VSTREAMS, so that we don't lose all the
+	 * user-configurable session->stream attributes (such as longjump
+	 * buffers or timeouts).
+	 * 
+	 * TODO: the tlsproxy RPCs should return more error detail than a "NO"
+	 * result. OTOH, the in-process TLS engine does not return such info
+	 * either.
+	 * 
+	 * If the tlsproxy request fails we do not fall back to the in-process
+	 * TLS stack. Reason: the admin enabled connection reuse to respect
+	 * receiver policy; silently violating such policy would not be
+	 * useful.
+	 * 
+	 * We also don't fall back to the in-process TLS stack under low-traffic
+	 * conditions, to avoid frustrating attempts to debug a problem with
+	 * using the tlsproxy(8) service.
+	 */
+	if (tlsproxy == 0) {
+	    session->tls_context = 0;
+	} else {
+	    vstream_control(tlsproxy,
+			    CA_VSTREAM_CTL_DOUBLE,
+			    CA_VSTREAM_CTL_END);
+	    vstream_control(session->stream,
+			    CA_VSTREAM_CTL_SWAP_FD(tlsproxy),
+			    CA_VSTREAM_CTL_END);
+	    (void) vstream_fclose(tlsproxy);	/* direct-to-server stream! */
+
+	    /*
+	     * There must not be any pending data in the stream buffers
+	     * before we read the TLS context attributes.
+	     */
+	    vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
+
+	    /*
+	     * After plumbing the plaintext stream, receive the TLS context
+	     * object. For this we use the same VSTREAM buffer that we also
+	     * use to receive subsequent SMTP commands, therefore we must be
+	     * prepared for the possibility that the remote SMTP server
+	     * starts talking immediately. The tlsproxy implementation sends
+	     * the TLS context before remote content. The attribute protocol
+	     * is robust enough that an adversary cannot insert their own TLS
+	     * context attributes.
+	     */
+	    session->tls_context = tls_proxy_context_receive(session->stream);
+	}
+    } else {					/* state->tls->conn_reuse */
+
+	/*
+	 * As of Postfix 2.5, tls_client_start() tries hard to always
+	 * complete the TLS handshake. It records the verification and match
+	 * status in the resulting TLScontext. It is now up to the
+	 * application to abort the TLS connection if it chooses.
+	 * 
+	 * XXX When tls_client_start() fails then we don't know what state the
+	 * SMTP connection is in, so we give up on this connection even if we
+	 * are not required to use TLS.
+	 * 
+	 * Large parameter lists are error-prone, so we emulate a language
+	 * feature that C does not have natively: named parameter lists.
+	 */
+	session->tls_context =
+	    TLS_CLIENT_START(&start_props,
+			     ctx = smtp_tls_ctx,
+			     stream = session->stream,
+			     fd = -1,
+			     timeout = var_smtp_starttls_tmout,
+			     tls_level = state->tls->level,
+			     nexthop = session->tls_nexthop,
+			     host = STR(iter->host),
+			     namaddr = session->namaddrport,
+			     serverid = vstring_str(serverid),
+			     helo = session->helo,
+			     protocols = state->tls->protocols,
+			     cipher_grade = state->tls->grade,
+			     cipher_exclusions
+			     = vstring_str(state->tls->exclusions),
+			     matchargv = state->tls->matchargv,
+			     mdalg = var_smtp_tls_fpt_dgst,
+			     dane = state->tls->dane);
+
+	/*
+	 * At this point there must not be any pending data in the stream
+	 * buffers.
+	 */
+	vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
+    }						/* state->tls->conn_reuse */
+
     vstring_free(serverid);
 
     if (session->tls_context == 0) {
@@ -932,7 +1068,6 @@ static int smtp_start_tls(SMTP_STATE *state)
 	/*
 	 * We must avoid further I/O, the peer is in an undefined state.
 	 */
-	(void) vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
 	DONT_USE_FORBIDDEN_SESSION;
 
 	/*
@@ -982,9 +1117,6 @@ static int smtp_start_tls(SMTP_STATE *state)
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
 				   "Server certificate not verified"));
-
-    /* At this point there must not be any pending plaintext. */
-    vstream_fpurge(session->stream, VSTREAM_PURGE_BOTH);
 
     /*
      * At this point we have to re-negotiate the "EHLO" to reget the

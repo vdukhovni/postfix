@@ -478,6 +478,10 @@
 /*	The TLS policy for MX hosts with "secure" TLSA records when the
 /*	nexthop destination security level is \fBdane\fR, but the MX
 /*	record was found via an "insecure" MX lookup.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBsmtp_tls_connection_reuse (no)\fR"
+/*	Try to make multiple deliveries per TLS-encrypted connection.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -583,6 +587,10 @@
 /*	When SMTP connection caching is enabled, the number of times
 /*	that an SMTP session may be reused before it is closed, or zero (no
 /*	limit).
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBsmtp_tls_connection_reuse (no)\fR"
+/*	Try to make multiple deliveries per TLS-encrypted connection.
 /* .PP
 /*	Implemented in the qmgr(8) daemon:
 /* .IP "\fBtransport_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"
@@ -810,6 +818,7 @@
 /* Global library. */
 
 #include <deliver_request.h>
+#include <mail_proto.h>
 #include <mail_params.h>
 #include <mail_version.h>
 #include <mail_conf.h>
@@ -895,6 +904,8 @@ bool    var_smtp_enforce_tls;
 char   *var_smtp_tls_per_site;
 char   *var_smtp_tls_policy;
 bool    var_smtp_tls_wrappermode;
+bool    var_smtp_tls_conn_reuse;
+char   *var_tlsproxy_service;
 
 #ifdef USE_TLS
 char   *var_smtp_sasl_tls_opts;
@@ -1219,6 +1230,9 @@ static void pre_init(char *unused_name, char **unused_argv)
 	 * 
 	 * Large parameter lists are error-prone, so we emulate a language
 	 * feature that C does not have natively: named parameter lists.
+	 * 
+	 * With tlsproxy(8) turned on, this is still needed for DANE-related
+	 * initializations.
 	 */
 	smtp_tls_ctx =
 	    TLS_CLIENT_INIT(&props,

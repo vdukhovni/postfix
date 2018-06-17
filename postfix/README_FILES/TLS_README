@@ -707,6 +707,7 @@ Topics covered in this section:
   * Configuring TLS in the SMTP/LMTP client
   * Client-side TLS activity logging
   * Client-side certificate and private key configuration
+  * Client-side TLS connection reuse
   * Client-side TLS session cache
   * Client TLS limitations
   * Per-destination TLS policy
@@ -1431,6 +1432,43 @@ Example:
     /etc/postfix/main.cf:
         smtp_tls_CAfile = /etc/postfix/CAcert.pem
         smtp_tls_CApath = /etc/postfix/certs
+
+CClliieenntt--ssiiddee TTLLSS ccoonnnneeccttiioonn rreeuussee
+
+Historically, the Postfix SMTP client has supported multiple deliveries per
+connection only for plaintext connections. Postfix 3.4 introduces the ability
+to make multiple deliveries per TLS-encrypted connection. This is primarily to
+improve mail delivery performance for destinations that throttle clients when
+they don't combine deliveries.
+
+To enable multiple deliveries per TLS connection, specify:
+
+    /etc/postfix/main.cf:
+        smtp_tls_connection_reuse = yes
+
+Alternatively, specify the attribute "connection_reuse=yes" in an
+smtp_tls_policy_maps entry.
+
+The implementation of TLS connection reuse relies on the same scache(8) service
+as used for delivering plaintext SMTP mail, the same tlsproxy(8) daemon as used
+by the postscreen(8) service, and relies on the same hints from the qmgr(8)
+daemon. See "Postfix Connection Cache" for a description of the underlying
+connection reuse infrastructure.
+
+Initial SMTP handshake:
+
+    smtp(8) -> remote SMTP server
+
+Reused SMTP/TLS connection, or new SMTP/TLS connection:
+
+    smtp(8) -> tlsproxy(8) -> remote SMTP server
+
+Cached SMTP/TLS connection:
+
+    scache(8) -> tlsproxy(8) -> remote SMTP server
+
+As of Postfix 3.4, TLS connection reuse is disabled by default. This may change
+once the impact on over-all performance is undestood.
 
 CClliieenntt--ssiiddee TTLLSS sseessssiioonn ccaacchhee
 

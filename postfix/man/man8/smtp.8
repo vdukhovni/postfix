@@ -508,6 +508,10 @@ Available in Postfix version 3.1 and later:
 The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is \fBdane\fR, but the MX
 record was found via an "insecure" MX lookup.
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBsmtp_tls_connection_reuse (no)\fR"
+Try to make multiple deliveries per TLS\-encrypted connection.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf
@@ -617,6 +621,10 @@ Available in Postfix version 2.11 and later:
 When SMTP connection caching is enabled, the number of times
 that an SMTP session may be reused before it is closed, or zero (no
 limit).
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBsmtp_tls_connection_reuse (no)\fR"
+Try to make multiple deliveries per TLS\-encrypted connection.
 .PP
 Implemented in the qmgr(8) daemon:
 .IP "\fBtransport_destination_concurrency_limit ($default_destination_concurrency_limit)\fR"

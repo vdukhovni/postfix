@@ -37,6 +37,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -226,10 +231,11 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
     vstring_sprintf(remote_endpt, "[%s]:%s", smtp_state->smtp_client_addr,
 		    smtp_state->smtp_client_port);
     attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
-	       SEND_ATTR_STR(MAIL_ATTR_REMOTE_ENDPT, STR(remote_endpt)),
-	       SEND_ATTR_INT(MAIL_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER),
-	       SEND_ATTR_INT(MAIL_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
-	       SEND_ATTR_STR(MAIL_ATTR_SERVER_ID, MAIL_SERVICE_SMTPD),	/* XXX */
+	       SEND_ATTR_STR(TLS_ATTR_REMOTE_ENDPT, STR(remote_endpt)),
+	       SEND_ATTR_INT(TLS_ATTR_FLAGS, TLS_PROXY_FLAG_ROLE_SERVER),
+	       SEND_ATTR_INT(TLS_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
+	       SEND_ATTR_INT(TLS_ATTR_TIMEOUT, psc_normal_cmd_time_limit),
+	       SEND_ATTR_STR(TLS_ATTR_SERVERID, MAIL_SERVICE_SMTPD),	/* XXX */
 	       ATTR_TYPE_END);
     if (vstream_fflush(tlsproxy_stream) != 0) {
 	msg_warn("error sending request to %s service: %m", psc_tlsp_service);

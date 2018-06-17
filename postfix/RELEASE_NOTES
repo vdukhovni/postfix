@@ -24,3 +24,46 @@ historical IBM Public License 1.0, it is now also distributed with the
 more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
+
+Major changes with snapshot 20180617
+====================================
+
+Preliminary Postfix SMTP client support for multiple deliveries per
+TLS-encrypted connection. This is primarily to improve mail delivery
+performance for destinations that throttle clients when they don't
+combine deliveries.
+
+This feature is enabled with "smtp_tls_connection_reuse=yes" in
+main.cf, or with "tls_connection_reuse=yes" in smtp_tls_policy_maps.
+It supports all Postfix TLS security levels including dane and
+dane-only.
+
+With connection reuse enabled as described above, the Postfix SMTP
+client uses the tlsproxy(8) server to encrypt a connection (even under
+low-traffic conditions). The tlsproxy(8) service was introduced in
+Postfix 2.8, to support STARTTLS in postscreen(8).
+
+Under high-traffic conditions, the Postfix SMTP client will use the
+scache(8) connection cache to store and retrieve open connections.
+This part already existed for plaintext SMTP, and it works in the
+same way for TLS-encryped connections.
+
+The following illustrates how TLS connections are reused:
+
+    Initial plaintext SMTP handshake:
+      smtp(8) -> remote SMTP server
+
+    Reused SMTP/TLS connection, or new SMTP/TLS connection:
+      smtp(8) -> tlsproxy(8) -> remote SMTP server
+
+    Cached SMTP/TLS connection:
+      scache(8) -> tlsproxy(8) -> remote SMTP server
+
+There are a few refinements planned:
+
+- Log the TLS properties every time a connection is reused.
+  Currently, the properties are logged when a TLS session is created.
+
+- Retire a tlsproxy(8) process after max_idle*max_use seconds, even
+  if it is not idle. This limits the impact of memory leaks in
+  libraries or in Postfix itself.

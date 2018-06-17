@@ -1,5 +1,21 @@
 Wish list:
 
+	Add 'retire after max_use * max_idle' support to the
+	event-server, so that tlsproxy processes will terminate
+	even on a busy server. This can build on the retirement
+	support for the dnsblog server.
+
+	With smtpd_reject_footer=$foo in master.cf, and foo defined
+	in main.cf, postconf complains about an unused setting in
+	main.cf. Note that "postconf -Px" will expand $name in
+	the parameter value, which is probably why the warning
+	exists.
+
+	Optionally save application attributes in scache(8) connection
+	store requests, and optionally request such attributes upon
+	connection retrieval. This would allow the SMTP client to
+	log the TLS properties of a reused session.
+
 	Things to do before the stable release:
 
 	Spell-check, double-word check, HTML validator check,
