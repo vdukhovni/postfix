@@ -46,7 +46,7 @@ Postfix 2.8, to support STARTTLS in postscreen(8).
 Under high-traffic conditions, the Postfix SMTP client will use the
 scache(8) connection cache to store and retrieve open connections.
 This part already existed for plaintext SMTP, and it works in the
-same way for TLS-encryped connections.
+same way for TLS-encrypted connections.
 
 The following illustrates how TLS connections are reused:
 

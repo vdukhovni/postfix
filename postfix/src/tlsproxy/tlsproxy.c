@@ -474,6 +474,12 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	tls_print_errors();
 	/* FALLTHROUGH */
     default:
+
+	/*
+	 * Allow buffered-up plaintext output to trickle out.
+	 */
+	if (state->plaintext_buf && NBBIO_WRITE_PEND(state->plaintext_buf))
+	    return (TLSP_STAT_OK);
 	tlsp_state_free(state);
 	return (TLSP_STAT_ERR);
     }
@@ -1013,7 +1019,7 @@ static void tlsp_get_request_event(int event, void *context)
 	     "(bogus_direction)", state->remote_endpt);
     state->req_flags = req_flags;
     /* state->is_server_role is set below. */
-    state->handshake_timeout = handshake_timeout + 10;	/* XXX */
+    state->handshake_timeout = handshake_timeout;
     state->session_timeout = session_timeout + 10;	/* XXX */
 
     /*

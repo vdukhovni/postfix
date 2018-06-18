@@ -23535,3 +23535,13 @@ Apologies for any names omitted.
 
 	Release: first production snapshot with multiple outbound
 	deliveries per TLS-encrypted connection.
+
+20180618
+
+	Quick tlsproxy workaround: after the remote TLS peer shuts
+	down TLS, allow unsent inbound plaintext to trickle out
+	before tearing down the proxied connection.  This addresses
+	a sporadic "lost connection after end-of-data" error in the
+	Postfix SMTP client, and addresses a sporadic "lost connection
+	after sending QUIT" error with "posttls-finger -X". File:
+	tlsproxy/tlsproxy.c.
