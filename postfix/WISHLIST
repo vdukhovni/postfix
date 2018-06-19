@@ -1,5 +1,21 @@
 Wish list:
 
+	When a connection is looked up by nexthop, we get a connection
+	that was stored under some MX destination address and TLS
+	level, but we don't get to find out the TLS level that was
+	in effect when the connection was stored.  This means that
+	when a reused connection is saved, it will be saved under
+	a key for a TLS level that may not match the connection's
+	initial TLS level. This is not a problem for destinations
+	that require certificate verification, because we currently
+	don't reuse connections that require certificate checks.
+	But we should eventually store a reused connection under a
+	key with the right level.
+
+	Store the TLS level that is in effect with the connection
+	that is stored under the destination address, so that it
+	can later be saved under that level.
+
 	Add 'retire after max_use * max_idle' support to the
 	event-server, so that tlsproxy processes will terminate
 	even on a busy server. This can build on the retirement

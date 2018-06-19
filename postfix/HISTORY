@@ -23545,3 +23545,13 @@ Apologies for any names omitted.
 	Postfix SMTP client, and addresses a sporadic "lost connection
 	after sending QUIT" error with "posttls-finger -X". File:
 	tlsproxy/tlsproxy.c.
+
+20180619
+
+	Segfault: don't lookup the TLS security level for nexthop-based
+	connection cache storage keys. The combination of (service,
+	nexthop, etc.) should be stable enough over the time range
+	of interest, and the policy is still enforced on an individual
+	connection to an MX host, before that connection is stored
+	under a nexthop- or host-based storage key. Files:
+	smtp/smtp_connect.c, smtp/smtp.h.

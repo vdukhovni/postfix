@@ -667,16 +667,14 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
      * and restore it here, so that subsequent connections will use the
      * proper nexthop information.
      * 
-     * If TLS is proxied, lookup the TLS policy now so that we reuse only
-     * matching sessions. Otherwise, request a dummy "TLS disabled" policy
-     * for connection-cache lookup by request nexthop only.
+     * We don't use TLS level info for nexthop-based connection cache storage
+     * keys. The combination of (service, nexthop, etc.) should be stable
+     * over the time range of interest, and the policy is still enforced on
+     * an individual connection to an MX host, before that connection is
+     * stored under a nexthop- or host-based storage key.
      */
 #ifdef USE_TLS
-    if (!smtp_tls_policy_cache_query(why, state->tls, iter)) {
-	msg_warn("TLS policy lookup error for %s/%s: %s",
-		 STR(iter->dest), STR(iter->host), STR(why->reason));
-	return (0);				/* XXX */
-    }
+    smtp_tls_policy_dummy(state->tls);
 #endif
     SMTP_ITER_SAVE_DEST(state->iterator);
     if (*addr_list && SMTP_RCPT_LEFT(state) > 0

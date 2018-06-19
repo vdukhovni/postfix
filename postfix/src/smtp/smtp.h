@@ -655,7 +655,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
-	| SMTP_KEY_FLAG_REQ_NEXTHOP | SMTP_KEY_FLAG_TLS_LEVEL)
+	| SMTP_KEY_FLAG_REQ_NEXTHOP)
 
  /*
   * Connection-cache endpoint lookup key. The SENDER, NEXTHOP, and HOSTNAME
