@@ -643,6 +643,14 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define COND_SASL_SMTP_KEY_FLAG_NEXTHOP \
 	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_NEXTHOP : 0)
 
+#ifdef USE_TLS
+#define COND_TLS_SMTP_KEY_FLAG_NEXTHOP \
+	(state->tls->level > TLS_LEV_ENCRYPT ? SMTP_KEY_FLAG_NEXTHOP : 0)
+#else
+#define COND_TLS_SMTP_KEY_FLAG_NEXTHOP \
+	(0)
+#endif
+
 #define COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
 	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_HOSTNAME : 0)
 
@@ -666,7 +674,8 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_MASK_SCACHE_ENDP_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
 	| COND_SASL_SMTP_KEY_FLAG_NEXTHOP | COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
-	| SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
+	| COND_TLS_SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_ADDR | \
+	SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
   * Silly little macros.

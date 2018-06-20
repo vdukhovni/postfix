@@ -232,14 +232,21 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      * serialize the properties with attr_print() instead of using ad-hoc,
      * non-reusable, code and hard-coded format strings.
      * 
-     * TODO(tlsproxy): save TLS_SESS_STATE information so that we can 
-     * restore TLS session properties.
+     * TODO(tlsproxy): save TLS_SESS_STATE information so that we can restore
+     * TLS session properties.
      * 
      * TODO: save SASL username and password information so that we can
      * correctly save a reused authenticated connection.
+     * 
+     * Note: the TLS level field is always present.
      */
-    vstring_sprintf(dest_prop, "%s\n%s\n%s\n%u",
+    vstring_sprintf(dest_prop, "%s\n%s\n%s\n%u\n%u",
 		    STR(iter->dest), STR(iter->host), STR(iter->addr),
+#ifdef USE_TLS
+		    iter->parent->tls->level,
+#else
+		    0,
+#endif
 		    session->features & SMTP_FEATURE_DESTINATION_MASK);
 
     /*
@@ -301,6 +308,11 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
     time_t  expire_time;		/* session re-use expiration time */
     unsigned reuse_count;		/* # times reused */
 
+#ifdef USE_TLS
+    SMTP_TLS_POLICY *tls = iter->parent->tls;
+
+#endif
+
     /*
      * XXX it would be nice to have a VSTRING to VSTREAM adapter so that we
      * can de-serialize the properties with attr_scan(), instead of using
@@ -356,6 +368,16 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
 	    msg_warn("%s: missing cached session address property", myname);
 	    return (0);
 	}
+	/* Note: the TLS level field is always present. */
+	if ((prop = mystrtok(&dest_props, "\n")) == 0 || !alldig(prop)) {
+	    msg_warn("%s: bad cached destination TLS level property", myname);
+	    return (0);
+	}
+#ifdef USE_TLS
+	tls->level = atoi(prop);
+	if (msg_verbose)
+	    msg_info("%s: tls_level=%d", myname, tls->level);
+#endif
 	if ((prop = mystrtok(&dest_props, "\n")) == 0 || !alldig(prop)) {
 	    msg_warn("%s: bad cached destination features property", myname);
 	    return (0);

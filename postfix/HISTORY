@@ -23555,3 +23555,20 @@ Apologies for any names omitted.
 	connection to an MX host, before that connection is stored
 	under a nexthop- or host-based storage key. Files:
 	smtp/smtp_connect.c, smtp/smtp.h.
+
+20180620
+
+	TLS connection reuse: save and restore the TLS level for a
+	reused connection, so that the reused connection will be
+	saved under a key that matches the connection's original
+	TLS level. This was not a problem for destinations that
+	require certificate verification, because we currently reuse
+	connections that require certificate checks only if they
+	are looked up by their nexthop destination. File:
+	smtp/smtp_session.c.
+
+	TLS connection reuse: with TLS level > encrypt, prohibit
+	sharing of the same connection endpoint under different
+	nexthops, by making the nexthop part of the endpoint-based
+	connection cache lookup key. File: smtp/smtp.h.
+
