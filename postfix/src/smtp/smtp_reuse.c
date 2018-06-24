@@ -251,10 +251,15 @@ SMTP_SESSION *smtp_reuse_addr(SMTP_STATE *state, int endp_key_flags)
 
     /*
      * Allow address-based reuse only for security levels that don't require
-     * certificate checks.
+     * certificate checks. Not to be confused with a similar constraint in
+     * the destination label smtp_key pattern, which conditionally includes
+     * the nexthop to prevent the reuse of an authenticated connection to the
+     * same MX hostname and the same IP address, but for a different nexthop
+     * destination (just in case we start to send SNI with the nexthop, and
+     * forget to update connection cache lookup key patterns).
      */
 #ifdef USE_TLS
-    if (state->tls->level > TLS_LEV_ENCRYPT)
+    if (TLS_MUST_MATCH(state->tls->level))
 	return (0);
 #endif
 

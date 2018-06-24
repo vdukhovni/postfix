@@ -63,7 +63,3 @@ There are a few refinements planned:
 
 - Log the TLS properties every time a connection is reused.
   Currently, the properties are logged when a TLS session is created.
-
-- Retire a tlsproxy(8) process after max_idle*max_use seconds, even
-  if it is not idle. This limits the impact of memory leaks in
-  libraries or in Postfix itself.

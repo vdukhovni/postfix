@@ -23572,3 +23572,18 @@ Apologies for any names omitted.
 	nexthops, by making the nexthop part of the endpoint-based
 	connection cache lookup key. File: smtp/smtp.h.
 
+20180623
+
+	TLS connection reuse: replaced random logic with TLS_MUST_MATCH()
+	when deciding under what conditions an authenticated
+	connection may be reused.  Files: smtp/smtp_proto.c,
+	smtp/smtp.h.
+
+	TLS connection reuse: a tlsproxy(8) process will retire
+	after max_idle*max_use, or some sane constant if either is
+	set to zero.  Files: master/event_server.c, tlsproxy/tlsproxy.c.
+
+	Documentation: automatic retirement. File: master/single_server.c.
+
+	Documentation: the connection caching limitation for SMTP
+	over TLS is now obsolete. File: proto/CONNECTION_CACHE_README.html.

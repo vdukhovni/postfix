@@ -645,7 +645,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 
 #ifdef USE_TLS
 #define COND_TLS_SMTP_KEY_FLAG_NEXTHOP \
-	(state->tls->level > TLS_LEV_ENCRYPT ? SMTP_KEY_FLAG_NEXTHOP : 0)
+	(TLS_MUST_MATCH(state->tls->level) ? SMTP_KEY_FLAG_NEXTHOP : 0)
 #else
 #define COND_TLS_SMTP_KEY_FLAG_NEXTHOP \
 	(0)

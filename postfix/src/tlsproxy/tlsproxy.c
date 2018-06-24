@@ -1329,6 +1329,7 @@ int     main(int argc, char **argv)
 		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
 		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
 		      CA_MAIL_SERVER_SLOW_EXIT(tlsp_drain),
+		      CA_MAIL_SERVER_RETIRE_ME,
 		      CA_MAIL_SERVER_WATCHDOG(&var_tlsp_watchdog),
 		      0);
 }

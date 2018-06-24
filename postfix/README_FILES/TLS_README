@@ -1468,7 +1468,7 @@ Cached SMTP/TLS connection:
     scache(8) -> tlsproxy(8) -> remote SMTP server
 
 As of Postfix 3.4, TLS connection reuse is disabled by default. This may change
-once the impact on over-all performance is undestood.
+once the impact on over-all performance is understood.
 
 CClliieenntt--ssiiddee TTLLSS sseessssiioonn ccaacchhee
 

@@ -122,17 +122,15 @@
 /*	Initialize the DSN filter for the bounce/defer service
 /*	clients with the specified map source and map names.
 /* .IP "CA_MAIL_SERVER_RETIRE_ME"
-/*	Terminate voluntarily when idle after (max_use * max_idle)
-/*	seconds. This setting prevents a process from being reused
-/*	indefinitely when var_use_limit is set to zero.
+/*	Prevent a process from being reused indefinitely. After
+/*	(var_max_use * var_max_idle) seconds or some sane constant,
+/*	terminate voluntarily when the process becomes idle.
 /* .PP
-/*	The var_use_limit variable limits the number of clients that
-/*	a server can service before it commits suicide.
-/*	Do not change this setting before calling single_server_main().
-/*	This value is taken from the global \fBmain.cf\fR configuration
-/*	file. Setting \fBvar_use_limit\fR to zero disables the client limit.
-/*	Specify CA_MAIL_SERVER_RETIRE_ME (see above) to limit the total
-/*	process lifetime.
+/*	The var_use_limit variable limits the number of clients
+/*	that a server can service before it commits suicide. This
+/*	value is taken from the global \fBmain.cf\fR configuration
+/*	file. Setting \fBvar_use_limit\fR to zero disables the
+/*	client limit.
 /*
 /*	The var_idle_limit variable limits the time that a service
 /*	receives no client connection requests before it commits suicide.
@@ -249,7 +247,7 @@ static NORETURN single_server_exit(void)
 static NORETURN single_server_retire(int unused_event, void *unused_context)
 {
     if (msg_verbose)
-        msg_info("time to retire -- exiting");
+	msg_info("time to retire -- exiting");
     single_server_exit();
 }
 
@@ -458,6 +456,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
     int     redo_syslog_init = 0;
     const char *dsn_filter_title;
     const char **dsn_filter_maps;
+    int     retire_me_from_flags = 0;
     int     retire_me = 0;
 
     /*
@@ -516,7 +515,7 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
      * stderr, because no-one is going to see them.
      */
     opterr = 0;
-    while ((c = GETOPT(argc, argv, "cdDi:lm:n:o:s:St:uvVz")) > 0) {
+    while ((c = GETOPT(argc, argv, "cdDi:lm:n:o:r:s:St:uvVz")) > 0) {
 	switch (c) {
 	case 'c':
 	    root_dir = "setme";
@@ -547,6 +546,10 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    if (strcmp(oname, VAR_SYSLOG_NAME) == 0)
 		redo_syslog_init = 1;
 	    myfree(oname_val);
+	    break;
+	case 'r':
+	    if ((retire_me_from_flags = atoi(optarg)) <= 0)
+		msg_fatal("invalid retirement time: %s", optarg);
 	    break;
 	case 's':
 	    if ((socket_count = atoi(optarg)) <= 0)
@@ -668,9 +671,11 @@ NORETURN single_server_main(int argc, char **argv, SINGLE_SERVER_FN service,...)
 	    bounce_client_init(dsn_filter_title, *dsn_filter_maps);
 	    break;
 	case MAIL_SERVER_RETIRE_ME:
-	    if (var_idle_limit == 0 || var_use_limit == 0 
-		|| var_idle_limit > 86400 / var_use_limit)
-		retire_me = 86400;
+	    if (retire_me_from_flags > 0)
+		retire_me = retire_me_from_flags;
+	    else if (var_idle_limit == 0 || var_use_limit == 0
+		     || var_idle_limit > 18000 / var_use_limit)
+		retire_me = 18000;
 	    else
 		retire_me = var_idle_limit * var_use_limit;
 	    break;

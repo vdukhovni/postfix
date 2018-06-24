@@ -159,7 +159,6 @@ mechanisms:
     MTAs, the slowest inbound MTA will attract most connections from Postfix to
     that destination).
 
-    .
     Postfix 2.3 logs the use count of multiply-used connections, as shown in
     the following example:
 
@@ -177,12 +176,11 @@ CCoonnnneeccttiioonn ccaacchhee lliimmiittaattiioonnss
 
 Postfix SMTP connection caching conflicts with certain applications:
 
-  * The Postfix shared connection cache cannot be used with TLS, because saved
-    TLS session information can be used only when a new connection is created
-    (this limitation does not exist in connection caching implementations that
-    reuse a connection only in the process that creates it). For this reason,
-    the Postfix smtp(8) client always closes the connection after completing an
-    attempt to deliver mail over TLS.
+  * With Postfix versions < 3.4, the Postfix shared connection cache cannot be
+    used with TLS, because an open TLS connection can be reused only in the
+    process that creates it. For this reason, the Postfix smtp(8) client
+    historically always closed the connection after completing an attempt to
+    deliver mail over TLS.
 
   * Postfix connection caching currently does not support multiple SASL
     accounts per mail server. Specifically, Postfix connection caching assumes
