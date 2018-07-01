@@ -1331,6 +1331,7 @@ int     main(int argc, char **argv)
 		      CA_MAIL_SERVER_SLOW_EXIT(tlsp_drain),
 		      CA_MAIL_SERVER_RETIRE_ME,
 		      CA_MAIL_SERVER_WATCHDOG(&var_tlsp_watchdog),
+		      CA_MAIL_SERVER_UNLIMITED,
 		      0);
 }
 

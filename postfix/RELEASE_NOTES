@@ -25,6 +25,21 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Incompatble change with snapshot 20180701
+=========================================
+
+To avoid performance loss under load, the tlsproxy(8) daemon now
+requires a zero process limit in master.cf (this setting is provided
+with the default master.cf file). As tlsproxy(8) processes become
+too busy handling TLS connections, more processes will automatically
+be added. By default, a tlsproxy(8) process will retire after several
+hours.
+
+To set the tlsproxy process limit to zero:
+
+# postconf -F tlsproxy/unix/process_limit=0
+# postfix reload
+
 Major changes with snapshot 20180617
 ====================================
 
@@ -38,15 +53,12 @@ main.cf, or with "tls_connection_reuse=yes" in smtp_tls_policy_maps.
 It supports all Postfix TLS security levels including dane and
 dane-only.
 
-With connection reuse enabled as described above, the Postfix SMTP
-client uses the tlsproxy(8) server to encrypt a connection (even under
-low-traffic conditions). The tlsproxy(8) service was introduced in
-Postfix 2.8, to support STARTTLS in postscreen(8).
-
-Under high-traffic conditions, the Postfix SMTP client will use the
-scache(8) connection cache to store and retrieve open connections.
-This part already existed for plaintext SMTP, and it works in the
-same way for TLS-encrypted connections.
+The implementation of TLS connection reuse relies on the same
+scache(8) service as used for delivering plaintext SMTP mail, the
+same tlsproxy(8) daemon as used by the postscreen(8) service for
+inbound connections, and relies on the same hints from the qmgr(8)
+daemon. It reuses the configuration parameters described in
+CONNECTION_CACHE_README.
 
 The following illustrates how TLS connections are reused:
 

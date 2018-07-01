@@ -23587,3 +23587,10 @@ Apologies for any names omitted.
 
 	Documentation: the connection caching limitation for SMTP
 	over TLS is now obsolete. File: proto/CONNECTION_CACHE_README.html.
+
+20180701
+
+	Incompatibility: the tlsproxy(8) daemon now requires a zero
+	process limit in master.cf (this setting is provided with
+	the default master.cf file). See RELEASE_NOTES for how to
+	change the tlsproxy process limit. File: tlsproxy/tlsproxy.c.

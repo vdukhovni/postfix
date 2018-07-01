@@ -1436,10 +1436,10 @@ Example:
 CClliieenntt--ssiiddee TTLLSS ccoonnnneeccttiioonn rreeuussee
 
 Historically, the Postfix SMTP client has supported multiple deliveries per
-connection only for plaintext connections. Postfix 3.4 introduces the ability
-to make multiple deliveries per TLS-encrypted connection. This is primarily to
-improve mail delivery performance for destinations that throttle clients when
-they don't combine deliveries.
+plaintext connection. Postfix 3.4 introduces support for multiple deliveries
+per TLS-encrypted connection. Multiple deliveries per connection improve mail
+delivery performance, especially for destinations that throttle clients that
+don't combine deliveries.
 
 To enable multiple deliveries per TLS connection, specify:
 
