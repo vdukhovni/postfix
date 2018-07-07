@@ -324,7 +324,7 @@ while (<>) {
     s;\bmail_owner\b;<a href="postconf.5.html#mail_owner">$&</a>;g;
     s;\bmail_release_date\b;<a href="postconf.5.html#mail_release_date">$&</a>;g;
     s;\bmail_spool_direc[-</bB>]*\n* *[<bB>]*tory\b;<a href="postconf.5.html#mail_spool_directory">$&</a>;g;
-    s;\bmail_version\b;<a href="postconf.5.html#mail_version">$&</a>;g;
+    s;\bmail_ver[-</bB>]*\n* *[<bB>]*sion\b;<a href="postconf.5.html#mail_version">$&</a>;g;
     s;\bmail[-</bB>]*\n* *[<bB>]*box_com[-</bB>]*\n* *[<bB>]*mand\b;<a href="postconf.5.html#mailbox_command">$&</a>;g;
     s;\bmail[-</bB>]*\n* *[<bB>]*box_com[-</bB>]*\n* *[<bB>]*mand_maps\b;<a href="postconf.5.html#mailbox_command_maps">$&</a>;g;
     s;\bmail[-</bB>]*\n* *[<bB>]*box_deliv[-</Bb>]*\n* *[<Bb>]*ery_lock\b;<a href="postconf.5.html#mailbox_delivery_lock">$&</a>;g;

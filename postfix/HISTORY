@@ -23594,3 +23594,30 @@ Apologies for any names omitted.
 	process limit in master.cf (this setting is provided with
 	the default master.cf file). See RELEASE_NOTES for how to
 	change the tlsproxy process limit. File: tlsproxy/tlsproxy.c.
+
+20180707
+
+	Bugfix (introduced: Postfix 3.0): with smtputf8_enable=yes,
+	table lookups could casefold the search string when searching
+	a regexp, pcre, tcp, or other lookup table that does not
+	use fixed-string keys, which is inconsistent with historical
+	behavior. File: util/dict_utf8.c.
+
+	Cleanup: removed unimplemented VSTRING support to enforce
+	a buffer size limit (by returning an error of sorts). In
+	practice, the limit was enforced in smtp_get(). Also made
+	the VSTRING inplementation more VSTREAM-compatible. Files:
+	util/vstring.[hc], posttls-finger/posttls-finger.c,
+	smtpstone/smtp-source.c.
+
+	Cleanup: unused variable. File: postqueue/postqueue.c.
+
+	Feature: VSTREAM support to "open" a VSTRING for read, write
+	or append mode, enabling the reuse of existing stream-based
+	code to serialize/deserialize Postfix data structures to/from
+	memory. File: vstream.[hc].
+
+	Cleanup: "make manpages" now generates a makedefs(1) manpage
+	for publication on the web. Also cleaned up some makedefs(1)
+	content. Files: man/Makefile.in, man/man1/makedefs.1,
+	html/Makefile.in, html/makedefs.1.html.

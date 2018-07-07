@@ -73,16 +73,19 @@
 /* .IP reverse_name_status
 /*	The reverse_name_status result field specifies how the
 /*	reverse_name information should be interpreted:
-/* .RS .IP 2
+/* .RS
+/* .IP 2
 /*	The address->name lookup succeeded.
 /* .IP 4
 /*	The address->name lookup failed with a recoverable error.
 /* .IP 5
 /*	The address->name lookup failed with an unrecoverable error.
-/* .RE .IP forward_name_status
+/* .RE
+/* .IP forward_name_status
 /*	The forward_name_status result field specifies how the
 /*	forward_name information should be interpreted:
-/* .RS .IP 2
+/* .RS
+/* .IP 2
 /*	The address->name and name->address lookup succeeded.
 /* .IP 4
 /*	The address->name lookup or name->address failed with a

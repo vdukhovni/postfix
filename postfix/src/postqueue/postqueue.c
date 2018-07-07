@@ -537,7 +537,6 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
     struct stat st;
-    char   *slash;
     int     c;
     int     fd;
     int     mode = PQ_MODE_DEFAULT;

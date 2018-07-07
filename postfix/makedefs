@@ -22,15 +22,16 @@
 #	command line). Use quotes if variables contain whitespace
 #	or shell meta characters.
 #
-#	The command "make makefiles name=value..." will replace the
-#	string MAIL_VERSION at the end of a parameter value with
-#	the Postfix release version. Do not try to specify something
-#	like $mail_version on this command line. This produces
-#	inconsistent results with different versions of the make(1)
-#	command.
+#	The command "\fBmake makefiles name=value...\fR" will replace
+#	the string \fBMAIL_VERSION\fR at the end of a value with the
+#	Postfix version (\fImajor.minor.patchlevel\fR for a stable
+#	release, \fImajor.minor-date\fR for a development release).
+#	Do not try to specify something like \fB$mail_version\fR:
+#	that produces inconsistent results with different implementations
+#	of the make(1) command.
 # .IP \fBAUXLIBS=\fIobject_library...\fR
 #	Specifies one or more non-default object libraries. Postfix
-#	2,12 and later specify some of their database library
+#	2.12 and later specify some of their database library
 #	dependencies with AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,
 #	AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL, AUXLIBS_SDBM,
 #	and AUXLIBS_SQLITE, respectively.
@@ -141,7 +142,6 @@
 #	This feature was introduced with Postfix 3.0.
 # .IP \fBpie=yes\fR
 # .IP \fBpie=no\fR
-#
 #	Enable (disable) Postfix builds with position-independent
 #	executables, on platforms where this is supported.
 #

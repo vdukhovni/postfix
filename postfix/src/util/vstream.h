@@ -44,7 +44,7 @@ typedef struct VSTREAM {
     VBUF    buf;			/* generic intelligent buffer */
     int     fd;				/* file handle, no 256 limit */
     VSTREAM_RW_FN read_fn;		/* buffer fill action */
-    VSTREAM_RW_FN write_fn;		/* buffer fill action */
+    VSTREAM_RW_FN write_fn;		/* buffer flush action */
     ssize_t req_bufsize;		/* requested read/write buffer size */
     void   *context;			/* application context */
     off_t   offset;			/* cached seek info */
@@ -59,6 +59,7 @@ typedef struct VSTREAM {
     VSTREAM_JMP_BUF *jbuf;		/* exception handling */
     struct timeval iotime;		/* time of last fill/flush */
     struct timeval time_limit;		/* read/write time limit */
+    struct VSTRING *vstring;		/* memory-backed stream */
 } VSTREAM;
 
 extern VSTREAM vstream_fstd[];		/* pre-defined streams */
@@ -78,12 +79,14 @@ extern VSTREAM vstream_fstd[];		/* pre-defined streams */
 #define VSTREAM_FLAG_FIXED	VBUF_FLAG_FIXED	/* fixed-size buffer */
 #define VSTREAM_FLAG_BAD	VBUF_FLAG_BAD
 
+/* Flags 1<<24 and above are reserved for VSTRING. */
 #define VSTREAM_FLAG_READ	(1<<8)	/* read buffer */
 #define VSTREAM_FLAG_WRITE	(1<<9)	/* write buffer */
 #define VSTREAM_FLAG_SEEK	(1<<10)	/* seek info valid */
 #define VSTREAM_FLAG_NSEEK	(1<<11)	/* can't seek this file */
 #define VSTREAM_FLAG_DOUBLE	(1<<12)	/* double buffer */
 #define VSTREAM_FLAG_DEADLINE	(1<<13)	/* deadline active */
+#define VSTREAM_FLAG_MEMORY	(1<<14)	/* internal stream */
 
 #define VSTREAM_PURGE_READ	(1<<0)	/* flush unread data */
 #define VSTREAM_PURGE_WRITE	(1<<1)	/* flush unwritten data */
@@ -256,6 +259,11 @@ extern int vstream_tweak_sock(VSTREAM *);
 extern int vstream_tweak_tcp(VSTREAM *);
 
 #define vstream_flags(stream) ((const int) (stream)->buf.flags)
+
+ /*
+  * Read/write VSTRING memory.
+  */
+VSTREAM *vstream_memopen(struct VSTRING *, int);
 
 /* LICENSE
 /* .ad

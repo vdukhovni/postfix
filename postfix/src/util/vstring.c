@@ -324,7 +324,7 @@ static void vstring_extend(VBUF *bp, ssize_t incr)
 
 static int vstring_buf_get_ready(VBUF *unused_buf)
 {
-    msg_panic("vstring_buf_get: write-only buffer");
+    return (VBUF_EOF);			/* be VSTREAM-friendly */
 }
 
 /* vstring_buf_put_ready - vbuf callback for write buffer full condition */
@@ -371,7 +371,6 @@ VSTRING *vstring_alloc(ssize_t len)
     vp->vbuf.get_ready = vstring_buf_get_ready;
     vp->vbuf.put_ready = vstring_buf_put_ready;
     vp->vbuf.space = vstring_buf_space;
-    vp->maxlen = 0;
     return (vp);
 }
 
@@ -397,11 +396,6 @@ void    vstring_ctl(VSTRING *vp,...)
 	switch (code) {
 	default:
 	    msg_panic("vstring_ctl: unknown code: %d", code);
-	case VSTRING_CTL_MAXLEN:
-	    vp->maxlen = va_arg(ap, ssize_t);
-	    if (vp->maxlen < 0)
-		msg_panic("vstring_ctl: bad max length %ld", (long) vp->maxlen);
-	    break;
 	case VSTRING_CTL_EXACT:
 	    vp->vbuf.flags |= VSTRING_FLAG_EXACT;
 	    break;
@@ -593,7 +587,6 @@ VSTRING *vstring_import(char *str)
     vp->vbuf.get_ready = vstring_buf_get_ready;
     vp->vbuf.put_ready = vstring_buf_put_ready;
     vp->vbuf.space = vstring_buf_space;
-    vp->maxlen = 0;
     return (vp);
 }
 
