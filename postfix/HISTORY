@@ -23599,9 +23599,9 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 3.0): with smtputf8_enable=yes,
 	table lookups could casefold the search string when searching
-	a regexp, pcre, tcp, or other lookup table that does not
-	use fixed-string keys, which is inconsistent with historical
-	behavior. File: util/dict_utf8.c.
+	a lookup table that does not use fixed-string keys (regexp,
+	pcre, tcp, etc.). Historically, Postfix would not case-fold
+	the search string with such tables. File: util/dict_utf8.c.
 
 	Cleanup: removed unimplemented VSTRING support to enforce
 	a buffer size limit (by returning an error of sorts). In
@@ -23621,3 +23621,12 @@ Apologies for any names omitted.
 	for publication on the web. Also cleaned up some makedefs(1)
 	content. Files: man/Makefile.in, man/man1/makedefs.1,
 	html/Makefile.in, html/makedefs.1.html.
+
+20180708
+
+	Cleanup: VSTREAM support to "open" a VSTRING: added
+	vstream_ftell() support; documented what changes are needed
+	before this can support vstream_fseek(), without breaking a
+	VSTRING during vstream_fflush(); added a simple 'allow'
+	filter for vstream_control() requests; added a unit test.
+	File: util/vstream.c.

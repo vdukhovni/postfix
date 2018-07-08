@@ -946,7 +946,7 @@ test69:	$(PROG) test69.ref
 	echo junk = junk >> test69.cf
 	touch -t 197101010000 main.cf
 	$(SHLIB_ENV) ./$(PROG) -nc . >test69.tmp 2>&1
-	diff test69.ref test69.tmp
+	sed "s;PWD;`pwd`;" test69.ref | diff - test69.tmp
 	rm -f main.cf master.cf test69.tmp test69.cf
 
 printfck: $(OBJS) $(PROG)
