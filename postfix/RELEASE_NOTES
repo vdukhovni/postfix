@@ -25,6 +25,19 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20180805-nonprod
+=============================================
+
+Preliminary support for RFC 3030 CHUNKING (BDAT) without BINARYMIME.
+The Postfix SMTP server is the only program that knows the difference
+between mail that was received with BDAT or DATA. 
+
+In both cases, the Postfix SMTP server will use smtpd_data_restrictions
+and smtpd_end_of_data_restrictions, it will send one Milter DATA event
+per mail transaction, and it will send one DATA command ending in
+<CR><LF>.<CR><LF> to an smtpd_proxy_filter. There is no difference
+in the Postfix queue file content.
+
 Incompatble change with snapshot 20180701
 =========================================
 

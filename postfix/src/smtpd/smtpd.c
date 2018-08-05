@@ -46,6 +46,7 @@
 /*	RFC 2554 (AUTH command)
 /*	RFC 2821 (SMTP protocol)
 /*	RFC 2920 (SMTP pipelining)
+/*	RFC 3030 (CHUNKING without BINARYMIME)
 /*	RFC 3207 (STARTTLS command)
 /*	RFC 3461 (SMTP DSN extension)
 /*	RFC 3463 (Enhanced status codes)
@@ -1906,6 +1907,8 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	EHLO_APPEND(state, "DSN");
     if (var_smtputf8_enable && (discard_mask & EHLO_MASK_SMTPUTF8) == 0)
 	EHLO_APPEND(state, "SMTPUTF8");
+    if ((discard_mask & EHLO_MASK_CHUNKING) == 0)
+	EHLO_APPEND(state, "CHUNKING");
 
     /*
      * Send the reply.
@@ -2734,6 +2737,18 @@ static void mail_reset(SMTPD_STATE *state)
 	state->milter_argv = 0;
 	state->milter_argc = 0;
     }
+
+    /*
+     * BDAT.
+     */
+    state->bdat_state = SMTPD_BDAT_NONE;
+    if (state->bdat_get_stream) {
+	(void) vstream_fclose(state->bdat_get_stream);
+	state->bdat_get_stream = 0;
+    }
+    if (state->bdat_get_buffer)
+	VSTRING_RESET(state->bdat_get_buffer);
+    state->bdat_last_chunk_size = 0;
 }
 
 /* rcpt_cmd - process RCPT TO command */
@@ -2764,6 +2779,11 @@ static int rcpt_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if (!SMTPD_IN_MAIL_TRANSACTION(state)) {
 	state->error_mask |= MAIL_ERROR_PROTOCOL;
 	smtpd_chat_reply(state, "503 5.5.1 Error: need MAIL command");
+	return (-1);
+    }
+    if (SMTPD_IN_BDAT_TRANSACTION(state)) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "503 5.5.1 Error: RCPT in BDAT transaction");
 	return (-1);
     }
     if (argc < 3
@@ -3115,45 +3135,37 @@ static void comment_sanitize(VSTRING *comment_string)
     VSTRING_TERMINATE(comment_string);
 }
 
+static void common_pre_message(SMTPD_STATE *state,
+	          int (*out_record) (VSTREAM *, int, const char *, ssize_t),
+	              int (*out_fprintf) (VSTREAM *, int, const char *,...),
+			               VSTREAM *out_stream, int out_error);
+static void receive_data_message(SMTPD_STATE *state,
+	          int (*out_record) (VSTREAM *, int, const char *, ssize_t),
+	              int (*out_fprintf) (VSTREAM *, int, const char *,...),
+				         VSTREAM *out_stream, int out_error);
+static int common_post_message_handling(SMTPD_STATE *state);
+
 /* data_cmd - process DATA command */
 
 static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 {
     SMTPD_PROXY *proxy;
     const char *err;
-    char   *start;
-    int     len;
-    int     curr_rec_type;
-    int     prev_rec_type;
-    int     first = 1;
-    VSTRING *why = 0;
-    int     saved_err;
     int     (*out_record) (VSTREAM *, int, const char *, ssize_t);
     int     (*out_fprintf) (VSTREAM *, int, const char *,...);
     VSTREAM *out_stream;
     int     out_error;
-    char  **cpp;
-    const CLEANUP_STAT_DETAIL *detail;
-    const char *rfc3848_sess;
-    const char *rfc3848_auth;
-    const char *with_protocol = (state->flags & SMTPD_FLAG_SMTPUTF8) ?
-    "UTF8SMTP" : state->protocol;
-
-#ifdef USE_TLS
-    VSTRING *peer_CN;
-    VSTRING *issuer_CN;
-
-#endif
-#ifdef USE_SASL_AUTH
-    VSTRING *username;
-
-#endif
 
     /*
      * Sanity checks. With ESMTP command pipelining the client can send DATA
      * before all recipients are rejected, so don't report that as a protocol
      * error.
      */
+    if (SMTPD_IN_BDAT_TRANSACTION(state)) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	smtpd_chat_reply(state, "503 5.5.1 Error: DATA in BDAT transaction");
+	return (-1);
+    }
     if (state->rcpt_count == 0) {
 	if (!SMTPD_IN_MAIL_TRANSACTION(state)) {
 	    state->error_mask |= MAIL_ERROR_PROTOCOL;
@@ -3202,6 +3214,37 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	out_fprintf = rec_fprintf;
 	out_error = CLEANUP_STAT_WRITE;
     }
+    common_pre_message(state, out_record, out_fprintf, out_stream, out_error);
+    smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
+    state->where = SMTPD_AFTER_DATA;
+    receive_data_message(state, out_record, out_fprintf, out_stream, out_error);
+    return common_post_message_handling(state);
+}
+
+/* common_pre_message - finish envelope and open message segment */
+
+static void common_pre_message(SMTPD_STATE *state,
+	          int (*out_record) (VSTREAM *, int, const char *, ssize_t),
+	              int (*out_fprintf) (VSTREAM *, int, const char *,...),
+			               VSTREAM *out_stream,
+			               int out_error)
+{
+    SMTPD_PROXY *proxy = state->proxy;
+    char  **cpp;
+    const char *rfc3848_sess;
+    const char *rfc3848_auth;
+    const char *with_protocol = (state->flags & SMTPD_FLAG_SMTPUTF8) ?
+    "UTF8SMTP" : state->protocol;
+
+#ifdef USE_TLS
+    VSTRING *peer_CN;
+    VSTRING *issuer_CN;
+
+#endif
+#ifdef USE_SASL_AUTH
+    VSTRING *username;
+
+#endif
 
     /*
      * Flush out a first batch of access table actions that are delegated to
@@ -3321,8 +3364,22 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 		    "\t(envelope-from %s)", STR(state->buffer));
 #endif
     }
-    smtpd_chat_reply(state, "354 End data with <CR><LF>.<CR><LF>");
-    state->where = SMTPD_AFTER_DATA;
+}
+
+/* receive_data_message - finish envelope and open message segment */
+
+static void receive_data_message(SMTPD_STATE *state,
+	          int (*out_record) (VSTREAM *, int, const char *, ssize_t),
+	              int (*out_fprintf) (VSTREAM *, int, const char *,...),
+				         VSTREAM *out_stream,
+				         int out_error)
+{
+    SMTPD_PROXY *proxy = state->proxy;
+    char   *start;
+    int     len;
+    int     curr_rec_type;
+    int     prev_rec_type;
+    int     first = 1;
 
     /*
      * Copy the message content. If the cleanup process has a problem, keep
@@ -3370,6 +3427,18 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	}
     }
     state->where = SMTPD_AFTER_DOT;
+}
+
+/* common_post_message_handling - commit message or report error */
+
+static int common_post_message_handling(SMTPD_STATE *state)
+{
+    SMTPD_PROXY *proxy = state->proxy;
+    const char *err;
+    VSTRING *why = 0;
+    int     saved_err;
+    const CLEANUP_STAT_DETAIL *detail;
+
     if (state->err == CLEANUP_STAT_OK
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_eod(state)) != 0) {
@@ -3562,6 +3631,263 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
     if (why)
 	vstring_free(why);
     return (saved_err);
+}
+
+/* skip_bdat - skip content and respond to BDAT error */
+
+static int skip_bdat(SMTPD_STATE *state, off_t skip_size,
+		             const char *format,...)
+{
+    va_list ap;
+    off_t   done;
+    off_t   len;
+
+    /*
+     * Read and discard content from the remote SMTP client. TODO: drop the
+     * connection in case of overload.
+     */
+    for (done = 0; done < skip_size; done += len) {
+	VSTRING_RESET(state->buffer);
+	if ((len = skip_size - done) > VSTREAM_BUFSIZE)
+	    len = VSTREAM_BUFSIZE;
+	smtp_fread(state->buffer, len, state->client);
+    }
+
+    /*
+     * Send the response to the remote SMTP client.
+     */
+    va_start(ap, format);
+    vsmtpd_chat_reply(state, format, ap);
+    va_end(ap);
+
+    /*
+     * Drop subsequent BDAT payloads until BDAT LAST or RSET.
+     */
+    state->bdat_state = SMTPD_BDAT_ERROR;
+    return (-1);
+}
+
+/* bdat_cmd - process BDAT command */
+
+static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
+{
+    SMTPD_PROXY *proxy;
+    const char *err;
+    off_t   chunk_size;
+    off_t   done;
+    off_t   read_len;
+    char   *start;
+    int     len;
+    int     curr_rec_type;
+    int     (*out_record) (VSTREAM *, int, const char *, ssize_t);
+    int     (*out_fprintf) (VSTREAM *, int, const char *,...);
+    VSTREAM *out_stream;
+    int     out_error;
+
+    /*
+     * Hang up if the BDAT command is malformed. The next input would be raw
+     * message content and that would trigger lots of command errors.
+     */
+    if (argc < 2 || argc > 3 || !alldig(argv[1].strval)
+	|| (chunk_size = off_cvt_string(argv[1].strval)) < 0
+	|| (argc == 3 && strcasecmp(argv[2].strval, "LAST") != 0)) {
+	state->error_mask |= MAIL_ERROR_PROTOCOL;
+	msg_warn("%s: malformed BDAT command syntax from %s: %.100s",
+		 state->queue_id ? state->queue_id : "NOQUEUE",
+		 state->namaddr, printable(vstring_str(state->buffer), '?'));
+	smtpd_chat_reply(state, "421 5.5.4 Syntax: BDAT count [LAST]");
+	return (-1);
+    }
+
+    /*
+     * BDAT commands may be pipelined within a MAIL transaction. After a
+     * previous BDAT command failed, accept BDAT requests and skip BDAT
+     * payloads to maintain synchronization with the remote SMTP client.
+     */
+    if (state->bdat_state == SMTPD_BDAT_ERROR)
+	return skip_bdat(state, chunk_size,
+			 "551 5.0.0 Discarded %ld bytes after earlier error",
+			 (long) chunk_size);
+
+    /*
+     * Special handling for the first BDAT command in a MAIL transaction,
+     * treating it as a kind of "DATA" command in policy evaluation.
+     */
+    if (!SMTPD_IN_BDAT_TRANSACTION(state)) {
+
+	/*
+	 * With ESMTP command pipelining a client may send BDAT before all
+	 * recipients are rejected. That is not necessarily a good idea. but
+	 * we should not treat such a BDAT command as a protocol error.
+	 */
+	if (state->rcpt_count == 0) {
+	    if (!SMTPD_IN_MAIL_TRANSACTION(state)) {
+		state->error_mask |= MAIL_ERROR_PROTOCOL;
+		return skip_bdat(state, chunk_size,
+				 "503 5.5.1 Error: need RCPT command");
+	    } else {
+		return skip_bdat(state, chunk_size,
+				 "554 5.5.1 Error: no valid recipients");
+	    }
+	}
+	if (SMTPD_STAND_ALONE(state) == 0
+	    && (err = smtpd_check_data(state)) != 0) {
+	    return skip_bdat(state, chunk_size, "%s", err);
+	}
+	if (state->milters != 0
+	    && (state->saved_flags & MILTER_SKIP_FLAGS) == 0
+	    && (err = milter_data_event(state->milters)) != 0
+	    && (err = check_milter_reply(state, err)) != 0) {
+	    return skip_bdat(state, chunk_size, "%s", err);
+	}
+	proxy = state->proxy;
+	if (proxy != 0 && proxy->cmd(state, SMTPD_PROX_WANT_MORE,
+				     SMTPD_CMD_DATA) != 0) {
+	    return skip_bdat(state, chunk_size, "%s", STR(proxy->reply));
+	}
+    }
+    /* Block too large chunks. */
+    if (state->act_size > var_message_limit - chunk_size) {
+	state->error_mask |= MAIL_ERROR_POLICY;
+	msg_warn("%s: BDAT request from %s exceeds message size limit",
+		 state->queue_id ? state->queue_id : "NOQUEUE",
+		 state->namaddr);
+	return skip_bdat(state, chunk_size,
+			 "552 5.3.4 Chunk exceeds message size limit");
+    }
+    /* Block trickle attacks with too small successive chunks. */
+    if (SMTPD_IN_BDAT_TRANSACTION(state) && argc != 3
+	&& state->bdat_last_chunk_size + chunk_size < 20) {
+	msg_warn("%s: multiple small BDAT requests from %s",
+		 state->queue_id ? state->queue_id : "NOQUEUE",
+		 state->namaddr);
+	return skip_bdat(state, chunk_size,
+			 "551 5.7.1 Too many small BDAT requests");
+    }
+    state->bdat_last_chunk_size = chunk_size;
+
+    /*
+     * One level of indirection to choose between normal or proxied
+     * operation. We want to avoid massive code duplication within tons of
+     * if-else clauses. TODO: store this in its own data structure, or in
+     * SMTPD_STATE.
+     */
+    proxy = state->proxy;
+    if (proxy) {
+	out_stream = proxy->stream;
+	out_record = proxy->rec_put;
+	out_fprintf = proxy->rec_fprintf;
+	out_error = CLEANUP_STAT_PROXY;
+    } else {
+	out_stream = state->cleanup;
+	out_record = rec_put;
+	out_fprintf = rec_fprintf;
+	out_error = CLEANUP_STAT_WRITE;
+    }
+    if (!SMTPD_IN_BDAT_TRANSACTION(state)) {
+	common_pre_message(state, out_record, out_fprintf,
+			   out_stream, out_error);
+	if (state->bdat_get_buffer == 0)
+	    state->bdat_get_buffer = vstring_alloc(VSTREAM_BUFSIZE);
+	else
+	    VSTRING_RESET(state->bdat_get_buffer);
+	state->bdat_prev_rec_type = 0;
+    }
+    if (state->bdat_get_stream != 0)
+	msg_panic("bdat_cmd: bdat_get_stream not null");
+
+    state->bdat_state = (argc == 3 ? SMTPD_BDAT_LAST : SMTPD_BDAT_OK);
+
+    /*
+     * Copy the message content. If the cleanup process has a problem, keep
+     * reading until the remote stops sending, then complain. Produce typed
+     * records from the SMTP stream so we can handle data that spans buffers.
+     */
+#define SWAP(type, a, b) do { \
+	type _c_; _c_ = (a); (a) = (b); (b) = _c_; \
+    } while (0)
+
+    /* Read the chunk one fragment at a time. */
+    for (done = 0; done < chunk_size; done += read_len) {
+	if ((read_len = chunk_size - done) > VSTREAM_BUFSIZE)
+	    read_len = VSTREAM_BUFSIZE;
+	/* Kludge: append the chunk fragment to the last partial record. */
+	if (VSTRING_LEN(state->bdat_get_buffer) > 0)
+	    SWAP(VSTRING *, state->bdat_get_buffer, state->buffer);
+	else
+	    VSTRING_RESET(state->buffer);
+	/* Caution: this makes a long jump in case of EOF or timeout. */
+	smtp_fread(state->buffer, read_len, state->client);
+	state->bdat_get_stream = vstream_memopen(state->buffer, O_RDONLY);
+	for ( /* */ ; /* */ ; state->bdat_prev_rec_type = curr_rec_type) {
+	    if (smtp_get_noexcept(state->bdat_get_buffer,
+				  state->bdat_get_stream,
+				  var_line_limit,
+				  SMTP_GET_FLAG_NONE) == '\n') {
+		/* Stopped at end-of-line. */
+		curr_rec_type = REC_TYPE_NORM;
+	    } else if (!vstream_feof(state->bdat_get_stream)) {
+		/* Stopped at var_line_limit. */
+		curr_rec_type = REC_TYPE_CONT;
+	    } else if (state->bdat_state == SMTPD_BDAT_LAST
+		       && read_len == chunk_size - done) {
+		/* Final chunk does not end in end-of-line. Fake it. */
+		curr_rec_type = REC_TYPE_NORM;
+	    } else {
+		/* Stopped at end of buffer, maybe in a partial record. */
+		break;
+	    }
+	    start = vstring_str(state->bdat_get_buffer);
+	    len = VSTRING_LEN(state->bdat_get_buffer);
+	    if (state->err == CLEANUP_STAT_OK) {
+		if (var_message_limit > 0
+		    && var_message_limit - state->act_size < len + 2) {
+		    state->err = CLEANUP_STAT_SIZE;
+		    msg_warn("%s: queue file size limit exceeded",
+			     state->queue_id ? state->queue_id : "NOQUEUE");
+		} else {
+		    state->act_size += len + 2;
+		    if (*start == '.' && proxy != 0
+			&& state->bdat_prev_rec_type != REC_TYPE_CONT)
+			/* out_fprintf would break text containing nulls. */
+			vstring_prepend(state->bdat_get_buffer, ".", 1);
+		    if (out_record(out_stream, curr_rec_type,
+				   vstring_str(state->bdat_get_buffer),
+				   VSTRING_LEN(state->bdat_get_buffer)) < 0)
+			state->err = out_error;
+		}
+	    }
+	}
+	vstream_fclose(state->bdat_get_stream);
+	state->bdat_get_stream = 0;
+    }
+
+    /*
+     * Special handling for BDAT LAST (successful or unsuccessful).
+     */
+    if (state->bdat_state == SMTPD_BDAT_LAST) {
+	return common_post_message_handling(state);
+    }
+
+    /*
+     * Unsuccessful non-final BDAT command. common_post_message_handling()
+     * resets all MAIL transaction state including BDAT state. To avoid
+     * useless error messages due to pipelined BDAT commands, set the
+     * SMTPD_BDAT_ERROR state to accept BDAT commands and skip BDAT payloads.
+     */
+    else if (state->err != CLEANUP_STAT_OK) {
+	(void) common_post_message_handling(state);
+	state->bdat_state = SMTPD_BDAT_ERROR;
+	return (-1);
+    }
+
+    /*
+     * Successful non-final BDAT command.
+     */
+    else {
+	smtpd_chat_reply(state, "250 2.0.0 Ok: %ld bytes", (long) chunk_size);
+	return (0);
+    }
 }
 
 /* rset_cmd - process RSET */
@@ -4836,6 +5162,13 @@ typedef struct SMTPD_CMD {
     int     total_count;
 } SMTPD_CMD;
 
+ /*
+  * Per RFC 2920: "In particular, the commands RSET, MAIL FROM, SEND FROM,
+  * SOML FROM, SAML FROM, and RCPT TO can all appear anywhere in a pipelined
+  * command group. The EHLO, DATA, VRFY, EXPN, TURN, QUIT, and NOOP commands
+  * can only appear as the last command in a group". RFC 3030 allows BDAT
+  * commands to be pipelined as well.
+  */
 #define SMTPD_CMD_FLAG_LIMIT	(1<<0)	/* limit usage */
 #define SMTPD_CMD_FLAG_PRE_TLS	(1<<1)	/* allow before STARTTLS */
 #define SMTPD_CMD_FLAG_LAST	(1<<2)	/* last in PIPELINING command group */
@@ -4858,6 +5191,7 @@ static SMTPD_CMD smtpd_cmd_table[] = {
     {SMTPD_CMD_MAIL, mail_cmd,},
     {SMTPD_CMD_RCPT, rcpt_cmd,},
     {SMTPD_CMD_DATA, data_cmd, SMTPD_CMD_FLAG_LAST,},
+    {SMTPD_CMD_BDAT, bdat_cmd,},
     {SMTPD_CMD_RSET, rset_cmd, SMTPD_CMD_FLAG_LIMIT,},
     {SMTPD_CMD_NOOP, noop_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_PRE_TLS | SMTPD_CMD_FLAG_LAST,},
     {SMTPD_CMD_VRFY, vrfy_cmd, SMTPD_CMD_FLAG_LIMIT | SMTPD_CMD_FLAG_LAST,},

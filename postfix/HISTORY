@@ -23630,3 +23630,19 @@ Apologies for any names omitted.
 	VSTRING during vstream_fflush(); added a simple 'allow'
 	filter for vstream_control() requests; added a unit test.
 	File: util/vstream.c.
+
+20180805
+
+	Cleanup: vbuf_get() now sets the EOF flag, so that reading
+	from a VSTRING stream works as expected. File: util/vbuf.c.
+
+	SMTP server support for CHUNKING (BDAT) per RFC 3030. The
+	SMTP server is the only program that knows the difference
+	between mail received with BDAT or DATA. Both use the same
+	smtpd_data_restrictions and smtpd_end_of_data_restrictions,
+	both send one Milter DATA event per mail transaction, and
+	both send one DATA command ending in <CR><LF>.<CR><LF> to
+	an smtpd_proxy_filter. Files: global/ehlo_mask.h,
+	global/smtp_stream.c, global/smtp_stream.c, global/smtp_stream.h,
+	postscreen/postscreen_smtpd.c, smtpd/smtpd.c, smtpd/smtpd.h,
+	smtpd/smtpd_chat.c, smtpd/smtpd_chat.h, smtpd/smtpd_state.c.

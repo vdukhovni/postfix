@@ -345,6 +345,8 @@ static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask
     /* Fix 20140708: announce SMTPUTF8. */
     if (var_smtputf8_enable && (discard_mask & EHLO_MASK_SMTPUTF8) == 0)
 	PSC_EHLO_APPEND(saved_len, psc_temp, "250-SMTPUTF8\r\n");
+    if ((discard_mask & EHLO_MASK_CHUNKING) == 0)
+	PSC_EHLO_APPEND(saved_len, psc_temp, "250-CHUNKING\r\n");
     STR(psc_temp)[saved_len + 3] = ' ';
 }
 

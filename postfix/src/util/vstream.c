@@ -446,6 +446,8 @@
 /*	The deadline feature is activated.
 /* .IP VSTREAM_FLAG_DOUBLE
 /*	The double-buffering feature is activated.
+/* .IP VSTREAM_FLAG_MEMORY
+/*	The stream is connected to a VSTRING buffer.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO

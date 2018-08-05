@@ -148,6 +148,16 @@ void    smtpd_chat_query(SMTPD_STATE *state)
 void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 {
     va_list ap;
+
+    va_start(ap, format);
+    vsmtpd_chat_reply(state, format, ap);
+    va_end(ap);
+}
+
+/* vsmtpd_chat_reply - format, send and record an SMTP response */
+
+void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
+{
     int     delay = 0;
     char   *cp;
     char   *next;
@@ -160,9 +170,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
     if (state->error_count >= var_smtpd_soft_erlim)
 	sleep(delay = var_smtpd_err_sleep);
 
-    va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
-    va_end(ap);
 
     if (*var_smtpd_rej_footer
 	&& (*(cp = STR(state->buffer)) == '4' || *cp == '5'))
