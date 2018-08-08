@@ -195,8 +195,7 @@ typedef struct {
      */
 #define SMTPD_BDAT_NONE		0	/* not in BDAT transaction */
 #define SMTPD_BDAT_OK		1	/* in BDAT, accepting chunks */
-#define SMTPD_BDAT_LAST		2	/* in BDAT, last chunk */
-#define SMTPD_BDAT_ERROR	3	/* in BDAT, dropping chunks */
+#define SMTPD_BDAT_ERROR	2	/* in BDAT, skipping chunks */
     int     bdat_state;			/* see above */
     off_t bdat_last_chunk_size;		/* trickle defense */
     VSTREAM *bdat_get_stream;		/* memory stream from BDAT chunk */

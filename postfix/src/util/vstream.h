@@ -263,7 +263,9 @@ extern int vstream_tweak_tcp(VSTREAM *);
  /*
   * Read/write VSTRING memory.
   */
-VSTREAM *vstream_memopen(struct VSTRING *, int);
+#define vstream_memopen(string, flags) \
+	vstream_memreopen((VSTREAM *) 0, (string), (flags))
+VSTREAM *vstream_memreopen(VSTREAM *, struct VSTRING *, int);
 
 /* LICENSE
 /* .ad
