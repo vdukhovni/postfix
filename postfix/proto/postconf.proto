@@ -11191,8 +11191,10 @@ matches the underlying OpenSSL interface semantics.
 
 <p> The range of protocols advertised by an SSL/TLS client must be
 contiguous.  When a protocol version is enabled, disabling any
-higher version implicitly disables all versions above that higher
-version.  Thus, for example: </p>
+higher version implicitly disables all versions above that higher version.
+Thus, for example (assuming the OpenSSL library supports both SSLv2
+and SSLv3):
+</p>
 <blockquote>
 <pre>
 smtp_tls_mandatory_protocols = !SSLv2, !TLSv1
@@ -11208,6 +11210,9 @@ disabled except by also disabling "TLSv1" (typically leaving just
 "SSLv3").  The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2". </p>
+
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> At the <a href="TLS_README.html#client_tls_dane">dane</a> and
 <a href="TLS_README.html#client_tls_dane">dane-only</a> security
@@ -11405,6 +11410,9 @@ or later, these, or any other new protocol versions, cannot be
 disabled.  The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2". </p>
+
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> Example: </p>
 
@@ -12547,11 +12555,13 @@ and "TLSv1". </p>
 
 <p> The range of protocols advertised by an SSL/TLS client must be
 contiguous.  When a protocol version is enabled, disabling any
-higher version implicitly disables all versions above that higher
-version.  Thus, for example: </p>
+higher version implicitly disables all versions above that higher version.
+Thus, for example (assuming the OpenSSL library supports both SSLv2
+and SSLv3):
+</p>
 <blockquote>
 <pre>
-smtp_tls_mandatory_protocols = !SSLv2, !TLSv1
+smtp_tls_protocols = !SSLv2, !TLSv1
 </pre>
 </blockquote>
 <p> also disables any protocols version higher than TLSv1 leaving
@@ -12561,6 +12571,9 @@ only "SSLv3" enabled.  </p>
 and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2"</p>
+
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
 with a "!" character. To exclude SSLv2 for opportunistic TLS set
@@ -12593,6 +12606,9 @@ sensitive. </p>
 and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2". </p>
+
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
 with a "!" character. To exclude SSLv2 for opportunistic TLS set
