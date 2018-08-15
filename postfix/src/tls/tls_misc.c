@@ -353,6 +353,28 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
 #define SSL_OP_CRYPTOPRO_TLSEXT_BUG		0
 #endif
     NAMEBUG(CRYPTOPRO_TLSEXT_BUG),
+
+#ifndef SSL_OP_TLSEXT_PADDING
+#define SSL_OP_TLSEXT_PADDING	0
+#endif
+    NAMEBUG(TLSEXT_PADDING),
+
+#if 0
+ /*
+  * XXX: New with OpenSSL 1.1.1, this is turned on implicitly in SSL_CTX_new()
+  * and is not included in SSL_OP_ALL.  Allowing users to disable this would
+  * thus a code change that would clearing bug work-around bits in SSL_CTX,
+  * after setting SSL_OP_ALL.  Since this is presumably required for TLS 1.3 on
+  * today's Internet, the code change will be done separately later.  For now
+  * this implicit bug work-around cannot be disabled via supported Postfix
+  * mechanisms.
+  */
+#ifndef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
+#define SSL_OP_ENABLE_MIDDLEBOX_COMPAT	0
+#endif
+    NAMEBUG(ENABLE_MIDDLEBOX_COMPAT),
+#endif
+
     0, 0,
 };
 
@@ -378,6 +400,27 @@ static const LONG_NAME_MASK ssl_op_tweaks[] = {
 #define SSL_OP_NO_COMPRESSION		0
 #endif
     NAME_SSL_OP(NO_COMPRESSION),
+
+#ifndef SSL_OP_NO_RENEGOTIATION
+#define SSL_OP_NO_RENEGOTIATION		0
+#endif
+    NAME_SSL_OP(NO_RENEGOTIATION),
+
+#ifndef SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION
+#define SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION	0
+#endif
+    NAME_SSL_OP(NO_SESSION_RESUMPTION_ON_RENEGOTIATION),
+
+#ifndef SSL_OP_PRIORITIZE_CHACHA
+#define SSL_OP_PRIORITIZE_CHACHA	0
+#endif
+    NAME_SSL_OP(PRIORITIZE_CHACHA),
+
+#ifndef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
+#define SSL_OP_ENABLE_MIDDLEBOX_COMPAT	0
+#endif
+    NAME_SSL_OP(ENABLE_MIDDLEBOX_COMPAT),
+
     0, 0,
 };
 
