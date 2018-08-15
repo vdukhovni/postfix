@@ -101,6 +101,11 @@ extern const NAME_CODE tls_level_table[];
 #define X509_getm_notAfter X509_get_notAfter
 #endif
 
+ /* Backwards compatibility with OpenSSL < 1.1.1 */
+#if OPENSSL_VERSION_NUMBER < 0x1010100fUL
+#define SSL_CTX_set_num_tickets(ctx, num) ((void)0)
+#endif
+
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */
 #if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
 #define SSL_CIPHER_const const
