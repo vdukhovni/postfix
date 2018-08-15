@@ -14845,44 +14845,46 @@ you can only disable one of these via the hexadecimal syntax above. </p>
 
 <dl>
 
-<dt><b>MICROSOFT_SESS_ID_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
+<dt><b>CRYPTOPRO_TLSEXT_BUG</b></dt> <dd>New with GOST support in
+OpenSSL 1.0.0.</dd>
 
-<dt><b>NETSCAPE_CHALLENGE_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
+<dt><b>DONT_INSERT_EMPTY_FRAGMENTS</b></dt> <dd>See
+SSL_CTX_set_options(3)</dd>
 
 <dt><b>LEGACY_SERVER_CONNECT</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
 
-<dt><b>NETSCAPE_REUSE_CIPHER_CHANGE_BUG</b></dt> <dd> also aliased
-as <b>CVE-2010-4180</b>. Postfix 2.8 disables this work-around by
-default with OpenSSL versions that may predate the fix. Fixed in
-OpenSSL 0.9.8q and OpenSSL 1.0.0c.</dd>
-
-<dt><b>SSLREF2_REUSE_CERT_TYPE_BUG</b></dt> <dd>See
-SSL_CTX_set_options(3)</dd>
-
 <dt><b>MICROSOFT_BIG_SSLV3_BUFFER</b></dt> <dd>See
 SSL_CTX_set_options(3)</dd>
+
+<dt><b>MICROSOFT_SESS_ID_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
 
 <dt><b>MSIE_SSLV2_RSA_PADDING</b></dt> <dd> also aliased as
 <b>CVE-2005-2969</b>. Postfix 2.8 disables this work-around by
 default with OpenSSL versions that may predate the fix. Fixed in
 OpenSSL 0.9.7h and OpenSSL 0.9.8a.</dd>
 
+<dt><b>NETSCAPE_CHALLENGE_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
+
+<dt><b>NETSCAPE_REUSE_CIPHER_CHANGE_BUG</b></dt> <dd> also aliased
+as <b>CVE-2010-4180</b>. Postfix 2.8 disables this work-around by
+default with OpenSSL versions that may predate the fix. Fixed in
+OpenSSL 0.9.8q and OpenSSL 1.0.0c.</dd>
+
 <dt><b>SSLEAY_080_CLIENT_DH_BUG</b></dt> <dd>See
 SSL_CTX_set_options(3)</dd>
 
-<dt><b>TLS_D5_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
+<dt><b>SSLREF2_REUSE_CERT_TYPE_BUG</b></dt> <dd>See
+SSL_CTX_set_options(3)</dd>
 
 <dt><b>TLS_BLOCK_PADDING_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
+
+<dt><b>TLS_D5_BUG</b></dt> <dd>See SSL_CTX_set_options(3)</dd>
 
 <dt><b>TLS_ROLLBACK_BUG</b></dt> <dd>See SSL_CTX_set_options(3).
 This is disabled in OpenSSL 0.9.7 and later. Nobody should still
 be using 0.9.6! </dd>
 
-<dt><b>DONT_INSERT_EMPTY_FRAGMENTS</b></dt> <dd>See
-SSL_CTX_set_options(3)</dd>
-
-<dt><b>CRYPTOPRO_TLSEXT_BUG</b></dt> <dd>New with GOST support in
-OpenSSL 1.0.0.</dd>
+<dt><b>TLSEXT_PADDING</b></dt><dd>Postfix &ge; 3.4. See SSL_CTX_set_options(3).</dd>
 
 </dl>
 
@@ -15935,17 +15937,38 @@ in its value are enabled (see openssl/ssl.h and SSL_CTX_set_options(3)).
 You can only enable options not already controlled by other Postfix
 settings.  For example, you cannot disable protocols or enable
 server cipher preference.  Do not attempt to turn all features by
-specifying 0xFFFFFFFF, this is unlikely to be a good idea.  </p>
+specifying 0xFFFFFFFF, this is unlikely to be a good idea.  Some
+bug work-arounds are also valid here, allowing them to be re-enabled
+if/when they're no longer enabled by default.  The supported values
+include: </p>
 
 <dl>
 
+<dt><b>ENABLE_MIDDLEBOX_COMPAT</b></dt> <dd>Postfix &ge; 3.4. See
+SSL_CTX_set_options(3).</dd>
+
 <dt><b>LEGACY_SERVER_CONNECT</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
 
-<dt><b>NO_TICKET</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
+<dt><b>NO_TICKET</b></dt> <dd>Enabled by default when needed in
+fully-patched Postfix &ge; 2.7.  Not needed at all for Postfix &ge;
+2.11, unless for some reason you do not want to support TLS session
+resumption.  Best not set explicitly.  See SSL_CTX_set_options(3).</dd>
 
 <dt><b>NO_COMPRESSION</b></dt> <dd>Disable SSL compression even if
 supported by the OpenSSL library.  Compression is CPU-intensive,
 and compression before encryption does not always improve security.  </dd>
+
+<dt><b>NO_RENEGOTIATION</b></dt> <dd>Postfix &ge; 3.4.  This can
+reduce opportunities for a potential CPU exhaustion attack.  See
+SSL_CTX_set_options(3).</dd>
+
+<dt><b>NO_SESSION_RESUMPTION_ON_RENEGOTIATION</b></dt> <dd>Postfix
+&ge; 3.4. See SSL_CTX_set_options(3).</dd>
+
+<dt><b>PRIORITIZE_CHACHA</b></dt> <dd>Postfix &ge; 3.4. See SSL_CTX_set_options(3).</dd>
+
+<dt><b>TLSEXT_PADDING</b></dt> <dd>Postfix &ge; 3.4. See
+SSL_CTX_set_options(3).</dd>
 
 </dl>
 
