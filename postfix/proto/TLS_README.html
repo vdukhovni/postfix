@@ -923,12 +923,13 @@ handshake procedures.  </p>
 </blockquote>
 
 <p> With Postfix 2.8 and later, the tls_disable_workarounds parameter
-specifies a list or bit-mask of OpenSSL bug work-arounds to disable. This
-may be necessary if one of the work-arounds enabled by default in
-OpenSSL proves to pose a security risk, or introduces an unexpected
-interoperability issue. Some bug work-arounds known to be problematic
-are disabled in the default value of the parameter when linked with
-an OpenSSL library that could be vulnerable. </p>
+specifies a list or bit-mask of default-enabled OpenSSL bug
+work-arounds to disable. This may be necessary if one of the
+work-arounds enabled by default in OpenSSL proves to pose a security
+risk, or introduces an unexpected interoperability issue.  The list
+of enabled bug work-arounds is OpenSSL-release-specific.  See the
+tls_disable_workarounds parameter documentation for the list of
+supported values.</p>
 
 <p> Example: </p>
  
@@ -946,19 +947,8 @@ more of the named options below, or a hexadecimal bitmask of options
 found in the ssl.h file corresponding to the run-time OpenSSL
 library.  While it may be reasonable to turn off all bug workarounds
 (see above), it is not a good idea to attempt to turn on all features.
-</p>
-
-<dl>
-
-<dt><b>LEGACY_SERVER_CONNECT</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
-
-<dt><b>NO_TICKET</b></dt> <dd>See SSL_CTX_set_options(3).</dd>
-
-<dt><b>NO_COMPRESSION</b></dt> <dd>Disable SSL compression even if
-supported by the OpenSSL library.  Compression is CPU-intensive,
-and compression before encryption does not always improve security.  </dd>
-
-</dl>
+See the tls_ssl_options parameter documentation for the list of
+supported values.  </p>
 
 <p> Example: </p>
  
