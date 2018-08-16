@@ -1019,9 +1019,16 @@ void    tls_check_version(void)
     tls_version_split(OPENSSL_VERSION_NUMBER, &hdr_info);
     tls_version_split(OpenSSL_version_num(), &lib_info);
 
+    /*
+     * Warn if run-time library is different from compile-time library,
+     * allowing later run-time "micro" versions starting with 1.1.0.
+     */
     if (lib_info.major != hdr_info.major
 	|| lib_info.minor != hdr_info.minor
-	|| lib_info.micro != hdr_info.micro)
+	|| (lib_info.micro != hdr_info.micro
+	    && (lib_info.micro < hdr_info.micro
+		|| hdr_info.major == 0
+		|| (hdr_info.major == 1 && hdr_info.minor == 0))))
 	msg_warn("run-time library vs. compile-time header version mismatch: "
 	     "OpenSSL %d.%d.%d may not be compatible with OpenSSL %d.%d.%d",
 		 lib_info.major, lib_info.minor, lib_info.micro,
