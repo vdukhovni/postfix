@@ -12,6 +12,7 @@
  /*
   * External interface.
   */
+extern void smtpd_chat_pre_jail_init(void);
 extern void smtpd_chat_reset(SMTPD_STATE *);
 extern void smtpd_chat_query(SMTPD_STATE *);
 extern void PRINTFLIKE(2, 3) smtpd_chat_reply(SMTPD_STATE *, const char *,...);

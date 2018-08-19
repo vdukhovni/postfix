@@ -182,7 +182,7 @@ typedef struct {
     const char **milter_argv;		/* SMTP command vector */
     ssize_t milter_argc;		/* SMTP command vector */
     const char *milter_reject_text;	/* input to call-back from Milter */
-    MILTERS *milters;			/* Milter initialization status.*/
+    MILTERS *milters;			/* Milter initialization status. */
 
     /*
      * EHLO temporary space.
@@ -191,16 +191,15 @@ typedef struct {
     ARGV   *ehlo_argv;
 
     /*
-     * BDAT transaction state.
+     * BDAT processing state.
      */
-#define SMTPD_BDAT_NONE		0	/* not in BDAT transaction */
-#define SMTPD_BDAT_OK		1	/* in BDAT, accepting chunks */
-#define SMTPD_BDAT_ERROR	2	/* in BDAT, skipping chunks */
+#define SMTPD_BDAT_STAT_NONE	0	/* not processing BDAT */
+#define SMTPD_BDAT_STAT_OK	1	/* accepting BDAT chunks */
+#define SMTPD_BDAT_STAT_ERROR	2	/* skipping BDAT chunks */
     int     bdat_state;			/* see above */
-    off_t bdat_last_chunk_size;		/* trickle defense */
     VSTREAM *bdat_get_stream;		/* memory stream from BDAT chunk */
     VSTRING *bdat_get_buffer;		/* read from memory stream */
-    int bdat_prev_rec_type;
+    int     bdat_prev_rec_type;
 } SMTPD_STATE;
 
 #define SMTPD_FLAG_HANGUP	   (1<<0)	/* 421/521 disconnect */
@@ -335,10 +334,10 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_IN_MAIL_TRANSACTION(state) ((state)->sender != 0)
 
  /*
-  * Are we in a BDAT transaction?
+  * Are we processing BDAT requests?
   */
-#define SMTPD_IN_BDAT_TRANSACTION(state) \
-	((state)->bdat_state != SMTPD_BDAT_NONE)
+#define SMTPD_PROCESSING_BDAT(state) \
+	((state)->bdat_state != SMTPD_BDAT_STAT_NONE)
 
  /*
   * SMTPD peer information lookup.

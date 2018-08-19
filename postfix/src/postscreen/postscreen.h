@@ -540,6 +540,7 @@ extern void psc_hangup_event(PSC_STATE *);
   * postscreen_send.c
   */
 #define PSC_SEND_REPLY psc_send_reply	/* legacy macro */
+extern void pcs_send_pre_jail_init(void);
 extern int psc_send_reply(PSC_STATE *, const char *);
 extern void psc_send_socket(PSC_STATE *);
 

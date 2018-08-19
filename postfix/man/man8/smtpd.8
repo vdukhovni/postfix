@@ -1115,6 +1115,11 @@ the hostname and IP address.
 Available in Postfix 3.3 and later:
 .IP "\fBservice_name (read\-only)\fR"
 The master.cf service name of a Postfix daemon process.
+.PP
+Available in Postfix 3.4 and later:
+.IP "\fBsmtpd_reject_footer_maps (empty)\fR"
+Lookup tables, indexed by the complete Postfix SMTP server 4xx or
+5xx response, with reject footer templates.
 .SH "SEE ALSO"
 .na
 .nf

@@ -8468,6 +8468,18 @@ response. See <a href="postconf.5.html#smtpd_reject_footer">smtpd_reject_footer<
 
 </DD>
 
+<DT><b><a name="postscreen_reject_footer_maps">postscreen_reject_footer_maps</a>
+(default: $<a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>)</b></DT><DD>
+
+<p> Optional lookup table for information that is appended after a 4XX
+or 5XX <a href="postscreen.8.html">postscreen(8)</a> server response. See <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a> for
+further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="postscreen_tls_security_level">postscreen_tls_security_level</a>
 (default: $<a href="postconf.5.html#smtpd_tls_security_level">smtpd_tls_security_level</a>)</b></DT><DD>
 
@@ -14021,7 +14033,7 @@ available in Postfix 2.8 and later.  </dd>
 <dt><b><a name="reject_unknown_client_hostname">reject_unknown_client_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_client)</dt>
 
 <dd>Reject the request when 1) the client IP address-&gt;name mapping
-fails, 2) the name-&gt;address mapping fails, or 3) the name-&gt;address
+fails, or 2) the name-&gt;address mapping fails, or 3) the name-&gt;address
 mapping does not match the client IP address.  <br> This is a
 stronger restriction than the <a href="postconf.5.html#reject_unknown_reverse_client_hostname">reject_unknown_reverse_client_hostname</a>
 feature, which triggers only under condition 1) above. <br> The
@@ -15468,7 +15480,12 @@ notification.  </p>
 
 <p> This feature supports a limited number of $name attributes in
 the footer text. These are replaced by their current value for the
-SMTP session: </p>
+SMTP session. </p>
+
+<p> Note: specify $$name in footer text that is looked up from
+<a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>:-based <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>, otherwise the
+Postfix server will not use the footer text and will log a warning
+instead. </p>
 
 <dl>
 
@@ -15512,6 +15529,24 @@ This suppresses the line break between the reply text and the footer
 text (Postfix 2.10 and later).  </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Lookup tables, indexed by the complete Postfix SMTP server 4xx or
+5xx response, with reject footer templates. See <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>
+for details. </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace or comma. Tables will be searched in the specified order
+until a match is found.
+</p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
 
 
 </DD>

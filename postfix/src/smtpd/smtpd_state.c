@@ -186,10 +186,9 @@ void    smtpd_state_init(SMTPD_STATE *state, VSTREAM *stream,
     /*
      * BDAT.
      */
-    state->bdat_state = SMTPD_BDAT_NONE;
+    state->bdat_state = SMTPD_BDAT_STAT_NONE;
     state->bdat_get_stream = 0;
     state->bdat_get_buffer = 0;
-    state->bdat_last_chunk_size = 0;
 }
 
 /* smtpd_state_reset - cleanup after disconnect */

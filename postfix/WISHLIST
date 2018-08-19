@@ -1,9 +1,11 @@
 Wish list:
 
-	Add 'retire after max_use * max_idle' support to the
-	event-server, so that tlsproxy processes will terminate
-	even on a busy server. This can build on the retirement
-	support for the dnsblog server.
+	In postscreen, don't fork after 'postfix reload' when
+	psc_check_queue_length (and psc_post_queue_length?) is zero.
+
+	In smtp_stream.c, replace `ssize_t err' with `int err'.
+
+	In ehlo_mask.c, replace "EHLO_MASK_SMTPUTF8" with "SMTPUTF8".
 
 	With smtpd_reject_footer=$foo in master.cf, and foo defined
 	in main.cf, postconf complains about an unused setting in

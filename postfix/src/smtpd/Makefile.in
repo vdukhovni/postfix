@@ -276,6 +276,7 @@ smtpd_chat.o: ../../include/mail_error.h
 smtpd_chat.o: ../../include/mail_params.h
 smtpd_chat.o: ../../include/mail_proto.h
 smtpd_chat.o: ../../include/mail_stream.h
+smtpd_chat.o: ../../include/maps.h
 smtpd_chat.o: ../../include/milter.h
 smtpd_chat.o: ../../include/msg.h
 smtpd_chat.o: ../../include/myaddrinfo.h

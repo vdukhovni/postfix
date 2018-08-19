@@ -23631,10 +23631,27 @@ Apologies for any names omitted.
 	filter for vstream_control() requests; added a unit test.
 	File: util/vstream.c.
 
-20180805
+20180812
+
+	Feature: smtp_reject_footer_maps (as well as the postscreen
+	variant postscreen_reject_footer_maps). This is indexed
+	with the SMTP server response text, and overrides the footer
+	specified with smtp_reject_footer. Files: global/mail_params.h,
+	mantools/postlink, postscreen/postscreen.c,
+	postscreen/postscreen_send.c, postscreen/postscreen_smtpd.c,
+	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_chat.c.
+
+	Minor wordsmithing. File: makedefs.
+
+20180805-20180819
 
 	Cleanup: vbuf_get() now sets the EOF flag, so that reading
 	from a VSTRING stream works as expected. File: util/vbuf.c.
+
+	Cleanup: add an append-mode flag to functions that read a
+	VSTRING from a stream. The historical APIs are preserved
+	in the form of aliases. Files: util/vstring_vstream.[hc],
+	global/smtp_stream.[hc].
 
 	SMTP server support for CHUNKING (BDAT) per RFC 3030. The
 	SMTP server is the only program that knows the difference

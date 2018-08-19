@@ -6,6 +6,39 @@
 /* SYNOPSIS
 /*	#include <vstring_vstream.h>
 /*
+/*	int	vstring_get_flags(vp, fp, flags)
+/*	VSTRING	*vp;
+/*	VSTREAM	*fp;
+/*	int	flags
+/*
+/*	int	vstring_get_flags_nonl(vp, fp, flags)
+/*	VSTRING	*vp;
+/*	VSTREAM	*fp;
+/*	int	flags
+/*
+/*	int	vstring_get_flags_null(vp, fp, flags)
+/*	VSTRING	*vp;
+/*	VSTREAM	*fp;
+/*	int	flags
+/*
+/*	int	vstring_get_flags_bound(vp, fp, flags, bound)
+/*	VSTRING	*vp;
+/*	VSTREAM	*fp;
+/*	ssize_t	bound;
+/*	int	flags
+/*
+/*	int	vstring_get_flags_nonl_bound(vp, fp, flags, bound)
+/*	VSTRING	*vp;
+/*	VSTREAM	*fp;
+/*	ssize_t	bound;
+/*	int	flags
+/*
+/*	int	vstring_get_flags_null_bound(vp, fp, flags, bound)
+/*	VSTRING	*vp;
+/*	VSTREAM	*fp;
+/*	ssize_t	bound;
+/*	int	flags
+/* CONVENIENCE API
 /*	int	vstring_get(vp, fp)
 /*	VSTRING	*vp;
 /*	VSTREAM	*fp;
@@ -36,19 +69,25 @@
 /*	The routines in this module each read one newline or null-terminated
 /*	string from an input stream. In all cases the result is either the
 /*	last character read, typically the record terminator, or VSTREAM_EOF.
+/*	The flags argument is VSTRING_GET_FLAG_NONE (default) or
+/*	VSTRING_GET_FLAG_APPEND (append instead of overwrite).
 /*
-/*	vstring_get() reads one line from the named stream, including the
+/*	vstring_get_flags() reads one line from the named stream, including the
 /*	terminating newline character if present.
 /*
-/*	vstring_get_nonl() reads a line from the named stream and strips
+/*	vstring_get_flags_nonl() reads a line from the named stream and strips
 /*	the trailing newline character.
 /*
-/*	vstring_get_null() reads a null-terminated string from the named
+/*	vstring_get_flags_null() reads a null-terminated string from the named
 /*	stream.
 /*
-/*	the vstring_get<whatever>_bound() routines read no more
+/*	the vstring_get_flags<whatever>_bound() routines read no more
 /*	than \fIbound\fR characters.  Otherwise they behave like the
 /*	unbounded versions documented above.
+/*
+/*	The functions without _flags in their name accept the same
+/*	arguments except flags. These functions use the default
+/*	flags valie.
 /* DIAGNOSTICS
 /*	Fatal errors: memory allocation failure.
 /*	Panic: improper string bound.
@@ -82,13 +121,14 @@
 #define VSTRING_GET_RESULT(vp) \
     (VSTRING_LEN(vp) > 0 ? vstring_end(vp)[-1] : VSTREAM_EOF)
 
-/* vstring_get - read line from file, keep newline */
+/* vstring_get_flags - read line from file, keep newline */
 
-int     vstring_get(VSTRING *vp, VSTREAM *fp)
+int     vstring_get_flags(VSTRING *vp, VSTREAM *fp, int flags)
 {
     int     c;
 
-    VSTRING_RESET(vp);
+    if ((flags & VSTRING_GET_FLAG_APPEND) == 0)
+	VSTRING_RESET(vp);
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
 	VSTRING_ADDCH(vp, c);
 	if (c == '\n')
@@ -98,42 +138,46 @@ int     vstring_get(VSTRING *vp, VSTREAM *fp)
     return (VSTRING_GET_RESULT(vp));
 }
 
-/* vstring_get_nonl - read line from file, strip newline */
+/* vstring_get_flags_nonl - read line from file, strip newline */
 
-int     vstring_get_nonl(VSTRING *vp, VSTREAM *fp)
+int     vstring_get_flags_nonl(VSTRING *vp, VSTREAM *fp, int flags)
 {
     int     c;
 
-    VSTRING_RESET(vp);
+    if ((flags & VSTRING_GET_FLAG_APPEND) == 0)
+	VSTRING_RESET(vp);
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != '\n')
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
     return (c == '\n' ? c : VSTRING_GET_RESULT(vp));
 }
 
-/* vstring_get_null - read null-terminated string from file */
+/* vstring_get_flags_null - read null-terminated string from file */
 
-int     vstring_get_null(VSTRING *vp, VSTREAM *fp)
+int     vstring_get_flags_null(VSTRING *vp, VSTREAM *fp, int flags)
 {
     int     c;
 
-    VSTRING_RESET(vp);
+    if ((flags & VSTRING_GET_FLAG_APPEND) == 0)
+	VSTRING_RESET(vp);
     while ((c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
     return (c == 0 ? c : VSTRING_GET_RESULT(vp));
 }
 
-/* vstring_get_bound - read line from file, keep newline, up to bound */
+/* vstring_get_flags_bound - read line from file, keep newline, up to bound */
 
-int     vstring_get_bound(VSTRING *vp, VSTREAM *fp, ssize_t bound)
+int     vstring_get_flags_bound(VSTRING *vp, VSTREAM *fp, int flags,
+				        ssize_t bound)
 {
     int     c;
 
     if (bound <= 0)
 	msg_panic("vstring_get_bound: invalid bound %ld", (long) bound);
 
-    VSTRING_RESET(vp);
+    if ((flags & VSTRING_GET_FLAG_APPEND) == 0)
+	VSTRING_RESET(vp);
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF) {
 	VSTRING_ADDCH(vp, c);
 	if (c == '\n')
@@ -143,32 +187,36 @@ int     vstring_get_bound(VSTRING *vp, VSTREAM *fp, ssize_t bound)
     return (VSTRING_GET_RESULT(vp));
 }
 
-/* vstring_get_nonl_bound - read line from file, strip newline, up to bound */
+/* vstring_get_flags_nonl_bound - read line from file, strip newline, up to bound */
 
-int     vstring_get_nonl_bound(VSTRING *vp, VSTREAM *fp, ssize_t bound)
+int     vstring_get_flags_nonl_bound(VSTRING *vp, VSTREAM *fp, int flags,
+				             ssize_t bound)
 {
     int     c;
 
     if (bound <= 0)
 	msg_panic("vstring_get_nonl_bound: invalid bound %ld", (long) bound);
 
-    VSTRING_RESET(vp);
+    if ((flags & VSTRING_GET_FLAG_APPEND) == 0)
+	VSTRING_RESET(vp);
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != '\n')
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);
     return (c == '\n' ? c : VSTRING_GET_RESULT(vp));
 }
 
-/* vstring_get_null_bound - read null-terminated string from file */
+/* vstring_get_flags_null_bound - read null-terminated string from file */
 
-int     vstring_get_null_bound(VSTRING *vp, VSTREAM *fp, ssize_t bound)
+int     vstring_get_flags_null_bound(VSTRING *vp, VSTREAM *fp, int flags,
+				             ssize_t bound)
 {
     int     c;
 
     if (bound <= 0)
 	msg_panic("vstring_get_null_bound: invalid bound %ld", (long) bound);
 
-    VSTRING_RESET(vp);
+    if ((flags & VSTRING_GET_FLAG_APPEND) == 0)
+	VSTRING_RESET(vp);
     while (bound-- > 0 && (c = VSTREAM_GETC(fp)) != VSTREAM_EOF && c != 0)
 	VSTRING_ADDCH(vp, c);
     VSTRING_TERMINATE(vp);

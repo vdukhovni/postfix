@@ -3761,6 +3761,10 @@ extern int var_psc_cconn_limit;
 #define DEF_PSC_REJ_FOOTER	"$" VAR_SMTPD_REJ_FOOTER
 extern char *var_psc_rej_footer;
 
+#define VAR_PSC_REJ_FTR_MAPS	"postscreen_reject_footer"
+#define DEF_PSC_REJ_FTR_MAPS	"$" VAR_SMTPD_REJ_FTR_MAPS
+extern char *var_psc_rej_ftr_maps;
+
 #define VAR_PSC_EXP_FILTER	"postscreen_expansion_filter"
 #define DEF_PSC_EXP_FILTER	"$" VAR_SMTPD_EXP_FILTER
 extern char *var_psc_exp_filter;
@@ -3920,6 +3924,10 @@ extern bool var_tlsp_tls_set_sessid;
 #define VAR_SMTPD_REJ_FOOTER	"smtpd_reject_footer"
 #define DEF_SMTPD_REJ_FOOTER	""
 extern char *var_smtpd_rej_footer;
+
+#define VAR_SMTPD_REJ_FTR_MAPS	"smtpd_reject_footer_maps"
+#define DEF_SMTPD_REJ_FTR_MAPS	""
+extern char *var_smtpd_rej_ftr_maps;
 
  /*
   * Per-record time limit support.

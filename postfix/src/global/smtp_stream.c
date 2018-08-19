@@ -93,10 +93,15 @@
 /*	and protects the program against running out of memory.
 /*	Specify a zero bound to turn off bounds checking.
 /*	The result is the last character read, or VSTREAM_EOF.
-/*	The \fIflags\fR argument is either SMTP_GET_FLAG_NONE (no
-/*	special processing) or SMTP_GET_FLAG_SKIP (skip over input
-/*	in excess of \fImaxlen\fR). Either way, a result value of
-/*	'\n' means that the input did not exceed \fImaxlen\fR.
+/*	The \fIflags\fR argument is zero or more of:
+/* .RS
+/* .IP  SMTP_GET_FLAG_SKIP
+/*	Skip over input in excess of \fImaxlen\fR). Either way, a result
+/*	value of '\n' means that the input did not exceed \fImaxlen\fR.
+/* .IP  SMTP_GET_FLAG_APPEND
+/*	Append content to the buffer instead of overwriting it.
+/* .RE
+/*	Specify SMTP_GET_FLAG_NONE for no special processing.
 /*
 /*	smtp_fputs() writes its string argument to the named stream.
 /*	Long strings are not broken. Each string is followed by a
@@ -357,8 +362,13 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
      * XXX 2821: Section 4.1.1.4 says that an SMTP server must not recognize
      * bare LF as record terminator.
      */
-    last_char = (bound == 0 ? vstring_get(vp, stream) :
-		 vstring_get_bound(vp, stream, bound));
+    last_char = (bound == 0 ?
+		 vstring_get_flags(vp, stream,
+				   (flags & SMTP_GET_FLAG_APPEND) ?
+				   VSTRING_GET_FLAG_APPEND : 0) :
+		 vstring_get_flags_bound(vp, stream,
+					 (flags & SMTP_GET_FLAG_APPEND) ?
+				       VSTRING_GET_FLAG_APPEND : 0, bound));
 
     switch (last_char) {
 

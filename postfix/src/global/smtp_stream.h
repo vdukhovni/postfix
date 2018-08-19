@@ -51,6 +51,7 @@ extern void smtp_vprintf(VSTREAM *, const char *, va_list);
 
 #define SMTP_GET_FLAG_NONE	0
 #define SMTP_GET_FLAG_SKIP	(1<<0)	/* skip over excess input */
+#define SMTP_GET_FLAG_APPEND	(1<<1)	/* append instead of overwrite */
 
 /* LICENSE
 /* .ad

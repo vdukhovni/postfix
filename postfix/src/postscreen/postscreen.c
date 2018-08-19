@@ -117,6 +117,11 @@
 /*	Available in Postfix version 3.1 and later:
 /* .IP "\fBdns_ncache_ttl_fix_enable (no)\fR"
 /*	Enable a workaround for future libc incompatibility.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBpostscreen_reject_footer_maps ($smtpd_reject_footer_maps)\fR"
+/*	Optional lookup table for information that is appended after a 4XX
+/*	or 5XX \fBpostscreen\fR(8) server response.
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
@@ -510,6 +515,7 @@ char   *var_tlsproxy_service;
 
 char   *var_smtpd_rej_footer;
 char   *var_psc_rej_footer;
+char   *var_psc_rej_ftr_maps;
 
 int     var_smtpd_cconn_limit;
 int     var_psc_cconn_limit;
@@ -1123,6 +1129,7 @@ int     main(int argc, char **argv)
 	VAR_TLSPROXY_SERVICE, DEF_TLSPROXY_SERVICE, &var_tlsproxy_service, 1, 0,
 	VAR_PSC_WLIST_IF, DEF_PSC_WLIST_IF, &var_psc_wlist_if, 0, 0,
 	VAR_PSC_UPROXY_PROTO, DEF_PSC_UPROXY_PROTO, &var_psc_uproxy_proto, 0, 0,
+	VAR_PSC_REJ_FTR_MAPS, DEF_PSC_REJ_FTR_MAPS, &var_psc_rej_ftr_maps, 0, 0,
 	0,
     };
     static const CONFIG_INT_TABLE int_table[] = {

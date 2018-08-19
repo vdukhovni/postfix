@@ -7,6 +7,8 @@
 /*	#include <smtpd.h>
 /*	#include <smtpd_chat.h>
 /*
+/*	void	smtpd_chat_pre_jail_init(void)
+/*
 /*	void	smtpd_chat_query(state)
 /*	SMTPD_STATE *state;
 /*
@@ -22,6 +24,8 @@
 /* DESCRIPTION
 /*	This module implements SMTP server support for request/reply
 /*	conversations, and maintains a limited SMTP transaction log.
+/*
+/*	smtpd_chat_pre_jail_init() performs one-time initialization.
 /*
 /*	smtpd_chat_query() receives a client request and appends a copy
 /*	to the SMTP transaction log.
@@ -81,6 +85,7 @@
 #include <mail_proto.h>
 #include <mail_params.h>
 #include <mail_addr.h>
+#include <maps.h>
 #include <post_mail.h>
 #include <mail_error.h>
 #include <smtp_reply_footer.h>
@@ -91,8 +96,31 @@
 #include "smtpd_expand.h"
 #include "smtpd_chat.h"
 
+ /*
+  * Reject footer.
+  */
+static MAPS *smtpd_rej_ftr_maps;
+
 #define STR	vstring_str
 #define LEN	VSTRING_LEN
+
+/* smtpd_chat_pre_jail_init - initialize */
+
+void smtpd_chat_pre_jail_init(void)
+{
+    static int init_count = 0;
+
+    if (init_count++ != 0)
+	msg_panic("smtpd_chat_pre_jail_init: multiple calls");
+
+    /*
+     * SMTP server reject footer.
+     */
+    if (*var_smtpd_rej_ftr_maps)
+	smtpd_rej_ftr_maps = maps_create(VAR_SMTPD_REJ_FTR_MAPS,
+					 var_smtpd_rej_ftr_maps,
+					 DICT_FLAG_LOCK);
+}
 
 /* smtp_chat_reset - reset SMTP transaction log */
 
@@ -162,6 +190,7 @@ void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
     char   *cp;
     char   *next;
     char   *end;
+    const char *footer;
 
     /*
      * Slow down clients that make errors. Sleep-on-anything slows down
@@ -172,11 +201,12 @@ void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
 
     vstring_vsprintf(state->buffer, format, ap);
 
-    if (*var_smtpd_rej_footer
-	&& (*(cp = STR(state->buffer)) == '4' || *cp == '5'))
-	smtp_reply_footer(state->buffer, 0, var_smtpd_rej_footer,
-			  STR(smtpd_expand_filter), smtpd_expand_lookup,
-			  (void *) state);
+    if ((*(cp = STR(state->buffer)) == '4' || *cp == '5')
+	&& ((smtpd_rej_ftr_maps != 0
+	     && (footer = maps_find(smtpd_rej_ftr_maps, cp, 0)) != 0)
+	    || *(footer = var_smtpd_rej_footer) != 0))
+	smtp_reply_footer(state->buffer, 0, footer, STR(smtpd_expand_filter),
+			  smtpd_expand_lookup, (void *) state);
 
     /* All 5xx replies must have a 5.xx.xx detail code. */
     for (cp = STR(state->buffer), end = cp + strlen(STR(state->buffer));;) {

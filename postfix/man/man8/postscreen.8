@@ -135,6 +135,11 @@ response to a remote SMTP client.
 Available in Postfix version 3.1 and later:
 .IP "\fBdns_ncache_ttl_fix_enable (no)\fR"
 Enable a workaround for future libc incompatibility.
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBpostscreen_reject_footer_maps ($smtpd_reject_footer_maps)\fR"
+Optional lookup table for information that is appended after a 4XX
+or 5XX \fBpostscreen\fR(8) server response.
 .SH "TROUBLE SHOOTING CONTROLS"
 .na
 .nf

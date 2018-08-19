@@ -16,7 +16,9 @@
 #	output stream that can be prepended to template Makefiles.
 #	These macros implement an internal interface and are subject
 #	to change without notice.
-#
+# NAME=VALUE OVERRIDES
+# .ad
+# .fi
 #	Default settings can be overruled by specifying them as
 #	environment variables (or as name=value pairs on the "make"
 #	command line). Use quotes if variables contain whitespace
@@ -31,7 +33,7 @@
 #	of the make(1) command.
 # .IP \fBAUXLIBS=\fIobject_library...\fR
 #	Specifies one or more non-default object libraries. Postfix
-#	2.12 and later specify some of their database library
+#	3.0 and later specify some of their database library
 #	dependencies with AUXLIBS_CDB, AUXLIBS_LDAP, AUXLIBS_LMDB,
 #	AUXLIBS_MYSQL, AUXLIBS_PCRE, AUXLIBS_PGSQL, AUXLIBS_SDBM,
 #	and AUXLIBS_SQLITE, respectively.
