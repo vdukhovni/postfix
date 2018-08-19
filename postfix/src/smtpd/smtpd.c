@@ -1056,6 +1056,11 @@
 /*	Available in Postfix 3.3 and later:
 /* .IP "\fBservice_name (read-only)\fR"
 /*	The master.cf service name of a Postfix daemon process.
+/* .PP
+/*	Available in Postfix 3.4 and later:
+/* .IP "\fBsmtpd_reject_footer_maps (empty)\fR"
+/*	Lookup tables, indexed by the complete Postfix SMTP server 4xx or
+/*	5xx response, with reject footer templates.
 /* SEE ALSO
 /*	anvil(8), connection/rate limiting
 /*	cleanup(8), message canonicalization
@@ -1341,6 +1346,7 @@ bool    var_smtpd_tls_wrappermode;
 bool    var_smtpd_tls_auth_only;
 char   *var_smtpd_cmd_filter;
 char   *var_smtpd_rej_footer;
+char   *var_smtpd_rej_ftr_maps;
 char   *var_smtpd_acl_perm_log;
 char   *var_smtpd_dns_re_filter;
 
@@ -5715,6 +5721,12 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (*var_smtpd_dns_re_filter)
 	dns_rr_filter_compile(VAR_SMTPD_DNS_RE_FILTER,
 			      var_smtpd_dns_re_filter);
+
+    /*
+     * Reject footer.
+     */
+    if (*var_smtpd_rej_ftr_maps)
+	smtpd_chat_pre_jail_init();
 }
 
 /* post_jail_init - post-jail initialization */
@@ -5966,6 +5978,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_POLICY_DEF_ACTION, DEF_SMTPD_POLICY_DEF_ACTION, &var_smtpd_policy_def_action, 1, 0,
 	VAR_SMTPD_POLICY_CONTEXT, DEF_SMTPD_POLICY_CONTEXT, &var_smtpd_policy_context, 0, 0,
 	VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter, 0, 0,
+	VAR_SMTPD_REJ_FTR_MAPS, DEF_SMTPD_REJ_FTR_MAPS, &var_smtpd_rej_ftr_maps, 0, 0,
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {

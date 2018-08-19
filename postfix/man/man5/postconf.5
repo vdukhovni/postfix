@@ -5227,6 +5227,12 @@ Optional information that is appended after a 4XX or 5XX
 response. See smtpd_reject_footer for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH postscreen_reject_footer_maps (default: $smtpd_reject_footer_maps)
+Optional lookup table for information that is appended after a 4XX
+or 5XX \fBpostscreen\fR(8) server response. See smtpd_reject_footer_maps for
+further details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH postscreen_tls_security_level (default: $smtpd_tls_security_level)
 The SMTP TLS security level for the \fBpostscreen\fR(8) server; when
 a non\-empty value is specified, this overrides the obsolete parameters
@@ -9335,7 +9341,7 @@ available in Postfix 2.8 and later.
 .br
 .IP "\fBreject_unknown_client_hostname\fR (with Postfix < 2.3: reject_unknown_client)"
 Reject the request when 1) the client IP address\->name mapping
-fails, 2) the name\->address mapping fails, or 3) the name\->address
+fails, or 2) the name\->address mapping fails, or 3) the name\->address
 mapping does not match the client IP address.
 .br
 This is a
@@ -10441,7 +10447,12 @@ notification.
 .PP
 This feature supports a limited number of $name attributes in
 the footer text. These are replaced by their current value for the
-SMTP session:
+SMTP session.
+.PP
+Note: specify $$name in footer text that is looked up from
+regexp: or pcre:\-based smtpd_reject_footer_maps, otherwise the
+Postfix server not use the footer text and will log a warning
+instead.
 .IP "\fBclient_address\fR"
 The Client IP address that
 is logged in the maillog file.
@@ -10482,6 +10493,16 @@ This suppresses the line break between the reply text and the footer
 text (Postfix 2.10 and later).
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH smtpd_reject_footer_maps (default: empty)
+Lookup tables, indexed by the complete Postfix SMTP server 4xx or
+5xx response, with reject footer templates. See smtpd_reject_footer_maps
+for details.
+.PP
+Specify zero or more "type:name" lookup tables, separated by
+whitespace or comma. Tables will be searched in the specified order
+until a match is found.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH smtpd_reject_unlisted_recipient (default: yes)
 Request that the Postfix SMTP server rejects mail for unknown
 recipient addresses, even when no explicit reject_unlisted_recipient

@@ -153,7 +153,7 @@ depend_update:
 
 tidy:	clean
 	rm -f Makefile */Makefile src/*/Makefile
-	cp Makefile.init Makefile
+	cp -p Makefile.init Makefile
 	rm -f README_FILES/RELEASE_NOTES
 	ln -s ../RELEASE_NOTES README_FILES
 	rm -f bin/[!CRS]* lib/[!CRS]* include/[!CRS]* libexec/[!CRS]* \

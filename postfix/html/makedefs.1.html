@@ -18,6 +18,7 @@ MAKEDEFS(1)                                                        MAKEDEFS(1)
        to  template  Makefiles.   These macros implement an internal interface
        and are subject to change without notice.
 
+<b>NAME=VALUE OVERRIDES</b>
        Default settings can be overruled by  specifying  them  as  environment
        variables  (or  as  name=value  pairs  on the "make" command line). Use
        quotes if variables contain whitespace or shell meta characters.
@@ -30,7 +31,7 @@ MAKEDEFS(1)                                                        MAKEDEFS(1)
        of the make(1) command.
 
        <b>AUXLIBS=</b><i>object</i><b>_</b><i>library...</i>
-              Specifies one or more non-default object libraries. Postfix 2.12
+              Specifies  one or more non-default object libraries. Postfix 3.0
               and later specify some of their  database  library  dependencies
               with  <a href="CDB_README.html">AUXLIBS_CDB</a>,  <a href="LDAP_README.html">AUXLIBS_LDAP</a>,  <a href="LMDB_README.html">AUXLIBS_LMDB</a>,  <a href="MYSQL_README.html">AUXLIBS_MYSQL</a>,
               <a href="PCRE_README.html">AUXLIBS_PCRE</a>, <a href="PGSQL_README.html">AUXLIBS_PGSQL</a>, <a href="SDBM_README.html">AUXLIBS_SDBM</a>,  and  <a href="SQLITE_README.html">AUXLIBS_SQLITE</a>,

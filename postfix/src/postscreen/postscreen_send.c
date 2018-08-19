@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <postscreen.h>
 /*
+/*	void	pcs_send_pre_jail_init(void)
+/*
 /*	int	psc_send_reply(state, text)
 /*	PSC_STATE *state;
 /*	const char *text;
@@ -17,6 +19,8 @@
 /*	void	psc_send_socket(state)
 /*	PSC_STATE *state;
 /* DESCRIPTION
+/*	pcs_send_pre_jail_init() performs one-time initialization.
+/*
 /*	psc_send_reply() sends the specified text to the specified
 /*	remote SMTP client.  In case of an immediate error, it logs
 /*	a warning (except EPIPE) with the client address and port,
@@ -69,10 +73,13 @@
 #include <mail_params.h>
 #include <smtp_reply_footer.h>
 #include <mail_proto.h>
+#include <maps.h>
 
 /* Application-specific. */
 
 #include <postscreen.h>
+
+static MAPS *psc_rej_ftr_maps;
 
  /*
   * This program screens all inbound SMTP connections, so it better not waste
@@ -81,16 +88,50 @@
 #define PSC_SEND_SOCK_CONNECT_TIMEOUT	1
 #define PSC_SEND_SOCK_NOTIFY_TIMEOUT	100
 
+/* pcs_send_pre_jail_init - initialize */
+
+void    pcs_send_pre_jail_init(void)
+{
+    static int init_count = 0;
+
+    if (init_count++ != 0)
+	msg_panic("pcs_send_pre_jail_init: multiple calls");
+
+    /*
+     * SMTP server reject footer.
+     */
+    if (*var_psc_rej_ftr_maps)
+	psc_rej_ftr_maps = maps_create(VAR_SMTPD_REJ_FTR_MAPS,
+				       var_psc_rej_ftr_maps,
+				       DICT_FLAG_LOCK);
+}
+
+/* psc_get_footer - find that footer */
+
+static const char *psc_get_footer(PSC_STATE *state, const char *text,
+					        ssize_t text_len)
+{
+    static VSTRING *footer_buf = 0;
+
+    if (footer_buf == 0)
+	footer_buf = vstring_alloc(100);
+    /* Strip the \r\n for consistency with smtpd. */
+    vstring_strncpy(footer_buf, text, text_len);
+    return (psc_maps_find(psc_rej_ftr_maps, STR(footer_buf), 0));
+}
+
 /* psc_send_reply - send reply to remote SMTP client */
 
 int     psc_send_reply(PSC_STATE *state, const char *text)
 {
     ssize_t start;
     int     ret;
+    const char *footer;
+    ssize_t text_len = strlen(text) - 2;
 
     if (msg_verbose)
 	msg_info("> [%s]:%s: %.*s", state->smtp_client_addr,
-		 state->smtp_client_port, (int) strlen(text) - 2, text);
+		 state->smtp_client_port, (int) text_len, text);
 
     /*
      * Append the new text to earlier text that could not be sent because the
@@ -114,8 +155,11 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
     /*
      * Append the optional reply footer.
      */
-    if (*var_psc_rej_footer && (*text == '4' || *text == '5'))
-	smtp_reply_footer(state->send_buf, start, var_psc_rej_footer,
+    if ((*text == '4' || *text == '5')
+	&& ((psc_rej_ftr_maps != 0
+	&& (footer = psc_get_footer(psc_rej_ftr_maps, text, text_len)) != 0)
+	    || *(footer = var_psc_rej_footer) != 0))
+	smtp_reply_footer(state->send_buf, start, footer,
 			  STR(psc_expand_filter), psc_expand_lookup,
 			  (void *) state);
 

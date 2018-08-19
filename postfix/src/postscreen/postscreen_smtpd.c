@@ -1246,7 +1246,7 @@ void    psc_smtpd_init(void)
     /*
      * Initialize the reply footer.
      */
-    if (*var_psc_rej_footer)
+    if (*var_psc_rej_footer || *var_psc_rej_ftr_maps)
 	psc_expand_init();
 }
 
@@ -1274,4 +1274,10 @@ void    psc_smtpd_pre_jail_init(void)
     if (*var_psc_cmd_filter)
 	psc_cmd_filter = dict_open(var_psc_cmd_filter, O_RDONLY,
 				   DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX);
+
+    /*
+     * SMTP server reply footer.
+     */
+    if (*var_psc_rej_ftr_maps)
+	pcs_send_pre_jail_init();
 }

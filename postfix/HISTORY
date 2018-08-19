@@ -23630,3 +23630,15 @@ Apologies for any names omitted.
 	VSTRING during vstream_fflush(); added a simple 'allow'
 	filter for vstream_control() requests; added a unit test.
 	File: util/vstream.c.
+
+20180812
+
+	Feature: smtp_reject_footer_maps (as well as the postscreen
+	variant postscreen_reject_footer_maps). This is indexed
+	with the SMTP server response text, and overrides the footer
+	specified with smtp_reject_footer. Files: global/mail_params.h,
+	mantools/postlink, postscreen/postscreen.c,
+	postscreen/postscreen_send.c, postscreen/postscreen_smtpd.c,
+	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_chat.c.
+
+	Minor wordsmithing. File: makedefs.
