@@ -267,13 +267,13 @@ static DICT *psc_cmd_filter;
 	PSC_CLEAR_EVENT_REQUEST(vstream_fileno((state)->smtp_client_stream), \
 				   (event), (void *) (state)); \
 	PSC_DROP_SESSION_STATE((state), (reply)); \
-    } while (0);
+    } while (0)
 
 #define PSC_CLEAR_EVENT_HANGUP(state, event) do { \
 	PSC_CLEAR_EVENT_REQUEST(vstream_fileno((state)->smtp_client_stream), \
 				   (event), (void *) (state)); \
 	psc_hangup_event(state); \
-    } while (0);
+    } while (0)
 
 /* psc_helo_cmd - record HELO and respond */
 
@@ -583,27 +583,57 @@ static int psc_rcpt_cmd(PSC_STATE *state, char *args)
 
 static int psc_data_cmd(PSC_STATE *state, char *args)
 {
+    const char myname[] = "psc_data_cmd";
 
     /*
-     * smtpd(8) incompatibility: we reject all requests.
+     * smtpd(8) incompatibility: postscreen(8) drops the connection, instead
+     * of waiting for the next command. Justification: postscreen(8) should
+     * never see DATA from a legitimate client, because 1) the server rejects
+     * every recipient, and 2) the server does not announce PIPELINING.
      */
     if (PSC_SMTPD_NEXT_TOKEN(args) != 0)
-	return (PSC_SEND_REPLY(state,
-			       "501 5.5.4 Syntax: DATA\r\n"));
-    if (state->sender == 0)
-	return (PSC_SEND_REPLY(state,
-			       "503 5.5.1 Error: need RCPT command\r\n"));
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
+					   "501 5.5.4 Syntax: DATA\r\n");
+    else if (state->sender == 0)
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
+				  "503 5.5.1 Error: need RCPT command\r\n");
+    else
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
+				"554 5.5.1 Error: no valid recipients\r\n");
+    /* Caution: state is now a dangling pointer. */
+    return (0);
+}
+
+/* psc_bdat_cmd - respond to BDAT and disconnect */
+
+static int psc_bdat_cmd(PSC_STATE *state, char *args)
+{
+    const char *myname = "psc_bdat_cmd";
 
     /*
-     * We really would like to hang up the connection as early as possible,
-     * so that we dont't have to deal with broken zombies that fall silent at
-     * the first reject response. For now we rely on stress-dependent command
-     * read timeouts.
-     * 
-     * If we proceed into the data phase, enforce over-all DATA time limit.
+     * smtpd(8) incompatibility: postscreen(8) drops the connection, instead
+     * of reading the entire BDAT chunk and staying in sync with the client.
+     * Justification: postscreen(8) should never see BDAT from a legitimate
+     * client, because 1) the server rejects every recipient, and 2) the
+     * server does not announce PIPELINING.
      */
-    return (PSC_SEND_REPLY(state,
-			   "554 5.5.1 Error: no valid recipients\r\n"));
+    if (PSC_SMTPD_NEXT_TOKEN(args) == 0)
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
+				 "501 5.5.4 Syntax: BDAT count [LAST]\r\n");
+    else if (state->sender == 0)
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
+				  "554 5.5.1 Error: need RCPT command\r\n");
+    else
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
+				"554 5.5.1 Error: no valid recipients\r\n");
+    /* Caution: state is now a dangling pointer. */
+    return (0);
 }
 
 /* psc_rset_cmd - reset, send 250 OK */
@@ -713,8 +743,9 @@ static const PSC_SMTPD_COMMAND command_table[] = {
     "AUTH", psc_noop_cmd, PSC_SMTPD_CMD_FLAG_NONE,
     "MAIL", psc_mail_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
     "RCPT", psc_rcpt_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
-    "DATA", psc_data_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
+    "DATA", psc_data_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_DESTROY,
     /* ".", psc_dot_cmd, PSC_SMTPD_CMD_FLAG_NONE, */
+    "BDAT", psc_bdat_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_DESTROY,
     "RSET", psc_rset_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
     "NOOP", psc_noop_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS,
     "VRFY", psc_vrfy_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,

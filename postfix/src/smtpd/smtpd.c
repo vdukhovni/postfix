@@ -3568,6 +3568,10 @@ static int common_post_message_handling(SMTPD_STATE *state)
 	state->junk_cmds = 0;
 	if (proxy)
 	    smtpd_chat_reply(state, "%s", STR(proxy->reply));
+	else if (SMTPD_PROCESSING_BDAT(state))
+	    smtpd_chat_reply(state,
+			     "250 2.0.0 Ok: %ld bytes queued as %s",
+			     (long) state->act_size, state->queue_id);
 	else
 	    smtpd_chat_reply(state,
 			     "250 2.0.0 Ok: queued as %s", state->queue_id);
@@ -3713,7 +3717,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	msg_warn("%s: malformed BDAT command syntax from %s: %.100s",
 		 state->queue_id ? state->queue_id : "NOQUEUE",
 		 state->namaddr, printable(vstring_str(state->buffer), '?'));
-	smtpd_chat_reply(state, "421 5.5.4 Syntax: BDAT count [LAST]");
+	smtpd_chat_reply(state, "521 5.5.4 Syntax: BDAT count [LAST]");
 	return (-1);
     }
 

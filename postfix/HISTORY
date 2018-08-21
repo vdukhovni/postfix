@@ -23643,13 +23643,13 @@ Apologies for any names omitted.
 
 	Minor wordsmithing. File: makedefs.
 
-20180805-20180819
+20180805-20180821
 
 	Cleanup: vbuf_get() now sets the EOF flag, so that reading
 	from a VSTRING stream works as expected. File: util/vbuf.c.
 
-	Cleanup: add an append-mode flag to functions that read a
-	VSTRING from a stream. The historical APIs are preserved
+	Cleanup: added an append-mode flag to functions that read
+	a VSTRING from a stream. The historical APIs are preserved
 	in the form of aliases. Files: util/vstring_vstream.[hc],
 	global/smtp_stream.[hc].
 
@@ -23658,8 +23658,15 @@ Apologies for any names omitted.
 	between mail received with BDAT or DATA. Both use the same
 	smtpd_data_restrictions and smtpd_end_of_data_restrictions,
 	both send one Milter DATA event per mail transaction, and
-	both send one DATA command ending in <CR><LF>.<CR><LF> to
-	an smtpd_proxy_filter. Files: global/ehlo_mask.h,
+	both send one DATA command ending in <CR><LF>.<CR><LF>
+	to an smtpd_proxy_filter. Files: global/ehlo_mask.h,
 	global/smtp_stream.c, global/smtp_stream.c, global/smtp_stream.h,
 	postscreen/postscreen_smtpd.c, smtpd/smtpd.c, smtpd/smtpd.h,
 	smtpd/smtpd_chat.c, smtpd/smtpd_chat.h, smtpd/smtpd_state.c.
+
+	Cleanup: the postscreen(8) daemon now hangs up after receiving
+	the DATA command. Justification: it should never receive DATA
+	from a legitimate client, because 1) postscreen(8) rejects all
+	recipients, and 2) postscreen(8) does not announce PIPELINING.
+	This makes postscreen(8) DATA and BDAT behavior more
+	consistent. File: postscreen/postscreen_smtpd.c.
