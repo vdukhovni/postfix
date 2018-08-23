@@ -25,18 +25,74 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Major changes with snapshot 20180805-nonprod
-=============================================
+Major changes with 20180823-nonprod
+===================================
 
-Preliminary support for RFC 3030 CHUNKING (BDAT) without BINARYMIME.
-The Postfix SMTP server is the only program that knows the difference
-between mail that was received with BDAT or DATA. 
+Postfix SMTP server support for RFC 3030 CHUNKING (the BDAT command)
+without BINARYMIME, in both smtpd(8) and postscreen(8).
 
-In both cases, the Postfix SMTP server will use smtpd_data_restrictions
-and smtpd_end_of_data_restrictions, it will send one Milter DATA event
-per mail transaction, and it will send one DATA command ending in
-<CR><LF>.<CR><LF> to an smtpd_proxy_filter. There is no difference
-in the Postfix queue file content.
+Impact on existing configurations:
+----------------------------------
+
+- There are no changes for smtpd_mumble_restrictions, smtpd_proxy_filter,
+  smtpd_milters, or postscreen settings. Postfix automatically
+  converts a sequence of BDAT commands into the DATA and end-of-data
+  commands. For example, Postfix pretends that it receives (MAIL +
+  RCPT + DATA + end-of-data) whether the client sends (MAIL + RCPT
+  + BDAT + ...  + BDAT LAST) or (MAIL + RCPT + BDAT LAST).
+
+- There are no changes in the Postfix queue file content, therefore
+  no changes for after-queue content filters, and no changes in the
+  envelope or message content that Milters will receive.
+
+- However, Postfix will log BDAT-related failures as "xxx after
+  BDAT" to avoid complicating troubleshooting.
+
+Benefits of CHUNKING (BDAT) support without BINARYMIME:
+-------------------------------------------------------
+
+Support for CHUNKING (BDAT) was added to improve interoperability
+with some clients, a benefit that would reportedly exist even without
+Postfix support for BINARYMIME.
+
+Postfix does not support BINARYMIME because:
+
+- BINARYMIME support would require moderately invasive changes to
+  support email content that is not line-oriented. With BINARYMIME
+  the Content-Length: header specifies the length of arbitrary
+  content that until now is base64-encoded, and formatted as lines
+  of text.
+
+- There is no conversion of BINARYMIME to a line-oriented 8BITMIME
+  form that is compatible with legacy systems including UNIX mbox.
+  The available options are to convert binary content into one of
+  the 7bit forms (base64 or quoted-printable), or to return email
+  as undeliverable. Any conversion would break digital signatures,
+  so it would have to happen before signing.
+  
+Downsides of of CHUNKING (BDAT) support:
+-----------------------------------------
+
+The RFC 3030 authors did not specify any limitations on how clients
+may pipeline commands (i.e. send commands without waiting for a
+server response). If a server announces PIPELINING support, like
+Postfix smtpd(8) does, then a remote SMTP client can pipeline all
+commands folowing EHLO, for example, MAIL/RCPT/BDAT/BDAT/MAIL/RCPT/BDAT,
+without ever having to wait for a server response. This means that
+with BDAT, the Postfix SMTP server cannot distinguish between a
+well-behaved client and a spambot, based on their command pipelining
+behavior. If you require "reject_unauth_pipelining" to block spambots,
+turn off the CHUNKING support announcement:
+
+/etc/postfix/main.cf:
+    # The logging alternative:
+    smtp_discard_ehlo_keywords = chunking
+    # The non-logging alternative:
+    smtp_discard_ehlo_keywords = chunking, silent_discard
+
+Be sure to specify '-o smtp_discard_ehlo_keywords=' in master.cf
+for the submission and smtps services, in case you have clients
+that benefit from CHUNKING support.
 
 Incompatble change with snapshot 20180701
 =========================================

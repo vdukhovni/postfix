@@ -234,7 +234,8 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   */
 #define SMTPD_AFTER_CONNECT	"CONNECT"
 #define SMTPD_AFTER_DATA	"DATA content"
-#define SMTPD_AFTER_DOT		"END-OF-MESSAGE"
+#define SMTPD_AFTER_BDAT	"BDAT content"
+#define SMTPD_AFTER_EOM		"END-OF-MESSAGE"
 
  /*
   * Other stages. These are sometimes used to change the way information is
@@ -248,7 +249,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_CMD_RCPT		"RCPT"
 #define SMTPD_CMD_DATA		"DATA"
 #define SMTPD_CMD_BDAT		"BDAT"
-#define SMTPD_CMD_EOD		SMTPD_AFTER_DOT	/* XXX Was: END-OF-DATA */
+#define SMTPD_CMD_EOD		SMTPD_AFTER_EOM	/* XXX Was: END-OF-DATA */
 #define SMTPD_CMD_RSET		"RSET"
 #define SMTPD_CMD_NOOP		"NOOP"
 #define SMTPD_CMD_VRFY		"VRFY"

@@ -223,6 +223,8 @@ server_port=54321
     DATA, END-OF-MESSAGE, VRFY or ETRN; these are the SMTP protocol
     states where
     the Postfix SMTP server makes an OK/REJECT/HOLD/etc. decision.
+    The DATA protocol state also applies to email that is received
+    with BDAT commands (Postfix 3.4 and later).
     </p>
 
 </ul>

@@ -23643,7 +23643,7 @@ Apologies for any names omitted.
 
 	Minor wordsmithing. File: makedefs.
 
-20180805-20180821
+20180805-20180823
 
 	Cleanup: vbuf_get() now sets the EOF flag, so that reading
 	from a VSTRING stream works as expected. File: util/vbuf.c.
@@ -23670,3 +23670,13 @@ Apologies for any names omitted.
 	recipients, and 2) postscreen(8) does not announce PIPELINING.
 	This makes postscreen(8) DATA and BDAT behavior more
 	consistent. File: postscreen/postscreen_smtpd.c.
+
+	BDAT final touches: report accurate BDAT byte counts after
+	timeout or lost connection; send DATA instead of BDAT in
+	policy delegation protocol. Files: smtpd/smtpd.[hc],
+	smtpd/smtpd_check.c.
+
+20180823
+
+	Bugfix (introduced: 20180812): postscreen_send.c did not
+	build without warnings. Viktor Dukhovni.

@@ -3439,7 +3439,7 @@ static void receive_data_message(SMTPD_STATE *state,
 	    }
 	}
     }
-    state->where = SMTPD_AFTER_DOT;
+    state->where = SMTPD_AFTER_EOM;
 }
 
 /* common_post_message_handling - commit message or report error */
@@ -3830,6 +3830,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	state->bdat_prev_rec_type = 0;
     }
     state->bdat_state = SMTPD_BDAT_STAT_OK;
+    state->where = SMTPD_AFTER_BDAT;
 
     /*
      * Copy the message content. If the cleanup process has a problem, keep
@@ -3907,6 +3908,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Special handling for BDAT LAST (successful or unsuccessful).
      */
     if (final_chunk) {
+	state->where = SMTPD_AFTER_EOM;
 	return common_post_message_handling(state);
     }
 
@@ -3918,6 +3920,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * payloads.
      */
     else if (state->err != CLEANUP_STAT_OK) {
+	/* NOT: state->where = SMTPD_AFTER_EOM; */
 	(void) common_post_message_handling(state);
 	state->bdat_state = SMTPD_BDAT_STAT_ERROR;
 	return (-1);
@@ -5662,7 +5665,13 @@ static void smtpd_proto(SMTPD_STATE *state)
 		     state->reason, SMTPD_CMD_DATA,	/* 2.5 compat */
 		     (long) (state->act_size + vstream_peek(state->client)),
 		     state->namaddr);
-	} else if (strcmp(state->where, SMTPD_AFTER_DOT)
+	} else if (strcmp(state->where, SMTPD_AFTER_BDAT) == 0) {
+	    msg_info("%s after %s (%lu bytes) from %s",
+		     state->reason, SMTPD_CMD_BDAT,
+		     (long) (state->act_size + VSTRING_LEN(state->buffer)
+			     + VSTRING_LEN(state->bdat_get_buffer)),
+		     state->namaddr);
+	} else if (strcmp(state->where, SMTPD_AFTER_EOM)
 		   || strcmp(state->reason, REASON_LOST_CONNECTION)) {
 	    msg_info("%s after %s from %s",
 		     state->reason, state->where, state->namaddr);
