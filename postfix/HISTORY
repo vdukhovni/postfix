@@ -23642,3 +23642,8 @@ Apologies for any names omitted.
 	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_chat.c.
 
 	Minor wordsmithing. File: makedefs.
+
+20180823
+
+	Bugfix (introduced: 20180812): postscreen_send.c did not
+	build without warnings. Viktor Dukhovni.

@@ -108,8 +108,7 @@ void    pcs_send_pre_jail_init(void)
 
 /* psc_get_footer - find that footer */
 
-static const char *psc_get_footer(PSC_STATE *state, const char *text,
-					        ssize_t text_len)
+static const char *psc_get_footer(const char *text, ssize_t text_len)
 {
     static VSTRING *footer_buf = 0;
 
@@ -157,7 +156,7 @@ int     psc_send_reply(PSC_STATE *state, const char *text)
      */
     if ((*text == '4' || *text == '5')
 	&& ((psc_rej_ftr_maps != 0
-	&& (footer = psc_get_footer(psc_rej_ftr_maps, text, text_len)) != 0)
+	     && (footer = psc_get_footer(text, text_len)) != 0)
 	    || *(footer = var_psc_rej_footer) != 0))
 	smtp_reply_footer(state->send_buf, start, footer,
 			  STR(psc_expand_filter), psc_expand_lookup,
