@@ -19,6 +19,11 @@
 /*	VSTRING	*string;
 /*	int	flags;
 /*
+/*	VSTREAM	*vstream_memreopen(stream, string, flags)
+/*	VSTREAM	*stream;
+/*	VSTRING	*string;
+/*	int	flags;
+/*
 /*	int	vstream_fclose(stream)
 /*	VSTREAM	*stream;
 /*
@@ -204,6 +209,10 @@
 /*	functions. After a VSTRING is opened for writing, its content
 /*	will be in an indeterminate state while the stream is open,
 /*	and will be null-terminated when the stream is closed.
+/*
+/*	vstream_memreopen() reopens a memory stream. When the
+/*	\fIstream\fR argument is a null pointer, the behavior is that
+/*	of vstream_memopen().
 /*
 /*	vstream_fclose() closes the named buffered stream. The result
 /*	is 0 in case of success, VSTREAM_EOF in case of problems.
@@ -446,6 +455,8 @@
 /*	The deadline feature is activated.
 /* .IP VSTREAM_FLAG_DOUBLE
 /*	The double-buffering feature is activated.
+/* .IP VSTREAM_FLAG_MEMORY
+/*	The stream is connected to a VSTRING buffer.
 /* DIAGNOSTICS
 /*	Panics: interface violations. Fatal errors: out of memory.
 /* SEE ALSO
@@ -1692,11 +1703,12 @@ const char *vstream_peek_data(VSTREAM *vp)
 
 /* vstream_memopen - open a VSTRING */
 
-VSTREAM *vstream_memopen(VSTRING *string, int flags)
+VSTREAM *vstream_memreopen(VSTREAM *stream, VSTRING *string, int flags)
 {
-    VSTREAM *stream;
-
-    stream = vstream_subopen();
+    if (stream == 0)
+	stream = vstream_subopen();
+    else if ((stream->buf.flags & VSTREAM_FLAG_MEMORY) == 0)
+	msg_panic("vstream_memreopen: cannot reopen non-memory stream");
     stream->fd = -1;
     stream->read_fn = 0;
     stream->write_fn = 0;

@@ -190,7 +190,7 @@ typedef struct {
     char   *hostname;
     char   *name;
     char   *port;
-    unsigned type;			/* TYPEUNIX | TYPEINET | TYPECONNSTRING*/
+    unsigned type;			/* TYPEUNIX | TYPEINET | TYPECONNSTRING */
     unsigned stat;			/* STATUNTRIED | STATFAIL | STATCUR */
     time_t  ts;				/* used for attempting reconnection */
 } HOST;
@@ -344,6 +344,19 @@ static const char *dict_pgsql_lookup(DICT *dict, const char *name)
     INIT_VSTR(result, 10);
 
     dict->error = 0;
+
+    /*
+     * Don't frustrate future attempts to make Postfix UTF-8 transparent.
+     */
+#ifdef SNAPSHOT
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
+	&& !valid_utf8_string(name, strlen(name))) {
+	if (msg_verbose)
+	    msg_info("%s: %s: Skipping lookup of non-UTF-8 key '%s'",
+		     myname, dict_pgsql->parser->name, name);
+	return (0);
+    }
+#endif
 
     /*
      * Optionally fold the key.
@@ -644,6 +657,18 @@ static void plpgsql_connect_single(HOST *host, char *dbname, char *username, cha
 		 host->hostname);
 
     /*
+     * The only legitimate encodings for Internet mail are ASCII and UTF-8.
+     */
+#ifdef SNAPSHOT
+    if (PQsetClientEncoding(host->db, "UTF8") != 0) {
+	msg_warn("dict_pgsql: cannot set the encoding to UTF8, skipping %s",
+		 host->hostname);
+	plpgsql_down_host(host);
+	return;
+    }
+#else
+
+    /*
      * XXX Postfix does not send multi-byte characters. The following piece
      * of code is an explicit statement of this fact, and the database server
      * should not accept multi-byte information after this point.
@@ -654,6 +679,7 @@ static void plpgsql_connect_single(HOST *host, char *dbname, char *username, cha
 	plpgsql_down_host(host);
 	return;
     }
+#endif
     /* Success. */
     host->stat = STATACTIVE;
 }

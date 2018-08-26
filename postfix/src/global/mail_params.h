@@ -1665,6 +1665,19 @@ extern char *var_smtpd_snd_auth_maps;
 				"reject_unauthenticated_sender_login_mismatch"
 
  /*
+  * https://tools.ietf.org/html/rfc4954#page-5
+  * 
+  * (At the time of writing of this document, 12288 octets is considered to be a
+  * sufficient line length limit for handling of deployed authentication
+  * mechanisms.)
+  * 
+  * The default value is also the minimum permissible value for this parameter.
+  */
+#define VAR_SMTPD_SASL_RESP_LIMIT	"smtpd_sasl_response_limit"
+#define DEF_SMTPD_SASL_RESP_LIMIT 12288
+extern int var_smtpd_sasl_resp_limit;
+
+ /*
   * SASL authentication support, SMTP client side.
   */
 #define VAR_SMTP_SASL_ENABLE	"smtp_sasl_auth_enable"

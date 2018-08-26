@@ -308,12 +308,11 @@ int     smtpd_sasl_authenticate(SMTPD_STATE *state,
 
 	/*
 	 * Receive the client response. "*" means that the client gives up.
-	 * XXX For now we ignore the fact that an excessively long response
-	 * will be chopped into multiple responses. To handle such responses,
-	 * we need to change smtpd_chat_query() so that it returns an error
-	 * indication.
 	 */
-	smtpd_chat_query(state);
+	if (!smtpd_chat_query_limit(state, var_smtpd_sasl_resp_limit)) {
+	    smtpd_chat_reply(state, "500 5.5.6 SASL response limit exceeded");
+	    return (-1);
+	}
 	if (strcmp(STR(state->buffer), "*") == 0) {
 	    msg_warn("%s: SASL %s authentication aborted",
 		     state->namaddr, sasl_method);

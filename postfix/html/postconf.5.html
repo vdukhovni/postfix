@@ -15484,7 +15484,7 @@ SMTP session. </p>
 
 <p> Note: specify $$name in footer text that is looked up from
 <a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>:-based <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>, otherwise the
-Postfix server not use the footer text and will log a warning
+Postfix server will not use the footer text and will log a warning
 instead. </p>
 
 <dl>
@@ -15874,6 +15874,26 @@ configuration file or rendezvous point. </p>
 
 <p> This feature is available in Postfix 2.3 and later. In earlier
 releases it was called <b><a href="postconf.5.html#smtpd_sasl_application_name">smtpd_sasl_application_name</a></b>. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_sasl_response_limit">smtpd_sasl_response_limit</a>
+(default: 12288)</b></DT><DD>
+
+<p> The maximum length of a SASL client's response to a server challenge.
+When the client's "initial response" is longer than the normal limit for
+SMTP commands, the client must omit its initial response, and wait for an
+empty server challenge; it can then send what would have been its "initial
+response" as a response to the empty server challenge.  <a href="http://tools.ietf.org/html/rfc4954">RFC4954</a> requires the
+server to accept client responses up to at least 12288 octets of
+base64-encoded text.  The default value is therefore also the minimum value
+accepted for this parameter.</p>
+
+<p> This feature is available in Postfix 3.4 and later. Prior versions use
+"<a href="postconf.5.html#line_length_limit">line_length_limit</a>", which may need to be raised to accomodate larger client
+responses, as may be needed with GSSAPI authenticaiton of Windows AD users
+who are members of many groups. </p>
 
 
 </DD>

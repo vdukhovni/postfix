@@ -1,5 +1,8 @@
 Wish list:
 
+	In smtpd(8) and postscreen(8), set the ehlo_discard_mask
+	to ~0 so that STARTTLS, BDAT, DSN, etc. won't work.
+
 	In postscreen, don't fork after 'postfix reload' when
 	psc_check_queue_length (and psc_post_queue_length?) is zero.
 

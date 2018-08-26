@@ -10779,6 +10779,22 @@ selected with <b>smtpd_sasl_type</b> and <b>smtpd_sasl_path</b>.
 <p> This feature is available in Postfix 2.11 and later. Prior
 versions behave as if "<b>smtp</b>" is specified. </p>
 
+%PARAM smtpd_sasl_response_limit 12288
+
+<p> The maximum length of a SASL client's response to a server challenge.
+When the client's "initial response" is longer than the normal limit for
+SMTP commands, the client must omit its initial response, and wait for an
+empty server challenge; it can then send what would have been its "initial
+response" as a response to the empty server challenge.  RFC4954 requires the
+server to accept client responses up to at least 12288 octets of
+base64-encoded text.  The default value is therefore also the minimum value
+accepted for this parameter.</p>
+
+<p> This feature is available in Postfix 3.4 and later. Prior versions use
+"line_length_limit", which may need to be raised to accomodate larger client
+responses, as may be needed with GSSAPI authenticaiton of Windows AD users
+who are members of many groups. </p>
+
 %PARAM cyrus_sasl_config_path
 
 <p> Search path for Cyrus SASL application configuration files,

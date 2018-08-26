@@ -56,6 +56,7 @@ RFC 2034 (SMTP enhanced status codes)
 RFC 2554 (AUTH command)
 RFC 2821 (SMTP protocol)
 RFC 2920 (SMTP pipelining)
+RFC 3030 (CHUNKING without BINARYMIME)
 RFC 3207 (STARTTLS command)
 RFC 3461 (SMTP DSN extension)
 RFC 3463 (Enhanced status codes)
@@ -370,6 +371,10 @@ Available in Postfix version 2.11 and later:
 .IP "\fBsmtpd_sasl_service (smtp)\fR"
 The service name that is passed to the SASL plug\-in that is
 selected with \fBsmtpd_sasl_type\fR and \fBsmtpd_sasl_path\fR.
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBsmtpd_sasl_response_limit (12288)\fR"
+The maximum length of a SASL client's response to a server challenge.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf

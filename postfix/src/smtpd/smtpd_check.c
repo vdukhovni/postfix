@@ -2598,7 +2598,7 @@ static int check_table_result(SMTPD_STATE *state, const char *table,
 	if (not_in_client_helo(state, table, "PREPEND", reply_class) == 0)
 	    return (SMTPD_CHECK_DUNNO);
 #endif
-	if (strcmp(state->where, SMTPD_AFTER_DOT) == 0) {
+	if (strcmp(state->where, SMTPD_AFTER_EOM) == 0) {
 	    msg_warn("access table %s: action PREPEND must be used before %s",
 		     table, VAR_EOD_CHECKS);
 	    return (SMTPD_CHECK_DUNNO);
@@ -3910,7 +3910,9 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
     if (attr_clnt_request(policy_clnt->client,
 			  ATTR_FLAG_NONE,	/* Query attributes. */
 			SEND_ATTR_STR(MAIL_ATTR_REQ, "smtpd_access_policy"),
-			  SEND_ATTR_STR(MAIL_ATTR_PROTO_STATE, state->where),
+			  SEND_ATTR_STR(MAIL_ATTR_PROTO_STATE,
+					STREQ(state->where, SMTPD_CMD_BDAT) ?
+					SMTPD_CMD_DATA : state->where),
 		   SEND_ATTR_STR(MAIL_ATTR_ACT_PROTO_NAME, state->protocol),
 		      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_ADDR, state->addr),
 		      SEND_ATTR_STR(MAIL_ATTR_ACT_CLIENT_NAME, state->name),
@@ -3929,7 +3931,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 				  state->recipient ? state->recipient : ""),
 			  SEND_ATTR_INT(MAIL_ATTR_RCPT_COUNT,
 			 ((strcasecmp(state->where, SMTPD_CMD_DATA) == 0) ||
-			  (strcasecmp(state->where, SMTPD_AFTER_DOT) == 0)) ?
+			  (strcasecmp(state->where, SMTPD_CMD_BDAT) == 0) ||
+			  (strcasecmp(state->where, SMTPD_AFTER_EOM) == 0)) ?
 					state->rcpt_count : 0),
 			  SEND_ATTR_STR(MAIL_ATTR_QUEUEID,
 				    state->queue_id ? state->queue_id : ""),

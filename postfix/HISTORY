@@ -23647,3 +23647,64 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20180812): postscreen_send.c did not
 	build without warnings. Viktor Dukhovni.
+
+20180824
+
+	Cleanup: with SMTPUTF8 turned off, the MySQL and PgSQL maps
+	accept only well-formed UTF-8 queries, and return NOT FOUND
+	otherwise. This was in introduced in Postfix 3.0 for LDAP
+	and SQLite, with no complaints coming forth. Files:
+	global/dict_mysql.c, global/dict_pgsql.c.
+
+20180805-20180825 Chunking support
+
+	Cleanup: vbuf_get() now sets the EOF flag, so that reading
+	from a VSTRING stream works as expected. File: util/vbuf.c.
+
+	Cleanup: added an append-mode flag to functions that read
+	a VSTRING from a stream. The historical APIs are preserved
+	in the form of aliases. Files: util/vstring_vstream.[hc],
+	global/smtp_stream.[hc].
+
+	SMTP server support for CHUNKING (BDAT) per RFC 3030. The
+	SMTP server is the only program that knows the difference
+	between mail received with BDAT or DATA. Both use the same
+	smtpd_data_restrictions and smtpd_end_of_data_restrictions,
+	both send one Milter DATA event per mail transaction, and
+	both send one DATA command ending in <CR><LF>.<CR><LF>
+	to an smtpd_proxy_filter. Files: global/ehlo_mask.h,
+	global/smtp_stream.c, global/smtp_stream.c, global/smtp_stream.h,
+	postscreen/postscreen_smtpd.c, smtpd/smtpd.c, smtpd/smtpd.h,
+	smtpd/smtpd_chat.c, smtpd/smtpd_chat.h, smtpd/smtpd_state.c.
+
+	Cleanup: the postscreen(8) daemon now hangs up after receiving
+	the DATA command. Justification: it should never receive DATA
+	from a legitimate client, because 1) postscreen(8) rejects all
+	recipients, and 2) postscreen(8) does not announce PIPELINING.
+	This makes postscreen(8) DATA and BDAT behavior more
+	consistent. File: postscreen/postscreen_smtpd.c.
+
+	BDAT final touches: report accurate BDAT byte counts after
+	timeout or lost connection; send DATA instead of BDAT in
+	policy delegation protocol. Files: smtpd/smtpd.[hc],
+	smtpd/smtpd_check.c.
+
+	BDAT final touches: if the BDAT EHLO announcement is disabled,
+	then smtpd(8) and postscreen(8) will not accept BDAT commands.
+	Files: smtpd/smtpd.c, postscreen/postscreen_smtpd.c.
+
+20180826
+
+	Cleanup: with GSSAPI, the Postfix SMTP client's initial
+	SASL response may be as large as 12288 bytes. When the "AUTH
+	<method> <initial-response>" command would exceed the SMTP
+	command length of 512 bytes, send the initial response
+	during the SASL dialog. Viktor Dukhovni. File:
+	smtp/smtp_sasl_glue.c.
+
+	Cleanup: prepare the Postfix SMTP server needs to receive
+	SASL responses that exceed the line_length_limit value.
+	This introduces a new parameter smtpd_sasl_response_limit
+	(default: 12288). Viktor Dukhovni.  Files: mantools/postlink,
+	proto/postconf.proto, global/mail_params.h, smtpd/smtpd.c,
+	smtpd/smtpd_chat.c, smtpd/smtpd_chat.h, smtpd/smtpd_sasl_glue.c.

@@ -9,6 +9,10 @@
 /*
 /*	void	smtpd_chat_pre_jail_init(void)
 /*
+/*	int	smtpd_chat_query_limit(state, limit)
+/*	SMTPD_STATE *state;
+/*	int limit;
+/*
 /*	void	smtpd_chat_query(state)
 /*	SMTPD_STATE *state;
 /*
@@ -26,6 +30,11 @@
 /*	conversations, and maintains a limited SMTP transaction log.
 /*
 /*	smtpd_chat_pre_jail_init() performs one-time initialization.
+/*
+/*	smtpd_chat_query_limit() reads a line from the client that is
+/*	at most "limit" bytes long.  A copy is appended to the SMTP
+/*	transaction log.  The return value is non-zero for a complete
+/*	line or else zero if the length limit was exceeded.
 /*
 /*	smtpd_chat_query() receives a client request and appends a copy
 /*	to the SMTP transaction log.
@@ -106,7 +115,7 @@ static MAPS *smtpd_rej_ftr_maps;
 
 /* smtpd_chat_pre_jail_init - initialize */
 
-void smtpd_chat_pre_jail_init(void)
+void    smtpd_chat_pre_jail_init(void)
 {
     static int init_count = 0;
 
@@ -151,7 +160,7 @@ static void smtp_chat_append(SMTPD_STATE *state, char *direction,
 
 /* smtpd_chat_query - receive and record an SMTP request */
 
-void    smtpd_chat_query(SMTPD_STATE *state)
+int     smtpd_chat_query_limit(SMTPD_STATE *state, int limit)
 {
     int     last_char;
 
@@ -159,16 +168,17 @@ void    smtpd_chat_query(SMTPD_STATE *state)
      * We can't parse or store input that exceeds var_line_limit, so we skip
      * over it to avoid loss of synchronization.
      */
-    last_char = smtp_get(state->buffer, state->client, var_line_limit,
+    last_char = smtp_get(state->buffer, state->client, limit,
 			 SMTP_GET_FLAG_SKIP);
     smtp_chat_append(state, "In:  ", STR(state->buffer));
     if (last_char != '\n')
 	msg_warn("%s: request longer than %d: %.30s...",
-		 state->namaddr, var_line_limit,
+		 state->namaddr, limit,
 		 printable(STR(state->buffer), '?'));
 
     if (msg_verbose)
 	msg_info("< %s: %s", state->namaddr, STR(state->buffer));
+    return (last_char == '\n');
 }
 
 /* smtpd_chat_reply - format, send and record an SMTP response */
@@ -176,6 +186,16 @@ void    smtpd_chat_query(SMTPD_STATE *state)
 void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
 {
     va_list ap;
+
+    va_start(ap, format);
+    vsmtpd_chat_reply(state, format, ap);
+    va_end(ap);
+}
+
+/* vsmtpd_chat_reply - format, send and record an SMTP response */
+
+void    vsmtpd_chat_reply(SMTPD_STATE *state, const char *format, va_list ap)
+{
     int     delay = 0;
     char   *cp;
     char   *next;
@@ -189,9 +209,7 @@ void    smtpd_chat_reply(SMTPD_STATE *state, const char *format,...)
     if (state->error_count >= var_smtpd_soft_erlim)
 	sleep(delay = var_smtpd_err_sleep);
 
-    va_start(ap, format);
     vstring_vsprintf(state->buffer, format, ap);
-    va_end(ap);
 
     if ((*(cp = STR(state->buffer)) == '4' || *cp == '5')
 	&& ((smtpd_rej_ftr_maps != 0

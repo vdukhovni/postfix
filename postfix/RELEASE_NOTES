@@ -25,8 +25,120 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Incompatble change with snapshot 20180701
-=========================================
+Major changes with snapshot 20180826
+====================================
+
+Postfix SMTP server support for RFC 3030 CHUNKING (the BDAT command)
+without BINARYMIME, in both smtpd(8) and postscreen(8).
+
+To disable the SMTP server's CHUNKING support:
+
+/etc/postfix/main.cf:
+    # The logging alternative:
+    smtpd_discard_ehlo_keywords = chunking
+    # The non-logging alternative:
+    smtpd_discard_ehlo_keywords = chunking, silent_discard
+
+Be sure to specify '-o smtpd_discard_ehlo_keywords=' in master.cf
+for the submission and smtps services, in case you have clients
+that benefit from CHUNKING support.
+
+Impact on existing configurations:
+----------------------------------
+
+- There are no changes for smtpd_mumble_restrictions, smtpd_proxy_filter,
+  smtpd_milters, or for postscreen settings, except for the additional
+  option to suppress the SMTP server's CHUNKING service announcement.
+
+- There are no changes in the Postfix queue file content, no changes
+  for down-stream SMTP servers or after-queue content filters, and
+  no changes in the envelope or message content that Milters will
+  receive.
+
+Example SMTP session
+--------------------
+
+The main differences are that the Postfix SMTP server announces
+"CHUNKING" support in the EHLO response, and that instead of sending
+one DATA request, the remote SMTP client may send one or more BDAT
+requests. In the example below, "S:" indicates server responses,
+and "C:" indicates client requests.
+
+    S: 220 server.example.com
+    C: EHLO client.example.com
+    S: 250-server.example.com
+    S: 250-PIPELINING
+    S: 250-SIZE 153600000
+    S: 250-VRFY
+    S: 250-ETRN
+    S: 250-STARTTLS
+    S: 250-AUTH PLAIN LOGIN
+    S: 250-ENHANCEDSTATUSCODES
+    S: 250-8BITMIME
+    S: 250-DSN
+    S: 250-SMTPUTF8
+    S: 250 CHUNKING
+    C: MAIL FROM:<sender@example.com>
+    S: 250 2.1.0 Ok
+    C: RCPT TO:<recipient@example.com>
+    S: 250 2.1.5 Ok
+    C: BDAT 10000
+    C: ..followed by 10000 bytes...
+    S: 250 2.0.0 Ok: 10000 bytes
+    C: BDAT 123
+    C: ..followed by 123 bytes...
+    S: 250 2.0.0 Ok: 123 bytes
+    C: BDAT 0 LAST
+    S: 250 2.0.0 Ok: 10123 bytes queued as 41yYhh41qmznjbD
+    C: QUIT
+    S: 221 2.0.0 Bye
+
+Internally in Postfix, there is no difference between mail that was
+received with BDAT or with DATA. Postfix smtpd_mumble_restrictions,
+policy delegation queries, smtpd_proxy_filter and Milters all behave
+as if Postfix received (MAIL + RCPT + DATA + end-of-data). However,
+Postfix will log BDAT-related failures as "xxx after BDAT" to avoid
+complicating troubleshooting (xxx = 'lost connection' or 'timeout'),
+and will log a warning when a client sends a malformed BDAT command.
+
+Benefits of CHUNKING (BDAT) support without BINARYMIME:
+-------------------------------------------------------
+
+Support for CHUNKING (BDAT) was added to improve interoperability
+with some clients, a benefit that would reportedly exist even without
+Postfix support for BINARYMIME.
+
+Postfix does not support BINARYMIME at this time because:
+
+- BINARYMIME support would require moderately invasive changes to
+  support email content that is not line-oriented. With BINARYMIME,
+  the Content-Length: header specifies the length of arbitrary
+  content that has no line boundaries. Without BINARYMIME, binary
+  content is base64-encoded, and formatted as lines of text.
+
+- There is no conversion of BINARYMIME to a line-oriented 8BITMIME
+  form that is compatible with legacy systems including UNIX mbox.
+  The available options are to convert binary content into one of
+  the 7bit forms (base64 or quoted-printable), or to return email
+  as undeliverable. Any conversion would break digital signatures,
+  so it would have to happen before signing.
+  
+Downsides of CHUNKING (BDAT) support:
+-------------------------------------
+
+The RFC 3030 authors did not specify any limitations on how clients
+may pipeline commands (i.e. send commands without waiting for a
+server response). If a server announces PIPELINING support, like
+Postfix does, then a remote SMTP client can pipeline all commands
+following EHLO, for example, MAIL/RCPT/BDAT/BDAT/MAIL/RCPT/BDAT,
+without ever having to wait for a server response. This means that
+with BDAT, the Postfix SMTP server cannot distinguish between a
+well-behaved client and a spambot, based on their command pipelining
+behavior. If you require "reject_unauth_pipelining" to block spambots,
+turn off the CHUNKING support announcement as described above.
+
+Incompatible change with snapshot 20180701
+==========================================
 
 To avoid performance loss under load, the tlsproxy(8) daemon now
 requires a zero process limit in master.cf (this setting is provided

@@ -37,6 +37,11 @@
 /*	ssize_t	len;
 /*	VSTREAM *stream;
 /*
+/*	void	smtp_fread(vp, len, stream)
+/*	VSTRING	*vp;
+/*	ssize_t	len;
+/*	VSTREAM *stream;
+/*
 /*	void	smtp_fputc(ch, stream)
 /*	int	ch;
 /*	VSTREAM *stream;
@@ -45,6 +50,12 @@
 /*	VSTREAM *stream;
 /*	char	*format;
 /*	va_list	ap;
+/* AUXILIARY API
+/*	int	smtp_get_noexcept(vp, stream, maxlen, flags)
+/*	VSTRING	*vp;
+/*	VSTREAM *stream;
+/*	ssize_t	maxlen;
+/*	int	flags;
 /* LEGACY API
 /*	void	smtp_timeout_setup(stream, timeout)
 /*	VSTREAM *stream;
@@ -82,10 +93,15 @@
 /*	and protects the program against running out of memory.
 /*	Specify a zero bound to turn off bounds checking.
 /*	The result is the last character read, or VSTREAM_EOF.
-/*	The \fIflags\fR argument is either SMTP_GET_FLAG_NONE (no
-/*	special processing) or SMTP_GET_FLAG_SKIP (skip over input
-/*	in excess of \fImaxlen\fR). Either way, a result value of
-/*	'\n' means that the input did not exceed \fImaxlen\fR.
+/*	The \fIflags\fR argument is zero or more of:
+/* .RS
+/* .IP SMTP_GET_FLAG_SKIP
+/*	Skip over input in excess of \fImaxlen\fR). Either way, a result
+/*	value of '\n' means that the input did not exceed \fImaxlen\fR.
+/* .IP SMTP_GET_FLAG_APPEND
+/*	Append content to the buffer instead of overwriting it.
+/* .RE
+/*	Specify SMTP_GET_FLAG_NONE for no special processing.
 /*
 /*	smtp_fputs() writes its string argument to the named stream.
 /*	Long strings are not broken. Each string is followed by a
@@ -95,10 +111,17 @@
 /*	Long strings are not broken. No CR LF is appended. The stream
 /*	is not flushed.
 /*
+/*	smtp_fread() appends the specified number of bytes from the
+/*	stream to the buffer. The result is not null-terminated.
+/*
 /*	smtp_fputc() writes one character to the named stream.
 /*	The stream is not flushed.
 /*
 /*	smtp_vprintf() is the machine underneath smtp_printf().
+/*
+/*	smtp_get_noexcept() implements the subset of smtp_get()
+/*	without timeouts and without making long jumps. Instead,
+/*	query the stream status with vstream_feof() etc.
 /*
 /*	smtp_timeout_setup() is a backwards-compatibility interface
 /*	for programs that don't require per-record deadline support.
@@ -305,6 +328,29 @@ int     smtp_fgetc(VSTREAM *stream)
 int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
 {
     int     last_char;
+
+    /*
+     * Do the I/O, protected against timeout.
+     */
+    smtp_timeout_reset(stream);
+    last_char = smtp_get_noexcept(vp, stream, bound, flags);
+
+    /*
+     * EOF is bad, whether or not it happens in the middle of a record. Don't
+     * allow data that was truncated because of EOF.
+     */
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_get");
+    if (vstream_feof(stream) || vstream_ferror(stream))
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_get");
+    return (last_char);
+}
+
+/* smtp_get_noexcept - read one line from SMTP peer, without exceptions */
+
+int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
+{
+    int     last_char;
     int     next_char;
 
     /*
@@ -316,9 +362,13 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
      * XXX 2821: Section 4.1.1.4 says that an SMTP server must not recognize
      * bare LF as record terminator.
      */
-    smtp_timeout_reset(stream);
-    last_char = (bound == 0 ? vstring_get(vp, stream) :
-		 vstring_get_bound(vp, stream, bound));
+    last_char = (bound == 0 ?
+		 vstring_get_flags(vp, stream,
+				   (flags & SMTP_GET_FLAG_APPEND) ?
+				   VSTRING_GET_FLAG_APPEND : 0) :
+		 vstring_get_flags_bound(vp, stream,
+					 (flags & SMTP_GET_FLAG_APPEND) ?
+				       VSTRING_GET_FLAG_APPEND : 0, bound));
 
     switch (last_char) {
 
@@ -367,14 +417,6 @@ int     smtp_get(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags)
 	       && next_char != '\n')
 	     /* void */ ;
 
-    /*
-     * EOF is bad, whether or not it happens in the middle of a record. Don't
-     * allow data that was truncated because of EOF.
-     */
-    if (vstream_ftimeout(stream))
-	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_get");
-    if (vstream_feof(stream) || vstream_ferror(stream))
-	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_get");
     return (last_char);
 }
 
@@ -425,6 +467,33 @@ void    smtp_fwrite(const char *cp, ssize_t todo, VSTREAM *stream)
 	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_fwrite");
     if (err != 0)
 	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fwrite");
+}
+
+/* smtp_fread - read one buffer from SMTP peer */
+
+void    smtp_fread(VSTRING *vp, ssize_t todo, VSTREAM *stream)
+{
+    int     err;
+
+    if (todo <= 0)
+	msg_panic("smtp_fread: zero or negative todo %ld", (long) todo);
+
+    /*
+     * Do the I/O, protected against timeout.
+     */
+    smtp_timeout_reset(stream);
+    VSTRING_SPACE(vp, todo);
+    err = (vstream_fread(stream, vstring_end(vp), todo) != todo);
+    if (err == 0)
+	VSTRING_AT_OFFSET(vp, VSTRING_LEN(vp) + todo);
+
+    /*
+     * See if there was a problem.
+     */
+    if (vstream_ftimeout(stream))
+	smtp_longjmp(stream, SMTP_ERR_TIME, "smtp_fread");
+    if (err != 0)
+	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fread");
 }
 
 /* smtp_fputc - write to SMTP peer */

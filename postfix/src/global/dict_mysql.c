@@ -326,6 +326,19 @@ static const char *dict_mysql_lookup(DICT *dict, const char *name)
     dict->error = 0;
 
     /*
+     * Don't frustrate future attempts to make Postfix UTF-8 transparent.
+     */
+#ifdef SNAPSHOT
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
+	&& !valid_utf8_string(name, strlen(name))) {
+	if (msg_verbose)
+	    msg_info("%s: %s: Skipping lookup of non-UTF-8 key '%s'",
+		     myname, dict_mysql->parser->name, name);
+	return (0);
+    }
+#endif
+
+    /*
      * Optionally fold the key.
      */
     if (dict->flags & DICT_FLAG_FOLD_FIX) {

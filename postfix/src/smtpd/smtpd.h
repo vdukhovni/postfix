@@ -182,13 +182,24 @@ typedef struct {
     const char **milter_argv;		/* SMTP command vector */
     ssize_t milter_argc;		/* SMTP command vector */
     const char *milter_reject_text;	/* input to call-back from Milter */
-    MILTERS *milters;			/* Milter initialization status.*/
+    MILTERS *milters;			/* Milter initialization status. */
 
     /*
      * EHLO temporary space.
      */
     VSTRING *ehlo_buf;
     ARGV   *ehlo_argv;
+
+    /*
+     * BDAT processing state.
+     */
+#define SMTPD_BDAT_STAT_NONE	0	/* not processing BDAT */
+#define SMTPD_BDAT_STAT_OK	1	/* accepting BDAT chunks */
+#define SMTPD_BDAT_STAT_ERROR	2	/* skipping BDAT chunks */
+    int     bdat_state;			/* see above */
+    VSTREAM *bdat_get_stream;		/* memory stream from BDAT chunk */
+    VSTRING *bdat_get_buffer;		/* read from memory stream */
+    int     bdat_prev_rec_type;
 } SMTPD_STATE;
 
 #define SMTPD_FLAG_HANGUP	   (1<<0)	/* 421/521 disconnect */
@@ -198,7 +209,7 @@ typedef struct {
 
  /* Security: don't reset SMTPD_FLAG_AUTH_USED. */
 #define SMTPD_MASK_MAIL_KEEP \
-	    ~(SMTPD_FLAG_SMTPUTF8)		/* Fix 20140706 */
+	    ~(SMTPD_FLAG_SMTPUTF8)	/* Fix 20140706 */
 
 #define SMTPD_STATE_XFORWARD_INIT  (1<<0)	/* xforward preset done */
 #define SMTPD_STATE_XFORWARD_NAME  (1<<1)	/* client name received */
@@ -223,7 +234,8 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   */
 #define SMTPD_AFTER_CONNECT	"CONNECT"
 #define SMTPD_AFTER_DATA	"DATA content"
-#define SMTPD_AFTER_DOT		"END-OF-MESSAGE"
+#define SMTPD_AFTER_BDAT	"BDAT content"
+#define SMTPD_AFTER_EOM		"END-OF-MESSAGE"
 
  /*
   * Other stages. These are sometimes used to change the way information is
@@ -236,7 +248,8 @@ extern void smtpd_state_reset(SMTPD_STATE *);
 #define SMTPD_CMD_MAIL		"MAIL"
 #define SMTPD_CMD_RCPT		"RCPT"
 #define SMTPD_CMD_DATA		"DATA"
-#define SMTPD_CMD_EOD		SMTPD_AFTER_DOT	/* XXX Was: END-OF-DATA */
+#define SMTPD_CMD_BDAT		"BDAT"
+#define SMTPD_CMD_EOD		SMTPD_AFTER_EOM	/* XXX Was: END-OF-DATA */
 #define SMTPD_CMD_RSET		"RSET"
 #define SMTPD_CMD_NOOP		"NOOP"
 #define SMTPD_CMD_VRFY		"VRFY"
@@ -320,6 +333,12 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   * Are we in a MAIL transaction?
   */
 #define SMTPD_IN_MAIL_TRANSACTION(state) ((state)->sender != 0)
+
+ /*
+  * Are we processing BDAT requests?
+  */
+#define SMTPD_PROCESSING_BDAT(state) \
+	((state)->bdat_state != SMTPD_BDAT_STAT_NONE)
 
  /*
   * SMTPD peer information lookup.

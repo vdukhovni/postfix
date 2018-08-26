@@ -264,6 +264,7 @@ smtpd_chat.o: ../../include/argv.h
 smtpd_chat.o: ../../include/attr.h
 smtpd_chat.o: ../../include/check_arg.h
 smtpd_chat.o: ../../include/cleanup_user.h
+smtpd_chat.o: ../../include/dict.h
 smtpd_chat.o: ../../include/dns.h
 smtpd_chat.o: ../../include/htable.h
 smtpd_chat.o: ../../include/int_filt.h
@@ -280,6 +281,7 @@ smtpd_chat.o: ../../include/maps.h
 smtpd_chat.o: ../../include/milter.h
 smtpd_chat.o: ../../include/msg.h
 smtpd_chat.o: ../../include/myaddrinfo.h
+smtpd_chat.o: ../../include/myflock.h
 smtpd_chat.o: ../../include/mymalloc.h
 smtpd_chat.o: ../../include/name_code.h
 smtpd_chat.o: ../../include/name_mask.h
