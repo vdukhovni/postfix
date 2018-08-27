@@ -23708,3 +23708,8 @@ Apologies for any names omitted.
 	(default: 12288). Viktor Dukhovni.  Files: mantools/postlink,
 	proto/postconf.proto, global/mail_params.h, smtpd/smtpd.c,
 	smtpd/smtpd_chat.c, smtpd/smtpd_chat.h, smtpd/smtpd_sasl_glue.c.
+
+20180827
+
+	Miscellaneous documentation updates, and a correction in
+	the byte count for sending a large SASL initial response.

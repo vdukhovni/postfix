@@ -89,6 +89,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
  /*
@@ -374,7 +379,7 @@ int     smtp_sasl_authenticate(SMTP_SESSION *session, DSN_BUF *why)
      * Defer the initial response if the resulting command exceeds the limit.
      */
     if (LEN(session->sasl_reply) > 0
-	&& strlen(mechanism) + LEN(session->sasl_reply) + 4 <= 512) {
+	&& strlen(mechanism) + LEN(session->sasl_reply) + 8 <= 512) {
 	smtp_chat_cmd(session, "AUTH %s %s", mechanism,
 		      STR(session->sasl_reply));
 	VSTRING_RESET(session->sasl_reply);	/* no deferred initial reply */

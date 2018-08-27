@@ -1449,8 +1449,11 @@ is the master.cf name of the message delivery transport.
 This feature is available in Postfix 2.5 and later.
 .SH default_destination_rate_delay (default: 0s)
 The default amount of delay that is inserted between individual
-deliveries to the same destination; the resulting behavior depends
-on the value of the corresponding per\-destination recipient limit.
+deliveries to the same destination. If non\-zero, all deliveries to
+the same destination will happen one at a time.
+.PP
+The resulting behavior depends on the value of the corresponding
+per\-destination recipient limit.
 .IP \(bu
 With a corresponding per\-destination recipient limit >
 1, the rate delay specifies the time between deliveries to the

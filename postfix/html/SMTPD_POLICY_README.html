@@ -143,12 +143,16 @@ server_port=54321
     <li> <p> The "recipient" attribute is available in the "RCPT
     TO" stage. It is also available in the "DATA" and "END-OF-MESSAGE"
     stages if Postfix accepted only one recipient for the current
-    message.  </p>
+    message.
+    The DATA protocol state also applies to email that is received
+    with BDAT commands (Postfix 3.4 and later). </p>
 
     <li> <p> The "recipient_count" attribute (Postfix 2.3 and later)
     is non-zero only in the "DATA" and "END-OF-MESSAGE" stages. It
     specifies the number of recipients that Postfix accepted for
-    the current message.  </p>
+    the current message.
+    The DATA protocol state also applies to email that is received
+    with BDAT commands (Postfix 3.4 and later). </p>
 
     <li> <p> The remote client or local server IP address is an
     IPv4 dotted quad in the form 1.2.3.4 or it is an IPv6 address
@@ -176,8 +180,7 @@ server_port=54321
     <li> <p> The "size" attribute value specifies the message size
     that the client specified in the MAIL FROM command (zero if
     none was specified). With Postfix 2.2 and later, it specifies
-    the actual message size when the client sends the END-OF-DATA
-    command.
+    the actual message size after the client sends the END-OF-MESSAGE.
     </p>
 
     <li> <p> The "sasl_*" attributes (Postfix 2.2 and later) specify

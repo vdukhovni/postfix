@@ -13321,8 +13321,12 @@ name is the master.cf name of the message delivery transport. </p>
 %PARAM default_destination_rate_delay 0s
 
 <p> The default amount of delay that is inserted between individual
-deliveries to the same destination; the resulting behavior depends
-on the value of the corresponding per-destination recipient limit.
+deliveries to the same destination. If non-zero, all deliveries to
+the same destination will happen one at a time. </p>
+
+<p> The resulting behavior depends on the value of the corresponding
+per-destination recipient limit.
+
 </p>
 
 <ul>
