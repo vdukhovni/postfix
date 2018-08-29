@@ -783,14 +783,20 @@ cannot match Postfix access tables, because the address is ambiguous.
 
 <p>
 A list of non-default Postfix configuration directories that may
-be specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line, or
-via the MAIL_CONFIG environment parameter.
+be specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line (in the
+case of <a href="sendmail.1.html">sendmail(1)</a>, with the "-C" option), or via the MAIL_CONFIG
+environment parameter.
 </p>
 
 <p>
-This list must be specified in the default Postfix configuration
-directory, and is used by set-gid Postfix commands such as <a href="postqueue.1.html">postqueue(1)</a>
+This list must be specified in the default Postfix <a href="postconf.5.html">main.cf</a> file,
+and will be used by set-gid Postfix commands such as <a href="postqueue.1.html">postqueue(1)</a>
 and <a href="postdrop.1.html">postdrop(1)</a>.
+</p>
+
+<p>
+Specify absolute pathnames, separated by comma or space. Note: $name
+expansion is not supported.
 </p>
 
 
@@ -2028,6 +2034,12 @@ text of successful or unsuccessful deliveries.  This does not allow
 the replacement of a successful status code (2.X.X) with an
 unsuccessful status code (4.X.X or 5.X.X) or vice versa.  </p>
 
+<p> Note: the (smtp|lmtp)_delivery_status_filter is applied only
+once per recipient: when delivery is successful, when delivery is
+rejected with 5XX, or when there are no more alternate MX or A
+destinations. Use <a href="postconf.5.html#smtp_reply_filter">smtp_reply_filter</a> or <a href="postconf.5.html#lmtp_reply_filter">lmtp_reply_filter</a> to inspect
+responses for all delivery attempts. </p>
+
 <p> The following parameters can be used to implement a filter for
 specific delivery agents: <a href="postconf.5.html#lmtp_delivery_status_filter">lmtp_delivery_status_filter</a>,
 <a href="postconf.5.html#local_delivery_status_filter">local_delivery_status_filter</a>, <a href="postconf.5.html#pipe_delivery_status_filter">pipe_delivery_status_filter</a>,
@@ -2262,8 +2274,12 @@ is the <a href="master.5.html">master.cf</a> name of the message delivery transp
 (default: 0s)</b></DT><DD>
 
 <p> The default amount of delay that is inserted between individual
-deliveries to the same destination; the resulting behavior depends
-on the value of the corresponding per-destination recipient limit.
+deliveries to the same destination. If non-zero, all deliveries to
+the same destination will happen one at a time. </p>
+
+<p> The resulting behavior depends on the value of the corresponding
+per-destination recipient limit.
+
 </p>
 
 <ul>
@@ -3191,22 +3207,39 @@ name changes. </p>
 <DT><b><a name="enable_original_recipient">enable_original_recipient</a>
 (default: yes)</b></DT><DD>
 
-<p> Enable support for the X-Original-To message header. This header
-is needed for multi-recipient mailboxes.  </p>
+<p> Enable support for the original recipient address after an
+address is rewritten to a different address (for example with
+aliasing or with canonical mapping). </p>
 
-<p> When this parameter is set to yes, the <a href="cleanup.8.html">cleanup(8)</a> daemon performs
-duplicate elimination on distinct pairs of (original recipient,
-rewritten recipient), and generates non-empty original recipient
-queue file records.  </p>
+<p> The original recipient address is used as follows: </p>
 
-<p> When this parameter is set to no, the <a href="cleanup.8.html">cleanup(8)</a> daemon performs
-duplicate elimination on the rewritten recipient address only, and
-generates empty original recipient queue file records.  </p>
+<dl>
 
-<p> This feature is available in Postfix 2.1 and later. With Postfix
-version 2.0, support for the X-Original-To message header is always turned
-on. Postfix versions before 2.0 have no support for the X-Original-To
-message header.  </p>
+<dt> Final delivery </dt> <dd> With "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> =
+yes", the original recipient address is stored in the <b>X-Original-To</b>
+message header. This header may be used to distinguish between
+different recipients that share the same mailbox.  </dd>
+
+<dt> Recipient deduplication </dt> <dd> With "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a>
+= yes", the <a href="cleanup.8.html">cleanup(8)</a> daemon performs duplicate recipient elimination
+based on the content of (original recipient, maybe-rewritten
+recipient) pairs.  Otherwise, the <a href="cleanup.8.html">cleanup(8)</a> daemon performs duplicate
+recipient elimination based only on the maybe-rewritten recipient
+address.  </dd>
+
+</dl>
+
+<p> Note: with Postfix &le; 3.2 the "setting <a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a>
+= <b>no</b>" breaks address verification for addresses that are
+aliased or otherwise rewritten (Postfix is unable to store the
+address verification result under the original probe destination
+address; instead, it can store the result only under the rewritten
+address).  </p>
+
+<p> This feature is available in Postfix 2.1 and later. Postfix
+version 2.0 behaves as if this parameter is always set to <b>yes</b>.
+Postfix versions before 2.0 have no support for the original recipient
+address. </p>
 
 
 </DD>
@@ -3253,10 +3286,11 @@ outside the allowed set are replaced by underscores.  </p>
 (default: no)</b></DT><DD>
 
 <p>
-When delivering to an alias "aliasname" that has an "owner-aliasname"
-companion alias, set the envelope sender address to the expansion
-of the "owner-aliasname" alias. Normally, Postfix sets the envelope
-sender address to the name of the "owner-aliasname" alias.
+When delivering to an alias "<i>aliasname</i>" that has an
+"owner-<i>aliasname</i>" companion alias, set the envelope sender
+address to the expansion of the "owner-<i>aliasname</i>" alias.
+Normally, Postfix sets the envelope sender address to the name of
+the "owner-<i>aliasname</i>" alias.
 </p>
 
 
@@ -3678,6 +3712,52 @@ message headers, as specified in the <a href="header_checks.5.html">header_check
 
 </DD>
 
+<DT><b><a name="header_from_format">header_from_format</a>
+(default: standard)</b></DT><DD>
+
+<p> The format of the Postfix-generated <b>From:</b> header. This
+setting affects the appearance of 'full name' information when a
+local program such as /bin/mail submits a message without From:
+header through the Postfix <a href="sendmail.1.html">sendmail(1)</a> command. </p>
+
+<p> Specify one of the following: </p>
+
+<dl>
+
+<dt><b>standard</b> (default)</dt> <dd> Produce a header formatted
+as "<b>From:</b> <i>name</i><b> &lt;</b><i>address</i><b>&gt;</b>".
+This is the default as of Postfix 3.3.</dd>
+
+<dt><b>obsolete</b></dt> <dd>Produce a header formatted as "<b>From:</b>
+<i>address</i> <b>(</b><i>name</i><b>)</b>". This is the behavior
+prior to Postfix 3.3. </dd>
+
+</dl>
+
+<p> Notes: </p>
+
+<ul>
+
+<li> <p> Postfix generates the format "<b>From:</b> <i>address</i>"
+when <i>name</i> information is unavailable or the envelope sender
+address is empty. This is the same behavior as prior to Postfix
+3.3. </p>
+
+<li> <p> In the <b>standard</b> form, the <i>name</i> will be quoted
+if it contains <b>specials</b> as defined in <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>, or the "!%"
+address operators. </p>
+
+<li> <p> The Postfix <a href="sendmail.1.html">sendmail(1)</a> command gets <i>name</i> information
+from the <b>-F</b> command-line option, from the <b>NAME</b>
+environment variable, or from the UNIX password file. </p>
+
+</ul>
+
+<p> This feature is available in Postfix 3.3 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="header_size_limit">header_size_limit</a>
 (default: 102400)</b></DT><DD>
 
@@ -3776,17 +3856,18 @@ mis-delivery of mail.
 <DT><b><a name="import_environment">import_environment</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
-<p>
-The list of environment parameters that a Postfix process will
-import from a non-Postfix parent process. Examples of relevant
-parameters:
-</p>
+<p> The list of environment parameters that a privileged Postfix
+process will import from a non-Postfix parent process, or name=value
+environment overrides.  Unprivileged utilities will enforce the
+name=value overrides, but otherwise will not change their process
+environment.  Examples of relevant parameters: </p>
 
 <dl>
 
 <dt><b>TZ</b></dt>
 
-<dd>Needed for sane time keeping on most System-V-ish systems. </dd>
+<dd>May be needed for sane time keeping on most System-V-ish systems.
+</dd>
 
 <dt><b>DISPLAY</b></dt>
 
@@ -4132,6 +4213,17 @@ server performs final delivery, and send "delivered" delivery status
 notifications instead of "relayed". The default setting is backwards
 compatible to avoid the infinitesimal possibility of breaking
 existing LMTP-based content filters. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_balance_inet_protocols">lmtp_balance_inet_protocols</a>
+(default: yes)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_balance_inet_protocols">smtp_balance_inet_protocols</a>
+configuration parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.3 and later.  </p>
 
 
 </DD>
@@ -5094,6 +5186,17 @@ configuration parameter.  See there for details. </p>
 parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="lmtp_tls_connection_reuse">lmtp_tls_connection_reuse</a>
+(default: no)</b></DT><DD>
+
+<p> The LMTP-specific version of the <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> configuration
+parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
 
 
 </DD>
@@ -7367,10 +7470,10 @@ This feature is available in Postfix 3.1 and later.
 (default: yes)</b></DT><DD>
 
 <p>
-Give special treatment to owner-listname and listname-request
-address localparts: don't split such addresses when the
-<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> is set to "-".  This feature is useful for
-mailing lists.
+Enable special treatment for owner-<i>listname</i> entries in the
+<a href="aliases.5.html">aliases(5)</a> file, and don't split owner-<i>listname</i> and
+<i>listname</i>-request address localparts when the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a>
+is set to "-".  This feature is useful for mailing lists.
 </p>
 
 
@@ -8365,6 +8468,18 @@ receive a 421 response. </p>
 response. See <a href="postconf.5.html#smtpd_reject_footer">smtpd_reject_footer</a> for further details.  </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postscreen_reject_footer_maps">postscreen_reject_footer_maps</a>
+(default: $<a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>)</b></DT><DD>
+
+<p> Optional lookup table for information that is appended after a 4XX
+or 5XX <a href="postscreen.8.html">postscreen(8)</a> server response. See <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a> for
+further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
 
 
 </DD>
@@ -9582,7 +9697,8 @@ Postfix releases, the behavior is as if this parameter is set to
 "yes". </p>
 
 <p> As documented in <a href="aliases.5.html">aliases(5)</a>, when an alias <i>name</i> has a
-companion alias named owner-<i>name</i>, delivery errors will be
+companion alias named owner-<i>name</i>, this will replace the
+envelope sender address, so that delivery errors will be
 reported to the owner alias instead of the sender. This configuration
 is recommended for mailing lists. <p>
 
@@ -9612,7 +9728,9 @@ to other mailing list members. </p>
 
 <p> Unfortunately, older Postfix releases reset the owner-alias
 attribute when delivering mail to a child alias that does not have
-its own owner alias.  The <a href="local.8.html">local(8)</a> delivery agent then attempts to
+its own owner alias. To be precise, this resets only the decision
+to create a new queue file, not the decision to override the envelope
+sender address. The <a href="local.8.html">local(8)</a> delivery agent then attempts to
 deliver local addresses as soon as they come out of child alias
 expansion.  If delivery to any address from child alias expansion
 fails with a temporary error condition, the entire mailing list may
@@ -9944,6 +10062,34 @@ submit mail into the Postfix queue.
 
 </DD>
 
+<DT><b><a name="service_name">service_name</a>
+(read-only)</b></DT><DD>
+
+<p> The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process. This
+can be used to distinguish the logging from different services that
+use the same program name. </p>
+
+<p> Example <a href="master.5.html">master.cf</a> entries: </p>
+
+<pre>
+# Distinguish inbound MTA logging from submission and smtps logging.
+smtp      inet  n       -       n       -       -       smtpd
+submission inet n       -       n       -       -       smtpd
+    -o <a href="postconf.5.html#syslog_name">syslog_name</a>=postfix/$<a href="postconf.5.html#service_name">service_name</a>
+smtps     inet  n       -       n       -       -       smtpd
+    -o <a href="postconf.5.html#syslog_name">syslog_name</a>=postfix/$<a href="postconf.5.html#service_name">service_name</a>
+</pre>
+
+<pre>
+# Distinguish outbound MTA logging from inbound relay logging.
+smtp      unix  -       -       n       -       -       smtp
+relay     unix  -       -       n       -       -       smtp
+    -o <a href="postconf.5.html#syslog_name">syslog_name</a>=postfix/$<a href="postconf.5.html#service_name">service_name</a>
+</pre>
+
+
+</DD>
+
 <DT><b><a name="service_throttle_time">service_throttle_time</a>
 (default: 60s)</b></DT><DD>
 
@@ -10129,6 +10275,23 @@ EHLO only when
 the word "ESMTP" appears in the server greeting banner (example:
 220 spike.porcupine.org ESMTP Postfix).
 </p>
+
+
+</DD>
+
+<DT><b><a name="smtp_balance_inet_protocols">smtp_balance_inet_protocols</a>
+(default: yes)</b></DT><DD>
+
+<p> When a remote destination resolves to a combination of IPv4 and
+IPv6 addresses, ensure that the Postfix SMTP client can try both
+address types before it runs into the <a href="postconf.5.html#smtp_mx_address_limit">smtp_mx_address_limit</a>. </p>
+
+<p> This avoids an interoperability problem when a destination resolves
+to primarily IPv6 addresses, the smtp_address_limit feature eliminates
+most or all IPv4 addresses, and the destination is not reachable over
+IPv6. </p>
+
+<p> This feature is available in Postfix 3.3 and later. </p>
 
 
 </DD>
@@ -11863,6 +12026,22 @@ and opportunistic TLS always uses "export" or better (i.e. all) ciphers. </p>
 
 </DD>
 
+<DT><b><a name="smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>
+(default: no)</b></DT><DD>
+
+<p> Try to make multiple deliveries per TLS-encrypted connection.
+This uses the <a href="tlsproxy.8.html">tlsproxy(8)</a> service to encrypt an SMTP connection,
+uses the <a href="scache.8.html">scache(8)</a> service to save that connection, and relies on
+hints from the <a href="qmgr.8.html">qmgr(8)</a> daemon. </p>
+
+<p> See "<a href="TLS_README.html#client_tls_reuse">Client-side
+TLS connection reuse</a>" for background details. </p>
+
+<p> This feature is available in Postfix 3.4 and later.  </p>
+
+
+</DD>
+
 <DT><b><a name="smtp_tls_dane_insecure_mx_policy">smtp_tls_dane_insecure_mx_policy</a>
 (default: dane)</b></DT><DD>
 
@@ -12566,11 +12745,13 @@ security are: </p>
 <dt><b><a href="TLS_README.html#client_tls_may">may</a></b></dt>
 <dd>Opportunistic TLS. Since sending in the clear is acceptable,
 demanding stronger than default TLS security merely reduces
-interoperability. The optional "ciphers", "exclude" and "protocols"
+interoperability. The optional "ciphers", "exclude", and "protocols"
 attributes (available for opportunistic TLS with Postfix &ge; 2.6)
-override the "<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>" and
-"<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>" configuration parameters. When opportunistic TLS
-handshakes fail, Postfix retries the connection with TLS disabled.
+and "connection_reuse" attribute (Postfix &ge; 3.4) override the
+"<a href="postconf.5.html#smtp_tls_ciphers">smtp_tls_ciphers</a>", "<a href="postconf.5.html#smtp_tls_exclude_ciphers">smtp_tls_exclude_ciphers</a>", "<a href="postconf.5.html#smtp_tls_protocols">smtp_tls_protocols</a>",
+and
+"<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a>" configuration parameters. When opportunistic
+TLS handshakes fail, Postfix retries the connection with TLS disabled.
 This allows mail delivery to sites with non-interoperable TLS
 implementations.</dd>
 
@@ -12578,9 +12759,11 @@ implementations.</dd>
 <dd>Mandatory TLS encryption. At this level
 and higher, the optional "protocols" attribute overrides the <a href="postconf.5.html">main.cf</a>
 <a href="postconf.5.html#smtp_tls_mandatory_protocols">smtp_tls_mandatory_protocols</a> parameter, the optional "ciphers" attribute
-overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter, and the
+overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_mandatory_ciphers">smtp_tls_mandatory_ciphers</a> parameter, the
 optional "exclude" attribute (Postfix &ge; 2.6) overrides the <a href="postconf.5.html">main.cf</a>
-<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> parameter. In the policy table,
+<a href="postconf.5.html#smtp_tls_mandatory_exclude_ciphers">smtp_tls_mandatory_exclude_ciphers</a> parameter, and the optional
+"connection_reuse" attribute (Postfix &ge; 3.4) overrides the
+<a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. In the policy table,
 multiple protocols or excluded ciphers must be separated by colons,
 as attribute values may not contain whitespace or commas. </dd>
 
@@ -12594,7 +12777,9 @@ href="TLS_README.html#client_tls_encrypt">encrypt</a>.  When usable
 TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE)
 TLS authentication and DNSSEC support is available with Postfix
-2.11 and later.  </dd>
+2.11 and later. The optional "connection_reuse" attribute (Postfix
+&ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
+</dd>
 
 <dt><b><a href="TLS_README.html#client_tls_dane">dane-only</a></b></dt>
 <dd>Mandatory DANE TLS.  The TLS policy for the destination is
@@ -12603,9 +12788,11 @@ or none are usable, no connection is made to the server.  When
 usable TLSA records are obtained for the remote SMTP server, the
 server certificate must match the TLSA records.  <a href="http://tools.ietf.org/html/rfc7672">RFC 7672</a> (DANE) TLS
 authentication and DNSSEC support is available with Postfix 2.11
-and later.  </dd>
+and later. The optional "connection_reuse" attribute (Postfix &ge;
+3.4) overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter.
+</dd>
 
-<dt><b><a href="TLS_README.html#client_tls_fingerprint">fingerprint</a></b></dt>
+<dt><b><a href="TLS_README.html#client_tls_fprint">fingerprint</a></b></dt>
 <dd>Certificate fingerprint
 verification. Available with Postfix 2.5 and later. At this security
 level, there are no trusted Certification Authorities. The certificate
@@ -12619,7 +12806,8 @@ algorithm used to calculate the fingerprint is selected by the
 be combined with a "|" delimiter in a single match attribute, or multiple
 match attributes can be employed. The ":" character is not used as a
 delimiter as it occurs between each pair of fingerprint (hexadecimal)
-digits. </dd>
+digits. The optional "connection_reuse" attribute (Postfix &ge; 3.4)
+overrides the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_verify">verify</a></b></dt>
 <dd>Mandatory TLS verification.  At this security
@@ -12629,7 +12817,9 @@ unauthenticated DNS MX lookups.  The optional "match" attribute overrides
 the <a href="postconf.5.html">main.cf</a> <a href="postconf.5.html#smtp_tls_verify_cert_match">smtp_tls_verify_cert_match</a> parameter. In the policy table,
 multiple match patterns and strategies must be separated by colons.
 In practice explicit control over matching is more common with the
-"secure" policy, described below. </dd>
+"secure" policy, described below. The optional "connection_reuse"
+attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
+<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 <dt><b><a href="TLS_README.html#client_tls_secure">secure</a></b></dt>
 <dd>Secure-channel TLS. At this security level, DNS
@@ -12647,7 +12837,9 @@ routing the secondary domains to the primary nexthop also allow secure
 verification, they risk delivery to the wrong destination when domains
 change hands or are re-assigned to new gateways. With the "match"
 attribute approach, routing is not perturbed, and mail is deferred if
-verification of a new MX host fails. </dd>
+verification of a new MX host fails. The optional "connection_reuse"
+attribute (Postfix &ge; 3.4) overrides the <a href="postconf.5.html">main.cf</a>
+<a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> parameter. </dd>
 
 </dl>
 
@@ -12876,7 +13068,7 @@ TLSA authentication is required.  There is no fallback to "may" or
 (DANE) TLS authentication is available with Postfix 2.11 and later.
 </dd>
 
-<dt><b><a href="TLS_README.html#client_tls_fingerprint">fingerprint</a></b></dt>
+<dt><b><a href="TLS_README.html#client_tls_fprint">fingerprint</a></b></dt>
 <dd>Certificate fingerprint verification.
 At this security level, there are no trusted Certification Authorities.
 The certificate trust chain, expiration date, etc., are
@@ -13845,7 +14037,7 @@ available in Postfix 2.8 and later.  </dd>
 <dt><b><a name="reject_unknown_client_hostname">reject_unknown_client_hostname</a></b> (with Postfix &lt; 2.3: reject_unknown_client)</dt>
 
 <dd>Reject the request when 1) the client IP address-&gt;name mapping
-fails, 2) the name-&gt;address mapping fails, or 3) the name-&gt;address
+fails, or 2) the name-&gt;address mapping fails, or 3) the name-&gt;address
 mapping does not match the client IP address.  <br> This is a
 stronger restriction than the <a href="postconf.5.html#reject_unknown_reverse_client_hostname">reject_unknown_reverse_client_hostname</a>
 feature, which triggers only under condition 1) above. <br> The
@@ -15217,8 +15409,9 @@ numerical response code when an address probe failed due to a
 temporary problem (default: 450). <br> The
 <a href="postconf.5.html#unverified_recipient_tempfail_action">unverified_recipient_tempfail_action</a> parameter specifies the action
 after address probe failure due to a temporary problem (default:
-<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br>  This feature is available in Postfix 2.1
-and later.  </dd>
+<a href="postconf.5.html#defer_if_permit">defer_if_permit</a>). <br> This feature breaks for aliased addresses
+with "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> = no" (Postfix &le; 3.2). <br>
+This feature is available in Postfix 2.1 and later. </dd>
 
 </dl>
 
@@ -15291,7 +15484,12 @@ notification.  </p>
 
 <p> This feature supports a limited number of $name attributes in
 the footer text. These are replaced by their current value for the
-SMTP session: </p>
+SMTP session. </p>
+
+<p> Note: specify $$name in footer text that is looked up from
+<a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>:-based <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>, otherwise the
+Postfix server will not use the footer text and will log a warning
+instead. </p>
 
 <dl>
 
@@ -15335,6 +15533,24 @@ This suppresses the line break between the reply text and the footer
 text (Postfix 2.10 and later).  </p>
 
 <p> This feature is available in Postfix 2.8 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>
+(default: empty)</b></DT><DD>
+
+<p> Lookup tables, indexed by the complete Postfix SMTP server 4xx or
+5xx response, with reject footer templates. See <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>
+for details. </p>
+
+<p>
+Specify zero or more "type:name" lookup tables, separated by
+whitespace or comma. Tables will be searched in the specified order
+until a match is found.
+</p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
 
 
 </DD>
@@ -15666,6 +15882,26 @@ releases it was called <b><a href="postconf.5.html#smtpd_sasl_application_name">
 
 </DD>
 
+<DT><b><a name="smtpd_sasl_response_limit">smtpd_sasl_response_limit</a>
+(default: 12288)</b></DT><DD>
+
+<p> The maximum length of a SASL client's response to a server challenge.
+When the client's "initial response" is longer than the normal limit for
+SMTP commands, the client must omit its initial response, and wait for an
+empty server challenge; it can then send what would have been its "initial
+response" as a response to the empty server challenge.  <a href="http://tools.ietf.org/html/rfc4954">RFC4954</a> requires the
+server to accept client responses up to at least 12288 octets of
+base64-encoded text.  The default value is therefore also the minimum value
+accepted for this parameter.</p>
+
+<p> This feature is available in Postfix 3.4 and later. Prior versions use
+"<a href="postconf.5.html#line_length_limit">line_length_limit</a>", which may need to be raised to accomodate larger client
+responses, as may be needed with GSSAPI authenticaiton of Windows AD users
+who are members of many groups. </p>
+
+
+</DD>
+
 <DT><b><a name="smtpd_sasl_security_options">smtpd_sasl_security_options</a>
 (default: noanonymous)</b></DT><DD>
 
@@ -15961,8 +16197,10 @@ change into 550 when you are confident that it is safe to do so).
 code when an address probe failed due to a temporary problem
 (default: 450).  <br> The <a href="postconf.5.html#unverified_sender_tempfail_action">unverified_sender_tempfail_action</a> parameter
 specifies the action after address probe failure due to a temporary
-problem (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br> This feature is available
-in Postfix 2.1 and later.  </dd>
+problem (default: <a href="postconf.5.html#defer_if_permit">defer_if_permit</a>).  <br> This feature breaks for
+aliased addresses with "<a href="postconf.5.html#enable_original_recipient">enable_original_recipient</a> = no" (Postfix
+&le; 3.2).  <br> This feature is available in Postfix 2.1 and later.
+</dd>
 
 </dl>
 
@@ -16496,6 +16734,11 @@ security at computational cost that is approximately twice as high
 as 128 bit strength ECC. Barring significant progress in attacks on
 elliptic curve crypto-systems, the "strong" curve is sufficient for most
 users. </dd>
+
+<dt><b>auto</b></dt> <dd> Use the most preferred curve that is
+supported by both the client and the server.  This setting requires
+Postfix &ge; 3.2 compiled and linked with OpenSSL &ge; 1.0.2.  This
+is the default setting under the above conditions.  </dd>
 
 </dl>
 
@@ -17637,6 +17880,33 @@ OpenSSL 1.0.0.</dd>
 
 </DD>
 
+<DT><b><a name="tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>
+(default: see "postconf -d" output)</b></DT><DD>
+
+<p> The prioritized list of elliptic curves supported by the Postfix
+SMTP client and server.  These curves are used by the Postfix SMTP
+server when "<a href="postconf.5.html#smtpd_tls_eecdh_grade">smtpd_tls_eecdh_grade</a> = auto".  The selected curves
+must be implemented by OpenSSL and be standardized for use in TLS
+(<a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a> or its imminent successor).  It is unwise to list only
+"bleeding-edge" curves supported by a small subset of clients.  The
+default list is suitable for most users. </p>
+
+<p> Postfix skips curve names that are unknown to OpenSSL, or that
+are known but not yet implemented.  This makes it possible to
+"anticipate" support for curves that should be used once they become
+available.  In particular, in some OpenSSL versions, the new <a href="http://tools.ietf.org/html/rfc8031">RFC</a>
+<a href="http://tools.ietf.org/html/rfc8031">8031</a> curves "X25519" and "X448" may be known by name, but ECDH
+support for either or both may be missing.  These curves may appear
+in the default value of this parameter, even though they'll only
+be usable with later versions of OpenSSL.  </p>
+
+<p> This feature is available in Postfix 3.2 and later, when it is
+compiled and linked with OpenSSL 1.0.2 or later on platforms where
+EC algorithms have not been disabled by the vendor. </p>
+
+
+</DD>
+
 <DT><b><a name="tls_eecdh_strong_curve">tls_eecdh_strong_curve</a>
 (default: prime256v1)</b></DT><DD>
 
@@ -17650,8 +17920,8 @@ reported by ecparam(1) with the "-list_curves" option) and be one
 of the curves listed in Section 5.1.1 of <a href="http://tools.ietf.org/html/rfc4492">RFC 4492</a>. You should not
 generally change this setting.  Remote SMTP client implementations
 must support this curve for EECDH key exchange to take place.  It
-is unwise to choose an "exotic" curve supported by only a small subset
-of clients.  </p>
+is unwise to choose an "bleeding-edge" curve supported by only a
+small subset of clients.  </p>
 
 <p> The default "strong" curve is rated in NSA <a
 href="http://www.nsa.gov/ia/programs/suiteb_cryptography/">Suite

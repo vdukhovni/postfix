@@ -303,6 +303,13 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a> (empty)</b>
               Optional filter for Postfix SMTP client DNS lookup results.
 
+       Available in Postfix version 3.3 and later:
+
+       <b><a href="postconf.5.html#smtp_balance_inet_protocols">smtp_balance_inet_protocols</a> (yes)</b>
+              When a remote destination resolves to a combination of IPv4  and
+              IPv6 addresses, ensure that the Postfix SMTP client can try both
+              address types before it runs into the <a href="postconf.5.html#smtp_mx_address_limit">smtp_mx_address_limit</a>.
+
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:
 
@@ -566,6 +573,11 @@ SMTP(8)                                                                SMTP(8)
               nexthop destination security level is <b>dane</b>, but  the  MX  record
               was found via an "insecure" MX lookup.
 
+       Available in Postfix version 3.4 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> (no)</b>
+              Try to make multiple deliveries per TLS-encrypted connection.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a
@@ -594,15 +606,6 @@ SMTP(8)                                                                SMTP(8)
               cipher list.
 
 <b>RESOURCE AND RATE CONTROLS</b>
-       <b><a href="postconf.5.html#smtp_destination_concurrency_limit">smtp_destination_concurrency_limit</a>        ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concur</a>-</b>
-       <b><a href="postconf.5.html#default_destination_concurrency_limit">rency_limit</a>)</b>
-              The maximal number of parallel deliveries to the  same  destina-
-              tion via the smtp message delivery transport.
-
-       <b><a href="postconf.5.html#smtp_destination_recipient_limit">smtp_destination_recipient_limit</a> ($<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipient_limit</a>)</b>
-              The  maximal  number of recipients per message for the smtp mes-
-              sage delivery transport.
-
        <b><a href="postconf.5.html#smtp_connect_timeout">smtp_connect_timeout</a> (30s)</b>
               The Postfix SMTP client time limit for completing a TCP  connec-
               tion, or zero (use the operating system built-in time limit).
@@ -705,6 +708,25 @@ SMTP(8)                                                                SMTP(8)
               When SMTP connection caching is enabled,  the  number  of  times
               that  an SMTP session may be reused before it is closed, or zero
               (no limit).
+
+       Available in Postfix version 3.4 and later:
+
+       <b><a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> (no)</b>
+              Try to make multiple deliveries per TLS-encrypted connection.
+
+       Implemented in the <a href="qmgr.8.html">qmgr(8)</a> daemon:
+
+       <b>transport_destination_concurrency_limit   ($<a href="postconf.5.html#default_destination_concurrency_limit">default_destination_concur</a>-</b>
+       <b><a href="postconf.5.html#default_destination_concurrency_limit">rency_limit</a>)</b>
+              A transport-specific override for  the  default_destination_con-
+              currency_limit parameter value, where <i>transport</i> is the <a href="master.5.html">master.cf</a>
+              name of the message delivery transport.
+
+       <b>transport_destination_recipient_limit     ($<a href="postconf.5.html#default_destination_recipient_limit">default_destination_recipi</a>-</b>
+       <b><a href="postconf.5.html#default_destination_recipient_limit">ent_limit</a>)</b>
+              A transport-specific override for the <a href="postconf.5.html#default_destination_recipient_limit">default_destination_recip</a>-
+              <a href="postconf.5.html#default_destination_recipient_limit">ient_limit</a>  parameter  value,  where  <i>transport</i> is the <a href="master.5.html">master.cf</a>
+              name of the message delivery transport.
 
 <b>SMTPUTF8 CONTROLS</b>
        Preliminary SMTPUTF8 support is introduced with Postfix 3.0.
@@ -866,6 +888,11 @@ SMTP(8)                                                                SMTP(8)
 
        <b><a href="postconf.5.html#smtp_tcp_port">smtp_tcp_port</a> (smtp)</b>
               The default TCP port that the Postfix SMTP client connects to.
+
+       Available in Postfix 3.3 and later:
+
+       <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
+              The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
 <b>SEE ALSO</b>
        <a href="generic.5.html">generic(5)</a>, output address rewriting

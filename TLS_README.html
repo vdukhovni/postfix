@@ -18,15 +18,6 @@
 
 <hr>
 
-<h2> WARNING </h2>
-
-<p> By turning on TLS support in Postfix, you not only get the
-ability to encrypt mail and to authenticate remote SMTP clients or servers.
-You also turn on thousands and thousands of lines of OpenSSL library
-code.  Assuming that OpenSSL is written as carefully as Wietse's
-own code, every 1000 lines introduce one additional bug into
-Postfix.  </p>
-
 <h2> What Postfix TLS support does for you </h2>
 
 <p> Transport Layer Security (TLS, formerly called SSL) provides
@@ -34,13 +25,12 @@ certificate-based authentication and encrypted sessions.  An
 encrypted session protects the information that is transmitted with
 SMTP mail or with SASL authentication. </p>
 
-<blockquote> <p> <a name="client_tls_obs"></a> <a
-name="client_tls_harden"></a> NOTE: This document describes a TLS
-user interface that was introduced with Postfix version 2.3. Support
-for an older user interface is documented in <a href="TLS_LEGACY_README.html">TLS_LEGACY_README</a>,
-which also describes the differences between Postfix and the
-third-party patch on which Postfix version 2.2 TLS support was
-based.  </p> </blockquote>
+<p> NOTE: By turning on TLS support in Postfix, you not only get
+the ability to encrypt mail and to authenticate remote SMTP clients
+or servers.  You also turn on hundreds of thousands of lines of
+OpenSSL library code.  Assuming that OpenSSL is written as carefully
+as Wietse's own code, every 1000 lines introduce one additional bug
+into Postfix.  </p>
 
 <p> Topics covered in this document: </p>
 
@@ -134,6 +124,8 @@ align="center" bgcolor="#f0f0ff"> smtp<br> session<br> key cache
 
 <li><a href="#server_cert_key">Server-side certificate and private
 key configuration </a>
+
+<li><a href="#server_pfs">Server-side forward-secrecy configuration </a>
 
 <li><a href="#server_logging"> Server-side TLS activity logging
 </a>
@@ -369,6 +361,18 @@ the TLS handshake when client certificates are requested. </p>
     <a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a> = /etc/postfix/certs
 </pre>
 </blockquote>
+
+<h3><a name="server_pfs"> Server-side forward-secrecy configuration </a> </h3>
+
+<p> If you want to take maximal advantage of ciphers that offer <a
+href="FORWARD_SECRECY_README.html#dfn_fs">forward secrecy</a> see
+the <a href="FORWARD_SECRECY_README.html#quick-start">Getting
+started</a> section of <a
+href="FORWARD_SECRECY_README.html">FORWARD_SECRECY_README</a>.  The
+full document conveniently presents all information about Postfix
+forward secrecy support in one place: what forward secrecy is, how
+to tweak settings, and what you can expect to see when Postfix uses
+ciphers with forward secrecy.  </p>
 
 <h3><a name="server_logging"> Server-side TLS activity logging </a> </h3>
 
@@ -876,9 +880,9 @@ the <a href="FORWARD_SECRECY_README.html#quick-start">Getting
 started</a> section of <a
 href="FORWARD_SECRECY_README.html">FORWARD_SECRECY_README</a>.  The
 full document conveniently presents all information about Postfix
-"perfect" forward secrecy support in one place: what forward secrecy
-is, how to tweak settings, and what you can expect to see when
-Postfix uses ciphers with forward secrecy.  </p>
+forward secrecy support in one place: what forward secrecy is, how
+to tweak settings, and what you can expect to see when Postfix uses
+ciphers with forward secrecy.  </p>
 
 <p> Postfix 2.8 and later, in combination with OpenSSL 0.9.7 and later
 allows TLS servers to preempt the TLS client's cipher-suite preference list.
@@ -987,6 +991,8 @@ solution.  </p>
 
 <li><a href="#client_cert_key">Client-side certificate and private
 key configuration </a>
+
+<li><a href="#client_tls_reuse">Client-side TLS connection reuse</a>
 
 <li><a href="#client_tls_cache">Client-side TLS session cache</a>
 
@@ -1903,6 +1909,49 @@ when the certificate is needed.  </p>
     <a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a> = /etc/postfix/certs
 </pre>
 </blockquote>
+
+<h3><a name="client_tls_reuse">Client-side TLS connection reuse</a> </h3>
+
+<p> Historically, the Postfix SMTP client has supported multiple
+deliveries per plaintext connection. Postfix 3.4 introduces support
+for multiple deliveries per TLS-encrypted connection. Multiple
+deliveries per connection improve mail delivery performance,
+especially for destinations that throttle clients that don't combine
+deliveries. </p>
+
+<p> To enable multiple deliveries per TLS connection, specify:</p>
+
+<blockquote>
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    <a href="postconf.5.html#smtp_tls_connection_reuse">smtp_tls_connection_reuse</a> = yes
+</pre>
+</blockquote>
+
+<p> Alternatively, specify the attribute "connection_reuse=yes" in
+an <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a> entry. </p>
+
+<p> The implementation of TLS connection reuse relies on the same
+<a href="scache.8.html">scache(8)</a> service as used for delivering plaintext SMTP mail, the
+same <a href="tlsproxy.8.html">tlsproxy(8)</a> daemon as used by the <a href="postscreen.8.html">postscreen(8)</a> service, and
+relies on the same hints from the <a href="qmgr.8.html">qmgr(8)</a> daemon.
+
+See "<a href="CONNECTION_CACHE_README.html">Postfix Connection
+Cache</a>" for a description of the underlying connection reuse
+infrastructure.  </p>
+
+<p> Initial SMTP handshake:</p>
+<pre>    <a href="smtp.8.html">smtp(8)</a> -&gt; remote SMTP server</pre>
+
+<p> Reused SMTP/TLS connection, or new SMTP/TLS connection: </p>
+<pre>    <a href="smtp.8.html">smtp(8)</a> -&gt; <a href="tlsproxy.8.html">tlsproxy(8)</a> -&gt; remote SMTP server </pre>
+
+<p> Cached SMTP/TLS connection:</p>
+<pre>    <a href="scache.8.html">scache(8)</a> -&gt; <a href="tlsproxy.8.html">tlsproxy(8)</a> -&gt; remote SMTP server</pre>
+
+<p> As of Postfix 3.4, TLS connection reuse is disabled by default.
+This may change once the impact on over-all performance is understood.
+</p>
 
 <h3><a name="client_tls_cache">Client-side TLS session cache</a> </h3>
 
