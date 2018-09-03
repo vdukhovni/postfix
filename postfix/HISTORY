@@ -23713,3 +23713,10 @@ Apologies for any names omitted.
 
 	Miscellaneous documentation updates, and a correction in
 	the byte count for sending a large SASL initial response.
+
+20180903
+
+	Bugfix (introduced: 20180825): postscreen falsely claimed
+	that the remote SMTP client was pipelining after sending
+	BDAT. Found by Ralf Hildebrandt. File:
+	postscreen/postscreen_smtpd.c.

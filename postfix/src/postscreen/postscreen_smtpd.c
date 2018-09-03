@@ -625,8 +625,8 @@ static int psc_bdat_cmd(PSC_STATE *state, char *args)
 					   psc_smtpd_time_event,
 			    "502 5.5.1 Error: command not implemented\r\n");
     else if (PSC_SMTPD_NEXT_TOKEN(args) == 0)
-	    PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
-					       psc_smtpd_time_event,
+	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
+					   psc_smtpd_time_event,
 				 "501 5.5.4 Syntax: BDAT count [LAST]\r\n");
     else if (state->sender == 0)
 	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
@@ -737,6 +737,7 @@ typedef struct {
 #define PSC_SMTPD_CMD_FLAG_DESTROY	(1<<1)	/* dangling pointer alert */
 #define PSC_SMTPD_CMD_FLAG_PRE_TLS	(1<<2)	/* allowed with mandatory TLS */
 #define PSC_SMTPD_CMD_FLAG_SUSPEND	(1<<3)	/* suspend command engine */
+#define PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD	(1<<4)	/* command has payload */
 
 static const PSC_SMTPD_COMMAND command_table[] = {
     "HELO", psc_helo_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS,
@@ -749,7 +750,7 @@ static const PSC_SMTPD_COMMAND command_table[] = {
     "RCPT", psc_rcpt_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
     "DATA", psc_data_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_DESTROY,
     /* ".", psc_dot_cmd, PSC_SMTPD_CMD_FLAG_NONE, */
-    "BDAT", psc_bdat_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_DESTROY,
+    "BDAT", psc_bdat_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_DESTROY | PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD,
     "RSET", psc_rset_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
     "NOOP", psc_noop_cmd, PSC_SMTPD_CMD_FLAG_ENABLE | PSC_SMTPD_CMD_FLAG_PRE_TLS,
     "VRFY", psc_vrfy_cmd, PSC_SMTPD_CMD_FLAG_ENABLE,
@@ -1031,7 +1032,8 @@ static void psc_smtpd_read_event(int event, void *context)
 	    }
 	}
 	/* Command PIPELINING test. */
-	if ((state->flags & PSC_STATE_MASK_PIPEL_TODO_SKIP)
+	if ((state->flags & PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD) == 0
+	    && (state->flags & PSC_STATE_MASK_PIPEL_TODO_SKIP)
 	    == PSC_STATE_FLAG_PIPEL_TODO && !PSC_SMTPD_BUFFER_EMPTY(state)) {
 	    printable(command, '?');
 	    PSC_SMTPD_ESCAPE_TEXT(psc_temp, PSC_SMTPD_PEEK_DATA(state),
