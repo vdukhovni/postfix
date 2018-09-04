@@ -23720,3 +23720,10 @@ Apologies for any names omitted.
 	that the remote SMTP client was pipelining after sending
 	BDAT. Found by Ralf Hildebrandt. File:
 	postscreen/postscreen_smtpd.c.
+
+20180904
+
+	Bugfix (introduced: 20180812): parameter name error
+	(postscreen_reject_footer should have been
+	postscreen_reject_footer_maps). Noel Jones (finder) and
+	Viktor Dukhovni (fixer).

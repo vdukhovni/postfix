@@ -3774,7 +3774,7 @@ extern int var_psc_cconn_limit;
 #define DEF_PSC_REJ_FOOTER	"$" VAR_SMTPD_REJ_FOOTER
 extern char *var_psc_rej_footer;
 
-#define VAR_PSC_REJ_FTR_MAPS	"postscreen_reject_footer"
+#define VAR_PSC_REJ_FTR_MAPS	"postscreen_reject_footer_maps"
 #define DEF_PSC_REJ_FTR_MAPS	"$" VAR_SMTPD_REJ_FTR_MAPS
 extern char *var_psc_rej_ftr_maps;
 
