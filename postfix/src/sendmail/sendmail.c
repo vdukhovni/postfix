@@ -388,7 +388,7 @@
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
 /*	be specified with "-c config_directory" on the command line (in the
-/*	case of \fBsendmail\fR(1), with "-C config_directory"), or via the MAIL_CONFIG
+/*	case of \fBsendmail\fR(1), with the "-C" option), or via the MAIL_CONFIG
 /*	environment parameter.
 /* .IP "\fBmulti_instance_directories (empty)\fR"
 /*	An optional list of non-default Postfix configuration directories;
