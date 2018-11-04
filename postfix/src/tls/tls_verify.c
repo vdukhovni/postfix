@@ -138,7 +138,7 @@ static void update_error_state(TLS_SESS_STATE *TLScontext, int depth,
     if (TLScontext->errorcert != 0)
 	X509_free(TLScontext->errorcert);
     if (errorcert != 0)
-	CRYPTO_add(&errorcert->references, 1, CRYPTO_LOCK_X509);
+	X509_up_ref(errorcert);
     TLScontext->errorcert = errorcert;
     TLScontext->errorcode = errorcode;
     TLScontext->errordepth = depth;
@@ -440,7 +440,7 @@ const char *tls_dns_name(const GENERAL_NAME * gn,
     /*
      * Safe to treat as an ASCII string possibly holding a DNS name
      */
-    dnsname = (char *) ASN1_STRING_data(gn->d.ia5);
+    dnsname = (const char *) ASN1_STRING_get0_data(gn->d.ia5);
     len = ASN1_STRING_length(gn->d.ia5);
     TRIM0(dnsname, len);
 

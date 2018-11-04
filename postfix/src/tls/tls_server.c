@@ -173,9 +173,18 @@ static const char server_session_id_context[] = "Postfix/TLS";
 
 #endif					/* OPENSSL_VERSION_NUMBER */
 
+ /* OpenSSL 1.1.0 bitrot */
+#if OPENSSL_VERSION_NUMBER >= 0x10100000L
+typedef const unsigned char *session_id_t;
+
+#else
+typedef unsigned char *session_id_t;
+
+#endif
+
 /* get_server_session_cb - callback to retrieve session from server cache */
 
-static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
+static SSL_SESSION *get_server_session_cb(SSL *ssl, session_id_t session_id,
 					          int session_id_length,
 					          int *unused_copy)
 {
@@ -193,7 +202,7 @@ static SSL_SESSION *get_server_session_cb(SSL *ssl, unsigned char *session_id,
 	buf = vstring_alloc(2 * (len + strlen(service))); \
 	hex_encode(buf, (char *) (id), (len)); \
 	vstring_sprintf_append(buf, "&s=%s", (service)); \
-	vstring_sprintf_append(buf, "&l=%ld", (long) SSLeay()); \
+	vstring_sprintf_append(buf, "&l=%ld", (long) OpenSSL_version_num()); \
     } while (0)
 
 
@@ -368,6 +377,8 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     tls_check_version();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
     /*
      * Initialize the OpenSSL library by the book! To start with, we must
      * initialize the algorithms. We want cleartext error messages instead of
@@ -375,6 +386,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
+#endif
 
     /*
      * First validate the protocols. If these are invalid, we can't continue.
@@ -436,6 +448,10 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	tls_print_errors();
 	return (0);
     }
+#ifdef SSL_SECOP_PEER
+    /* Backwards compatible security as a base for opportunistic TLS. */
+    SSL_CTX_set_security_level(server_ctx, 0);
+#endif
 
     /*
      * See the verify callback in tls_verify.c
@@ -485,8 +501,23 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	    ticketable = 0;
 	}
     }
-    if (ticketable)
+    if (ticketable) {
 	SSL_CTX_set_tlsext_ticket_key_cb(server_ctx, ticket_cb);
+
+	/*
+	 * OpenSSL 1.1.1 introduces support for TLS 1.3, which can issue more
+	 * than one ticket per handshake.  While this may be appropriate for
+	 * communication between browsers and webservers, it is not terribly
+	 * useful for MTAs, many of which other than Postfix don't do TLS
+	 * session caching at all, and Postfix has no mechanism for storing
+	 * multiple session tickets, if more than one sent, the second
+	 * clobbers the first.  OpenSSL 1.1.1 servers default to issuing two
+	 * tickets for non-resumption handshakes, we reduce this to one.  Our
+	 * ticket decryption callback already (since 2.11) asks OpenSSL to
+	 * avoid issuing new tickets when the presented ticket is re-usable.
+	 */
+	SSL_CTX_set_num_tickets(server_ctx, 1);
+    }
 #endif
     if (!ticketable)
 	off |= SSL_OP_NO_TICKET;
@@ -561,11 +592,17 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     }
 
     /*
+     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+    /*
      * According to OpenSSL documentation, a temporary RSA key is needed when
      * export ciphers are in use, because the certified key cannot be
      * directly used.
      */
     SSL_CTX_set_tmp_rsa_callback(server_ctx, tls_tmp_rsa_cb);
+#endif
 
     /*
      * Diffie-Hellman key generation parameters can either be loaded from
@@ -738,6 +775,11 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
+#ifdef SSL_SECOP_PEER
+    /* When authenticating the peer, use 80-bit plus OpenSSL security level */
+    if (props->requirecert)
+	SSL_set_security_level(TLScontext->con, 1);
+#endif
 
     /*
      * Before really starting anything, try to seed the PRNG a little bit
@@ -868,6 +910,22 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 		     TLScontext->peer_pkey_fprint);
 	}
 	X509_free(peer);
+
+	/*
+	 * Give them a clue. Problems with trust chain verification are
+	 * logged when the session is first negotiated, before the session is
+	 * stored into the cache. We don't want mystery failures, so log the
+	 * fact the real problem is to be found in the past.
+	 */
+	if (!TLS_CERT_IS_TRUSTED(TLScontext)
+	    && (TLScontext->log_mask & TLS_LOG_UNTRUSTED)) {
+	    if (TLScontext->session_reused == 0)
+		tls_log_verify_error(TLScontext);
+	    else
+		msg_info("%s: re-using session with untrusted certificate, "
+			 "look for details earlier in the log",
+			 TLScontext->namaddr);
+	}
     } else {
 	TLScontext->peer_CN = mystrdup("");
 	TLScontext->issuer_CN = mystrdup("");

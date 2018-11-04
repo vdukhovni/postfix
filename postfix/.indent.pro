@@ -404,5 +404,4 @@
 -Tssl_comp_stack_t
 -Ttime_t
 -Ttlsa_filter
--Tx509_extension_stack_t
 -Tx509_stack_t

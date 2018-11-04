@@ -4450,7 +4450,7 @@ Apologies for any names omitted.
 20001109
 
 	Cleanup: changed prototype of internal function that did
-	not return a useful result. File: src/util/vstream_popen.c.
+	not return a useful result. Fileutil/vstream_popen.c.
 
 20001110
 
@@ -5253,7 +5253,7 @@ Apologies for any names omitted.
 
 	Safety: postdrop turns off interrupts when cleaning up
 	after interrupt. The additional safety does not hurt anyone.
-	File: src/postdrop/postdrop.c.
+	Filepostdrop/postdrop.c.
 
 20010607
 
@@ -5581,7 +5581,7 @@ Apologies for any names omitted.
 20011105
 
 	Bugfix: missing terminator in new attribute-based function
-	call caused signal 11. File: src/cleanup/cleanup.c.
+	call caused signal 11. Filecleanup/cleanup.c.
 
 	Lame workaround for ESTALE errors with mail delivery over
 	NFS. Additional bandages were added to the local delivery
@@ -5750,7 +5750,7 @@ Apologies for any names omitted.
 
 	Maintenance: LDAP module and documentation from LaMont
 	Jones.  This version adds verbose logging for LDAP library
-	routines. Files: src/util/dict_ldap.[hc], LDAP_README,
+	routines. Filesutil/dict_ldap.[hc], LDAP_README,
 	conf/sample-ldap.cf
 
 	Portability: made memory alignment restrictions configurable.
@@ -6606,7 +6606,7 @@ Apologies for any names omitted.
 
 	Weird feature: sender-based routing. This will become more
 	useful once per-address transport map entries are done.
-	File:  src/*qmgr/qmgr_message.c.
+	File:*qmgr/qmgr_message.c.
 
 20020605
 
@@ -7473,7 +7473,7 @@ Apologies for any names omitted.
 
 	Feature: recipient address verification, using the code
 	that already implements sender address verification.  Based
-	on suggestion by Matthias Andree.  Files: src/smtpd/smtpd.c,
+	on suggestion by Matthias Andree.  Filessmtpd/smtpd.c,
 	src/smtpd/smtpd_check.c.
 
 20021211
@@ -8086,7 +8086,7 @@ Apologies for any names omitted.
 	Cleanup: future time stamps in Received: headers and negative
 	delays in delivery agent logging after "postdrop -r",
 	because deferred queue files had future file modification
-	times.  File:  src/postsuper/postsuper.c.
+	times.  File:postsuper/postsuper.c.
 
 20030521
 
@@ -9139,7 +9139,7 @@ Apologies for any names omitted.
 20040201
 
 	Feature: sasl_method, sasl_username and sasl_sender attributes
-	in smtpd policy queries. Files: src/smtpd/smtpd_check.c.
+	in smtpd policy queries. Filessmtpd/smtpd_check.c.
 
 20040204
 
@@ -9254,7 +9254,7 @@ Apologies for any names omitted.
 
 	Future proofing: client_rate_time_unit is renamed to
 	anvil_rate_time_unit, so that it is no longer limited to
-	clients only. File: src/global/mail_params.h.
+	clients only. Fileglobal/mail_params.h.
 
 	Cleanup: postalias and postmap now log problems to syslogd.
 	Files: postalias/postalias.c, postmap/postmap.c.
@@ -10322,7 +10322,7 @@ Apologies for any names omitted.
 	Feature: new smtpd policy attributes ccert_subject,
 	ccert_issuer and ccert_fingerprint, with TLS client
 	certificate information, but only when verification was
-	successful.  Files:  src/smtpd/smtpd_check.c.
+	successful.  Files:smtpd/smtpd_check.c.
 
 	Cleanup: corrected the address verification data flow in
 	the ADDRESS_VERIFICATION_README illustration.
@@ -10467,7 +10467,7 @@ Apologies for any names omitted.
 	valid command syntax. Instead they require "improved" syntax
 	that is not valid on several other systems that Postfix
 	builds on.  So we have to stop using the tail command.
-	Files: Makefile.in, src/*/Makefile.in.
+	Files: Makefile.in*/Makefile.in.
 
 20050312
 
@@ -10608,8 +10608,8 @@ Apologies for any names omitted.
 
 	Safety: SASL 2.1.19 has a version lookup routine that we
 	can use to detect compile time / run time version mis-matches
-	(also known as DLL hell).  Files: src/smtpd/smtpd_sasl_glue.c,
-	src/smtp/smtp_sasl_glue.c, src/lmtp/lmtp_sasl_glue.c.
+	(also known as DLL hell).  Filessmtpd/smtpd_sasl_glue.c,
+	src/smtp/smtp_sasl_glue.clmtp/lmtp_sasl_glue.c.
 
 20050404
 
@@ -10662,7 +10662,7 @@ Apologies for any names omitted.
 	if you feel brave. File: util/sys_defs.h.
 
 	Robustness: re-compile all object files after the "make
-	makefiles" options have changed. Files: src/*/Makefile.in.
+	makefiles" options have changed. Files*/Makefile.in.
 
 	Tweaking: reply with 5.3.4 when the message size exceeds
 	the mail system message_size_limit, instead of 5.2.3 which
@@ -10700,8 +10700,8 @@ Apologies for any names omitted.
 	for some destination. Files: util/argv.c, smtp/smtp_connect.c.
 
 	Cleanup: extra dsn_vstring_update_dsn() routine to shut up
-	GCC complaints about valid code. Files: src/global/dsn_util.c,
-	src/global/mbox_open.c, src/lmtp/lmtp_addr.c, src/smtp/smtp_addr.c,
+	GCC complaints about valid code. Filesglobal/dsn_util.c,
+	src/global/mbox_open.clmtp/lmtp_addr.c, src/smtp/smtp_addr.c,
 	src/smtp/smtp_connect.c.
 
 20050429
@@ -11956,7 +11956,7 @@ Apologies for any names omitted.
 	Cleanup: regression tests are now separated into "make
 	tests" for unprivileged tests, and "make root_tests" for
 	tests that require privileges to connect to the Postfix
-	internal sockets. Files Makefile.in, src/*/Makefile.in.
+	internal sockets. Files Makefile.in*/Makefile.in.
 
 20060201
 
@@ -12082,7 +12082,7 @@ Apologies for any names omitted.
 
 	Bugfix: cut-and-paste error: lmtp_connection_cache_limit
 	was left with the name of smtp_connection_cache_limit.
-	Reported by Victor? File: src/global/mail_params.h.
+	Reported by Victor? Fileglobal/mail_params.h.
 
 20060329
 
@@ -12176,8 +12176,8 @@ Apologies for any names omitted.
 	lines of library support, comments not included.  
 
 	A simple test Milter application for use in regression tests
-	is in src/milter/test-milter.c. Queue file modifications are
-	tested with a driver at the end src/cleanup/cleanup_milter.c
+	is imilter/test-milter.c. Queue file modifications are
+	tested with a driver at the encleanup/cleanup_milter.c
 	that reads commands from a script.
 
 	To make debugging easier, uncomment the "#define msg_verbose
@@ -12467,7 +12467,7 @@ Apologies for any names omitted.
 20060707
 
 	Workaround: apparently, Solaris gettimeofday() can return
-	out-of range microsecond values.  File: src/global/log_adhoc.c.
+	out-of range microsecond values.  Fileglobal/log_adhoc.c.
 
 	Robustness: the SMTPD policy client now encodes the
 	ccert_subject and ccert-issuer attributes as xtext.  Some
@@ -12545,7 +12545,7 @@ Apologies for any names omitted.
 	client enforced Mandatory TLS only when talking to an ESMTP
 	server; enforcement did not happen if Postfix could somehow
 	be forced to send HELO instead of EHLO.  Victor Duchovni.
-	File: src/smtp/smtp_proto.c.
+	Filesmtp/smtp_proto.c.
 
 20060718
 
@@ -13262,9 +13262,9 @@ Apologies for any names omitted.
 	SunOS 5.10's bundled OpenSSL 0.9.7 and AES 256. Also possible
 	with OpenSSL 0.9.8 and CAMELLIA 256. Root cause fixed in
 	upcoming OpenSSL 0.9.7m, 0.9.8e and 0.9.9 releases. Victor
-	Duchovni, Morgan Stanley. Files: src/smtp/smtp_proto.c,
-	src/smtpd/smtpd.c, src/tls/tls.h, src/tls/tls_client.c,
-	src/tls/tls_misc.c and src/tls/tls_server.c.
+	Duchovni, Morgan Stanley. Filessmtp/smtp_proto.c,
+	src/smtpd/smtpd.ctls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_misc.c antls/tls_server.c.
 
 20070222
 
@@ -13349,13 +13349,13 @@ Apologies for any names omitted.
 	Bitrot: New OpenLDAP APIs deprecate simplified interfaces,
 	that are the only ones available in Sun's LDAP SDK. Define
 	suitable macros that work with new OpenLDAP and Sun's code.
-	Victor Duchovni, Morgan Stanley. File: src/global/dict_ldap.c
+	Victor Duchovni, Morgan Stanley. Fileglobal/dict_ldap.c
 
 	Cleanup: new "leaf" and "terminal" result attributes support
 	fine-tuning of LDAP group expansion, and provide a solution
 	for the problem case where DN recursion returns both the
 	group address and the addresses of the member objects.
-	Victor Duchovni, Morgan Stanley.  Files: src/global/dict_ldap.c,
+	Victor Duchovni, Morgan Stanley.  Filesglobal/dict_ldap.c,
 	proto/LDAP_README.html, proto/ldap_table
 
 20070317
@@ -13364,7 +13364,7 @@ Apologies for any names omitted.
 	core dump file with "mail_version=xxxxx". Adding version
 	stamps and checks to every IPC message is too much change
 	after code freeze, and requires too much time for testing.
-	File: src/global/mail_version.h and every main program file.
+	Fileglobal/mail_version.h and every main program file.
 
 20070320
 
@@ -13533,7 +13533,7 @@ Apologies for any names omitted.
 20070508
 
 	Bugfix: Content-Transfer-Encoding: attribute values are
-	case insensitive. File: src/cleanup/cleanup_message.c.
+	case insensitive. Filecleanup/cleanup_message.c.
 
 20070514
 
@@ -14057,31 +14057,31 @@ Apologies for any names omitted.
 	mechanics of cipher management internal to the library. The
 	main.cf parameters used internally in the library are now
 	loaded by the library, not the caller. Files:
-	src/smtp/lmtp_params.c, src/smtp/smtp.c, src/smtp/smtp.h,
-	src/smtp/smtp_params.c, src/smtp/smtp_proto.c,
-	src/smtp/smtp_session.c, src/smtpd/smtpd.c, src/tls/tls.h,
-	src/tls/tls_client.c, src/tls/tls_level.c, src/tls/tls_misc.c,
-	src/tls/tls_server.c, src/tls/tls_session.c, src/tls/tls_verify.c
-	and src/tlsmgr/tlsmgr.c
+	src/smtp/lmtp_params.csmtp/smtp.c, src/smtp/smtp.h,
+	src/smtp/smtp_params.csmtp/smtp_proto.c,
+	src/smtp/smtp_session.csmtpd/smtpd.c, src/tls/tls.h,
+	src/tls/tls_client.ctls/tls_level.c, src/tls/tls_misc.c,
+	src/tls/tls_server.ctls/tls_session.c, src/tls/tls_verify.c
+	antlsmgr/tlsmgr.c
 
 	Cleanup: Client session lookup key "salting" is now handled
-	internally in the tls library. Files: src/tls/tls_client.c
+	internally in the tls library. Filestls/tls_client.c
 
 	Cleanup: Cipher state is cached, and only updated when
-	necessary.  Files: src/tls/tls_misc.c
+	necessary.  Filestls/tls_misc.c
 
 	Feature: Extended the syntax of protocol selection to allow
-	exclusions as well as inclusions. Files: src/tls/tls_misc.c
+	exclusions as well as inclusions. Filestls/tls_misc.c
 
 	Cleanup: Updated default verification depth to match reality:
 	default is 9 in OpenSSL and we don't yet override it.  When
 	we do (soon), the default will match previous behavior.
-	Files: src/global/mail_params.h
+	Filesglobal/mail_params.h
 
 	Bugfix: Reference to obsolete "pfixtls" code won't compile
 	inside #ifdef for OpenSSL <= 0.9.5a. Using an OpenSSL release
 	that old has not been tested for some time, but may now
-	work. Files: src/tls/tls_bio_ops.c.
+	work. Filestls/tls_bio_ops.c.
 
 	Replaced "void *" TLS library application handles by explicit
 	pointer types, while hiding data structure implementation
@@ -14143,7 +14143,7 @@ Apologies for any names omitted.
 	SMTP client fingerprint security level support and configurable
 	fingerprint digest algorithm. Victor Duchovni. Files:
 	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp.h,
-	src/smtp/smtp_params.c, src/smtp/smtp_proto.c,
+	src/smtp/smtp_params.csmtp/smtp_proto.c,
 	src/smtp/smtp_session.c, tls/tls_client.c, tls/tls_level.c,
 	tls/tls_verify.c.
 
@@ -14162,13 +14162,13 @@ Apologies for any names omitted.
 	limit parameters. Prior to Postfix 2.5 these were ignored.
 	For backwards compatibility, the default verification depth
 	limit is now 9, the OpenSSL default. Victor Duchovni. Files:
-	src/tls/tls_client.c, src/tls/tls_server.c, src/tls/tls_verify.c.
+	src/tls/tls_client.ctls/tls_server.c, src/tls/tls_verify.c.
 
 	Robustness: Avoid possibility of NULL pointer issues in
 	application code that checks certificate names, by providing
 	"empty string" values when no data is available.  Victor
-	Duchovni.  Files: src/tls/tls_verify.c, src/tls/tls_client.c,
-	src/tls/tls_server.c, src/smtpd/smtpd_check.c, src/smtpd/smtpd.c.
+	Duchovni.  Filestls/tls_verify.c, src/tls/tls_client.c,
+	src/tls/tls_server.csmtpd/smtpd_check.c, src/smtpd/smtpd.c.
 
 	Cleanup: separation of TLS handshake from security level
 	enforcement. The library shakes hands; the application
@@ -14317,7 +14317,7 @@ Apologies for any names omitted.
 20080207
 
 	Cleanup: soft_bounce support for multi-line Milter replies.
-	File: src/milter/milter8.c.
+	Filemilter/milter8.c.
 
 	Cleanup: preserve multi-line format of header/body Milter
 	replies. Files: cleanup/cleanup_milter.c, smtpd/smtpd.c.
@@ -14369,7 +14369,7 @@ Apologies for any names omitted.
 
 	Safety: the SMTP server's Dovecot authentication client now
 	enforces the SASL mechanism output filter also on client
-	command input. File: src/xsasl/xsasl_dovecot_server.c.
+	command input. Filexsasl/xsasl_dovecot_server.c.
 
 20080311
 
@@ -14428,7 +14428,7 @@ Apologies for any names omitted.
 	reject message.  Parameters: unverified_recipient_defer_code,
 	unverified_recipient_reject_reason, unverified_sender_defer_code,
 	unverified_sender_reject_reason. If I don't do this properly,
-	then someone will do it anyway. File: src/smtpd/smtpd_check.c.
+	then someone will do it anyway. Filesmtpd/smtpd_check.c.
 
 20080428
 
@@ -14988,7 +14988,7 @@ Apologies for any names omitted.
 
 	Fine tuning: don't enforce smtpd_junk_command_limit for
 	XCLIENT and XFORWARD commands.  These commands can be issued
-	only by authorized clients. File: src/smtpd/smtpd.c.
+	only by authorized clients. Filesmtpd/smtpd.c.
 
 20090215
 
@@ -15329,7 +15329,7 @@ Apologies for any names omitted.
 	the results in a later non-production version. To enable
 	DNSBL lookups, specify "postscreen_dnsbl_sites = name,
 	name, etc". and restart postscreen(8) with "postfix reload".
-	File: src/dnsblog/dnblog.c.
+	Filednsblog/dnblog.c.
 
 20090618
 
@@ -16282,7 +16282,7 @@ Apologies for any names omitted.
 	Feature: with "tls_preempt_cipherlist = yes" the Postfix
 	SMTP server will preempt the remote SMTP client's cipher
 	preference order. This requires OpenSSL 0.9.7 and later.
-	Victor Duchovni. Files: src/smtpd/smtpd.c, src/tls/tls_server.c,
+	Victor Duchovni. Filessmtpd/smtpd.c, src/tls/tls_server.c,
 	proto/TLS_README.html, proto/postconf.proto.
 
 	Future proofing: specify "tls_disable_workarounds = a list
@@ -16299,8 +16299,8 @@ Apologies for any names omitted.
 
 	Cleanup: sanitized the name_mask API so that errors will be
 	ignored only upon explicit request. Files: util/name_mask.[hc],
-	src/global/ehlo_mask.c, src/smtp/smtp_proto.c,
-	src/util/name_mask.c, src/xsasl/xsasl_dovecot_server.c.
+	src/global/ehlo_mask.csmtp/smtp_proto.c,
+	src/util/name_mask.cxsasl/xsasl_dovecot_server.c.
 
 	Cleanup: more TLS overhead horrors for the SMTP client's
 	PIPELINING engine. Wietse and Victor. File: smtp/smtp_proto.c.
@@ -16672,22 +16672,22 @@ Apologies for any names omitted.
 	KNOWN (we actually have an owner UID). With most tables,
 	the owner UID is the file owner UID. With LDAP and *SQL,
 	the owner UID is the Postfix configuration file owner.
-	Files: src/util/dict_unix.c src/util/dict_thash.c
-	src/util/dict_static.c src/util/dict_sdbm.c src/util/dict_regexp.c
-	src/util/dict_pcre.c src/util/dict_nisplus.c src/util/dict_nis.c
-	src/util/dict_ni.c src/util/dict_ht.c src/util/dict_env.c
-	src/util/dict_dbm.c src/util/dict_db.c src/util/dict_cidr.c
-	src/util/dict_cdb.c src/util/dict_alloc.c src/util/dict.h
-	src/util/dict.c src/local/alias.c src/global/dict_sqlite.c
-	src/global/dict_pgsql.c src/global/dict_mysql.c
-	src/global/dict_ldap.c src/global/cfg_parser.h
+	Filesutil/dict_unix.c src/util/dict_thash.c
+	src/util/dict_static.util/dict_sdbm.c src/util/dict_regexp.c
+	src/util/dict_pcre.util/dict_nisplus.c src/util/dict_nis.c
+	src/util/dict_ni.util/dict_ht.c src/util/dict_env.c
+	src/util/dict_dbm.util/dict_db.c src/util/dict_cidr.c
+	src/util/dict_cdb.util/dict_alloc.c src/util/dict.h
+	src/util/dict.local/alias.c src/global/dict_sqlite.c
+	src/global/dict_pgsql.global/dict_mysql.c
+	src/global/dict_ldap.global/cfg_parser.h
 	src/global/cfg_parser.c.
 
 20110311
 
 	Feature: Base 32 encoder/decoder per RFC 4648. This code
 	was going to be used for long queue IDs, but plans were
-	changed. Files: src/util/base32_code.[hc].
+	changed. Filesutil/base32_code.[hc].
 
 20110313
 
@@ -17279,11 +17279,11 @@ Apologies for any names omitted.
 	replaces the Postfix library but not the program (someone
 	experienced this with an extra copy of the Postfix SMTP
 	server).  Files: global/mail_version.[hc], master/*server.c,
-	master/master.c, src/postalias/postalias.c,
-	src/postdrop/postdrop.c, src/postfix/postfix.c,
-	src/postlog/postlog.c, src/postmap/postmap.c,
-	src/postmulti/postmulti.c, src/postqueue/postqueue.c,
-	src/postsuper/postsuper.c, src/sendmail/sendmail.c.
+	master/master.cpostalias/postalias.c,
+	src/postdrop/postdrop.cpostfix/postfix.c,
+	src/postlog/postlog.cpostmap/postmap.c,
+	src/postmulti/postmulti.cpostqueue/postqueue.c,
+	src/postsuper/postsuper.csendmail/sendmail.c.
 
 20111211
 
@@ -17438,27 +17438,27 @@ Apologies for any names omitted.
 	This was a straightforward change except in the few modules
 	that propagate errors from one dictionary API to another:
 	dict_cache.c, dict_debug.c, maps.c, dict_memcache.c.  Files:
-	src/cleanup/cleanup_map11.c, src/cleanup/cleanup_map1n.c,
-	src/global/addr_match_list.c, src/global/dict_ldap.c,
-	src/global/dict_memcache.c, src/global/dict_mysql.c,
-	src/global/dict_pgsql.c, src/global/dict_proxy.c,
-	src/global/dict_sqlite.c, src/global/domain_list.c,
-	src/global/flush_clnt.c, src/global/mail_addr_find.c,
-	src/global/mail_addr_map.c, src/global/maps.c, src/global/maps.h,
-	src/global/match_parent_style.h, src/global/namadr_list.c,
-	src/global/resolve_local.c, src/global/resolve_local.h,
-	src/global/server_acl.c, src/global/string_list.c,
-	src/local/alias.c, src/local/bounce_workaround.c,
-	src/local/mailbox.c, src/local/unknown.c, src/proxymap/proxymap.c,
-	src/qmqpd/qmqpd.c, src/smtp/smtp_map11.c, src/smtpd/smtpd_check.c,
-	src/trivial-rewrite/resolve.c, src/trivial-rewrite/transport.c,
-	src/util/dict.h, src/util/dict_alloc.c, src/util/dict_cache.c,
-	src/util/dict_cidr.c, src/util/dict_db.c, src/util/dict_debug.c,
-	src/util/dict_env.c, src/util/dict_fail.c, src/util/dict_ht.c,
-	src/util/dict_pcre.c, src/util/dict_regexp.c,
-	src/util/dict_static.c, src/util/dict_tcp.c, src/util/dict_test.c,
-	src/util/dict_thash.c, src/util/dict_unix.c, src/util/match_list.c,
-	src/util/match_list.h, src/util/match_ops.c, src/virtual/mailbox.c.
+	src/cleanup/cleanup_map11.ccleanup/cleanup_map1n.c,
+	src/global/addr_match_list.cglobal/dict_ldap.c,
+	src/global/dict_memcache.cglobal/dict_mysql.c,
+	src/global/dict_pgsql.cglobal/dict_proxy.c,
+	src/global/dict_sqlite.cglobal/domain_list.c,
+	src/global/flush_clnt.cglobal/mail_addr_find.c,
+	src/global/mail_addr_map.cglobal/maps.c, src/global/maps.h,
+	src/global/match_parent_style.hglobal/namadr_list.c,
+	src/global/resolve_local.cglobal/resolve_local.h,
+	src/global/server_acl.cglobal/string_list.c,
+	src/local/alias.clocal/bounce_workaround.c,
+	src/local/mailbox.clocal/unknown.c, src/proxymap/proxymap.c,
+	src/qmqpd/qmqpd.csmtp/smtp_map11.c, src/smtpd/smtpd_check.c,
+	src/trivial-rewrite/resolve.ctrivial-rewrite/transport.c,
+	src/util/dict.hutil/dict_alloc.c, src/util/dict_cache.c,
+	src/util/dict_cidr.cutil/dict_db.c, src/util/dict_debug.c,
+	src/util/dict_env.cutil/dict_fail.c, src/util/dict_ht.c,
+	src/util/dict_pcre.cutil/dict_regexp.c,
+	src/util/dict_static.cutil/dict_tcp.c, src/util/dict_test.c,
+	src/util/dict_thash.cutil/dict_unix.c, src/util/match_list.c,
+	src/util/match_list.hutil/match_ops.c, src/virtual/mailbox.c.
 
 20111226
 
@@ -17520,18 +17520,18 @@ Apologies for any names omitted.
 	depend on the unavailable table will keep working.  However,
 	for the sake of sanity, the number of such errors over the
 	life of a process is limited to 13.  Files:
-	src/global/cfg_parser.c, src/util/dict_thash.c,
-	src/util/dict_cidr.c, src/util/dict_nis.c, src/util/dict_nisplus.c,
-	src/global/dict_ldap.c, src/global/dict_mysql.c,
-	src/global/dict_pgsql.c, src/global/dict_sqlite.c,
-	src/postconf/postconf_main.c, src/global/mail_conf.c,
-	src/util/dict.h, src/util/dict.c, src/global/dict_memcache.c,
-	src/util/dict_tcp.c, src/util/dict_unix.c, src/util/dict_pcre.c,
-	src/util/dict_regexp.c, src/master/trigger_server.c,
-	src/master/single_server.c, src/master/multi_server.c,
-	src/master/event_server.c, src/util/dict_test.c,
-	src/util/dict_surrogate.c, src/util/dict_alloc.c, src/util/msg.c,
-	src/util/dict_cdb.c, src/util/dict_dbm.c, src/util/msg.h,
+	src/global/cfg_parser.cutil/dict_thash.c,
+	src/util/dict_cidr.cutil/dict_nis.c, src/util/dict_nisplus.c,
+	src/global/dict_ldap.cglobal/dict_mysql.c,
+	src/global/dict_pgsql.cglobal/dict_sqlite.c,
+	src/postconf/postconf_main.cglobal/mail_conf.c,
+	src/util/dict.hutil/dict.c, src/global/dict_memcache.c,
+	src/util/dict_tcp.cutil/dict_unix.c, src/util/dict_pcre.c,
+	src/util/dict_regexp.cmaster/trigger_server.c,
+	src/master/single_server.cmaster/multi_server.c,
+	src/master/event_server.cutil/dict_test.c,
+	src/util/dict_surrogate.cutil/dict_alloc.c, src/util/msg.c,
+	src/util/dict_cdb.cutil/dict_dbm.c, src/util/msg.h,
 	src/util/dict_db.c.
 
 	Incompatibility: the Postfix SMTP server no longer reports
@@ -18423,14 +18423,14 @@ Apologies for any names omitted.
 	a set of characters. A user name is now separated from its
 	address extension by the first character that matches the
 	recipient_delimiter set.  Files: proto/postconf.proto,
-	src/global/mail_addr_find.c, src/global/mail_params.c,
-	src/global/split_addr.c, src/global/split_addr.h,
-	src/global/strip_addr.c, src/global/strip_addr.h,
-	src/global/strip_addr.ref, src/local/bounce_workaround.c,
-	src/local/local.c, src/local/local_expand.c, src/local/recipient.c,
-	src/local/resolve.c, src/oqmgr/qmgr_message.c, src/pipe/pipe.c,
-	src/qmgr/qmgr_message.c, src/smtpd/smtpd.c,
-	src/smtpd/smtpd_check.c, src/trivial-rewrite/transport.c,
+	src/global/mail_addr_find.cglobal/mail_params.c,
+	src/global/split_addr.cglobal/split_addr.h,
+	src/global/strip_addr.cglobal/strip_addr.h,
+	src/global/strip_addr.reflocal/bounce_workaround.c,
+	src/local/local.clocal/local_expand.c, src/local/recipient.c,
+	src/local/resolve.coqmgr/qmgr_message.c, src/pipe/pipe.c,
+	src/qmgr/qmgr_message.csmtpd/smtpd.c,
+	src/smtpd/smtpd_check.ctrivial-rewrite/transport.c,
 	src/trivial-rewrite/trivial-rewrite.c.
 
 	Feature: support for trust anchors, i.e. CA certificates
@@ -18572,15 +18572,15 @@ Apologies for any names omitted.
 	Files: smtp/smtp.h smtp/smtp_connect.c, smtp/smtp_key.c.
 
 	Non-production cleanup: documentation, identifiers.  Viktor
-	Dukhovni. Files: proto/postconf.proto, src/dns/dns.h,
-	src/dns/dns_lookup.c, src/dns/dns_rr.c, src/dns/test_dns_lookup.c,
-	src/global/mail_proto.h, src/posttls-finger/posttls-finger.c,
-	src/smtp/smtp.h, src/smtp/smtp_addr.c, src/smtp/smtp_connect.c,
-	src/smtp/smtp_session.c, src/smtp/smtp_tls_policy.c,
-	src/smtpd/smtpd_check.c, src/tls/tls.h, src/tls/tls_client.c,
-	src/tls/tls_dane.c, src/tls/tls_fprint.c, src/tls/tls_misc.c,
-	src/tls/tls_proxy_clnt.c, src/tls/tls_proxy_print.c,
-	src/tls/tls_proxy_scan.c, src/tls/tls_server.c,
+	Dukhovni. Files: proto/postconf.protodns/dns.h,
+	src/dns/dns_lookup.cdns/dns_rr.c, src/dns/test_dns_lookup.c,
+	src/global/mail_proto.hposttls-finger/posttls-finger.c,
+	src/smtp/smtp.hsmtp/smtp_addr.c, src/smtp/smtp_connect.c,
+	src/smtp/smtp_session.csmtp/smtp_tls_policy.c,
+	src/smtpd/smtpd_check.ctls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_dane.ctls/tls_fprint.c, src/tls/tls_misc.c,
+	src/tls/tls_proxy_clnt.ctls/tls_proxy_print.c,
+	src/tls/tls_proxy_scan.ctls/tls_server.c,
 	src/tls/tls_verify.c.
 
 20130426
@@ -18660,7 +18660,7 @@ Apologies for any names omitted.
 	features (as opposed to tls_disable_workarounds which is
 	disables bug workarounds that are on by default). Viktor
 	Dukhovni. Files: proto/TLS_README.html, proto/postconf.proto,
-	src/global/mail_params.h, src/tls/tls.h, src/tls/tls_client.c,
+	src/global/mail_params.htls/tls.h, src/tls/tls_client.c,
 	src/tls/tls_misc.c.
 
 20130520
@@ -18911,12 +18911,12 @@ Apologies for any names omitted.
 	nothing is found there, fall back to the qname.
 
 	Code by Viktor Dukhovni. Files: mantools/postlink,
-	proto/postconf.proto, src/global/mail_params.h,
-	src/posttls-finger/posttls-finger.c, src/smtp/lmtp_params.c,
-	src/smtp/smtp.c, src/smtp/smtp.h, src/smtp/smtp_addr.c,
-	src/smtp/smtp_addr.h, src/smtp/smtp_connect.c,
-	src/smtp/smtp_params.c, src/smtp/smtp_tls_policy.c,
-	src/tls/tls.h, src/tls/tls_dane.c.
+	proto/postconf.protoglobal/mail_params.h,
+	src/posttls-finger/posttls-finger.csmtp/lmtp_params.c,
+	src/smtp/smtp.csmtp/smtp.h, src/smtp/smtp_addr.c,
+	src/smtp/smtp_addr.hsmtp/smtp_connect.c,
+	src/smtp/smtp_params.csmtp/smtp_tls_policy.c,
+	src/tls/tls.htls/tls_dane.c.
 
 20130826
 
@@ -19211,8 +19211,8 @@ Apologies for any names omitted.
 	Cleanup: improve suppression of TLSA lookups in insecure
 	zones.  This is now applied not only to non-MX destinations,
 	but also to each MX record.  Viktor Dukhovni. Files:
-	src/posttls-finger/posttls-finger.c, src/smtp/smtp_tls_policy.c,
-	src/tls/tls.h, src/tls/tls_dane.c.
+	src/posttls-finger/posttls-finger.csmtp/smtp_tls_policy.c,
+	src/tls/tls.htls/tls_dane.c.
 
 	Workaround: increased the 5s connection timeout to 30s.
 	Viktor Dukhovni. File: posttls-finger/posttls-finger.c.
@@ -19287,16 +19287,16 @@ Apologies for any names omitted.
 	NOT be supported in DANE with SMTP, and we already don't
 	support digest TLSA RRs in this case, while full content
 	TLSA RRs are not recommended for DNS bloat reasons.  Viktor
-	Dukhovni. Files: proto/postconf.proto src/global/mail_params.h
-	src/smtp/smtp.c src/tls/tls_dane.c src/tls/tls_misc.c.
+	Dukhovni. Files: proto/postconf.protglobal/mail_params.h
+	src/smtp/smtp.tls/tls_dane.c src/tls/tls_misc.c.
 
 	Feature: TLS support: Support future digest algorithms
 	without re-compilation. Viktor Dukhovni. Files: .indent.pro
-	proto/postconf.proto src/tls/tls_dane.c.
+	proto/postconf.prottls/tls_dane.c.
 
 	Feature: DNS support: New configurable digest agility.
 	Viktor Dukhovni. Files: .indent.pro proto/TLS_README.html
-	proto/postconf.proto src/global/mail_params.h src/tls/tls_dane.c
+	proto/postconf.protglobal/mail_params.h src/tls/tls_dane.c
 	src/tls/tls_misc.c.
 
 20131127
@@ -19312,8 +19312,8 @@ Apologies for any names omitted.
 20131130
 
 	Cleanup: simplify fingerprint security level implementation
-	in new DANE code.  Viktor Dukhovni.  Files: src/tls/tls.h
-	src/smtp/smtp_tls_policy.c src/tls/tls_dane.c
+	in new DANE code.  Viktor Dukhovni.  Filestls/tls.h
+	src/smtp/smtp_tls_policy.tls/tls_dane.c
 	src/posttls-finger/posttls-finger.c.
 
 20131209
@@ -19368,8 +19368,8 @@ Apologies for any names omitted.
 20131215
 
 	Cleanup: OpenSSL "const" declarations have changed over
-	time. Viktor Dukhovni. Files: src/tls/tls.h, src/tls/tls_client.c,
-	src/tls/tls_dane.c, src/tls/tls_server.c.
+	time. Viktor Dukhovni. Filestls/tls.h, src/tls/tls_client.c,
+	src/tls/tls_dane.ctls/tls_server.c.
 
 20131216
 
@@ -20234,7 +20234,7 @@ Apologies for any names omitted.
 	Cleanup: propagate the "SMTPUTF8 support requested" flag
 	when bouncing a message or when forwarding a message through
 	a local alias or .forward file.  Files: local/forward.c,
-	bounce/bounce_notify_util.c, src/global/post_mail.[hc], and
+	bounce/bounce_notify_util.cglobal/post_mail.[hc], and
 	specify a dummy argument SMTPUTF8_FLAGS_NONE in all other
 	programs that programs that invoke post_mail_fopen*(),
 
@@ -20514,7 +20514,7 @@ Apologies for any names omitted.
 	global/attr_override.[hc], smtpd/smtpd_check.c, milter/milter.c.
 
 	Documentation: support for "{ argument with whitespace }"
-	in master(5) and pipe(8). Files: proto/master, src/pipe/pipe.c.
+	in master(5) and pipe(8). Files: proto/masterpipe/pipe.c.
 
 	Documentation: in ADDRES_VERIFY_README, replaced "nearest
 	MTA" with "preferred MTA". The SMTP client was changed years
@@ -20833,8 +20833,8 @@ Apologies for any names omitted.
 	Postfix SMTP server already rejected such domains with
 	reject_unknown_sender/recipient_domain. This introduces a
 	new SMTP server configuration parameter nullmx_reject_code
-	(default: 556).  Files: src/dns/dns_lookup.[hc], dns/Makefile,in,
-	dns/nullmx_test.ref, src/smtp/smtp_addr.c, smtpd/smtpd_check.c,
+	(default: 556).  Filesdns/dns_lookup.[hc], dns/Makefile,in,
+	dns/nullmx_test.refsmtp/smtp_addr.c, smtpd/smtpd_check.c,
 	smtpd/smtpd_check_nullmx.in, smtpd/smtpd_check_nullmx.ref,
 	mantools/postlink, proto/postconf.proto, smtpd/smtpd.c.
 
@@ -20899,9 +20899,9 @@ Apologies for any names omitted.
 	dns/dns.h, dns/dns_lookup.c.
 
 	Cleanup: eliminate TLS state duplication from state->tls
-	to session->tls. Viktor Dukhovni. Files: src/smtp/smtp.h,
-	src/smtp/smtp_connect.c, src/smtp/smtp_proto.c,
-	src/smtp/smtp_reuse.c, src/smtp/smtp_session.c.
+	to session->tls. Viktor Dukhovni. Filessmtp/smtp.h,
+	src/smtp/smtp_connect.csmtp/smtp_proto.c,
+	src/smtp/smtp_reuse.csmtp/smtp_session.c.
 
 20141203
 
@@ -21459,7 +21459,7 @@ Apologies for any names omitted.
 	some non-ASCII character, unlike HTML where it comes out
 	as itself.  Andreas Schulze. This requires jumping a few
 	hops to generate HTML and nroff input from the same source
-	text.  Files; mantools/srctoman, mantools/postconf2man.
+	text.  Files; mantooloman, mantools/postconf2man.
 
 	Cleanup: UTF-8 support in masquerade_domains.  File:
 	cleanup/cleanup_masquerade.c.
@@ -21923,3 +21923,21 @@ Apologies for any names omitted.
 	error propagation in tlsproxy(8) resulting in segfault after
 	TLS handshake error. Found during code maintenance. File:
 	tlsproxy/tlsproxy.c.
+
+20180617
+
+	Bugfix (introduced: Postfix 2.11): minor memory leak when
+	minting issuer certs. This affects a tiny minority of use
+	cases. Viktor Dukhovni, based on a fix by Juan Altmayer
+	Pizzorno for the ssl_dane library.
+
+20181104
+
+	Multiple 'bit rot' fixes for OpenSSL API changes, including
+	support to disable TLSv1.3, and to allow OpenSSL >= 1.1.0
+	run-time micro version bumps without complaining about
+	library version mismatches. Viktor Dukhovni. Files:
+	proto/postconf.proto, proto/TLS_README.html, tls/tls.h,
+	tls/tls_dane.c, tls/tls_verify.c, tls/tls_fprint.c,
+	tls/tls_misc.c, tls/tls_server.c, tls/tls_client.c,
+	tls/tls_rsa.c, posttls-finger/posttls-finger.c, .indent.pro.

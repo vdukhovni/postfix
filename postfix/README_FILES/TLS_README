@@ -657,11 +657,12 @@ Example:
         smtpd_starttls_timeout = 300s
 
 With Postfix 2.8 and later, the tls_disable_workarounds parameter specifies a
-list or bit-mask of OpenSSL bug work-arounds to disable. This may be necessary
-if one of the work-arounds enabled by default in OpenSSL proves to pose a
-security risk, or introduces an unexpected interoperability issue. Some bug
-work-arounds known to be problematic are disabled in the default value of the
-parameter when linked with an OpenSSL library that could be vulnerable.
+list or bit-mask of default-enabled OpenSSL bug work-arounds to disable. This
+may be necessary if one of the work-arounds enabled by default in OpenSSL
+proves to pose a security risk, or introduces an unexpected interoperability
+issue. The list of enabled bug work-arounds is OpenSSL-release-specific. See
+the tls_disable_workarounds parameter documentation for the list of supported
+values.
 
 Example:
 
@@ -674,16 +675,9 @@ mask of OpenSSL options to enable. Specify one or more of the named options
 below, or a hexadecimal bitmask of options found in the ssl.h file
 corresponding to the run-time OpenSSL library. While it may be reasonable to
 turn off all bug workarounds (see above), it is not a good idea to attempt to
-turn on all features.
+turn on all features. See the tls_ssl_options parameter documentation for the
+list of supported values.
 
-LLEEGGAACCYY__SSEERRVVEERR__CCOONNNNEECCTT
-    See SSL_CTX_set_options(3).
-NNOO__TTIICCKKEETT
-    See SSL_CTX_set_options(3).
-NNOO__CCOOMMPPRREESSSSIIOONN
-    Disable SSL compression even if supported by the OpenSSL library.
-    Compression is CPU-intensive, and compression before encryption does not
-    always improve security.
 Example:
 
     /etc/postfix/main.cf:

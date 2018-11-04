@@ -299,6 +299,8 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      */
     tls_check_version();
 
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
     /*
      * Initialize the OpenSSL library by the book! To start with, we must
      * initialize the algorithms. We want cleartext error messages instead of
@@ -306,6 +308,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      */
     SSL_load_error_strings();
     OpenSSL_add_ssl_algorithms();
+#endif
 
     /*
      * Create an application data index for SSL objects, so that we can
@@ -354,6 +357,10 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 	tls_print_errors();
 	return (0);
     }
+#ifdef SSL_SECOP_PEER
+    /* Backwards compatible security as a base for opportunistic TLS. */
+    SSL_CTX_set_security_level(client_ctx, 0);
+#endif
 
     /*
      * See the verify callback in tls_verify.c
@@ -423,11 +430,17 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     }
 
     /*
+     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
+     */
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+
+    /*
      * According to the OpenSSL documentation, temporary RSA key is needed
      * export ciphers are in use. We have to provide one, so well, we just do
      * it.
      */
     SSL_CTX_set_tmp_rsa_callback(client_ctx, tls_tmp_rsa_cb);
+#endif
 
     /*
      * Finally, the setup for the server certificate checking, done "by the
@@ -930,6 +943,12 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     if (protomask != 0)
 	SSL_set_options(TLScontext->con, TLS_SSL_OP_PROTOMASK(protomask));
+
+#ifdef SSL_SECOP_PEER
+    /* When authenticating the peer, use 80-bit plus OpenSSL security level */
+    if (TLS_MUST_MATCH(props->tls_level))
+	SSL_set_security_level(TLScontext->con, 1);
+#endif
 
     /*
      * XXX To avoid memory leaks we must always call SSL_SESSION_free() after
