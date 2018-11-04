@@ -109,6 +109,11 @@ extern const char *str_tls_level(int);
 #define TLS_server_method SSLv23_server_method
 #endif
 
+ /* Backwards compatibility with OpenSSL < 1.1.1 */
+#if OPENSSL_VERSION_NUMBER < 0x1010100fUL
+#define SSL_CTX_set_num_tickets(ctx, num) ((void)0)
+#endif
+
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */
 #if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
 #define SSL_CIPHER_const const
@@ -372,10 +377,14 @@ extern void tls_param_init(void);
 #define SSL_OP_NO_TLSv1_2	0L	/* Noop */
 #endif
 
-#ifdef SSL_TXT_TLSV1_3
+ /*
+  * OpenSSL 1.1.1 does not define a TXT macro for TLS 1.3, so we roll our own.
+  */
+#define TLS_PROTOCOL_TXT_TLSV1_3	"TLSv1.3"
+
+#if defined(TLS1_3_VERSION) && defined(SSL_OP_NO_TLSv1_3)
 #define TLS_PROTOCOL_TLSv1_3	(1<<5)	/* TLSv1_3 */
 #else
-#define SSL_TXT_TLSV1_3		"TLSv1.3"
 #define TLS_PROTOCOL_TLSv1_3	0	/* Unknown */
 #undef  SSL_OP_NO_TLSv1_3
 #define SSL_OP_NO_TLSv1_3	0L	/* Noop */
@@ -383,7 +392,7 @@ extern void tls_param_init(void);
 
 #define TLS_KNOWN_PROTOCOLS \
 	( TLS_PROTOCOL_SSLv2 | TLS_PROTOCOL_SSLv3 | TLS_PROTOCOL_TLSv1 \
-	   | TLS_PROTOCOL_TLSv1_1 | TLS_PROTOCOL_TLSv1_2 )
+	   | TLS_PROTOCOL_TLSv1_1 | TLS_PROTOCOL_TLSv1_2 | TLS_PROTOCOL_TLSv1_3 )
 #define TLS_SSL_OP_PROTOMASK(m) \
 	    ((((m) & TLS_PROTOCOL_SSLv2) ? SSL_OP_NO_SSLv2 : 0L) \
 	     | (((m) & TLS_PROTOCOL_SSLv3) ? SSL_OP_NO_SSLv3 : 0L) \

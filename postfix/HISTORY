@@ -23727,3 +23727,13 @@ Apologies for any names omitted.
 	(postscreen_reject_footer should have been
 	postscreen_reject_footer_maps). Noel Jones (finder) and
 	Viktor Dukhovni (fixer).
+
+20181104
+
+	Multiple 'bit rot' fixes for OpenSSL API changes, including
+	support to disable TLSv1.3, to avoid issuing multiple session
+	tickets, and to allow OpenSSL >= 1.1.0 run-time micro version
+	bumps without complaining about library version mismatches.
+	Viktor Dukhovni. Files: proto/postconf.proto,
+	proto/TLS_README.html, tls/tls.h, tls/tls_dane.c,
+	tls/tls_server.c, tls/tls_misc.c

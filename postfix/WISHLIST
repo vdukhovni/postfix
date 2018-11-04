@@ -1,5 +1,8 @@
 Wish list:
 
+	In dict_db.h, call dbenv->close() before bailing out
+	with a surrogate map.
+
 	In smtpd(8) and postscreen(8), set the ehlo_discard_mask
 	to ~0 so that STARTTLS, BDAT, DSN, etc. won't work.
 

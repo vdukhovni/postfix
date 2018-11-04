@@ -8078,8 +8078,9 @@ matches the underlying OpenSSL interface semantics.
 .PP
 The range of protocols advertised by an SSL/TLS client must be
 contiguous.  When a protocol version is enabled, disabling any
-higher version implicitly disables all versions above that higher
-version.  Thus, for example:
+higher version implicitly disables all versions above that higher version.
+Thus, for example (assuming the OpenSSL library supports both SSLv2
+and SSLv3):
 .sp
 .in +4
 .nf
@@ -8100,6 +8101,9 @@ disabled except by also disabling "TLSv1" (typically leaving just
 "SSLv3").  The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2".
+.PP
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+this can be disabled, if need be, via "!TLSv1.3".
 .PP
 At the dane and
 dane\-only security
@@ -8407,14 +8411,15 @@ and "TLSv1".
 .PP
 The range of protocols advertised by an SSL/TLS client must be
 contiguous.  When a protocol version is enabled, disabling any
-higher version implicitly disables all versions above that higher
-version.  Thus, for example:
+higher version implicitly disables all versions above that higher version.
+Thus, for example (assuming the OpenSSL library supports both SSLv2
+and SSLv3):
 .sp
 .in +4
 .nf
 .na
 .ft C
-smtp_tls_mandatory_protocols = !SSLv2, !TLSv1
+smtp_tls_protocols = !SSLv2, !TLSv1
 .fi
 .ad
 .ft R
@@ -8426,6 +8431,9 @@ Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
 and "TLSv1.2". The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2"
+.PP
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+this can be disabled, if need be, via "!TLSv1.3".
 .PP
 To include a protocol list its name, to exclude it, prefix the name
 with a "!" character. To exclude SSLv2 for opportunistic TLS set
@@ -10498,7 +10506,7 @@ text (Postfix 2.10 and later).
 This feature is available in Postfix 2.8 and later.
 .SH smtpd_reject_footer_maps (default: empty)
 Lookup tables, indexed by the complete Postfix SMTP server 4xx or
-5xx response, with reject footer templates. See smtpd_reject_footer_maps
+5xx response, with reject footer templates. See smtpd_reject_footer
 for details.
 .PP
 Specify zero or more "type:name" lookup tables, separated by
@@ -11733,6 +11741,9 @@ disabled.  The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2".
 .PP
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+this can be disabled, if need be, via "!TLSv1.3".
+.PP
 Example:
 .PP
 .nf
@@ -11761,6 +11772,9 @@ Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
 and "TLSv1.2". The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2".
+.PP
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+this can be disabled, if need be, via "!TLSv1.3".
 .PP
 To include a protocol list its name, to exclude it, prefix the name
 with a "!" character. To exclude SSLv2 for opportunistic TLS set
@@ -12277,13 +12291,31 @@ of specific named bug work\-arounds chosen from the list below. It
 is possible that your OpenSSL version includes new bug work\-arounds
 added after your Postfix source code was last updated, in that case
 you can only disable one of these via the hexadecimal syntax above.
+.IP "\fBCRYPTOPRO_TLSEXT_BUG\fR"
+New with GOST support in
+OpenSSL 1.0.0.
+.br
+.IP "\fBDONT_INSERT_EMPTY_FRAGMENTS\fR"
+See
+SSL_CTX_\fBset_options\fR(3)
+.br
+.IP "\fBLEGACY_SERVER_CONNECT\fR"
+See SSL_CTX_\fBset_options\fR(3)
+.br
+.IP "\fBMICROSOFT_BIG_SSLV3_BUFFER\fR"
+See
+SSL_CTX_\fBset_options\fR(3)
+.br
 .IP "\fBMICROSOFT_SESS_ID_BUG\fR"
 See SSL_CTX_\fBset_options\fR(3)
 .br
-.IP "\fBNETSCAPE_CHALLENGE_BUG\fR"
-See SSL_CTX_\fBset_options\fR(3)
+.IP "\fBMSIE_SSLV2_RSA_PADDING\fR"
+also aliased as
+\fBCVE\-2005\-2969\fR. Postfix 2.8 disables this work\-around by
+default with OpenSSL versions that may predate the fix. Fixed in
+OpenSSL 0.9.7h and OpenSSL 0.9.8a.
 .br
-.IP "\fBLEGACY_SERVER_CONNECT\fR"
+.IP "\fBNETSCAPE_CHALLENGE_BUG\fR"
 See SSL_CTX_\fBset_options\fR(3)
 .br
 .IP "\fBNETSCAPE_REUSE_CIPHER_CHANGE_BUG\fR"
@@ -12292,28 +12324,18 @@ as \fBCVE\-2010\-4180\fR. Postfix 2.8 disables this work\-around by
 default with OpenSSL versions that may predate the fix. Fixed in
 OpenSSL 0.9.8q and OpenSSL 1.0.0c.
 .br
-.IP "\fBSSLREF2_REUSE_CERT_TYPE_BUG\fR"
-See
-SSL_CTX_\fBset_options\fR(3)
-.br
-.IP "\fBMICROSOFT_BIG_SSLV3_BUFFER\fR"
-See
-SSL_CTX_\fBset_options\fR(3)
-.br
-.IP "\fBMSIE_SSLV2_RSA_PADDING\fR"
-also aliased as
-\fBCVE\-2005\-2969\fR. Postfix 2.8 disables this work\-around by
-default with OpenSSL versions that may predate the fix. Fixed in
-OpenSSL 0.9.7h and OpenSSL 0.9.8a.
-.br
 .IP "\fBSSLEAY_080_CLIENT_DH_BUG\fR"
 See
 SSL_CTX_\fBset_options\fR(3)
 .br
-.IP "\fBTLS_D5_BUG\fR"
-See SSL_CTX_\fBset_options\fR(3)
+.IP "\fBSSLREF2_REUSE_CERT_TYPE_BUG\fR"
+See
+SSL_CTX_\fBset_options\fR(3)
 .br
 .IP "\fBTLS_BLOCK_PADDING_BUG\fR"
+See SSL_CTX_\fBset_options\fR(3)
+.br
+.IP "\fBTLS_D5_BUG\fR"
 See SSL_CTX_\fBset_options\fR(3)
 .br
 .IP "\fBTLS_ROLLBACK_BUG\fR"
@@ -12321,13 +12343,8 @@ See SSL_CTX_\fBset_options\fR(3).
 This is disabled in OpenSSL 0.9.7 and later. Nobody should still
 be using 0.9.6!
 .br
-.IP "\fBDONT_INSERT_EMPTY_FRAGMENTS\fR"
-See
-SSL_CTX_\fBset_options\fR(3)
-.br
-.IP "\fBCRYPTOPRO_TLSEXT_BUG\fR"
-New with GOST support in
-OpenSSL 1.0.0.
+.IP "\fBTLSEXT_PADDING\fR"
+Postfix >= 3.4. See SSL_CTX_\fBset_options\fR(3).
 .br
 .br
 .PP
@@ -12593,17 +12610,43 @@ in its value are enabled (see openssl/ssl.h and SSL_CTX_\fBset_options\fR(3)).
 You can only enable options not already controlled by other Postfix
 settings.  For example, you cannot disable protocols or enable
 server cipher preference.  Do not attempt to turn all features by
-specifying 0xFFFFFFFF, this is unlikely to be a good idea.
+specifying 0xFFFFFFFF, this is unlikely to be a good idea.  Some
+bug work\-arounds are also valid here, allowing them to be re\-enabled
+if/when they're no longer enabled by default.  The supported values
+include:
+.IP "\fBENABLE_MIDDLEBOX_COMPAT\fR"
+Postfix >= 3.4. See
+SSL_CTX_\fBset_options\fR(3).
+.br
 .IP "\fBLEGACY_SERVER_CONNECT\fR"
 See SSL_CTX_\fBset_options\fR(3).
 .br
 .IP "\fBNO_TICKET\fR"
-See SSL_CTX_\fBset_options\fR(3).
+Enabled by default when needed in
+fully\-patched Postfix >= 2.7.  Not needed at all for Postfix >=
+2.11, unless for some reason you do not want to support TLS session
+resumption.  Best not set explicitly.  See SSL_CTX_\fBset_options\fR(3).
 .br
 .IP "\fBNO_COMPRESSION\fR"
 Disable SSL compression even if
 supported by the OpenSSL library.  Compression is CPU\-intensive,
 and compression before encryption does not always improve security.
+.br
+.IP "\fBNO_RENEGOTIATION\fR"
+Postfix >= 3.4.  This can
+reduce opportunities for a potential CPU exhaustion attack.  See
+SSL_CTX_\fBset_options\fR(3).
+.br
+.IP "\fBNO_SESSION_RESUMPTION_ON_RENEGOTIATION\fR"
+Postfix
+>= 3.4. See SSL_CTX_\fBset_options\fR(3).
+.br
+.IP "\fBPRIORITIZE_CHACHA\fR"
+Postfix >= 3.4. See SSL_CTX_\fBset_options\fR(3).
+.br
+.IP "\fBTLSEXT_PADDING\fR"
+Postfix >= 3.4. See
+SSL_CTX_\fBset_options\fR(3).
 .br
 .br
 .PP
