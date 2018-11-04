@@ -38,6 +38,9 @@
 #	New York, NY 10011, USA
 #--
 
+# In case not installed.
+m4 </dev/null || exit 1
+
 # Flags to add db_common parameter names.
 add_legacy_sql_query_params=
 add_domain_param=

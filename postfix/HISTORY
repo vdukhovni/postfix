@@ -23364,3 +23364,27 @@ Apologies for any names omitted.
 	from Andreas Schulze, Eray Aslan, and Viktor Dukhovni.
 	Files: postfix/postfix.c, master/master.c, master/master.h,
 	master/master_sig.c, conf/postfix-script.
+
+20180617
+
+	Bugfix (introduced: Postfix 2.11): minor memory leak when
+	minting issuer certs. This affects a tiny minority of use
+	cases. Viktor Dukhovni, based on a fix by Juan Altmayer
+	Pizzorno for the ssl_dane library.
+
+20180817
+
+	Workaround: postconf build did not abort if the m4 command
+	is not installed (on a system that does have the make
+	command, the awk command, the perl command, and the C
+	compiler?!).  File: postconf/extract_cfg.sh.
+
+20181104
+
+	Multiple 'bit rot' fixes for OpenSSL API changes, including
+	support to disable TLSv1.3, to avoid issuing multiple session
+	tickets, and to allow OpenSSL >= 1.1.0 run-time micro version
+	bumps without complaining about library version mismatches.
+	Viktor Dukhovni. Files: proto/postconf.proto,
+	proto/TLS_README.html, tls/tls.h, tls/tls_dane.c,
+	tls/tls_server.c, tls/tls_misc.c.
