@@ -510,8 +510,23 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
 	    ticketable = 0;
 	}
     }
-    if (ticketable)
+    if (ticketable) {
 	SSL_CTX_set_tlsext_ticket_key_cb(server_ctx, ticket_cb);
+
+	/*
+	 * OpenSSL 1.1.1 introduces support for TLS 1.3, which can issue more
+	 * than one ticket per handshake.  While this may be appropriate for
+	 * communication between browsers and webservers, it is not terribly
+	 * useful for MTAs, many of which other than Postfix don't do TLS
+	 * session caching at all, and Postfix has no mechanism for storing
+	 * multiple session tickets, if more than one sent, the second
+	 * clobbers the first.  OpenSSL 1.1.1 servers default to issuing two
+	 * tickets for non-resumption handshakes, we reduce this to one.  Our
+	 * ticket decryption callback already (since 2.11) asks OpenSSL to
+	 * avoid issuing new tickets when the presented ticket is re-usable.
+	 */
+	SSL_CTX_set_num_tickets(server_ctx, 1);
+    }
 #endif
     if (!ticketable)
 	off |= SSL_OP_NO_TICKET;

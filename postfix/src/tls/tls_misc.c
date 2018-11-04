@@ -277,7 +277,7 @@ static const NAME_CODE protocol_table[] = {
     SSL_TXT_TLSV1, TLS_PROTOCOL_TLSv1,
     SSL_TXT_TLSV1_1, TLS_PROTOCOL_TLSv1_1,
     SSL_TXT_TLSV1_2, TLS_PROTOCOL_TLSv1_2,
-    SSL_TXT_TLSV1_3, TLS_PROTOCOL_TLSv1_3,
+    TLS_PROTOCOL_TXT_TLSV1_3, TLS_PROTOCOL_TLSv1_3,
     0, TLS_PROTOCOL_INVALID,
 };
 
@@ -353,6 +353,29 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
 #define SSL_OP_CRYPTOPRO_TLSEXT_BUG		0
 #endif
     NAMEBUG(CRYPTOPRO_TLSEXT_BUG),
+
+#ifndef SSL_OP_TLSEXT_PADDING
+#define SSL_OP_TLSEXT_PADDING	0
+#endif
+    NAMEBUG(TLSEXT_PADDING),
+
+#if 0
+
+    /*
+     * XXX: New with OpenSSL 1.1.1, this is turned on implicitly in
+     * SSL_CTX_new() and is not included in SSL_OP_ALL.  Allowing users to
+     * disable this would thus a code change that would clearing bug
+     * work-around bits in SSL_CTX, after setting SSL_OP_ALL.  Since this is
+     * presumably required for TLS 1.3 on today's Internet, the code change
+     * will be done separately later.  For now this implicit bug work-around
+     * cannot be disabled via supported Postfix mechanisms.
+     */
+#ifndef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
+#define SSL_OP_ENABLE_MIDDLEBOX_COMPAT	0
+#endif
+    NAMEBUG(ENABLE_MIDDLEBOX_COMPAT),
+#endif
+
     0, 0,
 };
 
@@ -378,6 +401,27 @@ static const LONG_NAME_MASK ssl_op_tweaks[] = {
 #define SSL_OP_NO_COMPRESSION		0
 #endif
     NAME_SSL_OP(NO_COMPRESSION),
+
+#ifndef SSL_OP_NO_RENEGOTIATION
+#define SSL_OP_NO_RENEGOTIATION		0
+#endif
+    NAME_SSL_OP(NO_RENEGOTIATION),
+
+#ifndef SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION
+#define SSL_OP_NO_SESSION_RESUMPTION_ON_RENEGOTIATION	0
+#endif
+    NAME_SSL_OP(NO_SESSION_RESUMPTION_ON_RENEGOTIATION),
+
+#ifndef SSL_OP_PRIORITIZE_CHACHA
+#define SSL_OP_PRIORITIZE_CHACHA	0
+#endif
+    NAME_SSL_OP(PRIORITIZE_CHACHA),
+
+#ifndef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
+#define SSL_OP_ENABLE_MIDDLEBOX_COMPAT	0
+#endif
+    NAME_SSL_OP(ENABLE_MIDDLEBOX_COMPAT),
+
     0, 0,
 };
 
@@ -961,9 +1005,16 @@ void    tls_check_version(void)
     tls_version_split(OPENSSL_VERSION_NUMBER, &hdr_info);
     tls_version_split(OpenSSL_version_num(), &lib_info);
 
+    /*
+     * Warn if run-time library is different from compile-time library,
+     * allowing later run-time "micro" versions starting with 1.1.0.
+     */
     if (lib_info.major != hdr_info.major
 	|| lib_info.minor != hdr_info.minor
-	|| lib_info.micro != hdr_info.micro)
+	|| (lib_info.micro != hdr_info.micro
+	    && (lib_info.micro < hdr_info.micro
+		|| hdr_info.major == 0
+		|| (hdr_info.major == 1 && hdr_info.minor == 0))))
 	msg_warn("run-time library vs. compile-time header version mismatch: "
 	     "OpenSSL %d.%d.%d may not be compatible with OpenSSL %d.%d.%d",
 		 lib_info.major, lib_info.minor, lib_info.micro,
