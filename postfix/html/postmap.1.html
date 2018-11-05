@@ -10,7 +10,7 @@ POSTMAP(1)                                                          POSTMAP(1)
        postmap - Postfix lookup table management
 
 <b>SYNOPSIS</b>
-       <b>postmap</b> [<b>-NbfhimnoprsuUvw</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-d</b> <i>key</i>] [<b>-q</b> <i>key</i>]
+       <b>postmap</b> [<b>-bfFhimnNoprsuUvw</b>] [<b>-c</b> <i>config</i><b>_</b><i>dir</i>] [<b>-d</b> <i>key</i>] [<b>-q</b> <i>key</i>]
                [<i>file</i><b>_</b><i>type</i>:]<i>file</i><b>_</b><i>name</i> ...
 
 <b>DESCRIPTION</b>
@@ -43,6 +43,10 @@ POSTMAP(1)                                                          POSTMAP(1)
        The <i>key</i> and <i>value</i> are processed as is, except  that  surrounding  white
        space  is  stripped  off.  Whitespace in lookup keys is supported as of
        Postfix 3.2.
+
+       When the <b>-F</b> option  is  given,  the  <i>value</i>  must  specify  a  filename;
+       <a href="postmap.1.html"><b>postmap</b>(1)</a>  will  store the base64-encoded content of that file instead
+       of the <i>value</i> itself.
 
        When the <i>key</i> specifies email address information, the localpart  should
        be enclosed with double quotes if required by <a href="http://tools.ietf.org/html/rfc5322">RFC 5322</a>. For example, an
@@ -94,6 +98,10 @@ POSTMAP(1)                                                          POSTMAP(1)
               With  Postfix  version  2.3 and later, this option has no effect
               for regular expression tables. There, case folding is controlled
               by appending a flag to a pattern.
+
+       <b>-F</b>     When  creating  a  map from source file, replace each value with
+              the base64-encoded content of the named file.  When  querying  a
+              map, or listing a map, base64-decode each value.
 
        <b>-h</b>     Enable  message header query mode. When reading lookup keys from
               standard input with "<b>-q -</b>", process the input as  if  it  is  an

@@ -586,9 +586,9 @@ static DICT_PCRE_RULE *dict_pcre_rule_alloc(int op, int lineno, size_t size)
 
 /* dict_pcre_parse_rule - parse and compile one rule */
 
-static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
-					            char *line, int nesting,
-					            int dict_flags)
+static DICT_PCRE_RULE *dict_pcre_parse_rule(DICT *dict, const char *mapname,
+					            int lineno, char *line,
+					            int nesting)
 {
     char   *p;
     int     actual_sub;
@@ -636,6 +636,19 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 	return (rval); \
     } while (0)
 
+	if (dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+	    VSTRING *base64_buf;
+	    char   *err;
+
+	    if ((base64_buf = dict_file_to_b64(dict, p)) == 0) {
+		err = dict_file_get_error(dict);
+		msg_warn("pcre map %s, line %d: %s: skipping this rule",
+			 mapname, lineno, err);
+		myfree(err);
+		CREATE_MATCHOP_ERROR_RETURN(0);
+	    }
+	    p = vstring_str(base64_buf);
+	}
 	if (mac_parse(p, dict_pcre_prescan, (void *) &prescan_context)
 	    & MAC_PARSE_ERROR) {
 	    msg_warn("pcre map %s, line %d: bad replacement syntax: "
@@ -651,7 +664,7 @@ static DICT_PCRE_RULE *dict_pcre_parse_rule(const char *mapname, int lineno,
 		   "replacement text: skipping this rule", mapname, lineno);
 	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
-	if (prescan_context.max_sub > 0 && (dict_flags & DICT_FLAG_NO_REGSUB)) {
+	if (prescan_context.max_sub > 0 && (dict->flags & DICT_FLAG_NO_REGSUB)) {
 	    msg_warn("pcre map %s, line %d: "
 		     "regular expression substitution is not allowed: "
 		     "skipping this rule", mapname, lineno);
@@ -868,7 +881,8 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
 	trimblanks(p, 0)[0] = 0;		/* Trim space at end */
 	if (*p == 0)
 	    continue;
-	rule = dict_pcre_parse_rule(mapname, lineno, p, nesting, dict_flags);
+	rule = dict_pcre_parse_rule(&dict_pcre->dict, mapname, lineno,
+				    p, nesting);
 	if (rule == 0)
 	    continue;
 	if (rule->op == DICT_PCRE_OP_IF) {
@@ -907,6 +921,7 @@ DICT   *dict_pcre_open(const char *mapname, int open_flags, int dict_flags)
     if (rule_stack)
 	(void) mvect_free(&mvect);
 
+    dict_file_purge_buffers(&dict_pcre->dict);
     DICT_PCRE_OPEN_RETURN(DICT_DEBUG (&dict_pcre->dict));
 }
 

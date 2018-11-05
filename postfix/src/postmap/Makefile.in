@@ -26,7 +26,7 @@ update: ../../bin/$(PROG)
 ../../bin/$(PROG): $(PROG)
 	cp $(PROG) ../../bin
 
-tests:	test1 test2 fail_test quote_test
+tests:	test1 test2 fail_test quote_test file_test
 
 root_tests:
 
@@ -68,6 +68,12 @@ quote_test: $(PROG) aliases quote_test.in quote_test.ref
 	$(SHLIB_ENV) sh quote_test.in >quote_test.tmp 2>&1
 	diff quote_test.ref quote_test.tmp
 	rm -f quote_test.tmp quote_test_map.*
+
+file_test: $(PROG) file_test.in file_test.ref
+	rm -f file_test_map.* postmap-file-1 postmap-file-2
+	$(SHLIB_ENV) sh file_test.in >file_test.tmp 2>&1
+	diff file_test.ref file_test.tmp
+	rm -f file_test.tmp file_test_map.* postmap-file-1 postmap-file-2
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

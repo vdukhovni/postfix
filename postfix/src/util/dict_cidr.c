@@ -113,8 +113,8 @@ static void dict_cidr_close(DICT *dict)
 
 /* dict_cidr_parse_rule - parse CIDR table rule into network, mask and value */
 
-static DICT_CIDR_ENTRY *dict_cidr_parse_rule(char *p, int lineno, int nesting,
-					             VSTRING *why)
+static DICT_CIDR_ENTRY *dict_cidr_parse_rule(DICT *dict, char *p, int lineno,
+					          int nesting, VSTRING *why)
 {
     DICT_CIDR_ENTRY *rule;
     char   *pattern;
@@ -212,6 +212,22 @@ static DICT_CIDR_ENTRY *dict_cidr_parse_rule(char *p, int lineno, int nesting,
     }
 
     /*
+     * Optionally replace the value file the contents of a file.
+     */
+    if (dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+	VSTRING *base64_buf;
+	char   *err;
+
+	if ((base64_buf = dict_file_to_b64(dict, value)) == 0) {
+	    err = dict_file_get_error(dict);
+	    vstring_strcpy(why, err);
+	    myfree(err);
+	    return (0);
+	}
+	value = vstring_str(base64_buf);
+    }
+
+    /*
      * Bundle up the result.
      */
     rule = (DICT_CIDR_ENTRY *) mymalloc(sizeof(DICT_CIDR_ENTRY));
@@ -298,7 +314,8 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
     dict_cidr->dict.owner.status = (st.st_uid != 0);
 
     while (readllines(line_buffer, map_fp, &last_line, &lineno)) {
-	rule = dict_cidr_parse_rule(vstring_str(line_buffer), lineno,
+	rule = dict_cidr_parse_rule(&dict_cidr->dict,
+				    vstring_str(line_buffer), lineno,
 				    nesting, why);
 	if (rule == 0) {
 	    msg_warn("cidr map %s, line %d: %s: skipping this rule",
@@ -341,5 +358,6 @@ DICT   *dict_cidr_open(const char *mapname, int open_flags, int dict_flags)
     if (rule_stack)
 	(void) mvect_free(&mvect);
 
+    dict_file_purge_buffers(&dict_cidr->dict);
     DICT_CIDR_OPEN_RETURN(DICT_DEBUG (&dict_cidr->dict));
 }

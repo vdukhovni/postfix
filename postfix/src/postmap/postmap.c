@@ -5,7 +5,7 @@
 /*	Postfix lookup table management
 /* SYNOPSIS
 /* .fi
-/*	\fBpostmap\fR [\fB-NbfhimnoprsuUvw\fR] [\fB-c \fIconfig_dir\fR]
+/*	\fBpostmap\fR [\fB-bfFhimnNoprsuUvw\fR] [\fB-c \fIconfig_dir\fR]
 /*	[\fB-d \fIkey\fR] [\fB-q \fIkey\fR]
 /*		[\fIfile_type\fR:]\fIfile_name\fR ...
 /* DESCRIPTION
@@ -44,6 +44,11 @@
 /*	The \fIkey\fR and \fIvalue\fR are processed as is, except that
 /*	surrounding white space is stripped off. Whitespace in lookup
 /*	keys is supported as of Postfix 3.2.
+/*
+/*	When the \fB-F\fR option is given, the \fIvalue\fR must
+/*	specify a filename; \fBpostmap\fR(1) will store the
+/*	base64-encoded content of that file instead of the \fIvalue\fR
+/*	itself.
 /*
 /*	When the \fIkey\fR specifies email address information, the
 /*	localpart should be enclosed with double quotes if required
@@ -98,6 +103,10 @@
 /*	With Postfix version 2.3 and later, this option has no
 /*	effect for regular expression tables. There, case folding
 /*	is controlled by appending a flag to a pattern.
+/* .IP \fB-F\fR
+/*	When creating a map from source file, replace each value
+/*	with the base64-encoded content of the named file.  When
+/*	querying a map, or listing a map, base64-decode each value.
 /* .IP \fB-h\fR
 /*	Enable message header query mode. When reading lookup keys
 /*	from standard input with "\fB-q -\fR", process the input
@@ -504,6 +513,24 @@ static void postmap(char *map_type, char *path_name, int postmap_flags,
 			 VSTREAM_PATH(source_fp), lineno);
 
 	    /*
+	     * Optionally treat the vale as a filename, and replace the value
+	     * with the BASE64-encoded content of the named file.
+	     */
+	    if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+		VSTRING *base64_buf;
+		char   *err;
+
+		if ((base64_buf = dict_file_to_b64(mkmap->dict, value)) == 0) {
+		    err = dict_file_get_error(mkmap->dict);
+		    msg_warn("%s, line %d: %s: skipping this entry",
+			     VSTREAM_PATH(source_fp), lineno, err);
+		    myfree(err);
+		    continue;
+		}
+		value = vstring_str(base64_buf);
+	    }
+
+	    /*
 	     * Store the value under a (possibly case-insensitive) key, as
 	     * specified with open_flags.
 	     */
@@ -636,6 +663,18 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 			msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 				 dicts[n]->type, dicts[n]->name);
 		    }
+		    if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+			VSTRING *unb64;
+			char   *err;
+
+			if ((unb64 = dict_file_from_b64(dicts[n], value)) == 0) {
+			    err = dict_file_get_error(dicts[n]);
+			    msg_fatal("table %s:%s: key %s: %s",
+				      dicts[n]->type, dicts[n]->name,
+				      STR(keybuf), err);
+			}
+			value = STR(unb64);
+		    }
 		    vstream_printf("%s	%s\n", STR(keybuf), value);
 		    found = 1;
 		    break;
@@ -691,6 +730,7 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 	mime_state_free(mime_state);
 	found = key_state.found;
     }
+
     if (found)
 	vstream_fflush(VSTREAM_OUT);
 
@@ -721,6 +761,18 @@ static int postmap_query(const char *map_type, const char *map_name,
 		     map_type, map_name, key);
 	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 		     map_type, map_name);
+	}
+	if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+	    VSTRING *unb64;
+	    char   *err;
+
+	    if ((unb64 = dict_file_from_b64(dict, value)) == 0) {
+		err = dict_file_get_error(dict);
+		msg_fatal("table %s:%s: key %s: %s",
+			  dict->type, dict->name,
+			  key, err);
+	    }
+	    value = STR(unb64);
 	}
 	vstream_printf("%s\n", value);
     }
@@ -834,6 +886,20 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 		     map_type, map_name);
 	}
+	if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+	    VSTRING *unb64;
+	    char   *err;
+
+	    if ((unb64 = dict_file_from_b64(dict, value)) == 0) {
+		err = dict_file_get_error(dict);
+		msg_warn("table %s:%s: key %s: %s",
+			 dict->type, dict->name,
+			 key, err);
+		myfree(err);
+		continue;
+	    }
+	    value = STR(unb64);
+	}
 	vstream_printf("%s	%s\n", key, value);
     }
     if (dict->error)
@@ -846,7 +912,7 @@ static void postmap_seq(const char *map_type, const char *map_name,
 
 static NORETURN usage(char *myname)
 {
-    msg_fatal("usage: %s [-NfinoprsuUvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
+    msg_fatal("usage: %s [-bfFhimnNoprsuUvw] [-c config_dir] [-d key] [-q key] [map_type:]file...",
 	      myname);
 }
 
@@ -914,7 +980,7 @@ int     main(int argc, char **argv)
     /*
      * Parse JCL.
      */
-    while ((ch = GETOPT(argc, argv, "Nbc:d:fhimnopq:rsuUvw")) > 0) {
+    while ((ch = GETOPT(argc, argv, "bc:d:fFhimnNopq:rsuUvw")) > 0) {
 	switch (ch) {
 	default:
 	    usage(argv[0]);
@@ -937,6 +1003,9 @@ int     main(int argc, char **argv)
 	    break;
 	case 'f':
 	    dict_flags &= ~DICT_FLAG_FOLD_FIX;
+	    break;
+	case 'F':
+	    dict_flags |= DICT_FLAG_SRC_RHS_IS_FILE;
 	    break;
 	case 'h':
 	    postmap_flags |= POSTMAP_FLAG_HEADER_KEY;

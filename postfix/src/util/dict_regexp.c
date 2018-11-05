@@ -546,9 +546,9 @@ static DICT_REGEXP_RULE *dict_regexp_rule_alloc(int op, int lineno, size_t size)
 
 /* dict_regexp_parseline - parse one rule */
 
-static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
-					            char *line, int nesting,
-					               int dict_flags)
+static DICT_REGEXP_RULE *dict_regexp_parseline(DICT *dict, const char *mapname,
+					             int lineno, char *line,
+					               int nesting)
 {
     char   *p;
 
@@ -607,6 +607,19 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 	return (rval); \
     } while (0)
 
+	if (dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) {
+	    VSTRING *base64_buf;
+	    char   *err;
+
+	    if ((base64_buf = dict_file_to_b64(dict, p)) == 0) {
+		err = dict_file_get_error(dict);
+		msg_warn("regexp map %s, line %d: %s: skipping this rule",
+			 mapname, lineno, err);
+		myfree(err);
+		CREATE_MATCHOP_ERROR_RETURN(0);
+	    }
+	    p = vstring_str(base64_buf);
+	}
 	if (mac_parse(p, dict_regexp_prescan, (void *) &prescan_context)
 	    & MAC_PARSE_ERROR) {
 	    msg_warn("regexp map %s, line %d: bad replacement syntax: "
@@ -627,7 +640,7 @@ static DICT_REGEXP_RULE *dict_regexp_parseline(const char *mapname, int lineno,
 		   "replacement text: skipping this rule", mapname, lineno);
 	    CREATE_MATCHOP_ERROR_RETURN(0);
 	}
-	if (prescan_context.max_sub > 0 && (dict_flags & DICT_FLAG_NO_REGSUB)) {
+	if (prescan_context.max_sub > 0 && (dict->flags & DICT_FLAG_NO_REGSUB)) {
 	    msg_warn("regexp map %s, line %d: "
 		     "regular expression substitution is not allowed: "
 		     "skipping this rule", mapname, lineno);
@@ -802,7 +815,8 @@ DICT   *dict_regexp_open(const char *mapname, int open_flags, int dict_flags)
 	trimblanks(p, 0)[0] = 0;
 	if (*p == 0)
 	    continue;
-	rule = dict_regexp_parseline(mapname, lineno, p, nesting, dict_flags);
+	rule = dict_regexp_parseline(&dict_regexp->dict, mapname, lineno,
+				     p, nesting);
 	if (rule == 0)
 	    continue;
 	if (rule->op == DICT_REGEXP_OP_MATCH) {
@@ -852,6 +866,7 @@ DICT   *dict_regexp_open(const char *mapname, int open_flags, int dict_flags)
 	dict_regexp->pmatch =
 	    (regmatch_t *) mymalloc(sizeof(regmatch_t) * (max_sub + 1));
 
+    dict_file_purge_buffers(&dict_regexp->dict);
     DICT_REGEXP_OPEN_RETURN(DICT_DEBUG (&dict_regexp->dict));
 }
 

@@ -40,7 +40,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
 	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
-	split_qnameval.c argv_attr_print.c argv_attr_scan.c
+	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -82,7 +82,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
 	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
-	split_qnameval.o argv_attr_print.o argv_attr_scan.o
+	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -543,7 +543,9 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	dict_utf8_test strcasecmp_utf8_test vbuf_print_test dict_regexp_test \
 	dict_union_test dict_pipe_test miss_endif_cidr_test \
 	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test \
-	vstring_test vstream_test
+	vstring_test vstream_test dict_pcre_file_test dict_regexp_file_test \
+	dict_cidr_file_test dict_static_file_test dict_random_test \
+	dict_random_file_test dict_inline_file_test
 
 root_tests:
 
@@ -615,15 +617,42 @@ dict_pcre_test: dict_open dict_pcre.in dict_pcre.map dict_pcre.ref
 	diff dict_pcre.ref dict_pcre.tmp
 	rm -f dict_pcre.tmp
 
+dict_pcre_file_test: dict_open dict_pcre_file.in dict_pcre_file.map dict_pcre_file.ref
+	echo this-is-file1 > dict_pcre_file1
+	echo this-is-file2 > dict_pcre_file2
+	$(SHLIB_ENV) ${VALGRIND} ./dict_open pcre:dict_pcre_file.map \
+	    read src_rhs_is_file <dict_pcre_file.in 2>&1 | \
+	    sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_pcre_file.tmp
+	diff dict_pcre_file.ref dict_pcre_file.tmp
+	rm -f dict_pcre_file.tmp dict_pcre_file1 dict_pcre_file2
+
 dict_regexp_test: dict_open dict_regexp.in dict_regexp.map dict_regexp.ref
 	$(SHLIB_ENV) ${VALGRIND} ./dict_open regexp:dict_regexp.map read <dict_regexp.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_regexp.tmp
 	diff dict_regexp.ref dict_regexp.tmp
 	rm -f dict_regexp.tmp
 
+dict_regexp_file_test: dict_open dict_regexp_file.in dict_regexp_file.map dict_regexp_file.ref
+	echo this-is-file1 > dict_regexp_file1
+	echo this-is-file2 > dict_regexp_file2
+	$(SHLIB_ENV) ${VALGRIND} ./dict_open regexp:dict_regexp_file.map \
+	    read src_rhs_is_file <dict_regexp_file.in 2>&1 | \
+	    sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_regexp_file.tmp
+	diff dict_regexp_file.ref dict_regexp_file.tmp
+	rm -f dict_regexp_file.tmp dict_regexp_file1 dict_regexp_file2
+
 dict_cidr_test: dict_open dict_cidr.in dict_cidr.map dict_cidr.ref
 	$(SHLIB_ENV) ${VALGRIND} ./dict_open cidr:dict_cidr.map read <dict_cidr.in 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_cidr.tmp
 	diff dict_cidr.ref dict_cidr.tmp
 	rm -f dict_cidr.tmp
+
+dict_cidr_file_test: dict_open dict_cidr_file.in dict_cidr_file.map dict_cidr_file.ref
+	echo this-is-file1 > dict_cidr_file1
+	echo this-is-file2 > dict_cidr_file2
+	$(SHLIB_ENV) ${VALGRIND} ./dict_open cidr:dict_cidr_file.map \
+	    read src_rhs_is_file <dict_cidr_file.in 2>&1 | \
+	    sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_cidr_file.tmp
+	diff dict_cidr_file.ref dict_cidr_file.tmp
+	rm -f dict_cidr_file.tmp dict_cidr_file1 dict_cidr_file2
 
 miss_endif_cidr_test: dict_open miss_endif_cidr.map miss_endif_cidr.ref
 	echo get 1.2.3.5 | $(SHLIB_ENV) ${VALGRIND} ./dict_open cidr:miss_endif_cidr.map read 2>&1 | sed 's/uid=[0-9][0-9][0-9]*/uid=USER/' >dict_cidr.tmp
@@ -785,6 +814,39 @@ dict_static_test: dict_open dict_static.ref
 	diff dict_static.ref dict_static.tmp
 	rm -f dict_static.tmp
 
+dict_static_file_test: dict_open dict_static_file.ref
+	echo this-is-file1 > dict_static_file1
+	(set -e; \
+	echo get foo | $(SHLIB_ENV) \
+	    ${VALGRIND} ./dict_open static:fooxx read src_rhs_is_file; \
+	(echo get file1; echo get file2) | $(SHLIB_ENV) \
+	    ${VALGRIND} ./dict_open static:'{ dict_static_file1 }' read src_rhs_is_file; \
+	) >dict_static_file.tmp 2>&1
+	diff dict_static_file.ref dict_static_file.tmp
+	rm -f dict_static_file.tmp dict_static_file1
+
+dict_random_test: dict_open dict_random.ref
+	(set -e; \
+	(echo get foo; echo get bar) | $(SHLIB_ENV) \
+	    ${VALGRIND} ./dict_open randmap:'{123 123}' read; \
+	echo get foo | $(SHLIB_ENV) ${VALGRIND} ./dict_open randmap:123 read; \
+	echo get foo | $(SHLIB_ENV) ${VALGRIND} ./dict_open randmap:'{ 123 ' read; \
+	echo get foo | $(SHLIB_ENV) ${VALGRIND} ./dict_open randmap:'{ 123 }x' read; \
+	) >dict_random.tmp 2>&1
+	diff dict_random.ref dict_random.tmp
+	rm -f dict_random.tmp
+
+dict_random_file_test: dict_open dict_random_file.ref
+	echo this-is-file1 > dict_random_file1
+	(set -e; \
+	echo get foo | $(SHLIB_ENV) \
+	    ${VALGRIND} ./dict_open randmap:'{fooxx}' read src_rhs_is_file; \
+	(echo get foo; echo get bar) | $(SHLIB_ENV) \
+	    ${VALGRIND} ./dict_open randmap:'{ dict_random_file1 }' read src_rhs_is_file; \
+	) >dict_random_file.tmp 2>&1
+	diff dict_random_file.ref dict_random_file.tmp
+	rm -f dict_random_file.tmp dict_random_file1
+
 dict_inline_test: dict_open dict_inline.ref
 	(set -e; \
 	$(SHLIB_ENV) ${VALGRIND} ./dict_open inline:'{ }' read </dev/null; \
@@ -799,6 +861,18 @@ dict_inline_test: dict_open dict_inline.ref
 	) >dict_inline.tmp 2>&1
 	diff dict_inline.ref dict_inline.tmp
 	rm -f dict_inline.tmp
+
+dict_inline_file_test: dict_open dict_inline_file.ref
+	(set -e; \
+	echo get foo | $(SHLIB_ENV) ${VALGRIND} \
+	    ./dict_open inline:'{ foo=xx, bar=yy }' read src_rhs_is_file; \
+	echo this-is-file1 > dict_inline_file1; \
+	echo this-is-file2 > dict_inline_file2; \
+	(echo get file1; echo get file2; echo get file3) | $(SHLIB_ENV) \
+	    ${VALGRIND} ./dict_open inline:'{ file1=dict_inline_file1, file2=dict_inline_file2}' read src_rhs_is_file; \
+	) >dict_inline_file.tmp 2>&1
+	diff dict_inline_file.ref dict_inline_file.tmp
+	rm -f dict_inline_file.tmp dict_inline_file1 dict_inline_file2
 
 midna_domain_test: midna_domain midna_domain_test.in midna_domain_test.ref
 	$(SHLIB_ENV) ${VALGRIND} ./midna_domain <midna_domain_test.in >midna_domain_test.tmp 2>&1
@@ -1241,6 +1315,18 @@ dict_fail.o: sys_defs.h
 dict_fail.o: vbuf.h
 dict_fail.o: vstream.h
 dict_fail.o: vstring.h
+dict_file.o: argv.h
+dict_file.o: base64_code.h
+dict_file.o: check_arg.h
+dict_file.o: dict.h
+dict_file.o: dict_file.c
+dict_file.o: msg.h
+dict_file.o: myflock.h
+dict_file.o: mymalloc.h
+dict_file.o: sys_defs.h
+dict_file.o: vbuf.h
+dict_file.o: vstream.h
+dict_file.o: vstring.h
 dict_ht.o: argv.h
 dict_ht.o: check_arg.h
 dict_ht.o: dict.h
@@ -1254,6 +1340,7 @@ dict_ht.o: sys_defs.h
 dict_ht.o: vbuf.h
 dict_ht.o: vstream.h
 dict_ht.o: vstring.h
+dict_inline.cdict_static.o: dict_inline.cdict_static.c
 dict_inline.o: argv.h
 dict_inline.o: check_arg.h
 dict_inline.o: dict.h

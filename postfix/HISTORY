@@ -23714,6 +23714,11 @@ Apologies for any names omitted.
 	Miscellaneous documentation updates, and a correction in
 	the byte count for sending a large SASL initial response.
 
+20181014
+
+	Cleanup: figured out why vstring_get() did not return
+	VSTREAM_EOF in APPEND mode. File: util/vstring_vstream.c.
+
 20180903
 
 	Bugfix (introduced: 20180825): postscreen falsely claimed
@@ -23737,3 +23742,19 @@ Apologies for any names omitted.
 	Viktor Dukhovni. Files: proto/postconf.proto,
 	proto/TLS_README.html, tls/tls.h, tls/tls_dane.c,
 	tls/tls_server.c, tls/tls_misc.c
+
+20181105
+
+	Feature: "postmap -F" reads a source file with (key, filename)
+	entries, and creates database records with (key, base64-encoded
+	filecontent). This feature will be used for SNI lookup
+	table support, where each key will be a domainname, and
+	each value will contain a sequence of (private key, certificate
+	hierarchy) for that domainname. The same 'value is filename'
+	behavior is implemented in cidr:, inline:, pcre:, randmap:,
+	regexp:, and static: maps if the application sets the flag
+	DICT_FLAG_RHS_IS_FILE. In the forseeable future, this will
+	be used for specific TLS features. Files: postmap/postmap.c,
+	util/dict.c, util/dict.h, util/dict_cidr.c, util/dict_file.c,
+	util/dict_inline.c, util/dict_pcre.c, util/dict_random.c,
+	util/dict_regexp.c, util/dict_static.c.

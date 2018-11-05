@@ -9,7 +9,7 @@ Postfix lookup table management
 .na
 .nf
 .fi
-\fBpostmap\fR [\fB\-NbfhimnoprsuUvw\fR] [\fB\-c \fIconfig_dir\fR]
+\fBpostmap\fR [\fB\-bfFhimnNoprsuUvw\fR] [\fB\-c \fIconfig_dir\fR]
 [\fB\-d \fIkey\fR] [\fB\-q \fIkey\fR]
         [\fIfile_type\fR:]\fIfile_name\fR ...
 .SH DESCRIPTION
@@ -52,6 +52,11 @@ starts with whitespace continues a logical line.
 The \fIkey\fR and \fIvalue\fR are processed as is, except that
 surrounding white space is stripped off. Whitespace in lookup
 keys is supported as of Postfix 3.2.
+
+When the \fB\-F\fR option is given, the \fIvalue\fR must
+specify a filename; \fBpostmap\fR(1) will store the
+base64\-encoded content of that file instead of the \fIvalue\fR
+itself.
 
 When the \fIkey\fR specifies email address information, the
 localpart should be enclosed with double quotes if required
@@ -108,6 +113,10 @@ a table.
 With Postfix version 2.3 and later, this option has no
 effect for regular expression tables. There, case folding
 is controlled by appending a flag to a pattern.
+.IP \fB\-F\fR
+When creating a map from source file, replace each value
+with the base64\-encoded content of the named file.  When
+querying a map, or listing a map, base64\-decode each value.
 .IP \fB\-h\fR
 Enable message header query mode. When reading lookup keys
 from standard input with "\fB\-q \-\fR", process the input
