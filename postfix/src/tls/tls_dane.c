@@ -868,7 +868,6 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 	    return (FILTER_RR_DROP);
 	}
     }
-
     /*-
      * Drop unsupported usages.
      * Note: NO SUPPORT for usages 0/1 which do not apply to SMTP.
@@ -1345,7 +1344,7 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
 
 static int add_ext(X509 *issuer, X509 *subject, int ext_nid, char *ext_val)
 {
-    int ret = 0;
+    int     ret = 0;
     X509V3_CTX v3ctx;
     X509_EXTENSION *ext;
 
@@ -1449,8 +1448,8 @@ static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid, X509_NAME *subj)
     X509_NAME *name = akid_issuer_name(akid);
 
     /*
-     * If subject's akid specifies an authority key identifier issuer name, we
-     * must use that.
+     * If subject's akid specifies an authority key identifier issuer name,
+     * we must use that.
      */
     if (name)
 	return (X509_set_issuer_name(cert, name));
@@ -1798,30 +1797,30 @@ void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 
 static int verify_chain(SSL *ssl, x509_stack_t *chain, TLS_SESS_STATE *tctx)
 {
-    int ret;
-    X509 *cert;
+    int     ret;
+    X509   *cert;
     X509_STORE_CTX *store_ctx;
     SSL_CTX *ssl_ctx = SSL_get_SSL_CTX(ssl);
     X509_STORE *store = SSL_CTX_get_cert_store(ssl_ctx);
-    int store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    int     store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
 
     cert = sk_X509_value(chain, 0);
     if ((store_ctx = X509_STORE_CTX_new()) == NULL) {
-        SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_MALLOC_FAILURE);
-        return 0;
+	SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_MALLOC_FAILURE);
+	return 0;
     }
     if (!X509_STORE_CTX_init(store_ctx, store, cert, chain)) {
-        X509_STORE_CTX_free(store_ctx);
-        return 0;
+	X509_STORE_CTX_free(store_ctx);
+	return 0;
     }
     X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx, ssl);
 
     X509_STORE_CTX_set_default(store_ctx, "ssl_server");
     X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(store_ctx),
-                           SSL_get0_param(ssl));
+			   SSL_get0_param(ssl));
 
     if (SSL_get_verify_callback(ssl))
-        X509_STORE_CTX_set_verify_cb(store_ctx, SSL_get_verify_callback(ssl));
+	X509_STORE_CTX_set_verify_cb(store_ctx, SSL_get_verify_callback(ssl));
 
     ret = dane_cb(store_ctx, tctx);
 

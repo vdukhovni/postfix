@@ -362,15 +362,16 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
     NAMEBUG(TLSEXT_PADDING),
 
 #if 0
- /*
-  * XXX: New with OpenSSL 1.1.1, this is turned on implicitly in SSL_CTX_new()
-  * and is not included in SSL_OP_ALL.  Allowing users to disable this would
-  * thus a code change that would clearing bug work-around bits in SSL_CTX,
-  * after setting SSL_OP_ALL.  Since this is presumably required for TLS 1.3 on
-  * today's Internet, the code change will be done separately later.  For now
-  * this implicit bug work-around cannot be disabled via supported Postfix
-  * mechanisms.
-  */
+
+    /*
+     * XXX: New with OpenSSL 1.1.1, this is turned on implicitly in
+     * SSL_CTX_new() and is not included in SSL_OP_ALL.  Allowing users to
+     * disable this would thus a code change that would clearing bug
+     * work-around bits in SSL_CTX, after setting SSL_OP_ALL.  Since this is
+     * presumably required for TLS 1.3 on today's Internet, the code change
+     * will be done separately later.  For now this implicit bug work-around
+     * cannot be disabled via supported Postfix mechanisms.
+     */
 #ifndef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
 #define SSL_OP_ENABLE_MIDDLEBOX_COMPAT	0
 #endif

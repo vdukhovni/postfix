@@ -378,7 +378,8 @@ extern void tls_param_init(void);
 #endif
 
  /*
-  * OpenSSL 1.1.1 does not define a TXT macro for TLS 1.3, so we roll our own.
+  * OpenSSL 1.1.1 does not define a TXT macro for TLS 1.3, so we roll our
+  * own.
   */
 #define TLS_PROTOCOL_TXT_TLSV1_3	"TLSv1.3"
 
