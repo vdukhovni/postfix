@@ -11149,7 +11149,8 @@ disabled except by also disabling "TLSv1" (typically leaving just
 versions of Postfix &ge; 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2". </p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> At the <a href="TLS_README.html#client_tls_dane">dane</a> and
@@ -11349,7 +11350,8 @@ disabled.  The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2". </p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> Example: </p>
@@ -12510,7 +12512,8 @@ and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2"</p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
@@ -12545,7 +12548,8 @@ and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
 versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2". </p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix &ge; 3.4,
+<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3". </p>
 
 <p> To include a protocol list its name, to exclude it, prefix the name
