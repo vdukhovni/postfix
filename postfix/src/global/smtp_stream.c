@@ -429,7 +429,7 @@ int     smtp_get_noexcept(VSTRING *vp, VSTREAM *stream, ssize_t bound, int flags
 
 void    smtp_fputs(const char *cp, ssize_t todo, VSTREAM *stream)
 {
-    ssize_t err;
+    int     err;
 
     if (todo < 0)
 	msg_panic("smtp_fputs: negative todo %ld", (long) todo);
@@ -454,7 +454,7 @@ void    smtp_fputs(const char *cp, ssize_t todo, VSTREAM *stream)
 
 void    smtp_fwrite(const char *cp, ssize_t todo, VSTREAM *stream)
 {
-    ssize_t err;
+    int     err;
 
     if (todo < 0)
 	msg_panic("smtp_fwrite: negative todo %ld", (long) todo);

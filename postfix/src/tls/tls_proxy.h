@@ -106,6 +106,17 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_CIPHER_NAME	"cipher_name"
 #define TLS_ATTR_CIPHER_USEBITS	"cipher_usebits"
 #define TLS_ATTR_CIPHER_ALGBITS	"cipher_algbits"
+#define TLS_ATTR_KEX_NAME	"key_exchange"
+#define TLS_ATTR_KEX_CURVE	"key_exchange_curve"
+#define TLS_ATTR_KEX_BITS	"key_exchange_bits"
+#define TLS_ATTR_LOCL_SIG_NAME	"locl_signature"
+#define TLS_ATTR_LOCL_SIG_CURVE	"locl_signature_curve"
+#define TLS_ATTR_LOCL_SIG_BITS	"locl_signature_bits"
+#define TLS_ATTR_LOCL_SIG_DGST	"locl_signature_digest"
+#define TLS_ATTR_PEER_SIG_NAME	"peer_signature"
+#define TLS_ATTR_PEER_SIG_CURVE	"peer_signature_curve"
+#define TLS_ATTR_PEER_SIG_BITS	"peer_signature_bits"
+#define TLS_ATTR_PEER_SIG_DGST	"peer_signature_digest"
 
  /*
   * TLS_SERVER_INIT_PROPS attributes.

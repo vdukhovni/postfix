@@ -1,17 +1,14 @@
 Wish list:
 
-	In dict_db.h, call dbenv->close() before bailing out
-	with a surrogate map.
+	With DICT_FLAG_RHS_IS_FILE, should dict_update() open a
+	file? base64-encode the value?
 
 	In smtpd(8) and postscreen(8), set the ehlo_discard_mask
-	to ~0 so that STARTTLS, BDAT, DSN, etc. won't work.
+	to ~0 so that STARTTLS, BDAT, DSN, etc. work only for clients
+	that send EHLO.
 
 	In postscreen, don't fork after 'postfix reload' when
 	psc_check_queue_length (and psc_post_queue_length?) is zero.
-
-	In smtp_stream.c, replace `ssize_t err' with `int err'.
-
-	In ehlo_mask.c, replace "EHLO_MASK_SMTPUTF8" with "SMTPUTF8".
 
 	With smtpd_reject_footer=$foo in master.cf, and foo defined
 	in main.cf, postconf complains about an unused setting in

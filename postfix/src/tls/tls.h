@@ -114,6 +114,30 @@ extern const char *str_tls_level(int);
 #define SSL_CTX_set_num_tickets(ctx, num) ((void)0)
 #endif
 
+ /*-
+  * Backwards compatibility with OpenSSL < 1.1.1a (or some later version).
+  *
+  * The client-only interface SSL_get_server_tmp_key() is slated to be made to
+  * work on both client and server, and renamed to SSL_get_peer_tmp_key(), with
+  * the original name left behind as an alias.  We'll use the new name if/when
+  * available.
+  *
+  * XXX: Set corresponding OpenSSL version floor below when OpenSSL pull
+  * request:
+  *
+  *   <https://github.com/openssl/openssl/pull/7608>
+  *
+  * is merged, perhaps in the upcoming 1.1.1a release (at which point the XXX
+  * part of this comment can be deleted).
+  */
+#if OPENSSL_VERSION_NUMBER < 0x1010101fUL
+#undef SSL_get_signature_nid
+#define SSL_get_signature_nid(ssl, pnid) (NID_undef)
+#define tls_get_peer_dh_pubkey SSL_get_server_tmp_key
+#else
+#define tls_get_peer_dh_pubkey SSL_get_peer_tmp_key
+#endif
+
 /* SSL_CIPHER_get_name() got constified in 0.9.7g */
 #if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
 #define SSL_CIPHER_const const
@@ -239,6 +263,17 @@ typedef struct {
     const char *cipher_name;
     int     cipher_usebits;
     int     cipher_algbits;
+    const char *kex_name;		/* shared key-exchange algorithm */
+    const char *kex_curve;		/* shared key-exchange ECDHE curve */
+    int     kex_bits;			/* shared FFDHE key exchange bits */
+    const char *locl_sig_name;		/* local signature key algorithm */
+    const char *locl_sig_curve;		/* local ECDSA curve name */
+    int     locl_sig_bits;		/* local RSA signature key bits */
+    const char *locl_sig_dgst;		/* local signature digest */
+    const char *peer_sig_name;		/* peer's signature key algorithm */
+    const char *peer_sig_curve;		/* peer's ECDSA curve name */
+    int     peer_sig_bits;		/* peer's RSA signature key bits */
+    const char *peer_sig_dgst;		/* peer's signature digest */
     /* Private. */
     SSL    *con;
     char   *cache_type;			/* tlsmgr(8) cache type if enabled */
@@ -378,7 +413,8 @@ extern void tls_param_init(void);
 #endif
 
  /*
-  * OpenSSL 1.1.1 does not define a TXT macro for TLS 1.3, so we roll our own.
+  * OpenSSL 1.1.1 does not define a TXT macro for TLS 1.3, so we roll our
+  * own.
   */
 #define TLS_PROTOCOL_TXT_TLSV1_3	"TLSv1.3"
 
@@ -433,7 +469,12 @@ extern const NAME_CODE tls_cipher_grade_table[];
 extern const char *tls_set_ciphers(TLS_APPL_STATE *, const char *,
 				           const char *, const char *);
 
-#endif
+ /*
+  * Populate TLS context with TLS 1.3-related signature parameters.
+  */
+extern void tls_get_signature_params(TLS_SESS_STATE *);
+
+#endif					/* TLS_INTERNAL */
 
  /*
   * tls_client.c

@@ -629,7 +629,7 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
 
 #endif
 #if DB_VERSION_MAJOR > 2
-    DB_ENV *dbenv;
+    DB_ENV *dbenv = 0;
 
 #endif
 
@@ -674,12 +674,22 @@ static DICT *dict_db_open(const char *class, const char *path, int open_flags,
      * db_open() create a non-existent file for us.
      */
 #define LOCK_OPEN_FLAGS(f) ((f) & ~(O_CREAT|O_TRUNC))
+#if DB_VERSION_MAJOR <= 2
 #define FREE_RETURN(e) do { \
 	DICT *_dict = (e); if (db) DICT_DB_CLOSE(db); \
 	if (lock_fd >= 0) (void) close(lock_fd); \
 	if (db_base_buf) vstring_free(db_base_buf); \
 	if (db_path) myfree(db_path); return (_dict); \
     } while (0)
+#else
+#define FREE_RETURN(e) do { \
+	DICT *_dict = (e); if (db) DICT_DB_CLOSE(db); \
+	if (dbenv) dbenv->close(dbenv, 0); \
+	if (lock_fd >= 0) (void) close(lock_fd); \
+	if (db_base_buf) vstring_free(db_base_buf); \
+	if (db_path) myfree(db_path); return (_dict); \
+    } while (0)
+#endif
 
     if (dict_flags & DICT_FLAG_LOCK) {
 	if ((lock_fd = open(db_path, LOCK_OPEN_FLAGS(open_flags), 0644)) < 0) {

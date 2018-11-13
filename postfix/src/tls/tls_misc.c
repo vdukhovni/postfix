@@ -62,6 +62,9 @@
 /*	int	grade;
 /*	const char *exclusions;
 /*
+/*	void tls_get_signature_params(TLScontext)
+/*	TLS_SESS_STATE *TLScontext;
+/*
 /*	void	tls_print_errors()
 /*
 /*	void	tls_info_callback(ssl, where, ret)
@@ -142,6 +145,12 @@
 /*	value is the cipherlist used and is overwritten upon each call.
 /*	When the input is invalid, tls_set_ciphers() logs a warning with
 /*	the specified context, and returns a null pointer result.
+/*
+/*	tls_get_signature_params() updates the "TLScontext" with handshake
+/*	signature parameters pertaining to TLS 1.3, where the ciphersuite
+/*	no longer describes the asymmetric algorithms employed in the
+/*	handshake, which are negotiated separately.  This function
+/*	has no effect for TLS 1.2 and earlier.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -362,15 +371,16 @@ static const LONG_NAME_MASK ssl_bug_tweaks[] = {
     NAMEBUG(TLSEXT_PADDING),
 
 #if 0
- /*
-  * XXX: New with OpenSSL 1.1.1, this is turned on implicitly in SSL_CTX_new()
-  * and is not included in SSL_OP_ALL.  Allowing users to disable this would
-  * thus a code change that would clearing bug work-around bits in SSL_CTX,
-  * after setting SSL_OP_ALL.  Since this is presumably required for TLS 1.3 on
-  * today's Internet, the code change will be done separately later.  For now
-  * this implicit bug work-around cannot be disabled via supported Postfix
-  * mechanisms.
-  */
+
+    /*
+     * XXX: New with OpenSSL 1.1.1, this is turned on implicitly in
+     * SSL_CTX_new() and is not included in SSL_OP_ALL.  Allowing users to
+     * disable this would thus be a code change that would require clearing
+     * bug work-around bits in SSL_CTX, after setting SSL_OP_ALL.  Since this
+     * is presumably required for TLS 1.3 on today's Internet, the code
+     * change will be done separately later. For now this implicit bug
+     * work-around cannot be disabled via supported Postfix mechanisms.
+     */
 #ifndef SSL_OP_ENABLE_MIDDLEBOX_COMPAT
 #define SSL_OP_ENABLE_MIDDLEBOX_COMPAT	0
 #endif
@@ -825,6 +835,175 @@ const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
     return (app_ctx->cipher_list = mystrdup(new_list));
 }
 
+/* tls_get_signature_params - TLS 1.3 signature details */
+
+void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
+{
+    const char *kex_name = 0;
+    const char *kex_curve = 0;
+    const char *locl_sig_name = 0;
+    const char *locl_sig_curve = 0;
+    const char *locl_sig_dgst = 0;
+    const char *peer_sig_name = 0;
+    const char *peer_sig_curve = 0;
+    const char *peer_sig_dgst = 0;
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
+#ifndef OPENSSL_NO_EC
+    EC_KEY *eckey;
+
+#endif
+    int     nid;
+    int     got_kex_key;
+    SSL    *ssl = TLScontext->con;
+    X509   *cert;
+    EVP_PKEY *pkey = 0;
+
+    if (SSL_version(ssl) != TLS1_3_VERSION)
+	return;
+
+    if (tls_get_peer_dh_pubkey(ssl, &pkey)) {
+	switch (nid = EVP_PKEY_id(pkey)) {
+	default:
+	    kex_name = OBJ_nid2sn(EVP_PKEY_type(nid));
+	    break;
+
+	case EVP_PKEY_DH:
+	    kex_name = "DHE";
+	    TLScontext->kex_bits = EVP_PKEY_bits(pkey);
+	    break;
+
+#ifndef OPENSSL_NO_EC
+	case EVP_PKEY_EC:
+	    kex_name = "ECDHE";
+	    eckey = EVP_PKEY_get0_EC_KEY(pkey);
+	    nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
+	    kex_curve = EC_curve_nid2nist(nid);
+	    if (!kex_curve)
+		kex_curve = OBJ_nid2sn(nid);
+	    break;
+#endif
+	}
+	EVP_PKEY_free(pkey);
+    }
+
+    /*
+     * On the client end, the certificate may be preset, but not used, so we
+     * check via SSL_get_signature_nid().  This means that local signature
+     * data on clients requires at least 1.1.1a.
+     */
+    if (SSL_is_server(ssl) || SSL_get_signature_nid(ssl, &nid))
+	cert = SSL_get_certificate(ssl);
+    else
+	cert = 0;
+
+    /* Signature algorithms for the local end of the connection */
+    if (cert) {
+	pkey = X509_get0_pubkey(cert);
+
+	/*
+	 * Override the built-in name for the "ECDSA" algorithms OID, with
+	 * the more familiar name.  For "RSA" keys report "RSA-PSS", which
+	 * must be used with TLS 1.3.
+	 */
+	if ((nid = EVP_PKEY_type(EVP_PKEY_id(pkey))) != NID_undef) {
+	    switch (nid) {
+	    default:
+		locl_sig_name = OBJ_nid2sn(nid);
+		break;
+
+	    case EVP_PKEY_RSA:
+		/* For RSA, TLS 1.3 mandates PSS signatures */
+		locl_sig_name = "RSA-PSS";
+		TLScontext->locl_sig_bits = EVP_PKEY_bits(pkey);
+		break;
+
+#ifndef OPENSSL_NO_EC
+	    case EVP_PKEY_EC:
+		locl_sig_name = "ECDSA";
+		eckey = EVP_PKEY_get0_EC_KEY(pkey);
+		nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
+		locl_sig_curve = EC_curve_nid2nist(nid);
+		if (!locl_sig_curve)
+		    locl_sig_curve = OBJ_nid2sn(nid);
+		break;
+#endif
+	    }
+	}
+
+	/*
+	 * With Ed25519 and Ed448 there is no pre-signature digest, but the
+	 * accessor does not fail, rather we get NID_undef.
+	 */
+	if (SSL_get_signature_nid(ssl, &nid) && nid != NID_undef)
+	    locl_sig_dgst = OBJ_nid2sn(nid);
+    }
+    /* Signature algorithms for the peer end of the connection */
+    if ((cert = SSL_get_peer_certificate(ssl)) != 0) {
+	pkey = X509_get0_pubkey(cert);
+
+	/*
+	 * Override the built-in name for the "ECDSA" algorithms OID, with
+	 * the more familiar name.  For "RSA" keys report "RSA-PSS", which
+	 * must be used with TLS 1.3.
+	 */
+	if ((nid = EVP_PKEY_type(EVP_PKEY_id(pkey))) != NID_undef) {
+	    switch (nid) {
+	    default:
+		peer_sig_name = OBJ_nid2sn(nid);
+		break;
+
+	    case EVP_PKEY_RSA:
+		/* For RSA, TLS 1.3 mandates PSS signatures */
+		peer_sig_name = "RSA-PSS";
+		TLScontext->peer_sig_bits = EVP_PKEY_bits(pkey);
+		break;
+
+#ifndef OPENSSL_NO_EC
+	    case EVP_PKEY_EC:
+		peer_sig_name = "ECDSA";
+		eckey = EVP_PKEY_get0_EC_KEY(pkey);
+		nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
+		peer_sig_curve = EC_curve_nid2nist(nid);
+		if (!peer_sig_curve)
+		    peer_sig_curve = OBJ_nid2sn(nid);
+		break;
+#endif
+	    }
+	}
+
+	/*
+	 * With Ed25519 and Ed448 there is no pre-signature digest, but the
+	 * accessor does not fail, rather we get NID_undef.
+	 */
+	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
+	    peer_sig_dgst = OBJ_nid2sn(nid);
+    }
+#endif						/* OPENSSL_VERSION_NUMBER >=
+						 * 0x1010100fUL &&
+						 * defined(TLS1_3_VERSION) */
+
+    if (kex_name) {
+	TLScontext->kex_name = mystrdup(kex_name);
+	if (kex_curve)
+	    TLScontext->kex_curve = mystrdup(kex_curve);
+    }
+    if (locl_sig_name) {
+	TLScontext->locl_sig_name = mystrdup(locl_sig_name);
+	if (locl_sig_curve)
+	    TLScontext->locl_sig_curve = mystrdup(locl_sig_curve);
+	if (locl_sig_dgst)
+	    TLScontext->locl_sig_dgst = mystrdup(locl_sig_dgst);
+    }
+    if (peer_sig_name) {
+	TLScontext->peer_sig_name = mystrdup(peer_sig_name);
+	if (peer_sig_curve)
+	    TLScontext->peer_sig_curve = mystrdup(peer_sig_curve);
+	if (peer_sig_dgst)
+	    TLScontext->peer_sig_dgst = mystrdup(peer_sig_dgst);
+    }
+}
+
 /* tls_alloc_app_context - allocate TLS application context */
 
 TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, int log_mask)
@@ -892,6 +1071,14 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->peer_pkey_fprint = 0;
     TLScontext->protocol = 0;
     TLScontext->cipher_name = 0;
+    TLScontext->kex_name = 0;
+    TLScontext->kex_curve = 0;
+    TLScontext->locl_sig_name = 0;
+    TLScontext->locl_sig_curve = 0;
+    TLScontext->locl_sig_dgst = 0;
+    TLScontext->peer_sig_name = 0;
+    TLScontext->peer_sig_curve = 0;
+    TLScontext->peer_sig_dgst = 0;
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */
