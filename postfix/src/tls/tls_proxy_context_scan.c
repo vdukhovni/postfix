@@ -80,12 +80,13 @@ int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     VSTRING *cipher_name = vstring_alloc(25);
     VSTRING *kex_name = vstring_alloc(25);
     VSTRING *kex_curve = vstring_alloc(25);
-    VSTRING *locl_sig_name = vstring_alloc(25);
-    VSTRING *locl_sig_curve = vstring_alloc(25);
-    VSTRING *locl_sig_dgst = vstring_alloc(25);
-    VSTRING *peer_sig_name = vstring_alloc(25);
-    VSTRING *peer_sig_curve = vstring_alloc(25);
-    VSTRING *peer_sig_dgst = vstring_alloc(25);
+    VSTRING *clnt_sig_name = vstring_alloc(25);
+    VSTRING *clnt_sig_curve = vstring_alloc(25);
+    VSTRING *clnt_sig_dgst = vstring_alloc(25);
+    VSTRING *srvr_sig_name = vstring_alloc(25);
+    VSTRING *srvr_sig_curve = vstring_alloc(25);
+    VSTRING *srvr_sig_dgst = vstring_alloc(25);
+    VSTRING *namaddr = vstring_alloc(100);
 
     if (msg_verbose)
 	msg_info("begin tls_proxy_context_scan");
@@ -110,14 +111,15 @@ int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(TLS_ATTR_KEX_NAME, kex_name),
 		  RECV_ATTR_STR(TLS_ATTR_KEX_CURVE, kex_curve),
 		  RECV_ATTR_INT(TLS_ATTR_KEX_BITS, &tls_context->kex_bits),
-		  RECV_ATTR_STR(TLS_ATTR_LOCL_SIG_NAME, locl_sig_name),
-		  RECV_ATTR_STR(TLS_ATTR_LOCL_SIG_CURVE, locl_sig_curve),
-	 RECV_ATTR_INT(TLS_ATTR_LOCL_SIG_BITS, &tls_context->locl_sig_bits),
-		  RECV_ATTR_STR(TLS_ATTR_LOCL_SIG_DGST, locl_sig_dgst),
-		  RECV_ATTR_STR(TLS_ATTR_PEER_SIG_NAME, peer_sig_name),
-		  RECV_ATTR_STR(TLS_ATTR_PEER_SIG_CURVE, peer_sig_curve),
-	 RECV_ATTR_INT(TLS_ATTR_PEER_SIG_BITS, &tls_context->peer_sig_bits),
-		  RECV_ATTR_STR(TLS_ATTR_PEER_SIG_DGST, peer_sig_dgst),
+		  RECV_ATTR_STR(TLS_ATTR_CLNT_SIG_NAME, clnt_sig_name),
+		  RECV_ATTR_STR(TLS_ATTR_CLNT_SIG_CURVE, clnt_sig_curve),
+	 RECV_ATTR_INT(TLS_ATTR_CLNT_SIG_BITS, &tls_context->clnt_sig_bits),
+		  RECV_ATTR_STR(TLS_ATTR_CLNT_SIG_DGST, clnt_sig_dgst),
+		  RECV_ATTR_STR(TLS_ATTR_SRVR_SIG_NAME, srvr_sig_name),
+		  RECV_ATTR_STR(TLS_ATTR_SRVR_SIG_CURVE, srvr_sig_curve),
+	 RECV_ATTR_INT(TLS_ATTR_SRVR_SIG_BITS, &tls_context->srvr_sig_bits),
+		  RECV_ATTR_STR(TLS_ATTR_SRVR_SIG_DGST, srvr_sig_dgst),
+		  RECV_ATTR_STR(TLS_ATTR_NAMADDR, namaddr),
 		  ATTR_TYPE_END);
     /* Always construct a well-formed structure. */
     tls_context->peer_CN = vstring_export(peer_CN);
@@ -128,13 +130,14 @@ int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     tls_context->cipher_name = vstring_export(cipher_name);
     tls_context->kex_name = vstring_export(kex_name);
     tls_context->kex_curve = vstring_export(kex_curve);
-    tls_context->locl_sig_name = vstring_export(locl_sig_name);
-    tls_context->locl_sig_curve = vstring_export(locl_sig_curve);
-    tls_context->locl_sig_dgst = vstring_export(locl_sig_dgst);
-    tls_context->peer_sig_name = vstring_export(peer_sig_name);
-    tls_context->peer_sig_curve = vstring_export(peer_sig_curve);
-    tls_context->peer_sig_dgst = vstring_export(peer_sig_dgst);
-    ret = (ret == 20 ? 1 : -1);
+    tls_context->clnt_sig_name = vstring_export(clnt_sig_name);
+    tls_context->clnt_sig_curve = vstring_export(clnt_sig_curve);
+    tls_context->clnt_sig_dgst = vstring_export(clnt_sig_dgst);
+    tls_context->srvr_sig_name = vstring_export(srvr_sig_name);
+    tls_context->srvr_sig_curve = vstring_export(srvr_sig_curve);
+    tls_context->srvr_sig_dgst = vstring_export(srvr_sig_dgst);
+    tls_context->namaddr = vstring_export(namaddr);
+    ret = (ret == 21 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_context_free(tls_context);
 	tls_context = 0;
@@ -165,18 +168,20 @@ void    tls_proxy_context_free(TLS_SESS_STATE *tls_context)
 	myfree((void *) tls_context->kex_name);
     if (tls_context->kex_curve)
 	myfree((void *) tls_context->kex_curve);
-    if (tls_context->locl_sig_name)
-	myfree((void *) tls_context->locl_sig_name);
-    if (tls_context->locl_sig_curve)
-	myfree((void *) tls_context->locl_sig_curve);
-    if (tls_context->locl_sig_dgst)
-	myfree((void *) tls_context->locl_sig_dgst);
-    if (tls_context->peer_sig_name)
-	myfree((void *) tls_context->peer_sig_name);
-    if (tls_context->peer_sig_curve)
-	myfree((void *) tls_context->peer_sig_curve);
-    if (tls_context->peer_sig_dgst)
-	myfree((void *) tls_context->peer_sig_dgst);
+    if (tls_context->clnt_sig_name)
+	myfree((void *) tls_context->clnt_sig_name);
+    if (tls_context->clnt_sig_curve)
+	myfree((void *) tls_context->clnt_sig_curve);
+    if (tls_context->clnt_sig_dgst)
+	myfree((void *) tls_context->clnt_sig_dgst);
+    if (tls_context->srvr_sig_name)
+	myfree((void *) tls_context->srvr_sig_name);
+    if (tls_context->srvr_sig_curve)
+	myfree((void *) tls_context->srvr_sig_curve);
+    if (tls_context->srvr_sig_dgst)
+	myfree((void *) tls_context->srvr_sig_dgst);
+    if (tls_context->namaddr)
+	myfree((void *) tls_context->namaddr);
     myfree((void *) tls_context);
 }
 

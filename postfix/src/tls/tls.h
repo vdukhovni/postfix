@@ -119,16 +119,8 @@ extern const char *str_tls_level(int);
   *
   * The client-only interface SSL_get_server_tmp_key() is slated to be made to
   * work on both client and server, and renamed to SSL_get_peer_tmp_key(), with
-  * the original name left behind as an alias.  We'll use the new name if/when
+  * the original name left behind as an alias.  We use the new name when
   * available.
-  *
-  * XXX: Set corresponding OpenSSL version floor below when OpenSSL pull
-  * request:
-  *
-  *   <https://github.com/openssl/openssl/pull/7608>
-  *
-  * is merged, perhaps in the upcoming 1.1.1a release (at which point the XXX
-  * part of this comment can be deleted).
   */
 #if OPENSSL_VERSION_NUMBER < 0x1010101fUL
 #undef SSL_get_signature_nid
@@ -163,6 +155,12 @@ extern const char *str_tls_level(int);
   * TLS library.
   */
 #include <dns.h>
+
+ /*
+  * TLS role, presently for logging.
+  */
+#define TLS_ROLE_CLIENT 0
+#define TLS_ROLE_SERVER 1
 
  /*
   * Names of valid tlsmgr(8) session caches.
@@ -266,14 +264,14 @@ typedef struct {
     const char *kex_name;		/* shared key-exchange algorithm */
     const char *kex_curve;		/* shared key-exchange ECDHE curve */
     int     kex_bits;			/* shared FFDHE key exchange bits */
-    const char *locl_sig_name;		/* local signature key algorithm */
-    const char *locl_sig_curve;		/* local ECDSA curve name */
-    int     locl_sig_bits;		/* local RSA signature key bits */
-    const char *locl_sig_dgst;		/* local signature digest */
-    const char *peer_sig_name;		/* peer's signature key algorithm */
-    const char *peer_sig_curve;		/* peer's ECDSA curve name */
-    int     peer_sig_bits;		/* peer's RSA signature key bits */
-    const char *peer_sig_dgst;		/* peer's signature digest */
+    const char *clnt_sig_name;		/* client's signature key algorithm */
+    const char *clnt_sig_curve;		/* client's ECDSA curve name */
+    int     clnt_sig_bits;		/* client's RSA signature key bits */
+    const char *clnt_sig_dgst;		/* client's signature digest */
+    const char *srvr_sig_name;		/* server's signature key algorithm */
+    const char *srvr_sig_curve;		/* server's ECDSA curve name */
+    int     srvr_sig_bits;		/* server's RSA signature key bits */
+    const char *srvr_sig_dgst;		/* server's signature digest */
     /* Private. */
     SSL    *con;
     char   *cache_type;			/* tlsmgr(8) cache type if enabled */
@@ -606,6 +604,7 @@ extern void tls_session_stop(TLS_APPL_STATE *, VSTREAM *, int, int, TLS_SESS_STA
 extern const char *tls_compile_version(void);
 extern const char *tls_run_version(void);
 extern const char **tls_pkey_algorithms(void);
+extern void tls_log_summary(int, TLS_SESS_STATE *);
 
 #ifdef TLS_INTERNAL
 

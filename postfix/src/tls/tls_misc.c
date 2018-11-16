@@ -65,6 +65,10 @@
 /*	void tls_get_signature_params(TLScontext)
 /*	TLS_SESS_STATE *TLScontext;
 /*
+/*	void tls_log_summary(role, TLScontext)
+/*	int role;
+/*	TLS_SESS_STATE *TLScontext;
+/*
 /*	void	tls_print_errors()
 /*
 /*	void	tls_info_callback(ssl, where, ret)
@@ -151,6 +155,10 @@
 /*	no longer describes the asymmetric algorithms employed in the
 /*	handshake, which are negotiated separately.  This function
 /*	has no effect for TLS 1.2 and earlier.
+/*
+/*	tls_log_summary() logs a summary of a completed TLS connection.
+/*	The "role" argument must be TLS_ROLE_CLIENT for outgoing client
+/*	connections, or TLS_ROLE_SERVER for incoming server connections.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -841,23 +849,26 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 {
     const char *kex_name = 0;
     const char *kex_curve = 0;
+
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
+#ifndef OPENSSL_NO_EC
     const char *locl_sig_name = 0;
     const char *locl_sig_curve = 0;
     const char *locl_sig_dgst = 0;
     const char *peer_sig_name = 0;
     const char *peer_sig_curve = 0;
     const char *peer_sig_dgst = 0;
-
-#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
-#ifndef OPENSSL_NO_EC
     EC_KEY *eckey;
 
 #endif
     int     nid;
     int     got_kex_key;
     SSL    *ssl = TLScontext->con;
+    int     srvr = SSL_is_server(ssl);
     X509   *cert;
     EVP_PKEY *pkey = 0;
+
+#define SIG_PROP(c, s, p) (*((s) ? &c->srvr_sig_##p : &c->clnt_sig_##p)
 
     if (SSL_version(ssl) != TLS1_3_VERSION)
 	return;
@@ -892,7 +903,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
      * check via SSL_get_signature_nid().  This means that local signature
      * data on clients requires at least 1.1.1a.
      */
-    if (SSL_is_server(ssl) || SSL_get_signature_nid(ssl, &nid))
+    if (srvr || SSL_get_signature_nid(ssl, &nid))
 	cert = SSL_get_certificate(ssl);
     else
 	cert = 0;
@@ -915,7 +926,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    case EVP_PKEY_RSA:
 		/* For RSA, TLS 1.3 mandates PSS signatures */
 		locl_sig_name = "RSA-PSS";
-		TLScontext->locl_sig_bits = EVP_PKEY_bits(pkey);
+		SIG_PROP(TLScontext, srvr, bits) = EVP_PKEY_bits(pkey);
 		break;
 
 #ifndef OPENSSL_NO_EC
@@ -956,7 +967,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    case EVP_PKEY_RSA:
 		/* For RSA, TLS 1.3 mandates PSS signatures */
 		peer_sig_name = "RSA-PSS";
-		TLScontext->peer_sig_bits = EVP_PKEY_bits(pkey);
+		SIG_PROP(TLScontext, !srvr, bits) = EVP_PKEY_bits(pkey);
 		break;
 
 #ifndef OPENSSL_NO_EC
@@ -988,20 +999,70 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (kex_curve)
 	    TLScontext->kex_curve = mystrdup(kex_curve);
     }
+#ifdef SIG_PROP
     if (locl_sig_name) {
-	TLScontext->locl_sig_name = mystrdup(locl_sig_name);
+	SIG_PROP(TLScontext, srvr, name) = mystrdup(locl_sig_name);
 	if (locl_sig_curve)
-	    TLScontext->locl_sig_curve = mystrdup(locl_sig_curve);
+	    SIG_PROP(TLScontext, srvr, curve) = mystrdup(locl_sig_curve);
 	if (locl_sig_dgst)
-	    TLScontext->locl_sig_dgst = mystrdup(locl_sig_dgst);
+	    SIG_PROP(TLScontext, srvr, dgst) = mystrdup(locl_sig_dgst);
     }
     if (peer_sig_name) {
-	TLScontext->peer_sig_name = mystrdup(peer_sig_name);
+	SIG_PROP(TLScontext, !srvr, name) = mystrdup(peer_sig_name);
 	if (peer_sig_curve)
-	    TLScontext->peer_sig_curve = mystrdup(peer_sig_curve);
+	    SIG_PROP(TLScontext, !srvr, curve) = mystrdup(peer_sig_curve);
 	if (peer_sig_dgst)
-	    TLScontext->peer_sig_dgst = mystrdup(peer_sig_dgst);
+	    SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
     }
+#endif /* SIG_PROP */
+}
+
+/* tls_log_summary - TLS loglevel 1 one-liner, embellished with TLS 1.3 details */
+
+void    tls_log_summary(int role, TLS_SESS_STATE *ctx)
+{
+    VSTRING *msg = vstring_alloc(100);
+    const char *direction = (role == TLS_ROLE_CLIENT) ? "to" : "from";
+
+    vstring_sprintf(msg, "%s TLS connection established %s %s: %s"
+		    " with cipher %s (%d/%d bits)",
+		    !TLS_CERT_IS_PRESENT(ctx) ? "Anonymous" :
+		    TLS_CERT_IS_SECURED(ctx) ? "Verified" :
+		    TLS_CERT_IS_TRUSTED(ctx) ? "Trusted" : "Untrusted",
+		    direction, ctx->namaddr, ctx->protocol, ctx->cipher_name,
+		    ctx->cipher_usebits, ctx->cipher_algbits);
+
+    if (ctx->kex_name && *ctx->kex_name) {
+	vstring_sprintf_append(msg, " key-exchange %s", ctx->kex_name);
+	if (ctx->kex_curve && *ctx->kex_curve)
+	    vstring_sprintf_append(msg, " (%s)", ctx->kex_curve);
+	else if (ctx->kex_bits > 0)
+	    vstring_sprintf_append(msg, " (%d bits)", ctx->kex_bits);
+    }
+    if (ctx->srvr_sig_name && *ctx->srvr_sig_name) {
+	vstring_sprintf_append(msg, " server-signature %s",
+			       ctx->srvr_sig_name);
+	if (ctx->srvr_sig_curve && *ctx->srvr_sig_curve)
+	    vstring_sprintf_append(msg, " (%s)", ctx->srvr_sig_curve);
+	else if (ctx->srvr_sig_bits > 0)
+	    vstring_sprintf_append(msg, " (%d bits)", ctx->srvr_sig_bits);
+	if (ctx->srvr_sig_dgst && *ctx->srvr_sig_dgst)
+	    vstring_sprintf_append(msg, " server-digest %s",
+				   ctx->srvr_sig_dgst);
+    }
+    if (ctx->clnt_sig_name && *ctx->clnt_sig_name) {
+	vstring_sprintf_append(msg, " client-signature %s",
+			       ctx->clnt_sig_name);
+	if (ctx->clnt_sig_curve && *ctx->clnt_sig_curve)
+	    vstring_sprintf_append(msg, " (%s)", ctx->clnt_sig_curve);
+	else if (ctx->clnt_sig_bits > 0)
+	    vstring_sprintf_append(msg, " (%d bits)", ctx->clnt_sig_bits);
+	if (ctx->clnt_sig_dgst && *ctx->clnt_sig_dgst)
+	    vstring_sprintf_append(msg, " client-digest %s",
+				   ctx->clnt_sig_dgst);
+    }
+    msg_info("%s", vstring_str(msg));
+    vstring_free(msg);
 }
 
 /* tls_alloc_app_context - allocate TLS application context */
@@ -1073,12 +1134,12 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->cipher_name = 0;
     TLScontext->kex_name = 0;
     TLScontext->kex_curve = 0;
-    TLScontext->locl_sig_name = 0;
-    TLScontext->locl_sig_curve = 0;
-    TLScontext->locl_sig_dgst = 0;
-    TLScontext->peer_sig_name = 0;
-    TLScontext->peer_sig_curve = 0;
-    TLScontext->peer_sig_dgst = 0;
+    TLScontext->clnt_sig_name = 0;
+    TLScontext->clnt_sig_curve = 0;
+    TLScontext->clnt_sig_dgst = 0;
+    TLScontext->srvr_sig_name = 0;
+    TLScontext->srvr_sig_curve = 0;
+    TLScontext->srvr_sig_dgst = 0;
     TLScontext->log_mask = log_mask;
     TLScontext->namaddr = lowercase(mystrdup(namaddr));
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */

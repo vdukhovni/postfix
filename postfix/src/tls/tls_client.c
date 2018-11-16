@@ -860,62 +860,6 @@ static void verify_extract_print(TLS_SESS_STATE *TLScontext, X509 *peercert,
 	    TLS_CERT_FLAG_TRUSTED | TLS_CERT_FLAG_MATCHED;
 }
 
-/* log_summary - TLS loglevel 1 one-liner, embellished with TLS 1.3 details */
-
-static void log_summary(TLS_SESS_STATE *TLScontext,
-			        const TLS_CLIENT_START_PROPS *props)
-{
-    VSTRING *msg = vstring_alloc(100);
-
-    vstring_sprintf(msg, "%s TLS connection established to %s: %s"
-		    " with cipher %s (%d/%d bits)",
-		    !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous" :
-		    TLS_CERT_IS_SECURED(TLScontext) ? "Verified" :
-		  TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
-		    props->namaddr, TLScontext->protocol,
-		    TLScontext->cipher_name, TLScontext->cipher_usebits,
-		    TLScontext->cipher_algbits);
-
-    if (TLScontext->kex_name && *TLScontext->kex_name) {
-	vstring_sprintf_append(msg, " key-exchange %s",
-			       TLScontext->kex_name);
-	if (TLScontext->kex_curve && *TLScontext->kex_curve)
-	    vstring_sprintf_append(msg, " (%s)",
-				   TLScontext->kex_curve);
-	else if (TLScontext->kex_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)",
-				   TLScontext->kex_bits);
-    }
-    if (TLScontext->peer_sig_name && *TLScontext->peer_sig_name) {
-	vstring_sprintf_append(msg, " server-signature %s",
-			       TLScontext->peer_sig_name);
-	if (TLScontext->peer_sig_curve && *TLScontext->peer_sig_curve)
-	    vstring_sprintf_append(msg, " (%s)",
-				   TLScontext->peer_sig_curve);
-	else if (TLScontext->peer_sig_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)",
-				   TLScontext->peer_sig_bits);
-	if (TLScontext->peer_sig_dgst && *TLScontext->peer_sig_dgst)
-	    vstring_sprintf_append(msg, " server-digest %s",
-				   TLScontext->peer_sig_dgst);
-    }
-    if (TLScontext->locl_sig_name && *TLScontext->locl_sig_name) {
-	vstring_sprintf_append(msg, " client-signature %s",
-			       TLScontext->locl_sig_name);
-	if (TLScontext->locl_sig_curve && *TLScontext->locl_sig_curve)
-	    vstring_sprintf_append(msg, " (%s)",
-				   TLScontext->locl_sig_curve);
-	else if (TLScontext->locl_sig_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)",
-				   TLScontext->locl_sig_bits);
-	if (TLScontext->locl_sig_dgst && *TLScontext->locl_sig_dgst)
-	    vstring_sprintf_append(msg, " client-digest %s",
-				   TLScontext->locl_sig_dgst);
-    }
-    msg_info("%s", vstring_str(msg));
-    vstring_free(msg);
-}
-
  /*
   * This is the actual startup routine for the connection. We expect that the
   * buffers are flushed and the "220 Ready to start TLS" was received by us,
@@ -1250,7 +1194,7 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
     tls_get_signature_params(TLScontext);
 
     if (TLScontext->log_mask & TLS_LOG_SUMMARY)
-	log_summary(TLScontext, props);
+	tls_log_summary(TLS_ROLE_CLIENT, TLScontext);
 
     tls_int_seed();
 

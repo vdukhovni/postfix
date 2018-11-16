@@ -860,16 +860,8 @@ static int starttls(STATE *state)
 		     state->tls_context->issuer_CN,
 		     state->tls_context->peer_cert_fprint,
 		     state->tls_context->peer_pkey_fprint);
-	    msg_info("%s TLS connection established to %s: %s with cipher %s "
-		     "(%d/%d bits)",
-		     !TLS_CERT_IS_PRESENT(state->tls_context) ? "Anonymous" :
-		     TLS_CERT_IS_SECURED(state->tls_context) ? "Verified" :
-		     TLS_CERT_IS_TRUSTED(state->tls_context) ? "Trusted" :
-		     "Untrusted", state->namaddrport,
-		     state->tls_context->protocol,
-		     state->tls_context->cipher_name,
-		     state->tls_context->cipher_usebits,
-		     state->tls_context->cipher_algbits);
+	    state->tls_context->namaddr = mystrdup(state->namaddrport);
+	    tls_log_summary(TLS_ROLE_CLIENT, state->tls_context);
 	}
     } else {					/* tls_proxy_mode */
 	state->tls_context =

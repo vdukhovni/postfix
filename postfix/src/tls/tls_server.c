@@ -345,60 +345,6 @@ static int ticket_cb(SSL *con, unsigned char name[], unsigned char iv[],
 
 #endif
 
-/* log_summary - TLS loglevel 1 one-liner, embellished with TLS 1.3 details */
-
-static void log_summary(TLS_SESS_STATE *TLScontext)
-{
-    VSTRING *msg = vstring_alloc(100);
-
-    vstring_sprintf(msg, "%s TLS connection established from %s: %s"
-		    " with cipher %s (%d/%d bits)",
-		    !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous" :
-		  TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
-		    TLScontext->namaddr, TLScontext->protocol,
-		    TLScontext->cipher_name, TLScontext->cipher_usebits,
-		    TLScontext->cipher_algbits);
-
-    if (TLScontext->kex_name && *TLScontext->kex_name) {
-	vstring_sprintf_append(msg, " key-exchange %s",
-			       TLScontext->kex_name);
-	if (TLScontext->kex_curve && *TLScontext->kex_curve)
-	    vstring_sprintf_append(msg, " (%s)",
-				   TLScontext->kex_curve);
-	else if (TLScontext->kex_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)",
-				   TLScontext->kex_bits);
-    }
-    if (TLScontext->locl_sig_name && *TLScontext->locl_sig_name) {
-	vstring_sprintf_append(msg, " server-signature %s",
-			       TLScontext->locl_sig_name);
-	if (TLScontext->locl_sig_curve && *TLScontext->locl_sig_curve)
-	    vstring_sprintf_append(msg, " (%s)",
-				   TLScontext->locl_sig_curve);
-	else if (TLScontext->locl_sig_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)",
-				   TLScontext->locl_sig_bits);
-	if (TLScontext->locl_sig_dgst && *TLScontext->locl_sig_dgst)
-	    vstring_sprintf_append(msg, " server-digest %s",
-				   TLScontext->locl_sig_dgst);
-    }
-    if (TLScontext->peer_sig_name && *TLScontext->peer_sig_name) {
-	vstring_sprintf_append(msg, " client-signature %s",
-			       TLScontext->peer_sig_name);
-	if (TLScontext->peer_sig_curve && *TLScontext->peer_sig_curve)
-	    vstring_sprintf_append(msg, " (%s)",
-				   TLScontext->peer_sig_curve);
-	else if (TLScontext->peer_sig_bits > 0)
-	    vstring_sprintf_append(msg, " (%d bits)",
-				   TLScontext->peer_sig_bits);
-	if (TLScontext->peer_sig_dgst && *TLScontext->peer_sig_dgst)
-	    vstring_sprintf_append(msg, " client-digest %s",
-				   TLScontext->peer_sig_dgst);
-    }
-    msg_info("%s", vstring_str(msg));
-    vstring_free(msg);
-}
-
 /* tls_server_init - initialize the server-side TLS engine */
 
 TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
@@ -1015,7 +961,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
      * All the key facts in a single log entry.
      */
     if (TLScontext->log_mask & TLS_LOG_SUMMARY)
-	log_summary(TLScontext);
+	tls_log_summary(TLS_ROLE_SERVER, TLScontext);
 
     tls_int_seed();
 

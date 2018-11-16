@@ -109,14 +109,15 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_KEX_NAME	"key_exchange"
 #define TLS_ATTR_KEX_CURVE	"key_exchange_curve"
 #define TLS_ATTR_KEX_BITS	"key_exchange_bits"
-#define TLS_ATTR_LOCL_SIG_NAME	"locl_signature"
-#define TLS_ATTR_LOCL_SIG_CURVE	"locl_signature_curve"
-#define TLS_ATTR_LOCL_SIG_BITS	"locl_signature_bits"
-#define TLS_ATTR_LOCL_SIG_DGST	"locl_signature_digest"
-#define TLS_ATTR_PEER_SIG_NAME	"peer_signature"
-#define TLS_ATTR_PEER_SIG_CURVE	"peer_signature_curve"
-#define TLS_ATTR_PEER_SIG_BITS	"peer_signature_bits"
-#define TLS_ATTR_PEER_SIG_DGST	"peer_signature_digest"
+#define TLS_ATTR_CLNT_SIG_NAME	"clnt_signature"
+#define TLS_ATTR_CLNT_SIG_CURVE	"clnt_signature_curve"
+#define TLS_ATTR_CLNT_SIG_BITS	"clnt_signature_bits"
+#define TLS_ATTR_CLNT_SIG_DGST	"clnt_signature_digest"
+#define TLS_ATTR_SRVR_SIG_NAME	"srvr_signature"
+#define TLS_ATTR_SRVR_SIG_CURVE	"srvr_signature_curve"
+#define TLS_ATTR_SRVR_SIG_BITS	"srvr_signature_bits"
+#define TLS_ATTR_SRVR_SIG_DGST	"srvr_signature_digest"
+#define TLS_ATTR_NAMADDR	"namaddr"
 
  /*
   * TLS_SERVER_INIT_PROPS attributes.
