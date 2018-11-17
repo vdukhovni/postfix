@@ -23794,3 +23794,13 @@ Apologies for any names omitted.
 	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
 	tls/tls_client.c, tls/tls_server.c, smtpd/smtpd.c,
 	posttls-finger/posttls-finger.c.
+
+	Cleanup: vstream_memopen() flags handling. File:
+	util/vstream.c.
+
+20181117
+
+	The Postfix SMTP client now logs whether an SMTP-over-TLS
+	connection is newly established ("TLS connection established")
+	or whether the connection is reused ("TLS connection reused").
+	Files: smtp/smtp.h, smtp/smtp_proto.c, smtp/smtp_session.c.

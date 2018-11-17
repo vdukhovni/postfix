@@ -1714,7 +1714,7 @@ VSTREAM *vstream_memreopen(VSTREAM *stream, VSTRING *string, int flags)
     stream->write_fn = 0;
     stream->vstring = string;
     memcpy(&stream->buf, &stream->vstring->vbuf, sizeof(stream->buf));
-    stream->buf.flags |= (flags | VSTREAM_FLAG_MEMORY);
+    stream->buf.flags |= VSTREAM_FLAG_MEMORY;
     switch (VSTREAM_ACC_MASK(flags)) {
     case O_RDONLY:
 	stream->buf.flags |= VSTREAM_FLAG_READ;
