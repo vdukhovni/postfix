@@ -293,6 +293,18 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_CIPHER_NAME	"cipher_name"
 #define MAIL_ATTR_CIPHER_USEBITS "cipher_usebits"
 #define MAIL_ATTR_CIPHER_ALGBITS "cipher_algbits"
+#define MAIL_ATTR_KEX_NAME	"key_exchange"
+#define MAIL_ATTR_KEX_CURVE	"key_exchange_curve"
+#define MAIL_ATTR_KEX_BITS	"key_exchange_bits"
+#define MAIL_ATTR_CLNT_SIG_NAME	"clnt_signature"
+#define MAIL_ATTR_CLNT_SIG_CURVE	"clnt_signature_curve"
+#define MAIL_ATTR_CLNT_SIG_BITS	"clnt_signature_bits"
+#define MAIL_ATTR_CLNT_SIG_DGST	"clnt_signature_digest"
+#define MAIL_ATTR_SRVR_SIG_NAME	"srvr_signature"
+#define MAIL_ATTR_SRVR_SIG_CURVE	"srvr_signature_curve"
+#define MAIL_ATTR_SRVR_SIG_BITS	"srvr_signature_bits"
+#define MAIL_ATTR_SRVR_SIG_DGST	"srvr_signature_digest"
+#define MAIL_ATTR_NAMADDR	"namaddr"
 #define MAIL_ATTR_SERVER_ID	"server_id"
 
  /*
