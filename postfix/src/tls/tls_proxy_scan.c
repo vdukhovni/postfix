@@ -63,6 +63,15 @@ int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     VSTRING *peer_pkey_fprint = vstring_alloc(60);	/* 60 for SHA-1 */
     VSTRING *protocol = vstring_alloc(25);
     VSTRING *cipher_name = vstring_alloc(25);
+    VSTRING *kex_name = vstring_alloc(25);
+    VSTRING *kex_curve = vstring_alloc(25);
+    VSTRING *clnt_sig_name = vstring_alloc(25);
+    VSTRING *clnt_sig_curve = vstring_alloc(25);
+    VSTRING *clnt_sig_dgst = vstring_alloc(25);
+    VSTRING *srvr_sig_name = vstring_alloc(25);
+    VSTRING *srvr_sig_curve = vstring_alloc(25);
+    VSTRING *srvr_sig_dgst = vstring_alloc(25);
+    VSTRING *namaddr = vstring_alloc(100);
 
     /*
      * Note: memset() is not a portable way to initialize non-integer types.
@@ -81,6 +90,18 @@ int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 				&tls_context->cipher_usebits),
 		  RECV_ATTR_INT(MAIL_ATTR_CIPHER_ALGBITS,
 				&tls_context->cipher_algbits),
+		  RECV_ATTR_STR(MAIL_ATTR_KEX_NAME, kex_name),
+		  RECV_ATTR_STR(MAIL_ATTR_KEX_CURVE, kex_curve),
+		  RECV_ATTR_INT(MAIL_ATTR_KEX_BITS, &tls_context->kex_bits),
+		  RECV_ATTR_STR(MAIL_ATTR_CLNT_SIG_NAME, clnt_sig_name),
+		  RECV_ATTR_STR(MAIL_ATTR_CLNT_SIG_CURVE, clnt_sig_curve),
+	RECV_ATTR_INT(MAIL_ATTR_CLNT_SIG_BITS, &tls_context->clnt_sig_bits),
+		  RECV_ATTR_STR(MAIL_ATTR_CLNT_SIG_DGST, clnt_sig_dgst),
+		  RECV_ATTR_STR(MAIL_ATTR_SRVR_SIG_NAME, srvr_sig_name),
+		  RECV_ATTR_STR(MAIL_ATTR_SRVR_SIG_CURVE, srvr_sig_curve),
+	RECV_ATTR_INT(MAIL_ATTR_SRVR_SIG_BITS, &tls_context->srvr_sig_bits),
+		  RECV_ATTR_STR(MAIL_ATTR_SRVR_SIG_DGST, srvr_sig_dgst),
+		  RECV_ATTR_STR(MAIL_ATTR_NAMADDR, namaddr),
 		  ATTR_TYPE_END);
     tls_context->peer_CN = vstring_export(peer_CN);
     tls_context->issuer_CN = vstring_export(issuer_CN);
@@ -88,7 +109,16 @@ int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     tls_context->peer_pkey_fprint = vstring_export(peer_pkey_fprint);
     tls_context->protocol = vstring_export(protocol);
     tls_context->cipher_name = vstring_export(cipher_name);
-    return (ret == 9 ? 1 : -1);
+    tls_context->kex_name = vstring_export(kex_name);
+    tls_context->kex_curve = vstring_export(kex_curve);
+    tls_context->clnt_sig_name = vstring_export(clnt_sig_name);
+    tls_context->clnt_sig_curve = vstring_export(clnt_sig_curve);
+    tls_context->clnt_sig_dgst = vstring_export(clnt_sig_dgst);
+    tls_context->srvr_sig_name = vstring_export(srvr_sig_name);
+    tls_context->srvr_sig_curve = vstring_export(srvr_sig_curve);
+    tls_context->srvr_sig_dgst = vstring_export(srvr_sig_dgst);
+    tls_context->namaddr = vstring_export(namaddr);
+    return (ret == 21 ? 1 : -1);
 }
 
 #endif

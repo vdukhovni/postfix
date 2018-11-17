@@ -3207,12 +3207,70 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 
 #ifdef USE_TLS
 	if (var_smtpd_tls_received_header && state->tls_context) {
-	    out_fprintf(out_stream, REC_TYPE_NORM,
-			"\t(using %s with cipher %s (%d/%d bits))",
-			state->tls_context->protocol,
-			state->tls_context->cipher_name,
-			state->tls_context->cipher_usebits,
-			state->tls_context->cipher_algbits);
+	    int     cont = 0;
+
+	    vstring_sprintf(state->buffer,
+			    "\t(using %s with cipher %s (%d/%d bits)",
+			    state->tls_context->protocol,
+			    state->tls_context->cipher_name,
+			    state->tls_context->cipher_usebits,
+			    state->tls_context->cipher_algbits);
+	    if (state->tls_context->kex_name && *state->tls_context->kex_name) {
+		out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
+			   LEN(state->buffer));
+		vstring_sprintf(state->buffer, "\t key-exchange %s",
+				state->tls_context->kex_name);
+		if (state->tls_context->kex_curve
+		    && *state->tls_context->kex_curve)
+		    vstring_sprintf_append(state->buffer, " (%s)",
+					   state->tls_context->kex_curve);
+		else if (state->tls_context->kex_bits > 0)
+		    vstring_sprintf_append(state->buffer, " (%d bits)",
+					   state->tls_context->kex_bits);
+		cont = 1;
+	    }
+	    if (state->tls_context->srvr_sig_name
+		&& *state->tls_context->srvr_sig_name) {
+		if (cont) {
+		    vstring_sprintf_append(state->buffer, " server-signature %s",
+					 state->tls_context->srvr_sig_name);
+		} else {
+		    out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
+			       LEN(state->buffer));
+		    vstring_sprintf(state->buffer, "\t server-signature %s",
+				    state->tls_context->srvr_sig_name);
+		}
+		if (state->tls_context->srvr_sig_curve
+		    && *state->tls_context->srvr_sig_curve)
+		    vstring_sprintf_append(state->buffer, " (%s)",
+					state->tls_context->srvr_sig_curve);
+		else if (state->tls_context->srvr_sig_bits > 0)
+		    vstring_sprintf_append(state->buffer, " (%d bits)",
+					 state->tls_context->srvr_sig_bits);
+		if (state->tls_context->srvr_sig_dgst
+		    && *state->tls_context->srvr_sig_dgst)
+		    vstring_sprintf_append(state->buffer, " server-digest %s",
+					 state->tls_context->srvr_sig_dgst);
+	    }
+	    if (state->tls_context->clnt_sig_name
+		&& *state->tls_context->clnt_sig_name) {
+		out_record(out_stream, REC_TYPE_NORM, STR(state->buffer),
+			   LEN(state->buffer));
+		vstring_sprintf(state->buffer, "\t client-signature %s",
+				state->tls_context->clnt_sig_name);
+		if (state->tls_context->clnt_sig_curve
+		    && *state->tls_context->clnt_sig_curve)
+		    vstring_sprintf_append(state->buffer, " (%s)",
+					state->tls_context->clnt_sig_curve);
+		else if (state->tls_context->clnt_sig_bits > 0)
+		    vstring_sprintf_append(state->buffer, " (%d bits)",
+					 state->tls_context->clnt_sig_bits);
+		if (state->tls_context->clnt_sig_dgst
+		    && *state->tls_context->clnt_sig_dgst)
+		    vstring_sprintf_append(state->buffer, " client-digest %s",
+					 state->tls_context->clnt_sig_dgst);
+	    }
+	    out_fprintf(out_stream, REC_TYPE_NORM, "%s)", STR(state->buffer));
 	    if (TLS_CERT_IS_PRESENT(state->tls_context)) {
 		peer_CN = VSTRING_STRDUP(state->tls_context->peer_CN);
 		comment_sanitize(peer_CN);

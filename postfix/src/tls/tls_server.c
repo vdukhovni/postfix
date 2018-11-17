@@ -961,14 +961,12 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
 	tls_stream_start(TLScontext->stream, TLScontext);
 
     /*
-     * All the key facts in a single log entry.
+     * With the handshake done, extract TLS 1.3 signature metadata.
      */
+    tls_get_signature_params(TLScontext);
+
     if (TLScontext->log_mask & TLS_LOG_SUMMARY)
-	msg_info("%s TLS connection established from %s: %s with cipher %s "
-	      "(%d/%d bits)", !TLS_CERT_IS_PRESENT(TLScontext) ? "Anonymous"
-		 : TLS_CERT_IS_TRUSTED(TLScontext) ? "Trusted" : "Untrusted",
-	 TLScontext->namaddr, TLScontext->protocol, TLScontext->cipher_name,
-		 TLScontext->cipher_usebits, TLScontext->cipher_algbits);
+	tls_log_summary(TLS_ROLE_SERVER, TLS_USAGE_NEW, TLScontext);
 
     tls_int_seed();
 

@@ -14,7 +14,7 @@ is easily subverted by a state-funded adversary.
 OOvveerrvviieeww
 
 Postfix supports forward secrecy of TLS network communication since version
-2.2. This support was adopted from Lutz Jänicke's "Postfix TLS patch" for
+2.2. This support was adopted from Lutz Ja"nicke's "Postfix TLS patch" for
 earlier Postfix versions. This document will focus on TLS Forward Secrecy in
 the Postfix SMTP client and server. See TLS_README for a general description of
 Postfix TLS support.
@@ -279,7 +279,8 @@ verification status.
 
   * With "smtp_tls_loglevel = 1" and "smtpd_tls_loglevel = 1", the Postfix SMTP
     client and server will log TLS connection information to the maillog file.
-    The general logfile format is:
+    The general logfile format is shown below. With TLS 1.3 there may be
+    additional properties logged after the cipher name and bits.
 
         postfix/smtp[process-id]: Untrusted TLS connection established
         to host.example.com[192.168.0.2]:25: TLSv1 with cipher cipher-name
@@ -292,7 +293,8 @@ verification status.
   * With "smtpd_tls_received_header = yes", the Postfix SMTP server will record
     TLS connection information in the Received: header in the form of comments
     (text inside parentheses). The general format depends on the
-    smtpd_tls_ask_ccert setting:
+    smtpd_tls_ask_ccert setting. With TLS 1.3 there may be additional
+    properties logged after the cipher name and bits.
 
         Received: from host.example.com (host.example.com [192.168.0.2])
                 (using TLSv1 with cipher cipher-name
@@ -304,6 +306,47 @@ verification status.
                 (using TLSv1 with cipher cipher-name
                 (actual-key-size/raw-key-size bits))
                 (No client certificate requested)
+
+    TLS 1.3 examples. Some of the new attributes may not appear when not
+    applicable or not available in older versions of the OpenSSL library.
+
+        Received: from localhost (localhost [127.0.0.1])
+                (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256
+        bits)
+                 key-exchange X25519 server-signature RSA-PSS (2048 bits)
+        server-digest SHA256)
+                (No client certificate requested)
+
+        Received: from localhost (localhost [127.0.0.1])
+                (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256
+        bits)
+                 key-exchange X25519 server-signature RSA-PSS (2048 bits)
+        server-digest SHA256
+                 client-signature ECDSA (P-256) client-digest SHA256)
+                (Client CN "example.org", Issuer "example.org" (not verified))
+
+      o The "key-exchange" attribute records the type of "Diffie-Hellman" group
+        used for key agreement. Possible values include "DHE", "ECDHE",
+        "X25519" and "X448". With "DHE", the bit size of the prime will be
+        reported in parentheses after the algorithm name, with "ECDHE", the
+        curve name.
+
+      o The "server-signature" attribute shows the public key signature
+        algorithm used by the server. With "RSA-PSS", the bit size of the
+        modulus will be reported in parentheses. With "ECDSA", the curve name.
+        If, for example, the server has both an RSA and an ECDSA private key
+        and certificate, it will be possible to track which one was used for a
+        given connection.
+
+      o The new "server-digest" attribute records the digest algorithm used by
+        the server to prepare handshake messages for signing. The Ed25519 and
+        Ed448 signature algorithms do not make use of such a digest, so no
+        "server-digest" will be shown for these signature algorithms.
+
+      o When a client certificate is requested with "smtpd_tls_ask_ccert" and
+        the client uses a TLS client-certificate, the "client-signature" and
+        "client-digest" attributes will record the corresponding properties of
+        the client's TLS handshake signature.
 
 The next sections will explain what cipher-name, key-size, and peer
 verification status information to expect.
@@ -345,6 +388,51 @@ key-exchange mechanism is invented that also supports forward secrecy.
 The actual key length and raw algorithm key length are generally the same with
 non-export ciphers, but may they differ for the legacy export ciphers where the
 actual key is artificially shortened.
+
+Starting with TLS 1.3 the cipher name no longer contains enough information to
+determine which forward-secrecy scheme was employed, but TLS 1.3 aallwwaayyss uses
+forward-secrecy. On the client side, up-to-date Postfix releases log additional
+information for TLS 1.3 connections, reporting the signature and key exchange
+algorithms. Two examples below (the long single line messages are folded across
+multiple lines for readability):
+
+    postfix/smtp[process-id]:
+      Untrusted TLS connection established to 127.0.0.1[127.0.0.1]:25:
+      TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+      key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest
+    SHA256
+      client-signature ECDSA (P-256) client-digest SHA256
+
+    postfix/smtp[process-id]:
+      Untrusted TLS connection established to 127.0.0.1[127.0.0.1]:25:
+      TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+      key-exchange ECDHE (P-256) server-signature ECDSA (P-256) server-digest
+    SHA256
+
+In the above connections, the "key-exchange" value records the "Diffie-Hellman"
+algorithm used for key agreement. The "server-signature" value records the
+public key algoritm used by the server to sign the key exchange. The "server-
+digest" value records any hash algorithm used to prepare the data for signing.
+With "ED25519" and "ED448", no separate hash algorithm is used.
+
+Examples of Postfix SMTP server logging:
+
+    postfix/smtpd[process-id]:
+      Untrusted TLS connection established from localhost[127.0.0.1]:25:
+      TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+      key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest
+    SHA256
+      client-signature ECDSA (P-256) client-digest SHA256
+
+    postfix/smtpd[process-id]:
+      Anonymous TLS connection established from localhost[127.0.0.1]:
+      TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+      server-signature RSA-PSS (2048 bits) server-digest SHA256
+
+    postfix/smtpd[process-id]:
+      Anonymous TLS connection established from localhost[127.0.0.1]:
+      TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+      server-signature ED25519
 
 WWhhaatt ddoo ""AAnnoonnyymmoouuss"",, ""UUnnttrruusstteedd"",, eettcc.. iinn PPoossttffiixx llooggggiinngg mmeeaann??
 
@@ -421,8 +509,8 @@ peer certificate with expected public-key or certificate fingerprint)
 
 CCrreeddiittss
 
-  * TLS support for Postfix was originally developed by Lutz Jänicke at Cottbus
-    Technical University.
+  * TLS support for Postfix was originally developed by Lutz Ja"nicke at
+    Cottbus Technical University.
   * Wietse Venema adopted and restructured the code and documentation.
   * Viktor Dukhovni implemented support for many subsequent TLS features,
     including EECDH, and authored the initial version of this document.
