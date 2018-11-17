@@ -961,7 +961,7 @@ TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *TLScontext)
      * All the key facts in a single log entry.
      */
     if (TLScontext->log_mask & TLS_LOG_SUMMARY)
-	tls_log_summary(TLS_ROLE_SERVER, TLScontext);
+	tls_log_summary(TLS_ROLE_SERVER, TLS_USAGE_NEW, TLScontext);
 
     tls_int_seed();
 

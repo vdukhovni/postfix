@@ -860,8 +860,8 @@ static int starttls(STATE *state)
 		     state->tls_context->issuer_CN,
 		     state->tls_context->peer_cert_fprint,
 		     state->tls_context->peer_pkey_fprint);
-	    state->tls_context->namaddr = mystrdup(state->namaddrport);
-	    tls_log_summary(TLS_ROLE_CLIENT, state->tls_context);
+	    tls_log_summary(TLS_ROLE_CLIENT, TLS_USAGE_NEW,
+			    state->tls_context);
 	}
     } else {					/* tls_proxy_mode */
 	state->tls_context =

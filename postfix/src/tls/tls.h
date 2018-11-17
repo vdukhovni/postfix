@@ -159,8 +159,9 @@ extern const char *str_tls_level(int);
  /*
   * TLS role, presently for logging.
   */
-#define TLS_ROLE_CLIENT 0
-#define TLS_ROLE_SERVER 1
+typedef enum { TLS_ROLE_CLIENT, TLS_ROLE_SERVER, } TLS_ROLE;
+
+typedef enum { TLS_USAGE_NEW, TLS_USAGE_USED, } TLS_USAGE;
 
  /*
   * Names of valid tlsmgr(8) session caches.
@@ -604,7 +605,7 @@ extern void tls_session_stop(TLS_APPL_STATE *, VSTREAM *, int, int, TLS_SESS_STA
 extern const char *tls_compile_version(void);
 extern const char *tls_run_version(void);
 extern const char **tls_pkey_algorithms(void);
-extern void tls_log_summary(int, TLS_SESS_STATE *);
+extern void tls_log_summary(TLS_ROLE, TLS_USAGE, TLS_SESS_STATE *);
 
 #ifdef TLS_INTERNAL
 

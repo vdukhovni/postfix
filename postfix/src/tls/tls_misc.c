@@ -4,6 +4,19 @@
 /* SUMMARY
 /*	miscellaneous TLS support routines
 /* SYNOPSIS
+/* .SH Public functions
+/* .nf
+/* .na
+/*	#include <tls.h>
+/*
+/*	void tls_log_summary(role, usage, TLScontext)
+/*	TLS_ROLE role;
+/*	TLS_USAGE usage;
+/*	TLS_SESS_STATE *TLScontext;
+/*
+/* .SH Internal functions
+/* .nf
+/* .na
 /*	#define TLS_INTERNAL
 /*	#include <tls.h>
 /*
@@ -65,10 +78,6 @@
 /*	void tls_get_signature_params(TLScontext)
 /*	TLS_SESS_STATE *TLScontext;
 /*
-/*	void tls_log_summary(role, TLScontext)
-/*	int role;
-/*	TLS_SESS_STATE *TLScontext;
-/*
 /*	void	tls_print_errors()
 /*
 /*	void	tls_info_callback(ssl, where, ret)
@@ -101,8 +110,13 @@
 /*
 /*	const char **tls_pkey_algorithms(void)
 /* DESCRIPTION
-/*	This module implements routines that support the TLS client
-/*	and server internals.
+/*	This module implements public and internal routines that
+/*	support the TLS client and server.
+/*
+/*	tls_log_summary() logs a summary of a completed TLS connection.
+/*	The "role" argument must be TLS_ROLE_CLIENT for outgoing client
+/*	connections, or TLS_ROLE_SERVER for incoming server connections,
+/*	and the "usage" must be TLS_USAGE_NEW or TLS_USAGE_USED.
 /*
 /*	tls_alloc_app_context() creates an application context that
 /*	holds the SSL context for the application and related cached state.
@@ -155,10 +169,6 @@
 /*	no longer describes the asymmetric algorithms employed in the
 /*	handshake, which are negotiated separately.  This function
 /*	has no effect for TLS 1.2 and earlier.
-/*
-/*	tls_log_summary() logs a summary of a completed TLS connection.
-/*	The "role" argument must be TLS_ROLE_CLIENT for outgoing client
-/*	connections, or TLS_ROLE_SERVER for incoming server connections.
 /*
 /*	tls_print_errors() queries the OpenSSL error stack,
 /*	logs the error messages, and clears the error stack.
@@ -847,20 +857,15 @@ const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
 
 void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 {
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
     const char *kex_name = 0;
     const char *kex_curve = 0;
-
-#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
-#ifndef OPENSSL_NO_EC
     const char *locl_sig_name = 0;
     const char *locl_sig_curve = 0;
     const char *locl_sig_dgst = 0;
     const char *peer_sig_name = 0;
     const char *peer_sig_curve = 0;
     const char *peer_sig_dgst = 0;
-    EC_KEY *eckey;
-
-#endif
     int     nid;
     int     got_kex_key;
     SSL    *ssl = TLScontext->con;
@@ -868,9 +873,14 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     X509   *cert;
     EVP_PKEY *pkey = 0;
 
-#define SIG_PROP(c, s, p) (*((s) ? &c->srvr_sig_##p : &c->clnt_sig_##p)
+#ifndef OPENSSL_NO_EC
+    EC_KEY *eckey;
 
-    if (SSL_version(ssl) != TLS1_3_VERSION)
+#endif
+
+#define SIG_PROP(c, s, p) (*((s) ? &c->srvr_sig_##p : &c->clnt_sig_##p))
+
+    if (SSL_version(ssl) < TLS1_3_VERSION)
 	return;
 
     if (tls_get_peer_dh_pubkey(ssl, &pkey)) {
@@ -990,16 +1000,11 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
     }
-#endif						/* OPENSSL_VERSION_NUMBER >=
-						 * 0x1010100fUL &&
-						 * defined(TLS1_3_VERSION) */
-
     if (kex_name) {
 	TLScontext->kex_name = mystrdup(kex_name);
 	if (kex_curve)
 	    TLScontext->kex_curve = mystrdup(kex_curve);
     }
-#ifdef SIG_PROP
     if (locl_sig_name) {
 	SIG_PROP(TLScontext, srvr, name) = mystrdup(locl_sig_name);
 	if (locl_sig_curve)
@@ -1014,21 +1019,22 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (peer_sig_dgst)
 	    SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
     }
-#endif /* SIG_PROP */
+#endif						/* OPENSSL_VERSION_NUMBER ... */
 }
 
 /* tls_log_summary - TLS loglevel 1 one-liner, embellished with TLS 1.3 details */
 
-void    tls_log_summary(int role, TLS_SESS_STATE *ctx)
+void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 {
     VSTRING *msg = vstring_alloc(100);
     const char *direction = (role == TLS_ROLE_CLIENT) ? "to" : "from";
 
-    vstring_sprintf(msg, "%s TLS connection established %s %s: %s"
+    vstring_sprintf(msg, "%s TLS connection %s %s %s: %s"
 		    " with cipher %s (%d/%d bits)",
 		    !TLS_CERT_IS_PRESENT(ctx) ? "Anonymous" :
 		    TLS_CERT_IS_SECURED(ctx) ? "Verified" :
 		    TLS_CERT_IS_TRUSTED(ctx) ? "Trusted" : "Untrusted",
+		    usage == TLS_USAGE_NEW ? "established" : "reused",
 		    direction, ctx->namaddr, ctx->protocol, ctx->cipher_name,
 		    ctx->cipher_usebits, ctx->cipher_algbits);
 

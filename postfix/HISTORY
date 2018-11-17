@@ -23785,3 +23785,12 @@ Apologies for any names omitted.
 	smtpd/smtpd.c, tls/tls.h, tls/tls_client.c, tls/tls_misc.c,
 	tls/tls_proxy.h, tls/tls_proxy_context_print.c,
 	tls/tls_proxy_context_scan.c, tls/tls_server.c.
+
+20181116
+
+	Library function to log TLS 1.3 summary information, and
+	some wordsmithing of TLS context member names. Viktor
+	Dukhovni.  Files: tls/tls.h, tls/tls_misc.c, tls/tls_proxy.h,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_client.c, tls/tls_server.c, smtpd/smtpd.c,
+	posttls-finger/posttls-finger.c.

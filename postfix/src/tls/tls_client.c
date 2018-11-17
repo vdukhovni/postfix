@@ -1194,7 +1194,7 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
     tls_get_signature_params(TLScontext);
 
     if (TLScontext->log_mask & TLS_LOG_SUMMARY)
-	tls_log_summary(TLS_ROLE_CLIENT, TLScontext);
+	tls_log_summary(TLS_ROLE_CLIENT, TLS_USAGE_NEW, TLScontext);
 
     tls_int_seed();
 
