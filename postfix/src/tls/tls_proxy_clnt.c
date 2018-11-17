@@ -239,6 +239,24 @@ void    tls_proxy_context_free(TLS_SESS_STATE *tls_context)
 	myfree((void *) tls_context->protocol);
     if (tls_context->cipher_name)
 	myfree((void *) tls_context->cipher_name);
+    if (tls_context->kex_name)
+	myfree((void *) tls_context->kex_name);
+    if (tls_context->kex_curve)
+	myfree((void *) tls_context->kex_curve);
+    if (tls_context->clnt_sig_name)
+	myfree((void *) tls_context->clnt_sig_name);
+    if (tls_context->clnt_sig_curve)
+	myfree((void *) tls_context->clnt_sig_curve);
+    if (tls_context->clnt_sig_dgst)
+	myfree((void *) tls_context->clnt_sig_dgst);
+    if (tls_context->srvr_sig_name)
+	myfree((void *) tls_context->srvr_sig_name);
+    if (tls_context->srvr_sig_curve)
+	myfree((void *) tls_context->srvr_sig_curve);
+    if (tls_context->srvr_sig_dgst)
+	myfree((void *) tls_context->srvr_sig_dgst);
+    if (tls_context->namaddr)
+	myfree((void *) tls_context->namaddr);
     myfree((void *) tls_context);
 }
 
