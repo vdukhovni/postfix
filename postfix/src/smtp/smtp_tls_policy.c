@@ -668,7 +668,7 @@ int     smtp_tls_policy_cache_query(DSN_BUF *why, SMTP_TLS_POLICY *tls,
      * values that also appear in other cache and table search keys.
      */
     key = vstring_alloc(100);
-    smtp_key_prefix(key, ":", iter, SMTP_KEY_FLAG_NEXTHOP
+    smtp_key_prefix(key, ":", iter, SMTP_KEY_FLAG_CUR_NEXTHOP
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_PORT);
     ctable_newcontext(policy_cache, (void *) iter);

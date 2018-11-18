@@ -115,12 +115,12 @@ extern const char *str_tls_level(int);
 #endif
 
  /*-
-  * Backwards compatibility with OpenSSL < 1.1.1a (or some later version).
+  * Backwards compatibility with OpenSSL < 1.1.1a.
   *
-  * The client-only interface SSL_get_server_tmp_key() is slated to be made to
-  * work on both client and server, and renamed to SSL_get_peer_tmp_key(), with
-  * the original name left behind as an alias.  We use the new name when
-  * available.
+  * In OpenSSL 1.1.1a the client-only interface SSL_get_server_tmp_key() was
+  * updated to work on both the client and the server, and was renamed to
+  * SSL_get_peer_tmp_key(), with the original name left behind as an alias.  We
+  * use the new name when available.
   */
 #if OPENSSL_VERSION_NUMBER < 0x1010101fUL
 #undef SSL_get_signature_nid
@@ -159,9 +159,13 @@ extern const char *str_tls_level(int);
  /*
   * TLS role, presently for logging.
   */
-typedef enum { TLS_ROLE_CLIENT, TLS_ROLE_SERVER, } TLS_ROLE;
+typedef enum {
+    TLS_ROLE_CLIENT, TLS_ROLE_SERVER,
+} TLS_ROLE;
 
-typedef enum { TLS_USAGE_NEW, TLS_USAGE_USED, } TLS_USAGE;
+typedef enum {
+    TLS_USAGE_NEW, TLS_USAGE_USED,
+} TLS_USAGE;
 
  /*
   * Names of valid tlsmgr(8) session caches.

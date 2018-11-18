@@ -23770,9 +23770,7 @@ Apologies for any names omitted.
 	postmap/postmap.c.
 
 	Cleanup: don't use ssize_t for boolean result. File:
-	global/smtp_stream.c. Memory leak: the Berkeley DB client
-	leaked a small amount of memory asfter failing to open a
-	table. File: util/dict_db.c.
+	global/smtp_stream.c.
 
 	Cleanup: memory leak caused by missing dbenv->close() call
 	after failing to open a Berkeley DB table. File: util/dict_db.c.
@@ -23794,3 +23792,26 @@ Apologies for any names omitted.
 	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
 	tls/tls_client.c, tls/tls_server.c, smtpd/smtpd.c,
 	posttls-finger/posttls-finger.c.
+
+	Cleanup: vstream_memopen() flags handling. File:
+	util/vstream.c.
+
+	Cleanup: the SMTP client now uses 'attr_print_plain'
+	serialization and 'attr_scan_plain' deserialization for
+	connection cache lookup keys, which now contain a serialized
+	version of the TLS context. File: smtp/smtp_session.c.
+
+20181117
+
+	The Postfix SMTP client now logs whether an SMTP-over-TLS
+	connection is newly established ("TLS connection established")
+	or whether the connection is reused ("TLS connection reused").
+	Files: smtp/smtp.h, smtp/smtp_proto.c, smtp/smtp_session.c.
+
+20181118
+
+	Cleanup, no behavior change: updated comments concerning
+	connection reuse, and updated some identifiers to reflect
+	current reality. Files: smtp_reuse.c, smtp_key.c, smtp_proto.c,
+	smtp_tls_policy.c, smtp.h, smtp_connect.c.
+

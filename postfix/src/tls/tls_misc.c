@@ -14,6 +14,12 @@
 /*	TLS_USAGE usage;
 /*	TLS_SESS_STATE *TLScontext;
 /*
+/*	const char *tls_compile_version(void)
+/*
+/*	const char *tls_run_version(void)
+/*
+/*	const char **tls_pkey_algorithms(void)
+/*
 /* .SH Internal functions
 /* .nf
 /* .na
@@ -103,12 +109,6 @@
 /*
 /*	int	tls_validate_digest(dgst)
 /*	const char *dgst;
-/*
-/*	const char *tls_compile_version(void)
-/*
-/*	const char *tls_run_version(void)
-/*
-/*	const char **tls_pkey_algorithms(void)
 /* DESCRIPTION
 /*	This module implements public and internal routines that
 /*	support the TLS client and server.
@@ -117,6 +117,16 @@
 /*	The "role" argument must be TLS_ROLE_CLIENT for outgoing client
 /*	connections, or TLS_ROLE_SERVER for incoming server connections,
 /*	and the "usage" must be TLS_USAGE_NEW or TLS_USAGE_USED.
+/*
+/*	tls_compile_version() returns a text string description of
+/*	the compile-time TLS library.
+/*
+/*	tls_run_version() is just tls_compile_version() but with the runtime
+/*	version instead of the compile-time version.
+/*
+/*	tls_pkey_algorithms() returns a pointer to null-terminated
+/*	array of string constants with the names of the supported
+/*	public-key algorithms.
 /*
 /*	tls_alloc_app_context() creates an application context that
 /*	holds the SSL context for the application and related cached state.
@@ -190,16 +200,6 @@
 /*
 /*	tls_validate_digest() returns non-zero if the named digest
 /*	is usable and zero otherwise.
-/*
-/*	tls_compile_version() returns a text string description of
-/*	the compile-time TLS library.
-/*
-/*	tls_run_version() is just tls_compile_version() but with the runtime
-/*	version instead of the compile-time version.
-/*
-/*	tls_pkey_algorithms() returns a pointer to null-terminated
-/*	array of string constants with the names of the supported
-/*	public-key algorithms.
 /* LICENSE
 /* .ad
 /* .fi

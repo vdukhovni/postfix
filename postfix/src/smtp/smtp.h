@@ -192,17 +192,25 @@ typedef struct SMTP_STATE {
 } SMTP_STATE;
 
  /*
-  * TODO: use the new SMTP_ITER name space.
+  * Primitives to enable/disable/test connection caching and reuse based on
+  * the delivery request next-hop destination (i.e. not smtp_fallback_relay).
+  * 
+  * Connection cache lookup by the request next-hop destination allows a reuse
+  * request to skip over bad hosts, and may result in a connection to a
+  * fall-back relay. Once we have found a 'good' host for a request next-hop,
+  * clear the request next-hop destination, to avoid caching less-preferred
+  * connections under that same request next-hop.
   */
-#define SET_NEXTHOP_STATE(state, nexthop) { \
+#define SET_SCACHE_REQUEST_NEXTHOP(state, nexthop) do { \
 	vstring_strcpy((state)->iterator->request_nexthop, nexthop); \
-    }
+    } while (0)
 
-#define FREE_NEXTHOP_STATE(state) { \
+#define CLEAR_SCACHE_REQUEST_NEXTHOP(state) do { \
 	STR((state)->iterator->request_nexthop)[0] = 0; \
-    }
+    } while (0)
 
-#define HAVE_NEXTHOP_STATE(state) (STR((state)->iterator->request_nexthop)[0] != 0)
+#define HAVE_SCACHE_REQUEST_NEXTHOP(state) \
+	(STR((state)->iterator->request_nexthop)[0] != 0)
 
 
  /*
@@ -229,6 +237,7 @@ typedef struct SMTP_STATE {
 #define SMTP_FEATURE_EARLY_TLS_MAIL_REPLY (1<<19)	/* CVE-2009-3555 */
 #define SMTP_FEATURE_XFORWARD_IDENT	(1<<20)
 #define SMTP_FEATURE_SMTPUTF8		(1<<21)	/* RFC 6531 */
+#define SMTP_FEATURE_FROM_PROXY		(1<<22)	/* proxied connection */
 
  /*
   * Features that passivate under the endpoint.
@@ -617,7 +626,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_FLAG_SERVICE		(1<<0)	/* service name */
 #define SMTP_KEY_FLAG_SENDER		(1<<1)	/* sender address */
 #define SMTP_KEY_FLAG_REQ_NEXTHOP	(1<<2)	/* request nexthop */
-#define SMTP_KEY_FLAG_NEXTHOP		(1<<3)	/* current nexthop */
+#define SMTP_KEY_FLAG_CUR_NEXTHOP	(1<<3)	/* current nexthop */
 #define SMTP_KEY_FLAG_HOSTNAME		(1<<4)	/* remote host name */
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */
 #define SMTP_KEY_FLAG_PORT		(1<<6)	/* remote port */
@@ -626,7 +635,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 #define SMTP_KEY_MASK_ALL \
 	(SMTP_KEY_FLAG_SERVICE | SMTP_KEY_FLAG_SENDER | \
 	SMTP_KEY_FLAG_REQ_NEXTHOP | \
-	SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
+	SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_HOSTNAME | \
 	SMTP_KEY_FLAG_ADDR | SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
@@ -640,14 +649,14 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	((var_smtp_sender_auth && *var_smtp_sasl_passwd) ? \
 	    SMTP_KEY_FLAG_SENDER : 0)
 
-#define COND_SASL_SMTP_KEY_FLAG_NEXTHOP \
-	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_NEXTHOP : 0)
+#define COND_SASL_SMTP_KEY_FLAG_CUR_NEXTHOP \
+	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_CUR_NEXTHOP : 0)
 
 #ifdef USE_TLS
-#define COND_TLS_SMTP_KEY_FLAG_NEXTHOP \
-	(TLS_MUST_MATCH(state->tls->level) ? SMTP_KEY_FLAG_NEXTHOP : 0)
+#define COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP \
+	(TLS_MUST_MATCH(state->tls->level) ? SMTP_KEY_FLAG_CUR_NEXTHOP : 0)
 #else
-#define COND_TLS_SMTP_KEY_FLAG_NEXTHOP \
+#define COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP \
 	(0)
 #endif
 
@@ -655,10 +664,13 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	(*var_smtp_sasl_passwd ? SMTP_KEY_FLAG_HOSTNAME : 0)
 
  /*
-  * Connection-cache destination lookup key. The SENDER attribute is a proxy
-  * for sender-dependent SASL credentials (or absence thereof), and prevents
-  * false connection sharing when different SASL credentials may be required
-  * for different deliveries to the same domain and port. The SERVICE
+  * Connection-cache destination lookup key, based on the delivery request
+  * nexthop. The SENDER attribute is a proxy for sender-dependent SASL
+  * credentials (or absence thereof), and prevents false connection sharing
+  * when different SASL credentials may be required for different deliveries
+  * to the same domain and port. Likewise, the delivery request nexthop
+  * (REQ_NEXTHOP) prevents false sharing of TLS identities (the destination
+  * key links only to appropriate endpoint lookup keys). The SERVICE
   * attribute is a proxy for all request-independent configuration details.
   */
 #define SMTP_KEY_MASK_SCACHE_DEST_LABEL \
@@ -666,15 +678,18 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 	| SMTP_KEY_FLAG_REQ_NEXTHOP)
 
  /*
-  * Connection-cache endpoint lookup key. The SENDER, NEXTHOP, and HOSTNAME
-  * attributes are proxies for SASL credentials (or absence thereof), and
-  * prevent false connection sharing when different SASL credentials may be
-  * required for different deliveries to the same IP address and port.
+  * Connection-cache endpoint lookup key. The SENDER, CUR_NEXTHOP, HOSTNAME,
+  * PORT and TLS_LEVEL attributes are proxies for SASL credentials and TLS
+  * authentication (or absence thereof), and prevent false connection sharing
+  * when different SASL credentials or TLS identities may be required for
+  * different deliveries to the same IP address and port. The SERVICE
+  * attribute is a proxy for all request-independent configuration details.
   */
 #define SMTP_KEY_MASK_SCACHE_ENDP_LABEL \
 	(SMTP_KEY_FLAG_SERVICE | COND_SASL_SMTP_KEY_FLAG_SENDER \
-	| COND_SASL_SMTP_KEY_FLAG_NEXTHOP | COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
-	| COND_TLS_SMTP_KEY_FLAG_NEXTHOP | SMTP_KEY_FLAG_ADDR | \
+	| COND_SASL_SMTP_KEY_FLAG_CUR_NEXTHOP \
+	| COND_SASL_SMTP_KEY_FLAG_HOSTNAME \
+	| COND_TLS_SMTP_KEY_FLAG_CUR_NEXTHOP | SMTP_KEY_FLAG_ADDR | \
 	SMTP_KEY_FLAG_PORT | SMTP_KEY_FLAG_TLS_LEVEL)
 
  /*
@@ -697,11 +712,6 @@ extern int smtp_mode;
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
-/*
-/*	Wietse Venema
-/*	Google, Inc.
-/*	111 8th Avenue
-/*	New York, NY 10011, USA
 /*
 /*	Wietse Venema
 /*	Google, Inc.

@@ -53,7 +53,7 @@
 /* .IP SMTP_KEY_FLAG_REQ_NEXTHOP
 /*	The request nexthop destination. This is a proxy for
 /*	destination-dependent, but host-independent context.
-/* .IP SMTP_KEY_FLAG_NEXTHOP
+/* .IP SMTP_KEY_FLAG_CUR_NEXTHOP
 /*	The current iterator's nexthop destination (request nexthop
 /*	or fallback nexthop, including optional [] and :port). This
 /*	is the form that users specify in a SASL or TLS lookup
@@ -183,7 +183,7 @@ char   *smtp_key_prefix(VSTRING *buffer, const char *delim_na,
      */
     if (flags & SMTP_KEY_FLAG_REQ_NEXTHOP)
 	smtp_key_append_str(buffer, STR(iter->request_nexthop), delim_na);
-    if (flags & SMTP_KEY_FLAG_NEXTHOP)
+    if (flags & SMTP_KEY_FLAG_CUR_NEXTHOP)
 	smtp_key_append_str(buffer, STR(iter->dest), delim_na);
 
     /*

@@ -899,7 +899,7 @@ static int smtp_start_tls(SMTP_STATE *state)
      */
     serverid = vstring_alloc(10);
     smtp_key_prefix(serverid, "&", state->iterator, SMTP_KEY_FLAG_SERVICE
-		    | SMTP_KEY_FLAG_NEXTHOP	/* With port */
+		    | SMTP_KEY_FLAG_CUR_NEXTHOP	/* With port */
 		    | SMTP_KEY_FLAG_HOSTNAME
 		    | SMTP_KEY_FLAG_ADDR);
 
@@ -1018,6 +1018,11 @@ static int smtp_start_tls(SMTP_STATE *state)
 	     * context attributes.
 	     */
 	    session->tls_context = tls_proxy_context_receive(session->stream);
+	    if (session->tls_context) {
+		session->features |= SMTP_FEATURE_FROM_PROXY;
+		tls_log_summary(TLS_ROLE_CLIENT, TLS_USAGE_NEW,
+				session->tls_context);
+	    }
 	}
     } else {					/* state->tls->conn_reuse */
 

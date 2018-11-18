@@ -1191,6 +1191,9 @@ TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
 	&& !TLS_NEVER_SECURED(props->tls_level))
 	TLScontext->peer_status |= TLS_CERT_FLAG_SECURED;
 
+    /*
+     * With the handshake done, extract TLS 1.3 signature metadata.
+     */
     tls_get_signature_params(TLScontext);
 
     if (TLScontext->log_mask & TLS_LOG_SUMMARY)
