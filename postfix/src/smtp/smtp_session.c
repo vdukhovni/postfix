@@ -36,8 +36,9 @@
 /*	case of a null stream and will assume it was given a different
 /*	purpose.
 /*
-/*	smtp_session_passivate() flattens an SMTP session so that
-/*	it can be cached. The SMTP_SESSION structure is destroyed.
+/*	smtp_session_passivate() flattens an SMTP session (including
+/*	TLS context) so that it can be cached. The SMTP_SESSION
+/*	structure is destroyed.
 /*
 /*	smtp_session_activate() inflates a flattened SMTP session
 /*	so that it can be used. The input property arguments are
@@ -242,10 +243,10 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
     int     fd;
 
     /*
-     * Encode the local-to-physical binding properties: whether or not this
-     * server is best MX host for the next-hop or fall-back logical
-     * destination (this information is needed for loop handling in
-     * smtp_proto()).
+     * Encode the delivery request next-hop to endpoint binding properties:
+     * whether or not this server is best MX host for the delivery request
+     * next-hop or fall-back logical destination (this information is needed
+     * for loop handling in smtp_proto()).
      * 
      * TODO: save SASL username and password information so that we can
      * correctly save a reused authenticated connection.
@@ -265,8 +266,8 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
 
     /*
      * Encode the physical endpoint properties: all the session properties
-     * except for "session from cache", "best MX", or "RSET failure".
-     * Plus the TLS level, reuse count, and connection expiration time.
+     * except for "session from cache", "best MX", or "RSET failure". Plus
+     * the TLS level, reuse count, and connection expiration time.
      * 
      * XXX Should also record how many non-delivering mail transactions there
      * were during this session, and perhaps other statistics, so that we
@@ -372,9 +373,9 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
     /*
      * Clobber the iterator's current nexthop, host and address fields with
      * cached-connection information. This is done when a session is looked
-     * up by request nexthop instead of address and port. It is the caller's
-     * responsibility to save and restore the request nexthop with
-     * SMTP_ITER_SAVE_DEST() and SMTP_ITER_RESTORE_DEST().
+     * up by delivery request nexthop instead of address and port. It is the
+     * caller's responsibility to save and restore the delivery request
+     * nexthop with SMTP_ITER_SAVE_DEST() and SMTP_ITER_RESTORE_DEST().
      * 
      * TODO: Eliminate the duplication between SMTP_ITERATOR and SMTP_SESSION.
      * 

@@ -60,8 +60,8 @@
 #	are known to support it.
 # .IP \fB-DNO_EAI\fR
 #	Do not build with EAI (SMTPUTF8) support. By default, EAI
-#	support is compiled in when the "icu-config" command is
-#	found.
+#	support is compiled in when the "pkg-config" command is
+#	found, or the deprecated "icu-config" command.
 # .IP \fB-DNO_INLINE\fR
 #	Do not require support for C99 "inline" functions. Instead,
 #	implement argument typechecks for non-(printf/scanf)-like
@@ -792,8 +792,10 @@ esac
 #
 case "$CCARGS" in
 *-DNO_EAI*) CCARGS="$CCARGS "'-DDEF_SMTPUTF8_ENABLE=\"no\"';;
-	 *) icu_cppflags=`(icu-config --cppflags) 2>/dev/null` && {
-		icu_ldflags=`(icu-config --ldflags) 2>/dev/null` && {
+	 *) icu_cppflags=`((pkg-config --cflags icu-uc icu-i18n) ||
+		  (icu-config --cppflags)) 2>/dev/null` && {
+		icu_ldflags=`((pkg-config --libs icu-uc icu-i18n) ||
+		  (icu-config --ldflags)) 2>/dev/null` && {
 		    trap 'rm -f makedefs.test makedefs.test.[co]' 1 2 3 15
 		    cat >makedefs.test.c <<'EOF'
 #include <unicode/uidna.h>

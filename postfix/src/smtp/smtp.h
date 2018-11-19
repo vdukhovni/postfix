@@ -54,7 +54,7 @@
   */
 typedef struct SMTP_ITERATOR {
     /* Public members. */
-    VSTRING *request_nexthop;		/* request nexhop or empty */
+    VSTRING *request_nexthop;		/* delivery request nexhop or empty */
     VSTRING *dest;			/* current nexthop */
     VSTRING *host;			/* hostname or empty */
     VSTRING *addr;			/* printable address or empty */
@@ -74,12 +74,6 @@ typedef struct SMTP_ITERATOR {
 	(iter)->mx = (iter)->rr = 0; \
 	vstring_strcpy((iter)->saved_dest, ""); \
 	(iter)->parent = (state); \
-    } while (0)
-
-#define SMTP_ITER_CLOBBER(iter, _dest, _host, _addr) do { \
-	vstring_strcpy((iter)->dest, (_dest)); \
-	vstring_strcpy((iter)->host, (_host)); \
-	vstring_strcpy((iter)->addr, (_addr)); \
     } while (0)
 
 #define SMTP_ITER_SAVE_DEST(iter) do { \
@@ -195,11 +189,12 @@ typedef struct SMTP_STATE {
   * Primitives to enable/disable/test connection caching and reuse based on
   * the delivery request next-hop destination (i.e. not smtp_fallback_relay).
   * 
-  * Connection cache lookup by the request next-hop destination allows a reuse
-  * request to skip over bad hosts, and may result in a connection to a
-  * fall-back relay. Once we have found a 'good' host for a request next-hop,
-  * clear the request next-hop destination, to avoid caching less-preferred
-  * connections under that same request next-hop.
+  * Connection cache lookup by the delivery request next-hop destination allows
+  * a reuse request to skip over bad hosts, and may result in a connection to
+  * a fall-back relay. Once we have found a 'good' host for a delivery
+  * request next-hop, clear the delivery request next-hop destination, to
+  * avoid caching less-preferred connections under that same delivery request
+  * next-hop.
   */
 #define SET_SCACHE_REQUEST_NEXTHOP(state, nexthop) do { \
 	vstring_strcpy((state)->iterator->request_nexthop, nexthop); \
@@ -625,7 +620,7 @@ char   *smtp_key_prefix(VSTRING *, const char *, SMTP_ITERATOR *, int);
 
 #define SMTP_KEY_FLAG_SERVICE		(1<<0)	/* service name */
 #define SMTP_KEY_FLAG_SENDER		(1<<1)	/* sender address */
-#define SMTP_KEY_FLAG_REQ_NEXTHOP	(1<<2)	/* request nexthop */
+#define SMTP_KEY_FLAG_REQ_NEXTHOP	(1<<2)	/* delivery request nexthop */
 #define SMTP_KEY_FLAG_CUR_NEXTHOP	(1<<3)	/* current nexthop */
 #define SMTP_KEY_FLAG_HOSTNAME		(1<<4)	/* remote host name */
 #define SMTP_KEY_FLAG_ADDR		(1<<5)	/* remote address */

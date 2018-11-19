@@ -23815,3 +23815,8 @@ Apologies for any names omitted.
 	current reality. Files: smtp_reuse.c, smtp_key.c, smtp_proto.c,
 	smtp_tls_policy.c, smtp.h, smtp_connect.c.
 
+20181119
+
+	Bitrot: makedefs will use "pkg-config" to locate ICU build
+	information, falling back to "icu-config" if "pkg-config"
+	is not found. File: makedefs.

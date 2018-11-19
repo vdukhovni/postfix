@@ -417,10 +417,10 @@ static void smtp_cleanup_session(SMTP_STATE *state)
     state->session = 0;
 
     /*
-     * If this session was good, reset the logical next-hop destination, so
+     * If this session was good, reset the scache next-hop destination, so
      * that we won't cache connections to less-preferred servers under the
-     * logical next-hop destination. Otherwise we could end up skipping over
-     * the available and more-preferred servers.
+     * same next-hop destination. Otherwise we could end up skipping over the
+     * available and more-preferred servers.
      */
     if (HAVE_SCACHE_REQUEST_NEXTHOP(state) && !throttled)
 	CLEAR_SCACHE_REQUEST_NEXTHOP(state);
@@ -657,11 +657,13 @@ static int smtp_reuse_session(SMTP_STATE *state, DNS_RR **addr_list,
     DSN_BUF *why = state->why;
 
     /*
-     * First, search the cache by request nexthop. We truncate the server
-     * address list when all the sessions for this destination are used up,
-     * to reduce the number of variables that need to be checked later.
+     * First, search the cache by delivery request nexthop. We truncate the
+     * server address list when all the sessions for this destination are
+     * used up, to reduce the number of variables that need to be checked
+     * later.
      * 
-     * Note: lookup by logical destination restores the "best MX" bit.
+     * Note: connection reuse by delivery request nexthop restores the "best MX"
+     * bit.
      * 
      * smtp_reuse_nexthop() clobbers the iterators's "dest" attribute. We save
      * and restore it here, so that subsequent connections will use the
@@ -880,10 +882,10 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
 	    domain_best_pref = addr_list->pref;
 
 	/*
-	 * When session caching is enabled, store the first good session for
-	 * this delivery request under the next-hop destination name. All
-	 * good sessions will be stored under their specific server IP
-	 * address.
+	 * When connection caching is enabled, store the first good
+	 * connection for this delivery request under the delivery request
+	 * next-hop name. Good connections will also be stored under their
+	 * specific server IP address.
 	 * 
 	 * XXX smtp_session_cache_destinations specifies domain names without
 	 * :port, because : is already used for maptype:mapname. Because of

@@ -1,5 +1,8 @@
 Wish list:
 
+	With DICT_FLAG_RHS_IS_FILE, RHS is list of files (insert
+	newline for robustness).
+
 	With DICT_FLAG_RHS_IS_FILE, should dict_update() open a
 	file? base64-encode the value?
 
@@ -15,11 +18,6 @@ Wish list:
 	main.cf. Note that "postconf -Px" will expand $name in
 	the parameter value, which is probably why the warning
 	exists.
-
-	Optionally save application attributes in scache(8) connection
-	store requests, and optionally request such attributes upon
-	connection retrieval. This would allow the SMTP client to
-	log the TLS properties of a reused session.
 
 	Things to do before the stable release:
 
