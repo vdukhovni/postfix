@@ -18359,6 +18359,198 @@ of TLS. </p>
 
 </DD>
 
+<DT><b><a name="tlsproxy_client_CAfile">tlsproxy_client_CAfile</a>
+(default: $<a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a>)</b></DT><DD>
+
+<p> A file containing CA certificates of root CAs trusted to sign
+either remote TLS server certificates or intermediate CA certificates.
+See <a href="postconf.5.html#smtp_tls_CAfile">smtp_tls_CAfile</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_CApath">tlsproxy_client_CApath</a>
+(default: $<a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a>)</b></DT><DD>
+
+<p> Directory with PEM format Certification Authority certificates
+that the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client uses to verify a remote TLS
+server certificate. See <a href="postconf.5.html#smtp_tls_CApath">smtp_tls_CApath</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_cert_file">tlsproxy_client_cert_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a>)</b></DT><DD>
+
+<p> File with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client RSA certificate in PEM
+format. See <a href="postconf.5.html#smtp_tls_cert_file">smtp_tls_cert_file</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_dcert_file">tlsproxy_client_dcert_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a>)</b></DT><DD>
+
+<p> File with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client DSA certificate in PEM
+format. See <a href="postconf.5.html#smtp_tls_dcert_file">smtp_tls_dcert_file</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_dkey_file">tlsproxy_client_dkey_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_dkey_file">smtp_tls_dkey_file</a>)</b></DT><DD>
+
+<p> File with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client DSA private key in PEM
+format. See <a href="postconf.5.html#smtp_tls_dkey_file">smtp_tls_dkey_file</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_eccert_file">tlsproxy_client_eccert_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a>)</b></DT><DD>
+
+<p> File with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client ECDSA certificate in
+PEM format. See <a href="postconf.5.html#smtp_tls_eccert_file">smtp_tls_eccert_file</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_eckey_file">tlsproxy_client_eckey_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_eckey_file">smtp_tls_eckey_file</a>)</b></DT><DD>
+
+<p> File with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client ECDSA private key in
+PEM format. See <a href="postconf.5.html#smtp_tls_eckey_file">smtp_tls_eckey_file</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_enforce_tls">tlsproxy_client_enforce_tls</a>
+(default: $<a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a>)</b></DT><DD>
+
+<p> Enforcement mode: require that SMTP servers use TLS encryption.
+See <a href="postconf.5.html#smtp_enforce_tls">smtp_enforce_tls</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_fingerprint_digest">tlsproxy_client_fingerprint_digest</a>
+(default: $<a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a>)</b></DT><DD>
+
+<p> The message digest algorithm used to construct remote TLS server
+certificate fingerprints. See <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> for
+further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_key_file">tlsproxy_client_key_file</a>
+(default: $<a href="postconf.5.html#smtp_tls_key_file">smtp_tls_key_file</a>)</b></DT><DD>
+
+<p> File with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client RSA private key in PEM
+format. See <a href="postconf.5.html#smtp_tls_key_file">smtp_tls_key_file</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_loglevel">tlsproxy_client_loglevel</a>
+(default: $<a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a>)</b></DT><DD>
+
+<p> Enable additional Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client logging of TLS
+activity. See <a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_loglevel_parameter">tlsproxy_client_loglevel_parameter</a>
+(default: <a href="postconf.5.html#smtp_tls_loglevel">smtp_tls_loglevel</a>)</b></DT><DD>
+
+<p> The name of the parameter that provides the <a href="postconf.5.html#tlsproxy_client_loglevel">tlsproxy_client_loglevel</a>
+value. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_per_site">tlsproxy_client_per_site</a>
+(default: $<a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a>)</b></DT><DD>
+
+<p> Optional lookup tables with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client TLS
+usage policy by next-hop destination and by remote TLS server
+hostname.  See <a href="postconf.5.html#smtp_tls_per_site">smtp_tls_per_site</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_policy_maps">tlsproxy_client_policy_maps</a>
+(default: $<a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>)</b></DT><DD>
+
+<p> Optional lookup tables with the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a> client TLS
+security policy by next-hop destination. See <a href="postconf.5.html#smtp_tls_policy_maps">smtp_tls_policy_maps</a>
+for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_scert_verifydepth">tlsproxy_client_scert_verifydepth</a>
+(default: $<a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a>)</b></DT><DD>
+
+<p> The verification depth for remote TLS server certificates.
+See <a href="postconf.5.html#smtp_tls_scert_verifydepth">smtp_tls_scert_verifydepth</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_security_level">tlsproxy_client_security_level</a>
+(default: $<a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a>)</b></DT><DD>
+
+<p> The default TLS security level for the Postfix <a href="tlsproxy.8.html">tlsproxy(8)</a>
+client. See <a href="postconf.5.html#smtp_tls_security_level">smtp_tls_security_level</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tlsproxy_client_use_tls">tlsproxy_client_use_tls</a>
+(default: $<a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a>)</b></DT><DD>
+
+<p> Opportunistic mode: use TLS when a remote server announces TLS
+support. See <a href="postconf.5.html#smtp_use_tls">smtp_use_tls</a> for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="tlsproxy_enforce_tls">tlsproxy_enforce_tls</a>
 (default: $<a href="postconf.5.html#smtpd_enforce_tls">smtpd_enforce_tls</a>)</b></DT><DD>
 

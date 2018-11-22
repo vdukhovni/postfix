@@ -1082,6 +1082,25 @@ while (<>) {
     s;\btlsproxy_tls_security_level\b;<a href="postconf.5.html#tlsproxy_tls_security_level">$&</a>;g;
     s;\btlsproxy_use_tls\b;<a href="postconf.5.html#tlsproxy_use_tls">$&</a>;g;
 
+    s;\btlsproxy_client_CAfile\b;<a href="postconf.5.html#tlsproxy_client_CAfile">$&</a>;g;
+    s;\btlsproxy_client_CApath\b;<a href="postconf.5.html#tlsproxy_client_CApath">$&</a>;g;
+    s;\btlsproxy_client_cert_file\b;<a href="postconf.5.html#tlsproxy_client_cert_file">$&</a>;g;
+    s;\btlsproxy_client_dcert_file\b;<a href="postconf.5.html#tlsproxy_client_dcert_file">$&</a>;g;
+    s;\btlsproxy_client_dkey_file\b;<a href="postconf.5.html#tlsproxy_client_dkey_file">$&</a>;g;
+    s;\btlsproxy_client_eccert_file\b;<a href="postconf.5.html#tlsproxy_client_eccert_file">$&</a>;g;
+    s;\btlsproxy_client_eckey_file\b;<a href="postconf.5.html#tlsproxy_client_eckey_file">$&</a>;g;
+    s;\btlsproxy_client_fingerprint_digest\b;<a href="postconf.5.html#tlsproxy_client_fingerprint_digest">$&</a>;g;
+    s;\btlsproxy_client_key_file\b;<a href="postconf.5.html#tlsproxy_client_key_file">$&</a>;g;
+    s;\btlsproxy_client_loglevel\b;<a href="postconf.5.html#tlsproxy_client_loglevel">$&</a>;g;
+    s;\btlsproxy_client_loglevel_parameter\b;<a href="postconf.5.html#tlsproxy_client_loglevel_parameter">$&</a>;g;
+    s;\btlsproxy_client_scert_verifydepth\b;<a href="postconf.5.html#tlsproxy_client_scert_verifydepth">$&</a>;g;
+
+    s;\btlsproxy_client_security_level\b;<a href="postconf.5.html#tlsproxy_client_security_level">$&</a>;g;
+    s;\btlsproxy_client_per_site\b;<a href="postconf.5.html#tlsproxy_client_per_site">$&</a>;g;
+    s;\btlsproxy_client_policy_maps\b;<a href="postconf.5.html#tlsproxy_client_policy_maps">$&</a>;g;
+    s;\btlsproxy_client_use_tls\b;<a href="postconf.5.html#tlsproxy_client_use_tls">$&</a>;g;
+    s;\btlsproxy_client_enforce_tls\b;<a href="postconf.5.html#tlsproxy_client_enforce_tls">$&</a>;g;
+
     # SMTPUTF8
 
     s;\bsmtputf8_enable\b;<a href="postconf.5.html#smtputf8_enable">$&</a>;g;

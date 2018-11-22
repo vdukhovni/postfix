@@ -3932,6 +3932,77 @@ extern bool var_tlsp_tls_received_header;
 extern bool var_tlsp_tls_set_sessid;
 
  /*
+  * Workaround for tlsproxy(8) pre-jail client certs/keys access.
+  */
+#define VAR_TLSP_CLNT_LOGLEVEL		"tlsproxy_client_loglevel"
+#define DEF_TLSP_CLNT_LOGLEVEL		"$" VAR_SMTP_TLS_LOGLEVEL
+extern char *var_tlsp_clnt_loglevel;
+
+#define VAR_TLSP_CLNT_LOGPARAM		"tlsproxy_client_loglevel_parameter"
+#define DEF_TLSP_CLNT_LOGPARAM		VAR_SMTP_TLS_LOGLEVEL
+extern char *var_tlsp_clnt_logparam;
+
+#define VAR_TLSP_CLNT_SCERT_VD		"tlsproxy_client_scert_verifydepth"
+#define DEF_TLSP_CLNT_SCERT_VD		"$" VAR_SMTP_TLS_SCERT_VD
+extern int var_tlsp_clnt_scert_vd;
+
+#define VAR_TLSP_CLNT_CERT_FILE		"tlsproxy_client_cert_file"
+#define DEF_TLSP_CLNT_CERT_FILE		"$" VAR_SMTP_TLS_CERT_FILE
+extern char *var_tlsp_clnt_cert_file;
+
+#define VAR_TLSP_CLNT_KEY_FILE		"tlsproxy_client_key_file"
+#define DEF_TLSP_CLNT_KEY_FILE		"$" VAR_SMTP_TLS_KEY_FILE
+extern char *var_tlsp_clnt_key_file;
+
+#define VAR_TLSP_CLNT_DCERT_FILE	"tlsproxy_client_dcert_file"
+#define DEF_TLSP_CLNT_DCERT_FILE	"$" VAR_SMTP_TLS_DCERT_FILE
+extern char *var_tlsp_clnt_dcert_file;
+
+#define VAR_TLSP_CLNT_DKEY_FILE		"tlsproxy_client_dkey_file"
+#define DEF_TLSP_CLNT_DKEY_FILE		"$" VAR_SMTP_TLS_DKEY_FILE
+extern char *var_tlsp_clnt_dkey_file;
+
+#define VAR_TLSP_CLNT_ECCERT_FILE	"tlsproxy_client_eccert_file"
+#define DEF_TLSP_CLNT_ECCERT_FILE	"$" VAR_SMTP_TLS_ECCERT_FILE
+extern char *var_tlsp_clnt_eccert_file;
+
+#define VAR_TLSP_CLNT_ECKEY_FILE	"tlsproxy_client_eckey_file"
+#define DEF_TLSP_CLNT_ECKEY_FILE	"$" VAR_SMTP_TLS_ECKEY_FILE
+extern char *var_tlsp_clnt_eckey_file;
+
+#define VAR_TLSP_CLNT_CAFILE		"tlsproxy_client_CAfile"
+#define DEF_TLSP_CLNT_CAFILE		"$" VAR_SMTP_TLS_CA_FILE
+extern char *var_tlsp_clnt_CAfile;
+
+#define VAR_TLSP_CLNT_CAPATH		"tlsproxy_client_CApath"
+#define DEF_TLSP_CLNT_CAPATH		"$" VAR_SMTP_TLS_CA_PATH
+extern char *var_tlsp_clnt_CApath;
+
+#define VAR_TLSP_CLNT_FPT_DGST		"tlsproxy_client_fingerprint_digest"
+#define DEF_TLSP_CLNT_FPT_DGST		"$" VAR_SMTP_TLS_FPT_DGST
+extern char *var_tlsp_clnt_fpt_dgst;
+
+#define VAR_TLSP_CLNT_USE_TLS		"tlsproxy_client_use_tls"
+#define DEF_TLSP_CLNT_USE_TLS		"$" VAR_SMTP_USE_TLS
+bool var_tlsp_clnt_use_tls;
+
+#define VAR_TLSP_CLNT_ENFORCE_TLS	"tlsproxy_client_enforce_tls"
+#define DEF_TLSP_CLNT_ENFORCE_TLS	"$" VAR_SMTP_ENFORCE_TLS
+bool var_tlsp_clnt_enforce_tls;
+
+#define VAR_TLSP_CLNT_LEVEL		"tlsproxy_client_level"
+#define DEF_TLSP_CLNT_LEVEL		"$" VAR_SMTP_TLS_LEVEL
+char *var_tlsp_clnt_level;
+
+#define VAR_TLSP_CLNT_PER_SITE		"tlsproxy_client_per_site"
+#define DEF_TLSP_CLNT_PER_SITE		"$" VAR_SMTP_TLS_PER_SITE
+char *var_tlsp_clnt_per_site;
+
+#define VAR_TLSP_CLNT_POLICY		"tlsproxy_client_policy"
+#define DEF_TLSP_CLNT_POLICY		"$" VAR_SMTP_TLS_POLICY
+char *var_tlsp_clnt_policy;
+
+ /*
   * SMTPD "reject" contact info.
   */
 #define VAR_SMTPD_REJ_FOOTER	"smtpd_reject_footer"

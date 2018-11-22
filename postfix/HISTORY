@@ -23820,3 +23820,18 @@ Apologies for any names omitted.
 	Bitrot: makedefs will use "pkg-config" to locate ICU build
 	information, falling back to "icu-config" if "pkg-config"
 	is not found. File: makedefs.
+
+20181122
+
+	Cleanup: tlsproxy loads the same TLS client configuration
+	at pre-jail time as the Postfix SMTP client, so that secret
+	keys can remain read-only for root. This is sufficient for
+	MTAs that have a fixed TLS client identity. tlsproxy will
+	log a warning if it is requested to assume a different TLS
+	client identity, and will log suggestions for a workaround.
+	The long-term solution is to stop loading certs/keys from
+	files, and to use the same approach as planned for server-side
+	SNI support: open a cert/key map at pre-jail time, and read
+	cert/key information on-the-fly at post-jail time. Files:
+	proto/postconf.proto, mantools/postlink, global/mail_params.h,
+	tlsproxy/tlsproxy.c.

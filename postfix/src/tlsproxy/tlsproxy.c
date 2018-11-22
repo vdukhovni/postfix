@@ -137,6 +137,65 @@
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* TLS CLIENT CONTROLS
+/* .ad
+/* .fi
+/*	These parameters allow \fBtlsproxy\fR(8) to load certificate
+/*	and private key information before dropping privileges, so
+/*	that the key files can be kept read-only for root.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBtlsproxy_client_CAfile ($smtp_tls_CAfile)\fR"
+/*	A file containing CA certificates of root CAs trusted to sign
+/*	either remote TLS server certificates or intermediate CA certificates.
+/* .IP "\fBtlsproxy_client_CApath ($smtp_tls_CApath)\fR"
+/*	Directory with PEM format Certification Authority certificates
+/*	that the Postfix \fBtlsproxy\fR(8) client uses to verify a remote TLS
+/*	server certificate.
+/* .IP "\fBtlsproxy_client_cert_file ($smtp_tls_cert_file)\fR"
+/*	File with the Postfix \fBtlsproxy\fR(8) client RSA certificate in PEM
+/*	format.
+/* .IP "\fBtlsproxy_client_key_file ($smtp_tls_key_file)\fR"
+/*	File with the Postfix \fBtlsproxy\fR(8) client RSA private key in PEM
+/*	format.
+/* .IP "\fBtlsproxy_client_dcert_file ($smtp_tls_dcert_file)\fR"
+/*	File with the Postfix \fBtlsproxy\fR(8) client DSA certificate in PEM
+/*	format.
+/* .IP "\fBtlsproxy_client_dkey_file ($smtp_tls_dkey_file)\fR"
+/*	File with the Postfix \fBtlsproxy\fR(8) client DSA private key in PEM
+/*	format.
+/* .IP "\fBtlsproxy_client_eccert_file ($smtp_tls_eccert_file)\fR"
+/*	File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in
+/*	PEM format.
+/* .IP "\fBtlsproxy_client_eckey_file ($smtp_tls_eckey_file)\fR"
+/*	File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in
+/*	PEM format.
+/* .IP "\fBtlsproxy_client_fingerprint_digest ($smtp_tls_fingerprint_digest)\fR"
+/*	The message digest algorithm used to construct remote TLS server
+/*	certificate fingerprints.
+/* .IP "\fBtlsproxy_client_loglevel ($smtp_tls_loglevel)\fR"
+/*	Enable additional Postfix \fBtlsproxy\fR(8) client logging of TLS
+/*	activity.
+/* .IP "\fBtlsproxy_client_loglevel_parameter (smtp_tls_loglevel)\fR"
+/*	The name of the parameter that provides the tlsproxy_client_loglevel
+/*	value.
+/* .IP "\fBtlsproxy_client_scert_verifydepth ($smtp_tls_scert_verifydepth)\fR"
+/*	The verification depth for remote TLS server certificates.
+/* .IP "\fBtlsproxy_client_security_level ($smtp_tls_security_level)\fR"
+/*	The default TLS security level for the Postfix \fBtlsproxy\fR(8)
+/*	client.
+/* .IP "\fBtlsproxy_client_policy_maps ($smtp_tls_policy_maps)\fR"
+/*	Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
+/*	security policy by next-hop destination.
+/* .IP "\fBtlsproxy_client_use_tls ($smtp_use_tls)\fR"
+/*	Opportunistic mode: use TLS when a remote server announces TLS
+/*	support.
+/* .IP "\fBtlsproxy_client_enforce_tls ($smtp_enforce_tls)\fR"
+/*	Enforcement mode: require that SMTP servers use TLS encryption.
+/* .IP "\fBtlsproxy_client_per_site ($smtp_tls_per_site)\fR"
+/*	Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
+/*	usage policy by next-hop destination and by remote TLS server
+/*	hostname.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -305,9 +364,49 @@ char   *var_tlsp_tls_level;
 int     var_tlsp_watchdog;
 
  /*
+  * Defaults for tlsp_clnt_*.
+  */
+char   *var_smtp_tls_loglevel;
+int     var_smtp_tls_scert_vd;
+char   *var_smtp_tls_cert_file;
+char   *var_smtp_tls_key_file;
+char   *var_smtp_tls_dcert_file;
+char   *var_smtp_tls_dkey_file;
+char   *var_smtp_tls_eccert_file;
+char   *var_smtp_tls_eckey_file;
+char   *var_smtp_tls_CAfile;
+char   *var_smtp_tls_CApath;
+char   *var_smtp_tls_fpt_dgst;
+char   *var_smtp_tls_level;
+bool    var_smtp_use_tls;
+bool    var_smtp_enforce_tls;
+char   *var_smtp_tls_per_site;
+char   *var_smtp_tls_policy;
+
+char   *var_tlsp_clnt_loglevel;
+char   *var_tlsp_clnt_logparam;
+int     var_tlsp_clnt_scert_vd;
+char   *var_tlsp_clnt_cert_file;
+char   *var_tlsp_clnt_key_file;
+char   *var_tlsp_clnt_dcert_file;
+char   *var_tlsp_clnt_dkey_file;
+char   *var_tlsp_clnt_eccert_file;
+char   *var_tlsp_clnt_eckey_file;
+char   *var_tlsp_clnt_CAfile;
+char   *var_tlsp_clnt_CApath;
+char   *var_tlsp_clnt_fpt_dgst;
+char   *var_tlsp_clnt_level;
+bool    var_tlsp_clnt_use_tls;
+bool    var_tlsp_clnt_enforce_tls;
+char   *var_tlsp_clnt_per_site;
+char   *var_tlsp_clnt_policy;
+
+ /*
   * TLS per-process status.
   */
 static TLS_APPL_STATE *tlsp_server_ctx;
+static TLS_APPL_STATE *tlsp_client_ctx;
+static bool tlsp_pre_jail_done;
 static int ask_client_cert;
 
  /*
@@ -905,14 +1004,19 @@ static void tlsp_get_fd_event(int event, void *context)
 }
 
  /*
-  * This function does not destroy TLSP_STATE in case of error, because that
-  * would complicate the caller.
+  * Macro for readability.
   */
+#define TLSP_CLIENT_INIT(ctx, props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+    a10, a11, a12, a13) \
+    tlsp_client_init((ctx), TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
+    a5, a6, a7, a8, a9, a10, a11, a12, a13))
 
-/* tlsp_client_init_no_tlsp_state_free - initialize a TLS client engine */
+/* tlsp_client_init - initialize a TLS client engine */
 
-static int tlsp_client_init_no_tlsp_state_free(TLSP_STATE *state)
+static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
+			            TLS_CLIENT_INIT_PROPS *init_props)
 {
+    TLS_APPL_STATE *appl_state;
     VSTRING *buf;
     char   *key;
 
@@ -922,13 +1026,38 @@ static int tlsp_client_init_no_tlsp_state_free(TLSP_STATE *state)
      * expensive.
      */
     buf = vstring_alloc(100);
-    key = tls_proxy_client_init_to_string(buf, state->client_init_props);
-    if ((state->appl_state = (TLS_APPL_STATE *)
+    key = tls_proxy_client_init_to_string(buf, init_props);
+    if ((appl_state = (TLS_APPL_STATE *)
 	 htable_find(tlsp_client_app_cache, key)) == 0
-	&& (state->appl_state =
-	    tls_client_init(state->client_init_props)) != 0) {
-	(void) htable_enter(tlsp_client_app_cache, key,
-			    (void *) state->appl_state);
+	&& (appl_state = tls_client_init(init_props)) != 0) {
+	(void) htable_enter(tlsp_client_app_cache, key, (void *) appl_state);
+
+	/*
+	 * Log a warning if these client settings differ from the
+	 * tlsproxy_client_* settings AND the settings specify file or
+	 * directory arguments. Those are problematic after chroot (pathname
+	 * resolution) and dropping permission (key files must be root
+	 * read-only). We can eliminate this by adding code that opens a
+	 * cert/key lookup table at pre-jail time and by reading cert/key
+	 * info on-the-fly from that table.
+	 */
+#define NOT_NULL_NOT_EMPTY(x) ((x) && *(x))
+
+	if (tlsp_pre_jail_done && appl_state && appl_state != tlsp_client_ctx
+	    && (NOT_NULL_NOT_EMPTY(init_props->cert_file)
+		|| NOT_NULL_NOT_EMPTY(init_props->key_file)
+		|| NOT_NULL_NOT_EMPTY(init_props->dcert_file)
+		|| NOT_NULL_NOT_EMPTY(init_props->dkey_file)
+		|| NOT_NULL_NOT_EMPTY(init_props->eccert_file)
+		|| NOT_NULL_NOT_EMPTY(init_props->eckey_file)
+		|| NOT_NULL_NOT_EMPTY(init_props->CAfile)
+		|| NOT_NULL_NOT_EMPTY(init_props->CApath))) {
+	    msg_warn("client request differs from tlsproxy_client_* settings");
+	    msg_warn("to avoid this warning, 1) configure a custom tlsproxy");
+	    msg_warn("service and 2) configure an smtp client with a");
+	    msg_warn("tlsproxy_service setting that resolves to the custom");
+	    msg_warn("tlsproxy service");
+	}
 
 	/*
 	 * To maintain sanity, allow partial SSL_write() operations, and
@@ -937,13 +1066,14 @@ static int tlsp_client_init_no_tlsp_state_free(TLSP_STATE *state)
 	 * a mailing list, but is not supported by documentation. If this
 	 * code stops working then no-one can be held responsible.
 	 */
-	if (state->appl_state)
-	    SSL_CTX_set_mode(state->appl_state->ssl_ctx,
+	if (appl_state)
+	    SSL_CTX_set_mode(appl_state->ssl_ctx,
 			     SSL_MODE_ENABLE_PARTIAL_WRITE
 			     | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
     }
+    *client_appl_state = appl_state;
     vstring_free(buf);
-    return (state->appl_state != 0);
+    return (appl_state != 0);
 }
 
 /* tlsp_close_event - pre-handshake plaintext-client close event */
@@ -1039,7 +1169,7 @@ static void tlsp_get_request_event(int event, void *context)
 	    tlsp_state_free(state);
 	    return;
 	}
-	ready = tlsp_client_init_no_tlsp_state_free(state);
+	ready = tlsp_client_init(&state->appl_state, state->client_init_props);
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
 	state->is_server_role = 1;
@@ -1117,6 +1247,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     int     have_server_cert;
     int     no_server_cert_ok;
     int     require_server_cert;
+    int     clnt_use_tls;
 
     /*
      * The code in this routine is pasted literally from smtpd(8). I am not
@@ -1224,13 +1355,110 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	SSL_CTX_set_mode(tlsp_server_ctx->ssl_ctx,
 			 SSL_MODE_ENABLE_PARTIAL_WRITE
 			 | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
-}
 
-/* post_jail_init - post-jail initialization */
-
-static void post_jail_init(char *unused_name, char **unused_argv)
-{
+    /*
+     * The cache with TLS_APPL_STATE instances for different TLS_CLIENT_INIT
+     * configurations.
+     */
     tlsp_client_app_cache = htable_create(10);
+
+    /*
+     * Most sites don't use TLS client certs/keys. In that case, enabling
+     * tlsproxy-based connection caching is trivial.
+     * 
+     * But some sites do use TLS client certs/keys, and that is challenging when
+     * tlsproxy runs in a post-jail environment: chroot breaks pathname
+     * resolution, and an unprivileged process should not be able to open
+     * files with secrets. The workaround: assume that most of those sites
+     * will use a fixed TLS client identity. In that case, tlsproxy can load
+     * the corresponding certs/keys at pre-jail time, so that secrets can
+     * remain read-only for root. As long as the tlsproxy pre-jail TLS client
+     * configuration with cert or key pathnames is the same as the one used
+     * in the Postfix SMTP client, sites can selectively or globally enable
+     * tlsproxy-based connection caching without additional TLS
+     * configuration.
+     * 
+     * Loading one TLS client configuration at pre-jail time is not sufficient
+     * for the minority of sites that want to use TLS connection caching with
+     * multiple TLS client identities. To alert the operator, tlsproxy will
+     * log a warning when a TLS_CLIENT_INIT message specifies a different
+     * configuration with cert or key pathnames. The workaround is to have
+     * one tlsproxy process per TLS client identity.
+     * 
+     * The general solution for single-identity or multi-identity clients is to
+     * stop loading certs and keys from individual files. Instead, have a
+     * cert/key map, indexed by client identity, read-only by root. After
+     * opening the map at pre-jail time, tlsproxy can read certs/keys
+     * on-the-fly at post-jail time. This is the approach that was already
+     * proposed for server-side SNI support, and it could be reused here. It
+     * would also end the proliferation of RSA cert/key parameters, DSA
+     * cert/key parameters, EC cert/key parameters, and so on.
+     * 
+     * Horror: In order to create the same pre-jail TLS client context as the
+     * one used in the Postfix SMTP client, we have to duplicate intricate
+     * SMTP client code, including a handful configuration parameters that
+     * tlsproxy does not need. We must duplicate the logic, so that we only
+     * load certs and keys when the SMTP client would load them.
+     */
+    if (*var_tlsp_clnt_level != 0)
+	switch (tls_level_lookup(var_tlsp_clnt_level)) {
+	case TLS_LEV_SECURE:
+	case TLS_LEV_VERIFY:
+	case TLS_LEV_DANE_ONLY:
+	case TLS_LEV_FPRINT:
+	case TLS_LEV_ENCRYPT:
+	    var_tlsp_clnt_use_tls = var_tlsp_clnt_enforce_tls = 1;
+	    break;
+	case TLS_LEV_DANE:
+	case TLS_LEV_MAY:
+	    var_tlsp_clnt_use_tls = 1;
+	    var_tlsp_clnt_enforce_tls = 0;
+	    break;
+	case TLS_LEV_NONE:
+	    var_tlsp_clnt_use_tls = var_tlsp_clnt_enforce_tls = 0;
+	    break;
+	default:
+	    /* tls_level_lookup() logs no warning. */
+	    /* session_tls_init() assumes that var_tlsp_clnt_level is sane. */
+	    msg_fatal("Invalid TLS level \"%s\"", var_tlsp_clnt_level);
+	}
+    clnt_use_tls = (var_tlsp_clnt_use_tls || var_tlsp_clnt_enforce_tls);
+
+    /*
+     * Initialize the TLS data before entering the chroot jail.
+     */
+    if (clnt_use_tls || var_tlsp_clnt_per_site[0] || var_tlsp_clnt_policy[0]) {
+	TLS_CLIENT_INIT_PROPS props;
+
+	/*
+	 * We get stronger type safety and a cleaner interface by combining
+	 * the various parameters into a single tls_client_props structure.
+	 * 
+	 * Large parameter lists are error-prone, so we emulate a language
+	 * feature that C does not have natively: named parameter lists.
+	 */
+	if (TLSP_CLIENT_INIT(&tlsp_client_ctx, &props,
+			     log_param = var_tlsp_clnt_logparam,
+			     log_level = var_tlsp_clnt_loglevel,
+			     verifydepth = var_tlsp_clnt_scert_vd,
+			     cache_type = TLS_MGR_SCACHE_SMTP,
+			     cert_file = var_tlsp_clnt_cert_file,
+			     key_file = var_tlsp_clnt_key_file,
+			     dcert_file = var_tlsp_clnt_dcert_file,
+			     dkey_file = var_tlsp_clnt_dkey_file,
+			     eccert_file = var_tlsp_clnt_eccert_file,
+			     eckey_file = var_tlsp_clnt_eckey_file,
+			     CAfile = var_tlsp_clnt_CAfile,
+			     CApath = var_tlsp_clnt_CApath,
+			     mdalg = var_tlsp_clnt_fpt_dgst) == 0)
+	    msg_warn("TLS client initialization failed");
+    }
+
+    /*
+     * tlsp_client_init() needs to know if it is called pre-jail or
+     * post-jail.
+     */
+    tlsp_pre_jail_done = 1;
 }
 
 MAIL_VERSION_STAMP_DECLARE;
@@ -1239,24 +1467,38 @@ MAIL_VERSION_STAMP_DECLARE;
 
 int     main(int argc, char **argv)
 {
-    static const CONFIG_INT_TABLE int_table[] = {
+
+    /*
+     * Each table below initializes the named variables to their implicit
+     * default value, or to the explicit value in main.cf or master.cf. Here,
+     * "compat" means that a table initializes a variable "smtpd_blah" or
+     * "smtp_blah" that provides the implicit default value for variable
+     * "tlsproxy_blah". To make this work, the variables in a "compat" table
+     * must be initialized before the variables in the corresponding
+     * non-compat table.
+     */
+    static const CONFIG_INT_TABLE compat_int_table[] = {
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
+	VAR_SMTP_TLS_SCERT_VD, DEF_SMTP_TLS_SCERT_VD, &var_smtp_tls_scert_vd, 0, 0,
 	0,
     };
     static const CONFIG_NINT_TABLE nint_table[] = {
 	VAR_TLSP_TLS_CCERT_VD, DEF_TLSP_TLS_CCERT_VD, &var_tlsp_tls_ccert_vd, 0, 0,
+	VAR_TLSP_CLNT_SCERT_VD, DEF_TLSP_CLNT_SCERT_VD, &var_tlsp_clnt_scert_vd, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
 	VAR_TLSP_WATCHDOG, DEF_TLSP_WATCHDOG, &var_tlsp_watchdog, 10, 0,
 	0,
     };
-    static const CONFIG_BOOL_TABLE bool_table[] = {
+    static const CONFIG_BOOL_TABLE compat_bool_table[] = {
 	VAR_SMTPD_USE_TLS, DEF_SMTPD_USE_TLS, &var_smtpd_use_tls,
 	VAR_SMTPD_ENFORCE_TLS, DEF_SMTPD_ENFORCE_TLS, &var_smtpd_enforce_tls,
 	VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
 	VAR_SMTPD_TLS_RCERT, DEF_SMTPD_TLS_RCERT, &var_smtpd_tls_req_ccert,
 	VAR_SMTPD_TLS_SET_SESSID, DEF_SMTPD_TLS_SET_SESSID, &var_smtpd_tls_set_sessid,
+	VAR_SMTP_USE_TLS, DEF_SMTP_USE_TLS, &var_smtp_use_tls,
+	VAR_SMTP_ENFORCE_TLS, DEF_SMTP_ENFORCE_TLS, &var_smtp_enforce_tls,
 	0,
     };
     static const CONFIG_NBOOL_TABLE nbool_table[] = {
@@ -1265,9 +1507,11 @@ int     main(int argc, char **argv)
 	VAR_TLSP_TLS_ACERT, DEF_TLSP_TLS_ACERT, &var_tlsp_tls_ask_ccert,
 	VAR_TLSP_TLS_RCERT, DEF_TLSP_TLS_RCERT, &var_tlsp_tls_req_ccert,
 	VAR_TLSP_TLS_SET_SESSID, DEF_TLSP_TLS_SET_SESSID, &var_tlsp_tls_set_sessid,
+	VAR_TLSP_CLNT_USE_TLS, DEF_TLSP_CLNT_USE_TLS, &var_tlsp_clnt_use_tls,
+	VAR_TLSP_CLNT_ENFORCE_TLS, DEF_TLSP_CLNT_ENFORCE_TLS, &var_tlsp_clnt_enforce_tls,
 	0,
     };
-    static const CONFIG_STR_TABLE str_table[] = {
+    static const CONFIG_STR_TABLE compat_str_table[] = {
 	VAR_SMTPD_TLS_CERT_FILE, DEF_SMTPD_TLS_CERT_FILE, &var_smtpd_tls_cert_file, 0, 0,
 	VAR_SMTPD_TLS_KEY_FILE, DEF_SMTPD_TLS_KEY_FILE, &var_smtpd_tls_key_file, 0, 0,
 	VAR_SMTPD_TLS_DCERT_FILE, DEF_SMTPD_TLS_DCERT_FILE, &var_smtpd_tls_dcert_file, 0, 0,
@@ -1288,6 +1532,22 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_FPT_DGST, DEF_SMTPD_TLS_FPT_DGST, &var_smtpd_tls_fpt_dgst, 1, 0,
 	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
+	VAR_SMTP_TLS_CERT_FILE, DEF_SMTP_TLS_CERT_FILE, &var_smtp_tls_cert_file, 0, 0,
+	VAR_SMTP_TLS_KEY_FILE, DEF_SMTP_TLS_KEY_FILE, &var_smtp_tls_key_file, 0, 0,
+	VAR_SMTP_TLS_DCERT_FILE, DEF_SMTP_TLS_DCERT_FILE, &var_smtp_tls_dcert_file, 0, 0,
+	VAR_SMTP_TLS_DKEY_FILE, DEF_SMTP_TLS_DKEY_FILE, &var_smtp_tls_dkey_file, 0, 0,
+	VAR_SMTP_TLS_CA_FILE, DEF_SMTP_TLS_CA_FILE, &var_smtp_tls_CAfile, 0, 0,
+	VAR_SMTP_TLS_CA_PATH, DEF_SMTP_TLS_CA_PATH, &var_smtp_tls_CApath, 0, 0,
+	VAR_SMTP_TLS_FPT_DGST, DEF_SMTP_TLS_FPT_DGST, &var_smtp_tls_fpt_dgst, 1, 0,
+	VAR_SMTP_TLS_ECCERT_FILE, DEF_SMTP_TLS_ECCERT_FILE, &var_smtp_tls_eccert_file, 0, 0,
+	VAR_SMTP_TLS_ECKEY_FILE, DEF_SMTP_TLS_ECKEY_FILE, &var_smtp_tls_eckey_file, 0, 0,
+	VAR_SMTP_TLS_LOGLEVEL, DEF_SMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
+	VAR_SMTP_TLS_PER_SITE, DEF_SMTP_TLS_PER_SITE, &var_smtp_tls_per_site, 0, 0,
+	VAR_SMTP_TLS_LEVEL, DEF_SMTP_TLS_LEVEL, &var_smtp_tls_level, 0, 0,
+	VAR_SMTP_TLS_POLICY, DEF_SMTP_TLS_POLICY, &var_smtp_tls_policy, 0, 0,
+	0,
+    };
+    static const CONFIG_STR_TABLE str_table[] = {
 	VAR_TLSP_TLS_CERT_FILE, DEF_TLSP_TLS_CERT_FILE, &var_tlsp_tls_cert_file, 0, 0,
 	VAR_TLSP_TLS_KEY_FILE, DEF_TLSP_TLS_KEY_FILE, &var_tlsp_tls_key_file, 0, 0,
 	VAR_TLSP_TLS_DCERT_FILE, DEF_TLSP_TLS_DCERT_FILE, &var_tlsp_tls_dcert_file, 0, 0,
@@ -1308,6 +1568,20 @@ int     main(int argc, char **argv)
 	VAR_TLSP_TLS_FPT_DGST, DEF_TLSP_TLS_FPT_DGST, &var_tlsp_tls_fpt_dgst, 1, 0,
 	VAR_TLSP_TLS_LOGLEVEL, DEF_TLSP_TLS_LOGLEVEL, &var_tlsp_tls_loglevel, 0, 0,
 	VAR_TLSP_TLS_LEVEL, DEF_TLSP_TLS_LEVEL, &var_tlsp_tls_level, 0, 0,
+	VAR_TLSP_CLNT_LOGLEVEL, DEF_TLSP_CLNT_LOGLEVEL, &var_tlsp_clnt_loglevel, 0, 0,
+	VAR_TLSP_CLNT_LOGPARAM, DEF_TLSP_CLNT_LOGPARAM, &var_tlsp_clnt_logparam, 0, 0,
+	VAR_TLSP_CLNT_CERT_FILE, DEF_TLSP_CLNT_CERT_FILE, &var_tlsp_clnt_cert_file, 0, 0,
+	VAR_TLSP_CLNT_KEY_FILE, DEF_TLSP_CLNT_KEY_FILE, &var_tlsp_clnt_key_file, 0, 0,
+	VAR_TLSP_CLNT_DCERT_FILE, DEF_TLSP_CLNT_DCERT_FILE, &var_tlsp_clnt_dcert_file, 0, 0,
+	VAR_TLSP_CLNT_DKEY_FILE, DEF_TLSP_CLNT_DKEY_FILE, &var_tlsp_clnt_dkey_file, 0, 0,
+	VAR_TLSP_CLNT_ECCERT_FILE, DEF_TLSP_CLNT_ECCERT_FILE, &var_tlsp_clnt_eccert_file, 0, 0,
+	VAR_TLSP_CLNT_ECKEY_FILE, DEF_TLSP_CLNT_ECKEY_FILE, &var_tlsp_clnt_eckey_file, 0, 0,
+	VAR_TLSP_CLNT_CAFILE, DEF_TLSP_CLNT_CAFILE, &var_tlsp_clnt_CAfile, 0, 0,
+	VAR_TLSP_CLNT_CAPATH, DEF_TLSP_CLNT_CAPATH, &var_tlsp_clnt_CApath, 0, 0,
+	VAR_TLSP_CLNT_FPT_DGST, DEF_TLSP_CLNT_FPT_DGST, &var_tlsp_clnt_fpt_dgst, 1, 0,
+	VAR_TLSP_CLNT_LEVEL, DEF_TLSP_CLNT_LEVEL, &var_tlsp_clnt_level, 0, 0,
+	VAR_TLSP_CLNT_PER_SITE, DEF_TLSP_CLNT_PER_SITE, &var_tlsp_clnt_per_site, 0, 0,
+	VAR_TLSP_CLNT_POLICY, DEF_TLSP_CLNT_POLICY, &var_tlsp_clnt_policy, 0, 0,
 	0,
     };
 
@@ -1320,14 +1594,14 @@ int     main(int argc, char **argv)
      * Pass control to the event-driven service skeleton.
      */
     event_server_main(argc, argv, tlsp_service,
-		      CA_MAIL_SERVER_INT_TABLE(int_table),
+		      CA_MAIL_SERVER_INT_TABLE(compat_int_table),
 		      CA_MAIL_SERVER_NINT_TABLE(nint_table),
+		      CA_MAIL_SERVER_STR_TABLE(compat_str_table),
 		      CA_MAIL_SERVER_STR_TABLE(str_table),
-		      CA_MAIL_SERVER_BOOL_TABLE(bool_table),
+		      CA_MAIL_SERVER_BOOL_TABLE(compat_bool_table),
 		      CA_MAIL_SERVER_NBOOL_TABLE(nbool_table),
 		      CA_MAIL_SERVER_TIME_TABLE(time_table),
 		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),
-		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
 		      CA_MAIL_SERVER_SLOW_EXIT(tlsp_drain),
 		      CA_MAIL_SERVER_RETIRE_ME,
 		      CA_MAIL_SERVER_WATCHDOG(&var_tlsp_watchdog),

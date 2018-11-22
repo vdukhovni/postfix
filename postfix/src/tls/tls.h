@@ -525,12 +525,17 @@ extern TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *,
 #define tls_client_stop(ctx, stream, timeout, failure, TLScontext) \
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
-#define TLS_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+#define TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13) \
-    tls_client_init((((props)->a1), ((props)->a2), ((props)->a3), \
+    (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), (props)))
+    ((props)->a12), ((props)->a13), (props))
+
+#define TLS_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+    a10, a11, a12, a13) \
+    tls_client_init(TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, \
+    a6, a7, a8, a9, a10, a11, a12, a13))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14, a15, a16) \

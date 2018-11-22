@@ -16913,3 +16913,127 @@ environment variable, or from the UNIX password file. </p>
 </ul>
 
 <p> This feature is available in Postfix 3.3 and later. </p>
+
+%PARAM tlsproxy_client_CAfile $smtp_tls_CAfile
+
+<p> A file containing CA certificates of root CAs trusted to sign
+either remote TLS server certificates or intermediate CA certificates.
+See smtp_tls_CAfile for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_CApath $smtp_tls_CApath
+
+<p> Directory with PEM format Certification Authority certificates
+that the Postfix tlsproxy(8) client uses to verify a remote TLS
+server certificate. See smtp_tls_CApath for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_cert_file $smtp_tls_cert_file
+
+<p> File with the Postfix tlsproxy(8) client RSA certificate in PEM
+format. See smtp_tls_cert_file for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_key_file $smtp_tls_key_file
+
+<p> File with the Postfix tlsproxy(8) client RSA private key in PEM
+format. See smtp_tls_key_file for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_dcert_file $smtp_tls_dcert_file
+
+<p> File with the Postfix tlsproxy(8) client DSA certificate in PEM
+format. See smtp_tls_dcert_file for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_dkey_file $smtp_tls_dkey_file
+
+<p> File with the Postfix tlsproxy(8) client DSA private key in PEM
+format. See smtp_tls_dkey_file for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_eccert_file $smtp_tls_eccert_file
+
+<p> File with the Postfix tlsproxy(8) client ECDSA certificate in
+PEM format. See smtp_tls_eccert_file for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_eckey_file $smtp_tls_eckey_file
+
+<p> File with the Postfix tlsproxy(8) client ECDSA private key in
+PEM format. See smtp_tls_eckey_file for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_fingerprint_digest $smtp_tls_fingerprint_digest
+
+<p> The message digest algorithm used to construct remote TLS server
+certificate fingerprints. See smtp_tls_fingerprint_digest for
+further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_loglevel $smtp_tls_loglevel
+
+<p> Enable additional Postfix tlsproxy(8) client logging of TLS
+activity. See smtp_tls_loglevel for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_loglevel_parameter smtp_tls_loglevel
+
+<p> The name of the parameter that provides the tlsproxy_client_loglevel
+value. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_scert_verifydepth $smtp_tls_scert_verifydepth
+
+<p> The verification depth for remote TLS server certificates.
+See smtp_tls_scert_verifydepth for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_security_level $smtp_tls_security_level
+
+<p> The default TLS security level for the Postfix tlsproxy(8)
+client. See smtp_tls_security_level for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_per_site $smtp_tls_per_site
+
+<p> Optional lookup tables with the Postfix tlsproxy(8) client TLS
+usage policy by next-hop destination and by remote TLS server
+hostname.  See smtp_tls_per_site for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_policy_maps $smtp_tls_policy_maps
+
+<p> Optional lookup tables with the Postfix tlsproxy(8) client TLS
+security policy by next-hop destination. See smtp_tls_policy_maps
+for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_use_tls $smtp_use_tls
+
+<p> Opportunistic mode: use TLS when a remote server announces TLS
+support. See smtp_use_tls for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tlsproxy_client_enforce_tls $smtp_enforce_tls
+
+<p> Enforcement mode: require that SMTP servers use TLS encryption.
+See smtp_enforce_tls for further details. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
