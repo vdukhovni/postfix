@@ -158,9 +158,11 @@ The name of the \fBtlsmgr\fR(8) service entry in master.cf.
 .nf
 .ad
 .fi
-These parameters allow \fBtlsproxy\fR(8) to load certificate
-and private key information before dropping privileges, so
-that the key files can be kept read\-only for root.
+These parameters are clones of SMTP client settings. They
+allow \fBtlsproxy\fR(8) to load the same certificate and
+private key information as the SMTP client, before dropping
+privileges, so that the key files can be kept read\-only for
+root.
 .PP
 Available in Postfix version 3.4 and later:
 .IP "\fBtlsproxy_client_CAfile ($smtp_tls_CAfile)\fR"

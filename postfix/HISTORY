@@ -23835,3 +23835,10 @@ Apologies for any names omitted.
 	cert/key information on-the-fly at post-jail time. Files:
 	proto/postconf.proto, mantools/postlink, global/mail_params.h,
 	tlsproxy/tlsproxy.c.
+
+20181123
+
+	Cleanup: tlsproxy now logs better instructions when a
+	tls_client_init request specifies an unexpected client
+	identity, and the test for that condition is now moved to
+	the right place. File: tlsproxy/tlsproxy.c.

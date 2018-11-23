@@ -140,9 +140,11 @@
 /* TLS CLIENT CONTROLS
 /* .ad
 /* .fi
-/*	These parameters allow \fBtlsproxy\fR(8) to load certificate
-/*	and private key information before dropping privileges, so
-/*	that the key files can be kept read-only for root.
+/*	These parameters are clones of SMTP client settings. They
+/*	allow \fBtlsproxy\fR(8) to load the same certificate and
+/*	private key information as the SMTP client, before dropping
+/*	privileges, so that the key files can be kept read-only for
+/*	root.
 /* .PP
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBtlsproxy_client_CAfile ($smtp_tls_CAfile)\fR"
@@ -413,6 +415,7 @@ static int ask_client_cert;
   * TLS per-client status.
   */
 static HTABLE *tlsp_client_app_cache;
+static char *tlsp_pre_jail_client_props_key;
 
  /*
   * Error handling: if a function detects an error, then that function is
@@ -1021,43 +1024,68 @@ static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
     char   *key;
 
     /*
-     * Share a TLS_APPL_STATE object among multiple requests that specify the
-     * same TLS_CLIENT_INIT_PROPS. TLS_APPL_STATE owns an SSL_CTX which is
+     * Use one TLS_APPL_STATE object for all requests that specify the same
+     * TLS_CLIENT_INIT_PROPS. Each TLS_APPL_STATE owns an SSL_CTX, which is
      * expensive.
+     * 
+     * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
+     * key that corresponds to the pre-jail internal call, which uses the
+     * tlsproxy_client_* settings.
      */
     buf = vstring_alloc(100);
     key = tls_proxy_client_init_to_string(buf, init_props);
+    if (tlsp_pre_jail_done == 0) {
+	if (tlsp_pre_jail_client_props_key != 0)
+	    msg_panic("tlsp_client_init: multiple pre-jail calls");
+	tlsp_pre_jail_client_props_key = mystrdup(key);
+    }
+
+    /*
+     * Log a warning if a post-jail request differs from the tlsproxy_client_*
+     * settings AND the request specifies file or directory arguments. Those
+     * are problematic after chroot (pathname resolution) and after dropping
+     * privileges (key files must be root read-only).
+     * 
+     * We can eliminate this complication by adding code that opens a cert/key
+     * lookup table at pre-jail time, and by reading cert/key info on-the-fly
+     * from that table.
+     */
+#define NOT_EMPTY(x) ((x) && *(x))
+
+    else if ((tlsp_pre_jail_client_props_key == 0
+	      || strcmp(tlsp_pre_jail_client_props_key, key) != 0)
+	     && (NOT_EMPTY(init_props->cert_file)
+		 || NOT_EMPTY(init_props->key_file)
+		 || NOT_EMPTY(init_props->dcert_file)
+		 || NOT_EMPTY(init_props->dkey_file)
+		 || NOT_EMPTY(init_props->eccert_file)
+		 || NOT_EMPTY(init_props->eckey_file)
+		 || NOT_EMPTY(init_props->CAfile)
+		 || NOT_EMPTY(init_props->CApath))) {
+	msg_warn("tls_client_init request with key_file='%s' dkey_file='%s' "
+		 "eckey_file='%s' differs from tlsproxy_client_* settings",
+		 init_props->key_file, init_props->dkey_file,
+		 init_props->eckey_file);
+	msg_warn("to avoid this warning, 1) identify the SMTP client that is "
+		 "making this tls_client_init request, 2) configure a "
+		 "custom tlsproxy service with tlsproxy_client_* settings "
+		 "that match that SMTP client, and 3) configure that SMTP "
+		 "client with a tlsproxy_service setting that resolves to "
+		 "that custom tlsproxy service");
+    }
+
+    /*
+     * Now, back to our regular program: look up the cached TLS_APPL_STATE
+     * for this tls_client_init request, or create one and add it the
+     * TLS_APPL_STATE cache. TLS_APPL_STATE creation may fail when a
+     * post-jail request specifies unexpected cert/key information, but that
+     * is OK because we already logged a warning with configuration
+     * suggestions.
+     */
     if ((appl_state = (TLS_APPL_STATE *)
 	 htable_find(tlsp_client_app_cache, key)) == 0
 	&& (appl_state = tls_client_init(init_props)) != 0) {
 	(void) htable_enter(tlsp_client_app_cache, key, (void *) appl_state);
-
-	/*
-	 * Log a warning if these client settings differ from the
-	 * tlsproxy_client_* settings AND the settings specify file or
-	 * directory arguments. Those are problematic after chroot (pathname
-	 * resolution) and dropping permission (key files must be root
-	 * read-only). We can eliminate this by adding code that opens a
-	 * cert/key lookup table at pre-jail time and by reading cert/key
-	 * info on-the-fly from that table.
-	 */
-#define NOT_NULL_NOT_EMPTY(x) ((x) && *(x))
-
-	if (tlsp_pre_jail_done && appl_state && appl_state != tlsp_client_ctx
-	    && (NOT_NULL_NOT_EMPTY(init_props->cert_file)
-		|| NOT_NULL_NOT_EMPTY(init_props->key_file)
-		|| NOT_NULL_NOT_EMPTY(init_props->dcert_file)
-		|| NOT_NULL_NOT_EMPTY(init_props->dkey_file)
-		|| NOT_NULL_NOT_EMPTY(init_props->eccert_file)
-		|| NOT_NULL_NOT_EMPTY(init_props->eckey_file)
-		|| NOT_NULL_NOT_EMPTY(init_props->CAfile)
-		|| NOT_NULL_NOT_EMPTY(init_props->CApath))) {
-	    msg_warn("client request differs from tlsproxy_client_* settings");
-	    msg_warn("to avoid this warning, 1) configure a custom tlsproxy");
-	    msg_warn("service and 2) configure an smtp client with a");
-	    msg_warn("tlsproxy_service setting that resolves to the custom");
-	    msg_warn("tlsproxy service");
-	}
 
 	/*
 	 * To maintain sanity, allow partial SSL_write() operations, and
@@ -1473,9 +1501,9 @@ int     main(int argc, char **argv)
      * default value, or to the explicit value in main.cf or master.cf. Here,
      * "compat" means that a table initializes a variable "smtpd_blah" or
      * "smtp_blah" that provides the implicit default value for variable
-     * "tlsproxy_blah". To make this work, the variables in a "compat" table
-     * must be initialized before the variables in the corresponding
-     * non-compat table.
+     * "tlsproxy_blah" which is initialized by a different table. To make
+     * this work, the variables in a "compat" table must be initialized
+     * before the variables in the corresponding non-compat table.
      */
     static const CONFIG_INT_TABLE compat_int_table[] = {
 	VAR_SMTPD_TLS_CCERT_VD, DEF_SMTPD_TLS_CCERT_VD, &var_smtpd_tls_ccert_vd, 0, 0,
