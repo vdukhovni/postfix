@@ -299,7 +299,7 @@ verification status.
                 (No client certificate requested)
 
     TLS 1.3 examples. Some of the new attributes may not appear when not
-    applicable or not available in an older versions of the OpenSSL library.
+    applicable or not available in older versions of the OpenSSL library.
 
         Received: from localhost (localhost [127.0.0.1])
                 (using TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256
