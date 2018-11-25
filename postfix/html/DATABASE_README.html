@@ -317,8 +317,10 @@ name as used in "<a href="DATABASE_README.html#types">hash</a>:table" is the dat
 
 <dd> A non-shared, in-memory lookup table. Example: "<a href="DATABASE_README.html#types">inline</a>:{
 <i>key=value</i>, { <i>key = text with whitespace or comma</i> }}".
-Key-value pairs are separated by whitespace or comma; whitespace
-after "{" and before "}" is ignored. Inline tables eliminate the
+Key-value pairs are separated by whitespace or comma; with a key-value
+pair inside "{}", whitespace is ignored after the opening "{",
+around the "=" between key and value, and before the closing "}".
+Inline tables eliminate the
 need to create a database file for just a few fixed elements. See
 also the <a href="DATABASE_README.html#types">static</a>: map type. </dd>
 
@@ -436,7 +438,8 @@ server. See <a href="socketmap_table.5.html">socketmap_table(5)</a> for details.
 For example, "<a href="DATABASE_README.html#types">static</a>:foobar" always returns the string "foobar" as
 lookup result. Specify "<a href="DATABASE_README.html#types">static</a>:{ <i>text with whitespace</i> }"
 when the result contains whitespace; this form ignores whitespace
-after "{" and before "}". See also the <a href="DATABASE_README.html#types">inline</a>: map type.  </dd>
+after the opening "{" and before the closing "}". See also the
+<a href="DATABASE_README.html#types">inline</a>: map type. </dd>
 
 <dt> <b>tcp</b> </dt>
 

@@ -23842,3 +23842,15 @@ Apologies for any names omitted.
 	tls_client_init request specifies an unexpected client
 	identity, and the test for that condition is now moved to
 	the right place. File: tlsproxy/tlsproxy.c.
+
+20181124
+
+	Documentation: clarified the behavior of whitespace within
+	"{}".  Files: proto/DATABASE_README.html, proto/postconf.proto,
+	pipe/pipe.c, postconf/postconf.c,
+
+20181125
+
+	Cleanup: dict_file_to_xxx() takes a list of file names
+	separated by CHARS_COMMA_SP. Shoe-horned into the existing
+	API, make it nicer when there is time. File: util/dict_file.c.

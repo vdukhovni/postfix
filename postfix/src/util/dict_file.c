@@ -8,11 +8,11 @@
 /*
 /*	VSTRING	*dict_file_to_buf(
 /*	DICT	*dict,
-/*	const char *pathname)
+/*	const char *pathnames)
 /*
 /*	VSTRING	*dict_file_to_b64(
 /*	DICT	*dict,
-/*	const char *pathname)
+/*	const char *pathnames)
 /*
 /*	VSTRING	*dict_file_from_b64(
 /*	DICT	*dict,
@@ -24,11 +24,15 @@
 /*	void	dict_file_purge_buffers(
 /*	DICT	*dict)
 /* DESCRIPTION
-/*	dict_file_to_buf() reads the content of the specified file.
+/*	dict_file_to_buf() reads the content of the specified
+/*	files, with names separated by CHARS_COMMA_SP, while inserting
+/*	a gratuitous newline character between files.
 /*	It returns a pointer to a buffer which is owned by the DICT,
 /*	or a null pointer in case of error.
 /*
-/*	dict_file_to_b64() reads the content of the specified file,
+/*	dict_file_to_b64() reads the content of the specified
+/*	files, with names separated by CHARS_COMMA_SP, while inserting
+/*	a gratuitous newline character between files,
 /*	and converts the result to base64.
 /*	It returns a pointer to a buffer which is owned by the DICT,
 /*	or a null pointer in case of error.
@@ -81,50 +85,71 @@
 #define STR(x) vstring_str(x)
 #define LEN(x) VSTRING_LEN(x)
 
-/* dict_file_to_buf - read a file into a buffer */
+/* dict_file_to_buf - read files into a buffer */
 
-VSTRING *dict_file_to_buf(DICT *dict, const char *pathname)
+VSTRING *dict_file_to_buf(DICT *dict, const char *pathnames)
 {
     struct stat st;
-    VSTREAM *fp;
+    VSTREAM *fp = 0;
+    ARGV   *argv;
+    char  **cpp;
 
     /* dict_file_to_buf() postcondition: dict->file_buf exists. */
     if (dict->file_buf == 0)
 	dict->file_buf = vstring_alloc(100);
 
-    if ((fp = vstream_fopen(pathname, O_RDONLY, 0)) == 0
-	|| fstat(vstream_fileno(fp), &st) < 0) {
-	vstring_sprintf(dict->file_buf, "open %s: %m", pathname);
-	if (fp)
-	    vstream_fclose(fp);
-	return (0);
+#define DICT_FILE_ERR_RETURN do { \
+	argv_free(argv); \
+	if (fp) vstream_fclose(fp); \
+	return (0); \
+    } while (0);
+
+    argv = argv_split(pathnames, CHARS_COMMA_SP);
+    if (argv->argc == 0) {
+	vstring_sprintf(dict->file_buf, "empty pathname list: >>%s<<'",
+			pathnames);
+	DICT_FILE_ERR_RETURN;
     }
     VSTRING_RESET(dict->file_buf);
-    VSTRING_SPACE(dict->file_buf, st.st_size);
-    if (vstream_fread(fp, STR(dict->file_buf), st.st_size) != st.st_size) {
-	vstring_sprintf(dict->file_buf, "read %s: %m", pathname);
-	vstream_fclose(fp);
-	return (0);
+    for (cpp = argv->argv; *cpp; cpp++) {
+	if ((fp = vstream_fopen(*cpp, O_RDONLY, 0)) == 0
+	    || fstat(vstream_fileno(fp), &st) < 0) {
+	    vstring_sprintf(dict->file_buf, "open %s: %m", *cpp);
+	    DICT_FILE_ERR_RETURN;
+	}
+	if (st.st_size > SSIZE_T_MAX - LEN(dict->file_buf)) {
+	    vstring_sprintf(dict->file_buf, "file too large: %s", pathnames);
+	    DICT_FILE_ERR_RETURN;
+	}
+	VSTRING_SPACE(dict->file_buf, st.st_size);
+	if (vstream_fread(fp, STR(dict->file_buf) + LEN(dict->file_buf),
+			  st.st_size) != st.st_size) {
+	    vstring_sprintf(dict->file_buf, "read %s: %m", *cpp);
+	    DICT_FILE_ERR_RETURN;
+	}
+	(void) vstream_fclose(fp);
+	VSTRING_AT_OFFSET(dict->file_buf, LEN(dict->file_buf) + st.st_size);
+	if (cpp[1] != 0)
+	    VSTRING_ADDCH(dict->file_buf, '\n');
     }
-    (void) vstream_fclose(fp);
-    VSTRING_AT_OFFSET(dict->file_buf, st.st_size);
+    argv_free(argv);
     VSTRING_TERMINATE(dict->file_buf);
     return (dict->file_buf);
 }
 
-/* dict_file_to_b64 - read a file into a base64-encoded buffer */
+/* dict_file_to_b64 - read files into a base64-encoded buffer */
 
-VSTRING *dict_file_to_b64(DICT *dict, const char *pathname)
+VSTRING *dict_file_to_b64(DICT *dict, const char *pathnames)
 {
     ssize_t helper;
 
-    if (dict_file_to_buf(dict, pathname) == 0)
+    if (dict_file_to_buf(dict, pathnames) == 0)
 	return (0);
     if (dict->file_b64 == 0)
 	dict->file_b64 = vstring_alloc(100);
-    helper = (VSTRING_LEN(dict->file_buf) + 2) / 3;
+    helper = (LEN(dict->file_buf) + 2) / 3;
     if (helper > SSIZE_T_MAX / 4) {
-	vstring_sprintf(dict->file_buf, "file too large: %s", pathname);
+	vstring_sprintf(dict->file_buf, "file too large: %s", pathnames);
 	return (0);
     }
     VSTRING_RESET(dict->file_b64);

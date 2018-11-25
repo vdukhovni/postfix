@@ -191,7 +191,7 @@
 /* .sp
 /*	Specify "{" and "}" around command arguments that contain
 /*	whitespace (Postfix 3.0 and later). Whitespace
-/*	after "{" and before "}" is ignored.
+/*	after the opening "{" and before the closing "}" is ignored.
 /* .sp
 /*	In the command argument vector, the following macros are recognized
 /*	and replaced with corresponding information from the Postfix queue

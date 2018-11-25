@@ -1026,10 +1026,10 @@ static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
     /*
      * Use one TLS_APPL_STATE object for all requests that specify the same
      * TLS_CLIENT_INIT_PROPS. Each TLS_APPL_STATE owns an SSL_CTX, which is
-     * expensive.
+     * expensive to create.
      * 
      * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
-     * key that corresponds to the pre-jail internal call, which uses the
+     * key that corresponds to the pre-jail internal request, which uses the
      * tlsproxy_client_* settings.
      */
     buf = vstring_alloc(100);
@@ -1042,9 +1042,9 @@ static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
 
     /*
      * Log a warning if a post-jail request differs from the tlsproxy_client_*
-     * settings AND the request specifies file or directory arguments. Those
-     * are problematic after chroot (pathname resolution) and after dropping
-     * privileges (key files must be root read-only).
+     * settings AND the request specifies file/directory pathname arguments.
+     * Those are problematic after chroot (pathname resolution) and after
+     * dropping privileges (key files must be root read-only).
      * 
      * We can eliminate this complication by adding code that opens a cert/key
      * lookup table at pre-jail time, and by reading cert/key info on-the-fly
@@ -1410,17 +1410,20 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * for the minority of sites that want to use TLS connection caching with
      * multiple TLS client identities. To alert the operator, tlsproxy will
      * log a warning when a TLS_CLIENT_INIT message specifies a different
-     * configuration with cert or key pathnames. The workaround is to have
-     * one tlsproxy process per TLS client identity.
+     * configuration than the tlsproxy pre-jail client configuration, and
+     * that different configuration specifies file/directory pathname
+     * arguments. The workaround is to have one tlsproxy process per TLS
+     * client identity.
      * 
      * The general solution for single-identity or multi-identity clients is to
      * stop loading certs and keys from individual files. Instead, have a
      * cert/key map, indexed by client identity, read-only by root. After
-     * opening the map at pre-jail time, tlsproxy can read certs/keys
-     * on-the-fly at post-jail time. This is the approach that was already
-     * proposed for server-side SNI support, and it could be reused here. It
-     * would also end the proliferation of RSA cert/key parameters, DSA
-     * cert/key parameters, EC cert/key parameters, and so on.
+     * opening the map as root at pre-jail time, tlsproxy can read certs/keys
+     * on-the-fly as an unprivileged process at post-jail time. This is the
+     * approach that was already proposed for server-side SNI support, and it
+     * could be reused here. It would also end the proliferation of RSA
+     * cert/key parameters, DSA cert/key parameters, EC cert/key parameters,
+     * and so on.
      * 
      * Horror: In order to create the same pre-jail TLS client context as the
      * one used in the Postfix SMTP client, we have to duplicate intricate

@@ -268,8 +268,10 @@
 /*	A non-shared, in-memory lookup table. Example: "\fBinline:{
 /*	\fIkey\fB=\fIvalue\fB, { \fIkey\fB = \fItext with whitespace
 /*	or comma\fB }}\fR". Key-value pairs are separated by
-/*	whitespace or comma; whitespace after "\fB{\fR" and before "\fB}\fR"
-/*	is ignored. Inline tables eliminate the need to create a
+/*	whitespace or comma; with a key-value pair inside "\fB{}\fR",
+/*	whitespace is ignored after the opening "\fB{\fR", around
+/*	the "\fB=\fR" between key and value, and before the closing
+/*	"\fB}\fR". Inline tables eliminate the need to create a
 /*	database file for just a few fixed elements.  See also the
 /*	\fIstatic:\fR map type.
 /*
@@ -353,7 +355,8 @@
 /*	example, \fBstatic:foobar\fR always returns the string
 /*	\fBfoobar\fR as lookup result. Specify "\fBstatic:{ \fItext
 /*	with whitespace\fB }\fR" when the result contains whitespace;
-/*	this form ignores whitespace after "\fB{\fR" and before
+/*	this form ignores whitespace after the opening "\fB{\fR"
+/*	and before the closing
 /*	"\fB}\fR". See also the \fIinline:\fR map.
 /*
 /*	The form "\fBstatic:{\fItext\fB}\fR is available with Postfix

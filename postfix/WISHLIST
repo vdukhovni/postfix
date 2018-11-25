@@ -1,7 +1,10 @@
 Wish list:
 
-	With DICT_FLAG_RHS_IS_FILE, RHS is list of files (insert
-	newline for robustness).
+	Declumsify code that calls vstream_fread() to read data
+	into VSTRING buffer. This needs vstream_fread_buf(VSTREAM *,
+	VSTRING *, ssize_t) which calls VSTRING_SPACE(), appends
+	data to the buffer, and calls VSTRING_AT_OFFSET(). Current
+	code is error-prone.
 
 	With DICT_FLAG_RHS_IS_FILE, should dict_update() open a
 	file? base64-encode the value?
