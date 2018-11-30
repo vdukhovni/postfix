@@ -23854,3 +23854,21 @@ Apologies for any names omitted.
 	Cleanup: dict_file_to_xxx() takes a list of file names
 	separated by CHARS_COMMA_SP. Shoe-horned into the existing
 	API, make it nicer when there is time. File: util/dict_file.c.
+
+20181127
+
+	Cleanup: encapsulated clumsy 'read into VSTRING' code with
+	easier-to-use vstream_fread_buf() and vstream_fread_app()
+	primitives. Files: global/memcache_proto.c, global/record.c,
+	global/smtp_stream.c, global/smtp_stream.h, global/uxtext.c,
+	global/xtext.c, milter/milter8.c, util/dict_file.c,
+	util/hex_quote.c, util/netstring.c, util/vstream.c,
+	util/vstream.h. Verified with "make tests".
+
+	Cleanup: simplified the smtp_fread() API (introduced for
+	BDAT support), and changed the name to smtp_fread_buf().
+	Files: global/smtp_stream.c, smtpd/smtpd.c. Verified with
+	~megabyte BDAT commands.
+
+	Cleanup: simplified a tlsproxy-internal API. File:
+	tlsproxy/tlsproxy.c.

@@ -41,7 +41,7 @@ extern int smtp_get(VSTRING *, VSTREAM *, ssize_t, int);
 extern int smtp_get_noexcept(VSTRING *, VSTREAM *, ssize_t, int);
 extern void smtp_fputs(const char *, ssize_t len, VSTREAM *);
 extern void smtp_fwrite(const char *, ssize_t len, VSTREAM *);
-extern void smtp_fread(VSTRING *, ssize_t len, VSTREAM *);
+extern void smtp_fread_buf(VSTRING *, ssize_t len, VSTREAM *);
 extern void smtp_fputc(int, VSTREAM *);
 
 extern void smtp_vprintf(VSTREAM *, const char *, va_list);

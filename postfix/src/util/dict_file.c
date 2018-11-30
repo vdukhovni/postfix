@@ -24,18 +24,15 @@
 /*	void	dict_file_purge_buffers(
 /*	DICT	*dict)
 /* DESCRIPTION
-/*	dict_file_to_buf() reads the content of the specified
-/*	files, with names separated by CHARS_COMMA_SP, while inserting
-/*	a gratuitous newline character between files.
-/*	It returns a pointer to a buffer which is owned by the DICT,
-/*	or a null pointer in case of error.
+/*	dict_file_to_buf() reads the content of the specified files,
+/*	with names separated by CHARS_COMMA_SP, while inserting a
+/*	gratuitous newline character between files. It returns a
+/*	pointer to a buffer which is owned by the DICT, or a null
+/*	pointer in case of error.
 /*
-/*	dict_file_to_b64() reads the content of the specified
-/*	files, with names separated by CHARS_COMMA_SP, while inserting
-/*	a gratuitous newline character between files,
-/*	and converts the result to base64.
-/*	It returns a pointer to a buffer which is owned by the DICT,
-/*	or a null pointer in case of error.
+/*	dict_file_to_b64() invokes dict_file_to_buf() and converts
+/*	the result to base64. It returns a pointer to a buffer which
+/*	is owned by the DICT, or a null pointer in case of error.
 /*
 /*	dict_file_from_b64() converts a value from base64. It returns
 /*	a pointer to a buffer which is owned by the DICT, or a null
@@ -121,14 +118,11 @@ VSTRING *dict_file_to_buf(DICT *dict, const char *pathnames)
 	    vstring_sprintf(dict->file_buf, "file too large: %s", pathnames);
 	    DICT_FILE_ERR_RETURN;
 	}
-	VSTRING_SPACE(dict->file_buf, st.st_size);
-	if (vstream_fread(fp, STR(dict->file_buf) + LEN(dict->file_buf),
-			  st.st_size) != st.st_size) {
+	if (vstream_fread_app(fp, dict->file_buf, st.st_size) != st.st_size) {
 	    vstring_sprintf(dict->file_buf, "read %s: %m", *cpp);
 	    DICT_FILE_ERR_RETURN;
 	}
 	(void) vstream_fclose(fp);
-	VSTRING_AT_OFFSET(dict->file_buf, LEN(dict->file_buf) + st.st_size);
 	if (cpp[1] != 0)
 	    VSTRING_ADDCH(dict->file_buf, '\n');
     }

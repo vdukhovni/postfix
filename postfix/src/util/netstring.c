@@ -232,15 +232,9 @@ VSTRING *netstring_get_data(VSTREAM *stream, VSTRING *buf, ssize_t len)
     const char *myname = "netstring_get_data";
 
     /*
-     * Allocate buffer space.
-     */
-    VSTRING_RESET(buf);
-    VSTRING_SPACE(buf, len);
-
-    /*
      * Read the payload and absorb the terminator.
      */
-    if (vstream_fread(stream, STR(buf), len) != len)
+    if (vstream_fread_buf(stream, buf, len) != len)
 	netstring_except(stream, vstream_ftimeout(stream) ?
 			 NETSTRING_ERR_TIME : NETSTRING_ERR_EOF);
     if (msg_verbose > 1)
@@ -249,9 +243,8 @@ VSTRING *netstring_get_data(VSTREAM *stream, VSTRING *buf, ssize_t len)
     netstring_get_terminator(stream);
 
     /*
-     * Position the buffer.
+     * Return the buffer.
      */
-    VSTRING_AT_OFFSET(buf, len);
     return (buf);
 }
 

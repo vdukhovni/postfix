@@ -51,6 +51,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -663,14 +668,11 @@ static int vmilter8_read_data(MILTER8 *milter, ssize_t *data_len, va_list ap)
 		return (milter8_comm_error(milter));
 	    }
 	    buf = va_arg(ap, VSTRING *);
-	    VSTRING_RESET(buf);
-	    VSTRING_SPACE(buf, *data_len);
-	    if (vstream_fread(milter->fp, (void *) STR(buf), *data_len)
+	    if (vstream_fread_buf(milter->fp, buf, *data_len)
 		!= *data_len) {
 		msg_warn("milter %s: EOF while reading data: %m", milter->m.name);
 		return (milter8_comm_error(milter));
 	    }
-	    VSTRING_AT_OFFSET(buf, *data_len);
 	    *data_len = 0;
 	    break;
 

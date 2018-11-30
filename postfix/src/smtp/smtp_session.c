@@ -280,8 +280,10 @@ int     smtp_session_passivate(SMTP_SESSION *session, VSTRING *dest_prop,
      */
     if ((mp = vstream_memopen(endp_prop, O_WRONLY)) == 0
 	|| attr_print_plain(mp, ATTR_FLAG_NONE,
+#ifdef USE_TLS
 			    SEND_ATTR_INT(SESS_ATTR_TLS_LEVEL,
 					  session->state->tls->level),
+#endif
 			    SEND_ATTR_INT(SESS_ATTR_REUSE_COUNT,
 					  session->reuse_count),
 			    SEND_ATTR_INT(SESS_ATTR_ENDP_FEATURES,
@@ -329,9 +331,9 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
     int     dest_features;		/* server features */
     long    expire_time;		/* session re-use expiration time */
     int     reuse_count;		/* # times reused */
-    TLS_SESS_STATE *tls_context = 0;
 
 #ifdef USE_TLS
+    TLS_SESS_STATE *tls_context = 0;
     SMTP_TLS_POLICY *tls = iter->parent->tls;
 
 #endif
@@ -348,8 +350,10 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
      */
     if ((mp = vstream_memopen(endp_prop, O_RDONLY)) == 0
 	|| attr_scan_plain(mp, ATTR_FLAG_NONE,
+#ifdef USE_TLS
 			   RECV_ATTR_INT(SESS_ATTR_TLS_LEVEL,
 					 &tls->level),
+#endif
 			   RECV_ATTR_INT(SESS_ATTR_REUSE_COUNT,
 					 &reuse_count),
 			   RECV_ATTR_INT(SESS_ATTR_ENDP_FEATURES,

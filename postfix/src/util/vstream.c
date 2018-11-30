@@ -78,7 +78,17 @@
 /*
 /*	ssize_t	vstream_fwrite(stream, buf, len)
 /*	VSTREAM	*stream;
-/*	const void *buf;
+/*	void *buf;
+/*	ssize_t	len;
+/*
+/*	ssize_t	vstream_fread_app(stream, buf, len)
+/*	VSTREAM	*stream;
+/*	VSTRING	*buf;
+/*	ssize_t	len;
+/*
+/*	ssize_t	vstream_fread_buf(stream, buf, len)
+/*	VSTREAM	*stream;
+/*	VSTRING	*buf;
 /*	ssize_t	len;
 /*
 /*	void	vstream_control(stream, name, ...)
@@ -286,6 +296,19 @@
 /*	on the named stream. The result value is the number of bytes
 /*	transferred. A short count is returned in case of end-of-file
 /*	or error conditions.
+/*
+/*	vstream_fread_buf() resets the buffer write position,
+/*	allocates space for the specified number of bytes in the
+/*	buffer, reads the bytes from the specified VSTREAM, and
+/*	adjusts the buffer write position. The buffer is NOT
+/*	null-terminated. The result value is as with vstream_fread().
+/*      NOTE: do not skip calling vstream_fread_buf() when len == 0.
+/*      This function has side effects including resetting the buffer
+/*      write position, and skipping the call would invalidate the
+/*      buffer state.
+/*
+/*	vstream_fread_app() is like vstream_fread_buf() but appends
+/*	to existing buffer content, instead of writing over it.
 /*
 /*	vstream_control() allows the user to fine tune the behavior of
 /*	the specified stream.  The arguments are a list of macros with
@@ -1454,6 +1477,33 @@ int     vstream_fputs(const char *str, VSTREAM *stream)
 	if (VSTREAM_PUTC(ch, stream) == VSTREAM_EOF)
 	    return (VSTREAM_EOF);
     return (0);
+}
+
+/* vstream_fread_buf - unformatted read to VSTRING */
+
+ssize_t vstream_fread_buf(VSTREAM *fp, VSTRING *vp, ssize_t len)
+{
+    ssize_t ret;
+
+    VSTRING_RESET(vp);
+    VSTRING_SPACE(vp, len);
+    ret = vstream_fread(fp, vstring_str(vp), len);
+    if (ret > 0)
+	VSTRING_AT_OFFSET(vp, ret);
+    return (ret);
+}
+
+/* vstream_fread_app - unformatted read to VSTRING */
+
+ssize_t vstream_fread_app(VSTREAM *fp, VSTRING *vp, ssize_t len)
+{
+    ssize_t ret;
+
+    VSTRING_SPACE(vp, len);
+    ret = vstream_fread(fp, vstring_end(vp), len);
+    if (ret > 0)
+	VSTRING_AT_OFFSET(vp, VSTRING_LEN(vp) + ret);
+    return (ret);
 }
 
 /* vstream_control - fine control */

@@ -3727,10 +3727,9 @@ static int skip_bdat(SMTPD_STATE *state, off_t chunk_size,
      * connection in case of overload.
      */
     for (done = 0; done < chunk_size; done += len) {
-	VSTRING_RESET(state->buffer);
 	if ((len = chunk_size - done) > VSTREAM_BUFSIZE)
 	    len = VSTREAM_BUFSIZE;
-	smtp_fread(state->buffer, len, state->client);
+	smtp_fread_buf(state->buffer, len, state->client);
     }
 
     /*
@@ -3918,12 +3917,17 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      */
     done = 0;
     do {
+
+	/*
+	 * Do not skip the smtp_fread_buf() call if read_len == 0. We still
+	 * need the side effects which include resetting the buffer write
+	 * position. Skipping the call would invalidate the buffer state.
+	 * 
+	 * Caution: smtp_fread_buf() will long jump after EOF or timeout.
+	 */
 	if ((read_len = chunk_size - done) > VSTREAM_BUFSIZE)
 	    read_len = VSTREAM_BUFSIZE;
-	/* Caution: smtp_fread() makes a long jump in case of EOF or timeout. */
-	VSTRING_RESET(state->buffer);
-	if (read_len > 0)
-	    smtp_fread(state->buffer, read_len, state->client);
+	smtp_fread_buf(state->buffer, read_len, state->client);
 	state->bdat_get_stream = vstream_memreopen(
 			   state->bdat_get_stream, state->buffer, O_RDONLY);
 

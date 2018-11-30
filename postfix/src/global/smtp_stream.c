@@ -37,7 +37,7 @@
 /*	ssize_t	len;
 /*	VSTREAM *stream;
 /*
-/*	void	smtp_fread(vp, len, stream)
+/*	void	smtp_fread_buf(vp, len, stream)
 /*	VSTRING	*vp;
 /*	ssize_t	len;
 /*	VSTREAM *stream;
@@ -111,8 +111,12 @@
 /*	Long strings are not broken. No CR LF is appended. The stream
 /*	is not flushed.
 /*
-/*	smtp_fread() appends the specified number of bytes from the
-/*	stream to the buffer. The result is not null-terminated.
+/*	smtp_fread_buf() invokes vstream_fread_buf() to read the
+/*	specified number of unformatted bytes from the stream. The
+/*	result is not null-terminated. NOTE: do not skip calling
+/*	smtp_fread_buf() when len == 0. This function has side
+/*	effects including resetting the buffer write position, and
+/*	skipping the call would invalidate the buffer state.
 /*
 /*	smtp_fputc() writes one character to the named stream.
 /*	The stream is not flushed.
@@ -474,23 +478,25 @@ void    smtp_fwrite(const char *cp, ssize_t todo, VSTREAM *stream)
 	smtp_longjmp(stream, SMTP_ERR_EOF, "smtp_fwrite");
 }
 
-/* smtp_fread - read one buffer from SMTP peer */
+/* smtp_fread_buf - read one buffer from SMTP peer */
 
-void    smtp_fread(VSTRING *vp, ssize_t todo, VSTREAM *stream)
+void    smtp_fread_buf(VSTRING *vp, ssize_t todo, VSTREAM *stream)
 {
     int     err;
 
-    if (todo <= 0)
-	msg_panic("smtp_fread: zero or negative todo %ld", (long) todo);
+    /*
+     * Do not return early if todo == 0. We still need the side effects from
+     * calling vstream_fread_buf() including resetting the buffer write
+     * position. Skipping the call would invalidate the buffer state.
+     */
+    if (todo < 0)
+	msg_panic("smtp_fread_buf: negative todo %ld", (long) todo);
 
     /*
      * Do the I/O, protected against timeout.
      */
     smtp_timeout_reset(stream);
-    VSTRING_SPACE(vp, todo);
-    err = (vstream_fread(stream, vstring_end(vp), todo) != todo);
-    if (err == 0)
-	VSTRING_AT_OFFSET(vp, VSTRING_LEN(vp) + todo);
+    err = (vstream_fread_buf(stream, vp, todo) != todo);
 
     /*
      * See if there was a problem.

@@ -287,14 +287,11 @@ int     rec_get_raw(VSTREAM *stream, VSTRING *buf, ssize_t maxsize, int flags)
 	 * Reserve buffer space for the result, and read the record data into
 	 * the buffer.
 	 */
-	VSTRING_RESET(buf);
-	VSTRING_SPACE(buf, len);
-	if (vstream_fread(stream, vstring_str(buf), len) != len) {
+	if (vstream_fread_buf(stream, buf, len) != len) {
 	    msg_warn("%s: unexpected EOF in data, record type %d length %ld",
 		     VSTREAM_PATH(stream), type, (long) len);
 	    return (REC_TYPE_ERROR);
 	}
-	VSTRING_AT_OFFSET(buf, len);
 	VSTRING_TERMINATE(buf);
 	if (msg_verbose > 2)
 	    msg_info("%s: type %c len %ld data %.10s", myname,

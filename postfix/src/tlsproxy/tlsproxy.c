@@ -1009,15 +1009,14 @@ static void tlsp_get_fd_event(int event, void *context)
  /*
   * Macro for readability.
   */
-#define TLSP_CLIENT_INIT(ctx, props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+#define TLSP_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13) \
-    tlsp_client_init((ctx), TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
+    tlsp_client_init(TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
     a5, a6, a7, a8, a9, a10, a11, a12, a13))
 
 /* tlsp_client_init - initialize a TLS client engine */
 
-static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
-			            TLS_CLIENT_INIT_PROPS *init_props)
+static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
 {
     TLS_APPL_STATE *appl_state;
     VSTRING *buf;
@@ -1070,8 +1069,8 @@ static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
 		 "making this tls_client_init request, 2) configure a "
 		 "custom tlsproxy service with tlsproxy_client_* settings "
 		 "that match that SMTP client, and 3) configure that SMTP "
-		 "client with a tlsproxy_service setting that resolves to "
-		 "that custom tlsproxy service");
+		 "client with a tlsproxy_service_name setting that resolves "
+		 "to that custom tlsproxy service");
     }
 
     /*
@@ -1099,9 +1098,8 @@ static int tlsp_client_init(TLS_APPL_STATE **client_appl_state,
 			     SSL_MODE_ENABLE_PARTIAL_WRITE
 			     | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
     }
-    *client_appl_state = appl_state;
     vstring_free(buf);
-    return (appl_state != 0);
+    return (appl_state);
 }
 
 /* tlsp_close_event - pre-handshake plaintext-client close event */
@@ -1197,7 +1195,8 @@ static void tlsp_get_request_event(int event, void *context)
 	    tlsp_state_free(state);
 	    return;
 	}
-	ready = tlsp_client_init(&state->appl_state, state->client_init_props);
+	state->appl_state = tlsp_client_init(state->client_init_props);
+	ready = state->appl_state != 0;
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
 	state->is_server_role = 1;
@@ -1468,7 +1467,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	 * Large parameter lists are error-prone, so we emulate a language
 	 * feature that C does not have natively: named parameter lists.
 	 */
-	if (TLSP_CLIENT_INIT(&tlsp_client_ctx, &props,
+	tlsp_client_ctx =
+	    TLSP_CLIENT_INIT(&props,
 			     log_param = var_tlsp_clnt_logparam,
 			     log_level = var_tlsp_clnt_loglevel,
 			     verifydepth = var_tlsp_clnt_scert_vd,
@@ -1481,7 +1481,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			     eckey_file = var_tlsp_clnt_eckey_file,
 			     CAfile = var_tlsp_clnt_CAfile,
 			     CApath = var_tlsp_clnt_CApath,
-			     mdalg = var_tlsp_clnt_fpt_dgst) == 0)
+			     mdalg = var_tlsp_clnt_fpt_dgst);
+	if (tlsp_client_ctx == 0)
 	    msg_warn("TLS client initialization failed");
     }
 

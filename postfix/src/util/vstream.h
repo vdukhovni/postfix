@@ -132,6 +132,8 @@ extern int vstream_fdclose(VSTREAM *);
 
 #define vstream_fstat(vp, fl)	((vp)->buf.flags & (fl))
 
+extern ssize_t vstream_fread_buf(VSTREAM *, struct VSTRING *, ssize_t);
+extern ssize_t vstream_fread_app(VSTREAM *, struct VSTRING *, ssize_t);
 extern void vstream_control(VSTREAM *, int,...);
 
 /* Legacy API: type-unchecked arguments, internal use. */

@@ -235,9 +235,7 @@ static ssize_t read_buf(VSTREAM *fp, VSTRING *buf)
 {
     ssize_t len;
 
-    VSTRING_RESET(buf);
-    len = vstream_fread(fp, STR(buf), vstring_avail(buf));
-    VSTRING_AT_OFFSET(buf, len);		/* XXX */
+    len = vstream_fread_buf(fp, buf, BUFLEN);
     VSTRING_TERMINATE(buf);
     return (len);
 }
