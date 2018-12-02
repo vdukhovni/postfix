@@ -1,11 +1,5 @@
 Wish list:
 
-	Declumsify code that calls vstream_fread() to read data
-	into VSTRING buffer. This needs vstream_fread_buf(VSTREAM *,
-	VSTRING *, ssize_t) which calls VSTRING_SPACE(), appends
-	data to the buffer, and calls VSTRING_AT_OFFSET(). Current
-	code is error-prone.
-
 	With DICT_FLAG_RHS_IS_FILE, should dict_update() open a
 	file? base64-encode the value?
 
@@ -13,14 +7,11 @@ Wish list:
 	to ~0 so that STARTTLS, BDAT, DSN, etc. work only for clients
 	that send EHLO.
 
+	Wordsmithing: "replace by X" -> "replace with X" unless X
+	is "responsible" for making the substitution.
+
 	In postscreen, don't fork after 'postfix reload' when
 	psc_check_queue_length (and psc_post_queue_length?) is zero.
-
-	With smtpd_reject_footer=$foo in master.cf, and foo defined
-	in main.cf, postconf complains about an unused setting in
-	main.cf. Note that "postconf -Px" will expand $name in
-	the parameter value, which is probably why the warning
-	exists.
 
 	Things to do before the stable release:
 

@@ -519,6 +519,8 @@
 
 /* Utility library. */
 
+#define VSTRING_INTERNAL
+
 #include "mymalloc.h"
 #include "msg.h"
 #include "vbuf_print.h"

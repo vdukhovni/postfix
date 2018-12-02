@@ -1477,8 +1477,10 @@ The location of all postfix administrative commands.
 external command.  Failure to change directory causes the delivery
 to be deferred. </p>
 
-<p> The following $name expansions are done on <a href="postconf.5.html#command_execution_directory">command_execution_directory</a>
-before the directory is changed. Expansion happens in the context
+<p> The <a href="postconf.5.html#command_execution_directory">command_execution_directory</a> value is not subject to Postfix
+configuration parameter $name expansion. Instead, the following
+$name expansions are done on <a href="postconf.5.html#command_execution_directory">command_execution_directory</a> before the
+directory is used. Expansion happens in the context
 of the delivery request.  The result of $name expansion is filtered
 with the character set that is specified with the
 <a href="postconf.5.html#execution_directory_expansion_filter">execution_directory_expansion_filter</a> parameter.  </p>
@@ -2458,7 +2460,9 @@ This feature is available in Postfix 2.0 and later.
 </p>
 
 <p>
-The template is subject to exactly one level of $name substitution:
+The template does not support Postfix configuration parameter $name
+substitution. Instead, it supports exactly one level of $name
+substitution for the following attributes:
 </p>
 
 <dl>
@@ -3555,8 +3559,10 @@ allowed set are replaced by underscores.
 file with user-specified delivery methods. The first file that is
 found is used.  </p>
 
-<p> The following $name expansions are done on <a href="postconf.5.html#forward_path">forward_path</a> before
-the search actually happens. The result of $name expansion is
+<p> The <a href="postconf.5.html#forward_path">forward_path</a> value is not subject to Postfix configuration
+parameter $name expansion. Instead, the following $name expansions
+are done on <a href="postconf.5.html#forward_path">forward_path</a> before the search actually happens.
+The result of $name expansion is
 filtered with the character set that is specified with the
 <a href="postconf.5.html#forward_expansion_filter">forward_expansion_filter</a> parameter.  </p>
 
@@ -5803,7 +5809,9 @@ as undeliverable.
 </p>
 
 <p>
-The following $name expansions are done on <a href="postconf.5.html#luser_relay">luser_relay</a>:
+The <a href="postconf.5.html#luser_relay">luser_relay</a> value is not subject to Postfix configuration
+parameter $name expansion. Instead, the following $name expansions
+are done:
 </p>
 
 <dl>
@@ -14577,7 +14585,8 @@ Use C like escapes to specify special characters such as whitespace.
 </p>
 
 <p>
-This parameter is not subjected to $parameter expansion.
+The <a href="postconf.5.html#smtpd_expansion_filter">smtpd_expansion_filter</a> value is not subject to Postfix configuration
+parameter $name expansion.
 </p>
 
 <p>
@@ -15494,9 +15503,10 @@ be truncated before it is logged to the remote SMTP client's maillog
 file, or before it is returned to the sender in a delivery status
 notification.  </p>
 
-<p> This feature supports a limited number of $name attributes in
-the footer text. These are replaced by their current value for the
-SMTP session. </p>
+<p> The template text is not subject to Postfix configuration
+parameter $name expansion. Instead, this feature supports a limited
+number of $name attributes in the footer text. These attributes are
+replaced with their current value for the SMTP session. </p>
 
 <p> Note: specify $$name in footer text that is looked up from
 <a href="regexp_table.5.html">regexp</a>: or <a href="pcre_table.5.html">pcre</a>:-based <a href="postconf.5.html#smtpd_reject_footer_maps">smtpd_reject_footer_maps</a>, otherwise the
@@ -15907,8 +15917,8 @@ base64-encoded text.  The default value is therefore also the minimum value
 accepted for this parameter.</p>
 
 <p> This feature is available in Postfix 3.4 and later. Prior versions use
-"<a href="postconf.5.html#line_length_limit">line_length_limit</a>", which may need to be raised to accomodate larger client
-responses, as may be needed with GSSAPI authenticaiton of Windows AD users
+"<a href="postconf.5.html#line_length_limit">line_length_limit</a>", which may need to be raised to accommodate larger client
+responses, as may be needed with GSSAPI authentication of Windows AD users
 who are members of many groups. </p>
 
 

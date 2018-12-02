@@ -3728,7 +3728,7 @@ extern int var_psc_cmd_count;
 
 #define VAR_PSC_CMD_TIME		"postscreen_command_time_limit"
 #define DEF_PSC_CMD_TIME		DEF_SMTPD_TMOUT
-extern char *var_psc_cmd_time;
+extern int var_psc_cmd_time;
 
 #define VAR_PSC_WATCHDOG		"postscreen_watchdog_timeout"
 #define DEF_PSC_WATCHDOG		"10s"

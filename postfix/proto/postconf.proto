@@ -1123,7 +1123,9 @@ This feature is available in Postfix 2.0 and later.
 </p>
 
 <p>
-The template is subject to exactly one level of $name substitution:
+The template does not support Postfix configuration parameter $name
+substitution. Instead, it supports exactly one level of $name
+substitution for the following attributes:
 </p>
 
 <dl>
@@ -1237,13 +1239,6 @@ server will transform a sender or recipient DSN status into a generic
 non-address DSN status (e.g., 4.0.0).  </p>
 
 </ul>
-
-%PARAM smtpd_expansion_filter see "postconf -d" output
-
-<p>
-The smtpd_expansion_filter configuration parameter controls what
-characters may appear in $name expansions.
-</p>
 
 %PARAM default_recipient_limit 20000
 
@@ -1629,8 +1624,10 @@ outside the allowed set are replaced by underscores.  </p>
 external command.  Failure to change directory causes the delivery
 to be deferred. </p>
 
-<p> The following $name expansions are done on command_execution_directory
-before the directory is changed. Expansion happens in the context
+<p> The command_execution_directory value is not subject to Postfix
+configuration parameter $name expansion. Instead, the following
+$name expansions are done on command_execution_directory before the
+directory is used. Expansion happens in the context
 of the delivery request.  The result of $name expansion is filtered
 with the character set that is specified with the
 execution_directory_expansion_filter parameter.  </p>
@@ -1693,8 +1690,10 @@ Instead of $name you can also specify ${name} or $(name).
 file with user-specified delivery methods. The first file that is
 found is used.  </p>
 
-<p> The following $name expansions are done on forward_path before
-the search actually happens. The result of $name expansion is
+<p> The forward_path value is not subject to Postfix configuration
+parameter $name expansion. Instead, the following $name expansions
+are done on forward_path before the search actually happens.
+The result of $name expansion is
 filtered with the character set that is specified with the
 forward_expansion_filter parameter.  </p>
 
@@ -2451,7 +2450,9 @@ as undeliverable.
 </p>
 
 <p>
-The following $name expansions are done on luser_relay:
+The luser_relay value is not subject to Postfix configuration
+parameter $name expansion. Instead, the following $name expansions
+are done:
 </p>
 
 <dl>
@@ -5624,7 +5625,8 @@ Use C like escapes to specify special characters such as whitespace.
 </p>
 
 <p>
-This parameter is not subjected to $parameter expansion.
+The smtpd_expansion_filter value is not subject to Postfix configuration
+parameter $name expansion.
 </p>
 
 <p>
@@ -10793,8 +10795,8 @@ base64-encoded text.  The default value is therefore also the minimum value
 accepted for this parameter.</p>
 
 <p> This feature is available in Postfix 3.4 and later. Prior versions use
-"line_length_limit", which may need to be raised to accomodate larger client
-responses, as may be needed with GSSAPI authenticaiton of Windows AD users
+"line_length_limit", which may need to be raised to accommodate larger client
+responses, as may be needed with GSSAPI authentication of Windows AD users
 who are members of many groups. </p>
 
 %PARAM cyrus_sasl_config_path
@@ -15313,9 +15315,10 @@ be truncated before it is logged to the remote SMTP client's maillog
 file, or before it is returned to the sender in a delivery status
 notification.  </p>
 
-<p> This feature supports a limited number of $name attributes in
-the footer text. These are replaced by their current value for the
-SMTP session. </p>
+<p> The template text is not subject to Postfix configuration
+parameter $name expansion. Instead, this feature supports a limited
+number of $name attributes in the footer text. These attributes are
+replaced with their current value for the SMTP session. </p>
 
 <p> Note: specify $$name in footer text that is looked up from
 regexp: or pcre:-based smtpd_reject_footer_maps, otherwise the

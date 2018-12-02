@@ -23872,3 +23872,21 @@ Apologies for any names omitted.
 
 	Cleanup: simplified a tlsproxy-internal API. File:
 	tlsproxy/tlsproxy.c.
+
+20181201
+
+	Cleanup: replaced the remaining unsafe VSTRING_AT_OFFSET()
+	calls with safe vstring_set_payload_size() calls, in code
+	that directly writes into VSTRING. Files: tls/tls_session.c,
+	tlsmgr/tlsmgr.c, util/casefold.c, util/vstring.c, util/vstring.h,
+	xsasl/xsasl_cyrus_client.c.
+
+	Cleanup: postscreen_command_time_limit did not need to be
+	a 'raw' parameter. This makes "postconf -x" behavior more
+	consistent. Files: global/mail_params.h, postscreen/postscreen.c.
+
+	Documentation: added text that the following parameter
+	values are not subject to Postfix parameter $name expansion:
+	default_rbl_reply, command_execution_directory, luser_relay,
+	smtpd_reject_footer. These have their own documented $name
+	substitution mechanism. File: proto/postconf.proto.

@@ -40,6 +40,10 @@
 /*	VSTRING	*vp;
 /*	ssize_t	len;
 /*
+/*	VSTRING	*vstring_set_payload_size(vp, len)
+/*	VSTRING	*vp;
+/*	ssize_t	len;
+/*
 /*	void	VSTRING_RESET(vp)
 /*	VSTRING	*vp;
 /*
@@ -180,6 +184,15 @@
 /*	The operation has no effect when the string is shorter.
 /*	The string is not null-terminated.
 /*
+/*	vstring_set_payload_size() sets the number of 'used' bytes
+/*	in the named buffer's metadata. This determines the buffer
+/*	write position and the VSTRING_LEN() result. The payload
+/*	size must be within the closed range [0, number of allocated
+/*	bytes]. The typical usage is to request buffer space with
+/*	VSTRING_SPACE(), to use some non-VSTRING operations to write
+/*	to the buffer, and to call vstring_set_payload_size() to
+/*	update buffer metadata, perhaps followed by VSTRING_TERMINATE().
+/*
 /*	VSTRING_RESET() is a macro that resets the write position of its
 /*	string argument to the very beginning. Note that VSTRING_RESET()
 /*	is an unsafe macro that evaluates some arguments more than once.
@@ -282,6 +295,8 @@
 #include <string.h>
 
 /* Utility library. */
+
+#define VSTRING_INTERNAL
 
 #include "mymalloc.h"
 #include "msg.h"
@@ -417,6 +432,16 @@ VSTRING *vstring_truncate(VSTRING *vp, ssize_t len)
     }
     if (len < VSTRING_LEN(vp))
 	VSTRING_AT_OFFSET(vp, len);
+    return (vp);
+}
+
+/* vstring_set_payload_size - public version of VSTRING_AT_OFFSET */
+
+VSTRING *vstring_set_payload_size(VSTRING *vp, ssize_t len)
+{
+    if (len < 0 || len > vp->vbuf.len)
+	msg_panic("vstring_set_payload_size: invalid offset: %ld", (long) len);
+    VSTRING_AT_OFFSET(vp, len);
     return (vp);
 }
 

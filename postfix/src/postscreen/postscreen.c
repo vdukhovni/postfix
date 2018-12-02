@@ -509,7 +509,7 @@ char   *var_psc_barlf_action;
 int     var_psc_barlf_ttl;
 
 int     var_psc_cmd_count;
-char   *var_psc_cmd_time;
+int     var_psc_cmd_time;
 
 char   *var_dnsblog_service;
 char   *var_tlsproxy_service;
@@ -1147,6 +1147,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
+	VAR_PSC_CMD_TIME, DEF_PSC_CMD_TIME, &var_psc_cmd_time, 1, 0,
 	VAR_PSC_GREET_WAIT, DEF_PSC_GREET_WAIT, &var_psc_greet_wait, 1, 0,
 	VAR_PSC_PREGR_TTL, DEF_PSC_PREGR_TTL, &var_psc_pregr_ttl, 1, 0,
 	VAR_PSC_DNSBL_MIN_TTL, DEF_PSC_DNSBL_MIN_TTL, &var_psc_dnsbl_min_ttl, 1, 0,
@@ -1173,7 +1174,6 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_RAW_TABLE raw_table[] = {
-	VAR_PSC_CMD_TIME, DEF_PSC_CMD_TIME, &var_psc_cmd_time, 1, 0,
 	VAR_SMTPD_REJ_FOOTER, DEF_SMTPD_REJ_FOOTER, &var_smtpd_rej_footer, 0, 0,
 	VAR_PSC_REJ_FOOTER, DEF_PSC_REJ_FOOTER, &var_psc_rej_footer, 0, 0,
 	VAR_SMTPD_EXP_FILTER, DEF_SMTPD_EXP_FILTER, &var_smtpd_exp_filter, 1, 0,

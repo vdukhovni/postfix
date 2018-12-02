@@ -757,8 +757,7 @@ static void tlsmgr_service(VSTREAM *client_stream, char *unused_service,
 		} else {
 		    VSTRING_SPACE(buffer, len);
 		    RAND_bytes((unsigned char *) STR(buffer), len);
-		    VSTRING_AT_OFFSET(buffer, len);	/* XXX not part of the
-							 * official interface */
+		    vstring_set_payload_size(buffer, len);
 		    status = TLS_MGR_STAT_OK;
 		}
 	    }

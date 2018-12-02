@@ -50,6 +50,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
 /*	Victor Duchovni
 /*	Morgan Stanley
 /*--*/
@@ -138,7 +143,7 @@ VSTRING *tls_session_passivate(SSL_SESSION *session)
 	vstring_free(session_data);
 	return (0);
     }
-    VSTRING_AT_OFFSET(session_data, actual_size);	/* XXX not public */
+    vstring_set_payload_size(session_data, actual_size);
 
     return (session_data);
 }

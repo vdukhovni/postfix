@@ -200,7 +200,7 @@ char   *casefoldx(int flags, VSTRING *dest, const char *src, ssize_t len)
 	space_needed = ucasemap_utf8FoldCase(csm, STR(dest) + old_len,
 				     vstring_avail(dest), src, len, &error);
 	if (U_SUCCESS(error)) {
-	    VSTRING_AT_OFFSET(dest, old_len + space_needed);
+	    vstring_set_payload_size(dest, old_len + space_needed);
 	    if (vstring_avail(dest) == 0)	/* exact fit, no terminator */
 		VSTRING_TERMINATE(dest);	/* add terminator */
 	    break;

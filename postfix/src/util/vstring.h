@@ -33,6 +33,7 @@ typedef struct VSTRING {
 extern VSTRING *vstring_alloc(ssize_t);
 extern void vstring_ctl(VSTRING *,...);
 extern VSTRING *vstring_truncate(VSTRING *, ssize_t);
+extern VSTRING *vstring_set_payload_size(VSTRING *, ssize_t);
 extern VSTRING *vstring_free(VSTRING *);
 extern VSTRING *vstring_strcpy(VSTRING *, const char *);
 extern VSTRING *vstring_strncpy(VSTRING *, const char *, ssize_t);
@@ -87,10 +88,12 @@ CHECK_VAL_HELPER_DCL(VSTRING_CTL, ssize_t);
   * The following macro is not part of the public interface, because it can
   * really screw up a buffer by positioning past allocated memory.
   */
+#ifdef VSTRING_INTERNAL
 #define VSTRING_AT_OFFSET(vp, offset) do { \
 	(vp)->vbuf.ptr = (vp)->vbuf.data + (offset); \
 	(vp)->vbuf.cnt = (vp)->vbuf.len - (offset); \
     } while (0)
+#endif
 
 extern VSTRING *vstring_vsprintf(VSTRING *, const char *, va_list);
 extern VSTRING *vstring_vsprintf_append(VSTRING *, const char *, va_list);
