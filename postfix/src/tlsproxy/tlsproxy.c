@@ -93,11 +93,11 @@
 /*	File with the Postfix \fBtlsproxy\fR(8) server DSA private key in PEM
 /*	format.
 /* .IP "\fBtlsproxy_tls_eccert_file ($smtpd_tls_eccert_file)\fR"
-/*	File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in
-/*	PEM format.
+/*	File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in PEM
+/*	format.
 /* .IP "\fBtlsproxy_tls_eckey_file ($smtpd_tls_eckey_file)\fR"
-/*	File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in
-/*	PEM format.
+/*	File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in PEM
+/*	format.
 /* .IP "\fBtlsproxy_tls_eecdh_grade ($smtpd_tls_eecdh_grade)\fR"
 /*	The Postfix \fBtlsproxy\fR(8) server security grade for ephemeral
 /*	elliptic-curve Diffie-Hellman (EECDH) key exchange.
@@ -137,6 +137,15 @@
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBtlsproxy_tls_chain_files ($smtpd_tls_chain_files)\fR"
+/*	Files with the Postfix \fBtlsproxy\fR(8) server keys and certificate
+/*	chains in PEM format.
+/* .IP "\fBtls_server_sni_maps (empty)\fR"
+/*	Optional lookup tables that map names received from remote SMTP
+/*	clients via the TLS Server Name Indication (SNI) extension to the
+/*	appropriate keys and certificate chains.
 /* TLS CLIENT CONTROLS
 /* .ad
 /* .fi
@@ -154,6 +163,9 @@
 /*	Directory with PEM format Certification Authority certificates
 /*	that the Postfix \fBtlsproxy\fR(8) client uses to verify a remote TLS
 /*	server certificate.
+/* .IP "\fBtlsproxy_client_chain_files ($smtp_tls_chain_files)\fR"
+/*	Files with the Postfix \fBtlsproxy\fR(8) client keys and certificate
+/*	chains in PEM format.
 /* .IP "\fBtlsproxy_client_cert_file ($smtp_tls_cert_file)\fR"
 /*	File with the Postfix \fBtlsproxy\fR(8) client RSA certificate in PEM
 /*	format.
@@ -167,11 +179,11 @@
 /*	File with the Postfix \fBtlsproxy\fR(8) client DSA private key in PEM
 /*	format.
 /* .IP "\fBtlsproxy_client_eccert_file ($smtp_tls_eccert_file)\fR"
-/*	File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in
-/*	PEM format.
+/*	File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in PEM
+/*	format.
 /* .IP "\fBtlsproxy_client_eckey_file ($smtp_tls_eckey_file)\fR"
-/*	File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in
-/*	PEM format.
+/*	File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in PEM
+/*	format.
 /* .IP "\fBtlsproxy_client_fingerprint_digest ($smtp_tls_fingerprint_digest)\fR"
 /*	The message digest algorithm used to construct remote TLS server
 /*	certificate fingerprints.
@@ -316,6 +328,7 @@ bool    var_smtpd_tls_ask_ccert;
 bool    var_smtpd_tls_req_ccert;
 bool    var_smtpd_tls_set_sessid;
 char   *var_smtpd_relay_ccerts;
+char   *var_smtpd_tls_chain_files;
 char   *var_smtpd_tls_cert_file;
 char   *var_smtpd_tls_key_file;
 char   *var_smtpd_tls_dcert_file;
@@ -343,6 +356,7 @@ bool    var_tlsp_enforce_tls;
 bool    var_tlsp_tls_ask_ccert;
 bool    var_tlsp_tls_req_ccert;
 bool    var_tlsp_tls_set_sessid;
+char   *var_tlsp_tls_chain_files;
 char   *var_tlsp_tls_cert_file;
 char   *var_tlsp_tls_key_file;
 char   *var_tlsp_tls_dcert_file;
@@ -370,6 +384,7 @@ int     var_tlsp_watchdog;
   */
 char   *var_smtp_tls_loglevel;
 int     var_smtp_tls_scert_vd;
+char   *var_smtp_tls_chain_files;
 char   *var_smtp_tls_cert_file;
 char   *var_smtp_tls_key_file;
 char   *var_smtp_tls_dcert_file;
@@ -388,6 +403,7 @@ char   *var_smtp_tls_policy;
 char   *var_tlsp_clnt_loglevel;
 char   *var_tlsp_clnt_logparam;
 int     var_tlsp_clnt_scert_vd;
+char   *var_tlsp_clnt_chain_files;
 char   *var_tlsp_clnt_cert_file;
 char   *var_tlsp_clnt_key_file;
 char   *var_tlsp_clnt_dcert_file;
@@ -1010,9 +1026,9 @@ static void tlsp_get_fd_event(int event, void *context)
   * Macro for readability.
   */
 #define TLSP_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13) \
+    a10, a11, a12, a13, a14) \
     tlsp_client_init(TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
-    a5, a6, a7, a8, a9, a10, a11, a12, a13))
+    a5, a6, a7, a8, a9, a10, a11, a12, a13, a14))
 
 /* tlsp_client_init - initialize a TLS client engine */
 
@@ -1053,7 +1069,8 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
 
     else if ((tlsp_pre_jail_client_props_key == 0
 	      || strcmp(tlsp_pre_jail_client_props_key, key) != 0)
-	     && (NOT_EMPTY(init_props->cert_file)
+	     && (NOT_EMPTY(init_props->chain_files)
+		 || NOT_EMPTY(init_props->cert_file)
 		 || NOT_EMPTY(init_props->key_file)
 		 || NOT_EMPTY(init_props->dcert_file)
 		 || NOT_EMPTY(init_props->dkey_file)
@@ -1061,10 +1078,10 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
 		 || NOT_EMPTY(init_props->eckey_file)
 		 || NOT_EMPTY(init_props->CAfile)
 		 || NOT_EMPTY(init_props->CApath))) {
-	msg_warn("tls_client_init request with key_file='%s' dkey_file='%s' "
-		 "eckey_file='%s' differs from tlsproxy_client_* settings",
-		 init_props->key_file, init_props->dkey_file,
-		 init_props->eckey_file);
+	msg_warn("tls_client_init request with chain_files='%s' key_file='%s' "
+	      "dkey_file='%s' eckey_file='%s' differs from tlsproxy client "
+		 "settings", init_props->chain_files, init_props->key_file,
+		 init_props->dkey_file, init_props->eckey_file);
 	msg_warn("to avoid this warning, 1) identify the SMTP client that is "
 		 "making this tls_client_init request, 2) configure a "
 		 "custom tlsproxy service with tlsproxy_client_* settings "
@@ -1331,13 +1348,27 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     have_server_cert =
 	(*cert_file || *var_tlsp_tls_dcert_file || *var_tlsp_tls_eccert_file);
 
+    if (*var_tlsp_tls_chain_files != 0) {
+	if (!have_server_cert)
+	    have_server_cert = 1;
+	else
+	    msg_warn("Both %s and one or more of the legacy "
+		     " %s, %s or %s are non-empty; the legacy "
+		     " parameters will be ignored",
+		     VAR_TLSP_TLS_CHAIN_FILES,
+		     VAR_TLSP_TLS_CERT_FILE,
+		     VAR_TLSP_TLS_ECCERT_FILE,
+		     VAR_TLSP_TLS_DCERT_FILE);
+    }
     /* Some TLS configuration errors are not show stoppers. */
     if (!have_server_cert && require_server_cert)
 	msg_warn("Need a server cert to request client certs");
     if (!var_tlsp_enforce_tls && var_tlsp_tls_req_ccert)
 	msg_warn("Can't require client certs unless TLS is required");
     /* After a show-stopper error, log a warning. */
-    if (have_server_cert || (no_server_cert_ok && !require_server_cert))
+    if (have_server_cert || (no_server_cert_ok && !require_server_cert)) {
+
+	tls_pre_jail_init(TLS_ROLE_SERVER);
 
 	/*
 	 * Large parameter lists are error-prone, so we emulate a language
@@ -1350,6 +1381,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			    verifydepth = var_tlsp_tls_ccert_vd,
 			    cache_type = TLS_MGR_SCACHE_SMTPD,
 			    set_sessid = var_tlsp_tls_set_sessid,
+			    chain_files = var_tlsp_tls_chain_files,
 			    cert_file = cert_file,
 			    key_file = var_tlsp_tls_key_file,
 			    dcert_file = var_tlsp_tls_dcert_file,
@@ -1368,8 +1400,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			    var_tlsp_tls_proto,
 			    ask_ccert = ask_client_cert,
 			    mdalg = var_tlsp_tls_fpt_dgst);
-    else
+    } else {
 	msg_warn("No server certs available. TLS can't be enabled");
+    }
 
     /*
      * To maintain sanity, allow partial SSL_write() operations, and allow
@@ -1460,6 +1493,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (clnt_use_tls || var_tlsp_clnt_per_site[0] || var_tlsp_clnt_policy[0]) {
 	TLS_CLIENT_INIT_PROPS props;
 
+	tls_pre_jail_init(TLS_ROLE_CLIENT);
+
 	/*
 	 * We get stronger type safety and a cleaner interface by combining
 	 * the various parameters into a single tls_client_props structure.
@@ -1473,6 +1508,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 			     log_level = var_tlsp_clnt_loglevel,
 			     verifydepth = var_tlsp_clnt_scert_vd,
 			     cache_type = TLS_MGR_SCACHE_SMTP,
+			     chain_files = var_tlsp_clnt_chain_files,
 			     cert_file = var_tlsp_clnt_cert_file,
 			     key_file = var_tlsp_clnt_key_file,
 			     dcert_file = var_tlsp_clnt_dcert_file,
@@ -1544,6 +1580,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_STR_TABLE compat_str_table[] = {
+	VAR_SMTPD_TLS_CHAIN_FILES, DEF_SMTPD_TLS_CHAIN_FILES, &var_smtpd_tls_chain_files, 0, 0,
 	VAR_SMTPD_TLS_CERT_FILE, DEF_SMTPD_TLS_CERT_FILE, &var_smtpd_tls_cert_file, 0, 0,
 	VAR_SMTPD_TLS_KEY_FILE, DEF_SMTPD_TLS_KEY_FILE, &var_smtpd_tls_key_file, 0, 0,
 	VAR_SMTPD_TLS_DCERT_FILE, DEF_SMTPD_TLS_DCERT_FILE, &var_smtpd_tls_dcert_file, 0, 0,
@@ -1564,6 +1601,7 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_TLS_FPT_DGST, DEF_SMTPD_TLS_FPT_DGST, &var_smtpd_tls_fpt_dgst, 1, 0,
 	VAR_SMTPD_TLS_LOGLEVEL, DEF_SMTPD_TLS_LOGLEVEL, &var_smtpd_tls_loglevel, 0, 0,
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
+	VAR_SMTP_TLS_CHAIN_FILES, DEF_SMTP_TLS_CHAIN_FILES, &var_smtp_tls_chain_files, 0, 0,
 	VAR_SMTP_TLS_CERT_FILE, DEF_SMTP_TLS_CERT_FILE, &var_smtp_tls_cert_file, 0, 0,
 	VAR_SMTP_TLS_KEY_FILE, DEF_SMTP_TLS_KEY_FILE, &var_smtp_tls_key_file, 0, 0,
 	VAR_SMTP_TLS_DCERT_FILE, DEF_SMTP_TLS_DCERT_FILE, &var_smtp_tls_dcert_file, 0, 0,
@@ -1580,6 +1618,7 @@ int     main(int argc, char **argv)
 	0,
     };
     static const CONFIG_STR_TABLE str_table[] = {
+	VAR_TLSP_TLS_CHAIN_FILES, DEF_TLSP_TLS_CHAIN_FILES, &var_tlsp_tls_chain_files, 0, 0,
 	VAR_TLSP_TLS_CERT_FILE, DEF_TLSP_TLS_CERT_FILE, &var_tlsp_tls_cert_file, 0, 0,
 	VAR_TLSP_TLS_KEY_FILE, DEF_TLSP_TLS_KEY_FILE, &var_tlsp_tls_key_file, 0, 0,
 	VAR_TLSP_TLS_DCERT_FILE, DEF_TLSP_TLS_DCERT_FILE, &var_tlsp_tls_dcert_file, 0, 0,
@@ -1602,6 +1641,7 @@ int     main(int argc, char **argv)
 	VAR_TLSP_TLS_LEVEL, DEF_TLSP_TLS_LEVEL, &var_tlsp_tls_level, 0, 0,
 	VAR_TLSP_CLNT_LOGLEVEL, DEF_TLSP_CLNT_LOGLEVEL, &var_tlsp_clnt_loglevel, 0, 0,
 	VAR_TLSP_CLNT_LOGPARAM, DEF_TLSP_CLNT_LOGPARAM, &var_tlsp_clnt_logparam, 0, 0,
+	VAR_TLSP_CLNT_CHAIN_FILES, DEF_TLSP_CLNT_CHAIN_FILES, &var_tlsp_clnt_chain_files, 0, 0,
 	VAR_TLSP_CLNT_CERT_FILE, DEF_TLSP_CLNT_CERT_FILE, &var_tlsp_clnt_cert_file, 0, 0,
 	VAR_TLSP_CLNT_KEY_FILE, DEF_TLSP_CLNT_KEY_FILE, &var_tlsp_clnt_key_file, 0, 0,
 	VAR_TLSP_CLNT_DCERT_FILE, DEF_TLSP_CLNT_DCERT_FILE, &var_tlsp_clnt_dcert_file, 0, 0,

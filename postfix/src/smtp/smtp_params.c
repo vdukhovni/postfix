@@ -9,6 +9,7 @@
 #ifdef USE_TLS
 	VAR_SMTP_SASL_TLS_OPTS, DEF_SMTP_SASL_TLS_OPTS, &var_smtp_sasl_tls_opts, 0, 0,
 	VAR_SMTP_SASL_TLSV_OPTS, DEF_SMTP_SASL_TLSV_OPTS, &var_smtp_sasl_tlsv_opts, 0, 0,
+	VAR_SMTP_TLS_CHAIN_FILES, DEF_SMTP_TLS_CHAIN_FILES, &var_smtp_tls_chain_files, 0, 0,
 	VAR_SMTP_TLS_CERT_FILE, DEF_SMTP_TLS_CERT_FILE, &var_smtp_tls_cert_file, 0, 0,
 	VAR_SMTP_TLS_KEY_FILE, DEF_SMTP_TLS_KEY_FILE, &var_smtp_tls_key_file, 0, 0,
 	VAR_SMTP_TLS_DCERT_FILE, DEF_SMTP_TLS_DCERT_FILE, &var_smtp_tls_dcert_file, 0, 0,
@@ -29,6 +30,7 @@
 	VAR_SMTP_TLS_ECCERT_FILE, DEF_SMTP_TLS_ECCERT_FILE, &var_smtp_tls_eccert_file, 0, 0,
 	VAR_SMTP_TLS_ECKEY_FILE, DEF_SMTP_TLS_ECKEY_FILE, &var_smtp_tls_eckey_file, 0, 0,
 	VAR_SMTP_TLS_LOGLEVEL, DEF_SMTP_TLS_LOGLEVEL, &var_smtp_tls_loglevel, 0, 0,
+	VAR_SMTP_TLS_SNI, DEF_SMTP_TLS_SNI, &var_smtp_tls_sni, 0, 0,
 	VAR_SMTP_TLS_INSECURE_MX_POLICY, DEF_SMTP_TLS_INSECURE_MX_POLICY, &var_smtp_tls_insecure_mx_policy, 0, 0,
 #endif
 	VAR_SMTP_SASL_MECHS, DEF_SMTP_SASL_MECHS, &var_smtp_sasl_mechs, 0, 0,

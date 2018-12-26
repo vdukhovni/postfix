@@ -66,6 +66,9 @@
 /*
 /*	void	tls_param_init()
 /*
+/*	void	tls_pre_jail_init(TLS_ROLE)
+/*	TLS_ROLE role;
+/*
 /*	int	tls_protocol_mask(plist)
 /*	const char *plist;
 /*
@@ -150,6 +153,10 @@
 /*
 /*	tls_param_init() loads main.cf parameters used internally in
 /*	TLS library. Any errors are fatal.
+/*
+/*	tls_pre_jail_init() opens any tables that need to be opened before
+/*	entering a chroot jail. The "role" parameter must be TLS_ROLE_CLIENT
+/*	for clients and TLS_ROLE_SERVER for servers. Any errors are fatal.
 /*
 /*	tls_protocol_mask() returns a bitmask of excluded protocols, given
 /*	a list (plist) of protocols to include or (preceded by a '!') exclude.
@@ -247,12 +254,15 @@
 #include <argv.h>
 #include <name_mask.h>
 #include <name_code.h>
+#include <dict.h>
+#include <valid_hostname.h>
 
  /*
   * Global library.
   */
 #include <mail_params.h>
 #include <mail_conf.h>
+#include <maps.h>
 
  /*
   * TLS library.
@@ -285,6 +295,9 @@ bool    var_tls_multi_wildcard;
 char   *var_tls_mgr_service;
 char   *var_tls_tkt_cipher;
 char   *var_openssl_path;
+char   *var_tls_server_sni_maps;
+
+static MAPS *tls_server_sni_maps;
 
 #ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
@@ -752,6 +765,65 @@ void    tls_param_init(void)
     get_mail_conf_bool_table(bool_table);
 }
 
+/* tls_pre_jail_init - Load TLS related pre-jail tables */
+
+void    tls_pre_jail_init(TLS_ROLE role)
+{
+    static const CONFIG_STR_TABLE str_table[] = {
+	VAR_TLS_SERVER_SNI_MAPS, DEF_TLS_SERVER_SNI_MAPS, &var_tls_server_sni_maps, 0, 0,
+	0,
+    };
+    int     flags;
+
+    /* Nothing for clients at this time */
+    if (role != TLS_ROLE_SERVER)
+	return;
+
+    get_mail_conf_str_table(str_table);
+    if (*var_tls_server_sni_maps == 0)
+	return;
+
+    flags = DICT_FLAG_LOCK | DICT_FLAG_FOLD_FIX | DICT_FLAG_SRC_RHS_IS_FILE;
+    tls_server_sni_maps =
+	maps_create(VAR_TLS_SERVER_SNI_MAPS, var_tls_server_sni_maps, flags);
+}
+
+/* server_sni_callback - process client's SNI extension */
+
+static int server_sni_callback(SSL *ssl, int *alert, void *arg)
+{
+    SSL_CTX *sni_ctx = (SSL_CTX *) arg;
+    const char *sni = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
+    const char *pem;
+
+    if (!sni_ctx || !tls_server_sni_maps
+	|| !sni || !*sni || !valid_hostname(sni, DONT_GRIPE))
+	return SSL_TLSEXT_ERR_NOACK;
+
+    do {
+	pem = maps_find(tls_server_sni_maps, sni, DICT_FLAG_SRC_RHS_IS_FILE);
+    } while (!pem
+	     && !tls_server_sni_maps->error
+	     && (sni = strchr(sni + 1, '.')) != 0);
+
+    if (!pem) {
+	if (tls_server_sni_maps->error) {
+	    msg_warn("%s: %s map lookup problem",
+		     tls_server_sni_maps->title, sni);
+	    *alert = SSL_AD_INTERNAL_ERROR;
+	    return SSL_TLSEXT_ERR_ALERT_FATAL;
+	}
+	return SSL_TLSEXT_ERR_NOACK;
+    }
+    SSL_set_SSL_CTX(ssl, sni_ctx);
+    if (tls_load_pem_chain(ssl, pem, sni) != 0) {
+	/* errors already logged */
+	*alert = SSL_AD_INTERNAL_ERROR;
+	return SSL_TLSEXT_ERR_ALERT_FATAL;
+    }
+    return SSL_TLSEXT_ERR_OK;
+}
+
 /* tls_set_ciphers - Set SSL context cipher list */
 
 const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
@@ -1073,7 +1145,8 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 
 /* tls_alloc_app_context - allocate TLS application context */
 
-TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, int log_mask)
+TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, SSL_CTX *sni_ctx,
+				              int log_mask)
 {
     TLS_APPL_STATE *app_ctx;
 
@@ -1082,6 +1155,7 @@ TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, int log_mask)
     /* See portability note below with other memset() call. */
     memset((void *) app_ctx, 0, sizeof(*app_ctx));
     app_ctx->ssl_ctx = ssl_ctx;
+    app_ctx->sni_ctx = sni_ctx;
     app_ctx->log_mask = log_mask;
 
     /* See also: cache purging code in tls_set_ciphers(). */
@@ -1091,6 +1165,10 @@ TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, int log_mask)
     app_ctx->cache_type = 0;
     app_ctx->why = vstring_alloc(1);
 
+    if (tls_server_sni_maps) {
+	SSL_CTX_set_tlsext_servername_callback(ssl_ctx, server_sni_callback);
+	SSL_CTX_set_tlsext_servername_arg(ssl_ctx, (void *) sni_ctx);
+    }
     return (app_ctx);
 }
 
@@ -1100,6 +1178,8 @@ void    tls_free_app_context(TLS_APPL_STATE *app_ctx)
 {
     if (app_ctx->ssl_ctx)
 	SSL_CTX_free(app_ctx->ssl_ctx);
+    if (app_ctx->sni_ctx)
+	SSL_CTX_free(app_ctx->sni_ctx);
     if (app_ctx->cache_type)
 	myfree(app_ctx->cache_type);
     /* See also: cache purging code in tls_set_ciphers(). */
@@ -1314,7 +1394,7 @@ const char **tls_pkey_algorithms(void)
 #ifndef OPENSSL_NO_DSA
 	"dsa",
 #endif
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L && !defined(OPENSSL_NO_ECDSA)
+#ifndef OPENSSL_NO_ECDSA
 	"ecdsa",
 #endif
 #ifndef OPENSSL_NO_RSA
@@ -1331,25 +1411,6 @@ const char **tls_pkey_algorithms(void)
 long    tls_bug_bits(void)
 {
     long    bits = SSL_OP_ALL;		/* Work around all known bugs */
-
-#if OPENSSL_VERSION_NUMBER >= 0x00908000L && \
-	OPENSSL_VERSION_NUMBER < 0x10000000L
-    long    lib_version = OpenSSL_version_num();
-
-    /*
-     * In OpenSSL 0.9.8[ab], enabling zlib compression breaks the padding bug
-     * work-around, leading to false positives and failed connections. We may
-     * not interoperate with systems with the bug, but this is better than
-     * breaking on all 0.9.8[ab] systems that have zlib support enabled.
-     */
-    if (lib_version >= 0x00908000L && lib_version <= 0x0090802fL) {
-	ssl_comp_stack_t *comp_methods = SSL_COMP_get_compression_methods();
-
-	comp_methods = SSL_COMP_get_compression_methods();
-	if (comp_methods != 0 && sk_SSL_COMP_num(comp_methods) > 0)
-	    bits &= ~SSL_OP_TLS_BLOCK_PADDING_BUG;
-    }
-#endif
 
     /*
      * Silently ignore any strings that don't appear in the tweaks table, or

@@ -247,10 +247,12 @@ while (<>) {
     s;\blmtp_tls_policy_maps\b;<a href="postconf.5.html#lmtp_tls_policy_maps">$&</a>;g;
     s;\blmtp_tls_secure_cert_match\b;<a href="postconf.5.html#lmtp_tls_secure_cert_match">$&</a>;g;
     s;\blmtp_tls_security_level\b;<a href="postconf.5.html#lmtp_tls_security_level">$&</a>;g;
+    s;\blmtp_tls_servername\b;<a href="postconf.5.html#lmtp_tls_servername">$&</a>;g;
     s;\blmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#lmtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\blmtp_tls_verify_cert_match\b;<a href="postconf.5.html#lmtp_tls_verify_cert_match">$&</a>;g;
     s;\blmtp_tls_trust_anchor_file\b;<a href="postconf.5.html#lmtp_tls_trust_anchor_file">$&</a>;g;
     s;\blmtp_tls_per_site\b;<a href="postconf.5.html#lmtp_tls_per_site">$&</a>;g;
+    s;\blmtp_tls_chain_files\b;<a href="postconf.5.html#lmtp_tls_chain_files">$&</a>;g;
     s;\blmtp_tls_cert_file\b;<a href="postconf.5.html#lmtp_tls_cert_file">$&</a>;g;
     s;\blmtp_tls_key_file\b;<a href="postconf.5.html#lmtp_tls_key_file">$&</a>;g;
     s;\blmtp_tls_dcert_file\b;<a href="postconf.5.html#lmtp_tls_dcert_file">$&</a>;g;
@@ -650,6 +652,7 @@ while (<>) {
     s;\bsmtp_starttls_timeout\b;<a href="postconf.5.html#smtp_starttls_timeout">$&</a>;g;
     s;\bsmtp_tls_CAfile\b;<a href="postconf.5.html#smtp_tls_CAfile">$&</a>;g;
     s;\bsmtp_tls_CApath\b;<a href="postconf.5.html#smtp_tls_CApath">$&</a>;g;
+    s;\bsmtp_tls_chain_files\b;<a href="postconf.5.html#smtp_tls_chain_files">$&</a>;g;
     s;\bsmtp_tls_cert_file\b;<a href="postconf.5.html#smtp_tls_cert_file">$&</a>;g;
     s;\bsmtp_tls_fingerprint_digest\b;<a href="postconf.5.html#smtp_tls_fingerprint_digest">$&</a>;g;
     s;\bsmtp_tls_protocols\b;<a href="postconf.5.html#smtp_tls_protocols">$&</a>;g;
@@ -672,6 +675,7 @@ while (<>) {
     s;\bsmtp_tls_fingerprint_cert_match\b;<a href="postconf.5.html#smtp_tls_fingerprint_cert_match">$&</a>;g;
     s;\bsmtp_tls_verify_cert_match\b;<a href="postconf.5.html#smtp_tls_verify_cert_match">$&</a>;g;
     s;\bsmtp_tls_secure_cert_match\b;<a href="postconf.5.html#smtp_tls_secure_cert_match">$&</a>;g;
+    s;\bsmtp_tls_servername\b;<a href="postconf.5.html#smtp_tls_servername">$&</a>;g;
     s;\bsmtp_tls_trust_anchor_file\b;<a href="postconf.5.html#smtp_tls_trust_anchor_file">$&</a>;g;
     s;\bsmtp_tls_scert_verifydepth\b;<a href="postconf.5.html#smtp_tls_scert_verifydepth">$&</a>;g;
     s;\bsmtp_tls_secu[-</Bb>]*\n* *[<Bb>]*rity_level\b;<a href="postconf.5.html#smtp_tls_security_level">$&</a>;g;
@@ -702,6 +706,7 @@ while (<>) {
     s;\bsmtpd_tls_ask_ccert\b;<a href="postconf.5.html#smtpd_tls_ask_ccert">$&</a>;g;
     s;\bsmtpd_tls_auth_only\b;<a href="postconf.5.html#smtpd_tls_auth_only">$&</a>;g;
     s;\bsmtpd_tls_ccert_verify[-</bB>]*\n*[ <bB>]*depth\b;<a href="postconf.5.html#smtpd_tls_ccert_verifydepth">$&</a>;g;
+    s;\bsmtpd_tls_chain_files\b;<a href="postconf.5.html#smtpd_tls_chain_files">$&</a>;g;
     s;\bsmtpd_tls_cert_file\b;<a href="postconf.5.html#smtpd_tls_cert_file">$&</a>;g;
     s;\bsmtpd_tls_cipherlist\b;<a href="postconf.5.html#smtpd_tls_cipherlist">$&</a>;g;
     s;\bsmtpd_tls_exclude_ciphers\b;<a href="postconf.5.html#smtpd_tls_exclude_ciphers">$&</a>;g;
@@ -756,6 +761,7 @@ while (<>) {
     s;\btls_dane_digests\b;<a href="postconf.5.html#tls_dane_digests">$&</a>;g;
     s;\btls_wildcard_matches_multiple_labels\b;<a href="postconf.5.html#tls_wildcard_matches_multiple_labels">$&</a>;g;
     s;\btls_session_ticket_cipher\b;<a href="postconf.5.html#tls_session_ticket_cipher">$&</a>;g;
+    s;\btls_server_sni_maps\b;<a href="postconf.5.html#tls_server_sni_maps">$&</a>;g;
     s;\btls_ssl_options\b;<a href="postconf.5.html#tls_ssl_options">$&</a>;g;
 
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
@@ -1061,6 +1067,7 @@ while (<>) {
     s;\btlsproxy_tls_always_issue_session_ids\b;<a href="postconf.5.html#tlsproxy_tls_always_issue_session_ids">$&</a>;g;
     s;\btlsproxy_tls_ask_ccert\b;<a href="postconf.5.html#tlsproxy_tls_ask_ccert">$&</a>;g;
     s;\btlsproxy_tls_ccert_verifydepth\b;<a href="postconf.5.html#tlsproxy_tls_ccert_verifydepth">$&</a>;g;
+    s;\btlsproxy_tls_chain_files\b;<a href="postconf.5.html#tlsproxy_tls_chain_files">$&</a>;g;
     s;\btlsproxy_tls_cert_file\b;<a href="postconf.5.html#tlsproxy_tls_cert_file">$&</a>;g;
     s;\btlsproxy_tls_ciphers\b;<a href="postconf.5.html#tlsproxy_tls_ciphers">$&</a>;g;
     s;\btlsproxy_tls_dcert_file\b;<a href="postconf.5.html#tlsproxy_tls_dcert_file">$&</a>;g;
@@ -1084,6 +1091,7 @@ while (<>) {
 
     s;\btlsproxy_client_CAfile\b;<a href="postconf.5.html#tlsproxy_client_CAfile">$&</a>;g;
     s;\btlsproxy_client_CApath\b;<a href="postconf.5.html#tlsproxy_client_CApath">$&</a>;g;
+    s;\btlsproxy_client_chain_files\b;<a href="postconf.5.html#tlsproxy_client_chain_files">$&</a>;g;
     s;\btlsproxy_client_cert_file\b;<a href="postconf.5.html#tlsproxy_client_cert_file">$&</a>;g;
     s;\btlsproxy_client_dcert_file\b;<a href="postconf.5.html#tlsproxy_client_dcert_file">$&</a>;g;
     s;\btlsproxy_client_dkey_file\b;<a href="postconf.5.html#tlsproxy_client_dkey_file">$&</a>;g;

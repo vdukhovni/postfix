@@ -512,6 +512,12 @@ record was found via an "insecure" MX lookup.
 Available in Postfix version 3.4 and later:
 .IP "\fBsmtp_tls_connection_reuse (no)\fR"
 Try to make multiple deliveries per TLS\-encrypted connection.
+.IP "\fBsmtp_tls_chain_files (empty)\fR"
+List of one or more PEM files, each holding one or more private keys
+directly followed by a corresponding certificate chain.
+.IP "\fBsmtp_tls_servername (empty)\fR"
+Optional name to send to the remote SMTP server in the TLS Server
+Name Indication (SNI) extension.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

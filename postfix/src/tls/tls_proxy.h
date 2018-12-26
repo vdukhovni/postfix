@@ -41,18 +41,18 @@ extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
 			               void *, void *);
 
 #define TLS_PROXY_CLIENT_INIT_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13) \
+    a9, a10, a11, a12, a13, a14) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13))
+    ((props)->a12), ((props)->a13), (props)->a14)
 
 #define TLS_PROXY_CLIENT_START_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13) \
+    a9, a10, a11, a12, a13, a14) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13))
+    ((props)->a12), ((props)->a13), ((props)->a14))
 
 extern TLS_SESS_STATE *tls_proxy_context_receive(VSTREAM *);
 extern void tls_proxy_context_free(TLS_SESS_STATE *);
@@ -127,6 +127,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_VERIFYDEPTH	"verifydepth"
 #define TLS_ATTR_CACHE_TYPE	"cache_type"
 #define TLS_ATTR_SET_SESSID	"set_sessid"
+#define TLS_ATTR_CHAIN_FILES	"chain_files"
 #define TLS_ATTR_CERT_FILE	"cert_file"
 #define TLS_ATTR_KEY_FILE	"key_file"
 #define TLS_ATTR_DCERT_FILE	"dcert_file"
@@ -160,6 +161,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_LOG_LEVEL	"log_level"
 #define TLS_ATTR_VERIFYDEPTH	"verifydepth"
 #define TLS_ATTR_CACHE_TYPE	"cache_type"
+#define TLS_ATTR_CHAIN_FILES	"chain_files"
 #define TLS_ATTR_CERT_FILE	"cert_file"
 #define TLS_ATTR_KEY_FILE	"key_file"
 #define TLS_ATTR_DCERT_FILE	"dcert_file"
@@ -178,6 +180,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_NEXTHOP	"nexthop"
 #define TLS_ATTR_HOST		"host"
 #define TLS_ATTR_NAMADDR	"namaddr"
+#define TLS_ATTR_SNI		"sni"
 #define TLS_ATTR_SERVERID	"serverid"
 #define TLS_ATTR_HELO		"helo"
 #define TLS_ATTR_PROTOCOLS	"protocols"

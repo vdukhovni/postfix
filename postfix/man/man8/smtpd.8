@@ -517,6 +517,15 @@ Available in Postfix version 3.2 and later:
 .IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
 The prioritized list of elliptic curves supported by the Postfix
 SMTP client and server.
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBsmtpd_tls_chain_files (empty)\fR"
+List of one or more PEM files, each holding one or more private keys
+directly followed by a corresponding certificate chain.
+.IP "\fBtls_server_sni_maps (empty)\fR"
+Optional lookup tables that map names received from remote SMTP
+clients via the TLS Server Name Indication (SNI) extension to the
+appropriate keys and certificate chains.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf
@@ -1043,7 +1052,7 @@ The Postfix SMTP server's action when a reject\-type restriction
 fails due to a temporary error condition.
 .IP "\fBunknown_helo_hostname_tempfail_action ($reject_tempfail_action)\fR"
 The Postfix SMTP server's action when reject_unknown_helo_hostname
-fails due to an temporary error condition.
+fails due to a temporary error condition.
 .IP "\fBunknown_address_tempfail_action ($reject_tempfail_action)\fR"
 The Postfix SMTP server's action when reject_unknown_sender_domain
 or reject_unknown_recipient_domain fail due to a temporary error

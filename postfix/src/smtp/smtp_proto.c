@@ -914,6 +914,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 				    verifydepth = var_smtp_tls_scert_vd,
 				    cache_type
 				    = LMTP_SMTP_SUFFIX(TLS_MGR_SCACHE),
+				    chain_files = var_smtp_tls_chain_files,
 				    cert_file = var_smtp_tls_cert_file,
 				    key_file = var_smtp_tls_key_file,
 				    dcert_file = var_smtp_tls_dcert_file,
@@ -929,6 +930,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 				     nexthop = session->tls_nexthop,
 				     host = STR(iter->host),
 				     namaddr = session->namaddrport,
+				     sni = state->tls->sni,
 				     serverid = vstring_str(serverid),
 				     helo = session->helo,
 				     protocols = state->tls->protocols,
@@ -1049,6 +1051,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 			     nexthop = session->tls_nexthop,
 			     host = STR(iter->host),
 			     namaddr = session->namaddrport,
+			     sni = state->tls->sni,
 			     serverid = vstring_str(serverid),
 			     helo = session->helo,
 			     protocols = state->tls->protocols,

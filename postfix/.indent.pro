@@ -412,3 +412,4 @@
 -Ttime_t
 -Ttlsa_filter
 -Tx509_stack_t
+-Tpem_load_state

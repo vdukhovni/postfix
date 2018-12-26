@@ -103,6 +103,7 @@ void    tls_proxy_client_init_free(TLS_CLIENT_INIT_PROPS *props)
     myfree((void *) props->log_param);
     myfree((void *) props->log_level);
     myfree((void *) props->cache_type);
+    myfree((void *) props->chain_files);
     myfree((void *) props->cert_file);
     myfree((void *) props->key_file);
     myfree((void *) props->dcert_file);
@@ -126,6 +127,7 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     VSTRING *log_param = vstring_alloc(25);
     VSTRING *log_level = vstring_alloc(25);
     VSTRING *cache_type = vstring_alloc(25);
+    VSTRING *chain_files = vstring_alloc(25);
     VSTRING *cert_file = vstring_alloc(25);
     VSTRING *key_file = vstring_alloc(25);
     VSTRING *dcert_file = vstring_alloc(25);
@@ -148,6 +150,7 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(TLS_ATTR_LOG_LEVEL, log_level),
 		  RECV_ATTR_INT(TLS_ATTR_VERIFYDEPTH, &props->verifydepth),
 		  RECV_ATTR_STR(TLS_ATTR_CACHE_TYPE, cache_type),
+		  RECV_ATTR_STR(TLS_ATTR_CHAIN_FILES, chain_files),
 		  RECV_ATTR_STR(TLS_ATTR_CERT_FILE, cert_file),
 		  RECV_ATTR_STR(TLS_ATTR_KEY_FILE, key_file),
 		  RECV_ATTR_STR(TLS_ATTR_DCERT_FILE, dcert_file),
@@ -162,6 +165,7 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     props->log_param = vstring_export(log_param);
     props->log_level = vstring_export(log_level);
     props->cache_type = vstring_export(cache_type);
+    props->chain_files = vstring_export(chain_files);
     props->cert_file = vstring_export(cert_file);
     props->key_file = vstring_export(key_file);
     props->dcert_file = vstring_export(dcert_file);
@@ -171,7 +175,7 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     props->CAfile = vstring_export(CAfile);
     props->CApath = vstring_export(CApath);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 13 ? 1 : -1);
+    ret = (ret == 14 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_init_free(props);
 	props = 0;
@@ -187,10 +191,11 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 char   *tls_proxy_client_init_to_string(VSTRING *buf,
 					        TLS_CLIENT_INIT_PROPS *props)
 {
-    vstring_sprintf(buf, "%s\n%s\n%d\n%s\n%s\n%s\n%s\n%s\n"
+    vstring_sprintf(buf, "%s\n%s\n%d\n%s\n%s\n%s\n%s\n%s\n%s\n"
 		    "%s\n%s\n%s\n%s\n%s\n", props->log_param,
 		    props->log_level, props->verifydepth,
-		    props->cache_type, props->cert_file, props->key_file,
+		    props->cache_type, props->chain_files,
+		    props->cert_file, props->key_file,
 		    props->dcert_file, props->dkey_file,
 		    props->eccert_file, props->eckey_file,
 		    props->CAfile, props->CApath, props->mdalg);
@@ -257,6 +262,7 @@ void    tls_proxy_client_start_free(TLS_CLIENT_START_PROPS *props)
     myfree((void *) props->nexthop);
     myfree((void *) props->host);
     myfree((void *) props->namaddr);
+    myfree((void *) props->sni);
     myfree((void *) props->serverid);
     myfree((void *) props->helo);
     myfree((void *) props->protocols);
@@ -291,7 +297,7 @@ static int tls_proxy_client_certs_scan(ATTR_SCAN_MASTER_FN scan_fn,
 
     for (tpp = &head, n = 0; ret == 1 && n < count; n++, tpp = &tp->next) {
 	*tpp = tp = (TLS_CERTS *) mymalloc(sizeof(*tp));
-	D2I_const unsigned char *bp;
+	const unsigned char *bp;
 
 	if (buf == 0)
 	    buf = vstring_alloc(100);
@@ -306,7 +312,7 @@ static int tls_proxy_client_certs_scan(ATTR_SCAN_MASTER_FN scan_fn,
 		      ATTR_TYPE_END);
 	/* Always construct a well-formed structure. */
 	if (ret == 1) {
-	    bp = (D2I_const unsigned char *) STR(buf);
+	    bp = (const unsigned char *) STR(buf);
 	    if (d2i_X509(&tp->cert, &bp, LEN(buf)) == 0
 		|| LEN(buf) != ((char *) bp) - STR(buf)) {
 		msg_warn("malformed certificate in TLS_CERTS");
@@ -350,7 +356,7 @@ static int tls_proxy_client_pkeys_scan(ATTR_SCAN_MASTER_FN scan_fn,
 
     for (tpp = &head, n = 0; ret == 1 && n < count; n++, tpp = &tp->next) {
 	*tpp = tp = (TLS_PKEYS *) mymalloc(sizeof(*tp));
-	D2I_const unsigned char *bp;
+	const unsigned char *bp;
 
 	if (buf == 0)
 	    buf = vstring_alloc(100);
@@ -365,7 +371,7 @@ static int tls_proxy_client_pkeys_scan(ATTR_SCAN_MASTER_FN scan_fn,
 		      ATTR_TYPE_END);
 	/* Always construct a well-formed structure. */
 	if (ret == 1) {
-	    bp = (D2I_const unsigned char *) STR(buf);
+	    bp = (const unsigned char *) STR(buf);
 	    if (d2i_PUBKEY(&tp->pkey, &bp, LEN(buf)) == 0
 		|| LEN(buf) != (char *) bp - STR(buf)) {
 		msg_warn("malformed public key in TLS_PKEYS");
@@ -509,6 +515,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     VSTRING *nexthop = vstring_alloc(25);
     VSTRING *host = vstring_alloc(25);
     VSTRING *namaddr = vstring_alloc(25);
+    VSTRING *sni = vstring_alloc(25);
     VSTRING *serverid = vstring_alloc(25);
     VSTRING *helo = vstring_alloc(25);
     VSTRING *protocols = vstring_alloc(25);
@@ -533,6 +540,7 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(TLS_ATTR_NEXTHOP, nexthop),
 		  RECV_ATTR_STR(TLS_ATTR_HOST, host),
 		  RECV_ATTR_STR(TLS_ATTR_NAMADDR, namaddr),
+		  RECV_ATTR_STR(TLS_ATTR_SNI, sni),
 		  RECV_ATTR_STR(TLS_ATTR_SERVERID, serverid),
 		  RECV_ATTR_STR(TLS_ATTR_HELO, helo),
 		  RECV_ATTR_STR(TLS_ATTR_PROTOCOLS, protocols),
@@ -548,13 +556,14 @@ int     tls_proxy_client_start_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     props->nexthop = vstring_export(nexthop);
     props->host = vstring_export(host);
     props->namaddr = vstring_export(namaddr);
+    props->sni = vstring_export(sni);
     props->serverid = vstring_export(serverid);
     props->helo = vstring_export(helo);
     props->protocols = vstring_export(protocols);
     props->cipher_grade = vstring_export(cipher_grade);
     props->cipher_exclusions = vstring_export(cipher_exclusions);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 13 ? 1 : -1);
+    ret = (ret == 14 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_start_free(props);
 	props = 0;

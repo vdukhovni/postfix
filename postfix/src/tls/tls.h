@@ -84,8 +84,8 @@ extern const char *str_tls_level(int);
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
 
-#if (OPENSSL_VERSION_NUMBER < 0x00090700f)
-#error "need OpenSSL version 0.9.7 or later"
+#if (OPENSSL_VERSION_NUMBER < 0x1000200fUL)
+#error "OpenSSL releases prior to 1.0.2 are no longer supported"
 #endif
 
  /* Backwards compatibility with OpenSSL < 1.1.0 */
@@ -93,6 +93,8 @@ extern const char *str_tls_level(int);
 #define OpenSSL_version_num SSLeay
 #define OpenSSL_version SSLeay_version
 #define OPENSSL_VERSION SSLEAY_VERSION
+#define X509_STORE_up_ref(store) \
+	CRYPTO_add(&((store)->references), 1, CRYPTO_LOCK_X509)
 #define X509_up_ref(x) \
 	CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
 #define EVP_PKEY_up_ref(k) \
@@ -128,20 +130,6 @@ extern const char *str_tls_level(int);
 #define tls_get_peer_dh_pubkey SSL_get_server_tmp_key
 #else
 #define tls_get_peer_dh_pubkey SSL_get_peer_tmp_key
-#endif
-
-/* SSL_CIPHER_get_name() got constified in 0.9.7g */
-#if OPENSSL_VERSION_NUMBER >= 0x0090707fL	/* constification */
-#define SSL_CIPHER_const const
-#else
-#define SSL_CIPHER_const
-#endif
-
-/* d2i_X509() got constified in 0.9.8a */
-#if OPENSSL_VERSION_NUMBER >= 0x0090801fL
-#define D2I_const const
-#else
-#define D2I_const
 #endif
 
  /*
@@ -346,6 +334,7 @@ extern int tls_log_mask(const char *, const char *);
   */
 struct TLS_APPL_STATE {
     SSL_CTX *ssl_ctx;
+    SSL_CTX *sni_ctx;
     int     log_mask;
     char   *cache_type;
     char   *cipher_exclusions;		/* Last cipher selection state */
@@ -487,6 +476,7 @@ typedef struct {
     const char *log_level;
     int     verifydepth;
     const char *cache_type;
+    const char *chain_files;
     const char *cert_file;
     const char *key_file;
     const char *dcert_file;
@@ -507,6 +497,7 @@ typedef struct {
     const char *nexthop;		/* destination domain */
     const char *host;			/* MX hostname */
     const char *namaddr;		/* nam[addr] for logging */
+    const char *sni;			/* optional SNI name when not DANE */
     const char *serverid;		/* Session cache key */
     const char *helo;			/* Server name from EHLO response */
     const char *protocols;		/* Enabled protocols */
@@ -526,24 +517,24 @@ extern TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *,
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
 #define TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13) \
+    a10, a11, a12, a13, a14) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), (props))
+    ((props)->a12), ((props)->a13), ((props)->a14), (props))
 
 #define TLS_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13) \
+    a10, a11, a12, a13, a14) \
     tls_client_init(TLS_CLIENT_INIT_ARGS(props, a1, a2, a3, a4, a5, \
-    a6, a7, a8, a9, a10, a11, a12, a13))
+    a6, a7, a8, a9, a10, a11, a12, a13, a14))
 
 #define TLS_CLIENT_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, a15, a16) \
+    a10, a11, a12, a13, a14, a15, a16, a17) \
     tls_client_start((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
-    ((props)->a16), (props)))
+    ((props)->a16), ((props)->a17), (props)))
 
  /*
   * tls_server.c
@@ -554,6 +545,7 @@ typedef struct {
     int     verifydepth;
     const char *cache_type;
     int     set_sessid;
+    const char *chain_files;
     const char *cert_file;
     const char *key_file;
     const char *dcert_file;
@@ -591,12 +583,13 @@ extern TLS_SESS_STATE *tls_server_post_accept(TLS_SESS_STATE *);
 	tls_session_stop(ctx, (stream), (timeout), (failure), (TLScontext))
 
 #define TLS_SERVER_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19) \
+    a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20) \
     tls_server_init((((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
     ((props)->a12), ((props)->a13), ((props)->a14), ((props)->a15), \
-    ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), (props)))
+    ((props)->a16), ((props)->a17), ((props)->a18), ((props)->a19), \
+    ((props)->a20), (props)))
 
 #define TLS_SERVER_START(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10) \
     tls_server_start((((props)->a1), ((props)->a2), ((props)->a3), \
@@ -615,6 +608,7 @@ extern const char *tls_compile_version(void);
 extern const char *tls_run_version(void);
 extern const char **tls_pkey_algorithms(void);
 extern void tls_log_summary(TLS_ROLE, TLS_USAGE, TLS_SESS_STATE *);
+extern void tls_pre_jail_init(TLS_ROLE);
 
 #ifdef TLS_INTERNAL
 
@@ -663,7 +657,7 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
 extern void tls_set_dh_from_file(const char *, int);
 extern DH *tls_tmp_dh_cb(SSL *, int, int);
 extern void tls_set_eecdh_curve(SSL_CTX *, const char *);
-extern void tls_auto_eecdh_curves(SSL_CTX *);
+extern void tls_auto_eecdh_curves(SSL_CTX *, const char *);
 
  /*
   * tls_rsa.c
@@ -699,7 +693,8 @@ extern char *tls_serverid_digest(const TLS_CLIENT_START_PROPS *, long,
   * tls_certkey.c
   */
 extern int tls_set_ca_certificate_info(SSL_CTX *, const char *, const char *);
-extern int tls_set_my_certificate_key_info(SSL_CTX *,
+extern int tls_load_pem_chain(SSL *, const char *, const char *);
+extern int tls_set_my_certificate_key_info(SSL_CTX *, /* All */ const char *,
 				       /* RSA */ const char *, const char *,
 				       /* DSA */ const char *, const char *,
 				    /* ECDSA */ const char *, const char *);
@@ -709,7 +704,7 @@ extern int tls_set_my_certificate_key_info(SSL_CTX *,
   */
 extern int TLScontext_index;
 
-extern TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *, int);
+extern TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *, SSL_CTX *, int);
 extern TLS_SESS_STATE *tls_alloc_sess_context(int, const char *);
 extern void tls_free_context(TLS_SESS_STATE *);
 extern void tls_check_version(void);
