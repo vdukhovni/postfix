@@ -456,6 +456,11 @@ extern HTABLE *psc_client_concurrency;	/* per-client concurrency */
 	(state)->smtp_server_fd = (fd); \
 	psc_post_queue_length++; \
     } while (0)
+#define PSC_DEL_SERVER_STATE(state) do { \
+	close((state)->smtp_server_fd); \
+	(state)->smtp_server_fd = (-1); \
+	psc_post_queue_length--; \
+    } while (0)
 #define PSC_DEL_CLIENT_STATE(state) do { \
 	event_server_disconnect((state)->smtp_client_stream); \
 	(state)->smtp_client_stream = 0; \

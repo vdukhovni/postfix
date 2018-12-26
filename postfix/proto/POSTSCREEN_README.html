@@ -714,16 +714,25 @@ The "<tt><b>after</b> <i>command</i></tt>" portion is logged with
 Postfix 2.10 and later. </p>
 
 <p> When an SMTP client makes too many connections at the same time,
-or when all postscreen(8) ports are busy, postscreen(8) rejects the
-connection with a 421 status code and logs: </p>
+postscreen(8) rejects the connection with a 421 status code and logs: </p>
 
 <pre>
     <b>NOQUEUE: reject: CONNECT from</b> <i>[address]:port</i><b>: too many connections</b>
+</pre>
+
+<p> The postscreen_client_connection_count_limit parameter controls this limit. </p>
+
+<p> When an SMTP client connects after postscreen(8) has reached a
+connection count limit, postscreen(8) rejects the connection with
+a 421 status code and logs: </p>
+
+<pre>
+    <b>NOQUEUE: reject: CONNECT from</b> <i>[address]:port</i><b>: all screening ports busy</b>
     <b>NOQUEUE: reject: CONNECT from</b> <i>[address]:port</i><b>: all server ports busy</b>
 </pre>
 
-<p> The postscreen_client_connection_count_limit and
-postscreen_pre_queue_limit parameters control these limits.  </p>
+<p> The postscreen_pre_queue_limit and postscreen_post_queue_limit
+parameters control these limits.  </p>
 
 <h2> <a name="victory">When all tests succeed</a> </h2>
 

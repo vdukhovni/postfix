@@ -1451,8 +1451,9 @@ is the master.cf name of the message delivery transport.
 This feature is available in Postfix 2.5 and later.
 .SH default_destination_rate_delay (default: 0s)
 The default amount of delay that is inserted between individual
-deliveries to the same destination. If non\-zero, all deliveries to
-the same destination will happen one at a time.
+message deliveries to the same destination and over the same message
+delivery transport. Specify a non\-zero value to rate\-limit those
+message deliveries to at most one per $default_destination_rate_delay.
 .PP
 The resulting behavior depends on the value of the corresponding
 per\-destination recipient limit.
@@ -1710,9 +1711,9 @@ default_transport = uucp:relayhostname
 .ft R
 .SH default_transport_rate_delay (default: 0s)
 The default amount of delay that is inserted between individual
-deliveries over the same message delivery transport, regardless of
-destination. If non\-zero, all deliveries over the same message
-delivery transport will happen one at a time.
+message deliveries over the same message delivery transport,
+regardless of destination. Specify a non\-zero value to rate\-limit
+those message deliveries to at most one per $default_transport_rate_delay.
 .PP
 Use \fItransport\fR_transport_rate_delay to specify a
 transport\-specific override, where the initial \fItransport\fR is

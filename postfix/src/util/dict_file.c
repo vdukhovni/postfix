@@ -95,40 +95,40 @@ VSTRING *dict_file_to_buf(DICT *dict, const char *pathnames)
     if (dict->file_buf == 0)
 	dict->file_buf = vstring_alloc(100);
 
-#define DICT_FILE_ERR_RETURN do { \
+#define DICT_FILE_RETURN(retval) do { \
 	argv_free(argv); \
 	if (fp) vstream_fclose(fp); \
-	return (0); \
+	return (retval); \
     } while (0);
 
     argv = argv_split(pathnames, CHARS_COMMA_SP);
     if (argv->argc == 0) {
 	vstring_sprintf(dict->file_buf, "empty pathname list: >>%s<<'",
 			pathnames);
-	DICT_FILE_ERR_RETURN;
+	DICT_FILE_RETURN(0);
     }
     VSTRING_RESET(dict->file_buf);
     for (cpp = argv->argv; *cpp; cpp++) {
 	if ((fp = vstream_fopen(*cpp, O_RDONLY, 0)) == 0
 	    || fstat(vstream_fileno(fp), &st) < 0) {
 	    vstring_sprintf(dict->file_buf, "open %s: %m", *cpp);
-	    DICT_FILE_ERR_RETURN;
+	    DICT_FILE_RETURN(0);
 	}
 	if (st.st_size > SSIZE_T_MAX - LEN(dict->file_buf)) {
 	    vstring_sprintf(dict->file_buf, "file too large: %s", pathnames);
-	    DICT_FILE_ERR_RETURN;
+	    DICT_FILE_RETURN(0);
 	}
 	if (vstream_fread_app(fp, dict->file_buf, st.st_size) != st.st_size) {
 	    vstring_sprintf(dict->file_buf, "read %s: %m", *cpp);
-	    DICT_FILE_ERR_RETURN;
+	    DICT_FILE_RETURN(0);
 	}
 	(void) vstream_fclose(fp);
+	fp = 0;
 	if (cpp[1] != 0)
 	    VSTRING_ADDCH(dict->file_buf, '\n');
     }
-    argv_free(argv);
     VSTRING_TERMINATE(dict->file_buf);
-    return (dict->file_buf);
+    DICT_FILE_RETURN(dict->file_buf);
 }
 
 /* dict_file_to_b64 - read files into a base64-encoded buffer */

@@ -23890,3 +23890,29 @@ Apologies for any names omitted.
 	default_rbl_reply, command_execution_directory, luser_relay,
 	smtpd_reject_footer. These have their own documented $name
 	substitution mechanism. File: proto/postconf.proto.
+
+20181202
+
+	Bugfix: posttls-finger reported an error for UNIX-domain
+	connections, even if they did not fail. Found by Coverity.
+	File: posttls-finger/posttls-finger.c.
+
+20181208
+
+	Documentation: add even more redundancy to the rate-delay
+	description. File: proto/postconf.proto.
+
+20181210
+
+	Cleanup: code deduplication. File: util/dict_file.c.
+
+20181226
+
+	Cleanup: code deduplication and better encapsulation with
+	PSC_DEL_CLIENT_STATE() and PSC_DEL_SERVER_STATE() macros.
+	Files: postscreen/postscreen.h, postscreen/postscreen_state.c.
+
+	Documentation: POSTSCREEN_README did not describe the
+	postscreen_post_queue_limit, and attributed the wrong reject
+	message to the postscreen_pre_queue_limit. Problem reported
+	by Michael Orlitzky. File: proto/POSTSCREEN_README.html.

@@ -2276,8 +2276,10 @@ is the <a href="master.5.html">master.cf</a> name of the message delivery transp
 (default: 0s)</b></DT><DD>
 
 <p> The default amount of delay that is inserted between individual
-deliveries to the same destination. If non-zero, all deliveries to
-the same destination will happen one at a time. </p>
+message deliveries to the same destination and over the same message
+delivery transport. Specify a non-zero value to rate-limit those
+message deliveries to at most one per $<a href="postconf.5.html#default_destination_rate_delay">default_destination_rate_delay</a>.
+</p>
 
 <p> The resulting behavior depends on the value of the corresponding
 per-destination recipient limit.
@@ -2675,9 +2677,10 @@ Example:
 (default: 0s)</b></DT><DD>
 
 <p> The default amount of delay that is inserted between individual
-deliveries over the same message delivery transport, regardless of
-destination. If non-zero, all deliveries over the same message
-delivery transport will happen one at a time. </p>
+message deliveries over the same message delivery transport,
+regardless of destination. Specify a non-zero value to rate-limit
+those message deliveries to at most one per $<a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a>.
+</p>
 
 <p>Use <a href="postconf.5.html#transport_transport_rate_delay"><i>transport</i>_transport_rate_delay</a> to specify a
 transport-specific override, where the initial <i>transport</i> is
