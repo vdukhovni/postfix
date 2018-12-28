@@ -93,7 +93,7 @@ typedef struct DICT {
     DICT_OWNER owner;			/* provenance */
     int     error;			/* last operation only */
     DICT_JMP_BUF *jbuf;			/* exception handling */
-    struct DICT_UTF8_BACKUP *utf8_backup;	/* see below */
+    struct DICT_WRAPPER *wrapper;	/* see below */
     struct VSTRING *file_buf;		/* dict_file_to_buf() */
     struct VSTRING *file_b64;		/* dict_file_to_b64() */
 } DICT;
@@ -133,6 +133,7 @@ extern DICT *dict_debug(DICT *);
 #define DICT_FLAG_UTF8_ACTIVE	(1<<20)	/* UTF-8 proxy layer is present */
 #define DICT_FLAG_SRC_RHS_IS_FILE \
 				(1<<21)	/* Map source RHS is a file */
+#define DICT_FLAG_UNB64_ACTIVE	(1<<22)	/* File decode proxy layer is present */
 
 #define DICT_FLAG_UTF8_MASK	(DICT_FLAG_UTF8_REQUEST)
 
@@ -251,15 +252,29 @@ extern int dict_flags_mask(const char *);
 extern void dict_type_override(DICT *, const char *);
 
  /*
-  * Check and convert UTF-8 keys and values.
+  * Wrappers for DICT methods. Usage: create an "trivial" wrapper object with
+  * dict_wrapper_alloc(), then for each method that requires special
+  * processing, specify a pointer to function that calls the 'next' wrapper's
+  * method of the same type, with the 'next' wrapper as the first argument
+  * (the 'self' pointer).
   */
-typedef struct DICT_UTF8_BACKUP {
-    const char *(*lookup) (struct DICT *, const char *);
-    int     (*update) (struct DICT *, const char *, const char *);
-    int     (*delete) (struct DICT *, const char *);
-} DICT_UTF8_BACKUP;
+typedef struct DICT_WRAPPER {
+    const char *name;			/* for literal constant */
+    const char *(*lookup) (struct DICT_WRAPPER *, DICT *, const char *);
+    int     (*update) (struct DICT_WRAPPER *, DICT *, const char *, const char *);
+    int     (*delete) (struct DICT_WRAPPER *, DICT *, const char *);
+    struct DICT_WRAPPER *next;
+} DICT_WRAPPER;
 
-extern DICT *dict_utf8_activate(DICT *);
+extern void dict_wrapper_prepend(DICT *, DICT_WRAPPER *);
+extern DICT_WRAPPER *dict_wrapper_alloc(ssize_t);
+extern void dict_wrapper_free(DICT_WRAPPER *);
+
+ /*
+  * Things that build on DICT_WRAPPER.
+  */
+extern void dict_utf8_wrapper_activate(DICT *);
+extern void dict_file_wrapper_activate(DICT *);
 
  /*
   * Driver for interactive or scripted tests.

@@ -6,13 +6,13 @@
 /* SYNOPSIS
 /*	#include <dict.h>
 /*
-/*	DICT	*dict_utf8_activate(
+/*	void	dict_utf8_wrapper_activate(
 /*	DICT	*dict)
 /* DESCRIPTION
-/*	dict_utf8_activate() wraps a dictionary's lookup/update/delete
+/*	dict_utf8_wrapper_activate() wraps a dictionary's lookup/update/delete
 /*	methods with code that enforces UTF-8 checks on keys and
 /*	values, and that logs a warning when incorrect UTF-8 is
-/*	encountered. The original dictionary handle becomes invalid.
+/*	encountered.
 /*
 /*	The wrapper code enforces a policy that maximizes application
 /*	robustness (it avoids the need for new error-handling code
@@ -22,8 +22,6 @@
 /*	skipped while reporting a non-error status, and lookup
 /*	results that contain a non-UTF-8 value are blocked while
 /*	reporting a configuration error.
-/* BUGS
-/*	dict_utf8_activate() does not nest.
 /* LICENSE
 /* .ad
 /* .fi
@@ -133,9 +131,10 @@ static int dict_utf8_check(const char *string, CONST_CHAR_STAR *err)
 
 /* dict_utf8_lookup - UTF-8 lookup method wrapper */
 
-static const char *dict_utf8_lookup(DICT *dict, const char *key)
+static const char *dict_utf8_lookup(DICT_WRAPPER *wrapper, DICT *dict,
+				            const char *key)
 {
-    DICT_UTF8_BACKUP *backup;
+    DICT_WRAPPER *next_wrapper;
     const char *utf8_err;
     const char *fold_res;
     const char *value;
@@ -156,8 +155,8 @@ static const char *dict_utf8_lookup(DICT *dict, const char *key)
      */
     saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
     dict->flags &= ~DICT_FLAG_FOLD_ANY;
-    backup = dict->utf8_backup;
-    value = backup->lookup(dict, fold_res);
+    next_wrapper = wrapper->next;
+    value = next_wrapper->lookup(next_wrapper, dict, fold_res);
     dict->flags |= saved_flags;
 
     /*
@@ -175,9 +174,10 @@ static const char *dict_utf8_lookup(DICT *dict, const char *key)
 
 /* dict_utf8_update - UTF-8 update method wrapper */
 
-static int dict_utf8_update(DICT *dict, const char *key, const char *value)
+static int dict_utf8_update(DICT_WRAPPER *wrapper, DICT *dict,
+			            const char *key, const char *value)
 {
-    DICT_UTF8_BACKUP *backup;
+    DICT_WRAPPER *next_wrapper;
     const char *utf8_err;
     const char *fold_res;
     int     saved_flags;
@@ -209,8 +209,8 @@ static int dict_utf8_update(DICT *dict, const char *key, const char *value)
     else {
 	saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
 	dict->flags &= ~DICT_FLAG_FOLD_ANY;
-	backup = dict->utf8_backup;
-	status = backup->update(dict, fold_res, value);
+	next_wrapper = wrapper->next;
+	status = next_wrapper->update(next_wrapper, dict, fold_res, value);
 	dict->flags |= saved_flags;
 	return (status);
     }
@@ -218,9 +218,9 @@ static int dict_utf8_update(DICT *dict, const char *key, const char *value)
 
 /* dict_utf8_delete - UTF-8 delete method wrapper */
 
-static int dict_utf8_delete(DICT *dict, const char *key)
+static int dict_utf8_delete(DICT_WRAPPER *wrapper, DICT *dict, const char *key)
 {
-    DICT_UTF8_BACKUP *backup;
+    DICT_WRAPPER *next_wrapper;
     const char *utf8_err;
     const char *fold_res;
     int     saved_flags;
@@ -242,19 +242,19 @@ static int dict_utf8_delete(DICT *dict, const char *key)
     else {
 	saved_flags = (dict->flags & DICT_FLAG_FOLD_ANY);
 	dict->flags &= ~DICT_FLAG_FOLD_ANY;
-	backup = dict->utf8_backup;
-	status = backup->delete(dict, fold_res);
+	next_wrapper = wrapper->next;
+	status = next_wrapper->delete(next_wrapper, dict, fold_res);
 	dict->flags |= saved_flags;
 	return (status);
     }
 }
 
-/* dict_utf8_activate - wrap a legacy dict object for UTF-8 processing */
+/* dict_utf8_wrapper_activate - wrap legacy dict object for UTF-8 processing */
 
-DICT   *dict_utf8_activate(DICT *dict)
+void    dict_utf8_wrapper_activate(DICT *dict)
 {
-    const char myname[] = "dict_utf8_activate";
-    DICT_UTF8_BACKUP *backup;
+    const char myname[] = "dict_utf8_wrapper_activate";
+    DICT_WRAPPER *wrapper;
 
     /*
      * Sanity check.
@@ -264,37 +264,22 @@ DICT   *dict_utf8_activate(DICT *dict)
     if ((dict->flags & DICT_FLAG_UTF8_REQUEST) == 0)
 	msg_panic("%s: %s:%s does not request Unicode support",
 		  myname, dict->type, dict->name);
-    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) || dict->utf8_backup != 0)
+    if ((dict->flags & DICT_FLAG_UTF8_ACTIVE))
 	msg_panic("%s: %s:%s Unicode support is already activated",
 		  myname, dict->type, dict->name);
 
     /*
-     * Unlike dict_debug(3) we do not put a proxy dict object in front of the
-     * encapsulated object, because then we would have to bidirectionally
-     * propagate changes in the data members (errors, flags, jbuf, and so on)
-     * between proxy object and encapsulated object.
-     * 
-     * Instead we attach ourselves behind the encapsulated dict object, and
-     * redirect some function pointers to ourselves.
+     * Interpose on the lookup/update/delete methods.
      */
-    backup = dict->utf8_backup = (DICT_UTF8_BACKUP *) mymalloc(sizeof(*backup));
-
-    /*
-     * Interpose on the lookup/update/delete methods. It is a conscious
-     * decision not to tinker with the iterator or destructor.
-     */
-    backup->lookup = dict->lookup;
-    backup->update = dict->update;
-    backup->delete = dict->delete;
-
-    dict->lookup = dict_utf8_lookup;
-    dict->update = dict_utf8_update;
-    dict->delete = dict_utf8_delete;
+    wrapper = dict_wrapper_alloc(sizeof(*wrapper));
+    wrapper->name = "utf8";
+    wrapper->lookup = dict_utf8_lookup;
+    wrapper->update = dict_utf8_update;
+    wrapper->delete = dict_utf8_delete;
+    dict_wrapper_prepend(dict, wrapper);
 
     /*
      * Leave our mark. See sanity check above.
      */
     dict->flags |= DICT_FLAG_UTF8_ACTIVE;
-
-    return (dict);
 }

@@ -159,7 +159,7 @@ DICT   *dict_alloc(const char *dict_type, const char *dict_name, ssize_t size)
     dict->owner.uid = INT_MAX;
     dict->error = DICT_ERR_NONE;
     dict->jbuf = 0;
-    dict->utf8_backup = 0;
+    dict->wrapper = 0;
     dict->file_buf = 0;
     dict->file_b64 = 0;
     return dict;
@@ -173,8 +173,8 @@ void    dict_free(DICT *dict)
     myfree(dict->name);
     if (dict->jbuf)
 	myfree((void *) dict->jbuf);
-    if (dict->utf8_backup)
-	myfree((void *) dict->utf8_backup);
+    if (dict->wrapper)
+	dict_wrapper_free(dict->wrapper);
     if (dict->file_buf)
 	vstring_free(dict->file_buf);
     if (dict->file_b64)
