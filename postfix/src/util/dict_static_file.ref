@@ -5,6 +5,8 @@ owner=trusted (uid=2147483647)
 foo: error
 owner=trusted (uid=2147483647)
 > get file1
-file1=dGhpcy1pcy1maWxlMQo=
+file1=this-is-file1
+
 > get file2
-file2=dGhpcy1pcy1maWxlMQo=
+file2=this-is-file1
+

@@ -179,7 +179,8 @@ DICT   *dict_union_open(const char *name, int open_flags, int dict_flags)
 					     DICT_TYPE_UNION, name,
 					     DICT_TYPE_UNION));
 	if ((dict = dict_handle(dict_type_name)) == 0)
-	    dict = dict_open(dict_type_name, open_flags, dict_flags);
+	    dict = dict_open(dict_type_name, open_flags,
+			     dict_flags & ~DICT_FLAG_SRC_RHS_IS_FILE);
 	dict_register(dict_type_name, dict);
 	DICT_OWNER_AGGREGATE_UPDATE(aggr_owner, dict->owner);
 	if (cpp == argv->argv)

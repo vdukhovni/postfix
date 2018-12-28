@@ -658,6 +658,7 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 			msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 				 dicts[n]->type, dicts[n]->name);
 		    }
+#if 0
 		    if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
 			VSTRING *unb64;
 			char   *err;
@@ -670,6 +671,7 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 			}
 			value = STR(unb64);
 		    }
+#endif
 		    vstream_printf("%s	%s\n", STR(keybuf), value);
 		    found = 1;
 		    break;
@@ -757,6 +759,7 @@ static int postmap_query(const char *map_type, const char *map_name,
 	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 		     map_type, map_name);
 	}
+#if 0
 	if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
 	    VSTRING *unb64;
 	    char   *err;
@@ -769,6 +772,7 @@ static int postmap_query(const char *map_type, const char *map_name,
 	    }
 	    value = STR(unb64);
 	}
+#endif
 	vstream_printf("%s\n", value);
     }
     if (dict->error)
@@ -881,6 +885,7 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 		     map_type, map_name);
 	}
+#if 1
 	if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
 	    VSTRING *unb64;
 	    char   *err;
@@ -895,6 +900,7 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	    }
 	    value = STR(unb64);
 	}
+#endif
 	vstream_printf("%s	%s\n", key, value);
     }
     if (dict->error)

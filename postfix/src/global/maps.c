@@ -165,14 +165,6 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
     char  **map_name;
     const char *expansion;
     DICT   *dict;
-    int     rhs_is_file;
-
-    /*
-     * For now, handled at this layer, rather rather than implicitly in
-     * dict_get().
-     */
-    rhs_is_file = flags & DICT_FLAG_SRC_RHS_IS_FILE;
-    flags &= ~DICT_FLAG_SRC_RHS_IS_FILE;
 
     /*
      * In case of return without map lookup (empty name or no maps).
@@ -200,23 +192,9 @@ const char *maps_find(MAPS *maps, const char *name, int flags)
 		maps->error = DICT_ERR_RETRY;
 		return (0);
 	    }
-	    /* Log raw value, prior to base64 decoding */
 	    if (msg_verbose)
 		msg_info("%s: %s: %s: %s = %s", myname, maps->title,
 			 *map_name, name, expansion);
-	    if (rhs_is_file) {
-		VSTRING *unb64;
-		char   *err;
-
-		if ((unb64 = dict_file_from_b64(dict, expansion)) == 0) {
-		    err = dict_file_get_error(dict);
-		    msg_warn("table %s:%s: key %s: %s",
-			     dict->type, dict->name, name, err);
-		    maps->error = DICT_ERR_RETRY;
-		    return (0);
-		}
-		expansion = vstring_str(unb64);
-	    }
 	    return (expansion);
 	} else if ((maps->error = dict->error) != 0) {
 	    msg_warn("%s:%s lookup error for \"%.100s\"",

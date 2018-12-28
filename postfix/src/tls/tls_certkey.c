@@ -143,7 +143,7 @@ static void init_pem_load_state(pem_load_state *st, SSL_CTX *ctx, SSL *ssl,
 
 /* use_chain - load cert, key and chain into ctx or ssl */
 
-#if OPENSSL_VERSION_NUMBER >= 0x1010000fUL
+#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL
 static int use_chain(pem_load_state *st)
 {
     int     ret;
@@ -177,7 +177,7 @@ static int use_chain(pem_load_state *st)
 
 #else
 
-/* Legacy OpenSSL 1.0.2 interface */
+/* Legacy OpenSSL 1.0.2 and 1.1.0 interface */
 static int use_chain(pem_load_state *st)
 {
     int     ret = 1;

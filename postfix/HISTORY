@@ -23916,3 +23916,17 @@ Apologies for any names omitted.
 	postscreen_post_queue_limit, and attributed the wrong reject
 	message to the postscreen_pre_queue_limit. Problem reported
 	by Michael Orlitzky. File: proto/POSTSCREEN_README.html.
+
+	Compatibility: removed support for OpenSSL 1.0.1 and earlier.
+
+	Feature: TLS support for client-side and server-side SNI
+	in the Postfix SMTP server, SMTP client, and tlsproxy.
+
+20181228
+
+	Cleanup: generic wrapper infrastructure for Postfix maps
+	(dictionaries) that is the basis for UTF8 checks and for
+	base64 decoding of lookup results. Files: global/mkmap_open.c,
+	postmap/postmap.c, util/dict.c, util/dict.h, util/dict_alloc.c,
+	util/dict_file.c, util/dict_open.c, util/dict_pipe.c,
+	util/dict_union.c, util/dict_utf8.c, util/dict_wrapper.c.

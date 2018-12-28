@@ -23,6 +23,9 @@
 /*
 /*	void	dict_file_purge_buffers(
 /*	DICT	*dict)
+/*
+/*	void	dict_file_wrapper_activate(
+/*	DICT	*dict)
 /* DESCRIPTION
 /*	dict_file_to_buf() reads the content of the specified files,
 /*	with names separated by CHARS_COMMA_SP, while inserting a
@@ -44,6 +47,9 @@
 /*	dict_file_get_error() should be called only after error;
 /*	it returns a desciption of the problem. Storage is owned
 /*	by the caller.
+/*
+/*	dict_file_wrapper_activate() activates a wrapper that
+/*	automatically base64-decodes lookup results.
 /* DIAGNOSTICS
 /*	In case of error the result value is a null pointer, and
 /*	an error description can be retrieved with dict_file_get_error().
@@ -191,4 +197,58 @@ void    dict_file_purge_buffers(DICT *dict)
 	vstring_free(dict->file_b64);
 	dict->file_b64 = 0;
     }
+}
+
+/* dict_file_wrapper_lookup - wrap the lookup method */
+
+static const char *dict_file_wrapper_lookup(DICT_WRAPPER *wrapper,
+					        DICT *dict, const char *key)
+{
+    DICT_WRAPPER *next_wrapper;
+    const char *res;
+    VSTRING *unb64;
+    char   *err;
+
+    next_wrapper = wrapper->next;
+    if ((res = next_wrapper->lookup(next_wrapper, dict, key)) != 0) {
+	if ((unb64 = dict_file_from_b64(dict, res)) == 0) {
+	    err = dict_file_get_error(dict);
+	    msg_warn("table %s:%s: key %s: %s",
+		     dict->type, dict->name, key, err);
+	    myfree(err);
+	    dict->error = DICT_ERR_CONFIG;
+	    res = 0;
+	} else {
+	    res = vstring_str(unb64);
+	}
+    }
+    return (res);
+}
+
+/* dict_file_wrapper_activate - wrap the lookup method */
+
+void    dict_file_wrapper_activate(DICT *dict)
+{
+    const char myname[] = "dict_file_wrapper_activate";
+    DICT_WRAPPER *wrapper;
+
+    /*
+     * Sanity check.
+     */
+    if ((dict->flags & DICT_FLAG_UNB64_ACTIVE))
+	msg_panic("%s: %s:%s Base64 decoding support is already activated",
+		  myname, dict->type, dict->name);
+
+    /*
+     * Interpose on the lookup method.
+     */
+    wrapper = dict_wrapper_alloc(sizeof(*wrapper));
+    wrapper->name = "file";
+    wrapper->lookup = dict_file_wrapper_lookup;
+    dict_wrapper_prepend(dict, wrapper);
+
+    /*
+     * Leave our mark. See sanity check above.
+     */
+    dict->flags |= DICT_FLAG_UNB64_ACTIVE;
 }
