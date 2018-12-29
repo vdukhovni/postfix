@@ -23922,11 +23922,13 @@ Apologies for any names omitted.
 	Feature: TLS support for client-side and server-side SNI
 	in the Postfix SMTP server, SMTP client, and tlsproxy.
 
-20181228
+20181229
 
-	Cleanup: generic wrapper infrastructure for Postfix maps
-	(dictionaries) that is the basis for UTF8 checks and for
-	base64 decoding of lookup results. Files: global/mkmap_open.c,
-	postmap/postmap.c, util/dict.c, util/dict.h, util/dict_alloc.c,
-	util/dict_file.c, util/dict_open.c, util/dict_pipe.c,
-	util/dict_union.c, util/dict_utf8.c, util/dict_wrapper.c.
+	Explicit maps_file_find() and dict_file_lookup() methods
+	that decode base64 content. Decoding content is not built
+	into the dict->lookup() method, because that would complicate
+	the implementation of map nesting (inline, thash), map
+	composition (pipemap, unionmap), and map proxying.  For
+	consistency, decoding base64 file content is also not built
+	into the maps_find() method. Files: util/dict.h.
+	util/dict_file.c, global/maps.[hc], postmap/postmap.c.

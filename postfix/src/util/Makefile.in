@@ -40,8 +40,7 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
 	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
-	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c \
-	dict_wrapper.c
+	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -83,8 +82,7 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
 	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
-	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
-	dict_wrapper.o
+	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -1342,6 +1340,7 @@ dict_ht.o: sys_defs.h
 dict_ht.o: vbuf.h
 dict_ht.o: vstream.h
 dict_ht.o: vstring.h
+dict_inline.cdict_static.o: dict_inline.cdict_static.c
 dict_inline.o: argv.h
 dict_inline.o: check_arg.h
 dict_inline.o: dict.h
@@ -1648,18 +1647,6 @@ dict_utf8.o: sys_defs.h
 dict_utf8.o: vbuf.h
 dict_utf8.o: vstream.h
 dict_utf8.o: vstring.h
-dict_wrapper.o: argv.h
-dict_wrapper.o: check_arg.h
-dict_wrapper.o: dict.h
-dict_wrapper.o: dict_wrapper.c
-dict_wrapper.o: msg.h
-dict_wrapper.o: myflock.h
-dict_wrapper.o: mymalloc.h
-dict_wrapper.o: stringops.h
-dict_wrapper.o: sys_defs.h
-dict_wrapper.o: vbuf.h
-dict_wrapper.o: vstream.h
-dict_wrapper.o: vstring.h
 dir_forest.o: check_arg.h
 dir_forest.o: dir_forest.c
 dir_forest.o: dir_forest.h
@@ -1917,6 +1904,8 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
+load_lib.o: load_lib.h
+load_lib.o: msg.h
 load_lib.o: sys_defs.h
 lowercase.o: check_arg.h
 lowercase.o: lowercase.c

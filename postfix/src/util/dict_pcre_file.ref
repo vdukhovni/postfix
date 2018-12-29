@@ -3,15 +3,10 @@
 ./dict_open: warning: pcre map dict_pcre_file.map, line 6: empty pathname list: >>,<<': skipping this rule
 owner=untrusted (uid=USER)
 > get file1
-file1=this-is-file1
-
+file1=dGhpcy1pcy1maWxlMQo=
 > get file2
-file2=this-is-file2
-
+file2=dGhpcy1pcy1maWxlMgo=
 > get file3
 file3: not found
 > get files12
-files12=this-is-file1
-
-this-is-file2
-
+files12=dGhpcy1pcy1maWxlMQoKdGhpcy1pcy1maWxlMgo=

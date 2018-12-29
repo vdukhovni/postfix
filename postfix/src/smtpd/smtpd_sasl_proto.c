@@ -7,7 +7,7 @@
 /*	#include "smtpd.h"
 /*	#include "smtpd_sasl_proto.h"
 /*
-/*	void	smtpd_sasl_auth_cmd(state, argc, argv)
+/*	int	smtpd_sasl_auth_cmd(state, argc, argv)
 /*	SMTPD_STATE *state;
 /*	int	argc;
 /*	SMTPD_TOKEN *argv;

@@ -479,16 +479,10 @@ DICT   *dict_open3(const char *dict_type, const char *dict_name,
 	    msg_fatal("%s:%s: unable to get exclusive lock: %m",
 		      dict_type, dict_name);
     }
-    /* Insert wrapper for UTF-8 syntax checks and casefolding. */
+    /* Last step: insert proxy for UTF-8 syntax checks and casefolding. */
     if ((dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
 	&& DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags))
-	dict_utf8_wrapper_activate(dict);
-
-    /* Insert wrapper for base64 decoding file content. */
-    if ((dict->flags & DICT_FLAG_UNB64_ACTIVE) == 0
-	&& dict->flags & DICT_FLAG_SRC_RHS_IS_FILE)
-	dict_file_wrapper_activate(dict);
-
+	dict = dict_utf8_activate(dict);
     return (dict);
 }
 

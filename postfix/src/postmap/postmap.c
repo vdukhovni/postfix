@@ -651,34 +651,30 @@ static int postmap_queries(VSTREAM *in, char **maps, const int map_count,
 		    dicts[n] = ((map_name = split_at(maps[n], ':')) != 0 ?
 		       dict_open3(maps[n], map_name, O_RDONLY, dict_flags) :
 		    dict_open3(var_db_type, maps[n], O_RDONLY, dict_flags));
-		if ((value = dict_get(dicts[n], STR(keybuf))) != 0) {
+		value = ((dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) ?
+			 dict_file_lookup : dicts[n]->lookup)
+		    (dicts[n], STR(keybuf));
+		if (value != 0) {
 		    if (*value == 0) {
 			msg_warn("table %s:%s: key %s: empty string result is not allowed",
 			       dicts[n]->type, dicts[n]->name, STR(keybuf));
 			msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 				 dicts[n]->type, dicts[n]->name);
 		    }
-#if 0
-		    if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
-			VSTRING *unb64;
-			char   *err;
-
-			if ((unb64 = dict_file_from_b64(dicts[n], value)) == 0) {
-			    err = dict_file_get_error(dicts[n]);
-			    msg_fatal("table %s:%s: key %s: %s",
-				      dicts[n]->type, dicts[n]->name,
-				      STR(keybuf), err);
-			}
-			value = STR(unb64);
-		    }
-#endif
 		    vstream_printf("%s	%s\n", STR(keybuf), value);
 		    found = 1;
 		    break;
 		}
-		if (dicts[n]->error)
+		switch (dicts[n]->error) {
+		case 0:
+		    break;
+		case DICT_ERR_CONFIG:
+		    msg_fatal("table %s:%s: query error",
+			      dicts[n]->type, dicts[n]->name);
+		default:
 		    msg_fatal("table %s:%s: query error: %m",
 			      dicts[n]->type, dicts[n]->name);
+		}
 	    }
 	}
     } else {
@@ -752,31 +748,27 @@ static int postmap_query(const char *map_type, const char *map_name,
     const char *value;
 
     dict = dict_open3(map_type, map_name, O_RDONLY, dict_flags);
-    if ((value = dict_get(dict, key)) != 0) {
+    value = ((dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) ?
+	     dict_file_lookup : dict->lookup) (dict, key);
+    if (value != 0) {
 	if (*value == 0) {
 	    msg_warn("table %s:%s: key %s: empty string result is not allowed",
 		     map_type, map_name, key);
 	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 		     map_type, map_name);
 	}
-#if 0
-	if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
-	    VSTRING *unb64;
-	    char   *err;
-
-	    if ((unb64 = dict_file_from_b64(dict, value)) == 0) {
-		err = dict_file_get_error(dict);
-		msg_fatal("table %s:%s: key %s: %s",
-			  dict->type, dict->name,
-			  key, err);
-	    }
-	    value = STR(unb64);
-	}
-#endif
 	vstream_printf("%s\n", value);
     }
-    if (dict->error)
-	msg_fatal("table %s:%s: query error: %m", dict->type, dict->name);
+    switch (dict->error) {
+    case 0:
+	break;
+    case DICT_ERR_CONFIG:
+	msg_fatal("table %s:%s: query error",
+		  dict->type, dict->name);
+    default:
+	msg_fatal("table %s:%s: query error: %m",
+		  dict->type, dict->name);
+    }
     vstream_fflush(VSTREAM_OUT);
     dict_close(dict);
     return (value != 0);
@@ -885,7 +877,6 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	    msg_warn("table %s:%s should return NO RESULT in case of NOT FOUND",
 		     map_type, map_name);
 	}
-#if 1
 	if (dict_flags & DICT_FLAG_SRC_RHS_IS_FILE) {
 	    VSTRING *unb64;
 	    char   *err;
@@ -900,7 +891,6 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	    }
 	    value = STR(unb64);
 	}
-#endif
 	vstream_printf("%s	%s\n", key, value);
     }
     if (dict->error)

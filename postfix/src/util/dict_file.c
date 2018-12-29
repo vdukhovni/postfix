@@ -24,7 +24,7 @@
 /*	void	dict_file_purge_buffers(
 /*	DICT	*dict)
 /*
-/*	void	dict_file_wrapper_activate(
+/*	const char *dict_file_lookup(
 /*	DICT	*dict)
 /* DESCRIPTION
 /*	dict_file_to_buf() reads the content of the specified files,
@@ -48,10 +48,17 @@
 /*	it returns a desciption of the problem. Storage is owned
 /*	by the caller.
 /*
-/*	dict_file_wrapper_activate() activates a wrapper that
-/*	automatically base64-decodes lookup results.
+/*	dict_file_lookup() wraps the dictionary lookup method and
+/*	decodes the base64 lookup result. The dictionary must be
+/*	opened with DICT_FLAG_SRC_RHS_IS_FILE. Sets dict->error to
+/*	DICT_ERR_CONFIG if the content is invalid. Decoding is not
+/*	built into the dict->lookup() method, because that would
+/*	complicate the implementation of map nesting (inline, thash),
+/*	map composition (pipemap, unionmap), and map proxying.
 /* DIAGNOSTICS
-/*	In case of error the result value is a null pointer, and
+/*	Panic: interface violation.
+/*
+/*	In case of error the VSTRING result value is a null pointer, and
 /*	an error description can be retrieved with dict_file_get_error().
 /*	The storage is owned by the caller.
 /* LICENSE
@@ -199,56 +206,28 @@ void    dict_file_purge_buffers(DICT *dict)
     }
 }
 
-/* dict_file_wrapper_lookup - wrap the lookup method */
+/* dict_file_lookup - look up and decode dictionary entry */
 
-static const char *dict_file_wrapper_lookup(DICT_WRAPPER *wrapper,
-					        DICT *dict, const char *key)
+const char *dict_file_lookup(DICT *dict, const char *key)
 {
-    DICT_WRAPPER *next_wrapper;
+    const char myname[] = "dict_file_lookup";
     const char *res;
     VSTRING *unb64;
     char   *err;
 
-    next_wrapper = wrapper->next;
-    if ((res = next_wrapper->lookup(next_wrapper, dict, key)) != 0) {
-	if ((unb64 = dict_file_from_b64(dict, res)) == 0) {
-	    err = dict_file_get_error(dict);
-	    msg_warn("table %s:%s: key %s: %s",
-		     dict->type, dict->name, key, err);
-	    myfree(err);
-	    dict->error = DICT_ERR_CONFIG;
-	    res = 0;
-	} else {
-	    res = vstring_str(unb64);
-	}
+    if ((dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) == 0)
+	msg_panic("%s: dictionary opened without DICT_FLAG_SRC_RHS_IS_FILE",
+		  myname);
+    if ((res = dict->lookup(dict, key)) == 0)
+	return (0);
+    if ((unb64 = dict_file_from_b64(dict, res)) == 0) {
+	err = dict_file_get_error(dict);
+	msg_warn("table %s:%s: key %s: %s",
+		 dict->type, dict->name,
+		 key, err);
+	myfree(err);
+	dict->error = DICT_ERR_CONFIG;
+	return (0);
     }
-    return (res);
-}
-
-/* dict_file_wrapper_activate - wrap the lookup method */
-
-void    dict_file_wrapper_activate(DICT *dict)
-{
-    const char myname[] = "dict_file_wrapper_activate";
-    DICT_WRAPPER *wrapper;
-
-    /*
-     * Sanity check.
-     */
-    if ((dict->flags & DICT_FLAG_UNB64_ACTIVE))
-	msg_panic("%s: %s:%s Base64 decoding support is already activated",
-		  myname, dict->type, dict->name);
-
-    /*
-     * Interpose on the lookup method.
-     */
-    wrapper = dict_wrapper_alloc(sizeof(*wrapper));
-    wrapper->name = "file";
-    wrapper->lookup = dict_file_wrapper_lookup;
-    dict_wrapper_prepend(dict, wrapper);
-
-    /*
-     * Leave our mark. See sanity check above.
-     */
-    dict->flags |= DICT_FLAG_UNB64_ACTIVE;
+    return STR(unb64);
 }

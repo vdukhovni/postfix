@@ -801,7 +801,8 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 	return SSL_TLSEXT_ERR_NOACK;
 
     do {
-	pem = maps_find(tls_server_sni_maps, sni, DICT_FLAG_SRC_RHS_IS_FILE);
+	/* Don't silently skip maps opened with the wrong flags. */
+	pem = maps_file_find(tls_server_sni_maps, sni, 0);
     } while (!pem
 	     && !tls_server_sni_maps->error
 	     && (sni = strchr(sni + 1, '.')) != 0);
