@@ -27,6 +27,7 @@ typedef struct MAPS {
 
 extern MAPS *maps_create(const char *, const char *, int);
 extern const char *maps_find(MAPS *, const char *, int);
+extern const char *maps_file_find(MAPS *, const char *, int);
 extern MAPS *maps_free(MAPS *);
 
 /* LICENSE

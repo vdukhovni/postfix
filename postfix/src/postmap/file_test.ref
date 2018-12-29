@@ -11,4 +11,4 @@ file-2	this-is-file2
 this-is-file1
 this-is-file2
 postmap: warning: table hash:file_test_map.db: key entry-4: malformed BASE64 value: postmap-entry-4
-postmap: fatal: table hash:file_test_map.db: query error: No such file or directory
+postmap: fatal: table hash:file_test_map.db: query error

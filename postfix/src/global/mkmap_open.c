@@ -301,12 +301,7 @@ MKMAP  *mkmap_open(const char *type, const char *path,
      */
     if ((mkmap->dict->flags & DICT_FLAG_UTF8_ACTIVE) == 0
 	&& DICT_NEED_UTF8_ACTIVATION(util_utf8_enable, dict_flags))
-	dict_utf8_wrapper_activate(mkmap->dict);
-
-    /* Insert wrapper for base64 decoding file content. */
-    if ((mkmap->dict->flags & DICT_FLAG_UNB64_ACTIVE) == 0
-        && (mkmap->dict->flags & DICT_FLAG_SRC_RHS_IS_FILE) != 0)
-        dict_file_wrapper_activate(mkmap->dict);
+	mkmap->dict = dict_utf8_activate(mkmap->dict);
 
     /*
      * Resume signal delivery if multi-writer safe.
