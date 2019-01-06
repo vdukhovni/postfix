@@ -41,9 +41,11 @@
 /*	keys is supported as of Postfix 3.2.
 /*
 /*	When the \fB-F\fR option is given, the \fIvalue\fR must
-/*	specify a filename; \fBpostmap\fR(1) will store the
-/*	base64-encoded content of that file instead of the \fIvalue\fR
-/*	itself.
+/*	specify one or more filenames separated by comma and/or
+/*	whitespace; \fBpostmap\fR(1) will concatenate the file
+/*	content (with a newline character inserted between files)
+/*	and will store the base64-encoded result instead of the
+/*	\fIvalue\fR.
 /*
 /*	When the \fIkey\fR specifies email address information, the
 /*	localpart should be enclosed with double quotes if required
@@ -99,9 +101,11 @@
 /*	effect for regular expression tables. There, case folding
 /*	is controlled by appending a flag to a pattern.
 /* .IP \fB-F\fR
-/*	When creating a map from source file, replace each value
-/*	with the base64-encoded content of the named file.  When
-/*	querying a map, or listing a map, base64-decode each value.
+/*	When querying a map, or listing a map, base64-decode each
+/*	value. When creating a map from source file, process each
+/*	value as a list of filenames, concatenate the content of
+/*	those files, and store the base64-encoded result instead
+/*	of the value (see INPUT FORMAT for details).
 /* .IP \fB-h\fR
 /*	Enable message header query mode. When reading lookup keys
 /*	from standard input with "\fB-q -\fR", process the input
@@ -884,9 +888,9 @@ static void postmap_seq(const char *map_type, const char *map_name,
 	    if ((unb64 = dict_file_from_b64(dict, value)) == 0) {
 		err = dict_file_get_error(dict);
 		msg_warn("table %s:%s: key %s: %s",
-			 dict->type, dict->name,
-			 key, err);
+			 dict->type, dict->name, key, err);
 		myfree(err);
+		/* dict->error = DICT_ERR_CONFIG; */
 		continue;
 	    }
 	    value = STR(unb64);

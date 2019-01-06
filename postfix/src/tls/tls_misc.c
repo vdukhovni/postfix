@@ -20,6 +20,9 @@
 /*
 /*	const char **tls_pkey_algorithms(void)
 /*
+/*	void	tls_pre_jail_init(TLS_ROLE)
+/*	TLS_ROLE role;
+/*
 /* .SH Internal functions
 /* .nf
 /* .na
@@ -65,9 +68,6 @@
 /*	long	tls_bug_bits()
 /*
 /*	void	tls_param_init()
-/*
-/*	void	tls_pre_jail_init(TLS_ROLE)
-/*	TLS_ROLE role;
 /*
 /*	int	tls_protocol_mask(plist)
 /*	const char *plist;

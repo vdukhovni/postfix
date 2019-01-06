@@ -17430,7 +17430,7 @@ appropriate keys and certificate chains.  This parameter is implemented
 in the Postfix TLS library, and applies to both smtpd(8) and the SMTP
 server mode of tlsproxy(8). </p>
 
-<p> The lookup key is either the verbatim SNI domain name or a an
+<p> The lookup key is either the verbatim SNI domain name or an
 ancestor domain prefixed with a leading dot.  For internationalized
 domains, the lookup key must be in IDNA 2008 A-label form (as
 required in the TLS SNI extension). </p>

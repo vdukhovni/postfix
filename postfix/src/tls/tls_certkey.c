@@ -53,8 +53,8 @@
 /*	tls_load_pem_chain() loads one or more (key, cert, [chain])
 /*	triples from an in-memory PEM blob.  The "origin" argument
 /*	is used for error logging, to identify the provenance of the
-/*	PEM blob.  Exactly one of "ctx" or "ssl" must be non-zero,
-/*	and the keys and certificates will be loaded into that object.
+/*	PEM blob. "ssl" must be non-zero, and the keys and certificates
+/*	will be loaded into that object.
 /* LICENSE
 /* .ad
 /* .fi
@@ -95,19 +95,19 @@
 #define TLS_INTERNAL
 #include <tls.h>
 
-#define STATE_PEM_NOGO	-2		/* Unusable object or sequence */
-#define STATE_PEM_FAIL	-1		/* Error in libcrypto */
-#define STATE_PEM_DONE	0		/* End of PEM file, return value only */
-#define STATE_PEM_INIT	1		/* No PEM objects seen */
-#define STATE_PEM_PKEY	2		/* Last object was a private key */
-#define STATE_PEM_CERT	3		/* Last object was a certificate */
-#define STATE_PEM_BOTH	4		/* Unordered, key + first cert seen */
+#define PEM_LOAD_STATE_NOGO	-2	/* Unusable object or sequence */
+#define PEM_LOAD_STATE_FAIL	-1	/* Error in libcrypto */
+#define PEM_LOAD_STATE_DONE	0	/* End of PEM file, return value only */
+#define PEM_LOAD_STATE_INIT	1	/* No PEM objects seen */
+#define PEM_LOAD_STATE_PKEY	2	/* Last object was a private key */
+#define PEM_LOAD_STATE_CERT	3	/* Last object was a certificate */
+#define PEM_LOAD_STATE_BOTH	4	/* Unordered, key + first cert seen */
 
-#define LOAD_MODE_MIXED	0		/* Key order not fixed */
-#define LOAD_MODE_MORE	1		/* Keys first, more files */
-#define LOAD_MODE_LAST	2		/* Keys first, last file */
+#define PEM_LOAD_MODE_MIXED	0	/* Key order not fixed */
+#define PEM_LOAD_MODE_MORE	1	/* Keys first, more files */
+#define PEM_LOAD_MODE_LAST	2	/* Keys first, last file */
 
-typedef struct pem_load_state {
+typedef struct pem_load_state_t {
     const char *origin;			/* PEM chain origin description */
     const char *source;			/* PEM BIO origin description */
     const char *keysrc;			/* Source of last key */
@@ -120,11 +120,11 @@ typedef struct pem_load_state {
     int     keynum;			/* Index of last key */
     int     objnum;			/* Index in current source */
     int     state;			/* Current state, never "DONE" */
-} pem_load_state;
+} pem_load_state_t;
 
 /* init_pem_load_state - fill in initial pem_load_state structure */
 
-static void init_pem_load_state(pem_load_state *st, SSL_CTX *ctx, SSL *ssl,
+static void init_pem_load_state(pem_load_state_t *st, SSL_CTX *ctx, SSL *ssl,
 				        const char *origin)
 {
     st->origin = origin;
@@ -138,13 +138,13 @@ static void init_pem_load_state(pem_load_state *st, SSL_CTX *ctx, SSL *ssl,
     st->chain = 0;
     st->keynum = 0;
     st->objnum = 0;
-    st->state = STATE_PEM_INIT;
+    st->state = PEM_LOAD_STATE_INIT;
 }
 
 /* use_chain - load cert, key and chain into ctx or ssl */
 
 #if OPENSSL_VERSION_NUMBER >= 0x1010100fUL
-static int use_chain(pem_load_state *st)
+static int use_chain(pem_load_state_t *st)
 {
     int     ret;
     int     replace = 0;
@@ -178,7 +178,7 @@ static int use_chain(pem_load_state *st)
 #else
 
 /* Legacy OpenSSL 1.0.2 and 1.1.0 interface */
-static int use_chain(pem_load_state *st)
+static int use_chain(pem_load_state_t *st)
 {
     int     ret = 1;
 
@@ -221,7 +221,7 @@ static int use_chain(pem_load_state *st)
 
 /* load_cert - decode and load a DER-encoded X509 certificate */
 
-static void load_cert(pem_load_state *st, int mode, unsigned char *buf,
+static void load_cert(pem_load_state_t *st, int mode, unsigned char *buf,
 		              long buflen)
 {
     const unsigned char *p = buf;
@@ -231,30 +231,30 @@ static void load_cert(pem_load_state *st, int mode, unsigned char *buf,
      * When expecting one or more keys, each key must precede the associated
      * certicate (chain).
      */
-    if (mode != LOAD_MODE_MIXED && st->state == STATE_PEM_INIT) {
+    if (mode != PEM_LOAD_MODE_MIXED && st->state == PEM_LOAD_STATE_INIT) {
 	msg_warn("error loading chain from %s: key not first", st->source);
 	if (cert)
 	    X509_free(cert);
-	st->state = STATE_PEM_NOGO;
+	st->state = PEM_LOAD_STATE_NOGO;
 	return;
     }
     if (!cert) {
 	msg_warn("error loading certificate (PEM object number %d) from %s",
 		 st->objnum, st->source);
-	st->state = STATE_PEM_FAIL;
+	st->state = PEM_LOAD_STATE_FAIL;
 	return;
     }
     if (p - buf != buflen) {
 	msg_warn("error loading certificate (PEM object number %d) from %s:"
 		 " excess data", st->objnum, st->source);
 	X509_free(cert);
-	st->state = STATE_PEM_NOGO;
+	st->state = PEM_LOAD_STATE_NOGO;
 	return;
     }
 
     /*
      * The first certificate after a new key becomes the leaf certificate for
-     * that key, and the additional issuer certificte list is cleared.
+     * that key, and the additional issuer certificate list is cleared.
      * Subsequent certificates are added to the issuer chain (without an
      * "upref" so they are now owne by the chain, and must not be freed).
      * 
@@ -266,24 +266,24 @@ static void load_cert(pem_load_state *st, int mode, unsigned char *buf,
     } else if ((!st->chain && (st->chain = sk_X509_new_null()) == 0)
 	       || !sk_X509_push(st->chain, cert)) {
 	X509_free(cert);
-	st->state = STATE_PEM_FAIL;
+	st->state = PEM_LOAD_STATE_FAIL;
 	return;
     }
-    if (st->state == STATE_PEM_INIT) {
-	st->state = STATE_PEM_CERT;
+    if (st->state == PEM_LOAD_STATE_INIT) {
+	st->state = PEM_LOAD_STATE_CERT;
 	return;
     }
-    if (st->state != STATE_PEM_PKEY)
+    if (st->state != PEM_LOAD_STATE_PKEY)
 	return;
-    if (mode == LOAD_MODE_MIXED)
-	st->state = STATE_PEM_BOTH;
+    if (mode == PEM_LOAD_MODE_MIXED)
+	st->state = PEM_LOAD_STATE_BOTH;
     else
-	st->state = STATE_PEM_CERT;
+	st->state = PEM_LOAD_STATE_CERT;
 }
 
 /* load_pkey - decode and load a DER-encoded private key */
 
-static void load_pkey(pem_load_state *st, int mode, int pkey_type,
+static void load_pkey(pem_load_state_t *st, int mode, int pkey_type,
 		              unsigned char *buf, long buflen)
 {
     const char *myname = "load_pkey";
@@ -315,31 +315,31 @@ static void load_pkey(pem_load_state *st, int mode, int pkey_type,
      * ignored with a warning.
      */
     switch (st->state) {
-    case STATE_PEM_INIT:
+    case PEM_LOAD_STATE_INIT:
 	break;
 
-    case STATE_PEM_CERT:
+    case PEM_LOAD_STATE_CERT:
 
 	/*
 	 * When processing the key of a "next" chain, we're in the "CERT"
 	 * state, and first complete the processing of the previous chain.
 	 */
-	if (mode != LOAD_MODE_MIXED && !use_chain(st)) {
+	if (mode != PEM_LOAD_MODE_MIXED && !use_chain(st)) {
 	    msg_warn("error loading certificate chain: "
 		     "key number %d in %s does not match the certificate",
 		     st->keynum, st->keysrc);
-	    st->state = STATE_PEM_FAIL;
+	    st->state = PEM_LOAD_STATE_FAIL;
 	    return;
 	}
 	break;
 
-    case STATE_PEM_PKEY:
-    case STATE_PEM_BOTH:
+    case PEM_LOAD_STATE_PKEY:
+    case PEM_LOAD_STATE_BOTH:
 	if (pkey)
 	    EVP_PKEY_free(pkey);
 
 	/* XXX: Legacy behaviour was silent, should we stay silent? */
-	if (mode == LOAD_MODE_MIXED) {
+	if (mode == PEM_LOAD_MODE_MIXED) {
 	    msg_warn("ignoring 2nd key at index %d in %s after 1st at %d",
 		     st->objnum, st->source, st->keynum);
 	    return;
@@ -348,19 +348,19 @@ static void load_pkey(pem_load_state *st, int mode, int pkey_type,
 	msg_warn("error loading certificate chain: "
 		 "key number %d in %s not followed by a certificate",
 		 st->keynum, st->keysrc);
-	st->state = STATE_PEM_NOGO;
+	st->state = PEM_LOAD_STATE_NOGO;
 	return;
 
     default:
 	msg_error("%s: internal error: bad state: %d", myname, st->state);
-	st->state = STATE_PEM_NOGO;
+	st->state = PEM_LOAD_STATE_NOGO;
 	return;
     }
 
     if (!pkey) {
 	msg_warn("error loading private key (PEM object number %d) from %s",
 		 st->objnum, st->source);
-	st->state = STATE_PEM_FAIL;
+	st->state = PEM_LOAD_STATE_FAIL;
 	return;
     }
     /* Reject unexpected data beyond the end of the DER-encoded object */
@@ -368,26 +368,26 @@ static void load_pkey(pem_load_state *st, int mode, int pkey_type,
 	msg_warn("error loading private key (PEM object number %d) from %s:"
 		 " excess data", st->objnum, st->source);
 	EVP_PKEY_free(pkey);
-	st->state = STATE_PEM_NOGO;
+	st->state = PEM_LOAD_STATE_NOGO;
 	return;
     }
     /* All's well, update the state */
     st->pkey = pkey;
-    if (st->state == STATE_PEM_INIT) {
-	st->state = STATE_PEM_PKEY;
+    if (st->state == PEM_LOAD_STATE_INIT) {
+	st->state = PEM_LOAD_STATE_PKEY;
 	return;
     }
-    if (st->state != STATE_PEM_CERT)
+    if (st->state != PEM_LOAD_STATE_CERT)
 	return;
-    if (mode == LOAD_MODE_MIXED)
-	st->state = STATE_PEM_BOTH;
+    if (mode == PEM_LOAD_MODE_MIXED)
+	st->state = PEM_LOAD_STATE_BOTH;
     else
-	st->state = STATE_PEM_PKEY;
+	st->state = PEM_LOAD_STATE_PKEY;
 }
 
 /* load_pem_object - load next pkey or cert from open BIO */
 
-static int load_pem_object(pem_load_state *st, int mode)
+static int load_pem_object(pem_load_state_t *st, int mode)
 {
     char   *name = 0;
     char   *header = 0;
@@ -397,11 +397,11 @@ static int load_pem_object(pem_load_state *st, int mode)
 
     if (!PEM_read_bio(st->pembio, &name, &header, &buf, &buflen)) {
 	if (ERR_GET_REASON(ERR_peek_last_error()) != PEM_R_NO_START_LINE)
-	    return (st->state = STATE_PEM_FAIL);
+	    return (st->state = PEM_LOAD_STATE_FAIL);
 
 	ERR_clear_error();
 	/* Clean EOF, preserve stored state for any next input file */
-	return (STATE_PEM_DONE);
+	return (PEM_LOAD_STATE_DONE);
     }
     if (strcmp(name, PEM_STRING_X509) == 0
 	|| strcmp(name, PEM_STRING_X509_OLD) == 0) {
@@ -414,9 +414,9 @@ static int load_pem_object(pem_load_state *st, int mode)
 	       || ((pkey_type = EVP_PKEY_DSA) != NID_undef
 		   && strcmp(name, PEM_STRING_DSA) == 0)) {
 	load_pkey(st, mode, pkey_type, buf, buflen);
-    } else if (mode != LOAD_MODE_MIXED) {
+    } else if (mode != PEM_LOAD_MODE_MIXED) {
 	msg_warn("error loading %s: unexpected PEM type: %s", st->source, name);
-	st->state = STATE_PEM_NOGO;
+	st->state = PEM_LOAD_STATE_NOGO;
     }
     OPENSSL_free(name);
     OPENSSL_free(header);
@@ -426,7 +426,7 @@ static int load_pem_object(pem_load_state *st, int mode)
 
 /* load_pem_bio - load all key/certs from bio and free the bio */
 
-static int load_pem_bio(pem_load_state *st, int mode)
+static int load_pem_bio(pem_load_state_t *st, int mode)
 {
     int     state = st->state;
 
@@ -434,23 +434,21 @@ static int load_pem_bio(pem_load_state *st, int mode)
     ERR_clear_error();
 
     /*
-     * When "mode" == LOAD_MODE_MORE, more files will be loaded after the
+     * When "mode" ==PEM_LOAD_MODE_MORE, more files will be loaded after the
      * current file, and final processing for the last key and chain is
      * deferred.
      * 
-     * When "mode" == LOAD_MODE_LAST, this is the last file in the list, and we
-     * validate the final chain.
+     * When "mode" ==PEM_LOAD_MODE_LAST, this is the last file in the list, and
+     * we validate the final chain.
      * 
-     * When "mode" == LOAD_MODE_MIXED, this is the only file, and its key can
+     * When "mode" ==PEM_LOAD_MODE_MIXED, this is the only file, and its key can
      * occur at any location.  In this case we load at most one key.
      */
-    for (st->objnum = 1; state > STATE_PEM_DONE; ++st->objnum) {
+    for (st->objnum = 1; state > PEM_LOAD_STATE_DONE; ++st->objnum) {
 	state = load_pem_object(st, mode);
-	if (state == STATE_PEM_PKEY || state == STATE_PEM_BOTH) {
-	    if (mode != LOAD_MODE_MIXED) {
-		st->keynum = st->objnum;
-		st->keysrc = st->source;
-	    } else if (st->keynum == 0) {
+	if (state == PEM_LOAD_STATE_PKEY || state == PEM_LOAD_STATE_BOTH) {
+	    if (mode != PEM_LOAD_MODE_MIXED
+		|| (mode == PEM_LOAD_MODE_MIXED && st->keynum == 0)) {
 		st->keynum = st->objnum;
 		st->keysrc = st->source;
 	    }
@@ -460,27 +458,27 @@ static int load_pem_bio(pem_load_state *st, int mode)
     BIO_free(st->pembio);
 
     /* Success with current file, go back for more? */
-    if (mode == LOAD_MODE_MORE && state >= STATE_PEM_DONE)
+    if (mode == PEM_LOAD_MODE_MORE && state >= PEM_LOAD_STATE_DONE)
 	return 0;
 
     /*
      * If all is well so far, complete processing for the final chain.
      */
-    if (st->state >= STATE_PEM_INIT) {
-	if (st->state == STATE_PEM_INIT) {
+    if (st->state >= PEM_LOAD_STATE_INIT) {
+	if (st->state == PEM_LOAD_STATE_INIT) {
 	    msg_warn("No PEM data in %s", st->origin);
-	    st->state = STATE_PEM_NOGO;
-	} else if (st->state == STATE_PEM_PKEY) {
+	    st->state = PEM_LOAD_STATE_NOGO;
+	} else if (st->state == PEM_LOAD_STATE_PKEY) {
 	    msg_warn("No certs for key number %d in %s",
 		     st->keynum, st->keysrc);
-	    st->state = STATE_PEM_NOGO;
-	} else if (mode == LOAD_MODE_MIXED && st->state == STATE_PEM_CERT) {
+	    st->state = PEM_LOAD_STATE_NOGO;
+	} else if (mode == PEM_LOAD_MODE_MIXED && st->state == PEM_LOAD_STATE_CERT) {
 	    msg_warn("No private key found in %s", st->origin);
-	    st->state = STATE_PEM_NOGO;
+	    st->state = PEM_LOAD_STATE_NOGO;
 	} else if (!use_chain(st)) {
 	    msg_warn("key number %d in %s does not match next certificate",
 		     st->keynum, st->keysrc);
-	    st->state = STATE_PEM_FAIL;
+	    st->state = PEM_LOAD_STATE_FAIL;
 	} else {
 	    /* use_chain() freed the key and certs, and zeroed the pointers */
 	    return (0);
@@ -492,7 +490,7 @@ static int load_pem_bio(pem_load_state *st, int mode)
     sk_X509_pop_free(st->chain, X509_free);
 
     switch (st->state) {
-    case STATE_PEM_FAIL:
+    case PEM_LOAD_STATE_FAIL:
 	tls_print_errors();
 	/* FALLTHROUGH */
     default:
@@ -507,7 +505,7 @@ static int load_pem_bio(pem_load_state *st, int mode)
 
 static int load_chain_files(SSL_CTX *ctx, const char *chain_files)
 {
-    pem_load_state st;
+    pem_load_state_t st;
     ARGV   *files = argv_split(chain_files, CHARS_COMMA_SP);
     char  **filep;
     int     ret = 0;
@@ -518,10 +516,10 @@ static int load_chain_files(SSL_CTX *ctx, const char *chain_files)
 	st.source = *filep;
 	if ((st.pembio = BIO_new_file(st.source, "r")) == NULL) {
 	    msg_warn("error opening chain file: %s: %m", st.source);
-	    st.state = STATE_PEM_NOGO;
+	    st.state = PEM_LOAD_STATE_NOGO;
 	    break;
 	}
-	mode = filep[1] ? LOAD_MODE_MORE : LOAD_MODE_LAST;
+	mode = filep[1] ? PEM_LOAD_MODE_MORE : PEM_LOAD_MODE_LAST;
 	/* load_pem_bio() frees the BIO */
 	ret = load_pem_bio(&st, mode);
     }
@@ -576,7 +574,7 @@ static int set_cert_stuff(SSL_CTX *ctx, const char *cert_type,
      * single pass, avoiding potential race conditions during key rollover.
      */
     if (strcmp(cert_file, key_file) == 0) {
-	pem_load_state st;
+	pem_load_state_t st;
 
 	init_pem_load_state(&st, ctx, 0, cert_file);
 	if ((st.pembio = BIO_new_file(st.source, "r")) == NULL) {
@@ -584,7 +582,7 @@ static int set_cert_stuff(SSL_CTX *ctx, const char *cert_type,
 	    return (-1);
 	}
 	/* load_pem_bio() frees the BIO */
-	return (load_pem_bio(&st, LOAD_MODE_MIXED) == 0);
+	return (load_pem_bio(&st, PEM_LOAD_MODE_MIXED) == 0);
     }
 
     /*
@@ -657,7 +655,7 @@ int     tls_set_my_certificate_key_info(SSL_CTX *ctx, const char *chain_files,
 int     tls_load_pem_chain(SSL *ssl, const char *pem, const char *origin)
 {
     static VSTRING *obuf;
-    pem_load_state st;
+    pem_load_state_t st;
 
     if (!obuf)
 	obuf = vstring_alloc(100);
@@ -670,7 +668,7 @@ int     tls_load_pem_chain(SSL *ssl, const char *pem, const char *origin)
 	return (-1);
     }
     /* load_pem_bio() frees the BIO */
-    return (load_pem_bio(&st, LOAD_MODE_LAST));
+    return (load_pem_bio(&st, PEM_LOAD_MODE_LAST));
 }
 
 #endif
