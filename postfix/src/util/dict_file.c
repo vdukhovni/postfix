@@ -222,9 +222,7 @@ const char *dict_file_lookup(DICT *dict, const char *key)
 	return (0);
     if ((unb64 = dict_file_from_b64(dict, res)) == 0) {
 	err = dict_file_get_error(dict);
-	msg_warn("table %s:%s: key %s: %s",
-		 dict->type, dict->name,
-		 key, err);
+	msg_warn("table %s:%s: key %s: %s", dict->type, dict->name, key, err);
 	myfree(err);
 	dict->error = DICT_ERR_CONFIG;
 	return (0);

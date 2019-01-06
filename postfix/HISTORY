@@ -23928,3 +23928,8 @@ Apologies for any names omitted.
 	into the maps_find() method. Files: util/dict.h.
 	util/dict_file.c, global/maps.[hc], postmap/postmap.c.
 
+20190106
+
+	Documentation: documented the SRC_RHS_IS_FILE flag in 
+	dict_open.c, and updated the -F description in the postmap
+	manpage. Files: util/dict_open.c, postmap/postmap.c.
