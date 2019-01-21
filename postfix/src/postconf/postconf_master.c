@@ -190,6 +190,7 @@ static const char *pcf_valid_master_types[] = {
     MASTER_XPORT_NAME_FIFO,
     MASTER_XPORT_NAME_INET,
     MASTER_XPORT_NAME_PASS,
+    MASTER_XPORT_NAME_UXDG,
     0,
 };
 

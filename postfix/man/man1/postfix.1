@@ -136,6 +136,15 @@ commands that run as a descendant of the current process.
 This is set when the \-v command\-line option is present.
 .IP \fBMAIL_DEBUG\fR
 This is set when the \-D command\-line option is present.
+.PP
+When the internal logging service is enabled (by setting a
+non\-empty maillog_file parameter value) the postfix(1)
+command exports settings that are used by child processes
+before they have processed main.cf or command\-line settings.
+.IP \fBPOSTLOG_SERVICE
+The name of the public postlog service endpoint.
+.IP \fBPOSTLOG_HOSTNAME
+The hostname to prepend to internal logging.
 .SH "CONFIGURATION PARAMETERS"
 .na
 .nf
@@ -225,6 +234,13 @@ The optional instance name of this Postfix instance.
 .IP "\fBmulti_instance_enable (no)\fR"
 Allow this Postfix instance to be started, stopped, etc., by a
 multi\-instance manager.
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBmaillog_file (empty)\fR"
+The name of an optional logfile that is written by the \fBpostlogd\fR(8)
+internal logging service.
+.IP "\fBpostlog_service_name (postlog)\fR"
+The name of the \fBpostlogd\fR(8) service entry in master.cf.
 .SH "FILES"
 .na
 .nf
@@ -310,6 +326,7 @@ master(8), Postfix master daemon
 oqmgr(8), old Postfix queue manager
 pickup(8), Postfix local mail pickup
 pipe(8), deliver mail to non\-Postfix command
+postlogd(8), Postfix internal logging service
 postscreen(8), Postfix zombie blocker
 proxymap(8), Postfix lookup table proxy server
 qmgr(8), Postfix queue manager

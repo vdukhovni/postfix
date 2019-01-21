@@ -3738,6 +3738,16 @@ For safety reasons, this feature does not allow $number
 substitutions in regular expression maps.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH maillog_file (default: empty)
+The name of an optional logfile that is written by the \fBpostlogd\fR(8)
+internal logging service. This feature may be used where the syslog
+service is either unavailable or unusable. Some Postfix non\-daemon
+programs may still log some information to \fBsyslogd\fR(8), because they
+cannot know that the internal logging service should be used until
+they have processed their configuration parameters and command\-line
+options.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH mailq_path (default: see "postconf \-d" output)
 Sendmail compatibility feature that specifies where the Postfix
 \fBmailq\fR(1) command is installed. This command can be used to
@@ -4630,6 +4640,24 @@ The numerical Postfix SMTP server response code when a request
 is rejected by the \fBreject_plaintext_session\fR restriction.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH postlog_service_name (default: postlog)
+The name of the \fBpostlogd\fR(8) service entry in master.cf.
+This service appends logfile records to the file specified
+with the maillog_file parameter.
+.PP
+This feature is available in Postfix 3.4 and later.
+.SH postlogd_watchdog_timeout (default: 10s)
+How much time a \fBpostlogd\fR(8) process may take to process a request
+before it is terminated by a built\-in watchdog timer. This is a
+safety mechanism that prevents \fBpostlogd\fR(8) from becoming non\-responsive
+due to a bug in Postfix itself or in system software. This limit
+cannot be set under 10s.
+.PP
+Specify a non\-zero time value (an integral value plus an optional
+one\-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH postmulti_control_commands (default: reload flush)
 The \fBpostfix\fR(1) commands that the \fBpostmulti\fR(1) instance manager
 treats as "control" commands, that operate on running instances. For
@@ -12986,7 +13014,7 @@ Specify a non\-zero time value (an integral value plus an optional
 one\-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).
 .PP
-This feature is available in Postfix 2.8.
+This feature is available in Postfix 2.8 and later
 .SH trace_service_name (default: trace)
 The name of the trace service. This service is implemented by the
 \fBbounce\fR(8) daemon and maintains a record

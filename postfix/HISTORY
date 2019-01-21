@@ -23933,3 +23933,33 @@ Apologies for any names omitted.
 	Documentation: documented the SRC_RHS_IS_FILE flag in 
 	dict_open.c, and updated the -F description in the postmap
 	manpage. Files: util/dict_open.c, postmap/postmap.c.
+
+20190121
+
+	Logging: support for internal logging file, without using
+	syslog (it uses the new postlogd daemon instead). This
+	solves a usability problem for MacOS, may help getting
+	around systemd, and solves 99% of the problem for logging
+	to stdout in a container (hopefully we have 100% soon).
+	Enable by setting, for example, "maillog_file =
+	/var/log/postfix.log").  This works fine for daemons, and
+	with some limitations for non-daemon programs.  See
+	RELEASE_NOTES for more details.  Files: conf/master.cf,
+	conf/post-install, conf/postfix-files, conf/postfix-script,
+	mantools/postlink, proto/master, proto/postconf.proto,
+	global/mail_params.c, global/mail_params.h, global/mail_proto.h,
+	global/maillog_client.c, global/maillog_client.h,
+	master/dgram_server.c, master/event_server.c, master/mail_server.h,
+	master/master.c, master/master.h, master/master_ent.c,
+	master/master_listen.c, master/master_proto.h,
+	master/master_wakeup.c, master/multi_server.c,
+	master/single_server.c, master/trigger_server.c,
+	postalias/postalias.c, postconf/postconf_master.c,
+	postdrop/postdrop.c, postfix/postfix.c, postkick/postkick.c,
+	postlog/postlog.c, postlogd/postlogd.c, postmap/postmap.c,
+	postmulti/postmulti.c, postqueue/postqueue.c,
+	postsuper/postsuper.c, sendmail/sendmail.c, util/connect.h,
+	util/listen.h, util/logwriter.c, util/logwriter.h,
+	util/msg_logger.c, util/msg_logger.h, util/msg_output.c,
+	util/msg_output.h, util/unix_dgram_connect.c,
+	util/unix_dgram_listen.c.

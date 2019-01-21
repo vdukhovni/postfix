@@ -6215,6 +6215,22 @@ substitutions in regular expression maps. </p>
 
 </DD>
 
+<DT><b><a name="maillog_file">maillog_file</a>
+(default: empty)</b></DT><DD>
+
+<p> The name of an optional logfile that is written by the postlogd(8)
+internal logging service. This feature may be used where the syslog
+service is either unavailable or unusable. Some Postfix non-daemon
+programs may still log some information to syslogd(8), because they
+cannot know that the internal logging service should be used until
+they have processed their configuration parameters and command-line
+options. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="mailq_path">mailq_path</a>
 (default: see "postconf -d" output)</b></DT><DD>
 
@@ -7595,6 +7611,36 @@ is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_
 </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postlog_service_name">postlog_service_name</a>
+(default: postlog)</b></DT><DD>
+
+<p> The name of the postlogd(8) service entry in <a href="master.5.html">master.cf</a>.
+This service appends logfile records to the file specified
+with the <a href="postconf.5.html#maillog_file">maillog_file</a> parameter. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="postlogd_watchdog_timeout">postlogd_watchdog_timeout</a>
+(default: 10s)</b></DT><DD>
+
+<p> How much time a postlogd(8) process may take to process a request
+before it is terminated by a built-in watchdog timer. This is a
+safety mechanism that prevents postlogd(8) from becoming non-responsive
+due to a bug in Postfix itself or in system software. This limit
+cannot be set under 10s. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
+
+<p> This feature is available in Postfix 3.4 and later.  </p>
 
 
 </DD>
@@ -18926,7 +18972,7 @@ cannot be set under 10s.  </p>
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
-<p> This feature is available in Postfix 2.8.  </p>
+<p> This feature is available in Postfix 2.8 and later  </p>
 
 
 </DD>

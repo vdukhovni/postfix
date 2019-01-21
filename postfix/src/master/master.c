@@ -193,7 +193,6 @@
 
 #include <sys_defs.h>
 #include <sys/stat.h>
-#include <syslog.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -205,7 +204,6 @@
 
 #include <events.h>
 #include <msg.h>
-#include <msg_syslog.h>
 #include <vstring.h>
 #include <mymalloc.h>
 #include <iostuff.h>
@@ -229,6 +227,7 @@
 #include <open_lock.h>
 #include <inet_proto.h>
 #include <mail_parm_split.h>
+#include <maillog_client.h>
 
 /* Application-specific. */
 
@@ -321,7 +320,8 @@ int     main(int argc, char **argv)
     /*
      * Initialize logging and exit handler.
      */
-    msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task(var_procname), 
+			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*
      * Check the Postfix library version as soon as we enable logging.
@@ -525,6 +525,8 @@ int     main(int argc, char **argv)
     master_config();
     master_sigsetup();
     master_flow_init();
+    maillog_client_init(mail_task(var_procname), 
+			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
     msg_info("daemon started -- version %s, configuration %s",
 	     var_mail_version, var_config_dir);
 
@@ -563,6 +565,8 @@ int     main(int argc, char **argv)
 	    master_gotsighup = 0;		/* this first */
 	    master_vars_init();			/* then this */
 	    master_refresh();			/* then this */
+	    maillog_client_init(mail_task(var_procname), 
+				MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 	}
 	if (master_gotsigchld) {
 	    if (msg_verbose)

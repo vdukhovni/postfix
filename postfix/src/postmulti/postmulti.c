@@ -399,6 +399,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -411,7 +416,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include <syslog.h>
 #include <errno.h>
 #include <ctype.h>
 #ifdef USE_PATHS_H
@@ -423,7 +427,6 @@
 
 #include <msg.h>
 #include <msg_vstream.h>
-#include <msg_syslog.h>
 #include <vstream.h>
 #include <vstring_vstream.h>
 #include <stringops.h>
@@ -442,6 +445,7 @@
 #include <mail_params.h>
 #include <mail_conf.h>
 #include <mail_parm_split.h>
+#include <maillog_client.h>
 
 /* Application-specific. */
 
@@ -1687,12 +1691,21 @@ int     main(int argc, char **argv)
 	argv[0] = slash + 1;
     if (isatty(STDERR_FILENO))
 	msg_vstream_init(argv[0], VSTREAM_ERR);
-    msg_syslog_init(argv[0], LOG_PID, LOG_FACILITY);
+    maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*
      * Check the Postfix library version as soon as we enable logging.
      */
     MAIL_VERSION_CHECK;
+
+    /*
+     * Process main.cf parameters. This is done before the GETOPT() loop to
+     * improve logging. This assumes that no command-line option can affect
+     * parameter processing.
+     */
+    mail_conf_read();
+    get_mail_conf_str_table(str_table);
+    maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     if ((config_dir = getenv(CONF_ENV_PATH)) != 0
 	&& strcmp(config_dir, DEF_CONFIG_DIR) != 0)
@@ -1700,7 +1713,8 @@ int     main(int argc, char **argv)
 		  CONF_ENV_PATH, config_dir);
 
     /*
-     * Parse switches.
+     * Parse switches. Move the above mail_conf_read() block after this loop,
+     * if any command-line option can affect parameter processing.
      */
     while ((ch = GETOPT(argc, argv, "ae:g:i:G:I:lpRvx")) > 0) {
 	switch (ch) {
@@ -1813,12 +1827,6 @@ int     main(int argc, char **argv)
 	    msg_fatal("Parameter overrides not valid with '-e %s'",
 		      EDIT_CMD_STR(cmd_mode));
     }
-
-    /*
-     * Process main.cf parameters.
-     */
-    mail_conf_read();
-    get_mail_conf_str_table(str_table);
 
     /*
      * Sanity checks.

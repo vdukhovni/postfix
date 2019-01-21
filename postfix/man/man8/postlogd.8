@@ -1,0 +1,90 @@
+.TH POSTLOGD 8 
+.ad
+.fi
+.SH NAME
+postlogd
+\-
+Postfix internal log server
+.SH "SYNOPSIS"
+.na
+.nf
+\fBpostlogd\fR [generic Postfix daemon options]
+.SH DESCRIPTION
+.ad
+.fi
+This program logs events on behalf of Postfix programs
+when the maillog configuration parameter specifies a non\-empty
+value.
+.SH BUGS
+.ad
+.fi
+Non\-daemon Postfix programs don't know that they should log
+to the internal logging service until after they have
+processed command\-line options and main.cf parameters. These
+programs still log earlier events to the syslog service.
+
+If Postfix is down, then logging from non\-daemon programs
+will be lost, except for logging from the postfix(1) and
+postlog(1) commands. These can log directly to file when
+running as root, for example during Postfix start\-up.
+
+Non\-daemon Postfix programs can talk to \fBpostlogd\fR(8)
+only if they are run by the super\-user, or if their executable
+files have set\-gid permission.
+.SH "CONFIGURATION PARAMETERS"
+.na
+.nf
+.ad
+.fi
+Changes to \fBmain.cf\fR are picked up automatically, as
+\fBpostlogd\fR(8) processes run for only a limited amount
+of time. Use the command "\fBpostfix reload\fR" to speed
+up a change.
+
+The text below provides only a parameter summary. See
+\fBpostconf\fR(5) for more details including examples.
+.IP "\fBconfig_directory (see 'postconf -d' output)\fR"
+The default location of the Postfix main.cf and master.cf
+configuration files.
+.IP "\fBdaemon_timeout (18000s)\fR"
+How much time a Postfix daemon process may take to handle a
+request before it is terminated by a built\-in watchdog timer.
+.IP "\fBmaillog_file (empty)\fR"
+The name of an optional logfile that is written by the \fBpostlogd\fR(8)
+internal logging service.
+.IP "\fBprocess_id (read\-only)\fR"
+The process ID of a Postfix command or daemon process.
+.IP "\fBprocess_name (read\-only)\fR"
+The process name of a Postfix command or daemon process.
+.IP "\fBsyslog_name (see 'postconf -d' output)\fR"
+A prefix that is prepended to the process name in syslog
+records, so that, for example, "smtpd" becomes "prefix/smtpd".
+.IP "\fBservice_name (read\-only)\fR"
+The master.cf service name of a Postfix daemon process.
+.IP "\fBpostlogd_watchdog_timeout (10s)\fR"
+How much time a \fBpostlogd\fR(8) process may take to process a request
+before it is terminated by a built\-in watchdog timer.
+.SH "SEE ALSO"
+.na
+.nf
+postconf(5), configuration parameters
+syslogd(5), system logging
+.SH "LICENSE"
+.na
+.nf
+.ad
+.fi
+The Secure Mailer license must be distributed with this software.
+.SH HISTORY
+.ad
+.fi
+.ad
+.fi
+This service was introduced with Postfix version 3.4.
+.SH "AUTHOR(S)"
+.na
+.nf
+Wietse Venema
+Google, Inc.
+111 8th Avenue
+New York, NY 10011, USA

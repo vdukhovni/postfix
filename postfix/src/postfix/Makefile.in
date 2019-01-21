@@ -69,8 +69,8 @@ postfix.o: ../../include/mail_conf.h
 postfix.o: ../../include/mail_params.h
 postfix.o: ../../include/mail_parm_split.h
 postfix.o: ../../include/mail_version.h
+postfix.o: ../../include/maillog_client.h
 postfix.o: ../../include/msg.h
-postfix.o: ../../include/msg_syslog.h
 postfix.o: ../../include/msg_vstream.h
 postfix.o: ../../include/safe.h
 postfix.o: ../../include/stringops.h

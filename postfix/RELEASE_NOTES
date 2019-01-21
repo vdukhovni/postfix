@@ -25,6 +25,62 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20190121-nonprod
+============================================
+
+Support for logging to file without using syslog. This solves a
+usability problem for MacOS users, may be useful when systemd is
+getting in the way, and provides 99% of the solution for logging
+to stdout from a container. Hopefully we will have 100% soon.
+
+To enable logging to file without using syslog:
+-----------------------------------------------
+
+Configure the postlogd(8) daemon in master.cf:
+    # postfix upgrade-configuration
+
+Configure the logfile pathname in main.cf:
+    # postconf maillog_file=/var/log/postfix.log
+
+Reload Postfix (master will log to syslog and Postfix logfile):
+running an older version of the master daemon):
+    # postfix reload
+
+Use "postfix stop" and "postfix start" for a fresh master daemon
+that logs to Postfix logfile only.
+
+
+To rotate the logfile with a daily cronjob:
+-------------------------------------------
+
+- Rename the current logfile in the same directory, appending the
+  current date to file file name:
+   # mv postfix.log postfix.log.$(date +%Y%M%d)
+
+- DO NOT YET COMPRESS THE FILE. POSTFIX STILL WRITES TO IT.
+
+- Reload Postfix, so that it will start writing to a new file:
+   # postfix reload
+
+- Compress the old file, and move it elsewhere if needed.
+
+Limitations of Postfix internal logging:
+----------------------------------------
+
+- Non-daemon Postfix programs don't know that they should log to
+  the internal logging service until after they have processed
+  command-line options and main.cf parameters. These programs still
+  log earlier events to the syslog service.
+
+- If Postfix is down, then logging from non-daemon programs will
+  be lost, except for logging from the postfix(1) and postlog(1)
+  commands. These can log directly to file when running as root, for
+  example during Postfix start-up.
+
+- Non-daemon Postfix programs can talk to postlogd(8) only if they
+  are run by the super-user, or if their executable files have set-gid
+  permission.
+
 Major changes with snapshot 20180826
 ====================================
 

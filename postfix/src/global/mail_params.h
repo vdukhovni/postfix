@@ -2517,7 +2517,9 @@ extern int var_fflush_refresh;
   * and what Postfix exports to the external world.
   */
 #define VAR_IMPORT_ENVIRON		"import_environment"
-#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG TZ XAUTHORITY DISPLAY LANG=C"
+#define DEF_IMPORT_ENVIRON		"MAIL_CONFIG MAIL_DEBUG MAIL_LOGTAG " \
+					"TZ XAUTHORITY DISPLAY LANG=C " \
+					"POSTLOG_SERVICE POSTLOG_HOSTNAME"
 extern char *var_import_environ;
 
 #define VAR_EXPORT_ENVIRON		"export_environment"
@@ -4165,6 +4167,21 @@ extern int var_idna2003_compat;
 #define VAR_DNS_NCACHE_TTL_FIX		"dns_ncache_ttl_fix_enable"
 #define DEF_DNS_NCACHE_TTL_FIX		0
 extern bool var_dns_ncache_ttl_fix;
+
+ /*
+  * Logging. As systems evolve over time, logging becomes more challenging.
+  */
+#define VAR_MAILLOG_FILE	"maillog_file"
+#define DEF_MAILLOG_FILE	""
+extern char *var_maillog_file;
+
+#define VAR_POSTLOG_SERVICE	"postlog_service_name"
+#define DEF_POSTLOG_SERVICE	MAIL_SERVICE_POSTLOG
+extern char *var_postlog_service;
+
+#define VAR_POSTLOGD_WATCHDOG	"postlogd_watchdog_timeout"
+#define DEF_POSTLOGD_WATCHDOG	"10s"
+extern int var_postlogd_watchdog;
 
 /* LICENSE
 /* .ad

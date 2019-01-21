@@ -73,12 +73,13 @@ typedef struct MASTER_SERV {
 #define MASTER_LIMIT_OK(limit, count) ((limit) == 0 || ((count) < (limit)))
 
  /*
-  * Service types.
+  * Service types, stream sockets unles indicated otherwise.
   */
 #define MASTER_SERV_TYPE_UNIX	1	/* AF_UNIX domain socket */
 #define MASTER_SERV_TYPE_INET	2	/* AF_INET domain socket */
 #define MASTER_SERV_TYPE_FIFO	3	/* fifo (named pipe) */
 #define MASTER_SERV_TYPE_PASS	4	/* AF_UNIX domain socket */
+#define MASTER_SERV_TYPE_UXDG	5	/* AF_UNIX domain datagram socket */
 
  /*
   * Default process management policy values. This is only the bare minimum.

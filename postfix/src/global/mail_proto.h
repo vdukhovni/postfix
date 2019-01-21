@@ -60,6 +60,7 @@
 #define MAIL_SERVICE_SCACHE	"scache"
 #define MAIL_SERVICE_DNSBLOG	"dnsblog"
 #define MAIL_SERVICE_TLSPROXY	"tlsproxy"
+#define MAIL_SERVICE_POSTLOG	"postlog"
 
  /*
   * Mail source classes. Used to specify policy decisions for content

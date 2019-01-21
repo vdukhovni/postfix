@@ -139,7 +139,7 @@ start|start-fg)
 		# Foreground this so it can be stopped. All inodes are cached.
 		$daemon_directory/postfix-script check-warn
 	fi
-	$INFO starting the Postfix mail system
+	$INFO starting the Postfix mail system || exit 1
 	case $1 in
 	start)
 	    # NOTE: wait in foreground process to get the initialization status.

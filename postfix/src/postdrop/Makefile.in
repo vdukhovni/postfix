@@ -74,8 +74,8 @@ postdrop.o: ../../include/mail_queue.h
 postdrop.o: ../../include/mail_stream.h
 postdrop.o: ../../include/mail_task.h
 postdrop.o: ../../include/mail_version.h
+postdrop.o: ../../include/maillog_client.h
 postdrop.o: ../../include/msg.h
-postdrop.o: ../../include/msg_syslog.h
 postdrop.o: ../../include/msg_vstream.h
 postdrop.o: ../../include/mymalloc.h
 postdrop.o: ../../include/nvtable.h

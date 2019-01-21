@@ -70,8 +70,8 @@ postmulti.o: ../../include/mail_conf.h
 postmulti.o: ../../include/mail_params.h
 postmulti.o: ../../include/mail_parm_split.h
 postmulti.o: ../../include/mail_version.h
+postmulti.o: ../../include/maillog_client.h
 postmulti.o: ../../include/msg.h
-postmulti.o: ../../include/msg_syslog.h
 postmulti.o: ../../include/msg_vstream.h
 postmulti.o: ../../include/mymalloc.h
 postmulti.o: ../../include/name_code.h

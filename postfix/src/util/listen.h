@@ -24,6 +24,7 @@ extern int unix_listen(const char *, int, int);
 extern int inet_listen(const char *, int, int);
 extern int fifo_listen(const char *, int, int);
 extern int stream_listen(const char *, int, int);
+extern int unix_dgram_listen(const char *, int);
 
 extern int inet_accept(int);
 extern int unix_accept(int);

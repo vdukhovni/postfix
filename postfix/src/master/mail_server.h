@@ -125,6 +125,14 @@ extern NORETURN trigger_server_main(int, char **, TRIGGER_SERVER_FN,...);
 
 #define TRIGGER_BUF_SIZE	1024
 
+ /*
+  * dgram_server.c
+  */
+typedef void (*DGRAM_SERVER_FN) (char *, ssize_t, char *, char **);
+extern NORETURN dgram_server_main(int, char **, DGRAM_SERVER_FN,...);
+
+#define DGRAM_BUF_SIZE	4096
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -79,8 +79,8 @@
 /*	found to the standard output stream. The exit status is zero
 /*	when the requested information was found.
 /*
-/*	Note: this performs a single query with the key as specified, 
-/*	and does not make iterative queries with substrings of the 
+/*	Note: this performs a single query with the key as specified,
+/*	and does not make iterative queries with substrings of the
 /*	key as described in the aliases(5) manual page.
 /*
 /*	If a key value of \fB-\fR is specified, the program reads key
@@ -247,7 +247,6 @@
 #include <vstring.h>
 #include <vstream.h>
 #include <msg_vstream.h>
-#include <msg_syslog.h>
 #include <readlline.h>
 #include <stringops.h>
 #include <split_at.h>
@@ -267,6 +266,7 @@
 #include <mail_task.h>
 #include <dict_proxy.h>
 #include <mail_parm_split.h>
+#include <maillog_client.h>
 
 /* Application-specific. */
 
@@ -509,8 +509,8 @@ static int postalias_queries(VSTREAM *in, char **maps, const int map_count,
 	dicts[n] = 0;
 
     /*
-     * Perform all queries. Open maps on the fly, to avoid opening unnecessary
-     * maps.
+     * Perform all queries. Open maps on the fly, to avoid opening
+     * unnecessary maps.
      */
     while (vstring_get_nonl(keybuf, in) != VSTREAM_EOF) {
 	for (n = 0; n < map_count; n++) {
@@ -740,13 +740,13 @@ int     main(int argc, char **argv)
 	msg_verbose = 1;
 
     /*
-     * Initialize. Set up logging, read the global configuration file and
-     * extract configuration information.
+     * Initialize. Set up logging. Read the global configuration file after
+     * parsing command-line arguments.
      */
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task(argv[0]), MAILLOG_CLIENT_FLAG_NONE);
 
     /*
      * Check the Postfix library version as soon as we enable logging.
@@ -822,7 +822,7 @@ int     main(int argc, char **argv)
     update_env(import_env->argv);
     argv_free(import_env);
     /* Re-evaluate mail_task() after reading main.cf. */
-    msg_syslog_init(mail_task(argv[0]), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task(argv[0]), MAILLOG_CLIENT_FLAG_NONE);
     mail_dict_init();
 
     /*

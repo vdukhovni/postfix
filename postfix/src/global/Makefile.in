@@ -34,7 +34,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	dict_memcache.c mail_version.c memcache_proto.c server_acl.c \
 	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
 	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
-	mail_addr_form.c quote_flags.c
+	mail_addr_form.c quote_flags.c maillog_client.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -70,7 +70,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	dict_memcache.o mail_version.o memcache_proto.o server_acl.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
-	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o
+	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o maillog_client.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -103,7 +103,8 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	addr_match_list.h smtp_reply_footer.h safe_ultostr.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
 	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
-	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h
+	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h \
+	maillog_client.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -1135,7 +1136,6 @@ dict_pgsql.o: ../../include/argv.h
 dict_pgsql.o: ../../include/check_arg.h
 dict_pgsql.o: ../../include/dict.h
 dict_pgsql.o: ../../include/events.h
-dict_pgsql.o: ../../include/find_inet.h
 dict_pgsql.o: ../../include/match_list.h
 dict_pgsql.o: ../../include/msg.h
 dict_pgsql.o: ../../include/myflock.h
@@ -1910,6 +1910,26 @@ mail_version.o: ../../include/vbuf.h
 mail_version.o: ../../include/vstring.h
 mail_version.o: mail_version.c
 mail_version.o: mail_version.h
+maillog_client.o: ../../include/attr.h
+maillog_client.o: ../../include/check_arg.h
+maillog_client.o: ../../include/htable.h
+maillog_client.o: ../../include/iostuff.h
+maillog_client.o: ../../include/logwriter.h
+maillog_client.o: ../../include/msg.h
+maillog_client.o: ../../include/msg_logger.h
+maillog_client.o: ../../include/msg_syslog.h
+maillog_client.o: ../../include/mymalloc.h
+maillog_client.o: ../../include/nvtable.h
+maillog_client.o: ../../include/safe.h
+maillog_client.o: ../../include/stringops.h
+maillog_client.o: ../../include/sys_defs.h
+maillog_client.o: ../../include/vbuf.h
+maillog_client.o: ../../include/vstream.h
+maillog_client.o: ../../include/vstring.h
+maillog_client.o: mail_params.h
+maillog_client.o: mail_proto.h
+maillog_client.o: maillog_client.c
+maillog_client.o: maillog_client.h
 maps.o: ../../include/argv.h
 maps.o: ../../include/check_arg.h
 maps.o: ../../include/dict.h

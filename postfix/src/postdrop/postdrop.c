@@ -56,14 +56,16 @@
 /*	\fBpostconf\fR(5) for more details including examples.
 /* .IP "\fBalternate_config_directories (empty)\fR"
 /*	A list of non-default Postfix configuration directories that may
-/*	be specified with "-c config_directory" on the command line, or
-/*	via the MAIL_CONFIG environment parameter.
+/*	be specified with "-c config_directory" on the command line (in the
+/*	case of \fBsendmail\fR(1), with the "-C" option), or via the MAIL_CONFIG
+/*	environment parameter.
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBimport_environment (see 'postconf -d' output)\fR"
-/*	The list of environment parameters that a Postfix process will
-/*	import from a non-Postfix parent process.
+/*	The list of environment parameters that a privileged Postfix
+/*	process will import from a non-Postfix parent process, or name=value
+/*	environment overrides.
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBsyslog_facility (mail)\fR"
@@ -111,7 +113,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <signal.h>
-#include <syslog.h>
 #include <errno.h>
 #include <warn_stat.h>
 
@@ -122,7 +123,6 @@
 #include <vstream.h>
 #include <vstring.h>
 #include <msg_vstream.h>
-#include <msg_syslog.h>
 #include <argv.h>
 #include <iostuff.h>
 #include <stringops.h>
@@ -144,6 +144,7 @@
 #include <user_acl.h>
 #include <rec_attr_map.h>
 #include <mail_parm_split.h>
+#include <maillog_client.h>
 
 /* Application-specific. */
 
@@ -184,9 +185,11 @@ static void postdrop_sig(int sig)
     /*
      * This is the fatal error handler. Don't try to do anything fancy.
      * 
-     * msg_vstream does not allocate memory, but msg_syslog may indirectly in
-     * syslog(), so it should not be called from a user-triggered signal
-     * handler.
+     * To avoid privilege escalation in a set-gid program, Postfix logging
+     * functions must not be called from a user-triggered signal handler,
+     * because Postfix logging functions may allocate memory on the fly (as
+     * does the syslog() library function), and the memory allocator is not
+     * reentrant.
      * 
      * Assume atomic signal() updates, even when emulated with sigaction(). We
      * use the in-kernel SIGINT handler address as an atomic variable to
@@ -270,7 +273,7 @@ int     main(int argc, char **argv)
      */
     argv[0] = "postdrop";
     msg_vstream_init(argv[0], VSTREAM_ERR);
-    msg_syslog_init(mail_task("postdrop"), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task("postdrop"), MAILLOG_CLIENT_FLAG_NONE);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
@@ -303,16 +306,11 @@ int     main(int argc, char **argv)
 
     /*
      * Read the global configuration file and extract configuration
-     * information. Some claim that the user should supply the working
-     * directory instead. That might be OK, given that this command needs
-     * write permission in a subdirectory called "maildrop". However we still
-     * need to reliably detect incomplete input, and so we must perform
-     * record-level I/O. With that, we should also take the opportunity to
-     * perform some sanity checks on the input.
+     * information.
      */
     mail_conf_read();
     /* Re-evaluate mail_task() after reading main.cf. */
-    msg_syslog_init(mail_task("postdrop"), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task("postdrop"), MAILLOG_CLIENT_FLAG_NONE);
     get_mail_conf_str_table(str_table);
 
     /*
