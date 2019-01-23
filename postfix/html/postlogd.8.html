@@ -23,9 +23,9 @@ POSTLOGD(8)                                                        POSTLOGD(8)
        to the syslog service.
 
        If Postfix is down, then logging from non-daemon programs will be lost,
-       except for logging from the <a href="postfix.1.html">postfix(1)</a> and <a href="postlog.1.html">postlog(1)</a>  commands.  These
-       can log directly to file when running as root, for example during Post-
-       fix start-up.
+       except for logging from the <a href="postfix.1.html"><b>postfix</b>(1)</a>,  <a href="postlog.1.html"><b>postlog</b>(1)</a>,  and  <a href="postsuper.1.html"><b>postsuper</b>(1)</a>
+       commands. These commands can log directly to file when running as root,
+       for example during Postfix start-up.
 
        Non-daemon Postfix programs can talk to <b>postlogd</b>(8) only  if  they  are
        run  by  the super-user, or if their executable files have set-gid per-
@@ -43,12 +43,8 @@ POSTLOGD(8)                                                        POSTLOGD(8)
               The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
-       <b><a href="postconf.5.html#daemon_timeout">daemon_timeout</a> (18000s)</b>
-              How much time a Postfix daemon process  may  take  to  handle  a
-              request before it is terminated by a built-in watchdog timer.
-
        <b><a href="postconf.5.html#maillog_file">maillog_file</a> (empty)</b>
-              The  name  of  an  optional logfile that is written by the <b>post-</b>
+              The name of an optional logfile that is  written  by  the  <b>post-</b>
               <b>logd</b>(8) internal logging service.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -58,14 +54,14 @@ POSTLOGD(8)                                                        POSTLOGD(8)
               The process name of a Postfix command or daemon process.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A prefix that  is  prepended  to  the  process  name  in  syslog
+              A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
        <b><a href="postconf.5.html#postlogd_watchdog_timeout">postlogd_watchdog_timeout</a> (10s)</b>
-              How  much  time  a  <b>postlogd</b>(8)  process  may  take to process a
+              How much time a  <b>postlogd</b>(8)  process  may  take  to  process  a
               request before it is terminated by a built-in watchdog timer.
 
 <b>SEE ALSO</b>

@@ -48,12 +48,12 @@
 /*	of the corresponding value arguments.
 /*
 /*	Arguments:
-/* .IP CA_MSG_LOGGER_CTL_FALLBACK_ONLY(int)
-/*	If non-zero, disable the logging socket, and use the fallback
-/*	function only.
+/* .IP CA_MSG_LOGGER_CTL_FALLBACK_ONLY
+/*	Disable the logging socket, and use the fallback function
+/*	only. This cannot be changed with msg_logger_init().
 /* .IP CA_MSG_LOGGER_CTL_FALLBACK(void (*)(const char *))
 /*	Override the fallback setting (see above) with the specified
-/*	function pointer.
+/*	function pointer. This cannot be changed with msg_logger_init().
 /* SEE ALSO
 /*	msg(3)	diagnostics module
 /* BUGS
@@ -101,11 +101,19 @@ static char *msg_logger_hostname;
 static char *msg_logger_unix_path;
 static void (*msg_logger_fallback_fn) (const char *);
 
+ /*
+  * Saved state from msg_logger_control().
+  */
+static int msg_logger_fallback_only_override = 0;
+static int msg_logger_fallback_fn_override = 0;
+
+ /*
+  * Other state.
+  */
 #define MSG_LOGGER_SOCK_NONE	(-1)
 
 static VSTRING *msg_logger_buf;
 static int msg_logger_sock = MSG_LOGGER_SOCK_NONE;
-static int msg_logger_fallback_only = 0;
 
  /*
   * Safety limit.
@@ -143,7 +151,8 @@ static void msg_logger_print(int level, const char *text)
     if (time(&now) < 0)
 	msg_fatal("no time: %m");
     lt = localtime(&now);
-    if ((len = strftime(vstring_end(msg_logger_buf), \
+    VSTRING_RESET(msg_logger_buf);
+    if ((len = strftime(vstring_str(msg_logger_buf),
 			vstring_avail(msg_logger_buf),
 			"%b %d %H:%M:%S ", lt)) == 0)
 	msg_fatal("strftime: %m");
@@ -177,7 +186,7 @@ static void msg_logger_print(int level, const char *text)
      * will report ENOENT if the endpoint does not exist, ECONNREFUSED if no
      * server has opened the endpoint.
      */
-    if (msg_logger_fallback_only == 0
+    if (msg_logger_fallback_only_override == 0
 	&& msg_logger_sock == MSG_LOGGER_SOCK_NONE) {
 	msg_logger_sock = unix_dgram_connect(msg_logger_unix_path, BLOCKING);
 	if (msg_logger_sock >= 0)
@@ -212,7 +221,8 @@ void    msg_logger_init(const char *progname, const char *hostname,
     tzset();
 
     /*
-     * Save the request info.
+     * Save the request info. Use free-after-update because this data will be
+     * accessed when mystrdup() runs out of memory.
      */
 #define FREE_AND_UPDATE(dst, src) do { \
 	char *_bak = (dst); \
@@ -223,7 +233,8 @@ void    msg_logger_init(const char *progname, const char *hostname,
     FREE_AND_UPDATE(msg_logger_progname, progname);
     FREE_AND_UPDATE(msg_logger_hostname, hostname);
     FREE_AND_UPDATE(msg_logger_unix_path, unix_path);
-    msg_logger_fallback_fn = fallback;
+    if (msg_logger_fallback_fn_override == 0)
+	msg_logger_fallback_fn = fallback;
 
     /*
      * One-time activity: register the output handler, and allocate a buffer.
@@ -242,16 +253,21 @@ void    msg_logger_control(int name,...)
     const char *myname = "msg_logger_control";
     va_list ap;
 
+    /*
+     * We use one-way overrides, because a reversible implementation would be
+     * difficult to verify (i.e. it would have bugs).
+     */
     for (va_start(ap, name); name != MSG_LOGGER_CTL_END; name = va_arg(ap, int)) {
 	switch (name) {
 	case MSG_LOGGER_CTL_FALLBACK_ONLY:
-	    if ((msg_logger_fallback_only = va_arg(ap, int)) != 0
-		&& msg_logger_sock != MSG_LOGGER_SOCK_NONE) {
+	    msg_logger_fallback_only_override = 1;
+	    if (msg_logger_sock != MSG_LOGGER_SOCK_NONE) {
 		(void) close(msg_logger_sock);
 		msg_logger_sock = MSG_LOGGER_SOCK_NONE;
 	    }
 	    break;
 	case MSG_LOGGER_CTL_FALLBACK_FN:
+	    msg_logger_fallback_fn_override = 1;
 	    msg_logger_fallback_fn = va_arg(ap, MSG_LOGGER_FALLBACK_FN);
 	    break;
 	default:

@@ -24,9 +24,10 @@ processed command\-line options and main.cf parameters. These
 programs still log earlier events to the syslog service.
 
 If Postfix is down, then logging from non\-daemon programs
-will be lost, except for logging from the postfix(1) and
-postlog(1) commands. These can log directly to file when
-running as root, for example during Postfix start\-up.
+will be lost, except for logging from the \fBpostfix\fR(1),
+\fBpostlog\fR(1), and \fBpostsuper\fR(1) commands. These
+commands can log directly to file when running as root, for
+example during Postfix start\-up.
 
 Non\-daemon Postfix programs can talk to \fBpostlogd\fR(8)
 only if they are run by the super\-user, or if their executable
@@ -46,9 +47,6 @@ The text below provides only a parameter summary. See
 .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 The default location of the Postfix main.cf and master.cf
 configuration files.
-.IP "\fBdaemon_timeout (18000s)\fR"
-How much time a Postfix daemon process may take to handle a
-request before it is terminated by a built\-in watchdog timer.
 .IP "\fBmaillog_file (empty)\fR"
 The name of an optional logfile that is written by the \fBpostlogd\fR(8)
 internal logging service.

@@ -552,8 +552,8 @@ int     main(int argc, char **argv)
     argv_free(import_env);
 
     /*
-     * This ensures that POSTLOG_XXX exports work even if import_environment
-     * would remove them.
+     * This is after calling clean_env(), to ensure that POSTLOG_XXX exports
+     * will work, even if import_environment would remove them.
      */
     maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 

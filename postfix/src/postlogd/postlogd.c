@@ -16,9 +16,10 @@
 /*	programs still log earlier events to the syslog service.
 /*
 /*	If Postfix is down, then logging from non-daemon programs
-/*	will be lost, except for logging from the postfix(1) and
-/*	postlog(1) commands. These can log directly to file when
-/*	running as root, for example during Postfix start-up.
+/*	will be lost, except for logging from the \fBpostfix\fR(1),
+/*	\fBpostlog\fR(1), and \fBpostsuper\fR(1) commands. These
+/*	commands can log directly to file when running as root, for
+/*	example during Postfix start-up.
 /*
 /*	Non-daemon Postfix programs can talk to \fBpostlogd\fR(8)
 /*	only if they are run by the super-user, or if their executable
@@ -36,9 +37,6 @@
 /* .IP "\fBconfig_directory (see 'postconf -d' output)\fR"
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
-/* .IP "\fBdaemon_timeout (18000s)\fR"
-/*	How much time a Postfix daemon process may take to handle a
-/*	request before it is terminated by a built-in watchdog timer.
 /* .IP "\fBmaillog_file (empty)\fR"
 /*	The name of an optional logfile that is written by the \fBpostlogd\fR(8)
 /*	internal logging service.
@@ -112,7 +110,7 @@ int     var_postlogd_watchdog;
   */
 static VSTREAM *postlogd_stream = 0;
 
-/* postlogd_fallback - msg_logger bypass */
+/* postlogd_fallback - log messages from postlogd(8) itself */
 
 static void postlogd_fallback(const char *buf)
 {
@@ -124,7 +122,22 @@ static void postlogd_fallback(const char *buf)
 static void postlogd_service(char *buf, ssize_t len, char *unused_service,
 			             char **unused_argv)
 {
-    (void) logwriter_write(postlogd_stream, buf, len);
+
+    /*
+     * This service may still receive messages after "postfix reload" with a
+     * configuration that removes the maillog_file setting. Those messages
+     * will have to be syslogged instead.
+     * 
+     * XXX When forwarding to syslogd(8), don't bother stripping the time stamp
+     * from the preformatted record: we'd have to deal with short records. If
+     * we must make our presence invisible, msg_logger(3) should send time in
+     * seconds, and leave the formatting to postlogd(8).
+     */
+    if (postlogd_stream) {
+	(void) logwriter_write(postlogd_stream, buf, len);
+    } else {
+	msg_info("%.*s", (int) len, buf);
+    }
 }
 
 /* pre_jail_init - pre-jail handling */
@@ -147,18 +160,25 @@ static void pre_jail_init(char *unused_service_name, char **argv)
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
-     * Instantiate the logwriter or bust.
+     * This service may still receive messages after "postfix reload" into a
+     * configuration that no longer specifies a maillog file. Those messages
+     * will have to be syslogged instead.
      */
-    if (*var_maillog_file == 0)
-	msg_fatal("maillog file is not configured");
-    postlogd_stream = logwriter_open(var_maillog_file);
+    if (*var_maillog_file != 0) {
 
-    /*
-     * Inform the msg_logger client to stop using the postlog socket.
-     */
-    msg_logger_control(CA_MSG_LOGGER_CTL_FALLBACK_ONLY(1),
-		       CA_MSG_LOGGER_CTL_FALLBACK_FN(postlogd_fallback),
-		       CA_MSG_LOGGER_CTL_END);
+	/*
+	 * Instantiate the logwriter or bust.
+	 */
+	postlogd_stream = logwriter_open(var_maillog_file);
+
+	/*
+	 * Inform the msg_logger client to stop using the postlog socket, and
+	 * to call our logwriter.
+	 */
+	msg_logger_control(CA_MSG_LOGGER_CTL_FALLBACK_ONLY,
+			   CA_MSG_LOGGER_CTL_FALLBACK_FN(postlogd_fallback),
+			   CA_MSG_LOGGER_CTL_END);
+    }
 }
 
 /* post_jail_init - post-jail initialization */
@@ -180,7 +200,7 @@ MAIL_VERSION_STAMP_DECLARE;
 int     main(int argc, char **argv)
 {
     static const CONFIG_TIME_TABLE time_table[] = {
-	VAR_TLSP_WATCHDOG, DEF_TLSP_WATCHDOG, &var_postlogd_watchdog, 10, 0,
+	VAR_POSTLOGD_WATCHDOG, DEF_POSTLOGD_WATCHDOG, &var_postlogd_watchdog, 10, 0,
 	0,
     };
 

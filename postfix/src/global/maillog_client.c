@@ -69,8 +69,10 @@
 /*	The Secure Mailer license must be distributed with this
 /*	software.
 /* AUTHOR(S)
-/*	Wietse Venema Google, Inc.  111 8th Avenue New York, NY
-/*	10011, USA
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
  /*
@@ -135,8 +137,8 @@ void    maillog_client_init(const char *progname, int flags)
 
     /*
      * Security: this code may run before the import_environment setting has
-     * taken effect. It has to guard against privilege escalation attacks
-     * with malicious environment settings.
+     * taken effect. It has to guard against privilege escalation attacks on
+     * setgid programs, using malicious environment settings.
      * 
      * Import the postlog service name and hostname from the environment, if the
      * process has not yet processed main.cf and command-line options.
