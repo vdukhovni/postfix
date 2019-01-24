@@ -23963,3 +23963,9 @@ Apologies for any names omitted.
 	util/msg_logger.c, util/msg_logger.h, util/msg_output.c,
 	util/msg_output.h, util/unix_dgram_connect.c,
 	util/unix_dgram_listen.c.
+
+20180124
+
+	Safety: temporary postlogd fix to avoid recursion when main.cf
+	has "maillog_file =" but master(8) still still tells its child
+	processes to send logs to postlogd. File: postlogd/postlogd.c.

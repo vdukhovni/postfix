@@ -74,6 +74,7 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <syslog.h>	/* TEMPORARY */
 
  /*
   * Utility library.
@@ -136,7 +137,8 @@ static void postlogd_service(char *buf, ssize_t len, char *unused_service,
     if (postlogd_stream) {
 	(void) logwriter_write(postlogd_stream, buf, len);
     } else {
-	msg_info("%.*s", (int) len, buf);
+	/* Until msg_logger has a 'shut up' feature. */
+	syslog(LOG_MAIL | LOG_INFO, "%.*s", (int) len, buf);	/* TEMPORARY */
     }
 }
 
