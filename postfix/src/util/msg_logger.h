@@ -34,6 +34,7 @@ extern void msg_logger_control(int,...);
 #define MSG_LOGGER_CTL_END		0
 #define MSG_LOGGER_CTL_FALLBACK_ONLY	1
 #define MSG_LOGGER_CTL_FALLBACK_FN	2
+#define MSG_LOGGER_CTL_DISABLE		3
 
 /* Safer API: type-checked arguments, external use. */
 #define CA_MSG_LOGGER_CTL_END		MSG_LOGGER_CTL_END
@@ -41,6 +42,7 @@ extern void msg_logger_control(int,...);
 #define CA_MSG_LOGGER_CTL_FALLBACK_FN(v) \
 	MSG_LOGGER_CTL_FALLBACK_FN, CHECK_VAL(MSG_LOGGER_CTL, \
 		MSG_LOGGER_FALLBACK_FN, (v))
+#define CA_MSG_LOGGER_CTL_DISABLE	MSG_LOGGER_CTL_DISABLE
 
 CHECK_VAL_HELPER_DCL(MSG_LOGGER_CTL, MSG_LOGGER_FALLBACK_FN);
 

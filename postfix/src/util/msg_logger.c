@@ -12,7 +12,7 @@
 /*	const char *unix_path,
 /*	void	(*fallback)(const char *))
 /*
-/*	msg_logger_control(
+/*	void	msg_logger_control(
 /*	int	key,...)
 /* DESCRIPTION
 /*	This module implements support to report msg(3) diagnostics
@@ -24,7 +24,8 @@
 /* .fi
 /*
 /*	msg_logger_init() arranges that subsequent msg(3) calls
-/*	will write to an internal logging service.
+/*	will write to an internal logging service. This function
+/*	may also be used to update msg_logger settings.
 /*
 /*	Arguments:
 /* .IP progname
@@ -42,20 +43,27 @@
 /*	to the logwriter(3) module.
 /* .PP
 /*	msg_logger_control() makes adjustments to the msg_logger
-/*	client. The arguments are a list of macros with zero or
-/*	more arguments, terminated with CA_MSG_LOGGER_CTL_END
-/*	which has none. The following lists the names and the types
-/*	of the corresponding value arguments.
+/*	client. These adjustments remain in effect until the next
+/*	msg_logger_init() or msg_logger_control() call. The arguments
+/*	are a list of macros with zero or more arguments, terminated
+/*	with CA_MSG_LOGGER_CTL_END which has none. The following
+/*	lists the names and the types of the corresponding value
+/*	arguments.
 /*
 /*	Arguments:
 /* .IP CA_MSG_LOGGER_CTL_FALLBACK_ONLY
 /*	Disable the logging socket, and use the fallback function
-/*	only. This cannot be changed with msg_logger_init().
+/*	only. This remains in effect until the next msg_logger_init()
+/*	call.
 /* .IP CA_MSG_LOGGER_CTL_FALLBACK(void (*)(const char *))
 /*	Override the fallback setting (see above) with the specified
-/*	function pointer. This cannot be changed with msg_logger_init().
+/*	function pointer. This remains in effect until the next
+/*	msg_logger_init() or msg_logger_control() call.
+/* .IP CA_MSG_LOGGER_CTL_DISABLE
+/*	Disable the msg_logger. This remains in effect until the
+/*	next msg_logger_init() call.
 /* SEE ALSO
-/*	msg(3)	diagnostics module
+/*	msg(3)  diagnostics module
 /* BUGS
 /*	Output records are truncated to ~2000 characters, because
 /*	unlimited logging is a liability.
@@ -100,12 +108,8 @@ static char *msg_logger_progname;
 static char *msg_logger_hostname;
 static char *msg_logger_unix_path;
 static void (*msg_logger_fallback_fn) (const char *);
-
- /*
-  * Saved state from msg_logger_control().
-  */
 static int msg_logger_fallback_only_override = 0;
-static int msg_logger_fallback_fn_override = 0;
+static int msg_logger_enable = 0;
 
  /*
   * Other state.
@@ -136,6 +140,13 @@ static void msg_logger_print(int level, const char *text)
     ssize_t len;
 
     /*
+     * This test is simple enough that we don't bother with unregistering the
+     * msg_logger_print() function.
+     */
+    if (msg_logger_enable == 0)
+	return;
+
+    /*
      * TODO: this should be a reusable NAME_CODE table plus lookup function.
      */
     static int log_level[] = {
@@ -144,6 +155,12 @@ static void msg_logger_print(int level, const char *text)
     static char *severity_name[] = {
 	"info", "warning", "error", "fatal", "panic",
     };
+
+    /*
+     * Note: there is code in postlogd(8) that attempts to strip off
+     * information that is prepended here. If the formatting below is
+     * changed, then postlogd needs to be updated as well.
+     */
 
     /*
      * Format the time stamp.
@@ -212,29 +229,32 @@ void    msg_logger_init(const char *progname, const char *hostname,
      * XXX If this program is set-gid, then TZ must not be trusted. This
      * scrubbing code is in the wrong place.
      */
-    if (unsafe())
-	while (getenv("TZ"))			/* There may be multiple. */
-	    if (unsetenv("TZ") < 0) {		/* Desperate measures. */
-		environ[0] = 0;
-		msg_fatal("unsetenv: %m");
-	    }
-    tzset();
+    if (first_call) {
+	if (unsafe())
+	    while (getenv("TZ"))		/* There may be multiple. */
+		if (unsetenv("TZ") < 0) {	/* Desperate measures. */
+		    environ[0] = 0;
+		    msg_fatal("unsetenv: %m");
+		}
+	tzset();
+    }
 
     /*
      * Save the request info. Use free-after-update because this data will be
      * accessed when mystrdup() runs out of memory.
      */
-#define FREE_AND_UPDATE(dst, src) do { \
-	char *_bak = (dst); \
-	(dst) = mystrdup(src); \
-	if ((_bak)) myfree(_bak); \
+#define UPDATE_AND_FREE(dst, src) do { \
+	if ((dst) == 0 || strcmp((dst), (src)) != 0) { \
+	    char *_bak = (dst); \
+	    (dst) = mystrdup(src); \
+	    if ((_bak)) myfree(_bak); \
+	} \
     } while (0)
 
-    FREE_AND_UPDATE(msg_logger_progname, progname);
-    FREE_AND_UPDATE(msg_logger_hostname, hostname);
-    FREE_AND_UPDATE(msg_logger_unix_path, unix_path);
-    if (msg_logger_fallback_fn_override == 0)
-	msg_logger_fallback_fn = fallback;
+    UPDATE_AND_FREE(msg_logger_progname, progname);
+    UPDATE_AND_FREE(msg_logger_hostname, hostname);
+    UPDATE_AND_FREE(msg_logger_unix_path, unix_path);
+    msg_logger_fallback_fn = fallback;
 
     /*
      * One-time activity: register the output handler, and allocate a buffer.
@@ -244,6 +264,12 @@ void    msg_logger_init(const char *progname, const char *hostname,
 	msg_output(msg_logger_print);
 	msg_logger_buf = vstring_alloc(2048);
     }
+
+    /*
+     * Always.
+     */
+    msg_logger_enable = 1;
+    msg_logger_fallback_only_override = 0;
 }
 
 /* msg_logger_control - tweak the client */
@@ -254,8 +280,8 @@ void    msg_logger_control(int name,...)
     va_list ap;
 
     /*
-     * We use one-way overrides, because a reversible implementation would be
-     * difficult to verify (i.e. it would have bugs).
+     * Overrides remain in effect until the next msg_logger_init() or
+     * msg_logger_control() call,
      */
     for (va_start(ap, name); name != MSG_LOGGER_CTL_END; name = va_arg(ap, int)) {
 	switch (name) {
@@ -267,8 +293,10 @@ void    msg_logger_control(int name,...)
 	    }
 	    break;
 	case MSG_LOGGER_CTL_FALLBACK_FN:
-	    msg_logger_fallback_fn_override = 1;
 	    msg_logger_fallback_fn = va_arg(ap, MSG_LOGGER_FALLBACK_FN);
+	    break;
+	case MSG_LOGGER_CTL_DISABLE:
+	    msg_logger_enable = 0;
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

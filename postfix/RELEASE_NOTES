@@ -25,6 +25,13 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20190126-nonprod
+============================================
+
+Support for logging to stdout. This requires Postfix startup with
+"postfix start-fg" and a main.cf file with "maillog_file = /dev/stdout".
+It does not get easier than this.
+
 Major changes with snapshot 20190121-nonprod
 ============================================
 

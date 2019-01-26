@@ -2051,6 +2051,7 @@ msg_syslog.o: msg.h
 msg_syslog.o: msg_output.h
 msg_syslog.o: msg_syslog.c
 msg_syslog.o: msg_syslog.h
+msg_syslog.o: mymalloc.h
 msg_syslog.o: safe.h
 msg_syslog.o: stringops.h
 msg_syslog.o: sys_defs.h

@@ -74,7 +74,6 @@
   * System library.
   */
 #include <sys_defs.h>
-#include <syslog.h>	/* TEMPORARY */
 
  /*
   * Utility library.
@@ -82,13 +81,16 @@
 #include <logwriter.h>
 #include <msg.h>
 #include <msg_logger.h>
+#include <stringops.h>
 #include <vstream.h>
 
  /*
   * Global library.
   */
 #include <mail_params.h>
+#include <mail_task.h>
 #include <mail_version.h>
+#include <maillog_client.h>
 
  /*
   * Server skeleton.
@@ -124,21 +126,44 @@ static void postlogd_service(char *buf, ssize_t len, char *unused_service,
 			             char **unused_argv)
 {
 
-    /*
-     * This service may still receive messages after "postfix reload" with a
-     * configuration that removes the maillog_file setting. Those messages
-     * will have to be syslogged instead.
-     * 
-     * XXX When forwarding to syslogd(8), don't bother stripping the time stamp
-     * from the preformatted record: we'd have to deal with short records. If
-     * we must make our presence invisible, msg_logger(3) should send time in
-     * seconds, and leave the formatting to postlogd(8).
-     */
     if (postlogd_stream) {
 	(void) logwriter_write(postlogd_stream, buf, len);
-    } else {
-	/* Until msg_logger has a 'shut up' feature. */
-	syslog(LOG_MAIL | LOG_INFO, "%.*s", (int) len, buf);	/* TEMPORARY */
+    }
+
+    /*
+     * After a configuration change that removes the maillog_file pathname,
+     * this service may still receive messages (after "postfix reload" or
+     * after process refresh) from programs that use the old maillog_file
+     * setting. Redirect those messages to the current logging mechanism.
+     */
+    else {
+	char   *bp = buf;
+	char   *progname_pid;
+
+	/*
+	 * Avoid surprises: strip off the date, time, host, and program[pid]:
+	 * prefix that were prepended by msg_logger(3). Then, hope that the
+	 * current logging driver suppresses its own PID, when it sees that
+	 * there is a PID embedded in the 'program name'.
+	 */
+	(void) mystrtok(&bp, CHARS_SPACE);	/* month */
+	(void) mystrtok(&bp, CHARS_SPACE);	/* day */
+	(void) mystrtok(&bp, CHARS_SPACE);	/* time */
+	(void) mystrtok(&bp, CHARS_SPACE);	/* host */
+	progname_pid = mystrtok(&bp, ":" CHARS_SPACE);	/* name[pid] sans ':' */
+	bp += strspn(bp, CHARS_SPACE);
+	if (progname_pid)
+	    maillog_client_init(progname_pid, 0);
+	msg_info("%.*s", (int) (len - (bp - buf)), bp);
+
+	/*
+	 * Restore the program name, in case postlogd(8) needs to log
+	 * something about itself. We have to call maillog_client_init() in
+	 * any case, because neither msg_syslog_init() nor openlog() make a
+	 * copy of the name argument. We can't leave that pointing into the
+	 * middle of the above message buffer.
+	 */
+	maillog_client_init(mail_task((char *) 0), 0);
     }
 }
 
@@ -162,9 +187,10 @@ static void pre_jail_init(char *unused_service_name, char **argv)
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
-     * This service may still receive messages after "postfix reload" into a
-     * configuration that no longer specifies a maillog file. Those messages
-     * will have to be syslogged instead.
+     * After a configuration change that removes the maillog_file pathname,
+     * this service may still receive messages from processes that still use
+     * the old configuration. Those messages will have to be redirected to
+     * the current logging subsystem.
      */
     if (*var_maillog_file != 0) {
 

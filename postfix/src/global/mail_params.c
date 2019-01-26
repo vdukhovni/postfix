@@ -830,7 +830,7 @@ void    mail_params_init()
      */
     get_mail_conf_str_table(first_str_defaults);
 
-    if (!msg_syslog_facility(var_syslog_facility))
+    if (!msg_syslog_set_facility(var_syslog_facility))
 	msg_fatal("file %s/%s: parameter %s: unrecognized value: %s",
 		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_SYSLOG_FACILITY, var_syslog_facility);

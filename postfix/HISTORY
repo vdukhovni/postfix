@@ -23964,8 +23964,24 @@ Apologies for any names omitted.
 	util/msg_output.h, util/unix_dgram_connect.c,
 	util/unix_dgram_listen.c.
 
-20180124
-
 	Safety: temporary postlogd fix to avoid recursion when main.cf
 	has "maillog_file =" but master(8) still still tells its child
 	processes to send logs to postlogd. File: postlogd/postlogd.c.
+
+20190126
+
+	Safety: Postfix programs will log to either syslog or postlog
+	but not both; and postlogd forwards postlog logging to
+	syslog, when a configuration change removes the maillog_file
+	pathname, but some programs still use the old configuration.
+	Files: util/msg_syslog.[hc], util/msg_logger.c,
+	global/maillog_client.c, postlogd/postlogd.c,
+
+	Bugfix (introduced: Postfix 1.0): watchdog pipe file
+	descriptor leak. This pipe provides one source of liveness,
+	data from this pipe is discarded, and therefore this does
+	not enable privilege escalation or DOS. File: util/watchdog.c.
+
+	Feature: stdout logging support; requires "postfix start-fg"
+	and "maillog_file = /dev/stdout". Files: master/master.c,
+	conf/postfix-script.

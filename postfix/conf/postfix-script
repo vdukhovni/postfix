@@ -158,7 +158,7 @@ start|start-fg)
 		 1) exec $daemon_directory/master -i
 		    $FATAL "cannot start-fg the master daemon"
 		    exit 1;;
-		 *) $daemon_directory/master;;
+		 *) $daemon_directory/master -s;;
 		esac
 		;;
 	     *) $FATAL "start-fg does not support multi_instance_directories"

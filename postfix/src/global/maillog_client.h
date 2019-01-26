@@ -5,7 +5,7 @@
 /* NAME
 /*	maillog_client 3h
 /* SUMMARY
-/*	log manager
+/*	choose between syslog client and postlog client
 /* SYNOPSIS
 /*	#include <maillog_client.h>
 /* DESCRIPTION
