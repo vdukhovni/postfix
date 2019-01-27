@@ -28,37 +28,33 @@ comfortable with the IPL can continue with that license.
 Major changes with snapshot 20190126-nonprod
 ============================================
 
-Support for logging to stdout. This requires Postfix startup with
-"postfix start-fg" and a main.cf file with "maillog_file = /dev/stdout".
-It does not get easier than this.
+Support for logging to file or stdout. 
 
-Major changes with snapshot 20190121-nonprod
-============================================
+- Logging to file solves a usability problem for MacOS users, and
+  may also be useful on LINUX when systemd is getting in the way.
 
-Support for logging to file without using syslog. This solves a
-usability problem for MacOS users, may be useful when systemd is
-getting in the way, and provides 99% of the solution for logging
-to stdout from a container. Hopefully we will have 100% soon.
+- Logging to stdout is useful when Postfix runs in a container, as
+  it eliminates a syslogd dependency.
 
-To enable logging to file without using syslog:
------------------------------------------------
+To enable Postfix logging to file or stdout:
+--------------------------------------------
 
-Configure the postlogd(8) daemon in master.cf:
-    # postfix upgrade-configuration
+Add the following line to master.cf (no whitespace at the start of the line):
+    postlog   unix-dgram n  -       n       -       1       postlogd
 
-Configure the logfile pathname in main.cf:
+To write logs to Postfix logfile: 
+    # postfix stop
     # postconf maillog_file=/var/log/postfix.log
+    # postfix start
 
-Reload Postfix (master will log to syslog and Postfix logfile):
-running an older version of the master daemon):
-    # postfix reload
+To write logs to stdout, typically while Postfix runs in a container:
+    # postconf maillog_file=/dev/stdout
+    # postfix start-fg
 
-Use "postfix stop" and "postfix start" for a fresh master daemon
-that logs to Postfix logfile only.
+To rotate a Postfix logfile with a daily cronjob:
+-------------------------------------------------
 
-
-To rotate the logfile with a daily cronjob:
--------------------------------------------
+The following applies only when Postfix write to logfile.
 
 - Rename the current logfile in the same directory, appending the
   current date to file file name:
@@ -71,22 +67,28 @@ To rotate the logfile with a daily cronjob:
 
 - Compress the old file, and move it elsewhere if needed.
 
-Limitations of Postfix internal logging:
-----------------------------------------
+Limitations of logging to Postfix logfile or stdout:
+----------------------------------------------------
+
+Background: logging to Postfix logfile or stdout requires the Postfix
+postlogd service. This program ensures that simultaneous logging
+from different programs will not get mixed up.
 
 - Non-daemon Postfix programs don't know that they should log to
-  the internal logging service until after they have processed
-  command-line options and main.cf parameters. These programs still
-  log earlier events to the syslog service.
+  the postlogd service before they have processed command-line
+  options and main.cf parameters. These programs still log earlier
+  events to the syslog service.
 
-- If Postfix is down, then logging from non-daemon programs will
-  be lost, except for logging from the postfix(1) and postlog(1)
-  commands. These can log directly to file when running as root, for
-  example during Postfix start-up.
+- If Postfix is down, the non-daemon programs postfix(1), postsuper(1),
+  postmulti(1), and postlog(1), will log directly to $maillog_file.
+  These programs expect to run with root privileges, for example
+  during Postfix start-up, reload, or shutdown.
 
-- Non-daemon Postfix programs can talk to postlogd(8) only if they
-  are run by the super-user, or if their executable files have set-gid
-  permission.
+- Other non-daemon Postfix programs will never write directly to
+  $maillog_file (in particular, logging to stdout would interfere
+  with their operation). These programs can log to postlogd(8) if
+  they are run by the super-user, or if their executable file has
+  set-gid permission.
 
 Major changes with snapshot 20180826
 ====================================

@@ -23985,3 +23985,10 @@ Apologies for any names omitted.
 	Feature: stdout logging support; requires "postfix start-fg"
 	and "maillog_file = /dev/stdout". Files: master/master.c,
 	conf/postfix-script.
+
+20190127
+
+	Safety: when maillog_file is specified, 'postfix check' now
+	requires that the postlog service is enabled in master.cf.
+	Otherwise 'postfix start' etc. will log a fatal error. File:
+	conf/postfix-script.
