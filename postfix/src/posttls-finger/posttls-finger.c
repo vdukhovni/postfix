@@ -115,6 +115,16 @@
 /* .IP "\fB-h \fIhost_lookup\fR (default: \fBdns\fR)"
 /*	The hostname lookup methods used for the connection.  See the
 /*	documentation of smtp_host_lookup for syntax and semantics.
+/* .IP "\fB-H \fIchainfiles\fR (default: \fInone\fR)\fR"
+/*	List of files with a sequence PEM-encoded TLS client certificate
+/*	chains.  The list can be built-up incrementally, by specifying
+/*	the option multiple times, or all at once via a comma or
+/*	whitespace separated list of filenames.  Each chain starts with
+/*	a private key, which is followed immediately by the
+/*	corresponding certificate, and optionally by additional issuer
+/*	certificates. Each new key begins a new chain for the
+/*	corresponding algorithm.  This option is mutually exclusive with
+/*	the below \fB-k\fR and \fB-K\fR options.
 /* .IP "\fB-k \fIcertfile\fR (default: \fIkeyfile\fR)\fR"
 /*	File with PEM-encoded TLS client certificate chain. This
 /*	defaults to \fIkeyfile\fR if one is specified.
@@ -226,6 +236,12 @@
 /*	is encountered, up to 5 times or as specified with the \fB-m\fR option.
 /*	By default reconnection is disabled, specify a positive delay to
 /*	enable this behavior.
+/* .IP "\fB-s \fIservername\fR"
+/*	The server name to send with the TLS Server Name Indication (SNI)
+/*	extension.  When the server has DANE TLSA records, this parameter
+/*	is ignored and the TLSA base domain is used instead.  Otherwise, SNI is
+/*	not used by default, but can be enabled by specifying the desired value
+/*	with this option.
 /* .IP "\fB-S\fR"
 /*	Disable SMTP; that is, connect to an LMTP server. The default port for
 /*	LMTP over TCP is 24.  Alternative ports can specified by appending
@@ -460,8 +476,10 @@ typedef struct STATE {
     char   *mdalg;			/* fingerprint digest algorithm */
     char   *CAfile;			/* Trusted public CAs */
     char   *CApath;			/* Trusted public CAs */
+    char   *chains;			/* TLS client certificate chain files */
     char   *certfile;			/* TLS client certificate file */
     char   *keyfile;			/* TLS client key file */
+    char   *sni;			/* Server SNI name */
     ARGV   *match;			/* match arguments */
     int     print_trust;		/* -C option */
     BIO    *tls_bio;			/* BIO wrapper for stdout */
@@ -769,7 +787,8 @@ static int starttls(STATE *state)
 				    log_param = "-L option",
 				    log_level = state->options.logopts,
 				    verifydepth = DEF_SMTP_TLS_SCERT_VD,
-				    cache_type = "memory",
+				    cache_type = TLS_MGR_SCACHE_SMTP,
+				    chain_files = state->chains,
 				    cert_file = state->certfile,
 				    key_file = state->keyfile,
 				    dcert_file = "",
@@ -785,6 +804,7 @@ static int starttls(STATE *state)
 				     nexthop = state->nexthop,
 				     host = state->hostname,
 				     namaddr = state->namaddrport,
+				     sni = state->sni,
 				     serverid = state->addrport,
 				     helo = state->helo ? state->helo : "",
 				     protocols = state->protocols,
@@ -854,12 +874,14 @@ static int starttls(STATE *state)
 	     * context attributes.
 	     */
 	    state->tls_context = tls_proxy_context_receive(state->stream);
-	    msg_info("%s: subject_CN=%s, issuer_CN=%s, "
-		     "fingerprint=%s, pkey_fingerprint=%s",
-		     state->namaddrport, state->tls_context->peer_CN,
-		     state->tls_context->issuer_CN,
-		     state->tls_context->peer_cert_fprint,
-		     state->tls_context->peer_pkey_fprint);
+	    if (state->log_mask &
+		(TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE | TLS_LOG_PEERCERT))
+		msg_info("%s: subject_CN=%s, issuer_CN=%s, "
+			 "fingerprint=%s, pkey_fingerprint=%s",
+			 state->namaddrport, state->tls_context->peer_CN,
+			 state->tls_context->issuer_CN,
+			 state->tls_context->peer_cert_fprint,
+			 state->tls_context->peer_pkey_fprint);
 	    tls_log_summary(TLS_ROLE_CLIENT, TLS_USAGE_NEW,
 			    state->tls_context);
 	}
@@ -874,6 +896,7 @@ static int starttls(STATE *state)
 			     nexthop = state->nexthop,
 			     host = state->hostname,
 			     namaddr = state->namaddrport,
+			     sni = state->sni,
 			     serverid = state->addrport,
 			     helo = state->helo ? state->helo : "",
 			     protocols = state->protocols,
@@ -1654,11 +1677,7 @@ static int finger(STATE *state)
 
 static void ssl_cleanup(void)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
     ERR_remove_thread_state(0);		/* Thread-id is now a pointer */
-#else
-    ERR_remove_state(0);		/* Deprecated with OpenSSL 1.0.0 */
-#endif
     ENGINE_cleanup();
     CONF_modules_unload(1);
     ERR_free_strings();
@@ -1703,6 +1722,7 @@ static void cleanup(STATE *state)
     myfree(state->CAfile);
     myfree(state->certfile);
     myfree(state->keyfile);
+    myfree(state->sni);
     if (state->options.level)
 	myfree(state->options.level);
     myfree(state->options.logopts);
@@ -1731,13 +1751,13 @@ static void cleanup(STATE *state)
 static void usage(void)
 {
 #ifdef USE_TLS
-    fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s \\\n\t%s"
+    fprintf(stderr, "usage: %s %s \\\n\t%s \\\n\t%s \\\n\t%s \\\n\t%s"
 	    " destination [match ...]\n", var_procname,
 	    "[-acCfSvw] [-t conn_tmout] [-T cmd_tmout] [-L logopts]",
 	 "[-h host_lookup] [-l level] [-d mdalg] [-g grade] [-p protocols]",
-	    "[-A tafile] [-F CAfile.pem] [-P CApath/] "
-	    "[-k certfile [-K keyfile]] [-m count] [-r delay]",
-	    "[-o name=value]");
+	    "[-A tafile] [-F CAfile.pem] [-P CApath/] [-s servername]",
+	    "[ [-H chainfiles] | [-k certfile [-K keyfile]] ]",
+	    "[-m count] [-r delay] [-o name=value]");
 #else
     fprintf(stderr, "usage: %s [-acStTv] [-h host_lookup] [-o name=value] destination\n",
 	    var_procname);
@@ -1762,6 +1782,7 @@ static void tls_init(STATE *state)
 			log_level = state->options.logopts,
 			verifydepth = DEF_SMTP_TLS_SCERT_VD,
 			cache_type = "memory",
+			chain_files = state->chains,
 			cert_file = state->certfile,
 			key_file = state->keyfile,
 			dcert_file = "",
@@ -1808,13 +1829,15 @@ static void parse_options(STATE *state, int argc, char *argv[])
 
 #define OPTS "a:ch:o:St:T:v"
 #ifdef USE_TLS
-#define TLSOPTS "A:Cd:fF:g:k:K:l:L:m:M:p:P:r:wX"
+#define TLSOPTS "A:Cd:fF:g:H:k:K:l:L:m:M:p:P:r:s:wX"
 
     state->mdalg = mystrdup("sha1");
     state->CApath = mystrdup("");
     state->CAfile = mystrdup("");
+    state->chains = mystrdup("");
     state->certfile = mystrdup("");
     state->keyfile = mystrdup("");
+    state->sni = mystrdup("");
     state->options.tas = argv_alloc(1);
     state->options.logopts = 0;
     state->level = TLS_LEV_DANE;
@@ -1877,6 +1900,18 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	    myfree(state->grade);
 	    state->grade = mystrdup(optarg);
 	    break;
+	case 'H':
+	    {
+		char   *tmp;
+
+		if (*state->chains)
+		    tmp = concatenate(state->chains, ", ", optarg, (char *) 0);
+		else
+		    tmp = mystrdup(optarg);
+		myfree(state->chains);
+		state->chains = tmp;
+	    }
+	    break;
 	case 'k':
 	    myfree(state->certfile);
 	    state->certfile = mystrdup(optarg);
@@ -1927,8 +1962,13 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	case 'r':
 	    state->reconnect = atoi(optarg);
 	    break;
+	case 's':
+	    myfree(state->sni);
+	    state->sni = mystrdup(optarg);
+	    break;
 	case 'w':
 	    state->wrapper_mode = 1;
+	    break;
 	case 'X':
 	    state->tlsproxy_mode = 1;
 	    break;
@@ -1945,6 +1985,9 @@ static void parse_options(STATE *state, int argc, char *argv[])
     if (state->addr_pref < 0)
 	msg_fatal("bad '-a' option value: %s", state->options.addr_pref);
 
+    if (state->tlsproxy_mode && state->reconnect)
+	msg_fatal("The -X and -r options are mutually exclusive");
+
     /*
      * Select hostname lookup mechanisms.
      */
@@ -1953,6 +1996,10 @@ static void parse_options(STATE *state, int argc, char *argv[])
 		  state->options.host_lookup : "dns");
 
 #ifdef USE_TLS
+
+    if (*state->chains && *state->certfile)
+	msg_fatal("When the '-H' option is used, neither the '-k',"
+		  " nor the '-K' options may be used");
 
     if (state->reconnect < 0)
 	tlsmgrmem_disable();

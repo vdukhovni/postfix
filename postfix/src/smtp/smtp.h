@@ -97,6 +97,7 @@ typedef struct SMTP_TLS_POLICY {
     ARGV   *matchargv;			/* Cert match patterns */
     DSN_BUF *why;			/* Lookup error status */
     TLS_DANE *dane;			/* DANE TLSA digests */
+    char   *sni;			/* Optional SNI name when not DANE */
     int     conn_reuse;			/* enable connection reuse */
 } SMTP_TLS_POLICY;
 
@@ -131,6 +132,7 @@ extern void smtp_tls_policy_cache_flush(void);
 	_tls_policy_init_tmp->matchargv = 0; \
 	_tls_policy_init_tmp->why = (w); \
 	_tls_policy_init_tmp->dane = 0; \
+	_tls_policy_init_tmp->sni = 0; \
 	_tls_policy_init_tmp->conn_reuse = 0; \
     } while (0)
 

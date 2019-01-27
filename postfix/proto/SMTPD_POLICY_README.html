@@ -424,11 +424,12 @@ the result. </p>
 <blockquote>
 <pre>
 1 /etc/postfix/main.cf:
-2     smtpd_recipient_restrictions = 
+2     mua_recipient_restrictions = 
 3         ...
 4         reject_unauth_destination
 5         check_policy_service { inet:host:port, 
-6             timeout=10s, default_action=DUNNO }
+6             timeout=10s, default_action=DUNNO
+7             policy_context=submission }
 8         ...
 </pre>
 </blockquote>
@@ -441,7 +442,7 @@ the result. </p>
 This supports the exact same "inet" and "unix" syntax as described
 earlier. </p>
 
-<li> <p> Line 6: The remainder of the list contains per-client
+<li> <p> Line 6-7: The remainder of the list contains per-client
 settings. These settings override global main.cf parameters,
 and have the same name as those parameters, without the
 "smtpd_policy_service_" prefix.  </p>

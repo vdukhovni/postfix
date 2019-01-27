@@ -1189,7 +1189,7 @@ is no maximum, it doesn't make much sense to use values above say
 .PP
 The only reason why the value of 2 is not the default is the way
 this parameter affects the delivery of mailing\-list mail. In the
-worst case, their delivery can take somewhere between (cost+1/cost)
+worst case, delivery can take somewhere between (cost+1/cost)
 and (cost/cost\-1) times more than if the preemptive scheduler was
 disabled. The default value of 5 turns out to provide reasonable
 message response times while making sure the mailing\-list deliveries
@@ -3108,6 +3108,11 @@ The LMTP\-specific version of the smtp_tls_cert_file
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_chain_files (default: empty)
+The LMTP\-specific version of the smtp_tls_chain_files configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH lmtp_tls_ciphers (default: medium)
 The LMTP\-specific version of the smtp_tls_ciphers configuration
 parameter. See there for details.
@@ -3225,6 +3230,11 @@ The LMTP\-specific version of the smtp_tls_security_level configuration
 parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH lmtp_tls_servername (default: empty)
+The LMTP\-specific version of the smtp_tls_servername configuration
+parameter. See there for details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH lmtp_tls_session_cache_database (default: empty)
 The LMTP\-specific version of the smtp_tls_session_cache_database
 configuration parameter. See there for details.
@@ -3655,7 +3665,7 @@ it easier to specify shell syntax (see example below).
 .PP
 If you can, avoid shell meta characters because they will force
 Postfix to run an expensive shell process. If you're delivering
-via Procmail then running a shell won't make a noticeable difference
+via "procmail" then running a shell won't make a noticeable difference
 in the total cost.
 .PP
 Note: if you use the mailbox_command feature to deliver mail
@@ -3825,7 +3835,7 @@ masquerade_domains = $mydomain
 .ft R
 .SH masquerade_exceptions (default: empty)
 Optional list of user names that are not subjected to address
-masquerading, even when their address matches $masquerade_domains.
+masquerading, even when their addresses match $masquerade_domains.
 .PP
 By default, address masquerading makes no exceptions.
 .PP
@@ -4706,7 +4716,7 @@ Example:
 .ft C
 /etc/postfix/main.cf:
     postscreen_access_list = permit_mynetworks,
-                cidr:/etc/postfix/postscreen_access.cidr
+        cidr:/etc/postfix/postscreen_access.cidr
     postscreen_blacklist_action = enforce
 .fi
 .ad
@@ -6334,8 +6344,8 @@ files in the compiled\-in default $shlib_directory location.
 This feature is available in Postfix 3.0 and later.
 .SH show_user_unknown_table_name (default: yes)
 Display the name of the recipient table in the "User unknown"
-responses.  The extra detail makes trouble shooting easier but also
-reveals information that is nobody elses business.
+responses.  The extra detail makes troubleshooting easier but also
+reveals information that is nobody else's business.
 .PP
 This feature is available in Postfix 2.0 and later.
 .SH showq_service_name (default: showq)
@@ -7473,7 +7483,7 @@ smtp_tls_CApath instead, but note that the latter directory must be
 present in the chroot jail if the \fBsmtp\fR(8) client is chrooted. This
 file may also be used to augment the client certificate trust chain,
 but it is best to include all the required certificates directly in
-$smtp_tls_cert_file.
+$smtp_tls_cert_file (or, Postfix >= 3.4 $smtp_tls_chain_files).
 .PP
 Specify "smtp_tls_CAfile = /path/to/system_CA_file" to use
 ONLY the system\-supplied default Certification Authority certificates.
@@ -7531,9 +7541,10 @@ the Postfix SMTP client TLS session.
 This feature is available in Postfix 2.7.
 .SH smtp_tls_cert_file (default: empty)
 File with the Postfix SMTP client RSA certificate in PEM format.
-This file may also contain the Postfix SMTP client private RSA key,
-and these may be the same as the Postfix SMTP server RSA certificate and key
-file.
+This file may also contain the Postfix SMTP client private RSA key, and
+these may be the same as the Postfix SMTP server RSA certificate and key
+file.  With Postfix >= 3.4 the preferred way to configure client keys
+and certificates is via the "smtp_tls_chain_files" parameter.
 .PP
 Do not configure client certificates unless you \fBmust\fR present
 client TLS certificates to one or more servers. Client certificates are
@@ -7546,10 +7557,13 @@ well without them. The recommended setting is to let the defaults stand:
 .ft C
 smtp_tls_cert_file =
 smtp_tls_key_file =
-smtp_tls_dcert_file =
-smtp_tls_dkey_file =
 smtp_tls_eccert_file =
 smtp_tls_eckey_file =
+# Obsolete DSA parameters
+smtp_tls_dcert_file =
+smtp_tls_dkey_file =
+# Postfix >= 3.4 interface
+smtp_tls_chain_files =
 .fi
 .ad
 .ft R
@@ -7566,13 +7580,23 @@ CA(s) (bottom\-up order).
 .PP
 Example: the certificate for "client.example.com" was issued by
 "intermediate CA" which itself has a certificate issued by "root CA".
-Create the client.pem file with "cat client_cert.pem intermediate_CA.pem
-root_CA.pem > client.pem".
+As the "root" super\-user create the client.pem file with:
+.sp
+.in +4
+.nf
+.na
+.ft C
+# \fBumask 077\fR
+# \fBcat client_key.pem client_cert.pem intermediate_CA.pem > chain.pem \fR
+.fi
+.ad
+.ft R
+.in -4
 .PP
 If you also want to verify remote SMTP server certificates issued by
 these CAs, you can add the CA certificates to the smtp_tls_CAfile, in
 which case it is not necessary to have them in the smtp_tls_cert_file,
-smtp_tls_dcert_file or smtp_tls_eccert_file.
+smtp_tls_dcert_file (obsolete) or smtp_tls_eccert_file.
 .PP
 A certificate supplied here must be usable as an SSL client certificate
 and hence pass the "openssl verify \-purpose sslclient ..." test.
@@ -7582,12 +7606,180 @@ Example:
 .nf
 .na
 .ft C
-smtp_tls_cert_file = /etc/postfix/client.pem
+smtp_tls_cert_file = /etc/postfix/chain.pem
 .fi
 .ad
 .ft R
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtp_tls_chain_files (default: empty)
+List of one or more PEM files, each holding one or more private keys
+directly followed by a corresponding certificate chain.  The file names
+are separated by commas and/or whitespace.  This parameter obsoletes the
+legacy algorithm\-specific key and certificate file settings.  When this
+parameter is non\-empty, the legacy parameters are ignored, and a warning
+is logged if any are also non\-empty.
+.PP
+With the proliferation of multiple private key algorithms-which,
+as of OpenSSL 1.1.1, include DSA (obsolete), RSA, ECDSA, Ed25519
+and Ed448-it is increasingly impractical to use separate
+parameters to configure the key and certificate chain for each
+algorithm.  Therefore, Postfix now supports storing multiple keys and
+corresponding certificate chains in a single file or in a set of files.
+.PP
+Each key must appear \fBimmediately before\fR the corresponding
+certificate, optionally followed by additional issuer certificates that
+complete the certificate chain for that key.  When multiple files are
+specified, they are equivalent to a single file that is concatenated
+from those files in the given order.  Thus, while a key must always
+precede its certificate and issuer chain, it can be in a separate file,
+so long as that file is listed immediately before the file that holds
+the corresponding certificate chain.  Once all the files are
+concatenated, the sequence of PEM objects must be: \fIkey1, cert1,
+[chain1], key2, cert2, [chain2], ..., keyN, certN, [chainN].\fR
+.PP
+Storing the private key in the same file as the corresponding
+certificate is more reliable.  With the key and certificate in separate
+files, there is a chance that during key rollover a Postfix process
+might load a private key and certificate from separate files that don't
+match.  Various operational errors may even result in a persistent
+broken configuration in which the certificate does not match the private
+key.
+.PP
+The file or files must contain at most one key of each type.  If,
+for example, two or more RSA keys and corresponding chains are listed,
+depending on the version of OpenSSL either only the last one will be
+used or an configuration error may be detected.  Note that while
+"Ed25519" and "Ed448" are considered separate algorithms, the various
+ECDSA curves (typically one of prime256v1, secp384r1 or secp521r1) are
+considered as different parameters of a single "ECDSA" algorithm, so it
+is not presently possible to configure keys for more than one ECDSA
+curve.
+.PP
+Example (separate files for each key and corresponding certificate chain):
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_tls_chain_files =
+        ${config_directory}/ed25519.pem,
+        ${config_directory}/ed448.pem,
+        ${config_directory}/rsa.pem
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/ed25519.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MC4CAQAwBQYDK2VwBCIEIEJfbbO4BgBQGBg9NAbIJaDBqZb4bC4cOkjtAH+Efbz3
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBKzCB3qADAgECAhQaw+rflRreYuUZBp0HuNn/e5rMZDAFBgMrZXAwFDESMBAG
+    ...
+    nC0egv51YPDWxEHom4QA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/ed448.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MEcCAQAwBQYDK2VxBDsEOQf+m0P+G0qi+NZ0RolyeiE5zdlPQR8h8y4jByBifpIe
+    LNler7nzHQJ1SLcOiXFHXlxp/84VZuh32A==
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBdjCB96ADAgECAhQSv4oP972KypOZPNPF4fmsiQoRHzAFBgMrZXEwFDESMBAG
+    ...
+    pQcWsx+4J29e6YWH3Cy/CdUaexKP4RPCZDrPX7bk5C2BQ+eeYOxyThMA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/rsa.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDc4QusgkahH9rL
+    ...
+    ahQkZ3+krcaJvDSMgvu0tDc=
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIC+DCCAeCgAwIBAgIUIUkrbk1GAemPCT8i9wKsTGDH7HswDQYJKoZIhvcNAQEL
+    ...
+    Rirz15HGVNTK8wzFd+nulPzwUo6dH2IU8KazmyRi7OGvpyrMlm15TRE2oyE=
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Example (all keys and certificates in a single file):
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtp_tls_chain_files = ${config_directory}/chains.pem
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/chains.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MC4CAQAwBQYDK2VwBCIEIEJfbbO4BgBQGBg9NAbIJaDBqZb4bC4cOkjtAH+Efbz3
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBKzCB3qADAgECAhQaw+rflRreYuUZBp0HuNn/e5rMZDAFBgMrZXAwFDESMBAG
+    ...
+    nC0egv51YPDWxEHom4QA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MEcCAQAwBQYDK2VxBDsEOQf+m0P+G0qi+NZ0RolyeiE5zdlPQR8h8y4jByBifpIe
+    LNler7nzHQJ1SLcOiXFHXlxp/84VZuh32A==
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBdjCB96ADAgECAhQSv4oP972KypOZPNPF4fmsiQoRHzAFBgMrZXEwFDESMBAG
+    ...
+    pQcWsx+4J29e6YWH3Cy/CdUaexKP4RPCZDrPX7bk5C2BQ+eeYOxyThMA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDc4QusgkahH9rL
+    ...
+    ahQkZ3+krcaJvDSMgvu0tDc=
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIC+DCCAeCgAwIBAgIUIUkrbk1GAemPCT8i9wKsTGDH7HswDQYJKoZIhvcNAQEL
+    ...
+    Rirz15HGVNTK8wzFd+nulPzwUo6dH2IU8KazmyRi7OGvpyrMlm15TRE2oyE=
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH smtp_tls_cipherlist (default: empty)
 Obsolete Postfix < 2.3 control for the Postfix SMTP client TLS
 cipher list. As this feature applies to all TLS security levels, it is easy
@@ -7660,6 +7852,7 @@ policy is backwards\-compatible with earlier Postfix versions.
 .SH smtp_tls_dcert_file (default: empty)
 File with the Postfix SMTP client DSA certificate in PEM format.
 This file may also contain the Postfix SMTP client private DSA key.
+The DSA algorithm is obsolete and should not be used.
 .PP
 See the discussion under smtp_tls_cert_file for more details.
 .PP
@@ -7677,7 +7870,8 @@ This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_dkey_file (default: $smtp_tls_dcert_file)
 File with the Postfix SMTP client DSA private key in PEM format.
 This file may be combined with the Postfix SMTP client DSA certificate
-file specified with $smtp_tls_dcert_file.
+file specified with $smtp_tls_dcert_file. The DSA algorithm is obsolete
+and should not be used.
 .PP
 The private key must be accessible without a pass\-phrase, i.e. it
 must not be encrypted. File permissions should grant read\-only
@@ -7688,6 +7882,8 @@ This feature is available in Postfix 2.2 and later.
 .SH smtp_tls_eccert_file (default: empty)
 File with the Postfix SMTP client ECDSA certificate in PEM format.
 This file may also contain the Postfix SMTP client ECDSA private key.
+With Postfix >= 3.4 the preferred way to configure client keys and
+certificates is via the "smtp_tls_chain_files" parameter.
 .PP
 See the discussion under smtp_tls_cert_file for more details.
 .PP
@@ -7705,8 +7901,10 @@ This feature is available in Postfix 2.6 and later, when Postfix is
 compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtp_tls_eckey_file (default: $smtp_tls_eccert_file)
 File with the Postfix SMTP client ECDSA private key in PEM format.
-This file may be combined with the Postfix SMTP client ECDSA
-certificate file specified with $smtp_tls_eccert_file.
+This file may be combined with the Postfix SMTP client ECDSA certificate
+file specified with $smtp_tls_eccert_file.  With Postfix >= 3.4 the
+preferred way to configure client keys and certificates is via the
+"smtp_tls_chain_files" parameter.
 .PP
 The private key must be accessible without a pass\-phrase, i.e. it
 must not be encrypted. File permissions should grant read\-only
@@ -7951,7 +8149,9 @@ This feature is available in Postfix 2.11.
 .SH smtp_tls_key_file (default: $smtp_tls_cert_file)
 File with the Postfix SMTP client RSA private key in PEM format.
 This file may be combined with the Postfix SMTP client RSA certificate
-file specified with $smtp_tls_cert_file.
+file specified with $smtp_tls_cert_file.  With Postfix >= 3.4 the
+preferred way to configure client keys and certificates is via the
+"smtp_tls_chain_files" parameter.
 .PP
 The private key must be accessible without a pass\-phrase, i.e. it
 must not be encrypted. File permissions should grant read\-only
@@ -8701,6 +8901,36 @@ smtp_tls_fingerprint_cert_match =
 .ft R
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH smtp_tls_servername (default: empty)
+Optional name to send to the remote SMTP server in the TLS Server
+Name Indication (SNI) extension.  The SNI extension is always on when
+DANE is used to authenticate the server, and in that case the SNI name
+sent is the one required by RFC7672 and this parameter is ignored.
+.PP
+Some SMTP servers use the received SNI name to select an appropriate
+certificate chain to present to the client.  While this may improve
+interoperability with such servers, it may reduce interoperability with
+other servers that choose to abort the connection when they don't have a
+certificate chain configured for the requested name.  Such servers
+should select a default certificate chain and continue the handshake,
+but some may not.  Therefore, absent DANE, no SNI name is sent by
+default.
+.PP
+The SNI name must be either a valid DNS hostname, or else one of the
+special values \fBhostname\fR or \fBnexthop\fR, which select either the
+remote hostname or the nexthop domain respectively.  DNS names for SNI must be
+in A\-label (punycode) form.  Invalid DNS names log a configuration error
+warning and mail delivery is deferred.
+.PP
+Except when using a relayhost to forward all email, the only
+sensible non\-empty main.cf setting for this parameter is
+\fBhostname\fR.  Other non\-empty values are only practical on a
+per\-destination basis via the \fBservername\fR attribute of the Postfix
+TLS policy table.  When
+in doubt, leave this parameter empty, and configure per\-destination SNI
+as needed.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH smtp_tls_session_cache_database (default: empty)
 Name of the file containing the optional Postfix SMTP client
 TLS session cache. Specify a database type that supports enumeration,
@@ -11214,6 +11444,8 @@ This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_cert_file (default: empty)
 File with the Postfix SMTP server RSA certificate in PEM format.
 This file may also contain the Postfix SMTP server private RSA key.
+With Postfix >= 3.4 the preferred way to configure server keys and
+certificates is via the "smtpd_tls_chain_files" parameter.
 .PP
 Public Internet MX hosts without certificates signed by a "reputable"
 CA must generate, and be prepared to present to most clients, a
@@ -11222,15 +11454,22 @@ able to authenticate the server, but unless it is running Postfix 2.3 or
 similar software, it will still insist on a server certificate.
 .PP
 For servers that are \fBnot\fR public Internet MX hosts, Postfix
-2.3 supports configurations with no certificates. This entails the
-use of just the anonymous TLS ciphers, which are not supported by
-typical SMTP clients. Since such clients will not, as a rule, fall
-back to plain text after a TLS handshake failure, the server will
-be unable to receive email from TLS enabled clients. To avoid
-accidental configurations with no certificates, Postfix 2.3 enables
-certificate\-less operation only when the administrator explicitly
-sets "smtpd_tls_cert_file = none". This ensures that new Postfix
-configurations will not accidentally run with no certificates.
+supports configurations with no certificates. This entails the use of
+just the anonymous TLS ciphers, which are not supported by typical SMTP
+clients. Since some clients may not fall back to plain text after a TLS
+handshake failure, a certificate\-less Postfix SMTP server will be unable
+to receive email from some TLS\-enabled clients. To avoid accidental
+configurations with no certificates, Postfix enables certificate\-less
+operation only when the administrator explicitly sets
+"smtpd_tls_cert_file = none". This ensures that new Postfix SMTP server
+configurations will not accidentally enable TLS without certificates.
+.PP
+Note that server certificates are not optional in TLS 1.3. To run
+without certificates you'd have to disable the TLS 1.3 protocol by
+including '!TLSv1.3' in "smtpd_tls_protocols" and perhaps also
+"smtpd_tls_mandatory_protocols".  It is simpler instead to just
+configure a certificate chain.  Certificate\-less operation is not
+recommended.
 .PP
 Both RSA and DSA certificates are supported.  When both types
 are present, the cipher used determines which certificate will be
@@ -11250,8 +11489,8 @@ root_CA.pem > server.pem".
 .PP
 If you also want to verify client certificates issued by these
 CAs, you can add the CA certificates to the smtpd_tls_CAfile, in which
-case it is not necessary to have them in the smtpd_tls_cert_file or
-smtpd_tls_dcert_file.
+case it is not necessary to have them in the smtpd_tls_cert_file,
+smtpd_tls_dcert_file (obsolete) or smtpd_tls_eccert_file.
 .PP
 A certificate supplied here must be usable as an SSL server certificate
 and hence pass the "openssl verify \-purpose sslserver ..." test.
@@ -11267,6 +11506,180 @@ smtpd_tls_cert_file = /etc/postfix/server.pem
 .ft R
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH smtpd_tls_chain_files (default: empty)
+List of one or more PEM files, each holding one or more private keys
+directly followed by a corresponding certificate chain.  The file names
+are separated by commas and/or whitespace.  This parameter obsoletes the
+legacy algorithm\-specific key and certificate file settings.  When this
+parameter is non\-empty, the legacy parameters are ignored, and a warning
+is logged if any are also non\-empty.
+.PP
+With the proliferation of multiple private key algorithms-which,
+as of OpenSSL 1.1.1, include DSA (obsolete), RSA, ECDSA, Ed25519
+and Ed448-it is increasingly impractical to use separate
+parameters to configure the key and certificate chain for each
+algorithm.  Therefore, Postfix now supports storing multiple keys and
+corresponding certificate chains in a single file or in a set of files.
+.PP
+Each key must appear \fBimmediately before\fR the corresponding
+certificate, optionally followed by additional issuer certificates that
+complete the certificate chain for that key.  When multiple files are
+specified, they are equivalent to a single file that is concatenated
+from those files in the given order.  Thus, while a key must always
+precede its certificate and issuer chain, it can be in a separate file,
+so long as that file is listed immediately before the file that holds
+the corresponding certificate chain.  Once all the files are
+concatenated, the sequence of PEM objects must be: \fIkey1, cert1,
+[chain1], key2, cert2, [chain2], ..., keyN, certN, [chainN].\fR
+.PP
+Storing the private key in the same file as the corresponding
+certificate is more reliable.  With the key and certificate in separate
+files, there is a chance that during key rollover a Postfix process
+might load a private key and certificate from separate files that don't
+match.  Various operational errors may even result in a persistent
+broken configuration in which the certificate does not match the private
+key.
+.PP
+The file or files must contain at most one key of each type.  If,
+for example, two or more RSA keys and corresponding chains are listed,
+depending on the version of OpenSSL either only the last one will be
+used or an configuration error may be detected.  Note that while
+"Ed25519" and "Ed448" are considered separate algorithms, the various
+ECDSA curves (typically one of prime256v1, secp384r1 or secp521r1) are
+considered as different parameters of a single "ECDSA" algorithm, so it
+is not presently possible to configure keys for more than one ECDSA
+curve.
+.PP
+RSA is still the most widely supported algorithm.  Presently (late
+2018), ECDSA support is common, but not yet universal, and Ed25519 and
+Ed448 support is mostly absent.  Therefore, an RSA key should generally
+be configured, along with any additional keys for the other algorithms
+when desired.
+.PP
+Example (separate files for each key and corresponding certificate chain):
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtpd_tls_chain_files =
+        ${config_directory}/ed25519.pem,
+        ${config_directory}/ed448.pem,
+        ${config_directory}/rsa.pem
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/ed25519.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MC4CAQAwBQYDK2VwBCIEIEJfbbO4BgBQGBg9NAbIJaDBqZb4bC4cOkjtAH+Efbz3
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBKzCB3qADAgECAhQaw+rflRreYuUZBp0HuNn/e5rMZDAFBgMrZXAwFDESMBAG
+    ...
+    nC0egv51YPDWxEHom4QA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/ed448.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MEcCAQAwBQYDK2VxBDsEOQf+m0P+G0qi+NZ0RolyeiE5zdlPQR8h8y4jByBifpIe
+    LNler7nzHQJ1SLcOiXFHXlxp/84VZuh32A==
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBdjCB96ADAgECAhQSv4oP972KypOZPNPF4fmsiQoRHzAFBgMrZXEwFDESMBAG
+    ...
+    pQcWsx+4J29e6YWH3Cy/CdUaexKP4RPCZDrPX7bk5C2BQ+eeYOxyThMA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/rsa.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDc4QusgkahH9rL
+    ...
+    ahQkZ3+krcaJvDSMgvu0tDc=
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIC+DCCAeCgAwIBAgIUIUkrbk1GAemPCT8i9wKsTGDH7HswDQYJKoZIhvcNAQEL
+    ...
+    Rirz15HGVNTK8wzFd+nulPzwUo6dH2IU8KazmyRi7OGvpyrMlm15TRE2oyE=
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Example (all keys and certificates in a single file):
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    smtpd_tls_chain_files = ${config_directory}/chains.pem
+.fi
+.ad
+.ft R
+.in -4
+.sp
+.in +4
+.nf
+.na
+.ft C
+/etc/postfix/chains.pem:
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MC4CAQAwBQYDK2VwBCIEIEJfbbO4BgBQGBg9NAbIJaDBqZb4bC4cOkjtAH+Efbz3
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBKzCB3qADAgECAhQaw+rflRreYuUZBp0HuNn/e5rMZDAFBgMrZXAwFDESMBAG
+    ...
+    nC0egv51YPDWxEHom4QA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MEcCAQAwBQYDK2VxBDsEOQf+m0P+G0qi+NZ0RolyeiE5zdlPQR8h8y4jByBifpIe
+    LNler7nzHQJ1SLcOiXFHXlxp/84VZuh32A==
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIBdjCB96ADAgECAhQSv4oP972KypOZPNPF4fmsiQoRHzAFBgMrZXEwFDESMBAG
+    ...
+    pQcWsx+4J29e6YWH3Cy/CdUaexKP4RPCZDrPX7bk5C2BQ+eeYOxyThMA
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+    \-\-\-\-\-BEGIN PRIVATE KEY\-\-\-\-\-
+    MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDc4QusgkahH9rL
+    ...
+    ahQkZ3+krcaJvDSMgvu0tDc=
+    \-\-\-\-\-END PRIVATE KEY\-\-\-\-\-
+    \-\-\-\-\-BEGIN CERTIFICATE\-\-\-\-\-
+    MIIC+DCCAeCgAwIBAgIUIUkrbk1GAemPCT8i9wKsTGDH7HswDQYJKoZIhvcNAQEL
+    ...
+    Rirz15HGVNTK8wzFd+nulPzwUo6dH2IU8KazmyRi7OGvpyrMlm15TRE2oyE=
+    \-\-\-\-\-END CERTIFICATE\-\-\-\-\-
+.fi
+.ad
+.ft R
+.in -4
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH smtpd_tls_cipherlist (default: empty)
 Obsolete Postfix < 2.3 control for the Postfix SMTP server TLS
 cipher list. It is easy to create interoperability problems by choosing
@@ -11299,6 +11712,7 @@ and opportunistic TLS always uses "export" or better (i.e. all) ciphers.
 .SH smtpd_tls_dcert_file (default: empty)
 File with the Postfix SMTP server DSA certificate in PEM format.
 This file may also contain the Postfix SMTP server private DSA key.
+The DSA algorithm is obsolete and should not be used.
 .PP
 See the discussion under smtpd_tls_cert_file for more details.
 .PP
@@ -11379,7 +11793,8 @@ This feature is available with Postfix version 2.2.
 .SH smtpd_tls_dkey_file (default: $smtpd_tls_dcert_file)
 File with the Postfix SMTP server DSA private key in PEM format.
 This file may be combined with the Postfix SMTP server DSA certificate
-file specified with $smtpd_tls_dcert_file.
+file specified with $smtpd_tls_dcert_file. The DSA algorithm is obsolete
+and should not be used.
 .PP
 The private key must be accessible without a pass\-phrase, i.e. it
 must not be encrypted. File permissions should grant read\-only
@@ -11390,6 +11805,8 @@ This feature is available in Postfix 2.2 and later.
 .SH smtpd_tls_eccert_file (default: empty)
 File with the Postfix SMTP server ECDSA certificate in PEM format.
 This file may also contain the Postfix SMTP server private ECDSA key.
+With Postfix >= 3.4 the preferred way to configure server keys and
+certificates is via the "smtpd_tls_chain_files" parameter.
 .PP
 See the discussion under smtpd_tls_cert_file for more details.
 .PP
@@ -11408,7 +11825,9 @@ compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eckey_file (default: $smtpd_tls_eccert_file)
 File with the Postfix SMTP server ECDSA private key in PEM format.
 This file may be combined with the Postfix SMTP server ECDSA certificate
-file specified with $smtpd_tls_eccert_file.
+file specified with $smtpd_tls_eccert_file.  With Postfix >= 3.4 the
+preferred way to configure server keys and certificates is via the
+"smtpd_tls_chain_files" parameter.
 .PP
 The private key must be accessible without a pass\-phrase, i.e. it
 must not be encrypted. File permissions should grant read\-only
@@ -11619,7 +12038,9 @@ This feature is available in Postfix 2.5 and later.
 .SH smtpd_tls_key_file (default: $smtpd_tls_cert_file)
 File with the Postfix SMTP server RSA private key in PEM format.
 This file may be combined with the Postfix SMTP server RSA certificate
-file specified with $smtpd_tls_cert_file.
+file specified with $smtpd_tls_cert_file.  With Postfix >= 3.4 the
+preferred way to configure server keys and certificates is via the
+"smtpd_tls_chain_files" parameter.
 .PP
 The private key must be accessible without a pass\-phrase, i.e. it
 must not be encrypted. File permissions should grant read\-only
@@ -12573,6 +12994,78 @@ Note: on OpenBSD systems specify /dev/arandom when /dev/urandom
 gives timeout errors.
 .PP
 This feature is available in Postfix 2.2 and later.
+.SH tls_server_sni_maps (default: empty)
+Optional lookup tables that map names received from remote SMTP
+clients via the TLS Server Name Indication (SNI) extension to the
+appropriate keys and certificate chains.  This parameter is implemented
+in the Postfix TLS library, and applies to both \fBsmtpd\fR(8) and the SMTP
+server mode of \fBtlsproxy\fR(8).
+.PP
+The lookup key is either the verbatim SNI domain name or an
+ancestor domain prefixed with a leading dot.  For internationalized
+domains, the lookup key must be in IDNA 2008 A\-label form (as
+required in the TLS SNI extension).
+.PP
+The mapping from an SNI domain name to a certificate chain is
+typically indirect.  In the input source files for "cdb", "hash",
+"btree" or other tables that are converted to on\-disk indexed files
+via \fBpostmap\fR(1), the value specified for each key is a list of
+filenames.  When \fBpostmap\fR(1) is used with the \fB\-F\fR option, the
+generated table stores for each lookup key the base64\-encoded
+contents of the associated files.  When querying tables via \fBpostmap
+\-Fq\fR, the table value is decoded from base64, yielding the original
+file content, plus a new line.
+.PP
+With "regexp", "pcre", "inline", "texthash", "static" and similar
+tables that are interpreted at run\-time, and don't have a separate
+source format, the table value is again a list files, that are read\-in
+when the table is opened.
+.PP
+Thus, for example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ postmap \-Fq "" static:/etc/postfix/chain.pem | openssl dgst \-sha1
+(stdin)= da39a3ee5e6b4b0d3255bfef95601890afd80709
+.fi
+.ad
+.ft R
+.in -4
+.PP
+produces the same output as:
+.sp
+.in +4
+.nf
+.na
+.ft C
+$ (cat /etc/postfix/chain.pem; echo) | openssl dgst \-sha1
+(stdin)= da39a3ee5e6b4b0d3255bfef95601890afd80709
+.fi
+.ad
+.ft R
+.in -4
+.PP
+With tables whose content is managed outside of Postfix, such
+as LDAP, MySQL, PostgreSQL, socketmap and tcp, the value must be a
+concatenation of the desired PEM keys and certificate chains, that
+is then further encoded to yield a single\-line base64 string.
+Creation of such tables and secure storage are outside the
+responsibility of Postfix.  With "socketmap" and "tcp" the data
+would be transmitted in the clear.  With LDAP and SQL, you should
+generally use TLS to protect the sensitive data in transit.
+.PP
+Typically there is only private key and its chain of certificates
+starting with the "leaf" certificate corresponding to that key, and
+continuing with the appropriate intermediate issuer CA certificates,
+with each certificate ideally followed by its issuer.  Servers
+that have keys and certificates for more than one algorithm (e.g.
+both an RSA key and an ECDSA key, or even RSA, ECDSA and Ed25519)
+can use multiple chains concatenated together, with the key always
+listed before the corresponding certificates.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH tls_session_ticket_cipher (default: Postfix >= 3.0: aes\-256\-cbc, Postfix < 3.0: aes\-128\-cbc)
 Algorithm used to encrypt RFC5077 TLS session tickets.  This
 algorithm must use CBC mode, have a 128\-bit block size, and must
@@ -12722,27 +13215,40 @@ server certificate. See smtp_tls_CApath for further details.
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_cert_file (default: $smtp_tls_cert_file)
 File with the Postfix \fBtlsproxy\fR(8) client RSA certificate in PEM
-format. See smtp_tls_cert_file for further details.
+format. See smtp_tls_cert_file for further details.  The preferred way
+to configure tlsproxy client keys and certificates is via the
+"tlsproxy_client_chain_files" parameter.
+.PP
+This feature is available in Postfix 3.4 and later.
+.SH tlsproxy_client_chain_files (default: $smtp_tls_chain_files)
+Files with the Postfix \fBtlsproxy\fR(8) client keys and certificate
+chains in PEM format. See smtp_tls_chain_files for further details.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_dcert_file (default: $smtp_tls_dcert_file)
 File with the Postfix \fBtlsproxy\fR(8) client DSA certificate in PEM
-format. See smtp_tls_dcert_file for further details.
+format. See smtp_tls_dcert_file for further details. DSA is obsolete and
+should not be used.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_dkey_file (default: $smtp_tls_dkey_file)
 File with the Postfix \fBtlsproxy\fR(8) client DSA private key in PEM
-format. See smtp_tls_dkey_file for further details.
+format. See smtp_tls_dkey_file for further details. DSA is obsolete and
+should not be used.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_eccert_file (default: $smtp_tls_eccert_file)
-File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in
-PEM format. See smtp_tls_eccert_file for further details.
+File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in PEM
+format. See smtp_tls_eccert_file for further details. The preferred way
+to configure tlsproxy client keys and certificates is via the
+"tlsproxy_client_chain_files" parameter.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_eckey_file (default: $smtp_tls_eckey_file)
-File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in
-PEM format. See smtp_tls_eckey_file for further details.
+File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in PEM
+format. See smtp_tls_eckey_file for further details.  The preferred way
+to configure tlsproxy client keys and certificates is via the
+"tlsproxy_client_chain_files" parameter.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_enforce_tls (default: $smtp_enforce_tls)
@@ -12758,7 +13264,9 @@ further details.
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_key_file (default: $smtp_tls_key_file)
 File with the Postfix \fBtlsproxy\fR(8) client RSA private key in PEM
-format. See smtp_tls_key_file for further details.
+format. See smtp_tls_key_file for further details. The preferred way to
+configure tlsproxy client keys and certificates is via the
+"tlsproxy_client_chain_files" parameter.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_client_loglevel (default: $smtp_tls_loglevel)
@@ -12841,9 +13349,16 @@ This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_cert_file (default: $smtpd_tls_cert_file)
 File with the Postfix \fBtlsproxy\fR(8) server RSA certificate in PEM
 format.  This file may also contain the Postfix \fBtlsproxy\fR(8) server
-private RSA key.  See smtpd_tls_cert_file for further details.
+private RSA key.  See smtpd_tls_cert_file for further details.  With
+Postfix >= 3.4 the preferred way to configure tlsproxy server keys and
+certificates is via the "tlsproxy_tls_chain_files" parameter.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_chain_files (default: $smtpd_tls_chain_files)
+Files with the Postfix \fBtlsproxy\fR(8) server keys and certificate
+chains in PEM format. See smtpd_tls_chain_files for further details.
+.PP
+This feature is available in Postfix 3.4 and later.
 .SH tlsproxy_tls_ciphers (default: $smtpd_tls_ciphers)
 The minimum TLS cipher grade that the Postfix \fBtlsproxy\fR(8) server
 will use with opportunistic TLS encryption. See smtpd_tls_ciphers
@@ -12853,7 +13368,8 @@ This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dcert_file (default: $smtpd_tls_dcert_file)
 File with the Postfix \fBtlsproxy\fR(8) server DSA certificate in PEM
 format.  This file may also contain the Postfix \fBtlsproxy\fR(8) server
-private DSA key.  See smtpd_tls_dcert_file for further details.
+private DSA key.  DSA is obsolete and should not be used.  See
+smtpd_tls_dcert_file for further details.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dh1024_param_file (default: $smtpd_tls_dh1024_param_file)
@@ -12872,23 +13388,27 @@ result export\-grade cipher suites are by default not used.
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dkey_file (default: $smtpd_tls_dkey_file)
 File with the Postfix \fBtlsproxy\fR(8) server DSA private key in PEM
-format.  This file may be combined with the Postfix \fBtlsproxy\fR(8)
-server DSA certificate file specified with $smtpd_tls_dcert_file.
-See smtpd_tls_dkey_file for further details.
-.PP
-This feature is available in Postfix 2.8 and later.
-.SH tlsproxy_tls_eccert_file (default: $smtpd_tls_eccert_file)
-File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in
-PEM format.  This file may also contain the Postfix \fBtlsproxy\fR(8)
-server private ECDSA key.  See smtpd_tls_eccert_file for further
+format.  This file may be combined with the Postfix \fBtlsproxy\fR(8) server
+DSA certificate file specified with $smtpd_tls_dcert_file.  DSA is
+obsolete and should not be used.  See smtpd_tls_dkey_file for further
 details.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH tlsproxy_tls_eccert_file (default: $smtpd_tls_eccert_file)
+File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in PEM
+format.  This file may also contain the Postfix \fBtlsproxy\fR(8) server
+private ECDSA key.  See smtpd_tls_eccert_file for further details.  With
+Postfix >= 3.4 the preferred way to configure tlsproxy server keys and
+certificates is via the "tlsproxy_tls_chain_files" parameter.
+.PP
+This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_eckey_file (default: $smtpd_tls_eckey_file)
-File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in
-PEM format.  This file may be combined with the Postfix \fBtlsproxy\fR(8)
-server ECDSA certificate file specified with $smtpd_tls_eccert_file.
-See smtpd_tls_eckey_file for further details.
+File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in PEM
+format.  This file may be combined with the Postfix \fBtlsproxy\fR(8) server
+ECDSA certificate file specified with $smtpd_tls_eccert_file.  See
+smtpd_tls_eckey_file for further details.  With Postfix >= 3.4 the
+preferred way to configure tlsproxy server keys and certificates is via
+the "tlsproxy_tls_chain_files" parameter.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_eecdh_grade (default: $smtpd_tls_eecdh_grade)
@@ -12911,9 +13431,11 @@ fingerprints. See smtpd_tls_fingerprint_digest for further details.
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_key_file (default: $smtpd_tls_key_file)
 File with the Postfix \fBtlsproxy\fR(8) server RSA private key in PEM
-format.  This file may be combined with the Postfix \fBtlsproxy\fR(8)
-server RSA certificate file specified with $smtpd_tls_cert_file.
-See smtpd_tls_key_file for further details.
+format.  This file may be combined with the Postfix \fBtlsproxy\fR(8) server
+RSA certificate file specified with $smtpd_tls_cert_file.  See
+smtpd_tls_key_file for further details.  With Postfix >= 3.4 the
+preferred way to configure tlsproxy server keys and certificates is via
+the "tlsproxy_tls_chain_files" parameter.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_loglevel (default: $smtpd_tls_loglevel)
@@ -13264,7 +13786,7 @@ with 450 when the mapping failed due to a temporary error condition.
 Do not change this unless you have a complete understanding of RFC 5321.
 .SH unknown_helo_hostname_tempfail_action (default: $reject_tempfail_action)
 The Postfix SMTP server's action when reject_unknown_helo_hostname
-fails due to an temporary error condition. Specify "defer" to defer
+fails due to a temporary error condition. Specify "defer" to defer
 the remote SMTP client request immediately. With the default
 "defer_if_permit" action, the Postfix SMTP server continues to look
 for opportunities to reject mail, and defers the client request

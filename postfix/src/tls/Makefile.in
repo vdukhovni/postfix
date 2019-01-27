@@ -23,7 +23,7 @@ DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 INCL	=
 LIB	= lib$(LIB_PREFIX)tls$(LIB_SUFFIX)
-TESTPROG= tls_dh tls_mgr tls_rsa tls_dane
+TESTPROG= tls_dh tls_mgr tls_rsa tls_dane tls_certkey
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)dns$(LIB_SUFFIX) \
 	../../lib/lib$(LIB_PREFIX)global$(LIB_SUFFIX) \
@@ -43,7 +43,27 @@ Makefile: Makefile.in
 
 test:	$(TESTPROG)
 
-tests:
+tests: tls_certkey_tests
+
+tls_certkey_tests: test
+	@echo Testing loading of keys and certs
+	@export LD_LIBRARY_PATH=../../lib; \
+	for pem in goodchains.pem; do \
+	    ./tls_certkey $$pem > $$pem.out 2>&1 || exit 1; \
+	    diff $$pem.ref $$pem.out || exit 1; \
+	    echo "  $$pem: OK"; \
+	done; \
+	for pem in *-mixed-*.pem ; do \
+	    ./tls_certkey -m $$pem > $$pem.out 2>&1 || exit 1; \
+	    diff $$pem.ref $$pem.out || exit 1; \
+	    echo "  $$pem: OK"; \
+	done; \
+	for pem in bad-*.pem; do \
+	    ./tls_certkey $$pem > $$pem.out 2>&1 && exit 1 || : ok; \
+	    egrep -v 'TLS library problem' $$pem.out | diff $$pem.ref - || \
+	    exit 1; \
+	    echo "  $$pem: OK"; \
+	done
 
 root_tests:
 
@@ -75,7 +95,7 @@ lint:
 	lint $(DEFS) $(SRCS) $(LINTFIX)
 
 clean:
-	rm -f *.o $(LIB) *core $(TESTPROG) junk
+	rm -f *.o $(LIB) *core $(TESTPROG) junk *.pem.out
 	rm -rf printfck
 
 tidy:	clean
@@ -96,6 +116,11 @@ tls_rsa: $(LIB) $(LIBS)
 	mv junk $@.o
 
 tls_dane: $(LIB) $(LIBS)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+	mv junk $@.o
+
+tls_certkey: $(LIB) $(LIBS)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 	mv junk $@.o
@@ -256,17 +281,21 @@ tls_mgr.o: tls_mgr.h
 tls_mgr.o: tls_scache.h
 tls_misc.o: ../../include/argv.h
 tls_misc.o: ../../include/check_arg.h
+tls_misc.o: ../../include/dict.h
 tls_misc.o: ../../include/dns.h
 tls_misc.o: ../../include/mail_conf.h
 tls_misc.o: ../../include/mail_params.h
+tls_misc.o: ../../include/maps.h
 tls_misc.o: ../../include/msg.h
 tls_misc.o: ../../include/myaddrinfo.h
+tls_misc.o: ../../include/myflock.h
 tls_misc.o: ../../include/mymalloc.h
 tls_misc.o: ../../include/name_code.h
 tls_misc.o: ../../include/name_mask.h
 tls_misc.o: ../../include/sock_addr.h
 tls_misc.o: ../../include/stringops.h
 tls_misc.o: ../../include/sys_defs.h
+tls_misc.o: ../../include/valid_hostname.h
 tls_misc.o: ../../include/vbuf.h
 tls_misc.o: ../../include/vstream.h
 tls_misc.o: ../../include/vstring.h

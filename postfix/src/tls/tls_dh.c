@@ -11,8 +11,9 @@
 /*	const char *path;
 /*	int	bits;
 /*
-/*	void	tls_auto_eecdh_curves(SSL_CTX *ctx)
+/*	void	tls_auto_eecdh_curves(ctx, configured)
 /*	SSL_CTX	*ctx;
+/*	char	*configured;
 /*
 /*	void	tls_set_eecdh_curve(server_ctx, grade)
 /*	SSL_CTX	*server_ctx;
@@ -34,8 +35,7 @@
 /*	"bits" argument must be 512 or 1024.
 /*
 /*	tls_auto_eecdh_curves() enables negotiation of the most preferred curve
-/*	among the curves specified by the tls_eecdh_auto_curves configuration
-/*	parameter.
+/*	among the curves specified by the "configured" argument.
 /*
 /*	tls_set_eecdh_curve() enables ephemeral Elliptic-Curve DH
 /*	key exchange algorithms by instantiating in the server SSL
@@ -94,7 +94,7 @@
 #define TLS_INTERNAL
 #include <tls.h>
 #include <openssl/dh.h>
-#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL && !defined(OPENSSL_NO_ECDH)
+#ifndef OPENSSL_NO_ECDH
 #include <openssl/ec.h>
 #endif
 
@@ -242,9 +242,9 @@ DH     *tls_tmp_dh_cb(SSL *unused_ssl, int export, int keylength)
     return (dh_tmp);
 }
 
-void    tls_auto_eecdh_curves(SSL_CTX *ctx)
+void    tls_auto_eecdh_curves(SSL_CTX *ctx, const char *configured)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL && !defined(OPENSSL_NO_ECDH)
+#ifndef OPENSSL_NO_ECDH
     SSL_CTX *tmpctx;
     int    *nids;
     int     space = 5;
@@ -260,7 +260,7 @@ void    tls_auto_eecdh_curves(SSL_CTX *ctx)
 	return;
     }
     nids = mymalloc(space * sizeof(int));
-    curves = save = mystrdup(var_tls_eecdh_auto);
+    curves = save = mystrdup(configured);
 #define RETURN do { \
 	myfree(save); \
 	myfree(nids); \
@@ -276,7 +276,7 @@ void    tls_auto_eecdh_curves(SSL_CTX *ctx)
 	if (nid == NID_undef)
 	    nid = OBJ_ln2nid(curve);
 	if (nid == NID_undef) {
-	    msg_warn("ignoring unknown \"auto\" ECDHE curve \"%s\"",
+	    msg_warn("ignoring unknown ECDHE curve \"%s\"",
 		     curve);
 	    continue;
 	}
@@ -301,11 +301,11 @@ void    tls_auto_eecdh_curves(SSL_CTX *ctx)
 
     if (n == 0) {
 	if (unknown > 0)
-	    msg_warn("none of the \"auto\" ECDHE curves are supported");
+	    msg_warn("none of the configured ECDHE curves are supported");
 	RETURN;
     }
     if (SSL_CTX_set1_curves(ctx, nids, n) <= 0) {
-	msg_warn("failed to configure \"auto\" ECDHE curves");
+	msg_warn("failed to configure ECDHE curves");
 	tls_print_errors();
 	RETURN;
     }
@@ -325,28 +325,21 @@ void    tls_auto_eecdh_curves(SSL_CTX *ctx)
 #endif
 }
 
-void    tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
-{
-#if OPENSSL_VERSION_NUMBER >= 0x1000000fUL && !defined(OPENSSL_NO_ECDH)
-    int     nid;
-    EC_KEY *ecdh;
-    const char *curve;
-    int     g;
-
 #define TLS_EECDH_INVALID	0
 #define TLS_EECDH_NONE		1
 #define TLS_EECDH_STRONG	2
 #define TLS_EECDH_ULTRA		3
-#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
 #define TLS_EECDH_AUTO		4
-#endif
+
+void    tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
+{
+#ifndef OPENSSL_NO_ECDH
+    int     g;
     static NAME_CODE eecdh_table[] = {
 	"none", TLS_EECDH_NONE,
 	"strong", TLS_EECDH_STRONG,
 	"ultra", TLS_EECDH_ULTRA,
-#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
 	"auto", TLS_EECDH_AUTO,
-#endif
 	0, TLS_EECDH_INVALID,
     };
 
@@ -356,43 +349,24 @@ void    tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
     case TLS_EECDH_INVALID:
 	msg_warn("Invalid TLS eecdh grade \"%s\": EECDH disabled", grade);
 	return;
-    case TLS_EECDH_NONE:
-	return;
     case TLS_EECDH_STRONG:
-	curve = var_tls_eecdh_strong;
-	break;
+	tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_strong);
+	return;
     case TLS_EECDH_ULTRA:
-	curve = var_tls_eecdh_ultra;
-	break;
-#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
+	tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_ultra);
+	return;
+    case TLS_EECDH_NONE:
+
+	/*
+	 * Pretend "none" is "auto", the former is no longer supported or
+	 * wise
+	 */
+	msg_warn("The \"none\" eecdh grade is no longer supported, "
+		 "using \"auto\" instead");
     case TLS_EECDH_AUTO:
-	tls_auto_eecdh_curves(server_ctx);
-	return;
-#endif
-    }
-
-    /*
-     * Elliptic-Curve Diffie-Hellman parameters are either "named curves"
-     * from RFC 4492 section 5.1.1, or explicitly described curves over
-     * binary fields. OpenSSL only supports the "named curves", which provide
-     * maximum interoperability. The recommended curve for 128-bit
-     * work-factor key exchange is "prime256v1" a.k.a. "secp256r1" from
-     * Section 2.7 of http://www.secg.org/download/aid-386/sec2_final.pdf
-     */
-
-    if ((nid = OBJ_sn2nid(curve)) == NID_undef) {
-	msg_warn("unknown curve \"%s\": disabling EECDH support", curve);
+	tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_auto);
 	return;
     }
-    ERR_clear_error();
-    if ((ecdh = EC_KEY_new_by_curve_name(nid)) == 0
-	|| SSL_CTX_set_tmp_ecdh(server_ctx, ecdh) == 0) {
-	EC_KEY_free(ecdh);			/* OK if NULL */
-	msg_warn("unable to use curve \"%s\": disabling EECDH support", curve);
-	tls_print_errors();
-	return;
-    }
-    EC_KEY_free(ecdh);
 #endif
     return;
 }

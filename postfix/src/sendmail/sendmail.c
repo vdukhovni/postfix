@@ -288,7 +288,7 @@
 /* TROUBLE SHOOTING CONTROLS
 /* .ad
 /* .fi
-/*	The DEBUG_README file gives examples of how to trouble shoot a
+/*	The DEBUG_README file gives examples of how to troubleshoot a
 /*	Postfix system.
 /* .IP "\fBdebugger_command (empty)\fR"
 /*	The external command to execute when a Postfix daemon program is

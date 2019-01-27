@@ -127,6 +127,17 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               The  hostname  lookup  methods used for the connection.  See the
               documentation of <a href="postconf.5.html#smtp_host_lookup">smtp_host_lookup</a> for syntax and semantics.
 
+       <b>-H</b> <i>chainfiles</i> (default: <i>none</i>)
+              List of files with a sequence PEM-encoded TLS client certificate
+              chains.   The  list can be built-up incrementally, by specifying
+              the option multiple times, or all at once via a comma or  white-
+              space  separated  list  of  filenames.  Each chain starts with a
+              private key, which is followed immediately by the  corresponding
+              certificate,  and  optionally by additional issuer certificates.
+              Each new key begins a new chain for the corresponding algorithm.
+              This  option  is  mutually  exclusive  with  the below <b>-k</b> and <b>-K</b>
+              options.
+
        <b>-k</b> <i>certfile</i> (default: <i>keyfile</i>)
               File  with  PEM-encoded  TLS  client  certificate  chain.   This
               defaults to <i>keyfile</i> if one is specified.
@@ -258,6 +269,13 @@ POSTTLS-FINGER(1)                                            POSTTLS-FINGER(1)
               new  server  is  encountered, up to 5 times or as specified with
               the <b>-m</b> option.  By default reconnection is disabled,  specify  a
               positive delay to enable this behavior.
+
+       <b>-s</b> <i>servername</i>
+              The  server  name  to  send  with the TLS Server Name Indication
+              (SNI) extension.  When the server has DANE  TLSA  records,  this
+              parameter  is  ignored and the TLSA base domain is used instead.
+              Otherwise, SNI is not used by default, but  can  be  enabled  by
+              specifying the desired value with this option.
 
        <b>-S</b>     Disable  SMTP;  that  is, connect to an LMTP server. The default
               port for LMTP over TCP is 24.  Alternative ports  can  specified

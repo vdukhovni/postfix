@@ -483,6 +483,15 @@
 /* .IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
 /*	The prioritized list of elliptic curves supported by the Postfix
 /*	SMTP client and server.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBsmtpd_tls_chain_files (empty)\fR"
+/*	List of one or more PEM files, each holding one or more private keys
+/*	directly followed by a corresponding certificate chain.
+/* .IP "\fBtls_server_sni_maps (empty)\fR"
+/*	Optional lookup tables that map names received from remote SMTP
+/*	clients via the TLS Server Name Indication (SNI) extension to the
+/*	appropriate keys and certificate chains.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -987,7 +996,7 @@
 /*	fails due to a temporary error condition.
 /* .IP "\fBunknown_helo_hostname_tempfail_action ($reject_tempfail_action)\fR"
 /*	The Postfix SMTP server's action when reject_unknown_helo_hostname
-/*	fails due to an temporary error condition.
+/*	fails due to a temporary error condition.
 /* .IP "\fBunknown_address_tempfail_action ($reject_tempfail_action)\fR"
 /*	The Postfix SMTP server's action when reject_unknown_sender_domain
 /*	or reject_unknown_recipient_domain fail due to a temporary error
@@ -1384,6 +1393,7 @@ char   *var_smtpd_tls_proto;
 char   *var_smtpd_tls_eecdh;
 char   *var_smtpd_tls_eccert_file;
 char   *var_smtpd_tls_eckey_file;
+char   *var_smtpd_tls_chain_files;
 
 #endif
 
@@ -6100,16 +6110,33 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 		no_server_cert_ok = 0;
 		cert_file = var_smtpd_tls_cert_file;
 	    }
-	    have_server_cert =
-		(*cert_file || *var_smtpd_tls_dcert_file || *var_smtpd_tls_eccert_file);
 
+	    have_server_cert = *cert_file != 0;
+	    have_server_cert |= *var_smtpd_tls_eccert_file != 0;
+	    have_server_cert |= *var_smtpd_tls_dcert_file != 0;
+
+	    if (*var_smtpd_tls_chain_files != 0) {
+		if (!have_server_cert)
+		    have_server_cert = 1;
+		else
+		    msg_warn("Both %s and one or more of the legacy "
+			     " %s, %s or %s are non-empty; the legacy "
+			     " parameters will be ignored",
+			     VAR_SMTPD_TLS_CHAIN_FILES,
+			     VAR_SMTPD_TLS_CERT_FILE,
+			     VAR_SMTPD_TLS_ECCERT_FILE,
+			     VAR_SMTPD_TLS_DCERT_FILE);
+	    }
 	    /* Some TLS configuration errors are not show stoppers. */
 	    if (!have_server_cert && require_server_cert)
 		msg_warn("Need a server cert to request client certs");
 	    if (!var_smtpd_enforce_tls && var_smtpd_tls_req_ccert)
 		msg_warn("Can't require client certs unless TLS is required");
 	    /* After a show-stopper error, reply with 454 to STARTTLS. */
-	    if (have_server_cert || (no_server_cert_ok && !require_server_cert))
+	    if (have_server_cert
+		|| (no_server_cert_ok && !require_server_cert)) {
+
+		tls_pre_jail_init(TLS_ROLE_SERVER);
 
 		/*
 		 * Large parameter lists are error-prone, so we emulate a
@@ -6123,6 +6150,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    verifydepth = var_smtpd_tls_ccert_vd,
 				    cache_type = TLS_MGR_SCACHE_SMTPD,
 				    set_sessid = var_smtpd_tls_set_sessid,
+				    chain_files = var_smtpd_tls_chain_files,
 				    cert_file = cert_file,
 				    key_file = var_smtpd_tls_key_file,
 				    dcert_file = var_smtpd_tls_dcert_file,
@@ -6141,8 +6169,9 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 				    var_smtpd_tls_proto,
 				    ask_ccert = ask_client_cert,
 				    mdalg = var_smtpd_tls_fpt_dgst);
-	    else
+	    } else {
 		msg_warn("No server certs available. TLS won't be enabled");
+	    }
 #endif						/* USE_TLSPROXY */
 #else
 	    msg_warn("TLS has been selected, but TLS support is not compiled in");
@@ -6381,6 +6410,7 @@ int     main(int argc, char **argv)
 #ifdef USE_TLS
 	VAR_RELAY_CCERTS, DEF_RELAY_CCERTS, &var_smtpd_relay_ccerts, 0, 0,
 	VAR_SMTPD_SASL_TLS_OPTS, DEF_SMTPD_SASL_TLS_OPTS, &var_smtpd_sasl_tls_opts, 0, 0,
+	VAR_SMTPD_TLS_CHAIN_FILES, DEF_SMTPD_TLS_CHAIN_FILES, &var_smtpd_tls_chain_files, 0, 0,
 	VAR_SMTPD_TLS_CERT_FILE, DEF_SMTPD_TLS_CERT_FILE, &var_smtpd_tls_cert_file, 0, 0,
 	VAR_SMTPD_TLS_KEY_FILE, DEF_SMTPD_TLS_KEY_FILE, &var_smtpd_tls_key_file, 0, 0,
 	VAR_SMTPD_TLS_DCERT_FILE, DEF_SMTPD_TLS_DCERT_FILE, &var_smtpd_tls_dcert_file, 0, 0,

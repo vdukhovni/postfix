@@ -482,6 +482,12 @@
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBsmtp_tls_connection_reuse (no)\fR"
 /*	Try to make multiple deliveries per TLS-encrypted connection.
+/* .IP "\fBsmtp_tls_chain_files (empty)\fR"
+/*	List of one or more PEM files, each holding one or more private keys
+/*	directly followed by a corresponding certificate chain.
+/* .IP "\fBsmtp_tls_servername (empty)\fR"
+/*	Optional name to send to the remote SMTP server in the TLS Server
+/*	Name Indication (SNI) extension.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -913,6 +919,7 @@ char   *var_smtp_sasl_tlsv_opts;
 int     var_smtp_starttls_tmout;
 char   *var_smtp_tls_CAfile;
 char   *var_smtp_tls_CApath;
+char   *var_smtp_tls_chain_files;
 char   *var_smtp_tls_cert_file;
 char   *var_smtp_tls_mand_ciph;
 char   *var_smtp_tls_excl_ciph;
@@ -934,6 +941,7 @@ char   *var_smtp_tls_proto;
 char   *var_smtp_tls_ciph;
 char   *var_smtp_tls_eccert_file;
 char   *var_smtp_tls_eckey_file;
+char   *var_smtp_tls_sni;
 bool    var_smtp_tls_blk_early_mail_reply;
 bool    var_smtp_tls_force_tlsa;
 char   *var_smtp_tls_insecure_mx_policy;
@@ -1224,6 +1232,8 @@ static void pre_init(char *unused_name, char **unused_argv)
 #ifdef USE_TLS
 	TLS_CLIENT_INIT_PROPS props;
 
+	tls_pre_jail_init(TLS_ROLE_CLIENT);
+
 	/*
 	 * We get stronger type safety and a cleaner interface by combining
 	 * the various parameters into a single tls_client_props structure.
@@ -1240,6 +1250,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    log_level = var_smtp_tls_loglevel,
 			    verifydepth = var_smtp_tls_scert_vd,
 			    cache_type = LMTP_SMTP_SUFFIX(TLS_MGR_SCACHE),
+			    chain_files = var_smtp_tls_chain_files,
 			    cert_file = var_smtp_tls_cert_file,
 			    key_file = var_smtp_tls_key_file,
 			    dcert_file = var_smtp_tls_dcert_file,

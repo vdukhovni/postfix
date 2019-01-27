@@ -76,7 +76,6 @@ RSA    *tls_tmp_rsa_cb(SSL *unused_ssl, int export, int keylength)
 		 export ? "" : "non-", keylength);
 	return 0;
     }
-#if OPENSSL_VERSION_NUMBER >= 0x10000000L
     if (rsa_tmp == 0) {
 	BIGNUM *e = BN_new();
 
@@ -88,11 +87,6 @@ RSA    *tls_tmp_rsa_cb(SSL *unused_ssl, int export, int keylength)
 	if (e)
 	    BN_free(e);
     }
-#else
-    if (rsa_tmp == 0)
-	rsa_tmp = RSA_generate_key(keylength, RSA_F4, NULL, NULL);
-#endif
-
     return (rsa_tmp);
 }
 

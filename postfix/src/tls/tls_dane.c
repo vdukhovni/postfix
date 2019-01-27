@@ -205,41 +205,10 @@
 
 /* Application-specific. */
 
-#undef TRUST_ANCHOR_SUPPORT
 #undef DANE_TLSA_SUPPORT
-#undef WRAP_SIGNED
-
-#if OPENSSL_VERSION_NUMBER >= 0x1000000fL && \
-	(defined(X509_V_FLAG_PARTIAL_CHAIN) || !defined(OPENSSL_NO_ECDH))
-#define TRUST_ANCHOR_SUPPORT
-
-#ifndef X509_V_FLAG_PARTIAL_CHAIN
-#define WRAP_SIGNED
-#endif
 
 #if defined(TLSEXT_MAXLEN_host_name) && RES_USE_DNSSEC && RES_USE_EDNS0
 #define DANE_TLSA_SUPPORT
-#endif
-
-#endif					/* OPENSSL_VERSION_NUMBER ... */
-
-#ifdef TRUST_ANCHOR_SUPPORT
-static int ta_support = 1;
-
-#else
-static int ta_support = 0;
-
-#endif
-
-#ifdef WRAP_SIGNED
-static int wrap_signed = 1;
-
-#else
-static int wrap_signed = 0;
-
-#endif
-
-#ifdef DANE_TLSA_SUPPORT
 static int dane_tlsa_support = 1;
 
 #else
@@ -247,8 +216,6 @@ static int dane_tlsa_support = 0;
 
 #endif
 
-static EVP_PKEY *signkey;
-static const EVP_MD *signmd;
 static const char *signalg;
 static ASN1_OBJECT *serverAuth;
 
@@ -417,36 +384,6 @@ static int digest_pref_byid(uint8_t dane_id)
     return (d ? (d->pref) : (MAXDIGESTS + dane_id));
 }
 
-/* gencakey - generate interal DANE root CA key */
-
-static EVP_PKEY *gencakey(void)
-{
-    EVP_PKEY *key = 0;
-
-#ifdef WRAP_SIGNED
-    EC_KEY *eckey;
-    EC_GROUP *group = 0;
-
-    ERR_clear_error();
-
-    if ((eckey = EC_KEY_new()) != 0
-	&& (group = EC_GROUP_new_by_curve_name(NID_X9_62_prime256v1)) != 0
-	&& (EC_GROUP_set_asn1_flag(group, OPENSSL_EC_NAMED_CURVE),
-	    EC_KEY_set_group(eckey, group))
-	&& EC_KEY_generate_key(eckey)
-	&& (key = EVP_PKEY_new()) != 0
-	&& !EVP_PKEY_set1_EC_KEY(key, eckey)) {
-	EVP_PKEY_free(key);
-	key = 0;
-    }
-    if (group)
-	EC_GROUP_free(group);
-    if (eckey)
-	EC_KEY_free(eckey);
-#endif						/* WRAP_SIGNED */
-    return (key);
-}
-
 /* dane_init - initialize DANE parameters */
 
 static void dane_init(void)
@@ -462,20 +399,18 @@ static void dane_init(void)
      * Add the full matching type at highest preference and then the users
      * configured list.
      * 
-     * The most preferred digest will be used for cert signing and hashing full
-     * values for comparison.
+     * The most preferred digest will be used for hashing full values for
+     * comparison.
      */
     if (add_digest(fullmtype, 0)) {
 	save = cp = mystrdup(var_tls_dane_digests);
 	while ((tok = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
 	    if ((d = add_digest(tok, ++digest_pref)) == 0) {
 		signalg = 0;
-		signmd = 0;
 		break;
 	    }
 	    if (digest_pref == 1) {
 		signalg = d->mdalg;
-		signmd = d->md;
 	    }
 	}
 	myfree(save);
@@ -484,17 +419,14 @@ static void dane_init(void)
     ERR_clear_error();
 
     /*
-     * DANE TLSA support requires trust-anchor support plus working DANE
-     * digests.
+     * DANE TLSA support requires working DANE digests.
      */
-    if (!ta_support
-	|| (wrap_signed && (signkey = gencakey()) == 0)
-	|| (serverAuth = OBJ_nid2obj(NID_server_auth)) == 0) {
-	msg_warn("cannot generate TA certificates, "
-		 "no trust-anchor or DANE support");
+    if ((serverAuth = OBJ_nid2obj(NID_server_auth)) == 0) {
+	msg_warn("cannot designate intermediate TA certificates, "
+		 "no DANE support");
 	tls_print_errors();
-	dane_tlsa_support = ta_support = 0;
-    } else if (signmd == 0) {
+	dane_tlsa_support = 0;
+    } else if (signalg == 0) {
 	msg_warn("digest algorithm initializaton failed, no DANE support");
 	tls_print_errors();
 	dane_tlsa_support = 0;
@@ -837,8 +769,8 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
     uint8_t selector;
     uint8_t mtype;
     ssize_t dlen;
-    D2I_const unsigned char *data;
-    D2I_const unsigned char *p;
+    const unsigned char *data;
+    const unsigned char *p;
     int     iscname = strcasecmp(rr->rname, rr->qname);
     const char *q = (iscname) ? (rr)->qname : "";
     const char *a = (iscname) ? " -> " : "";
@@ -861,7 +793,7 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
     selector = *ip++;
     mtype = *ip++;
     change = usmdelta(usage, selector, mtype, rr->next);
-    p = data = (D2I_const unsigned char *) ip;
+    p = data = (const unsigned char *) ip;
 
     /*
      * Handle digest agility for non-zero matching types.
@@ -873,7 +805,6 @@ static int parse_tlsa_rr(DNS_RR *rr, filter_ctx *ctx)
 	    return (FILTER_RR_DROP);
 	}
     }
-
     /*-
      * Drop unsupported usages.
      * Note: NO SUPPORT for usages 0/1 which do not apply to SMTP.
@@ -1211,10 +1142,7 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     if (!dane_initialized)
 	dane_init();
 
-    if (!ta_support) {
-	msg_warn("trust-anchor files not supported");
-	return (0);
-    }
+    /* Per-destination TA support is available even when DANE is not */
     mdalg = signalg ? signalg : "sha1";
 
     /*
@@ -1233,7 +1161,7 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     for (tacount = 0;
 	 errtype == 0 && PEM_read_bio(bp, &name, &header, &data, &len);
 	 ++tacount) {
-	D2I_const unsigned char *p = data;
+	const unsigned char *p = data;
 	int     usage = DNS_TLSA_USAGE_TRUST_ANCHOR_ASSERTION;
 	int     selector;
 	char   *digest;
@@ -1350,7 +1278,7 @@ int     tls_dane_match(TLS_SESS_STATE *TLScontext, int usage,
 
 static int add_ext(X509 *issuer, X509 *subject, int ext_nid, char *ext_val)
 {
-    int ret = 0;
+    int     ret = 0;
     X509V3_CTX v3ctx;
     X509_EXTENSION *ext;
 
@@ -1454,8 +1382,8 @@ static int set_issuer_name(X509 *cert, AUTHORITY_KEYID *akid, X509_NAME *subj)
     X509_NAME *name = akid_issuer_name(akid);
 
     /*
-     * If subject's akid specifies an authority key identifier issuer name, we
-     * must use that.
+     * If subject's akid specifies an authority key identifier issuer name,
+     * we must use that.
      */
     if (name)
 	return (X509_set_issuer_name(cert, name));
@@ -1513,33 +1441,23 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
 
     ERR_clear_error();
 
-    /*
-     * If key is NULL generate a self-signed root CA, with key "signkey",
-     * otherwise an intermediate CA signed by above.
-     * 
-     * CA cert valid for +/- 30 days.
-     */
+    /* CA cert valid for +/- 30 days. */
     if (!X509_set_version(cert, 2)
 	|| !set_serial(cert, akid, subject)
 	|| !set_issuer_name(cert, akid, name)
 	|| !X509_gmtime_adj(X509_getm_notBefore(cert), -30 * 86400L)
 	|| !X509_gmtime_adj(X509_getm_notAfter(cert), 30 * 86400L)
 	|| !X509_set_subject_name(cert, name)
-	|| !X509_set_pubkey(cert, key ? key : signkey)
+	|| !X509_set_pubkey(cert, key)
 	|| !add_ext(0, cert, NID_basic_constraints, "CA:TRUE")
 	|| (key && !add_akid(cert, akid))
-	|| !add_skid(cert, akid)
-	|| (wrap_signed && !X509_sign(cert, signkey, signmd))) {
+	|| !add_skid(cert, akid)) {
 	tls_print_errors();
 	msg_fatal("error generating DANE wrapper certificate");
     }
     if (akid)
 	AUTHORITY_KEYID_free(akid);
-    if (key && wrap_signed) {
-	wrap_key(TLScontext, depth + 1, 0, cert);
-	grow_chain(TLScontext, UNTRUSTED, cert);
-    } else
-	grow_chain(TLScontext, TRUSTED, cert);
+    grow_chain(TLScontext, TRUSTED, cert);
     if (cert)
 	X509_free(cert);
 }
@@ -1548,11 +1466,6 @@ static void wrap_key(TLS_SESS_STATE *TLScontext, int depth,
 
 static void wrap_cert(TLS_SESS_STATE *TLScontext, X509 *tacert, int depth)
 {
-    X509   *cert;
-    int     len;
-    unsigned char *asn1;
-    unsigned char *buf;
-
     if (TLScontext->tadepth < 0)
 	TLScontext->tadepth = depth + 1;
 
@@ -1560,35 +1473,8 @@ static void wrap_cert(TLS_SESS_STATE *TLScontext, X509 *tacert, int depth)
 	msg_info("%s: depth=%d trust-anchor certificate",
 		 TLScontext->namaddr, depth);
 
-    /*
-     * If the TA certificate is self-issued, use it directly.
-     */
-    if (!wrap_signed || X509_check_issued(tacert, tacert) == X509_V_OK) {
-	grow_chain(TLScontext, TRUSTED, tacert);
-	return;
-    }
-    /* Deep-copy tacert by converting to ASN.1 and back */
-    len = i2d_X509(tacert, NULL);
-    asn1 = buf = (unsigned char *) mymalloc(len);
-    i2d_X509(tacert, &buf);
-    if (buf - asn1 != len)
-	msg_panic("i2d_X509 failed to encode TA certificate");
-
-    buf = asn1;
-    cert = d2i_X509(0, (D2I_const unsigned char **) &buf, len);
-    if (!cert || (buf - asn1) != len)
-	msg_panic("d2i_X509 failed to decode TA certificate");
-    myfree((void *) asn1);
-
-    grow_chain(TLScontext, UNTRUSTED, cert);
-
-    /* Sign and wrap TA cert with internal "signkey" */
-    if (!X509_sign(cert, signkey, signmd)) {
-	tls_print_errors();
-	msg_fatal("error generating DANE wrapper certificate");
-    }
-    wrap_key(TLScontext, depth + 1, signkey, cert);
-    X509_free(cert);
+    grow_chain(TLScontext, TRUSTED, tacert);
+    return;
 }
 
 /* ta_signed - is certificate signed by a TLSA cert or pkey */
@@ -1782,7 +1668,7 @@ static int dane_cb(X509_STORE_CTX *ctx, void *app_ctx)
 
 void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 {
-    if (ta_support && TLS_DANE_HASTA(TLScontext->dane))
+    if (TLS_DANE_HASTA(TLScontext->dane))
 	SSL_CTX_set_cert_verify_callback(ctx, dane_cb, (void *) TLScontext);
     else
 	SSL_CTX_set_cert_verify_callback(ctx, 0, 0);
@@ -1797,36 +1683,32 @@ void    tls_dane_set_callback(SSL_CTX *ctx, TLS_SESS_STATE *TLScontext)
 #include <mail_conf.h>
 #include <msg_vstream.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x10002000L
-#define SSL_get0_param(s) ((s)->param)
-#endif
-
 static int verify_chain(SSL *ssl, x509_stack_t *chain, TLS_SESS_STATE *tctx)
 {
-    int ret;
-    X509 *cert;
+    int     ret;
+    X509   *cert;
     X509_STORE_CTX *store_ctx;
     SSL_CTX *ssl_ctx = SSL_get_SSL_CTX(ssl);
     X509_STORE *store = SSL_CTX_get_cert_store(ssl_ctx);
-    int store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
+    int     store_ctx_idx = SSL_get_ex_data_X509_STORE_CTX_idx();
 
     cert = sk_X509_value(chain, 0);
     if ((store_ctx = X509_STORE_CTX_new()) == NULL) {
-        SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_MALLOC_FAILURE);
-        return 0;
+	SSLerr(SSL_F_SSL_VERIFY_CERT_CHAIN, ERR_R_MALLOC_FAILURE);
+	return 0;
     }
     if (!X509_STORE_CTX_init(store_ctx, store, cert, chain)) {
-        X509_STORE_CTX_free(store_ctx);
-        return 0;
+	X509_STORE_CTX_free(store_ctx);
+	return 0;
     }
     X509_STORE_CTX_set_ex_data(store_ctx, store_ctx_idx, ssl);
 
     X509_STORE_CTX_set_default(store_ctx, "ssl_server");
     X509_VERIFY_PARAM_set1(X509_STORE_CTX_get0_param(store_ctx),
-                           SSL_get0_param(ssl));
+			   SSL_get0_param(ssl));
 
     if (SSL_get_verify_callback(ssl))
-        X509_STORE_CTX_set_verify_cb(store_ctx, SSL_get_verify_callback(ssl));
+	X509_STORE_CTX_set_verify_cb(store_ctx, SSL_get_verify_callback(ssl));
 
     ret = dane_cb(store_ctx, tctx);
 

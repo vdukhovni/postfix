@@ -92,6 +92,7 @@ int     tls_proxy_server_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     VSTRING *log_param = vstring_alloc(25);
     VSTRING *log_level = vstring_alloc(25);
     VSTRING *cache_type = vstring_alloc(25);
+    VSTRING *chain_files = vstring_alloc(25);
     VSTRING *cert_file = vstring_alloc(25);
     VSTRING *key_file = vstring_alloc(25);
     VSTRING *dcert_file = vstring_alloc(25);
@@ -116,6 +117,7 @@ int     tls_proxy_server_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_INT(TLS_ATTR_VERIFYDEPTH, &props->verifydepth),
 		  RECV_ATTR_STR(TLS_ATTR_CACHE_TYPE, cache_type),
 		  RECV_ATTR_INT(TLS_ATTR_SET_SESSID, &props->set_sessid),
+		  RECV_ATTR_STR(TLS_ATTR_CHAIN_FILES, chain_files),
 		  RECV_ATTR_STR(TLS_ATTR_CERT_FILE, cert_file),
 		  RECV_ATTR_STR(TLS_ATTR_KEY_FILE, key_file),
 		  RECV_ATTR_STR(TLS_ATTR_DCERT_FILE, dcert_file),
@@ -135,6 +137,7 @@ int     tls_proxy_server_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     props->log_param = vstring_export(log_param);
     props->log_level = vstring_export(log_level);
     props->cache_type = vstring_export(cache_type);
+    props->chain_files = vstring_export(chain_files);
     props->cert_file = vstring_export(cert_file);
     props->key_file = vstring_export(key_file);
     props->dcert_file = vstring_export(dcert_file);
@@ -148,7 +151,7 @@ int     tls_proxy_server_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     props->dh1024_param_file = vstring_export(dh1024_param_file);
     props->dh512_param_file = vstring_export(dh512_param_file);
     props->mdalg = vstring_export(mdalg);
-    ret = (ret == 19 ? 1 : -1);
+    ret = (ret == 20 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_server_init_free(props);
 	props = 0;
@@ -164,6 +167,7 @@ void    tls_proxy_server_init_free(TLS_SERVER_INIT_PROPS *props)
     myfree((void *) props->log_param);
     myfree((void *) props->log_level);
     myfree((void *) props->cache_type);
+    myfree((void *) props->chain_files);
     myfree((void *) props->cert_file);
     myfree((void *) props->key_file);
     myfree((void *) props->dcert_file);

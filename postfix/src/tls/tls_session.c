@@ -152,18 +152,13 @@ VSTRING *tls_session_passivate(SSL_SESSION *session)
 
 SSL_SESSION *tls_session_activate(const char *session_data, int session_data_len)
 {
-#if (OPENSSL_VERSION_NUMBER < 0x0090707fL)
-#define BOGUS_CONST
-#else
-#define BOGUS_CONST const
-#endif
     SSL_SESSION *session;
-    BOGUS_CONST unsigned char *ptr;
+    const unsigned char *ptr;
 
     /*
      * Activate the SSL_SESSION object.
      */
-    ptr = (BOGUS_CONST unsigned char *) session_data;
+    ptr = (const unsigned char *) session_data;
     session = d2i_SSL_SESSION((SSL_SESSION **) 0, &ptr, session_data_len);
     if (!session)
 	tls_print_errors();

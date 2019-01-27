@@ -1340,7 +1340,6 @@ dict_ht.o: sys_defs.h
 dict_ht.o: vbuf.h
 dict_ht.o: vstream.h
 dict_ht.o: vstring.h
-dict_inline.cdict_static.o: dict_inline.cdict_static.c
 dict_inline.o: argv.h
 dict_inline.o: check_arg.h
 dict_inline.o: dict.h

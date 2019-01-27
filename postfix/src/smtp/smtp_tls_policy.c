@@ -103,6 +103,7 @@
 #include <mymalloc.h>
 #include <vstring.h>
 #include <stringops.h>
+#include <valid_hostname.h>
 #include <valid_utf8_hostname.h>
 #include <ctable.h>
 
@@ -304,6 +305,22 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    tls->protocols = mystrdup(val);
 	    continue;
 	}
+	/* Only one instance per policy. */
+	if (!strcasecmp(name, "servername")) {
+	    if (tls->sni) {
+		msg_warn("%s: attribute \"%s\" is specified multiple times",
+			 WHERE, name);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    if (valid_hostname(val, DONT_GRIPE))
+		tls->sni = mystrdup(val);
+	    else {
+		msg_warn("%s: \"%s=%s\" specifies an invalid hostname",
+			 WHERE, name, val);
+		INVALID_RETURN(tls->why, site_level);
+	    }
+	    continue;
+	}
 	/* Multiple instances per policy. */
 	if (!strcasecmp(name, "match")) {
 	    if (*val == 0) {
@@ -369,7 +386,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 		tls->conn_reuse = 0;
 	    } else {
 		msg_warn("%s: attribute \"%s\" has bad value: \"%s\"",
-			WHERE, name, val);
+			 WHERE, name, val);
 		INVALID_RETURN(tls->why, site_level);
 	    }
 	}
@@ -560,12 +577,23 @@ static void *policy_create(const char *unused_key, void *context)
 	return ((void *) tls);
 
     /*
-     * Use main.cf protocols setting if not set in per-destination table.
+     * Use main.cf protocols and SNI settings if not set in per-destination
+     * table.
      */
     if (tls->level > TLS_LEV_NONE && tls->protocols == 0)
 	tls->protocols =
 	    mystrdup((tls->level == TLS_LEV_MAY) ?
 		     var_smtp_tls_proto : var_smtp_tls_mand_proto);
+    if (tls->level > TLS_LEV_NONE && tls->sni == 0) {
+	if (!*var_smtp_tls_sni || valid_hostname(var_smtp_tls_sni, DONT_GRIPE))
+	    tls->sni = mystrdup(var_smtp_tls_sni);
+	else {
+	    msg_warn("\"%s = %s\" specifies an invalid hostname",
+		     VAR_LMTP_SMTP(TLS_SNI), var_smtp_tls_sni);
+	    MARK_INVALID(tls->why, &tls->level);
+	    return ((void *) tls);
+	}
+    }
 
     /*
      * Compute cipher grade (if set in per-destination table, else
@@ -636,6 +664,8 @@ static void policy_delete(void *item, void *unused_context)
 
     if (tls->protocols)
 	myfree(tls->protocols);
+    if (tls->sni)
+	myfree(tls->sni);
     if (tls->grade)
 	myfree(tls->grade);
     if (tls->exclusions)

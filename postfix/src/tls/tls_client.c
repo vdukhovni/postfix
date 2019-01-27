@@ -453,6 +453,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * uses certificates).
      */
     if (tls_set_my_certificate_key_info(client_ctx,
+					props->chain_files,
 					props->cert_file,
 					props->key_file,
 					props->dcert_file,
@@ -482,7 +483,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * configurable with the preferred curve negotiated via the supported
      * curves extension.
      */
-    tls_auto_eecdh_curves(client_ctx);
+    tls_auto_eecdh_curves(client_ctx, var_tls_eecdh_auto);
 
     /*
      * Finally, the setup for the server certificate checking, done "by the
@@ -512,7 +513,7 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      * Allocate an application context, and populate with mandatory protocol
      * and cipher data.
      */
-    app_ctx = tls_alloc_app_context(client_ctx, log_mask);
+    app_ctx = tls_alloc_app_context(client_ctx, 0, log_mask);
 
     /*
      * The external session cache is implemented by the tlsmgr(8) process.
@@ -873,6 +874,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     SSL_SESSION *session = 0;
     TLS_SESS_STATE *TLScontext;
     TLS_APPL_STATE *app_ctx = props->ctx;
+    const char *sni = 0;
     char   *myserverid;
     int     log_mask = app_ctx->log_mask;
 
@@ -1003,8 +1005,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	}
     }
 #ifdef TLSEXT_MAXLEN_host_name
-    if (TLS_DANE_BASED(props->tls_level)
-	&& strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
+    if (TLS_DANE_BASED(props->tls_level)) {
 
 	/*
 	 * With DANE sessions, send an SNI hint.  We don't care whether the
@@ -1017,19 +1018,32 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	 * SMTP server).
 	 * 
 	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
-	 * thererefore valid for use with SNI.  Failure to set a valid SNI
-	 * hostname is a memory allocation error, and thus transient.  Since
-	 * we must not cache the session if we failed to send the SNI name,
-	 * we have little choice but to abort.
+	 * thererefore valid for use with SNI.
 	 */
-	if (!SSL_set_tlsext_host_name(TLScontext->con, props->host)) {
+	sni = props->host;
+    } else if (props->sni && *props->sni) {
+	if (strcmp(props->sni, "hostname") == 0)
+	    sni = props->host;
+	else if (strcmp(props->sni, "nexthop") == 0)
+	    sni = props->nexthop;
+	else
+	    sni = props->sni;
+    }
+    if (sni && strlen(sni) <= TLSEXT_MAXLEN_host_name) {
+
+	/*
+	 * Failure to set a valid SNI hostname is a memory allocation error,
+	 * and thus transient.  Since we must not cache the session if we
+	 * failed to send the SNI name, we have little choice but to abort.
+	 */
+	if (!SSL_set_tlsext_host_name(TLScontext->con, sni)) {
 	    msg_warn("%s: error setting SNI hostname to: %s", props->namaddr,
-		     props->host);
+		     sni);
 	    tls_free_context(TLScontext);
 	    return (0);
 	}
 	if (log_mask & TLS_LOG_DEBUG)
-	    msg_info("%s: SNI hostname: %s", props->namaddr, props->host);
+	    msg_info("%s: SNI hostname: %s", props->namaddr, sni);
     }
 #endif
 
@@ -1039,13 +1053,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     tls_int_seed();
     (void) tls_ext_seed(var_tls_daemon_rand_bytes);
-
-    /*
-     * Initialize the SSL connection to connect state. This should not be
-     * necessary anymore since 0.9.3, but the call is still in the library
-     * and maintaining compatibility never hurts.
-     */
-    SSL_set_connect_state(TLScontext->con);
 
     /*
      * Connect the SSL connection with the network socket.
@@ -1117,7 +1124,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 TLS_SESS_STATE *tls_client_post_connect(TLS_SESS_STATE *TLScontext,
 				        const TLS_CLIENT_START_PROPS *props)
 {
-    SSL_CIPHER_const SSL_CIPHER *cipher;
+    const SSL_CIPHER *cipher;
     X509   *peercert;
 
     /* Turn off packet dump if only dumping the handshake */

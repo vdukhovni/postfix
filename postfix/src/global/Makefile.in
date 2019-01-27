@@ -1135,7 +1135,6 @@ dict_pgsql.o: ../../include/argv.h
 dict_pgsql.o: ../../include/check_arg.h
 dict_pgsql.o: ../../include/dict.h
 dict_pgsql.o: ../../include/events.h
-dict_pgsql.o: ../../include/find_inet.h
 dict_pgsql.o: ../../include/match_list.h
 dict_pgsql.o: ../../include/msg.h
 dict_pgsql.o: ../../include/myflock.h

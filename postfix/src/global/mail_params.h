@@ -19,6 +19,9 @@ typedef int bool;
 #ifdef USE_TLS
 #include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/objects.h>		/* SN_* and NID_* macros */
+#if OPENSSL_VERSION_NUMBER < 0x1000200fUL
+#error "OpenSSL releases prior to 1.0.2 are no longer supported"
+#endif
 #endif
 
  /*
@@ -1292,6 +1295,10 @@ extern bool var_smtpd_tls_req_ccert;
 #define DEF_SMTPD_TLS_CCERT_VD	9
 extern int var_smtpd_tls_ccert_vd;
 
+#define VAR_SMTPD_TLS_CHAIN_FILES	"smtpd_tls_chain_files"
+#define DEF_SMTPD_TLS_CHAIN_FILES	""
+extern char *var_smtpd_tls_chain_files;
+
 #define VAR_SMTPD_TLS_CERT_FILE	"smtpd_tls_cert_file"
 #define DEF_SMTPD_TLS_CERT_FILE	""
 extern char *var_smtpd_tls_cert_file;
@@ -1361,11 +1368,7 @@ extern char *var_smtpd_tls_dh512_param_file;
 extern char *var_smtpd_tls_dh1024_param_file;
 
 #define VAR_SMTPD_TLS_EECDH	"smtpd_tls_eecdh_grade"
-#if OPENSSL_VERSION_NUMBER >= 0x1000200fUL
 #define DEF_SMTPD_TLS_EECDH	"auto"
-#else
-#define DEF_SMTPD_TLS_EECDH	"strong"
-#endif
 extern char *var_smtpd_tls_eecdh;
 
 #define VAR_SMTPD_TLS_LOGLEVEL	"smtpd_tls_loglevel"
@@ -1434,6 +1437,12 @@ extern char *var_smtp_tls_level;
 #define VAR_LMTP_TLS_SCERT_VD	"lmtp_tls_scert_verifydepth"
 #define DEF_LMTP_TLS_SCERT_VD	9
 extern int var_smtp_tls_scert_vd;
+
+#define VAR_SMTP_TLS_CHAIN_FILES	"smtp_tls_chain_files"
+#define DEF_SMTP_TLS_CHAIN_FILES	""
+#define VAR_LMTP_TLS_CHAIN_FILES	"lmtp_tls_chain_files"
+#define DEF_LMTP_TLS_CHAIN_FILES	""
+extern char *var_smtp_tls_chain_files;
 
 #define VAR_SMTP_TLS_CERT_FILE	"smtp_tls_cert_file"
 #define DEF_SMTP_TLS_CERT_FILE	""
@@ -1587,6 +1596,12 @@ extern char *var_smtp_tls_sec_cmatch;
 #define VAR_LMTP_TLS_FPT_CMATCH "lmtp_tls_fingerprint_cert_match"
 #define DEF_LMTP_TLS_FPT_CMATCH ""
 extern char *var_smtp_tls_fpt_cmatch;
+
+#define VAR_SMTP_TLS_SNI "smtp_tls_servername"
+#define DEF_SMTP_TLS_SNI ""
+#define VAR_LMTP_TLS_SNI "lmtp_tls_servername"
+#define DEF_LMTP_TLS_SNI ""
+extern char *var_smtp_tls_sni;
 
 #define VAR_SMTP_TLS_BLK_EARLY_MAIL_REPLY "smtp_tls_block_early_mail_reply"
 #define DEF_SMTP_TLS_BLK_EARLY_MAIL_REPLY 0
@@ -3215,30 +3230,20 @@ extern bool var_smtp_cname_overr;
  /*
   * TLS cipherlists
   */
-#ifdef USE_TLS
-#if OPENSSL_VERSION_NUMBER >= 0x1000000fUL
-#define PREFER_aNULL "aNULL:-aNULL:"
-#else
-#define PREFER_aNULL ""
-#endif
-#else
-#define PREFER_aNULL ""
-#endif
-
 #define VAR_TLS_HIGH_CLIST	"tls_high_cipherlist"
-#define DEF_TLS_HIGH_CLIST	PREFER_aNULL "HIGH:@STRENGTH"
+#define DEF_TLS_HIGH_CLIST	"aNULL:-aNULL:HIGH:@STRENGTH"
 extern char *var_tls_high_clist;
 
 #define VAR_TLS_MEDIUM_CLIST	"tls_medium_cipherlist"
-#define DEF_TLS_MEDIUM_CLIST	PREFER_aNULL "HIGH:MEDIUM:+RC4:@STRENGTH"
+#define DEF_TLS_MEDIUM_CLIST	"aNULL:-aNULL:HIGH:MEDIUM:+RC4:@STRENGTH"
 extern char *var_tls_medium_clist;
 
 #define VAR_TLS_LOW_CLIST	"tls_low_cipherlist"
-#define DEF_TLS_LOW_CLIST	PREFER_aNULL "HIGH:MEDIUM:LOW:+RC4:@STRENGTH"
+#define DEF_TLS_LOW_CLIST	"aNULL:-aNULL:HIGH:MEDIUM:LOW:+RC4:@STRENGTH"
 extern char *var_tls_low_clist;
 
 #define VAR_TLS_EXPORT_CLIST	"tls_export_cipherlist"
-#define DEF_TLS_EXPORT_CLIST	PREFER_aNULL "HIGH:MEDIUM:LOW:EXPORT:+RC4:@STRENGTH"
+#define DEF_TLS_EXPORT_CLIST	"aNULL:-aNULL:HIGH:MEDIUM:LOW:EXPORT:+RC4:@STRENGTH"
 extern char *var_tls_export_clist;
 
 #define VAR_TLS_NULL_CLIST	"tls_null_cipherlist"
@@ -3295,20 +3300,8 @@ extern bool var_tls_preempt_clist;
 #define DEF_TLS_MULTI_WILDCARD	1
 extern bool var_tls_multi_wildcard;
 
- /* The tweak for CVE-2010-4180 is needed in some versions prior to 1.0.1 */
- /* The tweak for CVE-2005-2969 is needed in some versions prior to 1.0.0 */
-#if defined(USE_TLS) && (OPENSSL_VERSION_NUMBER < 0x1000100fUL)
-#if (OPENSSL_VERSION_NUMBER < 0x1000000fUL)
-#define TLS_BUG_TWEAKS		"CVE-2005-2969 CVE-2010-4180"
-#else
-#define TLS_BUG_TWEAKS		"CVE-2010-4180"
-#endif
-#else
-#define TLS_BUG_TWEAKS		""
-#endif
-
 #define VAR_TLS_BUG_TWEAKS	"tls_disable_workarounds"
-#define DEF_TLS_BUG_TWEAKS	TLS_BUG_TWEAKS
+#define DEF_TLS_BUG_TWEAKS	""
 extern char *var_tls_bug_tweaks;
 
 #define VAR_TLS_SSL_OPTIONS	"tls_ssl_options"
@@ -3322,6 +3315,10 @@ extern char *var_tls_tkt_cipher;
 #define VAR_TLS_BC_PKEY_FPRINT	"tls_legacy_public_key_fingerprints"
 #define DEF_TLS_BC_PKEY_FPRINT	0
 extern bool var_tls_bc_pkey_fprint;
+
+#define VAR_TLS_SERVER_SNI_MAPS "tls_server_sni_maps"
+#define DEF_TLS_SERVER_SNI_MAPS ""
+extern char *var_tls_server_sni_maps;
 
  /*
   * Ordered list of DANE digest algorithms.
@@ -3844,6 +3841,10 @@ extern bool var_tlsp_tls_req_ccert;
 #define DEF_TLSP_TLS_CCERT_VD	"$" VAR_SMTPD_TLS_CCERT_VD
 extern int var_tlsp_tls_ccert_vd;
 
+#define VAR_TLSP_TLS_CHAIN_FILES	"tlsproxy_tls_chain_files"
+#define DEF_TLSP_TLS_CHAIN_FILES	"$" VAR_SMTPD_TLS_CHAIN_FILES
+extern char *var_tlsp_tls_chain_files;
+
 #define VAR_TLSP_TLS_CERT_FILE	"tlsproxy_tls_cert_file"
 #define DEF_TLSP_TLS_CERT_FILE	"$" VAR_SMTPD_TLS_CERT_FILE
 extern char *var_tlsp_tls_cert_file;
@@ -3946,6 +3947,10 @@ extern char *var_tlsp_clnt_logparam;
 #define DEF_TLSP_CLNT_SCERT_VD		"$" VAR_SMTP_TLS_SCERT_VD
 extern int var_tlsp_clnt_scert_vd;
 
+#define VAR_TLSP_CLNT_CHAIN_FILES	"tlsproxy_client_chain_files"
+#define DEF_TLSP_CLNT_CHAIN_FILES	"$" VAR_SMTP_TLS_CHAIN_FILES
+extern char *var_tlsp_clnt_chain_files;
+
 #define VAR_TLSP_CLNT_CERT_FILE		"tlsproxy_client_cert_file"
 #define DEF_TLSP_CLNT_CERT_FILE		"$" VAR_SMTP_TLS_CERT_FILE
 extern char *var_tlsp_clnt_cert_file;
@@ -3984,23 +3989,23 @@ extern char *var_tlsp_clnt_fpt_dgst;
 
 #define VAR_TLSP_CLNT_USE_TLS		"tlsproxy_client_use_tls"
 #define DEF_TLSP_CLNT_USE_TLS		"$" VAR_SMTP_USE_TLS
-bool var_tlsp_clnt_use_tls;
+bool    var_tlsp_clnt_use_tls;
 
 #define VAR_TLSP_CLNT_ENFORCE_TLS	"tlsproxy_client_enforce_tls"
 #define DEF_TLSP_CLNT_ENFORCE_TLS	"$" VAR_SMTP_ENFORCE_TLS
-bool var_tlsp_clnt_enforce_tls;
+bool    var_tlsp_clnt_enforce_tls;
 
 #define VAR_TLSP_CLNT_LEVEL		"tlsproxy_client_level"
 #define DEF_TLSP_CLNT_LEVEL		"$" VAR_SMTP_TLS_LEVEL
-char *var_tlsp_clnt_level;
+char   *var_tlsp_clnt_level;
 
 #define VAR_TLSP_CLNT_PER_SITE		"tlsproxy_client_per_site"
 #define DEF_TLSP_CLNT_PER_SITE		"$" VAR_SMTP_TLS_PER_SITE
-char *var_tlsp_clnt_per_site;
+char   *var_tlsp_clnt_per_site;
 
 #define VAR_TLSP_CLNT_POLICY		"tlsproxy_client_policy"
 #define DEF_TLSP_CLNT_POLICY		"$" VAR_SMTP_TLS_POLICY
-char *var_tlsp_clnt_policy;
+char   *var_tlsp_clnt_policy;
 
  /*
   * SMTPD "reject" contact info.

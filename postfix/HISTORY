@@ -23873,6 +23873,13 @@ Apologies for any names omitted.
 	Cleanup: simplified a tlsproxy-internal API. File:
 	tlsproxy/tlsproxy.c.
 
+20181128
+
+	Initial support for key/certificate chain files that will
+	replace the proliferation of separate parameters for
+	RSA/DSA/ECC/etc. key and certificate files. Viktor
+	Dukhovni.
+
 20181201
 
 	Cleanup: replaced the remaining unsafe VSTRING_AT_OFFSET()
@@ -23917,6 +23924,11 @@ Apologies for any names omitted.
 	message to the postscreen_pre_queue_limit. Problem reported
 	by Michael Orlitzky. File: proto/POSTSCREEN_README.html.
 
+	Compatibility: removed support for OpenSSL 1.0.1 and earlier.
+
+	Feature: TLS support for client-side and server-side SNI
+	in the Postfix SMTP server, SMTP client, and tlsproxy.
+
 20181229
 
 	Explicit maps_file_find() and dict_file_lookup() methods
@@ -23930,6 +23942,11 @@ Apologies for any names omitted.
 
 20190106
 
-	Documentation: documented the SRC_RHS_IS_FILE flag in 
-	dict_open.c, and updated the -F description in the postmap
-	manpage. Files: util/dict_open.c, postmap/postmap.c.
+        Documentation: documented the SRC_RHS_IS_FILE flag in 
+        dict_open.c, and updated the -F description in the postmap
+        manpage. Files: util/dict_open.c, postmap/postmap.c.
+
+20190127
+
+	Documentation: added policy_context example. File:
+	proto/SMTPD_POLICY_README.html.

@@ -109,11 +109,11 @@ should use with export\-grade EDH ciphers.
 File with the Postfix \fBtlsproxy\fR(8) server DSA private key in PEM
 format.
 .IP "\fBtlsproxy_tls_eccert_file ($smtpd_tls_eccert_file)\fR"
-File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in
-PEM format.
+File with the Postfix \fBtlsproxy\fR(8) server ECDSA certificate in PEM
+format.
 .IP "\fBtlsproxy_tls_eckey_file ($smtpd_tls_eckey_file)\fR"
-File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in
-PEM format.
+File with the Postfix \fBtlsproxy\fR(8) server ECDSA private key in PEM
+format.
 .IP "\fBtlsproxy_tls_eecdh_grade ($smtpd_tls_eecdh_grade)\fR"
 The Postfix \fBtlsproxy\fR(8) server security grade for ephemeral
 elliptic\-curve Diffie\-Hellman (EECDH) key exchange.
@@ -153,6 +153,15 @@ parameters smtpd_use_tls and smtpd_enforce_tls.
 Available in Postfix version 2.11 and later:
 .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+.PP
+Available in Postfix version 3.4 and later:
+.IP "\fBtlsproxy_tls_chain_files ($smtpd_tls_chain_files)\fR"
+Files with the Postfix \fBtlsproxy\fR(8) server keys and certificate
+chains in PEM format.
+.IP "\fBtls_server_sni_maps (empty)\fR"
+Optional lookup tables that map names received from remote SMTP
+clients via the TLS Server Name Indication (SNI) extension to the
+appropriate keys and certificate chains.
 .SH "TLS CLIENT CONTROLS"
 .na
 .nf
@@ -172,6 +181,9 @@ either remote TLS server certificates or intermediate CA certificates.
 Directory with PEM format Certification Authority certificates
 that the Postfix \fBtlsproxy\fR(8) client uses to verify a remote TLS
 server certificate.
+.IP "\fBtlsproxy_client_chain_files ($smtp_tls_chain_files)\fR"
+Files with the Postfix \fBtlsproxy\fR(8) client keys and certificate
+chains in PEM format.
 .IP "\fBtlsproxy_client_cert_file ($smtp_tls_cert_file)\fR"
 File with the Postfix \fBtlsproxy\fR(8) client RSA certificate in PEM
 format.
@@ -185,11 +197,11 @@ format.
 File with the Postfix \fBtlsproxy\fR(8) client DSA private key in PEM
 format.
 .IP "\fBtlsproxy_client_eccert_file ($smtp_tls_eccert_file)\fR"
-File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in
-PEM format.
+File with the Postfix \fBtlsproxy\fR(8) client ECDSA certificate in PEM
+format.
 .IP "\fBtlsproxy_client_eckey_file ($smtp_tls_eckey_file)\fR"
-File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in
-PEM format.
+File with the Postfix \fBtlsproxy\fR(8) client ECDSA private key in PEM
+format.
 .IP "\fBtlsproxy_client_fingerprint_digest ($smtp_tls_fingerprint_digest)\fR"
 The message digest algorithm used to construct remote TLS server
 certificate fingerprints.

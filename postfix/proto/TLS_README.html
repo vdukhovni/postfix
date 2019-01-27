@@ -167,17 +167,22 @@ or similar software, it will only negotiate TLS ciphersuites that
 require a server certificate.  </p>
 
 <p> For servers that are <b>not</b> public Internet MX hosts, Postfix
-supports configurations with no certificates. This entails the
-use of just the anonymous TLS ciphers, which are not supported by
-typical SMTP clients. Since such clients will not, as a rule, fall
-back to plain text after a TLS handshake failure, a certificate-less
-Postfix SMTP server will
-be unable to receive email from most TLS enabled clients. To avoid
-accidental configurations with no certificates, Postfix enables
-certificate-less operation only when the administrator explicitly sets
-"smtpd_tls_cert_file = none". This ensures that new Postfix
-SMTP server configurations will not accidentally run with no
-certificates. </p>
+supports configurations with no certificates. This entails the use of
+just the anonymous TLS ciphers, which are not supported by typical SMTP
+clients. Since some clients may not fall back to plain text after a TLS
+handshake failure, a certificate-less Postfix SMTP server will be unable
+to receive email from some TLS-enabled clients. To avoid accidental
+configurations with no certificates, Postfix enables certificate-less
+operation only when the administrator explicitly sets
+"smtpd_tls_cert_file = none". This ensures that new Postfix SMTP server
+configurations will not accidentally enable TLS without certificates.  </p>
+
+<p> Note that server certificates are <b>not</b> optional in TLS 1.3. To
+run without certificates you'd have to disable the TLS 1.3 protocol by
+including '!TLSv1.3' in "smtpd_tls_protocols" and perhaps also
+"smtpd_tls_mandatory_protocols".  It is simpler instead to just
+configure a certificate chain.  Certificate-less operation is not
+recommended. <p>
 
 <p> RSA, DSA and ECDSA (Postfix &ge; 2.6) certificates are supported.
 Most sites only have RSA certificates.  You can configure all three
@@ -239,11 +244,10 @@ applies to "2 0 2" and "2 1 2" TLSA records or any other digest of
 a CA certificate, but it is expected that SHA256 will be by far the
 most common digest for TLSA.  </p>
 
-<p> As a best practice, publish either "3 0 1" or "3 1 1" TLSA
-associations that specify the SHA256 digest of the server certificate
-public key with the alias-expanded hostname of each STARTTLS capable
-SMTP server.  These continue to work when a certificate is renewed
-with the same public/private key pair.  </p>
+<p> As a best practice, publish "3 1 1" TLSA associations that specify
+the SHA256 digest of the server's public key.  These continue to work
+unmodified when a certificate is renewed with the same public/private
+key pair.  </p>
 
 </ul>
 
@@ -268,6 +272,58 @@ certificate to $smtpd_tls_CAfile or install it in the $smtpd_tls_CApath
 directory. </p>
 
 <h4> Configuring the server certificate and key files </h4>
+
+<p> Example: Postfix &ge; 3.4 all-in-one chain file(s).  One or more
+chain files that start with a key that is immediately followed by the
+corresponding certificate and any additional issuer certificates.  A
+single file can hold multiple <i>(key, cert, [chain])</i> sequences, one
+per algorithm.  It is typically simpler to keep the chain for each
+algorithm in its own file.  Most users are likely to deploy just a
+single RSA chain, but with OpenSSL 1.1.1, it is possible to deploy up to
+five chains, one each for RSA, ECDSA, ED25519, ED448 and even the
+obsolete DSA. </p>
+
+<blockquote>
+<pre>
+    # Postfix &ge; 3.4.  Preferred configuration interface.  Each file
+    # starts with the private key, followed by the corresponding
+    # certificate, and any intermediate issuer certificates. The root CA
+    # cert may also be needed when published as a DANE trust anchor.
+    #
+    smtpd_tls_chain_files =
+        /etc/postfix/rsa.pem,
+        /etc/postfix/ecdsa.pem,
+        /etc/postfix/ed25519.pem,
+        /etc/postfix/ed448.pem
+</pre>
+</blockquote>
+
+<p> You can also store the keys separately from their certificates, again
+provided each is listed before the corresponding certificate chain.  Storing a
+key and its associated certificate chain in separate files is not recommended,
+because this is prone to race conditions during key rollover, as there is no
+way to update multiple files atomically. </p>
+
+<blockquote>
+<pre>
+    # Postfix &ge; 3.4.
+    # Storing keys separately from the associated certificates is not
+    # recommended.
+    smtpd_tls_chain_files =
+        /etc/postfix/rsakey.pem,
+        /etc/postfix/rsacerts.pem,
+        /etc/postfix/ecdsakey.pem,
+        /etc/postfix/ecdsacerts.pem
+</pre>
+</blockquote>
+
+<p> The below examples show the legacy algorithm-specific configurations
+for Postfix 3.3 and older.  With Postfix &le; 3.3, even if the key is
+stored in the same file as the certificate, the file is read twice and a
+(brief) race condition still exists during key rollover.  While Postfix
+&ge; 3.4 avoids the race when the key and certificate are in the same
+file, you should use the new "smtpd_tls_chain_files" interface shown
+above. <p>
 
 <p> RSA key and certificate examples: </p>
 
@@ -294,8 +350,8 @@ directory. </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
-    # Most clients will not be ECDSA capable, so you will likely also need
-    # an RSA or DSA certificate and private key.
+    # Some clients will not be ECDSA capable, so you will likely still need
+    # an RSA certificate and private key.
     #
     smtpd_tls_eccert_file = /etc/postfix/server-ecdsa.pem
     smtpd_tls_eckey_file = $smtpd_tls_eccert_file
@@ -308,6 +364,8 @@ anonymous-cipher capable clients: </p>
 <blockquote>
 <pre>
 /etc/postfix/main.cf:
+    # Not recommended: breaks TLS 1.3 and clients that don't support
+    # anonymous cipher suites.
     smtpd_tls_cert_file = none
 </pre>  
 </blockquote>
@@ -854,7 +912,11 @@ without corresponding changes to the Postfix source code. </p>
 supports configurations with no <a href="#server_cert_key">server
 certificates</a> that use <b>only</b> the anonymous ciphers. This is
 enabled by explicitly setting "smtpd_tls_cert_file = none"
-and not specifying an smtpd_tls_dcert_file or smtpd_tls_eccert_file. </p>
+and not specifying an smtpd_tls_dcert_file or smtpd_tls_eccert_file.
+Such configurations may not interoperate with some clients, and require
+that TLSv1.3 be explicitly disabled. Therefore, they are not
+recommended, it is better and simpler to just configure a suitable
+certificate. </p>
 
 <p> Example, MSA that requires TLSv1 or higher, not SSLv2 or SSLv3,
 with high grade ciphers: </p>
@@ -871,6 +933,21 @@ with high grade ciphers: </p>
     smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
     # Legacy syntax:
     smtpd_tls_mandatory_protocols = TLSv1
+</pre>
+</blockquote>
+
+<p> With Postfix &ge; 3.4, specify instead a single file that holds the
+key followed by the corresponding certificate and any associated issuing
+certificates, leaving the "smtpd_tls_cert_file" and "smtpd_tls_key_file"
+and related DSA and ECDSA parameters empty. </p>
+
+<blockquote>
+<pre>
+/etc/postfix/main.cf:
+    smtpd_tls_chain_files = /etc/postfix/rsachain.pem
+    smtpd_tls_cert_file =
+    smtpd_tls_key_file =
+    ...
 </pre>
 </blockquote>
 
@@ -1140,7 +1217,7 @@ parameters includes useful interoperability and security guidelines.
 
 <p> Despite the potential for eliminating passive eavesdropping attacks,
 mandatory TLS encryption is not viable as a default security level for
-mail delivery to the public Internet. Most MX hosts do not support TLS at
+mail delivery to the public Internet. Some MX hosts do not support TLS at
 all, and some of those that do have broken implementations. On a host
 that delivers mail to the Internet, you should not configure mandatory
 TLS encryption as the default security level. </p>
@@ -1540,8 +1617,8 @@ parent certificates will be ignored.  </p>
 
 <p> Despite the potential for eliminating "man-in-the-middle" and other
 attacks, mandatory certificate trust chain and subject name verification
-is not viable as a default Internet mail delivery policy.  Most MX hosts
-do not support TLS at all, and a significant portion of TLS enabled
+is not viable as a default Internet mail delivery policy.  Some MX hosts
+do not support TLS at all, and a significant portion of TLS-enabled
 MTAs use self-signed certificates, or certificates that are signed by
 a private Certification Authority. On a machine that delivers mail to
 the Internet, you should not configure mandatory server certificate
@@ -1614,8 +1691,8 @@ parent certificates will be ignored.  </p>
 
 <p> Despite the potential for eliminating "man-in-the-middle" and other
 attacks, mandatory secure server certificate verification is not
-viable as a default Internet mail delivery policy.  Most MX hosts
-do not support TLS at all, and a significant portion of TLS enabled
+viable as a default Internet mail delivery policy.  Some MX hosts
+do not support TLS at all, and a significant portion of TLS-enabled
 MTAs use self-signed certificates, or certificates that are signed
 by a private Certification Authority. On a machine that delivers mail
 to the Internet, you should not configure secure TLS verification
@@ -1776,24 +1853,24 @@ well without them. The recommended setting is to let the defaults stand: </p>
     # Postfix &ge; 2.6
     smtp_tls_eccert_file =
     smtp_tls_eckey_file =
+    # Postfix &ge; 3.4
+    smtp_tls_chain_files =
 </pre>
 </blockquote>
 
 <p> The best way to use the default settings is to comment out the above
 parameters in main.cf if present. </p>
 
-<p> During TLS startup negotiation the Postfix SMTP client may present
-a certificate to the remote SMTP server.  The Netscape client is
-rather clever here and lets the user select between only those
-certificates that match CA certificates offered by the remote SMTP
-server. As the Postfix SMTP client uses the "SSL_connect()" function
-from the OpenSSL package, this is not possible and we have to choose
-just one certificate.  So for now the default is to use _no_
-certificate and key unless one is explicitly specified here. </p>
+<p> During TLS startup negotiation the Postfix SMTP client may present a
+certificate to the remote SMTP server.  Browsers typically let the user
+select among the certificates that match the CA names indicated by the
+remote SMTP server.  The Postfix SMTP client does not yet have a mechanism
+to select from multiple candidate certificates on the fly, and supports a
+single set of certificates (at most one per public key algorithm).  </p>
 
 <p> RSA, DSA and ECDSA (Postfix &ge; 2.6) certificates are supported.
 You can configure all three at the same time, in which case the
-cipher used determines which certificate is presented.  </p>
+cipher used determines which certificate is presented. </p>
 
 <p> It is possible for the Postfix SMTP client to use the same
 key/certificate pair as the Postfix SMTP server.  If a certificate
@@ -1801,6 +1878,14 @@ is to be presented, it must be in "PEM" format. The private key
 must not be encrypted, meaning: it must be accessible without
 password. Both parts (certificate and private key) may be in the
 same file. </p>
+
+<p> With OpenSSL 1.1.1 and Postfix &ge; 3.4 it is also possible to
+configure Ed25519 and Ed448 certificates.  Rather than add two more
+pairs of key and certificate parameters, Postfix 3.4 introduces a new
+"smtp_tls_chain_files" parameter which specifies all the configured
+certificates at once, and handles files that hold both the key and the
+associated certificates in one pass, thereby avoiding potential race
+conditions during key rollover. </p>
 
 <p> To enable remote SMTP servers to verify the Postfix SMTP client
 certificate, the issuing CA certificates must be made available to the
@@ -1810,11 +1895,12 @@ CA(s) (bottom-up order). </p>
 
 <p> Example: the certificate for "client.example.com" was issued by
 "intermediate CA" which itself has a certificate issued by "root CA".
-Create the client.pem file with: </p>
+As the "root" super-user create the client.pem file with: </p>
 
 <blockquote>
 <pre>
-% <b>cat client_cert.pem intermediate_CA.pem &gt; client.pem </b>
+# <b>umask 077</b>
+# <b>cat client_key.pem client_cert.pem intermediate_CA.pem &gt; chain.pem </b>
 </pre>
 </blockquote>
 
@@ -1824,12 +1910,63 @@ sslclient ..." test. </p>
 
 <p> A server that trusts the root CA has a local copy of the root
 CA certificate, so it is not necessary to include the root CA
-certificate here. Leaving it out of the "client.pem" file reduces
+certificate here. Leaving it out of the "chain.pem" file reduces
 the overhead of the TLS exchange. </p>
 
 <p> If you want the Postfix SMTP client to accept remote SMTP server
 certificates issued by these CAs, append the root certificate to
 $smtp_tls_CAfile or install it in the $smtp_tls_CApath directory. </p>
+
+<p> Example: Postfix &ge; 3.4 all-in-one chain file(s).  One or more
+chain files that start with a key that is immediately followed by the
+corresponding certificate and any additional issuer certificates.  A
+single file can hold multiple <i>(key, cert, [chain])</i> sequences, one
+per algorithm.  It is typically simpler to keep the chain for each
+algorithm in its own file.  Most users are likely to deploy at most a
+single RSA chain, but with OpenSSL 1.1.1, it is possible to deploy up
+five chains, one each for RSA, ECDSA, ED25519, ED448 and even the
+obsolete DSA. </p>
+
+<blockquote>
+<pre>
+    # Postfix &ge; 3.4.  Preferred configuration interface.  Each file
+    # starts with the private key, followed by the corresponding
+    # certificate, and any intermediate issuer certificates.
+    #
+    smtp_tls_chain_files =
+        /etc/postfix/rsa.pem,
+        /etc/postfix/ecdsa.pem,
+        /etc/postfix/ed25519.pem,
+        /etc/postfix/ed448.pem
+</pre>
+</blockquote>
+
+<p> You can also store the keys separately from their certificates, again
+provided each is listed before the corresponding certificate chain.  Storing a
+key and its associated certificate chain in separate files is not recommended,
+because this is prone to race conditions during key rollover, as there is no
+way to update multiple files atomically. </p>
+
+<blockquote>
+<pre>
+    # Postfix &ge; 3.4.
+    # Storing keys separately from the associated certificates is not
+    # recommended.
+    smtp_tls_chain_files =
+        /etc/postfix/rsakey.pem,
+        /etc/postfix/rsacerts.pem,
+        /etc/postfix/ecdsakey.pem,
+        /etc/postfix/ecdsacerts.pem
+</pre>
+</blockquote>
+
+<p> The below examples show the legacy algorithm-specific configurations
+for Postfix 3.3 and older.  With Postfix &le; 3.3, even if the key is
+stored in the same file as the certificate, the file is read twice and a
+(brief) race condition still exists during key rollover.  While Postfix
+&ge; 3.4 avoids the race when the key and certificate are in the same
+file, you should use the new "smtp_tls_chain_files" interface shown
+above. <p>
 
 <p> RSA key and certificate examples: </p>
  
@@ -2144,7 +2281,10 @@ additional attributes are supported at this level. </dd>
 The optional "ciphers", "exclude" and "protocols" attributes
 (available for opportunistic TLS with Postfix &ge; 2.6) override the
 "smtp_tls_ciphers", "smtp_tls_exclude_ciphers" and "smtp_tls_protocols"
-configuration parameters.  </dd>
+configuration parameters.  At this level and higher, the optional
+"servername" attribute (available with Postfix &ge; 3.4) overrides the
+global "smtp_tls_servername" parameter, enabling per-destination
+configuration of the SNI extension sent to the remote SMTP server. </dd>
 
 <dt><b>encrypt</b></dt> <dd><a href="#client_tls_encrypt"> Mandatory encryption</a>.
 Mail is delivered only if the remote SMTP server offers STARTTLS
@@ -2830,6 +2970,9 @@ DANE TLSA records.  See the postfix-tls(1) documentation for details.
 <p> The following commands (credits: Viktor Dukhovni) generate and
 install a 2048-bit RSA private key and 10-year self-signed certificate
 for the local Postfix system. This requires super-user privileges.
+(By using date-specific filenames for the certificate and key files,
+and updating main.cf with new filenames, a potential race condition
+in which the key and certificate might not match is avoided).
 </p>
 
 <blockquote>
