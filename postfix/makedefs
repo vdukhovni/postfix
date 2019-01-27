@@ -557,7 +557,7 @@ EOF
 		: ${SHLIB_ENV="LD_LIBRARY_PATH=`pwd`/lib"}
 		: ${PLUGIN_LD="${CC-gcc} -shared"}
 		;;
-  Linux.[34].*)	SYSTYPE=LINUX$RELEASE_MAJOR
+  Linux.[345].*)	SYSTYPE=LINUX$RELEASE_MAJOR
 		case "$CCARGS" in
 		 *-DNO_DB*) ;;
 		 *-DHAS_DB*) ;;
