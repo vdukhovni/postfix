@@ -6,7 +6,7 @@
 /* SYNOPSIS
 /*	#include <logwriter.h>
 /*
-/*	VSTREAM	*logwriter_open(
+/*	VSTREAM	*logwriter_open_or_die(
 /*	const char *path)
 /*
 /*	int	logwriter_write(
@@ -24,7 +24,7 @@
 /* DESCRIPTION
 /*	This module manages a logfile writer.
 /*
-/*	logwriter_open() safely opens the specified file in
+/*	logwriter_open_or_die() safely opens the specified file in
 /*	write+append mode. File open/create errors are fatal.
 /*
 /*	logwriter_write() writes the buffer plus newline to the
@@ -71,9 +71,9 @@
   * Application-specific.
   */
 
-/* logwriter_open - open logfile */
+/* logwriter_open_or_die - open logfile */
 
-VSTREAM *logwriter_open(const char *path)
+VSTREAM *logwriter_open_or_die(const char *path)
 {
     VSTREAM *fp;
     VSTRING *why = vstring_alloc(100);
@@ -114,11 +114,10 @@ int     logwriter_close(VSTREAM *fp)
 int     logwriter_one_shot(const char *path, const char *buf, ssize_t len)
 {
     VSTREAM *fp;
-    int     err = 1;
+    int     err;
 
-    if ((fp = logwriter_open(path)) != 0) {
-	err = logwriter_write(fp, buf, len);
-	err |= logwriter_close(fp);
-    }
+    fp = logwriter_open_or_die(path);
+    err = logwriter_write(fp, buf, len);
+    err |= logwriter_close(fp);
     return (err ? VSTREAM_EOF : 0);
 }

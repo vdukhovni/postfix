@@ -15,7 +15,7 @@
 /*	are easier to recognize. The mail system name is specified
 /*	with the "syslog_name" configuration parameter.
 /*
-/*	The result overwritten with each call.
+/*	The result is overwritten with each call.
 /*
 /*	A null argv0 argument requests that the current
 /*	result is returned.

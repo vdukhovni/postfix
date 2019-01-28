@@ -23,7 +23,7 @@
 /*	Fatal errors: path too large, can't create socket.
 /*
 /*	Other errors result in a -1 result value, with errno indicating
-/*	why the servic is unavailable.
+/*	why the service is unavailable.
 /* .sp
 /*	ENOENT: the named socket does not exist.
 /* .sp

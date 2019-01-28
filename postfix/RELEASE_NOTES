@@ -25,10 +25,18 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Incompatible changes with snapshot 20190126-nonprod
+====================================================
+
+This introduces a new master.cf service type 'unix-dgram' that is
+used by the new postlogd(8) daemon. This type is not supported by
+older Postfix versions. Before backing out to an Postfix 3.3 or
+earlier, edit the master.cf file and remove the postlog entry.
+
 Major changes with snapshot 20190126-nonprod
 ============================================
 
-Support for logging to file or stdout. 
+Support for logging to file or stdout. This disables syslog logging.
 
 - Logging to file solves a usability problem for MacOS users, and
   may also be useful on LINUX when systemd is getting in the way.
@@ -54,15 +62,18 @@ To write logs to stdout, typically while Postfix runs in a container:
 To rotate a Postfix logfile with a daily cronjob:
 -------------------------------------------------
 
-The following applies only when Postfix write to logfile.
+The following applies when the maillog_file parameter specifies a
+reguar file.
 
 - Rename the current logfile in the same directory, appending the
-  current date to file file name:
+  current date to file file name. The following adds a suffix
+  of the form YYYYMMDD to file name:
    # mv postfix.log postfix.log.$(date +%Y%M%d)
 
 - DO NOT YET COMPRESS THE FILE. POSTFIX STILL WRITES TO IT.
 
-- Reload Postfix, so that it will start writing to a new file:
+- Reload Postfix, so that postlogd(8) will start writing to a new
+  file:
    # postfix reload
 
 - Compress the old file, and move it elsewhere if needed.
@@ -70,14 +81,16 @@ The following applies only when Postfix write to logfile.
 Limitations of logging to Postfix logfile or stdout:
 ----------------------------------------------------
 
-Background: logging to Postfix logfile or stdout requires the Postfix
-postlogd service. This program ensures that simultaneous logging
-from different programs will not get mixed up.
+Background:
 
-- Non-daemon Postfix programs don't know that they should log to
-  the postlogd service before they have processed command-line
-  options and main.cf parameters. These programs still log earlier
-  events to the syslog service.
+- Logging to Postfix logfile or stdout requires the Postfix postlogd(8)
+  service. This program ensures that simultaneous logging from
+  different programs will not get mixed up.
+
+Limitations:
+
+- Non-daemon Postfix programs may log to syslogd(8) before they
+  have processed command-line options and main.cf parameters.
 
 - If Postfix is down, the non-daemon programs postfix(1), postsuper(1),
   postmulti(1), and postlog(1), will log directly to $maillog_file.
@@ -85,10 +98,11 @@ from different programs will not get mixed up.
   during Postfix start-up, reload, or shutdown.
 
 - Other non-daemon Postfix programs will never write directly to
-  $maillog_file (in particular, logging to stdout would interfere
-  with their operation). These programs can log to postlogd(8) if
-  they are run by the super-user, or if their executable file has
-  set-gid permission.
+  $maillog_file (also, logging to stdout would interfere with the
+  operation of some of these programs). These programs can log to
+  postlogd(8) if they are run by the super-user, or if their
+  executable file has set-gid permission. Do not set this permision
+  on programs other than postdrop(1) and postqueue(1).
 
 Major changes with snapshot 20180826
 ====================================

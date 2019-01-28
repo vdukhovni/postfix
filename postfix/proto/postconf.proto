@@ -17048,13 +17048,14 @@ See smtp_enforce_tls for further details. </p>
 
 %PARAM maillog_file
 
-<p> The name of an optional logfile that is written by the postlogd(8)
-internal logging service. This feature may be used where the syslog
-service is either unavailable or unusable. Some Postfix non-daemon
-programs may still log some information to syslogd(8), because they
-cannot know that the internal logging service should be used until
-they have processed their configuration parameters and command-line
-options. </p>
+<p> The name of an optional logfile that is written by the Postfix
+postlogd(8) service. A non-empty value disables logging to syslogd(8).
+Specify "/dev/stdout" for logging to standard output. Stdout logging
+requires that Postfix is started with "postfix start-fg".  </p>
+
+<p> Note: Some Postfix non-daemon programs may still log information
+to syslogd(8), before they have processed their configuration
+parameters and command-line options. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 

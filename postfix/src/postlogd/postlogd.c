@@ -11,19 +11,23 @@
 /*	value.
 /* BUGS
 /*	Non-daemon Postfix programs don't know that they should log
-/*	to the internal logging service until after they have
-/*	processed command-line options and main.cf parameters. These
-/*	programs still log earlier events to the syslog service.
+/*	to the internal logging service before they have processed
+/*	command-line options and main.cf parameters. These programs
+/*	still log earlier events to the syslog service.
 /*
-/*	If Postfix is down, then logging from non-daemon programs
-/*	will be lost, except for logging from the \fBpostfix\fR(1),
-/*	\fBpostlog\fR(1), and \fBpostsuper\fR(1) commands. These
-/*	commands can log directly to file when running as root, for
-/*	example during Postfix start-up.
+/*	If Postfix is down, the non-daemon programs \fBpostfix\fR(1),
+/*	\fBpostsuper\fR(1), \fBpostmulti\fR(1), and \fBpostlog\fR(1),
+/*	will log directly to \fB$maillog_file\fR. These programs
+/*	expect to run with root privileges, for example during
+/*	Postfix start-up, reload, or shutdown.
 /*
-/*	Non-daemon Postfix programs can talk to \fBpostlogd\fR(8)
-/*	only if they are run by the super-user, or if their executable
-/*	files have set-gid permission.
+/*	Other non-daemon Postfix programs will never write directly to
+/*	\fB$maillog_file\fR (also, logging to stdout would interfere
+/*	with the operation of some of these programs). These programs
+/*	can log to \fBpostlogd\fR(8) if they are run by the super-user,
+/*	or if their executable file has set-gid permission. Do not
+/*	set this permision on programs other than \fBpostdrop\fR(1)
+/*	and \fBpostqueue\fR(1).
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -38,8 +42,8 @@
 /*	The default location of the Postfix main.cf and master.cf
 /*	configuration files.
 /* .IP "\fBmaillog_file (empty)\fR"
-/*	The name of an optional logfile that is written by the \fBpostlogd\fR(8)
-/*	internal logging service.
+/*	The name of an optional logfile that is written by the Postfix
+/*	\fBpostlogd\fR(8) service.
 /* .IP "\fBprocess_id (read-only)\fR"
 /*	The process ID of a Postfix command or daemon process.
 /* .IP "\fBprocess_name (read-only)\fR"
@@ -153,7 +157,7 @@ static void postlogd_service(char *buf, ssize_t len, char *unused_service,
 	progname_pid = mystrtok(&bp, ":" CHARS_SPACE);	/* name[pid] sans ':' */
 	bp += strspn(bp, CHARS_SPACE);
 	if (progname_pid)
-	    maillog_client_init(progname_pid, 0);
+	    maillog_client_init(progname_pid, MAILLOG_CLIENT_FLAG_NONE);
 	msg_info("%.*s", (int) (len - (bp - buf)), bp);
 
 	/*
@@ -163,7 +167,7 @@ static void postlogd_service(char *buf, ssize_t len, char *unused_service,
 	 * copy of the name argument. We can't leave that pointing into the
 	 * middle of the above message buffer.
 	 */
-	maillog_client_init(mail_task((char *) 0), 0);
+	maillog_client_init(mail_task((char *) 0), MAILLOG_CLIENT_FLAG_NONE);
     }
 }
 
@@ -197,7 +201,7 @@ static void pre_jail_init(char *unused_service_name, char **argv)
 	/*
 	 * Instantiate the logwriter or bust.
 	 */
-	postlogd_stream = logwriter_open(var_maillog_file);
+	postlogd_stream = logwriter_open_or_die(var_maillog_file);
 
 	/*
 	 * Inform the msg_logger client to stop using the postlog socket, and

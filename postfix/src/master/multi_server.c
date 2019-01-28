@@ -680,7 +680,7 @@ NORETURN multi_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 
     /*
      * Initialize generic parameters and re-initialize logging in case of a
-     * non-default program name or logging destination..
+     * non-default program name or logging destination.
      */
     mail_params_init();
     maillog_client_init(mail_task(var_procname), MAILLOG_CLIENT_FLAG_NONE);

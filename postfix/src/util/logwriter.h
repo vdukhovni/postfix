@@ -19,7 +19,7 @@
  /*
   * External interface.
   */
-extern VSTREAM *logwriter_open(const char *);
+extern VSTREAM *logwriter_open_or_die(const char *);
 extern int logwriter_write(VSTREAM *, const char *, ssize_t);
 extern int logwriter_close(VSTREAM *);
 extern int logwriter_one_shot(const char *, const char *, ssize_t);

@@ -6218,13 +6218,14 @@ substitutions in regular expression maps. </p>
 <DT><b><a name="maillog_file">maillog_file</a>
 (default: empty)</b></DT><DD>
 
-<p> The name of an optional logfile that is written by the postlogd(8)
-internal logging service. This feature may be used where the syslog
-service is either unavailable or unusable. Some Postfix non-daemon
-programs may still log some information to syslogd(8), because they
-cannot know that the internal logging service should be used until
-they have processed their configuration parameters and command-line
-options. </p>
+<p> The name of an optional logfile that is written by the Postfix
+<a href="postlogd.8.html">postlogd(8)</a> service. A non-empty value disables logging to syslogd(8).
+Specify "/dev/stdout" for logging to standard output. Stdout logging
+requires that Postfix is started with "postfix start-fg".  </p>
+
+<p> Note: Some Postfix non-daemon programs may still log information
+to syslogd(8), before they have processed their configuration
+parameters and command-line options. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 
@@ -7618,7 +7619,7 @@ is rejected by the <b><a href="postconf.5.html#reject_plaintext_session">reject_
 <DT><b><a name="postlog_service_name">postlog_service_name</a>
 (default: postlog)</b></DT><DD>
 
-<p> The name of the postlogd(8) service entry in <a href="master.5.html">master.cf</a>.
+<p> The name of the <a href="postlogd.8.html">postlogd(8)</a> service entry in <a href="master.5.html">master.cf</a>.
 This service appends logfile records to the file specified
 with the <a href="postconf.5.html#maillog_file">maillog_file</a> parameter. </p>
 
@@ -7630,9 +7631,9 @@ with the <a href="postconf.5.html#maillog_file">maillog_file</a> parameter. </p>
 <DT><b><a name="postlogd_watchdog_timeout">postlogd_watchdog_timeout</a>
 (default: 10s)</b></DT><DD>
 
-<p> How much time a postlogd(8) process may take to process a request
+<p> How much time a <a href="postlogd.8.html">postlogd(8)</a> process may take to process a request
 before it is terminated by a built-in watchdog timer. This is a
-safety mechanism that prevents postlogd(8) from becoming non-responsive
+safety mechanism that prevents <a href="postlogd.8.html">postlogd(8)</a> from becoming non-responsive
 due to a bug in Postfix itself or in system software. This limit
 cannot be set under 10s. </p>
 

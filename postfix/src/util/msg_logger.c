@@ -209,7 +209,6 @@ static void msg_logger_print(int level, const char *text)
 	if (msg_logger_sock >= 0)
 	    close_on_exec(msg_logger_sock, CLOSE_ON_EXEC);
     }
-    /* TODO: a clean way to disable syslog logging. */
     if (msg_logger_sock != MSG_LOGGER_SOCK_NONE) {
 	send(msg_logger_sock, STR(msg_logger_buf), LEN(msg_logger_buf), 0);
     } else if (msg_logger_fallback_fn) {

@@ -17,9 +17,9 @@
 /*	line, \fBpostlog\fR(1) reads from standard input and logs each input
 /*	line as one record.
 /*
-/*	By default, logging is sent to \fBsyslogd\fR(8) or
-/*	\fBpostlogd\fR(8); when the standard error stream is connected
-/*	to a terminal, logging is sent there as well.
+/*	By default, logging is sent to \fBsyslogd\fR(8); when the
+/*	standard error stream is connected to a terminal, logging
+/*	is sent there as well.
 /*
 /*	The following options are implemented:
 /* .IP "\fB-c \fIconfig_dir\fR"
@@ -69,8 +69,8 @@
 /* .PP
 /*	Available in Postfix 3.4 and later:
 /* .IP "\fBmaillog_file (empty)\fR"
-/*	The name of an optional logfile that is written by the \fBpostlogd\fR(8)
-/*	internal logging service.
+/*	The name of an optional logfile that is written by the Postfix
+/*	\fBpostlogd\fR(8) service.
 /* .IP "\fBpostlog_service_name (postlog)\fR"
 /*	The name of the \fBpostlogd\fR(8) service entry in master.cf.
 /* SEE ALSO

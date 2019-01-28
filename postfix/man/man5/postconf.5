@@ -3739,13 +3739,14 @@ substitutions in regular expression maps.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH maillog_file (default: empty)
-The name of an optional logfile that is written by the \fBpostlogd\fR(8)
-internal logging service. This feature may be used where the syslog
-service is either unavailable or unusable. Some Postfix non\-daemon
-programs may still log some information to \fBsyslogd\fR(8), because they
-cannot know that the internal logging service should be used until
-they have processed their configuration parameters and command\-line
-options.
+The name of an optional logfile that is written by the Postfix
+\fBpostlogd\fR(8) service. A non\-empty value disables logging to \fBsyslogd\fR(8).
+Specify "/dev/stdout" for logging to standard output. Stdout logging
+requires that Postfix is started with "postfix start\-fg".
+.PP
+Note: Some Postfix non\-daemon programs may still log information
+to \fBsyslogd\fR(8), before they have processed their configuration
+parameters and command\-line options.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH mailq_path (default: see "postconf \-d" output)
