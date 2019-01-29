@@ -47,19 +47,18 @@ tests: tls_certkey_tests
 
 tls_certkey_tests: test
 	@echo Testing loading of keys and certs
-	@export LD_LIBRARY_PATH=../../lib; \
-	for pem in goodchains.pem; do \
-	    ./tls_certkey $$pem > $$pem.out 2>&1 || exit 1; \
+	@for pem in goodchains.pem; do \
+	    $(SHLIB_ENV) $(VALGRIND) ./tls_certkey $$pem > $$pem.out 2>&1 || exit 1; \
 	    diff $$pem.ref $$pem.out || exit 1; \
 	    echo "  $$pem: OK"; \
 	done; \
 	for pem in *-mixed-*.pem ; do \
-	    ./tls_certkey -m $$pem > $$pem.out 2>&1 || exit 1; \
+	    $(SHLIB_ENV) $(VALGRIND) ./tls_certkey -m $$pem > $$pem.out 2>&1 || exit 1; \
 	    diff $$pem.ref $$pem.out || exit 1; \
 	    echo "  $$pem: OK"; \
 	done; \
 	for pem in bad-*.pem; do \
-	    ./tls_certkey $$pem > $$pem.out 2>&1 && exit 1 || : ok; \
+	    $(SHLIB_ENV) $(VALGRIND) ./tls_certkey $$pem > $$pem.out 2>&1 && exit 1 || : ok; \
 	    egrep -v 'TLS library problem' $$pem.out | diff $$pem.ref - || \
 	    exit 1; \
 	    echo "  $$pem: OK"; \

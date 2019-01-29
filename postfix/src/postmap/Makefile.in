@@ -113,10 +113,10 @@ postmap.o: ../../include/mail_params.h
 postmap.o: ../../include/mail_parm_split.h
 postmap.o: ../../include/mail_task.h
 postmap.o: ../../include/mail_version.h
+postmap.o: ../../include/maillog_client.h
 postmap.o: ../../include/mime_state.h
 postmap.o: ../../include/mkmap.h
 postmap.o: ../../include/msg.h
-postmap.o: ../../include/msg_syslog.h
 postmap.o: ../../include/msg_vstream.h
 postmap.o: ../../include/myflock.h
 postmap.o: ../../include/mymalloc.h

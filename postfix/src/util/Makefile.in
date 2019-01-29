@@ -40,7 +40,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	poll_fd.c timecmp.c slmdb.c dict_pipe.c dict_random.c \
 	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
-	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c
+	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c \
+	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -82,7 +83,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	poll_fd.o timecmp.o $(NON_PLUGIN_MAP_OBJ) dict_pipe.o dict_random.o \
 	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
-	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o
+	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
+	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -112,7 +114,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
 	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
-	check_arg.h argv_attr.h
+	check_arg.h argv_attr.h msg_logger.h logwriter.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -132,7 +134,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
-	vbuf_print split_qnameval vstream
+	vbuf_print split_qnameval vstream msg_logger
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -213,6 +215,11 @@ dup2_pass_on_exec: dup2_pass_on_exec.c
 	$(CC) $(CFLAGS) -o $@ $@.c $(SYSLIBS)
 
 vstring: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
+msg_logger: msg_logger.c $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
@@ -1906,6 +1913,17 @@ load_lib.o: load_lib.c
 load_lib.o: load_lib.h
 load_lib.o: msg.h
 load_lib.o: sys_defs.h
+logwriter.o: check_arg.h
+logwriter.o: iostuff.h
+logwriter.o: logwriter.c
+logwriter.o: logwriter.h
+logwriter.o: msg.h
+logwriter.o: mymalloc.h
+logwriter.o: safe_open.h
+logwriter.o: sys_defs.h
+logwriter.o: vbuf.h
+logwriter.o: vstream.h
+logwriter.o: vstring.h
 lowercase.o: check_arg.h
 lowercase.o: lowercase.c
 lowercase.o: stringops.h
@@ -1996,6 +2014,20 @@ msg.o: msg.c
 msg.o: msg.h
 msg.o: msg_output.h
 msg.o: sys_defs.h
+msg_logger.o: check_arg.h
+msg_logger.o: connect.h
+msg_logger.o: iostuff.h
+msg_logger.o: logwriter.h
+msg_logger.o: msg.h
+msg_logger.o: msg_logger.c
+msg_logger.o: msg_logger.h
+msg_logger.o: msg_output.h
+msg_logger.o: mymalloc.h
+msg_logger.o: safe.h
+msg_logger.o: sys_defs.h
+msg_logger.o: vbuf.h
+msg_logger.o: vstream.h
+msg_logger.o: vstring.h
 msg_output.o: check_arg.h
 msg_output.o: msg_output.c
 msg_output.o: msg_output.h
@@ -2019,6 +2051,7 @@ msg_syslog.o: msg.h
 msg_syslog.o: msg_output.h
 msg_syslog.o: msg_syslog.c
 msg_syslog.o: msg_syslog.h
+msg_syslog.o: mymalloc.h
 msg_syslog.o: safe.h
 msg_syslog.o: stringops.h
 msg_syslog.o: sys_defs.h
@@ -2410,6 +2443,17 @@ unix_connect.o: sane_connect.h
 unix_connect.o: sys_defs.h
 unix_connect.o: timed_connect.h
 unix_connect.o: unix_connect.c
+unix_dgram_connect.o: connect.h
+unix_dgram_connect.o: iostuff.h
+unix_dgram_connect.o: msg.h
+unix_dgram_connect.o: sys_defs.h
+unix_dgram_connect.o: unix_dgram_connect.c
+unix_dgram_listen.o: htable.h
+unix_dgram_listen.o: iostuff.h
+unix_dgram_listen.o: listen.h
+unix_dgram_listen.o: msg.h
+unix_dgram_listen.o: sys_defs.h
+unix_dgram_listen.o: unix_dgram_listen.c
 unix_listen.o: htable.h
 unix_listen.o: iostuff.h
 unix_listen.o: listen.h

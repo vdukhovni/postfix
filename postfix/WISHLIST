@@ -1,5 +1,10 @@
 Wish list:
 
+	Add maillog_file to postfix(1) exports?
+
+	postfix rotate-log command: mv postfix.log postfix.log.$(date
+	+%Y%M%d-%H%M%S) to avoid data loss if called repeatedly.
+
 	In smtpd(8) and postscreen(8), set the ehlo_discard_mask
 	to ~0 so that STARTTLS, BDAT, DSN, etc. work only for clients
 	that send EHLO.

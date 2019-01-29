@@ -195,7 +195,6 @@
 #include <sys/time.h>			/* select() */
 #include <unistd.h>
 #include <signal.h>
-#include <syslog.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <string.h>
@@ -214,7 +213,6 @@
 /* Utility library. */
 
 #include <msg.h>
-#include <msg_syslog.h>
 #include <msg_vstream.h>
 #include <chroot_uid.h>
 #include <listen.h>
@@ -244,6 +242,7 @@
 #include <mail_flow.h>
 #include <mail_version.h>
 #include <bounce.h>
+#include <maillog_client.h>
 
 /* Process manager. */
 
@@ -584,7 +583,6 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     const char *err;
     char   *generation;
     int     msg_vstream_needed = 0;
-    int     redo_syslog_init = 0;
     const char *dsn_filter_title;
     const char **dsn_filter_maps;
     int     retire_me_from_flags = 0;
@@ -620,7 +618,7 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
      * Initialize logging and exit handler. Do the syslog first, so that its
      * initialization completes before we enter the optional chroot jail.
      */
-    msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task(var_procname), MAILLOG_CLIENT_FLAG_NONE);
     if (msg_verbose)
 	msg_info("daemon started");
 
@@ -674,8 +672,6 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    if ((err = split_nameval(oname_val, &oname, &oval)) != 0)
 		msg_fatal("invalid \"-o %s\" option value: %s", optarg, err);
 	    mail_conf_update(oname, oval);
-	    if (strcmp(oname, VAR_SYSLOG_NAME) == 0)
-		redo_syslog_init = 1;
 	    myfree(oname_val);
 	    break;
 	case 'r':
@@ -713,11 +709,11 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
     set_mail_conf_str(VAR_SERVNAME, service_name);
 
     /*
-     * Initialize generic parameters.
+     * Initialize generic parameters and re-initialize logging in case of a
+     * non-default program name or logging destination.
      */
     mail_params_init();
-    if (redo_syslog_init)
-	msg_syslog_init(mail_task(var_procname), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task(var_procname), MAILLOG_CLIENT_FLAG_NONE);
 
     /*
      * Register higher-level dictionaries and initialize the support for

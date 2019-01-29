@@ -60,16 +60,18 @@ POSTDROP(1)                                                        POSTDROP(1)
 
        <b><a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a> (empty)</b>
               A list of non-default Postfix configuration directories that may
-              be  specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line, or
-              via the MAIL_CONFIG environment parameter.
+              be  specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line (in
+              the case of <a href="sendmail.1.html"><b>sendmail</b>(1)</a>, with  the  "-C"  option),  or  via  the
+              MAIL_CONFIG environment parameter.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
-              The  list  of environment parameters that a Postfix process will
-              import from a non-Postfix parent process.
+              The list of environment parameters  that  a  privileged  Postfix
+              process  will  import  from  a  non-Postfix  parent  process, or
+              name=value environment overrides.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
               The location of the Postfix top-level queue directory.

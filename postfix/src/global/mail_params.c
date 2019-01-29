@@ -145,6 +145,9 @@
 /*	int	warn_compat_break_relay_domains;
 /*	int	warn_compat_break_flush_domains;
 /*	int	warn_compat_break_mynetworks_style;
+/*
+/*	char	*var_maillog_file;
+/*	char	*var_postlog_service;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
 /*	the names and defaults of all mail configuration parameters.
@@ -347,6 +350,9 @@ int     var_idna2003_compat;
 int     var_compat_level;
 char   *var_drop_hdrs;
 bool    var_enable_orcpt;
+
+char	*var_maillog_file;
+char	*var_postlog_service;
 
 const char null_format_string[1] = "";
 
@@ -670,6 +676,8 @@ void    mail_params_init()
 	/* multi_instance_wrapper may have dependencies but not dependents. */
 	VAR_MULTI_GROUP, DEF_MULTI_GROUP, &var_multi_group, 0, 0,
 	VAR_MULTI_NAME, DEF_MULTI_NAME, &var_multi_name, 0, 0,
+	VAR_MAILLOG_FILE, DEF_MAILLOG_FILE, &var_maillog_file, 0, 0,
+	VAR_POSTLOG_SERVICE, DEF_POSTLOG_SERVICE, &var_postlog_service, 1, 0,
 	0,
     };
     static const CONFIG_BOOL_TABLE first_bool_defaults[] = {
@@ -822,7 +830,7 @@ void    mail_params_init()
      */
     get_mail_conf_str_table(first_str_defaults);
 
-    if (!msg_syslog_facility(var_syslog_facility))
+    if (!msg_syslog_set_facility(var_syslog_facility))
 	msg_fatal("file %s/%s: parameter %s: unrecognized value: %s",
 		  var_config_dir, MAIN_CONF_FILE,
 		  VAR_SYSLOG_FACILITY, var_syslog_facility);

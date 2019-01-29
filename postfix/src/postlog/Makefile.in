@@ -70,9 +70,9 @@ postlog.o: ../../include/mail_params.h
 postlog.o: ../../include/mail_parm_split.h
 postlog.o: ../../include/mail_task.h
 postlog.o: ../../include/mail_version.h
+postlog.o: ../../include/maillog_client.h
 postlog.o: ../../include/msg.h
 postlog.o: ../../include/msg_output.h
-postlog.o: ../../include/msg_syslog.h
 postlog.o: ../../include/msg_vstream.h
 postlog.o: ../../include/sys_defs.h
 postlog.o: ../../include/vbuf.h

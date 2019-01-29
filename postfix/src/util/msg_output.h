@@ -23,7 +23,6 @@ typedef void (*MSG_OUTPUT_FN) (int, const char *);
 extern void msg_output(MSG_OUTPUT_FN);
 extern void PRINTFLIKE(2, 3) msg_printf(int, const char *,...);
 extern void msg_vprintf(int, const char *, va_list);
-extern void msg_text(int, const char *);
 
 #define MSG_INFO	0		/* informative */
 #define	MSG_WARN	1		/* warning (non-fatal) */
@@ -42,6 +41,11 @@ extern void msg_text(int, const char *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

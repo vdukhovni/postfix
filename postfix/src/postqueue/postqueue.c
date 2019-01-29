@@ -247,7 +247,6 @@
 #include <clean_env.h>
 #include <vstream.h>
 #include <msg_vstream.h>
-#include <msg_syslog.h>
 #include <argv.h>
 #include <safe.h>
 #include <connect.h>
@@ -272,6 +271,7 @@
 #include <valid_mailhost_addr.h>
 #include <mail_dict.h>
 #include <mail_parm_split.h>
+#include <maillog_client.h>
 
 /* Application-specific. */
 
@@ -566,15 +566,14 @@ int     main(int argc, char **argv)
 	    msg_fatal_status(EX_UNAVAILABLE, "open /dev/null: %m");
 
     /*
-     * Initialize. Set up logging, read the global configuration file and
-     * extract configuration information. Set up signal handlers so that we
-     * can clean up incomplete output.
-     * Censor the process name: it is provided by the user.
+     * Initialize. Set up logging. Read the global configuration file after
+     * parsing command-line arguments. Censor the process name: it is
+     * provided by the user.
      */
     argv[0] = "postqueue";
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_cleanup(unavailable);
-    msg_syslog_init(mail_task("postqueue"), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task("postqueue"), MAILLOG_CLIENT_FLAG_NONE);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
@@ -637,7 +636,7 @@ int     main(int argc, char **argv)
      */
     mail_conf_read();
     /* Re-evaluate mail_task() after reading main.cf. */
-    msg_syslog_init(mail_task("postqueue"), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task("postqueue"), MAILLOG_CLIENT_FLAG_NONE);
     mail_dict_init();				/* proxy, sql, ldap */
     get_mail_conf_str_table(str_table);
 

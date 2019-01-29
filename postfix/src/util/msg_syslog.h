@@ -19,7 +19,8 @@
   * External interface.
   */
 extern void msg_syslog_init(const char *, int, int);
-extern int msg_syslog_facility(const char *);
+extern int msg_syslog_set_facility(const char *);
+extern void msg_syslog_disable(void);
 
 /* LICENSE
 /* .ad
@@ -30,6 +31,11 @@ extern int msg_syslog_facility(const char *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

@@ -44,11 +44,13 @@ for debugging only.
 Terminate the master process after \fIexit_time\fR seconds. Child
 processes terminate at their convenience.
 .IP \fB\-i\fR
-Enable \fBinit\fR mode: do not attempt to become a session
-or process group leader; and to force termination, set an
-explicit signal handler instead of relying on the default
-signal action. This mode is allowed only if the process ID
-equals 1.
+Enable \fBinit\fR mode: do not become a session or process
+group leader; similar to \fB\-s\fR, do not redirect stdout
+to /dev/null, so that "maillog_file = /dev/stdout" works.
+This mode is allowed only if the process ID equals 1.
+.IP \fB\-s\fR
+Do not redirect stdout to /dev/null, so that "maillog_file
+= /dev/stdout" works.
 .IP \fB\-t\fR
 Test mode. Return a zero exit status when the \fBmaster.pid\fR lock
 file does not exist or when that file is not locked.  This is evidence

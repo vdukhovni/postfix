@@ -446,7 +446,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <fcntl.h>
-#include <syslog.h>
 #include <time.h>
 #include <errno.h>
 #include <ctype.h>
@@ -459,7 +458,6 @@
 #include <mymalloc.h>
 #include <vstream.h>
 #include <msg_vstream.h>
-#include <msg_syslog.h>
 #include <vstring_vstream.h>
 #include <username.h>
 #include <fullname.h>
@@ -473,6 +471,7 @@
 #include <name_code.h>
 #include <warn_stat.h>
 #include <clean_env.h>
+#include <maillog_client.h>
 
 /* Global library. */
 
@@ -1049,15 +1048,15 @@ int     main(int argc, char **argv)
 	debug_me = 1;
 
     /*
-     * Initialize. Set up logging, read the global configuration file and
-     * extract configuration information. Set up signal handlers so that we
-     * can clean up incomplete output.
+     * Initialize. Set up logging. Read the global configuration file after
+     * command-line processing. Set up signal handlers so that we can clean
+     * up incomplete output.
      */
     if ((slash = strrchr(argv[0], '/')) != 0 && slash[1])
 	argv[0] = slash + 1;
     msg_vstream_init(argv[0], VSTREAM_ERR);
     msg_cleanup(tempfail);
-    msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task("sendmail"), MAILLOG_CLIENT_FLAG_NONE);
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
@@ -1112,7 +1111,7 @@ int     main(int argc, char **argv)
     update_env(import_env->argv);
     argv_free(import_env);
     /* Re-evaluate mail_task() after reading main.cf. */
-    msg_syslog_init(mail_task("sendmail"), LOG_PID, LOG_FACILITY);
+    maillog_client_init(mail_task("sendmail"), MAILLOG_CLIENT_FLAG_NONE);
     get_mail_conf_str_table(str_table);
 
     mail_dict_init();

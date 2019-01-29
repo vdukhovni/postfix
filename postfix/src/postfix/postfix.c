@@ -128,6 +128,15 @@
 /*	This is set when the -v command-line option is present.
 /* .IP \fBMAIL_DEBUG\fR
 /*	This is set when the -D command-line option is present.
+/* .PP
+/*	When the internal logging service is enabled (by setting a
+/*	non-empty maillog_file parameter value) the postfix(1)
+/*	command exports settings that are used by child processes
+/*	before they have processed main.cf or command-line settings.
+/* .IP \fBPOSTLOG_SERVICE
+/*	The name of the public postlog service endpoint.
+/* .IP \fBPOSTLOG_HOSTNAME
+/*	The hostname to prepend to internal logging.
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -215,6 +224,13 @@
 /* .IP "\fBmulti_instance_enable (no)\fR"
 /*	Allow this Postfix instance to be started, stopped, etc., by a
 /*	multi-instance manager.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBmaillog_file (empty)\fR"
+/*	The name of an optional logfile that is written by the Postfix
+/*	\fBpostlogd\fR(8) service.
+/* .IP "\fBpostlog_service_name (postlog)\fR"
+/*	The name of the \fBpostlogd\fR(8) service entry in master.cf.
 /* FILES
 /* .ad
 /* .fi
@@ -296,6 +312,7 @@
 /*	oqmgr(8), old Postfix queue manager
 /*	pickup(8), Postfix local mail pickup
 /*	pipe(8), deliver mail to non-Postfix command
+/*	postlogd(8), Postfix internal logging service
 /*	postscreen(8), Postfix zombie blocker
 /*	proxymap(8), Postfix lookup table proxy server
 /*	qmgr(8), Postfix queue manager
@@ -380,7 +397,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <fcntl.h>
-#include <syslog.h>
 #ifdef USE_PATHS_H
 #include <paths.h>
 #endif
@@ -389,7 +405,6 @@
 
 #include <msg.h>
 #include <msg_vstream.h>
-#include <msg_syslog.h>
 #include <stringops.h>
 #include <clean_env.h>
 #include <argv.h>
@@ -402,6 +417,7 @@
 #include <mail_params.h>
 #include <mail_version.h>
 #include <mail_parm_split.h>
+#include <maillog_client.h>
 
 /* Additional installation parameters. */
 
@@ -476,7 +492,7 @@ int     main(int argc, char **argv)
 	argv[0] = slash + 1;
     if (isatty(STDERR_FILENO))
 	msg_vstream_init(argv[0], VSTREAM_ERR);
-    msg_syslog_init(argv[0], LOG_PID, LOG_FACILITY);
+    maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*
      * Check the Postfix library version as soon as we enable logging.
@@ -526,6 +542,22 @@ int     main(int argc, char **argv)
     get_mail_conf_str_table(str_table);
 
     /*
+     * Environment import filter, to enforce consistent behavior whether this
+     * command is started by hand, or at system boot time. This is necessary
+     * because some shell scripts use environment settings to override
+     * main.cf settings.
+     */
+    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
+    clean_env(import_env->argv);
+    argv_free(import_env);
+
+    /*
+     * This is after calling clean_env(), to ensure that POSTLOG_XXX exports
+     * will work, even if import_environment would remove them.
+     */
+    maillog_client_init(argv[0], MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
+
+    /*
      * Alert the sysadmin that the backwards-compatible settings are still in
      * effect.
      */
@@ -538,17 +570,6 @@ int     main(int argc, char **argv)
 		 VAR_COMPAT_LEVEL "=%d\" and \"postfix reload\"",
 		 CUR_COMPAT_LEVEL);
     }
-
-    /*
-     * Environment import filter, to enforce consistent behavior whether this
-     * command is started by hand, or at system boot time. This is necessary
-     * because some shell scripts use environment settings to override
-     * main.cf settings.
-     */
-    import_env = mail_parm_split(VAR_IMPORT_ENVIRON, var_import_environ);
-    clean_env(import_env->argv);
-    argv_free(import_env);
-
     check_setenv("PATH", ROOT_PATH);		/* sys_defs.h */
     check_setenv(CONF_ENV_PATH, var_config_dir);/* mail_conf.h */
 

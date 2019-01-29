@@ -176,6 +176,7 @@
 -TLMTP_STATE
 -TLOCAL_EXP
 -TLOCAL_STATE
+-TLOGWRITER
 -TLONG_NAME_MASK
 -TMAC_EXP_CONTEXT
 -TMAC_EXP_OP_INFO
@@ -399,6 +400,7 @@
 -Tgeneral_name_stack_t
 -Tiana_digest
 -Toff_t
+-Tpem_load_state_t
 -Tregex_t
 -Tregmatch_t
 -Tsasl_conn_t
@@ -413,4 +415,3 @@
 -Ttime_t
 -Ttlsa_filter
 -Tx509_stack_t
--Tpem_load_state_t

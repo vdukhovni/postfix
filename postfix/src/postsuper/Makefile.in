@@ -69,8 +69,8 @@ postsuper.o: ../../include/mail_parm_split.h
 postsuper.o: ../../include/mail_queue.h
 postsuper.o: ../../include/mail_task.h
 postsuper.o: ../../include/mail_version.h
+postsuper.o: ../../include/maillog_client.h
 postsuper.o: ../../include/msg.h
-postsuper.o: ../../include/msg_syslog.h
 postsuper.o: ../../include/msg_vstream.h
 postsuper.o: ../../include/mymalloc.h
 postsuper.o: ../../include/myrand.h

@@ -15041,7 +15041,7 @@ cannot be set under 10s.  </p>
 one-letter suffix that specifies the time unit).  Time units: s
 (seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
-<p> This feature is available in Postfix 2.8.  </p>
+<p> This feature is available in Postfix 2.8 and later  </p>
 
 %PARAM postscreen_discard_ehlo_keywords $smtpd_discard_ehlo_keywords
 
@@ -17524,5 +17524,40 @@ as needed. </p>
 
 <p> The LMTP-specific version of the smtp_tls_servername configuration
 parameter. See there for details. </p>
+
+<p> This feature is available in Postfix 3.4 and later.  </p>
+
+%PARAM maillog_file
+
+<p> The name of an optional logfile that is written by the Postfix
+postlogd(8) service. A non-empty value disables logging to syslogd(8).
+Specify "/dev/stdout" for logging to standard output. Stdout logging
+requires that Postfix is started with "postfix start-fg".  </p>
+
+<p> Note: Some Postfix non-daemon programs may still log information
+to syslogd(8), before they have processed their configuration
+parameters and command-line options. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM postlog_service_name postlog
+
+<p> The name of the postlogd(8) service entry in master.cf. 
+This service appends logfile records to the file specified
+with the maillog_file parameter. </p>
+
+<p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM postlogd_watchdog_timeout 10s
+
+<p> How much time a postlogd(8) process may take to process a request
+before it is terminated by a built-in watchdog timer. This is a
+safety mechanism that prevents postlogd(8) from becoming non-responsive
+due to a bug in Postfix itself or in system software. This limit
+cannot be set under 10s. </p>
+
+<p> Specify a non-zero time value (an integral value plus an optional
+one-letter suffix that specifies the time unit).  Time units: s
+(seconds), m (minutes), h (hours), d (days), w (weeks).  </p>
 
 <p> This feature is available in Postfix 3.4 and later.  </p>
