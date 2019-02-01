@@ -1910,6 +1910,7 @@ mail_version.o: ../../include/vbuf.h
 mail_version.o: ../../include/vstring.h
 mail_version.o: mail_version.c
 mail_version.o: mail_version.h
+maillog_client.o: ../../include/argv.h
 maillog_client.o: ../../include/attr.h
 maillog_client.o: ../../include/check_arg.h
 maillog_client.o: ../../include/htable.h

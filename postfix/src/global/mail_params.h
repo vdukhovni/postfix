@@ -4180,6 +4180,18 @@ extern bool var_dns_ncache_ttl_fix;
 #define DEF_MAILLOG_FILE	""
 extern char *var_maillog_file;
 
+#define VAR_MAILLOG_FILE_PFXS	"maillog_file_prefixes"
+#define DEF_MAILLOG_FILE_PFXS	"/var, /dev/stdout"
+extern char *var_maillog_file_pfxs;
+
+#define VAR_MAILLOG_FILE_COMP	"maillog_file_compressor"
+#define DEF_MAILLOG_FILE_COMP	"gzip"
+extern char *var_maillog_file_comp;
+
+#define VAR_MAILLOG_FILE_STAMP	"maillog_file_rotate_suffix"
+#define DEF_MAILLOG_FILE_STAMP	"%Y%M%d-%H%M%S"
+extern char *var_maillog_file_stamp;
+
 #define VAR_POSTLOG_SERVICE	"postlog_service_name"
 #define DEF_POSTLOG_SERVICE	MAIL_SERVICE_POSTLOG
 extern char *var_postlog_service;

@@ -24012,3 +24012,11 @@ Apologies for any names omitted.
 20190128
 
 	Testing: run libtls tests under Valgrind. File tls/Makefile.in.
+
+20190129
+
+	Safety: require that $maillog_file matches one of the
+	pathname prefixes specified in $maillog_file_prefixes.  The
+	maillog file is created by root, and the prefixes limit the
+	damage from a single configuration error. Files:
+	global/mail_params.[hc], global/maillog_client.c.

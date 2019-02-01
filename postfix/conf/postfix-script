@@ -405,8 +405,41 @@ tls)
 	"$@"
 	;;
 
+logrotate)
+	case $# in
+	1) ;;
+	*) $FATAL "usage postfix $1 (no arguments)"; exit 1;;
+	esac
+	for name in maillog_file maillog_file_compressor \
+	   maillog_file_rotate_suffix
+	do
+	    value="`$command_directory/postconf -h $name`"
+	    case "$value" in
+	    "") $FATAL "empty '$name' parameter value - logfile rotation failed"
+		exit 1;;
+	    esac
+	    eval $name='"$value"';
+	done
+
+	case "$maillog_file" in
+	/dev/*) $FATAL "not rotating '$maillog_file'"; exit 1;;
+	esac
+
+	(
+	    suffix="`date +$maillog_file_rotate_suffix`" || exit 1
+	    mv "$maillog_file" "$maillog_file.$suffix" || exit 1
+	    $daemon_directory/master -t 2>/dev/null ||
+		kill -HUP `sed 1q pid/master.pid`
+	    sleep 1
+	    "$maillog_file_compressor" "$maillog_file.$suffix" || exit 1
+	) || {
+	    $FATAL "logfile '$maillog_file' rotation failed"
+	    exit 1
+	}
+	;;
+
 *)
-	$FATAL "unknown command: '$1'. Usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration)"
+	$FATAL "unknown command: '$1'. Usage: postfix start (or stop, reload, abort, flush, check, status, set-permissions, upgrade-configuration, logrotate)"
 	exit 1
 	;;
 

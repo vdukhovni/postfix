@@ -147,6 +147,9 @@
 /*	int	warn_compat_break_mynetworks_style;
 /*
 /*	char	*var_maillog_file;
+/*	char	*var_maillog_file_pfxs;
+/*	char	*var_maillog_file_comp;
+/*	char	*var_maillog_file_stamp;
 /*	char	*var_postlog_service;
 /* DESCRIPTION
 /*	This module (actually the associated include file) defines
@@ -352,6 +355,9 @@ char   *var_drop_hdrs;
 bool    var_enable_orcpt;
 
 char	*var_maillog_file;
+char	*var_maillog_file_pfxs;
+char	*var_maillog_file_comp;
+char	*var_maillog_file_stamp;
 char	*var_postlog_service;
 
 const char null_format_string[1] = "";
@@ -677,6 +683,9 @@ void    mail_params_init()
 	VAR_MULTI_GROUP, DEF_MULTI_GROUP, &var_multi_group, 0, 0,
 	VAR_MULTI_NAME, DEF_MULTI_NAME, &var_multi_name, 0, 0,
 	VAR_MAILLOG_FILE, DEF_MAILLOG_FILE, &var_maillog_file, 0, 0,
+	VAR_MAILLOG_FILE_PFXS, DEF_MAILLOG_FILE_PFXS, &var_maillog_file_pfxs, 1, 0,
+	VAR_MAILLOG_FILE_COMP, DEF_MAILLOG_FILE_COMP, &var_maillog_file_comp, 1, 0,
+	VAR_MAILLOG_FILE_STAMP, DEF_MAILLOG_FILE_STAMP, &var_maillog_file_stamp, 1, 0,
 	VAR_POSTLOG_SERVICE, DEF_POSTLOG_SERVICE, &var_postlog_service, 1, 0,
 	0,
     };

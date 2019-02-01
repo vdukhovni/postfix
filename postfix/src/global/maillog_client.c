@@ -81,10 +81,12 @@
   * System library.
   */
 #include <sys_defs.h>
+#include <string.h>
 
  /*
   * Utility library.
   */
+#include <argv.h>
 #include <logwriter.h>
 #include <msg_logger.h>
 #include <msg_syslog.h>
@@ -205,6 +207,21 @@ void    maillog_client_init(const char *progname, int flags)
 	char   *myhostname;
 	char   *service_path;
 
+	if (var_maillog_file && *var_maillog_file) {
+	    ARGV   *good_prefixes = argv_split(var_maillog_file_pfxs,
+					       CHARS_COMMA_SP);
+	    char **cpp;
+
+	    for (cpp = good_prefixes->argv; /* see below */ ; cpp++) {
+		if (*cpp == 0)
+		    msg_fatal("%s value '%s' does not match any prefix in %s",
+			      VAR_MAILLOG_FILE, var_maillog_file,
+			      VAR_MAILLOG_FILE_PFXS);
+		if (strncmp(var_maillog_file, *cpp, strlen(*cpp)) == 0)
+		    break;
+	    }
+	    argv_free(good_prefixes);
+	}
 	if (var_myhostname && *var_myhostname) {
 	    myhostname = var_myhostname;
 	} else if ((myhostname = import_hostname) == 0) {

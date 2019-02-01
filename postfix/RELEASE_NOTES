@@ -35,8 +35,8 @@ Incompatible changes with snapshot 20190126-nonprod
 
 This introduces a new master.cf service type 'unix-dgram' that is
 used by the new postlogd(8) daemon. This type is not supported by
-older Postfix versions. Before backing out to an Postfix 3.3 or
-earlier, edit the master.cf file and remove the postlog entry.
+older Postfix versions. Before backing out to an older release,
+edit the master.cf file and remove the postlog entry.
 
 Major changes with snapshot 20190126-nonprod
 ============================================
@@ -52,10 +52,11 @@ Support for logging to file or stdout. This disables syslog logging.
 To enable Postfix logging to file or stdout:
 --------------------------------------------
 
-Add the following line to master.cf (no whitespace at the start of the line):
+Add the following line to master.cf if not already present (no
+whitespace at the start of the line):
     postlog   unix-dgram n  -       n       -       1       postlogd
 
-To write logs to Postfix logfile: 
+To write logs to Postfix logfile (see below for logfile rotation): 
     # postfix stop
     # postconf maillog_file=/var/log/postfix.log
     # postfix start
@@ -64,24 +65,26 @@ To write logs to stdout, typically while Postfix runs in a container:
     # postconf maillog_file=/dev/stdout
     # postfix start-fg
 
+The maillog_file parameter must contain a prefix that is specified
+with the maillog_file_prefixes parameter (default: /var, /dev/stdout).
+This limits the damage from a single configuration mistake.
+
 To rotate a Postfix logfile with a daily cronjob:
 -------------------------------------------------
 
-The following applies when the maillog_file parameter specifies a
-reguar file.
+The command "postfix logrotate" renames the logfile by appending a
+suffix that contains the date and time, reloads Postfix so that it
+closes the old logfile, and after a brief pause compresses the old
+logfile. This command will not rotate the log if it specifies a
+pathname under the /dev directory, such as /dev/stdout.
 
-- Rename the current logfile in the same directory, appending the
-  current date to file file name. The following adds a suffix
-  of the form YYYYMMDD to file name:
-   # mv postfix.log postfix.log.$(date +%Y%M%d)
+The command "postfix logrotate" does not (yet) remove old logfiles.
 
-- DO NOT YET COMPRESS THE FILE. POSTFIX STILL WRITES TO IT.
+Configuration parameters: 
+- maillog_file_compressor (gzip)
+- maillog_file_rotate_suffix (%Y%M%d-%H%M%S)
 
-- Reload Postfix, so that postlogd(8) will start writing to a new
-  file:
-   # postfix reload
-
-- Compress the old file, and move it elsewhere if needed.
+See the postconf(5) manpage for detailed descriptions.
 
 Limitations of logging to Postfix logfile or stdout:
 ----------------------------------------------------

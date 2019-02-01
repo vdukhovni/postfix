@@ -77,6 +77,14 @@
 /*	This feature is available in Postfix 2.1 and later.  With
 /*	Postfix 2.0 and earlier, use "\fB$config_directory/post-install
 /*	set-permissions\fR".
+/* .IP "\fBlogrotate\fR"
+/*	Rotate the logfile specified with $maillog_file, by appending
+/*	a time-stamp suffix that is formatted according to
+/*	$maillog_file_rotate_suffix, and by compressing the file
+/*	with the command specified with $maillog_file_compressor.
+/*	This will not rotate /dev/* files.
+/* .sp
+/*	This feature is available in Postfix 3.4 and later.
 /* .IP "\fBtls\fR \fIsubcommand\fR"
 /*	Enable opportunistic TLS in the Postfix SMTP client or
 /*	server, and manage Postfix SMTP server TLS private keys and
@@ -229,6 +237,14 @@
 /* .IP "\fBmaillog_file (empty)\fR"
 /*	The name of an optional logfile that is written by the Postfix
 /*	\fBpostlogd\fR(8) service.
+/* .IP "\fBmaillog_file_compressor (gzip)\fR"
+/*	The program to run after rotating $maillog_file with "postfix
+/*	logrotate".
+/* .IP "\fBmaillog_file_prefixes (/var, /dev/stdout)\fR"
+/*	A list of allowed prefixes for a maillog_file value.
+/* .IP "\fBmaillog_file_rotate_suffix (%Y%M%d-%H%M%S)\fR"
+/*	The format of the suffix to append to $maillog_file while rotating
+/*	the file with "postfix logrotate".
 /* .IP "\fBpostlog_service_name (postlog)\fR"
 /*	The name of the \fBpostlogd\fR(8) service entry in master.cf.
 /* FILES
