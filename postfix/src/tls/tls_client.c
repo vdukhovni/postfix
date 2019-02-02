@@ -1042,6 +1042,13 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	    tls_free_context(TLScontext);
 	    return (0);
 	}
+	/*
+	 * The saved value is not presently used client-side, but could later
+	 * be logged if acked by the server (requires new client-side callback
+	 * to detect the ack).  For now this just maintains symmetry with the
+	 * server code, where do record the received SNI for logging.
+	 */
+	TLScontext->peer_sni = mystrdup(sni);
 	if (log_mask & TLS_LOG_DEBUG)
 	    msg_info("%s: SNI hostname: %s", props->namaddr, sni);
     }

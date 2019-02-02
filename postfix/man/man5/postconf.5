@@ -8364,7 +8364,8 @@ disabled except by also disabling "TLSv1" (typically leaving just
 versions of Postfix >= 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2".
 .PP
-OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+>= 3.4 (or patch releases >= 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3".
 .PP
 At the dane and
@@ -8694,7 +8695,8 @@ and "TLSv1.2". The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can explicitly disable support for
 "TLSv1.1" or "TLSv1.2"
 .PP
-OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+>= 3.4 (or patch releases >= 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3".
 .PP
 To include a protocol list its name, to exclude it, prefix the name
@@ -12226,7 +12228,8 @@ disabled.  The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2".
 .PP
-OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+>= 3.4 (or patch releases >= 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3".
 .PP
 Example:
@@ -12258,7 +12261,8 @@ and "TLSv1.2". The latest patch levels of Postfix >= 2.6, and all
 versions of Postfix >= 2.10 can disable support for "TLSv1.1" or
 "TLSv1.2".
 .PP
-OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix >= 3.4,
+OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
+>= 3.4 (or patch releases >= 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
 this can be disabled, if need be, via "!TLSv1.3".
 .PP
 To include a protocol list its name, to exclude it, prefix the name
@@ -13056,6 +13060,22 @@ The lookup key is either the verbatim SNI domain name or an
 ancestor domain prefixed with a leading dot.  For internationalized
 domains, the lookup key must be in IDNA 2008 A\-label form (as
 required in the TLS SNI extension).
+.PP
+When this parameter is non\-empty, the Postfix SMTP server enables
+SNI extension processing, and logs SNI values that are invalid or
+don't match an entry in the the specified tables.  When an entry
+does match, the SNI name is logged as part of the connection summary
+at log levels 1 and higher.
+.PP
+Note that the SNI lookup tables should also have entries for
+the domains that correspond to the Postfix SMTP server's default
+certificate(s). This ensures that the remote SMTP client's TLS SNI
+extension gets a positive response when it specifies one of the
+Postfix SMTP server's default domains, and ensures that the Postfix
+SMTP server will not log an SNI name mismatch for such a domain.
+The Postfix SMTP server's default certificates are then only used
+when the client sends no SNI or when it sends SNI with a domain
+that the server knows no certificate(s) for.
 .PP
 The mapping from an SNI domain name to a certificate chain is
 typically indirect.  In the input source files for "cdb", "hash",

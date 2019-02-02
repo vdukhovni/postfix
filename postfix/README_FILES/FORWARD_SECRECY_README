@@ -449,6 +449,20 @@ Examples of Postfix SMTP server logging:
       TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
       server-signature ED25519
 
+Note that Postfix >= 3.4 server logging may also include a "to sni-name"
+element to record the use of an alternate server certificate chain for the
+connection in question. This happens when the client uses the TLS SNI
+extension, and the server selects a non-default certificate chain based on the
+client's SNI value:
+
+    postfix/smtpd[process-id]:
+      Untrusted TLS connection established from client.example[192.0.2.1]
+      to server.example: TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256
+    bits)
+      key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest
+    SHA256
+      client-signature ECDSA (P-256) client-digest SHA256
+
 WWhhaatt ddoo ""AAnnoonnyymmoouuss"",, ""UUnnttrruusstteedd"",, eettcc.. iinn PPoossttffiixx llooggggiinngg mmeeaann??
 
 The verification levels below are subject to man-in-the-middle attacks to

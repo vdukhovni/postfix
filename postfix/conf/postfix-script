@@ -425,15 +425,15 @@ logrotate)
 	/dev/*) $FATAL "not rotating '$maillog_file'"; exit 1;;
 	esac
 
-	(
-	    suffix="`date +$maillog_file_rotate_suffix`" || exit 1
+	errors=`(
+	    suffix="\`date +$maillog_file_rotate_suffix\`" || exit 1
 	    mv "$maillog_file" "$maillog_file.$suffix" || exit 1
 	    $daemon_directory/master -t 2>/dev/null ||
-		kill -HUP `sed 1q pid/master.pid`
+		kill -HUP \`sed 1q pid/master.pid\` || exit 1
 	    sleep 1
 	    "$maillog_file_compressor" "$maillog_file.$suffix" || exit 1
-	) || {
-	    $FATAL "logfile '$maillog_file' rotation failed"
+	) 2>&1` || {
+	    $FATAL "logfile '$maillog_file' rotation failed: $errors"
 	    exit 1
 	}
 	;;

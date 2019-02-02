@@ -793,19 +793,27 @@ void    tls_pre_jail_init(TLS_ROLE role)
 static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 {
     SSL_CTX *sni_ctx = (SSL_CTX *) arg;
+    TLS_SESS_STATE *TLScontext = SSL_get_ex_data(ssl, TLScontext_index);
     const char *sni = SSL_get_servername(ssl, TLSEXT_NAMETYPE_host_name);
+    const char *cp = sni;
     const char *pem;
 
-    if (!sni_ctx || !tls_server_sni_maps
-	|| !sni || !*sni || !valid_hostname(sni, DONT_GRIPE))
+    /* SNI is silently ignored when we don't care or is NULL or empty */
+    if (!sni_ctx || !tls_server_sni_maps || !sni || !*sni)
 	return SSL_TLSEXT_ERR_NOACK;
+
+    if (!valid_hostname(sni, DONT_GRIPE)) {
+	msg_warn("TLS SNI from %s is invalid: %s",
+		 TLScontext->namaddr, sni);
+	return SSL_TLSEXT_ERR_NOACK;
+    }
 
     do {
 	/* Don't silently skip maps opened with the wrong flags. */
-	pem = maps_file_find(tls_server_sni_maps, sni, 0);
+	pem = maps_file_find(tls_server_sni_maps, cp, 0);
     } while (!pem
 	     && !tls_server_sni_maps->error
-	     && (sni = strchr(sni + 1, '.')) != 0);
+	     && (cp = strchr(cp + 1, '.')) != 0);
 
     if (!pem) {
 	if (tls_server_sni_maps->error) {
@@ -814,6 +822,14 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 	    *alert = SSL_AD_INTERNAL_ERROR;
 	    return SSL_TLSEXT_ERR_ALERT_FATAL;
 	}
+	msg_info("TLS SNI %s from %s not matched, using default chain",
+		 sni, TLScontext->namaddr);
+	/*
+	 * XXX: We could lie and pretend to accept the name, but since we've
+	 * previously not impemented the callback (with OpenSSL then declining
+	 * the extension), and nothing bad happened, declining it explicitly
+	 * should be safe.
+	 */
 	return SSL_TLSEXT_ERR_NOACK;
     }
     SSL_set_SSL_CTX(ssl, sni_ctx);
@@ -822,6 +838,7 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 	*alert = SSL_AD_INTERNAL_ERROR;
 	return SSL_TLSEXT_ERR_ALERT_FATAL;
     }
+    TLScontext->peer_sni = mystrdup(sni);
     return SSL_TLSEXT_ERR_OK;
 }
 
@@ -1101,15 +1118,23 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 {
     VSTRING *msg = vstring_alloc(100);
     const char *direction = (role == TLS_ROLE_CLIENT) ? "to" : "from";
+    const char *sni = (role == TLS_ROLE_CLIENT) ? 0 : ctx->peer_sni;
 
-    vstring_sprintf(msg, "%s TLS connection %s %s %s: %s"
+    /*
+     * When SNI was sent and accepted, the server-side log message now includes
+     * a "to <sni-name>" detail after the "from <namaddr>" detail identifying
+     * the remote client.  We don't presently log (purportedly) accepted SNI on
+     * the client side.
+     */
+    vstring_sprintf(msg, "%s TLS connection %s %s %s%s%s: %s"
 		    " with cipher %s (%d/%d bits)",
 		    !TLS_CERT_IS_PRESENT(ctx) ? "Anonymous" :
 		    TLS_CERT_IS_SECURED(ctx) ? "Verified" :
 		    TLS_CERT_IS_TRUSTED(ctx) ? "Trusted" : "Untrusted",
 		    usage == TLS_USAGE_NEW ? "established" : "reused",
-		    direction, ctx->namaddr, ctx->protocol, ctx->cipher_name,
-		    ctx->cipher_usebits, ctx->cipher_algbits);
+		    direction, ctx->namaddr, sni ? " to " : "", sni ? sni : "",
+		    ctx->protocol, ctx->cipher_name, ctx->cipher_usebits,
+		    ctx->cipher_algbits);
 
     if (ctx->kex_name && *ctx->kex_name) {
 	vstring_sprintf_append(msg, " key-exchange %s", ctx->kex_name);
@@ -1215,6 +1240,7 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->serverid = 0;
     TLScontext->peer_CN = 0;
     TLScontext->issuer_CN = 0;
+    TLScontext->peer_sni = 0;
     TLScontext->peer_cert_fprint = 0;
     TLScontext->peer_pkey_fprint = 0;
     TLScontext->protocol = 0;
@@ -1263,6 +1289,8 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_CN);
     if (TLScontext->issuer_CN)
 	myfree(TLScontext->issuer_CN);
+    if (TLScontext->peer_sni)
+	myfree(TLScontext->peer_sni);
     if (TLScontext->peer_cert_fprint)
 	myfree(TLScontext->peer_cert_fprint);
     if (TLScontext->peer_pkey_fprint)

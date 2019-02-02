@@ -23808,6 +23808,24 @@ Apologies for any names omitted.
 	or whether the connection is reused ("TLS connection reused").
 	Files: smtp/smtp.h, smtp/smtp_proto.c, smtp/smtp_session.c.
 
+	(20181117-nonprod) Unified summary logging in the SMTP
+	client, SMTP server, and posttls-finger. Viktor Dukhovni.
+	Files: tls/tls.h, tls/tls_misc.c, tls/tls_proxy.h,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_client.c, src/tls/tls_server.c, smtpd/smtpd.c,
+	posttls-finger/posttls-finger.c.
+
+	(20181117-nonprod) Improved logging of TLS 1.3 summary
+	information. On the server side this also affects the TLS
+	information optionally recorded in "Received" headers.
+	Viktor Dukhovni. Files: smtpd/smtpd.c, tls/tls.h,
+	tls/tls_client.c, tls/tls_misc.c, tls/tls_proxy.h,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_server.c.
+
+	(20181117-nonprod) FORWARD_SECRECY examples with TLS 1.3
+	logging. Viktor Dukhovni. File: proto/FORWARD_SECRECY_README.html.
+
 20181118
 
 	Cleanup, no behavior change: updated comments concerning
@@ -23924,10 +23942,22 @@ Apologies for any names omitted.
 	message to the postscreen_pre_queue_limit. Problem reported
 	by Michael Orlitzky. File: proto/POSTSCREEN_README.html.
 
-	Compatibility: removed support for OpenSSL 1.0.1 and earlier.
+	(20181226-nonprod) Compatibility: removed support for OpenSSL
+	1.0.1 (not supported since December 31, 2016) and earlier
+	releases. This eliminated a large number of #ifdefs with
+	bitrot workarounds.  Viktor Dukhovni. Files: global/mail_params.h,
+	posttls-finger/posttls-finger.c, tls/tls.h, tls/tls_certkey.c,
+	tls/tls_client.c, tls/tls_dane.c, tls/tls_dh.c, tls/tls_misc.c,
+	tls/tls_proxy_client_scan.c, tls/tls_rsa.c, tls/tls_server.c,
+	tls/tls_session.c.
 
-	Feature: TLS support for client-side and server-side SNI
-	in the Postfix SMTP server, SMTP client, and tlsproxy.
+	(20181226-nonprod) Use the OpenSSL 1.0.2 and later API for
+	setting ECDHE curves. Viktor Dukhovni. Files: tls/tls.h,
+	tls/tls_client.c, tls/tls_dh.c.
+
+	(20181226-nonprod) Documentation update for TLS support.
+	Viktor Dukhovni. Files: mantools/postlink, proto/TLS_README.html,
+	proto/postconf.proto, src/sendmail/sendmail.c, src/smtpd/smtpd.c.
 
 20181229
 
@@ -23945,6 +23975,34 @@ Apologies for any names omitted.
         Documentation: documented the SRC_RHS_IS_FILE flag in 
         dict_open.c, and updated the -F description in the postmap
         manpage. Files: util/dict_open.c, postmap/postmap.c.
+
+	(20190106-nonprod) Feature: support for files that combine
+	multiple (key, certificate, trust chain) instances in one
+	file, to avoid separate files for RSA, DSA, Elliptic Curve,
+	and so on. Viktor Dukhovni. Files: .indent.pro,
+	global/mail_params.h, posttls-finger/posttls-finger.c,
+	smtp/lmtp_params.c, smtp/smtp.c, smtp/smtp_params.c,
+	smtp/smtp_proto.c, smtpd/smtpd.c, tls/tls.h, tls/tls_certkey.c,
+	tls/tls_client.c, tls/tls_proxy.h, tls/tls_proxy_client_print.c,
+	tls/tls_proxy_client_scan.c, tls/tls_proxy_server_print.c,
+	tls/tls_proxy_server_scan.c, tls/tls_server.c, tlsproxy/tlsproxy.c.
+
+	(20190106-nonprod) Create a second, no-key no-cert, SSL_CTX
+	for use with SNI. Viktor Dukhovni. Files: src/tls/tls.h,
+	src/tls/tls_client.c, src/tls/tls_misc.c, src/tls/tls_server.c.
+
+	(20190106-nonprod) Server-side SNI support. Viktor Dukhovni.
+	Files: src/global/mail_params.h, src/smtp/smtp.c,
+	src/smtpd/smtpd.c, src/tls/tls.h, src/tls/tls_certkey.c,
+	src/tls/tls_misc.c, src/tlsproxy/tlsproxy.c,
+
+	(20190106-nonprod) Configurable client-side SNI signal.
+	Viktor Dukhovni. Files: global/mail_params.h,
+	posttls-finger/posttls-finger.c, smtp/lmtp_params.c,
+	smtp/smtp.c, smtp/smtp.h, smtp/smtp_params.c, smtp/smtp_proto.c,
+	smtp/smtp_tls_policy.c, tls/tls.h, tls/tls_client.c,
+	tls/tls_proxy.h, tls/tls_proxy_client_print.c,
+	tls/tls_proxy_client_scan.c.
 
 20190121
 
@@ -23976,9 +24034,9 @@ Apologies for any names omitted.
 	util/msg_output.h, util/unix_dgram_connect.c,
 	util/unix_dgram_listen.c.
 
-	Safety: temporary postlogd fix to avoid recursion when main.cf
-	has "maillog_file =" but master(8) still still tells its child
-	processes to send logs to postlogd. File: postlogd/postlogd.c.
+	Cleanup: cert/key/chain loading, plus unit tests to exercise
+	non-error and error cases. Viktor Dukhovni. Files: tls/*.pem,
+	tls*.pem.ref, tls/tls_certkey.c.
 
 20190126
 
@@ -24016,7 +24074,22 @@ Apologies for any names omitted.
 20190129
 
 	Safety: require that $maillog_file matches one of the
-	pathname prefixes specified in $maillog_file_prefixes.  The
+	pathname prefixes specified in $maillog_file_prefixes. The
 	maillog file is created by root, and the prefixes limit the
 	damage from a single configuration error. Files:
 	global/mail_params.[hc], global/maillog_client.c.
+
+20191201
+
+	Feature: "postfix logrotate" command with configurable
+	compression program and datestamp filename suffix. File:
+	conf/postfix-script.
+
+20190202
+
+	Cleanup: log a warning when the client sends a malformed
+	SNI; log an info message when the client sends a valid SNI
+	that does not match the SNI lookup tables; update the
+	FORWARD_SECRECY_README logging examples. Viktor Dukhovni.
+	Files: proto/FORWARD_SECRECY_README.html, tls/tls.h,
+	tls/tls_client.c, tls/tls_misc.c.

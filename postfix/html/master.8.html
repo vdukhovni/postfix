@@ -48,12 +48,16 @@ MASTER(8)                                                            MASTER(8)
               cesses terminate at their convenience.
 
        <b>-i</b>     Enable  <b>init</b>  mode:  do  not  become  a session or process group
-              leader; similar to <b>-s</b>, do not redirect stdout to  /dev/null,  so
-              that  "<a href="postconf.5.html#maillog_file">maillog_file</a>  = /dev/stdout" works.  This mode is allowed
-              only if the process ID equals 1.
+              leader; and similar to <b>-s</b>, do not redirect stdout to  /dev/null,
+              so  that  "<a href="postconf.5.html#maillog_file">maillog_file</a>  =  /dev/stdout"  works.   This  mode is
+              allowed only if the process ID equals 1.
+
+              This feature is available in Postfix 3.3 and later.
 
        <b>-s</b>     Do not redirect stdout to /dev/null,  so  that  "<a href="postconf.5.html#maillog_file">maillog_file</a>  =
               /dev/stdout" works.
+
+              This feature is available in Postfix 3.4 and later.
 
        <b>-t</b>     Test  mode.  Return  a zero exit status when the <b>master.pid</b> lock
               file does not exist or when that file is not  locked.   This  is

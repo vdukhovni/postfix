@@ -45,12 +45,16 @@ Terminate the master process after \fIexit_time\fR seconds. Child
 processes terminate at their convenience.
 .IP \fB\-i\fR
 Enable \fBinit\fR mode: do not become a session or process
-group leader; similar to \fB\-s\fR, do not redirect stdout
+group leader; and similar to \fB\-s\fR, do not redirect stdout
 to /dev/null, so that "maillog_file = /dev/stdout" works.
 This mode is allowed only if the process ID equals 1.
+.sp
+This feature is available in Postfix 3.3 and later.
 .IP \fB\-s\fR
 Do not redirect stdout to /dev/null, so that "maillog_file
 = /dev/stdout" works.
+.sp
+This feature is available in Postfix 3.4 and later.
 .IP \fB\-t\fR
 Test mode. Return a zero exit status when the \fBmaster.pid\fR lock
 file does not exist or when that file is not locked.  This is evidence

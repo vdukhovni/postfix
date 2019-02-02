@@ -241,6 +241,14 @@ int     main(int argc, char **argv)
      */
     MAIL_VERSION_STAMP_ALLOCATE;
 
+    /*
+     * This is a datagram service, not a stream service, so that postlogd can
+     * restart immediately after "postfix reload" without requiring clients
+     * to resend messages. Those messages remain queued in the kernel until a
+     * new postlogd process retrieves them. It would be unreasonable to
+     * require that clients retransmit logs, especially in the case of a
+     * fatal or panic error.
+     */
     dgram_server_main(argc, argv, postlogd_service,
 		      CA_MAIL_SERVER_TIME_TABLE(time_table),
 		      CA_MAIL_SERVER_PRE_INIT(pre_jail_init),

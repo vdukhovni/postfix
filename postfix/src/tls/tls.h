@@ -247,6 +247,7 @@ typedef struct {
     /* Public, read-only. */
     char   *peer_CN;			/* Peer Common Name */
     char   *issuer_CN;			/* Issuer Common Name */
+    char   *peer_sni;			/* SNI sent to or by the peer */
     char   *peer_cert_fprint;		/* ASCII certificate fingerprint */
     char   *peer_pkey_fprint;		/* ASCII public key fingerprint */
     int     peer_status;		/* Certificate and match status */
