@@ -45,7 +45,8 @@
 /*	It talks to untrusted clients on the network. The process
 /*	can be run chrooted at fixed low privilege.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -250,7 +251,8 @@
 /*	postscreen(8), Postfix zombie blocker
 /*	smtpd(8), Postfix SMTP server
 /*	postconf(5), configuration parameters
-/*	syslogd(5), system logging
+/*	postlogd(8), Postfix logging
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi
@@ -289,6 +291,7 @@
 #include <iostuff.h>
 #include <nbbio.h>
 #include <mymalloc.h>
+#include <split_at.h>
 
  /*
   * Global library.
@@ -431,6 +434,7 @@ static int ask_client_cert;
   * TLS per-client status.
   */
 static HTABLE *tlsp_client_app_cache;
+static char *tlsp_pre_jail_tls_param_key;
 static char *tlsp_pre_jail_client_props_key;
 
  /*
@@ -449,6 +453,7 @@ static char *tlsp_pre_jail_client_props_key;
   * SLMs.
   */
 #define STR(x)	vstring_str(x)
+#define LEN(x)	VSTRING_LEN(x)
 
  /*
   * The code that implements the TLS engine looks simpler than expected. That
@@ -1022,21 +1027,59 @@ static void tlsp_get_fd_event(int event, void *context)
     /* At this point, state could be a dangling pointer. */
 }
 
+/* tlsp_config_diff - report server-client config differences */
+
+static void tlsp_log_config_diff(const char *server_cfg, const char *client_cfg)
+{
+    VSTRING *diff_summary = vstring_alloc(100);
+    char   *saved_server = mystrdup(server_cfg);
+    char   *saved_client = mystrdup(client_cfg);
+    char   *server_field;
+    char   *client_field;
+    char   *server_next;
+    char   *client_next;
+
+    /*
+     * Not using argv_split(), because it would treat multiple consecutive
+     * newline characters as one.
+     */
+    for (server_field = saved_server, client_field = saved_client;
+	 server_field && client_field;
+	 server_field = server_next, client_field = client_next) {
+	server_next = split_at(server_field, '\n');
+	client_next = split_at(client_field, '\n');
+	if (strcmp(server_field, client_field) != 0) {
+	    if (LEN(diff_summary) > 0)
+		vstring_sprintf_append(diff_summary, "; ");
+	    vstring_sprintf_append(diff_summary, "server '%s' != client '%s'",
+				   server_field, client_field);
+	}
+    }
+    msg_warn("%s", STR(diff_summary));
+
+    vstring_free(diff_summary);
+    myfree(saved_client);
+    myfree(saved_server);
+}
+
  /*
   * Macro for readability.
   */
-#define TLSP_CLIENT_INIT(props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
+#define TLSP_CLIENT_INIT(params, props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
     a10, a11, a12, a13, a14) \
-    tlsp_client_init(TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
+    tlsp_client_init(params, TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
     a5, a6, a7, a8, a9, a10, a11, a12, a13, a14))
 
 /* tlsp_client_init - initialize a TLS client engine */
 
-static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
+static TLS_APPL_STATE *tlsp_client_init(TLS_PARAMS *tls_params,
+				          TLS_CLIENT_INIT_PROPS *init_props)
 {
     TLS_APPL_STATE *appl_state;
-    VSTRING *buf;
-    char   *key;
+    VSTRING *param_buf;
+    char   *param_key;
+    VSTRING *init_buf;
+    char   *init_key;
 
     /*
      * Use one TLS_APPL_STATE object for all requests that specify the same
@@ -1047,19 +1090,24 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
      * key that corresponds to the pre-jail internal request, which uses the
      * tlsproxy_client_* settings.
      */
-    buf = vstring_alloc(100);
-    key = tls_proxy_client_init_to_string(buf, init_props);
+    param_buf = vstring_alloc(100);
+    param_key = tls_proxy_params_to_string(param_buf, tls_params);
+    init_buf = vstring_alloc(100);
+    init_key = tls_proxy_client_init_to_string(init_buf, init_props);
     if (tlsp_pre_jail_done == 0) {
-	if (tlsp_pre_jail_client_props_key != 0)
+	if (tlsp_pre_jail_tls_param_key != 0
+	    || tlsp_pre_jail_client_props_key != 0)
 	    msg_panic("tlsp_client_init: multiple pre-jail calls");
-	tlsp_pre_jail_client_props_key = mystrdup(key);
+	tlsp_pre_jail_tls_param_key = mystrdup(param_key);
+	tlsp_pre_jail_client_props_key = mystrdup(init_key);
     }
 
     /*
      * Log a warning if a post-jail request differs from the tlsproxy_client_*
-     * settings AND the request specifies file/directory pathname arguments.
-     * Those are problematic after chroot (pathname resolution) and after
-     * dropping privileges (key files must be root read-only).
+     * or tls_mumble settings AND the request specifies file/directory
+     * pathname arguments. Pathname differences are problematic after chroot
+     * (pathname resolution) and after dropping privileges (key files must be
+     * root read-only).
      * 
      * We can eliminate this complication by adding code that opens a cert/key
      * lookup table at pre-jail time, and by reading cert/key info on-the-fly
@@ -1067,27 +1115,38 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
      */
 #define NOT_EMPTY(x) ((x) && *(x))
 
-    else if ((tlsp_pre_jail_client_props_key == 0
-	      || strcmp(tlsp_pre_jail_client_props_key, key) != 0)
-	     && (NOT_EMPTY(init_props->chain_files)
-		 || NOT_EMPTY(init_props->cert_file)
-		 || NOT_EMPTY(init_props->key_file)
-		 || NOT_EMPTY(init_props->dcert_file)
-		 || NOT_EMPTY(init_props->dkey_file)
-		 || NOT_EMPTY(init_props->eccert_file)
-		 || NOT_EMPTY(init_props->eckey_file)
-		 || NOT_EMPTY(init_props->CAfile)
-		 || NOT_EMPTY(init_props->CApath))) {
-	msg_warn("tls_client_init request with chain_files='%s' key_file='%s' "
-	      "dkey_file='%s' eckey_file='%s' differs from tlsproxy client "
-		 "settings", init_props->chain_files, init_props->key_file,
-		 init_props->dkey_file, init_props->eckey_file);
-	msg_warn("to avoid this warning, 1) identify the SMTP client that is "
-		 "making this tls_client_init request, 2) configure a "
-		 "custom tlsproxy service with tlsproxy_client_* settings "
-		 "that match that SMTP client, and 3) configure that SMTP "
-		 "client with a tlsproxy_service_name setting that resolves "
-		 "to that custom tlsproxy service");
+    else {
+	int     log_hints = 0;
+
+	if (tlsp_pre_jail_tls_param_key != 0
+	    && strcmp(tlsp_pre_jail_tls_param_key, param_key) != 0) {
+	    msg_warn("request from Postfix client with unexpected settings");
+	    tlsp_log_config_diff(tlsp_pre_jail_tls_param_key, param_key);
+	    log_hints = 1;
+	}
+	if (tlsp_pre_jail_client_props_key != 0
+	    && strcmp(tlsp_pre_jail_client_props_key, init_key) != 0
+	    && (NOT_EMPTY(init_props->chain_files)
+		|| NOT_EMPTY(init_props->cert_file)
+		|| NOT_EMPTY(init_props->key_file)
+		|| NOT_EMPTY(init_props->dcert_file)
+		|| NOT_EMPTY(init_props->dkey_file)
+		|| NOT_EMPTY(init_props->eccert_file)
+		|| NOT_EMPTY(init_props->eckey_file)
+		|| NOT_EMPTY(init_props->CAfile)
+		|| NOT_EMPTY(init_props->CApath))) {
+	    msg_warn("request from tlsproxy client with unexpected settings");
+	    tlsp_log_config_diff(tlsp_pre_jail_client_props_key, init_key);
+	    log_hints = 1;
+	}
+	if (log_hints)
+	    msg_warn("to avoid this warning, 1) identify the tlsproxy "
+		     "client that is making this request, 2) configure "
+		     "a custom tlsproxy service with settings that "
+		     "match that tlsproxy client, and 3) configure "
+		     "that tlsproxy client with a tlsproxy_service_name "
+		     "setting that resolves to that custom tlsproxy "
+		     "service");
     }
 
     /*
@@ -1099,9 +1158,9 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
      * suggestions.
      */
     if ((appl_state = (TLS_APPL_STATE *)
-	 htable_find(tlsp_client_app_cache, key)) == 0
+	 htable_find(tlsp_client_app_cache, init_key)) == 0
 	&& (appl_state = tls_client_init(init_props)) != 0) {
-	(void) htable_enter(tlsp_client_app_cache, key, (void *) appl_state);
+	(void) htable_enter(tlsp_client_app_cache, init_key, (void *) appl_state);
 
 	/*
 	 * To maintain sanity, allow partial SSL_write() operations, and
@@ -1115,7 +1174,8 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_INIT_PROPS *init_props)
 			     SSL_MODE_ENABLE_PARTIAL_WRITE
 			     | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
     }
-    vstring_free(buf);
+    vstring_free(init_buf);
+    vstring_free(param_buf);
     return (appl_state);
 }
 
@@ -1203,16 +1263,19 @@ static void tlsp_get_request_event(int event, void *context)
     case TLS_PROXY_FLAG_ROLE_CLIENT:
 	state->is_server_role = 0;
 	if (attr_scan(plaintext_stream, ATTR_FLAG_STRICT,
+		      RECV_ATTR_FUNC(tls_proxy_params_scan,
+				     (void *) &state->tls_params),
 		      RECV_ATTR_FUNC(tls_proxy_client_init_scan,
 				     (void *) &state->client_init_props),
 		      RECV_ATTR_FUNC(tls_proxy_client_start_scan,
 				     (void *) &state->client_start_props),
-		      ATTR_TYPE_END) != 2) {
+		      ATTR_TYPE_END) != 3) {
 	    msg_warn("%s: receive client TLS settings: %m", myname);
 	    tlsp_state_free(state);
 	    return;
 	}
-	state->appl_state = tlsp_client_init(state->client_init_props);
+	state->appl_state = tlsp_client_init(state->tls_params,
+					     state->client_init_props);
 	ready = state->appl_state != 0;
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
@@ -1491,7 +1554,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
      * Initialize the TLS data before entering the chroot jail.
      */
     if (clnt_use_tls || var_tlsp_clnt_per_site[0] || var_tlsp_clnt_policy[0]) {
-	TLS_CLIENT_INIT_PROPS props;
+	TLS_PARAMS tls_params;
+	TLS_CLIENT_INIT_PROPS init_props;
 
 	tls_pre_jail_init(TLS_ROLE_CLIENT);
 
@@ -1503,7 +1567,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	 * feature that C does not have natively: named parameter lists.
 	 */
 	tlsp_client_ctx =
-	    TLSP_CLIENT_INIT(&props,
+	    TLSP_CLIENT_INIT(tls_proxy_params_from_config(&tls_params),
+			     &init_props,
 			     log_param = var_tlsp_clnt_logparam,
 			     log_level = var_tlsp_clnt_loglevel,
 			     verifydepth = var_tlsp_clnt_scert_vd,

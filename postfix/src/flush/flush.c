@@ -53,7 +53,8 @@
 /*	talk to the network, and it does not talk to local users.
 /*	The fast flush server can run chrooted at fixed low privilege.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	Fast flush logfiles are truncated only after a "send"
 /*	request, not when mail is actually delivered, and therefore can
@@ -128,6 +129,7 @@
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

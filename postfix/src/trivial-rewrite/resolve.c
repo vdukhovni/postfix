@@ -32,7 +32,8 @@
 /*	nexthop, internalized recipient) triple.
 /* STANDARDS
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to the syslog daemon.
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /* SEE ALSO
 /* LICENSE

@@ -83,7 +83,8 @@
 /*	terminate only the master ("\fBpostfix stop\fR") and allow running
 /*	processes to finish what they are doing.
 /* DIAGNOSTICS
-/*	Problems are reported to \fBsyslogd\fR(8). The exit status
+/*	Problems are reported to \fBsyslogd\fR(8) or \fBpostlogd\fR(8).
+/*	The exit status
 /*	is non-zero in case of problems, including problems while
 /*	initializing as a master daemon process in the background.
 /* ENVIRONMENT
@@ -178,6 +179,7 @@
 /*	verify(8), address verification
 /*	master(5), master.cf configuration file syntax
 /*	postconf(5), main.cf configuration file syntax
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad
@@ -327,7 +329,7 @@ int     main(int argc, char **argv)
     /*
      * Initialize logging and exit handler.
      */
-    maillog_client_init(mail_task(var_procname), 
+    maillog_client_init(mail_task(var_procname),
 			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 
     /*
@@ -367,7 +369,7 @@ int     main(int argc, char **argv)
 	    keep_stdout = 1;
 	    break;
 	case 'D':
-            debug_me = 1;
+	    debug_me = 1;
 	    break;
 	case 's':
 	    keep_stdout = 1;
@@ -415,6 +417,7 @@ int     main(int argc, char **argv)
     /*
      * If started from a terminal, get rid of any tty association. This also
      * means that all errors and warnings must go to the syslog daemon.
+     * Some new world has no terminals and prefers logging to stdout.
      */
     if (master_detach)
 	for (fd = 0; fd < 3; fd++) {
@@ -538,7 +541,7 @@ int     main(int argc, char **argv)
     master_config();
     master_sigsetup();
     master_flow_init();
-    maillog_client_init(mail_task(var_procname), 
+    maillog_client_init(mail_task(var_procname),
 			MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
     msg_info("daemon started -- version %s, configuration %s",
 	     var_mail_version, var_config_dir);
@@ -578,7 +581,7 @@ int     main(int argc, char **argv)
 	    master_gotsighup = 0;		/* this first */
 	    master_vars_init();			/* then this */
 	    master_refresh();			/* then this */
-	    maillog_client_init(mail_task(var_procname), 
+	    maillog_client_init(mail_task(var_procname),
 				MAILLOG_CLIENT_FLAG_LOGWRITER_FALLBACK);
 	}
 	if (master_gotsigchld) {

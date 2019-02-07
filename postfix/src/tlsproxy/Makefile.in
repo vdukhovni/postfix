@@ -81,6 +81,7 @@ tlsproxy.o: ../../include/name_mask.h
 tlsproxy.o: ../../include/nbbio.h
 tlsproxy.o: ../../include/nvtable.h
 tlsproxy.o: ../../include/sock_addr.h
+tlsproxy.o: ../../include/split_at.h
 tlsproxy.o: ../../include/sys_defs.h
 tlsproxy.o: ../../include/tls.h
 tlsproxy.o: ../../include/tls_proxy.h

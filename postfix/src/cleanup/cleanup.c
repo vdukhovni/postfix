@@ -54,7 +54,8 @@
 /*	RFC 3464 (Delivery status notifications)
 /*	RFC 5322 (Internet Message Format)
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	Table-driven rewriting rules make it hard to express \fBif then
 /*	else\fR and other logical relationships.
@@ -260,7 +261,7 @@
 /*	off in email addresses.
 /* .IP "\fBmasquerade_exceptions (empty)\fR"
 /*	Optional list of user names that are not subjected to address
-/*	masquerading, even when their address matches $masquerade_domains.
+/*	masquerading, even when their addresses match $masquerade_domains.
 /* .IP "\fBpropagate_unmatched_extensions (canonical, virtual)\fR"
 /*	What address lookup tables copy an address extension from the lookup
 /*	key to the lookup result.
@@ -412,6 +413,7 @@
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

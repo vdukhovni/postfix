@@ -116,7 +116,8 @@ RFC 7672 (SMTP security via opportunistic DANE TLS)
 .SH DIAGNOSTICS
 .ad
 .fi
-Problems and transactions are logged to \fBsyslogd\fR(8).
+Problems and transactions are logged to \fBsyslogd\fR(8)
+or \fBpostlogd\fR(8).
 Corrupted message files are marked so that the queue manager can
 move them to the \fBcorrupt\fR queue for further inspection.
 
@@ -796,6 +797,7 @@ postconf(5), configuration parameters
 master(5), generic daemon options
 master(8), process manager
 tlsmgr(8), TLS session and PRNG management
+postlogd(8), Postfix logging
 syslogd(8), system logging
 .SH "README FILES"
 .na

@@ -168,10 +168,12 @@
 /*	configuration file. Setting \fBvar_idle_limit\fR to zero
 /*	disables the idle limit.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* SEE ALSO
 /*	master(8), master process
-/*	syslogd(8) system logging
+/*	postlogd(8), Postfix logging
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

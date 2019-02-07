@@ -67,7 +67,8 @@
 /*	RFC 3463 (Enhanced Status Codes)
 /*	RFC 5321 (SMTP protocol, including multi-line 220 banners)
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	The \fBpostscreen\fR(8) built-in SMTP protocol engine
 /*	currently does not announce support for AUTH, XCLIENT or
@@ -373,6 +374,7 @@
 /*	smtpd(8), Postfix SMTP server
 /*	tlsproxy(8), Postfix TLS proxy server
 /*	dnsblog(8), DNS black/whitelist logger
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

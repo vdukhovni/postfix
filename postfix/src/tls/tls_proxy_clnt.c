@@ -8,7 +8,7 @@
 /*
 /*	VSTREAM *tls_proxy_open(service, flags, peer_stream, peer_addr,
 /*				peer_port, handshake_timeout, session_timeout,
-				serverid, init_props, start_props)
+/*				serverid, tls_params, init_props, start_props)
 /*	const char *service;
 /*	int	flags;
 /*	VSTREAM *peer_stream;
@@ -17,6 +17,7 @@
 /*	int	handshake_timeout;
 /*	int	session_timeout;
 /*	const char *serverid;
+/*	TLS_PARAMS *tls_params;
 /*	void	*init_props;
 /*	void	*start_props;
 /*
@@ -87,6 +88,8 @@
 /*	TLS handshake.
 /* .IP serverid
 /*	Unique service identifier.
+/* .IP tls_params
+/*	Pointer to TLS_PARAMS.
 /* .IP init_props
 /*	Pointer to TLS_CLIENT_INIT_PROPS or TLS_SERVER_INIT_PROPS.
 /* .IP start_props
@@ -150,6 +153,7 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
 			        int handshake_timeout,
 			        int session_timeout,
 			        const char *serverid,
+				TLS_PARAMS *tls_params,
 			        void *init_props,
 			        void *start_props)
 {
@@ -201,6 +205,7 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
     switch (flags & (TLS_PROXY_FLAG_ROLE_CLIENT | TLS_PROXY_FLAG_ROLE_SERVER)) {
     case TLS_PROXY_FLAG_ROLE_CLIENT:
 	attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
+		   SEND_ATTR_FUNC(tls_proxy_params_print, tls_params),
 		   SEND_ATTR_FUNC(tls_proxy_client_init_print, init_props),
 		   SEND_ATTR_FUNC(tls_proxy_client_start_print, start_props),
 		   ATTR_TYPE_END);
@@ -208,6 +213,7 @@ VSTREAM *tls_proxy_open(const char *service, int flags,
     case TLS_PROXY_FLAG_ROLE_SERVER:
 #if 0
 	attr_print(tlsproxy_stream, ATTR_FLAG_NONE,
+		   SEND_ATTR_FUNC(tls_proxy_params_print, tls_params),
 		   SEND_ATTR_FUNC(tls_proxy_server_init_print, init_props),
 		   SEND_ATTR_FUNC(tls_proxy_server_start_print, start_props),
 		   ATTR_TYPE_END);

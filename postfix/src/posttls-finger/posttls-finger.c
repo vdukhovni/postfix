@@ -779,6 +779,7 @@ static int starttls(STATE *state)
 	ADD_EXCLUDE(cipher_exclusions, "eNULL");
 
     if (state->tlsproxy_mode) {
+	TLS_PARAMS tls_params;
 
 	/*
 	 * Send all our wishes in one big request.
@@ -828,9 +829,10 @@ static int starttls(STATE *state)
 	vstring_sprintf(port_buf, "%d", ntohs(state->port));
 	tlsproxy =
 	    tls_proxy_open(DEF_TLSPROXY_SERVICE /* TODO */ , PROXY_OPEN_FLAGS,
-			   state->stream, state->paddr,
-			   STR(port_buf), smtp_tmout, smtp_tmout,
-			   state->addrport, &init_props, &start_props);
+			   state->stream, state->paddr, STR(port_buf),
+			   smtp_tmout, smtp_tmout, state->addrport,
+			   tls_proxy_params_from_config(&tls_params),
+			   &init_props, &start_props);
 	vstring_free(port_buf);
 	if (fchdir(cwd_fd) < 0)
 	    msg_fatal("fchdir: %m");

@@ -71,7 +71,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a> (SMTP protocol, including multi-line 220 banners)
 
 <b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).
+       Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
 
 <b>BUGS</b>
        The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  built-in  SMTP  protocol  engine currently does not
@@ -413,6 +413,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
        <a href="tlsproxy.8.html">tlsproxy(8)</a>, Postfix TLS proxy server
        <a href="dnsblog.8.html">dnsblog(8)</a>, DNS black/whitelist logger
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README FILES</b>

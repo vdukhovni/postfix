@@ -314,7 +314,8 @@
 /*	RFC 822 (ARPA Internet Text Messages)
 /*	RFC 3463 (Enhanced status codes)
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /*	Corrupted message files are marked so that the queue
 /*	manager can move them to the \fBcorrupt\fR queue afterwards.
 /*
@@ -572,6 +573,7 @@
 /*	aliases(5), format of alias database
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

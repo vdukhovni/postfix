@@ -91,7 +91,8 @@ processes to finish what they are doing.
 .SH DIAGNOSTICS
 .ad
 .fi
-Problems are reported to \fBsyslogd\fR(8). The exit status
+Problems are reported to \fBsyslogd\fR(8) or \fBpostlogd\fR(8).
+The exit status
 is non\-zero in case of problems, including problems while
 initializing as a master daemon process in the background.
 .SH "ENVIRONMENT"
@@ -198,6 +199,7 @@ qmgr(8), queue manager
 verify(8), address verification
 master(5), master.cf configuration file syntax
 postconf(5), main.cf configuration file syntax
+postlogd(8), Postfix logging
 syslogd(8), system logging
 .SH "LICENSE"
 .na

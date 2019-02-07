@@ -165,7 +165,8 @@
 /*	from many remote clients.  To reduce memory usage, reduce
 /*	the time unit over which state is kept.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /*
 /*	Upon exit, and every \fBanvil_status_update_time\fR
 /*	seconds, the server logs the maximal count and rate values measured,

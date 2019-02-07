@@ -3750,9 +3750,9 @@ substitutions in regular expression maps.
 This feature is available in Postfix 2.3 and later.
 .SH maillog_file (default: empty)
 The name of an optional logfile that is written by the Postfix
-\fBpostlogd\fR(8) service. A non\-empty value disables logging to \fBsyslogd\fR(8).
-Specify "/dev/stdout" for logging to standard output. Stdout logging
-requires that Postfix is started with "postfix start\-fg".
+\fBpostlogd\fR(8) service. A non\-empty value selects logging to \fBsyslogd\fR(8).
+Specify "/dev/stdout" to select logging to standard output. Stdout
+logging requires that Postfix is started with "postfix start\-fg".
 .PP
 Note 1: The maillog_file parameter value must contain a prefix
 that is specified with the maillog_file_prefixes parameter.
@@ -3764,8 +3764,8 @@ parameters and command\-line options.
 This feature is available in Postfix 3.4 and later.
 .SH maillog_file_compressor (default: gzip)
 The program to run after rotating $maillog_file with "postfix
-logrotate". The command is run with the rotated file as its first
-argument.
+logrotate". The command is run with the rotated logfile name as its
+first argument.
 .PP
 This feature is available in Postfix 3.4 and later.
 .SH maillog_file_prefixes (default: /var, /dev/stdout)

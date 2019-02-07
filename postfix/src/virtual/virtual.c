@@ -133,7 +133,8 @@
 /*	recipient is over disk quota. In all other cases, mail for
 /*	an existing recipient is deferred and a warning is logged.
 /*
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /*	Corrupted message files are marked so that the queue
 /*	manager can move them to the \fBcorrupt\fR queue afterwards.
 /*
@@ -265,6 +266,7 @@
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports
 /*	postconf(5), configuration parameters
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README_FILES
 /*	Use "\fBpostconf readme_directory\fR" or

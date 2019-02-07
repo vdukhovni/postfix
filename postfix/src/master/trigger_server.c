@@ -140,12 +140,14 @@
 /*	This value is taken from the global \fBmain.cf\fR configuration
 /*	file. Setting \fBvar_use_limit\fR to zero disables the idle limit.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	Works with FIFO-based services only.
 /* SEE ALSO
 /*	master(8), master process
-/*	syslogd(8) system logging
+/*	postlogd(8), Postfix logging
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

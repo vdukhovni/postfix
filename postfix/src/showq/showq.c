@@ -26,7 +26,8 @@
 /*	None. The \fBshowq\fR(8) daemon does not interact with the
 /*	outside world.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -84,6 +85,7 @@
 /*	qmgr(8), queue manager
 /*	postconf(5), configuration parameters
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

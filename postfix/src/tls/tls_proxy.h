@@ -31,21 +31,81 @@
 
 #ifdef USE_TLS
 
+ /*
+  * TLS_PARAMS structure. If this changes, update all functions in
+  * tls_proxy_params.c, tls_proxy_params_print.c, and
+  * tls_proxy_params_scan.c.
+  * 
+  * In the serialization these attributes are identified by their configuration
+  * parameter names.
+  * 
+  * TODO: add VAR_TLS_SERVER_SNI_MAPS, maybe as part of a server-only table.
+  */
+typedef struct TLS_PARAMS {
+    char   *tls_high_clist;
+    char   *tls_medium_clist;
+    char   *tls_low_clist;
+    char   *tls_export_clist;
+    char   *tls_null_clist;
+    char   *tls_eecdh_auto;
+    char   *tls_eecdh_strong;
+    char   *tls_eecdh_ultra;
+    char   *tls_bug_tweaks;
+    char   *tls_ssl_options;
+    char   *tls_dane_agility;
+    char   *tls_dane_digests;
+    char   *tls_mgr_service;
+    char   *tls_tkt_cipher;
+    char   *openssl_path;
+    int     tls_daemon_rand_bytes;
+    int     tls_append_def_CA;
+    int     tls_bc_pkey_fprint;
+    int     tls_dane_taa_dgst;
+    int     tls_preempt_clist;
+    int     tls_multi_wildcard;
+} TLS_PARAMS;
+
+#define TLS_PROXY_PARAMS(params, a1, a2, a3, a4, a5, a6, a7, a8, \
+    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) \
+    (((params)->a1), ((params)->a2), ((params)->a3), \
+    ((params)->a4), ((params)->a5), ((params)->a6), ((params)->a7), \
+    ((params)->a8), ((params)->a9), ((params)->a10), ((params)->a11), \
+    ((params)->a12), ((params)->a13), ((params)->a14), ((params)->a15), \
+    ((params)->a16), ((params)->a17), ((params)->a18), ((params)->a19), \
+    ((params)->a20), ((params)->a21))
+
+ /*
+  * tls_proxy_params.c, tls_proxy_params_print.c, and
+  * tls_proxy_params_scan.c.
+  */
+extern TLS_PARAMS *tls_proxy_params_from_config(TLS_PARAMS *);
+extern char *tls_proxy_params_to_string(VSTRING *, TLS_PARAMS *);
+extern char *tls_proxy_params_with_names_to_string(VSTRING *, TLS_PARAMS *);
+extern int tls_proxy_params_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
+extern void tls_proxy_params_free(TLS_PARAMS *);
+extern int tls_proxy_params_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
+
+ /*
+  * Functions that handle TLS_XXX_INIT_PROPS and TLS_XXX_START_PROPS. These
+  * data structures are defined elsewhere, because they are also used in
+  * non-proxied requests.
+  */
 #define tls_proxy_legacy_open(service, flags, peer_stream, peer_addr, \
                                           peer_port, timeout, serverid) \
     tls_proxy_open((service), (flags), (peer_stream), (peer_addr), \
-	(peer_port), (timeout), (timeout), (serverid), (void *) 0, (void *) 0)
+	(peer_port), (timeout), (timeout), (serverid), \
+	(void *) 0, (void *) 0, (void *) 0)
 
 extern VSTREAM *tls_proxy_open(const char *, int, VSTREAM *, const char *,
 			               const char *, int, int, const char *,
-			               void *, void *);
+			               TLS_PARAMS *, void *, void *);
 
 #define TLS_PROXY_CLIENT_INIT_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
     a9, a10, a11, a12, a13, a14) \
     (((props)->a1), ((props)->a2), ((props)->a3), \
     ((props)->a4), ((props)->a5), ((props)->a6), ((props)->a7), \
     ((props)->a8), ((props)->a9), ((props)->a10), ((props)->a11), \
-    ((props)->a12), ((props)->a13), (props)->a14)
+    ((props)->a12), ((props)->a13), ((props)->a14))
 
 #define TLS_PROXY_CLIENT_START_PROPS(props, a1, a2, a3, a4, a5, a6, a7, a8, \
     a9, a10, a11, a12, a13, a14) \

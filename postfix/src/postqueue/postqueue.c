@@ -137,8 +137,8 @@
 /* STANDARDS
 /*	RFC 7159 (JSON notation)
 /* DIAGNOSTICS
-/*	Problems are logged to \fBsyslogd\fR(8) and to the standard error
-/*	stream.
+/*	Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8),
+/*	and to the standard error stream.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -201,6 +201,8 @@
 /*	flush(8), fast flush service
 /*	sendmail(1), Sendmail-compatible user interface
 /*	postsuper(1), privileged queue operations
+/*	postlogd(8), Postfix logging
+/*	syslogd(8), system logging
 /* README FILES
 /* .ad
 /* .fi

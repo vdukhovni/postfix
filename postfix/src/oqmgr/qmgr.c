@@ -127,7 +127,8 @@
 /*	does not talk to the outside world, and it can be run at fixed low
 /*	privilege in a chrooted environment.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to the \fBsyslog\fR(8) daemon.
+/*	Problems and transactions are logged to the \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8) daemon.
 /*	Corrupted message files are saved to the \fBcorrupt\fR queue
 /*	for further inspection.
 /*
@@ -267,8 +268,8 @@
 /*	Available in Postfix version 2.5 and later:
 /* .IP "\fBdefault_destination_rate_delay (0s)\fR"
 /*	The default amount of delay that is inserted between individual
-/*	deliveries to the same destination; the resulting behavior depends
-/*	on the value of the corresponding per-destination recipient limit.
+/*	message deliveries to the same destination and over the same message
+/*	delivery transport.
 /* .IP "\fBtransport_destination_rate_delay ($default_destination_rate_delay)\fR"
 /*	A transport-specific override for the default_destination_rate_delay
 /*	parameter value, where \fItransport\fR is the master.cf name of
@@ -277,8 +278,8 @@
 /*	Available in Postfix version 3.1 and later:
 /* .IP "\fBdefault_transport_rate_delay (0s)\fR"
 /*	The default amount of delay that is inserted between individual
-/*	deliveries over the same message delivery transport, regardless of
-/*	destination.
+/*	message deliveries over the same message delivery transport,
+/*	regardless of destination.
 /* .IP "\fBtransport_transport_rate_delay ($default_transport_rate_delay)\fR"
 /*	A transport-specific override for the default_transport_rate_delay
 /*	parameter value, where the initial \fItransport\fR in the parameter
@@ -345,6 +346,7 @@
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

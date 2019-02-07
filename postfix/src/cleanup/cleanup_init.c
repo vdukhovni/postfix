@@ -59,7 +59,8 @@
 /*	cleanup_sig() must be called in case of SIGTERM, in order
 /*	to remove an incomplete queue file.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* SEE ALSO
 /*	cleanup_api(3) cleanup callable interface, message processing
 /* LICENSE

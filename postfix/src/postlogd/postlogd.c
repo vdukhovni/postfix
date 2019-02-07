@@ -58,7 +58,15 @@
 /*	before it is terminated by a built-in watchdog timer.
 /* SEE ALSO
 /*	postconf(5), configuration parameters
-/*	syslogd(5), system logging
+/*	syslogd(8), system logging
+/* README_FILES
+/* .ad
+/* .fi
+/*	Use "\fBpostconf readme_directory\fR" or
+/*	"\fBpostconf html_directory\fR" to locate this information.
+/* .na
+/* .nf
+/*	MAILLOG_README, Postfix logging to file or stdout
 /* LICENSE
 /* .ad
 /* .fi

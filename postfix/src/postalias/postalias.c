@@ -147,7 +147,7 @@
 /*	The name of the alias database source file when creating a database.
 /* DIAGNOSTICS
 /*	Problems are logged to the standard error stream and to
-/*	\fBsyslogd\fR(8).  No output means that
+/*	\fBsyslogd\fR(8) or \fBpostlogd\fR(8). No output means that
 /*	no problems were detected. Duplicate entries are skipped and are
 /*	flagged with a warning.
 /*
@@ -205,6 +205,7 @@
 /*	postconf(5), configuration parameters
 /*	postmap(1), create/update/query lookup tables
 /*	newaliases(1), Sendmail compatibility interface.
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

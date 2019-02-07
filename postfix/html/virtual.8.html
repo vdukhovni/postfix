@@ -125,9 +125,9 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        over  disk quota. In all other cases, mail for an existing recipient is
        deferred and a warning is logged.
 
-       Problems and transactions are logged to <b>syslogd</b>(8).  Corrupted  message
-       files are marked so that the queue manager can move them to the <b>corrupt</b>
-       queue afterwards.
+       Problems and transactions are  logged  to  <b>syslogd</b>(8)  or  <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
+       Corrupted  message  files are marked so that the queue manager can move
+       them to the <b>corrupt</b> queue afterwards.
 
        Depending on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the  postmas-
        ter is notified of bounces and of other trouble.
@@ -283,6 +283,7 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="bounce.8.html">bounce(8)</a>, delivery status reports
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README_FILES</b>
