@@ -285,7 +285,8 @@ SENDMAIL(1)                                                        SENDMAIL(1)
        precautions need to be taken against malicious inputs.
 
 <b>DIAGNOSTICS</b>
-       Problems are logged to <b>syslogd</b>(8) and to the standard error stream.
+       Problems  are  logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>, and to the standard
+       error stream.
 
 <b>ENVIRONMENT</b>
        <b>MAIL_CONFIG</b>
@@ -298,12 +299,12 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               Enable debugging with an external command, as specified with the
               <b><a href="postconf.5.html#debugger_command">debugger_command</a></b> configuration parameter.
 
-       <b>NAME</b>   The sender full name. This is used only with messages that  have
+       <b>NAME</b>   The  sender full name. This is used only with messages that have
               no <b>From:</b> message header. See also the <b>-F</b> option above.
 
 <b>CONFIGURATION PARAMETERS</b>
-       The  following  <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to this pro-
-       gram.  The text below provides only  a  parameter  summary.  See  <a href="postconf.5.html"><b>post-</b></a>
+       The following <a href="postconf.5.html"><b>main.cf</b></a> parameters are especially relevant to  this  pro-
+       gram.   The  text  below  provides  only a parameter summary. See <a href="postconf.5.html"><b>post-</b></a>
        <a href="postconf.5.html"><b>conf</b>(5)</a> for more details including examples.
 
 <b>COMPATIBILITY CONTROLS</b>
@@ -314,7 +315,7 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               line endings from &lt;CR&gt;&lt;LF&gt; into UNIX format (&lt;LF&gt;).
 
 <b>TROUBLE SHOOTING CONTROLS</b>
-       The <a href="DEBUG_README.html">DEBUG_README</a> file gives examples of how to troubleshoot  a  Postfix
+       The  <a href="DEBUG_README.html">DEBUG_README</a>  file gives examples of how to troubleshoot a Postfix
        system.
 
        <b><a href="postconf.5.html#debugger_command">debugger_command</a> (empty)</b>
@@ -322,11 +323,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               invoked with the -D option.
 
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>
-              The increment in verbose logging level when a remote  client  or
+              The  increment  in verbose logging level when a remote client or
               server matches a pattern in the <a href="postconf.5.html#debug_peer_list">debug_peer_list</a> parameter.
 
        <b><a href="postconf.5.html#debug_peer_list">debug_peer_list</a> (empty)</b>
-              Optional  list  of  remote  client or server hostname or network
+              Optional list of remote client or  server  hostname  or  network
               address  patterns  that  cause  the  verbose  logging  level  to
               increase by the amount specified in $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.
 
@@ -340,13 +341,13 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               List of users who are authorized to view the queue.
 
        <b><a href="postconf.5.html#authorized_submit_users">authorized_submit_users</a> (<a href="DATABASE_README.html#types">static</a>:anyone)</b>
-              List  of  users who are authorized to submit mail with the <a href="sendmail.1.html"><b>send-</b></a>
+              List of users who are authorized to submit mail with  the  <a href="sendmail.1.html"><b>send-</b></a>
               <a href="sendmail.1.html"><b>mail</b>(1)</a> command (and with the privileged <a href="postdrop.1.html"><b>postdrop</b>(1)</a> helper com-
               mand).
 
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#bounce_size_limit">bounce_size_limit</a> (50000)</b>
-              The  maximal  amount  of original message text that is sent in a
+              The maximal amount of original message text that is  sent  in  a
               non-delivery notification.
 
        <b><a href="postconf.5.html#fork_attempts">fork_attempts</a> (5)</b>
@@ -360,11 +361,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               in the primary message headers.
 
        <b><a href="postconf.5.html#queue_run_delay">queue_run_delay</a> (300s)</b>
-              The  time  between  <a href="QSHAPE_README.html#deferred_queue">deferred  queue</a>  scans by the queue manager;
+              The time between <a href="QSHAPE_README.html#deferred_queue">deferred queue</a>  scans  by  the  queue  manager;
               prior to Postfix 2.4 the default value was 1000s.
 
 <b>FAST FLUSH CONTROLS</b>
-       The <a href="ETRN_README.html">ETRN_README</a> file describes configuration and operation details  for
+       The  <a href="ETRN_README.html">ETRN_README</a> file describes configuration and operation details for
        the Postfix "fast flush" service.
 
        <b><a href="postconf.5.html#fast_flush_domains">fast_flush_domains</a> ($<a href="postconf.5.html#relay_domains">relay_domains</a>)</b>
@@ -372,26 +373,26 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               tion logfiles with mail that is queued to those destinations.
 
 <b>VERP CONTROLS</b>
-       The <a href="VERP_README.html">VERP_README</a> file describes configuration and operation  details  of
+       The  <a href="VERP_README.html">VERP_README</a>  file describes configuration and operation details of
        Postfix support for variable envelope return path addresses.
 
        <b><a href="postconf.5.html#default_verp_delimiters">default_verp_delimiters</a> (+=)</b>
               The two default VERP delimiter characters.
 
        <b><a href="postconf.5.html#verp_delimiter_filter">verp_delimiter_filter</a> (-=+)</b>
-              The  characters  Postfix accepts as VERP delimiter characters on
+              The characters Postfix accepts as VERP delimiter  characters  on
               the Postfix <a href="sendmail.1.html"><b>sendmail</b>(1)</a> command line and in SMTP commands.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#alias_database">alias_database</a> (see 'postconf -d' output)</b>
-              The alias databases for <a href="local.8.html"><b>local</b>(8)</a> delivery that are updated  with
+              The  alias databases for <a href="local.8.html"><b>local</b>(8)</a> delivery that are updated with
               "<b>newaliases</b>" or with "<b>sendmail -bi</b>".
 
        <b><a href="postconf.5.html#command_directory">command_directory</a> (see 'postconf -d' output)</b>
               The location of all postfix administrative commands.
 
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
+              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_directory">daemon_directory</a> (see 'postconf -d' output)</b>
@@ -402,46 +403,46 @@ SENDMAIL(1)                                                        SENDMAIL(1)
               and <a href="postmap.1.html"><b>postmap</b>(1)</a> commands.
 
        <b><a href="postconf.5.html#delay_warning_time">delay_warning_time</a> (0h)</b>
-              The time after which the sender receives a copy of  the  message
+              The  time  after which the sender receives a copy of the message
               headers of mail that is still queued.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
-              The  list  of  environment  parameters that a privileged Postfix
-              process will  import  from  a  non-Postfix  parent  process,  or
+              The list of environment parameters  that  a  privileged  Postfix
+              process  will  import  from  a  non-Postfix  parent  process, or
               name=value environment overrides.
 
        <b><a href="postconf.5.html#mail_owner">mail_owner</a> (postfix)</b>
-              The  UNIX  system  account  that owns the Postfix queue and most
+              The UNIX system account that owns the  Postfix  queue  and  most
               Postfix daemon processes.
 
        <b><a href="postconf.5.html#queue_directory">queue_directory</a> (see 'postconf -d' output)</b>
               The location of the Postfix top-level queue directory.
 
        <b><a href="postconf.5.html#remote_header_rewrite_domain">remote_header_rewrite_domain</a> (empty)</b>
-              Don't rewrite message headers from remote clients  at  all  when
-              this  parameter is empty; otherwise, rewrite message headers and
+              Don't  rewrite  message  headers from remote clients at all when
+              this parameter is empty; otherwise, rewrite message headers  and
               append the specified domain name to incomplete addresses.
 
        <b><a href="postconf.5.html#syslog_facility">syslog_facility</a> (mail)</b>
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A prefix that  is  prepended  to  the  process  name  in  syslog
+              A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Postfix 3.2 and later:
 
        <b><a href="postconf.5.html#alternate_config_directories">alternate_config_directories</a> (empty)</b>
               A list of non-default Postfix configuration directories that may
-              be specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line  (in
-              the  case  of  <a href="sendmail.1.html"><b>sendmail</b>(1)</a>,  with  the  "-C" option), or via the
+              be  specified with "-c <a href="postconf.5.html#config_directory">config_directory</a>" on the command line (in
+              the case of <a href="sendmail.1.html"><b>sendmail</b>(1)</a>, with  the  "-C"  option),  or  via  the
               MAIL_CONFIG environment parameter.
 
        <b><a href="postconf.5.html#multi_instance_directories">multi_instance_directories</a> (empty)</b>
-              An optional list of non-default Postfix  configuration  directo-
-              ries;  these  directories belong to additional Postfix instances
-              that share the Postfix executable files and  documentation  with
-              the  default  Postfix  instance,  and that are started, stopped,
+              An  optional  list of non-default Postfix configuration directo-
+              ries; these directories belong to additional  Postfix  instances
+              that  share  the Postfix executable files and documentation with
+              the default Postfix instance, and  that  are  started,  stopped,
               etc., together with the default Postfix instance.
 
 <b>FILES</b>
@@ -458,10 +459,11 @@ SENDMAIL(1)                                                        SENDMAIL(1)
        <a href="postdrop.1.html">postdrop(1)</a>, mail posting utility
        <a href="postfix.1.html">postfix(1)</a>, mail system control
        <a href="postqueue.1.html">postqueue(1)</a>, mail queue control
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README_FILES</b>
-       Use "<b>postconf <a href="postconf.5.html#readme_directory">readme_directory</a></b>" or "<b>postconf <a href="postconf.5.html#html_directory">html_directory</a></b>" to  locate
+       Use  "<b>postconf <a href="postconf.5.html#readme_directory">readme_directory</a></b>" or "<b>postconf <a href="postconf.5.html#html_directory">html_directory</a></b>" to locate
        this information.
        <a href="DEBUG_README.html">DEBUG_README</a>, Postfix debugging howto
        <a href="ETRN_README.html">ETRN_README</a>, Postfix ETRN howto

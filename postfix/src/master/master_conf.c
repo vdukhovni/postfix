@@ -123,7 +123,11 @@ void    master_config(void)
 	 * settings.
 	 */
 	else {
-	    serv->flags &= ~MASTER_FLAG_MARK;
+	    if ((serv->flags & MASTER_FLAG_MARK) == 0)
+		msg_warn("duplicate master.cf entry for service \"%s\" (%s) "
+		     "-- using the last entry", serv->ext_name, serv->name);
+	    else
+		serv->flags &= ~MASTER_FLAG_MARK;
 	    if (entry->flags & MASTER_FLAG_CONDWAKE)
 		serv->flags |= MASTER_FLAG_CONDWAKE;
 	    else

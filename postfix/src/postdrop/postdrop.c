@@ -30,7 +30,8 @@
 /*	it can connect to Postfix daemon processes.
 /* DIAGNOSTICS
 /*	Fatal errors: malformed input, I/O error, out of memory. Problems
-/*	are logged to \fBsyslogd\fR(8) and to the standard error stream.
+/*	are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8) and to
+/*	the standard error stream.
 /*	When the input is incomplete, or when the process receives a HUP,
 /*	INT, QUIT or TERM signal, the queue file is deleted.
 /* ENVIRONMENT
@@ -86,6 +87,7 @@
 /* SEE ALSO
 /*	sendmail(1), compatibility interface
 /*	postconf(5), configuration parameters
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

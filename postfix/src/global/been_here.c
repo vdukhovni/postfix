@@ -51,7 +51,7 @@
 /*	Arguments:
 /* .IP size
 /*	Upper bound on the table size; at most \fIsize\fR strings will
-/*	be remembered.  Specify a value <= 0 to disable the upper bound.
+/*	be remembered.  Specify BH_BOUND_NONE to disable the upper bound.
 /* .IP flags
 /*	Requests for special processing. Specify the bitwise OR of zero
 /*	or more flags:

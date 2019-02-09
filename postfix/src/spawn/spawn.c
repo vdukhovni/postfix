@@ -43,7 +43,7 @@
 /*	replaced by a more structural solution.
 /* DIAGNOSTICS
 /*	The \fBspawn\fR(8) daemon reports abnormal child exits.
-/*	Problems are logged to \fBsyslogd\fR(8).
+/*	Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8).
 /* SECURITY
 /* .fi
 /* .ad
@@ -112,6 +112,7 @@
 /* SEE ALSO
 /*	postconf(5), configuration parameters
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

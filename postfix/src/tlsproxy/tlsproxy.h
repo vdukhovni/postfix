@@ -39,6 +39,7 @@ typedef struct {
     TLS_APPL_STATE *appl_state;		/* libtls state */
     TLS_SESS_STATE *tls_context;	/* libtls state */
     int     ssl_last_err;		/* TLS I/O state */
+    TLS_CLIENT_PARAMS *tls_params;	/* globals not part of init_props */
     TLS_SERVER_INIT_PROPS *server_init_props;
     TLS_SERVER_START_PROPS *server_start_props;
     TLS_CLIENT_INIT_PROPS *client_init_props;

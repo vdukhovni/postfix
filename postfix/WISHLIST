@@ -1,6 +1,14 @@
 Wish list:
 
-	Add maillog_file to postfix(1) exports?
+	Move tls_proxy_client_scan.c _to_string() function
+	to tls_proxy_client_misc.c.
+
+	In tlsproxy, include parameter names in the diffs between
+	expected and client properties. This requires a function
+	tls_proxy_client_init_with_names_to_string().
+
+	make tls_pre_jail_init() safe by design for use in programs
+	that implement both clients and servers.
 
 	postfix rotate-log command: mv postfix.log postfix.log.$(date
 	+%Y%M%d-%H%M%S) to avoid data loss if called repeatedly.

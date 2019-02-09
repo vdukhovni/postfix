@@ -27,7 +27,8 @@
 /*	what files it opens for reading, and does not actually touch any data
 /*	that is sent to its public service endpoint.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	The \fBpickup\fR(8) daemon copies mail from file to the \fBcleanup\fR(8)
 /*	daemon.  It could avoid message copying overhead by sending a file
@@ -91,6 +92,7 @@
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

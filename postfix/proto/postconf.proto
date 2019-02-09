@@ -17550,9 +17550,10 @@ parameter. See there for details. </p>
 %PARAM maillog_file
 
 <p> The name of an optional logfile that is written by the Postfix
-postlogd(8) service. A non-empty value disables logging to syslogd(8).
-Specify "/dev/stdout" for logging to standard output. Stdout logging
-requires that Postfix is started with "postfix start-fg".  </p>
+postlogd(8) service. A non-empty value selects logging to syslogd(8).
+Specify "/dev/stdout" to select logging to standard output. Stdout
+logging requires that Postfix is started with "postfix start-fg".
+</p>
 
 <p> Note 1: The maillog_file parameter value must contain a prefix
 that is specified with the maillog_file_prefixes parameter. </p>
@@ -17597,8 +17598,8 @@ whitespace. </p>
 %PARAM maillog_file_compressor gzip
 
 <p> The program to run after rotating $maillog_file with "postfix
-logrotate". The command is run with the rotated file as its first
-argument. </p>
+logrotate". The command is run with the rotated logfile name as its
+first argument. </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
 

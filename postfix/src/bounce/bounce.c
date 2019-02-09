@@ -44,7 +44,8 @@
 /*	RFC 6532 (Internationalized Message Format)
 /*	RFC 6533 (Internationalized Delivery Status Notifications)
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -133,6 +134,7 @@
 /*	postconf(5), configuration parameters
 /*	master(5), generic daemon options
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* LICENSE
 /* .ad

@@ -124,7 +124,8 @@
 /*	type of security hole where ownership of a file or directory
 /*	does not match the provider of its content.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	The \fBproxymap\fR(8) server provides service to multiple clients,
 /*	and must therefore not be used for tables that have high-latency

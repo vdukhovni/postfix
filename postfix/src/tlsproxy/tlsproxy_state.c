@@ -115,6 +115,7 @@ TLSP_STATE *tlsp_state_create(const char *service,
     state->remote_endpt = 0;
     state->server_id = 0;
     state->tls_context = 0;
+    state->tls_params = 0;
     state->server_init_props = 0;
     state->server_start_props = 0;
     state->client_init_props = 0;
@@ -152,6 +153,8 @@ void    tlsp_state_free(TLSP_STATE *state)
 	myfree(state->server_id);
     if (state->tls_context)
 	tls_free_context(state->tls_context);
+    if (state->tls_params)
+	tls_proxy_client_param_free(state->tls_params);
     if (state->server_init_props)
 	tls_proxy_server_init_free(state->server_init_props);
     if (state->server_start_props)

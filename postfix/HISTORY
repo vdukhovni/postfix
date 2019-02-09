@@ -24093,3 +24093,15 @@ Apologies for any names omitted.
 	FORWARD_SECRECY_README logging examples. Viktor Dukhovni.
 	Files: proto/FORWARD_SECRECY_README.html, tls/tls.h,
 	tls/tls_client.c, tls/tls_misc.c.
+
+20190208
+
+	Debugging: the master(8) daemon now logs a warning if a
+	master.cf entry is defined multiple times. File:
+	src/master/master_conf.c.
+
+20190209
+
+	Debugging: tlsproxy(8) now logs more details about unexpected
+	configuration differences between the Postfix SMTP client
+	and the tlsproxy(8) daemon.

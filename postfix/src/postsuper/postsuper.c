@@ -200,12 +200,13 @@
 /*	options make the software increasingly verbose.
 /* DIAGNOSTICS
 /*	Problems are reported to the standard error stream and to
-/*	\fBsyslogd\fR(8).
+/*	\fBsyslogd\fR(8) or \fBpostlogd\fR(8).
 /*
 /*	\fBpostsuper\fR(1) reports the number of messages deleted with \fB-d\fR,
 /*	the number of messages requeued with \fB-r\fR, and the number of
 /*	messages whose queue file name was fixed with \fB-s\fR. The report
-/*	is written to the standard error stream and to \fBsyslogd\fR(8).
+/*	is written to the standard error stream and to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -248,6 +249,8 @@
 /* SEE ALSO
 /*	sendmail(1), Sendmail-compatible user interface
 /*	postqueue(1), unprivileged queue operations
+/*	postlogd(8), Postfix logging
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

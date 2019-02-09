@@ -225,9 +225,9 @@ POSTMAP(1)                                                          POSTMAP(1)
               base.
 
 <b>DIAGNOSTICS</b>
-       Problems are logged to the standard error stream and to <b>syslogd</b>(8).  No
-       output  means  that  no  problems  were detected. Duplicate entries are
-       skipped and are flagged with a warning.
+       Problems are logged to the standard error stream and to  <b>syslogd</b>(8)  or
+       <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.  No output means that no problems were detected. Duplicate
+       entries are skipped and are flagged with a warning.
 
        <a href="postmap.1.html"><b>postmap</b>(1)</a> terminates with zero exit status in case of success (includ-
        ing  successful  "<b>postmap -q</b>" lookup) and terminates with non-zero exit
@@ -281,6 +281,7 @@ POSTMAP(1)                                                          POSTMAP(1)
        <a href="postalias.1.html">postalias(1)</a>, create/update/query alias database
        <a href="postconf.1.html">postconf(1)</a>, supported database types
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README FILES</b>

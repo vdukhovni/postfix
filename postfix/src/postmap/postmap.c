@@ -230,7 +230,7 @@
 /*	The name of the lookup table source file when rebuilding a database.
 /* DIAGNOSTICS
 /*	Problems are logged to the standard error stream and to
-/*	\fBsyslogd\fR(8).
+/*	\fBsyslogd\fR(8) or \fBpostlogd\fR(8).
 /*	No output means that no problems were detected. Duplicate entries are
 /*	skipped and are flagged with a warning.
 /*
@@ -279,6 +279,7 @@
 /*	postalias(1), create/update/query alias database
 /*	postconf(1), supported database types
 /*	postconf(5), configuration parameters
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

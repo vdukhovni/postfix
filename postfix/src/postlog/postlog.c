@@ -17,7 +17,8 @@
 /*	line, \fBpostlog\fR(1) reads from standard input and logs each input
 /*	line as one record.
 /*
-/*	By default, logging is sent to \fBsyslogd\fR(8); when the
+/*	By default, logging is sent to \fBsyslogd\fR(8) or
+/*	\fBpostlogd\fR(8); when the
 /*	standard error stream is connected to a terminal, logging
 /*	is sent there as well.
 /*
@@ -75,8 +76,8 @@
 /*	The name of the \fBpostlogd\fR(8) service entry in master.cf.
 /* SEE ALSO
 /*	postconf(5), configuration parameters
-/*	syslogd(8), syslog daemon
-/*	postlogd(8), internal logging service
+/*	postlogd(8), Postfix logging
+/*	syslogd(8), system logging
 /* LICENSE
 /* .ad
 /* .fi

@@ -904,6 +904,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 		    | SMTP_KEY_FLAG_ADDR);
 
     if (state->tls->conn_reuse) {
+	TLS_CLIENT_PARAMS tls_params;
 
 	/*
 	 * Send all our wishes in one big request.
@@ -969,6 +970,7 @@ static int smtp_start_tls(SMTP_STATE *state)
 			   session->stream, STR(iter->addr),
 			   STR(port_buf), var_smtp_starttls_tmout,
 			   var_smtp_data2_tmout, state->service,
+			   tls_proxy_client_param_from_config(&tls_params),
 			   &init_props, &start_props);
 	vstring_free(port_buf);
 

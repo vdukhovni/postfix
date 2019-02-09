@@ -28,15 +28,14 @@ comfortable with the IPL can continue with that license.
 Incompatible changes with snapshot 20190126-nonprod
 ====================================================
 
-This introduces a new master.cf service type 'unix-dgram' that is
-used by the new postlogd(8) daemon. This type is not supported by
-older Postfix versions. Before backing out to an older version,
-edit the master.cf file and remove the postlog entry.
+This introduces a new master.cf service 'postlog' with type
+'unix-dgram' that is used by the new postlogd(8) daemon. The
+'unix-dgram' service type is not supported by older Postfix versions.
+Before backing out to an older version, edit the master.cf file and
+remove the postlog entry.
 
 Major changes with snapshot 20190126-nonprod
 ============================================
-
-[TODO: move most of this text to MAILLOG_README file]
 
 Support for logging to file or stdout, instead of using syslog.
 
@@ -46,69 +45,7 @@ Support for logging to file or stdout, instead of using syslog.
 - Logging to stdout is useful when Postfix runs in a container, as
   it eliminates a syslogd dependency.
 
-To enable Postfix logging to file or stdout:
---------------------------------------------
-
-Add the following line to master.cf if not already present (note:
-there must be no whitespace at the start of the line):
-    postlog   unix-dgram n  -       n       -       1       postlogd
-
-To write logs to Postfix logfile (see below for logfile rotation): 
-    # postfix stop
-    # postconf maillog_file=/var/log/postfix.log
-    # postfix start
-
-To write logs to stdout, typically while Postfix runs in a container:
-    # postconf maillog_file=/dev/stdout
-    # postfix start-fg
-
-The maillog_file parameter must contain one of the prefixes that
-are specified with the maillog_file_prefixes parameter (default:
-/var, /dev/stdout). This limits the damage from a single configuration
-mistake.
-
-To rotate a Postfix logfile with a daily cronjob:
--------------------------------------------------
-
-The command "postfix logrotate" renames the logfile by appending a
-suffix that contains the date and time, reloads Postfix so that it
-closes the old logfile, and after a brief pause compresses the old
-logfile. This command will not rotate the log if it specifies a
-pathname under the /dev directory, such as /dev/stdout.
-
-The command "postfix logrotate" does not (yet) remove old logfiles.
-
-Configuration parameters: 
-- maillog_file_compressor (gzip)
-- maillog_file_rotate_suffix (%Y%M%d-%H%M%S)
-
-See the postconf(5) manpage for detailed descriptions.
-
-Limitations of logging to Postfix logfile or stdout:
-----------------------------------------------------
-
-Background:
-
-- Logging to Postfix logfile or stdout requires the Postfix postlogd(8)
-  service. This program ensures that simultaneous logging from
-  different programs will not get mixed up.
-
-Limitations:
-
-- Non-daemon Postfix programs may log to syslogd(8) before they
-  have processed command-line options and main.cf parameters.
-
-- If Postfix is down, the non-daemon programs postfix(1), postsuper(1),
-  postmulti(1), and postlog(1), will log directly to $maillog_file.
-  These programs expect to run with root privileges, for example
-  during Postfix start-up, reload, or shutdown.
-
-- Other non-daemon Postfix programs will never write directly to
-  $maillog_file (also, logging to stdout would interfere with the
-  operation of some of these programs). These programs can log to
-  postlogd(8) if they are run by the super-user, or if their
-  executable file has set-gid permission. Do not set this permision
-  on programs other than postdrop(1) and postqueue(1).
+See MAILLOG_README for configuration examples and logfile rotation.
 
 Incompatible changes with snapshot 20190106
 ===========================================
@@ -120,14 +57,24 @@ Major changes with snapshot 20190106
 ====================================
 
 SNI support in the Postfix SMTP server, the Postfix SMTP client,
-and in the tlsproxy daemon (both server and client roles).
+and in the tlsproxy daemon (both server and client roles). See the
+postconf(5) documentation for the new tls_server_sni_maps and
+smtp_tls_servername parameters.
 
-Support for files that combine multiple (key, certificate, trust
+Support for files that contain multiple (key, certificate, trust
 chain) instances. This was required to implement server-side SNI
 table lookups, but it also eliminates the need for separate cert/key
 files for RSA, DSA, Elliptic Curve, and so on. The file format is
-documented in TLS_README sections [TODO] and in the postconf
-documentation for parameters [TODO].
+documented in the TLS_README sections "Server-side certificate and
+private key configuration" and "Client-side certificate and private
+key configuration", and in the postconf(5) documentation for the
+parameters smtp_tls_chain_files, smtpd_tls_chain_files,
+tlsproxy_client_chain_files, and tlsproxy_tls_chain_files.
+
+Note: the command "postfix tls" does not yet support the new
+consolidated certificate chain format.  If you switch to the new
+format, you'll need to manage your keys and certificates directly,
+rather than via postfix-tls(1).
 
 Major changes with snapshot 20180826
 ====================================

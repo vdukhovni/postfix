@@ -29,7 +29,7 @@ DNSBLOG(8)                                                          DNSBLOG(8)
        server closes the connection.
 
 <b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).
+       Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
 
 <b>CONFIGURATION PARAMETERS</b>
        Changes to <a href="postconf.5.html"><b>main.cf</b></a> are picked up automatically, as <a href="dnsblog.8.html"><b>dnsblog</b>(8)</a> processes
@@ -79,7 +79,8 @@ DNSBLOG(8)                                                          DNSBLOG(8)
 <b>SEE ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
-       syslogd(5), system logging
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
+       syslogd(8), system logging
 
 <b>LICENSE</b>
        The Secure Mailer license must be distributed with this software.

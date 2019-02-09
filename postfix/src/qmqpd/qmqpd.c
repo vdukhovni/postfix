@@ -21,7 +21,8 @@
 /*	clients and to DNS servers on the network. The QMQP server can be
 /*	run chrooted at fixed low privilege.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* BUGS
 /*	The QMQP protocol provides only one server reply per message
 /*	delivery. It is therefore not possible to reject individual
@@ -146,6 +147,7 @@
 /*	http://cr.yp.to/proto/qmqp.html, QMQP protocol
 /*	cleanup(8), message canonicalization
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

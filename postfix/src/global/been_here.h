@@ -25,6 +25,7 @@ typedef struct {
     struct HTABLE *table;
 } BH_TABLE;
 
+#define BH_BOUND_NONE	0		/* no upper bound */
 #define BH_FLAG_NONE	0		/* no special processing */
 #define BH_FLAG_FOLD	(1<<0)		/* fold case */
 

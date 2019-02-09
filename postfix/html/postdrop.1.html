@@ -38,9 +38,9 @@ POSTDROP(1)                                                        POSTDROP(1)
 
 <b>DIAGNOSTICS</b>
        Fatal errors: malformed input, I/O error, out of memory.  Problems  are
-       logged  to <b>syslogd</b>(8) and to the standard error stream.  When the input
-       is incomplete, or when the process receives a HUP, INT,  QUIT  or  TERM
-       signal, the queue file is deleted.
+       logged  to  <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a> and to the standard error stream.
+       When the input is incomplete, or when the process receives a HUP,  INT,
+       QUIT or TERM signal, the queue file is deleted.
 
 <b>ENVIRONMENT</b>
        MAIL_CONFIG
@@ -100,6 +100,7 @@ POSTDROP(1)                                                        POSTDROP(1)
 <b>SEE ALSO</b>
        <a href="sendmail.1.html">sendmail(1)</a>, compatibility interface
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>LICENSE</b>

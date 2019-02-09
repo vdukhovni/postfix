@@ -92,9 +92,9 @@ MASTER(8)                                                            MASTER(8)
               running processes to finish what they are doing.
 
 <b>DIAGNOSTICS</b>
-       Problems are reported to <b>syslogd</b>(8). The exit  status  is  non-zero  in
-       case  of  problems,  including  problems while initializing as a master
-       daemon process in the background.
+       Problems are reported to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.  The exit status is
+       non-zero  in case of problems, including problems while initializing as
+       a master daemon process in the background.
 
 <b>ENVIRONMENT</b>
        <b>MAIL_DEBUG</b>
@@ -198,6 +198,7 @@ MASTER(8)                                                            MASTER(8)
        <a href="verify.8.html">verify(8)</a>, address verification
        <a href="master.5.html">master(5)</a>, <a href="master.5.html">master.cf</a> configuration file syntax
        <a href="postconf.5.html">postconf(5)</a>, <a href="postconf.5.html">main.cf</a> configuration file syntax
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>LICENSE</b>

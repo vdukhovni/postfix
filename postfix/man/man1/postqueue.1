@@ -151,8 +151,8 @@ RFC 7159 (JSON notation)
 .SH DIAGNOSTICS
 .ad
 .fi
-Problems are logged to \fBsyslogd\fR(8) and to the standard error
-stream.
+Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8),
+and to the standard error stream.
 .SH "ENVIRONMENT"
 .na
 .nf
@@ -223,6 +223,8 @@ showq(8), list mail queue
 flush(8), fast flush service
 sendmail(1), Sendmail\-compatible user interface
 postsuper(1), privileged queue operations
+postlogd(8), Postfix logging
+syslogd(8), system logging
 .SH "README FILES"
 .na
 .nf

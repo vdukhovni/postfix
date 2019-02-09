@@ -149,9 +149,9 @@ POSTALIAS(1)                                                      POSTALIAS(1)
               base.
 
 <b>DIAGNOSTICS</b>
-       Problems are logged to the standard error stream and to <b>syslogd</b>(8).  No
-       output  means  that  no  problems  were detected. Duplicate entries are
-       skipped and are flagged with a warning.
+       Problems are logged to the standard error stream and to  <b>syslogd</b>(8)  or
+       <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.  No output means that no problems were detected. Duplicate
+       entries are skipped and are flagged with a warning.
 
        <a href="postalias.1.html"><b>postalias</b>(1)</a> terminates with  zero  exit  status  in  case  of  success
        (including  successful  "<b>postalias  -q</b>"  lookup)  and  terminates  with
@@ -217,6 +217,7 @@ POSTALIAS(1)                                                      POSTALIAS(1)
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        <a href="postmap.1.html">postmap(1)</a>, create/update/query lookup tables
        <a href="newaliases.1.html">newaliases(1)</a>, Sendmail compatibility interface.
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README FILES</b>

@@ -67,7 +67,8 @@
 /*	By default, this daemon does not talk to remote or local users.
 /*	It can run at a fixed low privilege in a chrooted environment.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* CONFIGURATION PARAMETERS
 /* .ad
 /* .fi
@@ -264,6 +265,7 @@
 /*	transport(5), transport table format
 /*	relocated(5), format of the "user has moved" table
 /*	master(8), process manager
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README FILES
 /* .ad

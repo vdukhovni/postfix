@@ -2706,6 +2706,7 @@ extern int var_fault_inj_code;
 #ifndef DEF_OPENSSL_PATH
 #define DEF_OPENSSL_PATH		"openssl"
 #endif
+extern char *var_openssl_path;
 
 #define VAR_MANPAGE_DIR			"manpage_directory"
 #ifndef DEF_MANPAGE_DIR

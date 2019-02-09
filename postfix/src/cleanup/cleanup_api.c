@@ -81,7 +81,8 @@
 /*	Autodetection: request SMTPUTF8 support if the message
 /*	contains an UTF8 message header, sender, or recipient.
 /* DIAGNOSTICS
-/*	Problems and transactions are logged to \fBsyslogd\fR(8).
+/*	Problems and transactions are logged to \fBsyslogd\fR(8)
+/*	or \fBpostlogd\fR(8).
 /* SEE ALSO
 /*	cleanup(8) cleanup service description.
 /*	cleanup_init(8) cleanup callable interface, initialization
@@ -94,6 +95,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */

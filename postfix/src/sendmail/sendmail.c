@@ -255,8 +255,8 @@
 /*	Thus, the usual precautions need to be taken against malicious
 /*	inputs.
 /* DIAGNOSTICS
-/*	Problems are logged to \fBsyslogd\fR(8) and to the standard error
-/*	stream.
+/*	Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8),
+/*	and to the standard error stream.
 /* ENVIRONMENT
 /* .ad
 /* .fi
@@ -409,6 +409,7 @@
 /*	postdrop(1), mail posting utility
 /*	postfix(1), mail system control
 /*	postqueue(1), mail queue control
+/*	postlogd(8), Postfix logging
 /*	syslogd(8), system logging
 /* README_FILES
 /* .ad
