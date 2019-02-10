@@ -57,9 +57,89 @@
 /*
 /*	The text below provides only a parameter summary. See
 /*	\fBpostconf\fR(5) for more details including examples.
-/* STARTTLS SUPPORT CONTROLS
+/* STARTTLS GLOBAL CONTROLS
 /* .ad
 /* .fi
+/*	The following settings are global and therefore cannot be
+/*	overruled by information specified in a \fBtlsproxy\fR(8)
+/*	client request.
+/* .IP "\fBtls_append_default_CA (no)\fR"
+/*	Append the system-supplied default Certification Authority
+/*	certificates to the ones specified with *_tls_CApath or *_tls_CAfile.
+/* .IP "\fBtls_daemon_random_bytes (32)\fR"
+/*	The number of pseudo-random bytes that an \fBsmtp\fR(8) or \fBsmtpd\fR(8)
+/*	process requests from the \fBtlsmgr\fR(8) server in order to seed its
+/*	internal pseudo random number generator (PRNG).
+/* .IP "\fBtls_high_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "high" grade ciphers.
+/* .IP "\fBtls_medium_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "medium" or higher grade ciphers.
+/* .IP "\fBtls_low_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "low" or higher grade ciphers.
+/* .IP "\fBtls_export_cipherlist (see 'postconf -d' output)\fR"
+/*	The OpenSSL cipherlist for "export" or higher grade ciphers.
+/* .IP "\fBtls_null_cipherlist (eNULL:!aNULL)\fR"
+/*	The OpenSSL cipherlist for "NULL" grade ciphers that provide
+/*	authentication without encryption.
+/* .IP "\fBtls_eecdh_strong_curve (prime256v1)\fR"
+/*	The elliptic curve used by the Postfix SMTP server for sensibly
+/*	strong
+/*	ephemeral ECDH key exchange.
+/* .IP "\fBtls_eecdh_ultra_curve (secp384r1)\fR"
+/*	The elliptic curve used by the Postfix SMTP server for maximally
+/*	strong
+/*	ephemeral ECDH key exchange.
+/* .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
+/*	List or bit-mask of OpenSSL bug work-arounds to disable.
+/* .IP "\fBtls_preempt_cipherlist (no)\fR"
+/*	With SSLv3 and later, use the Postfix SMTP server's cipher
+/*	preference order instead of the remote client's cipher preference
+/*	order.
+/* .PP
+/*	Available in Postfix version 2.9 and later:
+/* .IP "\fBtls_legacy_public_key_fingerprints (no)\fR"
+/*	A temporary migration aid for sites that use certificate
+/*	\fIpublic-key\fR fingerprints with Postfix 2.9.0..2.9.5, which use
+/*	an incorrect algorithm.
+/* .PP
+/*	Available in Postfix version 2.11-3.1:
+/* .IP "\fBtls_dane_digest_agility (on)\fR"
+/*	Configure RFC7671 DANE TLSA digest algorithm agility.
+/* .IP "\fBtls_dane_trust_anchor_digest_enable (yes)\fR"
+/*	Enable support for RFC 6698 (DANE TLSA) DNS records that contain
+/*	digests of trust-anchors with certificate usage "2".
+/* .PP
+/*	Available in Postfix version 2.11 and later:
+/* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
+/*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Available in Postfix version 3.0 and later:
+/* .IP "\fBtls_session_ticket_cipher (Postfix >= 3.0: aes-256-cbc, Postfix < 3.0: aes-128-cbc)\fR"
+/*	Algorithm used to encrypt RFC5077 TLS session tickets.
+/* .IP "\fBopenssl_path (openssl)\fR"
+/*	The location of the OpenSSL command line program \fBopenssl\fR(1).
+/* .PP
+/*	Available in Postfix version 3.2 and later:
+/* .IP "\fBtls_eecdh_auto_curves (see 'postconf -d' output)\fR"
+/*	The prioritized list of elliptic curves supported by the Postfix
+/*	SMTP client and server.
+/* .PP
+/*	Available in Postfix version 3.4 and later:
+/* .IP "\fBtls_server_sni_maps (empty)\fR"
+/*	Optional lookup tables that map names received from remote SMTP
+/*	clients via the TLS Server Name Indication (SNI) extension to the
+/*	appropriate keys and certificate chains.
+/* STARTTLS SERVER CONTROLS
+/* .ad
+/* .fi
+/*	These settings are clones of Postfix SMTP server settings.
+/*	They allow \fBtlsproxy\fR(8) to load the same certificate
+/*	and private key information as the Postfix SMTP server,
+/*	before dropping privileges, so that the key files can be
+/*	kept read-only for root. These settings can currently not
+/*	be overruled by information in a \fBtlsproxy\fR(8) client
+/*	request, but that limitation may be removed in a future
+/*	version.
 /* .IP "\fBtlsproxy_tls_CAfile ($smtpd_tls_CAfile)\fR"
 /*	A file containing (PEM format) CA certificates of root CAs
 /*	trusted to sign either remote SMTP client certificates or intermediate
@@ -134,27 +214,18 @@
 /*	The SMTP TLS security level for the Postfix \fBtlsproxy\fR(8) server;
 /*	when a non-empty value is specified, this overrides the obsolete
 /*	parameters smtpd_use_tls and smtpd_enforce_tls.
-/* .PP
-/*	Available in Postfix version 2.11 and later:
-/* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
-/*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
-/* .PP
-/*	Available in Postfix version 3.4 and later:
 /* .IP "\fBtlsproxy_tls_chain_files ($smtpd_tls_chain_files)\fR"
 /*	Files with the Postfix \fBtlsproxy\fR(8) server keys and certificate
 /*	chains in PEM format.
-/* .IP "\fBtls_server_sni_maps (empty)\fR"
-/*	Optional lookup tables that map names received from remote SMTP
-/*	clients via the TLS Server Name Indication (SNI) extension to the
-/*	appropriate keys and certificate chains.
-/* TLS CLIENT CONTROLS
+/* STARTTLS CLIENT CONTROLS
 /* .ad
 /* .fi
-/*	These parameters are clones of SMTP client settings. They
-/*	allow \fBtlsproxy\fR(8) to load the same certificate and
-/*	private key information as the SMTP client, before dropping
-/*	privileges, so that the key files can be kept read-only for
-/*	root.
+/*	These settings are clones of Postfix SMTP client settings.
+/*	They allow \fBtlsproxy\fR(8) to load the same certificate
+/*	and private key information as the Postfix SMTP client,
+/*	before dropping privileges, so that the key files can be
+/*	kept read-only for root. Some settings may be overruled by
+/*	information in a \fBtlsproxy\fR(8) client request.
 /* .PP
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBtlsproxy_client_CAfile ($smtp_tls_CAfile)\fR"
@@ -430,14 +501,14 @@ static TLS_APPL_STATE *tlsp_server_ctx;
 static TLS_APPL_STATE *tlsp_client_ctx;
 static bool tlsp_pre_jail_done;
 static int ask_client_cert;
+static char *tlsp_pre_jail_client_param_key;	/* pre-jail global params */
+static char *tlsp_pre_jail_client_init_key;	/* pre-jail init props */
 
  /*
   * TLS per-client status.
   */
-static HTABLE *tlsp_client_app_cache;
-static BH_TABLE *tlsp_params_mismatch_filter;
-static char *tlsp_pre_jail_client_param_key;
-static char *tlsp_pre_jail_client_init_key;
+static HTABLE *tlsp_client_app_cache;	/* per-client init props */
+static BH_TABLE *tlsp_params_mismatch_filter;	/* per-client nag filter */
 
  /*
   * Error handling: if a function detects an error, then that function is
@@ -1088,16 +1159,19 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
     /*
      * Use one TLS_APPL_STATE object for all requests that specify the same
      * TLS_CLIENT_INIT_PROPS. Each TLS_APPL_STATE owns an SSL_CTX, which is
-     * expensive to create.
+     * expensive to create. Bug: TLS_CLIENT_PARAMS are not used when creating
+     * a TLS_APPL_STATE instance.
      * 
      * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
-     * TLS_CLIENT_PARAMS and TLSPROXY_CLIENT_INIT_PROPS settings from the
-     * pre-jail internal request.
+     * pre-jail request TLS_CLIENT_PARAMS and TLSPROXY_CLIENT_INIT_PROPS
+     * settings, so that we can detect post-jail requests that do not match.
      */
     param_buf = vstring_alloc(100);
-    param_key = tls_proxy_client_param_to_string(param_buf, tls_params);
+    param_key = tls_proxy_client_param_with_names_to_string(
+						     param_buf, tls_params);
     init_buf = vstring_alloc(100);
-    init_key = tls_proxy_client_init_to_string(init_buf, init_props);
+    init_key = tls_proxy_client_init_with_names_to_string(
+						      init_buf, init_props);
     if (tlsp_pre_jail_done == 0) {
 	if (tlsp_pre_jail_client_param_key != 0
 	    || tlsp_pre_jail_client_init_key != 0)
@@ -1108,9 +1182,9 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
 
     /*
      * Log a warning if a post-jail request uses unexpected TLS_CLIENT_PARAMS
-     * settings. These differences are problematic because TLS_CLIENT_PARAMS
-     * settings are unfortunately not passed to tls_client_init(). Only the
-     * init_props settings are used.
+     * settings. Bug: TLS_CLIENT_PARAMS settings are not used when creating a
+     * TLS_APPL_STATE instance; this makes a mismatch of TLS_CLIENT_PARAMS
+     * settings problematic.
      */
     if (tlsp_pre_jail_done
 	&& !been_here_fixed(tlsp_params_mismatch_filter, param_key)
@@ -1129,10 +1203,12 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
 	/*
 	 * Before creating a TLS_APPL_STATE instance, log a warning if a
 	 * post-jail request differs from the saved pre-jail request AND the
-	 * request specifies file/directory pathname arguments. Requests
-	 * containing pathnames are problematic after chroot (pathname
-	 * resolution) and after dropping privileges (key files must be root
-	 * read-only).
+	 * post-jail request specifies file/directory pathname arguments.
+	 * Unexpected requests containing pathnames are problematic after
+	 * chroot (pathname resolution) and after dropping privileges (key
+	 * files must be root read-only). Unexpected requests are not a
+	 * problem as long as they contain no pathnames (for example a
+	 * tls_loglevel change).
 	 * 
 	 * We could eliminate some of this complication by adding code that
 	 * opens a cert/key lookup table at pre-jail time, and by reading
@@ -1607,9 +1683,8 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     tlsp_pre_jail_done = 1;
 
     /*
-     * Unfortunately TLS_CLIENT_PARAMS attributes correspond to global state
-     * and can therefore not be used when creating TLS_APPL_STATE instances,
-     * but we can warn about attribute mismatches.
+     * Bug: TLS_CLIENT_PARAMS attributes are not used when creating a
+     * TLS_APPL_STATE instance; we can only warn about attribute mismatches.
      */
     tlsp_params_mismatch_filter = been_here_init(BH_BOUND_NONE, BH_FLAG_NONE);
 }

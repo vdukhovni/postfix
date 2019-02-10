@@ -149,6 +149,7 @@ Postfix daemons:
     src/oqmgr/		Old queue manager
     src/pickup/		Local pickup
     src/pipe/		Pipe delivery
+    src/postlogd/	Syslog alternative, logs to file or stdout
     src/postscreen/	Zombie blocker
     src/proxymap/	Table lookup proxy agent
     src/qmgr/		Queue manager
@@ -159,7 +160,7 @@ Postfix daemons:
     src/smtpd/		SMTP server
     src/spawn/		Run non-Postfix server
     src/tlsmgr/		TLS session keys and random pool
-    src/tlsproxy/	TLS proxy for postscreen
+    src/tlsproxy/	TLS proxy for postscreen and outbound connection reuse
     src/trivial-rewrite/ Address rewriting and resolving
     src/verify/		address verification service
     src/virtual/	virtual mailbox-only delivery agent

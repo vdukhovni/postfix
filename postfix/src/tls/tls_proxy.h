@@ -123,6 +123,7 @@ extern int tls_proxy_client_init_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, voi
 extern int tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
 extern void tls_proxy_client_init_free(TLS_CLIENT_INIT_PROPS *);
 extern char *tls_proxy_client_init_to_string(VSTRING *, TLS_CLIENT_INIT_PROPS *);
+extern char *tls_proxy_client_init_with_names_to_string(VSTRING *, TLS_CLIENT_INIT_PROPS *);
 
 extern int tls_proxy_client_start_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
 extern int tls_proxy_client_start_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);

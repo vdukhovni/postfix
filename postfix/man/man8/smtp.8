@@ -489,6 +489,13 @@ Available in Postfix version 2.8 and later:
 .IP "\fBtls_disable_workarounds (see 'postconf -d' output)\fR"
 List or bit\-mask of OpenSSL bug work\-arounds to disable.
 .PP
+Available in Postfix version 2.11\-3.1:
+.IP "\fBtls_dane_digest_agility (on)\fR"
+Configure RFC7671 DANE TLSA digest algorithm agility.
+.IP "\fBtls_dane_trust_anchor_digest_enable (yes)\fR"
+Enable support for RFC 6698 (DANE TLSA) DNS records that contain
+digests of trust\-anchors with certificate usage "2".
+.PP
 Available in Postfix version 2.11 and later:
 .IP "\fBsmtp_tls_trust_anchor_file (empty)\fR"
 Zero or more PEM\-format files with trust\-anchor certificates
