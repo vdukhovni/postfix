@@ -17692,7 +17692,7 @@ Apologies for any names omitted.
 
 20120330
 
-	Workaround: specify "\c" at the start of an smtp_reject_footer
+	Workaround: specify "\c" at the start of an smtpd_reject_footer
 	template to suppress the line break between the reply text
 	and the footer text. Files: global/smtp_reply_footer.c,
 	proto/postconf.proto.
@@ -23633,10 +23633,10 @@ Apologies for any names omitted.
 
 20180812
 
-	Feature: smtp_reject_footer_maps (as well as the postscreen
+	Feature: smtpd_reject_footer_maps (as well as the postscreen
 	variant postscreen_reject_footer_maps). This is indexed
 	with the SMTP server response text, and overrides the footer
-	specified with smtp_reject_footer. Files: global/mail_params.h,
+	specified with smtpd_reject_footer. Files: global/mail_params.h,
 	mantools/postlink, postscreen/postscreen.c,
 	postscreen/postscreen_send.c, postscreen/postscreen_smtpd.c,
 	proto/postconf.proto, smtpd/smtpd.c, smtpd/smtpd_chat.c.
@@ -24105,3 +24105,12 @@ Apologies for any names omitted.
 	Debugging: tlsproxy(8) now logs more details about unexpected
 	configuration differences between the Postfix SMTP client
 	and the tlsproxy(8) daemon.
+
+20190210
+
+	Documentation: Postfix 3.4.0 RELEASE NOTES.
+
+	Documentation: added BDAT_README.
+
+	Documentation: global TLS settings. Files: mantools/postlink,
+	smtp/smtp.c, tlsproxy/tlsproxy.c.

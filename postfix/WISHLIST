@@ -1,17 +1,14 @@
 Wish list:
 
-	Move tls_proxy_client_scan.c _to_string() function
-	to tls_proxy_client_misc.c.
+	Things to do before the stable release:
 
-	In tlsproxy, include parameter names in the diffs between
-	expected and client properties. This requires a function
-	tls_proxy_client_init_with_names_to_string().
+	Spell-check, double-word check, HTML validator check,
+	mantools/missing-proxy-read-maps check.
+
+	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
 	make tls_pre_jail_init() safe by design for use in programs
 	that implement both clients and servers.
-
-	postfix rotate-log command: mv postfix.log postfix.log.$(date
-	+%Y%M%d-%H%M%S) to avoid data loss if called repeatedly.
 
 	In smtpd(8) and postscreen(8), set the ehlo_discard_mask
 	to ~0 so that STARTTLS, BDAT, DSN, etc. work only for clients
@@ -22,13 +19,6 @@ Wish list:
 
 	In postscreen, don't fork after 'postfix reload' when
 	psc_check_queue_length (and psc_post_queue_length?) is zero.
-
-	Things to do before the stable release:
-
-	Spell-check, double-word check, HTML validator check,
-	mantools/missing-proxy-read-maps check.
-
-	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
 	After I/O error, store errno in VSTREAM object before errno
 	may be overwritten.

@@ -78,6 +78,7 @@ OOtthheerr ttooppiiccss
   * ADDRESS_CLASS_README: Address Classes
   * CONNECTION_CACHE_README: Connection cache howto
   * DSN_README: Postfix DSN support
+  * BDAT_README: Postfix BDAT (CHUNKING) support
   * PACKAGE_README: Guidelines for Package Builders
   * SCHEDULER_README: Queue Scheduler
   * XCLIENT_README: XCLIENT Command

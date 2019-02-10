@@ -1095,7 +1095,8 @@
 /* .na
 /* .nf
 /*	ADDRESS_CLASS_README, blocking unknown hosted or relay recipients
-/*	ADDRESS_REWRITING_README Postfix address manipulation
+/*	ADDRESS_REWRITING_README, Postfix address manipulation
+/*	BDAT_README, Postfix CHUNKING support
 /*	FILTER_README, external after-queue content filter
 /*	LOCAL_RECIPIENT_README, blocking unknown local recipients
 /*	MILTER_README, before-queue mail filter applications

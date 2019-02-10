@@ -21,10 +21,6 @@
 /*	int	flags;
 /*	void	*ptr;
 /*
-/*	char	*tls_proxy_client_init_to_string(buf, init_props)
-/*	VSTRING *buf;
-/*	TLS_CLIENT_INIT_PROPS *init_props;
-/*
 /*	void	tls_proxy_client_init_free(init_props)
 /*	TLS_CLIENT_INIT_PROPS *init_props;
 /*
@@ -56,10 +52,6 @@
 /*	structure from the named stream using the specified attribute
 /*	scan routine. tls_proxy_client_init_scan() is meant to be passed
 /*	as a call-back function to attr_scan(), as shown below.
-/*
-/*	tls_proxy_client_init_to_string() produces a lookup key
-/*	that is unique for the properties received by
-/*	tls_proxy_client_init_scan().
 /*
 /*	tls_proxy_client_init_free() destroys a TLS_CLIENT_INIT_PROPS
 /*	structure that was created by tls_proxy_client_init_scan().
@@ -322,22 +314,6 @@ int     tls_proxy_client_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     if (msg_verbose)
 	msg_info("tls_proxy_client_init_scan ret=%d", ret);
     return (ret);
-}
-
-/* tls_proxy_client_init_to_string - serialize to string */
-
-char   *tls_proxy_client_init_to_string(VSTRING *buf,
-					        TLS_CLIENT_INIT_PROPS *props)
-{
-    vstring_sprintf(buf, "%s\n%s\n%d\n%s\n%s\n%s\n%s\n%s\n%s\n"
-		    "%s\n%s\n%s\n%s\n%s\n", props->log_param,
-		    props->log_level, props->verifydepth,
-		    props->cache_type, props->chain_files,
-		    props->cert_file, props->key_file,
-		    props->dcert_file, props->dkey_file,
-		    props->eccert_file, props->eckey_file,
-		    props->CAfile, props->CApath, props->mdalg);
-    return (vstring_str(buf));
 }
 
 /* tls_proxy_client_certs_free - destroy TLS_PKEYS from stream */

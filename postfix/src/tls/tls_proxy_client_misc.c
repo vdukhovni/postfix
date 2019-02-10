@@ -16,6 +16,10 @@
 /*	char	*tls_proxy_client_param_with_names_to_string(buf, params)
 /*	VSTRING *buf;
 /*	TLS_CLIENT_PARAMS *params;
+/*
+/*	char	*tls_proxy_client_init_to_string(buf, init_props)
+/*	VSTRING *buf;
+/*	TLS_CLIENT_INIT_PROPS *init_props;
 /* DESCRIPTION
 /*	tls_proxy_client_param_from_config() initializes a TLS_CLIENT_PARAMS
 /*	structure from configuration parameters and returns its
@@ -25,10 +29,19 @@
 /*	tls_proxy_client_param_to_string() produces a lookup key
 /*	that is unique for the TLS_CLIENT_PARAMS member values.
 /*
-/*	tls_proxy_client_param_with_names_to_string() TODO produces a
-/*	string with "name = value\n" for each TLS_CLIENT_PARAMS member.
-/*	This may be useful for reporting differences between
+/*	tls_proxy_client_param_with_names_to_string() produces a
+/*	string with "name = value\n" for each TLS_CLIENT_PARAMS
+/*	member. This may be useful for reporting differences between
 /*	TLS_CLIENT_PARAMS instances.
+/*
+/*	tls_proxy_client_init_to_string() produces a lookup key
+/*	that is unique for the properties received by
+/*	tls_proxy_client_init_scan().
+/*
+/*	tls_proxy_client_init_with_names_to_string() produces a
+/*	string with "name = value\n" for each TLS_CLIENT_INIT_PROPS
+/*	member. This may be useful for reporting differences between
+/*	TLS_CLIENT_INIT_PROPS instances.
 /* LICENSE
 /* .ad
 /* .fi
@@ -138,6 +151,47 @@ char   *tls_proxy_client_param_with_names_to_string(VSTRING *buf, TLS_CLIENT_PAR
 		    VAR_TLS_DANE_TAA_DGST, params->tls_dane_taa_dgst,
 		    VAR_TLS_PREEMPT_CLIST, params->tls_preempt_clist,
 		    VAR_TLS_MULTI_WILDCARD, params->tls_multi_wildcard);
+    return (vstring_str(buf));
+}
+
+/* tls_proxy_client_init_to_string - serialize to string */
+
+char   *tls_proxy_client_init_to_string(VSTRING *buf,
+					        TLS_CLIENT_INIT_PROPS *props)
+{
+    vstring_sprintf(buf, "%s\n%s\n%d\n%s\n%s\n%s\n%s\n%s\n%s\n"
+		    "%s\n%s\n%s\n%s\n%s\n", props->log_param,
+		    props->log_level, props->verifydepth,
+		    props->cache_type, props->chain_files,
+		    props->cert_file, props->key_file,
+		    props->dcert_file, props->dkey_file,
+		    props->eccert_file, props->eckey_file,
+		    props->CAfile, props->CApath, props->mdalg);
+    return (vstring_str(buf));
+}
+
+/* tls_proxy_client_init_with_names_to_string - serialize to string */
+
+char   *tls_proxy_client_init_with_names_to_string(VSTRING *buf,
+					        TLS_CLIENT_INIT_PROPS *props)
+{
+    vstring_sprintf(buf, "%s = %s\n%s = %s\n%s = %d\n%s = %s\n%s = %s\n"
+		    "%s = %s\n%s = %s\n%s = %s\n%s = %s\n%s = %s\n"
+		    "%s = %s\n%s = %s\n%s = %s\n%s = %s\n",
+		    TLS_ATTR_LOG_PARAM, props->log_param,
+		    TLS_ATTR_LOG_LEVEL, props->log_level,
+		    TLS_ATTR_VERIFYDEPTH, props->verifydepth,
+		    TLS_ATTR_CACHE_TYPE, props->cache_type,
+		    TLS_ATTR_CHAIN_FILES, props->chain_files,
+		    TLS_ATTR_CERT_FILE, props->cert_file,
+		    TLS_ATTR_KEY_FILE, props->key_file,
+		    TLS_ATTR_DCERT_FILE, props->dcert_file,
+		    TLS_ATTR_DKEY_FILE, props->dkey_file,
+		    TLS_ATTR_ECCERT_FILE, props->eccert_file,
+		    TLS_ATTR_ECKEY_FILE, props->eckey_file,
+		    TLS_ATTR_CAFILE, props->CAfile,
+		    TLS_ATTR_CAPATH, props->CApath,
+		    TLS_ATTR_MDALG, props->mdalg);
     return (vstring_str(buf));
 }
 
