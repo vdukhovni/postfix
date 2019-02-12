@@ -88,15 +88,12 @@ TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(TLS_CLIENT_PARAMS *params)
 		     tls_eecdh_ultra = var_tls_eecdh_ultra,
 		     tls_bug_tweaks = var_tls_bug_tweaks,
 		     tls_ssl_options = var_tls_ssl_options,
-		     tls_dane_agility = var_tls_dane_agility,
 		     tls_dane_digests = var_tls_dane_digests,
 		     tls_mgr_service = var_tls_mgr_service,
 		     tls_tkt_cipher = var_tls_tkt_cipher,
-		     openssl_path = var_openssl_path,
 		     tls_daemon_rand_bytes = var_tls_daemon_rand_bytes,
 		     tls_append_def_CA = var_tls_append_def_CA,
 		     tls_bc_pkey_fprint = var_tls_bc_pkey_fprint,
-		     tls_dane_taa_dgst = var_tls_dane_taa_dgst,
 		     tls_preempt_clist = var_tls_preempt_clist,
 		     tls_multi_wildcard = var_tls_multi_wildcard);
     return (params);
@@ -107,18 +104,16 @@ TLS_CLIENT_PARAMS *tls_proxy_client_param_from_config(TLS_CLIENT_PARAMS *params)
 char   *tls_proxy_client_param_to_string(VSTRING *buf, TLS_CLIENT_PARAMS *params)
 {
     vstring_sprintf(buf, "%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n%s\n"
-		    "%s\n%s\n%s\n%s\n%d\n%d\n%d\n%d\n%d\n%d\n",
+		    "%s\n%s\n%d\n%d\n%d\n%d\n%d\n",
 		    params->tls_high_clist, params->tls_medium_clist,
 		    params->tls_low_clist, params->tls_export_clist,
 		    params->tls_null_clist, params->tls_eecdh_auto,
 		    params->tls_eecdh_strong, params->tls_eecdh_ultra,
 		    params->tls_bug_tweaks, params->tls_ssl_options,
-		    params->tls_dane_agility, params->tls_dane_digests,
-		    params->tls_mgr_service, params->tls_tkt_cipher,
-		    params->openssl_path, params->tls_daemon_rand_bytes,
+		    params->tls_dane_digests, params->tls_mgr_service,
+		    params->tls_tkt_cipher, params->tls_daemon_rand_bytes,
 		    params->tls_append_def_CA, params->tls_bc_pkey_fprint,
-		    params->tls_dane_taa_dgst, params->tls_preempt_clist,
-		    params->tls_multi_wildcard);
+		    params->tls_preempt_clist, params->tls_multi_wildcard);
     return (vstring_str(buf));
 }
 
@@ -128,7 +123,7 @@ char   *tls_proxy_client_param_with_names_to_string(VSTRING *buf, TLS_CLIENT_PAR
 {
     vstring_sprintf(buf, "%s = %s\n%s = %s\n%s = %s\n%s = %s\n%s = %s\n"
 		    "%s = %s\n%s = %s\n%s = %s\n%s = %s\n%s = %s\n%s = %s\n"
-		    "%s = %s\n%s = %s\n%s = %s\n%s = %s\n%s = %d\n%s = %d\n"
+		    "%s = %s\n%s = %s\n%s = %d\n"
 		    "%s = %d\n%s = %d\n%s = %d\n%s = %d\n",
 		    VAR_TLS_HIGH_CLIST, params->tls_high_clist,
 		    VAR_TLS_MEDIUM_CLIST, params->tls_medium_clist,
@@ -140,15 +135,12 @@ char   *tls_proxy_client_param_with_names_to_string(VSTRING *buf, TLS_CLIENT_PAR
 		    VAR_TLS_EECDH_ULTRA, params->tls_eecdh_ultra,
 		    VAR_TLS_BUG_TWEAKS, params->tls_bug_tweaks,
 		    VAR_TLS_SSL_OPTIONS, params->tls_ssl_options,
-		    VAR_TLS_DANE_AGILITY, params->tls_dane_agility,
 		    VAR_TLS_DANE_DIGESTS, params->tls_dane_digests,
 		    VAR_TLS_MGR_SERVICE, params->tls_mgr_service,
 		    VAR_TLS_TKT_CIPHER, params->tls_tkt_cipher,
-		    VAR_OPENSSL_PATH, params->openssl_path,
 		    VAR_TLS_DAEMON_RAND_BYTES, params->tls_daemon_rand_bytes,
 		    VAR_TLS_APPEND_DEF_CA, params->tls_append_def_CA,
 		    VAR_TLS_BC_PKEY_FPRINT, params->tls_bc_pkey_fprint,
-		    VAR_TLS_DANE_TAA_DGST, params->tls_dane_taa_dgst,
 		    VAR_TLS_PREEMPT_CLIST, params->tls_preempt_clist,
 		    VAR_TLS_MULTI_WILDCARD, params->tls_multi_wildcard);
     return (vstring_str(buf));

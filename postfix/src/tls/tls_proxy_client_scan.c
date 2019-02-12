@@ -130,11 +130,9 @@ void    tls_proxy_client_param_free(TLS_CLIENT_PARAMS *params)
     myfree(params->tls_eecdh_ultra);
     myfree(params->tls_bug_tweaks);
     myfree(params->tls_ssl_options);
-    myfree(params->tls_dane_agility);
     myfree(params->tls_dane_digests);
     myfree(params->tls_mgr_service);
     myfree(params->tls_tkt_cipher);
-    myfree(params->openssl_path);
     myfree((void *) params);
 }
 
@@ -156,11 +154,9 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     VSTRING *tls_eecdh_ultra = vstring_alloc(25);
     VSTRING *tls_bug_tweaks = vstring_alloc(25);
     VSTRING *tls_ssl_options = vstring_alloc(25);
-    VSTRING *tls_dane_agility = vstring_alloc(25);
     VSTRING *tls_dane_digests = vstring_alloc(25);
     VSTRING *tls_mgr_service = vstring_alloc(25);
     VSTRING *tls_tkt_cipher = vstring_alloc(25);
-    VSTRING *openssl_path = vstring_alloc(25);
 
     if (msg_verbose)
 	msg_info("begin tls_proxy_client_param_scan");
@@ -180,19 +176,15 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
 		  RECV_ATTR_STR(VAR_TLS_EECDH_ULTRA, tls_eecdh_ultra),
 		  RECV_ATTR_STR(VAR_TLS_BUG_TWEAKS, tls_bug_tweaks),
 		  RECV_ATTR_STR(VAR_TLS_SSL_OPTIONS, tls_ssl_options),
-		  RECV_ATTR_STR(VAR_TLS_DANE_AGILITY, tls_dane_agility),
 		  RECV_ATTR_STR(VAR_TLS_DANE_DIGESTS, tls_dane_digests),
 		  RECV_ATTR_STR(VAR_TLS_MGR_SERVICE, tls_mgr_service),
 		  RECV_ATTR_STR(VAR_TLS_TKT_CIPHER, tls_tkt_cipher),
-		  RECV_ATTR_STR(VAR_OPENSSL_PATH, openssl_path),
 		  RECV_ATTR_INT(VAR_TLS_DAEMON_RAND_BYTES,
 				&params->tls_daemon_rand_bytes),
 		  RECV_ATTR_INT(VAR_TLS_APPEND_DEF_CA,
 				&params->tls_append_def_CA),
 		  RECV_ATTR_INT(VAR_TLS_BC_PKEY_FPRINT,
 				&params->tls_bc_pkey_fprint),
-		  RECV_ATTR_INT(VAR_TLS_DANE_TAA_DGST,
-				&params->tls_dane_taa_dgst),
 		  RECV_ATTR_INT(VAR_TLS_PREEMPT_CLIST,
 				&params->tls_preempt_clist),
 		  RECV_ATTR_INT(VAR_TLS_MULTI_WILDCARD,
@@ -209,13 +201,11 @@ int     tls_proxy_client_param_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
     params->tls_eecdh_ultra = vstring_export(tls_eecdh_ultra);
     params->tls_bug_tweaks = vstring_export(tls_bug_tweaks);
     params->tls_ssl_options = vstring_export(tls_ssl_options);
-    params->tls_dane_agility = vstring_export(tls_dane_agility);
     params->tls_dane_digests = vstring_export(tls_dane_digests);
     params->tls_mgr_service = vstring_export(tls_mgr_service);
     params->tls_tkt_cipher = vstring_export(tls_tkt_cipher);
-    params->openssl_path = vstring_export(openssl_path);
 
-    ret = (ret == 21 ? 1 : -1);
+    ret = (ret == 18 ? 1 : -1);
     if (ret != 1) {
 	tls_proxy_client_param_free(params);
 	params = 0;
