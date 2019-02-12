@@ -38,6 +38,8 @@
   * In the serialization these attributes are identified by their configuration
   * parameter names.
   * 
+  * NOTE: this does not include openssl_path.
+  * 
   * TODO: TLS_SERVER_PARAM structure, like TLS_CLIENT_PARAMS plus
   * VAR_TLS_SERVER_SNI_MAPS.
   */
@@ -52,27 +54,23 @@ typedef struct TLS_CLIENT_PARAMS {
     char   *tls_eecdh_ultra;
     char   *tls_bug_tweaks;
     char   *tls_ssl_options;
-    char   *tls_dane_agility;
     char   *tls_dane_digests;
     char   *tls_mgr_service;
     char   *tls_tkt_cipher;
-    char   *openssl_path;
     int     tls_daemon_rand_bytes;
     int     tls_append_def_CA;
     int     tls_bc_pkey_fprint;
-    int     tls_dane_taa_dgst;
     int     tls_preempt_clist;
     int     tls_multi_wildcard;
 } TLS_CLIENT_PARAMS;
 
 #define TLS_PROXY_PARAMS(params, a1, a2, a3, a4, a5, a6, a7, a8, \
-    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18, a19, a20, a21) \
+    a9, a10, a11, a12, a13, a14, a15, a16, a17, a18) \
     (((params)->a1), ((params)->a2), ((params)->a3), \
     ((params)->a4), ((params)->a5), ((params)->a6), ((params)->a7), \
     ((params)->a8), ((params)->a9), ((params)->a10), ((params)->a11), \
     ((params)->a12), ((params)->a13), ((params)->a14), ((params)->a15), \
-    ((params)->a16), ((params)->a17), ((params)->a18), ((params)->a19), \
-    ((params)->a20), ((params)->a21))
+    ((params)->a16), ((params)->a17), ((params)->a18))
 
  /*
   * tls_proxy_client_param_misc.c, tls_proxy_client_param_print.c, and

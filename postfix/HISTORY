@@ -24114,3 +24114,17 @@ Apologies for any names omitted.
 
 	Documentation: global TLS settings. Files: mantools/postlink,
 	smtp/smtp.c, tlsproxy/tlsproxy.c.
+
+20190211
+
+	Cleanup: removed obsolete parameters: tls_dane_digest_agility,
+	tls_dane_trust_anchor_digest_enable; removed openssl_path
+	parameter from configuration difference checks in tlsproxy.
+	Files: global/mail_params.h, tls/tls_misc.c,
+	tls/tls_proxy_client_misc.c, tls/tls_proxy_client_print.c,
+	tls/tls_proxy_client_scan.c, tls/tls_proxy.h.
+
+20190212
+
+	Cleanup: missing #ifdef USE_TLS. Files: smtp/smtp_session.c,
+	posttls-finger/posttls-finger.c.

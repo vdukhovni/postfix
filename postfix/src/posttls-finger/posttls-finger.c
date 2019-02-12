@@ -1987,8 +1987,10 @@ static void parse_options(STATE *state, int argc, char *argv[])
     if (state->addr_pref < 0)
 	msg_fatal("bad '-a' option value: %s", state->options.addr_pref);
 
+#ifdef USE_TLS
     if (state->tlsproxy_mode && state->reconnect)
 	msg_fatal("The -X and -r options are mutually exclusive");
+#endif
 
     /*
      * Select hostname lookup mechanisms.

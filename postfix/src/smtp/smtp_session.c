@@ -336,11 +336,16 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
     TLS_SESS_STATE *tls_context = 0;
     SMTP_TLS_POLICY *tls = iter->parent->tls;
 
+#define TLS_PROXY_CONTEXT_FREE() do { \
+    if (tls_context) \
+	tls_proxy_context_free(tls_context); \
+   } while (0)
+#else
+#define TLS_PROXY_CONTEXT_FREE()		/* nothing */
 #endif
 
 #define SMTP_SESSION_ACTIVATE_ERR_RETURN() do { \
-	if (tls_context) \
-	    tls_proxy_context_free(tls_context); \
+	TLS_PROXY_CONTEXT_FREE(); \
 	return (0); \
    } while (0)
 
@@ -416,7 +421,9 @@ SMTP_SESSION *smtp_session_activate(int fd, SMTP_ITERATOR *iter,
 				 (time_t) 0, NO_FLAGS);
     session->features =
 	(endp_features | dest_features | SMTP_FEATURE_FROM_CACHE);
+#ifdef USE_TLS
     session->tls_context = tls_context;
+#endif
     CACHE_THIS_SESSION_UNTIL(expire_time);
     session->reuse_count = ++reuse_count;
 
