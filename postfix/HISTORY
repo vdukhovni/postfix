@@ -24128,3 +24128,30 @@ Apologies for any names omitted.
 
 	Cleanup: missing #ifdef USE_TLS. Files: smtp/smtp_session.c,
 	posttls-finger/posttls-finger.c.
+
+20190217
+
+	Cleanup: when the master daemon runs with PID=1 (init mode),
+	reap orhpan processes from non-Postfix code running in the
+	same container, instead of terminating with a panic. File:
+	master/master_spawn.c.
+
+20190218
+
+	Bugfix: tlsproxy did not enable DANE-style PKI because
+	libtls seems to have to accreted multiple init functions
+	instead of reusing the tls_client_init() and tls_client_start()
+	API. And some functions that do initialization don't even
+	have init in their name! Viktor Dukhovni. Files: tls/tls_misc.c,
+	tlsproxy/tlsproxy.c.
+
+	Workaround: Postfix libtls makes DANE-specific changes to
+	the shared SSL_CTX. To avoid false sharing, tlsproxy needs
+	to label the SSL_CTX cache with DANE bits until we can
+	remove the code that modifies SSL_CTX. File: tlsproxy/tlsproxy.c.
+
+	Cleanup: Postfix libtls changed the shared SSL_CTX to
+	override ciphers. instead of changing the SSL handle. To
+	avoid false sharing in tlsproxy, the changes are now made
+	to the SSL handle. Viktor Dukhovni. Files: tls/tls.h,
+	tls/tls_client.c, tls/tls_misc.c, tls/tls_server.c.

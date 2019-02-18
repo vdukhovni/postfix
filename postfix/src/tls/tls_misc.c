@@ -76,9 +76,8 @@
 /*	const char *str_tls_cipher_grade(grade)
 /*	int	grade;
 /*
-/*	const char *tls_set_ciphers(app_ctx, context, grade, exclusions)
-/*	TLS_APPL_STATE *app_ctx;
-/*	const char *context;
+/*	const char *tls_set_ciphers(TLScontext, grade, exclusions)
+/*	TLS_SESS_STATE *TLScontext;
 /*	int	grade;
 /*	const char *exclusions;
 /*
@@ -171,13 +170,11 @@
 /*	When the input specifies an undefined grade, str_tls_cipher_grade()
 /*	logs no warning, returns a null pointer.
 /*
-/*	tls_set_ciphers() generates a cipher list from the specified
-/*	grade, minus any ciphers specified via a list of exclusions.
-/*	The cipherlist is applied to the supplied SSL context if it
-/*	is different from the most recently applied value. The return
-/*	value is the cipherlist used and is overwritten upon each call.
-/*	When the input is invalid, tls_set_ciphers() logs a warning with
-/*	the specified context, and returns a null pointer result.
+/*	tls_set_ciphers() applies the requested cipher grade and exclusions
+/*	to the provided TLS session context, returning the resulting cipher
+/*	list string.  The return value is the cipherlist used and is
+/*	overwritten upon each call.  When the input is invalid,
+/*	tls_set_ciphers() logs a warning, and returns a null result.
 /*
 /*	tls_get_signature_params() updates the "TLScontext" with handshake
 /*	signature parameters pertaining to TLS 1.3, where the ciphersuite
@@ -536,22 +533,6 @@ typedef struct {
     int     status;
 } TLS_VINFO;
 
- /*
-  * OpenSSL adopted the cipher selection patch, so we don't expect any more
-  * broken ciphers other than AES and CAMELLIA.
-  */
-typedef struct {
-    const char *ssl_name;
-    const int alg_bits;
-    const char *evp_name;
-} cipher_probe_t;
-
-static const cipher_probe_t cipher_probes[] = {
-    "AES", 256, "AES-256-CBC",
-    "CAMELLIA", 256, "CAMELLIA-256-CBC",
-    0, 0, 0,
-};
-
 /* tls_log_mask - Convert user TLS loglevel to internal log feature mask */
 
 int     tls_log_mask(const char *log_param, const char *log_level)
@@ -568,113 +549,6 @@ int     tls_log_mask(const char *log_param, const char *log_level)
 void    tls_update_app_logmask(TLS_APPL_STATE *app_ctx, int log_mask)
 {
     app_ctx->log_mask = log_mask;
-}
-
-/* tls_exclude_missing - Append exclusions for missing ciphers */
-
-static const char *tls_exclude_missing(SSL_CTX *ctx, VSTRING *buf)
-{
-    const char *myname = "tls_exclude_missing";
-    static ARGV *exclude;		/* Cached */
-    SSL    *s = 0;
-    ssl_cipher_stack_t *ciphers;
-    const SSL_CIPHER *c;
-    const cipher_probe_t *probe;
-    int     alg_bits;
-    int     num;
-    int     i;
-
-    /*
-     * Process a list of probes which specify:
-     * 
-     * An SSL cipher-suite name for a family of ciphers that use the same
-     * symmetric algorithm at two or more key sizes, typically 128/256 bits.
-     * 
-     * The key size (typically 256) that OpenSSL fails to check, and assumes
-     * available when another key size (typically 128) is usable.
-     * 
-     * The OpenSSL name of the symmetric algorithm associated with the SSL
-     * cipher-suite. Typically, this is MUMBLE-256-CBC, where "MUMBLE" is the
-     * name of the SSL cipher-suite that use the MUMBLE symmetric algorithm.
-     * On systems that support the required encryption algorithm, the name is
-     * listed in the output of "openssl list-cipher-algorithms".
-     * 
-     * When an encryption algorithm is not available at the given key size but
-     * the corresponding OpenSSL cipher-suite contains ciphers that have have
-     * this key size, the problem ciphers are explicitly disabled in Postfix.
-     * The list is cached in the static "exclude" array.
-     */
-    if (exclude == 0) {
-	exclude = argv_alloc(1);
-
-	/*
-	 * Iterate over the probe list
-	 */
-	for (probe = cipher_probes; probe->ssl_name; ++probe) {
-	    /* No exclusions if evp_name is a valid algorithm */
-	    if (EVP_get_cipherbyname(probe->evp_name))
-		continue;
-
-	    /*
-	     * Sadly there is no SSL_CTX_get_ciphers() interface, so we are
-	     * forced to allocate and free an SSL object. Fatal error if we
-	     * can't allocate the SSL object.
-	     */
-	    ERR_clear_error();
-	    if (s == 0 && (s = SSL_new(ctx)) == 0) {
-		tls_print_errors();
-		msg_fatal("%s: error allocating SSL object", myname);
-	    }
-
-	    /*
-	     * Cipher is not supported by libcrypto, nothing to do if also
-	     * not supported by libssl. Flush the OpenSSL error stack.
-	     * 
-	     * XXX: There may be additional places in pre-existing code where
-	     * SSL errors are generated and ignored, that require a similar
-	     * "flush". Better yet, is to always flush before calls that run
-	     * tls_print_errors() on failure.
-	     * 
-	     * Contrary to documentation, on SunOS 5.10 SSL_set_cipher_list()
-	     * returns success with no ciphers selected, when this happens
-	     * SSL_get_ciphers() produces a stack with 0 elements!
-	     */
-	    if (SSL_set_cipher_list(s, probe->ssl_name) == 0
-		|| (ciphers = SSL_get_ciphers(s)) == 0
-		|| (num = sk_SSL_CIPHER_num(ciphers)) == 0) {
-		ERR_clear_error();		/* flush any generated errors */
-		continue;
-	    }
-	    for (i = 0; i < num; ++i) {
-		c = sk_SSL_CIPHER_value(ciphers, i);
-		(void) SSL_CIPHER_get_bits(c, &alg_bits);
-		if (alg_bits == probe->alg_bits)
-		    argv_add(exclude, SSL_CIPHER_get_name(c), ARGV_END);
-	    }
-	}
-	if (s != 0)
-	    SSL_free(s);
-    }
-    for (i = 0; i < exclude->argc; ++i)
-	vstring_sprintf_append(buf, ":!%s", exclude->argv[i]);
-    return (vstring_str(buf));
-}
-
-/* tls_apply_cipher_list - update SSL_CTX cipher list */
-
-static const char *tls_apply_cipher_list(TLS_APPL_STATE *app_ctx,
-				         const char *context, VSTRING *spec)
-{
-    const char *new = tls_exclude_missing(app_ctx->ssl_ctx, spec);
-
-    ERR_clear_error();
-    if (SSL_CTX_set_cipher_list(app_ctx->ssl_ctx, new) == 0) {
-	tls_print_errors();
-	vstring_sprintf(app_ctx->why, "invalid %s cipher list: \"%s\"",
-			context, new);
-	return (0);
-    }
-    return (new);
 }
 
 /* tls_protocol_mask - Bitmask of protocols to exclude */
@@ -738,11 +612,13 @@ void    tls_param_init(void)
 	VAR_OPENSSL_PATH, DEF_OPENSSL_PATH, &var_openssl_path, 1, 0,
 	0,
     };
+
     /* If this changes, update TLS_CLIENT_PARAMS in tls_proxy.h. */
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_TLS_DAEMON_RAND_BYTES, DEF_TLS_DAEMON_RAND_BYTES, &var_tls_daemon_rand_bytes, 1, 0,
 	0,
     };
+
     /* If this changes, update TLS_CLIENT_PARAMS in tls_proxy.h. */
     static const CONFIG_BOOL_TABLE bool_table[] = {
 	VAR_TLS_APPEND_DEF_CA, DEF_TLS_APPEND_DEF_CA, &var_tls_append_def_CA,
@@ -771,6 +647,8 @@ void    tls_pre_jail_init(TLS_ROLE role)
 	0,
     };
     int     flags;
+
+    tls_param_init();
 
     /* Nothing for clients at this time */
     if (role != TLS_ROLE_SERVER)
@@ -804,7 +682,6 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 		 TLScontext->namaddr, sni);
 	return SSL_TLSEXT_ERR_NOACK;
     }
-
     do {
 	/* Don't silently skip maps opened with the wrong flags. */
 	pem = maps_file_find(tls_server_sni_maps, cp, 0);
@@ -821,11 +698,12 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 	}
 	msg_info("TLS SNI %s from %s not matched, using default chain",
 		 sni, TLScontext->namaddr);
+
 	/*
 	 * XXX: We could lie and pretend to accept the name, but since we've
-	 * previously not impemented the callback (with OpenSSL then declining
-	 * the extension), and nothing bad happened, declining it explicitly
-	 * should be safe.
+	 * previously not impemented the callback (with OpenSSL then
+	 * declining the extension), and nothing bad happened, declining it
+	 * explicitly should be safe.
 	 */
 	return SSL_TLSEXT_ERR_NOACK;
     }
@@ -841,45 +719,24 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 
 /* tls_set_ciphers - Set SSL context cipher list */
 
-const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
-			          const char *grade, const char *exclusions)
+const char *tls_set_ciphers(TLS_SESS_STATE *TLScontext, const char *grade,
+			            const char *exclusions)
 {
     const char *myname = "tls_set_ciphers";
     static VSTRING *buf;
-    int     new_grade;
     char   *save;
     char   *cp;
     char   *tok;
-    const char *new_list;
 
-    new_grade = tls_cipher_grade(grade);
-    if (new_grade == TLS_CIPHER_NONE) {
-	vstring_sprintf(app_ctx->why, "invalid %s cipher grade: \"%s\"",
-			context, grade);
-	return (0);
-    }
     if (buf == 0)
 	buf = vstring_alloc(10);
     VSTRING_RESET(buf);
 
-    /*
-     * Given cached state and identical input, we return the same result.
-     */
-    if (app_ctx->cipher_list) {
-	if (new_grade == app_ctx->cipher_grade
-	    && strcmp(app_ctx->cipher_exclusions, exclusions) == 0)
-	    return (app_ctx->cipher_list);
-
-	/* Change required, flush cached state */
-	app_ctx->cipher_grade = TLS_CIPHER_NONE;
-
-	myfree(app_ctx->cipher_exclusions);
-	app_ctx->cipher_exclusions = 0;
-
-	myfree(app_ctx->cipher_list);
-	app_ctx->cipher_list = 0;
-    }
-    switch (new_grade) {
+    switch (tls_cipher_grade(grade)) {
+    case TLS_CIPHER_NONE:
+	msg_warn("%s: invalid cipher grade: \"%s\"",
+		 TLScontext->namaddr, grade);
+	return (0);
     case TLS_CIPHER_HIGH:
 	vstring_strcpy(buf, var_tls_high_clist);
 	break;
@@ -896,11 +753,8 @@ const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
 	vstring_strcpy(buf, var_tls_null_clist);
 	break;
     default:
-
-	/*
-	 * The caller MUST provide a valid cipher grade
-	 */
-	msg_panic("invalid %s cipher grade: %d", context, new_grade);
+	/* Internal error, valid grade, but missing case label. */
+	msg_panic("%s: unexpected cipher grade: %s", myname, grade);
     }
 
     /*
@@ -921,23 +775,22 @@ const char *tls_set_ciphers(TLS_APPL_STATE *app_ctx, const char *context,
 	     * Can't exclude ciphers that start with modifiers.
 	     */
 	    if (strchr("!+-@", *tok)) {
-		vstring_sprintf(app_ctx->why,
-				"invalid unary '!+-@' in %s cipher "
-				"exclusion: \"%s\"", context, tok);
+		msg_warn("%s: invalid unary '!+-@' in cipher exclusion: %s",
+			 TLScontext->namaddr, tok);
 		return (0);
 	    }
 	    vstring_sprintf_append(buf, ":!%s", tok);
 	}
 	myfree(save);
     }
-    if ((new_list = tls_apply_cipher_list(app_ctx, context, buf)) == 0)
+    ERR_clear_error();
+    if (SSL_set_cipher_list(TLScontext->con, vstring_str(buf)) == 0) {
+	msg_warn("%s: error setting cipher grade: \"%s\"",
+		 TLScontext->namaddr, grade);
+	tls_print_errors();
 	return (0);
-
-    /* Cache new state */
-    app_ctx->cipher_grade = new_grade;
-    app_ctx->cipher_exclusions = mystrdup(exclusions);
-
-    return (app_ctx->cipher_list = mystrdup(new_list));
+    }
+    return (vstring_str(buf));
 }
 
 /* tls_get_signature_params - TLS 1.3 signature details */
@@ -1118,10 +971,10 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
     const char *sni = (role == TLS_ROLE_CLIENT) ? 0 : ctx->peer_sni;
 
     /*
-     * When SNI was sent and accepted, the server-side log message now includes
-     * a "to <sni-name>" detail after the "from <namaddr>" detail identifying
-     * the remote client.  We don't presently log (purportedly) accepted SNI on
-     * the client side.
+     * When SNI was sent and accepted, the server-side log message now
+     * includes a "to <sni-name>" detail after the "from <namaddr>" detail
+     * identifying the remote client.  We don't presently log (purportedly)
+     * accepted SNI on the client side.
      */
     vstring_sprintf(msg, "%s TLS connection %s %s %s%s%s: %s"
 		    " with cipher %s (%d/%d bits)",
@@ -1129,7 +982,7 @@ void    tls_log_summary(TLS_ROLE role, TLS_USAGE usage, TLS_SESS_STATE *ctx)
 		    TLS_CERT_IS_SECURED(ctx) ? "Verified" :
 		    TLS_CERT_IS_TRUSTED(ctx) ? "Trusted" : "Untrusted",
 		    usage == TLS_USAGE_NEW ? "established" : "reused",
-		    direction, ctx->namaddr, sni ? " to " : "", sni ? sni : "",
+		 direction, ctx->namaddr, sni ? " to " : "", sni ? sni : "",
 		    ctx->protocol, ctx->cipher_name, ctx->cipher_usebits,
 		    ctx->cipher_algbits);
 
@@ -1182,11 +1035,7 @@ TLS_APPL_STATE *tls_alloc_app_context(SSL_CTX *ssl_ctx, SSL_CTX *sni_ctx,
     app_ctx->log_mask = log_mask;
 
     /* See also: cache purging code in tls_set_ciphers(). */
-    app_ctx->cipher_grade = TLS_CIPHER_NONE;
-    app_ctx->cipher_exclusions = 0;
-    app_ctx->cipher_list = 0;
     app_ctx->cache_type = 0;
-    app_ctx->why = vstring_alloc(1);
 
     if (tls_server_sni_maps) {
 	SSL_CTX_set_tlsext_servername_callback(ssl_ctx, server_sni_callback);
@@ -1205,13 +1054,6 @@ void    tls_free_app_context(TLS_APPL_STATE *app_ctx)
 	SSL_CTX_free(app_ctx->sni_ctx);
     if (app_ctx->cache_type)
 	myfree(app_ctx->cache_type);
-    /* See also: cache purging code in tls_set_ciphers(). */
-    if (app_ctx->cipher_exclusions)
-	myfree(app_ctx->cipher_exclusions);
-    if (app_ctx->cipher_list)
-	myfree(app_ctx->cipher_list);
-    if (app_ctx->why)
-	vstring_free(app_ctx->why);
     myfree((void *) app_ctx);
 }
 
