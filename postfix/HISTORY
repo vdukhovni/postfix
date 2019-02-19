@@ -24142,8 +24142,8 @@ Apologies for any names omitted.
 	libtls seems to have to accreted multiple init functions
 	instead of reusing the tls_client_init() and tls_client_start()
 	API. And some functions that do initialization don't even
-	have init in their name! Viktor Dukhovni. Files: tls/tls_misc.c,
-	tlsproxy/tlsproxy.c.
+	have init in their name! Problem report by Andreas Schulze.
+	Viktor Dukhovni. Files: tls/tls_misc.c, tlsproxy/tlsproxy.c.
 
 	Workaround: Postfix libtls makes DANE-specific changes to
 	the shared SSL_CTX. To avoid false sharing, tlsproxy needs
@@ -24155,3 +24155,10 @@ Apologies for any names omitted.
 	avoid false sharing in tlsproxy, the changes are now made
 	to the SSL handle. Viktor Dukhovni. Files: tls/tls.h,
 	tls/tls_client.c, tls/tls_misc.c, tls/tls_server.c.
+
+20190219
+
+	Bugfix: in the Postfix SMTP client, TLS wrappermode was not
+	tested in tlsproxy mode. It needed some setup for buffering
+	and timeouts. Problem report by Andreas Schulze. File:
+	smtp/smtp_proto.c.

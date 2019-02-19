@@ -1140,14 +1140,6 @@ static void tlsp_log_config_diff(const char *server_cfg, const char *client_cfg)
     myfree(saved_server);
 }
 
- /*
-  * Macro for readability.
-  */
-#define TLSP_CLIENT_INIT(params, props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14, dane_based) \
-    tlsp_client_init((params), TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
-    a5, a6, a7, a8, a9, a10, a11, a12, a13, a14), (dane_based))
-
 /* tlsp_client_init - initialize a TLS client engine */
 
 static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
@@ -1173,9 +1165,10 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * pre-jail request TLS_CLIENT_PARAMS and TLSPROXY_CLIENT_INIT_PROPS
      * settings, so that we can detect post-jail requests that do not match.
      * 
-     * Workaround: salt the hash-table key with DANE on/off info. This is needed
-     * because Postfix DANE support modifies SSL_CTX to override certificate
-     * verification. This should no longer be needed as of OpenSSL 1.0.2.
+     * Workaround: salt the hash-table key with DANE on/off info. This avoids
+     * cross-talk between DANE and non-DANE sessions. Postfix DANE support
+     * modifies SSL_CTX to override certificate verification because there is
+     * no other way to do this before OpenSSL 1.1.0.
      */
     param_buf = vstring_alloc(100);
     param_key = tls_proxy_client_param_with_names_to_string(
@@ -1675,23 +1668,24 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	 * Large parameter lists are error-prone, so we emulate a language
 	 * feature that C does not have natively: named parameter lists.
 	 */
+	(void) tls_proxy_client_param_from_config(&tls_params);
+	(void) TLS_CLIENT_INIT_ARGS(&init_props,
+				    log_param = var_tlsp_clnt_logparam,
+				    log_level = var_tlsp_clnt_loglevel,
+				    verifydepth = var_tlsp_clnt_scert_vd,
+				    cache_type = TLS_MGR_SCACHE_SMTP,
+				    chain_files = var_tlsp_clnt_chain_files,
+				    cert_file = var_tlsp_clnt_cert_file,
+				    key_file = var_tlsp_clnt_key_file,
+				    dcert_file = var_tlsp_clnt_dcert_file,
+				    dkey_file = var_tlsp_clnt_dkey_file,
+				    eccert_file = var_tlsp_clnt_eccert_file,
+				    eckey_file = var_tlsp_clnt_eckey_file,
+				    CAfile = var_tlsp_clnt_CAfile,
+				    CApath = var_tlsp_clnt_CApath,
+				    mdalg = var_tlsp_clnt_fpt_dgst);
 	for (dane_based_mode = 0; dane_based_mode < 2; dane_based_mode++) {
-	    if (TLSP_CLIENT_INIT(tls_proxy_client_param_from_config(&tls_params),
-				 &init_props,
-				 log_param = var_tlsp_clnt_logparam,
-				 log_level = var_tlsp_clnt_loglevel,
-				 verifydepth = var_tlsp_clnt_scert_vd,
-				 cache_type = TLS_MGR_SCACHE_SMTP,
-				 chain_files = var_tlsp_clnt_chain_files,
-				 cert_file = var_tlsp_clnt_cert_file,
-				 key_file = var_tlsp_clnt_key_file,
-				 dcert_file = var_tlsp_clnt_dcert_file,
-				 dkey_file = var_tlsp_clnt_dkey_file,
-				 eccert_file = var_tlsp_clnt_eccert_file,
-				 eckey_file = var_tlsp_clnt_eckey_file,
-				 CAfile = var_tlsp_clnt_CAfile,
-				 CApath = var_tlsp_clnt_CApath,
-				 mdalg = var_tlsp_clnt_fpt_dgst,
+	    if (tlsp_client_init(&tls_params, &init_props,
 				 dane_based_mode) == 0)
 		msg_warn("TLS client initialization failed");
 	}
