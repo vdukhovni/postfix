@@ -338,10 +338,6 @@ struct TLS_APPL_STATE {
     SSL_CTX *sni_ctx;
     int     log_mask;
     char   *cache_type;
-    char   *cipher_exclusions;		/* Last cipher selection state */
-    char   *cipher_list;		/* Last cipher selection state */
-    int     cipher_grade;		/* Last cipher selection state */
-    VSTRING *why;
 };
 
  /*
@@ -459,8 +455,8 @@ extern const NAME_CODE tls_cipher_grade_table[];
  /*
   * Cipher lists with exclusions.
   */
-extern const char *tls_set_ciphers(TLS_APPL_STATE *, const char *,
-				           const char *, const char *);
+extern const char *tls_set_ciphers(TLS_SESS_STATE *, const char *,
+				           const char *);
 
  /*
   * Populate TLS context with TLS 1.3-related signature parameters.

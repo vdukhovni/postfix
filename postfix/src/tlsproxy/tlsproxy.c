@@ -498,7 +498,6 @@ char   *var_tlsp_clnt_policy;
   * TLS per-process status.
   */
 static TLS_APPL_STATE *tlsp_server_ctx;
-static TLS_APPL_STATE *tlsp_client_ctx;
 static bool tlsp_pre_jail_done;
 static int ask_client_cert;
 static char *tlsp_pre_jail_client_param_key;	/* pre-jail global params */
@@ -947,7 +946,13 @@ static int tlsp_client_start_pre_handshake(TLSP_STATE *state)
 {
     state->client_start_props->ctx = state->appl_state;
     state->client_start_props->fd = state->ciphertext_fd;
-    state->tls_context = tls_client_start(state->client_start_props);
+    /* These predicates and warning belong inside tls_client_start(). */
+    if (!TLS_DANE_BASED(state->client_start_props->tls_level)
+	|| tls_dane_avail())
+	state->tls_context = tls_client_start(state->client_start_props);
+    else
+	msg_warn("%s: DANE requested, but not available",
+		 state->client_start_props->namaddr);
     if (state->tls_context != 0)
 	return (TLSP_STAT_OK);
 
@@ -1136,24 +1141,19 @@ static void tlsp_log_config_diff(const char *server_cfg, const char *client_cfg)
     myfree(saved_server);
 }
 
- /*
-  * Macro for readability.
-  */
-#define TLSP_CLIENT_INIT(params, props, a1, a2, a3, a4, a5, a6, a7, a8, a9, \
-    a10, a11, a12, a13, a14) \
-    tlsp_client_init((params), TLS_CLIENT_INIT_ARGS((props), a1, a2, a3, a4, \
-    a5, a6, a7, a8, a9, a10, a11, a12, a13, a14))
-
 /* tlsp_client_init - initialize a TLS client engine */
 
 static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
-				          TLS_CLIENT_INIT_PROPS *init_props)
+				          TLS_CLIENT_INIT_PROPS *init_props,
+					        int dane_based)
 {
     TLS_APPL_STATE *appl_state;
     VSTRING *param_buf;
     char   *param_key;
     VSTRING *init_buf;
     char   *init_key;
+    VSTRING *init_buf_for_hashing;
+    char   *init_key_for_hashing;
     int     log_hints = 0;
 
     /*
@@ -1165,6 +1165,11 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * First, compute the TLS_APPL_STATE cache lookup key. Save a copy of the
      * pre-jail request TLS_CLIENT_PARAMS and TLSPROXY_CLIENT_INIT_PROPS
      * settings, so that we can detect post-jail requests that do not match.
+     * 
+     * Workaround: salt the hash-table key with DANE on/off info. This avoids
+     * cross-talk between DANE and non-DANE sessions. Postfix DANE support
+     * modifies SSL_CTX to override certificate verification because there is
+     * no other way to do this before OpenSSL 1.1.0.
      */
     param_buf = vstring_alloc(100);
     param_key = tls_proxy_client_param_with_names_to_string(
@@ -1172,12 +1177,18 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
     init_buf = vstring_alloc(100);
     init_key = tls_proxy_client_init_with_names_to_string(
 						      init_buf, init_props);
+    init_buf_for_hashing = vstring_alloc(100);
+    init_key_for_hashing = STR(vstring_sprintf(init_buf_for_hashing, "%s%d\n",
+					       init_key, dane_based));
     if (tlsp_pre_jail_done == 0) {
-	if (tlsp_pre_jail_client_param_key != 0
-	    || tlsp_pre_jail_client_init_key != 0)
-	    msg_panic("tlsp_client_init: multiple pre-jail calls");
-	tlsp_pre_jail_client_param_key = mystrdup(param_key);
-	tlsp_pre_jail_client_init_key = mystrdup(init_key);
+	if (tlsp_pre_jail_client_param_key == 0
+	    || tlsp_pre_jail_client_init_key == 0) {
+	    tlsp_pre_jail_client_param_key = mystrdup(param_key);
+	    tlsp_pre_jail_client_init_key = mystrdup(init_key);
+	} else if (strcmp(tlsp_pre_jail_client_param_key, param_key) != 0
+		   || strcmp(tlsp_pre_jail_client_init_key, init_key) != 0) {
+	    msg_panic("tlsp_client_init: too many pre-jail calls");
+	}
     }
 
     /*
@@ -1198,7 +1209,7 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      * Look up the cached TLS_APPL_STATE for this tls_client_init request.
      */
     if ((appl_state = (TLS_APPL_STATE *)
-	 htable_find(tlsp_client_app_cache, init_key)) == 0) {
+	 htable_find(tlsp_client_app_cache, init_key_for_hashing)) == 0) {
 
 	/*
 	 * Before creating a TLS_APPL_STATE instance, log a warning if a
@@ -1249,7 +1260,7 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
      */
     if (appl_state == 0
 	&& (appl_state = tls_client_init(init_props)) != 0) {
-	(void) htable_enter(tlsp_client_app_cache, init_key,
+	(void) htable_enter(tlsp_client_app_cache, init_key_for_hashing,
 			    (void *) appl_state);
 
 	/*
@@ -1263,6 +1274,7 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
 			 SSL_MODE_ENABLE_PARTIAL_WRITE
 			 | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
     }
+    vstring_free(init_buf_for_hashing);
     vstring_free(init_buf);
     vstring_free(param_buf);
     return (appl_state);
@@ -1364,7 +1376,8 @@ static void tlsp_get_request_event(int event, void *context)
 	    return;
 	}
 	state->appl_state = tlsp_client_init(state->tls_params,
-					     state->client_init_props);
+					     state->client_init_props,
+		      TLS_DANE_BASED(state->client_start_props->tls_level));
 	ready = state->appl_state != 0;
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
@@ -1645,6 +1658,7 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
     if (clnt_use_tls || var_tlsp_clnt_per_site[0] || var_tlsp_clnt_policy[0]) {
 	TLS_CLIENT_PARAMS tls_params;
 	TLS_CLIENT_INIT_PROPS init_props;
+	int     dane_based_mode;
 
 	tls_pre_jail_init(TLS_ROLE_CLIENT);
 
@@ -1655,25 +1669,27 @@ static void pre_jail_init(char *unused_name, char **unused_argv)
 	 * Large parameter lists are error-prone, so we emulate a language
 	 * feature that C does not have natively: named parameter lists.
 	 */
-	tlsp_client_ctx =
-	    TLSP_CLIENT_INIT(tls_proxy_client_param_from_config(&tls_params),
-			     &init_props,
-			     log_param = var_tlsp_clnt_logparam,
-			     log_level = var_tlsp_clnt_loglevel,
-			     verifydepth = var_tlsp_clnt_scert_vd,
-			     cache_type = TLS_MGR_SCACHE_SMTP,
-			     chain_files = var_tlsp_clnt_chain_files,
-			     cert_file = var_tlsp_clnt_cert_file,
-			     key_file = var_tlsp_clnt_key_file,
-			     dcert_file = var_tlsp_clnt_dcert_file,
-			     dkey_file = var_tlsp_clnt_dkey_file,
-			     eccert_file = var_tlsp_clnt_eccert_file,
-			     eckey_file = var_tlsp_clnt_eckey_file,
-			     CAfile = var_tlsp_clnt_CAfile,
-			     CApath = var_tlsp_clnt_CApath,
-			     mdalg = var_tlsp_clnt_fpt_dgst);
-	if (tlsp_client_ctx == 0)
-	    msg_warn("TLS client initialization failed");
+	(void) tls_proxy_client_param_from_config(&tls_params);
+	(void) TLS_CLIENT_INIT_ARGS(&init_props,
+				    log_param = var_tlsp_clnt_logparam,
+				    log_level = var_tlsp_clnt_loglevel,
+				    verifydepth = var_tlsp_clnt_scert_vd,
+				    cache_type = TLS_MGR_SCACHE_SMTP,
+				    chain_files = var_tlsp_clnt_chain_files,
+				    cert_file = var_tlsp_clnt_cert_file,
+				    key_file = var_tlsp_clnt_key_file,
+				    dcert_file = var_tlsp_clnt_dcert_file,
+				    dkey_file = var_tlsp_clnt_dkey_file,
+				    eccert_file = var_tlsp_clnt_eccert_file,
+				    eckey_file = var_tlsp_clnt_eckey_file,
+				    CAfile = var_tlsp_clnt_CAfile,
+				    CApath = var_tlsp_clnt_CApath,
+				    mdalg = var_tlsp_clnt_fpt_dgst);
+	for (dane_based_mode = 0; dane_based_mode < 2; dane_based_mode++) {
+	    if (tlsp_client_init(&tls_params, &init_props,
+				 dane_based_mode) == 0)
+		msg_warn("TLS client initialization failed");
+	}
     }
 
     /*

@@ -908,17 +908,35 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	protomask |= TLS_PROTOCOL_SSLv2;
 
     /*
+     * Allocate a new TLScontext for the new connection and get an SSL
+     * structure. Add the location of TLScontext to the SSL to later retrieve
+     * the information inside the tls_verify_certificate_callback().
+     * 
+     * If session caching was enabled when TLS was initialized, the cache type
+     * is stored in the client SSL context.
+     */
+    TLScontext = tls_alloc_sess_context(log_mask, props->namaddr);
+    TLScontext->cache_type = app_ctx->cache_type;
+
+    if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
+	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
+	tls_print_errors();
+	tls_free_context(TLScontext);
+	return (0);
+    }
+
+    /*
      * Per session cipher selection for sessions with mandatory encryption
      * 
      * The cipherlist is applied to the global SSL context, since it is likely
      * to stay the same between connections, so we make use of a 1-element
      * cache to return the same result for identical inputs.
      */
-    cipher_list = tls_set_ciphers(app_ctx, "TLS", props->cipher_grade,
+    cipher_list = tls_set_ciphers(TLScontext, props->cipher_grade,
 				  props->cipher_exclusions);
     if (cipher_list == 0) {
-	msg_warn("%s: %s: aborting TLS session",
-		 props->namaddr, vstring_str(app_ctx->why));
+	/* already warned */
+	tls_free_context(TLScontext);
 	return (0);
     }
     if (log_mask & TLS_LOG_VERBOSE)
@@ -949,17 +967,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     myserverid = tls_serverid_digest(props, protomask, cipher_list);
 
-    /*
-     * Allocate a new TLScontext for the new connection and get an SSL
-     * structure. Add the location of TLScontext to the SSL to later retrieve
-     * the information inside the tls_verify_certificate_callback().
-     * 
-     * If session caching was enabled when TLS was initialized, the cache type
-     * is stored in the client SSL context.
-     */
-    TLScontext = tls_alloc_sess_context(log_mask, props->namaddr);
-    TLScontext->cache_type = app_ctx->cache_type;
-
     TLScontext->serverid = myserverid;
     TLScontext->stream = props->stream;
     TLScontext->mdalg = props->mdalg;
@@ -967,12 +974,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     /* Alias DANE digest info from props */
     TLScontext->dane = props->dane;
 
-    if ((TLScontext->con = SSL_new(app_ctx->ssl_ctx)) == NULL) {
-	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
-	tls_print_errors();
-	tls_free_context(TLScontext);
-	return (0);
-    }
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
 	msg_warn("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();

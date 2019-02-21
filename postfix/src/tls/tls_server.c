@@ -779,16 +779,6 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     if (log_mask & TLS_LOG_VERBOSE)
 	msg_info("setting up TLS connection from %s", props->namaddr);
 
-    cipher_list = tls_set_ciphers(app_ctx, "TLS", props->cipher_grade,
-				  props->cipher_exclusions);
-    if (cipher_list == 0) {
-	msg_warn("%s: %s: aborting TLS session", props->namaddr,
-		 vstring_str(app_ctx->why));
-	return (0);
-    }
-    if (log_mask & TLS_LOG_VERBOSE)
-	msg_info("%s: TLS cipher list \"%s\"", props->namaddr, cipher_list);
-
     /*
      * Allocate a new TLScontext for the new connection and get an SSL
      * structure. Add the location of TLScontext to the SSL to later retrieve
@@ -797,11 +787,6 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
     TLScontext = tls_alloc_sess_context(log_mask, props->namaddr);
     TLScontext->cache_type = app_ctx->cache_type;
 
-    TLScontext->serverid = mystrdup(props->serverid);
-    TLScontext->am_server = 1;
-    TLScontext->stream = props->stream;
-    TLScontext->mdalg = props->mdalg;
-
     ERR_clear_error();
     if ((TLScontext->con = (SSL *) SSL_new(app_ctx->ssl_ctx)) == 0) {
 	msg_warn("Could not allocate 'TLScontext->con' with SSL_new()");
@@ -809,6 +794,21 @@ TLS_SESS_STATE *tls_server_start(const TLS_SERVER_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
+    cipher_list = tls_set_ciphers(TLScontext, props->cipher_grade,
+				  props->cipher_exclusions);
+    if (cipher_list == 0) {
+	/* already warned */
+	tls_free_context(TLScontext);
+	return (0);
+    }
+    if (log_mask & TLS_LOG_VERBOSE)
+	msg_info("%s: TLS cipher list \"%s\"", props->namaddr, cipher_list);
+
+    TLScontext->serverid = mystrdup(props->serverid);
+    TLScontext->am_server = 1;
+    TLScontext->stream = props->stream;
+    TLScontext->mdalg = props->mdalg;
+
     if (!SSL_set_ex_data(TLScontext->con, TLScontext_index, TLScontext)) {
 	msg_warn("Could not set application data for 'TLScontext->con'");
 	tls_print_errors();

@@ -337,6 +337,8 @@ int     smtp_helo(SMTP_STATE *state)
 	&& (state->misc_flags & SMTP_MISC_FLAG_IN_STARTTLS) == 0) {
 	/* XXX Mix-up of per-session and per-request flags. */
 	state->misc_flags |= SMTP_MISC_FLAG_IN_STARTTLS;
+	smtp_stream_setup(state->session->stream, var_smtp_starttls_tmout,
+			  var_smtp_rec_deadline);
 	tls_helo_status = smtp_start_tls(state);
 	state->misc_flags &= ~SMTP_MISC_FLAG_IN_STARTTLS;
 	return (tls_helo_status);
