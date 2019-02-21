@@ -701,7 +701,7 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 
 	/*
 	 * XXX: We could lie and pretend to accept the name, but since we've
-	 * previously not impemented the callback (with OpenSSL then
+	 * previously not implemented the callback (with OpenSSL then
 	 * declining the extension), and nothing bad happened, declining it
 	 * explicitly should be safe.
 	 */

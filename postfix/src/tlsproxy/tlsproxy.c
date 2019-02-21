@@ -946,6 +946,7 @@ static int tlsp_client_start_pre_handshake(TLSP_STATE *state)
 {
     state->client_start_props->ctx = state->appl_state;
     state->client_start_props->fd = state->ciphertext_fd;
+    /* These predicates and warning belong inside tls_client_start(). */
     if (!TLS_DANE_BASED(state->client_start_props->tls_level)
 	|| tls_dane_avail())
 	state->tls_context = tls_client_start(state->client_start_props);
