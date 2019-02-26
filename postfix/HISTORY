@@ -22458,3 +22458,18 @@ Apologies for any names omitted.
 	tls/tls_client.c, tls/tls_misc.c, tls/tls_proxy.h,
 	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
 	tls/tls_server.c.
+
+20181202
+
+	Bugfix (introduced: postfix-2.11): with posttls-finger,
+	connections to unix-domain servers always resulted in "Failed
+	to establish session" even after a connection was established.
+	Jaroslav Skarva.  File: posttls-finger/posttls-finger.c.
+
+20181227 (a forgotten bugfix from 20180707)
+
+        Bugfix (introduced: Postfix 3.0): with smtputf8_enable=yes,
+        table lookups could casefold the search string when searching
+        a lookup table that does not use fixed-string keys (regexp,
+        pcre, tcp, etc.). Historically, Postfix would not case-fold
+        the search string with such tables. File: util/dict_utf8.c.
