@@ -1409,7 +1409,7 @@ static int connect_dest(STATE *state)
      */
     if (state->smtp == 0) {
 	if (strncmp(dest, "unix:", 5) == 0) {
-	    connect_unix(state, dest + 5);
+	    state->stream = connect_unix(state, dest + 5);
 	    if (!state->stream)
 		msg_info("Failed to establish session to %s: %s",
 			 dest, vstring_str(state->why->reason));
