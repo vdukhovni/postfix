@@ -104,8 +104,9 @@ static char *dict_utf8_check_fold(DICT *dict, const char *string,
     /*
      * Casefold UTF-8.
      */
-    if (fold_flag != 0 && (fold_flag & (dict->flags & DICT_FLAG_FIXED) ?
-			   DICT_FLAG_FOLD_FIX : DICT_FLAG_FOLD_MUL)) {
+    if (fold_flag != 0
+	&& (fold_flag & ((dict->flags & DICT_FLAG_FIXED) ?
+			 DICT_FLAG_FOLD_FIX : DICT_FLAG_FOLD_MUL))) {
 	if (dict->fold_buf == 0)
 	    dict->fold_buf = vstring_alloc(10);
 	return (casefold(dict->fold_buf, string));
