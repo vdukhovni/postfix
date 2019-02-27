@@ -253,12 +253,21 @@ localparts (and in headers) as before. The vast majority of email software is
 perfectly capable of handling such email, even if pre-SMTPUTF8 standards do not
 support such practice.
 
-However, when you specify "smtputf8_enable = yes", Postfix requires that non-
-ASCII address information is encoded in UTF-8 and will reject other encodings
-such as ISO-8859. It is not practical for Postfix to support multiple encodings
-at the same time. There is no problem with RFC 2047 encodings such as "=?ISO-
-8859-1?Q?text?=", because those use only characters from the ASCII
-characterset.
+RReejjeeccttiinngg nnoonn--UUTTFF88 aaddddrreesssseess
+
+With "smtputf8_enable = yes", Postfix requires that non-ASCII address
+information is encoded in UTF-8 and will reject other encodings such as ISO-
+8859. It is not practical for Postfix to support multiple encodings at the same
+time. There is no problem with RFC 2047 encodings such as "=?ISO-8859-
+1?Q?text?=", because those use only characters from the ASCII characterset.
+
+RReejjeeccttiinngg nnoonn--AASSCCIIII aaddddrreesssseess iinn nnoonn--SSMMTTPPUUTTFF88 ttrraannssaaccttiioonnss
+
+Setting "strict_smtputf8 = yes" in addition to "smtputf8_enable = yes" will
+enable stricter enforcement of the SMTPUTF8 protocol. Specifically, the Postfix
+SMTP server will not only reject non-UTF8 sender or recipient addresses, it
+will in addition accept UTF-8 sender or recipient addresses only when the
+client requests an SMTPUTF8 mail transaction.
 
 CCoommppaattiibbiilliittyy wwiitthh IIDDNNAA22000033
 

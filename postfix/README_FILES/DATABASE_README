@@ -269,7 +269,8 @@ To find out what database types your Postfix system supports, use the "ppooss
         {result1. ..., resultn}". Each table query returns a random choice from
         the specified results. The first and last characters of the "randmap:
         " table name must be "{" and "}". Within these, individual maps are
-        separated with comma or whitespace.
+        separated with comma or whitespace. To give a specific result more
+        weight, specify it multiple times.
     rreeggeexxpp (read-only)
         A lookup table based on regular expressions. The file format is
         described in regexp_table(5). The lookup table name as used in "regexp:

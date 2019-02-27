@@ -298,7 +298,7 @@ table. </p>
 <p> This works "out of the box" with no need for additional
 configuration. </p>
 
-<p> Postfix &ge; 3.2 supports the curve negotitation API of OpenSSL
+<p> Postfix &ge; 3.2 supports the curve negotiation API of OpenSSL
 &ge; 1.0.2.  The list of candidate curves can be changed via the
 "tls_eecdh_auto_curves" configuration parameter, which can be used
 to select a prioritized list of supported curves (most preferred
@@ -549,7 +549,7 @@ postfix/smtp[<i>process-id</i>]:
 
 <p> In the above connections, the "key-exchange" value records the
 "Diffie-Hellman" algorithm used for key agreement.  The "server-signature" value
-records the public key algoritm used by the server to sign the key exchange.
+records the public key algorithm used by the server to sign the key exchange.
 The "server-digest" value records any hash algorithm used to prepare the data
 for signing.  With "ED25519" and "ED448", no separate hash algorithm is used.
 </p>
