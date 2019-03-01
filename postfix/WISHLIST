@@ -7,6 +7,10 @@ Wish list:
 
 	Disable -DSNAPSHOT and -DNONPROD in makedefs.
 
+	Move map descriptions from postconf(1) to DATABASE_README
+	and point there. The text in DATABASE_README is less complete
+	than that in postconf(1).
+
 	make tls_pre_jail_init() safe by design for use in programs
 	that implement both clients and servers.
 

@@ -24162,3 +24162,13 @@ Apologies for any names omitted.
 	tested in tlsproxy mode. It needed some setup for buffering
 	and timeouts. Problem report by Andreas Schulze. File:
 	smtp/smtp_proto.c.
+
+20190226
+
+	Documentation: postconf(1) and DATABASE_README were out of
+	sync. Added a note that this should be deduplicated. File:
+	proto/DATABASE_README.html.
+
+20190227
+
+	Documentation: strict_smtputf8 in SMTPUTF8_README.
