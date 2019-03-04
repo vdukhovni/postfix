@@ -24162,3 +24162,10 @@ Apologies for any names omitted.
 	tested in tlsproxy mode. It needed some setup for buffering
 	and timeouts. Problem report by Andreas Schulze. File:
 	smtp/smtp_proto.c.
+
+20190304
+
+	Bugfix: a reversed test broke TLS configurations that have
+	the private key and certificate in the same file. Reported
+	by Mike Kazantsev. Fix by Viktor Dukhovni. File:
+	tls/tls_certkey.c.
