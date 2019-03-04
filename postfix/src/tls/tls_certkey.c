@@ -589,7 +589,7 @@ static int set_cert_stuff(SSL_CTX *ctx, const char *cert_type,
      * single pass, avoiding potential race conditions during key rollover.
      */
     if (strcmp(cert_file, key_file) == 0)
-	return (load_mixed_file(ctx, cert_file));
+	return (load_mixed_file(ctx, cert_file) == 0);
 
     /*
      * We need both the private key (in key_file) and the public key

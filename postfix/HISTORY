@@ -24172,3 +24172,10 @@ Apologies for any names omitted.
 20190227
 
 	Documentation: strict_smtputf8 in SMTPUTF8_README.
+
+20190304
+
+	Bugfix: a reversed test broke TLS configurations that have
+	the private key and certificate in the same file. Reported
+	by Mike Kazantsev. Fix by Viktor Dukhovni. File:
+	tls/tls_certkey.c.
