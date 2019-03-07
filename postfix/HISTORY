@@ -24175,7 +24175,7 @@ Apologies for any names omitted.
 
 20190304
 
-	Bugfix: a reversed test broke TLS configurations that have
-	the private key and certificate in the same file. Reported
-	by Mike Kazantsev. Fix by Viktor Dukhovni. File:
-	tls/tls_certkey.c.
+	Bugfix: a reversed test broke TLS configurations that specify
+	the same filename for a private key and certificate. Reported
+	by Mike Kazantsev. Fix by Viktor Dukhovni. Wietse fixed the
+	test. Files: tls/tls_certkey.c, tls/Makefile.in.

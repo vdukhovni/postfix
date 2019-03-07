@@ -58,6 +58,16 @@ tls_certkey_tests: test
 	    $(SHLIB_ENV) $(VALGRIND) ./tls_certkey -m $$pem > $$pem.out 2>&1 || exit 1; \
 	    diff $$pem.ref $$pem.out || exit 1; \
 	    echo "  $$pem: OK"; \
+	    $(SHLIB_ENV) $(VALGRIND) ./tls_certkey -k $$pem $$pem > $$pem.out 2>&1 || exit 1; \
+	    diff $$pem.ref $$pem.out || exit 1; \
+	    echo "  $$pem (with key in $$pem): OK"; \
+	    case $$pem in good-*) \
+		ln -sf $$pem tmpkey.pem; \
+		$(SHLIB_ENV) $(VALGRIND) ./tls_certkey -k tmpkey.pem $$pem > $$pem.out 2>&1 || exit 1; \
+		diff $$pem.ref $$pem.out || exit 1; \
+		echo "  $$pem (with key in tmpkey.pem): OK"; \
+		rm -f tmpkey.pem;; \
+	    esac; \
 	done; \
 	for pem in bad-*.pem; do \
 	    $(SHLIB_ENV) $(VALGRIND) ./tls_certkey $$pem > $$pem.out 2>&1 && exit 1 || : ok; \
