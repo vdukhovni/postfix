@@ -1125,7 +1125,6 @@ TLS_DANE *tls_dane_resolve(unsigned port, const char *proto, DNS_RR *hostrr,
 
 int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 {
-#ifdef TRUST_ANCHOR_SUPPORT
     BIO    *bp;
     char   *name = 0;
     char   *header = 0;
@@ -1217,9 +1216,6 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
     }
     /* Some other PEM read error */
     tls_print_errors();
-#else
-    msg_warn("Trust anchor files not supported");
-#endif
     return (0);
 }
 
