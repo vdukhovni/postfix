@@ -24179,3 +24179,20 @@ Apologies for any names omitted.
 	the same filename for a private key and certificate. Reported
 	by Mike Kazantsev. Fix by Viktor Dukhovni. Wietse fixed the
 	test. Files: tls/tls_certkey.c, tls/Makefile.in.
+
+20190310
+
+	Bitrot: LINUX5s support, after some sanity checks with a
+	rawhide prerelease version. Files: makedefs, util/sys_defs.h.
+
+	Bugfix (introduced: 20181226): broken DANE trust anchor
+	file support, caused by left-over debris from the 20181226
+	TLS library overhaul. Scott Kitterman. File: tls/tls_dane.c.
+
+	Bugfix (introduced: Postfix-1.0.1): null pointer read, while
+	logging a warning after a corrupted bounce log file. File:
+	global/bounce_log.c.
+
+	Bugfix (introduced: Postfix-2.9.0): null pointer read, while
+	logging a warning after a postscreen_command_filter read
+	error. File: postscreen/postscreen_smtpd.c. global/bounce_log.c
