@@ -4583,7 +4583,7 @@ static int generic_checks(SMTPD_STATE *state, ARGV *restrictions,
 		status = check_recipient_rcpt_maps(state, state->recipient);
 	} else if (strcasecmp(name, REJECT_MUL_RCPT_BOUNCE) == 0) {
 	    if (state->sender && *state->sender == 0 && state->rcpt_count
-		> (strcmp(state->where, SMTPD_CMD_DATA) ? 0 : 1))
+		> (strcmp(state->where, SMTPD_CMD_RCPT) != 0))
 		status = smtpd_check_reject(state, MAIL_ERROR_POLICY,
 					    var_mul_rcpt_code, "5.5.3",
 				"<%s>: %s rejected: Multi-recipient bounce",
