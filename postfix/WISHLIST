@@ -1,5 +1,7 @@
 Wish list:
 
+	XCLIENT/XFORWARD should canonicalize address forms.
+
 	Things to do before the stable release:
 
 	Spell-check, double-word check, HTML validator check,

@@ -24187,7 +24187,7 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: 20181226): broken DANE trust anchor
 	file support, caused by left-over debris from the 20181226
-	TLS library overhaul. Scott Kitterman. File: tls/tls_dane.c.
+	TLS library overhaul. By intrigeri. File: tls/tls_dane.c.
 
 	Bugfix (introduced: Postfix-1.0.1): null pointer read, while
 	logging a warning after a corrupted bounce log file. File:
@@ -24196,3 +24196,11 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix-2.9.0): null pointer read, while
 	logging a warning after a postscreen_command_filter read
 	error. File: postscreen/postscreen_smtpd.c. global/bounce_log.c
+
+20190312
+
+	Bugfix (introduced: Postfix 2.2): reject_multi_recipient_bounce
+	produce false rejects with smtpd_end_of_data_restrictons,
+	and for the same reasons, with the Postfix 3.4 BDAT command.
+	The latter was reported by Andreas Schulze. File:
+	smtpd/smtpd_check.c.
