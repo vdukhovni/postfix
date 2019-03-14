@@ -24190,8 +24190,8 @@ Apologies for any names omitted.
 20190312
 
 	Bugfix (introduced: Postfix 2.2): reject_multi_recipient_bounce
-	produce false rejects with smtpd_end_of_data_restrictons,
-	and for the same reasons, with the Postfix 3.4 BDAT command.
-	The latter was reported by Andreas Schulze. File:
-	smtpd/smtpd_check.c.
+	has been producing false rejects starting with the Postfix
+	2.2 smtpd_end_of_data_restrictons, and for the same reasons,
+	does the same with the Postfix 3.4 BDAT command. The latter
+	was reported by Andreas Schulze. File: smtpd/smtpd_check.c.
 
