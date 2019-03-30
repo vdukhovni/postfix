@@ -24195,3 +24195,16 @@ Apologies for any names omitted.
 	does the same with the Postfix 3.4 BDAT command. The latter
 	was reported by Andreas Schulze. File: smtpd/smtpd_check.c.
 
+20190319
+
+	With message_size_limit=0 (which is NOT DOCUMENTED), BDAT
+	chunks were always rejected as too large. File: smtpd/smtpd.c
+
+20190328
+
+	Bugfix (introduced: Postfix 3.0): LMTP connections over
+	UNIX-domain sockets were cached but not reused, due to a
+	cache lookup key mismatch. Therefore, idle cached connections
+	could exhaust LMTP server resources, resulting in two-second
+	pauses between email deliveries. This problem was investigated
+	by Juliana Rodrigueiro. File: smtp/smtp_connect.c.

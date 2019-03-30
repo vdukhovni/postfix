@@ -3878,7 +3878,8 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     /* Block too large chunks. */
-    if (state->act_size > var_message_limit - chunk_size) {
+    if (var_message_limit > 0
+	&& state->act_size > var_message_limit - chunk_size) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	msg_warn("%s: BDAT request from %s exceeds message size limit",
 		 state->queue_id ? state->queue_id : "NOQUEUE",
