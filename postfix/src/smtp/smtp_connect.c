@@ -492,6 +492,8 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
      * the "unix:" prefix.
      */
     smtp_cache_policy(state, path);
+    if (state->misc_flags & SMTP_MISC_FLAG_CONN_CACHE_MASK)
+	SET_NEXTHOP_STATE(state, path);
 
     /*
      * Here we ensure that the iter->addr member refers to a copy of the
@@ -567,6 +569,12 @@ static void smtp_connect_local(SMTP_STATE *state, const char *path)
 	    msg_panic("%s: unix-domain destination not final!", myname);
 	smtp_cleanup_session(state);
     }
+
+    /*
+     * Cleanup.
+     */
+    if (HAVE_NEXTHOP_STATE(state))
+	FREE_NEXTHOP_STATE(state);
 }
 
 /* smtp_scrub_address_list - delete all cached addresses from list */
