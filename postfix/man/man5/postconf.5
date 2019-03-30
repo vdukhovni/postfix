@@ -3750,7 +3750,7 @@ substitutions in regular expression maps.
 This feature is available in Postfix 2.3 and later.
 .SH maillog_file (default: empty)
 The name of an optional logfile that is written by the Postfix
-\fBpostlogd\fR(8) service. A non\-empty value selects logging to \fBsyslogd\fR(8).
+\fBpostlogd\fR(8) service. An empty value selects logging to \fBsyslogd\fR(8).
 Specify "/dev/stdout" to select logging to standard output. Stdout
 logging requires that Postfix is started with "postfix start\-fg".
 .PP
