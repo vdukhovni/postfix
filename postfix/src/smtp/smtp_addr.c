@@ -623,7 +623,7 @@ DNS_RR *smtp_domain_addr(const char *name, DNS_RR **mxrr, int misc_flags,
 	    if (var_smtp_rand_addr)
 		addr_list = dns_rr_shuffle(addr_list);
 	    addr_list = dns_rr_sort(addr_list, SMTP_COMPARE_ADDR(misc_flags));
-	    if (var_smtp_balance_inet_proto)
+	    if (var_smtp_mxaddr_limit > 0 && var_smtp_balance_inet_proto)
 		addr_list = smtp_balance_inet_proto(addr_list, misc_flags,
 						    var_smtp_mxaddr_limit);
 	}
@@ -683,7 +683,7 @@ DNS_RR *smtp_host_addr(const char *host, int misc_flags, DSN_BUF *why)
 	/* The following changes the order of equal-preference hosts. */
 	if (inet_proto_info()->ai_family_list[1] != 0)
 	    addr_list = dns_rr_sort(addr_list, SMTP_COMPARE_ADDR(misc_flags));
-	if (var_smtp_balance_inet_proto)
+	if (var_smtp_mxaddr_limit > 0 && var_smtp_balance_inet_proto)
 	    addr_list = smtp_balance_inet_proto(addr_list, misc_flags,
 						var_smtp_mxaddr_limit);
     }

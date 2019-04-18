@@ -18,7 +18,8 @@
 /*	Arguments (multiple alternatives are separated by "\fB|\fR"):
 /* .IP "\fB-a accept|tempfail|reject|discard|skip|\fIddd x.y.z text\fR"
 /*	Specifies a non-default reply for the MTA command specified
-/*	with \fB-c\fR. The default is \fBtempfail\fR.
+/*	with \fB-c\fR. The default is \fBtempfail\fR. The \fItext\fR
+/*	is repeated once, to produce multi-line reply text.
 /* .IP "\fB-A address\fR"
 /*	Add the specified recipient address (specify ESMTP parameters
 /*	separated by space). Multiple -A options are supported.
@@ -218,7 +219,7 @@ static int test_reply(SMFICTX *ctx, int code)
     if (code == SMFIR_REPLYCODE) {
 	if (smfi_setmlreply(ctx, reply_code, reply_dsn, reply_message, reply_message, (char *) 0) == MI_FAILURE)
 	    fprintf(stderr, "smfi_setmlreply failed\n");
-	printf("test_reply %s\n", reply_code);
+	printf("test_reply %s\n\n", reply_code);
 	return (reply_code[0] == '4' ? SMFIS_TEMPFAIL : SMFIS_REJECT);
     } else {
 	printf("test_reply %d\n\n", code);

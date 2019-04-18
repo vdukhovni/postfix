@@ -3528,6 +3528,11 @@ static int common_post_message_handling(SMTPD_STATE *state)
     int     saved_err;
     const CLEANUP_STAT_DETAIL *detail;
 
+#define IS_SMTP_REJECT(s) \
+	(((s)[0] == '4' || (s)[0] == '5') \
+	 && ISDIGIT((s)[1]) && ISDIGIT((s)[2]) \
+	 && ((s)[3] == '\0' || (s)[3] == ' ' || (s)[3] == '-'))
+
     if (state->err == CLEANUP_STAT_OK
 	&& SMTPD_STAND_ALONE(state) == 0
 	&& (err = smtpd_check_eod(state)) != 0) {
@@ -3598,7 +3603,10 @@ static int common_post_message_handling(SMTPD_STATE *state)
 	if (state->err == 0) {
 	    why = vstring_alloc(10);
 	    state->err = mail_stream_finish(state->dest, why);
-	    printable(STR(why), ' ');
+	    if (IS_SMTP_REJECT(STR(why)))
+		printable_except(STR(why), ' ', "\r\n");
+	    else
+		printable(STR(why), ' ');
 	} else
 	    mail_stream_cleanup(state->dest);
 	state->dest = 0;
@@ -3633,11 +3641,6 @@ static int common_post_message_handling(SMTPD_STATE *state)
      * 
      * See also: qmqpd.c
      */
-#define IS_SMTP_REJECT(s) \
-	(((s)[0] == '4' || (s)[0] == '5') \
-	 && ISDIGIT((s)[1]) && ISDIGIT((s)[2]) \
-	 && ((s)[3] == '\0' || (s)[3] == ' ' || (s)[3] == '-'))
-
     if (state->err == CLEANUP_STAT_OK) {
 	state->error_count = 0;
 	state->error_mask = 0;

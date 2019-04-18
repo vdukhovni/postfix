@@ -24219,3 +24219,24 @@ Apologies for any names omitted.
 	could exhaust LMTP server resources, resulting in two-second
 	pauses between email deliveries. This problem was investigated
 	by Juliana Rodrigueiro. File: smtp/smtp_connect.c.
+
+20190331
+
+	Documentation: tlsext_padding is not a tls_ssl_options
+	feature. File: proto/postconf.proto.
+
+20190401
+
+	Portability: to avoid a compile-time error on Solaris, added
+	"#undef sun" to util/unix_dgram_connect.c.
+
+20190403
+
+	Bugfix (introduced: Postfix 2.3): a censoring filter broke
+	multiline Milter responses for header/body events. Problem
+	report by Andreas Thienemann. Files: util/printable.c,
+	util/stringops.h, smtpd/smtpd.c.
+
+	Bugfix (introduced: Postfix 3.3): "smtp_mx_address_limit = 0"
+	no longer meant 'unlimited'. Problem report by Luc Pardon.
+	File: smtp/smtp_addr.c.
