@@ -221,6 +221,7 @@ smtpd.o: ../../include/mymalloc.h
 smtpd.o: ../../include/namadr_list.h
 smtpd.o: ../../include/name_code.h
 smtpd.o: ../../include/name_mask.h
+smtpd.o: ../../include/normalize_mailhost_addr.h
 smtpd.o: ../../include/nvtable.h
 smtpd.o: ../../include/off_cvt.h
 smtpd.o: ../../include/quote_822_local.h

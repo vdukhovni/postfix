@@ -19,7 +19,8 @@
 /*	null in case of success, a pointer to text (with the error
 /*	type) in case of error. If both IPv6 and IPv4 support are
 /*	enabled, IPV4_IN_IPV6 address syntax (::ffff:1.2.3.4) is
-/*	converted to IPV4 syntax.
+/*	converted to IPV4 syntax, provided that IPv4 support is
+/*	enabled.
 /* LICENSE
 /* .ad
 /* .fi
@@ -29,6 +30,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -109,6 +115,9 @@ static int haproxy_srvr_parse_proto(const char *str, int *addr_family)
 static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
 				           int addr_family)
 {
+    struct addrinfo *res = 0;
+    int     err;
+
     if (msg_verbose)
 	msg_info("haproxy_srvr_parse: addr=%s proto=%d", str, addr_family);
 
@@ -118,26 +127,28 @@ static int haproxy_srvr_parse_addr(const char *str, MAI_HOSTADDR_STR *addr,
     switch (addr_family) {
 #ifdef AF_INET6
     case AF_INET6:
-	if (!valid_ipv6_hostaddr(str, DONT_GRIPE))
-	    return (-1);
-	if (strncasecmp("::ffff:", str, 7) == 0
-	    && strchr((char *) proto_info->sa_family_list, AF_INET) != 0) {
-	    memcpy(addr->buf, str + 7, strlen(str) + 1 - 7);
-	    return (0);
-	} else {
-	    memcpy(addr->buf, str, strlen(str) + 1);
-	    return (0);
-	}
+	err = !valid_ipv6_hostaddr(str, DONT_GRIPE);
+	break;
 #endif
     case AF_INET:
-	if (!valid_ipv4_hostaddr(str, DONT_GRIPE))
-	    return (-1);
-	memcpy(addr->buf, str, strlen(str) + 1);
-	return (0);
+	err = !valid_ipv4_hostaddr(str, DONT_GRIPE);
+	break;
     default:
 	msg_panic("haproxy_srvr_parse: unexpected address family: %d",
 		  addr_family);
     }
+    if (err == 0)
+	err = (hostaddr_to_sockaddr(str, (char *) 0, 0, &res)
+	       || sockaddr_to_hostaddr(res->ai_addr, res->ai_addrlen,
+				       addr, (MAI_SERVPORT_STR *) 0, 0));
+    if (res)
+	freeaddrinfo(res);
+    if (err)
+	return (-1);
+    if (addr->buf[0] == ':' && strncasecmp("::ffff:", addr->buf, 7) == 0
+	&& strchr((char *) proto_info->sa_family_list, AF_INET) != 0)
+	memmove(addr->buf, addr->buf + 7, strlen(addr->buf) + 1 - 7);
+    return (0);
 }
 
 /* haproxy_srvr_parse_port - extract and validate TCP port */
@@ -195,3 +206,113 @@ const char *haproxy_srvr_parse(const char *str,
     myfree(saved_str);
     return (err);
 }
+
+ /*
+  * Test program.
+  */
+#ifdef TEST
+int     main(int argc, char **argv)
+{
+    /* Test cases with inputs and expected outputs. */
+    typedef struct TEST_CASE {
+	const char *haproxy_request;
+	const char *exp_return;
+	const char *exp_client_addr;
+	const char *exp_server_addr;
+	const char *exp_client_port;
+	const char *exp_server_port;
+    } TEST_CASE;
+    static TEST_CASE test_cases[] = {
+	/* IPv6. */
+	{"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1 123 321", 0, "fc::1:2:3:4", "fc::4:3:2:1", "123", "321"},
+	{"PROXY TCP6 FC:00:00:00:1:2:3:4 FC:00:00:00:4:3:2:1 123 321", 0, "fc::1:2:3:4", "fc::4:3:2:1", "123", "321"},
+	{"PROXY TCP6 1.2.3.4 4.3.2.1 123 321", "unexpected client address syntax"},
+	{"PROXY TCP6 fc:00:00:00:1:2:3:4 4.3.2.1 123 321", "unexpected server address syntax"},
+	/* IPv4 in IPv6. */
+	{"PROXY TCP6 ::ffff:1.2.3.4 ::ffff:4.3.2.1 123 321", 0, "1.2.3.4", "4.3.2.1", "123", "321"},
+	{"PROXY TCP6 ::FFFF:1.2.3.4 ::FFFF:4.3.2.1 123 321", 0, "1.2.3.4", "4.3.2.1", "123", "321"},
+	{"PROXY TCP4 ::ffff:1.2.3.4 ::ffff:4.3.2.1 123 321", "unexpected client address syntax"},
+	{"PROXY TCP4 1.2.3.4 ::ffff:4.3.2.1 123 321", "unexpected server address syntax"},
+	/* IPv4. */
+	{"PROXY TCP4 1.2.3.4 4.3.2.1 123 321", 0, "1.2.3.4", "4.3.2.1", "123", "321"},
+	{"PROXY TCP4 01.02.03.04 04.03.02.01 123 321", 0, "1.2.3.4", "4.3.2.1", "123", "321"},
+	{"PROXY TCP4 1.2.3.4 4.3.2.1 123456 321", "unexpected client port syntax"},
+	{"PROXY TCP4 1.2.3.4 4.3.2.1 123 654321", "unexpected server port syntax"},
+	{"PROXY TCP4 1.2.3.4 4.3.2.1 0123 321", "unexpected client port syntax"},
+	{"PROXY TCP4 1.2.3.4 4.3.2.1 123 0321", "unexpected server port syntax"},
+	/* Missing fields. */
+	{"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1 123", "unexpected server port syntax"},
+	{"PROXY TCP6 fc:00:00:00:1:2:3:4 fc:00:00:00:4:3:2:1", "unexpected client port syntax"},
+	{"PROXY TCP6 fc:00:00:00:1:2:3:4", "unexpected server address syntax"},
+	{"PROXY TCP6", "unexpected client address syntax"},
+	{"PROXY TCP4 1.2.3.4 4.3.2.1 123", "unexpected server port syntax"},
+	{"PROXY TCP4 1.2.3.4 4.3.2.1", "unexpected client port syntax"},
+	{"PROXY TCP4 1.2.3.4", "unexpected server address syntax"},
+	{"PROXY TCP4", "unexpected client address syntax"},
+	/* Other. */
+	{"PROXY BLAH", "unsupported protocol type"},
+	{"BLAH", "unexpected protocol header"},
+	0,
+    };
+    TEST_CASE *test_case;
+
+    /* Actual results. */
+    const char *act_return;
+    MAI_HOSTADDR_STR act_smtp_client_addr;
+    MAI_HOSTADDR_STR act_smtp_server_addr;
+    MAI_SERVPORT_STR act_smtp_client_port;
+    MAI_SERVPORT_STR act_smtp_server_port;
+
+    /* Findings. */
+    int     tests_failed = 0;
+    int     test_failed;
+
+    for (tests_failed = 0, test_case = test_cases; test_case->haproxy_request;
+	 tests_failed += test_failed, test_case++) {
+	test_failed = 0;
+	act_return =
+	    haproxy_srvr_parse(test_case->haproxy_request,
+			       &act_smtp_client_addr, &act_smtp_client_port,
+			       &act_smtp_server_addr, &act_smtp_server_port);
+	if (act_return != test_case->exp_return) {
+	    msg_warn("test case %d return expected=%s actual=%s",
+		     (int) (test_case - test_cases),
+		     test_case->exp_return ?
+		     test_case->exp_return : "(null)",
+		     act_return ? act_return : "(null)");
+	    test_failed = 1;
+	    continue;
+	}
+	if (test_case->exp_return != 0)
+	    continue;
+	if (strcmp(test_case->exp_client_addr, act_smtp_client_addr.buf)) {
+	    msg_warn("test case %d client_addr  expected=%s actual=%s",
+		     (int) (test_case - test_cases),
+		     test_case->exp_client_addr, act_smtp_client_addr.buf);
+	    test_failed = 1;
+	}
+	if (strcmp(test_case->exp_server_addr, act_smtp_server_addr.buf)) {
+	    msg_warn("test case %d server_addr  expected=%s actual=%s",
+		     (int) (test_case - test_cases),
+		     test_case->exp_server_addr, act_smtp_server_addr.buf);
+	    test_failed = 1;
+	}
+	if (strcmp(test_case->exp_client_port, act_smtp_client_port.buf)) {
+	    msg_warn("test case %d client_port  expected=%s actual=%s",
+		     (int) (test_case - test_cases),
+		     test_case->exp_client_port, act_smtp_client_port.buf);
+	    test_failed = 1;
+	}
+	if (strcmp(test_case->exp_server_port, act_smtp_server_port.buf)) {
+	    msg_warn("test case %d server_port  expected=%s actual=%s",
+		     (int) (test_case - test_cases),
+		     test_case->exp_server_port, act_smtp_server_port.buf);
+	    test_failed = 1;
+	}
+    }
+    if (tests_failed)
+	msg_info("tests failed: %d", tests_failed);
+    exit(tests_failed != 0);
+}
+
+#endif

@@ -1215,6 +1215,7 @@
 #include <verify_sender_addr.h>
 #include <smtputf8.h>
 #include <match_parent_style.h>
+#include <normalize_mailhost_addr.h>
 
 /* Single-threaded server skeleton. */
 
@@ -4314,7 +4315,6 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     SMTPD_TOKEN *argp;
     char   *raw_value;
     char   *attr_value;
-    const char *bare_value;
     char   *attr_name;
     int     update_namaddr = 0;
     int     name_status;
@@ -4362,11 +4362,6 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	return (-1);
     }
 #define STREQ(x,y)	(strcasecmp((x), (y)) == 0)
-#define UPDATE_STR(s, v) do { \
-	    const char *_v = (v); \
-	    if (s) myfree(s); \
-	    s = (_v) ? mystrdup(_v) : 0; \
-	} while(0)
 
     /*
      * Initialize.
@@ -4403,6 +4398,12 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	 * specific censoring later.
 	 */
 	printable(attr_value, '?');
+
+#define UPDATE_STR(s, v) do { \
+	const char *_v = (v); \
+	if (s) myfree(s); \
+	(s) = (_v) ? mystrdup(_v) : 0; \
+    } while(0)
 
 	/*
 	 * NAME=substitute SMTP client hostname (and reverse/forward name, in
@@ -4458,24 +4459,18 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	else if (STREQ(attr_name, XCLIENT_ADDR)) {
 	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
 		attr_value = CLIENT_ADDR_UNKNOWN;
-		bare_value = attr_value;
+		UPDATE_STR(state->addr, attr_value);
+		UPDATE_STR(state->rfc_addr, attr_value);
 	    } else {
-		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
+		if (normalize_mailhost_addr(attr_value, &state->rfc_addr,
+				   &state->addr, &state->addr_family) < 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_ADDR, attr_value);
 		    return (-1);
 		}
 	    }
-	    UPDATE_STR(state->addr, bare_value);
-	    UPDATE_STR(state->rfc_addr, attr_value);
-#ifdef HAS_IPV6
-	    if (strncasecmp(attr_value, INET_PROTO_NAME_IPV6 ":",
-			    sizeof(INET_PROTO_NAME_IPV6 ":") - 1) == 0)
-		state->addr_family = AF_INET6;
-	    else
-#endif
-		state->addr_family = AF_INET;
 	    update_namaddr = 1;
 	}
 
@@ -4552,16 +4547,17 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	else if (STREQ(attr_name, XCLIENT_DESTADDR)) {
 	    if (STREQ(attr_value, XCLIENT_UNAVAILABLE)) {
 		attr_value = SERVER_ADDR_UNKNOWN;
-		bare_value = attr_value;
+		UPDATE_STR(state->dest_addr, attr_value);
 	    } else {
-		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
+		neuter(attr_value, NEUTER_CHARACTERS, '?');
+		if (normalize_mailhost_addr(attr_value, (char **) 0,
+					&state->dest_addr, (int *) 0) < 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_DESTADDR, attr_value);
 		    return (-1);
 		}
 	    }
-	    UPDATE_STR(state->dest_addr, bare_value);
 	    /* XXX Require same address family as client address. */
 	}
 
@@ -4671,7 +4667,6 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     SMTPD_TOKEN *argp;
     char   *raw_value;
     char   *attr_value;
-    const char *bare_value;
     char   *attr_name;
     int     updated = 0;
     static const NAME_CODE xforward_flags[] = {
@@ -4787,18 +4782,17 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	case SMTPD_STATE_XFORWARD_ADDR:
 	    if (STREQ(attr_value, XFORWARD_UNAVAILABLE)) {
 		attr_value = CLIENT_ADDR_UNKNOWN;
-		bare_value = attr_value;
+		UPDATE_STR(state->xforward.addr, attr_value);
 	    } else {
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
-		if ((bare_value = valid_mailhost_addr(attr_value, DONT_GRIPE)) == 0) {
+		if (normalize_mailhost_addr(attr_value, &state->xforward.rfc_addr,
+				    &state->xforward.addr, (int *) 0) < 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XFORWARD_ADDR, attr_value);
 		    return (-1);
 		}
 	    }
-	    UPDATE_STR(state->xforward.addr, bare_value);
-	    UPDATE_STR(state->xforward.rfc_addr, attr_value);
 	    break;
 
 	    /*
@@ -4900,7 +4894,8 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
      * Update the combined name and address when either has changed. Use only
      * the name when no address is available.
      */
-    if (updated & (SMTPD_STATE_XFORWARD_NAME | SMTPD_STATE_XFORWARD_ADDR)) {
+    if (updated & (SMTPD_STATE_XFORWARD_NAME | SMTPD_STATE_XFORWARD_ADDR
+		   | SMTPD_STATE_XFORWARD_PORT)) {
 	if (state->xforward.namaddr)
 	    myfree(state->xforward.namaddr);
 	state->xforward.namaddr =

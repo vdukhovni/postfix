@@ -24240,3 +24240,19 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix 3.3): "smtp_mx_address_limit = 0"
 	no longer meant 'unlimited'. Problem report by Luc Pardon.
 	File: smtp/smtp_addr.c.
+
+20190427
+
+	Cleanup: normalize the IP address string forms received with
+	XCLIENT, XFORWARD, and HaProxy, for consistency with address
+	information for direct connections to Postfix, and add unit
+	tests. This casefolds and removes redundant nulls from the
+	string representation of an IPv6 address, normalizes the
+	"IPv6:" address prefix of RFC 2821 IPv6 address forms, and
+	converts IPv4 address octets with leading zeros (octal form)
+	into decimal form. Files: global/haproxy.c,
+	global/normalize_mailhost_addr.[hc], smtpd/smtpd.c.
+
+	Incompatibility: this may change the appearance of logging,
+	and the way that check_client_access will match subnets of
+	an IPv6 address.
