@@ -216,6 +216,7 @@
 #include <valid_utf8_hostname.h>
 #include <midna_domain.h>
 #include <mynetworks.h>
+#include <name_code.h>
 
 /* DNS library. */
 
@@ -250,6 +251,7 @@
 #include <xtext.h>
 #include <smtp_stream.h>
 #include <attr_override.h>
+#include <map_search.h>
 
 /* Application-specific. */
 
@@ -514,6 +516,31 @@ static ATTR_OVER_STR str_table[] = {
 #define smtpd_policy_def_action_offset	0
 #define smtpd_policy_context_offset	1
 
+ /*
+  * Search list names must be distinct, non-empty, and non-null.
+  */
+#define SMTPD_ACL_SEARCH_NAME_CERT_FPRINT       "cert_fprint"
+#define SMTPD_ACL_SEARCH_NAME_PKEY_FPRINT       "pubkey_fprint"
+#define SMTPD_ACL_SEARCH_NAME_CERT_SUBJECT      "subject"
+
+ /*
+  * Search list tokens must be distinct, and 1..127, so that they can be
+  * stored in a character without concerns about signed versus unsigned.
+  */
+#define SMTPD_ACL_SEARCH_CODE_CERT_FPRINT       1
+#define SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT       2
+#define SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT      3
+
+ /*
+  * Mapping from search-list names and to search-list codes.
+  */
+static const NAME_CODE search_actions[] = {
+    SMTPD_ACL_SEARCH_NAME_CERT_FPRINT, SMTPD_ACL_SEARCH_CODE_CERT_FPRINT,
+    SMTPD_ACL_SEARCH_NAME_PKEY_FPRINT, SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT,
+    SMTPD_ACL_SEARCH_NAME_CERT_SUBJECT, SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT,
+    0, MAP_SEARCH_CODE_UNKNOWN,
+};
+
 /* policy_client_register - register policy service endpoint */
 
 static void policy_client_register(const char *name)
@@ -625,6 +652,7 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
     char   *bp = saved_checks;
     char   *name;
     char   *last = 0;
+    const MAP_SEARCH *map_search;
 
     /*
      * Pre-parse the restriction list, and open any dictionaries that we
@@ -638,10 +666,12 @@ static ARGV *smtpd_check_parse(int flags, const char *checks)
     while ((name = mystrtokq(&bp, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
 	argv_add(argv, name, (char *) 0);
 	if ((flags & SMTPD_CHECK_PARSE_POLICY)
-	    && last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0)
+	    && last && strcasecmp(last, CHECK_POLICY_SERVICE) == 0) {
 	    policy_client_register(name);
-	else if ((flags & SMTPD_CHECK_PARSE_MAPS) && strchr(name, ':') != 0) {
-	    command_map_register(name);
+	} else if ((flags & SMTPD_CHECK_PARSE_MAPS)
+		   && (*name == *CHARS_BRACE || strchr(name, ':') != 0)) {
+	    if ((map_search = map_search_create(name)) != 0)
+		command_map_register(map_search->map_type_name);
 	}
 	last = name;
     }
@@ -833,6 +863,12 @@ void    smtpd_check_init(void)
     smtpd_rbl_cache = ctable_create(100, rbl_pagein, rbl_pageout, (void *) 0);
     smtpd_rbl_byte_cache = ctable_create(1000, rbl_byte_pagein,
 					 rbl_byte_pageout, (void *) 0);
+
+    /*
+     * Initialize access map search list support before parsing restriction
+     * lists.
+     */
+    map_search_init(search_actions);
 
     /*
      * Pre-parse the restriction lists. At the same time, pre-open tables
@@ -3100,8 +3136,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 
 /* check_ccert_access - access for TLS clients by certificate fingerprint */
 
-
-static int check_ccert_access(SMTPD_STATE *state, const char *table,
+static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 			              const char *def_acl)
 {
     int     result = SMTPD_CHECK_DUNNO;
@@ -3109,33 +3144,68 @@ static int check_ccert_access(SMTPD_STATE *state, const char *table,
 #ifdef USE_TLS
     const char *myname = "check_ccert_access";
     int     found;
+    const MAP_SEARCH *acl;
+    const char default_search[] = {
+	SMTPD_ACL_SEARCH_CODE_CERT_FPRINT,
+	SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT,
+	0,
+    };
+    const char *search_list;
+
+    /*
+     * Look up the acl search list. If there is no ACL then we don't have a
+     * table to check.
+     */
+    if ((acl = map_search_lookup(acl_spec)) == 0) {
+	msg_warn("See earlier parsing error messages for '%s", acl_spec);
+	return (smtpd_check_reject(state, MAIL_ERROR_SOFTWARE, 451, "4.3.5",
+				   "Server configuration error"));
+    }
+    if ((search_list = acl->search_list) == 0)
+	search_list = default_search;
 
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
      * not trusted.
      */
     if (TLS_CERT_IS_PRESENT(state->tls_context)) {
-	int     i;
-	char   *prints[2];
+	const char *action;
+	const char *match_this;
+	const char *known_action;
 
-	prints[0] = state->tls_context->peer_cert_fprint;
-	prints[1] = state->tls_context->peer_pkey_fprint;
-
-	for (i = 0; i < 2; ++i) {
+	for (action = search_list; *action; action++) {
+	    switch (*action) {
+	    case SMTPD_ACL_SEARCH_CODE_CERT_FPRINT:
+		match_this = state->tls_context->peer_cert_fprint;
+		break;
+	    case SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT:
+		match_this = state->tls_context->peer_pkey_fprint;
+		break;
+	    case SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT:
+		match_this = state->tls_context->peer_CN;
+		break;
+	    default:
+		known_action = str_name_code(search_actions, *action);
+		if (known_action == 0)
+		    msg_panic("%s: unknown action #%d in '%s'",
+			      myname, *action, acl_spec);
+		msg_warn("%s: unexpected action '%s' in '%s'",
+			 myname, known_action, acl_spec);
+		return (smtpd_check_reject(state, MAIL_ERROR_SOFTWARE, 
+					   451, "4.3.5",
+					   "Server configuration error"));
+	    }
 	    if (msg_verbose)
-		msg_info("%s: %s", myname, prints[i]);
+		msg_info("%s: %s", myname, match_this);
 
 	    /*
-	     * Regexp tables don't make sense for certificate fingerprints.
-	     * That may be so, but we can't ignore the entire
-	     * check_ccert_access request without logging a warning.
-	     * 
 	     * Log the peer CommonName when access is denied. Non-printable
 	     * characters will be neutered by smtpd_check_reject(). The SMTP
 	     * client name and address are always syslogged as part of a
-	     * "reject" event.
+	     * "reject" event. XXX Should log the thing that is rejected
+	     * (fingerprint etc.) or would that give away too much?
 	     */
-	    result = check_access(state, table, prints[i],
+	    result = check_access(state, acl->map_type_name, match_this,
 				  DICT_FLAG_NONE, &found,
 				  state->tls_context->peer_CN,
 				  SMTPD_NAME_CCERT, def_acl);

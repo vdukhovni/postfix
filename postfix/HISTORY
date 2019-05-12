@@ -24256,3 +24256,25 @@ Apologies for any names omitted.
 	Incompatibility: this may change the appearance of logging,
 	and the way that check_client_access will match subnets of
 	an IPv6 address.
+
+20190512
+
+	Proof-of-concept support for configurable check_ccert_access
+	search order. The default behavior is backwards-compatible
+	and corresponds with with the followin explicit setting:
+
+	smtpd_mumble_restrictions = 
+	    ...
+	    check_ccert_access {
+		maptype:mapname { 
+		    # Also supported: subject.
+		    # TODO: rfc822name, subject_dn, smtputf8mailbox, ...
+		    search = cert_fprint, pubkey_fprint 
+		}
+	    }
+	    ...
+
+	i.e. search the specified table with the certificate
+	fingerprint, then with the public-key fingerprint, until a
+	decision is made. Files: global/map_search.[hc], 
+	smtpd/smtpd_check.c.
