@@ -25,6 +25,38 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20190516
+====================================
+
+Search order support for check_ccert_access. Search order support
+for other tables is in design (canonical_maps, virtual_alias_maps,
+transport_maps, etc.).
+
+The following check_ccert_access setting uses the built-in search
+order: it first looks up the client certificate fingerprint, then
+the client certificate public-key fingerprint, and it stops when a
+decision is made.
+
+/etc/postfix/main.cf:
+    smtpd_mumble_restrictions =
+        ...
+        check_ccert_access hash:/etc/postfix/ccert-access
+        ...
+
+The following setting, with explicit search order, produces the
+exact same result:
+
+/etc/postfix/main.cf:
+    smtpd_mumble_restrictions =
+        ...
+        check_ccert_access {
+            hash:/etc/postfix/ccert-access {
+                search_order = cert_fingerprint, pubkey_fingerprint } }
+        ...
+
+The check_ccert_access search order also supports the subject and
+issuer properties. Support is planned for rfc822name and smtputf8mailbox.
+
 Incompatibility with snapshot 20190427
 ======================================
 

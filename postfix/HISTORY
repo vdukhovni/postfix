@@ -24256,3 +24256,17 @@ Apologies for any names omitted.
 	Incompatibility: this may change the appearance of logging,
 	and the way that check_client_access will match subnets of
 	an IPv6 address.
+
+20190516
+
+	Initial search order support for check_ccert_access. The
+	default behavior is backwards-compatible. This is work in
+	progress; see the RELEASE_NOTES for examples.  Files:
+	global/map_search.[hc], smtpd/smtpd_check.c.
+
+20190517
+
+	Bugfix: postconf mis-parsed text starting with "{" such as
+	"check_ccert_access { inline:{a=b} { search_order=c,d } }".
+	Fixed by adding another level of recursion. File:
+	postconf/postconf_dbms.c.

@@ -230,6 +230,19 @@ static void pcf_register_dbms_helper(char *str_value,
      * database or some other text.
      */
     while ((db_type = mystrtokq(&str_value, CHARS_COMMA_SP, CHARS_BRACE)) != 0) {
+	if (*db_type == CHARS_BRACE[0]) {
+	    if ((err = extpar(&db_type, CHARS_BRACE, EXTPAR_FLAG_NONE)) != 0) {
+		/* XXX Encapsulate this in pcf_warn() function. */
+		if (local_scope)
+		    msg_warn("%s:%s: %s",
+			     MASTER_CONF_FILE, local_scope->name_space, err);
+		else
+		    msg_warn("%s: %s", MAIN_CONF_FILE, err);
+		myfree(err);
+	    }
+	    pcf_register_dbms_helper(db_type, flag_parameter, local_scope);
+	    continue;
+	}
 
 	/*
 	 * Skip over "proxy:" maptypes, to emulate the proxymap(8) server's
@@ -280,8 +293,8 @@ static void pcf_register_dbms_helper(char *str_value,
 			msg_warn("%s: %s", MAIN_CONF_FILE, err);
 		    myfree(err);
 		}
-		pcf_register_dbms_helper(prefix, flag_parameter,
-					 local_scope);
+		pcf_register_dbms_helper(prefix, flag_parameter, local_scope);
+		continue;
 	    } else {
 		for (dp = pcf_dbms_info; dp->db_type != 0; dp++) {
 		    if (strcmp(db_type, dp->db_type) == 0) {
