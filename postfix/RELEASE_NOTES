@@ -25,7 +25,7 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Major changes with snapshot 20190516
+Major changes with snapshot 20190517
 ====================================
 
 Search order support for check_ccert_access. Search order support

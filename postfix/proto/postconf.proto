@@ -5099,7 +5099,8 @@ client network address information.
 
 <dt><b><a name="check_ccert_access">check_ccert_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
-<dd> Use the remote SMTP client certificate fingerprint or the public key
+<dd> By default use the remote SMTP client certificate fingerprint
+or the public key
 fingerprint (Postfix 2.9 and later) as lookup key for the specified
 access(5) database; with Postfix version 2.2, also require that the
 remote SMTP client certificate is verified successfully.
@@ -5107,6 +5108,18 @@ The fingerprint digest algorithm is configurable via the
 smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
 Postfix version 2.5).  This feature is available with Postfix version
 2.2 and later. </dd>
+
+<br>
+
+<dd> Alternatively, check_ccert_access accepts an explicit search
+order (Postfix 3.5 and later). The default search order as described
+above corresponds with: </dd>
+
+<dd> check_ccert_access { type:table { search_order = cert_fingerprint,
+pubkey_fingerprint } } </dd>
+
+<dd> Other valid search_order elements are "subject" (the certificate
+subject DN) and "issuer" (the certificate issuer DN). </dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 

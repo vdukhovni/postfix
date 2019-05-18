@@ -1315,6 +1315,12 @@ extern int dup2_pass_on_exec(int oldd, int newd);
 #endif
 #define OPTIND  (optind > 0 ? optind : 1)
 
+#if !defined(__UCLIBC__) && !defined(NO_RES_SEND)
+#define HAVE_RES_SEND
+#else
+#undef HAVE_RES_SEND
+#endif
+
  /*
   * Check for required but missing definitions.
   */

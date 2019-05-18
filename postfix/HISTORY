@@ -24257,6 +24257,22 @@ Apologies for any names omitted.
 	and the way that check_client_access will match subnets of
 	an IPv6 address.
 
+20190428
+
+	Cleanup: replace "(whatever *) 0" with meaningfully-named
+	constants. Sheesh. File: smtpd/smtpd.c.
+
+	Documentation: BASIC_CONFIGURATION_README example default
+	setting was not updated after Postfix 3.0 change. File:
+	proto/BASIC_CONFIGURATION_README.html
+
+20190505
+
+	Workaround: uClibc has no res_send. Log a warning if this
+	code path would be used, and ignore dns_ncache_ttl_fix_enable.
+	Files: util/sys_defs.h, dns/dns_lookup.c, TODO: makedefs
+	and INSTALL documentation.
+
 20190516
 
 	Initial search order support for check_ccert_access. The

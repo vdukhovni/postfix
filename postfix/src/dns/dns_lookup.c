@@ -305,6 +305,7 @@ typedef struct DNS_REPLY {
   * information, but that will have to wait until it is safe to make
   * libunbound a mandatory dependency for Postfix.
   */
+#ifdef HAVE_RES_SEND
 
 /* dns_res_query - a res_query() clone that can return negative replies */
 
@@ -370,6 +371,8 @@ static int dns_res_query(const char *name, int class, int type,
 	return (len);
     }
 }
+
+#endif
 
 /* dns_res_search - res_search() that can return negative replies */
 
@@ -474,8 +477,16 @@ static int dns_query(const char *name, int type, unsigned flags,
 	_res.options &= ~saved_options;
 	_res.options |= flags;
 	if (keep_notfound && var_dns_ncache_ttl_fix) {
+#ifdef HAVE_RES_SEND
 	    len = dns_res_query((char *) name, C_IN, type, reply->buf,
 				reply->buf_len);
+#else
+	    var_dns_ncache_ttl_fix = 0;
+	    msg_warn("system library does not support %s=yes"
+		     " -- ignoring this setting", VAR_DNS_NCACHE_TTL_FIX);
+	    len = dns_res_search((char *) name, C_IN, type, reply->buf,
+				 reply->buf_len, keep_notfound);
+#endif
 	} else {
 	    len = dns_res_search((char *) name, C_IN, type, reply->buf,
 				 reply->buf_len, keep_notfound);

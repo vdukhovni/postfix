@@ -82,8 +82,8 @@ LLiimmiittaattiioonnss
 
 Background:
 
-  * Postfix consists of a number of daemon programs, and non-daemon programs
-    some of which are used for local mail submission, and some for Postfix
+  * Postfix consists of a number of daemon programs that run in the background,
+    as well as non-daemon programs for local mail submission or Postfix
     management.
 
   * Logging to Postfix logfile or stdout requires the Postfix postlogd(8)

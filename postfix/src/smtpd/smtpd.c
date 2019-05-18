@@ -4464,7 +4464,8 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    } else {
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
 		if (normalize_mailhost_addr(attr_value, &state->rfc_addr,
-				   &state->addr, &state->addr_family) < 0) {
+					    &state->addr,
+					    &state->addr_family) < 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_ADDR, attr_value);
@@ -4549,9 +4550,12 @@ static int xclient_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		attr_value = SERVER_ADDR_UNKNOWN;
 		UPDATE_STR(state->dest_addr, attr_value);
 	    } else {
+#define NO_NORM_RFC_ADDR		((char **) 0)
+#define NO_NORM_ADDR_FAMILY	((int *) 0)
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
-		if (normalize_mailhost_addr(attr_value, (char **) 0,
-					&state->dest_addr, (int *) 0) < 0) {
+		if (normalize_mailhost_addr(attr_value, NO_NORM_RFC_ADDR,
+					    &state->dest_addr,
+					    NO_NORM_ADDR_FAMILY) < 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XCLIENT_DESTADDR, attr_value);
@@ -4785,8 +4789,10 @@ static int xforward_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 		UPDATE_STR(state->xforward.addr, attr_value);
 	    } else {
 		neuter(attr_value, NEUTER_CHARACTERS, '?');
-		if (normalize_mailhost_addr(attr_value, &state->xforward.rfc_addr,
-				    &state->xforward.addr, (int *) 0) < 0) {
+		if (normalize_mailhost_addr(attr_value,
+					    &state->xforward.rfc_addr,
+					    &state->xforward.addr,
+					    NO_NORM_ADDR_FAMILY) < 0) {
 		    state->error_mask |= MAIL_ERROR_PROTOCOL;
 		    smtpd_chat_reply(state, "501 5.5.4 Bad %s syntax: %s",
 				     XFORWARD_ADDR, attr_value);
