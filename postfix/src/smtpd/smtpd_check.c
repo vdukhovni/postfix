@@ -521,8 +521,8 @@ static ATTR_OVER_STR str_table[] = {
   */
 #define SMTPD_ACL_SEARCH_NAME_CERT_FPRINT	"cert_fingerprint"
 #define SMTPD_ACL_SEARCH_NAME_PKEY_FPRINT	"pubkey_fingerprint"
-#define SMTPD_ACL_SEARCH_NAME_CERT_ISSUER	"issuer"
-#define SMTPD_ACL_SEARCH_NAME_CERT_SUBJECT	"subject"
+#define SMTPD_ACL_SEARCH_NAME_CERT_ISSUER_CN	"issuer_cn"
+#define SMTPD_ACL_SEARCH_NAME_CERT_SUBJECT_CN	"subject_cn"
 
  /*
   * Search order tokens must be distinct, and 1..126 inclusive, so that they
@@ -531,8 +531,8 @@ static ATTR_OVER_STR str_table[] = {
   */
 #define SMTPD_ACL_SEARCH_CODE_CERT_FPRINT	1
 #define SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT	2
-#define SMTPD_ACL_SEARCH_CODE_CERT_ISSUER	3
-#define SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT	4
+#define SMTPD_ACL_SEARCH_CODE_CERT_ISSUER_CN	3
+#define SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT_CN	4
 
  /*
   * Mapping from search-list names and to search-list codes.
@@ -540,8 +540,8 @@ static ATTR_OVER_STR str_table[] = {
 static const NAME_CODE search_actions[] = {
     SMTPD_ACL_SEARCH_NAME_CERT_FPRINT, SMTPD_ACL_SEARCH_CODE_CERT_FPRINT,
     SMTPD_ACL_SEARCH_NAME_PKEY_FPRINT, SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT,
-    SMTPD_ACL_SEARCH_NAME_CERT_ISSUER, SMTPD_ACL_SEARCH_CODE_CERT_ISSUER,
-    SMTPD_ACL_SEARCH_NAME_CERT_SUBJECT, SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT,
+    SMTPD_ACL_SEARCH_NAME_CERT_ISSUER_CN, SMTPD_ACL_SEARCH_CODE_CERT_ISSUER_CN,
+    SMTPD_ACL_SEARCH_NAME_CERT_SUBJECT_CN, SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT_CN,
     0, MAP_SEARCH_CODE_UNKNOWN,
 };
 
@@ -3168,8 +3168,8 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
     if ((search_order = acl->search_order) == 0)
 	search_order = default_search;
     if (msg_verbose)
-	msg_info("%s: search_order length=%d",
-		 myname, strlen(search_order));
+	msg_info("%s: search_order length=%ld",
+		 myname, (long) strlen(search_order));
 
     /*
      * When directly checking the fingerprint, it is OK if the issuing CA is
@@ -3188,10 +3188,10 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    case SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT:
 		match_this = state->tls_context->peer_pkey_fprint;
 		break;
-	    case SMTPD_ACL_SEARCH_CODE_CERT_ISSUER:
+	    case SMTPD_ACL_SEARCH_CODE_CERT_ISSUER_CN:
 		match_this = state->tls_context->issuer_CN;
 		break;
-	    case SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT:
+	    case SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT_CN:
 		match_this = state->tls_context->peer_CN;
 		break;
 	    default:

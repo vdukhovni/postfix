@@ -765,6 +765,7 @@ while (<>) {
     s;\btls_ssl_options\b;<a href="postconf.5.html#tls_ssl_options">$&</a>;g;
     s;\btls_dane_digest_agility\b;<a href="postconf.5.html#tls_dane_digest_agility">$&</a>;g;
     s;\btls_dane_trust_anchor_digest_enable\b;<a href="postconf.5.html#tls_dane_trust_anchor_digest_enable">$&</a>;g;
+    s;\btls_fast_shutdown_enable\b;<a href="postconf.5.html#tls_fast_shutdown_enable">$&</a>;g;
 
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
     s;\breset_owner_alias\b;<a href="postconf.5.html#reset_owner_alias">$&</a>;g;

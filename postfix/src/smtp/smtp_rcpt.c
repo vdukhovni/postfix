@@ -160,7 +160,7 @@ void    smtp_rcpt_done(SMTP_STATE *state, SMTP_RESP *resp, RECIPIENT *rcpt)
      */
     if ((session->features & SMTP_FEATURE_DSN) == 0
 	&& !smtp_mode
-	&& var_lmtp_assume_final != 0)
+	&& (smtp_cli_attr.flags & SMTP_CLI_FLAG_FINAL_DELIVERY) != 0)
 	dsn_action = "delivered";
 
     /*

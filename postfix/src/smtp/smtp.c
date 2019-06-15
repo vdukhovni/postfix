@@ -4,7 +4,7 @@
 /* SUMMARY
 /*	Postfix SMTP+LMTP client
 /* SYNOPSIS
-/*	\fBsmtp\fR [generic Postfix daemon options]
+/*	\fBsmtp\fR [generic Postfix daemon options] [flags=DORX]
 /* DESCRIPTION
 /*	The Postfix SMTP+LMTP client implements the SMTP and LMTP mail
 /*	delivery protocols. It processes message delivery requests from
@@ -70,10 +70,62 @@
 /*	If no such service is found, the \fBlmtp_tcp_port\fR configuration
 /*	parameter (default value of 24) will be used.
 /*	An IPv6 address must be formatted as [\fBipv6\fR:\fIaddress\fR].
-/* .PP
-/* SECURITY
+/* SINGLE-RECIPIENT DELIVERY
 /* .ad
 /* .fi
+/*	By default, the Postfix SMTP+LMTP client delivers mail to
+/*	multiple recipients per delivery request. This is undesirable
+/*	when prepending a \fBDelivered-to:\fR or \fBX-Original-To:\fR
+/*	message header. To prevent Postfix from sending multiple
+/*	recipients per delivery request, specify
+/* .sp
+/* .nf
+/*	    \fItransport\fB_destination_recipient_limit = 1\fR
+/* .fi
+/*
+/*	in the Postfix \fBmain.cf\fR file, where \fItransport\fR
+/*	is the name in the first column of the Postfix \fBmaster.cf\fR
+/*	entry for the pipe-based delivery transport.
+/* COMMAND ATTRIBUTE SYNTAX
+/* .ad
+/* .fi
+/* .IP "\fBflags=DORX\fR (optional)"
+/*	Optional message processing flags.
+/* .RS
+/* .IP \fBD\fR
+/*	Prepend a "\fBDelivered-To: \fIrecipient\fR" message header
+/*	with the envelope recipient address. Note: for this to work,
+/*	the \fItransport\fB_destination_recipient_limit\fR must be
+/*	1 (see SINGLE-RECIPIENT DELIVERY above for details).
+/* .sp
+/*	The \fBD\fR flag also enforces loop detection: if a message
+/*	already contains a \fBDelivered-To:\fR header with the same
+/*	recipient address, then the message is returned as
+/*	undeliverable. The address comparison is case insensitive.
+/* .sp
+/*	This feature is available as of Postfix 3.5.
+/* .IP \fBO\fR
+/*	Prepend an "\fBX-Original-To: \fIrecipient\fR" message
+/*	header with the recipient address as given to Postfix. Note:
+/*	for this to work, the
+/*	\fItransport\fB_destination_recipient_limit\fR must be 1
+/*	(see SINGLE-RECIPIENT DELIVERY above for details).
+/* .sp
+/*	This feature is available as of Postfix 3.5.
+/* .IP \fBR\fR
+/*	Prepend a "\fBReturn-Path: <\fIsender\fB>\fR" message header
+/*	with the envelope sender address.
+/* .sp
+/*	This feature is available as of Postfix 3.5.
+/* .IP \fBX\fR
+/*	Indicates that the delivery is final. This flag affects
+/*	the status reported in "success" DSN (delivery status
+/*	notification) messages, and changes it from "relayed" into
+/*	"delivered".
+/* .sp
+/*	This feature is available as of Postfix 3.5.
+/* .RE
+/* SECURITY
 /*	The SMTP+LMTP client is moderately security-sensitive. It
 /*	talks to SMTP or LMTP servers and to DNS servers on the
 /*	network. The SMTP+LMTP client can be run chrooted at fixed
@@ -109,11 +161,10 @@
 /*	the postmaster is notified of bounces, protocol problems, and of
 /*	other trouble.
 /* BUGS
-/*	SMTP and LMTP connection caching does not work with TLS. The necessary
-/*	support for TLS object passivation and re-activation does not
-/*	exist without closing the session, which defeats the purpose.
+/*	SMTP and LMTP connection reuse for TLS (without closing the
+/*	SMTP or LMTP connection) is not supported before Postfix 3.4.
 /*
-/*	SMTP and LMTP connection caching assumes that SASL credentials
+/*	SMTP and LMTP connection reuse assumes that SASL credentials
 /*	are valid for all destinations that map onto the same IP
 /*	address and TCP port.
 /* CONFIGURATION PARAMETERS
@@ -496,6 +547,11 @@
 /* .IP "\fBsmtp_tls_servername (empty)\fR"
 /*	Optional name to send to the remote SMTP server in the TLS Server
 /*	Name Indication (SNI) extension.
+/* .PP
+/*	Available in Postfix version 3.5 and later:
+/* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
+/*	After sending a TLS 'close' notification, do not wait for the
+/*	TLS peer to respond, and do not send a second TLS 'close' notification.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -829,10 +885,12 @@
 #include <mymalloc.h>
 #include <name_mask.h>
 #include <name_code.h>
+#include <byte_mask.h>
 
 /* Global library. */
 
 #include <deliver_request.h>
+#include <delivered_hdr.h>
 #include <mail_proto.h>
 #include <mail_params.h>
 #include <mail_version.h>
@@ -1000,6 +1058,7 @@ unsigned smtp_dns_res_opt;
 MAPS   *smtp_pix_bug_maps;
 HBC_CHECKS *smtp_header_checks;		/* limited header checks */
 HBC_CHECKS *smtp_body_checks;		/* limited body checks */
+SMTP_CLI_ATTR smtp_cli_attr;		/* parsed command-line */
 
 #ifdef USE_TLS
 
@@ -1015,6 +1074,59 @@ int     smtp_tls_insecure_mx_policy;
   * IPv6 preference.
   */
 static int smtp_addr_pref;
+
+/* get_cli_attr - get command-line attributes */
+
+static void get_cli_attr(SMTP_CLI_ATTR *attr, char **argv)
+{
+    const char myname[] = "get_cli_attr";
+    const char *last_flags = "flags=";	/* i.e. empty */
+    static const BYTE_MASK flags_map[] = {
+	'D', SMTP_CLI_FLAG_DELIVERED_TO,
+	'O', SMTP_CLI_FLAG_ORIG_RCPT,
+	'R', SMTP_CLI_FLAG_RETURN_PATH,
+	'X', SMTP_CLI_FLAG_FINAL_DELIVERY,
+	0,
+    };
+
+    /*
+     * Initialize.
+     */
+    attr->flags = 0;
+
+    /*
+     * Iterate over the command-line attribute list. Errors are fatal.
+     */
+    for ( /* void */ ; *argv != 0; argv++) {
+
+	/*
+	 * flags=stuff. Errors are fatal.
+	 */
+	if (strncasecmp("flags=", *argv, sizeof("flags=") - 1) == 0) {
+	    last_flags = *argv;
+	    if (msg_verbose)
+		msg_info("%s: %s", myname, last_flags);
+	    attr->flags = byte_mask(*argv, flags_map,
+				    *argv + sizeof("flags=") - 1);
+	}
+
+	/*
+	 * Bad.
+	 */
+	else
+	    msg_fatal("unknown attribute name: %s", *argv);
+    }
+
+    /*
+     * Backwards compatibility, redundancy, and obsolescence.
+     */
+    if (!smtp_mode && var_lmtp_assume_final
+	&& (attr->flags & SMTP_CLI_FLAG_FINAL_DELIVERY) == 0) {
+	attr->flags |= SMTP_CLI_FLAG_FINAL_DELIVERY;
+	msg_warn("%s is obsolete; instead, specify \"%sX\" in %s",
+		 VAR_LMTP_ASSUME_FINAL, last_flags, MASTER_CONF_FILE);
+    }
+}
 
 /* deliver_message - deliver message with extreme prejudice */
 
@@ -1035,6 +1147,55 @@ static int deliver_message(const char *service, DELIVER_REQUEST *request)
 	msg_fatal("empty nexthop hostname");
     if (request->rcpt_list.len <= 0)
 	msg_fatal("recipient count: %d", request->rcpt_list.len);
+
+    /*
+     * D flag checks.
+     */
+    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_DELIVERED_TO) {
+
+	/*
+	 * The D flag cannot be specified for multi-recipient deliveries.
+	 */
+	if (request->rcpt_list.len > 1) {
+	    msg_warn("flag `D' requires %s_destination_recipient_limit = 1",
+		     service);
+	    return (reject_deliver_request(service, request, "4.3.5",
+					"mail system configuration error"));
+	}
+
+	/*
+	 * The recipient cannot appear in a Delivered-To: header.
+	 */
+	else {
+	    DELIVERED_HDR_INFO *delivered_info = delivered_hdr_init(
+			  request->fp, request->data_offset, FOLD_ADDR_ALL);
+	    VSTRING *generic_rcpt = vstring_alloc(100);
+	    int     have_delivered_loop;
+
+	    smtp_rewrite_generic_internal(generic_rcpt,
+					  request->rcpt_list.info->address);
+	    have_delivered_loop = delivered_hdr_find(
+					 delivered_info, STR(generic_rcpt));
+	    vstring_free(generic_rcpt);
+	    delivered_hdr_free(delivered_info);
+	    if (have_delivered_loop) {
+		return (reject_deliver_request(service, request, "5.4.6",
+					       "mail forwarding loop for %s",
+					 request->rcpt_list.info->address));
+	    }
+	}
+    }
+
+    /*
+     * The O flag cannot be specified for multi-recipient deliveries.
+     */
+    if ((smtp_cli_attr.flags & SMTP_CLI_FLAG_ORIG_RCPT)
+	&& request->rcpt_list.len > 1) {
+	msg_warn("flag `O' requires %s_destination_recipient_limit = 1",
+		 service);
+	return (reject_deliver_request(service, request, "4.3.5",
+				       "mail system configuration error"));
+    }
 
     /*
      * Initialize. Bundle all information about the delivery request, so that
@@ -1066,16 +1227,11 @@ static int deliver_message(const char *service, DELIVER_REQUEST *request)
 
 /* smtp_service - perform service for client */
 
-static void smtp_service(VSTREAM *client_stream, char *service, char **argv)
+static void smtp_service(VSTREAM *client_stream, char *service,
+			         char **unused_argv)
 {
     DELIVER_REQUEST *request;
     int     status;
-
-    /*
-     * Sanity check. This service takes no command-line arguments.
-     */
-    if (argv[0])
-	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
      * This routine runs whenever a client connects to the UNIX-domain socket
@@ -1093,7 +1249,7 @@ static void smtp_service(VSTREAM *client_stream, char *service, char **argv)
 
 /* post_init - post-jail initialization */
 
-static void post_init(char *unused_name, char **unused_argv)
+static void post_init(char *unused_name, char **argv)
 {
     static const NAME_MASK lookup_masks[] = {
 	SMTP_HOST_LOOKUP_DNS, SMTP_HOST_FLAG_DNS,
@@ -1180,6 +1336,12 @@ static void post_init(char *unused_name, char **unused_argv)
      * Address verification.
      */
     smtp_vrfy_init();
+
+    /*
+     * Look up service command-line attributes; these do not change during
+     * the process lifetime.
+     */
+    get_cli_attr(&smtp_cli_attr, argv);
 }
 
 /* pre_init - pre-jail initialization */
@@ -1396,6 +1558,7 @@ int     main(int argc, char **argv)
     else if (strcmp(sane_procname, "lmtp") == 0)
 	smtp_mode = 0;
     else
+	/* TODO: logging is not initialized. */
 	msg_fatal("unexpected process name \"%s\" - "
 		  "specify \"smtp\" or \"lmtp\"", var_procname);
 

@@ -5115,11 +5115,12 @@ Postfix version 2.5).  This feature is available with Postfix version
 order (Postfix 3.5 and later). The default search order as described
 above corresponds with: </dd>
 
-<dd> check_ccert_access { type:table { search_order = cert_fingerprint,
+<dd> check_ccert_access { type:table, { search_order = cert_fingerprint,
 pubkey_fingerprint } } </dd>
 
-<dd> Other valid search_order elements are "subject" (the certificate
-subject DN) and "issuer" (the certificate issuer DN). </dd>
+<dd> The commas are optional. Other valid search_order elements are
+"subject_cn" (the certificate subject CN) and "issuer_cn" (the
+certificate issuer CN). </dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -17621,3 +17622,14 @@ default suffix, YYYYMMDD-HHMMSS, allows logs to be rotated frequently.
 </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
+
+%PARAM tls_fast_shutdown_enable yes
+
+<p> After sending a TLS 'close' notification, do not wait for the
+TLS peer to respond, and do not send a second TLS 'close' notification.
+According to RFC 2246 (TLSv1.2) section 7.2.1, "It is not required
+for the initiator of the close to wait for the responding close_notify
+alert before closing the read side of the connection." </p>
+
+<p> Specify "tls_fast_shutdown_enable = no" to enable historical
+Postfix behavior.  </p>

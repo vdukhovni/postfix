@@ -1,5 +1,13 @@
 Wish list:
 
+	transport policy protocol (clone of check_policy).
+
+	See also postscreen even-driven client for policy delegation
+	below.
+
+	Replace ad-hoc code for pipe(8) flags handling, with
+	infrastructure that was built for smtp(8).
+
 	Things to do before the stable release:
 
 	Spell-check, double-word check, HTML validator check,

@@ -129,6 +129,11 @@
 /*	Optional lookup tables that map names received from remote SMTP
 /*	clients via the TLS Server Name Indication (SNI) extension to the
 /*	appropriate keys and certificate chains.
+/* .PP
+/*	Available in Postfix version 3.5 and later:
+/* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
+/*	After sending a TLS 'close' notification, do not wait for the
+/*	TLS peer to respond, and do not send a second TLS 'close' notification.
 /* STARTTLS SERVER CONTROLS
 /* .ad
 /* .fi

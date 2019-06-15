@@ -35,7 +35,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
 	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
 	mail_addr_form.c quote_flags.c maillog_client.c \
-	normalize_mailhost_addr.c map_search.c
+	normalize_mailhost_addr.c map_search.c reject_deliver_request.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -72,7 +72,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
 	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o maillog_client.o \
-	normalize_mailhost_addr.o map_search.o
+	normalize_mailhost_addr.o map_search.o reject_deliver_request.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -2462,6 +2462,25 @@ record.o: off_cvt.h
 record.o: rec_type.h
 record.o: record.c
 record.o: record.h
+reject_deliver_request.o: ../../include/attr.h
+reject_deliver_request.o: ../../include/check_arg.h
+reject_deliver_request.o: ../../include/htable.h
+reject_deliver_request.o: ../../include/msg.h
+reject_deliver_request.o: ../../include/mymalloc.h
+reject_deliver_request.o: ../../include/nvtable.h
+reject_deliver_request.o: ../../include/sys_defs.h
+reject_deliver_request.o: ../../include/vbuf.h
+reject_deliver_request.o: ../../include/vstream.h
+reject_deliver_request.o: ../../include/vstring.h
+reject_deliver_request.o: bounce.h
+reject_deliver_request.o: defer.h
+reject_deliver_request.o: deliver_completed.h
+reject_deliver_request.o: deliver_request.h
+reject_deliver_request.o: dsn.h
+reject_deliver_request.o: dsn_buf.h
+reject_deliver_request.o: msg_stats.h
+reject_deliver_request.o: recipient_list.h
+reject_deliver_request.o: reject_deliver_request.c
 remove.o: ../../include/check_arg.h
 remove.o: ../../include/sys_defs.h
 remove.o: ../../include/vbuf.h

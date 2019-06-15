@@ -8,7 +8,7 @@ Postfix SMTP+LMTP client
 .SH "SYNOPSIS"
 .na
 .nf
-\fBsmtp\fR [generic Postfix daemon options]
+\fBsmtp\fR [generic Postfix daemon options] [flags=DORX]
 .SH DESCRIPTION
 .ad
 .fi
@@ -80,12 +80,68 @@ remote host. If no port is specified, connect to the port defined as
 If no such service is found, the \fBlmtp_tcp_port\fR configuration
 parameter (default value of 24) will be used.
 An IPv6 address must be formatted as [\fBipv6\fR:\fIaddress\fR].
-.PP
-.SH "SECURITY"
+.SH "SINGLE-RECIPIENT DELIVERY"
 .na
 .nf
 .ad
 .fi
+By default, the Postfix SMTP+LMTP client delivers mail to
+multiple recipients per delivery request. This is undesirable
+when prepending a \fBDelivered\-to:\fR or \fBX\-Original\-To:\fR
+message header. To prevent Postfix from sending multiple
+recipients per delivery request, specify
+.sp
+.nf
+    \fItransport\fB_destination_recipient_limit = 1\fR
+.fi
+
+in the Postfix \fBmain.cf\fR file, where \fItransport\fR
+is the name in the first column of the Postfix \fBmaster.cf\fR
+entry for the pipe\-based delivery transport.
+.SH "COMMAND ATTRIBUTE SYNTAX"
+.na
+.nf
+.ad
+.fi
+.IP "\fBflags=DORX\fR (optional)"
+Optional message processing flags.
+.RS
+.IP \fBD\fR
+Prepend a "\fBDelivered\-To: \fIrecipient\fR" message header
+with the envelope recipient address. Note: for this to work,
+the \fItransport\fB_destination_recipient_limit\fR must be
+1 (see SINGLE\-RECIPIENT DELIVERY above for details).
+.sp
+The \fBD\fR flag also enforces loop detection: if a message
+already contains a \fBDelivered\-To:\fR header with the same
+recipient address, then the message is returned as
+undeliverable. The address comparison is case insensitive.
+.sp
+This feature is available as of Postfix 3.5.
+.IP \fBO\fR
+Prepend an "\fBX\-Original\-To: \fIrecipient\fR" message
+header with the recipient address as given to Postfix. Note:
+for this to work, the
+\fItransport\fB_destination_recipient_limit\fR must be 1
+(see SINGLE\-RECIPIENT DELIVERY above for details).
+.sp
+This feature is available as of Postfix 3.5.
+.IP \fBR\fR
+Prepend a "\fBReturn\-Path: <\fIsender\fB>\fR" message header
+with the envelope sender address.
+.sp
+This feature is available as of Postfix 3.5.
+.IP \fBX\fR
+Indicates that the delivery is final. This flag affects
+the status reported in "success" DSN (delivery status
+notification) messages, and changes it from "relayed" into
+"delivered".
+.sp
+This feature is available as of Postfix 3.5.
+.RE
+.SH "SECURITY"
+.na
+.nf
 The SMTP+LMTP client is moderately security\-sensitive. It
 talks to SMTP or LMTP servers and to DNS servers on the
 network. The SMTP+LMTP client can be run chrooted at fixed
@@ -526,6 +582,11 @@ directly followed by a corresponding certificate chain.
 .IP "\fBsmtp_tls_servername (empty)\fR"
 Optional name to send to the remote SMTP server in the TLS Server
 Name Indication (SNI) extension.
+.PP
+Available in Postfix version 3.5 and later:
+.IP "\fBtls_fast_shutdown_enable (yes)\fR"
+After sending a TLS 'close' notification, do not wait for the
+TLS peer to respond, and do not send a second TLS 'close' notification.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

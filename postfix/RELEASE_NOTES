@@ -25,6 +25,31 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Incompatibility with snapshot 20190615
+====================================
+
+The Postfix TLS library by default no longer waits after sending a
+TLS 'close' notification. This should be safe with TLSv1.2 and
+later. Specify "tls_fast_shutdown_enable = no" to enable historical
+Postfix behavior.
+
+Major changes with snapshot 20190615
+====================================
+
+After sending a TLS 'close' notification, the Postfix library by
+default no longer waits for the TLS peer to respond. According to
+RFC 2246 (TLSv1.2) section 7.2.1, "It is not required for the
+initiator of the close to wait for the responding close_notify alert
+before closing the read side of the connection."
+
+The SMTP+LMTP delivery agent can now prepend Delivered-To, X-Original-To
+and Return-Path headers, just like the pipe(8) delivery agent. This
+uses the same "flags=DOR" command-line flags in master.cf. See the
+smtp(8) manpage for details.
+
+This obsoletes the "lmtp_assume_final = yes" setting, and replaces
+it with "flags=...X...", for consistency with pipe(8).
+
 Major changes with snapshot 20190517
 ====================================
 
@@ -54,8 +79,9 @@ exact same result:
                 search_order = cert_fingerprint, pubkey_fingerprint } }
         ...
 
-The check_ccert_access search order also supports the subject and
-issuer properties. Support is planned for rfc822name and smtputf8mailbox.
+The check_ccert_access search order also supports the subject_cn and
+issuer_cn properties. Support is planned for rfc822name and
+smtputf8mailbox.
 
 Incompatibility with snapshot 20190427
 ======================================

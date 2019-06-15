@@ -14200,11 +14200,12 @@ Postfix version 2.5).  This feature is available with Postfix version
 order (Postfix 3.5 and later). The default search order as described
 above corresponds with: </dd>
 
-<dd> <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> { <a href="DATABASE_README.html">type:table</a> { search_order = cert_fingerprint,
+<dd> <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> { <a href="DATABASE_README.html">type:table</a>, { search_order = cert_fingerprint,
 pubkey_fingerprint } } </dd>
 
-<dd> Other valid search_order elements are "subject" (the certificate
-subject DN) and "issuer" (the certificate issuer DN). </dd>
+<dd> The commas are optional. Other valid search_order elements are
+"subject_cn" (the certificate subject CN) and "issuer_cn" (the
+certificate issuer CN). </dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -18540,6 +18541,21 @@ the default cipherlist for the SMTP server. You are strongly
 encouraged to not change this setting.  </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
+
+
+</DD>
+
+<DT><b><a name="tls_fast_shutdown_enable">tls_fast_shutdown_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> After sending a TLS 'close' notification, do not wait for the
+TLS peer to respond, and do not send a second TLS 'close' notification.
+According to <a href="http://tools.ietf.org/html/rfc2246">RFC 2246</a> (TLSv1.2) section 7.2.1, "It is not required
+for the initiator of the close to wait for the responding close_notify
+alert before closing the read side of the connection." </p>
+
+<p> Specify "<a href="postconf.5.html#tls_fast_shutdown_enable">tls_fast_shutdown_enable</a> = no" to enable historical
+Postfix behavior.  </p>
 
 
 </DD>

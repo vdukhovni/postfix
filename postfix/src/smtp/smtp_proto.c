@@ -140,7 +140,6 @@
 #include <rec_type.h>
 #include <off_cvt.h>
 #include <mark_corrupt.h>
-#include <quote_821_local.h>
 #include <quote_822_local.h>
 #include <mail_proto.h>
 #include <mime_state.h>
@@ -1388,6 +1387,64 @@ static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)
 		   "%s", detail->text);
 }
 
+/* smtp_out_raw_or_mime - output buffer, raw output or MIME-aware */
+
+static int smtp_out_raw_or_mime(SMTP_STATE *state, VSTRING *buf)
+{
+    SMTP_SESSION *session = state->session;
+    int     mime_errs;
+
+    if (session->mime_state == 0) {
+	smtp_text_out((void *) state, REC_TYPE_NORM, vstring_str(buf),
+		      VSTRING_LEN(buf), (off_t) 0);
+    } else {
+	mime_errs =
+	    mime_state_update(session->mime_state, REC_TYPE_NORM,
+			      vstring_str(buf), VSTRING_LEN(buf));
+	if (mime_errs) {
+	    smtp_mime_fail(state, mime_errs);
+	    return (-1);
+	}
+    }
+    return (0);
+}
+
+/* smtp_out_add_header - format address header, uses session->scratch* */
+
+static int smtp_out_add_header(SMTP_STATE *state, const char *label,
+			               const char *lt, const char *addr,
+			               const char *gt)
+{
+    SMTP_SESSION *session = state->session;
+
+    smtp_rewrite_generic_internal(session->scratch2, addr);
+    vstring_sprintf(session->scratch, "%s: %s", label, lt);
+    smtp_quote_822_address_flags(session->scratch,
+				 vstring_str(session->scratch2),
+				 QUOTE_FLAG_DEFAULT | QUOTE_FLAG_APPEND);
+    vstring_strcat(session->scratch, gt);
+    return (smtp_out_raw_or_mime(state, session->scratch));
+}
+
+/* smtp_out_add_headers - output additional headers, uses session->scratch* */
+
+static int smtp_out_add_headers(SMTP_STATE *state)
+{
+    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_DELIVERED_TO)
+	if (smtp_out_add_header(state, "Delivered-To", "",
+			   state->request->rcpt_list.info->address, "") < 0)
+	    return (-1);
+    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_ORIG_RCPT)
+	if (smtp_out_add_header(state, "X-Original-To", "",
+			 state->request->rcpt_list.info->orig_addr, "") < 0)
+	    return (-1);
+    if (smtp_cli_attr.flags & SMTP_CLI_FLAG_RETURN_PATH)
+	if (smtp_out_add_header(state, "Return-Path", "<",
+				state->request->sender, ">") < 0)
+	    return (-1);
+    return (0);
+}
+
 /* smtp_loop - exercise the SMTP protocol engine */
 
 static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
@@ -1415,24 +1472,6 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
     int     mime_errs;
     SMTP_RESP fake;
     int     fail_status;
-
-    /*
-     * Macros for readability.
-     */
-#define REWRITE_ADDRESS(dst, src) do { \
-	vstring_strcpy(dst, src); \
-	if (*(src) && smtp_generic_maps) \
-	    smtp_map11_internal(dst, smtp_generic_maps, \
-		smtp_ext_prop_mask & EXT_PROP_GENERIC); \
-    } while (0)
-
-#define QUOTE_ADDRESS(dst, src) do { \
-	if (*(src) && var_smtp_quote_821_env) { \
-	    quote_821_local(dst, src); \
-	} else { \
-	    vstring_strcpy(dst, src); \
-	} \
-    } while (0)
 
     /* Caution: changes to RETURN() also affect code outside the main loop. */
 
@@ -1608,8 +1647,9 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	case SMTP_STATE_MAIL:
 	    request->msg_stats.reuse_count = session->reuse_count;
 	    GETTIMEOFDAY(&request->msg_stats.conn_setup_done);
-	    REWRITE_ADDRESS(session->scratch2, request->sender);
-	    QUOTE_ADDRESS(session->scratch, vstring_str(session->scratch2));
+	    smtp_rewrite_generic_internal(session->scratch2, request->sender);
+	    smtp_quote_821_address(session->scratch,
+				   vstring_str(session->scratch2));
 	    vstring_sprintf(next_command, "MAIL FROM:<%s>",
 			    vstring_str(session->scratch));
 	    /* XXX Don't announce SIZE if we're going to MIME downgrade. */
@@ -1697,8 +1737,9 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 	     */
 	case SMTP_STATE_RCPT:
 	    rcpt = request->rcpt_list.info + send_rcpt;
-	    REWRITE_ADDRESS(session->scratch2, rcpt->address);
-	    QUOTE_ADDRESS(session->scratch, vstring_str(session->scratch2));
+	    smtp_rewrite_generic_internal(session->scratch2, rcpt->address);
+	    smtp_quote_821_address(session->scratch,
+				   vstring_str(session->scratch2));
 	    vstring_sprintf(next_command, "RCPT TO:<%s>",
 			    vstring_str(session->scratch));
 	    if (session->features & SMTP_FEATURE_DSN) {
@@ -2259,24 +2300,15 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 							   (void *) state);
 		state->space_left = var_smtp_line_limit;
 
+		if ((smtp_cli_attr.flags & SMTP_CLI_MASK_ADD_HEADERS) != 0
+		    && smtp_out_add_headers(state) < 0)
+		    RETURN(0);
+
 		while ((rec_type = rec_get(state->src, session->scratch, 0)) > 0) {
 		    if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT)
 			break;
-		    if (session->mime_state == 0) {
-			smtp_text_out((void *) state, rec_type,
-				      vstring_str(session->scratch),
-				      VSTRING_LEN(session->scratch),
-				      (off_t) 0);
-		    } else {
-			mime_errs =
-			    mime_state_update(session->mime_state, rec_type,
-					      vstring_str(session->scratch),
-					      VSTRING_LEN(session->scratch));
-			if (mime_errs) {
-			    smtp_mime_fail(state, mime_errs);
-			    RETURN(0);
-			}
-		    }
+		    if (smtp_out_raw_or_mime(state, session->scratch) < 0)
+			RETURN(0);
 		    prev_type = rec_type;
 		}
 

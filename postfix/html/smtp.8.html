@@ -10,7 +10,7 @@ SMTP(8)                                                                SMTP(8)
        smtp - Postfix SMTP+LMTP client
 
 <b>SYNOPSIS</b>
-       <b>smtp</b> [generic Postfix daemon options]
+       <b>smtp</b> [generic Postfix daemon options] [flags=DORX]
 
 <b>DESCRIPTION</b>
        The Postfix SMTP+LMTP client implements the SMTP and LMTP mail delivery
@@ -84,10 +84,58 @@ SMTP(8)                                                                SMTP(8)
               will   be   used.    An   IPv6  address  must  be  formatted  as
               [<b>ipv6</b>:<i>address</i>].
 
+<b>SINGLE-RECIPIENT DELIVERY</b>
+       By default, the Postfix SMTP+LMTP  client  delivers  mail  to  multiple
+       recipients  per delivery request. This is undesirable when prepending a
+       <b>Delivered-to:</b> or <b>X-Original-To:</b> message header. To prevent Postfix from
+       sending multiple recipients per delivery request, specify
+
+           <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a> = 1</b>
+
+       in  the  Postfix <a href="postconf.5.html"><b>main.cf</b></a> file, where <i>transport</i> is the name in the first
+       column of the Postfix  <a href="master.5.html"><b>master.cf</b></a>  entry  for  the  pipe-based  delivery
+       transport.
+
+<b>COMMAND ATTRIBUTE SYNTAX</b>
+       <b>flags=DORX</b> (optional)
+              Optional message processing flags.
+
+              <b>D</b>      Prepend  a  "<b>Delivered-To:</b> <i>recipient</i>" message header with
+                     the envelope recipient address. Note: for this  to  work,
+                     the  <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a></b> must be 1 (see
+                     SINGLE-RECIPIENT DELIVERY above for details).
+
+                     The <b>D</b> flag also enforces loop  detection:  if  a  message
+                     already  contains  a  <b>Delivered-To:</b>  header with the same
+                     recipient address, then the message is returned as  unde-
+                     liverable. The address comparison is case insensitive.
+
+                     This feature is available as of Postfix 3.5.
+
+              <b>O</b>      Prepend an "<b>X-Original-To:</b> <i>recipient</i>" message header with
+                     the recipient address as given to Postfix. Note: for this
+                     to  work,  the <b><a href="postconf.5.html#transport_destination_recipient_limit"><i>transport</i>_destination_recipient_limit</a></b> must
+                     be 1 (see SINGLE-RECIPIENT DELIVERY above for details).
+
+                     This feature is available as of Postfix 3.5.
+
+              <b>R</b>      Prepend a "<b>Return-Path:</b> &lt;<i>sender</i>&gt;" message header with the
+                     envelope sender address.
+
+                     This feature is available as of Postfix 3.5.
+
+              <b>X</b>      Indicates  that  the delivery is final. This flag affects
+                     the status reported in  "success"  DSN  (delivery  status
+                     notification)  messages,  and  changes  it from "relayed"
+                     into "delivered".
+
+                     This feature is available as of Postfix 3.5.
+
 <b>SECURITY</b>
-       The SMTP+LMTP client is moderately security-sensitive. It talks to SMTP
-       or LMTP servers and to DNS servers on the network. The SMTP+LMTP client
-       can be run chrooted at fixed low privilege.
+       The SMTP+LMTP client is moderately security-sensitive. It
+       talks to SMTP or LMTP servers and to DNS servers on the
+       network. The SMTP+LMTP client can be run chrooted at fixed
+       low privilege.
 
 <b>STANDARDS</b>
        <a href="http://tools.ietf.org/html/rfc821">RFC 821</a> (SMTP protocol)
@@ -120,13 +168,11 @@ SMTP(8)                                                                SMTP(8)
        ter is notified of bounces, protocol problems, and of other trouble.
 
 <b>BUGS</b>
-       SMTP  and LMTP connection caching does not work with TLS. The necessary
-       support for TLS object passivation and  re-activation  does  not  exist
-       without closing the session, which defeats the purpose.
+       SMTP  and  LMTP  connection  reuse for TLS (without closing the SMTP or
+       LMTP connection) is not supported before Postfix 3.4.
 
-       SMTP  and  LMTP  connection  caching  assumes that SASL credentials are
-       valid for all destinations that map onto the same IP  address  and  TCP
-       port.
+       SMTP and LMTP connection reuse assumes that SASL credentials are  valid
+       for all destinations that map onto the same IP address and TCP port.
 
 <b>CONFIGURATION PARAMETERS</b>
        Before  Postfix version 2.3, the LMTP client is a separate program that
@@ -594,6 +640,13 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_tls_servername">smtp_tls_servername</a> (empty)</b>
               Optional  name  to  send  to  the  remote SMTP server in the TLS
               Server Name Indication (SNI) extension.
+
+       Available in Postfix version 3.5 and later:
+
+       <b><a href="postconf.5.html#tls_fast_shutdown_enable">tls_fast_shutdown_enable</a> (yes)</b>
+              After sending a TLS 'close' notification, do not  wait  for  the
+              TLS  peer to respond, and do not send a second TLS 'close' noti-
+              fication.
 
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The following configuration parameters  exist  for  compatibility  with

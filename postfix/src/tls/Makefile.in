@@ -572,6 +572,7 @@ tls_server.o: tls_server.c
 tls_session.o: ../../include/argv.h
 tls_session.o: ../../include/check_arg.h
 tls_session.o: ../../include/dns.h
+tls_session.o: ../../include/mail_params.h
 tls_session.o: ../../include/msg.h
 tls_session.o: ../../include/myaddrinfo.h
 tls_session.o: ../../include/mymalloc.h

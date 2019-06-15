@@ -24286,3 +24286,31 @@ Apologies for any names omitted.
 	"check_ccert_access { inline:{a=b} { search_order=c,d } }".
 	Fixed by adding another level of recursion. File:
 	postconf/postconf_dbms.c.
+
+20190525
+
+	Infrastructure: reject_deliver_request() to reject an entire
+	delivery request and bounce or defer all its recipients.
+	File: global/reject_deliver_request.c.
+
+20190609
+
+	Infrastructure: byte_mask() to convert "flags=mumble" into
+	a byte mask. This is similar to name_mask(). Files:
+	util/byte_mask.[hc] and tests.
+
+20190615
+
+	Feature: SMTP/LMTP client support for 'D', 'O', 'R', 'X'
+	flags similar to the pipe(8) daemon, to produce Delivered-To,
+	X-Original-To, and Return-Path headers, and to indicate
+	final delivery. Files: smtp/smtp.c, smtp/smtp.h, smtp/smtp_misc.c,
+	smtp/smtp_proto.c, smtp/smtp_rcpt.c.
+
+	Cleanup: don't wait for the TLS peer to respond after sending
+	a TLS 'close' notification. This should be safe with TLSv1.2
+	and later. Specify "tls_fast_shutdown_enable = no" to enable
+	historical behavior where Postfix waits, and then sends a
+	second TLS 'close' notification before closing the TCP
+	connection. Files: global/mail_params.h, tls/tls_session.c,
+	and documentation.

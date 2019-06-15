@@ -700,6 +700,31 @@ extern int smtp_mode;
 #define VAR_LMTP_SMTP(x) (smtp_mode ? VAR_SMTP_##x : VAR_LMTP_##x)
 #define LMTP_SMTP_SUFFIX(x) (smtp_mode ? x##_SMTP : x##_LMTP)
 
+ /*
+  * Parsed command-line attributes. These do not change during the process
+  * lifetime.
+  */
+typedef struct {
+    int     flags;			/* from flags=, see below */
+} SMTP_CLI_ATTR;
+
+#define SMTP_CLI_FLAG_DELIVERED_TO	(1<<0)	/* prepend Delivered-To: */
+#define SMTP_CLI_FLAG_ORIG_RCPT		(1<<1)	/* prepend X-Original-To: */
+#define SMTP_CLI_FLAG_RETURN_PATH	(1<<2)	/* prepend Return-Path: */
+#define SMTP_CLI_FLAG_FINAL_DELIVERY	(1<<3)	/* final, not relay */
+
+#define SMTP_CLI_MASK_ADD_HEADERS	(SMTP_CLI_FLAG_DELIVERED_TO | \
+	SMTP_CLI_FLAG_ORIG_RCPT | SMTP_CLI_FLAG_RETURN_PATH)
+
+extern SMTP_CLI_ATTR smtp_cli_attr;
+
+ /*
+  * smtp_misc.c.
+  */
+extern void smtp_rewrite_generic_internal(VSTRING *, const char *);
+extern void smtp_quote_822_address_flags(VSTRING *, const char *, int);
+extern void smtp_quote_821_address(VSTRING *, const char *);
+
 /* LICENSE
 /* .ad
 /* .fi

@@ -41,7 +41,8 @@ SRCS	= alldig.c allprint.c argv.c argv_split.c attr_clnt.c attr_print0.c \
 	valid_utf8_hostname.c midna_domain.c argv_splitq.c balpar.c dict_union.c \
 	extpar.c dict_inline.c casefold.c dict_utf8.c strcasecmp_utf8.c \
 	split_qnameval.c argv_attr_print.c argv_attr_scan.c dict_file.c \
-	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c
+	msg_logger.c logwriter.c unix_dgram_connect.c unix_dgram_listen.c \
+	byte_mask.c
 OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	attr_print64.o attr_print_plain.o attr_scan0.o attr_scan64.o \
 	attr_scan_plain.o auto_clnt.o base64_code.o basename.o binhash.o \
@@ -84,7 +85,8 @@ OBJS	= alldig.o allprint.o argv.o argv_split.o attr_clnt.o attr_print0.o \
 	valid_utf8_hostname.o midna_domain.o argv_splitq.o balpar.o dict_union.o \
 	extpar.o dict_inline.o casefold.o dict_utf8.o strcasecmp_utf8.o \
 	split_qnameval.o argv_attr_print.o argv_attr_scan.o dict_file.o \
-	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o
+	msg_logger.o logwriter.o unix_dgram_connect.o unix_dgram_listen.o \
+	byte_mask.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -114,7 +116,7 @@ HDRS	= argv.h attr.h attr_clnt.h auto_clnt.h base64_code.h binhash.h \
 	dict_fail.h warn_stat.h dict_sockmap.h line_number.h timecmp.h \
 	slmdb.h compat_va_copy.h dict_pipe.h dict_random.h \
 	valid_utf8_hostname.h midna_domain.h dict_union.h dict_inline.h \
-	check_arg.h argv_attr.h msg_logger.h logwriter.h
+	check_arg.h argv_attr.h msg_logger.h logwriter.h byte_mask.h
 TESTSRC	= fifo_open.c fifo_rdwr_bug.c fifo_rdonly_bug.c select_bug.c \
 	stream_test.c dup2_pass_on_exec.c
 DEFS	= -I. -D$(SYSTYPE)
@@ -134,7 +136,7 @@ TESTPROG= dict_open dup2_pass_on_exec events exec_command fifo_open \
 	myaddrinfo myaddrinfo4 inet_proto sane_basename format_tv \
 	valid_utf8_string ip_match base32_code msg_rate_delay netstring \
 	vstream timecmp dict_cache midna_domain casefold strcasecmp_utf8 \
-	vbuf_print split_qnameval vstream msg_logger
+	vbuf_print split_qnameval vstream msg_logger byte_mask
 PLUGIN_MAP_SO = $(LIB_PREFIX)pcre$(LIB_SUFFIX)
 
 LIB_DIR	= ../../lib
@@ -351,6 +353,11 @@ name_mask: $(LIB)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
 	mv junk $@.o
 
+byte_mask: $(LIB)
+	mv $@.o junk
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
+	mv junk $@.o
+
 rand_sleep: $(LIB)
 	mv $@.o junk
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(SYSLIBS)
@@ -552,7 +559,7 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test \
 	vstring_test vstream_test dict_pcre_file_test dict_regexp_file_test \
 	dict_cidr_file_test dict_static_file_test dict_random_test \
-	dict_random_file_test dict_inline_file_test
+	dict_random_file_test dict_inline_file_test byte_mask_tests
 
 root_tests:
 
@@ -734,7 +741,7 @@ name_mask_tests: name_mask_test0 name_mask_test1 name_mask_test2 \
 	name_mask_test7 name_mask_test8 name_mask_test9
 
 name_mask_test0: name_mask name_mask.in name_mask.ref0
-	$(SHLIB_ENV) ${VALGRIND} ./name_mask IGNORE IGNORE < name_mask.in > name_mask.tmp 2>&0
+	$(SHLIB_ENV) ${VALGRIND} ./name_mask IGNORE IGNORE < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref0 name_mask.tmp
 	rm -f name_mask.tmp
 
@@ -782,6 +789,29 @@ name_mask_test9: name_mask name_mask.in name_mask.ref9
 	$(SHLIB_ENV) ${VALGRIND} ./name_mask NUMBER,WARN NUMBER,PIPE < name_mask.in > name_mask.tmp 2>&1
 	diff name_mask.ref9 name_mask.tmp
 	rm -f name_mask.tmp
+
+byte_mask_tests: byte_mask_test0 byte_mask_test1 byte_mask_test2
+
+byte_mask_test0: byte_mask byte_mask.in byte_mask.ref0
+	while read line; do \
+	    echo "$$line" | $(SHLIB_ENV) ${VALGRIND} ./byte_mask IGNORE IGNORE; \
+	done < byte_mask.in > byte_mask.tmp 2>&1
+	diff byte_mask.ref0 byte_mask.tmp
+	rm -f byte_mask.tmp
+
+byte_mask_test1: byte_mask byte_mask.in byte_mask.ref1
+	while read line; do \
+	    echo "$$line" | $(SHLIB_ENV) ${VALGRIND} ./byte_mask WARN WARN; \
+	done < byte_mask.in > byte_mask.tmp 2>&1
+	diff byte_mask.ref1 byte_mask.tmp
+	rm -f byte_mask.tmp
+
+byte_mask_test2: byte_mask byte_mask.in byte_mask.ref2
+	-while read line; do \
+	    echo "$$line" | $(SHLIB_ENV) ${VALGRIND} ./byte_mask FATAL FATAL; \
+	done < byte_mask.in > byte_mask.tmp 2>&1
+	diff byte_mask.ref2 byte_mask.tmp
+	rm -f byte_mask.tmp
 
 base32_code_test: base32_code
 	$(SHLIB_ENV) ${VALGRIND} ./base32_code
@@ -1143,6 +1173,15 @@ binhash.o: binhash.h
 binhash.o: msg.h
 binhash.o: mymalloc.h
 binhash.o: sys_defs.h
+byte_mask.o: byte_mask.c
+byte_mask.o: byte_mask.h
+byte_mask.o: check_arg.h
+byte_mask.o: msg.h
+byte_mask.o: mymalloc.h
+byte_mask.o: stringops.h
+byte_mask.o: sys_defs.h
+byte_mask.o: vbuf.h
+byte_mask.o: vstring.h
 casefold.o: casefold.c
 casefold.o: check_arg.h
 casefold.o: msg.h
@@ -1910,8 +1949,6 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
-load_lib.o: load_lib.h
-load_lib.o: msg.h
 load_lib.o: sys_defs.h
 logwriter.o: check_arg.h
 logwriter.o: iostuff.h

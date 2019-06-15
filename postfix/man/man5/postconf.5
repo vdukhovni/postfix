@@ -12942,6 +12942,15 @@ the default cipherlist for the SMTP server. You are strongly
 encouraged to not change this setting.
 .PP
 This feature is available in Postfix 2.3 and later.
+.SH tls_fast_shutdown_enable (default: yes)
+After sending a TLS 'close' notification, do not wait for the
+TLS peer to respond, and do not send a second TLS 'close' notification.
+According to RFC 2246 (TLSv1.2) section 7.2.1, "It is not required
+for the initiator of the close to wait for the responding close_notify
+alert before closing the read side of the connection."
+.PP
+Specify "tls_fast_shutdown_enable = no" to enable historical
+Postfix behavior.
 .SH tls_high_cipherlist (default: see "postconf \-d" output)
 The OpenSSL cipherlist for "high" grade ciphers. This defines
 the meaning of the "high" setting in smtpd_tls_ciphers,

@@ -3331,6 +3331,13 @@ extern char *var_tls_server_sni_maps;
 extern char *var_tls_dane_digests;
 
  /*
+  * Backwards compatibility for Postfix 3.5 and later.
+  */
+#define VAR_TLS_FAST_SHUTDOWN	"tls_fast_shutdown"
+#define DEF_TLS_FAST_SHUTDOWN	1
+extern bool var_tls_fast_shutdown;
+
+ /*
   * Sendmail-style mail filter support.
   */
 #define VAR_SMTPD_MILTERS		"smtpd_milters"

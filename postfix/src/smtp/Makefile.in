@@ -2,11 +2,11 @@ SHELL	= /bin/sh
 SRCS	= smtp.c smtp_connect.c smtp_proto.c smtp_chat.c smtp_session.c \
 	smtp_addr.c smtp_trouble.c smtp_state.c smtp_rcpt.c smtp_tls_policy.c \
 	smtp_sasl_proto.c smtp_sasl_glue.c smtp_reuse.c smtp_map11.c \
-	smtp_sasl_auth_cache.c smtp_key.c
+	smtp_sasl_auth_cache.c smtp_key.c smtp_misc.c
 OBJS	= smtp.o smtp_connect.o smtp_proto.o smtp_chat.o smtp_session.o \
 	smtp_addr.o smtp_trouble.o smtp_state.o smtp_rcpt.o smtp_tls_policy.o \
 	smtp_sasl_proto.o smtp_sasl_glue.o smtp_reuse.o smtp_map11.o \
-	smtp_sasl_auth_cache.o smtp_key.o
+	smtp_sasl_auth_cache.o smtp_key.o smtp_misc.o
 HDRS	= smtp.h smtp_sasl.h smtp_addr.h smtp_reuse.h smtp_sasl_auth_cache.h
 TESTSRC	= 
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
@@ -89,6 +89,7 @@ depend: $(MAKES)
 lmtp_params.o: lmtp_params.c
 smtp.o: ../../include/argv.h
 smtp.o: ../../include/attr.h
+smtp.o: ../../include/byte_mask.h
 smtp.o: ../../include/check_arg.h
 smtp.o: ../../include/debug_peer.h
 smtp.o: ../../include/deliver_request.h
@@ -358,6 +359,46 @@ smtp_map11.o: ../../include/vstream.h
 smtp_map11.o: ../../include/vstring.h
 smtp_map11.o: smtp.h
 smtp_map11.o: smtp_map11.c
+smtp_misc.o: ../../include/argv.h
+smtp_misc.o: ../../include/attr.h
+smtp_misc.o: ../../include/check_arg.h
+smtp_misc.o: ../../include/deliver_request.h
+smtp_misc.o: ../../include/dict.h
+smtp_misc.o: ../../include/dns.h
+smtp_misc.o: ../../include/dsn.h
+smtp_misc.o: ../../include/dsn_buf.h
+smtp_misc.o: ../../include/ext_prop.h
+smtp_misc.o: ../../include/header_body_checks.h
+smtp_misc.o: ../../include/header_opts.h
+smtp_misc.o: ../../include/htable.h
+smtp_misc.o: ../../include/mail_params.h
+smtp_misc.o: ../../include/maps.h
+smtp_misc.o: ../../include/match_list.h
+smtp_misc.o: ../../include/mime_state.h
+smtp_misc.o: ../../include/msg_stats.h
+smtp_misc.o: ../../include/myaddrinfo.h
+smtp_misc.o: ../../include/myflock.h
+smtp_misc.o: ../../include/mymalloc.h
+smtp_misc.o: ../../include/name_code.h
+smtp_misc.o: ../../include/name_mask.h
+smtp_misc.o: ../../include/nvtable.h
+smtp_misc.o: ../../include/quote_821_local.h
+smtp_misc.o: ../../include/quote_822_local.h
+smtp_misc.o: ../../include/quote_flags.h
+smtp_misc.o: ../../include/recipient_list.h
+smtp_misc.o: ../../include/resolve_clnt.h
+smtp_misc.o: ../../include/scache.h
+smtp_misc.o: ../../include/sock_addr.h
+smtp_misc.o: ../../include/string_list.h
+smtp_misc.o: ../../include/sys_defs.h
+smtp_misc.o: ../../include/tls.h
+smtp_misc.o: ../../include/tls_proxy.h
+smtp_misc.o: ../../include/tok822.h
+smtp_misc.o: ../../include/vbuf.h
+smtp_misc.o: ../../include/vstream.h
+smtp_misc.o: ../../include/vstring.h
+smtp_misc.o: smtp.h
+smtp_misc.o: smtp_misc.c
 smtp_params.o: smtp_params.c
 smtp_proto.o: ../../include/argv.h
 smtp_proto.o: ../../include/attr.h
@@ -397,7 +438,6 @@ smtp_proto.o: ../../include/name_code.h
 smtp_proto.o: ../../include/name_mask.h
 smtp_proto.o: ../../include/nvtable.h
 smtp_proto.o: ../../include/off_cvt.h
-smtp_proto.o: ../../include/quote_821_local.h
 smtp_proto.o: ../../include/quote_822_local.h
 smtp_proto.o: ../../include/quote_flags.h
 smtp_proto.o: ../../include/rec_type.h
