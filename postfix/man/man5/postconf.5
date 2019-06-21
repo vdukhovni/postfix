@@ -9481,11 +9481,12 @@ Alternatively, check_ccert_access accepts an explicit search
 order (Postfix 3.5 and later). The default search order as described
 above corresponds with:
 .br
-check_ccert_access { type:table { search_order = cert_fingerprint,
+check_ccert_access { type:table, { search_order = cert_fingerprint,
 pubkey_fingerprint } }
 .br
-Other valid search_order elements are "subject" (the certificate
-subject DN) and "issuer" (the certificate issuer DN).
+The commas are optional. Other valid search_order elements are
+"subject_cn" (the certificate subject CN) and "issuer_cn" (the
+certificate issuer CN).
 .br
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
 Search the specified access database for the client hostname,
@@ -12944,8 +12945,8 @@ encouraged to not change this setting.
 This feature is available in Postfix 2.3 and later.
 .SH tls_fast_shutdown_enable (default: yes)
 After sending a TLS 'close' notification, do not wait for the
-TLS peer to respond, and do not send a second TLS 'close' notification.
-According to RFC 2246 (TLSv1.2) section 7.2.1, "It is not required
+TLS peer to respond.
+According to RFC 2246 (TLSv1.0) section 7.2.1, "It is not required
 for the initiator of the close to wait for the responding close_notify
 alert before closing the read side of the connection."
 .PP

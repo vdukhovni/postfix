@@ -24301,16 +24301,36 @@ Apologies for any names omitted.
 
 20190615
 
-	Feature: SMTP/LMTP client support for 'D', 'O', 'R', 'X'
-	flags similar to the pipe(8) daemon, to produce Delivered-To,
-	X-Original-To, and Return-Path headers, and to indicate
-	final delivery. Files: smtp/smtp.c, smtp/smtp.h, smtp/smtp_misc.c,
-	smtp/smtp_proto.c, smtp/smtp_rcpt.c.
+	Dovecot usability: SMTP/LMTP client support for 'D', 'O',
+	'R', 'X' flags similar to the pipe(8) daemon, to produce
+	Delivered-To, X-Original-To, and Return-Path headers, and
+	to indicate final delivery. Files: smtp/smtp.c, smtp/smtp.h,
+	smtp/smtp_misc.c, smtp/smtp_proto.c, smtp/smtp_rcpt.c.
 
 	Cleanup: don't wait for the TLS peer to respond after sending
-	a TLS 'close' notification. This should be safe with TLSv1.2
+	a TLS 'close' notification. This should be safe with TLSv1.0
 	and later. Specify "tls_fast_shutdown_enable = no" to enable
 	historical behavior where Postfix waits, and then sends a
 	second TLS 'close' notification before closing the TCP
 	connection. Files: global/mail_params.h, tls/tls_session.c,
 	and documentation.
+
+20190618
+
+	Documentation: corrected comments about the code change to
+	not wait for the TLS peer's response after sending a TLS
+	'close' notification. Viktor Dukhovni. Files: HISTORY,
+	RELEASE_NOTES, proto/postconf.proto smtp/smtp.c smtpd/smtpd.c
+	tlsproxy/tlsproxy.c
+
+20190621
+
+	Workaround: don't reuse an SMTP connection after an SMTP
+	protocol error. This limits the impact of, for example,
+	pipelining synchronization errors. File: smtp/smtp_trouble.c.
+
+	Bugfix: the code to reset command counts was not called
+	after a HaProxy handshake failure, causing stale numbers
+	to be reported. The command counts are now reset in the 
+	function that reports the counts. File: smtpd/smtpd.c.
+	command-read loop to the function that reports the counts.

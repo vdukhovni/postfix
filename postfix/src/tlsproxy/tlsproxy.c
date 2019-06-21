@@ -133,7 +133,7 @@
 /*	Available in Postfix version 3.5 and later:
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
 /*	After sending a TLS 'close' notification, do not wait for the
-/*	TLS peer to respond, and do not send a second TLS 'close' notification.
+/*	TLS peer to respond.
 /* STARTTLS SERVER CONTROLS
 /* .ad
 /* .fi

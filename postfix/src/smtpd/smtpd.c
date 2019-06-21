@@ -497,7 +497,7 @@
 /*	Available in Postfix version 3.5 and later:
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
 /*	After sending a TLS 'close' notification, do not wait for the
-/*	TLS peer to respond, and do not send a second TLS 'close' notification.
+/*	TLS peer to respond.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -5422,15 +5422,6 @@ static void smtpd_proto(SMTPD_STATE *state)
     case 0:
 
 	/*
-	 * Reset the per-command counters.
-	 */
-	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
-	    cmdp->success_count = cmdp->total_count = 0;
-	    if (cmdp->name == 0)
-		break;
-	}
-
-	/*
 	 * In TLS wrapper mode, turn on TLS using code that is shared with
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
@@ -5824,6 +5815,20 @@ static char *smtpd_format_cmd_stats(VSTRING *buf)
 	    all_success += cmdp->success_count;
 	    all_total += cmdp->total_count;
 	}
+	if (cmdp->name == 0)
+	    break;
+    }
+
+    /*
+     * Reset the per-command counters.
+     * 
+     * Fix 20190621: the command counter resetting code was moved from the SMTP
+     * protocol handler to this place, because the protocol handler was never
+     * called after HaProxy handhake error, causing stale numbers to be
+     * logged.
+     */
+    for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
+	cmdp->success_count = cmdp->total_count = 0;
 	if (cmdp->name == 0)
 	    break;
     }

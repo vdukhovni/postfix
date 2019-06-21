@@ -97,7 +97,7 @@ recipients per delivery request, specify
 
 in the Postfix \fBmain.cf\fR file, where \fItransport\fR
 is the name in the first column of the Postfix \fBmaster.cf\fR
-entry for the pipe\-based delivery transport.
+entry for this mail delivery service.
 .SH "COMMAND ATTRIBUTE SYNTAX"
 .na
 .nf
@@ -183,11 +183,10 @@ other trouble.
 .SH BUGS
 .ad
 .fi
-SMTP and LMTP connection caching does not work with TLS. The necessary
-support for TLS object passivation and re\-activation does not
-exist without closing the session, which defeats the purpose.
+SMTP and LMTP connection reuse for TLS (without closing the
+SMTP or LMTP connection) is not supported before Postfix 3.4.
 
-SMTP and LMTP connection caching assumes that SASL credentials
+SMTP and LMTP connection reuse assumes that SASL credentials
 are valid for all destinations that map onto the same IP
 address and TCP port.
 .SH "CONFIGURATION PARAMETERS"
@@ -586,7 +585,7 @@ Name Indication (SNI) extension.
 Available in Postfix version 3.5 and later:
 .IP "\fBtls_fast_shutdown_enable (yes)\fR"
 After sending a TLS 'close' notification, do not wait for the
-TLS peer to respond, and do not send a second TLS 'close' notification.
+TLS peer to respond.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf
