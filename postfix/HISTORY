@@ -22490,3 +22490,27 @@ Apologies for any names omitted.
 	could exhaust LMTP server resources, resulting in two-second
 	pauses between email deliveries. This problem was investigated
 	by Juliana Rodrigueiro. File: smtp/smtp_connect.c.
+
+20190403
+
+	Bugfix (introduced: Postfix 2.3): a censoring filter broke
+	multiline Milter responses for header/body events. Problem
+	report by Andreas Thienemann. Files: util/printable.c,
+	util/stringops.h, smtpd/smtpd.c
+
+20190615
+
+	Workaround for implementations that hang Postfix while
+	shutting down a TLS session, until Postfix times out. With
+	"tls_fast_shutdown_enable = yes" (the default), Postfix no
+	longer waits for the TLS peer to respond to a TLS 'close'
+	request. This is recommended with TLSv1.0 and later. Files:
+	global/mail_params.h, tls/tls_session.c, and documentation.
+
+20190621
+
+	Bugfix (introduced: Postfix 3.0): the code to reset Postfix
+	SMTP server command counts was not called after a HaProxy
+	handshake failure, causing stale numbers to be reported.
+	The command counts are now reset in the function that reports
+	the counts. File: smtpd/smtpd.c.

@@ -468,6 +468,11 @@
 /*	Available in Postfix version 3.0 and later:
 /* .IP "\fBtls_session_ticket_cipher (Postfix >= 3.0: aes-256-cbc, Postfix < 3.0: aes-128-cbc)\fR"
 /*	Algorithm used to encrypt RFC5077 TLS session tickets.
+/* .PP
+/*	Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+/* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
+/*	A workaround for implementations that hang Postfix while shuting
+/*	down a TLS session, until Postfix times out.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -3448,6 +3453,12 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	    if (vstream_ferror(state->cleanup))
 		state->err = CLEANUP_STAT_WRITE;
 	}
+
+#define IS_SMTP_REJECT(s) \
+	(((s)[0] == '4' || (s)[0] == '5') \
+	 && ISDIGIT((s)[1]) && ISDIGIT((s)[2]) \
+	 && ((s)[3] == '\0' || (s)[3] == ' ' || (s)[3] == '-'))
+
 	if (state->err == CLEANUP_STAT_OK)
 	    if (rec_fputs(state->cleanup, REC_TYPE_END, "") < 0
 		|| vstream_fflush(state->cleanup))
@@ -3455,7 +3466,10 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
 	if (state->err == 0) {
 	    why = vstring_alloc(10);
 	    state->err = mail_stream_finish(state->dest, why);
-	    printable(STR(why), ' ');
+	    if (IS_SMTP_REJECT(STR(why)))
+		printable_except(STR(why), ' ', "\r\n");
+	    else
+		printable(STR(why), ' ');
 	} else
 	    mail_stream_cleanup(state->dest);
 	state->dest = 0;
@@ -3490,11 +3504,6 @@ static int data_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *unused_argv)
      * 
      * See also: qmqpd.c
      */
-#define IS_SMTP_REJECT(s) \
-	(((s)[0] == '4' || (s)[0] == '5') \
-	 && ISDIGIT((s)[1]) && ISDIGIT((s)[2]) \
-	 && ((s)[3] == '\0' || (s)[3] == ' ' || (s)[3] == '-'))
-
     if (state->err == CLEANUP_STAT_OK) {
 	state->error_count = 0;
 	state->error_mask = 0;
@@ -4916,15 +4925,6 @@ static void smtpd_proto(SMTPD_STATE *state)
     case 0:
 
 	/*
-	 * Reset the per-command counters.
-	 */
-	for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
-	    cmdp->success_count = cmdp->total_count = 0;
-	    if (cmdp->name == 0)
-		break;
-	}
-
-	/*
 	 * In TLS wrapper mode, turn on TLS using code that is shared with
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
@@ -5311,6 +5311,15 @@ static char *smtpd_format_cmd_stats(VSTRING *buf)
 	    all_success += cmdp->success_count;
 	    all_total += cmdp->total_count;
 	}
+	if (cmdp->name == 0)
+	    break;
+    }
+
+    /*
+     * Reset the per-command counters.
+     */
+    for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {
+	cmdp->success_count = cmdp->total_count = 0;
 	if (cmdp->name == 0)
 	    break;
     }

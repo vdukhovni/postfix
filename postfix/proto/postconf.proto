@@ -16115,6 +16115,17 @@ support is via the tls_ssl_options parameter.  </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
 
+%PARAM tls_fast_shutdown_enable yes
+
+<p> A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out. With this enabled,
+Postfix will not wait for the remote TLS peer to respond to a TLS
+'close' notification. This behavior is recommended for TLSv1.0 and
+later. </p>
+
+<p> This feature was introduced with Postfix 3.4.6, 3.3.5, 3.2.10,
+and 3.1.13. </p>
+
 %PARAM default_delivery_status_filter
 
 <p> Optional filter to replace the delivery status code or explanatory

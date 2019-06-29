@@ -20,7 +20,7 @@
   * External interface.
   */
 extern int util_utf8_enable;
-extern char *printable(char *, int);
+extern char *printable_except(char *, int, const char *);
 extern char *neuter(char *, const char *, int);
 extern char *lowercase(char *);
 extern char *casefoldx(int, VSTRING *, const char *, ssize_t);
@@ -31,6 +31,9 @@ extern char *concatenate(const char *,...);
 extern char *mystrtok(char **, const char *);
 extern char *mystrtokq(char **, const char *, const char *);
 extern char *translit(char *, const char *, const char *);
+
+#define printable(string, replacement) \
+	printable_except((string), (replacement), (char *) 0)
 
 #ifndef HAVE_BASENAME
 #define basename postfix_basename
@@ -85,6 +88,11 @@ extern int strncasecmp_utf8x(int, const char *, const char *, ssize_t);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

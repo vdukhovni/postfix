@@ -11,6 +11,11 @@
 /*	char	*printable(buffer, replacement)
 /*	char	*buffer;
 /*	int	replacement;
+/*
+/*	char	*printable_except(buffer, replacement, except)
+/*	char	*buffer;
+/*	int	replacement;
+/*	const char *except;
 /* DESCRIPTION
 /*	printable() replaces non-printable characters
 /*	in its input with the given replacement.
@@ -24,6 +29,8 @@
 /* .IP replacement
 /*	Replacement value for characters in \fIbuffer\fR that do not
 /*	pass the ASCII isprint(3) test or that are not valid UTF8.
+/* .IP except
+/*	Null-terminated sequence of non-replaced ASCII characters.
 /* LICENSE
 /* .ad
 /* .fi
@@ -33,12 +40,18 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
 
 #include "sys_defs.h"
 #include <ctype.h>
+#include <string.h>
 
 /* Utility library. */
 
@@ -46,7 +59,20 @@
 
 int util_utf8_enable = 0;
 
+/* printable -  binary compatibility */
+
+#undef printable
+
+char   *printable(char *, int);
+
 char   *printable(char *string, int replacement)
+{
+    return (printable_except(string, replacement, (char *) 0));
+}
+
+/* printable_except -  pass through printable or other preserved characters */
+
+char   *printable_except(char *string, int replacement, const char *except)
 {
     unsigned char *cp;
     int     ch;
@@ -57,7 +83,7 @@ char   *printable(char *string, int replacement)
      */
     cp = (unsigned char *) string;
     while ((ch = *cp) != 0) {
-	if (ISASCII(ch) && ISPRINT(ch)) {
+	if (ISASCII(ch) && (ISPRINT(ch) || (except && strchr(except, ch)))) {
 	    /* ok */
 	} else if (util_utf8_enable && ch >= 194 && ch <= 254
 		   && cp[1] >= 128 && cp[1] < 192) {
