@@ -3337,6 +3337,13 @@ extern char *var_tls_dane_digests;
 extern bool var_tls_dane_taa_dgst;
 
  /*
+  * The default is backwards-incompatible.
+  */
+#define VAR_TLS_FAST_SHUTDOWN	"tls_fast_shutdown"
+#define DEF_TLS_FAST_SHUTDOWN	1
+extern bool var_tls_fast_shutdown;
+
+ /*
   * Sendmail-style mail filter support.
   */
 #define VAR_SMTPD_MILTERS		"smtpd_milters"

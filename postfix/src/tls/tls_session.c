@@ -66,6 +66,10 @@
 #include <msg.h>
 #include <mymalloc.h>
 
+/* Global library. */
+
+#include <mail_params.h>
+
 /* TLS library. */
 
 #define TLS_INTERNAL
@@ -90,6 +94,18 @@ void    tls_session_stop(TLS_APPL_STATE *unused_ctx, VSTREAM *stream, int timeou
 	msg_panic("%s: stream has no active TLS context", myname);
 
     /*
+     * According to RFC 2246 (TLS 1.0), there is no requirement to wait for
+     * the peer's close-notify. If the application protocol provides
+     * sufficient session termination signaling, then there's no need to
+     * duplicate that at the TLS close-notify layer.
+     * 
+     * https://tools.ietf.org/html/rfc2246#section-7.2.1
+     * https://tools.ietf.org/html/rfc4346#section-7.2.1
+     * https://tools.ietf.org/html/rfc5246#section-7.2.1
+     * 
+     * Specify 'tls_fast_shutdown = no' to enable the historical behavior
+     * described below.
+     * 
      * Perform SSL_shutdown() twice, as the first attempt will send out the
      * shutdown alert but it will not wait for the peer's shutdown alert.
      * Therefore, when we are the first party to send the alert, we must call
@@ -99,7 +115,7 @@ void    tls_session_stop(TLS_APPL_STATE *unused_ctx, VSTREAM *stream, int timeou
      */
     if (!failure) {
 	retval = tls_bio_shutdown(vstream_fileno(stream), timeout, TLScontext);
-	if (retval == 0)
+	if (!var_tls_fast_shutdown && retval == 0)
 	    tls_bio_shutdown(vstream_fileno(stream), timeout, TLScontext);
     }
     tls_free_context(TLScontext);
