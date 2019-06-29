@@ -109,9 +109,8 @@
 /*	the postmaster is notified of bounces, protocol problems, and of
 /*	other trouble.
 /* BUGS
-/*	SMTP and LMTP connection caching does not work with TLS. The necessary
-/*	support for TLS object passivation and re-activation does not
-/*	exist without closing the session, which defeats the purpose.
+/*	SMTP and LMTP connection reuse for TLS (without closing the
+/*	SMTP or LMTP connection) is not supported before Postfix 3.4.
 /*
 /*	SMTP and LMTP connection caching assumes that SASL credentials
 /*	are valid for all destinations that map onto the same IP
@@ -496,6 +495,11 @@
 /* .IP "\fBsmtp_tls_servername (empty)\fR"
 /*	Optional name to send to the remote SMTP server in the TLS Server
 /*	Name Indication (SNI) extension.
+/* .PP
+/*	Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+/* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
+/*	A workaround for implementations that hang Postfix while shuting
+/*	down a TLS session, until Postfix times out.
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi

@@ -589,6 +589,12 @@ SMTPD(8)                                                              SMTPD(8)
               clients via the TLS Server Name Indication  (SNI)  extension  to
               the appropriate keys and certificate chains.
 
+       Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+
+       <b><a href="postconf.5.html#tls_fast_shutdown_enable">tls_fast_shutdown_enable</a> (yes)</b>
+              A workaround for implementations that hang Postfix while shuting
+              down a TLS session, until Postfix times out.
+
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The  following  configuration  parameters  exist for compatibility with
        Postfix versions before 2.3. Support for these will  be  removed  in  a

@@ -282,6 +282,11 @@
 /*	Optional lookup tables with the Postfix \fBtlsproxy\fR(8) client TLS
 /*	usage policy by next-hop destination and by remote TLS server
 /*	hostname.
+/* .PP
+/*	Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+/* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
+/*	A workaround for implementations that hang Postfix while shuting
+/*	down a TLS session, until Postfix times out.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi

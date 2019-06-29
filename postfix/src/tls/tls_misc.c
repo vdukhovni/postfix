@@ -46,6 +46,8 @@
 /*	char	*var_tls_mgr_service;
 /*	char	*var_tls_tkt_cipher;
 /*	char	*var_openssl_path;
+/*	char	*var_tls_server_sni_maps;
+/*	bool	var_tls_fast_shutdown;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -289,6 +291,7 @@ char   *var_tls_mgr_service;
 char   *var_tls_tkt_cipher;
 char   *var_openssl_path;
 char   *var_tls_server_sni_maps;
+bool    var_tls_fast_shutdown;
 
 static MAPS *tls_server_sni_maps;
 
@@ -625,6 +628,7 @@ void    tls_param_init(void)
 	VAR_TLS_BC_PKEY_FPRINT, DEF_TLS_BC_PKEY_FPRINT, &var_tls_bc_pkey_fprint,
 	VAR_TLS_PREEMPT_CLIST, DEF_TLS_PREEMPT_CLIST, &var_tls_preempt_clist,
 	VAR_TLS_MULTI_WILDCARD, DEF_TLS_MULTI_WILDCARD, &var_tls_multi_wildcard,
+	VAR_TLS_FAST_SHUTDOWN, DEF_TLS_FAST_SHUTDOWN, &var_tls_fast_shutdown,
 	0,
     };
     static int init_done;

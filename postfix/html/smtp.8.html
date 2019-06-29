@@ -120,9 +120,8 @@ SMTP(8)                                                                SMTP(8)
        ter is notified of bounces, protocol problems, and of other trouble.
 
 <b>BUGS</b>
-       SMTP  and LMTP connection caching does not work with TLS. The necessary
-       support for TLS object passivation and  re-activation  does  not  exist
-       without closing the session, which defeats the purpose.
+       SMTP  and  LMTP  connection  reuse for TLS (without closing the SMTP or
+       LMTP connection) is not supported before Postfix 3.4.
 
        SMTP  and  LMTP  connection  caching  assumes that SASL credentials are
        valid for all destinations that map onto the same IP  address  and  TCP
@@ -594,6 +593,12 @@ SMTP(8)                                                                SMTP(8)
        <b><a href="postconf.5.html#smtp_tls_servername">smtp_tls_servername</a> (empty)</b>
               Optional  name  to  send  to  the  remote SMTP server in the TLS
               Server Name Indication (SNI) extension.
+
+       Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+
+       <b><a href="postconf.5.html#tls_fast_shutdown_enable">tls_fast_shutdown_enable</a> (yes)</b>
+              A workaround for implementations that hang Postfix while shuting
+              down a TLS session, until Postfix times out.
 
 <b>OBSOLETE STARTTLS CONTROLS</b>
        The following configuration parameters  exist  for  compatibility  with
