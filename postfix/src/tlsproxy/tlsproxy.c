@@ -136,6 +136,11 @@
 /*	Available in Postfix version 2.11 and later:
 /* .IP "\fBtlsmgr_service_name (tlsmgr)\fR"
 /*	The name of the \fBtlsmgr\fR(8) service entry in master.cf.
+/* .PP
+/*	Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+/* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
+/*	A workaround for implementations that hang Postfix while shuting
+/*	down a TLS session, until Postfix times out.
 /* OBSOLETE STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi

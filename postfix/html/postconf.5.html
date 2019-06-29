@@ -17799,6 +17799,21 @@ encouraged to not change this setting.  </p>
 
 </DD>
 
+<DT><b><a name="tls_fast_shutdown_enable">tls_fast_shutdown_enable</a>
+(default: yes)</b></DT><DD>
+
+<p> A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out. With this enabled,
+Postfix will not wait for the remote TLS peer to respond to a TLS
+'close' notification. This behavior is recommended for TLSv1.0 and
+later. </p>
+
+<p> This feature was introduced with Postfix 3.4.6, 3.3.5, 3.2.10,
+and 3.1.13. </p>
+
+
+</DD>
+
 <DT><b><a name="tls_high_cipherlist">tls_high_cipherlist</a>
 (default: see "postconf -d" output)</b></DT><DD>
 

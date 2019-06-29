@@ -750,6 +750,7 @@ while (<>) {
     s;\btls_wildcard_matches_multiple_labels\b;<a href="postconf.5.html#tls_wildcard_matches_multiple_labels">$&</a>;g;
     s;\btls_session_ticket_cipher\b;<a href="postconf.5.html#tls_session_ticket_cipher">$&</a>;g;
     s;\btls_ssl_options\b;<a href="postconf.5.html#tls_ssl_options">$&</a>;g;
+    s;\btls_fast_shutdown_enable\b;<a href="postconf.5.html#tls_fast_shutdown_enable">$&</a>;g;
 
     s;\bfrozen_delivered_to\b;<a href="postconf.5.html#frozen_delivered_to">$&</a>;g;
     s;\breset_owner_alias\b;<a href="postconf.5.html#reset_owner_alias">$&</a>;g;

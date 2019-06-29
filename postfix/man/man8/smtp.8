@@ -502,6 +502,11 @@ Available in Postfix version 3.1 and later:
 The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is \fBdane\fR, but the MX
 record was found via an "insecure" MX lookup.
+.PP
+Introduced with Postfix 3.4.6, 3.3.5, 3.2.10, and 3.1.13:
+.IP "\fBtls_fast_shutdown_enable (yes)\fR"
+A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

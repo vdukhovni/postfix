@@ -16,6 +16,16 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+TLS Workaround for Postfix 3.4.6, 3.3.5, 3.2.10 and 3.1.13
+-----------------------------------------------------------
+
+This release introduces a workaround for implementations that hang
+Postfix while shutting down a TLS session, until Postfix times out.
+With "tls_fast_shutdown_enable = yes" (the default), Postfix no
+longer waits for a remote TLS peer to respond to a TLS 'close'
+request. This behavior is recommended with TLSv1.0 and later. Specify
+"tls_fast_shutdown_enable = no" to get historical Postfix behavior.
+
 License change with Postfix 3.2.5
 ---------------------------------
 
