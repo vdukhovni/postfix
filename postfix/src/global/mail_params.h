@@ -3331,9 +3331,9 @@ extern char *var_tls_server_sni_maps;
 extern char *var_tls_dane_digests;
 
  /*
-  * Backwards compatibility for Postfix 3.5 and later.
+  * The default is incompatible with pre-TLSv1.0 protocols.
   */
-#define VAR_TLS_FAST_SHUTDOWN	"tls_fast_shutdown"
+#define VAR_TLS_FAST_SHUTDOWN	"tls_fast_shutdown_enable"
 #define DEF_TLS_FAST_SHUTDOWN	1
 extern bool var_tls_fast_shutdown;
 

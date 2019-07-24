@@ -18548,14 +18548,11 @@ encouraged to not change this setting.  </p>
 <DT><b><a name="tls_fast_shutdown_enable">tls_fast_shutdown_enable</a>
 (default: yes)</b></DT><DD>
 
-<p> After sending a TLS 'close' notification, do not wait for the
-TLS peer to respond.
-According to <a href="http://tools.ietf.org/html/rfc2246">RFC 2246</a> (TLSv1.0) section 7.2.1, "It is not required
-for the initiator of the close to wait for the responding close_notify
-alert before closing the read side of the connection." </p>
-
-<p> Specify "<a href="postconf.5.html#tls_fast_shutdown_enable">tls_fast_shutdown_enable</a> = no" to enable historical
-Postfix behavior.  </p>
+<p> A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out. With this enabled,
+Postfix will not wait for the remote TLS peer to respond to a TLS
+'close' notification. This behavior is recommended for TLSv1.0 and
+later. </p>
 
 
 </DD>

@@ -16256,6 +16256,14 @@ support is via the tls_ssl_options parameter.  </p>
 
 <p> This feature is available in Postfix 3.0 and later. </p>
 
+%PARAM tls_fast_shutdown_enable yes
+
+<p> A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out. With this enabled,
+Postfix will not wait for the remote TLS peer to respond to a TLS
+'close' notification. This behavior is recommended for TLSv1.0 and
+later. </p>
+
 %PARAM default_delivery_status_filter
 
 <p> Optional filter to replace the delivery status code or explanatory
@@ -17622,14 +17630,3 @@ default suffix, YYYYMMDD-HHMMSS, allows logs to be rotated frequently.
 </p>
 
 <p> This feature is available in Postfix 3.4 and later. </p>
-
-%PARAM tls_fast_shutdown_enable yes
-
-<p> After sending a TLS 'close' notification, do not wait for the
-TLS peer to respond.
-According to RFC 2246 (TLSv1.0) section 7.2.1, "It is not required
-for the initiator of the close to wait for the responding close_notify
-alert before closing the read side of the connection." </p>
-
-<p> Specify "tls_fast_shutdown_enable = no" to enable historical
-Postfix behavior.  </p>

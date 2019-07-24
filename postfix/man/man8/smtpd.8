@@ -528,10 +528,10 @@ Optional lookup tables that map names received from remote SMTP
 clients via the TLS Server Name Indication (SNI) extension to the
 appropriate keys and certificate chains.
 .PP
-Available in Postfix version 3.5 and later:
+Available in Postfix 3.5, 3.4.6, 3.3.5, 3.2.10, 3.1.13 and later:
 .IP "\fBtls_fast_shutdown_enable (yes)\fR"
-After sending a TLS 'close' notification, do not wait for the
-TLS peer to respond.
+A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

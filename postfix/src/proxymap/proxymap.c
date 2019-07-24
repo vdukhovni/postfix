@@ -313,6 +313,8 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
      * deny the request.
      */
 #define PROXY_MAP_FIND_ERROR_RETURN(x)  { *statp = (x); return (0); }
+#define PROXY_MAP_PARAM_NAME(proxy_writer)  \
+	((proxy_writer) == 0 ? VAR_PROXY_READ_MAPS : VAR_PROXY_WRITE_MAPS)
 
     while (strncmp(map_type_name, PROXY_COLON, PROXY_COLON_LEN) == 0)
 	map_type_name += PROXY_COLON_LEN;
@@ -324,8 +326,7 @@ static DICT *proxy_map_find(const char *map_type_name, int request_flags,
 	msg_warn("to approve this table for %s access, list %s:%s in %s:%s",
 		 proxy_writer == 0 ? "read-only" : "read-write",
 		 DICT_TYPE_PROXY, map_type_name, MAIN_CONF_FILE,
-		 proxy_writer == 0 ? VAR_PROXY_READ_MAPS :
-		 VAR_PROXY_WRITE_MAPS);
+		 PROXY_MAP_PARAM_NAME(proxy_writer));
 	PROXY_MAP_FIND_ERROR_RETURN(PROXY_STAT_DENY);
     }
 
@@ -695,14 +696,33 @@ static void post_jail_init(char *service_name, char **unused_argv)
 				 var_proxy_read_maps);
     proxy_auth_maps = htable_create(13);
     while ((type_name = mystrtokq(&bp, sep, parens)) != 0) {
+	/* Maybe { maptype:mapname attr=value... } */
+	if (*type_name == parens[0]) {
+	    char   *err;
+
+	    /* Warn about blatant syntax error. */
+	    if ((err = extpar(&type_name, parens, EXTPAR_FLAG_NONE)) != 0) {
+		msg_warn("bad %s parameter value: %s",
+			 PROXY_MAP_PARAM_NAME(proxy_writer), err);
+		myfree(err);
+		continue;
+	    }
+	    /* Don't try to second-guess the semantics of { }. */
+	    if ((type_name = mystrtokq(&type_name, sep, parens)) == 0)
+		continue;
+	}
 	if (strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN))
 	    continue;
 	do {
 	    type_name += PROXY_COLON_LEN;
 	} while (!strncmp(type_name, PROXY_COLON, PROXY_COLON_LEN));
 	if (strchr(type_name, ':') != 0
-	    && htable_locate(proxy_auth_maps, type_name) == 0)
+	    && htable_locate(proxy_auth_maps, type_name) == 0) {
 	    (void) htable_enter(proxy_auth_maps, type_name, (void *) 0);
+	    if (msg_verbose)
+		msg_info("whitelisting %s from %s", type_name,
+			 PROXY_MAP_PARAM_NAME(proxy_writer));
+	}
     }
     myfree(saved_filter);
 

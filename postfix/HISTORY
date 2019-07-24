@@ -24307,13 +24307,12 @@ Apologies for any names omitted.
 	to indicate final delivery. Files: smtp/smtp.c, smtp/smtp.h,
 	smtp/smtp_misc.c, smtp/smtp_proto.c, smtp/smtp_rcpt.c.
 
-	Cleanup: don't wait for the TLS peer to respond after sending
-	a TLS 'close' notification. This should be safe with TLSv1.0
-	and later. Specify "tls_fast_shutdown_enable = no" to enable
-	historical behavior where Postfix waits, and then sends a
-	second TLS 'close' notification before closing the TCP
-	connection. Files: global/mail_params.h, tls/tls_session.c,
-	and documentation.
+	Workaround for implementations that hang Postfix while
+	shutting down a TLS session, until Postfix times out. With
+	"tls_fast_shutdown_enable = yes" (the default), Postfix no
+	longer waits for the TLS peer to respond to a TLS 'close'
+	request. This is recommended with TLSv1.0 and later. Files:
+	global/mail_params.h, tls/tls_session.c, and documentation.
 
 20190618
 
@@ -24329,8 +24328,29 @@ Apologies for any names omitted.
 	protocol error. This limits the impact of, for example,
 	pipelining synchronization errors. File: smtp/smtp_trouble.c.
 
-	Bugfix: the code to reset command counts was not called
-	after a HaProxy handshake failure, causing stale numbers
-	to be reported. The command counts are now reset in the 
-	function that reports the counts. File: smtpd/smtpd.c.
-	command-read loop to the function that reports the counts.
+	Bugfix (introduced: Postfix 3.0): the code to reset Postfix
+	SMTP server command counts was not called after a HaProxy
+	handshake failure, causing stale numbers to be reported.
+	The command counts are now reset in the function that reports
+	the counts. Problem report by Joseph Ward. File: smtpd/smtpd.c.
+
+20190719
+
+	Bitrot: OpenBSD stopped having /dev/arandom 8 years ago.
+	Brad Smith. File: util/sys_defs.h.
+
+20190723
+
+	Bugfix: the documentation said tls_fast_shutdown_enable,
+	but the code said tls_fast_shutdown. Viktor Dukhovni. Changed
+	the code because no-one is expected to override the default.
+	File: global/mail_params.h.
+
+20190724
+
+	Cleanup: proxymap(8) support for table search order syntax.
+	File: proxymap/proxymap.c.
+
+	Safety: vstring_set_payload_size() now checks that the
+	payload has not overwritten the safety terminator at the
+	end of the VSTRING buffer. File: util/vstream.c.

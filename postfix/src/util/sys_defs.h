@@ -129,7 +129,7 @@
 #define HAS_FUTIMES			/* XXX maybe earlier */
 #endif
 
-#if (defined(OpenBSD) && OpenBSD >= 199608)
+#if (defined(OpenBSD) && OpenBSD >= 199608 && OpenBSD < 201105)
 #define PREFERRED_RAND_SOURCE	"dev:/dev/arandom"	/* XXX earlier */
 #endif
 

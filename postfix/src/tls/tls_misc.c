@@ -46,6 +46,8 @@
 /*	char	*var_tls_mgr_service;
 /*	char	*var_tls_tkt_cipher;
 /*	char	*var_openssl_path;
+/*	char	*var_tls_server_sni_maps;
+/*	bool	var_tls_fast_shutdown;
 /*
 /*	TLS_APPL_STATE *tls_alloc_app_context(ssl_ctx, log_mask)
 /*	SSL_CTX	*ssl_ctx;
@@ -809,7 +811,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     const char *peer_sig_curve = 0;
     const char *peer_sig_dgst = 0;
     int     nid;
-    int     got_kex_key;
     SSL    *ssl = TLScontext->con;
     int     srvr = SSL_is_server(ssl);
     X509   *cert;

@@ -582,10 +582,10 @@ directly followed by a corresponding certificate chain.
 Optional name to send to the remote SMTP server in the TLS Server
 Name Indication (SNI) extension.
 .PP
-Available in Postfix version 3.5 and later:
+Available in Postfix 3.5, 3.4.6, 3.3.5, 3.2.10, 3.1.13 and later:
 .IP "\fBtls_fast_shutdown_enable (yes)\fR"
-After sending a TLS 'close' notification, do not wait for the
-TLS peer to respond.
+A workaround for implementations that hang Postfix while shuting
+down a TLS session, until Postfix times out.
 .SH "OBSOLETE STARTTLS CONTROLS"
 .na
 .nf

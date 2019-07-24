@@ -441,6 +441,8 @@ VSTRING *vstring_set_payload_size(VSTRING *vp, ssize_t len)
 {
     if (len < 0 || len > vp->vbuf.len)
 	msg_panic("vstring_set_payload_size: invalid offset: %ld", (long) len);
+    if (vp->vbuf.data[vp->vbuf.len] != 0)
+	msg_panic("vstring_set_payload_size: no safety null byte");
     VSTRING_AT_OFFSET(vp, len);
     return (vp);
 }
