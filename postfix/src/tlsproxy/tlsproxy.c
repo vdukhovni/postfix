@@ -678,7 +678,8 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
 	/*
 	 * Allow buffered-up plaintext output to trickle out.
 	 */
-	if (state->plaintext_buf && NBBIO_WRITE_PEND(state->plaintext_buf))
+	if (state->plaintext_buf && !NBBIO_ERROR_FLAGS(state->plaintext_buf)
+	    && NBBIO_WRITE_PEND(state->plaintext_buf))
 	    return (TLSP_STAT_OK);
 	tlsp_state_free(state);
 	return (TLSP_STAT_ERR);
@@ -784,9 +785,8 @@ static void tlsp_strategy(TLSP_STATE *state)
     if (NBBIO_ERROR_FLAGS(plaintext_buf)) {
 	if (NBBIO_ACTIVE_FLAGS(plaintext_buf))
 	    nbbio_disable_readwrite(state->plaintext_buf);
-	ssl_stat = SSL_shutdown(tls_context->con);
-	/* XXX Wait for return value 1 if sessions are to be reused? */
-	if (ssl_stat < 0) {
+	if (!SSL_in_init(tls_context->con)
+	    && (ssl_stat = SSL_shutdown(tls_context->con)) < 0) {
 	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
 	    tlsp_eval_tls_error(state, handshake_err);
 	    /* At this point, state could be a dangling pointer. */
