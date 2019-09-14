@@ -1,5 +1,15 @@
 Wish list:
 
+	NBBIO timers can go off when a single nbbio_enable_xxx()
+	call is followed by a continuous sequence of events. This
+	has not been a problem in tlsproxy because the plaintext
+	stream moves data faster than the ciphertext stream, so
+	that plaintext events will happen in bursts instead of a
+	long continuous sequence. Fix: allow calling nbbio_enable_xxx()
+	when events of type 'xxx' are already enabled. Then
+	nbbio_enable_xxx() can skip the event_enable_xxx() call
+	before calling event_request_timer().
+
 	transport policy protocol (clone of check_policy).
 
 	See also postscreen even-driven client for policy delegation

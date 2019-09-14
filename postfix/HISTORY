@@ -24384,15 +24384,22 @@ Apologies for any names omitted.
 	now logs a proper error instead. Problem reported by Tim
 	Düsterhus.  File: xsasl/xsasl_dovecot_server.c.
 
-20190906
-   
+20190908
+
+	Documentation: updated postconf(5) description of the
+	tls_server_sni_maps configuration parameter. Viktor Dukhovni.
+	File: proto/postconf.proto.
+
+20190914
+
 	Bugfix (introduced: Postfix 3.4): don't whitewash OpenSSL
 	error results after a plaintext output error. The code could
 	loop, and with some OpenSSL error results could flood the
 	log with error messages (see below for a specific case).
 	Problem reported by Andreas Schulze. File: tlsproxy/tlsproxy.c.
 
-	Bitrot: don't invoke SSL_shutdown() when the SSL engine
-	thinks it is processing a handshake. As of OpenSSL 1.something
-	this returns SSL_ERROR_SSL instead of SSL_ERROR_NONE. File:
-	tlsproxy/tlsproxy.c.
+	Bitrot: don't invoke SSL_shutdown() when the SSL engine thinks
+	that it is processing a TLS handshake. With the change at
+	https://github.com/openssl/openssl/commit/64193c8218540499984cd63cda41f3cd491f3f59,
+	the error status was changed, incompatibly, from SSL_ERROR_NONE
+	into SSL_ERROR_SSL. File: tlsproxy/tlsproxxy.c.

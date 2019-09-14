@@ -47,6 +47,7 @@ typedef struct {
 } TLSP_STATE;
 
 #define TLSP_FLAG_DO_HANDSHAKE	(1<<0)
+#define TLSP_FLAG_NO_MORE_CIPHERTEXT_IO (1<<1)	/* overrides DO_HANDSHAKE */
 
 extern TLSP_STATE *tlsp_state_create(const char *, VSTREAM *);
 extern void tlsp_state_free(TLSP_STATE *);

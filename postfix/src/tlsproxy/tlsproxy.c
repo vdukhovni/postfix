@@ -618,11 +618,11 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
     switch (err) {
 
 	/*
-	 * No error from SSL_read and SSL_write means that the plaintext
-	 * output buffer is full and that the plaintext input buffer is
-	 * empty. Stop read/write events on the ciphertext stream. Keep the
-	 * timer alive as a safety mechanism for the case that the plaintext
-	 * pseudothreads get stuck.
+	 * No error means a successful SSL_accept/connect/shutdown request or
+	 * sequence of SSL_read/write requests. Disable read/write events on
+	 * the ciphertext stream. Keep the ciphertext stream timer alive as a
+	 * safety mechanism for the case that the plaintext pseudothreads get
+	 * stuck.
 	 */
     case SSL_ERROR_NONE:
 	if (state->ssl_last_err != SSL_ERROR_NONE) {
@@ -676,11 +676,23 @@ static int tlsp_eval_tls_error(TLSP_STATE *state, int err)
     default:
 
 	/*
-	 * Allow buffered-up plaintext output to trickle out.
+	 * Allow buffered-up plaintext output to trickle out. Permanently
+	 * disable read/write activity on the ciphertext stream, so that this
+	 * function will no longer be called. Keep the ciphertext stream
+	 * timer alive as a safety mechanism for the case that the plaintext
+	 * pseudothreads get stuck. Return into tlsp_strategy(), which will
+	 * enable plaintext write events.
 	 */
-	if (state->plaintext_buf && !NBBIO_ERROR_FLAGS(state->plaintext_buf)
-	    && NBBIO_WRITE_PEND(state->plaintext_buf))
+#define TLSP_CAN_TRICKLE_OUT_PLAINTEXT(buf) \
+	((buf) && !NBBIO_ERROR_FLAGS(buf) && NBBIO_WRITE_PEND(buf))
+
+	if (TLSP_CAN_TRICKLE_OUT_PLAINTEXT(state->plaintext_buf)) {
+	    event_disable_readwrite(ciphertext_fd);
+	    event_request_timer(tlsp_ciphertext_event, (void *) state,
+				state->timeout);
+	    state->flags |= TLSP_FLAG_NO_MORE_CIPHERTEXT_IO;
 	    return (TLSP_STAT_OK);
+	}
 	tlsp_state_free(state);
 	return (TLSP_STAT_ERR);
     }
@@ -749,6 +761,18 @@ static void tlsp_strategy(TLSP_STATE *state)
     int     ssl_read_err;
     int     ssl_write_err;
     int     handshake_err;
+
+    /*
+     * This function is called after every ciphertext or plaintext event, to
+     * schedule new ciphertext or plaintext I/O.
+     */
+
+    /*
+     * Try to make an SSL I/O request. If this fails with SSL_ERROR_WANT_READ
+     * or SSL_ERROR_WANT_WRITE, enable ciphertext read or write events, and
+     * retry the SSL I/O request in a later tlsp_strategy() call.
+     */
+    if ((state->flags & TLSP_FLAG_NO_MORE_CIPHERTEXT_IO) == 0) {
 
     /*
      * Do not enable plain-text I/O before completing the TLS handshake.
@@ -862,6 +886,19 @@ static void tlsp_strategy(TLSP_STATE *state)
 			    ssl_write_err : ssl_read_err) < 0)
 	/* At this point, state is a dangling pointer. */
 	return;
+    }
+
+    /*
+     * Destroy state when the ciphertext I/O was permanently disbled and we
+     * can no longer trickle out plaintext.
+     */
+    else {
+	plaintext_buf = state->plaintext_buf;
+	if (!TLSP_CAN_TRICKLE_OUT_PLAINTEXT(plaintext_buf)) {
+	    tlsp_state_free(state);
+	    return;
+	}
+    }
 
     /*
      * Try to enable/disable plaintext read/write events. Basically, if we
