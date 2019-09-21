@@ -895,7 +895,8 @@ static void psc_smtpd_read_event(int event, void *context)
 		vstring_strcpy(state->cmd_buffer, cp);
 	    } else if (psc_cmd_filter->error != 0) {
 		msg_fatal("%s:%s lookup error for \"%.100s\"",
-			  psc_cmd_filter->type, psc_cmd_filter->name, cp);
+			  psc_cmd_filter->type, psc_cmd_filter->name,
+			  STR(state->cmd_buffer));
 	    }
 	}
 
