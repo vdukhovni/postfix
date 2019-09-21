@@ -23476,3 +23476,48 @@ Apologies for any names omitted.
 	handshake failure, causing stale numbers to be reported.
 	The command counts are now reset in the function that reports
 	the counts. File: smtpd/smtpd.c.
+
+20190723
+
+	Bugfix: the documentation said tls_fast_shutdown_enable,
+	but the code said tls_fast_shutdown. Viktor Dukhovni. Changed
+	the code because no-one is expected to override the default.
+	File: global/mail_params.h.
+
+20190820
+
+	Workaround for poor TCP loopback performance on LINUX, where
+	getsockopt(..., TCP_MAXSEG, ..) reports a TCP maximal segment
+	size that is 1/2 to 1/3 of the MTU. For example, with kernel
+	5.1.16-300.fc30.x86_64 the TCP client and server announce
+	an mss of 65495 in the TCP handshake, but getsockopt()
+	returns 32741 (less than half). As a matter of principle,
+	Postfix won't turn on client-side TCP_NODELAY because that
+	hides application performance bugs, and because that still
+	suffers from server-side delayed ACKs. Instead, Postfix
+	avoids sending "small" writes back-to-back, by choosing a
+	VSTREAM buffer size that is a multiple of the reported MSS.
+	This workaround bumps the multiplier from 2x to 4x. File:
+	util/vstream_tweak.c.
+
+20190825
+
+	Bugfix (introduced: 20051222): the Dovecot client could
+	segfault (null pointer read) or cause an SMTP server assertion
+	to fail when talking to a fake Dovecot server. The client
+	now logs a proper error instead. Problem reported by Tim
+	Düsterhus. File: xsasl/xsasl_dovecot_server.c.
+
+20190914
+
+	Bitrot: don't invoke SSL_shutdown() when the SSL engine
+	thinks it is processing a TLS handshake. The commit at
+	https://github.com/openssl/openssl/commit/64193c8218540499984cd63cda41f3cd491f3f59
+	changed the error status, incompatibly, from SSL_ERROR_NONE
+	into SSL_ERROR_SSL. File: tlsproxy/tlsproxxy.c.
+
+20190921 (backport from Postfix >= 3.4)
+
+	Bugfix (introduced: Postfix-2.9.0): null pointer read, while
+	logging a warning after a postscreen_command_filter read
+	error. File: postscreen/postscreen_smtpd.c.

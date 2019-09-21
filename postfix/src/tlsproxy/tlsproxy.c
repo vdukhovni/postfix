@@ -510,9 +510,8 @@ static void tlsp_strategy(TLSP_STATE *state)
     if (NBBIO_ERROR_FLAGS(plaintext_buf)) {
 	if (NBBIO_ACTIVE_FLAGS(plaintext_buf))
 	    nbbio_disable_readwrite(state->plaintext_buf);
-	ssl_stat = SSL_shutdown(tls_context->con);
-	/* XXX Wait for return value 1 if sessions are to be reused? */
-	if (ssl_stat < 0) {
+	if (!SSL_in_init(tls_context->con)
+	    && (ssl_stat = SSL_shutdown(tls_context->con)) < 0) {
 	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
 	    tlsp_eval_tls_error(state, handshake_err);
 	    /* At this point, state could be a dangling pointer. */
