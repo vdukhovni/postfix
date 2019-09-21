@@ -3310,7 +3310,7 @@ extern bool var_tls_dane_taa_dgst;
  /*
   * The default is backwards-incompatible.
   */
-#define VAR_TLS_FAST_SHUTDOWN	"tls_fast_shutdown"
+#define VAR_TLS_FAST_SHUTDOWN	"tls_fast_shutdown_enable"
 #define DEF_TLS_FAST_SHUTDOWN	1
 extern bool var_tls_fast_shutdown;
 
