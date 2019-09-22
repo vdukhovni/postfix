@@ -24190,12 +24190,12 @@ Apologies for any names omitted.
 	TLS library overhaul. By intrigeri. File: tls/tls_dane.c.
 
 	Bugfix (introduced: Postfix-1.0.1): null pointer read, while
-	logging a warning after a corrupted bounce log file. File:
-	global/bounce_log.c.
+	logging a warning after reading a corrupted bounce log file.
+	File: global/bounce_log.c.
 
 	Bugfix (introduced: Postfix-2.9.0): null pointer read, while
 	logging a warning after a postscreen_command_filter read
-	error. File: postscreen/postscreen_smtpd.c. global/bounce_log.c
+	error. File: postscreen/postscreen_smtpd.c.
 
 20190312
 
@@ -24372,9 +24372,9 @@ Apologies for any names omitted.
 	hides application performance bugs, and because that still
 	suffers from server-side delayed ACKs. Instead, Postfix
 	avoids sending "small" writes back-to-back, by choosing a
-	VSTREAM buffer size that is a multiple of the reported
-	MSS. This workaround bumps the multiplier from 2x to 4x.
-	File: util/vstream_tweak.c.
+	VSTREAM buffer size that is a multiple of the reported MSS.
+	This workaround bumps the multiplier from 2x to 4x. File:
+	util/vstream_tweak.c.
 
 20190825
 
@@ -24382,7 +24382,7 @@ Apologies for any names omitted.
 	segfault (null pointer read) or cause an SMTP server assertion
 	to fail when talking to a fake Dovecot server. The client
 	now logs a proper error instead. Problem reported by Tim
-	Düsterhus.  File: xsasl/xsasl_dovecot_server.c.
+	Düsterhus. File: xsasl/xsasl_dovecot_server.c.
 
 20190908
 
@@ -24398,8 +24398,16 @@ Apologies for any names omitted.
 	log with error messages (see below for a specific case).
 	Problem reported by Andreas Schulze. File: tlsproxy/tlsproxy.c.
 
-	Bitrot: don't invoke SSL_shutdown() when the SSL engine thinks
-	that it is processing a TLS handshake. With the change at
-	https://github.com/openssl/openssl/commit/64193c8218540499984cd63cda41f3cd491f3f59,
-	the error status was changed, incompatibly, from SSL_ERROR_NONE
+	Bitrot: don't invoke SSL_shutdown() when the SSL engine
+	thinks it is processing a TLS handshake. The commit at
+	https://github.com/openssl/openssl/commit/64193c8218540499984cd63cda41f3cd491f3f59
+	changed the error status, incompatibly, from SSL_ERROR_NONE
 	into SSL_ERROR_SSL. File: tlsproxy/tlsproxxy.c.
+
+20190918
+
+	Cleanup: the nbbio(3) library now accepts a sequence of
+	nbbio_enable_read() calls or a sequence of nbbio_enable_write()
+	calls. This allows tlsproxy(8) to reset an I/O timer after
+	each event without having to make an nbbio_disable_readwrite()
+	call. Files: util/nbbio.c, tlsproxy/tlsproxy.c.

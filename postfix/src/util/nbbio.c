@@ -74,15 +74,17 @@
 /*	the named buffer pair, closes the stream, and destroys the
 /*	buffer pair.
 /*
-/*	nbbio_enable_read() enables a read pseudothread for the
-/*	named buffer pair.  It is an error to enable a read
-/*	pseudothread while the read buffer is full, or while a read
-/*	or write pseudothread is still enabled.
+/*	nbbio_enable_read() enables a read pseudothread (if one
+/*	does not already exist) for the named buffer pair, and
+/*	(re)starts the buffer pair's timer. It is an error to enable
+/*	a read pseudothread while the read buffer is full, or while
+/*	a write pseudothread is still enabled.
 /*
-/*	nbbio_enable_write() enables a write pseudothread for the
-/*	named buffer pair.  It is an error to enable a write
-/*	pseudothread while the write buffer is empty, or while a
-/*	read or write pseudothread is still enabled.
+/*	nbbio_enable_write() enables a write pseudothread (if one
+/*	does not already exist) for the named buffer pair, and
+/*	(re)starts the buffer pair's timer. It is an error to enable
+/*	a write pseudothread while the write buffer is empty, or
+/*	while a read pseudothread is still enabled.
 /*
 /*	nbbio_disable_readwrite() disables any read/write pseudothreads
 /*	for the named buffer pair, including timeouts. To ensure
@@ -260,7 +262,7 @@ void    nbbio_enable_read(NBBIO *np, int timeout)
     /*
      * Sanity checks.
      */
-    if (np->flags & NBBIO_MASK_ACTIVE)
+    if (np->flags & (NBBIO_MASK_ACTIVE & ~NBBIO_FLAG_READ))
 	msg_panic("%s: socket fd=%d is enabled for %s",
 		  myname, np->fd, NBBIO_OP_NAME(np));
     if (timeout <= 0)
@@ -273,9 +275,11 @@ void    nbbio_enable_read(NBBIO *np, int timeout)
     /*
      * Enable events.
      */
-    event_enable_read(np->fd, nbbio_event, (void *) np);
+    if ((np->flags & NBBIO_FLAG_READ) == 0) {
+	event_enable_read(np->fd, nbbio_event, (void *) np);
+	np->flags |= NBBIO_FLAG_READ;
+    }
     event_request_timer(nbbio_event, (void *) np, timeout);
-    np->flags |= NBBIO_FLAG_READ;
 }
 
 /* nbbio_enable_write - enable writing from buffer to socket */
@@ -287,11 +291,11 @@ void    nbbio_enable_write(NBBIO *np, int timeout)
     /*
      * Sanity checks.
      */
-    if (np->flags & NBBIO_MASK_ACTIVE)
+    if (np->flags & (NBBIO_MASK_ACTIVE & ~NBBIO_FLAG_WRITE))
 	msg_panic("%s: socket fd=%d is enabled for %s",
 		  myname, np->fd, NBBIO_OP_NAME(np));
     if (timeout <= 0)
-	msg_panic("%s: socket fd=%d bad timeout %d",
+	msg_panic("%s: socket fd=%d: bad timeout %d",
 		  myname, np->fd, timeout);
     if (np->write_pend <= 0)
 	msg_panic("%s: socket fd=%d: empty write buffer",
@@ -300,9 +304,11 @@ void    nbbio_enable_write(NBBIO *np, int timeout)
     /*
      * Enable events.
      */
-    event_enable_write(np->fd, nbbio_event, (void *) np);
+    if ((np->flags & NBBIO_FLAG_WRITE) == 0) {
+	event_enable_write(np->fd, nbbio_event, (void *) np);
+	np->flags |= NBBIO_FLAG_WRITE;
+    }
     event_request_timer(nbbio_event, (void *) np, timeout);
-    np->flags |= NBBIO_FLAG_WRITE;
 }
 
 /* nbbio_disable_readwrite - disable read/write/timer events */

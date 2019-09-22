@@ -919,13 +919,11 @@ static void tlsp_strategy(TLSP_STATE *state)
     if (NBBIO_WRITE_PEND(plaintext_buf) > 0) {
 	if (NBBIO_ACTIVE_FLAGS(plaintext_buf) & NBBIO_FLAG_READ)
 	    nbbio_disable_readwrite(plaintext_buf);
-	if ((NBBIO_ACTIVE_FLAGS(plaintext_buf) & NBBIO_FLAG_WRITE) == 0)
-	    nbbio_enable_write(plaintext_buf, state->timeout);
+	nbbio_enable_write(plaintext_buf, state->timeout);
     } else if (NBBIO_READ_PEND(plaintext_buf) < NBBIO_BUFSIZE(plaintext_buf)) {
 	if (NBBIO_ACTIVE_FLAGS(plaintext_buf) & NBBIO_FLAG_WRITE)
 	    nbbio_disable_readwrite(plaintext_buf);
-	if ((NBBIO_ACTIVE_FLAGS(plaintext_buf) & NBBIO_FLAG_READ) == 0)
-	    nbbio_enable_read(plaintext_buf, state->timeout);
+	nbbio_enable_read(plaintext_buf, state->timeout);
     } else {
 	if (NBBIO_ACTIVE_FLAGS(plaintext_buf))
 	    nbbio_slumber(plaintext_buf, state->timeout);

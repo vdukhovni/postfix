@@ -17535,7 +17535,7 @@ is then further encoded to yield a single-line base64 string.
 Creation of such tables and secure storage (the value includes
 private key material) are outside the responsibility of Postfix.  </p>
 
-<p> With "socketmap" and "tcp" the data is be transmitted in the clear, and
+<p> With "socketmap" and "tcp" the data will be transmitted in the clear, and
 there is no query access control, so these are generally unsuitable for storing
 SNI chains.  With LDAP and SQL, you should restrict read access and use TLS to
 protect the sensitive data in transit.  </p>
