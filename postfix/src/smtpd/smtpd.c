@@ -1258,7 +1258,7 @@ int     var_smtpd_rcpt_limit;
 int     var_smtpd_tmout;
 int     var_smtpd_soft_erlim;
 int     var_smtpd_hard_erlim;
-int     var_queue_minfree;		/* XXX use off_t */
+long    var_queue_minfree;		/* XXX use off_t */
 char   *var_smtpd_banner;
 char   *var_notify_classes;
 char   *var_client_checks;
@@ -1868,7 +1868,7 @@ static int ehlo_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     if ((discard_mask & EHLO_MASK_PIPELINING) == 0)
 	EHLO_APPEND(state, "PIPELINING");
     if ((discard_mask & EHLO_MASK_SIZE) == 0) {
-	if (var_message_limit)
+	if (ENFORCING_SIZE_LIMIT(var_message_limit))
 	    EHLO_APPEND1(state, "SIZE %lu",
 			 (unsigned long) var_message_limit);	/* XXX */
 	else
@@ -3510,7 +3510,8 @@ static void receive_data_message(SMTPD_STATE *state,
 	    && (proxy == 0 ? (++start, --len) == 0 : len == 1))
 	    break;
 	if (state->err == CLEANUP_STAT_OK) {
-	    if (var_message_limit > 0 && var_message_limit - state->act_size < len + 2) {
+	    if (ENFORCING_SIZE_LIMIT(var_message_limit)
+		&& var_message_limit - state->act_size < len + 2) {
 		state->err = CLEANUP_STAT_SIZE;
 		msg_warn("%s: queue file size limit exceeded",
 			 state->queue_id ? state->queue_id : "NOQUEUE");
@@ -3887,7 +3888,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	}
     }
     /* Block too large chunks. */
-    if (var_message_limit > 0
+    if (ENFORCING_SIZE_LIMIT(var_message_limit)
 	&& state->act_size > var_message_limit - chunk_size) {
 	state->error_mask |= MAIL_ERROR_POLICY;
 	msg_warn("%s: BDAT request from %s exceeds message size limit",
@@ -3980,7 +3981,7 @@ static int bdat_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
 	    start = vstring_str(state->bdat_get_buffer);
 	    len = VSTRING_LEN(state->bdat_get_buffer);
 	    if (state->err == CLEANUP_STAT_OK) {
-		if (var_message_limit > 0
+		if (ENFORCING_SIZE_LIMIT(var_message_limit)
 		    && var_message_limit - state->act_size < len + 2) {
 		    state->err = CLEANUP_STAT_SIZE;
 		    msg_warn("%s: queue file size limit exceeded",
@@ -6259,8 +6260,8 @@ static void post_jail_init(char *unused_name, char **unused_argv)
      * arbitrarily pick a small multiple of the per-message size limit. This
      * helps to avoid many unneeded (re)transmissions.
      */
-    if (var_queue_minfree > 0
-	&& var_message_limit > 0
+    if (ENFORCING_SIZE_LIMIT(var_queue_minfree)
+	&& ENFORCING_SIZE_LIMIT(var_message_limit)
 	&& var_queue_minfree / 1.5 < var_message_limit)
 	msg_warn("%s(%lu) should be at least 1.5*%s(%lu)",
 		 VAR_QUEUE_MINFREE, (unsigned long) var_queue_minfree,
@@ -6290,7 +6291,6 @@ int     main(int argc, char **argv)
     };
     static const CONFIG_INT_TABLE int_table[] = {
 	VAR_SMTPD_RCPT_LIMIT, DEF_SMTPD_RCPT_LIMIT, &var_smtpd_rcpt_limit, 1, 0,
-	VAR_QUEUE_MINFREE, DEF_QUEUE_MINFREE, &var_queue_minfree, 0, 0,
 	VAR_UNK_CLIENT_CODE, DEF_UNK_CLIENT_CODE, &var_unk_client_code, 0, 0,
 	VAR_BAD_NAME_CODE, DEF_BAD_NAME_CODE, &var_bad_name_code, 0, 0,
 	VAR_UNK_NAME_CODE, DEF_UNK_NAME_CODE, &var_unk_name_code, 0, 0,
@@ -6326,6 +6326,10 @@ int     main(int argc, char **argv)
 	VAR_SMTPD_SASL_RESP_LIMIT, DEF_SMTPD_SASL_RESP_LIMIT, &var_smtpd_sasl_resp_limit, DEF_SMTPD_SASL_RESP_LIMIT, 0,
 	VAR_SMTPD_POLICY_REQ_LIMIT, DEF_SMTPD_POLICY_REQ_LIMIT, &var_smtpd_policy_req_limit, 0, 0,
 	VAR_SMTPD_POLICY_TRY_LIMIT, DEF_SMTPD_POLICY_TRY_LIMIT, &var_smtpd_policy_try_limit, 1, 0,
+	0,
+    };
+    static const CONFIG_LONG_TABLE long_table[] = {
+	VAR_QUEUE_MINFREE, DEF_QUEUE_MINFREE, &var_queue_minfree, 0, 0,
 	0,
     };
     static const CONFIG_TIME_TABLE time_table[] = {
@@ -6504,6 +6508,7 @@ int     main(int argc, char **argv)
     single_server_main(argc, argv, smtpd_service,
 		       CA_MAIL_SERVER_NINT_TABLE(nint_table),
 		       CA_MAIL_SERVER_INT_TABLE(int_table),
+		       CA_MAIL_SERVER_LONG_TABLE(long_table),
 		       CA_MAIL_SERVER_STR_TABLE(str_table),
 		       CA_MAIL_SERVER_RAW_TABLE(raw_table),
 		       CA_MAIL_SERVER_BOOL_TABLE(bool_table),

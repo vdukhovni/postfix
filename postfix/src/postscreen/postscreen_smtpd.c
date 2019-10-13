@@ -316,7 +316,7 @@ static void psc_smtpd_format_ehlo_reply(VSTRING *buf, int discard_mask
 
     vstring_sprintf(psc_temp, "250-%s\r\n", var_myhostname);
     if ((discard_mask & EHLO_MASK_SIZE) == 0) {
-	if (var_message_limit)
+	if (ENFORCING_SIZE_LIMIT(var_message_limit))
 	    PSC_EHLO_APPEND1(saved_len, psc_temp, "250-SIZE %lu\r\n",
 			     (unsigned long) var_message_limit);
 	else

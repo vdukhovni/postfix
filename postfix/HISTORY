@@ -24411,3 +24411,29 @@ Apologies for any names omitted.
 	calls. This allows tlsproxy(8) to reset an I/O timer after
 	each event without having to make an nbbio_disable_readwrite()
 	call. Files: util/nbbio.c, tlsproxy/tlsproxy.c.
+
+20191013
+
+	Cleanup: code pattern ENFORCING_SIZE_LIMIT() for more
+	consistent enforcement of the 'no size limit' case (it now
+	requires "> 0" where previous code used "!= 0" or "> 0").
+	More relevant, this explicit pattern will help finding code
+	that does not implement the 'no size limit' case with
+	var_message_limit, etc. Files: cleanup/cleanup_init.c,
+	local/local.c, postdrop/postdrop.c, postscreen/postscreen_smtpd.c,
+	sendmail/sendmail.c, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	util/netstring.c, util/sys_defs.h, virtual/virtual.c.
+
+	Cleanup; with message_size_limit>0, local(8) and virtual(8)
+	mailbox size limit checks would produce a misleading error
+	message when the mailbox size was unlimited. Files:
+	local/local.c, virtual/virtual.c.
+
+	Cleanup: queue_minfree changed from 'int' to 'long'. File:
+	global/mail_params.h, src/smtpd/smtpd.c.
+
+	Attribution: updated AUTHOR in file headers. Files:
+	global/bounce_log.c, global/deliver_request.h, smtp/smtp_chat.c,
+	smtp/smtp_rcpt.c, tls/tls_certkey.c, util/nbbio.c,
+	util/vstream_tweak.c.
+

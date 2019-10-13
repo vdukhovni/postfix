@@ -447,7 +447,7 @@ void    cleanup_post_jail(char *unused_name, char **unused_argv)
      * really low limit, the difference is going to matter only when a queue
      * file has lots of recipients.
      */
-    if (var_message_limit > 0)
+    if (ENFORCING_SIZE_LIMIT(var_message_limit))
 	set_file_limit((off_t) var_message_limit);
 
     /*

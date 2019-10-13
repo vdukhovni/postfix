@@ -263,7 +263,7 @@ VSTRING *netstring_get(VSTREAM *stream, VSTRING *buf, ssize_t limit)
     ssize_t len;
 
     len = netstring_get_length(stream);
-    if (limit && len > limit)
+    if (ENFORCING_SIZE_LIMIT(limit) && len > limit)
 	netstring_except(stream, NETSTRING_ERR_SIZE);
     netstring_get_data(stream, buf, len);
     return (buf);

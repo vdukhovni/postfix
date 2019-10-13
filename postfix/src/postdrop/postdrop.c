@@ -329,7 +329,8 @@ int     main(int argc, char **argv)
      * Stop run-away process accidents by limiting the queue file size. This
      * is not a defense against DOS attack.
      */
-    if (var_message_limit > 0 && get_file_limit() > var_message_limit)
+    if (ENFORCING_SIZE_LIMIT(var_message_limit)
+	&& get_file_limit() > var_message_limit)
 	set_file_limit((off_t) var_message_limit);
 
     /*

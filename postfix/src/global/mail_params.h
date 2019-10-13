@@ -1957,8 +1957,11 @@ extern long var_message_limit;
 
 #define VAR_QUEUE_MINFREE	"queue_minfree"
 #define DEF_QUEUE_MINFREE	0
-extern int var_queue_minfree;
+extern long var_queue_minfree;
 
+ /*
+  * Light-weight content inspection.
+  */
 #define VAR_HEADER_CHECKS	"header_checks"
 #define DEF_HEADER_CHECKS	""
 extern char *var_header_checks;

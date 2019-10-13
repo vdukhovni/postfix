@@ -875,9 +875,12 @@ static void pre_init(char *unused_name, char **unused_argv)
      * because that prohibits the delivery agent from updating the queue
      * file.
      */
-    if (var_mailbox_limit) {
-	if (var_mailbox_limit < var_message_limit || var_message_limit == 0)
-	    msg_fatal("main.cf configuration error: %s is smaller than %s",
+    if (ENFORCING_SIZE_LIMIT(var_mailbox_limit)) {
+	if (!ENFORCING_SIZE_LIMIT(var_message_limit))
+	    msg_fatal("configuration error: %s is limited but %s is "
+		      "unlimited", VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
+	if (var_mailbox_limit < var_message_limit)
+	    msg_fatal("configuration error: %s is smaller than %s",
 		      VAR_MAILBOX_LIMIT, VAR_MESSAGE_LIMIT);
 	set_file_limit(var_mailbox_limit);
     }
