@@ -7,6 +7,12 @@ Wish list:
 	See also postscreen even-driven client for policy delegation
 	below.
 
+	smtp_line_length_limit can insert a line break in the middle
+	of a multi-byte character (which is not necessarily UTF-8,
+	so we can't simply look at the 8th bit). Also, note that a
+	multi-byte character may span queue file record boundaries,
+	for example if line_length_limit == smtp_line_length_limit.
+
 	Replace ad-hoc code for pipe(8) flags handling, with
 	infrastructure that was built for smtp(8).
 

@@ -591,6 +591,8 @@ static int psc_data_cmd(PSC_STATE *state, char *args)
      * never see DATA from a legitimate client, because 1) the server rejects
      * every recipient, and 2) the server does not announce PIPELINING.
      */
+    msg_info("DATA without valid RCPT from [%s]:%s",
+	     PSC_CLIENT_ADDR_PORT(state));
     if (PSC_SMTPD_NEXT_TOKEN(args) != 0)
 	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
 					   psc_smtpd_time_event,
@@ -620,6 +622,8 @@ static int psc_bdat_cmd(PSC_STATE *state, char *args)
      * client, because 1) the server rejects every recipient, and 2) the
      * server does not announce PIPELINING.
      */
+    msg_info("BDAT without valid RCPT from [%s]:%s",
+	     PSC_CLIENT_ADDR_PORT(state));
     if (state->ehlo_discard_mask & EHLO_MASK_CHUNKING)
 	PSC_CLEAR_EVENT_DROP_SESSION_STATE(state,
 					   psc_smtpd_time_event,
@@ -1033,7 +1037,7 @@ static void psc_smtpd_read_event(int event, void *context)
 	    }
 	}
 	/* Command PIPELINING test. */
-	if ((state->flags & PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD) == 0
+	if ((cmdp->flags & PSC_SMTPD_CMD_FLAG_HAS_PAYLOAD) == 0
 	    && (state->flags & PSC_STATE_MASK_PIPEL_TODO_SKIP)
 	    == PSC_STATE_FLAG_PIPEL_TODO && !PSC_SMTPD_BUFFER_EMPTY(state)) {
 	    printable(command, '?');
@@ -1172,16 +1176,18 @@ void    psc_smtpd_tests(PSC_STATE *state)
     state->read_state = PSC_SMTPD_CMD_ST_ANY;
 
     /*
-     * Opportunistically make postscreen more useful by turning on the
-     * pipelining and non-SMTP command tests when a pre-handshake test
-     * failed, or when some deep test is configured as enabled.
+     * Disable all after-220 tests when we need to reply with 421 and hang up
+     * after reading the next SMTP client command.
      * 
-     * XXX Make "opportunistically" configurable for each test.
+     * Opportunistically make postscreen more useful, by turning on all
+     * after-220 tests when a bad client failed a before-220 test.
+     * 
+     * Otherwise, only apply the explicitly-configured after-220 tests.
      */
-    if ((state->flags & PSC_STATE_FLAG_SMTPD_X21) == 0) {
-	state->flags |= PSC_STATE_MASK_SMTPD_TODO;
-    } else {
+    if (state->flags & PSC_STATE_FLAG_SMTPD_X21) {
 	state->flags &= ~PSC_STATE_MASK_SMTPD_TODO;
+    } else if (state->flags & PSC_STATE_MASK_ANY_FAIL) {
+	state->flags |= PSC_STATE_MASK_SMTPD_TODO;
     }
 
     /*

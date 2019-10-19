@@ -24437,3 +24437,17 @@ Apologies for any names omitted.
 	smtp/smtp_rcpt.c, tls/tls_certkey.c, util/nbbio.c,
 	util/vstream_tweak.c.
 
+20191014
+
+	Bugfix (introduced: Postfix 2.8): don't gratuitously enable
+	all after-220 tests when only one such test is enabled.
+	This made selective tests impossible with 'good' clients.
+	File: postscreen/postscreen_smtpd.c.
+
+	Bugfix: the 20180903 postscreen fix for a misleading
+	"PIPELINING after BDAT" warning looked at the wrong variable.
+	The warning now says "BDAT without valid RCPT", and the
+	error is no longer treated as a command PIPELINING error
+	(but sending BDAT is still a client error, because postscreen
+	rejects all RCPT commands and does not announce PIPELINING
+	support). File: postscreen/postscreen_smtpd.c.
