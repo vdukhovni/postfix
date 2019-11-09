@@ -88,6 +88,7 @@
 #include <lex_822.h>
 #include <dsn_util.h>
 #include <conv_time.h>
+#include <info_log_addr_form.h>
 
 /* Application-specific. */
 
@@ -263,9 +264,11 @@ static void cleanup_act_log(CLEANUP_STATE *state,
     vstring_sprintf(state->temp1, "%s: %s: %s %.200s from %s;",
 		    state->queue_id, action, class, content, attr);
     if (state->sender)
-	vstring_sprintf_append(state->temp1, " from=<%s>", state->sender);
+	vstring_sprintf_append(state->temp1, " from=<%s>",
+			       info_log_addr_form_sender(state->sender));
     if (state->recip)
-	vstring_sprintf_append(state->temp1, " to=<%s>", state->recip);
+	vstring_sprintf_append(state->temp1, " to=<%s>",
+			       info_log_addr_form_recipient(state->recip));
     if ((attr = nvtable_find(state->attr, MAIL_ATTR_LOG_PROTO_NAME)) != 0)
 	vstring_sprintf_append(state->temp1, " proto=%s", attr);
     if ((attr = nvtable_find(state->attr, MAIL_ATTR_LOG_HELO_NAME)) != 0)
@@ -1024,7 +1027,9 @@ static void cleanup_mime_error_callback(void *context, int err_code,
 #define TEXT_LEN (len < 100 ? (int) len : 100)
 	msg_info("%s: reject: mime-error %s: %.*s from %s; from=<%s> to=<%s>",
 		 state->queue_id, mime_state_error(err_code), TEXT_LEN, text,
-	    origin, state->sender, state->recip ? state->recip : "unknown");
+		 origin, info_log_addr_form_sender(state->sender),
+		 info_log_addr_form_recipient(state->recip ?
+					      state->recip : "unknown"));
     }
 }
 

@@ -498,6 +498,11 @@
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
 /*	A workaround for implementations that hang Postfix while shuting
 /*	down a TLS session, until Postfix times out.
+/* .PP
+/*	Available in Postfix 3.5 and later:
+/* .IP "\fBinfo_log_address_format (external)\fR"
+/*	The email address form that will be used in non-debug logging
+/*	(info, warning, etc.).
 /* OBSOLETE STARTTLS CONTROLS
 /* .ad
 /* .fi
@@ -1221,6 +1226,7 @@
 #include <smtputf8.h>
 #include <match_parent_style.h>
 #include <normalize_mailhost_addr.h>
+#include <info_log_addr_form.h>
 
 /* Single-threaded server skeleton. */
 
@@ -1584,9 +1590,11 @@ static const char *smtpd_whatsup(SMTPD_STATE *state)
     else
 	VSTRING_RESET(buf);
     if (state->sender)
-	vstring_sprintf_append(buf, " from=<%s>", state->sender);
+	vstring_sprintf_append(buf, " from=<%s>",
+			       info_log_addr_form_sender(state->sender));
     if (state->recipient)
-	vstring_sprintf_append(buf, " to=<%s>", state->recipient);
+	vstring_sprintf_append(buf, " to=<%s>",
+			    info_log_addr_form_recipient(state->recipient));
     if (state->protocol)
 	vstring_sprintf_append(buf, " proto=%s", state->protocol);
     if (state->helo_name)

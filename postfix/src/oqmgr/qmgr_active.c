@@ -70,6 +70,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -107,6 +112,7 @@
 #include <abounce.h>
 #include <rec_type.h>
 #include <qmgr_user.h>
+#include <info_log_addr_form.h>
 
 /* Application-specific. */
 
@@ -439,7 +445,7 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 	if (event_time() >= message->create_time +
 	    (*message->sender ? var_max_queue_time : var_dsn_queue_time)) {
 	    msg_info("%s: from=<%s>, status=expired, returned to sender",
-		     message->queue_id, message->sender);
+	     message->queue_id, info_log_addr_form_sender(message->sender));
 	    if (message->verp_delims == 0 || var_verp_bounce_off)
 		adefer_flush(BOUNCE_FLAG_KEEP,
 			     message->queue_name,

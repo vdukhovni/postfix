@@ -2535,6 +2535,51 @@ inet_protocols = ipv4, ipv6
 .fi
 .ad
 .ft R
+.SH info_log_address_format (default: external)
+The email address form that will be used in non\-debug logging
+(info, warning, etc.). As of Postfix 3.5 when an address localpart
+contains spaces or other special characters, the localpart will be
+quoted, for example:
+.sp
+.in +4
+.nf
+.na
+.ft C
+    from=<"name with spaces"@example.com>
+.fi
+.ad
+.ft R
+.in -4
+.PP
+Older Postfix versions would log the internal (unquoted) form:
+.sp
+.in +4
+.nf
+.na
+.ft C
+    from=<name with spaces@example.com>
+.fi
+.ad
+.ft R
+.in -4
+.PP
+The external and internal forms are identical for the vast
+majority of email addresses that contain no spaces or other special
+characters in the localpart.
+.PP
+The logging in external form is consistent with the address
+form that Postfix 3.2 and later prefer for most table lookups. This
+is therefore the more useful form for non\-debug logging.
+.PP
+Specify "\fBinfo_log_address_format = internal\fR" for backwards
+compatibility.
+.PP
+Postfix uses the unquoted form internally, because an attacker
+can specify an email address in different forms by playing games
+with quotes and backslashes. An attacker should not be able to use
+such games to circumvent Postfix access policies.
+.PP
+This feature is available in Postfix 3.5 and later.
 .SH initial_destination_concurrency (default: 5)
 The initial per\-destination concurrency level for parallel delivery
 to the same destination.

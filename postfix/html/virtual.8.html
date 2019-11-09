@@ -279,6 +279,12 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
+       Available in Postfix 3.5 and later:
+
+       <b>info_log_address_format (external)</b>
+              The  email  address  form that will be used in non-debug logging
+              (info, warning, etc.).
+
 <b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="bounce.8.html">bounce(8)</a>, delivery status reports
@@ -295,15 +301,15 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        The Secure Mailer license must be distributed with this software.
 
 <b>HISTORY</b>
-       This  delivery agent was originally based on the Postfix local delivery
-       agent. Modifications mainly consisted of removing code that either  was
+       This delivery agent was originally based on the Postfix local  delivery
+       agent.  Modifications mainly consisted of removing code that either was
        not  applicable  or  that  was  not  safe  in  this  context:  aliases,
        ~user/.forward files, delivery to "|command" or to /file/name.
 
-       The <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by  Daniel
+       The  <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by Daniel
        Bernstein.
 
-       The  <b>maildir</b> structure appears in the <b>qmail</b> system by Daniel Bernstein.
+       The <b>maildir</b> structure appears in the <b>qmail</b> system by Daniel  Bernstein.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

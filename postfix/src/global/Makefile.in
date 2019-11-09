@@ -35,7 +35,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	mkmap_fail.c haproxy_srvr.c dsn_filter.c dynamicmaps.c uxtext.c \
 	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
 	mail_addr_form.c quote_flags.c maillog_client.c \
-	normalize_mailhost_addr.c map_search.c reject_deliver_request.c
+	normalize_mailhost_addr.c map_search.c reject_deliver_request.c \
+	info_log_addr_form.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -72,7 +73,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	mkmap_fail.o haproxy_srvr.o dsn_filter.o dynamicmaps.o uxtext.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
 	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o maillog_client.o \
-	normalize_mailhost_addr.o map_search.o reject_deliver_request.o
+	normalize_mailhost_addr.o map_search.o reject_deliver_request.o \
+	info_log_addr_form.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -106,7 +108,8 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	verify_sender_addr.h dict_memcache.h memcache_proto.h server_acl.h \
 	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
 	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h \
-	maillog_client.h normalize_mailhost_addr.h map_search.h
+	maillog_client.h normalize_mailhost_addr.h map_search.h \
+	info_log_addr_form.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -1444,6 +1447,15 @@ header_token.o: ../../include/vstring.h
 header_token.o: header_token.c
 header_token.o: header_token.h
 header_token.o: lex_822.h
+info_log_addr_form.o: ../../include/check_arg.h
+info_log_addr_form.o: ../../include/sys_defs.h
+info_log_addr_form.o: ../../include/vbuf.h
+info_log_addr_form.o: ../../include/vstring.h
+info_log_addr_form.o: info_log_addr_form.c
+info_log_addr_form.o: info_log_addr_form.h
+info_log_addr_form.o: mail_addr_form.h
+info_log_addr_form.o: quote_822_local.h
+info_log_addr_form.o: quote_flags.h
 input_transp.o: ../../include/check_arg.h
 input_transp.o: ../../include/msg.h
 input_transp.o: ../../include/name_mask.h
@@ -1487,6 +1499,7 @@ log_adhoc.o: ../../include/vbuf.h
 log_adhoc.o: ../../include/vstream.h
 log_adhoc.o: ../../include/vstring.h
 log_adhoc.o: dsn.h
+log_adhoc.o: info_log_addr_form.h
 log_adhoc.o: log_adhoc.c
 log_adhoc.o: log_adhoc.h
 log_adhoc.o: mail_params.h
@@ -2288,6 +2301,7 @@ opened.o: ../../include/msg.h
 opened.o: ../../include/sys_defs.h
 opened.o: ../../include/vbuf.h
 opened.o: ../../include/vstring.h
+opened.o: info_log_addr_form.h
 opened.o: opened.c
 opened.o: opened.h
 own_inet_addr.o: ../../include/check_arg.h

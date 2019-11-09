@@ -262,6 +262,11 @@
 /*	aliasing or with canonical mapping).
 /* .IP "\fBservice_name (read-only)\fR"
 /*	The master.cf service name of a Postfix daemon process.
+/* .PP
+/*	Available in Postfix 3.5 and later:
+/* .IP "\fBinfo_log_address_format (external)\fR"
+/*	The email address form that will be used in non-debug logging
+/*	(info, warning, etc.).
 /* SEE ALSO
 /*	qmgr(8), queue manager
 /*	bounce(8), delivery status reports

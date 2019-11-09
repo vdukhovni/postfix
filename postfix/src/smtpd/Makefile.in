@@ -195,6 +195,7 @@ smtpd.o: ../../include/events.h
 smtpd.o: ../../include/flush_clnt.h
 smtpd.o: ../../include/htable.h
 smtpd.o: ../../include/inet_proto.h
+smtpd.o: ../../include/info_log_addr_form.h
 smtpd.o: ../../include/input_transp.h
 smtpd.o: ../../include/iostuff.h
 smtpd.o: ../../include/is_header.h
@@ -322,6 +323,7 @@ smtpd_check.o: ../../include/fsspace.h
 smtpd_check.o: ../../include/htable.h
 smtpd_check.o: ../../include/inet_addr_list.h
 smtpd_check.o: ../../include/inet_proto.h
+smtpd_check.o: ../../include/info_log_addr_form.h
 smtpd_check.o: ../../include/input_transp.h
 smtpd_check.o: ../../include/iostuff.h
 smtpd_check.o: ../../include/ip_match.h

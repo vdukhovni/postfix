@@ -24451,3 +24451,35 @@ Apologies for any names omitted.
 	(but sending BDAT is still a client error, because postscreen
 	rejects all RCPT commands and does not announce PIPELINING
 	support). File: postscreen/postscreen_smtpd.c.
+
+20190922
+
+	Documentation: replaced the link to "Suite B" cryptography
+	with a link to web.archive.org. File: proto/postconf.proto.
+
+20191109
+
+	Cleanup: Postfix daemon processes now log the from= and to=
+	addresses in external (quoted) form in non-debug logging
+	(info, warning, etc.). This is consistent with the address
+	form that Postfix 3.2 and later prefer for table lookups.
+	It is therefore the more useful form for non-debug logging.
+	Files: cleanup/cleanup.c, cleanup/cleanup_message.c,
+	cleanup/cleanup_milter.c, global/info_log_addr_form.c,
+	global/info_log_addr_form.h, global/log_adhoc.c,
+	global/mail_params.c, global/mail_params.h, global/opened.c,
+	local/local.c, oqmgr/qmgr.c, oqmgr/qmgr_active.c,
+	pickup/pickup.c, pipe/pipe.c, postscreen/postscreen.c,
+	postscreen/postscreen_smtpd.c, proto/postconf.proto,
+	qmgr/qmgr.c, qmgr/qmgr_active.c, smtp/smtp.c, smtpd/smtpd.c,
+	smtpd/smtpd_check.c, virtual/virtual.c.
+
+	Workaround: the parser for key/certificate chain files
+	rejected inputs that contain an EC PARAMETERS object. While
+	this is technically correct (the documentation says what
+	types are allowed) this is surprising behavior because the
+	legacy cert/key parameters will accept such inputs. For
+	now, the parser skips object types that it does not know
+	about for inter-operability, and logs a warning because
+	ignoring inputs is not kosher. Viktor and Wietse. File:
+	tls/tls_certkey.c.

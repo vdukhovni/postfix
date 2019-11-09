@@ -252,6 +252,7 @@
 #include <smtp_stream.h>
 #include <attr_override.h>
 #include <map_search.h>
+#include <info_log_addr_form.h>
 
 /* Application-specific. */
 
@@ -995,9 +996,11 @@ static void log_whatsup(SMTPD_STATE *state, const char *whatsup,
 		    state->queue_id ? state->queue_id : "NOQUEUE",
 		    whatsup, state->where, state->namaddr, text);
     if (state->sender)
-	vstring_sprintf_append(buf, " from=<%s>", state->sender);
+	vstring_sprintf_append(buf, " from=<%s>",
+			       info_log_addr_form_sender(state->sender));
     if (state->recipient)
-	vstring_sprintf_append(buf, " to=<%s>", state->recipient);
+	vstring_sprintf_append(buf, " to=<%s>",
+			    info_log_addr_form_recipient(state->recipient));
     if (state->protocol)
 	vstring_sprintf_append(buf, " proto=%s", state->protocol);
     if (state->helo_name)
@@ -5619,6 +5622,7 @@ char   *var_unk_addr_tf_act;
 char   *var_unv_rcpt_tf_act;
 char   *var_unv_from_tf_act;
 char   *var_smtpd_acl_perm_log;
+char   *var_info_log_addr_form;
 
 typedef struct {
     char   *name;
@@ -5674,6 +5678,7 @@ static const STRING_TABLE string_table[] = {
     /* XXX Can't use ``$name'' type default values above. */
     VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log,
     VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter,
+    VAR_INFO_LOG_ADDR_FORM, DEF_INFO_LOG_ADDR_FORM, &var_info_log_addr_form,
     0,
 };
 
@@ -5706,7 +5711,7 @@ static int string_update(char **argv)
  /*
   * Integer parameters.
   */
-int     var_queue_minfree;		/* XXX use off_t */
+long    var_queue_minfree;		/* XXX use off_t */
 typedef struct {
     char   *name;
     int     defval;

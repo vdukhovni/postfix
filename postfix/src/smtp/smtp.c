@@ -321,6 +321,11 @@
 /*	When a remote destination resolves to a combination of IPv4 and
 /*	IPv6 addresses, ensure that the Postfix SMTP client can try both
 /*	address types before it runs into the smtp_mx_address_limit.
+/* .PP
+/*	Available in Postfix 3.5 and later:
+/* .IP "\fBinfo_log_address_format (external)\fR"
+/*	The email address form that will be used in non-debug logging
+/*	(info, warning, etc.).
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

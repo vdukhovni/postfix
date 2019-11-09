@@ -4192,6 +4192,16 @@ extern char *var_postlog_service;
 #define DEF_POSTLOGD_WATCHDOG	"10s"
 extern int var_postlogd_watchdog;
 
+ /*
+  * Backwards compatibility for internal-form address logging.
+  */
+#define INFO_LOG_ADDR_FORM_NAME_EXTERNAL	"external"
+#define INFO_LOG_ADDR_FORM_NAME_INTERNAL	"internal"
+
+#define VAR_INFO_LOG_ADDR_FORM	"info_log_address_format"
+#define DEF_INFO_LOG_ADDR_FORM	INFO_LOG_ADDR_FORM_NAME_EXTERNAL
+extern char *var_info_log_addr_form;
+
 /* LICENSE
 /* .ad
 /* .fi

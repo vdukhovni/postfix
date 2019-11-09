@@ -1066,6 +1066,7 @@ cleanup_message.o: ../../include/ext_prop.h
 cleanup_message.o: ../../include/header_body_checks.h
 cleanup_message.o: ../../include/header_opts.h
 cleanup_message.o: ../../include/htable.h
+cleanup_message.o: ../../include/info_log_addr_form.h
 cleanup_message.o: ../../include/iostuff.h
 cleanup_message.o: ../../include/is_header.h
 cleanup_message.o: ../../include/lex_822.h
@@ -1110,6 +1111,7 @@ cleanup_milter.o: ../../include/header_body_checks.h
 cleanup_milter.o: ../../include/header_opts.h
 cleanup_milter.o: ../../include/htable.h
 cleanup_milter.o: ../../include/inet_proto.h
+cleanup_milter.o: ../../include/info_log_addr_form.h
 cleanup_milter.o: ../../include/iostuff.h
 cleanup_milter.o: ../../include/is_header.h
 cleanup_milter.o: ../../include/lex_822.h
