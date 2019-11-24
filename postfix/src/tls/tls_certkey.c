@@ -413,8 +413,7 @@ static int load_pem_object(pem_load_state_t *st)
 		   && strcmp(name, PEM_STRING_DSA) == 0)) {
 	load_pkey(st, pkey_type, buf, buflen);
     } else if (!st->mixed) {
-	msg_warn("error loading %s: unexpected PEM type: %s", st->source, name);
-	st->state = PEM_LOAD_STATE_NOGO;
+	msg_warn("loading %s: ignoring PEM type: %s", st->source, name);
     }
     OPENSSL_free(name);
     OPENSSL_free(header);

@@ -24293,3 +24293,29 @@ Apologies for any names omitted.
 	https://github.com/openssl/openssl/commit/64193c8218540499984cd63cda41f3cd491f3f59
 	changed the error status, incompatibly, from SSL_ERROR_NONE
 	into SSL_ERROR_SSL. File: tlsproxy/tlsproxxy.c.
+
+20191014
+
+	Bugfix (introduced: Postfix 2.8): don't gratuitously enable
+	all after-220 tests when only one such test is enabled.
+	This made selective tests impossible with 'good' clients.
+	File: postscreen/postscreen_smtpd.c.
+
+	Bugfix: the 20180903 postscreen fix for a misleading
+	"PIPELINING after BDAT" warning looked at the wrong variable.
+	The warning now says "BDAT without valid RCPT", and the
+	error is no longer treated as a command PIPELINING error
+	(but sending BDAT is still a client error, because postscreen
+	rejects all RCPT commands and does not announce PIPELINING
+	support). File: postscreen/postscreen_smtpd.c.
+
+20191109
+
+	Usability: the parser for key/certificate chain files
+	rejected inputs that contain an EC PARAMETERS object. While
+	this is technically correct (the documentation says what
+	types are allowed) this is surprising behavior because the
+	legacy cert/key parameters will accept such inputs. For
+	now, the parser skips object types that it does not know
+	about for usability, and logs a warning because ignoring
+	inputs is not kosher. Viktor and Wietse. File: tls/tls_certkey.c.
