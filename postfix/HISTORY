@@ -24474,12 +24474,31 @@ Apologies for any names omitted.
 	qmgr/qmgr.c, qmgr/qmgr_active.c, smtp/smtp.c, smtpd/smtpd.c,
 	smtpd/smtpd_check.c, virtual/virtual.c.
 
-	Workaround: the parser for key/certificate chain files
+	Usability: the parser for key/certificate chain files
 	rejected inputs that contain an EC PARAMETERS object. While
 	this is technically correct (the documentation says what
 	types are allowed) this is surprising behavior because the
 	legacy cert/key parameters will accept such inputs. For
 	now, the parser skips object types that it does not know
-	about for inter-operability, and logs a warning because
-	ignoring inputs is not kosher. Viktor and Wietse. File:
-	tls/tls_certkey.c.
+	about usability, and logs a warning because ignoring inputs
+	is not kosher. Viktor and Wietse. File: tls/tls_certkey.c.
+
+20191201
+
+	Compatibility: added '_' to the milter_connect_macros default
+	value. Reportedly some software produces an ugly warning
+	message if Postfix does not send the macro, and there is
+	no harm in sending it. File: global/mail_params.h.
+
+20191214
+
+	Bugfix (introduced: Postfix 3.1): support for
+	smtp_dns_resolver_options was broken while adding support
+	for negative DNS response caching in postscreen. Postfix
+	was inadvertently changed to call res_query() instead of
+	res_search(). Reported by Jaroslav Skarvada. File:
+	dns/dns_lookup.c.
+
+	Bugfix: sanitize server responses before storing them in
+	the verify database, to avoid Postfix warnings about malformed
+	UTF8. File: verify/verify.c.

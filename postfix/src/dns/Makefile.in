@@ -165,7 +165,6 @@ mxonly_test: test_dns_lookup mxonly_test.ref
 dnsbl_ttl_127.0.0.1_bind_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_plain.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup a 1.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup a 1.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup a 1.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_bind_plain.tmp
 	diff dnsbl_ttl_127.0.0.1_bind_plain.ref dnsbl_ttl_127.0.0.1_bind_plain.tmp
@@ -176,7 +175,6 @@ dnsbl_ttl_127.0.0.1_bind_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_pl
 dnsbl_ttl_127.0.0.1_priv_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_plain.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup -p a 1.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup -p a 1.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup -p a 1.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_priv_plain.tmp
 	diff dnsbl_ttl_127.0.0.1_bind_plain.ref dnsbl_ttl_127.0.0.1_priv_plain.tmp
@@ -187,7 +185,6 @@ dnsbl_ttl_127.0.0.1_priv_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_pl
 dnsbl_ttl_127.0.0.1_bind_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_ncache.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup -n a 1.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup -n a 1.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup -n a 1.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_bind_ncache.tmp
 	diff dnsbl_ttl_127.0.0.1_bind_ncache.ref dnsbl_ttl_127.0.0.1_bind_ncache.tmp
@@ -198,7 +195,6 @@ dnsbl_ttl_127.0.0.1_bind_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_n
 dnsbl_ttl_127.0.0.1_priv_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_ncache.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup -n -p a 1.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup -n -p a 1.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup -n -p a 1.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_NEXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.1_priv_ncache.tmp
 	diff dnsbl_ttl_127.0.0.1_bind_ncache.ref dnsbl_ttl_127.0.0.1_priv_ncache.tmp
@@ -209,7 +205,6 @@ dnsbl_ttl_127.0.0.1_priv_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.1_bind_n
 dnsbl_ttl_127.0.0.2_bind_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup a 2.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup a 2.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup a 2.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_bind_plain.tmp
 	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_bind_plain.tmp
@@ -220,7 +215,6 @@ dnsbl_ttl_127.0.0.2_bind_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_pl
 dnsbl_ttl_127.0.0.2_priv_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup -p a 2.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup -p a 2.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup -p a 2.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_priv_plain.tmp
 	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_priv_plain.tmp
@@ -231,7 +225,6 @@ dnsbl_ttl_127.0.0.2_priv_plain_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_pl
 dnsbl_ttl_127.0.0.2_bind_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup -n a 2.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup -n a 2.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup -n a 2.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_bind_ncache.tmp
 	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_bind_ncache.tmp
@@ -242,7 +235,6 @@ dnsbl_ttl_127.0.0.2_bind_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_p
 dnsbl_ttl_127.0.0.2_priv_ncache_test: test_dns_lookup dnsbl_ttl_127.0.0.2_bind_plain.ref
 	(set -e; \
         $(SHLIB_ENV) ./test_dns_lookup -n -p a 2.0.0.127.zen.spamhaus.org; \
-        $(SHLIB_ENV) ./test_dns_lookup -n -p a 2.0.0.127.b.barracudacentral.org; \
         $(SHLIB_ENV) ./test_dns_lookup -n -p a 2.0.0.127.bl.spamcop.net; \
 	) 2>&1 | $(DNSBL_EXIST_REPLY_FIX) >dnsbl_ttl_127.0.0.2_priv_ncache.tmp
 	diff dnsbl_ttl_127.0.0.2_bind_plain.ref dnsbl_ttl_127.0.0.2_priv_ncache.tmp

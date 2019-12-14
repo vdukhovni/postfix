@@ -399,7 +399,7 @@ static int dns_res_search(const char *name, int class, int type,
     if (keep_notfound)
 	/* Prepare for returning a null-padded server reply. */
 	memset(answer, 0, anslen);
-    len = res_query(name, class, type, answer, anslen);
+    len = res_search(name, class, type, answer, anslen);
     /* Begin API creep workaround. */
     if (len < 0 && h_errno == 0) {
 	SET_H_ERRNO(TRY_AGAIN);
