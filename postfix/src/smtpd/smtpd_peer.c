@@ -544,7 +544,8 @@ static void smtpd_peer_from_proxy(SMTPD_STATE *state)
 {
     typedef struct {
 	const char *name;
-	int     (*endpt_lookup) (SMTPD_STATE *);
+	int     (*endpt_lookup) (SMTPD_STATE *,
+			            void (*default_lookup) (SMTPD_STATE *));
     } SMTPD_ENDPT_LOOKUP_INFO;
     static const SMTPD_ENDPT_LOOKUP_INFO smtpd_endpt_lookup_info[] = {
 	HAPROXY_PROTO_NAME, smtpd_peer_from_haproxy,
@@ -563,7 +564,7 @@ static void smtpd_peer_from_proxy(SMTPD_STATE *state)
 	if (strcmp(var_smtpd_uproxy_proto, pp->name) == 0)
 	    break;
     }
-    if (pp->endpt_lookup(state) < 0) {
+    if (pp->endpt_lookup(state, smtpd_peer_from_default) < 0) {
 	smtpd_peer_no_client(state);
 	state->flags |= SMTPD_FLAG_HANGUP;
     } else {

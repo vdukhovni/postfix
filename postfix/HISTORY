@@ -24502,3 +24502,13 @@ Apologies for any names omitted.
 	Bugfix: sanitize server responses before storing them in
 	the verify database, to avoid Postfix warnings about malformed
 	UTF8. File: verify/verify.c.
+
+20200101
+
+	Refactored the haproxy infrastructure in preparation for
+	haproxy version 2 support. This is necessary because version
+	2 introduces a mutual dependency between the reader and the
+	parser. Files: global/haproxy_srvr.c, smtpd/smtpd_peer.c,
+	smtpd/smtpd_haproxy.c, smtpd/smtpd.h, postscreen/postscreen.h,
+	postscreen/postscreen_endpt.c, postscreen/postscreen_haproxy.c,
+	postscreen/postscreen_haproxy.h, global/haproxy_srvr.h.

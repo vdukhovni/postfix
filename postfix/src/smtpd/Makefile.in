@@ -421,6 +421,7 @@ smtpd_haproxy.o: ../../include/check_arg.h
 smtpd_haproxy.o: ../../include/dns.h
 smtpd_haproxy.o: ../../include/haproxy_srvr.h
 smtpd_haproxy.o: ../../include/htable.h
+smtpd_haproxy.o: ../../include/iostuff.h
 smtpd_haproxy.o: ../../include/mail_params.h
 smtpd_haproxy.o: ../../include/mail_stream.h
 smtpd_haproxy.o: ../../include/milter.h

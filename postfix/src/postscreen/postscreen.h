@@ -568,6 +568,7 @@ typedef void (*PSC_ENDPT_LOOKUP_FN) (int, VSTREAM *,
 			             MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *,
 			            MAI_HOSTADDR_STR *, MAI_SERVPORT_STR *);
 extern void psc_endpt_lookup(VSTREAM *, PSC_ENDPT_LOOKUP_FN);
+extern void psc_endpt_local_lookup(VSTREAM *, PSC_ENDPT_LOOKUP_FN);
 
  /*
   * postscreen_access emulation.

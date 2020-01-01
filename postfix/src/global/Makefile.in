@@ -1401,6 +1401,7 @@ haproxy_srvr.o: ../../include/inet_proto.h
 haproxy_srvr.o: ../../include/msg.h
 haproxy_srvr.o: ../../include/myaddrinfo.h
 haproxy_srvr.o: ../../include/mymalloc.h
+haproxy_srvr.o: ../../include/split_at.h
 haproxy_srvr.o: ../../include/stringops.h
 haproxy_srvr.o: ../../include/sys_defs.h
 haproxy_srvr.o: ../../include/valid_hostname.h
@@ -1448,12 +1449,15 @@ header_token.o: header_token.c
 header_token.o: header_token.h
 header_token.o: lex_822.h
 info_log_addr_form.o: ../../include/check_arg.h
+info_log_addr_form.o: ../../include/msg.h
+info_log_addr_form.o: ../../include/name_code.h
 info_log_addr_form.o: ../../include/sys_defs.h
 info_log_addr_form.o: ../../include/vbuf.h
 info_log_addr_form.o: ../../include/vstring.h
 info_log_addr_form.o: info_log_addr_form.c
 info_log_addr_form.o: info_log_addr_form.h
 info_log_addr_form.o: mail_addr_form.h
+info_log_addr_form.o: mail_params.h
 info_log_addr_form.o: quote_822_local.h
 info_log_addr_form.o: quote_flags.h
 input_transp.o: ../../include/check_arg.h

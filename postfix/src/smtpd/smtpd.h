@@ -345,7 +345,7 @@ extern void smtpd_state_reset(SMTPD_STATE *);
   */
 extern void smtpd_peer_init(SMTPD_STATE *state);
 extern void smtpd_peer_reset(SMTPD_STATE *state);
-extern int smtpd_peer_from_haproxy(SMTPD_STATE *state);
+extern int smtpd_peer_from_haproxy(SMTPD_STATE *, void (*) (SMTPD_STATE *));
 
 #define	SMTPD_PEER_CODE_OK	2
 #define SMTPD_PEER_CODE_TEMP	4
