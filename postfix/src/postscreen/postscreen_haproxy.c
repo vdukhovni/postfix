@@ -18,8 +18,10 @@
 /*	MAI_SERVPORT_STR *smtp_server_port;
 /* DESCRIPTION
 /*	psc_endpt_haproxy_lookup() looks up connection endpoint
-/*	information via the haproxy protocol.  Arguments and results
-/*	conform to the postscreen_endpt(3) API.
+/*	information via the haproxy protocol, or looks up local
+/*	information if the haproxy handshake indicates that a
+/*	connection is not proxied. Arguments and results conform
+/*	to the postscreen_endpt(3) API.
 /* LICENSE
 /* .ad
 /* .fi

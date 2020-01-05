@@ -11,6 +11,9 @@
 /*
 /*	void	smtpd_peer_reset(state)
 /*	SMTPD_STATE *state;
+/* AUXILIARY METHODS
+/*	void	smtpd_peer_from_default(state)
+/*	SMTPD_STATE *state;
 /* DESCRIPTION
 /*	The smtpd_peer_init() routine attempts to produce a printable
 /*	version of the peer name and address of the specified socket.
@@ -96,6 +99,10 @@
 /* .RE
 /* .PP
 /*	smtpd_peer_reset() releases memory allocated by smtpd_peer_init().
+/*
+/*	smtpd_peer_from_default() looks up connection information
+/*	when an up-stream proxy indicates that a connection is not
+/*	proxied.
 /* LICENSE
 /* .ad
 /* .fi
@@ -511,7 +518,7 @@ static void smtpd_peer_from_pass_attr(SMTPD_STATE *state)
 
 /* smtpd_peer_from_default - try to initialize peer information from socket */
 
-static void smtpd_peer_from_default(SMTPD_STATE *state)
+void    smtpd_peer_from_default(SMTPD_STATE *state)
 {
 
     /*
@@ -544,8 +551,7 @@ static void smtpd_peer_from_proxy(SMTPD_STATE *state)
 {
     typedef struct {
 	const char *name;
-	int     (*endpt_lookup) (SMTPD_STATE *,
-			            void (*default_lookup) (SMTPD_STATE *));
+	int     (*endpt_lookup) (SMTPD_STATE *);
     } SMTPD_ENDPT_LOOKUP_INFO;
     static const SMTPD_ENDPT_LOOKUP_INFO smtpd_endpt_lookup_info[] = {
 	HAPROXY_PROTO_NAME, smtpd_peer_from_haproxy,
@@ -564,8 +570,8 @@ static void smtpd_peer_from_proxy(SMTPD_STATE *state)
 	if (strcmp(var_smtpd_uproxy_proto, pp->name) == 0)
 	    break;
     }
-    if (pp->endpt_lookup(state, smtpd_peer_from_default) < 0) {
-	smtpd_peer_no_client(state);
+    if (pp->endpt_lookup(state) < 0) {
+	smtpd_peer_from_default(state);
 	state->flags |= SMTPD_FLAG_HANGUP;
     } else {
 	smtpd_peer_hostaddr_to_sockaddr(state);

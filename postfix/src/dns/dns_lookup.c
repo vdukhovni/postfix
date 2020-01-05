@@ -145,6 +145,8 @@
 /*	available. The per-record reply TTL specifies how long the
 /*	DNS_NOTFOUND answer is valid. The caller should pass the
 /*	record(s) to dns_rr_free().
+/*	Logs a warning if the RES_DNSRCH or RES_DEFNAMES resolver
+/*	flags are set, and disables those flags.
 /* .RE
 /* .IP ltype
 /*	The resource record types to be looked up. In the case of
@@ -460,6 +462,16 @@ static int dns_query(const char *name, int type, unsigned flags,
 
     if (flags & RES_USE_DNSSEC)
 	flags |= RES_USE_EDNS0;
+
+    /*
+     * Can't append domains: we need the right SOA TTL.
+     */
+#define APPEND_DOMAIN_FLAGS (RES_DNSRCH | RES_DEFNAMES)
+
+    if (keep_notfound && (flags & APPEND_DOMAIN_FLAGS)) {
+	msg_warn("negative caching disables RES_DEFNAMES and RES_DNSRCH");
+	flags &= ~APPEND_DOMAIN_FLAGS;
+    }
 
     /*
      * Save and restore resolver options that we overwrite, to avoid

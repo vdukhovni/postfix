@@ -6,9 +6,8 @@
 /* SYNOPSIS
 /*	#include "smtpd.h"
 /*
-/*	int	smtpd_peer_from_haproxy(state, default_lookup)
+/*	int	smtpd_peer_from_haproxy(state)
 /*	SMTPD_STATE *state;
-/*	void	(*default_lookup) (SMTPD_STATE *);
 /* DESCRIPTION
 /*	smtpd_peer_from_haproxy() receives endpoint address and
 /*	port information via the haproxy protocol.
@@ -16,10 +15,10 @@
 /*	The following summarizes what the Postfix SMTP server expects
 /*	from an up-stream proxy adapter.
 /* .IP \(bu
-/*	Call the default_lookup function if the up-stream proxy
+/*	Call smtpd_peer_from_default() if the up-stream proxy
 /*	indicates that the connection is not proxied. In that case,
-/*	a proxy adapter MUST NOT update the connection info: the
-/*	default_lookup function will do that instead.
+/*	a proxy adapter MUST NOT update any STATE fields: the
+/*	smtpd_peer_from_default() function will do that instead.
 /* .IP \(bu
 /*	Validate protocol, address and port syntax. Permit only
 /*	protocols that are configured with the main.cf:inet_protocols
@@ -96,8 +95,7 @@
 
 /* smtpd_peer_from_haproxy - initialize peer information from haproxy */
 
-int     smtpd_peer_from_haproxy(SMTPD_STATE *state,
-			             void (*default_lookup) (SMTPD_STATE *))
+int     smtpd_peer_from_haproxy(SMTPD_STATE *state)
 {
     MAI_HOSTADDR_STR smtp_client_addr;
     MAI_SERVPORT_STR smtp_client_port;
@@ -115,7 +113,7 @@ int     smtpd_peer_from_haproxy(SMTPD_STATE *state,
 	return (-1);
     }
     if (non_proxy) {
-	default_lookup(state);
+	smtpd_peer_from_default(state);
 	return (0);
     }
     state->addr = mystrdup(smtp_client_addr.buf);

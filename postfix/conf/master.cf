@@ -79,7 +79,7 @@ postlog   unix-dgram n  -       n       -       1       postlogd
 # Also specify in main.cf: maildrop_destination_recipient_limit=1
 #
 #maildrop  unix  -       n       n       -       -       pipe
-#  flags=DRhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
+#  flags=DRXhu user=vmail argv=/usr/local/bin/maildrop -d ${recipient}
 #
 # ====================================================================
 #
@@ -98,7 +98,7 @@ postlog   unix-dgram n  -       n       -       1       postlogd
 # Also specify in main.cf: cyrus_destination_recipient_limit=1
 #
 #cyrus     unix  -       n       n       -       -       pipe
-#  user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
+#  flags=DRX user=cyrus argv=/cyrus/bin/deliver -e -r ${sender} -m ${extension} ${user}
 #
 # ====================================================================
 #
@@ -129,5 +129,5 @@ postlog   unix-dgram n  -       n       -       1       postlogd
 #  ${nexthop} ${user} ${extension}
 #
 #mailman   unix  -       n       n       -       -       pipe
-#  flags=FR user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
+#  flags=FRX user=list argv=/usr/lib/mailman/bin/postfix-to-mailman.py
 #  ${nexthop} ${user}
