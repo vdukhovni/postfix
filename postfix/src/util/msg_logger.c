@@ -62,6 +62,10 @@
 /* .IP CA_MSG_LOGGER_CTL_DISABLE
 /*	Disable the msg_logger. This remains in effect until the
 /*	next msg_logger_init() call.
+/* .IP CA_MSG_LOGGER_CTL_CONNECT_NOW
+/*	Close the logging socket if it was already open, and open
+/*	the logging socket now, if permitted by current settings.
+/*	Otherwise, the open is delayed until a logging request.
 /* SEE ALSO
 /*	msg(3)  diagnostics module
 /* BUGS
@@ -111,6 +115,8 @@ static void (*msg_logger_fallback_fn) (const char *);
 static int msg_logger_fallback_only_override = 0;
 static int msg_logger_enable = 0;
 
+#define MSG_LOGGER_NEED_SOCKET() (msg_logger_fallback_only_override == 0)
+
  /*
   * Other state.
   */
@@ -130,6 +136,26 @@ static int msg_logger_sock = MSG_LOGGER_SOCK_NONE;
 #define STR(x)	vstring_str(x)
 #define LEN(x)	VSTRING_LEN(x)
 
+/* msg_logger_connect - connect to logger service */
+
+static void msg_logger_connect(void)
+{
+    if (msg_logger_sock == MSG_LOGGER_SOCK_NONE) {
+	msg_logger_sock = unix_dgram_connect(msg_logger_unix_path, BLOCKING);
+	if (msg_logger_sock >= 0)
+	    close_on_exec(msg_logger_sock, CLOSE_ON_EXEC);
+    }
+}
+
+/* msg_logger_disconnect - disconnect from logger service */
+
+static void msg_logger_disconnect(void)
+{
+    if (msg_logger_sock != MSG_LOGGER_SOCK_NONE) {
+	(void) close(msg_logger_sock);
+	msg_logger_sock = MSG_LOGGER_SOCK_NONE;
+    }
+}
 
 /* msg_logger_print - log info to service or file */
 
@@ -203,12 +229,8 @@ static void msg_logger_print(int level, const char *text)
      * will report ENOENT if the endpoint does not exist, ECONNREFUSED if no
      * server has opened the endpoint.
      */
-    if (msg_logger_fallback_only_override == 0
-	&& msg_logger_sock == MSG_LOGGER_SOCK_NONE) {
-	msg_logger_sock = unix_dgram_connect(msg_logger_unix_path, BLOCKING);
-	if (msg_logger_sock >= 0)
-	    close_on_exec(msg_logger_sock, CLOSE_ON_EXEC);
-    }
+    if (MSG_LOGGER_NEED_SOCKET())
+	msg_logger_connect();
     if (msg_logger_sock != MSG_LOGGER_SOCK_NONE) {
 	send(msg_logger_sock, STR(msg_logger_buf), LEN(msg_logger_buf), 0);
     } else if (msg_logger_fallback_fn) {
@@ -286,16 +308,18 @@ void    msg_logger_control(int name,...)
 	switch (name) {
 	case MSG_LOGGER_CTL_FALLBACK_ONLY:
 	    msg_logger_fallback_only_override = 1;
-	    if (msg_logger_sock != MSG_LOGGER_SOCK_NONE) {
-		(void) close(msg_logger_sock);
-		msg_logger_sock = MSG_LOGGER_SOCK_NONE;
-	    }
+	    msg_logger_disconnect();
 	    break;
 	case MSG_LOGGER_CTL_FALLBACK_FN:
 	    msg_logger_fallback_fn = va_arg(ap, MSG_LOGGER_FALLBACK_FN);
 	    break;
 	case MSG_LOGGER_CTL_DISABLE:
 	    msg_logger_enable = 0;
+	    break;
+	case MSG_LOGGER_CTL_CONNECT_NOW:
+	    msg_logger_disconnect();
+	    if (MSG_LOGGER_NEED_SOCKET())
+		msg_logger_connect();
 	    break;
 	default:
 	    msg_panic("%s: bad name %d", myname, name);

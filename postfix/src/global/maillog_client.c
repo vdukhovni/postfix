@@ -210,7 +210,7 @@ void    maillog_client_init(const char *progname, int flags)
 	if (var_maillog_file && *var_maillog_file) {
 	    ARGV   *good_prefixes = argv_split(var_maillog_file_pfxs,
 					       CHARS_COMMA_SP);
-	    char **cpp;
+	    char  **cpp;
 
 	    for (cpp = good_prefixes->argv; /* see below */ ; cpp++) {
 		if (*cpp == 0)
@@ -264,6 +264,8 @@ void    maillog_client_init(const char *progname, int flags)
 	}
 	if (service_path != import_service_path)
 	    myfree(service_path);
+	msg_logger_control(CA_MSG_LOGGER_CTL_CONNECT_NOW,
+			   CA_MSG_LOGGER_CTL_END);
     }
 
     /*

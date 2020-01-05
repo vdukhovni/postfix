@@ -24502,3 +24502,23 @@ Apologies for any names omitted.
 	Bugfix: sanitize server responses before storing them in
 	the verify database, to avoid Postfix warnings about malformed
 	UTF8. File: verify/verify.c.
+
+20191215
+
+	Future proofing: the Postfix DNS library logs a warning if
+	the DNS_REQ_FLAG_NCACHE_TTL dns_lookup flag is set and the
+	RES_DNSRCH or RES_DEFNAMES resolver flags are set, and
+	disables those resolver flags. File: dns/dns_lookup.c.
+
+20191230
+
+	Documentation: added the 'X' flag (final delivery) to the
+	pipe-based final delivery examples in the default master.cf
+	file. File: conf/master.cf
+
+20201005
+
+	Workaround: postlog clients open the socket before entering
+	the chroot jail and before dropping privileges. This is needed
+	on MacOS and would not hurt otherwise. Files: util/msg_logger.[hc],
+	global/maillog_client.c.
