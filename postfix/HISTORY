@@ -24522,3 +24522,15 @@ Apologies for any names omitted.
 	the chroot jail and before dropping privileges. This is needed
 	on MacOS and would not hurt otherwise. Files: util/msg_logger.[hc],
 	global/maillog_client.c.
+
+20200108
+
+	UI cleanup: SMTP (and LMTP) client support for a list of
+	nexthop destinations separated by comma or whitespace. These
+	will be tried in the specified order. The list form can be
+	specified in relayhost, transport_maps, default_transport,
+	and sender_dependent_default_transport_maps.  Examples:
+	"relayhost = foo.example, bar.example", and "default_transport
+	= smtp:foo.exmple, bar.example". Files: smtp/smtp.c,
+	smtp/smtp_connect.c, trivial-rewrite/resolve.c, proto/transport,
+	proto/postconf.proto, global/mail_params.c.

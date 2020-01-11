@@ -1310,7 +1310,9 @@ domain.
 Specify a string of the form <i>transport:nexthop</i>, where <i>transport</i>
 is the name of a mail delivery transport defined in master.cf.
 The <i>:nexthop</i> destination is optional; its syntax is documented
-in the manual page of the corresponding delivery agent.
+in the manual page of the corresponding delivery agent. In the case of
+SMTP or LMTP, specify one or more destinations separated by comma or
+whitespace (with Postfix 3.5 and later).
 </p>
 
 <p>
@@ -3773,7 +3775,7 @@ This feature is available in Postfix 2.0 and later.
 %PARAM relayhost 
 
 <p>
-The next-hop destination of non-local mail; overrides non-local
+The next-hop destination(s) for non-local mail; overrides non-local
 domains in recipient addresses. This information is overruled with
 relay_transport, sender_dependent_default_transport_maps,
 default_transport, sender_dependent_relayhost_maps
@@ -3787,9 +3789,11 @@ gateway host instead.
 </p>
 
 <p>
-In the case of SMTP, specify a domain name, hostname, hostname:port,
-[hostname]:port, [hostaddress] or [hostaddress]:port. The form
-[hostname] turns off MX lookups.
+In the case of SMTP or LMTP delivery, specify one or more destinations
+in the form of a domain name, hostname, hostname:port, [hostname]:port,
+[hostaddress] or [hostaddress]:port, separated by comma or whitespace.
+The form [hostname] turns off MX lookups. Multiple destinations are
+supported in Postfix 3.5 and later.
 </p>
 
 <p>
@@ -3804,7 +3808,7 @@ Examples:
 <pre>
 relayhost = $mydomain
 relayhost = [gateway.example.com]
-relayhost = uucphost
+relayhost = mail1.example:587, mail2.example:587
 relayhost = [an.ip.add.ress]
 </pre>
 

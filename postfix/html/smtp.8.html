@@ -41,7 +41,9 @@ SMTP(8)                                                                SMTP(8)
        can be enabled permanently for specific destinations.
 
 <b>SMTP DESTINATION SYNTAX</b>
-       SMTP destinations have the following form:
+       The Postfix SMTP+LMTP client supports multiple  destinations  separated
+       by comma or whitespace (Postfix 3.5 and later).  SMTP destinations have
+       the following form:
 
        <i>domainname</i>
 
@@ -63,7 +65,9 @@ SMTP(8)                                                                SMTP(8)
               ted as [<b>ipv6</b>:<i>address</i>].
 
 <b>LMTP DESTINATION SYNTAX</b>
-       LMTP destinations have the following form:
+       The Postfix SMTP+LMTP client supports multiple  destinations  separated
+       by comma or whitespace (Postfix 3.5 and later).  LMTP destinations have
+       the following form:
 
        <b>unix</b>:<i>pathname</i>
               Connect to the local UNIX-domain server that  is  bound  to  the

@@ -784,11 +784,10 @@ static void smtp_connect_inet(SMTP_STATE *state, const char *nexthop,
     }
 
     /*
-     * Future proofing: do a null destination sanity check in case we allow
-     * the primary destination to be a list (it could be just separators).
+     * Do a null destination sanity check in case the primary destination is
+     * a list that consists of only separators.
      */
-    sites = argv_alloc(1);
-    argv_add(sites, nexthop, (char *) 0);
+    sites = argv_split(nexthop, CHARS_COMMA_SP);
     if (sites->argc == 0)
 	msg_panic("null destination: \"%s\"", nexthop);
     non_fallback_sites = sites->argc;

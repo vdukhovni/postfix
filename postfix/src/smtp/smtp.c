@@ -38,6 +38,8 @@
 /* SMTP DESTINATION SYNTAX
 /* .ad
 /* .fi
+/*	The Postfix SMTP+LMTP client supports multiple destinations
+/*	separated by comma or whitespace (Postfix 3.5 and later).
 /*	SMTP destinations have the following form:
 /* .IP \fIdomainname\fR
 /* .IP \fIdomainname\fR:\fIport\fR
@@ -55,6 +57,8 @@
 /* LMTP DESTINATION SYNTAX
 /* .ad
 /* .fi
+/*	The Postfix SMTP+LMTP client supports multiple destinations
+/*	separated by comma or whitespace (Postfix 3.5 and later).
 /*	LMTP destinations have the following form:
 /* .IP \fBunix\fR:\fIpathname\fR
 /*	Connect to the local UNIX-domain server that is bound to the specified

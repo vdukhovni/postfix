@@ -974,10 +974,6 @@ void    mail_params_init()
 	msg_fatal("%s parameter setting must not contain multiple values: %s",
 		  VAR_MYORIGIN, var_myorigin);
 
-    if (var_relayhost[strcspn(var_relayhost, CHARS_COMMA_SP)])
-	msg_fatal("%s parameter setting must not contain multiple values: %s",
-		  VAR_RELAYHOST, var_relayhost);
-
     /*
      * One more sanity check.
      */
