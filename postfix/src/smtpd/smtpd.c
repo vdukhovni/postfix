@@ -5431,6 +5431,16 @@ static void smtpd_proto(SMTPD_STATE *state)
     case 0:
 
 	/*
+	 * Don't bother doing anything if some pre-SMTP handshake (haproxy)
+	 * did not work out.
+	 */
+	if (state->flags & SMTPD_FLAG_HANGUP) {
+	    smtpd_chat_reply(state, "421 4.3.0 %s Server local error",
+			     var_myhostname);
+	    break;
+	}
+
+	/*
 	 * In TLS wrapper mode, turn on TLS using code that is shared with
 	 * the STARTTLS command. This code does not return when the handshake
 	 * fails.
@@ -5978,8 +5988,7 @@ static void smtpd_service(VSTREAM *stream, char *service, char **argv)
     /*
      * Provide the SMTP service.
      */
-    if ((state.flags & SMTPD_FLAG_HANGUP) == 0)
-	smtpd_proto(&state);
+    smtpd_proto(&state);
 
     /*
      * After the client has gone away, clean up whatever we have set up at
