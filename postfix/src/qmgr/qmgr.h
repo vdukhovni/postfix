@@ -508,6 +508,7 @@ struct QMGR_SCAN {
 #define QMGR_FLUSH_ONCE	(1<<2)		/* unthrottle once */
 #define QMGR_FLUSH_DFXP	(1<<3)		/* override defer_transports */
 #define QMGR_FLUSH_EACH	(1<<4)		/* unthrottle per message */
+#define QMGR_FORCE_EXPIRE (1<<5)	/* force-defer and force-expire */
 
  /*
   * qmgr_scan.c

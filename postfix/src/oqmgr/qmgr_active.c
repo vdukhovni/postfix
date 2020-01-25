@@ -234,14 +234,19 @@ int     qmgr_active_feed(QMGR_SCAN *scan_info, const char *queue_id)
      * a minimal amount of time.
      */
 #define QMGR_FLUSH_AFTER	(QMGR_FLUSH_EACH | QMGR_FLUSH_DFXP)
+#define MAYBE_FLUSH_AFTER(mode) \
+	(((mode) & MAIL_QUEUE_STAT_UNTHROTTLE) ? QMGR_FLUSH_AFTER : 0) 
+#define MAYBE_FORCE_EXPIRE(mode) \
+	(((mode) & MAIL_QUEUE_STAT_EXPIRE) ? QMGR_FORCE_EXPIRE : 0)
+#define MAYBE_UPDATE_MODE(mode) \
+	(((mode) & MAIL_QUEUE_STAT_UNTHROTTLE) ? \
+	(mode) & ~MAIL_QUEUE_STAT_UNTHROTTLE : 0)
 
     if ((message = qmgr_message_alloc(MAIL_QUEUE_ACTIVE, queue_id,
-				 (st.st_mode & MAIL_QUEUE_STAT_UNTHROTTLE) ?
-				      scan_info->flags | QMGR_FLUSH_AFTER :
-				      scan_info->flags,
-				 (st.st_mode & MAIL_QUEUE_STAT_UNTHROTTLE) ?
-				  st.st_mode & ~MAIL_QUEUE_STAT_UNTHROTTLE :
-				      0)) == 0) {
+				      scan_info->flags
+				      | MAYBE_FLUSH_AFTER(st.st_mode)
+				      | MAYBE_FORCE_EXPIRE(st.st_mode),
+				      MAYBE_UPDATE_MODE(st.st_mode))) == 0) {
 	qmgr_active_corrupt(queue_id);
 	return (0);
     } else if (message == QMGR_MESSAGE_LOCKED) {
@@ -433,6 +438,7 @@ static void qmgr_active_done_25_trace_flush(int status, void *context)
 static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
 {
     const char *myname = "qmgr_active_done_25_generic";
+    const char *expire_status = 0;
 
     /*
      * If we get to this point we have tried all recipients for this message.
@@ -442,10 +448,18 @@ static void qmgr_active_done_25_generic(QMGR_MESSAGE *message)
      * daemon waits for the qmgr to accept the "new mail" trigger.
      */
     if (message->flags) {
-	if (event_time() >= message->create_time +
-	    (*message->sender ? var_max_queue_time : var_dsn_queue_time)) {
-	    msg_info("%s: from=<%s>, status=expired, returned to sender",
-	     message->queue_id, info_log_addr_form_sender(message->sender));
+	if ((message->qflags & QMGR_FORCE_EXPIRE) != 0) {
+	    expire_status = "force-expired";
+	} else if (event_time() >= message->create_time +
+	     (*message->sender ? var_max_queue_time : var_dsn_queue_time)) {
+	    expire_status = "expired";
+	} else {
+	    expire_status = 0;
+	}
+	if (expire_status != 0) {
+	    msg_info("%s: from=<%s>, status=%s, returned to sender",
+	      message->queue_id, info_log_addr_form_sender(message->sender),
+		     expire_status);
 	    if (message->verp_delims == 0 || var_verp_bounce_off)
 		adefer_flush(BOUNCE_FLAG_KEEP,
 			     message->queue_name,
