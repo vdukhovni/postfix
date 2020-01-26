@@ -24587,7 +24587,22 @@ Apologies for any names omitted.
 	that it will execute actions in the order of the -[defhr]
 	flags, instead of using an invisible fixed internal order.
 	The -e and -f options are idempotent (just like -h and -H).
-	Adjusted the logging to make this more clear.
+	Adjusted the summary at the end to make this more clear.
+	File: postsuper/postsuper.c.
 
-	TODO: update showq outputs to reflect the 'expired' status.
-	File: postsuper.c.
+20200126
+
+	Updated the mailq/postqueue commands to make forced message
+	expiration status available. In ASCII ouput this is indicated
+	with "#" appended to the queue file name, and in JSON output
+	this is indicated with the boolean "force_expired" attribute.
+	Files: showq/showq.c, postqueue/showq_compat.c,
+	postqueue/showq_json.c.
+
+	Cleanup: minor tweaks to comments and code.
+
+	Safety: give maildrop queue files more time (week instead
+	of day) to reach completion, in case a message is submitted
+	by a really long-running program. File: postsuper/postsuper.c.
+
+	Baseline is postfix-3.5-20200112.

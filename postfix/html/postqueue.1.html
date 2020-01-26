@@ -80,23 +80,28 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
                      ery  attempt  will  be  made  until the mail is taken off
                      hold.
 
+              <b>#</b>      The  message  is  force-expired.  See  the   <a href="postsuper.1.html"><b>postsuper</b>(1)</a>
+                     options <b>-e</b> or <b>-f</b>.
+
+                     This feature is available in Postfix 3.5 and later.
+
        <b>-s</b> <i>site</i>
-              Schedule immediate delivery of all mail that is queued  for  the
-              named  <i>site</i>.  A  numerical site must be specified as a valid <a href="http://tools.ietf.org/html/rfc5321">RFC</a>
+              Schedule  immediate  delivery of all mail that is queued for the
+              named <i>site</i>. A numerical site must be specified as  a  valid  <a href="http://tools.ietf.org/html/rfc5321">RFC</a>
               <a href="http://tools.ietf.org/html/rfc5321">5321</a>  address  literal  enclosed  in  [],  just  like  in  email
-              addresses.   The site must be eligible for the "fast flush" ser-
-              vice.  See <a href="flush.8.html"><b>flush</b>(8)</a> for more information about the "fast  flush"
+              addresses.  The site must be eligible for the "fast flush"  ser-
+              vice.   See <a href="flush.8.html"><b>flush</b>(8)</a> for more information about the "fast flush"
               service.
 
-              This  option  implements the traditional "<b>sendmail -qR</b><i>site</i>" com-
+              This option implements the traditional "<b>sendmail  -qR</b><i>site</i>"  com-
               mand, by contacting the Postfix <a href="flush.8.html"><b>flush</b>(8)</a> daemon.
 
-       <b>-v</b>     Enable verbose  logging  for  debugging  purposes.  Multiple  <b>-v</b>
-              options  make  the  software increasingly verbose. As of Postfix
+       <b>-v</b>     Enable  verbose  logging  for  debugging  purposes.  Multiple <b>-v</b>
+              options make the software increasingly verbose.  As  of  Postfix
               2.3, this option is available for the super-user only.
 
 <b>JSON OBJECT FORMAT</b>
-       Each JSON object represents one queue file; it is emitted as  a  single
+       Each  JSON  object represents one queue file; it is emitted as a single
        text line followed by a newline character.
 
        Object members have string values unless indicated otherwise.  Programs
@@ -104,27 +109,33 @@ POSTQUEUE(1)                                                      POSTQUEUE(1)
        bers is expected to grow over time.
 
        <b>queue_name</b>
-              The  name  of  the queue where the message was found.  Note that
-              the contents of the mail queue may  change  while  it  is  being
-              listed;  some  messages may appear more than once, and some mes-
+              The name of the queue where the message was  found.   Note  that
+              the  contents  of  the  mail  queue may change while it is being
+              listed; some messages may appear more than once, and  some  mes-
               sages may be missed.
 
        <b>queue_id</b>
               The queue file name. The queue_id may be reused within a Postfix
               instance unless "<a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a> = true" and time is mono-
-              tonic.  Even then, the queue_id is not  expected  to  be  unique
-              between  different  Postfix  instances.   Management  tools that
-              require a unique name  should  combine  the  queue_id  with  the
+              tonic.   Even  then,  the  queue_id is not expected to be unique
+              between different  Postfix  instances.   Management  tools  that
+              require  a  unique  name  should  combine  the queue_id with the
               <a href="postconf.5.html#myhostname">myhostname</a> setting of the Postfix instance.
 
        <b>arrival_time</b>
               The number of seconds since the start of the UNIX epoch.
 
        <b>message_size</b>
-              The  number of bytes in the message header and body. This number
-              does not include message envelope information.  It  is  approxi-
-              mately  equal  to  the number of bytes that would be transmitted
+              The number of bytes in the message header and body. This  number
+              does  not  include  message envelope information. It is approxi-
+              mately equal to the number of bytes that  would  be  transmitted
               via SMTP including the &lt;CR&gt;&lt;LF&gt; line endings.
+
+       <b>force_expired</b>
+              The  message  is force-expired (<b>true</b> or <b>false</b>).  See the <b>postsu-</b>
+              <b>per</b>(1) options <b>-e</b> or <b>-f</b>.
+
+              This feature is available in Postfix 3.5 and later.
 
        <b>sender</b> The envelope sender address.
 

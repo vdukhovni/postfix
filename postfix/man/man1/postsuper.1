@@ -113,6 +113,8 @@ Specify "\fB\-e ALL\fR" or "\fB\-f ALL\fR" to expire all
 messages; for example, specify "\fB\-e ALL deferred\fR" to
 expire all mail in the \fBdeferred\fR queue.  As a safety
 measure, the word \fBALL\fR must be specified in upper case.
+.sp
+These features are available in Postfix 2.5 and later.
 .IP "\fB\-h \fIqueue_id\fR"
 Put mail "on hold" so that no attempt is made to deliver it.
 Move one message with the named queue ID from the named
@@ -155,6 +157,8 @@ This feature is available in Postfix 2.0 and later.
 .IP \fB\-p\fR
 Purge old temporary files that are left over after system or
 software crashes.
+The \fB\-p\fR, \fB\-s\fR, and \fB\-S\fR operations are done
+before other operations.
 .IP "\fB\-r \fIqueue_id\fR"
 Requeue the message with the named queue ID from the named
 mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
@@ -202,6 +206,8 @@ This feature is available in Postfix 1.1 and later.
 .IP \fB\-s\fR
 Structure check and structure repair.  This should be done once
 before Postfix startup.
+The \fB\-p\fR, \fB\-s\fR, and \fB\-S\fR operations are done
+before other operations.
 .RS
 .IP \(bu
 Rename files whose name does not match the message file inode
@@ -236,6 +242,8 @@ A redundant version of \fB\-s\fR that requires that long
 file names also match the message file inode number. This
 option exists for testing purposes, and is available with
 Postfix 2.9 and later.
+The \fB\-p\fR, \fB\-s\fR, and \fB\-S\fR operations are done
+before other operations.
 .IP \fB\-v\fR
 Enable verbose logging for debugging purposes. Multiple \fB\-v\fR
 options make the software increasingly verbose.

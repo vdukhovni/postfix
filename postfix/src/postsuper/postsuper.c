@@ -107,6 +107,8 @@
 /*	messages; for example, specify "\fB-e ALL deferred\fR" to
 /*	expire all mail in the \fBdeferred\fR queue.  As a safety
 /*	measure, the word \fBALL\fR must be specified in upper case.
+/* .sp
+/*	These features are available in Postfix 2.5 and later.
 /* .IP "\fB-h \fIqueue_id\fR"
 /*	Put mail "on hold" so that no attempt is made to deliver it.
 /*	Move one message with the named queue ID from the named
@@ -149,6 +151,8 @@
 /* .IP \fB-p\fR
 /*	Purge old temporary files that are left over after system or
 /*	software crashes.
+/*	The \fB-p\fR, \fB-s\fR, and \fB-S\fR operations are done
+/*	before other operations.
 /* .IP "\fB-r \fIqueue_id\fR"
 /*	Requeue the message with the named queue ID from the named
 /*	mail queue(s) (default: \fBhold\fR, \fBincoming\fR, \fBactive\fR and
@@ -196,6 +200,8 @@
 /* .IP \fB-s\fR
 /*	Structure check and structure repair.  This should be done once
 /*	before Postfix startup.
+/*	The \fB-p\fR, \fB-s\fR, and \fB-S\fR operations are done
+/*	before other operations.
 /* .RS
 /* .IP \(bu
 /*	Rename files whose name does not match the message file inode
@@ -230,6 +236,8 @@
 /*	file names also match the message file inode number. This
 /*	option exists for testing purposes, and is available with
 /*	Postfix 2.9 and later.
+/*	The \fB-p\fR, \fB-s\fR, and \fB-S\fR operations are done
+/*	before other operations.
 /* .IP \fB-v\fR
 /*	Enable verbose logging for debugging purposes. Multiple \fB-v\fR
 /*	options make the software increasingly verbose.
@@ -350,7 +358,7 @@
 
 /* Application-specific. */
 
-#define MAX_TEMP_AGE (60 * 60 * 24)	/* temp file maximal age */
+#define MAX_TEMP_AGE (7 * 60 * 60 * 24)	/* temp file maximal age */
 #define STR vstring_str			/* silly little macro */
 
 #define ACTION_STRUCT	(1<<0)		/* fix file organization */
@@ -390,6 +398,9 @@
 #define ACTIONS_BY_WILDCARD	(ACTION_DELETE_ALL | ACTION_REQUEUE_ALL \
 				| ACTION_HOLD_ALL | ACTION_RELEASE_ALL \
 				| ACTION_EXPIRE_ALL | ACTION_EXP_REL_ALL)
+
+#define ACTIONS_FOR_REPAIR	(ACTION_PURGE | ACTION_STRUCT \
+				| ACTION_STRUCT_RED)
 
  /*
   * Information about queue directories and what we expect to do there. If a
@@ -892,6 +903,15 @@ static void super(const char **queues, int action)
     unsigned long inum;
     int     long_name;
     int     error;
+
+    /*
+     * This routine was originally written to do multiple mass operations in
+     * one pass. However this hard-coded the order of operations which became
+     * difficult to explain. As of Postfix 3.5 this routine is called for one
+     * mass operation at a time, in the user-specified order. The exception
+     * is that repair operations (purging stale files, queue hashing, and
+     * file-inode match) are combined and done before other mass operations.
+     */
 
     /*
      * Make sure every file is in the right place, clean out stale files, and
@@ -1453,8 +1473,8 @@ int     main(int argc, char **argv)
      * ensures that queue files are in the right place before any other
      * operations are done.
      */
-    if (action & ~(ACTIONS_BY_QUEUE_ID | ACTIONS_BY_WILDCARD))
-	super(queues, action & ~(ACTIONS_BY_QUEUE_ID | ACTIONS_BY_WILDCARD));
+    if (action & ACTIONS_FOR_REPAIR)
+	super(queues, action & ACTIONS_FOR_REPAIR);
 
     /*
      * If any file names needed changing to match the message file inode
@@ -1463,7 +1483,7 @@ int     main(int argc, char **argv)
      * operations that had to be skipped in the first pass.
      */
     if (inode_mismatch > 0)
-	super(queues, action & ~(ACTIONS_BY_QUEUE_ID | ACTIONS_BY_WILDCARD));
+	super(queues, action & ACTIONS_FOR_REPAIR);
 
     /*
      * Don't do actions by queue file name if any queue files changed name
@@ -1554,7 +1574,7 @@ int     main(int argc, char **argv)
 		 message_deleted != 1 ? "s" : "");
     if (action & (ACTION_EXPIRE_ONE | ACTION_EXPIRE_ALL
 		  | ACTION_EXP_REL_ONE | ACTION_EXP_REL_ALL))
-	msg_info("Expired: %d message%s", message_expired,
+	msg_info("Force-expired: %d message%s", message_expired,
 		 message_expired != 1 ? "s" : "");
     if (action & (ACTION_HOLD_ONE | ACTION_HOLD_ALL))
 	msg_info("Placed on hold: %d message%s",

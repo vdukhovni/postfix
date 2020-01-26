@@ -1416,7 +1416,7 @@ QMGR_MESSAGE *qmgr_message_alloc(const char *queue_name, const char *queue_id,
 	if ((message->qflags & QMGR_FORCE_EXPIRE) != 0
 	    && stat(mail_queue_path((VSTRING *) 0, MAIL_QUEUE_DEFER,
 				    queue_id), &st) == 0 && st.st_size > 0) {
-	    /* Use this defer log; don't assign deliveries (refcount ==  0). */
+	    /* Use this defer log; don't assign deliveries (refcount == 0). */
 	    message->flags = 1;			/* simplify downstream code */
 	    qmgr_message_close(message);
 	    return (message);

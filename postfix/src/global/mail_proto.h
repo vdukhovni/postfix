@@ -163,6 +163,7 @@ extern char *mail_pathname(const char *, const char *);
 #define MAIL_ATTR_LOG_IDENT	"log_ident"
 #define MAIL_ATTR_RWR_CONTEXT	"rewrite_context"
 #define MAIL_ATTR_POL_CONTEXT	"policy_context"
+#define MAIL_ATTR_FORCE_EXPIRED	"force_expired"
 
 #define MAIL_ATTR_RWR_LOCAL	"local"
 #define MAIL_ATTR_RWR_REMOTE	"remote"

@@ -107,6 +107,8 @@ POSTSUPER(1)                                                      POSTSUPER(1)
        ify "<b>-e ALL deferred</b>" to expire all mail in the <b>deferred</b> queue.   As  a
        safety measure, the word <b>ALL</b> must be specified in upper case.
 
+       These features are available in Postfix 2.5 and later.
+
        <b>-h</b> <i>queue</i><b>_</b><i>id</i>
               Put  mail  "on  hold"  so that no attempt is made to deliver it.
               Move one message with the named queue ID  from  the  named  mail
@@ -146,51 +148,53 @@ POSTSUPER(1)                                                      POSTSUPER(1)
               This feature is available in Postfix 2.0 and later.
 
        <b>-p</b>     Purge  old  temporary  files  that are left over after system or
-              software crashes.
+              software crashes.  The <b>-p</b>, <b>-s</b>, and <b>-S</b> operations are done before
+              other operations.
 
        <b>-r</b> <i>queue</i><b>_</b><i>id</i>
-              Requeue the message with the named queue ID from the named  mail
+              Requeue  the message with the named queue ID from the named mail
               queue(s) (default: <b>hold</b>, <b>incoming</b>, <b>active</b> and <b>deferred</b>).
 
               To requeue multiple files, specify the <b>-r</b> option multiple times,
-              or specify a <i>queue</i><b>_</b><i>id</i> of <b>-</b>  to  read  queue  IDs  from  standard
+              or  specify  a  <i>queue</i><b>_</b><i>id</i>  of  <b>-</b>  to read queue IDs from standard
               input.
 
-              Specify  "<b>-r  ALL</b>" to requeue all messages. As a safety measure,
+              Specify "<b>-r ALL</b>" to requeue all messages. As a  safety  measure,
               the word <b>ALL</b> must be specified in upper case.
 
               A requeued message is moved to the <b>maildrop</b> queue, from where it
               is copied by the <a href="pickup.8.html"><b>pickup</b>(8)</a> and <a href="cleanup.8.html"><b>cleanup</b>(8)</a> daemons to a new queue
-              file. In many respects its handling differs from that of  a  new
+              file.  In  many respects its handling differs from that of a new
               local submission.
 
-              <b>o</b>      The  message  is  not  subjected  to the <a href="postconf.5.html#smtpd_milters">smtpd_milters</a> or
+              <b>o</b>      The message is not  subjected  to  the  <a href="postconf.5.html#smtpd_milters">smtpd_milters</a>  or
                      <a href="postconf.5.html#non_smtpd_milters">non_smtpd_milters</a> settings.  When mail has passed through
-                     an  external content filter, this would produce incorrect
-                     results with Milter applications that depend on  original
+                     an external content filter, this would produce  incorrect
+                     results  with Milter applications that depend on original
                      SMTP connection state information.
 
-              <b>o</b>      The  message is subjected again to mail address rewriting
+              <b>o</b>      The message is subjected again to mail address  rewriting
                      and substitution.  This is useful when rewriting rules or
                      virtual mappings have changed.
 
-                     The  address  rewriting  context (local or remote) is the
+                     The address rewriting context (local or  remote)  is  the
                      same as when the message was received.
 
-              <b>o</b>      The message is subjected to the same <a href="postconf.5.html#content_filter">content_filter</a>  set-
-                     tings  (if  any)  as used for new local mail submissions.
+              <b>o</b>      The  message is subjected to the same <a href="postconf.5.html#content_filter">content_filter</a> set-
+                     tings (if any) as used for new  local  mail  submissions.
                      This is useful when <a href="postconf.5.html#content_filter">content_filter</a> settings have changed.
 
-              Warning:  Postfix  queue  IDs are reused (always with Postfix &lt;=
-              2.8; and with Postfix  &gt;=  2.9  when  <a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a>=no).
+              Warning: Postfix queue IDs are reused (always  with  Postfix  &lt;=
+              2.8;  and  with  Postfix  &gt;= 2.9 when <a href="postconf.5.html#enable_long_queue_ids">enable_long_queue_ids</a>=no).
               There is a very small possibility that <a href="postsuper.1.html"><b>postsuper</b>(1)</a> requeues the
-              wrong message file when it is executed while  the  Postfix  mail
+              wrong  message  file  when it is executed while the Postfix mail
               system is running, but no harm should be done.
 
               This feature is available in Postfix 1.1 and later.
 
-       <b>-s</b>     Structure  check and structure repair.  This should be done once
-              before Postfix startup.
+       <b>-s</b>     Structure check and structure repair.  This should be done  once
+              before  Postfix startup.  The <b>-p</b>, <b>-s</b>, and <b>-S</b> operations are done
+              before other operations.
 
               <b>o</b>      Rename files whose name does not match the  message  file
                      inode number. This operation is necessary after restoring
@@ -217,7 +221,8 @@ POSTSUPER(1)                                                      POSTSUPER(1)
 
        <b>-S</b>     A  redundant  version  of  <b>-s</b> that requires that long file names
               also match the message file inode number. This option exists for
-              testing purposes, and is available with Postfix 2.9 and later.
+              testing  purposes,  and is available with Postfix 2.9 and later.
+              The <b>-p</b>, <b>-s</b>, and <b>-S</b> operations are done before other  operations.
 
        <b>-v</b>     Enable  verbose  logging  for  debugging  purposes.  Multiple <b>-v</b>
               options make the software increasingly verbose.

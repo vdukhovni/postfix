@@ -134,6 +134,7 @@ static void format_json(VSTREAM *showq_stream)
     long    message_size;
     int     showq_status;
     int     rcpt_count = 0;
+    int     force_expired;
 
     /*
      * One-time initialization.
@@ -154,8 +155,9 @@ static void format_json(VSTREAM *showq_stream)
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 		  RECV_ATTR_LONG(MAIL_ATTR_TIME, &arrival_time),
 		  RECV_ATTR_LONG(MAIL_ATTR_SIZE, &message_size),
+		  RECV_ATTR_INT(MAIL_ATTR_FORCE_EXPIRED, &force_expired),
 		  RECV_ATTR_STR(MAIL_ATTR_SENDER, addr),
-		  ATTR_TYPE_END) != 5)
+		  ATTR_TYPE_END) != 6)
 	msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
     vstream_printf("{");
     vstream_printf("\"queue_name\": \"%s\", ",
@@ -164,6 +166,7 @@ static void format_json(VSTREAM *showq_stream)
 		   json_quote(quote_buf, STR(queue_id)));
     vstream_printf("\"arrival_time\": %ld, ", arrival_time);
     vstream_printf("\"message_size\": %ld, ", message_size);
+    vstream_printf("\"force_expired\": %s, ", force_expired ? "true" : "false");
     vstream_printf("\"sender\": \"%s\", ",
 		   json_quote(quote_buf, STR(addr)));
 

@@ -160,7 +160,8 @@ static void showq_reasons(VSTREAM *, BOUNCE_LOG *, RCPT_BUF *, DSN_BUF *,
 /* showq_report - report status of sender and recipients */
 
 static void showq_report(VSTREAM *client, char *queue, char *id,
-			         VSTREAM *qfile, long size, time_t mtime)
+			         VSTREAM *qfile, long size, time_t mtime,
+			         mode_t mode)
 {
     VSTRING *buf = vstring_alloc(100);
     VSTRING *printable_quoted_addr = vstring_alloc(100);
@@ -240,6 +241,8 @@ static void showq_report(VSTREAM *client, char *queue, char *id,
 		       SEND_ATTR_LONG(MAIL_ATTR_TIME, arrival_time > 0 ?
 				      arrival_time : mtime),
 		       SEND_ATTR_LONG(MAIL_ATTR_SIZE, msg_size),
+		       SEND_ATTR_INT(MAIL_ATTR_FORCE_EXPIRED,
+				     (mode & MAIL_QUEUE_STAT_EXPIRE) != 0),
 		       SEND_ATTR_STR(MAIL_ATTR_SENDER,
 				     STR(printable_quoted_addr)),
 		       ATTR_TYPE_END);
@@ -385,7 +388,7 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	    if (status == MAIL_OPEN_YES) {
 		if ((qfile = mail_queue_open(qp->name, id, O_RDONLY, 0)) != 0) {
 		    showq_report(client, qp->name, id, qfile, (long) st.st_size,
-				 st.st_mtime);
+				 st.st_mtime, st.st_mode);
 		    if (vstream_fclose(qfile))
 			msg_warn("close file %s %s: %m", qp->name, id);
 		} else if (errno != ENOENT) {

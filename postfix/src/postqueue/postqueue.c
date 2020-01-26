@@ -73,6 +73,11 @@
 /* .IP \fB!\fR
 /*	The message is in the \fBhold\fR queue, i.e. no further delivery
 /*	attempt will be made until the mail is taken off hold.
+/* .IP \fB#\fR
+/*	The message is force-expired. See the \fBpostsuper\fR(1)
+/*	options \fB-e\fR or \fB-f\fR.
+/* .sp
+/*	This feature is available in Postfix 3.5 and later.
 /* .RE
 /* .IP "\fB-s \fIsite\fR"
 /*	Schedule immediate delivery of all mail that is queued for the named
@@ -116,6 +121,11 @@
 /*	number does not include message envelope information. It
 /*	is approximately equal to the number of bytes that would
 /*	be transmitted via SMTP including the <CR><LF> line endings.
+/* .IP \fBforce_expired\fR
+/*	The message is force-expired (\fBtrue\fR or \fBfalse\fR).
+/*	See the \fBpostsuper\fR(1) options \fB-e\fR or \fB-f\fR.
+/* .sp
+/*	This feature is available in Postfix 3.5 and later.
 /* .IP \fBsender\fR
 /*	The envelope sender address.
 /* .IP \fBrecipients\fR
