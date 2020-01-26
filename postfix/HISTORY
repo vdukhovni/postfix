@@ -24531,13 +24531,13 @@ Apologies for any names omitted.
 	specified in relayhost, transport_maps, default_transport,
 	and sender_dependent_default_transport_maps.  Examples:
 	"relayhost = foo.example, bar.example", and "default_transport
-	= smtp:foo.exmple, bar.example". Files: smtp/smtp.c,
+	= smtp:foo.example, bar.example". Files: smtp/smtp.c,
 	smtp/smtp_connect.c, trivial-rewrite/resolve.c, proto/transport,
 	proto/postconf.proto, global/mail_params.c.
 
 20200112
 
-	[intially released as part of postfix-20200101-nonprod]
+	[initially released as part of postfix-20200101-nonprod]
 	Refactored the haproxy infrastructure in preparation for
 	haproxy version 2 support. This is necessary because version
 	2 introduces a dependency of the reader on the parser.
@@ -24548,13 +24548,13 @@ Apologies for any names omitted.
 	postscreen/postscreen_haproxy.c, postscreen/postscreen_haproxy.h,
 	global/haproxy_srvr.h. Initial release 3.5-20200101-nonprod.
 
-	[intially released as part of postfix-20200105-nonprod]
+	[initially released as part of postfix-20200105-nonprod]
 	Support for the haproxy v2 protocol. The haproxy v2 protocol
 	support is limited to TCP over IPv4 and TCP over IPv6. It
 	also supports non-proxied connections (typically used for
 	heartbeat tests). File: global/haproxy_srvr.c.
 
-	[intially released as part of postfix-20200105-nonprod]
+	[initially released as part of postfix-20200105-nonprod]
 	Cleanup: after haproxy handshake error, the Postfix SMTP
 	daemon now logs the proxy connection information instead
 	of unknown/unknown, and replies with "421 4.3.0 $myhostname
@@ -24564,3 +24564,13 @@ Apologies for any names omitted.
 	Cleanup: miscellaneous comments, constants, error checks,
 	no normal behavior change. Files: global/haproxy_srvr.c,
 	postscreen/postscreen_haproxy.c.
+
+20200126
+
+	Cleanup: missing 'extern' declarations in some header files.
+	Eray Aslan. Files: global/mail_params.h, postconf/postconf.h,
+	smtpd/smtpd_expand.h, trivial-rewrite/trivial-rewrite.h
+
+	Typos: Viktor Dukhovni. File: HISTORY.
+
+	Documentation: haproxy2 support. File: proto/postconf.proto.

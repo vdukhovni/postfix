@@ -3983,23 +3983,23 @@ extern char *var_tlsp_clnt_fpt_dgst;
 
 #define VAR_TLSP_CLNT_USE_TLS		"tlsproxy_client_use_tls"
 #define DEF_TLSP_CLNT_USE_TLS		"$" VAR_SMTP_USE_TLS
-bool    var_tlsp_clnt_use_tls;
+extern bool var_tlsp_clnt_use_tls;
 
 #define VAR_TLSP_CLNT_ENFORCE_TLS	"tlsproxy_client_enforce_tls"
 #define DEF_TLSP_CLNT_ENFORCE_TLS	"$" VAR_SMTP_ENFORCE_TLS
-bool    var_tlsp_clnt_enforce_tls;
+extern bool var_tlsp_clnt_enforce_tls;
 
 #define VAR_TLSP_CLNT_LEVEL		"tlsproxy_client_level"
 #define DEF_TLSP_CLNT_LEVEL		"$" VAR_SMTP_TLS_LEVEL
-char   *var_tlsp_clnt_level;
+extern char *var_tlsp_clnt_level;
 
 #define VAR_TLSP_CLNT_PER_SITE		"tlsproxy_client_per_site"
 #define DEF_TLSP_CLNT_PER_SITE		"$" VAR_SMTP_TLS_PER_SITE
-char   *var_tlsp_clnt_per_site;
+extern char *var_tlsp_clnt_per_site;
 
 #define VAR_TLSP_CLNT_POLICY		"tlsproxy_client_policy"
 #define DEF_TLSP_CLNT_POLICY		"$" VAR_SMTP_TLS_POLICY
-char   *var_tlsp_clnt_policy;
+extern char *var_tlsp_clnt_policy;
 
  /*
   * SMTPD "reject" contact info.

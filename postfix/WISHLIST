@@ -2,6 +2,8 @@ Wish list:
 
 	nbbio: exercise the sanity checks with fake msg(3) functions.
 
+	optreset (bsd-ism) how badly do we need it?
+
 	transport policy protocol (clone of check_policy).
 
 	See also postscreen event-driven client for policy delegation

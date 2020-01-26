@@ -8673,7 +8673,7 @@ for details. </p>
 proxy agent. When a proxy agent is used, this protocol conveys local
 and remote address and port information. Specify
 "<a href="postconf.5.html#postscreen_upstream_proxy_protocol">postscreen_upstream_proxy_protocol</a> = haproxy" to enable the haproxy
-protocol. <p>
+protocol; version 2 is supported with Postfix 3.5 and later. <p>
 
 <p> This feature is available in Postfix 2.10 and later.  </p>
 
@@ -17866,7 +17866,7 @@ purpose. </p>
 proxy agent. When a proxy agent is used, this protocol conveys local
 and remote address and port information.  Specify
 "<a href="postconf.5.html#smtpd_upstream_proxy_protocol">smtpd_upstream_proxy_protocol</a> = haproxy" to enable the haproxy
-protocol.  </p>
+protocol; version 2 is supported with Postfix 3.5 and later. </p>
 
 <p> NOTE: To use the nginx proxy with <a href="smtpd.8.html">smtpd(8)</a>, enable the XCLIENT
 protocol with <a href="postconf.5.html#smtpd_authorized_xclient_hosts">smtpd_authorized_xclient_hosts</a>. This supports SASL

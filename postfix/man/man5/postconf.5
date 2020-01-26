@@ -5367,7 +5367,7 @@ The name of the proxy protocol used by an optional before\-postscreen
 proxy agent. When a proxy agent is used, this protocol conveys local
 and remote address and port information. Specify
 "postscreen_upstream_proxy_protocol = haproxy" to enable the haproxy
-protocol.
+protocol; version 2 is supported with Postfix 3.5 and later.
 .PP
 This feature is available in Postfix 2.10 and later.
 .SH postscreen_upstream_proxy_timeout (default: 5s)
@@ -12475,7 +12475,7 @@ The name of the proxy protocol used by an optional before\-smtpd
 proxy agent. When a proxy agent is used, this protocol conveys local
 and remote address and port information.  Specify
 "smtpd_upstream_proxy_protocol = haproxy" to enable the haproxy
-protocol.
+protocol; version 2 is supported with Postfix 3.5 and later.
 .PP
 NOTE: To use the nginx proxy with \fBsmtpd\fR(8), enable the XCLIENT
 protocol with smtpd_authorized_xclient_hosts. This supports SASL

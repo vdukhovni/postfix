@@ -23,7 +23,7 @@
  /*
   * Connection management.
   */
-int     server_flags;
+extern int server_flags;
 
  /*
   * rewrite.c

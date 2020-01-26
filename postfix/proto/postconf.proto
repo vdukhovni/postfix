@@ -15595,7 +15595,7 @@ pattern. </p>
 proxy agent. When a proxy agent is used, this protocol conveys local
 and remote address and port information. Specify
 "postscreen_upstream_proxy_protocol = haproxy" to enable the haproxy
-protocol. <p>
+protocol; version 2 is supported with Postfix 3.5 and later. <p>
 
 <p> This feature is available in Postfix 2.10 and later.  </p>
 
@@ -15612,7 +15612,7 @@ postscreen_upstream_proxy_protocol parameter. </p>
 proxy agent. When a proxy agent is used, this protocol conveys local
 and remote address and port information.  Specify
 "smtpd_upstream_proxy_protocol = haproxy" to enable the haproxy
-protocol.  </p>
+protocol; version 2 is supported with Postfix 3.5 and later. </p>
 
 <p> NOTE: To use the nginx proxy with smtpd(8), enable the XCLIENT
 protocol with smtpd_authorized_xclient_hosts. This supports SASL

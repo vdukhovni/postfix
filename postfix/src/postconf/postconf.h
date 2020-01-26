@@ -152,7 +152,7 @@ typedef struct {
   * Lookup table for master.cf entries. The table is terminated with an entry
   * that has a null argv member.
   */
-PCF_MASTER_ENT *pcf_master_table;
+extern PCF_MASTER_ENT *pcf_master_table;
 
  /*
   * Line-wrapping support.

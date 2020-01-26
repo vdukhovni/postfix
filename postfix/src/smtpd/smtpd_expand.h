@@ -18,7 +18,7 @@
  /*
   * External interface.
   */
-VSTRING *smtpd_expand_filter;
+extern VSTRING *smtpd_expand_filter;
 void    smtpd_expand_init(void);
 const char *smtpd_expand_lookup(const char *, int, void *);
 int     smtpd_expand(SMTPD_STATE *, VSTRING *, const char *, int);
