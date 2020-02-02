@@ -49,6 +49,7 @@
 #define MAIL_QUEUE_STAT_CORRUPT	(S_IRUSR)
 #ifndef MAIL_QUEUE_STAT_UNTHROTTLE
 #define MAIL_QUEUE_STAT_UNTHROTTLE (S_IRGRP)
+#define MAIL_QUEUE_STAT_EXPIRE	(S_IXGRP)
 #endif
 
 extern struct VSTREAM *mail_queue_enter(const char *, mode_t, struct timeval *);

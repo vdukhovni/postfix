@@ -74,7 +74,9 @@ postsuper.o: ../../include/msg.h
 postsuper.o: ../../include/msg_vstream.h
 postsuper.o: ../../include/mymalloc.h
 postsuper.o: ../../include/myrand.h
+postsuper.o: ../../include/name_mask.h
 postsuper.o: ../../include/safe.h
+postsuper.o: ../../include/safe_open.h
 postsuper.o: ../../include/safe_ultostr.h
 postsuper.o: ../../include/sane_fsops.h
 postsuper.o: ../../include/scan_dir.h

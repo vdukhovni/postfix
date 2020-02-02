@@ -24574,3 +24574,51 @@ Apologies for any names omitted.
 	Typos: Viktor Dukhovni. File: HISTORY.
 
 	Documentation: haproxy2 support. File: proto/postconf.proto.
+
+20200120
+
+	[initially released as part of postfix-20200125-nonprod]
+	Feature: forced message expiration. The "postsuper -e"
+	option sets an 'expired' bit on one or more messages selected
+	by their message ID. The queue manager returns a message
+	as undeliverable when it moves the message to the active
+	queue. Messages in the hold queue stay in that queue.
+
+	If a force-expired message was deferred, then it is returned
+	with the reason for the delay. Otherwise, the message is
+	returned with "message is administratively expired". Design
+	by Wietse; Viktor suggested using the group execute permission
+	bit. Files: global/mail_queue.h, *qmgr/qmgr.h, *qmgr/qmgr_active.c,
+	*qmgr/qmgr_message.c, postsuper/Makefile.in, postsuper/postsuper.c.
+
+20200125
+
+	[initially released as part of postfix-20200125-nonprod]
+	Added support for "postsuper -f" to expire and optionally
+	release a message. Restructured the postsuper command so
+	that it will execute actions in the order of the -[defhr]
+	flags, instead of using an invisible fixed internal order.
+	The -e and -f options are idempotent (just like -h and -H).
+	Adjusted the summary at the end to make this more clear.
+	File: postsuper/postsuper.c.
+
+20200126
+
+	[initially released as part of postfix-20200126-nonprod]
+	Updated the mailq/postqueue commands to make forced message
+	expiration status available. In ASCII ouput this is indicated
+	with "#" appended to the queue file name, and in JSON output
+	this is indicated with the boolean "force_expired" attribute.
+	Files: showq/showq.c, postqueue/showq_compat.c,
+	postqueue/showq_json.c.
+
+	[initially released as part of postfix-20200126-nonprod]
+	Cleanup: minor tweaks to comments and code.
+
+	Safety: give maildrop queue files more time (week instead
+	of day) to reach completion, in case a message is submitted
+	by a really long-running program. File: postsuper/postsuper.c.
+
+	[initially released as part of postfix-2020XXXX-nonprod]
+	Cleanup: postsuper manpage indentation, word abbreviation.
+	Files: mantools/postlink, postsuper/postsuper.c.

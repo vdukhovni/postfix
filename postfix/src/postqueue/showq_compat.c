@@ -88,12 +88,12 @@ static unsigned long showq_message(VSTREAM *showq_stream)
     static VSTRING *why = 0;
     long    arrival_time;
     long    message_size;
-    int     message_status;
     char   *saved_reason = mystrdup("");
     const char *show_reason;
     int     padding;
     int     showq_status;
     time_t  time_t_arrival_time;
+    int     forced_expire;
 
     /*
      * One-time initialization.
@@ -114,8 +114,9 @@ static unsigned long showq_message(VSTREAM *showq_stream)
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, queue_id),
 		  RECV_ATTR_LONG(MAIL_ATTR_TIME, &arrival_time),
 		  RECV_ATTR_LONG(MAIL_ATTR_SIZE, &message_size),
+		  RECV_ATTR_INT(MAIL_ATTR_FORCED_EXPIRE, &forced_expire),
 		  RECV_ATTR_STR(MAIL_ATTR_SENDER, addr),
-		  ATTR_TYPE_END) != 5)
+		  ATTR_TYPE_END) != 6)
 	msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
 
     /*
@@ -123,9 +124,13 @@ static unsigned long showq_message(VSTREAM *showq_stream)
      * left-aligned, followed by other status info and the sender address
      * which is already in externalized RFC 5321 form.
      */
-    message_status = (strcmp(STR(queue_name), MAIL_QUEUE_ACTIVE) == 0 ? '*' :
-		 strcmp(STR(queue_name), MAIL_QUEUE_HOLD) == 0 ? '!' : ' ');
-    vstring_sprintf(id_status, "%s%c", STR(queue_id), message_status);
+    vstring_strcpy(id_status, STR(queue_id));
+    if (strcmp(STR(queue_name), MAIL_QUEUE_ACTIVE) == 0)
+	vstring_strcat(id_status, "*");
+    else if (strcmp(STR(queue_name), MAIL_QUEUE_HOLD) == 0)
+	vstring_strcat(id_status, "!");
+    if (forced_expire)
+	vstring_strcat(id_status, "#");
     time_t_arrival_time = arrival_time;
     vstream_printf(var_long_queue_ids ?
 		   L_SENDER_FORMAT : S_SENDER_FORMAT, STR(id_status),
