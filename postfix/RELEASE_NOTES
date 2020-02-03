@@ -30,7 +30,7 @@ Major changes with snapshot 20200202
 
 Support to force-expire email messages. This introduces new
 postsuper(1) command-line options to request expiration, and 
-additional information in mailq command output.
+additional information in mailq(1) or postqueue(1) output.
 
 The forced-to-expire status is stored in a queue file attribute.
 An expired message is returned to the sender when the queue manager
@@ -42,10 +42,10 @@ queue file attribute. The difference is that -f will also release
 a message if it is in the hold queue. With -e, such a message would
 not be returned to the sender until it is released with -f or -H.
 
-In the mailq(1) default output, a forced-to-expire message is
-indicated with # after the queue name. In mailq(1) JSON output there
-is a new per-message field "forced_expire" with the value true or
-false.
+In the mailq(1) or postqueue(1) -p output, a forced-to-expire message
+is indicated with # after the queue name. In postqueue(1) JSON
+output, there is a new per-message field "forced_expire" (with 
+value true or false) that shows the forced-to-expire status.
 
 Incompatible changes with snapshot 20191109
 ===========================================

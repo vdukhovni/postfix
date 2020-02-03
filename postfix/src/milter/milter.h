@@ -35,6 +35,7 @@ typedef struct MILTER {
     struct MILTER *next;		/* linkage */
     struct MILTERS *parent;		/* parent information */
     struct MILTER_MACROS *macros;	/* private macros */
+    void    (*connect_on_demand) (struct MILTER *);
     const char *(*conn_event) (struct MILTER *, const char *, const char *, const char *, unsigned, ARGV *);
     const char *(*helo_event) (struct MILTER *, const char *, int, ARGV *);
     const char *(*mail_event) (struct MILTER *, const char **, ARGV *);

@@ -4127,8 +4127,9 @@ for a list of available macro names and their meanings.
 .PP
 This feature is available in Postfix 2.3 and later.
 .SH milter_default_action (default: tempfail)
-The default action when a Milter (mail filter) application is
-unavailable or mis\-configured. Specify one of the following:
+The default action when a Milter (mail filter) response is
+unavailable (for example, bad Postfix configuration or Milter
+failure). Specify one of the following:
 .IP "accept"
 Proceed as if the mail filter was not present.
 .br

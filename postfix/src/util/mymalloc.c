@@ -234,7 +234,7 @@ char   *mystrdup(const char *str)
 #endif
     if ((len = strlen(str) + 1) > SSIZE_T_MAX)
 	msg_panic("mystrdup: string length >= SSIZE_T_MAX");
-    return (strcpy(mymalloc(len), str));
+    return (memcpy(mymalloc(len), str, len));
 }
 
 /* mystrndup - save substring to heap */

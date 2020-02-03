@@ -11727,8 +11727,9 @@ will not reply for each individual message header.</dd>
 
 %PARAM milter_default_action tempfail
 
-<p> The default action when a Milter (mail filter) application is
-unavailable or mis-configured. Specify one of the following: </p>
+<p> The default action when a Milter (mail filter) response is
+unavailable (for example, bad Postfix configuration or Milter
+failure). Specify one of the following: </p>
 
 <dl compact>
 

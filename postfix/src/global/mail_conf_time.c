@@ -193,9 +193,21 @@ void    set_mail_conf_time(const char *name, const char *value)
 
 void    set_mail_conf_time_int(const char *name, int value)
 {
+    const char myname[] = "set_mail_conf_time_int";
     char    buf[BUFSIZ];		/* yeah! crappy code! */
 
+#ifndef NO_SNPRINTF
+    ssize_t ret;
+
+    ret = snprintf(buf, sizeof(buf), "%ds", value);
+    if (ret < 0)
+	msg_panic("%s: output error for %%ds", myname);
+    if (ret >= sizeof(buf))
+	msg_panic("%s: output for %%ds exceeds space %ld",
+		  myname, (long) sizeof(buf));
+#else
     sprintf(buf, "%ds", value);			/* yeah! more crappy code! */
+#endif
     mail_conf_update(name, buf);
 }
 

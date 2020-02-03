@@ -24619,6 +24619,20 @@ Apologies for any names omitted.
 	of day) to reach completion, in case a message is submitted
 	by a really long-running program. File: postsuper/postsuper.c.
 
-	[initially released as part of postfix-2020XXXX-nonprod]
 	Cleanup: postsuper manpage indentation, word abbreviation.
 	Files: mantools/postlink, postsuper/postsuper.c.
+
+20200202
+
+	Cleanup: nags about strcpy()/sprintf() from naive checkers.
+	Files: global/mail_conf_int.c, global/mail_conf_long.c,
+	global/mail_conf_nint.c, global/mail_conf_time.c,
+	global/maillog_client.c, util/mymalloc.c.
+
+	Documentation: rephrased the postconf(5) manual page entry
+	for milter_default_action. File: proto/postconf.proto.
+
+	Bugfix (introduced: Postfix 2.5): Milter SMTP connect event
+	macros were evaluated before the Postfix-to-Milter connection
+	had been negotiated. Problem reported by David Bürgin.
+	Files: milter/milter.h, milter/milter.c, milter/milter8.c
