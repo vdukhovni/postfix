@@ -417,6 +417,8 @@ const char *milter_conn_event(MILTERS *milters,
     if (msg_verbose)
 	msg_info("report connect to all milters");
     for (resp = 0, m = milters->milter_list; resp == 0 && m != 0; m = m->next) {
+	if (m->connect_on_demand != 0)
+	    m->connect_on_demand(m);
 	any_macros = MILTER_MACRO_EVAL(global_macros, m, milters, conn_macros);
 	resp = m->conn_event(m, client_name, client_addr, client_port,
 			     addr_family, any_macros);
