@@ -389,6 +389,7 @@ static void verify_update_service(VSTREAM *client_stream)
 		|| STATUS_FROM_RAW_ENTRY(raw_data) != DEL_RCPT_STAT_OK) {
 		probed = 0;
 		updated = (long) time((time_t *) 0);
+		printable(STR(text), '?');
 		verify_make_entry(buf, addr_status, probed, updated, STR(text));
 		if (msg_verbose)
 		    msg_info("PUT %s status=%d probed=%ld updated=%ld text=%s",

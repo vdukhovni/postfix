@@ -22559,3 +22559,31 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix-2.9.0): null pointer read, while
 	logging a warning after a postscreen_command_filter read
 	error. File: postscreen/postscreen_smtpd.c.
+
+20191014
+
+	Bugfix (introduced: Postfix 2.8): don't gratuitously enable
+	all after-220 tests when only one such test is enabled.
+	This made selective tests impossible with 'good' clients.
+	File: postscreen/postscreen_smtpd.c.
+
+20191214
+
+	Bugfix (introduced: Postfix 3.1): support for
+	smtp_dns_resolver_options was broken while adding support
+	for negative DNS response caching in postscreen. Postfix
+	was inadvertently changed to call res_query() instead of
+	res_search(). Reported by Jaroslav Skarvada. File:
+	dns/dns_lookup.c.
+
+	Bugfix (introduced: Postfix 3.0): sanitize server responses
+	before storing them in the verify database, to avoid Postfix
+	warnings about malformed UTF8. File: verify/verify.c.
+
+20200115
+
+	Bugfix (introduced: Postfix 2.5): the Milter connect event
+	macros were evaluated before the Milter connection itself
+	had been negotiated. Problem reported by David Bürgin.
+	Files: milter/milter.h, milter/milter.c, milter/milter8.c
+
