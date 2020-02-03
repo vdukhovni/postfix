@@ -1133,16 +1133,18 @@ void    psc_smtpd_tests(PSC_STATE *state)
     state->read_state = PSC_SMTPD_CMD_ST_ANY;
 
     /*
-     * Opportunistically make postscreen more useful by turning on the
-     * pipelining and non-SMTP command tests when a pre-handshake test
-     * failed, or when some deep test is configured as enabled.
+     * Disable all after-220 tests when we need to hang up immediately after
+     * reading the first SMTP client command.
      * 
-     * XXX Make "opportunistically" configurable for each test.
+     * Opportunistically make postscreen more useful, by turning on all
+     * after-220 tests when a bad client failed a before-220 test.
+     * 
+     * Otherwise, only apply the explicitly-configured after-220 tests.
      */
-    if ((state->flags & PSC_STATE_FLAG_SMTPD_X21) == 0) {
-	state->flags |= PSC_STATE_MASK_SMTPD_TODO;
-    } else {
+    if (state->flags & PSC_STATE_FLAG_SMTPD_X21) {
 	state->flags &= ~PSC_STATE_MASK_SMTPD_TODO;
+    } else if (state->flags & PSC_STATE_MASK_ANY_FAIL) {
+	state->flags |= PSC_STATE_MASK_SMTPD_TODO;
     }
 
     /*
