@@ -36,7 +36,7 @@ int     main(int argc, char **argv)
 #define NO_SERVICE ((char *) 0)
 
     if (argc != 2) {
-	fprintf(stderr, "usage: %s ipaddres\n", argv[0]);
+	fprintf(stderr, "usage: %s ipaddress\n", argv[0]);
 	exit(1);
     }
 

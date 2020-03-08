@@ -485,7 +485,7 @@ const char *haproxy_srvr_parse(const char *str, ssize_t *str_len,
     }
 }
 
-/* haproxy_srvr_receive - redceive and parse haproxy protocol handshake */
+/* haproxy_srvr_receive - receive and parse haproxy protocol handshake */
 
 int     haproxy_srvr_receive(int fd, int *non_proxy,
 			             MAI_HOSTADDR_STR *smtp_client_addr,

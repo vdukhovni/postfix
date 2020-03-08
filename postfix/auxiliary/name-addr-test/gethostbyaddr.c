@@ -25,7 +25,7 @@ char  **argv;
     long    addr;
 
     if (argc != 2) {
-	fprintf(stderr, "usage: %s i.p.addres\n", argv[0]);
+	fprintf(stderr, "usage: %s i.p.address\n", argv[0]);
 	exit(1);
     }
     addr = inet_addr(argv[1]);

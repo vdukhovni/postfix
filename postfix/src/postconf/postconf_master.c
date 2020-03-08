@@ -355,9 +355,9 @@ void    pcf_free_master_entry(PCF_MASTER_ENT *masterp)
     if (masterp->valid_names)
 	htable_free(masterp->valid_names, myfree);
     if (masterp->ro_params)
-	dict_free(masterp->ro_params);
+	dict_close(masterp->ro_params);
     if (masterp->all_params)
-	dict_free(masterp->all_params);
+	dict_close(masterp->all_params);
     myfree((void *) masterp);
 }
 

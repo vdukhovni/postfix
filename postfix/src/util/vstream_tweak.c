@@ -130,7 +130,7 @@ int     vstream_tweak_tcp(VSTREAM *fp)
      * made before the first stream read or write operation. We don't want to
      * reduce the buffer size.
      * 
-     * As of 20190820 we increase the mss size multipler from 2x to 4x, because
+     * As of 20190820 we increase the mss size multiplier from 2x to 4x, because
      * some LINUX loopback TCP stacks report an MSS of 21845 which is 3x
      * smaller than the MTU of 65536. Even with a VSTREAM buffer 2x the
      * reported MSS size, performance would suck due to Nagle or delayed ACK

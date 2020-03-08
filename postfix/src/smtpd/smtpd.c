@@ -215,8 +215,9 @@
 /*	for communication with a Milter application; prior to Postfix 2.6
 /*	the default protocol is 2.
 /* .IP "\fBmilter_default_action (tempfail)\fR"
-/*	The default action when a Milter (mail filter) application is
-/*	unavailable or mis-configured.
+/*	The default action when a Milter (mail filter) response is
+/*	unavailable (for example, bad Postfix configuration or Milter
+/*	failure).
 /* .IP "\fBmilter_macro_daemon_name ($myhostname)\fR"
 /*	The {daemon_name} macro value for Milter (mail filter) applications.
 /* .IP "\fBmilter_macro_v ($mail_name $mail_version)\fR"
@@ -496,7 +497,7 @@
 /* .PP
 /*	Available in Postfix 3.5, 3.4.6, 3.3.5, 3.2.10, 3.1.13 and later:
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
-/*	A workaround for implementations that hang Postfix while shuting
+/*	A workaround for implementations that hang Postfix while shutting
 /*	down a TLS session, until Postfix times out.
 /* .PP
 /*	Available in Postfix 3.5 and later:
@@ -5843,7 +5844,7 @@ static char *smtpd_format_cmd_stats(VSTRING *buf)
      * 
      * Fix 20190621: the command counter resetting code was moved from the SMTP
      * protocol handler to this place, because the protocol handler was never
-     * called after HaProxy handhake error, causing stale numbers to be
+     * called after HaProxy handshake error, causing stale numbers to be
      * logged.
      */
     for (cmdp = smtpd_cmd_table; /* see below */ ; cmdp++) {

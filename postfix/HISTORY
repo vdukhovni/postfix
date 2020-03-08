@@ -12281,7 +12281,7 @@ Apologies for any names omitted.
 20060606
 
 	Safety: mail receiving daemons (smtpd, qmqpd) now pass
-	actual client name/addres/helo attributes in addition to
+	actual client name/address/helo attributes in addition to
 	the attributes used for logging (xforward). This prevents
 	Milter applications from treating qmqpd mail as if it
 	originated locally, and prevents incorrect Milter decisions
@@ -13424,7 +13424,7 @@ Apologies for any names omitted.
 
 20070414
 
-	Cleanup: expire cached results from addres rewriting, address
+	Cleanup: expire cached results from address rewriting, address
 	resolution, and from transport map lookups.  Results expire
 	after 30 seconds; short enough that it doesn't freak out
 	people who run the same test repeatedly, and long enough
@@ -18499,7 +18499,7 @@ Apologies for any names omitted.
 	endpoint label; better reuse of SASL-authenticated connections
 	over UNIX-domains sockets, however unlikely these may be;
 	a first step towards refinement of connection cache lookup
-	by IP addres for plaintext or SASL-unauthenticated connections.
+	by IP address for plaintext or SASL-unauthenticated connections.
 	Files: smtp/smtp.h smtp/smtp_connect.c, smtp/smtp_reuse.c,
 	smtp/smtp_key.c, smtp/smtp_tls_sess.s.
 
@@ -24353,7 +24353,7 @@ Apologies for any names omitted.
 
 	Safety: vstring_set_payload_size() now checks that the
 	payload has not overwritten the safety terminator at the
-	end of the VSTRING buffer. File: util/vstream.c.
+	end of the VSTRING buffer. File: util/vstring.c.
 
 20190813
 
@@ -24636,3 +24636,20 @@ Apologies for any names omitted.
 	macros were evaluated before the Postfix-to-Milter connection
 	had been negotiated. Problem reported by David Bürgin.
 	Files: milter/milter.h, milter/milter.c, milter/milter8.c
+
+20200308
+
+	Cleanup: spellchecks, attributions. Files: HISTORY,
+	auxiliary/name-addr-test/gethostbyaddr.c,
+	auxiliary/name-addr-test/getnameinfo.c, proto/postconf.proto,
+	global/haproxy_srvr.c, global/mail_version.h, global/map_search.c,
+	global/map_search.h, postsuper/postsuper.c, smtp/smtp.c,
+	smtp/smtp_misc.c, smtpd/smtpd.c, smtpd/smtpd_check.c,
+	smtpd/smtpd_expand.h, tls/tls_client.c, tls/tls_server.c,
+	tlsproxy/tlsproxy.c, trivial-rewrite/trivial-rewrite.h,
+	util/byte_mask.c, util/vstream_tweak.c.
+
+	Cleanup: bitrot in tests. File: cleanup/cleanup_milter.c.
+
+	Cleanup: harmless memory leak in postconf. File:
+	postconf/postconf_master.c.

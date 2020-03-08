@@ -1,3 +1,5 @@
+# To test with valgrind:
+# make -i tests VALGRIND="valgrind --tool=memcheck --log-file=/some/where.%p" 
 SHELL	= /bin/sh
 WARN    = -Wmissing-prototypes -Wformat -Wno-comment
 OPTS	= 'WARN=$(WARN)'

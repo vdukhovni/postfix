@@ -1043,11 +1043,13 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	    tls_free_context(TLScontext);
 	    return (0);
 	}
+
 	/*
 	 * The saved value is not presently used client-side, but could later
-	 * be logged if acked by the server (requires new client-side callback
-	 * to detect the ack).  For now this just maintains symmetry with the
-	 * server code, where do record the received SNI for logging.
+	 * be logged if acked by the server (requires new client-side
+	 * callback to detect the ack).  For now this just maintains symmetry
+	 * with the server code, where do record the received SNI for
+	 * logging.
 	 */
 	TLScontext->peer_sni = mystrdup(sni);
 	if (log_mask & TLS_LOG_DEBUG)
@@ -1105,7 +1107,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * Start TLS negotiations. This process is a black box that invokes our
      * call-backs for certificate verification.
      * 
-     * Error handling: If the SSL handhake fails, we print out an error message
+     * Error handling: If the SSL handshake fails, we print out an error message
      * and remove all TLS state concerning this session.
      */
     sts = tls_bio_connect(vstream_fileno(props->stream), props->timeout,
