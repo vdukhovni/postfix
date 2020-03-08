@@ -132,7 +132,7 @@
 /* .PP
 /*	Available in Postfix 3.5, 3.4.6, 3.3.5, 3.2.10, 3.1.13 and later:
 /* .IP "\fBtls_fast_shutdown_enable (yes)\fR"
-/*	A workaround for implementations that hang Postfix while shuting
+/*	A workaround for implementations that hang Postfix while shutting
 /*	down a TLS session, until Postfix times out.
 /* STARTTLS SERVER CONTROLS
 /* .ad
@@ -774,122 +774,128 @@ static void tlsp_strategy(TLSP_STATE *state)
      */
     if ((state->flags & TLSP_FLAG_NO_MORE_CIPHERTEXT_IO) == 0) {
 
-    /*
-     * Do not enable plain-text I/O before completing the TLS handshake.
-     * Otherwise the remote peer can prepend plaintext to the optional
-     * TLS_SESS_STATE object.
-     */
-    if (state->flags & TLSP_FLAG_DO_HANDSHAKE) {
-	state->timeout = state->handshake_timeout;
-	if (state->is_server_role)
-	    ssl_stat = SSL_accept(tls_context->con);
-	else
-	    ssl_stat = SSL_connect(tls_context->con);
-	if (ssl_stat != 1) {
-	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
-	    tlsp_eval_tls_error(state, handshake_err);
-	    /* At this point, state could be a dangling pointer. */
+	/*
+	 * Do not enable plain-text I/O before completing the TLS handshake.
+	 * Otherwise the remote peer can prepend plaintext to the optional
+	 * TLS_SESS_STATE object.
+	 */
+	if (state->flags & TLSP_FLAG_DO_HANDSHAKE) {
+	    state->timeout = state->handshake_timeout;
+	    if (state->is_server_role)
+		ssl_stat = SSL_accept(tls_context->con);
+	    else
+		ssl_stat = SSL_connect(tls_context->con);
+	    if (ssl_stat != 1) {
+		handshake_err = SSL_get_error(tls_context->con, ssl_stat);
+		tlsp_eval_tls_error(state, handshake_err);
+		/* At this point, state could be a dangling pointer. */
+		return;
+	    }
+	    state->flags &= ~TLSP_FLAG_DO_HANDSHAKE;
+	    state->timeout = state->session_timeout;
+	    if (tlsp_post_handshake(state) != TLSP_STAT_OK) {
+		/* At this point, state is a dangling pointer. */
+		return;
+	    }
+	}
+
+	/*
+	 * Shutdown and self-destruct after NBBIO error. This automagically
+	 * cleans up all pending read/write and timeout event requests.
+	 * Before shutting down TLS, we stop all plain-text I/O events but
+	 * keep the NBBIO error flags.
+	 */
+	plaintext_buf = state->plaintext_buf;
+	if (NBBIO_ERROR_FLAGS(plaintext_buf)) {
+	    if (NBBIO_ACTIVE_FLAGS(plaintext_buf))
+		nbbio_disable_readwrite(state->plaintext_buf);
+	    if (!SSL_in_init(tls_context->con)
+		&& (ssl_stat = SSL_shutdown(tls_context->con)) < 0) {
+		handshake_err = SSL_get_error(tls_context->con, ssl_stat);
+		tlsp_eval_tls_error(state, handshake_err);
+		/* At this point, state could be a dangling pointer. */
+		return;
+	    }
+	    tlsp_state_free(state);
 	    return;
 	}
-	state->flags &= ~TLSP_FLAG_DO_HANDSHAKE;
-	state->timeout = state->session_timeout;
-	if (tlsp_post_handshake(state) != TLSP_STAT_OK) {
+
+	/*
+	 * Try to move data from the plaintext input buffer to the TLS
+	 * engine.
+	 * 
+	 * XXX We're supposed to repeat the exact same SSL_write() call
+	 * arguments after an SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE
+	 * result. Rumor has it that this is because each SSL_write() call
+	 * reads from the buffer incrementally, and returns > 0 only after
+	 * the final byte is processed. Rumor also has it that setting
+	 * SSL_MODE_ENABLE_PARTIAL_WRITE and
+	 * SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER voids this requirement, and
+	 * that repeating the request with an increased request size is OK.
+	 * Unfortunately all this is not or poorly documented, and one has to
+	 * rely on statements from OpenSSL developers in public mailing
+	 * archives.
+	 */
+	ssl_write_err = SSL_ERROR_NONE;
+	while (NBBIO_READ_PEND(plaintext_buf) > 0) {
+	    ssl_stat = SSL_write(tls_context->con, NBBIO_READ_BUF(plaintext_buf),
+				 NBBIO_READ_PEND(plaintext_buf));
+	    ssl_write_err = SSL_get_error(tls_context->con, ssl_stat);
+	    if (ssl_write_err != SSL_ERROR_NONE)
+		break;
+	    /* Allow the plaintext pseudothread to read more data. */
+	    NBBIO_READ_PEND(plaintext_buf) -= ssl_stat;
+	    if (NBBIO_READ_PEND(plaintext_buf) > 0)
+		memmove(NBBIO_READ_BUF(plaintext_buf),
+			NBBIO_READ_BUF(plaintext_buf) + ssl_stat,
+			NBBIO_READ_PEND(plaintext_buf));
+	}
+
+	/*
+	 * Try to move data from the TLS engine to the plaintext output
+	 * buffer. Note: data may arrive as a side effect of calling
+	 * SSL_write(), therefore we call SSL_read() after calling
+	 * SSL_write().
+	 * 
+	 * XXX We're supposed to repeat the exact same SSL_read() call arguments
+	 * after an SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE result. This
+	 * supposedly means that our plaintext writer must not memmove() the
+	 * plaintext output buffer until after the SSL_read() call succeeds.
+	 * For now I'll ignore this, because 1) SSL_read() is documented to
+	 * return the bytes available, instead of returning > 0 only after
+	 * the entire buffer is processed like SSL_write() does; and 2) there
+	 * is no "read" equivalent of the SSL_R_BAD_WRITE_RETRY,
+	 * SSL_MODE_ENABLE_PARTIAL_WRITE or
+	 * SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER features.
+	 */
+	ssl_read_err = SSL_ERROR_NONE;
+	while (NBBIO_WRITE_PEND(state->plaintext_buf) < NBBIO_BUFSIZE(plaintext_buf)) {
+	    ssl_stat = SSL_read(tls_context->con,
+				NBBIO_WRITE_BUF(plaintext_buf)
+				+ NBBIO_WRITE_PEND(state->plaintext_buf),
+				NBBIO_BUFSIZE(plaintext_buf)
+				- NBBIO_WRITE_PEND(state->plaintext_buf));
+	    ssl_read_err = SSL_get_error(tls_context->con, ssl_stat);
+	    if (ssl_read_err != SSL_ERROR_NONE)
+		break;
+	    NBBIO_WRITE_PEND(plaintext_buf) += ssl_stat;
+	}
+
+	/*
+	 * Try to enable/disable ciphertext read/write events. If SSL_write()
+	 * was satisfied, see if SSL_read() wants to do some work. In case of
+	 * an unrecoverable error, this automagically destroys the session
+	 * state after cleaning up all pending read/write and timeout event
+	 * requests.
+	 */
+	if (tlsp_eval_tls_error(state, ssl_write_err != SSL_ERROR_NONE ?
+				ssl_write_err : ssl_read_err) < 0)
 	    /* At this point, state is a dangling pointer. */
 	    return;
-	}
     }
 
     /*
-     * Shutdown and self-destruct after NBBIO error. This automagically
-     * cleans up all pending read/write and timeout event requests. Before
-     * shutting down TLS, we stop all plain-text I/O events but keep the
-     * NBBIO error flags.
-     */
-    plaintext_buf = state->plaintext_buf;
-    if (NBBIO_ERROR_FLAGS(plaintext_buf)) {
-	if (NBBIO_ACTIVE_FLAGS(plaintext_buf))
-	    nbbio_disable_readwrite(state->plaintext_buf);
-	if (!SSL_in_init(tls_context->con)
-	    && (ssl_stat = SSL_shutdown(tls_context->con)) < 0) {
-	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
-	    tlsp_eval_tls_error(state, handshake_err);
-	    /* At this point, state could be a dangling pointer. */
-	    return;
-	}
-	tlsp_state_free(state);
-	return;
-    }
-
-    /*
-     * Try to move data from the plaintext input buffer to the TLS engine.
-     * 
-     * XXX We're supposed to repeat the exact same SSL_write() call arguments
-     * after an SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE result. Rumor has
-     * it that this is because each SSL_write() call reads from the buffer
-     * incrementally, and returns > 0 only after the final byte is processed.
-     * Rumor also has it that setting SSL_MODE_ENABLE_PARTIAL_WRITE and
-     * SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER voids this requirement, and that
-     * repeating the request with an increased request size is OK.
-     * Unfortunately all this is not or poorly documented, and one has to
-     * rely on statements from OpenSSL developers in public mailing archives.
-     */
-    ssl_write_err = SSL_ERROR_NONE;
-    while (NBBIO_READ_PEND(plaintext_buf) > 0) {
-	ssl_stat = SSL_write(tls_context->con, NBBIO_READ_BUF(plaintext_buf),
-			     NBBIO_READ_PEND(plaintext_buf));
-	ssl_write_err = SSL_get_error(tls_context->con, ssl_stat);
-	if (ssl_write_err != SSL_ERROR_NONE)
-	    break;
-	/* Allow the plaintext pseudothread to read more data. */
-	NBBIO_READ_PEND(plaintext_buf) -= ssl_stat;
-	if (NBBIO_READ_PEND(plaintext_buf) > 0)
-	    memmove(NBBIO_READ_BUF(plaintext_buf),
-		    NBBIO_READ_BUF(plaintext_buf) + ssl_stat,
-		    NBBIO_READ_PEND(plaintext_buf));
-    }
-
-    /*
-     * Try to move data from the TLS engine to the plaintext output buffer.
-     * Note: data may arrive as a side effect of calling SSL_write(),
-     * therefore we call SSL_read() after calling SSL_write().
-     * 
-     * XXX We're supposed to repeat the exact same SSL_read() call arguments
-     * after an SSL_ERROR_WANT_READ or SSL_ERROR_WANT_WRITE result. This
-     * supposedly means that our plaintext writer must not memmove() the
-     * plaintext output buffer until after the SSL_read() call succeeds. For
-     * now I'll ignore this, because 1) SSL_read() is documented to return
-     * the bytes available, instead of returning > 0 only after the entire
-     * buffer is processed like SSL_write() does; and 2) there is no "read"
-     * equivalent of the SSL_R_BAD_WRITE_RETRY, SSL_MODE_ENABLE_PARTIAL_WRITE
-     * or SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER features.
-     */
-    ssl_read_err = SSL_ERROR_NONE;
-    while (NBBIO_WRITE_PEND(state->plaintext_buf) < NBBIO_BUFSIZE(plaintext_buf)) {
-	ssl_stat = SSL_read(tls_context->con,
-			    NBBIO_WRITE_BUF(plaintext_buf)
-			    + NBBIO_WRITE_PEND(state->plaintext_buf),
-			    NBBIO_BUFSIZE(plaintext_buf)
-			    - NBBIO_WRITE_PEND(state->plaintext_buf));
-	ssl_read_err = SSL_get_error(tls_context->con, ssl_stat);
-	if (ssl_read_err != SSL_ERROR_NONE)
-	    break;
-	NBBIO_WRITE_PEND(plaintext_buf) += ssl_stat;
-    }
-
-    /*
-     * Try to enable/disable ciphertext read/write events. If SSL_write() was
-     * satisfied, see if SSL_read() wants to do some work. In case of an
-     * unrecoverable error, this automagically destroys the session state
-     * after cleaning up all pending read/write and timeout event requests.
-     */
-    if (tlsp_eval_tls_error(state, ssl_write_err != SSL_ERROR_NONE ?
-			    ssl_write_err : ssl_read_err) < 0)
-	/* At this point, state is a dangling pointer. */
-	return;
-    }
-
-    /*
-     * Destroy state when the ciphertext I/O was permanently disbled and we
+     * Destroy state when the ciphertext I/O was permanently disabled and we
      * can no longer trickle out plaintext.
      */
     else {

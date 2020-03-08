@@ -6,6 +6,13 @@
 /* SYNOPSIS
 /*	#include <byte_mask.h>
 /*
+/*	typedef struct {
+/* .in +4
+/*	    int     byte_val;
+/*	    int     mask;
+/* .in -4
+/*	} BYTE_MASK;
+/*
 /*	int	byte_mask(
 /*	const char *context,
 /*	const BYTE_MASK *table,
@@ -38,7 +45,7 @@
 /*	bytes. The result is written to a static buffer that is
 /*	overwritten upon each call.
 /*
-/*	byte_mask_opt() and str_name_mask_opt() are extended versions
+/*	byte_mask_opt() and str_byte_mask_opt() are extended versions
 /*	with additional fine control.
 /*
 /*	Arguments:

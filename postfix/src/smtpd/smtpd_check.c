@@ -3229,7 +3229,7 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	}
     } else {
 	if (msg_verbose)
-	    msg_info("%s: no client certfificate", myname);
+	    msg_info("%s: no client certificate", myname);
     }
 #endif
     return (result);

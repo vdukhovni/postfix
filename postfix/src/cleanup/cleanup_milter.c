@@ -2503,6 +2503,7 @@ int     main(int unused_argc, char **argv)
     var_line_limit = DEF_LINE_LIMIT;
     var_header_limit = DEF_HEADER_LIMIT;
     var_enable_orcpt = DEF_ENABLE_ORCPT;
+    var_info_log_addr_form = DEF_INFO_LOG_ADDR_FORM;
 
     for (;;) {
 	ARGV   *argv;

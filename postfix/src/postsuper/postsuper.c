@@ -87,7 +87,7 @@
 /* .IP \(bu
 /*	The \fB-e\fR and \fB-f\fR options both request forced
 /*	expiration. The difference is that \fB-f\fR will also release
-/*	a message if it is in the hold queue. With \fB-e\fR, such
+/*	a message if it is in the \fBhold\fR queue. With \fB-e\fR, such
 /*	a message would not be returned to the sender until it is
 /*	released with \fB-f\fR or \fB-H\fR.
 /* .IP \(bu
@@ -1135,8 +1135,8 @@ static void super(const char **queues, int action)
 
 	    /*
 	     * Many of the following actions may move queue files. To avoid
-	     * loss of of email due to file name collisions. we should do
-	     * such actions only when the queue file names are known to match
+	     * loss of email due to file name collisions. we should do such
+	     * actions only when the queue file names are known to match
 	     * their inode number. Even with non-repeating queue IDs a name
 	     * collision may happen when different queues are merged.
 	     */

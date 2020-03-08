@@ -38,7 +38,7 @@
 /* .IP search_actions
 /*	The mapping from search action string form to numeric form.
 /*	The numbers must be in the range [1..126] (inclusive). The
-/*	value 0 is reserved for the MAP_SEARCH.serch_order terminator,
+/*	value 0 is reserved for the MAP_SEARCH.search_order terminator,
 /*	and the value MAP_SEARCH_CODE_UNKNOWN is reserved for the
 /*	'not found' result. The argument is copied (the pointer
 /*	value, not the table).
@@ -49,7 +49,7 @@
 /* DIAGNOSTICS
 /*	map_search_create() returns a null pointer when a map_spec
 /*	is a) malformed, b) specifies an unexpected attribute name,
-/*	c) the search attrubite contains an unknown name. Thus,
+/*	c) the search attribute contains an unknown name. Thus,
 /*	map_search_create() will never return a search_order that
 /*	contains the value MAP_SEARCH_CODE_UNKNOWN.
 /*
@@ -282,9 +282,9 @@ static const char *string_or_null(const char *s)
     return (s ? s : "(null)");
 }
 
-static char *escape_order(VSTRING *buf, const char *seach_order)
+static char *escape_order(VSTRING *buf, const char *search_order)
 {
-    return (STR(escape(buf, seach_order, strlen(seach_order))));
+    return (STR(escape(buf, search_order, strlen(search_order))));
 }
 
 int     main(int argc, char **argv)

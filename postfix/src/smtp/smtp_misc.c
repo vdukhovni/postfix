@@ -28,7 +28,7 @@
 /*
 /*	smtp_quote_821_address() is a wrapper around quote_821_local(),
 /*	except for the empty address or with "smtp_quote_rfc821_envelope
-/*	= no"; in those cases the addres is copied literally.
+/*	= no"; in those cases the address is copied literally.
 /* DIAGNOSTICS
 /*	Fatal: out of memory.
 /* LICENSE
