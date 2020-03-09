@@ -25,14 +25,23 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
-Major changes - IP address normalization
-----------------------------------------
+Major changes - multiple relayhost in SMTP
+------------------------------------------
 
-[Incompat 20190427] Postfix now normalizes IP addresses received
-with XCLIENT, XFORWARD, or with the HaProxy protocol, for consistency
-with direct connections to Postfix. This may change the appearance
-of logging, and the way that check_client_access will match subnets
-of an IPv6 address.
+[Feature 20200111] SMTP (and LMTP) client support for a list of
+nexthop destinations separated by comma or whitespace. These will
+destinations be tried in the specified order.
+
+The list form can be specified in relayhost, transport_maps,
+default_transport, and sender_dependent_default_transport_maps.
+
+Examples:
+/etc/postfix/main.cf:
+    relayhost = foo.example, bar.example
+    default_transport = smtp:foo.example, bar.example.
+
+NOTE: this is an SMTP and LMTP client feature. It does not work for
+other Postfix delivery agents.
 
 Major changes - certificate access
 ----------------------------------
@@ -110,9 +119,9 @@ Major changes - haproxy2 protocol
 implementation supports TCP over IPv4 and IPv6, as well as non-proxied
 connections; the latter are typically used for heartbeat tests.
 
-This feature introduces no additional Postfix configuration.
-The Postfix smtpd(8) and postscreen(8) daemons accept both
-protocol versions.
+The haproxy v2 protocol introduces no additional Postfix configuration.
+The Postfix smtpd(8) and postscreen(8) daemons accept both v1 and
+v2 protocol versions.
 
 Major changes - logging
 -----------------------
@@ -140,20 +149,11 @@ The logging in external form is consistent with the address form
 that Postfix 3.2 and later prefer for table lookups. It is therefore
 the more useful form for non-debug logging.
 
-Major changes - multiple relayhost in SMTP
-------------------------------------------
+Major changes - IP address normalization
+----------------------------------------
 
-[Feature 20200111] SMTP (and LMTP) client support for a list of
-nexthop destinations separated by comma or whitespace. These will
-destinations be tried in the specified order.
-
-The list form can be specified in relayhost, transport_maps,
-default_transport, and sender_dependent_default_transport_maps.
-
-Examples:
-/etc/postfix/main.cf:
-    relayhost = foo.example, bar.example
-    default_transport = smtp:foo.example, bar.example.
-
-NOTE: this is an SMTP client feature. It does not work for other
-Postfix delivery agents.
+[Incompat 20190427] Postfix now normalizes IP addresses received
+with XCLIENT, XFORWARD, or with the HaProxy protocol, for consistency
+with direct connections to Postfix. This may change the appearance
+of logging, and the way that check_client_access will match subnets
+of an IPv6 address.
