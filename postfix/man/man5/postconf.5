@@ -9523,7 +9523,8 @@ fingerprint (Postfix 2.9 and later) as lookup key for the specified
 remote SMTP client certificate is verified successfully.
 The fingerprint digest algorithm is configurable via the
 smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
-Postfix version 2.5).  This feature is available with Postfix version
+Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
+= yes" and is available with Postfix version
 2.2 and later.
 .br
 .br
@@ -9623,7 +9624,8 @@ CA. Otherwise, clients with a third\-party certificate would also
 be allowed to relay.  Specify "tls_append_default_CA = no" when the
 trusted CA is specified with smtpd_tls_CAfile or smtpd_tls_CApath,
 to prevent Postfix from appending the system\-supplied default CAs.
-This feature is available with Postfix version 2.2.
+This feature requires "smtpd_tls_ask_ccert = yes" and is available
+with Postfix version 2.2 and later.
 .br
 .IP "\fBpermit_tls_clientcerts\fR"
 Permit the request when the remote SMTP client certificate
@@ -9631,8 +9633,8 @@ fingerprint or public key fingerprint (Postfix 2.9 and later) is
 listed in $relay_clientcerts.
 The fingerprint digest algorithm is configurable via the
 smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
-Postfix version 2.5).  This feature is available with Postfix version
-2.2.
+Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
+= yes" and is available with Postfix version 2.2 and later.
 .br
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is

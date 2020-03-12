@@ -1627,6 +1627,10 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	if (msg_verbose)
 	    msg_info("relay_clientcerts: No match for fingerprint '%s', "
 		     "pkey fingerprint %s", prints[0], prints[1]);
+    } else if (!var_smtpd_tls_ask_ccert) {
+	msg_warn("%s is requested, but \"%s = no\"", permit_all_certs ?
+		 PERMIT_TLS_ALL_CLIENTCERTS : PERMIT_TLS_CLIENTCERTS,
+		 VAR_SMTPD_TLS_ACERT);
     }
 #endif
     return (SMTPD_CHECK_DUNNO);
@@ -3227,6 +3231,9 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    if (result != SMTPD_CHECK_DUNNO)
 		break;
 	}
+    } else if (!var_smtpd_tls_ask_ccert) {
+	msg_warn("%s is requested, but \"%s = no\"",
+		 CHECK_CCERT_ACL, VAR_SMTPD_TLS_ACERT);
     } else {
 	if (msg_verbose)
 	    msg_info("%s: no client certificate", myname);

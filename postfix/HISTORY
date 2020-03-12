@@ -24658,3 +24658,10 @@ Apologies for any names omitted.
 	multi-Milter configuration during MAIL FROM. Milter client
 	state was not properly reset after one of the Milters failed.
 	Reported by WeiYu Wu.
+
+20200312
+
+	Usability: the Postfix SMTP server now logs a warning when
+	a configuration requests access control by client certificate,
+	but "smtpd_tls_ask_clientcert = no".  Files: proto/postconf.proto,
+	smtpd/smtpd_check.c.
