@@ -2605,6 +2605,7 @@ static int mail_cmd(SMTPD_STATE *state, int argc, SMTPD_TOKEN *argv)
     }
     if (state->milters != 0
 	&& (state->saved_flags & MILTER_SKIP_FLAGS) == 0) {
+	state->flags |= SMTPD_FLAG_NEED_MILTER_ABORT;
 	PUSH_STRING(saved_sender, state->sender, STR(state->addr_buf));
 	err = milter_mail_event(state->milters,
 				milter_argv(state, argc - 2, argv + 2));
@@ -2720,10 +2721,13 @@ static void mail_reset(SMTPD_STATE *state)
 	state->queue_id = 0;
     }
     if (state->sender) {
-	if (state->milters != 0)
-	    milter_abort(state->milters);
 	myfree(state->sender);
 	state->sender = 0;
+    }
+    /* WeiYu Wu: need to undo milter_mail_event() state change. */
+    if (state->flags & SMTPD_FLAG_NEED_MILTER_ABORT) {
+	milter_abort(state->milters);
+	state->flags &= ~SMTPD_FLAG_NEED_MILTER_ABORT;
     }
     if (state->verp_delims) {
 	myfree(state->verp_delims);
