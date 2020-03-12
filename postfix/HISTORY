@@ -24653,3 +24653,10 @@ Apologies for any names omitted.
 
 	Cleanup: harmless memory leak in postconf. File:
 	postconf/postconf_master.c.
+
+20200312
+
+	Bugfix (introduced: Postfix 2.3): panic with Postfix
+	multi-Milter configuration during MAIL FROM. Milter client
+	state was not properly reset after one of the Milters failed.
+	Reported by WeiYu Wu.
