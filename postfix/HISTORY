@@ -23549,3 +23549,9 @@ Apologies for any names omitted.
 	had been negotiated. Problem reported by David Bürgin.
 	Files: milter/milter.h, milter/milter.c, milter/milter8.c
 
+20200312
+
+	Bugfix (introduced: Postfix 2.3): panic with Postfix
+	multi-Milter configuration during MAIL FROM. Milter client
+	state was not properly reset after one of the Milters failed.
+	Reported by WeiYu Wu.
