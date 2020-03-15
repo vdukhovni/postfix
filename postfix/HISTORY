@@ -24665,3 +24665,11 @@ Apologies for any names omitted.
 	a configuration requests access control by client certificate,
 	but "smtpd_tls_ask_clientcert = no".  Files: proto/postconf.proto,
 	smtpd/smtpd_check.c.
+
+20200315
+
+	Bugfix (introduced: 20190517 development release): in
+	check_ccert_access, the issuer_cn and subject_cn matches
+	now require that the client certificate is signed by a CA
+	that the Postfix SMTP server trusts. Files: smtpd/smtpd_check.c,
+	proto/postconf.proto.

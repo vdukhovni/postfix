@@ -3186,14 +3186,18 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	const char *action;
 	const char *match_this;
 	const char *known_action;
+	int     need_trusted_cert;
 
 	for (action = search_order; *action; action++) {
+	    need_trusted_cert = 1;
 	    switch (*action) {
 	    case SMTPD_ACL_SEARCH_CODE_CERT_FPRINT:
 		match_this = state->tls_context->peer_cert_fprint;
+		need_trusted_cert = 0;
 		break;
 	    case SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT:
 		match_this = state->tls_context->peer_pkey_fprint;
+		need_trusted_cert = 0;
 		break;
 	    case SMTPD_ACL_SEARCH_CODE_CERT_ISSUER_CN:
 		match_this = state->tls_context->issuer_CN;
@@ -3211,6 +3215,13 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 		return (smtpd_check_reject(state, MAIL_ERROR_SOFTWARE,
 					   451, "4.3.5",
 					   "Server configuration error"));
+	    }
+	    if (need_trusted_cert && !TLS_CERT_IS_TRUSTED(state->tls_context)) {
+		if (msg_verbose)
+		    msg_info("%s: skipping %s %s: untrusted client certificate",
+			     myname, str_name_code(search_actions, *action),
+			     match_this);
+		return SMTPD_CHECK_DUNNO;
 	    }
 	    if (msg_verbose)
 		msg_info("%s: look up %s %s",
@@ -5762,6 +5773,7 @@ int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
 bool    var_smtpd_client_port_log;
 char   *var_smtpd_dns_re_filter;
+bool    var_smtpd_tls_ask_ccert;
 
 #define int_table test_int_table
 
@@ -5796,6 +5808,7 @@ static const INT_TABLE int_table[] = {
     VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
     VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
     VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
+    VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
     0,
 };
 

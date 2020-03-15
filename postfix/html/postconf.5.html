@@ -14254,7 +14254,8 @@ pubkey_fingerprint } } </dd>
 
 <dd> The commas are optional. Other valid search_order elements are
 "subject_cn" (the certificate subject CN) and "issuer_cn" (the
-certificate issuer CN). </dd>
+certificate issuer CN). These require that the client certificate
+is signed by a CA that the Postfix SMTP server trusts. </dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 

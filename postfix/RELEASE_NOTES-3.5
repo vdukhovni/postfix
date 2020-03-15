@@ -28,9 +28,9 @@ comfortable with the IPL can continue with that license.
 Major changes - multiple relayhost in SMTP
 ------------------------------------------
 
-[Feature 20200111] SMTP (and LMTP) client support for a list of
-nexthop destinations separated by comma or whitespace. These will
-destinations be tried in the specified order.
+[Feature 20200111] the Postfix SMTP and LMTP client support a list
+of nexthop destinations separated by comma or whitespace. These
+destinations will be tried in the specified order.
 
 The list form can be specified in relayhost, transport_maps,
 default_transport, and sender_dependent_default_transport_maps.
@@ -73,8 +73,9 @@ exact same result:
         ...
 
 The check_ccert_access search order also supports the subject_cn and
-issuer_cn properties. Support is planned for rfc822name and
-smtputf8mailbox.
+issuer_cn client certificate properties, when the client certificate
+is signed by a CA that the Postfix SMTP server trusts. Support is
+planned for rfc822name and smtputf8mailbox.
 
 Major changes - dovecot usability
 ---------------------------------
@@ -108,7 +109,7 @@ a message if it is in the hold queue. With -e, such a message would
 not be returned to the sender until it is released with -f or -H.
 
 In the mailq(1) or postqueue(1) -p output, a forced-to-expire message
-is indicated with # after the queue name. In postqueue(1) JSON
+is indicated with # after the queue file name. In postqueue(1) JSON
 output, there is a new per-message field "forced_expire" (with value
 true or false) that shows the forced-to-expire status.
 
