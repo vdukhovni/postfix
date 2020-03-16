@@ -9535,10 +9535,7 @@ above corresponds with:
 check_ccert_access { type:table, { search_order = cert_fingerprint,
 pubkey_fingerprint } }
 .br
-The commas are optional. Other valid search_order elements are
-"subject_cn" (the certificate subject CN) and "issuer_cn" (the
-certificate issuer CN). These require that the client certificate
-is signed by a CA that the Postfix SMTP server trusts.
+The commas are optional.
 .br
 .IP "\fBcheck_client_access \fItype:table\fR\fR"
 Search the specified access database for the client hostname,
