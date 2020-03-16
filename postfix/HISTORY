@@ -24654,9 +24654,20 @@ Apologies for any names omitted.
 	Cleanup: harmless memory leak in postconf. File:
 	postconf/postconf_master.c.
 
-20200312
-
 	Bugfix (introduced: Postfix 2.3): panic with Postfix
 	multi-Milter configuration during MAIL FROM. Milter client
 	state was not properly reset after one of the Milters failed.
 	Reported by WeiYu Wu.
+
+20200312
+
+	Usability: the Postfix SMTP server now logs a warning when
+	a configuration requests access control by client certificate,
+	but "smtpd_tls_ask_clientcert = no".  Files: proto/postconf.proto,
+	smtpd/smtpd_check.c.
+
+20200316
+
+	Removed the issuer_cn and subject_cn matches from
+	check_ccert_access. Files: smtpd/smtpd_check.c,
+	proto/postconf.proto.

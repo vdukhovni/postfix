@@ -1627,6 +1627,10 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	if (msg_verbose)
 	    msg_info("relay_clientcerts: No match for fingerprint '%s', "
 		     "pkey fingerprint %s", prints[0], prints[1]);
+    } else if (!var_smtpd_tls_ask_ccert) {
+	msg_warn("%s is requested, but \"%s = no\"", permit_all_certs ?
+		 PERMIT_TLS_ALL_CLIENTCERTS : PERMIT_TLS_CLIENTCERTS,
+		 VAR_SMTPD_TLS_ACERT);
     }
 #endif
     return (SMTPD_CHECK_DUNNO);
@@ -3191,12 +3195,6 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    case SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT:
 		match_this = state->tls_context->peer_pkey_fprint;
 		break;
-	    case SMTPD_ACL_SEARCH_CODE_CERT_ISSUER_CN:
-		match_this = state->tls_context->issuer_CN;
-		break;
-	    case SMTPD_ACL_SEARCH_CODE_CERT_SUBJECT_CN:
-		match_this = state->tls_context->peer_CN;
-		break;
 	    default:
 		known_action = str_name_code(search_actions, *action);
 		if (known_action == 0)
@@ -3227,6 +3225,9 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    if (result != SMTPD_CHECK_DUNNO)
 		break;
 	}
+    } else if (!var_smtpd_tls_ask_ccert) {
+	msg_warn("%s is requested, but \"%s = no\"",
+		 CHECK_CCERT_ACL, VAR_SMTPD_TLS_ACERT);
     } else {
 	if (msg_verbose)
 	    msg_info("%s: no client certificate", myname);
@@ -5755,6 +5756,7 @@ int     var_plaintext_code;
 bool    var_smtpd_peername_lookup;
 bool    var_smtpd_client_port_log;
 char   *var_smtpd_dns_re_filter;
+bool    var_smtpd_tls_ask_ccert;
 
 #define int_table test_int_table
 
@@ -5789,6 +5791,7 @@ static const INT_TABLE int_table[] = {
     VAR_PLAINTEXT_CODE, DEF_PLAINTEXT_CODE, &var_plaintext_code,
     VAR_SMTPD_PEERNAME_LOOKUP, DEF_SMTPD_PEERNAME_LOOKUP, &var_smtpd_peername_lookup,
     VAR_SMTPD_CLIENT_PORT_LOG, DEF_SMTPD_CLIENT_PORT_LOG, &var_smtpd_client_port_log,
+    VAR_SMTPD_TLS_ACERT, DEF_SMTPD_TLS_ACERT, &var_smtpd_tls_ask_ccert,
     0,
 };
 

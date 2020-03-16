@@ -14239,7 +14239,8 @@ fingerprint (Postfix 2.9 and later) as lookup key for the specified
 remote SMTP client certificate is verified successfully.
 The fingerprint digest algorithm is configurable via the
 <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a> parameter (hard-coded as md5 prior to
-Postfix version 2.5).  This feature is available with Postfix version
+Postfix version 2.5).  This feature requires "<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>
+= yes" and is available with Postfix version
 2.2 and later. </dd>
 
 <br>
@@ -14251,9 +14252,7 @@ above corresponds with: </dd>
 <dd> <a href="postconf.5.html#check_ccert_access">check_ccert_access</a> { <a href="DATABASE_README.html">type:table</a>, { search_order = cert_fingerprint,
 pubkey_fingerprint } } </dd>
 
-<dd> The commas are optional. Other valid search_order elements are
-"subject_cn" (the certificate subject CN) and "issuer_cn" (the
-certificate issuer CN). </dd>
+<dd> The commas are optional. </dd>
 
 <dt><b><a name="check_client_access">check_client_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
@@ -14353,7 +14352,8 @@ CA. Otherwise, clients with a third-party certificate would also
 be allowed to relay.  Specify "<a href="postconf.5.html#tls_append_default_CA">tls_append_default_CA</a> = no" when the
 trusted CA is specified with <a href="postconf.5.html#smtpd_tls_CAfile">smtpd_tls_CAfile</a> or <a href="postconf.5.html#smtpd_tls_CApath">smtpd_tls_CApath</a>,
 to prevent Postfix from appending the system-supplied default CAs.
-This feature is available with Postfix version 2.2.</dd>
+This feature requires "<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a> = yes" and is available
+with Postfix version 2.2 and later.</dd>
 
 <dt><b><a name="permit_tls_clientcerts">permit_tls_clientcerts</a></b></dt>
 
@@ -14362,8 +14362,8 @@ fingerprint or public key fingerprint (Postfix 2.9 and later) is
 listed in $<a href="postconf.5.html#relay_clientcerts">relay_clientcerts</a>.
 The fingerprint digest algorithm is configurable via the
 <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a> parameter (hard-coded as md5 prior to
-Postfix version 2.5).  This feature is available with Postfix version
-2.2. </dd>
+Postfix version 2.5).  This feature requires "<a href="postconf.5.html#smtpd_tls_ask_ccert">smtpd_tls_ask_ccert</a>
+= yes" and is available with Postfix version 2.2 and later.</dd>
 
 <dt><b><a name="reject_rbl_client">reject_rbl_client <i>rbl_domain=d.d.d.d</i></a></b></dt>
 
