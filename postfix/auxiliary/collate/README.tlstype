@@ -1,0 +1,37 @@
+On Mon, Apr 06, 2020 at 08:21:32AM +0100, Dominic Raferd wrote:
+
+> Using setting 'smtp_tls_security_level = may' (postfix 3.3.0) is there
+> a reliable way to see from log which outgoing emails were sent in the
+> clear i.e. *not* using TLS?
+
+Yes, provided you don't lose too many log messages[1], and your logging
+subsystem does not reorder them[1], set:
+
+    smtp_tls_loglevel = 1
+
+and use "collate":
+
+    https://github.com/vdukhovni/postfix/tree/master/postfix/auxiliary/collate
+
+whose output you'd send to the attached Perl script.  On my system for
+example:
+
+    # bzcat $(ls -tr /var/log/maillog*) | perl collate.pl | perl tlstype.pl
+
+-- 
+    Viktor.
+
+[1] If your system is suffering under the yoke of systemd-journald, you
+should strongly consider enabling the built-in logging in recent
+versions of Postfix to bypass systemd's broken logging subsystem.
+
+    - It is single-threaded, performs poorly on multi-cpu servers and
+      may not be able to keep up with all the messages generated on a
+      busy multi-cpu system.
+
+    - By default has low message rate limits, dropping messages
+      that exceed the limits.
+
+    - Listens on stream socket rather than a dgram socket, which
+      breaks message ordering from multi-process systems like
+      Postfix.

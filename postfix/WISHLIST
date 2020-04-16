@@ -1,5 +1,11 @@
 Wish list:
 
+	Read http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
+	and see how we can improve on the Postfix side.
+
+	Investigate feasibility of SO_REUSEPORT (~portable) and
+	SO_REUSEPORT_LB (*BSD).
+
 	nbbio: exercise the sanity checks with fake msg(3) functions.
 
 	optreset (bsd-ism) how badly do we need it?

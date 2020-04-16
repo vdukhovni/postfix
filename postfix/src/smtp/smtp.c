@@ -938,7 +938,6 @@ int     var_smtp_data1_tmout;
 int     var_smtp_data2_tmout;
 int     var_smtp_rset_tmout;
 int     var_smtp_quit_tmout;
-char   *var_inet_interfaces;
 char   *var_notify_classes;
 int     var_smtp_skip_5xx_greeting;
 int     var_ign_mx_lookup_err;

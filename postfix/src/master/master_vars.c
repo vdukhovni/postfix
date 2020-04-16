@@ -46,7 +46,6 @@
  /*
   * Tunable parameters.
   */
-char   *var_inet_protocols;
 int     var_throttle_time;
 char   *var_master_disable;
 

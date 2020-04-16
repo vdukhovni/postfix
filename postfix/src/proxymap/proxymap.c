@@ -259,7 +259,6 @@ char   *var_virt_alias_doms;
 char   *var_virt_mailbox_maps;
 char   *var_virt_mailbox_doms;
 char   *var_relay_rcpt_maps;
-char   *var_relay_domains;
 char   *var_canonical_maps;
 char   *var_send_canon_maps;
 char   *var_rcpt_canon_maps;

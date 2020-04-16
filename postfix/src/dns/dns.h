@@ -59,6 +59,7 @@
  */
 #ifdef NO_DNSSEC
 #undef RES_USE_DNSSEC
+#undef RES_TRUSTAD
 #endif
 
  /*
@@ -69,6 +70,9 @@
 #endif
 #ifndef RES_USE_EDNS0
 #define RES_USE_EDNS0	0
+#endif
+#ifndef RES_TRUSTAD
+#define RES_TRUSTAD	0
 #endif
 
  /*-
