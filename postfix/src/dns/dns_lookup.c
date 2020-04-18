@@ -116,6 +116,9 @@
 /*	Request DNSSEC validation. This flag is silently ignored
 /*	when the system stub resolver API, resolver(3), does not
 /*	implement DNSSEC.
+/*	Automatically turns on the RES_TRUSTAD flag on systems that
+/*	support this flag (this behavior will be more configurable
+/*	in a later release).
 /* .RE
 /* .IP lflags
 /*	Flags that control the operation of the dns_lookup*()
@@ -453,10 +456,10 @@ static int dns_query(const char *name, int type, unsigned flags,
     /*
      * Set extra options that aren't exposed to the application.
      */
-#define XTRA_FLAGS (RES_USE_EDNS0)
+#define XTRA_FLAGS (RES_USE_EDNS0 | RES_TRUSTAD)
 
     if (flags & RES_USE_DNSSEC)
-	flags |= RES_USE_EDNS0;
+	flags |= (RES_USE_EDNS0 | RES_TRUSTAD);
 
     /*
      * Save and restore resolver options that we overwrite, to avoid

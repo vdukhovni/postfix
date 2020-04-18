@@ -23555,3 +23555,17 @@ Apologies for any names omitted.
 	multi-Milter configuration during MAIL FROM. Milter client
 	state was not properly reset after one of the Milters failed.
 	Reported by WeiYu Wu.
+
+20200416
+
+	Workaround for broken builds after an incompatible change
+	in GCC 10. Files: makedefs, Makefile.in.
+
+	Workaround for broken DANE support after an incompatible
+	change in GLIBC 2.31. This avoids the need for new options
+	in /etc/resolv.conf. Files: dns/dns.h, dns/dns_lookup.c.
+
+20200418
+
+	Bitrot: LINUX5, GLIBC resolver flags. Files: makedefs,
+	util/sys_defs.h, dns/dns_str_resflags.c.
