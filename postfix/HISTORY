@@ -24663,7 +24663,7 @@ Apologies for any names omitted.
 
 	Usability: the Postfix SMTP server now logs a warning when
 	a configuration requests access control by client certificate,
-	but "smtpd_tls_ask_clientcert = no".  Files: proto/postconf.proto,
+	but "smtpd_tls_ask_ccert = no". Files: proto/postconf.proto,
 	smtpd/smtpd_check.c.
 
 20200316
@@ -24671,3 +24671,12 @@ Apologies for any names omitted.
 	Removed the issuer_cn and subject_cn matches from
 	check_ccert_access. Files: smtpd/smtpd_check.c,
 	proto/postconf.proto.
+
+20200416
+
+	Workaround for broken builds after an incompatible change
+	in GCC 10. Files: makedefs, Makefile.in.
+
+	Workaround for broken DANE support after an incompatible
+	change in GLIBC 2.31. This avoids the need for new options
+	in /etc/resolv.conf. Files: dns/dns.h, dns/dns_lookup.c.

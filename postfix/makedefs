@@ -1136,7 +1136,7 @@ esac
 : ${CC=gcc} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
 ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused -Wno-missing-braces'}
+	-Wunused -Wno-missing-braces -fcommon'}
 
 # Extract map type names from -DHAS_XXX compiler options.  We avoid
 # problems with tr(1) range syntax by using enumerations instead,
