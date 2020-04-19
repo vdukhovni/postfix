@@ -24690,3 +24690,14 @@ Apologies for any names omitted.
 
 	Misc fixes for gcc 'multiple definition' errors. Files:
 	master/master_vars.c, smtp/smtp.c, proxymap/proxymap.c.
+
+20200419
+
+	Bugfix: segfault in the tlsproxy client role when the server
+	role was disabled. This typically happens with a first-time
+	Postfix install and after configuring only outbound TLS.
+	File: tlsproxy/tlsproxy.c.
+
+	Portability: libc-musl breaks TLSA/DANE. Force the user to
+	override a test and accept that Postfix will not support
+	TLSA/DANE. File: makedefs.
