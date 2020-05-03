@@ -24696,8 +24696,37 @@ Apologies for any names omitted.
 	Bugfix: segfault in the tlsproxy client role when the server
 	role was disabled. This typically happens with a first-time
 	Postfix install and after configuring only outbound TLS.
-	File: tlsproxy/tlsproxy.c.
+	Found during program maintenance. File: tlsproxy/tlsproxy.c.
 
-	Portability: libc-musl breaks TLSA/DANE. Force the user to
-	override a test and accept that Postfix will not support
-	TLSA/DANE. File: makedefs.
+20200420
+
+	Noise suppression: shut up a compiler that special-cases
+	string literals. File milter/milter.c.
+
+20200422
+
+	Security: disable TLSA/DANE on Alpine Linux because libc-musl
+	provides no indication whether responses are authentic.
+	This broke TLSA/DANE without a clear explanation. File:
+	makedefs.
+
+20200425
+
+	Robustness: enable the socket option SO_REUSEPORT_LB or
+	SO_REUSEPORT on systems that support it. It allows multiple
+	processes to create distinct listen sockets for the same
+	address and port, and makes Postfix easier to restart.
+	However, with a SHARED listen socket as used in Postfix,
+	kernel-based load balancing does not help, and Postfix still
+	requires locking to avoid waking up multiple processes when
+	a connection arrives.  Files: util/inet_listen.c,
+
+20200502
+
+	Documentation: update SNI support status in TLS_README.
+	File: proto/TLS_READNE.html.
+
+20200503
+
+	Portability: declaration should be before executable
+	statement. File: util/msg_logger.c.

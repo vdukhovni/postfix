@@ -1033,8 +1033,9 @@ The pre-requisites for DANE support in the Postfix SMTP client are:
 The above client pre-requisites do not apply to the Postfix SMTP server. It
 will support DANE provided it supports TLSv1 and its TLSA records are published
 in a DNSSEC signed zone. To receive DANE secured mail for multiple domains, use
-the same hostname to add the server to each domain's MX records. There are no
-plans to implement SNI in the Postfix SMTP server.
+the same hostname to add the server to each domain's MX records. The Postfix
+SMTP server supports SNI (Postfix 3.4 and later), configured with
+tls_server_sni_maps.
 
 Note: The Postfix SMTP client's internal stub DNS resolver is DNSSEC-aware, but
 it does not itself validate DNSSEC records, rather it delegates DNSSEC

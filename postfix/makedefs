@@ -220,22 +220,22 @@ case $# in
     # No ${x%%y} support in Solaris 11 /bin/sh
     RELEASE_MAJOR=`expr "$RELEASE" : '\([0-9]*\)'` || exit 1
     VERSION=`(uname -v) 2>/dev/null`
-    case "$SYSTEM.$VERSION" in
-     Linux.#[0-9]*-Alpine*)
-	case "$CCARGS" in
-	 *-DNO_DNSSEC*) ;;
-	 *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
-	    echo Use a glibc-based Linux distribution, or build 1>&2
-	    echo with: 'make makefiles CCARGS="-DNO_DNSSEC ..."'. 1>&2
-	    exit 1;;
-	esac;
-    esac
     case "$VERSION" in
      dcosx*) SYSTEM=$VERSION;;
     esac;;
  # Unsupported debug-only mode. Not suitable for cross-platform tests.
- 2) SYSTEM="$1"; RELEASE="$2";;
- *) echo usage: $0 [system release] 1>&2; exit 1;;
+2|3) SYSTEM="$1"; RELEASE="$2"; VERSION="$3";;
+ *) echo usage: $0 [system release version] 1>&2; exit 1;;
+esac
+
+case "$SYSTEM.$VERSION" in
+ Linux.#*-Alpine*)
+    case "$CCARGS" in
+     *-DNO_DNSSEC*) ;;
+     *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
+	echo This build will not support DANE/TLSA. 1>&2
+	CCARGS="$CCARGS -DNO_DNSSEC";;
+    esac;;
 esac
 
 case "$SYSTEM.$RELEASE" in

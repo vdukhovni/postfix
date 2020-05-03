@@ -166,13 +166,6 @@ static void msg_logger_print(int level, const char *text)
     ssize_t len;
 
     /*
-     * This test is simple enough that we don't bother with unregistering the
-     * msg_logger_print() function.
-     */
-    if (msg_logger_enable == 0)
-	return;
-
-    /*
      * TODO: this should be a reusable NAME_CODE table plus lookup function.
      */
     static int log_level[] = {
@@ -181,6 +174,13 @@ static void msg_logger_print(int level, const char *text)
     static char *severity_name[] = {
 	"info", "warning", "error", "fatal", "panic",
     };
+
+    /*
+     * This test is simple enough that we don't bother with unregistering the
+     * msg_logger_print() function.
+     */
+    if (msg_logger_enable == 0)
+	return;
 
     /*
      * Note: there is code in postlogd(8) that attempts to strip off

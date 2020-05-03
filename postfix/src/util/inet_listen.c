@@ -150,6 +150,15 @@ int     inet_listen(const char *addr, int backlog, int block_mode)
     if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 		   (void *) &on, sizeof(on)) < 0)
 	msg_fatal("setsockopt(SO_REUSEADDR): %m");
+#if defined(SO_REUSEPORT_LB)
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT_LB,
+		   (void *) &on, sizeof(on)) < 0)
+	msg_fatal("setsockopt(SO_REUSEPORT_LB): %m");
+#elif defined(SO_REUSEPORT)
+    if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
+		   (void *) &on, sizeof(on)) < 0)
+	msg_fatal("setsockopt(SO_REUSEPORT): %m");
+#endif
     if (bind(sock, res->ai_addr, res->ai_addrlen) < 0) {
 	SOCKADDR_TO_HOSTADDR(res->ai_addr, res->ai_addrlen,
 			     &hostaddr, &portnum, 0);
