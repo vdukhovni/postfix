@@ -224,12 +224,12 @@ case $# in
      dcosx*) SYSTEM=$VERSION;;
     esac;;
  # Unsupported debug-only mode. Not suitable for cross-platform tests.
-2|3) SYSTEM="$1"; RELEASE="$2"; VERSION="$3";;
- *) echo usage: $0 [system release version] 1>&2; exit 1;;
+ 2) SYSTEM="$1"; RELEASE="$2";;
+ *) echo usage: $0 [system release] 1>&2; exit 1;;
 esac
 
-case "$SYSTEM.$VERSION" in
- Linux.#*-Alpine*)
+case "`PATH=/bin:/usr/bin ldd /bin/sh`" in
+ *-musl-*)
     case "$CCARGS" in
      *-DNO_DNSSEC*) ;;
      *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
