@@ -88,6 +88,8 @@
 # .IP \fB-DNO_NISPLUS\fR
 #	Do not build with NISPLUS support. Support for NISPLUS
 #	is unavailable on some recent Solaris distributions.
+# .IP \fB-DNO_RES_NINIT\fR
+#	Do not build with the threadsafe resolver(5) API (res_ninit() etc.).
 # .IP \fB-DNO_PCRE\fR
 #	Do not build with PCRE support.
 #	By default, PCRE support is compiled in when the \fBpcre-config\fR
@@ -224,17 +226,23 @@ case $# in
      dcosx*) SYSTEM=$VERSION;;
     esac;;
  # Unsupported debug-only mode. Not suitable for cross-platform tests.
-2|3) SYSTEM="$1"; RELEASE="$2"; VERSION="$3";;
- *) echo usage: $0 [system release version] 1>&2; exit 1;;
+ 2) SYSTEM="$1"; RELEASE="$2";;
+ *) echo usage: $0 [system release] 1>&2; exit 1;;
 esac
 
-case "$SYSTEM.$VERSION" in
- Linux.#*-Alpine*)
+case "`PATH=/bin:/usr/bin ldd /bin/sh`" in
+ *-musl-*)
     case "$CCARGS" in
      *-DNO_DNSSEC*) ;;
      *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
 	echo This build will not support DANE/TLSA. 1>&2
 	CCARGS="$CCARGS -DNO_DNSSEC";;
+    esac
+    case "$CCARGS" in
+     *-DNO_RES_NINIT*) ;;
+     *) echo Warning: libc-musl does not support res_ninit etc. 1>&2
+	echo This build will not support modern resolver features. 1>&2
+	CCARGS="$CCARGS -DNO_RES_NINIT";;
     esac;;
 esac
 
@@ -892,7 +900,7 @@ CCARGS="$CCARGS -DSNAPSHOT"
 
 # Non-production: needs thorough testing, or major changes are still
 # needed before the code stabilizes.
-#CCARGS="$CCARGS -DNONPROD"
+CCARGS="$CCARGS -DNONPROD"
 
 # Workaround: prepend Postfix include files before other include files.
 CCARGS="-I. -I../../include $CCARGS"

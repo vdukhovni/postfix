@@ -520,7 +520,7 @@ extern int opterr;
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
 #define STRCASECMP_IN_STRINGS_H
-#define SET_H_ERRNO(err) (set_h_errno(err))
+#define USE_SET_H_ERRNO
 #endif
 
 #ifdef UW21				/* UnixWare 2.1.x */
@@ -1700,11 +1700,11 @@ typedef int pid_t;
 #define ENFORCING_SIZE_LIMIT(param)	((param) > 0)
 
  /*
-  * Setting globals like h_errno can be problematic when Postfix is linked
-  * with multi-threaded libraries.
+  * The threadsafe resolver(5) API came out before 2002, and should be on by
+  * default.
   */
-#ifndef SET_H_ERRNO
-#define SET_H_ERRNO(err) (h_errno = (err))
+#ifndef NO_RES_NINIT
+#define USE_NRES_INIT
 #endif
 
  /*

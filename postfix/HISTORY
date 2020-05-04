@@ -24730,3 +24730,12 @@ Apologies for any names omitted.
 
 	Portability: declaration should be before executable
 	statement. File: util/msg_logger.c.
+
+	Portability: replace res_xxx() calls with res_nxxx() not
+	because those are threadsafe, but because new features are
+	being added there. To build old style, build with "make
+	makefiles CCARGS="-DNO_RES_NINIT...". Files: makedefs.
+	util/sys_defs.h, dns/dns_lookup.c.
+
+	Portability: libc-musl does not have res_nxxx() support,
+	so it builds with -DNO_RES_NINIT.
