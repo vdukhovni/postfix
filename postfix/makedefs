@@ -228,13 +228,16 @@ case $# in
  *) echo usage: $0 [system release] 1>&2; exit 1;;
 esac
 
-case "`PATH=/bin:/usr/bin ldd /bin/sh`" in
- *-musl-*)
-    case "$CCARGS" in
-     *-DNO_DNSSEC*) ;;
-     *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
-	echo This build will not support DANE/TLSA. 1>&2
-	CCARGS="$CCARGS -DNO_DNSSEC";;
+case "$SYSTEM" in
+ Linux)
+    case "`PATH=/bin:/usr/bin ldd /bin/sh`" in
+     *-musl-*)
+	case "$CCARGS" in
+	 *-DNO_DNSSEC*) ;;
+	 *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
+	    echo This build will not support DANE/TLSA. 1>&2
+	    CCARGS="$CCARGS -DNO_DNSSEC";;
+	esac;;
     esac;;
 esac
 

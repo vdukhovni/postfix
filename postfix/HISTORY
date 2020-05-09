@@ -24701,7 +24701,7 @@ Apologies for any names omitted.
 20200420
 
 	Noise suppression: shut up a compiler that special-cases
-	string literals. File milter/milter.c.
+	string literals. Viktor Dukhovni. File milter/milter.c.
 
 20200422
 
@@ -24730,3 +24730,15 @@ Apologies for any names omitted.
 
 	Portability: declaration should be before executable
 	statement. File: util/msg_logger.c.
+
+20200505
+
+	Noise suppression: shut up a compiler that special-cases
+	string literals. Viktor Dukhovni. File smtpd/smtpd_check.c.
+
+20200509
+
+	Bugfix (introduced: Postfix 3.5): maillog_file_rotate_suffix
+	default value used the minute instead of the month. Reported
+	by Larry Stone. Files: conf/postfix-tls-script,
+	proto/MAILLOG_README.html, proto/postconf.proto.
