@@ -24731,10 +24731,22 @@ Apologies for any names omitted.
 	Portability: declaration should be before executable
 	statement. File: util/msg_logger.c.
 
+	Portability: replace res_xxx() calls with res_nxxx() not
+	because those are threadsafe, but because new features are
+	being added there. To build old style, build with "make
+	makefiles CCARGS="-DNO_RES_NCALLS...". Files: makedefs.
+	util/sys_defs.h, dns/dns_lookup.c.
+
+	Portability: libc-musl does not have res_nxxx() support,
+	so it builds with -DNO_RES_NCALLS.
+
 20200505
 
 	Noise suppression: shut up a compiler that special-cases
 	string literals. Viktor Dukhovni. File smtpd/smtpd_check.c.
+
+	Portability: not all supported systems have ldd(1). Viktor
+	Dukhovni. File: makedefs.
 
 20200509
 
@@ -24742,3 +24754,9 @@ Apologies for any names omitted.
 	default value used the minute instead of the month. Reported
 	by Larry Stone. Files: conf/postfix-tls-script,
 	proto/MAILLOG_README.html, proto/postconf.proto.
+
+20200510
+
+	Bitrot: avoid U_FILE_ACCESS_ERROR after chroot(), by
+	initializing the ICU library before making the chroot()
+	call. Files: util/midna_domain.[hc], global/mail_params.c.

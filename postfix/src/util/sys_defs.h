@@ -30,7 +30,7 @@
 #if defined(FREEBSD2) || defined(FREEBSD3) || defined(FREEBSD4) \
     || defined(FREEBSD5) || defined(FREEBSD6) || defined(FREEBSD7) \
     || defined(FREEBSD8) || defined(FREEBSD9) || defined(FREEBSD10) \
-    || defined(FREEBSD11) \
+    || defined(FREEBSD11) || defined(FREEBSD12) \
     || defined(BSDI2) || defined(BSDI3) || defined(BSDI4) \
     || defined(OPENBSD2) || defined(OPENBSD3) || defined(OPENBSD4) \
     || defined(OPENBSD5) || defined(OPENBSD6) \
@@ -520,7 +520,7 @@ extern int opterr;
 #define USE_STATVFS
 #define STATVFS_IN_SYS_STATVFS_H
 #define STRCASECMP_IN_STRINGS_H
-#define SET_H_ERRNO(err) (set_h_errno(err))
+#define USE_SET_H_ERRNO
 #endif
 
 #ifdef UW21				/* UnixWare 2.1.x */
@@ -1700,11 +1700,11 @@ typedef int pid_t;
 #define ENFORCING_SIZE_LIMIT(param)	((param) > 0)
 
  /*
-  * Setting globals like h_errno can be problematic when Postfix is linked
-  * with multi-threaded libraries.
+  * The threadsafe resolver(5) API came out before 2002, and should be on by
+  * default.
   */
-#ifndef SET_H_ERRNO
-#define SET_H_ERRNO(err) (h_errno = (err))
+#ifndef NO_RES_NCALLS
+#define USE_RES_NCALLS
 #endif
 
  /*

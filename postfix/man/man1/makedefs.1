@@ -97,6 +97,8 @@ By default, PCRE support is compiled in when the \fBpcre\-config\fR
 utility is installed.
 .IP \fB\-DNO_POSIX_GETPW_R\fR
 Disable support for POSIX getpwnam_r/getpwuid_r.
+.IP \fB\-DNO_RES_NCALLS\fR
+Do not build with the threadsafe resolver(5) API (res_ninit() etc.).
 .IP \fB\-DNO_SIGSETJMP\fR
 Use setjmp()/longjmp() instead of sigsetjmp()/siglongjmp().
 By default, Postfix uses sigsetjmp()/siglongjmp() when they

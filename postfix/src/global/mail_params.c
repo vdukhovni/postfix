@@ -871,6 +871,8 @@ void    mail_params_init()
     var_smtputf8_enable = 0;
 #else
     midna_domain_transitional = var_idna2003_compat;
+    if (var_smtputf8_enable)
+	midna_domain_pre_chroot();
 #endif
     util_utf8_enable = var_smtputf8_enable;
 

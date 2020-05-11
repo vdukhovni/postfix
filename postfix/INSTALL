@@ -593,6 +593,9 @@ The following is an extensive list of names and values.
 ||-DNO_POSIX_GETPW_R		|getpwuid_r. By default Postfix uses these    |
 ||				|where they are known to be available.	      |
 ||______________________________|_____________________________________________|
+||-DNO_RES_NCALLS		|Do not build with the threadsafe resolver(5) |
+||				|API (res_ninit() etc.).		      |
+||______________________________|_____________________________________________|
 ||				|Use setjmp()/longjmp() instead of sigsetjmp  |
 ||-DNO_SIGSETJMP		|()/siglongjmp(). By default, Postfix uses    |
 ||				|sigsetjmp()/siglongjmp() when they are known |
