@@ -186,6 +186,8 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	if (enable_deadline) {
 	    GETTIMEOFDAY(&time_deadline);
 	    time_deadline.tv_sec += timeout;
+            if (TLScontext->log_mask & TLS_LOG_IO)
+                msg_info("%s: enabling deadline timer: %d", myname, timeout);
 	}
     }
 
@@ -203,6 +205,9 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	else
 	    msg_panic("%s: nothing to do here", myname);
 	err = SSL_get_error(TLScontext->con, status);
+
+        if (TLScontext->log_mask & TLS_LOG_IO)
+            msg_info("%s: SSL_get_error(%d) = %d", myname, status, err);
 
 	/*
 	 * Correspondence between SSL_ERROR_* error codes and tls_bio_(read,
@@ -240,15 +245,21 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 		GETTIMEOFDAY(&time_now);
 		timersub(&time_deadline, &time_now, &time_left);
 		timeout = time_left.tv_sec + (time_left.tv_usec > 0);
+                if (TLScontext->log_mask & TLS_LOG_IO)
+                    msg_info("%s: remaining deadline timer: %d", myname, timeout);
 		if (timeout <= 0) {
 		    errno = ETIMEDOUT;
 		    return (-1);
 		}
 	    }
 	    if (err == SSL_ERROR_WANT_WRITE) {
+                if (TLScontext->log_mask & TLS_LOG_IO)
+                    msg_info("%s: waiting for writable socket", myname);
 		if (write_wait(fd, timeout) < 0)
 		    return (-1);		/* timeout error */
 	    } else {
+                if (TLScontext->log_mask & TLS_LOG_IO)
+                    msg_info("%s: waiting for readable socket", myname);
 		if (read_wait(fd, timeout) < 0)
 		    return (-1);		/* timeout error */
 	    }
@@ -273,14 +284,25 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	     * need to have ad-hoc code like this.
 	     */
 	case SSL_ERROR_SSL:
+            if (TLScontext->log_mask & TLS_LOG_IO)
+                msg_info("%s: TLS layer error", myname);
 	    if (rfunc || wfunc)
 		tls_print_errors();
-	    /* FALLTHROUGH */
-	case SSL_ERROR_ZERO_RETURN:
-	case SSL_ERROR_NONE:
 	    errno = 0;				/* avoid bogus warnings */
-	    /* FALLTHROUGH */
+	    return (status);
+	case SSL_ERROR_ZERO_RETURN:
+            if (TLScontext->log_mask & TLS_LOG_IO)
+                msg_info("%s: TLS layer EOF", myname);
+	    errno = 0;				/* avoid bogus warnings */
+	    return (status);
+	case SSL_ERROR_NONE:
+            if (TLScontext->log_mask & TLS_LOG_IO)
+                msg_info("%s: TLS success", myname);
+	    errno = 0;				/* avoid bogus warnings */
+	    return (status);
 	case SSL_ERROR_SYSCALL:
+            if (TLScontext->log_mask & TLS_LOG_IO)
+                msg_info("%s: Socket layer error: %m", myname);
 	    return (status);
 	}
     }

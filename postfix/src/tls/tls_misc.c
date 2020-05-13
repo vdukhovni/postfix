@@ -522,6 +522,7 @@ static const NAME_MASK tls_log_table[] = {
     "ssl-debug", TLS_LOG_DEBUG,		/* SSL library debug/verbose */
     "ssl-handshake-packet-dump", TLS_LOG_TLSPKTS,
     "ssl-session-packet-dump", TLS_LOG_TLSPKTS | TLS_LOG_ALLPKTS,
+    "io", TLS_LOG_IO,
     0, 0,
 };
 

@@ -329,6 +329,7 @@ extern int tls_log_mask(const char *, const char *);
 #define TLS_LOG_DEBUG			(1<<7)
 #define TLS_LOG_TLSPKTS			(1<<8)
 #define TLS_LOG_ALLPKTS			(1<<9)
+#define TLS_LOG_IO			(1<<10)
 
  /*
   * Client and Server application contexts
