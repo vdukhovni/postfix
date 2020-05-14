@@ -207,7 +207,8 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
 	err = SSL_get_error(TLScontext->con, status);
 
         if (TLScontext->log_mask & TLS_LOG_IO)
-            msg_info("%s: SSL_get_error(%d) = %d", myname, status, err);
+            msg_info("%s: hsfunc=%p, rfunc=%p, wfunc=%p, SSL_get_error(%d) = %d",
+                     myname, hsfunc, rfunc, wfunc, status, err);
 
 	/*
 	 * Correspondence between SSL_ERROR_* error codes and tls_bio_(read,
