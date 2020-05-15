@@ -24760,3 +24760,25 @@ Apologies for any names omitted.
 	Bitrot: avoid U_FILE_ACCESS_ERROR after chroot(), by
 	initializing the ICU library before making the chroot()
 	call. Files: util/midna_domain.[hc], global/mail_params.c.
+
+20200511
+
+	Noise suppression: spurious "SSL_Shutdown:shutdown while
+	in init" warnings. File: tls/tls_session.c.
+
+	Debugging: with a single -v, the cleanup server now also
+	logs output envelope records, so that one -v option shows
+	the input and output. File: cleanup_out.c.
+
+20200515
+
+	Bugfix (introduced: Postfix 2.2): TLS error status info
+	from a PostgreSQL client caused a false 'lost connection'
+	error for an SMTP-over-TLS session in the same Postfix
+	process. Reported by Alexander Vasarab, diagnosed by Viktor
+	Dukhovni. File: tls/tls_bio_ops.c.
+
+	Bugfix (introduced: Postfix 2.8): TLS error status info
+	from one TLS session may cause a false 'lost connection'
+	error for concurrent TLS sessions in the same tlsproxy
+	process. File: tlsproxy/tlsproxy.c.
