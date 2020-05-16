@@ -194,6 +194,13 @@ int     tls_bio(int fd, int timeout, TLS_SESS_STATE *TLScontext,
      * handling any pending network I/O.
      */
     for (;;) {
+
+	/*
+	 * Flush the per-thread SSL error queue. Otherwise, errors from other
+	 * code that also uses TLS may confuse SSL_get_error(3).
+	 */
+	ERR_clear_error();
+
 	if (hsfunc)
 	    status = hsfunc(TLScontext->con);
 	else if (rfunc)
