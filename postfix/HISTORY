@@ -23569,3 +23569,44 @@ Apologies for any names omitted.
 
 	Bitrot: LINUX5, GLIBC resolver flags. Files: makedefs,
 	util/sys_defs.h, dns/dns_str_resflags.c.
+
+20200420
+
+	Noise suppression: shut up a compiler that special-cases
+	string literals. Viktor Dukhovni. File milter/milter.c.
+
+20200422
+
+	Security: disable DANE support on Alpine Linux because
+	libc-musl provides no indication whether DNS responses are
+	authentic. This broke DANE support without a clear explanation.
+	File: makedefs.
+
+20200505
+
+	Noise suppression: shut up a compiler that special-cases
+	string literals. Viktor Dukhovni. File smtpd/smtpd_check.c.
+
+20200510
+
+	Bitrot: avoid U_FILE_ACCESS_ERROR after chroot(), by
+	initializing the ICU library before making the chroot()
+	call. Files: util/midna_domain.[hc], global/mail_params.c.
+
+20200511
+
+	Noise suppression: avoid "SSL_Shutdown:shutdown while in
+	init" warnings. File: tls/tls_session.c.
+
+20200515
+
+	Bugfix (introduced: Postfix 2.2): a TLS error for a PostgreSQL
+	client caused a false 'lost connection' error for an SMTP
+	over TLS session in the same Postfix process. Reported by
+	Alexander Vasarab, diagnosed by Viktor Dukhovni. File:
+	tls/tls_bio_ops.c.
+
+	Bugfix (introduced: Postfix 2.8): a TLS error for one TLS
+	session may cause a false 'lost connection' error for a
+	concurrent TLS session in the same tlsproxy process. File:
+	tlsproxy/tlsproxy.c.

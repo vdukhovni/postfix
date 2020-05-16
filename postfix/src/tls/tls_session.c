@@ -113,7 +113,7 @@ void    tls_session_stop(TLS_APPL_STATE *unused_ctx, VSTREAM *stream, int timeou
      * so we will not perform SSL_shutdown() and the session will be removed
      * as being bad.
      */
-    if (!failure) {
+    if (!failure && !SSL_in_init(TLScontext->con)) {
 	retval = tls_bio_shutdown(vstream_fileno(stream), timeout, TLScontext);
 	if (!var_tls_fast_shutdown && retval == 0)
 	    tls_bio_shutdown(vstream_fileno(stream), timeout, TLScontext);
