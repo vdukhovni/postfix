@@ -472,6 +472,7 @@ static void tlsp_strategy(TLSP_STATE *state)
      * pending read/write and timeout event requests.
      */
     if (state->flags & TLSP_FLAG_DO_HANDSHAKE) {
+	ERR_clear_error();
 	ssl_stat = SSL_accept(tls_context->con);
 	if (ssl_stat != 1) {
 	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
@@ -506,6 +507,7 @@ static void tlsp_strategy(TLSP_STATE *state)
     if (NBBIO_ERROR_FLAGS(plaintext_buf)) {
 	if (NBBIO_ACTIVE_FLAGS(plaintext_buf))
 	    nbbio_disable_readwrite(state->plaintext_buf);
+	ERR_clear_error();
 	if (!SSL_in_init(tls_context->con)
 	    && (ssl_stat = SSL_shutdown(tls_context->con)) < 0) {
 	    handshake_err = SSL_get_error(tls_context->con, ssl_stat);
@@ -532,6 +534,7 @@ static void tlsp_strategy(TLSP_STATE *state)
      */
     ssl_write_err = SSL_ERROR_NONE;
     while (NBBIO_READ_PEND(plaintext_buf) > 0) {
+	ERR_clear_error();
 	ssl_stat = SSL_write(tls_context->con, NBBIO_READ_BUF(plaintext_buf),
 			     NBBIO_READ_PEND(plaintext_buf));
 	ssl_write_err = SSL_get_error(tls_context->con, ssl_stat);
@@ -562,6 +565,7 @@ static void tlsp_strategy(TLSP_STATE *state)
      */
     ssl_read_err = SSL_ERROR_NONE;
     while (NBBIO_WRITE_PEND(state->plaintext_buf) < NBBIO_BUFSIZE(plaintext_buf)) {
+	ERR_clear_error();
 	ssl_stat = SSL_read(tls_context->con,
 			    NBBIO_WRITE_BUF(plaintext_buf)
 			    + NBBIO_WRITE_PEND(state->plaintext_buf),

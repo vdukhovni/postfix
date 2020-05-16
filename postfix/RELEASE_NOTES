@@ -16,6 +16,14 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.0 or earlier, read RELEASE_NOTES-3.1
 before proceeding.
 
+libc-musl workaround for Postfix 3.2.15, 3.3.10, 3.4.12, and 3.5.2
+------------------------------------------------------------------
+
+Security: this release disables DANE support on Linux systems with
+libc-musl, because libc-musl provides no indication whether DNS
+responses are authentic. This broke DANE support without a clear
+explanation.
+
 TLS Workaround for Postfix 3.4.6, 3.3.5, 3.2.10 and 3.1.13
 -----------------------------------------------------------
 
