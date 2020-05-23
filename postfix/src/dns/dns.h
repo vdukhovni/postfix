@@ -54,6 +54,17 @@
 
 #endif
 
+ /*
+  * Provide API compatibility for systems without res_nxxx() API. Also
+  * require calling dns_get_h_errno() instead of directly accessing the
+  * global h_errno variable. We should not count on that being updated.
+  */
+#if !defined(NO_RES_NCALLS) && defined(__RES) && (__RES >= 19991006)
+#define USE_RES_NCALLS
+#undef h_errno
+#define h_errno use_dns_get_h_errno_instead_of_h_errno
+#endif
+
 /*
  * Disable DNSSEC at compile-time even if RES_USE_DNSSEC is available
  */
@@ -229,6 +240,7 @@ extern int dns_lookup_rl(const char *, unsigned, DNS_RR **, VSTRING *,
 			         VSTRING *, int *, int,...);
 extern int dns_lookup_rv(const char *, unsigned, DNS_RR **, VSTRING *,
 			         VSTRING *, int *, int, unsigned *);
+extern int dns_get_h_errno(void);
 
 #define dns_lookup(name, type, rflags, list, fqdn, why) \
     dns_lookup_x((name), (type), (rflags), (list), (fqdn), (why), (int *) 0, \

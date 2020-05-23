@@ -239,12 +239,6 @@ case "$SYSTEM" in
 	 *) echo Warning: libc-musl breaks DANE/TLSA security. 1>&2
 	    echo This build will not support DANE/TLSA. 1>&2
 	    CCARGS="$CCARGS -DNO_DNSSEC";;
-	esac
-	case "$CCARGS" in
-	 *-DNO_RES_NCALLS*) ;;
-	 *) echo Warning: libc-musl does not support res_ninit etc. 1>&2
-	    echo This build will not support modern resolver features. 1>&2
-	    CCARGS="$CCARGS -DNO_RES_NCALLS";;
 	esac;;
     esac;;
 esac
@@ -1166,7 +1160,7 @@ esac
 : ${CC=gcc} ${OPT='-O'} ${DEBUG='-g'} ${AWK=awk} \
 ${WARN='-Wall -Wno-comment -Wformat -Wimplicit -Wmissing-prototypes \
 	-Wparentheses -Wstrict-prototypes -Wswitch -Wuninitialized \
-	-Wunused -Wno-missing-braces -fcommon'}
+	-Wunused -Wno-missing-braces -fno-common'}
 
 # Extract map type names from -DHAS_XXX compiler options.  We avoid
 # problems with tr(1) range syntax by using enumerations instead,

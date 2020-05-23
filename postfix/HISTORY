@@ -24693,10 +24693,11 @@ Apologies for any names omitted.
 
 20200419
 
-	Bugfix: segfault in the tlsproxy client role when the server
-	role was disabled. This typically happens with a first-time
-	Postfix install and after configuring only outbound TLS.
-	Found during program maintenance. File: tlsproxy/tlsproxy.c.
+	Bugfix (introduced: Postfix 3.4): segfault in the tlsproxy
+	client role when the server role was disabled. This typically
+	happens with a first-time Postfix install and after configuring
+	only outbound TLS. Found during program maintenance. File:
+	tlsproxy/tlsproxy.c.
 
 20200420
 
@@ -24705,10 +24706,10 @@ Apologies for any names omitted.
 
 20200422
 
-	Security: disable TLSA/DANE on Alpine Linux because libc-musl
-	provides no indication whether responses are authentic.
-	This broke TLSA/DANE without a clear explanation. File:
-	makedefs.
+	Security: disable DANE support on Alpine Linux because
+	libc-musl provides no indication whether DNS responses are
+	authentic. This broke DANE support without a clear explanation.
+	File: makedefs.
 
 20200425
 
@@ -24719,7 +24720,7 @@ Apologies for any names omitted.
 	However, with a SHARED listen socket as used in Postfix,
 	kernel-based load balancing does not help, and Postfix still
 	requires locking to avoid waking up multiple processes when
-	a connection arrives.  Files: util/inet_listen.c,
+	a connection arrives. Files: util/inet_listen.c,
 
 20200502
 
@@ -24750,7 +24751,7 @@ Apologies for any names omitted.
 
 20200509
 
-	Bugfix (introduced: Postfix 3.5): maillog_file_rotate_suffix
+	Bugfix (introduced: Postfix 3.4): maillog_file_rotate_suffix
 	default value used the minute instead of the month. Reported
 	by Larry Stone. Files: conf/postfix-tls-script,
 	proto/MAILLOG_README.html, proto/postconf.proto.
@@ -24763,8 +24764,8 @@ Apologies for any names omitted.
 
 20200511
 
-	Noise suppression: spurious "SSL_Shutdown:shutdown while
-	in init" warnings. File: tls/tls_session.c.
+	Noise suppression: avoid "SSL_Shutdown:shutdown while in
+	init" warnings. File: tls/tls_session.c.
 
 	Debugging: with a single -v, the cleanup server now also
 	logs output envelope records, so that one -v option shows
@@ -24772,13 +24773,41 @@ Apologies for any names omitted.
 
 20200515
 
-	Bugfix (introduced: Postfix 2.2): TLS error status info
-	from a PostgreSQL client caused a false 'lost connection'
-	error for an SMTP-over-TLS session in the same Postfix
-	process. Reported by Alexander Vasarab, diagnosed by Viktor
-	Dukhovni. File: tls/tls_bio_ops.c.
+	Bugfix (introduced: Postfix 2.2): a TLS error for a PostgreSQL
+	client caused a false 'lost connection' error for an SMTP
+	over TLS session in the same Postfix process. Reported by
+	Alexander Vasarab, diagnosed by Viktor Dukhovni. File:
+	tls/tls_bio_ops.c.
 
-	Bugfix (introduced: Postfix 2.8): TLS error status info
-	from one TLS session may cause a false 'lost connection'
-	error for concurrent TLS sessions in the same tlsproxy
-	process. File: tlsproxy/tlsproxy.c.
+	Bugfix (introduced: Postfix 2.8): a TLS error for one TLS
+	session may cause a false 'lost connection' error for a
+	concurrent TLS session in the same tlsproxy process. File:
+	tlsproxy/tlsproxy.c.
+
+20200518
+
+	Documentation: updated the wording of recent HISTORY entries,
+	based on the text in the 20200516 stable releases.
+
+20200521
+
+	Cleanup: the value of __RES (defined in resolv.h) determines
+	whether the res_nxxx() API is available. Credit to Rich
+	Felker. Files: util/sys_defs.h, dns/dns_lookup.c.
+
+20200522
+
+	Cleanup: the postconf command builds with -fno-common.
+	Files: makedefs, Makefile.in, postconf/extract.awk,
+	postconf/install_vars.h.
+
+20200523
+
+	Cleanup: the 20200503 change did not prevent direct access
+	to the obsolete h_errno variable in smtpd_checks.c. This
+	variable may still be updated, but we should not count on
+	that. Files: dns/dns.h, dns/dns_lookup.c, smtpd/smtpd_check.c.
+
+	Cleanup: unit tests now build with -fno-common. Files:
+	global/server_acl.c, smtpd/smtpd_check.c, global/strip_addr.c,
+	proxymap/proxymap.c.

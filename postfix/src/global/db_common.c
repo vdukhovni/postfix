@@ -114,6 +114,11 @@
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
 /*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
+/*
 /*	Liviu Daia
 /*	Institute of Mathematics of the Romanian Academy
 /*	P.O. BOX 1-764

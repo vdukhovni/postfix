@@ -1815,7 +1815,8 @@ static int all_auth_mx_addr(SMTPD_STATE *state, char *host,
 			 "%s as mail exchanger: %s",
 			 reply_name, reply_class, host,
 			 dns_status == DNS_POLICY ?
-			 "DNS reply filter policy" : dns_strerror(h_errno));
+			 "DNS reply filter policy" :
+			 dns_strerror(dns_get_h_errno()));
 	return (NOPE);
     }
     for (rr = addr_list; rr != 0; rr = rr->next) {
@@ -2059,8 +2060,10 @@ static int permit_mx_backup(SMTPD_STATE *state, const char *recipient,
 			     450, "4.4.4",
 			     "<%s>: %s rejected: Unable to look up mail "
 			     "exchanger information: %s",
-			 reply_name, reply_class, dns_status == DNS_POLICY ?
-			 "DNS reply filter policy" : dns_strerror(h_errno));
+			     reply_name, reply_class,
+			     dns_status == DNS_POLICY ?
+			     "DNS reply filter policy" :
+			     dns_strerror(dns_get_h_errno()));
 	return (SMTPD_CHECK_DUNNO);
     }
 
@@ -3080,8 +3083,10 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
 	}
 	if (dns_status != DNS_OK) {
 	    msg_warn("Unable to look up %s host for %s: %s", dns_strtype(type),
-	     domain && domain[1] ? domain : name, dns_status == DNS_POLICY ?
-		     "DNS reply filter policy" : dns_strerror(h_errno));
+		     domain && domain[1] ? domain : name,
+		     dns_status == DNS_POLICY ?
+		     "DNS reply filter policy" :
+		     dns_strerror(dns_get_h_errno()));
 	    return (SMTPD_CHECK_DUNNO);
 	}
     }
@@ -5570,7 +5575,6 @@ char   *var_rcpt_checks = "";
 char   *var_etrn_checks = "";
 char   *var_data_checks = "";
 char   *var_eod_checks = "";
-char   *var_relay_domains = "";
 char   *var_smtpd_uproxy_proto = "";
 int     var_smtpd_uproxy_tmout = 0;
 
@@ -5578,7 +5582,6 @@ int     var_smtpd_uproxy_tmout = 0;
 char   *var_relay_ccerts = "";
 
 #endif
-char   *var_mynetworks = "";
 char   *var_notify_classes = "";
 char   *var_smtpd_policy_def_action = "";
 char   *var_smtpd_policy_context = "";
@@ -5587,11 +5590,6 @@ char   *var_smtpd_policy_context = "";
   * String-valued configuration parameters.
   */
 char   *var_maps_rbl_domains;
-char   *var_myorigin;
-char   *var_mydest;
-char   *var_inet_interfaces;
-char   *var_proxy_interfaces;
-char   *var_rcpt_delim;
 char   *var_rest_classes;
 char   *var_alias_maps;
 char   *var_send_canon_maps;
@@ -5603,10 +5601,8 @@ char   *var_virt_mailbox_maps;
 char   *var_virt_mailbox_doms;
 char   *var_local_rcpt_maps;
 char   *var_perm_mx_networks;
-char   *var_par_dom_match;
 char   *var_smtpd_null_key;
 char   *var_smtpd_snd_auth_maps;
-char   *var_double_bounce_sender;
 char   *var_rbl_reply_maps;
 char   *var_smtpd_exp_filter;
 char   *var_def_rbl_reply;
@@ -5623,7 +5619,6 @@ char   *var_unk_addr_tf_act;
 char   *var_unv_rcpt_tf_act;
 char   *var_unv_from_tf_act;
 char   *var_smtpd_acl_perm_log;
-char   *var_info_log_addr_form;
 
 typedef struct {
     char   *name;
@@ -5680,6 +5675,9 @@ static const STRING_TABLE string_table[] = {
     VAR_SMTPD_ACL_PERM_LOG, DEF_SMTPD_ACL_PERM_LOG, &var_smtpd_acl_perm_log,
     VAR_SMTPD_DNS_RE_FILTER, DEF_SMTPD_DNS_RE_FILTER, &var_smtpd_dns_re_filter,
     VAR_INFO_LOG_ADDR_FORM, DEF_INFO_LOG_ADDR_FORM, &var_info_log_addr_form,
+    /* XXX No static initialization with "", because owned by a library. */
+    VAR_MYNETWORKS, "", &var_mynetworks,
+    VAR_RELAY_DOMAINS, "", &var_relay_domains,
     0,
 };
 

@@ -38,3 +38,11 @@ To build old style, build with:
 
 This is also the default for systems that are known not to support
 the threadsafe resolver API, such systems that use libc-musl.
+
+Incompatible changes with snapshot 20200416
+===========================================
+
+Security: this release disables DANE support on Linux systems with
+libc-musl, because libc-musl provides no indication whether DNS
+responses are authentic. This broke DANE support without a clear
+explanation.

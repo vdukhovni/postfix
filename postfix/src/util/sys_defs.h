@@ -1700,14 +1700,6 @@ typedef int pid_t;
 #define ENFORCING_SIZE_LIMIT(param)	((param) > 0)
 
  /*
-  * The threadsafe resolver(5) API came out before 2002, and should be on by
-  * default.
-  */
-#ifndef NO_RES_NCALLS
-#define USE_RES_NCALLS
-#endif
-
- /*
   * Don't mix socket message send/receive calls with socket stream read/write
   * calls. The fact that you can get away with it only on some stacks implies
   * that there is no long-term guarantee.

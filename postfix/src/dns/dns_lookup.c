@@ -31,6 +31,8 @@
 /*	VSTRING *why;
 /*	int	lflags;
 /*	unsigned *ltype;
+/*
+/*	int	dns_get_h_errno()
 /* AUXILIARY FUNCTIONS
 /*	extern int var_dns_ncache_ttl_fix;
 /*
@@ -82,6 +84,10 @@
 /*	All name results are validated by \fIvalid_hostname\fR();
 /*	an invalid name is reported as a DNS_INVAL result, while
 /*	malformed replies are reported as transient errors.
+/*
+/*	dns_get_h_errno() returns the last error. This deprecates
+/*	usage of the global h_errno variable. We should not rely
+/*	on that being updated.
 /*
 /*	dns_lookup_l() and dns_lookup_v() allow the user to specify
 /*	a list of resource types.
@@ -1243,4 +1249,11 @@ int     dns_lookup_rv(const char *name, unsigned flags, DNS_RR **rrlist,
     if (hpref_rtext)
 	vstring_free(hpref_rtext);
     return (status);
+}
+
+/* dns_get_h_errno - get the last lookup status */
+
+int     dns_get_h_errno(void)
+{
+    return (DNS_GET_H_ERRNO(&dns_res_state));
 }

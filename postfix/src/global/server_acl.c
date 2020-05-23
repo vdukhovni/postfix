@@ -59,6 +59,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -235,9 +240,7 @@ int     server_acl_eval(const char *client_addr, SERVER_ACL * intern_acl,
 #include <vstring_vstream.h>
 #include <name_code.h>
 #include <split_at.h>
-
-char   *var_par_dom_match = DEF_PAR_DOM_MATCH;
-char   *var_mynetworks = "";
+    
 char   *var_server_acl = "";
 
 #define UPDATE_VAR(s,v) do { if (*(s)) myfree(s); (s) = mystrdup(v); } while (0)
@@ -258,6 +261,12 @@ int     main(void)
 	SERVER_ACL_NAME_DUNNO, SERVER_ACL_ACT_DUNNO,
 	0,
     };
+
+    /*
+     * No static initializer because these are owned by a library.
+     */
+    var_par_dom_match = DEF_PAR_DOM_MATCH;
+    var_mynetworks = "";
 
 #define VAR_SERVER_ACL "server_acl"
 

@@ -1,7 +1,10 @@
 Wish list:
 
-	Find a reasonable way to generate postconf configuration
-	parameter tables without breaking gcc -fnocommon.
+	DNSSEC end-to-end test, probing a configurable zone (".")
+	and resource type (default: NS).
+
+	When a secondary instance has no multi_instance_name set,
+`	postmulti -i won't be able to find it.
 
 	Read http://mmogilvi.users.sourceforge.net/software/oauthbearer.html
 	and see how we can improve on the Postfix side.
