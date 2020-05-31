@@ -185,6 +185,12 @@ typedef struct SMTP_STATE {
      * DSN Support introduced major bloat in error processing.
      */
     DSN_BUF *why;			/* on-the-fly formatting buffer */
+
+    /*
+     * Whether per-nexthop debug_peer support was requested. Otherwise,
+     * assume per-server debug_peer support.
+     */
+    int     debug_peer_per_nexthop;
 } SMTP_STATE;
 
  /*

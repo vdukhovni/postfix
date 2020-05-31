@@ -28,6 +28,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -43,6 +48,7 @@
 /* Global library. */
 
 #include <mail_params.h>
+#include <debug_peer.h>
 
 /* Application-specific. */
 
@@ -81,6 +87,7 @@ SMTP_STATE *smtp_state_alloc(void)
 	state->cache_used = 0;
     }
     state->why = dsb_create();
+    state->debug_peer_per_nexthop = 0;
     return (state);
 }
 
@@ -109,6 +116,8 @@ void    smtp_state_free(SMTP_STATE *state)
 	htable_free(state->cache_used, (void (*) (void *)) 0);
     if (state->why)
 	dsb_free(state->why);
+    if (state->debug_peer_per_nexthop)
+	debug_peer_restore();
 
     myfree((void *) state);
 }

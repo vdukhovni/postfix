@@ -7,9 +7,6 @@ IInnttrroodduuccttiioonn
 This document describes the Postfix connection cache implementation, which is
 available with Postfix version 2.2 and later.
 
-See Client-side TLS connection reuse for how this connection cache is used to
-implement multiple deliveries per TLS-encrypted connection.
-
 Topics covered in this document:
 
   * What SMTP connection caching can do for you
@@ -22,8 +19,12 @@ Topics covered in this document:
 WWhhaatt SSMMTTPP ccoonnnneeccttiioonn ccaacchhiinngg ccaann ddoo ffoorr yyoouu
 
 With SMTP connection caching, Postfix can deliver multiple messages over the
-same SMTP connection. By default, Postfix 2.2 reuses an SMTP connection
-automatically when a destination has high volume of mail in the active queue.
+same SMTP connection. By default, Postfix 2.2 reuses a plaintext SMTP
+connection automatically when a destination has high volume of mail in the
+active queue.
+
+See Client-side TLS connection reuse to also implement multiple deliveries over
+a TLS-encrypted connection (Postfix version 3.4 and later).
 
 SMTP Connection caching is a performance feature. Whether or not it actually
 improves performance depends on the conditions:
@@ -32,9 +33,15 @@ improves performance depends on the conditions:
     mail to a destination with multiple mail servers, because it can help
     Postfix to skip over a non-responding server.
 
+  * SMTP Connection caching can also help with receivers that impose rate
+    limits on new connections.
+
   * Otherwise, the benefits of SMTP connection caching are minor: it eliminates
     the latency of the TCP handshake (SYN, SYN+ACK, ACK), plus the latency of
     the SMTP initial handshake (220 greeting, EHLO command, EHLO response).
+    With TLS-encrypted connections, this can save an additional two roundtrips
+    that would otherwise be needed to send STARTTLS and to resume a TLS
+    session.
 
   * SMTP Connection caching gives no gains with respect to SMTP session tear-
     down. The Postfix smtp(8) client normally does not wait for the server's

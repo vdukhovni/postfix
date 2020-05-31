@@ -70,6 +70,7 @@
 #include <dsb_scan.h>
 #include <defer.h>
 #include <rcpt_print.h>
+#include <info_log_addr_form.h>
 
 #define DELIVER_PASS_DEFER	1
 #define DELIVER_PASS_UNKNOWN	2
@@ -182,6 +183,9 @@ int     deliver_pass(const char *class, const char *service,
     /*
      * Initialize.
      */
+    msg_info("%s: passing <%s> to transport=%s",
+	     request->queue_id, info_log_addr_form_recipient(rcpt->address),
+	     transport);
     stream = mail_connect_wait(class, transport);
     dsb = dsb_create();
 

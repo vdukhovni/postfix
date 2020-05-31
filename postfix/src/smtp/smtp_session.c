@@ -229,7 +229,8 @@ void    smtp_session_free(SMTP_SESSION *session)
     smtp_sasl_cleanup(session);
 #endif
 
-    debug_peer_restore();
+    if (session->state->debug_peer_per_nexthop == 0)
+	debug_peer_restore();
     myfree((void *) session);
 }
 

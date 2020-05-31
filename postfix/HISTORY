@@ -24811,3 +24811,31 @@ Apologies for any names omitted.
 	Cleanup: unit tests now build with -fno-common. Files:
 	global/server_acl.c, smtpd/smtpd_check.c, global/strip_addr.c,
 	proxymap/proxymap.c.
+
+20200525
+
+	Documentation: revised text about TLS connection reuse.
+	File: proto/CONNECTION_CACHE_README.html
+
+20200530
+
+	Bugfix (introduced: Postfix 3.1): "postfix tls deploy-server-cert"
+	did not handle a missing optional argument. File:
+	conf/postfix-tls-script.
+
+20200531
+
+	Debugging: per-nexthop SMTP client "debug peer" logging so
+	that we can also see what happens before, between, and after
+	SMTP sessions; add explicit SMTP client debug logging for
+	non-DNS host lookups.  Files: smtp/smtp.c, proto/postconf.proto,
+	smtp/smtp_addr.c, smtp/smtp.c, smtp/smtp.h, smtp/smtp_session.c,
+	smtp/smtp_state.c.
+
+	Postfix delivery agents now log an explicit record when
+	delegating delivery to a different Postfix delivery agent.
+	Example: "postfix/smtp[pid] queueid: passing <recipient>
+	to transport=local". This makes the delegating delivery
+	agent visible, where it would otherwise have remained
+	invisible, which would complicate troubleshooting. File:
+	global/deliver_pass.c.

@@ -154,6 +154,8 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		msg_fatal("host %s: conversion error for address family "
 			  "%d: %m", host, res0->ai_addr->sa_family);
 	    addr_list = dns_rr_append(addr_list, addr);
+	    if (msg_verbose)
+		msg_info("%s: using numerical host %s", myname, host);
 	    freeaddrinfo(res0);
 	    return (addr_list);
 	}
@@ -230,6 +232,14 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
 		    msg_fatal("host %s: conversion error for address family "
 			      "%d: %m", host, res0->ai_addr->sa_family);
 		addr_list = dns_rr_append(addr_list, addr);
+		if (msg_verbose) {
+		    MAI_HOSTADDR_STR hostaddr_str;
+
+		    SOCKADDR_TO_HOSTADDR(res->ai_addr, res->ai_addrlen,
+				  &hostaddr_str, (MAI_SERVPORT_STR *) 0, 0);
+		    msg_info("%s: native lookup result: %s",
+			     myname, hostaddr_str.buf);
+		}
 	    }
 	    freeaddrinfo(res0);
 	    if (found == 0) {
@@ -370,8 +380,7 @@ static DNS_RR *smtp_balance_inet_proto(DNS_RR *addr_list, int misc_flags,
     DNS_RR *next;
     int     v6_count;
     int     v4_count;
-    int     v6_target,
-            v4_target;
+    int     v6_target, v4_target;
     int    *p;
 
     /*

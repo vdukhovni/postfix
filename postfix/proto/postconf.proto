@@ -916,14 +916,20 @@ The default time unit is s (seconds).
 
 %PARAM debug_peer_level 2
 
-<p> The increment in verbose logging level when a remote client or
-server matches a pattern in the debug_peer_list parameter.  </p>
+<p> The increment in verbose logging level when a nexthop destination,
+remote client or server name or network address matches a pattern
+given with the debug_peer_list parameter. </p>
 
-%PARAM debug_peer_list 
+<p> Per-nexthop debug logging is available in Postfix 3.6 and later. </p>
 
-<p> Optional list of remote client or server hostname or network
-address patterns that cause the verbose logging level to increase
-by the amount specified in $debug_peer_level.  </p>
+%PARAM debug_peer_list
+
+<p> Optional list of nexthop destination, remote client or server
+name or network address patterns that, if matched, cause the verbose
+logging level to increase by the amount specified in $debug_peer_level.
+</p>
+
+<p> Per-nexthop debug logging is available in Postfix 3.6 and later. </p>
 
 <p> Specify domain names, network/netmask patterns, "/file/name"
 patterns or "type:table" lookup tables. The right-hand side result

@@ -1,5 +1,11 @@
 Wish list:
 
+	DNS wrapper class, like XSASL, to support different stub
+	resolvers without contaminating Postfix programs with the
+	idiosyncracies of stub resolvers. Handle differences in
+	resolver feature sets gracefully: an unsupported request
+	will result in an error status, not program termination.
+
 	DNSSEC end-to-end test, probing a configurable zone (".")
 	and resource type (default: NS).
 

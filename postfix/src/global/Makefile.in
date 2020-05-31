@@ -1057,6 +1057,7 @@ deliver_pass.o: deliver_request.h
 deliver_pass.o: dsb_scan.h
 deliver_pass.o: dsn.h
 deliver_pass.o: dsn_buf.h
+deliver_pass.o: info_log_addr_form.h
 deliver_pass.o: mail_params.h
 deliver_pass.o: mail_proto.h
 deliver_pass.o: msg_stats.h
@@ -1401,6 +1402,7 @@ haproxy_srvr.o: ../../include/inet_proto.h
 haproxy_srvr.o: ../../include/msg.h
 haproxy_srvr.o: ../../include/myaddrinfo.h
 haproxy_srvr.o: ../../include/mymalloc.h
+haproxy_srvr.o: ../../include/sock_addr.h
 haproxy_srvr.o: ../../include/split_at.h
 haproxy_srvr.o: ../../include/stringops.h
 haproxy_srvr.o: ../../include/sys_defs.h

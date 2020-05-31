@@ -1104,12 +1104,17 @@ software.
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH debug_peer_level (default: 2)
-The increment in verbose logging level when a remote client or
-server matches a pattern in the debug_peer_list parameter.
+The increment in verbose logging level when a nexthop destination,
+remote client or server name or network address matches a pattern
+given with the debug_peer_list parameter.
+.PP
+Per\-nexthop debug logging is available in Postfix 3.6 and later.
 .SH debug_peer_list (default: empty)
-Optional list of remote client or server hostname or network
-address patterns that cause the verbose logging level to increase
-by the amount specified in $debug_peer_level.
+Optional list of nexthop destination, remote client or server
+name or network address patterns that, if matched, cause the verbose
+logging level to increase by the amount specified in $debug_peer_level.
+.PP
+Per\-nexthop debug logging is available in Postfix 3.6 and later.
 .PP
 Specify domain names, network/netmask patterns, "/file/name"
 patterns or "type:table" lookup tables. The right\-hand side result

@@ -1834,8 +1834,11 @@ software.  </p>
 <DT><b><a name="debug_peer_level">debug_peer_level</a>
 (default: 2)</b></DT><DD>
 
-<p> The increment in verbose logging level when a remote client or
-server matches a pattern in the <a href="postconf.5.html#debug_peer_list">debug_peer_list</a> parameter.  </p>
+<p> The increment in verbose logging level when a nexthop destination,
+remote client or server name or network address matches a pattern
+given with the <a href="postconf.5.html#debug_peer_list">debug_peer_list</a> parameter. </p>
+
+<p> Per-nexthop debug logging is available in Postfix 3.6 and later. </p>
 
 
 </DD>
@@ -1843,9 +1846,12 @@ server matches a pattern in the <a href="postconf.5.html#debug_peer_list">debug_
 <DT><b><a name="debug_peer_list">debug_peer_list</a>
 (default: empty)</b></DT><DD>
 
-<p> Optional list of remote client or server hostname or network
-address patterns that cause the verbose logging level to increase
-by the amount specified in $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.  </p>
+<p> Optional list of nexthop destination, remote client or server
+name or network address patterns that, if matched, cause the verbose
+logging level to increase by the amount specified in $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.
+</p>
+
+<p> Per-nexthop debug logging is available in Postfix 3.6 and later. </p>
 
 <p> Specify domain names, network/netmask patterns, "/file/name"
 patterns or "<a href="DATABASE_README.html">type:table</a>" lookup tables. The right-hand side result
