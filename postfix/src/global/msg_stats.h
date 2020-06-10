@@ -82,8 +82,8 @@ typedef struct {
 	(st) \
     )
 
-extern int msg_stats_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
-extern int msg_stats_print(ATTR_PRINT_MASTER_FN, VSTREAM *, int, void *);
+extern int msg_stats_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
+extern int msg_stats_print(ATTR_PRINT_COMMON_FN, VSTREAM *, int, void *);
 
 /* LICENSE
 /* .ad

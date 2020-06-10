@@ -38,7 +38,7 @@ typedef struct {
 extern RCPT_BUF *rcpb_create(void);
 extern void rcpb_reset(RCPT_BUF *);
 extern void rcpb_free(RCPT_BUF *);
-extern int rcpb_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
+extern int rcpb_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
 #define RECIPIENT_FROM_RCPT_BUF(buf) \
     ((buf)->rcpt.address = vstring_str((buf)->address), \

@@ -219,7 +219,7 @@ create|import)
     # and drop from alternate_config_directories
     #
     # XXX: Must happen before set-permissions below, otherwise instance
-    # is treated as a non-slave instance by post-install via postfix(1).
+    # is treated as an independent instance by post-install via postfix(1).
     #
     update_cfdirs del $config_directory || exit 1
 
@@ -227,7 +227,7 @@ create|import)
     # queue_directory and data_directory, ...
     #
     # XXX: Must happen after instance list updates above, otherwise instance
-    # is treated as a non-slave instance by post-install via postfix(1).
+    # is treated as an independent instance by post-install via postfix(1).
     #
     postfix -c $config_directory set-permissions || exit 1
     ;;

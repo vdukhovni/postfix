@@ -7,7 +7,7 @@
 /*	#include <tls_proxy.h>
 /*
 /*	int     tls_proxy_context_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int     flags;
 /*	void    *ptr;
@@ -66,7 +66,7 @@
 
 /* tls_proxy_context_scan - receive TLS session state from stream */
 
-int     tls_proxy_context_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     tls_proxy_context_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 			               int flags, void *ptr)
 {
     TLS_SESS_STATE *tls_context

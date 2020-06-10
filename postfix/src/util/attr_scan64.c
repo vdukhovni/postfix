@@ -104,7 +104,7 @@
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "RECV_ATTR_DATA(const char *name, VSTRING *vp)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
-/* .IP "RECV_ATTR_FUNC(ATTR_SCAN_SLAVE_FN, void *data)"
+/* .IP "RECV_ATTR_FUNC(ATTR_SCAN_CUSTOM_FN, void *data)"
 /*	This argument is followed by a function pointer and a generic data
 /*	pointer. The caller-specified function returns < 0 in case of
 /*	error.
@@ -279,7 +279,7 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
     HTABLE *hash_table;
     int     ch;
     int     conversions;
-    ATTR_SCAN_SLAVE_FN scan_fn;
+    ATTR_SCAN_CUSTOM_FN scan_fn;
     void   *scan_arg;
 
     /*
@@ -465,7 +465,7 @@ int     attr_vscan64(VSTREAM *fp, int flags, va_list ap)
 	    }
 	    break;
 	case ATTR_TYPE_FUNC:
-	    scan_fn = va_arg(ap, ATTR_SCAN_SLAVE_FN);
+	    scan_fn = va_arg(ap, ATTR_SCAN_CUSTOM_FN);
 	    scan_arg = va_arg(ap, void *);
 	    if (scan_fn(attr_scan64, fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
 		return (-1);

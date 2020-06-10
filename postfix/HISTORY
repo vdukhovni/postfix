@@ -24839,3 +24839,31 @@ Apologies for any names omitted.
 	agent visible, where it would otherwise have remained
 	invisible, which would complicate troubleshooting. File:
 	global/deliver_pass.c.
+
+20200610
+
+	Respectful code: replace 'slave' in internal identifiers
+	and comments, and make the master(5) description more
+	consistent with that in master(8). Postfix does not have a
+	master/slave architecture, and these identifiers and comments
+	were just poorly worded. Files: conf/postmulti-script,
+	html/master.5.html, man/man5/master.5, proto/master,
+	global/dsb_scan.c, global/dsb_scan.h, global/dsn_print.c,
+	global/dsn_print.h, global/msg_stats.h, global/msg_stats_print.c,
+	global/msg_stats_scan.c, global/rcpt_buf.c, global/rcpt_buf.h,
+	global/rcpt_print.c, global/rcpt_print.h, milter/milter.h,
+	milter/milter_macros.c, tls/tls_proxy.h,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_proxy_server_print.c, tls/tls_proxy_server_scan.c,
+	util/argv_attr.h, util/argv_attr_print.c, util/argv_attr_scan.c,
+	util/attr.h, util/attr_print0.c, util/attr_print64.c,
+	util/attr_print_plain.c, util/attr_scan0.c, util/attr_scan64.c,
+	util/attr_scan_plain.c.
+
+	Bugfix (introduced: Postfix 3.4): in the Postfix SMTP server,
+	the SNI callback reported an error when it was called a
+	second time. This happened after the server-side TLS engine
+	sent a TLSv1.3 HelloRetryRequest (HRR) to a remote SMTP
+	client. Reported by Ján Máté, fixed by Viktor Dukhovni.
+	File: tls/tls_misc.c.

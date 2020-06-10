@@ -7,19 +7,19 @@
 /*	#include <tls_proxy.h>
 /*
 /*	int	tls_proxy_client_param_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
 /*	int	flags;
 /*	void	*ptr;
 /*
 /*	int	tls_proxy_client_init_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
 /*	int	flags;
 /*	void	*ptr;
 /*
 /*	int	tls_proxy_client_start_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM	*stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -85,7 +85,7 @@
 
 /* tls_proxy_client_param_print - send TLS_CLIENT_PARAMS over stream */
 
-int     tls_proxy_client_param_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     tls_proxy_client_param_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 				             int flags, void *ptr)
 {
     TLS_CLIENT_PARAMS *params = (TLS_CLIENT_PARAMS *) ptr;
@@ -134,7 +134,7 @@ int     tls_proxy_client_param_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 
 /* tls_proxy_client_init_print - send TLS_CLIENT_INIT_PROPS over stream */
 
-int     tls_proxy_client_init_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     tls_proxy_client_init_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 				            int flags, void *ptr)
 {
     TLS_CLIENT_INIT_PROPS *props = (TLS_CLIENT_INIT_PROPS *) ptr;
@@ -182,7 +182,7 @@ int     tls_proxy_client_init_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 
 /* tls_proxy_client_certs_print - send x509 certificates over stream */
 
-static int tls_proxy_client_certs_print(ATTR_PRINT_MASTER_FN print_fn,
+static int tls_proxy_client_certs_print(ATTR_PRINT_COMMON_FN print_fn,
 				          VSTREAM *fp, int flags, void *ptr)
 {
     TLS_CERTS *tls_certs = (TLS_CERTS *) ptr;
@@ -227,7 +227,7 @@ static int tls_proxy_client_certs_print(ATTR_PRINT_MASTER_FN print_fn,
 
 /* tls_proxy_client_pkeys_print - send public keys over stream */
 
-static int tls_proxy_client_pkeys_print(ATTR_PRINT_MASTER_FN print_fn,
+static int tls_proxy_client_pkeys_print(ATTR_PRINT_COMMON_FN print_fn,
 				          VSTREAM *fp, int flags, void *ptr)
 {
     TLS_PKEYS *tls_pkeys = (TLS_PKEYS *) ptr;
@@ -272,7 +272,7 @@ static int tls_proxy_client_pkeys_print(ATTR_PRINT_MASTER_FN print_fn,
 
 /* tls_proxy_client_tlsa_print - send TLS_TLSA over stream */
 
-static int tls_proxy_client_tlsa_print(ATTR_PRINT_MASTER_FN print_fn,
+static int tls_proxy_client_tlsa_print(ATTR_PRINT_COMMON_FN print_fn,
 				          VSTREAM *fp, int flags, void *ptr)
 {
     TLS_TLSA *tls_tlsa = (TLS_TLSA *) ptr;
@@ -310,7 +310,7 @@ static int tls_proxy_client_tlsa_print(ATTR_PRINT_MASTER_FN print_fn,
 
 /* tls_proxy_client_dane_print - send TLS_DANE over stream */
 
-static int tls_proxy_client_dane_print(ATTR_PRINT_MASTER_FN print_fn,
+static int tls_proxy_client_dane_print(ATTR_PRINT_COMMON_FN print_fn,
 				          VSTREAM *fp, int flags, void *ptr)
 {
     TLS_DANE *dane = (TLS_DANE *) ptr;
@@ -346,7 +346,7 @@ static int tls_proxy_client_dane_print(ATTR_PRINT_MASTER_FN print_fn,
 
 /* tls_proxy_client_start_print - send TLS_CLIENT_START_PROPS over stream */
 
-int     tls_proxy_client_start_print(ATTR_PRINT_MASTER_FN print_fn,
+int     tls_proxy_client_start_print(ATTR_PRINT_COMMON_FN print_fn,
 				          VSTREAM *fp, int flags, void *ptr)
 {
     TLS_CLIENT_START_PROPS *props = (TLS_CLIENT_START_PROPS *) ptr;

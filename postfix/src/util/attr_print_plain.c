@@ -53,7 +53,7 @@
 /* .IP "SEND_ATTR_DATA(const char *name, ssize_t len, const void *value)"
 /*	The arguments are an attribute name, an attribute value
 /*	length, and an attribute value pointer.
-/* .IP "SEND_ATTR_FUNC(ATTR_PRINT_SLAVE_FN, const void *value)"
+/* .IP "SEND_ATTR_FUNC(ATTR_PRINT_CUSTOM_FN, const void *value)"
 /*	The arguments are a function pointer and generic data
 /*	pointer. The caller-specified function returns whatever the
 /*	specified attribute printing function returns.
@@ -120,7 +120,7 @@ int     attr_vprint_plain(VSTREAM *fp, int flags, va_list ap)
     HTABLE_INFO **ht;
     static VSTRING *base64_buf;
     ssize_t len_val;
-    ATTR_PRINT_SLAVE_FN print_fn;
+    ATTR_PRINT_CUSTOM_FN print_fn;
     void   *print_arg;
 
     /*
@@ -169,7 +169,7 @@ int     attr_vprint_plain(VSTREAM *fp, int flags, va_list ap)
 			 attr_name, (long) len_val);
 	    break;
 	case ATTR_TYPE_FUNC:
-	    print_fn = va_arg(ap, ATTR_PRINT_SLAVE_FN);
+	    print_fn = va_arg(ap, ATTR_PRINT_CUSTOM_FN);
 	    print_arg = va_arg(ap, void *);
 	    print_fn(attr_print_plain, fp, flags | ATTR_FLAG_MORE, print_arg);
 	    break;

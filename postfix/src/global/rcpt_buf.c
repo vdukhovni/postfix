@@ -29,7 +29,7 @@
 /*	RCPT_BUF *rcpb;
 /*
 /*	int	rcpb_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -115,7 +115,7 @@ void    rcpb_free(RCPT_BUF *rcpt)
 
 /* rcpb_scan - receive recipient buffer */
 
-int     rcpb_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     rcpb_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		          int flags, void *ptr)
 {
     RCPT_BUF *rcpt = (RCPT_BUF *) ptr;

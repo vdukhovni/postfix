@@ -7,7 +7,7 @@
 /*	#include <dsb_scan.h>
 /*
 /*	int	dsb_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -45,7 +45,7 @@
 
 /* dsb_scan - read DSN_BUF from stream */
 
-int     dsb_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     dsb_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		         int flags, void *ptr)
 {
     DSN_BUF *dsb = (DSN_BUF *) ptr;

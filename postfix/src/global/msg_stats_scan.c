@@ -7,7 +7,7 @@
 /*	#include <msg_stats.h>
 /*
 /*	int	msg_stats_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -53,7 +53,7 @@
 
 /* msg_stats_scan - read MSG_STATS from stream */
 
-int     msg_stats_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     msg_stats_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 		               int flags, void *ptr)
 {
     MSG_STATS *stats = (MSG_STATS *) ptr;

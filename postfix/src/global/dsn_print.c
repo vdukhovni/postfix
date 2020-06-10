@@ -7,7 +7,7 @@
 /*	#include <dsn_print.h>
 /*
 /*	int	dsn_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -45,7 +45,7 @@
 
 /* dsn_print - write DSN to stream */
 
-int     dsn_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     dsn_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 		          int flags, void *ptr)
 {
     DSN    *dsn = (DSN *) ptr;

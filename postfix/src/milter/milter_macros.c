@@ -26,13 +26,13 @@
 /*	MILTER_MACROS *mp;
 /*
 /*	int     milter_macros_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
 /*
 /*	int	milter_macros_scan(scan_fn, fp, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM	*fp;
 /*	int	flags;
 /*	void	*ptr;
@@ -130,7 +130,7 @@
 
 /* milter_macros_print - write macros structure to stream */
 
-int     milter_macros_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     milter_macros_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 			            int flags, void *ptr)
 {
     MILTER_MACROS *mp = (MILTER_MACROS *) ptr;
@@ -155,7 +155,7 @@ int     milter_macros_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
 
 /* milter_macros_scan - receive macros structure from stream */
 
-int     milter_macros_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     milter_macros_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 			           int flags, void *ptr)
 {
     MILTER_MACROS *mp = (MILTER_MACROS *) ptr;

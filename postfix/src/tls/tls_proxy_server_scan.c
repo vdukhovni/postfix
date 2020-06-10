@@ -7,7 +7,7 @@
 /*	#include <tls_proxy.h>
 /*
 /*	int	tls_proxy_server_init_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int     flags;
 /*	void    *ptr;
@@ -16,7 +16,7 @@
 /*	TLS_SERVER_INIT_PROPS *init_props;
 /*
 /*	int	tls_proxy_server_start_scan(scan_fn, stream, flags, ptr)
-/*	ATTR_SCAN_MASTER_FN scan_fn;
+/*	ATTR_SCAN_COMMON_FN scan_fn;
 /*	VSTREAM *stream;
 /*	int     flags;
 /*	void    *ptr;
@@ -83,7 +83,7 @@
 
 /* tls_proxy_server_init_scan - receive TLS_SERVER_INIT_PROPS from stream */
 
-int     tls_proxy_server_init_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     tls_proxy_server_init_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 				           int flags, void *ptr)
 {
     TLS_SERVER_INIT_PROPS *props
@@ -186,7 +186,7 @@ void    tls_proxy_server_init_free(TLS_SERVER_INIT_PROPS *props)
 
 /* tls_proxy_server_start_scan - receive TLS_SERVER_START_PROPS from stream */
 
-int     tls_proxy_server_start_scan(ATTR_SCAN_MASTER_FN scan_fn, VSTREAM *fp,
+int     tls_proxy_server_start_scan(ATTR_SCAN_COMMON_FN scan_fn, VSTREAM *fp,
 				            int flags, void *ptr)
 {
     TLS_SERVER_START_PROPS *props

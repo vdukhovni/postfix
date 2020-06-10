@@ -7,7 +7,7 @@
 /*	#include <msg_stats.h>
 /*
 /*	int	msg_stats_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -46,7 +46,7 @@
 
 /* msg_stats_print - write MSG_STATS to stream */
 
-int     msg_stats_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     msg_stats_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 			        int flags, void *ptr)
 {
     int     ret;

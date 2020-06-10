@@ -25,7 +25,7 @@
  /*
   * External interface.
   */
-extern int dsb_scan(ATTR_SCAN_MASTER_FN, VSTREAM *, int, void *);
+extern int dsb_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 
 /* LICENSE
 /* .ad

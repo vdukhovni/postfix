@@ -7,7 +7,7 @@
 /*	#include <argv_attr.h>
 /*
 /*	int	argv_attr_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -49,7 +49,7 @@
 
 /* argv_attr_print - write ARGV to stream */
 
-int     argv_attr_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     argv_attr_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 			        int flags, void *ptr)
 {
     ARGV   *argv = (ARGV *) ptr;

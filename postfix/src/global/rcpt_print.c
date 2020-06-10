@@ -7,7 +7,7 @@
 /*	#include <rcpt_print.h>
 /*
 /*	int     rcpt_print(print_fn, stream, flags, ptr)
-/*	ATTR_PRINT_MASTER_FN print_fn;
+/*	ATTR_PRINT_COMMON_FN print_fn;
 /*	VSTREAM *stream;
 /*	int	flags;
 /*	void	*ptr;
@@ -48,7 +48,7 @@
 
 /* rcpt_print - write recipient to stream */
 
-int     rcpt_print(ATTR_PRINT_MASTER_FN print_fn, VSTREAM *fp,
+int     rcpt_print(ATTR_PRINT_COMMON_FN print_fn, VSTREAM *fp,
 		           int flags, void *ptr)
 {
     RECIPIENT *rcpt = (RECIPIENT *) ptr;
