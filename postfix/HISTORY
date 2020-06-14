@@ -23610,3 +23610,9 @@ Apologies for any names omitted.
 	session may cause a false 'lost connection' error for a
 	concurrent TLS session in the same tlsproxy process. File:
 	tlsproxy/tlsproxy.c.
+
+20200530
+
+	Bugfix (introduced: Postfix 3.1): "postfix tls deploy-server-cert"
+	did not handle a missing optional argument. File:
+	conf/postfix-tls-script

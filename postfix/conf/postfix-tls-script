@@ -777,7 +777,7 @@ get_cache_db_type() {
 deploy_server_cert() {
     certfile=$1; shift
     keyfile=$1; shift
-    deploy=$1; shift
+    case $# in 0) deploy=;; *) deploy=$1; shift;; esac
 
     # Sets key_algo, key_param and cert_param
     check_key "$keyfile" || return 1
