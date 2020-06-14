@@ -24412,3 +24412,18 @@ Apologies for any names omitted.
 	session may cause a false 'lost connection' error for a
 	concurrent TLS session in the same tlsproxy process. File:
 	tlsproxy/tlsproxy.c.
+
+20200530
+
+	Bugfix (introduced: Postfix 3.1): "postfix tls deploy-server-cert"
+	did not handle a missing optional argument. File:
+	conf/postfix-tls-script.
+
+20200610
+
+	Bugfix (introduced: Postfix 3.4): in the Postfix SMTP server,
+	the SNI callback reported an error when it was called a
+	second time. This happened after the server-side TLS engine
+	sent a TLSv1.3 HelloRetryRequest (HRR) to a remote SMTP
+	client. Reported by Ján Máté, fixed by Viktor Dukhovni.
+	File: tls/tls_misc.c.

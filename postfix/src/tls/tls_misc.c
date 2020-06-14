@@ -686,6 +686,27 @@ static int server_sni_callback(SSL *ssl, int *alert, void *arg)
 		 TLScontext->namaddr, sni);
 	return SSL_TLSEXT_ERR_NOACK;
     }
+
+    /*
+     * With TLS 1.3, when the client's proposed key share is not supported by
+     * the server, the server may issue a HelloRetryRequest (HRR), and the
+     * client will then retry with a new key share on a curve supported by
+     * the server.  This results in the SNI callback running twice for the
+     * same connection.
+     * 
+     * When that happens, The client MUST send the essentially the same hello
+     * message, including the SNI name, and since we've already loaded our
+     * certificate chain, we don't need to do it again!  Therefore, if we've
+     * already recorded the peer SNI name, just check that it has not
+     * changed, and return success.
+     */
+    if (TLScontext->peer_sni) {
+	if (strcmp(sni, TLScontext->peer_sni) == 0)
+	    return SSL_TLSEXT_ERR_OK;
+	msg_warn("TLS SNI changed from %s initially %s, %s after hello retry",
+		 TLScontext->namaddr, TLScontext->peer_sni, sni);
+	return SSL_TLSEXT_ERR_NOACK;
+    }
     do {
 	/* Don't silently skip maps opened with the wrong flags. */
 	pem = maps_file_find(tls_server_sni_maps, cp, 0);
