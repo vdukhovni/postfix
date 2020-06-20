@@ -24867,3 +24867,35 @@ Apologies for any names omitted.
 	sent a TLSv1.3 HelloRetryRequest (HRR) to a remote SMTP
 	client. Reported by Ján Máté, fixed by Viktor Dukhovni.
 	File: tls/tls_misc.c.
+
+20200617
+
+	Bugfix (introduced: Postfix 3.4): the connection_reuse
+	attribute in smtp_tls_policy_maps resulted in an "invalid
+	attribute name" error. Fix by Thorsten Habich. File:
+	smtp/smtp_tls_policy.c.
+
+20200618
+
+	Documentation: documented that smtp_line_length_limit=0
+	disables the feature, and made this more explicit in the
+	code by using the ENFORCING_SIZE_LIMIT macro. Files:
+	proto/postconf.proto, smtp/smtp_proto.c.
+
+20200619
+
+	Bugfix (introduced: Postfix 3.4): SMTP over TLS connection
+	reuse was broken for configurations that use explicit trust
+	anchors. Reported by Thorsten Habich. Cause: the tlsproxy
+	client was sending a zero certificate length. File:
+	tls/tls_proxy_client_print.c.
+
+	Bugfix: posttls-finger reported a conflict betwen -X and
+	-r when only -X was used. File: posttls-finger/posttls-finger.c.
+
+20200620
+
+	Bugfix (introduced: Postfix 3.4): SMTP over TLS connection
+	reuse was broken for configurations that use explicit trust
+	anchors. Reported by Thorsten Habich. Fixed by calling DANE
+	initialization unconditionally (WTF). File: tlsproxy/tlsproxy.c.

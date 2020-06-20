@@ -7117,7 +7117,7 @@ The maximal length of message header and body lines that Postfix
 will send via SMTP. This limit does not include the <CR><LF>
 at the end of each line.  Longer lines are broken by inserting
 "<CR><LF><SPACE>", to minimize the damage to MIME
-formatted mail.
+formatted mail. Specify zero to disable this limit.
 .PP
 The Postfix limit of 998 characters not including <CR><LF>
 is consistent with the SMTP limit of 1000 characters including

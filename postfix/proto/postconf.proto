@@ -4400,7 +4400,7 @@ The maximal length of message header and body lines that Postfix
 will send via SMTP. This limit does not include the &lt;CR&gt;&lt;LF&gt;
 at the end of each line.  Longer lines are broken by inserting
 "&lt;CR&gt;&lt;LF&gt;&lt;SPACE&gt;", to minimize the damage to MIME
-formatted mail.
+formatted mail. Specify zero to disable this limit.
 </p>
 
 <p>

@@ -1,5 +1,8 @@
 Wish list:
 
+	Move the tls_dane_avail() and DANE-requested test into
+	tls_client_start().
+
 	DNS wrapper class, like XSASL, to support different stub
 	resolvers without contaminating Postfix programs with the
 	idiosyncracies of stub resolvers. Handle differences in
