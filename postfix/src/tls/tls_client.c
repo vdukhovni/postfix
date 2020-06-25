@@ -973,6 +973,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 #ifdef TLSEXT_MAXLEN_host_name
     if (TLS_DANE_BASED(props->tls_level)
 	&& strlen(props->host) <= TLSEXT_MAXLEN_host_name) {
+	const char *sni;
 
 	/*
 	 * With DANE sessions, send an SNI hint.  We don't care whether the
@@ -984,15 +985,19 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	 * avoid SNI, and there are no plans to support SNI in the Postfix
 	 * SMTP server).
 	 * 
+	 * Per RFC7672, the required SNI name is the TLSA "base domain" (the one
+	 * used to construct the "_25._tcp.<fqdn>" TLSA record DNS query).
+	 * 
 	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
 	 * thererefore valid for use with SNI.  Failure to set a valid SNI
 	 * hostname is a memory allocation error, and thus transient.  Since
 	 * we must not cache the session if we failed to send the SNI name,
 	 * we have little choice but to abort.
 	 */
-	if (!SSL_set_tlsext_host_name(TLScontext->con, props->host)) {
+	sni = props->dane->base_domain;
+	if (!SSL_set_tlsext_host_name(TLScontext->con, sni)) {
 	    msg_warn("%s: error setting SNI hostname to: %s", props->namaddr,
-		     props->host);
+		     sni);
 	    tls_free_context(TLScontext);
 	    return (0);
 	}
