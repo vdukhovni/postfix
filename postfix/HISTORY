@@ -24427,3 +24427,42 @@ Apologies for any names omitted.
 	sent a TLSv1.3 HelloRetryRequest (HRR) to a remote SMTP
 	client. Reported by Ján Máté, fixed by Viktor Dukhovni.
 	File: tls/tls_misc.c.
+
+20200617
+
+	Bugfix (introduced: Postfix 3.4): the connection_reuse
+	attribute in smtp_tls_policy_maps resulted in an "invalid
+	attribute name" error. Fix by Thorsten Habich. File:
+	smtp/smtp_tls_policy.c.
+
+20200619
+
+	Bugfix (introduced: Postfix 3.4): SMTP over TLS connection
+	reuse was broken for configurations that use explicit trust
+	anchors. Reported by Thorsten Habich. Cause: the tlsproxy
+	client was sending a zero certificate length. File:
+	tls/tls_proxy_client_print.c.
+
+20200620
+
+	Bugfix (introduced: Postfix 3.4): SMTP over TLS connection
+	reuse was broken for configurations that use explicit trust
+	anchors. Reported by Thorsten Habich. Fixed by calling DANE
+	initialization unconditionally (WTF). File: tlsproxy/tlsproxy.c.
+
+20200626
+
+	Bugfix (introduced: Postfix 2.11): The Postfix smtp(8)
+	client did not send the right SNI name when the TLSA base
+	domain was a secure CNAME expansion of the MX hostname (or
+	non-MX nexthop domain). Domains with CNAME expanded MX hosts
+	are not conformant with RFC5321, and so are rare. Even more
+	rare are MX hosts with TLSA records for their CNAME expansion.
+	For this to matter, the remote SMTP server would also have
+	to select its certificate based on the SNI name in such a
+	way that the original MX host would yield a different
+	certificate. Among the ~2 million hosts in the DANE survey,
+	none meet the conditions for returning a different certificate
+	for the expanded CNAME. Therefore, sending the correct SNI
+	name should not break existing mail flows. Fixed by Viktor
+	Dukhovni. File: src/tls/tls_client.c.

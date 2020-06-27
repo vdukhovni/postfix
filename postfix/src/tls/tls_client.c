@@ -1018,10 +1018,13 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	 * avoid SNI, and there are no plans to support SNI in the Postfix
 	 * SMTP server).
 	 * 
+	 * Per RFC7672, the required SNI name is the TLSA "base domain" (the one
+	 * used to construct the "_25._tcp.<fqdn>" TLSA record DNS query).
+	 * 
 	 * Since the hostname is DNSSEC-validated, it must be a DNS FQDN and
 	 * thererefore valid for use with SNI.
 	 */
-	sni = props->host;
+	sni = props->dane->base_domain;
     } else if (props->sni && *props->sni) {
 	if (strcmp(props->sni, "hostname") == 0)
 	    sni = props->host;
