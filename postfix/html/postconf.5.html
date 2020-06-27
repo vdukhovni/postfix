@@ -10936,7 +10936,7 @@ lookups through nsswitch.conf or equivalent mechanisms.  </p>
 
 <li> <p> The Postfix SMTP/LMTP client uses <a href="postconf.5.html#smtp_dns_reply_filter">smtp_dns_reply_filter</a>
 and <a href="postconf.5.html#lmtp_dns_reply_filter">lmtp_dns_reply_filter</a> only to discover a remote SMTP or LMTP
-service (record types MX, A, AAAAA, and TLSA).  These lookups are
+service (record types MX, A, AAAA, and TLSA).  These lookups are
 also made to implement the features <a href="postconf.5.html#reject_unverified_sender">reject_unverified_sender</a> and
 <a href="postconf.5.html#reject_unverified_recipient">reject_unverified_recipient</a>.  </p>
 
@@ -10944,7 +10944,7 @@ also made to implement the features <a href="postconf.5.html#reject_unverified_s
 a filter removes all lookup results from a successful query.  </p>
 
 <li> <p> Postfix SMTP server uses <a href="postconf.5.html#smtpd_dns_reply_filter">smtpd_dns_reply_filter</a> only to
-look up MX, A, AAAAA, and TXT records to implement the features
+look up MX, A, AAAA, and TXT records to implement the features
 <a href="postconf.5.html#reject_unknown_helo_hostname">reject_unknown_helo_hostname</a>, <a href="postconf.5.html#reject_unknown_sender_domain">reject_unknown_sender_domain</a>,
 <a href="postconf.5.html#reject_unknown_recipient_domain">reject_unknown_recipient_domain</a>, reject_rbl_*, and reject_rhsbl_*.
 </p>

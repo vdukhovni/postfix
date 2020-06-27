@@ -16704,7 +16704,7 @@ lookups through nsswitch.conf or equivalent mechanisms.  </p>
 
 <li> <p> The Postfix SMTP/LMTP client uses smtp_dns_reply_filter
 and lmtp_dns_reply_filter only to discover a remote SMTP or LMTP
-service (record types MX, A, AAAAA, and TLSA).  These lookups are
+service (record types MX, A, AAAA, and TLSA).  These lookups are
 also made to implement the features reject_unverified_sender and
 reject_unverified_recipient.  </p>
 
@@ -16712,7 +16712,7 @@ reject_unverified_recipient.  </p>
 a filter removes all lookup results from a successful query.  </p>
 
 <li> <p> Postfix SMTP server uses smtpd_dns_reply_filter only to
-look up MX, A, AAAAA, and TXT records to implement the features
+look up MX, A, AAAA, and TXT records to implement the features
 reject_unknown_helo_hostname, reject_unknown_sender_domain,
 reject_unknown_recipient_domain, reject_rbl_*, and reject_rhsbl_*.
 </p>
