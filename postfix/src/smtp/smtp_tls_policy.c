@@ -389,6 +389,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 			 WHERE, name, val);
 		INVALID_RETURN(tls->why, site_level);
 	    }
+	    continue;
 	}
 	msg_warn("%s: invalid attribute name: \"%s\"", WHERE, name);
 	INVALID_RETURN(tls->why, site_level);

@@ -213,6 +213,7 @@ static int tls_proxy_client_certs_print(ATTR_PRINT_MASTER_FN print_fn,
 	    i2d_X509(tp->cert, &bp);
 	    if ((char *) bp - STR(buf) != len)
 		msg_panic("i2d_X509 failed to encode certificate");
+	    vstring_set_payload_size(buf, len);
 	    ret = print_fn(fp, flags | ATTR_FLAG_MORE,
 			   SEND_ATTR_DATA(TLS_ATTR_CERT, LEN(buf), STR(buf)),
 			   ATTR_TYPE_END);
@@ -258,6 +259,7 @@ static int tls_proxy_client_pkeys_print(ATTR_PRINT_MASTER_FN print_fn,
 	    i2d_PUBKEY(tp->pkey, &bp);
 	    if ((char *) bp - STR(buf) != len)
 		msg_panic("i2d_PUBKEY failed to encode public key");
+	    vstring_set_payload_size(buf, len);
 	    ret = print_fn(fp, flags | ATTR_FLAG_MORE,
 			   SEND_ATTR_DATA(TLS_ATTR_PKEY, LEN(buf), STR(buf)),
 			   ATTR_TYPE_END);
