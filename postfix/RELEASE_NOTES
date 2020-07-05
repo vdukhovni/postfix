@@ -25,6 +25,20 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Incompatible change with snapshot 20200705
+==========================================
+
+The minimum OpenSSL version is 1.1.1, which will reach the end
+of life by 20203-09-11. 
+
+The default digest has changed from md5 to sha256 (Postfix 3.6 with
+compatibility_level >= 3). With a lower compatibility_level setting,
+Postfix defaults to using md5, and logs a warning when a Postfix
+configuration specifies no explicit digest type.
+
+Export-grade Diffie-Hellman key exchange is no longer supported,
+and the tlsproxy_tls_dh512_param_file parameter is ignored,
+
 Incompatible change with snapshot 20200531
 ==========================================
 

@@ -18,11 +18,12 @@
 /*	void	tls_dane_free(dane)
 /*	TLS_DANE *dane;
 /*
-/*	void	tls_dane_add_ee_digests(dane, mdalg, digest, delim)
+/*	void	tls_dane_add_ee_digests(dane, mdalg, digest, delim, smtp_mode)
 /*	TLS_DANE *dane;
 /*	const char *mdalg;
 /*	const char *digest;
 /*	const char *delim;
+/*	int     smtp_mode;
 /*
 /*	int	tls_dane_load_trustfile(dane, tafile)
 /*	TLS_DANE *dane;
@@ -142,6 +143,8 @@
 /*	"delim") to be added to the TLS_DANE record.
 /* .IP delim
 /*	The set of delimiter characters used above.
+/* .IP smtp_mode
+/*	Is the caller an SMTP client or an LMTP client?
 /* LICENSE
 /* .ad
 /* .fi
@@ -207,7 +210,7 @@
 
 #undef DANE_TLSA_SUPPORT
 
-#if defined(TLSEXT_MAXLEN_host_name) && RES_USE_DNSSEC && RES_USE_EDNS0
+#if RES_USE_DNSSEC && RES_USE_EDNS0
 #define DANE_TLSA_SUPPORT
 static int dane_tlsa_support = 1;
 
@@ -593,10 +596,23 @@ static TLS_TLSA **dane_locate(TLS_TLSA **tlsap, const char *mdalg)
 /* tls_dane_add_ee_digests - split and append digests */
 
 void    tls_dane_add_ee_digests(TLS_DANE *dane, const char *mdalg,
-			              const char *digest, const char *delim)
+			              const char *digest, const char *delim,
+				        int smtp_mode)
 {
     TLS_TLSA **tlsap = dane_locate(&dane->ee, mdalg);
     TLS_TLSA *tlsa = *tlsap;
+
+    if (smtp_mode) {
+	if (warn_compat_break_smtp_tls_fpt_dgst)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_SMTP_TLS_FPT_DGST "=md5 to compute certificate "
+		     "fingerprints");
+    } else {
+	if (warn_compat_break_lmtp_tls_fpt_dgst)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_LMTP_TLS_FPT_DGST "=md5 to compute certificate "
+		     "fingerprints");
+    }
 
     /* Delimited append, may append nothing */
     if (tlsa->pkeys == 0)
@@ -2005,11 +2021,6 @@ static SSL_CTX *ctx_init(const char *CAfile)
 
     tls_param_init();
     tls_check_version();
-
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-    SSL_load_error_strings();
-    SSL_library_init();
-#endif
 
     if (!tls_validate_digest(LN_sha1))
 	msg_fatal("%s digest algorithm not available", LN_sha1);

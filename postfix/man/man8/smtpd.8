@@ -470,11 +470,10 @@ The OpenSSL cipherlist for "NULL" grade ciphers that provide
 authentication without encryption.
 .PP
 Available in Postfix version 2.5 and later:
-.IP "\fBsmtpd_tls_fingerprint_digest (md5)\fR"
-The message digest algorithm to construct remote SMTP
-client\-certificate
-fingerprints or public key fingerprints (Postfix 2.9 and later)
-for \fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR.
+.IP "\fBsmtpd_tls_fingerprint_digest (see 'postconf -d' output)\fR"
+The message digest algorithm to construct remote SMTP client\-certificate
+fingerprints or public key fingerprints (Postfix 2.9 and later) for
+\fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR.
 .PP
 Available in Postfix version 2.6 and later:
 .IP "\fBsmtpd_tls_protocols (!SSLv2, !SSLv3)\fR"
@@ -611,12 +610,13 @@ Postfix mail system. The methods vary from making the software log
 a lot of detail, to running some daemon processes under control of
 a call tracer or debugger.
 .IP "\fBdebug_peer_level (2)\fR"
-The increment in verbose logging level when a remote client or
-server matches a pattern in the debug_peer_list parameter.
+The increment in verbose logging level when a nexthop destination,
+remote client or server name or network address matches a pattern
+given with the debug_peer_list parameter.
 .IP "\fBdebug_peer_list (empty)\fR"
-Optional list of remote client or server hostname or network
-address patterns that cause the verbose logging level to increase
-by the amount specified in $debug_peer_level.
+Optional list of nexthop destination, remote client or server
+name or network address patterns that, if matched, cause the verbose
+logging level to increase by the amount specified in $debug_peer_level.
 .IP "\fBerror_notice_recipient (postmaster)\fR"
 The recipient of postmaster notifications about mail delivery
 problems that are caused by policy, resource, software or protocol

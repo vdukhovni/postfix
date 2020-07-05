@@ -3212,7 +3212,7 @@ The LMTP\-specific version of the smtp_tls_fingerprint_cert_match
 configuration parameter.  See there for details.
 .PP
 This feature is available in Postfix 2.5 and later.
-.SH lmtp_tls_fingerprint_digest (default: md5)
+.SH lmtp_tls_fingerprint_digest (default: see "postconf \-d" output)
 The LMTP\-specific version of the smtp_tls_fingerprint_digest
 configuration parameter.  See there for details.
 .PP
@@ -3411,6 +3411,15 @@ remote SMTP client TLS certificate fingerprint or public key fingerprint
 The fingerprint digest algorithm is configurable via the
 smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
 Postfix version 2.5).
+.br
+The default algorithm is \fBsha256\fR with Postfix >= 3.6
+and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+<= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
+algorithm is now \fBsha256\fR. Recent advances in hash function
+cryptanalysis have led to md5 and sha1 being deprecated in favor of
+sha256.  However, as long as there are no known "second pre\-image"
+attacks against the older algorithms, their use in this context, though
+not recommended, is still likely safe.
 .br
 .IP "\fBpermit_tls_all_clientcerts \fR"
 Append the domain name in $myorigin or $mydomain when the
@@ -5910,6 +5919,15 @@ feature.  The fingerprint digest algorithm is configurable via the
 smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
 Postfix version 2.5).
 .PP
+The default algorithm is \fBsha256\fR with Postfix >= 3.6
+and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+<= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
+algorithm is now \fBsha256\fR. Recent advances in hash function
+cryptanalysis have led to md5 and sha1 being deprecated in favor of
+sha256.  However, as long as there are no known "second pre\-image"
+attacks against the older algorithms, their use in this context, though
+not recommended, is still likely safe.
+.PP
 Postfix lookup tables are in the form of (key, value) pairs.
 Since we only need the key, the value can be chosen freely, e.g.
 the name of the user or host:
@@ -5928,10 +5946,6 @@ relay_clientcerts = hash:/etc/postfix/relay_clientcerts
 For more fine\-grained control, use check_ccert_access to select
 an appropriate \fBaccess\fR(5) policy for each client.
 See RESTRICTION_CLASS_README.
-.PP
-\fBNote:\fR Postfix 2.9.0-2.9.5 computed the public key
-fingerprint incorrectly. To use public\-key fingerprints, upgrade
-to Postfix 2.9.6 or later.
 .PP
 This feature is available with Postfix version 2.2.
 .SH relay_destination_concurrency_limit (default: $default_destination_concurrency_limit)
@@ -8098,10 +8112,10 @@ another, and both keys are trusted just prior to the transition.
 .ft C
 relayhost = [mailhub.example.com]
 smtp_tls_security_level = fingerprint
-smtp_tls_fingerprint_digest = md5
+smtp_tls_fingerprint_digest = sha256
 smtp_tls_fingerprint_cert_match =
-    3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
-    EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+    cd:fc:d8:db:f8:c4:82:96:6c:...:28:71:e8:f5:8d:a5:0d:9b:d4:a6
+    dd:5c:ef:f5:c3:bc:64:25:36:...:99:36:06:ce:40:ef:de:2e:ad:a4
 .fi
 .ad
 .ft R
@@ -8116,7 +8130,7 @@ As in the example above, we show two matching fingerprints:
 .ft C
 /etc/postfix/main.cf:
     smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
-    smtp_tls_fingerprint_digest = md5
+    smtp_tls_fingerprint_digest = sha256
 .fi
 .ad
 .ft R
@@ -8128,15 +8142,15 @@ As in the example above, we show two matching fingerprints:
 .ft C
 /etc/postfix/tls_policy:
     example.com fingerprint
-        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
-        match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+        match=51:e9:af:2e:1e:40:1f:...:64:0a:30:35:2d:09:16:31:5a:eb:82:76
+        match=b6:b4:72:34:e2:59:cd:...:c2:ca:63:0d:4d:cc:2c:7d:84:de:e6:2f
 .fi
 .ad
 .ft R
 .in -4
 .PP
 This feature is available in Postfix 2.5 and later.
-.SH smtp_tls_fingerprint_digest (default: md5)
+.SH smtp_tls_fingerprint_digest (default: see "postconf \-d" output)
 The message digest algorithm used to construct remote SMTP server
 certificate fingerprints. At the "fingerprint" TLS security level
 (\fBsmtp_tls_security_level\fR = fingerprint), the server certificate is
@@ -8148,18 +8162,19 @@ algorithm. With a digest algorithm resistant to "second pre\-image"
 attacks, it is not feasible to create a new public key and a matching
 certificate (or public/private key\-pair) that has the same fingerprint.
 .PP
-The default algorithm is \fBmd5\fR; this is consistent with
-the backwards compatible setting of the digest used to verify client
-certificates in the SMTP server.
+The default algorithm is \fBsha256\fR with Postfix >= 3.6
+and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+<= 3.5, the default algorithm is \fBmd5\fR.
 .PP
-The best practice algorithm is now \fBsha1\fR. Recent advances in hash
-function cryptanalysis have led to md5 being deprecated in favor of sha1.
-However, as long as there are no known "second pre\-image" attacks
-against md5, its use in this context can still be considered safe.
+The best\-practice algorithm is now \fBsha256\fR. Recent advances in hash
+function cryptanalysis have led to md5 and sha1 being deprecated in favor of
+sha256.  However, as long as there are no known "second pre\-image" attacks
+against the older algorithms, their use in this context, though not
+recommended, is still likely safe.
 .PP
 While additional digest algorithms are often available with OpenSSL's
 libcrypto, only those used by libssl in SSL cipher suites are available to
-Postfix. For now this means just md5 or sha1.
+Postfix.  You'll likely find support for md5, sha1, sha256 and sha512.
 .PP
 To find the fingerprint of a specific certificate file, with a
 specific digest algorithm, run:
@@ -8181,8 +8196,8 @@ For example:
 .nf
 .na
 .ft C
-$ openssl x509 \-noout \-fingerprint \-sha1 \-in cert.pem
-SHA1 Fingerprint=D4:6A:AB:19:24:79:F8:32:BB:A6:CB:66:82:C0:8E:9B:EE:29:A8:1A
+$ openssl x509 \-noout \-fingerprint \-sha256 \-in cert.pem
+SHA256 Fingerprint=D4:6A:AB:19:24:...:BB:A6:CB:66:82:C0:8E:9B:EE:29:A8:1A
 .fi
 .ad
 .ft R
@@ -8196,36 +8211,19 @@ key always in "PEM" format. We pipe the result to another OpenSSL
 command that converts the key to DER and then to the "dgst" command
 to compute the fingerprint.
 .PP
-The actual command to transform the key to DER format depends
-on the version of OpenSSL used. With OpenSSL 1.0.0 and later, the
-"pkey" command supports all key types. With OpenSSL 0.9.8 and
-earlier, the key type is always RSA (nobody uses DSA, and EC
-keys are not fully supported by 0.9.8), so the "rsa" command is
-used.
+The actual command to transform the key to DER format depends on the
+version of OpenSSL used. As of OpenSSL 1.0.0, the "pkey" command supports
+all key types.
 .sp
 .in +4
 .nf
 .na
 .ft C
-# OpenSSL 1.0 with all certificates and SHA\-1 fingerprints.
+# OpenSSL >= 1.0 with SHA\-256 fingerprints.
 $ openssl x509 \-in cert.pem \-noout \-pubkey |
     openssl pkey \-pubin \-outform DER |
-    openssl dgst \-sha1 \-c
-(stdin)= 64:3f:1f:f6:e5:1e:d4:2a:56:8b:fc:09:1a:61:98:b5:bc:7c:60:58
-.fi
-.ad
-.ft R
-.in -4
-.sp
-.in +4
-.nf
-.na
-.ft C
-# OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
-$ openssl x509 \-in cert.pem \-noout \-pubkey |
-    openssl rsa \-pubin \-outform DER |
-    openssl dgst \-md5 \-c
-(stdin)= f4:62:60:f6:12:8f:d5:8d:28:4d:13:a7:db:b2:ff:50
+    openssl dgst \-sha256 \-c
+(stdin)= 64:3f:1f:f6:e5:1e:d4:2a:56:...:fc:09:1a:61:98:b5:bc:7c:60:58
 .fi
 .ad
 .ft R
@@ -8234,10 +8232,6 @@ $ openssl x509 \-in cert.pem \-noout \-pubkey |
 The Postfix SMTP server and client log the peer (leaf) certificate
 fingerprint and public key fingerprint when the TLS loglevel is 2 or
 higher.
-.PP
-\fBNote:\fR Postfix 2.9.0-2.9.5 computed the public key
-fingerprint incorrectly. To use public\-key fingerprints, upgrade
-to Postfix 2.9.6 or later.
 .PP
 This feature is available in Postfix 2.5 and later.
 .SH smtp_tls_force_insecure_host_tlsa_lookup (default: no)
@@ -8682,8 +8676,12 @@ Example:
 .ft C
 /etc/postfix/main.cf:
     smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
-    # Postfix 2.5 and later
-    smtp_tls_fingerprint_digest = md5
+    # Postfix 2.5 and later.
+    #
+    # The default digest is sha256 with Postfix >= 3.6 and
+    # compatibility level >= 3.
+    #
+    smtp_tls_fingerprint_digest = sha256
 .fi
 .ad
 .ft R
@@ -8701,8 +8699,8 @@ Example:
     [mail.example.org]:587      secure match=nexthop
     # Postfix 2.5 and later
     [thumb.example.org]          fingerprint
-        match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
-        match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+        match=b6:b4:72:34:e2:59:cd:...:c2:ca:63:0d:4d:cc:2c:7d:84:de:e6:2f
+        match=51:e9:af:2e:1e:40:1f:...:64:0a:30:35:2d:09:16:31:5a:eb:82:76
 .fi
 .ad
 .ft R
@@ -9532,6 +9530,14 @@ Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
 = yes" and is available with Postfix version
 2.2 and later.
 .br
+The default algorithm is \fBsha256\fR with Postfix >= 3.6
+and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+<= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
+algorithm is now \fBsha256\fR. Recent advances in hash function
+cryptanalysis have led to md5 and sha1 being deprecated in favor of
+sha256.  However, as long as there are no known "second pre\-image"
+attacks against the older algorithms, their use in this context, though
+not recommended, is still likely safe.
 .br
 Alternatively, check_ccert_access accepts an explicit search
 order (Postfix 3.5 and later). The default search order as described
@@ -9638,6 +9644,15 @@ The fingerprint digest algorithm is configurable via the
 smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
 Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
 = yes" and is available with Postfix version 2.2 and later.
+.br
+The default algorithm is \fBsha256\fR with Postfix >= 3.6
+and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+<= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
+algorithm is now \fBsha256\fR. Recent advances in hash function
+cryptanalysis have led to md5 and sha1 being deprecated in favor of
+sha256.  However, as long as there are no known "second pre\-image"
+attacks against the older algorithms, their use in this context, though
+not recommended, is still likely safe.
 .br
 .IP "\fBreject_rbl_client \fIrbl_domain=d.d.d.d\fR\fR"
 Reject the request when the reversed client network address is
@@ -11852,6 +11867,13 @@ This feature is available in Postfix 2.2 and later.
 File with DH parameters that the Postfix SMTP server should
 use with non\-export EDH ciphers.
 .PP
+The best\-practice choice of parameters uses a 2048\-bit prime.  This is fine,
+despite the historical "1024" in the parameter name.  Do not be tempted to use
+much larger values, performance degrades quickly, and you may also cease to
+interoperate with some mainstream SMTP clients.  As of Postfix 3.1, the
+compiled\-in default prime is 2048\-bits, and it is not strictly necessary,
+though perhaps somewhat beneficial to generate custom DH parameters.
+.PP
 Instead of using the exact same parameter sets as distributed
 with other TLS packages, it is more secure to generate your own
 set of parameters with something like the following commands:
@@ -11860,9 +11882,11 @@ set of parameters with something like the following commands:
 .nf
 .na
 .ft C
-openssl dhparam \-out /etc/postfix/dh512.pem 512
-openssl dhparam \-out /etc/postfix/dh1024.pem 1024
 openssl dhparam \-out /etc/postfix/dh2048.pem 2048
+openssl dhparam \-out /etc/postfix/dh1024.pem 1024
+# As of Postfix 3.6, export\-grade 512\-bit DH parameters are no longer
+# supported or needed.
+openssl dhparam \-out /etc/postfix/dh512.pem 512
 .fi
 .ad
 .ft R
@@ -11896,6 +11920,9 @@ File with DH parameters that the Postfix SMTP server should
 use with export\-grade EDH ciphers.  The default SMTP server cipher
 grade is "medium" with Postfix releases after the middle of 2015,
 and as a result export\-grade cipher suites are by default not used.
+.PP
+With Postfix >= 3.6 export\-grade Diffie\-Hellman key exchange
+is no longer supported, and this parameter is silently ignored.
 .PP
 See also the discussion under the smtpd_tls_dh1024_param_file
 configuration parameter.
@@ -11959,32 +11986,32 @@ This feature is available in Postfix 2.6 and later, when Postfix is
 compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eecdh_grade (default: see "postconf \-d" output)
 The Postfix SMTP server security grade for ephemeral elliptic\-curve
-Diffie\-Hellman (EECDH) key exchange.
+Diffie\-Hellman (EECDH) key exchange.   As of Postfix 3.6, the value of
+this parameter is always ignored, and Postfix behaves as though th
+\fBauto\fR value (described below) was chosen.
 .PP
 The available choices are:
+.IP "\fBauto\fR"
+Use the most preferred curve that is
+supported by both the client and the server.  This setting requires
+Postfix >= 3.2 compiled and linked with OpenSSL >= 1.0.2.  This
+is the default setting under the above conditions (and the only
+setting used with Postfix >= 3.6).
+.br
 .IP "\fBnone\fR"
 Don't use EECDH. Ciphers based on EECDH key
 exchange will be disabled. This is the default in Postfix versions
 2.6 and 2.7.
 .br
 .IP "\fBstrong\fR"
-Use EECDH with approximately 128
-bits of security at a reasonable computational cost. This is the
-current best\-practice trade\-off between security and computational
-efficiency. This is the default in Postfix version 2.8 and later.
+Use EECDH with approximately 128 bits of
+security at a reasonable computational cost. This is the default in
+Postfix versions 2.8-3.5.
 .br
 .IP "\fBultra\fR"
 Use EECDH with approximately 192 bits of
 security at computational cost that is approximately twice as high
-as 128 bit strength ECC. Barring significant progress in attacks on
-elliptic curve crypto\-systems, the "strong" curve is sufficient for most
-users.
-.br
-.IP "\fBauto\fR"
-Use the most preferred curve that is
-supported by both the client and the server.  This setting requires
-Postfix >= 3.2 compiled and linked with OpenSSL >= 1.0.2.  This
-is the default setting under the above conditions.
+as 128 bit strength ECC.
 .br
 .br
 .PP
@@ -12032,22 +12059,24 @@ and "DES\-CBC3\-MD5". The last setting disables ciphers that use "EDH"
 key exchange with RSA authentication.
 .PP
 This feature is available in Postfix 2.3 and later.
-.SH smtpd_tls_fingerprint_digest (default: md5)
-The message digest algorithm to construct remote SMTP
-client\-certificate
-fingerprints or public key fingerprints (Postfix 2.9 and later)
-for \fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR. The
-default algorithm is \fBmd5\fR, for backwards compatibility with Postfix
-releases prior to 2.5.
+.SH smtpd_tls_fingerprint_digest (default: see "postconf \-d" output)
+The message digest algorithm to construct remote SMTP client\-certificate
+fingerprints or public key fingerprints (Postfix 2.9 and later) for
+\fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR.
 .PP
-Advances in hash
-function cryptanalysis have led to md5 being deprecated in favor of sha1.
-However, as long as there are no known "second pre\-image" attacks
-against md5, its use in this context can still be considered safe.
+The default algorithm is \fBsha256\fR with Postfix >= 3.6
+and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+<= 3.5, the default algorithm is \fBmd5\fR.
+.PP
+The best\-practice algorithm is now \fBsha256\fR. Recent advances in hash
+function cryptanalysis have led to md5 and sha1 being deprecated in favor of
+sha256.  However, as long as there are no known "second pre\-image" attacks
+against the older algorithms, their use in this context, though not
+recommended, is still likely safe.
 .PP
 While additional digest algorithms are often available with OpenSSL's
 libcrypto, only those used by libssl in SSL cipher suites are available to
-Postfix.
+Postfix.  You'll likely find support for md5, sha1, sha256 and sha512.
 .PP
 To find the fingerprint of a specific certificate file, with a
 specific digest algorithm, run:
@@ -12069,8 +12098,8 @@ For example:
 .nf
 .na
 .ft C
-$ openssl x509 \-noout \-fingerprint \-sha1 \-in cert.pem
-SHA1 Fingerprint=D4:6A:AB:19:24:79:F8:32:BB:A6:CB:66:82:C0:8E:9B:EE:29:A8:1A
+$ openssl x509 \-noout \-fingerprint \-sha256 \-in cert.pem
+SHA256 Fingerprint=D4:6A:AB:19:24:...:A6:CB:66:82:C0:8E:9B:EE:29:A8:1A
 .fi
 .ad
 .ft R
@@ -12084,36 +12113,16 @@ key always in "PEM" format. We pipe the result to another OpenSSL
 command that converts the key to DER and then to the "dgst" command
 to compute the fingerprint.
 .PP
-The actual command to transform the key to DER format depends
-on the version of OpenSSL used. With OpenSSL 1.0.0 and later, the
-"pkey" command supports all key types. With OpenSSL 0.9.8 and
-earlier, the key type is always RSA (nobody uses DSA, and EC
-keys are not fully supported by 0.9.8), so the "rsa" command is
-used.
+Example:
 .sp
 .in +4
 .nf
 .na
 .ft C
-# OpenSSL 1.0 with all certificates and SHA\-1 fingerprints.
 $ openssl x509 \-in cert.pem \-noout \-pubkey |
     openssl pkey \-pubin \-outform DER |
-    openssl dgst \-sha1 \-c
+    openssl dgst \-sha256 \-c
 (stdin)= 64:3f:1f:f6:e5:1e:d4:2a:56:8b:fc:09:1a:61:98:b5:bc:7c:60:58
-.fi
-.ad
-.ft R
-.in -4
-.sp
-.in +4
-.nf
-.na
-.ft C
-# OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
-$ openssl x509 \-in cert.pem \-noout \-pubkey |
-    openssl rsa \-pubin \-outform DER |
-    openssl dgst \-md5 \-c
-(stdin)= f4:62:60:f6:12:8f:d5:8d:28:4d:13:a7:db:b2:ff:50
 .fi
 .ad
 .ft R
@@ -12123,18 +12132,14 @@ The Postfix SMTP server and client log the peer (leaf) certificate
 fingerprint and public key fingerprint when the TLS loglevel is 2 or
 higher.
 .PP
-\fBNote:\fR Postfix 2.9.0-2.9.5 computed the public key
-fingerprint incorrectly. To use public\-key fingerprints, upgrade
-to Postfix 2.9.6 or later.
-.PP
-Example: client\-certificate access table, with sha1 fingerprints:
+Example: client\-certificate access table, with sha256 fingerprints:
 .sp
 .in +4
 .nf
 .na
 .ft C
 /etc/postfix/main.cf:
-    smtpd_tls_fingerprint_digest = sha1
+    smtpd_tls_fingerprint_digest = sha256
     smtpd_client_restrictions =
         check_ccert_access hash:/etc/postfix/access,
         reject
@@ -12146,9 +12151,9 @@ Example: client\-certificate access table, with sha1 fingerprints:
 .ft C
 /etc/postfix/access:
     # Action folded to next line...
-    AF:88:7C:AD:51:95:6F:36:96:F6:01:FB:2E:48:CD:AB:49:25:A2:3B
+    AF:88:7C:AD:51:95:6F:36:96:...:01:FB:2E:48:CD:AB:49:25:A2:3B
         OK
-    85:16:78:FD:73:6E:CE:70:E0:31:5F:0D:3C:C8:6D:C4:2C:24:59:E1
+    85:16:78:FD:73:6E:CE:70:E0:...:5F:0D:3C:C8:6D:C4:2C:24:59:E1
         permit_auth_destination
 .fi
 .ad
@@ -13550,6 +13555,9 @@ should use with export\-grade EDH ciphers. See smtpd_tls_dh512_param_file
 for further details.  The default SMTP server cipher grade is
 "medium" with Postfix releases after the middle of 2015, and as a
 result export\-grade cipher suites are by default not used.
+.PP
+With Postfix >= 3.6 export\-grade Diffie\-Hellman key exchange
+is no longer supported, and this parameter is silently ignored.
 .PP
 This feature is available in Postfix 2.8 and later.
 .SH tlsproxy_tls_dkey_file (default: $smtpd_tls_dkey_file)

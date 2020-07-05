@@ -822,7 +822,6 @@ const char *tls_set_ciphers(TLS_SESS_STATE *TLScontext, const char *grade,
 
 void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
     const char *kex_name = 0;
     const char *kex_curve = 0;
     const char *locl_sig_name = 0;
@@ -983,7 +982,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (peer_sig_dgst)
 	    SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
     }
-#endif						/* OPENSSL_VERSION_NUMBER ... */
 }
 
 /* tls_log_summary - TLS loglevel 1 one-liner, embellished with TLS 1.3 details */
@@ -1182,57 +1180,17 @@ static void tls_version_split(unsigned long version, TLS_VINFO *info)
      * 
      * The status nibble has one of the values 0 for development, 1 to e for
      * betas 1 to 14, and f for release. Parsed OpenSSL version number. for
-     * example
-     * 
-     * 0x000906000 == 0.9.6 dev 0x000906023 == 0.9.6b beta 3 0x00090605f ==
-     * 0.9.6e release
-     * 
-     * Versions prior to 0.9.3 have identifiers < 0x0930.  Versions between
-     * 0.9.3 and 0.9.5 had a version identifier with this interpretation:
-     * 
-     * MMNNFFRBB major minor fix final beta/patch
-     * 
-     * for example
-     * 
-     * 0x000904100 == 0.9.4 release 0x000905000 == 0.9.5 dev
-     * 
-     * Version 0.9.5a had an interim interpretation that is like the current
-     * one, except the patch level got the highest bit set, to keep continu-
-     * ity.  The number was therefore 0x0090581f.
+     * example: 0x1010103f == 1.1.1c.
      */
-
-    if (version < 0x0930) {
-	info->status = 0;
-	info->patch = version & 0x0f;
-	version >>= 4;
-	info->micro = version & 0x0f;
-	version >>= 4;
-	info->minor = version & 0x0f;
-	version >>= 4;
-	info->major = version & 0x0f;
-    } else if (version < 0x00905800L) {
-	info->patch = version & 0xff;
-	version >>= 8;
-	info->status = version & 0xf;
-	version >>= 4;
-	info->micro = version & 0xff;
-	version >>= 8;
-	info->minor = version & 0xff;
-	version >>= 8;
-	info->major = version & 0xff;
-    } else {
-	info->status = version & 0xf;
-	version >>= 4;
-	info->patch = version & 0xff;
-	version >>= 8;
-	info->micro = version & 0xff;
-	version >>= 8;
-	info->minor = version & 0xff;
-	version >>= 8;
-	info->major = version & 0xff;
-	if (version < 0x00906000L)
-	    info->patch &= ~0x80;
-    }
+    info->status = version & 0xf;
+    version >>= 4;
+    info->patch = version & 0xff;
+    version >>= 8;
+    info->micro = version & 0xff;
+    version >>= 8;
+    info->minor = version & 0xff;
+    version >>= 8;
+    info->major = version & 0xff;
 }
 
 /* tls_check_version - Detect mismatch between headers and library. */
@@ -1498,24 +1456,6 @@ int     tls_validate_digest(const char *dgst)
 {
     const EVP_MD *md_alg;
     unsigned int md_len;
-
-    /*
-     * Register SHA-2 digests, if implemented and not already registered.
-     * Improves interoperability with clients and servers that prematurely
-     * deploy SHA-2 certificates.  Also facilitates DANE and TA support.
-     */
-#if defined(LN_sha256) && defined(NID_sha256) && !defined(OPENSSL_NO_SHA256)
-    if (!EVP_get_digestbyname(LN_sha224))
-	EVP_add_digest(EVP_sha224());
-    if (!EVP_get_digestbyname(LN_sha256))
-	EVP_add_digest(EVP_sha256());
-#endif
-#if defined(LN_sha512) && defined(NID_sha512) && !defined(OPENSSL_NO_SHA512)
-    if (!EVP_get_digestbyname(LN_sha384))
-	EVP_add_digest(EVP_sha384());
-    if (!EVP_get_digestbyname(LN_sha512))
-	EVP_add_digest(EVP_sha512());
-#endif
 
     /*
      * If the administrator specifies an unsupported digest algorithm, fail

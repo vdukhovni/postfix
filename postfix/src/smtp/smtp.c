@@ -493,7 +493,7 @@
 /*	List of acceptable remote SMTP server certificate fingerprints for
 /*	the "fingerprint" TLS security level (\fBsmtp_tls_security_level\fR =
 /*	fingerprint).
-/* .IP "\fBsmtp_tls_fingerprint_digest (md5)\fR"
+/* .IP "\fBsmtp_tls_fingerprint_digest (see 'postconf -d' output)\fR"
 /*	The message digest algorithm used to construct remote SMTP server
 /*	certificate fingerprints.
 /* .PP
@@ -702,11 +702,11 @@
 /* .ad
 /* .fi
 /* .IP "\fBdebug_peer_level (2)\fR"
-/*	The increment in verbose logging level when a next-hop destination,
+/*	The increment in verbose logging level when a nexthop destination,
 /*	remote client or server name or network address matches a pattern
 /*	given with the debug_peer_list parameter.
 /* .IP "\fBdebug_peer_list (empty)\fR"
-/*	Optional list of next-hop destination, remote client or server
+/*	Optional list of nexthop destination, remote client or server
 /*	name or network address patterns that, if matched, cause the verbose
 /*	logging level to increase by the amount specified in $debug_peer_level.
 /* .IP "\fBerror_notice_recipient (postmaster)\fR"

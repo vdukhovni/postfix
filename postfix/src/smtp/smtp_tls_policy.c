@@ -336,8 +336,8 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    case TLS_LEV_FPRINT:
 		if (!tls->dane)
 		    tls->dane = tls_dane_alloc();
-		tls_dane_add_ee_digests(tls->dane,
-					var_smtp_tls_fpt_dgst, val, "|");
+		tls_dane_add_ee_digests(tls->dane, var_smtp_tls_fpt_dgst,
+					val, "|", smtp_mode);
 		break;
 	    case TLS_LEV_VERIFY:
 	    case TLS_LEV_SECURE:
@@ -620,7 +620,8 @@ static void *policy_create(const char *unused_key, void *context)
 	    tls->dane = tls_dane_alloc();
 	if (!TLS_DANE_HASEE(tls->dane)) {
 	    tls_dane_add_ee_digests(tls->dane, var_smtp_tls_fpt_dgst,
-				    var_smtp_tls_fpt_cmatch, CHARS_COMMA_SP);
+				    var_smtp_tls_fpt_cmatch, CHARS_COMMA_SP,
+				    smtp_mode);
 	    if (!TLS_DANE_HASEE(tls->dane)) {
 		msg_warn("nexthop domain %s: configured at fingerprint "
 		       "security level, but with no fingerprints to match.",

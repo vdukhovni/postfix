@@ -333,17 +333,6 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
      */
     tls_check_version();
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-    /*
-     * Initialize the OpenSSL library by the book! To start with, we must
-     * initialize the algorithms. We want cleartext error messages instead of
-     * just error codes, so we load the error_strings.
-     */
-    SSL_load_error_strings();
-    OpenSSL_add_ssl_algorithms();
-#endif
-
     /*
      * Create an application data index for SSL objects, so that we can
      * attach TLScontext information; this information is needed inside
@@ -464,19 +453,6 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
 	SSL_CTX_free(client_ctx);		/* 200411 */
 	return (0);
     }
-
-    /*
-     * 2015-12-05: Ephemeral RSA removed from OpenSSL 1.1.0-dev
-     */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-
-    /*
-     * According to the OpenSSL documentation, temporary RSA key is needed
-     * export ciphers are in use. We have to provide one, so well, we just do
-     * it.
-     */
-    SSL_CTX_set_tmp_rsa_callback(client_ctx, tls_tmp_rsa_cb);
-#endif
 
     /*
      * With OpenSSL 1.0.2 and later the client EECDH curve list becomes

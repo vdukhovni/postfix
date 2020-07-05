@@ -152,7 +152,6 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     X509   *cert;
     int     err;
     int     depth;
-    int     max_depth;
     SSL    *con;
     TLS_SESS_STATE *TLScontext;
 
@@ -167,32 +166,6 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     if (ok && TLScontext->tadepth > 0 && depth > TLScontext->tadepth)
 	return (1);
 
-    /*
-     * Certificate chain depth limit violations are mis-reported by the
-     * OpenSSL library, from SSL_CTX_set_verify(3):
-     * 
-     * The certificate verification depth set with SSL[_CTX]_verify_depth()
-     * stops the verification at a certain depth. The error message produced
-     * will be that of an incomplete certificate chain and not
-     * X509_V_ERR_CERT_CHAIN_TOO_LONG as may be expected.
-     * 
-     * We set a limit that is one higher than the user requested limit. If this
-     * higher limit is reached, we raise an error even a trusted root CA is
-     * present at this depth. This disambiguates trust chain truncation from
-     * an incomplete trust chain.
-     */
-    max_depth = SSL_get_verify_depth(con) - 1;
-
-    /*
-     * We never terminate the SSL handshake in the verification callback,
-     * rather we allow the TLS handshake to continue, but mark the session as
-     * unverified. The application is responsible for closing any sessions
-     * with unverified credentials.
-     */
-    if (max_depth >= 0 && depth > max_depth) {
-	X509_STORE_CTX_set_error(ctx, err = X509_V_ERR_CERT_CHAIN_TOO_LONG);
-	ok = 0;
-    }
     if (ok == 0)
 	update_error_state(TLScontext, depth, cert, err);
 

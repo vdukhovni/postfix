@@ -84,36 +84,8 @@ extern const char *str_tls_level(int);
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
 
-#if (OPENSSL_VERSION_NUMBER < 0x1000200fUL)
-#error "OpenSSL releases prior to 1.0.2 are no longer supported"
-#endif
-
- /* Backwards compatibility with OpenSSL < 1.1.0 */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define OpenSSL_version_num SSLeay
-#define OpenSSL_version SSLeay_version
-#define OPENSSL_VERSION SSLEAY_VERSION
-#define X509_STORE_up_ref(store) \
-	CRYPTO_add(&((store)->references), 1, CRYPTO_LOCK_X509)
-#define X509_up_ref(x) \
-	CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
-#define EVP_PKEY_up_ref(k) \
-	CRYPTO_add(&((k)->references), 1, CRYPTO_LOCK_EVP_PKEY)
-#define X509_STORE_CTX_get0_cert(ctx) ((ctx)->cert)
-#define X509_STORE_CTX_get0_untrusted(ctx) ((ctx)->untrusted)
-#define X509_STORE_CTX_set0_untrusted X509_STORE_CTX_set_chain
-#define X509_STORE_CTX_set0_trusted_stack X509_STORE_CTX_trusted_stack
-#define ASN1_STRING_get0_data ASN1_STRING_data
-#define X509_getm_notBefore X509_get_notBefore
-#define X509_getm_notAfter X509_get_notAfter
-#define TLS_method SSLv23_method
-#define TLS_client_method SSLv23_client_method
-#define TLS_server_method SSLv23_server_method
-#endif
-
- /* Backwards compatibility with OpenSSL < 1.1.1 */
-#if OPENSSL_VERSION_NUMBER < 0x1010100fUL
-#define SSL_CTX_set_num_tickets(ctx, num) ((void)0)
+#if (OPENSSL_VERSION_NUMBER < 0x1010100fUL)
+#error "OpenSSL releases prior to 1.1.1 are no longer supported"
 #endif
 
  /*-
@@ -230,7 +202,7 @@ extern void tls_dane_flush(void);
 extern void tls_dane_verbose(int);
 extern TLS_DANE *tls_dane_alloc(void);
 extern void tls_dane_add_ee_digests(TLS_DANE *, const char *, const char *,
-				            const char *);
+				            const char *, int);
 extern void tls_dane_free(TLS_DANE *);
 extern TLS_DANE *tls_dane_resolve(unsigned, const char *, DNS_RR *, int);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
@@ -651,15 +623,9 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
  /*
   * tls_dh.c
   */
-extern void tls_set_dh_from_file(const char *, int);
-extern DH *tls_tmp_dh_cb(SSL *, int, int);
-extern void tls_set_eecdh_curve(SSL_CTX *, const char *);
+extern void tls_set_dh_from_file(const char *);
+extern void tls_tmp_dh(SSL_CTX *);
 extern void tls_auto_eecdh_curves(SSL_CTX *, const char *);
-
- /*
-  * tls_rsa.c
-  */
-extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
 
  /*
   * tls_verify.c

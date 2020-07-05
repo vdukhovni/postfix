@@ -24903,19 +24903,39 @@ Apologies for any names omitted.
 20200626
 
 	Typo: in postconf(5) documentation, AAAAA should be AAAA.
-	Christian Franke.  File: proto/postconf.proto.
+	Christian Franke. File: proto/postconf.proto.
 
 	Bugfix (introduced: Postfix 2.11): The Postfix smtp(8)
 	client did not send the right SNI name when the TLSA base
 	domain was a secure CNAME expansion of the MX hostname (or
-	non-MX nexthop domain). Domains with CNAME expanded MX
-	hosts are not conformant with RFC5321, and so are rare.
-	Even more rare are MX hosts with TLSA records for their
-	CNAME expansion. For this to matter, the remote SMTP server
-	would also have to select its certificate based on the SNI
-	name in such a way that the original MX host would yield a
-	different certificate. Among the ~2 million hosts in the
-	DANE survey, none meet the conditions for returning a
-	different certificate for the expanded CNAME. Therefore,
-	sending the correct SNI name should not break existing mail
-	flows. Fixed by Viktor Dukhovni. File: src/tls/tls_client.c.
+	non-MX nexthop domain). Domains with CNAME expanded MX hosts
+	are not conformant with RFC5321, and so are rare. Even more
+	rare are MX hosts with TLSA records for their CNAME expansion.
+	For this to matter, the remote SMTP server would also have
+	to select its certificate based on the SNI name in such a
+	way that the original MX host would yield a different
+	certificate. Among the ~2 million hosts in the DANE survey,
+	none meet the conditions for returning a different certificate
+	for the expanded CNAME. Therefore, sending the correct SNI
+	name should not break existing mail flows. Fixed by Viktor
+	Dukhovni. File: src/tls/tls_client.c.
+
+20200705
+
+	Cleanup: OpenSSL-1.1.1 is the minimum supported version.
+	This is an LTS (long-term support) version that will reach
+	the end of life by 2023-09-11. This removes support for
+	export ciphers.
+
+	This also changes the Postfix default fingerprint digest
+	from MD5 to SHA256, but only when the compatibility_level
+	is set to '3' or higher.
+
+	Code by Vikdor Dukhovni. Files: global/mail_params.c,
+	global/mail_params.h, posttls-finger/posttls-finger.c,
+	proto/COMPATIBILITY_README.html, proto/TLS_README.html,
+	proto/postconf.proto, smtp/smtp.c, smtp/smtp_tls_policy.c,
+	smtpd/smtpd.c, smtpd/smtpd_check.c, tls/Makefile.in,
+	tls/tls.h, tls/tls_certkey.c, tls/tls_client.c, tls/tls_dane.c,
+	tls/tls_dh.c, tls/tls_misc.c, tls/tls_rsa.c, tls/tls_server.c,
+	tls/tls_verify.c.

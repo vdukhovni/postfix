@@ -1607,6 +1607,11 @@ static int permit_tls_clientcerts(SMTPD_STATE *state, int permit_all_certs)
 	int     i;
 	char   *prints[2];
 
+	if (warn_compat_break_smtpd_tls_fpt_dgst)
+	    msg_info("using backwards-compatible default setting "
+		     VAR_SMTPD_TLS_FPT_DGST "=md5 to compute certificate "
+		     "fingerprints");
+
 	prints[0] = state->tls_context->peer_cert_fprint;
 	prints[1] = state->tls_context->peer_pkey_fprint;
 
@@ -3196,9 +3201,17 @@ static int check_ccert_access(SMTPD_STATE *state, const char *acl_spec,
 	    switch (*action) {
 	    case SMTPD_ACL_SEARCH_CODE_CERT_FPRINT:
 		match_this = state->tls_context->peer_cert_fprint;
+                if (warn_compat_break_smtpd_tls_fpt_dgst)
+                    msg_info("using backwards-compatible default setting "
+                             VAR_SMTPD_TLS_FPT_DGST "=md5 to compute "
+                             "certificate fingerprints");
 		break;
 	    case SMTPD_ACL_SEARCH_CODE_PKEY_FPRINT:
 		match_this = state->tls_context->peer_pkey_fprint;
+                if (warn_compat_break_smtpd_tls_fpt_dgst)
+                    msg_info("using backwards-compatible default setting "
+                             VAR_SMTPD_TLS_FPT_DGST "=md5 to compute "
+                             "certificate fingerprints");
 		break;
 	    default:
 		known_action = str_name_code(search_actions, *action);
@@ -3958,6 +3971,7 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 		            const char *reply_name, const char *reply_class,
 				        const char *def_acl)
 {
+    static int warned = 0;
     static VSTRING *action = 0;
     SMTPD_POLICY_CLNT *policy_clnt;
 
@@ -3999,6 +4013,24 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 
     ENCODE_CN(subject, subject_buf, state->tls_context->peer_CN);
     ENCODE_CN(issuer, issuer_buf, state->tls_context->issuer_CN);
+
+    /*
+     * XXX: Too noisy to warn for each policy lookup, especially because we
+     * don't even know whether the policy server will use the fingerprint.  So
+     * warn at most once per process, though only lightly loaded servers, it
+     * might come close to one warning per inbound message.
+     */
+    if (!warned
+        && warn_compat_break_smtpd_tls_fpt_dgst
+        && state->tls_context
+        && state->tls_context->peer_cert_fprint
+        && *state->tls_context->peer_cert_fprint) {
+        warned = 1;
+        msg_info("using backwards-compatible default setting "
+                 VAR_SMTPD_TLS_FPT_DGST "=md5 to compute certificate "
+                 "fingerprints");
+    }
+
 #endif
 
     if (attr_clnt_request(policy_clnt->client,
