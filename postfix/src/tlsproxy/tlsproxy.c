@@ -996,13 +996,7 @@ static int tlsp_client_start_pre_handshake(TLSP_STATE *state)
 {
     state->client_start_props->ctx = state->appl_state;
     state->client_start_props->fd = state->ciphertext_fd;
-    /* These predicates and warning belong inside tls_client_start(). */
-    if (!tls_dane_avail()			/* mandatory side effects!! */
-	&&TLS_DANE_BASED(state->client_start_props->tls_level))
-	msg_warn("%s: DANE requested, but not available",
-		 state->client_start_props->namaddr);
-    else
-	state->tls_context = tls_client_start(state->client_start_props);
+    state->tls_context = tls_client_start(state->client_start_props);
     if (state->tls_context != 0)
 	return (TLSP_STAT_OK);
 
@@ -1194,8 +1188,7 @@ static void tlsp_log_config_diff(const char *server_cfg, const char *client_cfg)
 /* tlsp_client_init - initialize a TLS client engine */
 
 static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
-				          TLS_CLIENT_INIT_PROPS *init_props,
-					        int dane_based)
+				          TLS_CLIENT_INIT_PROPS *init_props)
 {
     TLS_APPL_STATE *appl_state;
     VSTRING *param_buf;
@@ -1228,8 +1221,8 @@ static TLS_APPL_STATE *tlsp_client_init(TLS_CLIENT_PARAMS *tls_params,
     init_key = tls_proxy_client_init_with_names_to_string(
 						      init_buf, init_props);
     init_buf_for_hashing = vstring_alloc(100);
-    init_key_for_hashing = STR(vstring_sprintf(init_buf_for_hashing, "%s%d\n",
-					       init_key, dane_based));
+    init_key_for_hashing = STR(vstring_sprintf(init_buf_for_hashing, "%s\n",
+					       init_key));
     if (tlsp_pre_jail_done == 0) {
 	if (tlsp_pre_jail_client_param_key == 0
 	    || tlsp_pre_jail_client_init_key == 0) {
@@ -1426,8 +1419,7 @@ static void tlsp_get_request_event(int event, void *context)
 	    return;
 	}
 	state->appl_state = tlsp_client_init(state->tls_params,
-					     state->client_init_props,
-		      TLS_DANE_BASED(state->client_start_props->tls_level));
+					     state->client_init_props);
 	ready = state->appl_state != 0;
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
@@ -1714,7 +1706,6 @@ static void pre_jail_init_client(void)
     if (clnt_use_tls || var_tlsp_clnt_per_site[0] || var_tlsp_clnt_policy[0]) {
 	TLS_CLIENT_PARAMS tls_params;
 	TLS_CLIENT_INIT_PROPS init_props;
-	int     dane_based_mode;
 
 	tls_pre_jail_init(TLS_ROLE_CLIENT);
 
@@ -1741,11 +1732,8 @@ static void pre_jail_init_client(void)
 				    CAfile = var_tlsp_clnt_CAfile,
 				    CApath = var_tlsp_clnt_CApath,
 				    mdalg = var_tlsp_clnt_fpt_dgst);
-	for (dane_based_mode = 0; dane_based_mode < 2; dane_based_mode++) {
-	    if (tlsp_client_init(&tls_params, &init_props,
-				 dane_based_mode) == 0)
-		msg_warn("TLS client initialization failed");
-	}
+	if (tlsp_client_init(&tls_params, &init_props) == 0)
+	    msg_warn("TLS client initialization failed");
     }
 }
 

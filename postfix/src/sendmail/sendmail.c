@@ -39,6 +39,9 @@
 /* .IP \fB!\fR
 /*	The message is in the \fBhold\fR queue, i.e. no further delivery
 /*	attempt will be made until the mail is taken off hold.
+/* .IP \fB#\fR
+/*	The message is forced to expire. See the \fBpostsuper\fR(1)
+/*	options \fB-e\fR or \fB-f\fR.
 /* .RE
 /* .IP
 /*	This mode of operation is implemented by executing the
@@ -254,6 +257,22 @@
 /*	it must handle data from untrusted, possibly remote, users.
 /*	Thus, the usual precautions need to be taken against malicious
 /*	inputs.
+/*
+/*	In particular, applications that invoke the Postfix
+/*	\fBsendmail\fR(1) command MUST disable command options processing
+/*	for all command arguments that contain user-specified data,
+/*	by structuring the command line as follows:
+/*
+/* .nf
+/*	    \fB/path/to/sendmail\fR \fIsystem-arguments\fR \fB--\fR \fIuser-arguments\fR
+/* .fi
+/*
+/*	Here, the "\fB--\fR" disables command option processing for
+/*	all \fIuser-arguments\fR that follow.
+/*
+/*	Without the "\fB--\fR", a malicious user could enable Postfix
+/*	\fBsendmail\fR(1) command options, by specifying an email
+/*	address that starts with "\fB-\fR".
 /* DIAGNOSTICS
 /*	Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8),
 /*	and to the standard error stream.
@@ -294,12 +313,13 @@
 /*	The external command to execute when a Postfix daemon program is
 /*	invoked with the -D option.
 /* .IP "\fBdebug_peer_level (2)\fR"
-/*	The increment in verbose logging level when a remote client or
-/*	server matches a pattern in the debug_peer_list parameter.
+/*	The increment in verbose logging level when a nexthop destination,
+/*	remote client or server name or network address matches a pattern
+/*	given with the debug_peer_list parameter.
 /* .IP "\fBdebug_peer_list (empty)\fR"
-/*	Optional list of remote client or server hostname or network
-/*	address patterns that cause the verbose logging level to increase
-/*	by the amount specified in $debug_peer_level.
+/*	Optional list of nexthop destination, remote client or server
+/*	name or network address patterns that, if matched, cause the verbose
+/*	logging level to increase by the amount specified in $debug_peer_level.
 /* ACCESS CONTROLS
 /* .ad
 /* .fi
@@ -1437,6 +1457,7 @@ int     main(int argc, char **argv)
 	argv_add(ext_argv, "postalias", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
 	    argv_add(ext_argv, "-v", (char *) 0);
+	argv_add(ext_argv, "--", (char *) 0);
 	argv_split_append(ext_argv, var_alias_db_map, CHARS_COMMA_SP);
 	argv_terminate(ext_argv);
 	mail_run_replace(var_command_dir, ext_argv->argv);

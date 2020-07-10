@@ -8093,6 +8093,10 @@ is a message digest of the server certificate (or public key). The
 digest algorithm is selected via the \fBsmtp_tls_fingerprint_digest\fR
 parameter.
 .PP
+With Postfix >= 3.6 the colons between each pair of nibbles in the
+fingerprint value are optional.  These were required in earlier Postfix
+releases.
+.PP
 When an \fBsmtp_tls_policy_maps\fR table entry specifies the
 "fingerprint" security level, any "match" attributes in that entry specify
 the list of valid fingerprints for the corresponding destination. Multiple

@@ -255,7 +255,8 @@ static int tls_scache_decode(TLS_SCACHE *cp, const char *cache_id,
 #define FREE_AND_RETURN(ptr, x) { vstring_free(ptr); return (x); }
 
     bin_data = vstring_alloc(hex_data_len / 2 + 1);
-    if (hex_decode(bin_data, hex_data, hex_data_len) == 0) {
+    if (hex_decode_opt(bin_data, hex_data, hex_data_len,
+		       HEX_DECODE_FLAG_ALLOW_COLON) == 0) {
 	msg_warn("%s TLS cache: malformed entry for %s: %.100s",
 		 cp->cache_label, cache_id, hex_data);
 	FREE_AND_RETURN(bin_data, 0);

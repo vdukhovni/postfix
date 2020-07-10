@@ -1443,6 +1443,7 @@ static void pre_init(char *unused_name, char **unused_argv)
 			    CApath = var_smtp_tls_CApath,
 			    mdalg = var_smtp_tls_fpt_dgst);
 	smtp_tls_list_init();
+	tls_dane_loglevel(VAR_LMTP_SMTP(TLS_LOGLEVEL), var_smtp_tls_loglevel);
 #else
 	msg_warn("TLS has been selected, but TLS support is not compiled in");
 #endif

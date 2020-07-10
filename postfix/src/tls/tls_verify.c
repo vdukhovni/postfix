@@ -21,10 +21,6 @@
 /*	char *tls_issuer_CN(peercert, TLScontext)
 /*	X509   *peercert;
 /*	TLS_SESS_STATE *TLScontext;
-/*
-/*	const char *tls_dns_name(gn, TLScontext)
-/*	const GENERAL_NAME *gn;
-/*	TLS_SESS_STATE *TLScontext;
 /* DESCRIPTION
 /*	tls_verify_certificate_callback() is called several times (directly
 /*	or indirectly) from crypto/x509/x509_vfy.c. It collects errors
@@ -50,11 +46,6 @@
 /*	freed by the caller; it contains UTF-8 without non-printable
 /*	ASCII characters.
 /*
-/*	tls_dns_name() returns the string value of a GENERAL_NAME
-/*	from a DNS subjectAltName extension. If non-printable characters
-/*	are found, a null string is returned instead. Further sanity
-/*	checks may be added if the need arises.
-/*
 /*	Arguments:
 /* .IP ok
 /*	Result of prior verification: non-zero means success.  In
@@ -72,11 +63,10 @@
 /* .IP TLScontext
 /*	Server or client context for warning messages.
 /* DIAGNOSTICS
-/*	tls_peer_CN(), tls_issuer_CN() and tls_dns_name() log a warning
-/*	when 1) the requested information is not available in the specified
-/*	certificate, 2) the result exceeds a fixed limit, 3) the result
-/*	contains NUL characters or the result contains non-printable or
-/*	non-ASCII characters.
+/*	tls_peer_CN() and tls_issuer_CN() log a warning when 1) the requested
+/*	information is not available in the specified certificate, 2) the
+/*	result exceeds a fixed limit, 3) the result contains NUL characters or
+/*	the result contains non-printable or non-ASCII characters.
 /* LICENSE
 /* .ad
 /* .fi
@@ -162,10 +152,24 @@ int     tls_verify_certificate_callback(int ok, X509_STORE_CTX *ctx)
     TLScontext = SSL_get_ex_data(con, TLScontext_index);
     depth = X509_STORE_CTX_get_error_depth(ctx);
 
-    /* Don't log the internal root CA unless there's an unexpected error. */
-    if (ok && TLScontext->tadepth > 0 && depth > TLScontext->tadepth)
+    /*
+     * Transient failures to load the (DNS or synthetic TLSA) trust settings
+     * must poison certificate verification, since otherwise the default
+     * trust store may bless a certificate that would have failed
+     * verification with the preferred trust anchors (or fingerprints).
+     * 
+     * Since we unconditionally continue, or in any case if verification is
+     * about to succeed, there is eventually a final depth 0 callback, at
+     * which point we force an "unspecified" error.  The failure to load the
+     * trust settings was logged earlier.
+     */
+    if (TLScontext->must_fail) {
+	if (depth == 0) {
+	    X509_STORE_CTX_set_error(ctx, err = X509_V_ERR_UNSPECIFIED);
+	    update_error_state(TLScontext, depth, cert, err);
+	}
 	return (1);
-
+    }
     if (ok == 0)
 	update_error_state(TLScontext, depth, cert, err);
 
@@ -383,77 +387,18 @@ static char *tls_text_name(X509_NAME *name, int nid, const char *label,
     TLS_TEXT_NAME_RETURN(mystrdup((char *) utf8_value));
 }
 
-/* tls_dns_name - Extract valid DNS name from subjectAltName value */
-
-const char *tls_dns_name(const GENERAL_NAME * gn,
-			         const TLS_SESS_STATE *TLScontext)
-{
-    const char *myname = "tls_dns_name";
-    char   *cp;
-    const char *dnsname;
-    int     len;
-
-    /*
-     * Peername checks are security sensitive, carefully scrutinize the
-     * input!
-     */
-    if (gn->type != GEN_DNS)
-	msg_panic("%s: Non DNS input argument", myname);
-
-    /*
-     * We expect the OpenSSL library to construct GEN_DNS extension objects as
-     * ASN1_IA5STRING values. Check we got the right union member.
-     */
-    if (ASN1_STRING_type(gn->d.ia5) != V_ASN1_IA5STRING) {
-	msg_warn("%s: %s: invalid ASN1 value type in subjectAltName",
-		 myname, TLScontext->namaddr);
-	return (0);
-    }
-
-    /*
-     * Safe to treat as an ASCII string possibly holding a DNS name
-     */
-    dnsname = (const char *) ASN1_STRING_get0_data(gn->d.ia5);
-    len = ASN1_STRING_length(gn->d.ia5);
-    TRIM0(dnsname, len);
-
-    /*
-     * Per Dr. Steven Henson of the OpenSSL development team, ASN1_IA5STRING
-     * values can have internal ASCII NUL values in this context because
-     * their length is taken from the decoded ASN1 buffer, a trailing NUL is
-     * always appended to make sure that the string is terminated, but the
-     * ASN.1 length may differ from strlen().
-     */
-    if (len != strlen(dnsname)) {
-	msg_warn("%s: %s: internal NUL in subjectAltName",
-		 myname, TLScontext->namaddr);
-	return 0;
-    }
-
-    /*
-     * XXX: Should we be more strict and call valid_hostname()? So long as
-     * the name is safe to handle, if it is not a valid hostname, it will not
-     * compare equal to the expected peername, so being more strict than
-     * "printable" is likely excessive...
-     */
-    if (*dnsname && !allprint(dnsname)) {
-	cp = mystrdup(dnsname);
-	msg_warn("%s: %s: non-printable characters in subjectAltName: %.100s",
-		 myname, TLScontext->namaddr, printable(cp, '?'));
-	myfree(cp);
-	return 0;
-    }
-    return (dnsname);
-}
-
 /* tls_peer_CN - extract peer common name from certificate */
 
 char   *tls_peer_CN(X509 *peercert, const TLS_SESS_STATE *TLScontext)
 {
     char   *cn;
+    const char *san;
 
+    /* Absent a commonName, return a validated DNS-ID SAN */
     cn = tls_text_name(X509_get_subject_name(peercert), NID_commonName,
 		       "subject CN", TLScontext, DONT_GRIPE);
+    if (cn == 0 && (san = SSL_get0_peername(TLScontext->con)) != 0)
+	cn = mystrdup(san);
     return (cn ? cn : mystrdup(""));
 }
 

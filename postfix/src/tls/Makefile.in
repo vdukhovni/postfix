@@ -201,6 +201,7 @@ tls_dane.o: ../../include/dns.h
 tls_dane.o: ../../include/events.h
 tls_dane.o: ../../include/hex_code.h
 tls_dane.o: ../../include/mail_params.h
+tls_dane.o: ../../include/midna_domain.h
 tls_dane.o: ../../include/msg.h
 tls_dane.o: ../../include/myaddrinfo.h
 tls_dane.o: ../../include/mymalloc.h
@@ -494,6 +495,7 @@ tls_proxy_server_scan.o: ../../include/vstring.h
 tls_proxy_server_scan.o: tls.h
 tls_proxy_server_scan.o: tls_proxy.h
 tls_proxy_server_scan.o: tls_proxy_server_scan.c
+tls_rsa.o: tls_rsa.c
 tls_scache.o: ../../include/argv.h
 tls_scache.o: ../../include/check_arg.h
 tls_scache.o: ../../include/dict.h

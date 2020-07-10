@@ -129,33 +129,53 @@ static const char hexcodes[] = "0123456789ABCDEF";
 #define digest_data(p, l) checkok(EVP_DigestUpdate(mdctx, (char *)(p), (l)))
 #define digest_object(p) digest_data((p), sizeof(*(p)))
 #define digest_string(s) digest_data((s), strlen(s)+1)
+#define digest_dane(tlsa) checkok(tls_digest_tlsa(mdctx, tlsa))
 
-#define digest_dane(dane, memb) do { \
-	if ((dane)->memb != 0) \
-	    checkok(digest_tlsa_usage(mdctx, (dane)->memb, #memb)); \
-    } while (0)
+/* tlsa_cmp - compare TLSA RRs for sorting to canonical order */
 
-#define digest_tlsa_argv(tlsa, memb) do { \
-	if ((tlsa)->memb) { \
-	    digest_string(#memb); \
-	    for (dgst = (tlsa)->memb->argv; *dgst; ++dgst) \
-		digest_string(*dgst); \
-	} \
-    } while (0)
-
-/* digest_tlsa_usage - digest TA or EE match list sorted by alg and value */
-
-static int digest_tlsa_usage(EVP_MD_CTX * mdctx, TLS_TLSA *tlsa,
-			             const char *usage)
+static int tlsa_cmp(const void *a, const void *b)
 {
-    char  **dgst;
-    int     ok = 1;
+    TLS_TLSA *p = *(TLS_TLSA **) a;
+    TLS_TLSA *q = *(TLS_TLSA **) b;
+    int     d;
 
-    for (digest_string(usage); tlsa; tlsa = tlsa->next) {
-	digest_string(tlsa->mdalg);
-	digest_tlsa_argv(tlsa, pkeys);
-	digest_tlsa_argv(tlsa, certs);
+    if ((d = (int) p->usage - (int) q->usage) != 0)
+	return d;
+    if ((d = (int) p->selector - (int) q->selector) != 0)
+	return d;
+    if ((d = (int) p->mtype - (int) q->mtype) != 0)
+	return d;
+    if ((d = (int) p->length - (int) q->length) != 0)
+	return d;
+    return (memcmp(p->data, q->data, p->length));
+}
+
+/* tls_digest_tlsa - fold in digest of sorced TLSA records */
+
+static int tls_digest_tlsa(EVP_MD_CTX * mdctx, TLS_TLSA *tlsa)
+{
+    TLS_TLSA *p;
+    TLS_TLSA **arr;
+    int     ok = 1;
+    int     n;
+    int     i;
+
+    for (n = 0, p = tlsa; p != 0; p = p->next)
+	++n;
+    arr = (TLS_TLSA **) mymalloc(n * sizeof(*arr));
+    for (i = 0, p = tlsa; p; p = p->next)
+	arr[i++] = (void *) p;
+    qsort(arr, n, sizeof(arr[0]), tlsa_cmp);
+
+    digest_object(&n);
+    for (i = 0; i < n; ++i) {
+	digest_object(&arr[i]->usage);
+	digest_object(&arr[i]->selector);
+	digest_object(&arr[i]->mtype);
+	digest_object(&arr[i]->length);
+	digest_data(arr[i]->data, arr[i]->length);
     }
+    myfree((void *) arr);
     return (ok);
 }
 
@@ -198,36 +218,16 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
     digest_string(ciphers);
 
     /*
-     * All we get from the session cache is a single bit telling us whether
-     * the certificate is trusted or not, but we need to know whether the
-     * trust is CA-based (in that case we must do name checks) or whether it
-     * is a direct end-point match.  We mustn't confuse the two, so it is
-     * best to process only TA trust in the verify callback and check the EE
-     * trust after. This works since re-used sessions always have access to
-     * the leaf certificate, while only the original session has the leaf and
-     * the full trust chain.
-     * 
-     * Only the trust anchor matchlist is hashed into the session key. The end
-     * entity certs are not used to determine whether a certificate is
-     * trusted or not, rather these are rechecked against the leaf cert
-     * outside the verification callback, each time a session is created or
-     * reused.
-     * 
-     * Therefore, the security context of the session does not depend on the EE
-     * matching data, which is checked separately each time.  So we exclude
-     * the EE part of the DANE structure from the serverid digest.
-     * 
      * If the security level is "dane", we send SNI information to the peer.
      * This may cause it to respond with a non-default certificate.  Since
      * certificates for sessions with no or different SNI data may not match,
      * we must include the SNI name in the session id.
      */
     if (props->dane) {
-	digest_dane(props->dane, ta);
-#if 0
-	digest_dane(props->dane, ee);		/* See above */
-#endif
-	digest_string(TLS_DANE_BASED(props->tls_level) ? props->host : "");
+	digest_string(TLS_DANE_BASED(props->tls_level) ?
+		      props->dane->base_domain : "");
+	if (props->dane->tlsa)
+	    digest_dane(props->dane->tlsa);
     }
     checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);

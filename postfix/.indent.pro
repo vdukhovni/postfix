@@ -128,6 +128,7 @@
 -TDICT_THASH
 -TDICT_UNION
 -TDICT_UNIX
+-TDICT_UTF8_BACKUP
 -TDICT_WRAPPER
 -TDNS_FIXED
 -TDNS_REPLY
@@ -402,6 +403,7 @@
 -Tcipher_probe_t
 -Td2i_X509_t
 -Tdane_digest
+-Tdane_mtype
 -Tfilter_ctx
 -Tgeneral_name_stack_t
 -Tiana_digest

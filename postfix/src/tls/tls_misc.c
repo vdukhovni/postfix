@@ -519,6 +519,7 @@ static const NAME_MASK tls_log_table[] = {
     "certmatch", TLS_LOG_CERTMATCH,
     "verbose", TLS_LOG_VERBOSE,		/* Postfix TLS library verbose */
     "cache", TLS_LOG_CACHE,
+    "dane", TLS_LOG_DANE,		/* DANE policy construction */
     "ssl-debug", TLS_LOG_DEBUG,		/* SSL library debug/verbose */
     "ssl-handshake-packet-dump", TLS_LOG_TLSPKTS,
     "ssl-session-packet-dump", TLS_LOG_TLSPKTS | TLS_LOG_ALLPKTS,
@@ -1119,11 +1120,8 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */
     TLScontext->dane = 0;			/* Alias for props->dane */
     TLScontext->errordepth = -1;
-    TLScontext->tadepth = -1;
     TLScontext->errorcode = X509_V_OK;
     TLScontext->errorcert = 0;
-    TLScontext->untrusted = 0;
-    TLScontext->trusted = 0;
 
     return (TLScontext);
 }
@@ -1158,10 +1156,20 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_pkey_fprint);
     if (TLScontext->errorcert)
 	X509_free(TLScontext->errorcert);
-    if (TLScontext->untrusted)
-	sk_X509_pop_free(TLScontext->untrusted, X509_free);
-    if (TLScontext->trusted)
-	sk_X509_pop_free(TLScontext->trusted, X509_free);
+    if (TLScontext->kex_name)
+	myfree((void *) TLScontext->kex_name);
+    if (TLScontext->clnt_sig_name)
+	myfree((void *) TLScontext->clnt_sig_name);
+    if (TLScontext->clnt_sig_curve)
+	myfree((void *) TLScontext->clnt_sig_curve);
+    if (TLScontext->clnt_sig_dgst)
+	myfree((void *) TLScontext->clnt_sig_dgst);
+    if (TLScontext->srvr_sig_name)
+	myfree((void *) TLScontext->srvr_sig_name);
+    if (TLScontext->srvr_sig_curve)
+	myfree((void *) TLScontext->srvr_sig_curve);
+    if (TLScontext->srvr_sig_dgst)
+	myfree((void *) TLScontext->srvr_sig_dgst);
 
     myfree((void *) TLScontext);
 }
@@ -1452,7 +1460,7 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
     return (ret);
 }
 
-int     tls_validate_digest(const char *dgst)
+const EVP_MD *tls_validate_digest(const char *dgst)
 {
     const EVP_MD *md_alg;
     unsigned int md_len;
@@ -1474,7 +1482,7 @@ int     tls_validate_digest(const char *dgst)
 		 dgst, md_len);
 	return (0);
     }
-    return (1);
+    return md_alg;
 }
 
 #else

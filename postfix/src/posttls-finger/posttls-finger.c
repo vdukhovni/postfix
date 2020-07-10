@@ -1396,10 +1396,6 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
     if (TLS_DANE_BASED(level)) {
 	if (state->mx == 0 || state->mx->dnssec_valid ||
 	    state->mxinsec_level > TLS_LEV_MAY) {
-	    if (state->log_mask & (TLS_LOG_CERTMATCH | TLS_LOG_VERBOSE))
-		tls_dane_verbose(1);
-	    else
-		tls_dane_verbose(0);
 
 	    /* See addr loop in connect_remote() */
 	    if (state->ddane)
@@ -1424,8 +1420,7 @@ static int dane_host_level(STATE *state, DNS_RR *addr)
 			     tls_dane_unusable(state->ddane) ?
 			     "usable " : "");
 		level = TLS_LEV_SECURE;
-	    } else if (!TLS_DANE_HASTA(state->ddane)
-		       && !TLS_DANE_HASEE(state->ddane)) {
+	    } else if (state->ddane->tlsa == 0) {
 		msg_panic("DANE activated with no TLSA records to match");
 	    } else if (state->mx && !state->mx->dnssec_valid &&
 		       state->mxinsec_level == TLS_LEV_ENCRYPT) {
@@ -1996,6 +1991,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
     if (state->options.logopts == 0)
 	state->options.logopts = mystrdup("routine,certmatch");
     state->log_mask = tls_log_mask("-L option", state->options.logopts);
+    tls_dane_loglevel("-L option", state->options.logopts);
 
     if (state->options.level) {
 	state->level = tls_level_lookup(state->options.level);
@@ -2037,8 +2033,8 @@ static void parse_match(STATE *state, int argc, char *argv[])
     case TLS_LEV_FPRINT:
 	state->dane = tls_dane_alloc();
 	while (*argv)
-	    tls_dane_add_ee_digests((TLS_DANE *) state->dane, state->mdalg,
-				    *argv++, "", smtp_mode);
+	    tls_dane_add_fpt_digests((TLS_DANE *) state->dane, *argv++, "",
+				     smtp_mode);
 	break;
     case TLS_LEV_DANE:
     case TLS_LEV_DANE_ONLY:

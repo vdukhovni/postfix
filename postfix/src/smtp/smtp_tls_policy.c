@@ -336,8 +336,7 @@ static void tls_policy_lookup_one(SMTP_TLS_POLICY *tls, int *site_level,
 	    case TLS_LEV_FPRINT:
 		if (!tls->dane)
 		    tls->dane = tls_dane_alloc();
-		tls_dane_add_ee_digests(tls->dane, var_smtp_tls_fpt_dgst,
-					val, "|", smtp_mode);
+		tls_dane_add_fpt_digests(tls->dane, val, "|", smtp_mode);
 		break;
 	    case TLS_LEV_VERIFY:
 	    case TLS_LEV_SECURE:
@@ -618,11 +617,10 @@ static void *policy_create(const char *unused_key, void *context)
     case TLS_LEV_FPRINT:
 	if (tls->dane == 0)
 	    tls->dane = tls_dane_alloc();
-	if (!TLS_DANE_HASEE(tls->dane)) {
-	    tls_dane_add_ee_digests(tls->dane, var_smtp_tls_fpt_dgst,
-				    var_smtp_tls_fpt_cmatch, CHARS_COMMA_SP,
-				    smtp_mode);
-	    if (!TLS_DANE_HASEE(tls->dane)) {
+	if (tls->dane->tlsa == 0) {
+	    tls_dane_add_fpt_digests(tls->dane, var_smtp_tls_fpt_cmatch,
+				     CHARS_COMMA_SP, smtp_mode);
+	    if (tls->dane->tlsa == 0) {
 		msg_warn("nexthop domain %s: configured at fingerprint "
 		       "security level, but with no fingerprints to match.",
 			 dest);
@@ -641,7 +639,7 @@ static void *policy_create(const char *unused_key, void *context)
 	if (*var_smtp_tls_tafile) {
 	    if (tls->dane == 0)
 		tls->dane = tls_dane_alloc();
-	    if (!TLS_DANE_HASTA(tls->dane)
+	    if (tls->dane->tlsa == 0
 		&& !load_tas(tls->dane, var_smtp_tls_tafile)) {
 		MARK_INVALID(tls->why, &tls->level);
 		return ((void *) tls);
@@ -910,7 +908,7 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
     /*
      * With DANE trust anchors, peername matching is not configurable.
      */
-    if (TLS_DANE_HASTA(dane)) {
+    if (dane->tlsa != 0) {
 	tls->matchargv = argv_alloc(2);
 	argv_add(tls->matchargv, dane->base_domain, ARGV_END);
 	if (iter->mx) {
@@ -920,7 +918,7 @@ static void dane_init(SMTP_TLS_POLICY *tls, SMTP_ITERATOR *iter)
 		argv_add(tls->matchargv, iter->mx->rname,
 			 iter->mx->qname, ARGV_END);
 	}
-    } else if (!TLS_DANE_HASEE(dane))
+    } else
 	msg_panic("empty DANE match list");
     tls->dane = dane;
     return;

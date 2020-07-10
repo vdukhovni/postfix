@@ -160,6 +160,7 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
 #define TLS_ATTR_ISSUER_CN	"issuer_CN"
 #define TLS_ATTR_PEER_CERT_FPT	"peer_fingerprint"
 #define TLS_ATTR_PEER_PKEY_FPT	"peer_pubkey_fingerprint"
+#define TLS_ATTR_SEC_LEVEL      "level"
 #define TLS_ATTR_PEER_STATUS	"peer_status"
 #define TLS_ATTR_CIPHER_PROTOCOL "cipher_protocol"
 #define TLS_ATTR_CIPHER_NAME	"cipher_name"
@@ -252,30 +253,15 @@ extern void tls_proxy_server_start_free(TLS_SERVER_START_PROPS *);
  /*
   * TLS_TLSA attributes.
   */
-#define TLS_ATTR_MDALG		"mdalg"
-#define TLS_ATTR_CERTS		"certs"
-#define TLS_ATTR_PKEYS		"pkeys"
-
- /*
-  * TLS_CERTS attributes.
-  */
-#define TLS_ATTR_CERT		"cert"
-
- /*
-  * TLS_PKEYS attributes.
-  */
-#define TLS_ATTR_PKEY		"pkey"
+#define TLS_ATTR_USAGE		"usage"
+#define TLS_ATTR_SELECTOR	"selector"
+#define TLS_ATTR_MTYPE		"mtype"
+#define TLS_ATTR_DATA		"data"
 
  /*
   * TLS_DANE attributes.
   */
-#define TLS_ATTR_TA		"ta"
-#define TLS_ATTR_EE		"ee"
-#define TLS_ATTR_CERTS		"certs"
-#define TLS_ATTR_PKEYS		"pkeys"
 #define TLS_ATTR_DOMAIN		"domain"
-#define TLS_ATTR_FLAGS		"flags"
-#define TLS_ATTR_EXP		"exp"
 
 #endif
 

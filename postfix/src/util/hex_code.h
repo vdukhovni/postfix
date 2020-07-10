@@ -19,8 +19,21 @@
  /*
   * External interface.
   */
+#define HEX_ENCODE_FLAG_NONE		(0)
+#define HEX_ENCODE_FLAG_USE_COLON	(1<<0)
+
+#define HEX_DECODE_FLAG_NONE	(0)
+#define HEX_DECODE_FLAG_ALLOW_COLON	(1<<0)
+
 extern VSTRING *hex_encode(VSTRING *, const char *, ssize_t);
 extern VSTRING *WARN_UNUSED_RESULT hex_decode(VSTRING *, const char *, ssize_t);
+extern VSTRING *hex_encode_opt(VSTRING *, const char *, ssize_t, int);
+extern VSTRING *WARN_UNUSED_RESULT hex_decode_opt(VSTRING *, const char *, ssize_t, int);
+
+#define hex_encode(res, in, len) \
+	hex_encode_opt((res), (in), (len), HEX_ENCODE_FLAG_NONE)
+#define hex_decode(res, in, len) \
+	hex_decode_opt((res), (in), (len), HEX_DECODE_FLAG_NONE)
 
 /* LICENSE
 /* .ad

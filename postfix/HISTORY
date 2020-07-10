@@ -24931,7 +24931,7 @@ Apologies for any names omitted.
 	from MD5 to SHA256, but only when the compatibility_level
 	is set to '3' or higher.
 
-	Code by Vikdor Dukhovni. Files: global/mail_params.c,
+	Code by Viktor Dukhovni. Files: global/mail_params.c,
 	global/mail_params.h, posttls-finger/posttls-finger.c,
 	proto/COMPATIBILITY_README.html, proto/TLS_README.html,
 	proto/postconf.proto, smtp/smtp.c, smtp/smtp_tls_policy.c,
@@ -24939,3 +24939,24 @@ Apologies for any names omitted.
 	tls/tls.h, tls/tls_certkey.c, tls/tls_client.c, tls/tls_dane.c,
 	tls/tls_dh.c, tls/tls_misc.c, tls/tls_rsa.c, tls/tls_server.c,
 	tls/tls_verify.c.
+
+20200710
+
+	Security: added a section to the sendmail(1) manpage for
+	security researchers and application developers, with an
+	example of using '--' to disable command option processing
+	for user-specified data. File sendmail/sendmail.c.
+
+	Error reporting: added '--' to a postalias command line to
+	make an obsecure error message less confusing. File
+	sendmail/sendmail.c.
+
+	Conversion from Postfix built-in DANE support to OpenSSL
+	DANE support. Code by Viktor Dukhovni. Files:
+	posttls-finger/posttls-finger.c, proto/postconf.proto,
+	smtp/smtp.c, smtp/smtp_proto.c, smtp/smtp_tls_policy.c,
+	tls/Makefile.in, tlsproxy/tlsproxy.c, tls/tls_client.c,
+	tls/tls_dane.c, tls/tls_fprint.c, tls/tls.h, tls/tls_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_proxy.h, tls/tls_verify.c, util/hex_code.c.

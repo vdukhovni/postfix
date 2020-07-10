@@ -257,7 +257,7 @@ typedef struct DICT_UTF8_BACKUP {
     const char *(*lookup) (struct DICT *, const char *);
     int     (*update) (struct DICT *, const char *, const char *);
     int     (*delete) (struct DICT *, const char *);
-}       DICT_UTF8_BACKUP;
+} DICT_UTF8_BACKUP;
 
 extern DICT *dict_utf8_activate(DICT *);
 

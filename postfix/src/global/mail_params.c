@@ -360,20 +360,20 @@ char   *var_drop_hdrs;
 char   *var_info_log_addr_form;
 bool    var_enable_orcpt;
 
-char	*var_maillog_file;
-char	*var_maillog_file_pfxs;
-char	*var_maillog_file_comp;
-char	*var_maillog_file_stamp;
-char	*var_postlog_service;
+char   *var_maillog_file;
+char   *var_maillog_file_pfxs;
+char   *var_maillog_file_comp;
+char   *var_maillog_file_stamp;
+char   *var_postlog_service;
 
 const char null_format_string[1] = "";
 
  /*
   * Compatibility level 3.
   */
-int	warn_compat_break_smtpd_tls_fpt_dgst;
-int	warn_compat_break_smtp_tls_fpt_dgst;
-int	warn_compat_break_lmtp_tls_fpt_dgst;
+int     warn_compat_break_smtpd_tls_fpt_dgst;
+int     warn_compat_break_smtp_tls_fpt_dgst;
+int     warn_compat_break_lmtp_tls_fpt_dgst;
 
  /*
   * Compatibility level 2.

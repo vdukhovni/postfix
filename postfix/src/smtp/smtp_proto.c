@@ -1112,18 +1112,17 @@ static int smtp_start_tls(SMTP_STATE *state)
      * "QUIT".
      * 
      * See src/tls/tls_level.c and src/tls/tls.h. Levels above "encrypt" require
-     * matching.  Levels >= "dane" require CA or DNSSEC trust.
+     * matching.
      * 
-     * When DANE TLSA records specify an end-entity certificate, the trust and
-     * match bits always coincide, but it is fine to report the wrong
-     * end-entity certificate as untrusted rather than unmatched.
+     * NOTE: We use "IS_MATCHED" to satisfy policy, but "IS_SECURED" to log
+     * effective security.  Thus "half-dane" is never "Verified" only
+     * "Trusted", but matching is enforced here.
+     * 
+     * NOTE: When none of the TLSA records were usable, "dane" and "half-dane"
+     * fall back to "encrypt", updating the tls_context level accordingly, so
+     * we must check that here, and not state->tls->level.
      */
-    if (TLS_MUST_TRUST(state->tls->level))
-	if (!TLS_CERT_IS_TRUSTED(session->tls_context))
-	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
-				   SMTP_RESP_FAKE(&fake, "4.7.5"),
-				   "Server certificate not trusted"));
-    if (TLS_MUST_MATCH(state->tls->level))
+    if (TLS_MUST_MATCH(session->tls_context->level))
 	if (!TLS_CERT_IS_MATCHED(session->tls_context))
 	    return (smtp_site_fail(state, DSN_BY_LOCAL_MTA,
 				   SMTP_RESP_FAKE(&fake, "4.7.5"),
