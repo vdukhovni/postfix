@@ -4016,8 +4016,8 @@ static int check_policy_service(SMTPD_STATE *state, const char *server,
 
     /*
      * XXX: Too noisy to warn for each policy lookup, especially because we
-     * don't even know whether the policy server will use the fingerprint.
-     * So warn at most once per process, though only lightly loaded servers,
+     * don't even know whether the policy server will use the fingerprint. So
+     * warn at most once per process, though on only lightly loaded servers,
      * it might come close to one warning per inbound message.
      */
     if (!warned

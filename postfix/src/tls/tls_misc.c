@@ -109,7 +109,7 @@
 /*	TLS_APPL_STATE *app_ctx;
 /*	int	log_mask;
 /*
-/*	int	tls_validate_digest(dgst)
+/*	const EVP_MD *tls_validate_digest(dgst)
 /*	const char *dgst;
 /* DESCRIPTION
 /*	This module implements public and internal routines that
@@ -202,8 +202,8 @@
 /*	tls_update_app_logmask() changes the log mask of the
 /*	application TLS context to the new setting.
 /*
-/*	tls_validate_digest() returns non-zero if the named digest
-/*	is usable and zero otherwise.
+/*	tls_validate_digest() returns a static handle for the named
+/*	digest algorithm, or NULL on error.
 /* LICENSE
 /* .ad
 /* .fi
@@ -1154,10 +1154,10 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_cert_fprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
-    if (TLScontext->errorcert)
-	X509_free(TLScontext->errorcert);
     if (TLScontext->kex_name)
 	myfree((void *) TLScontext->kex_name);
+    if (TLScontext->kex_curve)
+	myfree((void *) TLScontext->kex_curve);
     if (TLScontext->clnt_sig_name)
 	myfree((void *) TLScontext->clnt_sig_name);
     if (TLScontext->clnt_sig_curve)
@@ -1170,6 +1170,8 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree((void *) TLScontext->srvr_sig_curve);
     if (TLScontext->srvr_sig_dgst)
 	myfree((void *) TLScontext->srvr_sig_dgst);
+    if (TLScontext->errorcert)
+	X509_free(TLScontext->errorcert);
 
     myfree((void *) TLScontext);
 }

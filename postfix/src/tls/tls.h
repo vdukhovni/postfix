@@ -628,11 +628,10 @@ extern void tlsa_add(TLS_TLSA **, uint8_t, uint8_t, uint8_t,
   * tls_fprint.c
   */
 extern char *tls_digest_encode(const unsigned char *, int);
-extern char *tls_data_fprint(const char *, int, const char *);
 extern char *tls_cert_fprint(X509 *, const char *);
 extern char *tls_pkey_fprint(X509 *, const char *);
-extern char *tls_serverid_digest(const TLS_CLIENT_START_PROPS *, long,
-				         const char *);
+extern char *tls_serverid_digest(TLS_SESS_STATE *,
+		        const TLS_CLIENT_START_PROPS *, long, const char *);
 
  /*
   * tls_certkey.c

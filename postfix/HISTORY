@@ -24960,3 +24960,6 @@ Apologies for any names omitted.
 	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
 	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
 	tls/tls_proxy.h, tls/tls_verify.c, util/hex_code.c.
+
+	Bugfix (introduced: Postfix 3.0): minor memory leaks in the
+	Postfix TLS library, found during tests. File: tls/tls_misc.c.

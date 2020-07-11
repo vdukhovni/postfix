@@ -254,7 +254,7 @@ static int dane_tlsa_support = 0;
 typedef struct dane_mtype {
     const EVP_MD *alg;
     uint8_t ord;
-}       dane_mtype;
+} dane_mtype;
 
 /*
  * This is not intended to be a long-term cache of pre-parsed TLSA data,
@@ -338,6 +338,10 @@ void    tlsa_add(TLS_TLSA **tlsa, uint8_t u, uint8_t s, uint8_t m,
     *tlsa = head;
 }
 
+#define MAX_HEAD_BYTES 32
+#define MAX_TAIL_BYTES 32
+#define MAX_DUMP_BYTES (MAX_HEAD_BYTES + MAX_TAIL_BYTES)
+
 /* tlsa_info - log import of a particular TLSA record */
 
 static void tlsa_info(const char *tag, const char *msg,
@@ -348,21 +352,22 @@ static void tlsa_info(const char *tag, const char *msg,
     static VSTRING *bot;
 
     if (top == 0)
-	top = vstring_alloc(64);
+	top = vstring_alloc(2 * MAX_HEAD_BYTES);
     if (bot == 0)
-	bot = vstring_alloc(64);
+	bot = vstring_alloc(2 * MAX_TAIL_BYTES);
 
-    if (dlen > 64) {
-	hex_encode(top, (char *) data, 32);
-	hex_encode(bot, (char *) data + dlen - 32, 32);
+    if (dlen > MAX_DUMP_BYTES) {
+	hex_encode(top, (char *) data, MAX_HEAD_BYTES);
+	hex_encode(bot, (char *) data + dlen - MAX_TAIL_BYTES, MAX_TAIL_BYTES);
     } else if (dlen > 0) {
 	hex_encode(top, (char *) data, dlen);
     } else {
 	vstring_sprintf(top, "...");
     }
 
-    msg_info("%s: %s: %u %u %u %s%s%s", tag, msg, u, s, m,
-	     STR(top), dlen > 64 ? "..." : "", dlen > 64 ? STR(bot) : "");
+    msg_info("%s: %s: %u %u %u %s%s%s", tag, msg, u, s, m, STR(top),
+	     dlen > MAX_DUMP_BYTES ? "..." : "",
+	     dlen > MAX_DUMP_BYTES ? STR(bot) : "");
 }
 
 /* tlsa_carp - carp about a particular TLSA record */
@@ -375,21 +380,22 @@ static void tlsa_carp(const char *s1, const char *s2, const char *s3,
     static VSTRING *bot;
 
     if (top == 0)
-	top = vstring_alloc(64);
+	top = vstring_alloc(2 * MAX_HEAD_BYTES);
     if (bot == 0)
-	bot = vstring_alloc(64);
+	bot = vstring_alloc(2 * MAX_TAIL_BYTES);
 
-    if (dlen > 64) {
-	hex_encode(top, (char *) data, 32);
-	hex_encode(bot, (char *) data + dlen - 32, 32);
+    if (dlen > MAX_DUMP_BYTES) {
+	hex_encode(top, (char *) data, MAX_HEAD_BYTES);
+	hex_encode(bot, (char *) data + dlen - MAX_TAIL_BYTES, MAX_TAIL_BYTES);
     } else if (dlen > 0) {
 	hex_encode(top, (char *) data, dlen);
     } else {
 	vstring_sprintf(top, "...");
     }
 
-    msg_warn("%s%s%s%s: %u %u %u %s%s%s", s1, s2, s3, s4, u, s, m,
-	     STR(top), dlen > 64 ? "..." : "", dlen > 64 ? STR(bot) : "");
+    msg_warn("%s%s%s%s: %u %u %u %s%s%s", s1, s2, s3, s4, u, s, m, STR(top),
+	     dlen > MAX_DUMP_BYTES ? "..." : "",
+	     dlen > MAX_DUMP_BYTES ? STR(bot) : "");
 }
 
 /* tls_dane_flush - flush the cache */
@@ -975,14 +981,14 @@ void    tls_dane_log(TLS_SESS_STATE *TLScontext)
     }
 
     if (top == 0)
-	top = vstring_alloc(64);
+	top = vstring_alloc(2 * MAX_HEAD_BYTES);
     if (bot == 0)
-	bot = vstring_alloc(64);
+	bot = vstring_alloc(2 * MAX_TAIL_BYTES);
 
     (void) SSL_get0_dane_tlsa(TLScontext->con, &u, &s, &m, &data, &dlen);
-    if (dlen > 64) {
-	hex_encode(top, (char *) data, 32);
-	hex_encode(bot, (char *) data + dlen - 32, 32);
+    if (dlen > MAX_DUMP_BYTES) {
+	hex_encode(top, (char *) data, MAX_HEAD_BYTES);
+	hex_encode(bot, (char *) data + dlen - MAX_TAIL_BYTES, MAX_TAIL_BYTES);
     } else {
 	hex_encode(top, (char *) data, dlen);
     }
@@ -990,7 +996,8 @@ void    tls_dane_log(TLS_SESS_STATE *TLScontext)
     switch (TLScontext->level) {
     case TLS_LEV_FPRINT:
 	msg_info("%s: Matched fingerprint: %s%s%s", TLScontext->namaddr,
-	       STR(top), dlen > 64 ? "..." : "", dlen > 64 ? STR(bot) : "");
+		 STR(top), dlen > MAX_DUMP_BYTES ? "..." : "",
+		 dlen > MAX_DUMP_BYTES ? STR(bot) : "");
 	return;
 
     default:
@@ -998,7 +1005,8 @@ void    tls_dane_log(TLS_SESS_STATE *TLScontext)
 		 TLScontext->namaddr, mspki ?
 		 "TA public key verified certificate" : depth ?
 		 "TA certificate" : "EE certificate", depth, u, s, m,
-	       STR(top), dlen > 64 ? "..." : "", dlen > 64 ? STR(bot) : "");
+		 STR(top), dlen > MAX_DUMP_BYTES ? "..." : "",
+		 dlen > MAX_DUMP_BYTES ? STR(bot) : "");
 	return;
     }
 }
@@ -1046,7 +1054,7 @@ static int verify_chain(SSL *ssl, x509_stack_t *chain, TLS_SESS_STATE *tctx)
     return (ret);
 }
 
-static void add_tlsa(SSL *ssl, char *argv[])
+static void load_tlsa_args(SSL *ssl, char *argv[])
 {
     const EVP_MD *md = 0;
     X509   *cert = 0;
@@ -1320,7 +1328,7 @@ int     main(int argc, char *argv[])
     for (i = 7; i < argc; ++i)
 	if (!SSL_add1_host(tctx->con, argv[i]))
 	    msg_fatal("error adding hostname: %s", argv[i]);
-    add_tlsa(tctx->con, argv);
+    load_tlsa_args(tctx->con, argv);
     SSL_set_connect_state(tctx->con);
 
     /* Verify saved server chain */

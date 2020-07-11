@@ -6,7 +6,8 @@
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
-/*	char	*tls_serverid_digest(props, protomask, ciphers)
+/*	char	*tls_serverid_digest(TLScontext, props, protomask, ciphers)
+/*	TLS_SESS_STATE *TLScontext;
 /*	const TLS_CLIENT_START_PROPS *props;
 /*	long	protomask;
 /*	const char *ciphers;
@@ -14,11 +15,6 @@
 /*	char	*tls_digest_encode(md_buf, md_len)
 /*	const unsigned char *md_buf;
 /*	const char *md_len;
-/*
-/*	char	*tls_data_fprint(buf, len, mdalg)
-/*	const char *buf;
-/*	int	len;
-/*	const char *mdalg;
 /*
 /*	char	*tls_cert_fprint(peercert, mdalg)
 /*	X509	*peercert;
@@ -32,11 +28,6 @@
 /*	format with ':' separators between each pair of hex digits.
 /*	The return value is dynamically allocated with mymalloc(),
 /*	and the caller must eventually free it with myfree().
-/*
-/*	tls_data_fprint() digests unstructured data, and encodes the digested
-/*	result via tls_digest_encode().  The return value is dynamically
-/*	allocated with mymalloc(), and the caller must eventually free it
-/*	with myfree().
 /*
 /*	tls_cert_fprint() returns a fingerprint of the the given
 /*	certificate using the requested message digest, formatted
@@ -53,12 +44,11 @@
 /*	and the caller must eventually free it with myfree().
 /*
 /*	tls_serverid_digest() suffixes props->serverid computed by the SMTP
-/*	client with "&" plus a digest of additional parameters
-/*	needed to ensure that re-used sessions are more likely to
-/*	be reused and that they will satisfy all protocol and
-/*	security requirements.
-/*	The return value is dynamically allocated with mymalloc(),
-/*	and the caller must eventually free it with myfree().
+/*	client with "&" plus a digest of additional parameters needed to ensure
+/*	that re-used sessions are more likely to be reused and that they will
+/*	satisfy all protocol and security requirements.  The return value is
+/*	dynamically allocated with mymalloc(), and the caller must eventually
+/*	free it with myfree().
 /*
 /*	Arguments:
 /* .IP peercert
@@ -126,10 +116,24 @@
 static const char hexcodes[] = "0123456789ABCDEF";
 
 #define checkok(ret)	(ok &= ((ret) ? 1 : 0))
-#define digest_data(p, l) checkok(EVP_DigestUpdate(mdctx, (char *)(p), (l)))
-#define digest_object(p) digest_data((p), sizeof(*(p)))
-#define digest_string(s) digest_data((s), strlen(s)+1)
+#define digest_object(p) digest_data((unsigned char *)(p), sizeof(*(p)))
+#define digest_data(p, l) checkok(digest_bytes(mdctx, (p), (l)))
+#define digest_string(s) checkok(digest_chars(mdctx, (s)))
 #define digest_dane(tlsa) checkok(tls_digest_tlsa(mdctx, tlsa))
+
+/* digest_bytes - hash octet string of given length */
+
+static int digest_bytes(EVP_MD_CTX *ctx, const unsigned char *buf, size_t len)
+{
+    return (EVP_DigestUpdate(ctx, buf, len));
+}
+
+/* digest_chars - hash string including trailing NUL */
+
+static int digest_chars(EVP_MD_CTX *ctx, const char *s)
+{
+    return (EVP_DigestUpdate(ctx, s, strlen(s) + 1));
+}
 
 /* tlsa_cmp - compare TLSA RRs for sorting to canonical order */
 
@@ -152,7 +156,7 @@ static int tlsa_cmp(const void *a, const void *b)
 
 /* tls_digest_tlsa - fold in digest of sorced TLSA records */
 
-static int tls_digest_tlsa(EVP_MD_CTX * mdctx, TLS_TLSA *tlsa)
+static int tls_digest_tlsa(EVP_MD_CTX *mdctx, TLS_TLSA *tlsa)
 {
     TLS_TLSA *p;
     TLS_TLSA **arr;
@@ -181,8 +185,9 @@ static int tls_digest_tlsa(EVP_MD_CTX * mdctx, TLS_TLSA *tlsa)
 
 /* tls_serverid_digest - suffix props->serverid with parameter digest */
 
-char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
-			            const char *ciphers)
+char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
+			            const TLS_CLIENT_START_PROPS *props,
+			            long protomask, const char *ciphers)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
@@ -218,17 +223,35 @@ char   *tls_serverid_digest(const TLS_CLIENT_START_PROPS *props, long protomask,
     digest_string(ciphers);
 
     /*
-     * If the security level is "dane", we send SNI information to the peer.
-     * This may cause it to respond with a non-default certificate.  Since
-     * certificates for sessions with no or different SNI data may not match,
-     * we must include the SNI name in the session id.
+     * Ensure separation of caches for sessions where DANE trust
+     * configuration succeeded from those where it did not.  The latter
+     * should always see a certificate validation failure, both on initial
+     * handshake and on resumption.
      */
-    if (props->dane) {
-	digest_string(TLS_DANE_BASED(props->tls_level) ?
-		      props->dane->base_domain : "");
-	if (props->dane->tlsa)
-	    digest_dane(props->dane->tlsa);
+    digest_object(&TLScontext->must_fail);
+
+    /*
+     * DNS-based or synthetic DANE trust settings are potentially used at all
+     * levels above "encrypt".
+     */
+    if (TLScontext->level > TLS_LEV_ENCRYPT
+	&& props->dane && props->dane->tlsa) {
+	digest_dane(props->dane->tlsa);
+    } else {
+	int     none = 0;		/* Record a TLSA RR count of zero */
+
+	digest_object(&none);
     }
+
+    /*
+     * Include the chosen SNI name, which can affect server certificate
+     * selection.
+     */
+    if (TLScontext->level > TLS_LEV_ENCRYPT && TLScontext->peer_sni)
+	digest_string(TLScontext->peer_sni);
+    else
+	digest_string("");
+
     checkok(EVP_DigestFinal_ex(mdctx, md_buf, &md_len));
     EVP_MD_CTX_destroy(mdctx);
     if (!ok)
@@ -282,7 +305,7 @@ char   *tls_digest_encode(const unsigned char *md_buf, int md_len)
 
 /* tls_data_fprint - compute and encode digest of binary object */
 
-char   *tls_data_fprint(const char *buf, int len, const char *mdalg)
+static char *tls_data_fprint(const unsigned char *buf, int len, const char *mdalg)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
@@ -310,13 +333,13 @@ char   *tls_data_fprint(const char *buf, int len, const char *mdalg)
 char   *tls_cert_fprint(X509 *peercert, const char *mdalg)
 {
     int     len;
-    char   *buf;
-    char   *buf2;
+    unsigned char *buf;
+    unsigned char *buf2;
     char   *result;
 
     len = i2d_X509(peercert, NULL);
     buf2 = buf = mymalloc(len);
-    i2d_X509(peercert, (unsigned char **) &buf2);
+    i2d_X509(peercert, &buf2);
     if (buf2 - buf != len)
 	msg_panic("i2d_X509 invalid result length");
 
@@ -340,17 +363,17 @@ char   *tls_pkey_fprint(X509 *peercert, const char *mdalg)
 	    msg_fatal("%s: error extracting legacy public-key fingerprint: %m",
 		      myname);
 
-	result = tls_data_fprint((char *) key->data, key->length, mdalg);
+	result = tls_data_fprint(key->data, key->length, mdalg);
 	return (result);
     } else {
 	int     len;
-	char   *buf;
-	char   *buf2;
+	unsigned char *buf;
+	unsigned char *buf2;
 	char   *result;
 
 	len = i2d_X509_PUBKEY(X509_get_X509_PUBKEY(peercert), NULL);
 	buf2 = buf = mymalloc(len);
-	i2d_X509_PUBKEY(X509_get_X509_PUBKEY(peercert), (unsigned char **) &buf2);
+	i2d_X509_PUBKEY(X509_get_X509_PUBKEY(peercert), &buf2);
 	if (buf2 - buf != len)
 	    msg_panic("i2d_X509_PUBKEY invalid result length");
 

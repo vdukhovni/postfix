@@ -324,7 +324,10 @@ static void verify_extract_name(TLS_SESS_STATE *TLScontext, X509 *peercert,
      * checks are now performed internally in OpenSSL.
      */
     if (SSL_get_verify_result(TLScontext->con) == X509_V_OK) {
-	if (TLS_MUST_MATCH(TLScontext->level)) {
+	if (TLScontext->must_fail) {
+	    msg_panic("%s: cert valid despite trust init failure",
+		      TLScontext->namaddr);
+	} else if (TLS_MUST_MATCH(TLScontext->level)) {
 
 	    /*
 	     * Fully secured only if not insecure like half-dane.  We use
@@ -853,8 +856,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     SSL_SESSION *session = 0;
     TLS_SESS_STATE *TLScontext;
     TLS_APPL_STATE *app_ctx = props->ctx;
-    const char *sni = 0;
-    char   *myserverid;
     int     log_mask = app_ctx->log_mask;
 
     /*
@@ -930,32 +931,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
     if (log_mask & TLS_LOG_VERBOSE)
 	msg_info("%s: TLS cipher list \"%s\"", props->namaddr, cipher_list);
 
-    /*
-     * OpenSSL will ignore cached sessions that use the wrong protocol. So we
-     * do not need to filter out cached sessions with the "wrong" protocol,
-     * rather OpenSSL will simply negotiate a new session.
-     * 
-     * We salt the session lookup key with the protocol list, so that sessions
-     * found in the cache are plausibly acceptable.
-     * 
-     * By the time a TLS client is negotiating ciphers it has already offered to
-     * re-use a session, it is too late to renege on the offer. So we must
-     * not attempt to re-use sessions whose ciphers are too weak. We salt the
-     * session lookup key with the cipher list, so that sessions found in the
-     * cache are always acceptable.
-     * 
-     * With DANE, (more generally any TLScontext where we specified explicit
-     * trust-anchor or end-entity certificates) the verification status of
-     * the SSL session depends on the specified list.  Since we verify the
-     * certificate only during the initial handshake, we must segregate
-     * sessions with different TA lists.  Note, that TA re-verification is
-     * not possible with cached sessions, since these don't hold the complete
-     * peer trust chain.  Therefore, we compute a digest of the sorted TA
-     * parameters and append it to the serverid.
-     */
-    myserverid = tls_serverid_digest(props, protomask, cipher_list);
-
-    TLScontext->serverid = myserverid;
     TLScontext->stream = props->stream;
     TLScontext->mdalg = props->mdalg;
 
@@ -987,11 +962,83 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
-#ifdef SSL_SECOP_PEER
-    /* When authenticating the peer, use 80-bit plus OpenSSL security level */
+
+    /*
+     * Try to convey the configured TLSA records for this connection to the
+     * OpenSSL library.  If none are "usable", we'll fall back to "encrypt"
+     * when authentication is not mandatory, otherwise we must arrange to
+     * ensure authentication failure.
+     */
+    if (TLScontext->dane && TLScontext->dane->tlsa) {
+	int     usable = tls_dane_enable(TLScontext);
+
+	TLScontext->must_fail = usable <= 0;
+	if (usable == 0) {
+	    switch (TLScontext->level) {
+	    case TLS_LEV_HALF_DANE:
+	    case TLS_LEV_DANE:
+		msg_warn("%s: all TLSA records unusable, fallback to "
+			 "unauthenticated TLS", TLScontext->namaddr);
+		TLScontext->must_fail = 0;
+		TLScontext->level = TLS_LEV_ENCRYPT;
+		break;
+
+	    case TLS_LEV_FPRINT:
+		msg_warn("%s: all fingerprints unusable", TLScontext->namaddr);
+		break;
+	    case TLS_LEV_DANE_ONLY:
+		msg_warn("%s: all TLSA records unusable", TLScontext->namaddr);
+		break;
+	    case TLS_LEV_SECURE:
+	    case TLS_LEV_VERIFY:
+		msg_warn("%s: all trust anchors unusable", TLScontext->namaddr);
+		break;
+	    }
+	}
+    }
+
+    /*
+     * We compute the policy digest after we compute the SNI name in
+     * tls_auth_enable() and possibly update the TLScontext security level.
+     * 
+     * OpenSSL will ignore cached sessions that use the wrong protocol. So we do
+     * not need to filter out cached sessions with the "wrong" protocol,
+     * rather OpenSSL will simply negotiate a new session.
+     * 
+     * We salt the session lookup key with the protocol list, so that sessions
+     * found in the cache are plausibly acceptable.
+     * 
+     * By the time a TLS client is negotiating ciphers it has already offered to
+     * re-use a session, it is too late to renege on the offer. So we must
+     * not attempt to re-use sessions whose ciphers are too weak. We salt the
+     * session lookup key with the cipher list, so that sessions found in the
+     * cache are always acceptable.
+     * 
+     * With DANE, (more generally any TLScontext where we specified explicit
+     * trust-anchor or end-entity certificates) the verification status of
+     * the SSL session depends on the specified list.  Since we verify the
+     * certificate only during the initial handshake, we must segregate
+     * sessions with different TA lists.  Note, that TA re-verification is
+     * not possible with cached sessions, since these don't hold the complete
+     * peer trust chain.  Therefore, we compute a digest of the sorted TA
+     * parameters and append it to the serverid.
+     */
+    TLScontext->serverid =
+	tls_serverid_digest(TLScontext, props, protomask, cipher_list);
+
+    /*
+     * When authenticating the peer, use 80-bit plus OpenSSL security level
+     * 
+     * XXX: We should perhaps use security level 1 also for mandatory
+     * encryption, with only "may" tolerating weaker algorithms.  But that
+     * could mean no TLS 1.0 with OpenSSL >= 3.0 and encrypt, unless I get my
+     * patch in on time to conditionally re-enable SHA1 at security level 1,
+     * and we add code to make it so.
+     * 
+     * That said, with "encrypt", we could reasonably require TLS 1.2?
+     */
     if (TLS_MUST_MATCH(TLScontext->level))
 	SSL_set_security_level(TLScontext->con, 1);
-#endif
 
     /*
      * XXX To avoid memory leaks we must always call SSL_SESSION_free() after
@@ -1036,40 +1083,6 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      */
     if (log_mask & TLS_LOG_TLSPKTS)
 	BIO_set_callback(SSL_get_rbio(TLScontext->con), tls_bio_dump_cb);
-
-    /*
-     * Try to convey the configured TLSA records for this connection to the
-     * OpenSSL library.  If none are "usable", we'll fall back to "encrypt"
-     * when authentication is not mandatory, otherwise we must arrange to
-     * ensure authentication failure.
-     */
-    if (TLScontext->dane && TLScontext->dane->tlsa) {
-	int     usable = tls_dane_enable(TLScontext);
-
-	TLScontext->must_fail = usable <= 0;
-	if (usable == 0) {
-	    switch (TLScontext->level) {
-	    case TLS_LEV_HALF_DANE:
-	    case TLS_LEV_DANE:
-		msg_warn("%s: all TLSA records unusable, fallback to "
-			 "unauthenticated TLS", TLScontext->namaddr);
-		TLScontext->level = TLS_LEV_ENCRYPT;
-		TLScontext->must_fail = 0;
-		break;
-
-	    case TLS_LEV_FPRINT:
-		msg_warn("%s: all fingerprints unusable", TLScontext->namaddr);
-		break;
-	    case TLS_LEV_DANE_ONLY:
-		msg_warn("%s: all TLSA records unusable", TLScontext->namaddr);
-		break;
-	    case TLS_LEV_SECURE:
-	    case TLS_LEV_VERIFY:
-		msg_warn("%s: all trust anchors unusable", TLScontext->namaddr);
-		break;
-	    }
-	}
-    }
 
     /*
      * If we don't trigger the handshake in the library, leave control over
