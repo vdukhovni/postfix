@@ -239,8 +239,6 @@
 #include <ctype.h>
 #include <string.h>
 
-#ifdef USE_TLS
-
 /* Utility library. */
 
 #include <vstream.h>
@@ -292,13 +290,11 @@ char   *var_tls_tkt_cipher;
 char   *var_openssl_path;
 char   *var_tls_server_sni_maps;
 bool    var_tls_fast_shutdown;
-
-static MAPS *tls_server_sni_maps;
-
-#ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
 
-#endif
+#ifdef USE_TLS
+
+static MAPS *tls_server_sni_maps;
 
  /*
   * Index to attach TLScontext pointers to SSL objects, so that they can be
@@ -963,6 +959,8 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	 */
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
+
+	X509_free(cert);
     }
     if (kex_name) {
 	TLScontext->kex_name = mystrdup(kex_name);

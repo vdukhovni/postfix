@@ -24963,3 +24963,11 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 3.0): minor memory leaks in the
 	Postfix TLS library, found during tests. File: tls/tls_misc.c.
+
+20200712
+
+	Cleanup: non-TLS builds were failing. File: util/tls_misc.c.
+
+	Bugfix (introduced: Postfix 3.0): 4kbyte per session memory
+	leak in the Postfix TLS library, found during tests. File:
+	tls/tls_misc.c.
