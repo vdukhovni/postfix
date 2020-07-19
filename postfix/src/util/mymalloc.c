@@ -23,8 +23,8 @@
 /*	const char *str;
 /*	ssize_t	len;
 /*
-/*	char	*mymemdup(ptr, len)
-/*	const char *ptr;
+/*	void	*mymemdup(ptr, len)
+/*	const void *ptr;
 /*	ssize_t	len;
 /* DESCRIPTION
 /*	This module performs low-level memory management with error
@@ -261,7 +261,7 @@ char   *mystrndup(const char *str, ssize_t len)
 
 /* mymemdup - copy memory */
 
-char   *mymemdup(const void *ptr, ssize_t len)
+void   *mymemdup(const void *ptr, ssize_t len)
 {
     if (ptr == 0)
 	msg_panic("mymemdup: null pointer argument");

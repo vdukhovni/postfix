@@ -1354,7 +1354,7 @@ static void connect_event(int unused_event, void *unused_context)
 	    SOCKADDR_TO_HOSTADDR(sa, len, &state->client_addr,
 				 (MAI_SERVPORT_STR *) 0, sa->sa_family);
 	else
-	    strncpy(state->client_addr.buf, "local", sizeof("local"));
+	    strncpy(state->client_addr.buf, "local", sizeof("local") + 0);
 	if (msg_verbose)
 	    msg_info("connect (%s %s)",
 #ifdef AF_LOCAL

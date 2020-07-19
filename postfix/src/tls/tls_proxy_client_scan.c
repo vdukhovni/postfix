@@ -359,7 +359,8 @@ static int tls_proxy_client_tlsa_scan(ATTR_SCAN_COMMON_FN scan_fn,
 	if (ret == 4) {
 	    ret = 1;
 	    /* This makes a copy of the static vstring content */
-	    tlsa_add(&head, u, s, m, (unsigned char *) STR(data), LEN(data));
+	    head = tlsa_prepend(head, u, s, m, (unsigned char *) STR(data),
+				LEN(data));
 	} else
 	    ret = -1;
     }

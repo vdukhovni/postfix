@@ -24971,3 +24971,31 @@ Apologies for any names omitted.
 	Bugfix (introduced: Postfix 3.0): 4kbyte per session memory
 	leak in the Postfix TLS library, found during tests. File:
 	tls/tls_misc.c.
+
+20200718
+
+	Cleanup TLS library: coding style, additional error message,
+	additional handling of internationalized domain name, and
+	dropping an unused variable.  Files: tls.h, tls_dane.c,
+	tls_proxy_client_scan.c, tls_client.c.
+
+	Noise suppression: shut up compilers that warn about
+	sizeof("text"). File: smtpstone/smtp-sink.c.
+
+20200719
+
+	Cleanup old API: mymemdup() should return "void *", the
+	same value type as its main argument, and the same result
+	type as mymalloc(). In a future update we can remove all
+	the noisy but unnecessary casts of their result values to
+	character pointer. Files: util/mymalloc.c, util/mymalloc.h.
+
+	Cleanup: don't split the sendmail -oA option value on
+	comma or whitespace, before passing the value to the postalias
+	command line. This results in unexpected behavior. File:
+	sendmail/sendmail.c.
+
+	Documentation: updated the manpage of the unprivileged(!)
+	sendmail(1) command with instructions to avoid privilege
+	esclation attacks in naive programs that run Postfix programs
+	with user-specified arguments. File: sendmail/sendmail.c.

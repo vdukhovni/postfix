@@ -621,8 +621,8 @@ extern void tls_log_verify_error(TLS_SESS_STATE *);
 extern void tls_dane_log(TLS_SESS_STATE *);
 extern void tls_dane_digest_init(SSL_CTX *, const EVP_MD *);
 extern int tls_dane_enable(TLS_SESS_STATE *);
-extern void tlsa_add(TLS_TLSA **, uint8_t, uint8_t, uint8_t,
-		             const unsigned char *, uint16_t);
+extern TLS_TLSA *tlsa_prepend(TLS_TLSA *, uint8_t, uint8_t, uint8_t,
+			              const unsigned char *, uint16_t);
 
  /*
   * tls_fprint.c

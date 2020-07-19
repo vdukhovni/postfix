@@ -28,8 +28,8 @@
 /*	const char *delim;
 /*	int     smtp_mode;
 /*
-/*	void	tlsa_add(tlsa, usage, selector, mtype, data, len)
-/*	TLS_TLSA **tlsa;
+/*	TLS_TLSA *tlsa_prepend(tlsa, usage, selector, mtype, data, len)
+/*	TLS_TLSA *tlsa;
 /*	uint8_t usage;
 /*	uint8_t selector;
 /*	uint8_t mtype;
@@ -82,10 +82,9 @@
 /*	tls_dane_digest_init() configures OpenSSL to support the configured
 /*	DANE TLSA digests and private-use fingerprint digest.
 /*
-/*	tlsa_add() prepends a TLSA record to the head of a linked list
-/*	making an internal copy of the data field.  The list head is
-/*	modified to start with the prepended element, and may be NULL
-/*	initially when the list is empty.
+/*	tlsa_prepend() prepends a TLSA record to the head of a linked list
+/*	which may be null when the list is empty. The result value is the
+/*	new list head.
 /*
 /*	tls_dane_add_fpt_digests() splits "digest" using the characters in
 /*	"delim" as delimiters and generates corresponding synthetic DANE TLSA
@@ -132,8 +131,7 @@
 /* .IP  fpt_alg
 /*	The OpenSSL EVP digest algorithm handle for the fingerprint digest.
 /* .IP  tlsa
-/*	Pointer to TLSA record linked list head.  Initially points to a NULL
-/*	value, modified to prepend a new element in each call of tlsa_add().
+/*	TLSA record linked list head, initially NULL.
 /* .IP  usage
 /*	DANE TLSA certificate usage field.
 /* .IP  selector
@@ -321,21 +319,22 @@ void    tls_dane_free(TLS_DANE *dane)
     myfree((void *) dane);
 }
 
-/* tlsa_add - Prepend internal-form TLSA record to the RRset linked list */
+/* tlsa_prepend - Prepend internal-form TLSA record to the RRset linked list */
 
-void    tlsa_add(TLS_TLSA **tlsa, uint8_t u, uint8_t s, uint8_t m,
-		         const unsigned char *d, uint16_t l)
+TLS_TLSA *tlsa_prepend(TLS_TLSA *tlsa, uint8_t usage, uint8_t selector,
+		               uint8_t mtype, const unsigned char *data,
+		               uint16_t data_len)
 {
     TLS_TLSA *head;
 
     head = (TLS_TLSA *) mymalloc(sizeof(*head));
-    head->usage = u;
-    head->selector = s;
-    head->mtype = m;
-    head->length = l;
-    head->data = (unsigned char *) mymemdup(d, l);
-    head->next = *tlsa;
-    *tlsa = head;
+    head->usage = usage;
+    head->selector = selector;
+    head->mtype = mtype;
+    head->length = data_len;
+    head->data = (unsigned char *) mymemdup(data, data_len);
+    head->next = tlsa;
+    return (head);
 }
 
 #define MAX_HEAD_BYTES 32
@@ -477,10 +476,10 @@ void    tls_dane_add_fpt_digests(TLS_DANE *dane, const char *digest,
 	if (log_mask & (TLS_LOG_VERBOSE | TLS_LOG_DANE))
 	    tlsa_info("fingerprint", "digest as private-use TLSA record",
 		   3, 0, 255, (unsigned char *) STR(raw), VSTRING_LEN(raw));
-	tlsa_add(&dane->tlsa, 3, 0, 255,
-		 (unsigned char *) STR(raw), VSTRING_LEN(raw));
-	tlsa_add(&dane->tlsa, 3, 1, 255,
-		 (unsigned char *) STR(raw), VSTRING_LEN(raw));
+	dane->tlsa = tlsa_prepend(dane->tlsa, 3, 0, 255,
+			      (unsigned char *) STR(raw), VSTRING_LEN(raw));
+	dane->tlsa = tlsa_prepend(dane->tlsa, 3, 1, 255,
+			      (unsigned char *) STR(raw), VSTRING_LEN(raw));
 	vstring_free(raw);
     }
     argv_free(values);
@@ -496,7 +495,6 @@ static int parse_tlsa_rr(TLS_DANE *dane, DNS_RR *rr)
     uint8_t mtype;
     ssize_t dlen;
     unsigned const char *data;
-    unsigned const char *p;
     int     iscname = strcasecmp(rr->rname, rr->qname);
     const char *q = iscname ? rr->qname : "";
     const char *a = iscname ? " -> " : "";
@@ -516,7 +514,7 @@ static int parse_tlsa_rr(TLS_DANE *dane, DNS_RR *rr)
     usage = *ip++;
     selector = *ip++;
     mtype = *ip++;
-    p = data = (const unsigned char *) ip;
+    data = (const unsigned char *) ip;
 
     /*-
      * Drop unsupported usages.
@@ -543,7 +541,7 @@ static int parse_tlsa_rr(TLS_DANE *dane, DNS_RR *rr)
     if (log_mask & (TLS_LOG_VERBOSE | TLS_LOG_DANE))
 	tlsa_info("DNSSEC-signed TLSA record", r,
 		  usage, selector, mtype, data, dlen);
-    tlsa_add(&dane->tlsa, usage, selector, mtype, data, dlen);
+    dane->tlsa = tlsa_prepend(dane->tlsa, usage, selector, mtype, data, dlen);
     return (1);
 }
 
@@ -753,16 +751,19 @@ int     tls_dane_load_trustfile(TLS_DANE *dane, const char *tafile)
 	    if (log_mask & (TLS_LOG_VERBOSE | TLS_LOG_DANE))
 		tlsa_info("TA cert as TLSA record", tafile,
 			  daneta, selector, mtype, data, len);
-	    tlsa_add(&dane->tlsa, daneta, selector, mtype, data, len);
-	    tlsa_add(&dane->tlsa, daneee, selector, mtype, data, len);
+	    dane->tlsa =
+		tlsa_prepend(dane->tlsa, daneta, selector, mtype, data, len);
+	    dane->tlsa =
+		tlsa_prepend(dane->tlsa, daneee, selector, mtype, data, len);
 	} else if (strcmp(name, PEM_STRING_PUBLIC) == 0) {
 	    uint8_t selector = DNS_TLSA_SELECTOR_SUBJECTPUBLICKEYINFO;
 
 	    if (log_mask & (TLS_LOG_VERBOSE | TLS_LOG_DANE))
 		tlsa_info("TA pkey as TLSA record", tafile,
 			  daneta, selector, mtype, data, len);
-	    tlsa_add(&dane->tlsa, daneta, selector, mtype, data, len);
-	    tlsa_add(&dane->tlsa, daneee, selector, mtype, data, len);
+	    dane->tlsa =
+		tlsa_prepend(dane->tlsa, daneta, selector, mtype, data, len);
+	    dane->tlsa = tlsa_prepend(dane->tlsa, daneee, selector, mtype, data, len);
 	}
 
 	/*

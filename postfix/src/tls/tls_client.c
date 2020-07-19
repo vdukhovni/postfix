@@ -383,7 +383,6 @@ static int add_namechecks(TLS_SESS_STATE *TLScontext,
     int     i;
 
     for (i = 0; i < props->matchargv->argc; ++i) {
-	VSTRING *buf;
 	const char *name = props->matchargv->argv[i];
 	const char *aname;
 	int     want_nexthop = strcasecmp(name, "nexthop") == 0;
@@ -413,11 +412,10 @@ static int add_namechecks(TLS_SESS_STATE *TLScontext,
 	    if (want_nexthop) {
 		ret = SSL_add1_host(ssl, nexthop);
 	    } else {
-		buf = vstring_alloc(strlen(nexthop + 2));
-		VSTRING_ADDCH(buf, '.');
-		vstring_strcat(buf, nexthop);
-		ret = SSL_add1_host(ssl, STR(buf));
-		vstring_free(buf);
+		char   *dot_nexthop = concatenate(".", nexthop, (char *) 0);
+
+		ret = SSL_add1_host(ssl, dot_nexthop);
+		myfree(dot_nexthop);
 	    }
 	    if (ret)
 		continue;
@@ -470,15 +468,15 @@ static int add_namechecks(TLS_SESS_STATE *TLScontext,
 	    if (SSL_add1_host(ssl, name))
 		continue;
 	    return (0);
+	} else {
+	    char   *dot_nexthop = concatenate(".", nexthop, (char *) 0);
+
+	    ret = SSL_add1_host(ssl, dot_nexthop);
+	    myfree(dot_nexthop);
+	    if (ret)
+		continue;
+	    return (0);
 	}
-	buf = vstring_alloc(strlen(name + 2));
-	VSTRING_ADDCH(buf, '.');
-	vstring_strcat(buf, name);
-	ret = SSL_add1_host(ssl, STR(buf));
-	vstring_free(buf);
-	if (ret)
-	    continue;
-	return (0);
     }
     return (1);
 }
@@ -491,6 +489,10 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
     const char *sni = 0;
 
     if (props->sni && *props->sni) {
+#ifndef NO_EAI
+	const char *aname;
+
+#endif
 
 	/*
 	 * MTA-STS policy plugin compatibility: with servername=hostname,
@@ -502,6 +504,18 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 	    sni = props->nexthop;
 	else
 	    sni = props->sni;
+
+	/*
+	 * The SSL_set_tlsext_host_name() documentation does not promise that
+	 * every implementation will convert U-label form to A-label form.
+	 */
+#ifndef NO_EAI
+	if (!allascii(sni) && (aname = midna_domain_to_ascii(sni)) != 0) {
+	    if (msg_verbose)
+		msg_info("%s asciified to %s", sni, aname);
+	    sni = aname;
+	}
+#endif
     }
     switch (TLScontext->level) {
     case TLS_LEV_HALF_DANE:
@@ -570,7 +584,12 @@ static int tls_auth_enable(TLS_SESS_STATE *TLScontext,
 	break;
     }
 
-    if (sni && strlen(sni) <= TLSEXT_MAXLEN_host_name) {
+    if (sni) {
+	if (strlen(sni) > TLSEXT_MAXLEN_host_name) {
+	    msg_warn("%s: ignoring too long SNI hostname: %.100s",
+		     props->namaddr, sni);
+	    return (0);
+	}
 
 	/*
 	 * Failure to set a valid SNI hostname is a memory allocation error,
