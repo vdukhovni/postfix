@@ -567,7 +567,7 @@ SMTP(8)                                                                SMTP(8)
               for   the   "fingerprint"  TLS  security  level  (<b><a href="postconf.5.html#smtp_tls_security_level">smtp_tls_secu</a>-</b>
               <b><a href="postconf.5.html#smtp_tls_security_level">rity_level</a></b> = fingerprint).
 
-       <b><a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> (md5)</b>
+       <b><a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> (see 'postconf -d' output)</b>
               The message digest  algorithm  used  to  construct  remote  SMTP
               server certificate fingerprints.
 
@@ -826,12 +826,12 @@ SMTP(8)                                                                SMTP(8)
 
 <b>TROUBLE SHOOTING CONTROLS</b>
        <b><a href="postconf.5.html#debug_peer_level">debug_peer_level</a> (2)</b>
-              The increment in verbose logging level when a next-hop  destina-
+              The increment in verbose logging level when a  nexthop  destina-
               tion,  remote client or server name or network address matches a
               pattern given with the <a href="postconf.5.html#debug_peer_list">debug_peer_list</a> parameter.
 
        <b><a href="postconf.5.html#debug_peer_list">debug_peer_list</a> (empty)</b>
-              Optional list of next-hop destination, remote client  or  server
+              Optional list of nexthop destination, remote  client  or  server
               name  or  network  address  patterns that, if matched, cause the
               verbose logging level to increase by  the  amount  specified  in
               $<a href="postconf.5.html#debug_peer_level">debug_peer_level</a>.

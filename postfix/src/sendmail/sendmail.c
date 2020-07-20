@@ -39,6 +39,9 @@
 /* .IP \fB!\fR
 /*	The message is in the \fBhold\fR queue, i.e. no further delivery
 /*	attempt will be made until the mail is taken off hold.
+/* .IP \fB#\fR
+/*	The message is forced to expire. See the \fBpostsuper\fR(1)
+/*	options \fB-e\fR or \fB-f\fR.
 /* .RE
 /* .IP
 /*	This mode of operation is implemented by executing the
@@ -250,10 +253,43 @@
 /* SECURITY
 /* .ad
 /* .fi
-/*	By design, this program is not set-user (or group) id. However,
-/*	it must handle data from untrusted, possibly remote, users.
-/*	Thus, the usual precautions need to be taken against malicious
-/*	inputs.
+/*	By design, this program is not set-user (or group) id.
+/*	It is prepared to handle message content from untrusted,
+/*	possibly remote, users.
+/*
+/*	However, like most Postfix programs, this program does not
+/*	enforce a security policy on its command-line arguments.
+/*	Instead, it relies on the UNIX system to enforce access
+/*	policies based on the effective user and group IDs of the
+/*	process. Concretely, this means that running Postfix commands
+/*	as root (from sudo or equivalent) on behalf of a non-root
+/*	user is likely to create privilege escalation opportunities.
+/*
+/*	If an application runs any Postfix programs on behalf of
+/*	users that do not have normal shell access to Postfix
+/*	commands, then that application MUST restrict user-specified
+/*	command-line arguments to avoid privilege escalation.
+/* .IP \(bu
+/*	Filter all command-line arguments, for example arguments
+/*	that contain a pathname or that specify a database access
+/*	method. These pathname checks must reject user-controlled
+/*	symlinks or hardlinks to sensitive files, and must not be
+/*	vulnerable to TOCTOU race attacks.
+/* .IP \(bu
+/*	Disable command options processing for all command arguments
+/*	that contain user-specified data. For example, the Postfix
+/*	\fBsendmail\fR(1) command line MUST be structured as follows:
+/*
+/* .nf
+/*	    \fB/path/to/sendmail\fR \fIsystem-arguments\fR \fB--\fR \fIuser-arguments\fR
+/* .fi
+/*
+/*	Here, the "\fB--\fR" disables command option processing for
+/*	all \fIuser-arguments\fR that follow.
+/* .IP
+/*	Without the "\fB--\fR", a malicious user could enable Postfix
+/*	\fBsendmail\fR(1) command options, by specifying an email
+/*	address that starts with "\fB-\fR".
 /* DIAGNOSTICS
 /*	Problems are logged to \fBsyslogd\fR(8) or \fBpostlogd\fR(8),
 /*	and to the standard error stream.
@@ -294,12 +330,13 @@
 /*	The external command to execute when a Postfix daemon program is
 /*	invoked with the -D option.
 /* .IP "\fBdebug_peer_level (2)\fR"
-/*	The increment in verbose logging level when a remote client or
-/*	server matches a pattern in the debug_peer_list parameter.
+/*	The increment in verbose logging level when a nexthop destination,
+/*	remote client or server name or network address matches a pattern
+/*	given with the debug_peer_list parameter.
 /* .IP "\fBdebug_peer_list (empty)\fR"
-/*	Optional list of remote client or server hostname or network
-/*	address patterns that cause the verbose logging level to increase
-/*	by the amount specified in $debug_peer_level.
+/*	Optional list of nexthop destination, remote client or server
+/*	name or network address patterns that, if matched, cause the verbose
+/*	logging level to increase by the amount specified in $debug_peer_level.
 /* ACCESS CONTROLS
 /* .ad
 /* .fi
@@ -1010,6 +1047,7 @@ int     main(int argc, char **argv)
     const char *dsn_envid = 0;
     int     saved_optind;
     ARGV   *import_env;
+    char   *alias_map_from_args = 0;
 
     /*
      * Fingerprint executables and core dumps.
@@ -1279,9 +1317,7 @@ int     main(int argc, char **argv)
 	    case 'A':
 		if (optarg[1] == 0)
 		    msg_fatal_status(EX_USAGE, "-oA requires pathname");
-		myfree(var_alias_db_map);
-		var_alias_db_map = mystrdup(optarg + 1);
-		set_mail_conf_str(VAR_ALIAS_DB_MAP, var_alias_db_map);
+		alias_map_from_args = optarg + 1;
 		break;
 	    case '7':
 	    case '8':
@@ -1431,13 +1467,17 @@ int     main(int argc, char **argv)
 	if (argv[OPTIND])
 	    msg_fatal_status(EX_USAGE,
 			 "alias initialization mode requires no recipient");
-	if (*var_alias_db_map == 0)
+	if (alias_map_from_args == 0 && *var_alias_db_map == 0)
 	    return (0);
-	ext_argv = argv_alloc(2);
+	ext_argv = argv_alloc(3);
 	argv_add(ext_argv, "postalias", (char *) 0);
 	for (n = 0; n < msg_verbose; n++)
 	    argv_add(ext_argv, "-v", (char *) 0);
-	argv_split_append(ext_argv, var_alias_db_map, CHARS_COMMA_SP);
+	argv_add(ext_argv, "--", (char *) 0);
+	if (alias_map_from_args != 0)
+	    argv_add(ext_argv, alias_map_from_args, (char *) 0);
+	else
+	    argv_split_append(ext_argv, var_alias_db_map, CHARS_COMMA_SP);
 	argv_terminate(ext_argv);
 	mail_run_replace(var_command_dir, ext_argv->argv);
 	/* NOTREACHED */

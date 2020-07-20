@@ -147,6 +147,10 @@
 /*	int	warn_compat_break_flush_domains;
 /*	int	warn_compat_break_mynetworks_style;
 /*
+/*	int	warn_compat_break_smtpd_tls_fpt_dgst;
+/*	int	warn_compat_break_smtp_tls_fpt_dgst;
+/*	int	warn_compat_break_lmtp_tls_fpt_dgst;
+/*
 /*	char	*var_maillog_file;
 /*	char	*var_maillog_file_pfxs;
 /*	char	*var_maillog_file_comp;
@@ -356,13 +360,20 @@ char   *var_drop_hdrs;
 char   *var_info_log_addr_form;
 bool    var_enable_orcpt;
 
-char	*var_maillog_file;
-char	*var_maillog_file_pfxs;
-char	*var_maillog_file_comp;
-char	*var_maillog_file_stamp;
-char	*var_postlog_service;
+char   *var_maillog_file;
+char   *var_maillog_file_pfxs;
+char   *var_maillog_file_comp;
+char   *var_maillog_file_stamp;
+char   *var_postlog_service;
 
 const char null_format_string[1] = "";
+
+ /*
+  * Compatibility level 3.
+  */
+int     warn_compat_break_smtpd_tls_fpt_dgst;
+int     warn_compat_break_smtp_tls_fpt_dgst;
+int     warn_compat_break_lmtp_tls_fpt_dgst;
 
  /*
   * Compatibility level 2.
@@ -617,6 +628,23 @@ static void check_legacy_defaults(void)
      * shared variable. We don't want to rip up code when we need more flag
      * bits.
      */
+
+    /*
+     * Look for specific parameters whose default changed when the
+     * compatibility level changed to 3.
+     */
+    if (var_compat_level < 3) {
+	if (mail_conf_lookup(VAR_SMTPD_TLS_FPT_DGST) == 0)
+	    warn_compat_break_smtpd_tls_fpt_dgst = 1;
+	if (mail_conf_lookup(VAR_SMTP_TLS_FPT_DGST) == 0)
+	    warn_compat_break_smtp_tls_fpt_dgst = 1;
+	if (mail_conf_lookup(VAR_LMTP_TLS_FPT_DGST) == 0)
+	    warn_compat_break_lmtp_tls_fpt_dgst = 1;
+    } else {
+	warn_compat_break_smtpd_tls_fpt_dgst = 0;
+	warn_compat_break_smtp_tls_fpt_dgst = 0;
+	warn_compat_break_lmtp_tls_fpt_dgst = 0;
+    }
 
     /*
      * Look for specific parameters whose default changed when the

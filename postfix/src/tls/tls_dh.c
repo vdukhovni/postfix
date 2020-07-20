@@ -7,46 +7,27 @@
 /*	#define TLS_INTERNAL
 /*	#include <tls.h>
 /*
-/*	void	tls_set_dh_from_file(path, bits)
+/*	void	tls_set_dh_from_file(path)
 /*	const char *path;
-/*	int	bits;
 /*
 /*	void	tls_auto_eecdh_curves(ctx, configured)
 /*	SSL_CTX	*ctx;
 /*	char	*configured;
 /*
-/*	void	tls_set_eecdh_curve(server_ctx, grade)
-/*	SSL_CTX	*server_ctx;
-/*	const char *grade;
-/*
-/*	DH	*tls_tmp_dh_cb(ssl, export, keylength)
-/*	SSL	*ssl; /* unused */
-/*	int	export;
-/*	int	keylength;
+/*	void	tls_tmp_dh(ctx)
+/*	SSL_CTX *ctx;
 /* DESCRIPTION
 /*	This module maintains parameters for Diffie-Hellman key generation.
 /*
-/*	tls_tmp_dh_cb() is a call-back routine for the
-/*	SSL_CTX_set_tmp_dh_callback() function.
+/*	tls_tmp_dh() returns the configured or compiled-in FFDHE
+/*	group parameters.
 /*
 /*	tls_set_dh_from_file() overrides compiled-in DH parameters
 /*	with those specified in the named files. The file format
-/*	is as expected by the PEM_read_DHparams() routine. The
-/*	"bits" argument must be 512 or 1024.
+/*	is as expected by the PEM_read_DHparams() routine.
 /*
 /*	tls_auto_eecdh_curves() enables negotiation of the most preferred curve
 /*	among the curves specified by the "configured" argument.
-/*
-/*	tls_set_eecdh_curve() enables ephemeral Elliptic-Curve DH
-/*	key exchange algorithms by instantiating in the server SSL
-/*	context a suitable curve (corresponding to the specified
-/*	EECDH security grade) from the set of named curves in RFC
-/*	4492 Section 5.1.1. Errors generate warnings, but do not
-/*	disable TLS, rather we continue without EECDH. A zero
-/*	result indicates that the grade is invalid or the corresponding
-/*	curve could not be used.  The "auto" grade enables multiple
-/*	curves, with the actual curve chosen as the most preferred
-/*	among those supported by both the server and the client.
 /* DIAGNOSTICS
 /*	In case of error, tls_set_dh_from_file() logs a warning and
 /*	ignores the request.
@@ -101,33 +82,14 @@
 /* Application-specific. */
 
  /*
-  * Compiled-in DH parameters.  Used when no parameters are explicitly loaded
-  * from a site-specific file.  Using an ASN.1 DER encoding avoids the need
-  * to explicitly manipulate the internal representation of DH parameter
-  * objects.
+  * Compiled-in FFDHE (finite-field ephemeral Diffie-Hellman) parameters.
+  * Used when no parameters are explicitly loaded from a site-specific file.
+  * Using an ASN.1 DER encoding avoids the need to explicitly manipulate the
+  * internal representation of DH parameter objects.
   * 
-  * 512-bit parameters are used for export ciphers, and 2048-bit parameters are
-  * used for non-export ciphers.  The non-export group is now 2048-bit, as
-  * 1024 bits is increasingly considered to weak by clients.  When greater
-  * security is required, use EECDH.
+  * The FFDHE group is now 2048-bit, as 1024 bits is increasingly considered to
+  * weak by clients.  When greater security is required, use EECDH.
   */
-
- /*-
-  * Generated via:
-  *   $ openssl dhparam -2 -outform DER 512 2>/dev/null |
-  *     hexdump -ve '/1 "0x%02x, "' | fmt
-  * TODO: generate at compile-time. But that is no good for the majority of
-  * sites that install pre-compiled binaries, and breaks reproducible builds.
-  * Instead, generate at installation time and use main.cf configuration.
-  */
-static unsigned char dh512_der[] = {
-    0x30, 0x46, 0x02, 0x41, 0x00, 0xd8, 0xbf, 0x11, 0xd6, 0x41, 0x2a, 0x7a,
-    0x9c, 0x78, 0xb2, 0xaa, 0x41, 0x23, 0x0a, 0xdc, 0xcf, 0xb7, 0x19, 0xc5,
-    0x16, 0x4c, 0xcb, 0x4a, 0xd0, 0xd2, 0x1f, 0x1f, 0x70, 0x24, 0x86, 0x6f,
-    0x51, 0x52, 0xc6, 0x5b, 0x28, 0xbb, 0x82, 0xe1, 0x24, 0x91, 0x3d, 0x4d,
-    0x95, 0x56, 0xf8, 0x0b, 0x2c, 0xe0, 0x36, 0x67, 0x88, 0x64, 0x15, 0x1f,
-    0x45, 0xd5, 0xb8, 0x0a, 0x00, 0x03, 0x76, 0x32, 0x0b, 0x02, 0x01, 0x02,
-};
 
  /*-
   * Generated via:
@@ -138,108 +100,82 @@ static unsigned char dh512_der[] = {
   * Instead, generate at installation time and use main.cf configuration.
   */
 static unsigned char dh2048_der[] = {
-    0x30, 0x82, 0x01, 0x08, 0x02, 0x82, 0x01, 0x01, 0x00, 0xbf, 0x28, 0x1b,
-    0x68, 0x69, 0x90, 0x2f, 0x37, 0x9f, 0x5a, 0x50, 0x23, 0x73, 0x2c, 0x11,
-    0xf2, 0xac, 0x7c, 0x3e, 0x58, 0xb9, 0x23, 0x3e, 0x02, 0x07, 0x4d, 0xba,
-    0xd9, 0x2c, 0xc1, 0x9e, 0xf9, 0xc4, 0x2f, 0xbc, 0x8d, 0x86, 0x4b, 0x2a,
-    0x87, 0x86, 0x93, 0x32, 0x0f, 0x72, 0x40, 0xfe, 0x7e, 0xa2, 0xc1, 0x32,
-    0xf0, 0x65, 0x9c, 0xc3, 0x19, 0x25, 0x2d, 0xeb, 0x6a, 0x49, 0x94, 0x79,
-    0x2d, 0xa1, 0xbe, 0x05, 0x26, 0xac, 0x8d, 0x69, 0xdc, 0x2e, 0x7e, 0xb5,
-    0xfd, 0x3c, 0x2b, 0x7d, 0x43, 0x22, 0x53, 0xf6, 0x1e, 0x04, 0x45, 0xd7,
-    0x53, 0x84, 0xfd, 0x6b, 0x12, 0x72, 0x47, 0x04, 0xaf, 0xa4, 0xac, 0x4b,
-    0x55, 0xb6, 0x79, 0x42, 0x40, 0x88, 0x54, 0x48, 0xd5, 0x4d, 0x3a, 0xb2,
-    0xbf, 0x6c, 0x26, 0x95, 0x29, 0xdd, 0x8b, 0x9e, 0xed, 0xb8, 0x60, 0x8e,
-    0xb5, 0x35, 0xb6, 0x22, 0x44, 0x1f, 0xfb, 0x56, 0x74, 0xfe, 0xf0, 0x2c,
-    0xe6, 0x0c, 0x22, 0xc9, 0x35, 0xb3, 0x1b, 0x96, 0xbb, 0x0a, 0x5a, 0xc3,
-    0x09, 0xa0, 0xcc, 0xa5, 0x40, 0x90, 0x0f, 0x59, 0xa2, 0x89, 0x69, 0x2a,
-    0x69, 0x79, 0xe4, 0xd3, 0x24, 0xc6, 0x8c, 0xda, 0xbc, 0x98, 0x3a, 0x5b,
-    0x16, 0xae, 0x63, 0x6c, 0x0b, 0x43, 0x4f, 0xf3, 0x2e, 0xc8, 0xa9, 0x6b,
-    0x58, 0x6a, 0xa9, 0x8e, 0x64, 0x09, 0x3d, 0x88, 0x44, 0x4f, 0x97, 0x2c,
-    0x1d, 0x98, 0xb0, 0xa9, 0xc0, 0xb6, 0x8d, 0x19, 0x37, 0x1f, 0xb7, 0xc9,
-    0x86, 0xa8, 0xdc, 0x37, 0x4d, 0x64, 0x27, 0xf3, 0xf5, 0x2b, 0x7b, 0x6b,
-    0x76, 0x84, 0x3f, 0xc1, 0x23, 0x97, 0x2d, 0x71, 0xf7, 0xb6, 0xc2, 0x35,
-    0x28, 0x10, 0x96, 0xd6, 0x69, 0x0c, 0x2e, 0x1f, 0x9f, 0xdf, 0x82, 0x81,
-    0x57, 0x57, 0x39, 0xa5, 0xf2, 0x81, 0x29, 0x57, 0xf9, 0x2f, 0xd0, 0x03,
-    0xab, 0x02, 0x01, 0x02,
+    0x30, 0x82, 0x01, 0x08, 0x02, 0x82, 0x01, 0x01, 0x00, 0x9e, 0x28, 0x15,
+    0xc5, 0xcc, 0x9b, 0x5a, 0xb0, 0xe9, 0xab, 0x74, 0x8b, 0x2a, 0x23, 0xce,
+    0xea, 0x87, 0xa0, 0x18, 0x09, 0xd0, 0x40, 0x2c, 0x93, 0x23, 0x5d, 0xc0,
+    0xe9, 0x78, 0x2c, 0x53, 0xd9, 0x3e, 0x21, 0x14, 0x89, 0x5c, 0x79, 0x73,
+    0x1e, 0xbd, 0x23, 0x1e, 0x18, 0x65, 0x6d, 0xd2, 0x3c, 0xeb, 0x41, 0xca,
+    0xbb, 0xa9, 0x99, 0x55, 0x84, 0xae, 0x9e, 0x70, 0x57, 0x25, 0x21, 0x42,
+    0xaa, 0xdb, 0x82, 0xc6, 0xe6, 0xf1, 0xcf, 0xb7, 0xbc, 0x2a, 0x56, 0xcc,
+    0x55, 0x1f, 0xad, 0xe9, 0x68, 0x18, 0x22, 0xfc, 0x09, 0x62, 0xc3, 0x32,
+    0x1b, 0x05, 0x1f, 0xce, 0xec, 0xe3, 0x6d, 0xb5, 0x79, 0xe0, 0x89, 0x45,
+    0xf3, 0xf3, 0x26, 0xa3, 0x81, 0xd9, 0x59, 0xee, 0xed, 0x78, 0xbe, 0x0e,
+    0xdd, 0xf7, 0xef, 0xcb, 0x81, 0x3f, 0x01, 0xb7, 0x10, 0x8f, 0x0d, 0xbe,
+    0x29, 0x21, 0x13, 0xff, 0x2a, 0x13, 0x25, 0x75, 0x99, 0xec, 0xf5, 0x2d,
+    0x49, 0x01, 0x1d, 0xa4, 0x13, 0xe8, 0x2c, 0xc8, 0x13, 0x60, 0x57, 0x98,
+    0xb1, 0x06, 0x45, 0x77, 0xa4, 0x24, 0xf9, 0x27, 0x3f, 0x08, 0xe6, 0x9b,
+    0x4b, 0x20, 0x3b, 0x43, 0x69, 0xa3, 0xcc, 0x9a, 0xc4, 0x3c, 0x1e, 0xec,
+    0xb7, 0x35, 0xe4, 0x59, 0x6b, 0x6d, 0x2a, 0xdf, 0xf7, 0x0b, 0xd4, 0x5a,
+    0x0f, 0x79, 0x80, 0xe1, 0x75, 0x4c, 0x10, 0xea, 0x26, 0xf0, 0xd5, 0xf3,
+    0xa6, 0x15, 0xa9, 0x3e, 0x3d, 0x0d, 0xb8, 0x53, 0x50, 0x49, 0x77, 0x49,
+    0x47, 0x43, 0x39, 0xee, 0xb8, 0x8a, 0xe5, 0x14, 0xc4, 0xe3, 0x10, 0xfb,
+    0xf5, 0x52, 0xef, 0xa5, 0x8f, 0xa4, 0x7e, 0x57, 0xb9, 0x5f, 0xda, 0x00,
+    0x18, 0xf0, 0x72, 0x29, 0xd4, 0xfe, 0x90, 0x5a, 0x1f, 0x1a, 0x40, 0xee,
+    0x4e, 0xfa, 0x3e, 0xf3, 0x72, 0x4b, 0xea, 0x44, 0x53, 0x43, 0x53, 0x57,
+    0x9b, 0x02, 0x01, 0x02,
 };
 
  /*
   * Cached results.
   */
-static DH *dh_1024 = 0;
-static DH *dh_512 = 0;
+static DH *dh_2048 = 0;
 
 /* tls_set_dh_from_file - set Diffie-Hellman parameters from file */
 
-void    tls_set_dh_from_file(const char *path, int bits)
+void    tls_set_dh_from_file(const char *path)
 {
     FILE   *paramfile;
-    DH    **dhPtr;
-
-    switch (bits) {
-    case 512:
-	dhPtr = &dh_512;
-	break;
-    case 1024:
-	dhPtr = &dh_1024;
-	break;
-    default:
-	msg_panic("Invalid DH parameters size %d, file %s", bits, path);
-    }
 
     /*
      * This function is the first to set the DH parameters, but free any
      * prior value just in case the call sequence changes some day.
      */
-    if (*dhPtr) {
-	DH_free(*dhPtr);
-	*dhPtr = 0;
+    if (dh_2048) {
+	DH_free(dh_2048);
+	dh_2048 = 0;
     }
     if ((paramfile = fopen(path, "r")) != 0) {
-	if ((*dhPtr = PEM_read_DHparams(paramfile, 0, 0, 0)) == 0) {
-	    msg_warn("cannot load %d-bit DH parameters from file %s"
-		     " -- using compiled-in defaults", bits, path);
+	if ((dh_2048 = PEM_read_DHparams(paramfile, 0, 0, 0)) == 0) {
+	    msg_warn("cannot load DH parameters from file %s"
+		     " -- using compiled-in defaults", path);
 	    tls_print_errors();
 	}
 	(void) fclose(paramfile);		/* 200411 */
     } else {
-	msg_warn("cannot load %d-bit DH parameters from file %s: %m"
-		 " -- using compiled-in defaults", bits, path);
+	msg_warn("cannot load DH parameters from file %s: %m"
+		 " -- using compiled-in defaults", path);
     }
 }
 
-/* tls_get_dh - get compiled-in DH parameters */
+/* tls_tmp_dh - configure FFDHE group */
 
-static DH *tls_get_dh(const unsigned char *p, size_t plen)
+void    tls_tmp_dh(SSL_CTX *ctx)
 {
-    const unsigned char *endp = p;
-    DH     *dh = 0;
+    if (dh_2048 == 0) {
+	const unsigned char *endp = dh2048_der;
+	DH     *dh = 0;
 
-    if (d2i_DHparams(&dh, &endp, plen) && plen == endp - p)
-	return (dh);
-
-    msg_warn("cannot load compiled-in DH parameters");
-    if (dh)
-	DH_free(dh);
-    return (0);
-}
-
-/* tls_tmp_dh_cb - call-back for Diffie-Hellman parameters */
-
-DH     *tls_tmp_dh_cb(SSL *unused_ssl, int export, int keylength)
-{
-    DH     *dh_tmp;
-
-    if (export && keylength == 512) {		/* 40-bit export cipher */
-	if (dh_512 == 0)
-	    dh_512 = tls_get_dh(dh512_der, sizeof(dh512_der));
-	dh_tmp = dh_512;
-    } else {					/* ADH, DHE-RSA or DSA */
-	if (dh_1024 == 0)
-	    dh_1024 = tls_get_dh(dh2048_der, sizeof(dh2048_der));
-	dh_tmp = dh_1024;
+	if (d2i_DHparams(&dh, &endp, sizeof(dh2048_der))
+	    && sizeof(dh2048_der) == endp - dh2048_der) {
+	    dh_2048 = dh;
+	} else {
+	    DH_free(dh);			/* Unlikely non-zero, but by
+						 * the book */
+	    msg_warn("error loading compiled-in DH parameters");
+	}
     }
-    return (dh_tmp);
+    if (ctx != 0 && dh_2048 != 0)
+	SSL_CTX_set_tmp_dh(ctx, dh_2048);
 }
 
 void    tls_auto_eecdh_curves(SSL_CTX *ctx, const char *configured)
@@ -309,77 +245,16 @@ void    tls_auto_eecdh_curves(SSL_CTX *ctx, const char *configured)
 	tls_print_errors();
 	RETURN;
     }
-
-    /*
-     * This is a NOP in OpenSSL 1.1.0 and later, where curves are always
-     * auto-negotiated.
-     */
-#if OPENSSL_VERSION_NUMBER < 0x10100000UL
-    if (SSL_CTX_set_ecdh_auto(ctx, 1) <= 0) {
-	msg_warn("failed to enable automatic ECDHE curve selection");
-	tls_print_errors();
-	RETURN;
-    }
-#endif
     RETURN;
 #endif
-}
-
-#define TLS_EECDH_INVALID	0
-#define TLS_EECDH_NONE		1
-#define TLS_EECDH_STRONG	2
-#define TLS_EECDH_ULTRA		3
-#define TLS_EECDH_AUTO		4
-
-void    tls_set_eecdh_curve(SSL_CTX *server_ctx, const char *grade)
-{
-#ifndef OPENSSL_NO_ECDH
-    int     g;
-    static NAME_CODE eecdh_table[] = {
-	"none", TLS_EECDH_NONE,
-	"strong", TLS_EECDH_STRONG,
-	"ultra", TLS_EECDH_ULTRA,
-	"auto", TLS_EECDH_AUTO,
-	0, TLS_EECDH_INVALID,
-    };
-
-    switch (g = name_code(eecdh_table, NAME_CODE_FLAG_NONE, grade)) {
-    default:
-	msg_panic("Invalid eecdh grade code: %d", g);
-    case TLS_EECDH_INVALID:
-	msg_warn("Invalid TLS eecdh grade \"%s\": EECDH disabled", grade);
-	return;
-    case TLS_EECDH_STRONG:
-	tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_strong);
-	return;
-    case TLS_EECDH_ULTRA:
-	tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_ultra);
-	return;
-    case TLS_EECDH_NONE:
-
-	/*
-	 * Pretend "none" is "auto", the former is no longer supported or
-	 * wise
-	 */
-	msg_warn("The \"none\" eecdh grade is no longer supported, "
-		 "using \"auto\" instead");
-    case TLS_EECDH_AUTO:
-	tls_auto_eecdh_curves(server_ctx, var_tls_eecdh_auto);
-	return;
-    }
-#endif
-    return;
 }
 
 #ifdef TEST
 
 int     main(int unused_argc, char **unused_argv)
 {
-    tls_tmp_dh_cb(0, 1, 512);
-    tls_tmp_dh_cb(0, 1, 1024);
-    tls_tmp_dh_cb(0, 1, 2048);
-    tls_tmp_dh_cb(0, 0, 512);
-    return (0);
+    tls_tmp_dh(0);
+    return (dh_2048 == 0);
 }
 
 #endif

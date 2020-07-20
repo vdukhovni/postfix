@@ -109,7 +109,7 @@
 /*	TLS_APPL_STATE *app_ctx;
 /*	int	log_mask;
 /*
-/*	int	tls_validate_digest(dgst)
+/*	const EVP_MD *tls_validate_digest(dgst)
 /*	const char *dgst;
 /* DESCRIPTION
 /*	This module implements public and internal routines that
@@ -202,8 +202,8 @@
 /*	tls_update_app_logmask() changes the log mask of the
 /*	application TLS context to the new setting.
 /*
-/*	tls_validate_digest() returns non-zero if the named digest
-/*	is usable and zero otherwise.
+/*	tls_validate_digest() returns a static handle for the named
+/*	digest algorithm, or NULL on error.
 /* LICENSE
 /* .ad
 /* .fi
@@ -238,8 +238,6 @@
 #include <sys_defs.h>
 #include <ctype.h>
 #include <string.h>
-
-#ifdef USE_TLS
 
 /* Utility library. */
 
@@ -292,13 +290,11 @@ char   *var_tls_tkt_cipher;
 char   *var_openssl_path;
 char   *var_tls_server_sni_maps;
 bool    var_tls_fast_shutdown;
-
-static MAPS *tls_server_sni_maps;
-
-#ifdef VAR_TLS_PREEMPT_CLIST
 bool    var_tls_preempt_clist;
 
-#endif
+#ifdef USE_TLS
+
+static MAPS *tls_server_sni_maps;
 
  /*
   * Index to attach TLScontext pointers to SSL objects, so that they can be
@@ -519,6 +515,7 @@ static const NAME_MASK tls_log_table[] = {
     "certmatch", TLS_LOG_CERTMATCH,
     "verbose", TLS_LOG_VERBOSE,		/* Postfix TLS library verbose */
     "cache", TLS_LOG_CACHE,
+    "dane", TLS_LOG_DANE,		/* DANE policy construction */
     "ssl-debug", TLS_LOG_DEBUG,		/* SSL library debug/verbose */
     "ssl-handshake-packet-dump", TLS_LOG_TLSPKTS,
     "ssl-session-packet-dump", TLS_LOG_TLSPKTS | TLS_LOG_ALLPKTS,
@@ -822,7 +819,6 @@ const char *tls_set_ciphers(TLS_SESS_STATE *TLScontext, const char *grade,
 
 void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 {
-#if OPENSSL_VERSION_NUMBER >= 0x1010100fUL && defined(TLS1_3_VERSION)
     const char *kex_name = 0;
     const char *kex_curve = 0;
     const char *locl_sig_name = 0;
@@ -963,6 +959,8 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	 */
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
+
+	X509_free(cert);
     }
     if (kex_name) {
 	TLScontext->kex_name = mystrdup(kex_name);
@@ -983,7 +981,6 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (peer_sig_dgst)
 	    SIG_PROP(TLScontext, !srvr, dgst) = mystrdup(peer_sig_dgst);
     }
-#endif						/* OPENSSL_VERSION_NUMBER ... */
 }
 
 /* tls_log_summary - TLS loglevel 1 one-liner, embellished with TLS 1.3 details */
@@ -1121,11 +1118,8 @@ TLS_SESS_STATE *tls_alloc_sess_context(int log_mask, const char *namaddr)
     TLScontext->mdalg = 0;			/* Alias for props->mdalg */
     TLScontext->dane = 0;			/* Alias for props->dane */
     TLScontext->errordepth = -1;
-    TLScontext->tadepth = -1;
     TLScontext->errorcode = X509_V_OK;
     TLScontext->errorcert = 0;
-    TLScontext->untrusted = 0;
-    TLScontext->trusted = 0;
 
     return (TLScontext);
 }
@@ -1158,12 +1152,24 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_cert_fprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
+    if (TLScontext->kex_name)
+	myfree((void *) TLScontext->kex_name);
+    if (TLScontext->kex_curve)
+	myfree((void *) TLScontext->kex_curve);
+    if (TLScontext->clnt_sig_name)
+	myfree((void *) TLScontext->clnt_sig_name);
+    if (TLScontext->clnt_sig_curve)
+	myfree((void *) TLScontext->clnt_sig_curve);
+    if (TLScontext->clnt_sig_dgst)
+	myfree((void *) TLScontext->clnt_sig_dgst);
+    if (TLScontext->srvr_sig_name)
+	myfree((void *) TLScontext->srvr_sig_name);
+    if (TLScontext->srvr_sig_curve)
+	myfree((void *) TLScontext->srvr_sig_curve);
+    if (TLScontext->srvr_sig_dgst)
+	myfree((void *) TLScontext->srvr_sig_dgst);
     if (TLScontext->errorcert)
 	X509_free(TLScontext->errorcert);
-    if (TLScontext->untrusted)
-	sk_X509_pop_free(TLScontext->untrusted, X509_free);
-    if (TLScontext->trusted)
-	sk_X509_pop_free(TLScontext->trusted, X509_free);
 
     myfree((void *) TLScontext);
 }
@@ -1182,57 +1188,17 @@ static void tls_version_split(unsigned long version, TLS_VINFO *info)
      * 
      * The status nibble has one of the values 0 for development, 1 to e for
      * betas 1 to 14, and f for release. Parsed OpenSSL version number. for
-     * example
-     * 
-     * 0x000906000 == 0.9.6 dev 0x000906023 == 0.9.6b beta 3 0x00090605f ==
-     * 0.9.6e release
-     * 
-     * Versions prior to 0.9.3 have identifiers < 0x0930.  Versions between
-     * 0.9.3 and 0.9.5 had a version identifier with this interpretation:
-     * 
-     * MMNNFFRBB major minor fix final beta/patch
-     * 
-     * for example
-     * 
-     * 0x000904100 == 0.9.4 release 0x000905000 == 0.9.5 dev
-     * 
-     * Version 0.9.5a had an interim interpretation that is like the current
-     * one, except the patch level got the highest bit set, to keep continu-
-     * ity.  The number was therefore 0x0090581f.
+     * example: 0x1010103f == 1.1.1c.
      */
-
-    if (version < 0x0930) {
-	info->status = 0;
-	info->patch = version & 0x0f;
-	version >>= 4;
-	info->micro = version & 0x0f;
-	version >>= 4;
-	info->minor = version & 0x0f;
-	version >>= 4;
-	info->major = version & 0x0f;
-    } else if (version < 0x00905800L) {
-	info->patch = version & 0xff;
-	version >>= 8;
-	info->status = version & 0xf;
-	version >>= 4;
-	info->micro = version & 0xff;
-	version >>= 8;
-	info->minor = version & 0xff;
-	version >>= 8;
-	info->major = version & 0xff;
-    } else {
-	info->status = version & 0xf;
-	version >>= 4;
-	info->patch = version & 0xff;
-	version >>= 8;
-	info->micro = version & 0xff;
-	version >>= 8;
-	info->minor = version & 0xff;
-	version >>= 8;
-	info->major = version & 0xff;
-	if (version < 0x00906000L)
-	    info->patch &= ~0x80;
-    }
+    info->status = version & 0xf;
+    version >>= 4;
+    info->patch = version & 0xff;
+    version >>= 8;
+    info->micro = version & 0xff;
+    version >>= 8;
+    info->minor = version & 0xff;
+    version >>= 8;
+    info->major = version & 0xff;
 }
 
 /* tls_check_version - Detect mismatch between headers and library. */
@@ -1494,28 +1460,10 @@ long    tls_bio_dump_cb(BIO *bio, int cmd, const char *argp, int argi,
     return (ret);
 }
 
-int     tls_validate_digest(const char *dgst)
+const EVP_MD *tls_validate_digest(const char *dgst)
 {
     const EVP_MD *md_alg;
     unsigned int md_len;
-
-    /*
-     * Register SHA-2 digests, if implemented and not already registered.
-     * Improves interoperability with clients and servers that prematurely
-     * deploy SHA-2 certificates.  Also facilitates DANE and TA support.
-     */
-#if defined(LN_sha256) && defined(NID_sha256) && !defined(OPENSSL_NO_SHA256)
-    if (!EVP_get_digestbyname(LN_sha224))
-	EVP_add_digest(EVP_sha224());
-    if (!EVP_get_digestbyname(LN_sha256))
-	EVP_add_digest(EVP_sha256());
-#endif
-#if defined(LN_sha512) && defined(NID_sha512) && !defined(OPENSSL_NO_SHA512)
-    if (!EVP_get_digestbyname(LN_sha384))
-	EVP_add_digest(EVP_sha384());
-    if (!EVP_get_digestbyname(LN_sha512))
-	EVP_add_digest(EVP_sha512());
-#endif
 
     /*
      * If the administrator specifies an unsupported digest algorithm, fail
@@ -1534,7 +1482,7 @@ int     tls_validate_digest(const char *dgst)
 		 dgst, md_len);
 	return (0);
     }
-    return (1);
+    return md_alg;
 }
 
 #else

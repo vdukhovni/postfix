@@ -24903,19 +24903,108 @@ Apologies for any names omitted.
 20200626
 
 	Typo: in postconf(5) documentation, AAAAA should be AAAA.
-	Christian Franke.  File: proto/postconf.proto.
+	Christian Franke. File: proto/postconf.proto.
 
 	Bugfix (introduced: Postfix 2.11): The Postfix smtp(8)
 	client did not send the right SNI name when the TLSA base
 	domain was a secure CNAME expansion of the MX hostname (or
-	non-MX nexthop domain). Domains with CNAME expanded MX
-	hosts are not conformant with RFC5321, and so are rare.
-	Even more rare are MX hosts with TLSA records for their
-	CNAME expansion. For this to matter, the remote SMTP server
-	would also have to select its certificate based on the SNI
-	name in such a way that the original MX host would yield a
-	different certificate. Among the ~2 million hosts in the
-	DANE survey, none meet the conditions for returning a
-	different certificate for the expanded CNAME. Therefore,
-	sending the correct SNI name should not break existing mail
-	flows. Fixed by Viktor Dukhovni. File: src/tls/tls_client.c.
+	non-MX nexthop domain). Domains with CNAME expanded MX hosts
+	are not conformant with RFC5321, and so are rare. Even more
+	rare are MX hosts with TLSA records for their CNAME expansion.
+	For this to matter, the remote SMTP server would also have
+	to select its certificate based on the SNI name in such a
+	way that the original MX host would yield a different
+	certificate. Among the ~2 million hosts in the DANE survey,
+	none meet the conditions for returning a different certificate
+	for the expanded CNAME. Therefore, sending the correct SNI
+	name should not break existing mail flows. Fixed by Viktor
+	Dukhovni. File: src/tls/tls_client.c.
+
+20200705
+
+	Cleanup: OpenSSL-1.1.1 is the minimum supported version.
+	This is an LTS (long-term support) version that will reach
+	the end of life by 2023-09-11. This removes support for
+	export ciphers.
+
+	This also changes the Postfix default fingerprint digest
+	from MD5 to SHA256, but only when the compatibility_level
+	is set to '3' or higher.
+
+	Code by Viktor Dukhovni. Files: global/mail_params.c,
+	global/mail_params.h, posttls-finger/posttls-finger.c,
+	proto/COMPATIBILITY_README.html, proto/TLS_README.html,
+	proto/postconf.proto, smtp/smtp.c, smtp/smtp_tls_policy.c,
+	smtpd/smtpd.c, smtpd/smtpd_check.c, tls/Makefile.in,
+	tls/tls.h, tls/tls_certkey.c, tls/tls_client.c, tls/tls_dane.c,
+	tls/tls_dh.c, tls/tls_misc.c, tls/tls_rsa.c, tls/tls_server.c,
+	tls/tls_verify.c.
+
+20200710
+
+	Security: added a section to the sendmail(1) manpage for
+	security researchers and application developers, with an
+	example of using '--' to disable command option processing
+	for user-specified data. File sendmail/sendmail.c.
+
+	Error reporting: added '--' to a postalias command line to
+	make an obsecure error message less confusing. File
+	sendmail/sendmail.c.
+
+	Conversion from Postfix built-in DANE support to OpenSSL
+	DANE support. Code by Viktor Dukhovni. Files:
+	posttls-finger/posttls-finger.c, proto/postconf.proto,
+	smtp/smtp.c, smtp/smtp_proto.c, smtp/smtp_tls_policy.c,
+	tls/Makefile.in, tlsproxy/tlsproxy.c, tls/tls_client.c,
+	tls/tls_dane.c, tls/tls_fprint.c, tls/tls.h, tls/tls_misc.c,
+	tls/tls_proxy_client_print.c, tls/tls_proxy_client_scan.c,
+	tls/tls_proxy_context_print.c, tls/tls_proxy_context_scan.c,
+	tls/tls_proxy.h, tls/tls_verify.c, util/hex_code.c.
+
+	Bugfix (introduced: Postfix 3.0): minor memory leaks in the
+	Postfix TLS library, found during tests. File: tls/tls_misc.c.
+
+20200712
+
+	Cleanup: non-TLS builds were failing. File: util/tls_misc.c.
+
+	Bugfix (introduced: Postfix 3.0): 4kbyte per session memory
+	leak in the Postfix TLS library, found during tests. File:
+	tls/tls_misc.c.
+
+20200718
+
+	Cleanup TLS library: coding style, additional error message,
+	additional handling of internationalized domain name, and
+	dropping an unused variable.  Files: tls.h, tls_dane.c,
+	tls_proxy_client_scan.c, tls_client.c.
+
+	Noise suppression: shut up compilers that warn about
+	sizeof("text"). File: smtpstone/smtp-sink.c.
+
+20200719
+
+	Cleanup old API: mymemdup() should return "void *", the
+	same value type as its main argument, and the same result
+	type as mymalloc(). In a future update we can remove all
+	the noisy but unnecessary casts of their result values to
+	character pointer. Files: util/mymalloc.c, util/mymalloc.h.
+
+	Cleanup: don't split the sendmail -oA option value on comma
+	or whitespace, before passing the value to the postalias
+	command line. This results in unexpected behavior. File:
+	sendmail/sendmail.c.
+
+	Documentation: updated the manpage of the unprivileged(!)
+	sendmail(1) command with instructions to avoid privilege
+	esclation attacks in naive programs that run Postfix programs
+	with user-specified arguments. File: sendmail/sendmail.c.
+
+20200720
+
+	Bugfix (introduced: postfix 3.4): nullpointer dereference
+	in debug logging when tlsproxy is unavailable.  File:
+	posttls-finger/posttls-finger.c.
+
+	Final cleanups of the peername matching code.  File:
+	tls/tls_client.c.

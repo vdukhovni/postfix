@@ -19,7 +19,7 @@ extern void *myrealloc(void *, ssize_t);
 extern void myfree(void *);
 extern char *mystrdup(const char *);
 extern char *mystrndup(const char *, ssize_t);
-extern char *mymemdup(const void *, ssize_t);
+extern void *mymemdup(const void *, ssize_t);
 
 /* LICENSE
 /* .ad

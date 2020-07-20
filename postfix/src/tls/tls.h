@@ -52,7 +52,6 @@
 
 #define TLS_REQUIRED(l)		((l) > TLS_LEV_MAY)
 #define TLS_MUST_MATCH(l)	((l) > TLS_LEV_ENCRYPT)
-#define TLS_MUST_TRUST(l)	((l) >= TLS_LEV_HALF_DANE)
 #define TLS_MUST_PKIX(l)	((l) >= TLS_LEV_VERIFY)
 #define TLS_OPPORTUNISTIC(l)	((l) == TLS_LEV_MAY || (l) == TLS_LEV_DANE)
 #define TLS_DANE_BASED(l)	\
@@ -84,36 +83,8 @@ extern const char *str_tls_level(int);
 #define ssl_cipher_stack_t STACK_OF(SSL_CIPHER)
 #define ssl_comp_stack_t STACK_OF(SSL_COMP)
 
-#if (OPENSSL_VERSION_NUMBER < 0x1000200fUL)
-#error "OpenSSL releases prior to 1.0.2 are no longer supported"
-#endif
-
- /* Backwards compatibility with OpenSSL < 1.1.0 */
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
-#define OpenSSL_version_num SSLeay
-#define OpenSSL_version SSLeay_version
-#define OPENSSL_VERSION SSLEAY_VERSION
-#define X509_STORE_up_ref(store) \
-	CRYPTO_add(&((store)->references), 1, CRYPTO_LOCK_X509)
-#define X509_up_ref(x) \
-	CRYPTO_add(&((x)->references), 1, CRYPTO_LOCK_X509)
-#define EVP_PKEY_up_ref(k) \
-	CRYPTO_add(&((k)->references), 1, CRYPTO_LOCK_EVP_PKEY)
-#define X509_STORE_CTX_get0_cert(ctx) ((ctx)->cert)
-#define X509_STORE_CTX_get0_untrusted(ctx) ((ctx)->untrusted)
-#define X509_STORE_CTX_set0_untrusted X509_STORE_CTX_set_chain
-#define X509_STORE_CTX_set0_trusted_stack X509_STORE_CTX_trusted_stack
-#define ASN1_STRING_get0_data ASN1_STRING_data
-#define X509_getm_notBefore X509_get_notBefore
-#define X509_getm_notAfter X509_get_notAfter
-#define TLS_method SSLv23_method
-#define TLS_client_method SSLv23_client_method
-#define TLS_server_method SSLv23_server_method
-#endif
-
- /* Backwards compatibility with OpenSSL < 1.1.1 */
-#if OPENSSL_VERSION_NUMBER < 0x1010100fUL
-#define SSL_CTX_set_num_tickets(ctx, num) ((void)0)
+#if (OPENSSL_VERSION_NUMBER < 0x1010100fUL)
+#error "OpenSSL releases prior to 1.1.1 are no longer supported"
 #endif
 
  /*-
@@ -186,52 +157,33 @@ typedef enum {
   * algorithm.
   */
 typedef struct TLS_TLSA {
-    char   *mdalg;			/* Algorithm for this digest list */
-    ARGV   *certs;			/* Complete certificate digests */
-    ARGV   *pkeys;			/* SubjectPublicKeyInfo digests */
+    uint8_t usage;			/* DANE certificate usage */
+    uint8_t selector;			/* DANE selector */
+    uint8_t mtype;			/* Algorithm for this digest list */
+    uint16_t length;			/* Length of associated data */
+    unsigned char *data;		/* Associated data */
     struct TLS_TLSA *next;		/* Chain to next algorithm */
 } TLS_TLSA;
 
- /*
-  * Linked list of full X509 trust-anchor certs.
-  */
-typedef struct TLS_CERTS {
-    X509   *cert;
-    struct TLS_CERTS *next;
-} TLS_CERTS;
-
- /*
-  * Linked list of full EVP_PKEY trust-anchor public keys.
-  */
-typedef struct TLS_PKEYS {
-    EVP_PKEY *pkey;
-    struct TLS_PKEYS *next;
-} TLS_PKEYS;
-
 typedef struct TLS_DANE {
-    TLS_TLSA *ta;			/* Trust-anchor cert/pubkey digests */
-    TLS_TLSA *ee;			/* End-entity cert/pubkey digests */
-    TLS_CERTS *certs;			/* Full trust-anchor certificates */
-    TLS_PKEYS *pkeys;			/* Full trust-anchor public keys */
+    TLS_TLSA *tlsa;			/* TLSA records */
     char   *base_domain;		/* Base domain of TLSA RRset */
     int     flags;			/* Lookup status */
     time_t  expires;			/* Expiration time of this record */
     int     refs;			/* Reference count */
 } TLS_DANE;
 
-#define TLS_DANE_HASTA(d)	((d) ? (d)->ta : 0)
-#define TLS_DANE_HASEE(d)	((d) ? (d)->ee : 0)
-
  /*
   * tls_dane.c
   */
 extern int tls_dane_avail(void);
+extern void tls_dane_loglevel(const char *, const char *);
 extern void tls_dane_flush(void);
-extern void tls_dane_verbose(int);
 extern TLS_DANE *tls_dane_alloc(void);
-extern void tls_dane_add_ee_digests(TLS_DANE *, const char *, const char *,
-				            const char *);
+extern void tls_tlsa_free(TLS_TLSA *);
 extern void tls_dane_free(TLS_DANE *);
+extern void tls_dane_add_fpt_digests(TLS_DANE *, const char *, const char *,
+				             int);
 extern TLS_DANE *tls_dane_resolve(unsigned, const char *, DNS_RR *, int);
 extern int tls_dane_load_trustfile(TLS_DANE *, const char *);
 
@@ -250,6 +202,7 @@ typedef struct {
     char   *peer_sni;			/* SNI sent to or by the peer */
     char   *peer_cert_fprint;		/* ASCII certificate fingerprint */
     char   *peer_pkey_fprint;		/* ASCII public key fingerprint */
+    int     level;			/* Effective security level */
     int     peer_status;		/* Certificate and match status */
     const char *protocol;
     const char *cipher_name;
@@ -280,12 +233,10 @@ typedef struct {
     VSTREAM *stream;			/* Blocking-mode SMTP session */
     /* DANE TLSA trust input and verification state */
     const TLS_DANE *dane;		/* DANE TLSA digests */
-    int     errordepth;			/* Chain depth of error cert */
-    int     tadepth;			/* Chain depth of trust anchor */
-    int     errorcode;			/* First error at error depth */
     X509   *errorcert;			/* Error certificate closest to leaf */
-    x509_stack_t *untrusted;		/* Certificate chain fodder */
-    x509_stack_t *trusted;		/* Internal root CA list */
+    int     errordepth;			/* Chain depth of error cert */
+    int     errorcode;			/* First error at error depth */
+    int     must_fail;			/* Failed to load trust settings */
 } TLS_SESS_STATE;
 
  /*
@@ -329,6 +280,7 @@ extern int tls_log_mask(const char *, const char *);
 #define TLS_LOG_DEBUG			(1<<7)
 #define TLS_LOG_TLSPKTS			(1<<8)
 #define TLS_LOG_ALLPKTS			(1<<9)
+#define TLS_LOG_DANE			(1<<10)
 
  /*
   * Client and Server application contexts
@@ -651,40 +603,35 @@ extern int tls_bio(int, int, TLS_SESS_STATE *,
  /*
   * tls_dh.c
   */
-extern void tls_set_dh_from_file(const char *, int);
-extern DH *tls_tmp_dh_cb(SSL *, int, int);
-extern void tls_set_eecdh_curve(SSL_CTX *, const char *);
+extern void tls_set_dh_from_file(const char *);
+extern void tls_tmp_dh(SSL_CTX *);
 extern void tls_auto_eecdh_curves(SSL_CTX *, const char *);
-
- /*
-  * tls_rsa.c
-  */
-extern RSA *tls_tmp_rsa_cb(SSL *, int, int);
 
  /*
   * tls_verify.c
   */
 extern char *tls_peer_CN(X509 *, const TLS_SESS_STATE *);
 extern char *tls_issuer_CN(X509 *, const TLS_SESS_STATE *);
-extern const char *tls_dns_name(const GENERAL_NAME *, const TLS_SESS_STATE *);
 extern int tls_verify_certificate_callback(int, X509_STORE_CTX *);
 extern void tls_log_verify_error(TLS_SESS_STATE *);
 
  /*
   * tls_dane.c
   */
-extern int tls_dane_match(TLS_SESS_STATE *, int, X509 *, int);
-extern void tls_dane_set_callback(SSL_CTX *, TLS_SESS_STATE *);
+extern void tls_dane_log(TLS_SESS_STATE *);
+extern void tls_dane_digest_init(SSL_CTX *, const EVP_MD *);
+extern int tls_dane_enable(TLS_SESS_STATE *);
+extern TLS_TLSA *tlsa_prepend(TLS_TLSA *, uint8_t, uint8_t, uint8_t,
+			              const unsigned char *, uint16_t);
 
  /*
   * tls_fprint.c
   */
 extern char *tls_digest_encode(const unsigned char *, int);
-extern char *tls_data_fprint(const char *, int, const char *);
 extern char *tls_cert_fprint(X509 *, const char *);
 extern char *tls_pkey_fprint(X509 *, const char *);
-extern char *tls_serverid_digest(const TLS_CLIENT_START_PROPS *, long,
-				         const char *);
+extern char *tls_serverid_digest(TLS_SESS_STATE *,
+		        const TLS_CLIENT_START_PROPS *, long, const char *);
 
  /*
   * tls_certkey.c
@@ -709,7 +656,7 @@ extern long tls_bug_bits(void);
 extern void tls_print_errors(void);
 extern void tls_info_callback(const SSL *, int, int);
 extern long tls_bio_dump_cb(BIO *, int, const char *, int, long, long);
-extern int tls_validate_digest(const char *);
+extern const EVP_MD *tls_validate_digest(const char *);
 
  /*
   * tls_seed.c

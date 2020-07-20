@@ -545,7 +545,12 @@ server access control:
 
 The digest algorithm used to compute the client certificate fingerprints is
 specified with the main.cf smtpd_tls_fingerprint_digest parameter. The default
-is "md5", for compatibility with Postfix versions < 2.5.
+algorithm is sshhaa225566 with Postfix >= 3.6 and the ccoommppaattiibbiilliittyy__lleevveell set to 3 or
+higher. With Postfix <= 3.5, the default algorithm is mmdd55. The best-practice
+algorithm is now sshhaa225566. Recent advances in hash function cryptanalysis have
+led to md5 and sha1 being deprecated in favor of sha256. However, as long as
+there are no known "second pre-image" attacks against the older algorithms,
+their use in this context, though not recommended, is still likely safe.
 
 The permit_tls_all_clientcerts feature must be used with caution, because it
 can result in too many access permissions. Use this feature only if a special
@@ -596,26 +601,12 @@ command extracts the public key always in "PEM" format. We pipe the result to
 another OpenSSL command that converts the key to DER and then to the "dgst"
 command to compute the fingerprint.
 
-The actual command to transform the key to DER format depends on the version of
-OpenSSL used. With OpenSSL 1.0.0 and later, the "pkey" command supports all key
-types. With OpenSSL 0.9.8 and earlier, the key type is always RSA (nobody uses
-DSA, and EC keys are not fully supported by 0.9.8), so the "rsa" command is
-used.
+Example:
 
-    # OpenSSL 1.0 with all certificates and SHA-1 fingerprints.
     $ openssl x509 -in cert.pem -noout -pubkey |
         openssl pkey -pubin -outform DER |
-        openssl dgst -sha1 -c
-    (stdin)= 64:3f:1f:f6:e5:1e:d4:2a:56:8b:fc:09:1a:61:98:b5:bc:7c:60:58
-
-    # OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
-    $ openssl x509 -in cert.pem -noout -pubkey |
-        openssl rsa -pubin -outform DER |
-        openssl dgst -md5 -c
-    (stdin)= f4:62:60:f6:12:8f:d5:8d:28:4d:13:a7:db:b2:ff:50
-
-Note: Postfix 2.9.0-2.9.5 computed the public key fingerprint incorrectly. To
-use public-key fingerprints, upgrade to Postfix 2.9.6 or later.
+        openssl dgst -sha256 -c
+    (stdin)= 64:3f:1f:f6:e5:1e:d4:2a:...:8b:fc:09:1a:61:98:b5:bc:7c:60:58
 
 SSeerrvveerr--ssiiddee cciipphheerr ccoonnttrroollss
 
@@ -1130,6 +1121,14 @@ fingerprints can be combined with a "|" delimiter in a single match attribute,
 or multiple match attributes can be employed. The ":" character is not used as
 a delimiter as it occurs between each pair of fingerprint (hexadecimal) digits.
 
+The default algorithm is sshhaa225566 with Postfix >= 3.6 and the ccoommppaattiibbiilliittyy__lleevveell
+set to 3 or higher; with Postfix <= 3.5, the default algorithm is mmdd55. The
+best-practice algorithm is now sshhaa225566. Recent advances in hash function
+cryptanalysis have led to md5 and sha1 being deprecated in favor of sha256.
+However, as long as there are no known "second pre-image" attacks against the
+older algorithms, their use in this context, though not recommended, is still
+likely safe.
+
 Example: fingerprint TLS security with an internal mailhub. Two matching
 fingerprints are listed. The relayhost may be multiple physical hosts behind a
 load-balancer, each with its own private/public key and self-signed
@@ -1139,22 +1138,22 @@ trusted just prior to the transition.
 
         relayhost = [mailhub.example.com]
         smtp_tls_security_level = fingerprint
-        smtp_tls_fingerprint_digest = md5
+        smtp_tls_fingerprint_digest = sha256
         smtp_tls_fingerprint_cert_match =
-            3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
-            EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+            51:e9:af:2e:1e:40:1f:de:64:...:30:35:2d:09:16:31:5a:eb:82:76
+            b6:b4:72:34:e2:59:cd:fb:c2:...:63:0d:4d:cc:2c:7d:84:de:e6:2f
 
 Example: Certificate fingerprint verification with selected destinations. As in
 the example above, we show two matching fingerprints:
 
     /etc/postfix/main.cf:
         smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
-        smtp_tls_fingerprint_digest = md5
+        smtp_tls_fingerprint_digest = sha256
 
     /etc/postfix/tls_policy:
         example.com fingerprint
-            match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
-            match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+            match=51:e9:af:2e:1e:40:1f:de:...:35:2d:09:16:31:5a:eb:82:76
+            match=b6:b4:72:34:e2:59:cd:fb:...:0d:4d:cc:2c:7d:84:de:e6:2f
 
 To extract the public key fingerprint from an X.509 certificate, you need to
 extract the public key from the certificate and compute the appropriate digest
@@ -1163,26 +1162,12 @@ command extracts the public key always in "PEM" format. We pipe the result to
 another OpenSSL command that converts the key to DER and then to the "dgst"
 command to compute the fingerprint.
 
-The actual command to transform the key to DER format depends on the version of
-OpenSSL used. With OpenSSL 1.0.0 and later, the "pkey" command supports all key
-types. With OpenSSL 0.9.8 and earlier, the key type is always RSA (nobody uses
-DSA, and EC keys are not fully supported by 0.9.8), so the "rsa" command is
-used.
+Example:
 
-    # OpenSSL 1.0 with all certificates and SHA-1 fingerprints.
     $ openssl x509 -in cert.pem -noout -pubkey |
         openssl pkey -pubin -outform DER |
-        openssl dgst -sha1 -c
-    (stdin)= 64:3f:1f:f6:e5:1e:d4:2a:56:8b:fc:09:1a:61:98:b5:bc:7c:60:58
-
-    # OpenSSL 0.9.8 with RSA certificates and MD5 fingerprints.
-    $ openssl x509 -in cert.pem -noout -pubkey |
-        openssl rsa -pubin -outform DER |
-        openssl dgst -md5 -c
-    (stdin)= f4:62:60:f6:12:8f:d5:8d:28:4d:13:a7:db:b2:ff:50
-
-Note: Postfix 2.9.0-2.9.5 computed the public key fingerprint incorrectly. To
-use public-key fingerprints, upgrade to Postfix 2.9.6 or later.
+        openssl dgst -sha256 -c
+    (stdin)= 64:3f:1f:f6:e5:1e:d4:2a:56:...:09:1a:61:98:b5:bc:7c:60:58
 
 MMaannddaattoorryy sseerrvveerr cceerrttiiffiiccaattee vveerriiffiiccaattiioonn
 
@@ -1837,7 +1822,7 @@ Example:
     /etc/postfix/main.cf:
         smtp_tls_policy_maps = hash:/etc/postfix/tls_policy
         # Postfix 2.5 and later
-        smtp_tls_fingerprint_digest = md5
+        smtp_tls_fingerprint_digest = sha256
     /etc/postfix/tls_policy:
         example.edu             none
         example.mil             may
@@ -1848,8 +1833,8 @@ Example:
         [mail.example.org]:587  secure match=nexthop
         # Postfix 2.5 and later
         [thumb.example.org]         fingerprint
-            match=EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
-            match=3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
+            match=b6:b4:72:34:e2:59:cd:fb:...:0d:4d:cc:2c:7d:84:de:e6:2f
+            match=51:e9:af:2e:1e:40:1f:de:...:35:2d:09:16:31:5a:eb:82:76
         # Postfix 2.6 and later
         example.info            may protocols=!SSLv2 ciphers=medium
     exclude=3DES

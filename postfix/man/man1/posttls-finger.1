@@ -102,11 +102,12 @@ certificate block.  If you specify \fB\-F \fICAfile\fR or
 \fB\-P \fICApath\fR, the OpenSSL library may augment the chain with
 missing issuer certificates.  To see the actual chain sent by the
 remote SMTP server leave \fICAfile\fR and \fICApath\fR unset.
-.IP "\fB\-d \fImdalg\fR (default: \fBsha1\fR)"
+.IP "\fB\-d \fImdalg\fR (default: \fB$smtp_tls_fingerprint_digest\fR)"
 The message digest algorithm to use for reporting remote SMTP server
 fingerprints and matching against user provided certificate
 fingerprints (with DANE TLSA records the algorithm is specified
-in the DNS).
+in the DNS).  In Postfix versions prior to 3.6, the default value
+was "sha1".
 .IP "\fB\-f\fR"
 Lookup the associated DANE TLSA RRset even when a hostname is not an
 alias and its address records lie in an unsigned zone.  See

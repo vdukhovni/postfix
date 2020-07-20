@@ -19,8 +19,8 @@ typedef int bool;
 #ifdef USE_TLS
 #include <openssl/opensslv.h>		/* OPENSSL_VERSION_NUMBER */
 #include <openssl/objects.h>		/* SN_* and NID_* macros */
-#if OPENSSL_VERSION_NUMBER < 0x1000200fUL
-#error "OpenSSL releases prior to 1.0.2 are no longer supported"
+#if OPENSSL_VERSION_NUMBER < 0x1010100fUL
+#error "OpenSSL releases prior to 1.1.1 are no longer supported"
 #endif
 #endif
 
@@ -52,7 +52,7 @@ extern bool var_show_unk_rcpt_table;
   */
 #define VAR_COMPAT_LEVEL	"compatibility_level"
 #define DEF_COMPAT_LEVEL	0
-#define CUR_COMPAT_LEVEL	2
+#define CUR_COMPAT_LEVEL	3
 extern int var_compat_level;
 
 extern int warn_compat_break_app_dot_mydomain;
@@ -63,6 +63,10 @@ extern int warn_compat_break_relay_restrictions;	/* Postfix 2.10. */
 extern int warn_compat_break_relay_domains;
 extern int warn_compat_break_flush_domains;
 extern int warn_compat_break_mynetworks_style;
+
+extern int warn_compat_break_smtpd_tls_fpt_dgst;
+extern int warn_compat_break_smtp_tls_fpt_dgst;
+extern int warn_compat_break_lmtp_tls_fpt_dgst;
 
  /*
   * What problem classes should be reported to the postmaster via email.
@@ -1356,7 +1360,8 @@ extern char *var_smtpd_tls_excl_ciph;
 extern char *var_smtpd_tls_mand_excl;
 
 #define VAR_SMTPD_TLS_FPT_DGST	"smtpd_tls_fingerprint_digest"
-#define DEF_SMTPD_TLS_FPT_DGST	"md5"
+#define DEF_SMTPD_TLS_FPT_DGST	"${{$compatibility_level} < {3} ? " \
+                                "{md5} : {sha256}}"
 extern char *var_smtpd_tls_fpt_dgst;
 
 #define VAR_SMTPD_TLS_512_FILE	"smtpd_tls_dh512_param_file"
@@ -1517,9 +1522,11 @@ extern char *var_smtp_tls_excl_ciph;
 extern char *var_smtp_tls_mand_excl;
 
 #define VAR_SMTP_TLS_FPT_DGST	"smtp_tls_fingerprint_digest"
-#define DEF_SMTP_TLS_FPT_DGST	"md5"
+#define DEF_SMTP_TLS_FPT_DGST	"${{$compatibility_level} < {3} ? " \
+                                "{md5} : {sha256}}"
 #define VAR_LMTP_TLS_FPT_DGST	"lmtp_tls_fingerprint_digest"
-#define DEF_LMTP_TLS_FPT_DGST	"md5"
+#define DEF_LMTP_TLS_FPT_DGST	"${{$compatibility_level} < {3} ? " \
+                                "{md5} : {sha256}}"
 extern char *var_smtp_tls_fpt_dgst;
 
 #define VAR_SMTP_TLS_TAFILE	"smtp_tls_trust_anchor_file"
