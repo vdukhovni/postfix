@@ -409,6 +409,11 @@ TLS_APPL_STATE *tls_client_init(const TLS_CLIENT_INIT_PROPS *props)
     off |= tls_bug_bits();
     SSL_CTX_set_options(client_ctx, off);
 
+    /* Enable all supported protocols */
+#if OPENSSL_VERSION_NUMBER >= 0x1010000fUL
+    SSL_CTX_set_min_proto_version(client_ctx, 0);
+#endif
+
     /*
      * Set the call-back routine for verbose logging.
      */
