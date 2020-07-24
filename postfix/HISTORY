@@ -23343,3 +23343,21 @@ Apologies for any names omitted.
 	for the expanded CNAME. Therefore, sending the correct SNI
 	name should not break existing mail flows. Fixed by Viktor
 	Dukhovni. File: src/tls/tls_client.c.
+
+20200710
+
+	Bugfix (introduced: Postfix 3.0): minor memory leaks in the
+	Postfix TLS library, found during tests. File: tls/tls_misc.c.
+
+20200712
+
+	Bugfix (introduced: Postfix 3.0): 4kbyte per session memory
+	leak in the Postfix TLS library, found during tests. File:
+	tls/tls_misc.c.
+
+20200724
+
+	Workaround for distros that override Postfix protocol
+	settings in a system-wide OpenSSL configuration file, causing
+	interoperability problems after an OS update. File:
+	tls/tls_client.c, tls/tls_server.c.
