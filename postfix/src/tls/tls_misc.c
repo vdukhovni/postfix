@@ -961,6 +961,8 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	 */
 	if (SSL_get_signature_nid(ssl, &nid) && nid != NID_undef)
 	    locl_sig_dgst = OBJ_nid2sn(nid);
+
+	X509_free(cert);
     }
     /* Signature algorithms for the peer end of the connection */
     if ((cert = SSL_get_peer_certificate(ssl)) != 0) {
@@ -1189,6 +1191,22 @@ void    tls_free_context(TLS_SESS_STATE *TLScontext)
 	myfree(TLScontext->peer_cert_fprint);
     if (TLScontext->peer_pkey_fprint)
 	myfree(TLScontext->peer_pkey_fprint);
+    if (TLScontext->kex_name)
+	myfree((void *) TLScontext->kex_name);
+    if (TLScontext->kex_curve)
+	myfree((void *) TLScontext->kex_curve);
+    if (TLScontext->clnt_sig_name)
+	myfree((void *) TLScontext->clnt_sig_name);
+    if (TLScontext->clnt_sig_curve)
+	myfree((void *) TLScontext->clnt_sig_curve);
+    if (TLScontext->clnt_sig_dgst)
+	myfree((void *) TLScontext->clnt_sig_dgst);
+    if (TLScontext->srvr_sig_name)
+	myfree((void *) TLScontext->srvr_sig_name);
+    if (TLScontext->srvr_sig_curve)
+	myfree((void *) TLScontext->srvr_sig_curve);
+    if (TLScontext->srvr_sig_dgst)
+	myfree((void *) TLScontext->srvr_sig_dgst);
     if (TLScontext->errorcert)
 	X509_free(TLScontext->errorcert);
     if (TLScontext->untrusted)
