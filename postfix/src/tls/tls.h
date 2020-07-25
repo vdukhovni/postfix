@@ -385,7 +385,7 @@ extern void tls_param_init(void);
 #define TLS_SSL_OP_MANAGED_BITS \
 	(SSL_OP_CIPHER_SERVER_PREFERENCE | TLS_SSL_OP_PROTOMASK(~0))
 
-extern int tls_protocol_mask(const char *);
+extern int tls_proto_mask_lims(const char *, int *, int *);
 
  /*
   * Cipher grade selection.
@@ -631,7 +631,7 @@ extern char *tls_digest_encode(const unsigned char *, int);
 extern char *tls_cert_fprint(X509 *, const char *);
 extern char *tls_pkey_fprint(X509 *, const char *);
 extern char *tls_serverid_digest(TLS_SESS_STATE *,
-		        const TLS_CLIENT_START_PROPS *, long, const char *);
+		              const TLS_CLIENT_START_PROPS *, const char *);
 
  /*
   * tls_certkey.c

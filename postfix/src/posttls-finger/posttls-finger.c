@@ -224,8 +224,8 @@
 /*	parameter \fIname\fR with \fIvalue\fR.  Possible use-cases include
 /*	overriding the values of TLS library parameters, or "myhostname" to
 /*	configure the SMTP EHLO name sent to the remote server.
-/* .IP "\fB-p \fIprotocols\fR (default: !SSLv2)"
-/*	List of TLS protocols that posttls-finger will exclude or include.  See
+/* .IP "\fB-p \fIprotocols\fR (default: >=TLSv1)"
+/*	TLS protocols that posttls-finger will exclude or include.  See
 /*	smtp_tls_mandatory_protocols for details.
 /* .IP "\fB-P \fICApath/\fR (default: none)"
 /*	The OpenSSL CApath/ directory (indexed via c_rehash(1)) for remote
@@ -1806,7 +1806,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
     state->max_reconnect = 5;
     state->wrapper_mode = 0;
 #ifdef USE_TLS
-    state->protocols = mystrdup("!SSLv2");
+    state->protocols = mystrdup(">=TLSv1");
     state->grade = mystrdup("medium");
 #endif
     memset((void *) &state->options, 0, sizeof(state->options));

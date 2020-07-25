@@ -11299,74 +11299,92 @@ configurations in environments where DNS security is not assured. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM smtp_tls_mandatory_protocols !SSLv2, !SSLv3
+%PARAM smtp_tls_mandatory_protocols see "postconf -d" output
 
-<p> List of SSL/TLS protocols that the Postfix SMTP client will use with
-mandatory TLS encryption.  In main.cf the values are separated by
-whitespace, commas or colons. In the policy table "protocols" attribute
-(see smtp_tls_policy_maps) the only valid separator is colon. An
-empty value means allow all protocols. The valid protocol names, (see
-<b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3" and "TLSv1". The
-default value is "!SSLv2, !SSLv3" for Postfix releases after the
-middle of 2015, "!SSLv2" for older releases. </p>
+<p> TLS protocols that the Postfix SMTP client will use with mandatory
+TLS encryption.  In main.cf the values are separated by whitespace,
+commas or colons. In the policy table "protocols" attribute (see
+smtp_tls_policy_maps) the only valid separator is colon. An empty value
+means allow all protocols. </p>
 
-<p> With Postfix &ge; 2.5 the parameter syntax was expanded to support
-protocol exclusions. One can explicitly exclude "SSLv2" by setting
-"smtp_tls_mandatory_protocols = !SSLv2". To exclude both "SSLv2" and
-"SSLv3" set "smtp_tls_mandatory_protocols = !SSLv2, !SSLv3". Listing
-the protocols to include, rather than protocols to exclude, is
-supported, but not recommended. The exclusion form more closely
-matches the underlying OpenSSL interface semantics.
-</p>
+<p> The valid protocol names (see SSL_get_version(3)) are "SSLv2",
+"SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" and "TLSv1.3".  Starting with
+Postfix 3.6, the default value is "&gt;=TLSv1", which sets TLS 1.0 as
+the lowest supported TLS protocol version (see below).  Older releases
+use the "!" exclusion syntax, also described below.  </p>
 
-<p> The range of protocols advertised by an SSL/TLS client must be
-contiguous.  When a protocol version is enabled, disabling any
-higher version implicitly disables all versions above that higher version.
-Thus, for example (assuming the OpenSSL library supports both SSLv2
-and SSLv3):
-</p>
+<p> As of Postfix 3.6, the preferred way to limit the range of
+acceptable protocols is to set a lowest acceptable TLS protocol version
+and/or a highest acceptable TLS protocol version.  To set the lower
+bound include an element of the form: "&gt;=<i>version</i>" where
+<i>version</i> is a either one of the TLS protocol names listed above,
+or a hexadecimal number corresponding to the desired TLS protocol
+version (0301 for TLS 1.0, 0302 for TLS 1.1, etc.).  For the upper
+bound, use "&lt;=<i>version</i>".  There must be no whitespace between
+the "&gt;=" or "&lt;=" symbols and the protocol name or number. </p>
+
+<p> Hexadecimal protocol numbers make it possible to specify protocol
+bounds for TLS versions that are known to OpenSSL, but might not be
+known to Postfix.  They cannot be used with the legacy exclusion syntax.
+Leading "0" or "0x" prefixes are supported, but not required.
+Therefore, "301", "0301", "0x301" and "0x0301" are all equivalent to
+"TLSv1".  Hexadecimal versions unknown to OpenSSL will fail to set the
+upper or lower bound, and a warning will be logged.  Hexadecimal
+versions should only be used when Postfix is linked with some future
+version of OpenSSL that supports TLS 1.4 or later, but Postfix does not
+yet support a symbolic name for that protocol version. </p>
+
+<p>Hexadecimal example (Postfix &ge; 3.6):</p>
 <blockquote>
 <pre>
-smtp_tls_mandatory_protocols = !SSLv2, !TLSv1
+# Allow only TLS 1.2 through (hypothetical) TLS 1.4, once supported
+# in some future version of OpenSSL (presently a warning is logged).
+smtp_tls_mandatory_protocols = &gt;=TLSv1.2, &lt;=0305
+# Allow only TLS 1.2 and up:
+smtp_tls_mandatory_protocols = &gt;=0x0303
 </pre>
 </blockquote>
-<p> also disables any protocols version higher than TLSv1 leaving
-only "SSLv3" enabled.  </p>
 
-<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". When Postfix &le; 2.5 is linked against OpenSSL 1.0.1
-or later, these, or any other new protocol versions, cannot be
-disabled except by also disabling "TLSv1" (typically leaving just
-"SSLv3").  The latest patch levels of Postfix &ge; 2.6, and all
-versions of Postfix &ge; 2.10 can explicitly disable support for
-"TLSv1.1" or "TLSv1.2". </p>
+<p> With Postfix &lt; 3.6 there is no support for a minimum or maximum
+version, and the protocol range is configured via protocol exclusions.
+To require at least TLS 1.0, set "smtp_tls_mandatory_protocols = !SSLv2,
+!SSLv3". Listing the protocols to include, rather than protocols to
+exclude, is supported, but not recommended.  The exclusion syntax more
+accurately matches the underlying OpenSSL interface.  </p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
-&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
-this can be disabled, if need be, via "!TLSv1.3". </p>
+<p> When using the exclusion syntax, take care to ensure that the range
+of protocols supported by the Postfix SMTP client is contiguous.  When
+a protocol version is enabled, disabling any higher version implicitly
+disables all versions above that higher version.  Thus, for example: </p>
 
-<p> At the <a href="TLS_README.html#client_tls_dane">dane</a> and
-<a href="TLS_README.html#client_tls_dane">dane-only</a> security
-levels, when usable TLSA records are obtained for the remote SMTP
-server, the Postfix SMTP client is obligated to include the SNI TLS
-extension in its SSL client hello message.  This may help the remote
-SMTP server live up to its promise to provide a certificate that
-matches its TLSA records.  Since TLS extensions require TLS 1.0 or
-later, the Postfix SMTP client must disable "SSLv2" and "SSLv3" when
-SNI is required.  If you use "dane" or "dane-only" do not disable
-TLSv1, except perhaps via the policy table for destinations which
-you are sure will support "TLSv1.1" or "TLSv1.2".  </p>
+<blockquote>
+<pre>
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1.1
+</pre>
+</blockquote>
+
+<p> also disables any protocols version higher than TLSv1.1 leaving
+only "TLSv1" enabled.  </p>
+
+<p> Support for "TLSv1.3" was introduced in OpenSSL 1.1.1.  Disabling
+this protocol via "!TLSv1.3" is supported since Postfix 3.4 (or patch
+releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2).  </p>
+
+<p> While the vast majority of SMTP servers with DANE TLSA records now
+support at least TLS 1.2, a few still only support TLS 1.0.  If you use
+"dane" or "dane-only" it is best to not disable TLSv1, except perhaps
+via the policy table for destinations which you are sure will support
+"TLSv1.2".  </p>
 
 <p> See the documentation of the smtp_tls_policy_maps parameter and
 TLS_README for more information about security levels. </p>
 
 <p> Example: </p>
-
 <pre>
-# Preferred syntax with Postfix &ge; 2.5:
-smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+# Preferred syntax with Postfix &ge; 3.6:
+smtp_tls_mandatory_protocols = &gt;=TLSv1.2, &lt;=TLSv1.3
 # Legacy syntax:
-smtp_tls_mandatory_protocols = TLSv1
+smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 </pre>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -11495,7 +11513,7 @@ configuration parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM lmtp_tls_mandatory_protocols !SSLv2, !SSLv3
+%PARAM lmtp_tls_mandatory_protocols see postconf -d output
 
 <p> The LMTP-specific version of the smtp_tls_mandatory_protocols
 configuration parameter. See there for details. </p>
@@ -11516,43 +11534,69 @@ configuration parameter. See there for details. </p>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
 
-%PARAM smtpd_tls_mandatory_protocols !SSLv2, !SSLv3
+%PARAM smtpd_tls_mandatory_protocols see "postconf -d" output
 
-<p> The SSL/TLS protocols accepted by the Postfix SMTP server with
-mandatory TLS encryption. If the list is empty, the server supports
-all available SSL/TLS protocol versions.  A non-empty value is a
-list of protocol names separated by whitespace, commas or colons.
-The supported protocol names are "SSLv2", "SSLv3" and "TLSv1", and
-are not case sensitive. The default value is "!SSLv2, !SSLv3" for
-Postfix releases after the middle of 2015, "!SSLv2" for older
-releases. </p>
+<p> TLS protocols accepted by the Postfix SMTP server with mandatory TLS
+encryption.  If the list is empty, the server supports all available TLS
+protocol versions.  A non-empty value is a list of protocol names to
+include or exclude, separated by whitespace, commas or colons.  </p>
 
-<p> With Postfix &ge; 2.5 the parameter syntax was expanded to support
-protocol exclusions. One can explicitly exclude "SSLv2" by setting
-"smtpd_tls_mandatory_protocols = !SSLv2". To exclude both "SSLv2" and
-"SSLv3" set "smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3". Listing
-the protocols to include, rather than protocols to exclude, is
-supported, but not recommended. The exclusion form more closely
-matches the underlying OpenSSL interface semantics.  </p>
+<p> The valid protocol names (see SSL_get_version(3)) are "SSLv2",
+"SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" and "TLSv1.3".  Starting with
+Postfix 3.6, the default value is "&gt;=TLSv1", which sets TLS 1.0 as
+the lowest supported TLS protocol version (see below).  Older releases
+use the "!" exclusion syntax, also described below.  </p>
 
-<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". When Postfix &le; 2.5 is linked against OpenSSL 1.0.1
-or later, these, or any other new protocol versions, cannot be
-disabled.  The latest patch levels of Postfix &ge; 2.6, and all
-versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
-"TLSv1.2". </p>
+<p> As of Postfix 3.6, the preferred way to limit the range of
+acceptable protocols is to set the lowest acceptable TLS protocol
+version and/or the highest acceptable TLS protocol version.  To set the
+lower bound include an element of the form: "&gt;=<i>version</i>" where
+<i>version</i> is a either one of the TLS protocol names listed above,
+or a hexadecimal number corresponding to the desired TLS protocol
+version (0301 for TLS 1.0, 0302 for TLS 1.1, etc.).  For the upper
+bound, use "&lt;=<i>version</i>".  There must be no whitespace between
+the "&gt;=" or "&lt;=" symbols and the protocol name or number. </p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
-&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
-this can be disabled, if need be, via "!TLSv1.3". </p>
+<p> Hexadecimal protocol numbers make it possible to specify protocol
+bounds for TLS versions that are known to OpenSSL, but might not be
+known to Postfix.  They cannot be used with the legacy exclusion syntax.
+Leading "0" or "0x" prefixes are supported, but not required.
+Therefore, "301", "0301", "0x301" and "0x0301" are all equivalent to
+"TLSv1".  Hexadecimal versions unknown to OpenSSL will fail to set the
+upper or lower bound, and a warning will be logged.  Hexadecimal
+versions should only be used when Postfix is linked with some future
+version of OpenSSL that supports TLS 1.4 or later, but Postfix does not
+yet support a symbolic name for that protocol version. </p>
+
+<p>Hexadecimal example (Postfix &ge; 3.6):</p>
+<blockquote>
+<pre>
+# Allow only TLS 1.2 through (hypothetical) TLS 1.4, once supported
+# in some future version of OpenSSL (presently a warning is logged).
+smtpd_tls_mandatory_protocols = &gt;=TLSv1.2, &lt;=0305
+# Allow only TLS 1.2 and up:
+smtpd_tls_mandatory_protocols = &gt;=0x0303
+</pre>
+</blockquote>
+
+<p> With Postfix &lt; 3.6 there is no support for a minimum or maximum
+version, and the protocol range is configured via protocol exclusions.
+To require at least TLS 1.0, set "smtpd_tls_mandatory_protocols =
+!SSLv2, !SSLv3".  Listing the protocols to include, rather than
+protocols to exclude, is supported, but not recommended.  The exclusion
+form more accurately matches the underlying OpenSSL interface.  </p>
+
+<p> Support for "TLSv1.3" was introduced in OpenSSL 1.1.1.  Disabling
+this protocol via "!TLSv1.3" is supported since Postfix 3.4 (or patch
+releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2).  </p>
 
 <p> Example: </p>
 
 <pre>
-# Preferred syntax with Postfix &ge; 2.5:
-smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+# Preferred syntax with Postfix &ge; 3.6:
+smtpd_tls_mandatory_protocols = &gt;=TLSv1.2, &lt;=TLSv1.3
 # Legacy syntax:
-smtpd_tls_mandatory_protocols = TLSv1
+smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 </pre>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -11674,12 +11718,13 @@ smtp_tls_security_level = none
 <pre>
 # Opportunistic TLS.
 smtp_tls_security_level = may
-# Postfix &ge; 2.6:
 # Do not tweak opportunistic ciphers or protocol unless it is essential
 # to do so (if a security vulnerability is found in the SSL library that
 # can be mitigated by disabling a particular protocol or raising the
-# cipher grade from "export" to "low" or "medium").
-smtp_tls_ciphers = export
+# cipher grade).
+smtp_tls_ciphers = medium
+smtp_tls_protocols = &gt;=TLSv1
+# Legacy (Postfix &lt; 3.6) syntax:
 smtp_tls_protocols = !SSLv2, !SSLv3
 </pre>
 
@@ -11690,33 +11735,27 @@ smtp_tls_mandatory_ciphers = high
 </pre>
 
 <pre>
-# Mandatory TLS verification of hostname or nexthop domain.
-smtp_tls_security_level = verify
-smtp_tls_mandatory_ciphers = high
-smtp_tls_verify_cert_match = hostname, nexthop, dot-nexthop
-</pre>
-
-<pre>
-# Secure channel TLS with exact nexthop name match.
+# Authenticated TLS 1.2 or better matching the nexthop domain or a
+# subdomain.
 smtp_tls_security_level = secure
-smtp_tls_mandatory_protocols = TLSv1
 smtp_tls_mandatory_ciphers = high
-smtp_tls_secure_cert_match = nexthop
+smtp_tls_mandatory_protocols = &gt;=TLSv1.2
+smtp_tls_secure_cert_match = nexthop, dot-nexthop
 </pre>
 
 <pre>
 # Certificate fingerprint verification (Postfix &ge; 2.5).
 # The CA-less "fingerprint" security level only scales to a limited
 # number of destinations. As a global default rather than a per-site
-# setting, this is practical when mail for all recipients is sent
+# setting, this is practical only when mail for all recipients is sent
 # to a central mail hub.
 relayhost = [mailhub.example.com]
 smtp_tls_security_level = fingerprint
-smtp_tls_mandatory_protocols = !SSLv2, !SSLv3
+smtp_tls_mandatory_protocols = &gt;=TLSv1.2
 smtp_tls_mandatory_ciphers = high
 smtp_tls_fingerprint_cert_match = 
-    3D:95:34:51:24:66:33:B9:D2:40:99:C0:C1:17:0B:D1
-    EC:3B:2D:B0:5B:B1:FB:6D:20:A3:9D:72:F6:8D:12:35
+    3D:95:34:51:...:40:99:C0:C1
+    EC:3B:2D:B0:...:A3:9D:72:F6
 </pre>
 
 <p> This feature is available in Postfix 2.3 and later. </p>
@@ -12640,95 +12679,153 @@ the hostname and IP address. The logging format is "host[address]:port".
 
 <p> This feature is available in Postfix 2.5 and later. </p>
 
-%PARAM smtp_tls_protocols !SSLv2, !SSLv3
+%PARAM smtp_tls_protocols see postconf -d output
 
-<p> List of TLS protocols that the Postfix SMTP client will exclude or
-include with opportunistic TLS encryption. The default value is
-"!SSLv2, !SSLv3" for Postfix releases after the middle of 2015,
-"!SSLv2" for older releases. Before Postfix 2.6, the Postfix SMTP
-client would use all protocols with opportunistic TLS. </p>
+<p> TLS protocols that the Postfix SMTP client will use with
+opportunistic TLS encryption.  In main.cf the values are separated by
+whitespace, commas or colons. In the policy table "protocols" attribute
+(see smtp_tls_policy_maps) the only valid separator is colon.  An empty
+value means allow all protocols. </p>
 
-<p> In main.cf the values are separated by whitespace, commas or
-colons. In the policy table (see smtp_tls_policy_maps) the only valid
-separator is colon. An empty value means allow all protocols. The valid
-protocol names, (see <b>SSL_get_version(3)</b>), are "SSLv2", "SSLv3"
-and "TLSv1". </p>
+<p> The valid protocol names (see SSL_get_version(3)) are "SSLv2",
+"SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" and "TLSv1.3".  Starting with
+Postfix 3.6, the default value is "&gt;=TLSv1", which sets TLS 1.0 as
+the lowest supported TLS protocol version (see below).  Older releases
+use the "!" exclusion syntax, also described below.  </p>
 
-<p> The range of protocols advertised by an SSL/TLS client must be
-contiguous.  When a protocol version is enabled, disabling any
-higher version implicitly disables all versions above that higher version.
-Thus, for example (assuming the OpenSSL library supports both SSLv2
-and SSLv3):
+<p> As of Postfix 3.6, the preferred way to limit the range of
+acceptable protocols is to set the lowest acceptable TLS protocol
+version and/or the highest acceptable TLS protocol version.  To set the
+lower bound include an element of the form: "&gt;=<i>version</i>" where
+<i>version</i> is a either one of the TLS protocol names listed above,
+or a hexadecimal number corresponding to the desired TLS protocol
+version (0301 for TLS 1.0, 0302 for TLS 1.1, etc.).  For the upper
+bound, use "&lt;=<i>version</i>".  There must be no whitespace between
+the "&gt;=" or "&lt;=" symbols and the protocol name or number. </p>
+
+<p> Hexadecimal protocol numbers make it possible to specify protocol
+bounds for TLS versions that are known to OpenSSL, but might not be
+known to Postfix.  They cannot be used with the legacy exclusion syntax.
+Leading "0" or "0x" prefixes are supported, but not required.
+Therefore, "301", "0301", "0x301" and "0x0301" are all equivalent to
+"TLSv1".  Hexadecimal versions unknown to OpenSSL will fail to set the
+upper or lower bound, and a warning will be logged.  Hexadecimal
+versions should only be used when Postfix is linked with some future
+version of OpenSSL that supports TLS 1.4 or later, but Postfix does not
+yet support a symbolic name for that protocol version. </p>
+
+<p>Hexadecimal example (Postfix &ge; 3.6):</p>
+<blockquote>
+<pre>
+# Allow only TLS 1.0 through (hypothetical) TLS 1.4, once supported
+# in some future version of OpenSSL (presently a warning is logged).
+smtp_tls_protocols = &gt;=TLSv1, &lt;=0305
+# Allow only TLS 1.0 and up:
+smtp_tls_protocols = &gt;=0x0301
+</pre>
+</blockquote>
+
+<p> With Postfix &lt; 3.6 there is no support for a minimum or maximum
+version, and the protocol range is configured via protocol exclusions.
+To require at least TLS 1.0, set "smtp_tls_protocols = !SSLv2, !SSLv3".
+Listing the protocols to include, rather than protocols to exclude, is
+supported, but not recommended.  The exclusion form more accurately
+matches the underlying OpenSSL interface.  </p>
+
+<p> When using the exclusion syntax, take care to ensure that the range of
+protocols advertised by an SSL/TLS client is contiguous.  When a protocol
+version is enabled, disabling any higher version implicitly disables all
+versions above that higher version.  Thus, for example:
 </p>
 <blockquote>
 <pre>
-smtp_tls_protocols = !SSLv2, !TLSv1
+smtp_tls_protocols = !SSLv2, !SSLv3, !TLSv1.1
 </pre>
 </blockquote>
-<p> also disables any protocols version higher than TLSv1 leaving
-only "SSLv3" enabled.  </p>
+<p> also disables any protocols version higher than TLSv1.1 leaving
+only "TLSv1" enabled.  </p>
 
-<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
-versions of Postfix &ge; 2.10 can explicitly disable support for
-"TLSv1.1" or "TLSv1.2"</p>
-
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
-&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
-this can be disabled, if need be, via "!TLSv1.3". </p>
-
-<p> To include a protocol list its name, to exclude it, prefix the name
-with a "!" character. To exclude SSLv2 for opportunistic TLS set
-"smtp_tls_protocols = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
-"smtp_tls_protocols = !SSLv2, !SSLv3". Explicitly listing the protocols to
-include, rather than protocols to exclude, is supported, but not
-recommended.  The exclusion form more closely matches the underlying
-OpenSSL interface semantics. </p>
+<p> Support for "TLSv1.3" was introduced in OpenSSL 1.1.1.  Disabling
+this protocol via "!TLSv1.3" is supported since Postfix 3.4 (or patch
+releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2).  </p>
 
 <p> Example: </p>
 <pre>
-# TLSv1 or better:
+# Preferred syntax with Postfix &ge; 3.6:
+smtp_tls_protocols = &gt;=TLSv1, &lt;=TLSv1.3
+# Legacy syntax:
 smtp_tls_protocols = !SSLv2, !SSLv3
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
-%PARAM smtpd_tls_protocols !SSLv2, !SSLv3
+%PARAM smtpd_tls_protocols see postconf -d output
 
-<p> List of TLS protocols that the Postfix SMTP server will exclude
-or include with opportunistic TLS encryption. The default value is
-"!SSLv2, !SSLv3" for Postfix releases after the middle of 2015,
-empty for older releases allowing all protocols to be
-used with opportunistic TLS.  A non-empty value is a list of protocol
-names separated by whitespace, commas or colons.  The supported
-protocol names are "SSLv2", "SSLv3" and "TLSv1", and are not case
-sensitive. </p>
+<p> TLS protocols accepted by the Postfix SMTP server with opportunistic
+TLS encryption. If the list is empty, the server supports all available
+TLS protocol versions.  A non-empty value is a list of protocol names to
+include or exclude, separated by whitespace, commas or colons.  </p>
 
-<p> Note: As of OpenSSL 1.0.1 two new protocols are defined, "TLSv1.1"
-and "TLSv1.2". The latest patch levels of Postfix &ge; 2.6, and all
-versions of Postfix &ge; 2.10 can disable support for "TLSv1.1" or
-"TLSv1.2". </p>
+<p> The valid protocol names (see SSL_get_version(3)) are "SSLv2",
+"SSLv3", "TLSv1", "TLSv1.1", "TLSv1.2" and "TLSv1.3".  Starting with
+Postfix 3.6, the default value is "&gt;=TLSv1", which sets TLS 1.0 as
+the lowest supported TLS protocol version (see below).  Older releases
+use the "!" exclusion syntax, also described below.  </p>
 
-<p> OpenSSL 1.1.1 introduces support for "TLSv1.3".  With Postfix
-&ge; 3.4 (or patch releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2)
-this can be disabled, if need be, via "!TLSv1.3". </p>
+<p> As of Postfix 3.6, the preferred way to limit the range of
+acceptable protocols is to set the lowest acceptable TLS protocol
+version and/or the highest acceptable TLS protocol version.  To set the
+lower bound include an element of the form: "&gt;=<i>version</i>" where
+<i>version</i> is a either one of the TLS protocol names listed above,
+or a hexadecimal number corresponding to the desired TLS protocol
+version (0301 for TLS 1.0, 0302 for TLS 1.1, etc.).  For the upper
+bound, use "&lt;=<i>version</i>".  There must be no whitespace between
+the "&gt;=" or "&lt;=" symbols and the protocol name or number. </p>
 
-<p> To include a protocol list its name, to exclude it, prefix the name
-with a "!" character. To exclude SSLv2 for opportunistic TLS set
-"smtpd_tls_protocols = !SSLv2". To exclude both "SSLv2" and "SSLv3" set
-"smtpd_tls_protocols = !SSLv2, !SSLv3". Explicitly listing the protocols to
-include, rather than protocols to exclude, is supported, but not
-recommended.  The exclusion form more closely matches the underlying
-OpenSSL interface semantics. </p>
+<p> Hexadecimal protocol numbers make it possible to specify protocol
+bounds for TLS versions that are known to OpenSSL, but might not be
+known to Postfix.  They cannot be used with the legacy exclusion syntax.
+Leading "0" or "0x" prefixes are supported, but not required.
+Therefore, "301", "0301", "0x301" and "0x0301" are all equivalent to
+"TLSv1".  Hexadecimal versions unknown to OpenSSL will fail to set the
+upper or lower bound, and a warning will be logged.  Hexadecimal
+versions should only be used when Postfix is linked with some future
+version of OpenSSL that supports TLS 1.4 or later, but Postfix does not
+yet support a symbolic name for that protocol version. </p>
+
+<p>Hexadecimal example (Postfix &ge; 3.6):</p>
+<blockquote>
+<pre>
+# Allow only TLS 1.0 through (hypothetical) TLS 1.4, once supported
+# in some future version of OpenSSL (presently a warning is logged).
+smtpd_tls_protocols = &gt;=TLSv1, &lt;=0305
+# Allow only TLS 1.0 and up:
+smtpd_tls_protocols = &gt;=0x0301
+</pre>
+</blockquote>
+
+<p> With Postfix &lt; 3.6 there is no support for a minimum or maximum
+version, and the protocol range is configured via protocol exclusions.
+To require at least TLS 1.0, set "smtpd_tls_protocols = !SSLv2, !SSLv3".
+Listing the protocols to include, rather than protocols to exclude, is
+supported, but not recommended.  The exclusion form more accurately
+matches the underlying OpenSSL interface.  </p>
+
+<p> Support for "TLSv1.3" was introduced in OpenSSL 1.1.1.  Disabling
+this protocol via "!TLSv1.3" is supported since Postfix 3.4 (or patch
+releases &ge; 3.0.14, 3.1.10, 3.2.7 and 3.3.2).  </p>
 
 <p> Example: </p>
 <pre>
+# Preferred syntax with Postfix &ge; 3.6:
+smtpd_tls_protocols = &gt;=TLSv1, &lt;=TLSv1.3
+# Legacy syntax:
 smtpd_tls_protocols = !SSLv2, !SSLv3
 </pre>
 
 <p> This feature is available in Postfix 2.6 and later. </p>
 
-%PARAM lmtp_tls_protocols !SSLv2, !SSLv3
+%PARAM lmtp_tls_protocols see postconf -d output
 
 <p> The LMTP-specific version of the smtp_tls_protocols configuration
 parameter. See there for details. </p>
@@ -12874,7 +12971,7 @@ EC algorithms have not been disabled by the vendor. </p>
 
 <p> The Postfix SMTP server security grade for ephemeral elliptic-curve
 Diffie-Hellman (EECDH) key exchange.   As of Postfix 3.6, the value of
-this parameter is always ignored, and Postfix behaves as though th
+this parameter is always ignored, and Postfix behaves as though the
 <b>auto</b> value (described below) was chosen.
 </p>
 

@@ -448,9 +448,9 @@
 /*	Optional lookup tables with the Postfix SMTP client TLS security
 /*	policy by next-hop destination; when a non-empty value is specified,
 /*	this overrides the obsolete smtp_tls_per_site parameter.
-/* .IP "\fBsmtp_tls_mandatory_protocols (!SSLv2, !SSLv3)\fR"
-/*	List of SSL/TLS protocols that the Postfix SMTP client will use with
-/*	mandatory TLS encryption.
+/* .IP "\fBsmtp_tls_mandatory_protocols (see 'postconf -d' output)\fR"
+/*	TLS protocols that the Postfix SMTP client will use with mandatory
+/*	TLS encryption.
 /* .IP "\fBsmtp_tls_scert_verifydepth (9)\fR"
 /*	The verification depth for remote SMTP server certificates.
 /* .IP "\fBsmtp_tls_secure_cert_match (nexthop, dot-nexthop)\fR"
@@ -498,9 +498,9 @@
 /*	certificate fingerprints.
 /* .PP
 /*	Available in Postfix version 2.6 and later:
-/* .IP "\fBsmtp_tls_protocols (!SSLv2, !SSLv3)\fR"
-/*	List of TLS protocols that the Postfix SMTP client will exclude or
-/*	include with opportunistic TLS encryption.
+/* .IP "\fBsmtp_tls_protocols (see postconf -d output)\fR"
+/*	TLS protocols that the Postfix SMTP client will use with
+/*	opportunistic TLS encryption.
 /* .IP "\fBsmtp_tls_ciphers (medium)\fR"
 /*	The minimum TLS cipher grade that the Postfix SMTP client
 /*	will use with opportunistic TLS encryption.

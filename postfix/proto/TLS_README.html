@@ -179,10 +179,10 @@ configurations will not accidentally enable TLS without certificates.  </p>
 
 <p> Note that server certificates are <b>not</b> optional in TLS 1.3. To
 run without certificates you'd have to disable the TLS 1.3 protocol by
-including '!TLSv1.3' in "smtpd_tls_protocols" and perhaps also
-"smtpd_tls_mandatory_protocols".  It is simpler instead to just
-configure a certificate chain.  Certificate-less operation is not
-recommended. <p>
+including "&lt;=TLSv1.2" (or, for Postfix &lt; 3.6, "!TLSv1.3") in
+"smtpd_tls_protocols" and perhaps also "smtpd_tls_mandatory_protocols".
+It is simpler instead to just configure a certificate chain.
+Certificate-less operation is not recommended. <p>
 
 <p> RSA, DSA and ECDSA (Postfix &ge; 2.6) certificates are supported.
 Most sites only have RSA certificates.  You can configure all three
@@ -891,7 +891,7 @@ after the middle of 2015; older releases only disable SSLv2 for
 mandatory TLS. The mandatory TLS protocol list is specified via the
 smtpd_tls_mandatory_protocols configuration parameter.  The
 smtpd_tls_protocols parameter (Postfix &ge; 2.6)
-controls the SSL/TLS protocols used with opportunistic TLS. </p>
+controls the TLS protocols used with opportunistic TLS. </p>
 
 <p> Note that the OpenSSL library only supports protocol exclusion
 (not inclusion). For this reason, Postfix can exclude only protocols
@@ -909,8 +909,8 @@ that TLSv1.3 be explicitly disabled. Therefore, they are not
 recommended, it is better and simpler to just configure a suitable
 certificate. </p>
 
-<p> Example, MSA that requires TLSv1 or higher, not SSLv2 or SSLv3,
-with high grade ciphers: </p>
+<p> Example, MSA that requires TLSv1.2 or higher, with high grade
+ciphers: </p>
 
 <blockquote>
 <pre>
@@ -920,10 +920,10 @@ with high grade ciphers: </p>
     smtpd_tls_mandatory_ciphers = high
     smtpd_tls_mandatory_exclude_ciphers = aNULL, MD5
     smtpd_tls_security_level = encrypt
-    # Preferred syntax with Postfix &ge; 2.5:
-    smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3
+    # Preferred syntax with Postfix &ge; 3.6:
+    smtpd_tls_mandatory_protocols = &gt;=TLSv1.2
     # Legacy syntax:
-    smtpd_tls_mandatory_protocols = TLSv1
+    smtpd_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
 </pre>
 </blockquote>
 
@@ -1263,9 +1263,10 @@ just in case the transport table entries are not specified consistently. </p>
     submission      587/tcp         msa             # mail message submission
 
 /etc/postfix/tls_policy:
-    [example.net]:587 encrypt protocols=TLSv1 ciphers=high
-    [example.net]:msa encrypt protocols=TLSv1 ciphers=high
-    [example.net]:submission encrypt protocols=TLSv1 ciphers=high
+    # Postfix &ge; 3.6 "protocols" syntax
+    [example.net]:587 encrypt protocols=&gt;=TLSv1.2 ciphers=high
+    # Legacy "protocols" syntax
+    [example.net]:msa encrypt protocols=!SSLv2:!SSLv3 ciphers=high
 </pre>
 </blockquote>
 
@@ -2398,8 +2399,10 @@ Example:
     [thumb.example.org]         fingerprint
 	match=b6:b4:72:34:e2:59:cd:fb:...:0d:4d:cc:2c:7d:84:de:e6:2f
 	match=51:e9:af:2e:1e:40:1f:de:...:35:2d:09:16:31:5a:eb:82:76
-    # Postfix 2.6 and later
-    example.info            may protocols=!SSLv2 ciphers=medium exclude=3DES
+    # Postfix &ge; 3.6 "protocols" syntax
+    example.info            may protocols=&gt;=TLSv1 ciphers=medium exclude=3DES
+    # Legacy protocols syntax
+    example.info            may protocols=!SSLv2:!SSLv3 ciphers=medium exclude=3DES
 </pre>
 </blockquote>
 
@@ -2494,7 +2497,7 @@ SMTP client will by default disable SSLv2 and SSLv3. The mandatory
 TLS protocol list is specified via the
 smtp_tls_mandatory_protocols configuration parameter.  The corresponding
 smtp_tls_protocols parameter (Postfix &ge; 2.6) controls
-the SSL/TLS protocols used with opportunistic TLS. </p>
+the TLS protocols used with opportunistic TLS. </p>
 
 <p> Example: </p>
  
@@ -2504,13 +2507,13 @@ the SSL/TLS protocols used with opportunistic TLS. </p>
     smtp_tls_mandatory_ciphers = medium
     smtp_tls_mandatory_exclude_ciphers = RC4, MD5
     smtp_tls_exclude_ciphers = aNULL
-    # Preferred form with Postfix &ge; 2.5:
-    smtp_tls_mandatory_protocols = !SSLv2
-    # Legacy form for Postfix &lt; 2.5:
-    smtp_tls_mandatory_protocols = SSLv3, TLSv1
-    # Also available with Postfix &ge; 2.6:
     smtp_tls_ciphers = medium
-    smtp_tls_protocols = !SSLv2
+    # Preferred form with Postfix &ge; 3.6:
+    smtp_tls_mandatory_protocols = &gt;=TLSv1.2
+    smtp_tls_protocols = &gt;=TLSv1
+    # Legacy form for Postfix &lt; 3.6:
+    smtp_tls_mandatory_protocols = !SSLv2, !SSLv3, !TLSv1, !TLSv1.1
+    smtp_tls_protocols = !SSLv2,!SSLv3
 </pre>
 </blockquote>
 

@@ -342,6 +342,8 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     int     scache_timeout;
     int     ticketable = 0;
     int     protomask;
+    int     min_proto;
+    int     max_proto;
     TLS_APPL_STATE *app_ctx;
     int     log_mask;
 
@@ -366,7 +368,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     /*
      * First validate the protocols. If these are invalid, we can't continue.
      */
-    protomask = tls_protocol_mask(props->protocols);
+    protomask = tls_proto_mask_lims(props->protocols, &min_proto, &max_proto);
     if (protomask == TLS_PROTOCOL_INVALID) {
 	/* tls_protocol_mask() logs no warning. */
 	msg_warn("Invalid TLS protocol list \"%s\": disabling TLS support",
@@ -514,6 +516,10 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
      */
     if (protomask != 0)
 	SSL_CTX_set_options(server_ctx, TLS_SSL_OP_PROTOMASK(protomask));
+    SSL_CTX_set_min_proto_version(server_ctx, min_proto);
+    SSL_CTX_set_max_proto_version(server_ctx, max_proto);
+    SSL_CTX_set_min_proto_version(sni_ctx, min_proto);
+    SSL_CTX_set_max_proto_version(sni_ctx, max_proto);
 
     /*
      * Some sites may want to give the client less rope. On the other hand,

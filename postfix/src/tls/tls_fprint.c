@@ -6,10 +6,9 @@
 /* SYNOPSIS
 /*	#include <tls.h>
 /*
-/*	char	*tls_serverid_digest(TLScontext, props, protomask, ciphers)
+/*	char	*tls_serverid_digest(TLScontext, props, ciphers)
 /*	TLS_SESS_STATE *TLScontext;
 /*	const TLS_CLIENT_START_PROPS *props;
-/*	long	protomask;
 /*	const char *ciphers;
 /*
 /*	char	*tls_digest_encode(md_buf, md_len)
@@ -187,7 +186,7 @@ static int tls_digest_tlsa(EVP_MD_CTX *mdctx, TLS_TLSA *tlsa)
 
 char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
 			            const TLS_CLIENT_START_PROPS *props,
-			            long protomask, const char *ciphers)
+			            const char *ciphers)
 {
     EVP_MD_CTX *mdctx;
     const EVP_MD *md;
@@ -219,7 +218,7 @@ char   *tls_serverid_digest(TLS_SESS_STATE *TLScontext,
     checkok(EVP_DigestInit_ex(mdctx, md, NULL));
     digest_string(props->helo ? props->helo : "");
     digest_object(&sslversion);
-    digest_object(&protomask);
+    digest_string(props->protocols);
     digest_string(ciphers);
 
     /*

@@ -25008,3 +25008,18 @@ Apologies for any names omitted.
 
 	Final cleanups of the peername matching code.  File:
 	tls/tls_client.c.
+
+202000725
+
+	Documentation of how to set the minimum and maximum allowed
+	TLS protocol versions (these override system-wide OpenSSL
+	configuration), some related code cleanups including better
+	warning messages. Viktor Dukhovni. Files: proto/TLS_README.html,
+	proto/postconf.proto, global/mail_params.h,
+	posttls-finger/posttls-finger.c, tls/tls.h, tls/tls_client.c,
+	tls/tls_fprint.c, tls/tls_misc.c, tls/tls_server.c.
+ 
+	The Postfix TLS library did not override the system-wide
+	OpenSSL configuration of allowed TLS protocol versions, for
+	sessions where the remote SMTP client sends SNI. File:
+	tls/tls_server.c.

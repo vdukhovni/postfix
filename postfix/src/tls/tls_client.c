@@ -865,6 +865,8 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 {
     int     sts;
     int     protomask;
+    int     min_proto;
+    int     max_proto;
     const char *cipher_list;
     SSL_SESSION *session = 0;
     TLS_SESS_STATE *TLScontext;
@@ -888,7 +890,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * Per-session protocol restrictions must be applied to the SSL connection,
      * as restrictions in the global context cannot be cleared.
      */
-    protomask = tls_protocol_mask(props->protocols);
+    protomask = tls_proto_mask_lims(props->protocols, &min_proto, &max_proto);
     if (protomask == TLS_PROTOCOL_INVALID) {
 	/* tls_protocol_mask() logs no warning. */
 	msg_warn("%s: Invalid TLS protocol list \"%s\": aborting TLS session",
@@ -956,12 +958,24 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
 	tls_free_context(TLScontext);
 	return (0);
     }
+#define CARP_VERSION(which) do { \
+        if (which##_proto != 0) \
+            msg_warn("%s: error setting %simum TLS version to: 0x%04x", \
+                     TLScontext->namaddr, #which, which##_proto); \
+        else \
+            msg_warn("%s: error clearing %simum TLS version", \
+                     TLScontext->namaddr, #which); \
+    } while (0)
 
     /*
      * Apply session protocol restrictions.
      */
     if (protomask != 0)
 	SSL_set_options(TLScontext->con, TLS_SSL_OP_PROTOMASK(protomask));
+    if (!SSL_set_min_proto_version(TLScontext->con, min_proto))
+	CARP_VERSION(min);
+    if (!SSL_set_max_proto_version(TLScontext->con, max_proto))
+	CARP_VERSION(max);
 
     /*
      * When applicable, configure DNS-based or synthetic (fingerprint or
@@ -1038,7 +1052,7 @@ TLS_SESS_STATE *tls_client_start(const TLS_CLIENT_START_PROPS *props)
      * parameters and append it to the serverid.
      */
     TLScontext->serverid =
-	tls_serverid_digest(TLScontext, props, protomask, cipher_list);
+	tls_serverid_digest(TLScontext, props, cipher_list);
 
     /*
      * When authenticating the peer, use 80-bit plus OpenSSL security level

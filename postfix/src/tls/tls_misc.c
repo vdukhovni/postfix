@@ -69,8 +69,10 @@
 /*
 /*	void	tls_param_init()
 /*
-/*	int	tls_protocol_mask(plist)
+/*	int	tls_proto_mask_lims(plist, floor, ceiling)
 /*	const char *plist;
+/*	int	*floor;
+/*	int	*ceiling;
 /*
 /*	int	tls_cipher_grade(name)
 /*	const char *name;
@@ -157,10 +159,12 @@
 /*	entering a chroot jail. The "role" parameter must be TLS_ROLE_CLIENT
 /*	for clients and TLS_ROLE_SERVER for servers. Any errors are fatal.
 /*
-/*	tls_protocol_mask() returns a bitmask of excluded protocols, given
-/*	a list (plist) of protocols to include or (preceded by a '!') exclude.
-/*	If "plist" contains invalid protocol names, TLS_PROTOCOL_INVALID is
-/*	returned and no warning is logged.
+/*	tls_proto_mask_lims() returns a bitmask of excluded protocols, and
+/*	and the protocol version floor/ceiling, given a list (plist) of
+/*	protocols to include or (preceded by a '!') exclude, or constraints
+/*	of the form '>=name', '<=name', '>=hexvalue', '<=hexvalue'. If "plist"
+/*	contains invalid protocol names, TLS_PROTOCOL_INVALID is returned and
+/*	no warning is logged.
 /*
 /*	tls_cipher_grade() converts a case-insensitive cipher grade
 /*	name (high, medium, low, export, null) to the corresponding
@@ -313,6 +317,19 @@ static const NAME_CODE protocol_table[] = {
     SSL_TXT_TLSV1_2, TLS_PROTOCOL_TLSv1_2,
     TLS_PROTOCOL_TXT_TLSV1_3, TLS_PROTOCOL_TLSv1_3,
     0, TLS_PROTOCOL_INVALID,
+};
+
+/*
+ * Protocol name => numeric version, for MinProtocol and MaxProtocol
+ */
+static const NAME_CODE tls_version_table[] = {
+    "None", 0,
+    SSL_TXT_SSLV3, SSL3_VERSION,
+    SSL_TXT_TLSV1, TLS1_VERSION,
+    SSL_TXT_TLSV1_1, TLS1_1_VERSION,
+    SSL_TXT_TLSV1_2, TLS1_2_VERSION,
+    TLS_PROTOCOL_TXT_TLSV1_3, TLS1_3_VERSION,
+    0, -1,
 };
 
  /*
@@ -551,9 +568,32 @@ void    tls_update_app_logmask(TLS_APPL_STATE *app_ctx, int log_mask)
     app_ctx->log_mask = log_mask;
 }
 
-/* tls_protocol_mask - Bitmask of protocols to exclude */
+/* parse_version - parse TLS protocol version name or hex number */
 
-int     tls_protocol_mask(const char *plist)
+static int parse_tls_version(const char *tok, int *version)
+{
+    int     code = name_code(tls_version_table, NAME_CODE_FLAG_NONE, tok);
+    char   *_end;
+    unsigned long ulval;
+
+    if (code != -1) {
+	*version = code;
+	return (0);
+    }
+    errno = 0;
+    ulval = strtoul(tok, &_end, 16);
+    if (*_end != 0
+	|| (ulval == ULONG_MAX && errno == ERANGE)
+	|| ulval > INT_MAX)
+	return TLS_PROTOCOL_INVALID;
+
+    *version = (int) ulval;
+    return (0);
+}
+
+/* tls_proto_mask_lims - protocols to exclude and floor/ceiling */
+
+int     tls_proto_mask_lims(const char *plist, int *floor, int *ceiling)
 {
     char   *save;
     char   *tok;
@@ -567,9 +607,15 @@ int     tls_protocol_mask(const char *plist)
 	return (res); \
     } while (0)
 
+    *floor = *ceiling = 0;
+
     save = cp = mystrdup(plist);
     while ((tok = mystrtok(&cp, CHARS_COMMA_SP ":")) != 0) {
-	if (*tok == '!')
+	if (strncmp(tok, ">=", 2) == 0)
+	    code = parse_tls_version(tok + 2, floor);
+	else if (strncmp(tok, "<=", 2) == 0)
+	    code = parse_tls_version(tok + 2, ceiling);
+	else if (*tok == '!')
 	    exclude |= code =
 		name_code(protocol_table, NAME_CODE_FLAG_NONE, ++tok);
 	else
