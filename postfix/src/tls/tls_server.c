@@ -530,6 +530,7 @@ TLS_APPL_STATE *tls_server_init(const TLS_SERVER_INIT_PROPS *props)
     /* Enable all supported protocols */
 #if OPENSSL_VERSION_NUMBER >= 0x1010000fUL
     SSL_CTX_set_min_proto_version(server_ctx, 0);
+    SSL_CTX_set_min_proto_version(sni_ctx, 0);
 #endif
 
     /*
