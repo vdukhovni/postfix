@@ -24484,3 +24484,13 @@ Apologies for any names omitted.
 	settings in a system-wide OpenSSL configuration file, causing
 	interoperability problems after an OS update. File:
 	tls/tls_client.c, tls/tls_server.c.
+
+20200726
+
+	Bugfix (introduced: Postfix 3.4.15): part of a memory leak
+	fix was backported to the wrong place. File: tls/tls_misc.c.
+
+	The Postfix 3.4.15 workaround did not explictly override
+	the system-wide OpenSSL configuration of allowed TLS protocol
+	versions, for sessions where the remote SMTP client sends
+	SNI. It's better to be safe than sorry. File: tls/tls_server.c.
