@@ -23651,3 +23651,8 @@ Apologies for any names omitted.
 	settings in a system-wide OpenSSL configuration file, causing
 	interoperability problems after an OS update. File:
 	tls/tls_client.c, tls/tls_server.c.
+
+20200726
+
+	Bugfix (introduced: Postfix 3.3.13): part of a memory leak
+	fix was backported to the wrong place. File: tls/tls_misc.c.
