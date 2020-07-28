@@ -392,7 +392,7 @@ static char *single_template;		/* individual template */
 static char *shared_template;		/* shared template */
 static VSTRING *start_string;		/* dump content prefix */
 
-static INET_PROTO_INFO *proto_info;
+static const INET_PROTO_INFO *proto_info;
 
 #define STR(x)	vstring_str(x)
 

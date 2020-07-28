@@ -25023,3 +25023,29 @@ Apologies for any names omitted.
 	OpenSSL configuration of allowed TLS protocol versions, for
 	sessions where the remote SMTP client sends SNI. File:
 	tls/tls_server.c.
+
+20200726
+
+	Code health: the tls_get_signature_params() function reused
+	variable names for different objects that have up to three
+	different life-cycle management models. To avoid more
+	accidents we now use distinct names for distinct purposes.
+	File: tls/tls_misc.c.
+
+20200727
+
+	Code health: inet_proto_info() should return a const pointer.
+	This is global data that callers should not change. Files:
+	cleanup/cleanup_milter.c, global/haproxy_srvr.c,
+	global/mynetworks.c, global/normalize_mailhost_addr.c,
+	global/own_inet_addr.c, postscreen/postscreen_endpt.c,
+	posttls-finger/posttls-finger.c, qmqpd/qmqpd_peer.c,
+	smtpd/smtpd_check.c, smtpd/smtpd_peer.c, smtp/smtp_addr.c,
+	smtpstone/smtp-sink.c, util/inet_addr_host.c,
+	util/inet_addr_list.c, util/inet_addr_local.c, util/inet_connect.c,
+	util/inet_listen.c, util/inet_proto.c, util/inet_proto.h.
+
+20200728
+
+	Code health: deleted a mis-spelled macro from code and
+	documentation. Files: bounce/bounce_template.[hc].

@@ -1869,7 +1869,7 @@ static int has_my_addr(SMTPD_STATE *state, const char *host,
     struct addrinfo *res0;
     int     aierr;
     MAI_HOSTADDR_STR hostaddr;
-    INET_PROTO_INFO *proto_info = inet_proto_info();
+    const INET_PROTO_INFO *proto_info = inet_proto_info();
 
     if (msg_verbose)
 	msg_info("%s: host %s", myname, host);
@@ -2982,7 +2982,7 @@ static int check_server_access(SMTPD_STATE *state, const char *table,
     struct addrinfo *res0;
     struct addrinfo *res;
     int     status;
-    INET_PROTO_INFO *proto_info;
+    const INET_PROTO_INFO *proto_info;
 
     /*
      * Sanity check.

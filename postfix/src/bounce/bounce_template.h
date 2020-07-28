@@ -45,7 +45,6 @@ typedef struct BOUNCE_TEMPLATE {
 #define IS_FAILURE_TEMPLATE(t)	((t)->class[0] == BOUNCE_TMPL_CLASS_FAILURE[0])
 #define IS_DELAY_TEMPLATE(t)	((t)->class[0] == BOUNCE_TMPL_CLASS_DELAY[0])
 #define IS_SUCCESS_TEMPLATE(t)	((t)->class[0] == BOUNCE_TMPL_CLASS_SUCCESS[0])
-#define IS_VERIFY_TEMPLATE(t)	((t)->class[0] == BOUNCE_TMPL_CLASS_verify[0])
 
 #define bounce_template_encoding(t)	((t)->mime_encoding)
 #define bounce_template_charset(t)	((t)->mime_charset)

@@ -876,8 +876,11 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     int     nid;
     SSL    *ssl = TLScontext->con;
     int     srvr = SSL_is_server(ssl);
-    X509   *cert;
-    EVP_PKEY *pkey = 0;
+    EVP_PKEY *dh_pkey = 0;
+    X509   *local_cert;
+    EVP_PKEY *local_pkey = 0;
+    X509   *peer_cert;
+    EVP_PKEY *peer_pkey = 0;
 
 #ifndef OPENSSL_NO_EC
     EC_KEY *eckey;
@@ -889,21 +892,21 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
     if (SSL_version(ssl) < TLS1_3_VERSION)
 	return;
 
-    if (tls_get_peer_dh_pubkey(ssl, &pkey)) {
-	switch (nid = EVP_PKEY_id(pkey)) {
+    if (tls_get_peer_dh_pubkey(ssl, &dh_pkey)) {
+	switch (nid = EVP_PKEY_id(dh_pkey)) {
 	default:
 	    kex_name = OBJ_nid2sn(EVP_PKEY_type(nid));
 	    break;
 
 	case EVP_PKEY_DH:
 	    kex_name = "DHE";
-	    TLScontext->kex_bits = EVP_PKEY_bits(pkey);
+	    TLScontext->kex_bits = EVP_PKEY_bits(dh_pkey);
 	    break;
 
 #ifndef OPENSSL_NO_EC
 	case EVP_PKEY_EC:
 	    kex_name = "ECDHE";
-	    eckey = EVP_PKEY_get0_EC_KEY(pkey);
+	    eckey = EVP_PKEY_get0_EC_KEY(dh_pkey);
 	    nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
 	    kex_curve = EC_curve_nid2nist(nid);
 	    if (!kex_curve)
@@ -911,7 +914,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    break;
 #endif
 	}
-	EVP_PKEY_free(pkey);
+	EVP_PKEY_free(dh_pkey);
     }
 
     /*
@@ -920,20 +923,20 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
      * data on clients requires at least 1.1.1a.
      */
     if (srvr || SSL_get_signature_nid(ssl, &nid))
-	cert = SSL_get_certificate(ssl);
+	local_cert = SSL_get_certificate(ssl);
     else
-	cert = 0;
+	local_cert = 0;
 
     /* Signature algorithms for the local end of the connection */
-    if (cert) {
-	pkey = X509_get0_pubkey(cert);
+    if (local_cert) {
+	local_pkey = X509_get0_pubkey(local_cert);
 
 	/*
 	 * Override the built-in name for the "ECDSA" algorithms OID, with
 	 * the more familiar name.  For "RSA" keys report "RSA-PSS", which
 	 * must be used with TLS 1.3.
 	 */
-	if ((nid = EVP_PKEY_type(EVP_PKEY_id(pkey))) != NID_undef) {
+	if ((nid = EVP_PKEY_type(EVP_PKEY_id(local_pkey))) != NID_undef) {
 	    switch (nid) {
 	    default:
 		locl_sig_name = OBJ_nid2sn(nid);
@@ -942,13 +945,13 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    case EVP_PKEY_RSA:
 		/* For RSA, TLS 1.3 mandates PSS signatures */
 		locl_sig_name = "RSA-PSS";
-		SIG_PROP(TLScontext, srvr, bits) = EVP_PKEY_bits(pkey);
+		SIG_PROP(TLScontext, srvr, bits) = EVP_PKEY_bits(local_pkey);
 		break;
 
 #ifndef OPENSSL_NO_EC
 	    case EVP_PKEY_EC:
 		locl_sig_name = "ECDSA";
-		eckey = EVP_PKEY_get0_EC_KEY(pkey);
+		eckey = EVP_PKEY_get0_EC_KEY(local_pkey);
 		nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
 		locl_sig_curve = EC_curve_nid2nist(nid);
 		if (!locl_sig_curve)
@@ -956,6 +959,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 		break;
 #endif
 	    }
+	    /* No X509_free(local_cert) */
 	}
 
 	/*
@@ -966,15 +970,15 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    locl_sig_dgst = OBJ_nid2sn(nid);
     }
     /* Signature algorithms for the peer end of the connection */
-    if ((cert = SSL_get_peer_certificate(ssl)) != 0) {
-	pkey = X509_get0_pubkey(cert);
+    if ((peer_cert = SSL_get_peer_certificate(ssl)) != 0) {
+	peer_pkey = X509_get0_pubkey(peer_cert);
 
 	/*
 	 * Override the built-in name for the "ECDSA" algorithms OID, with
 	 * the more familiar name.  For "RSA" keys report "RSA-PSS", which
 	 * must be used with TLS 1.3.
 	 */
-	if ((nid = EVP_PKEY_type(EVP_PKEY_id(pkey))) != NID_undef) {
+	if ((nid = EVP_PKEY_type(EVP_PKEY_id(peer_pkey))) != NID_undef) {
 	    switch (nid) {
 	    default:
 		peer_sig_name = OBJ_nid2sn(nid);
@@ -983,13 +987,13 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	    case EVP_PKEY_RSA:
 		/* For RSA, TLS 1.3 mandates PSS signatures */
 		peer_sig_name = "RSA-PSS";
-		SIG_PROP(TLScontext, !srvr, bits) = EVP_PKEY_bits(pkey);
+		SIG_PROP(TLScontext, !srvr, bits) = EVP_PKEY_bits(peer_pkey);
 		break;
 
 #ifndef OPENSSL_NO_EC
 	    case EVP_PKEY_EC:
 		peer_sig_name = "ECDSA";
-		eckey = EVP_PKEY_get0_EC_KEY(pkey);
+		eckey = EVP_PKEY_get0_EC_KEY(peer_pkey);
 		nid = EC_GROUP_get_curve_name(EC_KEY_get0_group(eckey));
 		peer_sig_curve = EC_curve_nid2nist(nid);
 		if (!peer_sig_curve)
@@ -1006,7 +1010,7 @@ void    tls_get_signature_params(TLS_SESS_STATE *TLScontext)
 	if (SSL_get_peer_signature_nid(ssl, &nid) && nid != NID_undef)
 	    peer_sig_dgst = OBJ_nid2sn(nid);
 
-	X509_free(cert);
+	X509_free(peer_cert);
     }
     if (kex_name) {
 	TLScontext->kex_name = mystrdup(kex_name);

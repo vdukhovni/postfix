@@ -108,7 +108,7 @@
 #include <postscreen.h>
 #include <postscreen_haproxy.h>
 
-static INET_PROTO_INFO *proto_info;
+static const INET_PROTO_INFO *proto_info;
 
 /* psc_sockaddr_to_hostaddr - transform endpoint address and port to string */
 

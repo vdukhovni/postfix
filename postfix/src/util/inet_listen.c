@@ -92,7 +92,7 @@ int     inet_listen(const char *addr, int backlog, int block_mode)
     const char *parse_err;
     MAI_HOSTADDR_STR hostaddr;
     MAI_SERVPORT_STR portnum;
-    INET_PROTO_INFO *proto_info;
+    const INET_PROTO_INFO *proto_info;
 
     /*
      * Translate address information to internal form.

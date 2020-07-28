@@ -152,7 +152,7 @@
 
 #include "smtpd.h"
 
-static INET_PROTO_INFO *proto_info;
+static const INET_PROTO_INFO *proto_info;
 
  /*
   * XXX If we make local port information available via logging, then we must

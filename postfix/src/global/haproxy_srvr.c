@@ -165,7 +165,7 @@ struct proxy_hdr_v2 {
   * End protocol v2 definitions from haproxy/include/types/connection.h.
   */
 
-static INET_PROTO_INFO *proto_info;
+static const INET_PROTO_INFO *proto_info;
 
 #define STR_OR_NULL(str) ((str) ? (str) : "(null)")
 

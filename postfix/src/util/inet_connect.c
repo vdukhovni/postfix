@@ -85,7 +85,7 @@ int     inet_connect(const char *addr, int block_mode, int timeout)
     int     aierr;
     int     sock;
     MAI_HOSTADDR_STR hostaddr;
-    INET_PROTO_INFO *proto_info;
+    const INET_PROTO_INFO *proto_info;
     int     found;
 
     /*

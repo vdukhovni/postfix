@@ -138,7 +138,7 @@ static DNS_RR *smtp_addr_one(DNS_RR *addr_list, const char *host, int res_opt,
     int     aierr;
     struct addrinfo *res0;
     struct addrinfo *res;
-    INET_PROTO_INFO *proto_info = inet_proto_info();
+    const INET_PROTO_INFO *proto_info = inet_proto_info();
     unsigned char *proto_family_list = proto_info->sa_family_list;
     int     found;
 

@@ -2077,7 +2077,7 @@ static const char *cleanup_milter_apply(CLEANUP_STATE *state, const char *event,
 
 static void cleanup_milter_client_init(CLEANUP_STATE *state)
 {
-    static INET_PROTO_INFO *proto_info;
+    static const INET_PROTO_INFO *proto_info;
     const char *proto_attr;
 
     /*

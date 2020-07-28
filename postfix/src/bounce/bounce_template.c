@@ -44,7 +44,6 @@
 /*	int	IS_FAILURE_TEMPLATE(template)
 /*	int	IS_DELAY_TEMPLATE(template)
 /*	int	IS_SUCCESS_TEMPLATE(template)
-/*	int	IS_VERIFY_TEMPLATE(template)
 /*	BOUNCE_TEMPLATE *template;
 /* DESCRIPTION
 /*	This module implements the built-in and external bounce

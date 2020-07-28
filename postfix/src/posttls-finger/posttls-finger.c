@@ -1164,7 +1164,7 @@ static DNS_RR *addr_one(STATE *state, DNS_RR *addr_list, const char *host,
     int     aierr;
     struct addrinfo *res0;
     struct addrinfo *res;
-    INET_PROTO_INFO *proto_info = inet_proto_info();
+    const INET_PROTO_INFO *proto_info = inet_proto_info();
     int     found;
 
     if (msg_verbose)

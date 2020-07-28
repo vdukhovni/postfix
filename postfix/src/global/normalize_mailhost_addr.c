@@ -79,7 +79,7 @@ int     normalize_mailhost_addr(const char *string, char **mailhost_addr,
 				        char **bare_addr, int *addr_family)
 {
     const char myname[] = "normalize_mailhost_addr";
-    INET_PROTO_INFO *proto_info = inet_proto_info();
+    const INET_PROTO_INFO *proto_info = inet_proto_info();
     struct addrinfo *res = 0;
     MAI_HOSTADDR_STR hostaddr;
     const char *valid_addr;		/* IPv6:fc00::1 */
