@@ -8431,7 +8431,7 @@ exclude, is supported, but not recommended.  The exclusion syntax more
 accurately matches the underlying OpenSSL interface.
 .PP
 When using the exclusion syntax, take care to ensure that the range
-of protocols supported by the Postfixm SMTP client is contiguous.  When
+of protocols supported by the Postfix SMTP client is contiguous.  When
 a protocol version is enabled, disabling any higher version implicitly
 disables all versions above that higher version.  Thus, for example:
 .sp
@@ -12038,7 +12038,7 @@ compiled and linked with OpenSSL 1.0.0 or later.
 .SH smtpd_tls_eecdh_grade (default: see "postconf \-d" output)
 The Postfix SMTP server security grade for ephemeral elliptic\-curve
 Diffie\-Hellman (EECDH) key exchange.   As of Postfix 3.6, the value of
-this parameter is always ignored, and Postfix behaves as though th
+this parameter is always ignored, and Postfix behaves as though the
 \fBauto\fR value (described below) was chosen.
 .PP
 The available choices are:

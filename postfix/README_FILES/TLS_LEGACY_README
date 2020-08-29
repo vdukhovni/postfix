@@ -5,7 +5,7 @@ PPoossttffiixx lleeggaaccyy TTLLSS SSuuppppoorrtt
 NNOOTTEE
 
 This document describes an old TLS user interface that is based on a third-
-party TLS patch by Lutz Jänicke. As of Postfix version 2.3, the old user
+party TLS patch by Lutz Ja"nicke. As of Postfix version 2.3, the old user
 interface still exists to allow migration from earlier Postfix releases, but
 its functionality is frozen.
 
@@ -51,7 +51,7 @@ programs. Other colored boxes represent storage elements.
 
                     <---seed---              ---seed--->
 Network-> smtpd(8)                tlsmgr(8)                 smtp(8)  ->Network
-                    <-session->              <-session->        
+                    <-session->              <-session->
 
                                 /       |    \
                                         |
@@ -1074,7 +1074,7 @@ Please differentiate when possible between:
 CCoommppaattiibbiilliittyy wwiitthh PPoossttffiixx <<22..22 TTLLSS ssuuppppoorrtt
 
 Postfix version 2.2 TLS support is based on the Postfix/TLS patch by Lutz
-Jänicke, but differs in a few minor ways.
+Ja"nicke, but differs in a few minor ways.
 
   * main.cf: Specify "btree" instead of "sdbm" for TLS session cache databases.
 
@@ -1109,8 +1109,8 @@ support cycle.
 
 CCrreeddiittss
 
-  * TLS support for Postfix was originally developed by Lutz Jänicke at Cottbus
-    Technical University.
+  * TLS support for Postfix was originally developed by Lutz Ja"nicke at
+    Cottbus Technical University.
   * Wietse Venema adopted the code, did some restructuring, and compiled this
     part of the documentation from Lutz's documents.
   * Victor Duchovni was instrumental with the re-implementation of the

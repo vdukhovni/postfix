@@ -25049,3 +25049,10 @@ Apologies for any names omitted.
 
 	Code health: deleted a mis-spelled macro from code and
 	documentation. Files: bounce/bounce_template.[hc].
+
+20200829
+
+	Other debt: updated the encoding in HTML from us-ascii to
+	utf-8. Files: mantools/makemanidx, mantools/make_soho_readme,
+	mantools/man2html, mantools/readme2html, proto/*_README.html,
+	proto/INSTALL.html, proto/postconf.html.prolog, html/index.html.

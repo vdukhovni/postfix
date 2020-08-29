@@ -284,14 +284,14 @@ queues.
 
             /-- smtp(8) --> Internet
 
-    qmgr(8)       |  
-                  |
-            \--   | smtp(8) --> Internet
-                  |
-                  ^          
-                  |
+    qmgr(8)
+                 |
+            \--  | smtp(8) --> Internet
+                 |
+                 ^
+                 |
 
-                  scache(8)
+                 scache(8)
 
   * The showq(8) servers list the Postfix queue status. This is the queue
     listing service that does the work for the mailq(1) and postqueue(1)
@@ -324,7 +324,7 @@ queues.
 
                         <---seed---            ---seed--->
     Network-> smtpd(8)              tlsmgr(8)               smtp(8)  ->Network
-                        <-session->            <-session->      
+                        <-session->            <-session->
 
                                   /       |    \
                                           |
@@ -342,11 +342,9 @@ queues.
     This process is described in the ADDRESS_VERIFICATION_README document. The
     verify(8) service is available with Postfix version 2.1 and later.
 
-                               
                                              probe     Postfix
                                             message ->   mail
-                                                        queue
-    Network -> smtpd(8) <->   verify(8)  ->
+    Network -> smtpd(8) <->   verify(8)  ->             queue
 
                                                             |
                                                             v
@@ -356,7 +354,6 @@ queues.
                                     ^                   agents
                                     |
                                     v
-                                          
 
                               Address
                             verification
