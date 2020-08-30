@@ -658,6 +658,7 @@ smtp_sasl_proto.o: ../../include/name_mask.h
 smtp_sasl_proto.o: ../../include/nvtable.h
 smtp_sasl_proto.o: ../../include/recipient_list.h
 smtp_sasl_proto.o: ../../include/resolve_clnt.h
+smtp_sasl_proto.o: ../../include/sasl_mech_filter.h
 smtp_sasl_proto.o: ../../include/scache.h
 smtp_sasl_proto.o: ../../include/sock_addr.h
 smtp_sasl_proto.o: ../../include/string_list.h

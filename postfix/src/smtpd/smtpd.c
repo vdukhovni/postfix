@@ -345,6 +345,11 @@
 /*	Available in Postfix version 3.4 and later:
 /* .IP "\fBsmtpd_sasl_response_limit (12288)\fR"
 /*	The maximum length of a SASL client's response to a server challenge.
+/* .PP
+/*	Available in Postfix 3.6 and later:
+/* .IP "\fBsmtpd_sasl_mechanism_filter (!external, static:rest)\fR"
+/*	If non-empty, a filter for the SASL mechanism names that the
+/*	Postfix SMTP server will announce in the EHLO response.
 /* STARTTLS SUPPORT CONTROLS
 /* .ad
 /* .fi
@@ -1316,6 +1321,7 @@ char   *var_smtpd_sasl_realm;
 int     var_smtpd_sasl_resp_limit;
 char   *var_smtpd_sasl_exceptions_networks;
 char   *var_smtpd_sasl_type;
+char   *var_smtpd_sasl_mech_filter;
 char   *var_filter_xport;
 bool    var_broken_auth_clients;
 char   *var_perm_mx_networks;
@@ -6477,6 +6483,7 @@ int     main(int argc, char **argv)
 #endif
 	VAR_SMTPD_TLS_LEVEL, DEF_SMTPD_TLS_LEVEL, &var_smtpd_tls_level, 0, 0,
 	VAR_SMTPD_SASL_TYPE, DEF_SMTPD_SASL_TYPE, &var_smtpd_sasl_type, 1, 0,
+	VAR_SMTPD_SASL_MECH_FILTER, DEF_SMTPD_SASL_MECH_FILTER, &var_smtpd_sasl_mech_filter, 0, 0,
 	VAR_SMTPD_MILTERS, DEF_SMTPD_MILTERS, &var_smtpd_milters, 0, 0,
 	VAR_MILT_CONN_MACROS, DEF_MILT_CONN_MACROS, &var_milt_conn_macros, 0, 0,
 	VAR_MILT_HELO_MACROS, DEF_MILT_HELO_MACROS, &var_milt_helo_macros, 0, 0,

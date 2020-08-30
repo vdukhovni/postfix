@@ -1,5 +1,13 @@
 Wish list:
 
+	smtp_sasl_tls_security_options = noanonymous, and make
+	smtp_sasl_security_options default dependent on the
+	smtp_sasl_tls_security_options default (i.e. reverse the
+	dependency).
+
+	Add a configurable filter for SMTP command syntax. Maybe
+	time for some inline-pcre or inline-regexp map support?
+
 	Update makedefs and sys-defs.h for current Linux kernels and
 	*BSD releases.
 

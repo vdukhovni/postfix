@@ -17818,3 +17818,27 @@ with quotes and backslashes. An attacker should not be able to use
 such games to circumvent Postfix access policies. </p>
 
 <p> This feature is available in Postfix 3.5 and later. </p>
+
+%PARAM smtpd_sasl_mechanism_filter !external, static:rest
+
+<p> If non-empty, a filter for the SASL mechanism names that the
+Postfix SMTP server will announce in the EHLO response. By default,
+the Postfix SMTP server will not announce the EXTERNAL mechanism,
+because Postfix support for that is not implemented. </p>
+
+<p> Specify mechanism names, "/file/name" patterns, or "type:table"
+lookup tables, separated by comma or whitespace. The right-hand
+side result from "type:table" lookups is ignored. Specify "!pattern"
+to exclude a mechanism name from the list. </p>
+
+<p>
+Examples:
+</p>
+
+<pre>
+smtpd_sasl_mechanism_filter = !external, !gssapi, static:rest
+smtpd_sasl_mechanism_filter = login, plain
+smtpd_sasl_mechanism_filter = /etc/postfix/smtpd_mechs
+</pre>
+
+<p> This feature is available in Postfix 3.6 and later. </p>

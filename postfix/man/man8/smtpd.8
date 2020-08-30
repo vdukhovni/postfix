@@ -377,6 +377,11 @@ selected with \fBsmtpd_sasl_type\fR and \fBsmtpd_sasl_path\fR.
 Available in Postfix version 3.4 and later:
 .IP "\fBsmtpd_sasl_response_limit (12288)\fR"
 The maximum length of a SASL client's response to a server challenge.
+.PP
+Available in Postfix 3.6 and later:
+.IP "\fBsmtpd_sasl_mechanism_filter (!external, static:rest)\fR"
+If non\-empty, a filter for the SASL mechanism names that the
+Postfix SMTP server will announce in the EHLO response.
 .SH "STARTTLS SUPPORT CONTROLS"
 .na
 .nf

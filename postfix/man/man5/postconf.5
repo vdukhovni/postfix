@@ -11178,6 +11178,30 @@ smtpd_sasl_local_domain = $myhostname
 .fi
 .ad
 .ft R
+.SH smtpd_sasl_mechanism_filter (default: !external, static:rest)
+If non\-empty, a filter for the SASL mechanism names that the
+Postfix SMTP server will announce in the EHLO response. By default,
+the Postfix SMTP server will not announce the EXTERNAL mechanism,
+because Postfix support for that is not implemented.
+.PP
+Specify mechanism names, "/file/name" patterns, or "type:table"
+lookup tables, separated by comma or whitespace. The right\-hand
+side result from "type:table" lookups is ignored. Specify "!pattern"
+to exclude a mechanism name from the list.
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+smtpd_sasl_mechanism_filter = !external, !gssapi, static:rest
+smtpd_sasl_mechanism_filter = login, plain
+smtpd_sasl_mechanism_filter = /etc/postfix/smtpd_mechs
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.6 and later.
 .SH smtpd_sasl_path (default: smtpd)
 Implementation\-specific information that the Postfix SMTP server
 passes through to

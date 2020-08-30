@@ -25056,3 +25056,18 @@ Apologies for any names omitted.
 	utf-8. Files: mantools/makemanidx, mantools/make_soho_readme,
 	mantools/man2html, mantools/readme2html, proto/*_README.html,
 	proto/INSTALL.html, proto/postconf.html.prolog, html/index.html.
+
+	Refactor: moved the SASL mechanism filter code from the
+	Postfix SMTP client to a library module, so that it can be
+	reused in the Postfix SMTP server. Files: smtp/smtp_sasl_proto.c,
+	global/sacl_mech_filter.[hc].
+
+	Bugfix (introduced: Postfix 2.0): smtp_sasl_mechamism_filter
+	ignored table lookup errors, treating as 'not found'. Found while
+	refactoring code.
+
+	Feature: smtpd_sasl_mechanism_list (default: !external,
+	static:rest) to avoid confusing errors when a SASL backend
+	wants to anounce EXTERNAL support for which Postfix support
+	does not exist. Files: smtpd/smtpd.[hc], smtpd_sasl_glue.[hc],
+	global/mail_params.h, proto/postconf.proto, mantools/postlink.

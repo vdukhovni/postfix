@@ -1700,6 +1700,15 @@ extern char *var_smtpd_snd_auth_maps;
 extern int var_smtpd_sasl_resp_limit;
 
  /*
+  * Some backends claim to support EXTERNAL authentication, but Postfix does
+  * not have code to provide the backend with such credentials. To avoid
+  * confusing errors, do not announce the EXTERNAL mechanism.
+  */
+#define VAR_SMTPD_SASL_MECH_FILTER	"smtpd_sasl_mechanism_filter"
+#define DEF_SMTPD_SASL_MECH_FILTER	"!external, static:rest"
+extern char *var_smtpd_sasl_mech_filter;
+
+ /*
   * SASL authentication support, SMTP client side.
   */
 #define VAR_SMTP_SASL_ENABLE	"smtp_sasl_auth_enable"
