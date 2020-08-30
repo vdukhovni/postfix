@@ -994,8 +994,17 @@ static int tlsp_client_start_pre_handshake(TLSP_STATE *state)
     state->client_start_props->fd = state->ciphertext_fd;
     /* These predicates and warning belong inside tls_client_start(). */
     if (!tls_dane_avail()			/* mandatory side effects!! */
-	&&TLS_DANE_BASED(state->client_start_props->tls_level))
-	msg_warn("%s: DANE requested, but not available",
+
+    /*
+     * Why not test for TLS_DANE_BASED()? Because the tlsproxy(8) client has
+     * already converted its DANE TLSA records into trust anchors, and
+     * therefore TLS_DANE_HASTA() will be true instead. That exercises the
+     * code path that updates the shared SSL_CTX with custom X.509
+     * verification callbacks for trust anchors.
+     */
+	&&TLS_DANE_HASTA(state->client_start_props->dane))
+	msg_warn("%s: DANE or local trust anchor based chain"
+		 " verification requested, but not available",
 		 state->client_start_props->namaddr);
     else
 	state->tls_context = tls_client_start(state->client_start_props);
@@ -1423,7 +1432,15 @@ static void tlsp_get_request_event(int event, void *context)
 	}
 	state->appl_state = tlsp_client_init(state->tls_params,
 					     state->client_init_props,
-		      TLS_DANE_BASED(state->client_start_props->tls_level));
+
+	/*
+	 * Why not test for TLS_DANE_BASED()? Because the tlsproxy(8) client
+	 * has already converted its DANE TLSA records into trust anchors,
+	 * and therefore TLS_DANE_HASTA() will be true instead. That
+	 * exercises the code path that updates the shared SSL_CTX with
+	 * custom X.509 verification callbacks for trust anchors.
+	 */
+		      TLS_DANE_HASTA(state->client_start_props->dane) != 0);
 	ready = state->appl_state != 0;
 	break;
     case TLS_PROXY_FLAG_ROLE_SERVER:
