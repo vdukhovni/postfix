@@ -24819,3 +24819,18 @@ Apologies for any names omitted.
 	the system-wide OpenSSL configuration of allowed TLS protocol
 	versions, for sessions where the remote SMTP client sends
 	SNI. It's better to be safe than sorry. File: tls/tls_server.c.
+
+20200821
+
+	Bugfix (introduced: Postfix 3.4, already fixed in Postfix
+	3.6): tlsproxy(8) was using the wrong DANE macro for
+	connections with DANE trust anchors or with non-DANE trust
+	anchors (WTF: Thorsten Habich found this bug in the use
+	case that has nothing to do with DANE). This resulted in a
+	global certificate verify function pointer race, between
+	TLS handshakes that use TLS trust achors and handshakes
+	that use PKI. No memory was corrupted in the course of all
+	this.  Viktor Dukhovni. File: tlsproxy/tlsproxy.c.
+
+	Cleanup: the posttls-finger '-X' option reported a false
+	conflict with '-r'. File: posttls-finger/posttls-finger.c.

@@ -1988,7 +1988,7 @@ static void parse_options(STATE *state, int argc, char *argv[])
 	msg_fatal("bad '-a' option value: %s", state->options.addr_pref);
 
 #ifdef USE_TLS
-    if (state->tlsproxy_mode && state->reconnect)
+    if (state->tlsproxy_mode && state->reconnect >= 0)
 	msg_fatal("The -X and -r options are mutually exclusive");
 #endif
 
