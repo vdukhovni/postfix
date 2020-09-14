@@ -27,6 +27,7 @@
 typedef struct ATTR_CLNT ATTR_CLNT;
 typedef int (*ATTR_CLNT_PRINT_FN) (VSTREAM *, int, va_list);
 typedef int (*ATTR_CLNT_SCAN_FN) (VSTREAM *, int, va_list);
+typedef int (*ATTR_CLNT_HANDSHAKE_FN) (VSTREAM *);
 
 extern ATTR_CLNT *attr_clnt_create(const char *, int, int, int);
 extern int attr_clnt_request(ATTR_CLNT *, int,...);
@@ -38,6 +39,7 @@ extern void attr_clnt_control(ATTR_CLNT *, int,...);
 #define ATTR_CLNT_CTL_REQ_LIMIT	2	/* requests per connection */
 #define ATTR_CLNT_CTL_TRY_LIMIT	3	/* attempts per request */
 #define ATTR_CLNT_CTL_TRY_DELAY	4	/* pause between requests */
+#define ATTR_CLNT_CTL_HANDSHAKE	5	/* handshake before first request */
 
 /* LICENSE
 /* .ad

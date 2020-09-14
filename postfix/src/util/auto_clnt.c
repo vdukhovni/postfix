@@ -6,6 +6,8 @@
 /* SYNOPSIS
 /*	#include <auto_clnt.h>
 /*
+/*	typedef void (*AUTO_CLNT_HANDSHAKE_FN)(VSTREAM *);
+/*
 /*	AUTO_CLNT *auto_clnt_create(service, timeout, max_idle, max_ttl)
 /*	const char *service;
 /*	int	timeout;
@@ -23,6 +25,10 @@
 /*
 /*	void	auto_clnt_free(auto_clnt)
 /*	AUTO_CLNT *auto_clnt;
+/*
+/*	void	auto_clnt_control(auto_clnt, name, value, ... AUTO_CLNT_CTL_END)
+/*	AUTO_CLNT *auto_clnt;
+/*	int	name;
 /* DESCRIPTION
 /*	This module maintains IPC client endpoints that automatically
 /*	disconnect after a being idle for a configurable amount of time,
@@ -47,6 +53,15 @@
 /*
 /*	auto_clnt_free() destroys of the specified client endpoint.
 /*
+/*	auto_clnt_control() allows the user to fine tune the behavior of
+/*      the specified client. The arguments are a list of (name, value)
+/*      terminated with AUTO_CLNT_CTL_END.
+/*      The following lists the names and the types of the corresponding
+/*      value arguments.
+/* .IP "AUTO_CLNT_CTL_HANDSHAKE(VSTREAM *)"
+/*      A pointer to function that will be called at the start of a
+/*      new connection, and that returns 0 in case of success.
+/* .PP
 /*	Arguments:
 /* .IP service
 /*	The service argument specifies "transport:servername" where
@@ -79,6 +94,10 @@
 /*	is expected to set the stream pathname to the server endpoint name.
 /* .IP context
 /*	Application context that is passed to the open_action routine.
+/* .IP handshake
+/*	A null pointer, or a pointer to function that will be called
+/*	at the start of a new connection and that returns 0 in case
+/*	of success.
 /* DIAGNOSTICS
 /*	Warnings: communication failure. Fatal error: out of memory.
 /* LICENSE
@@ -120,6 +139,7 @@ struct AUTO_CLNT {
     int     timeout;			/* I/O time limit */
     int     max_idle;			/* time before client disconnect */
     int     max_ttl;			/* time before client disconnect */
+    AUTO_CLNT_HANDSHAKE_FN handshake;	/* new connection only */
     int     (*connect) (const char *, int, int);	/* unix, local, inet */
 };
 
@@ -250,6 +270,7 @@ void    auto_clnt_recover(AUTO_CLNT *auto_clnt)
 
 VSTREAM *auto_clnt_access(AUTO_CLNT *auto_clnt)
 {
+    int     new_stream;
 
     /*
      * Open a stream or restart the idle timer.
@@ -258,11 +279,16 @@ VSTREAM *auto_clnt_access(AUTO_CLNT *auto_clnt)
      */
     if (auto_clnt->vstream == 0) {
 	auto_clnt_open(auto_clnt);
+	new_stream = (auto_clnt->vstream != 0);
     } else {
 	if (auto_clnt->max_idle > 0)
 	    event_request_timer(auto_clnt_event, (void *) auto_clnt,
 				auto_clnt->max_idle);
+	new_stream = 0;
     }
+    if (new_stream && auto_clnt->handshake &&
+	auto_clnt->handshake(auto_clnt->vstream) != 0)
+	return (0);
     return (auto_clnt->vstream);
 }
 
@@ -290,6 +316,7 @@ AUTO_CLNT *auto_clnt_create(const char *service, int timeout,
     auto_clnt->timeout = timeout;
     auto_clnt->max_idle = max_idle;
     auto_clnt->max_ttl = max_ttl;
+    auto_clnt->handshake = 0;
     if (strcmp(transport, "inet") == 0) {
 	auto_clnt->connect = inet_connect;
     } else if (strcmp(transport, "local") == 0) {
@@ -319,4 +346,23 @@ void    auto_clnt_free(AUTO_CLNT *auto_clnt)
 	auto_clnt_close(auto_clnt);
     myfree(auto_clnt->endpoint);
     myfree((void *) auto_clnt);
+}
+
+/* auto_clnt_control - fine control */
+
+void    auto_clnt_control(AUTO_CLNT *client, int name,...)
+{
+    const char *myname = "auto_clnt_control";
+    va_list ap;
+
+    for (va_start(ap, name); name != AUTO_CLNT_CTL_END; name = va_arg(ap, int)) {
+	switch (name) {
+	case AUTO_CLNT_CTL_HANDSHAKE:
+	    client->handshake = va_arg(ap, AUTO_CLNT_HANDSHAKE_FN);
+	    break;
+	default:
+	    msg_panic("%s: bad name %d", myname, name);
+	}
+    }
+    va_end(ap);
 }

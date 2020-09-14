@@ -361,6 +361,13 @@ static void showq_service(VSTREAM *client, char *unused_service, char **argv)
 	msg_fatal("unexpected command-line argument: %s", argv[0]);
 
     /*
+     * Protocol identification.
+     */
+    (void) attr_print(client, ATTR_FLAG_MORE,
+		      SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_SHOWQ),
+		      ATTR_TYPE_END);
+
+    /*
      * Skip any files that have the wrong permissions. If we can't open an
      * existing file, assume the system is out of resources or that it is
      * mis-configured, and force backoff by raising a fatal error.

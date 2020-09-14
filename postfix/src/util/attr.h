@@ -45,6 +45,7 @@ typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, void 
 #define ATTR_TYPE_LONG		4	/* Unsigned long */
 #define ATTR_TYPE_DATA		5	/* Binary data */
 #define ATTR_TYPE_FUNC		6	/* Function pointer */
+#define ATTR_TYPE_STREQ		7	/* Requires (name, value) match */
 
  /*
   * Optional sender-specified grouping for hash or nameval tables.
@@ -70,6 +71,7 @@ typedef int (*ATTR_PRINT_CUSTOM_FN) (ATTR_PRINT_COMMON_FN, VSTREAM *, int, void 
 
 #define RECV_ATTR_INT(name, val)	ATTR_TYPE_INT, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, int, (val))
 #define RECV_ATTR_STR(name, val)	ATTR_TYPE_STR, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, VSTRING, (val))
+#define RECV_ATTR_STREQ(name, val)	ATTR_TYPE_STREQ, CHECK_CPTR(ATTR, char, (name)), CHECK_CPTR(ATTR, char, (val))
 #define RECV_ATTR_HASH(val)		ATTR_TYPE_HASH, CHECK_PTR(ATTR, HTABLE, (val))
 #define RECV_ATTR_NV(val)		ATTR_TYPE_NV, CHECK_PTR(ATTR, NVTABLE, (val))
 #define RECV_ATTR_LONG(name, val)	ATTR_TYPE_LONG, CHECK_CPTR(ATTR, char, (name)), CHECK_PTR(ATTR, long, (val))

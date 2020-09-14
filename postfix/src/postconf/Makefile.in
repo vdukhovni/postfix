@@ -1088,11 +1088,6 @@ postconf_dbms.o: ../../include/sys_defs.h
 postconf_dbms.o: ../../include/vbuf.h
 postconf_dbms.o: ../../include/vstream.h
 postconf_dbms.o: ../../include/vstring.h
-postconf_dbms.o: pcf_ldap_suffixes.h
-postconf_dbms.o: pcf_memcache_suffixes.h
-postconf_dbms.o: pcf_mysql_suffixes.h
-postconf_dbms.o: pcf_pgsql_suffixes.h
-postconf_dbms.o: pcf_sqlite_suffixes.h
 postconf_dbms.o: postconf.h
 postconf_dbms.o: postconf_dbms.c
 postconf_edit.o: ../../include/argv.h

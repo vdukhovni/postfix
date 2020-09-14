@@ -700,6 +700,16 @@ static int flush_request_receive(VSTREAM *client_stream, VSTRING *request)
     int     count;
 
     /*
+     * Announce the protocol. Allow lazy clients to receive this together
+     * with the server's response to the client request, but also allow
+     * greedy clients to detect a service mismatch early.
+     */
+    attr_print(client_stream, ATTR_FLAG_MORE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_FLUSH),
+	       ATTR_TYPE_END);
+    (void) vstream_fflush(client_stream);
+
+    /*
      * Kluge: choose the protocol depending on the request size.
      */
     if (read_wait(vstream_fileno(client_stream), var_ipc_timeout) < 0) {

@@ -39,12 +39,10 @@
 /*	subsequent I/O events on the stream, and is responsible for
 /*	calling event_server_disconnect() when the stream is closed.
 /*	The stream initial state is non-blocking mode.
-/*	Optional connection attributes are provided as a hash that
-/*	is attached as stream context. NOTE: the attributes are
-/*	destroyed after this function is called. The service
-/*	name argument corresponds to the service name in the master.cf
-/*	file.  The argv argument specifies command-line arguments
-/*	left over after options processing.
+/*	The service name argument corresponds to the service name
+/*	in the master.cf file.
+/*	The argv argument specifies command-line arguments left over
+/*	after options processing.
 /* .PP
 /*	Optional arguments are specified as a null-terminated list
 /*	with macros that have zero or more arguments:
@@ -115,6 +113,14 @@
 /*	process termination.
 /* .IP "CA_MAIL_SERVER_PRE_ACCEPT(void *(char *service_name, char **argv))"
 /*	Function to be executed prior to accepting a new connection.
+/* .sp
+/*	Only the last instance of this parameter type is remembered.
+/* .IP "CA_MAIL_SERVER_POST_ACCEPT(void *(VSTREAM *stream, char *service_name, char **argv, HTABLE *attr))"
+/*	Function to be executed after accepting a new connection.
+/*	The stream, service_name and argv argunents are the same
+/*	as with the "service" argument. The attr argument is null
+/*	or a pointer to a table with 'pass' connection attributes.
+/*	The table is destroyed after the function returns.
 /* .sp
 /*	Only the last instance of this parameter type is remembered.
 /* .IP "CA_MAIL_SERVER_PRE_DISCONN(VSTREAM *, char *service_name, char **argv)"
@@ -267,13 +273,13 @@ static char **event_server_argv;
 static void (*event_server_accept) (int, void *);
 static void (*event_server_onexit) (char *, char **);
 static void (*event_server_pre_accept) (char *, char **);
+static void (*event_server_post_accept) (VSTREAM *, char *, char **, HTABLE *);
 static VSTREAM *event_server_lock;
 static int event_server_in_flow_delay;
 static unsigned event_server_generation;
 static void (*event_server_pre_disconn) (VSTREAM *, char *, char **);
 static void (*event_server_slow_exit) (char *, char **);
 static int event_server_watchdog = 1000;
-static int event_server_saved_flags;
 
 /* event_server_exit - normal termination */
 
@@ -373,8 +379,6 @@ void    event_server_disconnect(VSTREAM *stream)
 static void event_server_execute(int unused_event, void *context)
 {
     VSTREAM *stream = (VSTREAM *) context;
-    HTABLE *attr = (vstream_flags(stream) == event_server_saved_flags ?
-		    (HTABLE *) vstream_context(stream) : 0);
 
     if (event_server_lock != 0
 	&& myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
@@ -391,8 +395,6 @@ static void event_server_execute(int unused_event, void *context)
     event_server_service(stream, event_server_name, event_server_argv);
     if (master_notify(var_pid, event_server_generation, MASTER_STAT_AVAIL) < 0)
 	event_server_abort(EVENT_NULL_TYPE, EVENT_NULL_CONTEXT);
-    if (attr)
-	htable_free(attr, myfree);
 }
 
 /* event_server_wakeup - wake up application */
@@ -428,16 +430,20 @@ static void event_server_wakeup(int fd, HTABLE *attr)
     tmp = concatenate(event_server_name, " socket", (char *) 0);
     vstream_control(stream,
 		    CA_VSTREAM_CTL_PATH(tmp),
-		    CA_VSTREAM_CTL_CONTEXT((void *) attr),
 		    CA_VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
-    event_server_saved_flags = vstream_flags(stream);
     if (event_server_in_flow_delay && mail_flow_get(1) < 0)
 	event_request_timer(event_server_execute, (void *) stream,
 			    var_in_flow_delay);
     else
 	event_server_execute(0, (void *) stream);
+    if (event_server_post_accept)
+	event_server_post_accept(stream, event_server_name, event_server_argv, attr);
+    else if (attr)
+	msg_warn("service ignores 'pass' connection attributes");
+    if (attr)
+	htable_free(attr, myfree);
 }
 
 /* event_server_accept_local - accept client connection request */
@@ -775,6 +781,9 @@ NORETURN event_server_main(int argc, char **argv, MULTI_SERVER_FN service,...)
 	    break;
 	case MAIL_SERVER_PRE_ACCEPT:
 	    event_server_pre_accept = va_arg(ap, MAIL_SERVER_ACCEPT_FN);
+	    break;
+	case MAIL_SERVER_POST_ACCEPT:
+	    event_server_post_accept = va_arg(ap, MAIL_SERVER_POST_ACCEPT_FN);
 	    break;
 	case MAIL_SERVER_PRE_DISCONN:
 	    event_server_pre_disconn = va_arg(ap, MAIL_SERVER_DISCONN_FN);

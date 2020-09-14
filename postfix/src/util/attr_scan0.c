@@ -100,6 +100,9 @@
 /*	This argument is followed by an attribute name and a long pointer.
 /* .IP "RECV_ATTR_STR(const char *name, VSTRING *vp)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
+/* .IP "RECV_ATTR_STREQ(const char *name, const char *value)"
+/*	The name and value must match what the client sends.
+/*	This attribute does not increment the result value.
 /* .IP "RECV_ATTR_DATA(const char *name, VSTRING *vp)"
 /*	This argument is followed by an attribute name and a VSTRING pointer.
 /* .IP "RECV_ATTR_FUNC(ATTR_SCAN_CUSTOM_FN, void *data)"
@@ -278,6 +281,7 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
     int     conversions;
     ATTR_SCAN_CUSTOM_FN scan_fn;
     void   *scan_arg;
+    const char *expect_val;
 
     /*
      * Sanity check.
@@ -421,6 +425,19 @@ int     attr_vscan0(VSTREAM *fp, int flags, va_list ap)
 	    if (scan_fn(attr_scan0, fp, flags | ATTR_FLAG_MORE, scan_arg) < 0)
 		return (-1);
 	    break;
+	case ATTR_TYPE_STREQ:
+	    expect_val = va_arg(ap, const char *);
+	    if ((ch = attr_scan0_string(fp, str_buf,
+					"input attribute value")) < 0)
+		return (-1);
+	    if (strcmp(expect_val, STR(str_buf)) != 0) {
+		msg_warn("unexpected %s %s from %s (expected: %s)",
+			 STR(name_buf), STR(str_buf), VSTREAM_PATH(fp),
+			 expect_val);
+		return (-1);
+	    }
+	    conversions -= 1;
+	    break;
 	case ATTR_TYPE_HASH:
 	case ATTR_TYPE_CLOSE:
 	    if ((ch = attr_scan0_string(fp, str_buf,
@@ -513,6 +530,7 @@ int     main(int unused_argc, char **used_argv)
     msg_vstream_init(used_argv[0], VSTREAM_ERR);
     if ((ret = attr_scan0(VSTREAM_IN,
 			  ATTR_FLAG_STRICT,
+			  RECV_ATTR_STREQ("protocol", "test"),
 			  RECV_ATTR_INT(ATTR_NAME_INT, &int_val),
 			  RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val),
 			  RECV_ATTR_STR(ATTR_NAME_STR, str_val),
@@ -534,6 +552,7 @@ int     main(int unused_argc, char **used_argv)
     }
     if ((ret = attr_scan0(VSTREAM_IN,
 			  ATTR_FLAG_STRICT,
+			  RECV_ATTR_STREQ("protocol", "test"),
 			  RECV_ATTR_INT(ATTR_NAME_INT, &int_val),
 			  RECV_ATTR_LONG(ATTR_NAME_LONG, &long_val),
 			  RECV_ATTR_STR(ATTR_NAME_STR, str_val),
@@ -550,6 +569,11 @@ int     main(int unused_argc, char **used_argv)
     } else {
 	vstream_printf("return: %d\n", ret);
     }
+    if ((ret = attr_scan0(VSTREAM_IN,
+			  ATTR_FLAG_STRICT,
+			  RECV_ATTR_STREQ("protocol", "test"),
+			  ATTR_TYPE_END)) != 0)
+	vstream_printf("return: %d\n", ret);
     if (vstream_fflush(VSTREAM_OUT) != 0)
 	msg_fatal("write error: %m");
 

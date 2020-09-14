@@ -381,6 +381,7 @@ int     main(int argc, char **argv)
     dst = mail_stream_file(MAIL_QUEUE_MAILDROP, MAIL_CLASS_PUBLIC,
 			   var_pickup_service, 0444);
     attr_print(VSTREAM_OUT, ATTR_FLAG_NONE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_POSTDROP),
 	       SEND_ATTR_STR(MAIL_ATTR_QUEUEID, dst->id),
 	       ATTR_TYPE_END);
     vstream_fflush(VSTREAM_OUT);

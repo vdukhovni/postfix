@@ -153,7 +153,7 @@
 /*	matches subdomains of example.com,
 /*	instead of requiring an explicit ".example.com" pattern.
 /* .IP "\fBrelayhost (empty)\fR"
-/*	The next-hop destination of non-local mail; overrides non-local
+/*	The next-hop destination(s) for non-local mail; overrides non-local
 /*	domains in recipient addresses.
 /* .IP "\fBtransport_maps (empty)\fR"
 /*	Optional lookup tables with mappings from recipient address to
@@ -522,6 +522,22 @@ static void pre_accept(char *unused_name, char **unused_argv)
 
 #endif
 
+/* post_accept - anounce our protocol name */
+
+static void post_accept(VSTREAM *stream, char *unused_name, char **unused_argv,
+			        HTABLE *unused_attr)
+{
+    /*
+     * Announce the protocol. Allow lazy clients to receive this together
+     * with the server's response to the client request, but also allow
+     * greedy clients to detect a service mismatch early.
+     */
+    attr_print(stream, ATTR_FLAG_MORE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_TRIVIAL),
+	       ATTR_TYPE_END);
+    (void) vstream_fflush(stream);
+}
+
 static void check_table_stats(int unused_event, void *unused_context)
 {
     const char *table;
@@ -648,5 +664,6 @@ int     main(int argc, char **argv)
 #ifdef CHECK_TABLE_STATS_BEFORE_ACCEPT
 		      CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),
 #endif
+		      CA_MAIL_SERVER_POST_ACCEPT(post_accept),
 		      0);
 }

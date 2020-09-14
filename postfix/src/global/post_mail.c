@@ -241,6 +241,7 @@ static void post_mail_init(VSTREAM *stream, const char *sender,
      * Negotiate with the cleanup service. Give up if we can't agree.
      */
     if (attr_scan(stream, ATTR_FLAG_STRICT,
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_CLEANUP),
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id),
 		  ATTR_TYPE_END) != 1
 	|| attr_print(stream, ATTR_FLAG_NONE,

@@ -1006,6 +1006,22 @@ static void post_jail_init(char *unused_name, char **unused_argv)
 
 MAIL_VERSION_STAMP_DECLARE;
 
+/* post_accept - announce our protocol */
+
+static void post_accept(VSTREAM *stream, char *unused_name,
+			        char **unused_argv, HTABLE *unused_table)
+{
+    /*
+     * Announce the protocol. Allow lazy clients to receive this together
+     * with the server's response to the client request, but also allow
+     * greedy clients to detect a service mismatch early.
+     */
+    attr_print_plain(stream, ATTR_FLAG_MORE,
+		     SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_ANVIL),
+		     ATTR_TYPE_END);
+    (void) vstream_fflush(stream);
+}
+
 /* main - pass control to the multi-threaded skeleton */
 
 int     main(int argc, char **argv)
@@ -1024,6 +1040,7 @@ int     main(int argc, char **argv)
     multi_server_main(argc, argv, anvil_service,
 		      CA_MAIL_SERVER_TIME_TABLE(time_table),
 		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
+		      CA_MAIL_SERVER_POST_ACCEPT(post_accept),
 		      CA_MAIL_SERVER_SOLITARY,
 		      CA_MAIL_SERVER_PRE_DISCONN(anvil_service_done),
 		      CA_MAIL_SERVER_EXIT(anvil_status_dump),

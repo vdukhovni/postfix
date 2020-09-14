@@ -1004,6 +1004,23 @@ static void tlsmgr_post_init(char *unused_name, char **unused_argv)
 	    tlsmgr_cache_run_event(NULL_EVENT, (void *) ent);
 }
 
+/* tlsmgr_post_accept - announce our protocol */
+
+static void tlsmgr_post_accept(VSTREAM *stream, char *unused_name,
+			           char **unused_argv, HTABLE *unused_table)
+{
+    /*
+     * Announce the protocol. Allow lazy clients to receive this together
+     * with the server's response to the client request, but also allow
+     * greedy clients to detect a service mismatch early.
+     */
+    attr_print(stream, ATTR_FLAG_MORE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_TLSMGR),
+	       ATTR_TYPE_END);
+    (void) vstream_fflush(stream);
+}
+
+
 /* tlsmgr_before_exit - save PRNG state before exit */
 
 static void tlsmgr_before_exit(char *unused_service_name, char **unused_argv)
@@ -1061,6 +1078,7 @@ int     main(int argc, char **argv)
 		      CA_MAIL_SERVER_STR_TABLE(str_table),
 		      CA_MAIL_SERVER_PRE_INIT(tlsmgr_pre_init),
 		      CA_MAIL_SERVER_POST_INIT(tlsmgr_post_init),
+		      CA_MAIL_SERVER_POST_ACCEPT(tlsmgr_post_accept),
 		      CA_MAIL_SERVER_EXIT(tlsmgr_before_exit),
 		      CA_MAIL_SERVER_LOOP(tlsmgr_loop),
 		      CA_MAIL_SERVER_SOLITARY,

@@ -745,6 +745,22 @@ static void pre_accept(char *unused_name, char **unused_argv)
     }
 }
 
+/* post_accept - anounce our protocol name */
+
+static void post_accept(VSTREAM *stream, char *unused_name, char **unused_argv,
+			        HTABLE *unused_attr)
+{
+    /*
+     * Announce the protocol. Allow lazy clients to receive this together
+     * with the server's response to the client request, but also allow
+     * greedy clients to detect a service mismatch early.
+     */
+    attr_print(stream, ATTR_FLAG_MORE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_PROXYMAP),
+	       ATTR_TYPE_END);
+    (void) vstream_fflush(stream);
+}
+
 MAIL_VERSION_STAMP_DECLARE;
 
 /* main - pass control to the multi-threaded skeleton */
@@ -782,6 +798,7 @@ int     main(int argc, char **argv)
 		      CA_MAIL_SERVER_STR_TABLE(str_table),
 		      CA_MAIL_SERVER_POST_INIT(post_jail_init),
 		      CA_MAIL_SERVER_PRE_ACCEPT(pre_accept),
+		      CA_MAIL_SERVER_POST_ACCEPT(post_accept),
     /* XXX CA_MAIL_SERVER_SOLITARY if proxywrite */
 		      0);
 }

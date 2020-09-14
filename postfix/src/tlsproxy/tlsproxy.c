@@ -1481,6 +1481,12 @@ static void tlsp_service(VSTREAM *plaintext_stream,
 		    CA_VSTREAM_CTL_TIMEOUT(5),
 		    CA_VSTREAM_CTL_END);
 
+    (void) attr_print(plaintext_stream, ATTR_FLAG_MORE,
+                   SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_TLSPROXY),
+                      ATTR_TYPE_END);
+    if (vstream_fflush(plaintext_stream) != 0)
+	msg_warn("write %s attribute: %m", MAIL_ATTR_PROTO);
+
     /*
      * Receive postscreen's remote SMTP client address/port and socket.
      */

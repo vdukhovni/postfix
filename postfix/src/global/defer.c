@@ -257,6 +257,7 @@ int     defer_append_intern(int flags, const char *id, MSG_STATS *stats,
 	my_dsn.action = "delayed";
 
 	if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
+				MAIL_ATTR_PROTO_BOUNCE,
 			   SEND_ATTR_INT(MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND),
 				SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 				SEND_ATTR_STR(MAIL_ATTR_QUEUEID, id),
@@ -301,6 +302,7 @@ int     defer_flush(int flags, const char *queue, const char *id,
     flags |= BOUNCE_FLAG_DELRCPT;
 
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
+			    MAIL_ATTR_PROTO_BOUNCE,
 			    SEND_ATTR_INT(MAIL_ATTR_NREQ, BOUNCE_CMD_FLUSH),
 			    SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 			    SEND_ATTR_STR(MAIL_ATTR_QUEUE, queue),
@@ -325,6 +327,7 @@ int     defer_warn(int flags, const char *queue, const char *id,
 		         const char *sender, const char *envid, int dsn_ret)
 {
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_defer_service,
+			    MAIL_ATTR_PROTO_BOUNCE,
 			    SEND_ATTR_INT(MAIL_ATTR_NREQ, BOUNCE_CMD_WARN),
 			    SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 			    SEND_ATTR_STR(MAIL_ATTR_QUEUE, queue),

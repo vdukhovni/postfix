@@ -403,7 +403,6 @@ static const char *haproxy_srvr_parse_v2_hdr(const char *str, ssize_t *str_len,
 	    return ("unsupported network protocol");
 	}
 	/* For now, skip and ignore TLVs. */
-	*non_proxy = 0;
 	*str_len = PP2_HEADER_LEN + ntohs(hdr_v2->len);
 	return (0);
 
@@ -433,6 +432,8 @@ const char *haproxy_srvr_parse(const char *str, ssize_t *str_len,
 
     if (proto_info == 0)
 	proto_info = inet_proto_info();
+
+    *non_proxy = 0;
 
     /*
      * XXX We don't accept connections with the "UNKNOWN" protocol type,
@@ -471,7 +472,6 @@ const char *haproxy_srvr_parse(const char *str, ssize_t *str_len,
 	}
 	myfree(saved_str);
 
-	*non_proxy = 0;
 	return (err);
     }
 

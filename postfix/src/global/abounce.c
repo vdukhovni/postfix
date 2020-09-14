@@ -252,9 +252,15 @@ static void abounce_event(int event, void *context)
     ABOUNCE *ap = (ABOUNCE *) context;
     int     status;
 
+    /*
+     * Lazily receive the server's protocol name announcement together with
+     * the server response. This is safe as long as the client can send an
+     * entire request atomically.
+     */
     ABOUNCE_EVENT_DISABLE(vstream_fileno(ap->fp), abounce_event, context);
     abounce_done(ap, (event != EVENT_TIME
 		      && attr_scan(ap->fp, ATTR_FLAG_STRICT,
+		   RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_BOUNCE),
 				   RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 				   ATTR_TYPE_END) == 1) ? status : -1);
 }

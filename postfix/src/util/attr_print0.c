@@ -228,6 +228,7 @@ int     main(int unused_argc, char **argv)
     htable_enter(table, "foo-name", mystrdup("foo-value"));
     htable_enter(table, "bar-name", mystrdup("bar-value"));
     attr_print0(VSTREAM_OUT, ATTR_FLAG_NONE,
+		SEND_ATTR_STR("protocol", "test"),
 		SEND_ATTR_INT(ATTR_NAME_INT, 4711),
 		SEND_ATTR_LONG(ATTR_NAME_LONG, 1234L),
 		SEND_ATTR_STR(ATTR_NAME_STR, "whoopee"),
@@ -236,10 +237,14 @@ int     main(int unused_argc, char **argv)
 		SEND_ATTR_LONG(ATTR_NAME_LONG, 4321L),
 		ATTR_TYPE_END);
     attr_print0(VSTREAM_OUT, ATTR_FLAG_NONE,
+		SEND_ATTR_STR("protocol", "test"),
 		SEND_ATTR_INT(ATTR_NAME_INT, 4711),
 		SEND_ATTR_LONG(ATTR_NAME_LONG, 1234L),
 		SEND_ATTR_STR(ATTR_NAME_STR, "whoopee"),
 		SEND_ATTR_DATA(ATTR_NAME_DATA, strlen("whoopee"), "whoopee"),
+		ATTR_TYPE_END);
+    attr_print0(VSTREAM_OUT, ATTR_FLAG_NONE,
+		SEND_ATTR_STR("protocol", "not-test"),
 		ATTR_TYPE_END);
     if (vstream_fflush(VSTREAM_OUT) != 0)
 	msg_fatal("write error: %m");

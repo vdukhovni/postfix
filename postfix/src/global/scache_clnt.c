@@ -80,6 +80,15 @@ typedef struct {
 
 #define SCACHE_MAX_TRIES	2
 
+/* scache_clnt_handshake - receive server protocol announcement */
+
+static int scache_clnt_handshake(VSTREAM *stream)
+{
+    return (attr_scan(stream, ATTR_FLAG_MORE,
+		   RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_SCACHE),
+		      ATTR_TYPE_END));
+}
+
 /* scache_clnt_save_endp - save endpoint */
 
 static void scache_clnt_save_endp(SCACHE *scache, int endp_ttl,
@@ -416,6 +425,9 @@ SCACHE *scache_clnt_create(const char *server, int timeout,
 
     service = concatenate("local:private/", server, (char *) 0);
     sp->auto_clnt = auto_clnt_create(service, timeout, idle_limit, ttl_limit);
+    auto_clnt_control(sp->auto_clnt,
+		      AUTO_CLNT_CTL_HANDSHAKE, scache_clnt_handshake,
+		      AUTO_CLNT_CTL_END);
     myfree(service);
 
 #ifdef CANT_WRITE_BEFORE_SENDING_FD

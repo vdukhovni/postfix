@@ -361,6 +361,11 @@ static void show_queue(int mode)
      * Connect to the show queue service.
      */
     if ((showq = mail_connect(MAIL_CLASS_PUBLIC, var_showq_service, BLOCKING)) != 0) {
+	if (attr_scan(showq, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
+		    RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_SHOWQ),
+		      ATTR_TYPE_END) != 0)
+	    msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
+
 	switch (mode) {
 	case PQ_MODE_MAILQ_LIST:
 	    showq_compat(showq);
@@ -407,6 +412,11 @@ static void show_queue(int mode)
 				   CA_VSTREAM_POPEN_END)) == 0) {
 	    stat = -1;
 	} else {
+	    if (attr_scan(showq, ATTR_FLAG_STRICT | ATTR_FLAG_MORE,
+		    RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_SHOWQ),
+			  ATTR_TYPE_END) != 0)
+		msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
+
 	    switch (mode) {
 	    case PQ_MODE_MAILQ_LIST:
 		showq_compat(showq);

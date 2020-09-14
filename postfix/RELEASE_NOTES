@@ -25,6 +25,22 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Incompatible change with snapshot 20200906
+==========================================
+
+Internal protocols have changed. You need to "postfix stop" before
+updating, or before backing out to an earlier release, otherwise
+long-running daemons (pickup, qmgr, verify, tlsproxy, postscreen)
+may fail to communicate with the rest of Postfix (warnings, timeouts).
+
+The purpose of this change is to produce better error messages, for
+example, when someone configures the discard daemon as a bounce
+service in master.cf, or vice versa.
+
+This change will break third-party code that implements a
+Postfix-internal protocol such as qpsmtpd. Programs that depend on
+Postfix internal details are not supported.
+
 Incompatible change with snapshot 20200705
 ==========================================
 

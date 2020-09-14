@@ -68,7 +68,7 @@
 /* sasl_mech_filter - filter a SASL mechanism list */
 
 const char *sasl_mech_filter(STRING_LIST *filter,
-			             const const char *words)
+			             const char *words)
 {
     const char myname[] = "sasl_mech_filter";
     static VSTRING *buf;
