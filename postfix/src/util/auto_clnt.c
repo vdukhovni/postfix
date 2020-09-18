@@ -109,6 +109,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -270,7 +275,7 @@ void    auto_clnt_recover(AUTO_CLNT *auto_clnt)
 
 VSTREAM *auto_clnt_access(AUTO_CLNT *auto_clnt)
 {
-    int     new_stream;
+    AUTO_CLNT_HANDSHAKE_FN handshake;
 
     /*
      * Open a stream or restart the idle timer.
@@ -279,15 +284,14 @@ VSTREAM *auto_clnt_access(AUTO_CLNT *auto_clnt)
      */
     if (auto_clnt->vstream == 0) {
 	auto_clnt_open(auto_clnt);
-	new_stream = (auto_clnt->vstream != 0);
+	handshake = (auto_clnt->vstream ? auto_clnt->handshake : 0);
     } else {
 	if (auto_clnt->max_idle > 0)
 	    event_request_timer(auto_clnt_event, (void *) auto_clnt,
 				auto_clnt->max_idle);
-	new_stream = 0;
+	handshake = 0;
     }
-    if (new_stream && auto_clnt->handshake &&
-	auto_clnt->handshake(auto_clnt->vstream) != 0)
+    if (handshake != 0 && handshake(auto_clnt->vstream) != 0)
 	return (0);
     return (auto_clnt->vstream);
 }

@@ -179,7 +179,6 @@ static int anvil_clnt_handshake(VSTREAM *stream)
 			    ATTR_TYPE_END));
 }
 
-
 /* anvil_clnt_create - instantiate connection rate service client */
 
 ANVIL_CLNT *anvil_clnt_create(void)

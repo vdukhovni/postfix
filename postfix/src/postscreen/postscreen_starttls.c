@@ -97,7 +97,7 @@ static char *psc_tlsp_service = 0;
 
 /* Resume the dummy SMTP engine, possibly after swapping streams */
 
-#define	PSC_STARTTLS_EVENT_RESUME_RETURN(starttls_state) do { \
+#define PSC_STARTTLS_EVENT_RESUME_RETURN(starttls_state) do { \
 	vstream_fclose(tlsproxy_stream); \
 	starttls_state->resume_event(event, (void *) smtp_state); \
 	myfree((void *) starttls_state); \
@@ -306,7 +306,7 @@ void    psc_starttls_open(PSC_STATE *smtp_state, EVENT_NOTIFY_FN resume_event)
 		    VSTREAM_CTL_END);
 
     /*
-     * Set up a write event for the next phase of the TLS proxy handshake.
+     * Set up a read event for the next phase of the TLS proxy handshake.
      */
     starttls_state = (PSC_STARTTLS *) mymalloc(sizeof(*starttls_state));
     starttls_state->tlsproxy_stream = tlsproxy_stream;

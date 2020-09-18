@@ -2,8 +2,7 @@ Wish list:
 
 	Get rid of percentm(). It is obsolete.
 
-	event_server does not need a dedicated post_accept callback.
-	The existing service callback is already called after accept.
+	Does tlsproxy terminate to soon after 'postfix reload'?
 
 	multi_server applications could be migrated to event_server;
 	after accept(), they would have to set up their own read
