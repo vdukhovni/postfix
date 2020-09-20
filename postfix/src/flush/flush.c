@@ -700,6 +700,14 @@ static int flush_request_receive(VSTREAM *client_stream, VSTRING *request)
     int     count;
 
     /*
+     * Announce the protocol.
+     */
+    attr_print(client_stream, ATTR_FLAG_NONE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_FLUSH),
+	       ATTR_TYPE_END);
+    (void) vstream_fflush(client_stream);
+
+    /*
      * Kluge: choose the protocol depending on the request size.
      */
     if (read_wait(vstream_fileno(client_stream), var_ipc_timeout) < 0) {

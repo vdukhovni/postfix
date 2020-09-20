@@ -341,6 +341,26 @@ static const CONFIG_STR_TABLE str_table[] = {
     0,
 };
 
+/* showq_client - run the appropriate showq protocol client */
+
+static void showq_client(int mode, VSTREAM *showq)
+{
+    if (attr_scan(showq, ATTR_FLAG_STRICT,
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_SHOWQ),
+		  ATTR_TYPE_END) != 0)
+	msg_fatal_status(EX_SOFTWARE, "malformed showq server response");
+    switch (mode) {
+    case PQ_MODE_MAILQ_LIST:
+	showq_compat(showq);
+	break;
+    case PQ_MODE_JSON_LIST:
+	showq_json(showq);
+	break;
+    default:
+	msg_panic("show_queue: unknown mode %d", mode);
+    }
+}
+
 /* show_queue - show queue status */
 
 static void show_queue(int mode)
@@ -361,16 +381,7 @@ static void show_queue(int mode)
      * Connect to the show queue service.
      */
     if ((showq = mail_connect(MAIL_CLASS_PUBLIC, var_showq_service, BLOCKING)) != 0) {
-	switch (mode) {
-	case PQ_MODE_MAILQ_LIST:
-	    showq_compat(showq);
-	    break;
-	case PQ_MODE_JSON_LIST:
-	    showq_json(showq);
-	    break;
-	default:
-	    msg_panic("show_queue: unknown mode %d", mode);
-	}
+	showq_client(mode, showq);
 	if (vstream_fclose(showq))
 	    msg_warn("close: %m");
     }
@@ -407,23 +418,14 @@ static void show_queue(int mode)
 				   CA_VSTREAM_POPEN_END)) == 0) {
 	    stat = -1;
 	} else {
-	    switch (mode) {
-	    case PQ_MODE_MAILQ_LIST:
-		showq_compat(showq);
-		break;
-	    case PQ_MODE_JSON_LIST:
-		showq_json(showq);
-		break;
-	    default:
-		msg_panic("show_queue: unknown mode %d", mode);
-	    }
+	    showq_client(mode, showq);
 	    stat = vstream_pclose(showq);
 	}
 	argv_free(argv);
+	myfree(showq_path);
 	if (stat != 0)
 	    msg_fatal_status(stat < 0 ? EX_OSERR : EX_SOFTWARE,
 			     "Error running %s", showq_path);
-	myfree(showq_path);
     }
 
     /*

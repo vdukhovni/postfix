@@ -79,6 +79,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -121,6 +126,7 @@ int     trace_append(int flags, const char *id, MSG_STATS *stats,
     my_dsn.reason = vstring_str(why);
 
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_trace_service,
+			    MAIL_ATTR_PROTO_BOUNCE,
 			    SEND_ATTR_INT(MAIL_ATTR_NREQ, BOUNCE_CMD_APPEND),
 			    SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 			    SEND_ATTR_STR(MAIL_ATTR_QUEUEID, id),
@@ -145,6 +151,7 @@ int     trace_flush(int flags, const char *queue, const char *id,
 		            const char *dsn_envid, int dsn_ret)
 {
     if (mail_command_client(MAIL_CLASS_PRIVATE, var_trace_service,
+			    MAIL_ATTR_PROTO_BOUNCE,
 			    SEND_ATTR_INT(MAIL_ATTR_NREQ, BOUNCE_CMD_TRACE),
 			    SEND_ATTR_INT(MAIL_ATTR_FLAGS, flags),
 			    SEND_ATTR_STR(MAIL_ATTR_QUEUE, queue),

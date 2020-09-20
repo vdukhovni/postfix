@@ -41,6 +41,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -89,6 +94,15 @@ typedef struct {
 static CLNT_STREAM *proxymap_stream;	/* read-only maps */
 static CLNT_STREAM *proxywrite_stream;	/* read-write maps */
 
+/* dict_proxy_handshake - receive server protocol announcement */
+
+static int dict_proxy_handshake(VSTREAM *stream)
+{
+    return (attr_scan(stream, ATTR_FLAG_STRICT,
+		 RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_PROXYMAP),
+		      ATTR_TYPE_END));
+}
+
 /* dict_proxy_sequence - find first/next entry */
 
 static int dict_proxy_sequence(DICT *dict, int function,
@@ -118,12 +132,13 @@ static int dict_proxy_sequence(DICT *dict, int function,
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
 	count += 1;
-	if (attr_print(stream, ATTR_FLAG_NONE,
-		       SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_SEQUENCE),
-		       SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
-		       SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
-		       SEND_ATTR_INT(MAIL_ATTR_FUNC, function),
-		       ATTR_TYPE_END) != 0
+	if (stream == 0
+	    || attr_print(stream, ATTR_FLAG_NONE,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_SEQUENCE),
+			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
+			  SEND_ATTR_INT(MAIL_ATTR_FUNC, function),
+			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
@@ -131,7 +146,7 @@ static int dict_proxy_sequence(DICT *dict, int function,
 			 RECV_ATTR_STR(MAIL_ATTR_VALUE, dict_proxy->result),
 			 ATTR_TYPE_END) != 3) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: service %s: %m", myname, VSTREAM_PATH(stream));
+		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: table=%s flags=%s func=%d -> status=%d key=%s val=%s",
@@ -196,19 +211,20 @@ static const char *dict_proxy_lookup(DICT *dict, const char *key)
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
 	count += 1;
-	if (attr_print(stream, ATTR_FLAG_NONE,
-		       SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_LOOKUP),
-		       SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
-		       SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
-		       SEND_ATTR_STR(MAIL_ATTR_KEY, key),
-		       ATTR_TYPE_END) != 0
+	if (stream == 0
+	    || attr_print(stream, ATTR_FLAG_NONE,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_LOOKUP),
+			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
+			  SEND_ATTR_STR(MAIL_ATTR_KEY, key),
+			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			 RECV_ATTR_STR(MAIL_ATTR_VALUE, dict_proxy->result),
 			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: service %s: %m", myname, VSTREAM_PATH(stream));
+		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: table=%s flags=%s key=%s -> status=%d result=%s",
@@ -266,19 +282,20 @@ static int dict_proxy_update(DICT *dict, const char *key, const char *value)
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
 	count += 1;
-	if (attr_print(stream, ATTR_FLAG_NONE,
-		       SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_UPDATE),
-		       SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
-		       SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
-		       SEND_ATTR_STR(MAIL_ATTR_KEY, key),
-		       SEND_ATTR_STR(MAIL_ATTR_VALUE, value),
-		       ATTR_TYPE_END) != 0
+	if (stream == 0
+	    || attr_print(stream, ATTR_FLAG_NONE,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_UPDATE),
+			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
+			  SEND_ATTR_STR(MAIL_ATTR_KEY, key),
+			  SEND_ATTR_STR(MAIL_ATTR_VALUE, value),
+			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			 ATTR_TYPE_END) != 1) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: service %s: %m", myname, VSTREAM_PATH(stream));
+		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: table=%s flags=%s key=%s value=%s -> status=%d",
@@ -335,19 +352,20 @@ static int dict_proxy_delete(DICT *dict, const char *key)
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
 	count += 1;
-	if (attr_print(stream, ATTR_FLAG_NONE,
-		       SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_DELETE),
-		       SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
-		       SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
-		       SEND_ATTR_STR(MAIL_ATTR_KEY, key),
-		       ATTR_TYPE_END) != 0
+	if (stream == 0
+	    || attr_print(stream, ATTR_FLAG_NONE,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_DELETE),
+			  SEND_ATTR_STR(MAIL_ATTR_TABLE, dict->name),
+			  SEND_ATTR_INT(MAIL_ATTR_FLAGS, request_flags),
+			  SEND_ATTR_STR(MAIL_ATTR_KEY, key),
+			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			 ATTR_TYPE_END) != 1) {
 	    if (msg_verbose || count > 1 || (errno && errno != EPIPE && errno !=
 					     ENOENT))
-		msg_warn("%s: service %s: %m", myname, VSTREAM_PATH(stream));
+		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: table=%s flags=%s key=%s -> status=%d",
@@ -443,7 +461,8 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
 	    prefix = kludge = concatenate(var_queue_dir, "/",
 					  MAIL_CLASS_PRIVATE, (char *) 0);
 	*pstream = clnt_stream_create(prefix, service, var_ipc_idle_limit,
-				      var_ipc_ttl_limit);
+				      var_ipc_ttl_limit,
+				      dict_proxy_handshake);
 	if (kludge)
 	    myfree(kludge);
 	myfree(relative_path);
@@ -473,18 +492,19 @@ DICT   *dict_proxy_open(const char *map, int open_flags, int dict_flags)
     for (;;) {
 	stream = clnt_stream_access(dict_proxy->clnt);
 	errno = 0;
-	if (attr_print(stream, ATTR_FLAG_NONE,
-		       SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_OPEN),
-		       SEND_ATTR_STR(MAIL_ATTR_TABLE, dict_proxy->dict.name),
+	if (stream == 0
+	    || attr_print(stream, ATTR_FLAG_NONE,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, PROXY_REQ_OPEN),
+		      SEND_ATTR_STR(MAIL_ATTR_TABLE, dict_proxy->dict.name),
 		     SEND_ATTR_INT(MAIL_ATTR_FLAGS, dict_proxy->inst_flags),
-		       ATTR_TYPE_END) != 0
+			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &status),
 			 RECV_ATTR_INT(MAIL_ATTR_FLAGS, &server_flags),
 			 ATTR_TYPE_END) != 2) {
 	    if (msg_verbose || (errno != EPIPE && errno != ENOENT))
-		msg_warn("%s: service %s: %m", VSTREAM_PATH(stream), myname);
+		msg_warn("%s: service %s: %m", myname, dict_proxy->service);
 	} else {
 	    if (msg_verbose)
 		msg_info("%s: connect to map=%s status=%d server_flags=%s",

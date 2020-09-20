@@ -109,12 +109,12 @@ static int qmgr_deliver_initial_reply(VSTREAM *stream)
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);
     } else if (attr_scan(stream, ATTR_FLAG_STRICT,
-			 RECV_ATTR_INT(MAIL_ATTR_STATUS, &stat),
-			 ATTR_TYPE_END) != 1) {
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_DELIVER),
+			 ATTR_TYPE_END) != 0) {
 	msg_warn("%s: malformed response", VSTREAM_PATH(stream));
-	return (DELIVER_STAT_CRASH);
+	return (DELIVER_STAT_DEFER);
     } else {
-	return (stat ? DELIVER_STAT_DEFER : 0);
+	return (0);
     }
 }
 

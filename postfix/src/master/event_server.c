@@ -273,7 +273,6 @@ static unsigned event_server_generation;
 static void (*event_server_pre_disconn) (VSTREAM *, char *, char **);
 static void (*event_server_slow_exit) (char *, char **);
 static int event_server_watchdog = 1000;
-static int event_server_saved_flags;
 
 /* event_server_exit - normal termination */
 
@@ -373,8 +372,7 @@ void    event_server_disconnect(VSTREAM *stream)
 static void event_server_execute(int unused_event, void *context)
 {
     VSTREAM *stream = (VSTREAM *) context;
-    HTABLE *attr = (vstream_flags(stream) == event_server_saved_flags ?
-		    (HTABLE *) vstream_context(stream) : 0);
+    HTABLE *attr = (HTABLE *) vstream_context(stream);
 
     if (event_server_lock != 0
 	&& myflock(vstream_fileno(event_server_lock), INTERNAL_LOCK,
@@ -432,7 +430,6 @@ static void event_server_wakeup(int fd, HTABLE *attr)
 		    CA_VSTREAM_CTL_END);
     myfree(tmp);
     timed_ipc_setup(stream);
-    event_server_saved_flags = vstream_flags(stream);
     if (event_server_in_flow_delay && mail_flow_get(1) < 0)
 	event_request_timer(event_server_execute, (void *) stream,
 			    var_in_flow_delay);

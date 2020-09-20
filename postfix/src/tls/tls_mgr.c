@@ -107,6 +107,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -144,6 +149,15 @@
 
 static ATTR_CLNT *tls_mgr;
 
+/* tls_mgr_handshake - receive server protocol announcement */
+
+static int tls_mgr_handshake(VSTREAM *stream)
+{
+    return (attr_scan(stream, ATTR_FLAG_STRICT,
+		   RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_TLSMGR),
+		      ATTR_TYPE_END));
+}
+
 /* tls_mgr_open - create client handle */
 
 static void tls_mgr_open(void)
@@ -168,6 +182,7 @@ static void tls_mgr_open(void)
 
     attr_clnt_control(tls_mgr,
 		      ATTR_CLNT_CTL_PROTO, attr_vprint, attr_vscan,
+		      ATTR_CLNT_CTL_HANDSHAKE, tls_mgr_handshake,
 		      ATTR_CLNT_CTL_END);
 }
 

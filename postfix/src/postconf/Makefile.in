@@ -9,8 +9,8 @@ OBJS	= postconf.o postconf_builtin.o postconf_edit.o postconf_main.o \
 	postconf_lookup.o postconf_match.o postconf_print.o
 HDRS	= postconf.h
 TESTSRC	=
-DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
-CFLAGS	= $(DEBUG) $(OPT) $(DEFS) -DLEGACY_DBMS_SUPPORT
+DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE) -DLEGACY_DBMS_SUPPORT
+CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
 TESTPROG=
 MAKES	= bool_table.h bool_vars.h int_table.h int_vars.h str_table.h \
 	str_vars.h time_table.h time_vars.h raw_table.h raw_vars.h \

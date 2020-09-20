@@ -528,6 +528,14 @@ static void bounce_service(VSTREAM *client, char *service_name, char **argv)
 	msg_fatal("malformed service name: %s", service_name);
 
     /*
+     * Announce the protocol.
+     */
+    attr_print(client, ATTR_FLAG_NONE,
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_BOUNCE),
+	       ATTR_TYPE_END);
+    (void) vstream_fflush(client);
+
+    /*
      * Read and validate the first parameter of the client request. Let the
      * request-specific protocol routines take care of the remainder.
      */

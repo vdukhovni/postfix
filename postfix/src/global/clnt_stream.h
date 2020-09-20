@@ -20,9 +20,12 @@
   * External interface.
   */
 typedef struct CLNT_STREAM CLNT_STREAM;
+typedef int (*CLNT_STREAM_HANDSHAKE_FN)(VSTREAM *);
 
-extern CLNT_STREAM *clnt_stream_create(const char *, const char *, int, int);
+extern CLNT_STREAM *clnt_stream_create(const char *, const char *, int, int,
+				               CLNT_STREAM_HANDSHAKE_FN);
 extern VSTREAM *clnt_stream_access(CLNT_STREAM *);
+extern const char *clnt_stream_path(CLNT_STREAM *);
 extern void clnt_stream_recover(CLNT_STREAM *);
 extern void clnt_stream_free(CLNT_STREAM *);
 
@@ -35,6 +38,11 @@ extern void clnt_stream_free(CLNT_STREAM *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif

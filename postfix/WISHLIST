@@ -1,5 +1,23 @@
 Wish list:
 
+	Does tlsproxy terminate to soon after 'postfix reload'?
+
+	The documented order of relay/recipient restrictions differs
+	from the implementation. This may need a new compatibility
+	parameter. For example:
+	http://postfix.1071664.n5.nabble.com/Relay-attempt-questions-td103646.html
+
+	Hardening the half-dane behavior: some sites may rely on
+	current behavior which allows original MX domain name for
+	certificate matches. Requires a new (compatibility) parameter
+	setting?
+
+	multi_server applications could be migrated to event_server;
+	after accept(), they would have to set up their own read
+	event callback for handling requests.
+
+	Maybe expand %m to "application error" when errno == 0.
+
 	smtp_sasl_tls_security_options = noanonymous, and make
 	smtp_sasl_security_options default dependent on the
 	smtp_sasl_tls_security_options default (i.e. reverse the

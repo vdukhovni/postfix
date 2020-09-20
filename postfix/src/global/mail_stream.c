@@ -105,6 +105,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -440,7 +445,8 @@ MAIL_STREAM *mail_stream_service(const char *class, const char *name)
 	id_buf = vstring_alloc(10);
 
     stream = mail_connect_wait(class, name);
-    if (attr_scan(stream, ATTR_FLAG_MISSING,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_CLEANUP),
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id_buf), 0) != 1) {
 	vstream_fclose(stream);
 	return (0);
@@ -492,7 +498,8 @@ MAIL_STREAM *mail_stream_command(const char *command)
 		    CA_VSTREAM_CTL_PATH(command),
 		    CA_VSTREAM_CTL_END);
 
-    if (attr_scan(stream, ATTR_FLAG_MISSING,
+    if (attr_scan(stream, ATTR_FLAG_STRICT,
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_POSTDROP),
 		  RECV_ATTR_STR(MAIL_ATTR_QUEUEID, id_buf), 0) != 1) {
 	if ((status = vstream_pclose(stream)) != 0)
 	    msg_warn("command \"%s\" exited with status %d", command, status);

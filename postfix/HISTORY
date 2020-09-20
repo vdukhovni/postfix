@@ -25057,6 +25057,8 @@ Apologies for any names omitted.
 	mantools/man2html, mantools/readme2html, proto/*_README.html,
 	proto/INSTALL.html, proto/postconf.html.prolog, html/index.html.
 
+20200830
+
 	Refactor: moved the SASL mechanism filter code from the
 	Postfix SMTP client to a library module, so that it can be
 	reused in the Postfix SMTP server. Files: smtp/smtp_sasl_proto.c,
@@ -25071,3 +25073,83 @@ Apologies for any names omitted.
 	wants to anounce EXTERNAL support for which Postfix support
 	does not exist. Files: smtpd/smtpd.[hc], smtpd_sasl_glue.[hc],
 	global/mail_params.h, proto/postconf.proto, mantools/postlink.
+
+20200906
+
+	Cleanup: missing file. File: src/postqueue/.indent.pro.
+
+	Cleanup: uninitialized value in unit test code. File:
+	global/haproxy_srvr.c.
+
+	Cleanup: duplicate 'const' in argument declaration. File:
+	src/global/sasl_mech_filter.c.
+
+20200906-18
+
+	Baseline is postfix-3.6-20200906.
+
+	Other debt: internal protocol identification. Each server
+	sends the name of the internal protocol that it implements,
+	and each client logs a warning if it receives the wrong
+	protocol name. With this, a client-server mismatch results
+	in a better error message. It is a good idea to "postfix
+	stop" before updating, or before backing out to an earlier
+	relase. To make this work consistently, a few internal
+	protocols were converted from "client speaks first" to
+	"server speaks first". Files: anvil/anvil.c, bounce/bounce.c,
+	cleanup/cleanup.c, flush/flush.c, global/abounce.c,
+	global/anvil_clnt.c, global/bounce.c, global/clnt_stream.c,
+	global/clnt_stream.h, global/defer.c, global/deliver_pass.c,
+	global/deliver_request.c, global/dict_proxy.c, global/flush_clnt.c,
+	global/mail_command_client.c, global/mail_proto.h,
+	global/mail_stream.c, global/mail_version.h, global/post_mail.c,
+	global/resolve_clnt.c, global/rewrite_clnt.c, global/scache_clnt.c,
+	global/trace.c, global/verify_clnt.c, local/forward.c,
+	master/event_server.c, master/mail_server.h, master/multi_server.c,
+	oqmgr/qmgr_deliver.c, pickup/pickup.c, postdrop/postdrop.c,
+	postqueue/postqueue.c, postscreen/postscreen_starttls.c,
+	proxymap/proxymap.c, qmgr/qmgr_deliver.c, scache/scache.c,
+	showq/showq.c, tls/tls_mgr.c, tls/tls_proxy_clnt.c,
+	tlsmgr/tlsmgr.c, tlsproxy/tlsproxy.c,
+	trivial-rewrite/trivial-rewrite.c, util/attr.h, util/attr_clnt.c,
+	util/attr_clnt.h, util/attr_print0.c, util/attr_print64.c,
+	util/attr_print_plain.c, util/attr_scan0.c, util/attr_scan64.c,
+	util/attr_scan_plain.c, util/auto_clnt.c, util/auto_clnt.h,
+	verify/verify.c.
+
+	Debt: during the conversion of some internal protocols to
+	"server speaks first", took the opportunity to improve how
+	event-driven client implementations handle a server that
+	is locked up.  Files: global/abounce.c,
+	postscreen/postscreen_starttls.c.
+
+20200919
+
+	Cleanup: eliminated a silly optimization for lazy clients
+	that read the "server speaks first" protocol announcement
+	after sending a client request. Files: src/anvil/anvil.c,
+	src/bounce/bounce.c, src/flush/flush.c, src/global/abounce.c,
+	src/global/anvil_clnt.c, src/global/deliver_pass.c,
+	src/global/deliver_request.c, src/global/dict_proxy.c,
+	src/global/mail_command_client.c, src/global/mail_stream.c,
+	src/global/resolve_clnt.c, src/global/rewrite_clnt.c,
+	src/global/scache_clnt.c, src/global/verify_clnt.c,
+	src/local/forward.c, src/oqmgr/qmgr_deliver.c, src/pickup/pickup.c,
+	src/postqueue/postqueue.c, src/postscreen/postscreen_starttls.c,
+	src/proxymap/proxymap.c, src/qmgr/qmgr_deliver.c,
+	src/scache/scache.c, src/showq/showq.c, src/tlsmgr/tlsmgr.c,
+	src/tlsproxy/tlsproxy.c, src/tls/tls_mgr.c,
+	src/tls/tls_proxy_clnt.c, src/trivial-rewrite/trivial-rewrite.c,
+	src/verify/verify.c.
+
+	Cleanup: factored out some duplicate showq client code.
+	File: postqueue/postqueue.c.
+
+20200920
+
+	Cleanup: deleted the percentm module. It was obsoleted in
+	19971027 by the vbuf_print() string formatter for VSTREAM
+	and VSTRING objects. Files: util/percentm.[hc].
+
+	Cleanup: replaced hard-coded 'private' with named constant.
+	File: global/scache_clnt.c.

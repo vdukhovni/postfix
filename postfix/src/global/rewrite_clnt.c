@@ -39,6 +39,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -76,6 +81,15 @@ static time_t last_expire;
 static VSTRING *last_rule;
 static VSTRING *last_addr;
 static VSTRING *last_result;
+
+/* rewrite_clnt_handshake - receive server protocol announcement */
+
+static int rewrite_clnt_handshake(VSTREAM *stream)
+{
+    return (attr_scan(stream, ATTR_FLAG_STRICT,
+		  RECV_ATTR_STREQ(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_TRIVIAL),
+		      ATTR_TYPE_END));
+}
 
 /* rewrite_clnt - rewrite address to (transport, next hop, recipient) */
 
@@ -127,17 +141,19 @@ VSTRING *rewrite_clnt(const char *rule, const char *addr, VSTRING *result)
 	rewrite_clnt_stream = clnt_stream_create(MAIL_CLASS_PRIVATE,
 						 var_rewrite_service,
 						 var_ipc_idle_limit,
-						 var_ipc_ttl_limit);
+						 var_ipc_ttl_limit,
+						 rewrite_clnt_handshake);
 
     for (;;) {
 	stream = clnt_stream_access(rewrite_clnt_stream);
 	errno = 0;
 	count += 1;
-	if (attr_print(stream, ATTR_FLAG_NONE,
-		       SEND_ATTR_STR(MAIL_ATTR_REQ, REWRITE_ADDR),
-		       SEND_ATTR_STR(MAIL_ATTR_RULE, rule),
-		       SEND_ATTR_STR(MAIL_ATTR_ADDR, addr),
-		       ATTR_TYPE_END) != 0
+	if (stream == 0
+	    || attr_print(stream, ATTR_FLAG_NONE,
+			  SEND_ATTR_STR(MAIL_ATTR_REQ, REWRITE_ADDR),
+			  SEND_ATTR_STR(MAIL_ATTR_RULE, rule),
+			  SEND_ATTR_STR(MAIL_ATTR_ADDR, addr),
+			  ATTR_TYPE_END) != 0
 	    || vstream_fflush(stream)
 	    || attr_scan(stream, ATTR_FLAG_STRICT,
 			 RECV_ATTR_INT(MAIL_ATTR_FLAGS, &server_flags),

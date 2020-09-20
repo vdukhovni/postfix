@@ -92,6 +92,11 @@
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 /* System library. */
@@ -135,13 +140,13 @@ static int deliver_request_initial(VSTREAM *stream)
      * delivery request; otherwise the queue manager could block in write().
      */
     if (msg_verbose)
-	msg_info("deliver_request_initial: send initial status");
+	msg_info("deliver_request_initial: send initial response");
     attr_print(stream, ATTR_FLAG_NONE,
-	       SEND_ATTR_INT(MAIL_ATTR_STATUS, 0),
+	       SEND_ATTR_STR(MAIL_ATTR_PROTO, MAIL_ATTR_PROTO_DELIVER),
 	       ATTR_TYPE_END);
     if ((err = vstream_fflush(stream)) != 0)
 	if (msg_verbose)
-	    msg_warn("send initial status: %m");
+	    msg_warn("send initial response: %m");
     return (err);
 }
 
