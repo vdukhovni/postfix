@@ -938,22 +938,22 @@ vbuf_print_test: vbuf_print vbuf_print_test.in vbuf_print_test.ref
 	rm -f vbuf_print_test.tmp
 
 dict_union_test: dict_open dict_union_test.in dict_union_test.ref
-	 $(SHLIB_ENV) sh -x dict_union_test.in >dict_union_test.tmp 2>&1
+	$(SHLIB_ENV) ${VALGRIND} sh -x dict_union_test.in >dict_union_test.tmp 2>&1
 	diff dict_union_test.ref dict_union_test.tmp
 	rm -f dict_union_test.tmp
 
 dict_pipe_test: dict_open dict_pipe_test.in dict_pipe_test.ref
-	 $(SHLIB_ENV) sh -x dict_pipe_test.in >dict_pipe_test.tmp 2>&1
+	$(SHLIB_ENV) ${VALGRIND} sh -x dict_pipe_test.in >dict_pipe_test.tmp 2>&1
 	diff dict_pipe_test.ref dict_pipe_test.tmp
 	rm -f dict_pipe_test.tmp
 
 vstring_test: dict_open vstring vstring_test.ref
-	 $(SHLIB_ENV) ./vstring one two three >vstring_test.tmp 2>&1
+	$(SHLIB_ENV) ${VALGRIND} ./vstring one two three >vstring_test.tmp 2>&1
 	diff vstring_test.ref vstring_test.tmp
 	rm -f vstring_test.tmp
 
-vstream_test: dict_open vstream vstream_test.in vstream_test.ref
-	$(SHLIB_ENV) ./vstream <vstream_test.in >vstream_test.tmp 2>&1
+vstream_test: vstream vstream_test.in vstream_test.ref
+	$(SHLIB_ENV) ${VALGRIND} ./vstream <vstream_test.in >vstream_test.tmp 2>&1
 	diff vstream_test.ref vstream_test.tmp
 	rm -f vstream_test.tmp
 

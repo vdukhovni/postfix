@@ -25153,3 +25153,21 @@ Apologies for any names omitted.
 
 	Cleanup: replaced hard-coded 'private' with named constant.
 	File: global/scache_clnt.c.
+
+	Bugfix (introduced: Postfix 2.3): when deleting a recipient
+	with a milter, delete the recipient from the duplicate
+	filter, so that the recipient can be added back. Files:
+	global/been_here.[hc], cleanup/cleanup_milter.c,
+	cleanup/Makefile.in, lots of cleanup unit test files.
+
+20200925
+
+	Cleanup: vstream_fseek() support for reading or writing
+	memory buffer streams, and minor cleanups in VSTREAM support
+	for reading/writing VSTRINGs. Also added unit tests. Files:
+	util/vstream.c, util/vstring.h.
+
+	Bugfix (introduced: before Postfix alpha): the code that
+	looks for Delivered-To: headers ignored headers longer than
+	$line_length_limit. Also added unit tests. File:
+	global/delivered_hdr.c.

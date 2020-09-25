@@ -684,6 +684,8 @@ static void vstream_buf_alloc(VBUF *bp, ssize_t len)
      */
     bp->data = (unsigned char *)
 	(bp->data ? myrealloc((void *) bp->data, len) : mymalloc(len));
+    if (bp->flags & VSTREAM_FLAG_MEMORY)
+	memset(bp->data + bp->len, 0, len - bp->len);
     bp->len = len;
     if (bp->flags & VSTREAM_FLAG_READ) {
 	bp->ptr = bp->data + used;
@@ -1148,25 +1150,25 @@ off_t   vstream_fseek(VSTREAM *stream, off_t offset, int whence)
 
     /*
      * TODO: support data length (data length != buffer length). Without data
-     * length information, vstream_fseek() would break vstream_fflush() for
-     * memory streams.
+     * length information, Without explicit data length information,
+     * vstream_memopen(O_RDONLY) has to set the VSTREAM buffer length to the
+     * vstring payload length to avoid accessing unwritten data after
+     * vstream_fseek(), because for lseek() compatibility, vstream_fseek()
+     * must allow seeking past the end of a file.
      */
     if (stream->buf.flags & VSTREAM_FLAG_MEMORY) {
-#ifdef PENDING_VSTREAM_FSEEK_FOR_MEMORY
 	if (whence == SEEK_CUR)
 	    offset += (bp->ptr - bp->data);
 	else if (whence == SEEK_END)
 	    offset += bp->len;
-	if (offset < 0 || offset > bp->data_len) {
+	if (offset < 0) {
 	    errno = EINVAL;
 	    return (-1);
 	}
+	if (offset > bp->len && (bp->flags & VSTREAM_FLAG_WRITE))
+	    vstream_buf_space(bp, offset - bp->len);
 	VSTREAM_BUF_AT_OFFSET(bp, offset);
 	return (offset);
-#else
-	errno = EOPNOTSUPP;
-	return (-1);
-#endif
     }
 
     /*
@@ -1351,9 +1353,10 @@ int     vstream_fflush(VSTREAM *stream)
 
     /*
      * With VSTRING, the write pointer must be positioned behind the end of
-     * data. Without knowing the actual data length, VSTREAM can't support
-     * vstream_fseek() for memory streams, because vstream_fflush() would
-     * leave the VSTRING in a broken state.
+     * data. But vstream_fseek() changes the write position, and causes the
+     * data length to be forgotten. Before flushing to vstream, remember the
+     * current write position, move the write pointer and do what needs to be
+     * done, then move the write pointer back to the saved location.
      */
     if (stream->buf.flags & VSTREAM_FLAG_MEMORY) {
 	if (stream->buf.flags & VSTREAM_FLAG_WRITE) {
@@ -1363,6 +1366,7 @@ int     vstream_fflush(VSTREAM *stream)
 	    VSTREAM_BUF_AT_OFFSET(&stream->buf, stream->buf.data_len);
 #endif
 	    memcpy(&string->vbuf, &stream->buf, sizeof(stream->buf));
+	    string->vbuf.flags &= VSTRING_FLAG_MASK;
 	    VSTRING_TERMINATE(string);
 	}
 	return (0);
@@ -1770,6 +1774,7 @@ VSTREAM *vstream_memreopen(VSTREAM *stream, VSTRING *string, int flags)
     switch (VSTREAM_ACC_MASK(flags)) {
     case O_RDONLY:
 	stream->buf.flags |= VSTREAM_FLAG_READ;
+	/* Prevent reading unwritten data after vstream_fseek(). */
 	stream->buf.len = stream->buf.ptr - stream->buf.data;
 	VSTREAM_BUF_AT_OFFSET(&stream->buf, 0);
 	break;
@@ -1779,7 +1784,8 @@ VSTREAM *vstream_memreopen(VSTREAM *stream, VSTRING *string, int flags)
 	break;
     case O_APPEND:
 	stream->buf.flags |= VSTREAM_FLAG_WRITE;
-	VSTREAM_BUF_AT_END(&stream->buf);
+	VSTREAM_BUF_AT_OFFSET(&stream->buf,
+			      stream->buf.ptr - stream->buf.data);
 	break;
     default:
 	msg_panic("vstream_memopen: flags must be one of "
@@ -1794,6 +1800,14 @@ static void copy_line(ssize_t bufsize)
 {
     int     c;
 
+    /*
+     * Demonstrates that VSTREAM_CTL_BUFSIZE increases the buffer size, but
+     * does not decrease it. Uses VSTREAM_ERR for non-test output to avoid
+     * interfering with the test.
+     */
+    vstream_fprintf(VSTREAM_ERR, "buffer size test: copy text with %ld buffer size, ignore requests to shrink\n",
+		    (long) bufsize);
+    vstream_fflush(VSTREAM_ERR);
     vstream_control(VSTREAM_IN, CA_VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
     vstream_control(VSTREAM_OUT, CA_VSTREAM_CTL_BUFSIZE(bufsize), VSTREAM_CTL_END);
     while ((c = VSTREAM_GETC(VSTREAM_IN)) != VSTREAM_EOF) {
@@ -1802,59 +1816,141 @@ static void copy_line(ssize_t bufsize)
 	    break;
     }
     vstream_fflush(VSTREAM_OUT);
+    vstream_fprintf(VSTREAM_ERR, "actual read/write buffer sizes: %ld/%ld\n\n",
+		    (long) VSTREAM_IN->buf.len, (long) VSTREAM_OUT->buf.len);
+    vstream_fflush(VSTREAM_ERR);
 }
 
 static void printf_number(void)
 {
-    vstream_printf("%d\n", 1234567890);
+
+    /*
+     * Demonstrates that vstream_printf() use vbuf_print().
+     */
+    vstream_printf("formatting test: print a number\n");
+    vstream_printf("%d\n\n", 1234567890);
     vstream_fflush(VSTREAM_OUT);
 }
 
 static void do_memory_stream(void)
 {
     VSTRING *buf = vstring_alloc(1);
-    VSTREAM *fp = vstream_memopen(buf, O_WRONLY);
-
-#ifdef PENDING_VSTREAM_FSEEK_FOR_MEMORY
+    VSTREAM *fp;
     off_t   offset;
-
-#endif
     int     ch;
 
-    vstream_fprintf(fp, "hallo world\n");
+    /*
+     * Preload the string.
+     */
+    vstream_printf("memory stream test prep: prefill the VSTRING\n");
+    vstring_strcpy(buf, "01234567");
+    vstream_printf("VSTRING content length: %ld/%ld, content: %s\n",
+		   (long) VSTRING_LEN(buf), (long) buf->vbuf.len,
+		   vstring_str(buf));
+    VSTREAM_PUTCHAR('\n');
+    vstream_fflush(VSTREAM_OUT);
+
+    /*
+     * Test: open the memory VSTREAM in write-only mode, and clobber it.
+     */
+    vstream_printf("memory stream test: open the VSTRING for writing, overwrite, close\n");
+    fp = vstream_memopen(buf, O_WRONLY);
+    vstream_printf("initial memory VSTREAM write offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
+    vstream_fprintf(fp, "hallo");
+    vstream_printf("final memory VSTREAM write offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
+    vstream_fclose(fp);
+    vstream_printf("VSTRING content length: %ld/%ld, content: %s\n",
+		   (long) VSTRING_LEN(buf), (long) buf->vbuf.len,
+		   vstring_str(buf));
+    VSTREAM_PUTCHAR('\n');
+    vstream_fflush(VSTREAM_OUT);
+
+    /*
+     * Test: open the memory VSTREAM for append. vstream_memopen() sets the
+     * buffer length to the VSTRING buffer length, and positions the write
+     * pointer at the VSTRING write position. Write some content, then
+     * overwrite one character.
+     */
+    vstream_printf("memory stream test: open the VSTRING for append, write multiple, then overwrite 1\n");
+    fp = vstream_memopen(buf, O_APPEND);
+    vstream_printf("initial memory VSTREAM write offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
+    vstream_fprintf(fp, " world");
+    vstream_printf("final memory VSTREAM write offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
     if (vstream_fflush(fp))
 	msg_fatal("vstream_fflush: %m");
-    vstream_printf("final memory stream write offset: %ld\n",
-		   (long) vstream_ftell(fp));
-#ifdef PENDING_VSTREAM_FSEEK_FOR_MEMORY
-    vstream_fflush(fp);
-    vstream_printf("buffer size: %ld, content: %s",
-		   (long) VSTRING_LEN(buf), vstring_str(buf));
+    vstream_printf("VSTRING content length: %ld/%ld, content: %s\n",
+		   (long) VSTRING_LEN(buf), (long) buf->vbuf.len,
+		   vstring_str(buf));
+    VSTREAM_PUTCHAR('\n');
+
+    /*
+     * While the stream is still open, replace the second character.
+     */
+    vstream_printf("replace second character and close\n");
     if ((offset = vstream_fseek(fp, 1, SEEK_SET)) != 1)
 	msg_panic("unexpected vstream_fseek return: %ld, expected: %ld",
 		  (long) offset, (long) 1);
     VSTREAM_PUTC('e', fp);
-#endif
+
+    /*
+     * Skip to the end of the content, so that vstream_fflush() will update
+     * the VSTRING with the right content length.
+     */
+    if ((offset = vstream_fseek(fp, VSTRING_LEN(buf), SEEK_SET)) != VSTRING_LEN(buf))
+	msg_panic("unexpected vstream_fseek return: %ld, expected: %ld",
+		  (long) offset, (long) VSTRING_LEN(buf));
     vstream_fclose(fp);
 
-    vstream_printf("buffer size: %ld, content: %s",
-		   (long) VSTRING_LEN(buf), vstring_str(buf));
+    vstream_printf("VSTRING content length: %ld/%ld, content: %s\n",
+		   (long) VSTRING_LEN(buf), (long) buf->vbuf.len,
+		   vstring_str(buf));
+    VSTREAM_PUTCHAR('\n');
     vstream_fflush(VSTREAM_OUT);
 
+    /*
+     * TODO: test that in write/append mode, seek past the end of data will
+     * result in zero-filled space.
+     */
+
+    /*
+     * Test: Open the VSTRING for reading. This time, vstream_memopen() will
+     * set the VSTREAM buffer length to the content length of the VSTRING, so
+     * that it won't attempt to read past the end of the content.
+     */
+    vstream_printf("memory stream test: open VSTRING for reading, then read\n");
     fp = vstream_memopen(buf, O_RDONLY);
-    vstream_printf("reading memory stream: ");
+    vstream_printf("initial memory VSTREAM read offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
+    vstream_printf("reading memory VSTREAM: ");
     while ((ch = VSTREAM_GETC(fp)) != VSTREAM_EOF)
 	VSTREAM_PUTCHAR(ch);
-#ifdef PENDING_VSTREAM_FSEEK_FOR_MEMORY
-    vstream_printf("reading memory stream from offset 6: ");
-    if ((offset = vstream_fseek(fp, 6, SEEK_SET)) != 6)
+    VSTREAM_PUTCHAR('\n');
+    vstream_printf("final memory VSTREAM read offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
+    vstream_printf("seeking to offset %ld should work: ",
+		   (long) fp->buf.len + 1);
+    vstream_fflush(VSTREAM_OUT);
+    if ((offset = vstream_fseek(fp, fp->buf.len + 1, SEEK_SET)) != fp->buf.len + 1)
 	msg_panic("unexpected vstream_fseek return: %ld, expected: %ld",
-		  (long) offset, (long) 6);
-    while ((ch = VSTREAM_GETC(fp)) != VSTREAM_EOF)
-	VSTREAM_PUTCHAR(ch);
-#endif
-    vstream_printf("final memory stream read offset: %ld\n",
-		   (long) vstream_ftell(fp));
+		  (long) offset, (long) fp->buf.len + 1);
+    vstream_printf("PASS\n");
+    vstream_fflush(VSTREAM_OUT);
+    vstream_printf("VSTREAM_GETC should return VSTREAM_EOF\n");
+    ch = VSTREAM_GETC(fp);
+    if (ch != VSTREAM_EOF)
+	msg_panic("unexpected vstream_fseek VSTREAM_GETC return: %d, expected: %d",
+		  ch, VSTREAM_EOF);
+    vstream_printf("PASS\n");
+    vstream_printf("final memory VSTREAM read offset: %ld/%ld\n",
+		   (long) vstream_ftell(fp), (long) fp->buf.len);
+    vstream_printf("VSTRING content length: %ld/%ld, content: %s\n",
+		   (long) VSTRING_LEN(buf), (long) buf->vbuf.len,
+		   vstring_str(buf));
+    VSTREAM_PUTCHAR('\n');
     vstream_fflush(VSTREAM_OUT);
     vstream_fclose(fp);
     vstring_free(buf);
@@ -1863,14 +1959,18 @@ static void do_memory_stream(void)
  /*
   * Exercise some of the features.
   */
+
+#include <msg_vstream.h>
+
 int     main(int argc, char **argv)
 {
+    msg_vstream_init(argv[0], VSTREAM_ERR);
 
     /*
      * Test buffer expansion and shrinking. Formatted print may silently
      * expand the write buffer and cause multiple bytes to be written.
      */
-    copy_line(1);			/* one-byte read/write */
+    copy_line(1);				/* one-byte read/write */
     copy_line(2);				/* two-byte read/write */
     copy_line(1);				/* two-byte read/write */
     printf_number();				/* multi-byte write */

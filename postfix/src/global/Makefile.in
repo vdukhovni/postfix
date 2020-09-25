@@ -125,7 +125,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
-	haproxy_srvr map_search
+	haproxy_srvr map_search delivered_hdr
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -393,6 +393,9 @@ haproxy_srvr: haproxy_srvr.c $(LIB) $(LIBS)
 map_search: map_search.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+delivered_hdr: delivered_hdr.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
@@ -400,7 +403,8 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	safe_ultostr_test mail_parm_split_test fold_addr_test \
 	smtp_reply_footer_test off_cvt_test mail_addr_crunch_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
-	normalize_mailhost_addr_test haproxy_srvr_test map_search_test
+	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
+	delivered_hdr_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -727,6 +731,11 @@ map_search_test: update map_search map_search.ref
 	-$(SHLIB_ENV) $(VALGRIND) ./map_search >map_search.tmp 2>&1
 	diff map_search.ref map_search.tmp
 	rm -f map_search.tmp
+
+delivered_hdr_test: update delivered_hdr delivered_hdr.ref
+	-$(SHLIB_ENV) $(VALGRIND) ./delivered_hdr >delivered_hdr.tmp 2>&1
+	diff delivered_hdr.ref delivered_hdr.tmp
+	rm -f delivered_hdr.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck

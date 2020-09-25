@@ -29,9 +29,6 @@ Wish list:
 	Update makedefs and sys-defs.h for current Linux kernels and
 	*BSD releases.
 
-	When deleting a recipient with a milter, delete the recipient from
-	the duplicate filter, so that the recipient can be added back.
-
 	DNS wrapper class, like XSASL, to support different stub
 	resolvers without contaminating Postfix programs with the
 	idiosyncracies of stub resolvers. Handle differences in
