@@ -361,9 +361,16 @@ SMTP(8)                                                                SMTP(8)
 
        Available in Postfix 3.5 and later:
 
-       <b>info_log_address_format (external)</b>
+       <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
               The  email  address  form that will be used in non-debug logging
               (info, warning, etc.).
+
+       Available in Postfix 3.6 and later:
+
+       <b><a href="postconf.5.html#dnssec_probe">dnssec_probe</a> (ns:.)</b>
+              The DNS query type (default: "ns") and DNS query name  (default:
+              ".")  that Postfix may use to determine whether DNSSEC is avail-
+              able.
 
 <b>MIME PROCESSING CONTROLS</b>
        Available in Postfix version 2.0 and later:

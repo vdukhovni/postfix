@@ -4218,6 +4218,13 @@ extern int var_postlogd_watchdog;
 #define DEF_INFO_LOG_ADDR_FORM	INFO_LOG_ADDR_FORM_NAME_EXTERNAL
 extern char *var_info_log_addr_form;
 
+ /*
+  * DNSSEC probing, to find out if DNSSEC validation is available.
+  */
+#define VAR_DNSSEC_PROBE	"dnssec_probe"
+#define DEF_DNSSEC_PROBE	"ns:."
+extern char *var_dnssec_probe;
+
 /* LICENSE
 /* .ad
 /* .fi

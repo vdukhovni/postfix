@@ -256,7 +256,12 @@ extern int dns_get_h_errno(void);
 	(lflags), (ltype))
 
  /*
-  * Request flags.
+  * The dns_lookup() rflag that requests DNSSEC validation.
+  */
+#define DNS_WANT_DNSSEC_VALIDATION(rflags)      ((rflags) & RES_USE_DNSSEC)
+
+ /*
+  * lflags.
   */
 #define DNS_REQ_FLAG_STOP_OK	(1<<0)
 #define DNS_REQ_FLAG_STOP_INVAL	(1<<1)
@@ -320,6 +325,18 @@ extern int dns_rr_filter_execute(DNS_RR **);
   * dns_str_resflags.c
   */
 const char *dns_str_resflags(unsigned long);
+
+ /*
+  * dns_sec.c.
+  */
+#define DNS_SEC_FLAG_AVAILABLE	(1<<0)	/* got some DNSSEC validated reply */
+#define DNS_SEC_FLAG_DONT_PROBE	(1<<1)	/* probe already sent, or disabled */
+
+#define DNS_SEC_STATS_SET(flags) (dns_sec_stats |= (flags))
+#define DNS_SEC_STATS_TEST(flags) (dns_sec_stats & (flags))
+
+extern int dns_sec_stats;		/* See flags below */
+extern void dns_sec_probe(int);
 
 /* LICENSE
 /* .ad

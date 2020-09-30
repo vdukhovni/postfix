@@ -25171,3 +25171,15 @@ Apologies for any names omitted.
 	looks for Delivered-To: headers ignored headers longer than
 	$line_length_limit. Also added unit tests. File:
 	global/delivered_hdr.c.
+
+20200930
+
+	Feature: when a Postfix program makes a DNS query that
+	requests DNSSEC validation (usually for Postfix DANE support)
+	but the DNS response is not DNSSEC validated, Postfix will
+	send a DNS query configured with the "dnssec_probe" parameter
+	to determine if DNSSEC support is available, and logs a
+	warning if it is not. By default, the probe has type "ns"
+	and domain name ".". The probe is sent once per process
+	lifetime. Files: dns/dns.h, dns/dns_lookup.c, dns/dns_sec.c,
+	test_dns_lookup.c.

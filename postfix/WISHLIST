@@ -2,19 +2,32 @@ Wish list:
 
 	Does tlsproxy terminate to soon after 'postfix reload'?
 
+	touch all files that contain Binfo_log_address_format
+	then re-generate manpages.
+
 	The documented order of relay/recipient restrictions differs
 	from the implementation. This may need a new compatibility
 	parameter. For example:
 	http://postfix.1071664.n5.nabble.com/Relay-attempt-questions-td103646.html
+
+	check_mumble_mx_access also generates synthetic MX records
+	i.e. A/AAAA where no MX exists.
+
+	Someone suggested adding References: and In-Reply-To: headers
+	in bounce messages. Downside: that will make it harder to
+	delete a bounce without deleting other mail. Therefore do
+	not enable by defalut.
 
 	Hardening the half-dane behavior: some sites may rely on
 	current behavior which allows original MX domain name for
 	certificate matches. Requires a new (compatibility) parameter
 	setting?
 
-	multi_server applications could be migrated to event_server;
-	after accept(), they would have to set up their own read
-	event callback for handling requests.
+	Code deduplication: migrate multi_server applications to
+	event_server. In addition to the default event_server
+	accept() handler, also register a read event callback for
+	handling post_accept events. But the currrent multi_server
+	API foits typical usage better.
 
 	Maybe expand %m to "application error" when errno == 0.
 

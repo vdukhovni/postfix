@@ -330,6 +330,11 @@
 /* .IP "\fBinfo_log_address_format (external)\fR"
 /*	The email address form that will be used in non-debug logging
 /*	(info, warning, etc.).
+/* .PP
+/*	Available in Postfix 3.6 and later:
+/* .IP "\fBdnssec_probe (ns:.)\fR"
+/*	The DNS query type (default: "ns") and DNS query name (default:
+/*	".") that Postfix may use to determine whether DNSSEC is available.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi
