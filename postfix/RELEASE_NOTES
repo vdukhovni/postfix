@@ -25,13 +25,24 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20201003
+====================================
+
+The Postfix build system will no longer automatically disable DNSSEC
+support when it determines that Postfix will use libc-musl. Instead,
+Postfix will rely on the new dnssec_probe feature to determine at
+runtime if DNSSEC validation is available. DNSSEC support may be
+broken for reasons other than compatibility issues with the libc
+implementation.
+
 Major changes with snapshot 20200930
 ====================================
 
-The dnssec_probe parameter specifies the DNS query type (default:
-"ns") and DNS query name (default: ".") that Postfix may use to
-determine whether DNSSEC validation is available. Specify an empty
-value to disable this feature.
+When a Postfix process requires DNSSEC support (typically, for
+Postfix DANE support), the process may do a one-time test to determine
+if DNSSEC validation is available. DNSSEC support may be broken
+because of local configuration, libc incompatibility, or network
+infrastructure issues.
 
 Background: DNSSEC validation is needed for Postfix DANE support;
 this ensures that Postfix receives TLSA records with secure TLS
@@ -39,6 +50,11 @@ server certificate info. When DNSSEC validation is unavailable,
 mail deliveries using opportunistic DANE will not be protected by
 server certificate info in TLSA records, and mail deliveries using
 mandatory DANE will not be made at all.
+
+The dnssec_probe parameter specifies the DNS query type (default:
+"ns") and DNS query name (default: ".") that Postfix may use to
+determine whether DNSSEC validation is available. Specify an empty
+value to disable this feature.
 
 By default, a Postfix process will send a DNSSEC probe after 1) the
 process made a DNS query that requested DNSSEC validation, 2) the
@@ -48,7 +64,11 @@ DNSSEC probe.
 
 When the DNSSEC probe has no response, or when the response is not
 DNSSEC validated, Postfix logs a warning that DNSSEC validation may
-be unavailable.
+be unavailable. Examples:
+
+warning: DNSSEC validation may be unavailable
+warning: reason: dnssec_probe 'ns:.' received a response that is not DNSSEC validated
+warning: reason: dnssec_probe 'ns:.' received no response: Server failure
 
 Incompatible change with snapshot 20200920
 ==========================================

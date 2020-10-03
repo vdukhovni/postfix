@@ -2,8 +2,9 @@ Wish list:
 
 	Does tlsproxy terminate to soon after 'postfix reload'?
 
-	touch all files that contain Binfo_log_address_format
-	then re-generate manpages.
+	Understand what happens with DNSSEC related status fields 
+	in posttls-finger when resolv.conf points to a host that
+	runs no DNS server.
 
 	The documented order of relay/recipient restrictions differs
 	from the implementation. This may need a new compatibility

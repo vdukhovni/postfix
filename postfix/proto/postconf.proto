@@ -17867,6 +17867,14 @@ send a DNSSEC probe. <p>
 not DNSSEC validated, Postfix logs a warning that DNSSEC validation
 may be unavailable. </p>
 
+<p> Example: </p>
+
+<pre>
+warning: DNSSEC validation may be unavailable
+warning: reason: dnssec_probe 'ns:.' received a response that is not DNSSEC validated
+warning: reason: dnssec_probe 'ns:.' received no response: Server failure
+</pre>
+
 <p> Possible reasons why DNSSEC validation may be unavailable: </p>
 
 <ul>

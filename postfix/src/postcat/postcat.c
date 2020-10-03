@@ -453,6 +453,11 @@ int     main(int argc, char **argv)
     msg_vstream_init(argv[0], VSTREAM_ERR);
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Parse JCL.
      */
     while ((ch = GETOPT(argc, argv, "bc:dehoqv")) > 0) {

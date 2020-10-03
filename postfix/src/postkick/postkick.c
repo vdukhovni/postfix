@@ -159,6 +159,11 @@ int     main(int argc, char **argv)
     set_mail_conf_str(VAR_PROCNAME, var_procname = mystrdup(argv[0]));
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Parse JCL.
      */
     while ((c = GETOPT(argc, argv, "c:v")) > 0) {

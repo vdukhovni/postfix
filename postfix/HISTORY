@@ -7269,7 +7269,7 @@ Apologies for any names omitted.
 20021119
 
 	New address_verification_negative_cache = yes/no parameter
-	controls whether Postfix stores the result of negatieve
+	controls whether Postfix stores the result of negative
 	address verification probes. This reduces cache pollution
 	but causes Postfix to send a probe for each address
 	verification service query. File: verify/verify.c.
@@ -7559,7 +7559,7 @@ Apologies for any names omitted.
 	rewrite broken user@ or user@. address forms into even more
 	broken forms. bother. File: trivial-rewrite/rewrite.c.
 
-	Cleanup: the address resolver code now treates forms ending
+	Cleanup: the address resolver code now treats forms ending
 	in @ in a more rational manner (because the address rewriting
 	code no longer messes up by appending .my.domain).
 
@@ -8611,7 +8611,7 @@ Apologies for any names omitted.
 	libraries support just SPACE, others SPACE and ",". Postfix
 	now normalizes the host list into a space separated format.
 	This is less surprising to Postfix users used to the full
-	range of delimeters in other contexts. Implemented by Liviu
+	range of delimiters in other contexts. Implemented by Liviu
 	Daia. File: util/dict_ldap.c
 
 	Bugfix: after returning too old mail, the bounce daemon
@@ -8968,7 +8968,7 @@ Apologies for any names omitted.
 20040104
 
 	Workaround: MacOSX dumps core on the 20030913 TZ censoring
-	code. We explictly set TZ=UTC, which will produce incorrect
+	code. We explicitly set TZ=UTC, which will produce incorrect
 	results when "mailq" formatting is moved from the showq
 	daemon to the postqueue command.   File: msg_syslog.c.
 
@@ -11119,7 +11119,7 @@ Apologies for any names omitted.
 	Cleanup: removed the legacy "tls_info" structure, factored
 	out common code for peer_CN and issuer_CN lookup, and added
 	sanity check to not verify subject common names that contain
-	nulls or that are execessively long. Patch by Victor Duchovni.
+	nulls or that are excessively long. Patch by Victor Duchovni.
 	Files: tls_client.c, tls_server.c, tls_session.c, tls_misc.c,
 	tls_verify.c.
 	
@@ -15560,7 +15560,7 @@ Apologies for any names omitted.
 
 	Cleanup: the postscreen daemon now applies the permanent
 	whitelist first. It is a safety feature that prevents mail
-	from being blocked. File: postscreeb/postscreen.c.
+	from being blocked. File: postscreen/postscreen.c.
 
 20091224
 
@@ -15883,7 +15883,7 @@ Apologies for any names omitted.
 	This code was started in Postfix 2.1, but it was never
 	finished due to time constraints.  Files: smtpd/smtpd.[hc]
 	smtpd/smtpd_proxy.c, smtpd/smtpd_sasl_proto.c,
-	*qmgr/qmgr_messsage.c, *qmgr/qmgr_deliver.c,
+	*qmgr/qmgr_message.c, *qmgr/qmgr_deliver.c,
 	global/deliver_request.[hc], global/mail_proto.h,
 	global/deliver_pass.c, smtp/smtp_proto.c.
 
@@ -16531,7 +16531,7 @@ Apologies for any names omitted.
 	Cleaned up and finalized read/write deadline support. Once
 	this code has been fielded it can go into Postfix 2.8.1,
 	and made available as optional patch for earlier releases.
-	Further refinements have only dimishing returns and can
+	Further refinements have only diminishing returns and can
 	evolve in the 2.9 release cycle.  File: util/vstream.c.
 
 20110128
@@ -17642,7 +17642,7 @@ Apologies for any names omitted.
 	Cleanup: when multiple DNSBLs block an SMTP client, the
 	postscreen "reject" message now gives credit to the DNSBL
 	with the largest weight, instead of the DNSBL that replies
-	first. File: postscreen/postscreeb_dnsbl.c.
+	first. File: postscreen/postscreen_dnsbl.c.
 
 	Cleanup: memcache_table(5) manpage. File proto/memcache_table.
 
@@ -19113,7 +19113,7 @@ Apologies for any names omitted.
 	dict_sockmap.c, dict_regexp.c, dict_pcre.c, dict_lmdb.c,
 	dict_dbm.c, dict_cidr.c, dict_cdb.c.
 
-	Cleanup: warning message after canonical/virtal/etc.
+	Cleanup: warning message after canonical/virtual/etc.
 	table lookup error. Files: cleanup/cleanup_addr.c,
 	cleanup/cleanup_map11.c, cleanup/cleanup_map1n.c,
 	cleanup/cleanup_masquerade.c, cleanup/cleanup_message.c,
@@ -19381,13 +19381,13 @@ Apologies for any names omitted.
 	posttls-finger/posttls-finger.c, tls/tls_misc.c, tls/tls_rsa.c.
 
 	Cleanup: DANE support: Reduce #ifdef clutter to improve
-	redability and maintability. Viktor Dukhovni.  File:
+	redability and maintainability. Viktor Dukhovni.  File:
 	tls/tls_dane.c.
 
 	Future proofing: Tolerate disappearance of named bug-workaround
 	bits without invalidating user configurations.  When support
 	for a bug workaround is removed from OpenSSL, the corresponding
-	bit is defined as zero (i.e. NOOP) intstead of causing
+	bit is defined as zero (i.e. NOOP) instead of causing
 	programs to break. Viktor Dukhovni.  File: tls/tls_misc.c.
 
 20131217
@@ -19734,7 +19734,7 @@ Apologies for any names omitted.
 	libglobal or dynamicmaps maps.  File: postdrop/postdrop.c.
 
 	Cleanup: moved dynamicmaps initialization from parameter
-	inititialization (mail_conf_suck()) to dictionary initialization
+	initialization (mail_conf_suck()) to dictionary initialization
 	(mail_dict_init()).  A benefit of this is that dynamicmaps.cf
 	is no longer read by programs that don't use Postfix lookup
 	tables.  Files: global/mail_conf.[hc], global/mail_dict.c.
@@ -20142,7 +20142,7 @@ Apologies for any names omitted.
 	This implements the syntax of SMTP commands and DSN delivery
 	status notifications. It does not address the problem that
 	the same domain name may show up in different forms: an
-	UTF8-encoded name with non-ASCII charaters, or an IDNA-encoded
+	UTF8-encoded name with non-ASCII characters, or an IDNA-encoded
 	(xn--mumble) name with ASCII-only characters. This means
 	that access policies, mydestination, virtual_*_domains and
 	relay_domans will have to understand both forms in order
@@ -20624,7 +20624,7 @@ Apologies for any names omitted.
 20141011
 
 	Cleanup: replaced cryptic macros X_SMTP() and SMTP_X() with
-	more descripive names: LMTP_SMTP_SUFFIX() and VAR_LMTP_SMTP().
+	more descriptive names: LMTP_SMTP_SUFFIX() and VAR_LMTP_SMTP().
 	Files: smtp/smtp.c, smtp/smtp.h, smtp/smtp_chat.c,
 	smtp/smtp_connect.c, smtp/smtp_proto.c, smtp/smtp_sasl_glue.c,
 	smtp/smtp_sasl_proto.c, smtp/smtp_tls_policy.c.
@@ -21377,7 +21377,7 @@ Apologies for any names omitted.
 	Cleanup: apply printable() to all bounce(8) service
 	string-valued protocol fields. File: bounce/bounce.c.
 
-	Apparenly the UCI 4.8 ucasemap_utf8FoldCase() function does
+	Apparently the UCI 4.8 ucasemap_utf8FoldCase() function does
 	not complain about UTF-8 syntax errors, so we add our own
 	redundant check. File: util/casefold.c.
 
@@ -22721,7 +22721,7 @@ Apologies for any names omitted.
 	configuration directory: the default configuration directory,
 	a directory that is listed in the default main.cf file with
 	alternate_config_directories or multi_instance_directories,
-	or the command must be invoked with root priveleges.  This
+	or the command must be invoked with root privileges.  This
 	mitigates a problem with the PHP mail() function.  Files:
 	global/mail_conf.[hc], sendmail/sendmail.c.
 
@@ -25182,4 +25182,25 @@ Apologies for any names omitted.
 	warning if it is not. By default, the probe has type "ns"
 	and domain name ".". The probe is sent once per process
 	lifetime. Files: dns/dns.h, dns/dns_lookup.c, dns/dns_sec.c,
-	test_dns_lookup.c.
+	test_dns_lookup.c, global/mail_params.[hc], mantools/postlink..
+
+20201003
+
+	The makedefs script no longer disables DNSSEC when Postfix
+	is built with libc-musl. Instead Postfix will rely on the
+	new dnssec_probe feature, and will log a warning when Postfix
+	requests DNSSEC validation, but the infrastructure does not
+	validate DNSSEC signatures. File: makedefs.
+
+	Cleanup: some wordsmithing of warnings when DNSSEC validation
+	is unavailable. File: dns/dns_sec.c.
+
+	Clenaup: add missing warnings for libpostfix version
+	mismatches. This will help folks with build processes that
+	mistakenly run newly-built Postfix installation commands
+	with previously-installed libpostfix files. Files:
+	postcat/postcat.c, postconf/postconf.c, postkick/postkick.c,
+	postlock/postlock.c.
+
+	Documentation: hyperlink occurrences of the info_log_address_format
+	parameter name in daemon manpages.

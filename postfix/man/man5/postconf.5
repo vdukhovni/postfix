@@ -1924,6 +1924,18 @@ When the DNSSEC probe has no response, or when the response is
 not DNSSEC validated, Postfix logs a warning that DNSSEC validation
 may be unavailable.
 .PP
+Example:
+.PP
+.nf
+.na
+.ft C
+warning: DNSSEC validation may be unavailable
+warning: reason: dnssec_probe 'ns:.' received a response that is not DNSSEC validated
+warning: reason: dnssec_probe 'ns:.' received no response: Server failure
+.fi
+.ad
+.ft R
+.PP
 Possible reasons why DNSSEC validation may be unavailable:
 .IP \(bu
 The local /etc/resolv.conf file specifies a DNS resolver that

@@ -118,32 +118,27 @@ void    dns_sec_probe(int rflags)
 
     why = vstring_alloc(100);
     dns_status = dns_lookup(qname, qtype, rflags, &rrlist, (char) 0, why);
+    if (!DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE))
+	msg_warn("DNSSEC validation may be unavailable");
+    else if (msg_verbose)
+	msg_info(VAR_DNSSEC_PROBE
+		 " '%s' received a response that is DNSSEC validated",
+		 var_dnssec_probe);
     switch (dns_status) {
     default:
 	if (!DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE))
-	    msg_warn(VAR_DNSSEC_PROBE
-		     " '%s' got a response that is not DNSSEC validated",
+	    msg_warn("reason: " VAR_DNSSEC_PROBE
+		     " '%s' received a response that is not DNSSEC validated",
 		     var_dnssec_probe);
 	if (rrlist)
 	    dns_rr_free(rrlist);
 	break;
-    case DNS_POLICY:
-	msg_warn(VAR_DNSSEC_PROBE
-		 " '%s' response was deleted by DNS reply filter",
-		 var_dnssec_probe);
-	break;
     case DNS_RETRY:
     case DNS_FAIL:
-	msg_warn(VAR_DNSSEC_PROBE " '%s' got no response: %s",
+	msg_warn("reason: " VAR_DNSSEC_PROBE " '%s' received no response: %s",
 		 var_dnssec_probe, vstring_str(why));
 	break;
     }
-    if (!DNS_SEC_STATS_TEST(DNS_SEC_FLAG_AVAILABLE))
-	msg_warn("DNSSEC support may be unavailable");
-    else if (msg_verbose)
-	msg_info(VAR_DNSSEC_PROBE
-		 " '%s' got a response that is DNSSEC validated",
-		 var_dnssec_probe);
     myfree(saved_dnssec_probe);
     vstring_free(why);
 }

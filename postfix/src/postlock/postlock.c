@@ -204,6 +204,11 @@ int     main(int argc, char **argv)
     msg_cleanup(fatal_exit);
 
     /*
+     * Check the Postfix library version as soon as we enable logging.
+     */
+    MAIL_VERSION_CHECK;
+
+    /*
      * Parse JCL.
      */
     while ((ch = GETOPT(argc, argv, "c:l:v")) > 0) {
