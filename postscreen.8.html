@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - postscreen(8) </title>
 </head> <body> <pre>
 POSTSCREEN(8)                                                    POSTSCREEN(8)
@@ -71,7 +71,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <a href="http://tools.ietf.org/html/rfc5321">RFC 5321</a> (SMTP protocol, including multi-line 220 banners)
 
 <b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).
+       Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
 
 <b>BUGS</b>
        The  <a href="postscreen.8.html"><b>postscreen</b>(8)</a>  built-in  SMTP  protocol  engine currently does not
@@ -409,10 +409,17 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
+       Available in Postfix 3.5 and later:
+
+       <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
+              The  email  address  form that will be used in non-debug logging
+              (info, warning, etc.).
+
 <b>SEE ALSO</b>
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
        <a href="tlsproxy.8.html">tlsproxy(8)</a>, Postfix TLS proxy server
        <a href="dnsblog.8.html">dnsblog(8)</a>, DNS black/whitelist logger
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README FILES</b>
@@ -424,7 +431,7 @@ POSTSCREEN(8)                                                    POSTSCREEN(8)
 <b>HISTORY</b>
        This service was introduced with Postfix version 2.8.
 
-       Many ideas in <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier  work  by  Michael
+       Many  ideas  in  <a href="postscreen.8.html"><b>postscreen</b>(8)</a> were explored in earlier work by Michael
        Tokarev, in OpenBSD spamd, and in MailChannels Traffic Control.
 
 <b>AUTHOR(S)</b>

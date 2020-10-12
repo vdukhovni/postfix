@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - oqmgr(8) </title>
 </head> <body> <pre>
 OQMGR(8)                                                              OQMGR(8)
@@ -144,9 +144,9 @@ OQMGR(8)                                                              OQMGR(8)
        environment.
 
 <b>DIAGNOSTICS</b>
-       Problems  and  transactions  are  logged to the <b>syslog</b>(8) daemon.  Cor-
-       rupted message files are saved to the <b>corrupt</b> queue for further inspec-
-       tion.
+       Problems  and  transactions are logged to the <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>
+       daemon.  Corrupted message files are saved to  the  <b>corrupt</b>  queue  for
+       further inspection.
 
        Depending  on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the postmas-
        ter is notified of bounces and of other trouble.
@@ -300,32 +300,31 @@ OQMGR(8)                                                              OQMGR(8)
 
        <b><a href="postconf.5.html#default_destination_rate_delay">default_destination_rate_delay</a> (0s)</b>
               The default amount of delay that is inserted between  individual
-              deliveries  to  the  same  destination;  the  resulting behavior
-              depends on the value of the corresponding per-destination recip-
-              ient limit.
+              message  deliveries  to  the  same destination and over the same
+              message delivery transport.
 
        <b>transport_destination_rate_delay ($<a href="postconf.5.html#default_destination_rate_delay">default_destination_rate_delay</a>)</b>
               A   transport-specific   override   for   the   <a href="postconf.5.html#default_destination_rate_delay">default_destina</a>-
-              <a href="postconf.5.html#default_destination_rate_delay">tion_rate_delay</a> parameter value, where  <i>transport</i>  is  the  <a href="master.5.html">mas-
+              <a href="postconf.5.html#default_destination_rate_delay">tion_rate_delay</a>  parameter  value,  where  <i>transport</i> is the <a href="master.5.html">mas-
               ter.cf</a> name of the message delivery transport.
 
        Available in Postfix version 3.1 and later:
 
        <b><a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a> (0s)</b>
-              The  default amount of delay that is inserted between individual
-              deliveries over the same message delivery transport,  regardless
-              of destination.
+              The default amount of delay that is inserted between  individual
+              message  deliveries  over  the  same message delivery transport,
+              regardless of destination.
 
        <b>transport_transport_rate_delay ($<a href="postconf.5.html#default_transport_rate_delay">default_transport_rate_delay</a>)</b>
-              A    transport-specific    override   for   the   <a href="postconf.5.html#default_transport_rate_delay">default_trans</a>-
-              <a href="postconf.5.html#default_transport_rate_delay">port_rate_delay</a> parameter value, where the initial <i>transport</i>  in
+              A   transport-specific   override   for    the    <a href="postconf.5.html#default_transport_rate_delay">default_trans</a>-
+              <a href="postconf.5.html#default_transport_rate_delay">port_rate_delay</a>  parameter value, where the initial <i>transport</i> in
               the parameter name is the <a href="master.5.html">master.cf</a> name of the message delivery
               transport.
 
 <b>SAFETY CONTROLS</b>
        <b><a href="postconf.5.html#qmgr_daemon_timeout">qmgr_daemon_timeout</a> (1000s)</b>
               How much time a Postfix queue manager process may take to handle
-              a  request before it is terminated by a built-in watchdog timer.
+              a request before it is terminated by a built-in watchdog  timer.
 
        <b><a href="postconf.5.html#qmgr_ipc_timeout">qmgr_ipc_timeout</a> (60s)</b>
               The time limit for the queue manager to send or receive informa-
@@ -334,12 +333,12 @@ OQMGR(8)                                                              OQMGR(8)
        Available in Postfix version 3.1 and later:
 
        <b><a href="postconf.5.html#address_verify_pending_request_limit">address_verify_pending_request_limit</a> (see 'postconf -d' output)</b>
-              A  safety limit that prevents address verification requests from
+              A safety limit that prevents address verification requests  from
               overwhelming the Postfix queue.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#defer_transports">defer_transports</a> (empty)</b>
@@ -347,11 +346,11 @@ OQMGR(8)                                                              OQMGR(8)
               mail unless someone issues "<b>sendmail -q</b>" or equivalent.
 
        <b><a href="postconf.5.html#delay_logging_resolution_limit">delay_logging_resolution_limit</a> (2)</b>
-              The maximal number of digits after the decimal point  when  log-
+              The  maximal  number of digits after the decimal point when log-
               ging sub-second delay values.
 
        <b><a href="postconf.5.html#helpful_warnings">helpful_warnings</a> (yes)</b>
-              Log  warnings about problematic configuration settings, and pro-
+              Log warnings about problematic configuration settings, and  pro-
               vide helpful suggestions.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -367,19 +366,25 @@ OQMGR(8)                                                              OQMGR(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A prefix that  is  prepended  to  the  process  name  in  syslog
+              A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix version 3.0 and later:
 
        <b><a href="postconf.5.html#confirm_delay_cleared">confirm_delay_cleared</a> (no)</b>
-              After  sending  a "your message is delayed" notification, inform
+              After sending a "your message is delayed"  notification,  inform
               the sender when the delay clears up.
 
        Available in Postfix 3.3 and later:
 
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
+
+       Available in Postfix 3.5 and later:
+
+       <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
+              The  email  address  form that will be used in non-debug logging
+              (info, warning, etc.).
 
 <b>FILES</b>
        /var/spool/postfix/incoming, <a href="QSHAPE_README.html#incoming_queue">incoming queue</a>
@@ -395,6 +400,7 @@ OQMGR(8)                                                              OQMGR(8)
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        <a href="master.5.html">master(5)</a>, generic daemon options
        <a href="master.8.html">master(8)</a>, process manager
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README FILES</b>

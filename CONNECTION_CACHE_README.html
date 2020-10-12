@@ -7,7 +7,7 @@
 
 <title>Postfix Connection Cache </title>
 
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 </head>
 
@@ -21,10 +21,6 @@
 
 <p> This document describes the Postfix connection cache implementation,
 which is available with Postfix version 2.2 and later. </p>
-
-<p> See <a href="TLS_README.html#client_tls_reuse">Client-side TLS
-connection reuse</a> for how this connection cache is used to
-implement multiple deliveries per TLS-encrypted connection. </p>
 
 <p> Topics covered in this document: </p>
 
@@ -49,8 +45,12 @@ you</a></h2>
 
 <p> With SMTP connection caching, Postfix can deliver multiple
 messages over the same SMTP connection. By default, Postfix 2.2
-reuses an SMTP connection automatically when a destination has
-high volume of mail in the <a href="QSHAPE_README.html#active_queue">active queue</a>.  </p>
+reuses a plaintext SMTP connection automatically when a destination has
+high volume of mail in the <a href="QSHAPE_README.html#active_queue">active queue</a>. </p>
+
+<p> See <a href="TLS_README.html#client_tls_reuse">Client-side TLS
+connection reuse</a> to also implement multiple deliveries over a
+TLS-encrypted connection (Postfix version 3.4 and later). </p>
 
 <p> SMTP Connection caching is a performance feature. Whether or not
 it actually improves performance depends on the conditions: </p>
@@ -62,10 +62,15 @@ when delivering mail to a destination with multiple mail servers,
 because it can help Postfix to skip over a non-responding server.
 </p>
 
+<li> <p> SMTP Connection caching can also help with receivers that
+impose rate limits on new connections. </p>
+
 <li> <p> Otherwise, the benefits of SMTP connection caching are
 minor: it eliminates the latency of the TCP handshake (SYN, SYN+ACK,
 ACK), plus the latency of the SMTP initial handshake (220 greeting,
-EHLO command, EHLO response).
+EHLO command, EHLO response). With TLS-encrypted connections, this
+can save an additional two roundtrips that would otherwise be needed
+to send STARTTLS and to resume a TLS session. </p>
 
 <li> <p> SMTP Connection caching gives no gains with respect to
 SMTP session tear-down.  The Postfix <a href="smtp.8.html">smtp(8)</a> client normally does

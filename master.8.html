@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - master(8) </title>
 </head> <body> <pre>
 MASTER(8)                                                            MASTER(8)
@@ -47,23 +47,30 @@ MASTER(8)                                                            MASTER(8)
               Terminate the master process after <i>exit</i><b>_</b><i>time</i> seconds. Child pro-
               cesses terminate at their convenience.
 
-       <b>-i</b>     Enable  <b>init</b> mode: do not attempt to become a session or process
-              group leader; and to force termination, set an  explicit  signal
-              handler  instead  of  relying on the default signal action. This
-              mode is allowed only if the process ID equals 1.
+       <b>-i</b>     Enable  <b>init</b>  mode:  do  not  become  a session or process group
+              leader; and similar to <b>-s</b>, do not redirect stdout to  /dev/null,
+              so  that  "<a href="postconf.5.html#maillog_file">maillog_file</a>  =  /dev/stdout"  works.   This  mode is
+              allowed only if the process ID equals 1.
 
-       <b>-t</b>     Test mode. Return a zero exit status when  the  <b>master.pid</b>  lock
-              file  does  not  exist or when that file is not locked.  This is
+              This feature is available in Postfix 3.3 and later.
+
+       <b>-s</b>     Do not redirect stdout to /dev/null,  so  that  "<a href="postconf.5.html#maillog_file">maillog_file</a>  =
+              /dev/stdout" works.
+
+              This feature is available in Postfix 3.4 and later.
+
+       <b>-t</b>     Test  mode.  Return  a zero exit status when the <b>master.pid</b> lock
+              file does not exist or when that file is not  locked.   This  is
               evidence that the <a href="master.8.html"><b>master</b>(8)</a> daemon is not running.
 
-       <b>-v</b>     Enable verbose logging for debugging purposes.  This  option  is
+       <b>-v</b>     Enable  verbose  logging  for debugging purposes. This option is
               passed on to child processes. Multiple <b>-v</b> options make the soft-
               ware increasingly verbose.
 
        <b>-w</b>     Wait in a dummy foreground process, while the real master daemon
-              initializes  in  a  background  process.   The  dummy foreground
-              process returns a zero exit status only  if  the  master  daemon
-              initialization  is  successful, and if it completes in a reason-
+              initializes in  a  background  process.   The  dummy  foreground
+              process  returns  a  zero  exit status only if the master daemon
+              initialization is successful, and if it completes in  a  reason-
               able amount of time.
 
               This feature is available in Postfix 2.10 and later.
@@ -71,27 +78,27 @@ MASTER(8)                                                            MASTER(8)
        Signals:
 
        <b>SIGHUP</b> Upon receipt of a <b>HUP</b> signal (e.g., after "<b>postfix reload</b>"), the
-              master  process  re-reads  its configuration files. If a service
-              has been removed from the <a href="master.5.html"><b>master.cf</b></a> file, its running  processes
-              are  terminated  immediately.   Otherwise, running processes are
-              allowed to terminate as soon as is convenient, so  that  changes
+              master process re-reads its configuration files.  If  a  service
+              has  been removed from the <a href="master.5.html"><b>master.cf</b></a> file, its running processes
+              are terminated immediately.  Otherwise,  running  processes  are
+              allowed  to  terminate as soon as is convenient, so that changes
               in configuration settings affect only new service requests.
 
        <b>SIGTERM</b>
               Upon receipt of a <b>TERM</b> signal (e.g., after "<b>postfix abort</b>"), the
-              master process passes the signal on to its child  processes  and
-              terminates.   This is useful for an emergency shutdown. Normally
-              one would terminate only the master ("<b>postfix stop</b>")  and  allow
+              master  process  passes the signal on to its child processes and
+              terminates.  This is useful for an emergency shutdown.  Normally
+              one  would  terminate only the master ("<b>postfix stop</b>") and allow
               running processes to finish what they are doing.
 
 <b>DIAGNOSTICS</b>
-       Problems  are  reported  to  <b>syslogd</b>(8). The exit status is non-zero in
-       case of problems, including problems while  initializing  as  a  master
-       daemon process in the background.
+       Problems are reported to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.  The exit status is
+       non-zero  in case of problems, including problems while initializing as
+       a master daemon process in the background.
 
 <b>ENVIRONMENT</b>
        <b>MAIL_DEBUG</b>
-              After  initialization,  start  a  debugger as specified with the
+              After initialization, start a debugger  as  specified  with  the
               <b><a href="postconf.5.html#debugger_command">debugger_command</a></b> configuration parameter in the <a href="postconf.5.html"><b>main.cf</b></a> configu-
               ration file.
 
@@ -99,18 +106,18 @@ MASTER(8)                                                            MASTER(8)
               Directory with Postfix configuration files.
 
 <b>CONFIGURATION PARAMETERS</b>
-       Unlike  most  Postfix  daemon  processes, the <a href="master.8.html"><b>master</b>(8)</a> server does not
-       automatically pick up changes to  <a href="postconf.5.html"><b>main.cf</b></a>.  Changes  to  <a href="master.5.html"><b>master.cf</b></a>  are
-       never  picked up automatically.  Use the "<b>postfix reload</b>" command after
+       Unlike most Postfix daemon processes, the  <a href="master.8.html"><b>master</b>(8)</a>  server  does  not
+       automatically  pick  up  changes  to  <a href="postconf.5.html"><b>main.cf</b></a>. Changes to <a href="master.5.html"><b>master.cf</b></a> are
+       never picked up automatically.  Use the "<b>postfix reload</b>" command  after
        a configuration change.
 
 <b>RESOURCE AND RATE CONTROLS</b>
        <b><a href="postconf.5.html#default_process_limit">default_process_limit</a> (100)</b>
-              The default maximal number of Postfix child processes that  pro-
+              The  default maximal number of Postfix child processes that pro-
               vide a given service.
 
        <b><a href="postconf.5.html#max_idle">max_idle</a> (100s)</b>
-              The  maximum  amount of time that an idle Postfix daemon process
+              The maximum amount of time that an idle Postfix  daemon  process
               waits for an incoming connection before terminating voluntarily.
 
        <b><a href="postconf.5.html#max_use">max_use</a> (100)</b>
@@ -118,18 +125,18 @@ MASTER(8)                                                            MASTER(8)
               process will service before terminating voluntarily.
 
        <b><a href="postconf.5.html#service_throttle_time">service_throttle_time</a> (60s)</b>
-              How long the Postfix <a href="master.8.html"><b>master</b>(8)</a> waits  before  forking  a  server
+              How  long  the  Postfix  <a href="master.8.html"><b>master</b>(8)</a> waits before forking a server
               that appears to be malfunctioning.
 
        Available in Postfix version 2.6 and later:
 
        <b><a href="postconf.5.html#master_service_disable">master_service_disable</a> (empty)</b>
-              Selectively  disable <a href="master.8.html"><b>master</b>(8)</a> listener ports by service type or
+              Selectively disable <a href="master.8.html"><b>master</b>(8)</a> listener ports by service type  or
               by service name and type.
 
 <b>MISCELLANEOUS CONTROLS</b>
        <b><a href="postconf.5.html#config_directory">config_directory</a> (see 'postconf -d' output)</b>
-              The default location of the Postfix <a href="postconf.5.html">main.cf</a> and  <a href="master.5.html">master.cf</a>  con-
+              The  default  location of the Postfix <a href="postconf.5.html">main.cf</a> and <a href="master.5.html">master.cf</a> con-
               figuration files.
 
        <b><a href="postconf.5.html#daemon_directory">daemon_directory</a> (see 'postconf -d' output)</b>
@@ -140,20 +147,20 @@ MASTER(8)                                                            MASTER(8)
               invoked with the -D option.
 
        <b><a href="postconf.5.html#inet_interfaces">inet_interfaces</a> (all)</b>
-              The  network  interface addresses that this mail system receives
+              The network interface addresses that this mail  system  receives
               mail on.
 
        <b><a href="postconf.5.html#inet_protocols">inet_protocols</a> (all)</b>
-              The Internet protocols Postfix will attempt to use  when  making
+              The  Internet  protocols Postfix will attempt to use when making
               or accepting connections.
 
        <b><a href="postconf.5.html#import_environment">import_environment</a> (see 'postconf -d' output)</b>
-              The  list  of  environment  parameters that a privileged Postfix
-              process will  import  from  a  non-Postfix  parent  process,  or
+              The list of environment parameters  that  a  privileged  Postfix
+              process  will  import  from  a  non-Postfix  parent  process, or
               name=value environment overrides.
 
        <b><a href="postconf.5.html#mail_owner">mail_owner</a> (postfix)</b>
-              The  UNIX  system  account  that owns the Postfix queue and most
+              The UNIX system account that owns the  Postfix  queue  and  most
               Postfix daemon processes.
 
        <b><a href="postconf.5.html#process_id">process_id</a> (read-only)</b>
@@ -169,7 +176,7 @@ MASTER(8)                                                            MASTER(8)
               The syslog facility of Postfix logging.
 
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
-              A prefix that  is  prepended  to  the  process  name  in  syslog
+              A  prefix  that  is  prepended  to  the  process  name in syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
 
        Available in Postfix 3.3 and later:
@@ -178,7 +185,7 @@ MASTER(8)                                                            MASTER(8)
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
 <b>FILES</b>
-       To  expand  the directory names below into their actual values, use the
+       To expand the directory names below into their actual values,  use  the
        command "<b>postconf <a href="postconf.5.html#config_directory">config_directory</a></b>" etc.
 
        $<a href="postconf.5.html#config_directory">config_directory</a>/<a href="postconf.5.html">main.cf</a>, global configuration file.
@@ -191,6 +198,7 @@ MASTER(8)                                                            MASTER(8)
        <a href="verify.8.html">verify(8)</a>, address verification
        <a href="master.5.html">master(5)</a>, <a href="master.5.html">master.cf</a> configuration file syntax
        <a href="postconf.5.html">postconf(5)</a>, <a href="postconf.5.html">main.cf</a> configuration file syntax
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>LICENSE</b>

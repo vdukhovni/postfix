@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - virtual(8) </title>
 </head> <body> <pre>
 VIRTUAL(8)                                                          VIRTUAL(8)
@@ -125,9 +125,9 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        over  disk quota. In all other cases, mail for an existing recipient is
        deferred and a warning is logged.
 
-       Problems and transactions are logged to <b>syslogd</b>(8).  Corrupted  message
-       files are marked so that the queue manager can move them to the <b>corrupt</b>
-       queue afterwards.
+       Problems and transactions are  logged  to  <b>syslogd</b>(8)  or  <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
+       Corrupted  message  files are marked so that the queue manager can move
+       them to the <b>corrupt</b> queue afterwards.
 
        Depending on the setting of the <b><a href="postconf.5.html#notify_classes">notify_classes</a></b> parameter, the  postmas-
        ter is notified of bounces and of other trouble.
@@ -279,10 +279,17 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        <b><a href="postconf.5.html#service_name">service_name</a> (read-only)</b>
               The <a href="master.5.html">master.cf</a> service name of a Postfix daemon process.
 
+       Available in Postfix 3.5 and later:
+
+       <b><a href="postconf.5.html#info_log_address_format">info_log_address_format</a> (external)</b>
+              The  email  address  form that will be used in non-debug logging
+              (info, warning, etc.).
+
 <b>SEE ALSO</b>
        <a href="qmgr.8.html">qmgr(8)</a>, queue manager
        <a href="bounce.8.html">bounce(8)</a>, delivery status reports
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README_FILES</b>
@@ -294,15 +301,15 @@ VIRTUAL(8)                                                          VIRTUAL(8)
        The Secure Mailer license must be distributed with this software.
 
 <b>HISTORY</b>
-       This  delivery agent was originally based on the Postfix local delivery
-       agent. Modifications mainly consisted of removing code that either  was
+       This delivery agent was originally based on the Postfix local  delivery
+       agent.  Modifications mainly consisted of removing code that either was
        not  applicable  or  that  was  not  safe  in  this  context:  aliases,
        ~user/.forward files, delivery to "|command" or to /file/name.
 
-       The <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by  Daniel
+       The  <b>Delivered-To:</b> message header appears in the <b>qmail</b> system by Daniel
        Bernstein.
 
-       The  <b>maildir</b> structure appears in the <b>qmail</b> system by Daniel Bernstein.
+       The <b>maildir</b> structure appears in the <b>qmail</b> system by Daniel  Bernstein.
 
 <b>AUTHOR(S)</b>
        Wietse Venema

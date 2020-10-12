@@ -7,7 +7,7 @@
 
 <title>TLS Forward Secrecy in Postfix</title>
 
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 </head>
 
@@ -298,7 +298,7 @@ table. </p>
 <p> This works "out of the box" with no need for additional
 configuration. </p>
 
-<p> Postfix &ge; 3.2 supports the curve negotitation API of OpenSSL
+<p> Postfix &ge; 3.2 supports the curve negotiation API of OpenSSL
 &ge; 1.0.2.  The list of candidate curves can be changed via the
 "<a href="postconf.5.html#tls_eecdh_auto_curves">tls_eecdh_auto_curves</a>" configuration parameter, which can be used
 to select a prioritized list of supported curves (most preferred
@@ -549,7 +549,7 @@ postfix/smtp[<i>process-id</i>]:
 
 <p> In the above connections, the "key-exchange" value records the
 "Diffie-Hellman" algorithm used for key agreement.  The "server-signature" value
-records the public key algoritm used by the server to sign the key exchange.
+records the public key algorithm used by the server to sign the key exchange.
 The "server-digest" value records any hash algorithm used to prepare the data
 for signing.  With "ED25519" and "ED448", no separate hash algorithm is used.
 </p>
@@ -573,6 +573,23 @@ postfix/smtpd[<i>process-id</i>]:
   Anonymous TLS connection established from localhost[127.0.0.1]:
   TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
   server-signature ED25519
+</pre>
+</blockquote>
+
+<p> Note that Postfix &ge; 3.4 server logging may also include a 
+"to <i>sni-name</i>" element to record the use of an alternate
+server certificate chain for the connection in question. This happens
+when the client uses the TLS SNI extension, and the server selects
+a non-default certificate chain based on the client's SNI value:
+</p>
+
+<blockquote>
+<pre>
+postfix/smtpd[<i>process-id</i>]:
+  Untrusted TLS connection established from client.example[192.0.2.1]
+  to server.example: TLSv1.3 with cipher TLS_AES_256_GCM_SHA384 (256/256 bits)
+  key-exchange X25519 server-signature RSA-PSS (2048 bits) server-digest SHA256
+  client-signature ECDSA (P-256) client-digest SHA256
 </pre>
 </blockquote>
 

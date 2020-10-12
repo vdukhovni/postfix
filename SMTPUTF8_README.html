@@ -346,12 +346,23 @@ in address localparts (and in headers) as before.  The vast majority
 of email software is perfectly capable of handling such email, even
 if pre-SMTPUTF8 standards do not support such practice. </p>
 
-<p> However, when you specify "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes", Postfix
+<h3> Rejecting non-UTF8 addresses </h3>
+
+<p> With "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a> = yes", Postfix
 requires that non-ASCII address information is encoded in UTF-8 and
 will reject other encodings such as ISO-8859. It is not practical
 for Postfix to support multiple encodings at the same time.  There
 is no problem with <a href="http://tools.ietf.org/html/rfc2047">RFC 2047</a> encodings such as "=?ISO-8859-1?Q?text?=",
-because those use only characters from the ASCII characterset.  </p>
+because those use only characters from the ASCII characterset. </p>
+
+<h3> Rejecting non-ASCII addresses in non-SMTPUTF8 transactions </h3>
+
+<p> Setting "<a href="postconf.5.html#strict_smtputf8">strict_smtputf8</a> = yes" in addition to "<a href="postconf.5.html#smtputf8_enable">smtputf8_enable</a>
+= yes" will enable stricter enforcement of the SMTPUTF8 protocol.
+Specifically, the Postfix SMTP server will not only reject non-UTF8
+sender or recipient addresses, it will in addition accept UTF-8
+sender or recipient addresses only when the client requests an
+SMTPUTF8 mail transaction. </p>
 
 <h2> <a name="idna2003">Compatibility with IDNA2003</a> </h2>
 
@@ -362,8 +373,8 @@ This makes Postfix behavior consistent with current versions of the
 Firefox and Chrome web browsers. Specify "<a href="postconf.5.html#enable_idna2003_compatibility">enable_idna2003_compatibility</a>
 = yes" to get the historical behavior. </p>
 
-This affects the conversion of domain names that contain for example
-the German sz (ß) and the Greek zeta (ς). See
+<p> This affects the conversion of domain names that contain for
+example the German sz (ß) and the Greek zeta (ς). See
 <a href="http://unicode.org/cldr/utility/idna.jsp">http://unicode.org/cldr/utility/idna.jsp</a> for more examples. </p>
 
 <h2> <a name="credits">Credits</a> </h2>

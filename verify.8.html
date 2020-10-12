@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - verify(8) </title>
 </head> <body> <pre>
 VERIFY(8)                                                            VERIFY(8)
@@ -58,7 +58,7 @@ VERIFY(8)                                                            VERIFY(8)
        warning is logged.
 
 <b>DIAGNOSTICS</b>
-       Problems and transactions are logged to <b>syslogd</b>(8).
+       Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
 
 <b>BUGS</b>
        Address verification probe messages add additional traffic to the  mail
@@ -214,7 +214,8 @@ VERIFY(8)                                                            VERIFY(8)
        <a href="smtpd.8.html">smtpd(8)</a>, Postfix SMTP server
        <a href="cleanup.8.html">cleanup(8)</a>, enqueue Postfix message
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
-       syslogd(5), system logging
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
+       syslogd(8), system logging
 
 <b>README FILES</b>
        <a href="ADDRESS_VERIFICATION_README.html">ADDRESS_VERIFICATION_README</a>, address verification howto

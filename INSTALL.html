@@ -7,7 +7,7 @@
 
 <title>Postfix Installation From Source Code </title>
 
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 
 </head>
 
@@ -862,6 +862,9 @@ support. By default, PCRE support is compiled in when the
 <tr> <td> </td> <td> -DNO_POSIX_GETPW_R </td> <td> Disable support
 for POSIX <tt>getpwnam_r/getpwuid_r</tt>. By default Postfix uses
 these where they are known to be available. </td> </tr>
+
+<tr> <td> </td> <td> -DNO_RES_NCALLS </td> <td> Do not build with
+the threadsafe resolver(5) API (res_ninit() etc.). </td> </tr>
 
 <tr> <td> </td> <td> -DNO_SIGSETJMP </td> <td> Use
 <tt>setjmp()/longjmp()</tt> instead of <tt>sigsetjmp()/siglongjmp()</tt>.

@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - access(5) </title>
 </head> <body> <pre>
 ACCESS(5)                                                            ACCESS(5)
@@ -114,21 +114,17 @@ ACCESS(5)                                                            ACCESS(5)
 
        <i>net.work</i>
 
-       <i>net</i>    Matches  the  specified IPv4 host address or subnetwork. An IPv4
-              host address is a sequence of four decimal octets  separated  by
-              ".".
+       <i>net</i>    Matches  a  remote  IPv4  host address or network address range.
+              Specify one to four decimal octets  separated  by  ".".  Do  not
+              specify "[]" , "/", leading zeros, or hexadecimal forms.
 
-              Subnetworks  are  matched  by  repeatedly  truncating  the  last
-              ".octet" from the remote IPv4 host address string until a  match
+              Network  ranges  are  matched  by repeatedly truncating the last
+              ".octet" from a remote IPv4 host address string, until  a  match
               is found in the access table, or until further truncation is not
               possible.
 
-              NOTE 1: The access map lookup key must be in canonical form:  do
-              not specify unnecessary null characters, and do not enclose net-
-              work address information with "[]" characters.
-
-              NOTE 2: use the <b>cidr</b> lookup table type to  specify  network/net-
-              mask patterns. See <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a> for details.
+              NOTE: use the <b>cidr</b> lookup table type to specify  network/netmask
+              patterns. See <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a> for details.
 
        <i>net:work:addr:ess</i>
 
@@ -136,25 +132,19 @@ ACCESS(5)                                                            ACCESS(5)
 
        <i>net:work</i>
 
-       <i>net</i>    Matches  the  specified IPv6 host address or subnetwork. An IPv6
-              host address is a sequence of three to eight  hexadecimal  octet
-              pairs separated by ":".
+       <i>net</i>    Matches  a  remote  IPv6  host address or network address range.
+              Specify three to eight hexadecimal octet pairs separated by ":",
+              using  the  compressed  form  "::" for a sequence of zero-valued
+              octet pairs.  Do  not  specify  "[]",  "/",  leading  zeros,  or
+              non-compressed forms.
 
-              Subnetworks  are  matched  by  repeatedly  truncating  the  last
-              ":octetpair" from the remote IPv6 host address  string  until  a
-              match  is found in the access table, or until further truncation
-              is not possible.
+              A  network  range  is  matched by repeatedly truncating the last
+              ":octetpair" from the compressed-form remote IPv6  host  address
+              string,  until  a  match  is found in the access table, or until
+              further truncation is not possible.
 
-              NOTE 1: the truncation and comparison are done with  the  string
-              representation  of  the IPv6 host address. Thus, not all the ":"
-              subnetworks will be tried.
-
-              NOTE 2: The access map lookup key must be in canonical form:  do
-              not specify unnecessary null characters, and do not enclose net-
-              work address information with "[]" characters.
-
-              NOTE 3: use the <b>cidr</b> lookup table type to  specify  network/net-
-              mask patterns. See <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a> for details.
+              NOTE: use the <b>cidr</b> lookup table type to specify  network/netmask
+              patterns. See <a href="cidr_table.5.html"><b>cidr_table</b>(5)</a> for details.
 
               IPv6 support is available in Postfix 2.2 and later.
 

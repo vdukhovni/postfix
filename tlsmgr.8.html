@@ -1,7 +1,7 @@
 <!doctype html public "-//W3C//DTD HTML 4.01 Transitional//EN"
         "http://www.w3.org/TR/html4/loose.dtd">
 <html> <head>
-<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title> Postfix manual - tlsmgr(8) </title>
 </head> <body> <pre>
 TLSMGR(8)                                                            TLSMGR(8)
@@ -50,7 +50,7 @@ TLSMGR(8)                                                            TLSMGR(8)
        Postfix-owned <b><a href="postconf.5.html#data_directory">data_directory</a></b>, and a warning is logged.
 
 <b>DIAGNOSTICS</b>
-       Problems and transactions are logged to the syslog daemon.
+       Problems and transactions are logged to <b>syslogd</b>(8) or <a href="postlogd.8.html"><b>postlogd</b>(8)</a>.
 
 <b>BUGS</b>
        There is no automatic means to limit the number of entries in  the  TLS
@@ -160,6 +160,7 @@ TLSMGR(8)                                                            TLSMGR(8)
        <a href="postconf.5.html">postconf(5)</a>, configuration parameters
        <a href="master.5.html">master(5)</a>, generic daemon options
        <a href="master.8.html">master(8)</a>, process manager
+       <a href="postlogd.8.html">postlogd(8)</a>, Postfix logging
        syslogd(8), system logging
 
 <b>README FILES</b>
