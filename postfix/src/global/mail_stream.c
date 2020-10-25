@@ -155,7 +155,8 @@ static VSTRING *id_buf;
 
 void    mail_stream_cleanup(MAIL_STREAM *info)
 {
-    FREE_AND_WIPE(info->close, info->stream);
+    if (info->stream && info->close(info->stream))
+	msg_warn("mail_stream_cleanup: close error");
     FREE_AND_WIPE(myfree, info->queue);
     FREE_AND_WIPE(myfree, info->id);
     FREE_AND_WIPE(myfree, info->class);

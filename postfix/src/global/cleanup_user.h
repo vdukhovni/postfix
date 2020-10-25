@@ -62,6 +62,7 @@
 #define CLEANUP_STAT_RCPT	(1<<6)	/* No recipients found */
 #define CLEANUP_STAT_PROXY	(1<<7)	/* Proxy reject */
 #define CLEANUP_STAT_DEFER	(1<<8)	/* Temporary reject */
+#define CLEANUP_STAT_NOPERM	(1<<9)	/* Denied by non-content policy */
 
  /*
   * These are set when we can't bounce even if we were asked to.

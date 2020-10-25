@@ -126,6 +126,17 @@ extern char *var_showq_acl;
 extern char *var_submit_acl;
 
  /*
+  * Local submission, envelope sender ownership.
+  */
+#define VAR_LOCAL_LOGIN_SND_MAPS	"local_login_sender_maps"
+#define DEF_LOCAL_LOGIN_SND_MAPS	"static:*"
+extern char *var_local_login_snd__maps;
+
+#define VAR_NULL_LOCAL_LOGIN_SND_MAPS_KEY "empty_address_local_login_sender_maps_lookup_key"
+#define DEF_NULL_LOCAL_LOGIN_SND_MAPS_KEY "<>"
+extern char *var_null_local_login_snd_maps_key;
+
+ /*
   * What goes on the right-hand side of addresses of mail sent from this
   * machine.
   */

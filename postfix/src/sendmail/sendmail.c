@@ -694,6 +694,7 @@ static void enqueue(const int flags, const char *encoding,
     VSTRING *postdrop_command;
     uid_t   uid = getuid();
     int     status;
+    VSTRING *why;			/* postdrop status message */
     int     naddr;
     int     prev_type;
     MIME_STATE *mime_state = 0;
@@ -987,11 +988,15 @@ static void enqueue(const int flags, const char *encoding,
     if (vstream_ferror(VSTREAM_IN))
 	msg_fatal_status(EX_DATAERR, "%s(%ld): error reading input: %m",
 			 saved_sender, (long) uid);
-    if ((status = mail_stream_finish(handle, (VSTRING *) 0)) != 0)
+    why = vstring_alloc(100);
+    if ((status = mail_stream_finish(handle, why)) != CLEANUP_STAT_OK)
 	msg_fatal_status((status & CLEANUP_STAT_BAD) ? EX_SOFTWARE :
 			 (status & CLEANUP_STAT_WRITE) ? EX_TEMPFAIL :
+			 (status & CLEANUP_STAT_NOPERM) ? EX_NOPERM :
 			 EX_UNAVAILABLE, "%s(%ld): %s", saved_sender,
-			 (long) uid, cleanup_strerror(status));
+			 (long) uid, VSTRING_LEN(why) ?
+			 STR(why) : cleanup_strerror(status));
+    vstring_free(why);
 
     /*
      * Don't leave them in the dark.

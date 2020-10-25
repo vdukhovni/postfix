@@ -2,6 +2,12 @@ Wish list:
 
 	Does tlsproxy terminate to soon after 'postfix reload'?
 
+	Eliminate duplicate user_acl check from sendmail, and pass
+	the result through the postdrop-to-sendmail protocol. This
+	requires that postdrop reads all inputs before responding.
+	Then we can also consider to save input to dead.letter (drop
+	setgid privilege, use safe_open() to avoid clobbering files).
+
 	Understand what happens with DNSSEC related status fields 
 	in posttls-finger when resolv.conf points to a host that
 	runs no DNS server.

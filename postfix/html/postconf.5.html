@@ -3139,6 +3139,19 @@ will be used instead of the null sender address. </p>
 
 </DD>
 
+<DT><b><a name="empty_address_local_login_sender_maps_lookup_key">empty_address_local_login_sender_maps_lookup_key</a>
+(default: &lt;&gt;)</b></DT><DD>
+
+<p>
+The lookup key to be used in <a href="postconf.5.html#local_login_sender_maps">local_login_sender_maps</a> tables, instead
+of the null sender address.
+</p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+
+</DD>
+
 <DT><b><a name="empty_address_recipient">empty_address_recipient</a>
 (default: MAILER-DAEMON)</b></DT><DD>
 
@@ -5843,6 +5856,62 @@ system.  </p>
     <a href="postconf.5.html#check_address_map">check_address_map</a> <a href="DATABASE_README.html#types">hash</a>:/etc/postfix/pop-before-smtp
 </pre>
 </blockquote>
+
+
+</DD>
+
+<DT><b><a name="local_login_sender_maps">local_login_sender_maps</a>
+(default: <a href="DATABASE_README.html#types">static</a>:*)</b></DT><DD>
+
+<p> A list of lookup tables that are searched by the UNIX login name,
+and that return a list of allowed envelope sender patterns separated
+by space or comma. These sender patterns are enforced by the Postfix
+<a href="postdrop.1.html">postdrop(1)</a> command. The default is backwards-compatible:
+every user may specify any envelope information.  </p>
+
+<p> When no UNIX login name is available, the postdrop command will
+prepend '#' to the numerical UID and use that instead. </p>
+
+<p> Before checking a sender address against <a href="postconf.5.html#local_login_sender_maps">local_login_sender_maps</a>,
+Postfix will strip an address extension based on the current
+<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> value.
+
+<p> The following sender patterns are special; these cannot be used
+as part of a longer pattern. </p>
+
+<dl>
+
+<dt> <b> * </b> <dd> This pattern allows everything. </dd>
+
+<dt> <b> &lt;&gt; </b> </dt> <dd> This pattern allows the null sender
+address. It is configured with the
+<a href="postconf.5.html#empty_address_local_login_sender_maps_lookup_key">empty_address_local_login_sender_maps_lookup_key</a> configuration
+parameter. </dd>
+
+<dt> <b> @<i>domain</i></b> </dt> <dd> This pattern allows a sender
+address when the '@' and <i>domain</i> part match. </dd>
+
+</dl>
+
+<p> Examples: </p>
+
+<pre>
+/etc/postfix/<a href="postconf.5.html">main.cf</a>:
+    # Allow root and postfix full control, anyone else can only
+    # send mail as themselves. Use # followed by the numerical UID
+    # when the UID has no entry in the UNIX password file.
+    <a href="postconf.5.html#local_login_sender_maps">local_login_sender_maps</a> =
+        <a href="DATABASE_README.html#types">inline</a>:{ { root = *}, { postfix = * } },
+        <a href="pcre_table.5.html">pcre</a>:/etc/postfix/login_senders
+</pre>
+
+<pre>
+/etc/postfix/login_senders:
+   # Allow both the bare username and the user@domain forms.
+    /(.+)/ $1 $1@example.com/
+</pre>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
 
 
 </DD>
@@ -9529,17 +9598,19 @@ Example:
 <DT><b><a name="recipient_delimiter">recipient_delimiter</a>
 (default: empty)</b></DT><DD>
 
-<p> The set of characters that can separate a user name from its
-extension (example: user+foo), or a .forward file name from its
-extension (example: .forward+foo).  Basically, the software tries
-user+foo and .forward+foo before trying user and .forward.  This
-implementation recognizes one delimiter character and one extension
-per email address or .forward file name. </p>
+<p> The set of characters that can separate an email address
+localpart, user name, or a .forward file name from its extension.
+For example, with "<a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> = +", the software tries
+user+foo@example.com before trying user@example.com, user+foo before
+trying user, and .forward+foo before trying .forward. </p>
 
-<p> When the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set contains multiple characters
-(Postfix 2.11 and later), a user name or .forward file name is
+<p> More formally, an email address localpart or user name is
 separated from its extension by the first character that matches
-the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set. </p>
+the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> set. The delimiter character and extension
+may then be used to generate an extended .forward file name. This
+implementation recognizes one delimiter character and one extension
+per email address localpart or email address. With Postfix 2.10 and
+earler, the <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> specifies a single character. </p>
 
 <p> See <a href="canonical.5.html">canonical(5)</a>, <a href="local.8.html">local(8)</a>, <a href="relocated.5.html">relocated(5)</a> and <a href="virtual.5.html">virtual(5)</a> for the
 effects of <a href="postconf.5.html#recipient_delimiter">recipient_delimiter</a> on lookups in aliases, canonical,

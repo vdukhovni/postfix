@@ -103,8 +103,6 @@ int     qmgr_deliver_concurrency;
 
 static int qmgr_deliver_initial_reply(VSTREAM *stream)
 {
-    int     stat;
-
     if (peekfd(vstream_fileno(stream)) < 0) {
 	msg_warn("%s: premature disconnect", VSTREAM_PATH(stream));
 	return (DELIVER_STAT_CRASH);

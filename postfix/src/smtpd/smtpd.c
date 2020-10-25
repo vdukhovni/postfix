@@ -1062,9 +1062,8 @@
 /* .IP "\fBqueue_directory (see 'postconf -d' output)\fR"
 /*	The location of the Postfix top-level queue directory.
 /* .IP "\fBrecipient_delimiter (empty)\fR"
-/*	The set of characters that can separate a user name from its
-/*	extension (example: user+foo), or a .forward file name from its
-/*	extension (example: .forward+foo).
+/*	The set of characters that can separate an email address
+/*	localpart, user name, or a .forward file name from its extension.
 /* .IP "\fBsmtpd_banner ($myhostname ESMTP $mail_name)\fR"
 /*	The text that follows the 220 status code in the SMTP greeting
 /*	banner.
@@ -5464,7 +5463,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	 * obsolete, so we don't have to provide perfect support.
 	 */
 #ifdef USE_TLS
-	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
+	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode
+	    && state->tls_context == 0) {
 #ifdef USE_TLSPROXY
 	    /* We garbage-collect the VSTREAM in smtpd_state_reset() */
 	    state->tlsproxy =

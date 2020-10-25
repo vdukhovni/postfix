@@ -36,7 +36,7 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
 	mail_addr_form.c quote_flags.c maillog_client.c \
 	normalize_mailhost_addr.c map_search.c reject_deliver_request.c \
-	info_log_addr_form.c sasl_mech_filter.c
+	info_log_addr_form.c sasl_mech_filter.c login_sender_match.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -74,7 +74,7 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
 	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o maillog_client.o \
 	normalize_mailhost_addr.o map_search.o reject_deliver_request.o \
-	info_log_addr_form.o sasl_mech_filter.o
+	info_log_addr_form.o sasl_mech_filter.o login_sender_match.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -109,7 +109,7 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
 	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h \
 	maillog_client.h normalize_mailhost_addr.h map_search.h \
-	info_log_addr_form.h sasl_mech_filter.h
+	info_log_addr_form.h sasl_mech_filter.h login_sender_match.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -125,7 +125,7 @@ TESTPROG= domain_list dot_lockfile mail_addr_crunch mail_addr_find \
 	data_redirect addr_match_list safe_ultostr verify_sender_addr \
 	mail_version mail_dict server_acl uxtext mail_parm_split \
 	fold_addr smtp_reply_footer mail_addr_map normalize_mailhost_addr \
-	haproxy_srvr map_search delivered_hdr
+	haproxy_srvr map_search delivered_hdr login_sender_match
 
 LIBS	= ../../lib/lib$(LIB_PREFIX)util$(LIB_SUFFIX)
 LIB_DIR	= ../../lib
@@ -396,6 +396,9 @@ map_search: map_search.c $(LIB) $(LIBS)
 delivered_hdr: delivered_hdr.c $(LIB) $(LIBS)
 	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
 
+login_sender_match: login_sender_match.c $(LIB) $(LIBS)
+	$(CC) $(CFLAGS) -DTEST -o $@ $@.c $(LIB) $(LIBS) $(SYSLIBS)
+
 tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	xtext_test scache_multi_test ehlo_mask_test \
 	namadr_list_test mail_conf_time_test header_body_checks_tests \
@@ -404,7 +407,7 @@ tests: tok822_test mime_tests strip_addr_test tok822_limit_test \
 	smtp_reply_footer_test off_cvt_test mail_addr_crunch_test \
 	mail_addr_find_test mail_addr_map_test quote_822_local_test \
 	normalize_mailhost_addr_test haproxy_srvr_test map_search_test \
-	delivered_hdr_test
+	delivered_hdr_test login_sender_match_test
 
 mime_tests: mime_test mime_nest mime_8bit mime_dom mime_trunc mime_cvt \
 	mime_cvt2 mime_cvt3 mime_garb1 mime_garb2 mime_garb3 mime_garb4
@@ -736,6 +739,11 @@ delivered_hdr_test: update delivered_hdr delivered_hdr.ref
 	-$(SHLIB_ENV) $(VALGRIND) ./delivered_hdr >delivered_hdr.tmp 2>&1
 	diff delivered_hdr.ref delivered_hdr.tmp
 	rm -f delivered_hdr.tmp
+
+login_sender_match_test: update login_sender_match login_sender_match.ref
+	-$(SHLIB_ENV) $(VALGRIND) ./login_sender_match >login_sender_match.tmp 2>&1
+	diff login_sender_match.ref login_sender_match.tmp
+	rm -f login_sender_match.tmp
 
 printfck: $(OBJS) $(PROG)
 	rm -rf printfck
@@ -1520,6 +1528,24 @@ log_adhoc.o: log_adhoc.h
 log_adhoc.o: mail_params.h
 log_adhoc.o: msg_stats.h
 log_adhoc.o: recipient_list.h
+login_sender_match.o: ../../include/argv.h
+login_sender_match.o: ../../include/check_arg.h
+login_sender_match.o: ../../include/dict.h
+login_sender_match.o: ../../include/msg.h
+login_sender_match.o: ../../include/myflock.h
+login_sender_match.o: ../../include/mymalloc.h
+login_sender_match.o: ../../include/stringops.h
+login_sender_match.o: ../../include/sys_defs.h
+login_sender_match.o: ../../include/vbuf.h
+login_sender_match.o: ../../include/vstream.h
+login_sender_match.o: ../../include/vstring.h
+login_sender_match.o: login_sender_match.c
+login_sender_match.o: login_sender_match.h
+login_sender_match.o: mail_params.h
+login_sender_match.o: maps.h
+login_sender_match.o: quote_822_local.h
+login_sender_match.o: quote_flags.h
+login_sender_match.o: strip_addr.h
 mail_addr.o: ../../include/check_arg.h
 mail_addr.o: ../../include/stringops.h
 mail_addr.o: ../../include/sys_defs.h

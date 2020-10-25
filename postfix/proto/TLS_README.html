@@ -540,7 +540,7 @@ by default and should only seldom be used. </p>
 </pre>
 </blockquote>
 
-<p> TLS is sometimes used in the non-standard "wrapper" mode where
+<p> TLS is also used in the "wrapper" mode where
 a server always uses TLS, instead of announcing STARTTLS support
 and waiting for remote SMTP clients to request TLS service. Some
 clients, namely
@@ -2520,7 +2520,7 @@ the TLS protocols used with opportunistic TLS. </p>
 <h3> <a name="client_smtps">Client-side SMTPS support </a> </h3>
 
 <p> These sections show how to send mail to a server that does not
-support STARTTLS, but that provides the deprecated SMTPS service
+support STARTTLS, but that provides the SMTPS service
 on TCP port 465.  Depending on the Postfix version, some additional
 tooling may be required. </p>
 

@@ -25195,7 +25195,7 @@ Apologies for any names omitted.
 	Cleanup: some wordsmithing of warnings when DNSSEC validation
 	is unavailable. File: dns/dns_sec.c.
 
-	Clenaup: add missing warnings for libpostfix version
+	Cleanup: add missing warnings for libpostfix version
 	mismatches. This will help folks with build processes that
 	mistakenly run newly-built Postfix installation commands
 	with previously-installed libpostfix files. Files:
@@ -25204,3 +25204,44 @@ Apologies for any names omitted.
 
 	Documentation: hyperlink occurrences of the info_log_address_format
 	parameter name in daemon manpages.
+
+20201005
+
+	Cleanup: move the submit_users check after the postdrop
+	initializations that strip the environment, set up signal
+	handlers, etc. File: postdrop/postdrop.c.
+
+	Documentation: descriptions of Postfix TLS wrappermode
+	support. File: proto/TLS_README.html, proto/SASL_README.html.
+
+20201011
+
+	Cleanup: save a copy of the postscreen_dnsbl_reply_map
+	lookup result. This has no effect when the recommended
+	texthash: look table is used, but it may avoid stale data
+	with other lookup tables. File: postscreen/postscreen_dnsbl.c.
+
+20201015
+
+	Documentation: simplified the recipient_delimiter
+	description. File: proto/postconf.proto.
+
+20201022
+
+	Bugfix (introduced: Postfix 2.2): after processing an
+	XCCLIENT command, the smtps service was waiting for a TLS
+	handshake. Found by Aki Tuomi. File: smtpd/smtpd.c.
+
+20201025
+
+	Feature: local_login_sender_maps to lock down the envelope
+	sender addresses that the postdrop command will accept. The
+	default is backwards compatible. Files: postdrop/postdrop.c,
+	global/mail_params.h, global/local_sender_login_match.[hc],
+	global/local_sender_login_match.in,
+	global/local_sender_login_match.ref, global/quote_822_local.c,
+	global/quote_822_local.in, global/quote_822_local.ref,
+	mantools/postlink, proto/postconf.proto.
+
+	Bugfix (introduced: Postfix 2.3): static maps did not free
+	their casefolding buffer. File: util/dict_static.c.

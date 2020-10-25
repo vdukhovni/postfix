@@ -364,11 +364,11 @@ Example:
     /etc/postfix/main.cf:
         smtpd_tls_security_level = encrypt
 
-TLS is sometimes used in the non-standard "wrapper" mode where a server always
-uses TLS, instead of announcing STARTTLS support and waiting for remote SMTP
-clients to request TLS service. Some clients, namely Outlook [Express] prefer
-the "wrapper" mode. This is true for OE (Win32 < 5.0 and Win32 >=5.0 when run
-on a port<>25 and OE (5.01 Mac on all ports).
+TLS is also used in the "wrapper" mode where a server always uses TLS, instead
+of announcing STARTTLS support and waiting for remote SMTP clients to request
+TLS service. Some clients, namely Outlook [Express] prefer the "wrapper" mode.
+This is true for OE (Win32 < 5.0 and Win32 >=5.0 when run on a port<>25 and OE
+(5.01 Mac on all ports).
 
 It is strictly discouraged to use this mode from main.cf. If you want to
 support this service, enable a special port in master.cf and specify "-
@@ -1932,8 +1932,8 @@ Example:
 CClliieenntt--ssiiddee SSMMTTPPSS ssuuppppoorrtt
 
 These sections show how to send mail to a server that does not support
-STARTTLS, but that provides the deprecated SMTPS service on TCP port 465.
-Depending on the Postfix version, some additional tooling may be required.
+STARTTLS, but that provides the SMTPS service on TCP port 465. Depending on the
+Postfix version, some additional tooling may be required.
 
 PPoossttffiixx >>== 33..00
 

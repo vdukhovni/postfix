@@ -1972,6 +1972,11 @@ The sender_dependent_default_transport_maps search string that
 will be used instead of the null sender address.
 .PP
 This feature is available in Postfix 2.7 and later.
+.SH empty_address_local_login_sender_maps_lookup_key (default: <>)
+The lookup key to be used in local_login_sender_maps tables, instead
+of the null sender address.
+.PP
+This feature is available in Postfix 3.6 and later.
 .SH empty_address_recipient (default: MAILER\-DAEMON)
 The recipient of mail addressed to the null address.  Postfix does
 not accept such addresses in SMTP commands, but they may still be
@@ -3537,6 +3542,64 @@ local_header_rewrite_clients = permit_mynetworks,
 .ad
 .ft R
 .in -4
+.SH local_login_sender_maps (default: static:*)
+A list of lookup tables that are searched by the UNIX login name,
+and that return a list of allowed envelope sender patterns separated
+by space or comma. These sender patterns are enforced by the Postfix
+\fBpostdrop\fR(1) command. The default is backwards\-compatible:
+every user may specify any envelope information.
+.PP
+When no UNIX login name is available, the postdrop command will
+prepend '#' to the numerical UID and use that instead.
+.PP
+Before checking a sender address against local_login_sender_maps,
+Postfix will strip an address extension based on the current
+recipient_delimiter value.
+.PP
+The following sender patterns are special; these cannot be used
+as part of a longer pattern.
+.IP "\fB * \fR
+This pattern allows everything.
+.br
+.IP "\fB <> \fR"
+This pattern allows the null sender
+address. It is configured with the
+empty_address_local_login_sender_maps_lookup_key configuration
+parameter.
+.br
+.IP "\fB @\fIdomain\fR\fR"
+This pattern allows a sender
+address when the '@' and \fIdomain\fR part match.
+.br
+.br
+.PP
+Examples:
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/main.cf:
+    # Allow root and postfix full control, anyone else can only
+    # send mail as themselves. Use # followed by the numerical UID
+    # when the UID has no entry in the UNIX password file.
+    local_login_sender_maps =
+        inline:{ { root = *}, { postfix = * } },
+        pcre:/etc/postfix/login_senders
+.fi
+.ad
+.ft R
+.PP
+.nf
+.na
+.ft C
+/etc/postfix/login_senders:
+   # Allow both the bare username and the user@domain forms.
+    /(.+)/ $1 $1@example.com/
+.fi
+.ad
+.ft R
+.PP
+This feature is available in Postfix 3.6 and later.
 .SH local_recipient_maps (default: proxy:unix:passwd.byname $alias_maps)
 Lookup tables with all names or addresses of local recipients:
 a recipient address is local when its domain matches $mydestination,
@@ -5886,17 +5949,19 @@ recipient_canonical_maps = hash:/etc/postfix/recipient_canonical
 .ad
 .ft R
 .SH recipient_delimiter (default: empty)
-The set of characters that can separate a user name from its
-extension (example: user+foo), or a .forward file name from its
-extension (example: .forward+foo).  Basically, the software tries
-user+foo and .forward+foo before trying user and .forward.  This
-implementation recognizes one delimiter character and one extension
-per email address or .forward file name.
+The set of characters that can separate an email address
+localpart, user name, or a .forward file name from its extension.
+For example, with "recipient_delimiter = +", the software tries
+user+foo@example.com before trying user@example.com, user+foo before
+trying user, and .forward+foo before trying .forward.
 .PP
-When the recipient_delimiter set contains multiple characters
-(Postfix 2.11 and later), a user name or .forward file name is
+More formally, an email address localpart or user name is
 separated from its extension by the first character that matches
-the recipient_delimiter set.
+the recipient_delimiter set. The delimiter character and extension
+may then be used to generate an extended .forward file name. This
+implementation recognizes one delimiter character and one extension
+per email address localpart or email address. With Postfix 2.10 and
+earler, the recipient_delimiter specifies a single character.
 .PP
 See \fBcanonical\fR(5), \fBlocal\fR(8), \fBrelocated\fR(5) and \fBvirtual\fR(5) for the
 effects of recipient_delimiter on lookups in aliases, canonical,

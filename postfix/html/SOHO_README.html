@@ -288,10 +288,9 @@ that use the non-standard "<code>AUTH=<em>method.</em>...</code>"
 syntax in response to the EHLO command; this requires no additional
 Postfix client configuration. </p> </li>
 
-<li> <p> The Postfix SMTP client does not support the obsolete
-"wrappermode" protocol, which uses TCP port <code>465</code> on the
-SMTP server.  See <a href="TLS_README.html">TLS_README</a> for a solution that uses the
-<code>stunnel</code> command.  </p> </li>
+<li> <p> With the setting "<a href="postconf.5.html#smtp_tls_wrappermode">smtp_tls_wrappermode</a> = yes", the Postfix
+SMTP client supports the "wrappermode" protocol, which uses TCP
+port 465 on the SMTP server (Postfix 3.0 and later). </p> </li>
 
 <li> <p> With the <code><a href="postconf.5.html#smtp_sasl_password_maps">smtp_sasl_password_maps</a></code> parameter,
 we configure the Postfix SMTP client to send username and password
