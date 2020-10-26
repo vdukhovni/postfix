@@ -23,3 +23,7 @@ unknown: warning: fail:sorry lookup error for "baz"
 unknown: PASS test 10
 unknown: RUN test case 11 no error
 unknown: PASS test 11
+unknown: RUN test case 12 unknown uid:number
+unknown: PASS test 12
+unknown: RUN test case 13 known uid:number
+unknown: PASS test 13

@@ -17906,29 +17906,30 @@ value to disable the feature. </p>
 and that return a list of allowed envelope sender patterns separated
 by space or comma. These sender patterns are enforced by the Postfix
 postdrop(1) command. The default is backwards-compatible:
-every user may specify any envelope information.  </p>
+every user may specify any sender envelope address. </p>
 
-<p> When no UNIX login name is available, the postdrop command will 
-prepend '#' to the numerical UID and use that instead. </p>
+<p> When no UNIX login name is available, the postdrop(1) command will 
+prepend "<b>uid:</b>" to the numerical UID and use that instead. </p>
 
-<p> Before checking a sender address against local_login_sender_maps,
-Postfix will strip an address extension based on the current
-recipient_delimiter value.
+<p> This feature ignores address extensions in the user-specified
+envelope sender address. </p>
 
 <p> The following sender patterns are special; these cannot be used
 as part of a longer pattern. </p>
 
-<dl>
+<dl compact>
 
-<dt> <b> * </b> <dd> This pattern allows everything. </dd>
+<dt> <b> * </b> <dd> This pattern allows any envelope sender address.
+</dd>
 
-<dt> <b> &lt;&gt; </b> </dt> <dd> This pattern allows the null sender
-address. It is configured with the
+<dt> <b> &lt;&gt; </b> </dt> <dd> This pattern allows the empty
+envelope sender address. See the
 empty_address_local_login_sender_maps_lookup_key configuration
 parameter. </dd>
 
-<dt> <b> @<i>domain</i></b> </dt> <dd> This pattern allows a sender
-address when the '@' and <i>domain</i> part match. </dd>
+<dt> <b> @</b><i>domain</i> </dt> <dd> This pattern allows an
+envelope sender address when the '<b>@</b>' and <i>domain</i> part
+match. </dd>
 
 </dl>
 
@@ -17937,8 +17938,8 @@ address when the '@' and <i>domain</i> part match. </dd>
 <pre>
 /etc/postfix/main.cf:
     # Allow root and postfix full control, anyone else can only
-    # send mail as themselves. Use # followed by the numerical UID
-    # when the UID has no entry in the UNIX password file.
+    # send mail as themselves. Use "uid:" followed by the numerical
+    # UID when the UID has no entry in the UNIX password file.
     local_login_sender_maps = 
 	inline:{ { root = *}, { postfix = * } },
 	pcre:/etc/postfix/login_senders

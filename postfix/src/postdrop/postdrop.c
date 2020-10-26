@@ -271,7 +271,7 @@ static int check_login_sender_acl(uid_t uid, VSTRING *sender_buf,
 	user_name = user_info->pw_name;
     } else {
 	user_name_buf = vstring_alloc(10);
-	vstring_sprintf(user_name_buf, "#%ld", (long) uid);
+	vstring_sprintf(user_name_buf, "uid:%ld", (long) uid);
 	user_name = vstring_str(user_name_buf);
     }
 

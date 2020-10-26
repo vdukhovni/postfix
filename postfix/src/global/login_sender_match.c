@@ -296,6 +296,14 @@ int     main(int argc, char **argv)
 	    "inline:{root=*}, fail:sorry",
 	    "+-", "<>", "*", "root", "whatever", LSM_STAT_FOUND
 	},
+	{"unknown uid:number",
+	    "inline:{root=*, {uid:12345 = foo,foo@example.com}, bar=<>}",
+	    "+-", "<>", "*", "uid:54321", "foo", LSM_STAT_NOTFOUND
+	},
+	{"known uid:number",
+	    "inline:{root=*, {uid:12345 = foo,foo@example.com}, bar=<>}",
+	    "+-", "<>", "*", "uid:12345", "foo", LSM_STAT_FOUND
+	},
     };
     struct testcase *tp;
     int     act_return;

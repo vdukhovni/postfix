@@ -3547,29 +3547,29 @@ A list of lookup tables that are searched by the UNIX login name,
 and that return a list of allowed envelope sender patterns separated
 by space or comma. These sender patterns are enforced by the Postfix
 \fBpostdrop\fR(1) command. The default is backwards\-compatible:
-every user may specify any envelope information.
+every user may specify any sender envelope address.
 .PP
-When no UNIX login name is available, the postdrop command will
-prepend '#' to the numerical UID and use that instead.
+When no UNIX login name is available, the \fBpostdrop\fR(1) command will
+prepend "\fBuid:\fR" to the numerical UID and use that instead.
 .PP
-Before checking a sender address against local_login_sender_maps,
-Postfix will strip an address extension based on the current
-recipient_delimiter value.
+This feature ignores address extensions in the user\-specified
+envelope sender address.
 .PP
 The following sender patterns are special; these cannot be used
 as part of a longer pattern.
 .IP "\fB * \fR
-This pattern allows everything.
+This pattern allows any envelope sender address.
 .br
 .IP "\fB <> \fR"
-This pattern allows the null sender
-address. It is configured with the
+This pattern allows the empty
+envelope sender address. See the
 empty_address_local_login_sender_maps_lookup_key configuration
 parameter.
 .br
-.IP "\fB @\fIdomain\fR\fR"
-This pattern allows a sender
-address when the '@' and \fIdomain\fR part match.
+.IP "\fB @\fR\fIdomain\fR"
+This pattern allows an
+envelope sender address when the '\fB@\fR' and \fIdomain\fR part
+match.
 .br
 .br
 .PP
@@ -3580,8 +3580,8 @@ Examples:
 .ft C
 /etc/postfix/main.cf:
     # Allow root and postfix full control, anyone else can only
-    # send mail as themselves. Use # followed by the numerical UID
-    # when the UID has no entry in the UNIX password file.
+    # send mail as themselves. Use "uid:" followed by the numerical
+    # UID when the UID has no entry in the UNIX password file.
     local_login_sender_maps =
         inline:{ { root = *}, { postfix = * } },
         pcre:/etc/postfix/login_senders

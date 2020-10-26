@@ -25236,8 +25236,9 @@ Apologies for any names omitted.
 
 	Feature: local_login_sender_maps to lock down the envelope
 	sender addresses that the postdrop command will accept. The
-	default is backwards compatible. Files: postdrop/postdrop.c,
-	global/mail_params.h, global/local_sender_login_match.[hc],
+	default is backwards compatible. Developed with input from
+	Demi M. Obenour. Files: postdrop/postdrop.c, global/mail_params.h,
+	global/local_sender_login_match.[hc],
 	global/local_sender_login_match.in,
 	global/local_sender_login_match.ref, global/quote_822_local.c,
 	global/quote_822_local.in, global/quote_822_local.ref,
@@ -25245,3 +25246,9 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 2.3): static maps did not free
 	their casefolding buffer. File: util/dict_static.c.
+
+20201026
+
+	Cleanup: changed the postdrop numerical UID prefix from "#"
+	to "uid:", and tweaked some local_login_sender_maps
+	documentatin. Files: proto/postconf.proto, postdrop/postdrop.c.

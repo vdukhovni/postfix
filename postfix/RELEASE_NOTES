@@ -25,6 +25,43 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20201025
+====================================
+
+Fine-grained control over the envelope sender address for submission
+with the Postfix sendmail (or postdrop) commands.
+
+The local_login_sender_maps parameter (default: static:*) specifies
+a list of lookup tables that are searched by the UNIX login name, and
+that return a list of allowed envelope sender patterns separated by
+space or comma. The default is backwards-compatible: every user may
+specify any sender envelope address.
+
+When no UNIX login name is available, the Postfix postdrop command
+will prepend "uid:" to the numerical UID and use that instead.
+
+This feature ignores address extensions in the user-specified
+envelope sender address.
+
+Besides the special pattern "*" which allows any sender address,
+there are "<>" which matches an empty sender address, and the
+"@domain" wilcard pattern. More information about those can be found
+in the postconf(5) manpage.
+
+Example:
+
+/etc/postfix/main.cf:
+    # Allow root and postfix full control, anyone else can only
+    # send mail as themselves. Use "uid:" followed by the numerical
+    # UID when the UID has no entry in the UNIX password file.
+    local_login_sender_maps =
+        inline:{ { root = *}, { postfix = * } },
+        pcre:/etc/postfix/login_senders
+
+/etc/postfix/login_senders:
+   # Allow both the bare username and the user@domain forms.
+    /(.+)/ $1 $1@example.com
+
 Major changes with snapshot 20201003
 ====================================
 
