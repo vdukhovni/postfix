@@ -559,7 +559,8 @@ tests: all valid_hostname_test mac_expand_test dict_test unescape_test \
 	miss_endif_pcre_test miss_endif_regexp_test split_qnameval_test \
 	vstring_test vstream_test dict_pcre_file_test dict_regexp_file_test \
 	dict_cidr_file_test dict_static_file_test dict_random_test \
-	dict_random_file_test dict_inline_file_test byte_mask_tests
+	dict_random_file_test dict_inline_file_test byte_mask_tests \
+	mystrtok_test
 
 root_tests:
 
@@ -956,6 +957,11 @@ vstream_test: vstream vstream_test.in vstream_test.ref
 	$(SHLIB_ENV) ${VALGRIND} ./vstream <vstream_test.in >vstream_test.tmp 2>&1
 	diff vstream_test.ref vstream_test.tmp
 	rm -f vstream_test.tmp
+
+mystrtok_test: mystrtok mystrtok.ref
+	$(SHLIB_ENV) ${VALGRIND} ./mystrtok >mystrtok.tmp 2>&1
+	diff mystrtok.ref mystrtok.tmp
+	rm -f mystrtok.tmp
 
 depend: $(MAKES)
 	(sed '1,/^# do not edit/!d' Makefile.in; \

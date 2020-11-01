@@ -53,7 +53,7 @@ r*	The lookup table(s) with (login name, sender patterns) entries.
 /* .IP ext_delimiters
 /*	The set of address extension delimiters.
 /* .IP null_sender
-/*	If a sender pattern equals the null_sender pattern, then 
+/*	If a sender pattern equals the null_sender pattern, then
 /*	the empty address is matched.
 /* .IP wildcard
 /*	Null pointer, or non-empty string with a wildcard pattern.
@@ -196,16 +196,16 @@ int     login_sender_match(LOGIN_SENDER_MATCH *lsm, const char *login_name,
 				      /* flags= */ 0)) != 0) {
 
 	/*
-	 * Match the sender. TODO: don't break a sender pattern on a
-	 * comma/space inside a quoted localpart.
+	 * Match the sender. Don't break a sender pattern between double
+	 * quotes.
 	 */
 	cp = saved_sender_patterns = mystrdup(sender_patterns);
 	while (found_or_error == LSM_STAT_NOTFOUND
-	       && (sender_pattern = mystrtok(&cp, CHARS_COMMA_SP)) != 0) {
+	       && (sender_pattern = mystrtokdq(&cp, CHARS_COMMA_SP)) != 0) {
 	    /* Special pattern: @domain. */
 	    if (*sender_pattern == '@') {
 		if ((at_sender_domain = strrchr(sender_addr, '@')) != 0
-		    && strcasecmp_utf8(sender_pattern, at_sender_domain) == 0)
+		  && strcasecmp_utf8(sender_pattern, at_sender_domain) == 0)
 		    found_or_error = LSM_STAT_FOUND;
 	    }
 	    /* Special pattern: wildcard. */
@@ -218,13 +218,15 @@ int     login_sender_match(LOGIN_SENDER_MATCH *lsm, const char *login_name,
 		    found_or_error = LSM_STAT_FOUND;
 	    }
 	    /* Literal pattern: match the stripped and externalized sender. */
-	    if (ext_stripped_sender == 0)
-		ext_stripped_sender =
-		    STR(strip_externalize_addr(lsm->ext_stripped_sender,
-					       sender_addr,
-					       lsm->ext_delimiters));
-	    if (strcasecmp_utf8(sender_pattern, ext_stripped_sender) == 0)
-		found_or_error = LSM_STAT_FOUND;
+	    else {
+		if (ext_stripped_sender == 0)
+		    ext_stripped_sender =
+			STR(strip_externalize_addr(lsm->ext_stripped_sender,
+						   sender_addr,
+						   lsm->ext_delimiters));
+		if (strcasecmp_utf8(sender_pattern, ext_stripped_sender) == 0)
+		    found_or_error = LSM_STAT_FOUND;
+	    }
 	}
 	myfree(saved_sender_patterns);
     } else {
@@ -303,6 +305,18 @@ int     main(int argc, char **argv)
 	{"known uid:number",
 	    "inline:{root=*, {uid:12345 = foo,foo@example.com}, bar=<>}",
 	    "+-", "<>", "*", "uid:12345", "foo", LSM_STAT_FOUND
+	},
+	{"unknown \"other last\"",
+	    "inline:{root=*, {foo = \"first last\",\"first last\"@example.com}, bar=<>}",
+	    "+-", "<>", "*", "foo", "other last", LSM_STAT_NOTFOUND
+	},
+	{"bare \"first last\"",
+	    "inline:{root=*, {foo = \"first last\",\"first last\"@example.com}, bar=<>}",
+	    "+-", "<>", "*", "foo", "first last", LSM_STAT_FOUND
+	},
+	{"\"first last\"@domain",
+	    "inline:{root=*, {foo = \"first last\",\"first last\"@example.com}, bar=<>}",
+	    "+-", "<>", "*", "foo", "first last@example.com", LSM_STAT_FOUND
 	},
     };
     struct testcase *tp;

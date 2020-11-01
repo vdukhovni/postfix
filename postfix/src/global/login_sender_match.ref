@@ -27,3 +27,9 @@ unknown: RUN test case 12 unknown uid:number
 unknown: PASS test 12
 unknown: RUN test case 13 known uid:number
 unknown: PASS test 13
+unknown: RUN test case 14 unknown "other last"
+unknown: PASS test 14
+unknown: RUN test case 15 bare "first last"
+unknown: PASS test 15
+unknown: RUN test case 16 "first last"@domain
+unknown: PASS test 16

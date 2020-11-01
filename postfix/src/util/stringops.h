@@ -30,6 +30,7 @@ extern char *trimblanks(char *, ssize_t);
 extern char *concatenate(const char *,...);
 extern char *mystrtok(char **, const char *);
 extern char *mystrtokq(char **, const char *, const char *);
+extern char *mystrtokdq(char **, const char *);
 extern char *translit(char *, const char *, const char *);
 
 #define printable(string, replacement) \

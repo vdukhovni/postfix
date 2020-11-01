@@ -25251,4 +25251,10 @@ Apologies for any names omitted.
 
 	Cleanup: changed the postdrop numerical UID prefix from "#"
 	to "uid:", and tweaked some local_login_sender_maps
-	documentatin. Files: proto/postconf.proto, postdrop/postdrop.c.
+	documentation. Files: proto/postconf.proto, postdrop/postdrop.c.
+
+20201031
+
+	Cleanup: don't split a space-comma separated address list
+	on on space or comma inside a quoted string. Files:
+	util/mystrtok.c, util/mystetok.ref, global/login_sender_match.c.

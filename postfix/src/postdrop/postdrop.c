@@ -261,8 +261,10 @@ static int check_login_sender_acl(uid_t uid, VSTRING *sender_buf,
     /*
      * Optimization.
      */
+#ifndef SNAPSHOT
     if (strcmp(var_local_login_snd_maps, DEF_LOCAL_LOGIN_SND_MAPS) == 0)
 	return (CLEANUP_STAT_OK);
+#endif
 
     /*
      * Get the username.
