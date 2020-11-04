@@ -1389,17 +1389,17 @@ static void smtp_mime_fail(SMTP_STATE *state, int mime_errs)
 
 /* smtp_out_raw_or_mime - output buffer, raw output or MIME-aware */
 
-static int smtp_out_raw_or_mime(SMTP_STATE *state, VSTRING *buf)
+static int smtp_out_raw_or_mime(SMTP_STATE *state, int rec_type, VSTRING *buf)
 {
     SMTP_SESSION *session = state->session;
     int     mime_errs;
 
     if (session->mime_state == 0) {
-	smtp_text_out((void *) state, REC_TYPE_NORM, vstring_str(buf),
+	smtp_text_out((void *) state, rec_type, vstring_str(buf),
 		      VSTRING_LEN(buf), (off_t) 0);
     } else {
 	mime_errs =
-	    mime_state_update(session->mime_state, REC_TYPE_NORM,
+	    mime_state_update(session->mime_state, rec_type,
 			      vstring_str(buf), VSTRING_LEN(buf));
 	if (mime_errs) {
 	    smtp_mime_fail(state, mime_errs);
@@ -1423,7 +1423,7 @@ static int smtp_out_add_header(SMTP_STATE *state, const char *label,
 				 vstring_str(session->scratch2),
 				 QUOTE_FLAG_DEFAULT | QUOTE_FLAG_APPEND);
     vstring_strcat(session->scratch, gt);
-    return (smtp_out_raw_or_mime(state, session->scratch));
+    return (smtp_out_raw_or_mime(state, REC_TYPE_NORM, session->scratch));
 }
 
 /* smtp_out_add_headers - output additional headers, uses session->scratch* */
@@ -2307,7 +2307,8 @@ static int smtp_loop(SMTP_STATE *state, NOCLOBBER int send_state,
 		while ((rec_type = rec_get(state->src, session->scratch, 0)) > 0) {
 		    if (rec_type != REC_TYPE_NORM && rec_type != REC_TYPE_CONT)
 			break;
-		    if (smtp_out_raw_or_mime(state, session->scratch) < 0)
+		    if (smtp_out_raw_or_mime(state, rec_type,
+					     session->scratch) < 0)
 			RETURN(0);
 		    prev_type = rec_type;
 		}

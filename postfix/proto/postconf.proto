@@ -16937,7 +16937,7 @@ clients).  </p>
 This feature is available in Postfix 3.1 and later.
 </p>
 
-%PARAM smtp_tls_dane_insecure_mx_policy dane
+%PARAM smtp_tls_dane_insecure_mx_policy see "postconf -d" output
 
 <p> The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is <b>dane</b>, but the MX
@@ -16953,13 +16953,17 @@ handshake fails, mail may be sent in the clear. </dd>
 <dd> The TLSA records will signal a requirement to use TLS.  While
 TLS encryption will be required, authentication will not be performed.
 </dd>
-<dt><b>dane</b> (default)</dt>
+<dt><b>dane</b></dt>
 <dd>The TLSA records will be used just as with "secure" MX records.
 TLS encryption will be required, and, if at least one of the TLSA
 records is "usable", authentication will be required.  When
 authentication succeeds, it will be logged only as "Trusted", not
 "Verified", because the MX host name could have been forged.  </dd>
 </dl>
+
+<p> The default setting for Postfix &ge; 3.6 is "dane" with
+"smtp_tls_security_level = dane", otherwise "may".  With earlier
+Postfix versions the defauult setting was always "dane". </p>
 
 <p> Though with "insecure" MX records an active attacker can
 compromise SMTP transport security by returning forged MX records,

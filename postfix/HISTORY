@@ -25064,9 +25064,9 @@ Apologies for any names omitted.
 	reused in the Postfix SMTP server. Files: smtp/smtp_sasl_proto.c,
 	global/sacl_mech_filter.[hc].
 
-	Bugfix (introduced: Postfix 2.0): smtp_sasl_mechamism_filter
-	ignored table lookup errors, treating as 'not found'. Found while
-	refactoring code.
+	Bugfix (introduced: Postfix 2.0): smtp_sasl_mechanism_filter
+	ignored table lookup errors, treating them as 'not found'.
+	Found while refactoring code. File: smtp/smtp_sasl_proto.c.
 
 	Feature: smtpd_sasl_mechanism_list (default: !external,
 	static:rest) to avoid confusing errors when a SASL backend
@@ -25085,8 +25085,6 @@ Apologies for any names omitted.
 	src/global/sasl_mech_filter.c.
 
 20200906-18
-
-	Baseline is postfix-3.6-20200906.
 
 	Other debt: internal protocol identification. Each server
 	sends the name of the internal protocol that it implements,
@@ -25216,10 +25214,11 @@ Apologies for any names omitted.
 
 20201011
 
-	Cleanup: save a copy of the postscreen_dnsbl_reply_map
-	lookup result. This has no effect when the recommended
-	texthash: look table is used, but it may avoid stale data
-	with other lookup tables. File: postscreen/postscreen_dnsbl.c.
+	Bugfix (introduced: Postfix 2.8): save a copy of the
+	postscreen_dnsbl_reply_map lookup result. This has no effect
+	when the recommended texthash: look table is used, but it
+	may avoid stale data with other lookup tables. File:
+	postscreen/postscreen_dnsbl.c.
 
 20201015
 
@@ -25258,3 +25257,20 @@ Apologies for any names omitted.
 	Cleanup: don't split a space-comma separated address list
 	on on space or comma inside a quoted string. Files:
 	util/mystrtok.c, util/mystetok.ref, global/login_sender_match.c.
+
+20201101
+
+	Cleanup: the default "smtp_tls_dane_insecure_mx_policy = dane"
+	was forcing too many A/AAAA lookups for MX hosts in DANE mode.
+	The default is now "dane" when smtp_tls_security_level is "dane".
+	otherwise it is "may". File: global/mail_params.h.
+
+20201104
+
+	Bugfix (introduced: Postfix 3.5): the Postfix SMTP client
+	broke message headers longer than $line_length_limit, causing
+	subsequent header content to become message body content.
+	Reported by Andreas Weigel, fix by Viktor Dukhovni. File:
+	smtp/smtp_proto.c.
+
+	Added missing employer attributions to .c and .h files.

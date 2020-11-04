@@ -1,6 +1,8 @@
 Wish list:
 
 	Does tlsproxy terminate to soon after 'postfix reload'?
+	like, while a session is still im progress? Does it depend
+	on the server or client role?
 
 	Eliminate duplicate user_acl check from sendmail, and pass
 	the result through the postdrop-to-sendmail protocol. This
@@ -17,13 +19,13 @@ Wish list:
 	parameter. For example:
 	http://postfix.1071664.n5.nabble.com/Relay-attempt-questions-td103646.html
 
-	check_mumble_mx_access also generates synthetic MX records
-	i.e. A/AAAA where no MX exists.
+	Document that check_mumble_mx_access generates synthetic
+	MX records i.e. A/AAAA where no MX exists.
 
 	Someone suggested adding References: and In-Reply-To: headers
 	in bounce messages. Downside: that will make it harder to
 	delete a bounce without deleting other mail. Therefore do
-	not enable by defalut.
+	not enable by default.
 
 	Hardening the half-dane behavior: some sites may rely on
 	current behavior which allows original MX domain name for

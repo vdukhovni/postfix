@@ -57,6 +57,11 @@ extern int rcpb_scan(ATTR_SCAN_COMMON_FN, VSTREAM *, int, void *);
 /*	IBM T.J. Watson Research
 /*	P.O. Box 704
 /*	Yorktown Heights, NY 10598, USA
+/*
+/*	Wietse Venema
+/*	Google, Inc.
+/*	111 8th Avenue
+/*	New York, NY 10011, USA
 /*--*/
 
 #endif
