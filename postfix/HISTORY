@@ -23366,3 +23366,43 @@ Apologies for any names omitted.
 
 	Bugfix (introduced: Postfix 3.3.13): part of a memory leak
 	fix was backported to the wrong place. File: tls/tls_misc.c.
+
+20200830
+
+	Bugfix (introduced: Postfix 2.0): smtp_sasl_mechanism_filter
+	ignored table lookup errors, treating them as 'not found'.
+	Found during Postfix 3.6 development. File: smtp/smtp_sasl_proto.c.
+
+202000920
+
+	Bugfix (introduced: Postfix 2.3): when deleting a recipient
+	with a milter, delete the recipient from the duplicate
+	filter, so that the recipient can be added back. Backported
+	from Postfix 3.6. Files: global/been_here.[hc],
+	cleanup/cleanup_milter.c.
+
+20200925
+
+	Bugfix (introduced: before Postfix alpha): the code that
+	looks for Delivered-To: headers ignored headers longer than
+	$line_length_limit. Backported from Postfix 3.6. File:
+	global/delivered_hdr.c.
+
+20201011
+
+	Bugfix (introduced: Postfix 2.8): save a copy of the
+	postscreen_dnsbl_reply_map lookup result. This has no effect
+	when the recommended texthash: look table is used, but it
+	may avoid stale data with other lookup tables. File:
+	postscreen/postscreen_dnsbl.c.
+
+20201022
+
+	Bugfix (introduced: Postfix 2.2): after processing an
+	XCCLIENT command, the smtps service was waiting for a TLS
+	handshake. Found by Aki Tuomi. File: smtpd/smtpd.c.
+
+20201025
+
+	Bugfix (introduced: Postfix 2.3): static maps did not free
+	their casefolding buffer. File: util/dict_static.c.

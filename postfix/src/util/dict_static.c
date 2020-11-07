@@ -52,6 +52,8 @@ static const char *dict_static_lookup(DICT *dict, const char *unused_name)
 
 static void dict_static_close(DICT *dict)
 {
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 

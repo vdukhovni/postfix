@@ -1742,6 +1742,10 @@ static const char *cleanup_del_rcpt(void *context, const char *ext_rcpt)
 		}
 		count++;
 	    }
+	    if (var_enable_orcpt)
+		been_here_drop(state->dups, "%s\n%d\n%s\n%s",
+			       dsn_orcpt ? dsn_orcpt : "", dsn_notify,
+			     orig_rcpt ? orig_rcpt : "", STR(int_rcpt_buf));
 	    /* FALLTHROUGH */
 	case REC_TYPE_DRCP:			/* canceled recipient */
 	case REC_TYPE_DONE:			/* can't happen */
@@ -1757,6 +1761,8 @@ static const char *cleanup_del_rcpt(void *context, const char *ext_rcpt)
 	    break;
 	}
     }
+    if (var_enable_orcpt == 0 && count > 0)
+	been_here_drop_fixed(state->dups, STR(int_rcpt_buf));
 
     if (msg_verbose)
 	msg_info("%s: deleted %d records for recipient \"%s\"",

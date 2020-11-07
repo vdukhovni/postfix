@@ -231,6 +231,7 @@ static void psc_dnsbl_add_site(const char *site)
     int     weight;
     HTABLE_INFO *ht;
     char   *parse_err;
+    const char  *safe_dnsbl;
 
     /*
      * Parse the required DNSBL domain name, the optional reply filter and
@@ -271,8 +272,9 @@ static void psc_dnsbl_add_site(const char *site)
 	ht = htable_enter(dnsbl_site_cache, saved_site, (void *) head);
 	/* Translate the DNSBL name into a safe name if available. */
 	if (psc_dnsbl_reply == 0
-	 || (head->safe_dnsbl = dict_get(psc_dnsbl_reply, saved_site)) == 0)
-	    head->safe_dnsbl = ht->key;
+	    || (safe_dnsbl = dict_get(psc_dnsbl_reply, saved_site)) == 0)
+	    safe_dnsbl = ht->key;
+	head->safe_dnsbl = mystrdup(safe_dnsbl);
 	if (psc_dnsbl_reply && psc_dnsbl_reply->error)
 	    msg_fatal("%s:%s lookup error", psc_dnsbl_reply->type,
 		      psc_dnsbl_reply->name);

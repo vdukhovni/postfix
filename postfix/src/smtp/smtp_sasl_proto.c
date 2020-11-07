@@ -102,6 +102,8 @@ static const char *smtp_sasl_compat_mechs(const char *words)
 	    if (VSTRING_LEN(buf) > 0)
 		VSTRING_ADDCH(buf, ' ');
 	    vstring_strcat(buf, mech);
+	} else if (smtp_sasl_mechs->error) {
+	    msg_fatal("SASL mechanism filter failed for: '%s'", mech);
 	}
     }
     myfree(save_mech);
