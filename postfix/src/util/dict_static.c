@@ -73,6 +73,8 @@ static void dict_static_close(DICT *dict)
 
     if (dict_static->value)
 	myfree(dict_static->value);
+    if (dict->fold_buf)
+	vstring_free(dict->fold_buf);
     dict_free(dict);
 }
 

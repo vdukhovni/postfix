@@ -35,6 +35,8 @@ extern int been_here_fixed(BH_TABLE *, const char *);
 extern int PRINTFLIKE(2, 3) been_here(BH_TABLE *, const char *,...);
 extern int been_here_check_fixed(BH_TABLE *, const char *);
 extern int PRINTFLIKE(2, 3) been_here_check(BH_TABLE *, const char *,...);
+extern int been_here_drop_fixed(BH_TABLE *, const char *);
+extern int PRINTFLIKE(2, 3) been_here_drop(BH_TABLE *, const char *,...);
 
 /* LICENSE
 /* .ad
