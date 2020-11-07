@@ -5022,7 +5022,8 @@ static void smtpd_proto(SMTPD_STATE *state)
 	 * obsolete, so we don't have to provide perfect support.
 	 */
 #ifdef USE_TLS
-	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode) {
+	if (SMTPD_STAND_ALONE(state) == 0 && var_smtpd_tls_wrappermode
+	    && state->tls_context == 0) {
 #ifdef USE_TLSPROXY
 	    /* We garbage-collect the VSTREAM in smtpd_state_reset() */
 	    state->tlsproxy = tls_proxy_open(var_tlsproxy_service,
