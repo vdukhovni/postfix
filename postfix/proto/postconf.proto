@@ -5157,7 +5157,9 @@ in Postfix 3.0 and later.  </dd>
 <dt><b><a name="check_client_mx_access">check_client_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for the
-client hostname, and execute the corresponding action.  Note: a result
+client hostname, and execute the corresponding action.  If no MX
+record is found, look up A or AAAA records, just like the Postfix
+SMTP client would. Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
 to exclude specific hosts from blacklists.  This feature is available
 in Postfix 2.7 and later.  </dd>
@@ -5192,7 +5194,9 @@ This feature is available in Postfix 3.0 and later.  </dd>
 
 <dd>Search the specified access(5) database for the MX hosts for the
 unverified reverse client hostname, and execute the corresponding
-action.  Note: a result of "OK" is not allowed for safety reasons.
+action.  If no MX record is found, look up A or AAAA records, just
+like the Postfix SMTP client would.
+Note: a result of "OK" is not allowed for safety reasons.
 Instead, use DUNNO in order to exclude specific hosts from blacklists.
 This feature is available in Postfix 2.7 and later.  </dd>
 
@@ -5761,6 +5765,8 @@ feature is available in Postfix 3.0 and later.
 
 <dd>Search the specified access(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
+If no MX record is found, look up A or AAAA records, just like the
+Postfix SMTP client would.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
@@ -6047,7 +6053,9 @@ feature is available in Postfix 3.0 and later. </dd>
 <dt><b><a name="check_recipient_mx_access">check_recipient_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for
-the RCPT TO domain, and execute the corresponding action.  Note:
+the RCPT TO domain, and execute the corresponding action.  If no
+MX record is found, look up A or AAAA records, just like the Postfix
+SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later. </dd>
@@ -6558,7 +6566,9 @@ feature is available in Postfix 3.0 and later. </dd>
 <dt><b><a name="check_sender_mx_access">check_sender_mx_access</a> <i><a href="DATABASE_README.html">type:table</a></i></b></dt>
 
 <dd>Search the specified access(5) database for the MX hosts for
-the MAIL FROM domain, and execute the corresponding action.  Note:
+the MAIL FROM domain, and execute the corresponding action.  If no
+MX record is found, look up A or AAAA records, just like the Postfix
+SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later. </dd>
@@ -11408,8 +11418,8 @@ separator is the colon character. </p>
 <dl>
 
 <dt><i>example.com</i></dt> <dd> Match the <i>example.com</i> domain,
-i.e. one of the names the server certificate must be <i>example.com</i>,
-upper and lower case distinctions are ignored. </dd>
+i.e. one of the names in the server certificate must be <i>example.com</i>.
+Upper and lower case distinctions are ignored. </dd>
 
 <dt><i>.example.com</i></dt>
 <dd> Match subdomains of the <i>example.com</i> domain, i.e. match
@@ -17963,5 +17973,26 @@ match. </dd>
 The lookup key to be used in local_login_sender_maps tables, instead
 of the null sender address.
 </p>
+
+<p> This feature is available in Postfix 3.6 and later. </p>
+
+%PARAM enable_threaded_bounces no
+
+<p> Enable non-delivery notifications (bounce messages) that link
+to the original message by including a References: and In-Reply_to:
+header with the original Message-ID value. There are advantages and
+disadvantages to consider. </p>
+
+<dl>
+
+<dt> <b> advantage </b> </dt> <dd> This allows mail readers to present
+a non-delivery notification in the same email thread as the original
+message. </dd>
+
+<dt> <b> disadvantage </b> </dt> <dd> This makes it easy for users to
+mistakenly delete the whole email thread (all related messages),
+instead of deleting only the non-delivery notification. </dd>
+
+</dl>
 
 <p> This feature is available in Postfix 3.6 and later. </p>

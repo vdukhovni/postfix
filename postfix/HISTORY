@@ -25228,7 +25228,7 @@ Apologies for any names omitted.
 20201022
 
 	Bugfix (introduced: Postfix 2.2): after processing an
-	XCCLIENT command, the smtps service was waiting for a TLS
+	XCLIENT command, the smtps service was waiting for a TLS
 	handshake. Found by Aki Tuomi. File: smtpd/smtpd.c.
 
 20201025
@@ -25274,3 +25274,44 @@ Apologies for any names omitted.
 	smtp/smtp_proto.c.
 
 	Added missing employer attributions to .c and .h files.
+
+20201116
+
+	Documentation: document that check_mumble_mx_access will
+	look up A or AAAA records when a domain name has no MX
+	record, just like the Postfix SMTP client would. File:
+	proto/postconf.proto.
+
+20201122
+
+	Cleanup: log "Application error" instead of "Success" or
+	"Unknown error: 0" when an operation fails with errno ==
+	0. File: util/vbuf_print.c.
+
+20201125
+
+	Documentation: in the cleanup(8) description of message
+	transformations, mention how some transformations are
+	controlled with the local_header_rewrite_clients,
+	always_add_missing_headers, and message_drop_headers parameter
+	settings. File: cleanup/cleanup.c.
+
+20201129
+
+	Cleanup: future-proofing a condition in delivered_hdr_init().
+	The code was not wrong, but the new code is more consistent
+	with new code in the bounce daemon where the difference does
+	matter. File: global/delivered_hdr.c
+
+20201205
+
+	Testing: generic test_main() routine to initialize configuration
+	parameters before running a test routine. Files:
+	global/test_main.[hc].
+
+	Feature: specify "enable_threaded_bounces = yes" to enable
+	bounce messages that link to the original message with a
+	References: and In-Reply_to: header. Based on code by Andreas
+	Thienemann. See RELEASE_NOTES for caveats. Files:
+	proto/postconf.proto, bounce/bounce_notify_tester.c, many
+	test data files to exercise corner cases.

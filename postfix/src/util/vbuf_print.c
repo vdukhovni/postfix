@@ -290,7 +290,8 @@ VBUF   *vbuf_print(VBUF *bp, const char *format, va_list ap)
 		break;
 	    case 'm':
 		/* Ignore the 'l' modifier, width and precision. */
-		VBUF_STRCAT(bp, strerror(saved_errno));
+		VBUF_STRCAT(bp, saved_errno ?
+			    strerror(saved_errno) : "Application error");
 		break;
 	    case 'p':
 		if (long_flag)

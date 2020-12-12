@@ -2112,6 +2112,24 @@ This feature is available in Postfix 2.1 and later. Postfix
 version 2.0 behaves as if this parameter is always set to \fByes\fR.
 Postfix versions before 2.0 have no support for the original recipient
 address.
+.SH enable_threaded_bounces (default: no)
+Enable non\-delivery notifications (bounce messages) that link
+to the original message by including a References: and In\-Reply_to:
+header with the original Message\-ID value. There are advantages and
+disadvantages to consider.
+.IP "\fB advantage \fR"
+This allows mail readers to present
+a non\-delivery notification in the same email thread as the original
+message.
+.br
+.IP "\fB disadvantage \fR"
+This makes it easy for users to
+mistakenly delete the whole email thread (all related messages),
+instead of deleting only the non\-delivery notification.
+.br
+.br
+.PP
+This feature is available in Postfix 3.6 and later.
 .SH error_notice_recipient (default: postmaster)
 The recipient of postmaster notifications about mail delivery
 problems that are caused by policy, resource, software or protocol
@@ -9318,8 +9336,8 @@ separator is the colon character.
 Patterns specify domain names, or domain name suffixes:
 .IP "\fIexample.com\fR"
 Match the \fIexample.com\fR domain,
-i.e. one of the names the server certificate must be \fIexample.com\fR,
-upper and lower case distinctions are ignored.
+i.e. one of the names in the server certificate must be \fIexample.com\fR.
+Upper and lower case distinctions are ignored.
 .br
 .IP "\fI.example.com\fR"
 Match subdomains of the \fIexample.com\fR domain, i.e. match
@@ -9735,7 +9753,9 @@ in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_client_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for the
-client hostname, and execute the corresponding action.  Note: a result
+client hostname, and execute the corresponding action.  If no MX
+record is found, look up A or AAAA records, just like the Postfix
+SMTP client would. Note: a result
 of "OK" is not allowed for safety reasons. Instead, use DUNNO in order
 to exclude specific hosts from blacklists.  This feature is available
 in Postfix 2.7 and later.
@@ -9766,7 +9786,9 @@ This feature is available in Postfix 3.0 and later.
 .IP "\fBcheck_reverse_client_hostname_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for the
 unverified reverse client hostname, and execute the corresponding
-action.  Note: a result of "OK" is not allowed for safety reasons.
+action.  If no MX record is found, look up A or AAAA records, just
+like the Postfix SMTP client would.
+Note: a result of "OK" is not allowed for safety reasons.
 Instead, use DUNNO in order to exclude specific hosts from blacklists.
 This feature is available in Postfix 2.7 and later.
 .br
@@ -10403,6 +10425,8 @@ feature is available in Postfix 3.0 and later.
 .IP "\fBcheck_helo_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
 the HELO or EHLO hostname, and execute the corresponding action.
+If no MX record is found, look up A or AAAA records, just like the
+Postfix SMTP client would.
 Note 1: a result of "OK" is not allowed for safety reasons. Instead,
 use DUNNO in order to exclude specific hosts from blacklists.  Note
 2: specify "smtpd_helo_required = yes" to fully enforce this
@@ -10803,7 +10827,9 @@ feature is available in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_recipient_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
-the RCPT TO domain, and execute the corresponding action.  Note:
+the RCPT TO domain, and execute the corresponding action.  If no
+MX record is found, look up A or AAAA records, just like the Postfix
+SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.
@@ -11472,7 +11498,9 @@ feature is available in Postfix 3.0 and later.
 .br
 .IP "\fBcheck_sender_mx_access \fItype:table\fR\fR"
 Search the specified \fBaccess\fR(5) database for the MX hosts for
-the MAIL FROM domain, and execute the corresponding action.  Note:
+the MAIL FROM domain, and execute the corresponding action.  If no
+MX record is found, look up A or AAAA records, just like the Postfix
+SMTP client would. Note:
 a result of "OK" is not allowed for safety reasons. Instead, use
 DUNNO in order to exclude specific hosts from blacklists.  This
 feature is available in Postfix 2.1 and later.

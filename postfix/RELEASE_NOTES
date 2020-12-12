@@ -25,6 +25,19 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20201205
+====================================
+
+Support for threaded bounces. This allows mail readers to present
+a non-delivery notification in the same email thread as the original
+message.
+
+Unfortunately, this also makes it easy for users to mistakenly delete
+the whole email thread (all related messages), instead of deleting
+only the non-delivery notification.
+
+To enable, specify "enable_threaded_bounces = yes".
+
 Major changes with snapshot 20201025
 ====================================
 

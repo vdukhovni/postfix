@@ -10,38 +10,55 @@
 /*	into the \fBincoming\fR mail queue, and informs the queue
 /*	manager of its arrival.
 /*
-/*	The \fBcleanup\fR(8) daemon always performs the following transformations:
+/*	The \fBcleanup\fR(8) daemon performs the following transformations:
 /* .IP \(bu
 /*	Insert missing message headers: (\fBResent-\fR) \fBFrom:\fR,
 /*	\fBTo:\fR, \fBMessage-Id:\fR, and \fBDate:\fR.
+/* .br
+/*	This is enabled with the \fBlocal_header_rewrite_clients\fR and
+/*	\fBalways_add_missing_headers\fR parameter settings.
 /* .IP \(bu
 /*	Transform envelope and header addresses to the standard
 /*	\fIuser@fully-qualified-domain\fR form that is expected by other
 /*	Postfix programs.
-/*	This task is delegated to the \fBtrivial-rewrite\fR(8) daemon.
+/*	This task depends on the \fBtrivial-rewrite\fR(8) daemon.
+/* .br
+/*	The header transformation is enabled with the
+/*	\fBlocal_header_rewrite_clients\fR parameter setting.
 /* .IP \(bu
 /*	Eliminate duplicate envelope recipient addresses.
+/* .br
+/*	This is enabled with the \fBduplicate_filter_limit\fR 
+/*	parameter setting.
 /* .IP \(bu
 /*	Remove message headers: \fBBcc\fR, \fBContent-Length\fR,
 /*	\fBResent-Bcc\fR, \fBReturn-Path\fR.
-/* .PP
-/*	The following address transformations are optional:
+/* .br
+/*	This is enabled with the message_drop_headers parameter
+/*	setting.
 /* .IP \(bu
 /*	Optionally, rewrite all envelope and header addresses according
 /*	to the mappings specified in the \fBcanonical\fR(5) lookup tables.
+/* .br
+/*	The header transformation is enabled with the
+/*	\fBlocal_header_rewrite_clients\fR parameter setting.
 /* .IP \(bu
 /*	Optionally, masquerade envelope sender addresses and message
 /*	header addresses (i.e. strip host or domain information below
 /*	all domains listed in the \fBmasquerade_domains\fR parameter,
 /*	except for user names listed in \fBmasquerade_exceptions\fR).
 /*	By default, address masquerading does not affect envelope recipients.
+/* .br
+/*	The header transformation is enabled with the
+/*	\fBlocal_header_rewrite_clients\fR parameter setting.
 /* .IP \(bu
 /*	Optionally, expand envelope recipients according to information
-/*	found in the \fBvirtual\fR(5) lookup tables.
+/*	found in the \fBvirtual_alias_maps\fR lookup tables.
 /* .PP
 /*	The \fBcleanup\fR(8) daemon performs sanity checks on the content of
 /*	each message. When it finds a problem, by default it returns a
-/*	diagnostic status to the client, and leaves it up to the client
+/*	diagnostic status to the cleanup service client, and leaves
+/*	it up to the client
 /*	to deal with the problem. Alternatively, the client can request
 /*	the \fBcleanup\fR(8) daemon to bounce the message back to the sender
 /*	in case of trouble.

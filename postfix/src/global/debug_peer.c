@@ -8,7 +8,7 @@
 /*
 /*	void	debug_peer_init(void)
 /*
-/*	int	peer_debug_check(peer_name, peer_addr)
+/*	int	debug_peer_check(peer_name, peer_addr)
 /*	const char *peer_name;
 /*	const char *peer_addr;
 /*

@@ -80,6 +80,7 @@ typedef struct {
     long    orig_offs;			/* start of content */
     time_t  arrival_time;		/* time of arrival */
     long    message_size;		/* size of content */
+    VSTRING *orig_msgid;		/* original message-id */
     RCPT_BUF *rcpt_buf;			/* recipient info */
     DSN_BUF *dsn_buf;			/* delivery status info */
     BOUNCE_LOG *log_handle;		/* open logfile */

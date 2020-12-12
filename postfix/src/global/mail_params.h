@@ -2025,6 +2025,14 @@ extern int var_bounce_limit;
 extern char *var_double_bounce_sender;
 
  /*
+  * Bounce service: enable threaded bounces, with References: and
+  * In-Reply-To:.
+  */
+#define VAR_THREADED_BOUNCE	"enable_threaded_bounces"
+#define DEF_THREADED_BOUNCE	CONFIG_BOOL_NO
+extern bool var_threaded_bounce;
+
+ /*
   * When forking a process, how often to try and how long to wait.
   */
 #define VAR_FORK_TRIES		"fork_attempts"

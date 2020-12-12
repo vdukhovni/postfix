@@ -149,7 +149,7 @@ DELIVERED_HDR_INFO *delivered_hdr_init(VSTREAM *fp, off_t offset, int flags)
 	 && ((curr_type = rec_get(fp, info->buf, 0)) == REC_TYPE_NORM
 	     || curr_type == REC_TYPE_CONT);
 	 prev_type = curr_type) {
-	if (prev_type != REC_TYPE_NORM)
+	if (prev_type == REC_TYPE_CONT)
 	    continue;
 	if (is_header(STR(info->buf))) {
 	    if ((hdr = header_opts_find(STR(info->buf))) != 0

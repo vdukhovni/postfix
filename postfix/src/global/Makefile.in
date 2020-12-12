@@ -36,7 +36,8 @@ SRCS	= abounce.c anvil_clnt.c been_here.c bounce.c bounce_log.c \
 	smtputf8.c mail_conf_over.c mail_parm_split.c midna_adomain.c \
 	mail_addr_form.c quote_flags.c maillog_client.c \
 	normalize_mailhost_addr.c map_search.c reject_deliver_request.c \
-	info_log_addr_form.c sasl_mech_filter.c login_sender_match.c
+	info_log_addr_form.c sasl_mech_filter.c login_sender_match.c \
+	test_main.c
 OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	canon_addr.o cfg_parser.o cleanup_strerror.o cleanup_strflags.o \
 	clnt_stream.o conv_time.o db_common.o debug_peer.o debug_process.o \
@@ -74,7 +75,8 @@ OBJS	= abounce.o anvil_clnt.o been_here.o bounce.o bounce_log.o \
 	smtputf8.o attr_override.o mail_parm_split.o midna_adomain.o \
 	$(NON_PLUGIN_MAP_OBJ) mail_addr_form.o quote_flags.o maillog_client.o \
 	normalize_mailhost_addr.o map_search.o reject_deliver_request.o \
-	info_log_addr_form.o sasl_mech_filter.o login_sender_match.o
+	info_log_addr_form.o sasl_mech_filter.o login_sender_match.o \
+	test_main.o
 # MAP_OBJ is for maps that may be dynamically loaded with dynamicmaps.cf.
 # When hard-linking these maps, makedefs sets NON_PLUGIN_MAP_OBJ=$(MAP_OBJ),
 # otherwise it sets the PLUGIN_* macros.
@@ -109,7 +111,8 @@ HDRS	= abounce.h anvil_clnt.h been_here.h bounce.h bounce_log.h \
 	haproxy_srvr.h dsn_filter.h dynamicmaps.h uxtext.h smtputf8.h \
 	attr_override.h mail_parm_split.h midna_adomain.h mail_addr_form.h \
 	maillog_client.h normalize_mailhost_addr.h map_search.h \
-	info_log_addr_form.h sasl_mech_filter.h login_sender_match.h
+	info_log_addr_form.h sasl_mech_filter.h login_sender_match.h \
+	test_main.h
 TESTSRC	= rec2stream.c stream2rec.c recdump.c
 DEFS	= -I. -I$(INC_DIR) -D$(SYSTYPE)
 CFLAGS	= $(DEBUG) $(OPT) $(DEFS)
@@ -2790,6 +2793,25 @@ sys_exits.o: ../../include/vbuf.h
 sys_exits.o: ../../include/vstring.h
 sys_exits.o: sys_exits.c
 sys_exits.o: sys_exits.h
+test_main.o: ../../include/argv.h
+test_main.o: ../../include/check_arg.h
+test_main.o: ../../include/dict.h
+test_main.o: ../../include/msg.h
+test_main.o: ../../include/msg_vstream.h
+test_main.o: ../../include/myflock.h
+test_main.o: ../../include/mymalloc.h
+test_main.o: ../../include/stringops.h
+test_main.o: ../../include/sys_defs.h
+test_main.o: ../../include/vbuf.h
+test_main.o: ../../include/vstream.h
+test_main.o: ../../include/vstring.h
+test_main.o: mail_conf.h
+test_main.o: mail_dict.h
+test_main.o: mail_params.h
+test_main.o: mail_task.h
+test_main.o: mail_version.h
+test_main.o: test_main.c
+test_main.o: test_main.h
 timed_ipc.o: ../../include/check_arg.h
 timed_ipc.o: ../../include/msg.h
 timed_ipc.o: ../../include/sys_defs.h

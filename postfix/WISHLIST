@@ -1,14 +1,13 @@
 Wish list:
 
-	Does tlsproxy terminate to soon after 'postfix reload'?
-	like, while a session is still im progress? Does it depend
-	on the server or client role?
-
 	Eliminate duplicate user_acl check from sendmail, and pass
 	the result through the postdrop-to-sendmail protocol. This
 	requires that postdrop reads all inputs before responding.
 	Then we can also consider to save input to dead.letter (drop
 	setgid privilege, use safe_open() to avoid clobbering files).
+
+	Allow '}' at the beginning of a line. This would make
+	multi-line configuration settings easier to enter.
 
 	Understand what happens with DNSSEC related status fields 
 	in posttls-finger when resolv.conf points to a host that
@@ -19,26 +18,18 @@ Wish list:
 	parameter. For example:
 	http://postfix.1071664.n5.nabble.com/Relay-attempt-questions-td103646.html
 
-	Document that check_mumble_mx_access generates synthetic
-	MX records i.e. A/AAAA where no MX exists.
-
-	Someone suggested adding References: and In-Reply-To: headers
-	in bounce messages. Downside: that will make it harder to
-	delete a bounce without deleting other mail. Therefore do
-	not enable by default.
-
 	Hardening the half-dane behavior: some sites may rely on
 	current behavior which allows original MX domain name for
 	certificate matches. Requires a new (compatibility) parameter
 	setting?
 
 	Code deduplication: migrate multi_server applications to
-	event_server. In addition to the default event_server
-	accept() handler, also register a read event callback for
-	handling post_accept events. But the currrent multi_server
-	API foits typical usage better.
-
-	Maybe expand %m to "application error" when errno == 0.
+	event_server, because the multi_server and event_server
+	skeletons are much more similar than other skeletons. In
+	addition to the default event_server accept() handler, also
+	register a read event callback for handling post_accept
+	events. But the currrent multi_server API fits typical usage
+	better.
 
 	smtp_sasl_tls_security_options = noanonymous, and make
 	smtp_sasl_security_options default dependent on the
