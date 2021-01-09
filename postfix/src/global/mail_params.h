@@ -47,13 +47,18 @@ extern bool var_show_unk_rcpt_table;
 
  /*
   * Compatibility level and migration support. Update postconf(5),
-  * COMPATIBILITY_README, and conf/main.cf when updating the current
-  * compatibility level.
+  * COMPATIBILITY_README, global/mail_params.[hc] and conf/main.cf when
+  * updating the current compatibility level.
   */
+#define COMPAT_LEVEL_0		"0"
+#define COMPAT_LEVEL_1		"1"
+#define COMPAT_LEVEL_2		"2"
+#define COMPAT_LEVEL_3_6	"3.6"
+#define LAST_COMPAT_LEVEL	COMPAT_LEVEL_3_6
+
 #define VAR_COMPAT_LEVEL	"compatibility_level"
-#define DEF_COMPAT_LEVEL	0
-#define CUR_COMPAT_LEVEL	3
-extern int var_compat_level;
+#define DEF_COMPAT_LEVEL	COMPAT_LEVEL_0
+extern char *var_compatibility_level;
 
 extern int warn_compat_break_app_dot_mydomain;
 extern int warn_compat_break_smtputf8_enable;
@@ -67,6 +72,8 @@ extern int warn_compat_break_mynetworks_style;
 extern int warn_compat_break_smtpd_tls_fpt_dgst;
 extern int warn_compat_break_smtp_tls_fpt_dgst;
 extern int warn_compat_break_lmtp_tls_fpt_dgst;
+
+extern long compat_level;
 
  /*
   * What problem classes should be reported to the postmaster via email.
@@ -527,7 +534,7 @@ extern bool var_swap_bangpath;
 extern bool var_append_at_myorigin;
 
 #define VAR_APP_DOT_MYDOMAIN	"append_dot_mydomain"
-#define DEF_APP_DOT_MYDOMAIN	"${{$compatibility_level} < {1} ? " \
+#define DEF_APP_DOT_MYDOMAIN	"${{$compatibility_level} <level {1} ? " \
 				"{yes} : {no}}"
 extern bool var_append_dot_mydomain;
 
@@ -1371,7 +1378,7 @@ extern char *var_smtpd_tls_excl_ciph;
 extern char *var_smtpd_tls_mand_excl;
 
 #define VAR_SMTPD_TLS_FPT_DGST	"smtpd_tls_fingerprint_digest"
-#define DEF_SMTPD_TLS_FPT_DGST	"${{$compatibility_level} < {3} ? " \
+#define DEF_SMTPD_TLS_FPT_DGST	"${{$compatibility_level} <level {3.6} ? " \
                                 "{md5} : {sha256}}"
 extern char *var_smtpd_tls_fpt_dgst;
 
@@ -1533,10 +1540,10 @@ extern char *var_smtp_tls_excl_ciph;
 extern char *var_smtp_tls_mand_excl;
 
 #define VAR_SMTP_TLS_FPT_DGST	"smtp_tls_fingerprint_digest"
-#define DEF_SMTP_TLS_FPT_DGST	"${{$compatibility_level} < {3} ? " \
+#define DEF_SMTP_TLS_FPT_DGST	"${{$compatibility_level} <level {3.6} ? " \
                                 "{md5} : {sha256}}"
 #define VAR_LMTP_TLS_FPT_DGST	"lmtp_tls_fingerprint_digest"
-#define DEF_LMTP_TLS_FPT_DGST	"${{$compatibility_level} < {3} ? " \
+#define DEF_LMTP_TLS_FPT_DGST	"${{$compatibility_level} <level {3.6} ? " \
                                 "{md5} : {sha256}}"
 extern char *var_smtp_tls_fpt_dgst;
 
@@ -2102,7 +2109,7 @@ extern int var_trigger_timeout;
 extern char *var_mynetworks;
 
 #define VAR_MYNETWORKS_STYLE	"mynetworks_style"
-#define DEF_MYNETWORKS_STYLE	"${{$compatibility_level} < {2} ? " \
+#define DEF_MYNETWORKS_STYLE	"${{$compatibility_level} <level {2} ? " \
 				"{" MYNETWORKS_STYLE_SUBNET "} : " \
 				"{" MYNETWORKS_STYLE_HOST "}}"
 extern char *var_mynetworks_style;
@@ -2112,7 +2119,7 @@ extern char *var_mynetworks_style;
 #define	MYNETWORKS_STYLE_HOST	"host"
 
 #define VAR_RELAY_DOMAINS	"relay_domains"
-#define DEF_RELAY_DOMAINS	"${{$compatibility_level} < {2} ? " \
+#define DEF_RELAY_DOMAINS	"${{$compatibility_level} <level {2} ? " \
 				"{$mydestination} : {}}"
 extern char *var_relay_domains;
 
@@ -2149,7 +2156,7 @@ extern char *var_helo_checks;
 extern char *var_mail_checks;
 
 #define VAR_RELAY_CHECKS	"smtpd_relay_restrictions"
-#define DEF_RELAY_CHECKS	"${{$compatibility_level} < {1} ? " \
+#define DEF_RELAY_CHECKS	"${{$compatibility_level} <level {1} ? " \
 				"{} : {" PERMIT_MYNETWORKS ", " \
 				PERMIT_SASL_AUTH ", " \
 				DEFER_UNAUTH_DEST "}}"
@@ -4170,7 +4177,7 @@ extern char *var_meta_dir;
   */
 #define VAR_SMTPUTF8_ENABLE		"smtputf8_enable"
 #ifndef DEF_SMTPUTF8_ENABLE
-#define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} < {1} ? " \
+#define DEF_SMTPUTF8_ENABLE		"${{$compatibility_level} <level {1} ? " \
 					"{no} : {yes}}"
 #endif
 extern int var_smtputf8_enable;

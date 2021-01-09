@@ -25,6 +25,20 @@ more recent Eclipse Public License 2.0. Recipients can choose to take
 the software under the license of their choice. Those who are more
 comfortable with the IPL can continue with that license.
 
+Major changes with snapshot 20220109
+====================================
+
+Starting with Postfix version 3.6, the "latest" compatibility level
+is the Postfix version that introduced the last incompatible change.
+The level is formatted as 'major.minor.patch', where 'patch' is
+usually omitted and defaults to zero. Earlier compatibility levels
+are 0, 1 and 2.
+
+This also introduces support for the <=level, <level, and other
+operators to compare compatibility levels. With the standard <=,
+<, etc.  operators, compatibility level 3.10 would be less than 3.9
+which is undesirable.
+
 Major changes with snapshot 20201205
 ====================================
 

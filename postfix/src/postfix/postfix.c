@@ -434,6 +434,7 @@
 #include <mail_version.h>
 #include <mail_parm_split.h>
 #include <maillog_client.h>
+#include <compat_level.h>
 
 /* Additional installation parameters. */
 
@@ -577,14 +578,14 @@ int     main(int argc, char **argv)
      * Alert the sysadmin that the backwards-compatible settings are still in
      * effect.
      */
-    if (var_compat_level < CUR_COMPAT_LEVEL) {
+    if (compat_level < compat_level_from_string(LAST_COMPAT_LEVEL, msg_panic)) {
 	msg_info("Postfix is running with backwards-compatible default "
 		 "settings");
 	msg_info("See http://www.postfix.org/COMPATIBILITY_README.html "
 		 "for details");
 	msg_info("To disable backwards compatibility use \"postconf "
-		 VAR_COMPAT_LEVEL "=%d\" and \"postfix reload\"",
-		 CUR_COMPAT_LEVEL);
+		 VAR_COMPAT_LEVEL "=%s\" and \"postfix reload\"",
+		 LAST_COMPAT_LEVEL);
     }
     check_setenv("PATH", ROOT_PATH);		/* sys_defs.h */
     check_setenv(CONF_ENV_PATH, var_config_dir);/* mail_conf.h */

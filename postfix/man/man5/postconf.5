@@ -982,6 +982,17 @@ warning: To disable backwards compatibility use "postconf
 .ft R
 .in -4
 .PP
+Starting with Postfix version 3.6, the compatibility level in
+the above warning message is the Postfix version that introduced
+the last incompatible change. The level is formatted as
+\fImajor.minor.patch\fR, where \fIpatch\fR is usually omitted and
+defaults to zero. Earlier compatibility levels are 0, 1 and 2.
+.PP
+NOTE: this also introduces support for the "<level",
+"<=level", and other operators to compare compatibility levels.
+With the standard operators "<", "<=", etc., compatibility
+level "3.10" would be smaller than "3.9" which is undesirable.
+.PP
 This feature is available in Postfix 3.0 and later.
 .SH config_directory (default: see "postconf \-d" output)
 The default location of the Postfix main.cf and master.cf
@@ -2114,7 +2125,7 @@ Postfix versions before 2.0 have no support for the original recipient
 address.
 .SH enable_threaded_bounces (default: no)
 Enable non\-delivery notifications (bounce messages) that link
-to the original message by including a References: and In\-Reply_to:
+to the original message by including a References: and In\-Reply\-To:
 header with the original Message\-ID value. There are advantages and
 disadvantages to consider.
 .IP "\fB advantage \fR"
@@ -3489,7 +3500,7 @@ smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
 Postfix version 2.5).
 .br
 The default algorithm is \fBsha256\fR with Postfix >= 3.6
-and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+and the \fBcompatibility_level\fR set to 3.6 or higher. With Postfix
 <= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
 algorithm is now \fBsha256\fR. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -6056,7 +6067,7 @@ smtpd_tls_fingerprint_digest parameter (hard\-coded as md5 prior to
 Postfix version 2.5).
 .PP
 The default algorithm is \fBsha256\fR with Postfix >= 3.6
-and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+and the \fBcompatibility_level\fR set to 3.6 or higher. With Postfix
 <= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
 algorithm is now \fBsha256\fR. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -8307,7 +8318,7 @@ attacks, it is not feasible to create a new public key and a matching
 certificate (or public/private key\-pair) that has the same fingerprint.
 .PP
 The default algorithm is \fBsha256\fR with Postfix >= 3.6
-and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+and the \fBcompatibility_level\fR set to 3.6 or higher. With Postfix
 <= 3.5, the default algorithm is \fBmd5\fR.
 .PP
 The best\-practice algorithm is now \fBsha256\fR. Recent advances in hash
@@ -9722,7 +9733,7 @@ Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
 2.2 and later.
 .br
 The default algorithm is \fBsha256\fR with Postfix >= 3.6
-and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+and the \fBcompatibility_level\fR set to 3.6 or higher. With Postfix
 <= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
 algorithm is now \fBsha256\fR. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -9841,7 +9852,7 @@ Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
 = yes" and is available with Postfix version 2.2 and later.
 .br
 The default algorithm is \fBsha256\fR with Postfix >= 3.6
-and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+and the \fBcompatibility_level\fR set to 3.6 or higher. With Postfix
 <= 3.5, the default algorithm is \fBmd5\fR.  The best\-practice
 algorithm is now \fBsha256\fR. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -12290,7 +12301,7 @@ fingerprints or public key fingerprints (Postfix 2.9 and later) for
 \fBcheck_ccert_access\fR and \fBpermit_tls_clientcerts\fR.
 .PP
 The default algorithm is \fBsha256\fR with Postfix >= 3.6
-and the \fBcompatibility_level\fR set to 3 or higher. With Postfix
+and the \fBcompatibility_level\fR set to 3.6 or higher. With Postfix
 <= 3.5, the default algorithm is \fBmd5\fR.
 .PP
 The best\-practice algorithm is now \fBsha256\fR. Recent advances in hash

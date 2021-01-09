@@ -129,7 +129,7 @@
 /*	int	var_strict_smtputf8;
 /*	char	*var_smtputf8_autoclass;
 /*	int     var_idna2003_compat;
-/*	int     var_compat_level;
+/*	char	*var_compatibility_level;
 /*	char	*var_drop_hdrs;
 /*	char	*var_info_log_addr_form;
 /*	bool	var_enable_orcpt;
@@ -137,6 +137,8 @@
 /*	void	mail_params_init()
 /*
 /*	const	char null_format_string[1];
+/*
+/*	long	compatibility_level;
 /*
 /*	int	warn_compat_break_app_dot_mydomain;
 /*	int	warn_compat_break_smtputf8_enable;
@@ -229,6 +231,7 @@
 #include <verp_sender.h>
 #include <own_inet_addr.h>
 #include <mail_params.h>
+#include <compat_level.h>
 
  /*
   * Special configuration variables.
@@ -357,7 +360,7 @@ int     var_smtputf8_enable;
 int     var_strict_smtputf8;
 char   *var_smtputf8_autoclass;
 int     var_idna2003_compat;
-int     var_compat_level;
+char   *var_compatibility_level;
 char   *var_drop_hdrs;
 char   *var_info_log_addr_form;
 bool    var_enable_orcpt;
@@ -393,6 +396,11 @@ int     warn_compat_break_app_dot_mydomain;
 int     warn_compat_break_smtputf8_enable;
 int     warn_compat_break_chroot;
 int     warn_compat_break_relay_restrictions;
+
+ /*
+  * Parsed from var_compatibility_level;
+  */
+long    compat_level;
 
 /* check_myhostname - lookup hostname and validate */
 
@@ -635,9 +643,9 @@ static void check_legacy_defaults(void)
 
     /*
      * Look for specific parameters whose default changed when the
-     * compatibility level changed to 3.
+     * compatibility level changed to 3.6.
      */
-    if (var_compat_level < 3) {
+    if (compat_level < compat_level_from_string(COMPAT_LEVEL_3_6, msg_panic)) {
 	if (mail_conf_lookup(VAR_SMTPD_TLS_FPT_DGST) == 0)
 	    warn_compat_break_smtpd_tls_fpt_dgst = 1;
 	if (mail_conf_lookup(VAR_SMTP_TLS_FPT_DGST) == 0)
@@ -654,7 +662,7 @@ static void check_legacy_defaults(void)
      * Look for specific parameters whose default changed when the
      * compatibility level changed to 2.
      */
-    if (var_compat_level < 2) {
+    if (compat_level < compat_level_from_string(COMPAT_LEVEL_2, msg_panic)) {
 	if (mail_conf_lookup(VAR_RELAY_DOMAINS) == 0) {
 	    warn_compat_break_relay_domains = 1;
 	    if (mail_conf_lookup(VAR_FFLUSH_DOMAINS) == 0)
@@ -673,7 +681,7 @@ static void check_legacy_defaults(void)
      * Look for specific parameters whose default changed when the
      * compatibility level changed from 0 to 1.
      */
-    if (var_compat_level < 1) {
+    if (compat_level < compat_level_from_string(COMPAT_LEVEL_1, msg_panic)) {
 	if (mail_conf_lookup(VAR_APP_DOT_MYDOMAIN) == 0)
 	    warn_compat_break_app_dot_mydomain = 1;
 
@@ -703,8 +711,8 @@ static void check_legacy_defaults(void)
 
 void    mail_params_init()
 {
-    static const CONFIG_INT_TABLE first_int_defaults[] = {
-	VAR_COMPAT_LEVEL, DEF_COMPAT_LEVEL, &var_compat_level, 0, 0,
+    static const CONFIG_STR_TABLE compat_level_defaults[] = {
+	VAR_COMPAT_LEVEL, DEF_COMPAT_LEVEL, &var_compatibility_level, 0, 0,
 	0,
     };
     static const CONFIG_STR_TABLE first_str_defaults[] = {
@@ -866,7 +874,9 @@ void    mail_params_init()
      * Extract compatibility level first, so that we can determine what
      * parameters of interest are left at their legacy defaults.
      */
-    get_mail_conf_int_table(first_int_defaults);
+    compat_level_relop_register();
+    get_mail_conf_str_table(compat_level_defaults);
+    compat_level = compat_level_from_string(var_compatibility_level, msg_fatal);
     check_legacy_defaults();
 
     /*

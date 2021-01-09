@@ -608,6 +608,7 @@
 #include <mail_version.h>
 #include <mail_run.h>
 #include <mail_dict.h>
+#include <compat_level.h>
 
 /* Application-specific. */
 
@@ -932,6 +933,11 @@ int     main(int argc, char **argv)
 	    usage(argv[0]);
 	}
     }
+
+    /*
+     * For consistency with mail_params_init().
+     */
+    compat_level_relop_register();
 
     /*
      * We don't enforce import_environment consistency in this program.

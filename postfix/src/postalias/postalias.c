@@ -126,13 +126,18 @@
 /*	The output consists of two files, named \fIfile_name\fB.pag\fR and
 /*	\fIfile_name\fB.dir\fR.
 /*	This is available on systems with support for \fBdbm\fR databases.
-/* .IP \fBhash\fR
-/*	The output is a hashed file, named \fIfile_name\fB.db\fR.
-/*	This is available on systems with support for \fBdb\fR databases.
 /* .IP \fBfail\fR
 /*	A table that reliably fails all requests. The lookup table
 /*	name is used for logging only. This table exists to simplify
 /*	Postfix error tests.
+/* .IP \fBhash\fR
+/*	The output is a hashed file, named \fIfile_name\fB.db\fR.
+/*	This is available on systems with support for \fBdb\fR databases.
+/* .IP \fBlmdb\fR
+/*	The output is a btree-based file, named \fIfile_name\fB.lmdb\fR.
+/*	\fBlmdb\fR supports concurrent writes and reads from different
+/*	processes, unlike other supported file-based tables.
+/*	This is available on systems with support for \fBlmdb\fR databases.
 /* .IP \fBsdbm\fR
 /*	The output consists of two files, named \fIfile_name\fB.pag\fR and
 /*	\fIfile_name\fB.dir\fR.
@@ -196,6 +201,10 @@
 /* .IP "\fBsyslog_name (see 'postconf -d' output)\fR"
 /*	A prefix that is prepended to the process name in syslog
 /*	records, so that, for example, "smtpd" becomes "prefix/smtpd".
+/* .PP
+/*	Available in Postfix 2.11 and later:
+/* .IP "\fBlmdb_map_size (16777216)\fR"
+/*	The initial OpenLDAP LMDB database size limit in bytes.
 /* STANDARDS
 /*	RFC 822 (ARPA Internet Text Messages)
 /* SEE ALSO

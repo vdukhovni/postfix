@@ -545,8 +545,8 @@ server access control:
 
 The digest algorithm used to compute the client certificate fingerprints is
 specified with the main.cf smtpd_tls_fingerprint_digest parameter. The default
-algorithm is sshhaa225566 with Postfix >= 3.6 and the ccoommppaattiibbiilliittyy__lleevveell set to 3 or
-higher. With Postfix <= 3.5, the default algorithm is mmdd55. The best-practice
+algorithm is sshhaa225566 with Postfix >= 3.6 and the ccoommppaattiibbiilliittyy__lleevveell set to 3.6
+or higher. With Postfix <= 3.5, the default algorithm is mmdd55. The best-practice
 algorithm is now sshhaa225566. Recent advances in hash function cryptanalysis have
 led to md5 and sha1 being deprecated in favor of sha256. However, as long as
 there are no known "second pre-image" attacks against the older algorithms,
@@ -1122,7 +1122,7 @@ or multiple match attributes can be employed. The ":" character is not used as
 a delimiter as it occurs between each pair of fingerprint (hexadecimal) digits.
 
 The default algorithm is sshhaa225566 with Postfix >= 3.6 and the ccoommppaattiibbiilliittyy__lleevveell
-set to 3 or higher; with Postfix <= 3.5, the default algorithm is mmdd55. The
+set to 3.6 or higher; with Postfix <= 3.5, the default algorithm is mmdd55. The
 best-practice algorithm is now sshhaa225566. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of sha256.
 However, as long as there are no known "second pre-image" attacks against the

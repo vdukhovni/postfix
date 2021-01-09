@@ -13,6 +13,18 @@
 /*	const char *filter;
 /*	const char *lookup(const char *key, int mode, void *context)
 /*	void *context;
+/* AUXILIARY FUNCTIONS
+/*	typedef	MAC_EXP_OP_RES (*MAC_EXPAND_RELOP_FN) (
+/*	const char *left,
+/*	int	tok_val,
+/*	const char *rite)
+/*
+/*	void	mac_expand_add_relop(
+/*	int	*tok_list,
+/*	const char *suffix,
+/*	MAC_EXPAND_RELOP_FN relop_eval)
+/*
+/*	MAC_EXP_OP_RES mac_exp_op_res_bool[2];
 /* DESCRIPTION
 /*	This module implements parameter-less named attribute
 /*	expansions, both conditional and unconditional. As of Postfix
@@ -98,6 +110,29 @@
 /*	result value means that the requested attribute was not defined.
 /* .IP context
 /*	Caller context that is passed on to the attribute lookup routine.
+/* .PP
+/*	mac_expand_add_relop() registers a function that implements
+/*	support for custom relational operators. Custom operator names
+/*	such as "==xxx" have two parts: a prefix that is identical to
+/*	a built-in operator such as "==", and an application-specified
+/*	suffix such as "xxx".
+/*
+/*	Arguments:
+/* .IP tok_list
+/*	A null-terminated list of MAC_EXP_OP_TOK_* values that support
+/*	the custom operator suffix.
+/* .IP suffix
+/*	A null-terminated alphanumeric string that specifies the custom
+/*	operator suffix.
+/* .IP relop_eval
+/*	A function that compares two strings according to the
+/*	MAC_EXP_OP_TOK_* value specified with the tok_val argument,
+/*	and that returns non-zero if the custom operator evaluates to
+/*	true, zero otherwise.
+/*
+/*	mac_exp_op_res_bool provides an array that converts a boolean
+/*	value (0 or 1) to the corresponding MAX_EXP_OP_RES_TRUE or
+/*	MAX_EXP_OP_RES_FALSE value.
 /* DIAGNOSTICS
 /*	Fatal errors: out of memory.  Warnings: syntax errors, unreasonable
 /*	recursion depth.
@@ -137,12 +172,21 @@
 /* Utility library. */
 
 #include <msg.h>
+#include <htable.h>
 #include <vstring.h>
 #include <mymalloc.h>
 #include <stringops.h>
 #include <name_code.h>
 #include <mac_parse.h>
 #include <mac_expand.h>
+
+ /*
+  * Simplifies the return of common relational operator results.
+  */
+MAC_EXP_OP_RES mac_exp_op_res_bool[2] = {
+    MAC_EXP_OP_RES_FALSE,
+    MAC_EXP_OP_RES_TRUE
+};
 
  /*
   * Little helper structure.
@@ -180,7 +224,8 @@ typedef struct {
 #define MAC_EXP_BVAL_FALSE	""
 
  /*
-  * Relational operators.
+  * Relational operators. The MAC_EXP_OP_TOK_* are defined in the header
+  * file.
   */
 #define MAC_EXP_OP_STR_EQ	"=="
 #define MAC_EXP_OP_STR_NE	"!="
@@ -194,14 +239,6 @@ typedef struct {
 				"\" or \"" MAC_EXP_OP_STR_LE "\"" \
 				"\" or \"" MAC_EXP_OP_STR_GE "\"" \
 				"\" or \"" MAC_EXP_OP_STR_GT "\""
-
-#define MAC_EXP_OP_TOK_NONE	0
-#define MAC_EXP_OP_TOK_EQ	1
-#define MAC_EXP_OP_TOK_NE	2
-#define MAC_EXP_OP_TOK_LT	3
-#define MAC_EXP_OP_TOK_LE	4
-#define MAC_EXP_OP_TOK_GE	5
-#define MAC_EXP_OP_TOK_GT	6
 
 static const NAME_CODE mac_exp_op_table[] =
 {
@@ -219,6 +256,17 @@ static const NAME_CODE mac_exp_op_table[] =
   */
 #define MAC_EXP_WHITESPACE	CHARS_SPACE
 
+ /*
+  * Support for operator extensions.
+  */
+static HTABLE *mac_exp_ext_table;
+static VSTRING *mac_exp_ext_key;
+
+ /*
+  * SLMs.
+  */
+#define STR(x)	vstring_str(x)
+
 /* atol_or_die - convert or die */
 
 static long atol_or_die(const char *strval)
@@ -234,8 +282,8 @@ static long atol_or_die(const char *strval)
 
 /* mac_exp_eval - evaluate binary expression */
 
-static int mac_exp_eval(const char *left, int tok_val,
-			        const char *rite)
+static MAC_EXP_OP_RES mac_exp_eval(const char *left, int tok_val,
+				           const char *rite)
 {
     static const char myname[] = "mac_exp_eval";
     long    delta;
@@ -250,17 +298,17 @@ static int mac_exp_eval(const char *left, int tok_val,
     }
     switch (tok_val) {
     case MAC_EXP_OP_TOK_EQ:
-	return (delta == 0);
+	return (mac_exp_op_res_bool[delta == 0]);
     case MAC_EXP_OP_TOK_NE:
-	return (delta != 0);
+	return (mac_exp_op_res_bool[delta != 0]);
     case MAC_EXP_OP_TOK_LT:
-	return (delta < 0);
+	return (mac_exp_op_res_bool[delta < 0]);
     case MAC_EXP_OP_TOK_LE:
-	return (delta <= 0);
+	return (mac_exp_op_res_bool[delta <= 0]);
     case MAC_EXP_OP_TOK_GE:
-	return (delta >= 0);
+	return (mac_exp_op_res_bool[delta >= 0]);
     case MAC_EXP_OP_TOK_GT:
-	return (delta > 0);
+	return (mac_exp_op_res_bool[delta > 0]);
     default:
 	msg_panic("%s: unknown operator: %d",
 		  myname, tok_val);
@@ -360,6 +408,9 @@ static int mac_exp_parse_relational(MAC_EXP_CONTEXT *mc, const char **lookup,
     int     op_tokval;
     int     op_result;
     size_t  tmp_len;
+    char   *type_pos;
+    size_t  type_len;
+    MAC_EXPAND_RELOP_FN relop_eval;
 
     /*
      * Left operand. The caller is expected to skip leading whitespace before
@@ -382,6 +433,24 @@ static int mac_exp_parse_relational(MAC_EXP_CONTEXT *mc, const char **lookup,
     cp += op_len;
 
     /*
+     * Custom operator suffix.
+     */
+    if (mac_exp_ext_table && ISALNUM(*cp)) {
+	type_pos = cp;
+	for (type_len = 1; ISALNUM(cp[type_len]); type_len++)
+	     /* void */ ;
+	cp += type_len;
+	vstring_sprintf(mac_exp_ext_key, "%.*s",
+			(int) (op_len + type_len), op_pos);
+	if ((relop_eval = (MAC_EXPAND_RELOP_FN) htable_find(mac_exp_ext_table,
+						STR(mac_exp_ext_key))) == 0)
+	    MAC_EXP_ERR_RETURN(mc, "bad operator suffix at: \"...%.*s>>>%.*s\"",
+			    (int) op_len, op_pos, (int) type_len, type_pos);
+    } else {
+	relop_eval = mac_exp_eval;
+    }
+
+    /*
      * Right operand. Todo: syntax may depend on operator.
      */
     if (MAC_EXP_FIND_LEFT_CURLY(tmp_len, cp) == 0)
@@ -400,8 +469,10 @@ static int mac_exp_parse_relational(MAC_EXP_CONTEXT *mc, const char **lookup,
     mc->status |=
 	mac_expand(rite_op_buf = vstring_alloc(100), rite_op_strval,
 		   mc->flags, mc->filter, mc->lookup, mc->context);
-    op_result = mac_exp_eval(vstring_str(left_op_buf), op_tokval,
-			     vstring_str(rite_op_buf));
+    if ((mc->flags & MAC_EXP_FLAG_SCAN) == 0
+	&& (op_result = relop_eval(vstring_str(left_op_buf), op_tokval,
+			 vstring_str(rite_op_buf))) == MAC_EXP_OP_RES_ERROR)
+	mc->status |= MAC_PARSE_ERROR;
     vstring_free(left_op_buf);
     vstring_free(rite_op_buf);
     if (mc->status & MAC_PARSE_ERROR)
@@ -412,9 +483,55 @@ static int mac_exp_parse_relational(MAC_EXP_CONTEXT *mc, const char **lookup,
      * for compatibility with the historical code that looks named parameter
      * values.
      */
-    *lookup = (op_result ? MAC_EXP_BVAL_TRUE : MAC_EXP_BVAL_FALSE);
+    if (mc->flags & MAC_EXP_FLAG_SCAN) {
+	*lookup = 0;
+    } else {
+	switch (op_result) {
+	case MAC_EXP_OP_RES_TRUE:
+	    *lookup = MAC_EXP_BVAL_TRUE;
+	    break;
+	case MAC_EXP_OP_RES_FALSE:
+	    *lookup = MAC_EXP_BVAL_FALSE;
+	    break;
+	default:
+	    msg_panic("mac_expand: unexpected operator result: %d", op_result);
+	}
+    }
     *bp = cp;
     return (0);
+}
+
+/* mac_expand_add_relop - register operator extensions */
+
+void    mac_expand_add_relop(int *tok_list, const char *suffix,
+			             MAC_EXPAND_RELOP_FN relop_eval)
+{
+    const char myname[] = "mac_expand_add_relop";
+    const char *tok_name;
+    int    *tp;
+
+    /*
+     * Sanity checks.
+     */
+    if (!allalnum(suffix))
+	msg_panic("%s: bad operator suffix: %s", myname, suffix);
+
+    /*
+     * One-time initialization.
+     */
+    if (mac_exp_ext_table == 0) {
+	mac_exp_ext_table = htable_create(10);
+	mac_exp_ext_key = vstring_alloc(10);
+    }
+    for (tp = tok_list; *tp; tp++) {
+	if ((tok_name = str_name_code(mac_exp_op_table, *tp)) == 0)
+	    msg_panic("%s: unknown token code: %d", myname, *tp);
+	vstring_sprintf(mac_exp_ext_key, "%s%s", tok_name, suffix);
+	if (htable_locate(mac_exp_ext_table, STR(mac_exp_ext_key)) != 0)
+	    msg_panic("%s: duplicate key: %s", myname, STR(mac_exp_ext_key));
+	(void) htable_enter(mac_exp_ext_table,
+			    STR(mac_exp_ext_key), (void *) relop_eval);
+    }
 }
 
 /* mac_expand_callback - callback for mac_parse */
@@ -621,7 +738,6 @@ int     mac_expand(VSTRING *result, const char *pattern, int flags,
  /*
   * This code certainly deserves a stand-alone test program.
   */
-#include <stdlib.h>
 #include <stringops.h>
 #include <htable.h>
 #include <vstream.h>
@@ -634,7 +750,32 @@ static const char *lookup(const char *name, int unused_mode, void *context)
     return (htable_find(table, name));
 }
 
-int     main(int unused_argc, char **unused_argv)
+static MAC_EXP_OP_RES length_relop_eval(const char *left, int relop,
+					        const char *rite)
+{
+    const char myname[] = "length_relop_eval";
+    ssize_t delta = strlen(left) - strlen(rite);
+
+    switch (relop) {
+    case MAC_EXP_OP_TOK_EQ:
+	return (mac_exp_op_res_bool[delta == 0]);
+    case MAC_EXP_OP_TOK_NE:
+	return (mac_exp_op_res_bool[delta != 0]);
+    case MAC_EXP_OP_TOK_LT:
+	return (mac_exp_op_res_bool[delta < 0]);
+    case MAC_EXP_OP_TOK_LE:
+	return (mac_exp_op_res_bool[delta <= 0]);
+    case MAC_EXP_OP_TOK_GE:
+	return (mac_exp_op_res_bool[delta >= 0]);
+    case MAC_EXP_OP_TOK_GT:
+	return (mac_exp_op_res_bool[delta > 0]);
+    default:
+	msg_panic("%s: unknown operator: %d",
+		  myname, relop);
+    }
+}
+
+int     main(int unused_argc, char **argv)
 {
     VSTRING *buf = vstring_alloc(100);
     VSTRING *result = vstring_alloc(100);
@@ -643,7 +784,21 @@ int     main(int unused_argc, char **unused_argv)
     char   *value;
     HTABLE *table;
     int     stat;
+    int     length_relops[] = {
+	MAC_EXP_OP_TOK_EQ, MAC_EXP_OP_TOK_NE,
+	MAC_EXP_OP_TOK_GT, MAC_EXP_OP_TOK_GE,
+	MAC_EXP_OP_TOK_LT, MAC_EXP_OP_TOK_LE,
+	0,
+    };
 
+    /*
+     * Add relops that compare string lengths instead of content.
+     */
+    mac_expand_add_relop(length_relops, "length", length_relop_eval);
+
+    /*
+     * Loop over the inputs.
+     */
     while (!vstream_feof(VSTREAM_IN)) {
 
 	table = htable_create(0);

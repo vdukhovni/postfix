@@ -128,12 +128,18 @@ POSTALIAS(1)                                                      POSTALIAS(1)
                      <i>file</i><b>_</b><i>name</i><b>.dir</b>.  This is available on systems with support
                      for <b>dbm</b> databases.
 
+              <b>fail</b>   A  table that reliably fails all requests. The lookup ta-
+                     ble name is used for logging only. This table  exists  to
+                     simplify Postfix error tests.
+
               <b>hash</b>   The output is a hashed file, named <i>file</i><b>_</b><i>name</i><b>.db</b>.  This is
                      available on systems with support for <b>db</b> databases.
 
-              <b>fail</b>   A table that reliably fails all requests. The lookup  ta-
-                     ble  name  is used for logging only. This table exists to
-                     simplify Postfix error tests.
+              <b>lmdb</b>   The output is a btree-based file,  named  <i>file</i><b>_</b><i>name</i><b>.lmdb</b>.
+                     <b>lmdb</b>  supports concurrent writes and reads from different
+                     processes,  unlike  other  supported  file-based  tables.
+                     This  is available on systems with support for <b>lmdb</b> data-
+                     bases.
 
               <b>sdbm</b>   The output consists of two files, named <i>file</i><b>_</b><i>name</i><b>.pag</b> and
                      <i>file</i><b>_</b><i>name</i><b>.dir</b>.  This is available on systems with support
@@ -206,6 +212,11 @@ POSTALIAS(1)                                                      POSTALIAS(1)
        <b><a href="postconf.5.html#syslog_name">syslog_name</a> (see 'postconf -d' output)</b>
               A prefix that  is  prepended  to  the  process  name  in  syslog
               records, so that, for example, "smtpd" becomes "prefix/smtpd".
+
+       Available in Postfix 2.11 and later:
+
+       <b><a href="postconf.5.html#lmdb_map_size">lmdb_map_size</a> (16777216)</b>
+              The initial OpenLDAP LMDB database size limit in bytes.
 
 <b>STANDARDS</b>
        <a href="http://tools.ietf.org/html/rfc822">RFC 822</a> (ARPA Internet Text Messages)

@@ -6,6 +6,9 @@ Wish list:
 	Then we can also consider to save input to dead.letter (drop
 	setgid privilege, use safe_open() to avoid clobbering files).
 
+	Consider removing compat_level_from_numbers() and aliases,
+	because they are no longer used anywhere.
+
 	Allow '}' at the beginning of a line. This would make
 	multi-line configuration settings easier to enter.
 

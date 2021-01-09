@@ -391,7 +391,7 @@ key.  </p>
 
 <p> As long as the <a href="postconf.5.html#smtpd_tls_fingerprint_digest">smtpd_tls_fingerprint_digest</a> parameter is left at its
 implicit default value, and the <a href="postconf.5.html#compatibility_level">compatibility_level</a> setting is less than
-3, Postfix logs a warning each time a client certificate or public key
+3.6, Postfix logs a warning each time a client certificate or public key
 fingerprint is (potentially) used for access control: </p>
 
 <blockquote>
@@ -437,7 +437,7 @@ the expected server certificates or public keys.  </p>
 
 <p> As long as the <a href="postconf.5.html#smtp_tls_fingerprint_digest">smtp_tls_fingerprint_digest</a> (or LMTP equivalent)
 parameter is left at its implicit default value, and the
-<a href="postconf.5.html#compatibility_level">compatibility_level</a> setting is less than 3, Postfix logs a warning each
+<a href="postconf.5.html#compatibility_level">compatibility_level</a> setting is less than 3.6, Postfix logs a warning each
 time the "fingerprint" security level is used to specify matching "md5"
 digests of trusted server certificates or public keys: </p>
 
@@ -484,6 +484,17 @@ warning: To disable backwards compatibility use "postconf <a href="postconf.5.ht
 
 <p> Sites that don't care about backwards compatibility may set
 "<a href="postconf.5.html#compatibility_level">compatibility_level</a> = 9999" at their own risk. </p>
+
+<p> Starting with Postfix version 3.6, the compatibility level in
+the above warning message is the Postfix version that introduced
+the last incompatible change. The level is formatted as
+<i>major.minor.patch</i>, where <i>patch</i> is usually omitted and
+defaults to zero. Earlier compatibility levels are 0, 1 and 2. </p>
+
+<p> NOTE: this also introduces support for the "&lt;level",
+"&lt;=level", and other operators to compare compatibility levels.
+With the standard operators "&lt;", "&lt;=", etc., compatibility
+level "3.10" would be smaller than "3.9" which is undesirable. </p>
 
 </body>
 

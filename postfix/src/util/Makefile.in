@@ -1955,6 +1955,8 @@ load_file.o: vbuf.h
 load_file.o: vstream.h
 load_file.o: warn_stat.h
 load_lib.o: load_lib.c
+load_lib.o: load_lib.h
+load_lib.o: msg.h
 load_lib.o: sys_defs.h
 logwriter.o: check_arg.h
 logwriter.o: iostuff.h
@@ -1980,6 +1982,7 @@ lstat_as.o: set_eugid.h
 lstat_as.o: sys_defs.h
 lstat_as.o: warn_stat.h
 mac_expand.o: check_arg.h
+mac_expand.o: htable.h
 mac_expand.o: mac_expand.c
 mac_expand.o: mac_expand.h
 mac_expand.o: mac_parse.h

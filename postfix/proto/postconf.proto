@@ -5123,7 +5123,7 @@ Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
 2.2 and later. </dd>
 
 <dd> The default algorithm is <b>sha256</b> with Postfix &ge; 3.6
-and the <b>compatibility_level</b> set to 3 or higher. With Postfix
+and the <b>compatibility_level</b> set to 3.6 or higher. With Postfix
 &le; 3.5, the default algorithm is <b>md5</b>.  The best-practice
 algorithm is now <b>sha256</b>. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -5257,7 +5257,7 @@ Postfix version 2.5).  This feature requires "smtpd_tls_ask_ccert
 = yes" and is available with Postfix version 2.2 and later.</dd>
 
 <dd> The default algorithm is <b>sha256</b> with Postfix &ge; 3.6
-and the <b>compatibility_level</b> set to 3 or higher. With Postfix
+and the <b>compatibility_level</b> set to 3.6 or higher. With Postfix
 &le; 3.5, the default algorithm is <b>md5</b>.  The best-practice
 algorithm is now <b>sha256</b>. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -9304,7 +9304,7 @@ smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
 Postfix version 2.5).  </dd>
 
 <dd> The default algorithm is <b>sha256</b> with Postfix &ge; 3.6
-and the <b>compatibility_level</b> set to 3 or higher. With Postfix
+and the <b>compatibility_level</b> set to 3.6 or higher. With Postfix
 &le; 3.5, the default algorithm is <b>md5</b>.  The best-practice
 algorithm is now <b>sha256</b>. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -9749,7 +9749,7 @@ smtpd_tls_fingerprint_digest parameter (hard-coded as md5 prior to
 Postfix version 2.5).  </p>
 
 <p> The default algorithm is <b>sha256</b> with Postfix &ge; 3.6
-and the <b>compatibility_level</b> set to 3 or higher. With Postfix
+and the <b>compatibility_level</b> set to 3.6 or higher. With Postfix
 &le; 3.5, the default algorithm is <b>md5</b>.  The best-practice
 algorithm is now <b>sha256</b>. Recent advances in hash function
 cryptanalysis have led to md5 and sha1 being deprecated in favor of
@@ -12427,7 +12427,7 @@ attacks, it is not feasible to create a new public key and a matching
 certificate (or public/private key-pair) that has the same fingerprint. </p>
 
 <p> The default algorithm is <b>sha256</b> with Postfix &ge; 3.6
-and the <b>compatibility_level</b> set to 3 or higher. With Postfix
+and the <b>compatibility_level</b> set to 3.6 or higher. With Postfix
 &le; 3.5, the default algorithm is <b>md5</b>. </p>
 
 <p> The best-practice algorithm is now <b>sha256</b>. Recent advances in hash
@@ -12570,7 +12570,7 @@ fingerprints or public key fingerprints (Postfix 2.9 and later) for
 <b>check_ccert_access</b> and <b>permit_tls_clientcerts</b>. </p>
 
 <p> The default algorithm is <b>sha256</b> with Postfix &ge; 3.6
-and the <b>compatibility_level</b> set to 3 or higher. With Postfix
+and the <b>compatibility_level</b> set to 3.6 or higher. With Postfix
 &le; 3.5, the default algorithm is <b>md5</b>. </p>
 
 <p> The best-practice algorithm is now <b>sha256</b>. Recent advances in hash
@@ -16753,6 +16753,17 @@ warning: To disable backwards compatibility use "postconf
 </pre>
 </blockquote>
 
+<p> Starting with Postfix version 3.6, the compatibility level in
+the above warning message is the Postfix version that introduced
+the last incompatible change. The level is formatted as
+<i>major.minor.patch</i>, where <i>patch</i> is usually omitted and
+defaults to zero. Earlier compatibility levels are 0, 1 and 2. </p>
+
+<p> NOTE: this also introduces support for the "&lt;level",
+"&lt;=level", and other operators to compare compatibility levels.
+With the standard operators "&lt;", "&lt;=", etc., compatibility
+level "3.10" would be smaller than "3.9" which is undesirable. </p>
+
 <p> This feature is available in Postfix 3.0 and later. </p>
 
 %PARAM message_drop_headers bcc, content-length, resent-bcc, return-path
@@ -17979,7 +17990,7 @@ of the null sender address.
 %PARAM enable_threaded_bounces no
 
 <p> Enable non-delivery notifications (bounce messages) that link
-to the original message by including a References: and In-Reply_to:
+to the original message by including a References: and In-Reply-To:
 header with the original Message-ID value. There are advantages and
 disadvantages to consider. </p>
 
