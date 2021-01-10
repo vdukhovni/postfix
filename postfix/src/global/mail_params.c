@@ -874,7 +874,8 @@ void    mail_params_init()
      * Extract compatibility level first, so that we can determine what
      * parameters of interest are left at their legacy defaults.
      */
-    compat_level_relop_register();
+    if (var_compatibility_level == 0)
+	compat_level_relop_register();
     get_mail_conf_str_table(compat_level_defaults);
     compat_level = compat_level_from_string(var_compatibility_level, msg_fatal);
     check_legacy_defaults();

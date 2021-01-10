@@ -189,6 +189,9 @@
 /*	caches, pseudo-random numbers).
 /* .PP
 /*	Available in Postfix version 3.0 and later:
+/* .IP "\fBcompatibility_level (0)\fR"
+/*	A safety net that causes Postfix to run with backwards-compatible
+/*	default settings after an upgrade to a newer Postfix version.
 /* .IP "\fBmeta_directory (see 'postconf -d' output)\fR"
 /*	The location of non-executable files that are shared among
 /*	multiple Postfix instances, such as postfix-files, dynamicmaps.cf,
@@ -252,8 +255,9 @@
 /* .fi
 /*	Prior to Postfix version 2.6, all of the following files
 /*	were in \fB$config_directory\fR. Some files are now in
-/*	\fB$daemon_directory\fR so that they can be shared among
-/*	multiple instances that run the same Postfix version.
+/*	\fB$daemon_directory\fR or \fB$meta_directory\fR so that they
+/*	can be shared among multiple instances that run the same Postfix
+/*	version.
 /*
 /*	Use the command "\fBpostconf config_directory\fR" or
 /*	"\fBpostconf daemon_directory\fR" to expand the names
@@ -263,10 +267,10 @@
 /*
 /*	$config_directory/main.cf, Postfix configuration parameters
 /*	$config_directory/master.cf, Postfix daemon processes
-/*	$daemon_directory/postfix-files, file/directory permissions
 /*	$daemon_directory/postfix-script, administrative commands
 /*	$daemon_directory/post-install, post-installation configuration
-/*	$daemon_directory/dynamicmaps.cf, plug-in database clients
+/*	$meta_directory/dynamicmaps.cf, plug-in database clients
+/*	$meta_directory/postfix-files, file/directory permissions
 /* SEE ALSO
 /*	Commands:
 /*	postalias(1), create/update/query alias database

@@ -25344,3 +25344,12 @@ Apologies for any names omitted.
 	"major.minor.patch". Files: global/mail_params.[hc],
 	master/master_ent.c, postconf/postconf.c, postfix/postfix.c,
 	proto/COMPATIBILITY_README.html, proto/postconf.proto.
+
+20210110
+
+	Documentation: the postfix(1) manpage missed some changes
+	that were introduced in the Postfix 3.0 development
+	cycle. File:postfix/postfix.c.
+
+	Bugfix: the 20210109 change broke 'postfix reload' for the
+	master daemon. File: global/mail_params.c.
