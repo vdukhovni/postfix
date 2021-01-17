@@ -269,6 +269,12 @@
 /*	When a remote destination resolves to a combination of IPv4 and
 /*	IPv6 addresses, ensure that the Postfix SMTP client can try both
 /*	address types before it runs into the smtp_mx_address_limit.
+/* .PP
+/*	Available in Postfix 3.3.16 and later:
+/* .IP "\fBdnssec_probe (ns:.)\fR"
+/*	The DNS query type (default: "ns") and DNS query name (default:
+/*	".") that Postfix may use to determine whether DNSSEC validation
+/*	is available.
 /* MIME PROCESSING CONTROLS
 /* .ad
 /* .fi

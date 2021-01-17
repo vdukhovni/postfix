@@ -1887,6 +1887,60 @@ The name of the \fBdnsblog\fR(8) service entry in master.cf. This
 service performs DNS white/blacklist lookups.
 .PP
 This feature is available in Postfix 2.8 and later.
+.SH dnssec_probe (default: ns:.)
+The DNS query type (default: "ns") and DNS query name (default:
+".") that Postfix may use to determine whether DNSSEC validation
+is available.
+.PP
+Background: DNSSEC validation is needed for Postfix DANE support;
+this ensures that Postfix receives TLSA records with secure TLS
+server certificate info. When DNSSEC validation is unavailable,
+mail deliveries using \fIopportunistic\fR DANE will not be protected
+by server certificate info in TLSA records, and mail deliveries
+using \fImandatory\fR DANE will not be made at all.
+.PP
+By default, a Postfix process will send a DNSSEC probe after
+1) the process made a DNS query that requested DNSSEC validation,
+2) the process did not receive a DNSSEC validated response to this
+query or to an earlier query, and 3) the process did not already
+send a DNSSEC probe.
+.PP
+When the DNSSEC probe has no response, or when the response is
+not DNSSEC validated, Postfix logs a warning that DNSSEC validation
+may be unavailable.
+.PP
+Example:
+.PP
+.nf
+.na
+.ft C
+warning: DNSSEC validation may be unavailable
+warning: reason: dnssec_probe 'ns:.' received a response that is not DNSSEC validated
+warning: reason: dnssec_probe 'ns:.' received no response: Server failure
+.fi
+.ad
+.ft R
+.PP
+Possible reasons why DNSSEC validation may be unavailable:
+.IP \(bu
+The local /etc/resolv.conf file specifies a DNS resolver that
+does not validate DNSSEC signatures (that's
+$queue_directory/etc/resolv.conf when a Postfix daemon runs in a
+chroot jail).
+.IP \(bu
+The local system library does not pass on the "DNSSEC validated"
+bit to Postfix, or Postfix does not know how to ask the library to
+do that.
+.br
+.PP
+By default, the DNSSEC probe asks for the DNS root zone NS
+records, because resolvers should always have that information
+cached. If Postfix runs on a network where the DNS root zone is not
+reachable, specify a different probe, or specify an empty dnssec_probe
+value to disable the feature.
+.PP
+This feature was backported from Postfix 3.6 to Postfix versions
+3.5.9, 3.4.19, 3.3.16. 3.2.21.
 .SH dont_remove (default: 0)
 Don't remove queue files and save them to the "saved" mail queue.
 This is a debugging aid.  To inspect the envelope information and
@@ -7593,7 +7647,7 @@ ciphers on a per\-destination basis.
 This feature is available in Postfix 2.6 and later. With earlier Postfix
 releases only the smtp_tls_mandatory_ciphers parameter is implemented,
 and opportunistic TLS always uses "export" or better (i.e. all) ciphers.
-.SH smtp_tls_dane_insecure_mx_policy (default: dane)
+.SH smtp_tls_dane_insecure_mx_policy (default: see "postconf \-d" output)
 The TLS policy for MX hosts with "secure" TLSA records when the
 nexthop destination security level is \fBdane\fR, but the MX
 record was found via an "insecure" MX lookup.  The choices are:
@@ -7614,6 +7668,12 @@ authentication succeeds, it will be logged only as "Trusted", not
 "Verified", because the MX host name could have been forged.
 .br
 .br
+The default setting for Postfix >= 3.6 is "dane" with
+"smtp_tls_security_level = dane", otherwise "may". This behavior
+was backported to Postfix versions 3.5.9, 3.4.19, 3.3.16. 3.2.21.
+With earlier
+Postfix versions the default setting was always "dane".
+.PP
 Though with "insecure" MX records an active attacker can
 compromise SMTP transport security by returning forged MX records,
 such attacks are "tamper\-evident" since any forged MX hostnames

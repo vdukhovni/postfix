@@ -16,6 +16,47 @@ specifies the release date of a stable release or snapshot release.
 If you upgrade from Postfix 3.1 or earlier, read RELEASE_NOTES-3.2
 before proceeding.
 
+Runtime detection of DNSSEC support
+-----------------------------------
+
+The Postfix build system will no longer automatically disable DNSSEC
+support when it determines that Postfix will use libc-musl. This removes
+the earlier libc-musl workaround for Postfix 3.2.15, 3.3.10, 3.4.12,
+and 3.5.2.
+
+Now, when a Postfix process requests DNSSEC support (typically, for
+Postfix DANE support), the process may do a runtime test to determine if
+DNSSEC validation is available. DNSSEC support may be broken because of
+local configuration, libc incompatibility, or other infrastructure issues.
+
+Background: DNSSEC validation is needed for Postfix DANE support;
+this ensures that Postfix receives TLSA records with secure TLS
+server certificate info. When DNSSEC validation is unavailable,
+mail deliveries using opportunistic DANE will not be protected by
+server certificate info in TLSA records, and mail deliveries using
+mandatory DANE will not be made at all.
+
+The dnssec_probe parameter specifies the DNS query type (default:
+"ns") and DNS query name (default: ".") that Postfix may use to
+determine whether DNSSEC validation is available. Specify an empty
+value to disable this feature.
+
+By default, a Postfix process will send a DNSSEC probe after 1) the
+process made a DNS query that requested DNSSEC validation, 2) the
+process did not receive a DNSSEC validated response to this query
+or to an earlier query, and 3) the process did not already send a
+DNSSEC probe.
+
+When the DNSSEC probe has no response, or when the response is not
+DNSSEC validated, Postfix logs a warning that DNSSEC validation may
+be unavailable. Examples:
+
+warning: DNSSEC validation may be unavailable
+warning: reason: dnssec_probe 'ns:.' received a response that is not DNSSEC validated
+warning: reason: dnssec_probe 'ns:.' received no response: Server failure
+
+This feature was backported from Postfix 3.6.
+
 libc-musl workaround for Postfix 3.2.15, 3.3.10, 3.4.12, and 3.5.2
 ------------------------------------------------------------------
 
